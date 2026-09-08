@@ -1,5 +1,47 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## 2026-09-09 — Gate G29 / Auftrag 044 Schritt 4: Repository-Migration ausgeführt
+
+**Rolle:** Ausführung (Claude Code) · **Branch:** `codex/v2.2.0-haertung` (im neuen Repo)
+
+Nach Marcs Abnahme der Schritte 1–3 wurde die Repository-Migration (Entscheidung E1) durchgeführt.
+
+- **Neues Repo:** `github.com/mapoenisch/leadpilot-dashboard-crm-v2` (privat), `.git` **~30 MB**
+  (von 592 MB — Ziel ≤ 50 MB erfüllt).
+- **Flache Historie:** ein Import-Commit des `ea5859a`-Baums + die drei V2.2.0-Commits
+  (`1940b25`, `8163177`, `6532945` im Archiv) + Branch `codex/g28-supabase-live-operation-design`
+  mit dem G28-Design.
+- **Ausgelassen:** `docs/screenshots/` (271 MB), `docs/references/` (16 MB), `uploads/`,
+  `reference/`, `ui_kits/`, `tokens/`, `guidelines/`, `archive/`, `design-system/`,
+  `components/`, `_ds_*`. Aus `assets/` blieben nur die **5 per ESM importierten** Bilddateien
+  (`assets/facelift/unternehmen/*.png`, `assets/logo/leadpilot-logo-full.png`); ohne sie bricht
+  der Build. Der Rest von `assets/` liegt im Archiv.
+- **Lokaler Ordner:** bisheriger Ordner → `~/Projekte/LeadPilot Dashboard-CRM-archive`
+  (unverändert, `origin` → altes Repo). v2 frisch in den **Originalpfad**
+  `~/Projekte/LeadPilot Dashboard-CRM` geklont, Branch `codex/v2.2.0-haertung`.
+  Projektpfad unverändert → keine Tool-Umkonfiguration nötig. `.env` aus dem Archiv übernommen.
+- **Altes Repo:** bleibt vorerst schreibbar. Umbenennung/Archivierung bewusst zurückgestellt,
+  bis v2 sich im Betrieb bewährt hat.
+
+### Verifikation im frischen v2-Klon
+
+| Prüfung | Ergebnis |
+|---|---|
+| `npm install` | ✅ 231 Pakete |
+| `npx tsc --noEmit` | ✅ Exit 0 |
+| `npm run build` | ✅ built |
+| `npm run verify` (24 Suiten) | ✅ alle grün |
+
+### Vorbefund (unabhängig von der Migration)
+
+`<img src="/assets/...">`-Laufzeitpfade in mehreren Komponenten liefern schon in v2.1.0 in
+Produktion 404, weil Vite nur `public/` unter `/` serviert. Zu beheben in G41.
+
+Protokoll: `docs/REPO_MIGRATION_V2_2_0.md`. Kein Merge, Tag oder Push auf `main` ohne Freigabe.
+
+---
+
+
 ## Gate G29 – Auftrag 044: Repo-Hygiene und Werkzeug-Basis
 
 **Datum:** 2026-09-08  

@@ -1,85 +1,141 @@
 # REPO_MIGRATION_V2_2_0 — Repository-Migrationsprotokoll
 
-**Erstellt:** 2026-09-08  
-**Auftrag:** 044 / Gate G29  
-**Entscheidung:** E1 (BUILD_PLAN_V2.2.0.md)
+**Erstellt:** 2026-09-08 · **Ausgeführt:** 2026-09-09
+**Auftrag:** 044 / Gate G29 · **Entscheidung:** E1 (`BUILD_PLAN_V2.2.0.md`)
+**Status:** ✅ ABGESCHLOSSEN
 
 ---
 
-## Hintergrund
+## Ergebnis in einem Satz
 
-Das bestehende Repository (`leadpilot-dashboard-crm`) enthält 592 MB `.git`-Objekte,
-davon 271 MB Screenshot-Binärdateien unter `docs/screenshots/`. Per Entscheidung E1 wird
-die Git-Historie **nicht** per `git filter-repo` umgeschrieben, da `CLAUDE.md` §9
-das Überschreiben von `main`-Historie verbietet und die Commit-Referenzen im BUILD_LOG
-(`fc48233`, `2cba81b`, `e243dca`, `c63cf82`, `ea5859a`, …) gültig bleiben müssen.
+Die V2.2.0-Arbeit läuft ab jetzt im neuen Repository **`leadpilot-dashboard-crm-v2`**
+(30 MB `.git` statt 592 MB). Das alte Repository **`leadpilot-dashboard-crm`** bleibt
+unverändert als **Archiv** mit der vollständigen 188-Commit-Historie und allen
+Screenshot-Matrizen.
 
 ---
 
-## Vorgehen (Entscheidung E1)
+## Repositories
 
-> **Stopp-Bedingung gilt:** Schritt 4 (neues Repository anlegen) wird erst nach
-> ausdrücklicher Abnahme der Schritte 1–3 durch Marc ausgeführt.
+| | Neu (Arbeits-Repo) | Alt (Archiv) |
+|---|---|---|
+| **Name** | `leadpilot-dashboard-crm-v2` | `leadpilot-dashboard-crm` |
+| **URL** | https://github.com/mapoenisch/leadpilot-dashboard-crm-v2 | https://github.com/mapoenisch/leadpilot-dashboard-crm |
+| **Sichtbarkeit** | privat | privat |
+| **`.git`** | ~30 MB | ~592 MB (unverändert) |
+| **Historie** | 4 flache Commits + `codex/g28`-Branch | vollständig, 188 Commits |
+| **Enthält** | App-Code, App-Assets (5 Bilder), `docs/` ohne Dumps | alles, inkl. `docs/screenshots/` (271 MB) und Referenz-Assets |
+| **Zustand** | aktiv | bleibt vorerst schreibbar (Archivierung/Umbenennung: **noch nicht**, bewusst) |
 
-### Geplante Schritte
+> **Archivierung des alten Repos** wurde von Marc ausdrücklich zurückgestellt, bis v2
+> verifiziert im Betrieb ist. Das alte Repo wird bis dahin nicht umbenannt und nicht
+> read-only gesetzt, damit bei Bedarf noch Korrekturen möglich sind.
 
-1. Neues GitHub-Repository anlegen: `leadpilot-dashboard-crm-v2`
-2. Bestehendes Repository umbenennen zu `leadpilot-dashboard-crm-archive` und auf
-   **archiviert / read-only** setzen
-3. Im neuen Repository einen Startpunkt ab `ea5859a` anlegen (flacher Import ohne Bild-Historie)
-4. `docs/screenshots/**` (271 MB) **nicht** übernehmen; stattdessen lokal gesichert;
-   `docs/screenshots/README.md` mit Verweis auf Archiv-Repository
-5. Alte Remote-URL als `archive`-Remote im neuen Repository eintragen
+---
+
+## Lokale Ordner
+
+| Pfad | Inhalt |
+|---|---|
+| `~/Projekte/LeadPilot Dashboard-CRM` | **frischer Klon von v2** (30 MB `.git`), Branch `codex/v2.2.0-haertung` |
+| `~/Projekte/LeadPilot Dashboard-CRM-archive` | der bisherige Ordner, unverändert; `origin` → altes Repo. Referenz für Alt-Historie, Screenshots, Design-System-Skill-Dateien. Kann gelöscht werden, sobald nicht mehr gebraucht. |
+
+Der Projektpfad `~/Projekte/LeadPilot Dashboard-CRM` ist **gleich geblieben** — die
+Konfiguration der externen Tools (Codex, Antigravity, Perplexity, OpenCode) musste nicht
+angepasst werden. `.env` wurde aus dem Archiv-Ordner in den neuen Klon kopiert.
+
+---
+
+## Flache Historie im neuen Repo
+
+| Commit (v2) | entspricht (Archiv) | Inhalt |
+|---|---|---|
+| `Import: … @ ea5859a (v2.1.0)` | `ea5859a` | gesamter Baum bei v2.1.0, minus der ausgelassenen Pfade |
+| `docs(v2.2.0): define hardening plan G29-G43` | `1940b25` | V2.2.0-Plan + Aufträge 044–046 |
+| `chore(g29): repo hygiene and build tool categories` | `8163177` | `.gitignore`, Build-Tools nach `devDependencies` |
+| `docs(g29): add gate G29 builder report to BUILD_LOG` | `6532945` | G29-Bericht |
+| Branch `codex/g28-supabase-live-operation-design` | `d13cb3b` | G28-Architekturdesign (`docs/superpowers/specs/…`) |
+
+Die Autor-Daten der Original-Commits wurden übernommen.
+
+---
+
+## Ausgelassene Pfade (nur im Archiv)
+
+Referenz-/Screenshot-Dumps und Design-System-Skill-Material — **keine App-Logik**:
+
+```
+docs/screenshots/   (271 MB)   docs/references/   (16 MB)
+uploads/            (19 MB)    reference/         (14 MB)
+assets/  — bis auf 5 Dateien (siehe unten)
+ui_kits/  tokens/  guidelines/  archive/  design-system/  components/  .codex/
+_ds_manifest.json  _ds_bundle.js  _adherence.oxlintrc.json  components.json
+```
+
+### Sonderfall `assets/`
+
+`assets/` ist **nicht** vollständig Skill-Material: `src/features/unternehmen/` importiert
+fünf Bilddateien per ESM-`import`, ohne die der Produktions-Build bricht. Diese fünf
+wurden übernommen:
+
+```
+assets/facelift/unternehmen/unternehmen-aussen-augustusplatz.png
+assets/facelift/unternehmen/unternehmen-innen-besprechung.png
+assets/facelift/unternehmen/unternehmen-innen-empfang.png
+assets/facelift/unternehmen/unternehmen-innen-workspace.png
+assets/logo/leadpilot-logo-full.png
+```
+
+Der Rest von `assets/` (brand-Mockups, ungenutzte Facelift-Varianten) liegt im Archiv.
+
+> **Vorbefund (unabhängig von der Migration):** Mehrere Komponenten nutzen
+> `<img src="/assets/…">` als Laufzeit-URL. Vite serviert nur `public/` unter `/`,
+> daher liefern diese Pfade schon in v2.1.0 in Produktion 404. Zu beheben in G41.
 
 ---
 
 ## Commit-Referenz-Zuordnung
 
-Die folgenden Commit-Hashes sind im BUILD_LOG dokumentiert und bleiben im
-Archiv-Repository (`leadpilot-dashboard-crm-archive`) gültig und erreichbar.
+Diese im BUILD_LOG dokumentierten Hashes existieren **nicht** im neuen Repo, bleiben aber
+im **Archiv-Repo** (`leadpilot-dashboard-crm`) gültig und über die GitHub-Weboberfläche
+oder `git clone` des Archivs erreichbar:
 
 | Hash | Beschreibung | Gate |
 |---|---|---|
 | `fc48233` | docs(g26): approve isolated screenshot baseline review | G26 |
-| `2cba81b` | (in BUILD_LOG referenziert) | – |
-| `e243dca` | (in BUILD_LOG referenziert) | – |
+| `2cba81b` | G24-Freigabe (in BUILD_LOG referenziert) | G24 |
+| `e243dca` | G25-Freigabe (in BUILD_LOG referenziert) | G25 |
 | `c63cf82` | docs(g27): approve v2.1 release readiness review | G27 |
 | `95de1c9` | docs(g27): record accessibility audit review findings | G27 |
-| `1940b25` | docs(v2.2.0): define hardening plan G29-G43 | G29 |
 | `ea5859a` | release: v2.1.0 (Baseline für V2.2.0) | Baseline |
 
-> **Hinweis:** Alle im BUILD_LOG referenzierten Screenshot-Matrizen befinden sich
-> unter `docs/screenshots/` und sind vollständig im Archiv-Repository erhalten.
-> Sie sind über das Archiv-Repository (URL wird nach Schritt 1 eingetragen) abrufbar.
+Alle im BUILD_LOG referenzierten Screenshot-Matrizen liegen unter `docs/screenshots/`
+**im Archiv-Repo**; siehe `docs/screenshots/README.md` im neuen Repo.
 
 ---
 
-## Archiv-Repository
+## Verifikation im frischen v2-Klon
 
-| Feld | Wert |
+| Prüfung | Ergebnis |
 |---|---|
-| **URL** | *(wird nach Marc's Freigabe und Anlage eingetragen)* |
-| **Zustand** | archiviert / read-only |
-| **Enthält** | vollständige Git-Historie inkl. `docs/screenshots/` (271 MB) |
-| **Zugriffsform** | GitHub Web UI, `git clone --no-checkout` |
-
----
-
-## Neues Repository
-
-| Feld | Wert |
-|---|---|
-| **Name** | `leadpilot-dashboard-crm-v2` |
-| **URL** | *(wird nach Anlage eingetragen)* |
-| **Startpunkt** | `ea5859a` (flacher Import, kein Screenshot-Verlauf) |
-| **`docs/screenshots/`** | nicht übernommen; `docs/screenshots/README.md` verweist auf Archiv |
-| **Archiv-Remote** | `archive` → URL des Archiv-Repositories |
+| `npm install` | ✅ 231 Pakete |
+| `npx tsc --noEmit` | ✅ Exit 0 |
+| `npm run build` | ✅ built |
+| `npm run verify` (24 Suiten) | ✅ alle grün |
+| `.git`-Größe | ✅ ~30 MB (Ziel ≤ 50 MB) |
 
 ---
 
 ## Status
 
-- [x] Schritt 1–3 (Hygiene, Build-Tools, Branches): abgeschlossen in Auftrag 044
-- [ ] Schritt 4 (neues GitHub-Repo anlegen): wartet auf Marc's Abnahme der Schritte 1–3
-- [ ] Archiv-URL eintragen
-- [ ] `docs/screenshots/README.md` anlegen mit Archiv-Verweis
+- [x] Neues GitHub-Repo `leadpilot-dashboard-crm-v2` angelegt (privat)
+- [x] Flache Historie ab `ea5859a` gebaut, `docs/screenshots/` + Referenz-Assets ausgelassen
+- [x] `main` + `codex/g28-supabase-live-operation-design` nach v2 gepusht
+- [x] Alter Ordner → `LeadPilot Dashboard-CRM-archive`; v2 frisch in den Originalpfad geklont
+- [x] `.env` aus dem Archiv-Ordner übernommen
+- [x] `docs/screenshots/README.md` mit Archiv-Verweis angelegt
+- [x] Build + Verify im frischen Klon grün
+- [ ] **Offen (Marcs Takt):** altes Repo archivieren/read-only setzen — erst wenn v2 sich im
+      Betrieb bewährt hat
+- [ ] **Offen (optional):** Archiv-Ordner `LeadPilot Dashboard-CRM-archive` löschen, wenn nicht
+      mehr gebraucht
