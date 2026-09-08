@@ -90,57 +90,59 @@ export default tseslint.config(
               target: './src/components',
               from: './src/features',
               message:
-                'Layering-Verstoß: components → features verboten. Refactor nach G33.',
+                'Layering-Verstoß: components → features verboten. Refactor nach G35.',
             },
             // services darf nicht aus components oder features importieren
             {
               target: './src/services',
               from: './src/components',
               message:
-                'Layering-Verstoß: services → components verboten. Refactor nach G33.',
+                'Layering-Verstoß: services → components verboten. Refactor nach G35.',
             },
             {
               target: './src/services',
               from: './src/features',
               message:
-                'Layering-Verstoß: services → features verboten. Refactor nach G33.',
+                'Layering-Verstoß: services → features verboten. Refactor nach G35.',
             },
             // simulation darf nicht aus components oder features importieren
             {
               target: './src/simulation',
               from: './src/components',
               message:
-                'Layering-Verstoß: simulation → components verboten. Refactor nach G33.',
+                'Layering-Verstoß: simulation → components verboten. Refactor nach G35.',
             },
             {
               target: './src/simulation',
               from: './src/features',
               message:
-                'Layering-Verstoß: simulation → features verboten. Refactor nach G33.',
+                'Layering-Verstoß: simulation → features verboten. Refactor nach G35.',
             },
             // domain und types dürfen aus keiner höheren Ebene importieren
             {
               target: './src/domain',
               from: ['./src/components', './src/features', './src/services', './src/simulation'],
               message:
-                'Layering-Verstoß: domain darf nur von unten importieren. Refactor nach G33.',
+                'Layering-Verstoß: domain darf nur von unten importieren. Refactor nach G35.',
             },
             {
               target: './src/types',
               from: ['./src/components', './src/features', './src/services', './src/simulation'],
               message:
-                'Layering-Verstoß: types darf nur von unten importieren. Refactor nach G33.',
+                'Layering-Verstoß: types darf nur von unten importieren. Refactor nach G35.',
             },
-            // Feature-zu-Feature-Imports verboten (jede Kombination)
-            {
-              target: './src/features/(?!([^/]+)/)',
-              from: './src/features',
-              message:
-                'Layering-Verstoß: Feature-zu-Feature-Import verboten. Shared-Code nach components oder services auslagern.',
-            },
+            // Feature-zu-Feature-Imports:
+            // import/no-restricted-paths kann horizontale Feature-Grenzen nicht sauber prüfen.
+            // Das Plugin interpretiert `target` als Dateipfad (kein Regex). Eine per-Feature-Zone
+            // mit `except: ['./src/features/X']` schließt intra-Feature-Subimporte (z.B.
+            // FeatureView.tsx → ./pages/FooPage) nicht aus — sie würden als Verstöße gemeldet.
+            // Dediziertes Werkzeug (z.B. eslint-plugin-boundaries oder custom rule) in G35.
+            // Bekannter Verstoß: src/features/crm/pages/LiveSimulationPage.tsx → @/features/simulation/
           ],
         },
       ],
+
+
 
       // ── ESLint-Kommentar-Disziplin ──────────────────────────────────────────
       'eslint-comments/require-description': 'error',

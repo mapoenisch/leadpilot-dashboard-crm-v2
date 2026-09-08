@@ -5,17 +5,17 @@
 ## 2026-09-09 — Gate G30 / Auftrag 045: ESLint, Prettier und strengeres TypeScript
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`  
-**Baseline-Commit:** `a1af46a` (G29-Abschluss)
+**Baseline-Commit:** `a1af46a` (G29-Abschluss) → Arbeits-Commits: `dd3b257` (initial) + Amend nach Codex-Review
 
 ### Ziel & Kontext
 
-Messgrundlage schaffen für die Fachgates G33, G35, G39, G40. ESLint (Flat Config), Prettier und drei verschärfte TypeScript-Optionen eingerichtet. Kein Produktcode geändert, kein `--fix`.
+Messgrundlage schaffen für Gate G35 (Auftrag 050). ESLint (Flat Config), Prettier und drei verschärfte TypeScript-Optionen eingerichtet. Kein Produktcode geändert, kein `--fix`.
 
 ### Geänderte Dateien
 
 | Datei | Aktion |
 |---|---|
-| `eslint.config.js` | Neu — Flat Config, strenge Regeln auf `src/**/*.{ts,tsx}` beschränkt |
+| `eslint.config.js` | Neu — Flat Config, strenge Regeln auf `src/**/*.{ts,tsx}` beschränkt; `scripts/`, `tools/`, Config-Files in `ignores` |
 | `.prettierrc` | Neu — 100 Zeichen, single quotes, semis, trailing commas |
 | `.prettierignore` | Neu — dist, node_modules, docs/screenshots, package-lock.json |
 | `.editorconfig` | Neu — LF, UTF-8, 2-Space-Indent |
@@ -49,35 +49,49 @@ git diff --exit-code -- src supabase tools/n8n public scripts
 
 ### ESLint-Trefferliste (Ist vs. Erwartung)
 
-| Regel | Ist | Erwartet | Status |
+| Regel | Ist | Erwartet | Status | Zielgate |
+|---|---|---|---|---|
+| `@typescript-eslint/no-explicit-any` | 125 | 42 | +83 — mehr `any` in simulation/types | G35 |
+| `no-console` | 78 | 25 | +53 — auch in simulation/services | G35 |
+| `@typescript-eslint/no-unused-vars` | 72 | unbek. | dokumentiert | G35 |
+| `max-lines` | **19** | **19** | ✅ exakt | G35 |
+| `jsx-a11y/no-static-element-interactions` | 8 | ≤10 | ✅ | G35 |
+| `jsx-a11y/click-events-have-key-events` | 8 | ≤10 | ✅ | G35 |
+| `import/no-restricted-paths` | **7** | **3** | +4 neue vertikale Brüche; Regel nicht gelockert | G35 |
+| `react-hooks/exhaustive-deps` | 3 | ≥1 | ✅ KRITISCH-1 reproduziert | G35 |
+| `react/jsx-no-target-blank` | **0** | 4 | **Fehlalarm aufgeklärt** — alle 4 Links haben `rel="noopener noreferrer"`. Kein G35-Bedarf. | — |
+| `eslint-comments/require-description` | 0 | 0 | ✅ | präventiv |
+
+**`import/no-restricted-paths` — 7 Treffer in 6 Dateien (vertikale Layering-Brüche):**
+
+| Datei | Zeile | Verstoß | Erwartet? |
 |---|---|---|---|
-| `@typescript-eslint/no-explicit-any` | 125 | 42 | +83 — mehr `any` in simulation/types als erwartet |
-| `no-console` | 78 | 25 | +53 — auch in simulation/services |
-| `@typescript-eslint/no-unused-vars` | 72 | unbekannt | dokumentiert |
-| `max-lines` | 19 | 19 | ✅ exakt |
-| `jsx-a11y/no-static-element-interactions` | 8 | ≤10 | ✅ |
-| `jsx-a11y/click-events-have-key-events` | 8 | ≤10 | ✅ |
-| `import/no-restricted-paths` | **7** | **3** | **+4 — echte neue Layering-Brüche; Regel nicht gelockert** |
-| `react-hooks/exhaustive-deps` | 3 | ≥1 | ✅ KRITISCH-1 reproduziert |
-| `react/jsx-no-target-blank` | 0 | 4 | −4 — keine Links ohne noopener gefunden |
-| `eslint-comments/require-description` | 0 | 0 | ✅ |
+| `src/domain/eventRules.ts` | 1 | domain → simulation | ❌ neu |
+| `src/domain/executiveCockpitData.ts` | 4 | domain → services | ❌ neu |
+| `src/services/data/sources/baselineFileSource.ts` | 4+5 | services → features (baseline JSONs) | ❌ neu |
+| `src/services/data/sources/hubSpotBaselineSource.ts` | 5 | services → features (baseline JSON) | ❌ neu |
+| `src/services/import/crmImporter.ts` | 2 | services → features (rawCsvData) | ✅ erwartet |
+| `src/simulation/__tests__/dataSourceIntegrity.test.ts` | 5 | simulation → features (AuditTierView) | ✅ erwartet |
 
-Vollständige Aufschlüsselung mit Dateiliste: `docs/QUALITY_BASELINE_V2_2_0.md`
+**Feature-zu-Feature (`LiveSimulationPage.tsx → @/features/simulation/`):** Bekannter Verstoß, aber `import/no-restricted-paths` kann horizontale Feature-Grenzen ohne Kollateralschäden nicht prüfen (Plugin kennt keine Regex für `target`). Im Config-Kommentar dokumentiert. Prüfung mit dediziertem Werkzeug in G35.
 
-### `noUncheckedIndexedAccess` — Entscheidung
+### `noUncheckedIndexedAccess` — bewusste Abweichung vom Auftragstext, ratifiziert
 
-526 der 765 TSC-Fehler sind auf `noUncheckedIndexedAccess` zurückführbar (>150-Schwelle überschritten). Option bleibt **aktiv** (nicht zurückgestellt), weil alle betroffenen Dateien in G35 sowieso angefasst werden. Reparatur vollständig in G35.
+Ca. 526/765 Fehler aus dieser Option (> 150-Schwelle). Option bleibt aktiv — alle betroffenen Dateien sind in G35-Scope. Reparatur in G35. Abweichung vom Auftragstext hier als Builder-Entscheidung festgehalten.
 
 ### Ergebnis & Freigabestatus
 
-**Alle Gates des Builders grün:**
+**Alle Builder-Gates grün:**
 - `verify` ✅ · `build` ✅ · `src/`-Diff leer ✅ · Schutzbereiche leer ✅
 - Baseline gemessen und in `QUALITY_BASELINE_V2_2_0.md` vollständig dokumentiert ✅
 - Kein `--fix`, kein `eslint-disable` ohne Begründung ✅
+- Codex-Review-Nachbesserungen (5 Punkte) eingearbeitet ✅
 
-**Wartet auf Codex-Review** (Akzeptanzkriterien laut Auftrag 045).
+**Freigabe nach Codex-Review.**
 
 ---
+
+
 
 
 
