@@ -1,5 +1,124 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## Gate G29 – Auftrag 044: Repo-Hygiene und Werkzeug-Basis
+
+**Datum:** 2026-09-08  
+**Rolle:** Builder (Antigravity)  
+**Branch:** `codex/v2.2.0-haertung`  
+**Baseline:** `ea5859a` (`release: v2.1.0`)  
+**Arbeits-Commit:** `8163177` (`chore(g29): repo hygiene and build tool categories`)  
+
+### Ziel und Kontext
+
+Erstes Gate der V2.2.0-Härtung. Räumt das Repository auf, korrigiert die Paket-Kategorien
+und legt die Dokumentations-Basis für die Repository-Migration (Entscheidung E1) an.
+Kein Produktcode wurde geändert.
+
+### .git-Größe vorher / nachher
+
+| Messung | Größe |
+|---|---|
+| Vorher (Baseline `ea5859a`) | 592 MB |
+| Nachher (Commit `8163177`) | 591 MB |
+
+> Die Reduktion auf ≤ 50 MB erfolgt in Schritt 4 (neues Repository `leadpilot-dashboard-crm-v2`)
+> nach Marc's Abnahme der Schritte 1–3. Stopp-Bedingung aus Auftrag §4 gilt.
+
+### Referenzprüfung Root-Dateien (Grep-Ergebnis)
+
+Alle vier Dateien wurden per `grep -rn <datei> src/ index.html scripts/` geprüft:
+
+| Datei | Referenz gefunden? | Aktion |
+|---|---|---|
+| `styles.css` (417 B) | **KEINE** | → `design-system/styles.css` |
+| `thumbnail.html` (789 B) | **KEINE** | → `design-system/thumbnail.html` |
+| `SKILL.md` (878 B) | **KEINE** | → `design-system/SKILL.md` |
+| `readme.md` (12.882 B) | **KEINE** | → `design-system/readme.md` |
+
+### Geänderte Dateien
+
+| Datei | Änderung |
+|---|---|
+| `.gitignore` | `**/.DS_Store`, `*.log`, `.claude/`, `.codex/`, `.superpowers/`, `.code-review-graph/` ergänzt |
+| `package.json` | `tailwindcss`, `postcss`, `autoprefixer` → `devDependencies` |
+| `package-lock.json` | Folgeänderung |
+| `design-system/SKILL.md` | Verschoben von Root |
+| `design-system/readme.md` | Verschoben von Root |
+| `design-system/styles.css` | Verschoben von Root |
+| `design-system/thumbnail.html` | Verschoben von Root |
+| `docs/REPO_MIGRATION_V2_2_0.md` | Neu: Migrationsprotokoll, Commit-Referenz-Tabelle, Status |
+
+### Entfernte Branches (mit unmerged-Commit-Prüfung)
+
+| Branch | Unmerged Commits | Inhalt | Aktion |
+|---|---|---|---|
+| `codex/auftrag-033-spec` | 0 | – | gelöscht |
+| `codex/finde-verifikationsskriptname` | **1** | `docs: finalize Auftrag 012 report and add Auftrag 027 specification` (nur Doku) | gelöscht |
+| `codex/gate-g16-reviewed` | 0 | – | gelöscht |
+| `codex/recovery-version-alignment` | **1** | `chore(version): document v1.3.0 alignment` (nur Doku) | gelöscht |
+| `codex/v2-g14-g19-legacy` | 0 | – | gelöscht |
+| `codex/v2.0.0` | 0 | – | gelöscht |
+| `codex/v2.1.0-design` | 0 | – | gelöscht |
+| `feat/auftrag-027-routing` | 0 | – | gelöscht |
+| `feat/auftrag-028-design-primitives` | 0 | – | gelöscht |
+| `feat/auftrag-029-page-modules` | 0 | – | gelöscht |
+| `feat/auftrag-030-executive-overview` | 0 | – | gelöscht |
+| `feat/auftrag-031-organisation-hr` | 0 | – | gelöscht |
+
+**Verbleibende Branches:** `main`, `codex/v2.2.0-haertung`, `codex/g28-supabase-live-operation-design` (3 ✅)
+
+### Entfernte Worktrees
+
+| Worktree | Status vorher | Aktion |
+|---|---|---|
+| `/Users/marcpoenisch/.codex/worktrees/9712/…` | detached HEAD `95de1c9` | entfernt (`git worktree remove --force`) |
+| `.claude/worktrees/orchestrator-automation` | `fd4086c` `[worktree-orchestrator-automation]` | entfernt (`git worktree remove --force`) |
+
+**Verbleibende Worktrees:** nur Haupt-Worktree (1 ✅)
+
+### Archiv-URL und Zuordnungstabelle
+
+Vollständig in [`docs/REPO_MIGRATION_V2_2_0.md`](REPO_MIGRATION_V2_2_0.md) dokumentiert.
+URL wird nach Marc's Freigabe von Schritt 4 eingetragen.
+
+### Command-Matrix (Pflicht-Verifikation)
+
+| Befehl | Exit-Code | Ergebnis |
+|---|---|---|
+| `npx tsc --noEmit` | 0 | 0 Fehler ✅ |
+| `npm run verify` | 0 | 🎉 ALL INTEGRITY VERIFICATION SUITES (001 bis 025) PASSED ✅ |
+| `npm run build` | 0 | built in 2.30s ✅ |
+| `git diff --exit-code ea5859a..HEAD -- src supabase tools/n8n public scripts` | 0 | Diff leer ✅ |
+| `git diff --check ea5859a..HEAD` | 0 | Kein Whitespace-Konflikt ✅ |
+| `node -e "…filter(['tailwindcss','postcss','autoprefixer'])"` | 0 | `[]` ✅ |
+| `du -sh .git` | – | 591 MB (Reduktion auf ≤ 50 MB nach Schritt 4) |
+
+### Schutzbereichs-Diff
+
+```
+git diff --exit-code ea5859a..HEAD -- src supabase tools/n8n public scripts
+```
+Exit 0 — **Diff leer.** Kein Produktcode geändert. ✅
+
+### Ergebnis & Freigabestatus
+
+| Gate | Status |
+|---|---|
+| TypeScript-Check | ✅ grün |
+| Integritäts-Suiten (001–025) | ✅ grün |
+| Produktions-Build | ✅ grün |
+| Schutzbereichs-Diff | ✅ leer |
+| Build-Tools in devDependencies | ✅ `[]` |
+| Branches ≤ 3 | ✅ 3 |
+| Worktrees bereinigt | ✅ |
+| `docs/REPO_MIGRATION_V2_2_0.md` | ✅ angelegt |
+| **`.git` ≤ 50 MB** | ⏸️ nach Schritt 4 (Repository-Migration) |
+
+**Freigabestatus: WARTET AUF CODEX-REVIEW**  
+Kein Merge, kein Tag, kein Push.
+
+---
+
 ## 2026-09-08 — V2.2.0 „Härtung vor Supabase": Phasenplan angelegt, G28 pausiert
 
 **Rolle:** Planung (Claude Code). Kein Produktcode geändert.
