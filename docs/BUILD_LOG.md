@@ -1,5 +1,81 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## 2026-09-08 — V2.2.0 „Härtung vor Supabase": Phasenplan angelegt, G28 pausiert
+
+**Rolle:** Planung (Claude Code). Kein Produktcode geändert.
+**Branch:** `codex/v2.2.0-haertung`, abgezweigt von `main` @ `ea5859a` (`release: v2.1.0`).
+
+### Anlass
+
+Vollständige Code-Analyse des Stands `ea5859a` (50.956 Zeilen `src/`, 303 Dateien). Ergebnis:
+Die Schichtenarchitektur ist mit **3 Verstößen bei 302 Dateien** überdurchschnittlich sauber, die
+Absicherung der Live-KPI-Pipeline in `supabase/schema.sql` (`REVOKE ALL`, `SECURITY DEFINER`-RPC
+mit strenger Validierung, separate Projektionstabelle) ist auf Produktionsniveau. Die Schwächen
+liegen im Frontend-Handwerk, in fehlender Werkzeug-Infrastruktur und in der Repo-Hygiene.
+
+### Entscheidung
+
+Gate **G28 (Supabase Live Operation)** wird **pausiert**. Das Design-Dokument (`d13cb3b` auf
+`codex/g28-supabase-live-operation-design`, 194 Zeilen) bleibt unverändert erhalten; die Nummer
+G28 wird **nicht** neu vergeben. Vor der Supabase-Inbetriebnahme läuft die V2.2.0-Härtung als
+Gates **G29–G43** (Aufträge 044–061).
+
+Begründung: G28 ist bislang reines Design ohne Code — der Einschub kostet keinen Rückbau. Und
+zwei Befunde betreffen G28 unmittelbar: die offenen RLS-Policies (`USING (true)` auf `companies`,
+`contacts`, `imported_funnel_deals`) und die fehlende Authentifizierung (0 Auth-Aufrufe in `src/`).
+Beides vor Inbetriebnahme zu klären ist billiger als danach.
+
+### Getroffene Vorentscheidungen (durch Marc)
+
+| # | Frage | Entscheidung |
+|---|---|---|
+| E1 | Git-Historie (592 MB, davon 271 MB Screenshots) | **Neues Repository**, altes als Archiv-Remote — kein Force-Push, `CLAUDE.md` §9 bleibt gewahrt |
+| E2 | Styling (3 parallele Systeme) | **Tailwind konsequent** — `tailwind.config.js` bindet bereits alle 67 Design-Tokens ein |
+| E3 | State-Management (God Context, ~10 `useState`) | **Zustand** mit Selektoren |
+| E4 | Server-State | **Beides**: TanStack Query für HTTP, eigener Store für Realtime (auf `useSyncExternalStore` umgestellt) |
+
+### Angelegte Dokumente
+
+- `docs/BUILD_PLAN_V2.2.0.md` — Masterplan: 15 Gates, Abnahmetabelle mit **23 maschinell
+  prüfbaren Kennzahlen**, Befund-Zuordnung, Reihenfolge-Begründung, QS-Ablösungsplan
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_044_REPO_HYGIENE_WERKZEUG_BASIS.md` (G29)
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_045_ESLINT_PRETTIER_TYPESCRIPT.md` (G30)
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_046_VITEST_PLAYWRIGHT_CI.md` (G31)
+
+Die Aufträge **047–061** werden bewusst **noch nicht** geschrieben: Nach `CLAUDE.md` §3 wird immer
+nur der zuletzt übergebene Auftrag bearbeitet, und mehrere dieser Aufträge hängen von Messwerten
+ab, die erst frühere Gates liefern (etwa die ESLint-Baseline aus G30 für G35, die Profiler-Zahlen
+aus G37 für G40). Vorab geschriebene Aufträge wären zum Zeitpunkt ihrer Ausführung veraltet.
+`BUILD_PLAN_V2.2.0.md` beschreibt sie in ausreichender Tiefe für die Planung.
+
+### Kernbefunde und ihre Gates
+
+| Schwere | Befund | Gemessen | Gate |
+|---|---|---|---|
+| 🔴 | `useSyncExternalStore` fehlt → Tearing-Risiko bei Concurrent Rendering | 0 Vorkommen | G32 → G33 |
+| 🔴 | Keine Authentifizierung, RLS `USING (true)` | 0 Auth-Aufrufe | G42 + G28 |
+| 🟠 | Drei parallele Styling-Systeme | 128 Inline / 29 Tailwind / 1.247 CSS-Zeilen | G38 → G39 |
+| 🟠 | Rendering nicht optimiert | `memo` 6, `useCallback` 4 bei 188 Komponenten | G37 + G40 |
+| 🟠 | Ein Realtime-Kanal je Kennzahl | 12 gleichzeitige WebSocket-Kanäle | G34 |
+| 🟠 | Layering-Verstöße | 3 (`crmImporter`, `dataSourceIntegrity.test`, `LiveSimulationPage`) | G30 → G35 |
+| 🟡 | Bundle zu grob geschnitten | `vendor.js` 798 KB | G41 |
+| 🟡 | Keine Qualitätswerkzeuge, keine CI | 0 vorhanden | G30 + G31 |
+| 🟡 | `any` / `console` / a11y / Links | 42 / 25 / 10 / 4 | G30 → G35 |
+| 🟡 | Store-Detailfehler | `historyPromise` tot, `status` bleibt auf `loading`, Historie-Verlust bei `refCount 0` | G33 |
+| 🟢 | Repo-Hygiene | `.git` 592 MB, ~50 duplizierte Capture-Skripte | G29 + G31 |
+
+### Abnahme V2.2.0
+
+23 Kennzahlen, jede maschinell prüfbar (`docs/BUILD_PLAN_V2.2.0.md`, Abschnitt „Definition of
+Done"). V2.2.0 gilt erst als freigegeben, wenn **jede** erfüllt ist. G43 prüft sie Zeile für Zeile.
+
+**Aufwand:** 24–34 Arbeitstage, davon 10–14 allein für die Styling-Migration (Phase 3).
+
+**Status:** Planung abgeschlossen, G29 bereit zur Übergabe an Antigravity.
+Kein Merge, Tag oder Push.
+
+---
+
 ## 2026-09-08 — Codex-Freigabe Gate G27
 
 - **Geprüfter Stand:** `3edfc0d` auf `codex/v2.1.0-design`; **Baseline:** `fc48233`.
