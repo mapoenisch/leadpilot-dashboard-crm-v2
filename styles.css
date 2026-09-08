@@ -1,9 +1,0 @@
-@import url('tokens/colors.css');
-@import url('tokens/fonts.css');
-@import url('tokens/typography.css');
-@import url('tokens/spacing.css');
-@import url('tokens/radius.css');
-@import url('tokens/shadows.css');
-body{background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);}
-a{color:var(--color-primary);text-decoration:none;}
-a:hover{color:var(--color-primary-hover);text-decoration:underline;}

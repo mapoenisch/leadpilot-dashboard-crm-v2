@@ -2,7 +2,13 @@ node_modules/
 dist/
 .env
 .DS_Store
+**/.DS_Store
 
 Archiv.zip
 .cdp_*
+*.log
 
+.claude/
+.codex/
+.superpowers/
+.code-review-graph/
