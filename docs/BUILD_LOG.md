@@ -1,6 +1,85 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
-## 2026-09-09 — Gate G29 / Auftrag 044 Schritt 4: Repository-Migration ausgeführt
+---
+
+## 2026-09-09 — Gate G30 / Auftrag 045: ESLint, Prettier und strengeres TypeScript
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`  
+**Baseline-Commit:** `a1af46a` (G29-Abschluss)
+
+### Ziel & Kontext
+
+Messgrundlage schaffen für die Fachgates G33, G35, G39, G40. ESLint (Flat Config), Prettier und drei verschärfte TypeScript-Optionen eingerichtet. Kein Produktcode geändert, kein `--fix`.
+
+### Geänderte Dateien
+
+| Datei | Aktion |
+|---|---|
+| `eslint.config.js` | Neu — Flat Config, strenge Regeln auf `src/**/*.{ts,tsx}` beschränkt |
+| `.prettierrc` | Neu — 100 Zeichen, single quotes, semis, trailing commas |
+| `.prettierignore` | Neu — dist, node_modules, docs/screenshots, package-lock.json |
+| `.editorconfig` | Neu — LF, UTF-8, 2-Space-Indent |
+| `tsconfig.json` | `noUnusedLocals/Parameters: true`, `noUncheckedIndexedAccess: true` |
+| `package.json` | Scripts: `lint`, `lint:report`, `format`, `format:check` + 10 devDependencies |
+| `docs/QUALITY_BASELINE_V2_2_0.md` | Neu — vollständige Baseline-Tabelle |
+
+### Funktionale Prüfungen
+
+| Prüfung | Ergebnis |
+|---|---|
+| `npm run verify` | ✅ 24/24 Suiten grün |
+| `npm run build` | ✅ Exit 0 |
+| `npx tsc --noEmit` | 765 Fehler — **erwartet, kein Blocker** (rotes TSC in G30 zulässig per Entscheidung) |
+| `npm run lint:report` | 327 Fehler — **erwartet, Baseline dokumentiert** |
+| `npx prettier --check "src/**/*.{ts,tsx}"` | 218 Dateien abweichend — **erwartet** |
+
+### Schutzbereichs-Prüfung
+
+```
+git diff a1af46a -- src/simulation src/types src/context src/services/data src/features/resources
+```
+
+**Ergebnis: leer.** Schutzbereiche unverändert.
+
+```
+git diff --exit-code -- src supabase tools/n8n public scripts
+```
+
+**Ergebnis: leer.** `src/` und alle weiteren Produktpfade unverändert.
+
+### ESLint-Trefferliste (Ist vs. Erwartung)
+
+| Regel | Ist | Erwartet | Status |
+|---|---|---|---|
+| `@typescript-eslint/no-explicit-any` | 125 | 42 | +83 — mehr `any` in simulation/types als erwartet |
+| `no-console` | 78 | 25 | +53 — auch in simulation/services |
+| `@typescript-eslint/no-unused-vars` | 72 | unbekannt | dokumentiert |
+| `max-lines` | 19 | 19 | ✅ exakt |
+| `jsx-a11y/no-static-element-interactions` | 8 | ≤10 | ✅ |
+| `jsx-a11y/click-events-have-key-events` | 8 | ≤10 | ✅ |
+| `import/no-restricted-paths` | **7** | **3** | **+4 — echte neue Layering-Brüche; Regel nicht gelockert** |
+| `react-hooks/exhaustive-deps` | 3 | ≥1 | ✅ KRITISCH-1 reproduziert |
+| `react/jsx-no-target-blank` | 0 | 4 | −4 — keine Links ohne noopener gefunden |
+| `eslint-comments/require-description` | 0 | 0 | ✅ |
+
+Vollständige Aufschlüsselung mit Dateiliste: `docs/QUALITY_BASELINE_V2_2_0.md`
+
+### `noUncheckedIndexedAccess` — Entscheidung
+
+526 der 765 TSC-Fehler sind auf `noUncheckedIndexedAccess` zurückführbar (>150-Schwelle überschritten). Option bleibt **aktiv** (nicht zurückgestellt), weil alle betroffenen Dateien in G35 sowieso angefasst werden. Reparatur vollständig in G35.
+
+### Ergebnis & Freigabestatus
+
+**Alle Gates des Builders grün:**
+- `verify` ✅ · `build` ✅ · `src/`-Diff leer ✅ · Schutzbereiche leer ✅
+- Baseline gemessen und in `QUALITY_BASELINE_V2_2_0.md` vollständig dokumentiert ✅
+- Kein `--fix`, kein `eslint-disable` ohne Begründung ✅
+
+**Wartet auf Codex-Review** (Akzeptanzkriterien laut Auftrag 045).
+
+---
+
+
 
 **Rolle:** Ausführung (Claude Code) · **Branch:** `codex/v2.2.0-haertung` (im neuen Repo)
 
