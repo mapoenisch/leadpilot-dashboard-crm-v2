@@ -1,0 +1,223 @@
+{
+  "version": "fixture",
+  "generatedAt": "2026-09-01T10:00:00.000Z",
+  "generator": "n8n",
+  "generatorSeed": null,
+  "sourceSystem": "hubspot",
+  "hubspotPortalId": "12345678",
+  "periodStart": "2026-01-01",
+  "counts": {
+    "companies": 5,
+    "contacts": 8,
+    "deals": 5,
+    "activities": 0
+  },
+  "companies": [
+    {
+      "id": "hs-comp-1",
+      "name": "CloudScale Logistics GmbH",
+      "domain": "cloudscale-logistics.de",
+      "industry": "Logistik & Transport",
+      "city": "Hamburg",
+      "postalCode": "20457",
+      "employeeCount": 85,
+      "revenue": "12M €",
+      "icpScore": 88,
+      "createdAt": "2025-03-15T09:00:00.000Z"
+    },
+    {
+      "id": "hs-comp-2",
+      "name": "FinTech Prime Solutions AG",
+      "domain": "fintechprime.ch",
+      "industry": "Finanzdienstleistungen",
+      "city": "Zürich",
+      "postalCode": "8001",
+      "employeeCount": 120,
+      "revenue": "25M €",
+      "icpScore": 92,
+      "createdAt": "2025-04-10T11:30:00.000Z"
+    },
+    {
+      "id": "hs-comp-3",
+      "name": "MedTech HealthCare Systems",
+      "domain": "medtech-systems.at",
+      "industry": "Gesundheitswesen",
+      "city": "Wien",
+      "postalCode": "1010",
+      "employeeCount": 45,
+      "revenue": "6M €",
+      "icpScore": 76,
+      "createdAt": "2025-06-01T08:15:00.000Z"
+    },
+    {
+      "id": "hs-comp-4",
+      "name": "GreenEnergy Dynamics GmbH",
+      "domain": "greenenergy-dynamics.de",
+      "industry": "Erneuerbare Energien",
+      "city": "München",
+      "postalCode": "80331",
+      "employeeCount": 60,
+      "revenue": "9M €",
+      "icpScore": 84,
+      "createdAt": "2025-07-20T14:00:00.000Z"
+    },
+    {
+      "id": "hs-comp-5",
+      "name": "AutoDrive Robotics SE",
+      "domain": "autodrive-robotics.de",
+      "industry": "Automotive & Robotik",
+      "city": "Stuttgart",
+      "postalCode": "70173",
+      "employeeCount": 210,
+      "revenue": "40M €",
+      "icpScore": 95,
+      "createdAt": "2025-08-05T10:45:00.000Z"
+    }
+  ],
+  "contacts": [
+    {
+      "id": "hs-cont-1",
+      "companyId": "hs-comp-1",
+      "firstName": "Stefan",
+      "lastName": "Müller",
+      "email": "s.mueller@cloudscale-logistics.de",
+      "jobTitle": "Head of Operations",
+      "name": "Stefan Müller",
+      "role": "Entscheider",
+      "phone": "+49 40 1234567"
+    },
+    {
+      "id": "hs-cont-2",
+      "companyId": "hs-comp-1",
+      "firstName": "Laura",
+      "lastName": "Schmidt",
+      "email": "l.schmidt@cloudscale-logistics.de",
+      "jobTitle": "Lead Engineer",
+      "name": "Laura Schmidt",
+      "role": "Champion",
+      "phone": "+49 40 1234568"
+    },
+    {
+      "id": "hs-cont-3",
+      "companyId": "hs-comp-2",
+      "firstName": "Beat",
+      "lastName": "Zimmermann",
+      "email": "b.zimmermann@fintechprime.ch",
+      "jobTitle": "CTO",
+      "name": "Beat Zimmermann",
+      "role": "Entscheider",
+      "phone": "+41 44 9876543"
+    },
+    {
+      "id": "hs-cont-4",
+      "companyId": "hs-comp-2",
+      "firstName": "Monika",
+      "lastName": "Widmer",
+      "email": "m.widmer@fintechprime.ch",
+      "jobTitle": "VP Product",
+      "name": "Monika Widmer",
+      "role": "Influencer",
+      "phone": "+41 44 9876544"
+    },
+    {
+      "id": "hs-cont-5",
+      "companyId": "hs-comp-3",
+      "firstName": "Christoph",
+      "lastName": "Huber",
+      "email": "c.huber@medtech-systems.at",
+      "jobTitle": "Managing Director",
+      "name": "Christoph Huber",
+      "role": "Entscheider",
+      "phone": "+43 1 5551234"
+    },
+    {
+      "id": "hs-cont-6",
+      "companyId": "hs-comp-4",
+      "firstName": "Anna",
+      "lastName": "Weber",
+      "email": "a.weber@greenenergy-dynamics.de",
+      "jobTitle": "COO",
+      "name": "Anna Weber",
+      "role": "Entscheider",
+      "phone": "+49 89 7778899"
+    },
+    {
+      "id": "hs-cont-7",
+      "companyId": "hs-comp-5",
+      "firstName": "Markus",
+      "lastName": "Bauer",
+      "email": "m.bauer@autodrive-robotics.de",
+      "jobTitle": "VP Engineering",
+      "name": "Markus Bauer",
+      "role": "Entscheider",
+      "phone": "+49 711 4443322"
+    },
+    {
+      "id": "hs-cont-8",
+      "companyId": "hs-comp-5",
+      "firstName": "Elena",
+      "lastName": "Fischer",
+      "email": "e.fischer@autodrive-robotics.de",
+      "jobTitle": "Procurement Lead",
+      "name": "Elena Fischer",
+      "role": "Buyer",
+      "phone": "+49 711 4443323"
+    }
+  ],
+  "importedFunnelDeals": [
+    {
+      "id": "hs-deal-1",
+      "dealName": "CloudScale Logistics - Enterprise Plan 2026",
+      "stage": "WON",
+      "amount": 24000,
+      "closeDate": "2026-02-15",
+      "pipeline": "default"
+    },
+    {
+      "id": "hs-deal-2",
+      "dealName": "FinTech Prime - Core API Integration",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 36000,
+      "closeDate": "2026-05-30",
+      "pipeline": "default"
+    },
+    {
+      "id": "hs-deal-3",
+      "dealName": "MedTech Systems - Pilot Project",
+      "stage": "PITCH_DEMO",
+      "amount": 12000,
+      "closeDate": "2026-04-15",
+      "pipeline": "default"
+    },
+    {
+      "id": "hs-deal-4",
+      "dealName": "GreenEnergy Dynamics - Expansion",
+      "stage": "PROPOSAL",
+      "amount": 18000,
+      "closeDate": "2026-06-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "hs-deal-5",
+      "dealName": "AutoDrive Robotics - Enterprise License",
+      "stage": "LEAD",
+      "amount": 48000,
+      "closeDate": "2026-08-31",
+      "pipeline": "default"
+    }
+  ],
+  "activities": [],
+  "audit": {
+    "companiesLoaded": 5,
+    "companiesValid": 5,
+    "companiesErrors": 0,
+    "contactsLoaded": 9,
+    "contactsValid": 8,
+    "contactsMatched": 8,
+    "contactsErrors": 1,
+    "dealsLoaded": 5,
+    "dealsValid": 5,
+    "dealsErrors": 0,
+    "unmappedStages": {}
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "name": "LeadPilot Generate HubSpot Baseline",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-1",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.hubapi.com/crm/v3/objects/companies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "100"
+            },
+            {
+              "name": "properties",
+              "value": "name,domain,industry,city,zip,numberofemployees,createdate"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-companies",
+      "name": "Fetch Companies",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hubspot_service_key",
+          "name": "HubSpot Service Key – LeadPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "100"
+            },
+            {
+              "name": "properties",
+              "value": "firstname,lastname,email,jobtitle,associatedcompanyid"
+            },
+            {
+              "name": "associations",
+              "value": "companies"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-contacts",
+      "name": "Fetch Contacts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hubspot_service_key",
+          "name": "HubSpot Service Key – LeadPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.hubapi.com/crm/v3/objects/deals",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "100"
+            },
+            {
+              "name": "properties",
+              "value": "dealname,amount,dealstage,pipeline,closedate,hubspot_owner_id"
+            },
+            {
+              "name": "associations",
+              "value": "companies"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-deals",
+      "name": "Fetch Deals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 420],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hubspot_service_key",
+          "name": "HubSpot Service Key – LeadPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mapping Stage Table Definition\nconst STAGE_MAP = {\n  appointmentscheduled: 'LEAD',\n  qualifiedtobuy: 'QUALIFIED_LEAD',\n  presentationscheduled: 'PITCH_DEMO',\n  decisionmakerboughtin: 'PROPOSAL',\n  contractsent: 'CLOSING',\n  closedwon: 'WON',\n  closedlost: 'LOST',\n  'Termin vereinbart': 'LEAD',\n  'Für Kauf qualifiziert': 'QUALIFIED_LEAD',\n  'Präsentation vereinbart': 'PITCH_DEMO',\n  'Entscheidungsträger hat zugestimmt': 'PROPOSAL',\n  'Vertrag gesendet': 'CLOSING',\n  'Abgeschlossen und gewonnen': 'WON',\n  'Abgeschlossen und verloren': 'LOST'\n};\n\nconst rawCompanies = $('Fetch Companies').first()?.json?.results || [];\nconst rawContacts = $('Fetch Contacts').first()?.json?.results || [];\nconst rawDeals = $('Fetch Deals').first()?.json?.results || [];\n\nconst companies = [];\nconst companyIds = new Set();\nlet companiesErrors = 0;\n\nfor (const c of rawCompanies) {\n  const id = String(c.id || c.properties?.hs_object_id || '');\n  const name = String(c.properties?.name || '').trim();\n  if (!id || !name) {\n    companiesErrors++;\n    continue;\n  }\n  companyIds.add(id);\n  companies.push({\n    id,\n    name,\n    domain: c.properties?.domain || undefined,\n    industry: c.properties?.industry || 'Allgemein',\n    city: c.properties?.city || 'Unbekannt',\n    postalCode: c.properties?.zip || undefined,\n    employeeCount: Number(c.properties?.numberofemployees) || 1,\n    createdAt: c.properties?.createdate || c.createdAt || undefined\n  });\n}\n\nconst contacts = [];\nlet contactsErrors = 0;\nlet contactsMatched = 0;\n\nfor (const ct of rawContacts) {\n  const id = String(ct.id || ct.properties?.hs_object_id || '');\n  let companyId = ct.properties?.associatedcompanyid ? String(ct.properties.associatedcompanyid) : '';\n  if (!companyId && ct.associations?.companies?.results?.length > 0) {\n    companyId = String(ct.associations.companies.results[0].id);\n  }\n  if (!id || !companyId || !companyIds.has(companyId)) {\n    contactsErrors++;\n    continue;\n  }\n  contactsMatched++;\n  contacts.push({\n    id,\n    companyId,\n    email: ct.properties?.email || `contact-${id}@leadpilot.internal`,\n    firstName: ct.properties?.firstname || '',\n    lastName: ct.properties?.lastname || '',\n    jobTitle: ct.properties?.jobtitle || undefined,\n    name: `${ct.properties?.firstname || ''} ${ct.properties?.lastname || ''}`.trim() || undefined\n  });\n}\n\nconst importedFunnelDeals = [];\nlet dealsErrors = 0;\nconst unmappedStages = {};\n\nfor (const d of rawDeals) {\n  const id = String(d.id || d.properties?.hs_object_id || '');\n  const rawStage = String(d.properties?.dealstage || '').trim();\n  const mappedStage = STAGE_MAP[rawStage] || STAGE_MAP[rawStage.toLowerCase()] || 'LOST';\n  if (!STAGE_MAP[rawStage] && !STAGE_MAP[rawStage.toLowerCase()]) {\n    unmappedStages[rawStage] = (unmappedStages[rawStage] || 0) + 1;\n  }\n  let companyId = '';\n  if (d.associations?.companies?.results?.length > 0) {\n    companyId = String(d.associations.companies.results[0].id);\n  }\n  if (!id) {\n    dealsErrors++;\n    continue;\n  }\n  importedFunnelDeals.push({\n    id,\n    companyId: companyId && companyIds.has(companyId) ? companyId : undefined,\n    dealName: d.properties?.dealname || `Deal ${id}`,\n    stage: mappedStage,\n    amount: Number(d.properties?.amount) || 0,\n    closeDate: (d.properties?.closedate || '2026-01-01').slice(0, 10),\n    pipeline: d.properties?.pipeline || 'default'\n  });\n}\n\nconst audit = {\n  companiesLoaded: rawCompanies.length,\n  companiesValid: companies.length,\n  companiesErrors,\n  contactsLoaded: rawContacts.length,\n  contactsValid: contacts.length,\n  contactsMatched,\n  contactsErrors,\n  dealsLoaded: rawDeals.length,\n  dealsValid: importedFunnelDeals.length,\n  dealsErrors,\n  unmappedStages\n};\n\nconst now = new Date();\nconst dateStr = now.toISOString().slice(0, 10);\nconst version = `hubspot-${dateStr}`;\n\nconst envelope = {\n  version,\n  generatedAt: now.toISOString(),\n  generator: 'n8n',\n  generatorSeed: null,\n  sourceSystem: 'hubspot',\n  hubspotPortalId: 'hubspot-prod',\n  periodStart: '2026-01-01',\n  counts: {\n    companies: companies.length,\n    contacts: contacts.length,\n    deals: importedFunnelDeals.length,\n    activities: 0\n  },\n  companies,\n  contacts,\n  importedFunnelDeals,\n  activities: [],\n  audit\n};\n\nreturn [{ json: envelope }];"
+      },
+      "id": "map-validate",
+      "name": "Map & Validate Envelope",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const envelope = $input.first().json;\n\nif (!envelope.companies || envelope.companies.length === 0) {\n  throw new Error('HubSpot Baseline Assert Error: Keine Companies gefunden.');\n}\n\nconst companyIds = new Set(envelope.companies.map(c => c.id));\nfor (const ct of envelope.contacts) {\n  if (!companyIds.has(ct.companyId)) {\n    throw new Error(`HubSpot Baseline Assert Error: Dangling Contact ${ct.id} -> Company ${ct.companyId}`);\n  }\n}\n\nreturn [{ json: envelope }];"
+      },
+      "id": "assert-integrity",
+      "name": "Assert Integrity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 300]
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Fetch Companies",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Contacts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Companies": {
+      "main": [
+        [
+          {
+            "node": "Map & Validate Envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Contacts": {
+      "main": [
+        [
+          {
+            "node": "Map & Validate Envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Deals": {
+      "main": [
+        [
+          {
+            "node": "Map & Validate Envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map & Validate Envelope": {
+      "main": [
+        [
+          {
+            "node": "Assert Integrity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-09-07T17:49:38.915Z",
+  "stage": "vorher",
+  "commit": "98bb53a",
+  "appDir": "/Users/marcpoenisch/Projekte/LeadPilot Dashboard-CRM/.baseline-build-98bb53a",
+  "scenario1": {
+    "measuredMs": 17,
+    "budgetMs": 3000,
+    "pass": true,
+    "runs": [
+      198,
+      17,
+      14
+    ]
+  },
+  "scenario2": {
+    "measuredMs": 6,
+    "budgetMs": 600,
+    "pass": true,
+    "runs": [
+      6,
+      6,
+      6
+    ]
+  },
+  "scenario3": {
+    "measuredMs": 26,
+    "budgetMs": 800,
+    "pass": true,
+    "runs": [
+      26,
+      29,
+      26
+    ]
+  },
+  "scenario4": {
+    "normalMs": 0,
+    "normalBudgetMs": 220,
+    "normalPass": true,
+    "hadGlitch": false,
+    "reducedMotionMs": 0,
+    "reducedMotionPass": true
+  }
+}

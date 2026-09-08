@@ -1,0 +1,220 @@
+{
+  "name": "LeadPilot Live KPI Ingest Pipeline (Gate G18)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-kpi-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Ingest Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// LeadPilot live-kpi-event/v1 Raw Payload Pass-Through Node\n// Das eingehende Webhook-Payload wird unverändert und ohne Typ-Coercion oder Defaults weitergereicht.\nconst item = $input.first().json;\nconst rawPayload = (item && typeof item === 'object' && 'body' in item)\n  ? item.body\n  : item;\n\nconst payloadString = (typeof rawPayload === 'string')\n  ? rawPayload\n  : JSON.stringify(rawPayload);\n\nreturn [{\n  json: {\n    rawPayload: payloadString\n  }\n}];"
+      },
+      "id": "validate-prepare-node",
+      "name": "Pass-Through Raw Contract Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT public.ingest_live_kpi_event($1::jsonb) AS result;",
+        "additionalFields": {
+          "queryParams": "={{ [ $json.rawPayload ] }}"
+        }
+      },
+      "id": "postgres-rpc-node",
+      "name": "Execute Ingest RPC (Postgres)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [640, 300],
+      "credentials": {
+        "postgres": {
+          "id": "n8n_ingest_postgres",
+          "name": "LeadPilot PostgreSQL (n8n_ingest role)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.result.status }}",
+                    "rightValue": "accepted",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.result.status }}",
+                    "rightValue": "duplicate",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.result.status }}",
+                    "rightValue": "rejected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "switch-status-node",
+      "name": "Switch by Ingest Status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'accepted', message: 'Event successfully ingested', result: $json.result } }}",
+        "options": {
+          "responseCode": 201
+        }
+      },
+      "id": "response-accepted",
+      "name": "Respond Accepted",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 180]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'duplicate', message: 'Event already exists, idempotently acknowledged', result: $json.result } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "response-duplicate",
+      "name": "Respond Duplicate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', message: 'Event rejected by contract validation', result: $json.result } }}",
+        "options": {
+          "responseCode": 422
+        }
+      },
+      "id": "response-rejected",
+      "name": "Respond Rejected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 420]
+    }
+  ],
+  "connections": {
+    "Webhook Ingest Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pass-Through Raw Contract Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass-Through Raw Contract Payload": {
+      "main": [
+        [
+          {
+            "node": "Execute Ingest RPC (Postgres)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Ingest RPC (Postgres)": {
+      "main": [
+        [
+          {
+            "node": "Switch by Ingest Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch by Ingest Status": {
+      "main": [
+        [
+          {
+            "node": "Respond Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

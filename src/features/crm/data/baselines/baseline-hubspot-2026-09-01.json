@@ -1,0 +1,894 @@
+{
+  "version": "hubspot-2026-09-01",
+  "generatedAt": "2026-09-01T12:00:00.000Z",
+  "generator": "hubspot-mcp",
+  "generatorSeed": null,
+  "sourceSystem": "hubspot",
+  "hubspotPortalId": "148979005",
+  "periodStart": "2026-01-01",
+  "counts": {
+    "companies": 44,
+    "contacts": 0,
+    "deals": 55,
+    "activities": 0
+  },
+  "companies": [
+    {
+      "id": "440520541396",
+      "name": "Amsel Verpackung GmbH & Co. KG",
+      "domain": "amselverpackung.de",
+      "industry": "Allgemein",
+      "city": "Bochum",
+      "postalCode": "44787",
+      "employeeCount": 33,
+      "createdAt": "2026-07-28T09:29:07.413Z"
+    },
+    {
+      "id": "440525931739",
+      "name": "Keller Consulting AG",
+      "domain": "kellerconsulting.de",
+      "industry": "Allgemein",
+      "city": "Frankfurt am Main",
+      "postalCode": "60311",
+      "employeeCount": 58,
+      "createdAt": "2026-07-28T09:29:07.407Z"
+    },
+    {
+      "id": "440433596642",
+      "name": "Vogler Präzisionstechnik GmbH",
+      "domain": "vogler-praezisionstechnik.de",
+      "industry": "MECHANICAL_OR_INDUSTRIAL_ENGINEERING",
+      "city": "Sindelfingen",
+      "employeeCount": 85,
+      "createdAt": "2026-07-27T11:36:59.235Z"
+    },
+    {
+      "id": "440527764696",
+      "name": "Vollmer Finanz AG",
+      "domain": "vollmerfinanz.de",
+      "industry": "Allgemein",
+      "city": "Berlin",
+      "postalCode": "10115",
+      "employeeCount": 180,
+      "createdAt": "2026-07-28T09:29:07.403Z"
+    },
+    {
+      "id": "440906711272",
+      "name": "CareerPilot AI",
+      "industry": "COMPUTER_SOFTWARE",
+      "city": "Laatzen",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T12:04:31.888Z"
+    },
+    {
+      "id": "440656986351",
+      "name": "SmartStock",
+      "industry": "WAREHOUSING",
+      "city": "Unbekannt",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T09:28:29.223Z"
+    },
+    {
+      "id": "440798678243",
+      "name": "SolutionHome GmbH",
+      "industry": "FACILITIES_SERVICES",
+      "city": "Berlin",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T11:52:51.397Z"
+    },
+    {
+      "id": "441741694183",
+      "name": "Musterfirma GmbH",
+      "domain": "musterfirma-demo.de",
+      "industry": "WHOLESALE",
+      "city": "Erfurt",
+      "employeeCount": 1,
+      "createdAt": "2026-08-02T23:08:52.039Z"
+    },
+    {
+      "id": "440655574227",
+      "name": "Distribution Hub Senegal/West Africa",
+      "industry": "INFORMATION_TECHNOLOGY_AND_SERVICES",
+      "city": "Unbekannt",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T12:17:54.049Z"
+    },
+    {
+      "id": "440656285940",
+      "name": "SmartHire AI",
+      "domain": "www.smarthire-ai.de",
+      "industry": "STAFFING_AND_RECRUITING",
+      "city": "Berlin",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T09:23:42.997Z"
+    },
+    {
+      "id": "440682789073",
+      "name": "HRFlow",
+      "domain": "www.hrflow.de",
+      "industry": "HUMAN_RESOURCES",
+      "city": "Unbekannt",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T09:25:33.838Z"
+    },
+    {
+      "id": "440771666142",
+      "name": "CoreConnect",
+      "industry": "INFORMATION_TECHNOLOGY_AND_SERVICES",
+      "city": "Menden",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T11:41:00.114Z"
+    },
+    {
+      "id": "440680787144",
+      "name": "mohammadsunternehmen",
+      "industry": "COMPUTER_NETWORK_SECURITY",
+      "city": "Unbekannt",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T12:21:35.280Z"
+    },
+    {
+      "id": "440680066235",
+      "name": "max' unternehmen",
+      "industry": "INFORMATION_TECHNOLOGY_AND_SERVICES",
+      "city": "Unbekannt",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T12:20:11.088Z"
+    },
+    {
+      "id": "440656936182",
+      "name": "AUTEC Sondermaschinenbau GmbH",
+      "domain": "www.autec-sondermaschinenbau.de",
+      "industry": "MECHANICAL_OR_INDUSTRIAL_ENGINEERING",
+      "city": "Amberg, Bayern",
+      "postalCode": "92224",
+      "employeeCount": 125,
+      "createdAt": "2026-07-29T12:53:26.776Z"
+    },
+    {
+      "id": "444111654127",
+      "name": "Firma NordCom IT-Systemhaus GmbH",
+      "industry": "INFORMATION_TECHNOLOGY_AND_SERVICES",
+      "city": "Rostock",
+      "employeeCount": 40,
+      "createdAt": "2026-08-18T12:44:09.225Z"
+    },
+    {
+      "id": "442021472451",
+      "name": "TCG Connect",
+      "industry": "COMPUTER_SOFTWARE",
+      "city": "Karlsruhe",
+      "postalCode": "76137",
+      "employeeCount": 1,
+      "createdAt": "2026-08-05T22:19:28.114Z"
+    },
+    {
+      "id": "440656326874",
+      "name": "URSULA Eco Business Retreat",
+      "industry": "Allgemein",
+      "city": "Hamburg",
+      "postalCode": "22761",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T13:22:30.233Z"
+    },
+    {
+      "id": "442003273927",
+      "name": "NovaChef Systems GmbH",
+      "industry": "WHOLESALE",
+      "city": "Unbekannt",
+      "employeeCount": 1,
+      "createdAt": "2026-08-05T22:28:11.883Z"
+    },
+    {
+      "id": "440681513163",
+      "name": "Energy Transformation Consulting",
+      "industry": "OIL_ENERGY",
+      "city": "Köln",
+      "employeeCount": 1,
+      "createdAt": "2026-07-30T14:41:48.360Z"
+    },
+    {
+      "id": "440672813263",
+      "name": "Ambiel IT-Systemhaus GmbH",
+      "domain": "itservice.de",
+      "industry": "INFORMATION_TECHNOLOGY_AND_SERVICES",
+      "city": "Heilbronn, Baden-Württemberg",
+      "employeeCount": 30,
+      "createdAt": "2026-07-29T13:06:49.277Z"
+    },
+    {
+      "id": "440647712999",
+      "name": "ASMO IT-Systemhaus GmbH",
+      "domain": "asmoit.de",
+      "industry": "INFORMATION_TECHNOLOGY_AND_SERVICES",
+      "city": "Castrop-Rauxel, Nordrhein-Westfalen",
+      "postalCode": "44579",
+      "employeeCount": 30,
+      "createdAt": "2026-07-29T13:06:49.344Z"
+    },
+    {
+      "id": "440783814861",
+      "name": "Dönmez Sondermaschinenbau GmbH",
+      "domain": "doenmez-sondermaschinenbau.de",
+      "industry": "MECHANICAL_OR_INDUSTRIAL_ENGINEERING",
+      "city": "Lehrte, Niedersachsen",
+      "postalCode": "31275",
+      "employeeCount": 30,
+      "createdAt": "2026-07-29T13:06:49.264Z"
+    },
+    {
+      "id": "440699814096",
+      "name": "KAOS/Carbunus Werbeagentur GmbH",
+      "domain": "kaos.de",
+      "industry": "MARKETING_AND_ADVERTISING",
+      "city": "Wangen im Allgäu, Baden-Württemberg",
+      "employeeCount": 20,
+      "createdAt": "2026-07-29T13:06:49.270Z"
+    },
+    {
+      "id": "440491717829",
+      "name": "Schuster Werbeagentur GmbH",
+      "domain": "schusterwerbeagentur.de",
+      "industry": "Allgemein",
+      "city": "Düsseldorf",
+      "postalCode": "40213",
+      "employeeCount": 8,
+      "createdAt": "2026-07-28T09:29:07.421Z"
+    },
+    {
+      "id": "441423589608",
+      "name": "Musterfirma GMBH",
+      "domain": "musterfirma-demo.de",
+      "industry": "WHOLESALE",
+      "city": "Erfurt",
+      "employeeCount": 1,
+      "createdAt": "2026-08-02T23:08:52.297Z"
+    },
+    {
+      "id": "440516908224",
+      "name": "Feldmann Möbelwerke GmbH & Co. KG",
+      "domain": "feldmannmoebelwerke.de",
+      "industry": "FURNITURE",
+      "city": "Bielefeld",
+      "postalCode": "33602",
+      "employeeCount": 37,
+      "createdAt": "2026-07-28T09:29:07.482Z"
+    },
+    {
+      "id": "440491717830",
+      "name": "Brunner Software GmbH",
+      "domain": "brunnersoftware.de",
+      "industry": "Allgemein",
+      "city": "München",
+      "postalCode": "80331",
+      "employeeCount": 4,
+      "createdAt": "2026-07-28T09:29:07.552Z"
+    },
+    {
+      "id": "440762234101",
+      "name": "Hermann Müller Elektrogrosshandel GmbH",
+      "domain": "eghm.de",
+      "industry": "WHOLESALE",
+      "city": "Weingarten, Baden-Württemberg",
+      "employeeCount": 70,
+      "createdAt": "2026-07-29T13:06:49.278Z"
+    },
+    {
+      "id": "440509721817",
+      "name": "Wagner Bau GmbH & Co. KG",
+      "domain": "wagnerbau.de",
+      "industry": "Allgemein",
+      "city": "Stuttgart",
+      "postalCode": "70173",
+      "employeeCount": 38,
+      "createdAt": "2026-07-28T09:29:07.362Z"
+    },
+    {
+      "id": "440578953442",
+      "name": "Vogel Elektrotechnik GmbH",
+      "domain": "vogelelektrotechnik.de",
+      "industry": "Allgemein",
+      "city": "Köln",
+      "postalCode": "50667",
+      "employeeCount": 43,
+      "createdAt": "2026-07-28T09:29:07.412Z"
+    },
+    {
+      "id": "440516908225",
+      "name": "Lindgren Personalberatung UG (haftungsbeschränkt)",
+      "domain": "lindgrenpersonalberatung.de",
+      "industry": "Allgemein",
+      "city": "Leipzig",
+      "postalCode": "4109",
+      "employeeCount": 74,
+      "createdAt": "2026-07-28T09:29:07.482Z"
+    },
+    {
+      "id": "440549153994",
+      "name": "Hoffmann Immobilien GmbH",
+      "domain": "hoffmannimmobilien.de",
+      "industry": "Allgemein",
+      "city": "Dresden",
+      "postalCode": "1067",
+      "employeeCount": 12,
+      "createdAt": "2026-07-28T09:29:07.403Z"
+    },
+    {
+      "id": "440582533344",
+      "name": "Reuter Textilhandel e.K.",
+      "domain": "reutertextilhandel.de",
+      "industry": "Allgemein",
+      "city": "Essen",
+      "postalCode": "45127",
+      "employeeCount": 11,
+      "createdAt": "2026-07-28T09:29:07.408Z"
+    },
+    {
+      "id": "440506191035",
+      "name": "Bergmann Logistik AG",
+      "domain": "bergmannlogistik.de",
+      "industry": "Allgemein",
+      "city": "Bremen",
+      "postalCode": "28195",
+      "employeeCount": 59,
+      "createdAt": "2026-07-28T09:29:07.413Z"
+    },
+    {
+      "id": "440541994178",
+      "name": "Winkler Steuerberatung GmbH",
+      "domain": "winklersteuerberatung.de",
+      "industry": "Allgemein",
+      "city": "Nürnberg",
+      "postalCode": "90402",
+      "employeeCount": 41,
+      "createdAt": "2026-07-28T09:29:07.362Z"
+    },
+    {
+      "id": "440463128802",
+      "name": "Reinhardt Automation AG",
+      "domain": "reinhardtautomation.de",
+      "industry": "Allgemein",
+      "city": "Wuppertal",
+      "postalCode": "42103",
+      "employeeCount": 7,
+      "createdAt": "2026-07-28T09:29:07.552Z"
+    },
+    {
+      "id": "440547398847",
+      "name": "Kaiser Chemie AG",
+      "domain": "kaiserchemie.de",
+      "industry": "Allgemein",
+      "city": "Dortmund",
+      "postalCode": "44135",
+      "employeeCount": 110,
+      "createdAt": "2026-07-28T09:29:07.472Z"
+    },
+    {
+      "id": "440582533343",
+      "name": "Lorenz Gastro-Handel GmbH",
+      "domain": "lorenzgastrohandel.de",
+      "industry": "Allgemein",
+      "city": "Mannheim",
+      "postalCode": "68159",
+      "employeeCount": 106,
+      "createdAt": "2026-07-28T09:29:07.406Z"
+    },
+    {
+      "id": "440509721818",
+      "name": "Sommer Versicherungsmakler GmbH",
+      "domain": "sommerversicherungsmakler.de",
+      "industry": "Allgemein",
+      "city": "Hannover",
+      "postalCode": "30159",
+      "employeeCount": 48,
+      "createdAt": "2026-07-28T09:29:07.437Z"
+    },
+    {
+      "id": "440507939014",
+      "name": "NordWerk Maschinenbau GmbH",
+      "domain": "nordwerkmaschinenbau.de",
+      "industry": "Allgemein",
+      "city": "Hamburg",
+      "postalCode": "20095",
+      "employeeCount": 22,
+      "createdAt": "2026-07-28T09:29:07.437Z"
+    },
+    {
+      "id": "440489973969",
+      "name": "Ostermann Commerce GmbH",
+      "domain": "ostermanncommerce.de",
+      "industry": "Allgemein",
+      "city": "Karlsruhe",
+      "postalCode": "76133",
+      "employeeCount": 7,
+      "createdAt": "2026-07-28T09:29:07.482Z"
+    },
+    {
+      "id": "440472079583",
+      "name": "Falk Events GmbH",
+      "domain": "falkevents.de",
+      "industry": "Allgemein",
+      "city": "Duisburg",
+      "postalCode": "47051",
+      "employeeCount": 11,
+      "createdAt": "2026-07-28T09:29:07.421Z"
+    },
+    {
+      "id": "442003272946",
+      "name": "DBA",
+      "industry": "HIGHER_EDUCATION",
+      "city": "Berlin",
+      "employeeCount": 1,
+      "createdAt": "2026-08-05T22:01:54.207Z"
+    }
+  ],
+  "contacts": [],
+  "importedFunnelDeals": [
+    {
+      "id": "513920181457",
+      "companyId": "440655574227",
+      "dealName": "Distribution Hub Senegal/West Africa – Erstkontakt",
+      "stage": "LEAD",
+      "amount": 18000,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513919991033",
+      "companyId": "440656285940",
+      "dealName": "SmartHire AI – Erstkontakt",
+      "stage": "LEAD",
+      "amount": 8500,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513919831252",
+      "companyId": "440656986351",
+      "dealName": "SmartStock – Erstkontakt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 9500,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513866381526",
+      "companyId": "440680066235",
+      "dealName": "max' unternehmen – Kennenlerngespräch",
+      "stage": "LEAD",
+      "amount": 7200,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513919873241",
+      "companyId": "440680787144",
+      "dealName": "mohammadsunternehmen – Vertriebsgespräch",
+      "stage": "LEAD",
+      "amount": 10000,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513932528869",
+      "companyId": "440682789073",
+      "dealName": "HRFlow – Erstkontakt",
+      "stage": "LEAD",
+      "amount": 11000,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513862308067",
+      "companyId": "440771666142",
+      "dealName": "CoreConnect – Neukundengespräch",
+      "stage": "LEAD",
+      "amount": 12000,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513919791321",
+      "companyId": "440798678243",
+      "dealName": "SolutionHome GmbH – Erstkontakt",
+      "stage": "LEAD",
+      "amount": 15000,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513932644543",
+      "companyId": "440906711272",
+      "dealName": "CareerPilot AI – Neukundenanfrage",
+      "stage": "LEAD",
+      "amount": 13500,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "513636435140",
+      "companyId": "440906711272",
+      "dealName": "CareerPilot AI – Erstkontakt",
+      "stage": "LEAD",
+      "amount": 15000,
+      "closeDate": "2026-07-30",
+      "pipeline": "default"
+    },
+    {
+      "id": "514871268563",
+      "companyId": "441741694183",
+      "dealName": "Musterfirma GmbH - Erstkontakt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 8500,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "515138264284",
+      "companyId": "442003273927",
+      "dealName": "Qualifizierungsgespräch – NovaChef Systems GmbH (Andre Prösch)",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 0,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "519043684539",
+      "dealName": "GrünBau Immobilien – Projekt",
+      "stage": "WON",
+      "amount": 10000,
+      "closeDate": "2026-04-17",
+      "pipeline": "default"
+    },
+    {
+      "id": "519020808407",
+      "dealName": "Sonnendach Energie – Projekt",
+      "stage": "WON",
+      "amount": 10000,
+      "closeDate": "2026-05-28",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044171965",
+      "dealName": "Küstenwerft – Projekt",
+      "stage": "LOST",
+      "amount": 11000,
+      "closeDate": "2026-05-09",
+      "pipeline": "default"
+    },
+    {
+      "id": "519043626228",
+      "dealName": "TechNova Systems – Projekt",
+      "stage": "WON",
+      "amount": 12000,
+      "closeDate": "2026-05-09",
+      "pipeline": "default"
+    },
+    {
+      "id": "519041426636",
+      "dealName": "Baumarkt Zorn – Projekt",
+      "stage": "LEAD",
+      "amount": 13000,
+      "closeDate": "2026-08-12",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044267240",
+      "dealName": "Frischbox Catering – Projekt",
+      "stage": "PITCH_DEMO",
+      "amount": 15000,
+      "closeDate": "2026-08-03",
+      "pipeline": "default"
+    },
+    {
+      "id": "519024385223",
+      "dealName": "Reinigung Klar – Projekt",
+      "stage": "LEAD",
+      "amount": 18000,
+      "closeDate": "2026-08-21",
+      "pipeline": "default"
+    },
+    {
+      "id": "519043765436",
+      "dealName": "Kanzlei Brandt – Projekt",
+      "stage": "LOST",
+      "amount": 19000,
+      "closeDate": "2026-05-16",
+      "pipeline": "default"
+    },
+    {
+      "id": "519001639107",
+      "dealName": "Digital Punkt – Projekt",
+      "stage": "LOST",
+      "amount": 19000,
+      "closeDate": "2026-05-20",
+      "pipeline": "default"
+    },
+    {
+      "id": "519024384208",
+      "dealName": "City Apotheke – Projekt",
+      "stage": "WON",
+      "amount": 20000,
+      "closeDate": "2026-06-06",
+      "pipeline": "default"
+    },
+    {
+      "id": "519020809454",
+      "dealName": "Optik Marwitz – Projekt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 20000,
+      "closeDate": "2026-08-27",
+      "pipeline": "default"
+    },
+    {
+      "id": "518955891958",
+      "dealName": "Hotel Seeblick – Projekt",
+      "stage": "WON",
+      "amount": 21000,
+      "closeDate": "2026-06-09",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044446435",
+      "dealName": "Weingut Halter – Projekt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 21000,
+      "closeDate": "2026-08-27",
+      "pipeline": "default"
+    },
+    {
+      "id": "519042025691",
+      "dealName": "Blumenwelt Sax – Projekt",
+      "stage": "LOST",
+      "amount": 22000,
+      "closeDate": "2026-04-16",
+      "pipeline": "default"
+    },
+    {
+      "id": "519041544426",
+      "dealName": "Hansa Textil – Projekt",
+      "stage": "WON",
+      "amount": 22000,
+      "closeDate": "2026-04-29",
+      "pipeline": "default"
+    },
+    {
+      "id": "519041950933",
+      "dealName": "Zahnzentrum Lindau – Projekt",
+      "stage": "LOST",
+      "amount": 22000,
+      "closeDate": "2026-06-17",
+      "pipeline": "default"
+    },
+    {
+      "id": "519001639102",
+      "dealName": "Rheinpark Klinik – Projekt",
+      "stage": "LOST",
+      "amount": 23000,
+      "closeDate": "2026-05-11",
+      "pipeline": "default"
+    },
+    {
+      "id": "519041516786",
+      "dealName": "Metropol Fitness – Projekt",
+      "stage": "LOST",
+      "amount": 27000,
+      "closeDate": "2026-05-31",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044375786",
+      "dealName": "Nordlicht Logistik – Projekt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 27000,
+      "closeDate": "2026-08-02",
+      "pipeline": "default"
+    },
+    {
+      "id": "519024387299",
+      "dealName": "Tierklinik Bruns – Projekt",
+      "stage": "PROPOSAL",
+      "amount": 28000,
+      "closeDate": "2026-07-25",
+      "pipeline": "default"
+    },
+    {
+      "id": "519041768644",
+      "dealName": "Fahrschule Ritter – Projekt",
+      "stage": "PROPOSAL",
+      "amount": 30000,
+      "closeDate": "2026-07-28",
+      "pipeline": "default"
+    },
+    {
+      "id": "514863813873",
+      "dealName": "Musterfirma GmbH - Test-Deal",
+      "stage": "WON",
+      "amount": 3200,
+      "closeDate": "2026-08-02",
+      "pipeline": "default"
+    },
+    {
+      "id": "519017183456",
+      "dealName": "Feinkost Weber – Projekt",
+      "stage": "LOST",
+      "amount": 34000,
+      "closeDate": "2026-04-19",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044203760",
+      "dealName": "Lagerhaus Schmitt – Projekt",
+      "stage": "WON",
+      "amount": 34000,
+      "closeDate": "2026-05-09",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044520146",
+      "dealName": "Speditur Falk – Projekt",
+      "stage": "LOST",
+      "amount": 34000,
+      "closeDate": "2026-06-08",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044520148",
+      "dealName": "Cafe Lettera – Projekt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 36000,
+      "closeDate": "2026-07-16",
+      "pipeline": "default"
+    },
+    {
+      "id": "519024385224",
+      "dealName": "Studio Neun – Projekt",
+      "stage": "LEAD",
+      "amount": 36000,
+      "closeDate": "2026-08-05",
+      "pipeline": "default"
+    },
+    {
+      "id": "519041424633",
+      "dealName": "Auto Vogel – Projekt",
+      "stage": "PITCH_DEMO",
+      "amount": 39000,
+      "closeDate": "2026-08-26",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044446434",
+      "dealName": "Sporthaus Degen – Projekt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 40000,
+      "closeDate": "2026-08-14",
+      "pipeline": "default"
+    },
+    {
+      "id": "519043197175",
+      "dealName": "Werkzeug Ott – Projekt",
+      "stage": "LOST",
+      "amount": 41000,
+      "closeDate": "2026-05-17",
+      "pipeline": "default"
+    },
+    {
+      "id": "519043684541",
+      "dealName": "Alpenhof Gastro – Projekt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 41000,
+      "closeDate": "2026-07-23",
+      "pipeline": "default"
+    },
+    {
+      "id": "519020809456",
+      "dealName": "Immo Vester – Projekt",
+      "stage": "PROPOSAL",
+      "amount": 42000,
+      "closeDate": "2026-08-05",
+      "pipeline": "default"
+    },
+    {
+      "id": "519041771764",
+      "dealName": "Druckerei Pfeil – Projekt",
+      "stage": "PITCH_DEMO",
+      "amount": 42000,
+      "closeDate": "2026-08-07",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044518136",
+      "dealName": "Pflegedienst Aurora – Projekt",
+      "stage": "WON",
+      "amount": 43000,
+      "closeDate": "2026-06-05",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044028628",
+      "dealName": "Stadtwerk Media – Projekt",
+      "stage": "LEAD",
+      "amount": 43000,
+      "closeDate": "2026-07-27",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044065478",
+      "dealName": "Bytewerk Software – Projekt",
+      "stage": "CLOSING",
+      "amount": 45000,
+      "closeDate": "2026-08-03",
+      "pipeline": "default"
+    },
+    {
+      "id": "513934638280",
+      "dealName": "domenicsunternehmen – Erstgespräch",
+      "stage": "LEAD",
+      "amount": 6000,
+      "closeDate": "2026-01-01",
+      "pipeline": "default"
+    },
+    {
+      "id": "514355169505",
+      "dealName": "Schröder – LeadPilot Einführung",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 6500,
+      "closeDate": "2026-08-31",
+      "pipeline": "default"
+    },
+    {
+      "id": "519043197173",
+      "dealName": "Backhaus Möller – Projekt",
+      "stage": "CLOSING",
+      "amount": 7000,
+      "closeDate": "2026-07-31",
+      "pipeline": "default"
+    },
+    {
+      "id": "518962640091",
+      "dealName": "Bergmann Handel – Projekt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 7000,
+      "closeDate": "2026-08-26",
+      "pipeline": "default"
+    },
+    {
+      "id": "519041768643",
+      "dealName": "Elektro Reimann – Projekt",
+      "stage": "LOST",
+      "amount": 8000,
+      "closeDate": "2026-05-28",
+      "pipeline": "default"
+    },
+    {
+      "id": "519044519138",
+      "dealName": "Praxis Sommer – Projekt",
+      "stage": "LOST",
+      "amount": 9000,
+      "closeDate": "2026-05-30",
+      "pipeline": "default"
+    },
+    {
+      "id": "519048711368",
+      "dealName": "Möbel Kranz – Projekt",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 9000,
+      "closeDate": "2026-07-13",
+      "pipeline": "default"
+    }
+  ],
+  "activities": [],
+  "audit": {
+    "companiesLoaded": 44,
+    "companiesValid": 44,
+    "companiesErrors": 0,
+    "contactsLoaded": 0,
+    "contactsValid": 0,
+    "contactsMatched": 0,
+    "contactsErrors": 0,
+    "dealsLoaded": 55,
+    "dealsValid": 55,
+    "dealsErrors": 0,
+    "unmappedStages": {}
+  }
+}

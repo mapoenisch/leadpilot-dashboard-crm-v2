@@ -1,0 +1,1247 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Colors Base */
+  --black: #061613;
+  --charcoal: #0B211F;
+  --surface: #123330;
+  --border-gray: #2A4A43;
+  --white: #FFFFFF;
+  --gray-muted: #A7B0BA;
+  --cyan: #00D9C6;
+  --cyan-light: #7CEFE6;
+  --cyan-a12: rgba(0, 217, 198, 0.12);
+  --orange: #FF7A3D;
+  --orange-light: #FF9A66;
+  --orange-a14: rgba(255, 122, 61, 0.14);
+  --orange-soft: #FFD1B8;
+  --coral-red: #FF5A5F;
+  --coral-red-a14: rgba(255, 90, 95, 0.14);
+  --mint-green: #3DDC97;
+  --mint-green-a14: rgba(61, 220, 151, 0.14);
+
+  /* Semantic Colors */
+  --color-bg: var(--charcoal);
+  --color-bg-deep: var(--black);
+  --color-surface: var(--surface);
+  --color-surface-raised: #1A3F38;
+  --color-surface-glass: rgba(18, 51, 48, 0.65);
+  --color-surface-glass-raised: rgba(26, 63, 56, 0.75);
+  --color-border: var(--border-gray);
+  --color-border-soft: rgba(42, 74, 67, 0.5);
+  --color-border-glass: rgba(42, 74, 67, 0.6);
+  --backdrop-blur: blur(12px);
+  --backdrop-blur-sm: blur(8px);
+
+  --color-text: var(--white);
+  --color-text-muted: var(--gray-muted);
+  --color-text-inverse: var(--charcoal);
+
+  --color-primary: var(--cyan);
+  --color-primary-hover: var(--cyan-light);
+  --color-primary-soft: var(--cyan-a12);
+  --color-accent: var(--orange);
+  --color-accent-hover: var(--orange-light);
+  --color-accent-soft: var(--orange-a14);
+  --color-accent-soft-fill: var(--orange-soft);
+
+  --color-success: var(--mint-green);
+  --color-success-soft: var(--mint-green-a14);
+  --color-error: var(--coral-red);
+  --color-error-soft: var(--coral-red-a14);
+  --color-warning: var(--orange);
+  --color-warning-soft: var(--orange-a14);
+
+  /* Typography */
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+  --space-10: 64px;
+  --space-12: 96px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, .35);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, .5);
+  --shadow-glow-cyan: 0 0 24px rgba(0, 217, 198, .35);
+  --shadow-glow-cyan-strong: 0 0 40px rgba(0, 217, 198, .45);
+  --shadow-glow-orange: 0 0 20px rgba(255, 122, 61, .3);
+  --focus-ring: 0 0 0 3px var(--cyan-a12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Animations */
+@keyframes pulse-cyan {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 217, 198, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(0, 217, 198, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 217, 198, 0);
+  }
+}
+
+.pulse-live {
+  animation: pulse-cyan 2s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .pulse-live {
+    animation: none !important;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes backdrop-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Accessibility Focus Visible */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Number Stepper spinner removal */
+input[type="number"].no-spinner::-webkit-inner-spin-button,
+input[type="number"].no-spinner::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"].no-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Responsive Key-Value Row */
+.responsive-kv-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+@media (max-width: 640px) {
+  .responsive-kv-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* Organigram Responsive Styles */
+@media (max-width: 900px) {
+  .organigram-connectors {
+    display: none !important;
+  }
+}
+
+/* Roadmap Vertical Timeline */
+.roadmap-timeline {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  gap: var(--space-4);
+}
+
+.roadmap-timeline::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 20px;
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(0, 217, 198, 0.6) 0%, rgba(0, 217, 198, 0.15) 100%);
+}
+
+@media (max-width: 640px) {
+  .roadmap-timeline::before {
+    left: 12px;
+  }
+}
+
+.roadmap-timeline-item {
+  display: flex;
+  gap: var(--space-4);
+  position: relative;
+  min-width: 0;
+}
+
+.roadmap-timeline-node {
+  width: 42px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .roadmap-timeline-node {
+    width: 26px;
+  }
+}
+
+.roadmap-timeline-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #061613;
+  border: 2px solid var(--color-primary);
+  margin-top: 18px;
+  box-shadow: 0 0 10px rgba(0, 217, 198, 0.4);
+  z-index: 1;
+}
+
+.roadmap-timeline-dot.in-dev {
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 10px rgba(255, 122, 61, 0.4);
+}
+
+.roadmap-timeline-dot.planned {
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: none;
+}
+
+.roadmap-timeline-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   CRM V2 Responsive Listen & Komponenten (Gate G16)
+   ========================================================================== */
+
+.crm-v2-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .crm-v2-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .crm-v2-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.crm-v2-filter-bar {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .crm-v2-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+}
+
+.crm-v2-result-count {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+}
+
+.crm-v2-desktop-table {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .crm-v2-desktop-table {
+    display: none !important;
+  }
+}
+
+.crm-v2-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.crm-v2-table th {
+  text-align: left;
+  padding: 12px var(--space-4);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.crm-v2-table td {
+  padding: 12px var(--space-4);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-soft);
+  vertical-align: middle;
+}
+
+.crm-v2-table tbody tr {
+  transition: background 150ms ease;
+}
+
+.crm-v2-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.crm-v2-mobile-cards {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .crm-v2-mobile-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: 100%;
+  }
+}
+
+.crm-v2-mobile-card {
+  background: rgba(12, 28, 24, 0.7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  backdrop-filter: blur(8px);
+}
+
+.crm-v2-mobile-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.crm-v2-mobile-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.crm-v2-mobile-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 12.5px;
+}
+
+.crm-v2-mobile-card-label {
+  color: var(--color-text-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.crm-v2-mobile-card-value {
+  color: var(--color-text);
+  text-align: right;
+  word-break: break-word;
+}
+
+.crm-v2-tabs-wrapper [role="tablist"] {
+  flex-wrap: wrap !important;
+  overflow-x: visible !important;
+}
+
+/* ==========================================================================
+   AUFTRAG 033 — V2 FACHBEREICHE KONSISTENZ & RESPONSIVE LAYOUTS
+   Alle Klassen mit Präfix fachbereiche-v2-
+   ========================================================================== */
+
+.fachbereiche-v2-funnel-chart-responsive {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .fachbereiche-v2-funnel-chart-responsive [style*="display: flex"][style*="gap: 12px"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: var(--space-2) !important;
+  }
+  .fachbereiche-v2-funnel-chart-responsive [style*="width: 120px"] {
+    width: 100% !important;
+  }
+  .fachbereiche-v2-funnel-chart-responsive [style*="padding-left: 130px"] {
+    padding-left: 0 !important;
+  }
+  .fachbereiche-v2-funnel-chart-responsive [style*="gap: 10px"] {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+}
+
+.fachbereiche-v2-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.fachbereiche-v2-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.fachbereiche-v2-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.fachbereiche-v2-grid-2 > *,
+.fachbereiche-v2-grid-3 > *,
+.fachbereiche-v2-grid-4 > * {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .fachbereiche-v2-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .fachbereiche-v2-grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .fachbereiche-v2-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .fachbereiche-v2-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fachbereiche-v2-desktop-table {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .fachbereiche-v2-desktop-table {
+    display: none !important;
+  }
+}
+
+.fachbereiche-v2-mobile-cards {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .fachbereiche-v2-mobile-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.fachbereiche-v2-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13.5px;
+}
+
+.fachbereiche-v2-table th {
+  padding: 12px 16px;
+  background: var(--color-bg-deep);
+  color: var(--color-text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fachbereiche-v2-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-soft);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+@media (max-width: 1024px) {
+  .fachbereiche-v2-table th,
+  .fachbereiche-v2-table td {
+    padding: 10px 8px;
+    font-size: 12.5px;
+  }
+}
+
+.fachbereiche-v2-table tr:hover td {
+  background: rgba(0, 217, 198, 0.03);
+}
+
+.fachbereiche-v2-mobile-card {
+  background: rgba(12, 28, 24, 0.7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  backdrop-filter: blur(8px);
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.fachbereiche-v2-mobile-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-soft);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.fachbereiche-v2-mobile-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.fachbereiche-v2-mobile-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 12.5px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.fachbereiche-v2-mobile-card-label {
+  color: var(--color-text-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  flex: 0 0 auto;
+  max-width: 100%;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.fachbereiche-v2-mobile-card-value {
+  color: var(--color-text);
+  text-align: right;
+  word-break: break-word;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* ResourceViewer Mobile Header & Video Controls */
+.resource-viewer-header {
+  height: 60px;
+  padding: 0 var(--space-5);
+  background: var(--color-bg-deep);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .resource-viewer-header {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+  .resource-viewer-title-sub {
+    display: none !important;
+  }
+  .resource-viewer-badge {
+    display: none !important;
+  }
+  .resource-viewer-header-download {
+    display: none !important;
+  }
+  .resource-viewer-title-h3 {
+    font-size: 13.5px !important;
+    max-width: 145px !important;
+  }
+}
+
+/* ==========================================================================
+   Unternehmen Cyberpunk-Fintech V2 (Auftrag 037B / Gate G21B)
+   ========================================================================== */
+
+.unternehmen-v2-container {
+  box-sizing: border-box;
+}
+
+.unternehmen-v2-glass-panel,
+.unternehmen-v2-command-statement,
+.unternehmen-v2-usp-card,
+.unternehmen-v2-benefit-card,
+.unternehmen-v2-timeline-card,
+.unternehmen-v2-detail-card,
+.unternehmen-v2-hq-panel {
+  box-sizing: border-box;
+}
+
+/* Timeline Desktop (alternating two-track) */
+@media (min-width: 900px) {
+  .unternehmen-v2-timeline-axis {
+    left: 50% !important;
+    transform: translateX(-50%);
+  }
+
+  .unternehmen-v2-timeline-item.is-left {
+    flex-direction: row !important;
+    justify-content: flex-end;
+  }
+
+  .unternehmen-v2-timeline-item.is-left .unternehmen-v2-timeline-card {
+    width: calc(50% - 36px) !important;
+    margin-right: 36px;
+  }
+
+  .unternehmen-v2-timeline-item.is-left .unternehmen-v2-timeline-beacon {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .unternehmen-v2-timeline-item.is-right {
+    flex-direction: row !important;
+    justify-content: flex-start;
+  }
+
+  .unternehmen-v2-timeline-item.is-right .unternehmen-v2-timeline-card {
+    width: calc(50% - 36px) !important;
+    margin-left: calc(50% + 36px);
+  }
+
+  .unternehmen-v2-timeline-item.is-right .unternehmen-v2-timeline-beacon {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* Timeline Mobile / Tablet (< 900px) */
+@media (max-width: 899px) {
+  .unternehmen-v2-timeline-axis {
+    left: 15px !important;
+  }
+
+  .unternehmen-v2-timeline-item {
+    flex-direction: row !important;
+    gap: 16px !important;
+  }
+
+  .unternehmen-v2-timeline-beacon {
+    margin-top: 4px;
+  }
+
+  .unternehmen-v2-timeline-card {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+/* Hover-Effekte auf Geräten mit Pointer */
+@media (hover: hover) and (pointer: fine) {
+  .unternehmen-v2-usp-card:hover,
+  .unternehmen-v2-benefit-card:hover,
+  .unternehmen-v2-detail-card:hover {
+    border-color: rgba(0, 217, 198, 0.45) !important;
+    transform: translateY(-2px);
+  }
+
+  .unternehmen-v2-timeline-card:hover {
+    border-color: rgba(0, 217, 198, 0.45) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unternehmen-v2-usp-card,
+  .unternehmen-v2-benefit-card,
+  .unternehmen-v2-detail-card {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
+   Übersicht & Produkt Cyberpunk-Fintech V2 (Auftrag 037C / Gate G21C)
+   ========================================================================== */
+
+.overview-v2-container,
+.product-v2-container {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.overview-v2-panel,
+.product-v2-panel {
+  box-sizing: border-box;
+  background: rgba(12, 28, 24, 0.75);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Company Profile Matrix */
+.overview-v2-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+@media (max-width: 899px) {
+  .overview-v2-profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Highlights Dual Deck */
+.overview-v2-highlights-deck {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+@media (max-width: 899px) {
+  .overview-v2-highlights-deck {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Data Basis Pipeline Flow */
+.overview-v2-databasis-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.overview-v2-pipeline-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.overview-v2-pipeline-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-size: 18px;
+  opacity: 0.6;
+}
+
+@media (max-width: 899px) {
+  .overview-v2-pipeline-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .overview-v2-pipeline-connector {
+    transform: rotate(90deg);
+    padding: var(--space-1) 0;
+  }
+}
+
+/* Product Features Grid */
+.product-v2-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .product-v2-features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Product Pricing Deck */
+.product-v2-pricing-deck {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .product-v2-pricing-deck {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Product Performance Cockpit */
+.product-v2-performance-cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.product-v2-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .product-v2-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .product-v2-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Product Roadmap Scene: Two-column desktop, single-column mobile */
+.product-v2-roadmap-scene {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: var(--space-6);
+  align-items: start;
+  min-width: 0;
+}
+
+@media (max-width: 899px) {
+  .product-v2-roadmap-scene {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Roadmap Visual Mountain Route */
+.product-v2-roadmap-route-canvas {
+  position: relative;
+  background: rgba(12, 28, 24, 0.8);
+  border: 1px solid rgba(0, 217, 198, 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  overflow: hidden;
+  box-shadow: 0 0 24px rgba(0, 217, 198, 0.05);
+}
+
+/* Roadmap Waypoint Positioning & Responsive Wrapping */
+.product-v2-waypoint {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-v2-waypoint-align-left {
+  align-items: flex-start;
+  transform: translate(-7px, -7px);
+}
+
+.product-v2-waypoint-align-center {
+  align-items: center;
+  transform: translate(-50%, -7px);
+}
+
+.product-v2-waypoint-align-right {
+  align-items: flex-end;
+  transform: translate(calc(-100% + 7px), -7px);
+}
+
+.product-v2-waypoint-label {
+  padding: 2px 7px;
+  background: rgba(3, 14, 12, 0.92);
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+@media (max-width: 899px) {
+  .product-v2-waypoint-label {
+    white-space: normal;
+    max-width: 130px;
+    font-size: 9.5px;
+    line-height: 1.2;
+    text-align: center;
+  }
+  .product-v2-waypoint-align-left .product-v2-waypoint-label {
+    text-align: left;
+  }
+  .product-v2-waypoint-align-right .product-v2-waypoint-label {
+    text-align: right;
+  }
+}
+
+/* Roadmap Summit Flag: Mastfuß sichtbar im Felskörper verankert */
+.product-v2-summit-flag {
+  position: absolute;
+  top: 168px;
+  left: 81.5%;
+  transform: translate(-8px, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+@media (max-width: 899px) {
+  .product-v2-summit-flag {
+    top: 178px;
+    left: 82%;
+  }
+}
+
+/* Roadmap Summit Waypoint (v2.1): direkt am Mastfuß der Gipfelflagge verankert */
+.product-v2-waypoint-summit {
+  top: 168px !important;
+  left: 81.5% !important;
+  flex-direction: column-reverse;
+  gap: 6px;
+  transform: translate(calc(-100% + 7px), calc(-100% + 7px)) !important;
+}
+
+@media (max-width: 899px) {
+  .product-v2-waypoint-summit {
+    top: 178px !important;
+    left: 82% !important;
+    transform: translate(calc(-100% + 7px), calc(-100% + 7px)) !important;
+  }
+}
+
+/* Hover-Effekte auf Geräten mit Pointer */
+@media (hover: hover) and (pointer: fine) {
+  .overview-v2-panel:hover,
+  .product-v2-panel:hover {
+    border-color: rgba(0, 217, 198, 0.4) !important;
+  }
+}
+
+/* Auftrag 037D: Direkte WebP-Ansichten für Markt & Kunden */
+.auftrag-037d-webp-view {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.auftrag-037d-webp-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Auftrag 037E: Direkte WebP-Ansichten für Vertrieb & Finanzen */
+.auftrag-037e-webp-view {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.auftrag-037e-webp-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Auftrag 037F: Direkte WebP-Ansichten für Organisation, Strategie und Recht */
+.auftrag-037f-webp-view {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.auftrag-037f-webp-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Auftrag 037G: Direkte WebP-Ansichten für Übersicht, Unternehmen und Produkt */
+.auftrag-037g-webp-view {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.auftrag-037g-webp-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Auftrag 038: Live-KPI isolierte Zahlenübergänge & Barrierefreiheit */
+.live-kpi-animated-value {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-kpi-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Auftrag 042: Live-KPI Data Pulse (1.2s, Cyan #00f2fe, Reduced Motion Deaktivierung) */
+@keyframes live-kpi-pulse-anim {
+  0% {
+    opacity: 0.85;
+    box-shadow: inset 0 0 0 1px #00f2fe, 0 0 20px rgba(0, 242, 254, 0.45);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: inset 0 0 0 1px rgba(0, 242, 254, 0), 0 0 0 rgba(0, 242, 254, 0);
+  }
+}
+
+.live-kpi-pulse {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  animation: live-kpi-pulse-anim 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-kpi-pulse {
+    animation: none !important;
+    display: none !important;
+  }
+}
+
+/* Auftrag 042 / Gate G26: Referenz-Bühne & Responsive Surface */
+.live-performance-stage {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.08) 0%, transparent 60%),
+    radial-gradient(rgba(0, 217, 198, 0.12) 1px, transparent 1px),
+    linear-gradient(180deg, #061613 0%, #081d1a 50%, #061613 100%);
+  background-size: 100% 100%, 24px 24px, 100% 100%;
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow:
+    0 0 35px rgba(0, 242, 254, 0.08),
+    inset 0 1px 1px 0 rgba(0, 242, 254, 0.3),
+    inset 0 0 50px rgba(0, 217, 198, 0.04);
+  padding: var(--space-5, 24px);
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .live-performance-stage {
+    padding: var(--space-4, 16px);
+    background-size: 100% 100%, 36px 36px, 100% 100%;
+  }
+}
+
+.live-performance-panel {
+  background: rgba(11, 33, 31, 0.72) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 242, 254, 0.28) !important;
+  border-radius: var(--radius-lg, 12px) !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(0, 242, 254, 0.22),
+    0 0 15px rgba(0, 242, 254, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.live-performance-panel:hover {
+  border-color: rgba(0, 242, 254, 0.45) !important;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(0, 242, 254, 0.35),
+    0 0 20px rgba(0, 242, 254, 0.08);
+}
+
+/* Auftrag 042: Live Performance Surface Responsive Grid */
+.live-performance-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4, 16px);
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .live-performance-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-5, 24px);
+  }
+
+  .live-performance-col-4 {
+    grid-column: span 4 / span 4;
+  }
+
+  .live-performance-col-8 {
+    grid-column: span 8 / span 8;
+  }
+
+  .live-performance-col-12 {
+    grid-column: span 12 / span 12;
+  }
+}

@@ -1,0 +1,3373 @@
+{
+  "version": "2026-09-15-v2",
+  "generatedAt": "2026-09-15T00:00:00.000Z",
+  "generator": "n8n",
+  "generatorSeed": 424242,
+  "periodStart": "2026-01-01",
+  "counts": {
+    "companies": 20,
+    "contacts": 100,
+    "deals": 40,
+    "activities": 200
+  },
+  "companies": [
+    {
+      "id": "co-v2-1",
+      "name": "Unternehmen V2 1 GmbH",
+      "domain": "firma-v2-1.de",
+      "industry": "SaaS",
+      "city": "Hamburg",
+      "postalCode": "26538",
+      "employeeCount": 72
+    },
+    {
+      "id": "co-v2-2",
+      "name": "Unternehmen V2 2 GmbH",
+      "domain": "firma-v2-2.de",
+      "industry": "Logistik",
+      "city": "Stuttgart",
+      "postalCode": "11843",
+      "employeeCount": 56
+    },
+    {
+      "id": "co-v2-3",
+      "name": "Unternehmen V2 3 GmbH",
+      "domain": "firma-v2-3.de",
+      "industry": "Recht & Steuern",
+      "city": "Zürich",
+      "postalCode": "64769",
+      "employeeCount": 83
+    },
+    {
+      "id": "co-v2-4",
+      "name": "Unternehmen V2 4 GmbH",
+      "domain": "firma-v2-4.de",
+      "industry": "FinTech",
+      "city": "Düsseldorf",
+      "postalCode": "27841",
+      "employeeCount": 21
+    },
+    {
+      "id": "co-v2-5",
+      "name": "Unternehmen V2 5 GmbH",
+      "domain": "firma-v2-5.de",
+      "industry": "Logistik",
+      "city": "Düsseldorf",
+      "postalCode": "44194",
+      "employeeCount": 55
+    },
+    {
+      "id": "co-v2-6",
+      "name": "Unternehmen V2 6 GmbH",
+      "domain": "firma-v2-6.de",
+      "industry": "SaaS",
+      "city": "Wien",
+      "postalCode": "19479",
+      "employeeCount": 37
+    },
+    {
+      "id": "co-v2-7",
+      "name": "Unternehmen V2 7 GmbH",
+      "domain": "firma-v2-7.de",
+      "industry": "Gesundheitswesen",
+      "city": "Köln",
+      "postalCode": "49204",
+      "employeeCount": 21
+    },
+    {
+      "id": "co-v2-8",
+      "name": "Unternehmen V2 8 GmbH",
+      "domain": "firma-v2-8.de",
+      "industry": "Gesundheitswesen",
+      "city": "Düsseldorf",
+      "postalCode": "36843",
+      "employeeCount": 140
+    },
+    {
+      "id": "co-v2-9",
+      "name": "Unternehmen V2 9 GmbH",
+      "domain": "firma-v2-9.de",
+      "industry": "E-Commerce",
+      "city": "Hamburg",
+      "postalCode": "46663",
+      "employeeCount": 33
+    },
+    {
+      "id": "co-v2-10",
+      "name": "Unternehmen V2 10 GmbH",
+      "domain": "firma-v2-10.de",
+      "industry": "Logistik",
+      "city": "München",
+      "postalCode": "12857",
+      "employeeCount": 120
+    },
+    {
+      "id": "co-v2-11",
+      "name": "Unternehmen V2 11 GmbH",
+      "domain": "firma-v2-11.de",
+      "industry": "Recht & Steuern",
+      "city": "Düsseldorf",
+      "postalCode": "15844",
+      "employeeCount": 23
+    },
+    {
+      "id": "co-v2-12",
+      "name": "Unternehmen V2 12 GmbH",
+      "domain": "firma-v2-12.de",
+      "industry": "Automotive",
+      "city": "Wien",
+      "postalCode": "37592",
+      "employeeCount": 26
+    },
+    {
+      "id": "co-v2-13",
+      "name": "Unternehmen V2 13 GmbH",
+      "domain": "firma-v2-13.de",
+      "industry": "Industrie 4.0",
+      "city": "Stuttgart",
+      "postalCode": "87484",
+      "employeeCount": 43
+    },
+    {
+      "id": "co-v2-14",
+      "name": "Unternehmen V2 14 GmbH",
+      "domain": "firma-v2-14.de",
+      "industry": "Logistik",
+      "city": "Zürich",
+      "postalCode": "94373",
+      "employeeCount": 118
+    },
+    {
+      "id": "co-v2-15",
+      "name": "Unternehmen V2 15 GmbH",
+      "domain": "firma-v2-15.de",
+      "industry": "Logistik",
+      "city": "Wien",
+      "postalCode": "63818",
+      "employeeCount": 119
+    },
+    {
+      "id": "co-v2-16",
+      "name": "Unternehmen V2 16 GmbH",
+      "domain": "firma-v2-16.de",
+      "industry": "Industrie 4.0",
+      "city": "Stuttgart",
+      "postalCode": "73814",
+      "employeeCount": 31
+    },
+    {
+      "id": "co-v2-17",
+      "name": "Unternehmen V2 17 GmbH",
+      "domain": "firma-v2-17.de",
+      "industry": "Industrie 4.0",
+      "city": "Köln",
+      "postalCode": "84550",
+      "employeeCount": 39
+    },
+    {
+      "id": "co-v2-18",
+      "name": "Unternehmen V2 18 GmbH",
+      "domain": "firma-v2-18.de",
+      "industry": "Logistik",
+      "city": "Berlin",
+      "postalCode": "71037",
+      "employeeCount": 56
+    },
+    {
+      "id": "co-v2-19",
+      "name": "Unternehmen V2 19 GmbH",
+      "domain": "firma-v2-19.de",
+      "industry": "Logistik",
+      "city": "Frankfurt",
+      "postalCode": "87967",
+      "employeeCount": 124
+    },
+    {
+      "id": "co-v2-20",
+      "name": "Unternehmen V2 20 GmbH",
+      "domain": "firma-v2-20.de",
+      "industry": "SaaS",
+      "city": "Zürich",
+      "postalCode": "19669",
+      "employeeCount": 43
+    }
+  ],
+  "contacts": [
+    {
+      "id": "ct-v2-1",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname1",
+      "lastName": "Nachname1",
+      "email": "kontakt1@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-2",
+      "companyId": "co-v2-3",
+      "firstName": "Vorname2",
+      "lastName": "Nachname2",
+      "email": "kontakt2@firma-v2-3.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-3",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname3",
+      "lastName": "Nachname3",
+      "email": "kontakt3@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-4",
+      "companyId": "co-v2-7",
+      "firstName": "Vorname4",
+      "lastName": "Nachname4",
+      "email": "kontakt4@firma-v2-7.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-5",
+      "companyId": "co-v2-19",
+      "firstName": "Vorname5",
+      "lastName": "Nachname5",
+      "email": "kontakt5@firma-v2-19.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-6",
+      "companyId": "co-v2-3",
+      "firstName": "Vorname6",
+      "lastName": "Nachname6",
+      "email": "kontakt6@firma-v2-3.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-7",
+      "companyId": "co-v2-13",
+      "firstName": "Vorname7",
+      "lastName": "Nachname7",
+      "email": "kontakt7@firma-v2-13.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-8",
+      "companyId": "co-v2-20",
+      "firstName": "Vorname8",
+      "lastName": "Nachname8",
+      "email": "kontakt8@firma-v2-20.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-9",
+      "companyId": "co-v2-14",
+      "firstName": "Vorname9",
+      "lastName": "Nachname9",
+      "email": "kontakt9@firma-v2-14.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-10",
+      "companyId": "co-v2-6",
+      "firstName": "Vorname10",
+      "lastName": "Nachname10",
+      "email": "kontakt10@firma-v2-6.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-11",
+      "companyId": "co-v2-2",
+      "firstName": "Vorname11",
+      "lastName": "Nachname11",
+      "email": "kontakt11@firma-v2-2.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-12",
+      "companyId": "co-v2-2",
+      "firstName": "Vorname12",
+      "lastName": "Nachname12",
+      "email": "kontakt12@firma-v2-2.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-13",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname13",
+      "lastName": "Nachname13",
+      "email": "kontakt13@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-14",
+      "companyId": "co-v2-16",
+      "firstName": "Vorname14",
+      "lastName": "Nachname14",
+      "email": "kontakt14@firma-v2-16.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-15",
+      "companyId": "co-v2-13",
+      "firstName": "Vorname15",
+      "lastName": "Nachname15",
+      "email": "kontakt15@firma-v2-13.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-16",
+      "companyId": "co-v2-12",
+      "firstName": "Vorname16",
+      "lastName": "Nachname16",
+      "email": "kontakt16@firma-v2-12.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-17",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname17",
+      "lastName": "Nachname17",
+      "email": "kontakt17@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-18",
+      "companyId": "co-v2-11",
+      "firstName": "Vorname18",
+      "lastName": "Nachname18",
+      "email": "kontakt18@firma-v2-11.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-19",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname19",
+      "lastName": "Nachname19",
+      "email": "kontakt19@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-20",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname20",
+      "lastName": "Nachname20",
+      "email": "kontakt20@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-21",
+      "companyId": "co-v2-16",
+      "firstName": "Vorname21",
+      "lastName": "Nachname21",
+      "email": "kontakt21@firma-v2-16.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-22",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname22",
+      "lastName": "Nachname22",
+      "email": "kontakt22@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-23",
+      "companyId": "co-v2-16",
+      "firstName": "Vorname23",
+      "lastName": "Nachname23",
+      "email": "kontakt23@firma-v2-16.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-24",
+      "companyId": "co-v2-17",
+      "firstName": "Vorname24",
+      "lastName": "Nachname24",
+      "email": "kontakt24@firma-v2-17.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-25",
+      "companyId": "co-v2-6",
+      "firstName": "Vorname25",
+      "lastName": "Nachname25",
+      "email": "kontakt25@firma-v2-6.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-26",
+      "companyId": "co-v2-19",
+      "firstName": "Vorname26",
+      "lastName": "Nachname26",
+      "email": "kontakt26@firma-v2-19.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-27",
+      "companyId": "co-v2-13",
+      "firstName": "Vorname27",
+      "lastName": "Nachname27",
+      "email": "kontakt27@firma-v2-13.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-28",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname28",
+      "lastName": "Nachname28",
+      "email": "kontakt28@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-29",
+      "companyId": "co-v2-19",
+      "firstName": "Vorname29",
+      "lastName": "Nachname29",
+      "email": "kontakt29@firma-v2-19.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-30",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname30",
+      "lastName": "Nachname30",
+      "email": "kontakt30@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-31",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname31",
+      "lastName": "Nachname31",
+      "email": "kontakt31@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-32",
+      "companyId": "co-v2-7",
+      "firstName": "Vorname32",
+      "lastName": "Nachname32",
+      "email": "kontakt32@firma-v2-7.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-33",
+      "companyId": "co-v2-13",
+      "firstName": "Vorname33",
+      "lastName": "Nachname33",
+      "email": "kontakt33@firma-v2-13.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-34",
+      "companyId": "co-v2-15",
+      "firstName": "Vorname34",
+      "lastName": "Nachname34",
+      "email": "kontakt34@firma-v2-15.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-35",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname35",
+      "lastName": "Nachname35",
+      "email": "kontakt35@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-36",
+      "companyId": "co-v2-13",
+      "firstName": "Vorname36",
+      "lastName": "Nachname36",
+      "email": "kontakt36@firma-v2-13.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-37",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname37",
+      "lastName": "Nachname37",
+      "email": "kontakt37@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-38",
+      "companyId": "co-v2-1",
+      "firstName": "Vorname38",
+      "lastName": "Nachname38",
+      "email": "kontakt38@firma-v2-1.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-39",
+      "companyId": "co-v2-13",
+      "firstName": "Vorname39",
+      "lastName": "Nachname39",
+      "email": "kontakt39@firma-v2-13.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-40",
+      "companyId": "co-v2-16",
+      "firstName": "Vorname40",
+      "lastName": "Nachname40",
+      "email": "kontakt40@firma-v2-16.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-41",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname41",
+      "lastName": "Nachname41",
+      "email": "kontakt41@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-42",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname42",
+      "lastName": "Nachname42",
+      "email": "kontakt42@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-43",
+      "companyId": "co-v2-9",
+      "firstName": "Vorname43",
+      "lastName": "Nachname43",
+      "email": "kontakt43@firma-v2-9.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-44",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname44",
+      "lastName": "Nachname44",
+      "email": "kontakt44@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-45",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname45",
+      "lastName": "Nachname45",
+      "email": "kontakt45@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-46",
+      "companyId": "co-v2-7",
+      "firstName": "Vorname46",
+      "lastName": "Nachname46",
+      "email": "kontakt46@firma-v2-7.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-47",
+      "companyId": "co-v2-15",
+      "firstName": "Vorname47",
+      "lastName": "Nachname47",
+      "email": "kontakt47@firma-v2-15.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-48",
+      "companyId": "co-v2-6",
+      "firstName": "Vorname48",
+      "lastName": "Nachname48",
+      "email": "kontakt48@firma-v2-6.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-49",
+      "companyId": "co-v2-17",
+      "firstName": "Vorname49",
+      "lastName": "Nachname49",
+      "email": "kontakt49@firma-v2-17.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-50",
+      "companyId": "co-v2-9",
+      "firstName": "Vorname50",
+      "lastName": "Nachname50",
+      "email": "kontakt50@firma-v2-9.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-51",
+      "companyId": "co-v2-13",
+      "firstName": "Vorname51",
+      "lastName": "Nachname51",
+      "email": "kontakt51@firma-v2-13.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-52",
+      "companyId": "co-v2-1",
+      "firstName": "Vorname52",
+      "lastName": "Nachname52",
+      "email": "kontakt52@firma-v2-1.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-53",
+      "companyId": "co-v2-6",
+      "firstName": "Vorname53",
+      "lastName": "Nachname53",
+      "email": "kontakt53@firma-v2-6.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-54",
+      "companyId": "co-v2-19",
+      "firstName": "Vorname54",
+      "lastName": "Nachname54",
+      "email": "kontakt54@firma-v2-19.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-55",
+      "companyId": "co-v2-6",
+      "firstName": "Vorname55",
+      "lastName": "Nachname55",
+      "email": "kontakt55@firma-v2-6.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-56",
+      "companyId": "co-v2-9",
+      "firstName": "Vorname56",
+      "lastName": "Nachname56",
+      "email": "kontakt56@firma-v2-9.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-57",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname57",
+      "lastName": "Nachname57",
+      "email": "kontakt57@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-58",
+      "companyId": "co-v2-18",
+      "firstName": "Vorname58",
+      "lastName": "Nachname58",
+      "email": "kontakt58@firma-v2-18.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-59",
+      "companyId": "co-v2-1",
+      "firstName": "Vorname59",
+      "lastName": "Nachname59",
+      "email": "kontakt59@firma-v2-1.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-60",
+      "companyId": "co-v2-14",
+      "firstName": "Vorname60",
+      "lastName": "Nachname60",
+      "email": "kontakt60@firma-v2-14.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-61",
+      "companyId": "co-v2-6",
+      "firstName": "Vorname61",
+      "lastName": "Nachname61",
+      "email": "kontakt61@firma-v2-6.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-62",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname62",
+      "lastName": "Nachname62",
+      "email": "kontakt62@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-63",
+      "companyId": "co-v2-17",
+      "firstName": "Vorname63",
+      "lastName": "Nachname63",
+      "email": "kontakt63@firma-v2-17.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-64",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname64",
+      "lastName": "Nachname64",
+      "email": "kontakt64@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-65",
+      "companyId": "co-v2-2",
+      "firstName": "Vorname65",
+      "lastName": "Nachname65",
+      "email": "kontakt65@firma-v2-2.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-66",
+      "companyId": "co-v2-19",
+      "firstName": "Vorname66",
+      "lastName": "Nachname66",
+      "email": "kontakt66@firma-v2-19.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-67",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname67",
+      "lastName": "Nachname67",
+      "email": "kontakt67@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-68",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname68",
+      "lastName": "Nachname68",
+      "email": "kontakt68@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-69",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname69",
+      "lastName": "Nachname69",
+      "email": "kontakt69@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-70",
+      "companyId": "co-v2-7",
+      "firstName": "Vorname70",
+      "lastName": "Nachname70",
+      "email": "kontakt70@firma-v2-7.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-71",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname71",
+      "lastName": "Nachname71",
+      "email": "kontakt71@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-72",
+      "companyId": "co-v2-9",
+      "firstName": "Vorname72",
+      "lastName": "Nachname72",
+      "email": "kontakt72@firma-v2-9.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-73",
+      "companyId": "co-v2-6",
+      "firstName": "Vorname73",
+      "lastName": "Nachname73",
+      "email": "kontakt73@firma-v2-6.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-74",
+      "companyId": "co-v2-2",
+      "firstName": "Vorname74",
+      "lastName": "Nachname74",
+      "email": "kontakt74@firma-v2-2.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-75",
+      "companyId": "co-v2-4",
+      "firstName": "Vorname75",
+      "lastName": "Nachname75",
+      "email": "kontakt75@firma-v2-4.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-76",
+      "companyId": "co-v2-1",
+      "firstName": "Vorname76",
+      "lastName": "Nachname76",
+      "email": "kontakt76@firma-v2-1.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-77",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname77",
+      "lastName": "Nachname77",
+      "email": "kontakt77@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-78",
+      "companyId": "co-v2-7",
+      "firstName": "Vorname78",
+      "lastName": "Nachname78",
+      "email": "kontakt78@firma-v2-7.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-79",
+      "companyId": "co-v2-7",
+      "firstName": "Vorname79",
+      "lastName": "Nachname79",
+      "email": "kontakt79@firma-v2-7.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-80",
+      "companyId": "co-v2-19",
+      "firstName": "Vorname80",
+      "lastName": "Nachname80",
+      "email": "kontakt80@firma-v2-19.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-81",
+      "companyId": "co-v2-8",
+      "firstName": "Vorname81",
+      "lastName": "Nachname81",
+      "email": "kontakt81@firma-v2-8.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-82",
+      "companyId": "co-v2-13",
+      "firstName": "Vorname82",
+      "lastName": "Nachname82",
+      "email": "kontakt82@firma-v2-13.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-83",
+      "companyId": "co-v2-2",
+      "firstName": "Vorname83",
+      "lastName": "Nachname83",
+      "email": "kontakt83@firma-v2-2.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-84",
+      "companyId": "co-v2-12",
+      "firstName": "Vorname84",
+      "lastName": "Nachname84",
+      "email": "kontakt84@firma-v2-12.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-85",
+      "companyId": "co-v2-10",
+      "firstName": "Vorname85",
+      "lastName": "Nachname85",
+      "email": "kontakt85@firma-v2-10.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-86",
+      "companyId": "co-v2-18",
+      "firstName": "Vorname86",
+      "lastName": "Nachname86",
+      "email": "kontakt86@firma-v2-18.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-87",
+      "companyId": "co-v2-9",
+      "firstName": "Vorname87",
+      "lastName": "Nachname87",
+      "email": "kontakt87@firma-v2-9.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-88",
+      "companyId": "co-v2-16",
+      "firstName": "Vorname88",
+      "lastName": "Nachname88",
+      "email": "kontakt88@firma-v2-16.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-89",
+      "companyId": "co-v2-6",
+      "firstName": "Vorname89",
+      "lastName": "Nachname89",
+      "email": "kontakt89@firma-v2-6.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-90",
+      "companyId": "co-v2-12",
+      "firstName": "Vorname90",
+      "lastName": "Nachname90",
+      "email": "kontakt90@firma-v2-12.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-91",
+      "companyId": "co-v2-18",
+      "firstName": "Vorname91",
+      "lastName": "Nachname91",
+      "email": "kontakt91@firma-v2-18.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-92",
+      "companyId": "co-v2-7",
+      "firstName": "Vorname92",
+      "lastName": "Nachname92",
+      "email": "kontakt92@firma-v2-7.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-93",
+      "companyId": "co-v2-15",
+      "firstName": "Vorname93",
+      "lastName": "Nachname93",
+      "email": "kontakt93@firma-v2-15.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-94",
+      "companyId": "co-v2-12",
+      "firstName": "Vorname94",
+      "lastName": "Nachname94",
+      "email": "kontakt94@firma-v2-12.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-95",
+      "companyId": "co-v2-5",
+      "firstName": "Vorname95",
+      "lastName": "Nachname95",
+      "email": "kontakt95@firma-v2-5.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-96",
+      "companyId": "co-v2-9",
+      "firstName": "Vorname96",
+      "lastName": "Nachname96",
+      "email": "kontakt96@firma-v2-9.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-97",
+      "companyId": "co-v2-7",
+      "firstName": "Vorname97",
+      "lastName": "Nachname97",
+      "email": "kontakt97@firma-v2-7.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-98",
+      "companyId": "co-v2-1",
+      "firstName": "Vorname98",
+      "lastName": "Nachname98",
+      "email": "kontakt98@firma-v2-1.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-99",
+      "companyId": "co-v2-3",
+      "firstName": "Vorname99",
+      "lastName": "Nachname99",
+      "email": "kontakt99@firma-v2-3.de",
+      "jobTitle": "Sales Director"
+    },
+    {
+      "id": "ct-v2-100",
+      "companyId": "co-v2-14",
+      "firstName": "Vorname100",
+      "lastName": "Nachname100",
+      "email": "kontakt100@firma-v2-14.de",
+      "jobTitle": "Sales Director"
+    }
+  ],
+  "importedFunnelDeals": [
+    {
+      "id": "fd-v2-1",
+      "companyId": "co-v2-19",
+      "dealName": "Deal V2 #1 - Unternehmen V2 19 GmbH",
+      "stage": "WON",
+      "amount": 14000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-2",
+      "companyId": "co-v2-11",
+      "dealName": "Deal V2 #2 - Unternehmen V2 11 GmbH",
+      "stage": "LEAD",
+      "amount": 14000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-3",
+      "companyId": "co-v2-6",
+      "dealName": "Deal V2 #3 - Unternehmen V2 6 GmbH",
+      "stage": "PROPOSAL",
+      "amount": 21000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-4",
+      "companyId": "co-v2-15",
+      "dealName": "Deal V2 #4 - Unternehmen V2 15 GmbH",
+      "stage": "WON",
+      "amount": 21000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-5",
+      "companyId": "co-v2-16",
+      "dealName": "Deal V2 #5 - Unternehmen V2 16 GmbH",
+      "stage": "LEAD",
+      "amount": 15000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-6",
+      "companyId": "co-v2-19",
+      "dealName": "Deal V2 #6 - Unternehmen V2 19 GmbH",
+      "stage": "LOST",
+      "amount": 25000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-7",
+      "companyId": "co-v2-20",
+      "dealName": "Deal V2 #7 - Unternehmen V2 20 GmbH",
+      "stage": "WON",
+      "amount": 48000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-8",
+      "companyId": "co-v2-8",
+      "dealName": "Deal V2 #8 - Unternehmen V2 8 GmbH",
+      "stage": "LEAD",
+      "amount": 48000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-9",
+      "companyId": "co-v2-5",
+      "dealName": "Deal V2 #9 - Unternehmen V2 5 GmbH",
+      "stage": "LOST",
+      "amount": 49000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-10",
+      "companyId": "co-v2-13",
+      "dealName": "Deal V2 #10 - Unternehmen V2 13 GmbH",
+      "stage": "PROPOSAL",
+      "amount": 29000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-11",
+      "companyId": "co-v2-3",
+      "dealName": "Deal V2 #11 - Unternehmen V2 3 GmbH",
+      "stage": "LEAD",
+      "amount": 20000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-12",
+      "companyId": "co-v2-17",
+      "dealName": "Deal V2 #12 - Unternehmen V2 17 GmbH",
+      "stage": "LOST",
+      "amount": 33000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-13",
+      "companyId": "co-v2-4",
+      "dealName": "Deal V2 #13 - Unternehmen V2 4 GmbH",
+      "stage": "LEAD",
+      "amount": 38000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-14",
+      "companyId": "co-v2-2",
+      "dealName": "Deal V2 #14 - Unternehmen V2 2 GmbH",
+      "stage": "PITCH_DEMO",
+      "amount": 8000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-15",
+      "companyId": "co-v2-19",
+      "dealName": "Deal V2 #15 - Unternehmen V2 19 GmbH",
+      "stage": "PROPOSAL",
+      "amount": 23000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-16",
+      "companyId": "co-v2-20",
+      "dealName": "Deal V2 #16 - Unternehmen V2 20 GmbH",
+      "stage": "PITCH_DEMO",
+      "amount": 20000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-17",
+      "companyId": "co-v2-3",
+      "dealName": "Deal V2 #17 - Unternehmen V2 3 GmbH",
+      "stage": "LEAD",
+      "amount": 26000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-18",
+      "companyId": "co-v2-17",
+      "dealName": "Deal V2 #18 - Unternehmen V2 17 GmbH",
+      "stage": "PITCH_DEMO",
+      "amount": 28000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-19",
+      "companyId": "co-v2-15",
+      "dealName": "Deal V2 #19 - Unternehmen V2 15 GmbH",
+      "stage": "PROPOSAL",
+      "amount": 9000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-20",
+      "companyId": "co-v2-1",
+      "dealName": "Deal V2 #20 - Unternehmen V2 1 GmbH",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 36000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-21",
+      "companyId": "co-v2-10",
+      "dealName": "Deal V2 #21 - Unternehmen V2 10 GmbH",
+      "stage": "LOST",
+      "amount": 31000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-22",
+      "companyId": "co-v2-18",
+      "dealName": "Deal V2 #22 - Unternehmen V2 18 GmbH",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 46000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-23",
+      "companyId": "co-v2-3",
+      "dealName": "Deal V2 #23 - Unternehmen V2 3 GmbH",
+      "stage": "PROPOSAL",
+      "amount": 38000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-24",
+      "companyId": "co-v2-9",
+      "dealName": "Deal V2 #24 - Unternehmen V2 9 GmbH",
+      "stage": "LOST",
+      "amount": 20000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-25",
+      "companyId": "co-v2-15",
+      "dealName": "Deal V2 #25 - Unternehmen V2 15 GmbH",
+      "stage": "CLOSING",
+      "amount": 35000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-26",
+      "companyId": "co-v2-10",
+      "dealName": "Deal V2 #26 - Unternehmen V2 10 GmbH",
+      "stage": "WON",
+      "amount": 49000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-27",
+      "companyId": "co-v2-16",
+      "dealName": "Deal V2 #27 - Unternehmen V2 16 GmbH",
+      "stage": "LEAD",
+      "amount": 42000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-28",
+      "companyId": "co-v2-4",
+      "dealName": "Deal V2 #28 - Unternehmen V2 4 GmbH",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 11000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-29",
+      "companyId": "co-v2-20",
+      "dealName": "Deal V2 #29 - Unternehmen V2 20 GmbH",
+      "stage": "PITCH_DEMO",
+      "amount": 16000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-30",
+      "companyId": "co-v2-2",
+      "dealName": "Deal V2 #30 - Unternehmen V2 2 GmbH",
+      "stage": "PITCH_DEMO",
+      "amount": 35000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-31",
+      "companyId": "co-v2-7",
+      "dealName": "Deal V2 #31 - Unternehmen V2 7 GmbH",
+      "stage": "PITCH_DEMO",
+      "amount": 36000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-32",
+      "companyId": "co-v2-7",
+      "dealName": "Deal V2 #32 - Unternehmen V2 7 GmbH",
+      "stage": "PROPOSAL",
+      "amount": 33000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-33",
+      "companyId": "co-v2-14",
+      "dealName": "Deal V2 #33 - Unternehmen V2 14 GmbH",
+      "stage": "LEAD",
+      "amount": 31000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-34",
+      "companyId": "co-v2-20",
+      "dealName": "Deal V2 #34 - Unternehmen V2 20 GmbH",
+      "stage": "WON",
+      "amount": 39000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-35",
+      "companyId": "co-v2-3",
+      "dealName": "Deal V2 #35 - Unternehmen V2 3 GmbH",
+      "stage": "PITCH_DEMO",
+      "amount": 27000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-36",
+      "companyId": "co-v2-13",
+      "dealName": "Deal V2 #36 - Unternehmen V2 13 GmbH",
+      "stage": "WON",
+      "amount": 34000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-37",
+      "companyId": "co-v2-13",
+      "dealName": "Deal V2 #37 - Unternehmen V2 13 GmbH",
+      "stage": "PITCH_DEMO",
+      "amount": 44000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-38",
+      "companyId": "co-v2-7",
+      "dealName": "Deal V2 #38 - Unternehmen V2 7 GmbH",
+      "stage": "QUALIFIED_LEAD",
+      "amount": 43000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-39",
+      "companyId": "co-v2-7",
+      "dealName": "Deal V2 #39 - Unternehmen V2 7 GmbH",
+      "stage": "LEAD",
+      "amount": 26000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    },
+    {
+      "id": "fd-v2-40",
+      "companyId": "co-v2-4",
+      "dealName": "Deal V2 #40 - Unternehmen V2 4 GmbH",
+      "stage": "CLOSING",
+      "amount": 21000,
+      "closeDate": "2026-06-30",
+      "pipeline": "Core Sales"
+    }
+  ],
+  "activities": [
+    {
+      "id": "ac-v2-1",
+      "companyId": "co-v2-15",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #1",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-2",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #2",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-3",
+      "companyId": "co-v2-8",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #3",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-4",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #4",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-5",
+      "companyId": "co-v2-8",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #5",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-6",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #6",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-7",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #7",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-8",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #8",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-9",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #9",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-10",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #10",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-11",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #11",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-12",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #12",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-13",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #13",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-14",
+      "companyId": "co-v2-6",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #14",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-15",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #15",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-16",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #16",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-17",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #17",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-18",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #18",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-19",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #19",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-20",
+      "companyId": "co-v2-19",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #20",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-21",
+      "companyId": "co-v2-11",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #21",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-22",
+      "companyId": "co-v2-19",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #22",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-23",
+      "companyId": "co-v2-12",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #23",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-24",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #24",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-25",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #25",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-26",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #26",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-27",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #27",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-28",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #28",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-29",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #29",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-30",
+      "companyId": "co-v2-11",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #30",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-31",
+      "companyId": "co-v2-15",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #31",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-32",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #32",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-33",
+      "companyId": "co-v2-10",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #33",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-34",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #34",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-35",
+      "companyId": "co-v2-8",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #35",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-36",
+      "companyId": "co-v2-1",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #36",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-37",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #37",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-38",
+      "companyId": "co-v2-19",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #38",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-39",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #39",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-40",
+      "companyId": "co-v2-11",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #40",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-41",
+      "companyId": "co-v2-8",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #41",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-42",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #42",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-43",
+      "companyId": "co-v2-8",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #43",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-44",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #44",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-45",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #45",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-46",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #46",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-47",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #47",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-48",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #48",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-49",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #49",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-50",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #50",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-51",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #51",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-52",
+      "companyId": "co-v2-10",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #52",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-53",
+      "companyId": "co-v2-5",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #53",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-54",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #54",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-55",
+      "companyId": "co-v2-11",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #55",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-56",
+      "companyId": "co-v2-5",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #56",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-57",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #57",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-58",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #58",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-59",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #59",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-60",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #60",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-61",
+      "companyId": "co-v2-6",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #61",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-62",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #62",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-63",
+      "companyId": "co-v2-10",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #63",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-64",
+      "companyId": "co-v2-10",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #64",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-65",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #65",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-66",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #66",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-67",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #67",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-68",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #68",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-69",
+      "companyId": "co-v2-11",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #69",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-70",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #70",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-71",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #71",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-72",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #72",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-73",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #73",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-74",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #74",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-75",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #75",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-76",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #76",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-77",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #77",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-78",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #78",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-79",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #79",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-80",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #80",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-81",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #81",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-82",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #82",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-83",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #83",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-84",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #84",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-85",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #85",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-86",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #86",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-87",
+      "companyId": "co-v2-15",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #87",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-88",
+      "companyId": "co-v2-8",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #88",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-89",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #89",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-90",
+      "companyId": "co-v2-8",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #90",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-91",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #91",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-92",
+      "companyId": "co-v2-1",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #92",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-93",
+      "companyId": "co-v2-1",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #93",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-94",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #94",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-95",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #95",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-96",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #96",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-97",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #97",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-98",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #98",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-99",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #99",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-100",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #100",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-101",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #101",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-102",
+      "companyId": "co-v2-5",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #102",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-103",
+      "companyId": "co-v2-12",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #103",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-104",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #104",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-105",
+      "companyId": "co-v2-1",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #105",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-106",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #106",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-107",
+      "companyId": "co-v2-5",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #107",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-108",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #108",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-109",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #109",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-110",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #110",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-111",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #111",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-112",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #112",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-113",
+      "companyId": "co-v2-8",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #113",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-114",
+      "companyId": "co-v2-10",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #114",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-115",
+      "companyId": "co-v2-19",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #115",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-116",
+      "companyId": "co-v2-12",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #116",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-117",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #117",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-118",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #118",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-119",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #119",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-120",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #120",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-121",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #121",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-122",
+      "companyId": "co-v2-19",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #122",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-123",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #123",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-124",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #124",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-125",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #125",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-126",
+      "companyId": "co-v2-13",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #126",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-127",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #127",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-128",
+      "companyId": "co-v2-12",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #128",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-129",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #129",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-130",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #130",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-131",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #131",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-132",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #132",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-133",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #133",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-134",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #134",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-135",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #135",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-136",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #136",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-137",
+      "companyId": "co-v2-1",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #137",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-138",
+      "companyId": "co-v2-15",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #138",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-139",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #139",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-140",
+      "companyId": "co-v2-15",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #140",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-141",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #141",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-142",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #142",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-143",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #143",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-144",
+      "companyId": "co-v2-1",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #144",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-145",
+      "companyId": "co-v2-6",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #145",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-146",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #146",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-147",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #147",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-148",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #148",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-149",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #149",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-150",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #150",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-151",
+      "companyId": "co-v2-1",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #151",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-152",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #152",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-153",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #153",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-154",
+      "companyId": "co-v2-10",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #154",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-155",
+      "companyId": "co-v2-20",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #155",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-156",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #156",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-157",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #157",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-158",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #158",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-159",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #159",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-160",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #160",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-161",
+      "companyId": "co-v2-5",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #161",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-162",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #162",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-163",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #163",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-164",
+      "companyId": "co-v2-17",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #164",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-165",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #165",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-166",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #166",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-167",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #167",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-168",
+      "companyId": "co-v2-11",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #168",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-169",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #169",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-170",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #170",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-171",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #171",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-172",
+      "companyId": "co-v2-2",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #172",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-173",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #173",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-174",
+      "companyId": "co-v2-15",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #174",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-175",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #175",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-176",
+      "companyId": "co-v2-10",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #176",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-177",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #177",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-178",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #178",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-179",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #179",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-180",
+      "companyId": "co-v2-1",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #180",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-181",
+      "companyId": "co-v2-15",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #181",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-182",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #182",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-183",
+      "companyId": "co-v2-6",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #183",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-184",
+      "companyId": "co-v2-19",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #184",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-185",
+      "companyId": "co-v2-4",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #185",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-186",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #186",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-187",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #187",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-188",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #188",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-189",
+      "companyId": "co-v2-7",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #189",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-190",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #190",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-191",
+      "companyId": "co-v2-9",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #191",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-192",
+      "companyId": "co-v2-18",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #192",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-193",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #193",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-194",
+      "companyId": "co-v2-12",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #194",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-195",
+      "companyId": "co-v2-6",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #195",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-196",
+      "companyId": "co-v2-14",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #196",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-197",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #197",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-198",
+      "companyId": "co-v2-3",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #198",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-199",
+      "companyId": "co-v2-19",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #199",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "ac-v2-200",
+      "companyId": "co-v2-16",
+      "type": "CALL",
+      "channel": "Phone",
+      "timestamp": "2026-03-15T10:00:00.000Z",
+      "description": "Followup Call #200",
+      "performedBy": "Sales Agent",
+      "status": "COMPLETED"
+    }
+  ],
+  "audit": {
+    "companiesLoaded": 20,
+    "companiesValid": 20,
+    "companiesErrors": 0,
+    "contactsLoaded": 100,
+    "contactsValid": 100,
+    "contactsMatched": 100,
+    "contactsErrors": 0,
+    "dealsLoaded": 40,
+    "dealsValid": 40,
+    "dealsErrors": 0
+  }
+}

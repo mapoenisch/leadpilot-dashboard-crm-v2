@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-09-07T17:49:56.489Z",
+  "stage": "nachher",
+  "commit": "HEAD",
+  "appDir": "/Users/marcpoenisch/Projekte/LeadPilot Dashboard-CRM",
+  "scenario1": {
+    "measuredMs": 30,
+    "budgetMs": 3000,
+    "pass": true,
+    "runs": [
+      119,
+      15,
+      30
+    ]
+  },
+  "scenario2": {
+    "measuredMs": 12,
+    "budgetMs": 600,
+    "pass": true,
+    "runs": [
+      12,
+      12,
+      6
+    ]
+  },
+  "scenario3": {
+    "measuredMs": 36,
+    "budgetMs": 800,
+    "pass": true,
+    "runs": [
+      36,
+      48,
+      36
+    ]
+  },
+  "scenario4": {
+    "normalMs": 215,
+    "normalBudgetMs": 220,
+    "normalPass": true,
+    "hadGlitch": false,
+    "reducedMotionMs": 0,
+    "reducedMotionPass": true
+  }
+}

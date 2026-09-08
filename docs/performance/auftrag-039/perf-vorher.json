@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-09-07T21:38:45.671Z",
+  "stage": "vorher",
+  "baselineCommit": "766edd8",
+  "os": "macOS (Darwin)",
+  "browser": "Chrome Headless (CDP)",
+  "scenario1": {
+    "budgetMs": 3000,
+    "measuredMs": 22,
+    "runs": [
+      17,
+      20,
+      22,
+      34,
+      233
+    ],
+    "pass": true
+  },
+  "scenario2": {
+    "budgetMs": 600,
+    "measuredMs": 17,
+    "runs": [
+      15,
+      16,
+      17,
+      17,
+      19
+    ],
+    "pass": true
+  },
+  "scenario3": {
+    "budgetMs": 800,
+    "measuredMs": 48,
+    "runs": [
+      34,
+      36,
+      48,
+      50,
+      51
+    ],
+    "pass": true
+  },
+  "scenario4": {
+    "normalMs": 213,
+    "normalBudgetMs": 220,
+    "normalPass": true,
+    "hadGlitch": false,
+    "reducedMotionMs": 0,
+    "reducedMotionPass": true
+  },
+  "webpAudit": {
+    "jsCount": 52,
+    "webpInJs": 0,
+    "violatedFiles": []
+  }
+}

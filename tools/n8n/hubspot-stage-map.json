@@ -1,0 +1,17 @@
+{
+  "_comment": "HubSpot dealstage-ID oder -Label -> LeadPilot-Funnel-Stage",
+  "appointmentscheduled": "LEAD",
+  "qualifiedtobuy": "QUALIFIED_LEAD",
+  "presentationscheduled": "PITCH_DEMO",
+  "decisionmakerboughtin": "PROPOSAL",
+  "contractsent": "CLOSING",
+  "closedwon": "WON",
+  "closedlost": "LOST",
+  "Termin vereinbart": "LEAD",
+  "Für Kauf qualifiziert": "QUALIFIED_LEAD",
+  "Präsentation vereinbart": "PITCH_DEMO",
+  "Entscheidungsträger hat zugestimmt": "PROPOSAL",
+  "Vertrag gesendet": "CLOSING",
+  "Abgeschlossen und gewonnen": "WON",
+  "Abgeschlossen und verloren": "LOST"
+}

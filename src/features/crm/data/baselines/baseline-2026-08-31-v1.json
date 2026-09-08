@@ -1,0 +1,1331 @@
+{
+  "version": "2026-08-31-v1",
+  "generatedAt": "2026-08-31T00:00:00.000Z",
+  "generator": "crmImporter",
+  "periodStart": "2026-01-01",
+  "counts": {
+    "companies": 20,
+    "contacts": 100,
+    "deals": 40,
+    "activities": 0
+  },
+  "companies": [
+    {
+      "id": "comp-1",
+      "domain": "nordwerkmaschinenbau.de",
+      "name": "NordWerk Maschinenbau GmbH",
+      "industry": "Maschinenbau",
+      "city": "Hamburg",
+      "postalCode": "20095",
+      "employeeCount": 22
+    },
+    {
+      "id": "comp-2",
+      "domain": "bergmannlogistik.de",
+      "name": "Bergmann Logistik AG",
+      "industry": "Logistik",
+      "city": "Bremen",
+      "postalCode": "28195",
+      "employeeCount": 59
+    },
+    {
+      "id": "comp-3",
+      "domain": "feldmannmoebelwerke.de",
+      "name": "Feldmann Möbelwerke GmbH & Co. KG",
+      "industry": "Möbelproduktion",
+      "city": "Bielefeld",
+      "postalCode": "33602",
+      "employeeCount": 37
+    },
+    {
+      "id": "comp-4",
+      "domain": "vogelelektrotechnik.de",
+      "name": "Vogel Elektrotechnik GmbH",
+      "industry": "Elektrotechnik",
+      "city": "Köln",
+      "postalCode": "50667",
+      "employeeCount": 43
+    },
+    {
+      "id": "comp-5",
+      "domain": "kellerconsulting.de",
+      "name": "Keller Consulting AG",
+      "industry": "Consulting",
+      "city": "Frankfurt am Main",
+      "postalCode": "60311",
+      "employeeCount": 58
+    },
+    {
+      "id": "comp-6",
+      "domain": "brunnersoftware.de",
+      "name": "Brunner Software GmbH",
+      "industry": "Softwareentwicklung",
+      "city": "München",
+      "postalCode": "80331",
+      "employeeCount": 4
+    },
+    {
+      "id": "comp-7",
+      "domain": "wagnerbau.de",
+      "name": "Wagner Bau GmbH & Co. KG",
+      "industry": "Bauunternehmen",
+      "city": "Stuttgart",
+      "postalCode": "70173",
+      "employeeCount": 38
+    },
+    {
+      "id": "comp-8",
+      "domain": "schusterwerbeagentur.de",
+      "name": "Schuster Werbeagentur GmbH",
+      "industry": "Werbeagentur",
+      "city": "Düsseldorf",
+      "postalCode": "40213",
+      "employeeCount": 8
+    },
+    {
+      "id": "comp-9",
+      "domain": "lindgrenpersonalberatung.de",
+      "name": "Lindgren Personalberatung UG (haftungsbeschränkt)",
+      "industry": "Personalberatung",
+      "city": "Leipzig",
+      "postalCode": "4109",
+      "employeeCount": 74
+    },
+    {
+      "id": "comp-10",
+      "domain": "hoffmannimmobilien.de",
+      "name": "Hoffmann Immobilien GmbH",
+      "industry": "Immobilien",
+      "city": "Dresden",
+      "postalCode": "1067",
+      "employeeCount": 12
+    },
+    {
+      "id": "comp-11",
+      "domain": "kaiserchemie.de",
+      "name": "Kaiser Chemie AG",
+      "industry": "Chemieproduktion",
+      "city": "Dortmund",
+      "postalCode": "44135",
+      "employeeCount": 110
+    },
+    {
+      "id": "comp-12",
+      "domain": "reutertextilhandel.de",
+      "name": "Reuter Textilhandel e.K.",
+      "industry": "Textilhandel",
+      "city": "Essen",
+      "postalCode": "45127",
+      "employeeCount": 11
+    },
+    {
+      "id": "comp-13",
+      "domain": "sommerversicherungsmakler.de",
+      "name": "Sommer Versicherungsmakler GmbH",
+      "industry": "Versicherungsmakler",
+      "city": "Hannover",
+      "postalCode": "30159",
+      "employeeCount": 48
+    },
+    {
+      "id": "comp-14",
+      "domain": "winklersteuerberatung.de",
+      "name": "Winkler Steuerberatung GmbH",
+      "industry": "Steuerberatung",
+      "city": "Nürnberg",
+      "postalCode": "90402",
+      "employeeCount": 41
+    },
+    {
+      "id": "comp-15",
+      "domain": "falkevents.de",
+      "name": "Falk Events GmbH",
+      "industry": "Eventmanagement",
+      "city": "Duisburg",
+      "postalCode": "47051",
+      "employeeCount": 11
+    },
+    {
+      "id": "comp-16",
+      "domain": "amselverpackung.de",
+      "name": "Amsel Verpackung GmbH & Co. KG",
+      "industry": "Verpackungsindustrie",
+      "city": "Bochum",
+      "postalCode": "44787",
+      "employeeCount": 33
+    },
+    {
+      "id": "comp-17",
+      "domain": "reinhardtautomation.de",
+      "name": "Reinhardt Automation AG",
+      "industry": "Automatisierungstechnik",
+      "city": "Wuppertal",
+      "postalCode": "42103",
+      "employeeCount": 7
+    },
+    {
+      "id": "comp-18",
+      "domain": "lorenzgastrohandel.de",
+      "name": "Lorenz Gastro-Handel GmbH",
+      "industry": "Gastronomie-Großhandel",
+      "city": "Mannheim",
+      "postalCode": "68159",
+      "employeeCount": 106
+    },
+    {
+      "id": "comp-19",
+      "domain": "ostermanncommerce.de",
+      "name": "Ostermann Commerce GmbH",
+      "industry": "E-Commerce",
+      "city": "Karlsruhe",
+      "postalCode": "76133",
+      "employeeCount": 7
+    },
+    {
+      "id": "comp-20",
+      "domain": "vollmerfinanz.de",
+      "name": "Vollmer Finanz AG",
+      "industry": "Finanzdienstleistungen",
+      "city": "Berlin",
+      "postalCode": "10115",
+      "employeeCount": 180
+    }
+  ],
+  "contacts": [
+    {
+      "id": "cont-1",
+      "companyId": "comp-1",
+      "email": "kerstin.koch@nordwerkmaschinenbau.de",
+      "firstName": "Kerstin",
+      "lastName": "Koch",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-2",
+      "companyId": "comp-1",
+      "email": "fabian.lehmann@nordwerkmaschinenbau.de",
+      "firstName": "Fabian",
+      "lastName": "Lehmann",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-3",
+      "companyId": "comp-1",
+      "email": "hannah.weber@nordwerkmaschinenbau.de",
+      "firstName": "Hannah",
+      "lastName": "Weber",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-4",
+      "companyId": "comp-1",
+      "email": "claudia.werner@nordwerkmaschinenbau.de",
+      "firstName": "Claudia",
+      "lastName": "Werner",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-5",
+      "companyId": "comp-1",
+      "email": "hannah.schulze@nordwerkmaschinenbau.de",
+      "firstName": "Hannah",
+      "lastName": "Schulze",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-6",
+      "companyId": "comp-2",
+      "email": "marcel.schwarz@bergmannlogistik.de",
+      "firstName": "Marcel",
+      "lastName": "Schwarz",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-7",
+      "companyId": "comp-2",
+      "email": "benjamin.mueller@bergmannlogistik.de",
+      "firstName": "Benjamin",
+      "lastName": "Müller",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-8",
+      "companyId": "comp-2",
+      "email": "fabian.becker@bergmannlogistik.de",
+      "firstName": "Fabian",
+      "lastName": "Becker",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-9",
+      "companyId": "comp-2",
+      "email": "fabian.walter@bergmannlogistik.de",
+      "firstName": "Fabian",
+      "lastName": "Walter",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-10",
+      "companyId": "comp-2",
+      "email": "elena.zimmermann@bergmannlogistik.de",
+      "firstName": "Elena",
+      "lastName": "Zimmermann",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-11",
+      "companyId": "comp-3",
+      "email": "maximilian.hartmann@feldmannmoebelwerke.de",
+      "firstName": "Maximilian",
+      "lastName": "Hartmann",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-12",
+      "companyId": "comp-3",
+      "email": "christian.braun@feldmannmoebelwerke.de",
+      "firstName": "Christian",
+      "lastName": "Braun",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-13",
+      "companyId": "comp-3",
+      "email": "sebastian.koch@feldmannmoebelwerke.de",
+      "firstName": "Sebastian",
+      "lastName": "Koch",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-14",
+      "companyId": "comp-3",
+      "email": "david.mueller@feldmannmoebelwerke.de",
+      "firstName": "David",
+      "lastName": "Müller",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-15",
+      "companyId": "comp-3",
+      "email": "julia.schwarz@feldmannmoebelwerke.de",
+      "firstName": "Julia",
+      "lastName": "Schwarz",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-16",
+      "companyId": "comp-4",
+      "email": "isabel.bauer@vogelelektrotechnik.de",
+      "firstName": "Isabel",
+      "lastName": "Bauer",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-17",
+      "companyId": "comp-4",
+      "email": "isabel.wagner@vogelelektrotechnik.de",
+      "firstName": "Isabel",
+      "lastName": "Wagner",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-18",
+      "companyId": "comp-4",
+      "email": "kerstin.krueger@vogelelektrotechnik.de",
+      "firstName": "Kerstin",
+      "lastName": "Krüger",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-19",
+      "companyId": "comp-4",
+      "email": "kerstin.herrmann@vogelelektrotechnik.de",
+      "firstName": "Kerstin",
+      "lastName": "Herrmann",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-20",
+      "companyId": "comp-4",
+      "email": "hannah.richter@vogelelektrotechnik.de",
+      "firstName": "Hannah",
+      "lastName": "Richter",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-21",
+      "companyId": "comp-5",
+      "email": "markus.schmitt@kellerconsulting.de",
+      "firstName": "Markus",
+      "lastName": "Schmitt",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-22",
+      "companyId": "comp-5",
+      "email": "elena.koch@kellerconsulting.de",
+      "firstName": "Elena",
+      "lastName": "Koch",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-23",
+      "companyId": "comp-5",
+      "email": "vera.koenig@kellerconsulting.de",
+      "firstName": "Vera",
+      "lastName": "König",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-24",
+      "companyId": "comp-5",
+      "email": "julia.fuchs@kellerconsulting.de",
+      "firstName": "Julia",
+      "lastName": "Fuchs",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-25",
+      "companyId": "comp-5",
+      "email": "sabine.koehler@kellerconsulting.de",
+      "firstName": "Sabine",
+      "lastName": "Köhler",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-26",
+      "companyId": "comp-6",
+      "email": "michael.becker@brunnersoftware.de",
+      "firstName": "Michael",
+      "lastName": "Becker",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-27",
+      "companyId": "comp-6",
+      "email": "jan.krueger@brunnersoftware.de",
+      "firstName": "Jan",
+      "lastName": "Krüger",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-28",
+      "companyId": "comp-6",
+      "email": "andreas.fischer@brunnersoftware.de",
+      "firstName": "Andreas",
+      "lastName": "Fischer",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-29",
+      "companyId": "comp-6",
+      "email": "andreas.huber@brunnersoftware.de",
+      "firstName": "Andreas",
+      "lastName": "Huber",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-30",
+      "companyId": "comp-6",
+      "email": "daniel.meyer@brunnersoftware.de",
+      "firstName": "Daniel",
+      "lastName": "Meyer",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-31",
+      "companyId": "comp-7",
+      "email": "julia.koehler@wagnerbau.de",
+      "firstName": "Julia",
+      "lastName": "Köhler",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-32",
+      "companyId": "comp-7",
+      "email": "anna.walter@wagnerbau.de",
+      "firstName": "Anna",
+      "lastName": "Walter",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-33",
+      "companyId": "comp-7",
+      "email": "maximilian.schulz@wagnerbau.de",
+      "firstName": "Maximilian",
+      "lastName": "Schulz",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-34",
+      "companyId": "comp-7",
+      "email": "sophie.maier@wagnerbau.de",
+      "firstName": "Sophie",
+      "lastName": "Maier",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-35",
+      "companyId": "comp-7",
+      "email": "benjamin.koch@wagnerbau.de",
+      "firstName": "Benjamin",
+      "lastName": "Koch",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-36",
+      "companyId": "comp-8",
+      "email": "katharina.koenig@schusterwerbeagentur.de",
+      "firstName": "Katharina",
+      "lastName": "König",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-37",
+      "companyId": "comp-8",
+      "email": "hannah.lehmann@schusterwerbeagentur.de",
+      "firstName": "Hannah",
+      "lastName": "Lehmann",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-38",
+      "companyId": "comp-8",
+      "email": "stefan.walter@schusterwerbeagentur.de",
+      "firstName": "Stefan",
+      "lastName": "Walter",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-39",
+      "companyId": "comp-8",
+      "email": "elena.richter@schusterwerbeagentur.de",
+      "firstName": "Elena",
+      "lastName": "Richter",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-40",
+      "companyId": "comp-8",
+      "email": "lukas.krueger@schusterwerbeagentur.de",
+      "firstName": "Lukas",
+      "lastName": "Krüger",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-41",
+      "companyId": "comp-9",
+      "email": "philipp.schmitt@lindgrenpersonalberatung.de",
+      "firstName": "Philipp",
+      "lastName": "Schmitt",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-42",
+      "companyId": "comp-9",
+      "email": "christina.koenig@lindgrenpersonalberatung.de",
+      "firstName": "Christina",
+      "lastName": "König",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-43",
+      "companyId": "comp-9",
+      "email": "christina.becker@lindgrenpersonalberatung.de",
+      "firstName": "Christina",
+      "lastName": "Becker",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-44",
+      "companyId": "comp-9",
+      "email": "andreas.wolf@lindgrenpersonalberatung.de",
+      "firstName": "Andreas",
+      "lastName": "Wolf",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-45",
+      "companyId": "comp-9",
+      "email": "anna.hartmann@lindgrenpersonalberatung.de",
+      "firstName": "Anna",
+      "lastName": "Hartmann",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-46",
+      "companyId": "comp-10",
+      "email": "michael.kaiser@hoffmannimmobilien.de",
+      "firstName": "Michael",
+      "lastName": "Kaiser",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-47",
+      "companyId": "comp-10",
+      "email": "benjamin.wolf@hoffmannimmobilien.de",
+      "firstName": "Benjamin",
+      "lastName": "Wolf",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-48",
+      "companyId": "comp-10",
+      "email": "dominik.wolf@hoffmannimmobilien.de",
+      "firstName": "Dominik",
+      "lastName": "Wolf",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-49",
+      "companyId": "comp-10",
+      "email": "julia.weber@hoffmannimmobilien.de",
+      "firstName": "Julia",
+      "lastName": "Weber",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-50",
+      "companyId": "comp-10",
+      "email": "lukas.fischer@hoffmannimmobilien.de",
+      "firstName": "Lukas",
+      "lastName": "Fischer",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-51",
+      "companyId": "comp-11",
+      "email": "melanie.weber@kaiserchemie.de",
+      "firstName": "Melanie",
+      "lastName": "Weber",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-52",
+      "companyId": "comp-11",
+      "email": "sarah.hartmann@kaiserchemie.de",
+      "firstName": "Sarah",
+      "lastName": "Hartmann",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-53",
+      "companyId": "comp-11",
+      "email": "anna.herrmann@kaiserchemie.de",
+      "firstName": "Anna",
+      "lastName": "Herrmann",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-54",
+      "companyId": "comp-11",
+      "email": "andreas.zimmermann@kaiserchemie.de",
+      "firstName": "Andreas",
+      "lastName": "Zimmermann",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-55",
+      "companyId": "comp-11",
+      "email": "antonia.koehler@kaiserchemie.de",
+      "firstName": "Antonia",
+      "lastName": "Köhler",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-56",
+      "companyId": "comp-12",
+      "email": "stefan.walter@reutertextilhandel.de",
+      "firstName": "Stefan",
+      "lastName": "Walter",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-57",
+      "companyId": "comp-12",
+      "email": "sophie.huber@reutertextilhandel.de",
+      "firstName": "Sophie",
+      "lastName": "Huber",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-58",
+      "companyId": "comp-12",
+      "email": "carolin.maier@reutertextilhandel.de",
+      "firstName": "Carolin",
+      "lastName": "Maier",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-59",
+      "companyId": "comp-12",
+      "email": "andreas.maier@reutertextilhandel.de",
+      "firstName": "Andreas",
+      "lastName": "Maier",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-60",
+      "companyId": "comp-12",
+      "email": "nadine.richter@reutertextilhandel.de",
+      "firstName": "Nadine",
+      "lastName": "Richter",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-61",
+      "companyId": "comp-13",
+      "email": "laura.wagner@sommerversicherungsmakler.de",
+      "firstName": "Laura",
+      "lastName": "Wagner",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-62",
+      "companyId": "comp-13",
+      "email": "antonia.lehmann@sommerversicherungsmakler.de",
+      "firstName": "Antonia",
+      "lastName": "Lehmann",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-63",
+      "companyId": "comp-13",
+      "email": "vanessa.lehmann@sommerversicherungsmakler.de",
+      "firstName": "Vanessa",
+      "lastName": "Lehmann",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-64",
+      "companyId": "comp-13",
+      "email": "nadine.schulze@sommerversicherungsmakler.de",
+      "firstName": "Nadine",
+      "lastName": "Schulze",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-65",
+      "companyId": "comp-13",
+      "email": "julia.fischer@sommerversicherungsmakler.de",
+      "firstName": "Julia",
+      "lastName": "Fischer",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-66",
+      "companyId": "comp-14",
+      "email": "fabian.wagner@winklersteuerberatung.de",
+      "firstName": "Fabian",
+      "lastName": "Wagner",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-67",
+      "companyId": "comp-14",
+      "email": "thomas.krause@winklersteuerberatung.de",
+      "firstName": "Thomas",
+      "lastName": "Krause",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-68",
+      "companyId": "comp-14",
+      "email": "julia.hartmann@winklersteuerberatung.de",
+      "firstName": "Julia",
+      "lastName": "Hartmann",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-69",
+      "companyId": "comp-14",
+      "email": "laura.neumann@winklersteuerberatung.de",
+      "firstName": "Laura",
+      "lastName": "Neumann",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-70",
+      "companyId": "comp-14",
+      "email": "lea.richter@winklersteuerberatung.de",
+      "firstName": "Lea",
+      "lastName": "Richter",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-71",
+      "companyId": "comp-15",
+      "email": "vera.schmid@falkevents.de",
+      "firstName": "Vera",
+      "lastName": "Schmid",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-72",
+      "companyId": "comp-15",
+      "email": "sophie.lehmann@falkevents.de",
+      "firstName": "Sophie",
+      "lastName": "Lehmann",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-73",
+      "companyId": "comp-15",
+      "email": "alexander.zimmermann@falkevents.de",
+      "firstName": "Alexander",
+      "lastName": "Zimmermann",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-74",
+      "companyId": "comp-15",
+      "email": "david.neumann@falkevents.de",
+      "firstName": "David",
+      "lastName": "Neumann",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-75",
+      "companyId": "comp-15",
+      "email": "anna.schmid@falkevents.de",
+      "firstName": "Anna",
+      "lastName": "Schmid",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-76",
+      "companyId": "comp-16",
+      "email": "benjamin.wagner@amselverpackung.de",
+      "firstName": "Benjamin",
+      "lastName": "Wagner",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-77",
+      "companyId": "comp-16",
+      "email": "thomas.walter@amselverpackung.de",
+      "firstName": "Thomas",
+      "lastName": "Walter",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-78",
+      "companyId": "comp-16",
+      "email": "julia.meyer@amselverpackung.de",
+      "firstName": "Julia",
+      "lastName": "Meyer",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-79",
+      "companyId": "comp-16",
+      "email": "elena.neumann@amselverpackung.de",
+      "firstName": "Elena",
+      "lastName": "Neumann",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-80",
+      "companyId": "comp-16",
+      "email": "nina.meier@amselverpackung.de",
+      "firstName": "Nina",
+      "lastName": "Meier",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-81",
+      "companyId": "comp-17",
+      "email": "patrick.maier@reinhardtautomation.de",
+      "firstName": "Patrick",
+      "lastName": "Maier",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-82",
+      "companyId": "comp-17",
+      "email": "stefan.krause@reinhardtautomation.de",
+      "firstName": "Stefan",
+      "lastName": "Krause",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-83",
+      "companyId": "comp-17",
+      "email": "thomas.koch@reinhardtautomation.de",
+      "firstName": "Thomas",
+      "lastName": "Koch",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-84",
+      "companyId": "comp-17",
+      "email": "claudia.mueller@reinhardtautomation.de",
+      "firstName": "Claudia",
+      "lastName": "Müller",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-85",
+      "companyId": "comp-17",
+      "email": "claudia.schwarz@reinhardtautomation.de",
+      "firstName": "Claudia",
+      "lastName": "Schwarz",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-86",
+      "companyId": "comp-18",
+      "email": "david.braun@lorenzgastrohandel.de",
+      "firstName": "David",
+      "lastName": "Braun",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-87",
+      "companyId": "comp-18",
+      "email": "sebastian.mayer@lorenzgastrohandel.de",
+      "firstName": "Sebastian",
+      "lastName": "Mayer",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-88",
+      "companyId": "comp-18",
+      "email": "antonia.koehler@lorenzgastrohandel.de",
+      "firstName": "Antonia",
+      "lastName": "Köhler",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-89",
+      "companyId": "comp-18",
+      "email": "markus.richter@lorenzgastrohandel.de",
+      "firstName": "Markus",
+      "lastName": "Richter",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-90",
+      "companyId": "comp-18",
+      "email": "jasmin.klein@lorenzgastrohandel.de",
+      "firstName": "Jasmin",
+      "lastName": "Klein",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-91",
+      "companyId": "comp-19",
+      "email": "thomas.kaiser@ostermanncommerce.de",
+      "firstName": "Thomas",
+      "lastName": "Kaiser",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-92",
+      "companyId": "comp-19",
+      "email": "timo.walter@ostermanncommerce.de",
+      "firstName": "Timo",
+      "lastName": "Walter",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-93",
+      "companyId": "comp-19",
+      "email": "thomas.hofmann@ostermanncommerce.de",
+      "firstName": "Thomas",
+      "lastName": "Hofmann",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-94",
+      "companyId": "comp-19",
+      "email": "thomas.fischer@ostermanncommerce.de",
+      "firstName": "Thomas",
+      "lastName": "Fischer",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-95",
+      "companyId": "comp-19",
+      "email": "dominik.maier@ostermanncommerce.de",
+      "firstName": "Dominik",
+      "lastName": "Maier",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-96",
+      "companyId": "comp-20",
+      "email": "isabel.koenig@vollmerfinanz.de",
+      "firstName": "Isabel",
+      "lastName": "König",
+      "jobTitle": "Geschäftsführer"
+    },
+    {
+      "id": "cont-97",
+      "companyId": "comp-20",
+      "email": "nina.fischer@vollmerfinanz.de",
+      "firstName": "Nina",
+      "lastName": "Fischer",
+      "jobTitle": "Abteilungsleiter"
+    },
+    {
+      "id": "cont-98",
+      "companyId": "comp-20",
+      "email": "isabel.meyer@vollmerfinanz.de",
+      "firstName": "Isabel",
+      "lastName": "Meyer",
+      "jobTitle": "Teamleiter"
+    },
+    {
+      "id": "cont-99",
+      "companyId": "comp-20",
+      "email": "alexander.weber@vollmerfinanz.de",
+      "firstName": "Alexander",
+      "lastName": "Weber",
+      "jobTitle": "Sachbearbeiter"
+    },
+    {
+      "id": "cont-100",
+      "companyId": "comp-20",
+      "email": "hannah.weber@vollmerfinanz.de",
+      "firstName": "Hannah",
+      "lastName": "Weber",
+      "jobTitle": "Sachbearbeiter"
+    }
+  ],
+  "importedFunnelDeals": [
+    {
+      "id": "fdeal-1",
+      "dealName": "Nordlicht Logistik – Projekt",
+      "stage": "Für Kauf qualifiziert",
+      "amount": 27000,
+      "closeDate": "2026-08-02",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-2",
+      "dealName": "Stadtwerk Media – Projekt",
+      "stage": "Termin vereinbart",
+      "amount": 43000,
+      "closeDate": "2026-07-27",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-3",
+      "dealName": "Bergmann Handel – Projekt",
+      "stage": "Für Kauf qualifiziert",
+      "amount": 7000,
+      "closeDate": "2026-08-26",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-4",
+      "dealName": "Feinkost Weber – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 34000,
+      "closeDate": "2026-04-19",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-5",
+      "dealName": "TechNova Systems – Projekt",
+      "stage": "Abgeschlossen und gewonnen",
+      "amount": 12000,
+      "closeDate": "2026-05-09",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-6",
+      "dealName": "GrünBau Immobilien – Projekt",
+      "stage": "Abgeschlossen und gewonnen",
+      "amount": 10000,
+      "closeDate": "2026-04-17",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-7",
+      "dealName": "Rheinpark Klinik – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 23000,
+      "closeDate": "2026-05-11",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-8",
+      "dealName": "Alpenhof Gastro – Projekt",
+      "stage": "Für Kauf qualifiziert",
+      "amount": 41000,
+      "closeDate": "2026-07-23",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-9",
+      "dealName": "Möbel Kranz – Projekt",
+      "stage": "Für Kauf qualifiziert",
+      "amount": 9000,
+      "closeDate": "2026-07-13",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-10",
+      "dealName": "Digital Punkt – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 19000,
+      "closeDate": "2026-05-20",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-11",
+      "dealName": "Sonnendach Energie – Projekt",
+      "stage": "Abgeschlossen und gewonnen",
+      "amount": 10000,
+      "closeDate": "2026-05-28",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-12",
+      "dealName": "Küstenwerft – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 11000,
+      "closeDate": "2026-05-09",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-13",
+      "dealName": "Hansa Textil – Projekt",
+      "stage": "Abgeschlossen und gewonnen",
+      "amount": 22000,
+      "closeDate": "2026-04-29",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-14",
+      "dealName": "Bytewerk Software – Projekt",
+      "stage": "Vertrag gesendet",
+      "amount": 45000,
+      "closeDate": "2026-08-03",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-15",
+      "dealName": "Frischbox Catering – Projekt",
+      "stage": "Präsentation vereinbart",
+      "amount": 15000,
+      "closeDate": "2026-08-03",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-16",
+      "dealName": "Metropol Fitness – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 27000,
+      "closeDate": "2026-05-31",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-17",
+      "dealName": "Zahnzentrum Lindau – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 22000,
+      "closeDate": "2026-06-17",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-18",
+      "dealName": "Pflegedienst Aurora – Projekt",
+      "stage": "Abgeschlossen und gewonnen",
+      "amount": 43000,
+      "closeDate": "2026-06-05",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-19",
+      "dealName": "Auto Vogel – Projekt",
+      "stage": "Präsentation vereinbart",
+      "amount": 39000,
+      "closeDate": "2026-08-26",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-20",
+      "dealName": "City Apotheke – Projekt",
+      "stage": "Abgeschlossen und gewonnen",
+      "amount": 20000,
+      "closeDate": "2026-06-06",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-21",
+      "dealName": "Lagerhaus Schmitt – Projekt",
+      "stage": "Abgeschlossen und gewonnen",
+      "amount": 34000,
+      "closeDate": "2026-05-09",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-22",
+      "dealName": "Blumenwelt Sax – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 22000,
+      "closeDate": "2026-04-16",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-23",
+      "dealName": "Kanzlei Brandt – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 19000,
+      "closeDate": "2026-05-16",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-24",
+      "dealName": "Elektro Reimann – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 8000,
+      "closeDate": "2026-05-28",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-25",
+      "dealName": "Backhaus Möller – Projekt",
+      "stage": "Vertrag gesendet",
+      "amount": 7000,
+      "closeDate": "2026-07-31",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-26",
+      "dealName": "Fahrschule Ritter – Projekt",
+      "stage": "Entscheidungsträger hat zugestimmt",
+      "amount": 30000,
+      "closeDate": "2026-07-28",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-27",
+      "dealName": "Praxis Sommer – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 9000,
+      "closeDate": "2026-05-30",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-28",
+      "dealName": "Werkzeug Ott – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 41000,
+      "closeDate": "2026-05-17",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-29",
+      "dealName": "Reinigung Klar – Projekt",
+      "stage": "Termin vereinbart",
+      "amount": 18000,
+      "closeDate": "2026-08-21",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-30",
+      "dealName": "Studio Neun – Projekt",
+      "stage": "Termin vereinbart",
+      "amount": 36000,
+      "closeDate": "2026-08-05",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-31",
+      "dealName": "Speditur Falk – Projekt",
+      "stage": "Abgeschlossen und verloren",
+      "amount": 34000,
+      "closeDate": "2026-06-08",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-32",
+      "dealName": "Hotel Seeblick – Projekt",
+      "stage": "Abgeschlossen und gewonnen",
+      "amount": 21000,
+      "closeDate": "2026-06-09",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-33",
+      "dealName": "Optik Marwitz – Projekt",
+      "stage": "Für Kauf qualifiziert",
+      "amount": 20000,
+      "closeDate": "2026-08-27",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-34",
+      "dealName": "Sporthaus Degen – Projekt",
+      "stage": "Für Kauf qualifiziert",
+      "amount": 40000,
+      "closeDate": "2026-08-14",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-35",
+      "dealName": "Weingut Halter – Projekt",
+      "stage": "Für Kauf qualifiziert",
+      "amount": 21000,
+      "closeDate": "2026-08-27",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-36",
+      "dealName": "Druckerei Pfeil – Projekt",
+      "stage": "Präsentation vereinbart",
+      "amount": 42000,
+      "closeDate": "2026-08-07",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-37",
+      "dealName": "Immo Vester – Projekt",
+      "stage": "Entscheidungsträger hat zugestimmt",
+      "amount": 42000,
+      "closeDate": "2026-08-05",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-38",
+      "dealName": "Tierklinik Bruns – Projekt",
+      "stage": "Entscheidungsträger hat zugestimmt",
+      "amount": 28000,
+      "closeDate": "2026-07-25",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-39",
+      "dealName": "Baumarkt Zorn – Projekt",
+      "stage": "Termin vereinbart",
+      "amount": 13000,
+      "closeDate": "2026-08-12",
+      "pipeline": "Sales-Pipeline"
+    },
+    {
+      "id": "fdeal-40",
+      "dealName": "Cafe Lettera – Projekt",
+      "stage": "Für Kauf qualifiziert",
+      "amount": 36000,
+      "closeDate": "2026-07-16",
+      "pipeline": "Sales-Pipeline"
+    }
+  ],
+  "activities": [],
+  "audit": {
+    "companiesLoaded": 20,
+    "companiesValid": 20,
+    "companiesErrors": 0,
+    "contactsLoaded": 100,
+    "contactsValid": 100,
+    "contactsMatched": 100,
+    "contactsErrors": 0,
+    "dealsLoaded": 40,
+    "dealsValid": 40,
+    "dealsErrors": 0
+  }
+}
