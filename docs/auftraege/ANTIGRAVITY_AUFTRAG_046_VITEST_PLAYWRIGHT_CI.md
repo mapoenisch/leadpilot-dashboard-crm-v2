@@ -196,3 +196,80 @@ git commit -m "chore(g31): remove superseded capture scripts"
 
 **Abnahme:** Erst nach unabhängigem Codex-Review ist Gate G31 freigegeben.
 Kein Merge, Tag oder Push.
+
+---
+
+## Revision vor Umsetzung (2026-09-09)
+
+Nach zwei Vorab-Fragen von Antigravity und Prüfer-Empfehlung. Diese Punkte **überlagern** bzw.
+präzisieren den Auftragstext oben.
+
+### R1 — CI-Trigger und Actions
+
+`github.com/mapoenisch/leadpilot-dashboard-crm-v2` ist privat, GitHub Actions ist aktiviert
+(`allowed_actions: all`), der Token hat `workflow`-Scope.
+
+- **Schnelle Jobs** (`lint`, `typecheck`, `test`, `build`, `size-limit`): `on: push` **und**
+  `on: pull_request`.
+- **`e2e`-Job** (Playwright + axe + Lighthouse): **nur `on: pull_request`.** Grund: privates Repo
+  hat ein Actions-Minuten-Kontingent (Free 2.000/Monat, Pro 3.000); ein voller Playwright-Lauf bei
+  jedem Push verbrennt das zu schnell.
+
+### R2 — `lint`- und `typecheck`-Job: Baseline-Ratsche statt `continue-on-error`
+
+Beide Jobs sind auf dem G30-Stand rot (`lint` 327 Fehler, `tsc --noEmit` 765 Fehler). **Nicht**
+`continue-on-error: true` (grüner Haken ohne Bedeutung, verrottet) und **nicht** weglassen
+(kein Regressionsschutz). Stattdessen: der Job zählt die Fehler und **schlägt fehl, wenn die Zahl
+über die Baseline steigt**.
+
+```yaml
+env:
+  LINT_BASELINE: 327
+  TSC_BASELINE: 765
+# lint:
+#   COUNT=$(npx eslint . -f json | node -e '…errorCount summieren…')
+#   [ "$COUNT" -le "$LINT_BASELINE" ] || { echo "::error::ESLint-Regression $COUNT > $LINT_BASELINE"; exit 1; }
+# typecheck:
+#   COUNT=$(npx tsc --noEmit 2>&1 | grep -c "error TS" || true)
+#   [ "$COUNT" -le "$TSC_BASELINE" ] || { echo "::error::TSC-Regression $COUNT > $TSC_BASELINE"; exit 1; }
+```
+
+- ≤ Baseline → grün (keine Verschlechterung).  ≥ Baseline+1 → rot.
+- Baseline-Zahlen als `env:` **im Workflow-YAML** — keine neue Datei. G35 senkt sie schrittweise
+  auf 0, danach werden die Jobs zu simplem `eslint .` / `tsc --noEmit`.
+
+### R3 — Migrationsstrategie: Vitest-Wrapper, kein native Rewrite in G31
+
+Die 24 `src/simulation/__tests__/*.test.ts` sind **Custom-Harnesses** (`export async function
+run*Test(): Promise<{ success, log }>`), kein Vitest-API. Für G31 gilt:
+
+1. **Wrapper** unter `src/simulation/__tests__/vitest/<suite>.test.ts` — je ein `it()`, das die
+   `run*Test()`-Funktion importiert, ausführt und `expect(result.success).toBe(true)` prüft.
+   Originaldateien bleiben.
+2. **Mutations-Beweis** je Suite über den Wrapper (Abschnitt „Umsetzung 3", Schritte a–c).
+3. **Schwache Suiten härten:** wo eine Mutation überlebt (Stichprobe des Prüfers: ~2 von 3),
+   werden Assertions **in der bestehenden `run*Test()`-Datei** nachgeschärft — das ist Testcode
+   und laut `BUILD_PLAN_V2.2.0` für G31 in `src/simulation/__tests__/` zulässig. Die
+   Auftragszeile „Inhalt bleibt inhaltlich identisch" ist dafür überlagert; die **Engine-Logik**
+   unter `src/simulation/` außerhalb von `__tests__/` bleibt unangetastet.
+4. **Schritt (d) „alte Suite entfernen" wird verschoben.** `scripts/verifyIntegrity.ts` und die
+   `run*Test()`-Funktionen bleiben in G31 vollständig erhalten (Parallelbetrieb, Entscheidung 2).
+5. **Native Umschreibung** (jede Assertion als Vitest-`expect()`) und **Löschung** von
+   `verifyIntegrity.ts` / der Harnesses → **eigenes späteres Gate** (Scope: ~640 Assertions über
+   24 Dateien, ~3–4 Tage; nicht Teil von G31).
+
+Unberührt von R3: Der Playwright-Teil (`e2e/**`, `captureGateScreenshots.mjs`) und die
+Ablösung der ~50 `captureAuftrag0XX…mjs`-Screenshot-Skripte laufen wie im Auftrag beschrieben.
+Akzeptanzkriterium „höchstens drei Capture-Skripte übrig" bleibt.
+
+### Angepasste Akzeptanzkriterien
+
+- `lint` und `typecheck` in CI sind **grün bei ≤ Baseline**, rot bei Regression.
+- `e2e` läuft nur bei Pull Requests, ist dort grün.
+- Für jede der 24 Suiten liegt ein Mutations-Beweis (über den Wrapper) vor; schwache Suiten sind
+  in der Original-`run*Test()`-Datei nachgeschärft und in `docs/TEST_MIGRATION_V2_2_0.md`
+  dokumentiert.
+- `npm run verify` bleibt **vollständig lauffähig** (alle 24 Harnesses, nichts entfernt).
+- `src/` ist nur um `src/simulation/__tests__/vitest/**` erweitert und ggf. um Assertion-Härtung
+  in `src/simulation/__tests__/*.test.ts`; keine Änderung an Engine-Logik.
+- `supabase/`, `tools/n8n/`, `public/` unverändert. Höchstens drei `captureAuftrag*`-Skripte übrig.
