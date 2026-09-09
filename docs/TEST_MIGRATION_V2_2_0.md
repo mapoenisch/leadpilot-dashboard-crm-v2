@@ -133,6 +133,39 @@ revertiert), 25/25 Vitest-Tests grün, `verifyIntegrity.ts` vollständig erhalte
 
 ---
 
+## Capture-Skripte — Determinismus-Analyse (S1, 2026-09-09)
+
+Der alte Harness (`scripts/captureAuftrag042GateScreenshots.mjs`, 515 Zeilen, CDP
+handgebaut) friert **keine Zeit** ein und nutzt **keinen Seed**. Er verlässt sich auf:
+(a) lokale App ohne Live-Daten ist quasi statisch, (b) feste `sleep(1500)`-Wartezeiten
+nach Navigate/Reload, (c) SHA-Vergleich Vorher/Nachher, wo volatile Inhalte sich
+gegenseitig aufheben. Assertions: Titel, `<main>`, kein 404-Text, 0px H-Overflow —
+plus 042-spezifische `live-performance-*`-Testids (nicht portieren, das war Gate-Sonderlocke).
+
+Empirie (Playwright-Chromium, `vite preview` aus `npx vite build`, je Route 2 Läufe
+mit `networkidle` + `document.fonts.ready` + 1500 ms, SHA-12 über `body.innerText`):
+
+| Route | `.live-kpi-pulse` | Aktualisiert-Tokens | Uhrzeit-Strings | Lauf 1 vs. 2 |
+|---|---|---|---|---|
+| `/dashboard` | 0 | 0 | 0 | STABIL (identisch) |
+| `/crm/leads` | 0 | 0 | 0 | STABIL |
+| `/finance/p-and-l` | 0 | 0 | 0 | STABIL |
+| `/market/overview` | 0 | 0 | 0 | STABIL |
+
+Erwartung bestätigt: keine Live-Snapshots → keine `Aktualisiert: vor Xs`-Stempel,
+kein Puls. Text-Stabilität ≠ Pixel-Stabilität (Canvas-Charts, Font-Raster,
+framer-motion) — das entscheidet S5 (3× Baseline-Läufe).
+
+Determinismus-Ansatz für Playwright: `reducedMotion: 'reduce'` im Context,
+`waitUntil: 'networkidle'` + `document.fonts.ready` + kurze Settle-Wartezeit,
+`maxDiffPixelRatio: 0.02` (nur Anti-Aliasing/Subpixel-Drift). **Kein `mask:`**
+initial — erst bei konkret als flaky nachgewiesenen Regionen.
+
+Korrekturen am Bauauftrag: Routenquelle ist `src/app/routes.tsx` (41 Routen, nicht
+`routes.ts`). Echte Pfade: `/finance/p-and-l` (nicht `/finanzen/pnl`),
+`/market/overview` (nicht `/markt/overview`). e2e nutzt ausschließlich echte Pfade.
+
 ## Capture-Skripte — Gleichwertigkeitsnachweis
 
-→ Dokumentiert im Abschnitt Playwright (separater Commit). Altskripte: 34 (`capture*.mjs`), parametrisierter Ersatz: `scripts/captureGateScreenshots.mjs`.
+→ S6 unten. Altskripte: 34 `captureAuftrag*.mjs` + `generateAuftrag*Matrix.mjs`
+(Zählung 09.09.), parametrisierter Ersatz: `scripts/captureGateScreenshots.mjs`.
