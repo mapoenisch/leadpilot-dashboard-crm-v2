@@ -1,0 +1,116 @@
+# Gate G31 (Auftrag 046): CI-Pipeline. Alle sechs Jobs, e2e nur bei PR +
+# workflow_dispatch (privates Repo, Actions-Minuten). lint/typecheck als
+# Baseline-Ratsche (R2, G30-Stand) — NICHT continue-on-error, NICHT weglassen.
+# G35 senkt die Baselines schrittweise auf 0.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  LINT_BASELINE: 327
+  TSC_BASELINE: 765
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - name: ESLint (Baseline-Ratsche)
+        run: |
+          COUNT=$(npx eslint . -f json | node -e 'let s=0;JSON.parse(require("fs").readFileSync(0)).forEach(f=>s+=f.errorCount);console.log(s)')
+          echo "ESLint errors: $COUNT (baseline $LINT_BASELINE)"
+          [ "$COUNT" -le "$LINT_BASELINE" ] || { echo "::error::ESLint-Regression $COUNT > $LINT_BASELINE"; exit 1; }
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - name: TypeScript (Baseline-Ratsche)
+        run: |
+          COUNT=$(npx tsc --noEmit 2>&1 | grep -c "error TS" || true)
+          echo "TSC errors: $COUNT (baseline $TSC_BASELINE)"
+          [ "$COUNT" -le "$TSC_BASELINE" ] || { echo "::error::TSC-Regression $COUNT > $TSC_BASELINE"; exit 1; }
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - name: Vitest mit Coverage
+        run: npm run test:coverage
+      - name: Legacy-Harness (Parallelbetrieb bis Schritt d)
+        run: npm run verify
+      - name: Coverage-Bericht als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  size-limit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npx vite build
+      - run: npx size-limit
+
+  e2e:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - name: Playwright-Browser cachen
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-1243
+          restore-keys: |
+            playwright-chromium-${{ runner.os }}-
+      - run: npx playwright install --with-deps chromium
+      - run: npx vite build
+      - run: npx playwright test
+      - name: Playwright-Report als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
