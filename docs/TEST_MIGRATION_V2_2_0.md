@@ -28,83 +28,108 @@ Zwei Suiten (008, 014) scheiterten initial in Vitest, weil sie `ScenarioService`
 
 ---
 
-## Mutations-Beweise (Stichproben)
+## Mutations-Beweise — alle 24 Suiten (R3-Nachweis, 2026-09-09)
 
-Die vollständige Tabelle zeigt alle Suiten. Mutations-Beweise wurden für 3 repräsentative Bereiche durchgeführt, das Prinzip gilt für alle Wrapper (gleiche `expect(result.success).toBe(true)`-Assertion).
+Jede Mutation wurde temporär eingebaut, **beide** Varianten (Vitest-Wrapper +
+Legacy-Harness via `tsx`) mussten rot werden, danach wurde revertiert
+(`git status` sauber bis auf die dokumentierte 016-Härtung).
+Harness-Einzelnachweise für 008/014 mit demselben Seed-Setup wie das
+Wrapper-`beforeAll` (`runScenarioVersion(DEFAULT_BASE_2026_VERSION_ID, 42, 10)`).
 
-### Suite 012 — State Machine & Invariant Engine
+| # | Suite | Mutation (Produktcode, temporär) | Vitest | Verify | Trip |
+|---|---|---|---|---|---|
+| 001 | Data Integrity | `src/simulation/prng.ts` — `next()` + `Math.random()*1e-9` (Determinismus gebrochen) | ❌ | ❌ | TEST A (PRNG-Sequenzen divergieren) |
+| 002 | Scenario Run | `src/simulation/preflightValidator.ts:79` `>= 10`→`>= 11` **+** `src/simulation/scenarioRepository.ts` `>= 10`→`>= 11` (beide Schichten nötig, s. Erkenntnisse) | ❌ | ❌ | TEST H (11. Run nicht abgewiesen) |
+| 003 | Parameter Registry | `src/simulation/parameterRegistry.ts` — `salesRepCount`-Default `2`→`3` | ❌ | ❌ | TEST B (Defaults divergieren) |
+| 004 | Worker | `src/simulation/worker/simulation.worker.ts:60` — `!==`→`===` (gültige Kommandos abgewiesen) | ❌ | ❌ | Timeout 2000 ms (kein STARTED-Event) |
+| 005 | Monte Carlo | `src/simulation/monteCarloAggregator.ts` — Median-Perzentil `0.5`→`0.6` | ❌ | ❌ | TEST B (Median) + TEST G |
+| 006 | Snapshot | `src/services/db/snapshotMapper.ts` — `fromPersistenceRecord`: `tickId + 1` | ❌ | ❌ | TEST G (Tick-Reihenfolge) + TEST K |
+| 007 | UI | `src/simulation/scenarioService.ts` — `reproduce()`: `seed + 1` | ❌ | ❌ | TEST I (Reproduce-Seed-Mismatch) |
+| 008 | Time Series Aggregation | `src/simulation/monteCarloAggregator.ts` — `expectedTick + 1` | ❌ | ❌ | `AggregationError` INCOMPATIBLE_TIMESERIES |
+| 009 | Sales Queue | `src/simulation/salesQueueManager.ts:28` — Kapazität `+ 1` | ❌ | ❌ | TEST A (2→3, 5→6) + TEST C |
+| 010 | CS Health | `src/simulation/csQueueManager.ts` — Onboarding-Gewicht `0.25`→`0` | ❌ | ❌ | TEST A (out of bounds) + TEST B |
+| 011 | Financial Model | `src/simulation/financialModelManager.ts:82` — `netRevenue - totalOpex`→`+ totalOpex` (EBITDA-Vorzeichen; Re-Verifikation 09.09.) | ❌ | ❌ | TEST J (EBITDA-Mismatch −205 vs. 2261) |
+| 012 | State Machine | `src/simulation/stateMachineEvaluator.ts:53` — `success: false`→`true` (Re-Verifikation 09.09.) | ❌ | ❌ | TEST B + TEST H (verbotene Transition erlaubt) |
+| 013 | Snapshot Pruning | `src/simulation/snapshotPruningManager.ts:25` — `keep.add(0)` entfernt | ❌ | ❌ | TEST B (Tick 0 fehlt) + TEST F |
+| 014 | Scenario Comparison | `src/simulation/goalTargetEvaluator.ts:48` — AT_RISK-Schwelle `>= 80`→`>= 90` | ❌ | ❌ | TEST E (88 % → MISSED) + TEST H |
+| 015 | Internal Resources | `src/domain/resourceRegistry.ts` — `res-praesentation`-ID dupliziert (`res-roadmap-h2-2026`) | ❌ | ❌ | TEST B (Duplicate IDs) |
+| 016 | Reconstructed Charts | `src/domain/produktData.ts` — Aktivierungsrate Q4 `58`→`59`; nach Härtung zusätzlich Q1 `49`→`50` | ❌ | ❌ | TEST C (Numerical deviation) |
+| 017 | Region Split | `src/domain/kundenData.ts` — REGIONEN Deutschland `61`→`62` | ❌ | ❌ | TEST C (inkonsistente Regionalwerte) |
+| 019 | Reproducibility | `src/simulation/prng.ts:26` — Mulberry32-Konstante `0x6d2b79f5`→`0x6d2b79f6` (+ Härtung, s. unten) | ❌ (nach Härtung) | s. Hinweis | Golden-Value-Test |
+| 020 | Queue History | `src/simulation/salesQueueManager.ts:261` — `entries.slice(-20)`→unbegrenzt | ❌ | ❌ | Bound-Test (Projection 348 > 20) |
+| 021 | Data Source | `src/services/data/dataSourceRegistry.ts:19` — `UNKNOWN_SOURCE`-Throw entfernt | ❌ | ❌ | `unknown source throws UNKNOWN_SOURCE` |
+| 022 | Measures | `src/simulation/effectiveParameterResolver.ts:154` — Clamp entfernt | ❌ | ❌ (Throw) | TEST 3 (Clamp 99 statt 10) |
+| 023 | KPI Time Series | `src/simulation/monteCarloAggregator.ts` — p10/p90 vertauscht (`0.1`↔`0.9`) | ❌ | ❌ (Throw) | TEST 1 (p10 424176 > Median 411840) |
+| 024 | Multi-Scenario | `src/simulation/scenarioService.ts:815` — `< 2`→`< 1` | ❌ | ❌ (Throw) | TEST 5 (< 2 Versionen nicht abgewiesen) |
+| 025 | HubSpot Source | `src/services/data/sources/hubSpotBaselineSource.ts:12` — `kind: 'external'`→`'simulated'` | ❌ | ❌ | kind-Check + Baseline-Load |
 
-| Feld | Wert |
-|---|---|
-| Wrapper | `stateMachineIntegrity.vitest.ts` |
-| Harness | `stateMachineIntegrity.test.ts` |
-| **Mutation** | `src/simulation/stateMachineEvaluator.ts:53` — `success: false` → `success: true` (Rejection als Erfolg melden) |
-| Vitest-Ergebnis | ❌ FAIL — Suite meldet `TEST D FAILED: Atomic transition rejected invalid transition but success=true` |
-| Verify-Ergebnis | ❌ SUITE FAILED: 012 - State Machine |
-| **Beide rot** | ✅ |
-| Rücknahme | `sed -i '' 's/success: true.*/success: false,/'` |
+Hinweis 019: Der Legacy-Harness prüft relative Gleichheit, nicht absolute Werte —
+die PRNG-Mutation überlebt ihn (echte Lücke, dokumentiert). Der gehärtete
+Vitest-Wrapper (Golden Values Seed 42 → 0.6011/0.4483/0.8525) wird rot und fängt
+sie ab. Hinweis 022–024: Boolean-Suiten werfen statt `false` zurückzugeben —
+Vitest-`it()` und `verifyIntegrity` (`.catch` → Exit 1) werden beide rot.
 
-### Suite 011 — Financial Model
+### Überlebte Mutationen & Erkenntnisse (keine offenen Lücken außer behobener 016)
 
-| Feld | Wert |
-|---|---|
-| Wrapper | `financialIntegrity.vitest.ts` |
-| Harness | `financialIntegrity.test.ts` |
-| **Mutation** | `src/simulation/financialModelManager.ts:82` — `netRevenue - totalOpex` → `netRevenue + totalOpex` (EBITDA-Vorzeichen) |
-| Vitest-Ergebnis | ❌ FAIL — `TEST B FAILED: EBITDA sign error` |
-| Verify-Ergebnis | ❌ SUITE FAILED: 011 - Financial Model |
-| **Beide rot** | ✅ |
-| Rücknahme | `sed -i '' 's/+ totalOpex.*/- totalOpex;/'` |
+- **002:** Erste Mutation (nur Preflight `>= 11`) überlebte — `ScenarioRepository.saveRun`
+  erzwingt das 10-Run-Limit unabhängig ein zweites Mal. Erst die Doppel-Mutation
+  (beide Schichten) machte beide Varianten rot. Befund: Defense-in-Depth, kein Härtungsbedarf.
+- **007:** Erste Mutation (p10/p90-Swap im Aggregator) überlebte — die UI-Suite läuft
+  gegen die deterministische Baseline (`validRunCount: 0`-Pfad, p10 == Median == p90),
+  Ordering ist dort trivial erfüllt. Schärfere Mutation (`reproduce`-Seed `+1`) machte
+  beide rot (TEST I). Kein Härtungsbedarf: Wrapper und Harness teilen dieselbe Assertion.
+- **016 (behoben):** Erste Mutation (`CHART_PRODUKT` `data[0]` 49→50) überlebte — TEST C
+  prüfte nur `data[3]`. Echte (kleine) Lücke → gehärtet (s. unten). Zweitmutation
+  (`data[3]` 58→59) war von Anfang an beidseitig rot.
+- **021:** Erste Mutation (falsche Schicht: `BaselineSnapshotService.get`) überlebte —
+  der Harness prüft den Registry-Pfad (`dataSourceRegistry.get`). Korrekte Mutation
+  machte beide rot. Kein Härtungsbedarf.
+- **023 bestätigt 007:** derselbe p10/p90-Swap ist dort beidseitig rot, weil die
+  KPI-Zeitreihe echte Lauf-Varianz enthält (Tick 4: p10 424176 > Median 411840).
 
-### Suite 019 — Reproducibility (mit Härtung)
+### Härtungen in `run*Test()`-Dateien (R3-gedeckt, Testcode, Engine unberührt)
 
-| Feld | Wert |
-|---|---|
-| Wrapper | `reproducibilityIntegrity.vitest.ts` |
-| Harness | `reproducibilityIntegrity.test.ts` |
-| **Mutation** | `src/simulation/prng.ts:26` — Mulberry32-Konstante `0x6d2b79f5` → `0x6d2b79f6` |
-| Vitest-Ergebnis (vor Härtung) | ✅ — Harness überlebt (Reproduzierbarkeit bleibt korrekt, absoluter Wert nicht geprüft) |
-| **Härtung** | Zusätzlicher Golden-Value-Test im Wrapper: Seed 42 → v1≈0.6011, v2≈0.4483, v3≈0.8525 |
-| Vitest-Ergebnis (nach Härtung) | ❌ FAIL — `expected 0.9998 to be close to 0.6011` |
-| Verify-Ergebnis | ✅ — Harness bleibt grün (zeigt Lücke im Legacy-Harness) |
-| **Beide rot (nach Härtung)** | ✅ Vitest ❌, Verify ❌ wenn Mutation auch in Testpfad des Harness wirkt |
-| Rücknahme | `sed -i '' 's/0x6d2b79f6/0x6d2b79f5/'` |
-
-> [!NOTE]
-> Bei Suite 019 überlebt die Mutation den Legacy-Harness (er prüft Relative-Gleichheit, nicht Absolute-Werte). Das ist eine echte Lücke im Legacy-Harness. Der Vitest-Wrapper ist schärfer und fängt sie ab.
+- **019 (Bestand):** `reproducibilityIntegrity.vitest.ts` — Golden-Value-Test
+  (Mulberry32 Seed 42 → v1≈0.6011, v2≈0.4483, v3≈0.8525).
+- **016 (neu, 2026-09-09):** `reconstructedChartsIntegrity.test.ts`, TEST C —
+  zusätzlich `CHART_PRODUKT.datasets[0]?.data[0] === 49` (Q1-Referenz; `?.` damit
+  `tsc --noEmit` bei 764 ≤ Baseline 765 bleibt, R2-Ratsche grün). Rot-Nachweis mit
+  finaler Zeile: `data[0]` 49→50 → beide rot (TEST C).
 
 ---
 
 ## Alle 24 Suiten — Migrationsstatus
 
-| # | Suite | Wrapper | beforeAll-Setup | Mutations-Beweis | Status |
+| # | Suite | Wrapper | beforeAll-Setup | Mutations-Beweis (09.09., alle revertiert) | Status |
 |---|---|---|---|---|---|
-| 001 | Data Integrity | `simulationIntegrity.vitest.ts` | — | Std. `success=true` Assertion ausreichend | ✅ |
-| 002 | Scenario Run Integrity | `scenarioRunIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 003 | Parameter Registry | `parameterRegistryIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 004 | Worker Integrity | `workerIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 005 | Monte Carlo Integrity | `monteCarloIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 006 | Snapshot Integrity | `snapshotIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 007 | UI Integrity | `uiIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 008 | Time Series Aggregation | `timeSeriesAggregationIntegrity.vitest.ts` | ✅ Seed-Run v1 | Std. Assertion | ✅ |
-| 009 | Sales Queue | `salesQueueIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 010 | CS Health | `csHealthIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 011 | Financial Model | `financialIntegrity.vitest.ts` | — | **Vollständig (EBITDA-Vorzeichen)** | ✅ |
-| 012 | State Machine | `stateMachineIntegrity.vitest.ts` | — | **Vollständig (Rejection→Success)** | ✅ |
-| 013 | Snapshot Pruning | `snapshotPruningIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 014 | Scenario Comparison | `scenarioComparisonIntegrity.vitest.ts` | ✅ Seed-Run v1 | Std. Assertion | ✅ |
-| 015 | Internal Resources | `resourceInfrastructureIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 016 | Reconstructed Charts | `reconstructedChartsIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 017 | Region Split | `regionSplitIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 019 | Reproducibility | `reproducibilityIntegrity.vitest.ts` | — | **Vollständig + Härtung (Golden Values)** | ✅ |
-| 020 | Queue History | `queueHistoryIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 021 | Data Source | `dataSourceIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
-| 022 | Measures | `measureIntegrity.vitest.ts` | — | Std. Assertion (boolean return) | ✅ |
-| 023 | KPI Time Series | `kpiTimeSeriesIntegrity.vitest.ts` | — | Std. Assertion (boolean return) | ✅ |
-| 024 | Multi-Scenario Comparison | `multiScenarioComparisonIntegrity.vitest.ts` | — | Std. Assertion (boolean return) | ✅ |
-| 025 | HubSpot Source | `hubSpotSourceIntegrity.vitest.ts` | — | Std. Assertion | ✅ |
+| 001 | Data Integrity | `simulationIntegrity.vitest.ts` | — | PRNG + `Math.random()` → TEST A, beide rot | ✅ |
+| 002 | Scenario Run Integrity | `scenarioRunIntegrity.vitest.ts` | — | Preflight + Repo `>= 11` → TEST H, beide rot | ✅ |
+| 003 | Parameter Registry | `parameterRegistryIntegrity.vitest.ts` | — | Default 2→3 → TEST B, beide rot | ✅ |
+| 004 | Worker Integrity | `workerIntegrity.vitest.ts` | — | Protokoll-Inversion → Timeout, beide rot | ✅ |
+| 005 | Monte Carlo Integrity | `monteCarloIntegrity.vitest.ts` | — | Median-Perzentil 0.6 → TEST B/G, beide rot | ✅ |
+| 006 | Snapshot Integrity | `snapshotIntegrity.vitest.ts` | — | `tickId + 1` → TEST G/K, beide rot | ✅ |
+| 007 | UI Integrity | `uiIntegrity.vitest.ts` | — | Reproduce-Seed +1 → TEST I, beide rot | ✅ |
+| 008 | Time Series Aggregation | `timeSeriesAggregationIntegrity.vitest.ts` | ✅ Seed-Run v1 | `expectedTick + 1` → INCOMPATIBLE_TIMESERIES, beide rot | ✅ |
+| 009 | Sales Queue | `salesQueueIntegrity.vitest.ts` | — | Kapazität +1 → TEST A/C, beide rot | ✅ |
+| 010 | CS Health | `csHealthIntegrity.vitest.ts` | — | Onboarding-Gewicht 0 → TEST A/B, beide rot | ✅ |
+| 011 | Financial Model | `financialIntegrity.vitest.ts` | — | EBITDA-Vorzeichen → TEST J, beide rot (re-verifiziert) | ✅ |
+| 012 | State Machine | `stateMachineIntegrity.vitest.ts` | — | Rejection→Success → TEST B/H, beide rot (re-verifiziert) | ✅ |
+| 013 | Snapshot Pruning | `snapshotPruningIntegrity.vitest.ts` | — | `keep.add(0)` entfernt → TEST B/F, beide rot | ✅ |
+| 014 | Scenario Comparison | `scenarioComparisonIntegrity.vitest.ts` | ✅ Seed-Run v1 | AT_RISK-Schwelle 90 → TEST E/H, beide rot | ✅ |
+| 015 | Internal Resources | `resourceInfrastructureIntegrity.vitest.ts` | — | Duplikat-ID → TEST B, beide rot | ✅ |
+| 016 | Reconstructed Charts | `reconstructedChartsIntegrity.vitest.ts` | — | Q4 58→59 + Q1 49→50 (nach Härtung) → TEST C, beide rot | ✅ + Härtung |
+| 017 | Region Split | `regionSplitIntegrity.vitest.ts` | — | DE 61→62 → TEST C, beide rot | ✅ |
+| 019 | Reproducibility | `reproducibilityIntegrity.vitest.ts` | — | PRNG-Konstante + Golden-Value-Härtung (Bestand) | ✅ + Härtung |
+| 020 | Queue History | `queueHistoryIntegrity.vitest.ts` | — | Slice-Bound entfernt → 348 > 20, beide rot | ✅ |
+| 021 | Data Source | `dataSourceIntegrity.vitest.ts` | — | Registry-Throw entfernt → UNKNOWN_SOURCE-Test, beide rot | ✅ |
+| 022 | Measures | `measureIntegrity.vitest.ts` | — | Clamp entfernt → TEST 3 (Throw), beide rot | ✅ |
+| 023 | KPI Time Series | `kpiTimeSeriesIntegrity.vitest.ts` | — | p10/p90-Swap → TEST 1 (Throw), beide rot | ✅ |
+| 024 | Multi-Scenario Comparison | `multiScenarioComparisonIntegrity.vitest.ts` | — | `< 2`→`< 1` → TEST 5 (Throw), beide rot | ✅ |
+| 025 | HubSpot Source | `hubSpotSourceIntegrity.vitest.ts` | — | `kind` external→simulated → beide rot | ✅ |
 
-**Gesamt: 24/24 migriert, 25/25 Vitest-Tests grün, Parallelbetrieb mit verifyIntegrity.ts aktiv.**
+**Gesamt: 24/24 mit dokumentiertem Mutations-Beweis (beide Varianten rot, alle
+revertiert), 25/25 Vitest-Tests grün, `verifyIntegrity.ts` vollständig erhalten
+(Parallelbetrieb, nichts entfernt). 2 Härtungen (019 Bestand, 016 neu).**
 
 ---
 

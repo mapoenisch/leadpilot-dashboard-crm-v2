@@ -2,6 +2,60 @@
 
 ---
 
+## 2026-09-09 — Gate G31 / Auftrag 046 R3: Mutations-Beweise alle 24 Suiten + 016-Härtung
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Scope:** ausschließlich R3 (Wrapper-Migration, Mutations-Beweise, Härtung).
+Schritt (d) „alte Suite entfernen" bleibt verschoben, nativer Rewrite → späteres Gate.
+Playwright/CI-Teile von 046 sind nicht Teil dieses Eintrags.
+
+### Ziel & Kontext
+
+R3-Akzeptanz verlangte einen dokumentierten Mutations-Beweis **je** Suite —
+Bestand war 3/24 (011, 012, 019). Jetzt 24/24: je Suite temporäre Mutation im
+Produktcode, Vitest-Wrapper **und** Legacy-Harness mussten rot werden, danach
+Revert. 4 Erstanläufe überlebten und wurden analysiert (002 Doppelschicht,
+007 Baseline-Identität, 016 echte Lücke, 021 falsche Schicht) — Details in
+`docs/TEST_MIGRATION_V2_2_0.md`.
+
+### Geänderte Dateien
+
+| Datei | Aktion |
+|---|---|
+| `docs/TEST_MIGRATION_V2_2_0.md` | Vollständige 24er-Beweistabelle (Mutation, Trip-Stelle, beide-rot), Erkenntnisse, Härtungen |
+| `src/simulation/__tests__/reconstructedChartsIntegrity.test.ts` | 1 Zeile Härtung (TEST C: `CHART_PRODUKT…data[0] === 49`, `?.` für tsc-Neutralität) |
+
+Produktcode (Engine, Services, Domain): alle 26 Mutationen revertiert, Endstand
+identisch zum Ausgangsstand (Schutzbereichs-Diff unten).
+
+### Funktionale Prüfungen
+
+| Prüfung | Ergebnis |
+|---|---|
+| `npx vitest run` | ✅ 24 Files / 25 Tests grün (inkl. 016-Härtung) |
+| `npm run verify` | ✅ 24/24 Suiten grün (Parallelbetrieb, nichts entfernt) |
+| 24 × Mutations-Beweis | ✅ je Suite Vitest rot + Harness rot, danach revertiert |
+| `npx tsc --noEmit` | 764 Fehler, Baseline 765 → ≤ Baseline, R2-Ratsche grün (erste Härtungsvariante war 766, per `?.` neutralisiert) |
+
+### Schutzbereichs-Prüfung
+
+```
+git diff a1af46a -- src/simulation src/types src/context src/services/data src/features/resources
+```
+
+Nur erlaubt: 24 neue `src/simulation/__tests__/vitest/*.vitest.ts` (Commit `b943940`,
+R3-gedeckt) + 1 Härtungszeile in `src/simulation/__tests__/reconstructedChartsIntegrity.test.ts`
+(Testcode, R3-gedeckt). **Keine Engine-Logik geändert.** `supabase/`, `tools/n8n/`,
+`public/` unverändert. `scripts/verifyIntegrity.ts` unverändert (Schritt d verschoben).
+
+### Ergebnis & Freigabestatus
+
+R3-Builder-Teil fertig: 24/24 Mutations-Beweise, 1 neue Härtung, beide
+Testschienen grün, tsc-Ratsche grün, Schutzbereiche sauber. **Übergabe an Codex
+zum Review.** Kein Merge, Tag oder Push.
+
+---
+
 ## 2026-09-09 — Gate G30 / Auftrag 045: ESLint, Prettier und strengeres TypeScript
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`  

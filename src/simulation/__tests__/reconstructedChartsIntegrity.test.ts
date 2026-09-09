@@ -63,6 +63,7 @@ export async function runReconstructedChartsIntegrityTest(): Promise<{ success: 
   // --- TEST C: Exact Historical Data Verification ---
   log.push("\n--- TEST C: Exact Historical Data Verification ---");
   const testCSuccess =
+    CHART_PRODUKT.datasets[0]?.data[0] === 49 && // G31-Härtung: Aktivierungsrate Q1 25 (deckt data[0] ab, nicht nur data[3])
     CHART_PRODUKT.datasets[0].data[3] === 58 && // Aktivierungsrate Q4: 58%
     CHART_CHURN.datasets[0].data[0] === 8 &&    // Churn Grund 1: 8
     CHART_WETTBEWERB.datasets[0].data[0] === 29.4 && // Brevo 29.4%
