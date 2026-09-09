@@ -1,5 +1,51 @@
 import { test, expect } from '@playwright/test';
-import { APP_ROUTES } from '../src/app/routes';
+
+// Alle 41 Pfade aus src/app/routes.tsx (APP_ROUTES). Als Literal, weil der
+// e2e-Kontext kein Vite-Define hat (`import.meta.env.DEV`-Guard in routes.tsx
+// wirft außerhalb von Vite) — bei Routenänderung hier synchronisieren.
+const ROUTES = [
+  '/dashboard',
+  '/company/profile',
+  '/company/highlights',
+  '/company/data-basis',
+  '/crm/live-simulation',
+  '/crm/leads',
+  '/crm/companies',
+  '/crm/deals',
+  '/crm/activities',
+  '/company/idea',
+  '/company/value-proposition',
+  '/company/history',
+  '/company/location',
+  '/product/features',
+  '/product/pricing',
+  '/product/performance',
+  '/product/roadmap',
+  '/market/overview',
+  '/market/competition',
+  '/market/swot',
+  '/customers/icp',
+  '/customers/persona',
+  '/customers/segments',
+  '/customers/top-customers',
+  '/sales/funnel',
+  '/sales/sla',
+  '/sales/channels',
+  '/sales/planning',
+  '/finance/p-and-l',
+  '/finance/balance-sheet',
+  '/finance/unit-economics',
+  '/organisation/headcount',
+  '/organisation/hr',
+  '/organisation/team',
+  '/strategy/okrs',
+  '/strategy/balanced-scorecard',
+  '/strategy/growth-drivers',
+  '/resources/materials',
+  '/legal/articles',
+  '/legal/shareholders',
+  '/legal/commercial-register',
+];
 
 // Gate G31 (Auftrag 046): ersetzt die DOM-Assertions der captureAuftrag0XX-Harnesses.
 // Je Route Deep-Link UND Reload: Titel gesetzt, <main> vorhanden, kein 404,
@@ -26,14 +72,14 @@ async function assertRoute(page, routePath: string, mode: string) {
   expect(overflow, `${routePath} [${mode}]: kein H-Overflow`).toBe(0);
 }
 
-for (const route of APP_ROUTES) {
-  test(`route ${route.path} — deeplink + reload`, async ({ page }) => {
-    await page.goto(route.path, { waitUntil: 'networkidle' });
+for (const routePath of ROUTES) {
+  test(`route ${routePath} — deeplink + reload`, async ({ page }) => {
+    await page.goto(routePath, { waitUntil: 'networkidle' });
     await settle(page);
-    await assertRoute(page, route.path, 'deeplink');
+    await assertRoute(page, routePath, 'deeplink');
 
     await page.reload({ waitUntil: 'networkidle' });
     await settle(page);
-    await assertRoute(page, route.path, 'reload');
+    await assertRoute(page, routePath, 'reload');
   });
 }
