@@ -133,6 +133,22 @@ revertiert), 25/25 Vitest-Tests grün, `verifyIntegrity.ts` vollständig erhalte
 
 ---
 
+## Playwright-e2e (S2–S6, 2026-09-09)
+
+- `playwright.config.ts`: Projekte 1440×900 / 768×1024 / 375×812, `webServer`
+  `vite preview` (Port 4321, `reuseExistingServer` lokal), `reducedMotion: reduce`,
+  `maxDiffPixelRatio: 0.02`.
+- `e2e/routes.spec.ts`: alle 41 Pfade aus `src/app/routes.tsx` — als Literal, weil
+  der e2e-Kontext kein Vite-Define hat (`import.meta.env.DEV`-Guard in `routes.tsx`
+  wirft außerhalb von Vite). Bei Routenänderung synchronisieren. Stand: 123/123 grün.
+- `e2e/a11y.spec.ts`: `@axe-core/playwright` gegen `/dashboard`, `/crm/leads`,
+  `/finance/p-and-l`, `/market/overview`; fail bei `critical`/`serious`.
+  **Offener Befund (kein Fix in G31 — `src/**` tabu):** `/dashboard` meldet 1×
+  `serious` (`scrollable-region-focusable`): `<main style="overflow-y: auto">`
+  aus dem Layout hat keinen Tastaturzugriff. Fix (`tabindex`/`role=region`) gehört
+  nach G35. Die anderen 3 Routen sind sauber.
+- `e2e/visual.spec.ts`: siehe S5 unten.
+
 ## Capture-Skripte — Determinismus-Analyse (S1, 2026-09-09)
 
 Der alte Harness (`scripts/captureAuftrag042GateScreenshots.mjs`, 515 Zeilen, CDP
