@@ -4,7 +4,7 @@
 
 ## 2026-09-09 — Gate G31 / Auftrag 046 R3: Mutations-Beweise alle 24 Suiten + 016-Härtung
 
-**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Rolle:** Builder (OpenCode, an Stelle von Antigravity) · **Branch:** `codex/v2.2.0-haertung`
 **Scope:** ausschließlich R3 (Wrapper-Migration, Mutations-Beweise, Härtung).
 Schritt (d) „alte Suite entfernen" bleibt verschoben, nativer Rewrite → späteres Gate.
 Playwright/CI-Teile von 046 sind nicht Teil dieses Eintrags.
@@ -54,11 +54,24 @@ R3-Builder-Teil fertig: 24/24 Mutations-Beweise, 1 neue Härtung, beide
 Testschienen grün, tsc-Ratsche grün, Schutzbereiche sauber. **Übergabe an Codex
 zum Review.** Kein Merge, Tag oder Push.
 
+### Review-Nachtrag (Codex, kein Blocker — R3 freigegeben, G31 offen)
+
+- Rolle korrigiert: Builder war OpenCode (an Stelle von Antigravity).
+- `test`-Skript: `npm test` = `vitest run`; Parallelbetrieb bleibt —
+  `npm run verify` existiert weiter und läuft grün. Wenn der CI-Teil von 046
+  kommt, muss der `test`-Job **beide** fahren (`vitest run` + `verify`), bis
+  Schritt (d) die alten Suiten ablöst.
+- tsc-Ratsche: Referenz bleibt **765**. Die gemessenen 764 werden nicht als neue
+  Referenz nachgezogen (unerklärtes −1 durch Zeilenverschiebung, kein Beleg für
+  echten Fix).
+- Verdikt: R3 freigegeben. Gate G31 bleibt offen — Playwright-e2e, `ci.yml`,
+  Capture-Skript-Konsolidierung und Verifier-Trimmen (Rest von 046) stehen aus.
+
 ---
 
 ## 2026-09-09 — Gate G30 / Auftrag 045: ESLint, Prettier und strengeres TypeScript
 
-**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`  
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
 **Baseline-Commit:** `a1af46a` (G29-Abschluss) → Arbeits-Commits: `dd3b257` (initial) + Amend nach Codex-Review
 
 ### Ziel & Kontext
