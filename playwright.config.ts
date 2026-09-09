@@ -20,9 +20,13 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   expect: {
+    // S6: 0 statt 0.02 — erst bei 0 sieht toHaveScreenshot komponentengroße
+    // Regressionen (Sidebar weg = Ratio 0.01). Stabilität: 3× 12/12 grün.
+    // Details: docs/TEST_MIGRATION_V2_2_0.md („Gleichwertigkeitsnachweis").
     toHaveScreenshot: {
-      maxDiffPixelRatio: 0.02,
+      maxDiffPixelRatio: 0,
     },
+  },
   },
   projects: [
     {

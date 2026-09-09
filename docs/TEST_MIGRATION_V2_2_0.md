@@ -184,7 +184,30 @@ Korrekturen am Bauauftrag: Routenquelle ist `src/app/routes.tsx` (41 Routen, nic
 `routes.ts`). Echte Pfade: `/finance/p-and-l` (nicht `/finanzen/pnl`),
 `/market/overview` (nicht `/markt/overview`). e2e nutzt ausschließlich echte Pfade.
 
-## Capture-Skripte — Gleichwertigkeitsnachweis
+## Capture-Skripte — Gleichwertigkeitsnachweis (S6, 2026-09-09)
 
-→ S6 unten. Altskripte: 34 `captureAuftrag*.mjs` + `generateAuftrag*Matrix.mjs`
-(Zählung 09.09.), parametrisierter Ersatz: `scripts/captureGateScreenshots.mjs`.
+Ersatz: `scripts/captureGateScreenshots.mjs` — ein parametrisiertes Skript
+(`--routes`, `--viewports`, `--out`, `--port`; eigener `vite preview`,
+`reducedMotion`, `networkidle` + `fonts.ready` + 1000 ms, Full-Page-PNGs).
+Verifiziert: `/dashboard` × 1440/768/375 capturte fehlerfrei.
+
+Zwillings-Nachweis mit bekannter Änderung (temporär, danach revertiert):
+Sidebar-`<nav>` per `display: none` ausgeblendet (`Sidebar.tsx`), neu gebaut.
+
+| Verfahren | Ergebnis |
+|---|---|
+| Alt-Prinzip (SHA-Vergleich der PNG-Sätze, wie alte Matrix) | SHA `dcf31109…` → `5e8c6bdb…` (alle Viewports verschieden) → erkannt ✅ |
+| Neu-Prinzip (`toHaveScreenshot`, Toleranz 0) | FAIL „7161 pixels (ratio 0.01) are different" + Diff-Bild → erkannt ✅ |
+
+Beide sehen dieselbe Regression. Der alte 042-Harness als Ganzes ist aktuell
+nicht lauffähig (seine Stage baut via `tsc && vite build`, tsc ist rot) —
+nachgewiesen ist die Gleichwertigkeit der Detektionsprinzipien am selben Artefakt.
+
+Schwellen-Korrektur (begründete Abweichung vom Auftragswert 0.01–0.02):
+Erster Nachweisversuch (Titel-Suffix, dann Sidebar) blieb mit `maxDiffPixelRatio:
+0.02` **grün** — die Sidebar-Regression sind nur 7161 px (Ratio 0.01). Erst
+`maxDiffPixelRatio: 0` macht sie rot. Entscheidung-5-Forderung („strenger, nicht
+schwächer") ist damit erst bei 0 erfüllt. Stabilität mit 0: 3 volle Läufe je
+12/12 grün (kein Anti-Aliasing-Rauschen dank `reducedMotion` + statischer Daten).
+`playwright.config.ts` steht daher auf 0. Fällt 0 auf anderen Maschinen (CI,
+Fonts) durch Rauschen auf → Schwelle dort gezielt anheben + hier dokumentieren.
