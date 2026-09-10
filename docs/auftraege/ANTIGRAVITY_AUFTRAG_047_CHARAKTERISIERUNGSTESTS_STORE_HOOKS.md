@@ -189,3 +189,29 @@ git commit -m "test(g32): characterization tests for live-kpi store and hooks + 
 
 **Abnahme:** Erst nach unabhängigem Review ist Gate G32 freigegeben.
 Kein Merge, Tag oder Push.
+
+---
+
+## Nachtrag (2026-09-10) — jsdom-Blocker
+
+**Befund (OpenCode):** jsdom 27 (in G31 installiert) zieht eine kaputte CSS-Kette
+(`@asamuzakjp/css-color` CJS ↔ `@csstools/css-calc` ESM-only) — Upstream-Regression,
+lässt die jsdom-Tests nicht starten. Zusätzlich ist `environmentMatchGlobs` in
+Vitest 4 entfernt → `test.projects`-Workspace ist ohnehin nötig.
+
+**Entscheidung (Marc):**
+
+1. **jsdom auf `^25` pinnen.** In `package.json` nur den `jsdom`-Versionswert von
+   `^27.x` auf `^25.x` ändern, `npm install` für den Lockfile. **Keine weitere
+   Dependency-Änderung, kein happy-dom.** jsdom 25 ist mit Vitest 4 + Testing-Library 16
+   + React 18 erprobt; kein G31-Feature nutzt jsdom-26/27-spezifisches.
+   → `package.json`, `package-lock.json` sind hiermit **erlaubte Dateien** für
+   diesen einen Pin.
+2. **`vitest.config.ts` von `environmentMatchGlobs` auf `test.projects` umstellen**
+   (Vitest-4-Pflicht) — innerhalb der ohnehin erlaubten Datei.
+3. **Die drei Rot-Nachweise A/B/C laufen in der node-Umgebung**, nicht in jsdom.
+   Alle drei sind Store-Verhalten (`createLiveKpiStreamStore(fake)` +
+   `acquire`/`release`/`getState`/`getSnapshot`), kein DOM nötig. Sie liegen in
+   `src/services/liveKpi/__tests__/` (node). jsdom braucht es **nur** für die
+   Happy-Path-Charakterisierung von `useLiveKpi*` / `useReducedMotion`.
+   → Der jsdom-Blocker darf die Rot-Nachweise nie aufhalten.
