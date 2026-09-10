@@ -2,6 +2,23 @@
 
 ---
 
+## 2026-09-10 — Gate G34 Nacharbeit (Review, 3 Kleinbefunde)
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+
+1. `fakes.ts`: `LiveKpiSubscription` aus `liveKpiReadAdapter` (TS2459 weg, tsc 762).
+2. Store unter 400 Code-Zeilen: doppelter fetchLatest-Nachzug in Modulfunktionen
+   `mergeFetchedLatest`/`commitFetchError` + `getOrCreateEntry`-Helper (kein
+   Verhaltenswechsel — dabei fehlendes `notify` aus der Rekonstruktion bemerkt
+   und über `commit` abgedeckt). Kein `max-lines`-Fehler mehr.
+3. `console.warn` aus `teardownChannel` entfernt (stiller Fehler ok); Test auf
+   „geschluckt statt Throw" umgestellt.
+
+Matrix: `test` 121 · `test:coverage` EXIT 0 · `verify` 24 · `build` 0 ·
+`tsc` 762 · `lint` 324 · Playwright 147 (Baselines unverändert) · Grep 0.
+
+---
+
 ## 2026-09-10 — Gate G34 / Auftrag 049: Ein Realtime-Kanal + Reconnect-Backoff
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`

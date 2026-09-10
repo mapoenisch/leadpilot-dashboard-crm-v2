@@ -4,10 +4,10 @@
 import type {
   LiveKpiFeedConnectionState,
   LiveKpiSnapshot,
+  LiveKpiSubscription,
 } from '../liveKpiReadAdapter';
 import type {
   LiveKpiStreamAdapter,
-  LiveKpiSubscription,
 } from '../liveKpiStreamStore';
 
 let snapshotSeq = 0;

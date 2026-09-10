@@ -345,16 +345,11 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
     }
   });
 
-  it('removeChannel-Fehler wird gewarnt', () => {
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    try {
-      const sub = subscribeToLiveKpiFeed(() => {}, () => {});
-      sb.state.removeChannelThrows = true;
-      sub.unsubscribe();
-      expect(spy).toHaveBeenCalled();
-    } finally {
-      spy.mockRestore();
-    }
+  it('removeChannel-Fehler wird geschluckt (kein Throw, Kanal trotzdem weg)', () => {
+    const sub = subscribeToLiveKpiFeed(() => {}, () => {});
+    sb.state.removeChannelThrows = true;
+    expect(() => sub.unsubscribe()).not.toThrow();
+    expect(sb.state.removedChannels).toEqual([]);
   });
 });
 

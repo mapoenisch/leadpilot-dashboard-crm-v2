@@ -198,8 +198,8 @@ export function subscribeToLiveKpiFeed(
     if (currentChannel) {
       try {
         client.removeChannel(currentChannel);
-      } catch (err) {
-        console.warn(`[LiveKpiReadAdapter] Error removing channel "${channelId}":`, err);
+      } catch {
+        // Stiller Fehler ist ok — Kanal ist ohnehin am Ende (G34-Nacharbeit).
       }
       currentChannel = null;
     }

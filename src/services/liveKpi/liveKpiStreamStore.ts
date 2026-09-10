@@ -133,6 +133,47 @@ function normalizeHistory(rawItems: LiveKpiSnapshot[]): LiveKpiSnapshot[] {
   return deduped;
 }
 
+/**
+ * G34: fetchLatest-Nachzug teilen sich propagateStatus (Feed live) und refresh.
+ * Guards bleiben an den Aufrufstellen (unterschiedlich); nur der Merge ist gemeinsam.
+ */
+function mergeFetchedLatest(
+  entry: StreamEntry,
+  latest: LiveKpiSnapshot | null,
+  commitEntry: (target: StreamEntry, next: LiveKpiStreamState) => void,
+): void {
+  if (latest) {
+    const currentSnap = entry.state.snapshot;
+    const isNewer = currentSnap === null || compareSnapshots(latest, currentSnap) > 0;
+    const updatedHistory = mergeIntoHistory(entry.state.history, latest);
+    commitEntry(entry, {
+      ...entry.state,
+      snapshot: isNewer ? latest : currentSnap,
+      history: Object.freeze(updatedHistory),
+      status: 'live',
+      error: null,
+    });
+  } else {
+    commitEntry(entry, {
+      ...entry.state,
+      status: 'live',
+      error: null,
+    });
+  }
+}
+
+function commitFetchError(
+  entry: StreamEntry,
+  err: unknown,
+  commitEntry: (target: StreamEntry, next: LiveKpiStreamState) => void,
+): void {
+  commitEntry(entry, {
+    ...entry.state,
+    status: 'error',
+    error: err instanceof Error ? err : new Error(String(err)),
+  });
+}
+
 export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): LiveKpiStreamStore {
   const adapter: LiveKpiStreamAdapter = customAdapter || {
     isLiveKpiReadConfigured,
@@ -233,33 +274,12 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
           .then((latest) => {
             const current = entries.get(kpiId);
             if (!current || current.refCount <= 0) return;
-            if (latest) {
-              const currentSnap = current.state.snapshot;
-              const isNewer = currentSnap === null || compareSnapshots(latest, currentSnap) > 0;
-              const updatedHistory = mergeIntoHistory(current.state.history, latest);
-              commit(current, {
-                ...current.state,
-                snapshot: isNewer ? latest : currentSnap,
-                history: Object.freeze(updatedHistory),
-                status: 'live',
-                error: null,
-              });
-            } else {
-              commit(current, {
-                ...current.state,
-                status: 'live',
-                error: null,
-              });
-            }
+            mergeFetchedLatest(current, latest, commit);
           })
           .catch((err) => {
             const current = entries.get(kpiId);
             if (!current || current.refCount <= 0) return;
-            commit(current, {
-              ...current.state,
-              status: 'error',
-              error: err instanceof Error ? err : new Error(String(err)),
-            });
+            commitFetchError(current, err, commit);
           });
       } else if (feedState === 'connecting' || feedState === 'reconnecting') {
         if (entry.state.snapshot === null && entry.state.history.length === 0) {
@@ -286,6 +306,24 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
     if (feedRefCount > 0 || !feedSubscription) return;
     feedSubscription.unsubscribe();
     feedSubscription = null;
+  }
+
+  function getOrCreateEntry(kpiId: string): StreamEntry {
+    const existing = entries.get(kpiId);
+    if (existing) return existing;
+    const freshState = makeFreshState(adapter.isLiveKpiReadConfigured());
+    const created: StreamEntry = {
+      kpiId,
+      refCount: 0,
+      state: freshState,
+      cachedSnapshot: freshState,
+      version: 0,
+      listeners: new Set(),
+      feedActive: false,
+      retentionTimer: null,
+    };
+    entries.set(kpiId, created);
+    return created;
   }
 
   /**
@@ -327,21 +365,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
         return () => {};
       }
 
-      let entry = entries.get(kpiId);
-      if (!entry) {
-        const freshState = makeFreshState(adapter.isLiveKpiReadConfigured());
-        entry = {
-          kpiId,
-          refCount: 0,
-          state: freshState,
-          cachedSnapshot: freshState,
-          version: 0,
-          listeners: new Set(),
-          feedActive: false,
-          retentionTimer: null,
-        };
-        entries.set(kpiId, entry);
-      }
+      const entry = getOrCreateEntry(kpiId);
 
       entry.refCount++;
 
@@ -465,21 +489,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
       if (!isSupportedLiveKpiId(kpiId)) {
         return () => {};
       }
-      let entry = entries.get(kpiId);
-      if (!entry) {
-        const freshState = makeFreshState(adapter.isLiveKpiReadConfigured());
-        entry = {
-          kpiId,
-          refCount: 0,
-          state: freshState,
-          cachedSnapshot: freshState,
-          version: 0,
-          listeners: new Set(),
-          feedActive: false,
-          retentionTimer: null,
-        };
-        entries.set(kpiId, entry);
-      }
+      const entry = getOrCreateEntry(kpiId);
       entry.listeners.add(listener);
       return () => {
         entry.listeners.delete(listener);
@@ -496,30 +506,10 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
       try {
         const latest = await adapter.fetchLatestLiveKpi(kpiId);
         if (entries.get(kpiId) !== entry) return;
-        if (latest) {
-          const isNewer = entry.state.snapshot === null || compareSnapshots(latest, entry.state.snapshot) > 0;
-          const updatedHistory = mergeIntoHistory(entry.state.history, latest);
-          commit(entry, {
-            ...entry.state,
-            snapshot: isNewer ? latest : entry.state.snapshot,
-            history: Object.freeze(updatedHistory),
-            status: 'live',
-            error: null,
-          });
-        } else {
-          commit(entry, {
-            ...entry.state,
-            status: 'live',
-            error: null,
-          });
-        }
+        mergeFetchedLatest(entry, latest, commit);
       } catch (err) {
         if (entries.get(kpiId) !== entry) return;
-        commit(entry, {
-          ...entry.state,
-          status: 'error',
-          error: err instanceof Error ? err : new Error(String(err)),
-        });
+        commitFetchError(entry, err, commit);
       }
     },
   };
