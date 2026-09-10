@@ -10,7 +10,8 @@ import '@/services/data';
 
 export function App() {
   return (
-    <SimulationProvider>
+    <RouteErrorBoundary resetKey="app-root">
+      <SimulationProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
@@ -50,11 +51,19 @@ export function App() {
             })}
 
             {/* Explizite 404-Fallback-Route für unbekannte Pfade */}
-            <Route path="*" element={<NotFoundPage />} />
+            <Route
+              path="*"
+              element={
+                <RouteErrorBoundary resetKey="not-found">
+                  <NotFoundPage />
+                </RouteErrorBoundary>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>
-    </SimulationProvider>
+      </SimulationProvider>
+    </RouteErrorBoundary>
   );
 }
 
