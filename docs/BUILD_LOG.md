@@ -2,6 +2,26 @@
 
 ---
 
+## 2026-09-10 — Gate G31 / Auftrag 046 Nacharbeit Runde 3 (final, Marc-Entscheid)
+
+**Rolle:** Builder (OpenCode) · Commit `f683cd7` · **Branch:** `codex/v2.2.0-haertung`
+
+| Punkt | Stand |
+|---|---|
+| 1. Axe-Ratsche | exakt 1 Verstoß (`/dashboard`, `scrollable-region-focusable`, lokal gemessen, andere Routen 0); `e2e/a11y-baseline.json` + Spec-Umbau (nur NEUE rot, negativ getestet); Kanon in `QUALITY_BASELINE` (Ziel G35), Pointer in `TEST_MIGRATION` |
+| 2. Surface | Abschnitt-11-Block ersetzt (235–236 wörtlich hätte ENOENT gegeben — dokumentiert); lokal grün; alle 3 Verifier im CI-Job |
+| 3. verifyV21 retired | gelöscht; G43-Notiz in `BUILD_PLAN` (Helfer + Hash `89333d9b…`); keine Code-Referenzen mehr (nur Doku-Historie); `verify` weiter 24 grün |
+| 4. Revisions-Block | 3 Überlagerungen in Auftrag 046 eingetragen |
+
+Lokal: lint 327, tsc 764, build EXIT 0, vitest 25, verify 24, Schutz-Diff leer,
+Capture-Rest 1. CI: https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/34464256833 —
+**conclusion success**: lint, typecheck, test, build, livekpi, e2e grün;
+size-limit neutral (`continue-on-error`, Budget G41).
+
+**G31 fertig aus Builder-Sicht. Übergabe an Codex-Review (final).** Kein Merge, Tag.
+
+---
+
 ## 2026-09-10 — Gate G31 / Auftrag 046 Nacharbeit (Codex-Review 🔴1–3 + Fragen 1–5)
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
