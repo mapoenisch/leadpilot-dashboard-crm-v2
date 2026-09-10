@@ -325,3 +325,21 @@ Abschnitt **„Gate G35 – Auftrag 050: Layering + Kleinbefunde"** an den Anfan
 **Abnahme:** Erst nach unabhängigem Review ist Gate G35 (Teil 050) freigegeben.
 Danach folgt **Auftrag 050-B** (`src/simulation/`-Typhärtung), bevor G35 als
 Ganzes abgehakt wird. Kein Merge, Tag oder Push (außer CI-Bestätigung H2).
+
+---
+
+## Revision nach Review (2026-09-10)
+
+**Ratifizierung Block D (Entscheidung Marc, Review-Befund P2 zu Auftrag 050):**
+Block D durfte `src/features/resources/components/ResourceCard.tsx` und
+`src/features/resources/components/ResourceViewer.tsx` anfassen —
+**ausschließlich** für die a11y-Anpassungen (`role`/`tabIndex`/`onKeyDown`/
+`aria-label`; `<span>`→`<button>` der Zoom-Anzeige mit Chrome-Reset
+`background: transparent; border: none; padding: 0; font: inherit`).
+Keine weitere Änderung an `src/features/resources/**`.
+
+**Nachweis (Auftrag 050-C, Block 2):** `e2e/resources-viewer.spec.ts`
+(DOM-/Style-Assertions, OS-unabhängig, keine Baseline) + Route
+`/resources/materials` in `e2e/visual.spec.ts` mit neuen
+`visual-resources-materials-*-{darwin,linux}.png`-Baselines.
+Keine Bestands-Baseline angefasst.

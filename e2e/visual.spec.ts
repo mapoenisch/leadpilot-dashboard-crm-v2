@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // captureAuftrag0XX-Harnesses durch toHaveScreenshot mit expliziter Toleranz
 // (maxDiffPixelRatio 0.02, siehe playwright.config.ts). Volle Seite, weil der
 // alte Harness ebenfalls Full-Height capturte.
-const ROUTES = ['/dashboard', '/crm/leads', '/finance/p-and-l', '/market/overview'];
+const ROUTES = ['/dashboard', '/crm/leads', '/finance/p-and-l', '/market/overview', '/resources/materials'];
 
 for (const routePath of ROUTES) {
   test(`visual ${routePath}`, async ({ page }) => {
