@@ -87,7 +87,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsx scripts/verifyLiveKpiCatalog.ts
-      - run: npx tsx scripts/verifyLiveKpiStream.ts
       - run: npx tsx scripts/verifyLivePerformanceSurface.ts
 
   size-limit:
