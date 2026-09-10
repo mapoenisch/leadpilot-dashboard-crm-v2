@@ -54,6 +54,58 @@ Surface-Verifier grün (unverändert) + Playwright 147/147 gegen Baselines
 
 G34-Builder-Teil fertig. **Übergabe an Codex-Review.** Kein Merge, Tag, Push.
 
+### Review (Claude Code) — 2026-09-10, Commit `1f47b9f`
+
+**Kernkriterien alle erfüllt:**
+
+- **1 Kanal / 12 KPIs:** Test `genau 1 Kanal bei 12 KPIs` verifiziert
+  `feedSubscribeCalls === 1`, `unsubscribe` erst nach dem 12. `release`.
+  Routing verwirft fremde/nicht-acquired kpiIds. Sabotage-Rot-Nachweis
+  dokumentiert.
+- **Backoff:** `computeBackoffDelay` rein/exportiert; Test deckt Unter-/
+  Obergrenzen, `computeBackoffDelay(100) ≤ 30000`, Monotonie und
+  `computeBackoffDelay(-1) ≥ 0` ab. Fake-Timer-Ablauf: Fehler → `reconnecting`
+  + wachsender Delay, `SUBSCRIBED` → Reset, `unsubscribe` bricht Timer ab.
+- **Keine optische Änderung:** `LiveKpiReadStatus` Zeile 12 bytegleich;
+  `git diff 78ae9d4..HEAD -- e2e` leer; Surface-Verifier Exit 0; nur
+  `src/hooks/__tests__/**` berührt (Produkt-Hooks/Komponenten unverändert).
+- **G33-Invarianten im rekonstruierten Store intakt:** Fix A
+  (`nextStatus = merged.length > 0 ? 'live' : entry.state.status`), Fix B
+  (`listeners.clear()` + `clearTimeout` + `setTimeout(…, RETENTION_MS)` bei
+  `refCount ≤ 0`, Re-acquire bricht Timer ab ohne Refetch), `commit()` als
+  einzige Mutationsstelle, `RETENTION_MS` exportiert, `getSnapshot` gibt
+  `entry.cachedSnapshot` referenzstabil zurück.
+- **Matrix nachgestellt:** `verify` 24 grün · `build` Exit 0 ·
+  `test` 121 grün · `test:coverage` Exit 0 (liveKpi 95.98/93.52/100/98.99,
+  hooks 92.92/87.8/90.9/95.95) · `grep subscribeToLiveKpi\b src` = 0.
+
+**Drei kleine Neu-Befunde (innerhalb der CI-Ratsche 765/327, aber vermeidbar
+— sollten in einer kurzen Nacharbeit weg):**
+
+1. **P2 — `fakes.ts:10` TS2459:** importiert `LiveKpiSubscription` aus
+   `../liveKpiStreamStore`, der Typ wird dort aber nicht re-exportiert
+   (Store bezieht ihn selbst aus `liveKpiReadAdapter`). Das ist die +1-tsc-
+   Regression (762 → 763). Fix: Import auf `../liveKpiReadAdapter` umstellen
+   oder `export type { LiveKpiSubscription }` im Store ergänzen.
+2. **P2 — `liveKpiStreamStore.ts` `max-lines`:** zählt 411 Zeilen > 400 →
+   neuer Lint-Fehler (war bei G33 darunter). Kleine Extraktion nötig
+   (z. B. `propagateStatus`-`live`-Zweig in eine Modulfunktion).
+3. **P3 — `liveKpiReadAdapter.ts:202` `no-console`:** neues `console.warn`
+   in `teardownChannel()`. Konsistent mit dem bestehenden Muster in
+   `store.notify`, formal aber ein neuer Lint-Fehler.
+
+**Design-Notizen (kein Blocker):**
+
+- `propagateStatus('live')` löst je acquired KPI einen `fetchLatestLiveKpi`
+  aus. Pro `SUBSCRIBED`-Übergang gebündelt (nicht pro Tick) — bei
+  flatterndem Netz N Fetches pro Reconnect. Für G34 ok, für G28-Ops merken.
+- Kein terminaler „Backoff erschöpft → error"-Pfad; `LiveKpiFeedConnectionState`
+  hat keinen Endzustand, Retry läuft unbegrenzt mit 30-s-Deckel. Sinnvolle
+  Auslegung, da kein Erschöpfungsbegriff existiert.
+
+**Empfehlung:** Nacharbeit für Befund 1–3 (eine fokussierte Runde), danach
+Freigabe G34. Kein Merge, Tag, Push vor Freigabe.
+
 ---
 
 ## 2026-09-10 — Gate G33 / Auftrag 048: useSyncExternalStore & Store-Bugfixes
