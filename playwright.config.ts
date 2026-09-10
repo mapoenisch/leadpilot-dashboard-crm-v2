@@ -27,7 +27,6 @@ export default defineConfig({
       maxDiffPixelRatio: 0,
     },
   },
-  },
   projects: [
     {
       name: 'desktop-1440',
