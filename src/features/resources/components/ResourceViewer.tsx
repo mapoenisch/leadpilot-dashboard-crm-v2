@@ -196,7 +196,7 @@ export function ResourceViewer({ resource, onClose }: ResourceViewerProps) {
                   onClick={handleZoomReset}
                   title="Klick für 100%"
                   aria-label="Zoom auf 100 Prozent zurücksetzen"
-                  style={{ fontSize: "12px", minWidth: "45px", textAlign: "center", cursor: "pointer", color: zoom !== 1 ? "var(--color-primary)" : "inherit", background: "transparent", border: "none", padding: 0, font: "inherit" }}
+                  style={{ fontSize: "12px", minWidth: "45px", textAlign: "center", cursor: "pointer", color: zoom !== 1 ? "var(--color-primary)" : "inherit", background: "transparent", border: "none", padding: 0, fontFamily: "inherit" }}
                 >
                   {Math.round(zoom * 100)}%
                 </button>

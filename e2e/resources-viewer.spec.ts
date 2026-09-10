@@ -25,7 +25,6 @@ test('resources-viewer: Zoom-Anzeige ist neutral gestylter Button', async ({ pag
       fontStyle: cs.fontStyle,
       fontWeight: cs.fontWeight,
       fontSize: cs.fontSize,
-      parentFontSize: el.parentElement ? getComputedStyle(el.parentElement).fontSize : null,
     };
   });
   // Chrome-Reset: kein UA-Button-Chrome.
@@ -33,15 +32,15 @@ test('resources-viewer: Zoom-Anzeige ist neutral gestylter Button', async ({ pag
   expect(zoomStyle.borderStyle).toBe('none');
   expect(zoomStyle.padding).toBe('0px');
   // Kein UA-Button-Font: gleiche Schriftfamilie/Stil wie der benachbarte
-  // Viewer-Text (volle font-Shorthand nicht vergleichbar: Button erbt 16px,
-  // Sub ist designbedingt 11.5px — darum Familien-/Stil-Vergleich).
+  // Viewer-Text (volle font-Shorthand nicht vergleichbar: Button ist
+  // designbedingt 12px, Sub 11.5px — darum Familien-/Stil-Vergleich).
   const neighborFont = await page.locator('.resource-viewer-title-sub').evaluate((el) => {
     const cs = getComputedStyle(el);
     return { fontFamily: cs.fontFamily, fontStyle: cs.fontStyle, fontWeight: cs.fontWeight };
   });
   expect(zoomStyle.fontFamily).toBe(neighborFont.fontFamily);
   expect(zoomStyle.fontStyle).toBe(neighborFont.fontStyle);
-  // `font: inherit` gewinnt (inline-`fontSize: 12px` wird vom Shorthand
-  // zurückgesetzt): Button-Größe = geerbte Container-Größe, kein UA-Default.
-  expect(zoomStyle.fontSize).toBe(zoomStyle.parentFontSize);
+  // `fontFamily: "inherit"` ohne `font`-Shorthand: inline-`fontSize: "12px"`
+  // bleibt wirksam — Button rendert pixelgleich zum alten <span>.
+  expect(zoomStyle.fontSize).toBe('12px');
 });

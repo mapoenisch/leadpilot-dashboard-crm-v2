@@ -2,6 +2,48 @@
 
 ---
 
+## 2026-09-10 — Gate G35 / Auftrag 050-C Nacharbeit (Review P2 + P3)
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Befund:** „Review (Claude Code) … 050-C" (P2 Zoom-Größe, P3 Kommentar).
+Ein Commit, kein Merge/Tag, kein Push (nicht beauftragt).
+
+### P2 — Zoom-Anzeige zurück auf 12px (echte Regression aus 050 Block D)
+
+- **Fix (`ResourceViewer.tsx`, 1 Zeile, explizit beauftragt —
+  Schutzbereich-Ausnahme):** im Style des Zoom-Reset-`<button>`
+  `font: "inherit"` entfernt, durch `fontFamily: "inherit"` ersetzt;
+  `fontSize: "12px"` bleibt. Das `font`-Shorthand hatte die 12px auf
+  geerbte 16px zurückgesetzt; jetzt rendert der Button wieder pixelgleich
+  zum alten `<span>`.
+- **Spec geschärft (`e2e/resources-viewer.spec.ts`):** Assertion von
+  `fontSize === parentFontSize` (hielt den 16px-Zustand fest) auf
+  `expect(zoomStyle.fontSize).toBe('12px')` umgestellt (+ `parentFontSize`
+  aus dem Evaluate entfernt, Kommentare angepasst). Sichert jetzt den
+  korrekten Zustand ab.
+
+### P3 — Kommentar korrigiert
+
+- `.github/workflows/ci.yml`, Job `livekpi-verifiers`: „alle 3
+  Live-KPI-Verifier" → „alle 2" (eine Zeile, kein Code).
+
+### Verifikation
+
+| Command | Ergebnis |
+|---|---|
+| `npm run test` | 33 Files / 133 Tests grün |
+| `npm run verify` | 24/24 grün |
+| `npm run build` | EXIT 0 (danach Playwright gegen frisches `dist/`) |
+| `npx playwright test` | **153/153** (`git status e2e/` = nur Spec-M, keine Baseline angefasst) |
+| `npx tsc --noEmit` | **758** (unverändert) |
+| `npm run lint` | **182** Errors (unverändert; wieder 3 pre-existente Warnings) |
+| Schutzbereichs-Diff (`src/simulation src/types src/context src/services/data`; `src/features/resources` = nur die 1 beauftragte Zeile) | ok |
+
+**Ergebnis:** P2 + P3 behoben, alle Gates grün. Auftrag 050 inkl. C damit
+aus Builder-Sicht abgeschlossen; G35 wartet auf 050-B. **Übergabe an Review.**
+
+---
+
 ## 2026-09-10 — Gate G35 / Auftrag 050-C: Verifier-Bereinigung + Resources-Nachweis
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`

@@ -76,7 +76,7 @@ jobs:
       - run: npm run build
 
   livekpi-verifiers:
-    # G31 (Nacharbeit Runde 3): alle 3 Live-KPI-Verifier laufen automatisch.
+    # G31 (Nacharbeit Runde 3): alle 2 Live-KPI-Verifier laufen automatisch.
     # Surface-Abschnitt 11 (042-Harness-Check) entfernt — S8-Folge, Ersatz Playwright.
     runs-on: ubuntu-latest
     steps:
