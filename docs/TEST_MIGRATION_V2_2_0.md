@@ -147,6 +147,10 @@ revertiert), 25/25 Vitest-Tests grün, `verifyIntegrity.ts` vollständig erhalte
   `serious` (`scrollable-region-focusable`): `<main style="overflow-y: auto">`
   aus dem Layout hat keinen Tastaturzugriff. Fix (`tabindex`/`role=region`) gehört
   nach G35. Die anderen 3 Routen sind sauber.
+  Nacharbeit Runde 3 (Marc-Entscheid): Delta-Ratsche — `e2e/a11y-baseline.json`
+  listet je Route akzeptierte `v.id`-Werte, der Spec lässt nur NEUE Verstöße
+  durchfallen (Mechanik negativ getestet: ohne Baseline-Eintrag rot). Kanon auch
+  in `docs/QUALITY_BASELINE_V2_2_0.md` (Abschnitt Axe-Baseline, Zielgate G35).
 - `e2e/visual.spec.ts`: siehe S5 unten.
 - S5-Ergebnis (09.09.): 12 Baselines (`e2e/visual.spec.ts-snapshots/`, 4 Routen ×
   3 Viewports, `fullPage`). Lauf 1 angelegt, Lauf 2 + 3 je 12/12 grün —

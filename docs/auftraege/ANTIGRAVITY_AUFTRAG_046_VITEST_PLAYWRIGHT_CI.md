@@ -273,3 +273,18 @@ Akzeptanzkriterium „höchstens drei Capture-Skripte übrig" bleibt.
 - `src/` ist nur um `src/simulation/__tests__/vitest/**` erweitert und ggf. um Assertion-Härtung
   in `src/simulation/__tests__/*.test.ts`; keine Änderung an Engine-Logik.
 - `supabase/`, `tools/n8n/`, `public/` unverändert. Höchstens drei `captureAuftrag*`-Skripte übrig.
+
+---
+
+## Überlagerungen aus Nacharbeit Runde 3 (2026-09-10, Marc-Entscheid)
+
+- **§7 „`verifyV21ReleaseReadiness.ts` bleibt" → überlagert: retired in G31.**
+  V2.1-Artefakt, unpassend für v2-Repo (`fc48233` nicht vorhanden, `docs/screenshots/`
+  im Archiv). Gelöscht; Helfer-Notiz für G43 in `docs/BUILD_PLAN_V2.2.0.md` (Phase 5).
+- **e2e-a11y:** 3 bekannte Verstöße baselined (`e2e/a11y-baseline.json`, Ratsche wie
+  lint/tsc), Delta-Prüfung (neue Verstöße → rot, Mechanik negativ getestet).
+  Fixes in G35.
+- **`verifyLivePerformanceSurface.ts`:** 1 tote S8-Folgezeile entfernt (Abschnitt 11
+  prüfte die gelöschte 042-Datei; wörtliches Entfernen nur 235–236 hätte mit ENOENT
+  in `readFileSync` gecrasht — ganzer Block ersetzt). Alle 3 Live-KPI-Verifier
+  laufen im CI-Job `livekpi-verifiers`.

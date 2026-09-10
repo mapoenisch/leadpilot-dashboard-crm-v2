@@ -162,6 +162,10 @@ Der größte Block — über die Hälfte des Gesamtaufwands.
 
 - **G43 / 061** — `verifyV22ReleaseReadiness.ts` prüft alle 23 Kennzahlen maschinell;
   vollständiger Screenshot-Vergleich gegen V2.1.0; `docs/releases/V2.2.0.md`.
+  Doku-Konsistenz-Verifier für V2.2.0: die Helfer `assertNoConflictingCount` +
+  `isCurrentClaimLine` aus dem in G31 gelöschten `verifyV21ReleaseReadiness.ts`
+  (letzter Stand: commit `89333d9b5fdf642f30282dd9d7665cc425bce458`) als
+  Ausgangspunkt übernehmen. Keinen Stub-Modul anlegen — G43 baut frisch.
 
 ---
 

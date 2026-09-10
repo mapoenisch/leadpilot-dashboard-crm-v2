@@ -109,6 +109,18 @@ Der Auftrag sieht vor: bei > 150 Fehlern die Option zurückstellen. Tatsächlich
 
 ---
 
+## Axe-Baseline (Nachtrag G31-Nacharbeit Runde 3, 2026-09-10)
+
+| Prüfung | Ergebnis | Zielgate |
+|---|---|---|
+| Axe (`critical`/`serious`), `/dashboard` + 3 Kernrouten | 1 bekannter Verstoß: `scrollable-region-focusable` (`serious`, `/dashboard`, `<main style="overflow-y: auto">` ohne Tastaturzugriff) | G35 |
+| `/crm/leads`, `/finance/p-and-l`, `/market/overview` | 0 Verstöße | — |
+
+Delta-Ratsche: `e2e/a11y-baseline.json` + `e2e/a11y.spec.ts` (neue Verstöße → rot).
+Fix (`tabindex`/`role=region`) ist G35-Scope.
+
+---
+
 ## Verifikation
 
 | Prüfung | Ergebnis |

@@ -229,18 +229,12 @@ function runVerification() {
   }
 
   // -------------------------------------------------------------
-  // 11. Reproducible Baseline Worktree in Screenshot Harness (Abschnitt 13)
+  // 11. (G31-Nacharbeit Runde 3) Abschnitt entfernt: prüfte
+  // scripts/captureAuftrag042GateScreenshots.mjs (S8 gelöscht).
+  // Ersatz: Playwright (e2e/visual.spec.ts + captureGateScreenshots.mjs).
+  // Auftrag sagte 235–236, tatsächlich musste der ganze Block weichen —
+  // schon readFileSync (237) stürzt ohne die Datei mit ENOENT ab.
   // -------------------------------------------------------------
-  console.log('\n--- 11. Verifying Screenshot Harness Baseline Worktree & Assertions ---');
-  const harnessFile = path.join(ROOT_DIR, 'scripts/captureAuftrag042GateScreenshots.mjs');
-  assert(fs.existsSync(harnessFile), 'scripts/captureAuftrag042GateScreenshots.mjs exists');
-  const harnessSrc = fs.readFileSync(harnessFile, 'utf8');
-
-  assert(harnessSrc.includes('e243dca'), 'Screenshot harness references baseline commit e243dca');
-  assert(harnessSrc.includes('BASELINE_WORKTREE_DIR') || harnessSrc.includes('git worktree add'), 'Screenshot harness manages isolated baseline worktree');
-  assert(harnessSrc.includes('git worktree remove') || harnessSrc.includes('cleanupBaselineWorktree'), 'Screenshot harness contains cleanup logic for baseline worktree');
-  assert(harnessSrc.includes('cwd: stageDir') || harnessSrc.includes('cwd: BASELINE_WORKTREE_DIR'), 'Screenshot harness uses stage-specific cwd for build and preview');
-  assert(harnessSrc.includes('git rev-parse') || harnessSrc.includes('getGitCommit'), 'Screenshot harness verifies git commit for stages');
 
   console.log('\n===============================================================');
   console.log('🎉 ALL LIVE PERFORMANCE SURFACE AUDITS PASSED (GATE G26)');
