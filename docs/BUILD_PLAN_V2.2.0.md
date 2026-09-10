@@ -88,7 +88,7 @@ Serielle Abhängigkeit. Jedes Gate braucht die Freigabe des vorherigen.
 | **G32** | 047 | Charakterisierungstests Store & Hooks | Testlücke Hooks/Store | 1–2 T |
 | **G33** | 048 | `useSyncExternalStore` + Store-Bugfixes | **KRITISCH 1** + MITTEL 9 | 1 T |
 | **G34** | 049 | Ein Realtime-Kanal + Reconnect-Backoff | **HOCH 5** + Backoff | 1–2 T |
-| **G35** | 050 | Layering-Verstöße + Kleinbefunde | 3 Verstöße + MITTEL 8 | 2–3 T |
+| **G35** | 050 + 050-B | Layering-Verstöße + Kleinbefunde (050 Architektur/Kleinbefunde außerhalb `src/simulation/`; 050-B Simulation-Typhärtung) | 7+1 Verstöße + MITTEL 8; `any`/`console`/`tsc`-Flut real ~2× Plan → geteilt | 2–3 T + 2 T |
 | **G36** | 051 | TanStack Query für Server-State | Server-State-Bibliothek, Optimistic Updates | 2 T |
 | **G37** | 052 | `SimulationContext` → Zustand | **HOCH 4** (Teil 1) | 2–3 T |
 | **G38** | 053 | Design-System-Fundament | Vorbereitung HOCH 3 | 2 T |
