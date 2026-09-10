@@ -1,7 +1,6 @@
 import React from 'react';
-import { CHART_THEME, formatChartMetric } from '../chartTheme';
+import { formatChartMetric } from '../chartTheme';
 import { StatusChip } from '../StatusChip';
-import { Icon } from '../Icon';
 
 export interface FunnelStage {
   name: string;

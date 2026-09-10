@@ -133,7 +133,7 @@ function renderPseudo3dBar(props: BarShapeProps) {
 export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
   className,
 }: LiveFunnelBarChartProps) {
-  const { items, status } = useLiveKpiActivity(FUNNEL_IDS);
+  const { items } = useLiveKpiActivity(FUNNEL_IDS);
 
   const framerReducedMotion = useReducedMotion();
   const shouldReduceMotion =

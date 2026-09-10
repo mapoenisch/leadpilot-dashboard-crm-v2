@@ -1,5 +1,5 @@
 import React from 'react';
-import { CHART_THEME, formatChartMetric } from '../chartTheme';
+import { formatChartMetric } from '../chartTheme';
 
 export interface DivergingImpactItem {
   label: string;

@@ -8,7 +8,7 @@ import { Alert } from '../../../components/ui/Alert';
 import { Card } from '../../../components/ui/Card';
 import { Select } from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
-import { Table, Column } from '../../../components/ui/Table';
+
 import { ChartFrame, MultiScenarioComparisonChart } from '../../../components/ui/Charts';
 import {
   MultiVersionComparisonResult,
@@ -44,7 +44,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
       }
     }
     return list;
-  }, [scenarios, scenarioService, isOpen, activeVersion]);
+  }, [scenarios, scenarioService]);
 
   // Selected versions (2 to 4) - default to available versions
   const [selectedVersionIds, setSelectedVersionIds] = useState<string[]>(() => {
@@ -85,7 +85,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
     if (selectedVersionIds.length < 2) return null;
     try {
       return compareMultipleVersions(selectedVersionIds, undefined, effectiveRefId);
-    } catch (err: any) {
+    } catch {
       return null;
     }
   }, [selectedVersionIds, effectiveRefId, compareMultipleVersions]);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CHART_THEME, formatChartMetric } from '../chartTheme';
+import { formatChartMetric } from '../chartTheme';
 import { ChartEmptyState } from './ChartEmptyState';
 import { ChartLegend } from './ChartLegend';
 import { ChartTooltip } from './ChartTooltip';
@@ -27,7 +27,7 @@ export function MonteCarloHistogramChart({
   buckets = [],
   totalRuns = 0,
   median,
-  mean,
+  _mean,
   p10,
   p90,
   unit = '€',

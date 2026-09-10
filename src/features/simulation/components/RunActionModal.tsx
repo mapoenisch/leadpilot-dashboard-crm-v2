@@ -3,7 +3,7 @@ import { useSimulation } from '../../../context/SimulationContext';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Alert';
-import { Select, SelectOption } from '../../../components/ui/Select';
+import { Select } from '../../../components/ui/Select';
 import { dataSourceRegistry } from '../../../services/data';
 
 interface RunActionModalProps {

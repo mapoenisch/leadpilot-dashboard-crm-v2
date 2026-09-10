@@ -1,4 +1,3 @@
-import { LeadStatus } from './simulation';
 
 export type EntityType = 'LEAD' | 'DEAL' | 'CUSTOMER';
 

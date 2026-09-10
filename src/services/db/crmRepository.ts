@@ -1,4 +1,4 @@
-import { Company, Contact, ImportedFunnelDeal, ImportAuditSummary, Lead, Deal, Activity, LeadStatus } from '@/types/crm';
+import { Company, Contact, ImportedFunnelDeal, ImportAuditSummary, Lead, LeadStatus } from '@/types/crm';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { seedSupabaseDatabase, SeedResult } from '../import/crmSeeder';
 import { dataSourceRegistry } from '../data';

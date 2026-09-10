@@ -5,8 +5,6 @@ import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { SimulationRun } from '../../../types/scenario';
-import { BaselineSnapshotService } from '../../../services/data/baselineSnapshotService';
-import { dataSourceRegistry } from '../../../services/data';
 
 import { resolveRunSourceAudit } from '../../../services/data/runSourceAudit';
 

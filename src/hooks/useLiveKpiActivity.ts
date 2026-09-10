@@ -148,6 +148,7 @@ export function useLiveKpiActivity(
 
   return useMemo(
     () => computeResult(dependencyKey === '' ? [] : dependencyKey.split(','), limit),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- version ist der Re-Render-Trigger aus useSyncExternalStore (ohne ihn blieben items stale); das Pattern erkennt die Regel nicht
     [version, dependencyKey, limit]
   );
 }

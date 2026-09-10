@@ -14,7 +14,7 @@ import { MeasureManagerModal } from './components/MeasureManagerModal';
 import { MultiScenarioComparisonModal } from './components/MultiScenarioComparisonModal';
 
 export function LiveDashboardView() {
-  const { state, leads, deals, events } = useSimulation();
+  const { leads, deals, events } = useSimulation();
 
   // Tier switching: 'management' | 'detail' | 'audit' | 'operativ'
   const [activeTier, setActiveTier] = useState<string>('management');
@@ -28,21 +28,6 @@ export function LiveDashboardView() {
   // Operative sub-tab filter
   const [activeOperativeTab, setActiveOperativeTab] = useState<string>('leads');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
-
-  const metrics = state.metrics ?? {
-    liveLeads: leads.length,
-    liveMQLs: leads.filter((l) => l.status === 'MQL').length,
-    liveSQLs: leads.filter((l) => l.status === 'SQL').length,
-    liveHotLeads: leads.filter((l) => l.status === 'Hot').length,
-    liveOpportunities: leads.filter((l) => l.status === 'SQL' || l.status === 'Hot').length,
-    livePipelineValue: leads.filter((l) => l.status !== 'Won' && l.status !== 'Lost').reduce((acc, l) => acc + (l.estimatedValue || 0), 0),
-    liveWonDeals: deals.length,
-    liveLostDeals: leads.filter((l) => l.status === 'Lost').length,
-    liveCustomers: 66 + deals.length,
-    liveMRR: 34320 + deals.reduce((sum, d) => sum + d.mrr, 0),
-    liveARR: 411840 + deals.reduce((sum, d) => sum + d.arr, 0),
-    conversionRate: 67,
-  };
 
   const filteredLeads = leads.filter((l) => {
     if (statusFilter === 'ALL') return true;

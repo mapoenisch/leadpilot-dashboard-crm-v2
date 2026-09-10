@@ -5,10 +5,8 @@ import { Badge } from '../../../components/ui/Badge';
 import { KpiTimeSeriesDetailView } from './KpiTimeSeriesDetailView';
 
 export const DetailTierView: React.FC = () => {
-  const { activeVersion, aggregation, runs, events, state } = useSimulation();
-  const [selectedRunIds, setSelectedRunIds] = React.useState<string[]>([]);
+  const { activeVersion, aggregation, events, state } = useSimulation();
   const params = activeVersion?.parameters;
-  const completedRuns = runs.filter((r) => r.status === 'COMPLETED');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>

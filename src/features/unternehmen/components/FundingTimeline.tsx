@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { HISTORIE } from '../../../domain/unternehmenData';
-import { FaceliftGlyph } from '../../../components/facelift/FaceliftGlyph';
 
 export const FundingTimeline: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);

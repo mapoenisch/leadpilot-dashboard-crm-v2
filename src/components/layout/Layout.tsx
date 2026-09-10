@@ -5,9 +5,7 @@ import { Header } from './Header';
 import { SimulationBar } from './SimulationBar';
 import { routeForPathname } from '@/app/routes';
 
-export interface LayoutProps {}
-
-export function Layout({}: LayoutProps = {}) {
+export function Layout() {
   const location = useLocation();
   const meta = routeForPathname(location.pathname);
 

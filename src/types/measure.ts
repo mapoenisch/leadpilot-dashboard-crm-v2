@@ -1,5 +1,3 @@
-import { ScenarioParameters } from './scenario';
-import { ChannelMix } from './parameter';
 
 /** V1-Maßnahmenkatalog (Entscheidungen 449–458). Bewusst NICHT: churnRateMonthly, csRepCount, targetPackageFocus. */
 export type MeasureParameterKey =

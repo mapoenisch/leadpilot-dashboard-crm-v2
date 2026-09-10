@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ResourceCategory, ResourceMetadata, ResourceType } from "../../types/resource";
+import { ResourceMetadata } from "../../types/resource";
 import { ResourceRegistry } from "../../domain/resourceRegistry";
 import { SectionHeader } from "../../components/ui/SectionHeader";
 import { Card } from "../../components/ui/Card";

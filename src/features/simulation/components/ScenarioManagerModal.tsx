@@ -14,7 +14,7 @@ import { NumberStepper } from '../../../components/ui/NumberStepper';
 import { Table } from '../../../components/ui/Table';
 import { parameterRegistry } from '../../../simulation/parameterRegistry';
 import { DEFAULT_BASE_2026_VERSION_ID } from '../../../simulation/scenarioRepository';
-import { ScenarioParameters, VersionComparisonResult, ScenarioVersion } from '../../../types/scenario';
+import { ScenarioParameters, VersionComparisonResult } from '../../../types/scenario';
 
 interface ScenarioManagerModalProps {
   isOpen: boolean;

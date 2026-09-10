@@ -1,5 +1,5 @@
 import React from 'react';
-import { CHART_THEME, formatChartMetric } from '../chartTheme';
+import { formatChartMetric } from '../chartTheme';
 
 export interface WaterfallStep {
   label: string;
@@ -16,7 +16,7 @@ export interface WaterfallChartProps {
 
 export function WaterfallChart({
   steps = [],
-  unit = '€',
+  unit: _unit = '€',
   height = 200,
 }: WaterfallChartProps) {
   if (!steps || steps.length === 0) return null;

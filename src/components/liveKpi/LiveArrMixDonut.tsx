@@ -29,7 +29,7 @@ function formatEur(val: number): string {
 export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
   className,
 }: LiveArrMixDonutProps) {
-  const { items, status } = useLiveKpiActivity(ARR_MIX_IDS);
+  const { items } = useLiveKpiActivity(ARR_MIX_IDS);
 
   const framerReducedMotion = useReducedMotion();
   const shouldReduceMotion =

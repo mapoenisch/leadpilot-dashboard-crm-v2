@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { CHART_THEME, formatChartMetric } from '../chartTheme';
+import { formatChartMetric } from '../chartTheme';
 import { ChartLegend } from './ChartLegend';
-import { ChartTooltip } from './ChartTooltip';
 
 /**
  * MultiScenarioComparisonChart
@@ -30,7 +29,7 @@ export function MultiScenarioComparisonChart({
   height = 240,
   ariaLabel = 'Multi-Szenario Trajektorienvergleich',
 }: MultiScenarioComparisonChartProps) {
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const [, setHoverIdx] = useState<number | null>(null);
 
   if (!series || series.length === 0) return null;
 

@@ -29,7 +29,6 @@ interface MeasureManagerModalProps {
 
 export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen, onClose }) => {
   const {
-    activeVersion,
     draftMeasures,
     addDraftMeasure,
     removeDraftMeasure,

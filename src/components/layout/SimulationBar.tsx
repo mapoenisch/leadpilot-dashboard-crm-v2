@@ -4,7 +4,6 @@ import { SimulationEvent, SimulationSpeed, SimulationState } from '../../types/s
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { StatusChip } from '../ui/StatusChip';
-import { Badge } from '../ui/Badge';
 
 export function SimulationBar() {
   const [simState, setSimState] = React.useState<SimulationState>(simulationService.getState());

@@ -1,15 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useSimulation } from '../../../context/SimulationContext';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { ChartFrame, MonteCarloHistogramChart } from '../../../components/ui/Charts';
-import { KPIRegistry } from '../../../simulation/kpiRegistry';
 import { GoalTargetEvaluator } from '../../../simulation/goalTargetEvaluator';
 import { BaselineComparisonMode, GoalTarget } from '../../../types/kpi';
 import { MetricStats, TimeSeriesPoint } from '../../../types/aggregation';
 import { SimulationRun } from '../../../types/scenario';
-import { SimulationEvent } from '../../../types/simulation';
 
 export type SelectedKpiKey =
   | 'liveARR'
@@ -185,19 +183,25 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
   };
 
   // Extract raw time series points
-  const rawTimeSeries = aggregation.metrics.timeSeries || [];
+  const rawTimeSeries = useMemo(
+    () => aggregation.metrics.timeSeries || [],
+    [aggregation]
+  );
 
   // Transform values per comparison mode
-  const transformValue = (val: number): number => {
-    if (comparisonMode === 'DELTA') {
-      return val - activeKpiConfig.baseline;
-    }
-    if (comparisonMode === 'PERCENT') {
-      if (activeKpiConfig.baseline === 0) return 0;
-      return parseFloat((((val - activeKpiConfig.baseline) / Math.abs(activeKpiConfig.baseline)) * 100).toFixed(1));
-    }
-    return val;
-  };
+  const transformValue = useCallback(
+    (val: number): number => {
+      if (comparisonMode === 'DELTA') {
+        return val - activeKpiConfig.baseline;
+      }
+      if (comparisonMode === 'PERCENT') {
+        if (activeKpiConfig.baseline === 0) return 0;
+        return parseFloat((((val - activeKpiConfig.baseline) / Math.abs(activeKpiConfig.baseline)) * 100).toFixed(1));
+      }
+      return val;
+    },
+    [comparisonMode, activeKpiConfig]
+  );
 
   const formatDisplayValue = (val: number): string => {
     if (comparisonMode === 'PERCENT') {
@@ -307,7 +311,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
     maxY += padding;
 
     return { points, minY, maxY, targetTransformed, selectedRunsData };
-  }, [rawTimeSeries, activeKpiConfig, comparisonMode, selectedRunIds, completedRuns]);
+  }, [rawTimeSeries, activeKpiConfig, selectedRunIds, completedRuns, transformValue]);
 
   // Histogram calculation
   const histogramData = useMemo(() => {
@@ -599,7 +603,6 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
               {/* SVG Scaler Functions */}
               {(() => {
                 const pts = chartData.points;
-                const minX = 0;
                 const maxX = Math.max(pts.length - 1, 1);
                 const getY = (val: number) => {
                   const range = chartData.maxY - chartData.minY || 1;

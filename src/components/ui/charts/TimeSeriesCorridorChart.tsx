@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CHART_THEME, formatChartMetric } from '../chartTheme';
+import { formatChartMetric } from '../chartTheme';
 import { ChartLegend } from './ChartLegend';
 import { ChartTooltip } from './ChartTooltip';
 

@@ -29,7 +29,7 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
 
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-      request.onupgradeneeded = (evt: IDBVersionChangeEvent) => {
+      request.onupgradeneeded = (_evt: IDBVersionChangeEvent) => {
         const db = request.result;
 
         if (!db.objectStoreNames.contains(STORE_SNAPSHOTS)) {

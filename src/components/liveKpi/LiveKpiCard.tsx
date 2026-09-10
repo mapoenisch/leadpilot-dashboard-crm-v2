@@ -63,7 +63,7 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
   fallbackUnit = '',
   className,
 }: LiveKpiCardProps) {
-  const { snapshot, status, error } = useLiveKpi(kpiId);
+  const { snapshot, status } = useLiveKpi(kpiId);
 
   // Status-Tracking für Animation: Nur bei echtem Live-Snapshotwechsel animieren
   const prevKpiIdRef = useRef(kpiId);

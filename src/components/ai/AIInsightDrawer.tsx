@@ -4,7 +4,6 @@ import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Alert } from '../ui/Alert';
 import { simulationService } from '../../simulation/simulationService';
-import { SimulationLead } from '@/types/simulation';
 
 export interface AIInsightDrawerProps {
   open: boolean;
