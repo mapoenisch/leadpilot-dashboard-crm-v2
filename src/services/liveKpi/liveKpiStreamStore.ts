@@ -13,8 +13,9 @@ import {
   isLiveKpiReadConfigured,
   fetchLatestLiveKpi,
   fetchLiveKpiHistory,
-  subscribeToLiveKpi,
+  subscribeToLiveKpiFeed,
   type LiveKpiSnapshot,
+  type LiveKpiFeedConnectionState,
   type LiveKpiReadStatus,
   type LiveKpiSubscription,
 } from './liveKpiReadAdapter';
@@ -42,6 +43,11 @@ export interface LiveKpiStreamStore {
    * Steigt bei jeder echten State-Änderung des Entrys; 0 ohne Entry.
    */
   getEntryVersion(kpiId: string): number;
+  /**
+   * G34: feiner Feed-Verbindungszustand (nicht an die UI verdrahtet —
+   * `LiveKpiReadStatus` bleibt die einzige Komponenten-Schnittstelle).
+   */
+  getFeedConnectionState(): LiveKpiFeedConnectionState;
   subscribe(kpiId: string, listener: () => void): () => void;
   refresh(kpiId: string): Promise<void>;
 }
@@ -50,10 +56,13 @@ export interface LiveKpiStreamAdapter {
   isLiveKpiReadConfigured(): boolean;
   fetchLatestLiveKpi(kpiId: string): Promise<LiveKpiSnapshot | null>;
   fetchLiveKpiHistory(kpiId: string, sinceIso: string, limit: number): Promise<LiveKpiSnapshot[]>;
-  subscribeToLiveKpi(
-    kpiId: string,
+  /**
+   * G34: ein einziger ungefilterter Feed-Kanal (statt einem pro KPI).
+   * Events tragen ihre kpiId, der Store routet client-seitig.
+   */
+  subscribeToLiveKpiFeed(
     onEvent: (snapshot: LiveKpiSnapshot) => void,
-    onConnectionStatus: (status: 'subscribed' | 'offline' | 'error') => void,
+    onStatus: (status: LiveKpiFeedConnectionState) => void,
   ): LiveKpiSubscription;
 }
 
@@ -66,7 +75,8 @@ interface StreamEntry {
   /** G33: monotone Version, steigt bei jedem commit (für aggregierte Hooks). */
   version: number;
   listeners: Set<() => void>;
-  subscription: LiveKpiSubscription | null;
+  /** G34: true, solange dieser Entry einen Feed-Anteil hält (nur konfiguriert). */
+  feedActive: boolean;
   /** G33 Fix B: Lösch-Timer für das 60-s-Aufbewahrungsfenster (null wenn aktiv). */
   retentionTimer: ReturnType<typeof setTimeout> | null;
 }
@@ -128,10 +138,18 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
     isLiveKpiReadConfigured,
     fetchLatestLiveKpi,
     fetchLiveKpiHistory,
-    subscribeToLiveKpi,
+    subscribeToLiveKpiFeed,
   };
 
   const entries = new Map<string, StreamEntry>();
+
+  /**
+   * G34: genau ein Feed-Abo für alle Entries. Lebensdauer an „irgendein Entry
+   * mit refCount > 0" gekoppelt; Entries im Aufbewahrungsfenster zählen nicht.
+   */
+  let feedSubscription: LiveKpiSubscription | null = null;
+  let feedRefCount = 0;
+  let feedConnectionState: LiveKpiFeedConnectionState = 'offline';
 
   function notify(entry: StreamEntry) {
     for (const listener of entry.listeners) {
@@ -164,97 +182,110 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
   }
 
   /**
-   * G33: Realtime-Subscription an einen Entry hängen (Erst-acquire und
-   * Re-acquire im Aufbewahrungsfenster teilen sich diesen Pfad).
+   * G34: Feed-Event routen — nur an Entries mit refCount > 0 (retained Entries
+   * im Aufbewahrungsfenster sind pausiert; unbekannte kpiIds werden verworfen).
+   * Dieselbe Tie-Breaking-/Merge-Logik wie der frühere per-KPI-onEvent.
    */
-  function attachSubscription(entry: StreamEntry, kpiId: string): void {
-    entry.subscription = adapter.subscribeToLiveKpi(
-      kpiId,
-      (incomingSnapshot) => {
-        if (entries.get(kpiId) !== entry) return;
-        const currentSnap = entry.state.snapshot;
+  function routeEvent(incomingSnapshot: LiveKpiSnapshot): void {
+    const entry = entries.get(incomingSnapshot.kpiId);
+    if (!entry || entry.refCount <= 0) return;
+    const currentSnap = entry.state.snapshot;
 
-        // Tie-Breaking: nur übernehmen, wenn neuer
-        const isNewer = currentSnap === null || compareSnapshots(incomingSnapshot, currentSnap) > 0;
-        const updatedHistory = mergeIntoHistory(entry.state.history, incomingSnapshot);
+    // Tie-Breaking: nur übernehmen, wenn neuer
+    const isNewer = currentSnap === null || compareSnapshots(incomingSnapshot, currentSnap) > 0;
+    const updatedHistory = mergeIntoHistory(entry.state.history, incomingSnapshot);
 
-        if (isNewer) {
-          commit(entry, {
-            ...entry.state,
-            snapshot: incomingSnapshot,
-            history: Object.freeze(updatedHistory),
-            status: 'live',
-            error: null,
-          });
-        } else if (updatedHistory !== entry.state.history) {
-          commit(entry, {
-            ...entry.state,
-            history: Object.freeze(updatedHistory),
-          });
-        }
-      },
-      (connStatus) => {
-        if (entries.get(kpiId) !== entry) return;
-
-        if (connStatus === 'subscribed') {
-          commit(entry, {
-            ...entry.state,
-            status: 'live',
-            error: null,
-          });
-
-          adapter
-            .fetchLatestLiveKpi(kpiId)
-            .then((latest) => {
-              if (entries.get(kpiId) !== entry) return;
-              if (latest) {
-                const currentSnap = entry.state.snapshot;
-                const isNewer = currentSnap === null || compareSnapshots(latest, currentSnap) > 0;
-                const updatedHistory = mergeIntoHistory(entry.state.history, latest);
-                commit(entry, {
-                  ...entry.state,
-                  snapshot: isNewer ? latest : currentSnap,
-                  history: Object.freeze(updatedHistory),
-                  status: 'live',
-                  error: null,
-                });
-              } else {
-                commit(entry, {
-                  ...entry.state,
-                  status: 'live',
-                  error: null,
-                });
-              }
-            })
-            .catch((err) => {
-              if (entries.get(kpiId) !== entry) return;
-              commit(entry, {
-                ...entry.state,
-                status: 'error',
-                error: err instanceof Error ? err : new Error(String(err)),
-              });
-            });
-        } else if (connStatus === 'offline') {
-          commit(entry, {
-            ...entry.state,
-            status: 'offline',
-          });
-        } else if (connStatus === 'error') {
-          commit(entry, {
-            ...entry.state,
-            status: 'error',
-            error: new Error(`Realtime-Kanal für KPI "${kpiId}" meldet Verbindungsfehler`),
-          });
-        }
-      }
-    );
+    if (isNewer) {
+      commit(entry, {
+        ...entry.state,
+        snapshot: incomingSnapshot,
+        history: Object.freeze(updatedHistory),
+        status: 'live',
+        error: null,
+      });
+    } else if (updatedHistory !== entry.state.history) {
+      commit(entry, {
+        ...entry.state,
+        history: Object.freeze(updatedHistory),
+      });
+    }
   }
 
-  function detachSubscription(entry: StreamEntry): void {
-    if (entry.subscription) {
-      entry.subscription.unsubscribe();
-      entry.subscription = null;
+  /**
+   * G34: Feed-Status an alle Entries mit refCount > 0 propagieren (Mapping aus
+   * Auftrag 049, Entscheidung 2). Bei 'live' zusätzlich je acquired KPI einmal
+   * fetchLatestLiveKpi nachladen (keine Bulk-API im Adapter — je KPI ein Call,
+   * einmalig pro Connect, nicht pro Tick).
+   */
+  function propagateStatus(feedState: LiveKpiFeedConnectionState): void {
+    feedConnectionState = feedState;
+    for (const entry of entries.values()) {
+      if (entry.refCount <= 0) continue;
+      const kpiId = entry.kpiId;
+      if (feedState === 'live') {
+        commit(entry, {
+          ...entry.state,
+          status: 'live',
+          error: null,
+        });
+        adapter
+          .fetchLatestLiveKpi(kpiId)
+          .then((latest) => {
+            const current = entries.get(kpiId);
+            if (!current || current.refCount <= 0) return;
+            if (latest) {
+              const currentSnap = current.state.snapshot;
+              const isNewer = currentSnap === null || compareSnapshots(latest, currentSnap) > 0;
+              const updatedHistory = mergeIntoHistory(current.state.history, latest);
+              commit(current, {
+                ...current.state,
+                snapshot: isNewer ? latest : currentSnap,
+                history: Object.freeze(updatedHistory),
+                status: 'live',
+                error: null,
+              });
+            } else {
+              commit(current, {
+                ...current.state,
+                status: 'live',
+                error: null,
+              });
+            }
+          })
+          .catch((err) => {
+            const current = entries.get(kpiId);
+            if (!current || current.refCount <= 0) return;
+            commit(current, {
+              ...current.state,
+              status: 'error',
+              error: err instanceof Error ? err : new Error(String(err)),
+            });
+          });
+      } else if (feedState === 'connecting' || feedState === 'reconnecting') {
+        if (entry.state.snapshot === null && entry.state.history.length === 0) {
+          commit(entry, {
+            ...entry.state,
+            status: 'loading',
+          });
+        }
+      } else if (feedState === 'offline') {
+        commit(entry, {
+          ...entry.state,
+          status: 'offline',
+        });
+      }
     }
+  }
+
+  function ensureFeedSubscription(): void {
+    if (feedSubscription || feedRefCount <= 0) return;
+    feedSubscription = adapter.subscribeToLiveKpiFeed(routeEvent, propagateStatus);
+  }
+
+  function maybeReleaseFeedSubscription(): void {
+    if (feedRefCount > 0 || !feedSubscription) return;
+    feedSubscription.unsubscribe();
+    feedSubscription = null;
   }
 
   /**
@@ -272,14 +303,17 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
 
       entry.refCount--;
       if (entry.refCount <= 0) {
-        detachSubscription(entry);
         entry.listeners.clear();
+        if (entry.feedActive) {
+          entry.feedActive = false;
+          feedRefCount--;
+          maybeReleaseFeedSubscription();
+        }
         if (entry.retentionTimer !== null) {
           clearTimeout(entry.retentionTimer);
         }
         entry.retentionTimer = setTimeout(() => {
           if (entries.get(kpiId) !== entry) return;
-          detachSubscription(entry);
           entry.listeners.clear();
           entries.delete(kpiId);
         }, RETENTION_MS);
@@ -303,7 +337,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
           cachedSnapshot: freshState,
           version: 0,
           listeners: new Set(),
-          subscription: null,
+          feedActive: false,
           retentionTimer: null,
         };
         entries.set(kpiId, entry);
@@ -312,15 +346,24 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
       entry.refCount++;
 
       // G33 Fix B: Re-acquire im Aufbewahrungsfenster — Timer abbrechen, State
-      // behalten (kein Refetch, history bleibt), Kanal neu abonnieren.
+      // behalten (kein Refetch, history bleibt).
+      let reactivated = false;
       if (entry.retentionTimer !== null) {
         clearTimeout(entry.retentionTimer);
         entry.retentionTimer = null;
-        attachSubscription(entry, kpiId);
-        return makeRelease(kpiId, entry);
+        reactivated = true;
       }
 
       if (entry.refCount === 1) {
+        // G34: Feed-Anteil nur bei konfiguriertem Adapter (kein Kanal ohne Backend).
+        if (!entry.feedActive && adapter.isLiveKpiReadConfigured()) {
+          entry.feedActive = true;
+          feedRefCount++;
+          ensureFeedSubscription();
+        }
+        if (reactivated) {
+          return makeRelease(kpiId, entry);
+        }
         if (!adapter.isLiveKpiReadConfigured()) {
           commit(entry, {
             ...entry.state,
@@ -368,8 +411,8 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
               });
             });
 
-          // 2. Realtime-Subscription einrichten
-          attachSubscription(entry, kpiId);
+          // 2. Realtime läuft über den zentralen Feed (ensureFeed oben);
+          // Events/Status kommen via routeEvent/propagateStatus.
         }
       }
 
@@ -414,6 +457,10 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
       return entry ? entry.version : 0;
     },
 
+    getFeedConnectionState(): LiveKpiFeedConnectionState {
+      return feedConnectionState;
+    },
+
     subscribe(kpiId: string, listener: () => void): () => void {
       if (!isSupportedLiveKpiId(kpiId)) {
         return () => {};
@@ -428,7 +475,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
           cachedSnapshot: freshState,
           version: 0,
           listeners: new Set(),
-          subscription: null,
+          feedActive: false,
           retentionTimer: null,
         };
         entries.set(kpiId, entry);

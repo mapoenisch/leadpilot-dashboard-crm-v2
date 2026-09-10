@@ -1,12 +1,13 @@
 // G32-Charakterisierung: Test-Helfer (kein Produktcode).
-// Fake-Adapter mit voller Test-Kontrolle (History manuell auflösbar,
-// Kanal-Callbacks als Handles). Deterministisch, keine Timer, kein Netzwerk.
+// G34: Fake-Adapter mit EINEM Feed-Handle (statt pro-KPI-Subscriptions).
+// Deterministisch, keine Timer, kein Netzwerk.
 import type {
+  LiveKpiFeedConnectionState,
   LiveKpiSnapshot,
-  LiveKpiSubscription,
 } from '../liveKpiReadAdapter';
 import type {
   LiveKpiStreamAdapter,
+  LiveKpiSubscription,
 } from '../liveKpiStreamStore';
 
 let snapshotSeq = 0;
@@ -29,12 +30,9 @@ export function makeSnapshot(
   };
 }
 
-export type ConnStatus = 'subscribed' | 'offline' | 'error';
-
-export interface FakeSubscription {
-  kpiId: string;
+export interface FakeFeedHandle {
   onEvent: (snapshot: LiveKpiSnapshot) => void;
-  onStatus: (status: ConnStatus) => void;
+  onStatus: (status: LiveKpiFeedConnectionState) => void;
   unsubscribeCalls: number;
 }
 
@@ -47,7 +45,8 @@ export interface FakeAdapterControls {
   }>;
   latestCalls: string[];
   latestImpl: (kpiId: string) => Promise<LiveKpiSnapshot | null>;
-  subscriptions: FakeSubscription[];
+  feedSubscribeCalls: number;
+  feed: FakeFeedHandle | null;
 }
 
 export function createFakeAdapter(): {
@@ -60,7 +59,8 @@ export function createFakeAdapter(): {
     pendingHistory: [],
     latestCalls: [],
     latestImpl: () => Promise.resolve(null),
-    subscriptions: [],
+    feedSubscribeCalls: 0,
+    feed: null,
   };
 
   const adapter: LiveKpiStreamAdapter = {
@@ -75,27 +75,33 @@ export function createFakeAdapter(): {
         controls.pendingHistory.push({ resolve, reject });
       });
     },
-    subscribeToLiveKpi: (
-      kpiId: string,
+    subscribeToLiveKpiFeed: (
       onEvent: (snapshot: LiveKpiSnapshot) => void,
-      onStatus: (status: ConnStatus) => void,
+      onStatus: (status: LiveKpiFeedConnectionState) => void,
     ): LiveKpiSubscription => {
-      const sub: FakeSubscription = {
-        kpiId,
+      controls.feedSubscribeCalls += 1;
+      const handle: FakeFeedHandle = {
         onEvent,
         onStatus,
         unsubscribeCalls: 0,
       };
-      controls.subscriptions.push(sub);
+      controls.feed = handle;
       return {
         unsubscribe: () => {
-          sub.unsubscribeCalls += 1;
+          handle.unsubscribeCalls += 1;
         },
       };
     },
   };
 
   return { adapter, controls };
+}
+
+/** Feed-Handle holen (wirft, wenn kein Feed abonniert). */
+export function liveFeed(controls: FakeAdapterControls): FakeFeedHandle {
+  const feed = controls.feed;
+  if (!feed) throw new Error('kein Feed abonniert');
+  return feed;
 }
 
 /** Lässt ausstehende Promise-Ketten (Store-.then) ablaufen. */

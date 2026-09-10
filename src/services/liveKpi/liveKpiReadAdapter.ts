@@ -27,6 +27,26 @@ export interface LiveKpiSubscription {
 }
 
 /**
+ * G34: Feinere Feed-Verbindung (nur für den Kanal, nicht für Komponenten —
+ * `LiveKpiReadStatus` bleibt bytegleich, Mapping siehe Store).
+ */
+export type LiveKpiFeedConnectionState = 'connecting' | 'live' | 'reconnecting' | 'offline';
+
+const BACKOFF_BASE_MS = 1000;
+const BACKOFF_FACTOR = 2;
+const BACKOFF_CAP_MS = 30_000;
+
+/**
+ * G34: Reine Delay-Funktion für Reconnect-Backoff (equal jitter).
+ * attempt 0 → [500, 1000], Verdopplung bis Deckel [15000, 30000], nie über 30000.
+ */
+export function computeBackoffDelay(attempt: number): number {
+  const capped = Math.min(BACKOFF_CAP_MS, BACKOFF_BASE_MS * BACKOFF_FACTOR ** attempt);
+  const half = capped / 2;
+  return half + Math.random() * half;
+}
+
+/**
  * Wandelt eine Rohzeile aus public.live_kpi_public_feed in einen typisierten LiveKpiSnapshot um.
  */
 function mapRowToSnapshot(row: any): LiveKpiSnapshot | null {
@@ -144,13 +164,19 @@ export async function fetchLiveKpiHistory(
 }
 
 /**
- * Abonniert Realtime-INSERTs auf public.live_kpi_public_feed für die gewünschte kpiId.
- * Liefert ein Subscription-Objekt mit einer deterministischen unsubscribe()-Methode.
+ * G34: Abonniert EINEN ungefilterten Realtime-Feed auf public.live_kpi_public_feed
+ * (statt einem Kanal pro KPI). Jede Insert-Zeile wird via mapRowToSnapshot als
+ * Event mit ihrer kpiId zugestellt; der Store verteilt client-seitig.
+ *
+ * Verbindungsablauf: 'connecting' beim Start → 'live' bei SUBSCRIBED.
+ * Bei CHANNEL_ERROR/TIMED_OUT/unerwartetem CLOSED: Kanal abbauen,
+ * 'reconnecting' melden, nach computeBackoffDelay(attempt) neu verbinden
+ * (attempt steigt, Reset bei SUBSCRIBED). unsubscribe() bricht Timer ab und
+ * entfernt den Kanal endgültig.
  */
-export function subscribeToLiveKpi(
-  kpiId: string,
+export function subscribeToLiveKpiFeed(
   onEvent: (snapshot: LiveKpiSnapshot) => void,
-  onConnectionStatus: (status: 'subscribed' | 'offline' | 'error') => void,
+  onConnectionStatus: (status: LiveKpiFeedConnectionState) => void,
 ): LiveKpiSubscription {
   if (!supabase) {
     onConnectionStatus('offline');
@@ -162,47 +188,82 @@ export function subscribeToLiveKpi(
   }
 
   const client = supabase;
-  const channelId = `live-kpi-${kpiId}-${Math.random().toString(36).substring(2, 9)}`;
-  const channel = client
-    .channel(channelId)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'live_kpi_public_feed',
-        filter: `kpi_id=eq.${kpiId}`,
-      },
-      (payload) => {
-        if (payload && payload.new) {
-          const snapshot = mapRowToSnapshot(payload.new);
-          if (snapshot) {
-            onEvent(snapshot);
-          }
-        }
-      }
-    )
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        onConnectionStatus('subscribed');
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        onConnectionStatus('error');
-      } else if (status === 'CLOSED') {
-        onConnectionStatus('offline');
-      }
-    });
+  const channelId = 'live-kpi-feed';
+  let attempt = 0;
+  let disposed = false;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let currentChannel: Parameters<typeof client.removeChannel>[0] | null = null;
 
-  let unsubscribed = false;
-
-  return {
-    unsubscribe() {
-      if (unsubscribed) return;
-      unsubscribed = true;
+  function teardownChannel(): void {
+    if (currentChannel) {
       try {
-        client.removeChannel(channel);
+        client.removeChannel(currentChannel);
       } catch (err) {
         console.warn(`[LiveKpiReadAdapter] Error removing channel "${channelId}":`, err);
       }
+      currentChannel = null;
+    }
+  }
+
+  function scheduleRetry(): void {
+    if (disposed) return;
+    teardownChannel();
+    onConnectionStatus('reconnecting');
+    const delay = computeBackoffDelay(attempt);
+    attempt += 1;
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      connect();
+    }, delay);
+  }
+
+  function connect(): void {
+    if (disposed) return;
+    if (attempt === 0) {
+      onConnectionStatus('connecting');
+    }
+    currentChannel = client
+      .channel(channelId)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'live_kpi_public_feed',
+        },
+        (payload) => {
+          if (payload && payload.new) {
+            const snapshot = mapRowToSnapshot(payload.new);
+            if (snapshot) {
+              onEvent(snapshot);
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (disposed) return;
+        if (status === 'SUBSCRIBED') {
+          attempt = 0;
+          onConnectionStatus('live');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          scheduleRetry();
+        } else if (status === 'CLOSED') {
+          scheduleRetry();
+        }
+      });
+  }
+
+  connect();
+
+  return {
+    unsubscribe() {
+      if (disposed) return;
+      disposed = true;
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      teardownChannel();
     },
   };
 }

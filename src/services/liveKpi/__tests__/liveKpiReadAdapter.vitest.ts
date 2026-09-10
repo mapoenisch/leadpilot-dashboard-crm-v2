@@ -1,11 +1,13 @@
 // G32-Charakterisierung: liveKpiReadAdapter (echter Code, nur Supabase gemockt).
+// G34: Feed-Kanal (ein Kanal statt pro KPI) + Backoff.
 // vi.mock ausschließlich auf '@/services/db/supabaseClient' — nie auf Store/Adapter.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
+  computeBackoffDelay,
   fetchLatestLiveKpi,
   fetchLiveKpiHistory,
   isLiveKpiReadConfigured,
-  subscribeToLiveKpi,
+  subscribeToLiveKpiFeed,
 } from '../liveKpiReadAdapter';
 
 interface QueryResult {
@@ -23,6 +25,8 @@ const sb = vi.hoisted(() => {
     removeChannelThrows: false,
     limitArgs: [] as unknown[],
     fromArgs: [] as unknown[],
+    channelIds: [] as unknown[],
+    onCalls: [] as Array<{ event: string; filter: unknown }>,
   };
 
   const limitResult = {
@@ -42,8 +46,9 @@ const sb = vi.hoisted(() => {
     maybeSingle: () => Promise.resolve({ ...state.queryResult }),
   };
   const channelObj = {
-    on: (_event: string, _filter: unknown, handler: (payload: { new?: unknown }) => void) => {
+    on: (event: string, filter: unknown, handler: (payload: { new?: unknown }) => void) => {
       state.payloadHandler = handler;
+      state.onCalls.push({ event, filter });
       return channelObj;
     },
     subscribe: (cb: (status: string) => void) => {
@@ -56,7 +61,10 @@ const sb = vi.hoisted(() => {
       state.fromArgs.push(args[0]);
       return chain;
     },
-    channel: () => channelObj,
+    channel: (...args: unknown[]) => {
+      state.channelIds.push(args[0]);
+      return channelObj;
+    },
     removeChannel: (...args: unknown[]) => {
       if (state.removeChannelThrows) throw new Error('remove boom');
       state.removedChannels.push(args[0]);
@@ -94,6 +102,13 @@ beforeEach(() => {
   sb.state.removeChannelThrows = false;
   sb.state.limitArgs = [];
   sb.state.fromArgs = [];
+  sb.state.channelIds = [];
+  sb.state.onCalls = [];
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe('isLiveKpiReadConfigured', () => {
@@ -213,21 +228,35 @@ describe('fetchLiveKpiHistory', () => {
   });
 });
 
-describe('subscribeToLiveKpi', () => {
+describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
   it('ohne Client: offline + Noop-Unsubscribe', () => {
     sb.state.clientExists = false;
     const seen: string[] = [];
-    const sub = subscribeToLiveKpi('arr', () => {}, (s) => {
+    const sub = subscribeToLiveKpiFeed(() => {}, (s) => {
       seen.push(s);
     });
     expect(seen).toEqual(['offline']);
     expect(() => sub.unsubscribe()).not.toThrow();
+    expect(sb.state.channelIds).toEqual([]);
+  });
+
+  it('ein Kanal live-kpi-feed ohne kpi-Filter', () => {
+    const seen: string[] = [];
+    subscribeToLiveKpiFeed(() => {}, (s) => {
+      seen.push(s);
+    });
+    expect(seen).toEqual(['connecting']);
+    expect(sb.state.channelIds).toEqual(['live-kpi-feed']);
+    expect(sb.state.onCalls).toHaveLength(1);
+    expect(sb.state.onCalls[0]?.event).toBe('postgres_changes');
+    const filter = sb.state.onCalls[0]?.filter as Record<string, unknown>;
+    expect(filter.table).toBe('live_kpi_public_feed');
+    expect(filter).not.toHaveProperty('filter');
   });
 
   it('INSERT-Payload wird als Event gemappt und zugestellt', () => {
     const seen: { value: number }[] = [];
-    subscribeToLiveKpi(
-      'arr',
+    subscribeToLiveKpiFeed(
       (s) => {
         seen.push({ value: s.value });
       },
@@ -240,8 +269,7 @@ describe('subscribeToLiveKpi', () => {
 
   it('Payload ohne .new und Müllzeilen werden ignoriert', () => {
     let calls = 0;
-    subscribeToLiveKpi(
-      'arr',
+    subscribeToLiveKpiFeed(
       () => {
         calls += 1;
       },
@@ -254,32 +282,103 @@ describe('subscribeToLiveKpi', () => {
     expect(calls).toBe(0);
   });
 
-  it('Kanal-Stati werden übersetzt (SUBSCRIBED/ERROR/TIMED_OUT/CLOSED)', () => {
+  it('SUBSCRIBED → live; CLOSED unerwartet → reconnecting', () => {
     const seen: string[] = [];
-    subscribeToLiveKpi('arr', () => {}, (s) => {
+    subscribeToLiveKpiFeed(() => {}, (s) => {
       seen.push(s);
     });
     if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
     sb.state.statusHandler('SUBSCRIBED');
-    sb.state.statusHandler('CHANNEL_ERROR');
-    sb.state.statusHandler('TIMED_OUT');
     sb.state.statusHandler('CLOSED');
-    expect(seen).toEqual(['subscribed', 'error', 'error', 'offline']);
+    expect(seen).toEqual(['connecting', 'live', 'reconnecting']);
   });
 
-  it('unsubscribe entfernt Channel genau einmal, Fehler wird gewarnt', () => {
+  it('Backoff-Ablauf: Fehler → Retry mit wachsendem Delay, Reset bei live', async () => {
+    vi.useFakeTimers();
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    try {
+      const seen: string[] = [];
+      const sub = subscribeToLiveKpiFeed(() => {}, (s) => {
+        seen.push(s);
+      });
+      expect(sb.state.channelIds).toHaveLength(1);
+      if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
+      sb.state.statusHandler('CHANNEL_ERROR');
+      expect(seen).toEqual(['connecting', 'reconnecting']);
+      expect(sb.state.removedChannels).toHaveLength(1);
+      await vi.advanceTimersByTimeAsync(499);
+      expect(sb.state.channelIds).toHaveLength(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(sb.state.channelIds).toHaveLength(2);
+      if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
+      sb.state.statusHandler('TIMED_OUT');
+      await vi.advanceTimersByTimeAsync(999);
+      expect(sb.state.channelIds).toHaveLength(2);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(sb.state.channelIds).toHaveLength(3);
+      if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
+      sb.state.statusHandler('SUBSCRIBED');
+      expect(seen).toContain('live');
+      if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
+      sb.state.statusHandler('CHANNEL_ERROR');
+      await vi.advanceTimersByTimeAsync(500);
+      expect(sb.state.channelIds).toHaveLength(4);
+      sub.unsubscribe();
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  it('unsubscribe bricht Backoff-Timer ab, doppelt ist Noop', async () => {
+    vi.useFakeTimers();
+    try {
+      const sub = subscribeToLiveKpiFeed(() => {}, () => {});
+      if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
+      sb.state.statusHandler('CHANNEL_ERROR');
+      sub.unsubscribe();
+      sub.unsubscribe();
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(sb.state.channelIds).toHaveLength(1);
+      expect(sb.state.removedChannels).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('removeChannel-Fehler wird gewarnt', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
-      const sub = subscribeToLiveKpi('arr', () => {}, () => {});
-      sub.unsubscribe();
-      sub.unsubscribe();
-      expect(sb.state.removedChannels).toHaveLength(1);
+      const sub = subscribeToLiveKpiFeed(() => {}, () => {});
       sb.state.removeChannelThrows = true;
-      const sub2 = subscribeToLiveKpi('arr', () => {}, () => {});
-      sub2.unsubscribe();
+      sub.unsubscribe();
       expect(spy).toHaveBeenCalled();
     } finally {
       spy.mockRestore();
     }
+  });
+});
+
+describe('computeBackoffDelay (G34)', () => {
+  it('Untergrenzen (Jitter 0), Obergrenzen, 30-s-Deckel, monoton', () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    try {
+      const lowers = [0, 1, 2, 3, 4, 5, 6, 7].map((a) => computeBackoffDelay(a));
+      expect(lowers).toEqual([500, 1000, 2000, 4000, 8000, 15000, 15000, 15000]);
+    } finally {
+      randomSpy.mockRestore();
+    }
+    const randomHigh = vi.spyOn(Math, 'random').mockReturnValue(0.999999);
+    try {
+      const uppers = [0, 1, 2, 3, 4, 5, 6, 7].map((a) => computeBackoffDelay(a));
+      const caps = [1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000];
+      uppers.forEach((u, i) => {
+        expect(u).toBeLessThanOrEqual(caps[i] ?? 0);
+        expect(u).toBeGreaterThan((caps[i] ?? 0) / 2);
+      });
+    } finally {
+      randomHigh.mockRestore();
+    }
+    expect(computeBackoffDelay(100)).toBeLessThanOrEqual(30000);
+    expect(computeBackoffDelay(-1)).toBeGreaterThanOrEqual(0);
   });
 });

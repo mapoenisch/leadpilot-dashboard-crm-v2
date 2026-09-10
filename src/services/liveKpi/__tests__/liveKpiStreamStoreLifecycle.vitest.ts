@@ -5,6 +5,7 @@ import { createLiveKpiStreamStore, RETENTION_MS } from '../liveKpiStreamStore';
 import {
   createFakeAdapter,
   flushMicrotasks,
+  liveFeed,
   makeSnapshot,
   type FakeAdapterControls,
 } from './fakes';
@@ -25,34 +26,35 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe('Aufbewahrungsfenster (G33 Fix B)', () => {
-  it('Release behält State: History-Resolve wirkt weiter, Kanal ist abbestellt', async () => {
+  it('Release behält State: History-Resolve wirkt weiter, Feed-Events verworfen, Kanal abbestellt', async () => {
     const store = freshStore();
     const release = store.acquire('arr');
-    const sub = controls.subscriptions[0];
-    if (!sub) throw new Error('keine Subscription registriert');
+    const feed = liveFeed(controls);
     const pending = controls.pendingHistory[0];
     if (!pending) throw new Error('kein History-Promise registriert');
     release();
-    expect(sub.unsubscribeCalls).toBe(1);
+    expect(feed.unsubscribeCalls).toBe(1);
     pending.resolve([makeSnapshot('arr', T1, 1)]);
-    sub.onEvent(makeSnapshot('arr', T2, 2));
     await flushMicrotasks();
-    expect(store.getState('arr').history.map((s) => s.value)).toEqual([1, 2]);
+    expect(store.getState('arr').history.map((s) => s.value)).toEqual([1]);
+    // G34: retained Entry (refCount 0) bekommt keine Feed-Events mehr.
+    feed.onEvent(makeSnapshot('arr', T2, 2));
+    await flushMicrotasks();
+    expect(store.getState('arr').history.map((s) => s.value)).toEqual([1]);
   });
 
   it('nach Fenster-Ablauf ist der Entry weg: spätes Resolve/Event/Refresh wirkungslos', async () => {
     vi.useFakeTimers();
     const store = freshStore();
     const release = store.acquire('arr');
-    const sub = controls.subscriptions[0];
-    if (!sub) throw new Error('keine Subscription registriert');
+    const feed = liveFeed(controls);
     const pending = controls.pendingHistory[0];
     if (!pending) throw new Error('kein History-Promise registriert');
     release();
     await vi.advanceTimersByTimeAsync(RETENTION_MS);
     pending.resolve([makeSnapshot('arr', T1, 1)]);
-    sub.onEvent(makeSnapshot('arr', T2, 2));
-    sub.onStatus('subscribed');
+    feed.onEvent(makeSnapshot('arr', T2, 2));
+    feed.onStatus('live');
     controls.latestImpl = () => Promise.resolve(makeSnapshot('arr', T3, 3));
     await store.refresh('arr');
     await flushMicrotasks();
@@ -120,9 +122,8 @@ describe('Fehlerobjekt-Normalisierung (non-Error-Rejections)', () => {
 
     const release2 = store.acquire('mrr');
     controls.latestImpl = () => Promise.reject('string-fehler');
-    const sub = controls.subscriptions.find((s) => s.kpiId === 'mrr');
-    if (!sub) throw new Error('keine Subscription registriert');
-    sub.onStatus('subscribed');
+    const feed = liveFeed(controls);
+    feed.onStatus('live');
     await flushMicrotasks();
     expect(store.getState('mrr').error).toBeInstanceOf(Error);
 
@@ -152,9 +153,8 @@ describe('Sortier- und Merge-Feinheiten', () => {
   it('History-Resolve behält neueren Live-Snapshot (kein Downgrade)', async () => {
     const store = freshStore();
     const release = store.acquire('arr');
-    const sub = controls.subscriptions[0];
-    if (!sub) throw new Error('keine Subscription registriert');
-    sub.onEvent(makeSnapshot('arr', T3, 300));
+    const feed = liveFeed(controls);
+    feed.onEvent(makeSnapshot('arr', T3, 300));
     const pending = controls.pendingHistory[0];
     if (!pending) throw new Error('kein History-Promise registriert');
     pending.resolve([makeSnapshot('arr', T1, 100)]);
@@ -168,11 +168,10 @@ describe('Sortier- und Merge-Feinheiten', () => {
   it('fetchLatest mit älterem Wert: Snapshot bleibt, History wächst', async () => {
     const store = freshStore();
     const release = store.acquire('arr');
-    const sub = controls.subscriptions[0];
-    if (!sub) throw new Error('keine Subscription registriert');
-    sub.onEvent(makeSnapshot('arr', T3, 300));
+    const feed = liveFeed(controls);
+    feed.onEvent(makeSnapshot('arr', T3, 300));
     controls.latestImpl = () => Promise.resolve(makeSnapshot('arr', T1, 50));
-    sub.onStatus('subscribed');
+    feed.onStatus('live');
     await flushMicrotasks();
     const state = store.getState('arr');
     expect(state.snapshot?.value).toBe(300);
@@ -192,9 +191,8 @@ describe('Sortier- und Merge-Feinheiten', () => {
         good += 1;
       }),
     ];
-    const sub = controls.subscriptions[0];
-    if (!sub) throw new Error('keine Subscription registriert');
-    sub.onEvent(makeSnapshot('arr', T1, 1));
+    const feed = liveFeed(controls);
+    feed.onEvent(makeSnapshot('arr', T1, 1));
     expect(good).toBe(1);
     for (const u of unsubs) u();
     release();
@@ -215,12 +213,11 @@ describe('getState/subscribe ohne Entry', () => {
     const unsub = store.subscribe('pipeline_sql', () => {
       calls += 1;
     });
-    expect(controls.subscriptions).toEqual([]);
+    expect(controls.feed).toBeNull();
     const release = store.acquire('pipeline_sql');
     expect(calls).toBe(1);
-    const sub = controls.subscriptions[0];
-    if (!sub) throw new Error('keine Subscription registriert');
-    sub.onEvent(makeSnapshot('pipeline_sql', T1, 7));
+    const feed = liveFeed(controls);
+    feed.onEvent(makeSnapshot('pipeline_sql', T1, 7));
     expect(calls).toBe(2);
     unsub();
     release();

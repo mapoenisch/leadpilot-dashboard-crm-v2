@@ -12,7 +12,7 @@ import {
   flushMicrotasks,
 } from '../../services/liveKpi/__tests__/fakes';
 
-type ConnStatus = 'subscribed' | 'offline' | 'error';
+type FeedStatus = 'connecting' | 'live' | 'reconnecting' | 'offline';
 
 const controls = vi.hoisted(() => ({
   configured: true,
@@ -20,12 +20,11 @@ const controls = vi.hoisted(() => ({
   historyResolvers: [] as Array<(v: LiveKpiSnapshot[]) => void>,
   latestCalls: [] as string[],
   latestValue: null as LiveKpiSnapshot | null,
-  subs: [] as Array<{
-    id: string;
+  feed: null as null | {
     onEvent: (s: LiveKpiSnapshot) => void;
-    onStatus: (s: ConnStatus) => void;
+    onStatus: (s: FeedStatus) => void;
     unsubscribe: ReturnType<typeof vi.fn>;
-  }>,
+  },
 }));
 
 vi.mock('@/services/liveKpi/liveKpiReadAdapter', () => ({
@@ -40,13 +39,12 @@ vi.mock('@/services/liveKpi/liveKpiReadAdapter', () => ({
       controls.historyResolvers.push(resolve);
     });
   },
-  subscribeToLiveKpi: (
-    id: string,
+  subscribeToLiveKpiFeed: (
     onEvent: (s: LiveKpiSnapshot) => void,
-    onStatus: (s: ConnStatus) => void,
+    onStatus: (s: FeedStatus) => void,
   ) => {
     const unsubscribe = vi.fn();
-    controls.subs.push({ id, onEvent, onStatus, unsubscribe });
+    controls.feed = { onEvent, onStatus, unsubscribe };
     return { unsubscribe };
   },
 }));
@@ -61,7 +59,7 @@ beforeEach(() => {
   controls.historyResolvers = [];
   controls.latestCalls = [];
   controls.latestValue = null;
-  controls.subs = [];
+  controls.feed = null;
 });
 
 afterEach(() => {
@@ -81,22 +79,22 @@ async function resolveHistory(points: LiveKpiSnapshot[]): Promise<void> {
   });
 }
 
-async function fireStatus(index: number, status: ConnStatus): Promise<void> {
+async function fireStatus(status: FeedStatus): Promise<void> {
   await act(async () => {
-    const sub = controls.subs[index];
-    if (!sub) throw new Error('keine Subscription registriert');
-    sub.onStatus(status);
+    const feed = controls.feed;
+    if (!feed) throw new Error('kein Feed abonniert');
+    feed.onStatus(status);
     await flushMicrotasks();
   });
 }
 
 describe('useLiveKpi', () => {
-  it('Mount: initial loading; subscribed + latest: live mit Snapshot', async () => {
+  it('Mount: initial loading; Feed live + latest: live mit Snapshot', async () => {
     const { result, unmount } = renderHook(() => useLiveKpi('arr'));
     expect(result.current.status).toBe('loading');
     expect(result.current.snapshot).toBeNull();
     controls.latestValue = makeSnapshot('arr', T1, 500);
-    await fireStatus(0, 'subscribed');
+    await fireStatus('live');
     expect(result.current.status).toBe('live');
     expect(result.current.snapshot?.value).toBe(500);
     expect(controls.latestCalls).toEqual(['arr']);
@@ -106,9 +104,9 @@ describe('useLiveKpi', () => {
   it('Store-Update re-rendert den Hook mit neuem Snapshot', async () => {
     const { result, unmount } = renderHook(() => useLiveKpi('mrr'));
     await act(async () => {
-      const sub = controls.subs[0];
-      if (!sub) throw new Error('keine Subscription registriert');
-      sub.onEvent(makeSnapshot('mrr', T2, 999));
+      const feed = controls.feed;
+      if (!feed) throw new Error('kein Feed abonniert');
+      feed.onEvent(makeSnapshot('mrr', T2, 999));
       await flushMicrotasks();
     });
     expect(result.current.snapshot?.value).toBe(999);
@@ -118,8 +116,8 @@ describe('useLiveKpi', () => {
 
   it('Unmount ruft release auf: Subscription wird abbestellt', () => {
     const { unmount } = renderHook(() => useLiveKpi('arr'));
-    const unsub = controls.subs[0]?.unsubscribe;
-    if (!unsub) throw new Error('keine Subscription registriert');
+    const unsub = controls.feed?.unsubscribe;
+    if (!unsub) throw new Error('kein Feed abonniert');
     expect(unsub).not.toHaveBeenCalled();
     unmount();
     expect(unsub).toHaveBeenCalledTimes(1);
@@ -136,11 +134,12 @@ describe('useLiveKpi', () => {
     unmount();
   });
 
-  it('Kanalfehler spiegelt error in den Hook', async () => {
+  it('Feed offline und reconnecting spiegeln sich im Hook', async () => {
     const { result, unmount } = renderHook(() => useLiveKpi('arr'));
-    await fireStatus(0, 'error');
-    expect(result.current.status).toBe('error');
-    expect(result.current.error).not.toBeNull();
+    await fireStatus('offline');
+    expect(result.current.status).toBe('offline');
+    await fireStatus('reconnecting');
+    expect(result.current.status).toBe('loading');
     unmount();
   });
 });
@@ -151,7 +150,7 @@ describe('useLiveKpiHistory', () => {
     expect(result.current.history).toEqual([]);
     await resolveHistory([makeSnapshot('pipeline_coverage', T1, 10)]);
     expect(result.current.history.map((s) => s.value)).toEqual([10]);
-    await fireStatus(0, 'subscribed');
+    await fireStatus('live');
     expect(result.current.status).toBe('live');
     unmount();
   });
@@ -159,7 +158,7 @@ describe('useLiveKpiHistory', () => {
   it('Remount im Fenster: behält history + live ohne Refetch (Retention)', async () => {
     const first = renderHook(() => useLiveKpiHistory('pipeline_mql'));
     await resolveHistory([makeSnapshot('pipeline_mql', T1, 42)]);
-    await fireStatus(0, 'subscribed');
+    await fireStatus('live');
     expect(first.result.current.history).toHaveLength(1);
     expect(first.result.current.status).toBe('live');
     const fetchesBefore = controls.historyCalls.length;

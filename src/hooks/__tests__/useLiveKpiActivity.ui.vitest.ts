@@ -10,33 +10,34 @@ import {
   flushMicrotasks,
 } from '../../services/liveKpi/__tests__/fakes';
 
-type ConnStatus = 'subscribed' | 'offline' | 'error';
+type FeedStatus = 'connecting' | 'live' | 'reconnecting' | 'offline';
 
 const controls = vi.hoisted(() => ({
   configured: true,
+  historyCalls: [] as string[],
   historyResolvers: [] as Array<(v: LiveKpiSnapshot[]) => void>,
-  subs: [] as Array<{
-    id: string;
+  feed: null as null | {
     onEvent: (s: LiveKpiSnapshot) => void;
-    onStatus: (s: ConnStatus) => void;
+    onStatus: (s: FeedStatus) => void;
     unsubscribe: ReturnType<typeof vi.fn>;
-  }>,
+  },
 }));
 
 vi.mock('@/services/liveKpi/liveKpiReadAdapter', () => ({
   isLiveKpiReadConfigured: () => controls.configured,
   fetchLatestLiveKpi: () => Promise.resolve(null),
-  fetchLiveKpiHistory: () =>
-    new Promise<LiveKpiSnapshot[]>((resolve) => {
+  fetchLiveKpiHistory: (id: string) => {
+    controls.historyCalls.push(id);
+    return new Promise<LiveKpiSnapshot[]>((resolve) => {
       controls.historyResolvers.push(resolve);
-    }),
-  subscribeToLiveKpi: (
-    id: string,
+    });
+  },
+  subscribeToLiveKpiFeed: (
     onEvent: (s: LiveKpiSnapshot) => void,
-    onStatus: (s: ConnStatus) => void,
+    onStatus: (s: FeedStatus) => void,
   ) => {
     const unsubscribe = vi.fn();
-    controls.subs.push({ id, onEvent, onStatus, unsubscribe });
+    controls.feed = { onEvent, onStatus, unsubscribe };
     return { unsubscribe };
   },
 }));
@@ -46,8 +47,9 @@ beforeEach(() => {
   // Lösch-Timer ablaufen → Singleton-Isolation zwischen Tests.
   vi.useFakeTimers();
   controls.configured = true;
+  controls.historyCalls = [];
   controls.historyResolvers = [];
-  controls.subs = [];
+  controls.feed = null;
 });
 
 afterEach(() => {
@@ -59,20 +61,20 @@ const T1 = '2026-01-01T10:00:00.000Z';
 const T2 = '2026-01-01T10:01:00.000Z';
 const T3 = '2026-01-01T10:02:00.000Z';
 
-async function emit(index: number, snap: LiveKpiSnapshot): Promise<void> {
+async function emit(snap: LiveKpiSnapshot): Promise<void> {
   await act(async () => {
-    const sub = controls.subs[index];
-    if (!sub) throw new Error('keine Subscription registriert');
-    sub.onEvent(snap);
+    const feed = controls.feed;
+    if (!feed) throw new Error('kein Feed abonniert');
+    feed.onEvent(snap);
     await flushMicrotasks();
   });
 }
 
-async function setStatus(index: number, status: ConnStatus): Promise<void> {
+async function setStatus(status: FeedStatus): Promise<void> {
   await act(async () => {
-    const sub = controls.subs[index];
-    if (!sub) throw new Error('keine Subscription registriert');
-    sub.onStatus(status);
+    const feed = controls.feed;
+    if (!feed) throw new Error('kein Feed abonniert');
+    feed.onStatus(status);
     await flushMicrotasks();
   });
 }
@@ -84,7 +86,7 @@ describe('useLiveKpiActivity', () => {
     );
     expect(result.current.items).toEqual([]);
     expect(result.current.status).toBe('unconfigured');
-    expect(controls.subs).toEqual([]);
+    expect(controls.feed).toBeNull();
     unmount();
   });
 
@@ -92,7 +94,7 @@ describe('useLiveKpiActivity', () => {
     const { unmount } = renderHook(() =>
       useLiveKpiActivity(['arr_partner', 'arr_partner', 'arr_outbound']),
     );
-    expect(controls.subs.map((s) => s.id)).toEqual(['arr_partner', 'arr_outbound']);
+    expect(controls.historyCalls).toEqual(['arr_partner', 'arr_outbound']);
     unmount();
   });
 
@@ -100,9 +102,9 @@ describe('useLiveKpiActivity', () => {
     const { result, unmount } = renderHook(() =>
       useLiveKpiActivity(['arr_partner', 'arr_outbound', 'arr_other'], 2),
     );
-    await emit(0, makeSnapshot('arr_partner', T1, 10));
-    await emit(1, makeSnapshot('arr_outbound', T3, 30));
-    await emit(2, makeSnapshot('arr_other', T2, 20));
+    await emit(makeSnapshot('arr_partner', T1, 10));
+    await emit(makeSnapshot('arr_outbound', T3, 30));
+    await emit(makeSnapshot('arr_other', T2, 20));
     expect(result.current.items.map((i) => i.value)).toEqual([30, 20]);
     const keys = Object.keys(result.current.items[0] ?? {}).sort();
     expect(keys).toEqual(['kpiId', 'occurredAt', 'qualityStatus', 'unit', 'value']);
@@ -128,7 +130,7 @@ describe('useLiveKpiActivity', () => {
     for (let i = 0; i < ids.length; i += 1) {
       const id = ids[i];
       if (!id) throw new Error('ID fehlt');
-      await emit(i, makeSnapshot(id, `2026-01-01T10:${String(i).padStart(2, '0')}:00.000Z`, i));
+      await emit(makeSnapshot(id, `2026-01-01T10:${String(i).padStart(2, '0')}:00.000Z`, i));
     }
     expect(result.current.items).toHaveLength(10);
     unmount();
@@ -136,8 +138,8 @@ describe('useLiveKpiActivity', () => {
 
   it('Limit-Clamp: 0 → 1 (neuester gewinnt)', async () => {
     const { result, unmount } = renderHook(() => useLiveKpiActivity(['pipeline_won'], 0));
-    await emit(0, makeSnapshot('pipeline_won', T1, 1));
-    await emit(0, makeSnapshot('pipeline_won', T2, 2));
+    await emit(makeSnapshot('pipeline_won', T1, 1));
+    await emit(makeSnapshot('pipeline_won', T2, 2));
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0]?.value).toBe(2);
     unmount();
@@ -148,12 +150,11 @@ describe('useLiveKpiActivity', () => {
       useLiveKpiActivity(['arr_partner', 'arr_outbound']),
     );
     expect(result.current.status).toBe('loading');
-    await setStatus(0, 'offline');
-    await setStatus(1, 'error');
-    expect(result.current.status).toBe('error');
-    await setStatus(1, 'offline');
+    await setStatus('offline');
     expect(result.current.status).toBe('offline');
-    await setStatus(0, 'subscribed');
+    await setStatus('reconnecting');
+    expect(result.current.status).toBe('loading');
+    await setStatus('live');
     expect(result.current.status).toBe('live');
     unmount();
   });
@@ -169,12 +170,12 @@ describe('useLiveKpiActivity', () => {
     controls.configured = true;
     const second = renderHook(() => useLiveKpiActivity(['pipeline_leads', 'pipeline_mql']));
     const base = '2026-01-01T10:00:00.000Z';
-    await emit(0, makeSnapshot('pipeline_leads', base, 1));
+    await emit(makeSnapshot('pipeline_leads', base, 1));
     const later = {
       ...makeSnapshot('pipeline_mql', base, 2),
       ingestedAt: '2026-01-02T00:00:00.000Z',
     };
-    await emit(1, later);
+    await emit(later);
     expect(second.result.current.items.map((i) => i.value)).toEqual([2, 1]);
     second.unmount();
   });
@@ -183,8 +184,9 @@ describe('useLiveKpiActivity', () => {
     const { unmount } = renderHook(() =>
       useLiveKpiActivity(['arr_partner', 'arr_outbound']),
     );
+    const unsub = controls.feed?.unsubscribe;
+    if (!unsub) throw new Error('kein Feed abonniert');
     unmount();
-    expect(controls.subs[0]?.unsubscribe).toHaveBeenCalledTimes(1);
-    expect(controls.subs[1]?.unsubscribe).toHaveBeenCalledTimes(1);
+    expect(unsub).toHaveBeenCalledTimes(1);
   });
 });

@@ -2,6 +2,60 @@
 
 ---
 
+## 2026-09-10 — Gate G34 / Auftrag 049: Ein Realtime-Kanal + Reconnect-Backoff
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** G33-Freigabe `78ae9d4`. Nur Adapter + Store + Tests + Doku.
+Kein Merge, Tag, Push.
+
+### Vorher/Nachher (12 → 1 Kanal)
+
+12 acquires → `subscribeToLiveKpiFeed` genau 1×, `unsubscribe` erst nach letztem
+`release` (Test `Feed: ein Kanal für alle KPIs`, grün). Sabotage-Check vorweg:
+Feed-Guard entfernt → Test rot (danach revertiert; versehentlicher
+`git checkout` der Store-Datei dabei bemerkt und vollständig rekonstruiert —
+77 Store-Tests als Spezifikation, alle wieder grün).
+
+### `computeBackoffDelay` (Basis 1000, ×2, Deckel 30000, equal jitter)
+
+`half + random*half` mit `half = min(30000, 1000·2^attempt)/2`.
+Sequenz (random 0): 500, 1000, 2000, 4000, 8000, 15000, 15000, 15000.
+Obergrenzen (random ~1): 1000 … 30000, nie darüber, monoton bis Deckel.
+Backoff-Ablauf-Test (fake timers): Fehler → `reconnecting` + wachsender Delay,
+`SUBSCRIBED` → Reset auf 0; `unsubscribe` bricht Timer ab.
+
+### Feed-Lebensdauer + Status-Mapping
+
+`feedRefCount` (Entries mit `refCount > 0`; Fenster zählt nicht;
+nur bei konfiguriertem Adapter — kein Kanal ohne Backend).
+`connecting`/`reconnecting` → `loading` nur ohne Daten, sonst unverändert;
+`live` → `live` + je acquired KPI ein `fetchLatest`-Nachzug (keine Bulk-API);
+`offline` → `offline`. `LiveKpiReadStatus` bytegleich, `getFeedConnectionState()`
+nicht an UI verdrahtet.
+
+### Tradeoff (ungefilterter Kanal)
+
+Events aller KPIs treffen ein; ohne Entry mit `refCount > 0` verworfen —
+auch für retained Entries (pausiert). Zweck (1 statt 12 Verbindungen), kein Bug.
+
+### Nachweis „keine optische Änderung"
+
+Surface-Verifier grün (unverändert) + Playwright 147/147 gegen Baselines
+(kein `--update-snapshots`, kein `e2e/`-Diff).
+
+### Command-Matrix
+
+`test` 32 Files 121 grün · `test:coverage` EXIT 0 · `verify` 24 grün ·
+`build` EXIT 0 · `tsc` 763 (≤765) · `lint` 326 (≤327) ·
+`grep subscribeToLiveKpi\\b src` 0 · Schutz-Diff leer
+(Produkt-Hooks separat leer; `src/hooks/__tests__`-Anpassung war erlaubt).
+
+### Ergebnis & Freigabestatus
+
+G34-Builder-Teil fertig. **Übergabe an Codex-Review.** Kein Merge, Tag, Push.
+
+---
+
 ## 2026-09-10 — Gate G33 / Auftrag 048: useSyncExternalStore & Store-Bugfixes
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
