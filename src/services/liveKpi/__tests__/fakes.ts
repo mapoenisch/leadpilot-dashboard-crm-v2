@@ -1,0 +1,106 @@
+// G32-Charakterisierung: Test-Helfer (kein Produktcode).
+// Fake-Adapter mit voller Test-Kontrolle (History manuell auflösbar,
+// Kanal-Callbacks als Handles). Deterministisch, keine Timer, kein Netzwerk.
+import type {
+  LiveKpiSnapshot,
+  LiveKpiSubscription,
+} from '../liveKpiReadAdapter';
+import type {
+  LiveKpiStreamAdapter,
+} from '../liveKpiStreamStore';
+
+let snapshotSeq = 0;
+
+export function makeSnapshot(
+  kpiId: string,
+  occurredAt: string,
+  value = 100,
+): LiveKpiSnapshot {
+  snapshotSeq += 1;
+  return {
+    id: `snap-test-${snapshotSeq}`,
+    kpiId,
+    value,
+    unit: 'EUR',
+    occurredAt,
+    qualityStatus: 'valid',
+    sourceSystem: 'test',
+    ingestedAt: `${occurredAt.slice(0, 10)}T00:00:00.000Z`,
+  };
+}
+
+export type ConnStatus = 'subscribed' | 'offline' | 'error';
+
+export interface FakeSubscription {
+  kpiId: string;
+  onEvent: (snapshot: LiveKpiSnapshot) => void;
+  onStatus: (status: ConnStatus) => void;
+  unsubscribeCalls: number;
+}
+
+export interface FakeAdapterControls {
+  configured: boolean;
+  historyCalls: Array<{ kpiId: string; sinceIso: string; limit: number }>;
+  pendingHistory: Array<{
+    resolve: (value: LiveKpiSnapshot[]) => void;
+    reject: (err: unknown) => void;
+  }>;
+  latestCalls: string[];
+  latestImpl: (kpiId: string) => Promise<LiveKpiSnapshot | null>;
+  subscriptions: FakeSubscription[];
+}
+
+export function createFakeAdapter(): {
+  adapter: LiveKpiStreamAdapter;
+  controls: FakeAdapterControls;
+} {
+  const controls: FakeAdapterControls = {
+    configured: true,
+    historyCalls: [],
+    pendingHistory: [],
+    latestCalls: [],
+    latestImpl: () => Promise.resolve(null),
+    subscriptions: [],
+  };
+
+  const adapter: LiveKpiStreamAdapter = {
+    isLiveKpiReadConfigured: () => controls.configured,
+    fetchLatestLiveKpi: (kpiId: string) => {
+      controls.latestCalls.push(kpiId);
+      return controls.latestImpl(kpiId);
+    },
+    fetchLiveKpiHistory: (kpiId: string, sinceIso: string, limit: number) => {
+      controls.historyCalls.push({ kpiId, sinceIso, limit });
+      return new Promise<LiveKpiSnapshot[]>((resolve, reject) => {
+        controls.pendingHistory.push({ resolve, reject });
+      });
+    },
+    subscribeToLiveKpi: (
+      kpiId: string,
+      onEvent: (snapshot: LiveKpiSnapshot) => void,
+      onStatus: (status: ConnStatus) => void,
+    ): LiveKpiSubscription => {
+      const sub: FakeSubscription = {
+        kpiId,
+        onEvent,
+        onStatus,
+        unsubscribeCalls: 0,
+      };
+      controls.subscriptions.push(sub);
+      return {
+        unsubscribe: () => {
+          sub.unsubscribeCalls += 1;
+        },
+      };
+    },
+  };
+
+  return { adapter, controls };
+}
+
+/** Lässt ausstehende Promise-Ketten (Store-.then) ablaufen. */
+export async function flushMicrotasks(rounds = 10): Promise<void> {
+  for (let i = 0; i < rounds; i += 1) {
+    await Promise.resolve();
+  }
+}

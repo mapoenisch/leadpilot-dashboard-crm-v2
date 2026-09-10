@@ -3,26 +3,55 @@ import path from 'path';
 
 export default defineConfig({
   test: {
-    environment: 'node',
-    environmentMatchGlobs: [
-      // UI-Tests (Testing Library) bekommen jsdom; wird in G32 befüllt
-      ['src/**/*.ui.vitest.ts', 'jsdom'],
-      ['src/**/*.ui.vitest.tsx', 'jsdom'],
-    ],
-    setupFiles: ['./vitest.setup.ts'],
     globals: true,
-    include: ['src/**/*.vitest.ts', 'src/**/*.vitest.tsx'],
+    setupFiles: ['./vitest.setup.ts'],
+    // Vitest 4 kennt kein environmentMatchGlobs mehr — zwei Projekte (G32):
+    // node für alle Suiten, jsdom nur für *.ui.vitest.* (Hooks/G33-Umbau).
+    projects: [
+      {
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, './src'),
+          },
+        },
+        test: {
+          name: 'unit',
+          environment: 'node',
+          setupFiles: ['./vitest.setup.ts'],
+          include: ['src/**/*.vitest.ts', 'src/**/*.vitest.tsx'],
+          exclude: ['src/**/*.ui.vitest.ts', 'src/**/*.ui.vitest.tsx'],
+        },
+      },
+      {
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, './src'),
+          },
+        },
+        test: {
+          name: 'ui',
+          environment: 'jsdom',
+          setupFiles: ['./vitest.setup.ts'],
+          include: ['src/**/*.ui.vitest.ts', 'src/**/*.ui.vitest.tsx'],
+        },
+      },
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
-      reportOnFailure: false, // Schwellen in G32 scharf schalten
+      reportOnFailure: false,
       thresholds: {
-        // Zielwerte laut BUILD_PLAN_V2.2.0 — in G32 auf `perFile: true` und `100%` umschalten
+        // Global bleibt 0 (mit perFile trivial erfüllt) — scharf nur die zwei
+        // G32-Verzeichnisse via Glob-Keys (Vitest-4-Laufzeit, siehe
+        // docs/CHARACTERIZATION_G32.md). Rest (data, db, import) → G36/G43.
+        lines: 0,
         branches: 0,
         functions: 0,
-        lines: 0,
         statements: 0,
+        perFile: true,
+        'src/services/liveKpi/**': { lines: 90, branches: 80, functions: 80, statements: 80 },
+        'src/hooks/**': { lines: 90, branches: 80, functions: 80, statements: 80 },
       },
       include: ['src/**/*.{ts,tsx}'],
       exclude: [

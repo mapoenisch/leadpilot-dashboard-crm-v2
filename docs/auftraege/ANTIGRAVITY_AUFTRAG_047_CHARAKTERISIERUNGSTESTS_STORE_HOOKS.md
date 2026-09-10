@@ -4,7 +4,7 @@
 **Prüfung:** Codex / Claude Code
 **Baseline:** Freigabe-Commit aus G31 (`bdb5102`)
 **Branch:** `codex/v2.2.0-haertung`
-**Status:** OFFEN
+**Status:** BUILDER-FERTIG (10.09., Review offen) — jsdom-Nachtrag (Pin ^25, B in node-env) von Marc entschieden und umgesetzt
 **Plan:** `docs/BUILD_PLAN_V2.2.0.md` (Phase 1)
 
 ## Ziel

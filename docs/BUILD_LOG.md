@@ -2,6 +2,56 @@
 
 ---
 
+## 2026-09-10 — Gate G32 / Auftrag 047: Charakterisierungstests Store & Hooks
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** G31-Freigabe `bdb5102`. Test-only, null Produktänderung
+(Diff-Befehl aus dem Auftrag liefert leer). Kein Merge, Tag, Push.
+
+### Tests (neu, 86 grün + 3 `it.fails`)
+
+| Datei | Tests |
+|---|---|
+| `src/services/liveKpi/__tests__/liveKpiStreamStore.vitest.ts` | 18 + A/B/C (`it.fails`, `// G33`) |
+| `src/services/liveKpi/__tests__/liveKpiStreamStoreLifecycle.vitest.ts` | 12 (max-lines-Teilung) |
+| `src/services/liveKpi/__tests__/liveKpiReadAdapter.vitest.ts` | 20 (echter Adapter, nur Supabase-Client gemockt) |
+| `src/services/liveKpi/__tests__/liveKpiContract.vitest.ts` | 11 |
+| `src/services/liveKpi/__tests__/liveKpiDefinitions.vitest.ts` | 3 |
+| `src/hooks/__tests__/useLiveKpi.ui.vitest.ts` | 7 |
+| `src/hooks/__tests__/useLiveKpiActivity.ui.vitest.ts` | 8 |
+| `src/hooks/__tests__/useReducedMotion.ui.vitest.ts` | 4 |
+
+### Rot-Nachweise (A/B/C, alle node-env, `// G33`, Doku in `CHARACTERIZATION_G32.md`)
+
+A (loading hängt), B (kein Aufbewahrungsfenster), C (kein getSnapshot) —
+`it.fails` grün. Bug-Bindung: A temporär gefixt → `it.fails` rot (danach
+revertiert; dabei wurde zusätzlich ein grüner Test rot — G33 muss beide
+Stellen umstellen, dokumentiert).
+
+### Coverage
+
+`perFile`, global 0, Globs `liveKpi/**` + `hooks/**` je 90/80/80/80 —
+EXIT 0, kein ERROR (alle 8 Dateien erfüllen die Schwelle, StreamStore ≥ 90
+Zeilen). Rest (`data`, `db`, `import`) → G36/G43.
+
+### Werkzeug-Entscheidungen (Abweichungen dokumentiert)
+
+- Vitest 4 kennt kein `environmentMatchGlobs` → `test.projects` (unit/ui).
+- jsdom `^27` → `^25` (Marc-Entscheid, Upstream-CSS-Bug, nur Pin).
+  `package.json`/`-lock` dafür erlaubt.
+- B liegt in Store-Tests (Marc-Entscheid: alle drei sind Store-Verhalten, node-env).
+
+### Command-Matrix
+
+`test` 32 Files 108+3 grün · `test:coverage` EXIT 0 · `verify` 24 grün ·
+`build` EXIT 0 · `tsc` 764 (≤765) · `lint` 327 (≤327) · Schutz-Diff leer.
+
+### Ergebnis & Freigabestatus
+
+G32-Builder-Teil fertig. **Übergabe an Codex-Review.** Kein Merge, Tag, Push.
+
+---
+
 ## 2026-09-10 — Gate G31 / Auftrag 046 Nacharbeit Runde 3 (final, Marc-Entscheid)
 
 **Rolle:** Builder (OpenCode) · Commit `f683cd7` · **Branch:** `codex/v2.2.0-haertung`
