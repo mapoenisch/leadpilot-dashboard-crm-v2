@@ -129,8 +129,19 @@ export function DonutRingChart({
             return (
               <div
                 key={idx}
+                role="button"
+                tabIndex={0}
+                aria-label={`${seg.label}: ${formatChartMetric(seg.value, unit)} (${pct} Prozent)`}
                 onMouseEnter={() => setHoverIdx(idx)}
                 onMouseLeave={() => setHoverIdx(null)}
+                onFocus={() => setHoverIdx(idx)}
+                onBlur={() => setHoverIdx(null)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setHoverIdx(idx);
+                  }
+                }}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',

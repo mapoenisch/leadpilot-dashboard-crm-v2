@@ -36,7 +36,16 @@ export function ResourceCard({ resource, onOpen }: ResourceCardProps) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${resource.title} öffnen`}
       onClick={() => onOpen(resource)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen(resource);
+        }
+      }}
       style={{
         cursor: 'pointer',
         transition: 'transform 180ms ease, box-shadow 180ms ease',

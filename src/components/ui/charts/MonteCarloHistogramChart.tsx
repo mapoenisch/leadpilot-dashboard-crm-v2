@@ -70,7 +70,6 @@ export function MonteCarloHistogramChart({
           boxSizing: 'border-box',
           position: 'relative',
         }}
-        onMouseLeave={() => setHoverIdx(null)}
       >
         {buckets.map((b, i) => {
           const heightPct = Math.max(6, (b.count / maxCount) * 100);
@@ -80,7 +79,19 @@ export function MonteCarloHistogramChart({
           return (
             <div
               key={i}
+              role="button"
+              tabIndex={0}
+              aria-label={`Histogramm-Bereich ${b.min} bis ${b.max}: ${b.count} Treffer`}
               onMouseEnter={() => setHoverIdx(i)}
+              onMouseLeave={() => setHoverIdx(null)}
+              onFocus={() => setHoverIdx(i)}
+              onBlur={() => setHoverIdx(null)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setHoverIdx(i);
+                }
+              }}
               style={{
                 flex: 1,
                 display: 'flex',

@@ -250,6 +250,9 @@ export function Sidebar({
   if (isMobile) {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Menü schließen"
         style={{
           position: 'fixed',
           top: 0,
@@ -262,6 +265,12 @@ export function Sidebar({
           animation: 'backdrop-fade-in 150ms ease-out',
         }}
         onClick={onCloseMobileDrawer}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onCloseMobileDrawer();
+          }
+        }}
       >
         <aside
           ref={drawerRef}
@@ -288,6 +297,7 @@ export function Sidebar({
             outline: 'none',
           }}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           {content}
         </aside>

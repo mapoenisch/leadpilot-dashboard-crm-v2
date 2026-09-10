@@ -224,10 +224,19 @@ export function Select({
                   id={`${selectId}-option-${idx}`}
                   role="option"
                   aria-selected={isSelected}
+                  tabIndex={-1}
                   onClick={() => {
                     onChange(opt.value);
                     setIsOpen(false);
                     triggerRef.current?.focus();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onChange(opt.value);
+                      setIsOpen(false);
+                      triggerRef.current?.focus();
+                    }
                   }}
                   onMouseEnter={() => setHighlightedIndex(idx)}
                   style={{

@@ -79,6 +79,8 @@ export function Layout({}: LayoutProps = {}) {
         />
         <SimulationBar />
         <main
+          tabIndex={0}
+          aria-label="Hauptinhalt"
           style={{
             flex: 1,
             overflowY: 'auto',

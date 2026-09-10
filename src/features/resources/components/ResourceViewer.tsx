@@ -191,13 +191,15 @@ export function ResourceViewer({ resource, onClose }: ResourceViewerProps) {
                 <button style={navBtnStyle} onClick={handleZoomOut} disabled={zoom <= 0.6}>
                   −
                 </button>
-                <span
+                <button
+                  type="button"
                   onClick={handleZoomReset}
-                  style={{ fontSize: "12px", minWidth: "45px", textAlign: "center", cursor: "pointer", color: zoom !== 1 ? "var(--color-primary)" : "inherit" }}
                   title="Klick für 100%"
+                  aria-label="Zoom auf 100 Prozent zurücksetzen"
+                  style={{ fontSize: "12px", minWidth: "45px", textAlign: "center", cursor: "pointer", color: zoom !== 1 ? "var(--color-primary)" : "inherit", background: "transparent", border: "none", padding: 0, font: "inherit" }}
                 >
                   {Math.round(zoom * 100)}%
-                </span>
+                </button>
                 <button style={navBtnStyle} onClick={handleZoomIn} disabled={zoom >= 2.5}>
                   +
                 </button>
@@ -503,7 +505,16 @@ export function ResourceViewer({ resource, onClose }: ResourceViewerProps) {
             return (
               <div
                 key={path}
+                role="button"
+                tabIndex={0}
+                aria-label={`Seite ${pageNum} anzeigen`}
                 onClick={() => setCurrentPage(pageNum)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setCurrentPage(pageNum);
+                  }
+                }}
                 style={{
                   height: "60px",
                   width: resource.type === "SLIDE_DECK" ? "95px" : "45px",

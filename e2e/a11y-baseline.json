@@ -1,6 +1,6 @@
 {
-  "_kommentar": "G31-Nacharbeit (Marc-Entscheid): bekannte Axe-Verstöße, Delta-Ratsche wie lint/tsc. Fixes in G35.",
-  "/dashboard": ["scrollable-region-focusable"],
+  "_kommentar": "G35 Block D2: scrollable-region-focusable behoben (main mit tabIndex + aria-label). Liste leer, Ratsche greift.",
+  "/dashboard": [],
   "/crm/leads": [],
   "/finance/p-and-l": [],
   "/market/overview": []

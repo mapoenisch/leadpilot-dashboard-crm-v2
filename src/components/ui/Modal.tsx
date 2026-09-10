@@ -98,6 +98,9 @@ export function Modal({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label="Dialog schließen"
       style={{
         position: 'fixed',
         top: 0,
@@ -115,6 +118,12 @@ export function Modal({
         animation: 'backdrop-fade-in 150ms ease-out',
       }}
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClose();
+        }
+      }}
     >
       <div
         ref={modalRef}
@@ -137,6 +146,7 @@ export function Modal({
           outline: 'none',
         }}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <div
           style={{
