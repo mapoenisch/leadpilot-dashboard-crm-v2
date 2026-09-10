@@ -88,6 +88,72 @@ migrieren? aus dem Job nehmen?).
 ### Ergebnis & Freigabestatus
 
 A–H gebaut, Matrix grün bis auf den dokumentierten CI-Befund.
+
+### Review (Claude Code) — 2026-09-10, Commits `946aa7b`..`00daf9a`
+
+**Blockweise nachgestellt — alle Kernkriterien erfüllt:**
+
+- **Layering:** `import/no-restricted-paths` 7 → 0; `features/crm` ↔
+  `features/simulation` beidseitig 0. Block-A2-DI (`FunnelDealSource`) ist
+  saubere Dependency Inversion, Aufrufer `PipelineSnapshot.tsx` (`components →
+  services`, erlaubt). Datei-Umzüge per `git mv`, alte Pfade nirgends mehr
+  referenziert. Route `/crm/live-simulation` läuft über `routePages.tsx`
+  (routes.spec grün).
+- **Logger:** `src/services/logger.ts` sauber (ein begründetes
+  `eslint-disable`); `no-console` außerhalb `src/simulation/` = 0.
+- **a11y:** beide `jsx-a11y`-Regeln 8 → 0; Axe `/dashboard` behoben,
+  `a11y-baseline.json` `/dashboard` = `[]`.
+- **Block F:** `liveKpiStreamStore.ts` tsc-Fehler 3 → 0.
+- **Blocks G/H:** `exhaustive-deps`/`no-empty-*`/`no-unused-vars`/`any` außerhalb
+  `src/simulation/` alle 0. Rest-Lint **182** = exakt `src/simulation/`
+  (66 `any`, 61 `console`, 31 `unused`, 5 `prefer-const`) + 19 `max-lines` —
+  deckungsgleich mit dem in Auftrag 050 ausgeklammerten Scope (050-B / G40).
+- **Schutzbereiche:** `src/types/dataSource.ts`-Diff **leer** (Vertrag
+  bytegleich); `src/simulation/`-Diff = **genau** die eine Import-Zeile;
+  `package.json` / `package-lock.json` / `vitest.config.ts` / `src/context`
+  unberührt; `ci.yml` = nur die zwei Baseline-Zahlen; `e2e/` = nur
+  `a11y-baseline.json`.
+- **Matrix:** `verify` 24 · `test` 121 · `coverage` EXIT 0 · `build` 0 ·
+  `tsc` **758** (= Ratsche) · `lint` **182** (= Ratsche) · Surface grün ·
+  `grep subscribeToLiveKpi\b src` 0.
+
+**Befunde:**
+
+1. **P1 — CI-Job `livekpi-verifiers` rot (`verifyLiveKpiStream.ts`).** Bestätigt:
+   Bruch besteht seit **G34 (`1f47b9f`)** — der handgebaute Fake im Skript kennt
+   nur `subscribeToLiveKpi`, der Store ruft seit G34 `subscribeToLiveKpiFeed`.
+   Von Auftrag 049 (Pflicht-Verifikation nannte nur
+   `verifyLivePerformanceSurface.ts`, nicht alle drei `livekpi-verifiers`-
+   Skripte) und vom G34-Review übersehen — **Fehler des Auftrag-049-Autors
+   (Claude Code).** Skript-Abschnitte 1–9 sind vollständig durch die 77 Vitest-
+   Store-Tests (G32–G34) abgelöst; Abschnitt 10 (Isolations-Audit: kein
+   `supabase`/`setInterval` in Store + 3 Hooks) ist ein sinnvolles Guardrail,
+   das es so in Vitest nicht gibt. **Empfehlung:** eigener Mikro-Auftrag —
+   `verifyLiveKpiStream.ts` löschen, Abschnitt 10 als kleinen `*.vitest.ts`
+   retten, Zeile 90 aus `ci.yml`-Job entfernen. Präzedenz:
+   `verifyV21ReleaseReadiness.ts` (G31 gelöscht, gleicher Grund).
+   `verifyLiveKpiCatalog.ts` bleibt (grün, eigener Zweck).
+
+2. **P2 — eingefrorene Zone `src/features/resources/**` ohne ausdrückliche
+   Freigabe angefasst (Block D).** `ResourceCard.tsx` + `ResourceViewer.tsx`
+   sind per `CLAUDE.md` §6 eingefroren; Auftrag 050 nannte nur „`src/features/**`"
+   pauschal (Lücke im Auftrag) — der Builder hätte laut §5 stoppen und den
+   Konflikt melden müssen. Inhalt: `ResourceCard` + ein `ResourceViewer`-`<div>`
+   nur `role`/`tabIndex`/`onKeyDown` (optisch inert); die Zoom-Prozentanzeige
+   `<span>` → `<button>` mit Chrome-Reset — **geringes, aber nicht null
+   Pixel-Risiko, und `/resources` ist NICHT in der Playwright-Visual-Baseline**
+   (nur 4 Routen). „147/147 unverändert" deckt diese Änderung also nicht ab.
+   **Entscheidung Marc:** (a) Scope nachträglich auf `src/features/resources/**`
+   für Block D (nur a11y) ausweiten und den Viewer manuell / per neuem
+   Visual-Snapshot prüfen, oder (b) die 3 Resources-a11y-Fixes in einen eigenen
+   Resources-Auftrag zurückziehen (Lint-Ratsche dann 185 statt 182).
+
+3. **P3 — leere Verzeichnisreste** `src/features/crm/data/baselines/` +
+   `src/features/crm/data/` nach `git mv`. In der Nacharbeit `rmdir`.
+
+**Empfehlung:** P2 + P3 in einer kurzen Nacharbeitsrunde klären; P1 als eigener
+Mikro-Auftrag. Danach ist Auftrag 050 aus Reviewer-Sicht bestanden — G35 als
+Ganzes erst nach Auftrag 050-B. Kein Merge, Tag.
 **Übergabe an Codex-Review.** Kein Merge, Tag.
 
 ---
