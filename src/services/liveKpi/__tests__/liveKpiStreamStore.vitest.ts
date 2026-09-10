@@ -58,7 +58,7 @@ describe('acquire / Initialzustand', () => {
 });
 
 describe('History-Auflösung', () => {
-  it('Punkte landen sortiert in history, snapshot ist der neueste', async () => {
+  it('Punkte landen sortiert in history, snapshot ist der neueste, status live', async () => {
     const store = freshStore();
     const release = store.acquire('mrr');
     const pending = controls.pendingHistory[0];
@@ -72,6 +72,20 @@ describe('History-Auflösung', () => {
     const state = store.getState('mrr');
     expect(state.history.map((s) => s.value)).toEqual([100, 200, 300]);
     expect(state.snapshot?.value).toBe(300);
+    expect(state.status).toBe('live');
+    release();
+  });
+
+  it('leere History: status bleibt loading bis Kanal (Fix-A-Regel)', async () => {
+    const store = freshStore();
+    const release = store.acquire('arr');
+    const pending = controls.pendingHistory[0];
+    if (!pending) throw new Error('kein History-Promise registriert');
+    pending.resolve([]);
+    await flushMicrotasks();
+    const state = store.getState('arr');
+    expect(state.history).toEqual([]);
+    expect(state.snapshot).toBeNull();
     expect(state.status).toBe('loading');
     release();
   });
@@ -285,8 +299,8 @@ describe('refresh', () => {  it('neuerer Wert: live + snapshot; null: live ohne 
   });
 });
 
-// G33: nach Fix zu it() umstellen — Rot-Nachweis B (Aufbewahrungsfenster fehlt).
-it.fails('B: Re-acquire nach Release — history müsste ohne Refetch da sein (BUG)', async () => {
+// G33 FIX B — Rot-Nachweis aufgelöst: 60-s-Fenster, Re-acquire ohne Refetch.
+it('B: Re-acquire nach Release — history ohne Refetch da (FIX)', async () => {
   const store = freshStore();
   const release1 = store.acquire('arr');
   const pending = controls.pendingHistory[0];
@@ -295,14 +309,16 @@ it.fails('B: Re-acquire nach Release — history müsste ohne Refetch da sein (B
   await flushMicrotasks();
   expect(store.getState('arr').history).toHaveLength(1);
   const fetchesBefore = controls.historyCalls.length;
+  const subsBefore = controls.subscriptions.length;
   release1();
   store.acquire('arr');
   expect(controls.historyCalls.length).toBe(fetchesBefore);
   expect(store.getState('arr').history.length).toBeGreaterThan(0);
+  expect(controls.subscriptions.length).toBe(subsBefore + 1);
 });
 
-// G33: nach Fix zu it() umstellen — Rot-Nachweis A (Status hängt auf loading).
-it.fails('A: History da, Kanal stumm — status müsste live sein, bleibt loading (BUG)', async () => {
+// G33 FIX A — Rot-Nachweis aufgelöst: History da → status live.
+it('A: History da, Kanal stumm — status ist live (FIX)', async () => {
   const store = freshStore();
   const release = store.acquire('arr');
   const pending = controls.pendingHistory[0];
@@ -314,10 +330,29 @@ it.fails('A: History da, Kanal stumm — status müsste live sein, bleibt loadin
   release();
 });
 
-// G33: nach Fix zu it() umstellen — Rot-Nachweis C (kein stabiler Snapshot).
-it.fails('C: getSnapshot fehlt — kein useSyncExternalStore-fähiger Zugriff (BUG)', () => {
+// G33 FIX C — Rot-Nachweis aufgelöst: getSnapshot referenzstabil.
+it('C: getSnapshot existiert und ist referenzstabil (FIX)', () => {
   const store = freshStore();
   const release = store.acquire('arr');
+  expect(store.getSnapshot).toBeTypeOf('function');
   expect('getSnapshot' in store).toBe(true);
+  expect(store.getSnapshot('arr')).toBe(store.getSnapshot('arr'));
+  release();
+});
+
+it('C: neue Referenz nach Änderung; stabiler Default ohne Entry', () => {
+  const store = freshStore();
+  expect(store.getSnapshot('mrr')).toBe(store.getSnapshot('mrr'));
+  expect(store.getServerSnapshot()).toBe(store.getServerSnapshot());
+  const release = store.acquire('mrr');
+  const before = store.getSnapshot('mrr');
+  const sub = controls.subscriptions[0];
+  if (!sub) throw new Error('keine Subscription registriert');
+  sub.onEvent(makeSnapshot('mrr', T1, 1));
+  const after = store.getSnapshot('mrr');
+  expect(after).not.toBe(before);
+  expect(store.getSnapshot('mrr')).toBe(after);
+  expect(store.getEntryVersion('mrr')).toBeGreaterThan(0);
+  expect(store.getEntryVersion('pipeline_sql')).toBe(0);
   release();
 });

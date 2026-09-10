@@ -1,9 +1,10 @@
 // G32-Charakterisierung: useLiveKpi + useLiveKpiHistory (jsdom, Testing Library).
 // vi.mock ausschließlich auf den ReadAdapter — nie auf den Store. Die Hooks
 // binden an den Singleton; Isolation über eigene KPI-IDs je Test.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { LiveKpiSnapshot } from '@/services/liveKpi/liveKpiReadAdapter';
+import { RETENTION_MS } from '@/services/liveKpi/liveKpiStreamStore';
 import { useLiveKpi } from '../useLiveKpi';
 import { useLiveKpiHistory } from '../useLiveKpiHistory';
 import {
@@ -51,12 +52,21 @@ vi.mock('@/services/liveKpi/liveKpiReadAdapter', () => ({
 }));
 
 beforeEach(() => {
+  // Fake-Timer für die 60-s-Retention des Singleton-Stores (G33 Fix B):
+  // afterEach lässt alle Lösch-Timer ablaufen → jeder Test startet mit
+  // leerem Store. Microtasks (flushMicrotasks) bleiben echt.
+  vi.useFakeTimers();
   controls.configured = true;
   controls.historyCalls = [];
   controls.historyResolvers = [];
   controls.latestCalls = [];
   controls.latestValue = null;
   controls.subs = [];
+});
+
+afterEach(() => {
+  vi.advanceTimersByTime(RETENTION_MS);
+  vi.useRealTimers();
 });
 
 const T1 = '2026-01-01T10:00:00.000Z';
@@ -146,13 +156,18 @@ describe('useLiveKpiHistory', () => {
     unmount();
   });
 
-  it('Remount-Verhalten ist Store-Sache (siehe Rot-Nachweis B in liveKpiStreamStore.vitest.ts)', async () => {
+  it('Remount im Fenster: behält history + live ohne Refetch (Retention)', async () => {
     const first = renderHook(() => useLiveKpiHistory('pipeline_mql'));
     await resolveHistory([makeSnapshot('pipeline_mql', T1, 42)]);
+    await fireStatus(0, 'subscribed');
     expect(first.result.current.history).toHaveLength(1);
+    expect(first.result.current.status).toBe('live');
+    const fetchesBefore = controls.historyCalls.length;
     first.unmount();
     const second = renderHook(() => useLiveKpiHistory('pipeline_mql'));
-    expect(second.result.current.status).toBe('loading');
+    expect(controls.historyCalls.length).toBe(fetchesBefore);
+    expect(second.result.current.history).toHaveLength(1);
+    expect(second.result.current.status).toBe('live');
     second.unmount();
   });
 });

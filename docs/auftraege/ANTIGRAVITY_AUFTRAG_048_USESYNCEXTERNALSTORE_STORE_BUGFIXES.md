@@ -4,7 +4,7 @@
 **Prüfung:** Codex / Claude Code
 **Baseline:** Freigabe-Commit aus G32 (`dcdbcb8`)
 **Branch:** `codex/v2.2.0-haertung`
-**Status:** OFFEN
+**Status:** BUILDER-FERTIG (10.09., Review offen)
 **Plan:** `docs/BUILD_PLAN_V2.2.0.md` (Phase 1)
 
 ## Ziel

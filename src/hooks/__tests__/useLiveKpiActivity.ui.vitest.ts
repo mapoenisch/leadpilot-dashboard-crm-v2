@@ -1,8 +1,9 @@
 // G32-Charakterisierung: useLiveKpiActivity (jsdom, Testing Library).
 // vi.mock ausschließlich auf den ReadAdapter — nie auf den Store.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { LiveKpiSnapshot } from '@/services/liveKpi/liveKpiReadAdapter';
+import { RETENTION_MS } from '@/services/liveKpi/liveKpiStreamStore';
 import { useLiveKpiActivity } from '../useLiveKpiActivity';
 import {
   makeSnapshot,
@@ -41,9 +42,17 @@ vi.mock('@/services/liveKpi/liveKpiReadAdapter', () => ({
 }));
 
 beforeEach(() => {
+  // Fake-Timer für die 60-s-Retention (G33 Fix B): afterEach lässt alle
+  // Lösch-Timer ablaufen → Singleton-Isolation zwischen Tests.
+  vi.useFakeTimers();
   controls.configured = true;
   controls.historyResolvers = [];
   controls.subs = [];
+});
+
+afterEach(() => {
+  vi.advanceTimersByTime(RETENTION_MS);
+  vi.useRealTimers();
 });
 
 const T1 = '2026-01-01T10:00:00.000Z';

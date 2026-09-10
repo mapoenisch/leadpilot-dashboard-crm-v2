@@ -1,7 +1,7 @@
 // G32-Charakterisierung: liveKpiStreamStore — Lifecycle/Races/Fehler (Teil 2).
 // Gehört zu liveKpiStreamStore.vitest.ts (max-lines-Teilung). Gleicher Fake-Adapter.
-import { describe, it, expect } from 'vitest';
-import { createLiveKpiStreamStore } from '../liveKpiStreamStore';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { createLiveKpiStreamStore, RETENTION_MS } from '../liveKpiStreamStore';
 import {
   createFakeAdapter,
   flushMicrotasks,
@@ -21,8 +21,11 @@ function freshStore() {
   return createLiveKpiStreamStore(adapter);
 }
 
-describe('Race-Schutz: Entry nach Release ist tot', () => {
-  it('History-Resolve nach Release wird ignoriert (kein Crash, kein State)', async () => {
+afterEach(() => {
+  vi.useRealTimers();
+});
+describe('Aufbewahrungsfenster (G33 Fix B)', () => {
+  it('Release behält State: History-Resolve wirkt weiter, Kanal ist abbestellt', async () => {
     const store = freshStore();
     const release = store.acquire('arr');
     const sub = controls.subscriptions[0];
@@ -30,44 +33,78 @@ describe('Race-Schutz: Entry nach Release ist tot', () => {
     const pending = controls.pendingHistory[0];
     if (!pending) throw new Error('kein History-Promise registriert');
     release();
+    expect(sub.unsubscribeCalls).toBe(1);
+    pending.resolve([makeSnapshot('arr', T1, 1)]);
+    sub.onEvent(makeSnapshot('arr', T2, 2));
+    await flushMicrotasks();
+    expect(store.getState('arr').history.map((s) => s.value)).toEqual([1, 2]);
+  });
+
+  it('nach Fenster-Ablauf ist der Entry weg: spätes Resolve/Event/Refresh wirkungslos', async () => {
+    vi.useFakeTimers();
+    const store = freshStore();
+    const release = store.acquire('arr');
+    const sub = controls.subscriptions[0];
+    if (!sub) throw new Error('keine Subscription registriert');
+    const pending = controls.pendingHistory[0];
+    if (!pending) throw new Error('kein History-Promise registriert');
+    release();
+    await vi.advanceTimersByTimeAsync(RETENTION_MS);
     pending.resolve([makeSnapshot('arr', T1, 1)]);
     sub.onEvent(makeSnapshot('arr', T2, 2));
     sub.onStatus('subscribed');
+    controls.latestImpl = () => Promise.resolve(makeSnapshot('arr', T3, 3));
+    await store.refresh('arr');
     await flushMicrotasks();
     expect(store.getState('arr').history).toEqual([]);
     expect(store.getState('arr').snapshot).toBeNull();
+    expect(store.getState('arr').status).toBe('loading');
   });
 
-  it('History-Reject nach Release wird ignoriert', async () => {
+  it('Re-acquire nach Ablauf fetzt neu (Fenster abgelaufen)', async () => {
+    vi.useFakeTimers();
+    const store = freshStore();
+    const release1 = store.acquire('arr');
+    const pending = controls.pendingHistory[0];
+    if (!pending) throw new Error('kein History-Promise registriert');
+    pending.resolve([makeSnapshot('arr', T1, 42)]);
+    await flushMicrotasks();
+    const fetchesBefore = controls.historyCalls.length;
+    release1();
+    await vi.advanceTimersByTimeAsync(RETENTION_MS);
+    store.acquire('arr');
+    expect(controls.historyCalls.length).toBe(fetchesBefore + 1);
+    expect(store.getState('arr').history).toEqual([]);
+  });
+
+  it('Re-acquire vor Ablauf cancelt den Timer (kein späteres Löschen)', async () => {
+    vi.useFakeTimers();
+    const store = freshStore();
+    const release1 = store.acquire('arr');
+    const pending = controls.pendingHistory[0];
+    if (!pending) throw new Error('kein History-Promise registriert');
+    pending.resolve([makeSnapshot('arr', T1, 42)]);
+    await flushMicrotasks();
+    release1();
+    await vi.advanceTimersByTimeAsync(RETENTION_MS - 1);
+    const release2 = store.acquire('arr');
+    expect(store.getState('arr').history).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(RETENTION_MS);
+    expect(store.getState('arr').history).toHaveLength(1);
+    release2();
+  });
+
+  it('History-Reject nach Ablauf wird ignoriert', async () => {
+    vi.useFakeTimers();
     const store = freshStore();
     const release = store.acquire('arr');
     const pending = controls.pendingHistory[0];
     if (!pending) throw new Error('kein History-Promise registriert');
     release();
+    await vi.advanceTimersByTimeAsync(RETENTION_MS);
     pending.reject(new Error('zu spät'));
     await flushMicrotasks();
     expect(store.getState('arr').status).toBe('loading');
-  });
-
-  it('fetchLatest-Resolve nach Release wird ignoriert', async () => {
-    const store = freshStore();
-    const release = store.acquire('arr');
-    const sub = controls.subscriptions[0];
-    if (!sub) throw new Error('keine Subscription registriert');
-    release();
-    controls.latestImpl = () => Promise.resolve(makeSnapshot('arr', T1, 9));
-    sub.onStatus('subscribed');
-    await flushMicrotasks();
-    expect(store.getState('arr').snapshot).toBeNull();
-  });
-
-  it('refresh nach Release ist wirkungslos', async () => {
-    const store = freshStore();
-    const release = store.acquire('arr');
-    release();
-    controls.latestImpl = () => Promise.resolve(makeSnapshot('arr', T1, 9));
-    await store.refresh('arr');
-    expect(store.getState('arr').snapshot).toBeNull();
   });
 });
 

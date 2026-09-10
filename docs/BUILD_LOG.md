@@ -2,6 +2,53 @@
 
 ---
 
+## 2026-09-10 — Gate G33 / Auftrag 048: useSyncExternalStore & Store-Bugfixes
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** G32-Freigabe `dcdbcb8`. Erster echter Code-Umbau Phase 1.
+Kein Merge, Tag, Push.
+
+### A/B/C (je Codeänderung + umgestelltes `it` + mitgeänderter Test)
+
+- **A** (`liveKpiStreamStore.ts`, History-`.then`): `status: 'live'` nur bei
+  nichtleerer History, sonst `loading` bis Kanal. `it.fails(A)` → `it` grün;
+  grüner Test (G32-markiert) erwartet jetzt `live`.
+- **B** (Release/`acquire`): `RETENTION_MS = 60000` — Kanal sofort ab, State
+  behalten, Lösch-Timer; Re-acquire cancelt + abonniert neu (kein Refetch);
+  nach Ablauf Neuanfang mit Fetch. `it.fails(B)` → `it` grün + Ablauf-Test.
+- **C** (Interface + Impl): `getSnapshot` (referenzstabil), `getServerSnapshot`
+  (stabiler Default), `getEntryVersion` (monoton pro Entry). `it.fails(C)` →
+  `it` grün + Stabilitäts-Tests.
+- Kanal-`error`/`offline` überschreiben `live` weiter (Tests grün, kein Kleben).
+
+### Regel-Entscheidungen
+
+- Status nur bei nichtleerer History `live` (sonst `loading`).
+- `RETENTION_MS = 60000` (Tests mit `vi.useFakeTimers`).
+- Activity: **store-seitige Versions-Schnittstelle** (bevorzugtes Muster) —
+  `getSnapshot` = Summe der Entry-Versionen + `useMemo`; kein Shim-Paket.
+  Summe statt Max (Max blieb bei Änderungen verschiedener IDs stehen —
+  beim Bau durch rot gewordene Tests gemerkt, begründet).
+- `setTick`/`historyPromise` entfernt (Grep leer); `useSyncExternalStore`
+  in allen 3 Hooks; Rückgaben bytegleich; Komponenten unberührt.
+
+### Nachweis „keine optische Änderung"
+
+`verifyLivePerformanceSurface.ts` grün (unverändert) + `npx playwright test`
+147/147 gegen committete Baselines (kein `--update-snapshots`, Diff leer).
+
+### Command-Matrix
+
+`test` 32 Files 114 grün · `test:coverage` EXIT 0 (perFile-Schwellen) ·
+`verify` 24 grün · `build` EXIT 0 · `tsc` 762 (≤765, −2 durch Code-Entfernung) ·
+`lint` 325 (≤327, −2 dto.) · Schutz-Diff leer · `useSyncExternalStore` ×3.
+
+### Ergebnis & Freigabestatus
+
+G33-Builder-Teil fertig. **Übergabe an Codex-Review.** Kein Merge, Tag, Push.
+
+---
+
 ## 2026-09-10 — Gate G32 / Auftrag 047: Charakterisierungstests Store & Hooks
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`

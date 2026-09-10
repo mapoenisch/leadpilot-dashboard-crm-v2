@@ -73,3 +73,23 @@ functions: 80, statements: 80 }`. Stand: alle 8 Dateien erfüllen die Schwelle
 - **Kein `vi.mock` auf den Store** (verboten, eingehalten); erlaubt und genutzt:
   Adapter-Injektion (Store-Tests), `vi.mock` auf `liveKpiReadAdapter`
   (Hook-Tests) bzw. `supabaseClient` (Adapter-Tests).
+
+---
+
+## 6. Stand nach G33 (Auftrag 048, 2026-09-10)
+
+A/B/C sind als normale `it()` grün und wirken als Regressionswächter:
+
+- **A:** History-`.then()` setzt `status: 'live'` — nur bei nichtleerer History
+  (leere → `loading` bis Kanal). Mitgeändert: grüner Test erwartet jetzt `live`.
+- **B:** `RETENTION_MS = 60000` — Release bestellt den Kanal sofort ab, behält
+  State, startet Lösch-Timer; Re-acquire < 60 s cancelt, behält History ohne
+  Refetch, abonniert neu; nach Ablauf wird neu gefetcht.
+- **C:** `getSnapshot` (referenzstabil via Entry-`cachedSnapshot`) +
+  `getServerSnapshot` (stabiler Default) + `getEntryVersion` (monoton, pro Entry).
+- Hooks per `useSyncExternalStore` (kein Tick-Hack, kein `historyPromise`):
+  Activity aggregiert über store-seitige Versions-**Summe** + `useMemo`
+  (Max wäre bei Änderungen verschiedener IDs stehen geblieben — beim Bau gemerkt).
+  Status-Priorität unverändert. Rückgaben bytegleich, Komponenten unberührt.
+- Tearing-Sicherheit folgt aus referenzstabilem `getSnapshot` + `useMemo`-
+  Versionierung; optisch nichts geändert (Playwright 147/147 gegen Baselines).

@@ -1,8 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { liveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import {
-  isLiveKpiReadConfigured,
-  fetchLatestLiveKpi,
   type LiveKpiSnapshot,
   type LiveKpiReadStatus,
 } from '@/services/liveKpi/liveKpiReadAdapter';
@@ -20,6 +18,9 @@ export interface UseLiveKpiResult {
  * Kompatibilitäts-Wrapper auf Basis des referenzgezählten liveKpiStreamStore (Gate G25).
  * Delegiert Lifecycle, Snapshot und Status vollständig an den Store.
  *
+ * G33: Tearing-sicher via useSyncExternalStore (statt manuellem Tick-Hack).
+ * Rückgabe bytegleich zu vorher: { snapshot, status, error, refresh }.
+ *
  * ARCHITECTURAL CONTRACT & LIFECYCLE AUDIT GUARANTEES:
  * In G19/G20 wurde der Lifecycle direkt in useLiveKpi abgebildet.
  * In G25 delegiert useLiveKpi an liveKpiStreamStore, welcher folgende Garantien erfüllt:
@@ -32,21 +33,29 @@ export interface UseLiveKpiResult {
  * - subscription.unsubscribe() wird beim Release sauber aufgerufen
  */
 export function useLiveKpi(kpiId: string): UseLiveKpiResult {
-  const [, setTick] = useState(0);
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const release = liveKpiStreamStore.acquire(kpiId);
+      const unsubscribe = liveKpiStreamStore.subscribe(kpiId, onStoreChange);
+      return () => {
+        unsubscribe();
+        release();
+      };
+    },
+    [kpiId]
+  );
 
-  useEffect(() => {
-    const release = liveKpiStreamStore.acquire(kpiId);
-    const unsubscribe = liveKpiStreamStore.subscribe(kpiId, () => {
-      setTick((t) => t + 1);
-    });
+  const getSnapshot = useCallback(
+    () => liveKpiStreamStore.getSnapshot(kpiId),
+    [kpiId]
+  );
 
-    return () => {
-      unsubscribe();
-      release();
-    };
-  }, [kpiId]);
+  const getServerSnapshot = useCallback(
+    () => liveKpiStreamStore.getServerSnapshot(),
+    []
+  );
 
-  const state = liveKpiStreamStore.getState(kpiId);
+  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const refresh = useCallback(async () => {
     await liveKpiStreamStore.refresh(kpiId);
