@@ -33,8 +33,8 @@ test('resources-viewer: Zoom-Anzeige ist neutral gestylter Button', async ({ pag
   expect(zoomStyle.borderStyle).toBe('none');
   expect(zoomStyle.padding).toBe('0px');
   // Kein UA-Button-Font: gleiche Schriftfamilie/Stil wie der benachbarte
-  // Viewer-Text (Größe designbedingt 12px Button vs. 11.5px Sub — darum
-  // Familien-/Stil-Vergleich statt font-Shorthand).
+  // Viewer-Text (volle font-Shorthand nicht vergleichbar: Button erbt 16px,
+  // Sub ist designbedingt 11.5px — darum Familien-/Stil-Vergleich).
   const neighborFont = await page.locator('.resource-viewer-title-sub').evaluate((el) => {
     const cs = getComputedStyle(el);
     return { fontFamily: cs.fontFamily, fontStyle: cs.fontStyle, fontWeight: cs.fontWeight };
