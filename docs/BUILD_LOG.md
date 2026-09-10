@@ -2,6 +2,95 @@
 
 ---
 
+## 2026-09-10 — Gate G35 / Auftrag 050-C: Verifier-Bereinigung + Resources-Nachweis
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** 050-Review `e9f957c`. Kein Merge, Tag. Commits `c36c9b9`
+(Block 1), `99e21e8` (Block 2), `252aaf1` (Kommentar-Fix). Parallele
+Marc-Korrektur `9ec37ef` (Auftrag-Route `/resources/materials`, enthält die
+`git rm`-Löschung aus Block 1.1 — Staging übernommen, kein Konflikt).
+
+### Block 1 — P1: `verifyLiveKpiStream.ts` abgelöst
+
+- **Gelöscht:** `scripts/verifyLiveKpiStream.ts` (war lokal rot: G34-Altlast im
+  Fake; Abschnitte 1–9 durch `liveKpiStreamStore(.Lifecycle).vitest.ts`,
+  Abschnitt 11 durch `liveKpiReadAdapter.vitest.ts` abgelöst).
+- **Neu:** `src/services/liveKpi/__tests__/liveKpiIsolation.vitest.ts`
+  (node-Projekt): Abschnitt-10-Audit als `it.each`, 12 Tests
+  (3 Regeln × 4 Dateien: kein `supabaseClient`, kein Import mit `supabase` im
+  Pfad, kein `setInterval`; Quelltext nur gelesen, nie importiert).
+- **Rot-Beweis:** `import '@/services/db/supabaseClient'` testweise in
+  `useLiveKpi.ts` eingefügt → 2 Regeln rot; revertiert,
+  `git diff -- src/hooks/` leer.
+- **CI:** Zeile `npx tsx scripts/verifyLiveKpiStream.ts` aus Job
+  `livekpi-verifiers` entfernt (`.github/workflows/ci.yml`, 1 Zeile).
+- **1.4:** Keine lebende Referenz mehr (`package.json`/Scripts/`src`/`e2e`/
+  `.github` = 0 Treffer; nur Verlauf in alten Aufträgen/BUILD_LOG/Releases —
+  Historie nicht umgeschrieben). `verifyLiveKpiCatalog.ts` +
+  `verifyLivePerformanceSurface.ts` grün.
+- **CI-Run:** https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/34524318830 —
+  `livekpi-verifiers` **grün** (lint/typecheck/test/build grün; `size-limit`
+  Budget-rot wie bisher, neutral per `continue-on-error`; `e2e` skipped
+  wie vorgesehen — nur PR/Dispatch).
+
+### Block 2 — P2: Resources ratifiziert + Visual-Nachweis
+
+- **2.1 Ratifizierung:** „Revision nach Review (2026-09-10)" ans Ende von
+  `ANTIGRAVITY_AUFTRAG_050_LAYERING_KLEINBEFUNDE.md` angehängt (Block D:
+  nur a11y in `ResourceCard.tsx`/`ResourceViewer.tsx`).
+- **Routen-Entscheidung (Marc):** `/resources` existiert nicht (404,
+  `NotFoundPage`) — einzige Resources-Route ist `/resources/materials`.
+  In beiden Specs verwendet; Auftrag parallel in `9ec37ef` korrigiert.
+  Snapshots heißen `visual-resources-materials-*.png`.
+- **2.2 `e2e/resources-viewer.spec.ts` (neu, 3/3 Projekte grün):** erste
+  `ResourceCard` (DOCUMENT → Zoom-Controls rendern) klicken; Zoom-Anzeige ist
+  `button[type="button"]` mit `aria-label`; computed style
+  `rgba(0,0,0,0)`/`none`/`0px`; Schriftfamilie/-stil = benachbarter
+  Viewer-Text (volle `font`-Shorthand nicht vergleichbar: Button erbt 16px,
+  Sub ist 11.5px); `fontSize` = geerbte Container-Größe (Befund: inline
+  `fontSize: 12px` wird von `font: inherit` zurückgesetzt — kein UA-Font,
+  kein Chrome). Überflüssige `eslint-disable`-Zeile entfernt (Regel greift
+  in `e2e/` nicht — wie in allen Bestands-Specs).
+- **2.3 Visual:** `/resources/materials` in `visual.spec.ts`-ROUTES (1 Zeile).
+  `-darwin`: lokaler Erstlauf (3 neue PNGs, danach 3/3 grün). `-linux`:
+  `mcr.microsoft.com/playwright:v1.63.0-noble` (gepinntes `1.63.0`, Docker
+  lokal): Repo-Kopie ohne `node_modules`/`dist`, `npm ci` + `vite build` +
+  `npx playwright test visual -g resources` → 3 `-linux`-PNGs, Rerun 3/3 grün.
+  Alle 6 Baselines sichtgeprüft (echte Inhalte: 9 Dokumente, Cards, kein 404).
+  `git status` zeigt **ausschließlich neue** PNGs — keine Bestands-Baseline
+  angefasst, kein `--update-snapshots`.
+- **2.4:** `npx playwright test` **153/153 grün** (147 Bestand + 3
+  resources-viewer + 3 visual/resources).
+
+### Block 3 — P3: Reste
+
+- `src/features/crm/data/baselines` + `src/features/crm/data` (leer,
+  von Git ohnehin nicht geführt) per `rmdir` entfernt.
+- `grep -rn "features/crm/data" src scripts docs e2e` = nur historische
+  Auftrags-Doku (050/016) — 0 lebende Referenzen.
+
+### Command-Matrix (alle Exit 0, außer vermerkt)
+
+| Command | Ergebnis |
+|---|---|
+| `npm run test` | 33 Files / 133 Tests grün (inkl. 12 Isolation) |
+| `npm run test:coverage` | EXIT 0 |
+| `npm run verify` | 24/24 Suiten grün |
+| `npm run build` | EXIT 0 |
+| `npx tsc --noEmit \| grep -c "error TS"` | **758** (unverändert) |
+| `npm run lint` | 182 Errors (unverändert), 3 Warnings Bestand |
+| `npx tsx scripts/verifyLiveKpiCatalog.ts` | grün |
+| `npx tsx scripts/verifyLivePerformanceSurface.ts` | grün |
+| `npx playwright test` | **153/153** |
+| `git diff e9f957c -- src/simulation src/types src/context src/services/data src/features/resources` | leer |
+
+**Ergebnis:** Alle Blöcke + Akzeptanzkriterien erfüllt (Abweichungen: Route
+`/resources/materials` + Snapshot-Namen, Marc-entschieden; Bericht per
+Auftrag an den Anfang gestellt). **Übergabe an Review (Codex/Claude Code).**
+Kein Merge, Tag.
+
+---
+
 ## 2026-09-10 — Gate G35 / Auftrag 050: Layering + Kleinbefunde (ohne Simulation)
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
