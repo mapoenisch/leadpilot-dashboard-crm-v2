@@ -17,6 +17,41 @@
 Matrix: `test` 121 · `test:coverage` EXIT 0 · `verify` 24 · `build` 0 ·
 `tsc` 762 · `lint` 324 · Playwright 147 (Baselines unverändert) · Grep 0.
 
+### Review 2. Runde (Claude Code) — 2026-09-10, Commit `79db24c` — **FREIGABE-EMPFEHLUNG**
+
+Alle drei Kleinbefunde behoben, selbst nachgestellt:
+
+- **N1:** `tsc` exakt **762** (= G33-Baseline `78ae9d4`) — Regression weg.
+  Die 3 verbleibenden `noUncheckedIndexedAccess`-Fehler im Store (Zeilen
+  126/415/416, `deduped[…]` / `merged[…]`) bestehen seit G25/G33 und sind in
+  den 762 enthalten — kein G34-Thema (Kandidat für G35-Kleinbefunde).
+- **N2:** `lint` **324** (unter dem bisherigen Tiefstand 325). `max-lines` weg.
+  Refactor ist reine Extraktion (`mergeFetchedLatest`, `commitFetchError`,
+  `getOrCreateEntry`) — Zeilenvergleich bestätigt: kein Verhaltenswechsel.
+  `refresh` ruft über `mergeFetchedLatest`/`commitFetchError` → `commit` →
+  `notify`; die genannte Rekonstruktionslücke ist im aktuellen Stand
+  geschlossen, `refresh`-Suite grün.
+- **N3:** neues `console.warn` aus `teardownChannel` raus; Test prüft jetzt
+  „unsubscribe wirft nicht, Kanal trotzdem entfernt". Verbleibende
+  liveKpi-Lint-Treffer (`adapter:52` `any`, `store:200` `console` in `notify`)
+  sind pre-existing seit G33.
+
+**G33-Invarianten nach dem Refactor erneut geprüft — alle intakt:** Fix A
+(`nextStatus = merged.length > 0 ? 'live' : entry.state.status`, Zeile 421),
+Fix B (`listeners.clear()` + `clearTimeout` + `setTimeout(…, RETENTION_MS)`,
+Re-acquire bricht Timer ohne Refetch ab), `commit` als einzige
+Mutationsstelle, `RETENTION_MS` exportiert, `getSnapshot` referenzstabil über
+`cachedSnapshot`.
+
+**Gate-Kriterien:** 1-Kanal-Test bei 12 KPIs grün · `computeBackoffDelay`
+rein/getestet (Sequenz, 30-s-Deckel, Jitter, `-1`) · Backoff-Ablauf mit fake
+timers · `LiveKpiReadStatus` bytegleich · `getFeedConnectionState()` nicht an
+UI · Komponenten/Produkt-Hooks unverändert · `git diff -- e2e` leer ·
+Surface-Verifier Exit 0 · `grep subscribeToLiveKpi\b src` = 0.
+
+**Ergebnis:** Gate G34 aus Reviewer-Sicht bestanden. Freigabe/Push liegt bei
+Marc. Kein Merge, Tag, Push ohne seine ausdrückliche Zustimmung.
+
 ---
 
 ## 2026-09-10 — Gate G34 / Auftrag 049: Ein Realtime-Kanal + Reconnect-Backoff
