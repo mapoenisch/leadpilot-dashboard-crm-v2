@@ -1,6 +1,10 @@
 import { DataSource, CrmReadModel, DataSourceError } from '../../../types/dataSource';
 
-const FILES: Record<string, () => Promise<any>> = {
+interface HubSpotBaselineModule {
+  default: CrmReadModel & { sourceSystem?: string };
+}
+
+const FILES: Record<string, () => Promise<HubSpotBaselineModule>> = {
   fixture: () => import('../../../simulation/__tests__/fixtures/baseline-hubspot-fixture.json'),
   '2026-09-01': () => import('../baselines/baseline-hubspot-2026-09-01.json'),
 };
@@ -19,8 +23,7 @@ export function makeHubSpotBaselineSource(version: string): DataSource {
       if (!loader) {
         throw new DataSourceError('UNKNOWN_SOURCE', `HubSpot-Baseline "${version}" fehlt.`);
       }
-      const mod = await loader();
-      const ds = mod.default ?? mod;
+      const ds = (await loader()).default;
       if (ds.sourceSystem !== 'hubspot') {
         throw new DataSourceError('INTEGRITY', `Envelope ${version} ist keine HubSpot-Quelle.`);
       }

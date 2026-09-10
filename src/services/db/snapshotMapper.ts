@@ -3,6 +3,7 @@ import {
   SimulationSnapshot,
   SnapshotPersistenceRecord,
 } from '../../types/snapshot';
+import { SimulationState } from '../../types/simulation';
 
 export class SnapshotMapper {
   /**
@@ -62,7 +63,7 @@ export class SnapshotMapper {
     tickId: number,
     simulationDay: number,
     simulatedDate: string,
-    state: any
+    state: SimulationState
   ): AnalyticsProjection {
     const metrics = state.metrics || {};
     return {

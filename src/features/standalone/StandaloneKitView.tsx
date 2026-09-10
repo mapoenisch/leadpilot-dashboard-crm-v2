@@ -36,7 +36,7 @@ export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | '
     const columns = [
       { key: 'name', label: 'Name' },
       { key: 'company', label: 'Company' },
-      { key: 'status', label: 'Status', render: (r: any) => <Badge variant={r.status === 'Won' ? 'cyan' : r.status === 'Hot' ? 'orange' : 'neutral'}>{r.status}</Badge> },
+      { key: 'status', label: 'Status', render: (r: (typeof ALL_LEADS)[number]) => <Badge variant={r.status === 'Won' ? 'cyan' : r.status === 'Hot' ? 'orange' : 'neutral'}>{r.status}</Badge> },
       { key: 'owner', label: 'Owner' },
     ];
 

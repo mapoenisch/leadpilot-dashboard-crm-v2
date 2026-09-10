@@ -1,13 +1,13 @@
 import React from 'react';
 
-export interface CrmColumn<T = any> {
+export interface CrmColumn<T = Record<string, unknown>> {
   key: string;
   label: string;
   render?: (row: T) => React.ReactNode;
   width?: string;
 }
 
-export interface CrmResponsiveListProps<T = any> {
+export interface CrmResponsiveListProps<T = Record<string, unknown>> {
   columns: CrmColumn<T>[];
   rows: T[];
   caption: string;
@@ -16,7 +16,11 @@ export interface CrmResponsiveListProps<T = any> {
   renderMobileCard?: (row: T, index: number) => React.ReactNode;
 }
 
-export function CrmResponsiveList<T extends Record<string, any>>({
+function cellValue(row: object, key: string): unknown {
+  return (row as Record<string, unknown>)[key];
+}
+
+export function CrmResponsiveList<T extends object>({
   columns,
   rows,
   caption,
@@ -26,7 +30,7 @@ export function CrmResponsiveList<T extends Record<string, any>>({
 }: CrmResponsiveListProps<T>) {
   const getKey = (row: T, index: number): string => {
     if (keyExtractor) return keyExtractor(row, index);
-    if (row.id) return String(row.id);
+    if (cellValue(row, 'id')) return String(cellValue(row, 'id') as string | number);
     return `row-${index}`;
   };
 
@@ -68,7 +72,7 @@ export function CrmResponsiveList<T extends Record<string, any>>({
                 <tr key={getKey(row, index)}>
                   {columns.map((col) => (
                     <td key={col.key}>
-                      {col.render ? col.render(row) : row[col.key]}
+                      {col.render ? col.render(row) : (cellValue(row, col.key) as React.ReactNode)}
                     </td>
                   ))}
                 </tr>
@@ -109,7 +113,7 @@ export function CrmResponsiveList<T extends Record<string, any>>({
                 {firstCol && (
                   <div className="crm-v2-mobile-card-header">
                     <div className="crm-v2-mobile-card-title">
-                      {firstCol.render ? firstCol.render(row) : row[firstCol.key]}
+                      {firstCol.render ? firstCol.render(row) : (cellValue(row, firstCol.key) as React.ReactNode)}
                     </div>
                   </div>
                 )}
@@ -117,7 +121,7 @@ export function CrmResponsiveList<T extends Record<string, any>>({
                   <div key={col.key} className="crm-v2-mobile-card-row">
                     <span className="crm-v2-mobile-card-label">{col.label}</span>
                     <span className="crm-v2-mobile-card-value">
-                      {col.render ? col.render(row) : row[col.key]}
+                      {col.render ? col.render(row) : (row[col.key] as React.ReactNode)}
                     </span>
                   </div>
                 ))}

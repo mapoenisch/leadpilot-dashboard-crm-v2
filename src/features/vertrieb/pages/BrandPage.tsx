@@ -21,7 +21,7 @@ export function BrandPage() {
         subtitle="Monatliche Entwicklung der digitalen Reichweite"
         sourceLabel="Web & Social Analytics"
       >
-        <SimpleChart config={BRAND.chart as any} />
+        <SimpleChart config={BRAND.chart} />
       </ChartFrame>
     </div>
   );

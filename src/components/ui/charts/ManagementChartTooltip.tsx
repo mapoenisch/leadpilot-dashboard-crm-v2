@@ -5,10 +5,10 @@ export interface ManagementChartTooltipProps {
   active?: boolean;
   payload?: Array<{
     name?: string;
-    value?: any;
+    value?: unknown;
     color?: string;
     dataKey?: string;
-    payload?: any;
+    payload?: Record<string, unknown>;
   }>;
   label?: string;
   sourceLabel?: string;

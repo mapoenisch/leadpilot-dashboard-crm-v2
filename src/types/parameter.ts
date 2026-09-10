@@ -8,7 +8,7 @@ export interface ChannelMix {
   outbound: number; // percentage (0-100)
 }
 
-export interface ParameterDefinition<T = any> {
+export interface ParameterDefinition<T = unknown> {
   id: string;
   label: string;
   description: string;

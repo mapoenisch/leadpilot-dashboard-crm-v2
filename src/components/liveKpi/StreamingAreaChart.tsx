@@ -180,7 +180,7 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
                     color: '#ffffff',
                     boxShadow: '0 0 15px rgba(0, 242, 254, 0.15)',
                   }}
-                  formatter={(val: any) => [formatEur(Number(val)), 'ARR']}
+                  formatter={(val: unknown) => [formatEur(Number(val)), 'ARR']}
                   labelFormatter={(lbl) => `Zeit: ${lbl}`}
                 />
                 <Area
@@ -192,7 +192,7 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
                   fill="url(#liveArrAreaGradient)"
                   isAnimationActive={!shouldReduceMotion}
                   animationDuration={200}
-                  dot={(props: any) => {
+                  dot={(props: { index?: number; key?: string; cx?: number; cy?: number }) => {
                     const isLast = props.index === chartData.length - 1;
                     if (!isLast) return <g key={props.key || `empty-${props.index}`} />;
                     return (
@@ -256,9 +256,9 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
         </span>
         {hasData ? (
           <span>
-            {chartData.length} Datenpunkte im Fenster. Start: {chartData[0].timeLabel} (
-            {formatEur(chartData[0].value)}), Aktuell: {chartData[chartData.length - 1].timeLabel} (
-            {formatEur(chartData[chartData.length - 1].value)}).
+            {chartData.length} Datenpunkte im Fenster. Start: {chartData[0]?.timeLabel} (
+            {formatEur(chartData[0]?.value ?? 0)}), Aktuell: {chartData[chartData.length - 1]?.timeLabel} (
+            {formatEur(chartData[chartData.length - 1]?.value ?? 0)}).
           </span>
         ) : (
           <span>{statusText}</span>

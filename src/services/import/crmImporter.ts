@@ -1,10 +1,11 @@
-import { Company, Contact, ImportedFunnelDeal, ImportAuditSummary } from '@/types/crm';
+import { Activity, Company, Contact, ImportedFunnelDeal, ImportAuditSummary } from '@/types/crm';
 import { RAW_COMPANIES_CSV, RAW_CONTACTS_CSV, RAW_DEALS_CSV } from '@/services/import/rawCsvData';
 
 export interface CrmImportResult {
   companies: Company[];
   contacts: Contact[];
   importedFunnelDeals: ImportedFunnelDeal[];
+  activities?: Activity[];
   audit: ImportAuditSummary;
   companyMap: Record<string, Company>; // id -> Company
 }

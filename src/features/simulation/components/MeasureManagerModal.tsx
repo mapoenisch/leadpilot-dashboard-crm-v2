@@ -108,8 +108,8 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
       const result = await previewMeasures(draftMeasures, 50);
       setPreviewDeltas(result.kpiDeltas);
       setPreviewConflicts(result.conflicts);
-    } catch (err: any) {
-      setPreviewError(err.message || 'Fehler bei der Wirkungsvorschau');
+    } catch (err) {
+      setPreviewError((err instanceof Error ? err.message : '') || 'Fehler bei der Wirkungsvorschau');
     } finally {
       setIsPreviewing(false);
     }

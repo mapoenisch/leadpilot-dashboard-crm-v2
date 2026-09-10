@@ -9,6 +9,10 @@ import { BaselineComparisonMode, GoalTarget } from '../../../types/kpi';
 import { MetricStats, TimeSeriesPoint } from '../../../types/aggregation';
 import { SimulationRun } from '../../../types/scenario';
 
+interface KpiAggSource {
+  metrics: { arr: MetricStats; mrr: MetricStats; customers: MetricStats };
+}
+
 export type SelectedKpiKey =
   | 'liveARR'
   | 'liveMRR'
@@ -25,7 +29,7 @@ const KPI_CONFIGS: {
   baseline: number;
   target?: GoalTarget;
   timeSeriesExtractor: (pt: TimeSeriesPoint) => number;
-  statsExtractor: (agg: any) => MetricStats;
+  statsExtractor: (agg: KpiAggSource) => MetricStats;
   runValueExtractor: (run: SimulationRun) => number;
 }[] = [
   {

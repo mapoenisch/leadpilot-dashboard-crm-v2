@@ -2,6 +2,43 @@ import { Company, Contact, ImportedFunnelDeal, ImportAuditSummary, Lead, LeadSta
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { seedSupabaseDatabase, SeedResult } from '../import/crmSeeder';
 import { dataSourceRegistry } from '../data';
+
+/** Rohzeilen aus Supabase (`select('*')` ohne Schema-Typen) — snake_case oder camelCase. */
+interface CompanyDbRow {
+  id: string;
+  domain?: string;
+  name: string;
+  industry: string;
+  city: string;
+  postal_code?: string;
+  postalCode?: string;
+  employee_count?: number;
+  employeeCount?: number;
+}
+
+interface ContactDbRow {
+  id: string;
+  company_id?: string;
+  companyId?: string;
+  email: string;
+  first_name?: string;
+  firstName?: string;
+  last_name?: string;
+  lastName?: string;
+  job_title?: string;
+  jobTitle?: string;
+}
+
+interface DealDbRow {
+  id: string;
+  deal_name?: string;
+  dealName?: string;
+  stage: string;
+  amount: string | number;
+  close_date?: string;
+  closeDate?: string;
+  pipeline: string;
+}
 import { logger } from '@/services/logger';
 
 export class CRMRepository {
@@ -17,7 +54,7 @@ export class CRMRepository {
           .order('name', { ascending: true });
 
         if (!error && data && data.length > 0) {
-          return data.map((row: any) => ({
+          return data.map((row: CompanyDbRow) => ({
             id: row.id,
             domain: row.domain,
             name: row.name,
@@ -55,7 +92,7 @@ export class CRMRepository {
           .order('last_name', { ascending: true });
 
         if (!error && data && data.length > 0) {
-          return data.map((row: any) => ({
+          return data.map((row: ContactDbRow) => ({
             id: row.id,
             companyId: row.company_id || row.companyId,
             email: row.email,
@@ -92,11 +129,11 @@ export class CRMRepository {
           .order('close_date', { ascending: false });
 
         if (!error && data && data.length > 0) {
-          return data.map((row: any) => ({
+          return data.map((row: DealDbRow) => ({
             id: row.id,
             dealName: row.deal_name || row.dealName,
             stage: row.stage,
-            amount: parseFloat(row.amount) || 0,
+            amount: parseFloat(String(row.amount)) || 0,
             closeDate: row.close_date || row.closeDate,
             pipeline: row.pipeline,
           }));

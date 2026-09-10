@@ -108,8 +108,8 @@ export interface ParameterDiffItem {
   key: keyof ScenarioParameters;
   label: string;
   unit: string;
-  valueA: any;
-  valueB: any;
+  valueA: ScenarioParameters[keyof ScenarioParameters];
+  valueB: ScenarioParameters[keyof ScenarioParameters];
   hasChanged: boolean;
   delta?: number;
   deltaPercent?: number;
@@ -161,7 +161,7 @@ export interface ParameterMatrixRow {
   key: keyof ScenarioParameters;
   label: string;
   unit: string;
-  valuesByVersionId: Record<string, any>;
+  valuesByVersionId: Record<string, ScenarioParameters[keyof ScenarioParameters]>;
   formattedValuesByVersionId: Record<string, string>;
   hasChangedAgainstRef: Record<string, boolean>;
 }

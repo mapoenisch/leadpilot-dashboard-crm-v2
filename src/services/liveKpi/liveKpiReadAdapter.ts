@@ -49,25 +49,26 @@ export function computeBackoffDelay(attempt: number): number {
 /**
  * Wandelt eine Rohzeile aus public.live_kpi_public_feed in einen typisierten LiveKpiSnapshot um.
  */
-function mapRowToSnapshot(row: any): LiveKpiSnapshot | null {
+function mapRowToSnapshot(row: unknown): LiveKpiSnapshot | null {
   if (!row || typeof row !== 'object') {
     return null;
   }
 
-  const numValue = typeof row.value === 'number' ? row.value : parseFloat(String(row.value));
+  const record = row as Record<string, unknown>;
+  const numValue = typeof record.value === 'number' ? record.value : parseFloat(String(record.value));
   if (isNaN(numValue)) {
     return null;
   }
 
   return {
-    id: String(row.id || ''),
-    kpiId: String(row.kpi_id || ''),
+    id: String(record.id || ''),
+    kpiId: String(record.kpi_id || ''),
     value: numValue,
-    unit: String(row.unit || ''),
-    occurredAt: String(row.occurred_at || ''),
-    qualityStatus: row.quality_status === 'degraded' ? 'degraded' : 'valid',
-    sourceSystem: String(row.source_system || ''),
-    ingestedAt: String(row.ingested_at || ''),
+    unit: String(record.unit || ''),
+    occurredAt: String(record.occurred_at || ''),
+    qualityStatus: record.quality_status === 'degraded' ? 'degraded' : 'valid',
+    sourceSystem: String(record.source_system || ''),
+    ingestedAt: String(record.ingested_at || ''),
   };
 }
 

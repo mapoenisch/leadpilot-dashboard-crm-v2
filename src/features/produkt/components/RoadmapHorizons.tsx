@@ -286,7 +286,7 @@ export const RoadmapHorizons: React.FC = () => {
               {
                 key: 'status',
                 label: 'Status',
-                render: (r: any) => (
+                render: (r: typeof ROADMAP.releases[number]) => (
                   <Badge
                     variant={
                       r.status === 'Released'

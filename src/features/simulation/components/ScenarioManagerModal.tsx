@@ -70,7 +70,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     discountPercent: activeVersion?.parameters.discountPercent ?? 12,
   });
 
-  const handleParamChange = (field: keyof ScenarioParameters, val: any) => {
+  const handleParamChange = (field: keyof ScenarioParameters, val: ScenarioParameters[keyof ScenarioParameters]) => {
     setFormParams((prev) => ({ ...prev, [field]: val }));
     setValidationError(null);
   };
@@ -98,8 +98,8 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       // Auto-set version B to the newly created version and switch to diff
       setDiffVersionIdB(newVer.id);
       setActiveTab('diff');
-    } catch (err: any) {
-      setValidationError(err.message || 'Fehler beim Erstellen der Version.');
+    } catch (err) {
+      setValidationError((err instanceof Error ? err.message : '') || 'Fehler beim Erstellen der Version.');
     }
   };
 
@@ -139,7 +139,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'label',
       label: 'Parameter',
-      render: (r: any) => (
+      render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
         <div>
           <strong style={{ color: r.hasChanged ? 'var(--color-primary)' : 'var(--color-text)' }}>
             {r.label}
@@ -153,7 +153,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'formattedValueA',
       label: `Version A (v${comparisonResult?.versionA.versionNumber ?? 'A'})`,
-      render: (r: any) => (
+      render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--color-text)' }}>
           {r.formattedValueA}
         </span>
@@ -162,7 +162,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'formattedValueB',
       label: `Version B (v${comparisonResult?.versionB.versionNumber ?? 'B'})`,
-      render: (r: any) => (
+      render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
         <span
           style={{
             fontFamily: 'var(--font-mono)',
@@ -178,7 +178,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'delta',
       label: 'Änderung / Delta (Δ)',
-      render: (r: any) => {
+      render: (r: VersionComparisonResult['parameterDiffs'][number]) => {
         if (!r.hasChanged) {
           return <Badge variant="neutral">Unverändert</Badge>;
         }
@@ -208,7 +208,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'label',
       label: 'KPI (Kennzahl)',
-      render: (r: any) => (
+      render: (r: VersionComparisonResult['kpiComparisons'][number]) => (
         <div>
           <strong style={{ color: 'var(--color-text)' }}>{r.label}</strong>
           <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginLeft: '6px' }}>
@@ -220,7 +220,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'baselineValue',
       label: 'Baseline 2026',
-      render: (r: any) => (
+      render: (r: VersionComparisonResult['kpiComparisons'][number]) => (
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
           {r.baselineValue.toLocaleString('de-DE')} {r.unit}
         </span>
@@ -229,7 +229,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'valueA',
       label: `Version A (v${comparisonResult?.versionA.versionNumber ?? 'A'})`,
-      render: (r: any) => {
+      render: (r: VersionComparisonResult['kpiComparisons'][number]) => {
         if (!r.hasResultA) {
           return <Badge variant="neutral">Simulation ausstehend</Badge>;
         }
@@ -253,7 +253,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'valueB',
       label: `Version B (v${comparisonResult?.versionB.versionNumber ?? 'B'})`,
-      render: (r: any) => {
+      render: (r: VersionComparisonResult['kpiComparisons'][number]) => {
         if (!r.hasResultB) {
           return <Badge variant="neutral">Simulation ausstehend</Badge>;
         }
@@ -277,7 +277,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     {
       key: 'comparisonAB',
       label: 'Delta vA ➔ vB',
-      render: (r: any) => {
+      render: (r: VersionComparisonResult['kpiComparisons'][number]) => {
         if (!r.hasResultA || !r.hasResultB || !r.comparisonAB) {
           return <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>– (Simulation ausstehend)</span>;
         }

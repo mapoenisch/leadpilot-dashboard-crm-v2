@@ -46,7 +46,7 @@ export function LeadsPage() {
       setContacts(conts);
       setImportedFunnelDeals(deals);
       setAudit(auditSummary);
-    } catch (err) {
+    } catch {
       logger.error('Error loading CRM data from repository:', err);
     } finally {
       setLoading(false);
@@ -67,7 +67,7 @@ export function LeadsPage() {
       if (result.success) {
         await loadDataFromRepository();
       }
-    } catch (err: any) {
+    } catch (err) {
       setSeedResult({
         success: false,
         companiesInserted: 0,

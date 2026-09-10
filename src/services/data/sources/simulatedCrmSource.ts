@@ -15,7 +15,7 @@ export const simulatedCrmSource: DataSource = {
       companies: d.companies,
       contacts: d.contacts,
       deals: d.importedFunnelDeals,
-      activities: (d as any).activities ?? [],
+      activities: d.activities ?? [],
       audit: d.audit,
     };
   },

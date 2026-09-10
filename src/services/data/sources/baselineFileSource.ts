@@ -1,6 +1,6 @@
 import { DataSource, CrmReadModel, DataSourceError } from '../../../types/dataSource';
 
-const FILES: Record<string, () => Promise<any>> = {
+const FILES: Record<string, () => Promise<{ default: CrmReadModel }>> = {
   '2026-08-31-v1': () => import('../baselines/baseline-2026-08-31-v1.json'),
   '2026-09-15-v2': () => import('../baselines/baseline-2026-09-15-v2.json'),
 };
@@ -19,8 +19,7 @@ export function makeBaselineFileSource(version: string): DataSource {
       if (!loader) {
         throw new DataSourceError('UNKNOWN_SOURCE', `Baseline-Datei "${version}" fehlt.`);
       }
-      const mod = await loader();
-      const ds = mod.default ?? mod;
+      const ds = (await loader()).default;
       return {
         companies: ds.companies,
         contacts: ds.contacts,

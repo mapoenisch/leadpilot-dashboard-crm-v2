@@ -114,8 +114,8 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
       const adopted = adoptConfiguration(adoptTargetVersionId, activeScenario.id);
       setAdoptMessage(`Konfiguration aus v${adopted.versionNumber} erfolgreich als neue Arbeitsversion (v${adopted.versionNumber}) übernommen.`);
       setTimeout(() => setAdoptMessage(null), 5000);
-    } catch (err: any) {
-      setAdoptMessage(`Fehler bei der Übernahme: ${err.message}`);
+    } catch (err) {
+      setAdoptMessage(`Fehler bei der Übernahme: ${(err instanceof Error ? err.message : '') || 'Unbekannter Fehler'}`);
     }
   };
 

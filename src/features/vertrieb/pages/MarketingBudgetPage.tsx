@@ -14,7 +14,7 @@ export function MarketingBudgetPage() {
         subtitle="Soll-Budget im Vergleich zu den tatsächlichen Ausgaben 2025"
         sourceLabel="Finanzcontrolling"
       >
-        <SimpleChart config={MBUDGET.chartSpend as any} />
+        <SimpleChart config={MBUDGET.chartSpend} />
       </ChartFrame>
       <Card padding="0">
         <Table columns={MBUDGET.headers.map((h, i) => ({ key: String(i), label: h }))} rows={MBUDGET.rows.map(r => ({ 0: r[0], 1: r[1], 2: r[2], 3: r[3], 4: r[4], 5: r[5], 6: r[6] }))} />

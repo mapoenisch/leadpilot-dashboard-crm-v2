@@ -27,7 +27,7 @@ export interface ManagementChartSeries {
 }
 
 export interface ManagementChartProps {
-  data: Array<Record<string, any>>;
+  data: Array<Record<string, unknown>>;
   xKey: string;
   series: ManagementChartSeries[];
   type?: 'area' | 'line' | 'bar';

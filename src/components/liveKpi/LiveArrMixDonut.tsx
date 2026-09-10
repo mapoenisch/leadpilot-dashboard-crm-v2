@@ -195,8 +195,8 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
                     color: '#ffffff',
                     boxShadow: '0 0 15px rgba(0, 242, 254, 0.15)',
                   }}
-                  formatter={(val: any, name: any, item: any) => [
-                    `${formatEur(Number(val))} (${item.payload.pct}%)`,
+                  formatter={(val: unknown, name: unknown, item: { payload?: { pct?: number } }) => [
+                    `${formatEur(Number(val))} (${item.payload?.pct}%)`,
                     name,
                   ]}
                 />

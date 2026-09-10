@@ -63,8 +63,10 @@ export class BaselineSnapshotService {
       }
     }
     for (const d of m.deals) {
-      if ((d as any).companyId && !companyIds.has((d as any).companyId)) {
-        throw new DataSourceError('INTEGRITY', `Deal ${(d as any).id} → unbekannte Company.`);
+      const companyId: unknown = (d as { companyId?: unknown }).companyId;
+      const dealId: unknown = (d as { id?: unknown }).id;
+      if (companyId && !companyIds.has(companyId as string)) {
+        throw new DataSourceError('INTEGRITY', `Deal ${String(dealId)} → unbekannte Company.`);
       }
     }
     const start = Date.parse(periodStart);

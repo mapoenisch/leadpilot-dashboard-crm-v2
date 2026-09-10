@@ -23,8 +23,8 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
     try {
       await runVersion(activeVersion.id);
       onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Fehler beim Starten des Runs.');
+    } catch (err) {
+      setErrorMsg((err instanceof Error ? err.message : '') || 'Fehler beim Starten des Runs.');
     }
   };
 
@@ -33,8 +33,8 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
     try {
       await reRun(activeVersion.id);
       onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Fehler beim Ausführen von Re-Run.');
+    } catch (err) {
+      setErrorMsg((err instanceof Error ? err.message : '') || 'Fehler beim Ausführen von Re-Run.');
     }
   };
 
@@ -46,8 +46,8 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
     try {
       await reproduce(selectedRunId);
       onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Fehler beim Reproduzieren des Runs.');
+    } catch (err) {
+      setErrorMsg((err instanceof Error ? err.message : '') || 'Fehler beim Reproduzieren des Runs.');
     }
   };
 

@@ -107,14 +107,14 @@ export async function seedSupabaseDatabase(): Promise<SeedResult> {
       dealsInserted: importedFunnelDeals.length,
       message: `Successfully seeded ${companies.length} Companies, ${contacts.length} Contacts, and ${importedFunnelDeals.length} Funnel Deals into Supabase!`,
     };
-  } catch (err: any) {
+  } catch (err) {
     return {
       success: false,
       companiesInserted: 0,
       contactsInserted: 0,
       dealsInserted: 0,
       message: 'Unexpected error during Supabase seeding.',
-      error: err.message || String(err),
+      error: (err instanceof Error ? err.message : '') || String(err),
     };
   }
 }

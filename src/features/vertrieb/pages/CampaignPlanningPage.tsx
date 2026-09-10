@@ -21,7 +21,7 @@ export function CampaignPlanningPage() {
         subtitle="Allokation der Mittel auf Kanäle und Maßnahmen"
         sourceLabel="Kampagnenplanung"
       >
-        <SimpleChart config={KAMPAGNE.chartKampbudget as any} />
+        <SimpleChart config={KAMPAGNE.chartKampbudget} />
       </ChartFrame>
     </div>
   );

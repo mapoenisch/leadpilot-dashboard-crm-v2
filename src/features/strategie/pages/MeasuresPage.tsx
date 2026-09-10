@@ -11,7 +11,7 @@ export function MeasuresPage() {
       <SectionHeader eyebrow="Strategie" title={MASSNAHMEN.title} description="Priorisiertes Maßnahmenportfolio." />
       <Card padding="0">
         <Table
-          columns={[{ key: 'name', label: 'Maßnahme' }, { key: 'prio', label: 'Priorität', render: (r: any) => <Badge variant="orange">{r.prio}</Badge> }, { key: 'owner', label: 'Owner' }]}
+          columns={[{ key: 'name', label: 'Maßnahme' }, { key: 'prio', label: 'Priorität', render: (r: (typeof MASSNAHMEN.items)[number]) => <Badge variant="orange">{r.prio}</Badge> }, { key: 'owner', label: 'Owner' }]}
           rows={MASSNAHMEN.items}
         />
       </Card>

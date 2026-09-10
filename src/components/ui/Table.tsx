@@ -1,19 +1,23 @@
 import React from 'react';
 
-export interface Column<T = any> {
+export interface Column<T = Record<string, unknown>> {
   key: string;
   label: string;
   render?: (row: T) => React.ReactNode;
 }
 
-export interface TableProps<T = any> {
+export interface TableProps<T = Record<string, unknown>> {
   columns: Column<T>[];
   rows: T[];
   emptyText?: string;
   minWidth?: string;
 }
 
-export function Table<T extends Record<string, any>>({
+function cellValue(row: object, key: string): unknown {
+  return (row as Record<string, unknown>)[key];
+}
+
+export function Table<T extends object>({
   columns = [],
   rows = [],
   emptyText = 'Keine Einträge vorhanden',
@@ -54,8 +58,8 @@ export function Table<T extends Record<string, any>>({
             </tr>
           ) : (
             rows.map((row, i) => (
-              <tr 
-                key={row.id || i} 
+              <tr
+                key={(cellValue(row, 'id') as string | number | undefined) || i} 
                 style={{ 
                   borderBottom: '1px solid var(--color-border-soft)',
                   transition: 'background 150ms ease',
@@ -65,7 +69,7 @@ export function Table<T extends Record<string, any>>({
               >
                 {columns.map((col) => (
                   <td key={col.key} style={{ padding: 'var(--space-3) var(--space-4)', color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                    {col.render ? col.render(row) : row[col.key]}
+                    {col.render ? col.render(row) : (cellValue(row, col.key) as React.ReactNode)}
                   </td>
                 ))}
               </tr>
