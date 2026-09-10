@@ -124,7 +124,8 @@ function normalizeHistory(rawItems: LiveKpiSnapshot[]): LiveKpiSnapshot[] {
   const sorted = [...rawItems].sort(compareSnapshots);
   const deduped: LiveKpiSnapshot[] = [];
   for (const item of sorted) {
-    if (deduped.length === 0 || compareSnapshots(deduped[deduped.length - 1], item) !== 0) {
+    const last = deduped[deduped.length - 1];
+    if (last === undefined || compareSnapshots(last, item) !== 0) {
       deduped.push(item);
     }
   }
@@ -413,7 +414,10 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
               let newSnapshot = entry.state.snapshot;
               if (merged.length > 0) {
                 const latestInMerged = merged[merged.length - 1];
-                if (newSnapshot === null || compareSnapshots(latestInMerged, newSnapshot) > 0) {
+                if (
+                  latestInMerged !== undefined &&
+                  (newSnapshot === null || compareSnapshots(latestInMerged, newSnapshot) > 0)
+                ) {
                   newSnapshot = latestInMerged;
                 }
               }
