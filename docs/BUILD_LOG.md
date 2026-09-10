@@ -89,6 +89,49 @@ Marc-Korrektur `9ec37ef` (Auftrag-Route `/resources/materials`, enthält die
 Auftrag an den Anfang gestellt). **Übergabe an Review (Codex/Claude Code).**
 Kein Merge, Tag.
 
+### Review (Claude Code) — 2026-09-10, Commits `c36c9b9`..`ff06408`
+
+**050-C selbst — alle Kriterien erfüllt, nachgestellt:**
+
+- Block 1: `verifyLiveKpiStream.ts` weg; `liveKpiIsolation.vitest.ts` deckt
+  3 Regeln × 4 Dateien ab (Quelltext-Lesetest, node-Projekt), `npm run test`
+  **33 Files / 133 Tests** grün. `livekpi-verifiers`-Job läuft nur noch
+  Catalog + PerformanceSurface — beide lokal grün; CI-Run `34524318830`
+  bestätigt den Job grün.
+- Block 3: leere `src/features/crm/data`-Ordner weg, 0 lebende Referenzen.
+- Matrix: `verify` 24 · `build` 0 · `tsc` **758** · `lint` **182** ·
+  `test:coverage` EXIT 0 — Ratschen unverändert.
+- Schutzbereiche seit `9ec37ef` leer: `src/features/resources`, `src/simulation`,
+  `package.json`, `vitest.config.ts`. Nur **neue** `visual-resources-materials-*`
+  PNGs, keine Bestands-Baseline angefasst.
+
+**P2 — sichtbare Größenänderung der Zoom-Anzeige (Ursprung: Auftrag 050
+Block D `edd027c`, jetzt durch den 050-C-Nachweis belegt).** Der `<span>` der
+Zoom-Prozentanzeige (`fontSize: "12px"`) wurde zu `<button>` mit
+`style={{ …, fontSize: "12px", …, font: "inherit" }}`. Das `font`-Shorthand
+setzt `font-size` auf den geerbten Wert zurück → die Anzeige rendert jetzt
+mit **≈16px statt 12px** (Builder-Messung: Button erbt 16px). Der neue Spec
+`resources-viewer.spec.ts` **schreibt genau diesen geänderten Zustand fest**
+(`fontSize === parentFontSize`), und die Route-Baselines zeigen den Viewer
+nicht (Modal beim Route-Load zu) — die Regression ist also nirgends
+abgesichert. Neben den 13px-Seitenzähler und die kleinen `−/+`-Buttons
+gestellt wirkt die 16px-Zahl überdimensioniert.
+**Fix (eine Zeile, `ResourceViewer.tsx`):** `font: "inherit"` weglassen und
+stattdessen nur `fontFamily: "inherit"` (+ ggf. `lineHeight: "inherit"`)
+setzen, `fontSize: "12px"` behalten — dann rendert der Button pixelgleich
+zum alten `<span>` und bleibt trotzdem ein echter Button.
+`resources-viewer.spec.ts` entsprechend auf `expect(fontSize).toBe('12px')`
+umstellen.
+
+**P3 — veralteter Kommentar.** `.github/workflows/ci.yml`, Job
+`livekpi-verifiers`: Kommentar sagt noch „alle 3 Live-KPI-Verifier laufen
+automatisch" — es sind nur noch 2. Eine Zeile.
+
+**Empfehlung:** Kurze Nacharbeit für P2 (Größe zurück auf 12px + Spec-Assertion
+schärfen) und P3 (Kommentar). Danach ist Auftrag 050 inkl. C abgeschlossen;
+G35 wartet weiter auf Auftrag 050-B (`src/simulation/`-Typhärtung).
+Kein Merge, Tag.
+
 ---
 
 ## 2026-09-10 — Gate G35 / Auftrag 050: Layering + Kleinbefunde (ohne Simulation)
