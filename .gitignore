@@ -3,6 +3,9 @@ dist/
 .env
 .DS_Store
 **/.DS_Store
+playwright-report/
+test-results/
+coverage/
 
 Archiv.zip
 .cdp_*

@@ -75,6 +75,23 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+  livekpi-verifiers:
+    # G31-Nacharbeit (Review 🔴2): die Live-KPI-Skripte verifyLiveKpiCatalog und
+    # verifyLiveKpiStream haben hier ihr automatisches Zuhause (vorher nur als
+    # Kindprozesse in verifyV21ReleaseReadiness §5, getrimmt in G31).
+    # verifyLivePerformanceSurface ist NICHT dabei: rot seit S8 (assertet die
+    # gelöschte captureAuftrag042-Datei) — braucht Skript-Fix außerhalb G31-Scope.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npx tsx scripts/verifyLiveKpiCatalog.ts
+      - run: npx tsx scripts/verifyLiveKpiStream.ts
+
   size-limit:
     runs-on: ubuntu-latest
     continue-on-error: true

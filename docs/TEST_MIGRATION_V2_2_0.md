@@ -151,6 +151,11 @@ revertiert), 25/25 Vitest-Tests grün, `verifyIntegrity.ts` vollständig erhalte
 - S5-Ergebnis (09.09.): 12 Baselines (`e2e/visual.spec.ts-snapshots/`, 4 Routen ×
   3 Viewports, `fullPage`). Lauf 1 angelegt, Lauf 2 + 3 je 12/12 grün —
   stabil ohne `mask:`, kein STOPP nötig.
+- Axe-Baseline für G35 (Nacharbeit 10.09.): `/dashboard` meldet 1× `serious`
+  (`scrollable-region-focusable` — `<main style="overflow-y: auto">` ohne
+  Tastaturzugriff, alle 3 Viewports, lokal wie CI). `/crm/leads`,
+  `/finance/p-and-l`, `/market/overview` sauber. Fix (`tabindex`/`role=region`)
+  ist G35-Scope (`src/`-Fix, nicht G31).
 
 ## Capture-Skripte — Determinismus-Analyse (S1, 2026-09-09)
 

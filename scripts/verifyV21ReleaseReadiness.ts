@@ -60,7 +60,7 @@ function guard(condition: boolean, message: string): void {
   console.log(`· ${message}`);
 }
 
-const EXPECTED_RELEASE_CHECKS = 48;
+const EXPECTED_RELEASE_CHECKS = 27;
 const RELEASE_READINESS_COUNT = '54/54';
 const A11Y_AUDIT_COUNT = '57/57';
 
@@ -228,95 +228,11 @@ if (fs.existsSync(a11yReadmePath)) {
 // ---------------------------------------------------------------
 
 // ---------------------------------------------------------------
-// 6. G26-PNG-Matrix: 12 Dateien + SHA-256 vs README
+// 6. (G31-Nacharbeit, Review-Q4) G26-PNG-Matrix entfernt: docs/screenshots/
+// liegt seit G29 im Archiv, der SHA-Check ist für v2 obsolet. Ersatz: Playwright
+// (e2e/visual.spec.ts + scripts/captureGateScreenshots.mjs). G43 bekommt eine
+// eigene Playwright-basierte Screenshot-Prüfung.
 // ---------------------------------------------------------------
-console.log('\n--- 6. G26-Screenshot-Matrix SHA-256-Verifikation ---');
-
-const screenshotDir = path.join(ROOT_DIR, 'docs/screenshots/auftrag-042');
-const matrixReadme = path.join(screenshotDir, 'README.md');
-assertFatal(fs.existsSync(matrixReadme), 'docs/screenshots/auftrag-042/README.md exists');
-
-const viewports = ['1440', '768', '375'] as const;
-const stages = ['vorher', 'nachher'] as const;
-const modes = ['deeplink', 'reload'] as const;
-
-// Parse SHA-256 aus der README-Tabelle
-const readmeSrc = fs.readFileSync(matrixReadme, 'utf8');
-
-/** Extrahiert den Hash für einen gegebenen Dateinamen aus der README-Tabelle.
- *  Tabelle 2 hat jede PNG auf einer eigenen Zeile (bevorzugte Quelle).
- *  Tabelle 1 enthält Vorher+Nachher in einer Zeile – dort nehmen wir den
- *  Hash, der nach der Position des gesuchten Dateinamens kommt.
- */
-function extractHash(filename: string): string | null {
-  for (const line of readmeSrc.split('\n')) {
-    if (!line.includes(filename)) continue;
-    const namePos = line.indexOf(filename);
-    // Alle 64-stelligen Hex-Hashes in der Zeile finden
-    const allHashes: Array<{ index: number; hash: string }> = [];
-    const re = /`([0-9a-f]{64})`/gi;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(line)) !== null) {
-      allHashes.push({ index: m.index, hash: m[1].toLowerCase() });
-    }
-    if (allHashes.length === 0) continue;
-    // Hash nach dem Dateinamen bevorzugen
-    const afterName = allHashes.find(h => h.index >= namePos);
-    if (afterName) return afterName.hash;
-    // Fallback: letzter Hash in der Zeile
-    return allHashes[allHashes.length - 1].hash;
-  }
-  return null;
-}
-
-const expectedPngs: string[] = [];
-for (const vp of viewports) {
-  for (const stage of stages) {
-    for (const mode of modes) {
-      expectedPngs.push(`dashboard-${vp}-${stage}-${mode}.png`);
-    }
-  }
-}
-
-assert(expectedPngs.length === 12, `Expected exactly 12 PNG filenames (got ${expectedPngs.length})`);
-
-// Überprüfe Existenz + Hash jeder PNG
-const hashMap: Record<string, string> = {};
-for (const pngName of expectedPngs) {
-  const pngPath = path.join(screenshotDir, pngName);
-  if (!fs.existsSync(pngPath)) {
-    assert(false, `PNG exists: ${pngName}`);
-    continue;
-  }
-  const buf = fs.readFileSync(pngPath);
-  const sha = crypto.createHash('sha256').update(buf).digest('hex').toLowerCase();
-  hashMap[pngName] = sha;
-
-  const expectedHash = extractHash(pngName);
-  if (expectedHash === null) {
-    assert(false, `README contains hash for ${pngName}`);
-  } else {
-    assert(sha === expectedHash, `SHA-256 matches README for ${pngName} (${sha.slice(0, 16)}…)`);
-  }
-}
-
-// Prüfe 6 DISTINCT Vorher-/Nachher-Paare
-console.log('\n  → Prüfe DISTINCT-Paare:');
-let distinctCount = 0;
-for (const vp of viewports) {
-  for (const mode of modes) {
-    const vorher = `dashboard-${vp}-vorher-${mode}.png`;
-    const nachher = `dashboard-${vp}-nachher-${mode}.png`;
-    const hVor = hashMap[vorher];
-    const hNach = hashMap[nachher];
-    if (hVor && hNach) {
-      const isDistinct = hVor !== hNach;
-      if (isDistinct) distinctCount++;
-      assert(isDistinct, `${vp} ${mode}: vorher ≠ nachher (DISTINCT pair)`);
-    }
-  }
-}
-assert(distinctCount === 6, `All 6 Vorher-/Nachher-Paare are DISTINCT (found ${distinctCount})`);
 
 // ---------------------------------------------------------------
 // 7. Git-Diff fc48233..HEAD – nur erlaubte Dateien
