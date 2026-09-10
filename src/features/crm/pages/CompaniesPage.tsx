@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from '@/services/logger';
 import { CRMRepository } from '@/services/db/crmRepository';
 import { Company } from '@/types/crm';
 import { CompaniesView } from '../components/CompaniesView';
@@ -17,7 +18,7 @@ export function CompaniesPage() {
         }
       })
       .catch((err) => {
-        console.error('Error loading companies:', err);
+        logger.error('Error loading companies:', err);
       })
       .finally(() => {
         if (isMounted) {

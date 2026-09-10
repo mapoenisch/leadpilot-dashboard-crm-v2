@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { logger } from '@/services/logger';
 import { getPipelineOverview, PipelineOverview } from '@/domain/executiveCockpitData';
 import { CRMRepository } from '@/services/db/crmRepository';
 import { formatManagementMetric } from '@/components/ui/charts/managementChartTheme';
@@ -20,7 +21,7 @@ export const PipelineSnapshot: React.FC = () => {
         }
       })
       .catch((err) => {
-        console.error('Fehler beim Laden des Pipeline-Snapshots:', err);
+        logger.error('Fehler beim Laden des Pipeline-Snapshots:', err);
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Fehler beim Laden der CRM-Deals');
         }

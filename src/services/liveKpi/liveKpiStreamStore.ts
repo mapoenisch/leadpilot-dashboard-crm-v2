@@ -9,6 +9,7 @@
  */
 
 import { isSupportedLiveKpiId } from './liveKpiDefinitions';
+import { logger } from '@/services/logger';
 import {
   isLiveKpiReadConfigured,
   fetchLatestLiveKpi,
@@ -197,7 +198,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
       try {
         listener();
       } catch (err) {
-        console.warn(`[LiveKpiStreamStore] Error in listener for "${entry.kpiId}":`, err);
+        logger.warn(`[LiveKpiStreamStore] Error in listener for "${entry.kpiId}":`, err);
       }
     }
   }

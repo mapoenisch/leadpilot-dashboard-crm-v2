@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from '@/services/logger';
 import { Card } from './Card';
 import { Button } from './Button';
 
@@ -26,7 +27,7 @@ export class RouteErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('[RouteErrorBoundary] Uncaught route error:', error, errorInfo);
+    logger.error('[RouteErrorBoundary] Uncaught route error:', error, errorInfo);
   }
 
   componentDidUpdate(prevProps: RouteErrorBoundaryProps): void {

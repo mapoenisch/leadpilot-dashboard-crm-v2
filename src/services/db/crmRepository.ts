@@ -2,6 +2,7 @@ import { Company, Contact, ImportedFunnelDeal, ImportAuditSummary, Lead, Deal, A
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { seedSupabaseDatabase, SeedResult } from '../import/crmSeeder';
 import { dataSourceRegistry } from '../data';
+import { logger } from '@/services/logger';
 
 export class CRMRepository {
   /**
@@ -27,7 +28,7 @@ export class CRMRepository {
           }));
         }
       } catch (e) {
-        console.warn('Supabase fetch failed for companies, using fallback repository data.', e);
+        logger.warn('Supabase fetch failed for companies, using fallback repository data.', e);
       }
     }
     const snapshot = await dataSourceRegistry.getActive().fetchSnapshot();
@@ -64,7 +65,7 @@ export class CRMRepository {
           }));
         }
       } catch (e) {
-        console.warn('Supabase fetch failed for contacts, using fallback repository data.', e);
+        logger.warn('Supabase fetch failed for contacts, using fallback repository data.', e);
       }
     }
     const snapshot = await dataSourceRegistry.getActive().fetchSnapshot();
@@ -101,7 +102,7 @@ export class CRMRepository {
           }));
         }
       } catch (e) {
-        console.warn('Supabase fetch failed for imported funnel deals, using fallback repository data.', e);
+        logger.warn('Supabase fetch failed for imported funnel deals, using fallback repository data.', e);
       }
     }
     const snapshot = await dataSourceRegistry.getActive().fetchSnapshot();

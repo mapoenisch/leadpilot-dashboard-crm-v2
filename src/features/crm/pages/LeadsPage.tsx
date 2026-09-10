@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from '@/services/logger';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -46,7 +47,7 @@ export function LeadsPage() {
       setImportedFunnelDeals(deals);
       setAudit(auditSummary);
     } catch (err) {
-      console.error('Error loading CRM data from repository:', err);
+      logger.error('Error loading CRM data from repository:', err);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from '@/services/logger';
 import { CRMRepository } from '@/services/db/crmRepository';
 import { ImportedFunnelDeal } from '@/types/crm';
 import { DealsView } from '../components/DealsView';
@@ -17,7 +18,7 @@ export function DealsPage() {
         }
       })
       .catch((err) => {
-        console.error('Error loading deals:', err);
+        logger.error('Error loading deals:', err);
       })
       .finally(() => {
         if (isMounted) {

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { logger } from '@/services/logger';
 import { useSimulation } from '../../../context/SimulationContext';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
@@ -108,7 +109,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
     try {
       return scenarioService.compareVersions(diffVersionIdA, diffVersionIdB);
     } catch (err) {
-      console.warn('Could not compute version comparison:', err);
+      logger.warn('Could not compute version comparison:', err);
       return null;
     }
   }, [scenarioService, diffVersionIdA, diffVersionIdB]);

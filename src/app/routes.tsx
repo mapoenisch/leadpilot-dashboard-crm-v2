@@ -1,4 +1,5 @@
 import { NAV_CATEGORIES } from '@/domain/navData';
+import { logger } from '@/services/logger';
 
 export interface AppRouteMeta {
   id: string;
@@ -109,7 +110,7 @@ if (import.meta.env.DEV) {
   for (const cat of NAV_CATEGORIES) {
     for (const item of cat.items) {
       if (allNavIds.has(item.id)) {
-        console.error(`[routes.tsx] Doppelte ID in NAV_CATEGORIES gefunden: ${item.id}`);
+        logger.error(`[routes.tsx] Doppelte ID in NAV_CATEGORIES gefunden: ${item.id}`);
       }
       allNavIds.add(item.id);
     }
@@ -117,12 +118,12 @@ if (import.meta.env.DEV) {
 
   for (const navId of allNavIds) {
     if (!routeForViewId[navId]) {
-      console.error(`[routes.tsx] Fehlende Route-Metadaten für View-ID: ${navId}`);
+      logger.error(`[routes.tsx] Fehlende Route-Metadaten für View-ID: ${navId}`);
     }
   }
 
   if (APP_ROUTES.length !== allNavIds.size) {
-    console.error(
+    logger.error(
       `[routes.tsx] Anzahl Routen (${APP_ROUTES.length}) weicht von NAV_CATEGORIES (${allNavIds.size}) ab!`
     );
   }

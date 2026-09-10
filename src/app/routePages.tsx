@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from '@/services/logger';
 import { APP_ROUTES, AppRouteId } from './routes';
 
 // 1. Übersicht
@@ -307,19 +308,19 @@ if (import.meta.env.DEV) {
   const seenIds = new Set<string>();
   for (const entry of ROUTE_PAGE_ENTRIES) {
     if (seenIds.has(entry.id)) {
-      console.error(`[routePages.tsx] Doppelte ID in ROUTE_PAGE_ENTRIES gefunden: ${entry.id}`);
+      logger.error(`[routePages.tsx] Doppelte ID in ROUTE_PAGE_ENTRIES gefunden: ${entry.id}`);
     }
     seenIds.add(entry.id);
   }
 
   for (const route of APP_ROUTES) {
     if (!seenIds.has(route.id)) {
-      console.error(`[routePages.tsx] Fehlende Page-Komponente für Route-ID: ${route.id}`);
+      logger.error(`[routePages.tsx] Fehlende Page-Komponente für Route-ID: ${route.id}`);
     }
   }
 
   if (ROUTE_PAGE_ENTRIES.length !== APP_ROUTES.length) {
-    console.error(
+    logger.error(
       `[routePages.tsx] Anzahl der Page-Einträge (${ROUTE_PAGE_ENTRIES.length}) weicht von APP_ROUTES (${APP_ROUTES.length}) ab!`
     );
   }
