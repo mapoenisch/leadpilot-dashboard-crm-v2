@@ -136,8 +136,10 @@ export default tseslint.config(
             // Das Plugin interpretiert `target` als Dateipfad (kein Regex). Eine per-Feature-Zone
             // mit `except: ['./src/features/X']` schließt intra-Feature-Subimporte (z.B.
             // FeatureView.tsx → ./pages/FooPage) nicht aus — sie würden als Verstöße gemeldet.
-            // Dediziertes Werkzeug (z.B. eslint-plugin-boundaries oder custom rule) in G35.
-            // Bekannter Verstoß: src/features/crm/pages/LiveSimulationPage.tsx → @/features/simulation/
+            // Dediziertes Werkzeug (z.B. eslint-plugin-boundaries oder custom rule) in G38.
+            // Der bekannte Verstoß (LiveSimulationPage crm → simulation) ist in G35
+            // behoben (Page nach features/simulation/pages umgezogen); die enforcing
+            // Regel für die horizontale Grenze kommt in G38.
           ],
         },
       ],

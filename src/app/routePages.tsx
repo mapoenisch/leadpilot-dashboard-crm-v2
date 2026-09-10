@@ -25,7 +25,7 @@ const DataBasisPage = React.lazy(() =>
 
 // 2. CRM & Pipeline
 const LiveSimulationPage = React.lazy(() =>
-  import('@/features/crm/pages/LiveSimulationPage').then((m) => ({
+  import('@/features/simulation/pages/LiveSimulationPage').then((m) => ({
     default: m.LiveSimulationPage,
   }))
 );
