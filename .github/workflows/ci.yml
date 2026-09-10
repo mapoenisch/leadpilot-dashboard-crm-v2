@@ -124,10 +124,16 @@ jobs:
             playwright-chromium-${{ runner.os }}-
       - run: npx playwright install --with-deps chromium
       - run: npx vite build
-      - run: npx playwright test
+      - run: npx playwright test --update-snapshots
       - name: Playwright-Report als Artefakt
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
+      - name: Linux-Snapshots als Artefakt (einmalig, Review N6)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-snapshots
+          path: e2e/visual.spec.ts-snapshots/
