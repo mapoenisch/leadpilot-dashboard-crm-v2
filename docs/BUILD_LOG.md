@@ -42,6 +42,22 @@ Ein Commit, kein Merge/Tag, kein Push (nicht beauftragt).
 **Ergebnis:** P2 + P3 behoben, alle Gates grün. Auftrag 050 inkl. C damit
 aus Builder-Sicht abgeschlossen; G35 wartet auf 050-B. **Übergabe an Review.**
 
+### Review (Claude Code) — 2026-09-10, Commit `2e7628d` — **FREIGABE 050 + 050-C**
+
+Nachgestellt: `ResourceViewer.tsx` — `fontFamily: "inherit"` statt `font: "inherit"`,
+`fontSize: "12px"` bleibt wirksam → Zoom-Anzeige rendert pixelgleich zum alten
+`<span>`, Button-Chrome weiterhin neutralisiert (`transparent`/`none`/`0`), bleibt
+ein echter `<button>`. Spec pinnt jetzt `toBe('12px')`. CI-Kommentar korrekt.
+Diff seit `ec44820` = nur die 1 beauftragte `ResourceViewer`-Zeile + Spec + CI-
+Kommentar + Bericht; keine Baseline-PNG, kein `src/simulation`, kein
+`package.json`. Matrix bestätigt: `test` 133 · `verify` 24 · `build` 0 ·
+`tsc` 758 · `lint` 182.
+
+**Auftrag 050 (Blöcke A–H) + 050-C sind aus Reviewer-Sicht bestanden.**
+Offen für Gate G35 als Ganzes: **Auftrag 050-B** (`src/simulation/`-Typhärtung:
+~66 `any`, ~61 `console.*`, ~31 `no-unused-vars`, 5 `prefer-const`, ~526 `tsc`).
+Kein Merge, Tag, Push bis Marcs Freigabe.
+
 ---
 
 ## 2026-09-10 — Gate G35 / Auftrag 050-C: Verifier-Bereinigung + Resources-Nachweis
