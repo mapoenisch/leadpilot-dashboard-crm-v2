@@ -1,8 +1,8 @@
 import { DataSource, CrmReadModel, DataSourceError } from '../../../types/dataSource';
 
 const FILES: Record<string, () => Promise<any>> = {
-  '2026-08-31-v1': () => import('../../../features/crm/data/baselines/baseline-2026-08-31-v1.json'),
-  '2026-09-15-v2': () => import('../../../features/crm/data/baselines/baseline-2026-09-15-v2.json'),
+  '2026-08-31-v1': () => import('../baselines/baseline-2026-08-31-v1.json'),
+  '2026-09-15-v2': () => import('../baselines/baseline-2026-09-15-v2.json'),
 };
 
 export function makeBaselineFileSource(version: string): DataSource {

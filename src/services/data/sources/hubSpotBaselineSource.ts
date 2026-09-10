@@ -2,7 +2,7 @@ import { DataSource, CrmReadModel, DataSourceError } from '../../../types/dataSo
 
 const FILES: Record<string, () => Promise<any>> = {
   fixture: () => import('../../../simulation/__tests__/fixtures/baseline-hubspot-fixture.json'),
-  '2026-09-01': () => import('../../../features/crm/data/baselines/baseline-hubspot-2026-09-01.json'),
+  '2026-09-01': () => import('../baselines/baseline-hubspot-2026-09-01.json'),
 };
 
 export function makeHubSpotBaselineSource(version: string): DataSource {

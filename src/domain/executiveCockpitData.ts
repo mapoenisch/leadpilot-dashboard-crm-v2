@@ -1,8 +1,15 @@
 import { EXEC_KPIS_1, CHART_ARR, CHART_MRR } from './execData';
 import { getOrganisationStructure, HR, TEAM, OrganisationUnit } from './organisationData';
 import { ROADMAP, RoadmapRelease } from './produktData';
-import { CRMRepository } from '@/services/db/crmRepository';
 import { ImportedFunnelDeal } from '@/types/crm';
+
+/**
+ * Schmale Datenquelle für die Pipeline-Aggregation (Dependency Inversion:
+ * domain importiert kein Repository; der Aufrufer reicht es herein).
+ */
+export interface FunnelDealSource {
+  getImportedFunnelDeals(): Promise<ImportedFunnelDeal[]>;
+}
 
 export interface CockpitKpiItem {
   id: string;
@@ -195,8 +202,8 @@ export function getRoadmapSnapshot(): {
  * Wirft bei fehlerhaften Deal-Daten einen expliziten Fehler, der im UI als ehrlicher
  * Error-State visualisiert wird.
  */
-export async function getPipelineOverview(): Promise<PipelineOverview> {
-  const deals: ImportedFunnelDeal[] = await CRMRepository.getImportedFunnelDeals();
+export async function getPipelineOverview(source: FunnelDealSource): Promise<PipelineOverview> {
+  const deals: ImportedFunnelDeal[] = await source.getImportedFunnelDeals();
 
   if (!Array.isArray(deals) || deals.length === 0) {
     return {

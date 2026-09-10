@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getPipelineOverview, PipelineOverview } from '@/domain/executiveCockpitData';
+import { CRMRepository } from '@/services/db/crmRepository';
 import { formatManagementMetric } from '@/components/ui/charts/managementChartTheme';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { Layers, CheckCircle2, Clock } from 'lucide-react';
@@ -11,7 +12,7 @@ export const PipelineSnapshot: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    getPipelineOverview()
+    getPipelineOverview(CRMRepository)
       .then((data) => {
         if (isMounted) {
           setPipeline(data);

@@ -2,7 +2,7 @@ import { dataSourceRegistry } from '../../services/data';
 import { BaselineSnapshotService } from '../../services/data/baselineSnapshotService';
 import { DataSourceError } from '../../types/dataSource';
 import { CRMRepository } from '../../services/db/crmRepository';
-import { resolveRunSourceAudit } from '../../features/simulation/components/AuditTierView';
+import { resolveRunSourceAudit } from '../../services/data/runSourceAudit';
 import { SimulationRun } from '../../types/scenario';
 
 export async function runDataSourceTest(): Promise<{ success: boolean; log: string[] }> {
