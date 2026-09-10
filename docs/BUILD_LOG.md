@@ -2,6 +2,38 @@
 
 ---
 
+## 2026-09-10 — Gate G31 / Auftrag 046 Nacharbeit (Codex-Review 🔴1–3 + Fragen 1–5)
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+
+### Was getan wurde
+
+| Punkt | Commit | Stand |
+|---|---|---|
+| 🔴1 build-Job rot | `89333d9` (`"build": "vite build"`, Typen weiter im Ratschen-Job) | build-Job grün, lokal EXIT 0 |
+| G30-Log-Korrektur („build ✅" war falsch) | hiermit: `tsc` brach `vite build` nie erreichen — der Eintrag maß nur, dass `vite` allein baut | korrigiert |
+| 🔴2 Live-KPI-Verifier ohne Zuhause | neuer CI-Job `livekpi-verifiers` (Catalog + Stream, beide lokal und CI grün) | automatisch abgedeckt |
+| 🔴2-Rest: PerformanceSurface | rot seit S8 (assertet gelöschte 042-Datei) — Skript-Fix außerhalb G31, Entscheidung offen | offen |
+| 🔴3 Linux-Baselines | Update-Lauf, 3 PNGs sichtgeprüft (Dashboard Desktop/Mobil, GuV — echte Inhalte), 12× `-linux` committet (`60bbbc1`), Temp-Commit revertiert (`d1daec5`) | e2e-Visual auf Linux grün |
+| Frage 3 size-limit | `@size-limit/file` statt preset-app (time-Plugin hing lokal wie CI); läuft in Sekunden: Initial 42 unter 180, Summen-Glob über 250 — weiter `continue-on-error` bis G41 | Tool ok, Budget G41 |
+| Frage 4 Verifier §6 | entfernt (Archiv seit G29); Lauf-Kontrakt auf 27 justiert, Doku-Kanon 54/54 unangetastet, Guards grün | getrimmt |
+| Frage 5 `.gitignore` | `playwright-report/`, `test-results/`, `coverage/` ergänzt | erledigt |
+| Axe-Baseline | in `TEST_MIGRATION` notiert (`/dashboard`-Befund, alle Viewports); `QUALITY_BASELINE`-Eintrag braucht Marc-Ok (Datei nicht in 046-Liste) | notiert |
+| Neuer Vorbefund | Verifier §7/§8 scheitern seit G29 (`fc48233` existiert in v2-Historie nicht) — gleiche Familie wie §6, nicht vom Trim verursacht | Frage an Marc |
+
+### CI-Endstand (Dispatch-Lauf 34452634594)
+
+https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/34452634594 —
+lint, typecheck, test, build, livekpi-verifiers grün; e2e 144 grün, 3 rot (nur
+Axe-`/dashboard`, G35); size-limit Budget-rot, neutral per `continue-on-error`.
+
+### Ergebnis & Freigabestatus
+
+Alle Review-Punkte abgearbeitet oder mit Entscheidungsfrage zurückgegeben.
+**Übergabe an Codex-Review (2. Runde).** Kein Merge, Tag.
+
+---
+
 ## 2026-09-10 — Gate G31 / Auftrag 046 Rest: Playwright, CI, Capture-Ablösung, Verifier-Trim
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
