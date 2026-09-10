@@ -2,6 +2,79 @@
 
 ---
 
+## 2026-09-10 — Gate G31 / Auftrag 046 Rest: Playwright, CI, Capture-Ablösung, Verifier-Trim
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Scope:** 046 ohne R3 (freigegeben). 9 Schritte, je ein Commit. Kein Merge, Tag.
+Push: `38f3803` (ci.yml) + `748ccfa` (Config-Fix) — beide ausdrücklich beauftragt.
+
+### Ziel & Kontext
+
+Handgeschriebene QS durch automatisierte ersetzen: Playwright-Specs (Routen,
+Axe, Visual), ein parametrisiertes Capture-Skript statt ~50 CDP-Harnesses,
+CI-Pipeline mit Ratschen, Altskript-Löschung, Verifier-Trim.
+
+### Commits (Reihenfolge)
+
+| Commit | Inhalt |
+|---|---|
+| `af21ef8` | S1 Determinismus-Analyse (042-Harness, Empirie 4 Routen STABIL, Ansatz-Doku) |
+| `5dba076` | S2 `playwright.config.ts` (3 Viewports, Preview 4321, reducedMotion, Toleranz) |
+| `9db5635` | S3 `e2e/routes.spec.ts` (41 Pfade als Literal — `import.meta.env`-Guard verhindert src-Import; 123 grün) |
+| `1d0962f` | S4 `e2e/a11y.spec.ts` (Axe, fail bei critical/serious; 1 offener Befund, s. u.) |
+| `f3ff7bc` | S5 `e2e/visual.spec.ts` + 12 Baselines (3 Läufe stabil, kein Mask) |
+| `1d437b4` | S6 `captureGateScreenshots.mjs` + Zwillings-Nachweis (SHA ≠ und 7161-px-Diff bei Sidebar-Mutation, revertiert) |
+| `38f3803` | S7 `ci.yml` (6 Jobs, Ratschen 327/765, e2e nur PR/Dispatch, test fährt Vitest + Verify) |
+| `748ccfa` | Config-Syntaxfix (doppelte Klammer — CI hat ihn gefunden, lokal nie validiert) |
+| `fa4ba94` | S8 50 Altskripte gelöscht (Rest: nur `captureGateScreenshots.mjs`) |
+| `381a816` | S9 Verifier-Trim (Abschnitt 5 raus; Lauf-Kontrakt 48, Doku-Kanon 54/54 getrennt) |
+
+### Determinismus-Ansatz
+
+042-Harness fror keine Zeit ein (sleep + SHA). Empirie: 4 Routen text-identisch
+über Läufe, keine Puls-/Zeitstempel-Marker. Playwright: reducedMotion, networkidle
++ fonts.ready + 1000 ms, Toleranz 0 (S6-Korrektur: 0.02 ließ Sidebar-Regression mit
+Ratio 0.01 durch; 3× 12/12 stabil).
+
+### Command-Matrix lokal
+
+| Befehl | Ergebnis |
+|---|---|
+| lint (Ratsche) | 327, OK (keine Regression) |
+| tsc (Ratsche) | 764, OK (Referenz bleibt 765) |
+| vitest | 25 grün |
+| verify | 24 grün |
+| build (`tsc && vite build`) | rot, EXIT 2 — G30-Bestand (764 Fehler), G35-Scope |
+| playwright voll | 144 grün, 3 rot — nur Axe-`/dashboard`-Befund (G35) |
+| size-limit | Tool defekt (preset-app/time hängt, lokal wie CI); manuell: Vendor 219668 B unter 250000, Initial-Summe über 180000 |
+| Schutz-Diff `src supabase tools/n8n public` | leer |
+| Capture-Rest `scripts/capture* + generate*Matrix` | 1 (nur Ersatz-Skript) |
+
+### CI-Läufe
+
+- Push-Lauf: https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/34402237182
+  — lint/typecheck/test grün, build rot (tsc-Bestand), size-limit rot (Tool-Defekt,
+  continue-on-error), e2e skipped (kein PR, korrekt).
+- Dispatch-Lauf (e2e): https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/34449326196
+  — 132 grün, 15 rot: 12× fehlende `-linux`-Snapshots (nur `-darwin` committet),
+  3× Axe-`/dashboard`-Befund (derselbe wie lokal).
+
+### Offen / Fragen an Marc (kein Blocker für S1–S9, aber Endstand nicht grün)
+
+1. Linux-Baselines: via Update-Lauf erzeugen, hier sichtprüfen, einchecken? (Ordnung: `-linux`-PNGs neben `-darwin`.)
+2. build-Job + Axe-Befund: an G35 geben (Code-Fixes außerhalb G31-Scope)?
+3. size-limit-Preset: file-only für CI (time-Plugin defekt)? Scharf erst G41.
+4. `verifyV21ReleaseReadiness.ts`: Abschnitt 6 scheitert seit G29 (Archiv fehlt) —
+  Vorbefund, Trim hat ihn nicht verursacht. Entfernen, wiederherstellen oder G43?
+5. `.gitignore`: `playwright-report/`, `test-results/` fehlen (nicht in 046-Dateiliste) — ergänzen?
+
+### Ergebnis & Freigabestatus
+
+S1–S9 gebaut und committet, lokale Matrix erhoben, CI zweimal gefahren mit Links.
+**Übergabe an Codex-Review.** Kein Merge, Tag.
+
+---
+
 ## 2026-09-09 — Gate G31 / Auftrag 046 R3: Mutations-Beweise alle 24 Suiten + 016-Härtung
 
 **Rolle:** Builder (OpenCode, an Stelle von Antigravity) · **Branch:** `codex/v2.2.0-haertung`
