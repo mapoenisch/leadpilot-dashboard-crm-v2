@@ -2,6 +2,96 @@
 
 ---
 
+## 2026-09-10 — Gate G35 / Auftrag 050: Layering + Kleinbefunde (ohne Simulation)
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** G34-Freigabe `7b19a20`. Blöcke A–H, je ein Commit, je Commit
+verify + Vitest grün. Kein Merge, Tag. Push: nur CI-Bestätigung (H2).
+
+### Block A — 7 → 0 Schichtverstöße (`946aa7b`)
+
+| Datei | Richtung | Fix |
+|---|---|---|
+| `src/domain/eventRules.ts` | domain → simulation | gelöscht (toter Barrel, kein Importeur) |
+| `src/domain/executiveCockpitData.ts` | domain → services | DI: `getPipelineOverview(source: FunnelDealSource)`; Aufrufer reicht `CRMRepository` (2 Zeilen, components → services ist erlaubt) |
+| `baselineFileSource.ts` + `hubSpotBaselineSource.ts` | services → features | 3 JSONs nach `src/services/data/baselines/` (`git mv`), Pfade angepasst |
+| `crmImporter.ts` | services → features | `rawCsvData.ts` nach `src/services/import/` (`git mv`) |
+| `AuditTierView.tsx` | simulation → features (Test) | `resolveRunSourceAudit` + Typ nach `src/services/data/runSourceAudit.ts`; Komponente + Test (nur Zeile 5) importieren um |
+
+`import/no-restricted-paths`: 7 → 0. `src/simulation`-Diff: nur die eine Zeile.
+
+### Block B — horizontaler Verstoß (`53e4282`)
+
+`LiveSimulationPage` nach `features/simulation/pages` (`git mv`); `CRMView`-Eintrag
+ersatzlos entfernt (`CRMView` ungenutzt, Route läuft über `routePages` — Pfad dort
+angepasst); eslint-Kommentar auf G35-behoben/G38-Regel aktualisiert.
+Beide `grep` = 0.
+
+### Block C — Logger (`6b0ff49`)
+
+`src/services/logger.ts` neu (DEV alles, PROD nur warn/error; einzige
+`no-console`-Stelle mit Begründung). 16 Aufrufe in 10 Dateien ersetzt
+(app 6, components 2, features 4, services 4 inkl. Store-notify).
+`no-console` außerhalb `src/simulation/`: 0.
+
+### Block D — a11y (`edd027c`)
+
+8 Stellen: Backdrops (role=button + Escape/Enter), stopPropagation-Divs
+(+onKeyDown), Select-Option (Enter/Space), Chart-Segmente/Buckets
+(fokussierbar + Label + KeyDown), ResourceCard/Thumbnails (role=button),
+Zoom-Prozent → echtes `<button>`. `main` tabIndex + aria-label; Baseline
+`/dashboard` = []. Axe 12/12 grün. Beide jsx-a11y-Regeln: 0.
+
+### Block E — Boundary (`f7cc46a`)
+
+Lücken: keine Root-Boundary, 404 ohne Boundary. Beide mit bestehender
+`RouteErrorBoundary` geschlossen (resetKey app-root/not-found). Alle 41
+Routen + 404 + Provider abgedeckt.
+
+### Block F — tsc (`d282b02`)
+
+3 Guards in `liveKpiStreamStore.ts` (normalize + History-Merge). Isoliert
+belegt: 765 → 762.
+
+### Block G — unused/deps (`60fd956`)
+
+39 unused (Imports entfernt, Destructurings beschnitten, Args `_`-prefixiert,
+`catch` ohne Param); Layout-`{}` + Interface weg; `transformValue`/`rawTimeSeries`
+stabilisiert (useCallback/useMemo); Multi-Deps beschnitten; Activity-`version`
+als False-Positive mit begründetem disable (ohne sie stale items).
+Regeln außerhalb `src/simulation/`: alle 0.
+
+### Block H — any + Ratsche (`e750c52`)
+
+59 any außerhalb `src/simulation/` getypt (Recharts-Formatter, Table/CrmList-
+Generics via `object` + `cellValue`-Helper, DB-Row-Interfaces, Modul-Typen,
+Catch-Narrowing mit `||`-Semantik erhalten). `any` außerhalb: 0.
+Ratsche: 327 → **182**, 765 → **758** (nie erhöht).
+
+### Command-Matrix (final)
+
+`verify` 24 · `test` 32/121 · `coverage` EXIT 0 · `build` 0 · `tsc` 758 ·
+`lint` 182 · Surface grün · Playwright 147 (Baselines unverändert) ·
+`grep subscribeToLiveKpi\\b src` 0 · Vertrag `dataSource.ts` leer ·
+Schutz-Diffs leer (sim nur 1 Zeile).
+
+### CI-Bestätigung
+
+Push `e750c52` → Run 34516916096: lint/typecheck/test/build grün mit neuen
+Schwellen; size-limit neutral; e2e skipped (Push). **Aber:** Job
+`livekpi-verifiers` rot — `verifyLiveKpiStream.ts`-Fake kennt nur das
+G34-abgelöste `subscribeToLiveKpi` (Datei unverändert seit v2-Import; Bruch
+besteht seit G34, nicht durch 050 verursacht). Weder Skript noch `ci.yml`
+dürfen hier angefasst werden → **Entscheidungsfrage an Marc** (obsolet?
+migrieren? aus dem Job nehmen?).
+
+### Ergebnis & Freigabestatus
+
+A–H gebaut, Matrix grün bis auf den dokumentierten CI-Befund.
+**Übergabe an Codex-Review.** Kein Merge, Tag.
+
+---
+
 ## 2026-09-10 — Gate G34 Nacharbeit (Review, 3 Kleinbefunde)
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
