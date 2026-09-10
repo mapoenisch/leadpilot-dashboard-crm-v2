@@ -65,7 +65,7 @@ komplett; G35 als Ganzes folgt mit Auftrag 050-B (`src/simulation/`-Typhärtung)
   Chrome-Reset). Keine weitere Änderung an `src/features/resources/**`.
 - [ ] **2.2 Deterministischer DOM-/Style-Test (harte Gate-Bedingung).**
   Neuer Spec `e2e/resources-viewer.spec.ts`:
-  - `/resources` öffnen, erste `ResourceCard` aktivieren (Klick), auf den
+  - `/resources/materials` öffnen, erste `ResourceCard` aktivieren (Klick), auf den
     `ResourceViewer` warten.
   - Assert: die Zoom-Prozent-Anzeige ist ein `button[type="button"]` mit
     `aria-label`.
@@ -73,7 +73,7 @@ komplett; G35 als Ganzes folgt mit Auftrag 050-B (`src/simulation/`-Typhärtung)
     `border-style` `none`, `padding` `0px`, und `font` identisch zum
     benachbarten Text (kein UA-Button-Font).
   - Kein Screenshot-Baseline nötig — läuft OS-unabhängig grün.
-- [ ] **2.3 Visual-Snapshot.** `/resources` in `e2e/visual.spec.ts` `ROUTES`
+- [ ] **2.3 Visual-Snapshot.** `/resources/materials` in `e2e/visual.spec.ts` `ROUTES`
   aufnehmen (eine Zeile). Baselines für **beide** OS erzeugen und committen:
   - `-darwin`: lokal `npx playwright test visual` (nur die neue Route; schreibt
     die fehlende Baseline beim ersten Lauf **ohne** `--update-snapshots`).
@@ -81,7 +81,7 @@ komplett; G35 als Ganzes folgt mit Auftrag 050-B (`src/simulation/`-Typhärtung)
     (offizielles `mcr.microsoft.com/playwright`-Image in der im Repo gepinnten
     Version, oder der dokumentierte Repo-Weg).
   - **Keine bestehende Baseline anfassen.** `git status` zeigt ausschließlich
-    **neue** `visual-resources-*-{darwin,linux}.png`.
+    **neue** `visual-resources-materials-*-{darwin,linux}.png`.
   - Falls der `-linux`-Weg nicht verfügbar ist: **stoppen und melden**, nicht
     darwin-only committen.
 - [ ] **2.4** `npx playwright test` komplett grün: die bisherigen 147 unverändert
@@ -114,7 +114,7 @@ komplett; G35 als Ganzes folgt mit Auftrag 050-B (`src/simulation/`-Typhärtung)
 | `.github/workflows/ci.yml` | 1.3 (eine Zeile weg) |
 | `e2e/resources-viewer.spec.ts` | 2.2 (neu) |
 | `e2e/visual.spec.ts` | 2.3 (eine Route mehr) |
-| `e2e/visual.spec.ts-snapshots/visual-resources-*-{darwin,linux}.png` | 2.3 (neu) |
+| `e2e/visual.spec.ts-snapshots/visual-resources-materials-*-{darwin,linux}.png` | 2.3 (neu) |
 | `docs/auftraege/ANTIGRAVITY_AUFTRAG_050_LAYERING_KLEINBEFUNDE.md` | 2.1 (Revision) |
 | `docs/BUILD_LOG.md` | Bericht |
 | `package.json` / Doku | 1.4 — **nur** falls dort eine tote `verifyLiveKpiStream`-Referenz steht |
@@ -161,7 +161,7 @@ klarer Message — Builder entscheidet.
 - `verifyLiveKpiCatalog.ts` + `verifyLivePerformanceSurface.ts` weiterhin grün.
 - Revision-Block in Auftrag 050; BUILD_LOG-Notiz.
 - `resources-viewer.spec.ts` grün und OS-unabhängig (DOM/Style, keine Baseline);
-  `visual.spec.ts` um `/resources` erweitert, **nur neue** `-darwin`+`-linux`
+  `visual.spec.ts` um `/resources/materials` erweitert, **nur neue** `-darwin`+`-linux`
   PNGs committet, **keine** Bestands-Baseline verändert, `npx playwright test`
   komplett grün.
 - Leere `src/features/crm/data`-Ordner entfernt.
