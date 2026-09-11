@@ -1,39 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { logger } from '@/services/logger';
-import { getPipelineOverview, PipelineOverview } from '@/domain/executiveCockpitData';
-import { CRMRepository } from '@/services/db/crmRepository';
+import React from 'react';
+import { usePipelineOverview } from '@/hooks/queries/usePipelineOverview';
 import { formatManagementMetric } from '@/components/ui/charts/managementChartTheme';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { Layers, CheckCircle2, Clock } from 'lucide-react';
 
 export const PipelineSnapshot: React.FC = () => {
-  const [pipeline, setPipeline] = useState<PipelineOverview | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    getPipelineOverview(CRMRepository)
-      .then((data) => {
-        if (isMounted) {
-          setPipeline(data);
-          setError(null);
-        }
-      })
-      .catch((err) => {
-        logger.error('Fehler beim Laden des Pipeline-Snapshots:', err);
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Fehler beim Laden der CRM-Deals');
-        }
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { data: pipeline = null, isLoading: loading, isError, error } = usePipelineOverview();
+  const errorMessage = isError
+    ? error instanceof Error
+      ? error.message
+      : 'Fehler beim Laden der CRM-Deals'
+    : null;
 
   if (loading) {
     return (
@@ -46,11 +23,11 @@ export const PipelineSnapshot: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (errorMessage) {
     return (
       <ManagementChartState
         type="error"
-        message={`Integritätsfehler: ${error}`}
+        message={`Integritätsfehler: ${errorMessage}`}
         sourceLabel="Ebene A CRM Funnel Deals"
         height={220}
       />
