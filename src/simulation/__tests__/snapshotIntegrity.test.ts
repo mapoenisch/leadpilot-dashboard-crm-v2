@@ -140,10 +140,10 @@ export async function runSnapshotTest(): Promise<{ success: boolean; log: string
   await repoE.saveSnapshot(snapE);
 
   const projectionsE = await repoE.listProjectionsByRun('run-e');
-  const testEPassed = projectionsE.length === 1 && projectionsE[0].arr === 480000 && projectionsE[0].tickId === 10;
+  const testEPassed = projectionsE.length === 1 && projectionsE[0]?.arr === 480000 && projectionsE[0]?.tickId === 10;
 
   if (testEPassed) {
-    log.push(`✅ TEST E PASSED: Compact AnalyticsProjection saved and queried efficiently (ARR: ${projectionsE[0].arr} €).`);
+    log.push(`✅ TEST E PASSED: Compact AnalyticsProjection saved and queried efficiently (ARR: ${projectionsE[0]?.arr} €).`);
   } else {
     log.push('❌ TEST E FAILED: Analytics projection querying error!');
     overallPassed = false;
@@ -218,7 +218,7 @@ export async function runSnapshotTest(): Promise<{ success: boolean; log: string
   await repoI.saveSnapshot(createMockSnapshot('run-i2', 1));
 
   const listI = await repoI.getByRun('run-i1');
-  const testIPassed = listI.length === 2 && listI[0].runId === 'run-i1' && listI[1].runId === 'run-i1';
+  const testIPassed = listI.length === 2 && listI[0]?.runId === 'run-i1' && listI[1]?.runId === 'run-i1';
 
   if (testIPassed) {
     log.push('✅ TEST I PASSED: getByRun("run-i1") retrieved exactly the 2 snapshots for run-i1.');
@@ -275,7 +275,7 @@ export async function runSnapshotTest(): Promise<{ success: boolean; log: string
   const fullL = await repoL.getSnapshot(snapL.snapshotId);
   const projL = await repoL.listProjectionsByRun('run-l');
 
-  const testLPassed = fullL !== null && projL.length === 1 && projL[0].snapshotId === snapL.snapshotId;
+  const testLPassed = fullL !== null && projL.length === 1 && projL[0]?.snapshotId === snapL.snapshotId;
 
   if (testLPassed) {
     log.push('✅ TEST L PASSED: Full Snapshot and Analytics Projection saved and queried atomically.');

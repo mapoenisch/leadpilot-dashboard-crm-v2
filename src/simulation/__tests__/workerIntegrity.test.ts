@@ -251,7 +251,7 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   const testFPassed = progressEventsF.length > 0 && validProgressMetrics;
 
   if (testFPassed) {
-    log.push(`✅ TEST F PASSED: Progress reported exclusively as completedRuns / totalRuns (${progressEventsF[progressEventsF.length - 1].payload?.completedRuns} / ${progressEventsF[progressEventsF.length - 1].payload?.totalRuns}).`);
+    log.push(`✅ TEST F PASSED: Progress reported exclusively as completedRuns / totalRuns (${progressEventsF[progressEventsF.length - 1]?.payload?.completedRuns} / ${progressEventsF[progressEventsF.length - 1]?.payload?.totalRuns}).`);
   } else {
     log.push('❌ TEST F FAILED: Invalid progress metric format!');
     overallPassed = false;

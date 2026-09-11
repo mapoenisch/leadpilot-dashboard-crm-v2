@@ -167,6 +167,9 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
   log.push('\n--- TEST H: Max 10 Saved Runs Enforcement ---');
   const scenarioH = service.createScenario('Max Run Limit Scenario').scenario;
   const versionH = repo.getVersionsByScenario(scenarioH.id)[0];
+  if (!versionH) {
+    throw new Error('TEST H SETUP FAILED: Version für Max-Run-Limit-Szenario fehlt.');
+  }
 
   // Fill repository up to 10 runs
   for (let i = 0; i < 10; i++) {

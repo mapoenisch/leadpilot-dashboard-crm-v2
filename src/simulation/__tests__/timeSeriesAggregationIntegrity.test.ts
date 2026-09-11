@@ -181,7 +181,7 @@ export async function runTimeSeriesAggregationTest(): Promise<{ success: boolean
   const runE4 = createMockRun('run-e4', 'FAILED', tsSingleTickRun3);
 
   const resE = MonteCarloAggregator.aggregateRuns([runE1, runE2, runE3, runE4]);
-  const testEPassed = resE.validRunCount === 1 && resE.metrics.timeSeries?.[0].metrics.arr.median === 100000;
+  const testEPassed = resE.validRunCount === 1 && resE.metrics.timeSeries?.[0]?.metrics.arr.median === 100000;
 
   if (testEPassed) {
     log.push('✅ TEST E PASSED: Only 1 COMPLETED run processed (RUNNING, CANCELLED, FAILED excluded).');
@@ -218,7 +218,7 @@ export async function runTimeSeriesAggregationTest(): Promise<{ success: boolean
   // TEST H: KPI-Vollständigkeit (ARR, MRR, Customers, WonDeals)
   // ---------------------------------------------------------
   log.push('\n--- TEST H: KPI-Vollständigkeit ---');
-  const ptH = resB.metrics.timeSeries?.[0].metrics;
+  const ptH = resB.metrics.timeSeries?.[0]?.metrics;
   const testHPassed =
     Boolean(ptH) &&
     typeof ptH?.arr.median === 'number' &&
@@ -237,7 +237,7 @@ export async function runTimeSeriesAggregationTest(): Promise<{ success: boolean
   // TEST I: Mean und StdDev Richtigkeit pro Tick
   // ---------------------------------------------------------
   log.push('\n--- TEST I: Mean und StdDev Richtigkeit pro Tick ---');
-  const ptI = resA.metrics.timeSeries?.[0].metrics.arr;
+  const ptI = resA.metrics.timeSeries?.[0]?.metrics.arr;
   const expectedMeanI = 200000;
   const expectedStdDevI = 100000;
 
@@ -278,7 +278,7 @@ export async function runTimeSeriesAggregationTest(): Promise<{ success: boolean
   // ---------------------------------------------------------
   log.push('\n--- TEST L: Geringe Run-Anzahl Aggregation ---');
   const resL = MonteCarloAggregator.aggregateRuns([runA1]);
-  const testLPassed = resL.validRunCount === 1 && resL.metrics.timeSeries?.[0].metrics.arr.median === 100000;
+  const testLPassed = resL.validRunCount === 1 && resL.metrics.timeSeries?.[0]?.metrics.arr.median === 100000;
   if (testLPassed) {
     log.push('✅ TEST L PASSED: Single COMPLETED run aggregated cleanly without throwing error.');
   } else {

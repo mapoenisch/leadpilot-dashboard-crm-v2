@@ -166,7 +166,7 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const dummyEvents = [{ id: 'evt-1', tick: 1, type: 'DEAL_WON' }, { id: 'evt-2', tick: 2, type: 'CUSTOMER_CHURNED' }];
   const frozenEvents = Object.freeze([...dummyEvents]);
   await SnapshotPruningManager.pruneRunSnapshots(runId, repo, targetTicks, 30);
-  const testHPassed = frozenEvents.length === 2 && frozenEvents[0].id === 'evt-1';
+  const testHPassed = frozenEvents.length === 2 && frozenEvents[0]?.id === 'evt-1';
 
   if (testHPassed) {
     log.push('✅ TEST H PASSED: Event logs and activity history remain 100% untouched.');
@@ -263,7 +263,7 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   // ---------------------------------------------------------
   log.push('\n--- TEST O: listProjectionsByRun returns complete time series ---');
   const projsO = await repo.listProjectionsByRun(runId);
-  const testOPassed = projsO.length === 91 && projsO[0].tickId === 0 && projsO[90].tickId === 90;
+  const testOPassed = projsO.length === 91 && projsO[0]?.tickId === 0 && projsO[90]?.tickId === 90;
 
   if (testOPassed) {
     log.push('✅ TEST O PASSED: Complete time series projection list intact (Tick #0 to #90).');
@@ -327,7 +327,7 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   await testRepoS.saveSnapshot(buildSnapshot(1));
   await testRepoS.pruneSnapshotsForRun(runId, [0]);
   const sRemaining = await testRepoS.getByRun(runId);
-  const testSPassed = sRemaining.length === 1 && sRemaining[0].tickId === 0;
+  const testSPassed = sRemaining.length === 1 && sRemaining[0]?.tickId === 0;
 
   if (testSPassed) {
     log.push('✅ TEST S PASSED: InMemorySnapshotRepository fully supports pruning & storage metrics.');

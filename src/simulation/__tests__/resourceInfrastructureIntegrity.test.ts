@@ -89,10 +89,15 @@ export async function runResourceInfrastructureIntegrityTest(): Promise<{ succes
   log.push("\n--- TEST E: Asset Reachability & Valid MIME Formats ---");
   let formatsValid = true;
   for (const res of resources) {
+    const firstAsset = res.assetPaths[0];
+    if (firstAsset === undefined) {
+      formatsValid = false;
+      continue;
+    }
     if (res.type === "INTERACTIVE_HTML") {
-      if (!res.assetPaths[0].endsWith(".html")) formatsValid = false;
+      if (!firstAsset.endsWith(".html")) formatsValid = false;
     } else if (res.type === "GRAPHIC") {
-      if (!res.assetPaths[0].endsWith(".png") && !res.assetPaths[0].endsWith(".jpg")) formatsValid = false;
+      if (!firstAsset.endsWith(".png") && !firstAsset.endsWith(".jpg")) formatsValid = false;
     } else {
       for (const p of res.assetPaths) {
         if (!p.endsWith(".jpg") && !p.endsWith(".png")) formatsValid = false;

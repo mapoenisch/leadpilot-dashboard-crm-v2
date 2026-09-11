@@ -298,7 +298,15 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
     createMockRun('run-j3', 500000),
     createMockRun('run-j4', 600000),
   ];
-  const runsJShuffled = [runsJOriginal[2], runsJOriginal[0], runsJOriginal[3], runsJOriginal[1]];
+  const pickOriginal = (idx: number): SimulationRun => {
+    const run = runsJOriginal[idx];
+    if (!run) {
+      // Unerreichbar: runsJOriginal enthält 4 Läufe, idx in [0, 3].
+      throw new Error(`TEST J SETUP FAILED: runsJOriginal[${idx}] fehlt.`);
+    }
+    return run;
+  };
+  const runsJShuffled = [pickOriginal(2), pickOriginal(0), pickOriginal(3), pickOriginal(1)];
 
   const resultJ1 = MonteCarloAggregator.aggregateRuns(runsJOriginal);
   const resultJ2 = MonteCarloAggregator.aggregateRuns(runsJShuffled);

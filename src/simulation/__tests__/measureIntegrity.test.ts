@@ -135,7 +135,8 @@ export async function runMeasureTest(): Promise<boolean> {
   };
   const resolverConf = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [measureConf1, measureConf2]);
   const conflicts = resolverConf.detectConflicts();
-  if (conflicts.length !== 1 || conflicts[0].kind !== 'MULTIPLE_SET') {
+  const firstConflict = conflicts[0];
+  if (conflicts.length !== 1 || firstConflict?.kind !== 'MULTIPLE_SET') {
     throw new Error(`TEST 5 FAILED: Expected 1 MULTIPLE_SET conflict, got ${JSON.stringify(conflicts)}`);
   }
   logger.info('✅ TEST 5 PASSED: Measure conflict detection generates non-preempting warning reports.');

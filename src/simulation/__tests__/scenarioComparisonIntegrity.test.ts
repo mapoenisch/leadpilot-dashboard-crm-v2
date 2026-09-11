@@ -418,8 +418,8 @@ export async function runScenarioComparisonIntegrityTest(): Promise<{ success: b
   const testABUnsimulated =
     diffResult.hasRunsB === false &&
     diffResult.summaryExplanation.includes('Simulation ausstehend') &&
-    diffResult.kpiComparisons[0].hasResultB === false &&
-    diffResult.kpiComparisons[0].comparisonAB === undefined;
+    diffResult.kpiComparisons[0]?.hasResultB === false &&
+    diffResult.kpiComparisons[0]?.comparisonAB === undefined;
 
   // Now execute a run for ver2
   await scenarioService.runScenarioVersion(ver2.id, 999111, 20);
@@ -427,8 +427,8 @@ export async function runScenarioComparisonIntegrityTest(): Promise<{ success: b
 
   const testABSimulated =
     diffResultSimulated.hasRunsB === true &&
-    diffResultSimulated.kpiComparisons[0].hasResultB === true &&
-    diffResultSimulated.kpiComparisons[0].comparisonAB !== undefined;
+    diffResultSimulated.kpiComparisons[0]?.hasResultB === true &&
+    diffResultSimulated.kpiComparisons[0]?.comparisonAB !== undefined;
 
   const testABPassed = testABUnsimulated && testABSimulated;
   if (testABPassed) {

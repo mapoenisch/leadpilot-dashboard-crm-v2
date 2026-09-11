@@ -92,8 +92,13 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
 
   arrValues.forEach((v) => {
     for (let i = 0; i < buckets.length; i++) {
-      if (v >= buckets[i].min && (i === buckets.length - 1 ? v <= buckets[i].max : v < buckets[i].max)) {
-        buckets[i].count++;
+      const bucket = buckets[i];
+      if (!bucket) {
+        // Unerreichbar: i läuft über buckets.length.
+        throw new Error('TEST HISTOGRAM FAILED: Bucket-Index außerhalb des gültigen Bereichs.');
+      }
+      if (v >= bucket.min && (i === buckets.length - 1 ? v <= bucket.max : v < bucket.max)) {
+        bucket.count++;
         break;
       }
     }
