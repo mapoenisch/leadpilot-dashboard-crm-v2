@@ -99,6 +99,33 @@ für Entscheidung 3.
    da migriert) und die neue `/design-system`-Route. **Nicht** global —
    die 128 Feature-Dateien sind nicht Teil dieses Auftrags und dürfen nicht
    durch eine globale Regel-Aktivierung rot werden.
+
+   **Nachtrag 2026-09-11 (Zielkonflikt aus der Bauphase, entschieden):**
+   `Badge` (13 Aufrufstellen), `Card` (11) und `Button` (8) bekommen von
+   Konsumenten ein `style`-Prop hereingereicht — 32 Stellen insgesamt, teils
+   in `src/features/resources/**` (harte Schutzzone nach `CLAUDE.md` §6),
+   der Rest im G39-Gebiet. Alle drei reichen es heute schon über `{...rest}`
+   an das DOM-Element weiter. **Entscheidung: Passthrough bleibt.**
+   Begründung: Ein Primitive, das ein `style`-Prop seines *Aufrufers*
+   weiterreicht, ist etwas grundlegend anderes als ein Primitive, das sein
+   *eigenes* Aussehen per Inline-Style hart verdrahtet. Verboten werden soll
+   nur Letzteres. Das Akzeptanzkriterium „0 `style={{` in
+   `src/components/ui/**`" gilt daher präzisiert als: **0 selbst erfundene
+   Inline-Styles; das Weiterreichen eines Aufrufer-`style`-Props ist erlaubt.**
+   Auflagen:
+   - Nur an den konkreten Passthrough-Zeilen ein
+     `// eslint-disable-next-line react/forbid-dom-props -- Passthrough des
+     Aufrufer-style-Props, siehe Auftrag 053 Entscheidung 5` — **keine**
+     datei- oder verzeichnisweite Ausnahme, damit künftige echte Verstöße in
+     denselben Dateien weiterhin auffallen.
+   - Die Passthrough-Stelle darf **nicht** zusätzlich eigene Style-Objekte
+     mischen; das Variantenbild kommt vollständig aus `cva`.
+   - Die übrigen 16 Primitives erreichen 0 ohne Ausnahme.
+   - Im Bericht: die genaue Zeilenzahl der Ausnahmen (erwartet: 3) nennen.
+
+   Verworfen wurden: Konsumenten anfassen (verletzt Entscheidung 4 **und**
+   `CLAUDE.md` §6 für die `resources`-Aufrufstellen) und Block B/C abbrechen
+   (opfert 16 saubere Migrationen wegen 3 Sonderfällen).
 6. **`ci.yml` zwei Ratschen:** `TSC_BASELINE` von 605 auf den tatsächlichen
    Ist-Wert am Ende dieses Auftrags nachziehen (Versäumnis aus G36/G37
    nachgeholt — Entscheidung, nicht Bug dieses Auftrags, aber am
@@ -215,7 +242,11 @@ Anfang von `docs/BUILD_LOG.md`:
 - Alle 67 Tokens aus `global.css` in `tailwind.config.js` erreichbar (oder
   begründet entfernt, falls tot).
 - `src/components/shadcn/**` existiert nicht mehr.
-- Alle 19 Primitives nutzen `cva`, 0 `style={{` in `src/components/ui/**`.
+- Alle 19 Primitives nutzen `cva`. 0 selbst erfundene Inline-Styles in
+  `src/components/ui/**`; einzige erlaubte Ausnahme sind die drei
+  Passthrough-Zeilen in `Badge`/`Card`/`Button` mit zeilengenauem
+  `eslint-disable-next-line` samt Begründung (Entscheidung 5, Nachtrag).
+  Prüfer verifiziert, dass es **keine** datei-/verzeichnisweite Ausnahme gibt.
 - Öffentliche API jeder Primitive identisch zu vorher (Props-Diff = 0,
   geprüft gegen den alten Stand).
 - `npx playwright test` durchgehend grün, inkl. während der Migration nach
