@@ -320,7 +320,7 @@ export class ScenarioService {
     let opportunities: SimulationOpportunity[] = [];
     let deals: SimulationDeal[] = [];
     let activities: SimulationActivity[] = [];
-    let events: SimulationEvent[] = [];
+    const events: SimulationEvent[] = [];
 
     const timeSeries: TimeSeriesPoint[] = [
       {

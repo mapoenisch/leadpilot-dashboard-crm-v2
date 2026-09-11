@@ -354,7 +354,7 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   let directOpps: any[] = [];
   let directDeals: any[] = [];
   let directActivities: any[] = [];
-  let directEvents: any[] = [];
+  const directEvents: any[] = [];
 
   let directQueueEntries: any[] = [];
 

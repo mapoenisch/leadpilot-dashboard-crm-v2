@@ -418,7 +418,7 @@ export class SimulationEventRules {
     const activeDeals = deals.filter((d) => !d.isChurned);
     if (activeDeals.length === 0) return null;
 
-    let updatedDeals = [...deals];
+    const updatedDeals = [...deals];
     const events: SimulationEvent[] = [];
     const activities: SimulationActivity[] = [];
     const reEngagementOpps: SimulationOpportunity[] = [];

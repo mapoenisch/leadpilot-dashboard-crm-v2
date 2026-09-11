@@ -73,13 +73,13 @@ export class SalesQueueManager {
     const capacity = SalesQueueManager.calculateSalesCapacity(salesRepCount);
 
     // 1. Sync new active leads into SalesQueue entries
-    let entries: SalesQueueEntry[] = [...currentEntries];
+    const entries: SalesQueueEntry[] = [...currentEntries];
 
     for (const lead of activeLeads) {
       if (lead.status === 'Won' || lead.status === 'Lost' || lead.status === 'Disqualified') {
         continue;
       }
-      let existing = entries.find((e) => e.leadId === lead.id && e.status !== 'COMPLETED' && e.status !== 'CANCELLED');
+      const existing = entries.find((e) => e.leadId === lead.id && e.status !== 'COMPLETED' && e.status !== 'CANCELLED');
       if (!existing) {
         let stage: SalesQueueEntry['stage'] = 'QUALIFICATION';
         if (lead.status === 'MQL') stage = 'PITCH_DEMO';
