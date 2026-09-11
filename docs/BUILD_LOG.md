@@ -80,7 +80,10 @@ und tsc geprüft; kein Inhalt verloren.
 
 - `.github/workflows/ci.yml`: `LINT_BASELINE` 182 → **19**,
   `TSC_BASELINE` 758 → **605** (gesenkt, nie erhöht).
-- CI-Bestätigungs-Push: <RUN-URL> (wird nach Push eingetragen).
+- CI-Bestätigungs-Push: https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/34574909086 —
+  lint/typecheck/test/build/livekpi-verifiers grün (neue Ratsche 19/605 greift);
+  `size-limit` Budget-rot wie bisher (neutral per `continue-on-error`); `e2e`
+  skipped (nur PR/Dispatch).
 
 **Ergebnis:** Alle Blöcke + Akzeptanzkriterien aus Builder-Sicht erfüllt.
 **Übergabe an Review (Codex/Claude Code).** Danach ist G35 komplett.
