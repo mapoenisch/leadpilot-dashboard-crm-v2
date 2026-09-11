@@ -1,8 +1,7 @@
 import { CRMRepository } from '../../services/db/crmRepository';
-import { scenarioService, ScenarioService } from '../scenarioService';
+import { ScenarioService } from '../scenarioService';
 import { simulationService } from '../simulationService';
 import { DEFAULT_BASE_2026_SCENARIO_ID, DEFAULT_BASE_2026_VERSION_ID, ScenarioRepository } from '../scenarioRepository';
-import { MonteCarloAggregator } from '../monteCarloAggregator';
 import { parameterRegistry } from '../parameterRegistry';
 import { createSnapshotRepository } from '../../services/db/indexedDbSnapshotRepository';
 
@@ -261,7 +260,7 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   let blockedBaseDeleteP = false;
   try {
     scenService.deleteScenario(DEFAULT_BASE_2026_SCENARIO_ID);
-  } catch (err: any) {
+  } catch {
     blockedBaseDeleteP = true;
   }
 

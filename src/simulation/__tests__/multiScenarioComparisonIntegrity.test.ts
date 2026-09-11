@@ -1,4 +1,4 @@
-import { scenarioService, ScenarioService } from '../scenarioService';
+import { ScenarioService } from '../scenarioService';
 import { ScenarioError } from '../../types/scenario';
 
 export async function runMultiScenarioComparisonTest(): Promise<boolean> {

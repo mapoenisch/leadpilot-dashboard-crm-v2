@@ -5,7 +5,6 @@ import {
   MeasureChange,
   MeasureConflict,
   MeasureError,
-  MeasureParameterKey,
 } from '../types/measure';
 import { V1_PARAMETER_DEFINITIONS } from './parameterRegistry';
 

@@ -279,7 +279,7 @@ export class ParameterRegistry {
       try {
         const { mix } = this.normalizeChannelMix(params.channelMix);
         resultParams.channelMix = mix;
-      } catch (err: any) {
+      } catch {
         // Error already captured by validateSingleParameter
       }
     }

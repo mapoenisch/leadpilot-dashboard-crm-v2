@@ -1,14 +1,11 @@
 import {
   scenarioRepository,
-  DEFAULT_BASE_2026_VERSION_ID,
-  DEFAULT_BASE_2026_PARAMETERS,
 } from '../scenarioRepository';
 import { scenarioService } from '../scenarioService';
 import { systemContext } from '../systemContext';
 import { GoalTargetEvaluator } from '../goalTargetEvaluator';
 import { KPIRegistry } from '../kpiRegistry';
 import { GoalTarget } from '../../types/kpi';
-import { TimeSeriesPoint } from '../../types/aggregation';
 
 export async function runKpiTimeSeriesTest(): Promise<boolean> {
   console.log('\n=== STARTING AUFTRAG 018 TEST SUITE (KPI TIME SERIES & DISTRIBUTION UI) ===\n');

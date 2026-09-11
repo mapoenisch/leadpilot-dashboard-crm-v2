@@ -114,7 +114,6 @@ export async function runReconstructedChartsIntegrityTest(): Promise<{ success: 
 
   // --- TEST F: Design Token Color Palettes ---
   log.push("\n--- TEST F: Design Token Color Palettes ---");
-  const brandColors = ["#00D9C6", "#7CEFE6", "#FF7A3D", "#FF9A66", "#A7B0BA"];
   let colorsValid = true;
   for (const chart of Object.values(charts)) {
     for (const ds of chart.datasets) {

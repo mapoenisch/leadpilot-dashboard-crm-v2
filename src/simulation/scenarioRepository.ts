@@ -1,6 +1,5 @@
 import { parameterRegistry } from './parameterRegistry';
 import {
-  RunManifest,
   Scenario,
   ScenarioError,
   ScenarioParameters,

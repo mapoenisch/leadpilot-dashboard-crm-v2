@@ -2,44 +2,15 @@ import { CRMRepository } from '../../services/db/crmRepository';
 import { InMemorySnapshotRepository } from '../../services/db/indexedDbSnapshotRepository';
 import { SnapshotMapper } from '../../services/db/snapshotMapper';
 import { SimulationClock, SimulationEventRules } from '../eventRules';
-import { DeterministicRNG } from '../prng';
 import { SnapshotIntegrityService } from '../snapshotIntegrityService';
-import { RunManifest, SimulationRun } from '../../types/scenario';
 import { SimulationState } from '../../types/simulation';
-import { AnalyticsProjection, SimulationSnapshot } from '../../types/snapshot';
+import { SimulationSnapshot } from '../../types/snapshot';
 
 export async function runSnapshotTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];
   log.push('=== STARTING AUFTRAG 006 TEST SUITE (SNAPSHOT STORE & PERSISTENCE) ===');
 
   let overallPassed = true;
-
-  const mockManifest: RunManifest = {
-    runId: 'run-snap-1',
-    scenarioId: 'scen-1',
-    scenarioVersionId: 'ver-1',
-    seed: 42,
-    initialRngState: 42,
-    modelVersion: '1.0.0-v1',
-    schemaVersion: '1.0.0',
-    baselineVersion: 'Faktenblatt_v1.1',
-    simulationStartDate: '01.01.2026',
-    targetTicks: 50,
-    parameters: {
-      marketingBudgetYearly: 65000,
-      channelMix: { linkedIn: 38, seo: 22, partner: 18, webinar: 12, outbound: 10 },
-      trialToPaidConversion: 18,
-      salesRepCount: 2,
-      csRepCount: 2,
-      churnRateMonthly: 2.8,
-      salesCycleDays: 38,
-      targetPackageFocus: 'Growth',
-      winProbabilityMultiplier: 1.0,
-      discountPercent: 0,
-    },
-    createdAt: '2026-08-30T16:50:00Z',
-    correlationId: 'mock-corr',
-  };
 
   const createMockSnapshot = (
     runId: string,
@@ -353,7 +324,6 @@ export async function runSnapshotTest(): Promise<{ success: boolean; log: string
   // TEST O: Event Reconstruction Alignment
   // ---------------------------------------------------------
   log.push('\n--- TEST O: Event Reconstruction Alignment ---');
-  const rngO = new DeterministicRNG(42);
   const simulatedDate0 = SimulationClock.formatSimulatedDate(0);
   const initialMetrics0 = SimulationEventRules.recalculateMetrics([], [], []);
 

@@ -1,5 +1,5 @@
 import { CRMRepository } from '../../services/db/crmRepository';
-import { ParameterRegistry, parameterRegistry } from '../parameterRegistry';
+import { ParameterRegistry } from '../parameterRegistry';
 import { PreflightValidator } from '../preflightValidator';
 import { ScenarioRepository } from '../scenarioRepository';
 import { ScenarioService } from '../scenarioService';
@@ -126,7 +126,7 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   let mix3Rejected = false;
   try {
     registry.normalizeChannelMix({ linkedIn: -10, seo: 50, partner: 20, webinar: 20, outbound: 20 });
-  } catch (err) {
+  } catch {
     mix3Rejected = true;
   }
 

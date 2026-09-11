@@ -1,5 +1,4 @@
 import { ScenarioRepository } from '../scenarioRepository';
-import { ScenarioService } from '../scenarioService';
 import { systemContext } from '../systemContext';
 import { DeterministicRNG } from '../prng';
 import { SimulationEngine, TickOutput } from '../engine';

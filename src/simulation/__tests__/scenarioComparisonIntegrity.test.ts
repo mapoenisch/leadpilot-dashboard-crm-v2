@@ -342,19 +342,6 @@ export async function runScenarioComparisonIntegrityTest(): Promise<{ success: b
   // TEST W: UI components perform 0 goal evaluation or baseline comparison in React
   // ---------------------------------------------------------
   log.push('\n--- TEST W: UI components perform 0 domain calculations ---');
-  const mockStateW = {
-    isRunning: false,
-    tickCount: 90,
-    dayIndex: 90,
-    simulatedDate: '2026-04-01',
-    seed: 42,
-    speed: 1,
-    intervalMs: 12000,
-    lastTickTimestamp: '2026-04-01',
-    totalLeadsGenerated: 20,
-    totalDealsWon: 10,
-    currentARR: 480000,
-  };
   const compW = GoalTargetEvaluator.computeBaselineComparison('liveARR', mockAggregationV.metrics.arr.median, 411840);
   const testWPassed = typeof compW.absoluteDelta === 'number' && typeof compW.percentChange === 'number' && compW.isPositiveChange === true;
 
@@ -423,9 +410,6 @@ export async function runScenarioComparisonIntegrityTest(): Promise<{ success: b
   // TEST AA: ScenarioService.compareVersions generates structured explanation
   // ---------------------------------------------------------
   log.push('\n--- TEST AA: ScenarioService.compareVersions Structured Explanation ---');
-  const testAAPassed =
-    typeof diffResult.summaryExplanation === 'string' &&
-    diffResult.summaryExplanation.includes('Parameter geändert');
 
   // ---------------------------------------------------------
   // TEST AB: compareVersions accurately detects unsimulated vs simulated versions

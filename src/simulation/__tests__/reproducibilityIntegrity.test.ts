@@ -25,7 +25,7 @@ export async function runReproducibilityTest(): Promise<{ success: boolean; log:
     repo.resetToDefaults();
     const svc = ScenarioService.getInstance();
 
-    const { scenario, version } = svc.createScenario('Golden', 'reproducibility');
+    const { version } = svc.createScenario('Golden', 'reproducibility');
     const A = await svc.runScenarioVersion(version.id, 777001, 120);
     const B = await svc.runScenarioVersion(version.id, 777001, 120);
 

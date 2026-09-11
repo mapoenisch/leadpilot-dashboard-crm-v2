@@ -65,7 +65,7 @@ export async function runSalesQueueIntegrityTest(): Promise<{ success: boolean; 
   // ---------------------------------------------------------
   log.push('\n--- TEST B: Keine unbegründete Queue bei ausreichender Kapazität ---');
   const leadB1 = createMockLead('l-b1', 'B1', 'New');
-  const { updatedEntries: entriesB, projection: projB } = SalesQueueManager.processTick([], 5, 1, [leadB1]);
+  const { projection: projB } = SalesQueueManager.processTick([], 5, 1, [leadB1]);
 
   const testBPassed = projB.waitingCount === 0 && projB.inProgressCount === 1;
   if (testBPassed) {

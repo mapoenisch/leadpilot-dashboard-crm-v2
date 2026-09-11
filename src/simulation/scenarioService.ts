@@ -1,5 +1,5 @@
 import { DeterministicRNG } from './prng';
-import { SimulationEngine, TickInput, TickOutput } from './engine';
+import { SimulationEngine, TickOutput } from './engine';
 import { SimulationClock, SimulationEventRules } from './eventRules';
 import { parameterRegistry, V1_PARAMETER_DEFINITIONS } from './parameterRegistry';
 import { PreflightValidator } from './preflightValidator';
@@ -11,9 +11,7 @@ import { BASELINE_PERIOD_START } from './constants';
 import {
   DEFAULT_BASE_2026_PARAMETERS,
   DEFAULT_BASE_2026_SCENARIO_ID,
-  DEFAULT_BASE_2026_VERSION_ID,
   ScenarioRepository,
-  scenarioRepository,
 } from './scenarioRepository';
 import { MonteCarloAggregator } from './monteCarloAggregator';
 import { SnapshotPruningManager } from './snapshotPruningManager';
@@ -1116,7 +1114,6 @@ export class ScenarioService {
 
     // 6. Validation of Equal Run Count & Duration (Decisions 854, 855)
     const comparisonWarnings: string[] = [];
-    const validRunCounts = versions.map((v) => aggregations[v.id].validRunCount);
     const completedVersions = versions.filter((v) => aggregations[v.id].validRunCount > 0);
 
     if (completedVersions.length > 1) {

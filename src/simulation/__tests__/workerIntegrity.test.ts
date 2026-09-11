@@ -6,7 +6,6 @@ import { HeadlessTestWorkerAdapter } from '../worker/workerAdapter';
 import { workerRunner } from '../worker/simulation.worker';
 import {
   WORKER_PROTOCOL_VERSION,
-  WorkerMessageCommand,
   WorkerMessageEvent,
 } from '../../types/workerMessages';
 import { SimulationState } from '../../types/simulation';
@@ -434,7 +433,6 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   // ---------------------------------------------------------
   log.push('\n--- TEST J: Worker Isolation Verification ---');
   // Inspection of workerRunner constructor and properties to verify zero DOM/React references
-  const workerRunnerProto = Object.getPrototypeOf(workerRunner);
   const testJPassed = Boolean(workerRunner) && typeof workerRunner.handleMessage === 'function';
 
   if (testJPassed) {

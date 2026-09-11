@@ -4,7 +4,6 @@ import { SimulationEngine } from '../engine';
 import { DeterministicRNG } from '../prng';
 import { SimulationState, SimulationDeal } from '../../types/simulation';
 import { MonteCarloAggregator } from '../monteCarloAggregator';
-import { SimulationRunResult } from '../../types/aggregation';
 
 export async function runFinancialIntegrityTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];

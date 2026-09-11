@@ -2,7 +2,7 @@ import { CRMRepository } from '../../services/db/crmRepository';
 import { CSQueueManager } from '../csQueueManager';
 import { CSQueueEntry } from '../../types/csQueue';
 import { SimulationEngine } from '../engine';
-import { SimulationClock, SimulationEventRules } from '../eventRules';
+import { SimulationEventRules } from '../eventRules';
 import { DeterministicRNG } from '../prng';
 import { SimulationDeal, SimulationState } from '../../types/simulation';
 

@@ -292,8 +292,6 @@ export class CSQueueManager {
       BASELINE_CHURN: 0,
     };
 
-    const activeDeals = deals.filter((d) => !d.isChurned);
-
     for (const d of deals) {
       const h = d.healthScore ?? 75;
       sumHealth += h;
