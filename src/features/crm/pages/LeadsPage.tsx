@@ -1,25 +1,45 @@
 import React from 'react';
-import { logger } from '@/services/logger';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
+import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { CRMRepository } from '@/services/db/crmRepository';
 import { isSupabaseConfigured } from '@/services/db/supabaseClient';
-import { Company, Contact, ImportedFunnelDeal, ImportAuditSummary } from '@/types/crm';
+import { Company, Contact, ImportedFunnelDeal } from '@/types/crm';
 import { SeedResult } from '@/services/import/crmSeeder';
+import { useCrmAuditSummary, useCrmCompanies, useCrmContacts, useCrmDeals } from '@/hooks/queries/useCrmQueries';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
+
+// Stabile Fallbacks, damit abgeleitete Memos (companyMap) nicht pro Render
+// neu laufen, solange noch keine Query-Daten vorliegen.
+const EMPTY_COMPANIES: Company[] = [];
+const EMPTY_CONTACTS: Contact[] = [];
+const EMPTY_DEALS: ImportedFunnelDeal[] = [];
 
 export function LeadsPage() {
   const [activeTab, setActiveTab] = React.useState('contacts');
-  const [loading, setLoading] = React.useState(true);
 
-  const [companies, setCompanies] = React.useState<Company[]>([]);
-  const [contacts, setContacts] = React.useState<Contact[]>([]);
-  const [importedFunnelDeals, setImportedFunnelDeals] = React.useState<ImportedFunnelDeal[]>([]);
-  const [, setAudit] = React.useState<ImportAuditSummary | null>(null);
+  // Vier parallele Reads über TanStack Query (statt manuellem Promise.all).
+  // Der auditSummary-Wert wird nicht gerendert, Query läuft trotzdem mit —
+  // ihr Lade-/Fehlerzustand fließt unten in loading/error ein.
+  const companiesQuery = useCrmCompanies();
+  const contactsQuery = useCrmContacts();
+  const dealsQuery = useCrmDeals();
+  const auditQuery = useCrmAuditSummary();
+
+  const companies = companiesQuery.data ?? EMPTY_COMPANIES;
+  const contacts = contactsQuery.data ?? EMPTY_CONTACTS;
+  const importedFunnelDeals = dealsQuery.data ?? EMPTY_DEALS;
+
+  const isLoading =
+    companiesQuery.isLoading || contactsQuery.isLoading || dealsQuery.isLoading || auditQuery.isLoading;
+  const queryError =
+    companiesQuery.error ?? contactsQuery.error ?? dealsQuery.error ?? auditQuery.error ?? null;
+  const isEmpty = !isLoading && !queryError && companies.length + contacts.length + importedFunnelDeals.length === 0;
+
   const [seedResult, setSeedResult] = React.useState<SeedResult | null>(null);
   const [isSeeding, setIsSeeding] = React.useState(false);
 
@@ -32,31 +52,6 @@ export function LeadsPage() {
     return map;
   }, [companies]);
 
-  // Fetch data via Repository Layer (React UI -> CRMRepository -> Supabase)
-  const loadDataFromRepository = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const [comps, conts, deals, auditSummary] = await Promise.all([
-        CRMRepository.getCompanies(),
-        CRMRepository.getContacts(),
-        CRMRepository.getImportedFunnelDeals(),
-        CRMRepository.getAuditSummary(),
-      ]);
-      setCompanies(comps);
-      setContacts(conts);
-      setImportedFunnelDeals(deals);
-      setAudit(auditSummary);
-    } catch {
-      logger.error('Error loading CRM data from repository:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    loadDataFromRepository();
-  }, [loadDataFromRepository]);
-
   // Seed handler for populating Supabase PostgreSQL
   const handleSeedDatabase = async () => {
     setIsSeeding(true);
@@ -65,7 +60,10 @@ export function LeadsPage() {
       const result = await CRMRepository.seedDatabase();
       setSeedResult(result);
       if (result.success) {
-        await loadDataFromRepository();
+        await companiesQuery.refetch();
+        await contactsQuery.refetch();
+        await dealsQuery.refetch();
+        await auditQuery.refetch();
       }
     } catch (err) {
       setSeedResult({
@@ -246,12 +244,27 @@ export function LeadsPage() {
       </div>
 
       {/* 4. Tab Views mit CrmResponsiveList */}
-      {loading ? (
-        <Card variant="glass">
-          <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>
-            Lade Daten aus CRM Repository...
-          </div>
-        </Card>
+      {isLoading ? (
+        <ManagementChartState
+          type="loading"
+          message="Lade Daten aus CRM Repository..."
+          sourceLabel="Ebene A CRM"
+          height={220}
+        />
+      ) : queryError ? (
+        <ManagementChartState
+          type="error"
+          message={`Integritätsfehler: ${queryError instanceof Error ? queryError.message : 'Fehler beim Laden der CRM-Daten'}`}
+          sourceLabel="Ebene A CRM"
+          height={220}
+        />
+      ) : isEmpty ? (
+        <ManagementChartState
+          type="empty"
+          message="Keine CRM-Daten erfasst"
+          sourceLabel="Ebene A CRM"
+          height={220}
+        />
       ) : (
         <>
           {activeTab === 'contacts' && (
