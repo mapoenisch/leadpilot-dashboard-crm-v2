@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { SimulationProvider } from '@/context/SimulationContext';
+import { queryClient } from '@/app/queryClient';
 import { APP_ROUTES } from '@/app/routes';
 import { ROUTE_PAGES } from '@/app/routePages';
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
@@ -11,6 +13,7 @@ import '@/services/data';
 export function App() {
   return (
     <RouteErrorBoundary resetKey="app-root">
+      <QueryClientProvider client={queryClient}>
       <SimulationProvider>
       <BrowserRouter>
         <Routes>
@@ -63,6 +66,7 @@ export function App() {
         </Routes>
       </BrowserRouter>
       </SimulationProvider>
+      </QueryClientProvider>
     </RouteErrorBoundary>
   );
 }

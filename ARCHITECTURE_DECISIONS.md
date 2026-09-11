@@ -1775,6 +1775,16 @@ Der Multi-Szenario-Vergleich ermöglicht die parallele, strukturierte Gegenüber
 - **Konfigurations-Übernahme (`adoptConfiguration`, Entscheidung 872):**
   - Übernahme der Parameter einer verglichenen Version erzeugt eine neue, unveränderliche `ScenarioVersion` im Zielszenario.
 
+## B26. Drei parallele State-Schichten (beschlossen, implementiert ab AUFTRAG 051)
+
+Drei State-Schichten laufen parallel, jede mit eigenem Mechanismus und klarer Grenze — keine Schicht ersetzt eine andere:
+
+**TanStack Query (HTTP-Server-State).** Alle Request/Response-Lesezugriffe gegen `CRMRepository` (`getCompanies`, `getContacts`, `getImportedFunnelDeals`, `getAuditSummary`, `getPipelineOverview`) sowie die einzige echte Server-Mutation (`seedDatabase`) laufen über `useQuery`/`useMutation` mit zentraler Key-Factory (`crmKeys`, `src/services/query/queryKeys.ts`) und einem `QueryClient` (`src/app/queryClient.ts`, `staleTime` 60s, `retry` 1). Optimistic Updates gibt es nur auf Metadaten-Ebene (Sync-Status); granulare Entity-Schreibpfade (`addLead`, `updateLeadStatus`) bleiben absichtlich deaktiviert (B22/BUILD_PLAN D1).
+
+**Zustand/`useSyncExternalStore` (Realtime-Stream).** Die Live-KPI-Hooks (`useLiveKpi`, `useLiveKpiHistory`, `useLiveKpiActivity`) laufen über einen eigenen Store mit `useSyncExternalStore` (gehärtet G33/G34) — Push-Strom ohne Request/Response-Zyklus, deshalb kein TanStack-Query-Fall. Bleibt unverändert.
+
+**`SimulationContext` (In-Memory-Simulationszustand).** `RunActionModal` und `AuditTierView` rufen `scenService.runVersion/reRun/reproduce` über `SimulationContext` auf — Domänenaktionen der geschützten `src/simulation/`-Zone, kein HTTP-Server-State. Bleibt unverändert.
+
 ---
 ---
 
