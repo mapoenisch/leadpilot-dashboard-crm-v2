@@ -1,35 +1,42 @@
-import React from 'react';
-import { logger } from '@/services/logger';
-import { CRMRepository } from '@/services/db/crmRepository';
-import { Company } from '@/types/crm';
+import { useCrmCompanies } from '@/hooks/queries/useCrmQueries';
+import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { CompaniesView } from '../components/CompaniesView';
 
 export function CompaniesPage() {
-  const [companies, setCompanies] = React.useState<Company[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const { data: companies = [], isLoading, isError, error } = useCrmCompanies();
 
-  React.useEffect(() => {
-    let isMounted = true;
-    setLoading(true);
-    CRMRepository.getCompanies()
-      .then((comps) => {
-        if (isMounted) {
-          setCompanies(comps);
-        }
-      })
-      .catch((err) => {
-        logger.error('Error loading companies:', err);
-      })
-      .finally(() => {
-        if (isMounted) {
-          setLoading(false);
-        }
-      });
+  if (isLoading) {
+    return (
+      <ManagementChartState
+        type="loading"
+        message="Lade Unternehmen aus CRM Repository..."
+        sourceLabel="Ebene A CRM Accounts"
+        height={220}
+      />
+    );
+  }
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  if (isError) {
+    return (
+      <ManagementChartState
+        type="error"
+        message={`Integritätsfehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der Unternehmen'}`}
+        sourceLabel="Ebene A CRM Accounts"
+        height={220}
+      />
+    );
+  }
 
-  return <CompaniesView companies={companies} loading={loading} />;
+  if (companies.length === 0) {
+    return (
+      <ManagementChartState
+        type="empty"
+        message="Keine Unternehmen (Accounts) erfasst"
+        sourceLabel="Ebene A CRM Accounts"
+        height={220}
+      />
+    );
+  }
+
+  return <CompaniesView companies={companies} />;
 }

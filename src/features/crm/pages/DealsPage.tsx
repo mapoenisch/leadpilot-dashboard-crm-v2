@@ -1,35 +1,42 @@
-import React from 'react';
-import { logger } from '@/services/logger';
-import { CRMRepository } from '@/services/db/crmRepository';
-import { ImportedFunnelDeal } from '@/types/crm';
+import { useCrmDeals } from '@/hooks/queries/useCrmQueries';
+import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { DealsView } from '../components/DealsView';
 
 export function DealsPage() {
-  const [deals, setDeals] = React.useState<ImportedFunnelDeal[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const { data: deals = [], isLoading, isError, error } = useCrmDeals();
 
-  React.useEffect(() => {
-    let isMounted = true;
-    setLoading(true);
-    CRMRepository.getImportedFunnelDeals()
-      .then((data) => {
-        if (isMounted) {
-          setDeals(data);
-        }
-      })
-      .catch((err) => {
-        logger.error('Error loading deals:', err);
-      })
-      .finally(() => {
-        if (isMounted) {
-          setLoading(false);
-        }
-      });
+  if (isLoading) {
+    return (
+      <ManagementChartState
+        type="loading"
+        message="Lade Deals aus CRM Repository..."
+        sourceLabel="Ebene A CRM Funnel Deals"
+        height={220}
+      />
+    );
+  }
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  if (isError) {
+    return (
+      <ManagementChartState
+        type="error"
+        message={`Integritätsfehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der CRM-Deals'}`}
+        sourceLabel="Ebene A CRM Funnel Deals"
+        height={220}
+      />
+    );
+  }
 
-  return <DealsView deals={deals} loading={loading} />;
+  if (deals.length === 0) {
+    return (
+      <ManagementChartState
+        type="empty"
+        message="Keine Deals im CRM-Funnel erfasst"
+        sourceLabel="Ebene A CRM Funnel Deals"
+        height={220}
+      />
+    );
+  }
+
+  return <DealsView deals={deals} />;
 }
