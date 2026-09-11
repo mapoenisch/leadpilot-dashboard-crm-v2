@@ -244,6 +244,7 @@ Alle sechs müssen grün sein. Ein roter Job blockiert den Merge.
 | 🟡 Riesenkomponenten | 19 · max 883 | G40 |
 | 🟢 Repo-Hygiene / 592 MB / 50 Skripte | 271 MB Bilder | G29 + G31 |
 | 🟢 Build-Tools in `dependencies` | 3 Pakete | G29 |
+| 🆕 `noUncheckedIndexedAccess`-Fallout außerhalb `src/simulation/` (in Auftrag 050-B entdeckt, 2026-09-11) — die G30-Schätzung „~526 der 765 tsc-Fehler, alle in `src/simulation/`" war falsch; real nur 153 dort, **605** verteilt über fast alle `src/features/**` (markt 103, finanzen 90, vertrieb 85, kunden 55 u. a.), `src/domain/` (56), `src/components/ui` (29) | 605 tsc-Fehler | **noch kein Gate — Entscheidung offen** |
 
 ---
 
@@ -256,8 +257,9 @@ eingegriffen — das ist der Zweck dieses Plans. Es gilt stattdessen:
   Ziel-Dateien.
 - **Fachliches Verhalten bleibt unverändert.** Beweis: alle bestehenden Integritätssuiten bleiben
   grün, und der Screenshot-Vergleich gegen V2.1.0 muss **identisch** ausfallen.
-- `src/simulation/**` wird ausschließlich in G31 (Testmigration) und G37 (State-Anbindung)
-  berührt — die Engine-Logik selbst bleibt unverändert.
+- `src/simulation/**` wird in G31 (Testmigration), G35 (Auftrag 050-B,
+  Typhärtung — reine Typebene, siehe dort) und G37 (State-Anbindung) berührt —
+  die Engine-Logik selbst bleibt unverändert.
 - Kein Merge, Tag oder Push ohne ausdrückliche Freigabe durch Marc.
 
 ---
