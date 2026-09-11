@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 env:
-  LINT_BASELINE: 182
-  TSC_BASELINE: 758
+  LINT_BASELINE: 19
+  TSC_BASELINE: 605
 
 jobs:
   lint:

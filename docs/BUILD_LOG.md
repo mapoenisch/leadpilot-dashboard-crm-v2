@@ -2,6 +2,92 @@
 
 ---
 
+## 2026-09-10 — Gate G35 / Auftrag 050-B: `src/simulation/`-Typhärtung
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `0de63c9`. Ausschließlich `src/simulation/**` (+ Ratsche).
+Kein Merge, Tag. 6 Block-Commits + 1 Ratschen/Berichts-Commit.
+
+### Blöcke (je Commit-Hash, Treffer vorher → nachher, `verify` je Commit 24/24)
+
+| Block | Commit | Regel | Vorher → Nachher |
+|---|---|---|---|
+| I | `8094b89` | `no-unused-vars` | 31 → 0 (Importe/Vars weg; `catch {` ohne Binding; Calls mit Seiteneffekt bleiben, nur Destructuring gekürzt) |
+| J | `be32ca5` | `prefer-const` | 5 → 0 |
+| K | `d8b8810` | `no-explicit-any` | 64 → 0 (echte Typen, `unknown`+Narrowing, begründete `as`-Casts nur in Fixtures). Seiteneffekt: `catch (err: any)` ×2 gleich mit bereinigt; tsc total 758 → 733, tsc-sim 153 → 128 |
+| L | `d8d23c5` | `no-console` | 61 → 0 (alle `console.log` → `logger.info`, derselbe Logger aus 050, relativ importiert) |
+| M1 | `ad55457` | tsc Prod-Dateien | 81 → 0 |
+| M2 | `5ec7334` | tsc Test-Harnesse | 47 → 0 |
+
+Endstand eslint in `src/simulation/`: nur noch 3× `max-lines` (→ G40).
+tsc-sim: **0**. tsc total: **605** (= 758 − 153, exakt Prognose).
+Lint total: **19** Errors (+ 3 pre-existente e2e-Warnings).
+
+### Block M1 — Determinismus-Nachweis (der kritische Punkt)
+
+- **Vor M1:** `/tmp/m1suites.ts` (Suiten 002/005/012/018 einzeln, Harness-Logs
+  auf stdout) → `/tmp/m1-before.log`, sha `a8acdb2a`, 4/4 grün.
+- **Nach M1:** derselbe Lauf → `/tmp/m1-after.log`, 4/4 grün.
+- **Befund:** 8 Diff-Zeilen, alle Crypto-Run-/Szenario-IDs (`scen-*`,
+  `run-s*-v*-*`, `newRunSeed`) aus `systemContext` (`cryptoInt`,
+  WebCrypto/`Math.random` — per Design nicht seedbar).
+- **Vorher-Nachher-Beweis:** Stash-Lauf *ohne* M1-Änderungen erzeugt
+  ebenfalls neue IDs (2394184767 vs 248632996) → Zufälligkeit pre-existent,
+  nicht von M1 verursacht. Mit maskierten IDs (`scen-ID`/`run-ID`/Seeds):
+  **Diff leer** — kein Verhaltenswechsel.
+- **Fixer Seed:** Suite 018 (Reproducibility, Seed 777001, interne A/B-Assert)
+  in beiden Läufen grün → Engine-Determinismus intakt.
+- **Guards:** nur begründete Assertions (`if (!x) throw`), kein stiller
+  Fallback. Eine Ausnahme: `scenarioService` completedVersions-Filter nutzt
+  das im umgebenden Code bereits etablierte `?. ?? 0`-Muster (gleiche
+  Fail-Semantik wie die Nachbarzeilen).
+
+### Block M2 — geänderte Assertions (Fail-Semantik jeweils erhalten)
+
+- `?.`-Ketten in Bool-Ausdrücken (snapshot, pruning, tsa, scenarioComparison,
+  worker-Log): Missing → Vergleich false/Flag → FAILED-Pfad wie bisher.
+- Setup-Guards mit Throw (kpi-Histogramm, monteCarlo-Shuffle, scenarioRun-H,
+  recon-`datasetAt`-Helper): Setup-Bruch bricht ab wie zuvor per TypeError.
+- Graceful-Fail statt Abort (recon-D/E, resourceInfrastructure-Assets):
+  Missing → FAILED-Flag, Suite läuft weiter (vorher TypeError-Abort) —
+  rot bleibt rot, Rest wird noch geprüft.
+- Fixture-Vervollständigung (financial/stateMachine `SimulationRun`: fehlende
+  `correlationId` ergänzt — vom Aggregator ignoriert, inert).
+
+### Werkzeug-Notiz
+
+4 Edits (kpi/measure/monteCarlo/resourceInfrastructure, Block M2) meldeten
+„erfolgreich", waren aber nicht in der Datei — nach erneutem Anwenden je
+sofort per `grep` verifiziert. Alle M2-Änderungen einzeln gegen `git diff`
+und tsc geprüft; kein Inhalt verloren.
+
+### Command-Matrix
+
+| Command | Ergebnis |
+|---|---|
+| `npm run test` | 33 Files / 133 Tests grün |
+| `npm run test:coverage` | EXIT 0 |
+| `npm run verify` | 24/24 (nach jedem Block-Commit) |
+| `npm run build` | EXIT 0 |
+| `npx tsc --noEmit \| grep -c "error TS"` | **605** |
+| `npx tsc --noEmit \| grep "src/simulation"` | 0 Zeilen |
+| `npm run lint \| grep problems` | 19 Errors (+ 3 alte Warnings) |
+| `grep -rn "console\." src/simulation` | 0 |
+| `git diff 0de63c9 -- src/features src/domain src/components src/services src/hooks src/context src/types src/app` | leer |
+| 050-Zeile (`runSourceAudit`-Import in dataSourceIntegrity) | unangetastet |
+
+### Ratsche + CI
+
+- `.github/workflows/ci.yml`: `LINT_BASELINE` 182 → **19**,
+  `TSC_BASELINE` 758 → **605** (gesenkt, nie erhöht).
+- CI-Bestätigungs-Push: <RUN-URL> (wird nach Push eingetragen).
+
+**Ergebnis:** Alle Blöcke + Akzeptanzkriterien aus Builder-Sicht erfüllt.
+**Übergabe an Review (Codex/Claude Code).** Danach ist G35 komplett.
+Kein Merge, Tag.
+
+---
+
 ## 2026-09-10 — Gate G35 / Auftrag 050-C Nacharbeit (Review P2 + P3)
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
