@@ -809,7 +809,7 @@ export class ScenarioService {
    */
   public compareMultipleVersions(
     versionIds: string[],
-    targets?: Record<string, GoalTarget>,
+    _targets?: Record<string, GoalTarget>,
     referenceVersionId?: string
   ): MultiVersionComparisonResult {
     if (!versionIds || versionIds.length < 2 || versionIds.length > 4) {
@@ -830,6 +830,10 @@ export class ScenarioService {
     }
 
     const refId = referenceVersionId && versionIds.includes(referenceVersionId) ? referenceVersionId : versionIds[0];
+    if (!refId) {
+      // Unerreichbar: versionIds enthält per Guard oben 2–4 Einträge.
+      throw new ScenarioError('INVALID_VERSION', 'Keine Referenzversion bestimmbar.');
+    }
     const refVersion = versions.find((v) => v.id === refId)!;
 
     // 2. Build Parameter Matrix
@@ -919,11 +923,19 @@ export class ScenarioService {
       const isFavorableAgainstRef: Record<string, boolean | undefined> = {};
 
       const refAgg = aggregations[refId];
+      if (!refAgg) {
+        // Unerreichbar: aggregations wird für alle versions aufgebaut, refId ist eine gültige Version.
+        throw new ScenarioError('NOT_FOUND', `Keine Aggregation für Referenzversion "${refId}".`);
+      }
       const refKpiStats = refAgg.validRunCount > 0 ? kDef.extract(refAgg) : undefined;
       const refMedian = refKpiStats?.median;
 
       for (const v of versions) {
         const agg = aggregations[v.id];
+        if (!agg) {
+          // Unerreichbar: aggregations wird oben für alle versions aufgebaut.
+          throw new ScenarioError('NOT_FOUND', `Keine Aggregation für Version "${v.id}".`);
+        }
         if (agg.validRunCount > 0) {
           const stats = kDef.extract(agg);
           valuesByVersionId[v.id] = {
@@ -999,8 +1011,13 @@ export class ScenarioService {
       const kInfo = KPIRegistry.getKPI(dimObj.kpiId);
 
       // Determine best version for this dimension
-      let bestVerId = versions[0].id;
-      let bestVal = valuesByVersionIdBest(kRow, versions[0].id, kInfo.direction);
+      const firstVersion = versions[0];
+      if (!firstVersion) {
+        // Unerreichbar: versionIds enthält per Guard oben 2–4 Einträge.
+        throw new ScenarioError('INVALID_VERSION', 'Keine Versionen zum Vergleich.');
+      }
+      let bestVerId = firstVersion.id;
+      let bestVal = valuesByVersionIdBest(kRow, firstVersion.id, kInfo.direction);
 
       for (const v of versions) {
         const val = valuesByVersionIdBest(kRow, v.id, kInfo.direction);
@@ -1126,10 +1143,15 @@ export class ScenarioService {
 
     // 6. Validation of Equal Run Count & Duration (Decisions 854, 855)
     const comparisonWarnings: string[] = [];
-    const completedVersions = versions.filter((v) => aggregations[v.id].validRunCount > 0);
+    const completedVersions = versions.filter((v) => (aggregations[v.id]?.validRunCount ?? 0) > 0);
 
     if (completedVersions.length > 1) {
-      const firstCount = aggregations[completedVersions[0].id]?.validRunCount ?? 0;
+      const firstCompleted = completedVersions[0];
+      if (!firstCompleted) {
+        // Unerreichbar: length > 1 wurde gerade geprüft.
+        throw new ScenarioError('INVALID_VERSION', 'Keine abgeschlossene Version.');
+      }
+      const firstCount = aggregations[firstCompleted.id]?.validRunCount ?? 0;
       const hasDifferentCounts = completedVersions.some((v) => (aggregations[v.id]?.validRunCount ?? 0) !== firstCount);
       if (hasDifferentCounts) {
         comparisonWarnings.push(
@@ -1137,7 +1159,7 @@ export class ScenarioService {
         );
       }
 
-      const firstDuration = aggregations[completedVersions[0].id]?.metrics?.timeSeries?.length ?? 0;
+      const firstDuration = aggregations[firstCompleted.id]?.metrics?.timeSeries?.length ?? 0;
       const hasDifferentDurations = completedVersions.some((v) => (aggregations[v.id]?.metrics?.timeSeries?.length ?? 0) !== firstDuration);
       if (hasDifferentDurations) {
         comparisonWarnings.push(

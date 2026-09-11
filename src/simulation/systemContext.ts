@@ -8,7 +8,12 @@ export interface SystemContext {
 
 function cryptoInt(): number {
   if (typeof globalThis.crypto?.getRandomValues === 'function') {
-    return globalThis.crypto.getRandomValues(new Uint32Array(1))[0];
+    const first = globalThis.crypto.getRandomValues(new Uint32Array(1))[0];
+    if (first === undefined) {
+      // Unerreichbar: getRandomValues füllt den übergebenen Buffer garantiert.
+      throw new Error('WebCrypto lieferte keinen Zufallswert.');
+    }
+    return first;
   }
   // Nur als Fallback in Nicht-Browser-Umgebungen ohne WebCrypto.
   return Math.floor(Math.random() * 0xffffffff);

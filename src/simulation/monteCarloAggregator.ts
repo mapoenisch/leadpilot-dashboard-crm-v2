@@ -3,6 +3,7 @@ import {
   AggregationError,
   MetricStats,
   ScenarioAggregationResult,
+  TimeSeriesPoint,
 } from '../types/aggregation';
 import { SimulationRun } from '../types/scenario';
 import { systemContext } from './systemContext';
@@ -16,7 +17,14 @@ export class MonteCarloAggregator {
    */
   public static calculatePercentile(sortedValues: number[], percentile: number): number {
     if (sortedValues.length === 0) return 0;
-    if (sortedValues.length === 1) return sortedValues[0];
+    if (sortedValues.length === 1) {
+      const only = sortedValues[0];
+      if (only === undefined) {
+        // Unerreichbar: length === 1 wurde gerade geprüft.
+        throw new Error('Perzentil ohne Wert nicht berechenbar.');
+      }
+      return only;
+    }
 
     const n = sortedValues.length;
     const r = percentile * (n - 1);
@@ -24,7 +32,14 @@ export class MonteCarloAggregator {
     const j = Math.ceil(r);
     const w = r - k;
 
-    return (1 - w) * sortedValues[k] + w * sortedValues[j];
+    const lower = sortedValues[k];
+    const upper = sortedValues[j];
+    if (lower === undefined || upper === undefined) {
+      // Unerreichbar: n >= 2, k = floor(r) und j = ceil(r) liegen in [0, n).
+      throw new Error('Perzentil-Indizes außerhalb des Wertebereichs.');
+    }
+
+    return (1 - w) * lower + w * upper;
   }
 
   /**
@@ -47,6 +62,10 @@ export class MonteCarloAggregator {
     const n = sorted.length;
     const min = sorted[0];
     const max = sorted[n - 1];
+    if (min === undefined || max === undefined) {
+      // Unerreichbar: values ist hier garantiert nicht leer (Guard oben).
+      throw new AggregationError('NO_VALID_RUNS', 'Keine Werte zur Aggregation.');
+    }
 
     const sum = sorted.reduce((acc, v) => acc + v, 0);
     const mean = sum / n;
@@ -103,8 +122,13 @@ export class MonteCarloAggregator {
     }
 
     // ScenarioVersion Isolation Check
-    const targetVersionId = completedRuns[0].scenarioVersionId;
-    const targetScenarioId = completedRuns[0].scenarioId;
+    const firstCompletedRun = completedRuns[0];
+    if (!firstCompletedRun) {
+      // Unerreichbar: leere Runs wurden oben per NO_VALID_RUNS abgewiesen.
+      throw new AggregationError('NO_VALID_RUNS', 'Keine abgeschlossenen Läufe zur Aggregation.');
+    }
+    const targetVersionId = firstCompletedRun.scenarioVersionId;
+    const targetScenarioId = firstCompletedRun.scenarioId;
 
     for (const run of completedRuns) {
       if (run.scenarioVersionId !== targetVersionId) {
@@ -116,7 +140,7 @@ export class MonteCarloAggregator {
     }
 
     // Model / Schema / Baseline Compatibility Check
-    const firstManifest = completedRuns[0].manifest;
+    const firstManifest = firstCompletedRun.manifest;
     for (const run of completedRuns) {
       const m = run.manifest;
       if (
@@ -140,7 +164,12 @@ export class MonteCarloAggregator {
     const dealValues = orderedRuns.map((r) => r.finalMetrics!.liveWonDeals);
 
     // Tick-by-tick time series aggregation
-    const firstTimeSeries = orderedRuns[0].timeSeries;
+    const firstOrderedRun = orderedRuns[0];
+    if (!firstOrderedRun) {
+      // Unerreichbar: orderedRuns baut auf den geprüften completedRuns auf.
+      throw new AggregationError('NO_VALID_RUNS', 'Keine Läufe zur Zeitreihen-Aggregation.');
+    }
+    const firstTimeSeries = firstOrderedRun.timeSeries;
     let aggregatedTimeSeries: AggregatedMetrics['timeSeries'] = undefined;
 
     if (firstTimeSeries && firstTimeSeries.length > 0) {
@@ -158,12 +187,24 @@ export class MonteCarloAggregator {
 
       // 2. Verify tick-synchronous alignment
       for (let i = 0; i < seriesLength; i++) {
-        const expectedTick = firstTimeSeries[i].tick;
+        const expectedPoint = firstTimeSeries[i];
+        if (!expectedPoint) {
+          // Unerreichbar: i läuft über firstTimeSeries.length.
+          throw new AggregationError('INCOMPATIBLE_TIMESERIES', `Referenz-Tick bei Index ${i} fehlt.`);
+        }
+        const expectedTick = expectedPoint.tick;
         for (const run of orderedRuns) {
-          if (run.timeSeries![i].tick !== expectedTick) {
+          const point = run.timeSeries?.[i];
+          if (!point) {
             throw new AggregationError(
               'INCOMPATIBLE_TIMESERIES',
-              `Tick-Ausrichtung fehlgeschlagen: Inkompatibler Tick bei Index ${i} (${run.timeSeries![i].tick} vs ${expectedTick}).`
+              `Tick-Ausrichtung fehlgeschlagen: Zeitreihe von Lauf "${run.runId}" endet vor Index ${i}.`
+            );
+          }
+          if (point.tick !== expectedTick) {
+            throw new AggregationError(
+              'INCOMPATIBLE_TIMESERIES',
+              `Tick-Ausrichtung fehlgeschlagen: Inkompatibler Tick bei Index ${i} (${point.tick} vs ${expectedTick}).`
             );
           }
         }
@@ -173,14 +214,28 @@ export class MonteCarloAggregator {
       aggregatedTimeSeries = [];
       for (let i = 0; i < seriesLength; i++) {
         const refPoint = firstTimeSeries[i];
-        const tickArr = orderedRuns.map((r) => r.timeSeries![i].metrics.arr);
-        const tickMrr = orderedRuns.map((r) => r.timeSeries![i].metrics.mrr);
-        const tickCustomers = orderedRuns.map((r) => r.timeSeries![i].metrics.customers);
-        const tickWonDeals = orderedRuns.map((r) => r.timeSeries![i].metrics.wonDeals);
-        const tickEbitda = orderedRuns.map((r) => r.timeSeries![i].metrics.ebitda ?? 0);
-        const tickNetRevenue = orderedRuns.map((r) => r.timeSeries![i].metrics.netRevenue ?? 0);
-        const tickNetCashFlow = orderedRuns.map((r) => r.timeSeries![i].metrics.netCashFlow ?? 0);
-        const tickCumulativeCashFlow = orderedRuns.map((r) => r.timeSeries![i].metrics.cumulativeCashFlow ?? 0);
+        if (!refPoint) {
+          // Unerreichbar: i läuft über firstTimeSeries.length.
+          throw new AggregationError('INCOMPATIBLE_TIMESERIES', `Referenz-Tick bei Index ${i} fehlt.`);
+        }
+        const pointAt = (r: SimulationRun): TimeSeriesPoint => {
+          const point = r.timeSeries?.[i];
+          if (!point) {
+            throw new AggregationError(
+              'INCOMPATIBLE_TIMESERIES',
+              `Zeitreihe von Lauf "${r.runId}" endet vor Tick-Index ${i}.`
+            );
+          }
+          return point;
+        };
+        const tickArr = orderedRuns.map((r) => pointAt(r).metrics.arr);
+        const tickMrr = orderedRuns.map((r) => pointAt(r).metrics.mrr);
+        const tickCustomers = orderedRuns.map((r) => pointAt(r).metrics.customers);
+        const tickWonDeals = orderedRuns.map((r) => pointAt(r).metrics.wonDeals);
+        const tickEbitda = orderedRuns.map((r) => pointAt(r).metrics.ebitda ?? 0);
+        const tickNetRevenue = orderedRuns.map((r) => pointAt(r).metrics.netRevenue ?? 0);
+        const tickNetCashFlow = orderedRuns.map((r) => pointAt(r).metrics.netCashFlow ?? 0);
+        const tickCumulativeCashFlow = orderedRuns.map((r) => pointAt(r).metrics.cumulativeCashFlow ?? 0);
 
         aggregatedTimeSeries.push({
           tick: refPoint.tick,

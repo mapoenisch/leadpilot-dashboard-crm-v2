@@ -65,10 +65,15 @@ export class EffectiveParameterResolver {
 
       for (let i = 0; i < affectingMeasures.length; i++) {
         for (let j = i + 1; j < affectingMeasures.length; j++) {
-          const m1 = affectingMeasures[i].measure;
-          const c1 = affectingMeasures[i].change;
-          const m2 = affectingMeasures[j].measure;
-          const c2 = affectingMeasures[j].change;
+          const entry1 = affectingMeasures[i];
+          const entry2 = affectingMeasures[j];
+          if (!entry1 || !entry2) {
+            throw new Error('Maßnahmen-Index außerhalb des gültigen Bereichs.');
+          }
+          const m1 = entry1.measure;
+          const c1 = entry1.change;
+          const m2 = entry2.measure;
+          const c2 = entry2.change;
 
           const start1 = m1.startTick;
           const end1 = m1.durationTicks !== undefined ? start1 + m1.durationTicks : Infinity;

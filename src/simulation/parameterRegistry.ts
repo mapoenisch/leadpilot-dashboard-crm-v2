@@ -1,7 +1,9 @@
 import { ChannelMix, ParameterDefinition } from '../types/parameter';
 import { ScenarioParameters } from '../types/scenario';
 
-export const V1_PARAMETER_DEFINITIONS: Record<keyof ScenarioParameters, ParameterDefinition> = {
+export const V1_PARAMETER_DEFINITIONS: {
+  [K in keyof ScenarioParameters]: ParameterDefinition<ScenarioParameters[K]>;
+} = {
   marketingBudgetYearly: {
     id: 'marketingBudgetYearly',
     label: 'Marketing-Budget (jährlich)',
@@ -293,7 +295,7 @@ export class ParameterRegistry {
     return {
       valid: errors.length === 0,
       errors,
-      normalizedParams: resultParams as ScenarioParameters,
+      normalizedParams: resultParams as unknown as ScenarioParameters,
     };
   }
 }

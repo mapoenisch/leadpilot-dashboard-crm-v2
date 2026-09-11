@@ -64,8 +64,14 @@ export class SimulationClock {
     let d = dayIndex;
     let m = 0;
     let y = startYear;
-    while (d >= daysInMonths[m]) {
-      d -= daysInMonths[m];
+    while (true) {
+      const monthDays = daysInMonths[m];
+      if (monthDays === undefined) {
+        // Unerreichbar: m bleibt durch Modulo-Arithmetik in [0, 11].
+        throw new Error('Monatsindex außerhalb des Kalenders.');
+      }
+      if (d < monthDays) break;
+      d -= monthDays;
       m = (m + 1) % 12;
       if (m === 0) y++;
     }
@@ -95,7 +101,7 @@ export class SimulationEventRules {
   public static evaluateNewLeadRule(
     clock: SimulationClockContext,
     rng: DeterministicRNG,
-    existingLeads: SimulationLead[],
+    _existingLeads: SimulationLead[],
     marketingBudgetYearly = 65000,
     channelMix?: ChannelMix
   ): { lead: SimulationLead; event: SimulationEvent; activity: SimulationActivity } | null {
@@ -135,8 +141,8 @@ export class SimulationEventRules {
     const pkg = rng.pick(PACKAGES);
     
     const leadId = `sim-lead-s${clock.seed}-t${clock.tick}`;
-    const firstName = sample.contact.split(' ')[0].toLowerCase();
-    const companyClean = sample.companyName.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '');
+    const firstName = (sample.contact.split(' ')[0] ?? '').toLowerCase();
+    const companyClean = (sample.companyName.toLowerCase().split(' ')[0] ?? '').replace(/[^a-z]/g, '');
     const email = `${firstName}@${companyClean}.de`;
     
     const scoreDelta = rng.nextInt(-7, 7);
@@ -193,7 +199,7 @@ export class SimulationEventRules {
     clock: SimulationClockContext,
     rng: DeterministicRNG,
     leads: SimulationLead[],
-    opportunities: SimulationOpportunity[],
+    _opportunities: SimulationOpportunity[],
     trialToPaidConversion = 18,
     salesCycleDays = 38,
     discountPercent = 0
@@ -427,6 +433,10 @@ export class SimulationEventRules {
 
     for (let i = 0; i < updatedDeals.length; i++) {
       const deal = updatedDeals[i];
+      if (!deal) {
+        // Unerreichbar: i läuft über updatedDeals.length.
+        throw new Error('Deal-Index außerhalb des gültigen Bereichs.');
+      }
       if (deal.isChurned) continue;
 
       const csEntry = csQueueEntries.find((e) => e.customerId === deal.id || e.companyName === deal.companyName);

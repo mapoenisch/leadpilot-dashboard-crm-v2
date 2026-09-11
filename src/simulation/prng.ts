@@ -44,7 +44,12 @@ export class DeterministicRNG {
       throw new Error('Cannot pick from empty array');
     }
     const idx = Math.floor(this.next() * arr.length);
-    return arr[idx];
+    const picked = arr[idx];
+    if (picked === undefined) {
+      // Unerreichbar: next() liegt in [0, 1), idx damit in [0, arr.length).
+      throw new Error('Zufallsindex außerhalb des gültigen Bereichs.');
+    }
+    return picked;
   }
 
   /**

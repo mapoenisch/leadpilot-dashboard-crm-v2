@@ -12,7 +12,7 @@ export class TickInvariantValidator {
   public static verifyTickInvariants(
     state: SimulationState,
     deals: SimulationDeal[],
-    leads: SimulationLead[],
+    _leads: SimulationLead[],
     baseCustomers = 66
   ): InvariantViolationReport {
     const violations: string[] = [];
