@@ -4,16 +4,17 @@ import { systemContext } from '../systemContext';
 import { EffectiveParameterResolver } from '../effectiveParameterResolver';
 import { Measure, MeasureKpiDelta } from '../../types/measure';
 import { DEFAULT_BASE_2026_PARAMETERS } from '../scenarioRepository';
+import { logger } from '../../services/logger';
 
 export async function runMeasureTest(): Promise<boolean> {
-  console.log('\n=== STARTING AUFTRAG 017 TEST SUITE (MEASURES & EFFECTIVE PARAMETERS) ===\n');
+  logger.info('\n=== STARTING AUFTRAG 017 TEST SUITE (MEASURES & EFFECTIVE PARAMETERS) ===\n');
 
   const scenService = scenarioService;
 
   // -------------------------------------------------------------------------
   // Test 1: Resolver - Ramp-up lineare Interpolation
   // -------------------------------------------------------------------------
-  console.log('--- TEST 1: Resolver Ramp-up linear interpolation ---');
+  logger.info('--- TEST 1: Resolver Ramp-up linear interpolation ---');
   const measureRamp: Measure = {
     id: 'm-ramp-1',
     name: 'Sales Rep Ramp-up',
@@ -39,12 +40,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (pFull.salesRepCount !== 6) {
     throw new Error(`TEST 1 FAILED: Expected salesRepCount=6 at full ramp, got ${pFull.salesRepCount}`);
   }
-  console.log('✅ TEST 1 PASSED: Resolver calculates ramp-up linear interpolation accurately.');
+  logger.info('✅ TEST 1 PASSED: Resolver calculates ramp-up linear interpolation accurately.');
 
   // -------------------------------------------------------------------------
   // Test 2: Resolver - Revert after durationTicks
   // -------------------------------------------------------------------------
-  console.log('--- TEST 2: Resolver durationTicks & revert ---');
+  logger.info('--- TEST 2: Resolver durationTicks & revert ---');
   const measureDuration: Measure = {
     id: 'm-dur-1',
     name: 'Temporary Boost',
@@ -61,12 +62,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (resolverDur.at(15).salesRepCount !== 2) {
     throw new Error(`TEST 2 FAILED: Expected salesRepCount=2 after expiration, got ${resolverDur.at(15).salesRepCount}`);
   }
-  console.log('✅ TEST 2 PASSED: Resolver reverts effective parameter to base value after durationTicks.');
+  logger.info('✅ TEST 2 PASSED: Resolver reverts effective parameter to base value after durationTicks.');
 
   // -------------------------------------------------------------------------
   // Test 3: Resolver - Clamping against Registry Bounds
   // -------------------------------------------------------------------------
-  console.log('--- TEST 3: Resolver clamping against V1_PARAMETER_DEFINITIONS ---');
+  logger.info('--- TEST 3: Resolver clamping against V1_PARAMETER_DEFINITIONS ---');
   const measureOverflow: Measure = {
     id: 'm-over-1',
     name: 'Over the top',
@@ -85,12 +86,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (pClamped.marketingBudgetYearly !== 150000) {
     throw new Error(`TEST 3 FAILED: Expected marketingBudgetYearly clamped to 150000, got ${pClamped.marketingBudgetYearly}`);
   }
-  console.log('✅ TEST 3 PASSED: EffectiveParameterResolver clamps values strictly to registry min/max bounds.');
+  logger.info('✅ TEST 3 PASSED: EffectiveParameterResolver clamps values strictly to registry min/max bounds.');
 
   // -------------------------------------------------------------------------
   // Test 4: Multiple Measures combination & ordering
   // -------------------------------------------------------------------------
-  console.log('--- TEST 4: Multiple Measures additive application ---');
+  logger.info('--- TEST 4: Multiple Measures additive application ---');
   const measureDelta1: Measure = {
     id: 'm-delta-1',
     name: 'Add 1 rep',
@@ -110,12 +111,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (pMulti.salesRepCount !== 4) {
     throw new Error(`TEST 4 FAILED: Expected salesRepCount=4 (2 + 1 + 1), got ${pMulti.salesRepCount}`);
   }
-  console.log('✅ TEST 4 PASSED: Multiple additive measures combine deterministically.');
+  logger.info('✅ TEST 4 PASSED: Multiple additive measures combine deterministically.');
 
   // -------------------------------------------------------------------------
   // Test 5: Conflict detection (MULTIPLE_SET & SET_AND_RELATIVE)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 5: Conflict detection warnings ---');
+  logger.info('--- TEST 5: Conflict detection warnings ---');
   const measureConf1: Measure = {
     id: 'm-conf-1',
     name: 'Set Budget 100k',
@@ -137,12 +138,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (conflicts.length !== 1 || conflicts[0].kind !== 'MULTIPLE_SET') {
     throw new Error(`TEST 5 FAILED: Expected 1 MULTIPLE_SET conflict, got ${JSON.stringify(conflicts)}`);
   }
-  console.log('✅ TEST 5 PASSED: Measure conflict detection generates non-preempting warning reports.');
+  logger.info('✅ TEST 5 PASSED: Measure conflict detection generates non-preempting warning reports.');
 
   // -------------------------------------------------------------------------
   // Test 6: Reproducibility with Measures
   // -------------------------------------------------------------------------
-  console.log('--- TEST 6: Reproducibility with Measures ---');
+  logger.info('--- TEST 6: Reproducibility with Measures ---');
   systemContext.__overrideForTest({
     now: () => '2026-01-01T12:00:00.000Z',
     newRunSeed: () => 424242,
@@ -187,12 +188,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (!Object.isFrozen(run1.run.manifest.measures)) {
     throw new Error(`TEST 6 FAILED: manifest.measures is not frozen.`);
   }
-  console.log('✅ TEST 6 PASSED: Runs with measures reproduce 100% byte-for-byte identically.');
+  logger.info('✅ TEST 6 PASSED: Runs with measures reproduce 100% byte-for-byte identically.');
 
   // -------------------------------------------------------------------------
   // Test 7: Golden Run Invariance without Measures (Zero Regression)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 7: Golden Run invariance without measures ---');
+  logger.info('--- TEST 7: Golden Run invariance without measures ---');
   systemContext.__overrideForTest({
     now: () => '2026-01-01T12:00:00.000Z',
     newRunSeed: () => 123456,
@@ -207,12 +208,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (goldenRun.run.finalMetrics?.liveARR === undefined || goldenRun.run.finalMetrics.liveARR <= 0) {
     throw new Error(`TEST 7 FAILED: Invalid golden run ARR.`);
   }
-  console.log(`✅ TEST 7 PASSED: Golden run executes with ARR = ${goldenRun.run.finalMetrics.liveARR.toLocaleString('de-DE')} €.`);
+  logger.info(`✅ TEST 7 PASSED: Golden run executes with ARR = ${goldenRun.run.finalMetrics.liveARR.toLocaleString('de-DE')} €.`);
 
   // -------------------------------------------------------------------------
   // Test 8: previewMeasures persists NO runs and NO versions
   // -------------------------------------------------------------------------
-  console.log('--- TEST 8: previewMeasures side-effect-free execution ---');
+  logger.info('--- TEST 8: previewMeasures side-effect-free execution ---');
   systemContext.__resetForTest();
   const runsBefore = scenarioRepository.getRunsByVersion(DEFAULT_BASE_2026_VERSION_ID).length;
   const versionsBefore = scenarioRepository.getVersionsByScenario(DEFAULT_BASE_2026_SCENARIO_ID).length;
@@ -231,12 +232,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (!previewRes.kpiDeltas || previewRes.kpiDeltas.length < 5) {
     throw new Error(`TEST 8 FAILED: previewMeasures did not produce KPI deltas.`);
   }
-  console.log('✅ TEST 8 PASSED: previewMeasures creates zero runs and zero scenario versions in repository.');
+  logger.info('✅ TEST 8 PASSED: previewMeasures creates zero runs and zero scenario versions in repository.');
 
   // -------------------------------------------------------------------------
   // Test 9: Sensitivity Tests for all 6 catalog levers (Gate G3)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 9: Sensitivity verification for all catalog levers ---');
+  logger.info('--- TEST 9: Sensitivity verification for all catalog levers ---');
 
   // Lever 1: salesRepCount
   const previewSales = await scenService.previewMeasures(
@@ -250,7 +251,7 @@ export async function runMeasureTest(): Promise<boolean> {
   if (salesArrDelta === 0 && salesCashDelta === 0) {
     throw new Error(`TEST 9 FAILED: salesRepCount had zero KPI impact.`);
   }
-  console.log(`  - Lever salesRepCount: ARR Delta = ${salesArrDelta} €, Cash Delta = ${salesCashDelta} €`);
+  logger.info(`  - Lever salesRepCount: ARR Delta = ${salesArrDelta} €, Cash Delta = ${salesCashDelta} €`);
 
   // Lever 2: marketingBudgetYearly
   const previewMkt = await scenService.previewMeasures(
@@ -264,7 +265,7 @@ export async function runMeasureTest(): Promise<boolean> {
   if (mktCashDelta === 0 && mktEbitdaDelta === 0) {
     throw new Error(`TEST 9 FAILED: marketingBudgetYearly had zero financial impact.`);
   }
-  console.log(`  - Lever marketingBudgetYearly: Cash Delta = ${mktCashDelta} €, EBITDA Delta = ${mktEbitdaDelta} €`);
+  logger.info(`  - Lever marketingBudgetYearly: Cash Delta = ${mktCashDelta} €, EBITDA Delta = ${mktEbitdaDelta} €`);
 
   // Lever 3: trialToPaidConversion
   const previewConv = await scenService.previewMeasures(
@@ -278,7 +279,7 @@ export async function runMeasureTest(): Promise<boolean> {
   if (convArrDelta === 0 && convCustDelta === 0) {
     throw new Error(`TEST 9 FAILED: trialToPaidConversion had zero KPI impact.`);
   }
-  console.log(`  - Lever trialToPaidConversion: ARR Delta = ${convArrDelta} €, Customers Delta = ${convCustDelta}`);
+  logger.info(`  - Lever trialToPaidConversion: ARR Delta = ${convArrDelta} €, Customers Delta = ${convCustDelta}`);
 
   // Lever 4: salesCycleDays
   const previewCycle = await scenService.previewMeasures(
@@ -288,7 +289,7 @@ export async function runMeasureTest(): Promise<boolean> {
     { seed: 999444 }
   );
   const cycleArrDelta = previewCycle.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
-  console.log(`  - Lever salesCycleDays: ARR Delta = ${cycleArrDelta} €`);
+  logger.info(`  - Lever salesCycleDays: ARR Delta = ${cycleArrDelta} €`);
 
   // Lever 5: discountPercent
   const previewDiscount = await scenService.previewMeasures(
@@ -302,12 +303,12 @@ export async function runMeasureTest(): Promise<boolean> {
   if (discArrDelta === 0 && discMrrDelta === 0) {
     throw new Error(`TEST 9 FAILED: discountPercent had zero KPI impact.`);
   }
-  console.log(`  - Lever discountPercent: ARR Delta = ${discArrDelta} €, MRR Delta = ${discMrrDelta} €`);
+  logger.info(`  - Lever discountPercent: ARR Delta = ${discArrDelta} €, MRR Delta = ${discMrrDelta} €`);
 
-  console.log('✅ TEST 9 PASSED: All wired catalog levers demonstrate significant and measurable KPI sensitivity.');
+  logger.info('✅ TEST 9 PASSED: All wired catalog levers demonstrate significant and measurable KPI sensitivity.');
 
   systemContext.__resetForTest();
-  console.log('\n=================================================================');
-  console.log('🎉 ALL AUFTRAG 017 MEASURE INTEGRITY TESTS PASSED SUCCESSFULLY!\n');
+  logger.info('\n=================================================================');
+  logger.info('🎉 ALL AUFTRAG 017 MEASURE INTEGRITY TESTS PASSED SUCCESSFULLY!\n');
   return true;
 }

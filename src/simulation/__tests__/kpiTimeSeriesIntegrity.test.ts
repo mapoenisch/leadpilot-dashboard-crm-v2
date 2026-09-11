@@ -6,14 +6,15 @@ import { systemContext } from '../systemContext';
 import { GoalTargetEvaluator } from '../goalTargetEvaluator';
 import { KPIRegistry } from '../kpiRegistry';
 import { GoalTarget } from '../../types/kpi';
+import { logger } from '../../services/logger';
 
 export async function runKpiTimeSeriesTest(): Promise<boolean> {
-  console.log('\n=== STARTING AUFTRAG 018 TEST SUITE (KPI TIME SERIES & DISTRIBUTION UI) ===\n');
+  logger.info('\n=== STARTING AUFTRAG 018 TEST SUITE (KPI TIME SERIES & DISTRIBUTION UI) ===\n');
 
   // -------------------------------------------------------------------------
   // Test 1: P10 <= P50 <= P90 Time Series Corridor Monotonicity
   // -------------------------------------------------------------------------
-  console.log('--- TEST 1: P10 <= P50 <= P90 Corridor Monotonicity across all ticks ---');
+  logger.info('--- TEST 1: P10 <= P50 <= P90 Corridor Monotonicity across all ticks ---');
   const { version: testVer } = scenarioService.createScenario(
     'KPI TS Test Scenario',
     'Isolation test for Auftrag 018'
@@ -54,12 +55,12 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
       throw new Error(`TEST 1 FAILED: At tick ${pt.tick}, p90 (${p90}) > max (${max})`);
     }
   }
-  console.log(`✅ TEST 1 PASSED: Strict monotonicity P10 <= P50 <= P90 holds for all ${aggRes.metrics.timeSeries.length} ticks.`);
+  logger.info(`✅ TEST 1 PASSED: Strict monotonicity P10 <= P50 <= P90 holds for all ${aggRes.metrics.timeSeries.length} ticks.`);
 
   // -------------------------------------------------------------------------
   // Test 2: History Transition at Tick 0 (Ebene A Baseline Invariance)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 2: History transition & Ebene A baseline anchoring at tick 0 ---');
+  logger.info('--- TEST 2: History transition & Ebene A baseline anchoring at tick 0 ---');
   const tick0 = aggRes.metrics.timeSeries[0];
   if (!tick0 || tick0.tick !== 0) {
     throw new Error('TEST 2 FAILED: Missing tick 0 in timeSeries.');
@@ -69,12 +70,12 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   if (Math.abs(tick0.metrics.arr.median - 411840) > 1000) {
     throw new Error(`TEST 2 FAILED: Expected Tick 0 ARR to align with Ebene A baseline (411.840 €), got ${tick0.metrics.arr.median}`);
   }
-  console.log(`✅ TEST 2 PASSED: Tick 0 anchors to Ebene A baseline (ARR = ${tick0.metrics.arr.median.toLocaleString('de-DE')} €).`);
+  logger.info(`✅ TEST 2 PASSED: Tick 0 anchors to Ebene A baseline (ARR = ${tick0.metrics.arr.median.toLocaleString('de-DE')} €).`);
 
   // -------------------------------------------------------------------------
   // Test 3: Monte Carlo Histogram Bucketing Integrity
   // -------------------------------------------------------------------------
-  console.log('--- TEST 3: Histogram bucket distribution integrity ---');
+  logger.info('--- TEST 3: Histogram bucket distribution integrity ---');
   const runs = scenarioRepository.getRunsByVersion(testVer.id);
   const arrValues = runs.map((r) => r.finalMetrics?.liveARR ?? 0);
   const minVal = Math.min(...arrValues);
@@ -102,12 +103,12 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   if (totalBucketCount !== arrValues.length) {
     throw new Error(`TEST 3 FAILED: Histogram sum (${totalBucketCount}) !== total runs (${arrValues.length})`);
   }
-  console.log(`✅ TEST 3 PASSED: Histogram buckets account for 100% of runs (${totalBucketCount}/${arrValues.length} runs).`);
+  logger.info(`✅ TEST 3 PASSED: Histogram buckets account for 100% of runs (${totalBucketCount}/${arrValues.length} runs).`);
 
   // -------------------------------------------------------------------------
   // Test 4: GoalTargetEvaluator - Target Path & Status Classifications
   // -------------------------------------------------------------------------
-  console.log('--- TEST 4: Goal Target evaluation & status thresholds ---');
+  logger.info('--- TEST 4: Goal Target evaluation & status thresholds ---');
   const arrTarget: GoalTarget = { kpiId: 'liveARR', targetValue: 500000 };
 
   // 1. ACHIEVED (>= 100%)
@@ -144,12 +145,12 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   if (resCacMissed.status !== 'MISSED') {
     throw new Error(`TEST 4 FAILED: Expected MISSED for CAC exceeding target by > 25%, got ${resCacMissed.status}`);
   }
-  console.log('✅ TEST 4 PASSED: GoalTargetEvaluator accurately classifies ACHIEVED, AT_RISK, MISSED and NO_TARGET.');
+  logger.info('✅ TEST 4 PASSED: GoalTargetEvaluator accurately classifies ACHIEVED, AT_RISK, MISSED and NO_TARGET.');
 
   // -------------------------------------------------------------------------
   // Test 5: Comparison Modes (Absolute, Delta, Percent) Mathematical Precision
   // -------------------------------------------------------------------------
-  console.log('--- TEST 5: Comparison modes (Absolute, Delta, Percent) precision ---');
+  logger.info('--- TEST 5: Comparison modes (Absolute, Delta, Percent) precision ---');
   const compArr = GoalTargetEvaluator.computeBaselineComparison('liveARR', 460000, 411840);
   if (compArr.absoluteDelta !== 48160) {
     throw new Error(`TEST 5 FAILED: Expected delta=48160, got ${compArr.absoluteDelta}`);
@@ -167,12 +168,12 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   if (!compCac.isPositiveChange) {
     throw new Error('TEST 5 FAILED: CAC decrease should be marked as favorable change.');
   }
-  console.log('✅ TEST 5 PASSED: Baseline comparison math is exact and honors KPI directionality.');
+  logger.info('✅ TEST 5 PASSED: Baseline comparison math is exact and honors KPI directionality.');
 
   // -------------------------------------------------------------------------
   // Test 6: Individual Run Selection Constraint (Max 5 Runs Limit)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 6: Individual run selection constraint (Max 5 Limit) ---');
+  logger.info('--- TEST 6: Individual run selection constraint (Max 5 Limit) ---');
   const availableRuns = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7'];
   let selectedRuns: string[] = [];
   const addRun = (id: string) => {
@@ -185,12 +186,12 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   if (selectedRuns.length !== 5) {
     throw new Error(`TEST 6 FAILED: Run selection exceeded max 5 limit: ${selectedRuns.length}`);
   }
-  console.log('✅ TEST 6 PASSED: Strict 5-run overlay constraint enforced.');
+  logger.info('✅ TEST 6 PASSED: Strict 5-run overlay constraint enforced.');
 
   // -------------------------------------------------------------------------
   // Test 7: Central KPI Registry & Definitions Integrity
   // -------------------------------------------------------------------------
-  console.log('--- TEST 7: Central KPIRegistry definition completeness ---');
+  logger.info('--- TEST 7: Central KPIRegistry definition completeness ---');
   const allKpis = KPIRegistry.getAllKPIs();
   if (allKpis.length < 10) {
     throw new Error(`TEST 7 FAILED: Expected at least 10 registered KPIs, got ${allKpis.length}`);
@@ -199,10 +200,10 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   if (arrDef.direction !== 'HIGHER_IS_BETTER' || arrDef.unit !== '€') {
     throw new Error('TEST 7 FAILED: Invalid definition for liveARR in KPIRegistry.');
   }
-  console.log('✅ TEST 7 PASSED: KPIRegistry contains all domain KPIs with explicit directionality and units.');
+  logger.info('✅ TEST 7 PASSED: KPIRegistry contains all domain KPIs with explicit directionality and units.');
 
   systemContext.__resetForTest();
-  console.log('\n=================================================================');
-  console.log('🎉 ALL AUFTRAG 018 KPI TIME SERIES INTEGRITY TESTS PASSED SUCCESSFULLY!\n');
+  logger.info('\n=================================================================');
+  logger.info('🎉 ALL AUFTRAG 018 KPI TIME SERIES INTEGRITY TESTS PASSED SUCCESSFULLY!\n');
   return true;
 }

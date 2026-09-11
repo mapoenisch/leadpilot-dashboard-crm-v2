@@ -1,8 +1,9 @@
 import { ScenarioService } from '../scenarioService';
 import { ScenarioError, TradeOffDimension } from '../../types/scenario';
+import { logger } from '../../services/logger';
 
 export async function runMultiScenarioComparisonTest(): Promise<boolean> {
-  console.log('\n=== STARTING AUFTRAG 019 TEST SUITE (MULTI-SCENARIO COMPARISON & TRADE-OFFS) ===\n');
+  logger.info('\n=== STARTING AUFTRAG 019 TEST SUITE (MULTI-SCENARIO COMPARISON & TRADE-OFFS) ===\n');
 
   const scenService = ScenarioService.getInstance();
 
@@ -41,7 +42,7 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   }, 'Balanced Hybrid Scale');
 
   // Execute 2 runs for each version to generate statistical distribution data (8 total runs <= 10 scenario limit)
-  console.log('--- Setting up simulations for 4 versions ---');
+  logger.info('--- Setting up simulations for 4 versions ---');
   for (let i = 0; i < 2; i++) {
     await scenService.runScenarioVersion(v1.id, 42000 + i, 30);
     await scenService.runScenarioVersion(v2.id, 43000 + i, 30);
@@ -52,7 +53,7 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   // -------------------------------------------------------------------------
   // TEST 1: 3- & 4-Scenario Parallel Comparison Matrix Integrity (Decisions 849–851)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 1: 3- & 4-Scenario Parallel Comparison Matrix Integrity ---');
+  logger.info('--- TEST 1: 3- & 4-Scenario Parallel Comparison Matrix Integrity ---');
   const res3 = scenService.compareMultipleVersions([v1.id, v2.id, v3.id]);
   if (res3.versions.length !== 3) {
     throw new Error(`TEST 1 FAILED: Expected 3 versions, got ${res3.versions.length}`);
@@ -68,12 +69,12 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   if (res4.versions.length !== 4) {
     throw new Error(`TEST 1 FAILED: Expected 4 versions, got ${res4.versions.length}`);
   }
-  console.log('✅ TEST 1 PASSED: 3- and 4-scenario comparison matrices generated accurately.');
+  logger.info('✅ TEST 1 PASSED: 3- and 4-scenario comparison matrices generated accurately.');
 
   // -------------------------------------------------------------------------
   // TEST 2: 5-Dimension Trade-Off Structuring without Composite Score (Decisions 864–868)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 2: 5-Dimension Trade-Off Structuring without Composite Score ---');
+  logger.info('--- TEST 2: 5-Dimension Trade-Off Structuring without Composite Score ---');
   const expectedDimensions: TradeOffDimension[] = ['GROWTH', 'PROFITABILITY', 'LIQUIDITY', 'ACQUISITION', 'RETENTION'];
   const actualDimensions = res4.tradeOffs.map((t) => t.dimension);
 
@@ -98,12 +99,12 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   if (res4Record.compositeScore || res4Record.overallRank || res4Record.winnerScore) {
     throw new Error('TEST 2 FAILED: Unlawful artificial composite score detected in comparison result.');
   }
-  console.log('✅ TEST 2 PASSED: 5-dimension trade-off analysis valid without artificial composite score.');
+  logger.info('✅ TEST 2 PASSED: 5-dimension trade-off analysis valid without artificial composite score.');
 
   // -------------------------------------------------------------------------
   // TEST 3: Automated Root-Cause Key Difference Identification (Decisions 869–871)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 3: Automated Root-Cause Key Difference Identification ---');
+  logger.info('--- TEST 3: Automated Root-Cause Key Difference Identification ---');
   if (res4.keyDifferences.length === 0) {
     throw new Error('TEST 3 FAILED: Expected key driver differences to be identified.');
   }
@@ -115,12 +116,12 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   if (!salesDiff.explanation || salesDiff.explanation.length < 10) {
     throw new Error('TEST 3 FAILED: Expected meaningful root-cause explanation for salesRepCount.');
   }
-  console.log('✅ TEST 3 PASSED: Automated root-cause differences identified with domain explanations.');
+  logger.info('✅ TEST 3 PASSED: Automated root-cause differences identified with domain explanations.');
 
   // -------------------------------------------------------------------------
   // TEST 4: Configuration Adoption (Decision 872)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 4: Configuration Adoption (adoptConfiguration) ---');
+  logger.info('--- TEST 4: Configuration Adoption (adoptConfiguration) ---');
   const adoptedVersion = scenService.adoptConfiguration(v2.id, testScenario.id, 'Adopted v2 for production trial');
   if (!adoptedVersion) {
     throw new Error('TEST 4 FAILED: adoptConfiguration returned null.');
@@ -131,12 +132,12 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   if (!adoptedVersion.description || !adoptedVersion.description.includes('Adopted v2')) {
     throw new Error('TEST 4 FAILED: Adopted version description not set properly.');
   }
-  console.log('✅ TEST 4 PASSED: adoptConfiguration creates valid immutable ScenarioVersion.');
+  logger.info('✅ TEST 4 PASSED: adoptConfiguration creates valid immutable ScenarioVersion.');
 
   // -------------------------------------------------------------------------
   // TEST 5: Boundary & Error Constraints (< 2 or > 4 Versions)
   // -------------------------------------------------------------------------
-  console.log('--- TEST 5: Boundary & Error Constraints (< 2 or > 4 Versions) ---');
+  logger.info('--- TEST 5: Boundary & Error Constraints (< 2 or > 4 Versions) ---');
   let errCaughtMin = false;
   try {
     scenService.compareMultipleVersions([v1.id]);
@@ -172,12 +173,12 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   if (!errCaughtNotFound) {
     throw new Error('TEST 5 FAILED: compareMultipleVersions did not throw NOT_FOUND for unknown version.');
   }
-  console.log('✅ TEST 5 PASSED: Strict boundary constraints (2 <= n <= 4) and error handling enforced.');
+  logger.info('✅ TEST 5 PASSED: Strict boundary constraints (2 <= n <= 4) and error handling enforced.');
 
   // -------------------------------------------------------------------------
   // TEST 6: Reference Version Delta Calculation & Directionality
   // -------------------------------------------------------------------------
-  console.log('--- TEST 6: Reference Version Delta Calculation & Directionality ---');
+  logger.info('--- TEST 6: Reference Version Delta Calculation & Directionality ---');
   const resWithRef = scenService.compareMultipleVersions([v1.id, v2.id, v3.id], undefined, v1.id);
   if (resWithRef.referenceVersionId !== v1.id) {
     throw new Error(`TEST 6 FAILED: Expected refId=${v1.id}, got ${resWithRef.referenceVersionId}`);
@@ -190,21 +191,21 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   if (arrRow.deltasAgainstRef[v1.id] !== 0) {
     throw new Error(`TEST 6 FAILED: Expected delta against self = 0, got ${arrRow.deltasAgainstRef[v1.id]}`);
   }
-  console.log('✅ TEST 6 PASSED: Relative deltas and directional favorability computed accurately.');
+  logger.info('✅ TEST 6 PASSED: Relative deltas and directional favorability computed accurately.');
 
   // -------------------------------------------------------------------------
   // TEST 7: Determinism & Immutability of Comparison Results
   // -------------------------------------------------------------------------
-  console.log('--- TEST 7: Determinism & Immutability of Comparison Results ---');
+  logger.info('--- TEST 7: Determinism & Immutability of Comparison Results ---');
   const resA = scenService.compareMultipleVersions([v1.id, v2.id, v3.id], undefined, v1.id);
   const resB = scenService.compareMultipleVersions([v1.id, v2.id, v3.id], undefined, v1.id);
 
   if (JSON.stringify(resA) !== JSON.stringify(resB)) {
     throw new Error('TEST 7 FAILED: compareMultipleVersions output is not deterministic.');
   }
-  console.log('✅ TEST 7 PASSED: Comparison results are 100% deterministic and side-effect-free.');
+  logger.info('✅ TEST 7 PASSED: Comparison results are 100% deterministic and side-effect-free.');
 
-  console.log('\n=================================================================');
-  console.log('🎉 ALL AUFTRAG 019 MULTI-SCENARIO INTEGRITY TESTS PASSED SUCCESSFULLY!\n');
+  logger.info('\n=================================================================');
+  logger.info('🎉 ALL AUFTRAG 019 MULTI-SCENARIO INTEGRITY TESTS PASSED SUCCESSFULLY!\n');
   return true;
 }
