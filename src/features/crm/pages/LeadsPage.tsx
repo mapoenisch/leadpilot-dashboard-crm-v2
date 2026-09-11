@@ -6,11 +6,11 @@ import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
-import { CRMRepository } from '@/services/db/crmRepository';
 import { isSupabaseConfigured } from '@/services/db/supabaseClient';
 import { Company, Contact, ImportedFunnelDeal } from '@/types/crm';
 import { SeedResult } from '@/services/import/crmSeeder';
 import { useCrmAuditSummary, useCrmCompanies, useCrmContacts, useCrmDeals } from '@/hooks/queries/useCrmQueries';
+import { useCrmSyncStatus, useSeedDatabaseMutation } from '@/hooks/queries/useCrmSync';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
 
 // Stabile Fallbacks, damit abgeleitete Memos (companyMap) nicht pro Render
@@ -41,7 +41,12 @@ export function LeadsPage() {
   const isEmpty = !isLoading && !queryError && companies.length + contacts.length + importedFunnelDeals.length === 0;
 
   const [seedResult, setSeedResult] = React.useState<SeedResult | null>(null);
-  const [isSeeding, setIsSeeding] = React.useState(false);
+
+  // Optimistic Sync-Status (Block E): 'syncing' während der Mutation,
+  // Rollback auf den vorherigen Wert bei Fehler (siehe useCrmSync).
+  const { data: syncStatus = 'idle' } = useCrmSyncStatus();
+  const seedMutation = useSeedDatabaseMutation();
+  const isSeeding = syncStatus === 'syncing' || seedMutation.isPending;
 
   // Map for fast Company lookup by ID
   const companyMap = React.useMemo(() => {
@@ -52,31 +57,22 @@ export function LeadsPage() {
     return map;
   }, [companies]);
 
-  // Seed handler for populating Supabase PostgreSQL
-  const handleSeedDatabase = async () => {
-    setIsSeeding(true);
+  // Seed per useMutation (Block E): invalidiert companies/contacts/deals/
+  // auditSummary via onSettled statt manuellem Re-Fetch.
+  const handleSeedDatabase = () => {
     setSeedResult(null);
-    try {
-      const result = await CRMRepository.seedDatabase();
-      setSeedResult(result);
-      if (result.success) {
-        await companiesQuery.refetch();
-        await contactsQuery.refetch();
-        await dealsQuery.refetch();
-        await auditQuery.refetch();
-      }
-    } catch (err) {
-      setSeedResult({
-        success: false,
-        companiesInserted: 0,
-        contactsInserted: 0,
-        dealsInserted: 0,
-        message: 'Fehler beim Datenbank-Seed',
-        error: String(err),
-      });
-    } finally {
-      setIsSeeding(false);
-    }
+    seedMutation.mutate(undefined, {
+      onSuccess: (result) => setSeedResult(result),
+      onError: (err) =>
+        setSeedResult({
+          success: false,
+          companiesInserted: 0,
+          contactsInserted: 0,
+          dealsInserted: 0,
+          message: 'Fehler beim Datenbank-Seed',
+          error: String(err),
+        }),
+    });
   };
 
   const companyColumns: CrmColumn<Company>[] = [
