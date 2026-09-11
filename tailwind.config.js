@@ -12,13 +12,20 @@ export default {
       colors: {
         background: 'var(--color-bg)',
         'background-deep': 'var(--color-bg-deep)',
+        // Rohfarben-Basis (keine Default-Kollision: bg-black/bg-white/text-black
+        // werden repo-weit nicht genutzt; white == Tailwind-Default).
+        black: 'var(--black)',
+        white: 'var(--white)',
+        charcoal: 'var(--charcoal)',
         surface: {
           DEFAULT: 'var(--color-surface)',
           raised: 'var(--color-surface-raised)',
+          glass: 'var(--color-surface-glass)',
         },
         border: {
           DEFAULT: 'var(--color-border)',
           soft: 'var(--color-border-soft)',
+          glass: 'var(--color-border-glass)',
         },
         text: {
           DEFAULT: 'var(--color-text)',
@@ -47,6 +54,27 @@ export default {
         warning: {
           DEFAULT: 'var(--color-warning)',
           soft: 'var(--color-warning-soft)',
+        },
+        // Marken-Rohfarben (Charts/Domain): keine Default-Skalen-Nutzung im
+        // Repo (verifiziert), daher eigene Gruppen statt Skalen-Overwrite.
+        cyan: {
+          DEFAULT: 'var(--cyan)',
+          light: 'var(--cyan-light)',
+          a12: 'var(--cyan-a12)',
+        },
+        orange: {
+          DEFAULT: 'var(--orange)',
+          light: 'var(--orange-light)',
+          soft: 'var(--orange-soft)',
+          a14: 'var(--orange-a14)',
+        },
+        coral: {
+          DEFAULT: 'var(--coral-red)',
+          a14: 'var(--coral-red-a14)',
+        },
+        mint: {
+          DEFAULT: 'var(--mint-green)',
+          a14: 'var(--mint-green-a14)',
         },
       },
       fontFamily: {
@@ -78,6 +106,13 @@ export default {
         'glow-cyan': 'var(--shadow-glow-cyan)',
         'glow-cyan-strong': 'var(--shadow-glow-cyan-strong)',
         'glow-orange': 'var(--shadow-glow-orange)',
+        // focus-ring ist ein kompletter Shadow-Wert (wird als boxShadow
+        // verwendet, nicht als Ring-Farbe) — daher hier, nicht ringColor.
+        'focus-ring': 'var(--focus-ring)',
+      },
+      backdropBlur: {
+        DEFAULT: 'var(--backdrop-blur)',
+        sm: 'var(--backdrop-blur-sm)',
       },
     },
   },

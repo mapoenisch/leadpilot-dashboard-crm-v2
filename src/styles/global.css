@@ -30,7 +30,6 @@
   --color-surface: var(--surface);
   --color-surface-raised: #1A3F38;
   --color-surface-glass: rgba(18, 51, 48, 0.65);
-  --color-surface-glass-raised: rgba(26, 63, 56, 0.75);
   --color-border: var(--border-gray);
   --color-border-soft: rgba(42, 74, 67, 0.5);
   --color-border-glass: rgba(42, 74, 67, 0.6);
