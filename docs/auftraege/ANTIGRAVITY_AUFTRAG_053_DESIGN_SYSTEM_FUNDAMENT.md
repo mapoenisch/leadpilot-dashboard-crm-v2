@@ -126,6 +126,37 @@ für Entscheidung 3.
    Verworfen wurden: Konsumenten anfassen (verletzt Entscheidung 4 **und**
    `CLAUDE.md` §6 für die `resources`-Aufrufstellen) und Block B/C abbrechen
    (opfert 16 saubere Migrationen wegen 3 Sonderfällen).
+
+   **Nachtrag 2 2026-09-11 (`Charts.tsx`, entschieden):** `Charts.tsx`
+   berechnet Balken-Geometrie zur Laufzeit aus Daten (`height: ${hPct}%` aus
+   `val/maxVal`, `background: color` aus Dataset/Palette,
+   `boxShadow`/`filter` abgeleitet aus derselben Laufzeitfarbe,
+   `height: ${height}px` aus dem Prop). Tailwind erzeugt Klassen beim Build
+   durch statisches Scannen des Quelltexts — Werte, die erst zur Laufzeit
+   entstehen, sind als Klasse grundsätzlich nicht darstellbar. **Entscheidung:
+   Teilmigration.** Auflagen:
+   - Jedes verbleibende `style`-Objekt enthält **ausschließlich** Properties,
+     deren Wert ein Laufzeit-Ausdruck ist. Sobald ein String-Literal
+     (`display: 'flex'`, `gap: '4px'`, `borderRadius: '3px 3px 0 0'`) darin
+     steht, war die Trennung nicht sauber — das gehört in die Klasse.
+   - **Kein** Freifahrtschein für „Objekt enthält einen dynamischen Wert,
+     also bleibt es ganz": statische und dynamische Properties werden
+     getrennt, nicht gebündelt stehen gelassen.
+   - Eine Auswahl zwischen zwei zur Build-Zeit bekannten Werten ist **nicht**
+     dynamisch: `width: datasets.length > 1 ? '16px' : '28px'` wird zur
+     Klassen-Ternary (`w-4` / `w-7`) bzw. `cva`-Variante.
+   - Wieder zeilengenaue `eslint-disable-next-line` mit Begründung, keine
+     Datei-Ausnahme für `Charts.tsx`.
+   - Erwartet **≤ 4** verbleibende Stellen; jede einzeln im Bericht begründen
+     (welcher Wert, woraus berechnet, warum keine Klasse möglich).
+
+   Verworfen: **SVG-Umbau** (Balken als `<rect>`) — tauscht nur einen
+   Laufzeit-Mechanismus gegen einen anderen, ist ein funktionaler Umbau einer
+   breit genutzten Komponente und gefährdet die Pixelgleichheit
+   (Sub-Pixel-Positionierung, `box-shadow` vs. SVG-Filter). **Charts aus 053
+   herausnehmen** — würde Block D sabotieren: `Charts.tsx` liegt in
+   `src/components/ui/**`, die Regel ließe sich dort dann nur mit genau der
+   Datei-Ausnahme aktivieren, die Nachtrag 1 ausschließt.
 6. **`ci.yml` zwei Ratschen:** `TSC_BASELINE` von 605 auf den tatsächlichen
    Ist-Wert am Ende dieses Auftrags nachziehen (Versäumnis aus G36/G37
    nachgeholt — Entscheidung, nicht Bug dieses Auftrags, aber am
