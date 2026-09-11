@@ -2,6 +2,151 @@
 
 ---
 
+## 2026-09-11 — Gate G36 / Auftrag 051: TanStack Query für Server-State
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `9328255`. Kein Merge/Tag/Push (nicht freigegeben).
+Commits: `abff761` (A), `e1ddc13` (B), `c55d2db` (C), `ce1fd88` (D),
+`e7aba47` (E) + Screenshots/Bericht.
+
+### Block A — Grundgerüst (`abff761`)
+
+- `@tanstack/react-query` **5.102.8** (exact, einzige neue Dep; lock mit
+  aktualisiert). Devtools bewusst weggelassen (optional, kein Bedarf).
+- `src/app/queryClient.ts`: `staleTime` 60s (CRM-Daten ändern sich nur per
+  Seed → danach explizit `invalidateQueries`; kein Re-Fetch-Flackern bei
+  Routenwechsel), `retry` 1 (Jitter abfangen, dann sofort Fehler-UI statt
+  3×-Backoff-Hängen). Rest Defaults.
+- `src/services/query/queryKeys.ts`: `crmKeys`-Factory (alle 6 Keys).
+- `App.tsx`: genau 3 Zeilen (Import, Provider um `SimulationProvider`
+  innerhalb Boundary). `ARCHITECTURE_DECISIONS.md` B26 (3 Schichten;
+  Datei liegt im Root, nicht unter `docs/` wie im Auftrag genannt).
+- tsc 605 gehalten, build grün.
+
+### Block B — Deals/Companies (`e1ddc13`)
+
+- `useCrmDeals`/`useCrmCompanies` (`src/hooks/queries/useCrmQueries.ts`),
+  Pages auf `useQuery` + `<ManagementChartState>` (loading/error/empty),
+  `useEffect`+`useState`+`isMounted` restlos raus. `DealsView`/`CompaniesView`
+  unangetastet (nur `loading`-Prop entfällt beim Aufruf).
+- verify 24/24, test 133, build grün.
+
+### Block C — LeadsPage (`c55d2db`)
+
+- 4 parallele `useQuery` (kein `useQueries` nötig — 4 simple Calls, alle
+  unabhängig). Audit-Query läuft mit (Wert ungerendert, Lade-/Fehlerzustand
+  fließt in loading/error ein). `catch {}`-Bug Z. 49-50 verschwindet mit dem
+  manuellen `try/catch` (war zugleich tsc-Fehler → total 605 → **604**).
+  Stabile `EMPTY_*`-Fallbacks (exhaustive-deps), `max-lines` per
+  isEmpty-Einzeiler gehalten.
+- verify 24/24, test 133, build grün.
+
+### Block D — PipelineSnapshot (`ce1fd88`)
+
+- `usePipelineOverview` wrappt `getPipelineOverview(CRMRepository)`.
+  MCS-Äste (Texte, Heights 220) strukturell identisch, nur Datenherkunft
+  wechselt. verify/test/build grün.
+
+### Block E — Mutation + Optimistic Update (`e7aba47`)
+
+- `useSeedDatabaseMutation`: `onMutate` → `cancelQueries` + alten
+  `syncStatus` merken + `'syncing'` setzen; `onError` → Rollback auf
+  gemerkten Wert; `onSuccess` → `'success'`; `onSettled` → nur
+  `invalidateQueries` (companies/contacts/deals/auditSummary — fasst Status
+  bewusst nicht an, würde Rollback überschreiben). `LeadsPage` nutzt
+  Mutation statt `loadDataFromRepository` (entfernt).
+- **Bewusst Metadaten-Ebene:** granulare Entity-Pfade (`addLead` …) bleiben
+  deaktiviert (B22/D1) — kein Entity-Optimistic-Update im Scope.
+- **Rollback-Beweis** (`useCrmSync.ui.vitest.tsx`, jsdom, Repo gemockt,
+  Deferred-Promises): Fehler bei gemerktem `'success'` → Cache wieder
+  `'success'` (nicht `'idle'`); Erfolg → `'success'` + Companies-Refetch
+  (Call-Count 1→2). 2/2 grün. (Testdatei: von Block-E-Testpflicht gefordert,
+  kein Extra-Scope.)
+- verify 24/24, test 135, build grün.
+
+### Screenshots (`docs/screenshots/auftrag-051/`, Matrix im README)
+
+- Erfolg: 12 Baseline- (vorher) vs. 12 Nachher-Shots. **10/12 SHA-gleich**,
+  `crm-leads-1440` per Wiederholungslauf byte-identisch (Run-Flake),
+  `crm-companies-375` stabile 1px-AA-Drift 34×25px im unberührten
+  Header-Chrome (Worktree-Gegenprobe auf Baseline-Code belegt). Visuell alle
+  identisch; `visual.spec` 15/15 grün (Toleranz 0, inkl. `/crm/leads` ×3).
+- Neu: `sync-idle` + `sync-result` (echte Seed-Klicks, Ergebnis-Alert).
+  Kein Loading-/Query-Error-PNG möglich (lokale Reads lösen in Microtasks,
+  kein Netzwerk-Hebel; Fehlerpfad per Design unerreichbar im Fallback) —
+  stattdessen DOM-Nachweis (loading-testid im Browser beobachtet) +
+  jsdom-Rollback-Test; Syncing-Label zusätzlich per Code (disabled + Text).
+- Voll-Playwright: **153/153** grün.
+
+### Command-Matrix
+
+| Command | Ergebnis |
+|---|---|
+| `npx tsc --noEmit` | **604** (605 gehalten, −1 durch Z.49-50-Fix; „0 Fehler" im Auftrag als „keine neuen" gelesen — 605 Bestand außerhalb Scope) |
+| `npm run lint` | 19 Errors gehalten (+ 3 alte e2e-Warnings) |
+| `npm run verify` | 24/24 (je Block) |
+| `npm test` | 34 Files / 135 Tests (inkl. 2 neuer E-Tests) |
+| `npm run build` | EXIT 0 |
+| Schutzbereichs-Diff (Auftrags-Liste) | leer |
+| `grep useEffect` (4 Ziel-Dateien) | 0 Treffer |
+| `npx playwright test` | 153/153 |
+
+**Ergebnis:** Alle Blöcke + Akzeptanzkriterien aus Builder-Sicht erfüllt
+(mit dokumentierten Auslegungen: tsc-Ratsche, Testdatei, ARCH-Pfad,
+Screenshot-Lücken). **Übergabe an Review (Codex/Claude Code).**
+
+---
+
+## 2026-09-11 — Gate G35 / Auftrag 050-B: Review-Abschluss (Freigabe)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Geprüfter Endstand:** `9328255` (Nacharbeit), Baseline `e948075`.
+
+### Ablauf
+
+Blockweise geprüft, nicht erst am Ende: I/J (unmittelbar nach Commit),
+K/L (isoliert per `git stash` getestet, da Block M1 bereits als WIP im
+Tree lag), M1 (isoliert per `git stash` getestet — währenddessen begann
+der Builder live mit Block M2; Stash-Konflikt beim Zurückspielen
+aufgetreten, per Diff gegen den neuen Tree-Stand als folgenlos verifiziert
+und der überholte Stash sauber verworfen), M2 (direkt am Commit), 2×
+P3-Nacharbeit (direkt am Commit `9328255`).
+
+### Ergebnis je Block — alle Angaben unabhängig nachvollzogen
+
+| Block | Commit | Geprüft |
+|---|---|---|
+| I | `8094b89` | Diff-Scope leer außerhalb `src/simulation`; jede entfernte Deklaration einzeln gegen "stiller Verhaltenswechsel" gelesen (u. a. `activeDeals` in `csQueueManager.ts` per grep bestätigt tot); `eslint` 0 Treffer; `verify`/`test`/`build` grün |
+| J | `be32ca5` | alle 5 `let`→`const` ohne Reassignment im Scope; grün |
+| K | `d8b8810` | `any`→`unknown`+Narrowing/echte Typen in `parameterRegistry.ts`, `scenarioService.ts`, `worker/*.ts` — jede Stelle gegen Original gelesen, keine Semantikänderung; `tsc`-sim 153→128 wie behauptet; grün |
+| L | `d8d23c5` | 1:1 `console.*`→`logger.*`, korrekter relativer Import; grün |
+| M1 | `ad55457` | alle 9 Produktivdateien Guard-für-Guard gegen den ursprünglichen impliziten Zugriff gelesen; Determinismus unabhängig verifiziert über Suite 018 (echter `JSON.stringify`-Vergleich, Seed 777001, vor **und** nach M1 grün) sowie Suiten 002/005/012 grün; 2 Stellen mit stillem `?? `-Fallback statt Assertion gefunden (s. u.) |
+| M2 | `5ec7334` | alle 11 Testharnesse-Diffs gelesen; durchgängig "Missing → FAILED"-Muster (kein Fall maskiert ein echtes Problem als PASS); die 4 vom Builder gemeldeten "Werkzeug"-Dateien (kpi/measure/monteCarlo/resourceInfrastructure) seit Commit unverändert, Inhalt inhaltlich korrekt |
+| Ratsche+Bericht | `dd64df5`, `8736105` | `LINT_BASELINE`/`TSC_BASELINE` 19/605 bestätigt (`npm run lint` projektweit exakt 19 Errors + 3 Warnings); CI-Run `34574909086` per `gh run view` bestätigt grün (`size-limit` rot aber `continue-on-error`, Gesamt-Run ✓); Baseline-Referenz `0de63c9`≙`e948075` bestätigt |
+| P3-Nacharbeit | `9328255` | exakt der im Review vorgeschlagene Diff; `tsc`-sim weiterhin 0, `eslint` nur noch die 3 bekannten `max-lines` (→ G40), `verify` 24/24, `test` 133/133, `build` grün |
+
+### Befunde
+
+**2× P3 (behoben in `9328255`):** `eventRules.ts` (`firstName`/`companyClean`)
+und `scenarioService.ts` (`completedVersions`-Filter) nutzten einen stillen
+`?? `-Fallback statt der vom Auftrag vorgeschriebenen Assertion für einen
+nachweislich unerreichbaren Fall. Funktional folgenlos (unreachable), aber
+Verstoß gegen Entscheidung 2 und inkonsistent zu Nachbarzeilen derselben
+Funktion. Auf `if (!x) throw` umgestellt, wortgleich zum Review-Vorschlag.
+Keine offenen Befunde mehr.
+
+**Keine Blocker.** Kein stiller Verhaltenswechsel gefunden, der nicht schon
+in `9328255` behoben wäre. Schutzbereiche eingehalten (Diff-Scope außerhalb
+`src/simulation` durchgehend leer). Determinismus bewiesen.
+
+### Ergebnis
+
+**Gate G35 vollständig abgeschlossen und freigegeben.** Kein Merge, Tag,
+Push über den bereits erfolgten CI-Bestätigungs-Push hinaus. Nächster
+Schritt: Auftrag 051 (Gate G36, TanStack Query).
+
+---
+
 ## 2026-09-10 — Gate G35 / Auftrag 050-B: `src/simulation/`-Typhärtung
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
