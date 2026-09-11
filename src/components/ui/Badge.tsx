@@ -1,4 +1,6 @@
 import React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export type BadgeVariant = 'cyan' | 'orange' | 'neutral' | 'mint' | 'red';
 
@@ -9,34 +11,32 @@ export interface BadgeProps {
   style?: React.CSSProperties;
 }
 
-const VARIANTS: Record<BadgeVariant, { border: string; color: string; bg?: string }> = {
-  cyan: { border: 'var(--color-primary)', color: 'var(--color-primary)' },
-  orange: { border: 'var(--color-accent)', color: 'var(--color-accent)' },
-  neutral: { border: 'var(--color-border)', color: 'var(--color-text-muted)' },
-  mint: { border: 'var(--color-success)', color: 'var(--color-success)' },
-  red: { border: 'var(--color-error)', color: 'var(--color-error)' },
-};
+const badgeVariants = cva(
+  'inline-flex items-center gap-[5px] bg-background-deep border border-solid rounded-full px-[12px] py-[4px] text-[11px] font-body font-semibold uppercase tracking-[0.05em]',
+  {
+    variants: {
+      variant: {
+        cyan: 'border-primary text-primary',
+        orange: 'border-accent text-accent',
+        neutral: 'border-border text-[var(--color-text-muted)]',
+        mint: 'border-success text-success',
+        red: 'border-error text-error',
+      },
+    },
+    defaultVariants: {
+      variant: 'cyan',
+    },
+  }
+);
 
 export function Badge({ variant = 'cyan', children, icon, style }: BadgeProps) {
-  const v = VARIANTS[variant] || VARIANTS.cyan;
   return (
     <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '5px',
-        background: 'var(--color-bg-deep)',
-        border: `1px solid ${v.border}`,
-        color: v.color,
-        borderRadius: 'var(--radius-full)',
-        padding: '4px 12px',
-        fontSize: '11px',
-        fontFamily: 'var(--font-body)',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        ...style,
-      }}
+      className={cn(badgeVariants({ variant }))}
+      // Ausnahme (G38-Entscheidung, Marc): style-Passthrough bleibt, weil 13
+      // Konsumenten Overrides übergeben (API + Pixel identisch). Die
+      // eslint-disable-Anweisung dazu kommt in Block D mit der Regel.
+      style={style}
     >
       {icon}
       {children}

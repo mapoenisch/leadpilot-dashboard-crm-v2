@@ -1,25 +1,27 @@
 import React from 'react';
-import { 
-  CheckCircle2, 
-  User, 
-  Send, 
-  Settings, 
-  TrendingUp, 
-  Building2, 
-  Package, 
-  Target, 
-  Users, 
-  PieChart, 
-  DollarSign, 
-  Briefcase, 
-  Award, 
-  FileText, 
-  Layers, 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Zap, 
-  Bell, 
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
+import {
+  CheckCircle2,
+  User,
+  Send,
+  Settings,
+  TrendingUp,
+  Building2,
+  Package,
+  Target,
+  Users,
+  PieChart,
+  DollarSign,
+  Briefcase,
+  Award,
+  FileText,
+  Layers,
+  Play,
+  Pause,
+  RotateCcw,
+  Zap,
+  Bell,
   Search,
   Filter,
   Plus
@@ -30,7 +32,6 @@ export interface IconProps {
   size?: number;
   color?: string;
   className?: string;
-  style?: React.CSSProperties;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -59,7 +60,12 @@ const ICON_MAP: Record<string, React.ElementType> = {
   plus: Plus,
 };
 
-export function Icon({ name, size = 18, color = 'currentColor', style, className }: IconProps) {
+// Icon hat keine visuellen Varianten (Name/Größe/Farbe sind Props, keine
+// Varianten) — cva daher nur als leere Basis, damit className-Merge und
+// Muster einheitlich bleiben.
+const iconVariants = cva('');
+
+export function Icon({ name, size = 18, color = 'currentColor', className }: IconProps) {
   const IconComponent = ICON_MAP[name] || CheckCircle2;
-  return <IconComponent size={size} color={color} style={style} className={className} />;
+  return <IconComponent size={size} color={color} className={cn(iconVariants(), className)} />;
 }

@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export interface NavItemProps {
   icon?: React.ReactNode;
@@ -11,6 +13,21 @@ export interface NavItemProps {
   to?: string;
 }
 
+const navItemVariants = cva(
+  'flex items-center gap-3 p-[9px_12px] rounded-md cursor-pointer font-body text-[13.5px] transition-[all_150ms_ease] select-none no-underline outline-none w-full box-border',
+  {
+    variants: {
+      active: {
+        true: 'bg-primary-soft text-primary font-semibold',
+        false: 'bg-transparent text-[var(--color-text-muted)] font-medium',
+      },
+    },
+    defaultVariants: {
+      active: false,
+    },
+  }
+);
+
 export function NavItem({
   icon,
   label,
@@ -20,33 +37,10 @@ export function NavItem({
   dataTestId,
   to,
 }: NavItemProps) {
-  const baseStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-3)',
-    padding: '9px 12px',
-    borderRadius: 'var(--radius-md)',
-    cursor: 'pointer',
-    fontFamily: 'var(--font-body)',
-    fontSize: '13.5px',
-    transition: 'all 150ms ease',
-    userSelect: 'none',
-    textDecoration: 'none',
-    outline: 'none',
-    width: '100%',
-    boxSizing: 'border-box',
-  };
-
-  const getActiveStyle = (isActive: boolean): React.CSSProperties => ({
-    background: isActive ? 'var(--color-primary-soft)' : 'transparent',
-    color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-    fontWeight: isActive ? 600 : 500,
-  });
-
   const content = (
     <>
       {icon}
-      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
         {label}
       </span>
       {badge}
@@ -59,12 +53,9 @@ export function NavItem({
         to={to}
         data-testid={dataTestId}
         onClick={onClick}
-        style={({ isActive }) => {
+        className={({ isActive }) => {
           const effectiveActive = active !== undefined ? active : isActive;
-          return {
-            ...baseStyle,
-            ...getActiveStyle(effectiveActive),
-          };
+          return cn(navItemVariants({ active: effectiveActive }));
         }}
         onMouseEnter={(e) => {
           if (!e.currentTarget.getAttribute('aria-current')) {
@@ -95,10 +86,7 @@ export function NavItem({
           onClick?.();
         }
       }}
-      style={{
-        ...baseStyle,
-        ...getActiveStyle(isCurrent),
-      }}
+      className={cn(navItemVariants({ active: isCurrent }))}
       onMouseEnter={(e) => {
         if (!isCurrent) e.currentTarget.style.background = 'var(--color-surface-raised)';
       }}

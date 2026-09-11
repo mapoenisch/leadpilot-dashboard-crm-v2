@@ -1,4 +1,6 @@
 import React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export interface SectionHeaderProps {
   eyebrow?: string;
@@ -7,69 +9,36 @@ export interface SectionHeaderProps {
   actions?: React.ReactNode;
 }
 
+// SectionHeader hat keine Stil-Varianten (Bedingungen sind Inhalte, kein
+// Aussehen) — cva daher nur als Basis.
+const sectionHeaderRootVariants = cva(
+  'flex items-end justify-between gap-5 flex-wrap mb-2 min-w-0 w-full'
+);
+
 export function SectionHeader({ eyebrow, title, description, actions }: SectionHeaderProps) {
   return (
     <div
-      className="section-header-root"
-      style={{
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'space-between',
-        gap: 'var(--space-5)',
-        flexWrap: 'wrap',
-        marginBottom: 'var(--space-2)',
-        minWidth: 0,
-        width: '100%',
-      }}
+      className={cn('section-header-root', sectionHeaderRootVariants())}
     >
-      <div style={{ minWidth: 0, flex: '1 1 auto', overflowWrap: 'anywhere' }}>
+      <div className="min-w-0 flex-auto [overflow-wrap:anywhere]">
         {eyebrow && (
-          <div
-            style={{
-              color: 'var(--color-primary)',
-              fontSize: '11px',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '4px',
-              overflowWrap: 'anywhere',
-            }}
-          >
+          <div className="text-primary text-[11px] font-semibold uppercase tracking-[0.08em] mb-[4px] [overflow-wrap:anywhere]">
             {eyebrow}
           </div>
         )}
         <h2
-          className="section-header-title"
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-display)',
-            fontSize: '26px',
-            fontWeight: 600,
-            color: 'var(--color-text)',
-            letterSpacing: '-0.02em',
-            overflowWrap: 'anywhere',
-            wordBreak: 'break-word',
-          }}
+          className="section-header-title m-0 font-display text-[26px] font-semibold text-text tracking-[-0.02em] [overflow-wrap:anywhere] [word-break:break-word]"
         >
           {title}
         </h2>
         {description && (
-          <p
-            style={{
-              margin: '6px 0 0',
-              color: 'var(--color-text-muted)',
-              fontSize: '14px',
-              maxWidth: '640px',
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
-          >
+          <p className="mt-[6px] mr-0 mb-0 ml-0 text-[var(--color-text-muted)] text-[14px] max-w-[640px] [overflow-wrap:anywhere] [word-break:break-word]">
             {description}
           </p>
         )}
       </div>
       {actions && (
-        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
+        <div className="flex gap-3 items-center flex-wrap min-w-0">
           {actions}
         </div>
       )}

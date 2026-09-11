@@ -1,5 +1,7 @@
 import React, { useId, useState } from 'react';
 import { Check } from 'lucide-react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export interface CheckboxProps {
   checked: boolean;
@@ -9,9 +11,65 @@ export interface CheckboxProps {
   disabled?: boolean;
   id?: string;
   className?: string;
-  style?: React.CSSProperties;
   'data-testid'?: string;
 }
+
+const checkboxRootVariants = cva(
+  'inline-flex gap-[var(--space-2)] select-none font-body relative',
+  {
+    variants: {
+      disabled: {
+        true: 'cursor-not-allowed opacity-50',
+        false: 'cursor-pointer',
+      },
+      hasDescription: {
+        true: 'items-start',
+        false: 'items-center',
+      },
+    },
+    defaultVariants: {
+      disabled: false,
+      hasDescription: false,
+    },
+  }
+);
+
+const checkboxControlVariants = cva(
+  'inline-flex items-center justify-center w-[18px] h-[18px] min-w-[18px] min-h-[18px] rounded-[var(--radius-xs,4px)] box-border transition-[background-color_150ms_ease,border-color_150ms_ease,box-shadow_150ms_ease]',
+  {
+    variants: {
+      checked: {
+        true: 'bg-primary border-[1.5px] border-solid border-primary',
+        false: 'bg-surface border-[1.5px] border-solid border-border',
+      },
+      focused: {
+        true: 'shadow-focus-ring',
+        false: 'shadow-none',
+      },
+      hasDescription: {
+        true: 'mt-[2px]',
+        false: 'mt-0',
+      },
+    },
+    defaultVariants: {
+      checked: false,
+      focused: false,
+      hasDescription: false,
+    },
+  }
+);
+
+const checkboxLabelVariants = cva('text-[13px] leading-[18px] transition-colors', {
+  variants: {
+    checked: {
+      true: 'text-text font-medium',
+      false: 'text-[var(--color-text-muted)] font-normal',
+    },
+  },
+  defaultVariants: {
+    checked: false,
+  },
+});
 
 export function Checkbox({
   checked,
@@ -21,28 +79,17 @@ export function Checkbox({
   disabled = false,
   id,
   className,
-  style,
   'data-testid': testId,
 }: CheckboxProps) {
   const [isFocused, setIsFocused] = useState(false);
   const generatedId = useId();
   const checkboxId = id ?? `checkbox-${generatedId.replace(/:/g, '')}`;
+  const hasDescription = description !== undefined;
 
   return (
     <label
       htmlFor={checkboxId}
-      className={className}
-      style={{
-        display: 'inline-flex',
-        alignItems: description ? 'flex-start' : 'center',
-        gap: 'var(--space-2)',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        userSelect: 'none',
-        opacity: disabled ? 0.5 : 1,
-        fontFamily: 'var(--font-body)',
-        position: 'relative',
-        ...style,
-      }}
+      className={cn(checkboxRootVariants({ disabled, hasDescription }), className)}
     >
       {/* Visually hidden native checkbox for semantic & screen reader access */}
       <input
@@ -58,69 +105,30 @@ export function Checkbox({
         }}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        style={{
-          position: 'absolute',
-          opacity: 0,
-          width: '1px',
-          height: '1px',
-          margin: '-1px',
-          padding: 0,
-          overflow: 'hidden',
-          clip: 'rect(0, 0, 0, 0)',
-          border: 0,
-          pointerEvents: 'none',
-        }}
+        className="sr-only opacity-0 pointer-events-none"
       />
 
       {/* Visible custom styled checkbox control */}
       <span
         aria-hidden="true"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '18px',
-          height: '18px',
-          minWidth: '18px',
-          minHeight: '18px',
-          borderRadius: 'var(--radius-xs, 4px)',
-          background: checked ? 'var(--color-primary)' : 'var(--color-surface)',
-          border: checked ? '1.5px solid var(--color-primary)' : '1.5px solid var(--color-border)',
-          boxShadow: isFocused ? 'var(--focus-ring)' : 'none',
-          transition: 'background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease',
-          boxSizing: 'border-box',
-          marginTop: description ? '2px' : '0',
-        }}
+        className={cn(
+          checkboxControlVariants({ checked, focused: isFocused, hasDescription })
+        )}
       >
         {checked && (
           <Check
             size={13}
             strokeWidth={3}
-            style={{
-              color: 'var(--color-bg-deep, #070d18)',
-              display: 'block',
-            }}
+            className="block text-[var(--color-bg-deep,#070d18)]"
           />
         )}
       </span>
 
       {/* Label and description container */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        <span
-          style={{
-            fontSize: '13px',
-            color: checked ? 'var(--color-text)' : 'var(--color-text-muted)',
-            fontWeight: checked ? 500 : 400,
-            lineHeight: '18px',
-            transition: 'color 150ms ease',
-          }}
-        >
-          {label}
-        </span>
+      <div className="flex flex-col gap-[2px]">
+        <span className={cn(checkboxLabelVariants({ checked }))}>{label}</span>
         {description && (
-          <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: '15px' }}>
-            {description}
-          </span>
+          <span className="text-[11.5px] text-[var(--color-text-muted)] leading-[15px]">{description}</span>
         )}
       </div>
     </label>

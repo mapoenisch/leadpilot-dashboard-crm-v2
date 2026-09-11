@@ -1,14 +1,11 @@
-import React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
-export function Divider({ style }: { style?: React.CSSProperties }) {
-  return (
-    <hr
-      style={{
-        border: 'none',
-        borderTop: '1px solid var(--color-border-soft)',
-        margin: 'var(--space-4) 0',
-        ...style,
-      }}
-    />
-  );
+// Divider hat keine Varianten — cva nur als Basis (Muster-Einheitlichkeit).
+const dividerVariants = cva(
+  'border-0 border-t border-solid border-[var(--color-border-soft)] my-4 mx-0'
+);
+
+export function Divider() {
+  return <hr className={cn(dividerVariants())} />;
 }

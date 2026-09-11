@@ -1,4 +1,6 @@
 import React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 export type StatusChipVariant = 'cyan' | 'orange' | 'mint' | 'neutral';
@@ -9,39 +11,43 @@ export interface StatusChipProps {
   icon?: React.ReactNode;
   pulse?: boolean;
   size?: 'sm' | 'md';
-  style?: React.CSSProperties;
 }
 
-const VARIANTS: Record<
-  StatusChipVariant,
-  { border: string; color: string; bg: string; dot: string }
-> = {
-  cyan: {
-    border: 'var(--color-primary)',
-    color: 'var(--color-primary)',
-    bg: 'var(--color-primary-soft)',
-    dot: 'var(--color-primary)',
-  },
-  orange: {
-    border: 'var(--color-accent)',
-    color: 'var(--color-accent)',
-    bg: 'var(--color-accent-soft)',
-    dot: 'var(--color-accent)',
-  },
-  mint: {
-    border: 'var(--color-success)',
-    color: 'var(--color-success)',
-    bg: 'var(--color-success-soft)',
-    dot: 'var(--color-success)',
-  },
-  neutral: {
-    border: 'var(--color-border)',
-    color: 'var(--color-text-muted)',
-    bg: 'rgba(255, 255, 255, 0.03)',
-    dot: 'var(--color-text-muted)',
-  },
-};
+const statusChipVariants = cva(
+  'inline-flex items-center gap-[6px] border border-solid rounded-full font-body font-semibold tracking-[0.02em] whitespace-nowrap',
+  {
+    variants: {
+      variant: {
+        cyan: 'border-primary text-primary bg-primary-soft',
+        orange: 'border-accent text-accent bg-accent-soft',
+        mint: 'border-success text-success bg-success-soft',
+        neutral: 'border-border text-[var(--color-text-muted)] bg-[rgba(255,255,255,0.03)]',
+      },
+      size: {
+        sm: 'px-[8px] py-[3px] text-[11px]',
+        md: 'px-[10px] py-[4px] text-xs',
+      },
+    },
+    defaultVariants: {
+      variant: 'neutral',
+      size: 'md',
+    },
+  }
+);
 
+const statusChipDotVariants = cva('rounded-full', {
+  variants: {
+    variant: {
+      cyan: 'bg-primary',
+      orange: 'bg-accent',
+      mint: 'bg-success',
+      neutral: 'bg-text-muted',
+    },
+  },
+  defaultVariants: {
+    variant: 'neutral',
+  },
+});
 
 export function StatusChip({
   variant = 'neutral',
@@ -49,55 +55,27 @@ export function StatusChip({
   icon,
   pulse = false,
   size = 'md',
-  style,
 }: StatusChipProps) {
   const prefersReducedMotion = useReducedMotion();
   const shouldPulse = pulse && !prefersReducedMotion;
-  const v = VARIANTS[variant] || VARIANTS.neutral;
-  const pad = size === 'sm' ? '3px 8px' : '4px 10px';
-  const fontSize = size === 'sm' ? '11px' : '12px';
 
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px',
-        background: v.bg,
-        border: `1px solid ${v.border}`,
-        color: v.color,
-        borderRadius: 'var(--radius-full)',
-        padding: pad,
-        fontSize,
-        fontFamily: 'var(--font-body)',
-        fontWeight: 600,
-        letterSpacing: '0.02em',
-        whiteSpace: 'nowrap',
-        ...style,
-      }}
-    >
+    <span className={cn(statusChipVariants({ variant, size }))}>
       {shouldPulse ? (
         <span
-          className="pulse-live"
-          style={{
-            width: '7px',
-            height: '7px',
-            borderRadius: '50%',
-            background: v.dot,
-            display: 'inline-block',
-          }}
+          className={cn(
+            'pulse-live inline-block w-[7px] h-[7px]',
+            statusChipDotVariants({ variant })
+          )}
         />
       ) : icon ? (
         icon
       ) : (
         <span
-          style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            background: v.dot,
-            display: 'inline-block',
-          }}
+          className={cn(
+            'inline-block w-[6px] h-[6px]',
+            statusChipDotVariants({ variant })
+          )}
         />
       )}
       <span>{label}</span>
