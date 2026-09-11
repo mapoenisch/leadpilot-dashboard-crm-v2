@@ -1,4 +1,6 @@
 import React, { useRef } from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export interface TabItem {
   id: string;
@@ -12,6 +14,33 @@ export interface TabsProps {
   onChange: (id: string) => void;
   ariaLabel?: string;
 }
+
+const tabVariants = cva(
+  'bg-transparent border-0 border-b-2 border-solid px-[16px] py-[10px] font-body text-[13.5px] cursor-pointer flex items-center gap-[6px] whitespace-nowrap transition-[all_150ms_ease] outline-none box-border',
+  {
+    variants: {
+      active: {
+        true: 'border-b-primary text-primary font-semibold',
+        false: 'border-b-transparent text-[var(--color-text-muted)] font-medium',
+      },
+    },
+    defaultVariants: {
+      active: false,
+    },
+  }
+);
+
+const tabCountVariants = cva('rounded-full px-[8px] py-[2px] text-[11px] font-semibold', {
+  variants: {
+    active: {
+      true: 'bg-primary-soft text-primary',
+      false: 'bg-background-deep text-[var(--color-text-muted)]',
+    },
+  },
+  defaultVariants: {
+    active: false,
+  },
+});
 
 export function Tabs({ items = [], activeId, onChange, ariaLabel = 'Registerkarten' }: TabsProps) {
   const tabListRef = useRef<HTMLDivElement>(null);
@@ -52,14 +81,7 @@ export function Tabs({ items = [], activeId, onChange, ariaLabel = 'Registerkart
       ref={tabListRef}
       role="tablist"
       aria-label={ariaLabel}
-      style={{
-        display: 'flex',
-        gap: '4px',
-        borderBottom: '1px solid var(--color-border)',
-        paddingBottom: '0px',
-        overflowX: 'auto',
-        WebkitOverflowScrolling: 'touch',
-      }}
+      className="flex gap-[4px] border-b border-solid border-border pb-0 overflow-x-auto [-webkit-overflow-scrolling:touch]"
     >
       {items.map((tab, idx) => {
         const active = tab.id === activeId;
@@ -71,37 +93,11 @@ export function Tabs({ items = [], activeId, onChange, ariaLabel = 'Registerkart
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => handleKeyDown(e, idx)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              borderBottom: active ? '2px solid var(--color-primary)' : '2px solid transparent',
-              color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              padding: '10px 16px',
-              fontFamily: 'var(--font-body)',
-              fontSize: '13.5px',
-              fontWeight: active ? 600 : 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              whiteSpace: 'nowrap',
-              transition: 'all 150ms ease',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
+            className={cn(tabVariants({ active }))}
           >
             {tab.label}
             {tab.count !== undefined && (
-              <span
-                style={{
-                  background: active ? 'var(--color-primary-soft)' : 'var(--color-bg-deep)',
-                  color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderRadius: 'var(--radius-full)',
-                  padding: '2px 8px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                }}
-              >
+              <span className={cn(tabCountVariants({ active }))}>
                 {tab.count}
               </span>
             )}
@@ -111,4 +107,3 @@ export function Tabs({ items = [], activeId, onChange, ariaLabel = 'Registerkart
     </div>
   );
 }
-

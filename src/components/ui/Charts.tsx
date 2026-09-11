@@ -1,4 +1,6 @@
 import React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 import { CHART_THEME, formatChartMetric } from './chartTheme';
 import { DonutRingChart } from './charts/DonutRingChart';
 import { ChartLegend } from './charts/ChartLegend';
@@ -19,8 +21,19 @@ export interface ChartConfig {
   datasets: ChartDataset[];
 }
 
-export function SimpleChart({
-  config,
+const chartBarWidthVariants = cva('max-w-[36px] rounded-t-[3px] transition-[height_300ms_ease]', {
+  variants: {
+    multi: {
+      true: 'w-[16px]',
+      false: 'w-[28px]',
+    },
+  },
+  defaultVariants: {
+    multi: false,
+  },
+});
+
+export function SimpleChart({  config,
   height = 220,
 }: {
   config: ChartConfig;
@@ -57,42 +70,17 @@ export function SimpleChart({
     const maxVal = Math.max(...allVals, 1);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '6px 0', width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex flex-col gap-[8px] py-[6px] px-0 w-full overflow-x-auto [-webkit-overflow-scrolling:touch]">
         <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            gap: '12px',
-            height: `${height}px`,
-            paddingBottom: '24px',
-            borderBottom: '1px solid var(--color-border)',
-            boxSizing: 'border-box',
-          }}
+          className="flex items-end gap-[12px] border-b border-solid border-border box-border"
+          style={{ height: `${height}px`, paddingBottom: '24px' }}
         >
           {labels.map((label, lIdx) => (
             <div
               key={lIdx}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                height: '100%',
-                justifyContent: 'flex-end',
-                gap: '4px',
-                minWidth: 0,
-              }}
+              className="flex-1 flex flex-col items-center h-full justify-end gap-[4px] min-w-0"
             >
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '4px',
-                  alignItems: 'flex-end',
-                  height: '100%',
-                  width: '100%',
-                  justifyContent: 'center',
-                }}
-              >
+              <div className="flex gap-[4px] items-end h-full w-full justify-center">
                 {datasets.map((ds, dIdx) => {
                   const val = ds.data[lIdx] || 0;
                   const hPct = Math.max(5, (val / maxVal) * 100);
@@ -102,32 +90,18 @@ export function SimpleChart({
                     <div
                       key={dIdx}
                       title={`${ds.label ? `${ds.label}: ` : ''}${formatChartMetric(val)}`}
+                      className={cn(chartBarWidthVariants({ multi: datasets.length > 1 }))}
                       style={{
-                        width: datasets.length > 1 ? '16px' : '28px',
-                        maxWidth: '36px',
                         height: `${hPct}%`,
                         background: color,
-                        borderRadius: '3px 3px 0 0',
                         boxShadow: `0 0 8px ${color}33`,
-                        transition: 'height 300ms ease',
                       }}
                     />
                   );
                 })}
               </div>
 
-              <span
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--color-text-muted)',
-                  marginTop: '6px',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '100%',
-                  textAlign: 'center',
-                }}
-              >
+              <span className="text-[11px] text-[var(--color-text-muted)] mt-[6px] whitespace-nowrap overflow-hidden text-ellipsis max-w-full text-center">
                 {label}
               </span>
             </div>
@@ -163,12 +137,12 @@ export function SimpleChart({
   const plotHeight = height - padTop - padBottom;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '6px 0', width: '100%' }}>
+    <div className="flex flex-col gap-[8px] py-[6px] px-0 w-full">
       <svg
         width="100%"
         height={height}
         viewBox={`0 0 ${svgWidth} ${height}`}
-        style={{ overflow: 'visible' }}
+        className="overflow-visible"
         role="img"
         aria-label="Verlaufsdiagramm"
       >

@@ -1,12 +1,108 @@
 import React, { useId } from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'style'> {
   label?: string;
   error?: string | boolean;
   helperText?: string;
   sizeVariant?: 'sm' | 'md';
   leadingIcon?: React.ReactNode;
 }
+
+const inputRootVariants = cva('flex flex-col gap-[6px] font-body w-full');
+
+const inputLabelVariants = cva('text-[13px] text-[var(--color-text-muted)] font-medium');
+
+const inputIconVariants = cva(
+  'absolute top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-[1] transition-colors',
+  {
+    variants: {
+      size: {
+        sm: 'left-[12px]',
+        md: 'left-[14px]',
+      },
+      focused: {
+        true: 'text-primary',
+        false: 'text-[var(--color-text-muted)]',
+      },
+    },
+    defaultVariants: {
+      size: 'md',
+      focused: false,
+    },
+  }
+);
+
+const inputFieldVariants = cva(
+  'w-full bg-surface border-[1.5px] border-solid rounded-md text-text outline-none box-border transition-[border-color_150ms_ease-in-out,box-shadow_150ms_ease-in-out] [font-family:inherit]',
+  {
+    variants: {
+      size: {
+        sm: 'text-[13.5px]',
+        md: 'text-sm',
+      },
+      error: {
+        true: 'border-error',
+        false: '',
+      },
+      focused: {
+        true: '',
+        false: '',
+      },
+      disabled: {
+        true: 'opacity-50',
+        false: '',
+      },
+    },
+    compoundVariants: [
+      { error: true, class: 'border-error' },
+      { error: false, focused: true, class: 'border-primary shadow-focus-ring' },
+      { error: false, focused: false, class: 'border-border shadow-none' },
+    ],
+    defaultVariants: {
+      size: 'md',
+      error: false,
+      focused: false,
+      disabled: false,
+    },
+  }
+);
+
+const inputPaddingVariants = cva('', {
+  variants: {
+    size: {
+      sm: '',
+      md: '',
+    },
+    hasIcon: {
+      true: '',
+      false: '',
+    },
+  },
+  compoundVariants: [
+    { size: 'sm', hasIcon: true, class: 'py-[9px] pr-[14px] pl-[38px]' },
+    { size: 'sm', hasIcon: false, class: 'py-[9px] px-[14px]' },
+    { size: 'md', hasIcon: true, class: 'py-[13px] pr-[16px] pl-[42px]' },
+    { size: 'md', hasIcon: false, class: 'py-[13px] px-[16px]' },
+  ],
+  defaultVariants: {
+    size: 'md',
+    hasIcon: false,
+  },
+});
+
+const inputHelperVariants = cva('text-[12px]', {
+  variants: {
+    error: {
+      true: 'text-error',
+      false: 'text-[var(--color-text-muted)]',
+    },
+  },
+  defaultVariants: {
+    error: false,
+  },
+});
 
 export function Input({
   label,
@@ -19,41 +115,27 @@ export function Input({
   helperText,
   sizeVariant = 'md',
   leadingIcon,
-  style,
   id,
   ...rest
 }: InputProps) {
   const [focused, setFocused] = React.useState(false);
   const generatedId = useId();
   const inputId = id ?? `input-${generatedId.replace(/:/g, '')}`;
-  const leftPad = leadingIcon ? (sizeVariant === 'sm' ? '38px' : '42px') : (sizeVariant === 'sm' ? '14px' : '16px');
-  const rightPad = sizeVariant === 'sm' ? '14px' : '16px';
-  const verticalPad = sizeVariant === 'sm' ? '9px' : '13px';
+  const hasError = !!error;
+  const hasIcon = leadingIcon !== undefined && leadingIcon !== null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontFamily: 'var(--font-body)', width: '100%' }}>
+    <div className={cn(inputRootVariants())}>
       {label && (
-        <label htmlFor={inputId} style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+        <label htmlFor={inputId} className={cn(inputLabelVariants())}>
           {label}
         </label>
       )}
-      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+      <div className="relative w-full flex items-center">
         {leadingIcon && (
           <span
             aria-hidden="true"
-            style={{
-              position: 'absolute',
-              left: sizeVariant === 'sm' ? '12px' : '14px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'none',
-              color: focused ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              zIndex: 1,
-              transition: 'color 150ms ease-in-out',
-            }}
+            className={cn(inputIconVariants({ size: sizeVariant, focused }))}
           >
             {leadingIcon}
           </span>
@@ -73,31 +155,18 @@ export function Input({
             setFocused(false);
             rest.onBlur?.(e);
           }}
-          style={{
-            width: '100%',
-            background: 'var(--color-surface)',
-            border: `1.5px solid ${error ? 'var(--color-error)' : focused ? 'var(--color-primary)' : 'var(--color-border)'}`,
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--color-text)',
-            padding: `${verticalPad} ${rightPad} ${verticalPad} ${leftPad}`,
-            fontSize: sizeVariant === 'sm' ? '13.5px' : '14px',
-            fontFamily: 'inherit',
-            outline: 'none',
-            boxShadow: focused && !error ? 'var(--focus-ring)' : 'none',
-            opacity: disabled ? 0.5 : 1,
-            transition: 'border-color 150ms ease-in-out, box-shadow 150ms ease-in-out',
-            boxSizing: 'border-box',
-            ...style,
-          }}
+          className={cn(
+            inputFieldVariants({ size: sizeVariant, error: hasError, focused, disabled }),
+            inputPaddingVariants({ size: sizeVariant, hasIcon })
+          )}
           {...rest}
         />
       </div>
       {(helperText || error) && (
-        <span style={{ fontSize: '12px', color: error ? 'var(--color-error)' : 'var(--color-text-muted)' }}>
+        <span className={cn(inputHelperVariants({ error: hasError }))}>
           {typeof error === 'string' ? error : helperText}
         </span>
       )}
     </div>
   );
 }
-

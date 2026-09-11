@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useId } from 'react';
 import { Minus, Plus } from 'lucide-react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export interface NumberStepperProps {
   label?: string;
@@ -16,8 +18,100 @@ export interface NumberStepperProps {
   id?: string;
   sizeVariant?: 'sm' | 'md';
   fullWidth?: boolean;
-  style?: React.CSSProperties;
 }
+
+const stepperRootVariants = cva('flex flex-col gap-[5px] font-body', {
+  variants: {
+    fullWidth: {
+      true: 'w-full',
+      false: 'w-auto',
+    },
+  },
+  defaultVariants: {
+    fullWidth: true,
+  },
+});
+
+const stepperBoxVariants = cva(
+  'flex items-center bg-surface border-[1.5px] border-solid rounded-md overflow-hidden transition-[border-color_150ms_ease,box-shadow_150ms_ease]',
+  {
+    variants: {
+      error: {
+        true: 'border-error',
+        false: '',
+      },
+      focused: {
+        true: '',
+        false: '',
+      },
+      disabled: {
+        true: 'opacity-[0.45]',
+        false: '',
+      },
+    },
+    compoundVariants: [
+      { error: false, focused: true, class: 'border-primary shadow-focus-ring' },
+      { error: false, focused: false, class: 'border-border shadow-none' },
+    ],
+    defaultVariants: {
+      error: false,
+      focused: false,
+      disabled: false,
+    },
+  }
+);
+
+const stepperButtonVariants = cva(
+  'bg-transparent border-0 flex items-center justify-center transition-[background_150ms_ease]',
+  {
+    variants: {
+      size: {
+        sm: 'p-[6px_10px]',
+        md: 'p-[9px_12px]',
+      },
+      atLimit: {
+        true: 'text-[var(--color-text-muted)] cursor-not-allowed opacity-[0.35]',
+        false: 'text-primary cursor-pointer',
+      },
+      side: {
+        left: 'border-r border-solid border-border',
+        right: 'border-l border-solid border-border',
+      },
+    },
+    defaultVariants: {
+      size: 'md',
+      atLimit: false,
+      side: 'left',
+    },
+  }
+);
+
+const stepperInputVariants = cva(
+  'flex-1 min-w-[60px] bg-transparent border-0 text-text font-mono font-semibold text-center outline-none',
+  {
+    variants: {
+      size: {
+        sm: 'p-[6px_10px] text-[13px]',
+        md: 'p-[9px_12px] text-sm',
+      },
+    },
+    defaultVariants: {
+      size: 'md',
+    },
+  }
+);
+
+const stepperHelperVariants = cva('text-[12px]', {
+  variants: {
+    error: {
+      true: 'text-error',
+      false: 'text-[var(--color-text-muted)]',
+    },
+  },
+  defaultVariants: {
+    error: false,
+  },
+});
 
 export function NumberStepper({
   label,
@@ -34,7 +128,6 @@ export function NumberStepper({
   id: customId,
   sizeVariant = 'md',
   fullWidth = true,
-  style,
 }: NumberStepperProps) {
   const generatedId = useId();
   const inputId = customId || `stepper-${generatedId.replace(/:/g, '')}`;
@@ -118,65 +211,29 @@ export function NumberStepper({
   };
 
   const activeError = error || internalError;
-  const pad = sizeVariant === 'sm' ? '6px 10px' : '9px 12px';
-  const fontSize = sizeVariant === 'sm' ? '13px' : '14px';
+  const hasError = !!activeError;
+  const atMin = disabled || value <= min;
+  const atMax = disabled || value >= max;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '5px',
-        width: fullWidth ? '100%' : 'auto',
-        fontFamily: 'var(--font-body)',
-        ...style,
-      }}
-    >
+    <div className={cn(stepperRootVariants({ fullWidth }))}>
       {label && (
         <label
           htmlFor={inputId}
-          style={{
-            fontSize: '12.5px',
-            color: 'var(--color-text-muted)',
-            fontWeight: 500,
-          }}
+          className="text-[12.5px] text-[var(--color-text-muted)] font-medium"
         >
           {label}
         </label>
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: 'var(--color-surface)',
-          border: `1.5px solid ${activeError ? 'var(--color-error)' : isFocused ? 'var(--color-primary)' : 'var(--color-border)'}`,
-          borderRadius: 'var(--radius-md)',
-          boxShadow: isFocused && !activeError ? 'var(--focus-ring)' : 'none',
-          overflow: 'hidden',
-          transition: 'border-color 150ms ease, box-shadow 150ms ease',
-          opacity: disabled ? 0.45 : 1,
-        }}
-      >
+      <div className={cn(stepperBoxVariants({ error: hasError, focused: isFocused, disabled }))}>
         {/* Decrement Button */}
         <button
           type="button"
           aria-label="Wert verringern"
-          disabled={disabled || value <= min}
+          disabled={atMin}
           onClick={handleDecrement}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            borderRight: '1px solid var(--color-border)',
-            color: disabled || value <= min ? 'var(--color-text-muted)' : 'var(--color-primary)',
-            padding: pad,
-            cursor: disabled || value <= min ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: disabled || value <= min ? 0.35 : 1,
-            transition: 'background 150ms ease',
-          }}
+          className={cn(stepperButtonVariants({ size: sizeVariant, atLimit: atMin, side: 'left' }))}
           onMouseEnter={(e) => {
             if (!disabled && value > min) e.currentTarget.style.background = 'var(--color-primary-soft)';
           }}
@@ -191,7 +248,6 @@ export function NumberStepper({
         <input
           id={inputId}
           type="number"
-          className="no-spinner"
           value={localStr}
           placeholder={placeholder}
           disabled={disabled}
@@ -203,37 +259,12 @@ export function NumberStepper({
           onChange={handleChange}
           onFocus={() => setIsFocused(true)}
           onBlur={handleBlur}
-          style={{
-            flex: 1,
-            minWidth: '60px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--color-text)',
-            padding: pad,
-            fontSize,
-            fontFamily: 'var(--font-mono)',
-            fontWeight: 600,
-            textAlign: 'center',
-            outline: 'none',
-          }}
+          className={cn('no-spinner', stepperInputVariants({ size: sizeVariant }))}
         />
 
         {/* Unit Suffix Badge */}
         {unit && (
-          <span
-            style={{
-              padding: '0 8px',
-              fontSize: '11px',
-              color: 'var(--color-text-muted)',
-              fontWeight: 600,
-              userSelect: 'none',
-              borderLeft: '1px solid var(--color-border-soft)',
-              background: 'var(--color-bg-deep)',
-              alignSelf: 'stretch',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
+          <span className="px-[8px] py-0 text-[11px] text-[var(--color-text-muted)] font-semibold select-none border-l border-solid border-soft bg-background-deep self-stretch flex items-center">
             {unit}
           </span>
         )}
@@ -242,21 +273,9 @@ export function NumberStepper({
         <button
           type="button"
           aria-label="Wert erhöhen"
-          disabled={disabled || value >= max}
+          disabled={atMax}
           onClick={handleIncrement}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            borderLeft: '1px solid var(--color-border)',
-            color: disabled || value >= max ? 'var(--color-text-muted)' : 'var(--color-primary)',
-            padding: pad,
-            cursor: disabled || value >= max ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: disabled || value >= max ? 0.35 : 1,
-            transition: 'background 150ms ease',
-          }}
+          className={cn(stepperButtonVariants({ size: sizeVariant, atLimit: atMax, side: 'right' }))}
           onMouseEnter={(e) => {
             if (!disabled && value < max) e.currentTarget.style.background = 'var(--color-primary-soft)';
           }}
@@ -271,10 +290,7 @@ export function NumberStepper({
       {(helperText || activeError) && (
         <span
           id={helperId}
-          style={{
-            fontSize: '12px',
-            color: activeError ? 'var(--color-error)' : 'var(--color-text-muted)',
-          }}
+          className={cn(stepperHelperVariants({ error: hasError }))}
         >
           {typeof activeError === 'string' ? activeError : helperText}
         </span>

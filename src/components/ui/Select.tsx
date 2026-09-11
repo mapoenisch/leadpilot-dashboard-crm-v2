@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useId } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export interface SelectOption {
   value: string;
@@ -18,8 +20,105 @@ export interface SelectProps {
   id?: string;
   sizeVariant?: 'sm' | 'md';
   fullWidth?: boolean;
-  style?: React.CSSProperties;
 }
+
+const selectRootVariants = cva('flex flex-col gap-[5px] font-body relative', {
+  variants: {
+    fullWidth: {
+      true: 'w-full',
+      false: 'w-auto',
+    },
+  },
+  defaultVariants: {
+    fullWidth: true,
+  },
+});
+
+const selectTriggerVariants = cva(
+  'flex items-center justify-between w-full bg-surface border-[1.5px] border-solid rounded-md font-medium text-left box-border transition-[all_150ms_ease] outline-none',
+  {
+    variants: {
+      size: {
+        sm: 'px-[12px] py-[7px] text-[13px]',
+        md: 'px-[14px] py-[10px] text-sm',
+      },
+      error: {
+        true: 'border-error',
+        false: '',
+      },
+      open: {
+        true: '',
+        false: '',
+      },
+      disabled: {
+        true: 'cursor-not-allowed opacity-[0.45]',
+        false: 'cursor-pointer',
+      },
+    },
+    compoundVariants: [
+      { error: false, open: true, class: 'border-primary shadow-focus-ring' },
+      { error: false, open: false, class: 'border-border shadow-none' },
+    ],
+    defaultVariants: {
+      size: 'md',
+      error: false,
+      open: false,
+      disabled: false,
+    },
+  }
+);
+
+const selectValueVariants = cva('overflow-hidden text-ellipsis whitespace-nowrap', {
+  variants: {
+    hasSelection: {
+      true: 'text-text',
+      false: 'text-[var(--color-text-muted)]',
+    },
+  },
+  defaultVariants: {
+    hasSelection: false,
+  },
+});
+
+const selectChevronVariants = cva('shrink-0 ml-[8px] transition-[transform_150ms_ease]', {
+  variants: {
+    open: {
+      true: 'text-primary rotate-180',
+      false: 'text-[var(--color-text-muted)] rotate-0',
+    },
+  },
+  defaultVariants: {
+    open: false,
+  },
+});
+
+const selectOptionVariants = cva(
+  'flex items-center justify-between px-[12px] py-[8px] rounded-sm text-[13px] cursor-pointer transition-[background_100ms_ease]',
+  {
+    variants: {
+      selected: {
+        true: 'font-semibold',
+        false: 'font-normal',
+      },
+      highlighted: {
+        true: '',
+        false: '',
+      },
+    },
+    compoundVariants: [
+      { highlighted: true, class: 'bg-surface' },
+      { highlighted: false, selected: true, class: 'bg-primary-soft' },
+      { highlighted: false, selected: false, class: 'bg-transparent' },
+      { selected: true, class: 'text-primary' },
+      { selected: false, highlighted: true, class: 'text-text' },
+      { selected: false, highlighted: false, class: 'text-[var(--color-text-muted)]' },
+    ],
+    defaultVariants: {
+      selected: false,
+      highlighted: false,
+    },
+  }
+);
 
 export function Select({
   label,
@@ -32,7 +131,6 @@ export function Select({
   id: customId,
   sizeVariant = 'md',
   fullWidth = true,
-  style,
 }: SelectProps) {
   const generatedId = useId();
   const selectId = customId || `select-${generatedId.replace(/:/g, '')}`;
@@ -107,30 +205,14 @@ export function Select({
     }
   };
 
-  const pad = sizeVariant === 'sm' ? '7px 12px' : '10px 14px';
-  const fontSize = sizeVariant === 'sm' ? '13px' : '14px';
+  const hasError = !!error;
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '5px',
-        width: fullWidth ? '100%' : 'auto',
-        fontFamily: 'var(--font-body)',
-        position: 'relative',
-        ...style,
-      }}
-    >
+    <div ref={containerRef} className={cn(selectRootVariants({ fullWidth }))}>
       {label && (
         <label
           htmlFor={selectId}
-          style={{
-            fontSize: '12.5px',
-            color: 'var(--color-text-muted)',
-            fontWeight: 500,
-          }}
+          className="text-[12.5px] text-[var(--color-text-muted)] font-medium"
         >
           {label}
         </label>
@@ -149,39 +231,16 @@ export function Select({
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          padding: pad,
-          background: 'var(--color-surface)',
-          border: `1.5px solid ${error ? 'var(--color-error)' : isOpen ? 'var(--color-primary)' : 'var(--color-border)'}`,
-          borderRadius: 'var(--radius-md)',
-          color: selectedOption ? 'var(--color-text)' : 'var(--color-text-muted)',
-          fontSize,
-          fontWeight: 500,
-          textAlign: 'left',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.45 : 1,
-          boxShadow: isOpen && !error ? 'var(--focus-ring)' : 'none',
-          outline: 'none',
-          transition: 'all 150ms ease',
-          boxSizing: 'border-box',
-        }}
+        className={cn(
+          selectTriggerVariants({ size: sizeVariant, error: hasError, open: isOpen, disabled })
+        )}
       >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span className={cn(selectValueVariants({ hasSelection: !!selectedOption }))}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
           size={16}
-          style={{
-            color: isOpen ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 150ms ease',
-            flexShrink: 0,
-            marginLeft: '8px',
-          }}
+          className={cn(selectChevronVariants({ open: isOpen }))}
         />
       </button>
 
@@ -192,25 +251,10 @@ export function Select({
           id={listboxId}
           role="listbox"
           tabIndex={-1}
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            right: 0,
-            zIndex: 1050,
-            background: 'var(--color-bg-deep)',
-            border: '1px solid var(--color-primary-soft)',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-modal)',
-            listStyle: 'none',
-            padding: '4px',
-            margin: 0,
-            maxHeight: '220px',
-            overflowY: 'auto',
-          }}
+          className="absolute top-[calc(100%_+_4px)] left-0 right-0 z-[1050] bg-background-deep border border-solid border-primary-soft rounded-md shadow-modal list-none p-[4px] m-0 max-h-[220px] overflow-y-auto"
         >
           {options.length === 0 ? (
-            <li style={{ padding: '8px 12px', fontSize: '12.5px', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+            <li className="px-[12px] py-[8px] text-[12.5px] text-[var(--color-text-muted)] text-center">
               Keine Optionen verfügbar
             </li>
           ) : (
@@ -239,39 +283,19 @@ export function Select({
                     }
                   }}
                   onMouseEnter={() => setHighlightedIndex(idx)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    background: isHighlighted
-                      ? 'var(--color-surface)'
-                      : isSelected
-                      ? 'var(--color-primary-soft)'
-                      : 'transparent',
-                    color: isSelected
-                      ? 'var(--color-primary)'
-                      : isHighlighted
-                      ? 'var(--color-text)'
-                      : 'var(--color-text-muted)',
-                    fontWeight: isSelected ? 600 : 400,
-                    transition: 'background 100ms ease',
-                  }}
+                  className={cn(selectOptionVariants({ selected: isSelected, highlighted: isHighlighted }))}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden' }}>
-                    <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  <div className="flex flex-col gap-[2px] overflow-hidden">
+                    <span className="text-ellipsis overflow-hidden whitespace-nowrap">
                       {opt.label}
                     </span>
                     {opt.description && (
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                      <span className="text-[11px] text-[var(--color-text-muted)]">
                         {opt.description}
                       </span>
                     )}
                   </div>
-                  {isSelected && <Check size={14} color="var(--color-primary)" style={{ flexShrink: 0, marginLeft: '8px' }} />}
+                  {isSelected && <Check size={14} color="var(--color-primary)" className="shrink-0 ml-[8px]" />}
                 </li>
               );
             })
@@ -280,7 +304,7 @@ export function Select({
       )}
 
       {error && (
-        <span style={{ fontSize: '12px', color: 'var(--color-error)' }}>
+        <span className="text-[12px] text-error">
           {error}
         </span>
       )}

@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useId } from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export interface ModalProps {
   open: boolean;
@@ -9,6 +11,24 @@ export interface ModalProps {
   footer?: React.ReactNode;
   maxWidth?: string;
 }
+
+// maxWidth ist ein offener String-Prop: alle im Repo vorkommenden Werte sind
+// explizit abgebildet (Fallback = Default) — kein style-Attribut nötig.
+const MODAL_MAX_WIDTHS: Record<string, string> = {
+  '600px': 'max-w-[min(600px,calc(100vw-2rem))]',
+  '750px': 'max-w-[min(750px,calc(100vw-2rem))]',
+  '960px': 'max-w-[min(960px,calc(100vw-2rem))]',
+  '1000px': 'max-w-[min(1000px,calc(100vw-2rem))]',
+  '1100px': 'max-w-[min(1100px,calc(100vw-2rem))]',
+};
+
+const modalOverlayVariants = cva(
+  'fixed inset-0 bg-[rgba(6,22,19,0.78)] backdrop-blur-[4px] flex items-center justify-center z-[1000] p-4 box-border animate-[backdrop-fade-in_150ms_ease-out]'
+);
+
+const modalDialogVariants = cva(
+  'bg-surface border border-solid border-border rounded-xl w-full shadow-modal flex flex-col overflow-hidden box-border outline-none max-h-[calc(100dvh-2rem)]'
+);
 
 export function Modal({
   open,
@@ -101,22 +121,7 @@ export function Modal({
       role="button"
       tabIndex={0}
       aria-label="Dialog schließen"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(6, 22, 19, 0.78)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '1rem',
-        boxSizing: 'border-box',
-        animation: 'backdrop-fade-in 150ms ease-out',
-      }}
+      className={cn(modalOverlayVariants())}
       onClick={onClose}
       onKeyDown={(e) => {
         if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
@@ -131,93 +136,33 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        style={{
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-xl)',
-          width: '100%',
-          maxWidth: maxWidth ? `min(${maxWidth}, calc(100vw - 2rem))` : 'min(560px, calc(100vw - 2rem))',
-          maxHeight: 'calc(100dvh - 2rem)',
-          boxShadow: 'var(--shadow-modal)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-          outline: 'none',
-        }}
+        className={cn(
+          modalDialogVariants(),
+          (maxWidth && MODAL_MAX_WIDTHS[maxWidth]) || 'max-w-[min(560px,calc(100vw-2rem))]'
+        )}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <div
-          style={{
-            padding: 'var(--space-4) var(--space-5)',
-            borderBottom: '1px solid var(--color-border-soft)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-          }}
-        >
-          <h3
-            id={titleId}
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '18px',
-              fontWeight: 600,
-              color: 'var(--color-text)',
-            }}
-          >
+        <div className="flex items-center justify-between shrink-0 border-b border-solid border-soft px-5 py-4">
+          <h3 id={titleId} className="m-0 font-display text-[18px] font-semibold text-text">
             {title}
           </h3>
           <button
             type="button"
             onClick={onClose}
             aria-label="Dialog schließen"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--color-text-muted)',
-              fontSize: '22px',
-              cursor: 'pointer',
-              lineHeight: 1,
-              padding: '4px 8px',
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="bg-transparent border-0 text-[var(--color-text-muted)] text-[22px] cursor-pointer leading-none px-[8px] py-[4px] rounded-sm flex items-center justify-center"
             onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
           >
             ×
           </button>
         </div>
-        <div
-          style={{
-            padding: 'var(--space-5)',
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            flex: '1 1 auto',
-            minHeight: 0,
-          }}
-        >
+        <div className="p-5 overflow-y-auto overflow-x-hidden flex-auto min-h-0">
           {children}
         </div>
         {footer && (
-          <div
-            style={{
-              padding: 'var(--space-4) var(--space-5)',
-              background: 'var(--color-bg-deep)',
-              borderTop: '1px solid var(--color-border-soft)',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              gap: 'var(--space-3)',
-              flexShrink: 0,
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className="px-5 py-4 bg-background-deep border-t border-solid border-soft flex justify-end items-center gap-3 shrink-0 flex-wrap">
             {footer}
           </div>
         )}

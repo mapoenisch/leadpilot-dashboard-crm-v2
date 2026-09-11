@@ -1,4 +1,6 @@
 import React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'accent' | 'danger';
@@ -10,40 +12,65 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   iconRight?: React.ReactNode;
 }
 
-const SIZES = {
-  sm: { padding: '8px 16px', fontSize: '13px', gap: '6px' },
-  md: { padding: '12px 22px', fontSize: '14px', gap: '8px' },
-  lg: { padding: '16px 28px', fontSize: '15px', gap: '8px' },
-};
-
-function variantStyle(variant: string) {
-  switch (variant) {
-    case 'secondary':
-      return {
-        background: 'transparent',
-        color: 'var(--color-primary)',
-        border: '1.5px solid var(--color-primary)',
-      };
-    case 'accent':
-      return {
-        background: 'var(--color-accent)',
-        color: 'var(--color-text-inverse)',
-        border: '1.5px solid transparent',
-      };
-    case 'danger':
-      return {
-        background: 'var(--color-error)',
-        color: 'var(--white)',
-        border: '1.5px solid transparent',
-      };
-    default:
-      return {
-        background: 'var(--color-primary)',
-        color: 'var(--color-text-inverse)',
-        border: '1.5px solid transparent',
-      };
+const buttonVariants = cva(
+  'inline-flex items-center justify-center whitespace-nowrap shrink-0 font-body font-semibold rounded-full transition-[all_var(--duration-fast,150ms)_ease-in-out]',
+  {
+    variants: {
+      variant: {
+        primary:
+          'bg-primary text-[var(--color-text-inverse)] border-[1.5px] border-solid border-transparent',
+        secondary: 'bg-transparent text-primary border-[1.5px] border-solid border-primary',
+        accent:
+          'bg-accent text-[var(--color-text-inverse)] border-[1.5px] border-solid border-transparent',
+        danger: 'bg-error text-white border-[1.5px] border-solid border-transparent',
+      },
+      size: {
+        sm: 'px-[16px] py-[8px] text-[13px] gap-[6px]',
+        md: 'px-[22px] py-[12px] text-sm gap-[8px]',
+        lg: 'px-[28px] py-[16px] text-[15px] gap-[8px]',
+      },
+      fullWidth: {
+        true: 'w-full',
+        false: 'w-auto',
+      },
+      inactive: {
+        true: 'cursor-not-allowed pointer-events-none opacity-50',
+        false: 'cursor-pointer',
+      },
+      // Hover läuft über Runtime-State (nicht :hover), daher als Variante.
+      hovered: {
+        true: '',
+        false: '',
+      },
+    },
+    compoundVariants: [
+      { variant: 'primary', hovered: true, class: 'bg-primary-hover' },
+      { variant: 'accent', hovered: true, class: 'bg-accent-hover' },
+      { variant: 'secondary', hovered: true, class: 'bg-primary-soft' },
+      { variant: 'danger', hovered: true, class: 'bg-[#e0484d]' },
+    ],
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+      fullWidth: false,
+      inactive: false,
+      hovered: false,
+    },
   }
-}
+);
+
+const buttonSpinnerVariants = cva('shrink-0 animate-[spin_1s_linear_infinite]', {
+  variants: {
+    size: {
+      sm: 'w-[13px] h-[13px]',
+      md: 'w-[15px] h-[15px]',
+      lg: 'w-[15px] h-[15px]',
+    },
+  },
+  defaultVariants: {
+    size: 'md',
+  },
+});
 
 export function Button({
   variant = 'primary',
@@ -61,14 +88,7 @@ export function Button({
 }: ButtonProps) {
   const [hover, setHover] = React.useState(false);
   const isInactive = disabled || loading;
-  const base = variantStyle(variant);
-  const sizeStyle = SIZES[size] || SIZES.md;
-  const hoverBg = {
-    primary: 'var(--color-primary-hover)',
-    accent: 'var(--color-accent-hover)',
-    secondary: 'var(--color-primary-soft)',
-    danger: '#e0484d',
-  }[variant];
+  const hovered = !isInactive && hover;
 
   return (
     <button
@@ -78,39 +98,17 @@ export function Button({
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        whiteSpace: 'nowrap',
-        flexShrink: 0,
-        gap: sizeStyle.gap,
-        width: fullWidth ? '100%' : 'auto',
-        padding: sizeStyle.padding,
-        fontSize: sizeStyle.fontSize,
-        fontFamily: 'var(--font-body)',
-        fontWeight: 600,
-        borderRadius: 'var(--radius-full)',
-        cursor: isInactive ? 'not-allowed' : 'pointer',
-        pointerEvents: isInactive ? 'none' : 'auto',
-        opacity: isInactive ? 0.5 : 1,
-        transition: 'all var(--duration-fast, 150ms) ease-in-out',
-        ...base,
-        background: !isInactive && hover && hoverBg ? hoverBg : base.background,
-        ...style,
-      }}
+      className={cn(buttonVariants({ variant, size, fullWidth, inactive: isInactive, hovered }))}
+      // Ausnahme (G38-Entscheidung 5, Nachtrag): style-Passthrough bleibt,
+      // weil Konsumenten Overrides übergeben. Disable-Anweisung in Block D.
+      style={style}
       {...rest}
     >
       {loading ? (
         <svg
           role="status"
           aria-label="Laden..."
-          style={{
-            width: size === 'sm' ? '13px' : '15px',
-            height: size === 'sm' ? '13px' : '15px',
-            animation: 'spin 1s linear infinite',
-            flexShrink: 0,
-          }}
+          className={cn(buttonSpinnerVariants({ size }))}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

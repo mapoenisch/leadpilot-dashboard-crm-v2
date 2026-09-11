@@ -1,4 +1,6 @@
 import React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 import { logger } from '@/services/logger';
 import { Card } from './Card';
 import { Button } from './Button';
@@ -12,6 +14,9 @@ interface RouteErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
 }
+
+// Keine Stil-Varianten — cva nur als Basis (Muster-Einheitlichkeit).
+const routeErrorBoundaryVariants = cva('flex items-center justify-center min-h-[400px] p-6');
 
 export class RouteErrorBoundary extends React.Component<
   RouteErrorBoundaryProps,
@@ -46,13 +51,7 @@ export class RouteErrorBoundary extends React.Component<
         <div
           role="alert"
           aria-live="assertive"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '400px',
-            padding: 'var(--space-6)',
-          }}
+          className={cn(routeErrorBoundaryVariants())}
         >
           <Card
             variant="glass"
@@ -66,53 +65,19 @@ export class RouteErrorBoundary extends React.Component<
               gap: 'var(--space-4)',
             }}
           >
-            <div
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                background: 'rgba(239, 68, 68, 0.15)',
-                color: 'var(--color-error, #ef4444)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '24px',
-              }}
-            >
+            <div className="w-[48px] h-[48px] rounded-full bg-[rgba(239,68,68,0.15)] text-error text-[24px] flex items-center justify-center">
               ⚠️
             </div>
 
-            <h2
-              style={{
-                fontSize: 'var(--font-size-xl, 20px)',
-                fontWeight: 600,
-                color: 'var(--color-text)',
-                margin: 0,
-              }}
-            >
+            <h2 className="text-[20px] font-semibold text-text m-0">
               Fehler beim Laden der Seite
             </h2>
 
-            <p
-              style={{
-                fontSize: 'var(--font-size-sm, 14px)',
-                color: 'var(--color-text-secondary)',
-                margin: 0,
-                lineHeight: 1.5,
-              }}
-            >
+            <p className="text-sm m-0 leading-[1.5]">
               {this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}
             </p>
 
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 'var(--space-3)',
-                justifyContent: 'center',
-                marginTop: 'var(--space-2)',
-              }}
-            >
+            <div className="flex flex-wrap gap-3 justify-center mt-2">
               <Button variant="primary" size="md" onClick={this.handleRetry}>
                 Erneut versuchen
               </Button>
