@@ -2,6 +2,100 @@
 
 ---
 
+## 2026-09-11 — Gate G37 / Auftrag 052: `SimulationContext` → Zustand
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `29cbcd1`. Kein Merge/Tag/Push (nicht freigegeben).
+Commits: `0fb723c` (A, inkl. Chunk-Fix), `0432913` (B), `8f0b35b` (C),
+`9a81796` (D) + Screenshots/Bericht.
+
+### Block A — Store-Grundgerüst (`0fb723c`, additiv)
+
+- `zustand` **5.0.15** (exact, einzige neue Dep). `src/store/simulationStore.ts`
+  (kombiniert), `src/store/slices/{simulation,scenario,run}Slice.ts`
+  (`StateCreator`-Pattern), `src/store/hooks.ts` (19 Selektor-Hooks, einer je
+  logischem Bedarf).
+- **Measures bei `scenarioSlice`** (Entscheidung 2): `previewMeasures`
+  braucht `activeVersionId`. `versions` als State-Snapshot (nicht derived):
+  `getVersionsByScenario` deep-cloned → `useShallow` wirkungslos; Refresh in
+  `refreshData` + `selectScenario` (einzige Mutationspfade; kein App-Code
+  mutiert den Service außerhalb des Stores, per Suche verifiziert).
+- **Subscribe bei Erzeugung** (Modul-Load, inkl. `import.meta.hot.dispose()`
+  — HMR ohne dispose = doppelte Dev-Subscription; Prod unbetroffen).
+  `refreshData` liest Ids per `get()` (frisch — Context las stale Closure
+  + Effect-Reparatur; Endzustand identisch).
+- **Chunking-Zwischenfall (gelöst, kein Config-Eingriff):**
+  `zustand/react/shallow` fällt per `manualChunks` (`/react/` im Pfad) in
+  react-vendor, vanilla in vendor → zyklischer Chunk-Edge, Boot tot
+  (`T.createContext` auf uninitialisiertem Namespace). `zustand/traditional`
+  schied aus (braucht nicht installiertes `use-sync-external-store`, keine
+  neue Dep erlaubt). Lösung: lokaler `useShallowSelector` (`useStore` aus
+  `zustand/react` + `shallow` aus `zustand/vanilla/shallow` + `useRef`-Cache,
+  beide vendor-sicher). Verifiziert: kein react-vendor→vendor-Edge, Boot ok.
+- Tests: 4 node (State/Actions/Referenz-Stabilität) + 1 jsdom (Granularität:
+  Fremd-Update rendert nicht neu). verify 24/24, test 140, build grün.
+
+### Block B — einfache Konsumenten (`0432913`)
+
+- Activities/LiveDashboard/Detail/KpiTimeSeries/Audit: je 2–5 granulare
+  Hooks statt `useSimulation()`. Screenshots `/crm/live-simulation`
+  (3 Tiers) + `/crm/activities` ×3 Viewports. verify/test/build +
+  Playwright 153 grün.
+
+### Block C — komplexe Konsumenten (`8f0b35b`)
+
+- RunAction/MeasureManager/ManagementTier/MultiCompare/ScenarioManager
+  umgestellt; beide `scenarioService`-Direktaufrufe auf direkten Import
+  (Entscheidung 6, `features → simulation` zonen-konform).
+  Modal-Shots (4× offen) zusätzlich.
+- verify/test/build + Playwright 153 grün.
+
+### Block D — Cleanup (`9a81796`)
+
+- `SimulationContext.tsx` per `git rm` gelöscht, Provider aus `App.tsx`
+  entfernt (QueryClientProvider bleibt). 0 Alt-Referenzen
+  (`useSimulation\b`/`SimulationContext`/`SimulationProvider` in `src/`).
+- `src/simulation/**` 0 Diff (nie angefasst).
+
+### Profiler (console.count-Ground-Truth, Details im Screenshots-README)
+
+- Methode: temporäre `console.count` (revertiert, Tree sauber), unminified
+  Builds (minified verliert Funktionsnamen), identische Interaktion
+  (Modal → Draft-Add → Draft-Remove → zu → Start 10x → 3 Ticks → Pause).
+  Baseline aus Worktree (29cbcd1).
+- **Warnung:** Fiber-Flag-Walk (`PerformedWork`) zählte stabil, aber falsch
+  (stale Flags, +2 statt +1 pro Tick auch bei stabilem State — per
+  console.count widerlegt). Alle Zahlen unten sind console.count.
+- Draft-Add/Remove rendern nachher nur echte draftMeasures-Leser
+  (MTV-Badge, RAM — liest drafts für runVersion, MeasMan selbst); LDV/
+  ScenarioManager/MultiCompare schweigen (je −2 kumuliert). Tick-Inkremente
+  identisch (Parität, Live-Daten fließen wie zuvor). SimBar identisch.
+
+### Screenshots (`docs/screenshots/auftrag-052/`, Matrix im README)
+
+- 12 Tier-/Routen- + 4 Modal-Shots: **11/16 SHA-gleich**, 5 mit max.
+  Kanal-Delta ≤ 8/255 (0 starke Pixel, reines Kanten-AA, Crops verifiziert).
+
+### Command-Matrix
+
+| Command | Ergebnis |
+|---|---|
+| `npx tsc --noEmit` | **602** (604 gehalten −2: Context-Datei hatte eigene Fehler; „0" als „keine neuen" gelesen) |
+| `npm run lint` | 19 Errors gehalten (+ 3 alte Warnings) |
+| `npm run verify` | 24/24 (je Block) |
+| `npm test` | 36 Files / 140 Tests (inkl. 5 neuer Store-Tests) |
+| `npm run build` | EXIT 0 |
+| `npx playwright test` | 153/153 (B, C, D) |
+| Alt-Referenzen-Grep | 0 Treffer |
+| Schutzbereichs-Diff (Auftrags-Liste) | leer |
+
+**Ergebnis:** Alle Blöcke + Akzeptanzkriterien aus Builder-Sicht erfüllt
+(mit dokumentierten Auslegungen: tsc-Ratsche, lokale useShallow-Variante,
+Screenshot-Rauschen, Profiler-Methodik). **Übergabe an Review.**
+Kein Merge/Tag/Push.
+
+---
+
 ## 2026-09-11 — Gate G36 / Auftrag 051: TanStack Query für Server-State
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
