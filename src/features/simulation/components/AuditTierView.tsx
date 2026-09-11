@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSimulation } from '../../../context/SimulationContext';
+import { useRuns, useRunActions } from '../../../store/hooks';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
@@ -9,7 +9,8 @@ import { SimulationRun } from '../../../types/scenario';
 import { resolveRunSourceAudit } from '../../../services/data/runSourceAudit';
 
 export const AuditTierView: React.FC = () => {
-  const { runs, reRun, reproduce } = useSimulation();
+  const runs = useRuns();
+  const { reRun, reproduce } = useRunActions();
   const [selectedRun, setSelectedRun] = useState<SimulationRun | null>(null);
   const [activeModalTab, setActiveModalTab] = useState<'manifest' | 'snapshot'>('manifest');
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useSimulation } from '../../../context/SimulationContext';
+import { useActiveVersion, useAggregation, useRuns, useSimulationEvents, useSimulationState } from '../../../store/hooks';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
@@ -141,7 +141,11 @@ const KPI_CONFIGS: {
 const RUN_OVERLAY_COLORS = ['#f59e0b', '#ec4899', '#8b5cf6', '#10b981', '#06b6d4'];
 
 export const KpiTimeSeriesDetailView: React.FC = () => {
-  const { activeVersion, aggregation, runs, events, state } = useSimulation();
+  const activeVersion = useActiveVersion();
+  const aggregation = useAggregation();
+  const runs = useRuns();
+  const events = useSimulationEvents();
+  const state = useSimulationState();
 
   const [selectedKpiKey, setSelectedKpiKey] = useState<SelectedKpiKey>('liveARR');
   const [comparisonMode, setComparisonMode] = useState<BaselineComparisonMode>('ABSOLUTE');

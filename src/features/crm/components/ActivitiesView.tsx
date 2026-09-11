@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
-import { useSimulation } from '@/context/SimulationContext';
+import { useSimulationActivities, useSimulationEvents } from '@/store/hooks';
 import { CrmResponsiveList, CrmColumn } from './CrmResponsiveList';
 
 interface ActivityItem {
@@ -113,7 +113,8 @@ const INITIAL_ACTIVITIES: ActivityItem[] = [
 ];
 
 export function ActivitiesView() {
-  const { activities: simActivities, events } = useSimulation();
+  const simActivities = useSimulationActivities();
+  const events = useSimulationEvents();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
 

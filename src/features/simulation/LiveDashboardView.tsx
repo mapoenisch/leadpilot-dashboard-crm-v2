@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSimulation } from '../../context/SimulationContext';
+import { useSimulationDeals, useSimulationEvents, useSimulationLeads } from '../../store/hooks';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Tabs } from '../../components/ui/Tabs';
@@ -14,7 +14,9 @@ import { MeasureManagerModal } from './components/MeasureManagerModal';
 import { MultiScenarioComparisonModal } from './components/MultiScenarioComparisonModal';
 
 export function LiveDashboardView() {
-  const { leads, deals, events } = useSimulation();
+  const leads = useSimulationLeads();
+  const deals = useSimulationDeals();
+  const events = useSimulationEvents();
 
   // Tier switching: 'management' | 'detail' | 'audit' | 'operativ'
   const [activeTier, setActiveTier] = useState<string>('management');

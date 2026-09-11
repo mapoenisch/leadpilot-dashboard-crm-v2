@@ -1,11 +1,14 @@
 import React from 'react';
-import { useSimulation } from '../../../context/SimulationContext';
+import { useActiveVersion, useAggregation, useSimulationEvents, useSimulationState } from '../../../store/hooks';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { KpiTimeSeriesDetailView } from './KpiTimeSeriesDetailView';
 
 export const DetailTierView: React.FC = () => {
-  const { activeVersion, aggregation, events, state } = useSimulation();
+  const activeVersion = useActiveVersion();
+  const aggregation = useAggregation();
+  const events = useSimulationEvents();
+  const state = useSimulationState();
   const params = activeVersion?.parameters;
 
   return (
