@@ -76,8 +76,8 @@ export async function runReproducibilityTest(): Promise<{ success: boolean; log:
       }
     }
     ok = assert(log, 'Nicht verfügbare Baseline-Version löst kontrolliert DataSourceError("UNKNOWN_SOURCE") aus', threwUnknown) && ok;
-  } catch (err: any) {
-    log.push(`❌ Unexpected error in Reproducibility Test: ${err.message}`);
+  } catch (err) {
+    log.push(`❌ Unexpected error in Reproducibility Test: ${err instanceof Error ? err.message : (err as { message: string }).message}`);
     ok = false;
   } finally {
     systemContext.__resetForTest();

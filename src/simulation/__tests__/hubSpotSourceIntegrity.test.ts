@@ -62,12 +62,12 @@ export async function runHubSpotSourceTest(): Promise<{ success: boolean; log: s
         if (invalidEnvelope.sourceSystem !== 'hubspot') {
           throw new DataSourceError('INTEGRITY', 'Envelope ist keine HubSpot-Quelle.');
         }
-        return {} as any;
+        return {};
       },
     };
     try {
       await invalidSource.fetchSnapshot();
-    } catch (e: any) {
+    } catch (e) {
       integrityThrew = e instanceof DataSourceError && e.code === 'INTEGRITY';
     }
     ok = assert(log, 'Ungültiges sourceSystem != "hubspot" wirft DataSourceError("INTEGRITY")', integrityThrew) && ok;
@@ -176,8 +176,8 @@ export async function runHubSpotSourceTest(): Promise<{ success: boolean; log: s
           readModel2026.contacts.every((ct) => cIds2026.has(ct.companyId))
       ) && ok;
 
-  } catch (err: any) {
-    log.push(`❌ UNEXPECTED ERROR: ${err.message}`);
+  } catch (err) {
+    log.push(`❌ UNEXPECTED ERROR: ${err instanceof Error ? err.message : (err as { message: string }).message}`);
     ok = false;
   } finally {
     systemContext.__resetForTest();

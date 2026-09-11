@@ -8,7 +8,8 @@ import {
   WORKER_PROTOCOL_VERSION,
   WorkerMessageEvent,
 } from '../../types/workerMessages';
-import { SimulationState } from '../../types/simulation';
+import { SimulationLead, SimulationOpportunity, SimulationDeal, SimulationActivity, SimulationEvent, SimulationState } from '../../types/simulation';
+import { SalesQueueEntry } from '../../types/salesQueue';
 
 export async function runWorkerTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];
@@ -78,7 +79,7 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   const failPromiseB = waitForEvent(adapterB, (e) => e.type === 'FAILED');
 
   adapterB.postMessage({
-    protocolVersion: '0.9' as any,
+    protocolVersion: '0.9' as unknown as typeof WORKER_PROTOCOL_VERSION,
     command: 'START',
     runId: 'run-b',
     requestId: 'req-b',
@@ -302,7 +303,7 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
     command: 'START',
     runId: 'run-h',
     requestId: 'req-h',
-    payload: undefined as any,
+    payload: undefined,
   });
 
   const evtH = await failPromiseH;
@@ -350,13 +351,13 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
     currentARR: initialMetrics0.liveARR,
   };
 
-  let directLeads: any[] = [];
-  let directOpps: any[] = [];
-  let directDeals: any[] = [];
-  let directActivities: any[] = [];
-  const directEvents: any[] = [];
+  let directLeads: SimulationLead[] = [];
+  let directOpps: SimulationOpportunity[] = [];
+  let directDeals: SimulationDeal[] = [];
+  let directActivities: SimulationActivity[] = [];
+  const directEvents: SimulationEvent[] = [];
 
-  let directQueueEntries: any[] = [];
+  let directQueueEntries: SalesQueueEntry[] = [];
 
   for (let i = 0; i < ticksI; i++) {
     const out = SimulationEngine.executeTick({

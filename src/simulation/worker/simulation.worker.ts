@@ -18,6 +18,8 @@ import {
   SimulationOpportunity,
   SimulationState,
 } from '../../types/simulation';
+import { SalesQueueEntry } from '../../types/salesQueue';
+import { CSQueueEntry } from '../../types/csQueue';
 
 class SimulationWorkerRunner {
   private state: WorkerState = 'CREATED';
@@ -42,6 +44,8 @@ class SimulationWorkerRunner {
   private activities: SimulationActivity[] = [];
   private events: SimulationEvent[] = [];
   private timeSeries: TimeSeriesPoint[] = [];
+  private queueEntries: SalesQueueEntry[] = [];
+  private csQueueEntries: CSQueueEntry[] = [];
 
   constructor() {
     this.setupMessageListener();
@@ -84,7 +88,7 @@ class SimulationWorkerRunner {
         this.emitError(cmd.runId, cmd.requestId, {
           errorId: `err-${this.currentRunId}-t${this.currentTick}-${this.errorSeq++}`,
           code: 'UNKNOWN_COMMAND',
-          message: `Unbekannter Befehl "${(cmd as any).command}".`,
+          message: `Unbekannter Befehl "${(cmd as { command: string }).command}".`,
           recoverable: false,
         });
     }
@@ -122,8 +126,8 @@ class SimulationWorkerRunner {
     this.activities = [];
     this.events = [];
     this.timeSeries = [];
-    (this as any).queueEntries = [];
-    (this as any).csQueueEntries = [];
+    this.queueEntries = [];
+    this.csQueueEntries = [];
 
     const initialMetrics = SimulationEventRules.recalculateMetrics([], [], []);
     const simulatedDate = SimulationClock.formatSimulatedDate(0);
@@ -275,8 +279,8 @@ class SimulationWorkerRunner {
         salesRepCount,
         csRepCount,
         churnRateMonthly,
-        queueEntries: (this as any).queueEntries || [],
-        csQueueEntries: (this as any).csQueueEntries || [],
+        queueEntries: this.queueEntries || [],
+        csQueueEntries: this.csQueueEntries || [],
       });
 
       this.currentState = output.state;
@@ -285,10 +289,10 @@ class SimulationWorkerRunner {
       this.deals = output.deals;
       this.activities = output.activities;
       if (output.queueEntries) {
-        (this as any).queueEntries = output.queueEntries;
+        this.queueEntries = output.queueEntries;
       }
       if (output.csQueueEntries) {
-        (this as any).csQueueEntries = output.csQueueEntries;
+        this.csQueueEntries = output.csQueueEntries;
       }
 
       for (const evt of output.newEvents) {
@@ -386,9 +390,10 @@ class SimulationWorkerRunner {
   }
 
   private postEvent(evt: WorkerMessageEvent): void {
-    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : ({} as any)));
-    if (globalObj && typeof (globalObj as any).postMessage === 'function') {
-      (globalObj as any).postMessage(evt);
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : ({} as Record<string, unknown>)));
+    const postMessage = (globalObj as { postMessage?: unknown }).postMessage;
+    if (typeof postMessage === 'function') {
+      (postMessage as (message: WorkerMessageEvent) => void)(evt);
     }
   }
 }

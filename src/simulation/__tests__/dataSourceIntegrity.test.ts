@@ -3,7 +3,7 @@ import { BaselineSnapshotService } from '../../services/data/baselineSnapshotSer
 import { DataSourceError } from '../../types/dataSource';
 import { CRMRepository } from '../../services/db/crmRepository';
 import { resolveRunSourceAudit } from '../../services/data/runSourceAudit';
-import { SimulationRun } from '../../types/scenario';
+import { ScenarioParameters, SimulationRun } from '../../types/scenario';
 
 export async function runDataSourceTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];
@@ -54,8 +54,9 @@ export async function runDataSourceTest(): Promise<{ success: boolean; log: stri
   let stubThrew = false;
   try {
     CRMRepository.getLeads();
-  } catch (e: any) {
-    stubThrew = e.message.includes('Operativer CRM-Schreibpfad ist nicht Teil dieser App');
+  } catch (e) {
+    const message = e instanceof Error ? e.message : (e as { message: string }).message;
+    stubThrew = message.includes('Operativer CRM-Schreibpfad ist nicht Teil dieser App');
   }
   ok = a(log, 'CRMRepository operative write stubs guard with informative throw', stubThrew) && ok;
 
@@ -100,7 +101,7 @@ export async function runDataSourceTest(): Promise<{ success: boolean; log: stri
       createdAt: '2026-01-01T00:00:00.000Z',
       simulationStartDate: '2026-01-01',
       targetTicks: 50,
-      parameters: {} as any,
+      parameters: {} as ScenarioParameters,
       correlationId: 'corr-audit-sim',
     },
     correlationId: 'corr-audit-sim',
@@ -142,7 +143,7 @@ export async function runDataSourceTest(): Promise<{ success: boolean; log: stri
       createdAt: '2026-01-01T00:00:00.000Z',
       simulationStartDate: '2026-01-01',
       targetTicks: 50,
-      parameters: {} as any,
+      parameters: {} as ScenarioParameters,
       correlationId: 'corr-audit-file',
     },
     correlationId: 'corr-audit-file',

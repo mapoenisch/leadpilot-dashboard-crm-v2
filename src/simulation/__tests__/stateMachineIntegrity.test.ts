@@ -5,6 +5,7 @@ import { SimulationEngine } from '../engine';
 import { DeterministicRNG } from '../prng';
 import { SimulationState, SimulationLead, SimulationDeal } from '../../types/simulation';
 import { MonteCarloAggregator } from '../monteCarloAggregator';
+import { RunManifest, ScenarioParameters, SimulationRun } from '../../types/scenario';
 
 export async function runStateMachineIntegrityTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];
@@ -395,7 +396,7 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST V: Monte Carlo Aggregation verarbeitet State Machine Felder
   // ---------------------------------------------------------
   log.push('\n--- TEST V: Monte Carlo Aggregation verarbeitet State Machine Felder ---');
-  const dummyManifest = {
+  const dummyManifest: RunManifest = {
     runId: 'r-v1',
     scenarioId: 'sc-1',
     scenarioVersionId: 'v-1',
@@ -407,14 +408,22 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
     createdAt: '2026-01-01T00:00:00Z',
     simulationStartDate: '2026-01-01',
     targetTicks: 10,
-    parameters: {} as any,
+    parameters: {} as ScenarioParameters,
+    correlationId: 'corr-test',
   };
 
-  const runV: any = {
+  const runV: SimulationRun = {
     runId: 'r-v1',
     scenarioId: 'sc-1',
     scenarioVersionId: 'v-1',
+    seed: 42,
+    rngState: 42,
+    modelVersion: '1.0',
+    schemaVersion: '1.0',
+    baselineVersion: '1.0',
     status: 'COMPLETED',
+    startedAt: '2026-01-01T00:00:00Z',
+    correlationId: 'corr-test',
     manifest: dummyManifest,
     finalState: outP.state,
     finalMetrics: outP.state.metrics,

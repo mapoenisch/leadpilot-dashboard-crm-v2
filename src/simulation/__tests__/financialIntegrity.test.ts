@@ -4,6 +4,7 @@ import { SimulationEngine } from '../engine';
 import { DeterministicRNG } from '../prng';
 import { SimulationState, SimulationDeal } from '../../types/simulation';
 import { MonteCarloAggregator } from '../monteCarloAggregator';
+import { RunManifest, ScenarioParameters, SimulationRun } from '../../types/scenario';
 
 export async function runFinancialIntegrityTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];
@@ -392,7 +393,7 @@ export async function runFinancialIntegrityTest(): Promise<{ success: boolean; l
   // TEST U: Nur COMPLETED Runs werden aggregiert
   // ---------------------------------------------------------
   log.push('\n--- TEST U: Nur COMPLETED Runs werden aggregiert ---');
-  const dummyManifest = {
+  const dummyManifest: RunManifest = {
     runId: 'r-1',
     scenarioId: 'sc-1',
     scenarioVersionId: 'v-1',
@@ -404,7 +405,8 @@ export async function runFinancialIntegrityTest(): Promise<{ success: boolean; l
     createdAt: '2026-01-01T00:00:00Z',
     simulationStartDate: '2026-01-01',
     targetTicks: 10,
-    parameters: {} as any,
+    parameters: {} as ScenarioParameters,
+    correlationId: 'corr-test',
   };
 
   const sampleMetrics = {
@@ -444,7 +446,7 @@ export async function runFinancialIntegrityTest(): Promise<{ success: boolean; l
     },
   };
 
-  const run1: any = {
+  const run1: SimulationRun = {
     runId: 'r-1',
     scenarioId: 'sc-1',
     scenarioVersionId: 'v-1',
@@ -456,12 +458,13 @@ export async function runFinancialIntegrityTest(): Promise<{ success: boolean; l
     status: 'COMPLETED',
     startedAt: '2026-01-01T00:00:00Z',
     completedAt: '2026-01-01T00:00:00Z',
+    correlationId: 'corr-test',
     manifest: dummyManifest,
     finalMetrics: sampleMetrics,
     timeSeries: [{ tick: 0, dayIndex: 0, simulatedDate: '2026-01-01', metrics: { arr: 400000, mrr: 33333, customers: 60, wonDeals: 5, ebitda: -633, netRevenue: 1100, netCashFlow: -633, cumulativeCashFlow: -633 } }],
   };
 
-  const runFailed: any = {
+  const runFailed: SimulationRun = {
     runId: 'r-2',
     scenarioId: 'sc-1',
     scenarioVersionId: 'v-1',
@@ -472,6 +475,7 @@ export async function runFinancialIntegrityTest(): Promise<{ success: boolean; l
     baselineVersion: '1.0',
     status: 'FAILED',
     startedAt: '2026-01-01T00:00:00Z',
+    correlationId: 'corr-test',
     manifest: dummyManifest,
   };
 
@@ -489,9 +493,9 @@ export async function runFinancialIntegrityTest(): Promise<{ success: boolean; l
   // TEST V: P10/P50/P90 Finanzaggregation
   // ---------------------------------------------------------
   log.push('\n--- TEST V: P10/P50/P90 Finanzaggregation ---');
-  const runV1: any = { ...run1, runId: 'r-v1', finalMetrics: { ...sampleMetrics, financialMetrics: { ...sampleMetrics.financialMetrics, ebitda: 100 } } };
-  const runV2: any = { ...run1, runId: 'r-v2', finalMetrics: { ...sampleMetrics, financialMetrics: { ...sampleMetrics.financialMetrics, ebitda: 200 } } };
-  const runV3: any = { ...run1, runId: 'r-v3', finalMetrics: { ...sampleMetrics, financialMetrics: { ...sampleMetrics.financialMetrics, ebitda: 300 } } };
+  const runV1: SimulationRun = { ...run1, runId: 'r-v1', finalMetrics: { ...sampleMetrics, financialMetrics: { ...sampleMetrics.financialMetrics, ebitda: 100 } } };
+  const runV2: SimulationRun = { ...run1, runId: 'r-v2', finalMetrics: { ...sampleMetrics, financialMetrics: { ...sampleMetrics.financialMetrics, ebitda: 200 } } };
+  const runV3: SimulationRun = { ...run1, runId: 'r-v3', finalMetrics: { ...sampleMetrics, financialMetrics: { ...sampleMetrics.financialMetrics, ebitda: 300 } } };
 
   const aggV = MonteCarloAggregator.aggregateRuns([runV1, runV2, runV3]);
   const testVPassed = Boolean(aggV.metrics.financialMetrics?.ebitda.median === 200);

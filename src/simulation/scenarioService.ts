@@ -50,6 +50,8 @@ import {
   SimulationOpportunity,
   SimulationState,
 } from '../types/simulation';
+import { SalesQueueEntry } from '../types/salesQueue';
+import { CSQueueEntry } from '../types/csQueue';
 
 export interface RunExecutionResult {
   run: SimulationRun;
@@ -338,8 +340,8 @@ export class ScenarioService {
 
     // 3. Execute ticks using strictly SimulationEngine.executeTick() with EffectiveParameterResolver
     const resolver = new EffectiveParameterResolver(manifest.parameters, measures);
-    let queueEntries: any[] = [];
-    let csQueueEntries: any[] = [];
+    let queueEntries: SalesQueueEntry[] = [];
+    let csQueueEntries: CSQueueEntry[] = [];
 
     for (let i = 0; i < targetTicks; i++) {
       const eff = resolver.at(i);
@@ -836,7 +838,7 @@ export class ScenarioService {
 
     for (const key of paramKeys) {
       const def = V1_PARAMETER_DEFINITIONS[key];
-      const valuesByVersionId: Record<string, any> = {};
+      const valuesByVersionId: Record<string, ScenarioParameters[keyof ScenarioParameters]> = {};
       const formattedValuesByVersionId: Record<string, string> = {};
       const hasChangedAgainstRef: Record<string, boolean> = {};
 
@@ -1015,7 +1017,17 @@ export class ScenarioService {
         }
       }
 
-      const evaluations: Record<string, any> = {};
+      const evaluations: Record<
+        string,
+        {
+          versionId: string;
+          versionName: string;
+          isLeader: boolean;
+          metricHighlight: string;
+          pros: string[];
+          cons: string[];
+        }
+      > = {};
       for (const v of versions) {
         const valObj = kRow.valuesByVersionId[v.id];
         const isLeader = v.id === bestVerId;

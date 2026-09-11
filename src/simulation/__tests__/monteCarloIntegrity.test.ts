@@ -1,7 +1,7 @@
 import { CRMRepository } from '../../services/db/crmRepository';
 import { MonteCarloAggregator } from '../monteCarloAggregator';
 import { AggregationError } from '../../types/aggregation';
-import { RunManifest, SimulationRun } from '../../types/scenario';
+import { RunManifest, RunStatus, SimulationRun } from '../../types/scenario';
 import { SimulationMetrics } from '../../types/simulation';
 
 export async function runMonteCarloTest(): Promise<{ success: boolean; log: string[] }> {
@@ -43,7 +43,7 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
     mrr = arr / 12,
     customers = 66,
     wonDeals = 5,
-    status: any = 'COMPLETED',
+    status: RunStatus = 'COMPLETED',
     versionId = 'ver-1',
     manifestOverrides: Partial<RunManifest> = {}
   ): SimulationRun => {
@@ -254,7 +254,7 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   let testHPassed = false;
   try {
     MonteCarloAggregator.aggregateRuns(runsH);
-  } catch (err: any) {
+  } catch (err) {
     testHPassed = err instanceof AggregationError && err.code === 'INCOMPATIBLE_SCENARIO_VERSION';
   }
 
@@ -277,7 +277,7 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   let testIPassed = false;
   try {
     MonteCarloAggregator.aggregateRuns(runsI);
-  } catch (err: any) {
+  } catch (err) {
     testIPassed = err instanceof AggregationError && err.code === 'INCOMPATIBLE_MANIFEST_VERSION';
   }
 

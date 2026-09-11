@@ -4,6 +4,7 @@ import { simulationService } from '../simulationService';
 import { DEFAULT_BASE_2026_SCENARIO_ID, DEFAULT_BASE_2026_VERSION_ID, ScenarioRepository } from '../scenarioRepository';
 import { parameterRegistry } from '../parameterRegistry';
 import { createSnapshotRepository } from '../../services/db/indexedDbSnapshotRepository';
+import { ScenarioParameters } from '../../types/scenario';
 
 export async function runUiIntegrityTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];
@@ -240,7 +241,7 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
     const invalidValidation = parameterRegistry.validateAllParameters({
       marketingBudgetYearly: 65000,
       churnRateMonthly: 15.0, // Invalid max > 5.0%
-    } as any);
+    } as unknown as ScenarioParameters);
     blockedInvalidRunO = !invalidValidation.valid;
   } catch {
     blockedInvalidRunO = true;

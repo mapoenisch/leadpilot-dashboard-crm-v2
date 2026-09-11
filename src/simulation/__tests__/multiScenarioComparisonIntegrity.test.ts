@@ -1,5 +1,5 @@
 import { ScenarioService } from '../scenarioService';
-import { ScenarioError } from '../../types/scenario';
+import { ScenarioError, TradeOffDimension } from '../../types/scenario';
 
 export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   console.log('\n=== STARTING AUFTRAG 019 TEST SUITE (MULTI-SCENARIO COMPARISON & TRADE-OFFS) ===\n');
@@ -74,11 +74,11 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   // TEST 2: 5-Dimension Trade-Off Structuring without Composite Score (Decisions 864–868)
   // -------------------------------------------------------------------------
   console.log('--- TEST 2: 5-Dimension Trade-Off Structuring without Composite Score ---');
-  const expectedDimensions = ['GROWTH', 'PROFITABILITY', 'LIQUIDITY', 'ACQUISITION', 'RETENTION'];
+  const expectedDimensions: TradeOffDimension[] = ['GROWTH', 'PROFITABILITY', 'LIQUIDITY', 'ACQUISITION', 'RETENTION'];
   const actualDimensions = res4.tradeOffs.map((t) => t.dimension);
 
   for (const dim of expectedDimensions) {
-    if (!actualDimensions.includes(dim as any)) {
+    if (!actualDimensions.includes(dim)) {
       throw new Error(`TEST 2 FAILED: Missing trade-off dimension "${dim}"`);
     }
   }
@@ -94,7 +94,8 @@ export async function runMultiScenarioComparisonTest(): Promise<boolean> {
   }
 
   // Verify compliance with Decision 866: No composite global score
-  if ((res4 as any).compositeScore || (res4 as any).overallRank || (res4 as any).winnerScore) {
+  const res4Record = res4 as unknown as Record<string, unknown>;
+  if (res4Record.compositeScore || res4Record.overallRank || res4Record.winnerScore) {
     throw new Error('TEST 2 FAILED: Unlawful artificial composite score detected in comparison result.');
   }
   console.log('✅ TEST 2 PASSED: 5-dimension trade-off analysis valid without artificial composite score.');

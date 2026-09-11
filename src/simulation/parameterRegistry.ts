@@ -162,19 +162,23 @@ export class ParameterRegistry {
    * Normalizes channel mix so that the 5 channel percentages sum up to exactly 100%.
    * Preserves proportional relationships. Throws error if any channel is invalid/negative or sum <= 0.
    */
-  public normalizeChannelMix(inputMix: any): { mix: ChannelMix; normalized: boolean } {
+  public normalizeChannelMix(inputMix: unknown): { mix: ChannelMix; normalized: boolean } {
     if (!inputMix || typeof inputMix !== 'object') {
       throw new Error('Kanal-Mix muss ein valides Objekt mit den 5 Kanälen sein.');
     }
+    const rawMix = inputMix as Record<keyof ChannelMix, unknown>;
 
     const requiredKeys: (keyof ChannelMix)[] = ['linkedIn', 'seo', 'partner', 'webinar', 'outbound'];
+    const numericMix = {} as Record<keyof ChannelMix, number>;
     for (const key of requiredKeys) {
-      if (typeof inputMix[key] !== 'number' || isNaN(inputMix[key]) || inputMix[key] < 0) {
-        throw new Error(`Kanal "${key}" ist ungültig oder negativ (${inputMix[key]}).`);
+      const raw = rawMix[key];
+      if (typeof raw !== 'number' || isNaN(raw) || raw < 0) {
+        throw new Error(`Kanal "${key}" ist ungültig oder negativ (${raw}).`);
       }
+      numericMix[key] = raw;
     }
 
-    const currentSum = requiredKeys.reduce((sum, k) => sum + inputMix[k], 0);
+    const currentSum = requiredKeys.reduce((sum, k) => sum + numericMix[k], 0);
     if (currentSum <= 0) {
       throw new Error('Die Gesamtsumme der Kanalanteile muss größer als 0 % sein.');
     }
@@ -183,11 +187,11 @@ export class ParameterRegistry {
     if (isAlready100) {
       return {
         mix: {
-          linkedIn: Number(inputMix.linkedIn.toFixed(2)),
-          seo: Number(inputMix.seo.toFixed(2)),
-          partner: Number(inputMix.partner.toFixed(2)),
-          webinar: Number(inputMix.webinar.toFixed(2)),
-          outbound: Number(inputMix.outbound.toFixed(2)),
+          linkedIn: Number(numericMix.linkedIn.toFixed(2)),
+          seo: Number(numericMix.seo.toFixed(2)),
+          partner: Number(numericMix.partner.toFixed(2)),
+          webinar: Number(numericMix.webinar.toFixed(2)),
+          outbound: Number(numericMix.outbound.toFixed(2)),
         },
         normalized: false,
       };
@@ -196,11 +200,11 @@ export class ParameterRegistry {
     // Proportional normalization to 100%
     const factor = 100 / currentSum;
     const rawNormalized = {
-      linkedIn: Number((inputMix.linkedIn * factor).toFixed(2)),
-      seo: Number((inputMix.seo * factor).toFixed(2)),
-      partner: Number((inputMix.partner * factor).toFixed(2)),
-      webinar: Number((inputMix.webinar * factor).toFixed(2)),
-      outbound: Number((inputMix.outbound * factor).toFixed(2)),
+      linkedIn: Number((numericMix.linkedIn * factor).toFixed(2)),
+      seo: Number((numericMix.seo * factor).toFixed(2)),
+      partner: Number((numericMix.partner * factor).toFixed(2)),
+      webinar: Number((numericMix.webinar * factor).toFixed(2)),
+      outbound: Number((numericMix.outbound * factor).toFixed(2)),
     };
 
     // Adjust last channel to guarantee exact 100.00% sum
@@ -214,7 +218,7 @@ export class ParameterRegistry {
   /**
    * Validates a single parameter value against its definition.
    */
-  public validateSingleParameter(id: keyof ScenarioParameters, value: any): string | null {
+  public validateSingleParameter(id: keyof ScenarioParameters, value: unknown): string | null {
     const def = this.getDefinition(id);
     if (!def) {
       return `Unbekannter Parameter: "${id}".`;
@@ -241,8 +245,9 @@ export class ParameterRegistry {
     } else if (def.type === 'object' && id === 'channelMix') {
       try {
         this.normalizeChannelMix(value);
-      } catch (err: any) {
-        return `Ungültiger Kanal-Mix: ${err.message}`;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : (err as { message: string }).message;
+        return `Ungültiger Kanal-Mix: ${message}`;
       }
     }
 
@@ -252,7 +257,7 @@ export class ParameterRegistry {
   /**
    * Validates and normalizes full ScenarioParameters set against Registry.
    */
-  public validateAllParameters(params: any): { valid: boolean; errors: string[]; normalizedParams: ScenarioParameters } {
+  public validateAllParameters(params: unknown): { valid: boolean; errors: string[]; normalizedParams: ScenarioParameters } {
     const errors: string[] = [];
     const defaults = this.getDefaultParameters();
 
@@ -263,21 +268,22 @@ export class ParameterRegistry {
         normalizedParams: defaults,
       };
     }
+    const input = params as Record<string, unknown>;
 
     const keys: (keyof ScenarioParameters)[] = Object.keys(V1_PARAMETER_DEFINITIONS) as (keyof ScenarioParameters)[];
-    const resultParams: any = { ...params };
+    const resultParams: Record<string, unknown> = { ...input };
 
     for (const key of keys) {
-      const err = this.validateSingleParameter(key, params[key]);
+      const err = this.validateSingleParameter(key, input[key]);
       if (err) {
         errors.push(err);
       }
     }
 
     // Attempt channel mix normalization if channelMix object is present
-    if (params.channelMix) {
+    if (input.channelMix) {
       try {
-        const { mix } = this.normalizeChannelMix(params.channelMix);
+        const { mix } = this.normalizeChannelMix(input.channelMix);
         resultParams.channelMix = mix;
       } catch {
         // Error already captured by validateSingleParameter

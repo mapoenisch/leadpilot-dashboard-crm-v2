@@ -337,15 +337,15 @@ export async function runCSHealthIntegrityTest(): Promise<{ success: boolean; lo
     healthScore: 25,
   };
 
-  let churnResultR: any = null;
+  let churnResultR: ReturnType<typeof SimulationEventRules.evaluateCustomerChurnRule> = null;
   let seedAttempt = 1;
-  while (!churnResultR?.events?.some((e: any) => e.type === 'CUSTOMER_CHURNED') && seedAttempt <= 50) {
+  while (!churnResultR?.events?.some((e) => e.type === 'CUSTOMER_CHURNED') && seedAttempt <= 50) {
     const rngR = new DeterministicRNG(seedAttempt);
     churnResultR = SimulationEventRules.evaluateCustomerChurnRule(clockR, rngR, [dealR], [], 100.0);
     seedAttempt++;
   }
 
-  const churnEvtR = churnResultR?.events.find((e: any) => e.type === 'CUSTOMER_CHURNED');
+  const churnEvtR = churnResultR?.events.find((e) => e.type === 'CUSTOMER_CHURNED');
   const testRPassed = Boolean(churnEvtR) && churnEvtR?.affectedDeal?.isChurned === true;
 
   if (testRPassed) {
@@ -359,7 +359,7 @@ export async function runCSHealthIntegrityTest(): Promise<{ success: boolean; lo
   // TEST S: Dauerhafte Churn-Markierung
   // ---------------------------------------------------------
   log.push('\n--- TEST S: Dauerhafte Churn-Markierung ---');
-  const churnedDealS = churnResultR?.updatedDeals.find((d: any) => d.id === 'deal-r');
+  const churnedDealS = churnResultR?.updatedDeals.find((d) => d.id === 'deal-r');
   const testSPassed = churnedDealS?.isChurned === true && typeof churnedDealS?.churnedAtTick === 'number';
 
   if (testSPassed) {
@@ -389,7 +389,7 @@ export async function runCSHealthIntegrityTest(): Promise<{ success: boolean; lo
   // TEST U: Re-Engagement mit parentDealId Erzeugung
   // ---------------------------------------------------------
   log.push('\n--- TEST U: Re-Engagement mit parentDealId ---');
-  const reOppU = churnResultR?.reEngagementOpps.find((o: any) => o.parentDealId === 'deal-r');
+  const reOppU = churnResultR?.reEngagementOpps.find((o) => o.parentDealId === 'deal-r');
   const testUPassed = Boolean(reOppU) && reOppU?.parentDealId === 'deal-r';
 
   if (testUPassed) {
@@ -403,7 +403,7 @@ export async function runCSHealthIntegrityTest(): Promise<{ success: boolean; lo
   // TEST V: Immutabilität der ursprünglichen Deal-Historie bei Re-Engagement
   // ---------------------------------------------------------
   log.push('\n--- TEST V: Immutabilität der ursprünglichen Deal-Historie ---');
-  const originalDealV = churnResultR?.updatedDeals.find((d: any) => d.id === 'deal-r');
+  const originalDealV = churnResultR?.updatedDeals.find((d) => d.id === 'deal-r');
   const testVPassed = originalDealV?.arr === 12000 && originalDealV?.wonAtTick === 1 && originalDealV?.packageName === 'Professional';
 
   if (testVPassed) {

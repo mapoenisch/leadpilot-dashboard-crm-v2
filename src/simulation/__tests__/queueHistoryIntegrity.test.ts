@@ -2,7 +2,7 @@ import { ScenarioRepository } from '../scenarioRepository';
 import { systemContext } from '../systemContext';
 import { DeterministicRNG } from '../prng';
 import { SimulationEngine, TickOutput } from '../engine';
-import { SimulationState } from '../../types/simulation';
+import { SimulationLead, SimulationOpportunity, SimulationDeal, SimulationActivity, SimulationState } from '../../types/simulation';
 import { SalesQueueEntry } from '../../types/salesQueue';
 import { CSQueueEntry } from '../../types/csQueue';
 
@@ -40,10 +40,10 @@ export async function runQueueHistoryTest(): Promise<{ success: boolean; log: st
       currentARR: 411840,
     };
 
-    let leads: any[] = [];
-    let opportunities: any[] = [];
-    let deals: any[] = [];
-    let activities: any[] = [];
+    let leads: SimulationLead[] = [];
+    let opportunities: SimulationOpportunity[] = [];
+    let deals: SimulationDeal[] = [];
+    let activities: SimulationActivity[] = [];
     let salesQueueEntries: SalesQueueEntry[] = [];
     let csQueueEntries: CSQueueEntry[] = [];
 
@@ -143,8 +143,8 @@ export async function runQueueHistoryTest(): Promise<{ success: boolean; log: st
       !anySalesLost && !anyCSLost
     );
     ok = test3 && ok;
-  } catch (err: any) {
-    log.push(`❌ Unexpected error in Queue History Test: ${err.message}`);
+  } catch (err) {
+    log.push(`❌ Unexpected error in Queue History Test: ${err instanceof Error ? err.message : (err as { message: string }).message}`);
     ok = false;
   } finally {
     systemContext.__resetForTest();

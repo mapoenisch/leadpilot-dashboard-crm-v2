@@ -40,7 +40,7 @@ const activeAdapters: Set<HeadlessTestWorkerAdapter> = new Set();
 const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : null));
 
 if (globalObj) {
-  (globalObj as any).postMessage = (evt: WorkerMessageEvent) => {
+  (globalObj as { postMessage?: (evt: WorkerMessageEvent) => void }).postMessage = (evt: WorkerMessageEvent) => {
     activeAdapters.forEach((adapter) => adapter.emit(evt));
   };
 }

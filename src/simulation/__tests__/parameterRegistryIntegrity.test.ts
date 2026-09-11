@@ -96,7 +96,7 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   // TEST D: Data Type Validation
   // ---------------------------------------------------------
   log.push('\n--- TEST D: Data Type Validation ---');
-  const errStringType = registry.validateSingleParameter('salesRepCount', 'zwei' as any);
+  const errStringType = registry.validateSingleParameter('salesRepCount', 'zwei');
   const errNanType = registry.validateSingleParameter('salesCycleDays', NaN);
   const validNumType = registry.validateSingleParameter('salesRepCount', 4);
 

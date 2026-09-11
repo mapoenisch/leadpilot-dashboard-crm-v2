@@ -13,7 +13,7 @@ export async function runReconstructedChartsIntegrityTest(): Promise<{ success: 
 
   let overallPassed = true;
 
-  const charts: Record<string, any> = {
+  const charts: Record<string, { type: string; labels: string[]; datasets: Array<{ color?: string; data: number[] }> }> = {
     "c-produkt": CHART_PRODUKT,
     "c-churn": CHART_CHURN,
     "c-wettbewerb": CHART_WETTBEWERB,
