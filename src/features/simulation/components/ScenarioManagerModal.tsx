@@ -1,6 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { logger } from '@/services/logger';
-import { useSimulation } from '../../../context/SimulationContext';
+import { scenarioService } from '../../../simulation/scenarioService';
+import {
+  useActiveScenario,
+  useActiveVersion,
+  useScenarioActions,
+  useScenarioVersions,
+  useScenarios,
+} from '../../../store/hooks';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -22,16 +29,11 @@ interface ScenarioManagerModalProps {
 }
 
 export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOpen, onClose }) => {
-  const {
-    scenarios,
-    activeScenario,
-    activeVersion,
-    versions,
-    selectScenario,
-    selectVersion,
-    createNewVersion,
-    scenarioService,
-  } = useSimulation();
+  const scenarios = useScenarios();
+  const activeScenario = useActiveScenario();
+  const activeVersion = useActiveVersion();
+  const versions = useScenarioVersions();
+  const { selectScenario, selectVersion, createNewVersion } = useScenarioActions();
 
   const [activeTab, setActiveTab] = useState<'manage' | 'diff'>('manage');
   const [isCreatingVersion, setIsCreatingVersion] = useState(false);
@@ -112,7 +114,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       logger.warn('Could not compute version comparison:', err);
       return null;
     }
-  }, [scenarioService, diffVersionIdA, diffVersionIdB]);
+  }, [diffVersionIdA, diffVersionIdB]);
 
   const filteredParamDiffs = useMemo(() => {
     if (!comparisonResult) return [];

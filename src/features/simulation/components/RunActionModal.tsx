@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSimulation } from '../../../context/SimulationContext';
+import { useActiveVersion, useDraftMeasures, useRunActions, useRuns } from '../../../store/hooks';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Alert';
@@ -12,7 +12,10 @@ interface RunActionModalProps {
 }
 
 export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose }) => {
-  const { activeVersion, runVersion, reRun, runs, reproduce, draftMeasures } = useSimulation();
+  const activeVersion = useActiveVersion();
+  const { runVersion, reRun, reproduce } = useRunActions();
+  const runs = useRuns();
+  const draftMeasures = useDraftMeasures();
   const [selectedRunId, setSelectedRunId] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 

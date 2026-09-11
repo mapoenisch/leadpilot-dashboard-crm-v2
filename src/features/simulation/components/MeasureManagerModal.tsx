@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useSimulation } from '../../../context/SimulationContext';
+import { useDraftMeasures, useMeasureActions } from '../../../store/hooks';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -28,12 +28,8 @@ interface MeasureManagerModalProps {
 }
 
 export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen, onClose }) => {
-  const {
-    draftMeasures,
-    addDraftMeasure,
-    removeDraftMeasure,
-    previewMeasures,
-  } = useSimulation();
+  const draftMeasures = useDraftMeasures();
+  const { addDraftMeasure, removeDraftMeasure, previewMeasures } = useMeasureActions();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');

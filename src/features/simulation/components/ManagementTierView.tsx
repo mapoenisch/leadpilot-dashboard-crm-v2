@@ -1,5 +1,13 @@
 import React from 'react';
-import { useSimulation } from '../../../context/SimulationContext';
+import {
+  useActiveScenario,
+  useActiveVersion,
+  useAggregation,
+  useDraftMeasures,
+  useSimulationControls,
+  useSimulationState,
+  useWorkerProgress,
+} from '../../../store/hooks';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { StatusChip } from '../../../components/ui/StatusChip';
@@ -23,17 +31,13 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
   onOpenMeasureModal,
   onOpenMultiCompareModal,
 }) => {
-  const {
-    state,
-    activeScenario,
-    activeVersion,
-    aggregation,
-    workerProgress,
-    draftMeasures,
-    start,
-    pause,
-    resetSimulation,
-  } = useSimulation();
+  const state = useSimulationState();
+  const activeScenario = useActiveScenario();
+  const activeVersion = useActiveVersion();
+  const aggregation = useAggregation();
+  const workerProgress = useWorkerProgress();
+  const draftMeasures = useDraftMeasures();
+  const { start, pause, resetSimulation } = useSimulationControls();
 
   const isRunning = state.isRunning;
   const arrStats = aggregation.metrics.arr;

@@ -1,5 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { useSimulation } from '../../../context/SimulationContext';
+import { scenarioService } from '../../../simulation/scenarioService';
+import {
+  useActiveScenario,
+  useActiveVersion,
+  useScenarioActions,
+  useScenarios,
+} from '../../../store/hooks';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -25,14 +31,10 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
   isOpen,
   onClose,
 }) => {
-  const {
-    scenarios,
-    activeScenario,
-    activeVersion,
-    scenarioService,
-    compareMultipleVersions,
-    adoptConfiguration,
-  } = useSimulation();
+  const scenarios = useScenarios();
+  const activeScenario = useActiveScenario();
+  const activeVersion = useActiveVersion();
+  const { compareMultipleVersions, adoptConfiguration } = useScenarioActions();
 
   // Gather all available versions across all scenarios
   const allVersions = useMemo(() => {
@@ -44,7 +46,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
       }
     }
     return list;
-  }, [scenarios, scenarioService]);
+  }, [scenarios]);
 
   // Selected versions (2 to 4) - default to available versions
   const [selectedVersionIds, setSelectedVersionIds] = useState<string[]>(() => {
