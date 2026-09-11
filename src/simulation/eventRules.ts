@@ -141,8 +141,18 @@ export class SimulationEventRules {
     const pkg = rng.pick(PACKAGES);
     
     const leadId = `sim-lead-s${clock.seed}-t${clock.tick}`;
-    const firstName = (sample.contact.split(' ')[0] ?? '').toLowerCase();
-    const companyClean = (sample.companyName.toLowerCase().split(' ')[0] ?? '').replace(/[^a-z]/g, '');
+    const contactFirst = sample.contact.split(' ')[0];
+    if (contactFirst === undefined) {
+      // Unerreichbar: split(' ') liefert nie ein leeres Array.
+      throw new Error('Kontaktname konnte nicht zerlegt werden.');
+    }
+    const firstName = contactFirst.toLowerCase();
+    const companyFirst = sample.companyName.toLowerCase().split(' ')[0];
+    if (companyFirst === undefined) {
+      // Unerreichbar: split(' ') liefert nie ein leeres Array.
+      throw new Error('Firmenname konnte nicht zerlegt werden.');
+    }
+    const companyClean = companyFirst.replace(/[^a-z]/g, '');
     const email = `${firstName}@${companyClean}.de`;
     
     const scoreDelta = rng.nextInt(-7, 7);

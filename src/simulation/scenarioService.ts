@@ -1143,7 +1143,14 @@ export class ScenarioService {
 
     // 6. Validation of Equal Run Count & Duration (Decisions 854, 855)
     const comparisonWarnings: string[] = [];
-    const completedVersions = versions.filter((v) => (aggregations[v.id]?.validRunCount ?? 0) > 0);
+    const completedVersions = versions.filter((v) => {
+      const agg = aggregations[v.id];
+      if (!agg) {
+        // Unerreichbar: aggregations wird oben für alle versions aufgebaut.
+        throw new ScenarioError('NOT_FOUND', `Keine Aggregation für Version "${v.id}".`);
+      }
+      return agg.validRunCount > 0;
+    });
 
     if (completedVersions.length > 1) {
       const firstCompleted = completedVersions[0];
