@@ -5,13 +5,13 @@ import { CS } from '@/domain/kundenData';
 
 export function CustomerSuccessPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Kunden" title={CS.title} description="Retention, Onboarding & Customer Success KPIs." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-4)' }}>
+      <div className="grid grid-cols-4 gap-[var(--space-4)]">
         {CS.kpis.map((k) => (
           <Card key={k.label}>
-            <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{k.label}</div>
-            <div style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', marginTop: '4px' }}>{k.val}</div>
+            <div className="text-[12px] text-[var(--color-text-muted)]">{k.label}</div>
+            <div className="font-display text-[24px] font-bold text-primary mt-[4px]">{k.val}</div>
           </Card>
         ))}
       </div>

@@ -5,17 +5,17 @@ import { EMPATHY } from '@/domain/kundenData';
 
 export function EmpathyPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Kunden" title={EMPATHY.title} description="Empathy Map & Hero Statement." />
       <Card featured>
-        <h3 style={{ margin: '0 0 12px', color: 'var(--color-primary)', fontFamily: 'var(--font-display)' }}>Hero Statement</h3>
-        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)' }}>{EMPATHY.heroStatement}</p>
+        <h3 className="m-0 mb-[12px] font-display text-primary">Hero Statement</h3>
+        <p className="text-[15px] font-semibold text-text">{EMPATHY.heroStatement}</p>
       </Card>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+      <div className="grid grid-cols-2 gap-[var(--space-4)]">
         {EMPATHY.quadrants.map((q) => (
           <Card key={q.title}>
-            <h4 style={{ margin: '0 0 8px', color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>{q.title}</h4>
-            <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '13.5px' }}>{q.desc}</p>
+            <h4 className="m-0 mb-[8px] font-display text-text">{q.title}</h4>
+            <p className="m-0 text-[13.5px] text-[var(--color-text-muted)]">{q.desc}</p>
           </Card>
         ))}
       </div>

@@ -45,59 +45,27 @@ export const SegmentFields: React.FC = () => {
 
   return (
     <section
-      className="facelift-segment-fields"
+      className="facelift-segment-fields box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-4,16px)]"
       aria-label="Segment-Felder ARR-Verteilung"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-4, 16px)',
-      }}
     >
       {/* Header */}
-      <div className="segment-header" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-            }}
-          >
+      <div className="segment-header flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.05em] uppercase px-[8px] py-[2px]">
             HINGUCKER-GRAFIK · TREEMAP
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Segment-Felder nach ARR-Flächengröße (Basis: 411.840 € Gesamt-ARR)
           </span>
         </div>
 
         <h3
-          className="segment-heading"
-          style={{
-            margin: 0,
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-          }}
+          className="segment-heading m-0 font-display text-[1.25rem] font-bold text-text"
         >
           {SEGMENTE.title}
         </h3>
 
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+        <div className="flex gap-[12px] flex-wrap items-center text-[12px] text-[var(--color-text-muted)]">
           <span>Flächengrößen = <strong>ARR-Umsatzbeitrag (100 %)</strong></span>
           <span>·</span>
           <span>Prozentwerte = <strong>Kundenanteil (Summe 99 % gerundet)</strong></span>
@@ -106,77 +74,40 @@ export const SegmentFields: React.FC = () => {
 
       {/* Große Hingucker-Flächengrafik (Treemap-Aufbau) */}
       <div
-        className="segment-treemap-container"
-        style={{
-          width: '100%',
-          minHeight: '360px',
-          boxSizing: 'border-box',
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)',
-          gap: '12px',
-          borderRadius: 'var(--radius-md, 8px)',
-          padding: '4px',
-        }}
+        className="segment-treemap-container w-full min-h-[360px] box-border grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-[12px] rounded-md p-[4px]"
       >
         {/* Linke Spalte (53,55 %): Maschinenbau (43,35 %) + Agenturen (10,20 %) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+        <div className="flex flex-col gap-[12px] min-w-0">
           {/* Maschinenbau: 43,35 % ARR */}
           <button
             type="button"
-            className="segment-field segment-field-maschinenbau"
+            className={`segment-field segment-field-maschinenbau flex flex-col justify-between text-left cursor-pointer box-border min-w-0 rounded-[8px] border-solid p-[16px] transition-[all_0.15s_ease] [overflow-wrap:anywhere] min-h-[190px] ${selectedIdx === 0 ? 'border-2 border-[#00D9C6]' : 'border border-[rgba(0,217,198,0.3)]'} bg-[rgba(0,217,198,0.08)] flex-[43.35_1_0%]`}
             onClick={() => setSelectedIdx(selectedIdx === 0 ? null : 0)}
-            style={{
-              flex: '43.35 1 0%',
-              minHeight: '190px',
-              backgroundColor: 'rgba(0, 217, 198, 0.08)',
-              border: selectedIdx === 0 ? '2px solid #00D9C6' : '1px solid rgba(0, 217, 198, 0.3)',
-              borderRadius: '8px',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              textAlign: 'left',
-              cursor: 'pointer',
-              boxSizing: 'border-box',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              transition: 'all 0.15s ease',
-            }}
           >
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: '#00D9C6',
-                    backgroundColor: 'rgba(0, 217, 198, 0.15)',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                  }}
-                >
+              <div className="flex justify-between items-start flex-wrap gap-[6px]">
+                <span className="text-[11px] font-bold uppercase text-[#00D9C6] bg-[rgba(0,217,198,0.15)] rounded px-[6px] py-[2px]">
                   ARR-Fläche: {segments[0].arrShare}
                 </span>
-                <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
                   Kundenanteil: {segments[0].kundenAnteil}
                 </span>
               </div>
-              <h4 style={{ margin: '8px 0 2px', fontSize: '1.1rem', color: '#00D9C6', fontWeight: 700 }}>
+              <h4 className="font-bold text-[#00D9C6] text-[1.1rem] mt-[8px] mb-[2px] mx-0">
                 {segments[0].name}
               </h4>
-              <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.35 }}>
+              <p className="m-0 text-[12px] leading-[1.35] text-[var(--color-text-muted)]">
                 {segments[0].charakter}
               </p>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '6px', paddingTop: '8px', borderTop: '1px solid rgba(0, 217, 198, 0.15)' }}>
+            <div className="border-0 border-t border-solid border-[rgba(0,217,198,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[8px]">
               <div>
-                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Segment-ARR</span>
-                <strong style={{ fontSize: '1.25rem', color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>
+                <span className="block text-[11px] text-[var(--color-text-muted)]">Segment-ARR</span>
+                <strong className="font-display text-[1.25rem] text-text">
                   {segments[0].arrFormatted}
                 </strong>
               </div>
-              <span style={{ fontSize: '12px', color: '#00D9C6', fontWeight: 600 }}>
+              <span className="text-[12px] font-semibold text-[#00D9C6]">
                 {segments[0].kundenCount}
               </span>
             </div>
@@ -185,57 +116,30 @@ export const SegmentFields: React.FC = () => {
           {/* Agenturen: 10,20 % ARR */}
           <button
             type="button"
-            className="segment-field segment-field-agenturen"
+            className={`segment-field segment-field-agenturen flex flex-col justify-between text-left cursor-pointer box-border min-w-0 rounded-[8px] border-solid px-[16px] py-[12px] transition-[all_0.15s_ease] [overflow-wrap:anywhere] min-h-[110px] ${selectedIdx === 3 ? 'border-2 border-[#FF9A66]' : 'border border-[rgba(255,154,102,0.3)]'} bg-[rgba(255,154,102,0.08)] flex-[10.20_1_0%]`}
             onClick={() => setSelectedIdx(selectedIdx === 3 ? null : 3)}
-            style={{
-              flex: '10.20 1 0%',
-              minHeight: '110px',
-              backgroundColor: 'rgba(255, 154, 102, 0.08)',
-              border: selectedIdx === 3 ? '2px solid #FF9A66' : '1px solid rgba(255, 154, 102, 0.3)',
-              borderRadius: '8px',
-              padding: '12px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              textAlign: 'left',
-              cursor: 'pointer',
-              boxSizing: 'border-box',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              transition: 'all 0.15s ease',
-            }}
           >
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: '#FF9A66',
-                    backgroundColor: 'rgba(255, 154, 102, 0.15)',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                  }}
-                >
+              <div className="flex justify-between items-start flex-wrap gap-[6px]">
+                <span className="text-[11px] font-bold uppercase text-[#FF9A66] bg-[rgba(255,154,102,0.15)] rounded px-[6px] py-[2px]">
                   ARR-Fläche: {segments[3].arrShare}
                 </span>
-                <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
                   Kundenanteil: {segments[3].kundenAnteil}
                 </span>
               </div>
-              <h4 style={{ margin: '4px 0 2px', fontSize: '0.95rem', color: '#FF9A66', fontWeight: 700 }}>
+              <h4 className="font-bold text-[#FF9A66] text-[0.95rem] mt-[4px] mb-[2px] mx-0">
                 {segments[3].name}
               </h4>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255, 154, 102, 0.15)' }}>
+            <div className="border-0 border-t border-solid border-[rgba(255,154,102,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[6px]">
               <div>
-                <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--color-text-muted)' }}>Segment-ARR</span>
-                <strong style={{ fontSize: '1.05rem', color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>
+                <span className="block text-[10.5px] text-[var(--color-text-muted)]">Segment-ARR</span>
+                <strong className="font-display text-[1.05rem] text-text">
                   {segments[3].arrFormatted}
                 </strong>
               </div>
-              <span style={{ fontSize: '11.5px', color: '#FF9A66', fontWeight: 600 }}>
+              <span className="text-[11.5px] font-semibold text-[#FF9A66]">
                 {segments[3].kundenCount}
               </span>
             </div>
@@ -243,64 +147,37 @@ export const SegmentFields: React.FC = () => {
         </div>
 
         {/* Rechte Spalte (46,44 %): IT / Software (27,27 %) + Großhandel (19,17 %) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+        <div className="flex flex-col gap-[12px] min-w-0">
           {/* IT / Software: 27,27 % ARR */}
           <button
             type="button"
-            className="segment-field segment-field-it-software"
+            className={`segment-field segment-field-it-software flex flex-col justify-between text-left cursor-pointer box-border min-w-0 rounded-[8px] border-solid p-[16px] transition-[all_0.15s_ease] [overflow-wrap:anywhere] min-h-[150px] ${selectedIdx === 1 ? 'border-2 border-[#7CEFE6]' : 'border border-[rgba(124,239,230,0.3)]'} bg-[rgba(124,239,230,0.08)] flex-[27.27_1_0%]`}
             onClick={() => setSelectedIdx(selectedIdx === 1 ? null : 1)}
-            style={{
-              flex: '27.27 1 0%',
-              minHeight: '150px',
-              backgroundColor: 'rgba(124, 239, 230, 0.08)',
-              border: selectedIdx === 1 ? '2px solid #7CEFE6' : '1px solid rgba(124, 239, 230, 0.3)',
-              borderRadius: '8px',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              textAlign: 'left',
-              cursor: 'pointer',
-              boxSizing: 'border-box',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              transition: 'all 0.15s ease',
-            }}
           >
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: '#7CEFE6',
-                    backgroundColor: 'rgba(124, 239, 230, 0.15)',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                  }}
-                >
+              <div className="flex justify-between items-start flex-wrap gap-[6px]">
+                <span className="text-[11px] font-bold uppercase text-[#7CEFE6] bg-[rgba(124,239,230,0.15)] rounded px-[6px] py-[2px]">
                   ARR-Fläche: {segments[1].arrShare}
                 </span>
-                <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
                   Kundenanteil: {segments[1].kundenAnteil}
                 </span>
               </div>
-              <h4 style={{ margin: '6px 0 2px', fontSize: '1.05rem', color: '#7CEFE6', fontWeight: 700 }}>
+              <h4 className="font-bold text-[#7CEFE6] text-[1.05rem] mt-[6px] mb-[2px] mx-0">
                 {segments[1].name}
               </h4>
-              <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.35 }}>
+              <p className="m-0 text-[12px] leading-[1.35] text-[var(--color-text-muted)]">
                 {segments[1].charakter}
               </p>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '6px', paddingTop: '8px', borderTop: '1px solid rgba(124, 239, 230, 0.15)' }}>
+            <div className="border-0 border-t border-solid border-[rgba(124,239,230,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[8px]">
               <div>
-                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Segment-ARR</span>
-                <strong style={{ fontSize: '1.2rem', color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>
+                <span className="block text-[11px] text-[var(--color-text-muted)]">Segment-ARR</span>
+                <strong className="font-display text-[1.2rem] text-text">
                   {segments[1].arrFormatted}
                 </strong>
               </div>
-              <span style={{ fontSize: '12px', color: '#7CEFE6', fontWeight: 600 }}>
+              <span className="text-[12px] font-semibold text-[#7CEFE6]">
                 {segments[1].kundenCount}
               </span>
             </div>
@@ -309,60 +186,33 @@ export const SegmentFields: React.FC = () => {
           {/* Großhandel: 19,17 % ARR */}
           <button
             type="button"
-            className="segment-field segment-field-grosshandel"
+            className={`segment-field segment-field-grosshandel flex flex-col justify-between text-left cursor-pointer box-border min-w-0 rounded-[8px] border-solid px-[16px] py-[14px] transition-[all_0.15s_ease] [overflow-wrap:anywhere] min-h-[130px] ${selectedIdx === 2 ? 'border-2 border-[#FF7A3D]' : 'border border-[rgba(255,122,61,0.3)]'} bg-[rgba(255,122,61,0.08)] flex-[19.17_1_0%]`}
             onClick={() => setSelectedIdx(selectedIdx === 2 ? null : 2)}
-            style={{
-              flex: '19.17 1 0%',
-              minHeight: '130px',
-              backgroundColor: 'rgba(255, 122, 61, 0.08)',
-              border: selectedIdx === 2 ? '2px solid #FF7A3D' : '1px solid rgba(255, 122, 61, 0.3)',
-              borderRadius: '8px',
-              padding: '14px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              textAlign: 'left',
-              cursor: 'pointer',
-              boxSizing: 'border-box',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              transition: 'all 0.15s ease',
-            }}
           >
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: '#FF7A3D',
-                    backgroundColor: 'rgba(255, 122, 61, 0.15)',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                  }}
-                >
+              <div className="flex justify-between items-start flex-wrap gap-[6px]">
+                <span className="text-[11px] font-bold uppercase text-[#FF7A3D] bg-[rgba(255,122,61,0.15)] rounded px-[6px] py-[2px]">
                   ARR-Fläche: {segments[2].arrShare}
                 </span>
-                <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
                   Kundenanteil: {segments[2].kundenAnteil}
                 </span>
               </div>
-              <h4 style={{ margin: '6px 0 2px', fontSize: '1.05rem', color: '#FF7A3D', fontWeight: 700 }}>
+              <h4 className="font-bold text-[#FF7A3D] text-[1.05rem] mt-[6px] mb-[2px] mx-0">
                 {segments[2].name}
               </h4>
-              <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.35 }}>
+              <p className="m-0 text-[12px] leading-[1.35] text-[var(--color-text-muted)]">
                 {segments[2].charakter}
               </p>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255, 122, 61, 0.15)' }}>
+            <div className="border-0 border-t border-solid border-[rgba(255,122,61,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[6px]">
               <div>
-                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Segment-ARR</span>
-                <strong style={{ fontSize: '1.15rem', color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>
+                <span className="block text-[11px] text-[var(--color-text-muted)]">Segment-ARR</span>
+                <strong className="font-display text-[1.15rem] text-text">
                   {segments[2].arrFormatted}
                 </strong>
               </div>
-              <span style={{ fontSize: '12px', color: '#FF7A3D', fontWeight: 600 }}>
+              <span className="text-[12px] font-semibold text-[#FF7A3D]">
                 {segments[2].kundenCount}
               </span>
             </div>
@@ -371,44 +221,27 @@ export const SegmentFields: React.FC = () => {
       </div>
 
       {/* Legende */}
-      <div
-        className="segment-legend"
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: '10px',
-          paddingTop: 'var(--space-2, 8px)',
-          borderTop: '1px solid var(--color-border-soft, rgba(255, 255, 255, 0.06))',
-          fontSize: '12px',
-          minWidth: 0,
-        }}
-      >
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', minWidth: 0 }}>
+      <div className="segment-legend flex justify-between items-start flex-wrap gap-[10px] border-0 border-t border-solid border-border-soft pt-[var(--space-2,8px)] text-[12px] min-w-0">
+        <div className="flex gap-[12px] flex-wrap min-w-0">
           {segments.map((seg, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '6px',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-              }}
-            >
-              <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: seg.color, marginTop: '4px', flexShrink: 0 }} />
-              <div style={{ minWidth: 0, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-                <span style={{ color: 'var(--color-text)', display: 'block', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{seg.name}</span>
-                <strong style={{ color: 'var(--color-text-muted)', display: 'block', fontSize: '11px', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+            <div key={i} className="flex items-start gap-[6px] min-w-0 [overflow-wrap:anywhere] break-words">
+              <span
+                className="w-[10px] h-[10px] rounded-[2px] shrink-0 mt-[4px]"
+                // G39 Welle 2: Legenden-Punktfarbe aus Domain-Daten
+                // (CHART_SEGMENT-Farbpalette) — als Klasse nicht darstellbar.
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Domain-Daten), siehe Auftrag 055 Entscheidung 2
+                style={{ backgroundColor: seg.color }}
+              />
+              <div className="min-w-0 [overflow-wrap:anywhere] break-words">
+                <span className="block text-text [overflow-wrap:anywhere] break-words">{seg.name}</span>
+                <strong className="block text-[11px] text-[var(--color-text-muted)] [overflow-wrap:anywhere] break-words">
                   {seg.arrShare} ARR ({seg.arrFormatted})
                 </strong>
               </div>
             </div>
           ))}
         </div>
-        <div style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', minWidth: 0, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+        <div className="italic min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]">
           Summe Segment-ARR: {totalArr.toLocaleString('de-DE')} €
         </div>
       </div>

@@ -47,20 +47,8 @@ export const RevenueStaircase: React.FC = () => {
 
   return (
     <section
-      className="facelift-revenue-staircase"
+      className="facelift-revenue-staircase box-border w-full rounded-lg border border-solid border-border bg-surface px-[var(--space-5,20px)] py-[var(--space-4,16px)] flex flex-col gap-[var(--space-4,16px)] [overflow-wrap:anywhere]"
       aria-label="Umsatz-Staffel Branchensegmente"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-4, 16px) var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-4, 16px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         @media (max-width: 600px) {
@@ -76,158 +64,108 @@ export const RevenueStaircase: React.FC = () => {
         }
       `}</style>
       {/* Header */}
-      <div className="staircase-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+      <div className="staircase-header flex justify-between items-start flex-wrap gap-[8px]">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '2px 8px',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                color: 'var(--color-primary)',
-                backgroundColor: 'rgba(0, 217, 198, 0.12)',
-                border: '1px solid rgba(0, 217, 198, 0.25)',
-              }}
-            >
+          <div className="flex items-center gap-[8px] flex-wrap">
+            <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.04em] uppercase px-[8px] py-[2px]">
               UMSATZ-STAFFEL
             </span>
-            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+            <span className="text-[12px] text-[var(--color-text-muted)]">
               Kumulativer ARR-Stufenaufbau der Branchensegmente
             </span>
           </div>
-          <h4
-            className="staircase-heading"
-            style={{
-              margin: '4px 0 0',
-              fontSize: '1.05rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-display)',
-            }}
-          >
+          <h4 className="staircase-heading font-display text-[1.05rem] font-bold text-text mt-[4px] mb-0 mr-0 ml-0">
             Stufenweiser Aufbau des Gesamt-ARR (411.840 €)
           </h4>
         </div>
 
-        <div
-          style={{
-            padding: '4px 10px',
-            borderRadius: '6px',
-            backgroundColor: 'rgba(0, 217, 198, 0.08)',
-            border: '1px solid rgba(0, 217, 198, 0.25)',
-            textAlign: 'right',
-          }}
-        >
-          <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Gesamtsumme ARR</span>
-          <strong style={{ fontSize: '15px', color: 'var(--color-primary)', fontFamily: 'var(--font-display)' }}>
+        <div className="rounded-[6px] border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.08)] text-right px-[10px] py-[4px]">
+          <span className="block text-[11px] text-[var(--color-text-muted)]">Gesamtsumme ARR</span>
+          <strong className="font-display text-[15px] text-primary">
             411.840 €
           </strong>
         </div>
       </div>
 
       {/* Visuelle Treppen-Staffel (4 Stufen mit Stufenhöhe und Fortschrittsbalken) */}
-      <div
-        className="staircase-steps-container"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
-          gap: '12px',
-          minWidth: 0,
-          boxSizing: 'border-box',
-        }}
-      >
+      <div className="staircase-steps-container grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-[12px] min-w-0 box-border">
         {steps.map((step, idx) => {
           const stepPercent = Math.round((step.kumuliertArr / totalArr) * 100);
 
           return (
             <div
               key={idx}
-              className={`staircase-step-card staircase-step-${idx + 1}`}
+              className={`staircase-step-card staircase-step-${idx + 1} rounded-[8px] bg-surface flex flex-col gap-[8px] box-border min-w-0 [overflow-wrap:anywhere] px-[14px] py-[12px]`}
+              // G39 Welle 2: Kartenrahmen in Stufenfarbe (Domain-Daten) —
+              // als Klasse nicht darstellbar (Entscheidung 2).
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Stufenfarbe aus Daten), siehe Auftrag 055 Entscheidung 2
               style={{
-                backgroundColor: 'var(--color-surface)',
                 border: `1px solid ${step.color}40`,
                 borderTop: `3px solid ${step.color}`,
-                borderRadius: '8px',
-                padding: '12px 14px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                boxSizing: 'border-box',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
               }}
             >
               {/* Stufen-Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+              <div className="flex justify-between items-center flex-wrap gap-[4px]">
                 <span
+                  className="text-[11px] font-bold rounded px-[6px] py-[2px]"
+                  // G39 Welle 2: Badge in Stufenfarbe (Domain-Daten).
+                  // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Stufenfarbe aus Daten), siehe Auftrag 055 Entscheidung 2
                   style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '2px 6px',
-                    borderRadius: '4px',
                     backgroundColor: `${step.color}20`,
                     color: step.color,
                   }}
                 >
                   Stufe 0{idx + 1}
                 </span>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                <span className="text-[11px] text-[var(--color-text-muted)]">
                   Kundenanteil: {step.anteil}
                 </span>
               </div>
 
               {/* Name & Kunden */}
               <div>
-                <h5 style={{ margin: '2px 0 0', fontSize: '13.5px', color: 'var(--color-text)', fontWeight: 700 }}>
+                <h5 className="font-bold text-[13.5px] text-text mt-[2px] mb-0 mr-0 ml-0">
                   {step.name}
                 </h5>
-                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                <span className="text-[12px] text-[var(--color-text-muted)]">
                   {step.kunden}
                 </span>
               </div>
 
               {/* Segmentbeitrag */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px', paddingTop: '4px', borderTop: '1px solid var(--color-border-soft, rgba(255, 255, 255, 0.06))' }}>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Segmentbeitrag:</span>
-                <strong style={{ fontSize: '13px', color: step.color }}>
+              <div className="border-0 border-t border-solid border-[var(--color-border-soft,rgba(255,255,255,0.06))] flex justify-between items-baseline flex-wrap gap-[4px] pt-[4px]">
+                <span className="text-[11px] text-[var(--color-text-muted)]">Segmentbeitrag:</span>
+                <strong
+                  className="text-[13px]"
+                  // G39 Welle 2: Wert in Stufenfarbe (Domain-Daten).
+                  // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Stufenfarbe aus Daten), siehe Auftrag 055 Entscheidung 2
+                  style={{ color: step.color }}
+                >
                   +{step.arr.toLocaleString('de-DE')} €
                 </strong>
               </div>
 
               {/* Kumulierter ARR */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Kumulierter ARR:</span>
-                <strong style={{ fontSize: '14px', color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>
+              <div className="flex justify-between items-baseline flex-wrap gap-[4px]">
+                <span className="text-[11px] text-[var(--color-text-muted)]">Kumulierter ARR:</span>
+                <strong className="font-display text-[14px] text-text">
                   {step.kumuliertArr.toLocaleString('de-DE')} €
                 </strong>
               </div>
 
               {/* Fortschrittsbalken zum Gesamt-ARR */}
-              <div
-                style={{
-                  width: '100%',
-                  height: '4px',
-                  borderRadius: '2px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  overflow: 'hidden',
-                  marginTop: '2px',
-                }}
-              >
+              <div className="w-full h-[4px] rounded-[2px] overflow-hidden mt-[2px] bg-[rgba(255,255,255,0.08)]">
                 <div
+                  className="h-full rounded-[2px]"
+                  // G39 Welle 2: Balkenbreite (berechnet) + Farbe (Daten).
+                  // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie/Farbe (kumulierter Anteil), siehe Auftrag 055 Entscheidung 2
                   style={{
                     width: `${stepPercent}%`,
-                    height: '100%',
                     backgroundColor: step.color,
-                    borderRadius: '2px',
                   }}
                 />
               </div>
-              <span style={{ fontSize: '10.5px', color: 'var(--color-text-muted)', textAlign: 'right' }}>
+              <span className="text-[10.5px] text-right text-[var(--color-text-muted)]">
                 {stepPercent} % vom Gesamt-ARR
               </span>
             </div>

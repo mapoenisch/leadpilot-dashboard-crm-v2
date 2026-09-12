@@ -73,61 +73,25 @@ export const CustomerPortfolio: React.FC = () => {
 
   return (
     <section
-      className="facelift-customer-portfolio"
+      className="facelift-customer-portfolio box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)]"
       aria-label="Kundenportfolio Raumkarte"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-      }}
     >
       {/* Header */}
-      <div className="portfolio-header" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-            }}
-          >
+      <div className="portfolio-header flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.05em] uppercase px-[8px] py-[2px]">
             PORTFOLIO-RAUMKARTE
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             2D-Portfolio nach ARR und aktiven Nutzern
           </span>
         </div>
 
-        <h3
-          className="portfolio-heading"
-          style={{
-            margin: 0,
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'break-word',
-            wordBreak: 'break-word',
-          }}
-        >
+        <h3 className="portfolio-heading m-0 font-display text-[1.25rem] font-bold text-text break-words [overflow-wrap:break-word]">
           {TOP10.title}
         </h3>
 
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', fontSize: '12px', color: 'var(--color-text-muted)', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+        <div className="flex gap-[8px] flex-wrap items-center text-[12px] text-[var(--color-text-muted)] [overflow-wrap:break-word] break-words">
           <span>Tatsächlicher Wertebereich: <strong>{actualMinNutzer}–{actualMaxNutzer} aktive Nutzer</strong></span>
           <span>·</span>
           <span><strong>{actualMinArr.toLocaleString('de-DE')}–{actualMaxArr.toLocaleString('de-DE')} € ARR</strong></span>
@@ -137,26 +101,10 @@ export const CustomerPortfolio: React.FC = () => {
       </div>
 
       {/* 2D-Raumkarte (SVG-Scatter-Diagramm) */}
-      <div
-        className="portfolio-canvas-container"
-        style={{
-          width: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.25)',
-          borderRadius: 'var(--radius-md, 8px)',
-          border: '1px solid var(--color-border-soft, rgba(255, 255, 255, 0.08))',
-          padding: '12px',
-          boxSizing: 'border-box',
-          overflowX: 'auto',
-        }}
-      >
+      <div className="portfolio-canvas-container w-full rounded-md border border-solid border-[var(--color-border-soft,rgba(255,255,255,0.08))] bg-[rgba(0,0,0,0.25)] box-border overflow-x-auto p-[12px]">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          style={{
-            width: '100%',
-            height: 'auto',
-            display: 'block',
-            minWidth: '500px',
-          }}
+          className="block w-full h-auto min-w-[500px]" 
           role="img"
           aria-label="2D-Streudiagramm: ARR über aktive Nutzer für 10 Referenzkunden"
         >
@@ -323,8 +271,7 @@ export const CustomerPortfolio: React.FC = () => {
             return (
               <g
                 key={c.name}
-                className={`portfolio-point portfolio-point-${i}`}
-                style={{ cursor: 'pointer' }}
+                className={`portfolio-point portfolio-point-${i} cursor-pointer`}
                 onClick={() => setSelectedCustomer(isSelected ? null : c.name)}
               >
                 {/* Fokus-/Hover-Ring */}
@@ -398,27 +345,18 @@ export const CustomerPortfolio: React.FC = () => {
       </div>
 
       {/* Form- & Farblegende (Nicht nur farbcodiert!) */}
-      <div
-        className="portfolio-legend"
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          padding: '8px 12px',
-          borderRadius: '6px',
-          backgroundColor: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid var(--color-border-soft, rgba(255, 255, 255, 0.06))',
-          fontSize: '12px',
-        }}
-      >
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <strong style={{ color: 'var(--color-text)' }}>Legende Branchen:</strong>
+      <div className="portfolio-legend flex justify-between items-center flex-wrap gap-[12px] rounded-[6px] border border-solid border-[var(--color-border-soft,rgba(255,255,255,0.06))] bg-[rgba(255,255,255,0.03)] text-[12px] px-[12px] py-[8px]">
+        <div className="flex gap-[16px] flex-wrap items-center">
+          <strong className="text-text">Legende Branchen:</strong>
           {Object.entries(BRANCHE_STYLES).map(([branche, s]) => (
-            <div key={branche} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: s.color, fontSize: '14px', lineHeight: 1 }}>{s.symbol}</span>
-              <span style={{ color: 'var(--color-text)' }}>{branche}</span>
+            <div key={branche} className="flex items-center gap-[6px]">
+              <span
+                className="text-[14px] leading-[1]"
+                // G39 Welle 2: Symbolfarbe aus Domain-Daten (BRANCHE_STYLES).
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Domain-Daten), siehe Auftrag 055 Entscheidung 2
+                style={{ color: s.color }}
+              >{s.symbol}</span>
+              <span className="text-text">{branche}</span>
             </div>
           ))}
         </div>
@@ -426,16 +364,7 @@ export const CustomerPortfolio: React.FC = () => {
         <button
           type="button"
           onClick={() => setShowTable(!showTable)}
-          style={{
-            fontSize: '11.5px',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            backgroundColor: 'rgba(0, 217, 198, 0.1)',
-            color: 'var(--color-primary)',
-            border: '1px solid rgba(0, 217, 198, 0.25)',
-            cursor: 'pointer',
-            fontWeight: 600,
-          }}
+          className="rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.1)] cursor-pointer font-semibold text-[11.5px] text-primary px-[10px] py-[4px]"
         >
           {showTable ? 'Tabelle ausblenden' : 'Tabelle anzeigen'}
         </button>
@@ -443,7 +372,7 @@ export const CustomerPortfolio: React.FC = () => {
 
       {/* Bestehende Tabelle (bleibt verfügbar) */}
       {showTable && (
-        <div className="portfolio-table-wrapper" style={{ marginTop: '4px' }}>
+        <div className="portfolio-table-wrapper mt-[4px]">
           <Table
             columns={TOP10.headers.map((h: string, i: number) => ({ key: String(i), label: h }))}
             rows={TOP10.rows.map((r: string[]) => ({
