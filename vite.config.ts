@@ -22,6 +22,15 @@ export default defineConfig({
           if (id.includes('react-dom') || id.includes('/react/') || id.includes('scheduler')) {
             return 'react-vendor';
           }
+          if (id.includes('@supabase')) {
+            return 'supabase-vendor';
+          }
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) {
+            return 'recharts-vendor';
+          }
+          if (id.includes('framer-motion')) {
+            return 'framer-motion-vendor';
+          }
           return 'vendor';
         },
       },

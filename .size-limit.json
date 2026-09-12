@@ -11,7 +11,7 @@
   },
   {
     "name": "Largest chunk (gzip)",
-    "path": "dist/assets/vendor-*.js",
+    "path": "dist/assets/recharts-vendor-*.js",
     "limit": "250 KB",
     "gzip": true
   }
