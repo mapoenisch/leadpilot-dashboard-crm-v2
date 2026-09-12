@@ -159,12 +159,12 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
       title="Multi-Szenario-Vergleich & Trade-Off-Entscheidungsfläche"
       maxWidth="1100px"
       footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+        <div className="flex justify-between w-full items-center flex-wrap gap-[var(--space-3)]">
+          <div className="flex items-center gap-[var(--space-3)] flex-wrap">
+            <span className="whitespace-nowrap shrink-0">
               Konfiguration übernehmen:
             </span>
-            <div style={{ minWidth: '220px' }}>
+            <div className="min-w-[220px]">
               <Select
                 options={adoptSelectOptions}
                 value={adoptTargetVersionId || (selectedVersionIds[0] ?? '')}
@@ -172,17 +172,17 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                 sizeVariant="sm"
               />
             </div>
-            <Button variant="secondary" onClick={handleAdopt} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <Button variant="secondary" onClick={handleAdopt} className="whitespace-nowrap shrink-0">
               Als neue Version übernehmen
             </Button>
           </div>
-          <Button variant="primary" onClick={onClose} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <Button variant="primary" onClick={onClose} className="whitespace-nowrap shrink-0">
             Schließen
           </Button>
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', width: '100%' }}>
+      <div className="flex flex-col gap-[var(--space-5)] w-full">
         {adoptMessage && (
           <Alert variant="info" title="Konfigurations-Übernahme">
             {adoptMessage}
@@ -193,13 +193,13 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
         {/* ZONE 1: AUSWAHL & RAHMENBEDINGUNGEN (2 bis 4 Szenarien) */}
         {/* ========================================================================= */}
         <Card padding="var(--space-4)">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div className="flex flex-col gap-[var(--space-3)]">
+            <div className="flex justify-between items-center flex-wrap gap-[8px]">
               <div>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text)' }}>
+                <h4 className="m-0 text-[15px] font-bold text-text">
                   ZONE 1: Szenario-Auswahl (2 bis maximal 4 Versionen)
                 </h4>
-                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-0 mr-0 ml-0">
                   Entscheidung 851: Maximal 4 Szenarien gleichzeitig. Wählen Sie eine Referenz-Baseline für relative Differenzen.
                 </p>
               </div>
@@ -208,7 +208,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
               </Badge>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+            <div className="flex flex-wrap gap-[var(--space-2)]">
               {allVersions.map((item) => {
                 const isSelected = selectedVersionIds.includes(item.version.id);
                 const isRef = effectiveRefId === item.version.id;
@@ -216,26 +216,14 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                   <div
                     key={item.version.id}
                     data-testid="compare-scenario-card"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 'var(--space-2)',
-                      padding: '8px 12px',
-                      background: isSelected ? 'var(--color-primary-soft)' : 'var(--color-surface)',
-                      border: isSelected
-                        ? isRef
-                          ? '2px solid var(--color-primary)'
-                          : '1px solid var(--color-primary-hover)'
-                        : '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-sm)',
-                    }}
+                    className={`flex items-center gap-[var(--space-2)] rounded px-[12px] py-[8px] ${isSelected ? isRef ? 'border-2 border-solid border-primary bg-primary-soft' : 'border border-solid border-primary-hover bg-primary-soft' : 'border border-solid border-border bg-surface'}`}
                   >
                     <Checkbox
                       data-testid={`checkbox-scenario-${item.version.id}`}
                       checked={isSelected}
                       onChange={() => handleToggleVersion(item.version.id)}
                       label={(
-                        <span style={{ fontSize: '13px', fontWeight: isSelected ? 700 : 400, color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                        <span className={`text-[13px] ${isSelected ? 'font-bold text-text' : 'font-normal text-[var(--color-text-muted)]'}`}>
                           {item.scenarioName} (v{item.version.versionNumber})
                         </span>
                       )}
@@ -249,7 +237,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
             </div>
 
             {selectedVersionIds.length >= 2 && (
-              <div style={{ maxWidth: '320px', marginTop: 'var(--space-1)' }}>
+              <div className="max-w-[320px] mt-[var(--space-1)]">
                 <Select
                   label="Referenzversion für Delta-Vergleich"
                   options={referenceSelectOptions}
@@ -271,31 +259,24 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
             {/* ========================================================================= */}
             {/* ZONE 2: ERGEBNISSE & TRAJEKTORIENVERGLEICH */}
             {/* ========================================================================= */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text)' }}>
+            <div className="flex flex-col gap-[var(--space-4)]">
+              <div className="flex justify-between items-center flex-wrap gap-[8px]">
+                <h4 className="m-0 text-[15px] font-bold text-text">
                   ZONE 2: Ergebnis-Deltas & Trajektorien
                 </h4>
                 <StatusChip variant="neutral" label="Entscheidung 866: Kein künstlicher Gesamtscore" size="sm" />
               </div>
 
               {/* Executive Summary Banner */}
-              <div
-                style={{
-                  padding: 'var(--space-3) var(--space-4)',
-                  background: 'var(--color-primary-soft)',
-                  border: '1px solid var(--color-primary)',
-                  borderRadius: 'var(--radius-sm)',
-                }}
-              >
-                <div style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '13.5px' }}>
+              <div className="rounded border border-solid border-primary bg-primary-soft px-[var(--space-4)] py-[var(--space-3)]">
+                <div className="font-bold text-[13.5px] text-primary">
                   {comparisonResult.summaryText}
                 </div>
               </div>
 
               {/* Comparison Warnings (Decisions 854 & 855) */}
               {comparisonResult.comparisonWarnings && comparisonResult.comparisonWarnings.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <div className="flex flex-col gap-[var(--space-2)]">
                   {comparisonResult.comparisonWarnings.map((warn, i) => (
                     <Alert key={i} variant="warning" title="Hinweis zur Vergleichsbasis (Entscheidungen 854, 855)">
                       {warn}
@@ -342,25 +323,20 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
 
               {/* Multi-Column KPI Comparison Matrix */}
               <div>
-                <h5 style={{ margin: '0 0 var(--space-2) 0', fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}>
+                <h5 className="text-[14px] font-semibold text-text mt-0 mb-[var(--space-2)] mr-0 ml-0">
                   KPI-Ergebnismatrix (P50 Median & Deltas zur Referenz)
                 </h5>
                 <Card padding="0">
-                  <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                    <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
+                  <div className="w-full overflow-x-auto [touch-action:pan-x_pan-y]">
+                    <table className="w-full min-w-[680px] border-collapse">
                       <thead>
-                        <tr style={{ background: 'var(--color-bg-deep)', borderBottom: '1px solid var(--color-border)' }}>
-                          <th style={{ textAlign: 'left', padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>Metrik (KPI)</th>
-                          <th style={{ textAlign: 'right', padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>Baseline 2026</th>
+                        <tr className="border-0 border-b border-solid border-border bg-background-deep">
+                          <th className="text-left whitespace-nowrap p-[var(--space-3)]">Metrik (KPI)</th>
+                          <th className="text-right whitespace-nowrap p-[var(--space-3)]">Baseline 2026</th>
                           {comparisonResult.versions.map((v) => (
                             <th
                               key={v.id}
-                              style={{
-                                textAlign: 'right',
-                                padding: 'var(--space-3)',
-                                whiteSpace: 'nowrap',
-                                background: v.id === effectiveRefId ? 'var(--color-primary-soft)' : 'transparent',
-                              }}
+                              className={`text-right whitespace-nowrap p-[var(--space-3)] ${v.id === effectiveRefId ? 'bg-primary-soft' : 'bg-transparent'}`}
                             >
                               v{v.versionNumber} {v.id === effectiveRefId && '(Ref)'}
                             </th>
@@ -369,11 +345,11 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                       </thead>
                       <tbody>
                         {comparisonResult.kpiMatrix.map((row) => (
-                          <tr key={row.kpiId} style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
-                            <td style={{ padding: 'var(--space-3)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                          <tr key={row.kpiId} className="border-0 border-b border-solid border-border-soft">
+                            <td className="font-bold whitespace-nowrap p-[var(--space-3)]">
                               {row.label} ({row.unit})
                             </td>
-                            <td style={{ textAlign: 'right', padding: 'var(--space-3)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                            <td className="text-right whitespace-nowrap p-[var(--space-3)]">
                               {row.baselineValue.toLocaleString('de-DE')} {row.unit}
                             </td>
                             {comparisonResult.versions.map((v) => {
@@ -385,7 +361,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
 
                               if (!kVal) {
                                 return (
-                                  <td key={v.id} style={{ textAlign: 'right', padding: 'var(--space-3)', color: 'var(--color-text-muted)' }}>
+                                  <td key={v.id} className="text-right p-[var(--space-3)] text-[var(--color-text-muted)]">
                                     – (keine Runs)
                                   </td>
                                 );
@@ -394,18 +370,13 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                               return (
                                 <td
                                   key={v.id}
-                                  style={{
-                                    textAlign: 'right',
-                                    padding: 'var(--space-3)',
-                                    background: isRef ? 'var(--color-primary-soft)' : 'transparent',
-                                    whiteSpace: 'nowrap',
-                                  }}
+                                  className={`text-right whitespace-nowrap p-[var(--space-3)] ${isRef ? 'bg-primary-soft' : 'bg-transparent'}`}
                                 >
-                                  <div style={{ fontWeight: isRef ? 'bold' : 'normal' }}>
+                                  <div className={isRef ? 'font-bold' : 'font-normal'}>
                                     {kVal.median.toLocaleString('de-DE')} {row.unit}
                                   </div>
                                   {!isRef && delta !== undefined && (
-                                    <div style={{ fontSize: 'var(--font-size-xs)', color: isFav ? 'var(--color-success)' : 'var(--color-accent)' }}>
+                                    <div className={`${isFav ? 'text-success' : 'text-accent'}`}>
                                       {delta >= 0 ? '+' : ''}
                                       {delta.toLocaleString('de-DE')} {row.unit} ({pct && pct >= 0 ? '+' : ''}{pct}%)
                                     </div>
@@ -425,70 +396,50 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
             {/* ========================================================================= */}
             {/* ZONE 3: BEGRÜNDUNG, TRADE-OFFS & TREIBER-MATRIX */}
             {/* ========================================================================= */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text)' }}>
+            <div className="flex flex-col gap-[var(--space-4)]">
+              <div className="flex justify-between items-center flex-wrap gap-[8px]">
+                <h4 className="m-0 text-[15px] font-bold text-text">
                   ZONE 3: Begründung, Trade-Off-Profile & Treiber-Matrix
                 </h4>
                 <StatusChip variant="neutral" label="5 Dimensionen (Entscheidungen 864–868)" size="sm" />
               </div>
 
               {/* 5-Dimension Trade-Off Cards */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                  gap: 'var(--space-3)',
-                }}
-              >
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[var(--space-3)]">
                 {comparisonResult.tradeOffs.map((tradeOff) => (
                   <Card key={tradeOff.dimension} padding="var(--space-4)">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                          <span style={{ fontSize: '1.2rem' }}>{getDimensionIcon(tradeOff.dimension)}</span>
-                          <span style={{ fontWeight: 'bold', fontSize: 'var(--font-size-sm)' }}>
+                    <div className="flex flex-col gap-[var(--space-2)]">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-[var(--space-2)]">
+                          <span className="text-[1.2rem]">{getDimensionIcon(tradeOff.dimension)}</span>
+                          <span className="font-bold">
                             {tradeOff.label}
                           </span>
                         </div>
                       </div>
-                      <p style={{ margin: 0, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                      <p className="m-0 text-[var(--color-text-muted)]">
                         {tradeOff.description}
                       </p>
 
-                      <div
-                        style={{
-                          background: 'var(--color-bg-deep)',
-                          padding: 'var(--space-2) var(--space-3)',
-                          borderRadius: 'var(--radius-sm)',
-                          marginTop: 'var(--space-1)',
-                        }}
-                      >
-                        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                      <div className="rounded bg-background-deep mt-[var(--space-1)] px-[var(--space-3)] py-[var(--space-2)]">
+                        <div className="font-bold text-primary">
                           {tradeOff.tradeOffSummary}
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', marginTop: 'var(--space-1)' }}>
+                      <div className="flex flex-col gap-[var(--space-1)] mt-[var(--space-1)]">
                         {comparisonResult.versions.map((v) => {
                           const evalObj = tradeOff.evaluations[v.id];
                           if (!evalObj) return null;
                           return (
                             <div
                               key={v.id}
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                fontSize: 'var(--font-size-xs)',
-                                padding: '3px 0',
-                                borderBottom: '1px solid var(--color-border-soft)',
-                              }}
+                              className="border-0 border-b border-solid border-border-soft flex justify-between items-center px-0 py-[3px]"
                             >
                               <span>
                                 v{v.versionNumber} ({v.description || 'Version'}):
                               </span>
-                              <span style={{ fontWeight: evalObj.isLeader ? 'bold' : 'normal', color: evalObj.isLeader ? 'var(--color-success)' : 'inherit' }}>
+                              <span className={evalObj.isLeader ? 'font-bold text-success' : 'font-normal'}>
                                 {evalObj.metricHighlight} {evalObj.isLeader && '⭐'}
                               </span>
                             </div>
@@ -502,25 +453,20 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
 
               {/* Parameter Matrix */}
               <div>
-                <h5 style={{ margin: '0 0 var(--space-2) 0', fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}>
+                <h5 className="text-[14px] font-semibold text-text mt-0 mb-[var(--space-2)] mr-0 ml-0">
                   Treiber- und Parameter-Matrix (Vergleich zur Referenz)
                 </h5>
                 <Card padding="0">
-                  <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                    <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
+                  <div className="w-full overflow-x-auto [touch-action:pan-x_pan-y]">
+                    <table className="w-full min-w-[680px] border-collapse">
                       <thead>
-                        <tr style={{ background: 'var(--color-bg-deep)', borderBottom: '1px solid var(--color-border)' }}>
-                          <th style={{ textAlign: 'left', padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>Treiber / Parameter</th>
-                          <th style={{ textAlign: 'left', padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>Einheit</th>
+                        <tr className="border-0 border-b border-solid border-border bg-background-deep">
+                          <th className="text-left whitespace-nowrap p-[var(--space-3)]">Treiber / Parameter</th>
+                          <th className="text-left whitespace-nowrap p-[var(--space-3)]">Einheit</th>
                           {comparisonResult.versions.map((v) => (
                             <th
                               key={v.id}
-                              style={{
-                                textAlign: 'right',
-                                padding: 'var(--space-3)',
-                                whiteSpace: 'nowrap',
-                                background: v.id === effectiveRefId ? 'var(--color-primary-soft)' : 'transparent',
-                              }}
+                              className={`text-right whitespace-nowrap p-[var(--space-3)] ${v.id === effectiveRefId ? 'bg-primary-soft' : 'bg-transparent'}`}
                             >
                               v{v.versionNumber} {v.id === effectiveRefId && '(Ref)'}
                             </th>
@@ -533,15 +479,12 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                           return (
                             <tr
                               key={pRow.key}
-                              style={{
-                                borderBottom: '1px solid var(--color-border-soft)',
-                                background: hasAnyChange ? 'var(--color-warning-soft)' : 'transparent',
-                              }}
+                              className={`border-0 border-b border-solid border-border-soft ${hasAnyChange ? 'bg-warning-soft' : 'bg-transparent'}`}
                             >
-                              <td style={{ padding: 'var(--space-3)', fontWeight: hasAnyChange ? 'bold' : 'normal', whiteSpace: 'nowrap' }}>
+                              <td className={`whitespace-nowrap p-[var(--space-3)] ${hasAnyChange ? 'font-bold' : 'font-normal'}`}>
                                 {pRow.label} {hasAnyChange && '⚡'}
                               </td>
-                              <td style={{ padding: 'var(--space-3)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                              <td className="whitespace-nowrap p-[var(--space-3)]">
                                 {pRow.unit}
                               </td>
                               {comparisonResult.versions.map((v) => {
@@ -549,14 +492,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                                 return (
                                   <td
                                     key={v.id}
-                                    style={{
-                                      textAlign: 'right',
-                                      padding: 'var(--space-3)',
-                                      whiteSpace: 'nowrap',
-                                      color: isChanged ? 'var(--color-warning)' : 'inherit',
-                                      fontWeight: isChanged ? 'bold' : 'normal',
-                                      background: v.id === effectiveRefId ? 'var(--color-primary-soft)' : 'transparent',
-                                    }}
+                                    className={`text-right whitespace-nowrap p-[var(--space-3)] ${isChanged ? 'font-bold text-warning' : 'font-normal'} ${v.id === effectiveRefId ? 'bg-primary-soft' : 'bg-transparent'}`}
                                   >
                                     {pRow.formattedValuesByVersionId[v.id]}
                                   </td>

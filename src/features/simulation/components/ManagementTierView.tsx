@@ -55,26 +55,13 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
     arrGoal.status === 'ACHIEVED' ? 'mint' : arrGoal.status === 'AT_RISK' ? 'orange' : 'neutral';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+    <div className="flex flex-col gap-[var(--space-5)]">
       {/* Zone 1 & 2: Executive Management Banner & Command Cockpit */}
-      <Card
-        style={{
-          background: 'linear-gradient(135deg, rgba(0,217,198,0.06) 0%, rgba(11,33,31,0.95) 100%)',
-          border: '1px solid var(--color-primary-soft)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 'var(--space-4)',
-          }}
-        >
+      <Card className="border border-solid border-primary-soft bg-[linear-gradient(135deg,rgba(0,217,198,0.06)_0%,rgba(11,33,31,0.95)_100%)]">
+        <div className="flex items-start justify-between flex-wrap gap-[var(--space-4)]">
           {/* Zone 1: Leading KPI & Strategic Overview */}
-          <div style={{ flex: '1 1 380px', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '8px', flexWrap: 'wrap' }}>
+          <div className="flex-[1_1_380px] min-w-0">
+            <div className="flex items-center gap-[var(--space-2)] flex-wrap mb-[8px]">
               <StatusChip variant="cyan" label="MANAGEMENT-EBENE" />
               <StatusChip
                 variant="neutral"
@@ -86,26 +73,26 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
               />
             </div>
 
-            <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '22px', color: 'var(--color-text)' }}>
+            <h2 className="m-0 font-display text-[22px] text-text">
               Strategische Management-Prognose (P50 Median)
             </h2>
 
-            <p style={{ margin: '6px 0 0 0', color: 'var(--color-text-muted)', fontSize: '13.5px', lineHeight: 1.4 }}>
+            <p className="text-[13.5px] leading-[1.4] mt-[6px] mb-0 mr-0 ml-0 text-[var(--color-text-muted)]">
               Führungskennzahlen basieren auf dem <strong>P50-Median aus {aggregation.validRunCount} validen Simulationsläufen</strong>.
               Der Unsicherheitskorridor wird durch das <strong>P10/P90-Quantilsband</strong> aufgespannt.
             </p>
           </div>
 
           {/* Zone 2: Action Command Strip & Toolbars */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+          <div className="flex flex-col items-end gap-[var(--space-2)]">
+            <div className="flex items-center gap-[var(--space-2)] flex-wrap">
               <Button
                 variant="primary"
                 onClick={() => (isRunning ? pause() : start())}
                 iconLeft={<Icon name={isRunning ? 'pause' : 'play'} size={15} />}
-                style={{
-                  boxShadow: isRunning ? 'var(--shadow-glow-cyan)' : 'none',
-                }}
+                // G39 Welle 3: zwei zur Build-Zeit bekannte Werte — als
+                // Klasse via Block-A-Merge (kein style nötig).
+                className={isRunning ? 'shadow-glow-cyan' : 'shadow-none'}
               >
                 {isRunning ? 'Simulation Pausieren' : 'Simulation Starten'}
               </Button>
@@ -134,10 +121,10 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
         </div>
 
         {/* Baseline Comparison Mode Toggle Bar */}
-        <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+        <div className="border-0 border-t border-solid border-border-soft flex items-center justify-between flex-wrap gap-[12px] mt-[16px] pt-[12px]">
+          <div className="flex items-center gap-[8px] text-[12.5px] text-[var(--color-text-muted)]">
             <span>Vergleichsansicht zur Baseline:</span>
-            <div style={{ display: 'flex', gap: '4px', background: 'var(--color-bg-deep)', padding: '3px', borderRadius: 'var(--radius-sm)' }}>
+            <div className="flex gap-[4px] rounded bg-background-deep p-[3px]">
               <Button
                 size="sm"
                 variant={comparisonMode === 'ABSOLUTE' ? 'primary' : 'secondary'}
@@ -162,87 +149,87 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="flex items-center gap-[8px] flex-wrap">
             <StatusChip variant={goalChipVariant} label={`ZIELSTATUS ARR: ${arrGoal.status}`} />
-            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{arrGoal.explanation}</span>
+            <span className="text-[12px] text-[var(--color-text-muted)]">{arrGoal.explanation}</span>
           </div>
         </div>
       </Card>
 
       {/* Top Level Management KPI Grid (P50 + P10/P90 Corridor) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-4)' }}>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[var(--space-4)]">
         {/* KPI 1: ARR (P50) */}
         <Card featured={true}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div className="flex justify-between items-center">
+            <span className="text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
               Jahresumsatz (ARR P50 Median)
             </span>
             <Badge variant={arrComp.isPositiveChange ? 'mint' : 'orange'}>
               {arrGoal.status}
             </Badge>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--color-accent)', margin: '6px 0' }}>
+          <div className="text-[28px] font-bold my-[6px] mx-0 text-accent">
             {comparisonMode === 'ABSOLUTE' && `${arrStats.median.toLocaleString('de-DE')} €`}
             {comparisonMode === 'DELTA' && `${arrComp.absoluteDelta >= 0 ? '+' : ''}${arrComp.absoluteDelta.toLocaleString('de-DE')} €`}
             {comparisonMode === 'PERCENT' && `${arrComp.percentChange >= 0 ? '+' : ''}${arrComp.percentChange} %`}
           </div>
-          <div style={{ fontSize: '12px', color: arrComp.isPositiveChange ? 'var(--color-primary)' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div className={`flex items-center gap-[4px] text-[12px] ${arrComp.isPositiveChange ? 'text-primary' : 'text-[var(--color-text-muted)]'}`}>
             <Icon name={arrComp.isPositiveChange ? 'trendingUp' : 'trendingDown'} size={14} />
             <span>Baseline: {baselineARR.toLocaleString('de-DE')} € (Δ {arrComp.absoluteDelta >= 0 ? '+' : ''}{arrComp.absoluteDelta.toLocaleString('de-DE')} €)</span>
           </div>
-          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border-soft)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+          <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[8px] text-[var(--color-text-muted)]">
             Unsicherheitskorridor: <strong>{arrStats.p10.toLocaleString('de-DE')} € (P10)</strong> – <strong>{arrStats.p90.toLocaleString('de-DE')} € (P90)</strong>
           </div>
         </Card>
 
         {/* KPI 2: MRR (P50) */}
         <Card>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div className="text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
             Monatsumsatz (MRR P50 Median)
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 700, color: 'var(--color-text)', margin: '6px 0' }}>
+          <div className="text-[26px] font-bold my-[6px] mx-0 text-text">
             {comparisonMode === 'ABSOLUTE' && `${mrrStats.median.toLocaleString('de-DE')} €`}
             {comparisonMode === 'DELTA' && `${mrrComp.absoluteDelta >= 0 ? '+' : ''}${mrrComp.absoluteDelta.toLocaleString('de-DE')} €`}
             {comparisonMode === 'PERCENT' && `${mrrComp.percentChange >= 0 ? '+' : ''}${mrrComp.percentChange} %`}
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
             Ebene-A-Basis-MRR: {baselineMRR.toLocaleString('de-DE')} €
           </div>
-          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border-soft)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+          <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[8px] text-[var(--color-text-muted)]">
             P10: {mrrStats.p10.toLocaleString('de-DE')} € | P90: {mrrStats.p90.toLocaleString('de-DE')} €
           </div>
         </Card>
 
         {/* KPI 3: Kundenanzahl (P50) */}
         <Card>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div className="text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
             Gesamtkunden (P50 Median)
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 700, color: 'var(--color-text)', margin: '6px 0' }}>
+          <div className="text-[26px] font-bold my-[6px] mx-0 text-text">
             {comparisonMode === 'ABSOLUTE' && `${custStats.median} Kunden`}
             {comparisonMode === 'DELTA' && `${custComp.absoluteDelta >= 0 ? '+' : ''}${custComp.absoluteDelta} Kunden`}
             {comparisonMode === 'PERCENT' && `${custComp.percentChange >= 0 ? '+' : ''}${custComp.percentChange} %`}
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
             Ebene-A-Basis 2025: {baselineCustomers} Kunden
           </div>
-          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border-soft)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+          <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[8px] text-[var(--color-text-muted)]">
             P10: {custStats.p10} | P90: {custStats.p90} Kunden
           </div>
         </Card>
 
         {/* KPI 4: Won Deals (P50) */}
         <Card>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div className="text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
             Gewonnene Neugeschäft-Deals
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 700, color: 'var(--color-primary)', margin: '6px 0' }}>
+          <div className="text-[26px] font-bold my-[6px] mx-0 text-primary">
             {wonStats.median} Deals
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
             Streubereich Min-Max: {wonStats.min} bis {wonStats.max} Deals
           </div>
-          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border-soft)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+          <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[8px] text-[var(--color-text-muted)]">
             P10: {wonStats.p10} | P90: {wonStats.p90} Deals
           </div>
         </Card>
@@ -269,34 +256,51 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
 
       {/* Financial P&L & Profitability Summary Card */}
       <Card padding="var(--space-4)">
-        <h4 style={{ margin: '0 0 var(--space-3) 0', fontSize: '14px', color: 'var(--color-text)' }}>
+        <h4 className="text-[14px] text-text mt-0 mb-[var(--space-3)] mr-0 ml-0">
           Finanzprognose & Profitabilität (Net Revenue, EBITDA, Operating Margin, Cash Flow)
         </h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)' }}>
-          <div style={{ padding: '10px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Net Revenue (P50)</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)' }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[var(--space-3)]">
+          <div className="rounded bg-background-deep p-[10px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Net Revenue (P50)</div>
+            <div className="text-[18px] font-bold text-text">
               {(aggregation.metrics.financialMetrics?.netRevenue.median ?? state.metrics?.financialMetrics?.netRevenue ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>
 
-          <div style={{ padding: '10px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>EBITDA (P50)</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: (aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
+          <div className="rounded bg-background-deep p-[10px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">EBITDA (P50)</div>
+            <div
+              className="text-[18px] font-bold"
+              // G39 Welle 3: EBITDA-Farbe aus Finanz-Schwelle (< 0,
+              // Simulations-Datum, kontinuierlich) — als Klasse nicht
+              // darstellbar (Entscheidung 2).
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Finanz-Schwelle aus Daten), siehe Auftrag 056 Entscheidung 2
+              style={{
+                color: (aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-primary)',
+              }}
+            >
               {(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>
 
-          <div style={{ padding: '10px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Operating Margin</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)' }}>
+          <div className="rounded bg-background-deep p-[10px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Operating Margin</div>
+            <div className="text-[18px] font-bold text-text">
               {aggregation.metrics.financialMetrics?.operatingMargin.median ?? state.metrics?.financialMetrics?.operatingMargin ?? 0}%
             </div>
           </div>
 
-          <div style={{ padding: '10px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Net Cash Flow</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: (aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-accent)' }}>
+          <div className="rounded bg-background-deep p-[10px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Net Cash Flow</div>
+            <div
+              className="text-[18px] font-bold"
+              // G39 Welle 3: Cash-Flow-Farbe aus Finanz-Schwelle (< 0) —
+              // als Klasse nicht darstellbar (Entscheidung 2).
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Finanz-Schwelle aus Daten), siehe Auftrag 056 Entscheidung 2
+              style={{
+                color: (aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-accent)',
+              }}
+            >
               {(aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>

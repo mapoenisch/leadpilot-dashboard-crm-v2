@@ -12,47 +12,47 @@ export const DetailTierView: React.FC = () => {
   const params = activeVersion?.parameters;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+    <div className="flex flex-col gap-[var(--space-5)]">
       {/* 1. Core KPI Time Series, Uncertainty Corridor & Distribution Explorer (Auftrag 018) */}
       <KpiTimeSeriesDetailView />
 
 
       {/* Section 1: Active V1 Growth Driver Parameters */}
       <Card padding="var(--space-5)">
-        <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '15px', color: 'var(--color-text)' }}>
+        <h4 className="m-0 mb-[var(--space-4)] text-[15px] text-text">
           Aktive V1-Wachstumstreiber (Parameter Registry)
         </h4>
         {params ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)', paddingBottom: '6px' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Marketing-Budget:</span>
-              <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{params.marketingBudgetYearly.toLocaleString('de-DE')} €/Jahr</span>
+          <div className="flex flex-col gap-[10px] text-[13px]">
+            <div className="border-0 border-b border-solid border-border-soft flex justify-between pb-[6px]">
+              <span className="text-[var(--color-text-muted)]">Marketing-Budget:</span>
+              <span className="font-semibold text-text">{params.marketingBudgetYearly.toLocaleString('de-DE')} €/Jahr</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)', paddingBottom: '6px' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Trial-to-Paid Conversion:</span>
-              <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{params.trialToPaidConversion} %</span>
+            <div className="border-0 border-b border-solid border-border-soft flex justify-between pb-[6px]">
+              <span className="text-[var(--color-text-muted)]">Trial-to-Paid Conversion:</span>
+              <span className="font-semibold text-primary">{params.trialToPaidConversion} %</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)', paddingBottom: '6px' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Ziel-Churn-Rate:</span>
-              <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{params.churnRateMonthly} % / Monat</span>
+            <div className="border-0 border-b border-solid border-border-soft flex justify-between pb-[6px]">
+              <span className="text-[var(--color-text-muted)]">Ziel-Churn-Rate:</span>
+              <span className="font-semibold text-text">{params.churnRateMonthly} % / Monat</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)', paddingBottom: '6px' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Sales FTE Kapazität:</span>
-              <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{params.salesRepCount} FTE</span>
+            <div className="border-0 border-b border-solid border-border-soft flex justify-between pb-[6px]">
+              <span className="text-[var(--color-text-muted)]">Sales FTE Kapazität:</span>
+              <span className="font-semibold text-text">{params.salesRepCount} FTE</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)', paddingBottom: '6px' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>CS FTE Kapazität:</span>
-              <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{params.csRepCount} FTE</span>
+            <div className="border-0 border-b border-solid border-border-soft flex justify-between pb-[6px]">
+              <span className="text-[var(--color-text-muted)]">CS FTE Kapazität:</span>
+              <span className="font-semibold text-text">{params.csRepCount} FTE</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)', paddingBottom: '6px' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Sales Zyklus Dauer:</span>
-              <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{params.salesCycleDays} Tage</span>
+            <div className="border-0 border-b border-solid border-border-soft flex justify-between pb-[6px]">
+              <span className="text-[var(--color-text-muted)]">Sales Zyklus Dauer:</span>
+              <span className="font-semibold text-text">{params.salesCycleDays} Tage</span>
             </div>
 
             {/* Channel Mix Breakdown */}
-            <div style={{ marginTop: '8px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontWeight: 600 }}>Kanal-Mix (Proportional Normalisiert):</span>
-              <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+            <div className="mt-[8px]">
+              <span className="text-[12px] font-semibold text-[var(--color-text-muted)]">Kanal-Mix (Proportional Normalisiert):</span>
+              <div className="flex gap-[6px] flex-wrap mt-[6px]">
                 <Badge variant="cyan">LinkedIn: {params.channelMix.linkedIn}%</Badge>
                 <Badge variant="mint">SEO: {params.channelMix.seo}%</Badge>
                 <Badge variant="orange">Partner: {params.channelMix.partner}%</Badge>
@@ -62,52 +62,60 @@ export const DetailTierView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Keine Parameterdaten verfügbar.</div>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Keine Parameterdaten verfügbar.</div>
         )}
       </Card>
 
       {/* Section: Sales Capacity, Process Time vs Queue Time Analytics */}
       <Card padding="var(--space-5)">
-        <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '15px', color: 'var(--color-text)' }}>
+        <h4 className="m-0 mb-[var(--space-4)] text-[15px] text-text">
           Sales Capacity & Sales Queue Analytics (Process Time vs. Queue Time)
         </h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Vertriebs-Kapazität</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-primary)' }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[var(--space-4)]">
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Vertriebs-Kapazität</div>
+            <div className="text-[20px] font-bold text-primary">
               {params?.salesRepCount ?? 2} FTE ({state.salesQueueProjection?.availableCapacity ?? params?.salesRepCount ?? 2} Slots)
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Auslastung: {state.metrics?.salesQueueMetrics?.capacityUtilization ?? 0}%
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Prozesszeit (Process Time)</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Prozesszeit (Process Time)</div>
+            <div className="text-[20px] font-bold text-text">
               {state.salesQueueProjection?.avgProcessTicks ?? 1} Ticks
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Effektive Bearbeitungsdauer
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Wartezeit (Queue Time)</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: state.metrics?.salesQueueMetrics?.isSalesBottleneck ? 'var(--color-warning)' : 'var(--color-accent)' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Wartezeit (Queue Time)</div>
+            <div
+              className="text-[20px] font-bold"
+              // G39 Welle 3: Wertfarbe aus Simulations-State — als Klasse
+              // nicht darstellbar (Entscheidung 2).
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Simulations-State), siehe Auftrag 056 Entscheidung 2
+              style={{
+                color: state.metrics?.salesQueueMetrics?.isSalesBottleneck ? 'var(--color-warning)' : 'var(--color-accent)',
+              }}
+            >
               {state.salesQueueProjection?.avgQueueTicks ?? 0} Ticks
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Max. Wartezeit: {state.salesQueueProjection?.maxQueueTicks ?? 0} Ticks
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Sales Cycle</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Total Sales Cycle</div>
+            <div className="text-[20px] font-bold text-text">
               {(state.salesQueueProjection?.avgProcessTicks ?? 1) + (state.salesQueueProjection?.avgQueueTicks ?? 0)} Ticks
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               = Process Time + Queue Time
             </div>
           </div>
@@ -116,46 +124,62 @@ export const DetailTierView: React.FC = () => {
 
       {/* Section: Customer Success Health & CS Queue Analytics */}
       <Card padding="var(--space-5)">
-        <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '15px', color: 'var(--color-text)' }}>
+        <h4 className="m-0 mb-[var(--space-4)] text-[15px] text-text">
           Customer Success Health & CS Queue Analytics (Decisions 1374-1398)
         </h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Ø Customer Health</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: (state.metrics?.customerHealthMetrics?.avgHealthScore ?? 75) < 50 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[var(--space-4)]">
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Ø Customer Health</div>
+            <div
+              className="text-[20px] font-bold"
+              // G39 Welle 3: Wertfarbe aus Simulations-State — als Klasse
+              // nicht darstellbar (Entscheidung 2).
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Simulations-State), siehe Auftrag 056 Entscheidung 2
+              style={{
+                color: (state.metrics?.customerHealthMetrics?.avgHealthScore ?? 75) < 50 ? 'var(--color-warning)' : 'var(--color-primary)',
+              }}
+            >
               {state.metrics?.customerHealthMetrics?.avgHealthScore ?? 75} / 100
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Gefährdet (&lt; 50): {state.metrics?.customerHealthMetrics?.atRiskCustomerCount ?? 0}
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>CS Kapazität & Auslastung</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">CS Kapazität & Auslastung</div>
+            <div className="text-[20px] font-bold text-text">
               {params?.csRepCount ?? 2} FTE ({state.csQueueProjection?.availableCapacity ?? params?.csRepCount ?? 2} Slots)
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Auslastung: {state.metrics?.csQueueMetrics?.capacityUtilization ?? 0}%
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>CS Queue vs Process Time</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: state.metrics?.csQueueMetrics?.isCSBottleneck ? 'var(--color-warning)' : 'var(--color-accent)' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">CS Queue vs Process Time</div>
+            <div
+              className="text-[20px] font-bold"
+              // G39 Welle 3: Wertfarbe aus Simulations-State — als Klasse
+              // nicht darstellbar (Entscheidung 2).
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Simulations-State), siehe Auftrag 056 Entscheidung 2
+              style={{
+                color: state.metrics?.csQueueMetrics?.isCSBottleneck ? 'var(--color-warning)' : 'var(--color-accent)',
+              }}
+            >
               {state.csQueueProjection?.avgQueueTicks ?? 0} Ticks Queue / {state.csQueueProjection?.avgProcessTicks ?? 1} Ticks Process
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Max CS Wartezeit: {state.csQueueProjection?.maxQueueTicks ?? 0} Ticks
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Churn-Ursachen Breakdown</div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', marginTop: '4px' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Churn-Ursachen Breakdown</div>
+            <div className="text-[13px] font-semibold mt-[4px] text-text">
               Gekündigt: {state.metrics?.customerHealthMetrics?.churnedCustomerCount ?? 0}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11px] mt-[4px] text-[var(--color-text-muted)]">
               Health: {state.metrics?.customerHealthMetrics?.churnCausesBreakdown?.HEALTH_PROBLEM ?? 0} | CS Kapazität: {state.metrics?.customerHealthMetrics?.churnCausesBreakdown?.CS_CAPACITY ?? 0} | Basis: {state.metrics?.customerHealthMetrics?.churnCausesBreakdown?.BASELINE_CHURN ?? 0}
             </div>
           </div>
@@ -164,46 +188,54 @@ export const DetailTierView: React.FC = () => {
 
       {/* Section: Financial Analysis & P&L Card (Auftrag 011) */}
       <Card padding="var(--space-5)">
-        <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '15px', color: 'var(--color-text)' }}>
+        <h4 className="m-0 mb-[var(--space-4)] text-[15px] text-text">
           Financial Analysis & P&L Model (Gross/Net Revenue, Headcount OPEX, EBITDA, Cash Flow)
         </h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Umsatz (Gross & Net Revenue)</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)' }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[var(--space-4)]">
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Umsatz (Gross & Net Revenue)</div>
+            <div className="text-[18px] font-bold text-primary">
               Net: {(aggregation.metrics.financialMetrics?.netRevenue.median ?? state.metrics?.financialMetrics?.netRevenue ?? 0).toLocaleString('de-DE')} €
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Gross: {(aggregation.metrics.financialMetrics?.grossRevenue.median ?? state.metrics?.financialMetrics?.grossRevenue ?? 0).toLocaleString('de-DE')} € | Churn Loss: {(state.metrics?.financialMetrics?.churnLoss ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Headcount & Operational OPEX</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Headcount & Operational OPEX</div>
+            <div className="text-[18px] font-bold text-text">
               Total OPEX: {(aggregation.metrics.financialMetrics?.totalOpex.median ?? state.metrics?.financialMetrics?.totalOpex ?? 0).toLocaleString('de-DE')} €
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Sales Headcount: {(state.metrics?.financialMetrics?.salesHeadcountCost ?? 0).toLocaleString('de-DE')} € | CS Headcount: {(state.metrics?.financialMetrics?.csHeadcountCost ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>EBITDA & Operating Margin</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: (aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-accent)' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">EBITDA & Operating Margin</div>
+            <div
+              className="text-[18px] font-bold"
+              // G39 Welle 3: Wertfarbe aus Simulations-State — als Klasse
+              // nicht darstellbar (Entscheidung 2).
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Simulations-State), siehe Auftrag 056 Entscheidung 2
+              style={{
+                color: (aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-accent)',
+              }}
+            >
               {(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} € ({(aggregation.metrics.financialMetrics?.operatingMargin.median ?? state.metrics?.financialMetrics?.operatingMargin ?? 0)}%)
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               P10: {(aggregation.metrics.financialMetrics?.ebitda.p10 ?? state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} € | P90: {(aggregation.metrics.financialMetrics?.ebitda.p90 ?? state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>
 
-          <div style={{ padding: '12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>CAC & Cash Flow</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)' }}>
+          <div className="rounded bg-background-deep p-[12px]">
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">CAC & Cash Flow</div>
+            <div className="text-[18px] font-bold text-text">
               CAC: {(aggregation.metrics.financialMetrics?.cac.median ?? state.metrics?.financialMetrics?.cac ?? 0).toLocaleString('de-DE')} €
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
               Net Cash Flow: {(aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString('de-DE')} € | Kumuliert: {(aggregation.metrics.financialMetrics?.cumulativeCashFlow.median ?? state.metrics?.financialMetrics?.cumulativeCashFlow ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>
@@ -214,29 +246,21 @@ export const DetailTierView: React.FC = () => {
 
       {/* Section 4: Live Simulation Stream & Ticker */}
       <Card padding="var(--space-5)">
-        <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '15px', color: 'var(--color-text)' }}>
+        <h4 className="m-0 mb-[var(--space-4)] text-[15px] text-text">
           Aktueller Simulations-Event-Stream (Tick #{state.tickCount})
         </h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
+        <div className="flex flex-col gap-[8px] max-h-[240px] overflow-y-auto">
           {events.slice(0, 15).map((evt) => (
             <div
               key={evt.id}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--color-bg-deep)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: '12.5px',
-              }}
+              className="rounded bg-background-deep flex items-center justify-between text-[12.5px] px-[12px] py-[8px]"
             >
               <div>
-                <span style={{ fontWeight: 700, color: 'var(--color-primary)', marginRight: '8px' }}>Tick #{evt.tick}</span>
-                <span style={{ color: 'var(--color-text)', fontWeight: 600, marginRight: '8px' }}>{evt.title}:</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{evt.details}</span>
+                <span className="font-bold mr-[8px] text-primary">Tick #{evt.tick}</span>
+                <span className="font-semibold mr-[8px] text-text">{evt.title}:</span>
+                <span className="text-[var(--color-text-muted)]">{evt.details}</span>
               </div>
-              <span style={{ fontSize: '11px', color: 'var(--color-text-dim)' }}>{evt.timestamp}</span>
+              <span className="text-[11px] text-[var(--color-text-dim)]">{evt.timestamp}</span>
             </div>
           ))}
         </div>

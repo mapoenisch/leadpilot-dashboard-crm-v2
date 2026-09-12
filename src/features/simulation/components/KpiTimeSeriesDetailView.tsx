@@ -439,10 +439,10 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
   }, [events, selectedKpiKey]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+    <div className="flex flex-col gap-[var(--space-5)]">
       {/* 1. KPI Selection Tabs */}
       <Card padding="var(--space-3)">
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+        <div className="flex gap-[8px] overflow-x-auto pb-[4px]">
           {KPI_CONFIGS.map((cfg) => {
             const isSelected = cfg.key === selectedKpiKey;
             return (
@@ -464,10 +464,10 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
 
       {/* 2. Executive KPI Summary Card & Target Status */}
       <Card padding="var(--space-5)">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
+        <div className="flex justify-between items-start flex-wrap gap-[var(--space-4)]">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '4px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+            <div className="flex items-center gap-[var(--space-2)] mb-[4px]">
+              <span className="text-[13px] font-semibold uppercase text-[var(--color-text-muted)]">
                 {activeKpiConfig.label} · Detailanalyse (P50 Median)
               </span>
               <Badge variant="neutral">Baseline 2025: {activeKpiConfig.baseline.toLocaleString('de-DE')} {activeKpiConfig.unit}</Badge>
@@ -477,11 +477,11 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
                 <Badge variant="mint">Statistische Aussagekraft: Hoch ({completedRuns.length} Runs)</Badge>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-3)' }}>
-              <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'var(--font-display)' }}>
+            <div className="flex items-baseline gap-[var(--space-3)]">
+              <span className="font-display text-[28px] font-extrabold text-primary">
                 {stats.median.toLocaleString('de-DE')} {activeKpiConfig.unit}
               </span>
-              <span style={{ fontSize: '14px', fontWeight: 600, color: baselineComp.isPositiveChange ? 'var(--color-success)' : 'var(--color-danger)' }}>
+              <span className={`text-[14px] font-semibold ${baselineComp.isPositiveChange ? 'text-success' : ''}`}>
                 {baselineComp.absoluteDelta >= 0 ? `+${baselineComp.absoluteDelta.toLocaleString('de-DE')}` : baselineComp.absoluteDelta.toLocaleString('de-DE')} {activeKpiConfig.unit} ({baselineComp.percentChange >= 0 ? `+${baselineComp.percentChange}` : baselineComp.percentChange} %)
               </span>
             </div>
@@ -489,9 +489,9 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
 
           {/* Goal Target Badge & Explanation */}
           {activeKpiConfig.target && (
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Zielwert ({activeKpiConfig.target.targetValue.toLocaleString('de-DE')} {activeKpiConfig.unit}):</span>
+            <div className="text-right">
+              <div className="flex items-center gap-[8px] justify-end mb-[4px]">
+                <span className="text-[12px] text-[var(--color-text-muted)]">Zielwert ({activeKpiConfig.target.targetValue.toLocaleString('de-DE')} {activeKpiConfig.unit}):</span>
                 <Badge
                   variant={
                     goalEvaluation.status === 'ACHIEVED'
@@ -508,7 +508,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
                     : '❌ Ziel Verfehlt'}
                 </Badge>
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', maxWidth: '380px' }}>
+              <div className="text-[12px] max-w-[380px] text-[var(--color-text-muted)]">
                 {goalEvaluation.explanation}
               </div>
             </div>
@@ -516,10 +516,10 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
         </div>
 
         {/* View Mode Switcher & Metric Statistics Bar */}
-        <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--color-border-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+        <div className="border-0 border-t border-solid border-border-soft flex justify-between items-center flex-wrap gap-[12px] mt-[16px] pt-[12px]">
+          <div className="flex items-center gap-[8px] text-[12.5px] text-[var(--color-text-muted)]">
             <span>Darstellungsmodus:</span>
-            <div style={{ display: 'flex', gap: '4px', background: 'var(--color-bg-deep)', padding: '2px', borderRadius: 'var(--radius-sm)' }}>
+            <div className="flex gap-[4px] rounded bg-background-deep p-[2px]">
               <Button
                 size="sm"
                 variant={comparisonMode === 'ABSOLUTE' ? 'primary' : 'secondary'}
@@ -544,40 +544,40 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', fontSize: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="flex gap-[12px] text-[12px] flex-wrap items-center">
             <span><strong>Min:</strong> {stats.min.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span style={{ color: '#fb923c' }}><strong>P10:</strong> {stats.p10.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span style={{ color: 'var(--color-accent)' }}><strong>P50 (Median):</strong> {stats.median.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span style={{ color: 'var(--color-primary)' }}><strong>P90:</strong> {stats.p90.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
+            <span className="text-[#fb923c]"><strong>P10:</strong> {stats.p10.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
+            <span className="text-accent"><strong>P50 (Median):</strong> {stats.median.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
+            <span className="text-primary"><strong>P90:</strong> {stats.p90.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
             <span><strong>Max:</strong> {stats.max.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span style={{ color: 'var(--color-text-muted)' }}><strong>StdDev:</strong> ±{stats.stdDev.toLocaleString('de-DE')}</span>
+            <span className="text-[var(--color-text-muted)]"><strong>StdDev:</strong> ±{stats.stdDev.toLocaleString('de-DE')}</span>
           </div>
         </div>
       </Card>
 
       {/* 3. Interactive SVG Time Series Chart with P10/P90 Uncertainty Band */}
       <Card padding="var(--space-5)">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+        <div className="flex justify-between items-center flex-wrap gap-[var(--space-3)] mb-[var(--space-3)]">
           <div>
-            <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--color-text)' }}>
+            <h4 className="m-0 text-[15px] text-text">
               Zeitreihen-Verlauf & Unsicherheitsband (P10 · P50 Median · P90)
             </h4>
-            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+            <span className="text-[12px] text-[var(--color-text-muted)]">
               Visualisiert die zeitliche Entwicklung über alle Ticks. Ebene A (31.12.2025) ist als unveränderlicher Startpunkt bei Tick 0 fixiert.
             </span>
           </div>
-          <div style={{ display: 'flex', gap: '12px', fontSize: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '12px', height: '12px', background: 'rgba(0, 229, 255, 0.15)', border: '1px solid rgba(0, 229, 255, 0.4)', borderRadius: '2px' }} />
+          <div className="flex gap-[12px] text-[12px] items-center flex-wrap">
+            <span className="flex items-center gap-[4px]">
+              <span className="block w-[12px] h-[12px] rounded-[2px] border border-solid border-[rgba(0,229,255,0.4)] bg-[rgba(0,229,255,0.15)]" />
               P10–P90 Band
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '14px', height: '3px', background: 'var(--color-accent)' }} />
+            <span className="flex items-center gap-[4px]">
+              <span className="block w-[14px] h-[3px] bg-accent" />
               P50 Median
             </span>
             {activeKpiConfig.target && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ width: '14px', height: '2px', borderTop: '2px dashed #22c55e' }} />
+              <span className="flex items-center gap-[4px]">
+                <span className="block w-[14px] h-[2px] border-0 border-t-2 border-dashed border-[#22c55e]" />
                 Zielpfad
               </span>
             )}
@@ -585,10 +585,10 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
         </div>
 
         {chartData && chartData.points.length > 0 ? (
-          <div style={{ width: '100%', position: 'relative' }}>
+          <div className="w-full relative">
             <svg
               viewBox="0 0 800 320"
-              style={{ width: '100%', height: '320px', overflow: 'visible' }}
+              className="w-full h-[320px] overflow-visible"
             >
               {/* Grid Lines */}
               <line x1="50" y1="20" x2="780" y2="20" stroke="var(--color-border-soft)" strokeDasharray="3 3" />
@@ -698,7 +698,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
                           fill="var(--color-accent)"
                           onMouseEnter={() => setHoveredTick(p.tick)}
                           onMouseLeave={() => setHoveredTick(null)}
-                          style={{ cursor: 'pointer' }}
+                          className="cursor-pointer"
                         />
                         {/* X-axis tick labels (sparse) */}
                         {i % Math.max(1, Math.floor(pts.length / 6)) === 0 && (
@@ -715,21 +715,10 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
 
             {/* Hovered Tick Details Bar */}
             {hoveredTick !== null && (
-              <div
-                style={{
-                  marginTop: '10px',
-                  padding: '8px 12px',
-                  background: 'var(--color-bg-deep)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-sm)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '12px',
-                }}
-              >
+              <div className="rounded border border-solid border-border bg-background-deep flex justify-between text-[12px] mt-[10px] px-[12px] py-[8px]">
                 <span><strong>Tick #{hoveredTick}</strong></span>
                 <span>P10: {chartData.points.find((p) => p.tick === hoveredTick)?.p10.toLocaleString('de-DE')}</span>
-                <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>
+                <span className="font-bold text-accent">
                   P50 (Median): {chartData.points.find((p) => p.tick === hoveredTick)?.median.toLocaleString('de-DE')}
                 </span>
                 <span>P90: {chartData.points.find((p) => p.tick === hoveredTick)?.p90.toLocaleString('de-DE')}</span>
@@ -737,23 +726,23 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
             )}
           </div>
         ) : (
-          <div style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+          <div className="text-center p-[30px] text-[var(--color-text-muted)]">
             Keine Zeitreihendaten für diese Version verfügbar.
           </div>
         )}
 
         {/* 4. Individual Run Overlays (Max 5) */}
         {completedRuns.length > 0 && (
-          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--color-border-soft)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-text)' }}>
+          <div className="border-0 border-t border-solid border-border-soft mt-[16px] pt-[12px]">
+            <div className="flex justify-between items-center mb-[8px]">
+              <span className="text-[12.5px] font-semibold text-text">
                 Einzel-Run Overlays (Maximal 5 auswählbar, Entscheidungen 1300–1301):
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              <span className="text-[11px] text-[var(--color-text-muted)]">
                 {selectedRunIds.length} / 5 ausgewählt
               </span>
             </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div className="flex gap-[8px] flex-wrap">
               {completedRuns.slice(0, 15).map((r, idx) => {
                 const isSelected = selectedRunIds.includes(r.runId);
                 const colorIdx = selectedRunIds.indexOf(r.runId);
@@ -764,6 +753,10 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
                     size="sm"
                     variant={isSelected ? 'primary' : 'secondary'}
                     onClick={() => toggleRunSelection(r.runId)}
+                    // G39 Welle 3: Overlay-Farben aus Daten-Array
+                    // (RUN_OVERLAY_COLORS per Laufzeit-Index) — als Klasse
+                    // nicht darstellbar (Entscheidung 2).
+                    // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farben (Overlay-Palette aus Daten), siehe Auftrag 056 Entscheidung 2
                     style={{
                       borderColor: assignedColor,
                       color: isSelected ? '#fff' : assignedColor || 'var(--color-text-muted)',
@@ -785,7 +778,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
         subtitle={`Statistische Verteilung der Endergebnisse aus ${histogramData?.totalRuns ?? 0} validen Simulationsläufen.`}
         sourceLabel="Monte-Carlo Engine"
         headerAction={
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="flex gap-[8px]">
             <Badge variant="cyan">Median: {stats.median.toLocaleString('de-DE')} {activeKpiConfig.unit}</Badge>
             <Badge variant="neutral">Mean: {stats.mean.toLocaleString('de-DE')} {activeKpiConfig.unit}</Badge>
           </div>
@@ -804,30 +797,25 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
       </ChartFrame>
 
       {/* 6. Top 3 Growth Drivers & Event Drilldown */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--space-5)' }}>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-[var(--space-5)]">
         {/* Top 3 Drivers */}
         <Card padding="var(--space-5)">
-          <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '15px', color: 'var(--color-text)' }}>
+          <h4 className="m-0 mb-[var(--space-4)] text-[15px] text-text">
             Top-3 Einfluss- & Wachstumstreiber (Entscheidungen 1295–1297)
           </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <div className="flex flex-col gap-[var(--space-3)]">
             {topDrivers.map((d, i) => (
               <div
                 key={i}
-                style={{
-                  padding: '12px',
-                  background: 'var(--color-bg-deep)',
-                  border: '1px solid var(--color-border-soft)',
-                  borderRadius: 'var(--radius-sm)',
-                }}
+                className="rounded border border-solid border-border-soft bg-background-deep p-[12px]"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
+                <div className="flex justify-between items-center mb-[4px]">
+                  <span className="text-[13px] font-semibold text-text">
                     #{i + 1} {d.title}
                   </span>
                   <Badge variant={d.badgeVariant}>{d.impact}</Badge>
                 </div>
-                <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                <p className="m-0 text-[12px] text-[var(--color-text-muted)]">
                   {d.description}
                 </p>
               </div>
@@ -837,36 +825,28 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
 
         {/* Event Drilldown */}
         <Card padding="var(--space-5)">
-          <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '15px', color: 'var(--color-text)' }}>
+          <h4 className="m-0 mb-[var(--space-4)] text-[15px] text-text">
             Relevante Simulations-Ereignisse (Drill-Down, Entscheidung 1298)
           </h4>
           {filteredEvents.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '250px', overflowY: 'auto' }}>
+            <div className="flex flex-col gap-[8px] max-h-[250px] overflow-y-auto">
               {filteredEvents.map((evt) => (
                 <div
                   key={evt.id}
-                  style={{
-                    padding: '8px 10px',
-                    background: 'var(--color-bg-deep)',
-                    borderRadius: 'var(--radius-sm)',
-                    borderLeft: `3px solid ${
-                      evt.type === 'DEAL_WON' ? 'var(--color-success)' : 'var(--color-primary)'
-                    }`,
-                    fontSize: '12px',
-                  }}
+                  className={`rounded bg-background-deep border-0 border-l-[3px] border-solid text-[12px] px-[10px] py-[8px] ${evt.type === 'DEAL_WON' ? 'border-l-success' : 'border-l-primary'}`}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                  <div className="flex justify-between font-semibold">
                     <span>{evt.title}</span>
-                    <span style={{ color: 'var(--color-text-muted)', fontSize: '10px' }}>Tick #{evt.tick}</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)]">Tick #{evt.tick}</span>
                   </div>
-                  <div style={{ color: 'var(--color-text-muted)', fontSize: '11px', marginTop: '2px' }}>
+                  <div className="text-[11px] mt-[2px] text-[var(--color-text-muted)]">
                     {evt.details}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ color: 'var(--color-text-muted)', fontSize: '12.5px', padding: '16px 0' }}>
+            <div className="text-[12.5px] py-[16px] px-0 text-[var(--color-text-muted)]">
               Keine relevanten Ereignisse für diese Kennzahl im aktuellen Verlauf protokolliert.
             </div>
           )}

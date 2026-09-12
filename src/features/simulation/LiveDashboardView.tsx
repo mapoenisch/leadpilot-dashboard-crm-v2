@@ -52,10 +52,10 @@ export function LiveDashboardView() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+    <div className="flex flex-col gap-[var(--space-5)]">
       {/* Primary 3-Tier Navigation Header */}
       <Card padding="var(--space-3)">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+        <div className="flex items-center justify-between flex-wrap gap-[var(--space-3)]">
           <Tabs
             items={[
               { id: 'management', label: '📊 Management-Ebene (P50 Forecast & Corridor)' },
@@ -87,7 +87,7 @@ export function LiveDashboardView() {
 
       {/* TIER 4: Operative Live Simulation Sub-Views */}
       {activeTier === 'operativ' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+        <div className="flex flex-col gap-[var(--space-5)]">
           <Tabs
             items={[
               { id: 'leads', label: 'Live Lead Pipeline', count: leads.length },
@@ -102,29 +102,20 @@ export function LiveDashboardView() {
           {/* TAB: Leads */}
           {activeOperativeTab === 'leads' && (
             <Card padding="var(--space-5)">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+              <div className="flex items-center justify-between flex-wrap gap-[var(--space-3)] mb-[var(--space-4)]">
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--color-text)' }}>Simulierte Operative Leads (Ebene B)</h3>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+                  <h3 className="m-0 text-[16px] text-text">Simulierte Operative Leads (Ebene B)</h3>
+                  <p className="text-[12.5px] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
                     Alle in Ebene B generierten Leads und deren automatischer Qualifizierungsfortschritt
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '6px', background: 'var(--color-bg-deep)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
+                <div className="flex gap-[6px] rounded-md bg-background-deep p-[4px]">
                   {['ALL', 'New', 'MQL', 'SQL', 'Hot', 'Won', 'Lost'].map((st) => (
                     <button
                       key={st}
                       onClick={() => setStatusFilter(st)}
-                      style={{
-                        background: statusFilter === st ? 'var(--color-surface)' : 'transparent',
-                        color: statusFilter === st ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                        border: 'none',
-                        borderRadius: 'var(--radius-sm)',
-                        padding: '4px 10px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
+                      className={`border-0 rounded cursor-pointer outline-none text-[12px] font-semibold px-[10px] py-[4px] ${statusFilter === st ? 'bg-surface text-primary' : 'bg-transparent text-[var(--color-text-muted)]'}`}
                     >
                       {st === 'ALL' ? 'Alle' : st}
                     </button>
@@ -132,47 +123,51 @@ export function LiveDashboardView() {
                 </div>
               </div>
 
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-[13px] text-left">
                   <thead>
-                    <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-                      <th style={{ padding: '10px' }}>Unternehmen</th>
-                      <th style={{ padding: '10px' }}>Kontaktperson</th>
-                      <th style={{ padding: '10px' }}>Quelle</th>
-                      <th style={{ padding: '10px' }}>ICP Score</th>
-                      <th style={{ padding: '10px' }}>Status</th>
-                      <th style={{ padding: '10px' }}>Geschätzter Wert</th>
-                      <th style={{ padding: '10px' }}>Owner</th>
-                      <th style={{ padding: '10px' }}>Erstellt</th>
+                    <tr className="border-0 border-b border-solid border-border text-[var(--color-text-muted)]">
+                      <th className="p-[10px]">Unternehmen</th>
+                      <th className="p-[10px]">Kontaktperson</th>
+                      <th className="p-[10px]">Quelle</th>
+                      <th className="p-[10px]">ICP Score</th>
+                      <th className="p-[10px]">Status</th>
+                      <th className="p-[10px]">Geschätzter Wert</th>
+                      <th className="p-[10px]">Owner</th>
+                      <th className="p-[10px]">Erstellt</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredLeads.map((lead) => (
-                      <tr key={lead.id} style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
-                        <td style={{ padding: '10px', fontWeight: 600, color: 'var(--color-text)' }}>{lead.companyName}</td>
-                        <td style={{ padding: '10px', color: 'var(--color-text-muted)' }}>
+                      <tr key={lead.id} className="border-0 border-b border-solid border-border-soft">
+                        <td className="font-semibold text-text p-[10px]">{lead.companyName}</td>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">
                           <div>{lead.contactName}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--color-text-dim)' }}>{lead.email}</div>
+                          <div className="text-[11px] text-[var(--color-text-dim)]">{lead.email}</div>
                         </td>
-                        <td style={{ padding: '10px', color: 'var(--color-text-muted)' }}>{lead.source}</td>
-                        <td style={{ padding: '10px' }}>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">{lead.source}</td>
+                        <td className="p-[10px]">
                           <span
+                            className="font-bold"
+                            // G39 Welle 3: Score-Farbe aus Schwellenwerten des
+                            // Simulations-Datums (kontinuierlich) — als Klasse
+                            // nicht darstellbar (Entscheidung 2).
+                            // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Score-Schwellen aus Daten), siehe Auftrag 056 Entscheidung 2
                             style={{
-                              fontWeight: 700,
                               color: lead.score >= 80 ? 'var(--color-primary)' : lead.score >= 65 ? '#e5c07b' : 'var(--color-text-muted)',
                             }}
                           >
                             {lead.score} / 100
                           </span>
                         </td>
-                        <td style={{ padding: '10px' }}>
+                        <td className="p-[10px]">
                           <Badge variant={getStatusBadgeVariant(lead.status)}>{lead.status}</Badge>
                         </td>
-                        <td style={{ padding: '10px', fontWeight: 600, color: 'var(--color-accent)' }}>
+                        <td className="font-semibold text-accent p-[10px]">
                           {lead.estimatedValue.toLocaleString('de-DE')} €/J.
                         </td>
-                        <td style={{ padding: '10px', color: 'var(--color-text-muted)' }}>{lead.owner}</td>
-                        <td style={{ padding: '10px', color: 'var(--color-text-muted)', fontSize: '11.5px' }}>Tick #{lead.createdAtTick}</td>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">{lead.owner}</td>
+                        <td className="text-[11.5px] text-[var(--color-text-muted)] p-[10px]">Tick #{lead.createdAtTick}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -184,36 +179,36 @@ export function LiveDashboardView() {
           {/* TAB: Deals */}
           {activeOperativeTab === 'deals' && (
             <Card padding="var(--space-5)">
-              <h3 style={{ margin: '0 0 var(--space-4) 0', fontSize: '16px', color: 'var(--color-text)' }}>
+              <h3 className="text-[16px] text-text mt-0 mb-[var(--space-4)] mr-0 ml-0">
                 Echtzeit-Gewonnene Deals (Simulations-Abschlüsse)
               </h3>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-[13px] text-left">
                   <thead>
-                    <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-                      <th style={{ padding: '10px' }}>Deal Name</th>
-                      <th style={{ padding: '10px' }}>Kunde</th>
-                      <th style={{ padding: '10px' }}>Gewähltes Paket</th>
-                      <th style={{ padding: '10px' }}>Simulierter ARR</th>
-                      <th style={{ padding: '10px' }}>Simulierter MRR</th>
-                      <th style={{ padding: '10px' }}>Abschlussdatum</th>
-                      <th style={{ padding: '10px' }}>Gewonnen bei</th>
+                    <tr className="border-0 border-b border-solid border-border text-[var(--color-text-muted)]">
+                      <th className="p-[10px]">Deal Name</th>
+                      <th className="p-[10px]">Kunde</th>
+                      <th className="p-[10px]">Gewähltes Paket</th>
+                      <th className="p-[10px]">Simulierter ARR</th>
+                      <th className="p-[10px]">Simulierter MRR</th>
+                      <th className="p-[10px]">Abschlussdatum</th>
+                      <th className="p-[10px]">Gewonnen bei</th>
                     </tr>
                   </thead>
                   <tbody>
                     {deals.map((deal) => (
-                      <tr key={deal.id} style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
-                        <td style={{ padding: '10px', fontWeight: 600, color: 'var(--color-primary)' }}>{deal.dealName}</td>
-                        <td style={{ padding: '10px', color: 'var(--color-text)' }}>{deal.companyName}</td>
-                        <td style={{ padding: '10px' }}>
+                      <tr key={deal.id} className="border-0 border-b border-solid border-border-soft">
+                        <td className="font-semibold text-primary p-[10px]">{deal.dealName}</td>
+                        <td className="text-text p-[10px]">{deal.companyName}</td>
+                        <td className="p-[10px]">
                           <Badge variant="cyan">{deal.packageName}</Badge>
                         </td>
-                        <td style={{ padding: '10px', fontWeight: 700, color: 'var(--color-accent)' }}>
+                        <td className="font-bold text-accent p-[10px]">
                           {deal.arr.toLocaleString('de-DE')} €
                         </td>
-                        <td style={{ padding: '10px', color: 'var(--color-text-muted)' }}>{deal.mrr.toLocaleString('de-DE')} €</td>
-                        <td style={{ padding: '10px', color: 'var(--color-text-muted)' }}>{deal.closeDate}</td>
-                        <td style={{ padding: '10px', color: 'var(--color-text-muted)' }}>Tick #{deal.wonAtTick}</td>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">{deal.mrr.toLocaleString('de-DE')} €</td>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">{deal.closeDate}</td>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">Tick #{deal.wonAtTick}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -225,34 +220,23 @@ export function LiveDashboardView() {
           {/* TAB: Event Stream */}
           {activeOperativeTab === 'events' && (
             <Card padding="var(--space-5)">
-              <h3 style={{ margin: '0 0 var(--space-4) 0', fontSize: '16px', color: 'var(--color-text)' }}>
+              <h3 className="text-[16px] text-text mt-0 mb-[var(--space-4)] mr-0 ml-0">
                 Simulations-Event Ticker & Aktivitätsstream
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div className="flex flex-col gap-[var(--space-3)]">
                 {events.slice(0, 50).map((evt) => (
                   <div
                     key={evt.id}
-                    style={{
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      background: 'var(--color-bg-deep)',
-                      borderLeft: `3px solid ${
-                        evt.type === 'DEAL_WON' ? 'var(--color-primary)' : evt.type === 'NEW_LEAD' ? '#e5c07b' : 'var(--color-border)'
-                      }`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 'var(--space-3)',
-                    }}
+                    className={`rounded-md bg-background-deep flex items-center justify-between gap-[var(--space-3)] border-0 border-l-[3px] border-solid px-[14px] py-[10px] ${evt.type === 'DEAL_WON' ? 'border-l-primary' : evt.type === 'NEW_LEAD' ? 'border-l-[#e5c07b]' : 'border-l-border'}`}
                   >
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 700 }}>Tick #{evt.tick}</span>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{evt.title}</span>
+                      <div className="flex items-center gap-[8px] mb-[2px]">
+                        <span className="text-[11px] font-bold text-primary">Tick #{evt.tick}</span>
+                        <span className="text-[13px] font-semibold text-text">{evt.title}</span>
                       </div>
-                      <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>{evt.details}</div>
+                      <div className="text-[12.5px] text-[var(--color-text-muted)]">{evt.details}</div>
                     </div>
-                    <div style={{ fontSize: '11.5px', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>{evt.timestamp}</div>
+                    <div className="text-[11.5px] whitespace-nowrap text-[var(--color-text-dim)]">{evt.timestamp}</div>
                   </div>
                 ))}
               </div>

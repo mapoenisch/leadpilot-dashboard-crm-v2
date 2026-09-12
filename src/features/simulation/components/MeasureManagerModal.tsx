@@ -177,7 +177,7 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
       key: 'baseValue',
       label: 'Ohne Maßnahmen',
       render: (row) => (
-        <span style={{ fontFamily: 'var(--font-mono)' }}>
+        <span className="font-mono">
           {row.baseValue.toLocaleString('de-DE')} {row.unit}
         </span>
       ),
@@ -186,7 +186,7 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
       key: 'withMeasuresValue',
       label: 'Mit Maßnahmen',
       render: (row) => (
-        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--color-primary)' }}>
+        <span className="font-mono font-semibold text-primary">
           {row.withMeasuresValue.toLocaleString('de-DE')} {row.unit}
         </span>
       ),
@@ -198,12 +198,12 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
         const isPos = row.delta >= 0;
         const sign = row.delta > 0 ? '+' : '';
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="flex items-center gap-[6px]">
             <Badge variant={isPos ? 'cyan' : 'orange'}>
               {sign}
               {row.delta.toLocaleString('de-DE')} {row.unit}
             </Badge>
-            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+            <span className="font-mono text-[11px] text-[var(--color-text-muted)]">
               ({sign}
               {row.deltaPercent}%)
             </span>
@@ -220,8 +220,8 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
       title="Maßnahmenmanager & Geführte Wirkungskette"
       maxWidth="960px"
       footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+        <div className="flex justify-between w-full items-center">
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Aktive Maßnahmen: {draftMeasures.length}
           </span>
           <Button variant="secondary" onClick={onClose}>
@@ -230,22 +230,22 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      <div className="flex flex-col gap-[var(--space-4)]">
         {/* Active Draft Measures List */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
-            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--color-text)' }}>
+          <div className="flex justify-between items-center mb-[var(--space-2)]">
+            <h4 className="m-0 text-[15px] font-semibold text-text">
               Aktive Maßnahmen im aktuellen Szenario-Entwurf
             </h4>
             <StatusChip variant="neutral" label={`${draftMeasures.length} Maßnahmen`} size="sm" />
           </div>
 
           {detectedConflicts.length > 0 && (
-            <div data-testid="measure-conflict-alert" style={{ marginBottom: 'var(--space-3)' }}>
+            <div data-testid="measure-conflict-alert" className="mb-[var(--space-3)]">
               <Alert variant="warning" title="Konfliktwarnung (MULTIPLE_SET)">
-                <ul style={{ margin: 0, paddingLeft: 'var(--space-4)' }}>
+                <ul className="m-0 pl-[var(--space-4)]">
                   {detectedConflicts.map((c, i) => (
-                    <li key={i} style={{ fontSize: '12px' }}>
+                    <li key={i} className="text-[12px]">
                       {c.message}
                     </li>
                   ))}
@@ -256,20 +256,20 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
 
           {draftMeasures.length === 0 ? (
             <Card padding="var(--space-3)">
-              <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '13px', padding: 'var(--space-2)' }}>
+              <div className="text-center text-[13px] p-[var(--space-2)] text-[var(--color-text-muted)]">
                 Noch keine Maßnahmen für diesen Szenario-Entwurf angelegt.
               </div>
             </Card>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <div className="flex flex-col gap-[var(--space-2)]">
               {draftMeasures.map((m) => {
                 const endTick = m.durationTicks !== undefined ? m.startTick + m.durationTicks : undefined;
                 return (
                   <Card key={m.id} padding="var(--space-3)">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+                    <div className="flex justify-between items-start flex-wrap gap-[8px]">
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text)' }}>{m.name}</span>
+                        <div className="flex items-center gap-[var(--space-2)] flex-wrap">
+                          <span className="font-semibold text-[14px] text-text">{m.name}</span>
                           <StatusChip variant="cyan" label={`Start: Tick #${m.startTick}`} size="sm" />
                           {m.rampUpTicks ? <StatusChip variant="orange" label={`Ramp-up: ${m.rampUpTicks} Ticks`} size="sm" /> : null}
                           {m.durationTicks ? (
@@ -279,11 +279,11 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
                           )}
                         </div>
                         {m.description && (
-                          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                          <div className="text-[12px] mt-[4px] text-[var(--color-text-muted)]">
                             {m.description}
                           </div>
                         )}
-                        <div style={{ marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        <div className="flex flex-wrap gap-[6px] mt-[6px]">
                           {m.changes.map((c, idx) => {
                             const def = V1_PARAMETER_DEFINITIONS[c.parameter];
                             const modeLabel = c.mode === 'set' ? '=' : c.mode === 'delta' ? (c.value >= 0 ? '+' : '') : '×';
@@ -291,13 +291,7 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
                             return (
                               <span
                                 key={idx}
-                                style={{
-                                  background: 'var(--color-bg-deep)',
-                                  border: '1px solid var(--color-border-soft)',
-                                  padding: '2px 8px',
-                                  borderRadius: 'var(--radius-sm)',
-                                  fontSize: '11.5px',
-                                }}
+                                className="rounded border border-solid border-border-soft bg-background-deep text-[11.5px] px-[8px] py-[2px]"
                               >
                                 <strong>{def?.label || c.parameter}:</strong> {modeLabel} {valFormatted}
                               </span>
@@ -316,29 +310,29 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
           )}
         </div>
 
-        <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-2) 0' }} />
+        <hr className="border-0 border-t border-solid border-border my-[var(--space-2)] mx-0" />
 
         {/* 6-Phase Measure Configuration Form */}
         <div>
-          <h4 style={{ margin: '0 0 var(--space-3) 0', fontSize: '15px', fontWeight: 600, color: 'var(--color-text)' }}>
+          <h4 className="text-[15px] font-semibold text-text mt-0 mb-[var(--space-3)] mr-0 ml-0">
             Geführte 6-Phasen Maßnahmenkonfiguration
           </h4>
 
           {formError && (
-            <div style={{ marginBottom: 'var(--space-3)' }}>
+            <div className="mb-[var(--space-3)]">
               <Alert variant="error">
                 {formError}
               </Alert>
             </div>
           )}
 
-          <form onSubmit={handleSaveMeasure} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <form onSubmit={handleSaveMeasure} className="flex flex-col gap-[var(--space-4)]">
             {/* Phase 1: Beschreibung */}
             <Card padding="var(--space-3)">
-              <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div className="text-[12px] font-semibold uppercase mb-[8px] text-primary">
                 1. Beschreibung & Zielkontext
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-3)' }}>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[var(--space-3)]">
                 <Input
                   label="Name der Maßnahme *"
                   placeholder="z. B. Sales-Team Verdopplung"
@@ -360,10 +354,10 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
 
             {/* Phase 2: Zeitfenster & Visuelle Timeline */}
             <Card padding="var(--space-3)">
-              <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div className="text-[12px] font-semibold uppercase mb-[8px] text-primary">
                 2. Zeitfenster & Wirkungsverlauf
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)' }}>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[var(--space-3)]">
                 <NumberStepper
                   label="Start (Tick #)"
                   value={startTick}
@@ -396,24 +390,26 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
               </div>
 
               {/* Visual Timeline Bar Preview */}
-              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--color-border-soft)' }}>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+              <div className="border-0 border-t border-solid border-border-soft mt-[12px] pt-[10px]">
+                <div className="flex justify-between text-[11px] mb-[4px] text-[var(--color-text-muted)]">
                   <span>Timeline-Vorschau:</span>
                   <span>
                     Start: Tick {startTick} · Ramp-up: {rampUpTicks} Ticks · Dauer: {durationTicks ? `${durationTicks} Ticks` : 'Dauerhaft'}
                   </span>
                 </div>
-                <div style={{ width: '100%', height: '14px', background: 'var(--color-bg-deep)', borderRadius: '4px', position: 'relative', overflow: 'hidden' }}>
+                <div className="w-full h-[14px] rounded bg-background-deep relative overflow-hidden">
                   <div
+                    className="absolute h-full rounded-[2px]"
+                    // G39 Welle 3: Balkenposition/-breite/-verlauf aus
+                    // Formular-State (berechnet) — als Klasse nicht
+                    // darstellbar (Entscheidung 2).
+                    // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Timeline-Balken aus State), siehe Auftrag 056 Entscheidung 2
                     style={{
-                      position: 'absolute',
                       left: `${Math.min(100, (startTick / 30) * 100)}%`,
                       width: durationTicks ? `${Math.min(100, (parseInt(durationTicks, 10) / 30) * 100)}%` : '100%',
-                      height: '100%',
                       background: rampUpTicks > 0
                         ? 'linear-gradient(90deg, var(--color-warning) 0%, var(--color-primary) 50%, var(--color-primary) 100%)'
                         : 'var(--color-primary)',
-                      borderRadius: '2px',
                     }}
                   />
                 </div>
@@ -422,8 +418,8 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
 
             {/* Phase 3 & 4: Treiber & Intensität */}
             <Card padding="var(--space-3)">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, textTransform: 'uppercase' }}>
+              <div className="flex justify-between items-center mb-[8px]">
+                <div className="text-[12px] font-semibold uppercase text-primary">
                   3. Zielparameter (Treiber) & 4. Intensität
                 </div>
                 <Button type="button" variant="secondary" size="sm" onClick={handleAddChange}>
@@ -431,22 +427,13 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
                 </Button>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div className="flex flex-col gap-[var(--space-3)]">
                 {changes.map((c, idx) => {
                   const def = V1_PARAMETER_DEFINITIONS[c.parameter];
                   return (
                     <div
                       key={idx}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr)) auto',
-                        gap: 'var(--space-2)',
-                        alignItems: 'flex-end',
-                        background: 'var(--color-bg-deep)',
-                        padding: '10px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--color-border-soft)',
-                      }}
+                      className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))_auto] gap-[var(--space-2)] items-end rounded-md border border-solid border-border-soft bg-background-deep p-[10px]"
                     >
                       <Select
                         label="Zielparameter (Treiber)"
@@ -483,7 +470,9 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
                           variant="danger"
                           size="sm"
                           onClick={() => handleRemoveChange(idx)}
-                          style={{ padding: '8px 12px', marginBottom: '2px' }}
+                          // G39 Welle 3: nutzt den Block-A className-Merge
+                          // (statische Overrides als Klassen statt style).
+                          className="px-[12px] py-[8px] mb-[2px]"
                         >
                           ✕
                         </Button>
@@ -496,10 +485,10 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
 
             {/* Phase 5: Wirkungsvorschau */}
             <Card padding="var(--space-3)">
-              <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div className="text-[12px] font-semibold uppercase mb-[8px] text-primary">
                 5. Side-Effect-Freie Wirkungsvorschau
               </div>
-              <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="flex gap-[var(--space-3)] items-center flex-wrap">
                 <Button
                   type="button"
                   variant="primary"
@@ -509,13 +498,13 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
                 >
                   {isPreviewing ? 'Simuliere Wirkungsvorschau...' : '⚡ Wirkungsvorschau simulieren'}
                 </Button>
-                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                <span className="text-[12px] text-[var(--color-text-muted)]">
                   (Führt 2 identische Seed-Läufe aus, vergleicht KPI-Deltas, speichert 0 Runs/Versionen)
                 </span>
               </div>
 
               {previewError && (
-                <div style={{ marginTop: 'var(--space-3)' }}>
+                <div className="mt-[var(--space-3)]">
                   <Alert variant="error" title="Fehler bei Wirkungsvorschau">
                     {previewError}
                   </Alert>
@@ -523,11 +512,11 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
               )}
 
               {previewConflicts.length > 0 && (
-                <div style={{ marginTop: 'var(--space-3)' }}>
+                <div className="mt-[var(--space-3)]">
                   <Alert variant="warning" title="Konfliktwarnungen erkannt">
-                    <ul style={{ margin: 0, paddingLeft: 'var(--space-4)' }}>
+                    <ul className="m-0 pl-[var(--space-4)]">
                       {previewConflicts.map((conf, idx) => (
-                        <li key={idx} style={{ fontSize: '12px' }}>
+                        <li key={idx} className="text-[12px]">
                           {conf.message}
                         </li>
                       ))}
@@ -537,15 +526,20 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
               )}
 
               {previewDeltas && (
-                <div data-testid="measure-preview-delta-table" style={{ marginTop: 'var(--space-3)' }}>
+                <div data-testid="measure-preview-delta-table" className="mt-[var(--space-3)]">
                   <Table columns={previewColumns} rows={previewDeltas} minWidth="550px" />
                 </div>
               )}
             </Card>
 
             {/* Phase 6: Speichern */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
-              <Button type="submit" variant="primary" style={{ minWidth: '200px' }}>
+            <div className="flex justify-end mt-[var(--space-2)]">
+              <Button
+                type="submit"
+                variant="primary"
+                // G39 Welle 3: statische Breite als Klasse via Block-A-Merge.
+                className="min-w-[200px]"
+              >
                 6. Maßnahme speichern
               </Button>
             </div>

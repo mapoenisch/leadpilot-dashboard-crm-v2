@@ -36,15 +36,15 @@ export const AuditTierView: React.FC = () => {
   const selectedSourceAudit = selectedRun ? resolveRunSourceAudit(selectedRun) : null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+    <div className="flex flex-col gap-[var(--space-5)]">
       {/* Header Banner */}
       <Card padding="var(--space-4)">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="flex items-center justify-between">
           <div>
-            <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>
+            <h3 className="m-0 text-[18px] text-text">
               Technik & Audit-Ebene: Technische Run-Historie
             </h3>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+            <p className="text-[13px] text-[var(--color-text-muted)] mt-[4px] mb-0 mr-0 ml-0">
               Vollständige technische Liste aller durchgeführten Simulationsläufe (`SimulationRun`), Seeds, Manifeste, Snapshots und Status.
             </p>
           </div>
@@ -54,18 +54,18 @@ export const AuditTierView: React.FC = () => {
 
       {/* Technical Run Table */}
       <Card padding="var(--space-5)">
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-[13px] text-left">
             <thead>
-              <tr style={{ borderBottom: '2px solid var(--color-border)', color: 'var(--color-text)' }}>
-                <th style={{ padding: '12px' }}>Run-ID</th>
-                <th style={{ padding: '12px' }}>Szenario / Version</th>
-                <th style={{ padding: '12px' }}>Baseline / Quelle</th>
-                <th style={{ padding: '12px' }}>Seed</th>
-                <th style={{ padding: '12px' }}>Status</th>
-                <th style={{ padding: '12px' }}>Ergebnis ARR</th>
-                <th style={{ padding: '12px' }}>Erstellt am</th>
-                <th style={{ padding: '12px', textAlign: 'right' }}>Aktionen</th>
+              <tr className="border-0 border-b-2 border-solid border-border text-text">
+                <th className="p-[12px]">Run-ID</th>
+                <th className="p-[12px]">Szenario / Version</th>
+                <th className="p-[12px]">Baseline / Quelle</th>
+                <th className="p-[12px]">Seed</th>
+                <th className="p-[12px]">Status</th>
+                <th className="p-[12px]">Ergebnis ARR</th>
+                <th className="p-[12px]">Erstellt am</th>
+                <th className="text-right p-[12px]">Aktionen</th>
               </tr>
             </thead>
             <tbody>
@@ -73,36 +73,36 @@ export const AuditTierView: React.FC = () => {
                 const finalArr = run.finalMetrics?.liveARR || run.finalState?.metrics?.liveARR || 0;
                 const srcAudit = resolveRunSourceAudit(run);
                 return (
-                  <tr key={run.runId} style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
-                    <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600, color: 'var(--color-primary)' }}>
+                  <tr key={run.runId} className="border-0 border-b border-solid border-border-soft">
+                    <td className="font-mono font-semibold text-primary p-[12px]">
                       {run.runId}
                     </td>
-                    <td style={{ padding: '12px', color: 'var(--color-text)' }}>
+                    <td className="text-text p-[12px]">
                       <div>{run.scenarioId}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{run.scenarioVersionId}</div>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">{run.scenarioVersionId}</div>
                     </td>
-                    <td style={{ padding: '12px', fontSize: '12px' }}>
-                      <div style={{ fontFamily: 'monospace', color: 'var(--color-primary)', fontWeight: 600 }}>
+                    <td className="text-[12px] p-[12px]">
+                      <div className="font-mono font-semibold text-primary">
                         {srcAudit.baselineVersion}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">
                         {srcAudit.sourceLabel} ({srcAudit.sourceKind})
                       </div>
                     </td>
-                    <td style={{ padding: '12px', fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>
+                    <td className="font-mono text-[var(--color-text-muted)] p-[12px]">
                       {run.seed}
                     </td>
-                    <td style={{ padding: '12px' }}>
+                    <td className="p-[12px]">
                       <Badge variant={getStatusBadgeVariant(run.status)}>{run.status}</Badge>
                     </td>
-                    <td style={{ padding: '12px', fontWeight: 700, color: 'var(--color-accent)' }}>
+                    <td className="font-bold text-accent p-[12px]">
                       {finalArr > 0 ? `${finalArr.toLocaleString('de-DE')} €` : '—'}
                     </td>
-                    <td style={{ padding: '12px', color: 'var(--color-text-muted)', fontSize: '11.5px' }}>
+                    <td className="text-[11.5px] text-[var(--color-text-muted)] p-[12px]">
                       {run.startedAt ? new Date(run.startedAt).toLocaleTimeString('de-DE') : '—'}
                     </td>
-                    <td style={{ padding: '12px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                    <td className="text-right p-[12px]">
+                      <div className="flex gap-[6px] justify-end">
                         <Button size="sm" variant="secondary" onClick={() => handleInspectRun(run)}>
                           Audit
                         </Button>
@@ -130,36 +130,18 @@ export const AuditTierView: React.FC = () => {
           title={`Audit-Details: ${selectedRun.runId}`}
           maxWidth="750px"
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%' }}>
+          <div className="flex flex-col gap-[var(--space-4)] w-full">
             {/* Modal Tabs */}
-            <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--color-border)' }}>
+            <div className="border-0 border-b border-solid border-border flex gap-[8px]">
               <button
                 onClick={() => setActiveModalTab('manifest')}
-                style={{
-                  background: activeModalTab === 'manifest' ? 'var(--color-primary-soft)' : 'transparent',
-                  color: activeModalTab === 'manifest' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  border: 'none',
-                  padding: '8px 14px',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  borderRadius: 'var(--radius-sm) var(--radius-sm) 0 0',
-                }}
+                className={`border-0 rounded-t font-semibold text-[13px] cursor-pointer px-[14px] py-[8px] ${activeModalTab === 'manifest' ? 'bg-primary-soft text-primary' : 'bg-transparent text-[var(--color-text-muted)]'}`}
               >
                 RunManifest & Parameter
               </button>
               <button
                 onClick={() => setActiveModalTab('snapshot')}
-                style={{
-                  background: activeModalTab === 'snapshot' ? 'var(--color-primary-soft)' : 'transparent',
-                  color: activeModalTab === 'snapshot' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  border: 'none',
-                  padding: '8px 14px',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  borderRadius: 'var(--radius-sm) var(--radius-sm) 0 0',
-                }}
+                className={`border-0 rounded-t font-semibold text-[13px] cursor-pointer px-[14px] py-[8px] ${activeModalTab === 'snapshot' ? 'bg-primary-soft text-primary' : 'bg-transparent text-[var(--color-text-muted)]'}`}
               >
                 Snapshot Integrität & State
               </button>
@@ -167,91 +149,73 @@ export const AuditTierView: React.FC = () => {
 
             {/* TAB 1: RunManifest Details */}
             {activeModalTab === 'manifest' && (
-              <div style={{ fontSize: '12.5px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Seed:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{selectedRun.manifest.seed}</span>
+              <div className="flex flex-col gap-[8px] text-[12.5px]">
+                <div className="flex justify-between">
+                  <span className="text-[var(--color-text-muted)]">Seed:</span>
+                  <span className="font-mono font-semibold">{selectedRun.manifest.seed}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Model Version:</span>
+                <div className="flex justify-between">
+                  <span className="text-[var(--color-text-muted)]">Model Version:</span>
                   <span>{selectedRun.manifest.modelVersion}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Schema Version:</span>
+                <div className="flex justify-between">
+                  <span className="text-[var(--color-text-muted)]">Schema Version:</span>
                   <span>{selectedRun.manifest.schemaVersion}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Correlation ID:</span>
-                  <span style={{ fontFamily: 'monospace' }}>{selectedRun.manifest.correlationId}</span>
+                <div className="flex justify-between">
+                  <span className="text-[var(--color-text-muted)]">Correlation ID:</span>
+                  <span className="font-mono">{selectedRun.manifest.correlationId}</span>
                 </div>
 
                 {/* Data Source & Baseline Snapshot Section */}
-                <div style={{ background: 'var(--color-bg-deep)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-soft)', marginTop: '4px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="rounded border border-solid border-border-soft bg-background-deep mt-[4px] px-[12px] py-[10px]">
+                  <div className="flex justify-between items-center font-semibold text-text mb-[8px]">
                     <span>Eingefrorene Datenquelle & Baseline</span>
                     <Badge variant="cyan">{selectedSourceAudit.isFrozen ? 'EINGEFROREN (IMMUTABLE)' : 'FROZEN IN RUN'}</Badge>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
+                  <div className="grid grid-cols-2 gap-[8px] text-[12px]">
                     <div>
-                      <div style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>Baseline-Version:</div>
-                      <div style={{ fontFamily: 'monospace', color: 'var(--color-primary)', fontWeight: 600 }}>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">Baseline-Version:</div>
+                      <div className="font-mono font-semibold text-primary">
                         {selectedSourceAudit.baselineVersion}
                       </div>
                     </div>
                     <div>
-                      <div style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>Datenquellen-ID:</div>
-                      <div style={{ fontFamily: 'monospace', fontWeight: 600 }}>{selectedSourceAudit.dataSourceId}</div>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">Datenquellen-ID:</div>
+                      <div className="font-mono font-semibold">{selectedSourceAudit.dataSourceId}</div>
                     </div>
                     <div>
-                      <div style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>Quellenart:</div>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">Quellenart:</div>
                       <Badge variant={selectedSourceAudit.sourceKind === 'simulated' ? 'mint' : selectedSourceAudit.sourceKind === 'file' ? 'cyan' : 'orange'}>
                         {selectedSourceAudit.sourceKind}
                       </Badge>
                     </div>
                     <div>
-                      <div style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>Quellen-Label:</div>
-                      <div style={{ fontWeight: 600 }}>{selectedSourceAudit.sourceLabel}</div>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">Quellen-Label:</div>
+                      <div className="font-semibold">{selectedSourceAudit.sourceLabel}</div>
                     </div>
                   </div>
                   {selectedSourceAudit.counts && (
-                    <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border-soft)', paddingTop: '6px' }}>
+                    <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[6px] text-[var(--color-text-muted)]">
                       Snapshot-Umfang: {selectedSourceAudit.counts.companies} Companies | {selectedSourceAudit.counts.contacts} Kontakte | {selectedSourceAudit.counts.deals} Deals | {selectedSourceAudit.counts.activities} Aktivitäten
                       {selectedSourceAudit.capturedAt && ` (Erfasst: ${new Date(selectedSourceAudit.capturedAt).toLocaleTimeString('de-DE')})`}
                     </div>
                   )}
                 </div>
 
-                <div style={{ marginTop: '8px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>Eingefrorene Run-Parameter:</div>
-                  <pre
-                    style={{
-                      background: 'var(--color-bg-deep)',
-                      padding: '10px',
-                      borderRadius: 'var(--radius-sm)',
-                      overflowX: 'auto',
-                      fontSize: '11px',
-                      color: 'var(--color-primary)',
-                    }}
-                  >
+                <div className="mt-[8px]">
+                  <div className="font-semibold text-text mb-[4px]">Eingefrorene Run-Parameter:</div>
+                  <pre className="rounded bg-background-deep overflow-x-auto text-[11px] text-primary p-[10px]">
                     {JSON.stringify(selectedRun.manifest.parameters, null, 2)}
                   </pre>
                 </div>
 
                 {selectedRun.manifest.measures && selectedRun.manifest.measures.length > 0 && (
-                  <div style={{ marginTop: '8px' }}>
-                    <div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>
+                  <div className="mt-[8px]">
+                    <div className="font-semibold text-text mb-[4px]">
                       Eingefrorene Maßnahmen ({selectedRun.manifest.measures.length}):
                     </div>
-                    <pre
-                      style={{
-                        background: 'var(--color-bg-deep)',
-                        padding: '10px',
-                        borderRadius: 'var(--radius-sm)',
-                        overflowX: 'auto',
-                        fontSize: '11px',
-                        color: 'var(--color-accent)',
-                      }}
-                    >
+                    <pre className="rounded bg-background-deep overflow-x-auto text-[11px] text-accent p-[10px]">
                       {JSON.stringify(selectedRun.manifest.measures, null, 2)}
                     </pre>
                   </div>
@@ -261,49 +225,49 @@ export const AuditTierView: React.FC = () => {
 
             {/* TAB 2: Snapshot Integrity Details */}
             {activeModalTab === 'snapshot' && (
-              <div style={{ fontSize: '12.5px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ background: 'var(--color-bg-deep)', padding: '10px', borderRadius: 'var(--radius-sm)' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>Finaler State Status:</div>
-                  <div style={{ color: 'var(--color-text-muted)', marginTop: '4px' }}>
+              <div className="flex flex-col gap-[8px] text-[12.5px]">
+                <div className="rounded bg-background-deep p-[10px]">
+                  <div className="font-semibold text-text">Finaler State Status:</div>
+                  <div className="mt-[4px] text-[var(--color-text-muted)]">
                     Tick-Anzahl: {selectedRun.finalState?.tickCount ?? 0} | Simulationstag: {selectedRun.finalState?.dayIndex ?? 0}
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>RNG Endzustand:</span>
-                  <span style={{ fontFamily: 'monospace' }}>{selectedRun.rngState}</span>
+                <div className="flex justify-between mt-[8px]">
+                  <span className="text-[var(--color-text-muted)]">RNG Endzustand:</span>
+                  <span className="font-mono">{selectedRun.rngState}</span>
                 </div>
 
-                <div style={{ background: 'var(--color-bg-deep)', padding: '10px', borderRadius: 'var(--radius-sm)', marginTop: '8px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>Finanzdaten-Snapshot:</div>
-                  <div style={{ color: 'var(--color-text-muted)', marginTop: '4px', fontSize: '11.5px' }}>
+                <div className="rounded bg-background-deep mt-[8px] p-[10px]">
+                  <div className="font-semibold text-text">Finanzdaten-Snapshot:</div>
+                  <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
                     Net Revenue: {(selectedRun.finalMetrics?.financialMetrics?.netRevenue ?? 0).toLocaleString('de-DE')} € | EBITDA: {(selectedRun.finalMetrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} € | OPEX: {(selectedRun.finalMetrics?.financialMetrics?.totalOpex ?? 0).toLocaleString('de-DE')} € | CAC: {(selectedRun.finalMetrics?.financialMetrics?.cac ?? 0).toLocaleString('de-DE')} € | Cash Flow: {(selectedRun.finalMetrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString('de-DE')} €
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--color-bg-deep)', padding: '10px', borderRadius: 'var(--radius-sm)', marginTop: '8px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="rounded bg-background-deep mt-[8px] p-[10px]">
+                  <div className="font-semibold text-text flex items-center justify-between">
                     <span>State Machine & Tick-Invarianten:</span>
                     <Badge variant={selectedRun.finalState?.hasInvariantViolation ? 'orange' : 'cyan'}>
                       {selectedRun.finalState?.hasInvariantViolation ? 'INVARIANTEN-VERLETZUNG' : 'INVARIANTEN 100% VALIDE'}
                     </Badge>
                   </div>
-                  <div style={{ color: 'var(--color-text-muted)', marginTop: '4px', fontSize: '11.5px' }}>
+                  <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
                     Abgewiesene Transitions: {selectedRun.finalState?.rejectedTransitions?.length ?? 0} Einträge | Regelprüfungen: ARR=MRR×12, Churn Cleanliness, Customer Count.
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--color-bg-deep)', padding: '10px', borderRadius: 'var(--radius-sm)', marginTop: '8px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="rounded bg-background-deep mt-[8px] p-[10px]">
+                  <div className="font-semibold text-text flex items-center justify-between">
                     <span>Storage Optimization & Pruning:</span>
                     <Badge variant="mint">RETENTION POLICY AKTIV</Badge>
                   </div>
-                  <div style={{ color: 'var(--color-text-muted)', marginTop: '4px', fontSize: '11.5px' }}>
+                  <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
                     Selective Pruning: Erhält Tick 0, Meilensteine (alle 30 Ticks), Final-Tick & 100% Projections.
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <div className="flex gap-[8px] mt-[12px]">
                   <Button size="sm" variant="primary" onClick={() => reproduce(selectedRun.runId)}>
                     Diesen Run exakt Reproduzieren
                   </Button>

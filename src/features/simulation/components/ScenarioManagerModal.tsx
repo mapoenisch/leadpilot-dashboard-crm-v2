@@ -143,10 +143,16 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       label: 'Parameter',
       render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
         <div>
-          <strong style={{ color: r.hasChanged ? 'var(--color-primary)' : 'var(--color-text)' }}>
+          <strong
+            className="font-bold"
+            // G39 Welle 3: Label-Farbe aus Diff-Daten (hasChanged) — als
+            // Klasse nicht darstellbar (Entscheidung 2).
+            // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Diff-Daten), siehe Auftrag 056 Entscheidung 2
+            style={{ color: r.hasChanged ? 'var(--color-primary)' : 'var(--color-text)' }}
+          >
             {r.label}
           </strong>
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginLeft: '6px' }}>
+          <span className="text-[11px] ml-[6px] text-[var(--color-text-muted)]">
             ({r.unit || 'Wert'})
           </span>
         </div>
@@ -156,7 +162,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       key: 'formattedValueA',
       label: `Version A (v${comparisonResult?.versionA.versionNumber ?? 'A'})`,
       render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--color-text)' }}>
+        <span className="font-mono text-[13px] text-text">
           {r.formattedValueA}
         </span>
       ),
@@ -166,11 +172,12 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       label: `Version B (v${comparisonResult?.versionB.versionNumber ?? 'B'})`,
       render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
         <span
+          className={`font-mono text-[13px] ${r.hasChanged ? 'font-bold' : 'font-normal'}`}
+          // G39 Welle 3: Wert-Farbe aus Diff-Daten (hasChanged) — als
+          // Klasse nicht darstellbar (Entscheidung 2).
+          // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Diff-Daten), siehe Auftrag 056 Entscheidung 2
           style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '13px',
             color: r.hasChanged ? 'var(--color-primary)' : 'var(--color-text)',
-            fontWeight: r.hasChanged ? 700 : 400,
           }}
         >
           {r.formattedValueB}
@@ -187,13 +194,13 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
         if (typeof r.delta === 'number') {
           const isPositive = r.delta > 0;
           return (
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <div className="flex gap-[6px] items-center">
               <Badge variant={isPositive ? 'cyan' : 'orange'}>
                 {isPositive ? '+' : ''}
                 {r.delta.toLocaleString('de-DE')} {r.unit}
               </Badge>
               {typeof r.deltaPercent === 'number' && (
-                <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
+                <span className="text-[11.5px] text-[var(--color-text-muted)]">
                   ({isPositive ? '+' : ''}
                   {r.deltaPercent}%)
                 </span>
@@ -212,8 +219,8 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       label: 'KPI (Kennzahl)',
       render: (r: VersionComparisonResult['kpiComparisons'][number]) => (
         <div>
-          <strong style={{ color: 'var(--color-text)' }}>{r.label}</strong>
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginLeft: '6px' }}>
+          <strong className="text-text">{r.label}</strong>
+          <span className="text-[11px] ml-[6px] text-[var(--color-text-muted)]">
             ({r.unit})
           </span>
         </div>
@@ -223,7 +230,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       key: 'baselineValue',
       label: 'Baseline 2026',
       render: (r: VersionComparisonResult['kpiComparisons'][number]) => (
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+        <span className="font-mono text-[12.5px] text-[var(--color-text-muted)]">
           {r.baselineValue.toLocaleString('de-DE')} {r.unit}
         </span>
       ),
@@ -239,12 +246,12 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
         const badgeVariant =
           status === 'ACHIEVED' ? 'cyan' : status === 'AT_RISK' ? 'orange' : 'neutral';
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--color-text)' }}>
+          <div className="flex flex-col gap-[2px]">
+            <span className="font-mono font-semibold text-text">
               {r.valueA.toLocaleString('de-DE')} {r.unit}
             </span>
             {status && status !== 'NO_TARGET' && (
-              <span style={{ fontSize: '11px' }}>
+              <span className="text-[11px]">
                 <Badge variant={badgeVariant}>{status}</Badge>
               </span>
             )}
@@ -263,12 +270,12 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
         const badgeVariant =
           status === 'ACHIEVED' ? 'cyan' : status === 'AT_RISK' ? 'orange' : 'neutral';
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-primary)' }}>
+          <div className="flex flex-col gap-[2px]">
+            <span className="font-mono font-bold text-primary">
               {r.valueB.toLocaleString('de-DE')} {r.unit}
             </span>
             {status && status !== 'NO_TARGET' && (
-              <span style={{ fontSize: '11px' }}>
+              <span className="text-[11px]">
                 <Badge variant={badgeVariant}>{status}</Badge>
               </span>
             )}
@@ -281,7 +288,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       label: 'Delta vA ➔ vB',
       render: (r: VersionComparisonResult['kpiComparisons'][number]) => {
         if (!r.hasResultA || !r.hasResultB || !r.comparisonAB) {
-          return <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>– (Simulation ausstehend)</span>;
+          return <span className="text-[12px] text-[var(--color-text-muted)]">– (Simulation ausstehend)</span>;
         }
         const delta = r.comparisonAB.absoluteDelta;
         const percent = r.comparisonAB.percentChange;
@@ -289,17 +296,18 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
         const sign = delta > 0 ? '+' : '';
 
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="flex items-center gap-[6px]">
             <Badge variant={isPos ? 'cyan' : 'orange'}>
               {sign}
               {delta.toLocaleString('de-DE')} {r.unit}
             </Badge>
             <span
+              className="font-mono text-[11.5px] font-semibold"
+              // G39 Welle 3: Delta-Farbe aus Vergleichs-Daten (isPos) —
+              // als Klasse nicht darstellbar (Entscheidung 2).
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Vergleichs-Daten), siehe Auftrag 056 Entscheidung 2
               style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11.5px',
                 color: isPos ? 'var(--color-success)' : 'var(--color-accent)',
-                fontWeight: 600,
               }}
             >
               ({sign}
@@ -313,80 +321,47 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
 
   return (
     <Modal open={isOpen} onClose={onClose} title="Szenario- & Versions-Entscheidungswerkbank" maxWidth="1000px">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%' }}>
+      <div className="flex flex-col gap-[var(--space-4)] w-full">
         
         {/* Executive Header Bar */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: 'var(--space-3) var(--space-4)',
-            background: 'var(--color-bg-deep)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            flexWrap: 'wrap',
-            gap: 'var(--space-3)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        <div className="flex justify-between items-center flex-wrap gap-[var(--space-3)] rounded-md border border-solid border-border bg-background-deep px-[var(--space-4)] py-[var(--space-3)]">
+          <div className="flex items-center gap-[var(--space-3)]">
             <div>
-              <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)' }}>
+              <span className="text-[11px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
                 Aktives Szenario
               </span>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text)' }}>
+              <div className="text-[15px] font-bold text-text">
                 {activeScenario?.name || 'Unbenanntes Szenario'}
               </div>
             </div>
             {activeScenario?.isProtected && <StatusChip variant="neutral" label="Geschützt (Base 2026)" size="sm" />}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <div className="flex items-center gap-[var(--space-2)]">
             <StatusChip
               variant="cyan"
               label={`Aktive Version: v${activeVersion?.versionNumber ?? 1}`}
               size="sm"
             />
-            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+            <span className="text-[12px] text-[var(--color-text-muted)]">
               ({versions.length} Version{versions.length === 1 ? '' : 'en'} verfügbar)
             </span>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', gap: '8px', paddingBottom: '8px' }}>
+        <div className="border-0 border-b border-solid border-border flex gap-[8px] pb-[8px]">
           <button
             data-testid="scenario-manage-tab"
             onClick={() => setActiveTab('manage')}
-            style={{
-              background: activeTab === 'manage' ? 'var(--color-primary-soft)' : 'transparent',
-              color: activeTab === 'manage' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              border: activeTab === 'manage' ? '1px solid var(--color-primary)' : '1px solid transparent',
-              borderRadius: 'var(--radius-md)',
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className={`rounded-md cursor-pointer text-[13px] font-semibold px-[14px] py-[6px] ${activeTab === 'manage' ? 'border border-solid border-primary bg-primary-soft text-primary' : 'border border-solid border-transparent bg-transparent text-[var(--color-text-muted)]'}`}
           >
             ⚙️ Szenario & Versionen verwalten
           </button>
           <button
             data-testid="scenario-diff-tab"
             onClick={() => setActiveTab('diff')}
-            style={{
-              background: activeTab === 'diff' ? 'var(--color-primary-soft)' : 'transparent',
-              color: activeTab === 'diff' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              border: activeTab === 'diff' ? '1px solid var(--color-primary)' : '1px solid transparent',
-              borderRadius: 'var(--radius-md)',
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
+            className={`rounded-md cursor-pointer text-[13px] font-semibold px-[14px] py-[6px] flex items-center gap-[6px] ${activeTab === 'diff' ? 'border border-solid border-primary bg-primary-soft text-primary' : 'border border-solid border-transparent bg-transparent text-[var(--color-text-muted)]'}`}
           >
             ⚖️ Szenario-Versionen-Diff (Side-by-Side)
             {versions.length > 1 && <Badge variant="cyan">{versions.length} Versionen</Badge>}
@@ -395,7 +370,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
 
         {/* TAB 1: MANAGE SCENARIO & VERSIONS */}
         {activeTab === 'manage' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div className="flex flex-col gap-[var(--space-4)]">
             {/* Active Scenario Selector */}
             <Select
               label="Szenario wechseln"
@@ -406,22 +381,16 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
 
             {/* Version Selection Cards */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
+              <div className="flex justify-between items-center mb-[8px]">
+                <span className="text-[13px] font-semibold text-text">
                   Vorhandene Szenario-Versionen:
                 </span>
-                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                <span className="text-[12px] text-[var(--color-text-muted)]">
                   Klicken zum Aktivieren
                 </span>
               </div>
 
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                  gap: 'var(--space-3)',
-                }}
-              >
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[var(--space-3)]">
                 {versions.map((v) => {
                   const isActive = activeVersion?.id === v.id;
                   const isBase = v.id === DEFAULT_BASE_2026_VERSION_ID;
@@ -430,42 +399,47 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                       key={v.id}
                       padding="var(--space-3)"
                       featured={isActive}
+                      className="flex flex-col justify-between cursor-pointer"
+                      // G39 Welle 3: Auswahl-Rahmenfarbe (State) — als Klasse
+                      // nicht darstellbar (Entscheidung 2).
+                      // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (State-Selektion), siehe Auftrag 056 Entscheidung 2
                       style={{
-                        cursor: 'pointer',
                         borderColor: isActive ? 'var(--color-primary)' : undefined,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
                       }}
                       onClick={() => selectVersion(v.id)}
                     >
                       <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <span style={{ fontWeight: 700, fontSize: '14px', color: isActive ? 'var(--color-primary)' : 'var(--color-text)' }}>
+                        <div className="flex justify-between items-center mb-[6px]">
+                          <span
+                            className="font-bold text-[14px]"
+                            // G39 Welle 3: Titel-Farbe (State-Selektion).
+                            // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (State-Selektion), siehe Auftrag 056 Entscheidung 2
+                            style={{ color: isActive ? 'var(--color-primary)' : 'var(--color-text)' }}
+                          >
                             Version {v.versionNumber}
                           </span>
-                          <div style={{ display: 'flex', gap: '4px' }}>
+                          <div className="flex gap-[4px]">
                             {isActive && <StatusChip variant="cyan" label="Aktiv" size="sm" />}
                             {isBase && <StatusChip variant="neutral" label="★ Base 2026" size="sm" />}
                           </div>
                         </div>
 
-                        <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                        <p className="text-[12px] text-[var(--color-text-muted)] mt-0 mb-[8px] mr-0 ml-0">
                           {v.description || 'Keine Beschreibung angegeben.'}
                         </p>
 
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'flex', flexDirection: 'column', gap: '2px', background: 'var(--color-bg-deep)', padding: '6px 8px', borderRadius: 'var(--radius-sm)' }}>
+                        <div className="text-[11px] flex flex-col gap-[2px] rounded bg-background-deep py-[6px] px-[8px] text-[var(--color-text-muted)]">
                           <div>Sales Reps: <strong>{v.parameters.salesRepCount ?? 2}</strong> · CS Reps: <strong>{v.parameters.csRepCount ?? 2}</strong></div>
                           <div>Marketing: <strong>{(v.parameters.marketingBudgetYearly ?? 65000).toLocaleString('de-DE')} €</strong></div>
                           <div>Conversion: <strong>{v.parameters.trialToPaidConversion ?? 18} %</strong> · Churn: <strong>{v.parameters.churnRateMonthly ?? 2.8} %</strong></div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--color-border-soft)' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                      <div className="border-0 border-t border-solid border-border-soft flex justify-between items-center mt-[10px] pt-[8px]">
+                        <span className="text-[11px] text-[var(--color-text-muted)]">
                           Erstellt: {new Date(v.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
                         </span>
-                        <div style={{ display: 'flex', gap: '6px' }}>
+                        <div className="flex gap-[6px]">
                           {!isActive && (
                             <Button
                               size="sm"
@@ -499,7 +473,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
 
             {/* Action Toggle to Create New Version */}
             {!isCreatingVersion ? (
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="flex gap-[10px] items-center flex-wrap">
                 <Button variant="primary" onClick={() => setIsCreatingVersion(true)}>
                   + Neue Version (v{versions.length + 1}) aus Parameter-Set erstellen
                 </Button>
@@ -510,9 +484,9 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                 )}
               </div>
             ) : (
-              <form onSubmit={handleCreateVersion} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', marginTop: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--color-primary)' }}>
+              <form onSubmit={handleCreateVersion} className="flex flex-col gap-[var(--space-3)] mt-[8px]">
+                <div className="flex justify-between items-center">
+                  <h4 className="m-0 text-[14px] text-primary">
                     Neue Version (v{versions.length + 1}) konfigurieren
                   </h4>
                   <Button type="button" variant="secondary" size="sm" onClick={() => setIsCreatingVersion(false)}>
@@ -534,7 +508,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                   sizeVariant="sm"
                 />
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-3)' }}>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[var(--space-3)]">
                   <NumberStepper
                     label="Marketing-Budget (€/Jahr)"
                     value={formParams.marketingBudgetYearly || 65000}
@@ -599,7 +573,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                   />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                <div className="flex justify-end gap-[10px] mt-[8px]">
                   <Button type="button" variant="secondary" onClick={() => setIsCreatingVersion(false)}>
                     Abbrechen
                   </Button>
@@ -614,21 +588,10 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
 
         {/* TAB 2: SIDE-BY-SIDE DIFF */}
         {activeTab === 'diff' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div className="flex flex-col gap-[var(--space-4)]">
             {/* Version Selectors Bar */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 'var(--space-3)',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                background: 'var(--color-bg-deep)',
-                padding: 'var(--space-3)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              <div style={{ flex: '1 1 200px', minWidth: '180px' }}>
+            <div className="flex gap-[var(--space-3)] items-center flex-wrap rounded bg-background-deep border border-solid border-border p-[var(--space-3)]">
+              <div className="flex-[1_1_200px] min-w-[180px]">
                 <Select
                   label="Referenz-Version (Version A)"
                   options={versions.map((v) => ({
@@ -641,13 +604,13 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                 />
               </div>
 
-              <div style={{ alignSelf: 'flex-end', paddingBottom: '4px' }}>
+              <div className="self-end pb-[4px]">
                 <Button variant="secondary" size="sm" onClick={handleSwapVersions} title="Versionen tauschen">
                   ⇄ Tauschen
                 </Button>
               </div>
 
-              <div style={{ flex: '1 1 200px', minWidth: '180px' }}>
+              <div className="flex-[1_1_200px] min-w-[180px]">
                 <Select
                   label="Vergleichs-Version (Version B)"
                   options={versions.map((v) => ({
@@ -665,18 +628,9 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
             {changedParamCount > 0 ? (
               <div
                 data-testid="changed-params-bar"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-2)',
-                  padding: '8px 12px',
-                  background: 'rgba(0, 217, 198, 0.08)',
-                  border: '1px solid var(--color-primary-soft)',
-                  borderRadius: 'var(--radius-sm)',
-                  flexWrap: 'wrap',
-                }}
+                className="flex items-center gap-[var(--space-2)] flex-wrap rounded border border-solid border-primary-soft bg-[rgba(0,217,198,0.08)] px-[12px] py-[8px]"
               >
-                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-primary)' }}>
+                <span className="text-[12px] font-semibold text-primary">
                   {changedParamCount} geänderte{changedParamCount === 1 ? 'r' : ''} Parameter:
                 </span>
                 {comparisonResult?.parameterDiffs
@@ -691,15 +645,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                   ))}
               </div>
             ) : (
-              <div
-                style={{
-                  padding: '8px 12px',
-                  background: 'var(--color-bg-deep)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '12px',
-                  color: 'var(--color-text-muted)',
-                }}
-              >
+              <div className="rounded bg-background-deep text-[12px] text-[var(--color-text-muted)] px-[12px] py-[8px]">
                 Keine Parameterunterschiede zwischen Version A und Version B.
               </div>
             )}
@@ -707,37 +653,37 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
             {/* Summary Explanation Banner */}
             {comparisonResult && (
               <Card featured>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '15px' }}>💡</span>
-                  <strong style={{ color: 'var(--color-primary)', fontSize: '13.5px' }}>
+                <div className="flex items-center gap-[8px] mb-[4px]">
+                  <span className="text-[15px]">💡</span>
+                  <strong className="text-[13.5px] text-primary">
                     Strukturierte Management-Erklärung (Decision 1273 & 1637):
                   </strong>
                 </div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text)', lineHeight: 1.5 }}>
+                <div className="text-[13px] leading-[1.5] text-text">
                   {comparisonResult.summaryExplanation}
                 </div>
               </Card>
             )}
 
             {/* SECTION 1: KPI-Diff & Zielstatus */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-                <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--color-text)' }}>
+            <div className="flex flex-col gap-[var(--space-2)]">
+              <div className="flex justify-between items-center flex-wrap gap-[var(--space-2)]">
+                <h4 className="m-0 text-[14px] text-text">
                   📊 KPI-Auswirkung & Zielerreichung (vA vs. vB)
                 </h4>
                 <Badge variant="neutral">Directionality-bewertet</Badge>
               </div>
               <Card padding="0">
-                <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div className="w-full overflow-x-auto [touch-action:pan-x_pan-y]">
                   <Table columns={kpiDiffColumns} rows={comparisonResult?.kpiComparisons || []} minWidth="650px" />
                 </div>
               </Card>
             </div>
 
             {/* SECTION 2: Parameter-Diff */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-                <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--color-text)' }}>
+            <div className="flex flex-col gap-[var(--space-2)]">
+              <div className="flex justify-between items-center flex-wrap gap-[var(--space-2)]">
+                <h4 className="m-0 text-[14px] text-text">
                   ⚙️ Parameter-Gegenüberstellung (Side-by-Side)
                 </h4>
                 <Checkbox
@@ -749,26 +695,34 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
 
               {/* Desktop Table */}
               <Card padding="0">
-                <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div className="w-full overflow-x-auto [touch-action:pan-x_pan-y]">
                   <Table columns={paramDiffColumns} rows={filteredParamDiffs} minWidth="650px" />
                 </div>
               </Card>
 
               {/* Mobile Parameter Cards for small screens */}
-              <div className="mobile-only-diff-cards" style={{ display: 'none', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              {/* G39 Welle 3: doppeltes className-Attribut (Original) zu einem
+                  gemerged — zweites gewann ohnehin (immer hidden); Verhalten
+                  exakt erhalten, tsc-Duplikat beseitigt. */}
+              <div className="hidden flex-col gap-[var(--space-2)]">
                 {filteredParamDiffs.map((p) => (
                   <Card key={p.key} padding="var(--space-3)">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <strong style={{ fontSize: '13px', color: p.hasChanged ? 'var(--color-primary)' : 'var(--color-text)' }}>
+                    <div className="flex justify-between items-center mb-[6px]">
+                      <strong
+                        className="text-[13px]"
+                        // G39 Welle 3: Label-Farbe aus Diff-Daten (hasChanged).
+                        // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Diff-Daten), siehe Auftrag 056 Entscheidung 2
+                        style={{ color: p.hasChanged ? 'var(--color-primary)' : 'var(--color-text)' }}
+                      >
                         {p.label}
                       </strong>
                       <Badge variant={p.hasChanged ? 'orange' : 'neutral'}>
                         {p.hasChanged ? 'Geändert' : 'Unverändert'}
                       </Badge>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                      <span>vA: <strong style={{ color: 'var(--color-text)' }}>{p.formattedValueA}</strong></span>
-                      <span>vB: <strong style={{ color: 'var(--color-primary)' }}>{p.formattedValueB}</strong></span>
+                    <div className="flex justify-between text-[12px] text-[var(--color-text-muted)]">
+                      <span>vA: <strong className="text-text">{p.formattedValueA}</strong></span>
+                      <span>vB: <strong className="text-primary">{p.formattedValueB}</strong></span>
                     </div>
                   </Card>
                 ))}
@@ -777,7 +731,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
 
             {/* Explanations Section */}
             {comparisonResult && (
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px 12px', background: 'var(--color-bg-deep)', borderRadius: 'var(--radius-sm)' }}>
+              <div className="text-[12px] flex flex-col gap-[4px] rounded bg-background-deep p-[8px] px-[12px] text-[var(--color-text-muted)]">
                 <strong>Zielstatus & Simulationsstatus:</strong>
                 {comparisonResult.kpiComparisons.map((k) => (
                   <div key={k.kpiId}>
