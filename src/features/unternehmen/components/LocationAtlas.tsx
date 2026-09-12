@@ -37,57 +37,17 @@ export const LocationAtlas: React.FC = () => {
   ];
 
   return (
-    <div
-      className="facelift-location-atlas"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
-    >
+    <div className="facelift-location-atlas w-full box-border rounded-[var(--radius-lg)] border border-solid border-border bg-surface p-[var(--space-5)]">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-        }}
-      >
+      <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)] mb-[var(--space-5)] pb-[var(--space-4)] border-b border-solid border-border-soft">
         <div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              color: 'var(--cyan-light)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '2px',
-            }}
-          >
+          <div className="font-mono text-[0.6875rem] font-bold text-cyan-light uppercase tracking-[0.08em] mb-[2px]">
             Company Atlas • Standort Leipzig
           </div>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+          <h3 className="m-0 font-display text-[1.125rem] font-bold text-text tracking-[0.01em]">
             {STANDORT.title}
           </h3>
-          <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p className="mt-[2px] mr-0 mb-0 ml-0 text-[0.8125rem] text-[var(--color-text-muted)]">
             {STANDORT.address}
           </p>
         </div>
@@ -97,286 +57,102 @@ export const LocationAtlas: React.FC = () => {
           onClick={() => setShowTable(!showTable)}
           aria-controls="location-atlas-details-table"
           aria-expanded={showTable}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '5px 12px',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-text)';
-            e.currentTarget.style.borderColor = 'var(--color-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-muted)';
-            e.currentTarget.style.borderColor = 'var(--color-border)';
-          }}
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]"
         >
           {showTable ? 'Mietdetails verbergen' : 'Mietdetails anzeigen'}
         </button>
       </div>
 
       {/* GROSSES LEITBILD (HERO STATION) MIT GETRENNTER BILDUNTERSCHRIFT */}
-      <div
-        style={{
-          borderRadius: 'var(--radius-md)',
-          overflow: 'hidden',
-          backgroundColor: 'var(--color-bg-deep)',
-          border: '1px solid var(--color-border)',
-          marginBottom: 'var(--space-4)',
-        }}
-      >
+      <div className="rounded-[var(--radius-md)] overflow-hidden bg-background-deep border border-solid border-border mb-[var(--space-4)]">
         {/* Bildbereich mit Overlays */}
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            aspectRatio: '16 / 9',
-            backgroundColor: 'var(--color-surface)',
-            overflow: 'hidden',
-          }}
-        >
+        <div className="relative w-full aspect-[16/9] bg-surface overflow-hidden">
           <img
             src={heroImage}
             alt="Fiktive Visualisierung: Außenansicht des Unternehmenssitzes der LeadPilot GmbH am Augustusplatz in Leipzig"
             width={1672}
             height={941}
             fetchPriority="high"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-            }}
+            className="w-full h-full object-cover block"
           />
 
           {/* Overline-Label: FIKTIVE VISUALISIERUNG */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '12px',
-              left: '12px',
-              backgroundColor: 'rgba(6, 22, 19, 0.92)',
-              border: '1px solid rgba(0, 217, 198, 0.4)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '3px 8px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.625rem',
-              fontWeight: 700,
-              color: 'var(--cyan-light)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              zIndex: 2,
-            }}
-          >
+          <div className="absolute top-[12px] left-[12px] bg-[rgba(6,22,19,0.92)] border border-solid border-[rgba(0,217,198,0.4)] rounded-[var(--radius-sm)] px-[8px] py-[3px] font-mono text-[0.625rem] font-bold text-cyan-light tracking-[0.08em] uppercase z-[2]">
             FIKTIVE VISUALISIERUNG
           </div>
 
           {/* Echtes LeadPilot-Logo als HTML-img-Overlay (dekorativ) */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '12px',
-              right: '12px',
-              backgroundColor: 'rgba(6, 22, 19, 0.92)',
-              border: '1px solid var(--color-border-soft)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '5px 10px',
-              display: 'flex',
-              alignItems: 'center',
-              zIndex: 2,
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
-            }}
-          >
+          <div className="absolute top-[12px] right-[12px] bg-[rgba(6,22,19,0.92)] border border-solid border-border-soft rounded-[var(--radius-sm)] px-[10px] py-[5px] flex items-center z-[2] shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
             <img
               src={logoImage}
               alt=""
               aria-hidden="true"
               width={2431}
               height={1093}
-              style={{
-                height: '18px',
-                width: 'auto',
-                display: 'block',
-              }}
+              className="h-[18px] w-auto block"
             />
           </div>
         </div>
 
         {/* Bildunterschrift getrennt unter dem Bild (garantiert ohne Overlay-Kollision) */}
-        <div
-          style={{
-            padding: 'var(--space-3) var(--space-4)',
-            backgroundColor: 'var(--color-surface-raised)',
-            borderTop: '1px solid var(--color-border-soft)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 'var(--space-2)',
-          }}
-        >
+        <div className="px-[var(--space-4)] py-[var(--space-3)] bg-surface-raised border-t border-solid border-border-soft flex flex-wrap items-center justify-between gap-[var(--space-2)]">
           <div>
-            <h4
-              style={{
-                margin: 0,
-                fontFamily: 'var(--font-display)',
-                fontSize: '0.9375rem',
-                fontWeight: 700,
-                color: 'var(--color-text)',
-              }}
-            >
+            <h4 className="m-0 font-display text-[0.9375rem] font-bold text-text">
               Unternehmenssitz Leipzig – Augustusplatz 9
             </h4>
-            <p
-              style={{
-                margin: '2px 0 0',
-                fontSize: '0.75rem',
-                color: 'var(--color-text-muted)',
-              }}
-            >
+            <p className="mt-[2px] mr-0 mb-0 ml-0 text-[0.75rem] text-[var(--color-text-muted)]">
               {STANDORT.address}
             </p>
           </div>
 
-          <span
-            style={{
-              fontSize: '0.6875rem',
-              fontFamily: 'var(--font-mono)',
-              padding: '2px 8px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--cyan-a12)',
-              color: 'var(--color-primary)',
-              border: '1px solid rgba(0, 217, 198, 0.3)',
-              fontWeight: 600,
-            }}
-          >
+          <span className="text-[0.6875rem] font-mono px-[8px] py-[2px] rounded-full bg-cyan-a12 text-primary border border-solid border-[rgba(0,217,198,0.3)] font-semibold">
             {STANDORT.details[1][1]}
           </span>
         </div>
       </div>
 
       {/* DREI ERGÄNZENDE BILDSTATIONEN (GRID) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-          gap: 'var(--space-4)',
-          marginBottom: 'var(--space-5)',
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-[var(--space-4)] mb-[var(--space-5)]">
         {subStations.map((station) => (
           <div
             key={station.id}
-            style={{
-              backgroundColor: 'var(--color-bg-deep)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border-soft)',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+            className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-border-soft overflow-hidden flex flex-col"
           >
             {/* Bild mit Overlays */}
-            <div
-              style={{
-                position: 'relative',
-                aspectRatio: '16 / 9',
-                backgroundColor: 'var(--color-surface)',
-                overflow: 'hidden',
-              }}
-            >
+            <div className="relative aspect-[16/9] bg-surface overflow-hidden">
               <img
                 src={station.src}
                 alt={station.alt}
                 width={1672}
                 height={941}
                 loading="lazy"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
+                className="w-full h-full object-cover block"
               />
 
               {/* Overline-Label */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  left: '10px',
-                  backgroundColor: 'rgba(6, 22, 19, 0.92)',
-                  border: '1px solid rgba(0, 217, 198, 0.35)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '2px 6px',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.5625rem',
-                  fontWeight: 700,
-                  color: 'var(--cyan-light)',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  zIndex: 2,
-                }}
-              >
+              <div className="absolute top-[10px] left-[10px] bg-[rgba(6,22,19,0.92)] border border-solid border-[rgba(0,217,198,0.35)] rounded-[var(--radius-sm)] px-[6px] py-[2px] font-mono text-[0.5625rem] font-bold text-cyan-light tracking-[0.06em] uppercase z-[2]">
                 FIKTIVE VISUALISIERUNG
               </div>
 
               {/* Logo-Overlay (dekorativ) */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  backgroundColor: 'rgba(6, 22, 19, 0.92)',
-                  border: '1px solid var(--color-border-soft)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '3px 6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  zIndex: 2,
-                }}
-              >
+              <div className="absolute top-[10px] right-[10px] bg-[rgba(6,22,19,0.92)] border border-solid border-border-soft rounded-[var(--radius-sm)] px-[6px] py-[3px] flex items-center z-[2]">
                 <img
                   src={logoImage}
                   alt=""
                   aria-hidden="true"
                   width={2431}
                   height={1093}
-                  style={{
-                    height: '14px',
-                    width: 'auto',
-                    display: 'block',
-                  }}
+                  className="h-[14px] w-auto block"
                 />
               </div>
             </div>
 
             {/* Bildbeschriftung mit neutralen Texten */}
-            <div style={{ padding: 'var(--space-3) var(--space-4)' }}>
-              <h5
-                style={{
-                  margin: 0,
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: 'var(--color-text)',
-                }}
-              >
+            <div className="px-[var(--space-4)] py-[var(--space-3)]">
+              <h5 className="m-0 font-display text-[0.875rem] font-semibold text-text">
                 {station.title}
               </h5>
-              <p
-                style={{
-                  margin: '2px 0 0',
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                }}
-              >
+              <p className="mt-[2px] mr-0 mb-0 ml-0 text-[0.75rem] text-[var(--color-text-muted)]">
                 {station.subtitle}
               </p>
             </div>
@@ -385,68 +161,21 @@ export const LocationAtlas: React.FC = () => {
       </div>
 
       {/* SCHLANKE FAKTENLEISTE (MIETOBJEKT-FAKTEN DIREKT AUS STANDORT.DETAILS) */}
-      <div
-        style={{
-          backgroundColor: 'var(--color-bg-deep)',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--color-border-soft)',
-          padding: 'var(--space-4)',
-        }}
-      >
-        <div
-          style={{
-            fontSize: '0.6875rem',
-            fontFamily: 'var(--font-mono)',
-            fontWeight: 700,
-            color: 'var(--cyan-light)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            marginBottom: 'var(--space-3)',
-          }}
-        >
+      <div className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-border-soft p-[var(--space-4)]">
+        <div className="text-[0.6875rem] font-mono font-bold text-cyan-light uppercase tracking-[0.06em] mb-[var(--space-3)]">
           Mietobjekt-Fakten (Vertragsdaten)
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-            gap: 'var(--space-3)',
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-[var(--space-3)]">
           {STANDORT.details.map(([merkmal, wert]) => (
             <div
               key={merkmal}
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--color-border-soft)',
-                padding: 'var(--space-3)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-              }}
+              className="bg-surface rounded-[var(--radius-sm)] border border-solid border-border-soft p-[var(--space-3)] flex flex-col gap-[2px]"
             >
-              <span
-                style={{
-                  fontSize: '0.6875rem',
-                  color: 'var(--color-text-muted)',
-                  fontFamily: 'var(--font-body)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
-              >
+              <span className="text-[0.6875rem] text-[var(--color-text-muted)] font-body uppercase tracking-[0.04em]">
                 {merkmal}
               </span>
-              <span
-                style={{
-                  fontSize: '0.8125rem',
-                  fontWeight: 500,
-                  color: 'var(--color-text)',
-                  lineHeight: 1.35,
-                  wordBreak: 'break-word',
-                }}
-              >
+              <span className="text-[0.8125rem] font-medium text-text leading-[1.35] break-words">
                 {wert}
               </span>
             </div>
@@ -458,13 +187,9 @@ export const LocationAtlas: React.FC = () => {
       {showTable && (
         <div
           id="location-atlas-details-table"
-          style={{
-            marginTop: 'var(--space-4)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border)',
-          }}
+          className="mt-[var(--space-4)] pt-[var(--space-4)] border-t border-solid border-border"
         >
-          <div style={{ marginBottom: 'var(--space-2)', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <div className="mb-[var(--space-2)] text-[0.8125rem] text-[var(--color-text-muted)]">
             Vollständige Standortangaben (Tabellarische Detailansicht):
           </div>
           <Table

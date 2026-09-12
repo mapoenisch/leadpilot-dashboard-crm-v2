@@ -30,65 +30,17 @@ export const ValueBenefitStage: React.FC = () => {
   ];
 
   return (
-    <div
-      className="facelift-value-benefit-stage"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
-    >
+    <div className="facelift-value-benefit-stage w-full box-border rounded-[var(--radius-lg)] border border-solid border-border bg-surface p-[var(--space-5)]">
       {/* Horizontale Hauptaussage (Hero Statement) */}
-      <div
-        style={{
-          borderRadius: 'var(--radius-md)',
-          backgroundColor: 'var(--color-bg-deep)',
-          border: '1px solid rgba(0, 217, 198, 0.35)',
-          boxShadow: '0 0 20px rgba(0, 217, 198, 0.08)',
-          padding: 'var(--space-4) var(--space-5)',
-          marginBottom: 'var(--space-5)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="rounded-[var(--radius-md)] bg-background-deep border border-solid border-[rgba(0,217,198,0.35)] shadow-[0_0_20px_rgba(0,217,198,0.08)] px-[var(--space-5)] py-[var(--space-4)] mb-[var(--space-5)] relative overflow-hidden">
         <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: '4px',
-            backgroundColor: 'var(--color-primary)',
-          }}
+          className="absolute top-0 left-0 bottom-0 w-[4px] bg-primary"
           aria-hidden="true"
         />
-        <div
-          style={{
-            fontSize: '0.75rem',
-            fontFamily: 'var(--font-mono)',
-            color: 'var(--cyan-light)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            marginBottom: 'var(--space-1)',
-            fontWeight: 600,
-          }}
-        >
+        <div className="text-[0.75rem] font-mono text-cyan-light uppercase tracking-[0.08em] mb-[var(--space-1)] font-semibold">
           Kernversprechen der LeadPilot Plattform
         </div>
-        <blockquote
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-display)',
-            fontSize: '1.125rem',
-            fontWeight: 600,
-            color: 'var(--color-text)',
-            lineHeight: 1.45,
-            letterSpacing: '0.01em',
-          }}
-        >
+        <blockquote className="m-0 font-display text-[1.125rem] font-semibold text-text leading-[1.45] tracking-[0.01em]">
           {VALUE.heroStatement}
         </blockquote>
       </div>
@@ -99,7 +51,7 @@ export const ValueBenefitStage: React.FC = () => {
           display: grid;
           grid-template-columns: 1.15fr 0.85fr;
           gap: var(--space-5);
-          alignItems: stretch;
+          align-items: stretch;
         }
         .benefit-cards-container {
           order: 1;
@@ -124,94 +76,32 @@ export const ValueBenefitStage: React.FC = () => {
       <div className="value-benefit-layout">
         {/* Links: Drei vertikal gestapelte Kernvorteile */}
         <div
-          className="benefit-cards-container"
-          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
+          className="benefit-cards-container flex flex-col gap-[var(--space-3)]"
         >
           {benefits.map((b, idx) => (
             <div
               key={b.badge}
-              style={{
-                backgroundColor: 'var(--color-bg-deep)',
-                borderRadius: 'var(--radius-md)',
-                border: `1px solid ${
-                  idx === 0
-                    ? 'rgba(0, 217, 198, 0.3)'
-                    : idx === 1
-                    ? 'rgba(255, 122, 61, 0.3)'
-                    : 'var(--color-border-soft)'
-                }`,
-                borderLeft: `3px solid ${
-                  idx === 0
-                    ? 'var(--color-primary)'
-                    : idx === 1
-                    ? 'var(--color-accent)'
-                    : 'var(--cyan-light)'
-                }`,
-                padding: 'var(--space-4)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--space-1)',
-              }}
+              className={`bg-background-deep rounded-[var(--radius-md)] border border-solid p-[var(--space-4)] flex flex-col gap-[var(--space-1)] ${idx === 0 ? 'border-[rgba(0,217,198,0.3)] border-l-[3px] border-l-primary' : idx === 1 ? 'border-[rgba(255,122,61,0.3)] border-l-[3px] border-l-accent' : 'border-border-soft border-l-[3px] border-l-cyan-light'}`}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 'var(--space-2)',
-                  marginBottom: '2px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <div className="flex items-center justify-between gap-[var(--space-2)] mb-[2px]">
+                <div className="flex items-center gap-[var(--space-2)]">
                   <FaceliftGlyph name={b.glyph} tone={b.tone} size={16} />
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '0.875rem',
-                      fontWeight: 700,
-                      color: 'var(--color-text)',
-                      letterSpacing: '0.01em',
-                    }}
-                  >
+                  <span className="font-display text-[0.875rem] font-bold text-text tracking-[0.01em]">
                     {b.badge}
                   </span>
                 </div>
                 <span
-                  style={{
-                    fontSize: '0.6875rem',
-                    fontFamily: 'var(--font-mono)',
-                    color:
-                      idx === 0
-                        ? 'var(--color-primary)'
-                        : idx === 1
-                        ? 'var(--color-accent)'
-                        : 'var(--color-text-muted)',
-                    fontWeight: 600,
-                  }}
+                  className={`text-[0.6875rem] font-mono font-semibold ${idx === 0 ? 'text-primary' : idx === 1 ? 'text-accent' : 'text-[var(--color-text-muted)]'}`}
                 >
                   0{idx + 1}
                 </span>
               </div>
 
-              <div
-                style={{
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  color: 'var(--cyan-light)',
-                  marginTop: '2px',
-                }}
-              >
+              <div className="text-[0.8125rem] font-semibold text-cyan-light mt-[2px]">
                 {b.title}
               </div>
 
-              <p
-                style={{
-                  margin: '4px 0 0',
-                  fontSize: '0.8125rem',
-                  color: 'var(--color-text-muted)',
-                  lineHeight: 1.45,
-                }}
-              >
+              <p className="mt-[4px] mr-0 mb-0 ml-0 text-[0.8125rem] text-[var(--color-text-muted)] leading-[1.45]">
                 {b.desc}
               </p>
             </div>
@@ -219,21 +109,7 @@ export const ValueBenefitStage: React.FC = () => {
         </div>
 
         {/* Rechts (bzw. auf Mobile dazwischen): Großes menschlich-vertriebsnahes Symbolbild */}
-        <div
-          className="benefit-graphic-container"
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border-soft)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '260px',
-            position: 'relative',
-          }}
-        >
+        <div className="benefit-graphic-container bg-background-deep rounded-[var(--radius-md)] border border-solid border-border-soft p-[var(--space-4)] flex flex-col items-center justify-center min-h-[260px] relative">
           {/* Eigene Vertriebs- und Beziehungs-Vektorgrafik (Kein Standard-Icon) */}
           <svg
             width="100%"
@@ -243,7 +119,7 @@ export const ValueBenefitStage: React.FC = () => {
             xmlns="http://www.w3.org/2000/svg"
             role="img"
             aria-label="Vertriebsnahe Symbolgrafik: Strukturierte Lead-zu-Kunde Qualifizierung und persönliche B2B-Kundenbeziehung"
-            style={{ maxWidth: '320px', height: 'auto' }}
+            className="max-w-[320px] h-auto"
           >
             {/* Hintergrund-Gitter / Fokus-Koordinaten */}
             <circle cx="160" cy="110" r="95" stroke="var(--color-border-soft)" strokeWidth="1" strokeDasharray="4 4" />
@@ -312,46 +188,20 @@ export const ValueBenefitStage: React.FC = () => {
             </text>
           </svg>
 
-          <div
-            style={{
-              marginTop: 'var(--space-2)',
-              fontSize: '0.6875rem',
-              color: 'var(--color-text-muted)',
-              fontFamily: 'var(--font-mono)',
-              textAlign: 'center',
-            }}
-          >
+          <div className="mt-[var(--space-2)] text-[0.6875rem] text-[var(--color-text-muted)] font-mono text-center">
             Persönliche B2B-Abschlüsse statt Excel-Verlust
           </div>
         </div>
       </div>
 
       {/* Button & Ausklappbare Detail-Referenz */}
-      <div style={{ marginTop: 'var(--space-4)', display: 'flex', justifyContent: 'flex-end' }}>
+      <div className="mt-[var(--space-4)] flex justify-end">
         <button
           type="button"
           onClick={() => setShowDetails(!showDetails)}
           aria-controls="value-benefit-details"
           aria-expanded={showDetails}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '4px 10px',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-text)';
-            e.currentTarget.style.borderColor = 'var(--color-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-muted)';
-            e.currentTarget.style.borderColor = 'var(--color-border)';
-          }}
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[10px] py-[4px]"
         >
           {showDetails ? 'Referenzübersicht verbergen' : 'Referenzübersicht anzeigen'}
         </button>
@@ -360,29 +210,17 @@ export const ValueBenefitStage: React.FC = () => {
       {showDetails && (
         <div
           id="value-benefit-details"
-          style={{
-            marginTop: 'var(--space-4)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
-            gap: 'var(--space-3)',
-          }}
+          className="mt-[var(--space-4)] pt-[var(--space-4)] border-t border-solid border-border grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),1fr))] gap-[var(--space-3)]"
         >
           {VALUE.coreBenefits.map((b, i) => (
             <div
               key={i}
-              style={{
-                backgroundColor: 'var(--color-bg-deep)',
-                padding: 'var(--space-3)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border-soft)',
-              }}
+              className="bg-background-deep p-[var(--space-3)] rounded-[var(--radius-md)] border border-solid border-border-soft"
             >
-              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)' }}>
+              <div className="text-[0.8125rem] font-semibold text-text">
                 {b.title}
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px', lineHeight: 1.4 }}>
+              <div className="text-[0.75rem] text-[var(--color-text-muted)] mt-[4px] leading-[1.4]">
                 {b.desc}
               </div>
             </div>

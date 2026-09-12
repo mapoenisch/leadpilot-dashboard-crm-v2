@@ -12,44 +12,14 @@ export const BusinessIdeaSignalMap: React.FC = () => {
   const phase2FrictionText2 = IDEE.paragraphs[1].split('.')[0] + '.';
 
   return (
-    <div
-      className="facelift-business-idea-signal-map"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
-    >
+    <div className="facelift-business-idea-signal-map w-full box-border rounded-[var(--radius-lg)] border border-solid border-border bg-surface p-[var(--space-5)]">
       {/* Kopfbereich */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-        }}
-      >
+      <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)] mb-[var(--space-5)] pb-[var(--space-4)] border-b border-solid border-border-soft">
         <div>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+          <h3 className="m-0 font-display text-[1.125rem] font-bold text-text tracking-[0.01em]">
             Geschäftsidee Signal-Map
           </h3>
-          <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p className="mt-[2px] mr-0 mb-0 ml-0 text-[0.8125rem] text-[var(--color-text-muted)]">
             Von der DACH-KMU-Situation über die Vertriebsreibung zur LeadPilot-Mechanik und dem messbaren Nutzen.
           </p>
         </div>
@@ -59,25 +29,7 @@ export const BusinessIdeaSignalMap: React.FC = () => {
           onClick={() => setShowDetails(!showDetails)}
           aria-controls="business-idea-details-panel"
           aria-expanded={showDetails}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '5px 12px',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-text)';
-            e.currentTarget.style.borderColor = 'var(--color-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-muted)';
-            e.currentTarget.style.borderColor = 'var(--color-border)';
-          }}
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]"
         >
           {showDetails ? 'Ausführliche Texte verbergen' : 'Ausführliche Texte anzeigen'}
         </button>
@@ -132,69 +84,57 @@ export const BusinessIdeaSignalMap: React.FC = () => {
       {/* Signal-Map Kette */}
       <div className="signal-map-grid">
         {/* Phase 01: DACH-KMU-Situation */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border-soft)',
-            borderTop: '3px solid var(--color-border)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 'var(--space-3)',
-          }}
-        >
+        <div className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-border-soft border-t-[3px] border-t-border p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>
+            <div className="flex items-center justify-between mb-[var(--space-2)]">
+              <span className="font-mono text-[0.6875rem] font-bold text-[var(--color-text-muted)]">
                 PHASE 01
               </span>
               <FaceliftGlyph name="focus" tone="neutral" size={16} />
             </div>
 
-            <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>
+            <h4 className="mt-0 mr-0 mb-[var(--space-2)] ml-0 font-display text-[0.9375rem] font-semibold text-text">
               DACH-KMU-Situation
             </h4>
 
             {/* KfW & Destatis Metriken & URLs direkt an der Station */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', margin: 'var(--space-2) 0' }}>
-              <div style={{ padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border-soft)' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', fontFamily: 'var(--font-display)' }}>
+            <div className="flex flex-col gap-[var(--space-2)] my-[var(--space-2)] mx-0">
+              <div className="p-[var(--space-2)] rounded-[var(--radius-sm)] bg-surface border border-solid border-border-soft">
+                <div className="text-[0.75rem] font-bold text-primary font-display">
                   {FACELIFT_SOURCES.kfw.metric}
                 </div>
-                <div style={{ marginTop: '2px', fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+                <div className="mt-[2px] text-[0.6875rem] text-[var(--color-text-muted)]">
                   Quelle: {FACELIFT_SOURCES.kfw.name}
                 </div>
                 <a
                   href={FACELIFT_SOURCES.kfw.url}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ fontSize: '0.625rem', color: 'var(--cyan-light)', textDecoration: 'underline', wordBreak: 'break-all', display: 'inline-block', marginTop: '2px' }}
+                  className="text-[0.625rem] text-cyan-light underline break-all inline-block mt-[2px]"
                 >
                   {FACELIFT_SOURCES.kfw.url}
                 </a>
               </div>
 
-              <div style={{ padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border-soft)' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', fontFamily: 'var(--font-display)' }}>
+              <div className="p-[var(--space-2)] rounded-[var(--radius-sm)] bg-surface border border-solid border-border-soft">
+                <div className="text-[0.75rem] font-bold text-primary font-display">
                   {FACELIFT_SOURCES.destatis.metric}
                 </div>
-                <div style={{ marginTop: '2px', fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+                <div className="mt-[2px] text-[0.6875rem] text-[var(--color-text-muted)]">
                   Quelle: {FACELIFT_SOURCES.destatis.name}
                 </div>
                 <a
                   href={FACELIFT_SOURCES.destatis.url}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ fontSize: '0.625rem', color: 'var(--cyan-light)', textDecoration: 'underline', wordBreak: 'break-all', display: 'inline-block', marginTop: '2px' }}
+                  className="text-[0.625rem] text-cyan-light underline break-all inline-block mt-[2px]"
                 >
                   {FACELIFT_SOURCES.destatis.url}
                 </a>
               </div>
             </div>
 
-            <p style={{ margin: 'var(--space-2) 0 0', fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            <p className="mt-[var(--space-2)] mr-0 mb-0 ml-0 text-[0.75rem] text-[var(--color-text-muted)] leading-[1.4]">
               {phase1MarketText}
             </p>
           </div>
@@ -215,40 +155,28 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         </div>
 
         {/* Phase 02: Vertriebsreibung */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid rgba(255, 122, 61, 0.3)',
-            borderTop: '3px solid var(--color-accent)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 'var(--space-3)',
-          }}
-        >
+        <div className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-[rgba(255,122,61,0.3)] border-t-[3px] border-t-accent p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-accent)' }}>
+            <div className="flex items-center justify-between mb-[var(--space-2)]">
+              <span className="font-mono text-[0.6875rem] font-bold text-accent">
                 PHASE 02
               </span>
               <FaceliftGlyph name="challenge" tone="attention" size={16} />
             </div>
 
-            <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>
+            <h4 className="mt-0 mr-0 mb-[var(--space-2)] ml-0 font-display text-[0.9375rem] font-semibold text-text">
               Vertriebsreibung
             </h4>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', margin: 'var(--space-2) 0' }}>
-              <div style={{ padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface)', border: '1px solid rgba(255, 122, 61, 0.2)' }}>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text)', lineHeight: 1.4 }}>
+            <div className="flex flex-col gap-[var(--space-2)] my-[var(--space-2)] mx-0">
+              <div className="p-[var(--space-2)] rounded-[var(--radius-sm)] bg-surface border border-solid border-[rgba(255,122,61,0.2)]">
+                <p className="m-0 text-[0.75rem] text-text leading-[1.4]">
                   {phase2FrictionText1}
                 </p>
               </div>
 
-              <div style={{ padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border-soft)' }}>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+              <div className="p-[var(--space-2)] rounded-[var(--radius-sm)] bg-surface border border-solid border-border-soft">
+                <p className="m-0 text-[0.75rem] text-[var(--color-text-muted)] leading-[1.4]">
                   {phase2FrictionText2}
                 </p>
               </div>
@@ -271,34 +199,22 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         </div>
 
         {/* Phase 03: LeadPilot-Mechanik */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid rgba(0, 217, 198, 0.4)',
-            borderTop: '3px solid var(--color-primary)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 'var(--space-3)',
-          }}
-        >
+        <div className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-[rgba(0,217,198,0.4)] border-t-[3px] border-t-primary p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+            <div className="flex items-center justify-between mb-[var(--space-2)]">
+              <span className="font-mono text-[0.6875rem] font-bold text-primary">
                 PHASE 03
               </span>
               <FaceliftGlyph name="ready" tone="accent" size={16} />
             </div>
 
-            <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>
+            <h4 className="mt-0 mr-0 mb-[var(--space-2)] ml-0 font-display text-[0.9375rem] font-semibold text-text">
               LeadPilot-Mechanik
             </h4>
 
-            <ul style={{ margin: 'var(--space-2) 0', paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', color: 'var(--color-text)', lineHeight: 1.35 }}>
+            <ul className="my-[var(--space-2)] mx-0 pl-[16px] flex flex-col gap-[6px] text-[0.75rem] text-text leading-[1.35]">
               {IDEE.usps.map((u, i) => (
-                <li key={i} style={{ color: i === 0 ? 'var(--cyan-light)' : 'var(--color-text)' }}>
+                <li key={i} className={i === 0 ? 'text-cyan-light' : 'text-text'}>
                   {u}
                 </li>
               ))}
@@ -321,42 +237,29 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         </div>
 
         {/* Phase 04: Nutzen */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid rgba(0, 217, 198, 0.3)',
-            borderTop: '3px solid var(--color-primary)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 'var(--space-3)',
-            boxShadow: '0 0 16px rgba(0, 217, 198, 0.08)',
-          }}
-        >
+        <div className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-[rgba(0,217,198,0.3)] border-t-[3px] border-t-primary p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)] shadow-[0_0_16px_rgba(0,217,198,0.08)]">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+            <div className="flex items-center justify-between mb-[var(--space-2)]">
+              <span className="font-mono text-[0.6875rem] font-bold text-primary">
                 PHASE 04
               </span>
               <FaceliftGlyph name="success" tone="positive" size={16} />
             </div>
 
-            <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>
+            <h4 className="mt-0 mr-0 mb-[var(--space-2)] ml-0 font-display text-[0.9375rem] font-semibold text-text">
               Nutzen
             </h4>
 
-            <div style={{ padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface)', border: '1px solid rgba(0, 217, 198, 0.3)', marginBottom: 'var(--space-2)' }}>
-              <blockquote style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text)', fontStyle: 'italic', lineHeight: 1.35 }}>
+            <div className="p-[var(--space-2)] rounded-[var(--radius-sm)] bg-surface border border-solid border-[rgba(0,217,198,0.3)] mb-[var(--space-2)]">
+              <blockquote className="m-0 text-[0.75rem] text-text italic leading-[1.35]">
                 {VALUE.heroStatement}
               </blockquote>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div className="flex flex-col gap-[4px]">
               {VALUE.coreBenefits.slice(0, 2).map((cb, idx) => (
-                <div key={idx} style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', lineHeight: 1.3 }}>
-                  <strong style={{ color: 'var(--cyan-light)' }}>{cb.title}:</strong> {cb.desc}
+                <div key={idx} className="text-[0.6875rem] text-[var(--color-text-muted)] leading-[1.3]">
+                  <strong className="text-cyan-light">{cb.title}:</strong> {cb.desc}
                 </div>
               ))}
             </div>
@@ -368,33 +271,26 @@ export const BusinessIdeaSignalMap: React.FC = () => {
       {showDetails && (
         <div
           id="business-idea-details-panel"
-          style={{
-            marginTop: 'var(--space-5)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-4)',
-          }}
+          className="mt-[var(--space-5)] pt-[var(--space-4)] border-t border-solid border-border flex flex-col gap-[var(--space-4)]"
         >
-          <div style={{ backgroundColor: 'var(--color-bg-deep)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)' }}>
-            <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>
+          <div className="bg-background-deep p-[var(--space-4)] rounded-[var(--radius-md)]">
+            <h4 className="mt-0 mr-0 mb-[var(--space-2)] ml-0 font-display text-text">
               {IDEE.title} – {IDEE.subtitle}
             </h4>
             {IDEE.paragraphs.map((p, i) => (
-              <p key={i} style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.5, margin: '0 0 var(--space-2)' }}>
+              <p key={i} className="text-[0.8125rem] text-[var(--color-text-muted)] leading-[1.5] mt-0 mr-0 mb-[var(--space-2)] ml-0">
                 {p}
               </p>
             ))}
           </div>
 
-          <div style={{ backgroundColor: 'var(--color-bg-deep)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)' }}>
-            <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>
+          <div className="bg-background-deep p-[var(--space-4)] rounded-[var(--radius-md)]">
+            <h4 className="mt-0 mr-0 mb-[var(--space-2)] ml-0 font-display text-text">
               Alleinstellungsmerkmale (USPs im Original):
             </h4>
-            <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <ul className="m-0 pl-[20px] flex flex-col gap-[6px]">
               {IDEE.usps.map((u, i) => (
-                <li key={i} style={{ fontSize: '0.8125rem', color: 'var(--color-text)' }}>
+                <li key={i} className="text-[0.8125rem] text-text">
                   {u}
                 </li>
               ))}

@@ -38,44 +38,14 @@ export const FundingTimeline: React.FC = () => {
   ];
 
   return (
-    <div
-      className="facelift-funding-timeline"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
-    >
+    <div className="facelift-funding-timeline w-full box-border rounded-[var(--radius-lg)] border border-solid border-border bg-surface p-[var(--space-5)]">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-        }}
-      >
+      <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)] mb-[var(--space-5)] pb-[var(--space-4)] border-b border-solid border-border-soft">
         <div>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+          <h3 className="m-0 font-display text-[1.125rem] font-bold text-text tracking-[0.01em]">
             Gemeinsame Gründungs- & Entwicklungszeitachse
           </h3>
-          <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p className="mt-[2px] mr-0 mb-0 ml-0 text-[0.8125rem] text-[var(--color-text-muted)]">
             Synchronisierte Chronologie: Oben Kapital & Recht, unten Produkt & Markt mit senkrechtem Ermöglichungs-Verbinder.
           </p>
         </div>
@@ -85,25 +55,7 @@ export const FundingTimeline: React.FC = () => {
           onClick={() => setShowDetails(!showDetails)}
           aria-controls="funding-timeline-details"
           aria-expanded={showDetails}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '5px 12px',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-text)';
-            e.currentTarget.style.borderColor = 'var(--color-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-muted)';
-            e.currentTarget.style.borderColor = 'var(--color-border)';
-          }}
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]"
         >
           {showDetails ? 'Ereignisliste verbergen' : 'Ereignisliste anzeigen'}
         </button>
@@ -137,137 +89,46 @@ export const FundingTimeline: React.FC = () => {
         {columns.map((col) => (
           <div
             key={col.period}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: 'var(--space-3)',
-            }}
+            className="flex flex-col justify-between gap-[var(--space-3)]"
           >
             {/* Spaltenkopf: Datum */}
             <div
-              style={{
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-raised)',
-                border: '1px solid var(--color-border-soft)',
-                textAlign: 'center',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                color: col.hasConnector ? 'var(--color-primary)' : 'var(--color-text)',
-              }}
+              className={`px-[10px] py-[4px] rounded-[var(--radius-sm)] bg-surface-raised border border-solid border-border-soft text-center font-mono text-[0.75rem] font-bold ${col.hasConnector ? 'text-primary' : 'text-text'}`}
             >
               {col.period}
             </div>
 
             {/* OBERE SPUR: Kapital & Recht */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div
-                style={{
-                  fontSize: '0.625rem',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--cyan-light)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  marginBottom: 'var(--space-1)',
-                  fontWeight: 600,
-                }}
-              >
+            <div className="flex-1 flex flex-col">
+              <div className="text-[0.625rem] font-mono text-cyan-light uppercase tracking-[0.05em] mb-[var(--space-1)] font-semibold">
                 Kapital & Recht
               </div>
 
               {col.capitalEvent ? (
                 <div
-                  style={{
-                    flex: 1,
-                    backgroundColor: 'var(--color-bg-deep)',
-                    borderRadius: 'var(--radius-md)',
-                    border: col.hasConnector
-                      ? '1px solid rgba(0, 217, 198, 0.4)'
-                      : '1px solid var(--color-border-soft)',
-                    borderTop: col.hasConnector
-                      ? '3px solid var(--color-primary)'
-                      : '3px solid var(--color-border)',
-                    padding: 'var(--space-3)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    gap: 'var(--space-2)',
-                  }}
+                  className={`flex-1 bg-background-deep rounded-[var(--radius-md)] border border-solid p-[var(--space-3)] flex flex-col justify-between gap-[var(--space-2)] ${col.hasConnector ? 'border-[rgba(0,217,198,0.4)] border-t-[3px] border-t-primary' : 'border-border-soft border-t-[3px] border-t-border'}`}
                 >
                   <div>
-                    <h4
-                      style={{
-                        margin: '0 0 var(--space-1)',
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '0.8125rem',
-                        fontWeight: 600,
-                        color: 'var(--color-text)',
-                      }}
-                    >
+                    <h4 className="mt-0 mr-0 mb-[var(--space-1)] ml-0 font-display text-[0.8125rem] font-semibold text-text">
                       {col.capitalEvent.title}
                     </h4>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.6875rem',
-                        color: 'var(--color-text-muted)',
-                        lineHeight: 1.35,
-                      }}
-                    >
+                    <p className="m-0 text-[0.6875rem] text-[var(--color-text-muted)] leading-[1.35]">
                       {col.capitalEvent.desc}
                     </p>
                   </div>
                 </div>
               ) : (
                 /* Leere Zelle sichtbar als Teil der gemeinsamen Zeitachse */
-                <div
-                  style={{
-                    flex: 1,
-                    minHeight: '80px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px dashed var(--color-border-soft)',
-                    backgroundColor: 'rgba(6, 22, 19, 0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--color-border)',
-                    fontSize: '0.75rem',
-                    fontFamily: 'var(--font-mono)',
-                  }}
-                >
+                <div className="flex-1 min-h-[80px] rounded-[var(--radius-md)] border border-dashed border-border-soft bg-[rgba(6,22,19,0.3)] flex items-center justify-center text-border text-[0.75rem] font-mono">
                   —
                 </div>
               )}
             </div>
 
             {/* MITTELBEREICH: Senkrechter Verbinder in Spalte Q1 2024 */}
-            <div
-              style={{
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-              }}
-            >
+            <div className="h-[36px] flex items-center justify-center relative">
               {col.hasConnector ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: 'var(--cyan-a12)',
-                    border: '1px solid rgba(0, 217, 198, 0.4)',
-                    color: 'var(--color-primary)',
-                    fontSize: '0.625rem',
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: 700,
-                  }}
-                >
+                <div className="flex items-center gap-[4px] px-[8px] py-[2px] rounded-full bg-cyan-a12 border border-solid border-[rgba(0,217,198,0.4)] text-primary text-[0.625rem] font-mono font-bold">
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                     <path d="M5 1v8m-3-3l3 3 3-3" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -275,92 +136,34 @@ export const FundingTimeline: React.FC = () => {
                 </div>
               ) : (
                 <div
-                  style={{
-                    width: '1px',
-                    height: '100%',
-                    backgroundColor: 'var(--color-border-soft)',
-                  }}
+                  className="w-[1px] h-full bg-border-soft"
                   aria-hidden="true"
                 />
               )}
             </div>
 
             {/* UNTERE SPUR: Produkt & Markt */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div
-                style={{
-                  fontSize: '0.625rem',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--color-primary)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  marginBottom: 'var(--space-1)',
-                  fontWeight: 600,
-                }}
-              >
+            <div className="flex-1 flex flex-col">
+              <div className="text-[0.625rem] font-mono text-primary uppercase tracking-[0.05em] mb-[var(--space-1)] font-semibold">
                 Produkt & Markt
               </div>
 
               {col.productEvent ? (
                 <div
-                  style={{
-                    flex: 1,
-                    backgroundColor: 'var(--color-bg-deep)',
-                    borderRadius: 'var(--radius-md)',
-                    border: col.hasConnector
-                      ? '1px solid rgba(0, 217, 198, 0.4)'
-                      : '1px solid var(--color-border-soft)',
-                    borderTop: col.hasConnector
-                      ? '3px solid var(--color-primary)'
-                      : '3px solid var(--color-border)',
-                    padding: 'var(--space-3)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    gap: 'var(--space-2)',
-                  }}
+                  className={`flex-1 bg-background-deep rounded-[var(--radius-md)] border border-solid p-[var(--space-3)] flex flex-col justify-between gap-[var(--space-2)] ${col.hasConnector ? 'border-[rgba(0,217,198,0.4)] border-t-[3px] border-t-primary' : 'border-border-soft border-t-[3px] border-t-border'}`}
                 >
                   <div>
-                    <h4
-                      style={{
-                        margin: '0 0 var(--space-1)',
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '0.8125rem',
-                        fontWeight: 600,
-                        color: 'var(--color-text)',
-                      }}
-                    >
+                    <h4 className="mt-0 mr-0 mb-[var(--space-1)] ml-0 font-display text-[0.8125rem] font-semibold text-text">
                       {col.productEvent.title}
                     </h4>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.6875rem',
-                        color: 'var(--color-text-muted)',
-                        lineHeight: 1.35,
-                      }}
-                    >
+                    <p className="m-0 text-[0.6875rem] text-[var(--color-text-muted)] leading-[1.35]">
                       {col.productEvent.desc}
                     </p>
                   </div>
                 </div>
               ) : (
                 /* Leere Zelle sichtbar als Teil der gemeinsamen Zeitachse */
-                <div
-                  style={{
-                    flex: 1,
-                    minHeight: '80px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px dashed var(--color-border-soft)',
-                    backgroundColor: 'rgba(6, 22, 19, 0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--color-border)',
-                    fontSize: '0.75rem',
-                    fontFamily: 'var(--font-mono)',
-                  }}
-                >
+                <div className="flex-1 min-h-[80px] rounded-[var(--radius-md)] border border-dashed border-border-soft bg-[rgba(6,22,19,0.3)] flex items-center justify-center text-border text-[0.75rem] font-mono">
                   —
                 </div>
               )}
@@ -374,73 +177,37 @@ export const FundingTimeline: React.FC = () => {
         {columns.map((col) => (
           <div
             key={`mob-${col.period}`}
-            style={{
-              backgroundColor: 'var(--color-bg-deep)',
-              borderRadius: 'var(--radius-md)',
-              border: col.hasConnector
-                ? '1px solid rgba(0, 217, 198, 0.4)'
-                : '1px solid var(--color-border-soft)',
-              padding: 'var(--space-4)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-3)',
-            }}
+            className={`bg-background-deep rounded-[var(--radius-md)] border border-solid p-[var(--space-4)] flex flex-col gap-[var(--space-3)] ${col.hasConnector ? 'border-[rgba(0,217,198,0.4)]' : 'border-border-soft'}`}
           >
             {/* Datum */}
             <div
-              style={{
-                display: 'inline-block',
-                alignSelf: 'flex-start',
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-raised)',
-                border: '1px solid var(--color-border)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                color: col.hasConnector ? 'var(--color-primary)' : 'var(--color-text)',
-              }}
+              className={`inline-block self-start px-[8px] py-[3px] rounded-[var(--radius-sm)] bg-surface-raised border border-solid border-border font-mono text-[0.75rem] font-bold ${col.hasConnector ? 'text-primary' : 'text-text'}`}
             >
               {col.period}
             </div>
 
             {/* Kapital & Recht */}
-            <div style={{ paddingLeft: 'var(--space-2)', borderLeft: '2px solid var(--cyan-light)' }}>
-              <div style={{ fontSize: '0.625rem', fontFamily: 'var(--font-mono)', color: 'var(--cyan-light)', textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="pl-[var(--space-2)] border-l-2 border-solid border-l-cyan-light">
+              <div className="text-[0.625rem] font-mono text-cyan-light uppercase mb-[2px]">
                 Kapital & Recht
               </div>
               {col.capitalEvent ? (
                 <div>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  <div className="text-[0.8125rem] font-semibold text-text">
                     {col.capitalEvent.title}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px', lineHeight: 1.35 }}>
+                  <div className="text-[0.75rem] text-[var(--color-text-muted)] mt-[2px] leading-[1.35]">
                     {col.capitalEvent.desc}
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>—</div>
+                <div className="text-[0.75rem] text-[var(--color-text-muted)]">—</div>
               )}
             </div>
 
             {/* Senkrechter Verbinder in Q1 2024 */}
             {col.hasConnector && (
-              <div
-                style={{
-                  alignSelf: 'flex-start',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '3px 8px',
-                  borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--cyan-a12)',
-                  border: '1px solid rgba(0, 217, 198, 0.4)',
-                  color: 'var(--color-primary)',
-                  fontSize: '0.6875rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                }}
-              >
+              <div className="self-start flex items-center gap-[6px] px-[8px] py-[3px] rounded-full bg-cyan-a12 border border-solid border-[rgba(0,217,198,0.4)] text-primary text-[0.6875rem] font-mono font-bold">
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                   <path d="M5 1v8m-3-3l3 3 3-3" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -449,21 +216,21 @@ export const FundingTimeline: React.FC = () => {
             )}
 
             {/* Produkt & Markt */}
-            <div style={{ paddingLeft: 'var(--space-2)', borderLeft: '2px solid var(--color-primary)' }}>
-              <div style={{ fontSize: '0.625rem', fontFamily: 'var(--font-mono)', color: 'var(--color-primary)', textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="pl-[var(--space-2)] border-l-2 border-solid border-l-primary">
+              <div className="text-[0.625rem] font-mono text-primary uppercase mb-[2px]">
                 Produkt & Markt
               </div>
               {col.productEvent ? (
                 <div>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  <div className="text-[0.8125rem] font-semibold text-text">
                     {col.productEvent.title}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px', lineHeight: 1.35 }}>
+                  <div className="text-[0.75rem] text-[var(--color-text-muted)] mt-[2px] leading-[1.35]">
                     {col.productEvent.desc}
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>—</div>
+                <div className="text-[0.75rem] text-[var(--color-text-muted)]">—</div>
               )}
             </div>
           </div>
@@ -474,50 +241,24 @@ export const FundingTimeline: React.FC = () => {
       {showDetails && (
         <div
           id="funding-timeline-details"
-          style={{
-            marginTop: 'var(--space-5)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-3)',
-          }}
+          className="mt-[var(--space-5)] pt-[var(--space-4)] border-t border-solid border-border flex flex-col gap-[var(--space-3)]"
         >
-          <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-1)' }}>
+          <div className="text-[0.8125rem] text-[var(--color-text-muted)] mb-[var(--space-1)]">
             Vollständige Meilensteine (Original-Historie):
           </div>
           {HISTORIE.events.map((e, idx) => (
             <div
               key={idx}
-              style={{
-                display: 'flex',
-                gap: 'var(--space-4)',
-                alignItems: 'center',
-                backgroundColor: 'var(--color-bg-deep)',
-                padding: 'var(--space-3) var(--space-4)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border-soft)',
-              }}
+              className="flex gap-[var(--space-4)] items-center bg-background-deep px-[var(--space-4)] py-[var(--space-3)] rounded-[var(--radius-md)] border border-solid border-border-soft"
             >
-              <div
-                style={{
-                  padding: '4px 10px',
-                  backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-primary)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  fontFamily: 'var(--font-mono)',
-                  flexShrink: 0,
-                }}
-              >
+              <div className="px-[10px] py-[4px] bg-surface text-primary rounded-[var(--radius-sm)] font-bold text-[0.75rem] font-mono shrink-0">
                 {e.date}
               </div>
               <div>
-                <div style={{ color: 'var(--color-text)', fontSize: '0.875rem', fontWeight: 600 }}>
+                <div className="text-text text-[0.875rem] font-semibold">
                   {e.title}
                 </div>
-                <div style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginTop: '2px' }}>
+                <div className="text-[var(--color-text-muted)] text-[0.75rem] mt-[2px]">
                   {e.desc}
                 </div>
               </div>

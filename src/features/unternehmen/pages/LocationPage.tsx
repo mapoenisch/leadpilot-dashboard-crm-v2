@@ -59,10 +59,7 @@ const SUB_STATIONS = [
 
 export function LocationPage() {
   return (
-    <div
-      className="unternehmen-v2-container"
-      style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}
-    >
+    <div className="unternehmen-v2-container flex flex-col gap-[28px] w-full">
       <SectionHeader
         eyebrow="Unternehmen · Standort"
         title={STANDORT.title}
@@ -70,258 +67,92 @@ export function LocationPage() {
       />
 
       {/* GROSSES LEITBILD (HERO STATION): AUSSENANSICHT AUGUSTUSPLATZ */}
-      <div
-        style={{
-          borderRadius: '10px',
-          overflow: 'hidden',
-          backgroundColor: '#04100F',
-          border: '1px solid rgba(0, 217, 198, 0.35)',
-          boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.5), 0 0 24px rgba(0, 217, 198, 0.12)',
-        }}
-      >
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            backgroundColor: '#081C1A',
-            overflow: 'hidden',
-          }}
-        >
+      <div className="rounded-[10px] overflow-hidden bg-[#04100F] border border-solid border-[rgba(0,217,198,0.35)] shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5),0_0_24px_rgba(0,217,198,0.12)]">
+        <div className="relative w-full bg-[#081C1A] overflow-hidden">
           <img
             src={heroImage}
             alt="Fiktive Visualisierung: Außenansicht des Unternehmenssitzes am Augustusplatz in Leipzig"
             width={1672}
             height={941}
             fetchPriority="high"
-            style={{
-              width: '100%',
-              height: 'auto',
-              display: 'block',
-            }}
+            className="w-full h-auto block"
           />
 
           {/* Overline-Label: FIKTIVE VISUALISIERUNG */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '14px',
-              left: '14px',
-              backgroundColor: 'rgba(3, 12, 11, 0.92)',
-              border: '1px solid rgba(0, 217, 198, 0.45)',
-              borderRadius: '4px',
-              padding: '4px 9px',
-              fontFamily: 'monospace',
-              fontSize: '11px',
-              fontWeight: 700,
-              color: '#00D9C6',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              zIndex: 2,
-            }}
-          >
+          <div className="absolute top-[14px] left-[14px] bg-[rgba(3,12,11,0.92)] border border-solid border-[rgba(0,217,198,0.45)] rounded-[4px] px-[9px] py-[4px] font-mono text-[11px] font-bold text-[#00D9C6] tracking-[0.08em] uppercase z-[2]">
             FIKTIVE VISUALISIERUNG
           </div>
 
           {/* LeadPilot-Logo-Overlay (dekorativ) */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '14px',
-              right: '14px',
-              backgroundColor: 'rgba(3, 12, 11, 0.92)',
-              border: '1px solid rgba(0, 217, 198, 0.3)',
-              borderRadius: '4px',
-              padding: '6px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              zIndex: 2,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.6)',
-            }}
-          >
+          <div className="absolute top-[14px] right-[14px] bg-[rgba(3,12,11,0.92)] border border-solid border-[rgba(0,217,198,0.3)] rounded-[4px] px-[12px] py-[6px] flex items-center z-[2] shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
             <img
               src={logoImage}
               alt=""
               aria-hidden="true"
               width={2431}
               height={1093}
-              style={{
-                height: '18px',
-                width: 'auto',
-                display: 'block',
-              }}
+              className="h-[18px] w-auto block"
             />
           </div>
         </div>
 
         {/* Bildunterschrift / Headerzeile */}
-        <div
-          style={{
-            padding: '16px 24px',
-            backgroundColor: 'rgba(6, 22, 20, 0.95)',
-            borderTop: '1px solid rgba(0, 217, 198, 0.2)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-          }}
-        >
+        <div className="px-[24px] py-[16px] bg-[rgba(6,22,20,0.95)] border-t border-solid border-t-[rgba(0,217,198,0.2)] flex flex-wrap items-center justify-between gap-[12px]">
           <div>
-            <h3
-              style={{
-                margin: 0,
-                fontFamily: 'var(--font-display, sans-serif)',
-                fontSize: '16px',
-                fontWeight: 700,
-                color: '#FFFFFF',
-              }}
-            >
+            <h3 className="m-0 font-display text-[16px] font-bold text-[#FFFFFF]">
               Unternehmenssitz · Augustusplatz 9
             </h3>
-            <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#9BB2B0' }}>
+            <p className="mt-[3px] mr-0 mb-0 ml-0 text-[13px] text-[#9BB2B0]">
               {STANDORT.address}
             </p>
           </div>
 
-          <span
-            style={{
-              fontSize: '11px',
-              fontFamily: 'monospace',
-              padding: '3px 9px',
-              borderRadius: '4px',
-              backgroundColor: 'rgba(0, 217, 198, 0.1)',
-              color: '#00D9C6',
-              border: '1px solid rgba(0, 217, 198, 0.3)',
-              fontWeight: 700,
-            }}
-          >
+          <span className="text-[11px] font-mono px-[9px] py-[3px] rounded-[4px] bg-[rgba(0,217,198,0.1)] text-[#00D9C6] border border-solid border-[rgba(0,217,198,0.3)] font-bold">
             MIETOBJEKT
           </span>
         </div>
       </div>
 
       {/* DREI INNENANSICHTEN (GRID) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-          gap: '16px',
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-[16px]">
         {SUB_STATIONS.map((station) => (
           <div
             key={station.id}
-            style={{
-              backgroundColor: '#04100F',
-              borderRadius: '8px',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35)',
-            }}
+            className="bg-[#04100F] rounded-[8px] border border-solid border-[rgba(0,217,198,0.25)] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
           >
-            <div
-              style={{
-                position: 'relative',
-                width: '100%',
-                backgroundColor: '#081C1A',
-                overflow: 'hidden',
-              }}
-            >
+            <div className="relative w-full bg-[#081C1A] overflow-hidden">
               <img
                 src={station.src}
                 alt={station.alt}
                 width={1672}
                 height={941}
                 loading="lazy"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                }}
+                className="w-full h-auto block"
               />
 
               {/* Overline-Label */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  left: '10px',
-                  backgroundColor: 'rgba(3, 12, 11, 0.92)',
-                  border: '1px solid rgba(0, 217, 198, 0.4)',
-                  borderRadius: '3px',
-                  padding: '3px 7px',
-                  fontFamily: 'monospace',
-                  fontSize: '9.5px',
-                  fontWeight: 700,
-                  color: '#00D9C6',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  zIndex: 2,
-                }}
-              >
+              <div className="absolute top-[10px] left-[10px] bg-[rgba(3,12,11,0.92)] border border-solid border-[rgba(0,217,198,0.4)] rounded-[3px] px-[7px] py-[3px] font-mono text-[9.5px] font-bold text-[#00D9C6] tracking-[0.06em] uppercase z-[2]">
                 FIKTIVE VISUALISIERUNG
               </div>
 
               {/* Logo-Overlay */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  backgroundColor: 'rgba(3, 12, 11, 0.92)',
-                  border: '1px solid rgba(0, 217, 198, 0.25)',
-                  borderRadius: '3px',
-                  padding: '4px 8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  zIndex: 2,
-                }}
-              >
+              <div className="absolute top-[10px] right-[10px] bg-[rgba(3,12,11,0.92)] border border-solid border-[rgba(0,217,198,0.25)] rounded-[3px] px-[8px] py-[4px] flex items-center z-[2]">
                 <img
                   src={logoImage}
                   alt=""
                   aria-hidden="true"
                   width={2431}
                   height={1093}
-                  style={{
-                    height: '14px',
-                    width: 'auto',
-                    display: 'block',
-                  }}
+                  className="h-[14px] w-auto block"
                 />
               </div>
             </div>
 
-            <div
-              style={{
-                padding: '12px 16px',
-                backgroundColor: 'rgba(6, 22, 20, 0.95)',
-                borderTop: '1px solid rgba(0, 217, 198, 0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <h4
-                style={{
-                  margin: 0,
-                  fontSize: '13.5px',
-                  fontWeight: 600,
-                  color: '#FFFFFF',
-                  fontFamily: 'var(--font-display, sans-serif)',
-                }}
-              >
+            <div className="px-[16px] py-[12px] bg-[rgba(6,22,20,0.95)] border-t border-solid border-t-[rgba(0,217,198,0.15)] flex items-center justify-between">
+              <h4 className="m-0 text-[13.5px] font-semibold text-[#FFFFFF] font-display">
                 {station.title}
               </h4>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontFamily: 'monospace',
-                  color: 'var(--color-text-muted)',
-                }}
-              >
+              <span className="text-[10px] font-mono text-[var(--color-text-muted)]">
                 FIKTIV
               </span>
             </div>
@@ -332,15 +163,7 @@ export function LocationPage() {
       {/* HEADQUARTERS STANDORT-FLÄCHE (MIT DEKORATIVEM GRID-BACKDROP DAHINTER) */}
       <div
         data-testid="location-headquarters"
-        className="unternehmen-v2-hq-panel"
-        style={{
-          position: 'relative',
-          borderRadius: '10px',
-          overflow: 'hidden',
-          border: '1px solid rgba(0, 217, 198, 0.35)',
-          boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.5), 0 0 24px rgba(0, 217, 198, 0.12)',
-          background: 'linear-gradient(135deg, rgba(8, 28, 26, 0.95) 0%, rgba(4, 16, 15, 0.92) 100%)',
-        }}
+        className="unternehmen-v2-hq-panel relative rounded-[10px] overflow-hidden border border-solid border-[rgba(0,217,198,0.35)] shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5),0_0_24px_rgba(0,217,198,0.12)] bg-[linear-gradient(135deg,rgba(8,28,26,0.95)_0%,rgba(4,16,15,0.92)_100%)]"
       >
         {/* Ergänzender dekorativer Koordinaten-/Grundriss-Hintergrund */}
         <img
@@ -350,98 +173,35 @@ export function LocationPage() {
           width={1600}
           height={900}
           loading="lazy"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            opacity: 0.35,
-            pointerEvents: 'none',
-            zIndex: 0,
-          }}
+          className="absolute inset-0 w-full h-full object-cover opacity-[0.35] pointer-events-none z-0"
         />
 
         {/* DOM-Inhaltsebene über dem Backdrop */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            padding: '24px 28px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            backdropFilter: 'blur(4px)',
-          }}
-        >
+        <div className="relative z-[1] px-[28px] py-[24px] flex flex-col gap-[16px] backdrop-blur-[4px]">
           {/* Top Status-Bar mit neutralen Strukturkennzeichnungen */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: '#00D9C6',
-                  boxShadow: '0 0 8px #00D9C6',
-                }}
-              />
-              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#00D9C6', fontFamily: 'monospace' }}>
+          <div className="flex justify-between items-center flex-wrap gap-[8px]">
+            <div className="flex items-center gap-[8px]">
+              <span className="inline-block w-[8px] h-[8px] rounded-full bg-[#00D9C6] shadow-[0_0_8px_#00D9C6]" />
+              <span className="text-[11px] font-bold tracking-[0.08em] text-[#00D9C6] font-mono">
                 HEADQUARTERS // STANDORTDATEN
               </span>
             </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '11px',
-                color: 'var(--color-text-muted)',
-                fontFamily: 'monospace',
-                background: 'rgba(0, 217, 198, 0.08)',
-                border: '1px solid rgba(0, 217, 198, 0.2)',
-                padding: '2px 8px',
-                borderRadius: '4px',
-              }}
-            >
+            <div className="flex items-center text-[11px] text-[var(--color-text-muted)] font-mono bg-[rgba(0,217,198,0.08)] border border-solid border-[rgba(0,217,198,0.2)] px-[8px] py-[2px] rounded-[4px]">
               VERTRAGSDATEN
             </div>
           </div>
 
           {/* Address Block */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '8px',
-                background: 'rgba(0, 217, 198, 0.12)',
-                border: '1px solid rgba(0, 217, 198, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#00D9C6',
-                boxShadow: '0 0 16px rgba(0, 217, 198, 0.2)',
-                flexShrink: 0,
-              }}
-            >
+          <div className="flex items-center gap-[16px] flex-wrap">
+            <div className="w-[44px] h-[44px] rounded-[8px] bg-[rgba(0,217,198,0.12)] border border-solid border-[rgba(0,217,198,0.4)] flex items-center justify-center text-[#00D9C6] shadow-[0_0_16px_rgba(0,217,198,0.2)] shrink-0">
               <Building size={22} />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>
+            <div className="flex flex-col gap-[2px]">
+              <div className="text-[11px] text-[var(--color-text-muted)] font-mono">
                 OFFIZIELLE ANSCHRIFT
               </div>
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: '20px',
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  fontFamily: 'var(--font-display, sans-serif)',
-                  letterSpacing: '-0.01em',
-                }}
-              >
+              <h3 className="m-0 text-[20px] font-bold text-[#FFFFFF] font-display tracking-[-0.01em]">
                 {STANDORT.address}
               </h3>
             </div>
@@ -450,37 +210,22 @@ export function LocationPage() {
       </div>
 
       {/* 6 STRUKTURIERTE TECHNISCHE DATEN-PANELS AUS STANDORT.details */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <div className="flex flex-col gap-[14px]">
+        <div className="flex justify-between items-baseline">
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#00D9C6', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <div className="text-[11px] font-bold text-[#00D9C6] tracking-[0.08em] uppercase">
               Vertrags- & Mietparameter
             </div>
-            <h3
-              style={{
-                margin: '2px 0 0',
-                fontSize: '18px',
-                fontWeight: 700,
-                color: '#FFFFFF',
-                fontFamily: 'var(--font-display, sans-serif)',
-              }}
-            >
+            <h3 className="mt-[2px] mr-0 mb-0 ml-0 text-[18px] font-bold text-[#FFFFFF] font-display">
               Standortdetails & Mietdaten
             </h3>
           </div>
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>
+          <span className="text-[11px] text-[var(--color-text-muted)] font-mono">
             6 KENNDATENSÄTZE
           </span>
         </div>
 
-        <div
-          className="unternehmen-v2-details-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '16px',
-          }}
-        >
+        <div className="unternehmen-v2-details-grid grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[16px]">
           {STANDORT.details.map(([key, val], idx) => {
             const Icon = DETAIL_ICONS[key] || Building;
             const tag = DETAIL_STRUCTURAL_TAGS[idx] || `DETAIL 0${idx + 1}`;
@@ -488,68 +233,25 @@ export function LocationPage() {
             return (
               <div
                 key={key}
-                className="unternehmen-v2-detail-card"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(7, 24, 22, 0.85) 0%, rgba(4, 16, 15, 0.9) 100%)',
-                  border: '1px solid rgba(0, 217, 198, 0.22)',
-                  boxShadow: '0 6px 24px -4px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 217, 198, 0.06)',
-                  borderRadius: '8px',
-                  padding: '18px 20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  position: 'relative',
-                  backdropFilter: 'blur(8px)',
-                  transition: 'border-color 0.2s ease, transform 0.2s ease',
-                }}
+                className="unternehmen-v2-detail-card bg-[linear-gradient(180deg,rgba(7,24,22,0.85)_0%,rgba(4,16,15,0.9)_100%)] border border-solid border-[rgba(0,217,198,0.22)] shadow-[0_6px_24px_-4px_rgba(0,0,0,0.4),0_0_12px_rgba(0,217,198,0.06)] rounded-[8px] px-[20px] py-[18px] flex flex-col gap-[10px] relative backdrop-blur-[8px] transition-[border-color_0.2s_ease,transform_0.2s_ease]"
               >
                 {/* Top: Icon & Tag */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div
-                    style={{
-                      width: '34px',
-                      height: '34px',
-                      borderRadius: '6px',
-                      background: 'rgba(0, 217, 198, 0.08)',
-                      border: '1px solid rgba(0, 217, 198, 0.25)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#00D9C6',
-                    }}
-                  >
+                <div className="flex justify-between items-center">
+                  <div className="w-[34px] h-[34px] rounded-[6px] bg-[rgba(0,217,198,0.08)] border border-solid border-[rgba(0,217,198,0.25)] flex items-center justify-center text-[#00D9C6]">
                     <Icon size={17} />
                   </div>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      color: '#7CEFE6',
-                      background: 'rgba(0, 217, 198, 0.08)',
-                      border: '1px solid rgba(0, 217, 198, 0.2)',
-                      padding: '2px 7px',
-                      borderRadius: '4px',
-                      fontFamily: 'monospace',
-                    }}
-                  >
+                  <span className="text-[10px] font-bold text-[#7CEFE6] bg-[rgba(0,217,198,0.08)] border border-solid border-[rgba(0,217,198,0.2)] px-[7px] py-[2px] rounded-[4px] font-mono">
                     {tag}
                   </span>
                 </div>
 
                 {/* Key */}
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <div className="text-[11px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.04em]">
                   {key}
                 </div>
 
                 {/* Value */}
-                <div
-                  style={{
-                    fontSize: '13.5px',
-                    fontWeight: 600,
-                    color: '#FFFFFF',
-                    lineHeight: 1.5,
-                  }}
-                >
+                <div className="text-[13.5px] font-semibold text-[#FFFFFF] leading-[1.5]">
                   {val}
                 </div>
               </div>
