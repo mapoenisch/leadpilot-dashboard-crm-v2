@@ -2,6 +2,31 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 2 / Auftrag 055: Review-Abschluss (Freigabe)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Endstand:** `583e932` · **Status:** ABGESCHLOSSEN, Freigabe erteilt.
+
+Nacharbeit unabhängig in isoliertem Worktree verifiziert: `tsc` 600,
+`lint` 16/3, `verify` 24/24, `test` 140/140, `build` grün, Schutz-Diff
+leer, `npx playwright test` **153/153** nachgefahren. `SwotCompass.tsx`-
+Fix korrekt (`backgroundColor`-Literal als `bg-[rgba(0,0,0,0.25)]`-
+Klasse, nur `borderColor` bleibt als Laufzeitwert im `style`).
+`INLINE_STYLE_BASELINE` 64 bestätigt unverändert (Datei zählt weiter
+wegen der verbleibenden Laufzeit-Stelle, wie erwartet).
+
+**Damit ist Gate G39 Welle 2 (Auftrag 055) vollständig abgenommen:**
+Primitive-Fix (`Button`/`Card`-`className`-Merge, `Badge`-`size`-
+Variante), 23/23-Datei-Migration über `crm/`, `finanzen/`, `generic/`,
+`geschaeftsmodell/`, `kunden/`, `markt/`, Ratsche 81→64, Card-Padding-
+Fix (echte Verbesserung, Snapshots aktualisiert) — alle unabhängig
+verifiziert, keine offenen Punkte. `src/features/resources/**`
+unangetastet bestätigt.
+
+Kein Merge/Tag/Push ohne Marcs ausdrückliche Freigabe (unverändert).
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 2 / Auftrag 055: Nacharbeit SwotCompass-Literal + Dashboard-Snapshots (Prüfer-Befund)
 
 **Rolle:** Builder (OpenCode) · **Befund:** Review zu `190bd1e` —
