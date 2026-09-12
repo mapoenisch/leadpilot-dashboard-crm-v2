@@ -37,57 +37,17 @@ export const OperationsHub: React.FC = () => {
   const pipelineStages = ['New', 'MQL', 'SQL', 'Hot', 'Won', 'Lost'];
 
   return (
-    <div
-      className="facelift-operations-hub"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
-    >
+    <div className="facelift-operations-hub box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5)]">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-        }}
-      >
+      <div className="border-0 border-b border-solid border-border-soft flex flex-wrap items-center justify-between gap-[var(--space-3)] mb-[var(--space-5)] pb-[var(--space-4)]">
         <div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              color: 'var(--cyan-light)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '2px',
-            }}
-          >
+          <div className="font-mono text-[0.6875rem] font-bold uppercase tracking-[0.08em] mb-[2px] text-[var(--cyan-light)]">
             Betriebszentrale • Architektur
           </div>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+          <h3 className="m-0 font-display text-[1.125rem] font-bold tracking-[0.01em] text-text">
             Produkt-Betriebszentrale: Pipeline-Cockpit & Kernmodule
           </h3>
-          <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
             Zentrales Pipeline-Cockpit im Zentrum mit sichtbaren Verbindungen zu den vier Produktmodulen.
           </p>
         </div>
@@ -97,17 +57,7 @@ export const OperationsHub: React.FC = () => {
           onClick={() => setShowTable(!showTable)}
           aria-controls="operations-hub-table"
           aria-expanded={showTable}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '5px 12px',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]" 
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--color-text)';
             e.currentTarget.style.borderColor = 'var(--color-primary)';
@@ -126,54 +76,33 @@ export const OperationsHub: React.FC = () => {
           Zentrales Cockpit (Betriebszentrale) → Sichtbare gerichtete SVG-Verbinder →
           Untere Module (03 & 04)
       */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-3)',
-        }}
-      >
+      <div className="flex flex-col gap-[var(--space-3)]">
         {/* OBERE REIHE: Modul 01 und Modul 02 */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-            gap: 'var(--space-4)',
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[var(--space-4)]">
           {/* Modul 01 */}
           <div
             data-testid="hub-module-0"
             data-hub-order="1"
-            style={{
-              backgroundColor: 'var(--color-bg-deep)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border-soft)',
-              padding: 'var(--space-4)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: 'var(--space-3)',
-            }}
+            className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]"
           >
             <div>
-              <div style={{ marginBottom: 'var(--space-2)' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.625rem', fontWeight: 700, color: 'var(--cyan-light)', textTransform: 'uppercase' }}>
+              <div className="mb-[var(--space-2)]">
+                <span className="font-mono text-[0.625rem] font-bold uppercase text-[var(--cyan-light)]">
                   {module0.badge}
                 </span>
               </div>
-              <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 700, color: 'var(--color-text)' }}>
+              <h4 className="m-0 mb-[var(--space-2)] font-display text-[0.9375rem] font-bold text-text">
                 {module0.name}
               </h4>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+              <p className="m-0 text-[0.75rem] leading-[1.45] text-[var(--color-text-muted)]">
                 {module0.desc}
               </p>
             </div>
-            <div style={{ backgroundColor: 'var(--color-surface)', borderLeft: '3px solid var(--color-primary)', padding: 'var(--space-2) var(--space-3)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
-              <div style={{ fontSize: '0.625rem', fontFamily: 'var(--font-mono)', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="border-0 border-l-[3px] border-solid border-l-primary bg-surface rounded-[0_var(--radius-sm)_var(--radius-sm)_0] px-[var(--space-3)] py-[var(--space-2)]">
+              <div className="font-mono text-[0.625rem] font-bold uppercase mb-[2px] text-primary">
                 Vertriebsbezug
               </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--color-text)', lineHeight: 1.35 }}>
+              <div className="text-[0.6875rem] leading-[1.35] text-text">
                 {module0.relation}
               </div>
             </div>
@@ -183,35 +112,26 @@ export const OperationsHub: React.FC = () => {
           <div
             data-testid="hub-module-1"
             data-hub-order="2"
-            style={{
-              backgroundColor: 'var(--color-bg-deep)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border-soft)',
-              padding: 'var(--space-4)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: 'var(--space-3)',
-            }}
+            className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]"
           >
             <div>
-              <div style={{ marginBottom: 'var(--space-2)' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.625rem', fontWeight: 700, color: 'var(--cyan-light)', textTransform: 'uppercase' }}>
+              <div className="mb-[var(--space-2)]">
+                <span className="font-mono text-[0.625rem] font-bold uppercase text-[var(--cyan-light)]">
                   {module1.badge}
                 </span>
               </div>
-              <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 700, color: 'var(--color-text)' }}>
+              <h4 className="m-0 mb-[var(--space-2)] font-display text-[0.9375rem] font-bold text-text">
                 {module1.name}
               </h4>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+              <p className="m-0 text-[0.75rem] leading-[1.45] text-[var(--color-text-muted)]">
                 {module1.desc}
               </p>
             </div>
-            <div style={{ backgroundColor: 'var(--color-surface)', borderLeft: '3px solid var(--color-primary)', padding: 'var(--space-2) var(--space-3)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
-              <div style={{ fontSize: '0.625rem', fontFamily: 'var(--font-mono)', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="border-0 border-l-[3px] border-solid border-l-primary bg-surface rounded-[0_var(--radius-sm)_var(--radius-sm)_0] px-[var(--space-3)] py-[var(--space-2)]">
+              <div className="font-mono text-[0.625rem] font-bold uppercase mb-[2px] text-primary">
                 Vertriebsbezug
               </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--color-text)', lineHeight: 1.35 }}>
+              <div className="text-[0.6875rem] leading-[1.35] text-text">
                 {module1.relation}
               </div>
             </div>
@@ -221,22 +141,15 @@ export const OperationsHub: React.FC = () => {
         {/* SICHTBARE GERICHTETE SVG-VERBINDUNGEN: OBERE MODULE → ZENTRUM (Ausschließlich aus Modulbeschreibungen abgeleitet) */}
         <div
           data-testid="hub-connector-top"
-          className="hub-connector"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            height: '32px',
-            position: 'relative',
-          }}
+          className="hub-connector flex items-center justify-around h-[32px] relative"
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', fontSize: '0.625rem', fontWeight: 700 }}>
+          <div className="flex items-center gap-[6px] font-mono text-[0.625rem] font-bold text-primary">
             <span>Inbound-Leads erfassen</span>
             <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
               <path d="M6 1v14M2 11l4 4 4-4" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', fontSize: '0.625rem', fontWeight: 700 }}>
+          <div className="flex items-center gap-[6px] font-mono text-[0.625rem] font-bold text-primary">
             <span>Lead-Bewertung 0–100</span>
             <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
               <path d="M6 1v14M2 11l4 4 4-4" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -248,117 +161,39 @@ export const OperationsHub: React.FC = () => {
         <div
           data-testid="hub-center"
           data-hub-order="3"
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '2px solid var(--color-primary)',
-            padding: 'var(--space-4)',
-            boxShadow: '0 0 24px rgba(0, 217, 198, 0.12)',
-            position: 'relative',
-          }}
+          className="rounded-md border-2 border-solid border-primary bg-background-deep shadow-[0_0_24px_rgba(0,217,198,0.12)] relative p-[var(--space-4)]"
         >
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 'var(--space-2)',
-              marginBottom: 'var(--space-3)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <span
-                style={{
-                  backgroundColor: 'var(--cyan-a12)',
-                  color: 'var(--color-primary)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.625rem',
-                  fontWeight: 700,
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid rgba(0, 217, 198, 0.4)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                }}
+          <div className="flex flex-wrap items-center justify-between gap-[var(--space-2)] mb-[var(--space-3)]">
+            <div className="flex items-center gap-[var(--space-2)]">
+              <span className="font-mono text-[0.625rem] font-bold uppercase tracking-[0.06em] rounded border border-solid border-[rgba(0,217,198,0.4)] bg-cyan-a12 text-primary px-[8px] py-[2px]"
               >
                 Zentraler Knotenpunkt
               </span>
-              <h4
-                style={{
-                  margin: 0,
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '1.0625rem',
-                  fontWeight: 700,
-                  color: 'var(--color-text)',
-                }}
-              >
+              <h4 className="m-0 font-display text-[1.0625rem] font-bold text-text">
                 {FUNKTION.modules[3].name} (Betriebszentrale)
               </h4>
             </div>
 
-            <div
-              style={{
-                fontSize: '0.6875rem',
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--color-primary)',
-                fontWeight: 600,
-              }}
-            >
+            <div className="font-mono text-[0.6875rem] font-semibold text-primary">
               Echtzeit-Kanban & Statusübersicht
             </div>
           </div>
 
-          <p
-            style={{
-              margin: '0 0 var(--space-3)',
-              fontSize: '0.8125rem',
-              color: 'var(--color-text-muted)',
-              lineHeight: 1.45,
-            }}
-          >
+          <p className="m-0 mb-[var(--space-3)] text-[0.8125rem] leading-[1.45] text-[var(--color-text-muted)]">
             {FUNKTION.modules[3].desc}
           </p>
 
           {/* Kanban-Phasenleiste des Cockpits */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(65px, 1fr))',
-              gap: 'var(--space-2)',
-              paddingTop: 'var(--space-2)',
-              borderTop: '1px solid var(--color-border-soft)',
-            }}
-          >
+          <div className="border-0 border-t border-solid border-border-soft grid grid-cols-[repeat(auto-fit,minmax(65px,1fr))] gap-[var(--space-2)] pt-[var(--space-2)]">
             {pipelineStages.map((stage, idx) => (
               <div
                 key={stage}
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                  padding: '6px 4px',
-                  textAlign: 'center',
-                }}
+                className="rounded border border-solid border-border bg-surface text-center px-[4px] py-[6px]"
               >
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.625rem',
-                    color: 'var(--color-text-muted)',
-                    marginBottom: '2px',
-                  }}
-                >
+                <div className="font-mono text-[0.625rem] mb-[2px] text-[var(--color-text-muted)]">
                   0{idx + 1}
                 </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    color: stage === 'Won' ? 'var(--color-primary)' : stage === 'Hot' ? 'var(--color-accent)' : 'var(--color-text)',
-                  }}
-                >
+                <div className={`font-display text-[0.75rem] font-bold ${stage === 'Won' ? 'text-primary' : stage === 'Hot' ? 'text-accent' : 'text-text'}`}>
                   {stage}
                 </div>
               </div>
@@ -369,22 +204,15 @@ export const OperationsHub: React.FC = () => {
         {/* SICHTBARE GERICHTETE SVG-VERBINDUNGEN: ZENTRUM → UNTERE MODULE (Ausschließlich aus Modulbeschreibungen abgeleitet) */}
         <div
           data-testid="hub-connector-bottom"
-          className="hub-connector"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            height: '32px',
-            position: 'relative',
-          }}
+          className="hub-connector flex items-center justify-around h-[32px] relative"
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', fontSize: '0.625rem', fontWeight: 700 }}>
+          <div className="flex items-center gap-[6px] font-mono text-[0.625rem] font-bold text-primary">
             <span>Outreach- & Follow-up-Reihen</span>
             <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
               <path d="M6 1v14M2 11l4 4 4-4" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', fontSize: '0.625rem', fontWeight: 700 }}>
+          <div className="flex items-center gap-[6px] font-mono text-[0.625rem] font-bold text-primary">
             <span>Echtzeit-Kanban & Tabellenansicht</span>
             <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
               <path d="M6 1v14M2 11l4 4 4-4" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -393,46 +221,31 @@ export const OperationsHub: React.FC = () => {
         </div>
 
         {/* UNTERE REIHE: Modul 03 und Modul 04 */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-            gap: 'var(--space-4)',
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[var(--space-4)]">
           {/* Modul 03 */}
           <div
             data-testid="hub-module-2"
             data-hub-order="4"
-            style={{
-              backgroundColor: 'var(--color-bg-deep)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border-soft)',
-              padding: 'var(--space-4)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: 'var(--space-3)',
-            }}
+            className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]"
           >
             <div>
-              <div style={{ marginBottom: 'var(--space-2)' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.625rem', fontWeight: 700, color: 'var(--cyan-light)', textTransform: 'uppercase' }}>
+              <div className="mb-[var(--space-2)]">
+                <span className="font-mono text-[0.625rem] font-bold uppercase text-[var(--cyan-light)]">
                   {module2.badge}
                 </span>
               </div>
-              <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 700, color: 'var(--color-text)' }}>
+              <h4 className="m-0 mb-[var(--space-2)] font-display text-[0.9375rem] font-bold text-text">
                 {module2.name}
               </h4>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+              <p className="m-0 text-[0.75rem] leading-[1.45] text-[var(--color-text-muted)]">
                 {module2.desc}
               </p>
             </div>
-            <div style={{ backgroundColor: 'var(--color-surface)', borderLeft: '3px solid var(--color-primary)', padding: 'var(--space-2) var(--space-3)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
-              <div style={{ fontSize: '0.625rem', fontFamily: 'var(--font-mono)', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="border-0 border-l-[3px] border-solid border-l-primary bg-surface rounded-[0_var(--radius-sm)_var(--radius-sm)_0] px-[var(--space-3)] py-[var(--space-2)]">
+              <div className="font-mono text-[0.625rem] font-bold uppercase mb-[2px] text-primary">
                 Vertriebsbezug
               </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--color-text)', lineHeight: 1.35 }}>
+              <div className="text-[0.6875rem] leading-[1.35] text-text">
                 {module2.relation}
               </div>
             </div>
@@ -442,35 +255,26 @@ export const OperationsHub: React.FC = () => {
           <div
             data-testid="hub-module-3"
             data-hub-order="5"
-            style={{
-              backgroundColor: 'var(--color-bg-deep)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border-soft)',
-              padding: 'var(--space-4)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: 'var(--space-3)',
-            }}
+            className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]"
           >
             <div>
-              <div style={{ marginBottom: 'var(--space-2)' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.625rem', fontWeight: 700, color: 'var(--cyan-light)', textTransform: 'uppercase' }}>
+              <div className="mb-[var(--space-2)]">
+                <span className="font-mono text-[0.625rem] font-bold uppercase text-[var(--cyan-light)]">
                   {module3.badge}
                 </span>
               </div>
-              <h4 style={{ margin: '0 0 var(--space-2)', fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 700, color: 'var(--color-text)' }}>
+              <h4 className="m-0 mb-[var(--space-2)] font-display text-[0.9375rem] font-bold text-text">
                 {module3.name}
               </h4>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+              <p className="m-0 text-[0.75rem] leading-[1.45] text-[var(--color-text-muted)]">
                 {module3.desc}
               </p>
             </div>
-            <div style={{ backgroundColor: 'var(--color-surface)', borderLeft: '3px solid var(--color-primary)', padding: 'var(--space-2) var(--space-3)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
-              <div style={{ fontSize: '0.625rem', fontFamily: 'var(--font-mono)', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="border-0 border-l-[3px] border-solid border-l-primary bg-surface rounded-[0_var(--radius-sm)_var(--radius-sm)_0] px-[var(--space-3)] py-[var(--space-2)]">
+              <div className="font-mono text-[0.625rem] font-bold uppercase mb-[2px] text-primary">
                 Vertriebsbezug
               </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--color-text)', lineHeight: 1.35 }}>
+              <div className="text-[0.6875rem] leading-[1.35] text-text">
                 {module3.relation}
               </div>
             </div>
@@ -482,50 +286,25 @@ export const OperationsHub: React.FC = () => {
       {showTable && (
         <div
           id="operations-hub-table"
-          style={{
-            marginTop: 'var(--space-5)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-3)',
-          }}
+          className="border-0 border-t border-solid border-border flex flex-col gap-[var(--space-3)] mt-[var(--space-5)] pt-[var(--space-4)]"
         >
-          <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <div className="text-[0.8125rem] text-[var(--color-text-muted)]">
             Vollständige Modulübersicht aus der Produkt-Konfiguration:
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+          <div className="flex flex-col gap-[var(--space-2)]">
             {FUNKTION.modules.map((m, idx) => (
               <div
                 key={m.name}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-3)',
-                  backgroundColor: 'var(--color-bg-deep)',
-                  padding: 'var(--space-3)',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border-soft)',
-                }}
+                className="flex items-center gap-[var(--space-3)] rounded border border-solid border-border-soft bg-background-deep p-[var(--space-3)]"
               >
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    color: 'var(--color-primary)',
-                    padding: '2px 8px',
-                    backgroundColor: 'var(--color-surface)',
-                    borderRadius: 'var(--radius-sm)',
-                  }}
-                >
+                <div className="font-mono text-[0.75rem] font-bold rounded bg-surface px-[8px] py-[2px] text-primary">
                   0{idx + 1}
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  <div className="text-[0.8125rem] font-semibold text-text">
                     {m.name}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                  <div className="text-[0.75rem] text-[var(--color-text-muted)]">
                     {m.desc}
                   </div>
                 </div>

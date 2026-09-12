@@ -6,7 +6,7 @@ import { INTEGR } from '@/domain/produktData';
 
 export function IntegrationPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Produkt" title={INTEGR.title} description="Technologie-Stack & Sicherheit." />
       <Card padding="0">
         <Table columns={[{ key: 'category', label: 'Bereich' }, { key: 'tech', label: 'Technologie / Spezifikation' }]} rows={INTEGR.stack} />

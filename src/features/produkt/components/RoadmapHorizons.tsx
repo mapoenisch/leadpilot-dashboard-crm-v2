@@ -40,57 +40,18 @@ export const RoadmapHorizons: React.FC = () => {
   ];
 
   return (
-    <div
-      className="facelift-roadmap-horizons"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
-    >
+    <div className="facelift-roadmap-horizons box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5)]">
+
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-        }}
-      >
+      <div className="border-0 border-b border-solid border-border-soft flex flex-wrap items-center justify-between gap-[var(--space-3)] mb-[var(--space-5)] pb-[var(--space-4)]">
         <div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              color: 'var(--cyan-light)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '2px',
-            }}
-          >
+          <div className="font-mono text-[0.6875rem] font-bold uppercase tracking-[0.08em] mb-[2px] text-[var(--cyan-light)]">
             Release-Horizonte • Roadmap
           </div>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+          <h3 className="m-0 font-display text-[1.125rem] font-bold tracking-[0.01em] text-text">
             {ROADMAP.title}
           </h3>
-          <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
             Gegliedert in Now (geliefert), Next (aktuell) und Later (geplant) ohne Statusumdeutung.
           </p>
         </div>
@@ -100,127 +61,45 @@ export const RoadmapHorizons: React.FC = () => {
           onClick={() => setShowTable(!showTable)}
           aria-controls="roadmap-horizons-table"
           aria-expanded={showTable}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '5px 12px',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-text)';
-            e.currentTarget.style.borderColor = 'var(--color-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-muted)';
-            e.currentTarget.style.borderColor = 'var(--color-border)';
-          }}
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]"
         >
           {showTable ? 'Tabellenansicht verbergen' : 'Tabellenansicht anzeigen'}
         </button>
       </div>
 
       {/* DREI RELEASE-HORIZONTE (NOW / NEXT / LATER) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-          gap: 'var(--space-4)',
-          alignItems: 'stretch',
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[var(--space-4)] items-stretch">
         {horizons.map((h) => (
           <div
             key={h.id}
-            style={{
-              backgroundColor: 'var(--color-bg-deep)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border-soft)',
-              borderTop: `3px solid ${h.tone}`,
-              padding: 'var(--space-4)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: 'var(--space-4)',
-            }}
+            className={`rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-4)] border-t-[3px] ${h.id === 'now' ? 'border-t-primary' : h.id === 'next' ? 'border-t-accent' : 'border-t-[var(--cyan-light)]'}`}
           >
             <div>
               {/* Horizont-Kopf */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 'var(--space-2)',
-                  paddingBottom: 'var(--space-2)',
-                  borderBottom: '1px solid var(--color-border-soft)',
-                }}
-              >
+              <div className="border-0 border-b border-solid border-border-soft flex items-center justify-between mb-[var(--space-2)] pb-[var(--space-2)]">
                 <div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.75rem',
-                      fontWeight: 800,
-                      color: h.tone,
-                      letterSpacing: '0.08em',
-                    }}
-                  >
+                  <div className={`font-mono text-[0.75rem] font-extrabold tracking-[0.08em] ${h.id === 'now' ? 'text-primary' : h.id === 'next' ? 'text-accent' : 'text-[var(--cyan-light)]'}`}>
                     {h.label}
                   </div>
-                  <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+                  <div className="text-[0.6875rem] text-[var(--color-text-muted)]">
                     {h.subtitle}
                   </div>
                 </div>
 
-                <span
-                  style={{
-                    fontSize: '0.625rem',
-                    fontFamily: 'var(--font-mono)',
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    padding: '2px 6px',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'var(--color-text)',
-                  }}
-                >
+                <span className="font-mono text-[0.625rem] rounded border border-solid border-border bg-surface px-[6px] py-[2px] text-text">
                   {h.releases.length} {h.releases.length === 1 ? 'Feature' : 'Features'}
                 </span>
               </div>
 
               {/* Release-Karten im Horizont */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div className="flex flex-col gap-[var(--space-3)]">
                 {h.releases.map((rel) => (
                   <div
                     key={rel.title}
-                    style={{
-                      backgroundColor: 'var(--color-surface)',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--color-border-soft)',
-                      padding: 'var(--space-3)',
-                    }}
+                    className="rounded border border-solid border-border-soft bg-surface p-[var(--space-3)]"
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 'var(--space-2)',
-                        marginBottom: '4px',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '0.6875rem',
-                          fontWeight: 700,
-                          color: 'var(--color-text-muted)',
-                        }}
-                      >
+                    <div className="flex items-center justify-between gap-[var(--space-2)] mb-[4px]">
+                      <span className="font-mono text-[0.6875rem] font-bold text-[var(--color-text-muted)]">
                         {rel.quarter}
                       </span>
                       <Badge
@@ -236,26 +115,11 @@ export const RoadmapHorizons: React.FC = () => {
                       </Badge>
                     </div>
 
-                    <h4
-                      style={{
-                        margin: '0 0 4px',
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '0.875rem',
-                        fontWeight: 700,
-                        color: 'var(--color-text)',
-                      }}
-                    >
+                    <h4 className="m-0 mb-[4px] font-display text-[0.875rem] font-bold text-text">
                       {rel.title}
                     </h4>
 
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.75rem',
-                        color: 'var(--color-text-muted)',
-                        lineHeight: 1.35,
-                      }}
-                    >
+                    <p className="m-0 text-[0.75rem] leading-[1.35] text-[var(--color-text-muted)]">
                       {rel.desc}
                     </p>
                   </div>
@@ -270,13 +134,9 @@ export const RoadmapHorizons: React.FC = () => {
       {showTable && (
         <div
           id="roadmap-horizons-table"
-          style={{
-            marginTop: 'var(--space-5)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border)',
-          }}
+          className="border-0 border-t border-solid border-border mt-[var(--space-5)] pt-[var(--space-4)]"
         >
-          <div style={{ marginBottom: 'var(--space-2)', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <div className="mb-[var(--space-2)] text-[0.8125rem] text-[var(--color-text-muted)]">
             Vollständige Roadmap-Tabelle (Originalansicht):
           </div>
           <Table
