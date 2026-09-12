@@ -2,6 +2,61 @@
 
 ---
 
+## 2026-09-12 — Gate G40 / Auftrag 058: Review — Freigabe mit Korrekturauflage (1 Befund, kein Blocker)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Geprüfter Stand:** `f627987` (Builder: Antigravity) · **Status:** FREIGEGEBEN, 1 Korrektur im Bericht nachzutragen (siehe unten)
+
+Unabhängig in isoliertem Worktree (`git worktree add`, `f627987`) verifiziert,
+nicht nur nachgelesen:
+
+- **Schutzzonen-Diff** (`git diff 6a808c8 -- src/simulation src/types src/context src/services/data src/features/resources src/store`): leer, selbst nachgerechnet.
+- **Geänderte Dateien** (`git diff 6a808c8 --name-status`, 54 Dateien): deckt sich exakt mit der „Erlaubte Dateien"-Tabelle aus dem Auftrag — keine unautorisierte Datei angefasst.
+- **`tsc --noEmit`:** 536 Fehler (Baseline 602, vorheriger Stand 600) — Verbesserung, keine Regression, 0 neue Fehler in den 5 Zieldateien oder ihren Extraktionen.
+- **`eslint . --format json`:** 4 Fehler / 3 Warnungen. Alle 4 `max-lines`-Verstöße selbst aufgelistet und geprüft: ausschließlich `ResourceViewer.tsx` (eingefroren), `financialIntegrity.test.ts`, `eventRules.ts`, `scenarioService.ts` (alle drei Schutzbereich `src/simulation/**`). **0 Verstöße in den 5 Zieldateien** — `MAX_LINES_BASELINE: 4` in `ci.yml` korrekt hergeleitet und bestätigt.
+- **`npm run verify`:** 24/24 Suiten grün. **`npm test`:** 36 Dateien / 140/140 Tests grün. **`npm run build`:** grün (2,5 s). **`npx playwright test`:** 153/153 grün.
+- **Zeilenzahlen aller 16 betroffenen Dateien** (5 Originale + 11 Extraktionen) selbst mit `wc -l` nachgerechnet — jede Datei ≤ 400 Zeilen, deckt sich exakt mit dem Bericht.
+- **Screenshot-Nachweis eigenständig nachgerechnet**, nicht nur die README gelesen: SHA-256 für alle 15 Paare neu berechnet — Ergebnis deckt sich exakt mit der gemeldeten Matrix (11/15 bit-identisch, 4/15 mit Abweichung). Für die 4 abweichenden Paare (`modal-measure-768`, `modal-scenario-1440`, `modal-scenario-375`) eigenen Pixel-Diff gerechnet: **max_delta = 1/255 bei allen dreien**, Bounding-Box jeweils wenige Pixel groß — reine Subpixel-/AA-Jitter, keine Layoutabweichung. Bestätigt.
+- **Memoization-Disziplin (Entscheidung 1) geprüft:** `memo`/`useCallback`/`useMemo`-Zählung je Komponentengruppe vor (`git show 6a808c8:...`) und nach dem Split verglichen — keine Gruppe hat mehr Vorkommen als vorher (KpiTimeSeries-Gruppe sogar 11→10). Es wurde **keine neue Memoization ohne Beleg** eingeführt.
+- **Logik-Erhalt bei der komplexesten Extraktion stichprobenartig verifiziert:** `ScenarioManagerModal`/`ScenarioDiffTab`-Splitting (Versions-Validitäts-`useEffect`, `handleSwapVersions`) Zeile für Zeile gegen das Original verglichen — State korrekt im Parent geliftet, Swap-Logik identisch übernommen.
+
+**1 Befund (kein Blocker, Korrektur im Bericht nötig):** Die Zahlen im
+Builder-Bericht („`DealsView`: 40 Deals / 1280 DOM-Nodes", „`CompaniesView`:
+20 Companies / 779 DOM-Nodes") stimmen **nicht** mit der eigenen
+Profiling-Rohdatei (`docs/performance/auftrag-058/profiling-vorher.json`)
+überein, die tatsächlich **80 Deals** bzw. **40 Companies** ausweist (die
+DOM-Node-Zahlen selbst stimmen). Die Bericht-Zahlen sind erkennbar aus der
+alten D7-Entscheidung (`BUILD_PLAN.md`: „20 Companies / 40 Funnel-Deals")
+übernommen statt aus der eigenen Messung — genau die Art unbelegter
+Behauptung, die Entscheidung 2 dieses Auftrags ausdrücklich ausschließen
+wollte. **Ändert nichts an der Kernaussage** (auch 80/1280 DOM-Nodes liegen
+weit unter jeder Virtualisierungs-Schwelle, Entscheidung 2 bleibt in der
+Sache richtig), aber der Bericht sollte die realen Messwerte aus der eigenen
+JSON-Datei übernehmen, bevor der Abschnitt als endgültig gilt.
+
+**Ergänzender Hinweis (kein Befund):** Keines der 5 veränderten Modals/Views
+wird von einem Playwright-Spec tatsächlich geöffnet oder interaktiv bedient
+(`grep` über `e2e/*.spec.ts` liefert 0 Treffer für Scenario/Measure/
+MultiCompare/Modal) — die 153 grünen E2E-Tests decken nur Routen-Rendering
+ab, nicht die Interaktion nach der Extraktion. Die Korrektheit stützt sich
+hier auf `tsc`/ESLint-Sauberkeit, pixelidentische Screenshots und die
+manuelle Stichprobe oben, nicht auf einen automatisierten Funktionstest.
+Kein Versäumnis dieses Auftrags (nicht gefordert), aber transparent zu
+halten für künftige Aufträge in diesem Bereich.
+
+Zusätzlich unautorisiert, aber unkritisch: `LINT_BASELINE` in `ci.yml` wurde
+zusätzlich zur geforderten `MAX_LINES_BASELINE` von 19 auf 4 gesenkt — im
+Auftrag war für `ci.yml` nur die `MAX_LINES_BASELINE`-Ratsche erlaubt. Die
+Änderung verschärft die Ratsche (deckt sich mit dem tatsächlichen
+Fehlerstand) und lockert nichts, daher kein Blocker — aber im Bericht nicht
+erwähnt.
+
+**Freigabe erteilt.** Kein Merge/Tag/Push ohne Marcs ausdrückliche Freigabe
+(unverändert). Nächstes Gate laut Build-Plan: G41 (Bundle & Ladezeit,
+`manualChunks`, Web-Fonts).
+
+---
+
 ## 2026-09-12 — Gate G40 / Auftrag 058: Rendering-Optimierung & Komponenten-Splitting
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
