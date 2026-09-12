@@ -2,6 +2,49 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 3 / Auftrag 056: Review — Nacharbeit gefordert (Block E, Ternary-Muster)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Endstand:** `804f9a4` · **Status:** Nacharbeit gefordert.
+
+Unabhängig in isoliertem Worktree verifiziert: `tsc` 600, `lint` 13/3,
+`verify` 24/24, `test` 140/140, `build` grün, Schutz-Diff leer,
+`npx playwright test` **153/153** nachgefahren. Ratsche 44 bestätigt
+exakt. Blocks A–D vollständig angenommen (17 von 18 Dateien komplett
+auf 0 `style={{`, 1 Rest in `OrganisationScaffold.tsx` mit 2 echten
+Laufzeitwerten — sauber). `live-simulation`-Screenshot-Nachweis und
+der dabei gefundene/behobene Gradient-Zwischenbefund (Card-`bg`-
+Durchscheinen) nachvollzogen, plausibel.
+
+**Fund in Block E:** Alle 15 verbleibenden Disables einzeln geprüft.
+**13 von 15 sind keine legitimen Laufzeit-Ausnahmen**, sondern das
+seit `Charts.tsx` (Auftrag 053 Nachtrag 2) explizit verbotene Muster:
+ein Ternary zwischen zwei/drei zur Build-Zeit bekannten Werten
+(Design-Tokens), nur die Bedingung ist ein Laufzeitwert. Beispiel
+(`ScenarioManagerModal.tsx:151`): `color: r.hasChanged ?
+'var(--color-primary)' : 'var(--color-text)'` — beide möglichen
+Farben sind feste Tokens, keine aus Daten abgeleiteten Werte (anders
+als z. B. `sec.color` aus Welle 2). Muss eine Klassen-Ternary werden.
+
+Betroffen: `LiveDashboardView.tsx:157` (1×), `DetailTierView.tsx`
+(4×), `ManagementTierView.tsx` (2×), `ScenarioManagerModal.tsx` (6×).
+**Echt legitim (2 von 15):** `KpiTimeSeriesDetailView.tsx:760`
+(`assignedColor` aus offener Daten-Palette) und
+`MeasureManagerModal.tsx:407` (echte berechnete `left`/`width`-Werte,
+der mitlaufende `background`-Anteil vertretbar als Teil derselben
+Stelle).
+
+Kein sichtbarer Bug (Playwright bleibt grün, Farben sehen identisch
+aus) — aber ein Verstoß gegen die seit drei Aufträgen wortgleich
+wiederholte Regel, der die ESLint-Regel für diese Stellen dauerhaft
+wirkungslos macht.
+
+**Status:** Blocks A–D angenommen. Nacharbeit gefordert: 13 Stellen
+in Block E zu Klassen-Ternaries konvertieren. Fix-Auftrag an Builder
+siehe Chat. Erst danach gilt Welle 3 als abgeschlossen.
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 3 / Auftrag 056: Organisation/Overview/Produkt/Projektkontext/Recht/Simulation
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
