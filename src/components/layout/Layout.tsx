@@ -5,9 +5,31 @@ import { Header } from './Header';
 import { SimulationBar } from './SimulationBar';
 import { routeForPathname } from '@/app/routes';
 
+export type ThemeMode = 'dark' | 'light';
+
+const THEME_STORAGE_KEY = 'leadpilot-theme';
+
 export function Layout() {
   const location = useLocation();
   const meta = routeForPathname(location.pathname);
+
+  // G39 Welle 1 (Auftrag 054, Block A): explizite Theme-Umschaltung.
+  // Standard exakt der heutige Zustand (dunkel), kein prefers-color-scheme-
+  // Automatismus — Persistenz in localStorage.
+  const [theme, setTheme] = useState<ThemeMode>(() =>
+    typeof window !== 'undefined' && window.localStorage.getItem(THEME_STORAGE_KEY) === 'light'
+      ? 'light'
+      : 'dark'
+  );
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Private-Modus o. ä.: Theme gilt für die Session, kein Fehler.
+    }
+  }, [theme]);
 
   const [isMobile, setIsMobile] = useState<boolean>(
     typeof window !== 'undefined' ? window.innerWidth < 1024 : false
@@ -74,6 +96,8 @@ export function Layout() {
           onToggleMobileMenu={handleToggleDrawer}
           isMobileMenuOpen={isMobileDrawerOpen}
           isMobile={isMobile}
+          theme={theme}
+          onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
         />
         <SimulationBar />
         <main

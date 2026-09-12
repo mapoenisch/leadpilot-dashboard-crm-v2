@@ -87,6 +87,53 @@
   --focus-ring: 0 0 0 3px var(--cyan-a12);
 }
 
+/* ── G39 Welle 1 (Auftrag 054, Block A): Light-Theme, systematisch aus den
+   Dark-Werten abgeleitet — VORLÄUFIG, visuelle Freigabe durch Marc ausstehend.
+   Formel: Neutrale Lightness-gespiegelt (L_hell = 100 − L_dunkel, geclampt
+   6…96); Marken Hue/Chroma behalten, Lightness auf WCAG-AA getrimmt (4.5:1
+   Text, 3:1 UI/Hover); rgba = abgeleitete Markenfarbe + Original-Alpha;
+   Shadows schwarz-Alpha reduziert. Semantische --color-*-Tokens vererben
+   automatisch (zeigen per var() auf die Basis), nur drei brauchen explizite
+   Overrides (text/inverse/bg-deep, siehe unten). Mechanismus: [data-theme]
+   auf <html>, Default dunkel (kein Attribut nötig), Persistenz localStorage.
+   Vollständige Kontrasttabelle im BUILD_LOG (Gate G39 Welle 1). */
+[data-theme='light'] {
+  --black: #E9F9F6;
+  --charcoal: #DEF4F2;
+  --surface: #CCEDEA;
+  --color-surface-raised: #C0E5DE;
+  --color-surface-glass: rgba(204, 237, 234, 0.65);
+  --border-gray: #B5D5CE;
+  --white: #FFFFFF;
+  --gray-muted: #454E58;
+  --cyan: #007369;
+  --cyan-light: #12978C;
+  --cyan-a12: rgba(0, 115, 105, 0.12);
+  --orange: #C23D00;
+  --orange-light: #EB5000;
+  --orange-a14: rgba(194, 61, 0, 0.14);
+  --orange-soft: #FFD1B8;
+  --coral-red: #D40006;
+  --coral-red-a14: rgba(212, 0, 6, 0.14);
+  --mint-green: #15754B;
+  --mint-green-a14: rgba(21, 117, 75, 0.14);
+  --color-border-soft: rgba(181, 213, 206, 0.5);
+  --color-border-glass: rgba(181, 213, 206, 0.6);
+  /* text: Ausnahme — Vererbung von --white wäre Weiß auf Hell (1.15:1);
+     dunkles Petrol, Kontrast 14.91:1. Kein reines Schwarz. */
+  --color-text: #0C1F1D;
+  /* inverse: Weiß gewinnt gegen alle Akzent-BGs (Min. 5.32:1). */
+  --color-text-inverse: #FFFFFF;
+  /* bg-deep: mechanischer Spiegel wäre heller als bg (Semantik verdreht);
+     bewusst eine Stufe tiefer als bg gesetzt. */
+  --color-bg-deep: #CBE9E4;
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, .12);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, .18);
+  --shadow-glow-cyan: 0 0 24px rgba(0, 217, 198, .25);
+  --shadow-glow-cyan-strong: 0 0 40px rgba(0, 217, 198, .30);
+  --shadow-glow-orange: 0 0 20px rgba(255, 122, 61, .22);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

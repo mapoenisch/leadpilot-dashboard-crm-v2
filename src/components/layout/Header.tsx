@@ -1,5 +1,6 @@
 import React from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Moon, Sun } from 'lucide-react';
+import type { ThemeMode } from './Layout';
 
 export interface HeaderProps {
   currentViewTitle: string;
@@ -7,6 +8,8 @@ export interface HeaderProps {
   onToggleMobileMenu?: () => void;
   isMobileMenuOpen?: boolean;
   isMobile?: boolean;
+  theme?: ThemeMode;
+  onToggleTheme?: () => void;
 }
 
 export function Header({
@@ -15,6 +18,8 @@ export function Header({
   onToggleMobileMenu,
   isMobileMenuOpen = false,
   isMobile = false,
+  theme = 'dark',
+  onToggleTheme,
 }: HeaderProps) {
   return (
     <header
@@ -95,6 +100,20 @@ export function Header({
       </div>
 
       <div className="header-user-profile" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flexShrink: 0 }}>
+        {/* G39 Welle 1 (Auftrag 054, Block A): Theme-Umschalter. Klassen-
+            basiert (kein style-Prop) — nimmt die Block-D-Migration vorweg. */}
+        {onToggleTheme && (
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            aria-pressed={theme === 'light'}
+            aria-label={theme === 'dark' ? 'Zum hellen Design wechseln' : 'Zum dunklen Design wechseln'}
+            title={theme === 'dark' ? 'Zum hellen Design wechseln' : 'Zum dunklen Design wechseln'}
+            className="flex items-center justify-center shrink-0 cursor-pointer rounded-md border border-border bg-transparent p-[6px] text-primary transition-colors hover:bg-surface-raised"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
           <div
             style={{
