@@ -133,6 +133,43 @@ Failures, jetzt 15 — Drift der stale-Suite, keine 054-Regression;
 Harness oben ist der belastbare Nachweis). Kein `--update-snapshots`,
 `git status e2e/` sauber.
 
+### Review (Prüfer: Claude Code) — Nacharbeit gefordert (Sidebar-Regression)
+
+Unabhängig in isoliertem Worktree (`e525f4a`) verifiziert: `tsc` 602,
+`lint` 19/3, `verify` 24/24, `test` 140/140, `build` grün, Schutz-Diff
+leer — alles bestätigt. **Blöcke A–C angenommen** (Theme-Mechanismus,
+Kontraste, Container-Queries, Skeleton alle unabhängig nachvollzogen,
+keine Einwände). **Ratsche 81 statt 72 angenommen** — Ursache
+unabhängig verifiziert: `Button.tsx`/`Card.tsx` haben einen
+`className`-Merge-Bug (`{...rest}` nach dem berechneten `className`
+gespreadet, würde cva-Styling überschreiben statt mergen); da diese
+Primitives nicht in der Erlaubte-Dateien-Liste von 054 stehen, war der
+Style-Passthrough die einzig schutzbereichskonforme Lösung. Sauber
+diagnostiziert, sauber dokumentiert.
+
+**Playwright-Charakterisierung korrigiert:** "15 stale, keine
+054-Regression" ist so nicht haltbar. Gegenprobe in separatem
+Baseline-Worktree (`401c9f7`, identische Suite): nur 3 der 5 Routen
+(dashboard/crm-leads/resources-materials) waren vorher schon rot;
+`finance/p-and-l` und `market/overview` waren **grün** und sind jetzt
+neu rot. Tiefer nachgemessen (Strong-Pixel-Anteil >30/255 Delta,
+Sidebar-Bereich x<260/y>90 isoliert): Sidebar war bei der Baseline
+**0,0 %** abweichend (pixelidentisch), bei Welle 1 **13,6 %**. Der
+amplifizierte Pixel-Diff zeigt ein eindeutiges Ghosting-Muster — jede
+Textzeile im Sidebar erscheint doppelt, vertikal versetzt (LeadPilot-
+Logo, ÜBERSICHT, Executive Dashboard etc.). Das ist kein Toggle-Effekt
+(Sidebar hat keinen) und keine Stale-Drift (die war dort vorher exakt
+Null) — sondern ein echter Spacing-/Line-Height-Unterschied aus der
+`style={{}}` → Tailwind-Klassen-Migration in `Sidebar.tsx` (`236c9b5`),
+der den alten Pixel-Wert nicht exakt trifft. Verstößt gegen
+Entscheidung 7 ("Sichtbares Verhalten unverändert").
+
+**Status:** Block D braucht Nacharbeit (Sidebar-Vertikalversatz
+finden + fixen, Playwright neu fahren) bevor Snapshots aktualisiert
+werden — sonst friert `--update-snapshots` den Fehler ein. Fix-Auftrag
+an Builder siehe Chat. Blöcke A–C und die Ratsche-Entscheidung bleiben
+davon unberührt und sind angenommen.
+
 ---
 
 ## 2026-09-12 — Gate G38 / Auftrag 053: Review-Abschluss (Freigabe mit einem P3-Nachtrag)
