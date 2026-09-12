@@ -2,6 +2,37 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Review-Abschluss (Freigabe)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Endstand:** `238e313` · **Status:** ABGESCHLOSSEN, Freigabe erteilt.
+
+Zweite Nacharbeit (`238e313`, mobiler Header-Umbruch) unabhängig in
+isoliertem Worktree verifiziert: `tsc` 602, `lint` 19/3, `verify`
+24/24, `test` 140/140, `build` grün, Schutz-Diff leer, `npx playwright
+test` **153/153** nachgefahren.
+
+**Fix bestätigt:** `.header-user-details` (Name + Rolle) wird jetzt
+bei ≤480px komplett ausgeblendet (vorher nur die Rolle, erst ab
+340px auch der Name) — schafft Platz für den Theme-Toggle, ohne dass
+vorher einzeilige Header umbrechen. Über die 5 Harness-Routen hinaus
+stichprobenartig 3 weitere kurztitelige Routen live gegen den
+Preview-Server geprüft (`/market/swot`, `/strategy/okrs`,
+`/organisation/hr`, alle 375px) — bleiben einzeilig, Toggle passt
+sauber neben den Avatar-Kreis. Generalisiert wie im Bericht behauptet.
+
+**Damit ist Gate G39 Welle 1 (Auftrag 054) vollständig abgenommen:**
+Theme-Mechanismus (Kontraste unabhängig nachgerechnet, alle über
+Schwelle), Container-Queries (im Build nachgewiesen), Skeleton-
+Primitive, 22/22-Datei-Migration, Ratsche 94→81 (Begründung über
+Button/Card-`className`-Limitierung verifiziert), Sidebar-Ghosting-
+Fix (0,00 % Strong-Pixel gegen echte Vor-054-Baseline) und Mobile-
+Header-Fix — alle unabhängig verifiziert, keine offenen Punkte.
+
+Kein Merge/Tag/Push ohne Marcs ausdrückliche Freigabe (unverändert).
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Nacharbeit 2 Mobile-Header-Umbruch (Prüfer-Befund)
 
 **Rolle:** Builder (OpenCode) · **Befund:** Review zu `fa1b24a` —
