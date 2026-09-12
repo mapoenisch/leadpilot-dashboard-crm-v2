@@ -52,6 +52,42 @@ After-Captures gemessen — ersetzt, Lehre dokumentiert):
 Sidebar 0,0 %, Rest = Toggle (+ Mobile Wrap-Shift 56→79 px auf
 dashboard-/crm-375, finance-375 schon Baseline 79 px).
 
+### Review (Prüfer: Claude Code) — Sidebar-Fix angenommen, zweite Nacharbeit gefordert (Mobile-Header-Umbruch)
+
+Unabhängig verifiziert (isolierter Worktree `fa1b24a`): `tsc` 602,
+`lint` 19/3, `verify` 24/24, `test` 140/140, `build` grün, Schutz-Diff
+leer, `npx playwright test` **153/153** nachgefahren.
+
+**Sidebar-Fix bestätigt, mit strengerem Nachweis als Selbstvergleich:**
+Sidebar-Region gegen die *echte* Vor-054-Baseline (nicht nur gegen den
+neuen eigenen Snapshot) verglichen — bbox=None, 0,00 % Strong-Pixel,
+pixelidentisch. `border-0`-Kaskade in der kompilierten CSS geprüft:
+`.border-0` steht tatsächlich vor `.border-b`/`-t`/`-r` — Mechanismus
+funktioniert wie behauptet. `backdrop-blur`-Fix korrekt (12px/8px
+stimmen mit `global.css`-Tokens überein). Header-Diff auf allen 5
+Routen identisch auf eine 32×32px-Box begrenzt (Toggle-Icon, sonst
+nichts) — sauber.
+
+**Mobile-Wrap-Shift ist kein Rand-Detail, sondern ein systematisches
+Muster:** Nachgemessen, warum nur 2 von 5 Routen betroffen sind —
+`finance/p-and-l`, `market/overview`, `resources/materials` hatten
+schon **vor** 054 einen zweizeiligen Mobile-Header (lange Titel), der
+Toggle rutscht dort in die bereits vorhandene zweite Zeile, keine
+zusätzliche Verschiebung. `dashboard` und `crm/leads` hatten **vorher
+einzeilige** Header — der Toggle sprengt das jetzt, Header bricht neu
+auf zwei Zeilen um, kompletter Seiteninhalt verschiebt sich ~23px nach
+unten (nachgemessen: Header-Grenze 55→78px, Orange-Balken 68→91px).
+Das betrifft nicht nur die 2 gesampelten Routen, sondern jede Route
+mit kurzem Titel, die vorher einzeilig war — im Rest der App potenziell
+mehr. Reale, für mobile Nutzer sichtbare UX-Verschlechterung, nicht
+nur Test-Rauschen.
+
+**Status:** Sidebar-/Backdrop-Blur-Fix angenommen. Zweite Nacharbeit
+gefordert: mobiles Header-Layout so anpassen, dass der Toggle ohne
+neuen Zeilenumbruch reinpasst (z. B. Name bei schmalen Breiten
+ausblenden). Fix-Auftrag an Builder siehe Chat. Erst danach gilt
+Gate G39 Welle 1 als abgeschlossen.
+
 ---
 
 ## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Theme/Skeleton/Container-Queries + 22 Dateien
