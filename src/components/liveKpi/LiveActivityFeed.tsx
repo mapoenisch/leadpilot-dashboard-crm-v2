@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useLiveKpiActivity } from '@/hooks/useLiveKpiActivity';
 import { getLiveKpiDefinition } from '@/services/liveKpi/liveKpiDefinitions';
 
@@ -209,6 +210,15 @@ export const LiveActivityFeed = React.memo(function LiveActivityFeed({
                 textAlign: 'center',
               }}
             >
+              {/* G39 Welle 1 (Auftrag 054, Block C): Listen-Platzhalter im
+                  Ladezustand ergänzen — Status-Text bleibt erhalten. */}
+              {status === 'loading' && (
+                <div aria-hidden="true" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px', textAlign: 'left' }}>
+                  <Skeleton variant="text" width="90%" />
+                  <Skeleton variant="text" width="75%" />
+                  <Skeleton variant="text" width="82%" />
+                </div>
+              )}
               <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
                 {statusText}
               </div>

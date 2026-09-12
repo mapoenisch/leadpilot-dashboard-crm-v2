@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useLiveKpi } from '@/hooks/useLiveKpi';
 import { AnimatedKpiValue } from './AnimatedKpiValue';
 
@@ -244,6 +245,15 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
               margin: '16px 0 10px',
             }}
           >
+            {/* G39 Welle 1 (Auftrag 054, Block C): Skeleton-Platzhalter im
+                Layout der eigentlichen Inhalte (Wert + Meta-Zeile) ergänzen —
+                der Status-Text bleibt als zugängliche Auskunft erhalten. */}
+            {status === 'loading' && (
+              <div aria-hidden="true" style={{ marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <Skeleton variant="rect" width="55%" height={32} />
+                <Skeleton variant="text" width="80%" />
+              </div>
+            )}
             {status === 'loading' ? 'Lade aktuellen Snapshot...' : 'Warte auf Live-Events (Ebene C)...'}
           </div>
         )}

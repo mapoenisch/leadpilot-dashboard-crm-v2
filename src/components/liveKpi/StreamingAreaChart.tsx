@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useLiveKpiHistory } from '@/hooks/useLiveKpiHistory';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
 
@@ -234,6 +235,13 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
               textAlign: 'center',
             }}
           >
+            {/* G39 Welle 1 (Auftrag 054, Block C): Chartflächen-Platzhalter
+                im Ladezustand ergänzen — Status-Text bleibt erhalten. */}
+            {status === 'loading' && (
+              <div aria-hidden="true" style={{ marginBottom: '12px' }}>
+                <Skeleton variant="rect" width="100%" height={180} />
+              </div>
+            )}
             <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
               {statusText}
             </div>

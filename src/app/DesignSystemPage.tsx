@@ -18,6 +18,7 @@ import { StatusChip } from '@/components/ui/StatusChip';
 import { Table } from '@/components/ui/Table';
 import { Tabs } from '@/components/ui/Tabs';
 import { Toolbar } from '@/components/ui/Toolbar';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 // Gate G38 (Auftrag 053, Block D): DEV-only Galerie aller 19 Primitives.
 // Nur via /design-system erreichbar, wenn import.meta.env.DEV — die Route
@@ -60,14 +61,36 @@ export function DesignSystemPage() {
   const [tab, setTab] = useState('one');
   const [checked, setChecked] = useState(true);
   const [throwDemo, setThrowDemo] = useState(false);
+  // G39 Welle 1 (Auftrag 054, Block C): Theme-Testfläche — schaltet
+  // data-theme am <html>-Element direkt (Demo ohne Persistenz; der
+  // persistente Umschalter sitzt im Header).
+  const [demoTheme, setDemoTheme] = useState<'dark' | 'light'>(
+    () => (typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light' ? 'light' : 'dark')
+  );
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-[1100px]">
       <SectionHeader
         eyebrow="Design-System"
         title="Primitive-Galerie (DEV)"
-        description="Alle 19 migrierten Primitives mit Varianten und Zuständen. Nur im Dev-Modus verfügbar."
+        description="Alle 20 Primitives mit Varianten und Zuständen. Nur im Dev-Modus verfügbar."
       />
+
+      <Section title="Theme (Welle 1, vorläufig)">
+        <Button
+          variant="secondary"
+          onClick={() => {
+            const next = demoTheme === 'dark' ? 'light' : 'dark';
+            setDemoTheme(next);
+            document.documentElement.dataset.theme = next;
+          }}
+        >
+          {demoTheme === 'dark' ? 'Helles Design testen' : 'Dunkles Design testen'}
+        </Button>
+        <span className="text-[12px] text-[var(--color-text-muted)]">
+          Aktuell: {demoTheme === 'dark' ? 'dunkel' : 'hell (vorläufig, Freigabe ausstehend)'}
+        </span>
+      </Section>
 
       <Section title="Alert">
         <Alert variant="info" title="Info">Hinweistext</Alert>
@@ -177,6 +200,14 @@ export function DesignSystemPage() {
           onChange={setSelectValue}
         />
         <Select label="Fehler" options={[]} value="" onChange={() => undefined} error="Pflichtfeld" />
+      </Section>
+
+      <Section title="Skeleton">
+        <Skeleton variant="text" width="40%" />
+        <Skeleton variant="text" width="70%" />
+        <Skeleton variant="rect" width={220} height={64} />
+        <Skeleton variant="circle" width={40} height={40} />
+        <Skeleton variant="rect" width="100%" height={180} label="Lade Inhalte" />
       </Section>
 
       <Section title="StatusChip">
