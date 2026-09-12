@@ -84,6 +84,7 @@ export function Button({
   onClick,
   type = 'button',
   style,
+  className,
   ...rest
 }: ButtonProps) {
   const [hover, setHover] = React.useState(false);
@@ -98,7 +99,10 @@ export function Button({
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className={cn(buttonVariants({ variant, size, fullWidth, inactive: isInactive, hovered }))}
+      // G39 Welle 2 (Auftrag 055, Block A): className aus rest
+      // destrukturiert und gemerged — Aufrufer ergänzt (tailwind-merge:
+      // letzter gewinnt bei Konflikten), statt cva zu überschreiben.
+      className={cn(buttonVariants({ variant, size, fullWidth, inactive: isInactive, hovered }), className)}
       // Ausnahme (G38-Entscheidung 5, Nachtrag): style-Passthrough bleibt,
       // weil Konsumenten Overrides übergeben. Disable-Anweisung in Block D.
       // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props, siehe Auftrag 053 Entscheidung 5

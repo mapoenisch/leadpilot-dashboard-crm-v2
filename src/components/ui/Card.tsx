@@ -44,11 +44,14 @@ export function Card({
   padding = 'var(--space-5)',
   children,
   style,
+  className,
   ...rest
 }: CardProps) {
   return (
     <div
-      className={cn(cardVariants({ variant, featured }), CARD_PADDINGS[padding] ?? 'p-5')}
+      // G39 Welle 2 (Auftrag 055, Block A): className gemerged statt über
+      // {...rest} überschrieben (Aufrufer ergänzt, tailwind-merge).
+      className={cn(cardVariants({ variant, featured }), CARD_PADDINGS[padding] ?? 'p-5', className)}
       // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props, siehe Auftrag 053 Entscheidung 5
       style={style}
       {...rest}
