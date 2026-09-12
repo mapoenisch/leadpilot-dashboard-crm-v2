@@ -2,6 +2,46 @@
 
 ---
 
+## 2026-09-12 — Gate G41 / Auftrag 059: Review — Freigabe mit Hinweis (1 Befund, kein Blocker)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Geprüfter Stand:** `3661068` (Builder: Antigravity) · **Status:** FREIGEGEBEN, 1 Befund zur Nachbesserung in einem künftigen Auftrag vorgemerkt (kein Blocker)
+
+Unabhängig in isoliertem Worktree (`3661068`) verifiziert, inklusive
+Neuinstallation der Dependencies (`npm ci`) wegen der neuen `@lhci/cli`-Abhängigkeit:
+
+- **Schutzzonen-Diff** (inkl. `src/services/data/**`, das dieser Auftrag laut Entscheidung 1 bewusst nicht anfassen sollte): leer, selbst nachgerechnet.
+- **Geänderte Dateien** (23 Dateien): deckt sich exakt mit der „Erlaubte Dateien"-Tabelle. Einzige neue Abhängigkeit `@lhci/cli` — bestätigt, kein weiteres Paket eingeschmuggelt.
+- **`tsc --noEmit`:** 536 Fehler (unverändert ggü. G40). **`eslint`:** 4/3 (unverändert). **`verify`:** 24/24. **`test`:** 140/140. **`build`:** grün. **`playwright`:** 153/153.
+- **`size-limit` eigenständig nachgerechnet:** 134,59 KB / 180 KB (Initial) und 86,39 KB / 250 KB (Largest Chunk) — deckt sich mit dem Bericht.
+- **Lighthouse eigenständig nachgefahren** (`npx lhci autorun`, nicht nur den Bericht gelesen): Performance 99, Accessibility 100, Best-Practices 100 — Bericht nennt „100/100" bei Performance, meine Messung 99. Normale Lauf-zu-Lauf-Varianz eines timing-basierten Scores (Netzwerk-/CPU-Jitter), keine Fehlmeldung: beide Werte liegen klar über der Schwelle (≥ 90), `assertion-results.json` leer (0 Verstöße).
+- **Web-Font-Screenshots eigenständig nachgerechnet:** SHA-256 für alle 6 Paare neu berechnet — Ergebnis deckt sich mit der Matrix (2/6 bit-identisch, 4/6 mit Abweichung). Eigener Pixel-Diff der 4 abweichenden Paare ergibt sogar noch kleinere Werte als im Bericht angegeben (max_delta 1–2/255 statt gemeldeter 3–6/255, wohl unterschiedliche Diff-Methodik) — Kernaussage bestätigt: sparsame Subpixel-/Antialiasing-Differenzen in kleinen Bounding-Boxen, keine Layoutabweichung.
+- **G40-Korrekturauflage geprüft:** Die im letzten Review bemängelte Deals/Companies-Diskrepanz wurde korrekt behoben — Zeile 164 nennt jetzt „80 Deals" / „40 Companies" mit Verweis auf `profiling-vorher.json`, deckungsgleich mit der tatsächlichen Messdatei.
+- **`git diff` von `vite.config.ts`/`ci.yml` gelesen:** `manualChunks` um `supabase-vendor`/`recharts-vendor`(+d3)/`framer-motion-vendor` erweitert, `continue-on-error: true` aus dem `size-limit`-CI-Job entfernt (macht ihn zum echten Hard-Gate — vorher konnte dieser Job unbemerkt rot sein, ohne die Pipeline zu blockieren; das erklärt, warum die in Auftrag 059 dokumentierte kaputte Messmethode nie auffiel).
+
+**1 Befund (kein Blocker, aber real):** Das reparierte „Largest chunk"-Budget
+zielt jetzt per Glob **namentlich nur auf `recharts-vendor-*.js`**
+(`.size-limit.json`), nicht generisch auf „den jeweils größten Chunk". Das
+behebt zwar die konkrete Fehlmessung von G41 (vorher wurden alle Chunks
+aufsummiert), ist aber kein allgemeiner Regressions-Schutz mehr: **zwei der
+drei neu geschaffenen Chunks — `supabase-vendor` (56,19 KB gzip) und
+`framer-motion-vendor` (36,99 KB gzip) — werden von keinem der beiden
+Budgets erfasst.** Wenn einer dieser Chunks künftig wächst (z. B. wenn G28
+Supabase-Live-Operation reaktiviert wird), schlägt kein CI-Gate an. Empfehlung
+für einen künftigen Auftrag: entweder je Vendor-Chunk ein eigenes Budget
+(robust, aber mehr Wartungsaufwand bei neuen `manualChunks`-Einträgen) oder
+eine `size-limit`-Erweiterung/ein Skript, das tatsächlich dynamisch den
+größten `dist/assets/*.js`-Einzelchunk ermittelt, statt einen Dateinamen
+festzuschreiben. Ändert nichts an der Freigabe dieses Auftrags — die
+gemeldeten Zahlen sind korrekt und real verbessert, nur die Zukunftssicherheit
+der Regressionsgrenze ist geringer als der Auftragstext nahelegt.
+
+**Freigabe erteilt.** Kein Merge/Tag/Push ohne Marcs ausdrückliche Freigabe
+(unverändert). Nächstes Gate laut Build-Plan: G42 (Authentifizierungs-Schicht,
+app-seitig).
+
+---
+
 ## 2026-09-12 — Gate G41 / Auftrag 059: Bundle & Ladezeit (Abschluss)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
