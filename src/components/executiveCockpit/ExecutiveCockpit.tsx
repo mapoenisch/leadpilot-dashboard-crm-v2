@@ -24,7 +24,11 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
   return (
     <div
       data-testid="executive-cockpit-root"
-      className="executive-cockpit-container"
+      // G39 Welle 1 (Auftrag 054, Block B): Container-Query-Root — die Grids
+      // unten reagieren auf die eigene Breite (Sidebar ein-/ausgeblendet),
+      // nicht auf den Viewport. Schwellen 1024/768 liefern an den
+      // Nachweis-Viewports (1440/768/375) exakt das bisherige Layout.
+      className="executive-cockpit-container @container"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -35,42 +39,12 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
       }}
     >
       <style>{`
-        .cockpit-grid-main {
-          display: grid;
-          grid-template-columns: 1.6fr 1fr;
-          gap: var(--space-5, 20px);
-          width: 100%;
-        }
-
-        .cockpit-grid-ops {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: var(--space-5, 20px);
-          width: 100%;
-        }
-
-        .cockpit-grid-sales {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: var(--space-5, 20px);
-          width: 100%;
-        }
-
-        /* 768px Tablet Breakpoint: 2 Spalten */
-        @media (max-width: 1024px) and (min-width: 768px) {
-          .cockpit-grid-main {
-            grid-template-columns: 1fr;
-          }
-          .cockpit-grid-ops {
-            grid-template-columns: 1fr 1fr;
-          }
-          .cockpit-ops-live {
-            grid-column: span 2;
-          }
-        }
-
-        /* 375px Mobile Breakpoint: 1 Spalte mit strikter Priorisierung */
-        @media (max-width: 767px) {
+        /* G39 Welle 1 (Auftrag 054, Block B): containerbasiert statt
+           viewportbasiert. Die Spaltenzahlen steuern die Plugin-Klassen an
+           den Grid-Elementen (mobile-first); hier nur, was per Utilities
+           nicht sinnvoll geht: Mobile-Priorisierung (display:contents +
+           order, Auftrag-037-Reihenfolge). */
+        @container (max-width: 767px) {
           .executive-cockpit-container {
             display: flex !important;
             flex-direction: column !important;
@@ -105,7 +79,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
       </div>
 
       {/* 2. Hauptbereich: Finanzentwicklung & MRR-Verteilung */}
-      <div className="cockpit-grid-main">
+      <div className="cockpit-grid-main grid w-full gap-[var(--space-5)] grid-cols-1 @[1024px]:grid-cols-[1.6fr_1fr]">
         <div className="cockpit-slot-finance" style={{ minWidth: 0, width: '100%' }}>
           <CockpitPanel
             title="Finanzentwicklung & ARR-Trend"
@@ -158,7 +132,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
       </div>
 
       {/* 3. Operativer Überblick: Team/HR, Roadmap & Live-KPI Ebene C */}
-      <div className="cockpit-grid-ops">
+      <div className="cockpit-grid-ops grid w-full gap-[var(--space-5)] grid-cols-1 @[768px]:grid-cols-2 @[1024px]:grid-cols-3">
         <div className="cockpit-slot-team" style={{ minWidth: 0, width: '100%' }}>
           <CockpitPanel
             title="Teamstruktur & HR-Snapshot"
@@ -179,7 +153,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
           </CockpitPanel>
         </div>
 
-        <div className="cockpit-ops-live cockpit-slot-live" style={{ minWidth: 0, width: '100%' }}>
+        <div className="cockpit-ops-live cockpit-slot-live @[768px]:col-span-2 @[1024px]:col-span-1" style={{ minWidth: 0, width: '100%' }}>
           <CockpitPanel
             title="Live-KPI Telemetrie"
             subtitle="Isolierte Echtzeit-Projektion aus externem Feed"
@@ -216,7 +190,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
       </div>
 
       {/* 4. Vertriebsüberblick: Pipeline-Snapshot (aggregiert aus 40 realen CRM-Deals) */}
-      <div className="cockpit-grid-sales">
+      <div className="cockpit-grid-sales grid w-full gap-[var(--space-5)] grid-cols-1">
         <div className="cockpit-slot-pipeline" style={{ minWidth: 0, width: '100%' }}>
           <CockpitPanel
             title="Vertriebspipeline Snapshot"

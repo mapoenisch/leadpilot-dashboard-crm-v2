@@ -116,5 +116,8 @@ export default {
       },
     },
   },
-  plugins: [],
+  // G39 Welle 1 (Auftrag 054, Block B): Container Queries für
+  // layouts, die von ihrer eigenen Breite (nicht Viewport) abhängen
+  // (executiveCockpit-Grids neben ein-/ausblendbarer Sidebar).
+  plugins: [require('@tailwindcss/container-queries')],
 };
