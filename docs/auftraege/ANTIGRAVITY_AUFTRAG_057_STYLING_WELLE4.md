@@ -113,24 +113,24 @@ umstellen — Verzeichnisse `strategie/`, `unternehmen/`, `vertrieb/`,
 
 ### Block A — `strategie/` (4 Dateien)
 
-- [ ] `BalancedScorecardPath.tsx`, `GoalRunway.tsx` (unverdrahtet), `MeasuresPage.tsx`, `RiskRegisterPage.tsx` (live, trivial) migriert.
+- [x] `BalancedScorecardPath.tsx`, `GoalRunway.tsx` (unverdrahtet), `MeasuresPage.tsx`, `RiskRegisterPage.tsx` (live, trivial) migriert.
 
 ### Block B — `unternehmen/` (5 Dateien, inkl. `LocationPage.tsx` — Entscheidung 1)
 
-- [ ] `BusinessIdeaSignalMap.tsx`, `FundingTimeline.tsx`, `LocationAtlas.tsx`, `ValueBenefitStage.tsx` (unverdrahtet) migriert.
-- [ ] `LocationPage.tsx` migriert, eigener Screenshot-Nachweis für `/company/location` (Entscheidung 1).
+- [x] `BusinessIdeaSignalMap.tsx`, `FundingTimeline.tsx`, `LocationAtlas.tsx`, `ValueBenefitStage.tsx` (unverdrahtet) migriert.
+- [x] `LocationPage.tsx` migriert, eigener Screenshot-Nachweis für `/company/location` (Entscheidung 1).
 
 ### Block C — `vertrieb/` (9 Dateien)
 
-- [ ] `BudgetTargetLadder.tsx`, `ChannelInvestmentRoute.tsx`, `FunnelLeakageWaterfall.tsx`, `SlaSwimlane.tsx` (unverdrahtet) migriert.
-- [ ] `BrandPage.tsx`, `CampaignPlanningPage.tsx`, `ContentStrategyPage.tsx`, `MarketingBudgetPage.tsx`, `SalesToolsPage.tsx` (live, trivial) migriert.
+- [x] `BudgetTargetLadder.tsx`, `ChannelInvestmentRoute.tsx`, `FunnelLeakageWaterfall.tsx`, `SlaSwimlane.tsx` (unverdrahtet) migriert.
+- [x] `BrandPage.tsx`, `CampaignPlanningPage.tsx`, `ContentStrategyPage.tsx`, `MarketingBudgetPage.tsx`, `SalesToolsPage.tsx` (live, trivial) migriert.
 
 ### Block D — `standalone/` (1 Datei) + Abschluss
 
-- [ ] `StandaloneKitView.tsx` (unverdrahtet) migriert.
-- [ ] ESLint-Regel-Scope um alle 19 Welle-4-Dateien erweitert, `INLINE_STYLE_BASELINE` gesenkt (Entscheidung 3).
-- [ ] Gate-G39-Gesamtbilanz im Bericht (Entscheidung 6).
-- [ ] `npm run verify`, `npm test`, `npm run build`, `npx playwright test` grün.
+- [x] `StandaloneKitView.tsx` (unverdrahtet) migriert.
+- [x] ESLint-Regel-Scope um alle 19 Welle-4-Dateien erweitert, `INLINE_STYLE_BASELINE` gesenkt (Entscheidung 3).
+- [x] Gate-G39-Gesamtbilanz im Bericht (Entscheidung 6).
+- [x] `npm run verify`, `npm test`, `npm run build`, `npx playwright test` grün.
 
 ## Erlaubte Dateien
 

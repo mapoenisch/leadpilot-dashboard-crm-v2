@@ -2,6 +2,85 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 4 – Auftrag 057 (Abschluss): Strategie/Unternehmen/Vertrieb/Standalone
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `1c5acae` (Auftrag 056 abgenommen) · **Endstand:** `39dbdbd` + Docs · **Status:** BEREIT ZUR PRÜFUNG
+
+Welle 4 (letzte Welle von Gate G39): 19 Dateien von Inline-Styles auf semantische Tailwind-Klassen / Primitives migriert. Alle 4 Blöcke umgesetzt, ESLint-Scope erweitert, Ratsche gesenkt.
+
+### Block-Übersicht & Commits
+
+- **Block A — `strategie/` (4 Dateien, Commit `ff498fb`):**
+  - `BalancedScorecardPath.tsx`, `GoalRunway.tsx` (unverdrahtet)
+  - `MeasuresPage.tsx`, `RiskRegisterPage.tsx` (live, trivial)
+  - Alle 4 Dateien auf **0** `style={{`.
+- **Block B — `unternehmen/` (5 Dateien, Commit `a80b4fc`):**
+  - `BusinessIdeaSignalMap.tsx`, `FundingTimeline.tsx`, `LocationAtlas.tsx`, `ValueBenefitStage.tsx` (unverdrahtet)
+  - `LocationPage.tsx` (live, 562 Zeilen, Route `/company/location`): Alle 46 `style={{`-Vorkommen vollständig auf Klassen migriert (**0** verbleibende `style={{`).
+  - Eigener Screenshot-Nachweis für `/company/location` (Entscheidung 1) erbracht.
+- **Block C — `vertrieb/` (9 Dateien, Commit `330a22e`):**
+  - `BudgetTargetLadder.tsx`, `ChannelInvestmentRoute.tsx`, `FunnelLeakageWaterfall.tsx`, `SlaSwimlane.tsx` (unverdrahtet)
+  - `BrandPage.tsx`, `CampaignPlanningPage.tsx`, `ContentStrategyPage.tsx`, `MarketingBudgetPage.tsx`, `SalesToolsPage.tsx` (live, trivial)
+  - 8 Dateien auf **0** `style={{`. Einziger legitimer Rest: `FunnelLeakageWaterfall.tsx` (2× dynamische Segmentbreiten, siehe unten).
+- **Block D — `standalone/` + Abschluss (Commit `39dbdbd`):**
+  - `StandaloneKitView.tsx` (unverdrahtet) auf **0** `style={{`.
+  - `eslint.config.js`: Scope um die 19 migrierten Welle-4-Dateien (`strategie/**`, `unternehmen/**`, `vertrieb/**`, `standalone/**`) erweitert.
+  - `.github/workflows/ci.yml`: `INLINE_STYLE_BASELINE` von 40 auf **22** gesenkt.
+
+### Laufzeit-Ausnahmen (Entscheidung 2)
+
+In den 19 migrierten Dateien dieser Welle verbleiben exakt **2 Laufzeit-Ausnahmen in einer einzigen Datei**:
+- **`FunnelLeakageWaterfall.tsx:163` & `FunnelLeakageWaterfall.tsx:170`**: `style={{ width: remainingWidth }}` bzw. `style={{ width: lossWidth }}`.
+  - **Begründung:** Dynamisch kontinuierlich berechnete Prozentbreiten (`${remainingPercent.toFixed(1)}%` bzw. `${lossPercent.toFixed(1)}%`) aus den Funnel-Stufendaten.
+  - **Prüfung gegen Welle-3-Lehre:** Keine Token-Ternaries, reine kontinuierliche Geometrieberechnung. Beide Stellen verfügen über ein zeilengenaues `// eslint-disable-next-line react/forbid-dom-props` mit Begründungskommentar.
+- **`LocationPage.tsx`**: Trotz hoher Style-Dichte (46 Vorkommen im Ausgangszustand) **0** Laufzeit-Ausnahmen nötig — alle Farben, Paddings, Grids und Schatten ließen sich vollständig durch Tailwind-Klassen und Arbitrary Values abbilden.
+- Alle weiteren 17 Dateien: **0** verbleibende `style={{`.
+
+### Screenshot-Nachweis `/company/location` (Entscheidung 1)
+
+Eigener Vorher/Nachher-Nachweis via `scripts/captureGateScreenshots.mjs` (`vite preview`, reducedMotion + fonts.ready + 1000 ms Settle):
+- **1440px:** 0,078 % Strong-Pixel (>8/255, 1015 Pixel in 21 Rows), rein Subpixel-AA und JetBrains-Mono-Typografie-Normalisierung.
+- **768px:** Zeilen y=0..691 zu 100 % pixel-identisch (dy=0, avg diff 0,00); ab y=692 systematischer 3px vertikaler Shift durch Font-Metriken (bei dy=+3 maxDelta 1/255, avg diff 0,02). **0px horizontaler Overflow**.
+- **375px:** Mobiler 1-Spalten-Fluss ohne Umbruchfehler. **0px horizontaler Overflow**.
+- Matrix und Dokumentation unter `docs/screenshots/auftrag-057/README.md`.
+
+### Neue Ratsche: `INLINE_STYLE_BASELINE` = 22 (Entscheidung 3)
+
+Herleitung:
+- **3 Dateien** dauerhaft eingefroren in `src/features/resources/**` (`InternalResourcesView.tsx`, `ResourceViewer.tsx`, `ResourceCard.tsx`).
+- **18 Dateien** aus Wellen 1–3 dokumentiert und akzeptiert (Laufzeit-/Cockpit-/Layout-Reste in `finanzen/`, `markt/`, `kunden/`, `simulation/`, `organisation/`, `components/layout/`, `components/liveKpi/`, `components/ai/`, `components/executiveCockpit/`).
+- **1 Datei** aus Welle 4 mit 2 echten Geometrieberechnungen (`FunnelLeakageWaterfall.tsx`).
+- **Gesamt:** 3 + 18 + 1 = **22 Dateien**.
+- `grep -rl "style={{" src --include="*.tsx" | grep -v "^src/components/ui/" | wc -l` liefert exakt **22**.
+
+### Gate-G39-Gesamtbilanz (Entscheidung 6)
+
+Mit Abschluss von Welle 4 ist **Gate G39 vollständig**:
+- **91 Dateien** über 4 Wellen von Inline-Styles auf Tailwind-Klassen/Design-Tokens migriert:
+  - Welle 1 (Auftrag 054): 18 Dateien (`controlling/`, `crm/`, `dashboard/`, `daten/`, `dokumente/`, `executiveCockpit/`)
+  - Welle 2 (Auftrag 055): 27 Dateien (`finanzen/`, `investoren/`, `kunden/`, `markt/`)
+  - Welle 3 (Auftrag 056): 27 Dateien (`organisation/`, `overview/`, `produkt/`, `projektkontext/`, `recht/`, `simulation/`)
+  - Welle 4 (Auftrag 057): 19 Dateien (`strategie/`, `unternehmen/`, `vertrieb/`, `standalone/`)
+- **Ratsche:** `INLINE_STYLE_BASELINE` sank von ~100 über 98 → 64 → 40 auf final **22**.
+- Verbleibende 22 Dateien: 3 dauerhaft eingefroren (`resources/**`), 19 mit ausschließlich echten, dokumentierten kontinuierlichen Berechnungen (z. B. SVG-Pfade, Balkenbreiten, Farb-Overlays aus Daten) oder Layout-Passthroughs. Kein einziger verbotener Token-Ternary mehr im gesamten Repository.
+- **Nächstes Gate laut Build-Plan:** Gate G40 (Rendering-Optimierung, Komponenten-Splitting, `@tanstack/react-virtual`).
+
+### Verifikations-Matrix
+
+| Prüfung | Soll | Ist | Status |
+|---|---|---|---|
+| `npx tsc --noEmit` | <= 602 Fehler | 600 Fehler (0 Regressionen) | GRÜN |
+| `npm run lint` (CI JSON errorCount) | <= 19 Fehler | 9 Fehler (0 Regressionen) | GRÜN |
+| `npm run verify` | 24/24 Suiten | 24/24 Suiten bestanden | GRÜN |
+| `npm test` | 140 Tests | 140/140 Tests bestanden | GRÜN |
+| `npm run build` | Erfolgreich | Dist erzeugt (~2.5s) | GRÜN |
+| `npx playwright test` | 153 Tests | 153/153 bestanden | GRÜN |
+| Inline-Style-Files (`grep -rl "style{{"`) | < 40 | **22** | GRÜN |
+| Schutzbereichs-Diff (`src/simulation`, `src/types`, etc.) | leer | leer (0 Zeilen Diff) | GRÜN |
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 3 / Auftrag 056: Review-Abschluss (Freigabe)
 
 **Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
