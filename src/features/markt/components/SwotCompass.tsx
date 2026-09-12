@@ -227,11 +227,10 @@ export const SwotCompass: React.FC = () => {
           (Entscheidung 2). Nur Farb-Props im style, Rest Klassen. */}
       <div
         aria-live="polite"
-        className="rounded-md mt-[var(--space-4)] p-[var(--space-4)] border border-solid"
+        className="rounded-md mt-[var(--space-4)] p-[var(--space-4)] border border-solid bg-[rgba(0,0,0,0.25)]"
         // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (State-Selektion aus Daten), siehe Auftrag 055 Entscheidung 2
         style={{
           borderColor: activeQuadrantData.borderCol,
-          backgroundColor: 'rgba(0, 0, 0, 0.25)',
         }}
       >
         <div className="flex flex-wrap items-center justify-between gap-[var(--space-2)] mb-[var(--space-3)]">

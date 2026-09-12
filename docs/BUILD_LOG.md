@@ -2,6 +2,24 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 2 / Auftrag 055: Nacharbeit SwotCompass-Literal + Dashboard-Snapshots (Prüfer-Befund)
+
+**Rolle:** Builder (OpenCode) · **Befund:** Review zu `190bd1e` —
+`SwotCompass.tsx` mischte `backgroundColor`-Literal in ein sonst
+legitimes Laufzeit-`style` (Entscheidung 2); Dashboard-Snapshot-
+Update genehmigt (Card-Fix als echte Verbesserung bestätigt).
+
+**Fix:** `backgroundColor: 'rgba(0, 0, 0, 0.25)'` als Klasse
+(`bg-[rgba(0,0,0,0.25)]`, exakter Wert statt `bg-black/25`-Näherung),
+nur `borderColor` (State-Selektion) bleibt im `style` mit Disable.
+`grep -c style{{ SwotCompass` = 3 (unverändert — Datei bleibt in der
+Liste, `INLINE_STYLE_BASELINE` 64 unverändert). `tsc` 600.
+`--update-snapshots` nur für die 3 `/dashboard`-Snapshots
+(`git status e2e/` zeigt ausschließlich diese 3 PNGs) →
+**`npx playwright test` 153/153**.
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 2 / Auftrag 055: Review — Nacharbeit gefordert (1 Fund), Card-Fix + Snapshot-Update genehmigt
 
 **Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
