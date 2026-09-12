@@ -35,20 +35,8 @@ export const GoalRunway: React.FC = () => {
 
   return (
     <section
-      className="facelift-goal-runway"
+      className="facelift-goal-runway w-full box-border rounded-[var(--radius-lg,12px)] border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="Ziel-Startbahn OKR"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .runway-card-grid {
@@ -101,43 +89,19 @@ export const GoalRunway: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center px-[8px] py-[2px] rounded-[4px] text-[11px] font-bold tracking-[0.05em] uppercase text-primary bg-[rgba(0,217,198,0.12)] border border-solid border-[rgba(0,217,198,0.25)] whitespace-normal">
             ZIEL-STARTBAHN
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Ausgangspunkt, Zwischenetappen & Zielkorridore 2026
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 text-[clamp(1.1rem,4vw,1.25rem)] font-bold text-text font-display [overflow-wrap:anywhere]">
           {OKR.title}
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
           Visualisierung der Startbahn-Etappen je strategischem Objective: Basis 2025, Fortschrittsverlauf und Lücke zur Zielstation 2026.
         </p>
       </div>
@@ -150,209 +114,70 @@ export const GoalRunway: React.FC = () => {
           return (
             <article
               key={objIdx}
-              style={{
-                borderRadius: 'var(--radius-md, 10px)',
-                border: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.01))',
-                padding: 'var(--space-4, 16px)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '14px',
-                minWidth: 0,
-                boxSizing: 'border-box',
-                overflowWrap: 'anywhere',
-              }}
+              className="rounded-[var(--radius-md,10px)] border border-solid border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.01))] p-[var(--space-4,16px)] flex flex-col gap-[14px] min-w-0 box-border [overflow-wrap:anywhere]"
             >
               {/* Objective Header */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'baseline',
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                  borderBottom: '1px solid var(--color-border)',
-                  paddingBottom: '10px',
-                }}
-              >
-                <h4
-                  style={{
-                    margin: 0,
-                    fontSize: '14px',
-                    fontWeight: 700,
-                    color: 'var(--color-text)',
-                    fontFamily: 'var(--font-display)',
-                    overflowWrap: 'anywhere',
-                  }}
-                >
+              <div className="flex justify-between items-baseline flex-wrap gap-[8px] border-b border-solid border-border pb-[10px]">
+                <h4 className="m-0 text-[14px] font-bold text-text font-display [overflow-wrap:anywhere]">
                   {obj.title}
                 </h4>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    color: 'var(--color-primary)',
-                    backgroundColor: 'rgba(0, 217, 198, 0.08)',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    flexShrink: 0,
-                  }}
-                >
+                <span className="text-[11px] font-semibold text-primary bg-[rgba(0,217,198,0.08)] px-[6px] py-[2px] rounded-[4px] shrink-0">
                   {parsedKrs.length} Key Results
                 </span>
               </div>
 
               {/* Startbahnen der Key Results */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="flex flex-col gap-[10px]">
                 {parsedKrs.map((kr, krIdx) => (
                   <div key={krIdx} className="runway-track">
                     {/* Basiswert 2025 */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px',
-                        minWidth: 0,
-                        overflowWrap: 'anywhere',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <span
-                          style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            padding: '1px 5px',
-                            borderRadius: '3px',
-                            color: 'var(--color-text-muted)',
-                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                          }}
-                        >
+                    <div className="flex flex-col gap-[2px] min-w-0 [overflow-wrap:anywhere]">
+                      <div className="flex items-center gap-[6px] flex-wrap">
+                        <span className="text-[10px] font-bold px-[5px] py-[1px] rounded-[3px] text-[var(--color-text-muted)] bg-[rgba(255,255,255,0.08)]">
                           {kr.krId}
                         </span>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            color: 'var(--color-text-muted)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.04em',
-                          }}
-                        >
+                        <span className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-[0.04em]">
                           Basis 2025
                         </span>
                       </div>
-                      <div
-                        style={{
-                          fontSize: '15px',
-                          fontWeight: 700,
-                          color: 'var(--color-text)',
-                          fontFamily: 'var(--font-display)',
-                          marginTop: '2px',
-                        }}
-                      >
+                      <div className="text-[15px] font-bold text-text font-display mt-[2px]">
                         {kr.fromVal}
                       </div>
-                      <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: 1.3 }}>
+                      <div className="text-[11.5px] text-[var(--color-text-muted)] leading-[1.3]">
                         {kr.label}
                       </div>
                     </div>
 
                     {/* Startbahn-Verlauf & Lücke */}
                     <div className="runway-connector">
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          flexWrap: 'wrap',
-                          width: '100%',
-                          textAlign: 'center',
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            letterSpacing: '0.03em',
-                            textTransform: 'uppercase',
-                            color: 'var(--color-primary)',
-                          }}
-                        >
+                      <div className="flex items-center justify-center gap-[6px] flex-wrap w-full text-center">
+                        <span className="text-[10px] font-bold tracking-[0.03em] uppercase text-primary">
                           Lücke zur Zielstation
                         </span>
                         {kr.note && (
-                          <span
-                            style={{
-                              fontSize: '10.5px',
-                              fontWeight: 600,
-                              padding: '1px 6px',
-                              borderRadius: '4px',
-                              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-                              color: 'var(--color-primary)',
-                              border: '1px solid rgba(0, 217, 198, 0.25)',
-                            }}
-                          >
+                          <span className="text-[10.5px] font-semibold px-[6px] py-[1px] rounded-[4px] bg-[rgba(0,217,198,0.12)] text-primary border border-solid border-[rgba(0,217,198,0.25)]">
                             {kr.note}
                           </span>
                         )}
                       </div>
                       <div className="runway-connector-line" />
-                      <div
-                        style={{
-                          fontSize: '10px',
-                          color: 'var(--color-text-muted)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
+                      <div className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-[4px]">
                         <span>Zeithorizont GJ 2026</span>
                         <span>➔</span>
                       </div>
                     </div>
 
                     {/* Zielwert 2026 */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px',
-                        minWidth: 0,
-                        alignItems: 'flex-start',
-                        backgroundColor: 'rgba(0, 217, 198, 0.05)',
-                        border: '1px solid rgba(0, 217, 198, 0.2)',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        overflowWrap: 'anywhere',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <span
-                          style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            padding: '1px 5px',
-                            borderRadius: '3px',
-                            color: '#001A17',
-                            backgroundColor: 'var(--color-primary, #00D9C6)',
-                          }}
-                        >
+                    <div className="flex flex-col gap-[2px] min-w-0 items-start bg-[rgba(0,217,198,0.05)] border border-solid border-[rgba(0,217,198,0.2)] px-[10px] py-[8px] rounded-[6px] [overflow-wrap:anywhere]">
+                      <div className="flex items-center gap-[6px] flex-wrap">
+                        <span className="text-[10px] font-bold px-[5px] py-[1px] rounded-[3px] text-[#001A17] bg-[var(--color-primary,#00D9C6)]">
                           ZIEL 2026
                         </span>
-                        <span style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 600 }}>
+                        <span className="text-[11px] text-primary font-semibold">
                           Zielstation
                         </span>
                       </div>
-                      <div
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: 700,
-                          color: 'var(--color-primary)',
-                          fontFamily: 'var(--font-display)',
-                          marginTop: '2px',
-                        }}
-                      >
+                      <div className="text-[16px] font-bold text-primary font-display mt-[2px]">
                         {kr.toVal}
                       </div>
                     </div>

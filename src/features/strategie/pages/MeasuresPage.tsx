@@ -7,7 +7,7 @@ import { MASSNAHMEN } from '@/domain/strategieData';
 
 export function MeasuresPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Strategie" title={MASSNAHMEN.title} description="Priorisiertes Maßnahmenportfolio." />
       <Card padding="0">
         <Table
