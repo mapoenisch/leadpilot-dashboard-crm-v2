@@ -2,6 +2,49 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 4 / Auftrag 057: Review-Abschluss (Freigabe) — Gate G39 vollständig abgeschlossen
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Endstand:** `d292b5a` (Builder: Antigravity) · **Status:** ABGESCHLOSSEN,
+Freigabe erteilt.
+
+Unabhängig in isoliertem Worktree verifiziert: `tsc` 600, `lint` 9/3
+(via `npm run lint`, dem echten CI-Gate-Befehl), `verify` 24/24,
+`test` 140/140, `build` grün, `npx playwright test` **153/153**,
+`INLINE_STYLE_BASELINE` 22 exakt bestätigt, Schutz-Diff leer. Nur 1
+Datei mit Resten (`FunnelLeakageWaterfall.tsx`, 2 echte Laufzeit-
+Prozentwerte aus Funnel-Daten) — gezielt nach dem Welle-3-Muster
+(Ternary zwischen bekannten Tokens) gesucht, keines gefunden.
+
+**`/company/location` unabhängig nachgeprüft, nicht nur nachgelesen:**
+Eigene Vorher/Nachher-Screenshots in separatem Worktree (`1c5acae`)
+gebaut. 1440px exakt reproduzierbar, deckt sich mit dem gemeldeten
+Wert (0,078 % Strong-Pixel). Bei 768/375px zunächst ein 3px-
+Vertikalversatz gefunden (wie im Builder-Bericht) plus ein
+Ausreißer-Pixel mit hohem Delta nach Korrektur — direkter
+Bildvergleich der betroffenen Bereiche (Kartenrahmen, Badge-Text)
+zeigt aber optische Identität. Verbleibende Differenz konzentriert
+sich auf Foto-Hintergründe/abgerundete Ecken (AA-/Decoding-
+Empfindlichkeit). Bestätigt durch eigene Gegenprobe: zwei
+Screenshot-Sessions **desselben unveränderten Commits** waren am
+768px-Viewport dieser Route nicht einmal byte-identisch — inhärente
+Capture-Varianz unabhängig vom Code. 0px horizontaler Overflow bei
+allen 3 Breiten selbst nachgemessen.
+
+**Damit ist Gate G39 (Aufträge 054–057, alle 4 Wellen) vollständig
+abgeschlossen:** 91 Dateien über G38+G39 von Inline-Styles auf
+Tailwind/Primitives migriert, `INLINE_STYLE_BASELINE` von ~100 auf
+final 22 (davon 3 dauerhaft eingefroren in `src/features/resources/**`,
+Rest dokumentierte Laufzeit-/Passthrough-Ausnahmen). Theme-Mechanismus,
+Container-Queries, Skeleton-Primitive, konsistentes `cva`-Styling-
+System — alle unabhängig über die gesamte Laufzeit des Gates verifiziert.
+
+Kein Merge/Tag/Push ohne Marcs ausdrückliche Freigabe (unverändert).
+Nächstes Gate laut Build-Plan: G40 (Rendering-Optimierung,
+Komponenten-Splitting, `@tanstack/react-virtual`).
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 4 – Auftrag 057 (Abschluss): Strategie/Unternehmen/Vertrieb/Standalone
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
