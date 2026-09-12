@@ -2,6 +2,45 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 2 / Auftrag 055: Review — Nacharbeit gefordert (1 Fund), Card-Fix + Snapshot-Update genehmigt
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Endstand:** `190bd1e` · **Status:** Nacharbeit gefordert.
+
+Unabhängig in isoliertem Worktree verifiziert: `tsc` 600, `lint` 16/3,
+`verify` 24/24, `test` 140/140, `build` grün, Schutz-Diff leer,
+`npx playwright test` **150/153** (exakt die gemeldeten 3
+`/dashboard`-Failures, sonst nichts) nachgefahren. Ratsche 81→64
+exakt nachgemessen bestätigt.
+
+**Card-Padding-Fix bestätigt und genehmigt:** Screenshot-Diff
+angeschaut — vorher saß der Karteninhalt bündig an der Kante (0px
+Padding, Folge des `className`-Bugs), jetzt mit korrektem Innenabstand.
+Echte Verbesserung, keine Regression. Recharts-Plots im Diff sauber,
+nichts überlappt/abgeschnitten. **Snapshot-Update für `/dashboard`
+(3 Viewports) genehmigt** — Nacharbeit fährt `--update-snapshots`
+für diese 3 Dateien.
+
+**Konsumenten-Behauptungen unabhängig geprüft:** `crm/`-Dateien
+(Block B) tatsächlich verdrahtet (Import-Suche bestätigt).
+Blocks C/D/E (`finanzen`/`generic`/`geschaeftsmodell`/`kunden`/`markt`)
+tatsächlich **0 Konsumenten** außerhalb der eigenen Dateien — "kein
+sichtbarer Effekt möglich" stimmt.
+
+**Ein echter Fund:** `SwotCompass.tsx` (Zeile 232–235) mischt einen
+statischen Wert in ein sonst legitimes Laufzeit-`style`-Objekt —
+`borderColor: activeQuadrantData.borderCol` ist korrekt (State-
+abhängig), `backgroundColor: 'rgba(0, 0, 0, 0.25)'` ist zur Build-Zeit
+bekannt und verstößt gegen Entscheidung 2 (jeder Wert im verbleibenden
+`style`-Objekt muss ein echter Laufzeitausdruck sein). Muss als
+Tailwind-Klasse (`bg-black/25` o. ä.) ins `className`.
+
+**Status:** Block A–E ansonsten angenommen. Nacharbeit gefordert:
+SwotCompass-Fix + Dashboard-Snapshot-Update. Fix-Auftrag an Builder
+siehe Chat. Erst danach gilt Welle 2 als abgeschlossen.
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 2 / Auftrag 055: CRM/Finanzen/Kunden/Markt + Primitive-Fix
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
