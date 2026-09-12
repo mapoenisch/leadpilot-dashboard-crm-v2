@@ -89,20 +89,8 @@ export const RevenueCostShoreline: React.FC = () => {
 
   return (
     <section
-      className="facelift-revenue-cost-shoreline"
+      className="facelift-revenue-cost-shoreline box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="Ertragsufer GuV-Verlauf"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .shoreline-cards-grid {
@@ -123,62 +111,28 @@ export const RevenueCostShoreline: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.05em] uppercase whitespace-normal px-[8px] py-[2px]">
             ERTRAGSUFER GUV
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Umsatz- & Kostenverlauf mit sichtbarer Ergebnislücke
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 font-display font-bold text-text text-[clamp(1.1rem,4vw,1.25rem)] [overflow-wrap:anywhere]">
           Ertragsufer & Ergebnislücke ({yearRange})
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
           Entwicklung von Gesamtumsatz zu operativen Gesamtkosten. Die schraffierte Spanne visualisiert die Ergebnislücke (EBITDA), die sich im {lastPeriodName} von {prevEbitda} auf {lastEbitda} deutlich verengt.
         </p>
       </div>
 
       {/* Visuelles Ertragsufer (SVG) */}
-      <div
-        style={{
-          width: '100%',
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-          borderRadius: 'var(--radius-md, 8px)',
-          border: '1px solid var(--color-border)',
-          padding: '12px 8px',
-          boxSizing: 'border-box',
-          position: 'relative',
-        }}
-      >
+      <div className="w-full rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] box-border relative px-[8px] py-[12px]">
         <svg
           viewBox={`0 0 ${svgW} ${svgH}`}
-          style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '240px' }}
+          className="block w-full h-auto max-h-[240px]"
           role="img"
           aria-label="Diagramm: Ertragsufer Umsatz vs. Kosten"
         >
@@ -305,27 +259,17 @@ export const RevenueCostShoreline: React.FC = () => {
         </svg>
 
         {/* Legende */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '16px',
-            marginTop: '8px',
-            fontSize: '11px',
-            color: 'var(--color-text-muted)',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '12px', height: '3px', backgroundColor: 'var(--color-primary)', borderRadius: '2px' }} />
-            <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>Umsatzerlöse (Gesamtumsatz)</span>
+        <div className="flex justify-center gap-[16px] flex-wrap mt-[8px] text-[11px] text-[var(--color-text-muted)]">
+          <div className="flex items-center gap-[6px]">
+            <span className="w-[12px] h-[3px] rounded-[2px] bg-primary" />
+            <span className="font-semibold text-text">Umsatzerlöse (Gesamtumsatz)</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '12px', height: '3px', backgroundColor: 'var(--color-accent, #FF7A3D)', borderRadius: '2px' }} />
-            <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>Operative Gesamtkosten</span>
+          <div className="flex items-center gap-[6px]">
+            <span className="w-[12px] h-[3px] rounded-[2px] bg-accent" />
+            <span className="font-semibold text-text">Operative Gesamtkosten</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '12px', height: '10px', backgroundColor: 'rgba(255, 122, 61, 0.25)', borderRadius: '2px' }} />
+          <div className="flex items-center gap-[6px]">
+            <span className="w-[12px] h-[10px] rounded-[2px] bg-[rgba(255,122,61,0.25)]" />
             <span>Ergebnislücke (EBITDA)</span>
           </div>
         </div>
@@ -336,49 +280,30 @@ export const RevenueCostShoreline: React.FC = () => {
         {periods.map((p) => (
           <article
             key={p.label}
-            style={{
-              borderRadius: 'var(--radius-md, 8px)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              minWidth: 0,
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '14px', color: 'var(--color-text)' }}>{p.label}</strong>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  color: 'var(--color-text-muted)',
-                }}
-              >
+            className="rounded-md border border-solid border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[10px] min-w-0">
+            <div className="flex justify-between items-center">
+              <strong className="text-[14px] text-text">{p.label}</strong>
+              <span className="text-[10px] font-semibold rounded bg-[rgba(255,255,255,0.06)] text-[var(--color-text-muted)] px-[6px] py-[2px]">
                 GuV-Abschnitt
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>Umsatzerlöse:</span>
-                <strong style={{ color: 'var(--color-primary)' }}>{p.revenueText}</strong>
+            <div className="flex flex-col gap-[6px] text-[12px]">
+              <div className="flex justify-between border-0 border-b border-solid border-border pb-[4px]">
+                <span className="text-[var(--color-text-muted)]">Umsatzerlöse:</span>
+                <strong className="text-primary">{p.revenueText}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>Gesamtkosten:</span>
-                <strong style={{ color: 'var(--color-accent, #FF7A3D)' }}>{p.totalCostText}</strong>
+              <div className="flex justify-between border-0 border-b border-solid border-border pb-[4px]">
+                <span className="text-[var(--color-text-muted)]">Gesamtkosten:</span>
+                <strong className="text-accent">{p.totalCostText}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>EBITDA (Lücke):</span>
-                <strong style={{ color: 'var(--color-warning, #FFB800)' }}>{p.ebitdaText}</strong>
+              <div className="flex justify-between border-0 border-b border-solid border-border pb-[4px]">
+                <span className="text-[var(--color-text-muted)]">EBITDA (Lücke):</span>
+                <strong className="text-warning">{p.ebitdaText}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>Jahresfehlbetrag:</span>
-                <strong style={{ color: 'var(--color-text)' }}>{p.lossText}</strong>
+              <div className="flex justify-between">
+                <span className="text-[var(--color-text-muted)]">Jahresfehlbetrag:</span>
+                <strong className="text-text">{p.lossText}</strong>
               </div>
             </div>
           </article>

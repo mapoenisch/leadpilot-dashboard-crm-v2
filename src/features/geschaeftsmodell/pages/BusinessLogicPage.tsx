@@ -5,13 +5,13 @@ import { LOGIK } from '@/domain/geschaeftsmodellData';
 
 export function BusinessLogicPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Geschäftsmodell" title={LOGIK.title} description="Wirtschaftliche Skalierungshebel." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-4)' }}>
+      <div className="grid grid-cols-3 gap-[var(--space-4)]">
         {LOGIK.levers.map((l: { title: string; desc: string }) => (
           <Card key={l.title} featured>
-            <h4 style={{ margin: '0 0 8px', color: 'var(--color-primary)', fontFamily: 'var(--font-display)' }}>{l.title}</h4>
-            <p style={{ margin: 0, color: 'var(--color-text)', fontSize: '13.5px', lineHeight: 1.5 }}>{l.desc}</p>
+            <h4 className="m-0 mb-[8px] font-display text-primary">{l.title}</h4>
+            <p className="m-0 text-[13.5px] leading-[1.5] text-text">{l.desc}</p>
           </Card>
         ))}
       </div>

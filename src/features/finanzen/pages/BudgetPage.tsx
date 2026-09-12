@@ -7,7 +7,7 @@ import { BUDGET, CHART_BUDGET } from '@/domain/finanzenData';
 
 export function BudgetPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Finanzen" title={BUDGET.title} description="Geplante Ausgaben und Ressourcenverteilung." />
       <ChartFrame
         title="Budget- und Kostenallokation 2026"

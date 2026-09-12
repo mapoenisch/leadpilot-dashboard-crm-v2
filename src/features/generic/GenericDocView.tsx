@@ -66,7 +66,7 @@ export function GenericDocView({ viewId, title, categoryLabel }: GenericDocViewP
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader
         eyebrow={categoryLabel}
         title={title}
@@ -81,19 +81,19 @@ export function GenericDocView({ viewId, title, categoryLabel }: GenericDocViewP
       )}
 
       <Card featured>
-        <h3 style={{ margin: '0 0 var(--space-3)', fontFamily: 'var(--font-display)', fontSize: '18px', color: 'var(--color-primary)' }}>
+        <h3 className="m-0 mb-[var(--space-3)] font-display text-[18px] text-primary">
           Zusammenfassung
         </h3>
-        <p style={{ color: 'var(--color-text)', fontSize: '14.5px', lineHeight: 1.6 }}>
+        <p className="text-[14.5px] leading-[1.6] text-text">
           {content.summary}
         </p>
       </Card>
 
       <Card>
-        <h3 style={{ margin: '0 0 var(--space-3)', fontFamily: 'var(--font-display)', fontSize: '17px', color: 'var(--color-text)' }}>
+        <h3 className="m-0 mb-[var(--space-3)] font-display text-[17px] text-text">
           Kernaussagen & Parameter
         </h3>
-        <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', color: 'var(--color-text-muted)', fontSize: '14px' }}>
+        <ul className="flex flex-col gap-[var(--space-2)] pl-[20px] text-[14px] text-[var(--color-text-muted)]">
           {content.bullets.map((b, i) => (
             <li key={i}>{b}</li>
           ))}

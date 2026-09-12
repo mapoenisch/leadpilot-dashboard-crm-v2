@@ -92,20 +92,8 @@ export const SaasMotor: React.FC = () => {
 
   return (
     <section
-      className="facelift-saas-motor"
+      className="facelift-saas-motor box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="SaaS-Motor KPI-Kreis"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .motor-nodes-grid {
@@ -137,43 +125,19 @@ export const SaasMotor: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.05em] uppercase whitespace-normal px-[8px] py-[2px]">
             SAAS-MOTOR
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             gerichtete Lesereihenfolge: ARPA ➔ CAC-Payback ➔ Retention ➔ MRR
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 font-display font-bold text-text text-[clamp(1.1rem,4vw,1.25rem)] [overflow-wrap:anywhere]">
           SaaS-Wirtschaftsmotor: Kernkennzahlen im Verbund
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
           Zusammenführung der vier zentralen ökonomischen Hebel. Kantenbeschriftungen sind neutral und faktengebunden formuliert.
         </p>
       </div>
@@ -183,63 +147,48 @@ export const SaasMotor: React.FC = () => {
         {nodes.map((node) => (
           <article
             key={node.id}
-            className="facelift-saas-motor-node"
-            style={{
-              borderRadius: 'var(--radius-md, 8px)',
-              border: '1px solid var(--color-border)',
-              borderTop: `4px solid ${node.color}`,
-              backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              minWidth: 0,
-            }}
+            className="facelift-saas-motor-node rounded-md border border-solid border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[10px] min-w-0 border-t-4"
+            // G39 Welle 2: Oberkante in Knotenfarbe (Daten-Config) — als
+            // Klasse nicht darstellbar (Entscheidung 2).
+            // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Knotenfarbe aus Daten), siehe Auftrag 055 Entscheidung 2
+            style={{ borderTopColor: node.color }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: node.color, textTransform: 'uppercase' }}>
+            <div className="flex justify-between items-center flex-wrap gap-[4px]">
+              <span
+                className="text-[10px] font-bold uppercase"
+                // G39 Welle 2: Labelfarbe = Knotenfarbe (Daten).
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Knotenfarbe aus Daten), siehe Auftrag 055 Entscheidung 2
+                style={{ color: node.color }}
+              >
                 KNOTEN {node.step} VON 4
               </span>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: node.color }} />
+              <span
+                className="w-[8px] h-[8px] rounded-full"
+                // G39 Welle 2: Punktfarbe = Knotenfarbe (Daten).
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Knotenfarbe aus Daten), siehe Auftrag 055 Entscheidung 2
+                style={{ backgroundColor: node.color }}
+              />
             </div>
 
-            <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--color-text)', fontWeight: 700 }}>
+            <h4 className="m-0 text-[14px] font-bold text-text">
               {node.title}
             </h4>
 
             {/* Primärwert */}
-            <div
-              style={{
-                padding: '8px 10px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--color-border)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-                minWidth: 0,
-              }}
-            >
-              <strong style={{ fontSize: '16px', color: node.color }}>{node.primaryVal}</strong>
-              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{node.primarySub}</span>
+            <div className="rounded-[6px] border border-solid border-border bg-[rgba(255,255,255,0.03)] flex flex-col gap-[2px] min-w-0 px-[10px] py-[8px]">
+              <strong
+                className="text-[16px]"
+                // G39 Welle 2: Wertfarbe = Knotenfarbe (Daten).
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Knotenfarbe aus Daten), siehe Auftrag 055 Entscheidung 2
+                style={{ color: node.color }}
+              >{node.primaryVal}</strong>
+              <span className="text-[11px] text-[var(--color-text-muted)]">{node.primarySub}</span>
             </div>
 
             {/* Sekundärwert */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-                fontSize: '11px',
-                color: 'var(--color-text-muted)',
-                paddingTop: '4px',
-                borderTop: '1px solid var(--color-border)',
-                flexWrap: 'wrap',
-                gap: '4px',
-              }}
-            >
+            <div className="border-0 border-t border-solid border-border flex justify-between items-baseline flex-wrap gap-[4px] text-[11px] pt-[4px] text-[var(--color-text-muted)]">
               <span>{node.secondarySub}:</span>
-              <strong style={{ color: 'var(--color-text)' }}>{node.secondaryVal}</strong>
+              <strong className="text-text">{node.secondaryVal}</strong>
             </div>
           </article>
         ))}
@@ -250,49 +199,26 @@ export const SaasMotor: React.FC = () => {
         {edges.map((edge, i) => (
           <div
             key={i}
-            style={{
-              padding: '12px 14px',
-              borderRadius: 'var(--radius-md, 8px)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'rgba(255, 255, 255, 0.02)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-              minWidth: 0,
-            }}
+            className="rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] flex flex-col gap-[6px] min-w-0 px-[14px] py-[12px]"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--color-primary)', fontWeight: 700, flexWrap: 'wrap' }}>
+            <div className="flex items-center gap-[6px] flex-wrap text-[11px] font-bold text-primary">
               <span>KANTE {i + 1}:</span>
-              <span style={{ color: 'var(--color-text)' }}>{edge.from}</span>
+              <span className="text-text">{edge.from}</span>
               <span>➔</span>
-              <span style={{ color: 'var(--color-text)' }}>{edge.to}</span>
+              <span className="text-text">{edge.to}</span>
             </div>
 
-            <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            <p className="m-0 text-[12px] leading-[1.4] text-[var(--color-text-muted)]">
               {edge.text}
             </p>
 
             {edge.disclaimer && (
-              <span
-                style={{
-                  fontSize: '10.5px',
-                  color: 'var(--color-warning, #FFB800)',
-                  fontStyle: 'italic',
-                  marginTop: '2px',
-                }}
-              >
+              <span className="text-[10.5px] italic mt-[2px] text-warning">
                 ({edge.disclaimer})
               </span>
             )}
             {edge.isMath && (
-              <span
-                style={{
-                  fontSize: '10.5px',
-                  color: 'var(--color-primary)',
-                  fontStyle: 'italic',
-                  marginTop: '2px',
-                }}
-              >
+              <span className="text-[10.5px] italic mt-[2px] text-primary">
                 (Rechnerische Verknüpfung)
               </span>
             )}

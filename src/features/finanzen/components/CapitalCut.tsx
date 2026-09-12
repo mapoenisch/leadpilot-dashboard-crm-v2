@@ -86,20 +86,8 @@ export const CapitalCut: React.FC = () => {
 
   return (
     <section
-      className="facelift-capital-cut"
+      className="facelift-capital-cut box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="Kapital-Schnitt Mittelverwendung und Finanzierung"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .capital-cut-grid {
@@ -121,43 +109,19 @@ export const CapitalCut: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.05em] uppercase whitespace-normal px-[8px] py-[2px]">
             KAPITAL-SCHNITT
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Mittelverwendung (Aktiva) ↔ Finanzierung (Passiva)
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 font-display font-bold text-text text-[clamp(1.1rem,4vw,1.25rem)] [overflow-wrap:anywhere]">
           Bilanzschnitt: Herkunft & Verwendung der Mittel (GJ 2025)
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
           Gleichwertige Gegenüberstellung von investiertem Vermögen und Kapitalstruktur bei einer Bilanzsumme von {totalAktivaRow[1]}.
         </p>
       </div>
@@ -165,79 +129,66 @@ export const CapitalCut: React.FC = () => {
       {/* 2 Gleichwertige Hälften */}
       <div className="capital-cut-grid" role="region" aria-label="Mittelverwendung und Finanzierung">
         {/* LINKE HÄLFTE: Mittelverwendung (Aktiva) */}
-        <article
-          style={{
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid var(--color-border)',
-            borderTop: '4px solid var(--color-primary)',
-            backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-            padding: '14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+        <article className="rounded-md border border-solid border-border border-t-4 border-t-primary bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[12px] min-w-0">
+          <div className="flex justify-between items-center flex-wrap gap-[6px]">
             <div>
-              <span style={{ fontSize: '10px', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase' }}>
+              <span className="text-[10px] font-bold uppercase text-primary">
                 LINKE HÄLFTE
               </span>
-              <h4 style={{ margin: '2px 0 0', fontSize: '15px', color: 'var(--color-text)', fontWeight: 700 }}>
+              <h4 className="mt-[2px] mb-0 mr-0 ml-0 text-[15px] font-bold text-text">
                 Mittelverwendung (Aktiva)
               </h4>
             </div>
-            <strong style={{ fontSize: '16px', color: 'var(--color-primary)' }}>
+            <strong className="text-[16px] text-primary">
               {totalAktivaRow[1]}
             </strong>
           </div>
 
           {/* Proportionaler Balken */}
-          <div style={{ display: 'flex', height: '12px', width: '100%', borderRadius: '6px', overflow: 'hidden' }}>
+          <div className="flex w-full h-[12px] rounded-[6px] overflow-hidden">
             {aktivaSections.map((sec) => (
               <div
                 key={sec.title}
+                // G39 Welle 2: Segmentbreite und -farbe aus Bilanzdaten —
+                // als Klasse nicht darstellbar (Entscheidung 2).
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie/Farbe (Bilanzanteile), siehe Auftrag 055 Entscheidung 2
                 style={{
                   width: `${(sec.val / totalBilanzVal) * 100}%`,
                   backgroundColor: sec.color,
-                  height: '100%',
                 }}
+                className="h-full"
                 title={`${sec.title}: ${sec.amountText} (${sec.share} %)`}
               />
             ))}
           </div>
 
           {/* Positionsliste */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="flex flex-col gap-[8px]">
             {aktivaSections.map((sec) => (
               <div
                 key={sec.title}
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid var(--color-border)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  minWidth: 0,
-                }}
+                className="rounded-[6px] border border-solid border-border bg-[rgba(255,255,255,0.02)] flex flex-col gap-[4px] min-w-0 px-[10px] py-[8px]"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: sec.color }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text)' }}>{sec.title}</span>
+                <div className="flex justify-between items-center flex-wrap gap-[4px]">
+                  <div className="flex items-center gap-[6px]">
+                    <span
+                      className="w-[8px] h-[8px] rounded-full"
+                      // G39 Welle 2: Punktfarbe aus Bilanzdaten (Entscheidung 2).
+                      // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Bilanzposition), siehe Auftrag 055 Entscheidung 2
+                      style={{ backgroundColor: sec.color }}
+                    />
+                    <span className="text-[12px] font-semibold text-text">{sec.title}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <strong style={{ fontSize: '13px', color: 'var(--color-text)' }}>{sec.amountText}</strong>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>({sec.share} %)</span>
+                  <div className="flex items-center gap-[6px]">
+                    <strong className="text-[13px] text-text">{sec.amountText}</strong>
+                    <span className="text-[11px] text-[var(--color-text-muted)]">({sec.share} %)</span>
                   </div>
                 </div>
 
                 {sec.subItems.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingLeft: '14px', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                  <div className="flex flex-col gap-[2px] pl-[14px] text-[11px] text-[var(--color-text-muted)]">
                     {sec.subItems.map((sub, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <div key={i} className="flex justify-between">
                         <span>{sub[0].trim()}</span>
                         <span>{sub[1]}</span>
                       </div>
@@ -250,79 +201,66 @@ export const CapitalCut: React.FC = () => {
         </article>
 
         {/* RECHTE HÄLFTE: Finanzierung (Passiva) */}
-        <article
-          style={{
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid var(--color-border)',
-            borderTop: '4px solid var(--color-accent, #FF7A3D)',
-            backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-            padding: '14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+        <article className="rounded-md border border-solid border-border border-t-4 border-t-accent bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[12px] min-w-0">
+          <div className="flex justify-between items-center flex-wrap gap-[6px]">
             <div>
-              <span style={{ fontSize: '10px', color: 'var(--color-accent, #FF7A3D)', fontWeight: 700, textTransform: 'uppercase' }}>
+              <span className="text-[10px] font-bold uppercase text-accent">
                 RECHTE HÄLFTE
               </span>
-              <h4 style={{ margin: '2px 0 0', fontSize: '15px', color: 'var(--color-text)', fontWeight: 700 }}>
+              <h4 className="mt-[2px] mb-0 mr-0 ml-0 text-[15px] font-bold text-text">
                 Finanzierung (Passiva)
               </h4>
             </div>
-            <strong style={{ fontSize: '16px', color: 'var(--color-accent, #FF7A3D)' }}>
+            <strong className="text-[16px] text-accent">
               {totalPassivaRow[1]}
             </strong>
           </div>
 
           {/* Proportionaler Balken */}
-          <div style={{ display: 'flex', height: '12px', width: '100%', borderRadius: '6px', overflow: 'hidden' }}>
+          <div className="flex w-full h-[12px] rounded-[6px] overflow-hidden">
             {passivaSections.map((sec) => (
               <div
                 key={sec.title}
+                // G39 Welle 2: Segmentbreite und -farbe aus Bilanzdaten —
+                // als Klasse nicht darstellbar (Entscheidung 2).
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie/Farbe (Bilanzanteile), siehe Auftrag 055 Entscheidung 2
                 style={{
                   width: `${(sec.val / totalBilanzVal) * 100}%`,
                   backgroundColor: sec.color,
-                  height: '100%',
                 }}
+                className="h-full"
                 title={`${sec.title}: ${sec.amountText} (${sec.share} %)`}
               />
             ))}
           </div>
 
           {/* Positionsliste */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="flex flex-col gap-[8px]">
             {passivaSections.map((sec) => (
               <div
                 key={sec.title}
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid var(--color-border)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  minWidth: 0,
-                }}
+                className="rounded-[6px] border border-solid border-border bg-[rgba(255,255,255,0.02)] flex flex-col gap-[4px] min-w-0 px-[10px] py-[8px]"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: sec.color }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text)' }}>{sec.title}</span>
+                <div className="flex justify-between items-center flex-wrap gap-[4px]">
+                  <div className="flex items-center gap-[6px]">
+                    <span
+                      className="w-[8px] h-[8px] rounded-full"
+                      // G39 Welle 2: Punktfarbe aus Bilanzdaten (Entscheidung 2).
+                      // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Bilanzposition), siehe Auftrag 055 Entscheidung 2
+                      style={{ backgroundColor: sec.color }}
+                    />
+                    <span className="text-[12px] font-semibold text-text">{sec.title}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <strong style={{ fontSize: '13px', color: 'var(--color-text)' }}>{sec.amountText}</strong>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>({sec.share} %)</span>
+                  <div className="flex items-center gap-[6px]">
+                    <strong className="text-[13px] text-text">{sec.amountText}</strong>
+                    <span className="text-[11px] text-[var(--color-text-muted)]">({sec.share} %)</span>
                   </div>
                 </div>
 
                 {sec.subItems.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingLeft: '14px', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                  <div className="flex flex-col gap-[2px] pl-[14px] text-[11px] text-[var(--color-text-muted)]">
                     {sec.subItems.map((sub, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <div key={i} className="flex justify-between">
                         <span>{sub[0].trim()}</span>
                         <span>{sub[1]}</span>
                       </div>
@@ -336,4 +274,4 @@ export const CapitalCut: React.FC = () => {
       </div>
     </section>
   );
-};
+};;
