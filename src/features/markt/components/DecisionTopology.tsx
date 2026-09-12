@@ -71,136 +71,37 @@ export const DecisionTopology: React.FC = () => {
 
   return (
     <section
-      className="facelift-decision-topology"
+      className="facelift-decision-topology box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5)]"
       aria-label="Isometrische Entscheidungs-Topografie"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
     >
       {/* Header */}
-      <div
-        className="topology-header"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-4)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-          minWidth: 0,
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div className="topology-title-block" style={{ minWidth: 0, flex: '1 1 200px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '2px 8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(0, 217, 198, 0.1)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              color: 'var(--color-primary)',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              marginBottom: '6px',
-            }}
-          >
+      <div className="topology-header border-0 border-b border-solid border-border-soft flex flex-wrap items-start justify-between gap-[var(--space-3)] min-w-0 w-full box-border mb-[var(--space-4)] pb-[var(--space-4)]">
+        <div className="topology-title-block min-w-0 flex-[1_1_200px]">
+          <div className="inline-flex items-center gap-[6px] rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.1)] text-primary text-[0.6875rem] font-bold uppercase tracking-[0.06em] mb-[6px] px-[8px] py-[2px]">
             Entscheidungs-Topografie
           </div>
-          <h3
-            className="topology-heading"
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
-          >
+          <h3 className="topology-heading m-0 font-display text-[1.125rem] font-bold tracking-[0.01em] text-text min-w-0 [overflow-wrap:anywhere] break-words">
             Wettbewerbs-Topografie nach Einführungsaufwand
           </h3>
-          <p
-            style={{
-              margin: '3px 0 0',
-              fontSize: '0.8125rem',
-              color: 'var(--color-text-muted)',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
-          >
+          <p className="text-[0.8125rem] text-[var(--color-text-muted)] min-w-0 [overflow-wrap:anywhere] break-words mt-[3px] mb-0 mr-0 ml-0">
             Isometrische Topografie: Kürzeste Route zur Nutzbarkeit auf der B2B-Mid-Market-Hochebene.
           </p>
         </div>
 
         {/* Höhenlegende & Pflichtaussage */}
-        <div
-          className="topology-legend-container"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            gap: '4px',
-            minWidth: 0,
-            maxWidth: '100%',
-          }}
-        >
-          <div
-            className="topology-height-legend"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '6px 8px',
-              padding: '4px 10px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--color-border)',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: 'var(--color-text)',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
-          >
-            <span style={{ color: 'var(--color-accent)' }}>▲ Höhenlegende:</span>
+        <div className="topology-legend-container flex flex-col items-start gap-[4px] min-w-0 max-w-full">
+          <div className="topology-height-legend inline-flex items-center flex-wrap gap-x-[8px] gap-y-[6px] rounded border border-solid border-border bg-[rgba(255,255,255,0.04)] text-[0.75rem] font-semibold text-text min-w-0 [overflow-wrap:anywhere] break-words px-[10px] py-[4px]">
+            <span className="text-accent">▲ Höhenlegende:</span>
             <span>Einführungsaufwand</span>
           </div>
-          <span
-            className="topology-disclaimer"
-            style={{
-              fontSize: '0.6875rem',
-              color: 'var(--color-text-muted)',
-              fontStyle: 'italic',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
-          >
+          <span className="topology-disclaimer text-[0.6875rem] italic min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]">
             Keine Darstellung von Marktanteilen.
           </span>
         </div>
       </div>
 
       {/* Screenreader-Zusammenfassung */}
-      <div className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+      <div className="sr-only">
         Topografischer Vergleich nach Einführungsaufwand:
         Enterprise Suites (Salesforce, HubSpot): Höchster Einführungsaufwand (qualitative Einordnung).
         Marketing- und Service-Systeme (Brevo, Zendesk): Höherer Einführungsaufwand für B2B-Sales (qualitative Einordnung).
@@ -210,24 +111,10 @@ export const DecisionTopology: React.FC = () => {
       </div>
 
       {/* Desktop / Tablet Ansicht (> 600px): Vollständig lesbares, responsives SVG ohne horizontales Abschneiden */}
-      <div
-        className="topology-desktop-view"
-        style={{
-          width: '100%',
-          borderRadius: 'var(--radius-md)',
-          backgroundColor: '#071015',
-          border: '1px solid var(--color-border-soft)',
-          padding: 'var(--space-3)',
-          boxSizing: 'border-box',
-        }}
-      >
+      <div className="topology-desktop-view w-full rounded-md border border-solid border-border-soft bg-[#071015] box-border p-[var(--space-3)]">
         <svg
           viewBox="0 0 800 360"
-          style={{
-            width: '100%',
-            height: 'auto',
-            display: 'block',
-          }}
+          className="block w-full h-auto" 
           role="img"
           aria-label="Wettbewerbs-Topografie nach Einführungsaufwand mit Zonen Enterprise Suite, Marketing/Service, Pipeline Tools und LeadPilot Hochebene"
         >
@@ -383,326 +270,103 @@ export const DecisionTopology: React.FC = () => {
       </div>
 
       {/* Mobile-Topografie (Vertikal gestapelte Topografiestufen für kleine Bildschirme, ohne horizontales Scrollen) */}
-      <div
-        className="topology-mobile-view"
-        style={{
-          display: 'none',
-          flexDirection: 'column',
-          gap: 'var(--space-2)',
-          width: '100%',
-          minWidth: 0,
-          boxSizing: 'border-box',
-        }}
-      >
-        <div
-          className="topology-card topology-card-leadpilot"
-          style={{
-            padding: '10px 12px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'rgba(0, 217, 198, 0.12)',
-            border: '2px solid var(--color-primary)',
-            minWidth: 0,
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '4px 8px',
-              marginBottom: '4px',
-              minWidth: 0,
-              width: '100%',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.6875rem',
-                fontWeight: 800,
-                color: 'var(--color-primary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-              }}
-            >
+      <div className="topology-mobile-view hidden flex-col gap-[var(--space-2)] w-full min-w-0 box-border">
+        <div className="topology-card topology-card-leadpilot rounded-md border-2 border-solid border-primary bg-[rgba(0,217,198,0.12)] min-w-0 w-full box-border px-[12px] py-[10px]">
+          <div className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full">
+            <span className="text-[0.6875rem] font-extrabold uppercase tracking-[0.06em] min-w-0 [overflow-wrap:anywhere] break-words text-primary">
               ★ Kürzeste Route zur Nutzbarkeit
             </span>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: 'var(--color-primary)',
-                fontWeight: 700,
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-                whiteSpace: 'normal',
-              }}
-            >
+            <span className="font-mono text-[0.75rem] font-bold min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-primary">
               &lt; 30 Minuten Setup
             </span>
           </div>
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-display)',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
-          >
+          <div className="font-display text-[1rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words">
             LeadPilot Hochebene (B2B-Mid-Market)
           </div>
-          <div
-            style={{
-              fontSize: '0.8125rem',
-              color: 'var(--color-text-muted)',
-              marginTop: '2px',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
-          >
+          <div className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]">
             {leadpilotRow[4]}
           </div>
         </div>
 
-        <div
-          className="topology-card topology-card-pipeline"
-          style={{
-            padding: '10px 12px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid var(--color-border)',
-            minWidth: 0,
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
+        <div className="topology-card topology-card-pipeline rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] min-w-0 w-full box-border px-[12px] py-[10px]">
+
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '4px 8px',
-              marginBottom: '4px',
-              minWidth: 0,
-              width: '100%',
-            }}
+            className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full"
           >
             <span
-              style={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: 'var(--cyan-light)',
-                textTransform: 'uppercase',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-              }}
+              className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-[var(--cyan-light)]"
             >
               ▲ Mittlere Aufwandsstufe
             </span>
             <span
-              style={{
-                fontSize: '0.75rem',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: 'var(--color-text-muted)',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-                whiteSpace: 'normal',
-              }}
+              className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-[var(--color-text-muted)]"
             >
               Qualitative Einordnung
             </span>
           </div>
           <div
-            style={{
-              fontSize: '0.9375rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-display)',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
+            className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words"
           >
             Pipeline Tools ({pipedriveRow[0]})
           </div>
           <div
-            style={{
-              fontSize: '0.8125rem',
-              color: 'var(--color-text-muted)',
-              marginTop: '2px',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
+            className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]"
           >
             {pipedriveRow[3]} · Differenzierung: {pipedriveRow[4]}
           </div>
         </div>
 
-        <div
-          className="topology-card topology-card-marketing"
-          style={{
-            padding: '10px 12px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid var(--color-border)',
-            minWidth: 0,
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
+        <div className="topology-card topology-card-marketing rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] min-w-0 w-full box-border px-[12px] py-[10px]">
+
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '4px 8px',
-              marginBottom: '4px',
-              minWidth: 0,
-              width: '100%',
-            }}
+            className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full"
           >
             <span
-              style={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: 'var(--color-text-muted)',
-                textTransform: 'uppercase',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-              }}
+              className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]"
             >
               ▲ Hohe Aufwandsstufe
             </span>
             <span
-              style={{
-                fontSize: '0.75rem',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: 'var(--color-text-muted)',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-                whiteSpace: 'normal',
-              }}
+              className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-[var(--color-text-muted)]"
             >
               Qualitative Einordnung
             </span>
           </div>
           <div
-            style={{
-              fontSize: '0.9375rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-display)',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
+            className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words"
           >
             Marketing / Support ({brevoRow[0]}, {zendeskRow[0]})
           </div>
           <div
-            style={{
-              fontSize: '0.8125rem',
-              color: 'var(--color-text-muted)',
-              marginTop: '2px',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
+            className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]"
           >
             {brevoRow[3]} · {zendeskRow[3]}
           </div>
         </div>
 
-        <div
-          className="topology-card topology-card-enterprise"
-          style={{
-            padding: '10px 12px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 153, 0, 0.4)',
-            minWidth: 0,
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
+        <div className="topology-card topology-card-enterprise rounded-md border border-solid border-[rgba(255,153,0,0.4)] bg-[rgba(255,255,255,0.02)] min-w-0 w-full box-border px-[12px] py-[10px]">
+
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '4px 8px',
-              marginBottom: '4px',
-              minWidth: 0,
-              width: '100%',
-            }}
+            className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full"
           >
             <span
-              style={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: 'var(--color-accent)',
-                textTransform: 'uppercase',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-              }}
+              className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-accent"
             >
               ▲ Höchste Aufwandsstufe
             </span>
             <span
-              style={{
-                fontSize: '0.75rem',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: 'var(--color-accent)',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-                whiteSpace: 'normal',
-              }}
+              className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-accent"
             >
               Qualitative Einordnung
             </span>
           </div>
           <div
-            style={{
-              fontSize: '0.9375rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-display)',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
+            className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words"
           >
             Enterprise Suites ({salesforceRow[0]}, {hubspotRow[0]})
           </div>
           <div
-            style={{
-              fontSize: '0.8125rem',
-              color: 'var(--color-text-muted)',
-              marginTop: '2px',
-              minWidth: 0,
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-            }}
+            className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]"
           >
             {salesforceRow[3]} · {hubspotRow[3]}
           </div>
@@ -737,38 +401,28 @@ export const DecisionTopology: React.FC = () => {
       `}</style>
 
       {/* Echte HTML-Auswahlbuttons für Zonen */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '8px',
-          marginTop: 'var(--space-4)',
-          marginBottom: 'var(--space-3)',
-        }}
-      >
+      <div className="flex flex-wrap gap-[8px] mt-[var(--space-4)] mb-[var(--space-3)]">
         {zones.map((zone) => {
           const isSelected = selectedZone === zone.id;
+          // G39 Welle 2: Auswahl-Farben aus Build-Zeit-bekannten Werten →
+          // Klassen-Ternaries (kein Laufzeitwert, Entscheidung 2).
+          const zoneBorderClass = !isSelected
+            ? 'border-border'
+            : zone.isLeadPilot
+            ? 'border-primary'
+            : 'border-accent';
+          const zoneBgClass = !isSelected
+            ? 'bg-[rgba(255,255,255,0.03)]'
+            : zone.isLeadPilot
+            ? 'bg-[rgba(0,217,198,0.15)]'
+            : 'bg-[rgba(255,153,0,0.15)]';
           return (
             <button
               key={zone.id}
               type="button"
               onClick={() => setSelectedZone(zone.id)}
               aria-pressed={isSelected}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-md)',
-                border: `1px solid ${isSelected ? (zone.isLeadPilot ? 'var(--color-primary)' : 'var(--color-accent)') : 'var(--color-border)'}`,
-                backgroundColor: isSelected
-                  ? zone.isLeadPilot
-                    ? 'rgba(0, 217, 198, 0.15)'
-                    : 'rgba(255, 153, 0, 0.15)'
-                  : 'rgba(255, 255, 255, 0.03)',
-                color: 'var(--color-text)',
-                fontSize: '0.8125rem',
-                fontWeight: isSelected ? 700 : 500,
-                cursor: 'pointer',
-                transition: 'color 0.15s ease, border-color 0.15s ease',
-              }}
+              className={`rounded-md border border-solid text-[0.8125rem] text-text cursor-pointer transition-[color_0.15s_ease,border-color_0.15s_ease] px-[12px] py-[6px] ${isSelected ? 'font-bold' : 'font-medium'} ${zoneBorderClass} ${zoneBgClass}`}
             >
               {zone.isLeadPilot ? '★ ' : ''}
               {zone.name}
@@ -779,99 +433,40 @@ export const DecisionTopology: React.FC = () => {
 
       {/* Detailkarte der selektierten Zone */}
       <div
-        style={{
-          borderRadius: 'var(--radius-md)',
-          border: `1px solid ${activeZoneData.isLeadPilot ? 'var(--color-primary)' : 'var(--color-border)'}`,
-          backgroundColor: activeZoneData.isLeadPilot ? 'rgba(0, 217, 198, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-          padding: 'var(--space-4)',
-        }}
+        className={`rounded-md border border-solid p-[var(--space-4)] ${activeZoneData.isLeadPilot ? 'border-primary bg-[rgba(0,217,198,0.05)]' : 'border-border bg-[rgba(255,255,255,0.02)]'}`}
       >
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 'var(--space-2)',
-            marginBottom: 'var(--space-2)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="flex flex-wrap items-center justify-between gap-[var(--space-2)] mb-[var(--space-2)]">
+          <div className="flex items-center gap-[8px]">
             <span
-              style={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                padding: '2px 8px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: activeZoneData.isLeadPilot ? 'rgba(0, 217, 198, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-                color: activeZoneData.isLeadPilot ? 'var(--color-primary)' : 'var(--color-text)',
-              }}
+              className={`text-[0.6875rem] font-bold uppercase tracking-[0.06em] rounded px-[8px] py-[2px] ${activeZoneData.isLeadPilot ? 'bg-[rgba(0,217,198,0.2)] text-primary' : 'bg-[rgba(255,255,255,0.08)] text-text'}`}
             >
               {activeZoneData.category}
             </span>
-            <h4
-              style={{
-                margin: 0,
-                fontSize: '1rem',
-                fontWeight: 700,
-                color: 'var(--color-text)',
-                fontFamily: 'var(--font-display)',
-              }}
-            >
+            <h4 className="m-0 font-display text-[1rem] font-bold text-text">
               {activeZoneData.name} ({activeZoneData.providers.join(', ')})
             </h4>
           </div>
 
-          <div
-            style={{
-              fontSize: '0.75rem',
-              fontFamily: 'var(--font-mono, monospace)',
-              color: activeZoneData.isLeadPilot ? 'var(--color-primary)' : 'var(--color-accent)',
-              fontWeight: 600,
-            }}
-          >
+          <div className={`font-mono text-[0.75rem] font-semibold ${activeZoneData.isLeadPilot ? 'text-primary' : 'text-accent'}`}>
             Aufwand: {activeZoneData.effortClassification}
           </div>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 'var(--space-3)',
-            marginTop: 'var(--space-3)',
-          }}
-        >
-          <div
-            style={{
-              padding: '10px 12px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-              border: '1px solid var(--color-border-soft)',
-            }}
-          >
-            <div style={{ fontSize: '0.6875rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[var(--space-3)] mt-[var(--space-3)]">
+          <div className="rounded border border-solid border-border-soft bg-[rgba(0,0,0,0.2)] px-[12px] py-[10px]">
+            <div className="text-[0.6875rem] uppercase mb-[4px] text-[var(--color-text-muted)]">
               Topografische Route
             </div>
-            <div style={{ fontSize: '0.8125rem', color: 'var(--color-text)' }}>
+            <div className="text-[0.8125rem] text-text">
               {activeZoneData.routeDescription}
             </div>
           </div>
 
-          <div
-            style={{
-              padding: '10px 12px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-              border: '1px solid var(--color-border-soft)',
-            }}
-          >
-            <div style={{ fontSize: '0.6875rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>
+          <div className="rounded border border-solid border-border-soft bg-[rgba(0,0,0,0.2)] px-[12px] py-[10px]">
+            <div className="text-[0.6875rem] uppercase mb-[4px] text-[var(--color-text-muted)]">
               Differenzierung LeadPilot
             </div>
-            <div style={{ fontSize: '0.8125rem', color: 'var(--color-primary)', fontWeight: 600 }}>
+            <div className="text-[0.8125rem] font-semibold text-primary">
               {activeZoneData.differentiation}
             </div>
           </div>

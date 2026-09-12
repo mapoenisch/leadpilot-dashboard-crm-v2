@@ -71,19 +71,27 @@ export const MarketOpportunityStack: React.FC = () => {
     },
   ];
 
+  // G39 Welle 2: Schichtfarben als Klassen-Ternaries (3 statische
+  // Schichten, Build-Zeit bekannt) — keine Laufzeit-Styles nötig.
+  const layerColorClass = (idx: number) =>
+    idx === 0 ? 'text-primary' : idx === 1 ? 'text-[var(--cyan-light,#7CEFE6)]' : 'text-[var(--color-accent,#FF9900)]';
+  const layerBgClass = (idx: number) =>
+    idx === 0
+      ? 'bg-[rgba(0,217,198,0.06)]'
+      : idx === 1
+      ? 'bg-[rgba(124,239,230,0.06)]'
+      : 'bg-[rgba(255,153,0,0.06)]';
+  const layerBorderClass = (idx: number) =>
+    idx === 0
+      ? 'border-[rgba(0,217,198,0.28)]'
+      : idx === 1
+      ? 'border-[rgba(124,239,230,0.28)]'
+      : 'border-[rgba(255,153,0,0.28)]';
+
   return (
     <section
-      className="facelift-market-opportunity-stack"
+      className="facelift-market-opportunity-stack box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5)] [overflow-wrap:anywhere]"
       aria-label="Chancenstapel Marktpotenzial"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         @media (max-width: 600px) {
@@ -96,51 +104,15 @@ export const MarketOpportunityStack: React.FC = () => {
         }
       `}</style>
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-        }}
-      >
+      <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)] border-0 border-b border-solid border-border-soft mb-[var(--space-5)] pb-[var(--space-4)]">
         <div>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '2px 8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(0, 217, 198, 0.1)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              color: 'var(--color-primary)',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              marginBottom: '6px',
-            }}
-          >
+          <div className="inline-flex items-center gap-[6px] rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.1)] text-primary text-[0.6875rem] font-bold uppercase tracking-[0.06em] mb-[6px] px-[8px] py-[2px]">
             Marktanalyse DACH
           </div>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+          <h3 className="m-0 font-display text-[1.125rem] font-bold tracking-[0.01em] text-text">
             Chancenstapel Marktpotenzial
           </h3>
-          <p style={{ margin: '3px 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[3px] mb-0 mr-0 ml-0">
             Marktvolumen → adressierbarer Fokusmarkt → erreichte Aufmerksamkeit (direkt aus MARKT.overview).
           </p>
         </div>
@@ -150,176 +122,55 @@ export const MarketOpportunityStack: React.FC = () => {
           onClick={() => setShowTable(!showTable)}
           aria-controls="market-stack-table"
           aria-expanded={showTable}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 12px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            backgroundColor: showTable ? 'var(--color-surface-hover)' : 'transparent',
-            color: 'var(--color-text)',
-            fontSize: '0.8125rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
+          className={`inline-flex items-center gap-[6px] rounded-md border border-solid border-border text-[0.8125rem] font-semibold cursor-pointer transition-[color_0.15s_ease,border-color_0.15s_ease] text-text px-[12px] py-[6px] ${showTable ? 'bg-[var(--color-surface-hover)]' : 'bg-transparent'}`}
         >
           {showTable ? 'Tabelle ausblenden' : 'Detailtabelle einblenden'}
         </button>
       </div>
 
       {/* Visueller Chancenstapel */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
-        }}
-      >
+      <div className="flex flex-col gap-[var(--space-4)]">
         {stackLayers.map((layer, idx) => (
           <div
             key={layer.step}
-            style={{
-              position: 'relative',
-              borderRadius: 'var(--radius-md)',
-              border: `1px solid ${layer.accentBorder}`,
-              backgroundColor: layer.accentBg,
-              padding: 'var(--space-4)',
-              transition: 'border-color 0.15s ease',
-              minWidth: 0,
-              boxSizing: 'border-box',
-              overflowWrap: 'anywhere',
-            }}
+            className={`relative rounded-md border border-solid min-w-0 box-border [overflow-wrap:anywhere] p-[var(--space-4)] transition-[border-color_0.15s_ease] ${layerBorderClass(idx)} ${layerBgClass(idx)}`}
           >
             {/* Kopf der Schicht */}
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-3)',
-                minWidth: 0,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: `1px solid ${layer.accentBorder}`,
-                    color: layer.color,
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    flexShrink: 0,
-                  }}
-                >
+            <div className="flex flex-wrap items-center justify-between gap-[var(--space-2)] min-w-0 mb-[var(--space-3)]">
+              <div className="flex items-center gap-[8px] min-w-0 flex-wrap">
+                <span className={`inline-flex items-center justify-center shrink-0 rounded font-mono text-[0.75rem] font-bold w-[24px] h-[24px] border ${layerBorderClass(idx)} ${layerColorClass(idx)} bg-[rgba(255,255,255,0.05)]`}>
                   {layer.step}
                 </span>
-                <span
-                  style={{
-                    fontSize: '0.6875rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    color: layer.color,
-                  }}
-                >
+                <span className={`text-[0.6875rem] font-bold uppercase tracking-[0.06em] ${layerColorClass(idx)}`}>
                   {layer.badge}
                 </span>
               </div>
-              <h4
-                style={{
-                  margin: 0,
-                  fontSize: '0.9375rem',
-                  fontWeight: 600,
-                  color: 'var(--color-text)',
-                  fontFamily: 'var(--font-display)',
-                  overflowWrap: 'anywhere',
-                }}
-              >
+              <h4 className="m-0 font-display text-[0.9375rem] font-semibold text-text [overflow-wrap:anywhere]">
                 {layer.title}
               </h4>
             </div>
 
             {/* Hauptkennzahl & Wert */}
-            <div
-              className="market-stack-grid"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-                gap: 'var(--space-3)',
-                alignItems: 'center',
-                marginBottom: 'var(--space-3)',
-                padding: 'var(--space-3)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                border: '1px solid var(--color-border-soft)',
-                minWidth: 0,
-                boxSizing: 'border-box',
-              }}
-            >
+            <div className="market-stack-grid grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-[var(--space-3)] items-center border border-solid border-border-soft rounded bg-[rgba(0,0,0,0.25)] min-w-0 box-border mb-[var(--space-3)] p-[var(--space-3)]">
               <div>
-                <div
-                  style={{
-                    fontSize: '0.6875rem',
-                    textTransform: 'uppercase',
-                    color: 'var(--color-text-muted)',
-                    letterSpacing: '0.04em',
-                    marginBottom: '2px',
-                  }}
-                >
+                <div className="text-[0.6875rem] uppercase tracking-[0.04em] mb-[2px] text-[var(--color-text-muted)]">
                   {layer.primaryLabel}
                 </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontSize: '1.375rem',
-                    fontWeight: 700,
-                    color: layer.color,
-                    lineHeight: 1.2,
-                  }}
-                >
+                <div className={`font-mono text-[1.375rem] font-bold leading-[1.2] ${layerColorClass(idx)}`}>
                   {layer.primaryValue}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                <div className="text-[0.75rem] mt-[4px] text-[var(--color-text-muted)]">
                   {layer.detailContext}
                 </div>
               </div>
             </div>
 
             {/* Spezifischer Detailwert aus MARKT.overview */}
-            <div
-              style={{
-                padding: '8px 10px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid var(--color-border-soft)',
-                minWidth: 0,
-                boxSizing: 'border-box',
-                overflowWrap: 'anywhere',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '0.6875rem',
-                  textTransform: 'uppercase',
-                  color: 'var(--color-text-muted)',
-                  letterSpacing: '0.04em',
-                  marginBottom: '2px',
-                }}
-              >
+            <div className="border border-solid border-border-soft rounded bg-[rgba(255,255,255,0.02)] min-w-0 box-border [overflow-wrap:anywhere] px-[10px] py-[8px]">
+              <div className="text-[0.6875rem] uppercase tracking-[0.04em] mb-[2px] text-[var(--color-text-muted)]">
                 {layer.secondaryLabel}
               </div>
-              <div style={{ fontSize: '0.8125rem', color: 'var(--color-text)', fontWeight: 500 }}>
+              <div className="text-[0.8125rem] font-medium text-text">
                 {layer.secondaryValue}
               </div>
             </div>
@@ -328,19 +179,7 @@ export const MarketOpportunityStack: React.FC = () => {
             {idx < stackLayers.length - 1 && (
               <div
                 aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  bottom: '-14px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  zIndex: 2,
-                  width: '24px',
-                  height: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--color-text-muted)',
-                }}
+                className="absolute z-[2] flex items-center justify-center w-[24px] h-[14px] text-[var(--color-text-muted)] left-1/2 -translate-x-1/2 -bottom-[14px]"
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path
@@ -359,24 +198,8 @@ export const MarketOpportunityStack: React.FC = () => {
 
       {/* Aufklappbare Original-Tabelle */}
       {showTable && (
-        <div
-          id="market-stack-table"
-          style={{
-            marginTop: 'var(--space-4)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border-soft)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              color: 'var(--color-text-muted)',
-              marginBottom: 'var(--space-2)',
-            }}
-          >
+        <div id="market-stack-table" className="border-0 border-t border-solid border-border-soft mt-[var(--space-4)] pt-[var(--space-4)]">
+          <div className="text-[0.75rem] font-bold uppercase tracking-[0.06em] mb-[var(--space-2)] text-[var(--color-text-muted)]">
             Referenztabelle (MARKT.overview)
           </div>
           <Table
@@ -390,24 +213,11 @@ export const MarketOpportunityStack: React.FC = () => {
       )}
 
       {/* Fußzeile / Methodischer Nachweis */}
-      <div
-        style={{
-          marginTop: 'var(--space-4)',
-          paddingTop: 'var(--space-3)',
-          borderTop: '1px solid var(--color-border-soft)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-2)',
-          fontSize: '0.75rem',
-          color: 'var(--color-text-muted)',
-        }}
-      >
+      <div className="border-0 border-t border-solid border-border-soft flex flex-wrap items-center justify-between gap-[var(--space-2)] text-[0.75rem] mt-[var(--space-4)] pt-[var(--space-3)] text-[var(--color-text-muted)]">
         <span>
-          Basisdaten: <strong style={{ color: 'var(--color-text)' }}>Marktlage & Cloud-CRM DACH</strong> (Marktanalyse 2025/2026)
+          Basisdaten: <strong className="text-text">Marktlage & Cloud-CRM DACH</strong> (Marktanalyse 2025/2026)
         </span>
-        <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '0.6875rem' }}>
+        <span className="font-mono text-[0.6875rem]">
           DE-Anteil: 24,4 % · LeadPilot: &lt; 0,1 %
         </span>
       </div>

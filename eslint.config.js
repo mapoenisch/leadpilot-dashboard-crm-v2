@@ -158,6 +158,24 @@ export default tseslint.config(
   // migrierten Primitives): src/components/ui/charts/**-Helfer sind
   // unmigrierter G39-Scope und dürfen nicht rot werden (Dateien nicht
   // in diesem Auftrag anfassen). Gilt NICHT global (G39-Gebiet unangetastet).
+  {
+    files: ['src/components/ui/*.tsx', 'src/app/DesignSystemPage.tsx'],
+    rules: {
+      'react/forbid-dom-props': [
+        'error',
+        {
+          forbid: [
+            {
+              propName: 'style',
+              message:
+                'G38: kein Inline-Style in Primitives — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // ── G39 Welle 1 (Auftrag 054, Block D): Scope um die 22 migrierten
   // Welle-1-Dateien erweitert (Entscheidung 5) — schützt vor Rückfällen.
   // Erlaubte Reste dort: Custom-Komponenten-Passthroughs (Badge/Card/
@@ -166,8 +184,6 @@ export default tseslint.config(
   // zeilengenauem Disable + Begründung, keine Datei-Ausnahme.
   {
     files: [
-      'src/components/ui/*.tsx',
-      'src/app/DesignSystemPage.tsx',
       'src/app/App.tsx',
       'src/app/NotFoundPage.tsx',
       'src/components/layout/*.tsx',
@@ -185,6 +201,36 @@ export default tseslint.config(
               propName: 'style',
               message:
                 'G38: kein Inline-Style in Primitives — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ── G39 Welle 2 (Auftrag 055, Block E): Scope um die 23 migrierten
+  // Welle-2-Dateien erweitert (Verzeichnis-Globs; übrige Dateien dort
+  // haben 0 style und werden nicht rot). Erlaubte Reste: Farben/
+  // Geometrie aus Domain-Daten (jeweils zeilengenaues Disable +
+  // Begründung, keine Datei-Ausnahme).
+  {
+    files: [
+      'src/features/crm/**/*.tsx',
+      'src/features/finanzen/**/*.tsx',
+      'src/features/generic/*.tsx',
+      'src/features/geschaeftsmodell/**/*.tsx',
+      'src/features/kunden/**/*.tsx',
+      'src/features/markt/**/*.tsx',
+    ],
+    rules: {
+      'react/forbid-dom-props': [
+        'error',
+        {
+          forbid: [
+            {
+              propName: 'style',
+              message:
+                'G39: kein Inline-Style in migrierten Dateien — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
             },
           ],
         },

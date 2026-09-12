@@ -86,105 +86,65 @@ export const SwotCompass: React.FC = () => {
 
   const activeQuadrantData = quadrants.find((q) => q.id === selectedQuadrant) || quadrants[0];
 
+  // G39 Welle 2: Quadrantenfarben als Klassen-Ternaries (4 statische
+  // Quadranten, Build-Zeit bekannt) — keine Laufzeit-Styles nötig.
+  const quadBorderClass = (id: string) =>
+    id === 'strengths'
+      ? 'border-primary'
+      : id === 'weaknesses'
+        ? 'border-[var(--color-error,#FF4D4D)]'
+        : id === 'opportunities'
+          ? 'border-[var(--cyan-light,#7CEFE6)]'
+          : 'border-[var(--color-accent,#FF9900)]';
+  const quadBgClass = (id: string) =>
+    id === 'strengths'
+      ? 'bg-[rgba(0,217,198,0.05)]'
+      : id === 'weaknesses'
+        ? 'bg-[rgba(255,77,77,0.05)]'
+        : id === 'opportunities'
+          ? 'bg-[rgba(124,239,230,0.05)]'
+          : 'bg-[rgba(255,153,0,0.05)]';
+  const quadTextClass = (id: string) =>
+    id === 'strengths'
+      ? 'text-primary'
+      : id === 'weaknesses'
+        ? 'text-[var(--color-error,#FF4D4D)]'
+        : id === 'opportunities'
+          ? 'text-[var(--cyan-light,#7CEFE6)]'
+          : 'text-[var(--color-accent,#FF9900)]';
+
   return (
     <section
-      className="facelift-swot-compass"
+      className="facelift-swot-compass box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5)]"
       aria-label="Strategischer SWOT-Kompass"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
     >
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-        }}
-      >
+      <div className="border-0 border-b border-solid border-border-soft flex flex-wrap items-center justify-between gap-[var(--space-3)] mb-[var(--space-5)] pb-[var(--space-4)]">
         <div>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '2px 8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(0, 217, 198, 0.1)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              color: 'var(--color-primary)',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              marginBottom: '6px',
-            }}
-          >
+          <div className="inline-flex items-center gap-[6px] rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.1)] text-primary text-[0.6875rem] font-bold uppercase tracking-[0.06em] mb-[6px] px-[8px] py-[2px]">
             Strategische Steuerung
           </div>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+          <h3 className="m-0 font-display text-[1.125rem] font-bold tracking-[0.01em] text-text">
             Strategischer SWOT-Kompass
           </h3>
-          <p style={{ margin: '3px 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[3px] mb-0 mr-0 ml-0">
             Vier Fachzeichen um das Entscheidungszentrum: Klare Orientierung auf den Achsen intern / extern und stärken / schützen.
           </p>
         </div>
 
         {/* Achsen-Legende */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px',
-            fontSize: '0.75rem',
-          }}
-        >
-          <span
-            style={{
-              padding: '3px 8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--color-text-muted)',
-            }}
-          >
-            Horizontal: <strong style={{ color: 'var(--color-text)' }}>Intern ↔ Extern</strong>
+        <div className="flex flex-wrap gap-[8px] text-[0.75rem]">
+          <span className="rounded border border-solid border-border bg-[rgba(255,255,255,0.04)] text-[var(--color-text-muted)] px-[8px] py-[3px]">
+            Horizontal: <strong className="text-text">Intern ↔ Extern</strong>
           </span>
-          <span
-            style={{
-              padding: '3px 8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--color-text-muted)',
-            }}
-          >
-            Vertikal: <strong style={{ color: 'var(--color-text)' }}>Stärken ↕ Schützen</strong>
+          <span className="rounded border border-solid border-border bg-[rgba(255,255,255,0.04)] text-[var(--color-text-muted)] px-[8px] py-[3px]">
+            Vertikal: <strong className="text-text">Stärken ↕ Schützen</strong>
           </span>
         </div>
       </div>
 
       {/* Screenreader-Zusammenfassung */}
-      <div className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+      <div className="sr-only">
         SWOT Kompass:
         Stärken (intern/stärken): Time-to-Value unter 30 Min Setup, 100% DACH-Mittelstand, DSGVO Frankfurt-Hosting, ARPA 520 Euro.
         Schwächen (intern/schützen): Churn 2,8 %, Burn Rate 25.750 Euro, Markenbekanntheit unter 0,1 %, CTO Single Point of Failure.
@@ -193,14 +153,7 @@ export const SwotCompass: React.FC = () => {
       </div>
 
       {/* Kompass-Grid mit echten semantischen HTML-Buttons */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 'var(--space-4)',
-          position: 'relative',
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[var(--space-4)] relative">
         {quadrants.map((quadrant) => {
           const isSelected = selectedQuadrant === quadrant.id;
 
@@ -208,127 +161,46 @@ export const SwotCompass: React.FC = () => {
             <article
               key={quadrant.id}
               aria-labelledby={`swot-heading-${quadrant.id}`}
-              style={{
-                borderRadius: 'var(--radius-md)',
-                border: `1px solid ${isSelected ? quadrant.borderCol : 'var(--color-border)'}`,
-                backgroundColor: isSelected ? quadrant.bgCol : 'rgba(255, 255, 255, 0.02)',
-                padding: 'var(--space-4)',
-                transition: 'border-color 0.15s ease, background-color 0.15s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--space-3)',
-                boxSizing: 'border-box',
-              }}
+              className={`rounded-md border border-solid flex flex-col gap-[var(--space-3)] box-border p-[var(--space-4)] transition-[border-color_0.15s_ease,background-color_0.15s_ease] ${isSelected ? `${quadBorderClass(quadrant.id)} ${quadBgClass(quadrant.id)}` : 'border-border bg-[rgba(255,255,255,0.02)]'}`}
             >
               {/* Header der Karte mit Fachzeichen, Titel und Achsen-Badge */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 'var(--space-2)',
-                  width: '100%',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      border: `1px solid ${quadrant.borderCol}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+              <div className="flex items-center justify-between gap-[var(--space-2)] w-full">
+                <div className="flex items-center gap-[8px]">
+                  <div className={`flex items-center justify-center rounded bg-[rgba(255,255,255,0.05)] w-[32px] h-[32px] border border-solid ${quadBorderClass(quadrant.id)}`}>
                     <FaceliftGlyph name={quadrant.glyph} tone={quadrant.tone} size={18} />
                   </div>
                   <div>
                     <h4
                       id={`swot-heading-${quadrant.id}`}
-                      style={{
-                        margin: 0,
-                        fontSize: '0.9375rem',
-                        fontWeight: 700,
-                        color: 'var(--color-text)',
-                        fontFamily: 'var(--font-display)',
-                      }}
+                      className="m-0 font-display text-[0.9375rem] font-bold text-text"
                     >
                       {quadrant.title} ({quadrant.code})
                     </h4>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+                    <div className="text-[0.6875rem] text-[var(--color-text-muted)]">
                       {quadrant.subtitle}
                     </div>
                   </div>
                 </div>
 
-                <span
-                  style={{
-                    fontSize: '0.625rem',
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    padding: '2px 6px',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                    color: quadrant.borderCol,
-                  }}
-                >
+                <span className={`font-mono text-[0.625rem] font-bold tracking-[0.06em] rounded bg-[rgba(255,255,255,0.06)] px-[6px] py-[2px] ${quadTextClass(quadrant.id)}`}>
                   {quadrant.axisLabel}
                 </span>
               </div>
 
               {/* Handlungsimpuls */}
-              <div
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                  border: '1px solid var(--color-border-soft)',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: '0.6875rem',
-                    textTransform: 'uppercase',
-                    color: 'var(--color-text-muted)',
-                    letterSpacing: '0.04em',
-                    marginBottom: '2px',
-                  }}
-                >
+              <div className="rounded border border-solid border-border-soft bg-[rgba(0,0,0,0.25)] w-full box-border px-[10px] py-[8px]">
+                <div className="text-[0.6875rem] uppercase tracking-[0.04em] mb-[2px] text-[var(--color-text-muted)]">
                   Handlungsimpuls
                 </div>
-                <div
-                  style={{
-                    fontSize: '0.8125rem',
-                    fontWeight: 600,
-                    color: 'var(--color-text)',
-                  }}
-                >
+                <div className="text-[0.8125rem] font-semibold text-text">
                   {quadrant.actionHeading}
                 </div>
               </div>
 
               {/* SWOT-Domainfakten */}
-              <ul
-                style={{
-                  margin: 0,
-                  paddingLeft: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  fontSize: '0.8125rem',
-                  color: 'var(--color-text)',
-                  lineHeight: 1.4,
-                  flex: 1,
-                }}
-              >
+              <ul className="m-0 flex flex-col gap-[6px] pl-[16px] text-[0.8125rem] leading-[1.4] flex-1 text-text">
                 {quadrant.items.map((item, idx) => (
-                  <li key={idx} style={{ color: 'var(--color-text)' }}>
+                  <li key={idx} className="text-text">
                     {item}
                   </li>
                 ))}
@@ -340,24 +212,7 @@ export const SwotCompass: React.FC = () => {
                 onClick={() => setSelectedQuadrant(quadrant.id)}
                 aria-pressed={isSelected}
                 aria-label={`${quadrant.title} Handlungsoptionen fokussieren`}
-                style={{
-                  marginTop: 'var(--space-2)',
-                  width: '100%',
-                  padding: '7px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  border: `1px solid ${isSelected ? quadrant.borderCol : 'var(--color-border)'}`,
-                  backgroundColor: isSelected ? 'rgba(0, 217, 198, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                  color: isSelected ? quadrant.borderCol : 'var(--color-text)',
-                  fontSize: '0.8125rem',
-                  fontWeight: isSelected ? 700 : 500,
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                }}
+                className={`inline-flex items-center justify-center gap-[6px] text-center cursor-pointer text-[0.8125rem] w-full rounded-md border border-solid mt-[var(--space-2)] px-[12px] py-[7px] transition-[background-color_0.15s_ease,border-color_0.15s_ease,color_0.15s_ease] ${isSelected ? `${quadBorderClass(quadrant.id)} bg-[rgba(0,217,198,0.15)] font-bold ${quadTextClass(quadrant.id)}` : 'border-border bg-[rgba(255,255,255,0.04)] font-medium text-text'}`}
               >
                 {isSelected ? '✓ Handlungsoptionen aktiv' : `${quadrant.title} auswählen`}
               </button>
@@ -367,89 +222,51 @@ export const SwotCompass: React.FC = () => {
       </div>
 
       {/* Detailansicht mit Handlungsoptionen, mit aria-live="polite" */}
+      {/* G39 Welle 2: Detailfarben hängen von der State-Selektion
+          (find über Daten-Array) ab — als Klasse nicht darstellbar
+          (Entscheidung 2). Nur Farb-Props im style, Rest Klassen. */}
       <div
         aria-live="polite"
+        className="rounded-md mt-[var(--space-4)] p-[var(--space-4)] border border-solid"
+        // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (State-Selektion aus Daten), siehe Auftrag 055 Entscheidung 2
         style={{
-          marginTop: 'var(--space-4)',
-          padding: 'var(--space-4)',
-          borderRadius: 'var(--radius-md)',
+          borderColor: activeQuadrantData.borderCol,
           backgroundColor: 'rgba(0, 0, 0, 0.25)',
-          border: `1px solid ${activeQuadrantData.borderCol}`,
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 'var(--space-2)',
-            marginBottom: 'var(--space-3)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="flex flex-wrap items-center justify-between gap-[var(--space-2)] mb-[var(--space-3)]">
+          <div className="flex items-center gap-[8px]">
             <span
-              style={{
-                fontSize: '0.6875rem',
-                fontFamily: 'var(--font-mono, monospace)',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                color: activeQuadrantData.borderCol,
-                letterSpacing: '0.06em',
-              }}
+              className="font-mono text-[0.6875rem] font-bold uppercase tracking-[0.06em]"
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (State-Selektion aus Daten), siehe Auftrag 055 Entscheidung 2
+              style={{ color: activeQuadrantData.borderCol }}
             >
               Handlungsoptionen, aus der SWOT abgeleitet
             </span>
-            <h4
-              style={{
-                margin: 0,
-                fontSize: '0.9375rem',
-                fontWeight: 700,
-                color: 'var(--color-text)',
-                fontFamily: 'var(--font-display)',
-              }}
-            >
+            <h4 className="m-0 font-display text-[0.9375rem] font-bold text-text">
               {activeQuadrantData.title}: {activeQuadrantData.actionHeading}
             </h4>
           </div>
 
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-            Achse: <strong style={{ color: 'var(--color-text)' }}>{activeQuadrantData.axisLabel}</strong>
+          <span className="text-[0.75rem] text-[var(--color-text-muted)]">
+            Achse: <strong className="text-text">{activeQuadrantData.axisLabel}</strong>
           </span>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: 'var(--space-2)',
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[var(--space-2)]">
           {activeQuadrantData.actionTranslations.map((action, aIdx) => (
             <div
               key={aIdx}
-              style={{
-                padding: '8px 10px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid var(--color-border-soft)',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '8px',
-              }}
+              className="rounded border border-solid border-border-soft bg-[rgba(255,255,255,0.02)] flex items-start gap-[8px] px-[10px] py-[8px]"
             >
               <span
-                style={{
-                  color: activeQuadrantData.borderCol,
-                  fontWeight: 700,
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '0.75rem',
-                  lineHeight: '1.2rem',
-                }}
+                className="font-mono text-[0.75rem] font-bold leading-[1.2rem]"
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (State-Selektion aus Daten), siehe Auftrag 055 Entscheidung 2
+                style={{ color: activeQuadrantData.borderCol }}
               >
                 0{aIdx + 1}
               </span>
-              <span style={{ fontSize: '0.8125rem', color: 'var(--color-text)', lineHeight: 1.4 }}>
+              <span className="text-[0.8125rem] leading-[1.4] text-text">
                 {action}
               </span>
             </div>
