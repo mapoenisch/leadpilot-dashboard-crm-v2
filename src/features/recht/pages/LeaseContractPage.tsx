@@ -6,7 +6,7 @@ import { MIETVERTRAG } from '@/domain/rechtData';
 
 export function LeaseContractPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Recht & Gründung" title={MIETVERTRAG.title} description="Standortmietvertrag Leipzig Augustusplatz." />
       <Card padding="0">
         <Table columns={[{ key: '0', label: 'Vertragspunkt' }, { key: '1', label: 'Konditionen' }]} rows={MIETVERTRAG.details.map((d: string[]) => ({ 0: d[0], 1: d[1] }))} />

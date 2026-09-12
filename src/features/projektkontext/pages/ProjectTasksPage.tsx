@@ -7,7 +7,7 @@ import { PROJEKT } from '@/domain/projektkontextData';
 
 export function ProjectTasksPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Projektkontext" title={PROJEKT.title} description={PROJEKT.summary} />
       <Card padding="0">
         <Table

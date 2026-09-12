@@ -6,7 +6,7 @@ import { QUELLEN } from '@/domain/projektkontextData';
 
 export function SourcesPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Projektkontext" title={QUELLEN.title} description="Grundlagendokumente & Unterlagen." />
       <Card padding="0">
         <Table columns={[{ key: 'name', label: 'Dokument' }, { key: 'desc', label: 'Inhalt & Beschreibung' }]} rows={QUELLEN.sources} />
