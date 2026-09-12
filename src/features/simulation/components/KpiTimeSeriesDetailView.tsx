@@ -754,9 +754,9 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
                     variant={isSelected ? 'primary' : 'secondary'}
                     onClick={() => toggleRunSelection(r.runId)}
                     // G39 Welle 3: Overlay-Farben aus Daten-Array
-                    // (RUN_OVERLAY_COLORS per Laufzeit-Index) — als Klasse
-                    // nicht darstellbar (Entscheidung 2).
-                    // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farben (Overlay-Palette aus Daten), siehe Auftrag 056 Entscheidung 2
+                    // (RUN_OVERLAY_COLORS per Laufzeit-Index) als
+                    // style-Passthrough an Button (Custom-Komponente, von der
+                    // DOM-Regel nicht erfasst — kein Disable nötig).
                     style={{
                       borderColor: assignedColor,
                       color: isSelected ? '#fff' : assignedColor || 'var(--color-text-muted)',

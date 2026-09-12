@@ -57,7 +57,7 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
   return (
     <div className="flex flex-col gap-[var(--space-5)]">
       {/* Zone 1 & 2: Executive Management Banner & Command Cockpit */}
-      <Card className="border border-solid border-primary-soft bg-[linear-gradient(135deg,rgba(0,217,198,0.06)_0%,rgba(11,33,31,0.95)_100%)]">
+      <Card className="border border-solid border-primary-soft bg-transparent bg-[linear-gradient(135deg,rgba(0,217,198,0.06)_0%,rgba(11,33,31,0.95)_100%)]">
         <div className="flex items-start justify-between flex-wrap gap-[var(--space-4)]">
           {/* Zone 1: Leading KPI & Strategic Overview */}
           <div className="flex-[1_1_380px] min-w-0">

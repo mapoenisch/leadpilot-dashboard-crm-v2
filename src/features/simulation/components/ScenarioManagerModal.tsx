@@ -400,9 +400,9 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                       padding="var(--space-3)"
                       featured={isActive}
                       className="flex flex-col justify-between cursor-pointer"
-                      // G39 Welle 3: Auswahl-Rahmenfarbe (State) — als Klasse
-                      // nicht darstellbar (Entscheidung 2).
-                      // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (State-Selektion), siehe Auftrag 056 Entscheidung 2
+                      // G39 Welle 3: Auswahl-Rahmenfarbe (State) als
+                      // style-Passthrough an Card (Custom-Komponente, von der
+                      // DOM-Regel nicht erfasst — kein Disable nötig).
                       style={{
                         borderColor: isActive ? 'var(--color-primary)' : undefined,
                       }}

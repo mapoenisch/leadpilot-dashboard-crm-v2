@@ -2,6 +2,88 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 3 / Auftrag 056: Organisation/Overview/Produkt/Projektkontext/Recht/Simulation
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `583e932` (Welle 2 abgenommen)
+**Status:** BEREIT ZUR PRÜFUNG (kein Merge/Tag/Push ohne Freigabe).
+
+### Block A — `organisation/` (6 Dateien)
+
+`CapacityNetwork` (SVG via Attribute, Engpass-Ternaries als Klassen,
+0 Reste), `OrganisationScaffold` (2 Disables: FTE-Höhe + Opacity,
+beide berechnet; Highlight als Klassen-Ternaries),
+`OrganisationStructure` (0 — `backdrop-blur-md` bewusst ohne Klasse:
+Token existiert nicht, Effekt erhalten; Card-Overrides via
+Block-A-`className`-Merge), `OrganisationUnitCard` (0 —
+Highlight/Critical als Klassen-Ternaries via Card-Merge),
+`PeopleHealthRail` (0), `RoleLegend` (0).
+
+### Block B — `overview/` (4 Dateien)
+
+`CompanyRegisterCard` (0 — Hover-Handler durch Klassen),
+`PerformancePulse` (0), `SourceDecisionFlow` (0),
+`ExecutiveDashboardPage` (0 — 2 Zeilen).
+
+### Block C — `produkt/` (4 Dateien)
+
+`OperationsHub` (0 — Stage-Farben als Klassen-Ternaries),
+`ProductHealth` (0 — Erreicht-Ternaries als Klassen),
+`RoadmapHorizons` (0 — Horizont-Töne als Klassen-Ternaries über ID),
+`IntegrationPage` (0 — 1 Zeile).
+
+### Block D — `projektkontext/` + `recht/` (4 Stubs, je 1 Zeile, 0 Reste)
+
+### Block E — `simulation/` (9 Dateien, live)
+
+`LiveDashboardView` (1 Disable: Score-Farbe aus Schwellen),
+`AuditTierView` (0 — Tab-Ternaries als Klassen),
+`DetailTierView` (4 Disables: Bottleneck/Health/EBITDA-Farben aus
+State/Schwellen), `KpiTimeSeriesDetailView` (1: Overlay-Palette aus
+Daten-Array an Button-Passthrough — `--color-danger` dabei als
+nicht-existentes Token erkannt und weggelassen statt durch
+`text-error` zu ersetzen), `ManagementTierView` (2 Disables:
+EBITDA/CashFlow-Schwellen; Start-Button per Block-A-`className`),
+`MeasureManagerModal` (1: Timeline-Balken aus State; 2 Button-
+Breiten/Paddings als `className` via Merge statt style),
+`MultiScenarioComparisonModal` (0 — inkl. Korrektur eines
+selbst eingebauten Fehlers: Auswahlbutton-BG immer Cyan wie
+Original; ungültige `font-size-xs`/secondary-Tokens weggelassen
+statt zu erfinden), `RunActionModal` (0),
+`ScenarioManagerModal` (6: Diff-/Vergleichs-/State-Farben;
+doppeltes `className`-Attribut (Original) zu einem gemerged —
+zweites gewann ohnehin, Verhalten erhalten, tsc-Duplikat weg).
+
+### `live-simulation`-Nachweis (Entscheidung 1)
+
+Harness Baseline vs. Nachher (Tick #0 beidseitig, DOM-verifiziert):
+**2/3 byte-identisch**, 1440 nur AA (maxDelta 2/255, 0 starke).
+Zwischenbefund behoben: `background:`-Shorthand mit transluzentem
+Gradienten war als reines Image migriert (Card-`bg-surface` schien
+durch, +3/+8/+8 systematisch) → `bg-transparent` dazu, danach die
+Zahlen oben. Matrix `docs/screenshots/auftrag-056/README.md`.
+
+### Schutzbereich
+
+`git diff 583e932 -- src/simulation src/types src/context
+src/services/data src/features/resources src/store` → **leer**.
+`resources/**` und Engine unangetastet. `git diff --check` → 0.
+
+### Command-Matrix (final selbst gemessen)
+
+| Check | Ergebnis |
+|---|---|
+| `npx tsc --noEmit` | **600** (≤ 602) |
+| `npm run lint` | **13 Errors, 3 Warnings** (≤ 19; max-lines Reste präexistent) |
+| `npm run verify` | **24/24** |
+| `npm test` | **36 Dateien / 140 Tests** |
+| `npm run build` | **Exit 0** |
+| `npx playwright test` | **153/153** |
+| `grep -rl "style={{" src \| grep -v ui/ \| wc -l` | **44** (= neue Ratsche; 64→44, 7 Dateien mit Resten) |
+| Schutz-Diff | **leer** |
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 2 / Auftrag 055: Review-Abschluss (Freigabe)
 
 **Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
