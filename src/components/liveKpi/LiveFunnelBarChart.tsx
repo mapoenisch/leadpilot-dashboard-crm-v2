@@ -311,10 +311,10 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
       </div>
 
       {/* Tabellenalternative für Barrierefreiheit und 375px Viewport */}
-      <div className="mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px] overflow-x-auto">
+      <div className="border-0 mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px] overflow-x-auto">
         <table className="w-full border-collapse text-[var(--color-text-muted)]">
           <thead>
-            <tr className="border-b border-solid border-[rgba(42,74,67,0.3)] text-left">
+            <tr className="border-0 border-b border-solid border-[rgba(42,74,67,0.3)] text-left">
               <th className="font-semibold py-[2px] px-0">Stufe</th>
               <th className="font-semibold text-right py-[2px] px-0">Bestätigter Wert</th>
               <th className="font-semibold text-right py-[2px] px-0">Qualität</th>
@@ -322,7 +322,7 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
           </thead>
           <tbody>
             {stages.map((stage) => (
-              <tr key={stage.id} className="border-b border-solid border-[rgba(42,74,67,0.15)]">
+              <tr key={stage.id} className="border-0 border-b border-solid border-[rgba(42,74,67,0.15)]">
                 <td className="text-text py-[3px] px-0">{stage.label}</td>
                 <td
                   className={`text-right py-[3px] px-0 ${stage.hasValue ? 'not-italic text-[#00f2fe]' : 'italic text-[var(--color-text-dim)]'}`}

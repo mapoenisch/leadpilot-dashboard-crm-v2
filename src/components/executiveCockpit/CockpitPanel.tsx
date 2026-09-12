@@ -33,7 +33,7 @@ export const CockpitPanel: React.FC<CockpitPanelProps> = ({
       <div className="absolute top-0 left-0 right-0 h-[1px] pointer-events-none bg-[linear-gradient(90deg,transparent_0%,rgba(0,217,198,0.4)_50%,transparent_100%)]" />
 
       {/* Header */}
-      <div className="flex justify-between items-start gap-[12px] border-b border-solid border-[rgba(0,217,198,0.08)] px-[20px] pt-[16px] pb-[12px]">
+      <div className="border-0 flex justify-between items-start gap-[12px] border-b border-solid border-[rgba(0,217,198,0.08)] px-[20px] pt-[16px] pb-[12px]">
         <div className="flex flex-col gap-[2px] min-w-0">
           <div className="flex items-center gap-[8px] flex-wrap">
             <h3 className="m-0 font-display text-[15px] font-bold tracking-[-0.01em] text-[#FFFFFF]">

@@ -219,7 +219,7 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
       </div>
 
       {/* Zugängliche Textalternative unterhalb des Charts */}
-      <div className="mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px] text-[var(--color-text-dim)]">
+      <div className="border-0 mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px] text-[var(--color-text-dim)]">
         <span className="font-semibold text-[var(--color-text-muted)]">
           Textalternative (ARR-Verlauf):{' '}
         </span>

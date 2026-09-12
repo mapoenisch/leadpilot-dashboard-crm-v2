@@ -22,7 +22,7 @@ export function Header({
   onToggleTheme,
 }: HeaderProps) {
   return (
-    <header className="app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[rgba(6,22,19,0.85)] backdrop-blur-sm px-[var(--space-4)] z-10">
+    <header className="border-0 app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[rgba(6,22,19,0.85)] backdrop-blur-sm px-[var(--space-4)] z-10">
       <div className="flex items-center gap-[var(--space-3)] min-w-0 flex-[1_1_auto]">
         {isMobile && onToggleMobileMenu && (
           <button

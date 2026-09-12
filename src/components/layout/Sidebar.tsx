@@ -120,7 +120,7 @@ export function Sidebar({
 
   const content = (
     <>
-      <div className="flex items-center justify-between gap-[var(--space-3)] border-b border-solid border-border-soft p-[var(--space-4)]">
+      <div className="border-0 flex items-center justify-between gap-[var(--space-3)] border-b border-solid border-border-soft p-[var(--space-4)]">
         <div className="flex items-center gap-[var(--space-3)]">
           <img
             src="/assets/logo/leadpilot-logo-full.png"
@@ -198,7 +198,7 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="border-t border-solid border-border-soft px-[var(--space-4)] py-[var(--space-3)] text-[11px] text-[var(--color-text-muted)]">
+      <div className="border-0 border-t border-solid border-border-soft px-[var(--space-4)] py-[var(--space-3)] text-[11px] text-[var(--color-text-muted)]">
         <div>LeadPilot GmbH © 2026</div>
         <div className="text-primary">Simulation Engine v1.3.0</div>
       </div>
@@ -227,7 +227,7 @@ export function Sidebar({
           aria-modal="true"
           aria-label="Hauptnavigation"
           tabIndex={-1}
-          className="fixed top-0 left-0 bottom-0 z-[1050] flex flex-col h-screen overflow-hidden w-[min(280px,85vw)] border-r border-solid border-border bg-background-deep shadow-modal outline-none animate-[drawer-slide-in_200ms_cubic-bezier(0.16,1,0.3,1)]"
+          className="border-0 fixed top-0 left-0 bottom-0 z-[1050] flex flex-col h-screen overflow-hidden w-[min(280px,85vw)] border-r border-solid border-border bg-background-deep shadow-modal outline-none animate-[drawer-slide-in_200ms_cubic-bezier(0.16,1,0.3,1)]"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
@@ -238,7 +238,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="flex flex-col h-screen overflow-hidden shrink-0 w-[260px] border-r border-solid border-border bg-[rgba(6,22,19,0.95)] backdrop-blur">
+    <aside className="border-0 flex flex-col h-screen overflow-hidden shrink-0 w-[260px] border-r border-solid border-border bg-[rgba(6,22,19,0.95)] backdrop-blur">
       {content}
     </aside>
   );

@@ -110,9 +110,14 @@ export default {
         // verwendet, nicht als Ring-Farbe) — daher hier, nicht ringColor.
         'focus-ring': 'var(--focus-ring)',
       },
+      // Nacharbeit 054 (Sidebar-Regression): KEIN var()-Token hier —
+      // Tailwind wickelt den Wert in blur(...) ein, also würde
+      // var(--backdrop-blur) zu blur(blur(12px)) (ungültig → kein Filter).
+      // px-Werte duplizieren bewusst die --backdrop-blur-Tokens aus
+      // global.css (dort dokumentiert); Ergebnis identisch: blur(12px).
       backdropBlur: {
-        DEFAULT: 'var(--backdrop-blur)',
-        sm: 'var(--backdrop-blur-sm)',
+        DEFAULT: '12px',
+        sm: '8px',
       },
     },
   },

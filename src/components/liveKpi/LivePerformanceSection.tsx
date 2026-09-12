@@ -24,7 +24,7 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
       aria-label="Live Performance Bereich (Ebene C)"
     >
       {/* Prominenter Abschnittskopf mit Eyebrow, Display-Titel und Referenz-Hierarchie */}
-      <div className="flex items-start justify-between flex-wrap gap-[12px] border-b border-solid border-[rgba(0,242,254,0.18)] pb-[16px]">
+      <div className="border-0 flex items-start justify-between flex-wrap gap-[12px] border-b border-solid border-[rgba(0,242,254,0.18)] pb-[16px]">
         <div>
           <div className="flex items-center gap-[6px] font-mono text-[11px] font-bold tracking-[0.12em] uppercase mb-[6px] text-primary">
             <span>Ebene C · Echtzeit-Steuerung</span>

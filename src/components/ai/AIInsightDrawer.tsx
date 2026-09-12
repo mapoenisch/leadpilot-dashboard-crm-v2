@@ -46,8 +46,8 @@ export function AIInsightDrawer({ open, onClose }: AIInsightDrawerProps) {
   };
 
   return (
-    <div className="fixed top-0 right-0 bottom-0 w-[440px] flex flex-col border-l border-solid border-border bg-surface shadow-modal z-[900] p-[var(--space-5)]">
-      <div className="flex items-center justify-between border-b border-solid border-border-soft mb-[var(--space-4)] pb-[12px]">
+    <div className="border-0 fixed top-0 right-0 bottom-0 w-[440px] flex flex-col border-l border-solid border-border bg-surface shadow-modal z-[900] p-[var(--space-5)]">
+      <div className="border-0 flex items-center justify-between border-b border-solid border-border-soft mb-[var(--space-4)] pb-[12px]">
         <div className="flex items-center gap-[8px]">
           <Icon name="zap" size={20} color="var(--color-primary)" />
           <h3 className="m-0 font-display text-[18px] text-text">
@@ -75,7 +75,7 @@ export function AIInsightDrawer({ open, onClose }: AIInsightDrawerProps) {
         )}
       </div>
 
-      <div className="text-center text-[11px] pt-[12px] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
+      <div className="border-0 text-center text-[11px] pt-[12px] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
         Powered by LeadPilot Gemini AI Engine
       </div>
     </div>

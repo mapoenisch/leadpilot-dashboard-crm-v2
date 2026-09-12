@@ -159,7 +159,7 @@ export const LiveActivityFeed = React.memo(function LiveActivityFeed({
       </div>
 
       {/* Footer info */}
-      <div className="flex justify-between mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[10.5px] text-[var(--color-text-dim)]">
+      <div className="border-0 flex justify-between mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[10.5px] text-[var(--color-text-dim)]">
         <span>Bestätigte Live-Snapshots</span>
         <span>Reihenfolge: Zeit (absteigend)</span>
       </div>

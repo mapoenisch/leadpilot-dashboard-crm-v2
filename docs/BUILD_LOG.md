@@ -2,6 +2,58 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Nacharbeit Sidebar-Regression (Prüfer-Befund)
+
+**Rolle:** Builder (OpenCode) · **Befund:** Review zu `236c9b5`/`e525f4a`
+— Sidebar-Ghosting (x < 260 px, 13,6 % Strong-Pixel), finance-/
+market-Routen neu rot. Blöcke A–C + Ratsche 81 ohne Nacharbeit
+angenommen. Reproduziert im frischen Worktree (`401c9f7` vs.
+Fix-Stand): Sidebar-Region 7–27 % Strong-Pixel, maxDelta ~250.
+
+### Ursache (zwei Stapelfehler, beide gefunden und belegt)
+
+1. **`border-solid` ohne Width-Abdeckung + `preflight: false`.**
+   `tailwind.config.js` schaltet Preflight ab (`corePlugins.preflight:
+   false`); das eigene `*`-Reset in `global.css` setzt nur
+   box-sizing/margin/padding — **kein** `border-width: 0`. Jede
+   `border-solid`-Klasse ohne vollständige Width-Abdeckung fiel auf
+   Browser-Default `medium` = **3 px** zurück (per Computed-Style +
+   CDP-Kaskade bewiesen: kein 3px im CSS, `aside` maß 3px top/bottom/
+   left, Header-Block rect [3,3,256,63] statt [0,0,259,60]). Betroffen
+   ~27 Stellen (`border-b/r/t` + `border-solid`: aside, Header,
+   SimulationBar, Tabellen-Zeilen, Panel-Header …). G38 blieb
+   verschont (dort immer `border` voll + `border-solid`).
+2. **`backdrop-blur`-Config mit `var()`-Token.** Tailwind wickelt den
+   Theme-Wert in `blur(...)` ein → `blur(blur(12px))` ungültig → kein
+   Filter (Sidebar, Header, SimulationBar — und seit G38 unbemerkt
+   `Card`-glass). Allein folgenlos fürs Ghosting (nach Fix separat
+   gemessen: weiterhin 13,5 %), aber echter Bug — mitbehoben.
+
+### Fix
+
+- `tailwind.config.js` `backdropBlur`: `12px`/`8px` statt `var()`
+  (Duplikation dokumentiert; Output verifiziert: `blur(12px)`).
+- 27 Stellen: `border-0` ergänzt (steht im CSS **vor**
+  `border-b/r/t`, gewinnt zuverlässig; per Skript, nur statische
+  classNames ohne `${}`, Reste per Grep verifiziert: keine mehr).
+- Nach Fix: aside/Header border-widths **0 px**, Header-Rect exakt
+  Baseline **[0,0,259,60]**, Sidebar-Region **0,0 %** auf allen
+  Desktop-/Tablet-Routen.
+
+### Verifikation danach
+
+`tsc` 602, `lint` 19/3, `verify` 24/24, `test` 140, `build` ok,
+Schutz-Diff leer. `npx playwright test` → erst 138/153 (Rest =
+Toggle-Button, beauftragt + stale Snapshots), dann
+`--update-snapshots` (genehmigt, nur PNGs, kein Spec-Change) →
+**153/153**. Harness-Matrix in `docs/screenshots/auftrag-054/
+README.md` korrigiert (Erstfassung war mit veralteten
+After-Captures gemessen — ersetzt, Lehre dokumentiert):
+Sidebar 0,0 %, Rest = Toggle (+ Mobile Wrap-Shift 56→79 px auf
+dashboard-/crm-375, finance-375 schon Baseline 79 px).
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Theme/Skeleton/Container-Queries + 22 Dateien
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`

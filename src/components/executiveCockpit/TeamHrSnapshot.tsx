@@ -85,7 +85,7 @@ export const TeamHrSnapshot: React.FC = () => {
         </div>
 
         {/* HR-Metriken & Engpässe Split */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[12px] border-t border-solid border-[rgba(0,217,198,0.12)] pt-[14px]">
+        <div className="border-0 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[12px] border-t border-solid border-[rgba(0,217,198,0.12)] pt-[14px]">
           {/* Metriken */}
           <div className="flex flex-col gap-[6px] border border-solid border-[rgba(0,217,198,0.18)] rounded-[6px] bg-[rgba(5,20,19,0.50)] backdrop-blur-[6px] px-[12px] py-[10px]">
             <div className="text-[11px] font-bold uppercase tracking-[0.04em] text-[var(--color-text-muted)]">
@@ -94,7 +94,7 @@ export const TeamHrSnapshot: React.FC = () => {
             {metrics.slice(2, 6).map((m) => (
               <div
                 key={m.label}
-                className="flex justify-between items-center text-[11.5px] border-b border-solid border-[rgba(255,255,255,0.04)] px-0 py-[4px]"
+                className="border-0 flex justify-between items-center text-[11.5px] border-b border-solid border-[rgba(255,255,255,0.04)] px-0 py-[4px]"
               >
                 <span className="text-[var(--color-text-muted)]">{m.label}</span>
                 <span className="font-semibold text-right text-[#E2E8F0]">{m.val}</span>

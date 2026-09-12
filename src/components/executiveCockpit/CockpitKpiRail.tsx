@@ -73,7 +73,7 @@ export const CockpitKpiRail: React.FC<CockpitKpiRailProps> = ({ kpis }) => {
             </div>
 
             {/* Unten: Kontextnotiz */}
-            <div className="text-[11.5px] leading-[1.35] border-t border-solid border-[rgba(255,255,255,0.06)] pt-[6px] text-[var(--color-text-muted)]">
+            <div className="border-0 text-[11.5px] leading-[1.35] border-t border-solid border-[rgba(255,255,255,0.06)] pt-[6px] text-[var(--color-text-muted)]">
               {kpi.note}
             </div>
           </div>

@@ -221,7 +221,7 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
       </div>
 
       {/* Footer-Zeile: Metadaten & Observability */}
-      <div className="flex justify-between items-center text-[11px] leading-[1.4] border-t border-solid border-border-soft mt-[6px] pt-[6px] text-[var(--color-text-muted)]">
+      <div className="border-0 flex justify-between items-center text-[11px] leading-[1.4] border-t border-solid border-border-soft mt-[6px] pt-[6px] text-[var(--color-text-muted)]">
         <span>
           {snapshot ? `Quelle: ${snapshot.sourceSystem}` : 'Quelle: n8n / Live-Feed'}
         </span>

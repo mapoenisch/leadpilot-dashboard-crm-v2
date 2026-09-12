@@ -214,10 +214,10 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
       </div>
 
       {/* Zugängliche Tabelle / Liste */}
-      <div className="mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px]">
+      <div className="border-0 mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px]">
         <table className="w-full border-collapse text-[var(--color-text-muted)]">
           <thead>
-            <tr className="border-b border-solid border-[rgba(42,74,67,0.3)] text-left">
+            <tr className="border-0 border-b border-solid border-[rgba(42,74,67,0.3)] text-left">
               <th className="font-semibold py-[2px] px-0">Quelle</th>
               <th className="font-semibold text-right py-[2px] px-0">Status / Wert</th>
               {isComplete && <th className="font-semibold text-right py-[2px] px-0">Anteil</th>}
@@ -232,7 +232,7 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
               if (item) {
                 const pct = isComplete && totalArr > 0 ? ((item.value / totalArr) * 100).toFixed(1) : null;
                 return (
-                  <tr key={id} className="border-b border-solid border-[rgba(42,74,67,0.15)]">
+                  <tr key={id} className="border-0 border-b border-solid border-[rgba(42,74,67,0.15)]">
                     <td className="text-text py-[3px] px-0">{label}</td>
                     <td className={`text-right py-[3px] px-0 ${item.qualityStatus === 'degraded' ? 'text-[#ff7a3d]' : 'text-[#00f2fe]'}`}>
                       {formatEur(item.value)} (bestätigt)
@@ -243,7 +243,7 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
               }
 
               return (
-                <tr key={id} className="border-b border-solid border-[rgba(42,74,67,0.15)]">
+                <tr key={id} className="border-0 border-b border-solid border-[rgba(42,74,67,0.15)]">
                   <td className="py-[3px] px-0">{label}</td>
                   <td className="text-right italic py-[3px] px-0 text-[var(--color-text-dim)]">
                     ausstehend

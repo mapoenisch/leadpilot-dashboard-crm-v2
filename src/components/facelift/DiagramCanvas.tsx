@@ -98,7 +98,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
 
       {/* Legendenbereich */}
       {legend && (
-        <div className="font-body text-[0.8125rem] mt-[var(--space-3)] pt-[var(--space-2)] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
+        <div className="border-0 font-body text-[0.8125rem] mt-[var(--space-3)] pt-[var(--space-2)] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
           {legend}
         </div>
       )}
@@ -129,7 +129,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
 
       {/* Zugängliche Textzusammenfassung / Tabellen-Fallback */}
       {summary && (
-        <div className="font-body text-[0.8125rem] mt-[var(--space-3)] pt-[var(--space-2)] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
+        <div className="border-0 font-body text-[0.8125rem] mt-[var(--space-3)] pt-[var(--space-2)] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
           {summary}
         </div>
       )}

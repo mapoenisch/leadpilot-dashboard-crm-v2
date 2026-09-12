@@ -1,37 +1,48 @@
 # Auftrag 054 — Screenshot-Matrix (G39 Welle 1)
 
 Baseline: `401c9f7` (isolierter `git worktree`, identische Deps per
-Symlink, eigener Build) vs. Nachher: `236c9b5`. Harness
-`scripts/captureGateScreenshots.mjs` (5 `visual.spec.ts`-Routen × 3
-Viewports, `vite preview`, reducedMotion + fonts.ready + 1000 ms
-Settle). Vergleich per `shasum -a 256`; Abweichung per PIL-Pixel-Diff
-(BBox + max. Kanal-Delta + Zählung starker Pixel > 8/255). Kein Bild
-inhaltlich geöffnet.
+Symlink, eigener Build) vs. Nachher (Fix-Stand der Nacharbeit).
+Harness `scripts/captureGateScreenshots.mjs` (5 `visual.spec.ts`-
+Routen × 3 Viewports, `vite preview`, reducedMotion + fonts.ready +
+1000 ms Settle). Vergleich per `shasum -a 256`; Regionen per
+PIL-Pixel-Diff (Strong-Pixel > 30/255). Kein Bild inhaltlich geöffnet.
+
+**Korrekturvermerk (Nacharbeit):** Die erste Fassung dieser Matrix
+(14/15 identisch) wurde mit veralteten After-Captures gemessen
+(Preview-Race, Toggle-Button fehlte darin) und war ungültig — sie
+ist durch die Neumessung unten ersetzt. Lehre: After-Captures immer
+mit frischem `dist` + Toggle-Sichtbarkeitsprobe.
 
 ## Routen: Baseline vs. Nachher (dunkles Theme, Default)
 
-| Shot | SHA-256 | Pixel-Diff |
-|---|---|---|
-| dashboard-1440 | **GLEICH** | — |
-| dashboard-768 | **GLEICH** | — |
-| dashboard-375 | **GLEICH** | — |
-| crm-leads-1440 | **GLEICH** | — |
-| crm-leads-768 | abweichend | BBox 485×455 (AA-Teppich li. oben), maxDelta **21/255**, nur 2 starke Pixel |
-| crm-leads-375 | **GLEICH** | — |
-| finance-p-and-l-1440 | **GLEICH** | — |
-| finance-p-and-l-768 | **GLEICH** | — |
-| finance-p-and-l-375 | **GLEICH** | — |
-| market-overview-1440 | **GLEICH** | — |
-| market-overview-768 | **GLEICH** | — |
-| market-overview-375 | **GLEICH** | — |
-| resources-materials-1440 | **GLEICH** | — |
-| resources-materials-768 | **GLEICH** | — |
-| resources-materials-375 | **GLEICH** | — |
+Neues UI in allen Captures: Theme-Toggle-Button im Header (Block A,
+beauftragt, Entscheidung 1) — kein Paar kann byte-identisch sein.
+Der Nachweis trennt daher: **Sidebar-Region (x < 260)** separat
+ausgewiesen (dort liegt die gefundene Regression), Rest = Toggle +
+AA-Teppich.
 
-**14/15 byte-identisch**, 1× minimale Abweichung ohne sichtbaren
-Unterschied (2 Pixel, max. 21/255 — kein Bild geöffnet, kein
-Anschauen nötig). Keine visuelle Regression trotz 22 migrierter
-Dateien + Container-Query-Umstellung.
+| Shot | Sidebar x<260 (strong>30) | Rest / Bewertung |
+|---|---|---|
+| dashboard-1440 | **0,0 %** | Toggle-Box + AA-Teppich (gesamt 0,01 %) |
+| dashboard-768 | **0,0 %** | Toggle-Box 32px (501–533) + Teppich (0,02 %) |
+| dashboard-375 | Content (Drawer zu) | **Header-Wrap-Shift 56→79 px** (Toggle bricht um, Seite rutscht, 20,6 %) |
+| crm-leads-1440 | **0,0 %** | Toggle-Box + Teppich (0,01 %) |
+| crm-leads-768 | **0,0 %** (maxD 2/255) | Toggle-Box + Teppich (0,02 %) |
+| crm-leads-375 | Content (Drawer zu) | **Header-Wrap-Shift 56→79 px** (13,7 %) |
+| finance-p-and-l-1440 | **0,0 %** | Toggle-Box 32px (1173–1205, 0,01 %) |
+| finance-p-and-l-768 | **0,0 %** (maxD 1/255) | Toggle-Box + Teppich (0,02 %) |
+| finance-p-and-l-375 | **1,0 %** | Nur Toggle-Box (Header schon Baseline 79 px, kein Shift, 0,68 %) |
+| market-overview-1440 | **0,0 %** | Toggle-Box 32px (0,01 %) |
+| market-overview-768 | **0,0 %** | Toggle-Box 32px (0,02 %) |
+| market-overview-375 | **0,1 %** | Nur Toggle-Box (0,05 %) |
+| resources-materials-1440 | **0,0 %** | Toggle-Box 32px (0,01 %) |
+| resources-materials-768 | **0,0 %** | Toggle-Box 32px (0,02 %) |
+| resources-materials-375 | **1,0 %** | Nur Toggle-Box (0,68 %) |
+
+**Sidebar-Ghosting behoben (Nacharbeit): 0,0 % auf allen Desktop-/
+Tablet-Routen.** Verbleibende Diffs sind beauftragtes neues UI
+(Toggle-Button, auf Mobile mit Wrap-Shift auf 2 Routen) plus
+AA-Teppich. Keine Migrations-Regression.
 
 ## `/design-system` (DEV-only, via `vite dev`)
 
@@ -60,16 +71,11 @@ sehen (Stitching-Artefakt bei `100vh`-Layout) — deshalb dieser
 DOM-Nachweis statt Screenshot. Helles Theme selbst: Mechanismus
 bewiesen, Werte vorläufig (Freigabe ausstehend, Entscheidung 1).
 
-## Playwright-Einordnung
+## Playwright (nach Snapshot-Aktualisierung, genehmigt)
 
-`npx playwright test` → **138/153** (15 `toHaveScreenshot`-
-Failures, alle 5 Routen × 3 Viewports). Gegenprobe per Zahlen:
-committete Snapshots vs. **frische** Baseline-Captures derselben
-Maschine weichen massiv ab (finance-1440: 237900 starke Pixel,
-maxDelta 253/255; market-1440: 152771; dashboard-1440: 222154;
-crm-leads-768: 101346) — die Suite ist für diese Routen stale und
-als Regressionsinstrument unbrauchbar; Snapshots wurden nicht
-angefasst (`git status e2e/` sauber, kein `--update-snapshots`).
-Der Harness-Vergleich oben (gleiche Maschine, gleiches Verfahren)
-ist der belastbare Nachweis. (G38: 144/153 — Drift der stale-
-Suite zwischen den Runs, keine 054-Regression.)
+`npx playwright test` → **153/153**. Die 15 alten
+`toHaveScreenshot`-Snapshots waren stale ( committed Snapshots vs.
+frische Baseline-Captures: z. B. finance-1440 237900 starke Pixel)
+und wurden nach dem Sidebar-Fix mit `--update-snapshots` neu
+geschrieben (`git status e2e/` zeigt nur Snapshot-PNGs, kein
+Spec-Change). Vorher: 138/153.

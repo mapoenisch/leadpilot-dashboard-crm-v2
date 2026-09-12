@@ -98,7 +98,7 @@ export const PipelineSnapshot: React.FC = () => {
         {pipeline.stages.map((st) => (
           <div
             key={st.stage}
-            className="flex flex-col gap-[4px] border-b border-solid border-[rgba(255,255,255,0.04)] px-0 py-[6px]"
+            className="border-0 flex flex-col gap-[4px] border-b border-solid border-[rgba(255,255,255,0.04)] px-0 py-[6px]"
           >
             <div className="flex justify-between items-center text-[12px]">
               <span className="font-semibold text-[#E2E8F0]">

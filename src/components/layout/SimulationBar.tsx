@@ -39,7 +39,7 @@ export function SimulationBar() {
     <div
       role="region"
       aria-label="Simulation Command Strip"
-      className="simulation-command-strip flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full text-[13px] z-[5] border-b border-solid border-border bg-[rgba(18,51,48,0.75)] backdrop-blur-sm py-[8px] px-[var(--space-4)]"
+      className="border-0 simulation-command-strip flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full text-[13px] z-[5] border-b border-solid border-border bg-[rgba(18,51,48,0.75)] backdrop-blur-sm py-[8px] px-[var(--space-4)]"
     >
       {/* 1. Primary Action & State */}
       <div className="flex items-center gap-[var(--space-3)] flex-wrap">
