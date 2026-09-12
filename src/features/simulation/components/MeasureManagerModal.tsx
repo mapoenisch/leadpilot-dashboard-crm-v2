@@ -2,25 +2,22 @@ import React, { useState, useMemo } from 'react';
 import { useDraftMeasures, useMeasureActions } from '../../../store/hooks';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
-import { Badge } from '../../../components/ui/Badge';
-import { StatusChip } from '../../../components/ui/StatusChip';
 import { Alert } from '../../../components/ui/Alert';
 import { Card } from '../../../components/ui/Card';
 import { Input } from '../../../components/ui/Input';
-import { Select } from '../../../components/ui/Select';
 import { NumberStepper } from '../../../components/ui/NumberStepper';
-import { Table, Column } from '../../../components/ui/Table';
 import {
-  MEASURE_PARAMETER_KEYS,
   Measure,
   MeasureChange,
-  MeasureChangeMode,
   MeasureConflict,
   MeasureKpiDelta,
   MeasureParameterKey,
 } from '../../../types/measure';
 import { V1_PARAMETER_DEFINITIONS } from '../../../simulation/parameterRegistry';
 import { systemContext } from '../../../simulation/systemContext';
+import { MeasureActiveList } from './MeasureActiveList';
+import { MeasureChangesEditor } from './MeasureChangesEditor';
+import { MeasurePreviewSection } from './MeasurePreviewSection';
 
 interface MeasureManagerModalProps {
   isOpen: boolean;
@@ -153,66 +150,6 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
     setPreviewDeltas(null);
   };
 
-  const parameterSelectOptions = MEASURE_PARAMETER_KEYS.map((k) => {
-    const def = V1_PARAMETER_DEFINITIONS[k];
-    return {
-      value: k,
-      label: `${def?.label || k} (${def?.unit || ''})`,
-    };
-  });
-
-  const modeSelectOptions = [
-    { value: 'set', label: 'Festsetzen (= Wert)' },
-    { value: 'delta', label: 'Delta / Erhöhen (+/-)' },
-    { value: 'multiply', label: 'Multiplizieren (x Faktor)' },
-  ];
-
-  const previewColumns: Column<MeasureKpiDelta>[] = [
-    {
-      key: 'kpiId',
-      label: 'KPI (Kennzahl)',
-      render: (row) => <strong>{row.label}</strong>,
-    },
-    {
-      key: 'baseValue',
-      label: 'Ohne Maßnahmen',
-      render: (row) => (
-        <span className="font-mono">
-          {row.baseValue.toLocaleString('de-DE')} {row.unit}
-        </span>
-      ),
-    },
-    {
-      key: 'withMeasuresValue',
-      label: 'Mit Maßnahmen',
-      render: (row) => (
-        <span className="font-mono font-semibold text-primary">
-          {row.withMeasuresValue.toLocaleString('de-DE')} {row.unit}
-        </span>
-      ),
-    },
-    {
-      key: 'delta',
-      label: 'Delta (Wirkung)',
-      render: (row) => {
-        const isPos = row.delta >= 0;
-        const sign = row.delta > 0 ? '+' : '';
-        return (
-          <div className="flex items-center gap-[6px]">
-            <Badge variant={isPos ? 'cyan' : 'orange'}>
-              {sign}
-              {row.delta.toLocaleString('de-DE')} {row.unit}
-            </Badge>
-            <span className="font-mono text-[11px] text-[var(--color-text-muted)]">
-              ({sign}
-              {row.deltaPercent}%)
-            </span>
-          </div>
-        );
-      },
-    },
-  ];
-
   return (
     <Modal
       open={isOpen}
@@ -232,83 +169,11 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
     >
       <div className="flex flex-col gap-[var(--space-4)]">
         {/* Active Draft Measures List */}
-        <div>
-          <div className="flex justify-between items-center mb-[var(--space-2)]">
-            <h4 className="m-0 text-[15px] font-semibold text-text">
-              Aktive Maßnahmen im aktuellen Szenario-Entwurf
-            </h4>
-            <StatusChip variant="neutral" label={`${draftMeasures.length} Maßnahmen`} size="sm" />
-          </div>
-
-          {detectedConflicts.length > 0 && (
-            <div data-testid="measure-conflict-alert" className="mb-[var(--space-3)]">
-              <Alert variant="warning" title="Konfliktwarnung (MULTIPLE_SET)">
-                <ul className="m-0 pl-[var(--space-4)]">
-                  {detectedConflicts.map((c, i) => (
-                    <li key={i} className="text-[12px]">
-                      {c.message}
-                    </li>
-                  ))}
-                </ul>
-              </Alert>
-            </div>
-          )}
-
-          {draftMeasures.length === 0 ? (
-            <Card padding="var(--space-3)">
-              <div className="text-center text-[13px] p-[var(--space-2)] text-[var(--color-text-muted)]">
-                Noch keine Maßnahmen für diesen Szenario-Entwurf angelegt.
-              </div>
-            </Card>
-          ) : (
-            <div className="flex flex-col gap-[var(--space-2)]">
-              {draftMeasures.map((m) => {
-                const endTick = m.durationTicks !== undefined ? m.startTick + m.durationTicks : undefined;
-                return (
-                  <Card key={m.id} padding="var(--space-3)">
-                    <div className="flex justify-between items-start flex-wrap gap-[8px]">
-                      <div>
-                        <div className="flex items-center gap-[var(--space-2)] flex-wrap">
-                          <span className="font-semibold text-[14px] text-text">{m.name}</span>
-                          <StatusChip variant="cyan" label={`Start: Tick #${m.startTick}`} size="sm" />
-                          {m.rampUpTicks ? <StatusChip variant="orange" label={`Ramp-up: ${m.rampUpTicks} Ticks`} size="sm" /> : null}
-                          {m.durationTicks ? (
-                            <StatusChip variant="neutral" label={`Dauer: ${m.durationTicks} Ticks (bis #${endTick})`} size="sm" />
-                          ) : (
-                            <StatusChip variant="mint" label="Dauerhaft" size="sm" />
-                          )}
-                        </div>
-                        {m.description && (
-                          <div className="text-[12px] mt-[4px] text-[var(--color-text-muted)]">
-                            {m.description}
-                          </div>
-                        )}
-                        <div className="flex flex-wrap gap-[6px] mt-[6px]">
-                          {m.changes.map((c, idx) => {
-                            const def = V1_PARAMETER_DEFINITIONS[c.parameter];
-                            const modeLabel = c.mode === 'set' ? '=' : c.mode === 'delta' ? (c.value >= 0 ? '+' : '') : '×';
-                            const valFormatted = c.mode === 'multiply' ? `${c.value}x` : `${c.value} ${def?.unit || ''}`;
-                            return (
-                              <span
-                                key={idx}
-                                className="rounded border border-solid border-border-soft bg-background-deep text-[11.5px] px-[8px] py-[2px]"
-                              >
-                                <strong>{def?.label || c.parameter}:</strong> {modeLabel} {valFormatted}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <Button variant="danger" size="sm" onClick={() => removeDraftMeasure(m.id)}>
-                        Löschen
-                      </Button>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <MeasureActiveList
+          draftMeasures={draftMeasures}
+          detectedConflicts={detectedConflicts}
+          onRemoveMeasure={removeDraftMeasure}
+        />
 
         <hr className="border-0 border-t border-solid border-border my-[var(--space-2)] mx-0" />
 
@@ -417,120 +282,22 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
             </Card>
 
             {/* Phase 3 & 4: Treiber & Intensität */}
-            <Card padding="var(--space-3)">
-              <div className="flex justify-between items-center mb-[8px]">
-                <div className="text-[12px] font-semibold uppercase text-primary">
-                  3. Zielparameter (Treiber) & 4. Intensität
-                </div>
-                <Button type="button" variant="secondary" size="sm" onClick={handleAddChange}>
-                  + Parameter hinzufügen
-                </Button>
-              </div>
-
-              <div className="flex flex-col gap-[var(--space-3)]">
-                {changes.map((c, idx) => {
-                  const def = V1_PARAMETER_DEFINITIONS[c.parameter];
-                  return (
-                    <div
-                      key={idx}
-                      className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))_auto] gap-[var(--space-2)] items-end rounded-md border border-solid border-border-soft bg-background-deep p-[10px]"
-                    >
-                      <Select
-                        label="Zielparameter (Treiber)"
-                        options={parameterSelectOptions}
-                        value={c.parameter}
-                        onChange={(val) =>
-                          handleUpdateChange(idx, { parameter: val as MeasureParameterKey })
-                        }
-                        sizeVariant="sm"
-                      />
-
-                      <Select
-                        label="Änderungsmodus"
-                        options={modeSelectOptions}
-                        value={c.mode}
-                        onChange={(val) =>
-                          handleUpdateChange(idx, { mode: val as MeasureChangeMode })
-                        }
-                        sizeVariant="sm"
-                      />
-
-                      <NumberStepper
-                        label={`Wert (${c.mode === 'multiply' ? 'Faktor x' : def?.unit || ''})`}
-                        value={c.value}
-                        step={c.mode === 'multiply' ? 0.1 : def?.step || 1}
-                        unit={c.mode === 'multiply' ? 'x' : def?.unit}
-                        onChange={(val) => handleUpdateChange(idx, { value: val })}
-                        sizeVariant="sm"
-                      />
-
-                      {changes.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleRemoveChange(idx)}
-                          // G39 Welle 3: nutzt den Block-A className-Merge
-                          // (statische Overrides als Klassen statt style).
-                          className="px-[12px] py-[8px] mb-[2px]"
-                        >
-                          ✕
-                        </Button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
+            <MeasureChangesEditor
+              changes={changes}
+              onAddChange={handleAddChange}
+              onRemoveChange={handleRemoveChange}
+              onUpdateChange={handleUpdateChange}
+            />
 
             {/* Phase 5: Wirkungsvorschau */}
-            <Card padding="var(--space-3)">
-              <div className="text-[12px] font-semibold uppercase mb-[8px] text-primary">
-                5. Side-Effect-Freie Wirkungsvorschau
-              </div>
-              <div className="flex gap-[var(--space-3)] items-center flex-wrap">
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={handleSimulatePreview}
-                  disabled={isPreviewing || draftMeasures.length === 0}
-                  size="sm"
-                >
-                  {isPreviewing ? 'Simuliere Wirkungsvorschau...' : '⚡ Wirkungsvorschau simulieren'}
-                </Button>
-                <span className="text-[12px] text-[var(--color-text-muted)]">
-                  (Führt 2 identische Seed-Läufe aus, vergleicht KPI-Deltas, speichert 0 Runs/Versionen)
-                </span>
-              </div>
-
-              {previewError && (
-                <div className="mt-[var(--space-3)]">
-                  <Alert variant="error" title="Fehler bei Wirkungsvorschau">
-                    {previewError}
-                  </Alert>
-                </div>
-              )}
-
-              {previewConflicts.length > 0 && (
-                <div className="mt-[var(--space-3)]">
-                  <Alert variant="warning" title="Konfliktwarnungen erkannt">
-                    <ul className="m-0 pl-[var(--space-4)]">
-                      {previewConflicts.map((conf, idx) => (
-                        <li key={idx} className="text-[12px]">
-                          {conf.message}
-                        </li>
-                      ))}
-                    </ul>
-                  </Alert>
-                </div>
-              )}
-
-              {previewDeltas && (
-                <div data-testid="measure-preview-delta-table" className="mt-[var(--space-3)]">
-                  <Table columns={previewColumns} rows={previewDeltas} minWidth="550px" />
-                </div>
-              )}
-            </Card>
+            <MeasurePreviewSection
+              isPreviewing={isPreviewing}
+              draftMeasuresCount={draftMeasures.length}
+              onSimulatePreview={handleSimulatePreview}
+              previewError={previewError}
+              previewConflicts={previewConflicts}
+              previewDeltas={previewDeltas}
+            />
 
             {/* Phase 6: Speichern */}
             <div className="flex justify-end mt-[var(--space-2)]">
