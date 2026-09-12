@@ -2,6 +2,204 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Theme/Skeleton/Container-Queries + 22 Dateien
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `401c9f7` (Gate G38 komplett)
+**Status:** BEREIT ZUR PRÜFUNG (kein Merge/Tag/Push ohne Freigabe).
+
+### Block A — Theme-Infrastruktur (`43ce067`)
+
+27 Light-Werte in `src/styles/global.css` (`[data-theme='light']`-Block,
+als „vorläufig — visuelle Freigabe durch Marc ausstehend" markiert).
+Ableitungsformel (Skript in `/tmp`, reproduzierbar): Neutrale
+Lightness-gespiegelt (`L_hell = 100 − L_dunkel`, geclampt 6…96);
+Marken (`cyan`/`orange`/`coral`/`mint`) Hue/Chroma behalten, Lightness
+auf WCAG-AA getrimmt; `rgba` = abgeleitete Markenfarbe + Original-Alpha;
+Shadows schwarz-Alpha reduziert. Zählung: 66 Properties aktuell (Auftrag
+nennt 67 inkl. des in G38 entfernten `--color-surface-glass-raised`) —
+**47 farbwertige** überschrieben, 19 nicht-farbige (`space`/`radius`/
+`font`/`backdrop-blur`) gelten theme-übergreifend, kein Override nötig.
+Drei bewusste Ausnahmen (im CSS kommentiert): `--color-text` (Vererbung
+von `--white` wäre 1.15:1), `--color-text-inverse` (Weiß gewinnt,
+Min. 5.32:1), `--color-bg-deep` (Spiegel wäre heller als bg, Semantik
+verdreht). `--orange-soft`-Pastell bleibt (Fill, Text darauf 12.25:1).
+Kontrasttabelle (vs. Light-BG `#DEF4F2`, alle OK): text 14.91,
+muted 7.38, primary 5.01, primary-hover 3.15 (UI-Nutzung, need 3.0),
+accent 4.64, accent-hover 3.24 (UI), error 4.81, success 4.98, warning
+4.64, inverse auf Akzent-BGs 5.32–5.74. Mechanismus: `data-theme` auf
+`<html>`, State in `Layout.tsx` (kein neues Modul — erlaubte Dateien!),
+`localStorage`-Persistenz (`leadpilot-theme`), Default dunkel ohne
+`prefers-color-scheme`-Automatismus. Toggle-UI: Sun/Moon-Button im
+`Header.tsx` (klassenbasiert). DOM-Funktionsnachweis: Button rendert
+(125 Farben im Element-Shot), Klick → `data-theme="light"` +
+`localStorage="light"`. `tsc 602`, `build` ok.
+
+### Block B — Container Queries (`a09e7f8`)
+
+`@tailwindcss/container-queries` installiert (**einzige neue
+Abhängigkeit**, `package.json`/`-lock`), in `tailwind.config.js`
+`plugins` eingetragen — Output verifiziert (`@container (min-width:
+768px/1024px)` im gebauten CSS). Einsatz in `ExecutiveCockpit.tsx`:
+Root `@container`, Main-/Ops-Grids per Plugin-Klassen mobile-first
+(`grid-cols-1` → `@[768px]:grid-cols-2` → `@[1024px]:grid-cols-3`
+bzw. `@[1024px]:grid-cols-[1.6fr_1fr]`), Mobile-Sortierung
+(`display:contents` + `order`, Auftrag-037-Reihenfolge) als natives
+`@container (max-width: 767px)` im bestehenden `<style>`-Block (per
+Utilities nicht sinnvoll). Sales-Grid (immer 1fr) bewusst ohne CQ
+(Builder-Ermessen: kein Nutzen). Begründung: Grids hängen von der
+Restbreite neben der Sidebar (260px Desktop / Drawer mobil) ab, nicht
+vom Viewport — Schwellen 1024/768 liefern an 1440/768/375 exakt das
+bisherige Layout (Harness: dashboard alle 3 GLEICH); Zwischenbereich
+bewusst verbessert. `tsc 602`, `build` ok.
+
+### Block C — `Skeleton`-Primitive (`e4d7aca`)
+
+`src/components/ui/Skeleton.tsx` neu (20. Primitive, `cva`
+`text`/`rect`/`circle`, `animate-pulse`, `width`/`height`-Props als
+Laufzeit-Geometrie mit 1 zeilengenauem Disable wie 053-Nachtrag-2,
+`aria-hidden` bzw. `role="status"` bei `label`). Einsatz
+**ergänzend** (Status-Texte bleiben als zugängliche Auskunft):
+`LiveKpiCard` (Wert- + Meta-Platzhalter), `LiveActivityFeed`
+(3 Zeilen), `StreamingAreaChart` (Fläche 180px). `ManagementChartState`
+unangetastet. `/design-system`: `Skeleton`-Sektion + `Theme (Welle 1,
+vorläufig)`-Testfläche (eigener Demo-Toggle ohne Persistenz; der
+persistente sitzt im Header). `tsc 602`, `build` ok.
+
+### Block D — Welle-1-Migration, 22/22 Dateien (`236c9b5`)
+
+Alle 22 migriert (442+/1537−): `layout/` (Header, Layout, Sidebar,
+SimulationBar), `liveKpi/` (6), `executiveCockpit/` (6), `ai/`
+(Drawer), `facelift/` (3), `app/` (App, NotFoundPage). Regeln:
+`var(--x)` → `[var(--x)]`-Arbitrary (token-treu, theme-sicher),
+px-Literale → Skala exakt oder `[Xpx]`; `borderRadius`-Tokens sind in
+der Config auf `rounded-*` gemappt (`rounded-md` = 8px etc. —
+verifiziert, kein Fehlmapping). Laufzeit-Reste mit Disable: 1×
+`PipelineSnapshot`-Balkenbreite (Daten). Passthroughs (Custom, kein
+DOM-Prop): Badge/Card (8×), MetricToken, DiagramCanvas (2× +
+aspectRatio-Laufzeit), FaceliftGlyph, SimulationBar-Button
+(kein `className`-Prop am Button). `CockpitPanel`-`style`-Spread
+**entfernt** (0 Aufrufer per Suche — wie shadcn-Präzedenz G38).
+`Card` hat kein `className`-Prop (würde cva via `...rest`
+überschreiben) → Layout per umhüllendem Div (keine Kinder-Selektoren
+auf `.live-performance-panel`, per Grep bestätigt).
+Hover-`onMouseEnter`-Inline-Manipulationen in Sidebar durch
+Klassen-Hover ersetzt (gleiche Werte). `...style`-Mischungen aufgelöst
+(eigene Anteile → Klassen, nur Passthrough bleibt).
+ESLint-Scope auf Welle-1-Verzeichnisse erweitert (Entscheidung 5).
+`INLINE_STYLE_BASELINE` **94 → 81** (nicht 72 — ehrlich gemessen:
+13 Dateien vollständig raus, 9 bleiben mit dokumentierten Resten
+drin: 8× reine Custom-Passthroughs, 1× Laufzeit-Geometrie; die
+Dateizählung erfasst sie weiter. 72 wäre dauerhaft rot gewesen).
+
+### Screenshot-Nachweis (nur Skript-Kennzahlen, kein Bild geöffnet)
+
+Harness Baseline `401c9f7` (Worktree, Symlink-Deps) vs. `236c9b5`:
+**14/15 byte-identisch**; einzig `crm-leads-768` weicht minimal ab
+(BBox 485×455 AA-Teppich, maxDelta 21/255, nur 2 starke Pixel —
+kein sichtbarer Unterschied). Matrix:
+`docs/screenshots/auftrag-054/README.md` (30 Paare + 5
+`/design-system`-Captures mit Skeleton-/Theme-Sektionen,
+DOM-verifiziert: 22 `h2`-Titel). Light-Theme: keine Baseline
+(erwartet, Entscheidung 7). FullPage-Artefakt ehrlich vermerkt:
+Header-Toggle im Full-Page-Capture nicht sichtbar (Stitching bei
+`100vh`-Layout) — dafür DOM-Nachweis (siehe Block A).
+
+### Schutzbereich
+
+`git diff 401c9f7 -- src/simulation src/types src/context
+src/services/data src/features/resources src/store src/features` →
+**leer (Exit 0)**. `git diff --check` → 0. Kein Consumer außerhalb
+der Welle angefasst (nur `features/**`-Nutzer von
+MetricToken/FaceliftGlyph bleiben unverändert nutzbar).
+
+### Command-Matrix (final selbst gemessen)
+
+| Check | Ergebnis |
+|---|---|
+| `npx tsc --noEmit` | **602** (= Baseline) |
+| `npm run lint` | **19 Errors, 3 Warnings** (= Baseline) |
+| `npm run verify` | **24/24** |
+| `npm test` | **36 Dateien / 140 Tests** |
+| `npm run build` | **Exit 0** |
+| `npx playwright test` | **138/153** (15 stale `toHaveScreenshot`-Failures, s. u.) |
+| `grep -rl "style={{" src \| grep -v ui/ \| wc -l` | **81** (= neue Ratsche) |
+| Schutz-Diff | **leer** |
+
+Playwright ehrlich: Committed Snapshots vs. **frische**
+Baseline-Captures weichen massiv ab (finance-1440: 237900 starke
+Pixel, maxDelta 253/255) — Suite für diese Routen stale (G38: 9
+Failures, jetzt 15 — Drift der stale-Suite, keine 054-Regression;
+Harness oben ist der belastbare Nachweis). Kein `--update-snapshots`,
+`git status e2e/` sauber.
+
+---
+
+## 2026-09-12 — Gate G38 / Auftrag 053: Review-Abschluss (Freigabe mit einem P3-Nachtrag)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Geprüfter Endstand:** `401c9f7`, Baseline `6e8d4cf`.
+
+### Ablauf
+
+Zwischenstand während der Bauphase begleitet (inkl. Sicherungs-Commit
+`38fc4b8`, als OpenCodes Session an einem Provider-Bildlimit abbrach —
+nichts verloren). Finale Prüfung in zwei isolierten `git worktree`-
+Checkouts: `401c9f7` (Endstand) und zusätzlich `6e8d4cf` (Baseline),
+um die Playwright-Abweichung ursächlich zu klären.
+
+### Ergebnis — alle Angaben unabhängig nachvollzogen
+
+| Check | Ergebnis |
+|---|---|
+| `tsc --noEmit` | 602 (= Baseline) |
+| `npm run lint` | 19 Errors, 3 Warnings (trotz neuer Regel keine Regression) |
+| `npm run verify` | 24/24 |
+| `npm test` | 36 Dateien / 140 Tests |
+| `npm run build` | Exit 0 |
+| `npx playwright test` | **144/153**, dieselben 9 Failures **auch bei Baseline `6e8d4cf` reproduziert** — bestätigt stale/umgebungsbedingt, keine 053-Regression |
+| Diff-Scope (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`, `src/store`, `src/features`, `src/components/executiveCockpit`, `src/components/layout`) | leer |
+| `INLINE_STYLE_BASELINE: 94` | exakt nachgerechnet (`grep -rl "style={{" src | grep -v ui/`) |
+| Export-Symbole aller 19 Primitives vs. Baseline | 0 Diff |
+| Token-Brücke (23 fehlende Tokens) | vollständig, kategoriegerecht, `--color-surface-glass-raised` korrekt als tot entfernt; `surface`/`border-gray`/`gray-muted` korrekt als bereits über Alias erreichbare Rohwerte nicht separat gebrückt |
+
+### Playwright-Befund unabhängig verifiziert
+
+Die 9 `toHaveScreenshot`-Failures wurden **zusätzlich selbst bei `6e8d4cf`
+reproduziert** (eigener Baseline-Worktree, nicht nur der Bericht geglaubt)
+— identische 9 Routen/Viewports schlagen dort ebenso fehl. Bestätigt:
+Umgebungsbedingt (Snapshot-Namen sind `-darwin`-spezifisch, vermutlich
+Font-/Browser-Drift auf dieser Maschine seit dem letzten Snapshot-Update),
+nicht durch Auftrag 053 verursacht. Snapshots wurden zu Recht nicht
+angefasst.
+
+### Ein P3-Fund: undokumentierte API-Verengung bei 5 Primitives
+
+Der Bericht dokumentiert `style`-Entfernung nur für `Input` (per `Omit`).
+Eigener Props-Interface-Vergleich (nicht nur Export-Symbole, die das nicht
+erfassen) zeigt: **`Checkbox`, `Icon`, `NumberStepper`, `Select`,
+`StatusChip`, `Toolbar` hatten ebenfalls ein `style?: React.CSSProperties`**
+im öffentlichen Interface, das jetzt fehlt — ohne Erwähnung im Bericht.
+Empirisch geprüft (Skript, kein Konsument im Repo übergibt `style=` an
+eines der sechs Tags): **funktional folgenlos**, keine Regression, `tsc`
+bestätigt 0 neue Fehler. Aber: verstößt gegen die eigene Auftrags-Auflage
+„Props-Diff = 0" und wurde — anders als bei Badge/Card/Button — nicht als
+bewusste Entscheidung festgehalten. Ursache nachvollziehbar: der
+Export-Symbol-Vergleich des Builders prüft nur Namen, keine
+Interface-Mitglieder, hätte das also so oder so nicht gefangen.
+Kein Blocker — Nachtrag im Bericht (Zeile „Primitives-Migration") wäre
+für die Vollständigkeit sauberer gewesen.
+
+### Fazit
+
+**Gate G38 vollständig abgeschlossen und freigegeben.** Kein Merge, Tag,
+Push. Nächster Schritt: Auftrag 054–057 (Gate G39, Styling-Migration in
+vier Wellen) — dort ist `/design-system` die wichtigste Vergleichsfläche
+(zeigt Modal-/Interaktionszustände, die reine Routen-Screenshots nicht
+abdecken; genau dort waren die vier toten Klassen aus B/C versteckt).
+
+---
+
 ## 2026-09-12 — Gate G38 / Auftrag 053: Design-System-Fundament
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
