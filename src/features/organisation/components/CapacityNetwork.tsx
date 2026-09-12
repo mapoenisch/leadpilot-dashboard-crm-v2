@@ -66,20 +66,8 @@ export const CapacityNetwork: React.FC = () => {
 
   return (
     <section
-      className="facelift-capacity-network"
+      className="facelift-capacity-network box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="Kapazitätsnetz und Rollenübersicht"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .network-nodes-grid {
@@ -98,70 +86,37 @@ export const CapacityNetwork: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
-            KAPAZITÄTSNETZ
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.05em] uppercase px-[8px] py-[2px]">
+            KAPAZITÄTSNETZWERK
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Rollenübersicht – keine dokumentierten Prozessübergaben
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 font-display font-bold text-text text-[clamp(1.1rem,4vw,1.25rem)] [overflow-wrap:anywhere]">
           Kapazitätsnetz der Organisation & Engpass-Topografie
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
           Rein visuelle Anordnung der Funktionsbereiche. Keine dokumentierten Beziehungen oder Prozessübergaben.
         </p>
       </div>
 
       {/* Visuelles 2D-Netzwerk (SVG) */}
-      <div
-        style={{
-          width: '100%',
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-          borderRadius: 'var(--radius-md, 8px)',
-          border: '1px solid var(--color-border)',
-          padding: '12px 8px',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', padding: '0 8px', flexWrap: 'wrap', gap: '4px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase' }}>
+      <div className="w-full rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] box-border px-[8px] py-[12px]">
+        <div className="flex justify-between items-center flex-wrap gap-[4px] mb-[8px] px-[8px]">
+          <span className="text-[11px] font-bold uppercase text-primary">
             ORGANISATIONSNETZWERK & ENGPASSSTELLEN
           </span>
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[11px] text-[var(--color-text-muted)]">
             Rollenübersicht – keine dokumentierten Prozessübergaben
           </span>
         </div>
 
         <svg
           viewBox="0 0 500 330"
-          style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '310px' }}
+          className="block w-full h-auto max-h-[310px]"
           role="img"
           aria-label="Diagramm: Kapazitätsnetzwerk der Rollen mit Engpässen"
         >
@@ -270,36 +225,16 @@ export const CapacityNetwork: React.FC = () => {
           return (
             <article
               key={node.roleName}
-              style={{
-                borderRadius: 'var(--radius-md, 8px)',
-                border: isOrange ? '1px solid #FF7A3D' : '1px solid var(--color-border)',
-                borderTop: isOrange ? '4px solid #FF7A3D' : '4px solid #00D9C6',
-                backgroundColor: isOrange
-                  ? 'rgba(255, 122, 61, 0.04)'
-                  : 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-                padding: '14px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                minWidth: 0,
-                boxSizing: 'border-box',
-              }}
+              className={`rounded-[8px] border border-solid flex flex-col gap-[8px] min-w-0 box-border p-[14px] ${isOrange ? 'border-[#FF7A3D] border-t-4 border-t-[#FF7A3D] bg-[rgba(255,122,61,0.04)]' : 'border-border border-t-4 border-t-primary bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))]'}`}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-                <strong style={{ fontSize: '13px', color: 'var(--color-text)' }}>{node.roleName}</strong>
-                <span
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    fontFamily: 'var(--font-mono)',
-                    color: isOrange ? '#FF7A3D' : '#00D9C6',
-                  }}
-                >
+              <div className="flex justify-between items-center flex-wrap gap-[4px]">
+                <strong className="text-[13px] text-text">{node.roleName}</strong>
+                <span className={`font-mono text-[12px] font-bold ${isOrange ? 'text-[#FF7A3D]' : 'text-[#00D9C6]'}`}>
                   {node.fteStr}
                 </span>
               </div>
 
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+              <div className="text-[11px] leading-[1.4] text-[var(--color-text-muted)]">
                 {node.detail}
               </div>
 
@@ -307,16 +242,7 @@ export const CapacityNetwork: React.FC = () => {
               {node.bottlenecks.map((bText, idx) => (
                 <div
                   key={idx}
-                  style={{
-                    marginTop: '4px',
-                    padding: '6px 8px',
-                    borderRadius: '4px',
-                    backgroundColor: 'rgba(255, 122, 61, 0.12)',
-                    border: '1px solid rgba(255, 122, 61, 0.3)',
-                    fontSize: '11px',
-                    color: '#FF7A3D',
-                    lineHeight: 1.35,
-                  }}
+                  className="rounded border border-solid border-[rgba(255,122,61,0.3)] bg-[rgba(255,122,61,0.12)] text-[11px] leading-[1.35] text-[#FF7A3D] mt-[4px] px-[8px] py-[6px]"
                 >
                   {bText}
                 </div>

@@ -6,94 +6,37 @@ export const RoleLegend: React.FC = () => {
 
   return (
     <aside
-      className="facelift-role-legend"
+      className="facelift-role-legend box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-4,16px)] flex flex-col gap-[var(--space-4,16px)] [overflow-wrap:anywhere]"
       aria-label="Rollen-Landkarte und Engpass-Legende"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-4, 16px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-4, 16px)',
-        overflowWrap: 'anywhere',
-      }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-text-muted)',
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid var(--color-border)',
-            }}
-          >
+      <div className="flex items-center justify-between flex-wrap gap-[8px]">
+        <div className="flex items-center gap-[8px]">
+          <span className="inline-flex items-center rounded border border-solid border-border bg-[rgba(255,255,255,0.05)] text-[11px] font-bold tracking-[0.05em] uppercase text-[var(--color-text-muted)] px-[8px] py-[2px]">
             LEGENDE & DETAILS
           </span>
-          <strong style={{ fontSize: '13px', color: 'var(--color-text)' }}>
+          <strong className="text-[13px] text-text">
             Rollen-Landkarte & Engpass-Dokumentation
           </strong>
         </div>
-        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+        <span className="text-[11px] text-[var(--color-text-muted)]">
           Quelle: TEAM.bottlenecks
         </span>
       </div>
 
       {/* Liste der 3 Engpässe und der Maßnahme als Quellentexte */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          minWidth: 0,
-        }}
-      >
+      <div className="flex flex-col gap-[8px] min-w-0">
         {bottlenecks.map((item, idx) => {
           const isMeasure = item.startsWith('Maßnahme:');
 
           return (
             <div
               key={idx}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '10px',
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-md, 8px)',
-                border: isMeasure ? '1px solid rgba(0, 217, 198, 0.3)' : '1px solid rgba(255, 122, 61, 0.3)',
-                backgroundColor: isMeasure ? 'rgba(0, 217, 198, 0.04)' : 'rgba(255, 122, 61, 0.05)',
-                minWidth: 0,
-              }}
+              className={`flex items-start gap-[10px] min-w-0 rounded-md border border-solid px-[12px] py-[10px] ${isMeasure ? 'border-[rgba(0,217,198,0.3)] bg-[rgba(0,217,198,0.04)]' : 'border-[rgba(255,122,61,0.3)] bg-[rgba(255,122,61,0.05)]'}`}
             >
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: isMeasure ? 'var(--color-primary, #00D9C6)' : 'var(--color-accent, #FF7A3D)',
-                  lineHeight: 1.4,
-                  flexShrink: 0,
-                }}
-              >
+              <span className={`text-[12px] font-bold leading-[1.4] shrink-0 ${isMeasure ? 'text-primary' : 'text-accent'}`}>
                 {isMeasure ? '✅' : '⚠️'}
               </span>
-              <span
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--color-text)',
-                  lineHeight: 1.4,
-                  overflowWrap: 'anywhere',
-                }}
-              >
+              <span className="text-[12px] leading-[1.4] text-text [overflow-wrap:anywhere]">
                 {item}
               </span>
             </div>

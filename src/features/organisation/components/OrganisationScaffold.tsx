@@ -41,20 +41,8 @@ export const OrganisationScaffold: React.FC = () => {
 
   return (
     <section
-      className="facelift-organisation-scaffold"
+      className="facelift-organisation-scaffold box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="Organisationsgerüst und Headcount-Entwicklung"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .scaffold-functional-grid {
@@ -80,69 +68,37 @@ export const OrganisationScaffold: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.05em] uppercase whitespace-normal px-[8px] py-[2px]">
             ORGANISATIONSGERÜST
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Zeitreihe {firstQuarter} bis {lastQuarter} & funktionale Bausteine
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 font-display font-bold text-text text-[clamp(1.1rem,4vw,1.25rem)] [overflow-wrap:anywhere]">
           Headcount-Entwicklung & Organisationsgerüst
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
           Personalaufbau von {firstFte} ({firstQuarter}) auf {lastFte} ({lastQuarter}) über {timelineData.length} Quartale. Die Bausteine zeigen die funktionale Kapazitätsverteilung zum Stichtag.
         </p>
       </div>
 
       {/* 1. Teil: Zeitreihe (Quartalsverlauf) */}
-      <div
-        style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-          borderRadius: 'var(--radius-md, 8px)',
-          border: '1px solid var(--color-border)',
-          padding: '12px 8px',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', padding: '0 8px', flexWrap: 'wrap', gap: '4px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase' }}>
+      <div className="rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] box-border px-[8px] py-[12px]">
+        <div className="flex justify-between items-center flex-wrap gap-[4px] mb-[6px] px-[8px]">
+          <span className="text-[11px] font-bold uppercase text-primary">
             ZEITREIHE: QUARTALSVERLAUF (FTE)
           </span>
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+          <span className="font-mono text-[11px] text-[var(--color-text-muted)]">
             {firstQuarter}: {firstFte} ➔ {lastQuarter}: {lastFte}
           </span>
         </div>
 
         <svg
           viewBox={`0 0 ${svgW} ${svgH}`}
-          style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '160px' }}
+          className="block w-full h-auto max-h-[160px]"
           role="img"
           aria-label="Diagramm: Quartalsweise FTE-Entwicklung"
         >
@@ -214,8 +170,8 @@ export const OrganisationScaffold: React.FC = () => {
 
       {/* 2. Teil: Wachsende Organisationsbausteine (Scaffold) je Funktion */}
       <div>
-        <div style={{ marginBottom: '10px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+        <div className="mb-[10px]">
+          <span className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">
             FUNKTIONALE KAPAZITÄTSBAUSTEINE (FTE ZUM STICHTAG)
           </span>
         </div>
@@ -232,67 +188,43 @@ export const OrganisationScaffold: React.FC = () => {
             return (
               <article
                 key={role}
-                className="scaffold-card"
+                className={`scaffold-card rounded-md border border-solid flex flex-col justify-between min-w-0 box-border p-[12px] ${isHighlight ? 'border-[rgba(255,122,61,0.4)] bg-[rgba(255,122,61,0.04)]' : 'border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))]'}`}
+                // G39 Welle 3: Kartenhöhe aus FTE-Daten (berechnet) — als
+                // Klasse nicht darstellbar (Entscheidung 2).
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (FTE-proportionale Höhe), siehe Auftrag 056 Entscheidung 2
                 style={{
-                  borderRadius: 'var(--radius-md, 8px)',
-                  border: isHighlight ? '1px solid rgba(255, 122, 61, 0.4)' : '1px solid var(--color-border)',
-                  backgroundColor: isHighlight
-                    ? 'rgba(255, 122, 61, 0.04)'
-                    : 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-                  padding: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
                   minHeight: `${blockHeight}px`,
-                  minWidth: 0,
-                  boxSizing: 'border-box',
                 }}
               >
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px', flexWrap: 'wrap' }}>
-                    <strong style={{ fontSize: '13px', color: 'var(--color-text)', overflowWrap: 'anywhere' }}>
+                  <div className="flex justify-between items-start gap-[6px] flex-wrap">
+                    <strong className="text-[13px] text-text [overflow-wrap:anywhere]">
                       {role}
                     </strong>
-                    <span
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        fontFamily: 'var(--font-mono)',
-                        color: isHighlight ? 'var(--color-accent, #FF7A3D)' : 'var(--color-primary, #00D9C6)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <span className={`font-mono text-[13px] font-bold whitespace-nowrap ${isHighlight ? 'text-accent' : 'text-primary'}`}>
                       {fteStr}
                     </span>
                   </div>
                 </div>
 
-                <div style={{ marginTop: '8px' }}>
+                <div className="mt-[8px]">
                   {/* Visuelle Stufenblöcke (1 Block je 0,5–1 FTE) */}
-                  <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                  <div className="flex gap-[4px] mb-[8px] flex-wrap">
                     {Array.from({ length: Math.round(fteNum) }).map((_, bIdx) => (
                       <div
                         key={bIdx}
+                        className={`flex-[1_1_12px] h-[8px] rounded-[2px] ${isHighlight ? 'bg-accent' : 'bg-primary'}`}
+                        // G39 Welle 3: Verlauf-Transparenz aus Blockindex
+                        // (berechnet) — als Klasse nicht darstellbar.
+                        // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Wert (berechnete Opacity), siehe Auftrag 056 Entscheidung 2
                         style={{
-                          flex: '1 1 12px',
-                          height: '8px',
-                          borderRadius: '2px',
-                          backgroundColor: isHighlight ? 'var(--color-accent, #FF7A3D)' : 'var(--color-primary, #00D9C6)',
                           opacity: 0.35 + (bIdx + 1) * 0.15,
                         }}
                       />
                     ))}
                   </div>
 
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: '11px',
-                      color: 'var(--color-text-muted)',
-                      lineHeight: 1.4,
-                      overflowWrap: 'anywhere',
-                    }}
-                  >
+                  <p className="m-0 text-[11px] leading-[1.4] text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                     {detail}
                   </p>
                 </div>
@@ -304,37 +236,14 @@ export const OrganisationScaffold: React.FC = () => {
 
       {/* Gesamtbestand & Ziel-Notiz aus totalRow */}
       {totalRow && (
-        <div
-          style={{
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid var(--color-border)',
-            backgroundColor: 'rgba(0, 217, 198, 0.04)',
-            padding: '12px 16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '8px',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <strong style={{ fontSize: '13px', color: 'var(--color-text)' }}>{totalRow[0]}</strong>
-            <span
-              style={{
-                padding: '2px 8px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: 700,
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--color-primary)',
-                backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              }}
-            >
+        <div className="rounded-md border border-solid border-border bg-[rgba(0,217,198,0.04)] flex justify-between items-center flex-wrap gap-[8px] min-w-0 px-[16px] py-[12px]">
+          <div className="flex items-center gap-[10px] flex-wrap">
+            <strong className="text-[13px] text-text">{totalRow[0]}</strong>
+            <span className="font-mono text-[12px] font-bold rounded bg-[rgba(0,217,198,0.12)] text-primary px-[8px] py-[2px]">
               {totalRow[1]}
             </span>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+          <div className="font-mono text-[12px] text-[var(--color-text-muted)]">
             {totalRow[2]}
           </div>
         </div>

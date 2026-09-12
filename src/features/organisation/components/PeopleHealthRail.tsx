@@ -8,20 +8,8 @@ export const PeopleHealthRail: React.FC = () => {
 
   return (
     <section
-      className="facelift-people-health-rail"
+      className="facelift-people-health-rail box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="People-Health Kennzahlenleiste"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .health-rail-grid {
@@ -41,43 +29,19 @@ export const PeopleHealthRail: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center rounded border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.12)] text-primary text-[11px] font-bold tracking-[0.05em] uppercase whitespace-normal px-[8px] py-[2px]">
             PEOPLE HEALTH
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Organisations- & Personalkennzahlen im Überblick
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 font-display font-bold text-text text-[clamp(1.1rem,4vw,1.25rem)] [overflow-wrap:anywhere]">
           People-Health-Leiste & Kennzahlenprofil
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
           Übersicht der zentralen personalwirtschaftlichen Messgrößen{dateText}.
         </p>
       </div>
@@ -86,21 +50,9 @@ export const PeopleHealthRail: React.FC = () => {
       <div
         role="note"
         aria-label="Neutralitätshinweis"
-        style={{
-          borderRadius: 'var(--radius-md, 8px)',
-          border: '1px solid var(--color-border)',
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-          padding: '10px 14px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          fontSize: '12px',
-          color: 'var(--color-text-muted)',
-          lineHeight: 1.4,
-          flexWrap: 'wrap',
-        }}
+        className="rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] flex items-center gap-[10px] flex-wrap text-[12px] leading-[1.4] text-[var(--color-text-muted)] px-[14px] py-[10px]"
       >
-        <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>ℹ️ Hinweis:</span>
+        <span className="font-bold text-text">ℹ️ Hinweis:</span>
         <span>Kennzahlen im Überblick; keine nachgewiesenen Wirkzusammenhänge.</span>
       </div>
 
@@ -113,50 +65,13 @@ export const PeopleHealthRail: React.FC = () => {
           return (
             <article
               key={m.label}
-              style={{
-                borderRadius: 'var(--radius-md, 8px)',
-                border: '1px solid var(--color-border)',
-                borderLeft: isFluktuation
-                  ? '4px solid var(--color-warning, #FFB800)'
-                  : isAufwand
-                  ? '4px solid var(--color-primary, #00D9C6)'
-                  : '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-                padding: '14px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                gap: '8px',
-                minWidth: 0,
-                boxSizing: 'border-box',
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-              }}
+              className={`rounded-md border border-solid border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] flex flex-col justify-between gap-[8px] min-w-0 box-border [overflow-wrap:anywhere] break-words p-[14px] ${isFluktuation ? 'border-l-4 border-l-[var(--color-warning,#FFB800)]' : isAufwand ? 'border-l-4 border-l-[var(--color-primary,#00D9C6)]' : ''}`}
             >
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: 'var(--color-text-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  overflowWrap: 'anywhere',
-                }}
-              >
+              <span className="text-[11px] font-semibold uppercase tracking-[0.04em] [overflow-wrap:anywhere] text-[var(--color-text-muted)]">
                 {m.label}
               </span>
 
-              <div
-                style={{
-                  fontSize: 'clamp(15px, 3.5vw, 18px)',
-                  fontWeight: 700,
-                  fontFamily: 'var(--font-display)',
-                  color: 'var(--color-text)',
-                  lineHeight: 1.35,
-                  overflowWrap: 'anywhere',
-                  wordBreak: 'break-word',
-                }}
-              >
+              <div className="font-display font-bold text-text leading-[1.35] [overflow-wrap:anywhere] break-words text-[clamp(15px,3.5vw,18px)]">
                 {m.val}
               </div>
             </article>
