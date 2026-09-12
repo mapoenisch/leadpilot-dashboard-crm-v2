@@ -2,6 +2,40 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Nacharbeit 2 Mobile-Header-Umbruch (Prüfer-Befund)
+
+**Rolle:** Builder (OpenCode) · **Befund:** Review zu `fa1b24a` —
+systematisches Muster: Routen mit vorher einzeiligem Mobile-Header
+(`dashboard`, `crm/leads`) brechen durch den Toggle-Button neu auf
+zwei Zeilen um (Header 56→79 px, Seite rutscht ~23 px); Routen mit
+sowieso zweizeiligem Header (lange Titel) unverändert. Echte
+Mobile-UX-Verschlechterung, kein Artefakt — bestätigt per DOM-Messung
+(375 px: dashboard/crm-leads 79 px, deals/swot/hr 56 px,
+finance 79 px wie Baseline).
+
+### Fix (`Header.tsx`, nur Mobile-`<style>`-Block)
+
+`.header-user-details` (Name + Rolle) schon bei **≤ 480 px**
+ausblenden statt erst ≤ 340 px — nur Avatar-Kreis bleibt (gäniges
+responsives Muster). Die alte 340px-Regel ist darin aufgegangen
+(entfernt). Desktop/Tablet unberührt (Media-Query). Trade-off
+dokumentiert: Nutzername mobil erst nach Toggle-Einführung
+verschwunden — bewusste Abwägung zugunsten einzeiliger Header.
+
+### Verifikation danach
+
+375 px Header-Höhen (DOM, je Route): dashboard/crm-leads/crm-deals/
+swot/hr/okrs **56 px**, finance 79 px (= Baseline) —
+vorher-einzeilige bleiben einzeilig (Stichproben über kurze Titel
+aus `routes.tsx`); 768/1440 unverändert 56 px. Harness-Neumessung:
+375er-Diffs 13–20 % → **0,6 %** (nur Profil + Toggle, kein Shift),
+Sidebar weiter 0,0 %. `tsc` 602, `lint` 19/3. Snapshots: nur die 5
+`mobile-375`-PNGs neu (`--update-snapshots`, Folge des beauftragten
+Fixes) → **`npx playwright test` 153/153**. Matrix-README und
+After-/Baseline-Paare aktualisiert.
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Nacharbeit Sidebar-Regression (Prüfer-Befund)
 
 **Rolle:** Builder (OpenCode) · **Befund:** Review zu `236c9b5`/`e525f4a`

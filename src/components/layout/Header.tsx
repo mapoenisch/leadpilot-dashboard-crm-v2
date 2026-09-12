@@ -88,11 +88,10 @@ export function Header({
           .app-header {
             padding: 0 8px !important;
           }
-          .header-user-role {
-            display: none !important;
-          }
-        }
-        @media (max-width: 340px) {
+          /* Zweite Nacharbeit 054: Nutzername (nicht nur Rolle) ausblenden —
+             nur Avatar-Kreis bleibt (gängiges responsives Muster). Schafft
+             Platz für den Theme-Toggle, ohne dass vorher einzeilige Header
+             neu umbrechen. Die alte 340px-Regel ist darin aufgegangen. */
           .header-user-details {
             display: none !important;
           }
