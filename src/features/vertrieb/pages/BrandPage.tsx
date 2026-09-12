@@ -6,13 +6,13 @@ import { BRAND } from '@/domain/vertriebData';
 
 export function BrandPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Vertrieb & Marketing" title="Brand & Digital Presence" description="Reichweite und Bewertungen." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-4)' }}>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-[var(--space-4)]">
         {BRAND.metrics.map((m) => (
           <Card key={m.label}>
-            <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{m.label}</div>
-            <div style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', marginTop: '4px' }}>{m.val}</div>
+            <div className="text-[12px] text-[var(--color-text-muted)]">{m.label}</div>
+            <div className="text-[24px] font-bold font-display text-primary mt-[4px]">{m.val}</div>
           </Card>
         ))}
       </div>

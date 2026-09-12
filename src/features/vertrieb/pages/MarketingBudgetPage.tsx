@@ -7,7 +7,7 @@ import { MBUDGET } from '@/domain/vertriebData';
 
 export function MarketingBudgetPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Vertrieb & Marketing" title="Marketing-Budget & ROI" description="Soll/Ist Budget-Vergleich." />
       <ChartFrame
         title="Budget vs. Ist nach Kanal (€)"

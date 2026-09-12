@@ -6,13 +6,13 @@ import { KAMPAGNE } from '@/domain/vertriebData';
 
 export function CampaignPlanningPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="flex flex-col gap-[var(--space-6)]">
       <SectionHeader eyebrow="Vertrieb & Marketing" title={KAMPAGNE.title} description={KAMPAGNE.summary} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-4)' }}>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[var(--space-4)]">
         {KAMPAGNE.kpis.map((k) => (
           <Card key={k.label}>
-            <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{k.label}</div>
-            <div style={{ fontSize: '26px', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', marginTop: '4px' }}>{k.val}</div>
+            <div className="text-[12px] text-[var(--color-text-muted)]">{k.label}</div>
+            <div className="text-[26px] font-bold font-display text-primary mt-[4px]">{k.val}</div>
           </Card>
         ))}
       </div>

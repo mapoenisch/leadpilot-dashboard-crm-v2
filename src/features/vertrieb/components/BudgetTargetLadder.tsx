@@ -77,20 +77,8 @@ export const BudgetTargetLadder: React.FC = () => {
 
   return (
     <section
-      className="facelift-budget-target-ladder"
+      className="facelift-budget-target-ladder w-full box-border rounded-[var(--radius-lg,12px)] border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="Budget-zu-Ziel-Leiter"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .ladder-grid {
@@ -112,43 +100,19 @@ export const BudgetTargetLadder: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center px-[8px] py-[2px] rounded-[4px] text-[11px] font-bold tracking-[0.05em] uppercase text-primary bg-[rgba(0,217,198,0.12)] border border-solid border-[rgba(0,217,198,0.25)] whitespace-normal">
             BUDGET-ZU-ZIEL-LEITER
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Prüfbare Kette: Budget ➔ MQL ➔ SQL ➔ Neukunden
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 text-[clamp(1.1rem,4vw,1.25rem)] font-bold text-text font-display [overflow-wrap:anywhere]">
           Wachstumspfad: Mitteleinsatz bis Neukundenabschluss
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
           Durchgängige Nachverfolgung der Zielkette vom Marketing-Spend über qualifizierte Kontakte bis zum Neukundenwachstum auf {targetCustomersMo} Abschlüsse/Monat im Januar 2027.
         </p>
       </div>
@@ -158,135 +122,66 @@ export const BudgetTargetLadder: React.FC = () => {
         {rungs.map((rung) => (
           <article
             key={rung.step}
-            style={{
-              borderRadius: 'var(--radius-md, 8px)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              position: 'relative',
-              minWidth: 0,
-            }}
+            className="rounded-[var(--radius-md,8px)] border border-solid border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[12px] relative min-w-0"
           >
             {/* Sprossen-Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: 'var(--color-primary)',
-                  letterSpacing: '0.04em',
-                }}
-              >
+            <div className="flex justify-between items-center flex-wrap gap-[4px]">
+              <span className="text-[11px] font-bold text-primary tracking-[0.04em]">
                 SPROSSE {rung.step} VON 4
               </span>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  color: 'var(--color-text-muted)',
-                  textTransform: 'uppercase',
-                }}
-              >
+              <span className="text-[10px] font-semibold px-[6px] py-[2px] rounded-[4px] bg-[rgba(255,255,255,0.06)] text-[var(--color-text-muted)] uppercase">
                 {rung.badge}
               </span>
             </div>
 
             <div>
-              <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--color-text)', fontWeight: 700 }}>
+              <h4 className="m-0 text-[14px] text-text font-bold">
                 {rung.title}
               </h4>
             </div>
 
             {/* Ist 2025 Block */}
-            <div
-              style={{
-                padding: '10px 12px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--color-border)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-                minWidth: 0,
-              }}
-            >
-              <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+            <div className="px-[12px] py-[10px] rounded-[6px] bg-[rgba(255,255,255,0.03)] border border-solid border-border flex flex-col gap-[2px] min-w-0">
+              <span className="text-[10px] text-[var(--color-text-muted)] uppercase font-semibold">
                 Ist FY 2025
               </span>
-              <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text)' }}>
+              <span className="text-[15px] font-bold text-text">
                 {rung.metricCurrent}
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              <span className="text-[11px] text-[var(--color-text-muted)]">
                 {rung.metricCurrentSub}
               </span>
             </div>
 
             {/* Ziel Jan. 2027 Block */}
-            <div
-              style={{
-                padding: '10px 12px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(0, 217, 198, 0.06)',
-                border: '1px solid rgba(0, 217, 198, 0.25)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-                minWidth: 0,
-              }}
-            >
-              <span style={{ fontSize: '10px', color: 'var(--color-primary)', textTransform: 'uppercase', fontWeight: 600 }}>
+            <div className="px-[12px] py-[10px] rounded-[6px] bg-[rgba(0,217,198,0.06)] border border-solid border-[rgba(0,217,198,0.25)] flex flex-col gap-[2px] min-w-0">
+              <span className="text-[10px] text-primary uppercase font-semibold">
                 Zielplanung Jan. 2027
               </span>
-              <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-primary)' }}>
+              <span className="text-[15px] font-bold text-primary">
                 {rung.metricTarget}
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              <span className="text-[11px] text-[var(--color-text-muted)]">
                 {rung.metricTargetSub}
               </span>
             </div>
 
             {/* Conversion / Kriterium */}
-            <div
-              style={{
-                marginTop: 'auto',
-                paddingTop: '10px',
-                borderTop: '1px solid var(--color-border)',
-                fontSize: '11px',
-                color: 'var(--color-text-muted)',
-                lineHeight: 1.4,
-              }}
-            >
-              <strong style={{ color: 'var(--color-text)' }}>Verknüpfung:</strong> {rung.conversionOrRule}
+            <div className="mt-auto pt-[10px] border-t border-solid border-border text-[11px] text-[var(--color-text-muted)] leading-[1.4]">
+              <strong className="text-text">Verknüpfung:</strong> {rung.conversionOrRule}
             </div>
           </article>
         ))}
       </div>
 
       {/* Parallele Testversionen-/Self-Service-Notiz (außerhalb der linearen Kette) */}
-      <div
-        style={{
-          padding: '12px 14px',
-          borderRadius: 'var(--radius-md, 8px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '10px',
-          minWidth: 0,
-        }}
-      >
-        <span style={{ fontSize: '16px' }}>ℹ️</span>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
-          <strong style={{ fontSize: '12px', color: 'var(--color-text)' }}>
+      <div className="px-[14px] py-[12px] rounded-[var(--radius-md,8px)] border border-solid border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] flex items-start gap-[10px] min-w-0">
+        <span className="text-[16px]">ℹ️</span>
+        <div className="flex flex-col gap-[3px] min-w-0">
+          <strong className="text-[12px] text-text">
             Parallele Testversionen (Self-Service)
           </strong>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+          <span className="text-[12px] text-[var(--color-text-muted)] leading-[1.4]">
             Im FY 2025 wurden {testsRow[5]} Testversionen gestartet (Ø {testsRow[6]} / Monat, {testsRow[7]}). Da dieser Wert parallel zum vertrieblichen Qualifizierungspfad ({sqlRow[5]} SQL) verläuft und Self-Service-Nutzer einschließt, wird er als flankierender Zufluss geführt und nicht als serielle Stufe zwischen SQL und Angeboten eingeordnet.
           </span>
         </div>

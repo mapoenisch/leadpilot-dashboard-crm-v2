@@ -70,20 +70,8 @@ export const FunnelLeakageWaterfall: React.FC = () => {
 
   return (
     <section
-      className="facelift-funnel-waterfall"
+      className="facelift-funnel-waterfall w-full box-border rounded-[var(--radius-lg,12px)] border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="Funnel-Leckage-Wasserfall"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .waterfall-grid {
@@ -113,43 +101,19 @@ export const FunnelLeakageWaterfall: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center px-[8px] py-[2px] rounded-[4px] text-[11px] font-bold tracking-[0.05em] uppercase text-primary bg-[rgba(0,217,198,0.12)] border border-solid border-[rgba(0,217,198,0.25)] whitespace-normal">
             FUNNEL-LECKAGE-WASSERFALL
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Rechnerischer Stufenverlust & verbleibendes Potenzial
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 text-[clamp(1.1rem,4vw,1.25rem)] font-bold text-text font-display [overflow-wrap:anywhere]">
           Konvertierungskaskade FY 2025
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
           Stufenweiser Übergang von {leadsRow[5]} erfassten Leads bis zu den {wonRow[5]} gewonnenen Neukunden.
           Rechnerischer Gesamtverlust: −{totalLoss.toLocaleString('de-DE')} Leads über alle Stufen.
         </p>
@@ -164,121 +128,66 @@ export const FunnelLeakageWaterfall: React.FC = () => {
           return (
             <article
               key={stage.id}
-              style={{
-                borderRadius: 'var(--radius-md, 8px)',
-                border: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-                padding: '12px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                position: 'relative',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-              }}
+              className="rounded-[var(--radius-md,8px)] border border-solid border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[12px] flex flex-col gap-[12px] relative min-w-0 [overflow-wrap:anywhere]"
             >
               {/* Stufen-Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    color: 'var(--color-text-muted)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                  }}
-                >
+              <div className="flex justify-between items-start gap-[8px] flex-wrap">
+                <span className="text-[11px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.04em]">
                   Stufe {idx + 1} ➔ {idx + 2}
                 </span>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    backgroundColor: 'rgba(0, 217, 198, 0.12)',
-                    color: 'var(--color-primary)',
-                  }}
-                >
+                <span className="text-[11px] font-semibold px-[6px] py-[1px] rounded-[4px] bg-[rgba(0,217,198,0.12)] text-primary">
                   {stage.conversionPercent.toFixed(1)} % Verbleib
                 </span>
               </div>
 
               <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)' }}>
+                <div className="text-[13px] font-bold text-text">
                   {stage.name}
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-primary)', marginTop: '2px' }}>
+                <div className="text-[18px] font-extrabold text-primary mt-[2px]">
                   {stage.startCount.toLocaleString('de-DE')}
                 </div>
               </div>
 
               {/* Visuelle Leckage-Leiste */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div className="flex flex-col gap-[6px]">
                 <div
-                  style={{
-                    display: 'flex',
-                    height: '10px',
-                    width: '100%',
-                    borderRadius: '5px',
-                    overflow: 'hidden',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  }}
+                  className="flex h-[10px] w-full rounded-[5px] overflow-hidden bg-[rgba(255,255,255,0.05)]"
                   title={`Verbleib: ${remainingWidth}, Verlust: ${lossWidth}`}
                 >
                   <div
-                    style={{
-                      width: remainingWidth,
-                      backgroundColor: 'var(--color-primary)',
-                      height: '100%',
-                    }}
+                    className="h-full bg-primary"
+                    // G39 Welle 4: Segmentbreite aus Funnel-Daten berechnet —
+                    // als Klasse nicht darstellbar (Entscheidung 2).
+                    // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Stufen-Prozente aus Funnel-Daten), siehe Auftrag 057 Entscheidung 2
+                    style={{ width: remainingWidth }}
                   />
                   <div
-                    style={{
-                      width: lossWidth,
-                      backgroundColor: 'var(--color-accent, #FF7A3D)',
-                      height: '100%',
-                      opacity: 0.8,
-                    }}
+                    className="h-full bg-accent opacity-80"
+                    // G39 Welle 4: Segmentbreite aus Funnel-Daten berechnet —
+                    // als Klasse nicht darstellbar (Entscheidung 2).
+                    // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Stufen-Prozente aus Funnel-Daten), siehe Auftrag 057 Entscheidung 2
+                    style={{ width: lossWidth }}
                   />
                 </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '2px',
-                    fontSize: '11px',
-                    color: 'var(--color-text-muted)',
-                  }}
-                >
-                  <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                <div className="flex flex-col gap-[2px] text-[11px] text-[var(--color-text-muted)]">
+                  <span className="text-primary font-semibold">
                     {stage.remainingCount.toLocaleString('de-DE')} weiter ({remainingWidth})
                   </span>
-                  <span style={{ color: 'var(--color-accent, #FF7A3D)', fontWeight: 600 }}>
+                  <span className="text-accent font-semibold">
                     −{stage.lossCount.toLocaleString('de-DE')} Verlust ({lossWidth})
                   </span>
                 </div>
               </div>
 
               {/* Übergangsziel & Quellconversion */}
-              <div
-                style={{
-                  marginTop: 'auto',
-                  paddingTop: '8px',
-                  borderTop: '1px solid var(--color-border)',
-                  fontSize: '11px',
-                  color: 'var(--color-text-muted)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                }}
-              >
+              <div className="mt-auto pt-[8px] border-t border-solid border-border text-[11px] text-[var(--color-text-muted)] flex flex-col gap-[4px]">
                 <div>
-                  <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>➔ </span>
-                  <span>Ziel: <strong style={{ color: 'var(--color-text)' }}>{stage.nextStageName}</strong></span>
+                  <span className="text-primary font-bold">➔ </span>
+                  <span>Ziel: <strong className="text-text">{stage.nextStageName}</strong></span>
                 </div>
                 {stage.sourceConversion && stage.sourceConversion !== '—' && (
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                  <div className="text-[10px] text-[var(--color-text-muted)]">
                     Quelle: {stage.sourceConversion}
                   </div>
                 )}
@@ -290,99 +199,54 @@ export const FunnelLeakageWaterfall: React.FC = () => {
 
       {/* Zusammenfassung & Summenabgleich */}
       <div className="waterfall-summary-grid">
-        <div
-          style={{
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid var(--color-border)',
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+        <div className="px-[14px] py-[12px] rounded-[var(--radius-md,8px)] border border-solid border-border bg-[rgba(255,255,255,0.02)] min-w-0">
+          <div className="text-[11px] text-[var(--color-text-muted)] uppercase">
             Ausgangsbasis Leads
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', marginTop: '2px' }}>
+          <div className="text-[18px] font-bold text-text mt-[2px]">
             {leadsRow[5]} Leads
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+          <div className="text-[12px] text-[var(--color-text-muted)] mt-[2px]">
             Ø {leadsRow[6]} Leads / Monat (FY 2025)
           </div>
         </div>
 
-        <div
-          style={{
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid rgba(255, 122, 61, 0.25)',
-            backgroundColor: 'rgba(255, 122, 61, 0.06)',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ fontSize: '11px', color: 'var(--color-accent, #FF7A3D)', textTransform: 'uppercase', fontWeight: 600 }}>
+        <div className="px-[14px] py-[12px] rounded-[var(--radius-md,8px)] border border-solid border-[rgba(255,122,61,0.25)] bg-[rgba(255,122,61,0.06)] min-w-0">
+          <div className="text-[11px] text-accent uppercase font-semibold">
             Rechnerischer Gesamtverlust
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-accent, #FF7A3D)', marginTop: '2px' }}>
+          <div className="text-[18px] font-bold text-accent mt-[2px]">
             −{totalLoss.toLocaleString('de-DE')} Leads
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+          <div className="text-[12px] text-[var(--color-text-muted)] mt-[2px]">
             {totalLossPercent} % kumulierte Leckage über alle 4 Stufen
           </div>
         </div>
 
-        <div
-          style={{
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid rgba(0, 217, 198, 0.25)',
-            backgroundColor: 'rgba(0, 217, 198, 0.06)',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ fontSize: '11px', color: 'var(--color-primary)', textTransform: 'uppercase', fontWeight: 600 }}>
+        <div className="px-[14px] py-[12px] rounded-[var(--radius-md,8px)] border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.06)] min-w-0">
+          <div className="text-[11px] text-primary uppercase font-semibold">
             Gewonnene Neukunden
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)', marginTop: '2px' }}>
+          <div className="text-[18px] font-bold text-primary mt-[2px]">
             {wonRow[5]} Neukunden (Won)
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+          <div className="text-[12px] text-[var(--color-text-muted)] mt-[2px]">
             {totalConversionPercent} % End-Conversion (Ø {wonRow[6]} / Monat)
           </div>
         </div>
       </div>
 
       {/* Trial-to-Paid Potenzial als separate Note aus FUNNEL.note */}
-      <div
-        style={{
-          padding: '12px',
-          borderRadius: 'var(--radius-md, 8px)',
-          border: '1px solid rgba(255, 184, 0, 0.3)',
-          backgroundColor: 'rgba(255, 184, 0, 0.06)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-          minWidth: 0,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 700,
-              padding: '2px 6px',
-              borderRadius: '4px',
-              backgroundColor: 'rgba(255, 184, 0, 0.18)',
-              color: 'var(--color-warning, #FFB800)',
-              textTransform: 'uppercase',
-            }}
-          >
+      <div className="p-[12px] rounded-[var(--radius-md,8px)] border border-solid border-[rgba(255,184,0,0.3)] bg-[rgba(255,184,0,0.06)] flex flex-col gap-[6px] min-w-0">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="text-[11px] font-bold px-[6px] py-[2px] rounded-[4px] bg-[rgba(255,184,0,0.18)] text-warning uppercase">
             POTENZIAL-ANMERKUNG
           </span>
-          <strong style={{ fontSize: '13px', color: 'var(--color-text)' }}>
+          <strong className="text-[13px] text-text">
             {FUNNEL.note.title}
           </strong>
         </div>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
           {FUNNEL.note.paragraphs[0]}
         </p>
       </div>

@@ -4,20 +4,8 @@ import { SLA } from '../../../domain/vertriebData';
 export const SlaSwimlane: React.FC = () => {
   return (
     <section
-      className="facelift-sla-swimlane"
+      className="facelift-sla-swimlane w-full box-border rounded-[var(--radius-lg,12px)] border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
       aria-label="SLA-Swimlanes Marketing & Vertrieb"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5, 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 20px)',
-        overflowWrap: 'anywhere',
-      }}
     >
       <style>{`
         .swimlane-container {
@@ -50,114 +38,48 @@ export const SlaSwimlane: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(0, 217, 198, 0.12)',
-              border: '1px solid rgba(0, 217, 198, 0.25)',
-              whiteSpace: 'normal',
-            }}
-          >
+      <div className="flex flex-col gap-[6px]">
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <span className="inline-flex items-center px-[8px] py-[2px] rounded-[4px] text-[11px] font-bold tracking-[0.05em] uppercase text-primary bg-[rgba(0,217,198,0.12)] border border-solid border-[rgba(0,217,198,0.25)] whitespace-normal">
             SLA-SWIMLANES
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Prozessverantwortung, Fristen & Rückführungspfade
           </span>
         </div>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.1rem, 4vw, 1.25rem)',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-display)',
-            overflowWrap: 'anywhere',
-          }}
-        >
+        <h3 className="m-0 text-[clamp(1.1rem,4vw,1.25rem)] font-bold text-text font-display [overflow-wrap:anywhere]">
           Service Level Agreement: Marketing ↔ Sales
         </h3>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+        <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
           Verbindliche Schnittstelle für Lead-Übergabe, Reaktionsfristen und geregelte Rückführung nicht-qualifizierter Kontakte.
         </p>
       </div>
 
       {/* Zentraler Handoff-Knoten */}
-      <div
-        className="handoff-banner"
-        style={{
-          padding: '14px 16px',
-          borderRadius: 'var(--radius-md, 8px)',
-          border: '1px solid rgba(0, 217, 198, 0.35)',
-          backgroundColor: 'rgba(0, 217, 198, 0.05)',
-          minWidth: 0,
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                padding: '1px 6px',
-                borderRadius: '4px',
-                backgroundColor: 'var(--color-primary)',
-                color: '#061312',
-              }}
-            >
+      <div className="handoff-banner px-[16px] py-[14px] rounded-[var(--radius-md,8px)] border border-solid border-[rgba(0,217,198,0.35)] bg-[rgba(0,217,198,0.05)] min-w-0">
+        <div className="flex flex-col gap-[4px] min-w-0">
+          <div className="flex items-center gap-[8px] flex-wrap">
+            <span className="text-[10px] font-bold uppercase px-[6px] py-[1px] rounded-[4px] bg-primary text-[#061312]">
               ÜBERGABEPUNKT
             </span>
-            <strong style={{ fontSize: '14px', color: 'var(--color-text)' }}>
+            <strong className="text-[14px] text-text">
               {SLA.handoff.title}
             </strong>
           </div>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
             Kriterium: {SLA.handoff.rows[1][1]}
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              backgroundColor: 'rgba(255, 122, 61, 0.15)',
-              border: '1px solid rgba(255, 122, 61, 0.3)',
-              color: 'var(--color-accent, #FF7A3D)',
-              fontSize: '11px',
-              fontWeight: 700,
-              flexWrap: 'wrap',
-            }}
-          >
+        <div className="flex items-center gap-[10px] flex-wrap">
+          <div className="inline-flex items-center gap-[6px] px-[8px] py-[4px] rounded-[6px] bg-[rgba(255,122,61,0.15)] border border-solid border-[rgba(255,122,61,0.3)] text-accent text-[11px] font-bold flex-wrap">
             <span>⏱️</span>
             <span>FRIST: ERSTKONTAKT ≤ 24H (WERKTAGS)</span>
           </div>
-          <div
-            style={{
-              fontSize: '11px',
-              color: 'var(--color-text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-[4px] flex-wrap">
             <span>{SLA.handoff.rows[0][1]}</span>
-            <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>➔</span>
-            <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{SLA.handoff.rows[2][1]}</span>
+            <span className="text-primary font-bold">➔</span>
+            <span className="text-text font-semibold">{SLA.handoff.rows[2][1]}</span>
           </div>
         </div>
       </div>
@@ -165,262 +87,116 @@ export const SlaSwimlane: React.FC = () => {
       {/* 3 Parallele Bahnen (Swimlanes) */}
       <div className="swimlane-container" role="region" aria-label="SLA-Zuständigkeitsbahnen">
         {/* BAHN 1: Marketing */}
-        <article
-          style={{
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid var(--color-border)',
-            borderTop: '4px solid var(--color-primary)',
-            backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-            padding: '14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
+        <article className="rounded-[var(--radius-md,8px)] border border-solid border-border border-t-4 border-t-primary bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[12px] min-w-0">
+          <div className="flex justify-between items-start flex-wrap gap-[6px]">
             <div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  color: 'var(--color-primary)',
-                }}
-              >
+              <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-primary">
                 BAHN 1
               </span>
-              <h4 style={{ margin: '4px 0 0', fontSize: '14px', color: 'var(--color-text)', fontWeight: 700 }}>
+              <h4 className="mt-[4px] mr-0 mb-0 ml-0 text-[14px] text-text font-bold">
                 Marketing Verantwortung
               </h4>
             </div>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                color: 'var(--color-primary)',
-                backgroundColor: 'rgba(0, 217, 198, 0.1)',
-                padding: '2px 6px',
-                borderRadius: '4px',
-              }}
-            >
+            <span className="text-[11px] font-semibold text-primary bg-[rgba(0,217,198,0.1)] px-[6px] py-[2px] rounded-[4px]">
               Status: MQL
             </span>
           </div>
 
-          <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+          <p className="m-0 text-[12px] text-[var(--color-text-muted)] leading-[1.4]">
             Verantwortlich für die kontinuierliche Lead-Generierung und Vorqualifizierung vor dem Übergabepunkt.
           </p>
 
-          <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--color-text)' }}>
+          <ul className="m-0 pl-[16px] text-[12px] flex flex-col gap-[8px] text-text">
             {SLA.marketing.map((item, i) => (
-              <li key={i} style={{ lineHeight: 1.4 }}>
+              <li key={i} className="leading-[1.4]">
                 {item}
               </li>
             ))}
           </ul>
 
-          <div
-            style={{
-              marginTop: 'auto',
-              paddingTop: '10px',
-              borderTop: '1px solid var(--color-border)',
-              fontSize: '11px',
-              color: 'var(--color-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontWeight: 600,
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className="mt-auto pt-[10px] border-t border-solid border-border text-[11px] text-primary flex items-center gap-[6px] font-semibold flex-wrap">
             <span>➔ Richtung Übergabe:</span>
             <span>Lead an Sales übergeben, wenn Score ≥ 80</span>
           </div>
         </article>
 
         {/* BAHN 2: Sales */}
-        <article
-          style={{
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid var(--color-border)',
-            borderTop: '4px solid var(--color-accent, #FF7A3D)',
-            backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-            padding: '14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
+        <article className="rounded-[var(--radius-md,8px)] border border-solid border-border border-t-4 border-t-accent bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[12px] min-w-0">
+          <div className="flex justify-between items-start flex-wrap gap-[6px]">
             <div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  color: 'var(--color-accent, #FF7A3D)',
-                }}
-              >
+              <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-accent">
                 BAHN 2
               </span>
-              <h4 style={{ margin: '4px 0 0', fontSize: '14px', color: 'var(--color-text)', fontWeight: 700 }}>
+              <h4 className="mt-[4px] mr-0 mb-0 ml-0 text-[14px] text-text font-bold">
                 Sales Verantwortung
               </h4>
             </div>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                color: 'var(--color-accent, #FF7A3D)',
-                backgroundColor: 'rgba(255, 122, 61, 0.1)',
-                padding: '2px 6px',
-                borderRadius: '4px',
-              }}
-            >
+            <span className="text-[11px] font-semibold text-accent bg-[rgba(255,122,61,0.1)] px-[6px] py-[2px] rounded-[4px]">
               Status: SQL / Demo
             </span>
           </div>
 
-          <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+          <p className="m-0 text-[12px] text-[var(--color-text-muted)] leading-[1.4]">
             Verbindliche Bearbeitung der übergebenen MQLs zur Qualifizierung und Durchführung der Erstgespräche.
           </p>
 
-          <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--color-text)' }}>
+          <ul className="m-0 pl-[16px] text-[12px] flex flex-col gap-[8px] text-text">
             {SLA.sales.map((item, i) => (
-              <li key={i} style={{ lineHeight: 1.4 }}>
+              <li key={i} className="leading-[1.4]">
                 {item}
               </li>
             ))}
           </ul>
 
-          <div
-            style={{
-              marginTop: 'auto',
-              paddingTop: '10px',
-              borderTop: '1px solid var(--color-border)',
-              fontSize: '11px',
-              color: 'var(--color-accent, #FF7A3D)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontWeight: 600,
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className="mt-auto pt-[10px] border-t border-solid border-border text-[11px] text-accent flex items-center gap-[6px] font-semibold flex-wrap">
             <span>➔ Richtung Abschluss:</span>
             <span>SQL bestätigen oder mit Grund disqualifizieren</span>
           </div>
         </article>
 
         {/* BAHN 3: Rückgabe & Eskalation */}
-        <article
-          style={{
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid var(--color-border)',
-            borderTop: '4px solid var(--color-warning, #FFB800)',
-            backgroundColor: 'var(--color-surface-subtle, rgba(255, 255, 255, 0.02))',
-            padding: '14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
+        <article className="rounded-[var(--radius-md,8px)] border border-solid border-border border-t-4 border-t-warning bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[12px] min-w-0">
+          <div className="flex justify-between items-start flex-wrap gap-[6px]">
             <div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  color: 'var(--color-warning, #FFB800)',
-                }}
-              >
+              <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-warning">
                 BAHN 3
               </span>
-              <h4 style={{ margin: '4px 0 0', fontSize: '14px', color: 'var(--color-text)', fontWeight: 700 }}>
+              <h4 className="mt-[4px] mr-0 mb-0 ml-0 text-[14px] text-text font-bold">
                 Rückgabe & Eskalation
               </h4>
             </div>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                color: 'var(--color-warning, #FFB800)',
-                backgroundColor: 'rgba(255, 184, 0, 0.12)',
-                padding: '2px 6px',
-                borderRadius: '4px',
-              }}
-            >
+            <span className="text-[11px] font-semibold text-warning bg-[rgba(255,184,0,0.12)] px-[6px] py-[2px] rounded-[4px]">
               Feedback-Schleife
             </span>
           </div>
 
-          <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+          <p className="m-0 text-[12px] text-[var(--color-text-muted)] leading-[1.4]">
             Verfahren bei Nicht-Erreichbarkeit, Disqualifikation oder Fristverletzungen.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div
-              style={{
-                padding: '8px 10px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 184, 0, 0.05)',
-                border: '1px solid rgba(255, 184, 0, 0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '3px',
-              }}
-            >
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ color: 'var(--color-warning, #FFB800)' }}>↩</span>
+          <div className="flex flex-col gap-[8px]">
+            <div className="px-[10px] py-[8px] rounded-[6px] bg-[rgba(255,184,0,0.05)] border border-solid border-[rgba(255,184,0,0.2)] flex flex-col gap-[3px]">
+              <div className="text-[12px] font-bold text-text flex items-center gap-[6px]">
+                <span className="text-warning">↩</span>
                 <span>Rückgabe an Marketing</span>
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+              <div className="text-[11px] text-[var(--color-text-muted)] leading-[1.4]">
                 Disqualifikation mit konkretem Grund dokumentieren; Lead wird zurück ins automatisierte Content-Nurturing überführt.
               </div>
             </div>
 
-            <div
-              style={{
-                padding: '8px 10px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 122, 61, 0.05)',
-                border: '1px solid rgba(255, 122, 61, 0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '3px',
-              }}
-            >
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-accent, #FF7A3D)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div className="px-[10px] py-[8px] rounded-[6px] bg-[rgba(255,122,61,0.05)] border border-solid border-[rgba(255,122,61,0.2)] flex flex-col gap-[3px]">
+              <div className="text-[12px] font-bold text-accent flex items-center gap-[6px]">
                 <span>⚠️</span>
                 <span>Eskalation bei Überschreitung der 24h-Frist</span>
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+              <div className="text-[11px] text-[var(--color-text-muted)] leading-[1.4]">
                 Wird die Reaktionszeit von 24 Stunden (werktags) für den Erstkontakt überschritten, greift die Eskalationsregel.
               </div>
             </div>
           </div>
 
-          <div
-            style={{
-              marginTop: 'auto',
-              paddingTop: '10px',
-              borderTop: '1px solid var(--color-border)',
-              fontSize: '11px',
-              color: 'var(--color-warning, #FFB800)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontWeight: 600,
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className="mt-auto pt-[10px] border-t border-solid border-border text-[11px] text-warning flex items-center gap-[6px] font-semibold flex-wrap">
             <span>↩ Richtung Nurturing:</span>
             <span>Zurück in den Content-Plan (Marketing)</span>
           </div>
