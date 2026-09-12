@@ -108,43 +108,21 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
       className={className ? `${className} live-performance-panel` : 'live-performance-panel'}
       role="region"
       aria-label="ARR-Mix nach Akquisitionsquelle"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        minHeight: '360px',
-        position: 'relative',
-        overflow: 'hidden',
-        minWidth: 0,
-      }}
     >
+      {/* G39 Welle 1: Card-Layout per umhüllendem Div (Card hat kein
+          className-Prop, nur style-Passthrough — API unverändert). */}
+      <div className="flex flex-col justify-between min-h-[360px] relative overflow-hidden min-w-0">
       <div>
         {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            marginBottom: '14px',
-          }}
-        >
+        <div className="flex items-center justify-between gap-[8px] mb-[14px]">
           <div>
-            <div style={{ color: 'var(--color-primary)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-[2px]">
               Portfolio-Split
             </div>
-            <h3
-              style={{
-                color: 'var(--color-text)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '16px',
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
+            <h3 className="m-0 font-display text-[16px] font-semibold text-text">
               ARR-Mix nach Akquisitionsquelle
             </h3>
-            <span style={{ color: 'var(--color-text-dim)', fontSize: '11px' }}>
+            <span className="text-[11px] text-[var(--color-text-dim)]">
               4 Quellen · Streaming-Ebene C
             </span>
           </div>
@@ -155,7 +133,7 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
 
         {/* Degraded Qualitätswarnung */}
         {hasDegraded && (
-          <div style={{ marginBottom: '10px' }}>
+          <div className="mb-[10px]">
             <Badge variant="orange" style={{ padding: '2px 8px', fontSize: '9.5px' }}>
               Qualität eingeschränkt (Degraded Snapshot)
             </Badge>
@@ -164,7 +142,7 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
 
         {/* Visual Chart / Incomplete State */}
         {isComplete ? (
-          <div style={{ width: '100%', height: '200px', minWidth: 0, position: 'relative' }} aria-hidden="true">
+          <div className="w-full h-[200px] min-w-0 relative" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -203,54 +181,28 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
               </PieChart>
             </ResponsiveContainer>
             {/* Center Sum Label */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                textAlign: 'center',
-                pointerEvents: 'none',
-              }}
-            >
-              <div style={{ fontSize: '10px', color: 'var(--color-text-dim)', textTransform: 'uppercase' }}>Summe</div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)', fontFamily: 'var(--font-mono, monospace)' }}>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+              <div className="text-[10px] uppercase text-[var(--color-text-dim)]">Summe</div>
+              <div className="text-[13px] font-bold text-text font-mono">
                 {Math.round(totalArr / 1000)}k €
               </div>
             </div>
           </div>
         ) : (
-          <div
-            style={{
-              padding: '20px 16px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid rgba(42, 74, 67, 0.4)',
-              margin: '12px 0',
-            }}
-          >
-            <div style={{ color: 'var(--color-text)', fontSize: '12.5px', fontWeight: 600, marginBottom: '4px' }}>
+          <div className="border border-solid border-[rgba(42,74,67,0.4)] rounded-md bg-[rgba(255,255,255,0.02)] my-[12px] mx-0 px-[16px] py-[20px]">
+            <div className="text-text text-[12.5px] font-semibold mb-[4px]">
               Live-Mix unvollständig – es fehlen bestätigte Werte
             </div>
-            <div style={{ color: 'var(--color-text-dim)', fontSize: '11px', lineHeight: 1.4, marginBottom: '10px' }}>
+            <div className="text-[11px] leading-[1.4] mb-[10px] text-[var(--color-text-dim)]">
               Zur Vermeidung irreführender Prozentanteile wird der Ring erst gezeichnet, wenn alle 4 Akquisitionsquellen vorliegen.
             </div>
             {missingIds.length > 0 && (
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              <div className="text-[11px] text-[var(--color-text-muted)]">
                 Ausstehend:{' '}
                 {missingIds.map((m) => (
                   <span
                     key={m.id}
-                    style={{
-                      display: 'inline-block',
-                      background: 'rgba(0, 217, 198, 0.08)',
-                      border: '1px solid rgba(0, 217, 198, 0.2)',
-                      padding: '2px 7px',
-                      borderRadius: '4px',
-                      marginRight: '4px',
-                      marginBottom: '4px',
-                      color: 'var(--color-text)',
-                    }}
+                    className="inline-block border border-solid border-[rgba(0,217,198,0.2)] rounded bg-[rgba(0,217,198,0.08)] text-text mr-[4px] mb-[4px] px-[7px] py-[2px]"
                   >
                     {m.label}
                   </span>
@@ -262,20 +214,13 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
       </div>
 
       {/* Zugängliche Tabelle / Liste */}
-      <div
-        style={{
-          marginTop: '12px',
-          paddingTop: '8px',
-          borderTop: '1px solid var(--color-border-soft)',
-          fontSize: '11px',
-        }}
-      >
-        <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--color-text-muted)' }}>
+      <div className="mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px]">
+        <table className="w-full border-collapse text-[var(--color-text-muted)]">
           <thead>
-            <tr style={{ borderBottom: '1px solid rgba(42, 74, 67, 0.3)', textAlign: 'left' }}>
-              <th style={{ padding: '2px 0', fontWeight: 600 }}>Quelle</th>
-              <th style={{ padding: '2px 0', textAlign: 'right', fontWeight: 600 }}>Status / Wert</th>
-              {isComplete && <th style={{ padding: '2px 0', textAlign: 'right', fontWeight: 600 }}>Anteil</th>}
+            <tr className="border-b border-solid border-[rgba(42,74,67,0.3)] text-left">
+              <th className="font-semibold py-[2px] px-0">Quelle</th>
+              <th className="font-semibold text-right py-[2px] px-0">Status / Wert</th>
+              {isComplete && <th className="font-semibold text-right py-[2px] px-0">Anteil</th>}
             </tr>
           </thead>
           <tbody>
@@ -287,28 +232,29 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
               if (item) {
                 const pct = isComplete && totalArr > 0 ? ((item.value / totalArr) * 100).toFixed(1) : null;
                 return (
-                  <tr key={id} style={{ borderBottom: '1px solid rgba(42, 74, 67, 0.15)' }}>
-                    <td style={{ padding: '3px 0', color: 'var(--color-text)' }}>{label}</td>
-                    <td style={{ padding: '3px 0', textAlign: 'right', color: item.qualityStatus === 'degraded' ? '#ff7a3d' : '#00f2fe' }}>
+                  <tr key={id} className="border-b border-solid border-[rgba(42,74,67,0.15)]">
+                    <td className="text-text py-[3px] px-0">{label}</td>
+                    <td className={`text-right py-[3px] px-0 ${item.qualityStatus === 'degraded' ? 'text-[#ff7a3d]' : 'text-[#00f2fe]'}`}>
                       {formatEur(item.value)} (bestätigt)
                     </td>
-                    {isComplete && <td style={{ padding: '3px 0', textAlign: 'right' }}>{pct}%</td>}
+                    {isComplete && <td className="text-right py-[3px] px-0">{pct}%</td>}
                   </tr>
                 );
               }
 
               return (
-                <tr key={id} style={{ borderBottom: '1px solid rgba(42, 74, 67, 0.15)' }}>
-                  <td style={{ padding: '3px 0' }}>{label}</td>
-                  <td style={{ padding: '3px 0', textAlign: 'right', fontStyle: 'italic', color: 'var(--color-text-dim)' }}>
+                <tr key={id} className="border-b border-solid border-[rgba(42,74,67,0.15)]">
+                  <td className="py-[3px] px-0">{label}</td>
+                  <td className="text-right italic py-[3px] px-0 text-[var(--color-text-dim)]">
                     ausstehend
                   </td>
-                  {isComplete && <td style={{ padding: '3px 0', textAlign: 'right' }}>—</td>}
+                  {isComplete && <td className="text-right py-[3px] px-0">—</td>}
                 </tr>
               );
             })}
           </tbody>
         </table>
+      </div>
       </div>
     </Card>
   );

@@ -131,29 +131,23 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
       data-kpi-id={kpiId}
       variant="glass"
       className={className ? `${className} live-performance-panel` : 'live-performance-panel'}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        minHeight: '140px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
     >
+      {/* G39 Welle 1: Card-Layout per umhüllendem Div (Card hat kein
+          className-Prop, nur style-Passthrough — API unverändert). */}
+      <div className="flex flex-col justify-between min-h-[140px] relative overflow-hidden">
       {/* Rein dekoratives Data-Pulse-Overlay (1.2s, Cyan #00f2fe, key-gebunden) */}
       {shouldAnimate && !shouldReduceMotion && snapshot && (
         <div
           key={snapshot.id || snapshot.occurredAt}
-          className="live-kpi-pulse"
+          className="live-kpi-pulse pointer-events-none"
           aria-hidden="true"
-          style={{ pointerEvents: 'none' }}
         />
       )}
       {/* Header-Zeile: Titel, Ebene-C-Kennzeichnung und Verbindungs-Badge */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '12.5px', fontWeight: 600 }}>
+        <div className="flex items-center justify-between gap-[8px] mb-[6px]">
+          <div className="flex items-center gap-[6px]">
+            <span className="text-[12.5px] font-semibold text-[var(--color-text-muted)]">
               {title}
             </span>
             <Badge variant="mint" style={{ padding: '2px 8px', fontSize: '9.5px' }}>
@@ -167,59 +161,33 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
 
         {/* Beschreibung falls übergeben */}
         {description && (
-          <div style={{ color: 'var(--color-text-dim)', fontSize: '11px', marginBottom: '8px' }}>
+          <div className="text-[11px] mb-[8px] text-[var(--color-text-dim)]">
             {description}
           </div>
         )}
 
         {/* Hauptwertanzeige je nach Status */}
         {status === 'unconfigured' ? (
-          <div
-            style={{
-              padding: '12px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(6, 22, 19, 0.55)',
-              border: '1px solid rgba(0, 242, 254, 0.18)',
-              margin: '8px 0',
-            }}
-          >
-            <div style={{ color: 'var(--color-text)', fontSize: '12px', fontWeight: 500, marginBottom: '2px' }}>
+          <div className="border border-solid border-[rgba(0,242,254,0.18)] rounded-md bg-[rgba(6,22,19,0.55)] my-[8px] mx-0 p-[12px]">
+            <div className="text-text text-[12px] font-medium mb-[2px]">
               Supabase nicht konfiguriert
             </div>
-            <div style={{ color: 'var(--color-text-dim)', fontSize: '11px', lineHeight: 1.4 }}>
+            <div className="text-[11px] leading-[1.4] text-[var(--color-text-dim)]">
               Ebene C Live-Ist inaktiv. Keine synthetischen Fake-Werte erfunden.
             </div>
           </div>
         ) : status === 'error' ? (
-          <div
-            style={{
-              padding: '12px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(239, 68, 68, 0.05)',
-              border: '1px solid var(--color-error)',
-              margin: '8px 0',
-            }}
-          >
-            <div style={{ color: 'var(--color-error)', fontSize: '12px', fontWeight: 500 }}>
+          <div className="border border-solid border-error rounded-md bg-[rgba(239,68,68,0.05)] my-[8px] mx-0 p-[12px]">
+            <div className="text-error text-[12px] font-medium">
               Realtime-Verbindung unterbrochen
             </div>
-            <div style={{ color: 'var(--color-text-muted)', fontSize: '11px', marginTop: '2px' }}>
+            <div className="text-[11px] mt-[2px] text-[var(--color-text-muted)]">
               Live-Feed vorübergehend nicht erreichbar. Verbindung wird automatisch wiederhergestellt.
             </div>
           </div>
         ) : snapshot ? (
           <div>
-            <div
-              style={{
-                color: snapshot.qualityStatus === 'degraded' ? 'var(--color-accent)' : 'var(--color-success)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '32px',
-                fontWeight: 700,
-                letterSpacing: '-0.02em',
-                lineHeight: 1.15,
-                margin: '8px 0 4px',
-              }}
-            >
+            <div className={`font-display text-[32px] font-bold tracking-[-0.02em] leading-[1.15] my-[8px] mx-0 mb-[4px] ${snapshot.qualityStatus === 'degraded' ? 'text-accent' : 'text-success'}`}>
               <AnimatedKpiValue
                 value={snapshot.value}
                 unit={snapshot.unit}
@@ -229,7 +197,7 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
             </div>
 
             {snapshot.qualityStatus === 'degraded' && (
-              <div style={{ display: 'inline-block', marginBottom: '4px' }}>
+              <div className="inline-block mb-[4px]">
                 <Badge variant="orange" style={{ padding: '1px 6px', fontSize: '9px' }}>
                   Qualität eingeschränkt (Degraded)
                 </Badge>
@@ -237,19 +205,12 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
             )}
           </div>
         ) : (
-          <div
-            style={{
-              color: 'var(--color-text-muted)',
-              fontSize: '13px',
-              fontStyle: 'italic',
-              margin: '16px 0 10px',
-            }}
-          >
+          <div className="text-[13px] italic my-[16px] mx-0 mb-[10px] text-[var(--color-text-muted)]">
             {/* G39 Welle 1 (Auftrag 054, Block C): Skeleton-Platzhalter im
                 Layout der eigentlichen Inhalte (Wert + Meta-Zeile) ergänzen —
                 der Status-Text bleibt als zugängliche Auskunft erhalten. */}
             {status === 'loading' && (
-              <div aria-hidden="true" style={{ marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div aria-hidden="true" className="flex flex-col gap-[6px] mb-[10px]">
                 <Skeleton variant="rect" width="55%" height={32} />
                 <Skeleton variant="text" width="80%" />
               </div>
@@ -260,30 +221,19 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
       </div>
 
       {/* Footer-Zeile: Metadaten & Observability */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          color: 'var(--color-text-muted)',
-          fontSize: '11px',
-          lineHeight: 1.4,
-          borderTop: '1px solid var(--color-border-soft)',
-          paddingTop: '6px',
-          marginTop: '6px',
-        }}
-      >
+      <div className="flex justify-between items-center text-[11px] leading-[1.4] border-t border-solid border-border-soft mt-[6px] pt-[6px] text-[var(--color-text-muted)]">
         <span>
           {snapshot ? `Quelle: ${snapshot.sourceSystem}` : 'Quelle: n8n / Live-Feed'}
         </span>
         <span
           title={snapshot ? `Exakter Zeitstempel: ${snapshot.occurredAt}` : undefined}
-          style={{ cursor: snapshot ? 'help' : 'default' }}
+          className={snapshot ? 'cursor-help' : 'cursor-default'}
         >
           {snapshot
             ? `Aktualisiert: ${formatRelativeTime(snapshot.occurredAt) || formatTimestamp(snapshot.occurredAt)}`
             : 'Stand: Ausstehend'}
         </span>
+      </div>
       </div>
     </Card>
   );

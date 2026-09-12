@@ -8,15 +8,7 @@ export const RoadmapSnapshot: React.FC = () => {
   return (
     <div
       data-testid="roadmap-snapshot"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        width: '100%',
-        position: 'relative',
-        overflow: 'hidden',
-        borderRadius: '6px',
-      }}
+      className="flex flex-col gap-[12px] w-full relative overflow-hidden rounded-[6px]"
     >
       {/* Szenisches, dekoratives Visual-Asset für räumliche Horizont- und Tiefenwirkung */}
       <img
@@ -26,82 +18,46 @@ export const RoadmapSnapshot: React.FC = () => {
         width={1600}
         height={900}
         loading="lazy"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          opacity: 0.65,
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
+        className="absolute inset-0 w-full h-full object-cover opacity-[0.65] pointer-events-none z-0"
       />
 
       {/* Semantische Timeline-Ebene über dem szenischen Backdrop */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          paddingLeft: '8px',
-        }}
-      >
+      <div className="relative z-[1] flex flex-col gap-[14px] pl-[8px]">
         {/* Vertikale Verbindungslinie */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '19px',
-            top: '8px',
-            bottom: '12px',
-            width: '2px',
-            background: 'linear-gradient(180deg, #00D9C6 0%, rgba(0, 217, 198, 0.6) 60%, rgba(143, 163, 161, 0.3) 100%)',
-            boxShadow: '0 0 10px rgba(0, 217, 198, 0.5)',
-          }}
-        />
+        <div className="absolute left-[19px] top-[8px] bottom-[12px] w-[2px] bg-[linear-gradient(180deg,#00D9C6_0%,rgba(0,217,198,0.6)_60%,rgba(143,163,161,0.3)_100%)] shadow-[0_0_10px_rgba(0,217,198,0.5)]" />
 
         {releases.map((rel, idx) => {
           const isReleased = rel.status === 'Released';
           const isInDev = rel.status === 'In Entwicklung';
-          const dotColor = isReleased ? '#00D9C6' : isInDev ? '#7CEFE6' : '#8FA3A1';
-          const badgeBg = isReleased
-            ? 'rgba(0, 217, 198, 0.15)'
+          // G39 Welle 1: Status-Farben aus Build-Zeit-bekannten Werten →
+          // Klassen-Ternaries (Muster Auftrag 053 Nachtrag 2), kein style.
+          const dotBorderClass = isReleased
+            ? 'border-[#00D9C6]'
             : isInDev
-            ? 'rgba(124, 239, 230, 0.18)'
-            : 'rgba(255, 255, 255, 0.08)';
-          const badgeBorder = isReleased
-            ? 'rgba(0, 217, 198, 0.3)'
+            ? 'border-[#7CEFE6]'
+            : 'border-[#8FA3A1]';
+          const dotShadowClass = isReleased
+            ? 'shadow-[0_0_10px_#00D9C666]'
             : isInDev
-            ? 'rgba(124, 239, 230, 0.35)'
-            : 'rgba(255, 255, 255, 0.15)';
+            ? 'shadow-[0_0_10px_#7CEFE666]'
+            : 'shadow-[0_0_10px_#8FA3A166]';
+          const dotColorClass = isReleased ? 'text-[#00D9C6]' : isInDev ? 'text-[#7CEFE6]' : 'text-[#8FA3A1]';
+          const badgeBgClass = isReleased
+            ? 'bg-[rgba(0,217,198,0.15)]'
+            : isInDev
+            ? 'bg-[rgba(124,239,230,0.18)]'
+            : 'bg-[rgba(255,255,255,0.08)]';
+          const badgeBorderClass = isReleased
+            ? 'border-[rgba(0,217,198,0.3)]'
+            : isInDev
+            ? 'border-[rgba(124,239,230,0.35)]'
+            : 'border-[rgba(255,255,255,0.15)]';
 
           return (
-            <div
-              key={idx}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '14px',
-                position: 'relative',
-              }}
-            >
+            <div key={idx} className="flex items-start gap-[14px] relative">
               {/* Dot Icon */}
               <div
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background: 'rgba(5, 18, 17, 0.95)',
-                  border: `2px solid ${dotColor}`,
-                  boxShadow: `0 0 10px ${dotColor}66`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  zIndex: 2,
-                }}
+                className={`flex items-center justify-center shrink-0 w-[24px] h-[24px] rounded-full border-2 border-solid bg-[rgba(5,18,17,0.95)] z-[2] ${dotBorderClass} ${dotShadowClass}`}
               >
                 {isReleased ? (
                   <CheckCircle2 size={13} color="#00D9C6" />
@@ -113,44 +69,23 @@ export const RoadmapSnapshot: React.FC = () => {
               </div>
 
               {/* Release Box */}
-              <div
-                style={{
-                  background: 'rgba(5, 20, 19, 0.45)',
-                  backdropFilter: 'blur(6px)',
-                  border: '1px solid rgba(0, 217, 198, 0.25)',
-                  boxShadow: '0 0 14px rgba(0, 217, 198, 0.10)',
-                  borderRadius: '6px',
-                  padding: '8px 12px',
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#00D9C6' }}>
+              <div className="flex-1 flex flex-col gap-[4px] border border-solid border-[rgba(0,217,198,0.25)] rounded-[6px] bg-[rgba(5,20,19,0.45)] backdrop-blur-[6px] shadow-[0_0_14px_rgba(0,217,198,0.10)] px-[12px] py-[8px]">
+                <div className="flex justify-between items-center flex-wrap gap-[6px]">
+                  <div className="flex items-center gap-[6px]">
+                    <span className="text-[11px] font-bold text-[#00D9C6]">
                       {rel.quarter}
                     </span>
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#FFFFFF' }}>
+                    <span className="text-[12.5px] font-semibold text-[#FFFFFF]">
                       {rel.title}
                     </span>
                   </div>
                   <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 600,
-                      padding: '1px 6px',
-                      borderRadius: '3px',
-                      background: badgeBg,
-                      border: `1px solid ${badgeBorder}`,
-                      color: dotColor,
-                    }}
+                    className={`text-[10px] font-semibold rounded-[3px] border border-solid px-[6px] py-[1px] ${badgeBgClass} ${badgeBorderClass} ${dotColorClass}`}
                   >
                     {rel.status}
                   </span>
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: 1.35 }}>
+                <div className="text-[11px] leading-[1.35] text-[var(--color-text-muted)]">
                   {rel.desc}
                 </div>
               </div>

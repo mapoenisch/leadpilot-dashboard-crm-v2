@@ -158,8 +158,24 @@ export default tseslint.config(
   // migrierten Primitives): src/components/ui/charts/**-Helfer sind
   // unmigrierter G39-Scope und dürfen nicht rot werden (Dateien nicht
   // in diesem Auftrag anfassen). Gilt NICHT global (G39-Gebiet unangetastet).
+  // ── G39 Welle 1 (Auftrag 054, Block D): Scope um die 22 migrierten
+  // Welle-1-Dateien erweitert (Entscheidung 5) — schützt vor Rückfällen.
+  // Erlaubte Reste dort: Custom-Komponenten-Passthroughs (Badge/Card/
+  // MetricToken/DiagramCanvas/FaceliftGlyph, kein DOM-Prop) + 1
+  // Laufzeit-Geometrie (PipelineSnapshot-Balkenbreite) — jeweils mit
+  // zeilengenauem Disable + Begründung, keine Datei-Ausnahme.
   {
-    files: ['src/components/ui/*.tsx', 'src/app/DesignSystemPage.tsx'],
+    files: [
+      'src/components/ui/*.tsx',
+      'src/app/DesignSystemPage.tsx',
+      'src/app/App.tsx',
+      'src/app/NotFoundPage.tsx',
+      'src/components/layout/*.tsx',
+      'src/components/liveKpi/*.tsx',
+      'src/components/executiveCockpit/*.tsx',
+      'src/components/ai/*.tsx',
+      'src/components/facelift/*.tsx',
+    ],
     rules: {
       'react/forbid-dom-props': [
         'error',

@@ -46,33 +46,18 @@ export function AIInsightDrawer({ open, onClose }: AIInsightDrawerProps) {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: '440px',
-        background: 'var(--color-surface)',
-        borderLeft: '1px solid var(--color-border)',
-        boxShadow: 'var(--shadow-modal)',
-        zIndex: 900,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: 'var(--space-5)',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--color-border-soft)', paddingBottom: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div className="fixed top-0 right-0 bottom-0 w-[440px] flex flex-col border-l border-solid border-border bg-surface shadow-modal z-[900] p-[var(--space-5)]">
+      <div className="flex items-center justify-between border-b border-solid border-border-soft mb-[var(--space-4)] pb-[12px]">
+        <div className="flex items-center gap-[8px]">
           <Icon name="zap" size={20} color="var(--color-primary)" />
-          <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '18px', color: 'var(--color-text)' }}>
+          <h3 className="m-0 font-display text-[18px] text-text">
             KI Dashboard-Assistent
           </h3>
         </div>
-        <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', fontSize: '20px', cursor: 'pointer' }}>×</button>
+        <button onClick={onClose} aria-label="Schließen" className="bg-transparent border-0 text-[20px] cursor-pointer text-[var(--color-text-muted)]">×</button>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      <div className="flex-1 overflow-y-auto flex flex-col gap-[var(--space-4)]">
         <Alert variant="info" title="Echtzeit-KI Integration">
           Der KI-Assistent analysiert die Live-CRM-Datenbank und die Simulationsergebnisse, um Anomalien und Verkaufschancen zu identifizieren.
         </Alert>
@@ -83,14 +68,14 @@ export function AIInsightDrawer({ open, onClose }: AIInsightDrawerProps) {
 
         {analysisText && (
           <Card padding="var(--space-4)" style={{ background: 'var(--color-bg-deep)' }}>
-            <div style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
+            <div className="text-[13px] leading-[1.6] whitespace-pre-wrap text-text">
               {analysisText}
             </div>
           </Card>
         )}
       </div>
 
-      <div style={{ paddingTop: '12px', borderTop: '1px solid var(--color-border-soft)', fontSize: '11px', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+      <div className="text-center text-[11px] pt-[12px] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
         Powered by LeadPilot Gemini AI Engine
       </div>
     </div>

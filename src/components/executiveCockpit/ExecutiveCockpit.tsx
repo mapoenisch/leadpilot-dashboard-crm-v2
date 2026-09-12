@@ -28,15 +28,9 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
       // unten reagieren auf die eigene Breite (Sidebar ein-/ausgeblendet),
       // nicht auf den Viewport. Schwellen 1024/768 liefern an den
       // Nachweis-Viewports (1440/768/375) exakt das bisherige Layout.
-      className="executive-cockpit-container @container"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-6, 24px)',
-        width: '100%',
-        maxWidth: '100%',
-        boxSizing: 'border-box',
-      }}
+      // Block D: Root-Layout als Klassen (kein Wrapper nötig, className
+      // existiert bereits).
+      className="executive-cockpit-container @container flex flex-col gap-[var(--space-6,24px)] w-full max-w-full box-border"
     >
       <style>{`
         /* G39 Welle 1 (Auftrag 054, Block B): containerbasiert statt
@@ -74,13 +68,13 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
       `}</style>
 
       {/* 1. Executive-KPI-Leiste (ARR, Umsatz, EBITDA, Kunden) */}
-      <div className="cockpit-slot-kpis" style={{ width: '100%' }}>
+      <div className="cockpit-slot-kpis w-full">
         <CockpitKpiRail kpis={kpis} />
       </div>
 
       {/* 2. Hauptbereich: Finanzentwicklung & MRR-Verteilung */}
       <div className="cockpit-grid-main grid w-full gap-[var(--space-5)] grid-cols-1 @[1024px]:grid-cols-[1.6fr_1fr]">
-        <div className="cockpit-slot-finance" style={{ minWidth: 0, width: '100%' }}>
+        <div className="cockpit-slot-finance min-w-0 w-full">
           <CockpitPanel
             title="Finanzentwicklung & ARR-Trend"
             subtitle="Historischer Verlauf des Annual Recurring Revenue (2024–2025)"
@@ -105,7 +99,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
           </CockpitPanel>
         </div>
 
-        <div className="cockpit-slot-mrr" style={{ minWidth: 0, width: '100%' }}>
+        <div className="cockpit-slot-mrr min-w-0 w-full">
           <CockpitPanel
             title="MRR-Verteilung nach Paketen"
             subtitle="Umsatzbeitrag nach Starter, Growth und Pro"
@@ -133,7 +127,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
 
       {/* 3. Operativer Überblick: Team/HR, Roadmap & Live-KPI Ebene C */}
       <div className="cockpit-grid-ops grid w-full gap-[var(--space-5)] grid-cols-1 @[768px]:grid-cols-2 @[1024px]:grid-cols-3">
-        <div className="cockpit-slot-team" style={{ minWidth: 0, width: '100%' }}>
+        <div className="cockpit-slot-team min-w-0 w-full">
           <CockpitPanel
             title="Teamstruktur & HR-Snapshot"
             subtitle="10,0 FTE Bestand & identifizierte Engpässe"
@@ -143,7 +137,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
           </CockpitPanel>
         </div>
 
-        <div className="cockpit-slot-roadmap" style={{ minWidth: 0, width: '100%' }}>
+        <div className="cockpit-slot-roadmap min-w-0 w-full">
           <CockpitPanel
             title="Produkt-Roadmap & Meilensteine"
             subtitle="Release-Historie und geplante Versionen"
@@ -153,13 +147,13 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
           </CockpitPanel>
         </div>
 
-        <div className="cockpit-ops-live cockpit-slot-live @[768px]:col-span-2 @[1024px]:col-span-1" style={{ minWidth: 0, width: '100%' }}>
+        <div className="cockpit-ops-live cockpit-slot-live @[768px]:col-span-2 @[1024px]:col-span-1 min-w-0 w-full">
           <CockpitPanel
             title="Live-KPI Telemetrie"
             subtitle="Isolierte Echtzeit-Projektion aus externem Feed"
             sourceLabel="Ebene C Live-Feed"
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
+            <div className="flex flex-col gap-[12px] h-full">
               {liveKpiCard || (
                 <LiveKpiCard
                   kpiId="pipeline_coverage"
@@ -168,18 +162,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
                   fallbackUnit="x"
                 />
               )}
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--color-text-muted)',
-                  lineHeight: 1.4,
-                  padding: '10px 12px',
-                  background: 'rgba(5, 18, 17, 0.5)',
-                  border: '1px solid rgba(0, 217, 198, 0.1)',
-                  borderRadius: '6px',
-                  marginTop: 'auto',
-                }}
-              >
+              <div className="text-[11px] leading-[1.4] border border-solid border-[rgba(0,217,198,0.1)] rounded-[6px] bg-[rgba(5,18,17,0.5)] mt-auto px-[12px] py-[10px] text-[var(--color-text-muted)]">
                 <strong>Hinweis Ebene C:</strong> Echtzeit-Telemetrie wird über die sichere
                 Projektionstabelle empfangen. Bei unkonfigurierter Testumgebung zeigt der Hook
                 einen ehrlichen Offline-Status ohne Mock-Interpolation.
@@ -191,7 +174,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
 
       {/* 4. Vertriebsüberblick: Pipeline-Snapshot (aggregiert aus 40 realen CRM-Deals) */}
       <div className="cockpit-grid-sales grid w-full gap-[var(--space-5)] grid-cols-1">
-        <div className="cockpit-slot-pipeline" style={{ minWidth: 0, width: '100%' }}>
+        <div className="cockpit-slot-pipeline min-w-0 w-full">
           <CockpitPanel
             title="Vertriebspipeline Snapshot"
             subtitle="Struktur und Volumina aus 40 realen CRM-Deals"

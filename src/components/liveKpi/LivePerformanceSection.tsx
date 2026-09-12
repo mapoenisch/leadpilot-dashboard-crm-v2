@@ -18,74 +18,21 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
       data-testid="live-performance-section"
       className={
         className
-          ? `${className} live-performance-stage live-performance-surface`
-          : 'live-performance-stage live-performance-surface'
+          ? `${className} live-performance-stage live-performance-surface flex flex-col gap-[var(--space-5,24px)] w-full min-w-0`
+          : 'live-performance-stage live-performance-surface flex flex-col gap-[var(--space-5,24px)] w-full min-w-0'
       }
       aria-label="Live Performance Bereich (Ebene C)"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5, 24px)',
-        width: '100%',
-        minWidth: 0,
-      }}
     >
       {/* Prominenter Abschnittskopf mit Eyebrow, Display-Titel und Referenz-Hierarchie */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-          borderBottom: '1px solid rgba(0, 242, 254, 0.18)',
-          paddingBottom: '16px',
-        }}
-      >
+      <div className="flex items-start justify-between flex-wrap gap-[12px] border-b border-solid border-[rgba(0,242,254,0.18)] pb-[16px]">
         <div>
-          <div
-            style={{
-              color: 'var(--color-primary)',
-              fontFamily: 'var(--font-mono, monospace)',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              marginBottom: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
+          <div className="flex items-center gap-[6px] font-mono text-[11px] font-bold tracking-[0.12em] uppercase mb-[6px] text-primary">
             <span>Ebene C · Echtzeit-Steuerung</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <h2
-              style={{
-                color: 'var(--color-text)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '26px',
-                fontWeight: 700,
-                letterSpacing: '-0.02em',
-                lineHeight: 1.15,
-                margin: 0,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: '9px',
-                  height: '9px',
-                  borderRadius: '50%',
-                  background: '#00f2fe',
-                  boxShadow: '0 0 10px #00f2fe, 0 0 3px #00f2fe',
-                  flexShrink: 0,
-                }}
-              />
+          <div className="flex items-center gap-[12px] flex-wrap">
+            <h2 className="m-0 font-display text-[26px] font-bold tracking-[-0.02em] leading-[1.15] text-text flex items-center gap-[10px]">
+              <span className="inline-block w-[9px] h-[9px] rounded-full shrink-0 bg-[#00f2fe] shadow-[0_0_10px_#00f2fe,0_0_3px_#00f2fe]" />
               Live Performance
             </h2>
             <Badge variant="cyan" style={{ fontSize: '10.5px', padding: '3px 10px', letterSpacing: '0.02em' }}>
@@ -93,21 +40,13 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
             </Badge>
           </div>
 
-          <p
-            style={{
-              color: 'var(--color-text-dim)',
-              fontSize: '12px',
-              lineHeight: 1.5,
-              margin: '6px 0 0',
-              maxWidth: '680px',
-            }}
-          >
+          <p className="text-[12px] leading-[1.5] mt-[6px] mb-0 mr-0 ml-0 max-w-[680px] text-[var(--color-text-dim)]">
             Bestätigte Echtzeit-Ist-Daten aus n8n und Supabase Live-Feed (12 zertifizierte Katalog-KPIs).
             Unveränderliche historische Baseline und Szenarien folgen als Ebene A und B darunter.
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', alignSelf: 'center' }}>
+        <div className="flex items-center gap-[8px] flex-wrap self-center">
           <Badge variant="mint" style={{ fontSize: '10px', padding: '3px 8px' }}>
             Realtime Stream
           </Badge>
@@ -120,7 +59,7 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
       {/* 12-Spalten-Grid (Desktop) / Einspaltig gestapelt (Tablet/Mobile) */}
       <div className="live-performance-grid">
         {/* Reihe 1: Die 3 Kern-Karten (je 4 Spalten auf Desktop) */}
-        <div className="live-performance-col-4" style={{ minWidth: 0 }}>
+        <div className="live-performance-col-4 min-w-0">
           <LiveKpiCard
             kpiId="arr"
             title="Live ARR"
@@ -129,7 +68,7 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
           />
         </div>
 
-        <div className="live-performance-col-4" style={{ minWidth: 0 }}>
+        <div className="live-performance-col-4 min-w-0">
           <LiveKpiCard
             kpiId="mrr"
             title="Live MRR"
@@ -138,7 +77,7 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
           />
         </div>
 
-        <div className="live-performance-col-4" style={{ minWidth: 0 }}>
+        <div className="live-performance-col-4 min-w-0">
           <LiveKpiCard
             kpiId="pipeline_coverage"
             title="Live Pipeline Coverage"
@@ -148,20 +87,20 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
         </div>
 
         {/* Reihe 2: ARR-Graph (8 Spalten) und ARR-Mix (4 Spalten) */}
-        <div className="live-performance-col-8" style={{ minWidth: 0 }}>
+        <div className="live-performance-col-8 min-w-0">
           <StreamingAreaChart />
         </div>
 
-        <div className="live-performance-col-4" style={{ minWidth: 0 }}>
+        <div className="live-performance-col-4 min-w-0">
           <LiveArrMixDonut />
         </div>
 
         {/* Reihe 3: Funnel (8 Spalten) und Activity Feed (4 Spalten) */}
-        <div className="live-performance-col-8" style={{ minWidth: 0 }}>
+        <div className="live-performance-col-8 min-w-0">
           <LiveFunnelBarChart />
         </div>
 
-        <div className="live-performance-col-4" style={{ minWidth: 0 }}>
+        <div className="live-performance-col-4 min-w-0">
           <LiveActivityFeed />
         </div>
       </div>

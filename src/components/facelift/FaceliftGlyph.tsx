@@ -229,13 +229,11 @@ export const FaceliftGlyph: React.FC<FaceliftGlyphProps> = ({
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`facelift-glyph ${className}`}
-      style={{
-        display: 'inline-block',
-        verticalAlign: 'middle',
-        flexShrink: 0,
-        ...style,
-      }}
+      className={`facelift-glyph inline-block align-middle shrink-0 ${className}`}
+      // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
+      // style-Passthrough (Konsumenten in features/**).
+      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props (externe Konsumenten), siehe Auftrag 054 Block D
+      style={style}
       {...a11yProps}
     >
       {renderPaths()}

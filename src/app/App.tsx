@@ -39,11 +39,7 @@ export function App() {
                           <div
                             role="status"
                             aria-live="polite"
-                            style={{
-                              padding: '2rem',
-                              color: 'var(--color-text-muted, #94a3b8)',
-                              fontSize: '14px',
-                            }}
+                            className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
                           >
                             Ansicht wird geladen …
                           </div>
@@ -79,11 +75,7 @@ export function App() {
                         <div
                           role="status"
                           aria-live="polite"
-                          style={{
-                            padding: '2rem',
-                            color: 'var(--color-text-muted, #94a3b8)',
-                            fontSize: '14px',
-                          }}
+                          className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
                         >
                           Ansicht wird geladen …
                         </div>

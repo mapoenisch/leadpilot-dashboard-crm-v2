@@ -22,26 +22,8 @@ export function Header({
   onToggleTheme,
 }: HeaderProps) {
   return (
-    <header
-      className="app-header"
-      style={{
-        minHeight: '56px',
-        background: 'rgba(6, 22, 19, 0.85)',
-        backdropFilter: 'var(--backdrop-blur-sm)',
-        WebkitBackdropFilter: 'var(--backdrop-blur-sm)',
-        borderBottom: '1px solid var(--color-border)',
-        padding: '0 var(--space-4)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 'var(--space-3)',
-        boxSizing: 'border-box',
-        width: '100%',
-        zIndex: 10,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: '1 1 auto' }}>
+    <header className="app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[rgba(6,22,19,0.85)] backdrop-blur-sm px-[var(--space-4)] z-10">
+      <div className="flex items-center gap-[var(--space-3)] min-w-0 flex-[1_1_auto]">
         {isMobile && onToggleMobileMenu && (
           <button
             type="button"
@@ -50,56 +32,25 @@ export function Header({
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-sidebar-drawer"
             onClick={onToggleMobileMenu}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-primary)',
-              padding: '6px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
+            className="inline-flex items-center justify-center shrink-0 cursor-pointer rounded-md border border-solid border-border bg-transparent p-[6px] text-primary"
           >
             <Menu size={20} />
           </button>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', minWidth: 0, overflow: 'hidden' }}>
+        <div className="flex items-center gap-[var(--space-2)] min-w-0 overflow-hidden">
           {categoryLabel && (
-            <span
-              className="header-category-label"
-              style={{
-                color: 'var(--color-text-muted)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <span className="header-category-label whitespace-nowrap text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
               {categoryLabel} /
             </span>
           )}
-          <h1
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '17px',
-              fontWeight: 600,
-              color: 'var(--color-text)',
-              margin: 0,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
+          <h1 className="m-0 font-display text-[17px] font-semibold text-text whitespace-nowrap overflow-hidden text-ellipsis">
             {currentViewTitle}
           </h1>
         </div>
       </div>
 
-      <div className="header-user-profile" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flexShrink: 0 }}>
+      <div className="header-user-profile flex items-center gap-[var(--space-3)] min-w-0 shrink-0">
         {/* G39 Welle 1 (Auftrag 054, Block A): Theme-Umschalter. Klassen-
             basiert (kein style-Prop) — nimmt die Block-D-Migration vorweg. */}
         {onToggleTheme && (
@@ -114,27 +65,13 @@ export function Header({
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: 'var(--color-surface-raised)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--color-primary)',
-              fontWeight: 700,
-              fontSize: '13px',
-              flexShrink: 0,
-            }}
-          >
+        <div className="flex items-center gap-[10px] min-w-0">
+          <div className="flex items-center justify-center shrink-0 rounded-full bg-surface-raised text-primary font-bold text-[13px] w-[32px] h-[32px]">
             MP
           </div>
-          <div className="header-user-details" style={{ fontSize: '12px', minWidth: 0 }}>
-            <div style={{ color: 'var(--color-text)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Marc Pönisch</div>
-            <div className="header-user-role" style={{ color: 'var(--color-text-muted)', fontSize: '10.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div className="header-user-details text-[12px] min-w-0">
+            <div className="text-text font-semibold whitespace-nowrap overflow-hidden text-ellipsis">Marc Pönisch</div>
+            <div className="header-user-role whitespace-nowrap overflow-hidden text-ellipsis text-[10.5px] text-[var(--color-text-muted)]">
               CEO & Gründer · LeadPilot GmbH
             </div>
           </div>

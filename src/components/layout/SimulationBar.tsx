@@ -39,26 +39,10 @@ export function SimulationBar() {
     <div
       role="region"
       aria-label="Simulation Command Strip"
-      className="simulation-command-strip"
-      style={{
-        background: 'rgba(18, 51, 48, 0.75)',
-        backdropFilter: 'var(--backdrop-blur-sm)',
-        WebkitBackdropFilter: 'var(--backdrop-blur-sm)',
-        borderBottom: '1px solid var(--color-border)',
-        padding: '8px var(--space-4)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 'var(--space-3)',
-        fontSize: '13px',
-        boxSizing: 'border-box',
-        width: '100%',
-        zIndex: 5,
-      }}
+      className="simulation-command-strip flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full text-[13px] z-[5] border-b border-solid border-border bg-[rgba(18,51,48,0.75)] backdrop-blur-sm py-[8px] px-[var(--space-4)]"
     >
       {/* 1. Primary Action & State */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+      <div className="flex items-center gap-[var(--space-3)] flex-wrap">
         <StatusChip
           variant={simState.isRunning ? 'cyan' : 'orange'}
           label={simState.isRunning ? 'SIMULATION AKTIV' : 'SIMULATION PAUSIERT'}
@@ -66,6 +50,9 @@ export function SimulationBar() {
           size="sm"
         />
 
+        {/* G39 Welle 1: Glow an/aus sind zwei zur Build-Zeit bekannte Werte —
+            als Klasse nicht abbildbar, weil Button kein className-Prop hat
+            (API bleibt unverändert); Passthrough an Custom-Komponente. */}
         <Button
           size="sm"
           variant="primary"
@@ -82,17 +69,9 @@ export function SimulationBar() {
         <div
           role="radiogroup"
           aria-label="Simulationsgeschwindigkeit"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '2px',
-            background: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-full)',
-            padding: '2px 4px',
-            border: '1px solid var(--color-border-soft)',
-          }}
+          className="flex items-center gap-[2px] border border-solid border-border-soft rounded-full bg-background-deep py-[2px] px-[4px]"
         >
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginLeft: '4px', marginRight: '2px' }}>
+          <span className="text-[11px] text-[var(--color-text-muted)] ml-[4px] mr-[2px]">
             Tempo:
           </span>
           {([1, 2, 5, 10] as SimulationSpeed[]).map((s) => (
@@ -102,17 +81,7 @@ export function SimulationBar() {
               role="radio"
               aria-checked={simState.speed === s}
               onClick={() => handleSpeed(s)}
-              style={{
-                background: simState.speed === s ? 'var(--color-primary-soft)' : 'transparent',
-                color: simState.speed === s ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                border: 'none',
-                borderRadius: 'var(--radius-full)',
-                padding: '2px 7px',
-                fontSize: '11px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                outline: 'none',
-              }}
+              className={`border-0 rounded-full cursor-pointer outline-none text-[11px] font-semibold py-[2px] px-[7px] ${simState.speed === s ? 'bg-primary-soft text-primary' : 'bg-transparent text-[var(--color-text-muted)]'}`}
             >
               {s}x
             </button>
@@ -121,66 +90,31 @@ export function SimulationBar() {
       </div>
 
       {/* 2. Middle Event Info Stream (hidden on very small viewports if necessary or truncated) */}
-      <div
-        style={{
-          flex: '1 1 auto',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          color: 'var(--color-text-muted)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-2)',
-          fontSize: '12px',
-          minWidth: 0,
-        }}
-      >
-        <span
-          style={{
-            fontSize: '11px',
-            fontWeight: 700,
-            color: 'var(--color-primary)',
-            background: 'var(--color-primary-soft)',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            flexShrink: 0,
-          }}
-        >
+      <div className="flex items-center gap-[var(--space-2)] flex-[1_1_auto] overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-[var(--color-text-muted)] min-w-0">
+        <span className="text-[11px] font-bold text-primary bg-primary-soft rounded px-[6px] py-[2px] shrink-0">
           Tick #{simState.tickCount}
         </span>
         {lastEvent ? (
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            <strong style={{ color: 'var(--color-text)' }}>{lastEvent.title}:</strong> {lastEvent.details}
+          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+            <strong className="text-text">{lastEvent.title}:</strong> {lastEvent.details}
           </span>
         ) : (
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
             Unternehmenssimulation bereit (Ebene B).
           </span>
         )}
       </div>
 
       {/* 3. Live Metrics Summary */}
-      <div
-        className="simulation-bar-metrics"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-3)',
-          fontSize: '12px',
-          color: 'var(--color-text-muted)',
-          flexShrink: 0,
-          flexWrap: 'wrap',
-          minWidth: 0,
-        }}
-      >
+      <div className="simulation-bar-metrics flex items-center gap-[var(--space-3)] flex-wrap text-[12px] text-[var(--color-text-muted)] shrink-0 min-w-0">
         <div>
-          Leads: <strong style={{ color: 'var(--color-text)' }}>{metrics.liveLeads}</strong>
+          Leads: <strong className="text-text">{metrics.liveLeads}</strong>
         </div>
         <div>
-          Won: <strong style={{ color: 'var(--color-primary)' }}>{metrics.liveWonDeals}</strong>
+          Won: <strong className="text-primary">{metrics.liveWonDeals}</strong>
         </div>
         <div>
-          ARR: <strong style={{ color: 'var(--color-accent)' }}>{metrics.liveARR.toLocaleString('de-DE')} €</strong>
+          ARR: <strong className="text-accent">{metrics.liveARR.toLocaleString('de-DE')} €</strong>
         </div>
       </div>
 

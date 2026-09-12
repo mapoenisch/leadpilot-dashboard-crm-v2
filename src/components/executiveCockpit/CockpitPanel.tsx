@@ -8,7 +8,6 @@ export interface CockpitPanelProps {
   actions?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
-  style?: React.CSSProperties;
   noPadding?: boolean;
 }
 
@@ -20,96 +19,38 @@ export const CockpitPanel: React.FC<CockpitPanelProps> = ({
   actions,
   children,
   className = '',
-  style = {},
   noPadding = false,
 }) => {
   return (
     <section
       data-testid="cockpit-panel"
-      className={`cockpit-panel ${className}`}
-      style={{
-        background: 'linear-gradient(145deg, rgba(11, 30, 28, 0.72) 0%, rgba(5, 18, 17, 0.82) 100%)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(0, 217, 198, 0.16)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(0, 217, 198, 0.12)',
-        borderRadius: '8px',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        overflow: 'hidden',
-        ...style,
-      }}
+      // G39 Welle 1: style-Spread entfernt — 0 Aufrufer übergeben style
+      // (per Suche bestätigt), keine Passthrough-Notwendigkeit wie bei
+      // Badge/Card/Button. Eigene Styles als Klassen.
+      className={`cockpit-panel flex flex-col relative overflow-hidden rounded-[8px] border border-solid border-[rgba(0,217,198,0.16)] bg-[linear-gradient(145deg,rgba(11,30,28,0.72)_0%,rgba(5,18,17,0.82)_100%)] backdrop-blur-[16px] shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(0,217,198,0.12)] ${className}`}
     >
       {/* Subtile Lichtkante oben */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '1px',
-          background: 'linear-gradient(90deg, transparent 0%, rgba(0, 217, 198, 0.4) 50%, transparent 100%)',
-          pointerEvents: 'none',
-        }}
-      />
+      <div className="absolute top-0 left-0 right-0 h-[1px] pointer-events-none bg-[linear-gradient(90deg,transparent_0%,rgba(0,217,198,0.4)_50%,transparent_100%)]" />
 
       {/* Header */}
-      <div
-        style={{
-          padding: '16px 20px 12px',
-          borderBottom: '1px solid rgba(0, 217, 198, 0.08)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: '12px',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: '15px',
-                fontWeight: 700,
-                color: '#FFFFFF',
-                letterSpacing: '-0.01em',
-                fontFamily: 'var(--font-display)',
-              }}
-            >
+      <div className="flex justify-between items-start gap-[12px] border-b border-solid border-[rgba(0,217,198,0.08)] px-[20px] pt-[16px] pb-[12px]">
+        <div className="flex flex-col gap-[2px] min-w-0">
+          <div className="flex items-center gap-[8px] flex-wrap">
+            <h3 className="m-0 font-display text-[15px] font-bold tracking-[-0.01em] text-[#FFFFFF]">
               {title}
             </h3>
             {badge}
           </div>
           {subtitle && (
-            <p
-              style={{
-                margin: 0,
-                fontSize: '12px',
-                color: 'var(--color-text-muted)',
-                lineHeight: 1.4,
-              }}
-            >
+            <p className="m-0 text-[12px] leading-[1.4] text-[var(--color-text-muted)]">
               {subtitle}
             </p>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        <div className="flex items-center gap-[8px] shrink-0">
           {sourceLabel && (
-            <span
-              style={{
-                fontSize: '10px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                padding: '2px 7px',
-                borderRadius: '4px',
-                background: 'rgba(0, 217, 198, 0.08)',
-                color: '#00D9C6',
-                border: '1px solid rgba(0, 217, 198, 0.16)',
-                fontWeight: 600,
-              }}
-            >
+            <span className="font-semibold text-[10px] uppercase tracking-[0.06em] rounded border border-solid border-[rgba(0,217,198,0.16)] bg-[rgba(0,217,198,0.08)] text-[#00D9C6] px-[7px] py-[2px]">
               {sourceLabel}
             </span>
           )}
@@ -118,14 +59,7 @@ export const CockpitPanel: React.FC<CockpitPanelProps> = ({
       </div>
 
       {/* Content */}
-      <div
-        style={{
-          padding: noPadding ? '0' : '18px 20px',
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1,
-        }}
-      >
+      <div className={`flex flex-col flex-1 ${noPadding ? 'p-0' : 'px-[20px] py-[18px]'}`}>
         {children}
       </div>
     </section>

@@ -58,18 +58,7 @@ export function Layout() {
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        width: '100vw',
-        maxWidth: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-        background: 'radial-gradient(120% 120% at 50% 0%, var(--color-bg) 0%, var(--color-bg-deep) 100%)',
-        fontFamily: 'var(--font-body)',
-        boxSizing: 'border-box',
-      }}
-    >
+    <div className="flex w-screen max-w-[100vw] h-screen overflow-hidden box-border font-body bg-[radial-gradient(120%_120%_at_50%_0%,var(--color-bg)_0%,var(--color-bg-deep)_100%)]">
       {/* Sidebar (Desktop static or Mobile Drawer) */}
       <Sidebar
         isMobile={isMobile}
@@ -79,14 +68,7 @@ export function Layout() {
 
       {/* Main Content Area */}
       <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
-          minWidth: 0,
-          overflow: 'hidden',
-        }}
+        className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden"
         aria-hidden={isMobile && isMobileDrawerOpen}
         {...((isMobile && isMobileDrawerOpen) ? { inert: '' } : {})}
       >
@@ -103,12 +85,7 @@ export function Layout() {
         <main
           tabIndex={0}
           aria-label="Hauptinhalt"
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: isMobile ? 'var(--space-4)' : 'var(--space-6)',
-            boxSizing: 'border-box',
-          }}
+          className={`flex-1 overflow-y-auto box-border ${isMobile ? 'p-[var(--space-4)]' : 'p-[var(--space-6)]'}`}
         >
           <Outlet />
         </main>

@@ -204,43 +204,22 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
       className={className ? `${className} live-performance-panel` : 'live-performance-panel'}
       role="region"
       aria-label="Live Funnel nach Stufe"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        minHeight: '360px',
-        position: 'relative',
-        overflow: 'hidden',
-        minWidth: 0,
-      }}
     >
+      {/* G39 Welle 1: Card-Layout per cva-Variante. Card hat kein className-
+          Merge für Layout — daher umhüllendes Div mit den bisherigen
+          Layout-Werten als Klassen. */}
+      <div className="flex flex-col justify-between min-h-[360px] relative overflow-hidden min-w-0">
       <div>
         {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            marginBottom: '14px',
-          }}
-        >
+        <div className="flex items-center justify-between gap-[8px] mb-[14px]">
           <div>
-            <div style={{ color: 'var(--color-primary)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-[2px]">
               Operativer Durchlauf
             </div>
-            <h3
-              style={{
-                color: 'var(--color-text)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '16px',
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
+            <h3 className="m-0 font-display text-[16px] font-semibold text-text">
               Live Funnel nach Stufe
             </h3>
-            <span style={{ color: 'var(--color-text-dim)', fontSize: '11px' }}>
+            <span className="text-[11px] text-[var(--color-text-dim)]">
               5 Stufen · Pseudo-3D-Balken mit Leuchtkanten · Ebene C
             </span>
           </div>
@@ -251,7 +230,7 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
 
         {/* Degraded Qualitätswarnung */}
         {hasDegraded && (
-          <div style={{ marginBottom: '10px' }}>
+          <div className="mb-[10px]">
             <Badge variant="orange" style={{ padding: '2px 8px', fontSize: '9.5px' }}>
               Qualität eingeschränkt (Degraded Snapshot in einer Stufe)
             </Badge>
@@ -260,7 +239,7 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
 
         {/* Recharts BarChart mit Pseudo-3D shape */}
         {confirmedCount > 0 ? (
-          <div style={{ width: '100%', height: '220px', minWidth: 0 }} aria-hidden="true">
+          <div className="w-full h-[220px] min-w-0" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 24, right: 16, left: -10, bottom: 0 }}>
                 <defs>
@@ -323,17 +302,8 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
             </ResponsiveContainer>
           </div>
         ) : (
-          <div
-            style={{
-              padding: '28px 16px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(6, 22, 19, 0.55)',
-              border: '1px solid rgba(0, 242, 254, 0.18)',
-              margin: '16px 0',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
+          <div className="text-center border border-solid border-[rgba(0,242,254,0.18)] rounded-md bg-[rgba(6,22,19,0.55)] my-[16px] mx-0 px-[16px] py-[28px]">
+            <div className="text-[12px] italic text-[var(--color-text-muted)]">
               Warte auf bestätigte Funnel-Snapshots aus n8n / Live-Feed...
             </div>
           </div>
@@ -341,45 +311,28 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
       </div>
 
       {/* Tabellenalternative für Barrierefreiheit und 375px Viewport */}
-      <div
-        style={{
-          marginTop: '12px',
-          paddingTop: '8px',
-          borderTop: '1px solid var(--color-border-soft)',
-          fontSize: '11px',
-          overflowX: 'auto',
-        }}
-      >
-        <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--color-text-muted)' }}>
+      <div className="mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px] overflow-x-auto">
+        <table className="w-full border-collapse text-[var(--color-text-muted)]">
           <thead>
-            <tr style={{ borderBottom: '1px solid rgba(42, 74, 67, 0.3)', textAlign: 'left' }}>
-              <th style={{ padding: '2px 0', fontWeight: 600 }}>Stufe</th>
-              <th style={{ padding: '2px 0', textAlign: 'right', fontWeight: 600 }}>Bestätigter Wert</th>
-              <th style={{ padding: '2px 0', textAlign: 'right', fontWeight: 600 }}>Qualität</th>
+            <tr className="border-b border-solid border-[rgba(42,74,67,0.3)] text-left">
+              <th className="font-semibold py-[2px] px-0">Stufe</th>
+              <th className="font-semibold text-right py-[2px] px-0">Bestätigter Wert</th>
+              <th className="font-semibold text-right py-[2px] px-0">Qualität</th>
             </tr>
           </thead>
           <tbody>
             {stages.map((stage) => (
-              <tr key={stage.id} style={{ borderBottom: '1px solid rgba(42, 74, 67, 0.15)' }}>
-                <td style={{ padding: '3px 0', color: 'var(--color-text)' }}>{stage.label}</td>
+              <tr key={stage.id} className="border-b border-solid border-[rgba(42,74,67,0.15)]">
+                <td className="text-text py-[3px] px-0">{stage.label}</td>
                 <td
-                  style={{
-                    padding: '3px 0',
-                    textAlign: 'right',
-                    color: stage.hasValue ? '#00f2fe' : 'var(--color-text-dim)',
-                    fontStyle: stage.hasValue ? 'normal' : 'italic',
-                  }}
+                  className={`text-right py-[3px] px-0 ${stage.hasValue ? 'not-italic text-[#00f2fe]' : 'italic text-[var(--color-text-dim)]'}`}
                 >
                   {stage.hasValue && stage.value !== null
                     ? `${stage.value.toLocaleString('de-DE')}`
                     : 'Warte auf bestätigten Live-Wert'}
                 </td>
                 <td
-                  style={{
-                    padding: '3px 0',
-                    textAlign: 'right',
-                    color: stage.qualityStatus === 'degraded' ? '#ff7a3d' : 'var(--color-text-muted)',
-                  }}
+                  className={`text-right py-[3px] px-0 ${stage.qualityStatus === 'degraded' ? 'text-[#ff7a3d]' : 'text-[var(--color-text-muted)]'}`}
                 >
                   {stage.hasValue
                     ? stage.qualityStatus === 'degraded'
@@ -391,6 +344,7 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </Card>
   );

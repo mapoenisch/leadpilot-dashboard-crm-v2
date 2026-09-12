@@ -47,49 +47,24 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
   return (
     <figure
       id={baseId}
-      className={`facelift-diagram-canvas ${className}`}
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-4)',
-        ...style,
-      }}
+      className={`facelift-diagram-canvas box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-4)] ${className}`}
+      // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
+      // style-Passthrough (externe Konsumenten möglich).
+      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props, siehe Auftrag 054 Block D
+      style={style}
     >
       {/* Header mit Titel und optionaler Beschreibung */}
-      <div
-        style={{
-          marginBottom: 'var(--space-3)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-1)',
-        }}
-      >
+      <div className="flex flex-col gap-[var(--space-1)] mb-[var(--space-3)]">
         <h4
           id={headingId}
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-display)',
-            fontSize: '1rem',
-            fontWeight: 600,
-            letterSpacing: '0.02em',
-            color: 'var(--color-text)',
-          }}
+          className="m-0 font-display text-[1rem] font-semibold tracking-[0.02em] text-text"
         >
           {title}
         </h4>
         {description && (
           <p
             id={headingDescId}
-            style={{
-              margin: '2px 0 0 0',
-              fontFamily: 'var(--font-body)',
-              fontSize: '0.8125rem',
-              color: 'var(--color-text-muted)',
-              lineHeight: 1.4,
-            }}
+            className="font-body text-[0.8125rem] leading-[1.4] mt-[2px] mb-0 mr-0 ml-0 text-[var(--color-text-muted)]"
           >
             {description}
           </p>
@@ -98,28 +73,21 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
 
       {/* Responsiver SVG-Container ohne starre Breiten */}
       <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          overflow: 'hidden',
-          borderRadius: 'var(--radius-md)',
-          backgroundColor: 'var(--color-bg-deep)',
-          border: '1px solid var(--color-border-soft)',
-          ...(aspectRatio ? { aspectRatio } : {}),
-        }}
+        className="relative w-full overflow-hidden rounded-md border border-solid border-border-soft bg-background-deep"
+        // G39 Welle 1: aspectRatio ist ein Laufzeit-Prop des Aufrufers —
+        // als Klasse nicht darstellbar (Muster Auftrag 053 Nachtrag 2).
+        // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (aspectRatio-Prop), siehe Auftrag 054 Entscheidung 4
+        style={aspectRatio ? { aspectRatio } : undefined}
       >
         <svg
           viewBox={viewBox}
           role="img"
           aria-labelledby={svgDescId ? `${svgTitleId} ${svgDescId}` : svgTitleId}
-          className={svgClassName}
-          style={{
-            display: 'block',
-            width: '100%',
-            height: 'auto',
-            userSelect: 'none',
-            ...svgStyle,
-          }}
+          className={svgClassName ? `${svgClassName} block w-full h-auto select-none` : 'block w-full h-auto select-none'}
+          // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
+          // style-Passthrough.
+          // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-svgStyle-Props, siehe Auftrag 054 Block D
+          style={svgStyle}
           xmlns="http://www.w3.org/2000/svg"
         >
           <title id={svgTitleId}>{title}</title>
@@ -130,45 +98,21 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
 
       {/* Legendenbereich */}
       {legend && (
-        <div
-          style={{
-            marginTop: 'var(--space-3)',
-            paddingTop: 'var(--space-2)',
-            borderTop: '1px solid var(--color-border-soft)',
-            fontFamily: 'var(--font-body)',
-            fontSize: '0.8125rem',
-            color: 'var(--color-text-muted)',
-          }}
-        >
+        <div className="font-body text-[0.8125rem] mt-[var(--space-3)] pt-[var(--space-2)] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
           {legend}
         </div>
       )}
 
       {/* Quellenangabe (KfW, Destatis etc.) */}
       {source && (
-        <div
-          style={{
-            marginTop: 'var(--space-2)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: 'var(--space-1)',
-            fontFamily: 'var(--font-body)',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-          }}
-        >
-          <span style={{ fontWeight: 500 }}>Quelle:</span>
+        <div className="flex flex-wrap items-center gap-[var(--space-1)] font-body text-[0.75rem] mt-[var(--space-2)] text-[var(--color-text-muted)]">
+          <span className="font-medium">Quelle:</span>
           {source.url ? (
             <a
               href={source.url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                color: 'var(--color-primary)',
-                textDecoration: 'underline',
-                textUnderlineOffset: '2px',
-              }}
+              className="underline underline-offset-[2px] text-primary"
             >
               {source.label}
             </a>
@@ -176,7 +120,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
             <span>{source.label}</span>
           )}
           {source.metric && (
-            <span style={{ color: 'var(--color-text-muted)' }}>
+            <span className="text-[var(--color-text-muted)]">
               ({source.metric})
             </span>
           )}
@@ -185,16 +129,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
 
       {/* Zugängliche Textzusammenfassung / Tabellen-Fallback */}
       {summary && (
-        <div
-          style={{
-            marginTop: 'var(--space-3)',
-            paddingTop: 'var(--space-2)',
-            borderTop: '1px solid var(--color-border-soft)',
-            fontFamily: 'var(--font-body)',
-            fontSize: '0.8125rem',
-            color: 'var(--color-text-muted)',
-          }}
-        >
+        <div className="font-body text-[0.8125rem] mt-[var(--space-3)] pt-[var(--space-2)] border-t border-solid border-border-soft text-[var(--color-text-muted)]">
           {summary}
         </div>
       )}

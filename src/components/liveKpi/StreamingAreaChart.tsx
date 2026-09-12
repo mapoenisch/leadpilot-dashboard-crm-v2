@@ -92,43 +92,21 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
       className={className ? `${className} live-performance-panel` : 'live-performance-panel'}
       role="region"
       aria-label="Live ARR Verlaufsgraph (30-Minuten-Fenster)"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        minHeight: '360px',
-        position: 'relative',
-        overflow: 'hidden',
-        minWidth: 0,
-      }}
     >
+      {/* G39 Welle 1: Card-Layout per umhüllendem Div (Card hat kein
+          className-Prop, nur style-Passthrough — API unverändert). */}
+      <div className="flex flex-col justify-between min-h-[360px] relative overflow-hidden min-w-0">
       <div>
         {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            marginBottom: '14px',
-          }}
-        >
+        <div className="flex items-center justify-between gap-[8px] mb-[14px]">
           <div>
-            <div style={{ color: 'var(--color-primary)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div className="text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-[2px]">
               Finanzielle Dynamik
             </div>
-            <h3
-              style={{
-                color: 'var(--color-text)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '16px',
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
+            <h3 className="m-0 font-display text-[16px] font-semibold text-text">
               Live ARR Verlauf (30 Min)
             </h3>
-            <span style={{ color: 'var(--color-text-dim)', fontSize: '11px' }}>
+            <span className="text-[11px] text-[var(--color-text-dim)]">
               Streaming-Ebene C · maximal 30 Datenpunkte · Leuchtkurve mit Halo
             </span>
           </div>
@@ -139,7 +117,7 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
 
         {/* Visual Chart Area */}
         {hasData ? (
-          <div style={{ width: '100%', height: '220px', minWidth: 0 }} aria-hidden="true">
+          <div className="w-full h-[220px] min-w-0" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 12, right: 14, left: -10, bottom: 0 }}>
                 <defs>
@@ -225,24 +203,15 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
             </ResponsiveContainer>
           </div>
         ) : (
-          <div
-            style={{
-              padding: '28px 16px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid rgba(42, 74, 67, 0.4)',
-              margin: '16px 0',
-              textAlign: 'center',
-            }}
-          >
+          <div className="text-center border border-solid border-[rgba(42,74,67,0.4)] rounded-md bg-[rgba(255,255,255,0.02)] my-[16px] mx-0 px-[16px] py-[28px]">
             {/* G39 Welle 1 (Auftrag 054, Block C): Chartflächen-Platzhalter
                 im Ladezustand ergänzen — Status-Text bleibt erhalten. */}
             {status === 'loading' && (
-              <div aria-hidden="true" style={{ marginBottom: '12px' }}>
+              <div aria-hidden="true" className="mb-[12px]">
                 <Skeleton variant="rect" width="100%" height={180} />
               </div>
             )}
-            <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
+            <div className="text-[12px] italic text-[var(--color-text-muted)]">
               {statusText}
             </div>
           </div>
@@ -250,16 +219,8 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
       </div>
 
       {/* Zugängliche Textalternative unterhalb des Charts */}
-      <div
-        style={{
-          marginTop: '12px',
-          paddingTop: '8px',
-          borderTop: '1px solid var(--color-border-soft)',
-          fontSize: '11px',
-          color: 'var(--color-text-dim)',
-        }}
-      >
-        <span style={{ fontWeight: 600, color: 'var(--color-text-muted)' }}>
+      <div className="mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px] text-[var(--color-text-dim)]">
+        <span className="font-semibold text-[var(--color-text-muted)]">
           Textalternative (ARR-Verlauf):{' '}
         </span>
         {hasData ? (
@@ -271,6 +232,7 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
         ) : (
           <span>{statusText}</span>
         )}
+      </div>
       </div>
     </Card>
   );

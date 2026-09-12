@@ -120,27 +120,18 @@ export function Sidebar({
 
   const content = (
     <>
-      <div
-        style={{
-          padding: 'var(--space-4) var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+      <div className="flex items-center justify-between gap-[var(--space-3)] border-b border-solid border-border-soft p-[var(--space-4)]">
+        <div className="flex items-center gap-[var(--space-3)]">
           <img
             src="/assets/logo/leadpilot-logo-full.png"
             alt="LeadPilot Logo"
-            style={{ height: '26px', objectFit: 'contain' }}
+            className="h-[26px] object-contain"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
           />
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '18px', color: 'var(--color-text)' }}>
-            LeadPilot <span style={{ fontSize: '11px', color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Enterprise</span>
+          <div className="font-display font-bold text-[18px] text-text">
+            LeadPilot <span className="text-[11px] text-primary uppercase tracking-[0.05em]">Enterprise</span>
           </div>
         </div>
 
@@ -149,72 +140,39 @@ export function Sidebar({
             type="button"
             onClick={onCloseMobileDrawer}
             aria-label="Menü schließen"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--color-text-muted)',
-              padding: '6px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 'var(--radius-sm)',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+            className="flex items-center justify-center cursor-pointer rounded border-0 bg-transparent p-[6px] text-[var(--color-text-muted)] hover:text-primary"
           >
             <X size={18} />
           </button>
         )}
       </div>
 
-      <nav style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-3) var(--space-2)' }}>
+      <nav className="flex-1 overflow-y-auto py-[var(--space-3)] px-[var(--space-2)]">
         {NAV_CATEGORIES.map((cat) => {
           const isOpen = !!openCategories[cat.id];
           const iconName = CATEGORY_ICONS[cat.id] || 'layers';
           const hasActiveChild = cat.items.some((item) => item.id === currentRoute.id);
 
           return (
-            <div key={cat.id} style={{ marginBottom: '4px' }}>
+            <div key={cat.id} className="mb-[4px]">
               <button
                 type="button"
                 aria-expanded={isOpen}
                 aria-controls={`nav-category-items-${cat.id}`}
                 onClick={() => toggleCategory(cat.id)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '8px 10px',
-                  borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  color: hasActiveChild ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  fontSize: '12.5px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  fontFamily: 'var(--font-body)',
-                  userSelect: 'none',
-                  textAlign: 'left',
-                  transition: 'background 150ms ease, color 150ms ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-surface)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                className={`w-full flex items-center justify-between rounded-md border-0 bg-transparent cursor-pointer px-[10px] py-[8px] font-body text-[12.5px] font-semibold uppercase tracking-[0.04em] select-none text-left transition-[background_150ms_ease,color_150ms_ease] hover:bg-surface ${hasActiveChild ? 'text-primary' : 'text-[var(--color-text-muted)]'}`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="flex items-center gap-[8px]">
                   <Icon name={iconName} size={15} color={hasActiveChild ? 'var(--color-primary)' : 'var(--color-text-muted)'} />
                   <span>{cat.label}</span>
                 </div>
-                <span style={{ fontSize: '10px', opacity: 0.7 }}>{isOpen ? '▲' : '▼'}</span>
+                <span className="text-[10px] opacity-70">{isOpen ? '▲' : '▼'}</span>
               </button>
 
               {isOpen && (
                 <div
                   id={`nav-category-items-${cat.id}`}
-                  style={{ paddingLeft: '12px', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}
+                  className="flex flex-col gap-[2px] mt-[2px] pl-[12px]"
                 >
                   {cat.items.map((item) => {
                     const routeMeta = routeForViewId[item.id];
@@ -240,9 +198,9 @@ export function Sidebar({
         })}
       </nav>
 
-      <div style={{ padding: 'var(--space-3) var(--space-4)', borderTop: '1px solid var(--color-border-soft)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+      <div className="border-t border-solid border-border-soft px-[var(--space-4)] py-[var(--space-3)] text-[11px] text-[var(--color-text-muted)]">
         <div>LeadPilot GmbH © 2026</div>
-        <div style={{ color: 'var(--color-primary)' }}>Simulation Engine v1.3.0</div>
+        <div className="text-primary">Simulation Engine v1.3.0</div>
       </div>
     </>
   );
@@ -253,17 +211,7 @@ export function Sidebar({
         role="button"
         tabIndex={0}
         aria-label="Menü schließen"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 1040,
-          background: 'rgba(6, 22, 19, 0.78)',
-          backdropFilter: 'blur(4px)',
-          animation: 'backdrop-fade-in 150ms ease-out',
-        }}
+        className="fixed inset-0 z-[1040] bg-[rgba(6,22,19,0.78)] backdrop-blur-[4px] animate-[backdrop-fade-in_150ms_ease-out]"
         onClick={onCloseMobileDrawer}
         onKeyDown={(e) => {
           if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
@@ -279,23 +227,7 @@ export function Sidebar({
           aria-modal="true"
           aria-label="Hauptnavigation"
           tabIndex={-1}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: 'min(280px, 85vw)',
-            background: 'var(--color-bg-deep)',
-            borderRight: '1px solid var(--color-border)',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            overflow: 'hidden',
-            zIndex: 1050,
-            boxShadow: 'var(--shadow-modal)',
-            animation: 'drawer-slide-in 200ms cubic-bezier(0.16, 1, 0.3, 1)',
-            outline: 'none',
-          }}
+          className="fixed top-0 left-0 bottom-0 z-[1050] flex flex-col h-screen overflow-hidden w-[min(280px,85vw)] border-r border-solid border-border bg-background-deep shadow-modal outline-none animate-[drawer-slide-in_200ms_cubic-bezier(0.16,1,0.3,1)]"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
@@ -306,20 +238,7 @@ export function Sidebar({
   }
 
   return (
-    <aside
-      style={{
-        width: '260px',
-        background: 'rgba(6, 22, 19, 0.95)',
-        backdropFilter: 'var(--backdrop-blur)',
-        WebkitBackdropFilter: 'var(--backdrop-blur)',
-        borderRight: '1px solid var(--color-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        overflow: 'hidden',
-        flexShrink: 0,
-      }}
-    >
+    <aside className="flex flex-col h-screen overflow-hidden shrink-0 w-[260px] border-r border-solid border-border bg-[rgba(6,22,19,0.95)] backdrop-blur">
       {content}
     </aside>
   );

@@ -6,7 +6,7 @@ import { Alert } from '@/components/ui/Alert';
 
 export function NotFoundPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: '800px' }}>
+    <div className="flex flex-col gap-[var(--space-6)] max-w-[800px]">
       <SectionHeader
         eyebrow="Fehler 404"
         title="Seite nicht gefunden"
@@ -14,8 +14,8 @@ export function NotFoundPage() {
       />
 
       <Card variant="glass">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '15px', lineHeight: 1.6, margin: 0 }}>
+        <div className="flex flex-col gap-[var(--space-4)]">
+          <p className="m-0 text-[15px] leading-[1.6] text-[var(--color-text-muted)]">
             Die von Ihnen aufgerufene Adresse konnte im LeadPilot Dashboard keinem gültigen Bereich zugeordnet werden.
           </p>
 
@@ -23,20 +23,7 @@ export function NotFoundPage() {
             <Link
               to="/dashboard"
               data-testid="not-found-home-link"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 'var(--space-2)',
-                background: 'var(--color-primary)',
-                color: 'var(--color-bg)',
-                padding: '10px 20px',
-                borderRadius: 'var(--radius-full)',
-                fontWeight: 600,
-                fontSize: '14px',
-                textDecoration: 'none',
-                boxShadow: 'var(--shadow-glow-cyan)',
-                transition: 'background 150ms ease',
-              }}
+              className="inline-flex items-center gap-[var(--space-2)] font-semibold text-[14px] no-underline rounded-full bg-primary text-[var(--color-bg)] px-[20px] py-[10px] shadow-glow-cyan transition-[background_150ms_ease]"
             >
               ← Zurück zum Executive Dashboard
             </Link>

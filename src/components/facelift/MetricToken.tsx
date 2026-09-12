@@ -20,47 +20,47 @@ export interface MetricTokenProps {
   style?: React.CSSProperties;
 }
 
-const TONE_STYLES: Record<VisualTone, { valueColor: string; borderColor: string; bgColor: string }> = {
+const TONE_CLASSES: Record<VisualTone, { valueClass: string; borderClass: string; bgClass: string }> = {
   positive: {
-    valueColor: 'var(--color-primary)',
-    borderColor: 'rgba(0, 217, 198, 0.3)',
-    bgColor: 'var(--cyan-a12)',
+    valueClass: 'text-primary',
+    borderClass: 'border-[rgba(0,217,198,0.3)]',
+    bgClass: 'bg-cyan-a12',
   },
   attention: {
-    valueColor: 'var(--color-accent)',
-    borderColor: 'rgba(255, 122, 61, 0.3)',
-    bgColor: 'var(--orange-a14)',
+    valueClass: 'text-accent',
+    borderClass: 'border-[rgba(255,122,61,0.3)]',
+    bgClass: 'bg-orange-a14',
   },
   neutral: {
-    valueColor: 'var(--color-text)',
-    borderColor: 'var(--color-border)',
-    bgColor: 'var(--color-surface)',
+    valueClass: 'text-text',
+    borderClass: 'border-border',
+    bgClass: 'bg-surface',
   },
   accent: {
-    valueColor: 'var(--cyan-light)',
-    borderColor: 'rgba(124, 239, 230, 0.3)',
-    bgColor: 'rgba(0, 217, 198, 0.08)',
+    valueClass: 'text-cyan-light',
+    borderClass: 'border-[rgba(124,239,230,0.3)]',
+    bgClass: 'bg-[rgba(0,217,198,0.08)]',
   },
 };
 
-const SIZES = {
+const SIZE_CLASSES = {
   sm: {
-    padding: 'var(--space-2) var(--space-3)',
-    labelFontSize: '0.75rem',
-    valueFontSize: '1.125rem',
-    unitFontSize: '0.75rem',
+    paddingClass: 'py-[var(--space-2)] px-[var(--space-3)]',
+    labelClass: 'text-[0.75rem]',
+    valueClass: 'text-[1.125rem]',
+    unitClass: 'text-[0.75rem]',
   },
   md: {
-    padding: 'var(--space-3) var(--space-4)',
-    labelFontSize: '0.8125rem',
-    valueFontSize: '1.5rem',
-    unitFontSize: '0.875rem',
+    paddingClass: 'py-[var(--space-3)] px-[var(--space-4)]',
+    labelClass: 'text-[0.8125rem]',
+    valueClass: 'text-[1.5rem]',
+    unitClass: 'text-[0.875rem]',
   },
   lg: {
-    padding: 'var(--space-4) var(--space-5)',
-    labelFontSize: '0.875rem',
-    valueFontSize: '2rem',
-    unitFontSize: '1rem',
+    paddingClass: 'py-[var(--space-4)] px-[var(--space-5)]',
+    labelClass: 'text-[0.875rem]',
+    valueClass: 'text-[2rem]',
+    unitClass: 'text-[1rem]',
   },
 };
 
@@ -76,119 +76,50 @@ export const MetricToken: React.FC<MetricTokenProps> = ({
   className = '',
   style,
 }) => {
-  const toneStyle = TONE_STYLES[tone];
-  const sizeConfig = SIZES[size];
+  const toneClasses = TONE_CLASSES[tone];
+  const sizeClasses = SIZE_CLASSES[size];
+  // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
+  // style-Passthrough (Konsumenten u. a. in features/**).
+  const ownClassName =
+    `facelift-metric-token flex flex-col justify-between box-border rounded-md border border-solid ` +
+    `${toneClasses.borderClass} ${toneClasses.bgClass} ${sizeClasses.paddingClass} ` +
+    `transition-[border-color_0.2s_ease,background-color_0.2s_ease]${className ? ` ${className}` : ''}`;
 
   return (
     <div
-      className={`facelift-metric-token ${className}`}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        borderRadius: 'var(--radius-md)',
-        border: `1px solid ${toneStyle.borderColor}`,
-        backgroundColor: toneStyle.bgColor,
-        padding: sizeConfig.padding,
-        boxSizing: 'border-box',
-        transition: 'border-color 0.2s ease, background-color 0.2s ease',
-        ...style,
-      }}
+      className={ownClassName}
+      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props (externe Konsumenten), siehe Auftrag 054 Block D
+      style={style}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-2)',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            letterSpacing: '0.02em',
-            color: 'var(--color-text-muted)',
-            fontSize: sizeConfig.labelFontSize,
-          }}
-        >
+      <div className="flex items-center justify-between gap-[var(--space-2)]">
+        <span className={`font-display tracking-[0.02em] text-[var(--color-text-muted)] ${sizeClasses.labelClass}`}>
           {label}
         </span>
-        {glyph && <span style={{ flexShrink: 0 }}>{glyph}</span>}
+        {glyph && <span className="shrink-0">{glyph}</span>}
       </div>
 
-      <div
-        style={{
-          marginTop: 'var(--space-1)',
-          display: 'flex',
-          alignItems: 'baseline',
-          gap: 'var(--space-1)',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            color: toneStyle.valueColor,
-            fontSize: sizeConfig.valueFontSize,
-            lineHeight: 1.2,
-          }}
-        >
+      <div className="flex items-baseline gap-[var(--space-1)] mt-[var(--space-1)]">
+        <span className={`font-mono font-bold tracking-[-0.02em] leading-[1.2] ${toneClasses.valueClass} ${sizeClasses.valueClass}`}>
           {value}
         </span>
         {unit && (
-          <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontWeight: 500,
-              color: 'var(--color-text-muted)',
-              fontSize: sizeConfig.unitFontSize,
-            }}
-          >
+          <span className={`font-body font-medium text-[var(--color-text-muted)] ${sizeClasses.unitClass}`}>
             {unit}
           </span>
         )}
       </div>
 
       {(delta || subtext) && (
-        <div
-          style={{
-            marginTop: 'var(--space-2)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-            fontSize: '0.75rem',
-          }}
-        >
+        <div className="flex flex-wrap items-center gap-[var(--space-2)] mt-[var(--space-2)] text-[0.75rem]">
           {delta && (
             <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontWeight: 500,
-                padding: '2px 6px',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.6875rem',
-                backgroundColor:
-                  delta.isPositive === undefined
-                    ? 'var(--color-surface-raised)'
-                    : delta.isPositive
-                    ? 'var(--cyan-a12)'
-                    : 'var(--orange-a14)',
-                color:
-                  delta.isPositive === undefined
-                    ? 'var(--color-text)'
-                    : delta.isPositive
-                    ? 'var(--color-primary)'
-                    : 'var(--color-accent)',
-                border: `1px solid ${
-                  delta.isPositive === undefined
-                    ? 'var(--color-border)'
-                    : delta.isPositive
-                    ? 'rgba(0, 217, 198, 0.3)'
-                    : 'rgba(255, 122, 61, 0.3)'
-                }`,
-              }}
+              className={`font-mono font-medium rounded px-[6px] py-[2px] text-[0.6875rem] border border-solid ${
+                delta.isPositive === undefined
+                  ? 'bg-surface-raised text-text border-border'
+                  : delta.isPositive
+                  ? 'bg-cyan-a12 text-primary border-[rgba(0,217,198,0.3)]'
+                  : 'bg-orange-a14 text-accent border-[rgba(255,122,61,0.3)]'
+              }`}
             >
               {delta.isPositive ? '+' : ''}
               {delta.value}
@@ -196,12 +127,7 @@ export const MetricToken: React.FC<MetricTokenProps> = ({
             </span>
           )}
           {subtext && (
-            <span
-              style={{
-                color: 'var(--color-text-muted)',
-                fontSize: '0.6875rem',
-              }}
-            >
+            <span className="text-[0.6875rem] text-[var(--color-text-muted)]">
               {subtext}
             </span>
           )}
