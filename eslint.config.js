@@ -238,6 +238,35 @@ export default tseslint.config(
     },
   },
 
+  // ── G39 Welle 3 (Auftrag 056, Block E): Scope um die 27 migrierten
+  // Welle-3-Dateien erweitert. Erlaubte Reste: Farben/Geometrie aus
+  // Simulations-/Domain-Daten (jeweils zeilengenaues Disable +
+  // Begründung, keine Datei-Ausnahme).
+  {
+    files: [
+      'src/features/organisation/**/*.tsx',
+      'src/features/overview/**/*.tsx',
+      'src/features/produkt/**/*.tsx',
+      'src/features/projektkontext/**/*.tsx',
+      'src/features/recht/**/*.tsx',
+      'src/features/simulation/**/*.tsx',
+    ],
+    rules: {
+      'react/forbid-dom-props': [
+        'error',
+        {
+          forbid: [
+            {
+              propName: 'style',
+              message:
+                'G39: kein Inline-Style in migrierten Dateien — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // ── Prettier muss letzter Eintrag sein (schaltet kollidierendes ab) ───────────
   prettier,
 );
