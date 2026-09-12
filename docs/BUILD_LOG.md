@@ -2,6 +2,79 @@
 
 ---
 
+## 2026-09-11 — Gate G37 / Auftrag 052: Review-Abschluss (Freigabe)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Geprüfter Endstand:** `6e8d4cf` (Screenshots + Profiler-Matrix + Bericht), Baseline `29cbcd1`.
+
+### Ablauf
+
+Blockweise begleitet (A/B/C während der Entwicklung code-gelesen), zwei
+vollständige Verifikationen in isolierten `git worktree`-Checkouts (bei
+`9a81796` nach Block D und final bei `6e8d4cf`), um die laufende
+Builder-Arbeit im Hauptverzeichnis nicht zu stören.
+
+### Ergebnis — alle Angaben unabhängig nachvollzogen
+
+| Check | Ergebnis |
+|---|---|
+| `tsc --noEmit` | 602 |
+| `npm run lint` | 19 Errors, 3 Warnings (Ratsche unverändert) |
+| `npm run verify` | 24/24 |
+| `npm test` | 36 Dateien / 140 Tests |
+| `npm run build` | Exit 0 |
+| `npx playwright test` | **153/153**, selbst ausgeführt |
+| Diff-Scope (`src/simulation`, `src/types`, `src/services/data`, `src/features/resources`) | leer |
+| `useSimulation()`/`SimulationContext`/`SimulationProvider` | 0 echte Treffer (nur ein erklärender Kommentar) |
+| `SimulationBar.tsx` (Profiler-Instrumentierung sauber revertiert) | 0 Diff gegen Baseline |
+| Temporäre Skripte (`scripts/tmp-052-*.mjs`) | korrekt entfernt, nicht committed |
+
+### Architektur-Review
+
+Store, drei Slices (`simulationSlice`, `scenarioSlice` inkl. `draftMeasures`,
+`runSlice`) und `src/store/hooks.ts` Zeile für Zeile gegen den alten
+`SimulationContext.tsx` gelesen — durchweg 1:1-treue Übersetzung, keine
+Verhaltensänderung. `refreshData` deckt auch die gecachte `versions`-Liste
+ab, keine Staleness-Lücke gefunden. Die zwei Direktzugriffe auf
+`scenarioService` (`MultiScenarioComparisonModal`, `ScenarioManagerModal`)
+korrekt auf direkten Import umgestellt, `useMemo`-Deps sauber bereinigt.
+
+**Bemerkenswert:** `zustand/react/shallow` erzeugte einen zyklischen
+Vendor/React-Vendor-Chunk-Edge (Boot-Crash) — vom Builder erkannt, technisch
+sauber mit einem eigenen 15-Zeilen-`useShallowSelector` gelöst
+(`zustand/vanilla/shallow` + `useStore` + `useRef`-Cache), keine
+Config-Änderung nötig. Durch `simulationStore.ui.vitest.tsx` bewiesen: ein
+Hook rendert bei fremden Slice-Updates nicht neu, beim eigenen Slice schon.
+
+### Profiler-Nachweis geprüft
+
+Methodik-Selbstkorrektur im Bericht nachvollzogen: ein erster Messansatz
+(React-Fiber-`PerformedWork`-Flags) lieferte falsche Zahlen (stale Flags),
+wurde verworfen und durch `console.count`-Ground-Truth ersetzt — nur diese
+Zahlen sind im Bericht. Ergebnis differenziert, nicht pauschal: Komponenten,
+die `draftMeasures` tatsächlich lesen (`ManagementTierView`, `RunActionModal`,
+`MeasureManagerModal`), rendern unverändert bei Draft-Aktionen; Komponenten,
+die es nicht lesen (`LiveDashboardView`, `ScenarioManagerModal`,
+`MultiScenarioComparisonModal`), rendern danach 0-mal statt vorher 1-mal je
+Aktion — genau das erwartete, granulare Verhalten. Tick-Zahlen unverändert
+(kein Live-Verhalten geändert). HMR-Dispose-Logik korrekt implementiert,
+aber ehrlich als „nicht live getestet, per Code-Analyse sicher" markiert
+statt fälschlich als getestet behauptet.
+
+### Screenshots — eigener Pixel-Diff, nicht nur SHA-256
+
+11/16 Paare byte-identisch (deckt sich mit dem Bericht). Bei den restlichen
+5 eigenen Pixel-Diff gefahren (PIL `ImageChops.difference`): maximales
+Kanal-Delta **1 von 255** in allen Fällen — sogar besser als die im Bericht
+konservativ genannten „≤ 8/255". Keine erkennbare visuelle Regression.
+
+### Ergebnis
+
+**Gate G37 vollständig abgeschlossen und freigegeben.** Kein Merge, Tag,
+Push. Nächster Schritt: Auftrag 053 (Gate G38, Design-System-Fundament).
+
+---
+
 ## 2026-09-11 — Gate G37 / Auftrag 052: `SimulationContext` → Zustand
 
 **Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`

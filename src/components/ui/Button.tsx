@@ -101,6 +101,7 @@ export function Button({
       className={cn(buttonVariants({ variant, size, fullWidth, inactive: isInactive, hovered }))}
       // Ausnahme (G38-Entscheidung 5, Nachtrag): style-Passthrough bleibt,
       // weil Konsumenten Overrides übergeben. Disable-Anweisung in Block D.
+      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props, siehe Auftrag 053 Entscheidung 5
       style={style}
       {...rest}
     >

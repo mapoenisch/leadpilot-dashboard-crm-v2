@@ -9,6 +9,12 @@ import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
 import '@/services/data';
 
+const DesignSystemPage = React.lazy(() =>
+  import('@/app/DesignSystemPage').then((m) => ({
+    default: m.DesignSystemPage,
+  }))
+);
+
 export function App() {
   return (
     <RouteErrorBoundary resetKey="app-root">
@@ -60,6 +66,35 @@ export function App() {
                 </RouteErrorBoundary>
               }
             />
+
+            {/* G38: Design-System-Galerie — nur im Dev-Modus registriert,
+                in Prod existiert die Route nicht (kein Navi-Eintrag). */}
+            {import.meta.env.DEV && (
+              <Route
+                path="/design-system"
+                element={
+                  <RouteErrorBoundary resetKey="design-system">
+                    <React.Suspense
+                      fallback={
+                        <div
+                          role="status"
+                          aria-live="polite"
+                          style={{
+                            padding: '2rem',
+                            color: 'var(--color-text-muted, #94a3b8)',
+                            fontSize: '14px',
+                          }}
+                        >
+                          Ansicht wird geladen …
+                        </div>
+                      }
+                    >
+                      <DesignSystemPage />
+                    </React.Suspense>
+                  </RouteErrorBoundary>
+                }
+              />
+            )}
           </Route>
         </Routes>
       </BrowserRouter>

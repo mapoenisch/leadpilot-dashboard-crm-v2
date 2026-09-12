@@ -143,7 +143,7 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between shrink-0 border-b border-solid border-soft px-5 py-4">
+        <div className="flex items-center justify-between shrink-0 border-b border-solid border-[var(--color-border-soft)] px-5 py-4">
           <h3 id={titleId} className="m-0 font-display text-[18px] font-semibold text-text">
             {title}
           </h3>
@@ -162,7 +162,7 @@ export function Modal({
           {children}
         </div>
         {footer && (
-          <div className="px-5 py-4 bg-background-deep border-t border-solid border-soft flex justify-end items-center gap-3 shrink-0 flex-wrap">
+          <div className="px-5 py-4 bg-background-deep border-t border-solid border-[var(--color-border-soft)] flex justify-end items-center gap-3 shrink-0 flex-wrap">
             {footer}
           </div>
         )}

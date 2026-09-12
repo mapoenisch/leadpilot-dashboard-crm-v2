@@ -264,7 +264,7 @@ export function NumberStepper({
 
         {/* Unit Suffix Badge */}
         {unit && (
-          <span className="px-[8px] py-0 text-[11px] text-[var(--color-text-muted)] font-semibold select-none border-l border-solid border-soft bg-background-deep self-stretch flex items-center">
+          <span className="px-[8px] py-0 text-[11px] text-[var(--color-text-muted)] font-semibold select-none border-l border-solid border-[var(--color-border-soft)] bg-background-deep self-stretch flex items-center">
             {unit}
           </span>
         )}

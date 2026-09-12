@@ -151,6 +151,31 @@ export default tseslint.config(
     },
   },
 
+  // ── G38: kein Inline-Style in Primitives + Design-System-Route ─────────────
+  // Nur selbst erfundene style-Attribute sind verboten; zeilengenaue
+  // eslint-disables (Passthrough Badge/Card/Button, Laufzeit-Geometrie
+  // Charts) bleiben erlaubt. Scope bewusst nur Top-Level-*.tsx (die 19
+  // migrierten Primitives): src/components/ui/charts/**-Helfer sind
+  // unmigrierter G39-Scope und dürfen nicht rot werden (Dateien nicht
+  // in diesem Auftrag anfassen). Gilt NICHT global (G39-Gebiet unangetastet).
+  {
+    files: ['src/components/ui/*.tsx', 'src/app/DesignSystemPage.tsx'],
+    rules: {
+      'react/forbid-dom-props': [
+        'error',
+        {
+          forbid: [
+            {
+              propName: 'style',
+              message:
+                'G38: kein Inline-Style in Primitives — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // ── Prettier muss letzter Eintrag sein (schaltet kollidierendes ab) ───────────
   prettier,
 );

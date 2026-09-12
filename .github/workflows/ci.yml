@@ -11,7 +11,8 @@ on:
 
 env:
   LINT_BASELINE: 19
-  TSC_BASELINE: 605
+  TSC_BASELINE: 602
+  INLINE_STYLE_BASELINE: 94
 
 jobs:
   lint:

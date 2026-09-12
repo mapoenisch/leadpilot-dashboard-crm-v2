@@ -72,8 +72,9 @@ export function SimpleChart({  config,
     return (
       <div className="flex flex-col gap-[8px] py-[6px] px-0 w-full overflow-x-auto [-webkit-overflow-scrolling:touch]">
         <div
-          className="flex items-end gap-[12px] border-b border-solid border-border box-border"
-          style={{ height: `${height}px`, paddingBottom: '24px' }}
+          className="flex items-end gap-[12px] border-b border-solid border-border box-border pb-[24px]"
+          // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (height-Prop), siehe Auftrag 053 Nachtrag 2
+          style={{ height: `${height}px` }}
         >
           {labels.map((label, lIdx) => (
             <div
@@ -91,6 +92,7 @@ export function SimpleChart({  config,
                       key={dIdx}
                       title={`${ds.label ? `${ds.label}: ` : ''}${formatChartMetric(val)}`}
                       className={cn(chartBarWidthVariants({ multi: datasets.length > 1 }))}
+                      // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Balkenhoehe/Farbe aus Daten), siehe Auftrag 053 Nachtrag 2
                       style={{
                         height: `${hPct}%`,
                         background: color,
@@ -190,6 +192,7 @@ export function SimpleChart({  config,
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (drop-shadow aus Datenfarbe), siehe Auftrag 053 Nachtrag 2
                 style={{ filter: `drop-shadow(0 0 6px ${dsColor}44)` }}
               />
               {points.map((p, i) => (

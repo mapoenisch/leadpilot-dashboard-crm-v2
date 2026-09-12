@@ -35,7 +35,7 @@ export function Badge({ variant = 'cyan', children, icon, style }: BadgeProps) {
       className={cn(badgeVariants({ variant }))}
       // Ausnahme (G38-Entscheidung, Marc): style-Passthrough bleibt, weil 13
       // Konsumenten Overrides übergeben (API + Pixel identisch). Die
-      // eslint-disable-Anweisung dazu kommt in Block D mit der Regel.
+      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props, siehe Auftrag 053 Entscheidung 5
       style={style}
     >
       {icon}
