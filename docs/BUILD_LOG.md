@@ -2,6 +2,31 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 3 / Auftrag 056: Nacharbeit Ternary-Muster (Prüfer-Befund)
+
+**Rolle:** Builder (OpenCode) · **Befund:** Review — 13 gemeldete
+Laufzeit-Disables waren Ternaries aus Build-Zeit-bekannten Tokens
+(Bedingung Laufzeit, Farben bekannt; verboten seit 053 Nachtrag 2).
+
+**Fix (jeweils style → className-Ternary, Farben identisch):**
+`LiveDashboardView` Score (`text-primary`/`text-[#e5c07b]`/
+`text-text-muted` — `#e5c07b` als Arbitrary, kein Token vorhanden);
+`DetailTierView` 4 Schwellen (Bottleneck/Health/CS/EBITDA →
+`text-warning` vs. `text-accent`/`text-primary`);
+`ManagementTierView` 2 Schwellen (EBITDA/CashFlow);
+`ScenarioManagerModal` 6 (Label/Value/Delta-Prozent/Card-Rahmen/
+Titel/Mobile-Label → `text-primary`/`text-text`/`text-success`/
+`text-accent`/`border-primary`). Unangetastet (echte Laufzeit):
+`KpiTimeSeriesDetailView` Overlay-Palette (Daten-Array),
+`MeasureManagerModal` Timeline-Balken (berechnete Prozente).
+
+`grep -c style{{`: alle 4 Dateien auf **0** → `INLINE_STYLE_BASELINE`
+**44 → 40**. `tsc` 600, `lint` 13/3, `verify` 24/24, `test` 140,
+`build` ok, **Playwright 153/153** (Ternary-Änderungen ohne
+Pixel-Folge, keine Snapshot-Änderung nötig).
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 3 / Auftrag 056: Review — Nacharbeit gefordert (Block E, Ternary-Muster)
 
 **Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`

@@ -269,16 +269,7 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
 
           <div className="rounded bg-background-deep p-[10px]">
             <div className="text-[11px] uppercase text-[var(--color-text-muted)]">EBITDA (P50)</div>
-            <div
-              className="text-[18px] font-bold"
-              // G39 Welle 3: EBITDA-Farbe aus Finanz-Schwelle (< 0,
-              // Simulations-Datum, kontinuierlich) — als Klasse nicht
-              // darstellbar (Entscheidung 2).
-              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Finanz-Schwelle aus Daten), siehe Auftrag 056 Entscheidung 2
-              style={{
-                color: (aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-primary)',
-              }}
-            >
+            <div className={`text-[18px] font-bold ${(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'text-warning' : 'text-primary'}`}>
               {(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>
@@ -292,15 +283,7 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
 
           <div className="rounded bg-background-deep p-[10px]">
             <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Net Cash Flow</div>
-            <div
-              className="text-[18px] font-bold"
-              // G39 Welle 3: Cash-Flow-Farbe aus Finanz-Schwelle (< 0) —
-              // als Klasse nicht darstellbar (Entscheidung 2).
-              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Finanz-Schwelle aus Daten), siehe Auftrag 056 Entscheidung 2
-              style={{
-                color: (aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-accent)',
-              }}
-            >
+            <div className={`text-[18px] font-bold ${(aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0) < 0 ? 'text-warning' : 'text-accent'}`}>
               {(aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>

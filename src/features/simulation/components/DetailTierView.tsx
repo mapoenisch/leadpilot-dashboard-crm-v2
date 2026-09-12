@@ -94,15 +94,8 @@ export const DetailTierView: React.FC = () => {
 
           <div className="rounded bg-background-deep p-[12px]">
             <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Wartezeit (Queue Time)</div>
-            <div
-              className="text-[20px] font-bold"
-              // G39 Welle 3: Wertfarbe aus Simulations-State — als Klasse
-              // nicht darstellbar (Entscheidung 2).
-              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Simulations-State), siehe Auftrag 056 Entscheidung 2
-              style={{
-                color: state.metrics?.salesQueueMetrics?.isSalesBottleneck ? 'var(--color-warning)' : 'var(--color-accent)',
-              }}
-            >
+            <div className={`text-[20px] font-bold ${state.metrics?.salesQueueMetrics?.isSalesBottleneck ? 'text-warning' : 'text-accent'}`}>
+
               {state.salesQueueProjection?.avgQueueTicks ?? 0} Ticks
             </div>
             <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
@@ -130,15 +123,8 @@ export const DetailTierView: React.FC = () => {
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[var(--space-4)]">
           <div className="rounded bg-background-deep p-[12px]">
             <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Ø Customer Health</div>
-            <div
-              className="text-[20px] font-bold"
-              // G39 Welle 3: Wertfarbe aus Simulations-State — als Klasse
-              // nicht darstellbar (Entscheidung 2).
-              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Simulations-State), siehe Auftrag 056 Entscheidung 2
-              style={{
-                color: (state.metrics?.customerHealthMetrics?.avgHealthScore ?? 75) < 50 ? 'var(--color-warning)' : 'var(--color-primary)',
-              }}
-            >
+            <div className={`text-[20px] font-bold ${(state.metrics?.customerHealthMetrics?.avgHealthScore ?? 75) < 50 ? 'text-warning' : 'text-primary'}`}>
+
               {state.metrics?.customerHealthMetrics?.avgHealthScore ?? 75} / 100
             </div>
             <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
@@ -158,15 +144,8 @@ export const DetailTierView: React.FC = () => {
 
           <div className="rounded bg-background-deep p-[12px]">
             <div className="text-[11px] uppercase text-[var(--color-text-muted)]">CS Queue vs Process Time</div>
-            <div
-              className="text-[20px] font-bold"
-              // G39 Welle 3: Wertfarbe aus Simulations-State — als Klasse
-              // nicht darstellbar (Entscheidung 2).
-              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Simulations-State), siehe Auftrag 056 Entscheidung 2
-              style={{
-                color: state.metrics?.csQueueMetrics?.isCSBottleneck ? 'var(--color-warning)' : 'var(--color-accent)',
-              }}
-            >
+            <div className={`text-[20px] font-bold ${state.metrics?.csQueueMetrics?.isCSBottleneck ? 'text-warning' : 'text-accent'}`}>
+
               {state.csQueueProjection?.avgQueueTicks ?? 0} Ticks Queue / {state.csQueueProjection?.avgProcessTicks ?? 1} Ticks Process
             </div>
             <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
@@ -214,15 +193,8 @@ export const DetailTierView: React.FC = () => {
 
           <div className="rounded bg-background-deep p-[12px]">
             <div className="text-[11px] uppercase text-[var(--color-text-muted)]">EBITDA & Operating Margin</div>
-            <div
-              className="text-[18px] font-bold"
-              // G39 Welle 3: Wertfarbe aus Simulations-State — als Klasse
-              // nicht darstellbar (Entscheidung 2).
-              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Simulations-State), siehe Auftrag 056 Entscheidung 2
-              style={{
-                color: (aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'var(--color-warning)' : 'var(--color-accent)',
-              }}
-            >
+            <div className={`text-[18px] font-bold ${(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'text-warning' : 'text-accent'}`}>
+
               {(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} € ({(aggregation.metrics.financialMetrics?.operatingMargin.median ?? state.metrics?.financialMetrics?.operatingMargin ?? 0)}%)
             </div>
             <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">

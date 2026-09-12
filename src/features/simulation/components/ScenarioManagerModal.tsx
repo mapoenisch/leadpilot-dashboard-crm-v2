@@ -143,13 +143,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       label: 'Parameter',
       render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
         <div>
-          <strong
-            className="font-bold"
-            // G39 Welle 3: Label-Farbe aus Diff-Daten (hasChanged) — als
-            // Klasse nicht darstellbar (Entscheidung 2).
-            // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Diff-Daten), siehe Auftrag 056 Entscheidung 2
-            style={{ color: r.hasChanged ? 'var(--color-primary)' : 'var(--color-text)' }}
-          >
+          <strong className={`font-bold ${r.hasChanged ? 'text-primary' : 'text-text'}`}>
             {r.label}
           </strong>
           <span className="text-[11px] ml-[6px] text-[var(--color-text-muted)]">
@@ -171,15 +165,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
       key: 'formattedValueB',
       label: `Version B (v${comparisonResult?.versionB.versionNumber ?? 'B'})`,
       render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
-        <span
-          className={`font-mono text-[13px] ${r.hasChanged ? 'font-bold' : 'font-normal'}`}
-          // G39 Welle 3: Wert-Farbe aus Diff-Daten (hasChanged) — als
-          // Klasse nicht darstellbar (Entscheidung 2).
-          // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Diff-Daten), siehe Auftrag 056 Entscheidung 2
-          style={{
-            color: r.hasChanged ? 'var(--color-primary)' : 'var(--color-text)',
-          }}
-        >
+        <span className={`font-mono text-[13px] ${r.hasChanged ? 'font-bold text-primary' : 'font-normal text-text'}`}>
           {r.formattedValueB}
         </span>
       ),
@@ -301,15 +287,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
               {sign}
               {delta.toLocaleString('de-DE')} {r.unit}
             </Badge>
-            <span
-              className="font-mono text-[11.5px] font-semibold"
-              // G39 Welle 3: Delta-Farbe aus Vergleichs-Daten (isPos) —
-              // als Klasse nicht darstellbar (Entscheidung 2).
-              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Vergleichs-Daten), siehe Auftrag 056 Entscheidung 2
-              style={{
-                color: isPos ? 'var(--color-success)' : 'var(--color-accent)',
-              }}
-            >
+            <span className={`font-mono text-[11.5px] font-semibold ${isPos ? 'text-success' : 'text-accent'}`}>
               ({sign}
               {percent}%)
             </span>
@@ -399,23 +377,12 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                       key={v.id}
                       padding="var(--space-3)"
                       featured={isActive}
-                      className="flex flex-col justify-between cursor-pointer"
-                      // G39 Welle 3: Auswahl-Rahmenfarbe (State) als
-                      // style-Passthrough an Card (Custom-Komponente, von der
-                      // DOM-Regel nicht erfasst — kein Disable nötig).
-                      style={{
-                        borderColor: isActive ? 'var(--color-primary)' : undefined,
-                      }}
+                      className={`flex flex-col justify-between cursor-pointer ${isActive ? 'border-primary' : ''}`}
                       onClick={() => selectVersion(v.id)}
                     >
                       <div>
                         <div className="flex justify-between items-center mb-[6px]">
-                          <span
-                            className="font-bold text-[14px]"
-                            // G39 Welle 3: Titel-Farbe (State-Selektion).
-                            // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (State-Selektion), siehe Auftrag 056 Entscheidung 2
-                            style={{ color: isActive ? 'var(--color-primary)' : 'var(--color-text)' }}
-                          >
+                          <span className={`font-bold text-[14px] ${isActive ? 'text-primary' : 'text-text'}`}>
                             Version {v.versionNumber}
                           </span>
                           <div className="flex gap-[4px]">
@@ -708,12 +675,7 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                 {filteredParamDiffs.map((p) => (
                   <Card key={p.key} padding="var(--space-3)">
                     <div className="flex justify-between items-center mb-[6px]">
-                      <strong
-                        className="text-[13px]"
-                        // G39 Welle 3: Label-Farbe aus Diff-Daten (hasChanged).
-                        // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Diff-Daten), siehe Auftrag 056 Entscheidung 2
-                        style={{ color: p.hasChanged ? 'var(--color-primary)' : 'var(--color-text)' }}
-                      >
+                      <strong className={`text-[13px] ${p.hasChanged ? 'text-primary' : 'text-text'}`}>
                         {p.label}
                       </strong>
                       <Badge variant={p.hasChanged ? 'orange' : 'neutral'}>

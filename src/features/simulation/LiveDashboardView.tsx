@@ -148,14 +148,7 @@ export function LiveDashboardView() {
                         <td className="text-[var(--color-text-muted)] p-[10px]">{lead.source}</td>
                         <td className="p-[10px]">
                           <span
-                            className="font-bold"
-                            // G39 Welle 3: Score-Farbe aus Schwellenwerten des
-                            // Simulations-Datums (kontinuierlich) — als Klasse
-                            // nicht darstellbar (Entscheidung 2).
-                            // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Score-Schwellen aus Daten), siehe Auftrag 056 Entscheidung 2
-                            style={{
-                              color: lead.score >= 80 ? 'var(--color-primary)' : lead.score >= 65 ? '#e5c07b' : 'var(--color-text-muted)',
-                            }}
+                            className={`font-bold ${lead.score >= 80 ? 'text-primary' : lead.score >= 65 ? 'text-[#e5c07b]' : 'text-[var(--color-text-muted)]'}`}
                           >
                             {lead.score} / 100
                           </span>
