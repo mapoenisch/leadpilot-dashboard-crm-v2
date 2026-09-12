@@ -7,44 +7,14 @@ export const SourceDecisionFlow: React.FC = () => {
   const [showTable, setShowTable] = useState(false);
 
   return (
-    <div
-      className="facelift-source-decision-flow"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        padding: 'var(--space-5)',
-      }}
-    >
+    <div className="facelift-source-decision-flow box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5)]">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--color-border-soft)',
-        }}
-      >
+      <div className="border-0 border-b border-solid border-border-soft flex flex-wrap items-center justify-between gap-[var(--space-3)] mb-[var(--space-5)] pb-[var(--space-4)]">
         <div>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+          <h3 className="m-0 font-display text-[1.125rem] font-bold tracking-[0.01em] text-text">
             Datenfluss: Source → Bridge → Decision
           </h3>
-          <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
             Gerichteter Ablauf von den verbindlichen Primärquellen über die Systemschnittstellen zur einheitlichen Entscheidungsbasis.
           </p>
         </div>
@@ -54,17 +24,7 @@ export const SourceDecisionFlow: React.FC = () => {
           onClick={() => setShowTable(!showTable)}
           aria-controls="source-decision-raw-table"
           aria-expanded={showTable}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '5px 12px',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]" 
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--color-text)';
             e.currentTarget.style.borderColor = 'var(--color-primary)';
@@ -106,92 +66,31 @@ export const SourceDecisionFlow: React.FC = () => {
       `}</style>
 
       {/* Gerichteter Datenfluss mit sichtbaren Verbindern */}
-      <div
-        className="source-flow-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 32px 1fr 32px 1fr',
-          alignItems: 'stretch',
-          gap: 0,
-        }}
-      >
+      <div className="source-flow-grid grid grid-cols-[1fr_32px_1fr_32px_1fr] items-stretch gap-0">
         {/* Phase 01: Primäre Datenquellen */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border-soft)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 'var(--space-3)',
-          }}
-        >
+        <div className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 'var(--space-2)',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  color: 'var(--color-text-muted)',
-                }}
-              >
+            <div className="flex items-center justify-between mb-[var(--space-2)]">
+              <span className="font-mono text-[0.6875rem] font-bold text-[var(--color-text-muted)]">
                 PHASE 01
               </span>
               <FaceliftGlyph name="ready" tone="neutral" size={16} />
             </div>
 
-            <h4
-              style={{
-                margin: '0 0 var(--space-3)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '0.9375rem',
-                fontWeight: 600,
-                color: 'var(--color-text)',
-                letterSpacing: '0.01em',
-              }}
-            >
+            <h4 className="m-0 mb-[var(--space-3)] font-display text-[0.9375rem] font-semibold tracking-[0.01em] text-text">
               Primäre Datenquellen
             </h4>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <div className="flex flex-col gap-[var(--space-2)]">
               {SOURCES_ROWS.map(([quelle, zweck]) => (
                 <div
                   key={quelle}
-                  style={{
-                    padding: 'var(--space-2)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border-soft)',
-                  }}
+                  className="rounded border border-solid border-border-soft bg-surface p-[var(--space-2)]"
                 >
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: 'var(--color-text)',
-                      fontFamily: 'var(--font-display)',
-                    }}
-                  >
+                  <div className="font-display text-[0.75rem] font-semibold text-text">
                     {quelle}
                   </div>
-                  <div
-                    style={{
-                      fontSize: '0.6875rem',
-                      color: 'var(--color-text-muted)',
-                      marginTop: '2px',
-                      lineHeight: 1.35,
-                    }}
-                  >
+                  <div className="text-[0.6875rem] leading-[1.35] mt-[2px] text-[var(--color-text-muted)]">
                     {zweck}
                   </div>
                 </div>
@@ -227,82 +126,29 @@ export const SourceDecisionFlow: React.FC = () => {
         </div>
 
         {/* Phase 02: Systemschnittstellen & Datenfluss */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border-soft)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 'var(--space-3)',
-          }}
-        >
+        <div className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 'var(--space-2)',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  color: 'var(--color-text-muted)',
-                }}
-              >
+            <div className="flex items-center justify-between mb-[var(--space-2)]">
+              <span className="font-mono text-[0.6875rem] font-bold text-[var(--color-text-muted)]">
                 PHASE 02
               </span>
               <FaceliftGlyph name="focus" tone="accent" size={16} />
             </div>
 
-            <h4
-              style={{
-                margin: '0 0 var(--space-3)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '0.9375rem',
-                fontWeight: 600,
-                color: 'var(--color-text)',
-                letterSpacing: '0.01em',
-              }}
-            >
+            <h4 className="m-0 mb-[var(--space-3)] font-display text-[0.9375rem] font-semibold tracking-[0.01em] text-text">
               Systemschnittstellen
             </h4>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <div className="flex flex-col gap-[var(--space-2)]">
               {BRIDGES_ROWS.map(([system, zweck]) => (
                 <div
                   key={system}
-                  style={{
-                    padding: 'var(--space-2)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border-soft)',
-                  }}
+                  className="rounded border border-solid border-border-soft bg-surface p-[var(--space-2)]"
                 >
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: 'var(--color-text)',
-                      fontFamily: 'var(--font-display)',
-                    }}
-                  >
+                  <div className="font-display text-[0.75rem] font-semibold text-text">
                     {system}
                   </div>
-                  <div
-                    style={{
-                      fontSize: '0.6875rem',
-                      color: 'var(--color-text-muted)',
-                      marginTop: '2px',
-                      lineHeight: 1.35,
-                    }}
-                  >
+                  <div className="text-[0.6875rem] leading-[1.35] mt-[2px] text-[var(--color-text-muted)]">
                     {zweck}
                   </div>
                 </div>
@@ -338,108 +184,31 @@ export const SourceDecisionFlow: React.FC = () => {
         </div>
 
         {/* Phase 03: Konsistente Entscheidungsbasis */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid rgba(0, 217, 198, 0.3)',
-            boxShadow: '0 0 16px rgba(0, 217, 198, 0.08)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 'var(--space-3)',
-          }}
-        >
+        <div className="rounded-md border border-solid border-[rgba(0,217,198,0.3)] bg-background-deep shadow-[0_0_16px_rgba(0,217,198,0.08)] p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 'var(--space-2)',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  color: 'var(--color-primary)',
-                }}
-              >
+            <div className="flex items-center justify-between mb-[var(--space-2)]">
+              <span className="font-mono text-[0.6875rem] font-bold text-primary">
                 PHASE 03
               </span>
               <FaceliftGlyph name="contactToCustomer" tone="positive" size={16} />
             </div>
 
-            <h4
-              style={{
-                margin: '0 0 var(--space-3)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '0.9375rem',
-                fontWeight: 600,
-                color: 'var(--color-text)',
-                letterSpacing: '0.01em',
-              }}
-            >
+            <h4 className="m-0 mb-[var(--space-3)] font-display text-[0.9375rem] font-semibold tracking-[0.01em] text-text">
               {NOTE_DATEN.title}
             </h4>
 
-            <div
-              style={{
-                padding: 'var(--space-3)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border-soft)',
-              }}
-            >
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '0.8125rem',
-                  color: 'var(--color-text)',
-                  lineHeight: 1.45,
-                }}
-              >
+            <div className="rounded border border-solid border-border-soft bg-surface p-[var(--space-3)]">
+              <p className="m-0 text-[0.8125rem] leading-[1.45] text-text">
                 {NOTE_DATEN.paragraphs[0]}
               </p>
             </div>
           </div>
 
-          <div
-            style={{
-              paddingTop: 'var(--space-2)',
-              borderTop: '1px solid var(--color-border-soft)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.6875rem',
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--color-text-muted)',
-              }}
-            >
+          <div className="border-0 border-t border-solid border-border-soft flex items-center justify-between pt-[var(--space-2)]">
+            <span className="font-mono text-[0.6875rem] text-[var(--color-text-muted)]">
               Single Source of Truth
             </span>
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 'var(--space-1)',
-                padding: '2px 8px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--cyan-a12)',
-                color: 'var(--color-primary)',
-                fontSize: '0.6875rem',
-                fontFamily: 'var(--font-mono)',
-                fontWeight: 600,
-                border: '1px solid rgba(0, 217, 198, 0.3)',
-              }}
-            >
+            <span className="inline-flex items-center gap-[var(--space-1)] rounded-full border border-solid border-[rgba(0,217,198,0.3)] bg-cyan-a12 text-primary font-mono text-[0.6875rem] font-semibold px-[8px] py-[2px]">
               Entscheidungsreif
             </span>
           </div>
@@ -450,17 +219,10 @@ export const SourceDecisionFlow: React.FC = () => {
       {showTable && (
         <div
           id="source-decision-raw-table"
-          style={{
-            marginTop: 'var(--space-5)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-4)',
-          }}
+          className="border-0 border-t border-solid border-border flex flex-col gap-[var(--space-4)] mt-[var(--space-5)] pt-[var(--space-4)]"
         >
           <div>
-            <h4 style={{ margin: '0 0 var(--space-2)', fontSize: '0.875rem', color: 'var(--color-text)' }}>
+            <h4 className="m-0 mb-[var(--space-2)] text-[0.875rem] text-text">
               Systemschnittstellen & Datenfluss (Tabelle):
             </h4>
             <Table
@@ -473,7 +235,7 @@ export const SourceDecisionFlow: React.FC = () => {
           </div>
 
           <div>
-            <h4 style={{ margin: '0 0 var(--space-2)', fontSize: '0.875rem', color: 'var(--color-text)' }}>
+            <h4 className="m-0 mb-[var(--space-2)] text-[0.875rem] text-text">
               Verwendete Datenquellen (Tabelle):
             </h4>
             <Table

@@ -39,61 +39,17 @@ export const CompanyRegisterCard: React.FC = () => {
   ];
 
   return (
-    <div
-      className="facelift-company-register"
-      style={{
-        width: '100%',
-        boxSizing: 'border-box',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="facelift-company-register box-border w-full rounded-lg border border-solid border-border bg-surface overflow-hidden">
       {/* Registerkarten-Kopf */}
-      <div
-        style={{
-          padding: 'var(--space-4) var(--space-5)',
-          backgroundColor: 'var(--color-surface-raised)',
-          borderBottom: '1px solid var(--color-border)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <div
-            style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--color-primary)',
-              boxShadow: 'var(--shadow-glow-cyan)',
-            }}
-          />
+      <div className="border-0 border-b border-solid border-border flex flex-wrap items-center justify-between gap-[var(--space-3)] bg-surface-raised px-[var(--space-5)] py-[var(--space-4)]">
+        <div className="flex items-center gap-[var(--space-3)]">
+          <div className="w-[8px] h-[8px] rounded-full bg-primary shadow-glow-cyan" />
           <div>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '1.125rem',
-                fontWeight: 700,
-                color: 'var(--color-text)',
-                letterSpacing: '0.02em',
-              }}
-            >
+            <div className="font-display text-[1.125rem] font-bold tracking-[0.02em] text-text">
               Firmenakte {firmenname}
             </div>
             {handelsregister && (
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                  fontFamily: 'var(--font-mono)',
-                  marginTop: '2px',
-                }}
-              >
+              <div className="font-mono text-[0.75rem] mt-[2px] text-[var(--color-text-muted)]">
                 {handelsregister}
               </div>
             )}
@@ -105,89 +61,27 @@ export const CompanyRegisterCard: React.FC = () => {
           onClick={() => setShowRawTable(!showRawTable)}
           aria-controls="company-register-raw-table"
           aria-expanded={showRawTable}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '5px 12px',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            transition: 'color 0.15s ease, border-color 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-text)';
-            e.currentTarget.style.borderColor = 'var(--color-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-muted)';
-            e.currentTarget.style.borderColor = 'var(--color-border)';
-          }}
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]"
         >
           {showRawTable ? 'Detailtabelle verbergen' : 'Detailtabelle anzeigen'}
         </button>
       </div>
 
       {/* Drei Fachgruppen (Responsive Grid: Desktop 3 Spalten -> Tablet 2 -> Mobile 1) */}
-      <div
-        style={{
-          padding: 'var(--space-5)',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-          gap: 'var(--space-5)',
-          alignItems: 'stretch',
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-[var(--space-5)] items-stretch p-[var(--space-5)]">
         {/* Gruppe 1: Identität */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border-soft)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-3)',
-          }}
-        >
-          <div
-            style={{
-              paddingBottom: 'var(--space-2)',
-              borderBottom: '1px solid var(--color-border-soft)',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+        <div className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col gap-[var(--space-3)]">
+          <div className="border-0 border-b border-solid border-border-soft font-display font-semibold text-[0.875rem] tracking-[0.01em] text-text pb-[var(--space-2)]">
             Identität & Zweck
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <div className="flex flex-col gap-[var(--space-3)]">
             {identitaet.map((item) => (
-              <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span
-                  style={{
-                    fontSize: '0.6875rem',
-                    fontFamily: 'var(--font-body)',
-                    color: 'var(--color-text-muted)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}
-                >
+              <div key={item.label} className="flex flex-col gap-[2px]">
+                <span className="font-body text-[0.6875rem] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
                   {item.label}
                 </span>
-                <span
-                  style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'var(--color-text)',
-                    lineHeight: 1.4,
-                    wordBreak: 'break-word',
-                  }}
-                >
+                <span className="text-[0.875rem] font-medium leading-[1.4] break-words text-text">
                   {item.value}
                 </span>
               </div>
@@ -196,54 +90,18 @@ export const CompanyRegisterCard: React.FC = () => {
         </div>
 
         {/* Gruppe 2: Stammdaten */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border-soft)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-3)',
-          }}
-        >
-          <div
-            style={{
-              paddingBottom: 'var(--space-2)',
-              borderBottom: '1px solid var(--color-border-soft)',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+        <div className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col gap-[var(--space-3)]">
+          <div className="border-0 border-b border-solid border-border-soft font-display font-semibold text-[0.875rem] tracking-[0.01em] text-text pb-[var(--space-2)]">
             Stammdaten & Kapital
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <div className="flex flex-col gap-[var(--space-3)]">
             {stammdaten.map((item) => (
-              <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span
-                  style={{
-                    fontSize: '0.6875rem',
-                    fontFamily: 'var(--font-body)',
-                    color: 'var(--color-text-muted)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}
-                >
+              <div key={item.label} className="flex flex-col gap-[2px]">
+                <span className="font-body text-[0.6875rem] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
                   {item.label}
                 </span>
-                <span
-                  style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'var(--color-text)',
-                    lineHeight: 1.4,
-                    wordBreak: 'break-word',
-                  }}
-                >
+                <span className="text-[0.875rem] font-medium leading-[1.4] break-words text-text">
                   {item.value}
                 </span>
               </div>
@@ -252,54 +110,18 @@ export const CompanyRegisterCard: React.FC = () => {
         </div>
 
         {/* Gruppe 3: Recht & Beurkundung */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-bg-deep)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border-soft)',
-            padding: 'var(--space-4)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-3)',
-          }}
-        >
-          <div
-            style={{
-              paddingBottom: 'var(--space-2)',
-              borderBottom: '1px solid var(--color-border-soft)',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              color: 'var(--color-text)',
-              letterSpacing: '0.01em',
-            }}
-          >
+        <div className="rounded-md border border-solid border-border-soft bg-background-deep p-[var(--space-4)] flex flex-col gap-[var(--space-3)]">
+          <div className="border-0 border-b border-solid border-border-soft font-display font-semibold text-[0.875rem] tracking-[0.01em] text-text pb-[var(--space-2)]">
             Recht & Beurkundung
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <div className="flex flex-col gap-[var(--space-3)]">
             {recht.map((item) => (
-              <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span
-                  style={{
-                    fontSize: '0.6875rem',
-                    fontFamily: 'var(--font-body)',
-                    color: 'var(--color-text-muted)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}
-                >
+              <div key={item.label} className="flex flex-col gap-[2px]">
+                <span className="font-body text-[0.6875rem] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
                   {item.label}
                 </span>
-                <span
-                  style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'var(--color-text)',
-                    lineHeight: 1.4,
-                    wordBreak: 'break-word',
-                  }}
-                >
+                <span className="text-[0.875rem] font-medium leading-[1.4] break-words text-text">
                   {item.value}
                 </span>
               </div>
@@ -309,29 +131,14 @@ export const CompanyRegisterCard: React.FC = () => {
       </div>
 
       {/* Subtile dokumentenartige Verbindung zwischen Stammdaten, Recht und Beurkundung */}
-      <div
-        style={{
-          margin: '0 var(--space-5) var(--space-4)',
-          padding: 'var(--space-2) var(--space-3)',
-          borderRadius: 'var(--radius-sm)',
-          backgroundColor: 'var(--color-surface-raised)',
-          border: '1px solid var(--color-border-soft)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-2)',
-          fontSize: '0.6875rem',
-          color: 'var(--color-text-muted)',
-          fontFamily: 'var(--font-mono)',
-        }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+      <div className="rounded border border-solid border-border-soft bg-surface-raised flex items-center justify-between gap-[var(--space-2)] font-mono text-[0.6875rem] text-[var(--color-text-muted)] mx-[var(--space-5)] mb-[var(--space-4)] mt-0 px-[var(--space-3)] py-[var(--space-2)]">
+        <span className="flex items-center gap-[var(--space-2)]">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <path d="M2 6h8M6 2v8" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           Beurkundung: {gruendungsdatum}
         </span>
-        <span style={{ color: 'var(--cyan-light)' }}>
+        <span className="text-[var(--cyan-light)]">
           {handelsregister}
         </span>
       </div>
@@ -340,13 +147,9 @@ export const CompanyRegisterCard: React.FC = () => {
       {showRawTable && (
         <div
           id="company-register-raw-table"
-          style={{
-            borderTop: '1px solid var(--color-border)',
-            padding: 'var(--space-4) var(--space-5)',
-            backgroundColor: 'var(--color-bg-deep)',
-          }}
+          className="border-0 border-t border-solid border-border bg-background-deep px-[var(--space-5)] py-[var(--space-4)]"
         >
-          <div style={{ marginBottom: 'var(--space-3)', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <div className="mb-[var(--space-3)] text-[0.8125rem] text-[var(--color-text-muted)]">
             Vollständige Stammdaten (Tabellen-Referenzansicht):
           </div>
           <Table
