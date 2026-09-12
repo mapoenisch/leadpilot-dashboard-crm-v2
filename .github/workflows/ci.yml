@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 env:
-  LINT_BASELINE: 19
+  LINT_BASELINE: 4
+  MAX_LINES_BASELINE: 4
   TSC_BASELINE: 602
   INLINE_STYLE_BASELINE: 22
 

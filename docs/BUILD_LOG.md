@@ -2,6 +2,53 @@
 
 ---
 
+## 2026-09-12 — Gate G40 / Auftrag 058: Rendering-Optimierung & Komponenten-Splitting
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `6a808c8` (Gate G39 abgeschlossen) · **Status:** BEREIT ZUR PRÜFUNG
+
+Auftrag 058 (Gate G40): Alle 5 Zielkomponenten mit > 400 Zeilen modular in saubere, fokussierte Unterkomponenten zerlegt. Alle Dateien liegen nun strikt unter der Grenze von 400 Zeilen. Keine Verhaltensänderung, 100% visuelle Identität bei 15 Screenshot-Paaren, Schutzbereiche unberührt.
+
+### Ergebnisse & Entscheidungen
+
+1. **Block A (Profiling-Messwerte & Datenerfassung):**
+   - Profiling-Harness `scripts/measureAuftrag058Performance.mjs` vor und nach dem Splitting ausgeführt.
+   - Messwerte abgelegt unter `docs/performance/auftrag-058/profiling-vorher.json` und `profiling-nachher.json`.
+   - Baseline- und After-Screenshots für alle 5 Zielkomponenten an 3 Viewports (1440px, 768px, 375px) erfasst (`docs/screenshots/auftrag-058/`).
+
+2. **Entscheidung 1 (Memoization — Begründung):**
+   - Profiling der Simulations-Modals und der DecisionTopology ergab: Kernberechnungen nutzen bereits sauberes `useMemo` und `useCallback`. Renderzeiten liegen stabil bei < 100ms Mount und < 230ms Update.
+   - Es wurden keine unnötigen oder verfrühten `memo()`-Wraps eingeführt; bestehende saubere Memoization-Muster wurden beibehalten.
+
+3. **Entscheidung 2 (Virtualisierung CRM-Listen — Begründung):**
+   - Messungen der CRM-Listenansichten (`ActivitiesView`: 20 Zeilen / 558 DOM-Nodes; `DealsView`: 40 Deals / 1280 DOM-Nodes; `CompaniesView`: 20 Companies / 779 DOM-Nodes) ergaben: Keine Liste überschreitet die 250-Elemente-Schwelle (max. 40 Elemente im aktuellen Stand).
+   - `@tanstack/react-virtual` wurde daher begründet **nicht** eingeführt, da keine DOM-Node-Überlastung oder Scroll-Performance-Einbrüche vorliegen.
+
+4. **Block B (Komponenten-Splitting auf ≤ 400 Zeilen):**
+   - **`DecisionTopology.tsx`**: 441 ➔ 329 Zeilen. Ausgelagert: `DecisionTopologySvg.tsx` (179 Zeilen).
+   - **`MultiScenarioComparisonModal.tsx`**: 516 ➔ 331 Zeilen. Ausgelagert: `MultiScenarioTradeOffs.tsx` (147 Zeilen), `MultiScenarioKpiTable.tsx` (85 Zeilen).
+   - **`MeasureManagerModal.tsx`**: 552 ➔ 318 Zeilen. Ausgelagert: `MeasureActiveList.tsx` (99 Zeilen), `MeasureChangesEditor.tsx` (106 Zeilen), `MeasurePreviewSection.tsx` (121 Zeilen).
+   - **`ScenarioManagerModal.tsx`**: 712 ➔ 132 Zeilen. Ausgelagert: `ScenarioManageTab.tsx` (295 Zeilen), `ScenarioDiffTab.tsx` (367 Zeilen).
+   - **`KpiTimeSeriesDetailView.tsx`**: 858 ➔ 345 Zeilen. Ausgelagert: `kpiTimeSeriesConfig.ts` (154 Zeilen), `KpiTimeSeriesChartSection.tsx` (366 Zeilen), `KpiTimeSeriesDriversSection.tsx` (79 Zeilen).
+
+5. **Block D (Ratsche & Baselines):**
+   - Alle 5 bearbeiteten Komponenten erfüllen nun strikt `max-lines ≤ 400`.
+   - Die verbleibenden 4 `max-lines`-Fehler im gesamten Repo entfallen ausschließlich auf unantastbare Schutzbereiche (`ResourceViewer.tsx`, `financialIntegrity.test.ts`, `eventRules.ts`, `scenarioService.ts`).
+   - `.github/workflows/ci.yml`: `LINT_BASELINE` von 19 auf 4 gesenkt, `MAX_LINES_BASELINE: 4` ergänzt.
+
+### Gate-Ergebnisse
+
+- **TypeScript:** `536` Fehler (Baseline: 602, vor Auftrag: 600) — keine Regressionen, 0 Fehler in neuen Dateien.
+- **ESLint:** Exakt `4` Fehler im gesamten Repo (alle in geschützter Engine/Test/Resources).
+- **Integrity Test-Suite (`npm run verify`):** 24/24 Suites grün (100%).
+- **Unit/UI Tests (`npm test`):** 36/36 Files, 140/140 Tests passed (100%).
+- **Production Build (`npm run build`):** Erfolgreich in 2.5s.
+- **Playwright E2E (`npx playwright test`):** 153/153 Tests bestanden (100%).
+- **Visual Regression (15 Screenshots):** 15/15 visuell 100,00% identisch (dokumentiert in `docs/screenshots/auftrag-058/README.md`).
+- **Schutzbereichs-Diff (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`, `src/store`):** Leer (`git diff` liefert 0 Zeilen).
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 4 / Auftrag 057: Review-Abschluss (Freigabe) — Gate G39 vollständig abgeschlossen
 
 **Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
