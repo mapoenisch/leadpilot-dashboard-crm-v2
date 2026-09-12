@@ -4,7 +4,6 @@ export interface CrmColumn<T = Record<string, unknown>> {
   key: string;
   label: string;
   render?: (row: T) => React.ReactNode;
-  width?: string;
 }
 
 export interface CrmResponsiveListProps<T = Record<string, unknown>> {
@@ -35,7 +34,7 @@ export function CrmResponsiveList<T extends object>({
   };
 
   return (
-    <div className="crm-v2-list-root" style={{ width: '100%', minWidth: 0 }}>
+    <div className="crm-v2-list-root w-full min-w-0">
       {/* 1. Desktop & Tablet semantische HTML-Tabelle */}
       <div className="crm-v2-desktop-table">
         <table className="crm-v2-table">
@@ -43,11 +42,9 @@ export function CrmResponsiveList<T extends object>({
           <thead>
             <tr>
               {columns.map((col) => (
-                <th
-                  key={col.key}
-                  scope="col"
-                  style={col.width ? { width: col.width } : undefined}
-                >
+                // G39 Welle 2: Spaltenbreiten-Prop entfernt (0 Aufrufer per
+                // Suche) — keine Laufzeit-Geometrie nötig, kein style-Prop.
+                <th key={col.key} scope="col">
                   {col.label}
                 </th>
               ))}
@@ -58,11 +55,7 @@ export function CrmResponsiveList<T extends object>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  style={{
-                    padding: 'var(--space-6)',
-                    textAlign: 'center',
-                    color: 'var(--color-text-muted)',
-                  }}
+                  className="text-center p-[var(--space-6)] text-[var(--color-text-muted)]"
                 >
                   {emptyText}
                 </td>
@@ -85,16 +78,7 @@ export function CrmResponsiveList<T extends object>({
       {/* 2. Mobile semantische DOM-Kartenansicht */}
       <div className="crm-v2-mobile-cards" role="region" aria-label={caption}>
         {rows.length === 0 ? (
-          <div
-            style={{
-              padding: 'var(--space-6)',
-              textAlign: 'center',
-              color: 'var(--color-text-muted)',
-              background: 'rgba(12, 28, 24, 0.5)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border-soft)',
-            }}
-          >
+          <div className="text-center border border-solid border-border-soft rounded-md bg-[rgba(12,28,24,0.5)] p-[var(--space-6)] text-[var(--color-text-muted)]">
             {emptyText}
           </div>
         ) : (

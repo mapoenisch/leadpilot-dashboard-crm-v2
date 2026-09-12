@@ -184,7 +184,7 @@ export function ActivitiesView() {
       key: 'date',
       label: 'Zeitpunkt / Datum',
       render: (r) => (
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+        <span className="font-mono text-[12px] text-[var(--color-text-muted)]">
           {r.date}
         </span>
       ),
@@ -205,20 +205,20 @@ export function ActivitiesView() {
     {
       key: 'entityName',
       label: 'Betroffenes Projekt / Lead',
-      render: (r) => <strong style={{ color: 'var(--color-text)' }}>{r.entityName}</strong>,
+      render: (r) => <strong className="text-text">{r.entityName}</strong>,
     },
     {
       key: 'details',
       label: 'Beschreibung & Details',
       render: (r) => (
-        <span style={{ fontSize: '13px', color: 'var(--color-text)' }}>{r.details}</span>
+        <span className="text-[13px] text-text">{r.details}</span>
       ),
     },
     {
       key: 'actor',
       label: 'Ausgeführt durch',
       render: (r) => (
-        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{r.actor}</span>
+        <span className="text-[12px] text-[var(--color-text-muted)]">{r.actor}</span>
       ),
     },
     {
@@ -233,15 +233,15 @@ export function ActivitiesView() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: '100%', minWidth: 0 }}>
+    <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
       {/* 1. Page Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+      <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Aktivitäten-Historie"
           description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
         />
-        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+        <div className="flex gap-[var(--space-2)] flex-wrap">
           <Badge variant="cyan">Ebene A + Event Log</Badge>
           <Badge variant="neutral">DSGVO-konform</Badge>
         </div>
@@ -250,41 +250,41 @@ export function ActivitiesView() {
       {/* 2. KPI Cards */}
       <div className="crm-v2-kpi-grid">
         <Card variant="glass" featured>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Aktivitäten erfasst</div>
-          <div style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Aktivitäten erfasst</div>
+          <div className="font-display text-[28px] font-bold my-[4px] text-primary">
             {combinedActivities.length}
           </div>
-          <div style={{ color: 'var(--color-success)', fontSize: '12px' }}>Vollständiger Audit-Trail</div>
+          <div className="text-[12px] text-success">Vollständiger Audit-Trail</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Aktivste Kanäle</div>
-          <div style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 600, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Aktivste Kanäle</div>
+          <div className="font-display text-[24px] font-semibold my-[4px] text-text">
             Demo & Calls
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Fokus auf ICP-Qualifizierung</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Fokus auf ICP-Qualifizierung</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Aktivitätstypen</div>
-          <div style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 600, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Aktivitätstypen</div>
+          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {typeOptions.length - 1} Typen
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Demos, Calls, Mails, Deals</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Demos, Calls, Mails, Deals</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Compliance & Log</div>
-          <div style={{ color: 'var(--color-success)', fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, margin: '8px 0 4px' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Compliance & Log</div>
+          <div className="font-display text-[18px] font-bold mt-[8px] mb-[4px] text-success">
             100 % DSGVO-konform
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Hosting in Frankfurt am Main</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Hosting in Frankfurt am Main</div>
         </Card>
       </div>
 
       {/* 3. Filter & Search Bar */}
       <div className="crm-v2-filter-bar">
-        <div style={{ flex: '1 1 280px', maxWidth: '100%' }}>
+        <div className="flex-[1_1_280px] max-w-full">
           <Input
             type="search"
             aria-label="Aktivitäten suchen"
@@ -296,8 +296,8 @@ export function ActivitiesView() {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', flexWrap: 'wrap', flex: '0 1 auto' }}>
-          <div style={{ minWidth: '180px', width: '100%', maxWidth: '240px' }}>
+        <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
+          <div className="min-w-[180px] w-full max-w-[240px]">
             <Select
               label="Typ:"
               options={typeOptions}
@@ -328,8 +328,7 @@ export function ActivitiesView() {
                 {/* Priorisierung gemäß Spezifikation: Zeitpunkt & Typ, Bezug/Akteur, Details, Status */}
                 <div className="crm-v2-mobile-card-header">
                   <span
-                    className="crm-v2-mobile-card-title"
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '12.5px', color: 'var(--color-primary)' }}
+                    className="crm-v2-mobile-card-title font-mono text-[12.5px] text-primary"
                   >
                     {r.date}
                   </span>
@@ -339,7 +338,7 @@ export function ActivitiesView() {
                 </div>
                 <div className="crm-v2-mobile-card-row">
                   <span className="crm-v2-mobile-card-label">Projekt / Lead</span>
-                  <strong className="crm-v2-mobile-card-value" style={{ color: 'var(--color-text)' }}>
+                  <strong className="crm-v2-mobile-card-value text-text">
                     {r.entityName}
                   </strong>
                 </div>
@@ -347,7 +346,7 @@ export function ActivitiesView() {
                   <span className="crm-v2-mobile-card-label">Akteur</span>
                   <span className="crm-v2-mobile-card-value">{r.actor}</span>
                 </div>
-                <div style={{ fontSize: '12.5px', color: 'var(--color-text)', padding: '4px 0', borderTop: '1px dashed var(--color-border-soft)' }}>
+                <div className="border-0 border-t border-dashed border-border-soft text-[12.5px] text-text px-0 py-[4px]">
                   {r.details}
                 </div>
                 <div className="crm-v2-mobile-card-row">

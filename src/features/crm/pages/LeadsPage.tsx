@@ -79,13 +79,13 @@ export function LeadsPage() {
     {
       key: 'name',
       label: 'Unternehmensname',
-      render: (r) => <strong style={{ color: 'var(--color-text)' }}>{r.name}</strong>,
+      render: (r) => <strong className="text-text">{r.name}</strong>,
     },
     {
       key: 'domain',
       label: 'Domain',
       render: (r) => (
-        <span style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', fontSize: '12.5px' }}>
+        <span className="font-mono text-[12.5px] text-primary">
           {r.domain}
         </span>
       ),
@@ -108,13 +108,13 @@ export function LeadsPage() {
     {
       key: 'fullName',
       label: 'Name',
-      render: (r) => <strong style={{ color: 'var(--color-text)' }}>{r.firstName} {r.lastName}</strong>,
+      render: (r) => <strong className="text-text">{r.firstName} {r.lastName}</strong>,
     },
     {
       key: 'email',
       label: 'E-Mail',
       render: (r) => (
-        <span style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', fontSize: '12.5px' }}>
+        <span className="font-mono text-[12.5px] text-primary">
           {r.email}
         </span>
       ),
@@ -131,11 +131,11 @@ export function LeadsPage() {
         const comp = companyMap[r.companyId];
         return comp ? (
           <span>
-            <strong style={{ color: 'var(--color-text)' }}>{comp.name}</strong>{' '}
-            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>({comp.domain})</span>
+            <strong className="text-text">{comp.name}</strong>{' '}
+            <span className="text-[11px] text-[var(--color-text-muted)]">({comp.domain})</span>
           </span>
         ) : (
-          <span style={{ color: 'var(--color-error)' }}>Nicht zugeordnet</span>
+          <span className="text-error">Nicht zugeordnet</span>
         );
       },
     },
@@ -145,7 +145,7 @@ export function LeadsPage() {
     {
       key: 'dealName',
       label: 'Deal Name',
-      render: (r) => <strong style={{ color: 'var(--color-text)' }}>{r.dealName}</strong>,
+      render: (r) => <strong className="text-text">{r.dealName}</strong>,
     },
     {
       key: 'stage',
@@ -160,7 +160,7 @@ export function LeadsPage() {
       key: 'amount',
       label: 'Betrag (€)',
       render: (r) => (
-        <strong style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
+        <strong className="font-mono text-primary">
           {r.amount.toLocaleString('de-DE')} €
         </strong>
       ),
@@ -174,15 +174,15 @@ export function LeadsPage() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: '100%', minWidth: 0 }}>
+    <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
       {/* 1. Page Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+      <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Leads & Kontakte"
           description="Persistierter CRM-Datenbestand aus Supabase / PostgreSQL mit 100 Kontakten und zugeordneten Accounts."
         />
-        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+        <div className="flex gap-[var(--space-2)] flex-wrap">
           <Badge variant="cyan">Ebene A CRM</Badge>
           <Badge variant="neutral">PostgreSQL / Supabase</Badge>
         </div>
@@ -191,35 +191,35 @@ export function LeadsPage() {
       {/* 2. Audit KPI Overview in responsivem Grid */}
       <div className="crm-v2-kpi-grid">
         <Card variant="glass" featured>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Kontakte Gesamt</div>
-          <div style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Kontakte Gesamt</div>
+          <div className="font-display text-[28px] font-bold my-[4px] text-primary">
             {contacts.length}
           </div>
-          <div style={{ color: 'var(--color-success)', fontSize: '12px' }}>100 % Unternehmen zugeordnet</div>
+          <div className="text-[12px] text-success">100 % Unternehmen zugeordnet</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Unternehmen (Accounts)</div>
-          <div style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 600, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Unternehmen (Accounts)</div>
+          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {companies.length}
           </div>
-          <div style={{ color: 'var(--color-success)', fontSize: '12px' }}>100 % valide Domains</div>
+          <div className="text-[12px] text-success">100 % valide Domains</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Importierte Funnel Deals</div>
-          <div style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 600, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Importierte Funnel Deals</div>
+          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {importedFunnelDeals.length}
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Getrennter Import (Keine Fantasie-Matches)</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Getrennter Import (Keine Fantasie-Matches)</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Datenbank Status</div>
-          <div style={{ color: isSupabaseConfigured ? 'var(--color-success)' : 'var(--color-accent)', fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, margin: '8px 0 4px' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Datenbank Status</div>
+          <div className={`font-display text-[18px] font-bold mt-[8px] mb-[4px] ${isSupabaseConfigured ? 'text-success' : 'text-accent'}`}>
             {isSupabaseConfigured ? '⚡ Supabase Verbunden' : '📦 Lokaler Import (Fallback)'}
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
             {isSupabaseConfigured ? 'PostgreSQL Active' : 'Konfigurieren Sie .env für Supabase'}
           </div>
         </Card>
@@ -280,7 +280,7 @@ export function LeadsPage() {
                       </div>
                       <div className="crm-v2-mobile-card-row">
                         <span className="crm-v2-mobile-card-label">E-Mail</span>
-                        <span className="crm-v2-mobile-card-value" style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
+                        <span className="crm-v2-mobile-card-value font-mono text-primary">
                           {r.email}
                         </span>
                       </div>
@@ -290,10 +290,10 @@ export function LeadsPage() {
                           {comp ? (
                             <span>
                               <strong>{comp.name}</strong>{' '}
-                              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>({comp.domain})</span>
+                              <span className="text-[11px] text-[var(--color-text-muted)]">({comp.domain})</span>
                             </span>
                           ) : (
-                            <span style={{ color: 'var(--color-error)' }}>Nicht zugeordnet</span>
+                            <span className="text-error">Nicht zugeordnet</span>
                           )}
                         </span>
                       </div>
@@ -319,7 +319,7 @@ export function LeadsPage() {
                     </div>
                     <div className="crm-v2-mobile-card-row">
                       <span className="crm-v2-mobile-card-label">Domain</span>
-                      <span className="crm-v2-mobile-card-value" style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
+                      <span className="crm-v2-mobile-card-value font-mono text-primary">
                         {r.domain}
                       </span>
                     </div>
@@ -356,7 +356,7 @@ export function LeadsPage() {
                     </div>
                     <div className="crm-v2-mobile-card-row">
                       <span className="crm-v2-mobile-card-label">Volumen</span>
-                      <span className="crm-v2-mobile-card-value" style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                      <span className="crm-v2-mobile-card-value font-mono font-semibold text-primary">
                         {r.amount.toLocaleString('de-DE')} €
                       </span>
                     </div>
@@ -377,10 +377,10 @@ export function LeadsPage() {
           )}
 
           {activeTab === 'audit' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <div className="flex flex-col gap-[var(--space-4)]">
               <Card variant="glass" featured>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
-                  <h3 style={{ margin: 0, color: 'var(--color-primary)', fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600 }}>
+                <div className="flex items-center justify-between flex-wrap gap-[var(--space-3)] mb-[var(--space-3)]">
+                  <h3 className="m-0 font-display text-[16px] font-semibold text-primary">
                     🗄️ Supabase PostgreSQL Persistence & Seed (Phase 2.2)
                   </h3>
                   <Button variant="primary" onClick={handleSeedDatabase} disabled={isSeeding}>
@@ -389,14 +389,14 @@ export function LeadsPage() {
                 </div>
 
                 {seedResult && (
-                  <div style={{ marginBottom: 'var(--space-4)' }}>
+                  <div className="mb-[var(--space-4)]">
                     <Alert
                       variant={seedResult.success ? 'info' : 'warning'}
                       title={seedResult.success ? '✅ Seed Erfolgreich' : '⚠️ Seed Hinweistext / Info'}
                     >
                       {seedResult.message}
                       {seedResult.error && (
-                        <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--color-error)' }}>
+                        <div className="mt-[4px] text-[12px] text-error">
                           Details: {seedResult.error}
                         </div>
                       )}
@@ -404,11 +404,11 @@ export function LeadsPage() {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13.5px', color: 'var(--color-text)' }}>
+                <div className="flex flex-col gap-[8px] text-[13.5px] text-text">
                   <div>✔ <strong>Kontakte:</strong> {contacts.length} Datensätze (Schema: `contacts` Tabelle mit Foreign Key `company_id`).</div>
                   <div>✔ <strong>Unternehmen:</strong> {companies.length} Datensätze (Schema: `companies` Tabelle in Supabase).</div>
                   <div>✔ <strong>Funnel Deals:</strong> {importedFunnelDeals.length} Datensätze (Schema: `imported_funnel_deals` Tabelle).</div>
-                  <div style={{ color: 'var(--color-text-muted)', fontSize: '12.5px', marginTop: '4px' }}>
+                  <div className="text-[12.5px] mt-[4px] text-[var(--color-text-muted)]">
                     🔒 <strong>Sicherheits- & Architekturregeln:</strong> Supabase Anon-Key für Client; RLS aktiviert; Keine Secrets im Code; Repository-Kapselung gewahrt.
                   </div>
                 </div>

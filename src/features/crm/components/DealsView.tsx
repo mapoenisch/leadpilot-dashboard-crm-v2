@@ -63,7 +63,7 @@ export function DealsView({ deals, loading }: DealsViewProps) {
     {
       key: 'dealName',
       label: 'Deal Name',
-      render: (r) => <strong style={{ color: 'var(--color-text)' }}>{r.dealName}</strong>,
+      render: (r) => <strong className="text-text">{r.dealName}</strong>,
     },
     {
       key: 'stage',
@@ -87,14 +87,13 @@ export function DealsView({ deals, loading }: DealsViewProps) {
       label: 'Deal-Volumen (€)',
       render: (r) => (
         <strong
-          style={{
-            color: r.stage.includes('gewonnen')
-              ? 'var(--color-primary)'
+          className={`font-mono ${
+            r.stage.includes('gewonnen')
+              ? 'text-primary'
               : r.stage.includes('verloren')
-              ? 'var(--color-text-muted)'
-              : 'var(--color-accent)',
-            fontFamily: 'var(--font-mono)',
-          }}
+              ? 'text-[var(--color-text-muted)]'
+              : 'text-accent'
+          }`}
         >
           {r.amount.toLocaleString('de-DE')} €
         </strong>
@@ -104,7 +103,7 @@ export function DealsView({ deals, loading }: DealsViewProps) {
       key: 'closeDate',
       label: 'Abschlussdatum',
       render: (r) => (
-        <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{r.closeDate}</span>
+        <span className="text-[13px] text-[var(--color-text-muted)]">{r.closeDate}</span>
       ),
     },
     {
@@ -115,15 +114,15 @@ export function DealsView({ deals, loading }: DealsViewProps) {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: '100%', minWidth: 0 }}>
+    <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
       {/* 1. Page Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+      <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Deal Pipeline"
           description="Pipeline-Übersicht aller 40 historisch importierten Funnel Deals aus Ebene A mit Volumen, Stage und Abschlussdatum."
         />
-        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+        <div className="flex gap-[var(--space-2)] flex-wrap">
           <Badge variant="cyan">Ebene A Pipeline</Badge>
           <Badge variant="neutral">40 Funnel Deals</Badge>
         </div>
@@ -132,43 +131,43 @@ export function DealsView({ deals, loading }: DealsViewProps) {
       {/* 2. KPI Cards */}
       <div className="crm-v2-kpi-grid">
         <Card variant="glass" featured>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Funnel Deals Gesamt</div>
-          <div style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Funnel Deals Gesamt</div>
+          <div className="font-display text-[28px] font-bold my-[4px] text-primary">
             {deals.length}
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Importierter Funnel-Bestand</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Importierter Funnel-Bestand</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Pipeline-Gesamtvolumen</div>
-          <div style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 600, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Pipeline-Gesamtvolumen</div>
+          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {totalVolume.toLocaleString('de-DE')} €
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
             Ø {(totalVolume / (deals.length || 1)).toLocaleString('de-DE', { maximumFractionDigits: 0 })} € je Deal
           </div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Gewonnene Deals</div>
-          <div style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, margin: '4px 0' }}>
-            {wonDeals.length} <span style={{ fontSize: '15px', color: 'var(--color-text-muted)' }}>({wonVolume.toLocaleString('de-DE')} €)</span>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Gewonnene Deals</div>
+          <div className="font-display text-[28px] font-bold my-[4px] text-primary">
+            {wonDeals.length} <span className="text-[15px] text-[var(--color-text-muted)]">({wonVolume.toLocaleString('de-DE')} €)</span>
           </div>
-          <div style={{ color: 'var(--color-success)', fontSize: '12px' }}>Closed-Won Pipeline</div>
+          <div className="text-[12px] text-success">Closed-Won Pipeline</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Offene Pipeline</div>
-          <div style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, margin: '4px 0' }}>
-            {openDeals.length} <span style={{ fontSize: '15px', color: 'var(--color-text-muted)' }}>({openVolume.toLocaleString('de-DE')} €)</span>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Offene Pipeline</div>
+          <div className="font-display text-[28px] font-bold my-[4px] text-accent">
+            {openDeals.length} <span className="text-[15px] text-[var(--color-text-muted)]">({openVolume.toLocaleString('de-DE')} €)</span>
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>In Qualifizierung / Verhandlung</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">In Qualifizierung / Verhandlung</div>
         </Card>
       </div>
 
       {/* 3. Filter & Search Bar */}
       <div className="crm-v2-filter-bar">
-        <div style={{ flex: '1 1 280px', maxWidth: '100%' }}>
+        <div className="flex-[1_1_280px] max-w-full">
           <Input
             type="search"
             aria-label="Deals suchen"
@@ -180,8 +179,8 @@ export function DealsView({ deals, loading }: DealsViewProps) {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', flexWrap: 'wrap', flex: '0 1 auto' }}>
-          <div style={{ minWidth: '180px', width: '100%', maxWidth: '240px' }}>
+        <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
+          <div className="min-w-[180px] w-full max-w-[240px]">
             <Select
               label="Stage:"
               options={stageOptions}
@@ -200,7 +199,7 @@ export function DealsView({ deals, loading }: DealsViewProps) {
       {/* 4. Table & Cards */}
       {loading ? (
         <Card variant="glass">
-          <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>
+          <div className="text-center p-[var(--space-8)] text-[var(--color-text-muted)]">
             Lade Deal-Pipeline...
           </div>
         </Card>
@@ -230,16 +229,13 @@ export function DealsView({ deals, loading }: DealsViewProps) {
                 <div className="crm-v2-mobile-card-row">
                   <span className="crm-v2-mobile-card-label">Deal-Volumen</span>
                   <span
-                    className="crm-v2-mobile-card-value"
-                    style={{
-                      color: r.stage.includes('gewonnen')
-                        ? 'var(--color-primary)'
+                    className={`crm-v2-mobile-card-value font-mono font-semibold ${
+                      r.stage.includes('gewonnen')
+                        ? 'text-primary'
                         : r.stage.includes('verloren')
-                        ? 'var(--color-text-muted)'
-                        : 'var(--color-accent)',
-                      fontFamily: 'var(--font-mono)',
-                      fontWeight: 600,
-                    }}
+                        ? 'text-[var(--color-text-muted)]'
+                        : 'text-accent'
+                    }`}
                   >
                     {r.amount.toLocaleString('de-DE')} €
                   </span>

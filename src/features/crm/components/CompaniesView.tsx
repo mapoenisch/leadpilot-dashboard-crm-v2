@@ -46,13 +46,13 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
     {
       key: 'name',
       label: 'Unternehmensname',
-      render: (r) => <strong style={{ color: 'var(--color-text)' }}>{r.name}</strong>,
+      render: (r) => <strong className="text-text">{r.name}</strong>,
     },
     {
       key: 'domain',
       label: 'Domain',
       render: (r) => (
-        <span style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', fontSize: '12.5px' }}>
+        <span className="font-mono text-[12.5px] text-primary">
           {r.domain}
         </span>
       ),
@@ -72,15 +72,15 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: '100%', minWidth: 0 }}>
+    <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
       {/* 1. Page Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+      <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Unternehmen (Accounts)"
           description="Vollständige Übersicht aller 20 importierten B2B-Unternehmen (Accounts) aus Ebene A mit Firmografie und Mitarbeiterzahlen."
         />
-        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+        <div className="flex gap-[var(--space-2)] flex-wrap">
           <Badge variant="cyan">Ebene A Import</Badge>
           <Badge variant="neutral">20 B2B Accounts</Badge>
         </div>
@@ -89,41 +89,41 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
       {/* 2. KPI Cards */}
       <div className="crm-v2-kpi-grid">
         <Card variant="glass" featured>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Unternehmen (Accounts)</div>
-          <div style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Unternehmen (Accounts)</div>
+          <div className="font-display text-[28px] font-bold my-[4px] text-primary">
             {companies.length}
           </div>
-          <div style={{ color: 'var(--color-success)', fontSize: '12px' }}>100 % valide Domains</div>
+          <div className="text-[12px] text-success">100 % valide Domains</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Mitarbeiter Gesamt</div>
-          <div style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 600, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Mitarbeiter Gesamt</div>
+          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {totalEmployees.toLocaleString('de-DE')} MA
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Ø {avgEmployees} MA je Account</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Ø {avgEmployees} MA je Account</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Branchenvielfalt</div>
-          <div style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 600, margin: '4px 0' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Branchenvielfalt</div>
+          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {industryOptions.length - 1}
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Schwerpunkt: Maschinenbau & IT</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Schwerpunkt: Maschinenbau & IT</div>
         </Card>
 
         <Card variant="glass">
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Daten-Herkunft</div>
-          <div style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, margin: '8px 0 4px' }}>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Daten-Herkunft</div>
+          <div className="font-display text-[18px] font-bold mt-[8px] mb-[4px] text-accent">
             Ebene A Import
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>PostgreSQL / CRM-Repository</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">PostgreSQL / CRM-Repository</div>
         </Card>
       </div>
 
       {/* 3. Filter & Search Bar */}
       <div className="crm-v2-filter-bar">
-        <div style={{ flex: '1 1 280px', maxWidth: '100%' }}>
+        <div className="flex-[1_1_280px] max-w-full">
           <Input
             type="search"
             aria-label="Unternehmen suchen"
@@ -135,8 +135,8 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', flexWrap: 'wrap', flex: '0 1 auto' }}>
-          <div style={{ minWidth: '180px', width: '100%', maxWidth: '240px' }}>
+        <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
+          <div className="min-w-[180px] w-full max-w-[240px]">
             <Select
               label="Branche:"
               options={industryOptions}
@@ -155,7 +155,7 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
       {/* 4. Table & Cards */}
       {loading ? (
         <Card variant="glass">
-          <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>
+          <div className="text-center p-[var(--space-8)] text-[var(--color-text-muted)]">
             Lade Unternehmensdaten...
           </div>
         </Card>
@@ -174,7 +174,7 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
                 </div>
                 <div className="crm-v2-mobile-card-row">
                   <span className="crm-v2-mobile-card-label">Domain</span>
-                  <span className="crm-v2-mobile-card-value" style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
+                  <span className="crm-v2-mobile-card-value font-mono text-primary">
                     {r.domain}
                   </span>
                 </div>
