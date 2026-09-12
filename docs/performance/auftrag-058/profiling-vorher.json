@@ -1,0 +1,82 @@
+[
+  {
+    "component": "ActivitiesView (/crm/activities)",
+    "category": "CRM-Liste",
+    "items": "20 Zeilen",
+    "domNodes": 558,
+    "mountMs": 2067,
+    "updateMs": 131,
+    "evalMemo": "Nein (flüssig, < 16ms)",
+    "evalVirtual": "Nein (Items < 250, DOM < 600)"
+  },
+  {
+    "component": "DealsView (/crm/deals)",
+    "category": "CRM-Liste",
+    "items": "80 Deals",
+    "domNodes": 1280,
+    "mountMs": 1559,
+    "updateMs": 130,
+    "evalMemo": "Nein (flüssig, < 16ms)",
+    "evalVirtual": "Nein (40 Deals, kein Bottleneck)"
+  },
+  {
+    "component": "CompaniesView (/crm/companies)",
+    "category": "CRM-Liste",
+    "items": "40 Companies",
+    "domNodes": 779,
+    "mountMs": 986,
+    "updateMs": 122,
+    "evalMemo": "Nein (flüssig, < 16ms)",
+    "evalVirtual": "Nein (20 Companies, kein Bottleneck)"
+  },
+  {
+    "component": "KpiTimeSeriesDetailView",
+    "category": "Splitting-Ziel",
+    "items": "Chart & Histogram",
+    "domNodes": 418,
+    "mountMs": 86,
+    "updateMs": 188,
+    "evalMemo": "Bereits optimiert (useMemo vorhanden)",
+    "evalVirtual": "Nein (Keine scrollbare Endlos-Liste)"
+  },
+  {
+    "component": "ScenarioManagerModal",
+    "category": "Splitting-Ziel",
+    "items": "2 Tabs (Manage / Diff)",
+    "domNodes": 60,
+    "mountMs": 88,
+    "updateMs": 206,
+    "evalMemo": "Bereits optimiert (useMemo vorhanden)",
+    "evalVirtual": "Nein (Modal dialog, keine lange Liste)"
+  },
+  {
+    "component": "MeasureManagerModal",
+    "category": "Splitting-Ziel",
+    "items": "Formular + Preview",
+    "domNodes": 111,
+    "mountMs": 39,
+    "updateMs": 105,
+    "evalMemo": "Bereits optimiert (useMemo vorhanden)",
+    "evalVirtual": "Nein (Modal dialog, keine lange Liste)"
+  },
+  {
+    "component": "MultiScenarioComparisonModal",
+    "category": "Splitting-Ziel",
+    "items": "Vergleich & Radar",
+    "domNodes": 40,
+    "mountMs": 32,
+    "updateMs": 154,
+    "evalMemo": "Bereits optimiert (useMemo vorhanden)",
+    "evalVirtual": "Nein (Modal dialog, keine lange Liste)"
+  },
+  {
+    "component": "DecisionTopology",
+    "category": "Splitting-Ziel",
+    "items": "4 Zonen / Isometrisch",
+    "domNodes": 124,
+    "mountMs": 4,
+    "updateMs": 1.8,
+    "evalMemo": "Nein (Dauer < 2ms, unverdrahtet)",
+    "evalVirtual": "Nein (Reines SVG/Grid)"
+  }
+]
