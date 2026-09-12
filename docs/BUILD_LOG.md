@@ -2,6 +2,97 @@
 
 ---
 
+## 2026-09-12 — Gate G39 Welle 2 / Auftrag 055: CRM/Finanzen/Kunden/Markt + Primitive-Fix
+
+**Rolle:** Builder (OpenCode) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `238e313` (Welle 1 abgenommen)
+**Status:** BEREIT ZUR PRÜFUNG (kein Merge/Tag/Push ohne Freigabe).
+
+### Block A — Primitive-Fix (`3fe1aec`)
+
+`Button.tsx`/`Card.tsx`: `className` aus `rest` destrukturiert,
+über `cn(...)` gemerged (Aufrufer ergänzt, tailwind-merge: letzter
+gewinnt). Kontrolle: 0 `className`-Nutzer an beiden im Repo.
+`Badge.tsx`: neue `size`-Variante (`md` = exakt bisherige Basis,
+`sm` = `px-[8px] py-[2px] text-[9.5px]` für die häufigsten
+Passthrough-Fälle); 8 bestehende Passthrough-Stellen unangetastet
+(Auftrag erlaubt). Galerie-Kontrolle: byte-identisch (`8dcb1c96b617`).
+`tsc` 602, `build` ok. — **Folge dokumentiert (s. u.):** der
+Card-Fix ändert 5 LiveKpi-Cards sichtbar (Padding 0→20 px,
+DOM-gemessen), nur `/dashboard` betroffen.
+
+### Block B — `crm/` (`f5fc4f3`)
+
+`ActivitiesView`, `CompaniesView`, `DealsView`, `LeadsPage`
+(Stage-Farben als Klassen-Ternaries), `CrmResponsiveList`
+(`CrmColumn.width` entfernt — 0 Nutzer). 0 Laufzeit-Reste.
+Harness: 9/12 Paare byte-identisch, 3× AA (0 starke Pixel).
+
+### Block C — `finanzen/` + `generic/` + `geschaeftsmodell/` (`ebbe60d`)
+
+`CapitalCut` (2 Balken-Disables: Breite/Farbe aus Bilanzdaten;
+2 Dot-Disables), `RevenueCostShoreline` (0 Reste — SVG via
+Attribute), `SaasMotor` (4 Knotenfarb-Disables),
+`BudgetPage`/`GenericDocView`/`BmcPage`/`BusinessLogicPage` (0).
+Kaskade `border`/`border-t-4` im dist verifiziert (4 px top).
+`tsc` 602.
+
+### Block D — `kunden/` (`a330ced`)
+
+`CustomerPortfolio` (1 Legendenfarb-Disable, Domain-Daten),
+`IcpFitMap` (0), `PersonaDossier` (0),
+`RevenueStaircase` (4 Stufenfarb-/Balken-Disables),
+`SegmentFields` (1 Legenden-Disable; Treemap-`flex`-Ante Lite und
+Select-Border als Klassen-Ternaries — Literale, keine Laufzeit),
+`VolkerDayTimeline` (0 — Parität als Klassen-Ternaries),
+`CustomerSuccessPage`/`EmpathyPage` (0). `tsc` 602.
+
+### Block E — `markt/` + Scope + Ratsche (`2fada8e`)
+
+`MarketOpportunityStack` (0 Reste — 3 Schichten als
+Klassen-Ternary-Helper), `DecisionTopology` (0 Reste —
+Zonen-Buttons/Detail als Klassen-Ternaries; tsc 65→63 in der
+Datei), `SwotCompass` (3 Detailfarb-Disables: State-Selektion per
+find — Quadranten-Cards selbst als Klassen-Ternaries über ID;
+Auswahlbutton-BG immer Cyan wie Original — beim Umbau einmal
+falsch auf Quadrant-BG gesetzt, per Re-Read gefangen und
+korrigiert). ESLint-Scope auf Welle-2-Verzeichnisse (übrige
+Dateien dort haben 0 style — verifiziert). `lint` 17→16
+(SwotCompass unter max-lines gerutscht). `INLINE_STYLE_BASELINE`
+**81 → 64**: 17 Dateien raus, 6 mit Laufzeit-Resten drin
+(SaasMotor, CapitalCut, SegmentFields, CustomerPortfolio,
+RevenueStaircase, SwotCompass).
+
+### Screenshot-Nachweis (nur Skript-Kennzahlen)
+
+Matrix `docs/screenshots/auftrag-055/README.md` (24 CRM-Paare).
+C/D/E-Komponenten haben per Suche **keine Konsumenten**
+(ungenutzte Facelift-Komponenten) — kein sichtbarer Effekt möglich.
+`/dashboard`-Diff = Block-A-Folge (s. o.), Snapshots NICHT
+angefasst (Prüfer-Entscheidung): Playwright **150/153**
+(nur `/dashboard` ×3 rot, übrige Routen grün).
+
+### Schutzbereich
+
+`git diff 238e313 -- src/simulation src/types src/context
+src/services/data src/features/resources src/store` → **leer**.
+`resources/**` unangetastet. `git diff --check` → 0.
+
+### Command-Matrix (final selbst gemessen)
+
+| Check | Ergebnis |
+|---|---|
+| `npx tsc --noEmit` | **600** (≤ 602, keine neuen Fehler) |
+| `npm run lint` | **16 Errors, 3 Warnings** (≤ 19; 17→16 s. o.) |
+| `npm run verify` | **24/24** |
+| `npm test` | **36 Dateien / 140 Tests** |
+| `npm run build` | **Exit 0** |
+| `npx playwright test` | **150/153** (nur `/dashboard` ×3, Block-A-Folge, s. o.) |
+| `grep -rl "style={{" src \| grep -v ui/ \| wc -l` | **64** (= neue Ratsche) |
+| Schutz-Diff | **leer** |
+
+---
+
 ## 2026-09-12 — Gate G39 Welle 1 / Auftrag 054: Review-Abschluss (Freigabe)
 
 **Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
