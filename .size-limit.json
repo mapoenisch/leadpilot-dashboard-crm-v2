@@ -1,13 +1,17 @@
 [
   {
     "name": "Initial JS bundle (gzip)",
-    "path": "dist/assets/index-*.js",
+    "path": [
+      "dist/assets/index-*.js",
+      "dist/assets/react-vendor-*.js",
+      "dist/assets/vendor-*.js"
+    ],
     "limit": "180 KB",
     "gzip": true
   },
   {
     "name": "Largest chunk (gzip)",
-    "path": "dist/assets/*.js",
+    "path": "dist/assets/vendor-*.js",
     "limit": "250 KB",
     "gzip": true
   }
