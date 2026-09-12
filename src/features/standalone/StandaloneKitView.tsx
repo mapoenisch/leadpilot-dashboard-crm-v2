@@ -41,7 +41,7 @@ export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | '
     ];
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+      <div className="flex flex-col gap-[var(--space-5)]">
         <SectionHeader eyebrow="Pipeline" title="Leads" description="All contacts currently being worked." actions={<Button variant="primary" onClick={() => setOpenModal(true)}>New lead</Button>} />
         <Tabs
           items={[{ id: 'all', label: 'All' }, { id: 'hot', label: 'Hot' }, { id: 'new', label: 'New' }, { id: 'won', label: 'Won' }]}
@@ -58,7 +58,7 @@ export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | '
             <Button variant="primary" onClick={() => setOpenModal(false)}>Add lead</Button>
           </>}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div className="flex flex-col gap-[var(--space-4)]">
             <Input label="Full name" placeholder="Jordan Lee" />
             <Input label="Company" placeholder="Acme Corp" />
           </div>
@@ -69,23 +69,23 @@ export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | '
 
   if (view === 'sequences') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+      <div className="flex flex-col gap-[var(--space-5)]">
         <SectionHeader eyebrow="Automation" title="Sequences" description="Outreach steps that run on autopilot." actions={<Button variant="primary">New sequence</Button>} />
         <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
+          <div className="flex items-center justify-between mb-[var(--space-4)]">
             <div>
-              <div style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontSize: '17px', fontWeight: 600 }}>Outbound — new leads</div>
-              <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>4 steps · 214 enrolled</div>
+              <div className="text-text font-display text-[17px] font-semibold">Outbound — new leads</div>
+              <div className="text-[var(--color-text-muted)] text-[13px]">4 steps · 214 enrolled</div>
             </div>
             <Badge variant="cyan">Live</Badge>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="flex flex-col">
             {STEPS.map((s, i) => (
-              <div key={s.step} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-3) 0', borderTop: i > 0 ? '1px solid var(--color-border-soft)' : 'none' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--color-primary-soft)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 600, flexShrink: 0 }}>{s.step}</div>
+              <div key={s.step} className={`flex items-center gap-[var(--space-4)] px-0 py-[var(--space-3)] ${i > 0 ? 'border-t border-solid border-t-border-soft' : 'border-t-0'}`}>
+                <div className="w-[28px] h-[28px] rounded-full bg-primary-soft text-primary flex items-center justify-center text-[13px] font-semibold shrink-0">{s.step}</div>
                 <Icon name="send" size={16} color="var(--color-text-muted)" />
-                <div style={{ flex: 1, color: 'var(--color-text)', fontSize: '14px' }}>{s.title}</div>
-                <div style={{ color: 'var(--color-text-muted)', fontSize: '12.5px' }}>{s.wait}</div>
+                <div className="flex-1 text-text text-[14px]">{s.title}</div>
+                <div className="text-[var(--color-text-muted)] text-[12.5px]">{s.wait}</div>
               </div>
             ))}
           </div>
@@ -96,12 +96,12 @@ export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | '
 
   if (view === 'settings') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', maxWidth: '480px' }}>
+      <div className="flex flex-col gap-[var(--space-5)] max-w-[480px]">
         <SectionHeader eyebrow="Account" title="Settings" description="Update your workspace details." />
         <Input label="Workspace name" defaultValue="LeadPilot Sales" />
         <Input label="Notification email" defaultValue="alerts@leadpilot.io" />
         <Divider />
-        <Button variant="primary" style={{ alignSelf: 'flex-start' }}>Save changes</Button>
+        <Button variant="primary" className="self-start">Save changes</Button>
       </div>
     );
   }

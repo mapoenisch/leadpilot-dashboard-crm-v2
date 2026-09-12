@@ -267,6 +267,34 @@ export default tseslint.config(
     },
   },
 
+  // ── G39 Welle 4 (Auftrag 057, Block D): Scope um die 19 migrierten
+  // Welle-4-Dateien erweitert (Verzeichnis-Globs; übrige Dateien dort
+  // haben 0 style und werden nicht rot). Einziger erlaubter Rest:
+  // FunnelLeakageWaterfall-Balkenbreiten aus Funnel-Daten (2×
+  // zeilengenaues Disable + Begründung, keine Datei-Ausnahme).
+  {
+    files: [
+      'src/features/strategie/**/*.tsx',
+      'src/features/unternehmen/**/*.tsx',
+      'src/features/vertrieb/**/*.tsx',
+      'src/features/standalone/**/*.tsx',
+    ],
+    rules: {
+      'react/forbid-dom-props': [
+        'error',
+        {
+          forbid: [
+            {
+              propName: 'style',
+              message:
+                'G39: kein Inline-Style in migrierten Dateien — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // ── Prettier muss letzter Eintrag sein (schaltet kollidierendes ab) ───────────
   prettier,
 );
