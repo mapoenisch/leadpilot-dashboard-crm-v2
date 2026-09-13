@@ -13,8 +13,7 @@ describe('CockpitKpiRail', () => {
         rawValue: 1250000,
         delta: '+12%',
         deltaType: 'positive',
-        period: 'vs. Vormonat',
-        sourceLabel: 'CRM Sync',
+        note: 'Software-Subskriptionen',
       },
       {
         id: 'burn',
@@ -23,8 +22,7 @@ describe('CockpitKpiRail', () => {
         rawValue: -45000,
         delta: '-5%',
         deltaType: 'negative',
-        period: 'MoM',
-        sourceLabel: 'Finance',
+        note: 'Monatlicher Cash-Burn',
         isNegativeAlert: true,
       },
     ];

@@ -18,12 +18,10 @@ describe('LiveFunnelBarChart', () => {
           value: 120,
           occurredAt: new Date().toISOString(),
           qualityStatus: 'valid',
-          provenance: 'n8n',
+          unit: 'Leads',
         },
       ],
       status: 'live',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveFunnelBarChart />);
@@ -35,15 +33,13 @@ describe('LiveFunnelBarChart', () => {
     const now = new Date().toISOString();
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [
-        { kpiId: 'pipeline_leads', value: 500, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'pipeline_mql', value: 250, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'pipeline_sql', value: 100, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'pipeline_offers', value: 40, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'pipeline_won', value: 15, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
+        { kpiId: 'pipeline_leads', value: 500, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        { kpiId: 'pipeline_mql', value: 250, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        { kpiId: 'pipeline_sql', value: 100, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        { kpiId: 'pipeline_offers', value: 40, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        { kpiId: 'pipeline_won', value: 15, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
       ],
       status: 'live',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveFunnelBarChart />);
@@ -56,15 +52,13 @@ describe('LiveFunnelBarChart', () => {
     const now = new Date().toISOString();
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [
-        { kpiId: 'pipeline_leads', value: 500, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'pipeline_mql', value: 250, occurredAt: now, qualityStatus: 'degraded', provenance: 'n8n' },
-        { kpiId: 'pipeline_sql', value: 100, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'pipeline_offers', value: 40, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'pipeline_won', value: 15, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
+        { kpiId: 'pipeline_leads', value: 500, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        { kpiId: 'pipeline_mql', value: 250, occurredAt: now, qualityStatus: 'degraded', unit: 'Leads' },
+        { kpiId: 'pipeline_sql', value: 100, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        { kpiId: 'pipeline_offers', value: 40, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        { kpiId: 'pipeline_won', value: 15, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
       ],
       status: 'live',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveFunnelBarChart />);

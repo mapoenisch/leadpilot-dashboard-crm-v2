@@ -67,12 +67,14 @@ describe('LiveKpiCard', () => {
   it('renders live snapshot value and live badge', () => {
     vi.mocked(liveKpiHook.useLiveKpi).mockReturnValue({
       snapshot: {
+        id: '1',
         kpiId: 'arr',
         value: 1200000,
         unit: 'EUR',
         occurredAt: new Date().toISOString(),
         qualityStatus: 'valid',
-        provenance: 'n8n:sync',
+        sourceSystem: 'n8n',
+        ingestedAt: new Date().toISOString(),
       },
       status: 'live',
       error: null,
@@ -97,12 +99,14 @@ describe('LiveKpiCard', () => {
   it('renders degraded quality badge when snapshot is degraded', () => {
     vi.mocked(liveKpiHook.useLiveKpi).mockReturnValue({
       snapshot: {
+        id: '2',
         kpiId: 'arr',
         value: 950000,
         unit: 'EUR',
         occurredAt: new Date().toISOString(),
         qualityStatus: 'degraded',
-        provenance: 'fallback:calc',
+        sourceSystem: 'fallback',
+        ingestedAt: new Date().toISOString(),
       },
       status: 'live',
       error: null,

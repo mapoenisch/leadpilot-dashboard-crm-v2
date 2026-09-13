@@ -14,8 +14,6 @@ describe('LiveActivityFeed', () => {
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [],
       status: 'loading',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveActivityFeed />);
@@ -27,8 +25,6 @@ describe('LiveActivityFeed', () => {
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [],
       status: 'unconfigured',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveActivityFeed />);
@@ -41,8 +37,6 @@ describe('LiveActivityFeed', () => {
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [],
       status: 'offline',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveActivityFeed />);
@@ -55,8 +49,6 @@ describe('LiveActivityFeed', () => {
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [],
       status: 'error',
-      error: new Error('Verbindungsabbruch'),
-      refresh: vi.fn(),
     });
 
     render(<LiveActivityFeed />);
@@ -69,8 +61,6 @@ describe('LiveActivityFeed', () => {
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [],
       status: 'live',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveActivityFeed />);
@@ -88,23 +78,17 @@ describe('LiveActivityFeed', () => {
           value: 1250000,
           occurredAt: now,
           qualityStatus: 'valid',
-          provenance: 'n8n',
           unit: 'EUR',
-          format: 'currency',
         },
         {
           kpiId: 'pipeline_coverage',
           value: 3.45,
           occurredAt: now,
           qualityStatus: 'degraded',
-          provenance: 'calc',
           unit: 'x',
-          format: 'ratio',
         },
       ],
       status: 'live',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveActivityFeed />);

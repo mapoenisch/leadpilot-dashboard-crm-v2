@@ -16,7 +16,7 @@ describe('PipelineSnapshot', () => {
       isLoading: true,
       isError: false,
       error: null,
-    } as any);
+    } as unknown as ReturnType<typeof pipelineHook.usePipelineOverview>);
 
     render(<PipelineSnapshot />);
     expect(screen.getByText('Lade Pipeline-Daten aus CRM-Baseline...')).toBeInTheDocument();
@@ -28,7 +28,7 @@ describe('PipelineSnapshot', () => {
       isLoading: false,
       isError: true,
       error: new Error('Datenbank-Fehler'),
-    } as any);
+    } as unknown as ReturnType<typeof pipelineHook.usePipelineOverview>);
 
     render(<PipelineSnapshot />);
     expect(
@@ -42,7 +42,7 @@ describe('PipelineSnapshot', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any);
+    } as unknown as ReturnType<typeof pipelineHook.usePipelineOverview>);
 
     render(<PipelineSnapshot />);
     expect(
@@ -77,7 +77,7 @@ describe('PipelineSnapshot', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any);
+    } as unknown as ReturnType<typeof pipelineHook.usePipelineOverview>);
 
     render(<PipelineSnapshot />);
     expect(screen.getByTestId('pipeline-snapshot')).toBeInTheDocument();

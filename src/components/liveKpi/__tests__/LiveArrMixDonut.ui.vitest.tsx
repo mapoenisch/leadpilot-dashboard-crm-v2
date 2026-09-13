@@ -18,12 +18,10 @@ describe('LiveArrMixDonut', () => {
           value: 400000,
           occurredAt: new Date().toISOString(),
           qualityStatus: 'valid',
-          provenance: 'n8n',
+          unit: 'EUR',
         },
       ],
       status: 'live',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveArrMixDonut />);
@@ -35,14 +33,12 @@ describe('LiveArrMixDonut', () => {
     const now = new Date().toISOString();
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [
-        { kpiId: 'arr_direct', value: 500000, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'arr_partner', value: 300000, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'arr_outbound', value: 150000, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'arr_other', value: 50000, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
+        { kpiId: 'arr_direct', value: 500000, occurredAt: now, qualityStatus: 'valid', unit: 'EUR' },
+        { kpiId: 'arr_partner', value: 300000, occurredAt: now, qualityStatus: 'valid', unit: 'EUR' },
+        { kpiId: 'arr_outbound', value: 150000, occurredAt: now, qualityStatus: 'valid', unit: 'EUR' },
+        { kpiId: 'arr_other', value: 50000, occurredAt: now, qualityStatus: 'valid', unit: 'EUR' },
       ],
       status: 'live',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveArrMixDonut />);
@@ -55,14 +51,12 @@ describe('LiveArrMixDonut', () => {
     const now = new Date().toISOString();
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [
-        { kpiId: 'arr_direct', value: 500000, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'arr_partner', value: 300000, occurredAt: now, qualityStatus: 'degraded', provenance: 'n8n' },
-        { kpiId: 'arr_outbound', value: 150000, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
-        { kpiId: 'arr_other', value: 50000, occurredAt: now, qualityStatus: 'valid', provenance: 'n8n' },
+        { kpiId: 'arr_direct', value: 500000, occurredAt: now, qualityStatus: 'valid', unit: 'EUR' },
+        { kpiId: 'arr_partner', value: 300000, occurredAt: now, qualityStatus: 'degraded', unit: 'EUR' },
+        { kpiId: 'arr_outbound', value: 150000, occurredAt: now, qualityStatus: 'valid', unit: 'EUR' },
+        { kpiId: 'arr_other', value: 50000, occurredAt: now, qualityStatus: 'valid', unit: 'EUR' },
       ],
       status: 'live',
-      error: null,
-      refresh: vi.fn(),
     });
 
     render(<LiveArrMixDonut />);

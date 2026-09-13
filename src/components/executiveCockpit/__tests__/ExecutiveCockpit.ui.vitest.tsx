@@ -15,7 +15,7 @@ describe('ExecutiveCockpit', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any);
+    } as unknown as ReturnType<typeof pipelineHook.usePipelineOverview>);
     vi.mocked(liveKpiHook.useLiveKpi).mockReturnValue({
       snapshot: null,
       status: 'loading',

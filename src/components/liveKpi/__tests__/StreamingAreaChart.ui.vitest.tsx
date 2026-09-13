@@ -15,7 +15,6 @@ describe('StreamingAreaChart', () => {
       history: [],
       status: 'loading',
       error: null,
-      refresh: vi.fn(),
     });
 
     render(<StreamingAreaChart />);
@@ -28,7 +27,6 @@ describe('StreamingAreaChart', () => {
       history: [],
       status: 'unconfigured',
       error: null,
-      refresh: vi.fn(),
     });
 
     render(<StreamingAreaChart />);
@@ -42,7 +40,6 @@ describe('StreamingAreaChart', () => {
       history: [],
       status: 'offline',
       error: null,
-      refresh: vi.fn(),
     });
 
     render(<StreamingAreaChart />);
@@ -56,7 +53,6 @@ describe('StreamingAreaChart', () => {
       history: [],
       status: 'error',
       error: new Error('Netzwerkabbruch'),
-      refresh: vi.fn(),
     });
 
     render(<StreamingAreaChart />);
@@ -70,7 +66,6 @@ describe('StreamingAreaChart', () => {
       history: [],
       status: 'live',
       error: null,
-      refresh: vi.fn(),
     });
 
     render(<StreamingAreaChart />);
@@ -81,26 +76,33 @@ describe('StreamingAreaChart', () => {
 
   it('renders chart data points when valid history exists', () => {
     const now = Date.now();
+    const iso1 = new Date(now - 60000).toISOString();
+    const iso2 = new Date(now - 30000).toISOString();
     vi.mocked(liveKpiHistoryHook.useLiveKpiHistory).mockReturnValue({
       history: [
         {
+          id: '1',
           kpiId: 'arr',
           value: 1200000,
-          occurredAt: new Date(now - 60000).toISOString(),
+          occurredAt: iso1,
           qualityStatus: 'valid',
-          provenance: 'n8n',
+          sourceSystem: 'n8n',
+          unit: 'EUR',
+          ingestedAt: iso1,
         },
         {
+          id: '2',
           kpiId: 'arr',
           value: 1220000,
-          occurredAt: new Date(now - 30000).toISOString(),
+          occurredAt: iso2,
           qualityStatus: 'valid',
-          provenance: 'n8n',
+          sourceSystem: 'n8n',
+          unit: 'EUR',
+          ingestedAt: iso2,
         },
       ],
       status: 'live',
       error: null,
-      refresh: vi.fn(),
     });
 
     render(<StreamingAreaChart />);

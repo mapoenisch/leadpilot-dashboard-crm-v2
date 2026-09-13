@@ -22,13 +22,10 @@ describe('LivePerformanceSection', () => {
       history: [],
       status: 'loading',
       error: null,
-      refresh: vi.fn(),
     });
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [],
       status: 'loading',
-      error: null,
-      refresh: vi.fn(),
     });
   });
 
