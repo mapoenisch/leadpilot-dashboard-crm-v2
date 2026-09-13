@@ -328,10 +328,65 @@ metrics.push({
 
 console.log('--- 3. Testabdeckung (Coverage) (#14, #15, #16) ---');
 
-// Gemessene Ist-Werte aus vitest --coverage
-const coverageServicesHooks = 71.8; // hooks: 92.9%, hooks/queries: 68%, data: 71.3%, db: 28.3%, import: 67.0%
-const coverageSimulation = 87.27; // simulation/ Statements: 87.27%
-const coverageComponents = 0.0; // components/ : 0%
+const coverageSummaryPath = path.join(ROOT_DIR, 'coverage/coverage-summary.json');
+
+// Sicherstellen, dass coverage-summary.json aktuell ist
+try {
+  execSync('npx vitest run --coverage', {
+    cwd: ROOT_DIR,
+    encoding: 'utf8',
+    stdio: 'pipe',
+  });
+} catch {
+  // Ignoriere Exit-Codes (z. B. unerreichte per-File-Schwellenwerte in hooks)
+}
+
+let coverageServicesHooks = 71.8;
+let coverageSimulation = 87.27;
+let coverageComponents = 0.0;
+
+if (fs.existsSync(coverageSummaryPath)) {
+  try {
+    const summary = JSON.parse(fs.readFileSync(coverageSummaryPath, 'utf8'));
+
+    const getRollup = (prefix: string) => {
+      let total = 0;
+      let covered = 0;
+      for (const [file, data] of Object.entries(summary)) {
+        if (file === 'total') continue;
+        if (file.includes(`/src/${prefix}`) || file.endsWith(`/src/${prefix}`)) {
+          const s = (data as { statements?: { total: number; covered: number } }).statements;
+          if (s) {
+            total += s.total;
+            covered += s.covered;
+          }
+        }
+      }
+      return total > 0 ? Math.round((covered / total) * 10000) / 100 : 0;
+    };
+
+    coverageComponents = getRollup('components/');
+    coverageSimulation = getRollup('simulation/');
+
+    let totalSH = 0;
+    let coveredSH = 0;
+    for (const [file, data] of Object.entries(summary)) {
+      if (file === 'total') continue;
+      if (file.includes('/src/services/') || file.includes('/src/hooks/')) {
+        const s = (data as { statements?: { total: number; covered: number } }).statements;
+        if (s) {
+          totalSH += s.total;
+          coveredSH += s.covered;
+        }
+      }
+    }
+    if (totalSH > 0) {
+      coverageServicesHooks = Math.round((coveredSH / totalSH) * 10000) / 100;
+    }
+  } catch {
+    // Fallback auf Baselinewerte
+  }
+}
 
 metrics.push({
   id: 14,
@@ -339,7 +394,7 @@ metrics.push({
   actual: `${coverageServicesHooks} %`,
   target: '≥ 90 %',
   status: coverageServicesHooks >= 90 ? 'ERFÜLLT' : 'OFFEN',
-  note: 'Folgeauftrag 064 erforderlich (db 28%, import 67%, data 71%)',
+  note: coverageServicesHooks >= 90 ? 'Ziel ≥ 90 % erreicht' : 'Folgeauftrag 064 erforderlich (db 28%, import 67%, data 71%)',
 });
 
 metrics.push({
@@ -348,7 +403,7 @@ metrics.push({
   actual: `${coverageSimulation} %`,
   target: '≥ 80 %',
   status: coverageSimulation >= 80 ? 'ERFÜLLT' : 'OFFEN',
-  note: 'Ziel ≥ 80 % übertroffen (87,27 % Statements)',
+  note: `Ziel ≥ 80 % übertroffen (${coverageSimulation} % Statements)`,
 });
 
 metrics.push({
@@ -357,7 +412,7 @@ metrics.push({
   actual: `${coverageComponents} %`,
   target: '≥ 60 %',
   status: coverageComponents >= 60 ? 'ERFÜLLT' : 'OFFEN',
-  note: 'Folgeauftrag 063 erforderlich (größte Testlücke im Projekt)',
+  note: coverageComponents >= 60 ? `Ziel ≥ 60 % erreicht (${coverageComponents} % Statements)` : 'Folgeauftrag 063 erforderlich (größte Testlücke im Projekt)',
 });
 
 // ============================================================================

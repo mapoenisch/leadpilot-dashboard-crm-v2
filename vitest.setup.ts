@@ -26,4 +26,47 @@ if (typeof window !== 'undefined') {
       configurable: true,
     });
   }
+
+  // jsdom kennt kein ResizeObserver — Grund-Polyfill für Recharts ResponsiveContainer
+  if (typeof window.ResizeObserver !== 'function') {
+    class ResizeObserverMock {
+      private callback: ResizeObserverCallback;
+      constructor(callback: ResizeObserverCallback) {
+        this.callback = callback;
+      }
+      observe(target: Element) {
+        this.callback(
+          [
+            {
+              target,
+              contentRect: {
+                x: 0,
+                y: 0,
+                width: 800,
+                height: 600,
+                top: 0,
+                right: 800,
+                bottom: 600,
+                left: 0,
+                toJSON: () => {},
+              },
+              borderBoxSize: [],
+              contentBoxSize: [],
+              devicePixelContentBoxSize: [],
+            } as unknown as ResizeObserverEntry,
+          ],
+          this as unknown as ResizeObserver
+        );
+      }
+      unobserve() {}
+      disconnect() {}
+    }
+
+    Object.defineProperty(window, 'ResizeObserver', {
+      value: ResizeObserverMock,
+      writable: true,
+      configurable: true,
+    });
+    (globalThis as Record<string, unknown>).ResizeObserver = ResizeObserverMock;
+  }
 }
