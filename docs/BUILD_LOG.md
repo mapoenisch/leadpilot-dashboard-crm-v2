@@ -2,6 +2,54 @@
 
 ---
 
+## 2026-09-13 — Gate G43 / Auftrag 063: Review — Freigabe mit Hinweis (1 kleinerer Befund, kein Blocker)
+
+**Rolle:** Prüfer (Claude Code) · **Baseline:** `4476c95` · **Geprüfter Head:** `1398a8a` · **Branch:** `codex/v2.2.0-haertung`
+
+Unabhängig in isoliertem Worktree (`/tmp/review-auftrag-063`, `git worktree add … 1398a8a`)
+nachgerechnet: `tsc` 0 Fehler, `eslint` 4 Fehler/0 Warnungen (unverändert), 0
+`toMatchSnapshot`-Aufrufe in `src/components/**`, `npm run verify` 24/24, `npm test` **85
+Dateien/299 Tests** (exakt wie berichtet), `npm run build` grün, `npx playwright test` 165/165
+grün. Coverage-Zahl eigenständig aus `coverage/coverage-summary.json` nachgerechnet: **61
+Komponenten-Dateien im Nenner, 1016/1191 Statements = 85.31 %** — exakt deckungsgleich mit dem
+Bericht. Die niedrige absolute Statement-Zahl (1191 bei 8.294 Quellzeilen) ist plausibel und kein
+Auslassungstrick: JSX-lastige `.tsx`-Dateien haben typischerweise wenige zählbare Statements pro
+Zeile (die meisten Zeilen sind Markup innerhalb eines einzigen `return`). `git diff 4476c95 --
+src/components` zeigt **ausschließlich neue Testdateien** (`A`-Status) — kein einziges bestehendes
+Component wurde verändert, die in Entscheidung 7 erlaubten trivialen Ergänzungen (z. B.
+`aria-label`) wurden gar nicht gebraucht. Schutzbereichs-Diff (`src/simulation`, `src/types`,
+`src/context`, `src/services/data`, `src/features/resources`) ist **leer**. Der neue dynamische
+Coverage-Parser in `verifyV22ReleaseReadiness.ts` funktioniert nachweislich: Metrik #16 zeigt bei
+eigenständigem Lauf ebenfalls 85.31 % (nicht mehr die alte hartkodierte `0.0`), und als
+Nebeneffekt liefern jetzt auch #14 (71.05 %) und #15 (87.35 %) echte statt hartkodierte Werte —
+beide leicht abweichend von den vorherigen Literalen (71.8 % / 87.27 %), was die These stützt,
+dass jetzt wirklich gemessen statt kopiert wird.
+
+**1 kleinerer, nicht-blockierender Befund:**
+
+`npm run format:check` liefert jetzt **123 Abweichungen statt der 85 aus Auftrag 062** — im
+Bericht nicht erwähnt (die Verifikationsmatrix führt `format:check` gar nicht auf). Aufschlüsselung
+nachgerechnet: alle 38 neuen Abweichungen sind die neu angelegten `*.ui.vitest.tsx`-Testdateien,
+die nie durch Prettier liefen; Schutzbereich (83) und die 2 bekannten Altlasten
+(`LeadsPage.tsx`, `liveKpiStreamStore.ts`) sind unverändert. Kein Produktionscode betroffen, aber
+ein `npx prettier --write` auf die neuen Testdateien wäre eine günstige Gelegenheit gewesen, den
+Zähler nicht weiter anwachsen zu lassen. Empfehlung: in Auftrag 064 (oder einem späteren
+Aufräum-Schritt) die neuen Testdateien nachformatieren, damit Metrik #3 nicht bei jedem
+Test-Auftrag unbemerkt weiterwächst.
+
+**Kleinigkeit ohne Auswirkung:** Der Bericht nennt als Baseline `9f8af3b` statt des tatsächlichen
+Vorgänger-Commits `4476c95` (mein Auftrag-062-Review, der nur `docs/BUILD_LOG.md` ergänzte, keine
+Codeänderung). Funktional ohne Unterschied, nur zur Genauigkeit vermerkt.
+
+**Einordnung:** Kennzahl #16 ist zu Recht als ERFÜLLT dokumentiert (85.31 % ≥ 60 %, weit über
+Ziel). Die Entscheidung, den Aggregatwert statt Einzeldatei-Schwellen zu prüfen, wurde korrekt
+umgesetzt — kein `perFile`-Zwang in `vitest.config.ts` für `src/components/**`. Der offene
+Beobachtungspunkt zu `simulatedCrmSource.ts` aus Auftrag 062 bleibt unverändert bestehen (in
+diesem Auftrag wurde `HistoricalActivity` von keiner Komponente konsumiert, daher zu Recht nicht
+angefasst).
+
+---
+
 ## 2026-09-13 — Gate G43 / Auftrag 063: Component-Test-Coverage auf ≥ 60 % (Abschluss: 85.31 % erreicht)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
