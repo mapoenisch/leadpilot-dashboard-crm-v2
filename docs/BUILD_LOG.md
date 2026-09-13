@@ -2,6 +2,90 @@
 
 ---
 
+## 2026-09-13 — Gate G43 / Auftrag 063: Component-Test-Coverage auf ≥ 60 % (Abschluss: 85.31 % erreicht)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `9f8af3b` (Auftrag 062 Review) · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG
+
+Auftrag 063 schließt als zweite Tranche der G43-Härtung **DoD-Kennzahl #16** ab (Statement-Coverage für `src/components/**` von 0 % auf **≥ 60 %**; erreicht: **85.31 %**). Zudem wurde die Test- und Audit-Infrastruktur dynamisch angebunden, sodass `scripts/verifyV22ReleaseReadiness.ts` die tatsächlichen Coverage-Summary-Zahlen live auswertet.
+
+### 1. Ziel & Kontext
+1. **Component-Test-Coverage:** Anhebung der Statement-Coverage aller Komponenten unter `src/components/**` im Aggregat von 0 % auf mindestens 60 % ohne Verwendung von fragilen Snapshot-Tests (`toMatchSnapshot`).
+2. **Audit-Automatisierung:** Anbindung von `scripts/verifyV22ReleaseReadiness.ts` an `coverage/coverage-summary.json` für Metriken #14 (Overall Coverage), #15 (Services/Hooks) und #16 (Components).
+3. **Schutzbereichs-Integrität:** Keine Änderungen an `src/simulation/**`, `src/types/**`, `src/services/data/**` oder `src/features/resources/**`.
+4. **Vollständige Gate-Prüfung:** `tsc` (0 Fehler), `lint` (nur Baseline), `verify` (24/24), `test` (alle grün), `build` (erfolgreich), `playwright` (165/165 grün).
+
+### 2. Block-Übersicht & Coverage-Progression (0 % → 33.25 % → 44.75 % → 85.31 %)
+
+- **Block A (`665bf98`): Test-Infrastruktur & Dynamic Audit Script**
+  - Ergänzung von `ResizeObserverMock` in `vitest.setup.ts` zur zuverlässigen Ausführung von Recharts- und Layout-Komponenten im jsdom-Headless-Runner.
+  - Automatischer `afterEach(() => cleanup())` in `vitest.setup.ts` für saubere DOM-Zustände.
+  - Erweiterung der Reporter in `vitest.config.ts` um `json-summary` für maschinenlesbare Coverage-Reports unter `coverage/coverage-summary.json`.
+  - `scripts/verifyV22ReleaseReadiness.ts`: Dynamischer Parser für `coverage-summary.json` implementiert, der Metriken #14, #15 und #16 live ausliest und bewertet (Fallback auf Baseline bei fehlendem Report).
+- **Block B (`87ba43a`): UI-Primitives (0 % → 33.25 % Coverage)**
+  - 20 dedizierte Unit-/Integrationstests unter `src/components/ui/__tests__/*.ui.vitest.tsx`:
+    `Alert`, `Badge`, `Button`, `Card`, `Checkbox`, `DiagramCanvas`, `Divider`, `Icon`, `Input`, `Modal`, `NavItem`, `NumberStepper`, `ProgressBar`, `RouteErrorBoundary`, `SectionHeader`, `Select`, `Skeleton`, `StatusChip`, `Table`, `Tabs`, `Toolbar`.
+  - 70 Tests, alle bestanden. Coverage stieg von 0 % auf **33.25 %**.
+- **Block C (`51def93`): Layout-, Facelift- & AI-Komponenten (33.25 % → 44.75 % Coverage)**
+  - 8 Komponenten getestet:
+    - Layout: `Header`, `Layout`, `Sidebar`, `SimulationBar` (MemoryRouter, Navigations- und Active-State-Tests).
+    - Facelift: `DiagramCanvas`, `FaceliftGlyph`, `MetricToken`.
+    - AI: `AIInsightDrawer` (Drawer-Rendering, Close-Events, Insight-Typen).
+  - 24 Tests, alle bestanden. Coverage stieg auf **44.75 %**.
+- **Block D (`c8fff38` & `f65063d`): Charts, Live-KPI & Executive Cockpit (44.75 % → 85.31 % Coverage)**
+  - 21 Testdateien angelegt und verifiziert:
+    - 8 UI-Charts (`src/components/ui/charts/__tests__/`):
+      `ChartHelpers`, `DivergingBarChart`, `ManagementChart`, `MonteCarloHistogramChart`, `MultiScenarioComparisonChart`, `SteppedFunnelChart`, `TimeSeriesCorridorChart`, `WaterfallChart`.
+    - 7 Live-KPI-Komponenten (`src/components/liveKpi/__tests__/`):
+      `AnimatedKpiValue`, `LiveActivityFeed`, `LiveArrMixDonut`, `LiveFunnelBarChart`, `LiveKpiCard`, `LivePerformanceSection`, `StreamingAreaChart`.
+    - 6 Executive-Cockpit-Komponenten (`src/components/executiveCockpit/__tests__/`):
+      `CockpitKpiRail`, `CockpitPanel`, `ExecutiveCockpit`, `PipelineSnapshot`, `RoadmapSnapshot`, `TeamHrSnapshot`.
+  - Behebung von TypeScript-Typings in Mocks (`useLiveKpiActivity`, `useLiveKpiHistory`, `usePipelineOverview`) ohne `as any`.
+  - Ergänzung von `/// <reference types="@testing-library/jest-dom/vitest" />` in `src/vite-env.d.ts` für vollständige jest-dom Vitest-Matcher-Typisierung.
+  - 65 neue Tests. Aggregierte Statement-Coverage von `src/components/**` steigt auf **85.31 %** (1016/1191 Statements).
+
+### 3. Coverage-Gesamtergebnis (`src/components/**`)
+
+Gemessen mit `npx vitest run --coverage`:
+
+| Metrik | Soll | Ist-Ergebnis | Status |
+|---|---|---|---|
+| **Statements** | **≥ 60.00 %** | **85.31 %** (1016 / 1191) | ✅ ERFÜLLT (DoD #16) |
+| **Lines** | — | **86.38 %** (996 / 1153) | ✅ SEHR GUT |
+| **Functions** | — | **81.44 %** (180 / 221) | ✅ SEHR GUT |
+| **Branches** | — | **74.62 %** (441 / 591) | ✅ SEHR GUT |
+| **Snapshot-Tests** | **0** | **0** (`toMatchSnapshot` ungenutzt) | ✅ ERFÜLLT |
+| **Neue Testdateien** | — | **49 Dateien** | ✅ VOLLSTÄNDIG |
+| **Neue Tests** | — | **159 Tests** (Gesamt: 299 Tests) | ✅ ALLE GRÜN |
+
+`scripts/verifyV22ReleaseReadiness.ts` meldet:
+`[METRIK 16] Test-Coverage Components: 85.31% (Ziel: >= 60.00%) -> OK`
+
+### 4. Befund-Rückmeldung aus Auftrag 062 Review (Audit-Beobachtung)
+
+- Zum Review-Befund bzgl. des Mappings in `src/services/data/sources/simulatedCrmSource.ts` (`HistoricalActivity`):
+  In Auftrag 063 wurden weder `src/simulation/**` noch `src/services/data/**` noch `src/types/**` modifiziert. Keine Komponente in `src/components/**` konsumiert `CrmReadModel.activities` oder `simulatedCrmSource.ts`. Der Befund bleibt wie empfohlen für Folgearbeiten dokumentiert, falls `activities` im UI verarbeitet werden.
+
+### 5. Schutzbereichs-Diff-Nachweis
+
+Befehl: `git diff 9f8af3b -- src/simulation src/types src/services/data src/features/resources`
+Ergebnis: **0 Zeilen Diff (Exit 0)** — alle Schutzbereiche blieben vollständig unangetastet.
+
+### 6. Vollständige Pflicht-Verifikations-Matrix
+
+| Prüfung | Baseline (`9f8af3b`) | Ist-Ergebnis (Auftrag 063) | Status |
+|---|---|---|---|
+| `npx tsc --noEmit` | 0 Fehler | **0 Fehler** (Code 0) | ✅ GRÜN |
+| `npm run lint` | 4 Fehler, 0 Warnings | **4 Fehler, 0 Warnings** (Baseline max-lines) | ⚠️ BASELINE (#1/#13) |
+| `npm run verify` | 24/24 Suiten | **24/24 Suiten bestanden** | ✅ GRÜN |
+| `npm test` | 36 Files, 140 Tests | **85 Files, 299 Tests bestanden** | ✅ GRÜN |
+| `npm run build` | Erfolgreich | **Erfolgreich in 2.61s** (dist/ generiert) | ✅ GRÜN |
+| `npx playwright test` | 165 Tests | **165/165 Tests bestanden** (15/15 Visual Regression 0px) | ✅ GRÜN |
+| `Coverage Components` | 0.00 % | **85.31 %** (1016/1191 Statements) | ✅ ERFÜLLT (DoD #16) |
+| Schutzbereichs-Diff | leer | **leer (0 Zeilen)** | ✅ GRÜN |
+
+---
+
 ## 2026-09-13 — Gate G43 / Auftrag 062: Review — Freigabe mit Auflage (1 substantieller Befund, 2 kleinere; kein Blocker für Metrik #4)
 
 **Rolle:** Prüfer (Claude Code) · **Baseline:** `ac3ff6c` · **Geprüfter Head:** `9f8af3b` · **Branch:** `codex/v2.2.0-haertung`
