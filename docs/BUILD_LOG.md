@@ -2,6 +2,100 @@
 
 ---
 
+## 2026-09-13 — Gate G43 / Auftrag 061: V2.2.0 Release-Audit (Audit-Abschluss)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `bdb1d2a` (Gate G42 freigegeben) · **Status:** AUDITIERT — NICHT BESTANDEN (7 offene Lücken / Entscheidungen dokumentiert)
+
+Auftrag 061 (Gate G43): Maschineller Release-Audit für LeadPilot Dashboard-CRM V2.2.0. Dieser Auftrag ist ein **Audit-Auftrag** zur transparenten Erhebung des Ist-Stands aller 23 Definition-of-Done-Kennzahlen aus `docs/BUILD_PLAN_V2.2.0.md`, **kein Abschluss-Auftrag**. Quick Wins wurden umgesetzt, Schutzbereiche geschützt, und alle Lücken quantifiziert für Folgeaufträge aufbereitet.
+
+### 1. Was Gate G43 NICHT bedeutet
+
+> [!IMPORTANT]
+> **Keine Release-Freigabe, kein Merge, kein Push:**
+> Gate G43 gilt nach diesem Lauf als **„auditiert"**, nicht als „bestanden".
+> Der Remote-Push der 80 lokalen Commits sowie Merge nach `main` und Git-Tagging bleiben gesperrt, bis Marc die dokumentierten Entscheidungen getroffen hat und die Folgeaufträge abgeschlossen sind.
+
+### 2. Definition of Done — Status der 23 Kennzahlen
+
+| # | Kennzahl | Soll-Wert | Ist-Wert (gemessen) | Status | Befund / Folgearbeit |
+|---|---|---|---|---|---|
+| 1 | ESLint-Fehler | 0 | **4** | ❌ OFFEN | Identisch mit #13: 4 Altdateien im Schutzbereich überschreiten 400 Zeilen |
+| 2 | ESLint-Warnungen | 0 | **0** | ✅ ERFÜLLT | In Block B behoben (verwaiste Kommentare in `e2e/*.spec.ts` entfernt) |
+| 3 | Prettier-Abweichungen | 0 | **84** | ⚠️ DOKUMENTIERT | 182 Dateien außerhalb formatiert; 82 im Schutzbereich + 2 zur Vermeidung von max-lines unberührt |
+| 4 | TypeScript-Fehler | 0 | **535** | ❌ OFFEN | **Folgeauftrag 062** erforderlich (historischer Fehlerstand, unverändert seit G40) |
+| 5 | `any`-Typen in `src/` | 0 | **0** | ✅ ERFÜLLT | 0 Verstöße (`@typescript-eslint/no-explicit-any`) |
+| 6 | `console.*` in `src/` | 0 | **0** | ✅ ERFÜLLT | 0 Verstöße (`no-console` in `src/`) |
+| 7 | `useSyncExternalStore` in Live-Hooks | 3 | **3** | ✅ ERFÜLLT | `useLiveKpi`, `useLiveKpiActivity`, `useLiveKpiHistory` |
+| 8 | Realtime-Kanäle bei 12 KPIs | 1 | **1** | ✅ ERFÜLLT | Zentraler Kanal `live-kpi-feed` in `liveKpiReadAdapter.ts` |
+| 9 | Layering-Verstöße | 0 | **0** | ✅ ERFÜLLT | 0 Verstöße (`import/no-restricted-paths`) |
+| 10 | Klickbare `<div>`/`<span>` | 0 | **0** | ✅ ERFÜLLT | 0 Verstöße (`jsx-a11y/no-static-element-interactions`) |
+| 11 | `target="_blank"` ohne `noopener` | 0 | **0** | ✅ ERFÜLLT | 0 Verstöße (`react/jsx-no-target-blank`) |
+| 12 | Inline-Styles (nicht laufzeitberechnet) | 0 | **0** | ✅ ERFÜLLT | `INLINE_STYLE_BASELINE=22` (3 in `resources/`, 19 Laufzeit/Passthrough) |
+| 13 | Komponenten > 400 Zeilen | 0 | **4** | ❌ OFFEN | **Entscheidung Marc:** Ausnahme dokumentieren vs. Split-Auftrag mit Schutzbereichs-Autorisierung |
+| 14 | Coverage `services/` + `hooks/` | ≥ 90 % | **71.8 %** | ❌ OFFEN | **Folgeauftrag 064** erforderlich (`db` 28%, `import` 67%, `data` 71%) |
+| 15 | Coverage `simulation/` | ≥ 80 % | **87.27 %** | ✅ ERFÜLLT | Ziel übertroffen (Statements: 87.27%) |
+| 16 | Coverage `components/` | ≥ 60 % | **0 %** | ❌ OFFEN | **Folgeauftrag 063** erforderlich (größte Testlücke im Projekt) |
+| 17 | Größter JS-Chunk (gzip) | ≤ 250 KB | **86.39 KB** | ✅ ERFÜLLT | `recharts-vendor` isoliert (Budget: 250 KB, Puffer: 163.61 KB) |
+| 18 | Initial-Load (gzip) | ≤ 180 KB | **135.71 KB** | ✅ ERFÜLLT | Entrypoint inkl. React & Vendor (Budget: 180 KB, Puffer: 44.29 KB) |
+| 19 | Lighthouse Performance | ≥ 90 | **100** | ✅ ERFÜLLT | Gemessen mit `@lhci/cli` auf `/dashboard` (Score: 100/100) |
+| 20 | Lighthouse Accessibility | ≥ 95 | **100** | ✅ ERFÜLLT | Gemessen mit `@lhci/cli` auf `/dashboard` (Score: 100/100) |
+| 21 | `.git`-Größe | ≤ 50 MB | **74 MB** | ❌ OFFEN | **Entscheidung Marc:** History-Rewrite (`git filter-repo`) vs. Anhebung auf 80 MB |
+| 22 | CI-Läufe bei jedem Push | grün | **80 Commits lokal** | ❌ OFFEN | **Entscheidung Marc:** Push nach `origin` freigeben, um CI-Lauf auszulösen |
+| 23 | Handgeschriebene Capture-Skripte | ≤ 3 | **2** | ✅ ERFÜLLT | `captureGateScreenshots.mjs`, `captureAuftrag058Screenshots.mjs` (Ziel ≤ 3 erreicht) |
+
+**Bilanz:** 15 Erfüllt · 1 Dokumentierte Ausnahme · 7 Offene Lücken / Entscheidungen.
+
+### 3. Prettier-Lauf & Schutzbereichs-Befund
+
+- In Block B wurden 182 Dateien außerhalb der Schutzbereiche automatisch formatiert.
+- Ein initialer Versuch, die Schutzbereiche ebenfalls zu formatieren, zeigte, dass Prettier nicht nur Whitespace ändert, sondern auch Satzzeichen (Trailing-Kommata, Klammern um ternäre Operatoren, etc.) modifiziert. Dadurch war der Ignore-Whitespace-Diff nicht leer.
+- Gemäß Akzeptanzkriterium 3 des Auftrags („*Prettier-Lauf für Schutzbereiche zurückrollen, nur ungeschützte Dateien formatieren, Befund dokumentieren statt zu riskieren*") wurden alle Dateien in `src/simulation`, `src/types`, `src/services/data` und `src/features/resources` vollständig auf `bdb1d2a` zurückgesetzt.
+- Zusätzlich wurden `src/features/crm/pages/LeadsPage.tsx` und `src/services/liveKpi/liveKpiStreamStore.ts` unberührt gelassen, da die Prettier-Zeilenumbrüche sie über die 400-Zeilen-Grenze gehoben hätten.
+- **Ergebnis:** `git diff bdb1d2a -- src/simulation src/types src/services/data src/features/resources` ist **vollständig leer** (0 Bytes).
+
+### 4. Screenshot-Vergleich & Visual Regression (Block C)
+
+- Alle 15 Kern-Screenshots (`/dashboard`, `/crm/leads`, `/finance/p-and-l`, `/market/overview`, `/resources/materials` über Desktop 1440px, Tablet 768px, Mobile 375px) wurden per Playwright Visual Regression (`e2e/visual.spec.ts`) gegen die Referenzbaselines geprüft.
+- Bei strikter Toleranz (`maxDiffPixelRatio: 0`) ergab sich eine Abweichung von **exakt 0 Pixeln** (15/15 passed).
+- Dokumentiert in `docs/screenshots/auftrag-061/README.md`.
+
+### 5. Block-Übersicht & Commits
+
+- **Block B (`6a2044e`):** Quick Wins — 3 verwaiste `eslint-disable`-Kommentare in `e2e/*.spec.ts` entfernt (ESLint-Warnungen auf 0), 182 ungeschützte Dateien mit Prettier formatiert.
+- **Block A (`1535077`):** `scripts/verifyV22ReleaseReadiness.ts` erstellt. Misst maschinell alle 23 Kennzahlen, gibt die standardisierte Ergebnistabelle aus und prüft Dokumentenkonsistenz.
+- **Block C (`7791c73`):** Visual Regression Matrix und Screenshot-Nachweis in `docs/screenshots/auftrag-061/README.md`.
+- **Block D (`HEAD`):** Release-Audit-Dokument `docs/releases/V2.2.0.md`, Auftragstracking und Build-Log-Dokumentation.
+
+### 6. Pflicht-Verifikations-Matrix
+
+| Prüfung | Baseline (`bdb1d2a`) | Nachher (Gate G43) | Status |
+|---|---|---|---|
+| `npx tsc --noEmit` | 535 Fehler | **535 Fehler** | ❌ OFFEN (Folgeauftrag 062) |
+| `npm run lint` | 4 Fehler, 3 Warnings | **4 Fehler, 0 Warnings** (Warnungen auf 0 gesunken) | ✅ ERFÜLLT / BASELINE |
+| `npm run format:check` | 263 Abweichungen | **84 Abweichungen** (nur Schutzbereich + 2 Ausnahmen) | ⚠️ DOKUMENTIERT |
+| `npm run verify` | 24/24 Suiten | **24/24 Suiten bestanden** | ✅ GRÜN |
+| `npm test` | 36 Files, 140 Tests | **36 Files, 140 Tests bestanden** | ✅ GRÜN |
+| `npm run build` | Erfolgreich | **Erfolgreich in 2.26s** | ✅ GRÜN |
+| `npx playwright test` | 165 Tests | **165/165 Tests passed** (inkl. 15 Visual mit 0px Diff) | ✅ GRÜN |
+| `npx size-limit` (Initial) | 135.71 KB | **135.71 KB** (Budget: 180 KB, 44.29 KB Puffer) | ✅ GRÜN |
+| `npx size-limit` (Largest) | 86.39 KB | **86.39 KB** (Budget: 250 KB, 163.61 KB Puffer) | ✅ GRÜN |
+| `npx lhci autorun` | Perf 99, A11y 100 | **Perf 100, A11y 100, Best-Practices 100** | ✅ GRÜN |
+| `npx tsx scripts/verifyV22ReleaseReadiness.ts` | neu | **Exit 0 (15 Erfüllt, 1 Ausnahme, 7 Offen)** | ✅ AUDITIERT |
+| **Schutzbereichs-Diff** | Leer | `git diff bdb1d2a -- src/simulation src/types src/services/data src/features/resources` ist **vollständig leer** | ✅ GRÜN |
+
+### 7. Entscheidungsliste für Marc
+
+1. **Metrik #13 / #1 (max-lines im Schutzbereich):** Soll eine dauerhafte Ausnahme in der DoD-Tabelle für die 4 Altdateien (`eventRules.ts`, `scenarioService.ts`, `financialIntegrity.test.ts`, `ResourceViewer.tsx`) dokumentiert werden (empfohlen), oder soll ein künftiger Spezialauftrag mit Schutzbereichs-Autorisierung die Aufteilung übernehmen?
+2. **Metrik #21 (`.git`-Größe):** Aktuell 74 MB (Ziel ≤ 50 MB). Soll die DoD-Schwelle auf ≤ 80 MB angehoben werden (empfohlen, da unkritisch), oder soll ein History-Rewrite per `git filter-repo` durchgeführt werden?
+3. **Metrik #22 (Push-Freigabe für CI):** Soll nach dem Review von Gate G43 der Push nach `origin/codex/v2.2.0-haertung` freigegeben werden, um den ersten echten GitHub-Actions-CI-Lauf seit G35 zu triggern?
+4. **Folgeaufträge zur Erreichung des echten V2.2.0-Release:**
+   - **Auftrag 062:** TypeScript-Fehler-Reduktion (535 Fehler auf 0)
+   - **Auftrag 063:** Component-Test-Coverage (`components/` von 0% auf ≥ 60%)
+   - **Auftrag 064:** Service- & Hook-Coverage (`services/` + `hooks/queries` auf ≥ 90%)
+
+---
+
 ## 2026-09-13 — Gate G42 / Auftrag 060: Review — Freigabe mit Hinweisen (3 Befunde, kein Blocker)
 
 **Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
