@@ -5,7 +5,8 @@ export const RESOURCE_REGISTRY: Record<string, ResourceMetadata> = {
     id: 'res-roadmap-h2-2026',
     title: 'Marketingplanung H2-2026 – Roadmap',
     subtitle: 'Operative 6-Monats-Marketing-Roadmap (Aug 2026 – Jan 2027)',
-    description: 'Detaillierte Planung aller Marketinginitiativen, Budgetallokationen und Meilensteine für das 2. Halbjahr 2026.',
+    description:
+      'Detaillierte Planung aller Marketinginitiativen, Budgetallokationen und Meilensteine für das 2. Halbjahr 2026.',
     category: 'MARKETING',
     type: 'DOCUMENT',
     pageCount: 4,
@@ -25,7 +26,8 @@ export const RESOURCE_REGISTRY: Record<string, ResourceMetadata> = {
     id: 'res-praesentation-h2-2026',
     title: 'Marketingplanung H2-2026 – Präsentation',
     subtitle: 'Strategisches Pitch- & Planungsdeck für H2-2026',
-    description: 'Vollständige interne Präsentation zur Marketingstrategie, Kanalgewichtung und Wachstumszielen für das zweite Halbjahr.',
+    description:
+      'Vollständige interne Präsentation zur Marketingstrategie, Kanalgewichtung und Wachstumszielen für das zweite Halbjahr.',
     category: 'MARKETING',
     type: 'SLIDE_DECK',
     pageCount: 11,
@@ -52,7 +54,8 @@ export const RESOURCE_REGISTRY: Record<string, ResourceMetadata> = {
     id: 'res-kampagnenbrief-connect',
     title: 'LeadPilot Connect – Kampagnenbrief',
     subtitle: 'Strategisches Kampagnen-Briefing für Reaktivierung & Outbound',
-    description: 'Umfassendes Briefing zur Einführungskampagne "LeadPilot Connect" mit Zielgruppen-Targeting, Messaging und Asset-Plan.',
+    description:
+      'Umfassendes Briefing zur Einführungskampagne "LeadPilot Connect" mit Zielgruppen-Targeting, Messaging und Asset-Plan.',
     category: 'MARKETING',
     type: 'DOCUMENT',
     pageCount: 3,
@@ -71,7 +74,8 @@ export const RESOURCE_REGISTRY: Record<string, ResourceMetadata> = {
     id: 'res-leitfaden-lead-nachverfolgung',
     title: 'Leitfaden Lead-Nachverfolgung',
     subtitle: 'Operatives Playbook für systematischen B2B-Vertrieb',
-    description: 'Standardisierter Leitfaden zur schnellen Qualifizierung und Nachverfolgung von eingehenden Inbound- und Outbound-Leads.',
+    description:
+      'Standardisierter Leitfaden zur schnellen Qualifizierung und Nachverfolgung von eingehenden Inbound- und Outbound-Leads.',
     category: 'SALES',
     type: 'DOCUMENT',
     pageCount: 4,
@@ -91,7 +95,8 @@ export const RESOURCE_REGISTRY: Record<string, ResourceMetadata> = {
     id: 'res-landingpage-live',
     title: 'LeadPilot Landingpage',
     subtitle: 'Interaktiver Web-Auftritt mit Live-Demo & ROI-Rechner',
-    description: 'Vollständige interaktive Landingpage der LeadPilot GmbH mit animiertem Hero, Live-Funktionsrechnern und FAQ-Akkordeon.',
+    description:
+      'Vollständige interaktive Landingpage der LeadPilot GmbH mit animiertem Hero, Live-Funktionsrechnern und FAQ-Akkordeon.',
     category: 'MARKETING',
     type: 'INTERACTIVE_HTML',
     pageCount: 1,
@@ -107,7 +112,8 @@ export const RESOURCE_REGISTRY: Record<string, ResourceMetadata> = {
     id: 'res-pitch-autec',
     title: 'Personalisierte Präsentation AUTEC',
     subtitle: 'Maßgeschneidertes B2B-Pitch-Deck für Sondermaschinenbau',
-    description: 'Kundenindividuelles Sales-Deck für die AUTEC Sondermaschinenbau GmbH mit branchenspezifischer Value Proposition.',
+    description:
+      'Kundenindividuelles Sales-Deck für die AUTEC Sondermaschinenbau GmbH mit branchenspezifischer Value Proposition.',
     category: 'SALES',
     type: 'SLIDE_DECK',
     pageCount: 6,
@@ -129,7 +135,8 @@ export const RESOURCE_REGISTRY: Record<string, ResourceMetadata> = {
     id: 'res-pitch-deubner',
     title: 'Präsentation Deubner',
     subtitle: 'B2B-Vertriebspräsentation für Baumaschinenhandel',
-    description: 'Kundenindividuelle Präsentation zur LeadPilot-Einführung bei Deubner Baumaschinen zur Digitalisierung des Lead-Routings.',
+    description:
+      'Kundenindividuelle Präsentation zur LeadPilot-Einführung bei Deubner Baumaschinen zur Digitalisierung des Lead-Routings.',
     category: 'SALES',
     type: 'SLIDE_DECK',
     pageCount: 5,
@@ -150,7 +157,8 @@ export const RESOURCE_REGISTRY: Record<string, ResourceMetadata> = {
     id: 'res-sla-lead-matrix',
     title: 'Lead-Qualifizierungs-Matrix (SLA)',
     subtitle: 'Visuelles Scoring nach ICP-Fit & Kaufsignal',
-    description: 'Kanonische Matrix zur Einstufung von Leads in Kalt, Warm und Heiß zur optimalen Übergabe zwischen Marketing und Vertrieb.',
+    description:
+      'Kanonische Matrix zur Einstufung von Leads in Kalt, Warm und Heiß zur optimalen Übergabe zwischen Marketing und Vertrieb.',
     category: 'OPERATIONS',
     type: 'GRAPHIC',
     pageCount: 1,

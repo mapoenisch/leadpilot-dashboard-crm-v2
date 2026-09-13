@@ -33,9 +33,7 @@ export const PersonaDossier: React.FC = () => {
 
         {/* Paket-Fit Badge */}
         <div className="rounded-[6px] border border-solid border-[rgba(255,154,102,0.25)] bg-[rgba(255,154,102,0.08)] text-[12px] leading-[1.35] max-w-[380px] text-accent px-[12px] py-[6px]">
-          <strong className="block text-[11px] uppercase tracking-[0.04em]">
-            Paket-Fit
-          </strong>
+          <strong className="block text-[11px] uppercase tracking-[0.04em]">Paket-Fit</strong>
           {p.packageFit}
         </div>
       </div>
@@ -47,9 +45,7 @@ export const PersonaDossier: React.FC = () => {
       </div>
 
       {/* Zitat */}
-      <blockquote
-        className="persona-quote m-0 italic text-[13.5px] leading-[1.45] border-0 border-l-[3px] border-solid border-l-primary bg-[rgba(0,217,198,0.05)] text-primary rounded-[0_var(--radius-sm,4px)_var(--radius-sm,4px)_0] px-[14px] py-[12px]"
-      >
+      <blockquote className="persona-quote m-0 italic text-[13.5px] leading-[1.45] border-0 border-l-[3px] border-solid border-l-primary bg-[rgba(0,217,198,0.05)] text-primary rounded-[0_var(--radius-sm,4px)_var(--radius-sm,4px)_0] px-[14px] py-[12px]">
         {p.quote}
       </blockquote>
 

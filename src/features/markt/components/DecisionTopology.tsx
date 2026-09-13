@@ -5,7 +5,8 @@ import { DecisionTopologySvg } from './DecisionTopologySvg';
 interface CompetitorZone {
   id: string;
   name: string;
-  category: 'Enterprise Suite' | 'Marketing / Service' | 'Pipeline Tools' | 'B2B Mid-Market Hochebene';
+  category:
+    'Enterprise Suite' | 'Marketing / Service' | 'Pipeline Tools' | 'B2B Mid-Market Hochebene';
   providers: string[];
   effortClassification: string; // Qualitative Einordnung
   routeDescription: string;
@@ -85,7 +86,8 @@ export const DecisionTopology: React.FC = () => {
             Wettbewerbs-Topografie nach Einführungsaufwand
           </h3>
           <p className="text-[0.8125rem] text-[var(--color-text-muted)] min-w-0 [overflow-wrap:anywhere] break-words mt-[3px] mb-0 mr-0 ml-0">
-            Isometrische Topografie: Kürzeste Route zur Nutzbarkeit auf der B2B-Mid-Market-Hochebene.
+            Isometrische Topografie: Kürzeste Route zur Nutzbarkeit auf der
+            B2B-Mid-Market-Hochebene.
           </p>
         </div>
 
@@ -103,11 +105,11 @@ export const DecisionTopology: React.FC = () => {
 
       {/* Screenreader-Zusammenfassung */}
       <div className="sr-only">
-        Topografischer Vergleich nach Einführungsaufwand:
-        Enterprise Suites (Salesforce, HubSpot): Höchster Einführungsaufwand (qualitative Einordnung).
-        Marketing- und Service-Systeme (Brevo, Zendesk): Höherer Einführungsaufwand für B2B-Sales (qualitative Einordnung).
-        Pipeline Tools (Pipedrive): Mittlerer Einführungsaufwand (qualitative Einordnung).
-        LeadPilot: B2B-Mid-Market-Hochebene mit kürzester Route zur Nutzbarkeit in unter 30 Minuten Setup.
+        Topografischer Vergleich nach Einführungsaufwand: Enterprise Suites (Salesforce, HubSpot):
+        Höchster Einführungsaufwand (qualitative Einordnung). Marketing- und Service-Systeme (Brevo,
+        Zendesk): Höherer Einführungsaufwand für B2B-Sales (qualitative Einordnung). Pipeline Tools
+        (Pipedrive): Mittlerer Einführungsaufwand (qualitative Einordnung). LeadPilot:
+        B2B-Mid-Market-Hochebene mit kürzester Route zur Nutzbarkeit in unter 30 Minuten Setup.
         Hinweis: Keine Darstellung von Marktanteilen.
       </div>
 
@@ -141,85 +143,52 @@ export const DecisionTopology: React.FC = () => {
         </div>
 
         <div className="topology-card topology-card-pipeline rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] min-w-0 w-full box-border px-[12px] py-[10px]">
-
-          <div
-            className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full"
-          >
-            <span
-              className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-[var(--cyan-light)]"
-            >
+          <div className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full">
+            <span className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-[var(--cyan-light)]">
               ▲ Mittlere Aufwandsstufe
             </span>
-            <span
-              className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-[var(--color-text-muted)]"
-            >
+            <span className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-[var(--color-text-muted)]">
               Qualitative Einordnung
             </span>
           </div>
-          <div
-            className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words"
-          >
+          <div className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words">
             Pipeline Tools ({pipedriveRow[0]})
           </div>
-          <div
-            className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]"
-          >
+          <div className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]">
             {pipedriveRow[3]} · Differenzierung: {pipedriveRow[4]}
           </div>
         </div>
 
         <div className="topology-card topology-card-marketing rounded-md border border-solid border-border bg-[rgba(255,255,255,0.02)] min-w-0 w-full box-border px-[12px] py-[10px]">
-
-          <div
-            className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full"
-          >
-            <span
-              className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]"
-            >
+          <div className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full">
+            <span className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]">
               ▲ Hohe Aufwandsstufe
             </span>
-            <span
-              className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-[var(--color-text-muted)]"
-            >
+            <span className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-[var(--color-text-muted)]">
               Qualitative Einordnung
             </span>
           </div>
-          <div
-            className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words"
-          >
+          <div className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words">
             Marketing / Support ({brevoRow[0]}, {zendeskRow[0]})
           </div>
-          <div
-            className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]"
-          >
+          <div className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]">
             {brevoRow[3]} · {zendeskRow[3]}
           </div>
         </div>
 
         <div className="topology-card topology-card-enterprise rounded-md border border-solid border-[rgba(255,153,0,0.4)] bg-[rgba(255,255,255,0.02)] min-w-0 w-full box-border px-[12px] py-[10px]">
-
-          <div
-            className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full"
-          >
-            <span
-              className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-accent"
-            >
+          <div className="flex items-baseline justify-between flex-wrap gap-x-[8px] gap-y-[4px] mb-[4px] min-w-0 w-full">
+            <span className="text-[0.6875rem] font-bold uppercase min-w-0 [overflow-wrap:anywhere] break-words text-accent">
               ▲ Höchste Aufwandsstufe
             </span>
-            <span
-              className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-accent"
-            >
+            <span className="font-mono text-[0.75rem] min-w-0 [overflow-wrap:anywhere] break-words whitespace-normal text-accent">
               Qualitative Einordnung
             </span>
           </div>
-          <div
-            className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words"
-          >
+          <div className="font-display text-[0.9375rem] font-bold text-text min-w-0 [overflow-wrap:anywhere] break-words">
             Enterprise Suites ({salesforceRow[0]}, {hubspotRow[0]})
           </div>
-          <div
-            className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]"
-          >
+          <div className="text-[0.8125rem] mt-[2px] min-w-0 [overflow-wrap:anywhere] break-words text-[var(--color-text-muted)]">
             {salesforceRow[3]} · {hubspotRow[3]}
           </div>
         </div>
@@ -261,13 +230,13 @@ export const DecisionTopology: React.FC = () => {
           const zoneBorderClass = !isSelected
             ? 'border-border'
             : zone.isLeadPilot
-            ? 'border-primary'
-            : 'border-accent';
+              ? 'border-primary'
+              : 'border-accent';
           const zoneBgClass = !isSelected
             ? 'bg-[rgba(255,255,255,0.03)]'
             : zone.isLeadPilot
-            ? 'bg-[rgba(0,217,198,0.15)]'
-            : 'bg-[rgba(255,153,0,0.15)]';
+              ? 'bg-[rgba(0,217,198,0.15)]'
+              : 'bg-[rgba(255,153,0,0.15)]';
           return (
             <button
               key={zone.id}
@@ -299,7 +268,9 @@ export const DecisionTopology: React.FC = () => {
             </h4>
           </div>
 
-          <div className={`font-mono text-[0.75rem] font-semibold ${activeZoneData.isLeadPilot ? 'text-primary' : 'text-accent'}`}>
+          <div
+            className={`font-mono text-[0.75rem] font-semibold ${activeZoneData.isLeadPilot ? 'text-primary' : 'text-accent'}`}
+          >
             Aufwand: {activeZoneData.effortClassification}
           </div>
         </div>
@@ -309,9 +280,7 @@ export const DecisionTopology: React.FC = () => {
             <div className="text-[0.6875rem] uppercase mb-[4px] text-[var(--color-text-muted)]">
               Topografische Route
             </div>
-            <div className="text-[0.8125rem] text-text">
-              {activeZoneData.routeDescription}
-            </div>
+            <div className="text-[0.8125rem] text-text">{activeZoneData.routeDescription}</div>
           </div>
 
           <div className="rounded border border-solid border-border-soft bg-[rgba(0,0,0,0.2)] px-[12px] py-[10px]">

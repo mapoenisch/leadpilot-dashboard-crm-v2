@@ -45,10 +45,17 @@ export interface ISnapshotRepository {
    * Selectively prunes heavy SimulationSnapshots for a run, keeping only specified keepTickIds.
    * Preserves 100% of AnalyticsProjections in STORE_PROJECTIONS.
    */
-  pruneSnapshotsForRun(runId: string, keepTickIds: number[]): Promise<{ prunedCount: number; remainingCount: number }>;
+  pruneSnapshotsForRun(
+    runId: string,
+    keepTickIds: number[],
+  ): Promise<{ prunedCount: number; remainingCount: number }>;
 
   /**
    * Computes storage usage metrics across stored snapshots and projections.
    */
-  getStorageMetrics(): Promise<{ totalSnapshots: number; totalProjections: number; estimatedBytes: number }>;
+  getStorageMetrics(): Promise<{
+    totalSnapshots: number;
+    totalProjections: number;
+    estimatedBytes: number;
+  }>;
 }

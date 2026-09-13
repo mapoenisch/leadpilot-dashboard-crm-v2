@@ -90,7 +90,7 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
           }
         }
         return merged;
-      })
+      }),
     );
   };
 
@@ -102,7 +102,9 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
       setPreviewDeltas(result.kpiDeltas);
       setPreviewConflicts(result.conflicts);
     } catch (err) {
-      setPreviewError((err instanceof Error ? err.message : '') || 'Fehler bei der Wirkungsvorschau');
+      setPreviewError(
+        (err instanceof Error ? err.message : '') || 'Fehler bei der Wirkungsvorschau',
+      );
     } finally {
       setIsPreviewing(false);
     }
@@ -185,9 +187,7 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
 
           {formError && (
             <div className="mb-[var(--space-3)]">
-              <Alert variant="error">
-                {formError}
-              </Alert>
+              <Alert variant="error">{formError}</Alert>
             </div>
           )}
 
@@ -259,7 +259,8 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
                 <div className="flex justify-between text-[11px] mb-[4px] text-[var(--color-text-muted)]">
                   <span>Timeline-Vorschau:</span>
                   <span>
-                    Start: Tick {startTick} · Ramp-up: {rampUpTicks} Ticks · Dauer: {durationTicks ? `${durationTicks} Ticks` : 'Dauerhaft'}
+                    Start: Tick {startTick} · Ramp-up: {rampUpTicks} Ticks · Dauer:{' '}
+                    {durationTicks ? `${durationTicks} Ticks` : 'Dauerhaft'}
                   </span>
                 </div>
                 <div className="w-full h-[14px] rounded bg-background-deep relative overflow-hidden">
@@ -271,10 +272,13 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
                     // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Timeline-Balken aus State), siehe Auftrag 056 Entscheidung 2
                     style={{
                       left: `${Math.min(100, (startTick / 30) * 100)}%`,
-                      width: durationTicks ? `${Math.min(100, (parseInt(durationTicks, 10) / 30) * 100)}%` : '100%',
-                      background: rampUpTicks > 0
-                        ? 'linear-gradient(90deg, var(--color-warning) 0%, var(--color-primary) 50%, var(--color-primary) 100%)'
-                        : 'var(--color-primary)',
+                      width: durationTicks
+                        ? `${Math.min(100, (parseInt(durationTicks, 10) / 30) * 100)}%`
+                        : '100%',
+                      background:
+                        rampUpTicks > 0
+                          ? 'linear-gradient(90deg, var(--color-warning) 0%, var(--color-primary) 50%, var(--color-primary) 100%)'
+                          : 'var(--color-primary)',
                     }}
                   />
                 </div>

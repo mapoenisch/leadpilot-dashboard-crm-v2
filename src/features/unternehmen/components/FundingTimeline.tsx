@@ -46,7 +46,8 @@ export const FundingTimeline: React.FC = () => {
             Gemeinsame Gründungs- & Entwicklungszeitachse
           </h3>
           <p className="mt-[2px] mr-0 mb-0 ml-0 text-[0.8125rem] text-[var(--color-text-muted)]">
-            Synchronisierte Chronologie: Oben Kapital & Recht, unten Produkt & Markt mit senkrechtem Ermöglichungs-Verbinder.
+            Synchronisierte Chronologie: Oben Kapital & Recht, unten Produkt & Markt mit senkrechtem
+            Ermöglichungs-Verbinder.
           </p>
         </div>
 
@@ -87,10 +88,7 @@ export const FundingTimeline: React.FC = () => {
       {/* DESKTOP-ANSICHT: 4 gemeinsame Spalten mit synchronisierten Spuren */}
       <div className="funding-grid-desktop">
         {columns.map((col) => (
-          <div
-            key={col.period}
-            className="flex flex-col justify-between gap-[var(--space-3)]"
-          >
+          <div key={col.period} className="flex flex-col justify-between gap-[var(--space-3)]">
             {/* Spaltenkopf: Datum */}
             <div
               className={`px-[10px] py-[4px] rounded-[var(--radius-sm)] bg-surface-raised border border-solid border-border-soft text-center font-mono text-[0.75rem] font-bold ${col.hasConnector ? 'text-primary' : 'text-text'}`}
@@ -130,15 +128,18 @@ export const FundingTimeline: React.FC = () => {
               {col.hasConnector ? (
                 <div className="flex items-center gap-[4px] px-[8px] py-[2px] rounded-full bg-cyan-a12 border border-solid border-[rgba(0,217,198,0.4)] text-primary text-[0.625rem] font-mono font-bold">
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-                    <path d="M5 1v8m-3-3l3 3 3-3" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M5 1v8m-3-3l3 3 3-3"
+                      stroke="var(--color-primary)"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                   <span>Ermöglicht Launch</span>
                 </div>
               ) : (
-                <div
-                  className="w-[1px] h-full bg-border-soft"
-                  aria-hidden="true"
-                />
+                <div className="w-[1px] h-full bg-border-soft" aria-hidden="true" />
               )}
             </div>
 
@@ -209,7 +210,13 @@ export const FundingTimeline: React.FC = () => {
             {col.hasConnector && (
               <div className="self-start flex items-center gap-[6px] px-[8px] py-[3px] rounded-full bg-cyan-a12 border border-solid border-[rgba(0,217,198,0.4)] text-primary text-[0.6875rem] font-mono font-bold">
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-                  <path d="M5 1v8m-3-3l3 3 3-3" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M5 1v8m-3-3l3 3 3-3"
+                    stroke="var(--color-primary)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <span>Finanzierung ermöglicht Produkt-Launch (GA)</span>
               </div>
@@ -255,9 +262,7 @@ export const FundingTimeline: React.FC = () => {
                 {e.date}
               </div>
               <div>
-                <div className="text-text text-[0.875rem] font-semibold">
-                  {e.title}
-                </div>
+                <div className="text-text text-[0.875rem] font-semibold">{e.title}</div>
                 <div className="text-[var(--color-text-muted)] text-[0.75rem] mt-[2px]">
                   {e.desc}
                 </div>

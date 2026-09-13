@@ -36,7 +36,7 @@ export function AuthProvider({ children, adapter = defaultAuthAdapter }: AuthPro
       setUser(loggedInUser);
       return loggedInUser;
     },
-    [adapter]
+    [adapter],
   );
 
   const logout = useCallback(async () => {
@@ -51,7 +51,7 @@ export function AuthProvider({ children, adapter = defaultAuthAdapter }: AuthPro
       login,
       logout,
     }),
-    [user, login, logout]
+    [user, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -32,7 +32,7 @@ const statusChipVariants = cva(
       variant: 'neutral',
       size: 'md',
     },
-  }
+  },
 );
 
 const statusChipDotVariants = cva('rounded-full', {
@@ -65,18 +65,13 @@ export function StatusChip({
         <span
           className={cn(
             'pulse-live inline-block w-[7px] h-[7px]',
-            statusChipDotVariants({ variant })
+            statusChipDotVariants({ variant }),
           )}
         />
       ) : icon ? (
         icon
       ) : (
-        <span
-          className={cn(
-            'inline-block w-[6px] h-[6px]',
-            statusChipDotVariants({ variant })
-          )}
-        />
+        <span className={cn('inline-block w-[6px] h-[6px]', statusChipDotVariants({ variant }))} />
       )}
       <span>{label}</span>
     </span>

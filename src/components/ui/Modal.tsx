@@ -23,11 +23,11 @@ const MODAL_MAX_WIDTHS: Record<string, string> = {
 };
 
 const modalOverlayVariants = cva(
-  'fixed inset-0 bg-[rgba(6,22,19,0.78)] backdrop-blur-[4px] flex items-center justify-center z-[1000] p-4 box-border animate-[backdrop-fade-in_150ms_ease-out]'
+  'fixed inset-0 bg-[rgba(6,22,19,0.78)] backdrop-blur-[4px] flex items-center justify-center z-[1000] p-4 box-border animate-[backdrop-fade-in_150ms_ease-out]',
 );
 
 const modalDialogVariants = cva(
-  'bg-surface border border-solid border-border rounded-xl w-full shadow-modal flex flex-col overflow-hidden box-border outline-none max-h-[calc(100dvh-2rem)]'
+  'bg-surface border border-solid border-border rounded-xl w-full shadow-modal flex flex-col overflow-hidden box-border outline-none max-h-[calc(100dvh-2rem)]',
 );
 
 export function Modal({
@@ -52,7 +52,7 @@ export function Modal({
       const timer = setTimeout(() => {
         if (modalRef.current) {
           const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
           );
           if (focusable.length > 0) {
             focusable[0].focus();
@@ -69,7 +69,10 @@ export function Modal({
       return () => {
         clearTimeout(timer);
         document.body.style.overflow = originalOverflow;
-        if (previouslyFocusedElementRef.current && typeof previouslyFocusedElementRef.current.focus === 'function') {
+        if (
+          previouslyFocusedElementRef.current &&
+          typeof previouslyFocusedElementRef.current.focus === 'function'
+        ) {
           previouslyFocusedElementRef.current.focus();
         }
       };
@@ -89,7 +92,7 @@ export function Modal({
 
       if (e.key === 'Tab' && modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
         );
         if (focusableElements.length === 0) return;
 
@@ -97,7 +100,10 @@ export function Modal({
         const lastElement = focusableElements[focusableElements.length - 1];
 
         if (e.shiftKey) {
-          if (document.activeElement === firstElement || document.activeElement === modalRef.current) {
+          if (
+            document.activeElement === firstElement ||
+            document.activeElement === modalRef.current
+          ) {
             e.preventDefault();
             lastElement.focus();
           }
@@ -138,7 +144,7 @@ export function Modal({
         tabIndex={-1}
         className={cn(
           modalDialogVariants(),
-          (maxWidth && MODAL_MAX_WIDTHS[maxWidth]) || 'max-w-[min(560px,calc(100vw-2rem))]'
+          (maxWidth && MODAL_MAX_WIDTHS[maxWidth]) || 'max-w-[min(560px,calc(100vw-2rem))]',
         )}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
@@ -158,9 +164,7 @@ export function Modal({
             ×
           </button>
         </div>
-        <div className="p-5 overflow-y-auto overflow-x-hidden flex-auto min-h-0">
-          {children}
-        </div>
+        <div className="p-5 overflow-y-auto overflow-x-hidden flex-auto min-h-0">{children}</div>
         {footer && (
           <div className="px-5 py-4 bg-background-deep border-t border-solid border-[var(--color-border-soft)] flex justify-end items-center gap-3 shrink-0 flex-wrap">
             {footer}

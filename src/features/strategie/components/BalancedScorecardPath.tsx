@@ -20,7 +20,11 @@ const STEP_ACCENT: Record<number, { border: string; badge: string; label: string
   3: { border: 'border-l-[#FFB800]', badge: 'bg-[#FFB800]', label: 'text-[#FFB800]' },
   4: { border: 'border-l-[#FF7A3D]', badge: 'bg-[#FF7A3D]', label: 'text-[#FF7A3D]' },
 };
-const STEP_ACCENT_FALLBACK = { border: 'border-l-[#00D9C6]', badge: 'bg-[#00D9C6]', label: 'text-[#00D9C6]' };
+const STEP_ACCENT_FALLBACK = {
+  border: 'border-l-[#00D9C6]',
+  badge: 'bg-[#00D9C6]',
+  label: 'text-[#00D9C6]',
+};
 
 export const BalancedScorecardPath: React.FC = () => {
   const perspectives = BSC.perspectives || [];
@@ -158,7 +162,8 @@ export const BalancedScorecardPath: React.FC = () => {
           Wirkungsbahn: Lernen → Prozesse → Kunde → Finanzen
         </h3>
         <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
-          Strukturierte Kausalkette der Steuerungsdimensionen: Vom Befähigen der Organisation über optimierte Kernprozesse bis zur Kundenzufriedenheit und finanziellen Tragfähigkeit.
+          Strukturierte Kausalkette der Steuerungsdimensionen: Vom Befähigen der Organisation über
+          optimierte Kernprozesse bis zur Kundenzufriedenheit und finanziellen Tragfähigkeit.
         </p>
       </div>
 
@@ -196,9 +201,7 @@ export const BalancedScorecardPath: React.FC = () => {
                       {step.badgeText}
                     </span>
                   </div>
-                  <strong className="text-[14px] text-text">
-                    {step.perspective.name}
-                  </strong>
+                  <strong className="text-[14px] text-text">{step.perspective.name}</strong>
                 </div>
 
                 {/* KPIs der Perspektive */}
@@ -221,9 +224,7 @@ export const BalancedScorecardPath: React.FC = () => {
                   aria-label={`Wirkungsübergang von ${step.nextConnector.fromName} nach ${step.nextConnector.toName}`}
                   className="bsc-connector-box"
                 >
-                  <span className="text-[18px] text-primary shrink-0 leading-[1]">
-                    ⬇
-                  </span>
+                  <span className="text-[18px] text-primary shrink-0 leading-[1]">⬇</span>
                   <p className="m-0 text-[12px] text-[var(--color-text-muted)] leading-[1.45] [overflow-wrap:anywhere]">
                     <strong className="text-text">Kausalitätsbrücke: </strong>
                     {step.nextConnector.causeEffectStatement}

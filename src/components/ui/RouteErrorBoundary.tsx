@@ -48,11 +48,7 @@ export class RouteErrorBoundary extends React.Component<
   render(): React.ReactNode {
     if (this.state.hasError) {
       return (
-        <div
-          role="alert"
-          aria-live="assertive"
-          className={cn(routeErrorBoundaryVariants())}
-        >
+        <div role="alert" aria-live="assertive" className={cn(routeErrorBoundaryVariants())}>
           <Card
             variant="glass"
             style={{
@@ -69,9 +65,7 @@ export class RouteErrorBoundary extends React.Component<
               ⚠️
             </div>
 
-            <h2 className="text-[20px] font-semibold text-text m-0">
-              Fehler beim Laden der Seite
-            </h2>
+            <h2 className="text-[20px] font-semibold text-text m-0">Fehler beim Laden der Seite</h2>
 
             <p className="text-sm m-0 leading-[1.5]">
               {this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}

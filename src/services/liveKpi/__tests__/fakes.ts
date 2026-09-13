@@ -6,17 +6,11 @@ import type {
   LiveKpiSnapshot,
   LiveKpiSubscription,
 } from '../liveKpiReadAdapter';
-import type {
-  LiveKpiStreamAdapter,
-} from '../liveKpiStreamStore';
+import type { LiveKpiStreamAdapter } from '../liveKpiStreamStore';
 
 let snapshotSeq = 0;
 
-export function makeSnapshot(
-  kpiId: string,
-  occurredAt: string,
-  value = 100,
-): LiveKpiSnapshot {
+export function makeSnapshot(kpiId: string, occurredAt: string, value = 100): LiveKpiSnapshot {
   snapshotSeq += 1;
   return {
     id: `snap-test-${snapshotSeq}`,

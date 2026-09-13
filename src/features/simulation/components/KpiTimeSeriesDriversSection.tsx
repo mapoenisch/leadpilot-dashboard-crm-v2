@@ -38,9 +38,7 @@ export const KpiTimeSeriesDriversSection: React.FC<KpiTimeSeriesDriversSectionPr
                 </span>
                 <Badge variant={d.badgeVariant}>{d.impact}</Badge>
               </div>
-              <p className="m-0 text-[12px] text-[var(--color-text-muted)]">
-                {d.description}
-              </p>
+              <p className="m-0 text-[12px] text-[var(--color-text-muted)]">{d.description}</p>
             </div>
           ))}
         </div>
@@ -60,7 +58,9 @@ export const KpiTimeSeriesDriversSection: React.FC<KpiTimeSeriesDriversSectionPr
               >
                 <div className="flex justify-between font-semibold">
                   <span>{evt.title}</span>
-                  <span className="text-[10px] text-[var(--color-text-muted)]">Tick #{evt.tick}</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)]">
+                    Tick #{evt.tick}
+                  </span>
                 </div>
                 <div className="text-[11px] mt-[2px] text-[var(--color-text-muted)]">
                   {evt.details}

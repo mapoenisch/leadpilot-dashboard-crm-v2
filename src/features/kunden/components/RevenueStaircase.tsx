@@ -81,9 +81,7 @@ export const RevenueStaircase: React.FC = () => {
 
         <div className="rounded-[6px] border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.08)] text-right px-[10px] py-[4px]">
           <span className="block text-[11px] text-[var(--color-text-muted)]">Gesamtsumme ARR</span>
-          <strong className="font-display text-[15px] text-primary">
-            411.840 €
-          </strong>
+          <strong className="font-display text-[15px] text-primary">411.840 €</strong>
         </div>
       </div>
 
@@ -127,9 +125,7 @@ export const RevenueStaircase: React.FC = () => {
                 <h5 className="font-bold text-[13.5px] text-text mt-[2px] mb-0 mr-0 ml-0">
                   {step.name}
                 </h5>
-                <span className="text-[12px] text-[var(--color-text-muted)]">
-                  {step.kunden}
-                </span>
+                <span className="text-[12px] text-[var(--color-text-muted)]">{step.kunden}</span>
               </div>
 
               {/* Segmentbeitrag */}

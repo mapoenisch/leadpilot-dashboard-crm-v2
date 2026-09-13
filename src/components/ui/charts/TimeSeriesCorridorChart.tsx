@@ -89,10 +89,19 @@ export function TimeSeriesCorridorChart({
   const maxLabels = 7;
   const step = Math.ceil(points.length / maxLabels);
 
-  const hoveredPoint = hoverIdx !== null && hoverIdx >= 0 && hoverIdx < points.length ? points[hoverIdx] : null;
+  const hoveredPoint =
+    hoverIdx !== null && hoverIdx >= 0 && hoverIdx < points.length ? points[hoverIdx] : null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', position: 'relative' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        width: '100%',
+        position: 'relative',
+      }}
+    >
       <svg
         viewBox={`0 0 ${svgWidth} ${height}`}
         style={{ width: '100%', height: `${height}px`, overflow: 'visible' }}
@@ -101,7 +110,8 @@ export function TimeSeriesCorridorChart({
         onMouseLeave={() => setHoverIdx(null)}
       >
         <desc>
-          P50-Median von {formatChartMetric(points[0]?.median, unit)} bis {formatChartMetric(points[points.length - 1]?.median, unit)}.
+          P50-Median von {formatChartMetric(points[0]?.median, unit)} bis{' '}
+          {formatChartMetric(points[points.length - 1]?.median, unit)}.
         </desc>
 
         {/* Horizontal Grid lines */}
@@ -215,12 +225,7 @@ export function TimeSeriesCorridorChart({
                     strokeDasharray="2 2"
                     opacity="0.6"
                   />
-                  <circle
-                    cx={x}
-                    cy={padTop + 6}
-                    r="3.5"
-                    fill="var(--color-accent)"
-                  />
+                  <circle cx={x} cy={padTop + 6} r="3.5" fill="var(--color-accent)" />
                 </g>
               )}
 
@@ -282,9 +287,21 @@ export function TimeSeriesCorridorChart({
           x={getX(hoverIdx)}
           y={getY(hoveredPoint.median)}
           items={[
-            { label: 'P50 Median', value: formatChartMetric(hoveredPoint.median, unit), color: 'var(--color-primary)' },
-            { label: 'P90 (Optimistisch)', value: formatChartMetric(hoveredPoint.p90, unit), color: 'rgba(0, 217, 198, 0.6)' },
-            { label: 'P10 (Pessimistisch)', value: formatChartMetric(hoveredPoint.p10, unit), color: 'rgba(0, 217, 198, 0.3)' },
+            {
+              label: 'P50 Median',
+              value: formatChartMetric(hoveredPoint.median, unit),
+              color: 'var(--color-primary)',
+            },
+            {
+              label: 'P90 (Optimistisch)',
+              value: formatChartMetric(hoveredPoint.p90, unit),
+              color: 'rgba(0, 217, 198, 0.6)',
+            },
+            {
+              label: 'P10 (Pessimistisch)',
+              value: formatChartMetric(hoveredPoint.p10, unit),
+              color: 'rgba(0, 217, 198, 0.3)',
+            },
           ]}
         />
       )}
@@ -296,7 +313,13 @@ export function TimeSeriesCorridorChart({
           { label: 'P50 Median', color: 'var(--color-primary)', shape: 'line' },
           { label: 'P10–P90 Korridor', color: 'rgba(0, 217, 198, 0.4)', shape: 'rect' },
           ...(showTarget && targetValue !== undefined
-            ? [{ label: `Ziel (${formatChartMetric(targetValue, unit)})`, color: 'var(--color-success)', shape: 'dashed' as const }]
+            ? [
+                {
+                  label: `Ziel (${formatChartMetric(targetValue, unit)})`,
+                  color: 'var(--color-success)',
+                  shape: 'dashed' as const,
+                },
+              ]
             : []),
           ...(baselineValue !== undefined
             ? [{ label: 'Ebene A Basis', color: 'var(--color-primary)', shape: 'circle' as const }]

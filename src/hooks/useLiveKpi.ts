@@ -42,18 +42,12 @@ export function useLiveKpi(kpiId: string): UseLiveKpiResult {
         release();
       };
     },
-    [kpiId]
+    [kpiId],
   );
 
-  const getSnapshot = useCallback(
-    () => liveKpiStreamStore.getSnapshot(kpiId),
-    [kpiId]
-  );
+  const getSnapshot = useCallback(() => liveKpiStreamStore.getSnapshot(kpiId), [kpiId]);
 
-  const getServerSnapshot = useCallback(
-    () => liveKpiStreamStore.getServerSnapshot(),
-    []
-  );
+  const getServerSnapshot = useCallback(() => liveKpiStreamStore.getServerSnapshot(), []);
 
   const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 

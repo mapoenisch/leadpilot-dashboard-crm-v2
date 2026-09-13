@@ -51,11 +51,7 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
     {
       key: 'domain',
       label: 'Domain',
-      render: (r) => (
-        <span className="font-mono text-[12.5px] text-primary">
-          {r.domain}
-        </span>
-      ),
+      render: (r) => <span className="font-mono text-[12.5px] text-primary">{r.domain}</span>,
     },
     {
       key: 'industry',
@@ -101,7 +97,9 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
           <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {totalEmployees.toLocaleString('de-DE')} MA
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Ø {avgEmployees} MA je Account</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            Ø {avgEmployees} MA je Account
+          </div>
         </Card>
 
         <Card variant="glass">
@@ -109,7 +107,9 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
           <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {industryOptions.length - 1}
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Schwerpunkt: Maschinenbau & IT</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            Schwerpunkt: Maschinenbau & IT
+          </div>
         </Card>
 
         <Card variant="glass">
@@ -117,7 +117,9 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
           <div className="font-display text-[18px] font-bold mt-[8px] mb-[4px] text-accent">
             Ebene A Import
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">PostgreSQL / CRM-Repository</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            PostgreSQL / CRM-Repository
+          </div>
         </Card>
       </div>
 
@@ -180,7 +182,9 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
                 </div>
                 <div className="crm-v2-mobile-card-row">
                   <span className="crm-v2-mobile-card-label">Standort</span>
-                  <span className="crm-v2-mobile-card-value">{r.postalCode} {r.city}</span>
+                  <span className="crm-v2-mobile-card-value">
+                    {r.postalCode} {r.city}
+                  </span>
                 </div>
                 <div className="crm-v2-mobile-card-row">
                   <span className="crm-v2-mobile-card-label">Mitarbeiter</span>

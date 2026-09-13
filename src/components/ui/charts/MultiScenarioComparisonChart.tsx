@@ -58,7 +58,15 @@ export function MultiScenarioComparisonChart({
   const getY = (val: number) => padTop + plotHeight - ((val - minY) / rangeY) * plotHeight;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', position: 'relative' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        width: '100%',
+        position: 'relative',
+      }}
+    >
       <svg
         viewBox={`0 0 ${svgWidth} ${height}`}
         style={{ width: '100%', height: `${height}px`, overflow: 'visible' }}
@@ -140,7 +148,7 @@ export function MultiScenarioComparisonChart({
           return {
             label: s.isReference ? `${s.name} (Referenz)` : s.name,
             color: s.color,
-            shape: s.isReference ? 'line' as const : 'dashed' as const,
+            shape: s.isReference ? ('line' as const) : ('dashed' as const),
             value: `${formatChartMetric(finalVal, unit)}${!s.isReference ? ` (${delta >= 0 ? '+' : ''}${formatChartMetric(delta, unit)})` : ''}`,
           };
         })}

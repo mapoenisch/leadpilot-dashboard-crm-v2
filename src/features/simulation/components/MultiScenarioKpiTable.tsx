@@ -51,7 +51,10 @@ export const MultiScenarioKpiTable: React.FC<MultiScenarioKpiTableProps> = ({
 
                     if (!kVal) {
                       return (
-                        <td key={v.id} className="text-right p-[var(--space-3)] text-[var(--color-text-muted)]">
+                        <td
+                          key={v.id}
+                          className="text-right p-[var(--space-3)] text-[var(--color-text-muted)]"
+                        >
                           – (keine Runs)
                         </td>
                       );
@@ -68,7 +71,8 @@ export const MultiScenarioKpiTable: React.FC<MultiScenarioKpiTableProps> = ({
                         {!isRef && delta !== undefined && (
                           <div className={`${isFav ? 'text-success' : 'text-accent'}`}>
                             {delta >= 0 ? '+' : ''}
-                            {delta.toLocaleString('de-DE')} {row.unit} ({pct && pct >= 0 ? '+' : ''}{pct}%)
+                            {delta.toLocaleString('de-DE')} {row.unit} ({pct && pct >= 0 ? '+' : ''}
+                            {pct}%)
                           </div>
                         )}
                       </td>

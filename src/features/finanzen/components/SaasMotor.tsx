@@ -15,7 +15,8 @@ export const SaasMotor: React.FC = () => {
 
   const mrrData = CHART_MRR26.datasets[0]?.data || [];
   const mrrStart = mrrData[0] !== undefined ? `${mrrData[0].toLocaleString('de-DE')} €` : '—';
-  const mrrEnd = mrrData.length > 0 ? `${mrrData[mrrData.length - 1].toLocaleString('de-DE')} €` : '—';
+  const mrrEnd =
+    mrrData.length > 0 ? `${mrrData[mrrData.length - 1].toLocaleString('de-DE')} €` : '—';
 
   const nodes = [
     {
@@ -138,7 +139,8 @@ export const SaasMotor: React.FC = () => {
           SaaS-Wirtschaftsmotor: Kernkennzahlen im Verbund
         </h3>
         <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
-          Zusammenführung der vier zentralen ökonomischen Hebel. Kantenbeschriftungen sind neutral und faktengebunden formuliert.
+          Zusammenführung der vier zentralen ökonomischen Hebel. Kantenbeschriftungen sind neutral
+          und faktengebunden formuliert.
         </p>
       </div>
 
@@ -170,9 +172,7 @@ export const SaasMotor: React.FC = () => {
               />
             </div>
 
-            <h4 className="m-0 text-[14px] font-bold text-text">
-              {node.title}
-            </h4>
+            <h4 className="m-0 text-[14px] font-bold text-text">{node.title}</h4>
 
             {/* Primärwert */}
             <div className="rounded-[6px] border border-solid border-border bg-[rgba(255,255,255,0.03)] flex flex-col gap-[2px] min-w-0 px-[10px] py-[8px]">
@@ -181,7 +181,9 @@ export const SaasMotor: React.FC = () => {
                 // G39 Welle 2: Wertfarbe = Knotenfarbe (Daten).
                 // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Knotenfarbe aus Daten), siehe Auftrag 055 Entscheidung 2
                 style={{ color: node.color }}
-              >{node.primaryVal}</strong>
+              >
+                {node.primaryVal}
+              </strong>
               <span className="text-[11px] text-[var(--color-text-muted)]">{node.primarySub}</span>
             </div>
 
@@ -195,7 +197,11 @@ export const SaasMotor: React.FC = () => {
       </div>
 
       {/* 4 Kanten (Edges mit neutralen Texten & Disclaimern) */}
-      <div className="motor-edges-grid" role="region" aria-label="Kantenbeschreibungen des SaaS-Motors">
+      <div
+        className="motor-edges-grid"
+        role="region"
+        aria-label="Kantenbeschreibungen des SaaS-Motors"
+      >
         {edges.map((edge, i) => (
           <div
             key={i}

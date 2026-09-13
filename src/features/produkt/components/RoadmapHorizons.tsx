@@ -41,7 +41,6 @@ export const RoadmapHorizons: React.FC = () => {
 
   return (
     <div className="facelift-roadmap-horizons box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5)]">
-
       {/* Header */}
       <div className="border-0 border-b border-solid border-border-soft flex flex-wrap items-center justify-between gap-[var(--space-3)] mb-[var(--space-5)] pb-[var(--space-4)]">
         <div>
@@ -78,7 +77,9 @@ export const RoadmapHorizons: React.FC = () => {
               {/* Horizont-Kopf */}
               <div className="border-0 border-b border-solid border-border-soft flex items-center justify-between mb-[var(--space-2)] pb-[var(--space-2)]">
                 <div>
-                  <div className={`font-mono text-[0.75rem] font-extrabold tracking-[0.08em] ${h.id === 'now' ? 'text-primary' : h.id === 'next' ? 'text-accent' : 'text-[var(--cyan-light)]'}`}>
+                  <div
+                    className={`font-mono text-[0.75rem] font-extrabold tracking-[0.08em] ${h.id === 'now' ? 'text-primary' : h.id === 'next' ? 'text-accent' : 'text-[var(--cyan-light)]'}`}
+                  >
                     {h.label}
                   </div>
                   <div className="text-[0.6875rem] text-[var(--color-text-muted)]">
@@ -107,8 +108,8 @@ export const RoadmapHorizons: React.FC = () => {
                           rel.status === 'Released'
                             ? 'cyan'
                             : rel.status === 'In Entwicklung'
-                            ? 'orange'
-                            : 'neutral'
+                              ? 'orange'
+                              : 'neutral'
                         }
                       >
                         {rel.status}
@@ -146,14 +147,14 @@ export const RoadmapHorizons: React.FC = () => {
               {
                 key: 'status',
                 label: 'Status',
-                render: (r: typeof ROADMAP.releases[number]) => (
+                render: (r: (typeof ROADMAP.releases)[number]) => (
                   <Badge
                     variant={
                       r.status === 'Released'
                         ? 'cyan'
                         : r.status === 'In Entwicklung'
-                        ? 'orange'
-                        : 'neutral'
+                          ? 'orange'
+                          : 'neutral'
                     }
                   >
                     {r.status}

@@ -16,10 +16,7 @@ import { Select } from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
 
 import { ChartFrame, MultiScenarioComparisonChart } from '../../../components/ui/Charts';
-import {
-  MultiVersionComparisonResult,
-  ScenarioVersion,
-} from '../../../types/scenario';
+import { MultiVersionComparisonResult, ScenarioVersion } from '../../../types/scenario';
 import { MultiScenarioTradeOffs } from './MultiScenarioTradeOffs';
 import { MultiScenarioKpiTable } from './MultiScenarioKpiTable';
 
@@ -73,7 +70,9 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
   });
 
   const [adoptMessage, setAdoptMessage] = useState<string | null>(null);
-  const [adoptTargetVersionId, setAdoptTargetVersionId] = useState<string>(() => selectedVersionIds[0] || '');
+  const [adoptTargetVersionId, setAdoptTargetVersionId] = useState<string>(
+    () => selectedVersionIds[0] || '',
+  );
 
   // Keep referenceVersionId valid when selection changes
   const effectiveRefId = useMemo(() => {
@@ -115,10 +114,14 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
     if (!adoptTargetVersionId || !activeScenario) return;
     try {
       const adopted = adoptConfiguration(adoptTargetVersionId, activeScenario.id);
-      setAdoptMessage(`Konfiguration aus v${adopted.versionNumber} erfolgreich als neue Arbeitsversion (v${adopted.versionNumber}) übernommen.`);
+      setAdoptMessage(
+        `Konfiguration aus v${adopted.versionNumber} erfolgreich als neue Arbeitsversion (v${adopted.versionNumber}) übernommen.`,
+      );
       setTimeout(() => setAdoptMessage(null), 5000);
     } catch (err) {
-      setAdoptMessage(`Fehler bei der Übernahme: ${(err instanceof Error ? err.message : '') || 'Unbekannter Fehler'}`);
+      setAdoptMessage(
+        `Fehler bei der Übernahme: ${(err instanceof Error ? err.message : '') || 'Unbekannter Fehler'}`,
+      );
     }
   };
 
@@ -147,9 +150,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
       footer={
         <div className="flex justify-between w-full items-center flex-wrap gap-[var(--space-3)]">
           <div className="flex items-center gap-[var(--space-3)] flex-wrap">
-            <span className="whitespace-nowrap shrink-0">
-              Konfiguration übernehmen:
-            </span>
+            <span className="whitespace-nowrap shrink-0">Konfiguration übernehmen:</span>
             <div className="min-w-[220px]">
               <Select
                 options={adoptSelectOptions}
@@ -158,7 +159,11 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                 sizeVariant="sm"
               />
             </div>
-            <Button variant="secondary" onClick={handleAdopt} className="whitespace-nowrap shrink-0">
+            <Button
+              variant="secondary"
+              onClick={handleAdopt}
+              className="whitespace-nowrap shrink-0"
+            >
               Als neue Version übernehmen
             </Button>
           </div>
@@ -186,10 +191,14 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                   ZONE 1: Szenario-Auswahl (2 bis maximal 4 Versionen)
                 </h4>
                 <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-0 mr-0 ml-0">
-                  Entscheidung 851: Maximal 4 Szenarien gleichzeitig. Wählen Sie eine Referenz-Baseline für relative Differenzen.
+                  Entscheidung 851: Maximal 4 Szenarien gleichzeitig. Wählen Sie eine
+                  Referenz-Baseline für relative Differenzen.
                 </p>
               </div>
-              <Badge data-testid="compare-selected-badge" variant={selectedVersionIds.length >= 4 ? 'orange' : 'cyan'}>
+              <Badge
+                data-testid="compare-selected-badge"
+                variant={selectedVersionIds.length >= 4 ? 'orange' : 'cyan'}
+              >
                 {selectedVersionIds.length} / 4 ausgewählt
               </Badge>
             </div>
@@ -202,17 +211,19 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                   <div
                     key={item.version.id}
                     data-testid="compare-scenario-card"
-                    className={`flex items-center gap-[var(--space-2)] rounded px-[12px] py-[8px] ${isSelected ? isRef ? 'border-2 border-solid border-primary bg-primary-soft' : 'border border-solid border-primary-hover bg-primary-soft' : 'border border-solid border-border bg-surface'}`}
+                    className={`flex items-center gap-[var(--space-2)] rounded px-[12px] py-[8px] ${isSelected ? (isRef ? 'border-2 border-solid border-primary bg-primary-soft' : 'border border-solid border-primary-hover bg-primary-soft') : 'border border-solid border-border bg-surface'}`}
                   >
                     <Checkbox
                       data-testid={`checkbox-scenario-${item.version.id}`}
                       checked={isSelected}
                       onChange={() => handleToggleVersion(item.version.id)}
-                      label={(
-                        <span className={`text-[13px] ${isSelected ? 'font-bold text-text' : 'font-normal text-[var(--color-text-muted)]'}`}>
+                      label={
+                        <span
+                          className={`text-[13px] ${isSelected ? 'font-bold text-text' : 'font-normal text-[var(--color-text-muted)]'}`}
+                        >
                           {item.scenarioName} (v{item.version.versionNumber})
                         </span>
-                      )}
+                      }
                     />
                     {isRef && isSelected && (
                       <StatusChip variant="cyan" label="Referenz" size="sm" />
@@ -250,7 +261,11 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                 <h4 className="m-0 text-[15px] font-bold text-text">
                   ZONE 2: Ergebnis-Deltas & Trajektorien
                 </h4>
-                <StatusChip variant="neutral" label="Entscheidung 866: Kein künstlicher Gesamtscore" size="sm" />
+                <StatusChip
+                  variant="neutral"
+                  label="Entscheidung 866: Kein künstlicher Gesamtscore"
+                  size="sm"
+                />
               </div>
 
               {/* Executive Summary Banner */}
@@ -261,19 +276,26 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
               </div>
 
               {/* Comparison Warnings (Decisions 854 & 855) */}
-              {comparisonResult.comparisonWarnings && comparisonResult.comparisonWarnings.length > 0 && (
-                <div className="flex flex-col gap-[var(--space-2)]">
-                  {comparisonResult.comparisonWarnings.map((warn, i) => (
-                    <Alert key={i} variant="warning" title="Hinweis zur Vergleichsbasis (Entscheidungen 854, 855)">
-                      {warn}
-                    </Alert>
-                  ))}
-                </div>
-              )}
+              {comparisonResult.comparisonWarnings &&
+                comparisonResult.comparisonWarnings.length > 0 && (
+                  <div className="flex flex-col gap-[var(--space-2)]">
+                    {comparisonResult.comparisonWarnings.map((warn, i) => (
+                      <Alert
+                        key={i}
+                        variant="warning"
+                        title="Hinweis zur Vergleichsbasis (Entscheidungen 854, 855)"
+                      >
+                        {warn}
+                      </Alert>
+                    ))}
+                  </div>
+                )}
 
               {/* Comparison Trajectory Chart */}
               {(() => {
-                const arrRow = comparisonResult.kpiMatrix.find((k) => k.kpiId === 'arr' || k.kpiId === 'liveARR');
+                const arrRow = comparisonResult.kpiMatrix.find(
+                  (k) => k.kpiId === 'arr' || k.kpiId === 'liveARR',
+                );
                 const palette = ['#00D9C6', '#00E5FF', '#4ECCA3', '#FF7A3D'];
                 const chartSeries = comparisonResult.versions.map((v, i) => {
                   const item = allVersions.find((av) => av.version.id === v.id);
@@ -287,7 +309,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                     points: [
                       { tick: 0, value: 411840 },
                       { tick: 10, value: Math.round(411840 + (finalArr - 411840) * 0.32) },
-                      { tick: 20, value: Math.round(411840 + (finalArr - 411840) * 0.70) },
+                      { tick: 20, value: Math.round(411840 + (finalArr - 411840) * 0.7) },
                       { tick: 30, value: finalArr },
                     ],
                   };
@@ -299,10 +321,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                     subtitle="Entwicklung über 30 Ticks im Vergleich zur Referenzversion"
                     sourceLabel="Entscheidung 866"
                   >
-                    <MultiScenarioComparisonChart
-                      unit="€"
-                      series={chartSeries}
-                    />
+                    <MultiScenarioComparisonChart unit="€" series={chartSeries} />
                   </ChartFrame>
                 );
               })()}

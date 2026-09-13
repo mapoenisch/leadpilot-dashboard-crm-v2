@@ -52,7 +52,6 @@ const ROUTES = [
 // kein horizontaler Overflow. Routenquelle: src/app/routes.tsx (Single Source).
 async function settle(page) {
   await page.evaluate(() => document.fonts.ready);
-  // eslint-disable-next-line no-restricted-properties
   await page.waitForTimeout(1000);
 }
 

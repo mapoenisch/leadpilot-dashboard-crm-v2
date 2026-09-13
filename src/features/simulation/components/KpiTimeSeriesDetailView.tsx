@@ -1,12 +1,23 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useActiveVersion, useAggregation, useRuns, useSimulationEvents, useSimulationState } from '../../../store/hooks';
+import {
+  useActiveVersion,
+  useAggregation,
+  useRuns,
+  useSimulationEvents,
+  useSimulationState,
+} from '../../../store/hooks';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { ChartFrame, MonteCarloHistogramChart } from '../../../components/ui/Charts';
 import { GoalTargetEvaluator } from '../../../simulation/goalTargetEvaluator';
 import { BaselineComparisonMode } from '../../../types/kpi';
-import { AggregatedTimeSeriesPoint, KPI_CONFIGS, KpiConfigItem, SelectedKpiKey } from './kpiTimeSeriesConfig';
+import {
+  AggregatedTimeSeriesPoint,
+  KPI_CONFIGS,
+  KpiConfigItem,
+  SelectedKpiKey,
+} from './kpiTimeSeriesConfig';
 import { KpiTimeSeriesChartSection } from './KpiTimeSeriesChartSection';
 import { KpiTimeSeriesDriversSection, TopDriverItem } from './KpiTimeSeriesDriversSection';
 
@@ -24,12 +35,12 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
   const completedRuns = useMemo(() => runs.filter((r) => r.status === 'COMPLETED'), [runs]);
   const activeKpiConfig: KpiConfigItem = useMemo(
     () => (KPI_CONFIGS.find((c) => c.key === selectedKpiKey) ?? KPI_CONFIGS[0])!,
-    [selectedKpiKey]
+    [selectedKpiKey],
   );
 
   const stats = useMemo(
     () => activeKpiConfig.statsExtractor(aggregation),
-    [activeKpiConfig, aggregation]
+    [activeKpiConfig, aggregation],
   );
 
   // Goal & Baseline evaluation using GoalTargetEvaluator
@@ -37,7 +48,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
     return GoalTargetEvaluator.computeBaselineComparison(
       activeKpiConfig.key,
       stats.median,
-      activeKpiConfig.baseline
+      activeKpiConfig.baseline,
     );
   }, [activeKpiConfig, stats.median]);
 
@@ -46,7 +57,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
       activeKpiConfig.key,
       stats.median,
       activeKpiConfig.target,
-      state.tickCount
+      state.tickCount,
     );
   }, [activeKpiConfig, stats.median, state.tickCount]);
 
@@ -64,7 +75,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
   // Extract raw time series points
   const rawTimeSeries = useMemo<AggregatedTimeSeriesPoint[]>(
     () => aggregation.metrics.timeSeries || [],
-    [aggregation]
+    [aggregation],
   );
 
   // Histogram calculation
@@ -120,7 +131,8 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
         {
           title: 'Trial-to-Paid Abschlussquote',
           impact: `${p.trialToPaidConversion} % Conversion`,
-          description: 'Skaliert die Wahrscheinlichkeit erfolgreicher Vertragsschlüsse bei Hot-Opportunities.',
+          description:
+            'Skaliert die Wahrscheinlichkeit erfolgreicher Vertragsschlüsse bei Hot-Opportunities.',
           badgeVariant: 'mint' as const,
         },
         {
@@ -177,11 +189,17 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
 
   // Filter events relevant to selected KPI
   const filteredEvents = useMemo(() => {
-    if (selectedKpiKey === 'liveARR' || selectedKpiKey === 'liveMRR' || selectedKpiKey === 'liveWonDeals') {
+    if (
+      selectedKpiKey === 'liveARR' ||
+      selectedKpiKey === 'liveMRR' ||
+      selectedKpiKey === 'liveWonDeals'
+    ) {
       return events.filter((e) => e.type === 'DEAL_WON' || e.type === 'QUALIFIED_HOT').slice(0, 8);
     }
     if (selectedKpiKey === 'liveCustomers') {
-      return events.filter((e) => e.type === 'DEAL_WON' || e.type === 'CUSTOMER_CHURNED').slice(0, 8);
+      return events
+        .filter((e) => e.type === 'DEAL_WON' || e.type === 'CUSTOMER_CHURNED')
+        .slice(0, 8);
     }
     return events.filter((e) => e.type === 'DEAL_WON' || e.type === 'NEW_LEAD').slice(0, 8);
   }, [events, selectedKpiKey]);
@@ -218,19 +236,35 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
               <span className="text-[13px] font-semibold uppercase text-[var(--color-text-muted)]">
                 {activeKpiConfig.label} · Detailanalyse (P50 Median)
               </span>
-              <Badge variant="neutral">Baseline 2025: {activeKpiConfig.baseline.toLocaleString('de-DE')} {activeKpiConfig.unit}</Badge>
+              <Badge variant="neutral">
+                Baseline 2025: {activeKpiConfig.baseline.toLocaleString('de-DE')}{' '}
+                {activeKpiConfig.unit}
+              </Badge>
               {completedRuns.length < 3 ? (
-                <Badge variant="orange">⚠️ Aussagekraft eingeschränkt ({completedRuns.length} Runs)</Badge>
+                <Badge variant="orange">
+                  ⚠️ Aussagekraft eingeschränkt ({completedRuns.length} Runs)
+                </Badge>
               ) : (
-                <Badge variant="mint">Statistische Aussagekraft: Hoch ({completedRuns.length} Runs)</Badge>
+                <Badge variant="mint">
+                  Statistische Aussagekraft: Hoch ({completedRuns.length} Runs)
+                </Badge>
               )}
             </div>
             <div className="flex items-baseline gap-[var(--space-3)]">
               <span className="font-display text-[28px] font-extrabold text-primary">
                 {stats.median.toLocaleString('de-DE')} {activeKpiConfig.unit}
               </span>
-              <span className={`text-[14px] font-semibold ${baselineComp.isPositiveChange ? 'text-success' : ''}`}>
-                {baselineComp.absoluteDelta >= 0 ? `+${baselineComp.absoluteDelta.toLocaleString('de-DE')}` : baselineComp.absoluteDelta.toLocaleString('de-DE')} {activeKpiConfig.unit} ({baselineComp.percentChange >= 0 ? `+${baselineComp.percentChange}` : baselineComp.percentChange} %)
+              <span
+                className={`text-[14px] font-semibold ${baselineComp.isPositiveChange ? 'text-success' : ''}`}
+              >
+                {baselineComp.absoluteDelta >= 0
+                  ? `+${baselineComp.absoluteDelta.toLocaleString('de-DE')}`
+                  : baselineComp.absoluteDelta.toLocaleString('de-DE')}{' '}
+                {activeKpiConfig.unit} (
+                {baselineComp.percentChange >= 0
+                  ? `+${baselineComp.percentChange}`
+                  : baselineComp.percentChange}{' '}
+                %)
               </span>
             </div>
           </div>
@@ -239,21 +273,24 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
           {activeKpiConfig.target && (
             <div className="text-right">
               <div className="flex items-center gap-[8px] justify-end mb-[4px]">
-                <span className="text-[12px] text-[var(--color-text-muted)]">Zielwert ({activeKpiConfig.target.targetValue.toLocaleString('de-DE')} {activeKpiConfig.unit}):</span>
+                <span className="text-[12px] text-[var(--color-text-muted)]">
+                  Zielwert ({activeKpiConfig.target.targetValue.toLocaleString('de-DE')}{' '}
+                  {activeKpiConfig.unit}):
+                </span>
                 <Badge
                   variant={
                     goalEvaluation.status === 'ACHIEVED'
                       ? 'mint'
                       : goalEvaluation.status === 'AT_RISK'
-                      ? 'orange'
-                      : 'red'
+                        ? 'orange'
+                        : 'red'
                   }
                 >
                   {goalEvaluation.status === 'ACHIEVED'
                     ? '🎯 Ziel Erreicht'
                     : goalEvaluation.status === 'AT_RISK'
-                    ? '⚠️ Ziel Gefährdet'
-                    : '❌ Ziel Verfehlt'}
+                      ? '⚠️ Ziel Gefährdet'
+                      : '❌ Ziel Verfehlt'}
                 </Badge>
               </div>
               <div className="text-[12px] max-w-[380px] text-[var(--color-text-muted)]">
@@ -293,12 +330,25 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
           </div>
 
           <div className="flex gap-[12px] text-[12px] flex-wrap items-center">
-            <span><strong>Min:</strong> {stats.min.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span className="text-[#fb923c]"><strong>P10:</strong> {stats.p10.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span className="text-accent"><strong>P50 (Median):</strong> {stats.median.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span className="text-primary"><strong>P90:</strong> {stats.p90.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span><strong>Max:</strong> {stats.max.toLocaleString('de-DE')} {activeKpiConfig.unit}</span>
-            <span className="text-[var(--color-text-muted)]"><strong>StdDev:</strong> ±{stats.stdDev.toLocaleString('de-DE')}</span>
+            <span>
+              <strong>Min:</strong> {stats.min.toLocaleString('de-DE')} {activeKpiConfig.unit}
+            </span>
+            <span className="text-[#fb923c]">
+              <strong>P10:</strong> {stats.p10.toLocaleString('de-DE')} {activeKpiConfig.unit}
+            </span>
+            <span className="text-accent">
+              <strong>P50 (Median):</strong> {stats.median.toLocaleString('de-DE')}{' '}
+              {activeKpiConfig.unit}
+            </span>
+            <span className="text-primary">
+              <strong>P90:</strong> {stats.p90.toLocaleString('de-DE')} {activeKpiConfig.unit}
+            </span>
+            <span>
+              <strong>Max:</strong> {stats.max.toLocaleString('de-DE')} {activeKpiConfig.unit}
+            </span>
+            <span className="text-[var(--color-text-muted)]">
+              <strong>StdDev:</strong> ±{stats.stdDev.toLocaleString('de-DE')}
+            </span>
           </div>
         </div>
       </Card>
@@ -320,8 +370,12 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
         sourceLabel="Monte-Carlo Engine"
         headerAction={
           <div className="flex gap-[8px]">
-            <Badge variant="cyan">Median: {stats.median.toLocaleString('de-DE')} {activeKpiConfig.unit}</Badge>
-            <Badge variant="neutral">Mean: {stats.mean.toLocaleString('de-DE')} {activeKpiConfig.unit}</Badge>
+            <Badge variant="cyan">
+              Median: {stats.median.toLocaleString('de-DE')} {activeKpiConfig.unit}
+            </Badge>
+            <Badge variant="neutral">
+              Mean: {stats.mean.toLocaleString('de-DE')} {activeKpiConfig.unit}
+            </Badge>
           </div>
         }
       >
@@ -338,10 +392,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
       </ChartFrame>
 
       {/* 5. Top 3 Growth Drivers & Event Drilldown */}
-      <KpiTimeSeriesDriversSection
-        topDrivers={topDrivers}
-        filteredEvents={filteredEvents}
-      />
+      <KpiTimeSeriesDriversSection topDrivers={topDrivers} filteredEvents={filteredEvents} />
     </div>
   );
 };

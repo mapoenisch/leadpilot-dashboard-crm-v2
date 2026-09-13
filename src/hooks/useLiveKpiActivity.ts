@@ -92,7 +92,7 @@ function computeResult(validKpiIds: string[], limit: number): UseLiveKpiActivity
       unit: snap.unit,
       occurredAt: snap.occurredAt,
       qualityStatus: snap.qualityStatus,
-    }))
+    })),
   );
 
   return {
@@ -103,7 +103,7 @@ function computeResult(validKpiIds: string[], limit: number): UseLiveKpiActivity
 
 export function useLiveKpiActivity(
   kpiIds: readonly string[],
-  limit = 10
+  limit = 10,
 ): UseLiveKpiActivityResult {
   // Filtern nach unterstützten IDs und Deduplizieren in Eingabereihenfolge
   const validKpiIds = useMemo(() => filterValidIds(kpiIds), [kpiIds]);
@@ -128,7 +128,7 @@ export function useLiveKpiActivity(
         }
       };
     },
-    [dependencyKey]
+    [dependencyKey],
   );
 
   const getSnapshot = useCallback(() => {
@@ -149,6 +149,6 @@ export function useLiveKpiActivity(
   return useMemo(
     () => computeResult(dependencyKey === '' ? [] : dependencyKey.split(','), limit),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- version ist der Re-Render-Trigger aus useSyncExternalStore (ohne ihn blieben items stale); das Pattern erkennt die Regel nicht
-    [version, dependencyKey, limit]
+    [version, dependencyKey, limit],
   );
 }

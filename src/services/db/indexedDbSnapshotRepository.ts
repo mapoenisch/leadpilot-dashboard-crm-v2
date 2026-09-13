@@ -23,7 +23,12 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
 
     this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
       if (typeof indexedDB === 'undefined') {
-        reject(new SnapshotError('PERSISTENCE_ERROR', 'IndexedDB API in dieser Umgebung nicht vorhanden.'));
+        reject(
+          new SnapshotError(
+            'PERSISTENCE_ERROR',
+            'IndexedDB API in dieser Umgebung nicht vorhanden.',
+          ),
+        );
         return;
       }
 
@@ -40,14 +45,24 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
         }
 
         if (!db.objectStoreNames.contains(STORE_PROJECTIONS)) {
-          const projectionStore = db.createObjectStore(STORE_PROJECTIONS, { keyPath: 'snapshotId' });
+          const projectionStore = db.createObjectStore(STORE_PROJECTIONS, {
+            keyPath: 'snapshotId',
+          });
           projectionStore.createIndex('by_runId', 'runId', { unique: false });
-          projectionStore.createIndex('by_scenarioVersionId', 'scenarioVersionId', { unique: false });
+          projectionStore.createIndex('by_scenarioVersionId', 'scenarioVersionId', {
+            unique: false,
+          });
         }
       };
 
       request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `IndexedDB Fehler beim Öffnen: ${request.error?.message}`));
+      request.onerror = () =>
+        reject(
+          new SnapshotError(
+            'PERSISTENCE_ERROR',
+            `IndexedDB Fehler beim Öffnen: ${request.error?.message}`,
+          ),
+        );
     });
 
     return this.dbPromise;
@@ -63,7 +78,13 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
       const projectionStore = tx.objectStore(STORE_PROJECTIONS);
 
       tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim atomaren Speichern des Snapshots: ${tx.error?.message}`));
+      tx.onerror = () =>
+        reject(
+          new SnapshotError(
+            'PERSISTENCE_ERROR',
+            `Fehler beim atomaren Speichern des Snapshots: ${tx.error?.message}`,
+          ),
+        );
 
       snapshotStore.put(record);
       projectionStore.put(record.projection);
@@ -82,7 +103,10 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
         if (!req.result) resolve(null);
         else resolve(SnapshotMapper.fromPersistenceRecord(req.result));
       };
-      req.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim Lesen von Snapshot "${snapshotId}".`));
+      req.onerror = () =>
+        reject(
+          new SnapshotError('PERSISTENCE_ERROR', `Fehler beim Lesen von Snapshot "${snapshotId}".`),
+        );
     });
   }
 
@@ -102,7 +126,13 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
           .sort((a, b) => a.tickId - b.tickId);
         resolve(snapshots);
       };
-      req.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim Laden aller Snapshots für Run "${runId}".`));
+      req.onerror = () =>
+        reject(
+          new SnapshotError(
+            'PERSISTENCE_ERROR',
+            `Fehler beim Laden aller Snapshots für Run "${runId}".`,
+          ),
+        );
     });
   }
 
@@ -119,7 +149,13 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
         if (!req.result) resolve(null);
         else resolve(SnapshotMapper.fromPersistenceRecord(req.result));
       };
-      req.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim Laden von Snapshot für Run "${runId}" Tick #${tickId}.`));
+      req.onerror = () =>
+        reject(
+          new SnapshotError(
+            'PERSISTENCE_ERROR',
+            `Fehler beim Laden von Snapshot für Run "${runId}" Tick #${tickId}.`,
+          ),
+        );
     });
   }
 
@@ -143,7 +179,13 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
         projections.sort((a, b) => a.tickId - b.tickId);
         resolve(projections);
       };
-      req.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim Laden aller Projektionen für Run "${runId}".`));
+      req.onerror = () =>
+        reject(
+          new SnapshotError(
+            'PERSISTENCE_ERROR',
+            `Fehler beim Laden aller Projektionen für Run "${runId}".`,
+          ),
+        );
     });
   }
 
@@ -156,7 +198,13 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
       const req = store.delete(snapshotId);
 
       req.onsuccess = () => resolve();
-      req.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim Löschen des Snapshots "${snapshotId}".`));
+      req.onerror = () =>
+        reject(
+          new SnapshotError(
+            'PERSISTENCE_ERROR',
+            `Fehler beim Löschen des Snapshots "${snapshotId}".`,
+          ),
+        );
     });
   }
 
@@ -170,7 +218,13 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
       const projStore = tx.objectStore(STORE_PROJECTIONS);
 
       tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim vollständigen Löschen des Runs "${runId}".`));
+      tx.onerror = () =>
+        reject(
+          new SnapshotError(
+            'PERSISTENCE_ERROR',
+            `Fehler beim vollständigen Löschen des Runs "${runId}".`,
+          ),
+        );
 
       for (const s of snapshots) {
         snapStore.delete(s.snapshotId);
@@ -179,7 +233,10 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
     });
   }
 
-  public async pruneSnapshotsForRun(runId: string, keepTickIds: number[]): Promise<{ prunedCount: number; remainingCount: number }> {
+  public async pruneSnapshotsForRun(
+    runId: string,
+    keepTickIds: number[],
+  ): Promise<{ prunedCount: number; remainingCount: number }> {
     const snapshots = await this.getByRun(runId);
     const keepSet = new Set(keepTickIds);
     const toPrune = snapshots.filter((s) => !keepSet.has(s.tickId));
@@ -193,8 +250,10 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
       const tx = db.transaction(STORE_SNAPSHOTS, 'readwrite');
       const store = tx.objectStore(STORE_SNAPSHOTS);
 
-      tx.oncomplete = () => resolve({ prunedCount: toPrune.length, remainingCount: snapshots.length - toPrune.length });
-      tx.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim Pruning für Run "${runId}".`));
+      tx.oncomplete = () =>
+        resolve({ prunedCount: toPrune.length, remainingCount: snapshots.length - toPrune.length });
+      tx.onerror = () =>
+        reject(new SnapshotError('PERSISTENCE_ERROR', `Fehler beim Pruning für Run "${runId}".`));
 
       for (const s of toPrune) {
         store.delete(s.snapshotId);
@@ -202,10 +261,18 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
     });
   }
 
-  public async getStorageMetrics(): Promise<{ totalSnapshots: number; totalProjections: number; estimatedBytes: number }> {
+  public async getStorageMetrics(): Promise<{
+    totalSnapshots: number;
+    totalProjections: number;
+    estimatedBytes: number;
+  }> {
     const db = await this.getDB();
 
-    return new Promise<{ totalSnapshots: number; totalProjections: number; estimatedBytes: number }>((resolve, reject) => {
+    return new Promise<{
+      totalSnapshots: number;
+      totalProjections: number;
+      estimatedBytes: number;
+    }>((resolve, reject) => {
       const tx = db.transaction([STORE_SNAPSHOTS, STORE_PROJECTIONS], 'readonly');
       const snapStore = tx.objectStore(STORE_SNAPSHOTS);
       const projStore = tx.objectStore(STORE_PROJECTIONS);
@@ -219,7 +286,8 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
         const estimatedBytes = totalSnapshots * 20480 + totalProjections * 256;
         resolve({ totalSnapshots, totalProjections, estimatedBytes });
       };
-      tx.onerror = () => reject(new SnapshotError('PERSISTENCE_ERROR', 'Fehler beim Laden der Storage Metrics.'));
+      tx.onerror = () =>
+        reject(new SnapshotError('PERSISTENCE_ERROR', 'Fehler beim Laden der Storage Metrics.'));
     });
   }
 }
@@ -293,7 +361,10 @@ export class InMemorySnapshotRepository implements ISnapshotRepository {
     }
   }
 
-  public async pruneSnapshotsForRun(runId: string, keepTickIds: number[]): Promise<{ prunedCount: number; remainingCount: number }> {
+  public async pruneSnapshotsForRun(
+    runId: string,
+    keepTickIds: number[],
+  ): Promise<{ prunedCount: number; remainingCount: number }> {
     const keepSet = new Set(keepTickIds);
     let prunedCount = 0;
     let remainingCount = 0;
@@ -312,7 +383,11 @@ export class InMemorySnapshotRepository implements ISnapshotRepository {
     return { prunedCount, remainingCount };
   }
 
-  public async getStorageMetrics(): Promise<{ totalSnapshots: number; totalProjections: number; estimatedBytes: number }> {
+  public async getStorageMetrics(): Promise<{
+    totalSnapshots: number;
+    totalProjections: number;
+    estimatedBytes: number;
+  }> {
     const totalSnapshots = this.snapshotsMap.size;
     const totalProjections = this.projectionsMap.size;
     const estimatedBytes = totalSnapshots * 20480 + totalProjections * 256;

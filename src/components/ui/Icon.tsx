@@ -24,7 +24,7 @@ import {
   Bell,
   Search,
   Filter,
-  Plus
+  Plus,
 } from 'lucide-react';
 
 export interface IconProps {

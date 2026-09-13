@@ -19,7 +19,6 @@ for (const routePath of ROUTES) {
   test(`a11y ${routePath} — keine neuen critical/serious-Verstöße`, async ({ page }) => {
     await page.goto(routePath, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
-    // eslint-disable-next-line no-restricted-properties
     await page.waitForTimeout(1000);
 
     const results = await new AxeBuilder({ page }).analyze();

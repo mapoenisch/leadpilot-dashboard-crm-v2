@@ -81,14 +81,10 @@ export function OrganisationStructure() {
             className="flex items-center justify-between flex-wrap gap-[var(--space-3)] border border-solid border-[rgba(0,217,198,0.25)] bg-[rgba(0,217,198,0.04)] px-[var(--space-4)] py-[var(--space-3)]"
           >
             <div className="flex items-center gap-[var(--space-3)] flex-wrap">
-              <span className="font-display font-semibold text-[15px] text-text">
-                {total.role}
-              </span>
+              <span className="font-display font-semibold text-[15px] text-text">{total.role}</span>
               <Badge variant="cyan">{total.fte}</Badge>
             </div>
-            <span className="text-[13px] text-[var(--color-text-muted)]">
-              {total.staffing}
-            </span>
+            <span className="text-[13px] text-[var(--color-text-muted)]">{total.staffing}</span>
           </Card>
         </div>
       </div>

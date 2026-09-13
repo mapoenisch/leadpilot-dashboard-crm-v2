@@ -33,10 +33,7 @@ export const ValueBenefitStage: React.FC = () => {
     <div className="facelift-value-benefit-stage w-full box-border rounded-[var(--radius-lg)] border border-solid border-border bg-surface p-[var(--space-5)]">
       {/* Horizontale Hauptaussage (Hero Statement) */}
       <div className="rounded-[var(--radius-md)] bg-background-deep border border-solid border-[rgba(0,217,198,0.35)] shadow-[0_0_20px_rgba(0,217,198,0.08)] px-[var(--space-5)] py-[var(--space-4)] mb-[var(--space-5)] relative overflow-hidden">
-        <div
-          className="absolute top-0 left-0 bottom-0 w-[4px] bg-primary"
-          aria-hidden="true"
-        />
+        <div className="absolute top-0 left-0 bottom-0 w-[4px] bg-primary" aria-hidden="true" />
         <div className="text-[0.75rem] font-mono text-cyan-light uppercase tracking-[0.08em] mb-[var(--space-1)] font-semibold">
           Kernversprechen der LeadPilot Plattform
         </div>
@@ -75,9 +72,7 @@ export const ValueBenefitStage: React.FC = () => {
       {/* Grid: 3 gestapelte Vorteile & Großes Vektor-Symbolbild */}
       <div className="value-benefit-layout">
         {/* Links: Drei vertikal gestapelte Kernvorteile */}
-        <div
-          className="benefit-cards-container flex flex-col gap-[var(--space-3)]"
-        >
+        <div className="benefit-cards-container flex flex-col gap-[var(--space-3)]">
           {benefits.map((b, idx) => (
             <div
               key={b.badge}
@@ -122,13 +117,41 @@ export const ValueBenefitStage: React.FC = () => {
             className="max-w-[320px] h-auto"
           >
             {/* Hintergrund-Gitter / Fokus-Koordinaten */}
-            <circle cx="160" cy="110" r="95" stroke="var(--color-border-soft)" strokeWidth="1" strokeDasharray="4 4" />
+            <circle
+              cx="160"
+              cy="110"
+              r="95"
+              stroke="var(--color-border-soft)"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+            />
             <circle cx="160" cy="110" r="60" stroke="rgba(0, 217, 198, 0.2)" strokeWidth="1" />
-            <circle cx="160" cy="110" r="28" fill="var(--color-surface-raised)" stroke="var(--color-primary)" strokeWidth="1.5" />
+            <circle
+              cx="160"
+              cy="110"
+              r="28"
+              fill="var(--color-surface-raised)"
+              stroke="var(--color-primary)"
+              strokeWidth="1.5"
+            />
 
             {/* Horizontale & Vertikale Führungsachsen */}
-            <line x1="30" y1="110" x2="290" y2="110" stroke="var(--color-border-soft)" strokeWidth="1" />
-            <line x1="160" y1="20" x2="160" y2="200" stroke="var(--color-border-soft)" strokeWidth="1" />
+            <line
+              x1="30"
+              y1="110"
+              x2="290"
+              y2="110"
+              stroke="var(--color-border-soft)"
+              strokeWidth="1"
+            />
+            <line
+              x1="160"
+              y1="20"
+              x2="160"
+              y2="200"
+              stroke="var(--color-border-soft)"
+              strokeWidth="1"
+            />
 
             {/* Lead-Trichter / Funnel-Pfade */}
             <path
@@ -157,8 +180,22 @@ export const ValueBenefitStage: React.FC = () => {
             />
 
             {/* Input-Knoten (Leads / Erstkontakt) */}
-            <circle cx="50" cy="50" r="8" fill="var(--color-surface)" stroke="var(--color-accent)" strokeWidth="2" />
-            <circle cx="50" cy="170" r="8" fill="var(--color-surface)" stroke="var(--color-accent)" strokeWidth="2" />
+            <circle
+              cx="50"
+              cy="50"
+              r="8"
+              fill="var(--color-surface)"
+              stroke="var(--color-accent)"
+              strokeWidth="2"
+            />
+            <circle
+              cx="50"
+              cy="170"
+              r="8"
+              fill="var(--color-surface)"
+              stroke="var(--color-accent)"
+              strokeWidth="2"
+            />
 
             {/* Zentraler Menschlich-Berater-Knoten (Vertriebsleiter / Match) */}
             <circle cx="160" cy="102" r="7" fill="var(--color-primary)" />
@@ -170,20 +207,68 @@ export const ValueBenefitStage: React.FC = () => {
             />
 
             {/* Output-Knoten (Zahlende B2B-Kunden) */}
-            <circle cx="270" cy="50" r="10" fill="var(--cyan-a12)" stroke="var(--color-primary)" strokeWidth="2" />
-            <path d="M 266 50 L 269 53 L 275 47" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <circle
+              cx="270"
+              cy="50"
+              r="10"
+              fill="var(--cyan-a12)"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+            />
+            <path
+              d="M 266 50 L 269 53 L 275 47"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
 
-            <circle cx="270" cy="170" r="10" fill="var(--cyan-a12)" stroke="var(--color-primary)" strokeWidth="2" />
-            <path d="M 266 170 L 269 173 L 275 167" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <circle
+              cx="270"
+              cy="170"
+              r="10"
+              fill="var(--cyan-a12)"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+            />
+            <path
+              d="M 266 170 L 269 173 L 275 167"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
 
             {/* Textuelle Signal-Beschriftung im SVG */}
-            <text x="50" y="32" fill="var(--color-accent)" fontSize="9" fontFamily="var(--font-mono)" textAnchor="middle">
+            <text
+              x="50"
+              y="32"
+              fill="var(--color-accent)"
+              fontSize="9"
+              fontFamily="var(--font-mono)"
+              textAnchor="middle"
+            >
               B2B-LEAD
             </text>
-            <text x="160" y="142" fill="var(--cyan-light)" fontSize="9" fontFamily="var(--font-mono)" textAnchor="middle" fontWeight="bold">
+            <text
+              x="160"
+              y="142"
+              fill="var(--cyan-light)"
+              fontSize="9"
+              fontFamily="var(--font-mono)"
+              textAnchor="middle"
+              fontWeight="bold"
+            >
               QUALIFIZIERUNG
             </text>
-            <text x="270" y="32" fill="var(--color-primary)" fontSize="9" fontFamily="var(--font-mono)" textAnchor="middle">
+            <text
+              x="270"
+              y="32"
+              fill="var(--color-primary)"
+              fontSize="9"
+              fontFamily="var(--font-mono)"
+              textAnchor="middle"
+            >
               KUNDE (ARR)
             </text>
           </svg>
@@ -217,9 +302,7 @@ export const ValueBenefitStage: React.FC = () => {
               key={i}
               className="bg-background-deep p-[var(--space-3)] rounded-[var(--radius-md)] border border-solid border-border-soft"
             >
-              <div className="text-[0.8125rem] font-semibold text-text">
-                {b.title}
-              </div>
+              <div className="text-[0.8125rem] font-semibold text-text">{b.title}</div>
               <div className="text-[0.75rem] text-[var(--color-text-muted)] mt-[4px] leading-[1.4]">
                 {b.desc}
               </div>

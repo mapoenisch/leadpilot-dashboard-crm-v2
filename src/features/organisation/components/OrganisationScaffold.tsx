@@ -7,8 +7,12 @@ export const OrganisationScaffold: React.FC = () => {
   const timelineData = (HEADCOUNT.chart?.datasets?.[0]?.data as number[]) || [];
   const firstQuarter = timelineLabels[0] || '—';
   const lastQuarter = timelineLabels.length > 0 ? timelineLabels[timelineLabels.length - 1] : '—';
-  const firstFte = timelineData[0] !== undefined ? `${timelineData[0].toFixed(1).replace('.', ',')} FTE` : '—';
-  const lastFte = timelineData.length > 0 ? `${timelineData[timelineData.length - 1].toFixed(1).replace('.', ',')} FTE` : '—';
+  const firstFte =
+    timelineData[0] !== undefined ? `${timelineData[0].toFixed(1).replace('.', ',')} FTE` : '—';
+  const lastFte =
+    timelineData.length > 0
+      ? `${timelineData[timelineData.length - 1].toFixed(1).replace('.', ',')} FTE`
+      : '—';
 
   // Funktionale Rollen und Gesamtzeile dynamisch aus HEADCOUNT.rows
   const totalRow = HEADCOUNT.rows.length > 1 ? HEADCOUNT.rows[HEADCOUNT.rows.length - 1] : null;
@@ -24,12 +28,21 @@ export const OrganisationScaffold: React.FC = () => {
   const plotH = svgH - padY * 2;
 
   const getX = (i: number) => padX + (i / Math.max(1, timelineData.length - 1)) * plotW;
-  const getY = (val: number) => maxTimelineVal > 0 ? padY + plotH - (val / maxTimelineVal) * plotH : padY + plotH;
+  const getY = (val: number) =>
+    maxTimelineVal > 0 ? padY + plotH - (val / maxTimelineVal) * plotH : padY + plotH;
 
-  const points = timelineData.map((v, i) => ({ x: getX(i), y: getY(v), val: v, label: timelineLabels[i] }));
+  const points = timelineData.map((v, i) => ({
+    x: getX(i),
+    y: getY(v),
+    val: v,
+    label: timelineLabels[i],
+  }));
   const pathD = points.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '');
   const lastPt = points[points.length - 1];
-  const areaD = points.length > 0 && lastPt ? `${pathD} L ${lastPt.x} ${padY + plotH} L ${points[0].x} ${padY + plotH} Z` : '';
+  const areaD =
+    points.length > 0 && lastPt
+      ? `${pathD} L ${lastPt.x} ${padY + plotH} L ${points[0].x} ${padY + plotH} Z`
+      : '';
 
   // Berechne numerische FTE je Funktion für proportionale Bausteine
   const parseFte = (valStr: string) => {
@@ -37,7 +50,8 @@ export const OrganisationScaffold: React.FC = () => {
     return isNaN(num) ? 0 : num;
   };
 
-  const maxFunctionalFte = functionalRows.length > 0 ? Math.max(...functionalRows.map((r) => parseFte(r[1]))) : 0;
+  const maxFunctionalFte =
+    functionalRows.length > 0 ? Math.max(...functionalRows.map((r) => parseFte(r[1]))) : 0;
 
   return (
     <section
@@ -81,7 +95,9 @@ export const OrganisationScaffold: React.FC = () => {
           Headcount-Entwicklung & Organisationsgerüst
         </h3>
         <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
-          Personalaufbau von {firstFte} ({firstQuarter}) auf {lastFte} ({lastQuarter}) über {timelineData.length} Quartale. Die Bausteine zeigen die funktionale Kapazitätsverteilung zum Stichtag.
+          Personalaufbau von {firstFte} ({firstQuarter}) auf {lastFte} ({lastQuarter}) über{' '}
+          {timelineData.length} Quartale. Die Bausteine zeigen die funktionale Kapazitätsverteilung
+          zum Stichtag.
         </p>
       </div>
 
@@ -176,7 +192,11 @@ export const OrganisationScaffold: React.FC = () => {
           </span>
         </div>
 
-        <div className="scaffold-functional-grid" role="region" aria-label="Funktionale FTE-Bausteine">
+        <div
+          className="scaffold-functional-grid"
+          role="region"
+          aria-label="Funktionale FTE-Bausteine"
+        >
           {functionalRows.map((row) => {
             const role = row[0];
             const fteStr = row[1];
@@ -201,7 +221,9 @@ export const OrganisationScaffold: React.FC = () => {
                     <strong className="text-[13px] text-text [overflow-wrap:anywhere]">
                       {role}
                     </strong>
-                    <span className={`font-mono text-[13px] font-bold whitespace-nowrap ${isHighlight ? 'text-accent' : 'text-primary'}`}>
+                    <span
+                      className={`font-mono text-[13px] font-bold whitespace-nowrap ${isHighlight ? 'text-accent' : 'text-primary'}`}
+                    >
                       {fteStr}
                     </span>
                   </div>
@@ -243,9 +265,7 @@ export const OrganisationScaffold: React.FC = () => {
               {totalRow[1]}
             </span>
           </div>
-          <div className="font-mono text-[12px] text-[var(--color-text-muted)]">
-            {totalRow[2]}
-          </div>
+          <div className="font-mono text-[12px] text-[var(--color-text-muted)]">{totalRow[2]}</div>
         </div>
       )}
     </section>

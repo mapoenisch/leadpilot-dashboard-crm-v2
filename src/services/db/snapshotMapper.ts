@@ -63,7 +63,7 @@ export class SnapshotMapper {
     tickId: number,
     simulationDay: number,
     simulatedDate: string,
-    state: SimulationState
+    state: SimulationState,
   ): AnalyticsProjection {
     const metrics = state.metrics || {};
     return {

@@ -1,34 +1,84 @@
 export const MARKT = {
   title: 'Marktlage & Cloud-CRM DACH',
   overview: [
-    ['Europa Cloud-CRM-Markt (2026)', '14,23 Mrd. USD (CAGR 5,23 %, Prognose 18,36 Mrd. USD bis 2031)'],
+    [
+      'Europa Cloud-CRM-Markt (2026)',
+      '14,23 Mrd. USD (CAGR 5,23 %, Prognose 18,36 Mrd. USD bis 2031)',
+    ],
     ['Deutschland Einzelmarkt', 'Größter CRM-Einzelmarkt Europas mit 24,4 % Marktanteil (2025)'],
     ['LeadPilot Marktanteil', '< 0,1 % (Fokus auf Nische B2B-Mittelstand)'],
-    ['Digitale Reichweite 2025', '1.400 LinkedIn-Follower · 620 Newsletter-Abos · 2.900 Web-Besucher/Monat · DA 14'],
+    [
+      'Digitale Reichweite 2025',
+      '1.400 LinkedIn-Follower · 620 Newsletter-Abos · 2.900 Web-Besucher/Monat · DA 14',
+    ],
   ],
 };
 
 export const WETTBEWERB = {
   title: 'Wettbewerbslandschaft & Marktanteile Europa/DACH',
-  headers: ['Anbieter', 'Marktanteil', 'Fokus', 'Schwachstelle aus LeadPilot-Sicht', 'Differenzierung LeadPilot'],
+  headers: [
+    'Anbieter',
+    'Marktanteil',
+    'Fokus',
+    'Schwachstelle aus LeadPilot-Sicht',
+    'Differenzierung LeadPilot',
+  ],
   rows: [
-    ['Brevo', '29,4 %', 'E-Mail-Marketing-CRM', 'Kein B2B-Pipeline-Fokus', 'LeadPilot bietet fokussiertes B2B Lead-Management'],
-    ['Zendesk', '23,5 %', 'Support / Service', 'Kein Sales-Automation-Fokus', 'LeadPilot fokussiert rein auf Neukundengewinnung'],
-    ['HubSpot', '11,3 %', 'All-in-One, Marketing', 'Zu komplex & teuer für reinen B2B-Vertrieb', 'LeadPilot ist in < 30 Min startklar zum Festpreis'],
-    ['Salesforce', '8,5 %', 'Enterprise-Standard', 'Zu teuer und komplex für KMU', 'LeadPilot erfordert keine IT-Abteilung'],
-    ['Pipedrive', '1,6 %', 'Pipeline-Management B2B', 'Kein natives KI-Scoring als Kernfunktion', 'LeadPilot bietet integriertes KI-ICP-Scoring'],
-    ['LeadPilot', '< 0,1 %', 'KI-Scoring + Schnelligkeit', 'Geringe Markenbekanntheit', 'Schnellste Time-to-Value & 100% DSGVO-konform'],
+    [
+      'Brevo',
+      '29,4 %',
+      'E-Mail-Marketing-CRM',
+      'Kein B2B-Pipeline-Fokus',
+      'LeadPilot bietet fokussiertes B2B Lead-Management',
+    ],
+    [
+      'Zendesk',
+      '23,5 %',
+      'Support / Service',
+      'Kein Sales-Automation-Fokus',
+      'LeadPilot fokussiert rein auf Neukundengewinnung',
+    ],
+    [
+      'HubSpot',
+      '11,3 %',
+      'All-in-One, Marketing',
+      'Zu komplex & teuer für reinen B2B-Vertrieb',
+      'LeadPilot ist in < 30 Min startklar zum Festpreis',
+    ],
+    [
+      'Salesforce',
+      '8,5 %',
+      'Enterprise-Standard',
+      'Zu teuer und komplex für KMU',
+      'LeadPilot erfordert keine IT-Abteilung',
+    ],
+    [
+      'Pipedrive',
+      '1,6 %',
+      'Pipeline-Management B2B',
+      'Kein natives KI-Scoring als Kernfunktion',
+      'LeadPilot bietet integriertes KI-ICP-Scoring',
+    ],
+    [
+      'LeadPilot',
+      '< 0,1 %',
+      'KI-Scoring + Schnelligkeit',
+      'Geringe Markenbekanntheit',
+      'Schnellste Time-to-Value & 100% DSGVO-konform',
+    ],
   ],
 };
 
 export const CHART_WETTBEWERB = {
   type: 'bar' as const,
   labels: ['Brevo', 'Zendesk', 'HubSpot', 'Salesforce', 'Pipedrive', 'LeadPilot'],
-  datasets: [{
-    label: 'Marktanteil Europa/DACH (%)',
-    data: [29.4, 23.5, 11.3, 8.5, 1.6, 0.1],
-    colors: ['#A7B0BA', '#A7B0BA', '#A7B0BA', '#A7B0BA', '#7CEFE6', '#00D9C6'],
-  }],
+  datasets: [
+    {
+      label: 'Marktanteil Europa/DACH (%)',
+      data: [29.4, 23.5, 11.3, 8.5, 1.6, 0.1],
+      colors: ['#A7B0BA', '#A7B0BA', '#A7B0BA', '#A7B0BA', '#7CEFE6', '#00D9C6'],
+    },
+  ],
 };
 
 export const SWOT = {

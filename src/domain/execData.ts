@@ -1,42 +1,64 @@
 export const HERO = {
   eyebrow: 'Executive Dashboard — LeadPilot GmbH',
   title: 'LeadPilot auf einen Blick',
-  subtitle: 'Konsolidierte Übersicht der operativen, finanziellen und strategischen Entwicklung für das Geschäftsjahr 2025/2026 (Faktenblatt v1.1).',
+  subtitle:
+    'Konsolidierte Übersicht der operativen, finanziellen und strategischen Entwicklung für das Geschäftsjahr 2025/2026 (Faktenblatt v1.1).',
 };
 
 export const EXEC_KPIS_1 = [
-  { label: 'ARR (Annual Recurrent Revenue)', value: '411.840 €', note: 'Software-Subskriptionen (34.320 € MRR × 12), Stand 31.12.2025', highlight: true },
-  { label: 'Umsatzerlöse gesamt 2025', value: '336.000 €', note: 'davon 307,6k € Abo-Umsatz, 23k € Setup, 5,4k € Sonstiges' },
+  {
+    label: 'ARR (Annual Recurrent Revenue)',
+    value: '411.840 €',
+    note: 'Software-Subskriptionen (34.320 € MRR × 12), Stand 31.12.2025',
+    highlight: true,
+  },
+  {
+    label: 'Umsatzerlöse gesamt 2025',
+    value: '336.000 €',
+    note: 'davon 307,6k € Abo-Umsatz, 23k € Setup, 5,4k € Sonstiges',
+  },
   { label: 'EBITDA 2025', value: '−309.000 €', note: 'Jahresfehlbetrag: −334.000 €' },
   { label: 'Aktive Kunden', value: '66', note: 'Zahlende B2B-Accounts (31.12.2025)' },
 ];
 
 export const EXEC_KPIS_2 = [
-  { label: 'ARPA (Ø MRR/Kunde)', value: '520 €', note: 'Blended über 66 Kunden (Starter 245€, Growth 890€, Pro 1.565€)' },
+  {
+    label: 'ARPA (Ø MRR/Kunde)',
+    value: '520 €',
+    note: 'Blended über 66 Kunden (Starter 245€, Growth 890€, Pro 1.565€)',
+  },
   { label: 'Marketing-CAC', value: '862 €', note: 'Media-Spend 40.500 € ÷ 47 Neukunden' },
-  { label: 'Fully-Loaded CAC', value: '4.447 €', note: 'Gesamtkosten Vertrieb & Mktg. 209k € ÷ 47 Neukunden' },
+  {
+    label: 'Fully-Loaded CAC',
+    value: '4.447 €',
+    note: 'Gesamtkosten Vertrieb & Mktg. 209k € ÷ 47 Neukunden',
+  },
   { label: 'Headcount', value: '10 FTE', note: 'Stand 31.12.2025 (Ziel 2026: 12 FTE)' },
 ];
 
 export const CHART_ARR = {
   type: 'line',
   labels: ['Q1 24', 'Q2 24', 'Q3 24', 'Q4 24', 'Q1 25', 'Q2 25', 'Q3 25', 'Q4 25'],
-  datasets: [{
-    label: 'ARR (€)',
-    data: [120000, 145000, 170000, 207792, 248472, 294588, 348840, 411840],
-    color: '#00D9C6',
-    fill: true,
-  }],
+  datasets: [
+    {
+      label: 'ARR (€)',
+      data: [120000, 145000, 170000, 207792, 248472, 294588, 348840, 411840],
+      color: '#00D9C6',
+      fill: true,
+    },
+  ],
 };
 
 export const CHART_MRR = {
   type: 'bar',
   labels: ['Starter (49€)', 'Growth (89€)', 'Pro (Individuell / Ref. 80€)'],
-  datasets: [{
-    label: 'MRR-Anteil (€)',
-    data: [10045, 19580, 4695],
-    color: '#FF7A3D',
-  }],
+  datasets: [
+    {
+      label: 'MRR-Anteil (€)',
+      data: [10045, 19580, 4695],
+      color: '#FF7A3D',
+    },
+  ],
 };
 
 export const CHART_QUARTAL = {
@@ -51,10 +73,12 @@ export const CHART_QUARTAL = {
 export const CHART_TIER = {
   type: 'doughnut',
   labels: ['Maschinenbau / Industrie', 'IT / Software', 'Großhandel', 'Agenturen'],
-  datasets: [{
-    data: [36, 27, 21, 15],
-    colors: ['#00D9C6', '#7CEFE6', '#FF7A3D', '#FF9A66'],
-  }],
+  datasets: [
+    {
+      data: [36, 27, 21, 15],
+      colors: ['#00D9C6', '#7CEFE6', '#FF7A3D', '#FF9A66'],
+    },
+  ],
 };
 
 export const NOTE_EXEC = {
@@ -74,9 +98,15 @@ export const PROFILE_ROWS = [
   ['Handelsregister', 'Amtsgericht Leipzig, HRB 40912'],
   ['Gründungsdatum', '21. Juli 2022 (Beurkundung Gesellschaftsvertrag)'],
   ['Stammkapital', '31.250 € (ursprünglich 25.000 €, Kapitalerhöhung Q1 2024)'],
-  ['Gesellschafter', 'Marc Pönisch (40,0%), Tobias Heine (40,0%), TGFS (12,5%), HTGF (5,0%), Business Angels (2,5%)'],
+  [
+    'Gesellschafter',
+    'Marc Pönisch (40,0%), Tobias Heine (40,0%), TGFS (12,5%), HTGF (5,0%), Business Angels (2,5%)',
+  ],
   ['Geschäftsführung', 'Marc Pönisch (CEO), Tobias Heine (CTO)'],
-  ['Gegenstand des Unternehmens', 'B2B SaaS — KI-gestütztes Lead-Management & Vertriebsautomatisierung.'],
+  [
+    'Gegenstand des Unternehmens',
+    'B2B SaaS — KI-gestütztes Lead-Management & Vertriebsautomatisierung.',
+  ],
 ];
 
 export const NOTE_PROFIL = {
@@ -95,8 +125,14 @@ export const HIGHLIGHTS_GOOD_ROWS = [
 ];
 
 export const HIGHLIGHTS_BAD_ROWS = [
-  ['Jahresfehlbetrag', 'Jahresfehlbetrag von −334.000 € (EBITDA −309.000 €) bei monatlicher Burn Rate von 25.750 €'],
-  ['Account-Churn', 'Monatlicher Account-Churn von 2,8 % über Zielvorgabe von < 2,0 % (ICP-Problem bei Kleinstkunden)'],
+  [
+    'Jahresfehlbetrag',
+    'Jahresfehlbetrag von −334.000 € (EBITDA −309.000 €) bei monatlicher Burn Rate von 25.750 €',
+  ],
+  [
+    'Account-Churn',
+    'Monatlicher Account-Churn von 2,8 % über Zielvorgabe von < 2,0 % (ICP-Problem bei Kleinstkunden)',
+  ],
   ['Trial Conversion', 'Trial-to-Paid Quote mit 18 % unter der Zielvorgabe von 25 %'],
   ['CAC Payback', 'Fully-Loaded CAC Payback von 13 Monaten verfehlt Zielwert von 10 Monaten'],
 ];

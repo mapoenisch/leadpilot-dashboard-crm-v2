@@ -76,16 +76,16 @@ export const ScenarioDiffTab: React.FC<ScenarioDiffTabProps> = ({
       key: 'formattedValueA',
       label: `Version A (v${comparisonResult?.versionA.versionNumber ?? 'A'})`,
       render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
-        <span className="font-mono text-[13px] text-text">
-          {r.formattedValueA}
-        </span>
+        <span className="font-mono text-[13px] text-text">{r.formattedValueA}</span>
       ),
     },
     {
       key: 'formattedValueB',
       label: `Version B (v${comparisonResult?.versionB.versionNumber ?? 'B'})`,
       render: (r: VersionComparisonResult['parameterDiffs'][number]) => (
-        <span className={`font-mono text-[13px] ${r.hasChanged ? 'font-bold text-primary' : 'font-normal text-text'}`}>
+        <span
+          className={`font-mono text-[13px] ${r.hasChanged ? 'font-bold text-primary' : 'font-normal text-text'}`}
+        >
           {r.formattedValueB}
         </span>
       ),
@@ -126,9 +126,7 @@ export const ScenarioDiffTab: React.FC<ScenarioDiffTabProps> = ({
       render: (r: VersionComparisonResult['kpiComparisons'][number]) => (
         <div>
           <strong className="text-text">{r.label}</strong>
-          <span className="text-[11px] ml-[6px] text-[var(--color-text-muted)]">
-            ({r.unit})
-          </span>
+          <span className="text-[11px] ml-[6px] text-[var(--color-text-muted)]">({r.unit})</span>
         </div>
       ),
     },
@@ -194,7 +192,11 @@ export const ScenarioDiffTab: React.FC<ScenarioDiffTabProps> = ({
       label: 'Delta vA ➔ vB',
       render: (r: VersionComparisonResult['kpiComparisons'][number]) => {
         if (!r.hasResultA || !r.hasResultB || !r.comparisonAB) {
-          return <span className="text-[12px] text-[var(--color-text-muted)]">– (Simulation ausstehend)</span>;
+          return (
+            <span className="text-[12px] text-[var(--color-text-muted)]">
+              – (Simulation ausstehend)
+            </span>
+          );
         }
         const delta = r.comparisonAB.absoluteDelta;
         const percent = r.comparisonAB.percentChange;
@@ -207,7 +209,9 @@ export const ScenarioDiffTab: React.FC<ScenarioDiffTabProps> = ({
               {sign}
               {delta.toLocaleString('de-DE')} {r.unit}
             </Badge>
-            <span className={`font-mono text-[11.5px] font-semibold ${isPos ? 'text-success' : 'text-accent'}`}>
+            <span
+              className={`font-mono text-[11.5px] font-semibold ${isPos ? 'text-success' : 'text-accent'}`}
+            >
               ({sign}
               {percent}%)
             </span>
@@ -235,7 +239,12 @@ export const ScenarioDiffTab: React.FC<ScenarioDiffTabProps> = ({
         </div>
 
         <div className="self-end pb-[4px]">
-          <Button variant="secondary" size="sm" onClick={handleSwapVersions} title="Versionen tauschen">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleSwapVersions}
+            title="Versionen tauschen"
+          >
             ⇄ Tauschen
           </Button>
         </div>
@@ -305,7 +314,11 @@ export const ScenarioDiffTab: React.FC<ScenarioDiffTabProps> = ({
         </div>
         <Card padding="0">
           <div className="w-full overflow-x-auto [touch-action:pan-x_pan-y]">
-            <Table columns={kpiDiffColumns} rows={comparisonResult?.kpiComparisons || []} minWidth="650px" />
+            <Table
+              columns={kpiDiffColumns}
+              rows={comparisonResult?.kpiComparisons || []}
+              minWidth="650px"
+            />
           </div>
         </Card>
       </div>
@@ -343,8 +356,12 @@ export const ScenarioDiffTab: React.FC<ScenarioDiffTabProps> = ({
                 </Badge>
               </div>
               <div className="flex justify-between text-[12px] text-[var(--color-text-muted)]">
-                <span>vA: <strong className="text-text">{p.formattedValueA}</strong></span>
-                <span>vB: <strong className="text-primary">{p.formattedValueB}</strong></span>
+                <span>
+                  vA: <strong className="text-text">{p.formattedValueA}</strong>
+                </span>
+                <span>
+                  vB: <strong className="text-primary">{p.formattedValueB}</strong>
+                </span>
               </div>
             </Card>
           ))}
@@ -357,7 +374,11 @@ export const ScenarioDiffTab: React.FC<ScenarioDiffTabProps> = ({
           <strong>Zielstatus & Simulationsstatus:</strong>
           {comparisonResult.kpiComparisons.map((k) => (
             <div key={k.kpiId}>
-              • <strong>{k.label}:</strong> {k.goalEvaluationB?.explanation || (k.hasResultB ? 'Zielwert geprüft.' : `Kein Simulationslauf für Version ${comparisonResult.versionB.versionNumber} vorhanden (Simulation erforderlich).`)}
+              • <strong>{k.label}:</strong>{' '}
+              {k.goalEvaluationB?.explanation ||
+                (k.hasResultB
+                  ? 'Zielwert geprüft.'
+                  : `Kein Simulationslauf für Version ${comparisonResult.versionB.versionNumber} vorhanden (Simulation erforderlich).`)}
             </div>
           ))}
         </div>

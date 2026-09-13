@@ -66,7 +66,11 @@ export const UNIT = {
 export const BUDGET = {
   title: 'Kostenstruktur nach Kostenart GJ 2025',
   allocations: [
-    { area: 'Personalaufwand gesamt (Ø 9 FTE, Ø 54.400 €/FTE)', budget: '490.000 €', share: '76 %' },
+    {
+      area: 'Personalaufwand gesamt (Ø 9 FTE, Ø 54.400 €/FTE)',
+      budget: '490.000 €',
+      share: '76 %',
+    },
     { area: 'Hosting, KI-API, Zahlungsabwicklung', budget: '39.000 €', share: '6 %' },
     { area: 'Marketing-Media-Spend', budget: '40.500 €', share: '6 %' },
     { area: 'Miete (Augustusplatz 9), Recht, StB, Vers.', budget: '52.000 €', share: '8 %' },
@@ -77,10 +81,12 @@ export const BUDGET = {
 export const CHART_ERLOESE = {
   type: 'doughnut' as const,
   labels: ['Abo-Umsatz', 'Onboarding & Setup', 'Sonstige Erlöse'],
-  datasets: [{
-    data: [307600, 23000, 5400],
-    colors: ['#00D9C6', '#FF7A3D', '#7CEFE6'],
-  }],
+  datasets: [
+    {
+      data: [307600, 23000, 5400],
+      colors: ['#00D9C6', '#FF7A3D', '#7CEFE6'],
+    },
+  ],
 };
 
 export const CHART_KOSTEN = {
@@ -96,7 +102,12 @@ export const CHART_MRR26 = {
   type: 'line' as const,
   labels: ['Jan 26', 'Mär 26', 'Jun 26', 'Sep 26', 'Dez 26'],
   datasets: [
-    { label: 'Gesamt-MRR (€)', data: [34320, 38000, 42500, 47000, 51667], color: '#00D9C6', fill: true },
+    {
+      label: 'Gesamt-MRR (€)',
+      data: [34320, 38000, 42500, 47000, 51667],
+      color: '#00D9C6',
+      fill: true,
+    },
     { label: 'Neu-MRR (€)', data: [3200, 3500, 3800, 4000, 4200], color: '#7CEFE6' },
     { label: 'Churn-MRR (€)', data: [960, 900, 850, 800, 750], color: '#FF7A3D' },
   ],
@@ -113,9 +124,19 @@ export const CHART_CHURN26 = {
 
 export const CHART_BUDGET = {
   type: 'doughnut' as const,
-  labels: ['Personal', 'Cloud & KI-API', 'Marketing & Ads', 'Strategische Initiativen', 'Tools & Lizenzen', 'Büro & Verwaltung', 'Recht & Security'],
-  datasets: [{
-    data: [600000, 60000, 55000, 44000, 28000, 25000, 18000],
-    colors: ['#00D9C6', '#7CEFE6', '#FF7A3D', '#FF9A66', '#A7B0BA', '#3DDC97', '#FFD1B8'],
-  }],
+  labels: [
+    'Personal',
+    'Cloud & KI-API',
+    'Marketing & Ads',
+    'Strategische Initiativen',
+    'Tools & Lizenzen',
+    'Büro & Verwaltung',
+    'Recht & Security',
+  ],
+  datasets: [
+    {
+      data: [600000, 60000, 55000, 44000, 28000, 25000, 18000],
+      colors: ['#00D9C6', '#7CEFE6', '#FF7A3D', '#FF9A66', '#A7B0BA', '#3DDC97', '#FFD1B8'],
+    },
+  ],
 };

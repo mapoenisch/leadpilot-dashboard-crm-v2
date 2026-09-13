@@ -20,7 +20,10 @@ export interface MetricTokenProps {
   style?: React.CSSProperties;
 }
 
-const TONE_CLASSES: Record<VisualTone, { valueClass: string; borderClass: string; bgClass: string }> = {
+const TONE_CLASSES: Record<
+  VisualTone,
+  { valueClass: string; borderClass: string; bgClass: string }
+> = {
   positive: {
     valueClass: 'text-primary',
     borderClass: 'border-[rgba(0,217,198,0.3)]',
@@ -92,18 +95,24 @@ export const MetricToken: React.FC<MetricTokenProps> = ({
       style={style}
     >
       <div className="flex items-center justify-between gap-[var(--space-2)]">
-        <span className={`font-display tracking-[0.02em] text-[var(--color-text-muted)] ${sizeClasses.labelClass}`}>
+        <span
+          className={`font-display tracking-[0.02em] text-[var(--color-text-muted)] ${sizeClasses.labelClass}`}
+        >
           {label}
         </span>
         {glyph && <span className="shrink-0">{glyph}</span>}
       </div>
 
       <div className="flex items-baseline gap-[var(--space-1)] mt-[var(--space-1)]">
-        <span className={`font-mono font-bold tracking-[-0.02em] leading-[1.2] ${toneClasses.valueClass} ${sizeClasses.valueClass}`}>
+        <span
+          className={`font-mono font-bold tracking-[-0.02em] leading-[1.2] ${toneClasses.valueClass} ${sizeClasses.valueClass}`}
+        >
           {value}
         </span>
         {unit && (
-          <span className={`font-body font-medium text-[var(--color-text-muted)] ${sizeClasses.unitClass}`}>
+          <span
+            className={`font-body font-medium text-[var(--color-text-muted)] ${sizeClasses.unitClass}`}
+          >
             {unit}
           </span>
         )}
@@ -117,8 +126,8 @@ export const MetricToken: React.FC<MetricTokenProps> = ({
                 delta.isPositive === undefined
                   ? 'bg-surface-raised text-text border-border'
                   : delta.isPositive
-                  ? 'bg-cyan-a12 text-primary border-[rgba(0,217,198,0.3)]'
-                  : 'bg-orange-a14 text-accent border-[rgba(255,122,61,0.3)]'
+                    ? 'bg-cyan-a12 text-primary border-[rgba(0,217,198,0.3)]'
+                    : 'bg-orange-a14 text-accent border-[rgba(255,122,61,0.3)]'
               }`}
             >
               {delta.isPositive ? '+' : ''}
@@ -127,9 +136,7 @@ export const MetricToken: React.FC<MetricTokenProps> = ({
             </span>
           )}
           {subtext && (
-            <span className="text-[0.6875rem] text-[var(--color-text-muted)]">
-              {subtext}
-            </span>
+            <span className="text-[0.6875rem] text-[var(--color-text-muted)]">{subtext}</span>
           )}
         </div>
       )}

@@ -50,8 +50,7 @@ export function DealsView({ deals, loading }: DealsViewProps) {
   const openDeals = useMemo(() => {
     return deals.filter(
       (d) =>
-        !d.stage.toLowerCase().includes('gewonnen') &&
-        !d.stage.toLowerCase().includes('verloren')
+        !d.stage.toLowerCase().includes('gewonnen') && !d.stage.toLowerCase().includes('verloren'),
     );
   }, [deals]);
 
@@ -74,8 +73,8 @@ export function DealsView({ deals, loading }: DealsViewProps) {
             r.stage.includes('gewonnen')
               ? 'cyan'
               : r.stage.includes('verloren')
-              ? 'neutral'
-              : 'orange'
+                ? 'neutral'
+                : 'orange'
           }
         >
           {r.stage}
@@ -91,8 +90,8 @@ export function DealsView({ deals, loading }: DealsViewProps) {
             r.stage.includes('gewonnen')
               ? 'text-primary'
               : r.stage.includes('verloren')
-              ? 'text-[var(--color-text-muted)]'
-              : 'text-accent'
+                ? 'text-[var(--color-text-muted)]'
+                : 'text-accent'
           }`}
         >
           {r.amount.toLocaleString('de-DE')} €
@@ -135,7 +134,9 @@ export function DealsView({ deals, loading }: DealsViewProps) {
           <div className="font-display text-[28px] font-bold my-[4px] text-primary">
             {deals.length}
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Importierter Funnel-Bestand</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            Importierter Funnel-Bestand
+          </div>
         </Card>
 
         <Card variant="glass">
@@ -144,14 +145,21 @@ export function DealsView({ deals, loading }: DealsViewProps) {
             {totalVolume.toLocaleString('de-DE')} €
           </div>
           <div className="text-[12px] text-[var(--color-text-muted)]">
-            Ø {(totalVolume / (deals.length || 1)).toLocaleString('de-DE', { maximumFractionDigits: 0 })} € je Deal
+            Ø{' '}
+            {(totalVolume / (deals.length || 1)).toLocaleString('de-DE', {
+              maximumFractionDigits: 0,
+            })}{' '}
+            € je Deal
           </div>
         </Card>
 
         <Card variant="glass">
           <div className="text-[13px] text-[var(--color-text-muted)]">Gewonnene Deals</div>
           <div className="font-display text-[28px] font-bold my-[4px] text-primary">
-            {wonDeals.length} <span className="text-[15px] text-[var(--color-text-muted)]">({wonVolume.toLocaleString('de-DE')} €)</span>
+            {wonDeals.length}{' '}
+            <span className="text-[15px] text-[var(--color-text-muted)]">
+              ({wonVolume.toLocaleString('de-DE')} €)
+            </span>
           </div>
           <div className="text-[12px] text-success">Closed-Won Pipeline</div>
         </Card>
@@ -159,9 +167,14 @@ export function DealsView({ deals, loading }: DealsViewProps) {
         <Card variant="glass">
           <div className="text-[13px] text-[var(--color-text-muted)]">Offene Pipeline</div>
           <div className="font-display text-[28px] font-bold my-[4px] text-accent">
-            {openDeals.length} <span className="text-[15px] text-[var(--color-text-muted)]">({openVolume.toLocaleString('de-DE')} €)</span>
+            {openDeals.length}{' '}
+            <span className="text-[15px] text-[var(--color-text-muted)]">
+              ({openVolume.toLocaleString('de-DE')} €)
+            </span>
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">In Qualifizierung / Verhandlung</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            In Qualifizierung / Verhandlung
+          </div>
         </Card>
       </div>
 
@@ -219,8 +232,8 @@ export function DealsView({ deals, loading }: DealsViewProps) {
                       r.stage.includes('gewonnen')
                         ? 'cyan'
                         : r.stage.includes('verloren')
-                        ? 'neutral'
-                        : 'orange'
+                          ? 'neutral'
+                          : 'orange'
                     }
                   >
                     {r.stage}
@@ -233,8 +246,8 @@ export function DealsView({ deals, loading }: DealsViewProps) {
                       r.stage.includes('gewonnen')
                         ? 'text-primary'
                         : r.stage.includes('verloren')
-                        ? 'text-[var(--color-text-muted)]'
-                        : 'text-accent'
+                          ? 'text-[var(--color-text-muted)]'
+                          : 'text-accent'
                     }`}
                   >
                     {r.amount.toLocaleString('de-DE')} €

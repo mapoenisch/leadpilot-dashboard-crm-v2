@@ -2,11 +2,21 @@ export const HEADCOUNT = {
   chart: {
     type: 'line',
     labels: ['Q1 24', 'Q2 24', 'Q3 24', 'Q4 24', 'Q1 25', 'Q2 25', 'Q3 25', 'Q4 25'],
-    datasets: [{ label: 'FTE (Full-Time Equivalent)', data: [4.0, 5.0, 6.0, 8.0, 8.5, 9.0, 9.5, 10.0], color: '#00D9C6' }],
+    datasets: [
+      {
+        label: 'FTE (Full-Time Equivalent)',
+        data: [4.0, 5.0, 6.0, 8.0, 8.5, 9.0, 9.5, 10.0],
+        color: '#00D9C6',
+      },
+    ],
   },
   rows: [
     ['CEO / Ops', '1,0 FTE', 'Marc Pönisch (Gründer & CEO)'],
-    ['Engineering / Product', '4,0 FTE', 'Tobias Heine (CTO) & 3 Devs (2 Stellen offen — kritisch)'],
+    [
+      'Engineering / Product',
+      '4,0 FTE',
+      'Tobias Heine (CTO) & 3 Devs (2 Stellen offen — kritisch)',
+    ],
     ['Sales', '2,0 FTE', 'B2B Account Executive & Outbound Sales (Kapazität ausgereizt)'],
     ['Customer Success', '2,0 FTE', 'Onboarding & Support (Onboarding-Lücke)'],
     ['Marketing', '1,0 FTE', 'Inbound & LinkedIn Content (Zu wenig für Wachstumsziele)'],

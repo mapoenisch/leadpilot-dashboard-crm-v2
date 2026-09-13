@@ -19,8 +19,14 @@ export const CapacityNetwork: React.FC = () => {
     const detail = r[2];
 
     // Generische Zuordnung von Engpässen über Token-Übereinstimmung von roleName und detail gegen TEAM.bottlenecks
-    const roleTokens = roleName.toLowerCase().split(/[\s/&]+/).filter((w) => w.length > 3);
-    const detailTokens = detail.toLowerCase().split(/[^a-zA-Z0-9äöüÄÖÜß]+/).filter((w) => w.length >= 3);
+    const roleTokens = roleName
+      .toLowerCase()
+      .split(/[\s/&]+/)
+      .filter((w) => w.length > 3);
+    const detailTokens = detail
+      .toLowerCase()
+      .split(/[^a-zA-Z0-9äöüÄÖÜß]+/)
+      .filter((w) => w.length >= 3);
 
     const nodeBottlenecks = bottlenecks.filter((b) => {
       const bLower = b.toLowerCase();
@@ -99,7 +105,8 @@ export const CapacityNetwork: React.FC = () => {
           Kapazitätsnetz der Organisation & Engpass-Topografie
         </h3>
         <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
-          Rein visuelle Anordnung der Funktionsbereiche. Keine dokumentierten Beziehungen oder Prozessübergaben.
+          Rein visuelle Anordnung der Funktionsbereiche. Keine dokumentierten Beziehungen oder
+          Prozessübergaben.
         </p>
       </div>
 
@@ -135,7 +142,9 @@ export const CapacityNetwork: React.FC = () => {
                 y1={fromNode.cy}
                 x2={toNode.cx}
                 y2={toNode.cy}
-                stroke={isEngpassConnection ? 'rgba(255, 122, 61, 0.35)' : 'rgba(255, 255, 255, 0.12)'}
+                stroke={
+                  isEngpassConnection ? 'rgba(255, 122, 61, 0.35)' : 'rgba(255, 255, 255, 0.12)'
+                }
                 strokeWidth={isEngpassConnection ? 2 : 1.5}
                 strokeDasharray={isEngpassConnection ? '4 3' : 'none'}
               />
@@ -218,7 +227,11 @@ export const CapacityNetwork: React.FC = () => {
       </div>
 
       {/* Rollenkarten mit exakten Texten und doppelter CTO-Engpassmarkierung */}
-      <div className="network-nodes-grid" role="region" aria-label="Funktionskarten mit Engpass-Details">
+      <div
+        className="network-nodes-grid"
+        role="region"
+        aria-label="Funktionskarten mit Engpass-Details"
+      >
         {nodes.map((node) => {
           const isOrange = node.hasBottleneck;
 
@@ -229,7 +242,9 @@ export const CapacityNetwork: React.FC = () => {
             >
               <div className="flex justify-between items-center flex-wrap gap-[4px]">
                 <strong className="text-[13px] text-text">{node.roleName}</strong>
-                <span className={`font-mono text-[12px] font-bold ${isOrange ? 'text-[#FF7A3D]' : 'text-[#00D9C6]'}`}>
+                <span
+                  className={`font-mono text-[12px] font-bold ${isOrange ? 'text-[#FF7A3D]' : 'text-[#00D9C6]'}`}
+                >
                   {node.fteStr}
                 </span>
               </div>

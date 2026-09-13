@@ -48,19 +48,13 @@ export const MultiScenarioTradeOffs: React.FC<MultiScenarioTradeOffsProps> = ({
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-[var(--space-2)]">
                   <span className="text-[1.2rem]">{getDimensionIcon(tradeOff.dimension)}</span>
-                  <span className="font-bold">
-                    {tradeOff.label}
-                  </span>
+                  <span className="font-bold">{tradeOff.label}</span>
                 </div>
               </div>
-              <p className="m-0 text-[var(--color-text-muted)]">
-                {tradeOff.description}
-              </p>
+              <p className="m-0 text-[var(--color-text-muted)]">{tradeOff.description}</p>
 
               <div className="rounded bg-background-deep mt-[var(--space-1)] px-[var(--space-3)] py-[var(--space-2)]">
-                <div className="font-bold text-primary">
-                  {tradeOff.tradeOffSummary}
-                </div>
+                <div className="font-bold text-primary">{tradeOff.tradeOffSummary}</div>
               </div>
 
               <div className="flex flex-col gap-[var(--space-1)] mt-[var(--space-1)]">
@@ -97,7 +91,9 @@ export const MultiScenarioTradeOffs: React.FC<MultiScenarioTradeOffsProps> = ({
             <table className="w-full min-w-[680px] border-collapse">
               <thead>
                 <tr className="border-0 border-b border-solid border-border bg-background-deep">
-                  <th className="text-left whitespace-nowrap p-[var(--space-3)]">Treiber / Parameter</th>
+                  <th className="text-left whitespace-nowrap p-[var(--space-3)]">
+                    Treiber / Parameter
+                  </th>
                   <th className="text-left whitespace-nowrap p-[var(--space-3)]">Einheit</th>
                   {versions.map((v) => (
                     <th
@@ -117,12 +113,12 @@ export const MultiScenarioTradeOffs: React.FC<MultiScenarioTradeOffsProps> = ({
                       key={pRow.key}
                       className={`border-0 border-b border-solid border-border-soft ${hasAnyChange ? 'bg-warning-soft' : 'bg-transparent'}`}
                     >
-                      <td className={`whitespace-nowrap p-[var(--space-3)] ${hasAnyChange ? 'font-bold' : 'font-normal'}`}>
+                      <td
+                        className={`whitespace-nowrap p-[var(--space-3)] ${hasAnyChange ? 'font-bold' : 'font-normal'}`}
+                      >
                         {pRow.label} {hasAnyChange && '⚡'}
                       </td>
-                      <td className="whitespace-nowrap p-[var(--space-3)]">
-                        {pRow.unit}
-                      </td>
+                      <td className="whitespace-nowrap p-[var(--space-3)]">{pRow.unit}</td>
                       {versions.map((v) => {
                         const isChanged = pRow.hasChangedAgainstRef[v.id];
                         return (

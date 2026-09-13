@@ -27,7 +27,7 @@ const tabVariants = cva(
     defaultVariants: {
       active: false,
     },
-  }
+  },
 );
 
 const tabCountVariants = cva('rounded-full px-[8px] py-[2px] text-[11px] font-semibold', {
@@ -97,9 +97,7 @@ export function Tabs({ items = [], activeId, onChange, ariaLabel = 'Registerkart
           >
             {tab.label}
             {tab.count !== undefined && (
-              <span className={cn(tabCountVariants({ active }))}>
-                {tab.count}
-              </span>
+              <span className={cn(tabCountVariants({ active }))}>{tab.count}</span>
             )}
           </button>
         );

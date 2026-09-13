@@ -232,5 +232,4 @@ describe('getState/subscribe ohne Entry', () => {
     unsub();
     expect(calls).toBe(0);
   });
-
 });

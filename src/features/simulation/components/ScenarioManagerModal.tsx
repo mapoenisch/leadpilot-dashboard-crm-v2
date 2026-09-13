@@ -28,10 +28,10 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
 
   // Version selection for Side-by-Side Diff
   const [diffVersionIdA, setDiffVersionIdA] = useState<string>(
-    versions[0]?.id || activeVersion?.id || ''
+    versions[0]?.id || activeVersion?.id || '',
   );
   const [diffVersionIdB, setDiffVersionIdB] = useState<string>(
-    versions[1]?.id || versions[0]?.id || activeVersion?.id || ''
+    versions[1]?.id || versions[0]?.id || activeVersion?.id || '',
   );
 
   // Keep diff version IDs valid when versions change
@@ -55,7 +55,12 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
   };
 
   return (
-    <Modal open={isOpen} onClose={onClose} title="Szenario- & Versions-Entscheidungswerkbank" maxWidth="1000px">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      title="Szenario- & Versions-Entscheidungswerkbank"
+      maxWidth="1000px"
+    >
       <div className="flex flex-col gap-[var(--space-4)] w-full">
         {/* Executive Header Bar */}
         <div className="flex justify-between items-center flex-wrap gap-[var(--space-3)] rounded-md border border-solid border-border bg-background-deep px-[var(--space-4)] py-[var(--space-3)]">
@@ -68,7 +73,9 @@ export const ScenarioManagerModal: React.FC<ScenarioManagerModalProps> = ({ isOp
                 {activeScenario?.name || 'Unbenanntes Szenario'}
               </div>
             </div>
-            {activeScenario?.isProtected && <StatusChip variant="neutral" label="Geschützt (Base 2026)" size="sm" />}
+            {activeScenario?.isProtected && (
+              <StatusChip variant="neutral" label="Geschützt (Base 2026)" size="sm" />
+            )}
           </div>
 
           <div className="flex items-center gap-[var(--space-2)]">

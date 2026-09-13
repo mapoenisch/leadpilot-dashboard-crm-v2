@@ -31,7 +31,7 @@ const inputIconVariants = cva(
       size: 'md',
       focused: false,
     },
-  }
+  },
 );
 
 const inputFieldVariants = cva(
@@ -66,7 +66,7 @@ const inputFieldVariants = cva(
       focused: false,
       disabled: false,
     },
-  }
+  },
 );
 
 const inputPaddingVariants = cva('', {
@@ -157,7 +157,7 @@ export function Input({
           }}
           className={cn(
             inputFieldVariants({ size: sizeVariant, error: hasError, focused, disabled }),
-            inputPaddingVariants({ size: sizeVariant, hasIcon })
+            inputPaddingVariants({ size: sizeVariant, hasIcon }),
           )}
           {...rest}
         />

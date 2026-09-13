@@ -16,7 +16,8 @@ export function NotFoundPage() {
       <Card variant="glass">
         <div className="flex flex-col gap-[var(--space-4)]">
           <p className="m-0 text-[15px] leading-[1.6] text-[var(--color-text-muted)]">
-            Die von Ihnen aufgerufene Adresse konnte im LeadPilot Dashboard keinem gültigen Bereich zugeordnet werden.
+            Die von Ihnen aufgerufene Adresse konnte im LeadPilot Dashboard keinem gültigen Bereich
+            zugeordnet werden.
           </p>
 
           <div>
@@ -32,7 +33,8 @@ export function NotFoundPage() {
       </Card>
 
       <Alert variant="info" title="Navigation">
-        Nutzen Sie die linke Seitenleiste, um direkt zu den Unternehmens-, Produkt-, Markt- oder Simulationsansichten zu wechseln.
+        Nutzen Sie die linke Seitenleiste, um direkt zu den Unternehmens-, Produkt-, Markt- oder
+        Simulationsansichten zu wechseln.
       </Alert>
     </div>
   );

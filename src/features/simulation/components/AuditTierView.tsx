@@ -45,7 +45,8 @@ export const AuditTierView: React.FC = () => {
               Technik & Audit-Ebene: Technische Run-Historie
             </h3>
             <p className="text-[13px] text-[var(--color-text-muted)] mt-[4px] mb-0 mr-0 ml-0">
-              Vollständige technische Liste aller durchgeführten Simulationsläufe (`SimulationRun`), Seeds, Manifeste, Snapshots und Status.
+              Vollständige technische Liste aller durchgeführten Simulationsläufe (`SimulationRun`),
+              Seeds, Manifeste, Snapshots und Status.
             </p>
           </div>
           <Badge variant="neutral">Gesamtläufe: {runs.length}</Badge>
@@ -74,12 +75,12 @@ export const AuditTierView: React.FC = () => {
                 const srcAudit = resolveRunSourceAudit(run);
                 return (
                   <tr key={run.runId} className="border-0 border-b border-solid border-border-soft">
-                    <td className="font-mono font-semibold text-primary p-[12px]">
-                      {run.runId}
-                    </td>
+                    <td className="font-mono font-semibold text-primary p-[12px]">{run.runId}</td>
                     <td className="text-text p-[12px]">
                       <div>{run.scenarioId}</div>
-                      <div className="text-[11px] text-[var(--color-text-muted)]">{run.scenarioVersionId}</div>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">
+                        {run.scenarioVersionId}
+                      </div>
                     </td>
                     <td className="text-[12px] p-[12px]">
                       <div className="font-mono font-semibold text-primary">
@@ -106,7 +107,11 @@ export const AuditTierView: React.FC = () => {
                         <Button size="sm" variant="secondary" onClick={() => handleInspectRun(run)}>
                           Audit
                         </Button>
-                        <Button size="sm" variant="secondary" onClick={() => reRun(run.scenarioVersionId)}>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => reRun(run.scenarioVersionId)}
+                        >
                           Re-Run
                         </Button>
                         <Button size="sm" variant="secondary" onClick={() => reproduce(run.runId)}>
@@ -171,40 +176,64 @@ export const AuditTierView: React.FC = () => {
                 <div className="rounded border border-solid border-border-soft bg-background-deep mt-[4px] px-[12px] py-[10px]">
                   <div className="flex justify-between items-center font-semibold text-text mb-[8px]">
                     <span>Eingefrorene Datenquelle & Baseline</span>
-                    <Badge variant="cyan">{selectedSourceAudit.isFrozen ? 'EINGEFROREN (IMMUTABLE)' : 'FROZEN IN RUN'}</Badge>
+                    <Badge variant="cyan">
+                      {selectedSourceAudit.isFrozen ? 'EINGEFROREN (IMMUTABLE)' : 'FROZEN IN RUN'}
+                    </Badge>
                   </div>
                   <div className="grid grid-cols-2 gap-[8px] text-[12px]">
                     <div>
-                      <div className="text-[11px] text-[var(--color-text-muted)]">Baseline-Version:</div>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">
+                        Baseline-Version:
+                      </div>
                       <div className="font-mono font-semibold text-primary">
                         {selectedSourceAudit.baselineVersion}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-[var(--color-text-muted)]">Datenquellen-ID:</div>
-                      <div className="font-mono font-semibold">{selectedSourceAudit.dataSourceId}</div>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">
+                        Datenquellen-ID:
+                      </div>
+                      <div className="font-mono font-semibold">
+                        {selectedSourceAudit.dataSourceId}
+                      </div>
                     </div>
                     <div>
                       <div className="text-[11px] text-[var(--color-text-muted)]">Quellenart:</div>
-                      <Badge variant={selectedSourceAudit.sourceKind === 'simulated' ? 'mint' : selectedSourceAudit.sourceKind === 'file' ? 'cyan' : 'orange'}>
+                      <Badge
+                        variant={
+                          selectedSourceAudit.sourceKind === 'simulated'
+                            ? 'mint'
+                            : selectedSourceAudit.sourceKind === 'file'
+                              ? 'cyan'
+                              : 'orange'
+                        }
+                      >
                         {selectedSourceAudit.sourceKind}
                       </Badge>
                     </div>
                     <div>
-                      <div className="text-[11px] text-[var(--color-text-muted)]">Quellen-Label:</div>
+                      <div className="text-[11px] text-[var(--color-text-muted)]">
+                        Quellen-Label:
+                      </div>
                       <div className="font-semibold">{selectedSourceAudit.sourceLabel}</div>
                     </div>
                   </div>
                   {selectedSourceAudit.counts && (
                     <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[6px] text-[var(--color-text-muted)]">
-                      Snapshot-Umfang: {selectedSourceAudit.counts.companies} Companies | {selectedSourceAudit.counts.contacts} Kontakte | {selectedSourceAudit.counts.deals} Deals | {selectedSourceAudit.counts.activities} Aktivitäten
-                      {selectedSourceAudit.capturedAt && ` (Erfasst: ${new Date(selectedSourceAudit.capturedAt).toLocaleTimeString('de-DE')})`}
+                      Snapshot-Umfang: {selectedSourceAudit.counts.companies} Companies |{' '}
+                      {selectedSourceAudit.counts.contacts} Kontakte |{' '}
+                      {selectedSourceAudit.counts.deals} Deals |{' '}
+                      {selectedSourceAudit.counts.activities} Aktivitäten
+                      {selectedSourceAudit.capturedAt &&
+                        ` (Erfasst: ${new Date(selectedSourceAudit.capturedAt).toLocaleTimeString('de-DE')})`}
                     </div>
                   )}
                 </div>
 
                 <div className="mt-[8px]">
-                  <div className="font-semibold text-text mb-[4px]">Eingefrorene Run-Parameter:</div>
+                  <div className="font-semibold text-text mb-[4px]">
+                    Eingefrorene Run-Parameter:
+                  </div>
                   <pre className="rounded bg-background-deep overflow-x-auto text-[11px] text-primary p-[10px]">
                     {JSON.stringify(selectedRun.manifest.parameters, null, 2)}
                   </pre>
@@ -229,7 +258,8 @@ export const AuditTierView: React.FC = () => {
                 <div className="rounded bg-background-deep p-[10px]">
                   <div className="font-semibold text-text">Finaler State Status:</div>
                   <div className="mt-[4px] text-[var(--color-text-muted)]">
-                    Tick-Anzahl: {selectedRun.finalState?.tickCount ?? 0} | Simulationstag: {selectedRun.finalState?.dayIndex ?? 0}
+                    Tick-Anzahl: {selectedRun.finalState?.tickCount ?? 0} | Simulationstag:{' '}
+                    {selectedRun.finalState?.dayIndex ?? 0}
                   </div>
                 </div>
 
@@ -241,19 +271,43 @@ export const AuditTierView: React.FC = () => {
                 <div className="rounded bg-background-deep mt-[8px] p-[10px]">
                   <div className="font-semibold text-text">Finanzdaten-Snapshot:</div>
                   <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
-                    Net Revenue: {(selectedRun.finalMetrics?.financialMetrics?.netRevenue ?? 0).toLocaleString('de-DE')} € | EBITDA: {(selectedRun.finalMetrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} € | OPEX: {(selectedRun.finalMetrics?.financialMetrics?.totalOpex ?? 0).toLocaleString('de-DE')} € | CAC: {(selectedRun.finalMetrics?.financialMetrics?.cac ?? 0).toLocaleString('de-DE')} € | Cash Flow: {(selectedRun.finalMetrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString('de-DE')} €
+                    Net Revenue:{' '}
+                    {(selectedRun.finalMetrics?.financialMetrics?.netRevenue ?? 0).toLocaleString(
+                      'de-DE',
+                    )}{' '}
+                    € | EBITDA:{' '}
+                    {(selectedRun.finalMetrics?.financialMetrics?.ebitda ?? 0).toLocaleString(
+                      'de-DE',
+                    )}{' '}
+                    € | OPEX:{' '}
+                    {(selectedRun.finalMetrics?.financialMetrics?.totalOpex ?? 0).toLocaleString(
+                      'de-DE',
+                    )}{' '}
+                    € | CAC:{' '}
+                    {(selectedRun.finalMetrics?.financialMetrics?.cac ?? 0).toLocaleString('de-DE')}{' '}
+                    € | Cash Flow:{' '}
+                    {(selectedRun.finalMetrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString(
+                      'de-DE',
+                    )}{' '}
+                    €
                   </div>
                 </div>
 
                 <div className="rounded bg-background-deep mt-[8px] p-[10px]">
                   <div className="font-semibold text-text flex items-center justify-between">
                     <span>State Machine & Tick-Invarianten:</span>
-                    <Badge variant={selectedRun.finalState?.hasInvariantViolation ? 'orange' : 'cyan'}>
-                      {selectedRun.finalState?.hasInvariantViolation ? 'INVARIANTEN-VERLETZUNG' : 'INVARIANTEN 100% VALIDE'}
+                    <Badge
+                      variant={selectedRun.finalState?.hasInvariantViolation ? 'orange' : 'cyan'}
+                    >
+                      {selectedRun.finalState?.hasInvariantViolation
+                        ? 'INVARIANTEN-VERLETZUNG'
+                        : 'INVARIANTEN 100% VALIDE'}
                     </Badge>
                   </div>
                   <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
-                    Abgewiesene Transitions: {selectedRun.finalState?.rejectedTransitions?.length ?? 0} Einträge | Regelprüfungen: ARR=MRR×12, Churn Cleanliness, Customer Count.
+                    Abgewiesene Transitions:{' '}
+                    {selectedRun.finalState?.rejectedTransitions?.length ?? 0} Einträge |
+                    Regelprüfungen: ARR=MRR×12, Churn Cleanliness, Customer Count.
                   </div>
                 </div>
 
@@ -263,7 +317,8 @@ export const AuditTierView: React.FC = () => {
                     <Badge variant="mint">RETENTION POLICY AKTIV</Badge>
                   </div>
                   <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
-                    Selective Pruning: Erhält Tick 0, Meilensteine (alle 30 Ticks), Final-Tick & 100% Projections.
+                    Selective Pruning: Erhält Tick 0, Meilensteine (alle 30 Ticks), Final-Tick &
+                    100% Projections.
                   </div>
                 </div>
 

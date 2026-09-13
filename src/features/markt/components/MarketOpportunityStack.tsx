@@ -26,7 +26,10 @@ export const MarketOpportunityStack: React.FC = () => {
 
   // rowReichweite: '1.400 LinkedIn-Follower · 620 Newsletter-Abos · 2.900 Web-Besucher/Monat · DA 14'
   const reichweiteParts = rowReichweite[1].split(' · ');
-  const webBesucherPart = reichweiteParts.find((p) => p.includes('Web-Besucher')) || reichweiteParts[2] || rowReichweite[1];
+  const webBesucherPart =
+    reichweiteParts.find((p) => p.includes('Web-Besucher')) ||
+    reichweiteParts[2] ||
+    rowReichweite[1];
   const kanaelePart = reichweiteParts.filter((p) => !p.includes('Web-Besucher')).join(' · ');
 
   const stackLayers = [
@@ -74,19 +77,23 @@ export const MarketOpportunityStack: React.FC = () => {
   // G39 Welle 2: Schichtfarben als Klassen-Ternaries (3 statische
   // Schichten, Build-Zeit bekannt) — keine Laufzeit-Styles nötig.
   const layerColorClass = (idx: number) =>
-    idx === 0 ? 'text-primary' : idx === 1 ? 'text-[var(--cyan-light,#7CEFE6)]' : 'text-[var(--color-accent,#FF9900)]';
+    idx === 0
+      ? 'text-primary'
+      : idx === 1
+        ? 'text-[var(--cyan-light,#7CEFE6)]'
+        : 'text-[var(--color-accent,#FF9900)]';
   const layerBgClass = (idx: number) =>
     idx === 0
       ? 'bg-[rgba(0,217,198,0.06)]'
       : idx === 1
-      ? 'bg-[rgba(124,239,230,0.06)]'
-      : 'bg-[rgba(255,153,0,0.06)]';
+        ? 'bg-[rgba(124,239,230,0.06)]'
+        : 'bg-[rgba(255,153,0,0.06)]';
   const layerBorderClass = (idx: number) =>
     idx === 0
       ? 'border-[rgba(0,217,198,0.28)]'
       : idx === 1
-      ? 'border-[rgba(124,239,230,0.28)]'
-      : 'border-[rgba(255,153,0,0.28)]';
+        ? 'border-[rgba(124,239,230,0.28)]'
+        : 'border-[rgba(255,153,0,0.28)]';
 
   return (
     <section
@@ -113,7 +120,8 @@ export const MarketOpportunityStack: React.FC = () => {
             Chancenstapel Marktpotenzial
           </h3>
           <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[3px] mb-0 mr-0 ml-0">
-            Marktvolumen → adressierbarer Fokusmarkt → erreichte Aufmerksamkeit (direkt aus MARKT.overview).
+            Marktvolumen → adressierbarer Fokusmarkt → erreichte Aufmerksamkeit (direkt aus
+            MARKT.overview).
           </p>
         </div>
 
@@ -138,10 +146,14 @@ export const MarketOpportunityStack: React.FC = () => {
             {/* Kopf der Schicht */}
             <div className="flex flex-wrap items-center justify-between gap-[var(--space-2)] min-w-0 mb-[var(--space-3)]">
               <div className="flex items-center gap-[8px] min-w-0 flex-wrap">
-                <span className={`inline-flex items-center justify-center shrink-0 rounded font-mono text-[0.75rem] font-bold w-[24px] h-[24px] border ${layerBorderClass(idx)} ${layerColorClass(idx)} bg-[rgba(255,255,255,0.05)]`}>
+                <span
+                  className={`inline-flex items-center justify-center shrink-0 rounded font-mono text-[0.75rem] font-bold w-[24px] h-[24px] border ${layerBorderClass(idx)} ${layerColorClass(idx)} bg-[rgba(255,255,255,0.05)]`}
+                >
                   {layer.step}
                 </span>
-                <span className={`text-[0.6875rem] font-bold uppercase tracking-[0.06em] ${layerColorClass(idx)}`}>
+                <span
+                  className={`text-[0.6875rem] font-bold uppercase tracking-[0.06em] ${layerColorClass(idx)}`}
+                >
                   {layer.badge}
                 </span>
               </div>
@@ -156,7 +168,9 @@ export const MarketOpportunityStack: React.FC = () => {
                 <div className="text-[0.6875rem] uppercase tracking-[0.04em] mb-[2px] text-[var(--color-text-muted)]">
                   {layer.primaryLabel}
                 </div>
-                <div className={`font-mono text-[1.375rem] font-bold leading-[1.2] ${layerColorClass(idx)}`}>
+                <div
+                  className={`font-mono text-[1.375rem] font-bold leading-[1.2] ${layerColorClass(idx)}`}
+                >
                   {layer.primaryValue}
                 </div>
                 <div className="text-[0.75rem] mt-[4px] text-[var(--color-text-muted)]">
@@ -170,9 +184,7 @@ export const MarketOpportunityStack: React.FC = () => {
               <div className="text-[0.6875rem] uppercase tracking-[0.04em] mb-[2px] text-[var(--color-text-muted)]">
                 {layer.secondaryLabel}
               </div>
-              <div className="text-[0.8125rem] font-medium text-text">
-                {layer.secondaryValue}
-              </div>
+              <div className="text-[0.8125rem] font-medium text-text">{layer.secondaryValue}</div>
             </div>
 
             {/* Verbinder nach unten */}
@@ -198,7 +210,10 @@ export const MarketOpportunityStack: React.FC = () => {
 
       {/* Aufklappbare Original-Tabelle */}
       {showTable && (
-        <div id="market-stack-table" className="border-0 border-t border-solid border-border-soft mt-[var(--space-4)] pt-[var(--space-4)]">
+        <div
+          id="market-stack-table"
+          className="border-0 border-t border-solid border-border-soft mt-[var(--space-4)] pt-[var(--space-4)]"
+        >
           <div className="text-[0.75rem] font-bold uppercase tracking-[0.06em] mb-[var(--space-2)] text-[var(--color-text-muted)]">
             Referenztabelle (MARKT.overview)
           </div>
@@ -215,7 +230,8 @@ export const MarketOpportunityStack: React.FC = () => {
       {/* Fußzeile / Methodischer Nachweis */}
       <div className="border-0 border-t border-solid border-border-soft flex flex-wrap items-center justify-between gap-[var(--space-2)] text-[0.75rem] mt-[var(--space-4)] pt-[var(--space-3)] text-[var(--color-text-muted)]">
         <span>
-          Basisdaten: <strong className="text-text">Marktlage & Cloud-CRM DACH</strong> (Marktanalyse 2025/2026)
+          Basisdaten: <strong className="text-text">Marktlage & Cloud-CRM DACH</strong>{' '}
+          (Marktanalyse 2025/2026)
         </span>
         <span className="font-mono text-[0.6875rem]">
           DE-Anteil: 24,4 % · LeadPilot: &lt; 0,1 %

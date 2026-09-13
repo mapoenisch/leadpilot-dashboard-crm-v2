@@ -50,7 +50,9 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
       await reproduce(selectedRunId);
       onClose();
     } catch (err) {
-      setErrorMsg((err instanceof Error ? err.message : '') || 'Fehler beim Reproduzieren des Runs.');
+      setErrorMsg(
+        (err instanceof Error ? err.message : '') || 'Fehler beim Reproduzieren des Runs.',
+      );
     }
   };
 
@@ -65,7 +67,10 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
 
         <div className="flex justify-between text-[13px] text-text">
           <div>
-            Aktive Version: <strong>{activeVersion ? `v${activeVersion.versionNumber} (${activeVersion.id})` : 'Keine'}</strong>
+            Aktive Version:{' '}
+            <strong>
+              {activeVersion ? `v${activeVersion.versionNumber} (${activeVersion.id})` : 'Keine'}
+            </strong>
             {draftMeasures.length > 0 && (
               <span className="ml-[8px] text-[12px] text-primary">
                 ({draftMeasures.length} aktive Maßnahme{draftMeasures.length > 1 ? 'n' : ''})
@@ -73,15 +78,19 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
             )}
           </div>
           <div className="text-[12px] text-[var(--color-text-muted)]">
-            Quelle: <strong className="text-primary">{activeSource.info.label}</strong> ({activeSource.info.id})
+            Quelle: <strong className="text-primary">{activeSource.info.label}</strong> (
+            {activeSource.info.id})
           </div>
         </div>
 
         {/* Action 1: Standard Run */}
         <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
-          <div className="font-semibold text-[14px] text-text">Run Ausführen (Preflight-Prüfung)</div>
+          <div className="font-semibold text-[14px] text-text">
+            Run Ausführen (Preflight-Prüfung)
+          </div>
           <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
-            Führt einen neuen Simulationslauf für die aktive Version aus. Vorab wird die Preflight-Validierung durchgeführt.
+            Führt einen neuen Simulationslauf für die aktive Version aus. Vorab wird die
+            Preflight-Validierung durchgeführt.
           </p>
           <Button variant="primary" onClick={handleStartRun}>
             Neuen Run Starten
@@ -90,9 +99,12 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
 
         {/* Action 2: Re-Run (New Seed) */}
         <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
-          <div className="font-semibold text-[14px] text-primary">Re-Run (Erneut ausführen - Neuer Seed)</div>
+          <div className="font-semibold text-[14px] text-primary">
+            Re-Run (Erneut ausführen - Neuer Seed)
+          </div>
           <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
-            Generiert einen neuen Zufalls-Seed für dieselbe Szenarioversion. Unveränderliches neues RunManifest wird erzeugt.
+            Generiert einen neuen Zufalls-Seed für dieselbe Szenarioversion. Unveränderliches neues
+            RunManifest wird erzeugt.
           </p>
           <Button variant="secondary" onClick={handleReRun}>
             Re-Run Ausführen
@@ -101,9 +113,12 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
 
         {/* Action 3: Reproduce (Same Seed & Manifest) */}
         <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
-          <div className="font-semibold text-[14px] text-accent">Reproduce (Exakt Reproduzieren - Identischer Seed)</div>
+          <div className="font-semibold text-[14px] text-accent">
+            Reproduce (Exakt Reproduzieren - Identischer Seed)
+          </div>
           <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
-            Nutzt exakt den ursprünglichen Seed und das ursprüngliche Manifest eines bisherigen Runs zur 100% deterministischen Wiederholung.
+            Nutzt exakt den ursprünglichen Seed und das ursprüngliche Manifest eines bisherigen Runs
+            zur 100% deterministischen Wiederholung.
           </p>
 
           <div className="flex gap-[8px] items-center mt-[4px]">

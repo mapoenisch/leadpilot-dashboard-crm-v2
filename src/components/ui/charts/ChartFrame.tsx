@@ -64,9 +64,7 @@ export function ChartFrame({
             >
               {title}
             </h3>
-            {sourceLabel && (
-              <StatusChip variant="neutral" label={sourceLabel} size="sm" />
-            )}
+            {sourceLabel && <StatusChip variant="neutral" label={sourceLabel} size="sm" />}
           </div>
           {subtitle && (
             <p
@@ -82,11 +80,7 @@ export function ChartFrame({
           )}
         </div>
 
-        {headerAction && (
-          <div style={{ flexShrink: 0 }}>
-            {headerAction}
-          </div>
-        )}
+        {headerAction && <div style={{ flexShrink: 0 }}>{headerAction}</div>}
       </div>
 
       {/* Chart Canvas Area */}

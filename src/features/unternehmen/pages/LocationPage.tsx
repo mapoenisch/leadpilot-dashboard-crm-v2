@@ -102,9 +102,7 @@ export function LocationPage() {
             <h3 className="m-0 font-display text-[16px] font-bold text-[#FFFFFF]">
               Unternehmenssitz · Augustusplatz 9
             </h3>
-            <p className="mt-[3px] mr-0 mb-0 ml-0 text-[13px] text-[#9BB2B0]">
-              {STANDORT.address}
-            </p>
+            <p className="mt-[3px] mr-0 mb-0 ml-0 text-[13px] text-[#9BB2B0]">{STANDORT.address}</p>
           </div>
 
           <span className="text-[11px] font-mono px-[9px] py-[3px] rounded-[4px] bg-[rgba(0,217,198,0.1)] text-[#00D9C6] border border-solid border-[rgba(0,217,198,0.3)] font-bold">
@@ -152,9 +150,7 @@ export function LocationPage() {
               <h4 className="m-0 text-[13.5px] font-semibold text-[#FFFFFF] font-display">
                 {station.title}
               </h4>
-              <span className="text-[10px] font-mono text-[var(--color-text-muted)]">
-                FIKTIV
-              </span>
+              <span className="text-[10px] font-mono text-[var(--color-text-muted)]">FIKTIV</span>
             </div>
           </div>
         ))}

@@ -10,14 +10,16 @@ export const OperationsHub: React.FC = () => {
     badge: 'Modul 01 • Inbound',
     name: FUNKTION.modules[0].name,
     desc: FUNKTION.modules[0].desc,
-    relation: 'Inbound-Erfassung: Automatische Lead-Aufnahme aus Webformularen, Messen, E-Mails und LinkedIn Ads.',
+    relation:
+      'Inbound-Erfassung: Automatische Lead-Aufnahme aus Webformularen, Messen, E-Mails und LinkedIn Ads.',
   };
 
   const module1 = {
     badge: 'Modul 02 • Scoring',
     name: FUNKTION.modules[1].name,
     desc: FUNKTION.modules[1].desc,
-    relation: 'Priorisierung: Lead-Bewertung von 0 bis 100 nach Firmografie, ICP-Fit und Verhalten.',
+    relation:
+      'Priorisierung: Lead-Bewertung von 0 bis 100 nach Firmografie, ICP-Fit und Verhalten.',
   };
 
   const module2 = {
@@ -48,7 +50,8 @@ export const OperationsHub: React.FC = () => {
             Produkt-Betriebszentrale: Pipeline-Cockpit & Kernmodule
           </h3>
           <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
-            Zentrales Pipeline-Cockpit im Zentrum mit sichtbaren Verbindungen zu den vier Produktmodulen.
+            Zentrales Pipeline-Cockpit im Zentrum mit sichtbaren Verbindungen zu den vier
+            Produktmodulen.
           </p>
         </div>
 
@@ -57,7 +60,7 @@ export const OperationsHub: React.FC = () => {
           onClick={() => setShowTable(!showTable)}
           aria-controls="operations-hub-table"
           aria-expanded={showTable}
-          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]" 
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]"
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--color-text)';
             e.currentTarget.style.borderColor = 'var(--color-primary)';
@@ -102,9 +105,7 @@ export const OperationsHub: React.FC = () => {
               <div className="font-mono text-[0.625rem] font-bold uppercase mb-[2px] text-primary">
                 Vertriebsbezug
               </div>
-              <div className="text-[0.6875rem] leading-[1.35] text-text">
-                {module0.relation}
-              </div>
+              <div className="text-[0.6875rem] leading-[1.35] text-text">{module0.relation}</div>
             </div>
           </div>
 
@@ -131,9 +132,7 @@ export const OperationsHub: React.FC = () => {
               <div className="font-mono text-[0.625rem] font-bold uppercase mb-[2px] text-primary">
                 Vertriebsbezug
               </div>
-              <div className="text-[0.6875rem] leading-[1.35] text-text">
-                {module1.relation}
-              </div>
+              <div className="text-[0.6875rem] leading-[1.35] text-text">{module1.relation}</div>
             </div>
           </div>
         </div>
@@ -146,13 +145,25 @@ export const OperationsHub: React.FC = () => {
           <div className="flex items-center gap-[6px] font-mono text-[0.625rem] font-bold text-primary">
             <span>Inbound-Leads erfassen</span>
             <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
-              <path d="M6 1v14M2 11l4 4 4-4" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M6 1v14M2 11l4 4 4-4"
+                stroke="var(--color-primary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
           <div className="flex items-center gap-[6px] font-mono text-[0.625rem] font-bold text-primary">
             <span>Lead-Bewertung 0–100</span>
             <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
-              <path d="M6 1v14M2 11l4 4 4-4" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M6 1v14M2 11l4 4 4-4"
+                stroke="var(--color-primary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
         </div>
@@ -165,8 +176,7 @@ export const OperationsHub: React.FC = () => {
         >
           <div className="flex flex-wrap items-center justify-between gap-[var(--space-2)] mb-[var(--space-3)]">
             <div className="flex items-center gap-[var(--space-2)]">
-              <span className="font-mono text-[0.625rem] font-bold uppercase tracking-[0.06em] rounded border border-solid border-[rgba(0,217,198,0.4)] bg-cyan-a12 text-primary px-[8px] py-[2px]"
-              >
+              <span className="font-mono text-[0.625rem] font-bold uppercase tracking-[0.06em] rounded border border-solid border-[rgba(0,217,198,0.4)] bg-cyan-a12 text-primary px-[8px] py-[2px]">
                 Zentraler Knotenpunkt
               </span>
               <h4 className="m-0 font-display text-[1.0625rem] font-bold text-text">
@@ -193,7 +203,9 @@ export const OperationsHub: React.FC = () => {
                 <div className="font-mono text-[0.625rem] mb-[2px] text-[var(--color-text-muted)]">
                   0{idx + 1}
                 </div>
-                <div className={`font-display text-[0.75rem] font-bold ${stage === 'Won' ? 'text-primary' : stage === 'Hot' ? 'text-accent' : 'text-text'}`}>
+                <div
+                  className={`font-display text-[0.75rem] font-bold ${stage === 'Won' ? 'text-primary' : stage === 'Hot' ? 'text-accent' : 'text-text'}`}
+                >
                   {stage}
                 </div>
               </div>
@@ -209,13 +221,25 @@ export const OperationsHub: React.FC = () => {
           <div className="flex items-center gap-[6px] font-mono text-[0.625rem] font-bold text-primary">
             <span>Outreach- & Follow-up-Reihen</span>
             <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
-              <path d="M6 1v14M2 11l4 4 4-4" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M6 1v14M2 11l4 4 4-4"
+                stroke="var(--color-primary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
           <div className="flex items-center gap-[6px] font-mono text-[0.625rem] font-bold text-primary">
             <span>Echtzeit-Kanban & Tabellenansicht</span>
             <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
-              <path d="M6 1v14M2 11l4 4 4-4" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M6 1v14M2 11l4 4 4-4"
+                stroke="var(--color-primary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
         </div>
@@ -245,9 +269,7 @@ export const OperationsHub: React.FC = () => {
               <div className="font-mono text-[0.625rem] font-bold uppercase mb-[2px] text-primary">
                 Vertriebsbezug
               </div>
-              <div className="text-[0.6875rem] leading-[1.35] text-text">
-                {module2.relation}
-              </div>
+              <div className="text-[0.6875rem] leading-[1.35] text-text">{module2.relation}</div>
             </div>
           </div>
 
@@ -274,9 +296,7 @@ export const OperationsHub: React.FC = () => {
               <div className="font-mono text-[0.625rem] font-bold uppercase mb-[2px] text-primary">
                 Vertriebsbezug
               </div>
-              <div className="text-[0.6875rem] leading-[1.35] text-text">
-                {module3.relation}
-              </div>
+              <div className="text-[0.6875rem] leading-[1.35] text-text">{module3.relation}</div>
             </div>
           </div>
         </div>
@@ -301,12 +321,8 @@ export const OperationsHub: React.FC = () => {
                   0{idx + 1}
                 </div>
                 <div>
-                  <div className="text-[0.8125rem] font-semibold text-text">
-                    {m.name}
-                  </div>
-                  <div className="text-[0.75rem] text-[var(--color-text-muted)]">
-                    {m.desc}
-                  </div>
+                  <div className="text-[0.8125rem] font-semibold text-text">{m.name}</div>
+                  <div className="text-[0.75rem] text-[var(--color-text-muted)]">{m.desc}</div>
                 </div>
               </div>
             ))}

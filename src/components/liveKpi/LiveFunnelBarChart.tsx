@@ -1,14 +1,6 @@
 import React, { useMemo } from 'react';
 import { useReducedMotion } from 'framer-motion';
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useLiveKpiActivity } from '@/hooks/useLiveKpiActivity';
@@ -99,20 +91,10 @@ function renderPseudo3dBar(props: BarShapeProps) {
       />
 
       {/* Schmale Oberseite als polygon */}
-      <polygon
-        points={topPolygon}
-        fill={topFill}
-        stroke={topStroke}
-        strokeWidth={1}
-      />
+      <polygon points={topPolygon} fill={topFill} stroke={topStroke} strokeWidth={1} />
 
       {/* Schmale rechte Seitenfläche als polygon */}
-      <polygon
-        points={sidePolygon}
-        fill={sideFill}
-        stroke={sideStroke}
-        strokeWidth={0.8}
-      />
+      <polygon points={sidePolygon} fill={sideFill} stroke={sideStroke} strokeWidth={0.8} />
 
       {/* Zahlenwert über der Oberseite */}
       <text
@@ -209,142 +191,149 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
           Merge für Layout — daher umhüllendes Div mit den bisherigen
           Layout-Werten als Klassen. */}
       <div className="flex flex-col justify-between min-h-[360px] relative overflow-hidden min-w-0">
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between gap-[8px] mb-[14px]">
-          <div>
-            <div className="text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-[2px]">
-              Operativer Durchlauf
+        <div>
+          {/* Header */}
+          <div className="flex items-center justify-between gap-[8px] mb-[14px]">
+            <div>
+              <div className="text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-[2px]">
+                Operativer Durchlauf
+              </div>
+              <h3 className="m-0 font-display text-[16px] font-semibold text-text">
+                Live Funnel nach Stufe
+              </h3>
+              <span className="text-[11px] text-[var(--color-text-dim)]">
+                5 Stufen · Pseudo-3D-Balken mit Leuchtkanten · Ebene C
+              </span>
             </div>
-            <h3 className="m-0 font-display text-[16px] font-semibold text-text">
-              Live Funnel nach Stufe
-            </h3>
-            <span className="text-[11px] text-[var(--color-text-dim)]">
-              5 Stufen · Pseudo-3D-Balken mit Leuchtkanten · Ebene C
-            </span>
-          </div>
-          <Badge variant={confirmedCount > 0 ? 'mint' : 'neutral'} style={{ fontSize: '9.5px' }}>
-            {confirmedCount === 5 ? '5/5 Stufen aktiv' : `${confirmedCount}/5 bestätigt`}
-          </Badge>
-        </div>
-
-        {/* Degraded Qualitätswarnung */}
-        {hasDegraded && (
-          <div className="mb-[10px]">
-            <Badge variant="orange" style={{ padding: '2px 8px', fontSize: '9.5px' }}>
-              Qualität eingeschränkt (Degraded Snapshot in einer Stufe)
+            <Badge variant={confirmedCount > 0 ? 'mint' : 'neutral'} style={{ fontSize: '9.5px' }}>
+              {confirmedCount === 5 ? '5/5 Stufen aktiv' : `${confirmedCount}/5 bestätigt`}
             </Badge>
           </div>
-        )}
 
-        {/* Recharts BarChart mit Pseudo-3D shape */}
-        {confirmedCount > 0 ? (
-          <div className="w-full h-[220px] min-w-0" aria-hidden="true">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 24, right: 16, left: -10, bottom: 0 }}>
-                <defs>
-                  {/* SVG Filter für weichen Boden-Lichtsaum */}
-                  <filter id="funnelGroundGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
-                  </filter>
-                  {/* Gradients für Vorderflächen */}
-                  <linearGradient id="funnelBarFrontGradCyan" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00f2fe" stopOpacity={0.95} />
-                    <stop offset="100%" stopColor="#006b63" stopOpacity={0.85} />
-                  </linearGradient>
-                  <linearGradient id="funnelBarFrontGradOrange" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ff9a66" stopOpacity={0.95} />
-                    <stop offset="100%" stopColor="#993d00" stopOpacity={0.85} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  stroke={MANAGEMENT_CHART_THEME.colors.grid}
-                  strokeDasharray="3 3"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="name"
-                  stroke={MANAGEMENT_CHART_THEME.colors.neutral}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={{ stroke: 'rgba(0, 217, 198, 0.25)' }}
-                />
-                <YAxis
-                  stroke={MANAGEMENT_CHART_THEME.colors.neutral}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  domain={[0, 'auto']}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: '#051413',
-                    border: '1px solid rgba(0, 242, 254, 0.35)',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    color: '#ffffff',
-                    boxShadow: '0 0 15px rgba(0, 242, 254, 0.15)',
-                  }}
-                  formatter={(val: unknown, name: unknown, item: { payload?: { hasValue?: boolean } }) => {
-                    if (!item.payload?.hasValue) {
-                      return ['Warte auf bestätigten Live-Wert', name];
-                    }
-                    return [`${Number(val).toLocaleString('de-DE')}`, name];
-                  }}
-                />
-                <Bar
-                  dataKey="value"
-                  shape={renderPseudo3dBar}
-                  isAnimationActive={!shouldReduceMotion}
-                  animationDuration={200}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="text-center border border-solid border-[rgba(0,242,254,0.18)] rounded-md bg-[rgba(6,22,19,0.55)] my-[16px] mx-0 px-[16px] py-[28px]">
-            <div className="text-[12px] italic text-[var(--color-text-muted)]">
-              Warte auf bestätigte Funnel-Snapshots aus n8n / Live-Feed...
+          {/* Degraded Qualitätswarnung */}
+          {hasDegraded && (
+            <div className="mb-[10px]">
+              <Badge variant="orange" style={{ padding: '2px 8px', fontSize: '9.5px' }}>
+                Qualität eingeschränkt (Degraded Snapshot in einer Stufe)
+              </Badge>
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* Tabellenalternative für Barrierefreiheit und 375px Viewport */}
-      <div className="border-0 mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px] overflow-x-auto">
-        <table className="w-full border-collapse text-[var(--color-text-muted)]">
-          <thead>
-            <tr className="border-0 border-b border-solid border-[rgba(42,74,67,0.3)] text-left">
-              <th className="font-semibold py-[2px] px-0">Stufe</th>
-              <th className="font-semibold text-right py-[2px] px-0">Bestätigter Wert</th>
-              <th className="font-semibold text-right py-[2px] px-0">Qualität</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stages.map((stage) => (
-              <tr key={stage.id} className="border-0 border-b border-solid border-[rgba(42,74,67,0.15)]">
-                <td className="text-text py-[3px] px-0">{stage.label}</td>
-                <td
-                  className={`text-right py-[3px] px-0 ${stage.hasValue ? 'not-italic text-[#00f2fe]' : 'italic text-[var(--color-text-dim)]'}`}
-                >
-                  {stage.hasValue && stage.value !== null
-                    ? `${stage.value.toLocaleString('de-DE')}`
-                    : 'Warte auf bestätigten Live-Wert'}
-                </td>
-                <td
-                  className={`text-right py-[3px] px-0 ${stage.qualityStatus === 'degraded' ? 'text-[#ff7a3d]' : 'text-[var(--color-text-muted)]'}`}
-                >
-                  {stage.hasValue
-                    ? stage.qualityStatus === 'degraded'
-                      ? 'Degraded'
-                      : 'Gültig'
-                    : '—'}
-                </td>
+          {/* Recharts BarChart mit Pseudo-3D shape */}
+          {confirmedCount > 0 ? (
+            <div className="w-full h-[220px] min-w-0" aria-hidden="true">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 24, right: 16, left: -10, bottom: 0 }}>
+                  <defs>
+                    {/* SVG Filter für weichen Boden-Lichtsaum */}
+                    <filter id="funnelGroundGlow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+                    </filter>
+                    {/* Gradients für Vorderflächen */}
+                    <linearGradient id="funnelBarFrontGradCyan" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#00f2fe" stopOpacity={0.95} />
+                      <stop offset="100%" stopColor="#006b63" stopOpacity={0.85} />
+                    </linearGradient>
+                    <linearGradient id="funnelBarFrontGradOrange" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ff9a66" stopOpacity={0.95} />
+                      <stop offset="100%" stopColor="#993d00" stopOpacity={0.85} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    stroke={MANAGEMENT_CHART_THEME.colors.grid}
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="name"
+                    stroke={MANAGEMENT_CHART_THEME.colors.neutral}
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={{ stroke: 'rgba(0, 217, 198, 0.25)' }}
+                  />
+                  <YAxis
+                    stroke={MANAGEMENT_CHART_THEME.colors.neutral}
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    domain={[0, 'auto']}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: '#051413',
+                      border: '1px solid rgba(0, 242, 254, 0.35)',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      color: '#ffffff',
+                      boxShadow: '0 0 15px rgba(0, 242, 254, 0.15)',
+                    }}
+                    formatter={(
+                      val: unknown,
+                      name: unknown,
+                      item: { payload?: { hasValue?: boolean } },
+                    ) => {
+                      if (!item.payload?.hasValue) {
+                        return ['Warte auf bestätigten Live-Wert', name];
+                      }
+                      return [`${Number(val).toLocaleString('de-DE')}`, name];
+                    }}
+                  />
+                  <Bar
+                    dataKey="value"
+                    shape={renderPseudo3dBar}
+                    isAnimationActive={!shouldReduceMotion}
+                    animationDuration={200}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="text-center border border-solid border-[rgba(0,242,254,0.18)] rounded-md bg-[rgba(6,22,19,0.55)] my-[16px] mx-0 px-[16px] py-[28px]">
+              <div className="text-[12px] italic text-[var(--color-text-muted)]">
+                Warte auf bestätigte Funnel-Snapshots aus n8n / Live-Feed...
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tabellenalternative für Barrierefreiheit und 375px Viewport */}
+        <div className="border-0 mt-[12px] pt-[8px] border-t border-solid border-border-soft text-[11px] overflow-x-auto">
+          <table className="w-full border-collapse text-[var(--color-text-muted)]">
+            <thead>
+              <tr className="border-0 border-b border-solid border-[rgba(42,74,67,0.3)] text-left">
+                <th className="font-semibold py-[2px] px-0">Stufe</th>
+                <th className="font-semibold text-right py-[2px] px-0">Bestätigter Wert</th>
+                <th className="font-semibold text-right py-[2px] px-0">Qualität</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {stages.map((stage) => (
+                <tr
+                  key={stage.id}
+                  className="border-0 border-b border-solid border-[rgba(42,74,67,0.15)]"
+                >
+                  <td className="text-text py-[3px] px-0">{stage.label}</td>
+                  <td
+                    className={`text-right py-[3px] px-0 ${stage.hasValue ? 'not-italic text-[#00f2fe]' : 'italic text-[var(--color-text-dim)]'}`}
+                  >
+                    {stage.hasValue && stage.value !== null
+                      ? `${stage.value.toLocaleString('de-DE')}`
+                      : 'Warte auf bestätigten Live-Wert'}
+                  </td>
+                  <td
+                    className={`text-right py-[3px] px-0 ${stage.qualityStatus === 'degraded' ? 'text-[#ff7a3d]' : 'text-[var(--color-text-muted)]'}`}
+                  >
+                    {stage.hasValue
+                      ? stage.qualityStatus === 'degraded'
+                        ? 'Degraded'
+                        : 'Gültig'
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </Card>
   );

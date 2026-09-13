@@ -6,7 +6,11 @@ import { CS } from '@/domain/kundenData';
 export function CustomerSuccessPage() {
   return (
     <div className="flex flex-col gap-[var(--space-6)]">
-      <SectionHeader eyebrow="Kunden" title={CS.title} description="Retention, Onboarding & Customer Success KPIs." />
+      <SectionHeader
+        eyebrow="Kunden"
+        title={CS.title}
+        description="Retention, Onboarding & Customer Success KPIs."
+      />
       <div className="grid grid-cols-4 gap-[var(--space-4)]">
         {CS.kpis.map((k) => (
           <Card key={k.label}>

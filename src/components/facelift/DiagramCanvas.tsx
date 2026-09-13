@@ -83,7 +83,11 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
           viewBox={viewBox}
           role="img"
           aria-labelledby={svgDescId ? `${svgTitleId} ${svgDescId}` : svgTitleId}
-          className={svgClassName ? `${svgClassName} block w-full h-auto select-none` : 'block w-full h-auto select-none'}
+          className={
+            svgClassName
+              ? `${svgClassName} block w-full h-auto select-none`
+              : 'block w-full h-auto select-none'
+          }
           // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
           // style-Passthrough.
           // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-svgStyle-Props, siehe Auftrag 054 Block D
@@ -120,9 +124,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
             <span>{source.label}</span>
           )}
           {source.metric && (
-            <span className="text-[var(--color-text-muted)]">
-              ({source.metric})
-            </span>
+            <span className="text-[var(--color-text-muted)]">({source.metric})</span>
           )}
         </div>
       )}

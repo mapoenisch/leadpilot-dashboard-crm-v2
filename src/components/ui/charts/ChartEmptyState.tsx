@@ -55,13 +55,9 @@ export function ChartEmptyState({
         <Icon name={iconName} size={18} />
       </div>
 
-      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text)' }}>
-        {title}
-      </div>
+      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text)' }}>{title}</div>
 
-      <div style={{ fontSize: '12px', maxWidth: '380px', lineHeight: 1.4 }}>
-        {message}
-      </div>
+      <div style={{ fontSize: '12px', maxWidth: '380px', lineHeight: 1.4 }}>{message}</div>
 
       {(currentCount !== undefined || requirement) && (
         <div
@@ -76,7 +72,10 @@ export function ChartEmptyState({
             fontWeight: 500,
           }}
         >
-          {requirement || (minRequired ? `Status: ${currentCount} von ${minRequired} Läufen ausgeführt` : `Aktuell: ${currentCount} Läufe`)}
+          {requirement ||
+            (minRequired
+              ? `Status: ${currentCount} von ${minRequired} Läufen ausgeführt`
+              : `Aktuell: ${currentCount} Läufe`)}
         </div>
       )}
     </div>

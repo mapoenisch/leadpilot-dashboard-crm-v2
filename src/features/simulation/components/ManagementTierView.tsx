@@ -78,8 +78,10 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
             </h2>
 
             <p className="text-[13.5px] leading-[1.4] mt-[6px] mb-0 mr-0 ml-0 text-[var(--color-text-muted)]">
-              Führungskennzahlen basieren auf dem <strong>P50-Median aus {aggregation.validRunCount} validen Simulationsläufen</strong>.
-              Der Unsicherheitskorridor wird durch das <strong>P10/P90-Quantilsband</strong> aufgespannt.
+              Führungskennzahlen basieren auf dem{' '}
+              <strong>P50-Median aus {aggregation.validRunCount} validen Simulationsläufen</strong>.
+              Der Unsicherheitskorridor wird durch das <strong>P10/P90-Quantilsband</strong>{' '}
+              aufgespannt.
             </p>
           </div>
 
@@ -99,21 +101,46 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
             </div>
 
             <Toolbar ariaLabel="Sekundäre Simulations-Aktionen" gap="6px">
-              <Button size="sm" variant="secondary" onClick={onOpenScenarioModal} iconLeft={<Icon name="sliders" size={13} />}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={onOpenScenarioModal}
+                iconLeft={<Icon name="sliders" size={13} />}
+              >
                 Szenarien & Parameter
               </Button>
-              <Button size="sm" variant="secondary" onClick={onOpenMeasureModal} iconLeft={<Icon name="layers" size={13} />}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={onOpenMeasureModal}
+                iconLeft={<Icon name="layers" size={13} />}
+              >
                 Maßnahmen ({draftMeasures.length})
               </Button>
               {onOpenMultiCompareModal && (
-                <Button size="sm" variant="secondary" onClick={onOpenMultiCompareModal} iconLeft={<Icon name="gitCompare" size={13} />}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={onOpenMultiCompareModal}
+                  iconLeft={<Icon name="gitCompare" size={13} />}
+                >
                   Szenariovergleich (3–4)
                 </Button>
               )}
-              <Button size="sm" variant="secondary" onClick={onOpenRunModal} iconLeft={<Icon name="playCircle" size={13} />}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={onOpenRunModal}
+                iconLeft={<Icon name="playCircle" size={13} />}
+              >
                 Run / Re-Run
               </Button>
-              <Button size="sm" variant="secondary" onClick={resetSimulation} iconLeft={<Icon name="refreshCw" size={13} />}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={resetSimulation}
+                iconLeft={<Icon name="refreshCw" size={13} />}
+              >
                 Zurücksetzen
               </Button>
             </Toolbar>
@@ -151,7 +178,9 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
 
           <div className="flex items-center gap-[8px] flex-wrap">
             <StatusChip variant={goalChipVariant} label={`ZIELSTATUS ARR: ${arrGoal.status}`} />
-            <span className="text-[12px] text-[var(--color-text-muted)]">{arrGoal.explanation}</span>
+            <span className="text-[12px] text-[var(--color-text-muted)]">
+              {arrGoal.explanation}
+            </span>
           </div>
         </div>
       </Card>
@@ -164,21 +193,28 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
             <span className="text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
               Jahresumsatz (ARR P50 Median)
             </span>
-            <Badge variant={arrComp.isPositiveChange ? 'mint' : 'orange'}>
-              {arrGoal.status}
-            </Badge>
+            <Badge variant={arrComp.isPositiveChange ? 'mint' : 'orange'}>{arrGoal.status}</Badge>
           </div>
           <div className="text-[28px] font-bold my-[6px] mx-0 text-accent">
             {comparisonMode === 'ABSOLUTE' && `${arrStats.median.toLocaleString('de-DE')} €`}
-            {comparisonMode === 'DELTA' && `${arrComp.absoluteDelta >= 0 ? '+' : ''}${arrComp.absoluteDelta.toLocaleString('de-DE')} €`}
-            {comparisonMode === 'PERCENT' && `${arrComp.percentChange >= 0 ? '+' : ''}${arrComp.percentChange} %`}
+            {comparisonMode === 'DELTA' &&
+              `${arrComp.absoluteDelta >= 0 ? '+' : ''}${arrComp.absoluteDelta.toLocaleString('de-DE')} €`}
+            {comparisonMode === 'PERCENT' &&
+              `${arrComp.percentChange >= 0 ? '+' : ''}${arrComp.percentChange} %`}
           </div>
-          <div className={`flex items-center gap-[4px] text-[12px] ${arrComp.isPositiveChange ? 'text-primary' : 'text-[var(--color-text-muted)]'}`}>
+          <div
+            className={`flex items-center gap-[4px] text-[12px] ${arrComp.isPositiveChange ? 'text-primary' : 'text-[var(--color-text-muted)]'}`}
+          >
             <Icon name={arrComp.isPositiveChange ? 'trendingUp' : 'trendingDown'} size={14} />
-            <span>Baseline: {baselineARR.toLocaleString('de-DE')} € (Δ {arrComp.absoluteDelta >= 0 ? '+' : ''}{arrComp.absoluteDelta.toLocaleString('de-DE')} €)</span>
+            <span>
+              Baseline: {baselineARR.toLocaleString('de-DE')} € (Δ{' '}
+              {arrComp.absoluteDelta >= 0 ? '+' : ''}
+              {arrComp.absoluteDelta.toLocaleString('de-DE')} €)
+            </span>
           </div>
           <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[8px] text-[var(--color-text-muted)]">
-            Unsicherheitskorridor: <strong>{arrStats.p10.toLocaleString('de-DE')} € (P10)</strong> – <strong>{arrStats.p90.toLocaleString('de-DE')} € (P90)</strong>
+            Unsicherheitskorridor: <strong>{arrStats.p10.toLocaleString('de-DE')} € (P10)</strong> –{' '}
+            <strong>{arrStats.p90.toLocaleString('de-DE')} € (P90)</strong>
           </div>
         </Card>
 
@@ -189,14 +225,17 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
           </div>
           <div className="text-[26px] font-bold my-[6px] mx-0 text-text">
             {comparisonMode === 'ABSOLUTE' && `${mrrStats.median.toLocaleString('de-DE')} €`}
-            {comparisonMode === 'DELTA' && `${mrrComp.absoluteDelta >= 0 ? '+' : ''}${mrrComp.absoluteDelta.toLocaleString('de-DE')} €`}
-            {comparisonMode === 'PERCENT' && `${mrrComp.percentChange >= 0 ? '+' : ''}${mrrComp.percentChange} %`}
+            {comparisonMode === 'DELTA' &&
+              `${mrrComp.absoluteDelta >= 0 ? '+' : ''}${mrrComp.absoluteDelta.toLocaleString('de-DE')} €`}
+            {comparisonMode === 'PERCENT' &&
+              `${mrrComp.percentChange >= 0 ? '+' : ''}${mrrComp.percentChange} %`}
           </div>
           <div className="text-[12px] text-[var(--color-text-muted)]">
             Ebene-A-Basis-MRR: {baselineMRR.toLocaleString('de-DE')} €
           </div>
           <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[8px] text-[var(--color-text-muted)]">
-            P10: {mrrStats.p10.toLocaleString('de-DE')} € | P90: {mrrStats.p90.toLocaleString('de-DE')} €
+            P10: {mrrStats.p10.toLocaleString('de-DE')} € | P90:{' '}
+            {mrrStats.p90.toLocaleString('de-DE')} €
           </div>
         </Card>
 
@@ -207,8 +246,10 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
           </div>
           <div className="text-[26px] font-bold my-[6px] mx-0 text-text">
             {comparisonMode === 'ABSOLUTE' && `${custStats.median} Kunden`}
-            {comparisonMode === 'DELTA' && `${custComp.absoluteDelta >= 0 ? '+' : ''}${custComp.absoluteDelta} Kunden`}
-            {comparisonMode === 'PERCENT' && `${custComp.percentChange >= 0 ? '+' : ''}${custComp.percentChange} %`}
+            {comparisonMode === 'DELTA' &&
+              `${custComp.absoluteDelta >= 0 ? '+' : ''}${custComp.absoluteDelta} Kunden`}
+            {comparisonMode === 'PERCENT' &&
+              `${custComp.percentChange >= 0 ? '+' : ''}${custComp.percentChange} %`}
           </div>
           <div className="text-[12px] text-[var(--color-text-muted)]">
             Ebene-A-Basis 2025: {baselineCustomers} Kunden
@@ -238,19 +279,22 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
       {/* Executive Management Summary & Corridor Status */}
       {state.metrics?.salesQueueMetrics?.isSalesBottleneck && (
         <Alert variant="warning" title="Vertriebs-Engpass erkannt (Sales Capacity Bottleneck)">
-          Der Sales-Cycle wird aktuell durch vertriebliche Kapazitätswartezeiten (Queue Time) verzögert.
-          Vertriebs-Auslastung: <strong>{state.metrics.salesQueueMetrics.capacityUtilization}%</strong> |
-          Durchschnittliche Wartezeit: <strong>{state.metrics.salesQueueMetrics.avgQueueTicks} Ticks</strong> |
-          Wartende Vorgänge: <strong>{state.metrics.salesQueueMetrics.waitingCount} Leads</strong>.
+          Der Sales-Cycle wird aktuell durch vertriebliche Kapazitätswartezeiten (Queue Time)
+          verzögert. Vertriebs-Auslastung:{' '}
+          <strong>{state.metrics.salesQueueMetrics.capacityUtilization}%</strong> |
+          Durchschnittliche Wartezeit:{' '}
+          <strong>{state.metrics.salesQueueMetrics.avgQueueTicks} Ticks</strong> | Wartende
+          Vorgänge: <strong>{state.metrics.salesQueueMetrics.waitingCount} Leads</strong>.
         </Alert>
       )}
 
       {state.metrics?.csQueueMetrics?.isCSBottleneck && (
         <Alert variant="warning" title="Customer Success Engpass erkannt (CS Capacity Bottleneck)">
-          Die Kundenbetreuung wird aktuell durch CS-Kapazitätswartezeiten verzögert. 
-          CS-Auslastung: <strong>{state.metrics.csQueueMetrics.capacityUtilization}%</strong> | 
-          Durchschnittliche CS-Wartezeit: <strong>{state.metrics.csQueueMetrics.avgQueueTicks} Ticks</strong> | 
-          Gefährdete Kunden (Health &lt; 50): <strong>{state.metrics.customerHealthMetrics?.atRiskCustomerCount || 0}</strong>.
+          Die Kundenbetreuung wird aktuell durch CS-Kapazitätswartezeiten verzögert. CS-Auslastung:{' '}
+          <strong>{state.metrics.csQueueMetrics.capacityUtilization}%</strong> | Durchschnittliche
+          CS-Wartezeit: <strong>{state.metrics.csQueueMetrics.avgQueueTicks} Ticks</strong> |
+          Gefährdete Kunden (Health &lt; 50):{' '}
+          <strong>{state.metrics.customerHealthMetrics?.atRiskCustomerCount || 0}</strong>.
         </Alert>
       )}
 
@@ -261,30 +305,58 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
         </h4>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[var(--space-3)]">
           <div className="rounded bg-background-deep p-[10px]">
-            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Net Revenue (P50)</div>
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">
+              Net Revenue (P50)
+            </div>
             <div className="text-[18px] font-bold text-text">
-              {(aggregation.metrics.financialMetrics?.netRevenue.median ?? state.metrics?.financialMetrics?.netRevenue ?? 0).toLocaleString('de-DE')} €
+              {(
+                aggregation.metrics.financialMetrics?.netRevenue.median ??
+                state.metrics?.financialMetrics?.netRevenue ??
+                0
+              ).toLocaleString('de-DE')}{' '}
+              €
             </div>
           </div>
 
           <div className="rounded bg-background-deep p-[10px]">
             <div className="text-[11px] uppercase text-[var(--color-text-muted)]">EBITDA (P50)</div>
-            <div className={`text-[18px] font-bold ${(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'text-warning' : 'text-primary'}`}>
-              {(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} €
+            <div
+              className={`text-[18px] font-bold ${(aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0) < 0 ? 'text-warning' : 'text-primary'}`}
+            >
+              {(
+                aggregation.metrics.financialMetrics?.ebitda.median ??
+                state.metrics?.financialMetrics?.ebitda ??
+                0
+              ).toLocaleString('de-DE')}{' '}
+              €
             </div>
           </div>
 
           <div className="rounded bg-background-deep p-[10px]">
-            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Operating Margin</div>
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">
+              Operating Margin
+            </div>
             <div className="text-[18px] font-bold text-text">
-              {aggregation.metrics.financialMetrics?.operatingMargin.median ?? state.metrics?.financialMetrics?.operatingMargin ?? 0}%
+              {aggregation.metrics.financialMetrics?.operatingMargin.median ??
+                state.metrics?.financialMetrics?.operatingMargin ??
+                0}
+              %
             </div>
           </div>
 
           <div className="rounded bg-background-deep p-[10px]">
-            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">Net Cash Flow</div>
-            <div className={`text-[18px] font-bold ${(aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0) < 0 ? 'text-warning' : 'text-accent'}`}>
-              {(aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString('de-DE')} €
+            <div className="text-[11px] uppercase text-[var(--color-text-muted)]">
+              Net Cash Flow
+            </div>
+            <div
+              className={`text-[18px] font-bold ${(aggregation.metrics.financialMetrics?.netCashFlow.median ?? state.metrics?.financialMetrics?.netCashFlow ?? 0) < 0 ? 'text-warning' : 'text-accent'}`}
+            >
+              {(
+                aggregation.metrics.financialMetrics?.netCashFlow.median ??
+                state.metrics?.financialMetrics?.netCashFlow ??
+                0
+              ).toLocaleString('de-DE')}{' '}
+              €
             </div>
           </div>
         </div>
@@ -292,21 +364,32 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
 
       {(state.metrics?.financialMetrics?.ebitda ?? 0) < 0 && (
         <Alert variant="warning" title="Finanzwarung: Negatives EBITDA">
-          Das operative EBITDA ist im aktuellen Ausführungsstand negativ (<strong>{(state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} €</strong>). Die operativen Personalkosten und OPEX übersteigen den generierten Net Revenue.
+          Das operative EBITDA ist im aktuellen Ausführungsstand negativ (
+          <strong>
+            {(state.metrics?.financialMetrics?.ebitda ?? 0).toLocaleString('de-DE')} €
+          </strong>
+          ). Die operativen Personalkosten und OPEX übersteigen den generierten Net Revenue.
         </Alert>
       )}
 
       {(state.metrics?.financialMetrics?.netCashFlow ?? 0) < 0 && (
         <Alert variant="warning" title="Finanzwarnung: Negativer Net Cash Flow">
-          Der laufende Net Cash Flow ist negativ (<strong>{(state.metrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString('de-DE')} €</strong>). Der operative Cash-Abfluss übersteigt die Mittelzuflüsse.
+          Der laufende Net Cash Flow ist negativ (
+          <strong>
+            {(state.metrics?.financialMetrics?.netCashFlow ?? 0).toLocaleString('de-DE')} €
+          </strong>
+          ). Der operative Cash-Abfluss übersteigt die Mittelzuflüsse.
         </Alert>
       )}
 
       <Alert variant="info" title="Management-Zusammenfassung & Unsicherheitsband">
-        Die aktuellen Monte-Carlo-Ergebnisse zeigen einen geschätzten Median-ARR von <strong>{arrStats.median.toLocaleString('de-DE')} €</strong>. 
-        Im ungünstigsten 10%-Szenario (P10) wird ein ARR von <strong>{arrStats.p10.toLocaleString('de-DE')} €</strong> erreicht, 
-        während im optimistischen 90%-Szenario (P90) ein ARR von <strong>{arrStats.p90.toLocaleString('de-DE')} €</strong> möglich ist. 
-        Die Standardabweichung beträgt <strong>{aggregation.metrics.arr.stdDev.toLocaleString('de-DE')} €</strong>.
+        Die aktuellen Monte-Carlo-Ergebnisse zeigen einen geschätzten Median-ARR von{' '}
+        <strong>{arrStats.median.toLocaleString('de-DE')} €</strong>. Im ungünstigsten 10%-Szenario
+        (P10) wird ein ARR von <strong>{arrStats.p10.toLocaleString('de-DE')} €</strong> erreicht,
+        während im optimistischen 90%-Szenario (P90) ein ARR von{' '}
+        <strong>{arrStats.p90.toLocaleString('de-DE')} €</strong> möglich ist. Die
+        Standardabweichung beträgt{' '}
+        <strong>{aggregation.metrics.arr.stdDev.toLocaleString('de-DE')} €</strong>.
       </Alert>
     </div>
   );

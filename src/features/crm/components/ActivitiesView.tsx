@@ -184,9 +184,7 @@ export function ActivitiesView() {
       key: 'date',
       label: 'Zeitpunkt / Datum',
       render: (r) => (
-        <span className="font-mono text-[12px] text-[var(--color-text-muted)]">
-          {r.date}
-        </span>
+        <span className="font-mono text-[12px] text-[var(--color-text-muted)]">{r.date}</span>
       ),
     },
     {
@@ -194,12 +192,9 @@ export function ActivitiesView() {
       label: 'Aktivitätstyp',
       render: (r) => {
         const isWon = r.type.includes('Won') || r.type === 'DEAL_WON';
-        const isCall = r.type.includes('Meeting') || r.type.includes('Qualification') || r.type.includes('Call');
-        return (
-          <Badge variant={isWon ? 'cyan' : isCall ? 'orange' : 'neutral'}>
-            {r.type}
-          </Badge>
-        );
+        const isCall =
+          r.type.includes('Meeting') || r.type.includes('Qualification') || r.type.includes('Call');
+        return <Badge variant={isWon ? 'cyan' : isCall ? 'orange' : 'neutral'}>{r.type}</Badge>;
       },
     },
     {
@@ -210,24 +205,18 @@ export function ActivitiesView() {
     {
       key: 'details',
       label: 'Beschreibung & Details',
-      render: (r) => (
-        <span className="text-[13px] text-text">{r.details}</span>
-      ),
+      render: (r) => <span className="text-[13px] text-text">{r.details}</span>,
     },
     {
       key: 'actor',
       label: 'Ausgeführt durch',
-      render: (r) => (
-        <span className="text-[12px] text-[var(--color-text-muted)]">{r.actor}</span>
-      ),
+      render: (r) => <span className="text-[12px] text-[var(--color-text-muted)]">{r.actor}</span>,
     },
     {
       key: 'status',
       label: 'Status',
       render: (r) => (
-        <Badge variant={r.status === 'COMPLETED' ? 'cyan' : 'neutral'}>
-          {r.status || 'OK'}
-        </Badge>
+        <Badge variant={r.status === 'COMPLETED' ? 'cyan' : 'neutral'}>{r.status || 'OK'}</Badge>
       ),
     },
   ];
@@ -262,7 +251,9 @@ export function ActivitiesView() {
           <div className="font-display text-[24px] font-semibold my-[4px] text-text">
             Demo & Calls
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Fokus auf ICP-Qualifizierung</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            Fokus auf ICP-Qualifizierung
+          </div>
         </Card>
 
         <Card variant="glass">
@@ -270,7 +261,9 @@ export function ActivitiesView() {
           <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {typeOptions.length - 1} Typen
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Demos, Calls, Mails, Deals</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            Demos, Calls, Mails, Deals
+          </div>
         </Card>
 
         <Card variant="glass">
@@ -278,7 +271,9 @@ export function ActivitiesView() {
           <div className="font-display text-[18px] font-bold mt-[8px] mb-[4px] text-success">
             100 % DSGVO-konform
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Hosting in Frankfurt am Main</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            Hosting in Frankfurt am Main
+          </div>
         </Card>
       </div>
 
@@ -322,25 +317,22 @@ export function ActivitiesView() {
           keyExtractor={(r) => r.id}
           renderMobileCard={(r) => {
             const isWon = r.type.includes('Won') || r.type === 'DEAL_WON';
-            const isCall = r.type.includes('Meeting') || r.type.includes('Qualification') || r.type.includes('Call');
+            const isCall =
+              r.type.includes('Meeting') ||
+              r.type.includes('Qualification') ||
+              r.type.includes('Call');
             return (
               <div className="crm-v2-mobile-card">
                 {/* Priorisierung gemäß Spezifikation: Zeitpunkt & Typ, Bezug/Akteur, Details, Status */}
                 <div className="crm-v2-mobile-card-header">
-                  <span
-                    className="crm-v2-mobile-card-title font-mono text-[12.5px] text-primary"
-                  >
+                  <span className="crm-v2-mobile-card-title font-mono text-[12.5px] text-primary">
                     {r.date}
                   </span>
-                  <Badge variant={isWon ? 'cyan' : isCall ? 'orange' : 'neutral'}>
-                    {r.type}
-                  </Badge>
+                  <Badge variant={isWon ? 'cyan' : isCall ? 'orange' : 'neutral'}>{r.type}</Badge>
                 </div>
                 <div className="crm-v2-mobile-card-row">
                   <span className="crm-v2-mobile-card-label">Projekt / Lead</span>
-                  <strong className="crm-v2-mobile-card-value text-text">
-                    {r.entityName}
-                  </strong>
+                  <strong className="crm-v2-mobile-card-value text-text">{r.entityName}</strong>
                 </div>
                 <div className="crm-v2-mobile-card-row">
                   <span className="crm-v2-mobile-card-label">Akteur</span>

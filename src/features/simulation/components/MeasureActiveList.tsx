@@ -49,7 +49,8 @@ export const MeasureActiveList: React.FC<MeasureActiveListProps> = ({
       ) : (
         <div className="flex flex-col gap-[var(--space-2)]">
           {draftMeasures.map((m) => {
-            const endTick = m.durationTicks !== undefined ? m.startTick + m.durationTicks : undefined;
+            const endTick =
+              m.durationTicks !== undefined ? m.startTick + m.durationTicks : undefined;
             return (
               <Card key={m.id} padding="var(--space-3)">
                 <div className="flex justify-between items-start flex-wrap gap-[8px]">
@@ -57,9 +58,19 @@ export const MeasureActiveList: React.FC<MeasureActiveListProps> = ({
                     <div className="flex items-center gap-[var(--space-2)] flex-wrap">
                       <span className="font-semibold text-[14px] text-text">{m.name}</span>
                       <StatusChip variant="cyan" label={`Start: Tick #${m.startTick}`} size="sm" />
-                      {m.rampUpTicks ? <StatusChip variant="orange" label={`Ramp-up: ${m.rampUpTicks} Ticks`} size="sm" /> : null}
+                      {m.rampUpTicks ? (
+                        <StatusChip
+                          variant="orange"
+                          label={`Ramp-up: ${m.rampUpTicks} Ticks`}
+                          size="sm"
+                        />
+                      ) : null}
                       {m.durationTicks ? (
-                        <StatusChip variant="neutral" label={`Dauer: ${m.durationTicks} Ticks (bis #${endTick})`} size="sm" />
+                        <StatusChip
+                          variant="neutral"
+                          label={`Dauer: ${m.durationTicks} Ticks (bis #${endTick})`}
+                          size="sm"
+                        />
                       ) : (
                         <StatusChip variant="mint" label="Dauerhaft" size="sm" />
                       )}
@@ -72,8 +83,16 @@ export const MeasureActiveList: React.FC<MeasureActiveListProps> = ({
                     <div className="flex flex-wrap gap-[6px] mt-[6px]">
                       {m.changes.map((c, idx) => {
                         const def = V1_PARAMETER_DEFINITIONS[c.parameter];
-                        const modeLabel = c.mode === 'set' ? '=' : c.mode === 'delta' ? (c.value >= 0 ? '+' : '') : '×';
-                        const valFormatted = c.mode === 'multiply' ? `${c.value}x` : `${c.value} ${def?.unit || ''}`;
+                        const modeLabel =
+                          c.mode === 'set'
+                            ? '='
+                            : c.mode === 'delta'
+                              ? c.value >= 0
+                                ? '+'
+                                : ''
+                              : '×';
+                        const valFormatted =
+                          c.mode === 'multiply' ? `${c.value}x` : `${c.value} ${def?.unit || ''}`;
                         return (
                           <span
                             key={idx}

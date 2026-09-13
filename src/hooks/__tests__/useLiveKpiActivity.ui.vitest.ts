@@ -5,10 +5,7 @@ import { renderHook, act } from '@testing-library/react';
 import type { LiveKpiSnapshot } from '@/services/liveKpi/liveKpiReadAdapter';
 import { RETENTION_MS } from '@/services/liveKpi/liveKpiStreamStore';
 import { useLiveKpiActivity } from '../useLiveKpiActivity';
-import {
-  makeSnapshot,
-  flushMicrotasks,
-} from '../../services/liveKpi/__tests__/fakes';
+import { makeSnapshot, flushMicrotasks } from '../../services/liveKpi/__tests__/fakes';
 
 type FeedStatus = 'connecting' | 'live' | 'reconnecting' | 'offline';
 
@@ -81,9 +78,7 @@ async function setStatus(status: FeedStatus): Promise<void> {
 
 describe('useLiveKpiActivity', () => {
   it('leere/ungültige IDs: keine Items, unconfigured, kein Adapter-Kontakt', () => {
-    const { result, unmount } = renderHook(() =>
-      useLiveKpiActivity(['gibts-nicht', 'auch-nicht']),
-    );
+    const { result, unmount } = renderHook(() => useLiveKpiActivity(['gibts-nicht', 'auch-nicht']));
     expect(result.current.items).toEqual([]);
     expect(result.current.status).toBe('unconfigured');
     expect(controls.feed).toBeNull();
@@ -181,9 +176,7 @@ describe('useLiveKpiActivity', () => {
   });
 
   it('Unmount bestellt alle Subscriptions ab', () => {
-    const { unmount } = renderHook(() =>
-      useLiveKpiActivity(['arr_partner', 'arr_outbound']),
-    );
+    const { unmount } = renderHook(() => useLiveKpiActivity(['arr_partner', 'arr_outbound']));
     const unsub = controls.feed?.unsubscribe;
     if (!unsub) throw new Error('kein Feed abonniert');
     unmount();

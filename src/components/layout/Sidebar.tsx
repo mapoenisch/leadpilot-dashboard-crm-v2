@@ -38,7 +38,7 @@ export function Sidebar({
 
   // Finde die Kategorie des aktuellen Pfads heraus
   const currentCategory = NAV_CATEGORIES.find((cat) =>
-    cat.items.some((item) => item.id === currentRoute.id)
+    cat.items.some((item) => item.id === currentRoute.id),
   )?.id;
 
   const [openCategories, setOpenCategories] = React.useState<Record<string, boolean>>({
@@ -51,7 +51,9 @@ export function Sidebar({
   // Kategorie bei Routenwechsel automatisch öffnen falls noch nicht offen
   useEffect(() => {
     if (currentCategory) {
-      setOpenCategories((prev) => (prev[currentCategory] ? prev : { ...prev, [currentCategory]: true }));
+      setOpenCategories((prev) =>
+        prev[currentCategory] ? prev : { ...prev, [currentCategory]: true },
+      );
     }
   }, [currentCategory]);
 
@@ -85,7 +87,7 @@ export function Sidebar({
 
         if (e.key === 'Tab' && drawerRef.current) {
           const focusable = drawerRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, [tabindex]:not([tabindex="-1"])'
+            'button, [href], input, [tabindex]:not([tabindex="-1"])',
           );
           if (focusable.length === 0) return;
 
@@ -131,7 +133,8 @@ export function Sidebar({
             }}
           />
           <div className="font-display font-bold text-[18px] text-text">
-            LeadPilot <span className="text-[11px] text-primary uppercase tracking-[0.05em]">Enterprise</span>
+            LeadPilot{' '}
+            <span className="text-[11px] text-primary uppercase tracking-[0.05em]">Enterprise</span>
           </div>
         </div>
 
@@ -163,7 +166,11 @@ export function Sidebar({
                 className={`w-full flex items-center justify-between rounded-md border-0 bg-transparent cursor-pointer px-[10px] py-[8px] font-body text-[12.5px] font-semibold uppercase tracking-[0.04em] select-none text-left transition-[background_150ms_ease,color_150ms_ease] hover:bg-surface ${hasActiveChild ? 'text-primary' : 'text-[var(--color-text-muted)]'}`}
               >
                 <div className="flex items-center gap-[8px]">
-                  <Icon name={iconName} size={15} color={hasActiveChild ? 'var(--color-primary)' : 'var(--color-text-muted)'} />
+                  <Icon
+                    name={iconName}
+                    size={15}
+                    color={hasActiveChild ? 'var(--color-primary)' : 'var(--color-text-muted)'}
+                  />
                   <span>{cat.label}</span>
                 </div>
                 <span className="text-[10px] opacity-70">{isOpen ? '▲' : '▼'}</span>
@@ -187,7 +194,9 @@ export function Sidebar({
                         label={item.label}
                         active={isItemActive}
                         onClick={handleLinkClick}
-                        badge={item.id === 's-leads' ? <Badge variant="cyan">{leadCount}</Badge> : null}
+                        badge={
+                          item.id === 's-leads' ? <Badge variant="cyan">{leadCount}</Badge> : null
+                        }
                       />
                     );
                   })}

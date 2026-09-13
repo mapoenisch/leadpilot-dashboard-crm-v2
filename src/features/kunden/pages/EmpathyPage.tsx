@@ -6,7 +6,11 @@ import { EMPATHY } from '@/domain/kundenData';
 export function EmpathyPage() {
   return (
     <div className="flex flex-col gap-[var(--space-6)]">
-      <SectionHeader eyebrow="Kunden" title={EMPATHY.title} description="Empathy Map & Hero Statement." />
+      <SectionHeader
+        eyebrow="Kunden"
+        title={EMPATHY.title}
+        description="Empathy Map & Hero Statement."
+      />
       <Card featured>
         <h3 className="m-0 mb-[12px] font-display text-primary">Hero Statement</h3>
         <p className="text-[15px] font-semibold text-text">{EMPATHY.heroStatement}</p>

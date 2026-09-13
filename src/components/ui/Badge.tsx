@@ -36,7 +36,7 @@ const badgeVariants = cva(
       variant: 'cyan',
       size: 'md',
     },
-  }
+  },
 );
 
 export function Badge({ variant = 'cyan', size = 'md', children, icon, style }: BadgeProps) {

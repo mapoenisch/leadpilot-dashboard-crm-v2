@@ -164,8 +164,8 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
               )}
               <div className="text-[11px] leading-[1.4] border border-solid border-[rgba(0,217,198,0.1)] rounded-[6px] bg-[rgba(5,18,17,0.5)] mt-auto px-[12px] py-[10px] text-[var(--color-text-muted)]">
                 <strong>Hinweis Ebene C:</strong> Echtzeit-Telemetrie wird über die sichere
-                Projektionstabelle empfangen. Bei unkonfigurierter Testumgebung zeigt der Hook
-                einen ehrlichen Offline-Status ohne Mock-Interpolation.
+                Projektionstabelle empfangen. Bei unkonfigurierter Testumgebung zeigt der Hook einen
+                ehrlichen Offline-Status ohne Mock-Interpolation.
               </div>
             </div>
           </CockpitPanel>

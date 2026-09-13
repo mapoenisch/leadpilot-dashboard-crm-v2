@@ -33,12 +33,7 @@ const chartBarWidthVariants = cva('max-w-[36px] rounded-t-[3px] transition-[heig
   },
 });
 
-export function SimpleChart({  config,
-  height = 220,
-}: {
-  config: ChartConfig;
-  height?: number;
-}) {
+export function SimpleChart({ config, height = 220 }: { config: ChartConfig; height?: number }) {
   if (!config || !config.labels || !config.datasets || config.datasets.length === 0) {
     return null;
   }
@@ -54,14 +49,7 @@ export function SimpleChart({  config,
       color: ds.colors ? ds.colors[idx % ds.colors.length] : undefined,
     }));
 
-    return (
-      <DonutRingChart
-        segments={segments}
-        totalLabel="Gesamt"
-        size={140}
-        showBars={true}
-      />
-    );
+    return <DonutRingChart segments={segments} totalLabel="Gesamt" size={140} showBars={true} />;
   }
 
   // 2. Bar Chart
@@ -85,7 +73,9 @@ export function SimpleChart({  config,
                 {datasets.map((ds, dIdx) => {
                   const val = ds.data[lIdx] || 0;
                   const hPct = Math.max(5, (val / maxVal) * 100);
-                  const color = ds.color || (ds.colors ? ds.colors[lIdx % ds.colors.length] : CHART_THEME.colors.primary);
+                  const color =
+                    ds.color ||
+                    (ds.colors ? ds.colors[lIdx % ds.colors.length] : CHART_THEME.colors.primary);
 
                   return (
                     <div
@@ -115,7 +105,11 @@ export function SimpleChart({  config,
             size="sm"
             items={datasets.map((ds, idx) => ({
               label: ds.label || `Serie ${idx + 1}`,
-              color: ds.color || (ds.colors ? ds.colors[0] : CHART_THEME.seriesPalette[idx % CHART_THEME.seriesPalette.length]),
+              color:
+                ds.color ||
+                (ds.colors
+                  ? ds.colors[0]
+                  : CHART_THEME.seriesPalette[idx % CHART_THEME.seriesPalette.length]),
               shape: 'rect',
             }))}
           />
@@ -166,25 +160,23 @@ export function SimpleChart({  config,
         })}
 
         {datasets.map((ds, dIdx) => {
-          const dsColor = ds.color || CHART_THEME.seriesPalette[dIdx % CHART_THEME.seriesPalette.length];
+          const dsColor =
+            ds.color || CHART_THEME.seriesPalette[dIdx % CHART_THEME.seriesPalette.length];
           const points = ds.data.map((val, idx) => {
             const x = padLeft + (idx / Math.max(labels.length - 1, 1)) * plotWidth;
             const y = padTop + plotHeight - ((val - minVal) / range) * plotHeight;
             return { x, y, val };
           });
 
-          const pathD = points.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '');
+          const pathD = points.reduce(
+            (acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`,
+            '',
+          );
           const fillD = `${pathD} L ${points[points.length - 1].x} ${padTop + plotHeight} L ${points[0].x} ${padTop + plotHeight} Z`;
 
           return (
             <g key={dIdx}>
-              {ds.fill && (
-                <path
-                  d={fillD}
-                  fill={dsColor}
-                  opacity="0.12"
-                />
-              )}
+              {ds.fill && <path d={fillD} fill={dsColor} opacity="0.12" />}
               <path
                 d={pathD}
                 fill="none"

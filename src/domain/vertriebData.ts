@@ -34,7 +34,10 @@ export const SLA = {
     rows: [
       ['Status vor Übergabe', 'Marketing Qualified Lead (MQL)'],
       ['Übergabemoment', 'Lead erreicht im ICP-Scoring die Einstufung "heiß" (Score ≥ 80)'],
-      ['Status nach Übergabe', 'Sales Qualified Lead (SQL), sobald Erstgespräch / Demo vereinbart ist'],
+      [
+        'Status nach Übergabe',
+        'Sales Qualified Lead (SQL), sobald Erstgespräch / Demo vereinbart ist',
+      ],
     ],
   },
   marketing: [
@@ -52,21 +55,68 @@ export const SLA = {
 export const KANAELE = {
   chartKanal: {
     type: 'doughnut',
-    labels: ['LinkedIn-Content', 'SEO/Content', 'Partner/Empfehlung', 'Webinare', 'Outbound-E-Mail'],
-    datasets: [{ data: [38, 22, 18, 12, 10], colors: ['#00D9C6', '#7CEFE6', '#0B211F', '#FF9A66', '#FF7A3D'] }],
+    labels: [
+      'LinkedIn-Content',
+      'SEO/Content',
+      'Partner/Empfehlung',
+      'Webinare',
+      'Outbound-E-Mail',
+    ],
+    datasets: [
+      {
+        data: [38, 22, 18, 12, 10],
+        colors: ['#00D9C6', '#7CEFE6', '#0B211F', '#FF9A66', '#FF7A3D'],
+      },
+    ],
   },
   chartRoi: {
     type: 'bar',
-    labels: ['Partner/Empfehlung', 'SEO/Content', 'Webinare', 'LinkedIn-Content', 'Outbound-E-Mail'],
-    datasets: [{ label: 'Marketing-CAC (€)', data: [492, 656, 820, 984, 1476], colors: ['#00D9C6', '#00D9C6', '#7CEFE6', '#7CEFE6', '#FF7A3D'] }],
+    labels: [
+      'Partner/Empfehlung',
+      'SEO/Content',
+      'Webinare',
+      'LinkedIn-Content',
+      'Outbound-E-Mail',
+    ],
+    datasets: [
+      {
+        label: 'Marketing-CAC (€)',
+        data: [492, 656, 820, 984, 1476],
+        colors: ['#00D9C6', '#00D9C6', '#7CEFE6', '#7CEFE6', '#FF7A3D'],
+      },
+    ],
   },
   headers: ['Kanal', 'Anteil', 'Neukunden', 'CAC-Index', 'Marketing-CAC', 'Spend', 'Bewertung'],
   rows: [
     ['LinkedIn-Content', '38 %', '18', '1,2×', '984 €', '17.712 €', 'Volumenträger, aber teuer'],
-    ['SEO / Content', '22 %', '10', '0,8×', '656 €', '6.560 €', 'Bestes Verhältnis aus Volumen und Kosten'],
-    ['Partner / Empfehlung', '18 %', '8', '0,6×', '492 €', '3.936 €', 'Günstigster Kanal — massiv unterinvestiert'],
+    [
+      'SEO / Content',
+      '22 %',
+      '10',
+      '0,8×',
+      '656 €',
+      '6.560 €',
+      'Bestes Verhältnis aus Volumen und Kosten',
+    ],
+    [
+      'Partner / Empfehlung',
+      '18 %',
+      '8',
+      '0,6×',
+      '492 €',
+      '3.936 €',
+      'Günstigster Kanal — massiv unterinvestiert',
+    ],
     ['Webinare', '12 %', '6', '1,0×', '820 €', '4.920 €', 'Solide, personalintensiv'],
-    ['Outbound-E-Mail', '10 %', '5', '1,8×', '1.476 €', '7.380 €', 'Teuerster Kanal, Rückbau prüfen'],
+    [
+      'Outbound-E-Mail',
+      '10 %',
+      '5',
+      '1,8×',
+      '1.476 €',
+      '7.380 €',
+      'Teuerster Kanal, Rückbau prüfen',
+    ],
     ['Gesamt', '100 %', '47', '—', '862 €', '40.500 €', 'Blended Marketing-CAC'],
   ],
 };
@@ -96,7 +146,12 @@ export const BRAND = {
     type: 'line' as const,
     labels: ['Q1 25', 'Q2 25', 'Q3 25', 'Q4 25'],
     datasets: [
-      { label: 'Website-Besucher/Mon.', data: [1900, 2300, 2600, 2900], color: '#00D9C6', fill: true },
+      {
+        label: 'Website-Besucher/Mon.',
+        data: [1900, 2300, 2600, 2900],
+        color: '#00D9C6',
+        fill: true,
+      },
       { label: 'LinkedIn-Follower', data: [700, 900, 1150, 1400], color: '#7CEFE6' },
       { label: 'Newsletter-Abos', data: [280, 390, 510, 620], color: '#FF7A3D' },
     ],
@@ -133,24 +188,44 @@ export const PLANUNG = {
   chartPlanbudget: {
     type: 'bar' as const,
     labels: ['Aug 26', 'Sep 26', 'Okt 26', 'Nov 26', 'Dez 26', 'Jan 27'],
-    datasets: [{
-      label: 'Monatsbudget (€)',
-      data: [2500, 3375, 3375, 3375, 2500, 4250],
-      color: '#00D9C6',
-    }],
+    datasets: [
+      {
+        label: 'Monatsbudget (€)',
+        data: [2500, 3375, 3375, 3375, 2500, 4250],
+        color: '#00D9C6',
+      },
+    ],
   },
   chartPlankpi: {
     type: 'bar' as const,
-    labels: ['Neukunden/Mon.', 'Marketing-CAC (€/10)', 'Trial-to-Paid (%)', 'Churn/Mon. (%)', 'KI-Scoring (%)'],
+    labels: [
+      'Neukunden/Mon.',
+      'Marketing-CAC (€/10)',
+      'Trial-to-Paid (%)',
+      'Churn/Mon. (%)',
+      'KI-Scoring (%)',
+    ],
     datasets: [
       { label: 'Basis (2025)', data: [4, 86.2, 18, 2.8, 47], color: '#7CEFE6' },
       { label: 'Ziel Jan 2027', data: [8, 72.0, 24, 2.2, 65], color: '#00D9C6' },
     ],
   },
   initiatives: [
-    { name: 'Partner-Netzwerk Ausbau', budget: '12.000 €', target: '+15 Neukunden via Empfehlungen' },
-    { name: 'Guided Onboarding Campaign', budget: '8.000 €', target: 'Trial-to-Paid auf 25% steigern' },
-    { name: 'SEO Content Expansion', budget: '10.000 €', target: 'Verdopplung organischer Traffic' },
+    {
+      name: 'Partner-Netzwerk Ausbau',
+      budget: '12.000 €',
+      target: '+15 Neukunden via Empfehlungen',
+    },
+    {
+      name: 'Guided Onboarding Campaign',
+      budget: '8.000 €',
+      target: 'Trial-to-Paid auf 25% steigern',
+    },
+    {
+      name: 'SEO Content Expansion',
+      budget: '10.000 €',
+      target: 'Verdopplung organischer Traffic',
+    },
   ],
 };
 
@@ -159,11 +234,18 @@ export const KAMPAGNE = {
   summary: 'Multichannel Outbound Kampagne zur Vermarktung der Nurturing-Sequenzen.',
   chartKampbudget: {
     type: 'doughnut' as const,
-    labels: ['Paid Social (Retargeting)', 'Content-Produktion', 'Sonstiges / Freelance', 'Kontingenz'],
-    datasets: [{
-      data: [1000, 875, 375, 250],
-      colors: ['#00D9C6', '#7CEFE6', '#FF9A66', '#FF7A3D'],
-    }],
+    labels: [
+      'Paid Social (Retargeting)',
+      'Content-Produktion',
+      'Sonstiges / Freelance',
+      'Kontingenz',
+    ],
+    datasets: [
+      {
+        data: [1000, 875, 375, 250],
+        colors: ['#00D9C6', '#7CEFE6', '#FF9A66', '#FF7A3D'],
+      },
+    ],
   },
   kpis: [
     { label: 'Erreichte B2B Entscheider', val: '1.250' },

@@ -46,12 +46,12 @@ export const CHART_THEME = {
 
   // Color palette for multi-series charts using exact design tokens
   seriesPalette: [
-    'var(--color-primary)',      // Cyan Primary
-    'var(--color-primary-hover)',// Cyan Light
-    'var(--color-success)',      // Mint Green
-    'var(--color-text-muted)',    // Gray Muted
-    'var(--color-warning)',      // Orange (Warning / Risk / Secondary)
-    'var(--color-surface-raised)',// Surface Accent
+    'var(--color-primary)', // Cyan Primary
+    'var(--color-primary-hover)', // Cyan Light
+    'var(--color-success)', // Mint Green
+    'var(--color-text-muted)', // Gray Muted
+    'var(--color-warning)', // Orange (Warning / Risk / Secondary)
+    'var(--color-surface-raised)', // Surface Accent
   ],
 
   typography: {

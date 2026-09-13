@@ -1,9 +1,18 @@
 export const SATZUNG = {
   title: 'Satzung der LeadPilot GmbH (Auszug)',
   sections: [
-    ['§ 1 Firma und Sitz', 'Die Gesellschaft führt die Firma LeadPilot GmbH. Sie hat ihren Sitz in Leipzig.'],
-    ['§ 2 Gegenstand des Unternehmens', 'Gegenstand ist die Entwicklung, der Betrieb und die Vermarktung von Software-as-a-Service (SaaS) Lösungen im B2B Lead-Management & Vertriebsautomatisierung.'],
-    ['§ 3 Stammkapital', 'Das Stammkapital der Gesellschaft beträgt 31.250,00 € (in Worten: einunddreißigtausendzweihundertfünfzig Euro) nach Kapitalerhöhung Q1 2024.'],
+    [
+      '§ 1 Firma und Sitz',
+      'Die Gesellschaft führt die Firma LeadPilot GmbH. Sie hat ihren Sitz in Leipzig.',
+    ],
+    [
+      '§ 2 Gegenstand des Unternehmens',
+      'Gegenstand ist die Entwicklung, der Betrieb und die Vermarktung von Software-as-a-Service (SaaS) Lösungen im B2B Lead-Management & Vertriebsautomatisierung.',
+    ],
+    [
+      '§ 3 Stammkapital',
+      'Das Stammkapital der Gesellschaft beträgt 31.250,00 € (in Worten: einunddreißigtausendzweihundertfünfzig Euro) nach Kapitalerhöhung Q1 2024.',
+    ],
   ],
 };
 
@@ -25,7 +34,10 @@ export const HANDELSREGISTER = {
     ['Registergericht', 'Amtsgericht Leipzig'],
     ['Registernummer', 'HRB 40912'],
     ['Erst-Eintragung / Gründung', '21. Juli 2022 (Beurkundung Gesellschaftsvertrag)'],
-    ['Vertretung', 'Ist nur ein Geschäftsführer bestellt, so vertritt er die Gesellschaft allein. Sind mehrere Geschäftsführer bestellt, so wird die Gesellschaft durch zwei Geschäftsführer gemeinsam vertreten.'],
+    [
+      'Vertretung',
+      'Ist nur ein Geschäftsführer bestellt, so vertritt er die Gesellschaft allein. Sind mehrere Geschäftsführer bestellt, so wird die Gesellschaft durch zwei Geschäftsführer gemeinsam vertreten.',
+    ],
   ],
 };
 
@@ -33,7 +45,10 @@ export const GF_VERTRAG = {
   title: 'Geschäftsführeranstellungsvertrag',
   details: [
     ['Geschäftsführer', 'Marc Pönisch (CEO), Tobias Heine (CTO)'],
-    ['Bestellung', 'Jeweils einzelvertretungsberechtigt, befreit von den Beschränkungen des § 181 BGB'],
+    [
+      'Bestellung',
+      'Jeweils einzelvertretungsberechtigt, befreit von den Beschränkungen des § 181 BGB',
+    ],
     ['Vergütung', 'Festgehalt (in Personalaufwand 55.000 € GF/Verwaltung enthalten)'],
   ],
 };

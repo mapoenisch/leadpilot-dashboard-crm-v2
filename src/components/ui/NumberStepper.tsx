@@ -58,7 +58,7 @@ const stepperBoxVariants = cva(
       focused: false,
       disabled: false,
     },
-  }
+  },
 );
 
 const stepperButtonVariants = cva(
@@ -83,7 +83,7 @@ const stepperButtonVariants = cva(
       atLimit: false,
       side: 'left',
     },
-  }
+  },
 );
 
 const stepperInputVariants = cva(
@@ -98,7 +98,7 @@ const stepperInputVariants = cva(
     defaultVariants: {
       size: 'md',
     },
-  }
+  },
 );
 
 const stepperHelperVariants = cva('text-[12px]', {
@@ -235,7 +235,8 @@ export function NumberStepper({
           onClick={handleDecrement}
           className={cn(stepperButtonVariants({ size: sizeVariant, atLimit: atMin, side: 'left' }))}
           onMouseEnter={(e) => {
-            if (!disabled && value > min) e.currentTarget.style.background = 'var(--color-primary-soft)';
+            if (!disabled && value > min)
+              e.currentTarget.style.background = 'var(--color-primary-soft)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
@@ -275,9 +276,12 @@ export function NumberStepper({
           aria-label="Wert erhöhen"
           disabled={atMax}
           onClick={handleIncrement}
-          className={cn(stepperButtonVariants({ size: sizeVariant, atLimit: atMax, side: 'right' }))}
+          className={cn(
+            stepperButtonVariants({ size: sizeVariant, atLimit: atMax, side: 'right' }),
+          )}
           onMouseEnter={(e) => {
-            if (!disabled && value < max) e.currentTarget.style.background = 'var(--color-primary-soft)';
+            if (!disabled && value < max)
+              e.currentTarget.style.background = 'var(--color-primary-soft)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
@@ -288,10 +292,7 @@ export function NumberStepper({
       </div>
 
       {(helperText || activeError) && (
-        <span
-          id={helperId}
-          className={cn(stepperHelperVariants({ error: hasError }))}
-        >
+        <span id={helperId} className={cn(stepperHelperVariants({ error: hasError }))}>
           {typeof activeError === 'string' ? activeError : helperText}
         </span>
       )}

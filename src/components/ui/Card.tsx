@@ -22,7 +22,8 @@ const cardVariants = cva('rounded-xl transition-[all_200ms_ease]', {
   variants: {
     variant: {
       default: 'bg-surface border border-solid border-border shadow-card',
-      glass: 'bg-surface-glass border border-solid border-[var(--color-border-glass)] shadow-card backdrop-blur',
+      glass:
+        'bg-surface-glass border border-solid border-[var(--color-border-glass)] shadow-card backdrop-blur',
       elevated: 'bg-[var(--color-surface-raised)] border border-solid border-border shadow-modal',
       warning: 'bg-surface border border-solid border-warning shadow-glow-orange',
       info: 'bg-surface border border-solid border-primary shadow-glow-cyan',
@@ -51,7 +52,11 @@ export function Card({
     <div
       // G39 Welle 2 (Auftrag 055, Block A): className gemerged statt über
       // {...rest} überschrieben (Aufrufer ergänzt, tailwind-merge).
-      className={cn(cardVariants({ variant, featured }), CARD_PADDINGS[padding] ?? 'p-5', className)}
+      className={cn(
+        cardVariants({ variant, featured }),
+        CARD_PADDINGS[padding] ?? 'p-5',
+        className,
+      )}
       // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props, siehe Auftrag 053 Entscheidung 5
       style={style}
       {...rest}

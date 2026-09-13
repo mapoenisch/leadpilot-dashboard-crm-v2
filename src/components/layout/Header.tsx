@@ -58,7 +58,9 @@ export function Header({
             type="button"
             onClick={onToggleTheme}
             aria-pressed={theme === 'light'}
-            aria-label={theme === 'dark' ? 'Zum hellen Design wechseln' : 'Zum dunklen Design wechseln'}
+            aria-label={
+              theme === 'dark' ? 'Zum hellen Design wechseln' : 'Zum dunklen Design wechseln'
+            }
             title={theme === 'dark' ? 'Zum hellen Design wechseln' : 'Zum dunklen Design wechseln'}
             className="flex items-center justify-center shrink-0 cursor-pointer rounded-md border border-border bg-transparent p-[6px] text-primary transition-colors hover:bg-surface-raised"
           >
@@ -70,7 +72,9 @@ export function Header({
             MP
           </div>
           <div className="header-user-details text-[12px] min-w-0">
-            <div className="text-text font-semibold whitespace-nowrap overflow-hidden text-ellipsis">Marc Pönisch</div>
+            <div className="text-text font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
+              Marc Pönisch
+            </div>
             <div className="header-user-role whitespace-nowrap overflow-hidden text-ellipsis text-[10.5px] text-[var(--color-text-muted)]">
               CEO & Gründer · LeadPilot GmbH
             </div>
@@ -100,4 +104,3 @@ export function Header({
     </header>
   );
 }
-

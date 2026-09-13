@@ -25,24 +25,14 @@ const navItemVariants = cva(
     defaultVariants: {
       active: false,
     },
-  }
+  },
 );
 
-export function NavItem({
-  icon,
-  label,
-  active,
-  badge,
-  onClick,
-  dataTestId,
-  to,
-}: NavItemProps) {
+export function NavItem({ icon, label, active, badge, onClick, dataTestId, to }: NavItemProps) {
   const content = (
     <>
       {icon}
-      <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-        {label}
-      </span>
+      <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{label}</span>
       {badge}
     </>
   );

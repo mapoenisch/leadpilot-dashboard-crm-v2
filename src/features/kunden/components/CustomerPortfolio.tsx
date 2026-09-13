@@ -12,11 +12,14 @@ interface ParsedCustomer {
   arrFormatted: string;
 }
 
-const BRANCHE_STYLES: Record<string, { color: string; symbol: string; shape: 'circle' | 'rect' | 'diamond' | 'triangle' }> = {
-  'Maschinenbau': { color: '#00D9C6', symbol: '●', shape: 'circle' },
+const BRANCHE_STYLES: Record<
+  string,
+  { color: string; symbol: string; shape: 'circle' | 'rect' | 'diamond' | 'triangle' }
+> = {
+  Maschinenbau: { color: '#00D9C6', symbol: '●', shape: 'circle' },
   'IT & Software': { color: '#7CEFE6', symbol: '■', shape: 'rect' },
-  'Großhandel': { color: '#FF7A3D', symbol: '◆', shape: 'diamond' },
-  'Agenturen': { color: '#FF9A66', symbol: '▲', shape: 'triangle' },
+  Großhandel: { color: '#FF7A3D', symbol: '◆', shape: 'diamond' },
+  Agenturen: { color: '#FF9A66', symbol: '▲', shape: 'triangle' },
 };
 
 export const CustomerPortfolio: React.FC = () => {
@@ -92,9 +95,18 @@ export const CustomerPortfolio: React.FC = () => {
         </h3>
 
         <div className="flex gap-[8px] flex-wrap items-center text-[12px] text-[var(--color-text-muted)] [overflow-wrap:break-word] break-words">
-          <span>Tatsächlicher Wertebereich: <strong>{actualMinNutzer}–{actualMaxNutzer} aktive Nutzer</strong></span>
+          <span>
+            Tatsächlicher Wertebereich:{' '}
+            <strong>
+              {actualMinNutzer}–{actualMaxNutzer} aktive Nutzer
+            </strong>
+          </span>
           <span>·</span>
-          <span><strong>{actualMinArr.toLocaleString('de-DE')}–{actualMaxArr.toLocaleString('de-DE')} € ARR</strong></span>
+          <span>
+            <strong>
+              {actualMinArr.toLocaleString('de-DE')}–{actualMaxArr.toLocaleString('de-DE')} € ARR
+            </strong>
+          </span>
           <span>·</span>
           <span>10 ICP-Referenzkunden (&lt; 200 MA)</span>
         </div>
@@ -104,7 +116,7 @@ export const CustomerPortfolio: React.FC = () => {
       <div className="portfolio-canvas-container w-full rounded-md border border-solid border-[var(--color-border-soft,rgba(255,255,255,0.08))] bg-[rgba(0,0,0,0.25)] box-border overflow-x-auto p-[12px]">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="block w-full h-auto min-w-[500px]" 
+          className="block w-full h-auto min-w-[500px]"
           role="img"
           aria-label="2D-Streudiagramm: ARR über aktive Nutzer für 10 Referenzkunden"
         >
@@ -218,7 +230,11 @@ export const CustomerPortfolio: React.FC = () => {
               cy += 7;
             }
 
-            const style = BRANCHE_STYLES[c.branche] || { color: '#00D9C6', symbol: '●', shape: 'circle' };
+            const style = BRANCHE_STYLES[c.branche] || {
+              color: '#00D9C6',
+              symbol: '●',
+              shape: 'circle',
+            };
             const isSelected = selectedCustomer === c.name;
 
             // Kollisionsfreie Label-Ausrichtung
@@ -355,7 +371,9 @@ export const CustomerPortfolio: React.FC = () => {
                 // G39 Welle 2: Symbolfarbe aus Domain-Daten (BRANCHE_STYLES).
                 // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Domain-Daten), siehe Auftrag 055 Entscheidung 2
                 style={{ color: s.color }}
-              >{s.symbol}</span>
+              >
+                {s.symbol}
+              </span>
               <span className="text-text">{branche}</span>
             </div>
           ))}

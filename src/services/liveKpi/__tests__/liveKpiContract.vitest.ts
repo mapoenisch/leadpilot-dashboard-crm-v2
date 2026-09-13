@@ -1,13 +1,7 @@
 // G32-Charakterisierung: liveKpiContract (reine Funktionen, keine Mocks nötig).
 import { describe, it, expect } from 'vitest';
-import {
-  buildIdempotencyKey,
-  validateLiveKpiEvent,
-} from '../liveKpiContract';
-import {
-  LIVE_KPI_CONTRACT_VERSION,
-  LIVE_KPI_PROVENANCE,
-} from '@/types/liveKpi';
+import { buildIdempotencyKey, validateLiveKpiEvent } from '../liveKpiContract';
+import { LIVE_KPI_CONTRACT_VERSION, LIVE_KPI_PROVENANCE } from '@/types/liveKpi';
 
 function validEvent(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {

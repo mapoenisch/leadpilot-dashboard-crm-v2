@@ -113,7 +113,8 @@ export const BudgetTargetLadder: React.FC = () => {
           Wachstumspfad: Mitteleinsatz bis Neukundenabschluss
         </h3>
         <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
-          Durchgängige Nachverfolgung der Zielkette vom Marketing-Spend über qualifizierte Kontakte bis zum Neukundenwachstum auf {targetCustomersMo} Abschlüsse/Monat im Januar 2027.
+          Durchgängige Nachverfolgung der Zielkette vom Marketing-Spend über qualifizierte Kontakte
+          bis zum Neukundenwachstum auf {targetCustomersMo} Abschlüsse/Monat im Januar 2027.
         </p>
       </div>
 
@@ -135,9 +136,7 @@ export const BudgetTargetLadder: React.FC = () => {
             </div>
 
             <div>
-              <h4 className="m-0 text-[14px] text-text font-bold">
-                {rung.title}
-              </h4>
+              <h4 className="m-0 text-[14px] text-text font-bold">{rung.title}</h4>
             </div>
 
             {/* Ist 2025 Block */}
@@ -145,9 +144,7 @@ export const BudgetTargetLadder: React.FC = () => {
               <span className="text-[10px] text-[var(--color-text-muted)] uppercase font-semibold">
                 Ist FY 2025
               </span>
-              <span className="text-[15px] font-bold text-text">
-                {rung.metricCurrent}
-              </span>
+              <span className="text-[15px] font-bold text-text">{rung.metricCurrent}</span>
               <span className="text-[11px] text-[var(--color-text-muted)]">
                 {rung.metricCurrentSub}
               </span>
@@ -158,9 +155,7 @@ export const BudgetTargetLadder: React.FC = () => {
               <span className="text-[10px] text-primary uppercase font-semibold">
                 Zielplanung Jan. 2027
               </span>
-              <span className="text-[15px] font-bold text-primary">
-                {rung.metricTarget}
-              </span>
+              <span className="text-[15px] font-bold text-primary">{rung.metricTarget}</span>
               <span className="text-[11px] text-[var(--color-text-muted)]">
                 {rung.metricTargetSub}
               </span>
@@ -178,11 +173,12 @@ export const BudgetTargetLadder: React.FC = () => {
       <div className="px-[14px] py-[12px] rounded-[var(--radius-md,8px)] border border-solid border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] flex items-start gap-[10px] min-w-0">
         <span className="text-[16px]">ℹ️</span>
         <div className="flex flex-col gap-[3px] min-w-0">
-          <strong className="text-[12px] text-text">
-            Parallele Testversionen (Self-Service)
-          </strong>
+          <strong className="text-[12px] text-text">Parallele Testversionen (Self-Service)</strong>
           <span className="text-[12px] text-[var(--color-text-muted)] leading-[1.4]">
-            Im FY 2025 wurden {testsRow[5]} Testversionen gestartet (Ø {testsRow[6]} / Monat, {testsRow[7]}). Da dieser Wert parallel zum vertrieblichen Qualifizierungspfad ({sqlRow[5]} SQL) verläuft und Self-Service-Nutzer einschließt, wird er als flankierender Zufluss geführt und nicht als serielle Stufe zwischen SQL und Angeboten eingeordnet.
+            Im FY 2025 wurden {testsRow[5]} Testversionen gestartet (Ø {testsRow[6]} / Monat,{' '}
+            {testsRow[7]}). Da dieser Wert parallel zum vertrieblichen Qualifizierungspfad (
+            {sqlRow[5]} SQL) verläuft und Self-Service-Nutzer einschließt, wird er als flankierender
+            Zufluss geführt und nicht als serielle Stufe zwischen SQL und Angeboten eingeordnet.
           </span>
         </div>
       </div>

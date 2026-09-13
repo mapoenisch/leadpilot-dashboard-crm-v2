@@ -31,7 +31,7 @@ const checkboxRootVariants = cva(
       disabled: false,
       hasDescription: false,
     },
-  }
+  },
 );
 
 const checkboxControlVariants = cva(
@@ -56,7 +56,7 @@ const checkboxControlVariants = cva(
       focused: false,
       hasDescription: false,
     },
-  }
+  },
 );
 
 const checkboxLabelVariants = cva('text-[13px] leading-[18px] transition-colors', {
@@ -111,16 +111,10 @@ export function Checkbox({
       {/* Visible custom styled checkbox control */}
       <span
         aria-hidden="true"
-        className={cn(
-          checkboxControlVariants({ checked, focused: isFocused, hasDescription })
-        )}
+        className={cn(checkboxControlVariants({ checked, focused: isFocused, hasDescription }))}
       >
         {checked && (
-          <Check
-            size={13}
-            strokeWidth={3}
-            className="block text-[var(--color-bg-deep,#070d18)]"
-          />
+          <Check size={13} strokeWidth={3} className="block text-[var(--color-bg-deep,#070d18)]" />
         )}
       </span>
 
@@ -128,7 +122,9 @@ export function Checkbox({
       <div className="flex flex-col gap-[2px]">
         <span className={cn(checkboxLabelVariants({ checked }))}>{label}</span>
         {description && (
-          <span className="text-[11.5px] text-[var(--color-text-muted)] leading-[15px]">{description}</span>
+          <span className="text-[11.5px] text-[var(--color-text-muted)] leading-[15px]">
+            {description}
+          </span>
         )}
       </div>
     </label>

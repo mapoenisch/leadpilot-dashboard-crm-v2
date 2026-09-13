@@ -145,7 +145,8 @@ export const FACELIFT_VISUAL_REGISTRY: Record<FaceliftVisualId, FaceliftVisualMe
     id: 'business-idea-signals',
     feature: 'unternehmen',
     title: 'Geschäftsidee Signal Map',
-    description: 'DACH-KMU-Situation → Vertriebsreibung → LeadPilot-Mechanik → Nutzen mit KfW- und Destatis-Quellen',
+    description:
+      'DACH-KMU-Situation → Vertriebsreibung → LeadPilot-Mechanik → Nutzen mit KfW- und Destatis-Quellen',
     fallbackType: 'text',
   },
   'benefit-stage': {
@@ -159,7 +160,8 @@ export const FACELIFT_VISUAL_REGISTRY: Record<FaceliftVisualId, FaceliftVisualMe
     id: 'funding-timeline',
     feature: 'unternehmen',
     title: 'Gründungs- & Finanzierungs-Doppelspur',
-    description: 'Zwei synchronisierte Zeitspuren: Kapital & Recht (oben) und Produkt & Markt (unten)',
+    description:
+      'Zwei synchronisierte Zeitspuren: Kapital & Recht (oben) und Produkt & Markt (unten)',
     fallbackType: 'table',
   },
   'location-atlas': {
@@ -201,14 +203,16 @@ export const FACELIFT_VISUAL_REGISTRY: Record<FaceliftVisualId, FaceliftVisualMe
     id: 'decision-topology',
     feature: 'markt',
     title: 'Isometrische Entscheidungs-Topografie',
-    description: 'Topografie mit Zonen Enterprise, Marketing/Service, Pipeline Tools und Einführungsaufwand',
+    description:
+      'Topografie mit Zonen Enterprise, Marketing/Service, Pipeline Tools und Einführungsaufwand',
     fallbackType: 'table',
   },
   'swot-compass': {
     id: 'swot-compass',
     feature: 'markt',
     title: 'Strategischer SWOT-Kompass',
-    description: 'Vier Fachzeichen um ein Entscheidungszentrum auf den Achsen intern/extern und stärken/schützen',
+    description:
+      'Vier Fachzeichen um ein Entscheidungszentrum auf den Achsen intern/extern und stärken/schützen',
     fallbackType: 'cards',
   },
   'icp-fit-map': {

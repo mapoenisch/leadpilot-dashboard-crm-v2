@@ -27,24 +27,51 @@ const STEPS = [
   { step: 4, title: 'Final check-in', wait: 'Day 14' },
 ];
 
-export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | 'leads' | 'sequences' | 'settings' }) {
+export function StandaloneKitView({
+  view = 'overview',
+}: {
+  view?: 'overview' | 'leads' | 'sequences' | 'settings';
+}) {
   const [tab, setTab] = React.useState('all');
   const [openModal, setOpenModal] = React.useState(false);
 
   if (view === 'leads') {
-    const rows = tab === 'all' ? ALL_LEADS : ALL_LEADS.filter((l) => l.status.toLowerCase() === tab);
+    const rows =
+      tab === 'all' ? ALL_LEADS : ALL_LEADS.filter((l) => l.status.toLowerCase() === tab);
     const columns = [
       { key: 'name', label: 'Name' },
       { key: 'company', label: 'Company' },
-      { key: 'status', label: 'Status', render: (r: (typeof ALL_LEADS)[number]) => <Badge variant={r.status === 'Won' ? 'cyan' : r.status === 'Hot' ? 'orange' : 'neutral'}>{r.status}</Badge> },
+      {
+        key: 'status',
+        label: 'Status',
+        render: (r: (typeof ALL_LEADS)[number]) => (
+          <Badge variant={r.status === 'Won' ? 'cyan' : r.status === 'Hot' ? 'orange' : 'neutral'}>
+            {r.status}
+          </Badge>
+        ),
+      },
       { key: 'owner', label: 'Owner' },
     ];
 
     return (
       <div className="flex flex-col gap-[var(--space-5)]">
-        <SectionHeader eyebrow="Pipeline" title="Leads" description="All contacts currently being worked." actions={<Button variant="primary" onClick={() => setOpenModal(true)}>New lead</Button>} />
+        <SectionHeader
+          eyebrow="Pipeline"
+          title="Leads"
+          description="All contacts currently being worked."
+          actions={
+            <Button variant="primary" onClick={() => setOpenModal(true)}>
+              New lead
+            </Button>
+          }
+        />
         <Tabs
-          items={[{ id: 'all', label: 'All' }, { id: 'hot', label: 'Hot' }, { id: 'new', label: 'New' }, { id: 'won', label: 'Won' }]}
+          items={[
+            { id: 'all', label: 'All' },
+            { id: 'hot', label: 'Hot' },
+            { id: 'new', label: 'New' },
+            { id: 'won', label: 'Won' },
+          ]}
           activeId={tab}
           onChange={setTab}
         />
@@ -53,10 +80,16 @@ export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | '
           open={openModal}
           onClose={() => setOpenModal(false)}
           title="Add a new lead"
-          footer={<>
-            <Button variant="secondary" onClick={() => setOpenModal(false)}>Cancel</Button>
-            <Button variant="primary" onClick={() => setOpenModal(false)}>Add lead</Button>
-          </>}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setOpenModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={() => setOpenModal(false)}>
+                Add lead
+              </Button>
+            </>
+          }
         >
           <div className="flex flex-col gap-[var(--space-4)]">
             <Input label="Full name" placeholder="Jordan Lee" />
@@ -70,19 +103,33 @@ export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | '
   if (view === 'sequences') {
     return (
       <div className="flex flex-col gap-[var(--space-5)]">
-        <SectionHeader eyebrow="Automation" title="Sequences" description="Outreach steps that run on autopilot." actions={<Button variant="primary">New sequence</Button>} />
+        <SectionHeader
+          eyebrow="Automation"
+          title="Sequences"
+          description="Outreach steps that run on autopilot."
+          actions={<Button variant="primary">New sequence</Button>}
+        />
         <Card>
           <div className="flex items-center justify-between mb-[var(--space-4)]">
             <div>
-              <div className="text-text font-display text-[17px] font-semibold">Outbound — new leads</div>
-              <div className="text-[var(--color-text-muted)] text-[13px]">4 steps · 214 enrolled</div>
+              <div className="text-text font-display text-[17px] font-semibold">
+                Outbound — new leads
+              </div>
+              <div className="text-[var(--color-text-muted)] text-[13px]">
+                4 steps · 214 enrolled
+              </div>
             </div>
             <Badge variant="cyan">Live</Badge>
           </div>
           <div className="flex flex-col">
             {STEPS.map((s, i) => (
-              <div key={s.step} className={`flex items-center gap-[var(--space-4)] px-0 py-[var(--space-3)] ${i > 0 ? 'border-t border-solid border-t-border-soft' : 'border-t-0'}`}>
-                <div className="w-[28px] h-[28px] rounded-full bg-primary-soft text-primary flex items-center justify-center text-[13px] font-semibold shrink-0">{s.step}</div>
+              <div
+                key={s.step}
+                className={`flex items-center gap-[var(--space-4)] px-0 py-[var(--space-3)] ${i > 0 ? 'border-t border-solid border-t-border-soft' : 'border-t-0'}`}
+              >
+                <div className="w-[28px] h-[28px] rounded-full bg-primary-soft text-primary flex items-center justify-center text-[13px] font-semibold shrink-0">
+                  {s.step}
+                </div>
                 <Icon name="send" size={16} color="var(--color-text-muted)" />
                 <div className="flex-1 text-text text-[14px]">{s.title}</div>
                 <div className="text-[var(--color-text-muted)] text-[12.5px]">{s.wait}</div>
@@ -97,11 +144,17 @@ export function StandaloneKitView({ view = 'overview' }: { view?: 'overview' | '
   if (view === 'settings') {
     return (
       <div className="flex flex-col gap-[var(--space-5)] max-w-[480px]">
-        <SectionHeader eyebrow="Account" title="Settings" description="Update your workspace details." />
+        <SectionHeader
+          eyebrow="Account"
+          title="Settings"
+          description="Update your workspace details."
+        />
         <Input label="Workspace name" defaultValue="LeadPilot Sales" />
         <Input label="Notification email" defaultValue="alerts@leadpilot.io" />
         <Divider />
-        <Button variant="primary" className="self-start">Save changes</Button>
+        <Button variant="primary" className="self-start">
+          Save changes
+        </Button>
       </div>
     );
   }

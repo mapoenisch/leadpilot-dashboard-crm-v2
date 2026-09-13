@@ -7,7 +7,11 @@ import { KAMPAGNE } from '@/domain/vertriebData';
 export function CampaignPlanningPage() {
   return (
     <div className="flex flex-col gap-[var(--space-6)]">
-      <SectionHeader eyebrow="Vertrieb & Marketing" title={KAMPAGNE.title} description={KAMPAGNE.summary} />
+      <SectionHeader
+        eyebrow="Vertrieb & Marketing"
+        title={KAMPAGNE.title}
+        description={KAMPAGNE.summary}
+      />
       <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[var(--space-4)]">
         {KAMPAGNE.kpis.map((k) => (
           <Card key={k.label}>

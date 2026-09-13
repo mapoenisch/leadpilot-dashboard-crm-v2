@@ -7,7 +7,11 @@ import { BRAND } from '@/domain/vertriebData';
 export function BrandPage() {
   return (
     <div className="flex flex-col gap-[var(--space-6)]">
-      <SectionHeader eyebrow="Vertrieb & Marketing" title="Brand & Digital Presence" description="Reichweite und Bewertungen." />
+      <SectionHeader
+        eyebrow="Vertrieb & Marketing"
+        title="Brand & Digital Presence"
+        description="Reichweite und Bewertungen."
+      />
       <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-[var(--space-4)]">
         {BRAND.metrics.map((m) => (
           <Card key={m.label}>

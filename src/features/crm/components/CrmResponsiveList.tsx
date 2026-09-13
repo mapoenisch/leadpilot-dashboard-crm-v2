@@ -97,7 +97,9 @@ export function CrmResponsiveList<T extends object>({
                 {firstCol && (
                   <div className="crm-v2-mobile-card-header">
                     <div className="crm-v2-mobile-card-title">
-                      {firstCol.render ? firstCol.render(row) : (cellValue(row, firstCol.key) as React.ReactNode)}
+                      {firstCol.render
+                        ? firstCol.render(row)
+                        : (cellValue(row, firstCol.key) as React.ReactNode)}
                     </div>
                   </div>
                 )}

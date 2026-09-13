@@ -12,16 +12,19 @@ export interface GenericDocViewProps {
 
 const DOC_CONTENT: Record<string, { summary: string; bullets: string[]; alert?: string }> = {
   's-idee': {
-    summary: 'LeadPilot ist die unkomplizierte B2B-Lead-Management-Software für den Mittelstand. Sie schließt die Lücke zwischen unübersichtlichen Excel-Listen und überdimensionierten Enterprise-CRMs.',
+    summary:
+      'LeadPilot ist die unkomplizierte B2B-Lead-Management-Software für den Mittelstand. Sie schließt die Lücke zwischen unübersichtlichen Excel-Listen und überdimensionierten Enterprise-CRMs.',
     bullets: [
       'Fokus auf blitzschnelle Einführung (< 1 Tag) ohne IT-Projekt.',
       'Integrierter Lead-Nurturing-Flow für unkontaktierte Leads.',
       'DSGVO-konformes Hosting in Deutschland.',
     ],
-    alert: 'Geschäftsidee: Keine komplizierten Schulungen nötig — direkt nutzbar für Vertriebsleiter Volker.',
+    alert:
+      'Geschäftsidee: Keine komplizierten Schulungen nötig — direkt nutzbar für Vertriebsleiter Volker.',
   },
   's-funktion': {
-    summary: 'Produktarchitektur und intuitive Benutzeroberfläche zur automatischen Lead-Qualifizierung.',
+    summary:
+      'Produktarchitektur und intuitive Benutzeroberfläche zur automatischen Lead-Qualifizierung.',
     bullets: [
       'Automatischer Lead-Scoring-Algorithmus.',
       'Nahtlose E-Mail-Outreach-Sequenzen (4-Schritt Nurturing).',
@@ -84,9 +87,7 @@ export function GenericDocView({ viewId, title, categoryLabel }: GenericDocViewP
         <h3 className="m-0 mb-[var(--space-3)] font-display text-[18px] text-primary">
           Zusammenfassung
         </h3>
-        <p className="text-[14.5px] leading-[1.6] text-text">
-          {content.summary}
-        </p>
+        <p className="text-[14.5px] leading-[1.6] text-text">{content.summary}</p>
       </Card>
 
       <Card>

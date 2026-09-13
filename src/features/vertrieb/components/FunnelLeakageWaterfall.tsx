@@ -114,8 +114,9 @@ export const FunnelLeakageWaterfall: React.FC = () => {
           Konvertierungskaskade FY 2025
         </h3>
         <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
-          Stufenweiser Übergang von {leadsRow[5]} erfassten Leads bis zu den {wonRow[5]} gewonnenen Neukunden.
-          Rechnerischer Gesamtverlust: −{totalLoss.toLocaleString('de-DE')} Leads über alle Stufen.
+          Stufenweiser Übergang von {leadsRow[5]} erfassten Leads bis zu den {wonRow[5]} gewonnenen
+          Neukunden. Rechnerischer Gesamtverlust: −{totalLoss.toLocaleString('de-DE')} Leads über
+          alle Stufen.
         </p>
       </div>
 
@@ -141,9 +142,7 @@ export const FunnelLeakageWaterfall: React.FC = () => {
               </div>
 
               <div>
-                <div className="text-[13px] font-bold text-text">
-                  {stage.name}
-                </div>
+                <div className="text-[13px] font-bold text-text">{stage.name}</div>
                 <div className="text-[18px] font-extrabold text-primary mt-[2px]">
                   {stage.startCount.toLocaleString('de-DE')}
                 </div>
@@ -184,7 +183,9 @@ export const FunnelLeakageWaterfall: React.FC = () => {
               <div className="mt-auto pt-[8px] border-t border-solid border-border text-[11px] text-[var(--color-text-muted)] flex flex-col gap-[4px]">
                 <div>
                   <span className="text-primary font-bold">➔ </span>
-                  <span>Ziel: <strong className="text-text">{stage.nextStageName}</strong></span>
+                  <span>
+                    Ziel: <strong className="text-text">{stage.nextStageName}</strong>
+                  </span>
                 </div>
                 {stage.sourceConversion && stage.sourceConversion !== '—' && (
                   <div className="text-[10px] text-[var(--color-text-muted)]">
@@ -203,9 +204,7 @@ export const FunnelLeakageWaterfall: React.FC = () => {
           <div className="text-[11px] text-[var(--color-text-muted)] uppercase">
             Ausgangsbasis Leads
           </div>
-          <div className="text-[18px] font-bold text-text mt-[2px]">
-            {leadsRow[5]} Leads
-          </div>
+          <div className="text-[18px] font-bold text-text mt-[2px]">{leadsRow[5]} Leads</div>
           <div className="text-[12px] text-[var(--color-text-muted)] mt-[2px]">
             Ø {leadsRow[6]} Leads / Monat (FY 2025)
           </div>
@@ -242,9 +241,7 @@ export const FunnelLeakageWaterfall: React.FC = () => {
           <span className="text-[11px] font-bold px-[6px] py-[2px] rounded-[4px] bg-[rgba(255,184,0,0.18)] text-warning uppercase">
             POTENZIAL-ANMERKUNG
           </span>
-          <strong className="text-[13px] text-text">
-            {FUNNEL.note.title}
-          </strong>
+          <strong className="text-[13px] text-text">{FUNNEL.note.title}</strong>
         </div>
         <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
           {FUNNEL.note.paragraphs[0]}

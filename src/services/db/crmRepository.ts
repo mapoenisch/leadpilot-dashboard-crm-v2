@@ -1,4 +1,11 @@
-import { Company, Contact, ImportedFunnelDeal, ImportAuditSummary, Lead, LeadStatus } from '@/types/crm';
+import {
+  Company,
+  Contact,
+  ImportedFunnelDeal,
+  ImportAuditSummary,
+  Lead,
+  LeadStatus,
+} from '@/types/crm';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { seedSupabaseDatabase, SeedResult } from '../import/crmSeeder';
 import { dataSourceRegistry } from '../data';
@@ -139,7 +146,10 @@ export class CRMRepository {
           }));
         }
       } catch (e) {
-        logger.warn('Supabase fetch failed for imported funnel deals, using fallback repository data.', e);
+        logger.warn(
+          'Supabase fetch failed for imported funnel deals, using fallback repository data.',
+          e,
+        );
       }
     }
     const snapshot = await dataSourceRegistry.getActive().fetchSnapshot();
@@ -162,9 +172,24 @@ export class CRMRepository {
   }
 
   // --- Operative write/stub methods guarded in Auftrag 016 ---
-  public static getLeads(): never { throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).'); }
-  public static getDeals(): never { throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).'); }
-  public static getActivities(): never { throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).'); }
-  public static addLead(_leadData: Omit<Lead, 'id' | 'createdAt'>): never { throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).'); }
-  public static updateLeadStatus(_leadId: string, _newStatus: LeadStatus, _reason?: string, _triggeredBy?: string): never { throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).'); }
+  public static getLeads(): never {
+    throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).');
+  }
+  public static getDeals(): never {
+    throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).');
+  }
+  public static getActivities(): never {
+    throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).');
+  }
+  public static addLead(_leadData: Omit<Lead, 'id' | 'createdAt'>): never {
+    throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).');
+  }
+  public static updateLeadStatus(
+    _leadId: string,
+    _newStatus: LeadStatus,
+    _reason?: string,
+    _triggeredBy?: string,
+  ): never {
+    throw new Error('Operativer CRM-Schreibpfad ist nicht Teil dieser App (B22 / BUILD_PLAN D1).');
+  }
 }

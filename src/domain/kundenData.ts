@@ -6,22 +6,51 @@ export const PERSONA = BUYER_PERSONA_VOLKER;
 
 export const EMPATHY = {
   title: 'Empathy Map — Vertriebsleiter Volker',
-  heroStatement: '„Ich brauche kein überkomplexes IT-System, sondern sofortige Klarheit, welcher Kunde heute kontaktiert werden muss."',
+  heroStatement:
+    '„Ich brauche kein überkomplexes IT-System, sondern sofortige Klarheit, welcher Kunde heute kontaktiert werden muss."',
   quadrants: [
-    { title: 'Was er denkt & fühlt', desc: 'Sorge vor verlorenem Umsatz; Frust über aufwendiges Excel-Reporting; Wunsch nach verlässlichen Zahlen für die Geschäftsführung.' },
-    { title: 'Was er sieht', desc: 'Unbeantwortete E-Mails, unklare Notizen im Team, Werbeanzeigen von überteuerten Enterprise-CRMs.' },
-    { title: 'Was er hört', desc: 'Geschäftsführung verlangt verlässliche Zahlen; Vertriebsteam klagt über komplizierte administrative Software.' },
-    { title: 'Was er tut & sagt', desc: 'Arbeitet pragmatisch, entscheidet oft aus Erfahrung, sucht nach Lösungen ohne langes Einführungsprojekt.' },
+    {
+      title: 'Was er denkt & fühlt',
+      desc: 'Sorge vor verlorenem Umsatz; Frust über aufwendiges Excel-Reporting; Wunsch nach verlässlichen Zahlen für die Geschäftsführung.',
+    },
+    {
+      title: 'Was er sieht',
+      desc: 'Unbeantwortete E-Mails, unklare Notizen im Team, Werbeanzeigen von überteuerten Enterprise-CRMs.',
+    },
+    {
+      title: 'Was er hört',
+      desc: 'Geschäftsführung verlangt verlässliche Zahlen; Vertriebsteam klagt über komplizierte administrative Software.',
+    },
+    {
+      title: 'Was er tut & sagt',
+      desc: 'Arbeitet pragmatisch, entscheidet oft aus Erfahrung, sucht nach Lösungen ohne langes Einführungsprojekt.',
+    },
   ],
 };
 
 export const SEGMENTE = {
   title: 'Kundensegmente (66 Kunden zum 31.12.2025)',
   rows: [
-    { branche: 'Maschinenbau / Industrie', anteil: '36 %', charakter: '24 Kunden · Hohe Ticketgrößen, 20-100 MA, Sweet Spot' },
-    { branche: 'IT / Software', anteil: '27 %', charakter: '18 Kunden · Hohe Digitalaffinität, schnelle Kaufentscheidung' },
-    { branche: 'Großhandel', anteil: '21 %', charakter: '14 Kunden · Hohes Lead-Volumen, klare SLA-Anforderungen' },
-    { branche: 'Agenturen', anteil: '15 %', charakter: '10 Kunden · Kurze Sales-Cycles, direkte Entscheider-Ebene' },
+    {
+      branche: 'Maschinenbau / Industrie',
+      anteil: '36 %',
+      charakter: '24 Kunden · Hohe Ticketgrößen, 20-100 MA, Sweet Spot',
+    },
+    {
+      branche: 'IT / Software',
+      anteil: '27 %',
+      charakter: '18 Kunden · Hohe Digitalaffinität, schnelle Kaufentscheidung',
+    },
+    {
+      branche: 'Großhandel',
+      anteil: '21 %',
+      charakter: '14 Kunden · Hohes Lead-Volumen, klare SLA-Anforderungen',
+    },
+    {
+      branche: 'Agenturen',
+      anteil: '15 %',
+      charakter: '10 Kunden · Kurze Sales-Cycles, direkte Entscheider-Ebene',
+    },
   ],
 };
 
@@ -45,11 +74,13 @@ export const REGIONEN = {
 export const CHART_SEGMENT = {
   type: 'bar' as const,
   labels: ['Maschinenbau', 'IT / Software', 'Großhandel', 'Agenturen'],
-  datasets: [{
-    label: 'ARR nach Segment (€)',
-    data: [178560, 112320, 78960, 42000],
-    colors: ['#00D9C6', '#7CEFE6', '#FF7A3D', '#FF9A66'],
-  }],
+  datasets: [
+    {
+      label: 'ARR nach Segment (€)',
+      data: [178560, 112320, 78960, 42000],
+      colors: ['#00D9C6', '#7CEFE6', '#FF7A3D', '#FF9A66'],
+    },
+  ],
 };
 
 export const TOP10 = {

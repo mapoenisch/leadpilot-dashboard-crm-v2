@@ -13,7 +13,7 @@ export const ChannelInvestmentRoute: React.FC = () => {
       budgetRows.find(
         (b) =>
           b[0].toLowerCase().startsWith(kRow[0].toLowerCase().slice(0, 4)) ||
-          kRow[0].toLowerCase().startsWith(b[0].toLowerCase().slice(0, 4))
+          kRow[0].toLowerCase().startsWith(b[0].toLowerCase().slice(0, 4)),
       ) || budgetRows[0];
 
     let badge: 'Erhöhen' | 'Halten' | 'Stoppen' = 'Halten';
@@ -56,7 +56,8 @@ export const ChannelInvestmentRoute: React.FC = () => {
   // G39 Welle 4: Badge-Farben je Variante als Klassen-Lookup (alle drei
   // Werte zur Build-Zeit bekannt — kein style-Prop nötig, Entscheidung 2).
   const BADGE_CLASSES: Record<'increase' | 'hold' | 'stop', string> = {
-    increase: 'text-primary bg-[rgba(0,217,198,0.14)] border border-solid border-[rgba(0,217,198,0.35)]',
+    increase:
+      'text-primary bg-[rgba(0,217,198,0.14)] border border-solid border-[rgba(0,217,198,0.35)]',
     hold: 'text-warning bg-[rgba(255,184,0,0.14)] border border-solid border-[rgba(255,184,0,0.35)]',
     stop: 'text-accent bg-[rgba(255,122,61,0.14)] border border-solid border-[rgba(255,122,61,0.35)]',
   };
@@ -104,8 +105,13 @@ export const ChannelInvestmentRoute: React.FC = () => {
           Kanal-Allokationspfad & CAC-Effizienz
         </h3>
         <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
-          Weg von Mitteleinsatz und Kosten je Akquisition zur Neukundengewinnung.
-          Maßnahmen-Badges sind als <strong>empfohlene Maßnahme, abgeleitet aus CAC-Index, Spend-Abweichung und bestehender Bewertung</strong> ausgewiesen.
+          Weg von Mitteleinsatz und Kosten je Akquisition zur Neukundengewinnung. Maßnahmen-Badges
+          sind als{' '}
+          <strong>
+            empfohlene Maßnahme, abgeleitet aus CAC-Index, Spend-Abweichung und bestehender
+            Bewertung
+          </strong>{' '}
+          ausgewiesen.
         </p>
       </div>
 
@@ -116,7 +122,10 @@ export const ChannelInvestmentRoute: React.FC = () => {
             Gesamter Spend (Ist)
           </span>
           <div className="text-[15px] font-bold text-text">
-            {totalKanaele[5]} <span className="text-[11px] text-[var(--color-text-muted)] font-normal">(Plan: {totalMbudget[1]} · {totalMbudget[3]})</span>
+            {totalKanaele[5]}{' '}
+            <span className="text-[11px] text-[var(--color-text-muted)] font-normal">
+              (Plan: {totalMbudget[1]} · {totalMbudget[3]})
+            </span>
           </div>
         </div>
 
@@ -133,14 +142,16 @@ export const ChannelInvestmentRoute: React.FC = () => {
           <span className="text-[11px] text-[var(--color-text-muted)] uppercase">
             Blended Marketing-CAC
           </span>
-          <div className="text-[15px] font-bold text-text">
-            {totalKanaele[4]} / Kunde
-          </div>
+          <div className="text-[15px] font-bold text-text">{totalKanaele[4]} / Kunde</div>
         </div>
       </div>
 
       {/* Kanal-Routenliste */}
-      <div className="flex flex-col gap-[12px]" role="region" aria-label="Kanalliste Investitionsroute">
+      <div
+        className="flex flex-col gap-[12px]"
+        role="region"
+        aria-label="Kanalliste Investitionsroute"
+      >
         {channels.map((ch) => {
           return (
             <article
@@ -150,9 +161,7 @@ export const ChannelInvestmentRoute: React.FC = () => {
               <div className="route-step-grid">
                 {/* 1. Kanal & Bewertung */}
                 <div className="min-w-0">
-                  <div className="text-[14px] font-bold text-text">
-                    {ch.name}
-                  </div>
+                  <div className="text-[14px] font-bold text-text">{ch.name}</div>
                 </div>
 
                 {/* 2. Kanalbudget */}
@@ -160,9 +169,7 @@ export const ChannelInvestmentRoute: React.FC = () => {
                   <span className="text-[10px] text-[var(--color-text-muted)] uppercase">
                     1. Budget & Spend
                   </span>
-                  <div className="text-[13px] font-bold text-text">
-                    {ch.spend}
-                  </div>
+                  <div className="text-[13px] font-bold text-text">{ch.spend}</div>
                   <span className="text-[11px] text-[var(--color-text-muted)]">
                     Plan: {ch.budget} ({ch.variance})
                   </span>
@@ -173,9 +180,7 @@ export const ChannelInvestmentRoute: React.FC = () => {
                   <span className="text-[10px] text-[var(--color-text-muted)] uppercase">
                     2. Marketing-CAC
                   </span>
-                  <div className="text-[13px] font-bold text-text">
-                    {ch.cac}
-                  </div>
+                  <div className="text-[13px] font-bold text-text">{ch.cac}</div>
                   <span className="text-[11px] text-[var(--color-text-muted)]">
                     Index: {ch.cacIndex} vs. Blended
                   </span>
@@ -186,9 +191,7 @@ export const ChannelInvestmentRoute: React.FC = () => {
                   <span className="text-[10px] text-[var(--color-text-muted)] uppercase">
                     3. Neukunden
                   </span>
-                  <div className="text-[13px] font-bold text-primary">
-                    {ch.customers} Kunden
-                  </div>
+                  <div className="text-[13px] font-bold text-primary">{ch.customers} Kunden</div>
                   <span className="text-[11px] text-[var(--color-text-muted)]">
                     Anteil: {ch.customerShare}
                   </span>

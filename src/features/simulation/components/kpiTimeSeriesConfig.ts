@@ -67,7 +67,8 @@ export const KPI_CONFIGS: KpiConfigItem[] = [
     target: { kpiId: 'liveCustomers', targetValue: 100 },
     timeSeriesExtractor: (pt) => pt.metrics.customers,
     statsExtractor: (agg) => agg.metrics.customers,
-    runValueExtractor: (r) => r.finalMetrics?.liveCustomers ?? r.finalState?.metrics?.liveCustomers ?? 0,
+    runValueExtractor: (r) =>
+      r.finalMetrics?.liveCustomers ?? r.finalState?.metrics?.liveCustomers ?? 0,
   },
   {
     key: 'liveWonDeals',
@@ -76,16 +77,18 @@ export const KPI_CONFIGS: KpiConfigItem[] = [
     baseline: 0,
     target: { kpiId: 'liveWonDeals', targetValue: 34 },
     timeSeriesExtractor: (pt) => pt.metrics.wonDeals,
-    statsExtractor: (agg) => (agg.metrics as { wonDeals?: MetricStats }).wonDeals ?? {
-      median: 0,
-      p10: 0,
-      p90: 0,
-      mean: 0,
-      stdDev: 0,
-      min: 0,
-      max: 0,
-    },
-    runValueExtractor: (r) => r.finalMetrics?.liveWonDeals ?? r.finalState?.metrics?.liveWonDeals ?? 0,
+    statsExtractor: (agg) =>
+      (agg.metrics as { wonDeals?: MetricStats }).wonDeals ?? {
+        median: 0,
+        p10: 0,
+        p90: 0,
+        mean: 0,
+        stdDev: 0,
+        min: 0,
+        max: 0,
+      },
+    runValueExtractor: (r) =>
+      r.finalMetrics?.liveWonDeals ?? r.finalState?.metrics?.liveWonDeals ?? 0,
   },
   {
     key: 'ebitda',
@@ -105,7 +108,9 @@ export const KPI_CONFIGS: KpiConfigItem[] = [
         max: 0,
       },
     runValueExtractor: (r) =>
-      r.finalMetrics?.financialMetrics?.ebitda ?? r.finalState?.metrics?.financialMetrics?.ebitda ?? 0,
+      r.finalMetrics?.financialMetrics?.ebitda ??
+      r.finalState?.metrics?.financialMetrics?.ebitda ??
+      0,
   },
   {
     key: 'netRevenue',

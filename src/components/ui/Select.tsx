@@ -65,7 +65,7 @@ const selectTriggerVariants = cva(
       open: false,
       disabled: false,
     },
-  }
+  },
 );
 
 const selectValueVariants = cva('overflow-hidden text-ellipsis whitespace-nowrap', {
@@ -117,7 +117,7 @@ const selectOptionVariants = cva(
       selected: false,
       highlighted: false,
     },
-  }
+  },
 );
 
 export function Select({
@@ -227,21 +227,20 @@ export function Select({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={isOpen ? listboxId : undefined}
-        aria-activedescendant={isOpen && highlightedIndex >= 0 ? `${selectId}-option-${highlightedIndex}` : undefined}
+        aria-activedescendant={
+          isOpen && highlightedIndex >= 0 ? `${selectId}-option-${highlightedIndex}` : undefined
+        }
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
         className={cn(
-          selectTriggerVariants({ size: sizeVariant, error: hasError, open: isOpen, disabled })
+          selectTriggerVariants({ size: sizeVariant, error: hasError, open: isOpen, disabled }),
         )}
       >
         <span className={cn(selectValueVariants({ hasSelection: !!selectedOption }))}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDown
-          size={16}
-          className={cn(selectChevronVariants({ open: isOpen }))}
-        />
+        <ChevronDown size={16} className={cn(selectChevronVariants({ open: isOpen }))} />
       </button>
 
       {/* Dropdown Listbox */}
@@ -283,7 +282,9 @@ export function Select({
                     }
                   }}
                   onMouseEnter={() => setHighlightedIndex(idx)}
-                  className={cn(selectOptionVariants({ selected: isSelected, highlighted: isHighlighted }))}
+                  className={cn(
+                    selectOptionVariants({ selected: isSelected, highlighted: isHighlighted }),
+                  )}
                 >
                   <div className="flex flex-col gap-[2px] overflow-hidden">
                     <span className="text-ellipsis overflow-hidden whitespace-nowrap">
@@ -295,7 +296,9 @@ export function Select({
                       </span>
                     )}
                   </div>
-                  {isSelected && <Check size={14} color="var(--color-primary)" className="shrink-0 ml-[8px]" />}
+                  {isSelected && (
+                    <Check size={14} color="var(--color-primary)" className="shrink-0 ml-[8px]" />
+                  )}
                 </li>
               );
             })
@@ -303,11 +306,7 @@ export function Select({
         </ul>
       )}
 
-      {error && (
-        <span className="text-[12px] text-error">
-          {error}
-        </span>
-      )}
+      {error && <span className="text-[12px] text-error">{error}</span>}
     </div>
   );
 }

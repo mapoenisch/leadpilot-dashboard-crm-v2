@@ -64,8 +64,10 @@ export function DesignSystemPage() {
   // G39 Welle 1 (Auftrag 054, Block C): Theme-Testfläche — schaltet
   // data-theme am <html>-Element direkt (Demo ohne Persistenz; der
   // persistente Umschalter sitzt im Header).
-  const [demoTheme, setDemoTheme] = useState<'dark' | 'light'>(
-    () => (typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light' ? 'light' : 'dark')
+  const [demoTheme, setDemoTheme] = useState<'dark' | 'light'>(() =>
+    typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light'
+      ? 'light'
+      : 'dark',
   );
 
   return (
@@ -93,10 +95,18 @@ export function DesignSystemPage() {
       </Section>
 
       <Section title="Alert">
-        <Alert variant="info" title="Info">Hinweistext</Alert>
-        <Alert variant="success" title="Erfolg">Erfolgstext</Alert>
-        <Alert variant="warning" title="Warnung">Warntext</Alert>
-        <Alert variant="error" title="Fehler">Fehlertext</Alert>
+        <Alert variant="info" title="Info">
+          Hinweistext
+        </Alert>
+        <Alert variant="success" title="Erfolg">
+          Erfolgstext
+        </Alert>
+        <Alert variant="warning" title="Warnung">
+          Warntext
+        </Alert>
+        <Alert variant="error" title="Fehler">
+          Fehlertext
+        </Alert>
       </Section>
 
       <Section title="Badge">
@@ -112,10 +122,18 @@ export function DesignSystemPage() {
         <Button variant="secondary">Secondary</Button>
         <Button variant="accent">Accent</Button>
         <Button variant="danger">Danger</Button>
-        <Button variant="primary" size="sm">Klein</Button>
-        <Button variant="primary" size="lg">Groß</Button>
-        <Button variant="primary" loading>Lädt</Button>
-        <Button variant="primary" disabled>Deaktiviert</Button>
+        <Button variant="primary" size="sm">
+          Klein
+        </Button>
+        <Button variant="primary" size="lg">
+          Groß
+        </Button>
+        <Button variant="primary" loading>
+          Lädt
+        </Button>
+        <Button variant="primary" disabled>
+          Deaktiviert
+        </Button>
       </Section>
 
       <Section title="Card">
@@ -124,7 +142,9 @@ export function DesignSystemPage() {
         <Card variant="elevated">Erhöht</Card>
         <Card variant="warning">Warnung</Card>
         <Card variant="info">Info</Card>
-        <Card variant="default" featured>Hervorgehoben</Card>
+        <Card variant="default" featured>
+          Hervorgehoben
+        </Card>
       </Section>
 
       <Section title="Charts">
@@ -135,7 +155,12 @@ export function DesignSystemPage() {
         <Checkbox checked={checked} onChange={setChecked} label="Aktiv" />
         <Checkbox checked={false} onChange={() => undefined} label="Inaktiv" />
         <Checkbox checked={false} onChange={() => undefined} label="Deaktiviert" disabled />
-        <Checkbox checked label="Mit Beschreibung" description="Hilfetext" onChange={() => undefined} />
+        <Checkbox
+          checked
+          label="Mit Beschreibung"
+          description="Hilfetext"
+          onChange={() => undefined}
+        />
       </Section>
 
       <Section title="Divider">
@@ -156,8 +181,15 @@ export function DesignSystemPage() {
       </Section>
 
       <Section title="Modal">
-        <Button variant="secondary" onClick={() => setModalOpen(true)}>Modal öffnen</Button>
-        <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Demo-Dialog" maxWidth="600px">
+        <Button variant="secondary" onClick={() => setModalOpen(true)}>
+          Modal öffnen
+        </Button>
+        <Modal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title="Demo-Dialog"
+          maxWidth="600px"
+        >
           Dialoginhalt zur Abnahme.
         </Modal>
       </Section>
@@ -199,7 +231,13 @@ export function DesignSystemPage() {
           value={selectValue}
           onChange={setSelectValue}
         />
-        <Select label="Fehler" options={[]} value="" onChange={() => undefined} error="Pflichtfeld" />
+        <Select
+          label="Fehler"
+          options={[]}
+          value=""
+          onChange={() => undefined}
+          error="Pflichtfeld"
+        />
       </Section>
 
       <Section title="Skeleton">
@@ -237,11 +275,17 @@ export function DesignSystemPage() {
 
       <Section title="Toolbar">
         <Toolbar align="left">
-          <Button variant="secondary" size="sm">Links</Button>
+          <Button variant="secondary" size="sm">
+            Links
+          </Button>
         </Toolbar>
         <Toolbar align="between" gap="6px">
-          <Button variant="secondary" size="sm">A</Button>
-          <Button variant="secondary" size="sm">B</Button>
+          <Button variant="secondary" size="sm">
+            A
+          </Button>
+          <Button variant="secondary" size="sm">
+            B
+          </Button>
         </Toolbar>
       </Section>
 

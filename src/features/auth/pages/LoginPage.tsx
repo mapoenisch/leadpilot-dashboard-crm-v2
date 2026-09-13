@@ -63,7 +63,10 @@ export function LoginPage() {
               }}
             />
             <div className="font-display font-bold text-2xl tracking-tight text-white">
-              LeadPilot <span className="text-xs text-primary uppercase tracking-wider font-semibold">Enterprise</span>
+              LeadPilot{' '}
+              <span className="text-xs text-primary uppercase tracking-wider font-semibold">
+                Enterprise
+              </span>
             </div>
           </div>
           <h1 className="text-lg font-semibold text-text m-0">Anmeldung zur Plattform</h1>
@@ -82,7 +85,8 @@ export function LoginPage() {
             <span aria-hidden="true">⚠️</span> Demo-Modus (Gate G42)
           </div>
           <div>
-            App-seitige Authentifizierung ohne produktive Absicherung — echte Backend-Authentifizierung und RLS-Durchsetzung folgen mit Gate G28.
+            App-seitige Authentifizierung ohne produktive Absicherung — echte
+            Backend-Authentifizierung und RLS-Durchsetzung folgen mit Gate G28.
           </div>
           <button
             type="button"
@@ -99,7 +103,10 @@ export function LoginPage() {
             role="alert"
             className="mb-4 p-3 rounded-lg border border-[var(--color-coral-red,#FF5A5F)]/50 bg-[var(--color-coral-red-a14,rgba(255,90,95,0.14))] text-xs text-white flex items-start gap-2"
           >
-            <AlertCircle size={16} className="shrink-0 text-[var(--color-coral-red,#FF5A5F)] mt-0.5" />
+            <AlertCircle
+              size={16}
+              className="shrink-0 text-[var(--color-coral-red,#FF5A5F)] mt-0.5"
+            />
             <span>{error}</span>
           </div>
         )}

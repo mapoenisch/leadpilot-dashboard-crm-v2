@@ -17,7 +17,9 @@ export const CockpitKpiRail: React.FC<CockpitKpiRailProps> = ({ kpis }) => {
         // G39 Welle 1: Laufzeit-Auswahl aus Build-Zeit-bekannten Farbwerten
         // → Klassen-Ternaries (Muster Auftrag 053 Nachtrag 2), kein style.
         const valueColorClass = isNegative ? 'text-[#FF7A3D]' : 'text-[#00D9C6]';
-        const cardBorderClass = isNegative ? 'border-[rgba(255,122,61,0.28)]' : 'border-[rgba(0,217,198,0.18)]';
+        const cardBorderClass = isNegative
+          ? 'border-[rgba(255,122,61,0.28)]'
+          : 'border-[rgba(0,217,198,0.18)]';
         const cardShadowClass = isNegative
           ? 'shadow-[0_8px_24px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05),0_0_16px_rgba(255,122,61,0.1)]'
           : 'shadow-[0_8px_24px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05),0_0_16px_rgba(0,217,198,0.08)]';
@@ -27,18 +29,18 @@ export const CockpitKpiRail: React.FC<CockpitKpiRailProps> = ({ kpis }) => {
         const deltaBgClass = isNegative
           ? 'bg-[rgba(255,122,61,0.12)]'
           : kpi.deltaType === 'positive'
-          ? 'bg-[rgba(0,217,198,0.12)]'
-          : 'bg-[rgba(255,255,255,0.06)]';
+            ? 'bg-[rgba(0,217,198,0.12)]'
+            : 'bg-[rgba(255,255,255,0.06)]';
         const deltaColorClass = isNegative
           ? 'text-[#FF7A3D]'
           : kpi.deltaType === 'positive'
-          ? 'text-[#00D9C6]'
-          : 'text-[var(--color-text-muted)]';
+            ? 'text-[#00D9C6]'
+            : 'text-[var(--color-text-muted)]';
         const deltaBorderClass = isNegative
           ? 'border-[rgba(255,122,61,0.25)]'
           : kpi.deltaType === 'positive'
-          ? 'border-[rgba(0,217,198,0.25)]'
-          : 'border-[rgba(255,255,255,0.1)]';
+            ? 'border-[rgba(0,217,198,0.25)]'
+            : 'border-[rgba(255,255,255,0.1)]';
 
         return (
           <div
@@ -68,7 +70,9 @@ export const CockpitKpiRail: React.FC<CockpitKpiRailProps> = ({ kpis }) => {
             </div>
 
             {/* Mitte: Dominanter Wert */}
-            <div className={`font-display text-[30px] font-bold tracking-[-0.02em] leading-[1.15] my-[10px] mx-0 mb-[6px] ${valueColorClass} ${valueShadowClass}`}>
+            <div
+              className={`font-display text-[30px] font-bold tracking-[-0.02em] leading-[1.15] my-[10px] mx-0 mb-[6px] ${valueColorClass} ${valueShadowClass}`}
+            >
               {kpi.value}
             </div>
 

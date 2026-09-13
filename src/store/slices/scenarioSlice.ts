@@ -76,12 +76,10 @@ function readWorkerProgress(runs: SimulationRun[]): {
   };
 }
 
-export const createScenarioSlice: StateCreator<
-  SimulationStoreState,
-  [],
-  [],
-  ScenarioSlice
-> = (set, get) => ({
+export const createScenarioSlice: StateCreator<SimulationStoreState, [], [], ScenarioSlice> = (
+  set,
+  get,
+) => ({
   scenarios: scenarioService.getScenarios(),
   activeScenarioId: DEFAULT_BASE_2026_SCENARIO_ID,
   activeVersionId: DEFAULT_BASE_2026_VERSION_ID,
@@ -92,8 +90,7 @@ export const createScenarioSlice: StateCreator<
     const { activeScenarioId, activeVersionId } = get();
     const currentScenarios = scenarioService.getScenarios();
     const currentRuns = scenarioService.getRunsForVersion(activeVersionId);
-    const agg: ScenarioAggregationResult =
-      scenarioService.getScenarioAggregation(activeVersionId);
+    const agg: ScenarioAggregationResult = scenarioService.getScenarioAggregation(activeVersionId);
     set({
       scenarios: currentScenarios,
       versions: readVersions(activeScenarioId),
@@ -141,7 +138,11 @@ export const createScenarioSlice: StateCreator<
     targetScenarioId: string,
     description?: string,
   ): ScenarioVersion => {
-    const newVer = scenarioService.adoptConfiguration(sourceVersionId, targetScenarioId, description);
+    const newVer = scenarioService.adoptConfiguration(
+      sourceVersionId,
+      targetScenarioId,
+      description,
+    );
     set({ activeVersionId: newVer.id });
     get().refreshData();
     return newVer;

@@ -11,7 +11,18 @@ export function ProjectTasksPage() {
       <SectionHeader eyebrow="Projektkontext" title={PROJEKT.title} description={PROJEKT.summary} />
       <Card padding="0">
         <Table
-          columns={[{ key: 'id', label: 'Task ID' }, { key: 'title', label: 'Arbeitspaket' }, { key: 'status', label: 'Status', render: (r: typeof PROJEKT.tasks[number]) => <Badge variant="cyan">{r.status}</Badge> }, { key: 'date', label: 'Datum' }]}
+          columns={[
+            { key: 'id', label: 'Task ID' },
+            { key: 'title', label: 'Arbeitspaket' },
+            {
+              key: 'status',
+              label: 'Status',
+              render: (r: (typeof PROJEKT.tasks)[number]) => (
+                <Badge variant="cyan">{r.status}</Badge>
+              ),
+            },
+            { key: 'date', label: 'Datum' },
+          ]}
           rows={PROJEKT.tasks}
         />
       </Card>

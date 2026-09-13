@@ -51,7 +51,8 @@ export const SlaSwimlane: React.FC = () => {
           Service Level Agreement: Marketing ↔ Sales
         </h3>
         <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
-          Verbindliche Schnittstelle für Lead-Übergabe, Reaktionsfristen und geregelte Rückführung nicht-qualifizierter Kontakte.
+          Verbindliche Schnittstelle für Lead-Übergabe, Reaktionsfristen und geregelte Rückführung
+          nicht-qualifizierter Kontakte.
         </p>
       </div>
 
@@ -62,9 +63,7 @@ export const SlaSwimlane: React.FC = () => {
             <span className="text-[10px] font-bold uppercase px-[6px] py-[1px] rounded-[4px] bg-primary text-[#061312]">
               ÜBERGABEPUNKT
             </span>
-            <strong className="text-[14px] text-text">
-              {SLA.handoff.title}
-            </strong>
+            <strong className="text-[14px] text-text">{SLA.handoff.title}</strong>
           </div>
           <span className="text-[12px] text-[var(--color-text-muted)]">
             Kriterium: {SLA.handoff.rows[1][1]}
@@ -103,7 +102,8 @@ export const SlaSwimlane: React.FC = () => {
           </div>
 
           <p className="m-0 text-[12px] text-[var(--color-text-muted)] leading-[1.4]">
-            Verantwortlich für die kontinuierliche Lead-Generierung und Vorqualifizierung vor dem Übergabepunkt.
+            Verantwortlich für die kontinuierliche Lead-Generierung und Vorqualifizierung vor dem
+            Übergabepunkt.
           </p>
 
           <ul className="m-0 pl-[16px] text-[12px] flex flex-col gap-[8px] text-text">
@@ -137,7 +137,8 @@ export const SlaSwimlane: React.FC = () => {
           </div>
 
           <p className="m-0 text-[12px] text-[var(--color-text-muted)] leading-[1.4]">
-            Verbindliche Bearbeitung der übergebenen MQLs zur Qualifizierung und Durchführung der Erstgespräche.
+            Verbindliche Bearbeitung der übergebenen MQLs zur Qualifizierung und Durchführung der
+            Erstgespräche.
           </p>
 
           <ul className="m-0 pl-[16px] text-[12px] flex flex-col gap-[8px] text-text">
@@ -181,7 +182,8 @@ export const SlaSwimlane: React.FC = () => {
                 <span>Rückgabe an Marketing</span>
               </div>
               <div className="text-[11px] text-[var(--color-text-muted)] leading-[1.4]">
-                Disqualifikation mit konkretem Grund dokumentieren; Lead wird zurück ins automatisierte Content-Nurturing überführt.
+                Disqualifikation mit konkretem Grund dokumentieren; Lead wird zurück ins
+                automatisierte Content-Nurturing überführt.
               </div>
             </div>
 
@@ -191,7 +193,8 @@ export const SlaSwimlane: React.FC = () => {
                 <span>Eskalation bei Überschreitung der 24h-Frist</span>
               </div>
               <div className="text-[11px] text-[var(--color-text-muted)] leading-[1.4]">
-                Wird die Reaktionszeit von 24 Stunden (werktags) für den Erstkontakt überschritten, greift die Eskalationsregel.
+                Wird die Reaktionszeit von 24 Stunden (werktags) für den Erstkontakt überschritten,
+                greift die Eskalationsregel.
               </div>
             </div>
           </div>

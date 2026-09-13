@@ -21,7 +21,7 @@ interface ScenarioManageTabProps {
   createNewVersion: (
     scenarioId: string,
     params: Partial<ScenarioParameters>,
-    description?: string
+    description?: string,
   ) => ScenarioVersion;
 }
 
@@ -51,7 +51,7 @@ export const ScenarioManageTab: React.FC<ScenarioManageTabProps> = ({
 
   const handleParamChange = (
     field: keyof ScenarioParameters,
-    val: ScenarioParameters[keyof ScenarioParameters]
+    val: ScenarioParameters[keyof ScenarioParameters],
   ) => {
     setFormParams((prev) => ({ ...prev, [field]: val }));
     setValidationError(null);
@@ -79,7 +79,9 @@ export const ScenarioManageTab: React.FC<ScenarioManageTabProps> = ({
       setValidationError(null);
       onOpenDiff(newVer.id);
     } catch (err) {
-      setValidationError((err instanceof Error ? err.message : '') || 'Fehler beim Erstellen der Version.');
+      setValidationError(
+        (err instanceof Error ? err.message : '') || 'Fehler beim Erstellen der Version.',
+      );
     }
   };
 
@@ -104,9 +106,7 @@ export const ScenarioManageTab: React.FC<ScenarioManageTabProps> = ({
           <span className="text-[13px] font-semibold text-text">
             Vorhandene Szenario-Versionen:
           </span>
-          <span className="text-[12px] text-[var(--color-text-muted)]">
-            Klicken zum Aktivieren
-          </span>
+          <span className="text-[12px] text-[var(--color-text-muted)]">Klicken zum Aktivieren</span>
         </div>
 
         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[var(--space-3)]">
@@ -123,7 +123,9 @@ export const ScenarioManageTab: React.FC<ScenarioManageTabProps> = ({
               >
                 <div>
                   <div className="flex justify-between items-center mb-[6px]">
-                    <span className={`font-bold text-[14px] ${isActive ? 'text-primary' : 'text-text'}`}>
+                    <span
+                      className={`font-bold text-[14px] ${isActive ? 'text-primary' : 'text-text'}`}
+                    >
                       Version {v.versionNumber}
                     </span>
                     <div className="flex gap-[4px]">
@@ -137,15 +139,30 @@ export const ScenarioManageTab: React.FC<ScenarioManageTabProps> = ({
                   </p>
 
                   <div className="text-[11px] flex flex-col gap-[2px] rounded bg-background-deep py-[6px] px-[8px] text-[var(--color-text-muted)]">
-                    <div>Sales Reps: <strong>{v.parameters.salesRepCount ?? 2}</strong> · CS Reps: <strong>{v.parameters.csRepCount ?? 2}</strong></div>
-                    <div>Marketing: <strong>{(v.parameters.marketingBudgetYearly ?? 65000).toLocaleString('de-DE')} €</strong></div>
-                    <div>Conversion: <strong>{v.parameters.trialToPaidConversion ?? 18} %</strong> · Churn: <strong>{v.parameters.churnRateMonthly ?? 2.8} %</strong></div>
+                    <div>
+                      Sales Reps: <strong>{v.parameters.salesRepCount ?? 2}</strong> · CS Reps:{' '}
+                      <strong>{v.parameters.csRepCount ?? 2}</strong>
+                    </div>
+                    <div>
+                      Marketing:{' '}
+                      <strong>
+                        {(v.parameters.marketingBudgetYearly ?? 65000).toLocaleString('de-DE')} €
+                      </strong>
+                    </div>
+                    <div>
+                      Conversion: <strong>{v.parameters.trialToPaidConversion ?? 18} %</strong> ·
+                      Churn: <strong>{v.parameters.churnRateMonthly ?? 2.8} %</strong>
+                    </div>
                   </div>
                 </div>
 
                 <div className="border-0 border-t border-solid border-border-soft flex justify-between items-center mt-[10px] pt-[8px]">
                   <span className="text-[11px] text-[var(--color-text-muted)]">
-                    Erstellt: {new Date(v.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                    Erstellt:{' '}
+                    {new Date(v.createdAt).toLocaleTimeString('de-DE', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </span>
                   <div className="flex gap-[6px]">
                     {!isActive && (
@@ -191,12 +208,20 @@ export const ScenarioManageTab: React.FC<ScenarioManageTabProps> = ({
           )}
         </div>
       ) : (
-        <form onSubmit={handleCreateVersion} className="flex flex-col gap-[var(--space-3)] mt-[8px]">
+        <form
+          onSubmit={handleCreateVersion}
+          className="flex flex-col gap-[var(--space-3)] mt-[8px]"
+        >
           <div className="flex justify-between items-center">
             <h4 className="m-0 text-[14px] text-primary">
               Neue Version (v{versions.length + 1}) konfigurieren
             </h4>
-            <Button type="button" variant="secondary" size="sm" onClick={() => setIsCreatingVersion(false)}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsCreatingVersion(false)}
+            >
               Abbrechen
             </Button>
           </div>

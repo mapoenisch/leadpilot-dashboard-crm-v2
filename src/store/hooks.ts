@@ -54,11 +54,11 @@ export function useSimulationEvents() {
 
 export function useSimulationControls() {
   return useShallowSelector((s) => ({
-      start: s.start,
-      pause: s.pause,
-      setSpeed: s.setSpeed,
-      resetSimulation: s.resetSimulation,
-    }));
+    start: s.start,
+    pause: s.pause,
+    setSpeed: s.setSpeed,
+    resetSimulation: s.resetSimulation,
+  }));
 }
 
 // — scenarioSlice —
@@ -91,12 +91,12 @@ export function useActiveVersion() {
 
 export function useScenarioActions() {
   return useShallowSelector((s) => ({
-      selectScenario: s.selectScenario,
-      selectVersion: s.selectVersion,
-      createNewVersion: s.createNewVersion,
-      compareMultipleVersions: s.compareMultipleVersions,
-      adoptConfiguration: s.adoptConfiguration,
-    }));
+    selectScenario: s.selectScenario,
+    selectVersion: s.selectVersion,
+    createNewVersion: s.createNewVersion,
+    compareMultipleVersions: s.compareMultipleVersions,
+    adoptConfiguration: s.adoptConfiguration,
+  }));
 }
 
 export function useDraftMeasures() {
@@ -105,12 +105,12 @@ export function useDraftMeasures() {
 
 export function useMeasureActions() {
   return useShallowSelector((s) => ({
-      addDraftMeasure: s.addDraftMeasure,
-      updateDraftMeasure: s.updateDraftMeasure,
-      removeDraftMeasure: s.removeDraftMeasure,
-      setDraftMeasures: s.setDraftMeasures,
-      previewMeasures: s.previewMeasures,
-    }));
+    addDraftMeasure: s.addDraftMeasure,
+    updateDraftMeasure: s.updateDraftMeasure,
+    removeDraftMeasure: s.removeDraftMeasure,
+    setDraftMeasures: s.setDraftMeasures,
+    previewMeasures: s.previewMeasures,
+  }));
 }
 
 // — runSlice —
@@ -128,9 +128,9 @@ export function useWorkerProgress() {
 
 export function useRunActions() {
   return useShallowSelector((s) => ({
-      runVersion: s.runVersion,
-      reRun: s.reRun,
-      reproduce: s.reproduce,
-      refreshData: s.refreshData,
-    }));
+    runVersion: s.runVersion,
+    reRun: s.reRun,
+    reproduce: s.reproduce,
+    refreshData: s.refreshData,
+  }));
 }

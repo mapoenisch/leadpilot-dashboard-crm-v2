@@ -102,7 +102,8 @@ export const GoalRunway: React.FC = () => {
           {OKR.title}
         </h3>
         <p className="m-0 text-[13px] text-[var(--color-text-muted)] leading-[1.5]">
-          Visualisierung der Startbahn-Etappen je strategischem Objective: Basis 2025, Fortschrittsverlauf und Lücke zur Zielstation 2026.
+          Visualisierung der Startbahn-Etappen je strategischem Objective: Basis 2025,
+          Fortschrittsverlauf und Lücke zur Zielstation 2026.
         </p>
       </div>
 
@@ -173,9 +174,7 @@ export const GoalRunway: React.FC = () => {
                         <span className="text-[10px] font-bold px-[5px] py-[1px] rounded-[3px] text-[#001A17] bg-[var(--color-primary,#00D9C6)]">
                           ZIEL 2026
                         </span>
-                        <span className="text-[11px] text-primary font-semibold">
-                          Zielstation
-                        </span>
+                        <span className="text-[11px] text-primary font-semibold">Zielstation</span>
                       </div>
                       <div className="text-[16px] font-bold text-primary font-display mt-[2px]">
                         {kr.toVal}

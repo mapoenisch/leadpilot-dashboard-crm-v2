@@ -134,13 +134,16 @@ export const CompanyRegisterCard: React.FC = () => {
       <div className="rounded border border-solid border-border-soft bg-surface-raised flex items-center justify-between gap-[var(--space-2)] font-mono text-[0.6875rem] text-[var(--color-text-muted)] mx-[var(--space-5)] mb-[var(--space-4)] mt-0 px-[var(--space-3)] py-[var(--space-2)]">
         <span className="flex items-center gap-[var(--space-2)]">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <path d="M2 6h8M6 2v8" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" />
+            <path
+              d="M2 6h8M6 2v8"
+              stroke="var(--color-primary)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           </svg>
           Beurkundung: {gruendungsdatum}
         </span>
-        <span className="text-[var(--cyan-light)]">
-          {handelsregister}
-        </span>
+        <span className="text-[var(--cyan-light)]">{handelsregister}</span>
       </div>
 
       {/* Ausklappbare Detailtabelle als Fallback */}

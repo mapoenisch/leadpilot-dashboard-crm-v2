@@ -34,24 +34,28 @@ export const RoadmapSnapshot: React.FC = () => {
           const dotBorderClass = isReleased
             ? 'border-[#00D9C6]'
             : isInDev
-            ? 'border-[#7CEFE6]'
-            : 'border-[#8FA3A1]';
+              ? 'border-[#7CEFE6]'
+              : 'border-[#8FA3A1]';
           const dotShadowClass = isReleased
             ? 'shadow-[0_0_10px_#00D9C666]'
             : isInDev
-            ? 'shadow-[0_0_10px_#7CEFE666]'
-            : 'shadow-[0_0_10px_#8FA3A166]';
-          const dotColorClass = isReleased ? 'text-[#00D9C6]' : isInDev ? 'text-[#7CEFE6]' : 'text-[#8FA3A1]';
+              ? 'shadow-[0_0_10px_#7CEFE666]'
+              : 'shadow-[0_0_10px_#8FA3A166]';
+          const dotColorClass = isReleased
+            ? 'text-[#00D9C6]'
+            : isInDev
+              ? 'text-[#7CEFE6]'
+              : 'text-[#8FA3A1]';
           const badgeBgClass = isReleased
             ? 'bg-[rgba(0,217,198,0.15)]'
             : isInDev
-            ? 'bg-[rgba(124,239,230,0.18)]'
-            : 'bg-[rgba(255,255,255,0.08)]';
+              ? 'bg-[rgba(124,239,230,0.18)]'
+              : 'bg-[rgba(255,255,255,0.08)]';
           const badgeBorderClass = isReleased
             ? 'border-[rgba(0,217,198,0.3)]'
             : isInDev
-            ? 'border-[rgba(124,239,230,0.35)]'
-            : 'border-[rgba(255,255,255,0.15)]';
+              ? 'border-[rgba(124,239,230,0.35)]'
+              : 'border-[rgba(255,255,255,0.15)]';
 
           return (
             <div key={idx} className="flex items-start gap-[14px] relative">
@@ -72,12 +76,8 @@ export const RoadmapSnapshot: React.FC = () => {
               <div className="flex-1 flex flex-col gap-[4px] border border-solid border-[rgba(0,217,198,0.25)] rounded-[6px] bg-[rgba(5,20,19,0.45)] backdrop-blur-[6px] shadow-[0_0_14px_rgba(0,217,198,0.10)] px-[12px] py-[8px]">
                 <div className="flex justify-between items-center flex-wrap gap-[6px]">
                   <div className="flex items-center gap-[6px]">
-                    <span className="text-[11px] font-bold text-[#00D9C6]">
-                      {rel.quarter}
-                    </span>
-                    <span className="text-[12.5px] font-semibold text-[#FFFFFF]">
-                      {rel.title}
-                    </span>
+                    <span className="text-[11px] font-bold text-[#00D9C6]">{rel.quarter}</span>
+                    <span className="text-[12.5px] font-semibold text-[#FFFFFF]">{rel.title}</span>
                   </div>
                   <span
                     className={`text-[10px] font-semibold rounded-[3px] border border-solid px-[6px] py-[1px] ${badgeBgClass} ${badgeBorderClass} ${dotColorClass}`}

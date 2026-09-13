@@ -41,7 +41,8 @@ export const TeamHrSnapshot: React.FC = () => {
           {/* 4 Fachbereiche Grid */}
           <div className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-[10px] w-full">
             {structure.units.map((unit) => {
-              const hasWarning = unit.staffing.includes('kritisch') || unit.staffing.includes('ausgereizt');
+              const hasWarning =
+                unit.staffing.includes('kritisch') || unit.staffing.includes('ausgereizt');
               // G39 Welle 1: Warn-Farben aus Build-Zeit-bekannten Werten →
               // Klassen-Ternaries (Muster Auftrag 053 Nachtrag 2), kein style.
               const cardClass = hasWarning
@@ -57,10 +58,10 @@ export const TeamHrSnapshot: React.FC = () => {
                   className={`flex flex-col justify-between gap-[6px] rounded-[6px] border border-solid backdrop-blur-[6px] px-[12px] py-[10px] ${cardClass}`}
                 >
                   <div className="flex justify-between items-start gap-[4px]">
-                    <span className="text-[11.5px] font-semibold text-[#FFFFFF]">
-                      {unit.role}
-                    </span>
-                    <span className={`text-[10.5px] font-bold rounded-[3px] whitespace-nowrap px-[5px] py-[1px] ${fteClass}`}>
+                    <span className="text-[11.5px] font-semibold text-[#FFFFFF]">{unit.role}</span>
+                    <span
+                      className={`text-[10.5px] font-bold rounded-[3px] whitespace-nowrap px-[5px] py-[1px] ${fteClass}`}
+                    >
                       {unit.fte}
                     </span>
                   </div>
@@ -76,7 +77,10 @@ export const TeamHrSnapshot: React.FC = () => {
           <div className="flex justify-between items-center w-full border border-solid border-[rgba(0,217,198,0.22)] rounded-[4px] bg-[rgba(5,18,17,0.55)] backdrop-blur-[6px] mt-[2px] px-[12px] py-[8px]">
             <span className="flex items-center gap-[6px] text-[11px] text-[var(--color-text-muted)]">
               <Users size={13} color="#00D9C6" />
-              <span>{structure.total.role}: <strong className="text-[#FFFFFF]">{structure.total.fte}</strong></span>
+              <span>
+                {structure.total.role}:{' '}
+                <strong className="text-[#FFFFFF]">{structure.total.fte}</strong>
+              </span>
             </span>
             <span className="text-[11px] font-semibold text-[#00D9C6]">
               {structure.total.staffing}

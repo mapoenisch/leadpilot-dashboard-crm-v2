@@ -104,9 +104,12 @@ export function ChartTooltip({
                   style={{
                     fontSize: '10.5px',
                     fontWeight: 600,
-                    color: item.isFavorable !== undefined
-                      ? item.isFavorable ? 'var(--color-primary)' : 'var(--color-warning)'
-                      : 'var(--color-text-muted)',
+                    color:
+                      item.isFavorable !== undefined
+                        ? item.isFavorable
+                          ? 'var(--color-primary)'
+                          : 'var(--color-warning)'
+                        : 'var(--color-text-muted)',
                   }}
                 >
                   ({item.delta})

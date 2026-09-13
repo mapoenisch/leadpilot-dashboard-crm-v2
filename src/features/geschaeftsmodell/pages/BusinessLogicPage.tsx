@@ -6,7 +6,11 @@ import { LOGIK } from '@/domain/geschaeftsmodellData';
 export function BusinessLogicPage() {
   return (
     <div className="flex flex-col gap-[var(--space-6)]">
-      <SectionHeader eyebrow="Geschäftsmodell" title={LOGIK.title} description="Wirtschaftliche Skalierungshebel." />
+      <SectionHeader
+        eyebrow="Geschäftsmodell"
+        title={LOGIK.title}
+        description="Wirtschaftliche Skalierungshebel."
+      />
       <div className="grid grid-cols-3 gap-[var(--space-4)]">
         {LOGIK.levers.map((l: { title: string; desc: string }) => (
           <Card key={l.title} featured>

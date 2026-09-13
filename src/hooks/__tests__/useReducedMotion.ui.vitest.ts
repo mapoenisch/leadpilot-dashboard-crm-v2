@@ -84,8 +84,9 @@ describe('useReducedMotion', () => {
   it('Legacy-Pfad ohne addEventListener nutzt addListener/removeListener', () => {
     installMatchMedia(false, false);
     const { unmount } = renderHook(() => useReducedMotion());
-    const mql = (window.matchMedia as ReturnType<typeof vi.fn>).mock.results[0]
-      ?.value as { removeListener: ReturnType<typeof vi.fn> };
+    const mql = (window.matchMedia as ReturnType<typeof vi.fn>).mock.results[0]?.value as {
+      removeListener: ReturnType<typeof vi.fn>;
+    };
     unmount();
     expect(mql.removeListener).toHaveBeenCalledTimes(1);
   });

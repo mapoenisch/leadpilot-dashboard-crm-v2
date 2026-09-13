@@ -239,10 +239,10 @@ describe('Ref-Counting und Release', () => {
     const release2 = store.acquire('arr');
     expect(controls.feedSubscribeCalls).toBe(1);
     release1();
-    expect((controls.feed?.unsubscribeCalls ?? -1)).toBe(0);
+    expect(controls.feed?.unsubscribeCalls ?? -1).toBe(0);
     expect(store.getState('arr').status).toBe('loading');
     release2();
-    expect((controls.feed?.unsubscribeCalls ?? -1)).toBe(1);
+    expect(controls.feed?.unsubscribeCalls ?? -1).toBe(1);
     expect(store.getState('arr').status).toBe('loading');
     expect(store.getState('arr').history).toEqual([]);
   });
@@ -252,7 +252,7 @@ describe('Ref-Counting und Release', () => {
     const release = store.acquire('arr');
     release();
     release();
-    expect((controls.feed?.unsubscribeCalls ?? -1)).toBe(1);
+    expect(controls.feed?.unsubscribeCalls ?? -1).toBe(1);
   });
 
   it('Listener-Abo endet mit unsubscribe, danach keine Benachrichtigung', () => {
@@ -270,7 +270,8 @@ describe('Ref-Counting und Release', () => {
   });
 });
 
-describe('refresh', () => {  it('neuerer Wert: live + snapshot; null: live ohne Snapshot; reject: error', async () => {
+describe('refresh', () => {
+  it('neuerer Wert: live + snapshot; null: live ohne Snapshot; reject: error', async () => {
     const store = freshStore();
     const release = store.acquire('arr');
     controls.latestImpl = () => Promise.resolve(makeSnapshot('arr', T1, 77));

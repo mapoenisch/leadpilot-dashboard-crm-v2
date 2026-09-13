@@ -41,8 +41,14 @@ export const RevenueCostShoreline: React.FC = () => {
   });
 
   const firstYear = periods[0]?.label.match(/\d{4}/)?.[0] || periods[0]?.label || '';
-  const lastYear = periods[periods.length - 1]?.label.match(/\d{4}/)?.[0] || periods[periods.length - 1]?.label || '';
-  const yearRange = firstYear && lastYear ? `${firstYear} – ${lastYear}` : `${periods[0]?.label || ''} – ${periods[periods.length - 1]?.label || ''}`;
+  const lastYear =
+    periods[periods.length - 1]?.label.match(/\d{4}/)?.[0] ||
+    periods[periods.length - 1]?.label ||
+    '';
+  const yearRange =
+    firstYear && lastYear
+      ? `${firstYear} – ${lastYear}`
+      : `${periods[0]?.label || ''} – ${periods[periods.length - 1]?.label || ''}`;
 
   const prevPeriod = periods.length >= 2 ? periods[periods.length - 2] : periods[0];
   const lastPeriod = periods[periods.length - 1];
@@ -53,7 +59,7 @@ export const RevenueCostShoreline: React.FC = () => {
   // Dynamische Skala abgeleitet aus den berechneten Umsatz- und Gesamtkostenwerten
   const highestDataVal = Math.max(
     ...periods.map((p) => Math.max(p.revenueVal, p.totalCostVal)),
-    50000
+    50000,
   );
 
   // Dynamische Schrittweite für 4-5 gleichmäßige Achsenintervalle
@@ -64,7 +70,10 @@ export const RevenueCostShoreline: React.FC = () => {
   // Achsenstufen dynamisch generieren
   const numTicks = Math.max(2, Math.floor(highestDataVal / tickStep));
   const axisTicks = Array.from({ length: numTicks }, (_, i) => (i + 1) * tickStep);
-  const maxVal = Math.max(highestDataVal * 1.1, (axisTicks[axisTicks.length - 1] || highestDataVal) * 1.1);
+  const maxVal = Math.max(
+    highestDataVal * 1.1,
+    (axisTicks[axisTicks.length - 1] || highestDataVal) * 1.1,
+  );
 
   const svgW = 600;
   const svgH = 220;
@@ -80,11 +89,20 @@ export const RevenueCostShoreline: React.FC = () => {
   const costPoints = periods.map((p, idx) => ({ x: getX(idx), y: getY(p.totalCostVal) }));
 
   // Pfade
-  const revPathD = revPoints.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '');
-  const costPathD = costPoints.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '');
+  const revPathD = revPoints.reduce(
+    (acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`,
+    '',
+  );
+  const costPathD = costPoints.reduce(
+    (acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`,
+    '',
+  );
 
   // Lücken-Polygon zwischen Kosten- und Umsatzlinie (dynamisch über alle Datenpunkte)
-  const revReversedPath = [...revPoints].reverse().map((p) => `L ${p.x} ${p.y}`).join(' ');
+  const revReversedPath = [...revPoints]
+    .reverse()
+    .map((p) => `L ${p.x} ${p.y}`)
+    .join(' ');
   const gapPolygonD = `${costPathD} ${revReversedPath} Z`;
 
   return (
@@ -124,7 +142,9 @@ export const RevenueCostShoreline: React.FC = () => {
           Ertragsufer & Ergebnislücke ({yearRange})
         </h3>
         <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
-          Entwicklung von Gesamtumsatz zu operativen Gesamtkosten. Die schraffierte Spanne visualisiert die Ergebnislücke (EBITDA), die sich im {lastPeriodName} von {prevEbitda} auf {lastEbitda} deutlich verengt.
+          Entwicklung von Gesamtumsatz zu operativen Gesamtkosten. Die schraffierte Spanne
+          visualisiert die Ergebnislücke (EBITDA), die sich im {lastPeriodName} von {prevEbitda} auf{' '}
+          {lastEbitda} deutlich verengt.
         </p>
       </div>
 
@@ -280,7 +300,8 @@ export const RevenueCostShoreline: React.FC = () => {
         {periods.map((p) => (
           <article
             key={p.label}
-            className="rounded-md border border-solid border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[10px] min-w-0">
+            className="rounded-md border border-solid border-border bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[10px] min-w-0"
+          >
             <div className="flex justify-between items-center">
               <strong className="text-[14px] text-text">{p.label}</strong>
               <span className="text-[10px] font-semibold rounded bg-[rgba(255,255,255,0.06)] text-[var(--color-text-muted)] px-[6px] py-[2px]">

@@ -45,9 +45,8 @@ export function Table<T extends object>({
       <table
         className={cn(
           tableVariants({
-            minWidth:
-              minWidth === '550px' || minWidth === '650px' ? minWidth : '500px',
-          })
+            minWidth: minWidth === '550px' || minWidth === '650px' ? minWidth : '500px',
+          }),
         )}
       >
         <thead>
@@ -66,7 +65,10 @@ export function Table<T extends object>({
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="p-5 text-center text-[var(--color-text-muted)]">
+              <td
+                colSpan={columns.length}
+                className="p-5 text-center text-[var(--color-text-muted)]"
+              >
                 {emptyText}
               </td>
             </tr>
@@ -75,8 +77,10 @@ export function Table<T extends object>({
               <tr
                 key={(cellValue(row, 'id') as string | number | undefined) || i}
                 className="border-b border-solid border-[var(--color-border-soft)] transition-[background_150ms_ease]"
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)')
+                }
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
                 {columns.map((col) => (
                   <td key={col.key} className="py-3 px-4 text-text whitespace-nowrap">

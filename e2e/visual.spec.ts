@@ -10,7 +10,6 @@ for (const routePath of ROUTES) {
   test(`visual ${routePath}`, async ({ page }) => {
     await page.goto(routePath, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
-    // eslint-disable-next-line no-restricted-properties
     await page.waitForTimeout(1000);
     await expect(page).toHaveScreenshot({ fullPage: true });
   });

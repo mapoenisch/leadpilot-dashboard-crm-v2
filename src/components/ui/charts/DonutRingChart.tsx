@@ -43,7 +43,8 @@ export function DonutRingChart({
     return { pathData, color: segColor, val, label: seg.label, idx };
   });
 
-  const hoveredSeg = hoverIdx !== null && hoverIdx >= 0 && hoverIdx < segments.length ? segments[hoverIdx] : null;
+  const hoveredSeg =
+    hoverIdx !== null && hoverIdx >= 0 && hoverIdx < segments.length ? segments[hoverIdx] : null;
 
   return (
     <div
@@ -106,10 +107,25 @@ export function DonutRingChart({
             pointerEvents: 'none',
           }}
         >
-          <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span
+            style={{
+              fontSize: '10px',
+              color: 'var(--color-text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+          >
             {hoveredSeg ? hoveredSeg.label : totalLabel}
           </span>
-          <span style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)', marginTop: '1px' }}>
+          <span
+            style={{
+              fontSize: '16px',
+              fontWeight: 700,
+              fontFamily: 'var(--font-display)',
+              color: 'var(--color-text)',
+              marginTop: '1px',
+            }}
+          >
             {hoveredSeg
               ? formatChartMetric(hoveredSeg.value, unit)
               : formatChartMetric(total, unit)}
@@ -119,7 +135,15 @@ export function DonutRingChart({
 
       {/* 2. Sorted Breakdown Comparison Bars */}
       {showBars && (
-        <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}>
+        <div
+          style={{
+            flex: '1 1 200px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            minWidth: 0,
+          }}
+        >
           {segments.map((seg, idx) => {
             const pct = Math.round(((seg.value || 0) / total) * 100);
             const segColor = seg.color || colors[idx % colors.length];
@@ -154,12 +178,29 @@ export function DonutRingChart({
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: segColor, flexShrink: 0 }} />
-                    <span style={{ color: isHovered ? 'var(--color-text)' : 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: segColor,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        color: isHovered ? 'var(--color-text)' : 'var(--color-text-muted)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {seg.label}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', flexShrink: 0 }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'baseline', gap: '4px', flexShrink: 0 }}
+                  >
                     <strong style={{ color: 'var(--color-text)' }}>
                       {formatChartMetric(seg.value, unit)}
                     </strong>
@@ -170,7 +211,15 @@ export function DonutRingChart({
                 </div>
 
                 {/* Micro Progress Bar */}
-                <div style={{ width: '100%', height: '4px', background: 'var(--color-bg-deep)', borderRadius: '2px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: '100%',
+                    height: '4px',
+                    background: 'var(--color-bg-deep)',
+                    borderRadius: '2px',
+                    overflow: 'hidden',
+                  }}
+                >
                   <div
                     style={{
                       width: `${pct}%`,

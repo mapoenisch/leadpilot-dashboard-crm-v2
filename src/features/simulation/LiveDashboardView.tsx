@@ -104,9 +104,12 @@ export function LiveDashboardView() {
             <Card padding="var(--space-5)">
               <div className="flex items-center justify-between flex-wrap gap-[var(--space-3)] mb-[var(--space-4)]">
                 <div>
-                  <h3 className="m-0 text-[16px] text-text">Simulierte Operative Leads (Ebene B)</h3>
+                  <h3 className="m-0 text-[16px] text-text">
+                    Simulierte Operative Leads (Ebene B)
+                  </h3>
                   <p className="text-[12.5px] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
-                    Alle in Ebene B generierten Leads und deren automatischer Qualifizierungsfortschritt
+                    Alle in Ebene B generierten Leads und deren automatischer
+                    Qualifizierungsfortschritt
                   </p>
                 </div>
 
@@ -139,11 +142,16 @@ export function LiveDashboardView() {
                   </thead>
                   <tbody>
                     {filteredLeads.map((lead) => (
-                      <tr key={lead.id} className="border-0 border-b border-solid border-border-soft">
+                      <tr
+                        key={lead.id}
+                        className="border-0 border-b border-solid border-border-soft"
+                      >
                         <td className="font-semibold text-text p-[10px]">{lead.companyName}</td>
                         <td className="text-[var(--color-text-muted)] p-[10px]">
                           <div>{lead.contactName}</div>
-                          <div className="text-[11px] text-[var(--color-text-dim)]">{lead.email}</div>
+                          <div className="text-[11px] text-[var(--color-text-dim)]">
+                            {lead.email}
+                          </div>
                         </td>
                         <td className="text-[var(--color-text-muted)] p-[10px]">{lead.source}</td>
                         <td className="p-[10px]">
@@ -160,7 +168,9 @@ export function LiveDashboardView() {
                           {lead.estimatedValue.toLocaleString('de-DE')} €/J.
                         </td>
                         <td className="text-[var(--color-text-muted)] p-[10px]">{lead.owner}</td>
-                        <td className="text-[11.5px] text-[var(--color-text-muted)] p-[10px]">Tick #{lead.createdAtTick}</td>
+                        <td className="text-[11.5px] text-[var(--color-text-muted)] p-[10px]">
+                          Tick #{lead.createdAtTick}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -190,7 +200,10 @@ export function LiveDashboardView() {
                   </thead>
                   <tbody>
                     {deals.map((deal) => (
-                      <tr key={deal.id} className="border-0 border-b border-solid border-border-soft">
+                      <tr
+                        key={deal.id}
+                        className="border-0 border-b border-solid border-border-soft"
+                      >
                         <td className="font-semibold text-primary p-[10px]">{deal.dealName}</td>
                         <td className="text-text p-[10px]">{deal.companyName}</td>
                         <td className="p-[10px]">
@@ -199,9 +212,15 @@ export function LiveDashboardView() {
                         <td className="font-bold text-accent p-[10px]">
                           {deal.arr.toLocaleString('de-DE')} €
                         </td>
-                        <td className="text-[var(--color-text-muted)] p-[10px]">{deal.mrr.toLocaleString('de-DE')} €</td>
-                        <td className="text-[var(--color-text-muted)] p-[10px]">{deal.closeDate}</td>
-                        <td className="text-[var(--color-text-muted)] p-[10px]">Tick #{deal.wonAtTick}</td>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">
+                          {deal.mrr.toLocaleString('de-DE')} €
+                        </td>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">
+                          {deal.closeDate}
+                        </td>
+                        <td className="text-[var(--color-text-muted)] p-[10px]">
+                          Tick #{deal.wonAtTick}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -227,9 +246,13 @@ export function LiveDashboardView() {
                         <span className="text-[11px] font-bold text-primary">Tick #{evt.tick}</span>
                         <span className="text-[13px] font-semibold text-text">{evt.title}</span>
                       </div>
-                      <div className="text-[12.5px] text-[var(--color-text-muted)]">{evt.details}</div>
+                      <div className="text-[12.5px] text-[var(--color-text-muted)]">
+                        {evt.details}
+                      </div>
                     </div>
-                    <div className="text-[11.5px] whitespace-nowrap text-[var(--color-text-dim)]">{evt.timestamp}</div>
+                    <div className="text-[11.5px] whitespace-nowrap text-[var(--color-text-dim)]">
+                      {evt.timestamp}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -240,8 +263,9 @@ export function LiveDashboardView() {
           {activeOperativeTab === 'isolation' && (
             <Card padding="var(--space-5)">
               <Alert variant="info" title="100% Technische Daten-Isolation Garantiert">
-                Die Simulation verarbeitet ausschließlich Daten in Ebene B (In-Memory Simulation State). Ebene A (historische Unternehmens-
-                und CRM-Stammdaten 2025 aus Faktenblatt v1.1) bleibt unter allen Bedingungen 100% unveränderlich.
+                Die Simulation verarbeitet ausschließlich Daten in Ebene B (In-Memory Simulation
+                State). Ebene A (historische Unternehmens- und CRM-Stammdaten 2025 aus Faktenblatt
+                v1.1) bleibt unter allen Bedingungen 100% unveränderlich.
               </Alert>
             </Card>
           )}
@@ -249,10 +273,19 @@ export function LiveDashboardView() {
       )}
 
       {/* Modals */}
-      <ScenarioManagerModal isOpen={isScenarioModalOpen} onClose={() => setIsScenarioModalOpen(false)} />
+      <ScenarioManagerModal
+        isOpen={isScenarioModalOpen}
+        onClose={() => setIsScenarioModalOpen(false)}
+      />
       <RunActionModal isOpen={isRunModalOpen} onClose={() => setIsRunModalOpen(false)} />
-      <MeasureManagerModal isOpen={isMeasureModalOpen} onClose={() => setIsMeasureModalOpen(false)} />
-      <MultiScenarioComparisonModal isOpen={isMultiCompareModalOpen} onClose={() => setIsMultiCompareModalOpen(false)} />
+      <MeasureManagerModal
+        isOpen={isMeasureModalOpen}
+        onClose={() => setIsMeasureModalOpen(false)}
+      />
+      <MultiScenarioComparisonModal
+        isOpen={isMultiCompareModalOpen}
+        onClose={() => setIsMultiCompareModalOpen(false)}
+      />
     </div>
   );
 }

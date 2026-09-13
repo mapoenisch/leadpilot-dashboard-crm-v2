@@ -35,14 +35,18 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
               <span className="inline-block w-[9px] h-[9px] rounded-full shrink-0 bg-[#00f2fe] shadow-[0_0_10px_#00f2fe,0_0_3px_#00f2fe]" />
               Live Performance
             </h2>
-            <Badge variant="cyan" style={{ fontSize: '10.5px', padding: '3px 10px', letterSpacing: '0.02em' }}>
+            <Badge
+              variant="cyan"
+              style={{ fontSize: '10.5px', padding: '3px 10px', letterSpacing: '0.02em' }}
+            >
               Ebene C · bestätigte Live-Ist-Daten
             </Badge>
           </div>
 
           <p className="text-[12px] leading-[1.5] mt-[6px] mb-0 mr-0 ml-0 max-w-[680px] text-[var(--color-text-dim)]">
-            Bestätigte Echtzeit-Ist-Daten aus n8n und Supabase Live-Feed (12 zertifizierte Katalog-KPIs).
-            Unveränderliche historische Baseline und Szenarien folgen als Ebene A und B darunter.
+            Bestätigte Echtzeit-Ist-Daten aus n8n und Supabase Live-Feed (12 zertifizierte
+            Katalog-KPIs). Unveränderliche historische Baseline und Szenarien folgen als Ebene A und
+            B darunter.
           </p>
         </div>
 

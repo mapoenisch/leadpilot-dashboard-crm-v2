@@ -54,10 +54,19 @@ export function MonteCarloHistogramChart({
   const minVal = buckets[0]?.min ?? 0;
   const maxVal = buckets[buckets.length - 1]?.max ?? 100;
 
-  const hoveredBucket = hoverIdx !== null && hoverIdx >= 0 && hoverIdx < buckets.length ? buckets[hoverIdx] : null;
+  const hoveredBucket =
+    hoverIdx !== null && hoverIdx >= 0 && hoverIdx < buckets.length ? buckets[hoverIdx] : null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', position: 'relative' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        width: '100%',
+        position: 'relative',
+      }}
+    >
       {/* Histogram Canvas */}
       <div
         style={{
@@ -124,10 +133,12 @@ export function MonteCarloHistogramChart({
                   background: isMedianBucket
                     ? 'linear-gradient(180deg, var(--color-accent) 0%, rgba(0, 229, 255, 0.4) 100%)'
                     : isHovered
-                    ? 'linear-gradient(180deg, var(--color-primary) 0%, rgba(0, 217, 198, 0.5) 100%)'
-                    : 'linear-gradient(180deg, rgba(0, 217, 198, 0.7) 0%, rgba(0, 217, 198, 0.25) 100%)',
+                      ? 'linear-gradient(180deg, var(--color-primary) 0%, rgba(0, 217, 198, 0.5) 100%)'
+                      : 'linear-gradient(180deg, rgba(0, 217, 198, 0.7) 0%, rgba(0, 217, 198, 0.25) 100%)',
                   borderRadius: '4px 4px 0 0',
-                  border: isMedianBucket ? '1px solid var(--color-accent)' : '1px solid rgba(0, 217, 198, 0.3)',
+                  border: isMedianBucket
+                    ? '1px solid var(--color-accent)'
+                    : '1px solid rgba(0, 217, 198, 0.3)',
                   boxShadow: isMedianBucket ? '0 0 10px rgba(0, 229, 255, 0.35)' : 'none',
                   transition: 'height 250ms ease, background 150ms ease',
                 }}
@@ -182,13 +193,19 @@ export function MonteCarloHistogramChart({
         }}
       >
         <span>
-          Min (P10): <strong style={{ color: 'var(--color-text)' }}>{formatChartMetric(p10 ?? minVal, unit)}</strong>
+          Min (P10):{' '}
+          <strong style={{ color: 'var(--color-text)' }}>
+            {formatChartMetric(p10 ?? minVal, unit)}
+          </strong>
         </span>
         <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
           P50 Median: <strong>{formatChartMetric(median, unit)}</strong>
         </span>
         <span>
-          Max (P90): <strong style={{ color: 'var(--color-text)' }}>{formatChartMetric(p90 ?? maxVal, unit)}</strong>
+          Max (P90):{' '}
+          <strong style={{ color: 'var(--color-text)' }}>
+            {formatChartMetric(p90 ?? maxVal, unit)}
+          </strong>
         </span>
       </div>
 

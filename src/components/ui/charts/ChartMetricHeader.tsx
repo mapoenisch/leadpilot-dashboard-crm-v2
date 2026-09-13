@@ -26,7 +26,8 @@ export function ChartMetricHeader({
   style,
 }: ChartMetricHeaderProps) {
   const formattedVal = typeof value === 'number' ? value.toLocaleString('de-DE') : value;
-  const formattedBaseline = typeof baselineValue === 'number' ? baselineValue.toLocaleString('de-DE') : baselineValue;
+  const formattedBaseline =
+    typeof baselineValue === 'number' ? baselineValue.toLocaleString('de-DE') : baselineValue;
 
   return (
     <div
@@ -41,11 +42,25 @@ export function ChartMetricHeader({
       }}
     >
       <div>
-        <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)' }}>
+        <div
+          style={{
+            fontSize: '11px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            color: 'var(--color-text-muted)',
+          }}
+        >
           {label}
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
-          <span style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>
+          <span
+            style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              fontFamily: 'var(--font-display)',
+              color: 'var(--color-text)',
+            }}
+          >
             {formattedVal}
           </span>
           {unit && (
@@ -59,7 +74,9 @@ export function ChartMetricHeader({
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
         {goalStatus && (
           <StatusChip
-            variant={goalStatus === 'ACHIEVED' ? 'mint' : goalStatus === 'AT_RISK' ? 'orange' : 'neutral'}
+            variant={
+              goalStatus === 'ACHIEVED' ? 'mint' : goalStatus === 'AT_RISK' ? 'orange' : 'neutral'
+            }
             label={goalStatus}
             size="sm"
           />
@@ -78,8 +95,10 @@ export function ChartMetricHeader({
           >
             <Icon name={isPositiveChange ? 'trendingUp' : 'trendingDown'} size={13} />
             <span>
-              {deltaAbsolute !== undefined && `${deltaAbsolute >= 0 ? '+' : ''}${deltaAbsolute.toLocaleString('de-DE')} ${unit}`.trim()}
-              {deltaPercent !== undefined && ` (${deltaPercent >= 0 ? '+' : ''}${deltaPercent.toFixed(1)}%)`}
+              {deltaAbsolute !== undefined &&
+                `${deltaAbsolute >= 0 ? '+' : ''}${deltaAbsolute.toLocaleString('de-DE')} ${unit}`.trim()}
+              {deltaPercent !== undefined &&
+                ` (${deltaPercent >= 0 ? '+' : ''}${deltaPercent.toFixed(1)}%)`}
             </span>
           </div>
         )}

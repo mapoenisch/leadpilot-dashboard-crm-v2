@@ -15,7 +15,8 @@ export const SourceDecisionFlow: React.FC = () => {
             Datenfluss: Source → Bridge → Decision
           </h3>
           <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
-            Gerichteter Ablauf von den verbindlichen Primärquellen über die Systemschnittstellen zur einheitlichen Entscheidungsbasis.
+            Gerichteter Ablauf von den verbindlichen Primärquellen über die Systemschnittstellen zur
+            einheitlichen Entscheidungsbasis.
           </p>
         </div>
 
@@ -24,7 +25,7 @@ export const SourceDecisionFlow: React.FC = () => {
           onClick={() => setShowTable(!showTable)}
           aria-controls="source-decision-raw-table"
           aria-expanded={showTable}
-          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]" 
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]"
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--color-text)';
             e.currentTarget.style.borderColor = 'var(--color-primary)';
@@ -187,9 +188,7 @@ export const SourceDecisionFlow: React.FC = () => {
         <div className="rounded-md border border-solid border-[rgba(0,217,198,0.3)] bg-background-deep shadow-[0_0_16px_rgba(0,217,198,0.08)] p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
             <div className="flex items-center justify-between mb-[var(--space-2)]">
-              <span className="font-mono text-[0.6875rem] font-bold text-primary">
-                PHASE 03
-              </span>
+              <span className="font-mono text-[0.6875rem] font-bold text-primary">PHASE 03</span>
               <FaceliftGlyph name="contactToCustomer" tone="positive" size={16} />
             </div>
 

@@ -21,7 +21,7 @@ export function Layout() {
   const [theme, setTheme] = useState<ThemeMode>(() =>
     typeof window !== 'undefined' && window.localStorage.getItem(THEME_STORAGE_KEY) === 'light'
       ? 'light'
-      : 'dark'
+      : 'dark',
   );
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function Layout() {
   }, [theme]);
 
   const [isMobile, setIsMobile] = useState<boolean>(
-    typeof window !== 'undefined' ? window.innerWidth < 1024 : false
+    typeof window !== 'undefined' ? window.innerWidth < 1024 : false,
   );
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
 
@@ -80,7 +80,7 @@ export function Layout() {
       <div
         className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden"
         aria-hidden={isMobile && isMobileDrawerOpen}
-        {...((isMobile && isMobileDrawerOpen) ? { inert: '' } : {})}
+        {...(isMobile && isMobileDrawerOpen ? { inert: '' } : {})}
       >
         <Header
           currentViewTitle={meta.title}

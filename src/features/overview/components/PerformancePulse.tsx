@@ -26,7 +26,7 @@ export const PerformancePulse: React.FC = () => {
           onClick={() => setShowTable(!showTable)}
           aria-controls="performance-pulse-raw-table"
           aria-expanded={showTable}
-          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]" 
+          className="font-body text-[0.75rem] cursor-pointer rounded-md border border-solid border-border bg-transparent transition-[color_0.15s_ease,border-color_0.15s_ease] text-[var(--color-text-muted)] hover:text-text hover:border-primary px-[12px] py-[5px]"
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--color-text)';
             e.currentTarget.style.borderColor = 'var(--color-primary)';

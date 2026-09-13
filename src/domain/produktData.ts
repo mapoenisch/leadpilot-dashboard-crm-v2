@@ -1,10 +1,22 @@
 export const FUNKTION = {
   title: 'Produkt & Funktionsweise',
   modules: [
-    { name: 'Smart Lead Capture', desc: 'Erfasst Inbound-Leads automatisch aus Webformularen, Messen, E-Mails und LinkedIn Ads.' },
-    { name: 'KI Lead Scoring v1.5', desc: 'Bewertet Leads anhand von Firmografie, ICP-Fit und Verhalten automatisch von 0 bis 100.' },
-    { name: 'Nurturing Sequenzen', desc: 'Führt automatisierte Outreach- und Follow-up-Reihen per E-Mail aus.' },
-    { name: 'Pipeline Cockpit', desc: 'Echtzeit-Kanban & Tabellenansicht aller Leads nach Status (New, MQL, SQL, Hot, Won, Lost).' },
+    {
+      name: 'Smart Lead Capture',
+      desc: 'Erfasst Inbound-Leads automatisch aus Webformularen, Messen, E-Mails und LinkedIn Ads.',
+    },
+    {
+      name: 'KI Lead Scoring v1.5',
+      desc: 'Bewertet Leads anhand von Firmografie, ICP-Fit und Verhalten automatisch von 0 bis 100.',
+    },
+    {
+      name: 'Nurturing Sequenzen',
+      desc: 'Führt automatisierte Outreach- und Follow-up-Reihen per E-Mail aus.',
+    },
+    {
+      name: 'Pipeline Cockpit',
+      desc: 'Echtzeit-Kanban & Tabellenansicht aller Leads nach Status (New, MQL, SQL, Hot, Won, Lost).',
+    },
   ],
 };
 
@@ -74,11 +86,18 @@ export const CHART_PRODUKT = {
 
 export const CHART_CHURN = {
   type: 'doughnut' as const,
-  labels: ['Zu klein / kein Vertrieb', 'Onboarding nie abgeschlossen', 'Preis', 'Wechsel zum Wettbewerber'],
-  datasets: [{
-    data: [8, 5, 2, 2],
-    colors: ['#FF7A3D', '#FF9A66', '#00D9C6', '#A7B0BA'],
-  }],
+  labels: [
+    'Zu klein / kein Vertrieb',
+    'Onboarding nie abgeschlossen',
+    'Preis',
+    'Wechsel zum Wettbewerber',
+  ],
+  datasets: [
+    {
+      data: [8, 5, 2, 2],
+      colors: ['#FF7A3D', '#FF9A66', '#00D9C6', '#A7B0BA'],
+    },
+  ],
 };
 
 export interface RoadmapRelease {
@@ -94,21 +113,60 @@ export const ROADMAP: {
 } = {
   title: 'Release-Historie & Roadmap 2026',
   releases: [
-    { quarter: 'v1.2 (Feb 2025)', title: 'Import-Assistent', status: 'Released', desc: 'Import-Assistent für Excel- und Google-Listen.' },
-    { quarter: 'v1.3 (Mai 2025)', title: 'KI-Scoring v1.5', status: 'Released', desc: 'Verbessertes KI-Scoring mit 71 % Trefferquote.' },
-    { quarter: 'v1.4 (Aug 2025)', title: 'M365 & Workspace Integration', status: 'Released', desc: 'Direkte Anbindung an Microsoft 365 und Google Workspace.' },
-    { quarter: 'v1.5 (Nov 2025)', title: 'Überfälligkeits-Dashboard', status: 'Released', desc: 'Übersichts-Cockpit für die Vertriebsleitung.' },
-    { quarter: 'v2.0 (geplant Q1 2026)', title: 'Geführter Trial-Flow', status: 'In Entwicklung', desc: 'Guided Trial-Flow zur Erhöhung der Trial-to-Paid Rate auf 25 %.' },
-    { quarter: 'v2.1 (geplant Q2 2026)', title: 'Zapier / Make Anbindung', status: 'Geplant', desc: 'Standard-Konnektoren für iPaas-Plattformen Zapier und Make.' },
+    {
+      quarter: 'v1.2 (Feb 2025)',
+      title: 'Import-Assistent',
+      status: 'Released',
+      desc: 'Import-Assistent für Excel- und Google-Listen.',
+    },
+    {
+      quarter: 'v1.3 (Mai 2025)',
+      title: 'KI-Scoring v1.5',
+      status: 'Released',
+      desc: 'Verbessertes KI-Scoring mit 71 % Trefferquote.',
+    },
+    {
+      quarter: 'v1.4 (Aug 2025)',
+      title: 'M365 & Workspace Integration',
+      status: 'Released',
+      desc: 'Direkte Anbindung an Microsoft 365 und Google Workspace.',
+    },
+    {
+      quarter: 'v1.5 (Nov 2025)',
+      title: 'Überfälligkeits-Dashboard',
+      status: 'Released',
+      desc: 'Übersichts-Cockpit für die Vertriebsleitung.',
+    },
+    {
+      quarter: 'v2.0 (geplant Q1 2026)',
+      title: 'Geführter Trial-Flow',
+      status: 'In Entwicklung',
+      desc: 'Guided Trial-Flow zur Erhöhung der Trial-to-Paid Rate auf 25 %.',
+    },
+    {
+      quarter: 'v2.1 (geplant Q2 2026)',
+      title: 'Zapier / Make Anbindung',
+      status: 'Geplant',
+      desc: 'Standard-Konnektoren für iPaas-Plattformen Zapier und Make.',
+    },
   ],
 };
 
 export const INTEGR = {
   title: 'Architektur & DSGVO-Positionierung',
   stack: [
-    { category: 'Hosting & Server', tech: 'Ausschließlich europäische Rechenzentren (Standort Frankfurt am Main)' },
-    { category: 'KI-Infrastruktur', tech: 'EU-gehosteter KI-Anbieter — kein Direktzugriff auf US-Hyperscaler' },
-    { category: 'Compliance', tech: 'AV-Vertrag (AVV) und Verfahrensverzeichnis als Standardbestandteil des Onboardings' },
+    {
+      category: 'Hosting & Server',
+      tech: 'Ausschließlich europäische Rechenzentren (Standort Frankfurt am Main)',
+    },
+    {
+      category: 'KI-Infrastruktur',
+      tech: 'EU-gehosteter KI-Anbieter — kein Direktzugriff auf US-Hyperscaler',
+    },
+    {
+      category: 'Compliance',
+      tech: 'AV-Vertrag (AVV) und Verfahrensverzeichnis als Standardbestandteil des Onboardings',
+    },
     { category: 'Tech-Stack', tech: 'Vite + React + TypeScript Frontend, PostgreSQL Data Engine' },
   ],
 };

@@ -8,26 +8,25 @@ export interface ChartInsightProps {
   style?: React.CSSProperties;
 }
 
-export function ChartInsight({
-  type = 'neutral',
-  title,
-  children,
-  style,
-}: ChartInsightProps) {
+export function ChartInsight({ type = 'neutral', title, children, style }: ChartInsightProps) {
   const isPos = type === 'positive';
   const isWarn = type === 'warning';
 
-  const color = isPos ? 'var(--color-primary)' : isWarn ? 'var(--color-warning)' : 'var(--color-text-muted)';
+  const color = isPos
+    ? 'var(--color-primary)'
+    : isWarn
+      ? 'var(--color-warning)'
+      : 'var(--color-text-muted)';
   const bg = isPos
     ? 'rgba(0, 217, 198, 0.06)'
     : isWarn
-    ? 'rgba(255, 122, 61, 0.06)'
-    : 'rgba(255, 255, 255, 0.02)';
+      ? 'rgba(255, 122, 61, 0.06)'
+      : 'rgba(255, 255, 255, 0.02)';
   const border = isPos
     ? '1px solid rgba(0, 217, 198, 0.2)'
     : isWarn
-    ? '1px solid rgba(255, 122, 61, 0.2)'
-    : '1px solid var(--color-border-soft)';
+      ? '1px solid rgba(255, 122, 61, 0.2)'
+      : '1px solid var(--color-border-soft)';
 
   return (
     <div

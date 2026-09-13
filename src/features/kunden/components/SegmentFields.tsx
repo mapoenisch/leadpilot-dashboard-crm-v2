@@ -14,7 +14,7 @@ export const SegmentFields: React.FC = () => {
     { label: '43,35 %', num: 43.35 },
     { label: '27,27 %', num: 27.27 },
     { label: '19,17 %', num: 19.17 },
-    { label: '10,20 %', num: 10.20 },
+    { label: '10,20 %', num: 10.2 },
   ];
 
   // Kundenanteile aus SEGMENTE.rows (36 %, 27 %, 21 %, 15 % -> Summe 99 %)
@@ -59,23 +59,23 @@ export const SegmentFields: React.FC = () => {
           </span>
         </div>
 
-        <h3
-          className="segment-heading m-0 font-display text-[1.25rem] font-bold text-text"
-        >
+        <h3 className="segment-heading m-0 font-display text-[1.25rem] font-bold text-text">
           {SEGMENTE.title}
         </h3>
 
         <div className="flex gap-[12px] flex-wrap items-center text-[12px] text-[var(--color-text-muted)]">
-          <span>Flächengrößen = <strong>ARR-Umsatzbeitrag (100 %)</strong></span>
+          <span>
+            Flächengrößen = <strong>ARR-Umsatzbeitrag (100 %)</strong>
+          </span>
           <span>·</span>
-          <span>Prozentwerte = <strong>Kundenanteil (Summe 99 % gerundet)</strong></span>
+          <span>
+            Prozentwerte = <strong>Kundenanteil (Summe 99 % gerundet)</strong>
+          </span>
         </div>
       </div>
 
       {/* Große Hingucker-Flächengrafik (Treemap-Aufbau) */}
-      <div
-        className="segment-treemap-container w-full min-h-[360px] box-border grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-[12px] rounded-md p-[4px]"
-      >
+      <div className="segment-treemap-container w-full min-h-[360px] box-border grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-[12px] rounded-md p-[4px]">
         {/* Linke Spalte (53,55 %): Maschinenbau (43,35 %) + Agenturen (10,20 %) */}
         <div className="flex flex-col gap-[12px] min-w-0">
           {/* Maschinenbau: 43,35 % ARR */}
@@ -102,7 +102,9 @@ export const SegmentFields: React.FC = () => {
             </div>
             <div className="border-0 border-t border-solid border-[rgba(0,217,198,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[8px]">
               <div>
-                <span className="block text-[11px] text-[var(--color-text-muted)]">Segment-ARR</span>
+                <span className="block text-[11px] text-[var(--color-text-muted)]">
+                  Segment-ARR
+                </span>
                 <strong className="font-display text-[1.25rem] text-text">
                   {segments[0].arrFormatted}
                 </strong>
@@ -134,7 +136,9 @@ export const SegmentFields: React.FC = () => {
             </div>
             <div className="border-0 border-t border-solid border-[rgba(255,154,102,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[6px]">
               <div>
-                <span className="block text-[10.5px] text-[var(--color-text-muted)]">Segment-ARR</span>
+                <span className="block text-[10.5px] text-[var(--color-text-muted)]">
+                  Segment-ARR
+                </span>
                 <strong className="font-display text-[1.05rem] text-text">
                   {segments[3].arrFormatted}
                 </strong>
@@ -172,7 +176,9 @@ export const SegmentFields: React.FC = () => {
             </div>
             <div className="border-0 border-t border-solid border-[rgba(124,239,230,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[8px]">
               <div>
-                <span className="block text-[11px] text-[var(--color-text-muted)]">Segment-ARR</span>
+                <span className="block text-[11px] text-[var(--color-text-muted)]">
+                  Segment-ARR
+                </span>
                 <strong className="font-display text-[1.2rem] text-text">
                   {segments[1].arrFormatted}
                 </strong>
@@ -207,7 +213,9 @@ export const SegmentFields: React.FC = () => {
             </div>
             <div className="border-0 border-t border-solid border-[rgba(255,122,61,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[6px]">
               <div>
-                <span className="block text-[11px] text-[var(--color-text-muted)]">Segment-ARR</span>
+                <span className="block text-[11px] text-[var(--color-text-muted)]">
+                  Segment-ARR
+                </span>
                 <strong className="font-display text-[1.15rem] text-text">
                   {segments[2].arrFormatted}
                 </strong>
@@ -224,7 +232,10 @@ export const SegmentFields: React.FC = () => {
       <div className="segment-legend flex justify-between items-start flex-wrap gap-[10px] border-0 border-t border-solid border-border-soft pt-[var(--space-2,8px)] text-[12px] min-w-0">
         <div className="flex gap-[12px] flex-wrap min-w-0">
           {segments.map((seg, i) => (
-            <div key={i} className="flex items-start gap-[6px] min-w-0 [overflow-wrap:anywhere] break-words">
+            <div
+              key={i}
+              className="flex items-start gap-[6px] min-w-0 [overflow-wrap:anywhere] break-words"
+            >
               <span
                 className="w-[10px] h-[10px] rounded-[2px] shrink-0 mt-[4px]"
                 // G39 Welle 2: Legenden-Punktfarbe aus Domain-Daten
@@ -233,7 +244,9 @@ export const SegmentFields: React.FC = () => {
                 style={{ backgroundColor: seg.color }}
               />
               <div className="min-w-0 [overflow-wrap:anywhere] break-words">
-                <span className="block text-text [overflow-wrap:anywhere] break-words">{seg.name}</span>
+                <span className="block text-text [overflow-wrap:anywhere] break-words">
+                  {seg.name}
+                </span>
                 <strong className="block text-[11px] text-[var(--color-text-muted)] [overflow-wrap:anywhere] break-words">
                   {seg.arrShare} ARR ({seg.arrFormatted})
                 </strong>

@@ -22,7 +22,7 @@ const alertVariants = cva(
     defaultVariants: {
       variant: 'info',
     },
-  }
+  },
 );
 
 const alertTitleVariants = cva('font-semibold mb-[4px]', {

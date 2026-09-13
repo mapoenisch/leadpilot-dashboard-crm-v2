@@ -72,7 +72,7 @@ export function AnimatedKpiValue({
     }
 
     const controls = animate(from, to, {
-      duration: 0.20, // 200 ms (Budget: höchstens 220 ms)
+      duration: 0.2, // 200 ms (Budget: höchstens 220 ms)
       ease: 'linear',
       onUpdate(latest) {
         const decimals = (to.toString().split('.')[1] || '').length;

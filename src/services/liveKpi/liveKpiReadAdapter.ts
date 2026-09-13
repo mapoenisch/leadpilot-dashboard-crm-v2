@@ -55,7 +55,8 @@ function mapRowToSnapshot(row: unknown): LiveKpiSnapshot | null {
   }
 
   const record = row as Record<string, unknown>;
-  const numValue = typeof record.value === 'number' ? record.value : parseFloat(String(record.value));
+  const numValue =
+    typeof record.value === 'number' ? record.value : parseFloat(String(record.value));
   if (isNaN(numValue)) {
     return null;
   }
@@ -139,7 +140,9 @@ export async function fetchLiveKpiHistory(
     .limit(effectiveLimit);
 
   if (error) {
-    throw new Error(`[LiveKpiReadAdapter] Failed to fetch live KPI history for "${kpiId}": ${error.message}`);
+    throw new Error(
+      `[LiveKpiReadAdapter] Failed to fetch live KPI history for "${kpiId}": ${error.message}`,
+    );
   }
 
   if (!data || !Array.isArray(data)) {
@@ -239,7 +242,7 @@ export function subscribeToLiveKpiFeed(
               onEvent(snapshot);
             }
           }
-        }
+        },
       )
       .subscribe((status) => {
         if (disposed) return;

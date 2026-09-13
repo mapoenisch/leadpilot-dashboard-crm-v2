@@ -3,7 +3,11 @@ import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { BaselineComparisonMode } from '../../../types/kpi';
 import { SimulationRun } from '../../../types/scenario';
-import { AggregatedTimeSeriesPoint, KpiConfigItem, RUN_OVERLAY_COLORS } from './kpiTimeSeriesConfig';
+import {
+  AggregatedTimeSeriesPoint,
+  KpiConfigItem,
+  RUN_OVERLAY_COLORS,
+} from './kpiTimeSeriesConfig';
 
 interface KpiTimeSeriesChartSectionProps {
   activeKpiConfig: KpiConfigItem;
@@ -32,11 +36,15 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
       }
       if (comparisonMode === 'PERCENT') {
         if (activeKpiConfig.baseline === 0) return 0;
-        return parseFloat((((val - activeKpiConfig.baseline) / Math.abs(activeKpiConfig.baseline)) * 100).toFixed(1));
+        return parseFloat(
+          (((val - activeKpiConfig.baseline) / Math.abs(activeKpiConfig.baseline)) * 100).toFixed(
+            1,
+          ),
+        );
       }
       return val;
     },
-    [comparisonMode, activeKpiConfig]
+    [comparisonMode, activeKpiConfig],
   );
 
   const formatDisplayValue = (val: number): string => {
@@ -58,45 +66,45 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
         activeKpiConfig.key === 'liveARR'
           ? pt.metrics.arr.p10
           : activeKpiConfig.key === 'liveMRR'
-          ? pt.metrics.mrr.p10
-          : activeKpiConfig.key === 'liveCustomers'
-          ? pt.metrics.customers.p10
-          : activeKpiConfig.key === 'liveWonDeals'
-          ? pt.metrics.wonDeals.p10
-          : (pt.metrics.ebitda?.p10 ?? 0);
+            ? pt.metrics.mrr.p10
+            : activeKpiConfig.key === 'liveCustomers'
+              ? pt.metrics.customers.p10
+              : activeKpiConfig.key === 'liveWonDeals'
+                ? pt.metrics.wonDeals.p10
+                : (pt.metrics.ebitda?.p10 ?? 0);
 
       const medianRaw =
         activeKpiConfig.key === 'liveARR'
           ? pt.metrics.arr.median
           : activeKpiConfig.key === 'liveMRR'
-          ? pt.metrics.mrr.median
-          : activeKpiConfig.key === 'liveCustomers'
-          ? pt.metrics.customers.median
-          : activeKpiConfig.key === 'liveWonDeals'
-          ? pt.metrics.wonDeals.median
-          : (pt.metrics.ebitda?.median ?? 0);
+            ? pt.metrics.mrr.median
+            : activeKpiConfig.key === 'liveCustomers'
+              ? pt.metrics.customers.median
+              : activeKpiConfig.key === 'liveWonDeals'
+                ? pt.metrics.wonDeals.median
+                : (pt.metrics.ebitda?.median ?? 0);
 
       const p90Raw =
         activeKpiConfig.key === 'liveARR'
           ? pt.metrics.arr.p90
           : activeKpiConfig.key === 'liveMRR'
-          ? pt.metrics.mrr.p90
-          : activeKpiConfig.key === 'liveCustomers'
-          ? pt.metrics.customers.p90
-          : activeKpiConfig.key === 'liveWonDeals'
-          ? pt.metrics.wonDeals.p90
-          : (pt.metrics.ebitda?.p90 ?? 0);
+            ? pt.metrics.mrr.p90
+            : activeKpiConfig.key === 'liveCustomers'
+              ? pt.metrics.customers.p90
+              : activeKpiConfig.key === 'liveWonDeals'
+                ? pt.metrics.wonDeals.p90
+                : (pt.metrics.ebitda?.p90 ?? 0);
 
       const meanRaw =
         activeKpiConfig.key === 'liveARR'
           ? pt.metrics.arr.mean
           : activeKpiConfig.key === 'liveMRR'
-          ? pt.metrics.mrr.mean
-          : activeKpiConfig.key === 'liveCustomers'
-          ? pt.metrics.customers.mean
-          : activeKpiConfig.key === 'liveWonDeals'
-          ? pt.metrics.wonDeals.mean
-          : (pt.metrics.ebitda?.mean ?? 0);
+            ? pt.metrics.mrr.mean
+            : activeKpiConfig.key === 'liveCustomers'
+              ? pt.metrics.customers.mean
+              : activeKpiConfig.key === 'liveWonDeals'
+                ? pt.metrics.wonDeals.mean
+                : (pt.metrics.ebitda?.mean ?? 0);
 
       return {
         tick: pt.tick,
@@ -109,9 +117,10 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
       };
     });
 
-    const targetTransformed = activeKpiConfig.target?.targetValue !== undefined
-      ? transformValue(activeKpiConfig.target.targetValue)
-      : undefined;
+    const targetTransformed =
+      activeKpiConfig.target?.targetValue !== undefined
+        ? transformValue(activeKpiConfig.target.targetValue)
+        : undefined;
 
     // Determine Y min & max
     const allYValues: number[] = [];
@@ -157,7 +166,8 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
             Zeitreihen-Verlauf & Unsicherheitsband (P10 · P50 Median · P90)
           </h4>
           <span className="text-[12px] text-[var(--color-text-muted)]">
-            Visualisiert die zeitliche Entwicklung über alle Ticks. Ebene A (31.12.2025) ist als unveränderlicher Startpunkt bei Tick 0 fixiert.
+            Visualisiert die zeitliche Entwicklung über alle Ticks. Ebene A (31.12.2025) ist als
+            unveränderlicher Startpunkt bei Tick 0 fixiert.
           </span>
         </div>
         <div className="flex gap-[12px] text-[12px] items-center flex-wrap">
@@ -180,15 +190,40 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
 
       {chartData && chartData.points.length > 0 ? (
         <div className="w-full relative">
-          <svg
-            viewBox="0 0 800 320"
-            className="w-full h-[320px] overflow-visible"
-          >
+          <svg viewBox="0 0 800 320" className="w-full h-[320px] overflow-visible">
             {/* Grid Lines */}
-            <line x1="50" y1="20" x2="780" y2="20" stroke="var(--color-border-soft)" strokeDasharray="3 3" />
-            <line x1="50" y1="90" x2="780" y2="90" stroke="var(--color-border-soft)" strokeDasharray="3 3" />
-            <line x1="50" y1="160" x2="780" y2="160" stroke="var(--color-border-soft)" strokeDasharray="3 3" />
-            <line x1="50" y1="230" x2="780" y2="230" stroke="var(--color-border-soft)" strokeDasharray="3 3" />
+            <line
+              x1="50"
+              y1="20"
+              x2="780"
+              y2="20"
+              stroke="var(--color-border-soft)"
+              strokeDasharray="3 3"
+            />
+            <line
+              x1="50"
+              y1="90"
+              x2="780"
+              y2="90"
+              stroke="var(--color-border-soft)"
+              strokeDasharray="3 3"
+            />
+            <line
+              x1="50"
+              y1="160"
+              x2="780"
+              y2="160"
+              stroke="var(--color-border-soft)"
+              strokeDasharray="3 3"
+            />
+            <line
+              x1="50"
+              y1="230"
+              x2="780"
+              y2="230"
+              stroke="var(--color-border-soft)"
+              strokeDasharray="3 3"
+            />
             <line x1="50" y1="280" x2="780" y2="280" stroke="var(--color-border)" />
 
             {/* Y Axis Labels */}
@@ -222,7 +257,9 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
               const polygonPath = `${p90Coords} ${p10CoordsReversed}`;
 
               // Build Median Line Path
-              const medianPath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(p.median)}`).join(' ');
+              const medianPath = pts
+                .map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(p.median)}`)
+                .join(' ');
 
               // Build Target Path if available
               const targetPath =
@@ -242,12 +279,7 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
 
                   {/* Target Line */}
                   {targetPath && (
-                    <path
-                      d={targetPath}
-                      stroke="#22c55e"
-                      strokeWidth="2"
-                      strokeDasharray="5 4"
-                    />
+                    <path d={targetPath} stroke="#22c55e" strokeWidth="2" strokeDasharray="5 4" />
                   )}
 
                   {/* Selected Run Overlays */}
@@ -269,16 +301,22 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
                   })}
 
                   {/* Median Line */}
-                  <path
-                    d={medianPath}
-                    fill="none"
-                    stroke="var(--color-accent)"
-                    strokeWidth="2.8"
-                  />
+                  <path d={medianPath} fill="none" stroke="var(--color-accent)" strokeWidth="2.8" />
 
                   {/* Ebene A Baseline Marker at Tick 0 */}
-                  <circle cx="50" cy={getY(pts[0]?.median ?? 0)} r="4.5" fill="var(--color-primary)" />
-                  <text x="54" y={getY(pts[0]?.median ?? 0) - 8} fill="var(--color-primary)" fontSize="10" fontWeight="bold">
+                  <circle
+                    cx="50"
+                    cy={getY(pts[0]?.median ?? 0)}
+                    r="4.5"
+                    fill="var(--color-primary)"
+                  />
+                  <text
+                    x="54"
+                    y={getY(pts[0]?.median ?? 0) - 8}
+                    fill="var(--color-primary)"
+                    fontSize="10"
+                    fontWeight="bold"
+                  >
                     Ebene A (01.01.26)
                   </text>
 
@@ -296,7 +334,13 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
                       />
                       {/* X-axis tick labels (sparse) */}
                       {i % Math.max(1, Math.floor(pts.length / 6)) === 0 && (
-                        <text x={getX(i)} y="298" fill="var(--color-text-muted)" fontSize="9" textAnchor="middle">
+                        <text
+                          x={getX(i)}
+                          y="298"
+                          fill="var(--color-text-muted)"
+                          fontSize="9"
+                          textAnchor="middle"
+                        >
                           {p.date}
                         </text>
                       )}
@@ -310,12 +354,23 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
           {/* Hovered Tick Details Bar */}
           {hoveredTick !== null && (
             <div className="rounded border border-solid border-border bg-background-deep flex justify-between text-[12px] mt-[10px] px-[12px] py-[8px]">
-              <span><strong>Tick #{hoveredTick}</strong></span>
-              <span>P10: {chartData.points.find((p) => p.tick === hoveredTick)?.p10.toLocaleString('de-DE')}</span>
-              <span className="font-bold text-accent">
-                P50 (Median): {chartData.points.find((p) => p.tick === hoveredTick)?.median.toLocaleString('de-DE')}
+              <span>
+                <strong>Tick #{hoveredTick}</strong>
               </span>
-              <span>P90: {chartData.points.find((p) => p.tick === hoveredTick)?.p90.toLocaleString('de-DE')}</span>
+              <span>
+                P10:{' '}
+                {chartData.points.find((p) => p.tick === hoveredTick)?.p10.toLocaleString('de-DE')}
+              </span>
+              <span className="font-bold text-accent">
+                P50 (Median):{' '}
+                {chartData.points
+                  .find((p) => p.tick === hoveredTick)
+                  ?.median.toLocaleString('de-DE')}
+              </span>
+              <span>
+                P90:{' '}
+                {chartData.points.find((p) => p.tick === hoveredTick)?.p90.toLocaleString('de-DE')}
+              </span>
             </div>
           )}
         </div>
@@ -353,7 +408,8 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
                     background: isSelected ? assignedColor : undefined,
                   }}
                 >
-                  Run #{idx + 1} ({activeKpiConfig.runValueExtractor(r).toLocaleString('de-DE')} {activeKpiConfig.unit})
+                  Run #{idx + 1} ({activeKpiConfig.runValueExtractor(r).toLocaleString('de-DE')}{' '}
+                  {activeKpiConfig.unit})
                 </Button>
               );
             })}

@@ -3,7 +3,9 @@ import { SWOT } from '../../../domain/marktData';
 import { FaceliftGlyph } from '../../../components/facelift/FaceliftGlyph';
 
 export const SwotCompass: React.FC = () => {
-  const [selectedQuadrant, setSelectedQuadrant] = useState<'strengths' | 'weaknesses' | 'opportunities' | 'threats'>('strengths');
+  const [selectedQuadrant, setSelectedQuadrant] = useState<
+    'strengths' | 'weaknesses' | 'opportunities' | 'threats'
+  >('strengths');
 
   // Handlungsorientierte Optionen, direkt aus den SWOT-Aussagen abgeleitet
   const quadrants = [
@@ -128,7 +130,8 @@ export const SwotCompass: React.FC = () => {
             Strategischer SWOT-Kompass
           </h3>
           <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[3px] mb-0 mr-0 ml-0">
-            Vier Fachzeichen um das Entscheidungszentrum: Klare Orientierung auf den Achsen intern / extern und stärken / schützen.
+            Vier Fachzeichen um das Entscheidungszentrum: Klare Orientierung auf den Achsen intern /
+            extern und stärken / schützen.
           </p>
         </div>
 
@@ -145,11 +148,13 @@ export const SwotCompass: React.FC = () => {
 
       {/* Screenreader-Zusammenfassung */}
       <div className="sr-only">
-        SWOT Kompass:
-        Stärken (intern/stärken): Time-to-Value unter 30 Min Setup, 100% DACH-Mittelstand, DSGVO Frankfurt-Hosting, ARPA 520 Euro.
-        Schwächen (intern/schützen): Churn 2,8 %, Burn Rate 25.750 Euro, Markenbekanntheit unter 0,1 %, CTO Single Point of Failure.
-        Chancen (extern/stärken): B2B Digitalisierungsnachholbedarf, DSGVO-Nachfrage ohne US-Direct-Access, Partnerkanal CAC 492 Euro, Trial Flow 18 % auf 25 %.
-        Risiken (extern/schützen): US-Wettbewerb, Preiskampf Einstiegssegment, Maschinenbau-Gesamtwirtschaftslage.
+        SWOT Kompass: Stärken (intern/stärken): Time-to-Value unter 30 Min Setup, 100%
+        DACH-Mittelstand, DSGVO Frankfurt-Hosting, ARPA 520 Euro. Schwächen (intern/schützen): Churn
+        2,8 %, Burn Rate 25.750 Euro, Markenbekanntheit unter 0,1 %, CTO Single Point of Failure.
+        Chancen (extern/stärken): B2B Digitalisierungsnachholbedarf, DSGVO-Nachfrage ohne
+        US-Direct-Access, Partnerkanal CAC 492 Euro, Trial Flow 18 % auf 25 %. Risiken
+        (extern/schützen): US-Wettbewerb, Preiskampf Einstiegssegment,
+        Maschinenbau-Gesamtwirtschaftslage.
       </div>
 
       {/* Kompass-Grid mit echten semantischen HTML-Buttons */}
@@ -166,7 +171,9 @@ export const SwotCompass: React.FC = () => {
               {/* Header der Karte mit Fachzeichen, Titel und Achsen-Badge */}
               <div className="flex items-center justify-between gap-[var(--space-2)] w-full">
                 <div className="flex items-center gap-[8px]">
-                  <div className={`flex items-center justify-center rounded bg-[rgba(255,255,255,0.05)] w-[32px] h-[32px] border border-solid ${quadBorderClass(quadrant.id)}`}>
+                  <div
+                    className={`flex items-center justify-center rounded bg-[rgba(255,255,255,0.05)] w-[32px] h-[32px] border border-solid ${quadBorderClass(quadrant.id)}`}
+                  >
                     <FaceliftGlyph name={quadrant.glyph} tone={quadrant.tone} size={18} />
                   </div>
                   <div>
@@ -182,7 +189,9 @@ export const SwotCompass: React.FC = () => {
                   </div>
                 </div>
 
-                <span className={`font-mono text-[0.625rem] font-bold tracking-[0.06em] rounded bg-[rgba(255,255,255,0.06)] px-[6px] py-[2px] ${quadTextClass(quadrant.id)}`}>
+                <span
+                  className={`font-mono text-[0.625rem] font-bold tracking-[0.06em] rounded bg-[rgba(255,255,255,0.06)] px-[6px] py-[2px] ${quadTextClass(quadrant.id)}`}
+                >
                   {quadrant.axisLabel}
                 </span>
               </div>
@@ -265,9 +274,7 @@ export const SwotCompass: React.FC = () => {
               >
                 0{aIdx + 1}
               </span>
-              <span className="text-[0.8125rem] leading-[1.4] text-text">
-                {action}
-              </span>
+              <span className="text-[0.8125rem] leading-[1.4] text-text">{action}</span>
             </div>
           ))}
         </div>

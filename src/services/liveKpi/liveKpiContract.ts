@@ -114,11 +114,7 @@ export function validateLiveKpiEvent(input: unknown): LiveKpiValidationResult {
   }
 
   // 6. Value (Must be finite number, not null, not NaN, not +/-Infinity)
-  if (
-    typeof raw.value !== 'number' ||
-    Number.isNaN(raw.value) ||
-    !Number.isFinite(raw.value)
-  ) {
+  if (typeof raw.value !== 'number' || Number.isNaN(raw.value) || !Number.isFinite(raw.value)) {
     return {
       valid: false,
       errorCode: 'INVALID_VALUE',

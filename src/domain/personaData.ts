@@ -2,9 +2,11 @@ export const BUYER_PERSONA_VOLKER = {
   name: 'Vertriebsleiter Volker',
   age: 47,
   role: 'Head of Sales',
-  companyType: 'Maschinenbau-Zulieferer mit 85 Mitarbeitenden (Raum Stuttgart), 7-köpfiges Vertriebsteam',
+  companyType:
+    'Maschinenbau-Zulieferer mit 85 Mitarbeitenden (Raum Stuttgart), 7-köpfiges Vertriebsteam',
   packageFit: 'Growth-Kunde mit 7 Nutzern = 623 €/Monat (über ARPA-Durchschnitt von 520 €)',
-  quote: '„Ich will kein überkomplexes IT-System — ich will einfach wissen, welchen Kunden ich heute anrufen muss, bevor er zur Konkurrenz geht."',
+  quote:
+    '„Ich will kein überkomplexes IT-System — ich will einfach wissen, welchen Kunden ich heute anrufen muss, bevor er zur Konkurrenz geht."',
   goals: [
     'Umsatz um 15 % steigern ohne Teamvergrößerung',
     'Verlässliche Pipeline-Übersicht für die Geschäftsführung',
@@ -19,5 +21,5 @@ export const BUYER_PERSONA_VOLKER = {
     'LinkedIn (täglich genutzt)',
     'Empfehlungen aus dem Branchen-Netzwerk',
     'SEO & Fachartikel im Maschinenbau',
-  ]
+  ],
 };

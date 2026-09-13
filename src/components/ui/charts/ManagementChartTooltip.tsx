@@ -55,9 +55,7 @@ export const ManagementChartTooltip: React.FC<ManagementChartTooltipProps> = ({
           marginBottom: '8px',
         }}
       >
-        <span style={{ fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
-          {label}
-        </span>
+        <span style={{ fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>{label}</span>
         {sourceLabel && (
           <span
             style={{
@@ -106,7 +104,9 @@ export const ManagementChartTooltip: React.FC<ManagementChartTooltipProps> = ({
                   {entry.name || 'Wert'}
                 </span>
               </div>
-              <span style={{ fontWeight: 700, color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}>
+              <span
+                style={{ fontWeight: 700, color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}
+              >
                 {valueFormatter(val)}
               </span>
             </div>

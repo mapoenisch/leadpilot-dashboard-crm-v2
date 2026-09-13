@@ -55,14 +55,14 @@ export const VolkerDayTimeline: React.FC = () => {
               </div>
 
               {/* Titel aus EMPATHY.quadrants[idx].title */}
-              <h4 className={`m-0 font-display text-[14px] font-bold ${isAccent ? 'text-accent' : 'text-primary'}`}>
+              <h4
+                className={`m-0 font-display text-[14px] font-bold ${isAccent ? 'text-accent' : 'text-primary'}`}
+              >
                 {quadrant.title}
               </h4>
 
               {/* Text aus EMPATHY.quadrants[idx].desc */}
-              <p className="m-0 flex-grow text-[13px] leading-[1.45] text-text">
-                {quadrant.desc}
-              </p>
+              <p className="m-0 flex-grow text-[13px] leading-[1.45] text-text">{quadrant.desc}</p>
             </div>
           );
         })}

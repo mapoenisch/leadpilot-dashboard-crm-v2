@@ -218,8 +218,18 @@ describe('fetchLiveKpiHistory', () => {
   it('Tiebreak ingestedAt bei gleicher occurredAt', async () => {
     sb.state.queryResult = {
       data: [
-        row({ id: 'neu', occurred_at: '2026-01-01T10:00:00.000Z', ingested_at: '2026-01-01T10:05:00.000Z', value: 2 }),
-        row({ id: 'alt', occurred_at: '2026-01-01T10:00:00.000Z', ingested_at: '2026-01-01T10:01:00.000Z', value: 1 }),
+        row({
+          id: 'neu',
+          occurred_at: '2026-01-01T10:00:00.000Z',
+          ingested_at: '2026-01-01T10:05:00.000Z',
+          value: 2,
+        }),
+        row({
+          id: 'alt',
+          occurred_at: '2026-01-01T10:00:00.000Z',
+          ingested_at: '2026-01-01T10:01:00.000Z',
+          value: 1,
+        }),
       ],
       error: null,
     };
@@ -232,9 +242,12 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
   it('ohne Client: offline + Noop-Unsubscribe', () => {
     sb.state.clientExists = false;
     const seen: string[] = [];
-    const sub = subscribeToLiveKpiFeed(() => {}, (s) => {
-      seen.push(s);
-    });
+    const sub = subscribeToLiveKpiFeed(
+      () => {},
+      (s) => {
+        seen.push(s);
+      },
+    );
     expect(seen).toEqual(['offline']);
     expect(() => sub.unsubscribe()).not.toThrow();
     expect(sb.state.channelIds).toEqual([]);
@@ -242,9 +255,12 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
 
   it('ein Kanal live-kpi-feed ohne kpi-Filter', () => {
     const seen: string[] = [];
-    subscribeToLiveKpiFeed(() => {}, (s) => {
-      seen.push(s);
-    });
+    subscribeToLiveKpiFeed(
+      () => {},
+      (s) => {
+        seen.push(s);
+      },
+    );
     expect(seen).toEqual(['connecting']);
     expect(sb.state.channelIds).toEqual(['live-kpi-feed']);
     expect(sb.state.onCalls).toHaveLength(1);
@@ -284,9 +300,12 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
 
   it('SUBSCRIBED → live; CLOSED unerwartet → reconnecting', () => {
     const seen: string[] = [];
-    subscribeToLiveKpiFeed(() => {}, (s) => {
-      seen.push(s);
-    });
+    subscribeToLiveKpiFeed(
+      () => {},
+      (s) => {
+        seen.push(s);
+      },
+    );
     if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
     sb.state.statusHandler('SUBSCRIBED');
     sb.state.statusHandler('CLOSED');
@@ -298,9 +317,12 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     try {
       const seen: string[] = [];
-      const sub = subscribeToLiveKpiFeed(() => {}, (s) => {
-        seen.push(s);
-      });
+      const sub = subscribeToLiveKpiFeed(
+        () => {},
+        (s) => {
+          seen.push(s);
+        },
+      );
       expect(sb.state.channelIds).toHaveLength(1);
       if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
       sb.state.statusHandler('CHANNEL_ERROR');
@@ -332,7 +354,10 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
   it('unsubscribe bricht Backoff-Timer ab, doppelt ist Noop', async () => {
     vi.useFakeTimers();
     try {
-      const sub = subscribeToLiveKpiFeed(() => {}, () => {});
+      const sub = subscribeToLiveKpiFeed(
+        () => {},
+        () => {},
+      );
       if (!sb.state.statusHandler) throw new Error('kein Status-Handler registriert');
       sb.state.statusHandler('CHANNEL_ERROR');
       sub.unsubscribe();
@@ -346,7 +371,10 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
   });
 
   it('removeChannel-Fehler wird geschluckt (kein Throw, Kanal trotzdem weg)', () => {
-    const sub = subscribeToLiveKpiFeed(() => {}, () => {});
+    const sub = subscribeToLiveKpiFeed(
+      () => {},
+      () => {},
+    );
     sb.state.removeChannelThrows = true;
     expect(() => sub.unsubscribe()).not.toThrow();
     expect(sb.state.removedChannels).toEqual([]);

@@ -7,10 +7,7 @@ import type { LiveKpiSnapshot } from '@/services/liveKpi/liveKpiReadAdapter';
 import { RETENTION_MS } from '@/services/liveKpi/liveKpiStreamStore';
 import { useLiveKpi } from '../useLiveKpi';
 import { useLiveKpiHistory } from '../useLiveKpiHistory';
-import {
-  makeSnapshot,
-  flushMicrotasks,
-} from '../../services/liveKpi/__tests__/fakes';
+import { makeSnapshot, flushMicrotasks } from '../../services/liveKpi/__tests__/fakes';
 
 type FeedStatus = 'connecting' | 'live' | 'reconnecting' | 'offline';
 

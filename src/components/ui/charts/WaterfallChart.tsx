@@ -70,8 +70,8 @@ export function WaterfallChart({
           const barColor = isTotal
             ? 'var(--color-primary)'
             : isPos
-            ? 'var(--color-success)'
-            : 'var(--color-warning)';
+              ? 'var(--color-success)'
+              : 'var(--color-warning)';
 
           return (
             <div
@@ -95,8 +95,8 @@ export function WaterfallChart({
                   background: isTotal
                     ? 'linear-gradient(180deg, var(--color-primary) 0%, rgba(0, 217, 198, 0.5) 100%)'
                     : isPos
-                    ? 'linear-gradient(180deg, var(--color-success) 0%, rgba(78, 204, 163, 0.5) 100%)'
-                    : 'linear-gradient(180deg, var(--color-warning) 0%, rgba(255, 122, 61, 0.5) 100%)',
+                      ? 'linear-gradient(180deg, var(--color-success) 0%, rgba(78, 204, 163, 0.5) 100%)'
+                      : 'linear-gradient(180deg, var(--color-warning) 0%, rgba(255, 122, 61, 0.5) 100%)',
                   borderRadius: '3px',
                   border: `1px solid ${barColor}`,
                   display: 'flex',

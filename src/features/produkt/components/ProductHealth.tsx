@@ -10,19 +10,22 @@ export const ProductHealth: React.FC = () => {
     {
       id: 'stabilitaet',
       title: 'Stabilität',
-      explanation: 'Verfügbarkeit + Support-Tickets: Messung der Systemstabilität und Servicezuverlässigkeit.',
+      explanation:
+        'Verfügbarkeit + Support-Tickets: Messung der Systemstabilität und Servicezuverlässigkeit.',
       metrics: [PERF.metrics[0], PERF.metrics[5]],
     },
     {
       id: 'nutzung',
       title: 'Nutzung',
-      explanation: 'WAU/MAU + KI-Scoring-Nutzung: Messung der regelmäßigen Plattform- und Feature-Aktivität.',
+      explanation:
+        'WAU/MAU + KI-Scoring-Nutzung: Messung der regelmäßigen Plattform- und Feature-Aktivität.',
       metrics: [PERF.metrics[2], PERF.metrics[3]],
     },
     {
       id: 'onboarding',
       title: 'Onboarding',
-      explanation: 'Aktivierungsrate + Time-to-First-Action: Messung des initialen Einstiegs und der Nutzeraktivierung.',
+      explanation:
+        'Aktivierungsrate + Time-to-First-Action: Messung des initialen Einstiegs und der Nutzeraktivierung.',
       metrics: [PERF.metrics[1], PERF.metrics[4]],
     },
   ];
@@ -39,7 +42,8 @@ export const ProductHealth: React.FC = () => {
             {PERF.title}
           </h3>
           <p className="text-[0.8125rem] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
-            Gegliedert in die drei Säulen Stabilität, Nutzung und Onboarding mit abgeleitetem Zielstatus.
+            Gegliedert in die drei Säulen Stabilität, Nutzung und Onboarding mit abgeleitetem
+            Zielstatus.
           </p>
         </div>
 
@@ -99,7 +103,9 @@ export const ProductHealth: React.FC = () => {
                       <div className="font-body text-[0.6875rem] mb-[4px] text-[var(--color-text-muted)]">
                         {m.label}
                       </div>
-                      <div className={`font-display text-[1.0625rem] font-bold leading-[1.3] ${isReached ? 'text-primary' : 'text-accent'}`}>
+                      <div
+                        className={`font-display text-[1.0625rem] font-bold leading-[1.3] ${isReached ? 'text-primary' : 'text-accent'}`}
+                      >
                         {m.val}
                       </div>
                     </div>
@@ -125,12 +131,8 @@ export const ProductHealth: React.FC = () => {
               key={m.label}
               className="flex flex-wrap justify-between items-center gap-[var(--space-2)] rounded border border-solid border-border-soft bg-background-deep p-[var(--space-3)]"
             >
-              <span className="text-[0.8125rem] font-medium text-text">
-                {m.label}
-              </span>
-              <span className="font-mono text-[0.8125rem] font-bold text-primary">
-                {m.val}
-              </span>
+              <span className="text-[0.8125rem] font-medium text-text">{m.label}</span>
+              <span className="font-mono text-[0.8125rem] font-bold text-primary">{m.val}</span>
             </div>
           ))}
         </div>

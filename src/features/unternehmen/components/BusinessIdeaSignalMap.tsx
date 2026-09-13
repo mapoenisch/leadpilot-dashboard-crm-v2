@@ -20,7 +20,8 @@ export const BusinessIdeaSignalMap: React.FC = () => {
             Geschäftsidee Signal-Map
           </h3>
           <p className="mt-[2px] mr-0 mb-0 ml-0 text-[0.8125rem] text-[var(--color-text-muted)]">
-            Von der DACH-KMU-Situation über die Vertriebsreibung zur LeadPilot-Mechanik und dem messbaren Nutzen.
+            Von der DACH-KMU-Situation über die Vertriebsreibung zur LeadPilot-Mechanik und dem
+            messbaren Nutzen.
           </p>
         </div>
 
@@ -143,14 +144,26 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         {/* Verbinder 1 -> 2 (Desktop Horizontal) */}
         <div className="signal-connector-horizontal" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4 10h12m-4-4l4 4-4 4" stroke="var(--color-border)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M4 10h12m-4-4l4 4-4 4"
+              stroke="var(--color-border)"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 
         {/* Verbinder 1 -> 2 (Mobile Vertikal) */}
         <div className="signal-connector-vertical" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 4v12m-4-4l4 4 4-4" stroke="var(--color-border)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M10 4v12m-4-4l4 4 4-4"
+              stroke="var(--color-border)"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 
@@ -158,9 +171,7 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         <div className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-[rgba(255,122,61,0.3)] border-t-[3px] border-t-accent p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
             <div className="flex items-center justify-between mb-[var(--space-2)]">
-              <span className="font-mono text-[0.6875rem] font-bold text-accent">
-                PHASE 02
-              </span>
+              <span className="font-mono text-[0.6875rem] font-bold text-accent">PHASE 02</span>
               <FaceliftGlyph name="challenge" tone="attention" size={16} />
             </div>
 
@@ -170,9 +181,7 @@ export const BusinessIdeaSignalMap: React.FC = () => {
 
             <div className="flex flex-col gap-[var(--space-2)] my-[var(--space-2)] mx-0">
               <div className="p-[var(--space-2)] rounded-[var(--radius-sm)] bg-surface border border-solid border-[rgba(255,122,61,0.2)]">
-                <p className="m-0 text-[0.75rem] text-text leading-[1.4]">
-                  {phase2FrictionText1}
-                </p>
+                <p className="m-0 text-[0.75rem] text-text leading-[1.4]">{phase2FrictionText1}</p>
               </div>
 
               <div className="p-[var(--space-2)] rounded-[var(--radius-sm)] bg-surface border border-solid border-border-soft">
@@ -187,14 +196,26 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         {/* Verbinder 2 -> 3 (Desktop Horizontal) */}
         <div className="signal-connector-horizontal" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4 10h12m-4-4l4 4-4 4" stroke="var(--color-accent)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M4 10h12m-4-4l4 4-4 4"
+              stroke="var(--color-accent)"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 
         {/* Verbinder 2 -> 3 (Mobile Vertikal) */}
         <div className="signal-connector-vertical" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 4v12m-4-4l4 4 4-4" stroke="var(--color-accent)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M10 4v12m-4-4l4 4 4-4"
+              stroke="var(--color-accent)"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 
@@ -202,9 +223,7 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         <div className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-[rgba(0,217,198,0.4)] border-t-[3px] border-t-primary p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)]">
           <div>
             <div className="flex items-center justify-between mb-[var(--space-2)]">
-              <span className="font-mono text-[0.6875rem] font-bold text-primary">
-                PHASE 03
-              </span>
+              <span className="font-mono text-[0.6875rem] font-bold text-primary">PHASE 03</span>
               <FaceliftGlyph name="ready" tone="accent" size={16} />
             </div>
 
@@ -225,14 +244,26 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         {/* Verbinder 3 -> 4 (Desktop Horizontal) */}
         <div className="signal-connector-horizontal" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4 10h12m-4-4l4 4-4 4" stroke="var(--color-primary)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M4 10h12m-4-4l4 4-4 4"
+              stroke="var(--color-primary)"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 
         {/* Verbinder 3 -> 4 (Mobile Vertikal) */}
         <div className="signal-connector-vertical" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 4v12m-4-4l4 4 4-4" stroke="var(--color-primary)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M10 4v12m-4-4l4 4 4-4"
+              stroke="var(--color-primary)"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 
@@ -240,9 +271,7 @@ export const BusinessIdeaSignalMap: React.FC = () => {
         <div className="bg-background-deep rounded-[var(--radius-md)] border border-solid border-[rgba(0,217,198,0.3)] border-t-[3px] border-t-primary p-[var(--space-4)] flex flex-col justify-between gap-[var(--space-3)] shadow-[0_0_16px_rgba(0,217,198,0.08)]">
           <div>
             <div className="flex items-center justify-between mb-[var(--space-2)]">
-              <span className="font-mono text-[0.6875rem] font-bold text-primary">
-                PHASE 04
-              </span>
+              <span className="font-mono text-[0.6875rem] font-bold text-primary">PHASE 04</span>
               <FaceliftGlyph name="success" tone="positive" size={16} />
             </div>
 
@@ -258,7 +287,10 @@ export const BusinessIdeaSignalMap: React.FC = () => {
 
             <div className="flex flex-col gap-[4px]">
               {VALUE.coreBenefits.slice(0, 2).map((cb, idx) => (
-                <div key={idx} className="text-[0.6875rem] text-[var(--color-text-muted)] leading-[1.3]">
+                <div
+                  key={idx}
+                  className="text-[0.6875rem] text-[var(--color-text-muted)] leading-[1.3]"
+                >
                   <strong className="text-cyan-light">{cb.title}:</strong> {cb.desc}
                 </div>
               ))}
@@ -278,7 +310,10 @@ export const BusinessIdeaSignalMap: React.FC = () => {
               {IDEE.title} – {IDEE.subtitle}
             </h4>
             {IDEE.paragraphs.map((p, i) => (
-              <p key={i} className="text-[0.8125rem] text-[var(--color-text-muted)] leading-[1.5] mt-0 mr-0 mb-[var(--space-2)] ml-0">
+              <p
+                key={i}
+                className="text-[0.8125rem] text-[var(--color-text-muted)] leading-[1.5] mt-0 mr-0 mb-[var(--space-2)] ml-0"
+              >
                 {p}
               </p>
             ))}

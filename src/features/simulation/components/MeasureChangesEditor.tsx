@@ -61,9 +61,7 @@ export const MeasureChangesEditor: React.FC<MeasureChangesEditorProps> = ({
                 label="Zielparameter (Treiber)"
                 options={parameterSelectOptions}
                 value={c.parameter}
-                onChange={(val) =>
-                  onUpdateChange(idx, { parameter: val as MeasureParameterKey })
-                }
+                onChange={(val) => onUpdateChange(idx, { parameter: val as MeasureParameterKey })}
                 sizeVariant="sm"
               />
 
@@ -71,9 +69,7 @@ export const MeasureChangesEditor: React.FC<MeasureChangesEditorProps> = ({
                 label="Änderungsmodus"
                 options={modeSelectOptions}
                 value={c.mode}
-                onChange={(val) =>
-                  onUpdateChange(idx, { mode: val as MeasureChangeMode })
-                }
+                onChange={(val) => onUpdateChange(idx, { mode: val as MeasureChangeMode })}
                 sizeVariant="sm"
               />
 

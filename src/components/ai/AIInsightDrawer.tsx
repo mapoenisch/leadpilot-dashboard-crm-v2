@@ -50,16 +50,21 @@ export function AIInsightDrawer({ open, onClose }: AIInsightDrawerProps) {
       <div className="border-0 flex items-center justify-between border-b border-solid border-border-soft mb-[var(--space-4)] pb-[12px]">
         <div className="flex items-center gap-[8px]">
           <Icon name="zap" size={20} color="var(--color-primary)" />
-          <h3 className="m-0 font-display text-[18px] text-text">
-            KI Dashboard-Assistent
-          </h3>
+          <h3 className="m-0 font-display text-[18px] text-text">KI Dashboard-Assistent</h3>
         </div>
-        <button onClick={onClose} aria-label="Schließen" className="bg-transparent border-0 text-[20px] cursor-pointer text-[var(--color-text-muted)]">×</button>
+        <button
+          onClick={onClose}
+          aria-label="Schließen"
+          className="bg-transparent border-0 text-[20px] cursor-pointer text-[var(--color-text-muted)]"
+        >
+          ×
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col gap-[var(--space-4)]">
         <Alert variant="info" title="Echtzeit-KI Integration">
-          Der KI-Assistent analysiert die Live-CRM-Datenbank und die Simulationsergebnisse, um Anomalien und Verkaufschancen zu identifizieren.
+          Der KI-Assistent analysiert die Live-CRM-Datenbank und die Simulationsergebnisse, um
+          Anomalien und Verkaufschancen zu identifizieren.
         </Alert>
 
         <Button variant="primary" fullWidth onClick={handleRunAnalysis} disabled={loading}>

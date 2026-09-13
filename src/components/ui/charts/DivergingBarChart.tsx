@@ -15,10 +15,7 @@ export interface DivergingBarChartProps {
   unit?: string;
 }
 
-export function DivergingBarChart({
-  items = [],
-  unit = '€',
-}: DivergingBarChartProps) {
+export function DivergingBarChart({ items = [], unit = '€' }: DivergingBarChartProps) {
   if (!items || items.length === 0) return null;
 
   const maxAbsDelta = Math.max(...items.map((it) => Math.abs(it.delta)), 1);
@@ -110,7 +107,13 @@ export function DivergingBarChart({
             </div>
 
             {it.note && (
-              <span style={{ fontSize: '10.5px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+              <span
+                style={{
+                  fontSize: '10.5px',
+                  color: 'var(--color-text-muted)',
+                  fontStyle: 'italic',
+                }}
+              >
                 {it.note}
               </span>
             )}

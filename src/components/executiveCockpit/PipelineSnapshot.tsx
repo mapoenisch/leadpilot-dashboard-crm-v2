@@ -70,9 +70,7 @@ export const PipelineSnapshot: React.FC = () => {
           <div className="text-[18px] font-bold mt-[4px] text-[#7CEFE6]">
             {formatManagementMetric(pipeline.wonVolume)}
           </div>
-          <div className="text-[10.5px] text-[var(--color-text-muted)]">
-            Realisierter Umsatz
-          </div>
+          <div className="text-[10.5px] text-[var(--color-text-muted)]">Realisierter Umsatz</div>
         </div>
 
         <div className="border border-solid border-[rgba(255,255,255,0.08)] rounded-[6px] bg-[rgba(255,255,255,0.03)] px-[12px] py-[10px]">
@@ -83,9 +81,7 @@ export const PipelineSnapshot: React.FC = () => {
           <div className="text-[18px] font-bold mt-[4px] text-[#FFFFFF]">
             {formatManagementMetric(pipeline.openVolume)}
           </div>
-          <div className="text-[10.5px] text-[var(--color-text-muted)]">
-            Aktive Opportunities
-          </div>
+          <div className="text-[10.5px] text-[var(--color-text-muted)]">Aktive Opportunities</div>
         </div>
       </div>
 
@@ -107,9 +103,7 @@ export const PipelineSnapshot: React.FC = () => {
                   ({st.count} {st.count === 1 ? 'Deal' : 'Deals'})
                 </span>
               </span>
-              <span className="font-bold text-[#00D9C6]">
-                {formatManagementMetric(st.volume)}
-              </span>
+              <span className="font-bold text-[#00D9C6]">{formatManagementMetric(st.volume)}</span>
             </div>
 
             {/* Balken */}

@@ -49,7 +49,9 @@ export const ManagementChartState: React.FC<ManagementChartStateProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           background: isError ? 'rgba(255, 122, 61, 0.12)' : 'rgba(0, 217, 198, 0.08)',
-          color: isError ? MANAGEMENT_CHART_THEME.colors.warning : MANAGEMENT_CHART_THEME.colors.primary,
+          color: isError
+            ? MANAGEMENT_CHART_THEME.colors.warning
+            : MANAGEMENT_CHART_THEME.colors.primary,
           marginBottom: '10px',
         }}
       >

@@ -11,7 +11,10 @@ export interface CrmImportResult {
 }
 
 function parseCsv(csvText: string): string[][] {
-  const lines = csvText.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+  const lines = csvText
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
   if (lines.length === 0) return [];
 
   const firstLine = lines[0];

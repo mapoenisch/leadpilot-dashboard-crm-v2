@@ -18,10 +18,7 @@ export interface RunSlice {
   reproduce: (runId: string) => Promise<void>;
 }
 
-export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice> = (
-  _set,
-  get,
-) => {
+export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice> = (_set, get) => {
   const initialRuns = scenarioService.getRunsForVersion(DEFAULT_BASE_2026_VERSION_ID);
   return {
     runs: initialRuns,

@@ -7,8 +7,10 @@ export const CapitalCut: React.FC = () => {
     return parseInt(cleaned, 10) || 0;
   };
 
-  const totalAktivaRow = BILANZ.aktiva.find((r) => r[0].includes('Gesamtaktiva')) || BILANZ.aktiva[8];
-  const totalPassivaRow = BILANZ.passiva.find((r) => r[0].includes('Gesamtpassiva')) || BILANZ.passiva[11];
+  const totalAktivaRow =
+    BILANZ.aktiva.find((r) => r[0].includes('Gesamtaktiva')) || BILANZ.aktiva[8];
+  const totalPassivaRow =
+    BILANZ.passiva.find((r) => r[0].includes('Gesamtpassiva')) || BILANZ.passiva[11];
   const totalBilanzVal = parseVal(totalAktivaRow[1]); // 479000
 
   // Aktiva Hauptpositionen
@@ -122,26 +124,27 @@ export const CapitalCut: React.FC = () => {
           Bilanzschnitt: Herkunft & Verwendung der Mittel (GJ 2025)
         </h3>
         <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
-          Gleichwertige Gegenüberstellung von investiertem Vermögen und Kapitalstruktur bei einer Bilanzsumme von {totalAktivaRow[1]}.
+          Gleichwertige Gegenüberstellung von investiertem Vermögen und Kapitalstruktur bei einer
+          Bilanzsumme von {totalAktivaRow[1]}.
         </p>
       </div>
 
       {/* 2 Gleichwertige Hälften */}
-      <div className="capital-cut-grid" role="region" aria-label="Mittelverwendung und Finanzierung">
+      <div
+        className="capital-cut-grid"
+        role="region"
+        aria-label="Mittelverwendung und Finanzierung"
+      >
         {/* LINKE HÄLFTE: Mittelverwendung (Aktiva) */}
         <article className="rounded-md border border-solid border-border border-t-4 border-t-primary bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[12px] min-w-0">
           <div className="flex justify-between items-center flex-wrap gap-[6px]">
             <div>
-              <span className="text-[10px] font-bold uppercase text-primary">
-                LINKE HÄLFTE
-              </span>
+              <span className="text-[10px] font-bold uppercase text-primary">LINKE HÄLFTE</span>
               <h4 className="mt-[2px] mb-0 mr-0 ml-0 text-[15px] font-bold text-text">
                 Mittelverwendung (Aktiva)
               </h4>
             </div>
-            <strong className="text-[16px] text-primary">
-              {totalAktivaRow[1]}
-            </strong>
+            <strong className="text-[16px] text-primary">{totalAktivaRow[1]}</strong>
           </div>
 
           {/* Proportionaler Balken */}
@@ -181,7 +184,9 @@ export const CapitalCut: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-[6px]">
                     <strong className="text-[13px] text-text">{sec.amountText}</strong>
-                    <span className="text-[11px] text-[var(--color-text-muted)]">({sec.share} %)</span>
+                    <span className="text-[11px] text-[var(--color-text-muted)]">
+                      ({sec.share} %)
+                    </span>
                   </div>
                 </div>
 
@@ -204,16 +209,12 @@ export const CapitalCut: React.FC = () => {
         <article className="rounded-md border border-solid border-border border-t-4 border-t-accent bg-[var(--color-surface-subtle,rgba(255,255,255,0.02))] p-[14px] flex flex-col gap-[12px] min-w-0">
           <div className="flex justify-between items-center flex-wrap gap-[6px]">
             <div>
-              <span className="text-[10px] font-bold uppercase text-accent">
-                RECHTE HÄLFTE
-              </span>
+              <span className="text-[10px] font-bold uppercase text-accent">RECHTE HÄLFTE</span>
               <h4 className="mt-[2px] mb-0 mr-0 ml-0 text-[15px] font-bold text-text">
                 Finanzierung (Passiva)
               </h4>
             </div>
-            <strong className="text-[16px] text-accent">
-              {totalPassivaRow[1]}
-            </strong>
+            <strong className="text-[16px] text-accent">{totalPassivaRow[1]}</strong>
           </div>
 
           {/* Proportionaler Balken */}
@@ -253,7 +254,9 @@ export const CapitalCut: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-[6px]">
                     <strong className="text-[13px] text-text">{sec.amountText}</strong>
-                    <span className="text-[11px] text-[var(--color-text-muted)]">({sec.share} %)</span>
+                    <span className="text-[11px] text-[var(--color-text-muted)]">
+                      ({sec.share} %)
+                    </span>
                   </div>
                 </div>
 
@@ -274,4 +277,4 @@ export const CapitalCut: React.FC = () => {
       </div>
     </section>
   );
-};;
+};

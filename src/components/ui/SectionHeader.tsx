@@ -12,23 +12,19 @@ export interface SectionHeaderProps {
 // SectionHeader hat keine Stil-Varianten (Bedingungen sind Inhalte, kein
 // Aussehen) — cva daher nur als Basis.
 const sectionHeaderRootVariants = cva(
-  'flex items-end justify-between gap-5 flex-wrap mb-2 min-w-0 w-full'
+  'flex items-end justify-between gap-5 flex-wrap mb-2 min-w-0 w-full',
 );
 
 export function SectionHeader({ eyebrow, title, description, actions }: SectionHeaderProps) {
   return (
-    <div
-      className={cn('section-header-root', sectionHeaderRootVariants())}
-    >
+    <div className={cn('section-header-root', sectionHeaderRootVariants())}>
       <div className="min-w-0 flex-auto [overflow-wrap:anywhere]">
         {eyebrow && (
           <div className="text-primary text-[11px] font-semibold uppercase tracking-[0.08em] mb-[4px] [overflow-wrap:anywhere]">
             {eyebrow}
           </div>
         )}
-        <h2
-          className="section-header-title m-0 font-display text-[26px] font-semibold text-text tracking-[-0.02em] [overflow-wrap:anywhere] [word-break:break-word]"
-        >
+        <h2 className="section-header-title m-0 font-display text-[26px] font-semibold text-text tracking-[-0.02em] [overflow-wrap:anywhere] [word-break:break-word]">
           {title}
         </h2>
         {description && (
@@ -37,11 +33,7 @@ export function SectionHeader({ eyebrow, title, description, actions }: SectionH
           </p>
         )}
       </div>
-      {actions && (
-        <div className="flex gap-3 items-center flex-wrap min-w-0">
-          {actions}
-        </div>
-      )}
+      {actions && <div className="flex gap-3 items-center flex-wrap min-w-0">{actions}</div>}
       <style>{`
         @media (max-width: 600px) {
           .section-header-title {

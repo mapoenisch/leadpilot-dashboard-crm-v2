@@ -53,7 +53,14 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
 }) => {
   // Ehrlicher Empty State bei fehlenden oder unvollständigen Daten
   if (!data || data.length === 0 || !series || series.length === 0) {
-    return <ManagementChartState type="empty" message={emptyMessage} sourceLabel={sourceLabel} height={height} />;
+    return (
+      <ManagementChartState
+        type="empty"
+        message={emptyMessage}
+        sourceLabel={sourceLabel}
+        height={height}
+      />
+    );
   }
 
   // Gradient IDs für Areas
@@ -64,10 +71,7 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
     // 1. BAR CHART
     if (type === 'bar') {
       return (
-        <BarChart
-          data={data}
-          margin={{ top: 12, right: 12, left: -14, bottom: 4 }}
-        >
+        <BarChart data={data} margin={{ top: 12, right: 12, left: -14, bottom: 4 }}>
           <CartesianGrid
             strokeDasharray="3 3"
             vertical={false}
@@ -115,7 +119,12 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
               key={s.key}
               dataKey={s.key}
               name={s.name}
-              fill={s.color || (s.isNegativeAlert ? MANAGEMENT_CHART_THEME.colors.warning : MANAGEMENT_CHART_THEME.colors.primary)}
+              fill={
+                s.color ||
+                (s.isNegativeAlert
+                  ? MANAGEMENT_CHART_THEME.colors.warning
+                  : MANAGEMENT_CHART_THEME.colors.primary)
+              }
               radius={[3, 3, 0, 0]}
               isAnimationActive={false}
             />
@@ -127,10 +136,7 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
     // 2. LINE CHART
     if (type === 'line') {
       return (
-        <LineChart
-          data={data}
-          margin={{ top: 12, right: 12, left: -14, bottom: 4 }}
-        >
+        <LineChart data={data} margin={{ top: 12, right: 12, left: -14, bottom: 4 }}>
           <CartesianGrid
             strokeDasharray="3 3"
             vertical={false}
@@ -179,10 +185,20 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
               type="linear" // Strikte lineare Verbindung, keine künstliche Glättung
               dataKey={s.key}
               name={s.name}
-              stroke={s.color || (s.isNegativeAlert ? MANAGEMENT_CHART_THEME.colors.warning : MANAGEMENT_CHART_THEME.colors.primary)}
+              stroke={
+                s.color ||
+                (s.isNegativeAlert
+                  ? MANAGEMENT_CHART_THEME.colors.warning
+                  : MANAGEMENT_CHART_THEME.colors.primary)
+              }
               strokeWidth={2}
               dot={{ r: 3, fill: s.color || MANAGEMENT_CHART_THEME.colors.primary, strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: '#FFFFFF', stroke: s.color || MANAGEMENT_CHART_THEME.colors.primary, strokeWidth: 2 }}
+              activeDot={{
+                r: 5,
+                fill: '#FFFFFF',
+                stroke: s.color || MANAGEMENT_CHART_THEME.colors.primary,
+                strokeWidth: 2,
+              }}
               isAnimationActive={false}
             />
           ))}
@@ -192,10 +208,7 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
 
     // 3. AREA CHART (Default: Tiefenwirkung mit Lichtkante)
     return (
-      <AreaChart
-        data={data}
-        margin={{ top: 12, right: 12, left: -14, bottom: 4 }}
-      >
+      <AreaChart data={data} margin={{ top: 12, right: 12, left: -14, bottom: 4 }}>
         <defs>
           <linearGradient id={cyanGradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#00D9C6" stopOpacity={0.3} />
@@ -249,7 +262,11 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
           />
         )}
         {series.map((s) => {
-          const color = s.color || (s.isNegativeAlert ? MANAGEMENT_CHART_THEME.colors.warning : MANAGEMENT_CHART_THEME.colors.primary);
+          const color =
+            s.color ||
+            (s.isNegativeAlert
+              ? MANAGEMENT_CHART_THEME.colors.warning
+              : MANAGEMENT_CHART_THEME.colors.primary);
           const grad = s.isNegativeAlert ? `url(#${orangeGradId})` : `url(#${cyanGradId})`;
           return (
             <Area

@@ -18,9 +18,7 @@ export const RoleLegend: React.FC = () => {
             Rollen-Landkarte & Engpass-Dokumentation
           </strong>
         </div>
-        <span className="text-[11px] text-[var(--color-text-muted)]">
-          Quelle: TEAM.bottlenecks
-        </span>
+        <span className="text-[11px] text-[var(--color-text-muted)]">Quelle: TEAM.bottlenecks</span>
       </div>
 
       {/* Liste der 3 Engpässe und der Maßnahme als Quellentexte */}
@@ -33,7 +31,9 @@ export const RoleLegend: React.FC = () => {
               key={idx}
               className={`flex items-start gap-[10px] min-w-0 rounded-md border border-solid px-[12px] py-[10px] ${isMeasure ? 'border-[rgba(0,217,198,0.3)] bg-[rgba(0,217,198,0.04)]' : 'border-[rgba(255,122,61,0.3)] bg-[rgba(255,122,61,0.05)]'}`}
             >
-              <span className={`text-[12px] font-bold leading-[1.4] shrink-0 ${isMeasure ? 'text-primary' : 'text-accent'}`}>
+              <span
+                className={`text-[12px] font-bold leading-[1.4] shrink-0 ${isMeasure ? 'text-primary' : 'text-accent'}`}
+              >
                 {isMeasure ? '✅' : '⚠️'}
               </span>
               <span className="text-[12px] leading-[1.4] text-text [overflow-wrap:anywhere]">
