@@ -1,22 +1,34 @@
 import React from 'react';
 import { BILANZ } from '../../../domain/finanzenData';
 
+type BilanzRow = [string, string];
+
+const defaultBilanzRow: BilanzRow = ['', '0 €'];
+
+const getBilanzRow = (rows: string[][], index: number): BilanzRow => {
+  const row = rows[index];
+  if (!row) return defaultBilanzRow;
+  return [row[0] ?? '', row[1] ?? '0 €'];
+};
+
 export const CapitalCut: React.FC = () => {
   const parseVal = (s: string) => {
     const cleaned = s.replace(/[^\d]/g, '');
     return parseInt(cleaned, 10) || 0;
   };
 
-  const totalAktivaRow =
-    BILANZ.aktiva.find((r) => r[0].includes('Gesamtaktiva')) || BILANZ.aktiva[8];
-  const totalPassivaRow =
-    BILANZ.passiva.find((r) => r[0].includes('Gesamtpassiva')) || BILANZ.passiva[11];
+  const totalAktivaRow: BilanzRow =
+    (BILANZ.aktiva.find((r) => r[0]?.includes('Gesamtaktiva')) as BilanzRow | undefined) ??
+    getBilanzRow(BILANZ.aktiva, 8);
+  const totalPassivaRow: BilanzRow =
+    (BILANZ.passiva.find((r) => r[0]?.includes('Gesamtpassiva')) as BilanzRow | undefined) ??
+    getBilanzRow(BILANZ.passiva, 11);
   const totalBilanzVal = parseVal(totalAktivaRow[1]); // 479000
 
   // Aktiva Hauptpositionen
-  const anlageRow = BILANZ.aktiva[0]; // A. Anlagevermögen
-  const umlaufRow = BILANZ.aktiva[3]; // B. Umlaufvermögen
-  const rapAktivaRow = BILANZ.aktiva[7]; // C. RAP
+  const anlageRow = getBilanzRow(BILANZ.aktiva, 0); // A. Anlagevermögen
+  const umlaufRow = getBilanzRow(BILANZ.aktiva, 3); // B. Umlaufvermögen
+  const rapAktivaRow = getBilanzRow(BILANZ.aktiva, 7); // C. RAP
 
   const aktivaSections = [
     {
@@ -25,7 +37,7 @@ export const CapitalCut: React.FC = () => {
       val: parseVal(anlageRow[1]),
       share: ((parseVal(anlageRow[1]) / totalBilanzVal) * 100).toFixed(1).replace('.', ','),
       color: '#00D9C6',
-      subItems: [BILANZ.aktiva[1], BILANZ.aktiva[2]],
+      subItems: [getBilanzRow(BILANZ.aktiva, 1), getBilanzRow(BILANZ.aktiva, 2)],
     },
     {
       title: umlaufRow[0],
@@ -33,7 +45,11 @@ export const CapitalCut: React.FC = () => {
       val: parseVal(umlaufRow[1]),
       share: ((parseVal(umlaufRow[1]) / totalBilanzVal) * 100).toFixed(1).replace('.', ','),
       color: '#7CEFE6',
-      subItems: [BILANZ.aktiva[4], BILANZ.aktiva[5], BILANZ.aktiva[6]],
+      subItems: [
+        getBilanzRow(BILANZ.aktiva, 4),
+        getBilanzRow(BILANZ.aktiva, 5),
+        getBilanzRow(BILANZ.aktiva, 6),
+      ],
     },
     {
       title: rapAktivaRow[0],
@@ -41,15 +57,15 @@ export const CapitalCut: React.FC = () => {
       val: parseVal(rapAktivaRow[1]),
       share: ((parseVal(rapAktivaRow[1]) / totalBilanzVal) * 100).toFixed(1).replace('.', ','),
       color: '#A7B0BA',
-      subItems: [],
+      subItems: [] as BilanzRow[],
     },
   ];
 
   // Passiva Hauptpositionen
-  const ekRow = BILANZ.passiva[0]; // A. Eigenkapital
-  const rueckRow = BILANZ.passiva[5]; // B. Rückstellungen
-  const verbRow = BILANZ.passiva[6]; // C. Verbindlichkeiten
-  const rapPassivaRow = BILANZ.passiva[10]; // D. RAP
+  const ekRow = getBilanzRow(BILANZ.passiva, 0); // A. Eigenkapital
+  const rueckRow = getBilanzRow(BILANZ.passiva, 5); // B. Rückstellungen
+  const verbRow = getBilanzRow(BILANZ.passiva, 6); // C. Verbindlichkeiten
+  const rapPassivaRow = getBilanzRow(BILANZ.passiva, 10); // D. RAP
 
   const passivaSections = [
     {
@@ -58,7 +74,12 @@ export const CapitalCut: React.FC = () => {
       val: parseVal(ekRow[1]),
       share: ((parseVal(ekRow[1]) / totalBilanzVal) * 100).toFixed(1).replace('.', ','),
       color: '#00D9C6',
-      subItems: [BILANZ.passiva[1], BILANZ.passiva[2], BILANZ.passiva[3], BILANZ.passiva[4]],
+      subItems: [
+        getBilanzRow(BILANZ.passiva, 1),
+        getBilanzRow(BILANZ.passiva, 2),
+        getBilanzRow(BILANZ.passiva, 3),
+        getBilanzRow(BILANZ.passiva, 4),
+      ],
     },
     {
       title: rueckRow[0],
@@ -66,7 +87,7 @@ export const CapitalCut: React.FC = () => {
       val: parseVal(rueckRow[1]),
       share: ((parseVal(rueckRow[1]) / totalBilanzVal) * 100).toFixed(1).replace('.', ','),
       color: '#FFB800',
-      subItems: [],
+      subItems: [] as BilanzRow[],
     },
     {
       title: verbRow[0],
@@ -74,7 +95,11 @@ export const CapitalCut: React.FC = () => {
       val: parseVal(verbRow[1]),
       share: ((parseVal(verbRow[1]) / totalBilanzVal) * 100).toFixed(1).replace('.', ','),
       color: '#FF7A3D',
-      subItems: [BILANZ.passiva[7], BILANZ.passiva[8], BILANZ.passiva[9]],
+      subItems: [
+        getBilanzRow(BILANZ.passiva, 7),
+        getBilanzRow(BILANZ.passiva, 8),
+        getBilanzRow(BILANZ.passiva, 9),
+      ],
     },
     {
       title: rapPassivaRow[0],
@@ -82,7 +107,7 @@ export const CapitalCut: React.FC = () => {
       val: parseVal(rapPassivaRow[1]),
       share: ((parseVal(rapPassivaRow[1]) / totalBilanzVal) * 100).toFixed(1).replace('.', ','),
       color: '#A7B0BA',
-      subItems: [],
+      subItems: [] as BilanzRow[],
     },
   ];
 

@@ -65,6 +65,9 @@ function parseExactNumber(str: string): number {
  */
 export function getExecutiveCockpitKpis(): CockpitKpiItem[] {
   const [arr, revenue, ebitda, customers] = EXEC_KPIS_1;
+  if (!arr || !revenue || !ebitda || !customers) {
+    return [];
+  }
 
   // ARR YoY Wachstum mathematisch exakt aus CHART_ARR hergeleitet (Q4/24: 207.792 € ➔ Q4/25: 411.840 €)
   const q4_24 = CHART_ARR.datasets[0]?.data?.[3];
@@ -131,11 +134,14 @@ export function getArrTrendData(): ArrTimeSeriesPoint[] {
     }
   }
 
-  return CHART_ARR.labels.map((period, idx) => ({
-    period,
-    arr: dataset.data[idx],
-    label: `${(dataset.data[idx] / 1000).toLocaleString('de-DE', { maximumFractionDigits: 0 })} k€`,
-  }));
+  return CHART_ARR.labels.map((period, idx) => {
+    const val = dataset.data[idx] ?? 0;
+    return {
+      period,
+      arr: val,
+      label: `${(val / 1000).toLocaleString('de-DE', { maximumFractionDigits: 0 })} k€`,
+    };
+  });
 }
 
 /**
@@ -157,7 +163,7 @@ export function getMrrTierData(): MrrTierPoint[] {
   const total = dataset.data.reduce((acc, v) => acc + v, 0);
 
   return CHART_MRR.labels.map((tier, idx) => {
-    const mrr = dataset.data[idx];
+    const mrr = dataset.data[idx] ?? 0;
     return {
       tier,
       mrr,

@@ -1,20 +1,27 @@
 import React from 'react';
 import { KANAELE, MBUDGET } from '../../../domain/vertriebData';
 
+type KanaeleRow = [string, string, string, string, string, string, string];
+type BudgetRow = [string, string, string, string, string, string, string];
+
+const fallbackKanaele: KanaeleRow = ['', '', '', '', '', '', ''];
+const fallbackBudget: BudgetRow = ['', '', '', '', '', '', ''];
+
 export const ChannelInvestmentRoute: React.FC = () => {
   // Echte Datenbindung aus KANAELE.rows und MBUDGET.rows
-  const channelRows = KANAELE.rows.slice(0, 5);
-  const budgetRows = MBUDGET.rows.slice(0, 5);
-  const totalKanaele = KANAELE.rows[5];
-  const totalMbudget = MBUDGET.rows[5];
+  const channelRows = KANAELE.rows.slice(0, 5) as KanaeleRow[];
+  const budgetRows = MBUDGET.rows.slice(0, 5) as BudgetRow[];
+  const totalKanaele: KanaeleRow = (KANAELE.rows[5] as KanaeleRow | undefined) ?? fallbackKanaele;
+  const totalMbudget: BudgetRow = (MBUDGET.rows[5] as BudgetRow | undefined) ?? fallbackBudget;
+  const defaultMRow: BudgetRow = budgetRows[0] ?? fallbackBudget;
 
   const channels = channelRows.map((kRow) => {
-    const mRow =
+    const mRow: BudgetRow =
       budgetRows.find(
         (b) =>
           b[0].toLowerCase().startsWith(kRow[0].toLowerCase().slice(0, 4)) ||
           kRow[0].toLowerCase().startsWith(b[0].toLowerCase().slice(0, 4)),
-      ) || budgetRows[0];
+      ) ?? defaultMRow;
 
     let badge: 'Erhöhen' | 'Halten' | 'Stoppen' = 'Halten';
     let badgeVariant: 'increase' | 'hold' | 'stop' = 'hold';

@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { MARKT } from '../../../domain/marktData';
 import { Table } from '../../../components/ui/Table';
 
+type OverviewRow = [string, string];
+const defaultOverviewRow: OverviewRow = ['', ''];
+
+const getOverviewRow = (index: number): OverviewRow => {
+  const r = MARKT.overview[index];
+  if (!r) return defaultOverviewRow;
+  return [r[0] ?? '', r[1] ?? ''];
+};
+
 export const MarketOpportunityStack: React.FC = () => {
   const [showTable, setShowTable] = useState(false);
 
@@ -10,16 +19,16 @@ export const MarketOpportunityStack: React.FC = () => {
   // [1] ['Deutschland Einzelmarkt', 'Größter CRM-Einzelmarkt Europas mit 24,4 % Marktanteil (2025)']
   // [2] ['LeadPilot Marktanteil', '< 0,1 % (Fokus auf Nische B2B-Mittelstand)']
   // [3] ['Digitale Reichweite 2025', '1.400 LinkedIn-Follower · 620 Newsletter-Abos · 2.900 Web-Besucher/Monat · DA 14']
-  const rowEuropa = MARKT.overview[0];
-  const rowDeutschland = MARKT.overview[1];
-  const rowLeadPilot = MARKT.overview[2];
-  const rowReichweite = MARKT.overview[3];
+  const rowEuropa = getOverviewRow(0);
+  const rowDeutschland = getOverviewRow(1);
+  const rowLeadPilot = getOverviewRow(2);
+  const rowReichweite = getOverviewRow(3);
 
   // Dynamische Zerlegung der Werte ohne Hartcodierung
   // rowEuropa: '14,23 Mrd. USD' aus '14,23 Mrd. USD (CAGR...'
-  const europaVal = rowEuropa[1].split(' (')[0];
+  const europaVal = rowEuropa[1].split(' (')[0] ?? '';
   // rowLeadPilot: '< 0,1 %' und 'Fokus auf Nische B2B-Mittelstand' aus '< 0,1 % (Fokus auf Nische B2B-Mittelstand)'
-  const leadpilotVal = rowLeadPilot[1].split(' (')[0];
+  const leadpilotVal = rowLeadPilot[1].split(' (')[0] ?? '';
   const leadpilotFokus = rowLeadPilot[1].includes('(')
     ? rowLeadPilot[1].substring(rowLeadPilot[1].indexOf('(') + 1, rowLeadPilot[1].lastIndexOf(')'))
     : rowLeadPilot[1];

@@ -9,29 +9,34 @@ export const RevenueCostShoreline: React.FC = () => {
     return isNegative ? -val : val;
   };
 
-  const revenueRow = GUV.rows.find((r) => r[0].includes('Umsatzerlöse')) || GUV.rows[3];
-  const cogsRow = GUV.rows.find((r) => r[0].includes('Umsatzkosten')) || GUV.rows[4];
-  const smRow = GUV.rows.find((r) => r[0].includes('Sales & Marketing')) || GUV.rows[6];
-  const rdRow = GUV.rows.find((r) => r[0].includes('Forschung & Entwicklung')) || GUV.rows[7];
-  const gaRow = GUV.rows.find((r) => r[0].includes('General & Administrative')) || GUV.rows[8];
-  const ebitdaRow = GUV.rows.find((r) => r[0] === 'EBITDA') || GUV.rows[9];
-  const lossRow = GUV.rows.find((r) => r[0].includes('Jahresfehlbetrag')) || GUV.rows[15];
+  const defaultGuvRow: string[] = [];
+  const findGuvRow = (term: string, fallbackIdx: number): string[] => {
+    return GUV.rows.find((r) => r[0]?.includes(term)) ?? GUV.rows[fallbackIdx] ?? defaultGuvRow;
+  };
+
+  const revenueRow = findGuvRow('Umsatzerlöse', 3);
+  const cogsRow = findGuvRow('Umsatzkosten', 4);
+  const smRow = findGuvRow('Sales & Marketing', 6);
+  const rdRow = findGuvRow('Forschung & Entwicklung', 7);
+  const gaRow = findGuvRow('General & Administrative', 8);
+  const ebitdaRow = GUV.rows.find((r) => r[0] === 'EBITDA') ?? GUV.rows[9] ?? defaultGuvRow;
+  const lossRow = findGuvRow('Jahresfehlbetrag', 15);
 
   const periodIndices = GUV.headers.map((_, i) => i).filter((i) => i > 0);
   const periods = periodIndices.map((colIdx) => {
-    const label = GUV.headers[colIdx];
-    const revenueVal = parseEuro(revenueRow[colIdx]);
-    const cogsVal = Math.abs(parseEuro(cogsRow[colIdx]));
-    const smVal = Math.abs(parseEuro(smRow[colIdx]));
-    const rdVal = Math.abs(parseEuro(rdRow[colIdx]));
-    const gaVal = Math.abs(parseEuro(gaRow[colIdx]));
+    const label = GUV.headers[colIdx] ?? '';
+    const revenueVal = parseEuro(revenueRow[colIdx] ?? '0');
+    const cogsVal = Math.abs(parseEuro(cogsRow[colIdx] ?? '0'));
+    const smVal = Math.abs(parseEuro(smRow[colIdx] ?? '0'));
+    const rdVal = Math.abs(parseEuro(rdRow[colIdx] ?? '0'));
+    const gaVal = Math.abs(parseEuro(gaRow[colIdx] ?? '0'));
     const totalCostVal = cogsVal + smVal + rdVal + gaVal;
-    const ebitdaText = ebitdaRow[colIdx];
-    const lossText = lossRow[colIdx];
+    const ebitdaText = ebitdaRow[colIdx] ?? '';
+    const lossText = lossRow[colIdx] ?? '';
 
     return {
       label,
-      revenueText: revenueRow[colIdx],
+      revenueText: revenueRow[colIdx] ?? '',
       revenueVal,
       totalCostText: `${totalCostVal.toLocaleString('de-DE')} €`,
       totalCostVal,
@@ -40,15 +45,14 @@ export const RevenueCostShoreline: React.FC = () => {
     };
   });
 
-  const firstYear = periods[0]?.label.match(/\d{4}/)?.[0] || periods[0]?.label || '';
-  const lastYear =
-    periods[periods.length - 1]?.label.match(/\d{4}/)?.[0] ||
-    periods[periods.length - 1]?.label ||
-    '';
+  const firstPeriod = periods[0];
+  const lastPeriodFromList = periods[periods.length - 1];
+  const firstYear = firstPeriod?.label.match(/\d{4}/)?.[0] || firstPeriod?.label || '';
+  const lastYear = lastPeriodFromList?.label.match(/\d{4}/)?.[0] || lastPeriodFromList?.label || '';
   const yearRange =
     firstYear && lastYear
       ? `${firstYear} – ${lastYear}`
-      : `${periods[0]?.label || ''} – ${periods[periods.length - 1]?.label || ''}`;
+      : `${firstPeriod?.label || ''} – ${lastPeriodFromList?.label || ''}`;
 
   const prevPeriod = periods.length >= 2 ? periods[periods.length - 2] : periods[0];
   const lastPeriod = periods[periods.length - 1];
@@ -217,6 +221,7 @@ export const RevenueCostShoreline: React.FC = () => {
           {periods.map((p, idx) => {
             const costPt = costPoints[idx];
             const revPt = revPoints[idx];
+            if (!costPt || !revPt) return null;
 
             return (
               <g key={p.label}>

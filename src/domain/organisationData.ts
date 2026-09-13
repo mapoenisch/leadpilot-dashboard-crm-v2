@@ -55,6 +55,13 @@ export interface OrganisationUnit {
 /**
  * Leitet die Organigramm-Einheiten typsicher und ohne Duplikation direkt aus HEADCOUNT.rows ab.
  */
+const toUnit = (row: string[] | undefined, isRoot?: boolean): OrganisationUnit => ({
+  role: row?.[0] ?? '',
+  fte: row?.[1] ?? '',
+  staffing: row?.[2] ?? '',
+  ...(isRoot ? { isRoot: true } : {}),
+});
+
 export function getOrganisationStructure(): {
   root: OrganisationUnit;
   units: OrganisationUnit[];
@@ -62,13 +69,8 @@ export function getOrganisationStructure(): {
 } {
   const [ceo, eng, sales, cs, marketing, total] = HEADCOUNT.rows;
   return {
-    root: { role: ceo[0], fte: ceo[1], staffing: ceo[2], isRoot: true },
-    units: [
-      { role: eng[0], fte: eng[1], staffing: eng[2] },
-      { role: sales[0], fte: sales[1], staffing: sales[2] },
-      { role: cs[0], fte: cs[1], staffing: cs[2] },
-      { role: marketing[0], fte: marketing[1], staffing: marketing[2] },
-    ],
-    total: { role: total[0], fte: total[1], staffing: total[2] },
+    root: toUnit(ceo, true),
+    units: [toUnit(eng), toUnit(sales), toUnit(cs), toUnit(marketing)],
+    total: toUnit(total),
   };
 }

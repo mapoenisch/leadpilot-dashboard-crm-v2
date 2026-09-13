@@ -1,15 +1,33 @@
 import React from 'react';
 import { FUNNEL } from '../../../domain/vertriebData';
 
+type FunnelRow = [string, string, string, string, string, string, string, string];
+const defaultFunnelRow: FunnelRow = ['', '', '', '', '', '0', '0', '0%'];
+
+const getFunnelRow = (index: number): FunnelRow => {
+  const r = FUNNEL.rows[index];
+  if (!r) return defaultFunnelRow;
+  return [
+    r[0] ?? '',
+    r[1] ?? '',
+    r[2] ?? '',
+    r[3] ?? '',
+    r[4] ?? '',
+    r[5] ?? '0',
+    r[6] ?? '0',
+    r[7] ?? '0%',
+  ];
+};
+
 export const FunnelLeakageWaterfall: React.FC = () => {
   const parseCount = (s: string) => parseInt(s.replace(/\./g, '').replace(/[^0-9]/g, ''), 10);
 
   // Echte Datenbindung zur Laufzeit aus FUNNEL.rows
-  const leadsRow = FUNNEL.rows[0];
-  const mqlRow = FUNNEL.rows[1];
-  const sqlRow = FUNNEL.rows[2];
-  const angeboteRow = FUNNEL.rows[4];
-  const wonRow = FUNNEL.rows[5];
+  const leadsRow = getFunnelRow(0);
+  const mqlRow = getFunnelRow(1);
+  const sqlRow = getFunnelRow(2);
+  const angeboteRow = getFunnelRow(4);
+  const wonRow = getFunnelRow(5);
 
   const leadsCount = parseCount(leadsRow[5]);
   const mqlCount = parseCount(mqlRow[5]);

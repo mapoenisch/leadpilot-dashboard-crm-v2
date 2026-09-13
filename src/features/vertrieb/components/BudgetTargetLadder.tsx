@@ -1,18 +1,25 @@
 import React from 'react';
 import { FUNNEL, MBUDGET, PLANUNG } from '../../../domain/vertriebData';
 
+type BudgetRow = [string, string, string, string, string, string, string];
+type FunnelRow = [string, string, string, string, string, string, string, string];
+
+const fallbackBudget: BudgetRow = ['', '', '', '', '', '', ''];
+const fallbackFunnel: FunnelRow = ['', '', '', '', '', '', '', ''];
+
 export const BudgetTargetLadder: React.FC = () => {
   // Echte Datenbindung zur Laufzeit ausschließlich aus vertriebData.ts
-  const budgetRow = MBUDGET.rows[5]; // Gesamt
-  const leadsRow = FUNNEL.rows[0];
-  const mqlRow = FUNNEL.rows[1];
-  const sqlRow = FUNNEL.rows[2];
-  const testsRow = FUNNEL.rows[3];
-  const angeboteRow = FUNNEL.rows[4];
-  const wonRow = FUNNEL.rows[5];
+  const budgetRow: BudgetRow = (MBUDGET.rows[5] as BudgetRow | undefined) ?? fallbackBudget;
+  const leadsRow: FunnelRow = (FUNNEL.rows[0] as FunnelRow | undefined) ?? fallbackFunnel;
+  const mqlRow: FunnelRow = (FUNNEL.rows[1] as FunnelRow | undefined) ?? fallbackFunnel;
+  const sqlRow: FunnelRow = (FUNNEL.rows[2] as FunnelRow | undefined) ?? fallbackFunnel;
+  const testsRow: FunnelRow = (FUNNEL.rows[3] as FunnelRow | undefined) ?? fallbackFunnel;
+  const angeboteRow: FunnelRow = (FUNNEL.rows[4] as FunnelRow | undefined) ?? fallbackFunnel;
+  const wonRow: FunnelRow = (FUNNEL.rows[5] as FunnelRow | undefined) ?? fallbackFunnel;
 
   // Budgetplanung aus PLANUNG.chartPlanbudget
-  const planData = PLANUNG.chartPlanbudget.datasets[0].data;
+  const planData: [number, number, number, number, number, number] = (PLANUNG.chartPlanbudget
+    .datasets[0]?.data ?? [0, 0, 0, 0, 0, 0]) as [number, number, number, number, number, number];
   const h2Data = planData.slice(0, 5);
   const h2Sum = h2Data.reduce((a, b) => a + b, 0); // 15.125 €
   const jan27Val = planData[5]; // 4.250 €
@@ -20,8 +27,10 @@ export const BudgetTargetLadder: React.FC = () => {
 
   // Ziel-KPIs aus PLANUNG.chartPlankpi
   // labels: ['Neukunden/Mon.', 'Marketing-CAC (€/10)', 'Trial-to-Paid (%)', 'Churn/Mon. (%)', 'KI-Scoring (%)']
-  const kpiBasis = PLANUNG.chartPlankpi.datasets[0].data;
-  const kpiTarget = PLANUNG.chartPlankpi.datasets[1].data;
+  const kpiBasis: [number, number, number, number, number] = (PLANUNG.chartPlankpi.datasets[0]
+    ?.data ?? [0, 0, 0, 0, 0]) as [number, number, number, number, number];
+  const kpiTarget: [number, number, number, number, number] = (PLANUNG.chartPlankpi.datasets[1]
+    ?.data ?? [0, 0, 0, 0, 0]) as [number, number, number, number, number];
 
   const targetCustomersMo = kpiTarget[0]; // 8
   const basisCustomersMo = kpiBasis[0]; // 4

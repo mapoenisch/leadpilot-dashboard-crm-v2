@@ -2,43 +2,69 @@ import React from 'react';
 import { SEGMENTE, CHART_SEGMENT } from '../../../domain/kundenData';
 
 export const RevenueStaircase: React.FC = () => {
+  const row0 = SEGMENTE.rows[0];
+  const row1 = SEGMENTE.rows[1];
+  const row2 = SEGMENTE.rows[2];
+  const row3 = SEGMENTE.rows[3];
+  const dataset = CHART_SEGMENT.datasets[0];
+
+  if (!row0 || !row1 || !row2 || !row3 || !dataset) {
+    return null;
+  }
+
+  const [data0, data1, data2, data3] = dataset.data;
+  const [color0, color1, color2, color3] = dataset.colors;
+
+  if (
+    data0 === undefined ||
+    data1 === undefined ||
+    data2 === undefined ||
+    data3 === undefined ||
+    !color0 ||
+    !color1 ||
+    !color2 ||
+    !color3
+  ) {
+    return null;
+  }
+
   // Sortiert für den kumulativen Treppenaufbau von klein nach groß:
   // Agenturen (42.000 €) -> Großhandel (78.960 €) -> IT/Software (112.320 €) -> Maschinenbau (178.560 €)
   const steps = [
     {
       name: 'Agenturen',
-      branche: SEGMENTE.rows[3].branche,
-      anteil: SEGMENTE.rows[3].anteil, // 15 %
+      branche: row3.branche,
+      anteil: row3.anteil, // 15 %
       kunden: '10 Kunden',
-      arr: CHART_SEGMENT.datasets[0].data[3], // 42000
-      color: CHART_SEGMENT.datasets[0].colors[3], // #FF9A66
+      arr: data3, // 42000
+      color: color3, // #FF9A66
       kumuliertArr: 42000,
     },
     {
       name: 'Großhandel',
-      branche: SEGMENTE.rows[2].branche,
-      anteil: SEGMENTE.rows[2].anteil, // 21 %
+      branche: row2.branche,
+      anteil: row2.anteil, // 21 %
       kunden: '14 Kunden',
-      arr: CHART_SEGMENT.datasets[0].data[2], // 78960
-      color: CHART_SEGMENT.datasets[0].colors[2], // #FF7A3D
+      arr: data2, // 78960
+      color: color2, // #FF7A3D
       kumuliertArr: 42000 + 78960, // 120960
     },
     {
       name: 'IT / Software',
-      branche: SEGMENTE.rows[1].branche,
-      anteil: SEGMENTE.rows[1].anteil, // 27 %
+      branche: row1.branche,
+      anteil: row1.anteil, // 27 %
       kunden: '18 Kunden',
-      arr: CHART_SEGMENT.datasets[0].data[1], // 112320
-      color: CHART_SEGMENT.datasets[0].colors[1], // #7CEFE6
+      arr: data1, // 112320
+      color: color1, // #7CEFE6
       kumuliertArr: 120960 + 112320, // 233280
     },
     {
       name: 'Maschinenbau',
-      branche: SEGMENTE.rows[0].branche,
-      anteil: SEGMENTE.rows[0].anteil, // 36 %
+      branche: row0.branche,
+      anteil: row0.anteil, // 36 %
       kunden: '24 Kunden',
-      arr: CHART_SEGMENT.datasets[0].data[0], // 178560
-      color: CHART_SEGMENT.datasets[0].colors[0], // #00D9C6
+      arr: data0, // 178560
+      color: color0, // #00D9C6
       kumuliertArr: 233280 + 178560, // 411840
     },
   ];

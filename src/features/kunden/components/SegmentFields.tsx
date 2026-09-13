@@ -6,7 +6,11 @@ export const SegmentFields: React.FC = () => {
 
   // Exakte ARR-Werte aus CHART_SEGMENT
   // [178560, 112320, 78960, 42000]
-  const arrValues = CHART_SEGMENT.datasets[0].data;
+  const dataset = CHART_SEGMENT.datasets[0] ?? {
+    data: [178560, 112320, 78960, 42000],
+    colors: ['#00D9C6', '#7CEFE6', '#FFB800', '#FF9A66'],
+  };
+  const arrValues = dataset.data;
   const totalArr = arrValues.reduce((sum, val) => sum + val, 0); // 411.840 €
 
   // Exakte mathematische ARR-Flächengrößen (gemäß Vorgabe 43,35 %, 27,27 %, 19,17 %, 10,20 %)
@@ -25,10 +29,10 @@ export const SegmentFields: React.FC = () => {
   // [3] { branche: 'Agenturen', anteil: '15 %', charakter: '10 Kunden · Kurze Sales-Cycles, direkte Entscheider-Ebene' }
 
   const segments = SEGMENTE.rows.map((row, idx) => {
-    const arr = arrValues[idx];
-    const arrShare = arrShares[idx];
-    const color = CHART_SEGMENT.datasets[0].colors[idx];
-    const kundenCount = row.charakter.split(' · ')[0]; // z. B. "24 Kunden"
+    const arr = arrValues[idx] ?? 0;
+    const arrShare = arrShares[idx] ?? { label: '0 %', num: 0 };
+    const color = dataset.colors[idx] ?? '#00D9C6';
+    const kundenCount = row.charakter.split(' · ')[0] ?? ''; // z. B. "24 Kunden"
 
     return {
       name: row.branche,
@@ -42,6 +46,9 @@ export const SegmentFields: React.FC = () => {
       color,
     };
   });
+
+  const [seg0, seg1, seg2, seg3] = segments;
+  if (!seg0 || !seg1 || !seg2 || !seg3) return null;
 
   return (
     <section
@@ -87,17 +94,17 @@ export const SegmentFields: React.FC = () => {
             <div>
               <div className="flex justify-between items-start flex-wrap gap-[6px]">
                 <span className="text-[11px] font-bold uppercase text-[#00D9C6] bg-[rgba(0,217,198,0.15)] rounded px-[6px] py-[2px]">
-                  ARR-Fläche: {segments[0].arrShare}
+                  ARR-Fläche: {seg0.arrShare}
                 </span>
                 <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-                  Kundenanteil: {segments[0].kundenAnteil}
+                  Kundenanteil: {seg0.kundenAnteil}
                 </span>
               </div>
               <h4 className="font-bold text-[#00D9C6] text-[1.1rem] mt-[8px] mb-[2px] mx-0">
-                {segments[0].name}
+                {seg0.name}
               </h4>
               <p className="m-0 text-[12px] leading-[1.35] text-[var(--color-text-muted)]">
-                {segments[0].charakter}
+                {seg0.charakter}
               </p>
             </div>
             <div className="border-0 border-t border-solid border-[rgba(0,217,198,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[8px]">
@@ -106,12 +113,10 @@ export const SegmentFields: React.FC = () => {
                   Segment-ARR
                 </span>
                 <strong className="font-display text-[1.25rem] text-text">
-                  {segments[0].arrFormatted}
+                  {seg0.arrFormatted}
                 </strong>
               </div>
-              <span className="text-[12px] font-semibold text-[#00D9C6]">
-                {segments[0].kundenCount}
-              </span>
+              <span className="text-[12px] font-semibold text-[#00D9C6]">{seg0.kundenCount}</span>
             </div>
           </button>
 
@@ -124,14 +129,14 @@ export const SegmentFields: React.FC = () => {
             <div>
               <div className="flex justify-between items-start flex-wrap gap-[6px]">
                 <span className="text-[11px] font-bold uppercase text-[#FF9A66] bg-[rgba(255,154,102,0.15)] rounded px-[6px] py-[2px]">
-                  ARR-Fläche: {segments[3].arrShare}
+                  ARR-Fläche: {seg3.arrShare}
                 </span>
                 <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-                  Kundenanteil: {segments[3].kundenAnteil}
+                  Kundenanteil: {seg3.kundenAnteil}
                 </span>
               </div>
               <h4 className="font-bold text-[#FF9A66] text-[0.95rem] mt-[4px] mb-[2px] mx-0">
-                {segments[3].name}
+                {seg3.name}
               </h4>
             </div>
             <div className="border-0 border-t border-solid border-[rgba(255,154,102,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[6px]">
@@ -140,12 +145,10 @@ export const SegmentFields: React.FC = () => {
                   Segment-ARR
                 </span>
                 <strong className="font-display text-[1.05rem] text-text">
-                  {segments[3].arrFormatted}
+                  {seg3.arrFormatted}
                 </strong>
               </div>
-              <span className="text-[11.5px] font-semibold text-[#FF9A66]">
-                {segments[3].kundenCount}
-              </span>
+              <span className="text-[11.5px] font-semibold text-[#FF9A66]">{seg3.kundenCount}</span>
             </div>
           </button>
         </div>
@@ -161,17 +164,17 @@ export const SegmentFields: React.FC = () => {
             <div>
               <div className="flex justify-between items-start flex-wrap gap-[6px]">
                 <span className="text-[11px] font-bold uppercase text-[#7CEFE6] bg-[rgba(124,239,230,0.15)] rounded px-[6px] py-[2px]">
-                  ARR-Fläche: {segments[1].arrShare}
+                  ARR-Fläche: {seg1.arrShare}
                 </span>
                 <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-                  Kundenanteil: {segments[1].kundenAnteil}
+                  Kundenanteil: {seg1.kundenAnteil}
                 </span>
               </div>
               <h4 className="font-bold text-[#7CEFE6] text-[1.05rem] mt-[6px] mb-[2px] mx-0">
-                {segments[1].name}
+                {seg1.name}
               </h4>
               <p className="m-0 text-[12px] leading-[1.35] text-[var(--color-text-muted)]">
-                {segments[1].charakter}
+                {seg1.charakter}
               </p>
             </div>
             <div className="border-0 border-t border-solid border-[rgba(124,239,230,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[8px]">
@@ -180,12 +183,10 @@ export const SegmentFields: React.FC = () => {
                   Segment-ARR
                 </span>
                 <strong className="font-display text-[1.2rem] text-text">
-                  {segments[1].arrFormatted}
+                  {seg1.arrFormatted}
                 </strong>
               </div>
-              <span className="text-[12px] font-semibold text-[#7CEFE6]">
-                {segments[1].kundenCount}
-              </span>
+              <span className="text-[12px] font-semibold text-[#7CEFE6]">{seg1.kundenCount}</span>
             </div>
           </button>
 
@@ -198,17 +199,17 @@ export const SegmentFields: React.FC = () => {
             <div>
               <div className="flex justify-between items-start flex-wrap gap-[6px]">
                 <span className="text-[11px] font-bold uppercase text-[#FF7A3D] bg-[rgba(255,122,61,0.15)] rounded px-[6px] py-[2px]">
-                  ARR-Fläche: {segments[2].arrShare}
+                  ARR-Fläche: {seg2.arrShare}
                 </span>
                 <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-                  Kundenanteil: {segments[2].kundenAnteil}
+                  Kundenanteil: {seg2.kundenAnteil}
                 </span>
               </div>
               <h4 className="font-bold text-[#FF7A3D] text-[1.05rem] mt-[6px] mb-[2px] mx-0">
-                {segments[2].name}
+                {seg2.name}
               </h4>
               <p className="m-0 text-[12px] leading-[1.35] text-[var(--color-text-muted)]">
-                {segments[2].charakter}
+                {seg2.charakter}
               </p>
             </div>
             <div className="border-0 border-t border-solid border-[rgba(255,122,61,0.15)] flex justify-between items-end flex-wrap gap-[6px] pt-[6px]">
@@ -217,12 +218,10 @@ export const SegmentFields: React.FC = () => {
                   Segment-ARR
                 </span>
                 <strong className="font-display text-[1.15rem] text-text">
-                  {segments[2].arrFormatted}
+                  {seg2.arrFormatted}
                 </strong>
               </div>
-              <span className="text-[12px] font-semibold text-[#FF7A3D]">
-                {segments[2].kundenCount}
-              </span>
+              <span className="text-[12px] font-semibold text-[#FF7A3D]">{seg2.kundenCount}</span>
             </div>
           </button>
         </div>

@@ -15,14 +15,24 @@ interface CompetitorZone {
   isLeadPilot?: boolean;
 }
 
+type CompetitorRow = [string, string, string, string, string];
+
+const defaultRow: CompetitorRow = ['', '', '', '', ''];
+
+function getCompetitorRow(name: string, fallbackIdx: number): CompetitorRow {
+  const row = WETTBEWERB.rows.find((r) => r[0] === name) ?? WETTBEWERB.rows[fallbackIdx];
+  if (!row) return defaultRow;
+  return [row[0] ?? '', row[1] ?? '', row[2] ?? '', row[3] ?? '', row[4] ?? ''];
+}
+
 export const DecisionTopology: React.FC = () => {
   // Ableitung der Zonen direkt aus WETTBEWERB.rows:
-  const brevoRow = WETTBEWERB.rows.find((r) => r[0] === 'Brevo') || WETTBEWERB.rows[0];
-  const zendeskRow = WETTBEWERB.rows.find((r) => r[0] === 'Zendesk') || WETTBEWERB.rows[1];
-  const hubspotRow = WETTBEWERB.rows.find((r) => r[0] === 'HubSpot') || WETTBEWERB.rows[2];
-  const salesforceRow = WETTBEWERB.rows.find((r) => r[0] === 'Salesforce') || WETTBEWERB.rows[3];
-  const pipedriveRow = WETTBEWERB.rows.find((r) => r[0] === 'Pipedrive') || WETTBEWERB.rows[4];
-  const leadpilotRow = WETTBEWERB.rows.find((r) => r[0] === 'LeadPilot') || WETTBEWERB.rows[5];
+  const brevoRow = getCompetitorRow('Brevo', 0);
+  const zendeskRow = getCompetitorRow('Zendesk', 1);
+  const hubspotRow = getCompetitorRow('HubSpot', 2);
+  const salesforceRow = getCompetitorRow('Salesforce', 3);
+  const pipedriveRow = getCompetitorRow('Pipedrive', 4);
+  const leadpilotRow = getCompetitorRow('LeadPilot', 5);
 
   const zones: CompetitorZone[] = [
     {
@@ -68,8 +78,20 @@ export const DecisionTopology: React.FC = () => {
     },
   ];
 
+  const fallbackZone: CompetitorZone = zones[3] ?? {
+    id: 'leadpilot',
+    name: 'LeadPilot Hochebene',
+    category: 'B2B Mid-Market Hochebene',
+    providers: ['LeadPilot'],
+    effortClassification: '< 30 Minuten Setup',
+    routeDescription: '',
+    differentiation: '',
+    weakness: '',
+    isLeadPilot: true,
+  };
+
   const [selectedZone, setSelectedZone] = useState<string>('leadpilot');
-  const activeZoneData = zones.find((z) => z.id === selectedZone) || zones[3];
+  const activeZoneData = zones.find((z) => z.id === selectedZone) ?? fallbackZone;
 
   return (
     <section
