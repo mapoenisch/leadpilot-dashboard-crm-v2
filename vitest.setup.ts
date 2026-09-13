@@ -1,4 +1,5 @@
 // vitest.setup.ts — Setup für Vitest (G32).
+import 'fake-indexeddb/auto';
 // Simulation-Tests laufen in Node-Umgebung und brauchen kein DOM-Setup.
 // Der jsdom-Zweig gilt nur für das ui-Projekt (*.ui.vitest.ts, Hooks/G33-Umbau).
 if (typeof window !== 'undefined') {
