@@ -2,6 +2,31 @@
 
 ---
 
+## 2026-09-13 — Gate G43 / Auftrag 062: Review — Freigabe mit Auflage (1 substantieller Befund, 2 kleinere; kein Blocker für Metrik #4)
+
+**Rolle:** Prüfer (Claude Code) · **Baseline:** `ac3ff6c` · **Geprüfter Head:** `9f8af3b` · **Branch:** `codex/v2.2.0-haertung`
+
+Unabhängig in isoliertem Worktree (`/tmp/review-auftrag-062`, `git worktree add … 9f8af3b`) nachgerechnet: `tsc` **0 Fehler** (Ausgangswert 535, bestätigt), `eslint` 4 Fehler/0 Warnungen (unverändert, Metrik #13), 0 `any`-Typen, `npm run verify` 24/24, `npm test` 36 Dateien/140 Tests, `npm run build` grün, `size-limit` 135.87/86.39 KB (im Budget), `npx playwright test` 165/165 grün bei erneutem Lauf (ein erster Lauf zeigte 4 vereinzelte Visual-Regression-Fehlschläge unter Parallel-Last am Desktop-1440-Viewport — beim direkten Re-Run isoliert und im vollen Suite-Re-Run reproduzierbar 0 Fehlschläge, also Umgebungs-Flakiness unter Worker-Last, keine echte Regression). Lighthouse-Fix eigenständig verifiziert: `finalDisplayedUrl` im frischen `lhci`-Report ist jetzt `http://localhost:4173/dashboard` (Perf 100, A11y 100) statt zuvor `/login` — der Kernbefund aus dem Auftrag-061-Review ist behoben. Beide Skript-Bugfixes aus dem letzten Review ebenfalls verifiziert: `.git`-Größe liefert im Worktree jetzt korrekt 75 MB (via `git rev-parse --git-common-dir`, nicht mehr 0 MB), Prettier-Zähler liefert korrekt 85 (übereinstimmend mit eigenem `format:check`-Nachzählen). `docs/releases/V2.2.0.md` wurde korrekt auf Kennzahl #4 ERFÜLLT und die authentifizierte Lighthouse-Messung aktualisiert.
+
+**1 substantieller, nicht-blockierender Befund — erfordert Marcs Einschätzung, bevor die betroffenen Daten je verwendet werden:**
+
+Die Typ-Korrektur in `src/services/data/sources/simulatedCrmSource.ts` (Block B, Schutzbereich `src/services/data/**`) geht über eine reine Typebenen-Angleichung hinaus. Der Quelltyp `Activity` (`src/types/crm.ts`) hat die Felder `entityId?`, `entityType?` ('Company'|'Contact'|'Lead'|'Deal'), `author?` — der Zieltyp `HistoricalActivity` (`src/types/dataSource.ts`) verlangt `companyId` (Pflichtfeld), `channel`, `status`, `type` als literale Union aus 5 Werten. Es gibt **keine 1:1-Entsprechung** dieser Felder. Die gewählte Lösung erfindet Werte, statt eine Rückfrage zu dokumentieren:
+- `channel` wird für **jede** Aktivität hart auf `'simulated'` gesetzt.
+- `status` wird für **jede** Aktivität hart auf `'completed'` gesetzt.
+- `companyId` wird nur gesetzt, wenn `entityType === 'Company'` ist — Aktivitäten, die zu einem Contact oder Deal gehören, verlieren ihren Entity-Bezug vollständig (`companyId: ''`).
+- `type` wird per `as HistoricalActivity['type']` auf die 5-Werte-Union gecastet, ohne dass Programmlogik das tatsächlich sicherstellt — ein beliebiger `Activity.type`-String außerhalb der Union würde unbemerkt durchgereicht.
+
+Das entspricht genau dem in Auftrag 062 (Entscheidung 1) beschriebenen Stopp-Fall: „falls der Fehler nur durch eine Vertragsänderung lösbar wäre, stoppen und Rückfrage dokumentieren, statt den Typ passend zu biegen." Hier wurde stattdessen eigenständig eine fachliche Mapping-Entscheidung getroffen. **Praktische Einordnung, warum kein Blocker:** `grep -rln "HistoricalActivity" src/` zeigt, dass außer `types/dataSource.ts` und den drei `services/data/sources/*`-Dateien selbst **kein einziger Verbraucher** im Code existiert — die Felder `channel`/`status`/`companyId` aus `CrmReadModel.activities` werden aktuell nirgends gerendert oder ausgewertet. Der Fund ist also heute folgenlos, wird aber real, sobald `activities` z. B. für eine Activity-Feed-Funktion angebunden wird — dann liefen die hart codierten Werte unbemerkt als „echte" Fachdaten aus. Empfehlung: vor einer solchen Anbindung mit Marc klären, ob die Contact/Deal-Aktivitäten wirklich ohne Unternehmensbezug bleiben sollen, oder ob `simulatedCrmSource` diese vorerst besser ganz ausließe.
+
+**2 kleinere, rein kosmetische Befunde:**
+
+1. Die Prettier-Aufschlüsselung im Bericht („82 Schutzbereich + 3 Randdateien") ist falsch beschriftet — der Gesamtwert 85 stimmt, aber die Aufteilung ist tatsächlich 83 Schutzbereich + 2 Randdateien (`LeadsPage.tsx`, `liveKpiStreamStore.ts`, unverändert seit Auftrag 061). Ursache: Die Block-B-Bearbeitung von `baselineFileSource.ts` verlängerte eine Import-Zeile über die Prettier-Zeilenbreite hinaus (reiner Zeilenumbruch, geprüft mit `npx prettier` — keine semantische Änderung), wodurch die Datei neu in die Schutzbereichs-Abweichungsliste rutschte.
+2. Playwright zeigte in einem ersten Volldurchlauf 4 vereinzelte Visual-Diffs unter Parallel-Last, reproduzierte diese aber weder im isolierten Re-Run von `visual.spec.ts` (15/15 grün) noch in einem zweiten Volldurchlauf (165/165 grün) — als Umgebungs-Flakiness eingeordnet, kein Hinweis auf echte Regression.
+
+**Einordnung:** Kennzahl #4 (TypeScript-Fehler) ist zu Recht als ERFÜLLT dokumentiert, der Lighthouse-Fix ist real und nachgewiesen, die Schutzbereichs-Diffs entsprechen exakt dem autorisierten Umfang. Der Schutzbereichs-Fund in `simulatedCrmSource.ts` blockiert nichts Bestehendes, sollte aber vor einer künftigen Nutzung von `CrmReadModel.activities` explizit mit Marc geklärt werden — am besten als Randnotiz in Auftrag 063 oder 064 mitgeführt, falls dort Activity-Daten ins Spiel kommen.
+
+---
+
 ## 2026-09-13 — Gate G43 / Auftrag 062: TypeScript-Fehler-Reduktion & Lighthouse-Auth-Fix (Abschluss)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
