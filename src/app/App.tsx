@@ -7,7 +7,15 @@ import { APP_ROUTES } from '@/app/routes';
 import { ROUTE_PAGES } from '@/app/routePages';
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
+import { AuthProvider } from '@/auth/AuthContext';
+import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import '@/services/data';
+
+const LoginPage = React.lazy(() =>
+  import('@/features/auth/pages/LoginPage').then((m) => ({
+    default: m.LoginPage,
+  }))
+);
 
 const DesignSystemPage = React.lazy(() =>
   import('@/app/DesignSystemPage').then((m) => ({
@@ -19,9 +27,34 @@ export function App() {
   return (
     <RouteErrorBoundary resetKey="app-root">
       <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
+        <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Unbeschützte Login-Route (Gate G42, Entscheidung 4) */}
+            <Route
+              path="/login"
+              element={
+                <RouteErrorBoundary resetKey="login">
+                  <React.Suspense
+                    fallback={
+                      <div
+                        role="status"
+                        aria-live="polite"
+                        className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
+                      >
+                        Anmeldung wird geladen …
+                      </div>
+                    }
+                  >
+                    <LoginPage />
+                  </React.Suspense>
+                </RouteErrorBoundary>
+              }
+            />
+
+            {/* Alle 41 Kern-Routen geschützt unter ProtectedRoute (Entscheidung 4) */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<Layout />}>
             {/* Root-Redirect zum Executive Dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
@@ -88,11 +121,13 @@ export function App() {
               />
             )}
           </Route>
-        </Routes>
-      </BrowserRouter>
-      </QueryClientProvider>
-    </RouteErrorBoundary>
-  );
+        </Route>
+      </Routes>
+    </BrowserRouter>
+    </AuthProvider>
+    </QueryClientProvider>
+  </RouteErrorBoundary>
+);
 }
 
 export default App;

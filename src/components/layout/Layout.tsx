@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, Outlet } from 'react-router-dom';
+import { useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { SimulationBar } from './SimulationBar';
 import { routeForPathname } from '@/app/routes';
+import { useAuth } from '@/auth/AuthContext';
+import { LogOut } from 'lucide-react';
 
 export type ThemeMode = 'dark' | 'light';
 
@@ -49,6 +51,14 @@ export function Layout() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
   const handleToggleDrawer = () => {
     setIsMobileDrawerOpen((prev) => !prev);
   };
@@ -90,6 +100,19 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Gate G42: Logout-Affordance */}
+      <button
+        type="button"
+        onClick={handleLogout}
+        aria-label="Abmelden"
+        data-testid="logout-button"
+        title={user?.email ? `Angemeldet als ${user.email} — Abmelden` : 'Abmelden'}
+        className="fixed bottom-3 right-3 z-40 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-[var(--color-text-muted,#94a3b8)] hover:text-white bg-surface/90 hover:bg-surface border border-border rounded-md shadow-md backdrop-blur-sm transition-colors cursor-pointer"
+      >
+        <LogOut size={12} className="text-primary" />
+        <span>Abmelden</span>
+      </button>
     </div>
   );
 }
