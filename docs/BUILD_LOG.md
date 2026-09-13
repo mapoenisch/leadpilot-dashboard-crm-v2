@@ -2,6 +2,86 @@
 
 ---
 
+## 2026-09-13 — Gate G43 / Auftrag 064: Service- & Hook-Coverage auf ≥ 90 % (Abschluss: 96.21 % erreicht)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `3d71021` (Auftrag 063 Review) · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG
+
+Auftrag 064 schließt als dritte Tranche der G43-Härtung **DoD-Kennzahl #14** ab (Statement-Coverage für `src/services/**` + `src/hooks/**` im Aggregat von 71.05 % auf **≥ 90 %**; erreicht: **96.21 %**). Zudem wurde der Quick-Win aus dem Review von Auftrag 063 (Prettier-Formatierung der 38 neuen Component-Tests) vollständig umgesetzt, womit Kennzahl #3 exakt auf den dokumentierten Soll-Rest von 85 Abweichungen zurückgeführt wurde.
+
+### 1. Erreichte Kennzahlen (Vorher / Nachher)
+
+- **Kennzahl #14 (Coverage services/ + hooks/):**
+  - Vorher: 71.05 % (628 / 884 Statements) — ❌ OFFEN
+  - Nachher: **96.21 %** (863 / 897 Statements) — ✅ ERFÜLLT (Soll ≥ 90 % weit übertroffen)
+- **Kennzahl #3 (Prettier-Abweichungen):**
+  - Vorher: 123 Abweichungen (nach Auftrag 063)
+  - Nachher: **85 Abweichungen** (83 in Schutzbereichen + 2 dokumentierte Randdateien) — ⚠️ DOKUMENTIERT
+- **Kennzahl #5 (`any`-Typen in `src/`):** **0** (strikt eingehalten, keine `any`-Typen eingeführt)
+- **DoD-Gesamtbilanz:** **18 Erfüllt · 1 Dokumentierte Ausnahme · 4 Offene Lücken / Entscheidungen**
+
+### 2. Durchgeführte Arbeiten nach Blöcken
+
+- **Block A (Commit `d3ecad8`): Prettier-Formatierung (Quick-Win)**
+  - `npx prettier --write "src/components/**/__tests__/*.ui.vitest.tsx"` ausgeführt (38 Dateien).
+  - Prettier-Abweichungen von 123 auf exakt 85 reduziert.
+- **Block B (Commit `14747de`): `src/services/db/**` Coverage von 28.29 % auf 95.22 %**
+  - `fake-indexeddb` (^6.2.5) als reine `devDependency` installiert (0 Bundle-Impact).
+  - `vitest.setup.ts`: `import 'fake-indexeddb/auto';` registriert für saubere In-Memory-IDB in Vitest.
+  - Tests:
+    - `src/services/db/__tests__/indexedDbSnapshotRepository.vitest.ts` (15 Tests)
+    - `src/services/db/__tests__/crmRepository.vitest.ts` (12 Tests)
+- **Block C (Commit `88bb207`): `src/services/import/**` Coverage von 66.67 % auf 99.04 %**
+  - `src/services/import/crmImporter.ts`: Hilfsfunktion `parseCsv` für Unit-Tests exportiert.
+  - Tests:
+    - `src/services/import/__tests__/crmSeeder.vitest.ts` (7 Tests)
+    - `src/services/import/__tests__/crmImporter.vitest.ts` (8 Tests, inkl. Delimiter-Handling `,` vs. `;`, Header-Validierung und Invalid-Row-Fallback)
+- **Block D (Commit `9af3944`): `src/services/data/**` und `src/hooks/**` auf ≥ 90 %**
+  - Schutzbereich `src/services/data/**`: 0 Zeilen bestehenden Produktivcodes verändert. Ausschließlich neue Testdateien unter `__tests__/` angelegt:
+    - `src/services/data/__tests__/dataSourceRegistry.vitest.ts` (5 Tests, 100 %)
+    - `src/services/data/__tests__/runSourceAudit.vitest.ts` (3 Tests, 100 %)
+    - `src/services/data/__tests__/baselineSnapshotService.vitest.ts` (5 Tests, 100 %)
+    - `src/services/data/sources/__tests__/hubSpotBaselineSource.vitest.ts` (5 Tests, 91.66 %)
+    - `src/services/data/sources/__tests__/baselineFileSource.vitest.ts` (4 Tests, 100 %)
+    - `src/services/data/sources/__tests__/simulatedCrmSource.vitest.ts` (3 Tests, 100 %)
+  - Hooks / Queries:
+    - `src/hooks/queries/__tests__/useCrmQueries.ui.vitest.tsx` (4 Tests, 100 %)
+    - `src/hooks/queries/__tests__/usePipelineOverview.ui.vitest.tsx` (1 Test, 100 %)
+    - `src/hooks/queries/useCrmSync.ui.vitest.tsx` (1 Testfall ergänzt für Branch-Coverage-Threshold 100 %)
+- **Block E: Verifikation, Doku & Audit**
+  - `docs/releases/V2.2.0.md` aktualisiert (Kennzahl #14 auf ERFÜLLT, Bilanz 18/1/4).
+  - Vollständige Verifikations-Matrix bestanden.
+
+### 3. Coverage-Detailanalyse Services & Hooks
+
+| Verzeichnis / Modul | Statements (Ist) | Branches (Ist) | Functions (Ist) | Lines (Ist) |
+|---|---|---|---|---|
+| `src/services/` (Root / Logger) | 90.90 % | 88.88 % | 80.00 % | 90.90 % |
+| `src/services/data/` | 100.00 % | 97.05 % | 100.00 % | 100.00 % |
+| `src/services/data/sources/` | 96.29 % | 80.00 % | 92.85 % | 96.55 % |
+| `src/services/db/` | 94.82 % | 71.09 % | 87.34 % | 95.21 % |
+| `src/services/import/` | 100.00 % | 80.00 % | 100.00 % | 99.04 % |
+| `src/services/liveKpi/` | 98.98 % | 94.05 % | 100.00 % | 95.96 % |
+| `src/services/query/` | 100.00 % | 100.00 % | 100.00 % | 100.00 % |
+| `src/hooks/` (Root) | 97.89 % | 87.80 % | 90.90 % | 92.92 % |
+| `src/hooks/queries/` | 100.00 % | 100.00 % | 100.00 % | 100.00 % |
+| **Aggregat (services/ + hooks/)** | **96.21 %** | — | — | — |
+
+### 4. Verifikations-Ergebnisse (Gates)
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 4 Fehler (Baseline `max-lines`), 0 Warnungen
+- `npm run format:check`: Exakt 85 Abweichungen (83 geschützt + 2 dokumentiert)
+- `npm run verify`: 24/24 Suiten bestanden
+- `npm test`: 47 Testdateien, 191 Tests — alle grün
+- `npm run build`: Erfolgreich, Bundle-Größen unverändert (Initial 135.71 KB, Largest Chunk 86.39 KB)
+- `npx playwright test`: 165/165 Tests passed (inkl. 15 Visual mit 0px Diff)
+- `npx tsx scripts/verifyV22ReleaseReadiness.ts`: Kennzahl #14 auf **ERFÜLLT** (96.21 %)
+- Schutzbereichs-Diff (`src/simulation`, `src/types`, `src/context`, `src/features/resources`): **vollständig leer**
+- Schutzbereich `src/services/data`: **0 Zeilen Quellcode modifiziert** (nur neue Testdateien)
+
+---
+
 ## 2026-09-13 — Gate G43 / Auftrag 063: Review — Freigabe mit Hinweis (1 kleinerer Befund, kein Blocker)
 
 **Rolle:** Prüfer (Claude Code) · **Baseline:** `4476c95` · **Geprüfter Head:** `1398a8a` · **Branch:** `codex/v2.2.0-haertung`

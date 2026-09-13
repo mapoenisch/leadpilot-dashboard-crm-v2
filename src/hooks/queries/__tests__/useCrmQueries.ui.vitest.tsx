@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useCrmCompanies, useCrmContacts, useCrmDeals, useCrmAuditSummary } from '../useCrmQueries';
 import { CRMRepository } from '@/services/db/crmRepository';
 
