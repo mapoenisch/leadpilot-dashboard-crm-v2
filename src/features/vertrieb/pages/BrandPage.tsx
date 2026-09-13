@@ -1,4 +1,3 @@
-import React from 'react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { SimpleChart, ChartFrame } from '@/components/ui/Charts';

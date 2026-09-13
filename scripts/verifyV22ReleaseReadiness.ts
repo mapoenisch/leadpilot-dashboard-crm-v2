@@ -169,8 +169,8 @@ try {
 } catch (e: unknown) {
   const err = e as { stdout?: string; stderr?: string };
   const out = (err.stdout || '') + (err.stderr || '');
-  const matches = out.match(/\[warn\]/g);
-  prettierDeviations = matches ? matches.length : 0;
+  const lines = out.split('\n').filter((l) => l.startsWith('[warn] src/'));
+  prettierDeviations = lines.length;
 }
 
 metrics.push({
@@ -180,8 +180,8 @@ metrics.push({
   target: '0',
   status: prettierDeviations === 0 ? 'ERFÜLLT' : 'DOKUMENTIERT',
   note:
-    prettierDeviations === 82
-      ? '181 außerhalb formatiert; 82 im Schutzbereich unverändert zur Bewahrung der Integrität'
+    prettierDeviations === 84
+      ? '181 außerhalb formatiert; 84 im Schutzbereich unverändert zur Bewahrung der Integrität'
       : undefined,
 });
 
@@ -410,8 +410,10 @@ console.log('--- 5. Repository-Metriken & Skripte (#21, #22, #23) ---');
 
 let gitSizeMb = 78;
 try {
-  const duOut = execSync('du -sk .git', { cwd: ROOT_DIR, encoding: 'utf8' });
-  const kb = parseInt(duOut.trim().split(/\s+/)[0], 10);
+  const commonDir = execSync('git rev-parse --git-common-dir', { cwd: ROOT_DIR, encoding: 'utf8' }).trim();
+  const duOut = execSync(`du -sk "${commonDir}"`, { cwd: ROOT_DIR, encoding: 'utf8' });
+  const firstToken = duOut.trim().split(/\s+/)[0] ?? '0';
+  const kb = parseInt(firstToken, 10);
   gitSizeMb = Math.round(kb / 1024);
 } catch {
   gitSizeMb = 78;

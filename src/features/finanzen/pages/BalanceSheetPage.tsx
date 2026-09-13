@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function BalanceSheetPage() {
   return (
     <div className="auftrag-037e-webp-view">

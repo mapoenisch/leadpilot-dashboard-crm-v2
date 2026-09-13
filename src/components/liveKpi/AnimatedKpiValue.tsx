@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { animate, useReducedMotion, motion } from 'framer-motion';
 
 export interface AnimatedKpiValueProps {

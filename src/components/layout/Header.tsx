@@ -1,4 +1,3 @@
-import React from 'react';
 import { Menu, Moon, Sun } from 'lucide-react';
 import type { ThemeMode } from './Layout';
 

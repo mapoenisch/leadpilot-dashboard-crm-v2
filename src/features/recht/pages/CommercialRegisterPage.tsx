@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function CommercialRegisterPage() {
   return (
     <div className="auftrag-037f-webp-view">

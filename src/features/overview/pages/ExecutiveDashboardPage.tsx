@@ -1,4 +1,3 @@
-import React from 'react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Badge } from '@/components/ui/Badge';
 import { HERO, EXEC_KPIS_1, EXEC_KPIS_2, CHART_ARR } from '@/domain/execData';

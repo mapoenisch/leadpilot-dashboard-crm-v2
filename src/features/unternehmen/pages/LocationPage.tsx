@@ -1,4 +1,3 @@
-import React from 'react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { STANDORT } from '@/domain/unternehmenData';
 import {

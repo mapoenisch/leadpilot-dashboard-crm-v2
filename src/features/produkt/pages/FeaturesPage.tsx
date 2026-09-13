@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function FeaturesPage() {
   return (
     <div className="auftrag-037g-webp-view">

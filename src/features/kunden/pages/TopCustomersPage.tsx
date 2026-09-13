@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function TopCustomersPage() {
   return (
     <div className="auftrag-037d-webp-view">

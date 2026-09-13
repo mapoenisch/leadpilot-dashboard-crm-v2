@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function MarketOverviewPage() {
   return (
     <div className="auftrag-037d-webp-view">

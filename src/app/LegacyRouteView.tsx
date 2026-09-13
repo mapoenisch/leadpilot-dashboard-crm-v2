@@ -1,4 +1,3 @@
-import React from 'react';
 import { ROUTE_PAGES } from './routePages';
 import { AppRouteId } from './routes';
 

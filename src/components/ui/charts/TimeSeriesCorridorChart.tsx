@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { formatChartMetric } from '../chartTheme';
 import { ChartLegend } from './ChartLegend';
 import { ChartTooltip } from './ChartTooltip';

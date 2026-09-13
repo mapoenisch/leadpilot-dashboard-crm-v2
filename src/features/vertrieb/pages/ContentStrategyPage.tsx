@@ -1,4 +1,3 @@
-import React from 'react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { CONTENT } from '@/domain/vertriebData';

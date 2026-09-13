@@ -1,4 +1,3 @@
-import React from 'react';
 import { formatChartMetric } from '../chartTheme';
 import { StatusChip } from '../StatusChip';
 

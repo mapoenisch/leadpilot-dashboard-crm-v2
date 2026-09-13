@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function FunnelPage() {
   return (
     <div className="auftrag-037e-webp-view">

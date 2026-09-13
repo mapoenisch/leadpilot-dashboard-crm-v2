@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function BalancedScorecardPage() {
   return (
     <div className="auftrag-037f-webp-view">

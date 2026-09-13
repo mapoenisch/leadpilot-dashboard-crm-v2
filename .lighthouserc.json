@@ -7,9 +7,13 @@
         "http://localhost:4173/dashboard"
       ],
       "numberOfRuns": 1,
+      "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "puppeteerScript": "scripts/lighthouse-auth.cjs",
+      "puppeteerLaunchOptions": {
+        "args": ["--no-sandbox", "--headless=new"]
+      },
       "settings": {
-        "preset": "desktop",
-        "chromeFlags": "--no-sandbox --headless"
+        "preset": "desktop"
       }
     },
     "assert": {

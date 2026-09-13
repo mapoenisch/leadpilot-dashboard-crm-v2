@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function UnitEconomicsPage() {
   return (
     <div className="auftrag-037e-webp-view">

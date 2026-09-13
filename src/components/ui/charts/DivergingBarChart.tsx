@@ -1,4 +1,3 @@
-import React from 'react';
 import { formatChartMetric } from '../chartTheme';
 
 export interface DivergingImpactItem {

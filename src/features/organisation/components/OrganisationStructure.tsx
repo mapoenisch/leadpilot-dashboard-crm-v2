@@ -1,4 +1,3 @@
-import React from 'react';
 import { getOrganisationStructure } from '@/domain/organisationData';
 import { OrganisationUnitCard } from './OrganisationUnitCard';
 import { Card } from '@/components/ui/Card';
