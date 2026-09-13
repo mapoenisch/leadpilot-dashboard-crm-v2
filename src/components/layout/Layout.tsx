@@ -108,7 +108,7 @@ export function Layout() {
         aria-label="Abmelden"
         data-testid="logout-button"
         title={user?.email ? `Angemeldet als ${user.email} — Abmelden` : 'Abmelden'}
-        className="fixed bottom-3 right-3 z-40 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-[var(--color-text-muted,#94a3b8)] hover:text-white bg-surface/90 hover:bg-surface border border-border rounded-md shadow-md backdrop-blur-sm transition-colors cursor-pointer"
+        className="fixed bottom-3 right-3 z-40 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-white bg-[#0B211F] border border-[#2A4A43] rounded-md shadow-md backdrop-blur-sm transition-opacity opacity-0 hover:opacity-100 focus:opacity-100 cursor-pointer"
       >
         <LogOut size={12} className="text-primary" />
         <span>Abmelden</span>

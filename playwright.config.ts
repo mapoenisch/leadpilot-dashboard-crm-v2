@@ -6,6 +6,7 @@ import { defineConfig } from '@playwright/test';
 // maxDiffPixelRatio 0.02 (nur Anti-Aliasing-Drift), kein mask initial.
 export default defineConfig({
   testDir: './e2e',
+  globalSetup: './e2e/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -16,6 +17,7 @@ export default defineConfig({
   ],
   use: {
     baseURL: 'http://127.0.0.1:4321',
+    storageState: 'playwright/.auth/user.json',
     reducedMotion: 'reduce',
     trace: 'on-first-retry',
   },

@@ -5,6 +5,7 @@ dist/
 **/.DS_Store
 playwright-report/
 test-results/
+playwright/.auth/
 coverage/
 
 Archiv.zip
