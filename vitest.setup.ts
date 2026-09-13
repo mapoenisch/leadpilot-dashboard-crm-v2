@@ -7,6 +7,11 @@ if (typeof window !== 'undefined') {
   const { expect: vitestExpect } = await import('vitest');
   (globalThis as Record<string, unknown>).expect = vitestExpect;
   await import('@testing-library/jest-dom');
+  const { cleanup } = await import('@testing-library/react');
+  const { afterEach } = await import('vitest');
+  afterEach(() => {
+    cleanup();
+  });
 
   // jsdom kennt kein matchMedia — Grund-Polyfill (Tests installieren bei Bedarf
   // ihr eigenes, schärferes Mock via writable/configurable defineProperty).
