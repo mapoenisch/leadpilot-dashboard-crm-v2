@@ -2,6 +2,92 @@
 
 ---
 
+## 2026-09-13 — Gate G43 / Auftrag 062: TypeScript-Fehler-Reduktion & Lighthouse-Auth-Fix (Abschluss)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `ac3ff6c` (Auftrag 061 Review abgeschlossen) · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG
+
+Auftrag 062 schließt als erste Tranche der G43-Folgeaufträge **DoD-Kennzahl #4** (TypeScript-Fehler von 535 auf 0) sowie die Korrektur der Prüf-Infrastruktur (Lighthouse-Auth-Lücke und Zählkorrekturen am Audit-Skript). Gate G43 bleibt weiterhin offen, bis die Folgeaufträge 063 (Component-Coverage) und 064 (Service-/Hook-Coverage) sowie Marcs Grundsatzentscheidungen abgeschlossen sind.
+
+### 1. Ziel & Kontext
+1. **TypeScript-Fehler:** Vollständige Beseitigung aller 535 TypeScript-Fehler (`npx tsc --noEmit` auf 0 Fehler) ohne Einführung neuer `any`-Typen oder `@ts-ignore`-Direktiven (Kennzahl #5 bleibt strikt 0).
+2. **Lighthouse-Authentifizierung:** Behebung der Auth-Lücke in `.lighthouserc.json`. Puppeteer-Auth-Skript meldet die Demo-Session an, sodass `/dashboard` tatsächlich im authentifizierten Zustand gemessen wird statt auf `/login` umgeleitet zu werden.
+3. **Prüfskript-Korrekturen:** `scripts/verifyV22ReleaseReadiness.ts` korrigiert:
+   - Metrik #21 (.git-Größe) ermittelt den Objekt-Store via `git rev-parse --git-common-dir` (auch in Git-Worktrees verlässlich).
+   - Metrik #3 (Prettier) filtert die Zusammenfassungszeile und deckt die 84/85 dokumentierten Schutzbereichs-Abweichungen ab.
+
+### 2. Block-Übersicht & Fehlerprogression (535 → 451 → 102 → 0)
+
+- **Block A (`835bd80`): Quick Wins & Prüf-Infrastruktur (535 → 451 Fehler)**
+  - Entfernung von 74 ungenutzten Imports/Variablen (`TS6133`) außerhalb geschützter Bereiche.
+  - Erstellung von `scripts/lighthouse-auth.cjs` und Einbindung in `.lighthouserc.json` (`puppeteerScript`).
+  - Korrektur von Metrik #3 und #21 in `scripts/verifyV22ReleaseReadiness.ts`.
+  - `npx tsc --noEmit`: 451 verbleibende Fehler.
+- **Block B (`a272212`): Schutzbereichs-TS-Fehler (451 → 443 Fehler, 8 autorisierte Fixes)**
+  - 8 explizit autorisierte Typ-Korrekturen in 5 Dateien (`ResourceCard.tsx`, `InternalResourcesView.tsx`, `baselineFileSource.ts`, `hubSpotBaselineSource.ts`, `simulatedCrmSource.ts`).
+  - Ungenutzte React-Imports entfernt, Diskrepanzen zwischen Baseline-JSON-Dateien (`importedFunnelDeals`) und `CrmReadModel`/`HistoricalActivity` behoben.
+  - Schutzbereichs-Diff strikt auf diese 8 Korrekturen begrenzt.
+- **Block C (`a5e0bb6`): Konzentrationsdateien (443 → 102 Fehler)**
+  - Abarbeitung der 11 Dateien mit 65 % der Gesamtrückstände:
+    `DecisionTopology.tsx` (62), `CapitalCut.tsx` (55), `organisationData.ts` (36), `RevenueCostShoreline.tsx` (30), `FunnelLeakageWaterfall.tsx` (28), `MarketOpportunityStack.tsx` (28), `SegmentFields.tsx` (28), `BudgetTargetLadder.tsx` (25), `ChannelInvestmentRoute.tsx` (20), `executiveCockpitData.ts` (20), `RevenueStaircase.tsx` (17).
+  - Saubere Null-Safety-Typisierung mit typisierten Tupeln `[string, string, ...]` und defensiven Lookups; kein `any`, kein `@ts-ignore`.
+  - `npx tsc --noEmit`: 102 verbleibende Fehler.
+- **Block D (`85fc5e2`): Restliche Dateien (102 → 0 Fehler)**
+  - Behebung der verbleibenden 102 Fehler über 35 Dateien (UI-Charts, Layout, Modals, Services, DB-Repositories).
+  - `LeadsPage.tsx` unter Beachtung der ESLint 400-Zeilen-Grenze gehalten.
+  - `npx tsc --noEmit`: **0 Fehler (Exit 0)**!
+
+### 3. Schutzbereichs-Diff-Nachweis (Block B)
+
+Gemäß Entscheidung 1 wurden ausschließlich die 8 explizit autorisierten Fehler in 5 geschützten Dateien behoben:
+- `git diff ac3ff6c -- src/simulation src/types src/context src/features/resources`:
+  - `InternalResourcesView.tsx`: ungenutztes `React` entfernt (1 Zeile).
+  - `ResourceCard.tsx`: ungenutztes `React` entfernt (1 Zeile).
+  - Keine weiteren Änderungen in `src/simulation`, `src/types`, `src/context` oder `src/features/resources`.
+- `git diff ac3ff6c -- src/services/data`:
+  - `baselineFileSource.ts`: `BaselineFileJson`-Interface mit `importedFunnelDeals` und `HistoricalActivity['type']`-Mapping.
+  - `hubSpotBaselineSource.ts`: `HubSpotBaselineContent`-Interface mit `importedFunnelDeals`.
+  - `simulatedCrmSource.ts`: Explizite `HistoricalActivity`-Typabbildung.
+  - Keine Änderungen an Runtime-Daten oder Geschäftslogik.
+
+### 4. Lighthouse-Authentifizierungs-Nachweis
+
+Nach Konfiguration von `scripts/lighthouse-auth.cjs` und `.lighthouserc.json`:
+- Befehl: `npx lhci autorun`
+- `finalDisplayedUrl`: **`http://localhost:4173/dashboard`** (nicht mehr `/login`!)
+- Ergebnisse:
+  - **Performance:** **100** (Ziel: ≥ 90)
+  - **Accessibility:** **100** (Ziel: ≥ 95)
+  - **Best Practices:** **100**
+- Aktualisierung: `docs/releases/V2.2.0.md` Zeilen 48–49 und Kennzahl #4 auf den nachgemessenen Stand aktualisiert.
+
+### 5. Vollständige Pflicht-Verifikations-Matrix
+
+| Prüfung | Baseline (`ac3ff6c`) | Ist-Ergebnis (Auftrag 062) | Status |
+|---|---|---|---|
+| `npx tsc --noEmit` | 535 Fehler | **0 Fehler** (Code 0) | ✅ ERFÜLLT (DoD #4) |
+| `any`-Typen in `src/` | 0 | **0** (`@typescript-eslint/no-explicit-any`) | ✅ ERFÜLLT (DoD #5) |
+| `npm run lint` | 4 Fehler, 0 Warnings | **4 Fehler, 0 Warnings** (Schutzbereichs-Baseline) | ⚠️ BASELINE (#1/#13) |
+| `npm run format:check` | 84 Abweichungen | **85 Abweichungen** (82 Schutzbereich + 3 Randdateien) | ⚠️ DOKUMENTIERT (#3) |
+| `npm run verify` | 24/24 Suiten | **24/24 Suiten bestanden** | ✅ GRÜN |
+| `npm test` | 36 Files, 140 Tests | **36 Files, 140 Tests bestanden** | ✅ GRÜN |
+| `npm run build` | Erfolgreich | **Erfolgreich in 2.44s** (dist/ generiert) | ✅ GRÜN |
+| `npx playwright test` | 165 Tests | **165/165 Tests passed** (15/15 Visual Regression 0px Diff) | ✅ GRÜN |
+| `npx lhci autorun` | `/login` (100/100) | **`/dashboard` (Perf 100, A11y 100, Best-Practices 100)** | ✅ ERFÜLLT (#19/#20) |
+| `scripts/verifyV22ReleaseReadiness.ts` | 15 Erfüllt / 7 Offen | **16 Erfüllt / 1 Ausnahme / 6 Offen** (DoD #4 geschlossen) | ✅ AUDITIERT |
+| Schutzbereichs-Diff | Vorhanden | Nur die 8 autorisierten Korrekturen in Block B | ✅ REGELKONFORM |
+
+### 6. Ergebnis & Übergabe an den Prüfer
+
+- Alle Ziele von Auftrag 062 sind vollständig erreicht:
+  - TypeScript-Fehler von 535 auf 0 gesunken.
+  - Keine `any`-Typen hinzugefügt.
+  - Lighthouse-Audit verifiziert auf `/dashboard`.
+  - Alle Testsuiten grün.
+- **Übergabe an Review (Codex/Claude Code)**. Kein Push, kein Merge, kein Tagging.
+
+---
+
 ## 2026-09-13 — Gate G43 / Auftrag 061: Review — Audit bestätigt, 3 Befunde am Audit-Skript selbst (kein Blocker für die Dokumentation)
 
 **Rolle:** Prüfer (Claude Code) · **Baseline:** `bdb1d2a` · **Geprüfter Head:** `7970f0b` · **Branch:** `codex/v2.2.0-haertung`
