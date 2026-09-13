@@ -20,16 +20,18 @@ function createMockSnapshot(runId: string, tickId: number): SimulationSnapshot {
     schemaVersion: '1.0.0',
     baselineVersion: 'v1',
     state: {
-      tick: tickId,
-      status: 'IDLE',
-      currentDate: `2026-0${tickId + 1}-01`,
-      financials: {} as any,
-      queues: {} as any,
-      parameters: {} as any,
-      resources: {} as any,
-      events: [],
-      kpis: {} as any,
-    } as any,
+      isRunning: false,
+      tickCount: tickId,
+      dayIndex: tickId * 30,
+      simulatedDate: `2026-0${tickId + 1}-01`,
+      seed: 12345,
+      speed: 1,
+      intervalMs: 12000,
+      lastTickTimestamp: new Date().toISOString(),
+      totalLeadsGenerated: 100,
+      totalDealsWon: 10,
+      currentARR: 500000 + tickId * 10000,
+    },
     projection: {
       snapshotId: `${runId}_tick_${tickId}`,
       runId,
@@ -260,7 +262,7 @@ describe('createSnapshotRepository', () => {
 
 describe('SnapshotMapper', () => {
   it('erzeugt korrekte Projection aus SimulationState', () => {
-    const mockState: any = {
+    const mockState = {
       metrics: {
         liveARR: 600000,
         liveMRR: 50000,
@@ -270,7 +272,7 @@ describe('SnapshotMapper', () => {
         liveOpportunities: 30,
         conversionRate: 0.25,
       },
-    };
+    } as unknown as Parameters<typeof SnapshotMapper.createProjection>[7];
     const proj = SnapshotMapper.createProjection(
       'snap_1',
       'run_1',
@@ -294,7 +296,7 @@ describe('SnapshotMapper', () => {
       3,
       90,
       '2026-04-01',
-      {} as any,
+      {} as unknown as Parameters<typeof SnapshotMapper.createProjection>[7],
     );
     expect(emptyProj.arr).toBe(0);
     expect(emptyProj.customers).toBe(0);

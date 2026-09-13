@@ -10,7 +10,7 @@ export interface CrmImportResult {
   companyMap: Record<string, Company>; // id -> Company
 }
 
-function parseCsv(csvText: string): string[][] {
+export function parseCsv(csvText: string): string[][] {
   const lines = csvText
     .split(/\r?\n/)
     .map((l) => l.trim())

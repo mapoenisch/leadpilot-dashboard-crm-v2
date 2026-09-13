@@ -37,7 +37,9 @@ describe('CRMRepository', () => {
       };
 
       vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(true);
-      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(mockSupabase as any);
+      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
+        mockSupabase as unknown as typeof supabaseClientModule.supabase,
+      );
 
       const companies = await CRMRepository.getCompanies();
       expect(companies).toHaveLength(1);
@@ -57,7 +59,9 @@ describe('CRMRepository', () => {
       };
 
       vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(true);
-      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(mockSupabase as any);
+      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
+        mockSupabase as unknown as typeof supabaseClientModule.supabase,
+      );
 
       const companies = await CRMRepository.getCompanies();
       expect(companies.length).toBeGreaterThan(0);
@@ -65,7 +69,9 @@ describe('CRMRepository', () => {
 
     it('fällt auf aktive DataSource zurück wenn Supabase nicht konfiguriert ist', async () => {
       vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(false);
-      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(null as any);
+      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
+        null as unknown as typeof supabaseClientModule.supabase,
+      );
 
       const activeSnapshot = await dataSourceRegistry.getActive().fetchSnapshot();
       const companies = await CRMRepository.getCompanies();
@@ -112,7 +118,9 @@ describe('CRMRepository', () => {
       };
 
       vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(true);
-      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(mockSupabase as any);
+      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
+        mockSupabase as unknown as typeof supabaseClientModule.supabase,
+      );
 
       const contacts = await CRMRepository.getContacts();
       expect(contacts).toHaveLength(1);
@@ -167,7 +175,9 @@ describe('CRMRepository', () => {
       };
 
       vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(true);
-      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(mockSupabase as any);
+      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
+        mockSupabase as unknown as typeof supabaseClientModule.supabase,
+      );
 
       const deals = await CRMRepository.getImportedFunnelDeals();
       expect(deals).toHaveLength(1);
@@ -186,7 +196,9 @@ describe('CRMRepository', () => {
       };
 
       vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(true);
-      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(mockSupabase as any);
+      vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
+        mockSupabase as unknown as typeof supabaseClientModule.supabase,
+      );
 
       const deals = await CRMRepository.getImportedFunnelDeals();
       expect(deals.length).toBeGreaterThan(0);
@@ -227,8 +239,15 @@ describe('CRMRepository', () => {
       expect(() => CRMRepository.getLeads()).toThrow(expectedMsg);
       expect(() => CRMRepository.getDeals()).toThrow(expectedMsg);
       expect(() => CRMRepository.getActivities()).toThrow(expectedMsg);
-      expect(() => CRMRepository.addLead({} as any)).toThrow(expectedMsg);
-      expect(() => CRMRepository.updateLeadStatus('1', 'New' as any)).toThrow(expectedMsg);
+      expect(() =>
+        CRMRepository.addLead({} as unknown as Parameters<typeof CRMRepository.addLead>[0]),
+      ).toThrow(expectedMsg);
+      expect(() =>
+        CRMRepository.updateLeadStatus(
+          '1',
+          'New' as unknown as Parameters<typeof CRMRepository.updateLeadStatus>[1],
+        ),
+      ).toThrow(expectedMsg);
     });
   });
 });
