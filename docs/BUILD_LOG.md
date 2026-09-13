@@ -2,6 +2,78 @@
 
 ---
 
+## 2026-09-13 — Gate G42 / Auftrag 060: Authentifizierungs-Schicht (app-seitig) (Abschluss)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `4322e86` (Gate G41 freigegeben) · **Status:** BEREIT ZUR PRÜFUNG
+
+Auftrag 060 (Gate G42): App-seitige Authentifizierungs-Schicht mit austauschbarer `AuthAdapter`-Architektur, minimalem Rollenmodell, barrierefreier `LoginPage` mit sichtbarem Demo-Hinweis, vollständigem Routenschutz aller 41 App-Routen und isoliertem Playwright E2E-Auth-Setup (`globalSetup` + `storageState`).
+
+### 1. Wichtige Klarstellung: Keine echte Sicherheit (Demo-Modus)
+
+> [!WARNING]
+> **Explizit keine produktive Absicherung:** Die in diesem Auftrag gebaute Authentifizierung ist eine reine Frontend-Absicherung im Browser (`LocalAuthAdapter`) gegen unverschlüsselte Demo-Credentials (`VITE_DEMO_AUTH_EMAIL`/`VITE_DEMO_AUTH_PASSWORD`). Sie schützt **keine echten Daten**. Die in `supabase/schema.sql` bestehenden 4 offenen `USING (true)`-Policies bleiben absichtlich unangetastet — das Backend liefert Daten weiterhin öffentlich aus. Eine echte kryptografische und datenbankseitige Absicherung (Row-Level Security / Supabase Auth) ist Gegenstand des separaten und aktuell pausierten Gates G28 (`docs/superpowers/specs/2026-09-08-g28-supabase-live-operation-design.md`). Auf der `LoginPage` wird dieser Status für Anwender durch eine gut sichtbare Hinweisbox transparent ausgewiesen.
+
+### 2. Was wurde gebaut — und was ausdrücklich nicht
+
+- **Gebaut:**
+  - `AuthAdapter`-Interface (`src/auth/authAdapter.ts`) und `LocalAuthAdapter` (`src/auth/localAuthAdapter.ts`) mit synchronisiertem Session-State in `localStorage`.
+  - `AuthContext` und `AuthProvider` (`src/auth/AuthContext.tsx`) inklusive `useAuth()`-Hook.
+  - `<ProtectedRoute>`-Komponente (`src/auth/ProtectedRoute.tsx`) zur Weiterleitung nicht authentifizierter Zugriffe auf `/login` unter Beibehaltung der Ziel-Location (`state.from`).
+  - `LoginPage` (`src/features/auth/pages/LoginPage.tsx`) als Lazy-Chunk mit LeadPilot-Branding, Demo-Hinweis, Formularfeldern, Fehlerrückmeldung und Quick-Fill-Button für Testzwecke.
+  - Routen-Wiring in `src/app/App.tsx`: `<AuthProvider>` kapselt die App; `<ProtectedRoute>` umschließt alle 41 regulären Routen innerhalb von `<Layout />`; `/login` ist direkt außerhalb als einzige ungeschützte Route registriert.
+  - Barrierefreie Logout-Affordance in `src/components/layout/Layout.tsx`: Dezent integrierter Logout-Button mit vollem Tastatur-/Fokus-Support und WCAG-AAA-Kontrast, ohne die 15 bestehenden visuellen Screenshot-Regressionstests zu stören.
+  - Playwright-Infrastruktur: `e2e/global-setup.ts` meldet einen Testnutzer vor Beginn an und speichert `playwright/.auth/user.json` (`.gitignore`); `playwright.config.ts` bindet diesen State global ein.
+  - Neue E2E-Testsuite `e2e/auth.spec.ts` (12 Tests über Desktop, Tablet, Mobile) zur Prüfung von Redirect, Fehleingaben, Login-Erfolg und Logout.
+  - Screenshot-Nachweis für die `LoginPage` in `docs/screenshots/auftrag-060/` (1440px, 768px, 375px).
+
+- **Ausdrücklich NICHT gebaut (Scope-Grenzen):**
+  - **Keine Rollen- oder Rechte-Differenzierung:** Gemäß Abstimmung mit Marc enthält das Rollenmodell strikt nur `{ id: string; email: string }` ohne `role`-Feld. Alle angemeldeten Nutzer haben denselben Zugang zu allen 41 Routen.
+  - **Keine Backend-Änderungen (`supabase/**`):** Das Verzeichnis `supabase/` wurde nicht angefasst. Das RLS-Hardening und die Supabase-Auth-Integration verbleiben vollständig in Gate G28.
+  - **Keine neuen npm-Abhängigkeiten:** Vollständige Umsetzung mit React 18, React Router v6, Lucide-Icons und Tailwind CSS.
+
+### 3. Zusammenspiel mit Gate G28 (Drop-in-Architektur)
+
+Die Entkopplung folgt dem etablierten Präzedenzfall D1 (`DataSource`-Abstraktion aus `BUILD_PLAN.md`):
+- `AuthAdapter` definiert den strikten Kontrakt (`login`, `logout`, `getSession`, `subscribeSession`).
+- Der aktuelle `LocalAuthAdapter` ist die Standard-Implementierung für den Offline-/Demo-Betrieb.
+- Sobald Gate G28 umgesetzt wird, kann eine `SupabaseAuthAdapter`-Klasse als Drop-in ergänzt werden. `AuthProvider`, `ProtectedRoute`, `LoginPage` und das Routing müssen dafür nicht modifiziert werden.
+
+### 4. Playwright-Architektur & E2E-Ergebnisse
+
+- **Global Setup:** `e2e/global-setup.ts` startet den lokalen Preview-Server, navigiert zu `/login`, meldet den Demo-Nutzer an und speichert `playwright/.auth/user.json`.
+- **Regressionsschutz:** Alle bestehenden 153 E2E-Tests (`routes.spec.ts`, `a11y.spec.ts`, `visual.spec.ts`, `resources-viewer.spec.ts`) nutzen diesen `storageState` automatisch und laufen unverändert grün (15/15 visuelle Snapshots mit 0 Pixel Diff).
+- **Dedizierte Auth-Specs:** `e2e/auth.spec.ts` überschreibt den Auth-State isoliert (`storageState: { cookies: [], origins: [] }`) und deckt 4 Testszenarien über alle 3 Browser-Viewports ab (Desktop, Tablet, Mobile = 12 Tests):
+  1. Redirect unauthentifizierter Anfragen auf `/login`
+  2. Fehlermeldung bei ungültigen Anmeldedaten
+  3. Erfolgreiche Anmeldung und Weiterleitung zur Zielroute
+  4. Logout mit Session-Löschung aus `localStorage`
+- **Gesamtergebnis:** **165 von 165 Playwright-Tests bestanden** (100% grün).
+
+### 5. Block-Übersicht & Commits
+
+- **Block A (`74780c2`):** `AuthAdapter`-Interface, `LocalAuthAdapter`, `AuthContext`/`AuthProvider`/`useAuth()`, `.env.example`.
+- **Block B (`63eef33`):** `LoginPage`, `<ProtectedRoute>`, Routing in `App.tsx`, Logout-Affordance in `Layout.tsx`, Screenshots.
+- **Block C (`fff3674`):** `e2e/global-setup.ts`, `playwright.config.ts`-Anpassung, `.gitignore`, neue Suite `e2e/auth.spec.ts`.
+- **Refinement (`465832f`):** TS6133 ungenutzte Imports in `Layout.tsx` und `LoginPage.tsx` bereinigt.
+- **Abschlussbericht (`HEAD`):** Dokumentation und Gate-G42-Bilanz.
+
+### 6. Pflicht-Verifikations-Matrix
+
+| Prüfung / Gate | Baseline (`4322e86`) | Nachher (Gate G42) | Status |
+|---|---|---|---|
+| `npx tsc --noEmit` | 536 Fehler | **535 Fehler** (0 in neuen Auth-Dateien) | **GRÜN** |
+| `npm run lint` | 4 Fehler, 3 Warnings | **4 Fehler, 3 Warnings** (nur geschützte Altdaten) | **GRÜN** |
+| `npm run verify` | 24/24 Suiten | **24/24 Suiten bestanden** | **GRÜN** |
+| `npm test` | 36 Files, 140 Tests | **36 Files, 140 Tests bestanden** | **GRÜN** |
+| `npm run build` | 2.30s, 2925 Module | **Erfolgreich** (`LoginPage` lazy: 5.22 kB raw / 2.06 kB gzip) | **GRÜN** |
+| `npx size-limit` (Initial JS gzip) | 134.60 kB (Limit 180 kB) | **135.71 kB** (Limit 180 kB, 44.29 kB Puffer) | **GRÜN** |
+| `npx size-limit` (Largest chunk gzip) | 86.39 kB (Limit 250 kB) | **86.39 kB** (Limit 250 kB, 163.61 kB Puffer) | **GRÜN** |
+| `npx playwright test` | 153 Tests | **165 Tests passed** (153 bestehende + 12 neue Auth-Tests) | **GRÜN** |
+| **Schutzbereichs-Diff** | Leer | `git diff 4322e86 -- src/simulation src/types src/context src/services/data src/features/resources src/store supabase` ist **vollständig leer** | **GRÜN** |
+
+---
+
 ## 2026-09-12 — Gate G41 / Auftrag 059: Review — Freigabe mit Hinweis (1 Befund, kein Blocker)
 
 **Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
