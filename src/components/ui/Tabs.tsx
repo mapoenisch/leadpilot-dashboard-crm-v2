@@ -68,10 +68,14 @@ export function Tabs({ items = [], activeId, onChange, ariaLabel = 'Registerkart
     }
 
     if (nextIndex >= 0) {
-      onChange(items[nextIndex].id);
+      const nextItem = items[nextIndex];
+      if (nextItem) {
+        onChange(nextItem.id);
+      }
       const buttons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-      if (buttons && buttons[nextIndex]) {
-        buttons[nextIndex].focus();
+      const targetBtn = buttons?.[nextIndex];
+      if (targetBtn) {
+        targetBtn.focus();
       }
     }
   };

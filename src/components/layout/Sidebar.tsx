@@ -93,6 +93,7 @@ export function Sidebar({
 
           const first = focusable[0];
           const last = focusable[focusable.length - 1];
+          if (!first || !last) return;
 
           if (e.shiftKey) {
             if (document.activeElement === first || document.activeElement === drawerRef.current) {
@@ -225,7 +226,7 @@ export function Sidebar({
         onKeyDown={(e) => {
           if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            onCloseMobileDrawer();
+            onCloseMobileDrawer?.();
           }
         }}
       >

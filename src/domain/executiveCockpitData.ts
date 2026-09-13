@@ -23,12 +23,14 @@ export interface CockpitKpiItem {
 }
 
 export interface ArrTimeSeriesPoint {
+  [key: string]: unknown;
   period: string;
   arr: number;
   label: string;
 }
 
 export interface MrrTierPoint {
+  [key: string]: unknown;
   tier: string;
   mrr: number;
   sharePercent: number;

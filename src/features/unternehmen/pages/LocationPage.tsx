@@ -222,12 +222,13 @@ export function LocationPage() {
 
         <div className="unternehmen-v2-details-grid grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[16px]">
           {STANDORT.details.map(([key, val], idx) => {
-            const Icon = DETAIL_ICONS[key] || Building;
+            const safeKey = key ?? '';
+            const Icon = DETAIL_ICONS[safeKey] || Building;
             const tag = DETAIL_STRUCTURAL_TAGS[idx] || `DETAIL 0${idx + 1}`;
 
             return (
               <div
-                key={key}
+                key={safeKey}
                 className="unternehmen-v2-detail-card bg-[linear-gradient(180deg,rgba(7,24,22,0.85)_0%,rgba(4,16,15,0.9)_100%)] border border-solid border-[rgba(0,217,198,0.22)] shadow-[0_6px_24px_-4px_rgba(0,0,0,0.4),0_0_12px_rgba(0,217,198,0.06)] rounded-[8px] px-[20px] py-[18px] flex flex-col gap-[10px] relative backdrop-blur-[8px] transition-[border-color_0.2s_ease,transform_0.2s_ease]"
               >
                 {/* Top: Icon & Tag */}

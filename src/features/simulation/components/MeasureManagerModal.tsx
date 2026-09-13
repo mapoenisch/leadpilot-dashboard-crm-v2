@@ -50,10 +50,12 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
     for (const m of draftMeasures) {
       for (const ch of m.changes) {
         if (ch.mode === 'set') {
-          if (!setMeasuresByParam[ch.parameter]) {
-            setMeasuresByParam[ch.parameter] = [];
+          const existingList = setMeasuresByParam[ch.parameter];
+          if (!existingList) {
+            setMeasuresByParam[ch.parameter] = [m];
+          } else {
+            existingList.push(m);
           }
-          setMeasuresByParam[ch.parameter].push(m);
         }
       }
     }
@@ -85,7 +87,7 @@ export const MeasureManagerModal: React.FC<MeasureManagerModalProps> = ({ isOpen
         const merged = { ...c, ...updated };
         if (updated.parameter && updated.parameter !== c.parameter) {
           const def = V1_PARAMETER_DEFINITIONS[updated.parameter];
-          if (def) {
+          if (def && typeof def.defaultValue === 'number') {
             merged.value = def.defaultValue;
           }
         }

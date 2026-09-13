@@ -66,7 +66,7 @@ export const SlaSwimlane: React.FC = () => {
             <strong className="text-[14px] text-text">{SLA.handoff.title}</strong>
           </div>
           <span className="text-[12px] text-[var(--color-text-muted)]">
-            Kriterium: {SLA.handoff.rows[1][1]}
+            Kriterium: {SLA.handoff.rows[1]?.[1] ?? ''}
           </span>
         </div>
 
@@ -76,9 +76,9 @@ export const SlaSwimlane: React.FC = () => {
             <span>FRIST: ERSTKONTAKT ≤ 24H (WERKTAGS)</span>
           </div>
           <div className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-[4px] flex-wrap">
-            <span>{SLA.handoff.rows[0][1]}</span>
+            <span>{SLA.handoff.rows[0]?.[1] ?? ''}</span>
             <span className="text-primary font-bold">➔</span>
-            <span className="text-text font-semibold">{SLA.handoff.rows[2][1]}</span>
+            <span className="text-text font-semibold">{SLA.handoff.rows[2]?.[1] ?? ''}</span>
           </div>
         </div>
       </div>

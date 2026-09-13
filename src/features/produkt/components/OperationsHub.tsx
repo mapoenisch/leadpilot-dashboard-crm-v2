@@ -4,35 +4,40 @@ import { FUNKTION } from '../../../domain/produktData';
 export const OperationsHub: React.FC = () => {
   const [showTable, setShowTable] = useState(false);
 
+  const mod0 = FUNKTION.modules[0] ?? { name: '', desc: '' };
+  const mod1 = FUNKTION.modules[1] ?? { name: '', desc: '' };
+  const mod2 = FUNKTION.modules[2] ?? { name: '', desc: '' };
+  const mod3 = FUNKTION.modules[3] ?? { name: '', desc: '' };
+
   // Vier Produktmodule unverändert aus FUNKTION.modules abgeleitet
   // mit knapper, sachlicher Ableitung des Vertriebsbezugs ohne neue Wirkversprechen
   const module0 = {
     badge: 'Modul 01 • Inbound',
-    name: FUNKTION.modules[0].name,
-    desc: FUNKTION.modules[0].desc,
+    name: mod0.name,
+    desc: mod0.desc,
     relation:
       'Inbound-Erfassung: Automatische Lead-Aufnahme aus Webformularen, Messen, E-Mails und LinkedIn Ads.',
   };
 
   const module1 = {
     badge: 'Modul 02 • Scoring',
-    name: FUNKTION.modules[1].name,
-    desc: FUNKTION.modules[1].desc,
+    name: mod1.name,
+    desc: mod1.desc,
     relation:
       'Priorisierung: Lead-Bewertung von 0 bis 100 nach Firmografie, ICP-Fit und Verhalten.',
   };
 
   const module2 = {
     badge: 'Modul 03 • Outreach',
-    name: FUNKTION.modules[2].name,
-    desc: FUNKTION.modules[2].desc,
+    name: mod2.name,
+    desc: mod2.desc,
     relation: 'Outreach-Automation: Automatisierte Outreach- und Follow-up-Reihen per E-Mail.',
   };
 
   const module3 = {
     badge: 'Modul 04 • Pipeline',
-    name: FUNKTION.modules[3].name,
-    desc: FUNKTION.modules[3].desc,
+    name: mod3.name,
+    desc: mod3.desc,
     relation: 'Statusübersicht: Tabellenansicht und Echtzeit-Tracking aller Leads nach Status.',
   };
 
@@ -180,7 +185,7 @@ export const OperationsHub: React.FC = () => {
                 Zentraler Knotenpunkt
               </span>
               <h4 className="m-0 font-display text-[1.0625rem] font-bold text-text">
-                {FUNKTION.modules[3].name} (Betriebszentrale)
+                {mod3.name} (Betriebszentrale)
               </h4>
             </div>
 
@@ -190,7 +195,7 @@ export const OperationsHub: React.FC = () => {
           </div>
 
           <p className="m-0 mb-[var(--space-3)] text-[0.8125rem] leading-[1.45] text-[var(--color-text-muted)]">
-            {FUNKTION.modules[3].desc}
+            {mod3.desc}
           </p>
 
           {/* Kanban-Phasenleiste des Cockpits */}

@@ -5,25 +5,29 @@ import { FaceliftGlyph } from '../../../components/facelift/FaceliftGlyph';
 export const ValueBenefitStage: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
 
+  const b0 = VALUE.coreBenefits[0] ?? { title: '', desc: '' };
+  const b1 = VALUE.coreBenefits[1] ?? { title: '', desc: '' };
+  const b2 = VALUE.coreBenefits[2] ?? { title: '', desc: '' };
+
   const benefits = [
     {
       badge: 'Kontakt wird Kunde',
-      title: VALUE.coreBenefits[0].title,
-      desc: VALUE.coreBenefits[0].desc,
+      title: b0.title,
+      desc: b0.desc,
       glyph: 'contactToCustomer' as const,
       tone: 'positive' as const,
     },
     {
       badge: 'Fokus statt Reporting-Aufwand',
-      title: VALUE.coreBenefits[1].title,
-      desc: VALUE.coreBenefits[1].desc,
+      title: b1.title,
+      desc: b1.desc,
       glyph: 'focus' as const,
       tone: 'accent' as const,
     },
     {
       badge: 'Vom ersten Tag handlungsfähig',
-      title: VALUE.coreBenefits[2].title,
-      desc: VALUE.coreBenefits[2].desc,
+      title: b2.title,
+      desc: b2.desc,
       glyph: 'ready' as const,
       tone: 'neutral' as const,
     },

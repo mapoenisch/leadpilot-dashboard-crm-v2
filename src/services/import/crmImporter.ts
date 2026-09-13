@@ -18,6 +18,7 @@ function parseCsv(csvText: string): string[][] {
   if (lines.length === 0) return [];
 
   const firstLine = lines[0];
+  if (!firstLine) return [];
   const delim = firstLine.includes(';') ? ';' : ',';
 
   return lines.map((line) => line.split(delim).map((cell) => cell.trim()));
@@ -52,12 +53,12 @@ export function importCrmData(): CrmImportResult {
         audit.companiesErrors++;
         return;
       }
-      const domain = row[0].toLowerCase();
-      const name = row[1];
-      const industry = row[2];
-      const city = row[3];
-      const postalCode = row[4];
-      const employeeCount = parseInt(row[5], 10) || 0;
+      const domain = (row[0] ?? '').toLowerCase();
+      const name = row[1] ?? '';
+      const industry = row[2] ?? '';
+      const city = row[3] ?? '';
+      const postalCode = row[4] ?? '';
+      const employeeCount = parseInt(row[5] ?? '0', 10) || 0;
 
       // Validation
       if (!domain || !name || domainToCompanyMap[domain]) {
@@ -95,10 +96,10 @@ export function importCrmData(): CrmImportResult {
         audit.contactsErrors++;
         return;
       }
-      const email = row[0].toLowerCase();
-      const firstName = row[1];
-      const lastName = row[2];
-      const jobTitle = row[3];
+      const email = (row[0] ?? '').toLowerCase();
+      const firstName = row[1] ?? '';
+      const lastName = row[2] ?? '';
+      const jobTitle = row[3] ?? '';
 
       const emailDomain = email.split('@')[1] || '';
       const matchedCompany = domainToCompanyMap[emailDomain];
@@ -138,11 +139,11 @@ export function importCrmData(): CrmImportResult {
         return;
       }
 
-      const dealName = row[0];
-      const stage = row[1];
-      const amount = parseFloat(row[2].replace(',', '.')) || 0;
-      const closeDate = row[3];
-      const pipeline = row[4];
+      const dealName = row[0] ?? '';
+      const stage = row[1] ?? '';
+      const amount = parseFloat((row[2] ?? '0').replace(',', '.')) || 0;
+      const closeDate = row[3] ?? '';
+      const pipeline = row[4] ?? '';
 
       if (!dealName || !stage || !closeDate || !pipeline) {
         audit.dealsErrors++;

@@ -14,9 +14,9 @@ export const CapacityNetwork: React.FC = () => {
   const radiusY = 95;
 
   const nodes = functionalRows.map((r, i) => {
-    const roleName = r[0];
-    const fteStr = r[1];
-    const detail = r[2];
+    const roleName = r[0] ?? '';
+    const fteStr = r[1] ?? '';
+    const detail = r[2] ?? '';
 
     // Generische Zuordnung von Engpässen über Token-Übereinstimmung von roleName und detail gegen TEAM.bottlenecks
     const roleTokens = roleName

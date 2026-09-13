@@ -22,10 +22,10 @@ function parseKeyResult(rawText: string): ParsedKR {
     };
   }
   return {
-    krId: match[1],
-    label: match[2],
-    fromVal: match[3],
-    toVal: match[4],
+    krId: match[1] ?? 'KR',
+    label: match[2] ?? rawText,
+    fromVal: match[3] ?? '—',
+    toVal: match[4] ?? '—',
     note: match[5],
   };
 }

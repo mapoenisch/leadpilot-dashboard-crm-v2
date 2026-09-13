@@ -4,29 +4,38 @@ import { PERF } from '../../../domain/produktData';
 export const ProductHealth: React.FC = () => {
   const [showTable, setShowTable] = useState(false);
 
+  type Metric = { label: string; val: string };
+  const fallbackMetric: Metric = { label: '', val: '' };
+  const m0 = PERF.metrics[0] ?? fallbackMetric;
+  const m1 = PERF.metrics[1] ?? fallbackMetric;
+  const m2 = PERF.metrics[2] ?? fallbackMetric;
+  const m3 = PERF.metrics[3] ?? fallbackMetric;
+  const m4 = PERF.metrics[4] ?? fallbackMetric;
+  const m5 = PERF.metrics[5] ?? fallbackMetric;
+
   // 6 Kennzahlen sachlich gruppiert in die drei Säulen Stabilität, Nutzung und Onboarding
   // Zielstatus wird automatisch aus dem Werttext abgeleitet (enthält 'erreicht' vs 'verfehlt')
-  const healthGroups = [
+  const healthGroups: { id: string; title: string; explanation: string; metrics: Metric[] }[] = [
     {
       id: 'stabilitaet',
       title: 'Stabilität',
       explanation:
         'Verfügbarkeit + Support-Tickets: Messung der Systemstabilität und Servicezuverlässigkeit.',
-      metrics: [PERF.metrics[0], PERF.metrics[5]],
+      metrics: [m0, m5],
     },
     {
       id: 'nutzung',
       title: 'Nutzung',
       explanation:
         'WAU/MAU + KI-Scoring-Nutzung: Messung der regelmäßigen Plattform- und Feature-Aktivität.',
-      metrics: [PERF.metrics[2], PERF.metrics[3]],
+      metrics: [m2, m3],
     },
     {
       id: 'onboarding',
       title: 'Onboarding',
       explanation:
         'Aktivierungsrate + Time-to-First-Action: Messung des initialen Einstiegs und der Nutzeraktivierung.',
-      metrics: [PERF.metrics[1], PERF.metrics[4]],
+      metrics: [m1, m4],
     },
   ];
 

@@ -106,7 +106,7 @@ export const LocationAtlas: React.FC = () => {
           </div>
 
           <span className="text-[0.6875rem] font-mono px-[8px] py-[2px] rounded-full bg-cyan-a12 text-primary border border-solid border-[rgba(0,217,198,0.3)] font-semibold">
-            {STANDORT.details[1][1]}
+            {STANDORT.details[1]?.[1] ?? ''}
           </span>
         </div>
       </div>

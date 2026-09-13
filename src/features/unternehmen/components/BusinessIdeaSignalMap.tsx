@@ -7,9 +7,11 @@ export const BusinessIdeaSignalMap: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
 
   // Exakte Ableitung aus Domain-Daten
-  const phase1MarketText = IDEE.paragraphs[0].split('.')[0] + '.';
-  const phase2FrictionText1 = IDEE.paragraphs[0].split('. ')[1] || '';
-  const phase2FrictionText2 = IDEE.paragraphs[1].split('.')[0] + '.';
+  const p0 = IDEE.paragraphs[0] ?? '';
+  const p1 = IDEE.paragraphs[1] ?? '';
+  const phase1MarketText = (p0.split('.')[0] ?? '') + '.';
+  const phase2FrictionText1 = p0.split('. ')[1] || '';
+  const phase2FrictionText2 = (p1.split('.')[0] ?? '') + '.';
 
   return (
     <div className="facelift-business-idea-signal-map w-full box-border rounded-[var(--radius-lg)] border border-solid border-border bg-surface p-[var(--space-5)]">

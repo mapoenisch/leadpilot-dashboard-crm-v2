@@ -269,13 +269,13 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
                     }}
                     formatter={(
                       val: unknown,
-                      name: unknown,
+                      name: string | number,
                       item: { payload?: { hasValue?: boolean } },
                     ) => {
                       if (!item.payload?.hasValue) {
-                        return ['Warte auf bestätigten Live-Wert', name];
+                        return ['Warte auf bestätigten Live-Wert', String(name)];
                       }
-                      return [`${Number(val).toLocaleString('de-DE')}`, name];
+                      return [`${Number(val).toLocaleString('de-DE')}`, String(name)];
                     }}
                   />
                   <Bar

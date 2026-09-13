@@ -6,13 +6,12 @@ export const OrganisationScaffold: React.FC = () => {
   const timelineLabels = HEADCOUNT.chart?.labels || [];
   const timelineData = (HEADCOUNT.chart?.datasets?.[0]?.data as number[]) || [];
   const firstQuarter = timelineLabels[0] || '—';
-  const lastQuarter = timelineLabels.length > 0 ? timelineLabels[timelineLabels.length - 1] : '—';
+  const lastQuarter =
+    timelineLabels.length > 0 ? (timelineLabels[timelineLabels.length - 1] ?? '—') : '—';
   const firstFte =
     timelineData[0] !== undefined ? `${timelineData[0].toFixed(1).replace('.', ',')} FTE` : '—';
-  const lastFte =
-    timelineData.length > 0
-      ? `${timelineData[timelineData.length - 1].toFixed(1).replace('.', ',')} FTE`
-      : '—';
+  const lastVal = timelineData[timelineData.length - 1];
+  const lastFte = lastVal !== undefined ? `${lastVal.toFixed(1).replace('.', ',')} FTE` : '—';
 
   // Funktionale Rollen und Gesamtzeile dynamisch aus HEADCOUNT.rows
   const totalRow = HEADCOUNT.rows.length > 1 ? HEADCOUNT.rows[HEADCOUNT.rows.length - 1] : null;
@@ -39,13 +38,15 @@ export const OrganisationScaffold: React.FC = () => {
   }));
   const pathD = points.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '');
   const lastPt = points[points.length - 1];
+  const firstPt = points[0];
   const areaD =
-    points.length > 0 && lastPt
-      ? `${pathD} L ${lastPt.x} ${padY + plotH} L ${points[0].x} ${padY + plotH} Z`
+    points.length > 0 && lastPt && firstPt
+      ? `${pathD} L ${lastPt.x} ${padY + plotH} L ${firstPt.x} ${padY + plotH} Z`
       : '';
 
   // Berechne numerische FTE je Funktion für proportionale Bausteine
-  const parseFte = (valStr: string) => {
+  const parseFte = (valStr?: string) => {
+    if (!valStr) return 0;
     const num = parseFloat(valStr.replace(/[^\d,.]/g, '').replace(',', '.'));
     return isNaN(num) ? 0 : num;
   };
@@ -198,9 +199,9 @@ export const OrganisationScaffold: React.FC = () => {
           aria-label="Funktionale FTE-Bausteine"
         >
           {functionalRows.map((row) => {
-            const role = row[0];
-            const fteStr = row[1];
-            const detail = row[2];
+            const role = row[0] ?? '';
+            const fteStr = row[1] ?? '';
+            const detail = row[2] ?? '';
             const fteNum = parseFte(fteStr);
             const blockHeight = Math.max(70, Math.round((fteNum / maxFunctionalFte) * 160));
             const isHighlight = detail.includes('kritisch') || detail.includes('ausgereizt');

@@ -107,7 +107,7 @@ export function CrmResponsiveList<T extends object>({
                   <div key={col.key} className="crm-v2-mobile-card-row">
                     <span className="crm-v2-mobile-card-label">{col.label}</span>
                     <span className="crm-v2-mobile-card-value">
-                      {col.render ? col.render(row) : (row[col.key] as React.ReactNode)}
+                      {col.render ? col.render(row) : (cellValue(row, col.key) as React.ReactNode)}
                     </span>
                   </div>
                 ))}

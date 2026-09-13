@@ -122,16 +122,20 @@ export function MultiScenarioComparisonChart({
                 opacity={s.isReference ? 1 : 0.85}
               />
               {/* Final Point Indicator */}
-              {s.points.length > 0 && (
-                <circle
-                  cx={getX(s.points.length - 1)}
-                  cy={getY(s.points[s.points.length - 1].value)}
-                  r={s.isReference ? '4.5' : '3.5'}
-                  fill={s.color}
-                  stroke="var(--color-surface)"
-                  strokeWidth="2"
-                />
-              )}
+              {(() => {
+                const lastPt = s.points[s.points.length - 1];
+                if (!lastPt) return null;
+                return (
+                  <circle
+                    cx={getX(s.points.length - 1)}
+                    cy={getY(lastPt.value)}
+                    r={s.isReference ? '4.5' : '3.5'}
+                    fill={s.color}
+                    stroke="var(--color-surface)"
+                    strokeWidth="2"
+                  />
+                );
+              })()}
             </g>
           );
         })}

@@ -29,13 +29,14 @@ export const CustomerPortfolio: React.FC = () => {
   // Parsing der TOP10-Zeilen
   const customers: ParsedCustomer[] = useMemo(() => {
     return TOP10.rows.map((r: string[]) => {
-      const name = r[0];
-      const branche = r[1];
-      const mitarbeiter = parseInt(r[2], 10);
-      const paket = r[3];
-      const nutzer = parseInt(r[4], 10);
-      const arr = parseInt(r[5].replace(/\./g, '').replace(' €', ''), 10);
-      return { name, branche, mitarbeiter, paket, nutzer, arr, arrFormatted: r[5] };
+      const name = r[0] ?? '';
+      const branche = r[1] ?? '';
+      const mitarbeiter = parseInt(r[2] ?? '0', 10);
+      const paket = r[3] ?? '';
+      const nutzer = parseInt(r[4] ?? '0', 10);
+      const arrStr = r[5] ?? '0';
+      const arr = parseInt(arrStr.replace(/\./g, '').replace(' €', ''), 10);
+      return { name, branche, mitarbeiter, paket, nutzer, arr, arrFormatted: arrStr };
     });
   }, []);
 

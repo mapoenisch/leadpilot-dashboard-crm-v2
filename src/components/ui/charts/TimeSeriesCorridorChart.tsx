@@ -110,8 +110,12 @@ export function TimeSeriesCorridorChart({
         onMouseLeave={() => setHoverIdx(null)}
       >
         <desc>
-          P50-Median von {formatChartMetric(points[0]?.median, unit)} bis{' '}
-          {formatChartMetric(points[points.length - 1]?.median, unit)}.
+          P50-Median von{' '}
+          {points[0]?.median !== undefined ? formatChartMetric(points[0].median, unit) : '—'} bis{' '}
+          {points[points.length - 1]?.median !== undefined
+            ? formatChartMetric(points[points.length - 1]?.median as number, unit)
+            : '—'}
+          .
         </desc>
 
         {/* Horizontal Grid lines */}
@@ -180,7 +184,7 @@ export function TimeSeriesCorridorChart({
         )}
 
         {/* Baseline Anchor Indicator at Tick 0 */}
-        {baselineValue !== undefined && points.length > 0 && (
+        {baselineValue !== undefined && points.length > 0 && points[0] && (
           <g>
             <circle
               cx={getX(0)}

@@ -86,7 +86,8 @@ export const SwotCompass: React.FC = () => {
     },
   ];
 
-  const activeQuadrantData = quadrants.find((q) => q.id === selectedQuadrant) || quadrants[0];
+  const activeQuadrantData = quadrants.find((q) => q.id === selectedQuadrant) ?? quadrants[0];
+  if (!activeQuadrantData) return null;
 
   // G39 Welle 2: Quadrantenfarben als Klassen-Ternaries (4 statische
   // Quadranten, Build-Zeit bekannt) — keine Laufzeit-Styles nötig.

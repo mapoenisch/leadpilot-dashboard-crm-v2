@@ -305,7 +305,7 @@ export const MultiScenarioComparisonModal: React.FC<MultiScenarioComparisonModal
                     id: v.id,
                     name: `${item?.scenarioName || 'Szenario'} v${v.versionNumber}`,
                     isReference: isRef,
-                    color: isRef ? '#00D9C6' : palette[(i + 1) % palette.length],
+                    color: isRef ? '#00D9C6' : (palette[(i + 1) % palette.length] ?? '#4ECCA3'),
                     points: [
                       { tick: 0, value: 411840 },
                       { tick: 10, value: Math.round(411840 + (finalArr - 411840) * 0.32) },

@@ -54,8 +54,9 @@ export function Modal({
           const focusable = modalRef.current.querySelectorAll<HTMLElement>(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
           );
-          if (focusable.length > 0) {
-            focusable[0].focus();
+          const firstFocusable = focusable[0];
+          if (firstFocusable) {
+            firstFocusable.focus();
           } else {
             modalRef.current.focus();
           }
@@ -98,6 +99,7 @@ export function Modal({
 
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
+        if (!firstElement || !lastElement) return;
 
         if (e.shiftKey) {
           if (

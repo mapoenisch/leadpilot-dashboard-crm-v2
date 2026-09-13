@@ -101,11 +101,11 @@ export class CRMRepository {
         if (!error && data && data.length > 0) {
           return data.map((row: ContactDbRow) => ({
             id: row.id,
-            companyId: row.company_id || row.companyId,
+            companyId: row.company_id || row.companyId || '',
             email: row.email,
-            firstName: row.first_name || row.firstName,
-            lastName: row.last_name || row.lastName,
-            jobTitle: row.job_title || row.jobTitle,
+            firstName: row.first_name || row.firstName || '',
+            lastName: row.last_name || row.lastName || '',
+            jobTitle: row.job_title || row.jobTitle || '',
           }));
         }
       } catch (e) {
@@ -138,10 +138,10 @@ export class CRMRepository {
         if (!error && data && data.length > 0) {
           return data.map((row: DealDbRow) => ({
             id: row.id,
-            dealName: row.deal_name || row.dealName,
+            dealName: row.deal_name || row.dealName || '',
             stage: row.stage,
             amount: parseFloat(String(row.amount)) || 0,
-            closeDate: row.close_date || row.closeDate,
+            closeDate: row.close_date || row.closeDate || '',
             pipeline: row.pipeline,
           }));
         }

@@ -12,8 +12,8 @@ export const CompanyRegisterCard: React.FC = () => {
 
   // Werte ausschließlich aus PROFILE_ROWS ableiten
   const getProfileValue = (label: string): string => {
-    const row = PROFILE_ROWS.find(([k]) => k.toLowerCase() === label.toLowerCase());
-    return row ? row[1] : '';
+    const row = PROFILE_ROWS.find(([k]) => k?.toLowerCase() === label.toLowerCase());
+    return row?.[1] ?? '';
   };
 
   const firmenname = getProfileValue('Firmenname');

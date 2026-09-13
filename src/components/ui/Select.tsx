@@ -192,9 +192,12 @@ export function Select({
       case ' ':
         e.preventDefault();
         if (highlightedIndex >= 0 && highlightedIndex < options.length) {
-          onChange(options[highlightedIndex].value);
-          setIsOpen(false);
-          triggerRef.current?.focus();
+          const opt = options[highlightedIndex];
+          if (opt) {
+            onChange(opt.value);
+            setIsOpen(false);
+            triggerRef.current?.focus();
+          }
         }
         break;
       case 'Escape':

@@ -65,7 +65,7 @@ export class SnapshotMapper {
     simulatedDate: string,
     state: SimulationState,
   ): AnalyticsProjection {
-    const metrics = state.metrics || {};
+    const metrics = state.metrics;
     return {
       snapshotId,
       runId,
@@ -74,13 +74,13 @@ export class SnapshotMapper {
       tickId,
       simulationDay,
       simulatedDate,
-      arr: metrics.liveARR || 0,
-      mrr: metrics.liveMRR || 0,
-      customers: metrics.liveCustomers || 0,
-      wonDeals: metrics.liveWonDeals || 0,
-      leadsCount: metrics.liveLeads || 0,
-      opportunitiesCount: metrics.liveOpportunities || 0,
-      conversionRate: metrics.conversionRate || 0,
+      arr: metrics?.liveARR || 0,
+      mrr: metrics?.liveMRR || 0,
+      customers: metrics?.liveCustomers || 0,
+      wonDeals: metrics?.liveWonDeals || 0,
+      leadsCount: metrics?.liveLeads || 0,
+      opportunitiesCount: metrics?.liveOpportunities || 0,
+      conversionRate: metrics?.conversionRate || 0,
     };
   }
 }

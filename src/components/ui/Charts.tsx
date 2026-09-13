@@ -42,10 +42,13 @@ export function SimpleChart({ config, height = 220 }: { config: ChartConfig; hei
   // 1. Doughnut / Ring Chart
   if (type === 'doughnut') {
     const ds = datasets[0];
+    if (!ds) return null;
     const segments = labels.map((label, idx) => ({
       label,
       value: ds.data[idx] || 0,
-      color: ds.colors ? ds.colors[idx % ds.colors.length] : undefined,
+      color: ds.colors
+        ? (ds.colors[idx % ds.colors.length] ?? CHART_THEME.colors.primary)
+        : CHART_THEME.colors.primary,
     }));
 
     return <DonutRingChart segments={segments} totalLabel="Gesamt" size={140} showBars={true} />;
@@ -107,8 +110,11 @@ export function SimpleChart({ config, height = 220 }: { config: ChartConfig; hei
               color:
                 ds.color ||
                 (ds.colors
-                  ? ds.colors[0]
-                  : CHART_THEME.seriesPalette[idx % CHART_THEME.seriesPalette.length]),
+                  ? (ds.colors[0] ??
+                    CHART_THEME.seriesPalette[idx % CHART_THEME.seriesPalette.length] ??
+                    CHART_THEME.colors.primary)
+                  : (CHART_THEME.seriesPalette[idx % CHART_THEME.seriesPalette.length] ??
+                    CHART_THEME.colors.primary)),
               shape: 'rect',
             }))}
           />
@@ -171,7 +177,12 @@ export function SimpleChart({ config, height = 220 }: { config: ChartConfig; hei
             (acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`,
             '',
           );
-          const fillD = `${pathD} L ${points[points.length - 1].x} ${padTop + plotHeight} L ${points[0].x} ${padTop + plotHeight} Z`;
+          const firstPt = points[0];
+          const lastPt = points[points.length - 1];
+          const fillD =
+            firstPt && lastPt
+              ? `${pathD} L ${lastPt.x} ${padTop + plotHeight} L ${firstPt.x} ${padTop + plotHeight} Z`
+              : '';
 
           return (
             <g key={dIdx}>
@@ -225,7 +236,10 @@ export function SimpleChart({ config, height = 220 }: { config: ChartConfig; hei
           size="sm"
           items={datasets.map((ds, idx) => ({
             label: ds.label || `Serie ${idx + 1}`,
-            color: ds.color || CHART_THEME.seriesPalette[idx % CHART_THEME.seriesPalette.length],
+            color:
+              ds.color ||
+              CHART_THEME.seriesPalette[idx % CHART_THEME.seriesPalette.length] ||
+              CHART_THEME.colors.primary,
             shape: 'line',
           }))}
         />

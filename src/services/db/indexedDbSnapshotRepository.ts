@@ -162,7 +162,7 @@ export class IndexedDbSnapshotRepository implements ISnapshotRepository {
   public async getLatestByRun(runId: string): Promise<SimulationSnapshot | null> {
     const snapshots = await this.getByRun(runId);
     if (snapshots.length === 0) return null;
-    return snapshots[snapshots.length - 1];
+    return snapshots[snapshots.length - 1] ?? null;
   }
 
   public async listProjectionsByRun(runId: string): Promise<AnalyticsProjection[]> {
@@ -330,7 +330,7 @@ export class InMemorySnapshotRepository implements ISnapshotRepository {
   public async getLatestByRun(runId: string): Promise<SimulationSnapshot | null> {
     const snapshots = await this.getByRun(runId);
     if (snapshots.length === 0) return null;
-    return snapshots[snapshots.length - 1];
+    return snapshots[snapshots.length - 1] ?? null;
   }
 
   public async listProjectionsByRun(runId: string): Promise<AnalyticsProjection[]> {

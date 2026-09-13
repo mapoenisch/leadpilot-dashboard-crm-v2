@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formatChartMetric } from '../chartTheme';
+import { formatChartMetric, CHART_THEME } from '../chartTheme';
 
 export interface DonutSegment {
   label: string;

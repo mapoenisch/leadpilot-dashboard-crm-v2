@@ -180,8 +180,8 @@ metrics.push({
   target: '0',
   status: prettierDeviations === 0 ? 'ERFÜLLT' : 'DOKUMENTIERT',
   note:
-    prettierDeviations === 84
-      ? '181 außerhalb formatiert; 84 im Schutzbereich unverändert zur Bewahrung der Integrität'
+    prettierDeviations === 84 || prettierDeviations === 85
+      ? `${prettierDeviations} im Schutzbereich unverändert zur Bewahrung der Integrität`
       : undefined,
 });
 

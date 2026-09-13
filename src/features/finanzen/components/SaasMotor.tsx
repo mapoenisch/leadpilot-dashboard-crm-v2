@@ -15,8 +15,8 @@ export const SaasMotor: React.FC = () => {
 
   const mrrData = CHART_MRR26.datasets[0]?.data || [];
   const mrrStart = mrrData[0] !== undefined ? `${mrrData[0].toLocaleString('de-DE')} €` : '—';
-  const mrrEnd =
-    mrrData.length > 0 ? `${mrrData[mrrData.length - 1].toLocaleString('de-DE')} €` : '—';
+  const lastMrr = mrrData[mrrData.length - 1];
+  const mrrEnd = lastMrr !== undefined ? `${lastMrr.toLocaleString('de-DE')} €` : '—';
 
   const nodes = [
     {

@@ -172,9 +172,9 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
                     }}
                     formatter={(
                       val: unknown,
-                      name: unknown,
+                      name: string | number,
                       item: { payload?: { pct?: number } },
-                    ) => [`${formatEur(Number(val))} (${item.payload?.pct}%)`, name]}
+                    ) => [`${formatEur(Number(val))} (${item.payload?.pct ?? 0}%)`, String(name)]}
                   />
                 </PieChart>
               </ResponsiveContainer>
