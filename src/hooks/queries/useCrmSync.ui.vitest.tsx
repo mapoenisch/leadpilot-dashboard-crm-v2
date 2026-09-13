@@ -115,7 +115,27 @@ describe('useSeedDatabaseMutation (Optimistic Sync-Status)', () => {
       });
     });
     await waitFor(() => expect(result.current.status).toBe('success'));
-    // onSettled-Invalidierung löst einen zweiten Companies-Fetch aus.
     await waitFor(() => expect(controls.companiesCalls).toBe(2));
+  });
+
+  it("fällt bei Fehler auf 'idle' zurück wenn previousStatus nicht gesetzt war", async () => {
+    const client = makeClient();
+    const gate = deferred<unknown>();
+    controls.seedImpl = () => gate.promise;
+    const { result } = renderSyncHooks(client);
+
+    client.removeQueries({ queryKey: crmKeys.syncStatus() });
+
+    act(() => {
+      result.current.mutate();
+    });
+    await waitFor(() => expect(result.current.status).toBe('syncing'));
+
+    act(() => {
+      gate.reject(new Error('Seed-Boom ohne previous'));
+    });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    await waitFor(() => expect(result.current.status).toBe('idle'));
+    expect(client.getQueryData(crmKeys.syncStatus())).toBe('idle');
   });
 });
