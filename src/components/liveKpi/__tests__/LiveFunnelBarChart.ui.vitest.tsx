@@ -33,11 +33,41 @@ describe('LiveFunnelBarChart', () => {
     const now = new Date().toISOString();
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [
-        { kpiId: 'pipeline_leads', value: 500, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
-        { kpiId: 'pipeline_mql', value: 250, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
-        { kpiId: 'pipeline_sql', value: 100, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
-        { kpiId: 'pipeline_offers', value: 40, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
-        { kpiId: 'pipeline_won', value: 15, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        {
+          kpiId: 'pipeline_leads',
+          value: 500,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
+        {
+          kpiId: 'pipeline_mql',
+          value: 250,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
+        {
+          kpiId: 'pipeline_sql',
+          value: 100,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
+        {
+          kpiId: 'pipeline_offers',
+          value: 40,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
+        {
+          kpiId: 'pipeline_won',
+          value: 15,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
       ],
       status: 'live',
     });
@@ -52,18 +82,48 @@ describe('LiveFunnelBarChart', () => {
     const now = new Date().toISOString();
     vi.mocked(liveKpiActivityHook.useLiveKpiActivity).mockReturnValue({
       items: [
-        { kpiId: 'pipeline_leads', value: 500, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
-        { kpiId: 'pipeline_mql', value: 250, occurredAt: now, qualityStatus: 'degraded', unit: 'Leads' },
-        { kpiId: 'pipeline_sql', value: 100, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
-        { kpiId: 'pipeline_offers', value: 40, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
-        { kpiId: 'pipeline_won', value: 15, occurredAt: now, qualityStatus: 'valid', unit: 'Leads' },
+        {
+          kpiId: 'pipeline_leads',
+          value: 500,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
+        {
+          kpiId: 'pipeline_mql',
+          value: 250,
+          occurredAt: now,
+          qualityStatus: 'degraded',
+          unit: 'Leads',
+        },
+        {
+          kpiId: 'pipeline_sql',
+          value: 100,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
+        {
+          kpiId: 'pipeline_offers',
+          value: 40,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
+        {
+          kpiId: 'pipeline_won',
+          value: 15,
+          occurredAt: now,
+          qualityStatus: 'valid',
+          unit: 'Leads',
+        },
       ],
       status: 'live',
     });
 
     render(<LiveFunnelBarChart />);
     expect(
-      screen.getByText('Qualität eingeschränkt (Degraded Snapshot in einer Stufe)')
+      screen.getByText('Qualität eingeschränkt (Degraded Snapshot in einer Stufe)'),
     ).toBeInTheDocument();
   });
 });

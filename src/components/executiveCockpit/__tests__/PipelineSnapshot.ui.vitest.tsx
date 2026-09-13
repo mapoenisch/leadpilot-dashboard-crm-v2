@@ -31,9 +31,7 @@ describe('PipelineSnapshot', () => {
     } as unknown as ReturnType<typeof pipelineHook.usePipelineOverview>);
 
     render(<PipelineSnapshot />);
-    expect(
-      screen.getByText('Integritätsfehler: Datenbank-Fehler')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Integritätsfehler: Datenbank-Fehler')).toBeInTheDocument();
   });
 
   it('renders empty state when no deals or stages exist', () => {
@@ -45,9 +43,7 @@ describe('PipelineSnapshot', () => {
     } as unknown as ReturnType<typeof pipelineHook.usePipelineOverview>);
 
     render(<PipelineSnapshot />);
-    expect(
-      screen.getByText('Keine aktiven Deals in der CRM-Pipeline erfasst')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Keine aktiven Deals in der CRM-Pipeline erfasst')).toBeInTheDocument();
   });
 
   it('renders active pipeline data with total volume and stages', () => {

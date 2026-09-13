@@ -33,7 +33,7 @@ describe('FaceliftGlyph', () => {
 
     for (const tone of tones) {
       const { container, unmount } = render(
-        <FaceliftGlyph name="focus" tone={tone} ariaHidden={true} />
+        <FaceliftGlyph name="focus" tone={tone} ariaHidden={true} />,
       );
       const svg = container.querySelector('svg');
       expect(svg).toHaveAttribute('aria-hidden', 'true');

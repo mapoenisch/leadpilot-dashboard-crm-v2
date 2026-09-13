@@ -7,7 +7,7 @@ describe('CockpitPanel', () => {
     render(
       <CockpitPanel title="Finanzlage" subtitle="Monatliche Übersicht">
         <div data-testid="panel-content">Inhalt</div>
-      </CockpitPanel>
+      </CockpitPanel>,
     );
 
     expect(screen.getByRole('heading', { name: 'Finanzlage' })).toBeInTheDocument();
@@ -24,7 +24,7 @@ describe('CockpitPanel', () => {
         actions={<button data-testid="test-action">Filter</button>}
       >
         <p>Pipeline Details</p>
-      </CockpitPanel>
+      </CockpitPanel>,
     );
 
     expect(screen.getByText('Ebene A')).toBeInTheDocument();

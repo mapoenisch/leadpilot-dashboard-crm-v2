@@ -20,7 +20,7 @@ describe('Chart Helpers & Subcomponents', () => {
           insight={<span>Wichtiger Einblick</span>}
         >
           <div data-testid="chart-child">Diagramm-Inhalt</div>
-        </ChartFrame>
+        </ChartFrame>,
       );
 
       expect(screen.getByRole('heading', { name: 'Rahmen-Titel' })).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe('Chart Helpers & Subcomponents', () => {
       const { rerender } = render(
         <ChartInsight type="positive" title="Trend">
           Positiver Trend
-        </ChartInsight>
+        </ChartInsight>,
       );
       expect(screen.getByText('Trend:')).toBeInTheDocument();
       expect(screen.getByText('Positiver Trend')).toBeInTheDocument();
@@ -44,7 +44,7 @@ describe('Chart Helpers & Subcomponents', () => {
       rerender(
         <ChartInsight type="warning" title="Risiko">
           Erhöhtes Churn-Risiko
-        </ChartInsight>
+        </ChartInsight>,
       );
       expect(screen.getByText('Risiko:')).toBeInTheDocument();
       expect(screen.getByText('Erhöhtes Churn-Risiko')).toBeInTheDocument();
@@ -58,7 +58,7 @@ describe('Chart Helpers & Subcomponents', () => {
           title="Keine Daten"
           message="Bitte mindestens 5 Einträge erfassen"
           requirement="Aktuell: 2 von 5"
-        />
+        />,
       );
 
       expect(screen.getByText('Keine Daten')).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe('Chart Helpers & Subcomponents', () => {
           baselineValue="3,2"
           deltaPercent={40.6}
           isPositiveChange={true}
-        />
+        />,
       );
 
       expect(screen.getByText('Conversion Rate')).toBeInTheDocument();
@@ -102,7 +102,7 @@ describe('Chart Helpers & Subcomponents', () => {
             { label: 'Kosten', value: '80.000 €', color: '#FF7A3D' },
           ]}
           visible={true}
-        />
+        />,
       );
 
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
@@ -119,18 +119,14 @@ describe('Chart Helpers & Subcomponents', () => {
           type="error"
           message="Server nicht erreichbar"
           sourceLabel="Ebene A"
-        />
+        />,
       );
 
       expect(screen.getByTestId('management-chart-error')).toBeInTheDocument();
       expect(screen.getByText('Server nicht erreichbar')).toBeInTheDocument();
 
       rerender(
-        <ManagementChartState
-          type="loading"
-          message="Lade Daten..."
-          sourceLabel="Ebene A"
-        />
+        <ManagementChartState type="loading" message="Lade Daten..." sourceLabel="Ebene A" />,
       );
       expect(screen.getByTestId('management-chart-loading')).toBeInTheDocument();
       expect(screen.getByText('Lade Daten...')).toBeInTheDocument();
@@ -149,10 +145,8 @@ describe('Chart Helpers & Subcomponents', () => {
           active={true}
           label="Januar 2025"
           sourceLabel="Ebene A Baseline"
-          payload={[
-            { name: 'ARR', value: 411840, color: '#00D9C6', dataKey: 'arr' },
-          ]}
-        />
+          payload={[{ name: 'ARR', value: 411840, color: '#00D9C6', dataKey: 'arr' }]}
+        />,
       );
 
       expect(screen.getByText('Januar 2025')).toBeInTheDocument();

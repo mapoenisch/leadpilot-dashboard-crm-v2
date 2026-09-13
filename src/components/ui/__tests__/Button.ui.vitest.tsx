@@ -21,7 +21,11 @@ describe('Button', () => {
   it('does not trigger onClick when disabled', async () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
-    render(<Button disabled onClick={handleClick}>Disabled</Button>);
+    render(
+      <Button disabled onClick={handleClick}>
+        Disabled
+      </Button>,
+    );
 
     const btn = screen.getByRole('button', { name: 'Disabled' });
     expect(btn).toBeDisabled();
@@ -44,7 +48,7 @@ describe('Button', () => {
         iconRight={<span data-testid="icon-right">R</span>}
       >
         Mit Icons
-      </Button>
+      </Button>,
     );
     expect(screen.getByTestId('icon-left')).toBeInTheDocument();
     expect(screen.getByTestId('icon-right')).toBeInTheDocument();
@@ -68,7 +72,7 @@ describe('Button', () => {
         const { unmount } = render(
           <Button variant={variant} size={size} fullWidth>
             {variant}-{size}
-          </Button>
+          </Button>,
         );
         expect(screen.getByRole('button', { name: `${variant}-${size}` })).toBeInTheDocument();
         unmount();

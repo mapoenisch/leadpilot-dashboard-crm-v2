@@ -15,7 +15,7 @@ describe('StatusChip', () => {
     for (const variant of variants) {
       for (const size of sizes) {
         const { unmount } = render(
-          <StatusChip variant={variant} size={size} label={`${variant}-${size}`} />
+          <StatusChip variant={variant} size={size} label={`${variant}-${size}`} />,
         );
         expect(screen.getByText(`${variant}-${size}`)).toBeInTheDocument();
         unmount();
@@ -25,7 +25,7 @@ describe('StatusChip', () => {
 
   it('renders with custom icon or pulse dot', () => {
     const { rerender } = render(
-      <StatusChip label="Mit Icon" icon={<span data-testid="chip-icon">★</span>} />
+      <StatusChip label="Mit Icon" icon={<span data-testid="chip-icon">★</span>} />,
     );
     expect(screen.getByTestId('chip-icon')).toBeInTheDocument();
 

@@ -29,7 +29,7 @@ describe('LiveActivityFeed', () => {
 
     render(<LiveActivityFeed />);
     expect(
-      screen.getByText('Supabase nicht konfiguriert – keine Live-Aktivitäten.')
+      screen.getByText('Supabase nicht konfiguriert – keine Live-Aktivitäten.'),
     ).toBeInTheDocument();
   });
 
@@ -40,9 +40,7 @@ describe('LiveActivityFeed', () => {
     });
 
     render(<LiveActivityFeed />);
-    expect(
-      screen.getByText('Warte auf Live-Feed (Offline)...')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Warte auf Live-Feed (Offline)...')).toBeInTheDocument();
   });
 
   it('renders error status message', () => {
@@ -53,7 +51,7 @@ describe('LiveActivityFeed', () => {
 
     render(<LiveActivityFeed />);
     expect(
-      screen.getByText('Verbindungsfehler – Live-Aktivitäten nicht erreichbar.')
+      screen.getByText('Verbindungsfehler – Live-Aktivitäten nicht erreichbar.'),
     ).toBeInTheDocument();
   });
 
@@ -64,9 +62,7 @@ describe('LiveActivityFeed', () => {
     });
 
     render(<LiveActivityFeed />);
-    expect(
-      screen.getByText('Noch keine bestätigten Live-Aktivitäten.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Noch keine bestätigten Live-Aktivitäten.')).toBeInTheDocument();
   });
 
   it('renders event items with formatted values', () => {

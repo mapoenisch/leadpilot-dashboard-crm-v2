@@ -7,7 +7,7 @@ describe('Toolbar', () => {
     render(
       <Toolbar ariaLabel="Tabellen-Aktionen">
         <button type="button">Filter</button>
-      </Toolbar>
+      </Toolbar>,
     );
 
     expect(screen.getByRole('toolbar', { name: 'Tabellen-Aktionen' })).toBeInTheDocument();
@@ -23,7 +23,7 @@ describe('Toolbar', () => {
         const { unmount } = render(
           <Toolbar align={align} gap={gap}>
             <span>Item</span>
-          </Toolbar>
+          </Toolbar>,
         );
         expect(screen.getByRole('toolbar')).toBeInTheDocument();
         unmount();

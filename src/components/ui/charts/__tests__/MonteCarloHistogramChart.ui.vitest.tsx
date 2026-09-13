@@ -5,12 +5,7 @@ import { MonteCarloHistogramChart, HistogramBucket } from '../MonteCarloHistogra
 describe('MonteCarloHistogramChart', () => {
   it('renders empty state when total runs is below required threshold', () => {
     render(
-      <MonteCarloHistogramChart
-        buckets={[]}
-        totalRuns={1}
-        minRequiredRuns={3}
-        median={100}
-      />
+      <MonteCarloHistogramChart buckets={[]} totalRuns={1} minRequiredRuns={3} median={100} />,
     );
 
     expect(screen.getByText('Monte-Carlo Verteilung im Aufbau')).toBeInTheDocument();
@@ -33,7 +28,7 @@ describe('MonteCarloHistogramChart', () => {
         p10={90}
         p90={130}
         unit="k €"
-      />
+      />,
     );
 
     expect(screen.getByText(/108 k €/)).toBeInTheDocument();

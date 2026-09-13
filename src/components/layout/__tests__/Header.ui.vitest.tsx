@@ -20,7 +20,7 @@ describe('Header', () => {
         isMobile={true}
         isMobileMenuOpen={false}
         onToggleMobileMenu={handleToggle}
-      />
+      />,
     );
 
     const menuBtn = screen.getByRole('button', { name: 'Hauptmenü umschalten' });
@@ -34,11 +34,7 @@ describe('Header', () => {
     const user = userEvent.setup();
     const handleToggleTheme = vi.fn();
     const { rerender } = render(
-      <Header
-        currentViewTitle="Dashboard"
-        theme="dark"
-        onToggleTheme={handleToggleTheme}
-      />
+      <Header currentViewTitle="Dashboard" theme="dark" onToggleTheme={handleToggleTheme} />,
     );
 
     const themeBtn = screen.getByRole('button', { name: 'Zum hellen Design wechseln' });
@@ -48,15 +44,11 @@ describe('Header', () => {
     expect(handleToggleTheme).toHaveBeenCalledTimes(1);
 
     rerender(
-      <Header
-        currentViewTitle="Dashboard"
-        theme="light"
-        onToggleTheme={handleToggleTheme}
-      />
+      <Header currentViewTitle="Dashboard" theme="light" onToggleTheme={handleToggleTheme} />,
     );
     expect(screen.getByRole('button', { name: 'Zum dunklen Design wechseln' })).toHaveAttribute(
       'aria-pressed',
-      'true'
+      'true',
     );
   });
 });

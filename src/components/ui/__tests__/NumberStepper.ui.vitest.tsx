@@ -13,7 +13,7 @@ describe('NumberStepper', () => {
         onChange={() => {}}
         unit="EUR"
         helperText="Monatlich"
-      />
+      />,
     );
 
     expect(screen.getByText('Budget')).toBeInTheDocument();
@@ -53,9 +53,7 @@ describe('NumberStepper', () => {
   });
 
   it('disables buttons at min and max limits', () => {
-    const { rerender } = render(
-      <NumberStepper value={0} min={0} max={10} onChange={() => {}} />
-    );
+    const { rerender } = render(<NumberStepper value={0} min={0} max={10} onChange={() => {}} />);
 
     expect(screen.getByRole('button', { name: 'Wert verringern' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Wert erhöhen' })).not.toBeDisabled();
@@ -67,9 +65,7 @@ describe('NumberStepper', () => {
 
   it('handles manual typing and blur clamping', () => {
     const handleChange = vi.fn();
-    render(
-      <NumberStepper value={5} min={0} max={10} onChange={handleChange} />
-    );
+    render(<NumberStepper value={5} min={0} max={10} onChange={handleChange} />);
 
     const input = screen.getByRole('spinbutton');
     fireEvent.change(input, { target: { value: '99' } });

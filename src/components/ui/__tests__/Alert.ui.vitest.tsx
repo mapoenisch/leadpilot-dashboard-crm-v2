@@ -20,7 +20,7 @@ describe('Alert', () => {
       render(
         <Alert variant={variant} title={`${variant} title`}>
           Message for {variant}
-        </Alert>
+        </Alert>,
       );
       expect(screen.getByText(`${variant} title`)).toBeInTheDocument();
     }

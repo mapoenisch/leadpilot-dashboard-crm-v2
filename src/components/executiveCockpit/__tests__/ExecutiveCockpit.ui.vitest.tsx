@@ -38,9 +38,7 @@ describe('ExecutiveCockpit', () => {
 
   it('renders custom liveKpiCard when passed as prop', () => {
     render(
-      <ExecutiveCockpit
-        liveKpiCard={<div data-testid="custom-live-card">Custom Live KPI</div>}
-      />
+      <ExecutiveCockpit liveKpiCard={<div data-testid="custom-live-card">Custom Live KPI</div>} />,
     );
 
     expect(screen.getByTestId('custom-live-card')).toBeInTheDocument();

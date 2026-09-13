@@ -22,7 +22,7 @@ describe('Card', () => {
         const { unmount } = render(
           <Card variant={variant} padding={padding} style={{ opacity: 0.9 }} className="test-card">
             {variant}-{padding}
-          </Card>
+          </Card>,
         );
         expect(screen.getByText(`${variant}-${padding}`)).toBeInTheDocument();
         unmount();

@@ -87,7 +87,7 @@ describe('LiveKpiCard', () => {
         title="Annual Recurring Revenue"
         description="Jährlich wiederkehrender Ertrag"
         fallbackUnit="€"
-      />
+      />,
     );
 
     expect(screen.getByText('Annual Recurring Revenue')).toBeInTheDocument();

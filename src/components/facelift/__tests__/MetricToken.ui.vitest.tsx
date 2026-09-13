@@ -18,7 +18,7 @@ describe('MetricToken', () => {
         value={120}
         delta={{ value: '15%', isPositive: true, label: 'vs. Vormonat' }}
         subtext="Letzte 30 Tage"
-      />
+      />,
     );
 
     expect(screen.getByText('+15% vs. Vormonat')).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe('MetricToken', () => {
             tone={tone}
             size={size}
             glyph={<span data-testid="glyph">★</span>}
-          />
+          />,
         );
         expect(screen.getByText('Test')).toBeInTheDocument();
         expect(screen.getByTestId('glyph')).toBeInTheDocument();

@@ -10,7 +10,9 @@ describe('SimulationBar', () => {
 
     expect(screen.getByRole('region', { name: 'Simulation Command Strip' })).toBeInTheDocument();
     expect(screen.getByText('SIMULATION PAUSIERT')).toBeInTheDocument();
-    expect(screen.getByRole('radiogroup', { name: 'Simulationsgeschwindigkeit' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('radiogroup', { name: 'Simulationsgeschwindigkeit' }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Tick #/i)).toBeInTheDocument();
     expect(screen.getByText(/ARR:/i)).toBeInTheDocument();
   });

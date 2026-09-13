@@ -18,7 +18,7 @@ describe('Select', () => {
         value=""
         onChange={() => {}}
         placeholder="Bitte Branche wählen"
-      />
+      />,
     );
 
     expect(screen.getByText('Branche')).toBeInTheDocument();
@@ -26,13 +26,7 @@ describe('Select', () => {
   });
 
   it('renders selected option label', () => {
-    render(
-      <Select
-        options={sampleOptions}
-        value="opt2"
-        onChange={() => {}}
-      />
-    );
+    render(<Select options={sampleOptions} value="opt2" onChange={() => {}} />);
 
     expect(screen.getByRole('combobox')).toHaveTextContent('Option 2');
   });
@@ -40,13 +34,7 @@ describe('Select', () => {
   it('opens listbox on click and allows selecting an option', async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
-    render(
-      <Select
-        options={sampleOptions}
-        value="opt1"
-        onChange={handleChange}
-      />
-    );
+    render(<Select options={sampleOptions} value="opt1" onChange={handleChange} />);
 
     const trigger = screen.getByRole('combobox');
     await user.click(trigger);
@@ -60,13 +48,7 @@ describe('Select', () => {
 
   it('supports keyboard navigation (ArrowDown, Enter, Escape)', () => {
     const handleChange = vi.fn();
-    render(
-      <Select
-        options={sampleOptions}
-        value="opt1"
-        onChange={handleChange}
-      />
-    );
+    render(<Select options={sampleOptions} value="opt1" onChange={handleChange} />);
 
     const trigger = screen.getByRole('combobox');
     // Open with ArrowDown
@@ -86,7 +68,7 @@ describe('Select', () => {
       <div>
         <span data-testid="outside">Außen</span>
         <Select options={sampleOptions} value="opt1" onChange={() => {}} />
-      </div>
+      </div>,
     );
 
     const trigger = screen.getByRole('combobox');
@@ -105,7 +87,7 @@ describe('Select', () => {
         disabled
         error="Fehlerhafte Auswahl"
         onChange={() => {}}
-      />
+      />,
     );
 
     expect(screen.getByRole('combobox')).toBeDisabled();

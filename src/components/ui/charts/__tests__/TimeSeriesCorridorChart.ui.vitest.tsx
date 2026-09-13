@@ -23,12 +23,10 @@ describe('TimeSeriesCorridorChart', () => {
         targetValue={220}
         showCorridor={true}
         showTarget={true}
-      />
+      />,
     );
 
-    expect(
-      screen.getByRole('img', { name: /Zeitreihen-Verlauf/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /Zeitreihen-Verlauf/i })).toBeInTheDocument();
     expect(screen.getByText('#1')).toBeInTheDocument();
     expect(screen.getByText('#2')).toBeInTheDocument();
     expect(screen.getByText('#3')).toBeInTheDocument();

@@ -11,7 +11,7 @@ describe('DiagramCanvas', () => {
         viewBox="0 0 400 200"
       >
         <circle cx="200" cy="100" r="50" data-testid="test-circle" />
-      </DiagramCanvas>
+      </DiagramCanvas>,
     );
 
     expect(screen.getByRole('heading', { name: 'Marktanteile DACH' })).toBeInTheDocument();
@@ -34,14 +34,14 @@ describe('DiagramCanvas', () => {
         aspectRatio="16/9"
       >
         <rect width="100" height="100" />
-      </DiagramCanvas>
+      </DiagramCanvas>,
     );
 
     expect(screen.getByTestId('test-legend')).toBeInTheDocument();
     expect(screen.getByTestId('test-summary')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Destatis' })).toHaveAttribute(
       'href',
-      'https://destatis.de'
+      'https://destatis.de',
     );
     expect(screen.getByText('(BIP 2025)')).toBeInTheDocument();
   });

@@ -9,7 +9,7 @@ describe('SimpleChart', () => {
     expect(c1).toBeEmptyDOMElement();
 
     const { container: c2 } = render(
-      <SimpleChart config={{ type: 'bar', labels: [], datasets: [] }} />
+      <SimpleChart config={{ type: 'bar', labels: [], datasets: [] }} />,
     );
     expect(c2).toBeEmptyDOMElement();
   });

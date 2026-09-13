@@ -9,7 +9,7 @@ describe('Sidebar', () => {
     render(
       <MemoryRouter initialEntries={['/dashboard']}>
         <Sidebar isMobile={false} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText(/Enterprise/i)).toBeInTheDocument();
@@ -22,7 +22,7 @@ describe('Sidebar', () => {
     render(
       <MemoryRouter initialEntries={['/dashboard']}>
         <Sidebar isMobile={false} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const uebersichtBtn = screen.getByRole('button', { name: /Übersicht/i });
@@ -36,7 +36,7 @@ describe('Sidebar', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/dashboard']}>
         <Sidebar isMobile={true} isMobileDrawerOpen={false} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(container).toBeEmptyDOMElement();
@@ -48,12 +48,8 @@ describe('Sidebar', () => {
 
     render(
       <MemoryRouter initialEntries={['/dashboard']}>
-        <Sidebar
-          isMobile={true}
-          isMobileDrawerOpen={true}
-          onCloseMobileDrawer={handleClose}
-        />
-      </MemoryRouter>
+        <Sidebar isMobile={true} isMobileDrawerOpen={true} onCloseMobileDrawer={handleClose} />
+      </MemoryRouter>,
     );
 
     expect(screen.getByRole('dialog', { name: 'Hauptnavigation' })).toBeInTheDocument();

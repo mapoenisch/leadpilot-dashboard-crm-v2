@@ -12,7 +12,7 @@ describe('Layout', () => {
         <AuthProvider>
           <Layout />
         </AuthProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByRole('main', { name: 'Hauptinhalt' })).toBeInTheDocument();
@@ -27,7 +27,7 @@ describe('Layout', () => {
         <AuthProvider>
           <Layout />
         </AuthProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const logoutBtn = screen.getByTestId('logout-button');
@@ -40,7 +40,7 @@ describe('Layout', () => {
         <AuthProvider>
           <Layout />
         </AuthProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     act(() => {

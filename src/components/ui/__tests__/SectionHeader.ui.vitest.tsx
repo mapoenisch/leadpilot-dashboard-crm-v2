@@ -15,7 +15,7 @@ describe('SectionHeader', () => {
         title="GuV Übersicht"
         description="Alle Daten zu Erlösen und Kosten"
         actions={<button type="button">Exportieren</button>}
-      />
+      />,
     );
 
     expect(screen.getByText('Finanzen')).toBeInTheDocument();

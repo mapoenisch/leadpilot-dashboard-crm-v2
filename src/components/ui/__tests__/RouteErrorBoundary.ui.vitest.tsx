@@ -15,7 +15,7 @@ describe('RouteErrorBoundary', () => {
     render(
       <RouteErrorBoundary>
         <ProblemChild shouldThrow={false} />
-      </RouteErrorBoundary>
+      </RouteErrorBoundary>,
     );
 
     expect(screen.getByText('Alles in Ordnung')).toBeInTheDocument();
@@ -28,7 +28,7 @@ describe('RouteErrorBoundary', () => {
     render(
       <RouteErrorBoundary>
         <ProblemChild shouldThrow={true} />
-      </RouteErrorBoundary>
+      </RouteErrorBoundary>,
     );
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -47,7 +47,7 @@ describe('RouteErrorBoundary', () => {
     const { rerender } = render(
       <RouteErrorBoundary resetKey="key1">
         <ProblemChild shouldThrow={true} />
-      </RouteErrorBoundary>
+      </RouteErrorBoundary>,
     );
 
     expect(screen.getByText('Fehler beim Laden der Seite')).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe('RouteErrorBoundary', () => {
     rerender(
       <RouteErrorBoundary resetKey="key1">
         <ProblemChild shouldThrow={false} />
-      </RouteErrorBoundary>
+      </RouteErrorBoundary>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Erneut versuchen' }));

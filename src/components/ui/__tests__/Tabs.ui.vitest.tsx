@@ -12,17 +12,18 @@ const sampleTabs: TabItem[] = [
 describe('Tabs', () => {
   it('renders tablist and tabs with counts', () => {
     render(
-      <Tabs
-        items={sampleTabs}
-        activeId="tab-1"
-        onChange={() => {}}
-        ariaLabel="Hauptnavigation"
-      />
+      <Tabs items={sampleTabs} activeId="tab-1" onChange={() => {}} ariaLabel="Hauptnavigation" />,
     );
 
     expect(screen.getByRole('tablist', { name: 'Hauptnavigation' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Übersicht/i })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: /Aktivitäten/i })).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('tab', { name: /Übersicht/i })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByRole('tab', { name: /Aktivitäten/i })).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
     expect(screen.getByText('5')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
   });
@@ -30,13 +31,7 @@ describe('Tabs', () => {
   it('triggers onChange when clicking another tab', async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
-    render(
-      <Tabs
-        items={sampleTabs}
-        activeId="tab-1"
-        onChange={handleChange}
-      />
-    );
+    render(<Tabs items={sampleTabs} activeId="tab-1" onChange={handleChange} />);
 
     const tab2 = screen.getByRole('tab', { name: /Aktivitäten/i });
     await user.click(tab2);
@@ -45,13 +40,7 @@ describe('Tabs', () => {
 
   it('supports keyboard navigation (ArrowRight, ArrowLeft, Home, End)', () => {
     const handleChange = vi.fn();
-    render(
-      <Tabs
-        items={sampleTabs}
-        activeId="tab-1"
-        onChange={handleChange}
-      />
-    );
+    render(<Tabs items={sampleTabs} activeId="tab-1" onChange={handleChange} />);
 
     const tab1 = screen.getByRole('tab', { name: /Übersicht/i });
 

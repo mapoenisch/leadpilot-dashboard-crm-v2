@@ -11,7 +11,7 @@ describe('Checkbox', () => {
         onChange={() => {}}
         label="AGB akzeptieren"
         description="Bitte durchlesen"
-      />
+      />,
     );
     expect(screen.getByText('AGB akzeptieren')).toBeInTheDocument();
     expect(screen.getByText('Bitte durchlesen')).toBeInTheDocument();
@@ -21,12 +21,7 @@ describe('Checkbox', () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
     render(
-      <Checkbox
-        checked={false}
-        onChange={handleChange}
-        label="Option 1"
-        data-testid="chk-1"
-      />
+      <Checkbox checked={false} onChange={handleChange} label="Option 1" data-testid="chk-1" />,
     );
 
     const checkbox = screen.getByTestId('chk-1');
@@ -46,7 +41,7 @@ describe('Checkbox', () => {
         label="Disabled"
         disabled
         data-testid="chk-disabled"
-      />
+      />,
     );
 
     const checkbox = screen.getByTestId('chk-disabled');
@@ -63,7 +58,7 @@ describe('Checkbox', () => {
         onChange={() => {}}
         label="Focused Checkbox"
         data-testid="chk-focus"
-      />
+      />,
     );
 
     const checkbox = screen.getByTestId('chk-focus');

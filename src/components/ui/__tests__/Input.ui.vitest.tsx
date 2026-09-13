@@ -46,7 +46,7 @@ describe('Input', () => {
         sizeVariant="sm"
         onFocus={handleFocus}
         onBlur={handleBlur}
-      />
+      />,
     );
 
     expect(screen.getByTestId('search-icon')).toBeInTheDocument();

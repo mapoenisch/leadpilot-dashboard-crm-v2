@@ -37,7 +37,7 @@ describe('MultiScenarioComparisonChart', () => {
     render(<MultiScenarioComparisonChart series={series} unit="k €" />);
 
     expect(
-      screen.getByRole('img', { name: /Multi-Szenario Trajektorienvergleich/i })
+      screen.getByRole('img', { name: /Multi-Szenario Trajektorienvergleich/i }),
     ).toBeInTheDocument();
     expect(screen.getByText('Ist-Zustand (Referenz)')).toBeInTheDocument();
     expect(screen.getByText('Wachstumsinitiative')).toBeInTheDocument();

@@ -19,9 +19,7 @@ describe('AnimatedKpiValue', () => {
   });
 
   it('renders with shouldAnimate enabled and updates value', () => {
-    const { rerender } = render(
-      <AnimatedKpiValue value={100} unit="€" shouldAnimate={true} />
-    );
+    const { rerender } = render(<AnimatedKpiValue value={100} unit="€" shouldAnimate={true} />);
     expect(screen.getByText('100 €')).toBeInTheDocument();
 
     rerender(<AnimatedKpiValue value={150} unit="€" shouldAnimate={true} />);

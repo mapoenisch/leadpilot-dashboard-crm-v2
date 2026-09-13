@@ -15,7 +15,7 @@ describe('NavItem', () => {
         badge={<span data-testid="nav-badge">3</span>}
         onClick={handleClick}
         dataTestId="nav-item-btn"
-      />
+      />,
     );
 
     const item = screen.getByTestId('nav-item-btn');
@@ -37,13 +37,8 @@ describe('NavItem', () => {
   it('renders NavLink when to prop is provided', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
-        <NavItem
-          to="/crm/leads"
-          label="Leads"
-          dataTestId="nav-link-leads"
-          active={true}
-        />
-      </MemoryRouter>
+        <NavItem to="/crm/leads" label="Leads" dataTestId="nav-link-leads" active={true} />
+      </MemoryRouter>,
     );
 
     const link = screen.getByTestId('nav-link-leads');

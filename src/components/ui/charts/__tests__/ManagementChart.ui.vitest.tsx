@@ -10,7 +10,7 @@ describe('ManagementChart', () => {
         xKey="period"
         series={[{ key: 'val', name: 'Wert' }]}
         emptyMessage="Keine Finanzdaten vorhanden"
-      />
+      />,
     );
 
     expect(screen.getByText('Keine Finanzdaten vorhanden')).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe('ManagementChart', () => {
         type="area"
         height={250}
         sourceLabel="Ebene A"
-      />
+      />,
     );
 
     expect(screen.getByText('Q1')).toBeInTheDocument();
@@ -47,12 +47,12 @@ describe('ManagementChart', () => {
     const series = [{ key: 'deals', name: 'Deals', color: '#7CEFE6' }];
 
     const { container: barContainer } = render(
-      <ManagementChart data={data} xKey="period" series={series} type="bar" />
+      <ManagementChart data={data} xKey="period" series={series} type="bar" />,
     );
     expect(barContainer.querySelector('.recharts-responsive-container')).toBeInTheDocument();
 
     const { container: lineContainer } = render(
-      <ManagementChart data={data} xKey="period" series={series} type="line" />
+      <ManagementChart data={data} xKey="period" series={series} type="line" />,
     );
     expect(lineContainer.querySelector('.recharts-responsive-container')).toBeInTheDocument();
   });

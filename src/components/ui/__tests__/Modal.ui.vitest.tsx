@@ -8,7 +8,7 @@ describe('Modal', () => {
     const { container } = render(
       <Modal open={false} onClose={() => {}} title="Test Modal">
         Inhalt
-      </Modal>
+      </Modal>,
     );
     expect(container).toBeEmptyDOMElement();
   });
@@ -22,7 +22,7 @@ describe('Modal', () => {
         footer={<button type="button">Speichern</button>}
       >
         <p>Modal Body Content</p>
-      </Modal>
+      </Modal>,
     );
 
     expect(screen.getByRole('dialog', { name: 'Details bearbeiten' })).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe('Modal', () => {
     render(
       <Modal open={true} onClose={handleClose} title="Schließen Test">
         Inhalt
-      </Modal>
+      </Modal>,
     );
 
     const buttons = screen.getAllByRole('button', { name: 'Dialog schließen' });
@@ -50,7 +50,7 @@ describe('Modal', () => {
     render(
       <Modal open={true} onClose={handleClose} title="Escape Test">
         Inhalt
-      </Modal>
+      </Modal>,
     );
 
     fireEvent.keyDown(window, { key: 'Escape' });
@@ -62,7 +62,7 @@ describe('Modal', () => {
     render(
       <Modal open={true} onClose={handleClose} title="Overlay Test">
         <span data-testid="modal-inner">Inner</span>
-      </Modal>
+      </Modal>,
     );
 
     fireEvent.click(screen.getByTestId('modal-inner'));

@@ -31,7 +31,7 @@ describe('StreamingAreaChart', () => {
 
     render(<StreamingAreaChart />);
     expect(
-      screen.getAllByText('Supabase nicht konfiguriert – keine Live-ARR-Historie verfügbar.')[0]
+      screen.getAllByText('Supabase nicht konfiguriert – keine Live-ARR-Historie verfügbar.')[0],
     ).toBeInTheDocument();
   });
 
@@ -44,7 +44,7 @@ describe('StreamingAreaChart', () => {
 
     render(<StreamingAreaChart />);
     expect(
-      screen.getAllByText('Warte auf Live-Feed (Offline) – keine aktuellen Ereignisse.')[0]
+      screen.getAllByText('Warte auf Live-Feed (Offline) – keine aktuellen Ereignisse.')[0],
     ).toBeInTheDocument();
   });
 
@@ -57,7 +57,7 @@ describe('StreamingAreaChart', () => {
 
     render(<StreamingAreaChart />);
     expect(
-      screen.getAllByText(/Verbindungsfehler beim Abruf der Historie: Netzwerkabbruch/)[0]
+      screen.getAllByText(/Verbindungsfehler beim Abruf der Historie: Netzwerkabbruch/)[0],
     ).toBeInTheDocument();
   });
 
@@ -70,7 +70,7 @@ describe('StreamingAreaChart', () => {
 
     render(<StreamingAreaChart />);
     expect(
-      screen.getAllByText('Noch keine ARR-Ereignisse im 30-Minuten-Fenster erfasst.')[0]
+      screen.getAllByText('Noch keine ARR-Ereignisse im 30-Minuten-Fenster erfasst.')[0],
     ).toBeInTheDocument();
   });
 
