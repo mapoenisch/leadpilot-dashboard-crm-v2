@@ -2,6 +2,30 @@
 
 ---
 
+## 2026-09-13 — Gate G42 / Auftrag 060: Review — Freigabe mit Hinweisen (3 Befunde, kein Blocker)
+
+**Rolle:** Prüfer (Claude Code) · **Branch:** `codex/v2.2.0-haertung`
+**Geprüfter Stand:** `2ac3b17` (Builder: Antigravity) · **Status:** FREIGEGEBEN, 3 kleinere Hinweise für künftige Aufträge vermerkt (kein Blocker)
+
+Unabhängig in isoliertem Worktree (`2ac3b17`) verifiziert, nicht nur nachgelesen:
+
+- **Schutzzonen-Diff** (inkl. `supabase/**`, das dieser Auftrag laut Entscheidung 6 nicht anfassen sollte): leer, selbst nachgerechnet.
+- **Geänderte Dateien** (18 Dateien): deckt sich exakt mit der „Erlaubte Dateien"-Tabelle. Keine neue Abhängigkeit.
+- **`tsc --noEmit`:** 535 Fehler (Verbesserung ggü. 536). **`eslint`:** 4/3 (unverändert). **`verify`:** 24/24. **`test`:** 140/140. **`build`:** grün. **`size-limit`:** 135,71 KB / 180 KB und 86,39 KB / 250 KB — beide bestätigt.
+- **`npx playwright test` eigenständig gefahren:** 165/165 grün (153 bestehende + 12 neue `auth.spec.ts`-Tests über alle 3 Viewport-Projekte). Die bestehenden `visual.spec.ts`-Snapshots (0 Toleranz) blieben unverändert grün — bestätigt unabhängig, dass die neue Login-/ProtectedRoute-/Logout-Verdrahtung keine bestehende Pixelfläche verändert hat.
+- **Code gelesen, nicht nur den Bericht:** `authAdapter.ts` (minimaler `User`-Typ ohne `role`-Feld, exakt wie mit Marc abgestimmt), `localAuthAdapter.ts`, `AuthContext.tsx`, `ProtectedRoute.tsx`, `App.tsx`-Routing-Wiring, `LoginPage.tsx`, `global-setup.ts`, `auth.spec.ts` — Struktur entspricht dem Auftrag: `/login` einzige ungeschützte Route, alle 41 Routen + `/design-system` + 404 hinter `ProtectedRoute`, sichtbarer Demo-Hinweis auf der Login-Seite, Playwright-`storageState` funktioniert wie vorgesehen.
+- **Login-Screenshots eigenständig nachgerechnet:** SHA-256 aller 3 Dateien deckt sich mit der README-Matrix, Bildgrößen (1440×900, 768×1024, 375×812) korrekt.
+
+**3 Befunde (alle kein Blocker):**
+
+1. **Faktische Ungenauigkeit im BUILD_LOG-Bericht:** Zeile 38 behauptet, `AuthAdapter` definiere den Kontrakt „`login`, `logout`, `getSession`, `subscribeSession`". Ein `subscribeSession` existiert **nirgends** im Code (`grep -rn "subscribeSession" src/` liefert 0 Treffer) — das tatsächliche Interface hat nur `login`/`logout`/`getSession`. Die Cross-Tab-Synchronisation läuft über einen einfachen `window.addEventListener('storage', ...)` direkt in `AuthContext.tsx`, nicht über eine Adapter-Methode. Ändert nichts an der Funktionsfähigkeit, sollte aber im Bericht korrigiert werden, damit eine künftige `SupabaseAuthAdapter`-Implementierung nicht von einer nicht existierenden Vertragsmethode ausgeht.
+2. **Logout-Button ist standardmäßig unsichtbar** (`opacity-0`, nur bei `:hover`/`:focus` sichtbar, `Layout.tsx`) — eine bewusste, im Review nachvollzogene und funktionierende Lösung, um die 15 pixelidentischen `visual.spec.ts`-Snapshots nicht zu verändern (unabhängig bestätigt: 0 Diff). Auf Touch-Geräten (Tablet/Mobile, die diese App laut Screenshot-Methodik explizit abdeckt) gibt es aber keinen Hover-Zustand — der Button ist technisch weiterhin antippbar, aber ohne Fokus-Navigation praktisch nicht auffindbar. Empfehlung für einen künftigen kleinen Auftrag: eine touch-sichtbare Logout-Affordance (z. B. per Media-Query oder dauerhaft sichtbares kleines Icon) ergänzen, ohne die bestehenden Snapshots zu brechen.
+3. **Demo-Credentials als Literal dupliziert** (`demo@leadpilot.io`/`demo`) in `localAuthAdapter.ts`, `LoginPage.tsx`, `global-setup.ts` und `auth.spec.ts` statt aus einer gemeinsamen Quelle. Kein Risiko, solange niemand die Env-Variablen lokal überschreibt (dann würden Playwright-Setup/Tests weiter die Default-Werte statt der überschriebenen erwarten) — für einen künftigen Auftrag als Aufräum-Punkt vermerkt.
+
+**Freigabe erteilt.** Kein Merge/Tag/Push ohne Marcs ausdrückliche Freigabe (unverändert). Nächstes Gate laut Build-Plan: G43 (V2.2.0-Release-Audit, Nachweis aller 23 Definition-of-Done-Kennzahlen).
+
+---
+
 ## 2026-09-13 — Gate G42 / Auftrag 060: Authentifizierungs-Schicht (app-seitig) (Abschluss)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
