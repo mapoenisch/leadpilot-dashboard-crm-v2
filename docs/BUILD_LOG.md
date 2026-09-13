@@ -2,6 +2,52 @@
 
 ---
 
+## 2026-09-13 — Gate G43 / Auftrag 064: Review — Freigabe (2 kleinere Hinweise, kein Blocker) — Coverage-Trilogie (062–064) abgeschlossen
+
+**Rolle:** Prüfer (Claude Code) · **Baseline:** `3d71021` · **Geprüfter Head:** `a4914c8` · **Branch:** `codex/v2.2.0-haertung`
+
+Unabhängig in isoliertem Worktree (`/tmp/review-auftrag-064`, `git worktree add … a4914c8`)
+nachgerechnet: `tsc` 0 Fehler, `eslint` 4 Fehler/0 Warnungen (unverändert), 0 `any`-Typen, `npm run
+verify` 24/24, `npm test` **97 Dateien/372 Tests** (exakt wie berichtet), `npm run build` grün,
+`size-limit` 135.87/86.39 KB (unverändert im Budget — `fake-indexeddb` bestätigt ohne
+Bundle-Impact), `npm run format:check` **exakt 85 Abweichungen** (gesunken von 123, Block-A-Nachweis
+bestätigt), `npx playwright test` 165/165 grün. Coverage-Zahl eigenständig aus
+`coverage/coverage-summary.json` nachgerechnet: **914/950 Statements = 96.21 %** für
+`src/services/**`+`src/hooks/**`, exakt deckungsgleich mit dem Bericht. `verifyV22ReleaseReadiness.ts`
+bestätigt unabhängig Bilanz **18 Erfüllt · 1 Dokumentierte Ausnahme · 4 Offen** (#1/#13, #21, #22
+verbleiben — alle drei Marcs Grundsatzentscheidungen, keine Testlücken mehr). Schutzbereichs-Diff
+(`src/simulation`, `src/types`, `src/context`, `src/features/resources`) ist **leer**;
+`git diff -- src/services/data` zeigt **ausschließlich 6 neue `__tests__`-Dateien**, keine
+Quelländerung. `fake-indexeddb` steht **ausschließlich** in `devDependencies` (per
+`package.json`-Parse verifiziert). Die einzige nicht-Test-Quelländerung ist exakt wie berichtet:
+`export` vor `parseCsv` in `crmImporter.ts` ergänzt — `crmRepository.ts` und
+`indexedDbSnapshotRepository.ts` blieben, entgegen dem im Auftrag erlaubten Spielraum, komplett
+unverändert.
+
+**2 kleinere, nicht-blockierende Hinweise:**
+
+1. Die im Bericht genannten Vorher/Nachher-Statement-Zahlen („628/884" → „863/897") stimmen nicht
+   mit meiner unabhängigen Vollmessung überein (675/950 → 914/950) — beide runden zufällig auf
+   dieselben Prozentwerte (71,05 % bzw. 96,21 %), stammen aber offenbar aus einer anderen
+   Teilmenge/einem anderen Lauf als dem vollständigen `npx vitest run --coverage`. Ändert nichts
+   am Ergebnis, nur ein Genauigkeitshinweis für künftige Berichte: nach Möglichkeit die Zahlen aus
+   demselben Voll-Lauf zitieren, der auch für die Freigabe-Behauptung verwendet wird.
+2. Der neue Test `simulatedCrmSource.vitest.ts` (Zeilen 74–82) prüft explizit und bestätigt genau
+   das im Auftrag-062-Review dokumentierte Verhalten (`channel` hart `'simulated'`, `status` hart
+   `'completed'`, `companyId` bei Contact-Aktivitäten leer) — die damalige Empfehlung (Company-Bezug
+   für Contact/Deal-Aktivitäten per Lookup korrekt auflösen) bleibt unverändert gültig, ist jetzt
+   aber formal als „erwartetes" Verhalten festgeschrieben. Kein neuer Befund, nur die Erinnerung:
+   sobald `CrmReadModel.activities` einmal einen echten Verbraucher bekommt, müsste dieser Test mit
+   angepasst werden.
+
+**Einordnung:** Mit diesem Auftrag ist die dreiteilige Test-Coverage-Serie (062 TypeScript, 063
+Components, 064 Services/Hooks) abgeschlossen. Von den 23 DoD-Kennzahlen sind jetzt 18 erfüllt, 1
+dokumentierte Ausnahme (#3), und nur noch 4 offen: #1/#13 (Komponenten > 400 Zeilen, Schutzbereich),
+#21 (`.git`-Größe) und #22 (CI/Push) — alle vier sind Grundsatzentscheidungen, die Marc treffen
+muss, keine weitere Testarbeit.
+
+---
+
 ## 2026-09-13 — Gate G43 / Auftrag 064: Service- & Hook-Coverage auf ≥ 90 % (Abschluss: 96.21 % erreicht)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
