@@ -1,7 +1,16 @@
 import { DataSource, CrmReadModel, DataSourceError } from '../../../types/dataSource';
 
+interface HubSpotBaselineContent {
+  sourceSystem?: string;
+  companies: CrmReadModel['companies'];
+  contacts: CrmReadModel['contacts'];
+  importedFunnelDeals: CrmReadModel['deals'];
+  activities?: CrmReadModel['activities'];
+  audit: CrmReadModel['audit'];
+}
+
 interface HubSpotBaselineModule {
-  default: CrmReadModel & { sourceSystem?: string };
+  default: HubSpotBaselineContent;
 }
 
 const FILES: Record<string, () => Promise<HubSpotBaselineModule>> = {

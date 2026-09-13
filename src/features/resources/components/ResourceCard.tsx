@@ -1,4 +1,3 @@
-import React from 'react';
 import { ResourceMetadata } from '../../../types/resource';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';

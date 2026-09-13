@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { ResourceMetadata } from "../../types/resource";
 import { ResourceRegistry } from "../../domain/resourceRegistry";
 import { SectionHeader } from "../../components/ui/SectionHeader";

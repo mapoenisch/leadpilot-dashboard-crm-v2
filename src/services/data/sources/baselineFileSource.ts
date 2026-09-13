@@ -1,6 +1,26 @@
-import { DataSource, CrmReadModel, DataSourceError } from '../../../types/dataSource';
+import { DataSource, CrmReadModel, HistoricalActivity, DataSourceError } from '../../../types/dataSource';
 
-const FILES: Record<string, () => Promise<{ default: CrmReadModel }>> = {
+interface BaselineFileJson {
+  version?: string;
+  companies: CrmReadModel['companies'];
+  contacts: CrmReadModel['contacts'];
+  importedFunnelDeals: CrmReadModel['deals'];
+  activities?: Array<{
+    id: string;
+    companyId: string;
+    contactId?: string;
+    dealId?: string;
+    type: string;
+    channel: string;
+    timestamp: string;
+    description: string;
+    performedBy: string;
+    status: string;
+  }>;
+  audit: CrmReadModel['audit'];
+}
+
+const FILES: Record<string, () => Promise<{ default: BaselineFileJson }>> = {
   '2026-08-31-v1': () => import('../baselines/baseline-2026-08-31-v1.json'),
   '2026-09-15-v2': () => import('../baselines/baseline-2026-09-15-v2.json'),
 };
@@ -24,7 +44,10 @@ export function makeBaselineFileSource(version: string): DataSource {
         companies: ds.companies,
         contacts: ds.contacts,
         deals: ds.importedFunnelDeals,
-        activities: ds.activities ?? [],
+        activities: (ds.activities ?? []).map((a) => ({
+          ...a,
+          type: a.type as HistoricalActivity['type'],
+        })),
         audit: ds.audit,
       };
     },
