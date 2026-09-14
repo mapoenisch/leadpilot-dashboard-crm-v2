@@ -2,6 +2,59 @@
 
 ---
 
+## 2026-09-14 — Gate G43: History-Rewrite abgeschlossen — Kennzahl #21 erfüllt, Gate-Audit vollständig (20/3/0)
+
+**Rolle:** Claude Code (direkte Repository-Operation, kein Antigravity-Auftrag — reine Git-Historie,
+kein App-Code) · **Branch:** `codex/v2.2.0-haertung` (`main` unangetastet)
+
+Letzte offene DoD-Kennzahl aus Gate G43. Umsetzung von Marcs Entscheidungen: (1) Screenshot-Belege
+künftig nicht mehr committen (Auftrag 066), (2) `main` beim Rewrite nicht anfassen (Hartes Verbot in
+`CLAUDE.md` §9), (3) Trockenlauf vor jeder Ausführung am echten Repo.
+
+### Ablauf
+
+1. **Trockenlauf** in Wegwerf-Klon (`/tmp/leadpilot-rewrite-test`, danach gelöscht):
+   `git filter-repo --force --invert-paths --path-glob 'docs/screenshots/**.png'` (+ `.jpg`,
+   `.jpeg`, `.webp`). Ergebnis: `.git` 77 MB → 44 MB, 12 `README.md`-Nachweismatrizen erhalten,
+   0 Bilddateien übrig, `main`-Vorfahre `181c8c6` hashidentisch, `tsc`/`verify`/`test`/`build`
+   alle grün im umgeschriebenen Klon.
+2. **Backup:** vollständige Kopie von `docs/screenshots/` (221 Dateien, 49 MB) nach
+   `~/Projekte/LeadPilot Dashboard-CRM-Screenshots-Archiv/screenshots` — lokal erhalten, nicht mehr
+   im Git-Verlauf.
+3. **Ausführung am echten Repo:** identischer `git filter-repo`-Befehl. Die destruktiven
+   Einzelschritte (`git filter-repo`, `git push --force-with-lease`) wurden von der
+   Sicherheits-Klassifizierung der Ausführungsumgebung blockiert und mussten von Marc manuell im
+   Terminal ausgeführt werden — Befehle wurden 1:1 aus dem verifizierten Trockenlauf übernommen.
+4. **Verifikation nach Ausführung:** `origin/codex/v2.2.0-haertung` zeigt jetzt `949a566`,
+   `origin/main` unverändert `181c8c6`. Fresh-Clone direkt von GitHub (`/tmp/leadpilot-fresh-check`,
+   danach gelöscht) bestätigt **44 MB** als echten Server-Zustand. Lokales Arbeitsverzeichnis zeigte
+   zwischenzeitlich 73 MB (Cruft aus einem `git fetch` **vor** Marcs Push, das noch die alten,
+   unbereinigten Objekte zog) — behoben mit `git reflog expire --expire=now --all && git gc
+   --prune=now --aggressive`, danach lokal ebenfalls **43 MB**.
+5. **CI erneut grün nach dem Rewrite:** GitHub Actions Run `34829623209` (`completed success`,
+   2m0s) für den neuen Commit-Hash `949a566` — bestätigt, dass der Rewrite die Pipeline nicht
+   beschädigt hat.
+
+### Ergebnis
+
+`npx tsx scripts/verifyV22ReleaseReadiness.ts`: Kennzahl #21 zeigt **43 MB ≤ 50 MB → ✅ ERFÜLLT**.
+
+**Bilanz: 20 Erfüllt · 3 Dokumentierte Ausnahmen (#1, #3, #13) · 0 Offene Entscheidungen.** Alle 23
+DoD-Kennzahlen aus `docs/BUILD_PLAN_V2.2.0.md` sind damit entweder erfüllt oder als bewusste,
+dokumentierte Ausnahme akzeptiert. `docs/releases/V2.2.0.md` entsprechend aktualisiert.
+
+**1 kleine, nicht sicherheitsrelevante Beobachtung:** Die Statuszeile am Ende von
+`verifyV22ReleaseReadiness.ts` ("Verbleibende Entscheidung Marc: .git-Größe (#21)") ist ein
+hartkodierter Text im Skript und wurde nicht mit aktualisiert — die eigentliche Kennzahl-Tabelle
+und Bilanz sind korrekt, nur diese eine Abschluss-Textzeile ist inhaltlich veraltet. Bei Gelegenheit
+zu korrigieren.
+
+**Was das nicht bedeutet:** Kein Merge nach `main`, kein Git-Tag, keine Release-Freigabe. Das ist
+weiterhin eine separate, bewusst nicht automatisierte Entscheidung Marcs — der G43-Audit selbst ist
+mit diesem Schritt inhaltlich vollständig abgearbeitet.
+
+---
+
 ## 2026-09-14 — Gate G43 / Auftrag 066: Review — Freigabe mit Hinweis (1 kleinerer Befund, kein Blocker) — #22 grün auf GitHub Actions
 
 **Rolle:** Prüfer (Claude Code) · **Baseline:** `383ca7c` · **Geprüfter Head:** `1320e86` · **Branch:** `codex/v2.2.0-haertung`
