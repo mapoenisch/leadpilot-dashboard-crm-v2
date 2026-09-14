@@ -531,7 +531,7 @@ async function runExternalSuite() {
       env: {
         ...process.env,
         VITE_SUPABASE_URL: supabaseUrl,
-        VITE_SUPABASE_ANON_KEY: supabaseAnonKey,
+        VITE_SUPABASE_PUBLISHABLE_KEY: supabaseAnonKey,
       },
       stdio: 'inherit',
     });

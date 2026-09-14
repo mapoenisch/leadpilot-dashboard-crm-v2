@@ -161,7 +161,7 @@ Der Runner prüft in zwei Phasen:
   - High-Frequency Zweier-Burst mit identischem `occurred_at` (deterministischer Tie-Break nach `ingested_at DESC` auf 5.30).
   - Client-Snapshot-Kompatibilität für `useLiveKpi`.
 - **Phase 2 (Browser-E2E-Runner mit Headless Chrome & CDP):**
-  - Automatischer Vite-Build mit Test-Supabase-Konfiguration (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) und Start des Preview-Servers.
+  - Automatischer Vite-Build mit Test-Supabase-Konfiguration (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`) und Start des Preview-Servers.
   - Start von Headless Chrome und Verbindungsaufbau via Chrome DevTools Protocol (CDP).
   - Navigation zu `/dashboard` und Prüfung des initialen Zustands im realen DOM (`[data-testid="live-kpi-card"]`).
   - Event-Versand via n8n-Webhook und Abwarten des neuen Werts im realen DOM der `LiveKpiCard` (Beweis: n8n → Supabase → WebSocket → useLiveKpi → DOM-Reaktivität).

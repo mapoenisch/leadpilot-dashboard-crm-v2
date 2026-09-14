@@ -18,7 +18,7 @@ export async function seedSupabaseDatabase(): Promise<SeedResult> {
       contactsInserted: 0,
       dealsInserted: 0,
       message:
-        'Supabase credentials not configured in environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY).',
+        'Supabase credentials not configured in environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY).',
     };
   }
 

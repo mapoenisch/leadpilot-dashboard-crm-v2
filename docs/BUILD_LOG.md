@@ -1,5 +1,46 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## 2026-09-14 — Gate G28 / Auftrag 067: Supabase-Code-Vorbereitung (Abschluss)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/g28-supabase-live-inbetriebnahme`
+**Baseline:** `9380ace` (V2.2.0 Release auf `main`) · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG
+
+Auftrag 067 bereitet die Code-Basis für die finale Inbetriebnahme der echten Supabase-Cloud-Infrastruktur und n8n-Pipeline (Gate G28) vor. Gemäß freigegebenem Design `docs/superpowers/specs/2026-09-08-g28-supabase-live-operation-design.md` und Sicherheitsvorgaben setzt dieser Auftrag ausschließlich die code- und dokumentationsseitigen Anpassungen um; Secrets, Passwörter und Datenbank-Migrationen werden ausdrücklich nicht automatisiert gesetzt.
+
+### 1. Durchgeführte Arbeiten nach Blöcken
+
+- **Block A: G28-Design-Dokument übernehmen**
+  - `docs/superpowers/specs/2026-09-08-g28-supabase-live-operation-design.md` unverändert aus Branch `codex/g28-supabase-live-operation-design` (Commit `a34360c`) in diesen Branch übernommen.
+- **Block B: Umbenennung auf `VITE_SUPABASE_PUBLISHABLE_KEY`**
+  - Reine Umbenennung ohne Kompatibilitäts-Shim in genau 7 lebenden Dateien durchgeführt:
+    1. `.env.example`: Platzhalter auf `VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key` umgestellt.
+    2. `src/vite-env.d.ts`: Typ-Deklaration `VITE_SUPABASE_PUBLISHABLE_KEY` aktualisiert.
+    3. `src/services/db/supabaseClient.ts`: Variable `supabasePublishableKey` eingetragen, Fallback-Guard um `!supabasePublishableKey.includes('your-publishable-key')` ergänzt, Prettier-konform formatiert.
+    4. `src/services/import/crmSeeder.ts`: Hinweistext auf `VITE_SUPABASE_PUBLISHABLE_KEY` angepasst.
+    5. `scripts/runLiveKpiE2e.ts`: Env-Injection für Vite-Build auf `VITE_SUPABASE_PUBLISHABLE_KEY` angepasst.
+    6. `scripts/verifyLiveKpiE2e.ts`: Statische Assertion auf `VITE_SUPABASE_PUBLISHABLE_KEY` umgestellt, Zeilenumbruch-Toleranz für den Text der Fehlermeldungs-Assertion ergänzt.
+    7. `tools/n8n/README.md`: Dokumentation und Beispiel-Code auf `VITE_SUPABASE_PUBLISHABLE_KEY` aktualisiert.
+- **Block C: Manuelle Vorbereitungs-Checkliste**
+  - `docs/G28_MANUELLE_VORBEREITUNG.md` neu angelegt.
+  - Enthält abhakbare Checkliste für Marcs manuelle Schritte (Supabase-Migrationen anwenden, DB-Objekte & RLS prüfen, `n8n_ingest`-Passwort interaktiv setzen, n8n-Workflow & Credential einrichten, lokales `.env` konfigurieren, kontrollierten E2E-Nachweis führen) mit Verweisen auf Design §§5.1–5.3 und §6.
+- **Block D: Verifikation & Dokumentation**
+  - Vollständige Gate-Verifikation erfolgreich durchlaufen.
+
+### 2. Verifikations-Ergebnisse (Gates)
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **4 Fehler** (`max-lines` Baseline / Ausnahme), **0 Warnungen**
+- `npm run format:check`: **Exakt 85 Abweichungen** (Baseline-Stand erhalten, `supabaseClient.ts` formatiert)
+- `npm run verify`: **24/24 Suiten bestanden**
+- `npm test`: **97 Testdateien, 372 Tests** — alle grün
+- `npm run build`: **Erfolgreich in 2.40s**
+- `npx playwright test`: **165/165 Tests passed**
+- `npx tsx scripts/runLiveKpiE2e.ts`: **Ehrlich SKIPPED_NOT_CONFIGURED** (Exit 0)
+- `npx tsx scripts/verifyLiveKpiE2e.ts`: **Exit 0 (alle Preflight-Checks bestanden)**
+- `grep -rln "VITE_SUPABASE_ANON_KEY" src/ scripts/ tools/ .env.example`: **0 Treffer (vollständig bereinigt)**
+- `git diff 9380ace -- src/simulation src/types src/context src/services/data src/features/resources`: **vollständig leer**
+- Keine Secrets, Credentials oder `.env.local` angelegt oder committed.
+
 ---
 
 ## 2026-09-14 — V2.2.0 gemerged nach `main` und getaggt

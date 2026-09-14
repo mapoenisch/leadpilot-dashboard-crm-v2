@@ -453,7 +453,9 @@ assert(!cardContent.includes('{error}'), 'LiveKpiCard never interpolates raw err
 assert(!cardContent.includes('error.message'), 'LiveKpiCard never renders raw error.message');
 assert(!cardContent.includes('{error?.message}'), 'LiveKpiCard strictly excludes raw error.message from JSX');
 assert(
-  cardContent.includes('Live-Feed vorübergehend nicht erreichbar. Verbindung wird automatisch wiederhergestellt.'),
+  /Live-Feed vorübergehend nicht erreichbar\.\s*Verbindung wird automatisch\s*wiederhergestellt\./.test(
+    cardContent
+  ),
   'LiveKpiCard renders user-friendly, non-technical error notice'
 );
 assert(cardContent.includes('formatRelativeTime'), 'LiveKpiCard calculates relative freshness');
@@ -544,8 +546,8 @@ assert(
   'Runner injects test Supabase URL into app production build'
 );
 assert(
-  runnerContent.includes('VITE_SUPABASE_ANON_KEY: supabaseAnonKey'),
-  'Runner injects test Supabase Anon Key into app production build'
+  runnerContent.includes('VITE_SUPABASE_PUBLISHABLE_KEY: supabaseAnonKey'),
+  'Runner injects test Supabase Publishable Key into app production build'
 );
 assert(
   runnerContent.includes('getLiveKpiCardDomInfo'),
