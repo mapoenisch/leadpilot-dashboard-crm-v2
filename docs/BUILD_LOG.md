@@ -2,6 +2,32 @@
 
 ---
 
+## 2026-09-14 — Gate G43 / Auftrag 065: Review — Freigabe (keine Befunde)
+
+**Rolle:** Prüfer (Claude Code) · **Baseline:** `a7f9325` · **Geprüfter Head:** `2414e0e` · **Branch:** `codex/v2.2.0-haertung`
+
+Unabhängig in isoliertem Worktree (`/tmp/review-auftrag-065`, `git worktree add … 2414e0e`)
+nachgerechnet: `tsc` 0 Fehler (bestätigt `TSC_BASELINE=0` korrekt), `eslint` 4 Fehler/0 Warnungen
+(unverändert), `npm run format:check` 85 Abweichungen (unverändert), `npm run verify` 24/24,
+`npm test` 97 Dateien/372 Tests (exakt wie berichtet). `verifyV22ReleaseReadiness.ts` bestätigt
+unabhängig **Bilanz 18 Erfüllt · 3 Dokumentierte Ausnahmen · 2 Offene Entscheidungen (Marc)** —
+Metrik #1 und #13 zeigen jetzt `AUSNAHME`. Die Status-Logik im Skript ist sauber implementiert
+(`totalEslintErrors === 4 ? 'AUSNAHME' : 'OFFEN'` bzw. analog für `maxLinesCount`) — ein
+zukünftiger 5. `max-lines`-Verstoß würde also korrekt wieder als `OFFEN` erkannt, nicht
+stillschweigend mit unter die Ausnahme gefasst. `docs/releases/V2.2.0.md` und `docs/BUILD_LOG.md`
+konsistent aktualisiert. `git diff a7f9325 -- src/simulation src/types src/context
+src/services/data src/features/resources` ist **leer**. Diff insgesamt betrifft exakt die 5 in
+der Auftrag-065-Datei genannten Dateien — keine Abweichung vom Scope.
+
+**0 Befunde.** Sauberster, kleinster Auftrag der gesamten Serie.
+
+**Einordnung:** Damit sind von den 23 DoD-Kennzahlen 18 erfüllt und 3 dauerhaft dokumentierte
+Ausnahmen (#1/#13 Max-Lines im Schutzbereich, #3 Prettier im Schutzbereich) — nur noch **#21**
+(`.git`-Größe) und **#22** (CI/Push) sind offen, beide ausdrücklich Marcs eigene
+Ausführungsentscheidungen, keine Bau- oder Testarbeit mehr.
+
+---
+
 ## 2026-09-14 — Gate G43 / Auftrag 065: Max-Lines Ausnahme (#1, #13) & TSC_BASELINE Ratsche (Abschluss)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
