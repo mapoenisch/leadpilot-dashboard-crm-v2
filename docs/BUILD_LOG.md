@@ -1,5 +1,44 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## 2026-09-14 — Gate G28 / Auftrag 067: Review — Freigabe mit Korrekturauflage (1 Befund, kein Blocker)
+
+**Rolle:** Prüfer (Claude Code) · **Baseline:** `9380ace` · **Geprüfter Head:** `8ad2b8d` · **Branch:** `codex/g28-supabase-live-inbetriebnahme`
+
+Unabhängig in isoliertem Worktree (`/tmp/review-auftrag-067`, `git worktree add … 8ad2b8d`)
+nachgerechnet: `tsc` 0 Fehler, `eslint` 4/0 (unverändert), `format:check` 85 (unverändert), `npm
+run verify` 24/24, `npm test` 97 Dateien/372 Tests, `npm run build` grün, `npx playwright test`
+165/165, `npx tsx scripts/runLiveKpiE2e.ts` und `npx tsx scripts/verifyLiveKpiE2e.ts` beide grün
+(ehrliches `SKIPPED_NOT_CONFIGURED` ohne reale Konfiguration bestätigt). CI unabhängig auf GitHub
+selbst verifiziert: Run `34833492459` `completed success`. Schutzbereichs-Diff leer,
+`grep -rln "VITE_SUPABASE_ANON_KEY"` liefert 0 Treffer in allen lebenden Pfaden. Design-Dokument
+byte-identisch aus `codex/g28-supabase-live-operation-design` übernommen (per `diff` bestätigt).
+`src/components/liveKpi/LiveKpiCard.tsx` unverändert (0 Zeilen Diff) — die zusätzlich in
+`scripts/verifyLiveKpiE2e.ts` korrigierte, vorher tatsächlich fehlerhafte String-Assertion (JSX-
+Zeilenumbruch zwischen „automatisch" und „wiederhergestellt." im Quelltext, per
+`sed`/Regex-Test nachvollzogen) wurde im Bericht korrekt offengelegt, nicht verschwiegen — anders
+als der unentdeckte Assertion-Verlust in Auftrag 066, positiv vermerkt.
+
+**1 Befund, kein Blocker, aber real und für die Zielgruppe relevant:**
+
+`docs/G28_MANUELLE_VORBEREITUNG.md` Abschnitt 4.1 (E2E-Nachweis) nennt als Beispielbefehl
+`VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY` als Umgebungsvariablen für
+`npx tsx scripts/runLiveKpiE2e.ts` — das ist falsch. Der Runner liest tatsächlich
+`LIVE_KPI_E2E_ENABLE`, `LIVE_KPI_E2E_N8N_WEBHOOK_URL`, `LIVE_KPI_E2E_SUPABASE_URL` und
+`LIVE_KPI_E2E_SUPABASE_ANON_KEY` (verifiziert in `scripts/runLiveKpiE2e.ts:32-35`) — die
+App-seitigen `VITE_SUPABASE_*`-Namen werden vom Runner selbst intern gesetzt, nicht vom Aufrufer
+übergeben. `tools/n8n/README.md`, im selben Commit korrekt aktualisiert, hat das richtige Beispiel
+mit allen vier `LIVE_KPI_E2E_*`-Variablen. Ohne Korrektur würde Marc (der selbst sagt „ich habe
+keine Ahnung") den Befehl aus der Checkliste kopieren und nur `SKIPPED_NOT_CONFIGURED` erhalten,
+ohne zu verstehen warum. Direkt in `docs/G28_MANUELLE_VORBEREITUNG.md` korrigiert (reine
+Doku-Korrektur, kein Code): Abschnitt 4.1 übernimmt jetzt das korrekte Beispiel aus
+`tools/n8n/README.md`.
+
+**Einordnung:** Der Fund betrifft ausschließlich die neu geschriebene Checkliste, nicht den
+eigentlichen Code (der ist korrekt und vollständig verifiziert). Freigabe mit der genannten
+Korrektur, bereits umgesetzt.
+
+---
+
 ## 2026-09-14 — Gate G28 / Auftrag 067: Supabase-Code-Vorbereitung (Abschluss)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/g28-supabase-live-inbetriebnahme`

@@ -78,12 +78,18 @@ Diese Checkliste fasst die manuellen Schritte für Marc zusammen, um das vorbere
 ## 4. Kontrollierten E2E-Nachweis führen (Design §6)
 
 - [ ] **4.1 Test-Runner mit temporären Umgebungsvariablen ausführen**
-  - Den vorbereiteten E2E-Runner mit den echten Verbindungsparametern starten:
+  - Der Runner liest eigene `LIVE_KPI_E2E_*`-Variablen (nicht die `VITE_SUPABASE_*`-Namen des
+    Frontends) und setzt daraus intern die App-Konfiguration für den Test-Build:
     ```bash
-    VITE_SUPABASE_URL="https://<deine-projekt-id>.supabase.co" \
-    VITE_SUPABASE_PUBLISHABLE_KEY="<dein-publishable-key>" \
+    export LIVE_KPI_E2E_ENABLE=true
+    export LIVE_KPI_E2E_N8N_WEBHOOK_URL="https://<deine-n8n-instanz>/webhook/live-kpi-ingest"
+    export LIVE_KPI_E2E_SUPABASE_URL="https://<deine-projekt-id>.supabase.co"
+    export LIVE_KPI_E2E_SUPABASE_ANON_KEY="<dein-publishable-key>"
     npx tsx scripts/runLiveKpiE2e.ts
     ```
+    (Siehe auch `tools/n8n/README.md` Abschnitt 4 für das vollständige Beispiel.)
+  - Nach dem Lauf die Variablen wieder zurücksetzen: `unset LIVE_KPI_E2E_ENABLE
+    LIVE_KPI_E2E_N8N_WEBHOOK_URL LIVE_KPI_E2E_SUPABASE_URL LIVE_KPI_E2E_SUPABASE_ANON_KEY`.
   - Prüfen, dass die Schritte erfolgreich durchlaufen:
     1. Valides Event (HTTP 201, genau eine interne & eine Feed-Zeile)
     2. Idempotenz (HTTP 200 bei Re-Delivery, keine Duplikate)
