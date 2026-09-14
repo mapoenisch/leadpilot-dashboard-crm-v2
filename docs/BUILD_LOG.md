@@ -2,6 +2,59 @@
 
 ---
 
+## 2026-09-14 — Gate G43 / Auftrag 065: Max-Lines Ausnahme (#1, #13) & TSC_BASELINE Ratsche (Abschluss)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `a7f9325` (Auftrag 064 Review) · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG
+
+Auftrag 065 setzt Marcs verbindliche Grundsatzentscheidung zu Kennzahl #13 (und der ursachengleichen Kennzahl #1) um: dauerhafte, mechanisch geratschte Ausnahme (`MAX_LINES_BASELINE=4`) statt eines risikobehafteten Refactorings der 4 betroffenen Dateien in den geschützten Kernbereichen (`src/simulation/**` und `src/features/resources/**`). Zudem wurde die historische CI-Ratsche `TSC_BASELINE` in `.github/workflows/ci.yml` von 602 auf 0 nachgezogen, womit künftige TypeScript-Regressionen sofort in CI blockieren.
+
+### 1. Erreichte Kennzahlen & Status-Korrektur
+
+- **`TSC_BASELINE` in `.github/workflows/ci.yml`:**
+  - Vorher: 602 (veraltete Baseline vor Auftrag 062)
+  - Nachher: **0** (exakt an den Ist-Stand von 0 TS-Fehlern angepasst)
+- **Kennzahl #1 (ESLint-Fehler) & Kennzahl #13 (Komponenten > 400 Zeilen):**
+  - Vorher: ❌ OFFEN (obwohl strukturell durch `MAX_LINES_BASELINE=4` in CI geratscht)
+  - Nachher: **⚠️ AUSNAHME** (dauerhaft akzeptierte Ausnahme für 4 Altdateien im Schutzbereich)
+- **DoD-Gesamtbilanz V2.2.0:**
+  - Vorher: 18 Erfüllt · 1 Dokumentierte Ausnahme · 4 Offene Lücken / Entscheidungen
+  - Nachher: **18 Erfüllt · 3 Dokumentierte Ausnahmen · 2 Offene Entscheidungen (Marc: #21, #22)**
+
+### 2. Durchgeführte Arbeiten nach Blöcken
+
+- **Block A: `TSC_BASELINE` korrigieren**
+  - `.github/workflows/ci.yml`: `TSC_BASELINE: 602` auf `TSC_BASELINE: 0` gesenkt.
+  - Regressionslücke geschlossen: Neue TypeScript-Fehler führen ab sofort sofort zum Fehlschlagen des `typecheck`-Jobs.
+- **Block B: Kennzahl #13 und #1 als Ausnahme dokumentieren**
+  - `scripts/verifyV22ReleaseReadiness.ts`:
+    - `MetricResult.status` um `'AUSNAHME'` erweitert.
+    - Kennzahl #1 und #13 bewerten 4 `max-lines`-Fehler im Schutzbereich als `'AUSNAHME'`.
+    - Tabellenausgabe rendert `'⚠️ AUSNAHME     '`.
+    - Bilanzzeile zählt Ausnahmen transparent auf: `18 Erfüllt · 3 Dokumentierte Ausnahmen · 2 Offene Entscheidungen (Marc)`.
+    - Abschluss-Statusmeldung aktualisiert.
+  - `docs/releases/V2.2.0.md`:
+    - Status-Block oben: Status auditiert, Blocker auf 2 Entscheidungen reduziert.
+    - DoD-Tabelle: Kennzahl #1 und #13 auf `⚠️ AUSNAHME` mit Note aktualisiert.
+    - Bilanzzeile auf `18 Erfüllt · 3 Dokumentierte Ausnahmen · 2 Offene Entscheidungen (Marc)` angepasst.
+    - Folgeschritte: Punkt 1 als ERLEDIGT markiert, Auftrag 065 in Folgeauftrags-Liste aufgenommen.
+- **Block C: Build-Log & Verifikation**
+  - Vollständige Verifikations-Matrix ausgeführt und bestanden.
+  - Schutzbereichs-Diff (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) ist **vollständig leer**.
+
+### 3. Verifikations-Ergebnisse (Gates)
+
+- `npx tsc --noEmit`: **0 Fehler** (bestätigt, dass `TSC_BASELINE=0` sofort grün ist)
+- `npm run lint`: **4 Fehler** (`max-lines` Baseline), **0 Warnungen**
+- `npm run format:check`: **Exakt 85 Abweichungen** (83 geschützt + 2 dokumentiert)
+- `npm run verify`: **24/24 Suiten bestanden**
+- `npm test`: **97 Testdateien, 372 Tests** — alle grün
+- `npm run build`: **Erfolgreich in 2.38s**
+- `npx tsx scripts/verifyV22ReleaseReadiness.ts`: **18 Erfüllt, 3 Dokumentierte Ausnahmen, 2 Offen**
+- Schutzbereichs-Diff (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): **vollständig leer**
+
+---
+
 ## 2026-09-13 — Gate G43 / Auftrag 064: Review — Freigabe (2 kleinere Hinweise, kein Blocker) — Coverage-Trilogie (062–064) abgeschlossen
 
 **Rolle:** Prüfer (Claude Code) · **Baseline:** `3d71021` · **Geprüfter Head:** `a4914c8` · **Branch:** `codex/v2.2.0-haertung`
