@@ -2,6 +2,45 @@
 
 ---
 
+## 2026-09-14 — Gate G43 / Auftrag 066: Review — Freigabe mit Hinweis (1 kleinerer Befund, kein Blocker) — #22 grün auf GitHub Actions
+
+**Rolle:** Prüfer (Claude Code) · **Baseline:** `383ca7c` · **Geprüfter Head:** `1320e86` · **Branch:** `codex/v2.2.0-haertung`
+
+Unabhängig in isoliertem Worktree (`/tmp/review-auftrag-066`, `git worktree add … 1320e86`)
+nachgerechnet: `tsc` 0 Fehler, `eslint` 4/0 (unverändert), `format:check` 85 (unverändert), `npm
+run verify` 24/24, `npm test` 97 Dateien/372 Tests, `npm run build` grün, `npx playwright test`
+165/165, `npx tsx scripts/verifyLiveKpiCatalog.ts` und `npx tsx
+scripts/verifyLivePerformanceSurface.ts` beide grün (Exit 0). **CI-Grün unabhängig auf GitHub
+selbst verifiziert** (nicht nur behauptet): `gh run list --branch codex/v2.2.0-haertung --limit 3`
+zeigt Run `34821012723` als `completed success`, exakt für Commit `1320e86` — der erste
+tatsächlich grüne GitHub-Actions-Lauf seit dem 11.09. Kennzahl #22 ist damit nicht nur lokal,
+sondern auf der echten Plattform bestätigt erfüllt. `verifyV22ReleaseReadiness.ts` bestätigt
+unabhängig Bilanz **19 Erfüllt · 3 Dokumentierte Ausnahmen · 1 Offene Entscheidung (Marc: #21)**.
+Schutzbereichs-Diff leer, `src/components/liveKpi/LiveKpiCard.tsx` **vollständig unverändert**
+(0 Zeilen Diff) — die Komponente wurde zu Recht nicht angefasst, nur die veraltete Prüfung dazu.
+
+**1 kleinerer, nicht-blockierender Befund:**
+
+Beim Ergänzen der Tailwind-Alternative in `scripts/verifyLivePerformanceSurface.ts` wurde die
+**gesamte vorherige Zeile** `assert(cardSrc.includes('aria-hidden="true"'), 'Pulse overlay is
+aria-hidden="true"');` ersatzlos gelöscht, nicht nur die pointer-events-Zeile erweitert (siehe
+`git diff 383ca7c 1320e86 -- scripts/verifyLivePerformanceSurface.ts`). Der Bericht erwähnt das
+nicht — er beschreibt korrekt nur die beabsichtigte Ergänzung. Praktisch folgenlos: Das
+`aria-hidden="true"`-Attribut selbst ist weiterhin unverändert im JSX von `LiveKpiCard.tsx`
+vorhanden (Zeile 143, verifiziert) — die Komponente ist also nicht betroffen, nur die
+automatisierte Prüfung dafür ist jetzt lückenhaft. Sollte jemand künftig versehentlich
+`aria-hidden="true"` vom Pulse-Overlay entfernen, würde das nicht mehr auffallen. Empfehlung:
+bei Gelegenheit (z. B. im Rahmen des anstehenden History-Rewrites oder eines künftigen kleinen
+Aufräum-Schritts) die gelöschte Assertion wiederherstellen.
+
+**Einordnung:** Kennzahl #22 ist zu Recht als ERFÜLLT dokumentiert, mit dem stärksten bisher
+verfügbaren Nachweis (echter GitHub-Actions-Lauf, nicht nur lokale Simulation). Von den 23
+DoD-Kennzahlen bleibt nur noch **#21** (`.git`-Größe) offen — der geplante History-Rewrite auf
+`codex/v2.2.0-haertung` (ohne `main` zu berühren, siehe Abstimmung mit Marc) ist der nächste
+Schritt.
+
+---
+
 ## 2026-09-14 — Gate G43 / Auftrag 066: CI-Fix (#22) & Screenshot-Ablage-Policy (Vorbereitung #21)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
