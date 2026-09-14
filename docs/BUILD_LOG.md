@@ -1,5 +1,45 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## 2026-09-14 — Gate G28 / Auftrag 068: Review — Freigabe (keine Befunde)
+
+**Rolle:** Prüfer (Claude Code) · **Baseline:** `2fd09ee` · **Geprüfter Head:** `02a61f0` ·
+**Branch:** `codex/g28-supabase-live-inbetriebnahme`
+
+Unabhängig in isoliertem Worktree (`/tmp/review-auftrag-068`, `git worktree add … 02a61f0`, `npm ci`)
+nachgerechnet, nicht nur den Builder-Bericht übernommen: `tsc` 0 Fehler, `eslint` 4/0 (unverändert
+gegenüber Baseline), `format:check` 85 Abweichungen (unverändert), `npm run verify` alle Suiten
+(001–025), `npm test` 97 Dateien/372 Tests, `npm run build` grün, `npx playwright test` 165/165
+(inkl. aller Visual-Tests, Worktree hatte planmäßig keine `.env` — Lauf entspricht damit dem
+CI-Zustand). `npx tsx scripts/runLiveKpiE2e.ts` meldet ohne Env-Vars weiterhin ehrlich
+`SKIPPED_NOT_CONFIGURED` (Exit 0). `npx tsx scripts/verifyLiveKpiE2e.ts` grün (Exit 0), inklusive
+der beiden neuen Checks. CI unabhängig auf GitHub selbst verifiziert: Run `34878370115`
+`completed success`. Schutzbereichs-Diff (`src/simulation src/types src/context src/services/data
+src/features/resources src/auth`) gegen Baseline `2fd09ee` bestätigt leer (0 Zeilen). Diff-Umfang
+insgesamt sauber: ausschließlich `scripts/runLiveKpiE2e.ts`, `scripts/verifyLiveKpiE2e.ts` sowie
+Doku (`docs/BUILD_LOG.md`, der Auftrag selbst) verändert.
+
+**Code-Review des Fixes:** Die Login-Bootstrap-Sequenz (Navigate → `localStorage.setItem` per
+`Runtime.evaluate` → Re-Navigate) entspricht exakt der im Auftrag vorgegebenen Entscheidung und
+dem bestehenden Präzedenzfall aus `e2e/global-setup.ts`. `AUTH_STORAGE_KEY` wird korrekt aus
+`src/auth/localAuthAdapter.ts` importiert statt dupliziert. Einziges Vorkommen von
+`localStorage.setItem` im gesamten Runner (per `grep` bestätigt) — der neue Preflight-Check in
+`verifyLiveKpiE2e.ts` kann daher nicht trivial an einer unrelated Stelle falsch-positiv greifen.
+
+**Zusätzlich verifiziert (über die Pflicht-Verifikation hinaus):** Regressionsschutz aktiv
+getestet, nicht nur gelesen — Bootstrap-Block im Worktree temporär entfernt, `verifyLiveKpiE2e.ts`
+erneut ausgeführt: Check schlägt korrekt mit `❌ FAILED: Runner bootstraps auth session …` fehl,
+Prozess-Exit-Code **1** (ohne Pipe-Verfälschung separat gemessen). Nach Wiederherstellung erneut
+grün. Der Regressionsschutz ist damit nachweislich funktional, keine Kosmetik.
+
+**Befunde:** keine. Freigabe ohne Auflage.
+
+**Einordnung:** Der formale G28-Ingest-Nachweis (Backend, Phase 1) steht bereits seit dem
+Zwischenstand-Eintrag unten. Mit diesem Auftrag ist die technische Voraussetzung für den
+Browser-Nachweis (Phase 2) geschaffen. Ausstehend bleibt Marcs realer 11/11-Lauf gegen die
+produktive Infrastruktur — danach ist G28 vollständig abschließbar.
+
+---
+
 ## 2026-09-14 — Gate G28 / Auftrag 068: Login-Bootstrap im Browser-E2E-Runner (Abschluss)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `codex/g28-supabase-live-inbetriebnahme`
