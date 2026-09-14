@@ -1,5 +1,57 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## 2026-09-14 — Gate G28: Zwischenstand — realer Backend-E2E-Nachweis grün, Browser-Phase durch Auth-Lücke blockiert (Auftrag 068 angelegt)
+
+**Rolle:** Marc (manuelle Durchführung, begleitet durch Claude Code) · **Branch:**
+`codex/g28-supabase-live-inbetriebnahme` · **Head:** `2fd09ee` · **Status:** G28 NICHT
+ABGESCHLOSSEN — Backend-Nachweis erbracht, Browser-Nachweis offen
+
+Nach Abschluss der manuellen G28-Vorbereitung aus `docs/G28_MANUELLE_VORBEREITUNG.md`
+(Supabase-Migrationen auf das reale Projekt `leadpilot-crm` angewendet, `n8n_ingest`-Passwort
+gesetzt, n8n-Workflow „LeadPilot Live KPI Ingest Pipeline (Gate G18)" importiert und konfiguriert,
+lokales `.env` mit echtem Publishable Key befüllt) wurde der n8n-Workflow über den UI-Button
+„Publish" produktiv geschaltet (Production-Webhook-URL: `http://localhost:5678/webhook/live-kpi-ingest`,
+n8n läuft lokal).
+
+**Realer Lauf von `scripts/runLiveKpiE2e.ts` gegen die produktive Infrastruktur:**
+
+Phase 1 (Backend, Schritte 1–7 von 11) **vollständig grün**:
+- Healthcheck des öffentlichen Supabase-Feeds (HTTP 200)
+- Valides Event: Vertragsprüfung + Webhook-Ingest (HTTP 201)
+- Trigger-Projektion nach `public.live_kpi_public_feed` exakt nachgewiesen (alle Feld-Werte,
+  Zähler +1)
+- Duplikat-Einspeisung: Feed-Zeilenzahl exakt unverändert
+- Rejection-Pfad: ungültiges Event korrekt mit `INVALID_TIMESTAMP` abgelehnt (HTTP 422), Feed
+  unverändert
+- Deterministisches Tie-Breaking bei High-Frequency-Burst mit gleichem `occurred_at` (neuester
+  Wert nach `ingested_at` gewinnt)
+- Client-Kompatibilitäts-Snapshot (Typen/Format für `useLiveKpi`/`LiveKpiCard`) korrekt
+
+Phase 2 (Browser-Verifikation via Chrome CDP, Schritte 8–11) **fehlgeschlagen**:
+```
+[Navigate] Lade http://127.0.0.1:4210/dashboard...
+❌ Assertion failed: LiveKpiCard (data-testid="live-kpi-card") ist im echten DOM gerendert
+```
+
+**Ursache identifiziert (kein Konfigurationsfehler):** `scripts/runLiveKpiE2e.ts` stammt aus Gate
+G20 (Auftrag 036) und navigiert per CDP ungeschützt direkt zu `/dashboard`. Seit Auftrag 060 liegen
+alle 41 regulären Routen hinter `<ProtectedRoute>` — ohne Auth-Session leitet die App
+client-seitig auf `/login` um, wo keine `LiveKpiCard` existiert. Der Runner wurde seit Einführung
+der Auth-Schicht nie angepasst; eine echte Lücke zwischen zwei zeitlich getrennten Gates, keine
+Fehlbedienung.
+
+**Maßnahme:** [`docs/auftraege/ANTIGRAVITY_AUFTRAG_068_G28_E2E_RUNNER_LOGIN_BOOTSTRAP.md`](auftraege/ANTIGRAVITY_AUFTRAG_068_G28_E2E_RUNNER_LOGIN_BOOTSTRAP.md)
+angelegt: Login-Bootstrap per `localStorage`-Injection (Wiederverwendung von `AUTH_STORAGE_KEY`
+aus `src/auth/localAuthAdapter.ts`, analog zum bereits etablierten Muster in
+`e2e/global-setup.ts`) vor der ersten `/dashboard`-Navigation, plus Regressionsschutz in
+`scripts/verifyLiveKpiE2e.ts`. Ausschließlich `scripts/`-Dateien betroffen, keine Schutzbereiche.
+
+**Einordnung:** Der formale G28-Ingest-Nachweis (Contract → Webhook → Postgres-RPC → Trigger →
+Public Feed, inkl. Idempotenz/Rejection/Tie-Break) ist erbracht. Der Browser-Reaktivitäts-Nachweis
+steht noch aus und folgt nach Freigabe von Auftrag 068.
+
+---
+
 ## 2026-09-14 — Gate G28 / Auftrag 067: Review — Freigabe mit Korrekturauflage (1 Befund, kein Blocker)
 
 **Rolle:** Prüfer (Claude Code) · **Baseline:** `9380ace` · **Geprüfter Head:** `8ad2b8d` · **Branch:** `codex/g28-supabase-live-inbetriebnahme`
