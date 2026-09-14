@@ -11,7 +11,7 @@ Echtzeit-Dashboard für das fiktive Unternehmen LeadPilot. React 18 + TypeScript
 
 - Arbeitsverzeichnis: Repo-Root (enthält `package.json`, `src/`, `docs/`).
 - Aktiver Code: `src/`, `supabase/schema.sql`, `tools/n8n/`, `scripts/`.
-- Nur zur Referenz, nicht bearbeiten: `archive/`, `docs/archiv/`, `docs/screenshots/` (außer neue Auftrags-Screenshots), `uploads/`, `reference/`, `ui_kits/`, `guidelines/`, `assets/`, `tokens/`. Diese gehören zum separaten Design-System-Skill (Branding/UI-Kits, dokumentiert in `readme.md`/`SKILL.md` im Root) — **nicht** zur App-Logik. `readme.md`/`SKILL.md` sind trotz "Root"-Lage keine App-Dokumentation.
+- Nur zur Referenz, nicht bearbeiten: `archive/`, `docs/archiv/`, `docs/screenshots/` (nur `README.md`-Nachweis-Matrizen committen, Bilddateien per `.gitignore` ausgeschlossen), `uploads/`, `reference/`, `ui_kits/`, `guidelines/`, `assets/`, `tokens/`. Diese gehören zum separaten Design-System-Skill (Branding/UI-Kits, dokumentiert in `readme.md`/`SKILL.md` im Root) — **nicht** zur App-Logik. `readme.md`/`SKILL.md` sind trotz "Root"-Lage keine App-Dokumentation.
 - Nie einlesen oder committen: `node_modules/`, `dist/`, `.env`, `.DS_Store`, `.codex/`.
 
 ## 3. Maßgebliche Dokumente (Reihenfolge beim Einstieg)
@@ -59,7 +59,7 @@ npm run verify       # = npm test — alle Integrity-Suiten in scripts/verifyInt
 npm run build         # Produktions-Build muss durchlaufen
 ```
 
-Bei UI-Änderungen zusätzlich: Screenshot-Harness nach Vorbild von `scripts/captureAuftragXXXGateScreenshots.mjs`, Vorher/Nachher-Paare auf 1440/768/375px, SHA-256-Hashes müssen sich unterscheiden, 0px horizontaler Overflow, Ergebnis-Matrix unter `docs/screenshots/auftrag-XXX/README.md`.
+Bei UI-Änderungen zusätzlich: Screenshot-Harness nach Vorbild von `scripts/captureAuftragXXXGateScreenshots.mjs`, Vorher/Nachher-Paare auf 1440/768/375px, SHA-256-Hashes müssen sich unterscheiden, 0px horizontaler Overflow. **Screenshot-Ablage-Policy (ab Auftrag 066 / Kennzahl #21):** Screenshots werden weiterhin lokal erzeugt und geprüft (SHA-256-Vergleich, Overflow-Check), aber ausschließlich die textuelle Ergebnis-Matrix (`docs/screenshots/auftrag-XXX/README.md`) wird committet — Bilddateien (`*.png`, `*.jpg`, etc.) sind per `.gitignore` ausgeschlossen und verbleiben nicht im Git-Verlauf.
 
 ## 8. Arbeitsweise
 

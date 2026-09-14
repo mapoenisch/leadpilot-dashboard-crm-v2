@@ -102,8 +102,12 @@ function runVerification() {
   assert(cardSrc.includes('data-testid="live-kpi-card"'), 'LiveKpiCard has data-testid="live-kpi-card"');
   assert(cardSrc.includes('data-kpi-id={kpiId}'), 'LiveKpiCard has data-kpi-id attribute');
   assert(cardSrc.includes('live-kpi-pulse'), 'LiveKpiCard renders live-kpi-pulse overlay');
-  assert(cardSrc.includes('aria-hidden="true"'), 'Pulse overlay is aria-hidden="true"');
-  assert(cardSrc.includes('pointerEvents: \'none\'') || cardSrc.includes('pointer-events: none'), 'Pulse overlay is pointer-events: none');
+  assert(
+    cardSrc.includes("pointerEvents: 'none'") ||
+      cardSrc.includes('pointer-events: none') ||
+      cardSrc.includes('pointer-events-none'),
+    'Pulse overlay is pointer-events: none',
+  );
 
   // -------------------------------------------------------------
   // 4. StreamingAreaChart

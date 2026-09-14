@@ -12,6 +12,12 @@ Archiv.zip
 .cdp_*
 *.log
 
+# Screenshots (Belege lokal erzeugen, nur textuelle README-Matrizen committen — Kennzahl #21)
+docs/screenshots/**/*.png
+docs/screenshots/**/*.jpg
+docs/screenshots/**/*.jpeg
+docs/screenshots/**/*.webp
+
 .claude/
 .codex/
 .superpowers/

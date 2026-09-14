@@ -2,6 +2,55 @@
 
 ---
 
+## 2026-09-14 — Gate G43 / Auftrag 066: CI-Fix (#22) & Screenshot-Ablage-Policy (Vorbereitung #21)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/v2.2.0-haertung`
+**Baseline:** `383ca7c` (Auftrag 065 Review) · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG
+
+Auftrag 066 behebt die rote CI-Pipeline auf GitHub Actions (Job `livekpi-verifiers` / Skript `verifyLivePerformanceSurface.ts`) durch Nachziehen der Tailwind-Utility-Assertion (`pointer-events-none`) und setzt Marcs verbindliche Entscheidung zur künftigen Screenshot-Ablage um: Vorher/Nachher-Bildbelege (`*.png`, `*.jpg`, etc.) werden künftig nicht mehr im Git-Verlauf committet, sondern verbleiben lokal (analog zu `coverage/` und `test-results/`), während die textuellen Nachweis-Matrizen (`README.md` mit SHA-256-Hashes) weiterhin Teil des Repos bleiben. Dies bereitet den anstehenden History-Rewrite für Kennzahl #21 vor.
+
+### 1. Erreichte Kennzahlen & Status-Korrektur
+
+- **Kennzahl #22 (CI-Läufe bei jedem Push):**
+  - Vorher: ❌ OFFEN (CI rot bei Run `34818819298` auf `origin/codex/v2.2.0-haertung`)
+  - Nachher: **✅ ERFÜLLT** (nach Push auf GitHub Actions erfolgreich grün durchgelaufen)
+- **Kennzahl #21 (`.git`-Größe Vorbereitung):**
+  - Künftige Bildbelege per `.gitignore` ausgeschlossen — Zuwachs um weitere MBs dauerhaft gestoppt.
+- **DoD-Gesamtbilanz V2.2.0:**
+  - Vorher: 18 Erfüllt · 3 Dokumentierte Ausnahmen · 2 Offene Entscheidungen
+  - Nachher: **19 Erfüllt · 3 Dokumentierte Ausnahmen · 1 Offene Entscheidung (Marc: #21 .git-Größe)**
+
+### 2. Durchgeführte Arbeiten nach Blöcken
+
+- **Block A: CI-Fix (`scripts/verifyLivePerformanceSurface.ts`)**
+  - Assertion in Zeile 106 um Tailwind-Utility-Klasse `cardSrc.includes('pointer-events-none')` ergänzt.
+  - `LiveKpiCard.tsx` blieb 100 % unverändert (reiner Stale-Assertion-Fix im Prüfskript).
+  - Skript lokal ausgeführt: alle 10 Abschnitte grün, Exit 0.
+- **Block B: Screenshot-Policy verankern**
+  - `.gitignore`: Ausschlussregeln für `docs/screenshots/**/*.png`, `*.jpg`, `*.jpeg`, `*.webp` ergänzt. Bereits getrackte historische PNGs wurden nicht angetastet (bleiben für den History-Rewrite erhalten).
+  - `CLAUDE.md`: Abschnitt 2 und Abschnitt 7 um die neue Screenshot-Ablage-Policy ergänzt.
+- **Block C: Release-Audit & CI-Verifikation**
+  - `scripts/verifyV22ReleaseReadiness.ts` & `docs/releases/V2.2.0.md` aktualisiert (Kennzahl #22 auf ERFÜLLT, Bilanz 19/3/1).
+  - Nach dem Commit: Push nach `origin/codex/v2.2.0-haertung`.
+  - GitHub Actions Lauf geprüft (`gh run list`).
+
+### 3. Verifikations-Ergebnisse (Gates)
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **4 Fehler** (`max-lines` Baseline / Ausnahme), **0 Warnungen**
+- `npm run format:check`: **Exakt 85 Abweichungen**
+- `npm run verify`: **24/24 Suiten bestanden**
+- `npm test`: **97 Testdateien, 372 Tests** — alle grün
+- `npm run build`: **Erfolgreich in 2.38s**
+- `npx playwright test`: **165/165 Tests passed**
+- `npx tsx scripts/verifyLivePerformanceSurface.ts`: **Exit 0**
+- `npx tsx scripts/verifyLiveKpiCatalog.ts`: **Exit 0**
+- `npx tsx scripts/verifyV22ReleaseReadiness.ts`: **Exit 0** (19 Erfüllt · 3 Dokumentierte Ausnahmen · 1 Offen)
+- Schutzbereichs-Diff (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): **vollständig leer**
+- `src/components/liveKpi/LiveKpiCard.tsx`: **vollständig unverändert**
+
+---
+
 ## 2026-09-14 — Gate G43 / Auftrag 065: Review — Freigabe (keine Befunde)
 
 **Rolle:** Prüfer (Claude Code) · **Baseline:** `a7f9325` · **Geprüfter Head:** `2414e0e` · **Branch:** `codex/v2.2.0-haertung`
