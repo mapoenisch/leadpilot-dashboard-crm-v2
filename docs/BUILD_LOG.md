@@ -1,5 +1,42 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## 2026-09-14 — Gate G28 / Auftrag 068: Login-Bootstrap im Browser-E2E-Runner (Abschluss)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `codex/g28-supabase-live-inbetriebnahme`
+**Baseline:** `2fd09ee` (Auftrag 067 Review) / `74df5c2` · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG
+
+Auftrag 068 schließt die Authentifizierungslücke im browserseitigen E2E-Runner (`scripts/runLiveKpiE2e.ts`, Phase 2). Nach der Einführung von `<ProtectedRoute>` in Auftrag 060 wurde der Aufruf von `/dashboard` ohne Session auf `/login` umgeleitet, wodurch die Assertion auf `LiveKpiCard` fehlschlug. Der Runner injiziert nun vor der Dashboard-Navigation eine gültige Demo-Session direkt in `localStorage`.
+
+### 1. Durchgeführte Arbeiten nach Blöcken
+
+- **Block A: Login-Bootstrap im Runner (`scripts/runLiveKpiE2e.ts`)**
+  - Import von `AUTH_STORAGE_KEY` direkt aus `../src/auth/localAuthAdapter.js` (kein hartcodiertes Key-Literal).
+  - Schritt 8b vor der ersten `/dashboard`-Karten-Assertion eingefügt:
+    1. Origin-Initialisierung via Navigation zum Preview-Server.
+    2. Session-Injection in `localStorage` via `cdp.send('Runtime.evaluate')` mit Format `{ id: 'demo-user-id', email: 'demo@leadpilot.io' }` (identisch zu `LocalAuthAdapter.login()`).
+    3. Re-Navigation zu `/dashboard` mit aktiver Session, sodass `AuthProvider` die Session beim Mount übernimmt und `<ProtectedRoute>` die Route freigibt.
+- **Block B: Preflight-Regressionsschutz (`scripts/verifyLiveKpiE2e.ts`)**
+  - Zwei neue statische Assertions ergänzt:
+    1. Nachweis, dass `AUTH_STORAGE_KEY` direkt aus `localAuthAdapter` importiert wird.
+    2. Nachweis, dass die `localStorage.setItem`-Injection vor der ersten Assertion auf `LiveKpiCard` erfolgt.
+- **Block C: Verifikation & Build-Log**
+  - Vollständige Gate-Verifikation lokal erfolgreich durchlaufen.
+
+### 2. Verifikations-Ergebnisse (Gates)
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **4 Fehler** (`max-lines` Baseline / Ausnahme), **0 Warnungen**
+- `npm run format:check`: **Exakt 85 Abweichungen** (Baseline-Stand erhalten)
+- `npm run verify`: **24/24 Suiten bestanden**
+- `npm test`: **97 Testdateien, 372 Tests** — alle grün
+- `npm run build`: **Erfolgreich in 2.63s**
+- `npx playwright test`: **165/165 Tests passed** (inkl. aller 15 Visual Tests)
+- `npx tsx scripts/runLiveKpiE2e.ts`: **Ehrlich SKIPPED_NOT_CONFIGURED** (Exit 0)
+- `npx tsx scripts/verifyLiveKpiE2e.ts`: **Exit 0 (alle Preflight-Checks inklusive neuer Auth-Bootstrap-Prüfung bestanden)**
+- Schutzbereichs-Diff (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`, `src/auth`): **vollständig leer**
+
+---
+
 ## 2026-09-14 — Gate G28: Zwischenstand — realer Backend-E2E-Nachweis grün, Browser-Phase durch Auth-Lücke blockiert (Auftrag 068 angelegt)
 
 **Rolle:** Marc (manuelle Durchführung, begleitet durch Claude Code) · **Branch:**

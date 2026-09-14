@@ -550,6 +550,21 @@ assert(
   'Runner injects test Supabase Publishable Key into app production build'
 );
 assert(
+  runnerContent.includes("import { AUTH_STORAGE_KEY } from '../src/auth/localAuthAdapter.js'") ||
+    runnerContent.includes("import { AUTH_STORAGE_KEY } from '../src/auth/localAuthAdapter'"),
+  'Runner imports AUTH_STORAGE_KEY directly from localAuthAdapter'
+);
+const authBootstrapIdx = runnerContent.indexOf('localStorage.setItem');
+const firstCardAssertIdx = runnerContent.indexOf(
+  'LiveKpiCard (data-testid="live-kpi-card") ist im echten DOM gerendert'
+);
+assert(
+  authBootstrapIdx !== -1 &&
+    firstCardAssertIdx !== -1 &&
+    authBootstrapIdx < firstCardAssertIdx,
+  'Runner bootstraps auth session via localStorage before asserting LiveKpiCard on protected /dashboard'
+);
+assert(
   runnerContent.includes('getLiveKpiCardDomInfo'),
   'Runner extracts live DOM information from LiveKpiCard in Chrome'
 );

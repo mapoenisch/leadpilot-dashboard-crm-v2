@@ -25,6 +25,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { validateLiveKpiEvent } from '../src/services/liveKpi/liveKpiContract.js';
+import { AUTH_STORAGE_KEY } from '../src/auth/localAuthAdapter.js';
 
 console.log('=======================================================');
 console.log('🌐 AUFTRAG 036 / GATE G20: EXTERNER E2E REALTIME RUNNER');
@@ -593,8 +594,21 @@ async function runExternalSuite() {
     await cdp.send('DOM.enable');
     await cdp.send('Network.enable');
 
-    // Navigiere zu /dashboard
-    console.log(`[Navigate] Lade http://${HOST}:${previewPort}/dashboard...`);
+    // 8b. Login-Bootstrap für geschützte Routen (Gate G28 / Auftrag 068)
+    // Zunächst navigieren, um den Origin zu initialisieren (ProtectedRoute leitet auf /login weiter)
+    console.log(`[Auth-Bootstrap] Lade http://${HOST}:${previewPort}/dashboard für Origin-Initialisierung...`);
+    await cdp.send('Page.navigate', { url: `http://${HOST}:${previewPort}/dashboard` });
+    await sleep(1500);
+
+    // Session direkt in localStorage injizieren (Format identisch zu LocalAuthAdapter.login)
+    console.log(`[Auth-Bootstrap] Injiziere Session in localStorage (${AUTH_STORAGE_KEY})...`);
+    const sessionData = JSON.stringify({ id: 'demo-user-id', email: 'demo@leadpilot.io' });
+    await cdp.send('Runtime.evaluate', {
+      expression: `localStorage.setItem(${JSON.stringify(AUTH_STORAGE_KEY)}, ${JSON.stringify(sessionData)})`,
+    });
+
+    // Erneut zu /dashboard navigieren (AuthProvider liest Session beim Mount aus localStorage)
+    console.log(`[Navigate] Lade http://${HOST}:${previewPort}/dashboard mit aktiver Session...`);
     await cdp.send('Page.navigate', { url: `http://${HOST}:${previewPort}/dashboard` });
     await sleep(2000);
 
