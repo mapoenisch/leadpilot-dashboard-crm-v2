@@ -2,6 +2,39 @@
 
 ---
 
+## 2026-09-14 — V2.2.0 gemerged nach `main` und getaggt
+
+**Rolle:** Claude Code (direkte Repository-Operation nach Marcs ausdrücklicher Freigabe)
+
+Letzter Schritt der G43-Härtungskette: Merge nach `main` und Release-Tag, nachdem alle 23
+DoD-Kennzahlen erfüllt oder als dokumentierte Ausnahme akzeptiert waren (Bilanz 20/3/0, siehe
+vorherige Sektion) und CI auf `codex/v2.2.0-haertung` grün lief.
+
+### Ablauf
+
+1. **Versions-Bump:** `package.json`/`package-lock.json` von `2.1.0` auf `2.2.0` (Commit
+   `4e2b0ef`), gepusht, CI grün abgewartet (Run `34831419011`).
+2. **Merge-Analyse:** `git merge-base origin/main origin/codex/v2.2.0-haertung` = `181c8c6` =
+   exakt `main`s eigener Stand → `main` ist reiner Vorfahre des Feature-Branches, **kein einziger
+   eigener Commit** auf `main`, der nicht auch im Feature-Branch enthalten wäre.
+3. **Fast-Forward-Merge** (kein Merge-Commit, keine Konflikte möglich, kein Überschreiben von
+   Historie): `git checkout main && git merge --ff-only origin/codex/v2.2.0-haertung`. `main`
+   bewegt sich von `181c8c6` auf `4e2b0ef`.
+4. **Push nach `main`:** `git push origin main` — als Fast-Forward-Push technisch keine
+   destruktive Operation, lief ohne Blockade durch. CI auf `main` grün (Run `34831695228`).
+5. **Release-Tag:** `git tag -a v2.2.0` mit Zusammenfassung der Härtungsphase, `git push origin
+   v2.2.0`.
+
+### Ergebnis
+
+- `main` und `codex/v2.2.0-haertung` zeigen beide auf `4e2b0ef`.
+- Tag `v2.2.0` liegt auf GitHub.
+- CI grün auf beiden Branches, unabhängig via `gh run list` bestätigt.
+
+Damit ist die V2.2.0-Härtungsphase (Gate G29–G43) offiziell veröffentlicht.
+
+---
+
 ## 2026-09-14 — Gate G43: History-Rewrite abgeschlossen — Kennzahl #21 erfüllt, Gate-Audit vollständig (20/3/0)
 
 **Rolle:** Claude Code (direkte Repository-Operation, kein Antigravity-Auftrag — reine Git-Historie,
