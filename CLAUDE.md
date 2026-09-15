@@ -79,3 +79,26 @@ Bei UI-Änderungen zusätzlich: Screenshot-Harness nach Vorbild von `scripts/cap
 ## 10. Kommunikation
 
 Deutsch, Du-Form. Ergebnis zuerst, knapp, keine Floskeln.
+
+---
+
+## Agent skills
+
+Konfiguration für die Engineering-Skills. Diese Abschnitte richten sich an
+Agenten, nicht an Menschen — die verbindlichen Projektregeln stehen oben in
+§1–§10 und haben Vorrang.
+
+### Issue tracker
+
+Tickets der Engineering-Skills liegen als **GitHub Issues** in
+`mapoenisch/leadpilot-dashboard-crm-v2`, bedient über die `gh`-CLI. Das ersetzt
+**nicht** den Auftragsprozess aus §3–§7: Änderungen in den Schutzbereichen nach
+§6 brauchen weiterhin eine Auftragsdatei unter `docs/auftraege/`, und der
+Gate-Abschlussbericht gehört nach `docs/BUILD_LOG.md`. Siehe
+`docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` im Repo-Root, ADRs unter `docs/adr/`.
+Entscheidungs-SSoT bleibt `ARCHITECTURE_DECISIONS.md`; `API.md` beschreibt die
+Modul-Oberfläche. Siehe `docs/agents/domain.md`.
