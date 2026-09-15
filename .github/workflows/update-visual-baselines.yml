@@ -1,0 +1,42 @@
+# Erzeugt die Playwright-Visual-Baselines in derselben ubuntu-latest-Umgebung,
+# in der ci.yml sie später prueft. Laeuft nur auf Branches unter
+# visual-baselines/** — nicht auf main, nicht bei PRs.
+#
+# Ablauf: Branch anlegen, pushen, Artefakt "visual-baselines" herunterladen,
+# Bilder sichtpruefen, in den Branch committen, PR oeffnen.
+#
+# Kein workflow_dispatch: das wuerde die Datei auf dem Default-Branch
+# voraussetzen. Der Push-Trigger kommt ohne diese Bedingung aus.
+name: Update Visual Baselines
+
+on:
+  push:
+    branches:
+      - 'visual-baselines/**'
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx vite build
+      - name: Baselines neu erzeugen
+        run: npx playwright test e2e/visual.spec.ts --update-snapshots
+      - name: Neue Baselines als Artefakt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: visual-baselines
+          path: e2e/visual.spec.ts-snapshots/
+      - name: Report als Artefakt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: regen-report
+          path: playwright-report/
