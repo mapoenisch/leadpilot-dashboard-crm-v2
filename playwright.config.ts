@@ -27,8 +27,14 @@ export default defineConfig({
     // S6: 0 statt 0.02 — erst bei 0 sieht toHaveScreenshot komponentengroße
     // Regressionen (Sidebar weg = Ratio 0.01). Stabilität: 3× 12/12 grün.
     // Details: docs/TEST_MIGRATION_V2_2_0.md („Gleichwertigkeitsnachweis").
+    //
+    // Revision (Issue #12): 0 → 0.001. Null-Toleranz ließ Anti-Aliasing-Drift
+    // die CI rot färben (68 Pixel auf 1440×900 = Ratio 0.00005), ohne dass sich
+    // funktional etwas geändert hatte. 0.001 liegt 20-fach über diesem Rauschen
+    // und weiterhin 10-fach unter dem Signal, das S6 schützen wollte
+    // (Sidebar weg = 0.01) — die Erkennungswirkung bleibt also erhalten.
     toHaveScreenshot: {
-      maxDiffPixelRatio: 0,
+      maxDiffPixelRatio: 0.001,
     },
   },
   projects: [
