@@ -220,6 +220,7 @@ class CdpSession {
   private ws: any = null;
   private msgId = 1;
   private pending = new Map<number, { resolve: (res: any) => void; reject: (err: any) => void }>();
+  public debugEvents: string[] = [];
 
   constructor(wsUrl: string) {
     this.wsUrl = wsUrl;
@@ -238,6 +239,12 @@ class CdpSession {
           this.pending.delete(res.id);
           if (res.error) reject(new Error(JSON.stringify(res.error)));
           else resolve(res.result);
+        } else if (res.method === 'Runtime.consoleAPICalled') {
+          const args = (res.params?.args || []).map((a: any) => a.value ?? a.description ?? '').join(' ');
+          this.debugEvents.push(`[console:${res.params?.type}] ${args}`);
+        } else if (res.method === 'Runtime.exceptionThrown') {
+          const desc = res.params?.exceptionDetails?.exception?.description || JSON.stringify(res.params?.exceptionDetails);
+          this.debugEvents.push(`[exception] ${desc}`);
         }
       };
     });
@@ -280,12 +287,16 @@ async function getWsDebugUrl(port: number, host = '127.0.0.1'): Promise<string> 
   throw new Error(`Timeout beim Warten auf Chrome Debug Target auf http://${host}:${port}/json/list`);
 }
 
-async function getLiveKpiCardDomInfo(cdp: CdpSession): Promise<{ exists: boolean; text: string }> {
+async function getLiveKpiCardDomInfo(cdp: CdpSession, kpiId: string): Promise<{ exists: boolean; text: string }> {
+  // Gezielt die Karte des unter Test stehenden KPI selektieren, nicht nur
+  // irgendeine live-kpi-card: LivePerformanceSection rendert mehrere Karten
+  // (arr, mrr, pipeline_coverage), ein generischer Selector träfe immer nur
+  // die erste (arr) unabhängig vom tatsächlich eingespeisten Test-Event.
   const evalRes: any = await cdp.send('Runtime.evaluate', {
     expression: `(() => {
-      const el = document.querySelector('[data-testid="live-kpi-card"]');
+      const el = document.querySelector('[data-testid="live-kpi-card"][data-kpi-id=${JSON.stringify(kpiId)}]');
       if (!el) return { exists: false, text: '' };
-      return { exists: true, text: (el as HTMLElement).innerText || '' };
+      return { exists: true, text: el.innerText || '' };
     })()`,
     returnByValue: true,
   });
@@ -533,6 +544,7 @@ async function runExternalSuite() {
         ...process.env,
         VITE_SUPABASE_URL: supabaseUrl,
         VITE_SUPABASE_PUBLISHABLE_KEY: supabaseAnonKey,
+        VITE_E2E_EXPOSE_SUPABASE_CLIENT: 'true',
       },
       stdio: 'inherit',
     });
@@ -593,6 +605,7 @@ async function runExternalSuite() {
     await cdp.send('Page.enable');
     await cdp.send('DOM.enable');
     await cdp.send('Network.enable');
+    await cdp.send('Runtime.enable');
 
     // 8b. Login-Bootstrap für geschützte Routen (Gate G28 / Auftrag 068)
     // Zunächst navigieren, um den Origin zu initialisieren (ProtectedRoute leitet auf /login weiter)
@@ -610,10 +623,32 @@ async function runExternalSuite() {
     // Erneut zu /dashboard navigieren (AuthProvider liest Session beim Mount aus localStorage)
     console.log(`[Navigate] Lade http://${HOST}:${previewPort}/dashboard mit aktiver Session...`);
     await cdp.send('Page.navigate', { url: `http://${HOST}:${previewPort}/dashboard` });
-    await sleep(2000);
+    await sleep(500);
 
-    // Initialen DOM-Zustand prüfen
-    const initialCard = await getLiveKpiCardDomInfo(cdp);
+    // Initialen DOM-Zustand prüfen: Poll statt fixem Sleep, da der Verbindungsaufbau
+    // zur echten Supabase-Cloud (TLS + REST-Fetch für alle Katalog-KPIs + Realtime-WebSocket)
+    // spürbar länger dauern kann als gegen eine lokale/Fixture-Quelle.
+    let initialCard = await getLiveKpiCardDomInfo(cdp, testKpiId);
+    for (let attempt = 1; attempt <= 20 && !initialCard.exists; attempt++) {
+      await sleep(500);
+      initialCard = await getLiveKpiCardDomInfo(cdp, testKpiId);
+    }
+    if (!initialCard.exists) {
+      const diag: any = await cdp.send('Runtime.evaluate', {
+        expression: `(() => ({
+          url: document.location.href,
+          bodyText: document.body.innerText.substring(0, 800),
+          hasLogoutButton: !!document.querySelector('[data-testid="logout-button"]'),
+          authSession: localStorage.getItem(${JSON.stringify(AUTH_STORAGE_KEY)}),
+        }))()`,
+        returnByValue: true,
+      });
+      console.log('\n🔎 DIAGNOSE: LiveKpiCard nach 10s Polling weiterhin nicht im DOM gefunden:');
+      console.log(JSON.stringify(diag?.result?.value, null, 2));
+      console.log('--- Erfasste Browser-Events (Console/Exceptions) ---');
+      console.log(cdp.debugEvents.length ? cdp.debugEvents.join('\n') : '(keine erfasst)');
+      console.log('---');
+    }
     assert(initialCard.exists, 'LiveKpiCard (data-testid="live-kpi-card") ist im echten DOM gerendert');
     console.log(`✅ LiveKpiCard initial im DOM sichtbar: Text="${initialCard.text.substring(0, 60)}..."`);
 
@@ -644,7 +679,7 @@ async function runExternalSuite() {
     let finalCardText = '';
     for (let attempt = 1; attempt <= 20; attempt++) {
       await sleep(500);
-      const cardInfo = await getLiveKpiCardDomInfo(cdp);
+      const cardInfo = await getLiveKpiCardDomInfo(cdp, testKpiId);
       if (cardInfo.text.includes('7,25') || cardInfo.text.includes('7.25')) {
         domUpdated = true;
         finalCardText = cardInfo.text;
@@ -652,25 +687,47 @@ async function runExternalSuite() {
       }
     }
     assert(domUpdated, `LiveKpiCard im DOM aktualisiert über echten Realtime-Hook auf Wert 7.25 (Text: "${finalCardText}")`);
-    assert(finalCardText.includes('Live Realtime'), 'LiveKpiCard zeigt Status-Badge "Live Realtime"');
+    // Badge trägt CSS text-transform: uppercase (Badge.tsx) — innerText liefert
+    // den gerenderten Text ("LIVE REALTIME"), nicht den rohen Label-String.
+    assert(/live realtime/i.test(finalCardText), 'LiveKpiCard zeigt Status-Badge "Live Realtime"');
 
     // 10. Kontrollierte Netzwerk-/Realtime-Unterbrechung & Reconnect
     console.log('\n[10/11] Reconnect-Assertion: Unterbreche Netzwerk (Offline) und stelle Verbindung wieder her...');
-    // A: Offline simulieren
+    // A1: Neue Verbindungsversuche blockieren (verhindert sofortigen Reconnect nach dem Disconnect unten)
     await cdp.send('Network.emulateNetworkConditions', {
       offline: true,
       latency: 0,
       downloadThroughput: 0,
       uploadThroughput: 0,
     });
-    console.log('📡 Netzwerk auf OFFLINE gesetzt via CDP');
+    console.log('📡 Netzwerk auf OFFLINE gesetzt via CDP (blockiert neue Verbindungsversuche)');
+
+    // A2: Bestehende Realtime-Verbindung real trennen. Network.emulateNetworkConditions
+    // kappt nachweislich KEINE bereits offenen WebSocket-Verbindungen (per Debug-Test
+    // gegen echte Supabase-Infrastruktur bestätigt: Kanal blieb 40s lang "live", obwohl
+    // navigator.onLine bereits false war). Daher hier der echte, client-seitige Disconnect
+    // über den Test-Hook aus supabaseClient.ts.
+    const disconnectRes: any = await cdp.send('Runtime.evaluate', {
+      expression: `(() => {
+        const client = window.__E2E_SUPABASE_CLIENT__;
+        if (!client) return { ok: false, reason: 'Test-Hook window.__E2E_SUPABASE_CLIENT__ nicht gefunden' };
+        client.realtime.disconnect();
+        return { ok: true };
+      })()`,
+      returnByValue: true,
+    });
+    assert(
+      disconnectRes?.result?.value?.ok === true,
+      `Test-Hook trennt echte Realtime-Verbindung (${disconnectRes?.result?.value?.reason || 'ok'})`,
+    );
+    console.log('🔌 Echte Realtime-Verbindung über Test-Hook getrennt');
 
     let errorDetectedInDom = false;
-    for (let attempt = 1; attempt <= 15; attempt++) {
+    for (let attempt = 1; attempt <= 30; attempt++) {
       await sleep(500);
-      const cardInfo = await getLiveKpiCardDomInfo(cdp);
+      const cardInfo = await getLiveKpiCardDomInfo(cdp, testKpiId);
       if (
-        cardInfo.text.includes('Verbindungsfehler') ||
+        /verbindungsfehler/i.test(cardInfo.text) || // Badge-Label, CSS uppercase — siehe oben
         cardInfo.text.includes('Realtime-Verbindung unterbrochen') ||
         cardInfo.text.includes('vorübergehend nicht erreichbar')
       ) {
@@ -691,11 +748,14 @@ async function runExternalSuite() {
     });
     console.log('📡 Netzwerk auf ONLINE zurückgesetzt via CDP');
 
+    // Reconnect kann zusätzliche Zeit brauchen: Der Kanal befindet sich beim
+    // Wiederherstellen ggf. noch in einem laufenden Backoff-Zyklus
+    // (computeBackoffDelay, bis zu 30s Cap) aus der Offline-Phase. 80 × 500ms = 40s Marge.
     let reconnectedInDom = false;
-    for (let attempt = 1; attempt <= 20; attempt++) {
+    for (let attempt = 1; attempt <= 80; attempt++) {
       await sleep(500);
-      const cardInfo = await getLiveKpiCardDomInfo(cdp);
-      if (cardInfo.text.includes('Live Realtime') && (cardInfo.text.includes('7,25') || cardInfo.text.includes('7.25'))) {
+      const cardInfo = await getLiveKpiCardDomInfo(cdp, testKpiId);
+      if (/live realtime/i.test(cardInfo.text) && (cardInfo.text.includes('7,25') || cardInfo.text.includes('7.25'))) {
         reconnectedInDom = true;
         break;
       }
@@ -707,13 +767,18 @@ async function runExternalSuite() {
     await cdp.send('Page.navigate', { url: `http://${HOST}:${previewPort}/crm` });
     await sleep(1500);
 
-    const crmCard = await getLiveKpiCardDomInfo(cdp);
+    const crmCard = await getLiveKpiCardDomInfo(cdp, testKpiId);
     assert(!crmCard.exists, 'LiveKpiCard existiert nach Wegnavigation zu /crm nicht mehr im DOM (Unmount)');
 
     await cdp.send('Page.navigate', { url: `http://${HOST}:${previewPort}/dashboard` });
-    await sleep(2000);
+    await sleep(500);
 
-    const dashboardCard = await getLiveKpiCardDomInfo(cdp);
+    // Poll statt fixem Sleep, gleicher Grund wie beim initialen Dashboard-Check oben.
+    let dashboardCard = await getLiveKpiCardDomInfo(cdp, testKpiId);
+    for (let attempt = 1; attempt <= 20 && !dashboardCard.exists; attempt++) {
+      await sleep(500);
+      dashboardCard = await getLiveKpiCardDomInfo(cdp, testKpiId);
+    }
     assert(dashboardCard.exists, 'LiveKpiCard mountet nach Zurücknavigation sauber neu im DOM');
 
     // Sende weiteres Event nach Remount
@@ -739,13 +804,24 @@ async function runExternalSuite() {
     );
 
     let secondUpdateReceived = false;
-    for (let attempt = 1; attempt <= 20; attempt++) {
+    let lastCardTextAfterRemount = '';
+    for (let attempt = 1; attempt <= 40; attempt++) {
       await sleep(500);
-      const cardInfo = await getLiveKpiCardDomInfo(cdp);
-      if (cardInfo.text.includes('8,10') || cardInfo.text.includes('8.10')) {
+      const cardInfo = await getLiveKpiCardDomInfo(cdp, testKpiId);
+      lastCardTextAfterRemount = cardInfo.text;
+      // 8.10 ist als JS-Zahl identisch zu 8.1 (keine echte Nachkommastelle vorhanden) —
+      // toLocaleString('de-DE') formatiert entsprechend ohne trailing Null als "8,1".
+      if (cardInfo.text.includes('8,1') || cardInfo.text.includes('8.1')) {
         secondUpdateReceived = true;
         break;
       }
+    }
+    if (!secondUpdateReceived) {
+      console.log('\n🔎 DIAGNOSE: Zweites Event nach Remount nach 20s nicht im DOM angekommen:');
+      console.log('Letzter Kartentext:', lastCardTextAfterRemount);
+      console.log('--- Erfasste Browser-Events (Console/Exceptions) ---');
+      console.log(cdp.debugEvents.length ? cdp.debugEvents.slice(-20).join('\n') : '(keine erfasst)');
+      console.log('---');
     }
     assert(secondUpdateReceived, 'LiveKpiCard empfängt nach Remount neue Realtime-Events ohne Leak');
 

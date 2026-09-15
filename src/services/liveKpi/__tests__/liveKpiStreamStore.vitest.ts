@@ -171,7 +171,7 @@ describe('Kanal-Status', () => {
     release();
   });
 
-  it('Feed-Status: offline → offline; reconnecting → loading ohne Daten, sonst unverändert', () => {
+  it('Feed-Status: offline → offline; reconnecting → loading ohne Daten, error mit vorhandenem Snapshot', () => {
     const store = freshStore();
     const release = store.acquire('arr');
     const feed = liveFeed(controls);
@@ -180,7 +180,12 @@ describe('Kanal-Status', () => {
     expect(store.getFeedConnectionState()).toBe('offline');
     feed.onEvent(makeSnapshot('arr', T1, 100));
     feed.onStatus('reconnecting');
-    expect(store.getState('arr').status).toBe('live');
+    // Ein Reconnect nach bereits vorhandenem Snapshot darf nicht stillschweigend
+    // als weiterhin "live" ausgegeben werden — sonst zeigt die Karte einen
+    // veralteten Wert ohne jeden Hinweis auf die unterbrochene Verbindung.
+    expect(store.getState('arr').status).toBe('error');
+    expect(store.getState('arr').error).toBeInstanceOf(Error);
+    expect(store.getState('arr').snapshot?.value).toBe(100);
     expect(store.getFeedConnectionState()).toBe('reconnecting');
     release();
     const store2 = freshStore();

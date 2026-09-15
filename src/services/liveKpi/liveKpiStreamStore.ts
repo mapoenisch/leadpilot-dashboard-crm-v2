@@ -105,7 +105,10 @@ function compareSnapshots(a: LiveKpiSnapshot, b: LiveKpiSnapshot): number {
   return 0;
 }
 
-function mergeIntoHistory(existing: readonly LiveKpiSnapshot[], newItem: LiveKpiSnapshot): LiveKpiSnapshot[] {
+function mergeIntoHistory(
+  existing: readonly LiveKpiSnapshot[],
+  newItem: LiveKpiSnapshot,
+): LiveKpiSnapshot[] {
   // Duplikatprüfung
   const isDuplicate = existing.some((item) => compareSnapshots(item, newItem) === 0);
   if (isDuplicate) {
@@ -284,12 +287,10 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
             commitFetchError(current, err, commit);
           });
       } else if (feedState === 'connecting' || feedState === 'reconnecting') {
-        if (entry.state.snapshot === null && entry.state.history.length === 0) {
-          commit(entry, {
-            ...entry.state,
-            status: 'loading',
-          });
-        }
+        const hasData = entry.state.snapshot !== null || entry.state.history.length > 0;
+        const status = hasData ? 'error' : 'loading';
+        const error = hasData ? new Error('Realtime-Reconnect') : entry.state.error;
+        commit(entry, { ...entry.state, status, error });
       } else if (feedState === 'offline') {
         commit(entry, {
           ...entry.state,
