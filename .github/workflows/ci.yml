@@ -124,7 +124,15 @@ jobs:
       - run: npx vite build
       - run: npx playwright test
       - name: Lighthouse CI
-        run: npx lhci autorun
+        # CHROME_PATH zeigt auf das Chromium, das der Schritt oben ohnehin
+        # installiert. Vorher stand in .lighthouserc.json ein fester
+        # macOS-Pfad — auf ubuntu-latest existiert der nicht ("Chrome
+        # installation not found"). Ohne chromePath erkennt lhci lokal die
+        # Standardinstallation weiterhin selbst.
+        run: |
+          CHROME_PATH="$(node -e "console.log(require('@playwright/test').chromium.executablePath())")"
+          echo "CHROME_PATH=$CHROME_PATH"
+          CHROME_PATH="$CHROME_PATH" npx lhci autorun
       - name: Playwright-Report als Artefakt
         if: always()
         uses: actions/upload-artifact@v4
