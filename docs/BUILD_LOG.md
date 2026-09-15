@@ -7247,3 +7247,49 @@ Alle **15 Paare sind 100% byte-verschieden (unterschiedliche SHA-256 Hashes)**. 
 
 ### 8. Ergebnis & Freigabestatus
 - **Gate G10 Status:** BEREIT ZUR FREIGABE (vollständig implementiert, verifiziert und dokumentiert).
+
+## [2026-09-15] Issue #8: GitHub Actions auf unveränderliche Commit-SHAs gepinnt
+
+### 1. Ziel & Kontext
+Härtung der CI-Lieferkette. Alle GitHub Actions im Workflow wurden über mutable Major-Tags (`@v4`) referenziert. Ein Major-Tag zeigt auf einen beweglichen Ref: der tatsächlich ausgeführte Action-Code kann sich ändern, ohne dass sich eine Datei im Repository ändert. Das Ticket stammt aus dem Audit-Durchlauf vom 2026-09-15 (Issues #2–#9) und wurde in der Triage als `enhancement` / `ready-for-agent` eingestuft — mechanisch, außerhalb jedes Schutzbereichs.
+
+Kein Auftrag unter `docs/auftraege/` erforderlich: die Änderung berührt ausschließlich `.github/workflows/`, keinen Schutzbereich nach `CLAUDE.md` §6.
+
+### 2. Geänderte Dateien
+- `.github/workflows/ci.yml`: alle **18** `uses:`-Referenzen von `@v4` auf vollständige 40-stellige Commit-SHAs umgestellt, jeweils mit Versionskommentar hinter dem SHA.
+
+Aufgelöste SHAs — es sind exakt die Commits, auf die die bisherigen `v4`-Tags zum Zeitpunkt der Umstellung zeigten. **Kein Versions-Upgrade:**
+
+| Action | Commit-SHA | Version | Vorkommen |
+|---|---|---|---|
+| `actions/checkout` | `11d5960a326750d5838078e36cf38b85af677262` | v4.4.0 | 7 |
+| `actions/setup-node` | `49933ea5288caeca8642d1e84afbd3f7d6820020` | v4.4.0 | 7 |
+| `actions/upload-artifact` | `ea165f8d65b6e75b540449e92b4886f43607fa02` | v4.6.2 | 3 |
+| `actions/cache` | `0057852bfaa89a56745cba8c7296529d2fc39830` | v4.3.0 | 1 |
+
+`with:`-Blöcke, `run:`-Schritte, Job-Struktur, Trigger-Bedingungen, der `env:`-Block und alle Kommentare blieben unverändert.
+
+### 3. Funktionale Prüfungen & Nachweise
+1. **Vollständigkeit der Umstellung:**
+   - `grep -c "uses:" .github/workflows/ci.yml` ➔ **18**
+   - `grep -c "uses:.*@v" .github/workflows/ci.yml` ➔ **0** (keine Tag-Referenz verbleibt)
+   - `grep -cE 'uses: .*@[0-9a-f]{40} # v' .github/workflows/ci.yml` ➔ **18** (alle mit SHA + Versionskommentar)
+2. **Keine Nebenwirkung:** `git diff --stat main..HEAD` ➔ genau eine Datei, 18 Einfügungen / 18 Löschungen. Änderungen ausschließlich auf `uses:`-Zeilen.
+
+### 4. Schutzbereichs-Prüfung (0 Diff)
+- `git diff 9380ace..HEAD -- src/simulation src/types src/context src/services/data src/features/resources` ➔ **0 Zeilen (Exit 0)**.
+
+### 5. Automatisierte Verifikation & Tests
+- `npx tsc --noEmit` ➔ **0 Fehler (Exit 0)**
+- `npm run verify` ➔ **Suiten 001–025 vollständig bestanden (Exit 0)**
+- `npm run build` ➔ **Produktions-Build erfolgreich (Exit 0)**
+
+### 6. Screenshot-Matrix
+Entfällt — reine CI-Konfigurationsänderung ohne UI-Auswirkung (`CLAUDE.md` §7 greift nur bei UI-Änderungen).
+
+### 7. Korrektur während der Umsetzung
+Die Triage-Analyse nannte 17 `uses:`-Zeilen. Tatsächlich sind es **18** — die ursprüngliche Zählung hatte identische Zeilen dedupliziert und damit ein drittes `actions/upload-artifact`-Vorkommen unterschlagen. Alle 18 wurden gepinnt; die Zahl ist in Commit-Message und diesem Bericht korrigiert.
+
+### 8. Ergebnis & Freigabestatus
+- **Issue #8 Status:** UMGESETZT UND VERIFIZIERT. Freigabe abhängig vom CI-Lauf auf dem Pull Request — der Workflow muss mit den gepinnten SHAs grün durchlaufen, bevor gemerged wird.
+- Offen und bewusst nicht Teil dieses Tickets: Renovate/Dependabot für kontrollierte Action-Updates, sowie Required Status Checks auf `main` (Issue #5 — `main` hat derzeit keine Branch Protection).
