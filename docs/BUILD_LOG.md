@@ -1,5 +1,124 @@
 # LeadPilot Dashboard-CRM — Build-Log
 
+## 2026-09-15 — Gate G28: ABGESCHLOSSEN — vollständiger 11/11-Nachweis gegen reale Infrastruktur
+
+**Rolle:** Marc (manuelle Durchführung + Freigabe je Fund) mit Claude Code als direkt
+patchendem Begleiter (nicht Antigravity — bewusste Ausnahme vom Rollen-Workflow für
+diese Nacharbeit, da es sich durchgehend um kleine, sofort gegen echte Infrastruktur
+verifizierbare Fixes handelte, jeweils vor der Umsetzung mit Marc abgestimmt) ·
+**Branch:** `codex/g28-supabase-live-inbetriebnahme` · **Head:** `9a6cf3a` ·
+**Status:** G28 VOLLSTÄNDIG ABGESCHLOSSEN
+
+### 1. Ziel & Ausgangslage
+
+Nach Auftrag 068 (Login-Bootstrap, freigegeben ohne Befunde) stand nur noch Marcs
+realer Lauf von `scripts/runLiveKpiE2e.ts` gegen die produktive Infrastruktur aus.
+Dieser Lauf deckte fünf weitere, bis dahin nie aufgefallene Probleme auf — der Runner
+(Gate G20, 2026-09-06) war nie zuvor gegen eine echte Cloud-Verbindung gelaufen, nur
+gegen `SKIPPED_NOT_CONFIGURED`.
+
+### 2. Gefundene und behobene Probleme (chronologisch, jeweils einzeln mit echtem
+   Wiederholungslauf gegen die produktive Infrastruktur verifiziert)
+
+1. **`(el as HTMLElement)` in einem `Runtime.evaluate`-String** — TypeScript-Syntax,
+   die der echte Browser nicht versteht; jeder DOM-Check schlug seit G20 mit einem
+   stillschweigend verschluckten `SyntaxError` fehl. → `el.innerText` (reines JS).
+2. **`getLiveKpiCardDomInfo` selektierte immer nur die erste `live-kpi-card`** (Live
+   ARR) statt die unter Test stehende KPI (`pipeline_coverage`) — drei Karten liegen
+   im Grid nebeneinander. → Selektion über `[data-kpi-id]` ergänzt.
+3. **Badge-Text-Checks waren case-sensitiv** ("Live Realtime"), obwohl `Badge.tsx`
+   `text-transform: uppercase` setzt und `innerText` den gerenderten (Großbuchstaben-)
+   Text liefert. → Case-insensitive Prüfung.
+4. **Netzwerk-Ausfall-Simulation wirkungslos:** `Network.emulateNetworkConditions`
+   kappt nachweislich keine bereits offenen WebSocket-Verbindungen (per eigenem
+   Debug-Test 40s lang gegen die reale Supabase-Instanz bestätigt — der Kanal blieb
+   durchgehend "live", obwohl `navigator.onLine === false` war). → Echter Disconnect
+   über einen klar test-only markierten Hook (`window.__E2E_SUPABASE_CLIENT__`,
+   nur aktiv bei Build-Flag `VITE_E2E_EXPOSE_SUPABASE_CLIENT=true`) in
+   `src/services/db/supabaseClient.ts`; Runner ruft `realtime.disconnect()` real auf.
+5. **Fixe Sleeps statt Polling** an mehreren Stellen zu knapp für reale Cloud-Latenz
+   bemessen (Dashboard-Erstladen, Remount, ursprünglich auch Heartbeat-Annahme) →
+   auf das im Skript bereits etablierte Poll-Muster (`for`-Schleife mit Timeout)
+   vereinheitlicht.
+6. **`8.10` als Zahlenliteral ist identisch zu `8.1`** (keine dritte Nachkommastelle
+   existiert) — `toLocaleString('de-DE')` formatiert als `"8,1"`, die Prüfung suchte
+   wörtlich nach `"8,10"`. → Assertion korrigiert.
+
+### 3. Echter App-Bug gefunden und behoben (nicht nur Testcode)
+
+`src/services/liveKpi/liveKpiStreamStore.ts`: Ging die Realtime-Verbindung verloren,
+**nachdem** eine KPI bereits einen Snapshot hatte, blieb der sichtbare Status
+stillschweigend auf `'live'` hängen — die Karte zeigte unverändert den letzten
+(dann veralteten) Wert, ganz ohne Hinweis auf den Verbindungsverlust. Das
+widersprach der bereits in `useLiveKpi.ts` dokumentierten Garantie ("Bei
+channelStatus === 'error' ... wird setStatus('error') ausgelöst") — vermutlich beim
+Umbau auf den gemeinsamen Feed-Kanal (G25/G34) verlorengegangen, nie aufgefallen,
+weil dieser Pfad bis zu diesem Lauf nie gegen eine echte Verbindungsunterbrechung
+getestet wurde. Jetzt: sichtbarer `'error'`-Status bei Reconnect mit vorhandenem
+Snapshot. Zugehöriger Unit-Test (`liveKpiStreamStore.vitest.ts`) korrigiert — er
+zementierte zuvor exakt das alte, fehlerhafte Verhalten als erwartetes Ergebnis.
+
+### 4. Finaler realer 11/11-Lauf (Kommando siehe `tools/n8n/README.md`)
+
+Gegen die produktive n8n-Instanz (`localhost:5678`, Workflow „published") und das
+reale Supabase-Projekt (`nfyiywfcnfjtjbdbptdg`):
+
+```
+[1/11] Healthcheck                                    ✅
+[2/11] Valides Event: Vertragsprüfung & Ingest         ✅
+[3/11] Projektions-Assertion (Trigger → Public Feed)   ✅
+[4/11] Duplikat-Assertion (Idempotenz)                 ✅
+[5/11] Rejection-Assertion (INVALID_TIMESTAMP)         ✅
+[6/11] Tie-Break-Assertion (High-Frequency-Burst)      ✅
+[7/11] Client-Kompatibilitäts-Assertion (Snapshot)     ✅
+[8/11] Browser: LiveKpiCard initial im DOM             ✅
+[9/11] Browser-Reaktivität (echtes Realtime-Update)    ✅
+[10/11] Reconnect (echter Disconnect + Wiederherstellung) ✅
+[11/11] Unmount/Remount ohne Subscription-Leak         ✅
+
+🎉 REALE BROWSER-E2E VERIFIKATION ERFOLGREICH BELEGT!
+```
+
+### 5. Automatisierte Verifikation (lokal, ohne `.env`, entspricht CI-Zustand)
+
+`npx tsc --noEmit` 0 Fehler · `npm run lint` 4/0 (unverändert ggü. Baseline) ·
+`npm run format:check` 84 Abweichungen (Baseline 85, eine Datei durch die Änderung
+mit-formatiert — keine Verschlechterung) · `npm run verify` 24/24 · `npm test`
+97 Dateien / 372 Tests · `npm run build` grün · `npx playwright test` 165/165 ·
+`npx tsx scripts/runLiveKpiE2e.ts` ohne Env-Vars weiterhin ehrlich
+`SKIPPED_NOT_CONFIGURED` · `npx tsx scripts/verifyLiveKpiE2e.ts` grün. CI-Push
+`9a6cf3a` lief zum Zeitpunkt dieses Eintrags noch (Run `34938292572`).
+
+### 6. Schutzbereichs-Prüfung
+
+`git diff 53115f8 -- src/simulation src/types src/context src/services/data
+src/features/resources src/auth` → leer (0 Zeilen). Geänderte Dateien:
+`scripts/runLiveKpiE2e.ts`, `src/services/db/supabaseClient.ts`,
+`src/services/liveKpi/liveKpiStreamStore.ts`,
+`src/services/liveKpi/__tests__/liveKpiStreamStore.vitest.ts` — keine davon in den
+Schutzbereichen.
+
+### 7. Einordnung & offene Punkte
+
+- **G28 ist damit vollständig erbracht:** Ingest-Pipeline, öffentlicher Lesezugriff,
+  Idempotenz, Rejection-Handling, Tie-Breaking, Browser-Realtime-Reaktivität,
+  Verbindungsabbruch-Erholung und Remount-Sicherheit — alles gegen die reale
+  Produktions-Infrastruktur bewiesen, nicht nur simuliert.
+- **Abweichung vom Standard-Rollen-Workflow bewusst dokumentiert:** Diese Fixes hat
+  Claude Code direkt umgesetzt statt Antigravity als Auftrag — jeweils vorab mit
+  Marc abgestimmt (Auftrag 068 selbst lief noch reguär über Antigravity + Review).
+  Begründung: kleine, klar abgegrenzte Fixes, sofort gegen echte Infrastruktur
+  verifizierbar, kein Design-Ermessensspielraum.
+- **Unabhängig vom G28-Umfang, separat zu untersuchen:** 404-Fehler für
+  `imported_funnel_deals` im Browser (aus einer früheren Sitzung bekannt) — kein
+  G28-Blocker.
+- **Webhook-Produktivbetrieb:** n8n-Workflow ist auf „Published" gestellt und läuft
+  lokal (`localhost:5678`) — für echten Dauerbetrieb außerhalb von Marcs Rechner
+  wäre ein gehosteter n8n-Endpunkt nötig; das ist keine G28-Anforderung, sondern
+  eine spätere Betriebsentscheidung.
+
+---
+
 ## 2026-09-14 — Gate G28 / Auftrag 068: Review — Freigabe (keine Befunde)
 
 **Rolle:** Prüfer (Claude Code) · **Baseline:** `2fd09ee` · **Geprüfter Head:** `02a61f0` ·
