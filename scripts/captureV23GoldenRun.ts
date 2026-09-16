@@ -77,7 +77,9 @@ export async function captureGoldenRun(): Promise<GoldenRunCapture> {
     manifest: result.run.manifest,
     finalMetrics: result.run.finalMetrics,
     rngState: result.run.rngState,
-    eventSignature: result.events.map((event) => `${event.id}|${event.type}|${event.correlationId}`),
+    eventSignature: result.events.map(
+      (event) => `${event.id}|${event.type}|${event.correlationId}`,
+    ),
     timeSeriesHash: sha256Hex(JSON.stringify(timeSeries)),
     timeSeriesLength: timeSeries.length,
   };

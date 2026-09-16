@@ -52,7 +52,8 @@ describe('v2.3.0 frontend findings', () => {
     const modalSource = readRepo('src/components/ui/Modal.tsx');
     expect.soft(modalSource, 'Backdrop ist kein künstlicher Button').not.toContain('role="button"');
     const listSource = readRepo('src/features/crm/components/CrmResponsiveList.tsx');
-    const rendersBothDom = listSource.includes('crm-v2-desktop-table') && listSource.includes('crm-v2-mobile-cards');
+    const rendersBothDom =
+      listSource.includes('crm-v2-desktop-table') && listSource.includes('crm-v2-mobile-cards');
     expect.soft(rendersBothDom, 'genau ein Responsive-DOM pro Datensatz').toBe(false);
   });
 
@@ -60,10 +61,12 @@ describe('v2.3.0 frontend findings', () => {
     const indexHtml = readRepo('index.html');
     const logoMatch = /href="(\/assets\/[^"]+)"/.exec(indexHtml);
     expect.soft(logoMatch?.[1], 'Logo-Pfad referenziert').toBeDefined();
-    expect.soft(
-      existsSync(resolve(repoRoot, `public${logoMatch?.[1] ?? '/assets/missing.png'}`)),
-      'referenziertes Logo existiert in public/',
-    ).toBe(true);
+    expect
+      .soft(
+        existsSync(resolve(repoRoot, `public${logoMatch?.[1] ?? '/assets/missing.png'}`)),
+        'referenziertes Logo existiert in public/',
+      )
+      .toBe(true);
     expect.soft(indexHtml, 'keine externen Google-Fonts').not.toMatch(/fonts\.googleapis\.com/);
     const headerCandidates = ['public/_headers', 'vercel.json', 'netlify.toml'];
     const headerSource = headerCandidates
@@ -76,6 +79,8 @@ describe('v2.3.0 frontend findings', () => {
     expect.soft(headerSource, 'MIME-Schutz definiert').toContain('X-Content-Type-Options');
     expect.soft(headerSource, 'Referrer-Schutz definiert').toContain('Referrer-Policy');
     expect.soft(headerSource, 'Permissions-Schutz definiert').toContain('Permissions-Policy');
-    expect.soft(headerSource, 'Framing-Schutz definiert').toMatch(/frame-ancestors|X-Frame-Options/);
+    expect
+      .soft(headerSource, 'Framing-Schutz definiert')
+      .toMatch(/frame-ancestors|X-Frame-Options/);
   });
 });

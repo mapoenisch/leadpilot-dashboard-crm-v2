@@ -37,7 +37,10 @@ function result(
 
 describe('compareFindingResults', () => {
   it('akzeptiert exakt die erwarteten roten Findings', () => {
-    const exact = [result('PR-AUTH-01', 'vitest', 'failing'), result('PR-CLIP-13', 'playwright', 'failing')];
+    const exact = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'failing'),
+    ];
     expect(compareFindingResults(contracts, exact)).toEqual({ ok: true, mismatches: [] });
   });
 
@@ -60,7 +63,10 @@ describe('compareFindingResults', () => {
   });
 
   it('weist ein unerwartet grünes Finding ab', () => {
-    const green = [result('PR-AUTH-01', 'vitest', 'failing'), result('PR-CLIP-13', 'playwright', 'passing')];
+    const green = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'passing'),
+    ];
     const comparison = compareFindingResults(contracts, green);
     expect(comparison.ok).toBe(false);
     expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13'))).toBe(true);

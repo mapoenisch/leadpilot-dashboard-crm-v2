@@ -52,9 +52,9 @@ describe('v2.3.0 security findings', () => {
     );
     expect(guardIndex, 'Signaturprüfung vor dem Postgres-Node').toBeGreaterThanOrEqual(0);
     expect(guardIndex).toBeLessThan(postgresIndex);
-    const workflow = JSON.parse(
-      readRepo('tools/n8n/live-kpi-ingest.workflow.json'),
-    ) as { nodes?: WorkflowNode[] };
+    const workflow = JSON.parse(readRepo('tools/n8n/live-kpi-ingest.workflow.json')) as {
+      nodes?: WorkflowNode[];
+    };
     const guardNode = (workflow.nodes ?? [])[guardIndex];
     const guardText = JSON.stringify(guardNode?.parameters ?? {});
     expect(guardText, 'Timestamp-Prüfung').toMatch(/timestamp/i);

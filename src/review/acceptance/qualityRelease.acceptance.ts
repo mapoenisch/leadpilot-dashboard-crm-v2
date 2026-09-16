@@ -49,17 +49,30 @@ describe('v2.3.0 quality and release findings', () => {
 
   it('[PR-QUALITY-16] erfüllt Qualitätsgrenzen ohne Baseline-Ausnahmen', () => {
     const workflow = readRepo('.github/workflows/ci.yml');
-    for (const key of ['LINT_BASELINE', 'MAX_LINES_BASELINE', 'TSC_BASELINE', 'INLINE_STYLE_BASELINE']) {
+    for (const key of [
+      'LINT_BASELINE',
+      'MAX_LINES_BASELINE',
+      'TSC_BASELINE',
+      'INLINE_STYLE_BASELINE',
+    ]) {
       const match = new RegExp(`^\\s*${key}:\\s*(\\d+)\\s*$`, 'm').exec(workflow);
       expect.soft(Number(match?.[1] ?? NaN), `CI-Baseline ${key} ist 0`).toBe(0);
     }
     const vitestConfig = readRepo('vitest.config.ts');
     const thresholdsIndex = vitestConfig.indexOf('thresholds:');
     const thresholdsBlock = thresholdsIndex >= 0 ? vitestConfig.slice(thresholdsIndex) : '';
-    expect.soft(firstNumberAfter(thresholdsBlock, 'lines'), 'globale Coverage lines ≥ 80').toBeGreaterThanOrEqual(80);
-    expect.soft(firstNumberAfter(thresholdsBlock, 'branches'), 'globale Coverage branches ≥ 80').toBeGreaterThanOrEqual(80);
-    expect.soft(firstNumberAfter(thresholdsBlock, 'functions'), 'globale Coverage functions ≥ 75').toBeGreaterThanOrEqual(75);
-    expect.soft(firstNumberAfter(thresholdsBlock, 'statements'), 'globale Coverage statements ≥ 70').toBeGreaterThanOrEqual(70);
+    expect
+      .soft(firstNumberAfter(thresholdsBlock, 'lines'), 'globale Coverage lines ≥ 80')
+      .toBeGreaterThanOrEqual(80);
+    expect
+      .soft(firstNumberAfter(thresholdsBlock, 'branches'), 'globale Coverage branches ≥ 80')
+      .toBeGreaterThanOrEqual(80);
+    expect
+      .soft(firstNumberAfter(thresholdsBlock, 'functions'), 'globale Coverage functions ≥ 75')
+      .toBeGreaterThanOrEqual(75);
+    expect
+      .soft(firstNumberAfter(thresholdsBlock, 'statements'), 'globale Coverage statements ≥ 70')
+      .toBeGreaterThanOrEqual(70);
 
     const prettier = spawnSync('npx', ['prettier', '--check', 'src/**/*.{ts,tsx}'], {
       cwd: repoRoot,
@@ -85,7 +98,9 @@ describe('v2.3.0 quality and release findings', () => {
 
   it('[PR-RELEASE-17] meldet Readiness ehrlich per Exit-Code', () => {
     const script = readRepo('scripts/verifyV22ReleaseReadiness.ts');
-    expect.soft(script, 'keine Defaultmetriken per Fallback').not.toMatch(/Fallback auf Baselinewerte/);
+    expect
+      .soft(script, 'keine Defaultmetriken per Fallback')
+      .not.toMatch(/Fallback auf Baselinewerte/);
     expect.soft(script, 'kein bedingungsloser Exit 0').not.toMatch(/^process\.exit\(0\);?\s*$/m);
   });
 
@@ -101,10 +116,7 @@ describe('v2.3.0 quality and release findings', () => {
     const e2eBlock = e2eIndex >= 0 ? workflow.slice(e2eIndex) : '';
     const restrictsEvent = /event_name/.test(e2eBlock);
     const allowsMain = /refs\/heads\/main/.test(e2eBlock);
-    expect.soft(
-      !restrictsEvent || allowsMain,
-      'E2E läuft auf Pull Requests und main',
-    ).toBe(true);
+    expect.soft(!restrictsEvent || allowsMain, 'E2E läuft auf Pull Requests und main').toBe(true);
   });
 
   it('[PR-LICENSE-19] weist proprietäre Root-Lizenz nach', () => {
@@ -117,9 +129,13 @@ describe('v2.3.0 quality and release findings', () => {
   it('[PR-BRANCH-20] schützt main per Ruleset nachweisbar', () => {
     const evidence = readJson<RulesetBaseline>('docs/reviews/v2.3.0-github-ruleset-baseline.json');
     const mainRulesets = evidence.activeRulesets.filter((ruleset) => ruleset.target === 'branch');
-    expect.soft(mainRulesets.length, 'mindestens ein aktives main-Ruleset').toBeGreaterThanOrEqual(1);
+    expect
+      .soft(mainRulesets.length, 'mindestens ein aktives main-Ruleset')
+      .toBeGreaterThanOrEqual(1);
     for (const ruleset of mainRulesets) {
-      expect.soft(ruleset.requiredChecks.length, `${ruleset.name}: Required Checks`).toBeGreaterThanOrEqual(1);
+      expect
+        .soft(ruleset.requiredChecks.length, `${ruleset.name}: Required Checks`)
+        .toBeGreaterThanOrEqual(1);
       expect.soft(ruleset.allowsDirectPush, `${ruleset.name}: kein direkter Push`).toBe(false);
     }
   });

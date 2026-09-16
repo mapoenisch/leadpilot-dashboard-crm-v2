@@ -53,9 +53,13 @@ function parseVitestReport(raw: string, runner: RunnerName): MeasuredResult[] {
   const fileErrors: string[] = [];
   const testResults = Array.isArray(report.testResults) ? report.testResults : [];
   for (const fileResult of testResults) {
-    const assertions = Array.isArray(fileResult.assertionResults) ? fileResult.assertionResults : [];
+    const assertions = Array.isArray(fileResult.assertionResults)
+      ? fileResult.assertionResults
+      : [];
     if (fileResult.status === 'failed' && assertions.length === 0) {
-      fileErrors.push(`${fileResult.name ?? 'unbekannte Datei'}: ${fileResult.message ?? 'Collection-Fehler'}`);
+      fileErrors.push(
+        `${fileResult.name ?? 'unbekannte Datei'}: ${fileResult.message ?? 'Collection-Fehler'}`,
+      );
     }
     for (const assertion of assertions) {
       const ancestors = Array.isArray(assertion.ancestorTitles) ? assertion.ancestorTitles : [];
@@ -76,7 +80,11 @@ function parseVitestReport(raw: string, runner: RunnerName): MeasuredResult[] {
   return { results: [...merged.values()], fileErrors };
 }
 
-function collectPlaywrightResults(node: unknown, inheritedId: string | null, acc: Map<string, MeasuredResult>): void {
+function collectPlaywrightResults(
+  node: unknown,
+  inheritedId: string | null,
+  acc: Map<string, MeasuredResult>,
+): void {
   if (!isRecord(node)) {
     return;
   }
@@ -96,7 +104,8 @@ function collectPlaywrightResults(node: unknown, inheritedId: string | null, acc
     const passing = statuses.some((status) => status === 'passed');
     const next: MeasuredStatus | null = failing ? 'failing' : passing ? 'passing' : null;
     if (next) {
-      const key = currentId ?? `untitled:${typeof node['title'] === 'string' ? node['title'] : 'unknown'}`;
+      const key =
+        currentId ?? `untitled:${typeof node['title'] === 'string' ? node['title'] : 'unknown'}`;
       const previous = acc.get(key);
       if (previous === undefined || previous.actual !== 'failing') {
         acc.set(key, { id: key, runner: 'playwright', actual: next });
@@ -128,7 +137,9 @@ function runStep(label: string, command: string, args: string[]): void {
   // Der Runner-Exit wird nicht verschluckt, sondern als Finding-Status
   // ausgewertet: Exit ungleich 0 ist bei roten Sollverträgen erwartet.
   // eslint-disable-next-line no-console
-  console.log(`[verify:v23:baseline] ${label}: Runner-Exit ${status} (wird gegen Register geprüft)`);
+  console.log(
+    `[verify:v23:baseline] ${label}: Runner-Exit ${status} (wird gegen Register geprüft)`,
+  );
 }
 
 function fail(message: string): never {
@@ -157,7 +168,9 @@ function main(): void {
   ]);
 
   if (!existsSync(vitestReportPath)) {
-    fail(`Vitest-Report fehlt (${vitestReportPath}) — technischer Runner-Fehler, kein Produktbefund.`);
+    fail(
+      `Vitest-Report fehlt (${vitestReportPath}) — technischer Runner-Fehler, kein Produktbefund.`,
+    );
   }
   if (!existsSync(playwrightReportPath)) {
     fail(
@@ -173,12 +186,18 @@ function main(): void {
         `Vitest-Dateifehler (technisch, kein Produktbefund): ${vitest.fileErrors.join(' | ').slice(0, 500)}`,
       );
     }
-    measured = [...vitest.results, ...parsePlaywrightReport(readFileSync(playwrightReportPath, 'utf-8'))];
+    measured = [
+      ...vitest.results,
+      ...parsePlaywrightReport(readFileSync(playwrightReportPath, 'utf-8')),
+    ];
   } catch (error) {
     fail(`Reports nicht lesbar (${error instanceof Error ? error.message : String(error)}).`);
   }
 
-  const knownRaw = readFileSync(resolve(repoRoot, 'docs/reviews/v2.3.0-known-findings.json'), 'utf-8');
+  const knownRaw = readFileSync(
+    resolve(repoRoot, 'docs/reviews/v2.3.0-known-findings.json'),
+    'utf-8',
+  );
   const known = JSON.parse(knownRaw) as KnownFinding[];
   const byId = new Map<string, MeasuredResult>();
   for (const entry of measured) {
@@ -194,7 +213,9 @@ function main(): void {
     if (!actual) {
       mismatches.push(`missing:${contract.id}`);
     } else if (actual.actual !== contract.expected) {
-      mismatches.push(`unexpected:${contract.id} (erwartet ${contract.expected}, gemessen ${actual.actual})`);
+      mismatches.push(
+        `unexpected:${contract.id} (erwartet ${contract.expected}, gemessen ${actual.actual})`,
+      );
     }
   }
   for (const entry of byId.values()) {

@@ -56,7 +56,12 @@ describe('v2.3.0 data and simulation findings', () => {
     dataSourceRegistry.setActive('simulated-crm');
     ScenarioRepository.getInstance().resetToDefaults();
     BaselineSnapshotService.clear();
-    await BaselineSnapshotService.capture('simulated-crm', 'v23-test-sim', '2026-01-01', GOLDEN_NOW);
+    await BaselineSnapshotService.capture(
+      'simulated-crm',
+      'v23-test-sim',
+      '2026-01-01',
+      GOLDEN_NOW,
+    );
     await BaselineSnapshotService.capture(
       'hubspot-baseline:2026-09-01',
       'v23-test-hubspot',
@@ -65,10 +70,9 @@ describe('v2.3.0 data and simulation findings', () => {
     );
     const simBaseline = BaselineSnapshotService.get('v23-test-sim');
     const hubspotBaseline = BaselineSnapshotService.get('v23-test-hubspot');
-    expect(
-      hubspotBaseline.counts,
-      'Baselines sind fachlich verschieden',
-    ).not.toEqual(simBaseline.counts);
+    expect(hubspotBaseline.counts, 'Baselines sind fachlich verschieden').not.toEqual(
+      simBaseline.counts,
+    );
 
     const service = ScenarioService.getInstance();
     const { version } = service.createScenario('Baseline-Probe', 'v23-baseline-06');
@@ -97,9 +101,7 @@ describe('v2.3.0 data and simulation findings', () => {
     expect.soft(Object.isFrozen(dataset)).toBe(true);
     expect.soft(Object.isFrozen(dataset.companies)).toBe(true);
     expect.soft(Object.isFrozen(dataset.companies[0])).toBe(true);
-    expect
-      .soft((dataset as { contentHash?: unknown }).contentHash)
-      .toMatch(/^[a-f0-9]{64}$/);
+    expect.soft((dataset as { contentHash?: unknown }).contentHash).toMatch(/^[a-f0-9]{64}$/);
   });
 
   it('[PR-PERSIST-08] persistiert Szenarien und Runs reload-fähig', () => {

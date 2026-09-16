@@ -53,9 +53,8 @@ test('[PR-CLIP-13] beschneidet keine Inhalte im Scroll-Container', async ({ page
     expect(box.x + box.width, `${label}: rechter Rand`).toBeLessThanOrEqual(VIEWPORT_WIDTH);
     const geometry = await measureScrollContainer(target);
     expect(geometry.foundScrollContainer, `${label}: Scroll-Container gefunden`).toBe(true);
-    expect(
-      box.x + box.width,
-      `${label}: innerhalb des Scroll-Containers`,
-    ).toBeLessThanOrEqual(geometry.containerRectRight);
+    expect(box.x + box.width, `${label}: innerhalb des Scroll-Containers`).toBeLessThanOrEqual(
+      geometry.containerRectRight,
+    );
   }
 });

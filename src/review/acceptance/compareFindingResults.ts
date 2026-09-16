@@ -35,7 +35,9 @@ export function compareFindingResults(
   for (const contract of contracts) {
     const measured = byId.get(contract.id);
     if (!measured) {
-      mismatches.push(`missing:${contract.id} (erwartet ${contract.expected}, kein Ergebnis gemessen)`);
+      mismatches.push(
+        `missing:${contract.id} (erwartet ${contract.expected}, kein Ergebnis gemessen)`,
+      );
     } else if (measured.actual !== contract.expected) {
       mismatches.push(
         `unexpected:${contract.id} (erwartet ${contract.expected}, gemessen ${measured.actual})`,
