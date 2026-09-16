@@ -70,6 +70,15 @@ n8n-HMAC-Secrets, SMTP-Zugangsdaten und andere privilegierte Geheimnisse liegen 
 geschützten Plattform- oder n8n-Credentials. Variablen mit Präfix `VITE_` gelten immer als
 öffentlich und dürfen keine Geheimnisse enthalten.
 
+### 3.5 Gezielt freigegebene Schutzbereiche
+
+Masterauftrag 067 darf die bisherigen Schutzbereiche `src/simulation/**`, `src/types/**`,
+`src/context/**`, `src/services/data/**`, `src/features/resources/**`, RNG-/Seed-Verhalten,
+Run-/Versionsmodell, Persistenzlogik und CRM-Schreibpfade ändern, soweit der jeweilige
+Teilauftrag diese Dateien ausdrücklich als Ziel nennt. Vor jedem Refactoring werden
+Charakterisierungs-, Golden-Run- und Reproduzierbarkeitstests festgeschrieben. Außerhalb
+der im aktiven Teilauftrag benannten Ziele bleiben die Schutzbereiche unverändert.
+
 ## 4. Zielarchitektur
 
 ```text
@@ -325,6 +334,10 @@ Jede Seite benötigt:
 - Fonts werden lokal ausgeliefert, damit kein Google-Fonts-Request erforderlich ist.
 - Sicherheitsheader umfassen mindestens CSP, `X-Content-Type-Options`,
   `Referrer-Policy`, `Permissions-Policy` und Schutz vor unerwünschtem Framing.
+- `/resources/materials` zeigt bei 375 Pixeln Status-Badges und den Bereich
+  „Operations & SLA“ vollständig. Die Abnahme prüft zusätzlich zum dokumentweiten
+  Overflow die Bounding-Boxes sichtbarer Elemente gegen ihren Scroll-Container, damit
+  internes Abschneiden trotz passender `document.scrollWidth` erkannt wird.
 - WCAG 2.2 AA ist das Zielniveau für alle Kernabläufe.
 
 ## 13. Ergänzungen nach vollständiger Mängelbehebung
@@ -408,6 +421,10 @@ zulässig.
 - Keine produktive Datei überschreitet das festgelegte Max-Lines-Limit ohne explizite,
   neue Architekturentscheidung.
 - Der bestehende `ScenarioService` wird nach Verantwortlichkeiten aufgeteilt.
+- Die bisherige Max-Lines-Ausnahme für `ScenarioService`, `eventRules` und
+  `ResourceViewer` gilt für v2.3.0 nicht als Erledigung. Der Umbau ist trotz des
+  geschlossenen Issues Bestandteil von Gate G57 und erfolgt nur unter den in Abschnitt
+  3.5 festgelegten Regressionstests.
 
 ### 15.3 Abhängigkeitssicherheit
 
@@ -434,6 +451,9 @@ dann die minimale Implementierung, danach Regression und Gesamt-Gates.
   heute vorhandenen 41 Routen,
 - visuelle Regressionstests für geänderte Routen und wichtige Fehlerzustände,
 - aktuelle Lighthouse- und Bundle-Messungen im selben CI-Lauf.
+- Element-Clipping-Prüfungen für sichtbare Badges, Überschriften und Inhaltskarten in
+  ihren tatsächlichen Scroll-Containern; der bereits vorhandene Dokument-Overflow-Test
+  bleibt zusätzlich bestehen.
 
 ### 16.2 Abnahmegrenzen
 
@@ -462,6 +482,12 @@ E2E, Accessibility, Sicherheitsprüfung, Migrationstest und Release-Readiness la
 Pull Requests und auf dem geschützten Release-Branch. Ein Commit-, Push- oder Branchstatus
 ist kein Ersatz für den tatsächlichen GitHub-Actions-Status.
 
+Alle externen GitHub-Actions werden auf vollständige, unveränderliche Commit-SHAs
+gepinnt; bewegliche Tags wie `@v4` sind verboten. Für `main` wird ein GitHub-Ruleset
+eingerichtet, das direkte Pushes verhindert, Pull Requests und die in CI definierten
+Pflichtprüfungen verlangt und auch für Administratoren nicht still umgangen wird. Das
+Ruleset und seine Required-Status-Checks werden per GitHub-API nachgewiesen.
+
 ## 18. Teilaufträge und Gates
 
 | Teilauftrag | Verbindlicher Inhalt | Gate |
@@ -475,16 +501,16 @@ ist kein Ersatz für den tatsächlichen GitHub-Actions-Status.
 | 067G | Produktive Worker-Verdrahtung und echter Fortschritt | G50 |
 | 067H | HubSpot-Pagination, Stage-Quarantäne und Importvalidierung | G51 |
 | 067I | Semantische Rekonstruktion der 33 Bildseiten in vier Wellen | G52–G55 |
-| 067J | UX-, Accessibility-, Asset-, Font- und Medienkorrekturen | G56 |
+| 067J | UX-, Accessibility-, Asset-, Font-, Medien- und Element-Clipping-Korrekturen | G56 |
 | 067K | Sichere Abhängigkeiten, Node-Pinning, Lint, Format und Coverage | G57 |
-| 067L | Fail-closed CI und Release-Readiness | G58 |
+| 067L | Fail-closed CI, SHA-Pinning, `main`-Ruleset und Release-Readiness | G58 |
 | 067M | Benutzer-, Einladungs- und Rollenverwaltung | G59 |
 | 067N | CRM-Suche, Filter, Sortierung, Pagination und Export | G60 |
 | 067O | Datenquellen-, Frische- und Degraded-Anzeigen | G61 |
 | 067P | Audit-, Monitoring- und Diagnoseoberflächen | G62 |
 | 067Q | Pause, Fortsetzen, Abbruch, Retry und Snapshot-Resume | G63 |
 | 067R | Vollständige Sicherheits-, Funktions-, Daten- und UX-Abnahme | G64 |
-| 067S | Migration, Dokumentation, Release Notes und Tag `v2.3.0` | G65 |
+| 067S | Migration, proprietäre Lizenz, Dokumentation, Release Notes und Tag `v2.3.0` | G65 |
 
 Gate G58 markiert die vollständige Behebung aller im Review gefundenen Mängel. Die
 Erweiterungsgates G59–G63 dürfen erst danach beginnen.
@@ -513,7 +539,21 @@ Erweiterungsgates G59–G63 dürfen erst danach beginnen.
 - vollständige operative CRM-Schreibfunktionen wie frei editierbare Leads und Deals,
 - zwingender Betrieb von n8n Cloud oder anderen kostenpflichtigen Diensten.
 
-## 21. Definition of Done für v2.3.0
+## 21. Lizenzentscheidung
+
+LeadPilot wird proprietär unter **All Rights Reserved** veröffentlicht. Im Repo-Root
+liegt eine `LICENSE`-Datei mit Urheberrechtsvermerk, Nutzungsbeschränkung und dem Hinweis,
+dass ohne ausdrückliche schriftliche Erlaubnis keine Vervielfältigung, Veränderung,
+Weitergabe, Veröffentlichung oder kommerzielle Nutzung gestattet ist. `README.md` und
+Release Notes nennen denselben Lizenzstatus.
+
+Lizenzen von Drittanbieter-Abhängigkeiten bleiben davon unberührt. Da GitHub einen
+individuellen proprietären Text nicht zwingend als Standard-SPDX-Lizenz erkennt, ist eine
+GitHub-Anzeige `licenseInfo: null` allein kein Gate-Fehler. Maßgeblich sind die vorhandene
+`LICENSE`-Datei, der identische Dokumentationshinweis und ein erfolgreicher
+Third-Party-License-Check.
+
+## 22. Definition of Done für v2.3.0
 
 `v2.3.0` ist ausschließlich freigabefähig, wenn:
 
@@ -525,5 +565,7 @@ Erweiterungsgates G59–G63 dürfen erst danach beginnen.
 6. alle Abnahmegrenzen aus Abschnitt 16 im aktuellen Lauf gemessen wurden,
 7. ein vollständiger Neuaufbau aus Migrationen und dokumentierter Konfiguration gelingt,
 8. Release Notes, Betreiberhinweise und Free-Tier-Grenzen dokumentiert sind,
-9. der Release-Commit geprüft und der Arbeitsbaum sauber ist,
-10. Marc die finale Release-Freigabe ausdrücklich erteilt hat.
+9. `LICENSE`, README und Release Notes den Status `All Rights Reserved` konsistent nennen,
+10. das `main`-Ruleset aktiv ist und alle externen Actions auf vollständige SHAs gepinnt sind,
+11. der Release-Commit geprüft und der Arbeitsbaum sauber ist,
+12. Marc die finale Release-Freigabe ausdrücklich erteilt hat.
