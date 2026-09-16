@@ -7325,3 +7325,51 @@ tsc 0; verify 001–025 grün; `npm test` 100 Files / 380 Tests grün (+3/+8 aus
 ### Finale Gate-Ergebnisse (Nacharbeit)
 - `verify:v23:baseline` Exit 0: 20/20/0, 0 technische Fehler · direkte Suites: 19 Vitest + 1 Playwright rot aus registrierter Ursache · tsc 0 · verify 001–025 · `npm test` 100/388 (+8 Gegenproben) · build · playwright 165 · lint 4/0 · format 85 · Schutzbereichs-Diff leer.
 - **G44-Status: ERNEUT BEREIT FÜR ZWEITES UNABHÄNGIGES REVIEW.** Kein Push, 067B bleibt blockiert. Integration auf Planungsstand `462d32c` erst nach Freigabe.
+
+## [2026-09-16] Gate G44: Zweites unabhängiges Review – weitere Nacharbeit erforderlich
+
+**Review-Baseline:** `857464c` auf `feat/auftrag-067a-characterization`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067B, Integration und Push bleiben blockiert.
+
+### Bestätigte Verbesserungen
+
+- Clipping-Test vermisst jetzt beide Zielelemente vollständig mit Viewport- sowie linken/rechten Container-Client-Grenzen; aktueller Lauf zeigt je Element drei fachliche Grenzverletzungen.
+- Runner-Mismatch als alleiniger Ersatz, widersprüchliche Resultate, Timeouts, Collection-Fehler, ENOENT und Report-Level-Fehler werden in den vorhandenen Selbsttests abgewiesen.
+- Audit-Zähler werden strukturell validiert; Ruleset-Details werden je Listen-ID separat geladen; gespeicherte Fehlnotizen enthalten keinen stderr-Rohtext.
+- RLS wird jetzt je Tabelle auf Spalte, aktiviertes RLS und Policy-Grundstruktur geprüft. Deep-Freeze, Semantik, HubSpot-Graph und CI-Verträge wurden gegenüber `0f1b939` deutlich erweitert.
+- Frische Reviewer-Läufe: gezielte Register-/Verifier-/Golden-Suite 16/16 grün; `verify:v23:baseline` meldet aktuell 20/20/0; TypeScript Exit 0; Golden-SHA weiterhin `949a90235d30a4ea2f79acac29cd30691860717b201728ef4415a5962b278305`; Schutzbereichsdiff leer; `git diff --check` sauber.
+
+### Blockierende Befunde
+
+1. **Critical – Verifier akzeptiert weiterhin falsches Grün:** Identische doppelte Resultate derselben `(Runner, ID)` werden durch das `Set` zusammengefaltet. Zusätzliche Ergebnisse derselben ID aus einem falschen Runner werden nur bei `failing`, nicht bei `passing`, abgewiesen. Eine synthetische Doppelmeldung ergab reproduzierbar `ok: true`.
+2. **Critical – Expect-Signatur ist kein belastbarer Produktnachweis:** Jede Fehlermeldung mit `AssertionError`, `expect(`, `Expected:` oder `Received:` gilt als fachliches Finding. Ein Auth-/Navigationsfehler, der anschließend `expect(locator).toBeVisible()` scheitern lässt, wurde synthetisch als `PR-CLIP-13` ohne technischen Fehler akzeptiert. Vitest-Datei-/Hookfehler werden außerdem ignoriert, sobald mindestens eine Assertion vorhanden ist.
+3. **Important – Ruleset-Evidence ist bei technischen gh-Fehlern nicht fail-closed:** Nicht nur der bekannte private-Repo-403, sondern auch 401, fehlendes `gh`, Netzwerk- und unbekannte Fehler werden als leere Ruleset-Liste gespeichert. Eine erfolgreiche Nicht-Array-Antwort wird ebenfalls still zu `[]`.
+4. **Important – `PR-SOURCE-04` verlangt den zu beseitigenden Fehler positiv:** Der Vertrag erwartet `catch → getActive`. Nach korrekter Entfernung des stillen Fallbacks in G47 bliebe derselbe unveränderliche Vertrag deshalb rot.
+5. **Important – RLS-/Ingress-Verträge lassen Bypass-Pfade zu:** Eine beliebige Policy mit `organization_id` genügt; effektive Bindung an `auth.uid()`, aktive Mitgliedschaft/Rolle und jede permissive Policy werden nicht abgesichert. Beim Ingress wird nur der erste gefundene Pfad zum ersten Postgres-Node geprüft; parallele ungeschützte Pfade bleiben möglich, und der gefundene Guard muss nicht derselbe Node sein, dessen HMAC-Felder untersucht werden.
+6. **Important – HubSpot-/Semantik-/Persistenz-/Worker-Nachweise bleiben teilweise markerbasiert:** Ein beliebiger Workflow-Zyklus kann Pagination erfüllen; ein leeres semantisches Element macht die Bildseitenprüfung grün; Persistenz kann durch Wörter wie `snapshot`/`storage` und Worker-Nutzung durch einen toten Funktionsaufruf erfüllt werden. Diese Verträge beweisen die verlangte Wirkung noch nicht.
+7. **Important – Ruleset-Auswertung beweist keinen Schutz von `main`:** Enforcement, Zielbedingungen und Bypass-Akteure werden nicht verbindlich ausgewertet; `required_signatures` wird bereits als `allowsDirectPush: false` behandelt. Dadurch kann ein inaktives oder nicht auf `main` wirkendes Ruleset den Vertrag erfüllen.
+
+### Erforderliche Nacharbeit
+
+- Fachliche Finding-Fehler mit einer expliziten, ID-gebundenen Produktmarker-/Reporter-Struktur kennzeichnen; alle nicht markierten Assertion-, Setup-, Hook-, Auth- und Navigationsfehler als technisch behandeln.
+- Exakt eine Messung je registriertem `(Runner, ID)` verlangen; identische Duplikate, zusätzliche falsche Runner und doppelte Registereinträge abweisen und per Selbsttest belegen.
+- Nur den explizit klassifizierten Ruleset-403 als leeres Evidence zulassen; alle anderen gh-/Schemafehler abbrechen.
+- `PR-SOURCE-04` auf Abwesenheit des stillen Fallbacks und beobachtbares Fehlerverhalten ausrichten.
+- Security-/HubSpot-/Semantik-/Persistenz-/Worker-Verträge so formulieren, dass sie die Wirkung beweisen und nach korrekter Produktbehebung unverändert grün werden können.
+- Danach Pflichtgates erneut ausführen und ein drittes unabhängiges Review anfordern.
+
+## [2026-09-16] Gate G44: Nacharbeit zur zweiten Review-Runde (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `857464c` → NICHT FREIGEGEBEN (2 Critical + 5 Important, 7 Punkte inkl. Ruleset-main-Schutz). Alle Nacharbeiten ausschließlich in 067A-Zieldateien; keine Produktlogik geändert. Umgebung: Node v22.11.0, npm 10.9.0.
+
+### Behebung je Befund
+1. **Critical Duplikate (compareFindingResults.ts):** Rohzählung ohne Zusammenfaltung — exakt ein Resultat je registriertem `(runner, id)`. `duplicate:`-, `missing:`-, `extra-result:`- und `runner-mismatch:`-Abweisungen; Selbsttests für identische Duplikate und extra `passing` aus falschem Runner.
+2. **Critical Produktmarker (ebd.):** `PRODUCT_MARKERS`-Tabelle (20 IDs) — fachliches `failing` nur mit ID-gebundener Produktassertion; markerlose Fehler (z. B. `toBeVisible` nach Navigationsversagen, inkl. Reviewer-Gegenprobe) → `missing-marker`-Technikfehler. Vitest-Quote-Escapes normalisiert; `no-control-regex` via `String.fromCharCode(27)` umgangen (Lint weiter 4/0).
+3. **Important nur-403 (captureV23ReviewEvidence.ts):** Listen-Fehler nur bei explizitem `(HTTP 403)` als Leerbefund; 401/fehlendes gh/Netzwerk/unbekannt → Abbruch ohne Schreiben. Gegenproben mit gefaktem `gh`: inaktives Ruleset wird gespeichert und vom Vertrag abgewiesen (Enforcement/Checks/Push), 401 bricht ohne Dateischreibung ab (Exit 1), danach echtes 403-Evidence wiederhergestellt.
+4. **Important SOURCE-04 (dataSimulation):** Fallback-Assertion auf Abwesenheit gedreht (`not.toMatch catch→getActive`) — bleibt nach G47-Fix grünfähig; Fehlercode- und Envelope-Nachweise unverändert.
+5. **Important RLS/Ingress (security):** je Tabelle `auth.uid()`-Bindung + Mitgliedschafts-/Rollenmarker; Ingress prüft alle Webhook→DB-Pfade (BFS/DFS) statt erstem Pfad; HubSpot-Zyklus muss alle drei Fetch-Nodes umfassen + `paging.next.after`; Worker verlangt Aufruf plus `postMessage`/`new Worker`; Persist verlangt Backend-Bindung im Schreibpfad; Semantik verlangt Textinhalt (`p|li|td|th` mit Text).
+6. **Important Ruleset-main-Schutz (Evidence + BRANCH-20):** `appliesToMain` (explizit `refs/heads/main`/`~ALL`, kein `~DEFAULT_BRANCH`), `allowsBypass` (Bypass-Akteure), `required_signatures` zählt nicht mehr als Push-Schutz; Vertrag fordert `active` + main-Wirkung + keine Bypass + Checks + kein Direkt-Push.
+
+### Finale Gate-Ergebnisse (Nacharbeit 2)
+- `verify:v23:baseline` Exit 0: 20/20/0, 0 technische Fehler · direkte Suites 19+1 rot aus registrierter Ursache · Selbsttests 20/20 · tsc 0 · verify 001–025 · `npm test` 100/392 · build · playwright 165 · lint 4/0 · format 85 · `git diff --check` sauber · Schutzbereichs-Diff leer · Golden-SHA unverändert.
+- **G44-Status: ERNEUT BEREIT FÜR DRITTES UNABHÄNGIGES REVIEW.** Kein Push, keine Integration auf `462d32c`, 067B bleibt blockiert.
