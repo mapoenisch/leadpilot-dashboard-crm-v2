@@ -34,6 +34,8 @@ interface RulesetEvidence {
     name: string;
     enforcement: string;
     target: string;
+    appliesToMain: boolean;
+    allowsBypass: boolean;
     requiredChecks: string[];
     allowsDirectPush: boolean;
   }>;
@@ -89,19 +91,42 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function classifyGhFailure(status: number | null, stderr: string): string {
-  if (/HTTP 403|Upgrade to GitHub Pro|make this repository public/i.test(stderr)) {
-    return 'Rulesets-API verweigert (HTTP 403: privates Repo ohne Pro-Freischaltung) — kein Ruleset nachweisbar';
+function refMatchesMain(pattern: unknown): boolean {
+  if (typeof pattern !== 'string') {
+    return false;
   }
-  if (/not authenticated|authentication required|Bad credentials|HTTP 401/i.test(stderr)) {
-    return 'gh nicht authentifiziert — kein Ruleset nachweisbar';
-  }
-  if (/command not found|ENOENT/i.test(stderr)) {
-    return 'gh CLI nicht verfügbar — kein Ruleset nachweisbar';
-  }
-  return `Rulesets-API nicht auswertbar (Exit ${String(status)}) — kein Ruleset nachweisbar`;
+  // Nur explizite main-Bindung zählt als Nachweis: exakter Ref oder ~ALL.
+  // ~DEFAULT_BRANCH ist ohne Repo-Wissen kein belastbarer main-Nachweis.
+  return pattern === 'refs/heads/main' || pattern === '~ALL';
 }
 
+function appliesToMain(entry: unknown): boolean {
+  if (!isRecord(entry) || entry['target'] !== 'branch') {
+    return false;
+  }
+  if (!isRecord(entry['conditions']) || !isRecord(entry['conditions']['ref_name'])) {
+    return false;
+  }
+  const refName = entry['conditions']['ref_name'] as Record<string, unknown>;
+  const include = Array.isArray(refName['include']) ? refName['include'] : [];
+  const exclude = Array.isArray(refName['exclude']) ? refName['exclude'] : [];
+  if (exclude.some((pattern) => pattern === 'refs/heads/main')) {
+    return false;
+  }
+  return include.some(refMatchesMain);
+}
+
+function allowsBypass(entry: unknown): boolean {
+  if (!isRecord(entry)) {
+    return true;
+  }
+  const actors = entry['bypass_actors'];
+  if (Array.isArray(actors) && actors.length > 0) {
+    return true;
+  }
+  const rules = Array.isArray(entry['rules']) ? entry['rules'] : [];
+  return rules.some((rule) => isRecord(rule) && rule['type'] === 'bypass');
+}
 function mapRuleset(entry: unknown): RulesetEvidence['activeRulesets'][number] {
   if (!isRecord(entry)) {
     throw new Error('Ruleset-Eintrag ohne Objektstruktur — kein Befund gespeichert.');
@@ -123,7 +148,9 @@ function mapRuleset(entry: unknown): RulesetEvidence['activeRulesets'][number] {
         }
       }
     }
-    if (rule['type'] === 'pull_request' || rule['type'] === 'required_signatures') {
+    // Nur eine PR-Pflicht verhindert direkten Push. required_signatures
+    // schützt Commits, nicht den Branch — zählt bewusst nicht als Push-Schutz.
+    if (rule['type'] === 'pull_request') {
       allowsDirectPush = false;
     }
   }
@@ -131,12 +158,14 @@ function mapRuleset(entry: unknown): RulesetEvidence['activeRulesets'][number] {
     name: typeof entry['name'] === 'string' ? entry['name'] : 'unbenannt',
     enforcement: typeof entry['enforcement'] === 'string' ? entry['enforcement'] : 'unbekannt',
     target: typeof entry['target'] === 'string' ? entry['target'] : 'branch',
+    appliesToMain: appliesToMain(entry),
+    allowsBypass: allowsBypass(entry),
     requiredChecks,
     allowsDirectPush,
   };
 }
 
-function ghApi(path: string): unknown {
+function ghApiRaw(path: string): { status: number | null; stdout: string; stderr: string } {
   let outcome;
   try {
     outcome = spawnSync('gh', ['api', path], { cwd: repoRoot, encoding: 'utf-8', shell: false });
@@ -145,13 +174,31 @@ function ghApi(path: string): unknown {
       `gh konnte nicht gestartet werden: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
-  if (outcome.status !== 0) {
-    const stderr = typeof outcome.stderr === 'string' ? outcome.stderr : '';
-    throw new Error(`GH_API_FAILED: ${classifyGhFailure(outcome.status, stderr)}`);
+  if (outcome.error) {
+    throw new Error(
+      `gh konnte nicht gestartet werden: ${outcome.error.message ?? String(outcome.error)}`,
+    );
   }
-  const output = typeof outcome.stdout === 'string' ? outcome.stdout : '';
+  return {
+    status: outcome.status,
+    stdout: typeof outcome.stdout === 'string' ? outcome.stdout : '',
+    stderr: typeof outcome.stderr === 'string' ? outcome.stderr : '',
+  };
+}
+
+function isExplicit403(stderr: string): boolean {
+  return /\(HTTP 403\)/.test(stderr);
+}
+
+function ghApi(path: string): unknown {
+  const { status, stdout, stderr } = ghApiRaw(path);
+  if (status !== 0) {
+    throw new Error(
+      `gh-API-Fehler (Exit ${String(status)}): ${(stderr || stdout).slice(0, 200).replace(/\s+/g, ' ').trim()}`,
+    );
+  }
   try {
-    return JSON.parse(output);
+    return JSON.parse(stdout);
   } catch {
     throw new Error('gh lieferte kein parsebares JSON — kein Befund gespeichert.');
   }
@@ -159,20 +206,29 @@ function ghApi(path: string): unknown {
 
 function runRulesetEvidence(): RulesetEvidence {
   const capturedAt = new Date().toISOString();
-  let list: unknown;
-  try {
-    list = ghApi(`repos/${REPOSITORY}/rulesets`);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (message.startsWith('GH_API_FAILED: ')) {
+  // Einzige zugelassene Ausnahme: der bekannte 403-Sonderfall (privates Repo
+  // ohne Pro-Freischaltung). 401, fehlende CLI, Netzwerk- und unbekannte
+  // Fehler brechen ohne Schreiben ab (Fail-closed, Exit 1 in main).
+  const raw = ghApiRaw(`repos/${REPOSITORY}/rulesets`);
+  if (raw.status !== 0) {
+    if (isExplicit403(raw.stderr)) {
       return {
         capturedAt,
         repository: REPOSITORY,
         activeRulesets: [],
-        captureNote: message.slice('GH_API_FAILED: '.length),
+        captureNote:
+          'Rulesets-API verweigert (HTTP 403: privates Repo ohne Pro-Freischaltung) — kein Ruleset nachweisbar',
       };
     }
-    throw error;
+    throw new Error(
+      `gh-API-Fehler (Exit ${String(raw.status)}): kein Ruleset-Evidence gespeichert.`,
+    );
+  }
+  let list: unknown;
+  try {
+    list = JSON.parse(raw.stdout);
+  } catch {
+    throw new Error('gh lieferte kein parsebares JSON — kein Befund gespeichert.');
   }
   const entries = Array.isArray(list) ? list : [];
   const activeRulesets: RulesetEvidence['activeRulesets'] = [];

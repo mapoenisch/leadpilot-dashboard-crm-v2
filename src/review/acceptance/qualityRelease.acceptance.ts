@@ -24,6 +24,8 @@ interface RulesetBaseline {
     name: string;
     enforcement: string;
     target: string;
+    appliesToMain: boolean;
+    allowsBypass: boolean;
     requiredChecks: string[];
     allowsDirectPush: boolean;
   }>;
@@ -135,6 +137,9 @@ describe('v2.3.0 quality and release findings', () => {
       .soft(mainRulesets.length, 'mindestens ein aktives main-Ruleset')
       .toBeGreaterThanOrEqual(1);
     for (const ruleset of mainRulesets) {
+      expect.soft(ruleset.enforcement, `${ruleset.name}: Enforcement aktiv`).toBe('active');
+      expect.soft(ruleset.appliesToMain, `${ruleset.name}: wirkt auf main`).toBe(true);
+      expect.soft(ruleset.allowsBypass, `${ruleset.name}: keine Bypass-Akteure`).toBe(false);
       expect
         .soft(ruleset.requiredChecks.length, `${ruleset.name}: Required Checks`)
         .toBeGreaterThanOrEqual(1);
