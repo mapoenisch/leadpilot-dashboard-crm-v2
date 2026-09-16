@@ -45,34 +45,43 @@ function isGuardNode(graph: WorkflowGraph, nodeName: string): boolean {
   return /hmac|signatur|signature|verify/i.test(haystack) && !/postgres/i.test(haystack);
 }
 
-function ingressPath(graph: WorkflowGraph): { path: string[]; guardOnPath: boolean } {
+function isPrivilegedDbNode(graph: WorkflowGraph, nodeName: string): boolean {
+  const node = (graph.nodes ?? []).find((candidate) => candidate.name === nodeName);
+  return /postgres/i.test(node?.name ?? '') || /postgres|database/i.test(node?.type ?? '');
+}
+
+function allIngressPaths(graph: WorkflowGraph): {
+  webhooks: string[];
+  dbNodes: string[];
+  paths: string[][];
+} {
   const nodes = graph.nodes ?? [];
-  const starts = nodes
+  const webhooks = nodes
     .filter((node) => node.type === 'n8n-nodes-base.webhook' || /webhook/i.test(node.name ?? ''))
-    .map((node) => node.name ?? '');
-  const postgres = nodes.find((node) => /postgres/i.test(node.name ?? ''))?.name ?? '';
-  const visited = new Set<string>();
-  const queue: Array<{ name: string; path: string[] }> = starts.map((name) => ({
-    name,
-    path: [name],
-  }));
-  while (queue.length > 0) {
-    const current = queue.shift();
-    if (!current || visited.has(current.name)) {
-      continue;
+    .map((node) => node.name ?? '')
+    .filter((name) => name.length > 0);
+  const dbNodes = nodes
+    .filter((node) => isPrivilegedDbNode(graph, node.name ?? ''))
+    .map((node) => node.name ?? '')
+    .filter((name) => name.length > 0);
+  const paths: string[][] = [];
+  const visit = (current: string, target: string, trail: string[]): void => {
+    if (current === target) {
+      paths.push(trail);
+      return;
     }
-    visited.add(current.name);
-    if (current.name === postgres && postgres.length > 0) {
-      return {
-        path: current.path,
-        guardOnPath: current.path.some((name) => isGuardNode(graph, name)),
-      };
+    for (const next of successors(graph, current)) {
+      if (!trail.includes(next)) {
+        visit(next, target, [...trail, next]);
+      }
     }
-    for (const next of successors(graph, current.name)) {
-      queue.push({ name: next, path: [...current.path, next] });
+  };
+  for (const webhook of webhooks) {
+    for (const db of dbNodes) {
+      visit(webhook, db, [webhook]);
     }
   }
-  return { path: [], guardOnPath: false };
+  return { webhooks, dbNodes, paths };
 }
 
 describe('v2.3.0 security findings', () => {
@@ -103,8 +112,18 @@ describe('v2.3.0 security findings', () => {
       expect.soft(tablePolicies.length, `${table}: Policies vorhanden`).toBeGreaterThan(0);
       expect
         .soft(
-          tablePolicies.some((policy) => policy.includes('organization_id')),
-          `${table}: organisationsgebundene Policy`,
+          tablePolicies.some(
+            (policy) => policy.includes('organization_id') && policy.includes('auth.uid()'),
+          ),
+          `${table}: Policy an Mandant und auth.uid() gebunden`,
+        )
+        .toBe(true);
+      expect
+        .soft(
+          tablePolicies.some((policy) =>
+            /organization_member|membership|user_role|app_role/.test(policy),
+          ),
+          `${table}: aktive Mitgliedschaft/Rolle geprüft`,
         )
         .toBe(true);
       expect
@@ -124,18 +143,20 @@ describe('v2.3.0 security findings', () => {
 
   it('[PR-INGEST-03] weist unsignierte Ingress-Anfragen ab', () => {
     const graph = readWorkflowGraph('tools/n8n/live-kpi-ingest.workflow.json');
-    const nodeNames = (graph.nodes ?? []).map((node) => node.name ?? '');
+    const ingress = allIngressPaths(graph);
+    expect.soft(ingress.webhooks.length, 'Webhook-Nodes inventarisiert').toBeGreaterThan(0);
+    expect.soft(ingress.dbNodes.length, 'privilegierte DB-Nodes inventarisiert').toBeGreaterThan(0);
     expect
-      .soft(
-        nodeNames.some((name) => name.includes('Postgres')),
-        'Postgres-Node vorhanden',
-      )
-      .toBe(true);
-    const ingress = ingressPath(graph);
-    expect
-      .soft(ingress.path.length, 'Webhook→Postgres-Pfad im Verbindungsgraph')
+      .soft(ingress.paths.length, 'alle Webhook→DB-Pfade im Verbindungsgraph')
       .toBeGreaterThan(0);
-    expect.soft(ingress.guardOnPath, 'Signaturprüfung auf dem Ingress-Pfad').toBe(true);
+    for (const path of ingress.paths) {
+      expect
+        .soft(
+          path.some((name) => isGuardNode(graph, name)),
+          `Signaturprüfung auf dem Ingress-Pfad ${path.join(' → ')}`,
+        )
+        .toBe(true);
+    }
     const guardNode = (graph.nodes ?? []).find((node) => isGuardNode(graph, node.name ?? ''));
     const guardText = JSON.stringify(guardNode?.parameters ?? {});
     expect.soft(guardText, 'Timestamp-Prüfung').toMatch(/timestamp/i);

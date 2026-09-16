@@ -96,9 +96,35 @@ describe('compareFindingResults', () => {
     expect(comparison.ok).toBe(false);
     expect(
       comparison.mismatches.some(
-        (mismatch) => mismatch.includes('PR-AUTH-01') && mismatch.includes('conflict'),
+        (mismatch) => mismatch.includes('PR-AUTH-01') && mismatch.includes('duplicate'),
       ),
     ).toBe(true);
+  });
+
+  it('weist identische Duplikate derselben Runner-ID ab', () => {
+    const duplicated = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'failing'),
+    ];
+    const comparison = compareFindingResults(contracts, duplicated);
+    expect(comparison.ok).toBe(false);
+    expect(
+      comparison.mismatches.some(
+        (mismatch) => mismatch.includes('PR-AUTH-01') && mismatch.includes('duplicate'),
+      ),
+    ).toBe(true);
+  });
+
+  it('weist zusätzliche passing-Ergebnisse aus falschem Runner ab', () => {
+    const extraPassing = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'failing'),
+      result('PR-CLIP-13', 'vitest', 'passing'),
+    ];
+    const comparison = compareFindingResults(contracts, extraPassing);
+    expect(comparison.ok).toBe(false);
+    expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13'))).toBe(true);
   });
 });
 
@@ -141,7 +167,7 @@ describe('parseVitestFindingResults', () => {
     expect(parsed.technicalErrors.some((entry) => entry.includes('PR-AUTH-01'))).toBe(true);
   });
 
-  it('wertet fehlgeschlagene Expect-Assertion als fachliches failing', () => {
+  it('wertet fehlgeschlagene Expect-Assertion mit Produktmarker als fachliches failing', () => {
     const report = JSON.stringify({
       testResults: [
         {
@@ -152,7 +178,9 @@ describe('parseVitestFindingResults', () => {
               ancestorTitles: [],
               title: '[PR-AUTH-01] vertrag',
               status: 'failed',
-              failureMessages: ['AssertionError: expected false to be true'],
+              failureMessages: [
+                "AssertionError: expected '...' not to contain 'from './localAuthAdapter''",
+              ],
             },
           ],
         },
@@ -161,6 +189,30 @@ describe('parseVitestFindingResults', () => {
     const parsed = parseVitestFindingResults(report);
     expect(parsed.technicalErrors).toEqual([]);
     expect(parsed.results).toEqual([result('PR-AUTH-01', 'vitest', 'failing')]);
+  });
+
+  it('weist markerlose Expect-Assertion als technischen Fehler ab', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'nav.acceptance.ts',
+          status: 'failed',
+          assertionResults: [
+            {
+              ancestorTitles: [],
+              title: '[PR-CLIP-13] sichtbarkeit',
+              status: 'failed',
+              failureMessages: [
+                'AssertionError: expected locator to be visible: expect(received).toBeVisible() Expected: visible',
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('missing-marker'))).toBe(true);
   });
 });
 
@@ -198,7 +250,38 @@ describe('parsePlaywrightFindingResults', () => {
     expect(parsed.technicalErrors.length).toBe(1);
   });
 
-  it('wertet fehlgeschlagenen Expect als fachliches failing', () => {
+  it('weist Sichtbarkeitsfehler nach Navigation ohne Produktmarker technisch ab', () => {
+    const report = JSON.stringify({
+      suites: [
+        {
+          title: 'element-clipping.acceptance.ts',
+          specs: [
+            {
+              title: '[PR-CLIP-13] clipping',
+              tests: [
+                {
+                  results: [
+                    {
+                      status: 'failed',
+                      error: {
+                        message:
+                          'Error: element sichtbar\n\nexpect(locator).toBeVisible()\n\nExpected: visible\nReceived: hidden',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parsePlaywrightFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('missing-marker'))).toBe(true);
+  });
+
+  it('wertet fehlgeschlagenen Expect mit Produktmarker als fachliches failing', () => {
     const report = JSON.stringify({
       suites: [
         {

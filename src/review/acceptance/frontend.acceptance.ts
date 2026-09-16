@@ -46,6 +46,12 @@ describe('v2.3.0 frontend findings', () => {
         .not.toMatch(/<h1[^>]*(hidden|aria-hidden="true"|sr-only)/);
       const hasSemantics = /<(section|article|table|ul|ol)[\s>]/.test(source);
       expect.soft(hasSemantics, `${entry.route}: semantischer Fachinhalt`).toBe(true);
+      expect
+        .soft(
+          /<(p|li|td|th)[^>]*>[^<]{5,}/.test(source),
+          `${entry.route}: auswählbarer Textinhalt (kein leeres Gerüst)`,
+        )
+        .toBe(true);
       const hasFullPageWebp = /<img[^>]*\.webp/.test(source);
       expect
         .soft(

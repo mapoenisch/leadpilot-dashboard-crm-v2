@@ -36,11 +36,8 @@ describe('v2.3.0 data and simulation findings', () => {
     expect(companies.length, 'stiller Fallback liefert Daten').toBeGreaterThan(0);
     const repositorySource = readRepo('src/services/db/crmRepository.ts');
     expect
-      .soft(
-        /catch[\s\S]{0,400}getActive/.test(repositorySource),
-        'stiller Fallback-Mechanismus belegt (catch → getActive)',
-      )
-      .toBe(true);
+      .soft(repositorySource, 'kein stiller Fallback (catch → getActive entfernt)')
+      .not.toMatch(/catch[\s\S]{0,400}getActive/);
     expect
       .soft(repositorySource, 'Supabase-Fehler trägt expliziten Quellen-Fehlercode')
       .toMatch(/DATA_SOURCE_UNAVAILABLE|DATA_SOURCE_INTEGRITY/);
@@ -143,6 +140,15 @@ describe('v2.3.0 data and simulation findings', () => {
       .toMatch(
         /toJSON|fromJSON|serializ|deserializ|exportState|importState|saveTo|loadFrom|storage|persist|snapshot|indexedDB|localStorage|supabase/i,
       );
+    const writeSites = ['this.scenarios.set(', 'this.versions.set(', 'this.runs.set('];
+    for (const site of writeSites) {
+      const index = repositorySource.indexOf(site);
+      const context =
+        index >= 0 ? repositorySource.slice(Math.max(0, index - 300), index + 300) : '';
+      expect
+        .soft(context, `Schreibpfad ${site} erreicht ein Backend`)
+        .toMatch(/storage|persist|indexedDB|supabase|localStorage|backend/i);
+    }
   });
 
   it('[PR-WORKER-09] führt Produkt-Runs im Web Worker aus', () => {
@@ -155,5 +161,8 @@ describe('v2.3.0 data and simulation findings', () => {
     expect
       .soft(productPath, 'Produktpfad ruft den Worker-Adapter auf')
       .toContain('createWorkerAdapter(');
+    expect
+      .soft(productPath, 'Produktpfad betreibt Worker-Lebenszyklus (postMessage/Worker)')
+      .toMatch(/\.postMessage\(|new Worker\(/);
   });
 });

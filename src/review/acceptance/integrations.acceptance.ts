@@ -70,30 +70,26 @@ function reaches(graph: HubSpotGraph, from: string, to: string): boolean {
   return false;
 }
 
-function hasCycle(graph: HubSpotGraph): boolean {
+function nodesOnCycle(graph: HubSpotGraph): Set<string> {
   const names = (graph.nodes ?? [])
     .map((node) => node.name ?? '')
     .filter((name) => name.length > 0);
-  const visiting = new Set<string>();
-  const done = new Set<string>();
-  const visit = (name: string): boolean => {
-    if (done.has(name)) {
-      return false;
-    }
-    if (visiting.has(name)) {
-      return true;
-    }
-    visiting.add(name);
-    for (const next of graphSuccessors(graph, name)) {
-      if (visit(next)) {
-        return true;
+  const onCycle = new Set<string>();
+  const visit = (name: string, stack: string[]): void => {
+    if (stack.includes(name)) {
+      for (const member of stack.slice(stack.indexOf(name))) {
+        onCycle.add(member);
       }
+      return;
     }
-    visiting.delete(name);
-    done.add(name);
-    return false;
+    for (const next of graphSuccessors(graph, name)) {
+      visit(next, [...stack, name]);
+    }
   };
-  return names.some((name) => visit(name));
+  for (const name of names) {
+    visit(name, []);
+  }
+  return onCycle;
 }
 
 function readGraph(): HubSpotGraph {
@@ -122,7 +118,13 @@ describe('v2.3.0 hubspot import findings', () => {
         'Graph-Pfad Fetch→Map belegt (Verbindungsgraph ausgewertet)',
       )
       .toBe(true);
-    expect.soft(hasCycle(graph), 'Paging-Zyklus im Verbindungsgraph').toBe(true);
+    const cycleNodes = nodesOnCycle(graph);
+    for (const fetchName of ['Fetch Companies', 'Fetch Contacts', 'Fetch Deals']) {
+      expect.soft(cycleNodes.has(fetchName), `Paging-Zyklus umfasst ${fetchName}`).toBe(true);
+    }
+    expect
+      .soft(JSON.stringify(workflow), 'Cursor paging.next.after verdrahtet')
+      .toContain('paging.next.after');
 
     const mapCode = codeOf(workflow, 'Map & Validate');
     expect.soft(mapCode, 'JSON-Parsing selbst gelungen').toContain('STAGE_MAP');
