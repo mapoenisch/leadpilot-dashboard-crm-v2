@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-16T16:03:53.008Z",
+  "capturedAt": "2026-09-16T16:37:49.500Z",
   "repository": "mapoenisch/leadpilot-dashboard-crm",
   "activeRulesets": [],
-  "captureNote": "Rulesets-API nicht auswertbar (Exit 1): gh: Upgrade to GitHub Pro or make this repository public to enable this feature. (HTTP 403)"
+  "captureNote": "Rulesets-API verweigert (HTTP 403: privates Repo ohne Pro-Freischaltung) — kein Ruleset nachweisbar"
 }
