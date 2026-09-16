@@ -7279,3 +7279,49 @@ tsc 0; verify 001–025 grün; `npm test` 100 Files / 380 Tests grün (+3/+8 aus
 
 ### 10. Schutzbereichs-Diff & Review-Status
 `git diff d399a2b -- src/simulation ':!src/simulation/__tests__' src/types src/context src/services/data src/features/resources src/services/db/crmRepository.ts` → leer (einzige Simulation-Datei: neuer Charakterisierungstest). Keine Migration, kein Secret, keine `.env.local`. **G44-Status: BEREIT FÜR UNABHÄNGIGES REVIEW** (Reviewer wiederholt verify:v23:baseline, Golden-Test, Pflicht-Gates + Stichprobe je Themenblock; 067B erst nach Freigabe).
+
+## [2026-09-16] Gate G44: Unabhängiges Review – Nacharbeit erforderlich
+
+**Review-Baseline:** `0f1b939` auf `feat/auftrag-067a-characterization`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067B bleibt bis zur Nacharbeit und erneuten unabhängigen Prüfung blockiert.
+
+### Bestätigte Nachweise
+
+- Schutzbereichsdiff gegen `d399a2b` leer; keine Produktlogik geändert.
+- Aktueller Ist-Lauf: 19 Vitest-Findings + 1 Playwright-Finding rot; `verify:v23:baseline` meldet 20/20 und Exit 0.
+- Golden-Fixture SHA-256 `949a90235d30a4ea2f79acac29cd30691860717b201728ef4415a5962b278305`; Register-/Golden-/Verifier-Selbsttests grün.
+- TypeScript, Integrity 001–025, Build und normale Playwright-Suite (165/165) grün.
+- Normale Vitest-Suite mit Node-22-Semantik: 100 Dateien / 380 Tests grün. Unter lokalem Node 26.8.1 schlägt der rohe Lauf wegen experimentellem WebStorage in drei vorhandenen Layout-Tests fehl; die verwendete Node-Version ist künftig im Gate-Nachweis anzugeben.
+- Qualitätsbaselines unverändert: ESLint 4 Fehler / 0 Warnungen, Prettier 85 Dateien.
+
+### Blockierende Review-Befunde
+
+1. **Critical:** Der Baseline-Verifier klassifiziert jede fehlgeschlagene Playwright-Ausführung unter einer Finding-ID als Produktbefund. Technische Fehler, falsche Runner, doppelte IDs und widersprüchliche Resultate werden nicht fail-closed abgewiesen.
+2. **Important:** Der Clipping-Test bricht beim ersten Viewport-Fehler ab; dadurch werden weder dessen Containergrenzen noch das zweite Zielelement geprüft. `containerClientWidth` bleibt unbenutzt.
+3. **Important:** Audit-Evidence kann bei technischem npm-Fehler fehlende Metadaten als Nullbefund speichern. Ruleset-Evidence übernimmt unkontrolliertes `stderr` und wertet Listenobjekte aus, ohne die Detailregeln je Ruleset abzurufen.
+4. **Important:** Der RLS-Vertrag sucht `organization_id` nur global im gesamten Schema. Eine einzige Spalte kann deshalb alle drei Tabellen fälschlich grün machen; tabellenspezifische RLS-Aktivierung und Organisations-Policies fehlen.
+5. **Important:** Mehrere Sollverträge prüfen nur leicht erfüllbare Quelltextmarker statt der verbindlichen Wirkung: insbesondere Quellen-Fallback, atomarer/privilegierter Seeder, vollständiger Deep-Freeze, Reload-Persistenz, tatsächliche Worker-Nutzung, n8n-Verbindungsgraph/Pagination sowie CI-Readiness.
+6. **Important:** Der Semantik-Vertrag prüft nur das Vorkommen irgendeines `<h1>`. Genau eine sichtbare Hauptüberschrift, auswählbarer Fachinhalt und das Verbot einer reinen Ganzseiten-WebP-Informationsquelle sind nicht abgesichert.
+
+### Erforderliche Nacharbeit
+
+- Verifier und Selbsttests fail-closed für Infrastrukturfehler, Runner-Mismatch, Duplikate und widersprüchliche Ergebnisse härten.
+- Clipping- und Sollverträge auf die vollständigen Abnahmekriterien aus Auftrag 067A erweitern.
+- Evidence-Capture bei technischen Fehlern abbrechen und ausschließlich kontrollierte, sanitisiert kategorisierte Fehlermeldungen speichern.
+- Danach alle G44-Pflichtbefehle erneut ausführen und diesen Review-Eintrag durch eine neue Review-Runde ergänzen. Kein Push und kein Start von 067B vor Freigabe.
+
+## [2026-09-16] Gate G44: Nacharbeit zu 6 Review-Befunden (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `0f1b939` → NICHT FREIGEGEBEN (1 Critical + 5 Important). Alle Nacharbeiten ausschließlich in 067A-Zieldateien; keine Produktlogik geändert. Umgebung dieser Nacharbeit: Node v22.11.0, npm 10.9.0 (Reviewer-Hinweis Node-26-WebStorage protokolliert, betrifft nur fremde Laufzeit).
+
+### Behebung je Befund
+1. **Critical Verifier fail-closed** (`compareFindingResults.ts`, Selbsttest 4→12 Tests, `verifyV23FindingBaseline.ts`): Report-Parsing als reine, unit-getestete Funktionen ausgelagert. Fachliches `failing` nur bei fehlgeschlagener Expect-Assertion (Signatur `AssertionError|expect(|Expected:|Received:`). Timeouts/Abbrüche, Collection- und Report-Level-Fehler (z. B. Auth-Setup), fehlende Reports, Runner-Mismatch (`vitest::id` vs `playwright::id`) und widersprüchliche Duplikate ergeben Exit 1. 8 synthetische Gegenproben (Timeout, Setup-Fehler, Widerspruch, falscher Runner, ENOENT) alle abgewiesen.
+2. **Clipping vollständig** (`element-clipping.acceptance.ts`): beide Elemente per Soft-Assertions vermessen — je Viewport- plus linke/rechte Container-Client-Grenze (`containerClientWidth` verwendet). Nachweis: Badge rechts 411.23, Tab rechts 391.17, je 3 Soft-Fehler.
+3. **Evidence fail-closed** (`captureV23ReviewEvidence.ts`): Audit erst nach Strukturvalidierung (numerische Metadaten) verwendbar, sonst Abbruch ohne Schreiben; Erfassen-vor-Schreiben (atomar); gh-Fehler klassifiziert statt stderr-Rohtext; pro Listen-Ruleset Detail-GET (Fehler dort → Abbruch). Live: Audit prod 2 mod / gesamt 16 (8 high) unverändert, Ruleset 403 klassifiziert.
+4. **RLS pro Tabelle** (`security.acceptance.ts`): je Tabelle eigene `organization_id`-Spalte im CREATE-Block, RLS-Aktivierung (grün-Sanity), organisationsgebundene Policy (rot), kein `USING/WITH CHECK (true)` (rot). Je Tabelle 3 rote + 2 grüne Nachweise.
+5. **Wirkungsnachweise** (`dataSimulation/integrations/qualityRelease.acceptance.ts`, Ingress-Graph in `security.acceptance.ts`): Fallback-Mechanismus catch→getActive belegt + Fehlercode fehlt; Seeder ohne Service-Key belegt + kein RPC/Transaktion; Deep-Freeze alle Collections/Objekte (164 Nachweise); Reload-API fehlt bei belegtem Map.set-Mechanismus; Worker-Aufruf `createWorkerAdapter(` fehlt; HubSpot-Graph BFS/Zyklus (Pfad belegt, Zyklus fehlt); CI-E2E ohne Readiness/A11y-Schritt.
+6. **Semantik vollständig** (`frontend.acceptance.ts`): je Route genau eine h1 (Zählung), h1 nicht versteckt, semantisches Strukturelement, explizites Verbot reines Ganzseiten-WebP (33×3 Nachweise).
+
+### Finale Gate-Ergebnisse (Nacharbeit)
+- `verify:v23:baseline` Exit 0: 20/20/0, 0 technische Fehler · direkte Suites: 19 Vitest + 1 Playwright rot aus registrierter Ursache · tsc 0 · verify 001–025 · `npm test` 100/388 (+8 Gegenproben) · build · playwright 165 · lint 4/0 · format 85 · Schutzbereichs-Diff leer.
+- **G44-Status: ERNEUT BEREIT FÜR ZWEITES UNABHÄNGIGES REVIEW.** Kein Push, 067B bleibt blockiert. Integration auf Planungsstand `462d32c` erst nach Freigabe.
