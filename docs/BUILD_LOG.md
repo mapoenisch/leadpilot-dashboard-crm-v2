@@ -7410,5 +7410,5 @@ tsc 0; verify 001–025 grün; `npm test` 100 Files / 380 Tests grün (+3/+8 aus
 3. **Important Ruleset-Schema:** Nicht-arrayförmige erfolgreiche Listen-Antwort bricht ohne Schreiben ab. Gegenprobe mit gefaktem `gh` (Objekt-Antwort): Exit 1, beide Evidence-Dateien per SHA unverändert.
 
 ### Finale Gate-Ergebnisse (Nacharbeit 3)
-- `verify:v23:baseline` Exit 0: 20/20/0, 0 technische Fehler · direkte Suites 19+1 rot · Selbsttests 24/24 (Register 2 + Verifier 22) · tsc 0 · verify 001–025 · `npm test` 100/395 · build · playwright 165 · lint 4/0 · format 85 · `git diff --check` sauber · Schutzbereichs-Diff leer · Golden-SHA unverändert.
+- `verify:v23:baseline` Exit 0: 20/20/0, 0 technische Fehler · direkte Suites 19+1 rot · Selbsttests 21/21 (Register 2 + Verifier 19) · tsc 0 · verify 001–025 · `npm test` 100/395 · build · playwright 165 · lint 4/0 · format 85 · `git diff --check` sauber · Schutzbereichs-Diff leer · Golden-SHA unverändert.
 - **G44-Status: ERNEUT BEREIT FÜR VIERTES UNABHÄNGIGES REVIEW.** Kein Push, keine Integration auf `462d32c`, 067B bleibt blockiert.
