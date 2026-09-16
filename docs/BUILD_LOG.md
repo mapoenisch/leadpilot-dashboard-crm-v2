@@ -7247,3 +7247,35 @@ Alle **15 Paare sind 100% byte-verschieden (unterschiedliche SHA-256 Hashes)**. 
 
 ### 8. Ergebnis & Freigabestatus
 - **Gate G10 Status:** BEREIT ZUR FREIGABE (vollständig implementiert, verifiziert und dokumentiert).
+
+## [2026-09-16] Gate G44: Charakterisierung und Regression (Auftrag 067A, Builder-Eintrag)
+
+### 1. Ziel & Kontext
+067A behebt keinen Produktmangel, sondern schafft die belastbare Messbasis für 067B–067S: 20 bestätigte Review-Befunde erhalten je einen reproduzierbaren Sollvertrag (rot in isolierter Suite), korrektes v2.2.0-Verhalten wird per Golden-/Charakterisierungstest grün eingefroren, ein Baseline-Verifier akzeptiert ausschließlich exakt die registrierten roten Tests. Branch: `feat/auftrag-067a-characterization`, Baseline `d399a2b`.
+
+### 2. Startmessung auf Baseline d399a2b (vor erstem Commit)
+- `npx tsc --noEmit` → 0 Fehler; `npm run verify` → Integrity 001–025 grün; `npm test` → 97 Files / 372 Tests grün; `npx playwright test --list` → 165 Tests / 5 Files; `npm run lint` → 4 Errors / 0 Warnings (Max-Lines: scenarioService, eventRules, ResourceViewer, financialIntegrity.test); `npm run format:check` → 85 abweichende Dateien.
+
+### 3. Commits & Dateiliste
+`6a0271a` Register · `cfeaeb5` Baseline-Runner · `3ea6a6b` Security-Verträge · `2248ebd` Findings-Config-Alias + File-Error-Diagnose · `76cdbdd` Golden-Fixture + Datenverträge · `5fd327c` HubSpot-Vertrag · `920686b` Frontend-/Clipping-Verträge · `ce33ec1` Evidence + Qualitätsverträge · `dab3832` + `0b52c54` Prettier (Baseline 85 unverändert). Neu: `src/review/acceptance/` (findingContract, compareFindingResults, 5 acceptance-Suites, 2 Charakterisierungstests), `src/review/fixtures/` (fullPageWebpRoutes, v2.2.0-golden-run.json), `src/simulation/__tests__/vitest/v23GoldenRun.characterization.vitest.ts`, `e2e/element-clipping.acceptance.ts`, `vitest.v23-findings.config.ts`, `playwright.v23-findings.config.ts`, `scripts/verifyV23FindingBaseline.ts`, `scripts/captureV23GoldenRun.ts`, `scripts/captureV23ReviewEvidence.ts`, `docs/reviews/v2.3.0-known-findings.json`, `docs/reviews/v2.3.0-finding-register.md`, `docs/reviews/v2.3.0-npm-audit-baseline.json`, `docs/reviews/v2.3.0-github-ruleset-baseline.json`, `docs/screenshots/auftrag-067a/README.md`. Geändert: `package.json` (nur 3 v2.3-Skripte).
+
+### 4. Finding-Register (20/20, alle expected failing)
+PR-AUTH-01/G45, PR-RLS-02/G45, PR-INGEST-03/G46, PR-SOURCE-04/G47, PR-SEED-05/G46, PR-BASELINE-06/G48, PR-FREEZE-07/G48, PR-PERSIST-08/G49, PR-WORKER-09/G50, PR-HUBSPOT-10/G51, PR-SEMANTIC-11/G55, PR-A11Y-12/G56, PR-CLIP-13/G56 (Playwright), PR-ASSET-14/G56, PR-DEPENDENCY-15/G57, PR-QUALITY-16/G57, PR-RELEASE-17/G58, PR-CI-18/G58, PR-LICENSE-19/G65, PR-BRANCH-20/G58. TS-/JSON-/Markdown-Register per Charakterisierungstest auf identische ID-Menge geprüft.
+
+### 5. Golden Run
+Input: Seed 777001, 120 Ticks, simulationStartDate 2026-01-01, Quelle simulated-crm, feste IDs/Zeit. Zwei vollständig zurückgesetzte Läufe bytegleich, kein Wall-Clock-Leak. Fixture-SHA-256: `949a90235d30a4ea2f79acac29cd30691860717b201728ef4415a5962b278305`. Grüner Charakterisierungstest in normaler Suite + Seed-42-Goldwerte (0.6011/0.4483/0.8525).
+
+### 6. Direkte rote Suites (alle aus registrierter Ursache, kein Infra-Fehler)
+`npm run test:v23:findings` → Exit 1, 19/19 rot (Auth: localAuthAdapter-Import; RLS: kein organization_id; Ingress: kein Signatur-Node; Source: kein Envelope; Seed: Seeder im Produktpfad; Baseline: identische Metrics trotz verschiedener Baselines; Freeze: companies nicht frozen; Persist: kein Reload-Backend; Worker: kein createWorkerAdapter; HubSpot: kein after-Param + `|| 'LOST'`; Semantic: keine h1 in 33 Dateien; A11y: kein Skip-Link/Initialfokus + Modal-Backdrop role=button + Doppel-DOM; Asset: Logo fehlt + Google-Fonts + keine Header; Dependency: prod-Audit 2 / gesamt-high 8; Quality: Baselines 4/4/0/22 + Coverage 0 + Prettier 85 + Max-Lines; Release: Baseline-Fallback + exit(0); CI: @v4-Tags + PR-only-E2E; License: keine LICENSE; Branch: kein Ruleset). `npm run test:v23:clipping` → Exit 1, ausschließlich PR-CLIP-13 rot.
+
+### 7. Grüner Baseline-Verifier
+`npm run verify:v23:baseline` → Exit 0: „20 erwartete Findings, 20 gemessene rote, 0 Abweichungen". File-Error-Härtung (Alias-Fix in eigener Config; Collection-Fehler würden explizit rot melden).
+
+### 8. Normale grüne Gates & unveränderte Qualitäts-Baseline
+tsc 0; verify 001–025 grün; `npm test` 100 Files / 380 Tests grün (+3/+8 aus 067A, keine acceptance-Datei enthalten); `npm run build` grün; `npx playwright test` 165 passed (keine acceptance-Datei enthalten); lint exakt 4/0; format:check exakt 85.
+
+### 9. Clipping-Matrix
+`/resources/materials` 375px, Dok-Overflow 0: Badge `100% Verlustfrei integriert` rechts 411.23, Tab `Operations & SLA` rechts 391.17 — beide über Viewport und Scroll-Container (MAIN 375) hinaus. Details: `docs/screenshots/auftrag-067a/README.md`.
+
+### 10. Schutzbereichs-Diff & Review-Status
+`git diff d399a2b -- src/simulation ':!src/simulation/__tests__' src/types src/context src/services/data src/features/resources src/services/db/crmRepository.ts` → leer (einzige Simulation-Datei: neuer Charakterisierungstest). Keine Migration, kein Secret, keine `.env.local`. **G44-Status: BEREIT FÜR UNABHÄNGIGES REVIEW** (Reviewer wiederholt verify:v23:baseline, Golden-Test, Pflicht-Gates + Stichprobe je Themenblock; 067B erst nach Freigabe).
