@@ -230,7 +230,13 @@ function runRulesetEvidence(): RulesetEvidence {
   } catch {
     throw new Error('gh lieferte kein parsebares JSON — kein Befund gespeichert.');
   }
-  const entries = Array.isArray(list) ? list : [];
+  // Nur der explizite 403-Fall (oben) darf einen leeren Befund erzeugen. Eine
+  // erfolgreiche, aber nicht-arrayförmige Antwort ist unvollständig und bricht
+  // ohne Dateischreibung ab.
+  if (!Array.isArray(list)) {
+    throw new Error('Ruleset-Liste ist kein Array — kein Befund gespeichert.');
+  }
+  const entries: unknown[] = list;
   const activeRulesets: RulesetEvidence['activeRulesets'] = [];
   for (const entry of entries) {
     if (!isRecord(entry) || typeof entry['id'] !== 'number') {
