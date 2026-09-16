@@ -51,7 +51,9 @@ describe('v23 golden run characterization', () => {
       eventSignature: result.events.map(
         (event) => `${event.id}|${event.type}|${event.correlationId}`,
       ),
-      timeSeriesHash: createHash('sha256').update(JSON.stringify(timeSeries), 'utf-8').digest('hex'),
+      timeSeriesHash: createHash('sha256')
+        .update(JSON.stringify(timeSeries), 'utf-8')
+        .digest('hex'),
       timeSeriesLength: timeSeries.length,
     };
 
