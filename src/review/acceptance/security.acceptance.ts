@@ -33,7 +33,10 @@ function readWorkflowGraph(relativePath: string): WorkflowGraph {
 
 function successors(graph: WorkflowGraph, nodeName: string): string[] {
   const outputs = graph.connections?.[nodeName]?.main ?? [];
-  return outputs.flat().map((edge) => edge?.node ?? '').filter((name) => name.length > 0);
+  return outputs
+    .flat()
+    .map((edge) => edge?.node ?? '')
+    .filter((name) => name.length > 0);
 }
 
 function isGuardNode(graph: WorkflowGraph, nodeName: string): boolean {
@@ -49,7 +52,10 @@ function ingressPath(graph: WorkflowGraph): { path: string[]; guardOnPath: boole
     .map((node) => node.name ?? '');
   const postgres = nodes.find((node) => /postgres/i.test(node.name ?? ''))?.name ?? '';
   const visited = new Set<string>();
-  const queue: Array<{ name: string; path: string[] }> = starts.map((name) => ({ name, path: [name] }));
+  const queue: Array<{ name: string; path: string[] }> = starts.map((name) => ({
+    name,
+    path: [name],
+  }));
   while (queue.length > 0) {
     const current = queue.shift();
     if (!current || visited.has(current.name)) {
@@ -86,36 +92,49 @@ describe('v2.3.0 security findings', () => {
       const block = blockPattern.exec(schema)?.[1] ?? '';
       expect.soft(block, `${table}: Tabellendefinition vorhanden`).not.toBe('');
       expect.soft(block, `${table}: eigene organization_id-Spalte`).toContain('organization_id');
-      const rlsPattern = new RegExp(`ALTER TABLE\\s+(public\\.)?${table}\\s+ENABLE ROW LEVEL SECURITY`);
+      const rlsPattern = new RegExp(
+        `ALTER TABLE\\s+(public\\.)?${table}\\s+ENABLE ROW LEVEL SECURITY`,
+      );
       expect.soft(rlsPattern.test(schema), `${table}: RLS aktiviert`).toBe(true);
       const statements = schema.split(';');
       const tablePolicies = statements.filter((statement) =>
         new RegExp(`CREATE POLICY[\\s\\S]*ON\\s+(public\\.)?${table}\\b`).test(statement),
       );
       expect.soft(tablePolicies.length, `${table}: Policies vorhanden`).toBeGreaterThan(0);
-      expect.soft(
-        tablePolicies.some((policy) => policy.includes('organization_id')),
-        `${table}: organisationsgebundene Policy`,
-      ).toBe(true);
-      expect.soft(
-        tablePolicies.some((policy) => /USING\s*\(\s*true\s*\)/.test(policy)),
-        `${table}: kein offener USING (true)-Read`,
-      ).toBe(false);
-      expect.soft(
-        tablePolicies.some((policy) => /WITH CHECK\s*\(\s*true\s*\)/.test(policy)),
-        `${table}: kein offener WITH CHECK (true)-Write`,
-      ).toBe(false);
+      expect
+        .soft(
+          tablePolicies.some((policy) => policy.includes('organization_id')),
+          `${table}: organisationsgebundene Policy`,
+        )
+        .toBe(true);
+      expect
+        .soft(
+          tablePolicies.some((policy) => /USING\s*\(\s*true\s*\)/.test(policy)),
+          `${table}: kein offener USING (true)-Read`,
+        )
+        .toBe(false);
+      expect
+        .soft(
+          tablePolicies.some((policy) => /WITH CHECK\s*\(\s*true\s*\)/.test(policy)),
+          `${table}: kein offener WITH CHECK (true)-Write`,
+        )
+        .toBe(false);
     }
   });
 
   it('[PR-INGEST-03] weist unsignierte Ingress-Anfragen ab', () => {
     const graph = readWorkflowGraph('tools/n8n/live-kpi-ingest.workflow.json');
     const nodeNames = (graph.nodes ?? []).map((node) => node.name ?? '');
-    expect.soft(nodeNames.some((name) => name.includes('Postgres')), 'Postgres-Node vorhanden').toBe(
-      true,
-    );
+    expect
+      .soft(
+        nodeNames.some((name) => name.includes('Postgres')),
+        'Postgres-Node vorhanden',
+      )
+      .toBe(true);
     const ingress = ingressPath(graph);
-    expect.soft(ingress.path.length, 'Webhook→Postgres-Pfad im Verbindungsgraph').toBeGreaterThan(0);
+    expect
+      .soft(ingress.path.length, 'Webhook→Postgres-Pfad im Verbindungsgraph')
+      .toBeGreaterThan(0);
     expect.soft(ingress.guardOnPath, 'Signaturprüfung auf dem Ingress-Pfad').toBe(true);
     const guardNode = (graph.nodes ?? []).find((node) => isGuardNode(graph, node.name ?? ''));
     const guardText = JSON.stringify(guardNode?.parameters ?? {});

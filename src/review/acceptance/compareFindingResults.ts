@@ -189,7 +189,11 @@ export function compareFindingResults(
   const groups = new Map<string, { id: string; runner: string; actuals: Set<string> }>();
   for (const runResult of results) {
     const key = `${runResult.runner}::${runResult.id}`;
-    const group = groups.get(key) ?? { id: runResult.id, runner: runResult.runner, actuals: new Set<string>() };
+    const group = groups.get(key) ?? {
+      id: runResult.id,
+      runner: runResult.runner,
+      actuals: new Set<string>(),
+    };
     group.actuals.add(runResult.actual);
     groups.set(key, group);
   }

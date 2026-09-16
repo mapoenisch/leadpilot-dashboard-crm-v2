@@ -37,7 +37,9 @@ function runStep(label: string, command: string, args: string[]): void {
   // ungleich 0 ist bei roten Sollverträgen erwartet, die fachliche Wertung
   // erfolgt ausschließlich über die Report-Reports und Expect-Nachweise.
   // eslint-disable-next-line no-console
-  console.log(`[verify:v23:baseline] ${label}: Runner-Exit ${status} (wird gegen Register geprüft)`);
+  console.log(
+    `[verify:v23:baseline] ${label}: Runner-Exit ${status} (wird gegen Register geprüft)`,
+  );
 }
 
 function fail(message: string): never {
@@ -66,7 +68,9 @@ function main(): void {
   ]);
 
   if (!existsSync(vitestReportPath)) {
-    fail(`Vitest-Report fehlt (${vitestReportPath}) — technischer Runner-Fehler, kein Produktbefund.`);
+    fail(
+      `Vitest-Report fehlt (${vitestReportPath}) — technischer Runner-Fehler, kein Produktbefund.`,
+    );
   }
   if (!existsSync(playwrightReportPath)) {
     fail(
@@ -97,7 +101,10 @@ function main(): void {
     fail(`${technicalErrors.length} technische Fehler — kein belastbarer Produktbefund.`);
   }
 
-  const knownRaw = readFileSync(resolve(repoRoot, 'docs/reviews/v2.3.0-known-findings.json'), 'utf-8');
+  const knownRaw = readFileSync(
+    resolve(repoRoot, 'docs/reviews/v2.3.0-known-findings.json'),
+    'utf-8',
+  );
   const known = JSON.parse(knownRaw) as KnownFinding[];
   const comparison = compareFindingResults(known, [
     ...vitestParsed.results,

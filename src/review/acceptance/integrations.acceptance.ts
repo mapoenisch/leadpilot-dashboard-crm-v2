@@ -47,7 +47,10 @@ interface HubSpotGraph extends HubSpotWorkflow {
 
 function graphSuccessors(graph: HubSpotGraph, nodeName: string): string[] {
   const outputs = graph.connections?.[nodeName]?.main ?? [];
-  return outputs.flat().map((edge) => edge?.node ?? '').filter((name) => name.length > 0);
+  return outputs
+    .flat()
+    .map((edge) => edge?.node ?? '')
+    .filter((name) => name.length > 0);
 }
 
 function reaches(graph: HubSpotGraph, from: string, to: string): boolean {
@@ -68,7 +71,9 @@ function reaches(graph: HubSpotGraph, from: string, to: string): boolean {
 }
 
 function hasCycle(graph: HubSpotGraph): boolean {
-  const names = (graph.nodes ?? []).map((node) => node.name ?? '').filter((name) => name.length > 0);
+  const names = (graph.nodes ?? [])
+    .map((node) => node.name ?? '')
+    .filter((name) => name.length > 0);
   const visiting = new Set<string>();
   const done = new Set<string>();
   const visit = (name: string): boolean => {
@@ -111,10 +116,12 @@ describe('v2.3.0 hubspot import findings', () => {
     expect.soft(loopTypes, 'Paging-Schleife vorhanden').toContain('n8n-nodes-base.splitInBatches');
 
     const graph = readGraph();
-    expect.soft(
-      reaches(graph, 'Fetch Companies', 'Map & Validate Envelope'),
-      'Graph-Pfad Fetch→Map belegt (Verbindungsgraph ausgewertet)',
-    ).toBe(true);
+    expect
+      .soft(
+        reaches(graph, 'Fetch Companies', 'Map & Validate Envelope'),
+        'Graph-Pfad Fetch→Map belegt (Verbindungsgraph ausgewertet)',
+      )
+      .toBe(true);
     expect.soft(hasCycle(graph), 'Paging-Zyklus im Verbindungsgraph').toBe(true);
 
     const mapCode = codeOf(workflow, 'Map & Validate');

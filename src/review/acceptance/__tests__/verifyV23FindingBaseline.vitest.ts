@@ -83,9 +83,7 @@ describe('compareFindingResults', () => {
     ];
     const comparison = compareFindingResults(contracts, wrongRunner);
     expect(comparison.ok).toBe(false);
-    expect(
-      comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13')),
-    ).toBe(true);
+    expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13'))).toBe(true);
   });
 
   it('weist widersprüchliche Ergebnisse derselben ID ab', () => {
@@ -175,7 +173,11 @@ describe('parsePlaywrightFindingResults', () => {
           specs: [
             {
               title: '[PR-CLIP-13] clipping',
-              tests: [{ results: [{ status: 'timedOut', error: { message: 'Timeout 30000ms exceeded' } }] }],
+              tests: [
+                {
+                  results: [{ status: 'timedOut', error: { message: 'Timeout 30000ms exceeded' } }],
+                },
+              ],
             },
           ],
         },
@@ -209,7 +211,10 @@ describe('parsePlaywrightFindingResults', () => {
                   results: [
                     {
                       status: 'failed',
-                      error: { message: 'Error: rechter Rand\n\nexpect(received).toBeLessThanOrEqual(expected)\n\nExpected: <= 375' },
+                      error: {
+                        message:
+                          'Error: rechter Rand\n\nexpect(received).toBeLessThanOrEqual(expected)\n\nExpected: <= 375',
+                      },
                     },
                   ],
                 },

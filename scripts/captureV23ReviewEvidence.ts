@@ -187,7 +187,8 @@ function runRulesetEvidence(): RulesetEvidence {
     capturedAt,
     repository: REPOSITORY,
     activeRulesets,
-    captureNote: 'sanitisiertes Live-Evidence aus Listen- und Detailabfrage; keine Tokens oder Header gespeichert',
+    captureNote:
+      'sanitisiertes Live-Evidence aus Listen- und Detailabfrage; keine Tokens oder Header gespeichert',
   };
 }
 
