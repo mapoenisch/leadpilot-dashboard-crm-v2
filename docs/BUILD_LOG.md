@@ -7373,3 +7373,42 @@ tsc 0; verify 001–025 grün; `npm test` 100 Files / 380 Tests grün (+3/+8 aus
 ### Finale Gate-Ergebnisse (Nacharbeit 2)
 - `verify:v23:baseline` Exit 0: 20/20/0, 0 technische Fehler · direkte Suites 19+1 rot aus registrierter Ursache · Selbsttests 20/20 · tsc 0 · verify 001–025 · `npm test` 100/392 · build · playwright 165 · lint 4/0 · format 85 · `git diff --check` sauber · Schutzbereichs-Diff leer · Golden-SHA unverändert.
 - **G44-Status: ERNEUT BEREIT FÜR DRITTES UNABHÄNGIGES REVIEW.** Kein Push, keine Integration auf `462d32c`, 067B bleibt blockiert.
+
+## [2026-09-16] Gate G44: Drittes unabhängiges Review – weitere Nacharbeit erforderlich
+
+**Review-Baseline:** `f2736ee` auf `feat/auftrag-067a-characterization`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067B, Integration und Push bleiben blockiert.
+
+### Bestätigte Nachweise
+
+- Schutzbereichsdiff gegen `d399a2b` leer; `git diff --check` sauber; keine Produktlogik geändert.
+- `verify:v23:baseline` Exit 0: 20 erwartete/20 gemessene rote Findings/0 Abweichungen. Der Clipping-Lauf misst beide Ziele und alle drei vorgesehenen Grenzverletzungen je Ziel.
+- Verifier-Selbsttest 16/16 grün; TypeScript, Integrity 001–025, Build und die normale Playwright-Suite (165/165) grün.
+- Qualitätsbaselines unverändert: ESLint 4 Fehler/0 Warnungen, Prettier 85 Abweichungen.
+- Der normale Vitest-Lauf ist unter der lokalen Node 26.8.1 mit den drei bekannten Layout-Tests rot (WebStorage-Experiment); der Builder-Nachweis verwendet Node 22.11.0. Das ist kein neuer 067A-Produktbefund.
+
+### Blockierende Review-Befunde
+
+1. **Critical – doppelte Registereinträge werden weiter akzeptiert:** `findingContract.characterization.vitest.ts` faltet JSON-IDs per `Set` und sucht je ID nur den ersten Eintrag. `compareFindingResults` erkennt außerdem keine doppelte Vertragszeile. Ein identischer zusätzlicher JSON-Eintrag kann damit 21 erwartete gegen 20 gemessene Findings ergeben und dennoch Exit 0 liefern.
+2. **Critical – Vitest-Datei-/Hookfehler neben einer Produktassertion bleiben möglich:** `parseVitestFindingResults` behandelt `fileResult.message` nur dann als technisch, wenn keine Assertions vorhanden sind. Enthält eine fehlgeschlagene Datei gleichzeitig eine markierte Sollassertion und einen Setup-/Hookfehler, kann der technische Fehler ignoriert und das rote Finding akzeptiert werden.
+3. **Important – Ruleset-JSON-Schema noch nicht fail-closed:** Eine erfolgreiche `gh api .../rulesets`-Antwort, die kein Array ist, wird mit `Array.isArray(list) ? list : []` still als leerer Befund gespeichert. Nur der explizite 403-Fall darf einen leeren Befund erzeugen; jede andere unvollständige Schemaantwort muss ohne Dateischreibung abbrechen.
+
+### Erforderliche Nacharbeit
+
+- Doppelte Contracts sowohl im JSON-Register als auch vor dem Soll/Ist-Abgleich fail-closed abweisen; einen synthetischen 21-zu-20-Gegenbeweis ergänzen.
+- Dateiweite Vitest-Fehler und Hook-/Setup-Fehler unabhängig von vorhandenen Assertions als technische Fehler erfassen und gegen einen markierten Parallelfehler testen.
+- Nicht-arrayförmige erfolgreiche Ruleset-Listen als technischen Fehler behandeln und die Gegenprobe „Exit 1 ohne Dateischreibung“ ergänzen.
+- Danach die G44-Pflichtgates erneut ausführen und ein viertes unabhängiges Review anfordern. Kein Push und kein Start von 067B vor Freigabe.
+
+## [2026-09-16] Gate G44: Nacharbeit zur dritten Review-Runde (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `f2736ee` → NICHT FREIGEGEBEN (2 Critical + 1 Important). Alle Nacharbeiten ausschließlich in 067A-Zieldateien; keine Produktlogik geändert. Umgebung: Node v22.11.0, npm 10.9.0.
+
+### Behebung je Befund
+1. **Critical doppelte Registereinträge:** Charakterisierungstest fordert exakt 20 JSON-Einträge mit 20 eindeutigen IDs (kein Set-Falten mehr); `compareFindingResults` weist doppelte Vertragszeilen (`duplicate-contract`, pro Runner-ID und pro Finding-ID) ab. 21-zu-20-Gegenbeweis als Selbsttest (21 Contracts aus Register + Duplikat vs. 20 Resultate → `ok: false`).
+2. **Critical Datei-/Hookfehler:** Vitest-`fileResult.message` ist bei fehlgeschlagener Datei immer ein technischer Fehler — auch neben markierter Assertion (Ergebnis wird weiter erfasst, Verifier bricht dennoch ab). Hook-Titel (`before/after(All|Each)`, `hook`) sind in beiden Parsern immer technisch, selbst bei markierter Textnähe. Selbsttests: Dateifehler-neben-Marker, Hook-mit-Markertext. Live-Verhalten belegt: echte Reports haben leere File-Messages, alle 20 Findings weiter als `failing` mit Marker erkannt.
+3. **Important Ruleset-Schema:** Nicht-arrayförmige erfolgreiche Listen-Antwort bricht ohne Schreiben ab. Gegenprobe mit gefaktem `gh` (Objekt-Antwort): Exit 1, beide Evidence-Dateien per SHA unverändert.
+
+### Finale Gate-Ergebnisse (Nacharbeit 3)
+- `verify:v23:baseline` Exit 0: 20/20/0, 0 technische Fehler · direkte Suites 19+1 rot · Selbsttests 24/24 (Register 2 + Verifier 22) · tsc 0 · verify 001–025 · `npm test` 100/395 · build · playwright 165 · lint 4/0 · format 85 · `git diff --check` sauber · Schutzbereichs-Diff leer · Golden-SHA unverändert.
+- **G44-Status: ERNEUT BEREIT FÜR VIERTES UNABHÄNGIGES REVIEW.** Kein Push, keine Integration auf `462d32c`, 067B bleibt blockiert.
