@@ -44,13 +44,19 @@ function parseVitestReport(raw: string, runner: RunnerName): MeasuredResult[] {
   const report = JSON.parse(raw) as {
     testResults?: Array<{
       name?: string;
+      status?: string;
+      message?: string;
       assertionResults?: Array<{ ancestorTitles?: string[]; title?: string; status?: string }>;
     }>;
   };
   const merged = new Map<string, MeasuredResult>();
+  const fileErrors: string[] = [];
   const testResults = Array.isArray(report.testResults) ? report.testResults : [];
   for (const fileResult of testResults) {
     const assertions = Array.isArray(fileResult.assertionResults) ? fileResult.assertionResults : [];
+    if (fileResult.status === 'failed' && assertions.length === 0) {
+      fileErrors.push(`${fileResult.name ?? 'unbekannte Datei'}: ${fileResult.message ?? 'Collection-Fehler'}`);
+    }
     for (const assertion of assertions) {
       const ancestors = Array.isArray(assertion.ancestorTitles) ? assertion.ancestorTitles : [];
       const fullTitle = [...ancestors, assertion.title ?? ''].join(' ');
@@ -67,7 +73,7 @@ function parseVitestReport(raw: string, runner: RunnerName): MeasuredResult[] {
       }
     }
   }
-  return [...merged.values()];
+  return { results: [...merged.values()], fileErrors };
 }
 
 function collectPlaywrightResults(node: unknown, inheritedId: string | null, acc: Map<string, MeasuredResult>): void {
@@ -161,10 +167,13 @@ function main(): void {
 
   let measured: MeasuredResult[];
   try {
-    measured = [
-      ...parseVitestReport(readFileSync(vitestReportPath, 'utf-8'), 'vitest'),
-      ...parsePlaywrightReport(readFileSync(playwrightReportPath, 'utf-8')),
-    ];
+    const vitest = parseVitestReport(readFileSync(vitestReportPath, 'utf-8'), 'vitest');
+    if (vitest.fileErrors.length > 0) {
+      fail(
+        `Vitest-Dateifehler (technisch, kein Produktbefund): ${vitest.fileErrors.join(' | ').slice(0, 500)}`,
+      );
+    }
+    measured = [...vitest.results, ...parsePlaywrightReport(readFileSync(playwrightReportPath, 'utf-8'))];
   } catch (error) {
     fail(`Reports nicht lesbar (${error instanceof Error ? error.message : String(error)}).`);
   }
