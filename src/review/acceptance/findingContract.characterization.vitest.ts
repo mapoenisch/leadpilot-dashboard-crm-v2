@@ -34,6 +34,10 @@ describe('findingContract-Register', () => {
   it('stimmt in TypeScript-, JSON- und Markdown-Register exakt überein', () => {
     const jsonRaw = readFileSync(resolve(reviewsDir, 'v2.3.0-known-findings.json'), 'utf-8');
     const jsonEntries = JSON.parse(jsonRaw) as FindingJsonEntry[];
+    // Kein Zusammenfalten: Auch doppelte JSON-Zeilen müssen scheitern —
+    // exakt 20 Einträge mit 20 eindeutigen IDs.
+    expect(jsonEntries).toHaveLength(20);
+    expect(new Set(jsonEntries.map((entry) => entry.id)).size).toBe(20);
     const tsIds = [...V23_FINDINGS.map((finding) => finding.id)].sort();
     const jsonIds = [...new Set(jsonEntries.map((entry) => entry.id))].sort();
     expect(jsonIds).toEqual(tsIds);

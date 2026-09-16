@@ -11,6 +11,7 @@ import {
   type FindingRunResult,
   type V23FindingContractLike,
 } from '../compareFindingResults';
+import { V23_FINDINGS } from '../findingContract';
 
 const contracts: readonly V23FindingContractLike[] = [
   {
@@ -126,6 +127,22 @@ describe('compareFindingResults', () => {
     expect(comparison.ok).toBe(false);
     expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13'))).toBe(true);
   });
+
+  it('weist einen doppelten Registereintrag ab (21-zu-20-Gegenbeweis)', () => {
+    const first = V23_FINDINGS.find((finding) => finding.id === 'PR-AUTH-01');
+    if (!first) {
+      throw new Error('Testsetup: PR-AUTH-01 fehlt im Register.');
+    }
+    const contracts21 = [...V23_FINDINGS, first];
+    const results20 = V23_FINDINGS.map((finding) => result(finding.id, finding.runner, 'failing'));
+    const comparison = compareFindingResults(contracts21, results20);
+    expect(comparison.ok).toBe(false);
+    expect(
+      comparison.mismatches.some(
+        (mismatch) => mismatch.includes('PR-AUTH-01') && mismatch.includes('duplicate-contract'),
+      ),
+    ).toBe(true);
+  });
 });
 
 describe('parseVitestFindingResults', () => {
@@ -213,6 +230,53 @@ describe('parseVitestFindingResults', () => {
     const parsed = parseVitestFindingResults(report);
     expect(parsed.results).toEqual([]);
     expect(parsed.technicalErrors.some((entry) => entry.includes('missing-marker'))).toBe(true);
+  });
+
+  it('meldet Dateifehler auch neben markierter Assertion als technischen Fehler', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'mixed.acceptance.ts',
+          status: 'failed',
+          message: 'Unhandled Rejection: setup failed after test',
+          assertionResults: [
+            {
+              ancestorTitles: [],
+              title: '[PR-AUTH-01] vertrag',
+              status: 'failed',
+              failureMessages: [
+                "AssertionError: expected '...' not to contain 'from './localAuthAdapter''",
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.results).toEqual([result('PR-AUTH-01', 'vitest', 'failing')]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('file error'))).toBe(true);
+  });
+
+  it('meldet Hookfehler trotz markierter Textnähe als technischen Fehler', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'hooked.acceptance.ts',
+          status: 'failed',
+          assertionResults: [
+            {
+              ancestorTitles: ['beforeAll hook'],
+              title: '[PR-AUTH-01] vertrag',
+              status: 'failed',
+              failureMessages: ["AssertionError: hook setup failed for from './localAuthAdapter'"],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('hook failure'))).toBe(true);
   });
 });
 

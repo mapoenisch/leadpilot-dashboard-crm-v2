@@ -36,6 +36,7 @@ export interface ParsedFindingResults {
 
 const FINDING_ID_PATTERN = /\[(PR-[A-Z0-9]+-\d{2})\]/;
 const EXPECT_EVIDENCE_PATTERN = /AssertionError|expect\(|Expected:|Received:/;
+const HOOK_TITLE_PATTERN = /before(All|Each)|after(All|Each)|hook/i;
 
 // Explizite Produktmarker je Finding-ID: unverwechselbare Teilstrings, die nur
 // die echte Vertrags-Assertion im Fehlertext hinterlässt (Titel der
@@ -117,10 +118,25 @@ export function parseVitestFindingResults(reportJson: string): ParsedFindingResu
       );
       continue;
     }
+    // Dateiweite Fehler gelten unabhängig von vorhandenen Assertions: Ein
+    // Setup-/Hook-/Unhandled-Fehler neben einer markierten Sollassertion darf
+    // das Finding nicht als bestätigt werten (der Verifier bricht technisch ab).
+    if (fileResult.status === 'failed' && (fileResult.message ?? '').trim().length > 0) {
+      technicalErrors.push(
+        `vitest file error ${fileResult.name ?? 'unbekannte Datei'}: ${(fileResult.message ?? '').slice(0, 300)}`,
+      );
+    }
     for (const assertion of assertions) {
       const ancestors = Array.isArray(assertion.ancestorTitles) ? assertion.ancestorTitles : [];
       const fullTitle = [...ancestors, assertion.title ?? ''].join(' ');
       const id = extractFindingId(fullTitle);
+      const isHookFailure = assertion.status === 'failed' && HOOK_TITLE_PATTERN.test(fullTitle);
+      if (isHookFailure) {
+        technicalErrors.push(
+          `vitest hook failure ${id ?? fullTitle.slice(0, 120)}: ${(assertion.failureMessages ?? []).join('\n').slice(0, 300)}`,
+        );
+        continue;
+      }
       if (assertion.status === 'passed') {
         if (id) {
           results.push({ id, runner: 'vitest', actual: 'passing' });
@@ -173,6 +189,11 @@ function collectPlaywright(
   }
   const leafResults = node['results'];
   if (Array.isArray(leafResults) && leafResults.length > 0) {
+    const nodeTitle = typeof node['title'] === 'string' ? node['title'] : 'unknown';
+    if (HOOK_TITLE_PATTERN.test(nodeTitle)) {
+      technicalErrors.push(`playwright hook failure ${nodeTitle.slice(0, 120)}`);
+      return;
+    }
     let sawMarkedFailing = false;
     let sawPassing = false;
     for (const entry of leafResults) {
@@ -256,6 +277,25 @@ export function compareFindingResults(
   results: readonly FindingRunResult[],
 ): FindingComparison {
   const mismatches: string[] = [];
+  // Doppelte Vertragszeilen werden fail-closed abgewiesen — auch identische
+  // Duplikate dürfen 21 erwartete gegen 20 gemessene Findings nicht grün machen.
+  const seenContracts = new Set<string>();
+  for (const contract of contracts) {
+    const contractKey = `${contract.runner}::${contract.id}`;
+    if (seenContracts.has(contractKey)) {
+      mismatches.push(`duplicate-contract:${contractKey} (Vertragszeile doppelt registriert)`);
+    } else {
+      seenContracts.add(contractKey);
+    }
+  }
+  const seenIds = new Set<string>();
+  for (const contract of contracts) {
+    if (seenIds.has(contract.id)) {
+      mismatches.push(`duplicate-contract:${contract.id} (Finding-ID doppelt registriert)`);
+    } else {
+      seenIds.add(contract.id);
+    }
+  }
   // Rohzählung ohne Zusammenfaltung: exakt ein Resultat je (runner, id).
   const groups = new Map<string, FindingRunResult[]>();
   for (const runResult of results) {
