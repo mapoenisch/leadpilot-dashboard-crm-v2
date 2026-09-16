@@ -37,6 +37,64 @@ function codeOf(workflow: HubSpotWorkflow, namePart: string): string {
   return node?.parameters?.jsCode ?? '';
 }
 
+interface HubSpotEdge {
+  node?: string;
+}
+
+interface HubSpotGraph extends HubSpotWorkflow {
+  connections?: Record<string, { main?: HubSpotEdge[][] }>;
+}
+
+function graphSuccessors(graph: HubSpotGraph, nodeName: string): string[] {
+  const outputs = graph.connections?.[nodeName]?.main ?? [];
+  return outputs.flat().map((edge) => edge?.node ?? '').filter((name) => name.length > 0);
+}
+
+function reaches(graph: HubSpotGraph, from: string, to: string): boolean {
+  const visited = new Set<string>();
+  const queue = [from];
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current || visited.has(current)) {
+      continue;
+    }
+    visited.add(current);
+    if (current === to) {
+      return true;
+    }
+    queue.push(...graphSuccessors(graph, current));
+  }
+  return false;
+}
+
+function hasCycle(graph: HubSpotGraph): boolean {
+  const names = (graph.nodes ?? []).map((node) => node.name ?? '').filter((name) => name.length > 0);
+  const visiting = new Set<string>();
+  const done = new Set<string>();
+  const visit = (name: string): boolean => {
+    if (done.has(name)) {
+      return false;
+    }
+    if (visiting.has(name)) {
+      return true;
+    }
+    visiting.add(name);
+    for (const next of graphSuccessors(graph, name)) {
+      if (visit(next)) {
+        return true;
+      }
+    }
+    visiting.delete(name);
+    done.add(name);
+    return false;
+  };
+  return names.some((name) => visit(name));
+}
+
+function readGraph(): HubSpotGraph {
+  return readWorkflow() as HubSpotGraph;
+}
+
 describe('v2.3.0 hubspot import findings', () => {
   it('[PR-HUBSPOT-10] paginiert vollständig, quarantäniert Stages und weist Integrität nach', () => {
     const workflow = readWorkflow();
@@ -51,6 +109,13 @@ describe('v2.3.0 hubspot import findings', () => {
     }
     const loopTypes = (workflow.nodes ?? []).map((node) => node.type ?? '');
     expect.soft(loopTypes, 'Paging-Schleife vorhanden').toContain('n8n-nodes-base.splitInBatches');
+
+    const graph = readGraph();
+    expect.soft(
+      reaches(graph, 'Fetch Companies', 'Map & Validate Envelope'),
+      'Graph-Pfad Fetch→Map belegt (Verbindungsgraph ausgewertet)',
+    ).toBe(true);
+    expect.soft(hasCycle(graph), 'Paging-Zyklus im Verbindungsgraph').toBe(true);
 
     const mapCode = codeOf(workflow, 'Map & Validate');
     expect.soft(mapCode, 'JSON-Parsing selbst gelungen').toContain('STAGE_MAP');

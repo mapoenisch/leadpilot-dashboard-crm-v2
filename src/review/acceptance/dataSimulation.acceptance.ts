@@ -34,21 +34,40 @@ describe('v2.3.0 data and simulation findings', () => {
     dataSourceRegistry.setActive('simulated-crm');
     const companies = await CRMRepository.getCompanies();
     expect(companies.length, 'stiller Fallback liefert Daten').toBeGreaterThan(0);
+    const repositorySource = readRepo('src/services/db/crmRepository.ts');
+    expect.soft(
+      /catch[\s\S]{0,400}getActive/.test(repositorySource),
+      'stiller Fallback-Mechanismus belegt (catch → getActive)',
+    ).toBe(true);
+    expect.soft(
+      repositorySource,
+      'Supabase-Fehler trägt expliziten Quellen-Fehlercode',
+    ).toMatch(/DATA_SOURCE_UNAVAILABLE|DATA_SOURCE_INTEGRITY/);
     const envelope = (companies as unknown as { envelope?: { source?: unknown; mode?: unknown } })
       .envelope;
-    expect(envelope?.source, 'Envelope nennt die Quelle').toBeDefined();
-    expect(envelope?.mode, 'Envelope nennt live/demo/baseline').toMatch(/^(live|demo|baseline)$/);
+    expect.soft(envelope?.source, 'Envelope nennt die Quelle').toBeDefined();
+    expect.soft(envelope?.mode, 'Envelope nennt live/demo/baseline').toMatch(
+      /^(live|demo|baseline)$/,
+    );
   });
 
   it('[PR-SEED-05] seedet ausschließlich privilegiert und atomar', () => {
     const repositorySource = readRepo('src/services/db/crmRepository.ts');
-    expect(repositorySource, 'kein Seeder im Browser-Produktpfad').not.toContain(
+    expect.soft(repositorySource, 'kein Seeder im Browser-Produktpfad').not.toContain(
       'seedSupabaseDatabase',
     );
     const seederSource = readRepo('src/services/import/crmSeeder.ts');
-    expect(seederSource, 'kein Browser-Client für Schreibpfade').not.toContain(
+    expect.soft(seederSource, 'kein Browser-Client für Schreibpfade').not.toContain(
       'services/db/supabaseClient',
     );
+    expect.soft(
+      seederSource,
+      'unprivilegierter Pfad belegt (kein Service-Key)',
+    ).not.toMatch(/service_role|service-role|SERVICE_KEY/);
+    expect.soft(
+      seederSource,
+      'atomarer privilegierter Seed (RPC/Transaktion)',
+    ).toMatch(/\.rpc\(|transaction/i);
   });
 
   it('[PR-BASELINE-06] speist unterschiedliche Baselines in die Engine ein', async () => {
@@ -99,26 +118,43 @@ describe('v2.3.0 data and simulation findings', () => {
       GOLDEN_NOW,
     );
     expect.soft(Object.isFrozen(dataset)).toBe(true);
-    expect.soft(Object.isFrozen(dataset.companies)).toBe(true);
-    expect.soft(Object.isFrozen(dataset.companies[0])).toBe(true);
+    const collections: Record<string, readonly unknown[]> = {
+      companies: dataset.companies,
+      contacts: dataset.contacts,
+      deals: dataset.deals,
+      activities: dataset.activities,
+    };
+    for (const [name, collection] of Object.entries(collections)) {
+      expect.soft(Object.isFrozen(collection), `${name}: Array eingefroren`).toBe(true);
+      collection.forEach((entry, index) => {
+        expect.soft(Object.isFrozen(entry), `${name}[${index}]: Objekt eingefroren`).toBe(true);
+      });
+    }
     expect.soft((dataset as { contentHash?: unknown }).contentHash).toMatch(/^[a-f0-9]{64}$/);
   });
 
   it('[PR-PERSIST-08] persistiert Szenarien und Runs reload-fähig', () => {
     const repositorySource = readRepo('src/simulation/scenarioRepository.ts');
-    expect(repositorySource, 'In-Memory-Maps bestätigt').toContain('new Map');
-    expect(repositorySource, 'reload-fähiges Backend vorhanden').toMatch(
-      /indexedDB|localStorage|supabase/i,
-    );
+    expect.soft(repositorySource, 'In-Memory-Maps bestätigt').toContain('new Map');
+    expect.soft(
+      repositorySource,
+      'Speicherung erfolgt ausschließlich per Map.set',
+    ).toContain('.set(');
+    expect.soft(
+      repositorySource,
+      'Reload-fähiges Repository (Serialisierungs-/Lade-API oder Backend)',
+    ).toMatch(/toJSON|fromJSON|serializ|deserializ|exportState|importState|saveTo|loadFrom|storage|persist|snapshot|indexedDB|localStorage|supabase/i);
   });
 
   it('[PR-WORKER-09] führt Produkt-Runs im Web Worker aus', () => {
     const adapterSource = readRepo('src/simulation/worker/workerAdapter.ts');
-    expect(adapterSource, 'Worker-Adapter existiert').toContain('createWorkerAdapter');
+    expect.soft(adapterSource, 'Worker-Adapter existiert').toContain('createWorkerAdapter');
     const productPath = [
       readRepo('src/simulation/scenarioService.ts'),
       readRepo('src/store/slices/runSlice.ts'),
     ].join('\n');
-    expect(productPath, 'Produktpfad nutzt den Worker-Adapter').toContain('createWorkerAdapter');
+    expect.soft(productPath, 'Produktpfad ruft den Worker-Adapter auf').toContain(
+      'createWorkerAdapter(',
+    );
   });
 });

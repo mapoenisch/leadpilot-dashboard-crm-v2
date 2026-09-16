@@ -39,7 +39,19 @@ describe('v2.3.0 frontend findings', () => {
     ).toBe(3);
     for (const entry of FULL_PAGE_WEBP_ROUTES) {
       const source = readRepo(entry.file);
-      expect.soft(source, `${entry.route}: genau eine sichtbare h1`).toMatch(/<h1[\s>]/);
+      const h1Count = (source.match(/<h1[\s>]/g) ?? []).length;
+      expect.soft(h1Count, `${entry.route}: genau eine sichtbare h1`).toBe(1);
+      expect.soft(
+        source,
+        `${entry.route}: h1 nicht versteckt`,
+      ).not.toMatch(/<h1[^>]*(hidden|aria-hidden="true"|sr-only)/);
+      const hasSemantics = /<(section|article|table|ul|ol)[\s>]/.test(source);
+      expect.soft(hasSemantics, `${entry.route}: semantischer Fachinhalt`).toBe(true);
+      const hasFullPageWebp = /<img[^>]*\.webp/.test(source);
+      expect.soft(
+        !(hasFullPageWebp && !hasSemantics),
+        `${entry.route}: kein Ganzseiten-WebP als alleinige Informationsquelle`,
+      ).toBe(true);
     }
   });
 

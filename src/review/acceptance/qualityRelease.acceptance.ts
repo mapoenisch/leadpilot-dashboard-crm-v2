@@ -117,6 +117,8 @@ describe('v2.3.0 quality and release findings', () => {
     const restrictsEvent = /event_name/.test(e2eBlock);
     const allowsMain = /refs\/heads\/main/.test(e2eBlock);
     expect.soft(!restrictsEvent || allowsMain, 'E2E läuft auf Pull Requests und main').toBe(true);
+    expect.soft(e2eBlock, 'E2E führt Release-Readiness aus').toMatch(/ReleaseReadiness/);
+    expect.soft(e2eBlock, 'E2E führt Accessibility-Prüfung aus').toMatch(/a11y|axe/i);
   });
 
   it('[PR-LICENSE-19] weist proprietäre Root-Lizenz nach', () => {
