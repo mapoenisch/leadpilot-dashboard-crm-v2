@@ -12,7 +12,10 @@
       "name": "Webhook Ingest Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -22,7 +25,10 @@
       "name": "Pass-Through Raw Contract Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [420, 300]
+      "position": [
+        420,
+        300
+      ]
     },
     {
       "parameters": {
@@ -36,7 +42,10 @@
       "name": "Execute Ingest RPC (Postgres)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
-      "position": [640, 300],
+      "position": [
+        1560,
+        300
+      ],
       "credentials": {
         "postgres": {
           "id": "n8n_ingest_postgres",
@@ -112,7 +121,10 @@
       "name": "Switch by Ingest Status",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [880, 300]
+      "position": [
+        1800,
+        300
+      ]
     },
     {
       "parameters": {
@@ -126,7 +138,10 @@
       "name": "Respond Accepted",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1120, 180]
+      "position": [
+        2040,
+        180
+      ]
     },
     {
       "parameters": {
@@ -140,7 +155,10 @@
       "name": "Respond Duplicate",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1120, 300]
+      "position": [
+        2040,
+        300
+      ]
     },
     {
       "parameters": {
@@ -154,7 +172,166 @@
       "name": "Respond Rejected",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1120, 420]
+      "position": [
+        2040,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// LeadPilot G46: Verify Ingress Signature (Design §10.1).\n// Prüft Timestamp-Fenster (5 Minuten), Nonce-Format und KPI-Allowlist und\n// baut die HMAC-Basis timestamp + '.' + nonce + '.' + rawBody. Die HMAC-Signatur\n// selbst prüft der Folge-Node (HMAC Sign Base, Crypto) gegen den Header\n// X-LeadPilot-Signature. Secret niemals hier, sondern im n8n-Credential-Store.\nconst ALLOWED_KPI_IDS = ['arr','mrr','pipeline_coverage','arr_direct','arr_partner','arr_outbound','arr_other','pipeline_leads','pipeline_mql','pipeline_sql','pipeline_offers','pipeline_won'];\nconst WINDOW_MS = 5 * 60 * 1000;\n\nconst trigger = $('Webhook Ingest Trigger').first().json;\nconst headers = trigger.headers || {};\nconst timestamp = String(headers['x-leadpilot-timestamp'] || '');\nconst nonce = String(headers['x-leadpilot-nonce'] || '');\nconst signature = String(headers['x-leadpilot-signature'] || '');\nconst rawPayload = $input.first().json.rawPayload;\n\nfunction reject(code) {\n  return [{ json: { valid: false, code } }];\n}\n\nconst atMs = Date.parse(timestamp);\nif (!timestamp || !nonce || !signature) return reject('INGEST_SIGNATURE_MISSING');\nif (!Number.isFinite(atMs)) return reject('INGEST_TIMESTAMP_INVALID');\nif (Math.abs(Date.now() - atMs) > WINDOW_MS) return reject('INGEST_TIMESTAMP_EXPIRED');\nif (nonce.length > 128) return reject('INGEST_REPLAY_DETECTED');\n\nlet kpiId = null;\ntry {\n  const parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;\n  kpiId = parsed && parsed.kpiId;\n} catch (e) { return reject('INGEST_KPI_UNKNOWN'); }\nif (!ALLOWED_KPI_IDS.includes(kpiId)) return reject('INGEST_KPI_UNKNOWN');\n\nreturn [{ json: {\n  valid: true,\n  timestamp,\n  nonce,\n  signature,\n  rawBody: typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload),\n  signatureBase: timestamp + '.' + nonce + '.' + (typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload)),\n  kpiId,\n} }];"
+      },
+      "id": "verify-signature-node",
+      "name": "Verify Ingress Signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{ $json.signatureBase }}",
+        "dataPropertyName": "signatureComputed",
+        "encoding": "HEX",
+        "options": {}
+      },
+      "id": "hmac-sign-node",
+      "name": "HMAC Sign Base",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        760,
+        300
+      ],
+      "credentials": {
+        "cryptoHmac": {
+          "id": null,
+          "name": "LeadPilot Ingest HMAC (in n8n anlegen)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if-signature-node-cond",
+              "leftValue": "={{ $json.valid === false ? 'invalid' : $json.signatureComputed }}",
+              "rightValue": "={{ $json.signature }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true
+      },
+      "id": "if-signature-node",
+      "name": "Signature Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        960,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT public.claim_ingress_nonce($1::text) AS nonce_fresh;",
+        "additionalFields": {
+          "queryParams": "={{ [ $json.nonce ] }}"
+        }
+      },
+      "id": "claim-nonce-node",
+      "name": "Claim Nonce (Postgres)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1160,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n8n_ingest_postgres",
+          "name": "LeadPilot PostgreSQL (n8n_ingest role)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if-nonce-node-cond",
+              "leftValue": "={{ $json.nonce_fresh }}",
+              "rightValue": true,
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true
+      },
+      "id": "if-nonce-node",
+      "name": "Nonce Fresh?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: $json.code || 'INGEST_SIGNATURE_INVALID' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "response-invalid-signature",
+      "name": "Respond Invalid Signature",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: 'INGEST_REPLAY_DETECTED' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "response-replay",
+      "name": "Respond Replay Detected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        520
+      ]
     }
   ],
   "connections": {
@@ -173,7 +350,76 @@
       "main": [
         [
           {
+            "node": "Verify Ingress Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Ingress Signature": {
+      "main": [
+        [
+          {
+            "node": "HMAC Sign Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HMAC Sign Base": {
+      "main": [
+        [
+          {
+            "node": "Signature Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signature Valid?": {
+      "main": [
+        [
+          {
+            "node": "Claim Nonce (Postgres)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Nonce (Postgres)": {
+      "main": [
+        [
+          {
+            "node": "Nonce Fresh?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nonce Fresh?": {
+      "main": [
+        [
+          {
             "node": "Execute Ingest RPC (Postgres)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Replay Detected",
             "type": "main",
             "index": 0
           }

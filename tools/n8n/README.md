@@ -102,6 +102,15 @@ Die Live-KPI-Pipeline verarbeitet Live-Ist-Ereignisse nach dem standardisierten 
 - **Passwort:** Der Operator setzt das Passwort außerhalb des Repositories über die Supabase-/PostgreSQL-Administration und speichert es anschließend ausschließlich als n8n-Credential.
 - **SSL:** `require` (oder `disable` für rein lokale Docker-Umgebungen).
 
+### B2. Signaturprüfung G46 (Design §10.1) — manuelle Schritte
+Der Workflow prüft vor dem Postgres-Zugriff `X-LeadPilot-Timestamp` (5-Minuten-Fenster),
+`X-LeadPilot-Nonce` (Format; Einmaligkeit per `claim_ingress_nonce`) und
+`X-LeadPilot-Signature` (HMAC-SHA-256 über `timestamp.nonce.rawBody`):
+1. In n8n ein **Crypto-Credential** `LeadPilot Ingest HMAC (in n8n anlegen)` vom Typ *HMAC Secret* erstellen; Secret aus dem Passwortmanager (identisch zu Function-Secret `LEADPILOT_INGEST_SECRET`, niemals ins Repo).
+2. Dem Node `HMAC Sign Base` dieses Credential zuweisen (im Workflow-JSON als Platzhalter `id: null` markiert).
+3. Der Node `Claim Nonce (Postgres)` nutzt das bestehende PostgreSQL-Credential; die Rolle `n8n_ingest` benötigt zusätzlich `GRANT EXECUTE ON FUNCTION public.claim_ingress_nonce` (Operator-SQL, außerhalb des Repos).
+4. Ungültige Signatur → 401, Replay → 401, danach bestehender Ingest-Pfad (201/200/422).
+
 ### C. Import & Ausführung des Ingest-Workflows
 1. Workflow `tools/n8n/live-kpi-ingest.workflow.json` in n8n importieren.
 2. Dem PostgreSQL-Node das Credential `LeadPilot PostgreSQL (n8n_ingest role)` zuweisen.
