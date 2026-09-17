@@ -40,9 +40,9 @@ Deno.test('Pass-Through reicht Binary-Bytes verlustfrei durch (Harness, 3 Varian
   assert(pass, 'Pass-Through-Node vorhanden');
   const jsCode = String((pass?.parameters as Record<string, unknown>)?.['jsCode'] ?? '');
   const variants = [
-    '{"kpiId":"arr","value":411840}',
-    '{ "kpiId" : "arr" , "value" : 411840 }',
-    '{"value":411840,"kpiId":"arr"}',
+    '{"kpiId":"arr","unit":"EUR","sourceSystem":"n8n-harness","value":411840}',
+    '{ "kpiId" : "arr" , "unit" : "EUR" , "sourceSystem" : "n8n-harness" , "value" : 411840 }',
+    '{"value":411840,"kpiId":"arr","unit":"EUR","sourceSystem":"n8n-harness"}',
   ];
   for (const original of variants) {
     const base64 = Buffer.from(original, 'utf-8').toString('base64');
@@ -58,6 +58,26 @@ Deno.test('Pass-Through reicht Binary-Bytes verlustfrei durch (Harness, 3 Varian
     const out = run($input, Buffer);
     assertEquals(out[0]?.json?.rawPayload, original);
   }
+});
+
+Deno.test('Pass-Through ohne Binary-Bytes bricht laut ab (kein Fallback)', async () => {
+  const workflow = await readWorkflow();
+  const pass = (workflow.nodes ?? []).find((node) => (node.name ?? '').includes('Pass-Through'));
+  assert(pass, 'Pass-Through-Node vorhanden');
+  const jsCode = String((pass?.parameters as Record<string, unknown>)?.['jsCode'] ?? '');
+  assert(!jsCode.includes('first.json.body'), 'kein json.body-Fallback im Code');
+  const $input = { first: () => ({ json: { body: '{"kpiId":"arr"}' } }) };
+  const run = new Function('$input', 'Buffer', `${jsCode}\n`) as (
+    $input: unknown,
+    buffer: unknown,
+  ) => Array<{ json: Record<string, unknown> }>;
+  let thrown: string | null = null;
+  try {
+    run($input, Buffer);
+  } catch (error) {
+    thrown = error instanceof Error ? error.message : String(error);
+  }
+  assert(thrown?.includes('INGEST_NO_RAW_BODY') ?? false, 'Throw mit INGEST_NO_RAW_BODY');
 });
 
 Deno.test('Verify-Node weist fachlich ungültige Payloads vor DB-Zugriff ab (Harness)', async () => {
@@ -90,22 +110,31 @@ Deno.test('Verify-Node weist fachlich ungültige Payloads vor DB-Zugriff ab (Har
     return run($, $input)[0]?.json ?? {};
   }
 
-  const good = await runVerify(JSON.stringify({ kpiId: 'arr', value: 10 }), 'vh-1');
+  const good = await runVerify(
+    JSON.stringify({ kpiId: 'arr', unit: 'EUR', sourceSystem: 'n8n-harness', value: 10 }),
+    'vh-1',
+  );
   assertEquals(good['valid'], true);
   assertEquals(good['kpiId'], 'arr');
 
   const badUnit = await runVerify(
-    JSON.stringify({ kpiId: 'arr', unit: 'count', value: 10 }),
+    JSON.stringify({ kpiId: 'arr', unit: 'count', sourceSystem: 'n8n-harness', value: 10 }),
     'vh-2',
   );
   assertEquals(badUnit['valid'], false);
   assertEquals(badUnit['code'], 'INGEST_KPI_UNIT_MISMATCH');
 
-  const badValue = await runVerify(JSON.stringify({ kpiId: 'mrr', value: -5 }), 'vh-3');
+  const badValue = await runVerify(
+    JSON.stringify({ kpiId: 'mrr', unit: 'EUR', sourceSystem: 'n8n-harness', value: -5 }),
+    'vh-3',
+  );
   assertEquals(badValue['valid'], false);
   assertEquals(badValue['code'], 'INGEST_KPI_VALUE_INVALID');
 
-  const unknown = await runVerify(JSON.stringify({ kpiId: 'nix', value: 1 }), 'vh-4');
+  const unknown = await runVerify(
+    JSON.stringify({ kpiId: 'nix', unit: 'EUR', sourceSystem: 'n8n-harness', value: 1 }),
+    'vh-4',
+  );
   assertEquals(unknown['valid'], false);
   assertEquals(unknown['code'], 'INGEST_KPI_UNKNOWN');
 });
@@ -115,9 +144,9 @@ Deno.test('Whitespace-/Key-Order-Varianten verifizieren je mit eigener Signatur'
   const now = Date.parse('2026-09-17T12:00:00.000Z');
   const timestamp = new Date(now).toISOString();
   const variants = [
-    '{"kpiId":"arr","value":411840}',
-    '{ "kpiId" : "arr" , "value" : 411840 }',
-    '{"value":411840,"kpiId":"arr"}',
+    '{"kpiId":"arr","unit":"EUR","sourceSystem":"n8n-harness","value":411840}',
+    '{ "kpiId" : "arr" , "unit" : "EUR" , "sourceSystem" : "n8n-harness" , "value" : 411840 }',
+    '{"value":411840,"kpiId":"arr","unit":"EUR","sourceSystem":"n8n-harness"}',
   ];
   let n = 0;
   for (const rawBody of variants) {
@@ -133,6 +162,19 @@ Deno.test('Whitespace-/Key-Order-Varianten verifizieren je mit eigener Signatur'
   }
 });
 
+Deno.test('keine verwaisten Connections im Workflow', async () => {
+  const workflow = await readWorkflow();
+  const names = new Set((workflow.nodes ?? []).map((node) => node.name ?? ''));
+  for (const [source, outputs] of Object.entries(workflow.connections ?? {})) {
+    assert(names.has(source), `Connection-Quelle existiert: ${source}`);
+    for (const group of outputs.main ?? []) {
+      for (const edge of group) {
+        assert(names.has(edge?.node ?? ''), `${source} zeigt auf existierenden Node`);
+      }
+    }
+  }
+});
+
 Deno.test('Guard-Kette Webhook bis DB-Node ist geschlossen', async () => {
   const workflow = await readWorkflow();
   const names = new Set((workflow.nodes ?? []).map((node) => node.name ?? ''));
@@ -141,6 +183,11 @@ Deno.test('Guard-Kette Webhook bis DB-Node ist geschlossen', async () => {
       'Webhook Ingest Trigger',
       'Verify Ingress Signature',
       'HMAC Sign Base',
+      'Ingress Valid?',
+      'Signature Match?',
+      'KPI Reject?',
+      'Respond Invalid Payload',
+      'Respond Invalid Signature',
       'Claim Nonce (Postgres)',
       'Slot Status',
       'Respond Rate Limited',
@@ -149,6 +196,10 @@ Deno.test('Guard-Kette Webhook bis DB-Node ist geschlossen', async () => {
   ) {
     assert(names.has(required), `Node vorhanden: ${required}`);
   }
+  assert(
+    !names.has('Signature Valid?'),
+    'umgehbarer Einzel-IF entfernt (Valid+Match-Kette)',
+  );
   const claim = (workflow.nodes ?? []).find((node) => node.name === 'Claim Nonce (Postgres)');
   const claimQuery = String(
     ((claim?.parameters ?? {}) as Record<string, unknown>)['query'] ?? '',
