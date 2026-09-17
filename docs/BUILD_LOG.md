@@ -7605,3 +7605,48 @@ n8n-Workflow (14 Nodes): Code-Guard (Timestamp/Nonce/KPI/Base) → Crypto-HMAC (
 ### Finale Gate-Ergebnisse (Nacharbeit)
 - `deno test` 17/17 · `supabase test db` 36/36 · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 (Verbesserung, keine Verschlechterung) · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
 - **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
+
+## [2026-09-17] Gate G46: Zweites unabhängiges Review – weitere Nacharbeit erforderlich
+
+**Review-Baseline:** `296853b` auf `feat/auftrag-067c-ingress`  
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067D bleibt blockiert; kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise
+
+- `deno test --allow-read` für die drei Ingress-Suiten ist **17/17 grün**; `deno check supabase/functions/live-kpi-ingest/index.ts` ist grün.
+- `supabase test db` ist unabhängig **36/36 grün**. Der FK-Cleanup, der RPC-Entzug für `anon` sowie die Seeder-Löschung sind damit für die abgedeckten Fälle bestätigt.
+- `npx tsc --noEmit`, `npm run verify` (001–025) und `npm run build` sind grün. `git diff --check 6543571..HEAD` sowie der Schutzbereichs-Diff gegen G45 sind leer.
+- `npm run lint` endet weiterhin mit den vier bekannten `max-lines`-Fehlern, `npm run format:check` mit den bekannten 84 Prettier-Dateien; beide Stände sind gegenüber G45 nicht verschlechtert, aber nicht als grüne Einzelgates zu zählen.
+
+### Blockierende Review-Befunde
+
+1. **Critical – `rawBody` wird im n8n-Workflow nicht verwendet:** Der Webhook aktiviert zwar `options.rawBody`, n8n gibt die Originalbytes dann aber im Binary-Feld `data` aus. `Pass-Through Raw Contract Payload` liest weiterhin ausschließlich `$input.first().json.body` und serialisiert Objekt-Bodies mit `JSON.stringify` (`tools/n8n/live-kpi-ingest.workflow.json`). Der HMAC prüft daher weiterhin nicht `timestamp + '.' + nonce + '.' + rawBody`. Der neue Strukturtest prüft nur die Option und einen hypothetischen String-Zweig; er speist keine n8n-Binary-Rohbytes ein. Der Pass-Through muss die Binary-Bytes verlustfrei zur HMAC-Basis dekodieren und ein Workflow-Test muss die drei signierten Varianten durch genau diesen Pfad führen.
+2. **Critical – der produktive n8n-Pfad umgeht das Rate-Limit vollständig:** Der Workflow ruft nach der Signatur weiter `SELECT public.claim_ingress_nonce($1::text)` auf und verzweigt nur auf `nonce_fresh`. `claim_ingress_slot` wird ausschließlich vom neuen Edge-Handler aufgerufen; im n8n-Graph gibt es weder Slot- noch 429-Zweig. Damit fehlen bei einem ausdrücklich vorgesehenen Ingress die in Design §10.1 verpflichtenden Rate-Limits. Die Guard-Kette muss den atomaren Slot-RPC nutzen und `replay`/`rate_limited` getrennt behandeln; der Workflow-Test muss das auch strukturell verlangen.
+3. **Critical – `claim_ingress_slot` ist gegen parallele unterschiedliche Nonces nicht atomar:** Die Funktion inseriert eine Nonce und zählt anschließend ohne Sperre die letzten Zeilen. Bei PostgreSQL `READ COMMITTED` können zwei parallele Transaktionen bei bereits 119 Einträgen jeweils nur ihre eigene neue Zeile sehen, beide `120` zählen und beide `ok` zurückgeben. Der 5-fach-Test verwendet dagegen dieselbe Nonce und eine synchrone Fake-Map; er prüft den Unique-Constraint, nicht das Rate-Grenzrennen. Der Slot braucht eine transaktionale Serialisierung pro Quelle (z. B. `pg_advisory_xact_lock` vor Insert/Count oder eine gelockte Buckettabelle) sowie einen echten SQL-Konkurrenztest mit zwei verschiedenen Nonces an der 120er-Grenze.
+4. **Important – erlaubnislistenbasierte Fachvalidierung erfolgt nicht vor dem privilegierten Claim:** `verifySignedRequest` und der n8n-Code prüfen vor `claim_ingress_slot` nur `kpiId`. Einheit, Quelle und Wertebereich werden erst durch `ingest_live_kpi_event` geprüft, also nach dem `SECURITY DEFINER`-Nonce-/Rate-Zugriff. Das verletzt Design §10.1 („KPI-ID, Einheit, Quelle und plausible Wertebereiche ... vor jedem privilegierten Datenbankzugriff“); ein korrekt signiertes, aber fachlich ungültiges Event kann so Nonces und Rate-Slots verbrauchen. Ein gemeinsamer Vorab-Validator und Negativfälle für Einheit, Quelle und Wertebereich sind erforderlich.
+
+### Erforderliche Nacharbeit
+
+- Den n8n-Pass-Through auf das tatsächliche Raw-Binary-Feld umstellen und die Rohbytes bis zur HMAC-Basis nachweisen.
+- Den n8n-Guard auf einen rate-begrenzenden, tatsächlich concurrency-sicheren Slot-RPC umstellen; Replay und 429 separat antworten lassen.
+- Den Slot pro Quelle serialisieren und den Grenzfall mit parallelen unterschiedlichen Nonces gegen die echte lokale Datenbank testen.
+- Die vollständige Allowlist-/Wertebereichsprüfung vor den ersten privilegierten Claim ziehen und negativ testen.
+
+Danach G46-Gates erneut unabhängig anfordern. Kein Push, keine Integration und kein Start von 067D bis zur Freigabe.
+
+## [2026-09-17] Gate G46: Nacharbeit zum zweiten Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `296853b` → NICHT FREIGEGEBEN (3 Critical + 1 Important). Umgebung: Node v22.11.0, Deno 2.9.6, lokale Supabase CLI 2.117.0.
+
+### Behebung je Befund
+1. **Critical Raw-Binary:** Pass-Through liest `binary.data` (Base64 → Buffer/utf-8), keine Reserialisierung; fehlende Bytes werfen laut. Ausführbarer Harness-Test (echter Workflow-jsCode, 3 Varianten byte-identisch) statt Struktur-Heuristik.
+2. **Critical Slot im n8n-Pfad:** Claim-Node ruft `claim_ingress_slot($1,'n8n',120)`; Switch `Slot Status` mit `ok`/`replay`/`rate_limited`-Zweigen + 429-Respond; strukturell getestet.
+3. **Critical Slot-Atomarität:** `pg_advisory_xact_lock` pro Quelle in `claim_ingress_slot`. Echter Konkurrenztest (`verifyIngressConcurrency.sh`, zwei parallele Sessions, verschiedene Nonces an 120): ohne Lock 3× `{ok,ok}` (Race bewiesen), mit Lock `{ok,rate_limited}`. dblink entfiel (kein trust, kein Secret im Repo).
+4. **Important Fachvalidierung vor Claim:** `validateKpiPayload` (Allowlist, Unit, Source-Regex, finite 0..1e12) in Verify-Logik + n8n-Verify-Node + Harness-Gegenfälle (Unit/Source/Werte/Unknown); Edge-Reihenfolge Verify→Slot→Ingest.
+
+### Bekannte Vertrags-Schwäche (nicht geändert, eingefroren)
+PR-INGEST-03-Guard-Matcher firing auf Kommentarwort „HMAC-Basis" im Pass-Through (falsch-positiver Guard); Kommentar markerfrei umformuliert („Prüfbasis"). Matcher-Logik selbst nur per Marc-Freigabe änderbar.
+
+### Finale Gate-Ergebnisse (Nacharbeit 2)
+- `deno test --allow-read` 22/22 · `supabase test db` 36/36 + Race-Skript grün · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 · diff-check sauber bis auf Reviewer-Zeile 7611 (unangetastet) · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
+- **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
