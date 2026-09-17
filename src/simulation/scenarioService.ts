@@ -1,6 +1,6 @@
 import { DeterministicRNG } from './prng';
 import { SimulationEngine, TickOutput } from './engine';
-import { SimulationClock, SimulationEventRules } from './eventRules';
+import { SimulationClock } from './eventRules';
 import { parameterRegistry, V1_PARAMETER_DEFINITIONS } from './parameterRegistry';
 import { PreflightValidator } from './preflightValidator';
 import { KPIRegistry } from './kpiRegistry';
@@ -15,7 +15,11 @@ import {
 } from './scenarioRepository';
 import { MonteCarloAggregator } from './monteCarloAggregator';
 import { SnapshotPruningManager } from './snapshotPruningManager';
-import { BaselineSnapshotService } from '../services/data/baselineSnapshotService';
+import {
+  BaselineSnapshotService,
+  UNKNOWN_ORGANIZATION_ID,
+} from '../services/data/baselineSnapshotService';
+import { mapBaselineToSimulationInput } from '../services/data/baselineMapper';
 import { dataSourceRegistry } from '../services/data';
 import { DataSourceError } from '../types/dataSource';
 import { ISnapshotRepository } from '../services/db/ISnapshotRepository';
@@ -84,7 +88,11 @@ export class ScenarioService {
     this.snapshotRepo = snapshotRepo;
   }
 
-  public async pruneCompletedRun(runId: string, snapshotRepo?: ISnapshotRepository, targetTicks = 365) {
+  public async pruneCompletedRun(
+    runId: string,
+    snapshotRepo?: ISnapshotRepository,
+    targetTicks = 365,
+  ) {
     const repo = snapshotRepo || this.snapshotRepo;
     if (!repo) return null;
     return SnapshotPruningManager.pruneRunSnapshots(runId, repo, targetTicks);
@@ -98,7 +106,7 @@ export class ScenarioService {
     name: string,
     description?: string,
     parameters?: Partial<ScenarioParameters>,
-    parentScenarioId?: string
+    parentScenarioId?: string,
   ): { scenario: Scenario; version: ScenarioVersion } {
     const scenarioId = systemContext.nextScenarioId();
     const versionId = `ver-${scenarioId}-v1`;
@@ -111,7 +119,10 @@ export class ScenarioService {
 
     const validation = parameterRegistry.validateAllParameters(mergedParams);
     if (!validation.valid) {
-      throw new ScenarioError('VALIDATION_ERROR', `Parameter-Validierung fehlgeschlagen: ${validation.errors.join('; ')}`);
+      throw new ScenarioError(
+        'VALIDATION_ERROR',
+        `Parameter-Validierung fehlgeschlagen: ${validation.errors.join('; ')}`,
+      );
     }
 
     const version: ScenarioVersion = {
@@ -148,7 +159,7 @@ export class ScenarioService {
   public createScenarioVersion(
     scenarioId: string,
     parameters: Partial<ScenarioParameters>,
-    description?: string
+    description?: string,
   ): ScenarioVersion {
     const scenario = this.repo.getScenario(scenarioId);
     if (!scenario) {
@@ -169,7 +180,10 @@ export class ScenarioService {
 
     const validation = parameterRegistry.validateAllParameters(mergedParams);
     if (!validation.valid) {
-      throw new ScenarioError('VALIDATION_ERROR', `Parameter-Validierung fehlgeschlagen: ${validation.errors.join('; ')}`);
+      throw new ScenarioError(
+        'VALIDATION_ERROR',
+        `Parameter-Validierung fehlgeschlagen: ${validation.errors.join('; ')}`,
+      );
     }
 
     const newVersion: ScenarioVersion = {
@@ -198,7 +212,7 @@ export class ScenarioService {
     versionId: string,
     seedOverride?: number,
     targetTicks = 50,
-    opts?: RunOptions
+    opts?: RunOptions,
   ): Promise<RunExecutionResult> {
     const version = this.repo.getVersion(versionId);
     if (!version) {
@@ -213,10 +227,16 @@ export class ScenarioService {
       const errorMsg = preflight.errors.map((e) => e.message).join('; ');
       // Check if max runs limit was exceeded to preserve ScenarioError code
       const isMaxRuns = preflight.errors.some((e) => e.code === 'MAX_RUNS_EXCEEDED');
-      throw new ScenarioError(isMaxRuns ? 'MAX_RUNS_EXCEEDED' : 'VALIDATION_ERROR', `Preflight-Validierung fehlgeschlagen: ${errorMsg}`);
+      throw new ScenarioError(
+        isMaxRuns ? 'MAX_RUNS_EXCEEDED' : 'VALIDATION_ERROR',
+        `Preflight-Validierung fehlgeschlagen: ${errorMsg}`,
+      );
     }
 
     const nowIso = systemContext.now();
+    // 067E / G48: Der Lauf gehört zu genau einem Mandanten und genau einer
+    // Baseline. Beide werden vor dem ersten Tick verifiziert (fail-closed).
+    const organizationId = opts?.organizationId ?? UNKNOWN_ORGANIZATION_ID;
     let baselineVersion: string;
     let resolvedSourceId: string;
 
@@ -229,7 +249,9 @@ export class ScenarioService {
         let matchingSourceId: string | null = null;
         if (dataSourceRegistry.list().some((s) => s.id === baselineVersion)) {
           matchingSourceId = baselineVersion;
-        } else if (dataSourceRegistry.list().some((s) => s.id === `baseline-file:${baselineVersion}`)) {
+        } else if (
+          dataSourceRegistry.list().some((s) => s.id === `baseline-file:${baselineVersion}`)
+        ) {
           matchingSourceId = `baseline-file:${baselineVersion}`;
         }
 
@@ -238,13 +260,14 @@ export class ScenarioService {
             matchingSourceId,
             baselineVersion,
             BASELINE_PERIOD_START,
-            nowIso
+            nowIso,
+            { organizationId },
           );
           resolvedSourceId = captured.sourceId;
         } else {
           throw new DataSourceError(
             'UNKNOWN_SOURCE',
-            `Baseline-Version "${baselineVersion}" ist weder im Speicher noch als Dateiquelle verfügbar.`
+            `Baseline-Version "${baselineVersion}" ist weder im Speicher noch als Dateiquelle verfügbar.`,
           );
         }
       }
@@ -259,10 +282,32 @@ export class ScenarioService {
           sourceId,
           generatedVersion,
           BASELINE_PERIOD_START,
-          nowIso
+          nowIso,
+          { organizationId },
         );
         baselineVersion = captured.version;
       }
+    }
+
+    const dataset = BaselineSnapshotService.get(baselineVersion);
+    // Run und Baseline müssen demselben Mandanten angehören — außer im
+    // Legacy-Kontext (beidseitig 'unknown', z. B. Golden Run).
+    if (
+      dataset.organizationId !== UNKNOWN_ORGANIZATION_ID &&
+      organizationId !== UNKNOWN_ORGANIZATION_ID &&
+      dataset.organizationId !== organizationId
+    ) {
+      throw new ScenarioError(
+        'ORG_MISMATCH',
+        `Lauf-Mandant "${organizationId}" passt nicht zur Baseline "${baselineVersion}" (Mandant "${dataset.organizationId}").`,
+      );
+    }
+    // Manipulierte oder vertauschte Baseline bricht vor dem ersten Tick ab.
+    if (opts?.expectedBaselineHash && dataset.baselineHash !== opts.expectedBaselineHash) {
+      throw new ScenarioError(
+        'BASELINE_HASH_MISMATCH',
+        `Baseline-Hash von "${baselineVersion}" weicht vom erwarteten Hash ab.`,
+      );
     }
 
     const rng = new DeterministicRNG(seed);
@@ -276,8 +321,8 @@ export class ScenarioService {
         Object.freeze({
           ...m,
           changes: m.changes.map((c) => Object.freeze({ ...c })),
-        })
-      )
+        }),
+      ),
     );
 
     const manifest: RunManifest = Object.freeze({
@@ -289,6 +334,9 @@ export class ScenarioService {
       modelVersion: '1.0.0-v1',
       schemaVersion: '1.0.0',
       baselineVersion,
+      baselineId: dataset.version,
+      baselineHash: dataset.baselineHash,
+      organizationId,
       dataSourceId: resolvedSourceId,
       createdAt: nowIso,
       simulationStartDate: opts?.simulationStartDate ?? BASELINE_PERIOD_START,
@@ -298,30 +346,21 @@ export class ScenarioService {
       measures,
     });
 
-    // 2. Prepare initial state & domain collections
-    const initialMetrics = SimulationEventRules.recalculateMetrics([], [], []);
+    // 2. Prepare initial state & domain collections from the hashed baseline
+    // input — die Engine startet ausschließlich aus diesem Eingang.
     const simulatedDate = SimulationClock.formatSimulatedDate(0);
-    
+    const baselineInput = mapBaselineToSimulationInput(dataset, { seed, simulatedDate });
+    const initialMetrics = baselineInput.initialState.metrics!;
+
     let currentState: SimulationState = {
-      isRunning: true,
-      tickCount: 0,
-      dayIndex: 0,
-      simulatedDate,
-      seed,
-      speed: 1,
-      intervalMs: 12000,
-      lastTickTimestamp: `${simulatedDate} (Tick #0)`,
-      simulatedAt: simulatedDate,
+      ...baselineInput.initialState,
       metrics: initialMetrics,
-      totalLeadsGenerated: 0,
-      totalDealsWon: 0,
-      currentARR: initialMetrics.liveARR,
     };
 
-    let leads: SimulationLead[] = [];
-    let opportunities: SimulationOpportunity[] = [];
-    let deals: SimulationDeal[] = [];
-    let activities: SimulationActivity[] = [];
+    let leads: SimulationLead[] = [...baselineInput.leads];
+    let opportunities: SimulationOpportunity[] = [...baselineInput.opportunities];
+    let deals: SimulationDeal[] = [...baselineInput.deals];
+    let activities: SimulationActivity[] = [...baselineInput.activities];
     const events: SimulationEvent[] = [];
 
     const timeSeries: TimeSeriesPoint[] = [
@@ -352,6 +391,7 @@ export class ScenarioService {
         opportunities,
         deals,
         activities,
+        historicalMetrics: baselineInput.historicalMetrics,
         salesRepCount: eff.salesRepCount,
         csRepCount: eff.csRepCount,
         churnRateMonthly: eff.churnRateMonthly,
@@ -371,7 +411,7 @@ export class ScenarioService {
       activities = output.activities;
       if (output.queueEntries) queueEntries = output.queueEntries;
       if (output.csQueueEntries) csQueueEntries = output.csQueueEntries;
-      
+
       for (const evt of output.newEvents) {
         if (evt.correlationId === undefined) evt.correlationId = correlationId;
         events.unshift(evt);
@@ -412,7 +452,9 @@ export class ScenarioService {
       completedAt: completedAtIso,
       manifest,
       finalState: Object.freeze(JSON.parse(JSON.stringify(currentState))),
-      finalMetrics: currentState.metrics ? Object.freeze(JSON.parse(JSON.stringify(currentState.metrics))) : undefined,
+      finalMetrics: currentState.metrics
+        ? Object.freeze(JSON.parse(JSON.stringify(currentState.metrics)))
+        : undefined,
       timeSeries,
       correlationId,
       measures,
@@ -425,7 +467,9 @@ export class ScenarioService {
 
       // If snapshot repository is registered, trigger deterministic post-run pruning
       if (this.snapshotRepo) {
-        SnapshotPruningManager.pruneRunSnapshots(runId, this.snapshotRepo, targetTicks).catch(() => {});
+        SnapshotPruningManager.pruneRunSnapshots(runId, this.snapshotRepo, targetTicks).catch(
+          () => {},
+        );
       }
     }
 
@@ -443,13 +487,19 @@ export class ScenarioService {
   /**
    * Re-Run protocol ("Erneut ausführen")
    */
-  public async reRun(versionId: string, targetTicks = 50, opts?: RunOptions): Promise<RunExecutionResult> {
+  public async reRun(
+    versionId: string,
+    targetTicks = 50,
+    opts?: RunOptions,
+  ): Promise<RunExecutionResult> {
     const newSeed = systemContext.newRunSeed();
     return this.runScenarioVersion(versionId, newSeed, targetTicks, opts);
   }
 
   /**
-   * Reproduce protocol ("Reproduzieren")
+   * Reproduce protocol ("Reproduzieren"). Prüft vor dem Lauf Baseline-,
+   * Organisations-, Schema- und Modellhash aus dem Manifest — jede
+   * Abweichung bricht fail-closed ab statt still anders zu rechnen.
    */
   public async reproduce(existingRunId: string, targetTicks = 50): Promise<RunExecutionResult> {
     const existingRun = this.repo.getRun(existingRunId);
@@ -458,11 +508,25 @@ export class ScenarioService {
     }
 
     const { seed, scenarioVersionId } = existingRun.manifest;
+    if (existingRun.manifest.modelVersion !== '1.0.0-v1') {
+      throw new ScenarioError(
+        'VALIDATION_ERROR',
+        `Modellversion "${existingRun.manifest.modelVersion}" wird für Reproduktion nicht unterstützt.`,
+      );
+    }
+    if (existingRun.manifest.schemaVersion !== '1.0.0') {
+      throw new ScenarioError(
+        'VALIDATION_ERROR',
+        `Schemaversion "${existingRun.manifest.schemaVersion}" wird für Reproduktion nicht unterstützt.`,
+      );
+    }
     return this.runScenarioVersion(scenarioVersionId, seed, targetTicks, {
       simulationStartDate: existingRun.manifest.simulationStartDate,
       baselineVersion: existingRun.manifest.baselineVersion,
       correlationId: existingRun.manifest.correlationId,
       dataSourceId: existingRun.manifest.dataSourceId,
+      organizationId: existingRun.manifest.organizationId,
+      expectedBaselineHash: existingRun.manifest.baselineHash,
       measures: existingRun.manifest.measures ? [...existingRun.manifest.measures] : undefined,
     });
   }
@@ -475,7 +539,7 @@ export class ScenarioService {
     baseVersionId: string,
     measures: Measure[],
     targetTicks = 50,
-    opts?: RunOptions
+    opts?: RunOptions,
   ): Promise<{
     base: RunExecutionResult;
     withMeasures: RunExecutionResult;
@@ -484,22 +548,36 @@ export class ScenarioService {
   }> {
     const version = this.repo.getVersion(baseVersionId);
     if (!version) {
-      throw new ScenarioError('NOT_FOUND', `Szenarioversion "${baseVersionId}" wurde nicht gefunden.`);
+      throw new ScenarioError(
+        'NOT_FOUND',
+        `Szenarioversion "${baseVersionId}" wurde nicht gefunden.`,
+      );
     }
 
     const seed = opts?.seed ?? systemContext.newRunSeed();
-    const base = await this.runScenarioVersion(baseVersionId, seed, targetTicks, { ...opts, measures: [], persist: false });
-    const withMeasures = await this.runScenarioVersion(baseVersionId, seed, targetTicks, { ...opts, measures, persist: false });
+    const base = await this.runScenarioVersion(baseVersionId, seed, targetTicks, {
+      ...opts,
+      measures: [],
+      persist: false,
+    });
+    const withMeasures = await this.runScenarioVersion(baseVersionId, seed, targetTicks, {
+      ...opts,
+      measures,
+      persist: false,
+    });
 
     const kpiDeltas = this.diffFinalMetrics(base.run.finalMetrics, withMeasures.run.finalMetrics);
-    const conflicts = new EffectiveParameterResolver(version.parameters, measures).detectConflicts();
+    const conflicts = new EffectiveParameterResolver(
+      version.parameters,
+      measures,
+    ).detectConflicts();
 
     return { base, withMeasures, kpiDeltas, conflicts };
   }
 
   private diffFinalMetrics(
     baseMetrics?: Readonly<SimulationMetrics>,
-    withMetrics?: Readonly<SimulationMetrics>
+    withMetrics?: Readonly<SimulationMetrics>,
   ): MeasureKpiDelta[] {
     const baseArr = baseMetrics?.liveARR ?? 0;
     const withArr = withMetrics?.liveARR ?? 0;
@@ -517,11 +595,20 @@ export class ScenarioService {
       label: string,
       unit: string,
       baseVal: number,
-      withVal: number
+      withVal: number,
     ): MeasureKpiDelta => {
       const delta = withVal - baseVal;
-      const deltaPercent = baseVal !== 0 ? parseFloat(((delta / Math.abs(baseVal)) * 100).toFixed(1)) : 0;
-      return { kpiId, label, unit, baseValue: baseVal, withMeasuresValue: withVal, delta, deltaPercent };
+      const deltaPercent =
+        baseVal !== 0 ? parseFloat(((delta / Math.abs(baseVal)) * 100).toFixed(1)) : 0;
+      return {
+        kpiId,
+        label,
+        unit,
+        baseValue: baseVal,
+        withMeasuresValue: withVal,
+        delta,
+        deltaPercent,
+      };
     };
 
     return [
@@ -637,7 +724,7 @@ export class ScenarioService {
   public compareVersions(
     versionIdA: string,
     versionIdB: string,
-    targets?: Record<string, GoalTarget>
+    targets?: Record<string, GoalTarget>,
   ): VersionComparisonResult {
     const versionA = this.repo.getVersion(versionIdA);
     const versionB = this.repo.getVersion(versionIdB);
@@ -645,7 +732,7 @@ export class ScenarioService {
     if (!versionA || !versionB) {
       throw new ScenarioError(
         'NOT_FOUND',
-        `Eine oder beide ScenarioVersions (${versionIdA}, ${versionIdB}) wurden nicht gefunden.`
+        `Eine oder beide ScenarioVersions (${versionIdA}, ${versionIdB}) wurden nicht gefunden.`,
       );
     }
 
@@ -707,10 +794,30 @@ export class ScenarioService {
     const hasRunsB = aggB.validRunCount > 0;
 
     const kpisToCompare = [
-      { id: 'liveARR', baseline: 411840, valA: aggA.metrics.arr.median, valB: aggB.metrics.arr.median },
-      { id: 'liveMRR', baseline: 34320, valA: aggA.metrics.mrr.median, valB: aggB.metrics.mrr.median },
-      { id: 'liveCustomers', baseline: 66, valA: aggA.metrics.customers.median, valB: aggB.metrics.customers.median },
-      { id: 'liveWonDeals', baseline: 0, valA: aggA.metrics.wonDeals.median, valB: aggB.metrics.wonDeals.median },
+      {
+        id: 'liveARR',
+        baseline: 411840,
+        valA: aggA.metrics.arr.median,
+        valB: aggB.metrics.arr.median,
+      },
+      {
+        id: 'liveMRR',
+        baseline: 34320,
+        valA: aggA.metrics.mrr.median,
+        valB: aggB.metrics.mrr.median,
+      },
+      {
+        id: 'liveCustomers',
+        baseline: 66,
+        valA: aggA.metrics.customers.median,
+        valB: aggB.metrics.customers.median,
+      },
+      {
+        id: 'liveWonDeals',
+        baseline: 0,
+        valA: aggA.metrics.wonDeals.median,
+        valB: aggB.metrics.wonDeals.median,
+      },
     ];
 
     const kpiComparisons: KPIComparisonItem[] = kpisToCompare.map((item) => {
@@ -719,10 +826,10 @@ export class ScenarioService {
         item.id === 'liveARR'
           ? 500000
           : item.id === 'liveMRR'
-          ? 41666
-          : item.id === 'liveCustomers'
-          ? 80
-          : 15;
+            ? 41666
+            : item.id === 'liveCustomers'
+              ? 80
+              : 15;
       const target = targets?.[item.id] || { kpiId: item.id, targetValue: defaultTargetValue };
 
       const comparisonAB =
@@ -768,15 +875,21 @@ export class ScenarioService {
     let summaryExplanation = '';
     if (!hasRunsA && !hasRunsB) {
       summaryExplanation = `Vergleich v${versionA.versionNumber} ➔ v${versionB.versionNumber}: ${
-        changedParams.length === 0 ? 'Keine Parameterunterschiede' : `${changedParams.length} Parameter geändert (${changedParams.map((p) => p.label).join(', ')})`
+        changedParams.length === 0
+          ? 'Keine Parameterunterschiede'
+          : `${changedParams.length} Parameter geändert (${changedParams.map((p) => p.label).join(', ')})`
       }. Beide Versionen wurden noch nicht simuliert (0 Runs).`;
     } else if (hasRunsA && !hasRunsB) {
       summaryExplanation = `Vergleich v${versionA.versionNumber} ➔ v${versionB.versionNumber}: ${
-        changedParams.length === 0 ? 'Keine Parameterunterschiede' : `${changedParams.length} Parameter geändert (${changedParams.map((p) => p.label).join(', ')})`
+        changedParams.length === 0
+          ? 'Keine Parameterunterschiede'
+          : `${changedParams.length} Parameter geändert (${changedParams.map((p) => p.label).join(', ')})`
       }. Version ${versionB.versionNumber} wurde noch nicht simuliert (Simulation ausstehend).`;
     } else if (!hasRunsA && hasRunsB) {
       summaryExplanation = `Vergleich v${versionA.versionNumber} ➔ v${versionB.versionNumber}: ${
-        changedParams.length === 0 ? 'Keine Parameterunterschiede' : `${changedParams.length} Parameter geändert (${changedParams.map((p) => p.label).join(', ')})`
+        changedParams.length === 0
+          ? 'Keine Parameterunterschiede'
+          : `${changedParams.length} Parameter geändert (${changedParams.map((p) => p.label).join(', ')})`
       }. Version ${versionA.versionNumber} besitzt noch keine Simulationsläufe.`;
     } else {
       summaryExplanation =
@@ -810,12 +923,12 @@ export class ScenarioService {
   public compareMultipleVersions(
     versionIds: string[],
     _targets?: Record<string, GoalTarget>,
-    referenceVersionId?: string
+    referenceVersionId?: string,
   ): MultiVersionComparisonResult {
     if (!versionIds || versionIds.length < 2 || versionIds.length > 4) {
       throw new ScenarioError(
         'INVALID_VERSION',
-        `Multi-Szenario-Vergleich erfordert zwischen 2 und 4 Versionen (erhalten: ${versionIds?.length ?? 0}).`
+        `Multi-Szenario-Vergleich erfordert zwischen 2 und 4 Versionen (erhalten: ${versionIds?.length ?? 0}).`,
       );
     }
 
@@ -829,7 +942,10 @@ export class ScenarioService {
       versions.push(v);
     }
 
-    const refId = referenceVersionId && versionIds.includes(referenceVersionId) ? referenceVersionId : versionIds[0];
+    const refId =
+      referenceVersionId && versionIds.includes(referenceVersionId)
+        ? referenceVersionId
+        : versionIds[0];
     if (!refId) {
       // Unerreichbar: versionIds enthält per Guard oben 2–4 Einträge.
       throw new ScenarioError('INVALID_VERSION', 'Keine Referenzversion bestimmbar.');
@@ -885,31 +1001,71 @@ export class ScenarioService {
     const kpiDefinitions = [
       { id: 'liveARR', baseline: 411840, extract: (a: ScenarioAggregationResult) => a.metrics.arr },
       { id: 'liveMRR', baseline: 34320, extract: (a: ScenarioAggregationResult) => a.metrics.mrr },
-      { id: 'liveCustomers', baseline: 66, extract: (a: ScenarioAggregationResult) => a.metrics.customers },
-      { id: 'liveWonDeals', baseline: 0, extract: (a: ScenarioAggregationResult) => a.metrics.wonDeals },
+      {
+        id: 'liveCustomers',
+        baseline: 66,
+        extract: (a: ScenarioAggregationResult) => a.metrics.customers,
+      },
+      {
+        id: 'liveWonDeals',
+        baseline: 0,
+        extract: (a: ScenarioAggregationResult) => a.metrics.wonDeals,
+      },
       {
         id: 'ebitda',
         baseline: 0,
         extract: (a: ScenarioAggregationResult) =>
-          a.metrics.financialMetrics?.ebitda ?? { median: 0, p10: 0, p90: 0, mean: 0, stdDev: 0, min: 0, max: 0 },
+          a.metrics.financialMetrics?.ebitda ?? {
+            median: 0,
+            p10: 0,
+            p90: 0,
+            mean: 0,
+            stdDev: 0,
+            min: 0,
+            max: 0,
+          },
       },
       {
         id: 'netRevenue',
         baseline: 411840,
         extract: (a: ScenarioAggregationResult) =>
-          a.metrics.financialMetrics?.netRevenue ?? { median: 411840, p10: 411840, p90: 411840, mean: 411840, stdDev: 0, min: 411840, max: 411840 },
+          a.metrics.financialMetrics?.netRevenue ?? {
+            median: 411840,
+            p10: 411840,
+            p90: 411840,
+            mean: 411840,
+            stdDev: 0,
+            min: 411840,
+            max: 411840,
+          },
       },
       {
         id: 'netCashFlow',
         baseline: 0,
         extract: (a: ScenarioAggregationResult) =>
-          a.metrics.financialMetrics?.netCashFlow ?? { median: 0, p10: 0, p90: 0, mean: 0, stdDev: 0, min: 0, max: 0 },
+          a.metrics.financialMetrics?.netCashFlow ?? {
+            median: 0,
+            p10: 0,
+            p90: 0,
+            mean: 0,
+            stdDev: 0,
+            min: 0,
+            max: 0,
+          },
       },
       {
         id: 'cac',
         baseline: 600,
         extract: (a: ScenarioAggregationResult) =>
-          a.metrics.financialMetrics?.cac ?? { median: 600, p10: 600, p90: 600, mean: 600, stdDev: 0, min: 600, max: 600 },
+          a.metrics.financialMetrics?.cac ?? {
+            median: 600,
+            p10: 600,
+            p90: 600,
+            mean: 600,
+            stdDev: 0,
+            min: 600,
+            max: 600,
+          },
       },
     ];
 
@@ -946,7 +1102,11 @@ export class ScenarioService {
           };
 
           if (refMedian !== undefined) {
-            const comp = GoalTargetEvaluator.computeBaselineComparison(kDef.id, stats.median, refMedian);
+            const comp = GoalTargetEvaluator.computeBaselineComparison(
+              kDef.id,
+              stats.median,
+              refMedian,
+            );
             deltasAgainstRef[v.id] = comp.absoluteDelta;
             percentAgainstRef[v.id] = comp.percentChange;
             isFavorableAgainstRef[v.id] = comp.isPositiveChange;
@@ -973,7 +1133,12 @@ export class ScenarioService {
     }
 
     // 4. Trade-Off Evaluations in 5 Dimensions (Decisions 864–868)
-    const tradeOffDimensions: { dim: TradeOffDimension; label: string; desc: string; kpiId: string }[] = [
+    const tradeOffDimensions: {
+      dim: TradeOffDimension;
+      label: string;
+      desc: string;
+      kpiId: string;
+    }[] = [
       {
         dim: 'GROWTH',
         label: 'Wachstum (Growth)',
@@ -1052,16 +1217,22 @@ export class ScenarioService {
         const cons: string[] = [];
 
         if (isLeader) {
-          pros.push(`Führend in ${dimObj.label} mit ${valObj?.median.toLocaleString('de-DE') ?? '–'} ${kRow.unit}.`);
+          pros.push(
+            `Führend in ${dimObj.label} mit ${valObj?.median.toLocaleString('de-DE') ?? '–'} ${kRow.unit}.`,
+          );
         } else {
-          cons.push(`Liegt hinter Spitzenreiter zurück (${valObj?.median.toLocaleString('de-DE') ?? '–'} ${kRow.unit}).`);
+          cons.push(
+            `Liegt hinter Spitzenreiter zurück (${valObj?.median.toLocaleString('de-DE') ?? '–'} ${kRow.unit}).`,
+          );
         }
 
         evaluations[v.id] = {
           versionId: v.id,
           versionName: `v${v.versionNumber}`,
           isLeader,
-          metricHighlight: valObj ? `${valObj.median.toLocaleString('de-DE')} ${kRow.unit}` : 'Keine Runs',
+          metricHighlight: valObj
+            ? `${valObj.median.toLocaleString('de-DE')} ${kRow.unit}`
+            : 'Keine Runs',
           pros,
           cons,
         };
@@ -1078,7 +1249,11 @@ export class ScenarioService {
       };
     });
 
-    function valuesByVersionIdBest(row: KpiMatrixRow, vId: string, dir: 'HIGHER_IS_BETTER' | 'LOWER_IS_BETTER'): number {
+    function valuesByVersionIdBest(
+      row: KpiMatrixRow,
+      vId: string,
+      dir: 'HIGHER_IS_BETTER' | 'LOWER_IS_BETTER',
+    ): number {
       const obj = row.valuesByVersionId[vId];
       if (!obj) return dir === 'HIGHER_IS_BETTER' ? -Infinity : Infinity;
       return obj.median;
@@ -1099,27 +1274,32 @@ export class ScenarioService {
           affectedKpi = 'liveARR';
           affectedLabel = 'ARR & Personalaufwand';
           dim = 'GROWTH';
-          explanation = 'Veränderung der Sales-FTE-Kapazität skaliert den Deal-Durchsatz, erhöht jedoch die fixen Headcount-Kosten (8.000 €/Monat je FTE).';
+          explanation =
+            'Veränderung der Sales-FTE-Kapazität skaliert den Deal-Durchsatz, erhöht jedoch die fixen Headcount-Kosten (8.000 €/Monat je FTE).';
         } else if (pRow.key === 'marketingBudgetYearly') {
           affectedKpi = 'cac';
           affectedLabel = 'CAC & Lead-Inflow';
           dim = 'ACQUISITION';
-          explanation = 'Veränderung des Marketingbudgets verschiebt die Lead-Akquisitionsrate entlang der Sättigungskurve und beeinflusst die Marketing-OPEX.';
+          explanation =
+            'Veränderung des Marketingbudgets verschiebt die Lead-Akquisitionsrate entlang der Sättigungskurve und beeinflusst die Marketing-OPEX.';
         } else if (pRow.key === 'trialToPaidConversion') {
           affectedKpi = 'liveWonDeals';
           affectedLabel = 'Abschlüsse & Konvertierung';
           dim = 'GROWTH';
-          explanation = 'Höhere Conversion-Rate steigert die Win-Wahrscheinlichkeit von Hot Deals direkt ohne zusätzliche Fixkosten.';
+          explanation =
+            'Höhere Conversion-Rate steigert die Win-Wahrscheinlichkeit von Hot Deals direkt ohne zusätzliche Fixkosten.';
         } else if (pRow.key === 'churnRateMonthly' || pRow.key === 'csRepCount') {
           affectedKpi = 'liveCustomers';
           affectedLabel = 'Kundenbestand & Churn Loss';
           dim = 'RETENTION';
-          explanation = 'Beeinflusst die Kündigungsdynamik und den Erhalt des bestehenden Kundenstamms.';
+          explanation =
+            'Beeinflusst die Kündigungsdynamik und den Erhalt des bestehenden Kundenstamms.';
         } else if (pRow.key === 'discountPercent') {
           affectedKpi = 'ebitda';
           affectedLabel = 'Deckungsbeitrag & ARR';
           dim = 'PROFITABILITY';
-          explanation = 'Rabattierung mindert den durchschnittlichen Vertragswert und schmälert die operative Marge.';
+          explanation =
+            'Rabattierung mindert den durchschnittlichen Vertragswert und schmälert die operative Marge.';
         } else {
           affectedKpi = 'liveARR';
           affectedLabel = 'ARR';
@@ -1159,18 +1339,22 @@ export class ScenarioService {
         throw new ScenarioError('INVALID_VERSION', 'Keine abgeschlossene Version.');
       }
       const firstCount = aggregations[firstCompleted.id]?.validRunCount ?? 0;
-      const hasDifferentCounts = completedVersions.some((v) => (aggregations[v.id]?.validRunCount ?? 0) !== firstCount);
+      const hasDifferentCounts = completedVersions.some(
+        (v) => (aggregations[v.id]?.validRunCount ?? 0) !== firstCount,
+      );
       if (hasDifferentCounts) {
         comparisonWarnings.push(
-          `Unterschiedliche Run-Anzahl festgestellt (${completedVersions.map((v) => `v${v.versionNumber}: ${aggregations[v.id]?.validRunCount ?? 0} Runs`).join(', ')}). Für maximale statistische Vergleichbarkeit wird die gleiche Run-Anzahl empfohlen (Entscheidung 855).`
+          `Unterschiedliche Run-Anzahl festgestellt (${completedVersions.map((v) => `v${v.versionNumber}: ${aggregations[v.id]?.validRunCount ?? 0} Runs`).join(', ')}). Für maximale statistische Vergleichbarkeit wird die gleiche Run-Anzahl empfohlen (Entscheidung 855).`,
         );
       }
 
       const firstDuration = aggregations[firstCompleted.id]?.metrics?.timeSeries?.length ?? 0;
-      const hasDifferentDurations = completedVersions.some((v) => (aggregations[v.id]?.metrics?.timeSeries?.length ?? 0) !== firstDuration);
+      const hasDifferentDurations = completedVersions.some(
+        (v) => (aggregations[v.id]?.metrics?.timeSeries?.length ?? 0) !== firstDuration,
+      );
       if (hasDifferentDurations) {
         comparisonWarnings.push(
-          `Unterschiedliche Simulationsdauer festgestellt. Gleicher Zeithorizont wird für fairen Vergleich empfohlen (Entscheidung 854).`
+          `Unterschiedliche Simulationsdauer festgestellt. Gleicher Zeithorizont wird für fairen Vergleich empfohlen (Entscheidung 854).`,
         );
       }
     }
@@ -1199,19 +1383,27 @@ export class ScenarioService {
   public adoptConfiguration(
     sourceVersionId: string,
     targetScenarioId: string,
-    description?: string
+    description?: string,
   ): ScenarioVersion {
     const sourceVer = this.repo.getVersion(sourceVersionId);
     if (!sourceVer) {
-      throw new ScenarioError('NOT_FOUND', `Quellversion "${sourceVersionId}" wurde nicht gefunden.`);
+      throw new ScenarioError(
+        'NOT_FOUND',
+        `Quellversion "${sourceVersionId}" wurde nicht gefunden.`,
+      );
     }
 
     const targetScenario = this.repo.getScenario(targetScenarioId);
     if (!targetScenario) {
-      throw new ScenarioError('NOT_FOUND', `Zielszenario "${targetScenarioId}" wurde nicht gefunden.`);
+      throw new ScenarioError(
+        'NOT_FOUND',
+        `Zielszenario "${targetScenarioId}" wurde nicht gefunden.`,
+      );
     }
 
-    const adoptDesc = description || `Konfiguration übernommen aus Version ${sourceVer.versionNumber} (${sourceVer.id})`;
+    const adoptDesc =
+      description ||
+      `Konfiguration übernommen aus Version ${sourceVer.versionNumber} (${sourceVer.id})`;
     return this.createScenarioVersion(targetScenarioId, sourceVer.parameters, adoptDesc);
   }
 }

@@ -7854,3 +7854,45 @@ Danach G47 erneut unabhängig prüfen lassen. Kein Push, keine Integration und k
 - Die beiden Critical-Befunde sind geschlossen: kein stiller Demo-Fallback mehr und Activities stammen ausschließlich aus dem gemeinsamen CRM-Envelope.
 - Der unversionierte Ordner `.playwright-mcp/` war bereits vorhanden und blieb unverändert.
 - Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
+
+## [2026-09-17] Gate G48: Builder-Nachtrag 067E Baseline zur Engine (kein Push)
+
+**Ziel und Baseline-Commit:** 067E / G48 — Baselines kanonisch gehasht, geklont, tief eingefroren; `SimulationBaselineInput` initialisiert die Engine; Festwerte 66/34320/411840 aus dem produktiven Run-Pfad entfernt; Manifest mit Baseline-/Organisations-/Schema-/Modellhash, Prüfung vor Reproduktion. Baseline: `751e53c` (G47-Freigabe). Branch: `feat/auftrag-067e-baseline-engine`. Umgebung: Node v22.11.0.
+
+### Geänderte Dateien
+- Neu: `src/services/data/canonicalHash.ts` (kanonische Serialisierung, SHA-256, Deep-Clone, Deep-Freeze).
+- Neu: `src/services/data/baselineMapper.ts` (Anker, Override-Auflösung, `mapBaselineToSimulationInput`).
+- Neu: `src/services/data/__tests__/canonicalHash.vitest.ts` (4 Tests), `src/services/data/__tests__/baselineMapper.vitest.ts` (4 Tests).
+- Geändert: `src/services/data/baselineSnapshotService.ts` (Hash, Freeze, Org, Capture-Optionen), `src/types/simulation.ts` (HistoricalMetrics, BaselineInput), `src/types/scenario.ts` (Manifest/Optionen/Codes), `src/simulation/engine.ts` (Metriken aus Input), `src/simulation/scenarioService.ts` (Mapper-Verdrahtung, Verifikation, Manifest), `src/simulation/__tests__/vitest/reproducibilityIntegrity.vitest.ts` (+4 G48-Tests).
+- Additives Fixture-Update (freigegeben): `src/review/fixtures/v2.2.0-golden-run.json` (+3 Manifest-Felder).
+- Mechanische Typ-Reparatur außerhalb der Matrix (Konflikt, siehe unten): 6 Bestands-Testdateien mit Mock-Literalen (`runSourceAudit`, `dataSourceIntegrity`, `financialIntegrity`, `monteCarloIntegrity`, `stateMachineIntegrity`, `timeSeriesAggregationIntegrity`) — jeweils +3 Felder, keine Assertion geändert.
+
+### Roter Starttest und Ursache
+`canonicalHash`/`baselineMapper`-Suiten waren vor Implementierung rot (`Cannot find module`); Ursache: kein kanonischer Hash-, Freeze- oder Mapper-Pfad vorhanden — `capture()` fror nur flach, die Engine erhielt Literale statt Baseline-Werte, das Manifest trug weder Hash noch Mandant.
+
+### Implementierung und Architekturentscheidung
+- Hash über kanonische Darstellung ohne `capturedAt` (gleicher Inhalt, gleicher Hash); `structuredClone` + rekursiver Freeze; Aufrufer erhalten keine veränderbare Referenz.
+- Marc-Entscheide zu 067E: (1) Ankerwerte 66/34320/411840 bleiben als versionierter Demo-Marktzustand (Dez 2025) erhalten — genau eine Stelle (`DEFAULT_HISTORICAL_METRICS`), Baseline-Overrides gewinnen; (2) Golden-Fixture darf additiv aktualisiert werden (nur neue Manifest-Felder, Zahlen byte-identisch).
+- Engine nimmt `historicalMetrics` aus dem Tick-Input (Fallback Anker nur für Aufrufer ohne Baseline-Kontext); Literale in `engine.ts` entfernt. `reproduce()` prüft Modell-/Schema-/Baseline-/Orgschlüssel vor dem Lauf (`BASELINE_HASH_MISMATCH`/`ORG_MISMATCH`/`VALIDATION_ERROR`); Legacy-Sentinel `unknown` beidseitig.
+- Bewusst außerhalb gelassen (kein Run-Pfad): Aggregations-Fallback und Vergleichs-Baselines in `scenarioService` (Anzeige), `managementPresenter`, `kpiTimeSeriesConfig`, Validator-Defaults — spätere Aufträge.
+
+### Funktionale und negative Prüfungen
+- 8 Unit-Tests (Key-Ordnung, Hash-Form/Determinismus, Ordnungssensitivität, Tiefen-Freeze, Hash-Gleichheit/-Verschiedenheit, Klon-Isolation, Anker/Override).
+- 4 Run-Tests: gleiche Baseline/Seed byte-identisch; andere Baseline fachlich anders; falscher Hash → `BASELINE_HASH_MISMATCH` (korrekte Reproduktion läuft); fremde Org → `ORG_MISMATCH` (eigene Org läuft).
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- Erlaubt (067E-Matrix): `src/types/**`, `src/services/data/**`, `src/simulation/**` (Engine, ScenarioService, Repro-Test), RNG-/Seed-Pfad mit Golden-Nachweis.
+- Unerlaubte Pfade leer: `src/context`, `src/features/resources`, Persistenz, CRM-Schreibpfade.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0 Fehler. `npm run verify` (001–025): grün. `npm test`: 103 Dateien / 411 Tests grün. `npm run build`: grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler (067K-Sache). Format der 067E-Dateien sauber. `git diff --check`: sauber.
+
+### Screenshot-/SQL-/GitHub-Actions-Nachweis
+- Golden Run vorher/nachher: Fixture-SHA vorher `949a9023…`, nachher `1d247181…`; Diff exakt +3 Manifest-Zeilen (`baselineId`, `baselineHash`, `organizationId`); Metriken, Timeseries-Hash, RNG-State, Event-Signatur byte-identisch (per temporärem Diff-Nachweis, danach gelöscht). Keine UI-Änderung → keine Screenshots.
+
+### Reviewer-Befund
+- Offen — **G48 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067F bleibt blockiert.
+
+### Freigabestatus und Abschlusscommit
+- Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067e-baseline-engine`.

@@ -6,16 +6,16 @@ import { TimeSeriesPoint } from './aggregation';
 // Kanalbudgets einzeln, Ramp-ups, Lead-Expiration, Setup-Fees, Paketpreise (Entsch. 149–478).
 // Erweiterung = eigener Auftrag: ParameterRegistry-Eintrag + Validierung + UI + Test.
 export interface ScenarioParameters {
-  marketingBudgetYearly: number;        // e.g. 65.000 €/Jahr (30.000 - 150.000 €)
-  channelMix: ChannelMix;                // 5 channels, auto-normalized to 100%
-  trialToPaidConversion: number;        // e.g. 18 % (10 - 40 %)
-  salesRepCount: number;                // e.g. 2 FTE (2 - 10 FTE)
-  csRepCount: number;                   // e.g. 2 FTE (2 - 10 FTE)
-  churnRateMonthly: number;             // e.g. 2.8 %/Monat (0.5 - 5.0 %/Monat) [BINDING!]
-  salesCycleDays: number;               // e.g. 38 Tage (14 - 120 Tage)
+  marketingBudgetYearly: number; // e.g. 65.000 €/Jahr (30.000 - 150.000 €)
+  channelMix: ChannelMix; // 5 channels, auto-normalized to 100%
+  trialToPaidConversion: number; // e.g. 18 % (10 - 40 %)
+  salesRepCount: number; // e.g. 2 FTE (2 - 10 FTE)
+  csRepCount: number; // e.g. 2 FTE (2 - 10 FTE)
+  churnRateMonthly: number; // e.g. 2.8 %/Monat (0.5 - 5.0 %/Monat) [BINDING!]
+  salesCycleDays: number; // e.g. 38 Tage (14 - 120 Tage)
   targetPackageFocus: 'Starter' | 'Growth' | 'Pro' | 'Balanced';
-  winProbabilityMultiplier: number;     // e.g. 1.0 (0.5 - 2.0)
-  discountPercent: number;              // e.g. 0 % (0 - 50 %)
+  winProbabilityMultiplier: number; // e.g. 1.0 (0.5 - 2.0)
+  discountPercent: number; // e.g. 0 % (0 - 50 %)
 }
 
 export type ScenarioStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
@@ -55,6 +55,11 @@ export interface RunManifest {
   readonly modelVersion: string;
   readonly schemaVersion: string;
   readonly baselineVersion: string;
+  // 067E / G48: Baseline-Identität, kanonischer Hash und Mandant werden vor
+  // jeder Reproduktion erneut geprüft (BASELINE_HASH_MISMATCH / ORG_MISMATCH).
+  readonly baselineId: string;
+  readonly baselineHash: string;
+  readonly organizationId: string;
   readonly dataSourceId?: string;
   readonly createdAt: string;
   readonly simulationStartDate: string;
@@ -93,12 +98,26 @@ export interface RunOptions {
   measures?: Measure[];
   persist?: boolean;
   seed?: number;
+  // 067E / G48: Mandant des Laufs und erwarteter Baseline-Hash. Reproduktion
+  // übergibt beides aus dem Manifest; Abweichungen brechen fail-closed ab.
+  organizationId?: string;
+  expectedBaselineHash?: string;
 }
 
 import { BaselineComparisonResult, GoalTargetEvaluationResult } from './kpi';
 
 export class ScenarioError extends Error {
-  constructor(public code: 'MAX_RUNS_EXCEEDED' | 'SCENARIO_PROTECTED_ERROR' | 'NOT_FOUND' | 'INVALID_VERSION' | 'VALIDATION_ERROR', message: string) {
+  constructor(
+    public code:
+      | 'MAX_RUNS_EXCEEDED'
+      | 'SCENARIO_PROTECTED_ERROR'
+      | 'NOT_FOUND'
+      | 'INVALID_VERSION'
+      | 'VALIDATION_ERROR'
+      | 'BASELINE_HASH_MISMATCH'
+      | 'ORG_MISMATCH',
+    message: string,
+  ) {
     super(message);
     this.name = 'ScenarioError';
   }
@@ -151,11 +170,7 @@ export interface VersionComparisonResult {
 // ---------------------------------------------------------------------------
 
 export type TradeOffDimension =
-  | 'GROWTH'
-  | 'PROFITABILITY'
-  | 'LIQUIDITY'
-  | 'ACQUISITION'
-  | 'RETENTION';
+  'GROWTH' | 'PROFITABILITY' | 'LIQUIDITY' | 'ACQUISITION' | 'RETENTION';
 
 export interface ParameterMatrixRow {
   key: keyof ScenarioParameters;

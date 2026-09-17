@@ -19,6 +19,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
     modelVersion: '1.0.0-v1',
     schemaVersion: '1.0.0',
     baselineVersion: 'Faktenblatt_v1.1',
+    baselineId: 'Faktenblatt_v1.1',
+    baselineHash: 'a'.repeat(64),
+    organizationId: 'unknown',
     simulationStartDate: '01.01.2026',
     targetTicks: 50,
     parameters: {

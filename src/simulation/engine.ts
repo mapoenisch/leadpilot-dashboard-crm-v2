@@ -14,7 +14,9 @@ import {
   SimulationLead,
   SimulationOpportunity,
   SimulationState,
+  HistoricalSimulationMetrics,
 } from '../types/simulation';
+import { DEFAULT_HISTORICAL_METRICS } from '../services/data/baselineMapper';
 
 export interface TickInput {
   state: SimulationState;
@@ -23,6 +25,11 @@ export interface TickInput {
   opportunities: SimulationOpportunity[];
   deals: SimulationDeal[];
   activities: SimulationActivity[];
+  // 067E / G48: Historische Kennzahlen aus der Baseline (via Mapper). Fällt
+  // nur für Aufrufer ohne Baseline-Kontext (Tests, Live-Loop) auf den
+  // versionierten Demo-Anker zurück; der produktive Run-Pfad übergibt immer
+  // explizit. Keine Literale an dieser Stelle.
+  historicalMetrics?: HistoricalSimulationMetrics;
   salesRepCount?: number;
   csRepCount?: number;
   churnRateMonthly?: number;
@@ -78,7 +85,7 @@ export class SimulationEngine {
       input.rng,
       updatedLeads,
       input.marketingBudgetYearly,
-      input.channelMix
+      input.channelMix,
     );
     let totalLeadsGenerated = input.state.totalLeadsGenerated;
     if (newLeadResult) {
@@ -89,21 +96,23 @@ export class SimulationEngine {
     }
 
     // 2. Process Sales Queue & Capacity (Decisions 1349-1373)
-    const existingQueueEntries = input.queueEntries ?? input.state.salesQueueProjection?.entries ?? [];
+    const existingQueueEntries =
+      input.queueEntries ?? input.state.salesQueueProjection?.entries ?? [];
     const queueResult = SalesQueueManager.processTick(
       existingQueueEntries,
       salesRepCount,
       nextTick,
-      updatedLeads
+      updatedLeads,
     );
 
     // 3. Process CS Queue & Capacity (Decisions 1374-1385)
-    const existingCSQueueEntries = input.csQueueEntries ?? input.state.csQueueProjection?.entries ?? [];
+    const existingCSQueueEntries =
+      input.csQueueEntries ?? input.state.csQueueProjection?.entries ?? [];
     const csQueueResult = CSQueueManager.processTick(
       existingCSQueueEntries,
       csRepCount,
       nextTick,
-      updatedDeals
+      updatedDeals,
     );
 
     // 4. Evaluate Qualification & Progression Rule
@@ -114,10 +123,12 @@ export class SimulationEngine {
       updatedOpps,
       input.trialToPaidConversion,
       input.salesCycleDays,
-      input.discountPercent
+      input.discountPercent,
     );
 
-    const rejectedTransitions: RejectedTransitionEntry[] = [...(input.state.rejectedTransitions || [])];
+    const rejectedTransitions: RejectedTransitionEntry[] = [
+      ...(input.state.rejectedTransitions || []),
+    ];
 
     let totalDealsWon = input.state.totalDealsWon;
     if (progressionResult) {
@@ -149,7 +160,7 @@ export class SimulationEngine {
       input.rng,
       updatedDeals,
       csQueueResult.updatedEntries,
-      churnRateMonthly
+      churnRateMonthly,
     );
 
     if (churnResult) {
@@ -171,8 +182,13 @@ export class SimulationEngine {
     }
 
     // 6. Recalculate Ebene B live & financial metrics
+    // Historische Basis aus der Baseline — keine Literale im Run-Pfad.
+    const historicalMetrics = input.historicalMetrics ?? DEFAULT_HISTORICAL_METRICS;
     const newWonDealsThisTick = progressionResult?.newDeal ? 1 : 0;
-    const prevCumulativeCashFlow = input.state.cumulativeCashFlow ?? input.state.metrics?.financialMetrics?.cumulativeCashFlow ?? 0;
+    const prevCumulativeCashFlow =
+      input.state.cumulativeCashFlow ??
+      input.state.metrics?.financialMetrics?.cumulativeCashFlow ??
+      0;
 
     const metrics = SimulationEventRules.recalculateMetrics(
       updatedLeads,
@@ -181,16 +197,16 @@ export class SimulationEngine {
       queueResult.projection,
       csQueueResult.projection,
       csQueueResult.updatedEntries,
-      66,
-      34320,
-      411840,
+      historicalMetrics.baseCustomers,
+      historicalMetrics.baseMRR,
+      historicalMetrics.baseARR,
       {
         salesRepCount,
         csRepCount,
         newWonDealsThisTick,
         previousCumulativeCashFlow: prevCumulativeCashFlow,
         marketingBudgetYearly: input.marketingBudgetYearly,
-      }
+      },
     );
 
     let updatedState: SimulationState = {
@@ -211,7 +227,12 @@ export class SimulationEngine {
     };
 
     // 7. Verify Tick Invariants (Decisions 1471-1473)
-    const invariantReport = TickInvariantValidator.verifyTickInvariants(updatedState, updatedDeals, updatedLeads, 66);
+    const invariantReport = TickInvariantValidator.verifyTickInvariants(
+      updatedState,
+      updatedDeals,
+      updatedLeads,
+      historicalMetrics.baseCustomers,
+    );
     updatedState = {
       ...updatedState,
       hasInvariantViolation: invariantReport.hasViolation,
