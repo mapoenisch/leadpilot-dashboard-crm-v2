@@ -7452,3 +7452,44 @@ Lokale Auth-User + Org-Seed nur per Admin-API/SQL (keine Secrets im Repo); Previ
 ### 5. Gates
 `supabase test db` 15/15 · PR-AUTH-01 + PR-RLS-02 grün (unverändert) · `verify:v23:baseline` Exit 0 (18/18/0) · tsc 0 · `npm run verify` 001–025 · `npm test` 100/395 · build · lint 4/0 · format 85 · `git diff --check` sauber · Schutzbereich außerhalb 067B-Freigabe leer (types: nur `organization.ts` + `database.generated.ts`, beide freigegeben).
 - **G45-Status: BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, 067C bleibt bis zur Freigabe blockiert.
+
+## [2026-09-17] Gate G45: Unabhängiges Review – Nacharbeit erforderlich
+
+**Review-Baseline:** `fb7d60f` auf `feat/auftrag-067b-auth-rls`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067C bleibt blockiert.
+
+### Bestätigte Nachweise
+
+- `supabase test db` unabhängig wiederholt: 15/15 pgTAP grün.
+- `verify:v23:baseline` Exit 0: 18 erwartete/18 gemessene rote Findings/0 Abweichungen.
+- Auth- und Tenant-E2E: 18/18 grün; TypeScript, Integrity 001–025 und Build grün.
+- Schutzbereich außerhalb der zwei ausdrücklich freigegebenen Typdateien leer.
+
+### Blockierende Review-Befunde
+
+1. **Critical – referenzielle Mandantengrenze fehlt:** Die Migration ergänzt `organization_id` in `companies`, `contacts` und `imported_funnel_deals`, definiert aber für keine dieser Spalten einen FK auf `organizations(id)`. Der Kontakt-Trigger ersetzt keinen Datenbank-FK und deckt Deals nicht ab. Design §5.1 verlangt organisationssichere Fremdschlüssel.
+2. **Critical – keine aktive Mitgliedschaft und kein wirksamer App-Organisationskontext:** `organization_members` besitzt keinen aktiven Status; keine CRM-Policy prüft den Status der Organisation/Mitgliedschaft. `OrganizationProvider` und `useOrganization` haben außerdem keinen Aufrufer; `App.tsx` und `ProtectedRoute.tsx` prüfen weiterhin nur `user !== null`. Damit kann ein Nutzer ohne gültige Organisationssitzung die geschützte UI erreichen, und Rollen-/Mandantenkontext wird im Produkt nicht durchgesetzt.
+3. **Important – Session-Hydration/Reload ist nicht abgesichert:** Der Supabase-Adapter lädt die Sitzung asynchron, aber `ProtectedRoute` besitzt keinen Ladezustand und kann vor `getSession()` auf `/login` umleiten. Die neuen E2E-Tests loggen jeweils frisch ein; sie beweisen weder Reload noch die Wiederherstellung einer vorhandenen Supabase-Sitzung.
+4. **Important – negative SQL-/E2E-Nachweise umgehen die eigentlichen Fälle:** Der behauptete Fremdschlüsseltest für Contacts lässt `organization_id` weg und kann damit am NOT-NULL-Constraint statt an einer Organisationsgrenze scheitern. Contacts und Deals werden nicht je Rolle und Organisation auf SELECT/INSERT/UPDATE/DELETE geprüft. Die E2E enthalten zudem fest eingetragene Fallback-Zugangsdaten; automatische nutzbare Demo-/Test-Credentials dürfen nicht im Repo verbleiben.
+
+### Erforderliche Nacharbeit
+
+- Nicht-nullbare `organization_id`-FKs zu `organizations(id)` für alle mandantenbezogenen Tabellen ergänzen; organisationsübergreifende Beziehungen per zusammengesetztem FK oder gleichwertiger Datenbank-Constraint absichern.
+- Aktive Mitgliedschaft und Organisationsstatus modellieren und in jeder RLS-Policy wirksam prüfen; `OrganizationProvider` in den App-Pfad einhängen und den Zugriff ohne gültige Organisationssitzung sperren.
+- Auth-Hydration vor dem Route-Guard abwarten und Reload/Abmeldung/Anmeldung per E2E abnehmen.
+- Die SQL-/E2E-Negativmatrix für zwei Organisationen und alle drei Rollen vollständig machen; Zugangsdaten ausschließlich aus der Umgebung beziehen.
+- Danach alle G45-Pflichtgates wiederholen und erneut unabhängiges Review anfordern. Kein Push und kein Start von 067C vor Freigabe.
+
+## [2026-09-17] Gate G45: Nacharbeit zu 4 Review-Befunden (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `fb7d60f` → NICHT FREIGEGEBEN (2 Critical + 2 Important). Alle Nacharbeiten in 067B-Dateiliste + freigegebenem E2E-Scope; keine Produktlogik außerhalb. Umgebung: Node v22.11.0, lokale Supabase (CLI 2.117.0).
+
+### Behebung je Befund
+1. **Critical FK-Grenzen:** Migration `20260917_tenant_fks_and_active_membership.sql` — `organization_id`-FKs auf `organizations(id)` (alle 3 Tabellen), `UNIQUE(organization_id, id)` auf companies, zusammengesetzter FK `contacts(company_id, organization_id)` (Trigger bleibt zweite Schicht); `schema.sql` synchron. pgTAP: Company mit Phantom-Org und Contact mit fremder Company scheitern am Constraint.
+2. **Critical aktive Mitgliedschaft + Org-Kontext:** `organization_members.status` (`active`/`suspended`); Helper filtern Mitgliedschaft + Org-Status; `is_active_member()` in allen Lese-Policies; `OrganizationProvider` in `App.tsx` eingehängt; `ProtectedRoute` wartet Hydration/Org-Loading und sperrt ohne gültige Org-Sitzung (Redirect `/login`). Suspendierte Member/Orgs sehen nichts (pgTAP 24–26).
+3. **Important Hydration/Reload:** `AuthContext.isHydrated` (kein vorzeitiger Guard-Redirect); neuer E2E-Test „Reload stellt Supabase-Sitzung wieder her" in `auth.spec` (21/21 mit Isolation).
+4. **Important Negativmatrix/Credentials:** pgTAP 15→27 (Rollen×Tabelle: Manager/ Viewer-Write-Denys, Admin-Update, FK-Fälle mit gesetzter Org, Deal-Sichtbarkeit, Suspend-Matrix); E2E-`requireEnv` ohne Fallbacks in allen drei Dateien (Läufe mit exportierten Vars dokumentiert).
+
+### Finale Gate-Ergebnisse (Nacharbeit)
+- `supabase test db` 27/27 · `verify:v23:baseline` Exit 0 (18/18/0) · tsc 0 · verify 001–025 · `npm test` 100/395 · build · Playwright 168 + 6 bekannte Visual-Diffs (User-Entscheid, Snapshots unangetastet) · lint 4/0 · format 85 · diff-check sauber · Schutzbereich außerhalb 067B-Freigabe leer · Golden-SHA unverändert.
+- **G45-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, 067C bleibt blockiert.
