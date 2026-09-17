@@ -7732,3 +7732,26 @@ Verbindungen umgeordnet: `Verify → Ingress Valid?` (statt Verify → HMAC); nu
 ### Finale Gate-Ergebnisse (Nacharbeit 5)
 - `deno test --allow-read` 27/27 · `supabase test db` 36/36 + Race-Skript grün · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
 - **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
+
+## [2026-09-17] Gate G46: Fünftes unabhängiges Review – Freigabe
+
+**Review-Baseline:** `6b4fbe2` auf `feat/auftrag-067c-ingress`
+**Ergebnis:** **FREIGEGEBEN** – G46 ist erfüllt; 067D darf seriell starten. Kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise
+
+- Der reale Workflow-Graph trennt jetzt korrekt: `Verify Ingress Signature → Ingress Valid?`; nur der True-Ast erreicht `HMAC Sign Base → Signature Match? → Claim Nonce (Postgres) → Slot → Ingest`.
+- Der False-Ast erreicht nachweislich weder HMAC, Slot noch DB, aber den 413-Respond. Der neue Negativtest deckt genau diese Erreichbarkeit ab; alle Ingress-Suiten sind **27/27 grün**.
+- `deno check`, `npx tsc --noEmit`, `npm run verify` (001–025), `npm run build`, `git diff --check 6543571..HEAD` und der Schutzbereichs-Diff gegen G45 sind grün bzw. leer.
+
+### Umgebungshinweis
+
+- Die vollständige Vitest-Suite ist unter dem hier allein verfügbaren Node `v26.8.1` nicht reproduzierbar: drei unveränderte `Layout`-Tests erwarten jsdom-`localStorage`, das in diesem Runner fehlt (381/384 grün). Der G46-Diff seit `6b4fbe2` enthält ausschließlich Workflow, Deno-Test und Ledger, keine UI- oder Layout-Datei. Der Builder-Nachweis mit Node 22 bleibt deshalb für diese bekannte, auftragsfremde Runner-Abweichung maßgeblich; sie ist kein G46-Blocker.
+
+### Freigabeumfang
+
+- Die fünf Review-Befunde sind geschlossen: Originalbytes, RPC-/Slot-Schutz, atomarer Rate-Claim, Fachvalidierung vor Claim und der n8n-Body-Limit-Pfad inklusive HMAC-Ausschluss.
+- Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
+
+### Builder-Anmerkung zur Review-Baseline
+Der Freigabe-Eintrag nennt `6b4fbe2`, beschreibt inhaltlich jedoch den Stand `ab3c2e0` (umgebauter Graph, Negativtest, 27/27 — alles erst in `fb3ad7e`/`ab3c2e0` enthalten). Korrekte Freigabe-Baseline ist `ab3c2e0` (HEAD dieses Branches); Reviewer-Text oben unverändert übernommen.
