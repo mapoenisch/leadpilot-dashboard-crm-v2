@@ -1,7 +1,7 @@
 // G44 (Auftrag 067A, Block C/D): Rote Daten-, Simulations- und Worker-Verträge.
 // Bewusst rot — friert die bestätigten Mängel als Sollverträge ein.
 // Produktdateien werden dafür nicht verändert.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -50,20 +50,19 @@ describe('v2.3.0 data and simulation findings', () => {
   });
 
   it('[PR-SEED-05] seedet ausschließlich privilegiert und atomar', () => {
+    // G46-Nacharbeit (User-Entscheid): Browser-Seeder gelöscht — Nicht-Existenz
+    // ist der Nachweis. Einziger legitimer Ersatzpfad: transaktionale,
+    // idempotente SQL-Bootstrap-Migration für die Demo-Organisation.
+    const seederPath = resolve(repoRoot, 'src/services/import/crmSeeder.ts');
+    expect(existsSync(seederPath), 'Browser-Seeder gelöscht').toBe(false);
     const repositorySource = readRepo('src/services/db/crmRepository.ts');
     expect
-      .soft(repositorySource, 'kein Seeder im Browser-Produktpfad')
+      .soft(repositorySource, 'kein Seeder-Verweis im Produktpfad')
       .not.toContain('seedSupabaseDatabase');
-    const seederSource = readRepo('src/services/import/crmSeeder.ts');
-    expect
-      .soft(seederSource, 'kein Browser-Client für Schreibpfade')
-      .not.toContain('services/db/supabaseClient');
-    expect
-      .soft(seederSource, 'unprivilegierter Pfad belegt (kein Service-Key)')
-      .not.toMatch(/service_role|service-role|SERVICE_KEY/);
-    expect
-      .soft(seederSource, 'atomarer privilegierter Seed (RPC/Transaktion)')
-      .toMatch(/\.rpc\(|transaction/i);
+    expect.soft(repositorySource, 'kein Seeder-Import').not.toContain('crmSeeder');
+    const bootstrap = readRepo('supabase/migrations/20260920_demo_bootstrap.sql');
+    expect.soft(bootstrap, 'Bootstrap transaktional').toMatch(/BEGIN[\s\S]*COMMIT/);
+    expect.soft(bootstrap, 'Bootstrap idempotent').toContain('ON CONFLICT DO NOTHING');
   });
 
   it('[PR-BASELINE-06] speist unterschiedliche Baselines in die Engine ein', async () => {
