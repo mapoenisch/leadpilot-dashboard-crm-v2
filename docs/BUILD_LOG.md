@@ -7529,3 +7529,21 @@ Lokale Auth-User + Org-Seed nur per Admin-API/SQL (keine Secrets im Repo); Previ
 ### Finale Gate-Ergebnisse (Nacharbeit 2)
 - `supabase test db` 27/27 · `verify:v23:baseline` Exit 0 (18/18/0) · tsc 0 · verify 001–025 · `npm test` 100/395 · build · Playwright 171 + 6 bekannte Visual-Diffs (User-Entscheid) · lint 4/0 · format 85 · diff-check sauber · Schutzbereich außerhalb 067B-Freigabe leer · Golden-SHA unverändert.
 - **G45-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067C bleibt blockiert.
+
+## [2026-09-17] Gate G45: Drittes unabhängiges Review – Freigabe
+
+**Review-Baseline:** `e74f03d` auf `feat/auftrag-067b-auth-rls`
+**Ergebnis:** **FREIGEGEBEN** – die drei Befunde der zweiten Review-Runde sind geschlossen. 067C darf seriell starten; Push und Integration sind nicht Bestandteil dieser Freigabe.
+
+### Unabhängig bestätigte Nachweise
+
+- Die neue Membership-Selbstlese-Policy lässt nur eine aktive Mitgliedschaft in einer aktiven Organisation durch. Der `OrganizationProvider` fragt zusätzlich Mitglieds- und Organisationsstatus ab und bildet andernfalls keine Sitzung; `ProtectedRoute` leitet ohne diese Sitzung nach `/login` um. Der `nomember`-E2E-Gegenfall deckt denselben leeren-Session-Pfad ab wie ein per RLS ausgeblendeter suspendierter Kontext.
+- `supabase/schema.sql` erzeugt die Identitätstabellen nun vor ihren CRM-FK-Referenzen; die zusammengesetzten Constraints folgen erst nach allen betroffenen Tabellen. Die Schema-Quelle ist damit in der erforderlichen Abhängigkeitsreihenfolge.
+- Die mit Marc entschiedene Strategie ist korrekt eingegrenzt: G45-E2E wird lokal mit exportierten, nicht eingecheckten Credentials belegt; die CI-Supabase-/Secret-Verdrahtung bleibt explizit Aufgabe von 067L. Es wird kein grüner CI-E2E-Nachweis für G45 behauptet.
+- Unabhängig ausgeführt: `supabase test db` **27/27 grün**, `npx tsc --noEmit`, `npm run verify` (001–025) und `npm run build` grün. `git diff --check` sauber; Schutzbereich außerhalb der 067B-Freigabe leer.
+
+### Freigabestatus
+
+- Keine offenen Critical- oder Important-Befunde für 067B/G45.
+- Kein Push, keine Integration, keine eingecheckten Credentials.
+- **Gate G45 ist freigegeben.**
