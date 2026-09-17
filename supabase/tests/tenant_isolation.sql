@@ -11,7 +11,8 @@ SELECT plan(27);
 
 -- ---------------------------------------------------------------- Setup --
 -- Feste UUIDs für reproduzierbare Läufe; Cleanup zuerst (idempotenter Re-Run).
--- Reihenfolge beachten (FKs): Contacts → Companies → Members → Organisationen.
+-- Reihenfolge beachten (FKs): Deals → Contacts → Companies → Members → Organisationen.
+DELETE FROM public.imported_funnel_deals;
 DELETE FROM public.contacts;
 DELETE FROM public.companies;
 DELETE FROM public.organization_members;
