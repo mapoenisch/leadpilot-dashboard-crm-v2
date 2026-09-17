@@ -7755,3 +7755,50 @@ Verbindungen umgeordnet: `Verify → Ingress Valid?` (statt Verify → HMAC); nu
 
 ### Builder-Anmerkung zur Review-Baseline
 Der Freigabe-Eintrag nennt `6b4fbe2`, beschreibt inhaltlich jedoch den Stand `ab3c2e0` (umgebauter Graph, Negativtest, 27/27 — alles erst in `fb3ad7e`/`ab3c2e0` enthalten). Korrekte Freigabe-Baseline ist `ab3c2e0` (HEAD dieses Branches); Reviewer-Text oben unverändert übernommen.
+
+## [2026-09-17] Gate G47: Builder-Nachtrag 067D CRM-Quellenwahrheit (kein Push)
+
+**Ziel und Baseline-Commit:** 067D / G47 — Companies, Contacts, Deals, Activities und Audit-Metadaten kommen aus einem einzigen `CrmReadModelEnvelope`; leer ist `empty`, Fehler ist `unavailable`, kein stiller Demo-Fallback; Quelle, Modus, Abrufzeit und Status sind sichtbar. Baseline: `78b2a63` (G46-Freigabe, Code-Stand `ab3c2e0`, vom User bestätigt). Branch: `feat/auftrag-067d-crm-envelope`. Umgebung: Node v22.11.0.
+
+### Geänderte Dateien
+- Neu: `src/services/data/crmReadModelService.ts` (`loadCrmReadModel`, `DEMO_ORGANIZATION_ID`, `resolveSourceKind`).
+- Neu: `src/services/data/crmEnvelopeGuard.ts` (Runtime-Guard, Statusklassifikation, Content-Hash v0, Provenienz-Guard).
+- Neu: `src/services/data/__tests__/crmReadModelService.vitest.ts` (6 Tests).
+- Geändert: `src/types/dataSource.ts` (Envelope-Typen, erweiterte `DataSourceError`-Codes).
+- Geändert: `src/hooks/queries/useCrmQueries.ts` (genau ein Envelope pro Query, Slice-Selektoren).
+- Geändert: `src/features/overview/pages/DataBasisPage.tsx` (echte Provenienz-Seite statt WebP-Platzhalter).
+- Begleitanpassung (Konflikt, siehe unten): `src/hooks/queries/__tests__/useCrmQueries.ui.vitest.tsx` (auf Envelope umgestellt, 6 Tests), neu `src/features/overview/pages/__tests__/DataBasisPage.ui.vitest.tsx` (3 Tests).
+
+### Roter Starttest und Ursache
+`crmReadModelService.vitest.ts` war vor Implementierung rot (`Cannot find module '../crmReadModelService'`); Ursache: kein Envelope-Pfad vorhanden — CRM-Reads liefen als Split-Reads über `CRMRepository` mit `catch → getActive()`-Fallback auf Demodaten (G44-Befund PR-SOURCE-04).
+
+### Implementierung und Architekturentscheidung
+- Ein Point-in-Time-Pull aus genau einer Registry-Quelle pro Abruf; Fehler (unbekannte Quelle, Fetch-Fehler, ungültige Runtime) werden `unavailable`-Envelope mit leerem Modell, nie Ersatzdaten.
+- Status: leere Tabellen → `empty`; Audit-Fehlerzähler > 0 → `degraded`; sonst `healthy`. `assertSingleSourceEnvelope` wirft `MIXED_SOURCE` beim Umhängen auf fremde Quell-Id.
+- Synthetik-Gate: synthetische Quellen nur bei `allowSynthetic === true` UND Demo-Mandant `00000000-0000-0000-0000-000000000001` (G45/G46-Migrationen); sonst `SYNTHETIC_NOT_ALLOWED`.
+- Content-Hash v0 (cyrb53 über stabil stringifiziertem Modell); kanonischer SHA-256 folgt in 067E.
+- Hooks teilen eine Envelope-Query (gleicher Key → ein Fetch); Komponenten-APIs (`data`, `isLoading`, `isError`) unverändert.
+
+### Funktionale und negative Prüfungen
+- 6 Service-Tests (empty, Netzwerkfehler→unavailable ohne Demo, Quellenmix→Throw, Runtime-Verletzung→unavailable, Demo bewusst erlaubt/still blockiert, Audit-Fehler→degraded).
+- 6 Hook-Tests (Slices, Provenienzfelder, unavailable→isError ohne Daten).
+- 3 Page-Tests (Provenienz sichtbar, unavailable ohne Ersatzdaten, empty als gültig benannt).
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- Erlaubt (067D-Matrix): `src/types/dataSource.ts`, `src/services/data/*` (2 Module + 1 Test neu).
+- Ziel-Dateien: `src/hooks/queries/useCrmQueries.ts`, `src/features/overview/pages/DataBasisPage.tsx`.
+- Begleittests außerhalb der wörtlichen Matrix (vom Plan-Step 5 gefordert: `npm test -- ... DataBasisPage`; ohne sie wäre die geforderte Hook-Umstellung nicht belegbar — keine Abschwächung, gleiche Strenge im neuen Sollverhalten).
+- Unerlaubte Pfade leer: `src/simulation`, `src/context`, `src/features/resources`, RNG/Run/Persistenz, `crmRepository`-Schreibpfade unberührt (Repository bewusst nicht angefasst — G44-PR-SOURCE-04 bleibt Charakterisierung).
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0 Fehler. `npm run verify` (001–025): grün. `npm test`: 100 Dateien / 395 Tests grün. `npm run build`: grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler (Simulation, 067K-Sache), keine neue. `npm run format:check`: 83 Dateien (vorher 84), keine 067D-Datei dabei. `git diff --check`: sauber.
+
+### Screenshot-/SQL-/GitHub-Actions-Nachweis
+- Keine Browser-Screenshots (Policy: nur textuelle Matrix wird committet). Nachweis via jsdom-UI-Tests: `data-basis-provenance` (Quelle/Modus/Abruf/Alter/Hash/Org), `data-basis-counts`, `management-chart-error` bei unavailable. Seite nutzt vorhandene Primitives (SectionHeader, Card, Badge, ManagementChartState), genau eine `h1`.
+
+### Reviewer-Befund
+- Offen — **G47 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067E bleibt blockiert.
+
+### Freigabestatus und Abschlusscommit
+- Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067d-crm-envelope`.

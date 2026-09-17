@@ -56,10 +56,42 @@ export interface LiveFeed {
 
 export class DataSourceError extends Error {
   constructor(
-    public code: 'UNKNOWN_SOURCE' | 'FETCH_FAILED' | 'INTEGRITY',
-    message: string
+    public code:
+      | 'UNKNOWN_SOURCE'
+      | 'FETCH_FAILED'
+      | 'INTEGRITY'
+      | 'MIXED_SOURCE'
+      | 'INVALID_RUNTIME'
+      | 'SYNTHETIC_NOT_ALLOWED'
+      | 'INVALID_ORG',
+    message: string,
   ) {
     super(message);
     this.name = 'DataSourceError';
   }
+}
+
+/**
+ * 067D / G47 — CRM-Quellenwahrheit (Design §6).
+ * Alle CRM-Abfragen liefern genau einen solchen Envelope aus genau einer Quelle.
+ * Leer ist `empty`, Fehler ist `unavailable` — ein Fehler schaltet niemals
+ * still auf Demodaten. `degraded` markiert vorhandene Daten mit Audit-Fehlern.
+ */
+export type CrmSourceKind = 'synthetic' | 'supabase' | 'hubspot';
+
+export type CrmSourceHealth = 'healthy' | 'empty' | 'degraded' | 'unavailable';
+
+export interface CrmReadModelEnvelope {
+  organizationId: string;
+  sourceId: string;
+  sourceKind: CrmSourceKind;
+  status: CrmSourceHealth;
+  /** ISO-8601 des Envelope-Abrufs. */
+  fetchedAt: string;
+  /** Deterministischer Inhalts-Hash (067D: stabiler v0-Hash; kanonischer SHA-256 folgt in 067E). */
+  contentHash: string;
+  /** Bei `unavailable` ein leeres Modell — niemals synthetische Ersatzdaten. */
+  data: CrmReadModel;
+  /** Maschinenlesbarer Fehlergrund, nur bei `unavailable`. */
+  errorCode?: string;
 }
