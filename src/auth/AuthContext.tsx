@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { User, AuthAdapter } from './authAdapter';
-import { defaultAuthAdapter, AUTH_STORAGE_KEY } from './localAuthAdapter';
+import { defaultAuthAdapter } from './supabaseAuthAdapter';
 
 export interface AuthContextValue {
   user: User | null;
@@ -19,15 +19,14 @@ export const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children, adapter = defaultAuthAdapter }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(() => adapter.getSession());
 
-  // Synchronisation bei externen localStorage-Änderungen (z. B. Multi-Tab oder Logout)
+  // G45: Sitzungsnachführung über den Adapter (Supabase onAuthStateChange).
+  // Kein localStorage, keine manipulierbare Browser-Sitzung mehr.
   useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === AUTH_STORAGE_KEY) {
-        setUser(adapter.getSession());
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    if (!adapter.initialize) {
+      setUser(adapter.getSession());
+      return;
+    }
+    return adapter.initialize(setUser);
   }, [adapter]);
 
   const login = useCallback(

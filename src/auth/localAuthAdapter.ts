@@ -1,64 +1,27 @@
 import type { AuthAdapter, User } from './authAdapter';
 
-export const AUTH_STORAGE_KEY = 'leadpilot_auth_session';
-
-const DEFAULT_DEMO_EMAIL = 'demo@leadpilot.io';
-const DEFAULT_DEMO_PASSWORD = 'demo';
-
 /**
- * LocalAuthAdapter: Reiner Browser-/Demo-Login (Entscheidung 3).
- * Explizit KEINE echte Sicherheit. Speichert Session in localStorage.
+ * G45 (Auftrag 067B): LocalAuthAdapter ist aus dem produktiven Pfad entfernt
+ * (Design §5.2). Dieser Stub existiert nur, damit historische Verweise einen
+ * harten, ehrlichen Fehler statt einer stillen Demo-Sitzung erzeugen.
+ * Kein localStorage, keine Demo-Zugangsdaten, keine Sitzung.
  */
-export class LocalAuthAdapter implements AuthAdapter {
-  private getDemoCredentials(): { email: string; pass: string } {
-    const email = (import.meta.env.VITE_DEMO_AUTH_EMAIL || DEFAULT_DEMO_EMAIL).trim().toLowerCase();
-    const pass = import.meta.env.VITE_DEMO_AUTH_PASSWORD || DEFAULT_DEMO_PASSWORD;
-    return { email, pass };
-  }
+function removed(): never {
+  throw new Error('LocalAuth wurde in G45 entfernt. Anmeldung erfolgt über Supabase Auth.');
+}
 
-  async login(email: string, password: string): Promise<User> {
-    const { email: demoEmail, pass: demoPass } = this.getDemoCredentials();
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (cleanEmail !== demoEmail || password !== demoPass) {
-      throw new Error('Ungültige Anmeldedaten. Bitte prüfe E-Mail und Passwort.');
-    }
-
-    const user: User = {
-      id: 'demo-user-id',
-      email: cleanEmail,
-    };
-
-    try {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    } catch {
-      // localStorage im aktuellen Kontext nicht beschreibbar
-    }
-
-    return user;
+class RemovedLocalAuthAdapter implements AuthAdapter {
+  async login(_email: string, _password: string): Promise<User> {
+    removed();
   }
 
   async logout(): Promise<void> {
-    try {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
-    } catch {
-      // localStorage nicht verfügbar
-    }
+    removed();
   }
 
   getSession(): User | null {
-    try {
-      const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed.id === 'string' && typeof parsed.email === 'string') {
-        return { id: parsed.id, email: parsed.email };
-      }
-      return null;
-    } catch {
-      return null;
-    }
+    removed();
   }
 }
 
-export const defaultAuthAdapter: AuthAdapter = new LocalAuthAdapter();
+export const defaultAuthAdapter: AuthAdapter = new RemovedLocalAuthAdapter();

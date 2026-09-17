@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS companies (
   city TEXT NOT NULL,
   postal_code TEXT NOT NULL,
   employee_count INTEGER DEFAULT 0,
+  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS contacts (
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   job_title TEXT NOT NULL,
+  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -41,27 +43,130 @@ CREATE TABLE IF NOT EXISTS imported_funnel_deals (
   amount NUMERIC(12, 2) DEFAULT 0,
   close_date DATE NOT NULL,
   pipeline TEXT NOT NULL,
+  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 3b. IDENTITY TABLES (G45): Organisationen und Mitgliedschaften.
+CREATE TABLE IF NOT EXISTS organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  mode TEXT NOT NULL CHECK (mode IN ('synthetic', 'real')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS organization_members (
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('admin', 'manager', 'viewer')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, organization_id),
+  CONSTRAINT organization_members_single_org UNIQUE (user_id)
+);
+
+INSERT INTO organizations (id, name, mode, status)
+VALUES ('00000000-0000-0000-0000-000000000001', 'LeadPilot Demo', 'synthetic', 'active')
+ON CONFLICT (id) DO NOTHING;
+
 
 -- ====================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
+-- ROW LEVEL SECURITY (RLS) POLICIES — G45: Mandantentrennung (Design §5.3)
+-- Jeder Read-/Write-Pfad prüft auth.uid(), aktive Mitgliedschaft,
+-- organization_id und Rolle. USING (true) / WITH CHECK (true) verboten.
 -- ====================================================================
 
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE imported_funnel_deals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
 
--- Minimal Public Read Policies for Dashboard V1
+-- Minimal Public Read Policies for Dashboard V1 — G45 entfernt (tenant_select_*).
 DROP POLICY IF EXISTS "Allow public read access to companies" ON companies;
-CREATE POLICY "Allow public read access to companies" ON companies FOR SELECT USING (true);
+CREATE POLICY "tenant_select_companies" ON companies
+  FOR SELECT TO authenticated
+  USING (
+    organization_id = public.current_organization_id()
+    AND EXISTS (
+      SELECT 1 FROM public.organization_members AS membership
+      WHERE membership.user_id = auth.uid()
+        AND membership.organization_id = organization_id
+    )
+  );
 
 DROP POLICY IF EXISTS "Allow public read access to contacts" ON contacts;
-CREATE POLICY "Allow public read access to contacts" ON contacts FOR SELECT USING (true);
+CREATE POLICY "tenant_select_contacts" ON contacts
+  FOR SELECT TO authenticated
+  USING (
+    organization_id = public.current_organization_id()
+    AND EXISTS (
+      SELECT 1 FROM public.organization_members AS membership
+      WHERE membership.user_id = auth.uid()
+        AND membership.organization_id = organization_id
+    )
+  );
 
 DROP POLICY IF EXISTS "Allow public read access to imported_funnel_deals" ON imported_funnel_deals;
-CREATE POLICY "Allow public read access to imported_funnel_deals" ON imported_funnel_deals FOR SELECT USING (true);
+CREATE POLICY "tenant_select_deals" ON imported_funnel_deals
+  FOR SELECT TO authenticated
+  USING (
+    organization_id = public.current_organization_id()
+    AND EXISTS (
+      SELECT 1 FROM public.organization_members AS membership
+      WHERE membership.user_id = auth.uid()
+        AND membership.organization_id = organization_id
+    )
+  );
+
+-- CRM-Schreibrechte: nur Rolle admin in eigener Organisation.
+DROP POLICY IF EXISTS "tenant_write_companies" ON companies;
+CREATE POLICY "tenant_write_companies" ON companies
+  FOR ALL TO authenticated
+  USING (
+    organization_id = public.current_organization_id()
+    AND public.has_org_role(ARRAY['admin'])
+  )
+  WITH CHECK (
+    organization_id = public.current_organization_id()
+    AND public.has_org_role(ARRAY['admin'])
+  );
+
+DROP POLICY IF EXISTS "tenant_write_contacts" ON contacts;
+CREATE POLICY "tenant_write_contacts" ON contacts
+  FOR ALL TO authenticated
+  USING (
+    organization_id = public.current_organization_id()
+    AND public.has_org_role(ARRAY['admin'])
+  )
+  WITH CHECK (
+    organization_id = public.current_organization_id()
+    AND public.has_org_role(ARRAY['admin'])
+  );
+
+DROP POLICY IF EXISTS "tenant_write_deals" ON imported_funnel_deals;
+CREATE POLICY "tenant_write_deals" ON imported_funnel_deals
+  FOR ALL TO authenticated
+  USING (
+    organization_id = public.current_organization_id()
+    AND public.has_org_role(ARRAY['admin'])
+  )
+  WITH CHECK (
+    organization_id = public.current_organization_id()
+    AND public.has_org_role(ARRAY['admin'])
+  );
+
+-- Identität: Mitglieder sehen eigenen Mandanten und eigene Mitgliedschaft
+-- (Mitgliedschafts-Rolle via organization_members-Tabelle, kein offener Zugriff).
+DROP POLICY IF EXISTS "member_select_own_organization" ON organizations;
+CREATE POLICY "member_select_own_organization" ON organizations
+  FOR SELECT TO authenticated
+  USING (id = public.current_organization_id());
+
+DROP POLICY IF EXISTS "member_select_own_membership" ON organization_members;
+CREATE POLICY "member_select_own_membership" ON organization_members
+  FOR SELECT TO authenticated
+  USING (user_id = auth.uid());
 
 
 -- ====================================================================
