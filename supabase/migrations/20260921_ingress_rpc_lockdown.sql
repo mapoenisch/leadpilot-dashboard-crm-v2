@@ -35,6 +35,11 @@ BEGIN
   IF p_max_per_minute IS NULL OR p_max_per_minute < 1 THEN
     RETURN 'rate_limited';
   END IF;
+  -- Serialisierung pro Quelle: Ohne Sperre könnten zwei parallele
+  -- Transaktionen (READ COMMITTED) je nur die eigene neue Zeile sehen und
+  -- beide unter der Grenze bleiben. Der transaktionale Advisory-Lock macht
+  -- Insert + Count zu einer kritischen Sektion je Quelle.
+  PERFORM pg_advisory_xact_lock(hashtext('ingress-slot:' || p_source_system));
   INSERT INTO public.ingress_nonces (nonce, organization_id, source_system)
   VALUES (btrim(p_nonce), p_organization_id, p_source_system)
   ON CONFLICT (nonce) DO NOTHING;
