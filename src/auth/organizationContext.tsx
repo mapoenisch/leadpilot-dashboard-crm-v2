@@ -35,13 +35,22 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }
       const { data, error } = await supabase
         .from('organization_members')
-        .select('organization_id, role')
+        .select('organization_id, role, status, organizations!inner(status)')
         .eq('user_id', user.id)
         .maybeSingle();
       if (!cancelled) {
         const role = data?.role;
+        // G45-Nacharbeit: Nur aktive Mitgliedschaft in aktiver Organisation
+        // bildet eine UI-Sitzung — suspendierte Kontexte fallen auf null und
+        // ProtectedRoute leitet nach /login um (Defense in depth zur RLS).
+        const orgStatus = (data as { organizations?: { status?: unknown } } | null)?.organizations
+          ?.status;
         setSession(
-          !error && data && isOrganizationRole(role)
+          !error &&
+            data &&
+            isOrganizationRole(role) &&
+            data.status === 'active' &&
+            orgStatus === 'active'
             ? { userId: user.id, organizationId: data.organization_id as string, role }
             : null,
         );
