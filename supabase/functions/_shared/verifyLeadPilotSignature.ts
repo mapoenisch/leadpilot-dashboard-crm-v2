@@ -92,11 +92,14 @@ export function validateKpiPayload(payload: unknown): KpiValidation {
   if (typeof kpiId !== 'string' || !ALLOWED_KPI_IDS.includes(kpiId)) {
     return { ok: false, code: 'INGEST_KPI_UNKNOWN' };
   }
-  if ('unit' in record && record['unit'] !== undefined && record['unit'] !== KPI_UNITS[kpiId]) {
+  // Einheit und Quelle sind Pflicht (Design §10.1: erlaubnislistenbasiert) —
+  // fehlende oder falsche Angaben werden vor jedem DB-Zugriff abgewiesen.
+  const unit = record['unit'];
+  if (typeof unit !== 'string' || unit !== KPI_UNITS[kpiId]) {
     return { ok: false, code: 'INGEST_KPI_UNIT_MISMATCH' };
   }
   const source = record['sourceSystem'];
-  if (source !== undefined && (typeof source !== 'string' || !IDENTIFIER_PATTERN.test(source))) {
+  if (typeof source !== 'string' || !IDENTIFIER_PATTERN.test(source)) {
     return { ok: false, code: 'INGEST_KPI_SOURCE_INVALID' };
   }
   const value = record['value'];

@@ -106,6 +106,9 @@ export async function handleIngest(
       case 'INGEST_BODY_TOO_LARGE':
         return jsonResponse(413, { error: verification.code });
       case 'INGEST_KPI_UNKNOWN':
+      case 'INGEST_KPI_UNIT_MISMATCH':
+      case 'INGEST_KPI_SOURCE_INVALID':
+      case 'INGEST_KPI_VALUE_INVALID':
         return jsonResponse(422, { error: verification.code });
       default:
         return jsonResponse(401, { error: verification.code });

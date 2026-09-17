@@ -67,7 +67,7 @@ async function signedRequest(
 }
 
 function validBody(value = 411840): string {
-  return JSON.stringify({ kpiId: 'arr', value });
+  return JSON.stringify({ kpiId: 'arr', unit: 'EUR', sourceSystem: 'edge-test', value });
 }
 
 Deno.test('gültiger Request ergibt 201 mit genau einem Slot-Aufruf', async () => {
@@ -137,4 +137,17 @@ Deno.test('fehlende Secrets ergeben 500', async () => {
   const db = makeDb();
   const res = await handleIngest(await signedRequest(validBody(), 'h-nosec'), null, db);
   assertEquals(res.status, 500);
+});
+
+Deno.test('fachlich ungültige Payload ergibt 422', async () => {
+  const db = makeDb();
+  const rawBody = JSON.stringify({
+    kpiId: 'arr',
+    unit: 'count',
+    sourceSystem: 'edge-test',
+    value: 1,
+  });
+  const res = await handleIngest(await signedRequest(rawBody, 'h-422'), SECRETS, db);
+  assertEquals(res.status, 422);
+  assertEquals(db.slotCalls, 0);
 });

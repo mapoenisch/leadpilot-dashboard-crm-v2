@@ -46,7 +46,7 @@ async function sign(
 }
 
 function validBody(): string {
-  return JSON.stringify({ kpiId: 'arr', value: 411840 });
+  return JSON.stringify({ kpiId: 'arr', unit: 'EUR', sourceSystem: 'n8n-test', value: 411840 });
 }
 
 async function validHeaders(
@@ -99,7 +99,12 @@ Deno.test('manipulierte Signatur wird abgewiesen', async () => {
 
 Deno.test('manipulierter Body wird abgewiesen', async () => {
   const { headers, store } = await validHeaders();
-  const other = JSON.stringify({ kpiId: 'arr', value: 999999 });
+  const other = JSON.stringify({
+    kpiId: 'arr',
+    unit: 'EUR',
+    sourceSystem: 'n8n-test',
+    value: 999999,
+  });
   const result = await verifySignedRequest(other, headers, SECRET, NOW, store);
   assertEquals(result.ok, false);
   if (!result.ok) {
@@ -166,7 +171,12 @@ Deno.test('Fachvalidierung akzeptiert vollständigen gültigen Payload', () => {
 });
 
 Deno.test('Fachvalidierung weist falsche Einheit ab', () => {
-  const result = validateKpiPayload({ kpiId: 'arr', unit: 'count', value: 1 });
+  const result = validateKpiPayload({
+    kpiId: 'arr',
+    unit: 'count',
+    sourceSystem: 'n8n-test',
+    value: 1,
+  });
   assertEquals(result.ok, false);
   if (!result.ok) {
     assertEquals(result.code, 'INGEST_KPI_UNIT_MISMATCH');
@@ -174,7 +184,12 @@ Deno.test('Fachvalidierung weist falsche Einheit ab', () => {
 });
 
 Deno.test('Fachvalidierung weist ungültige Quelle ab', () => {
-  const result = validateKpiPayload({ kpiId: 'arr', sourceSystem: 'böse quelle!', value: 1 });
+  const result = validateKpiPayload({
+    kpiId: 'arr',
+    unit: 'EUR',
+    sourceSystem: 'böse quelle!',
+    value: 1,
+  });
   assertEquals(result.ok, false);
   if (!result.ok) {
     assertEquals(result.code, 'INGEST_KPI_SOURCE_INVALID');
@@ -183,7 +198,12 @@ Deno.test('Fachvalidierung weist ungültige Quelle ab', () => {
 
 Deno.test('Fachvalidierung weist unplausible Werte ab', () => {
   for (const value of [Number.NaN, -1, 1e13, 'viel']) {
-    const result = validateKpiPayload({ kpiId: 'mrr', value });
+    const result = validateKpiPayload({
+      kpiId: 'mrr',
+      unit: 'EUR',
+      sourceSystem: 'n8n-test',
+      value,
+    });
     assertEquals(result.ok, false, `Wert abgewiesen: ${String(value)}`);
     if (!result.ok) {
       assertEquals(result.code, 'INGEST_KPI_VALUE_INVALID');
