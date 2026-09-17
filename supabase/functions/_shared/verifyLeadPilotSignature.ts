@@ -23,7 +23,10 @@ export type IngressRejectCode =
   | 'INGEST_TIMESTAMP_EXPIRED'
   | 'INGEST_REPLAY_DETECTED'
   | 'INGEST_BODY_TOO_LARGE'
-  | 'INGEST_KPI_UNKNOWN';
+  | 'INGEST_KPI_UNKNOWN'
+  | 'INGEST_KPI_UNIT_MISMATCH'
+  | 'INGEST_KPI_SOURCE_INVALID'
+  | 'INGEST_KPI_VALUE_INVALID';
 
 export type VerificationResult = { ok: true } | { ok: false; code: IngressRejectCode };
 
@@ -45,6 +48,63 @@ export const ALLOWED_KPI_IDS: readonly string[] = [
   'pipeline_offers',
   'pipeline_won',
 ];
+
+// Einheit je KPI (aus liveKpiDefinitions) + plausible Wertebereiche (Design
+// §10.1: finite Zahl, nicht negativ, Obergrenze 1e12 für alle KPIs).
+export const KPI_UNITS: Record<string, 'EUR' | 'x' | 'count'> = {
+  arr: 'EUR',
+  mrr: 'EUR',
+  pipeline_coverage: 'x',
+  arr_direct: 'EUR',
+  arr_partner: 'EUR',
+  arr_outbound: 'EUR',
+  arr_other: 'EUR',
+  pipeline_leads: 'count',
+  pipeline_mql: 'count',
+  pipeline_sql: 'count',
+  pipeline_offers: 'count',
+  pipeline_won: 'count',
+};
+
+export const MAX_KPI_VALUE = 1e12;
+const IDENTIFIER_PATTERN = /^[a-zA-Z0-9._-]{1,128}$/;
+
+export type KpiRejectCode =
+  | 'INGEST_KPI_UNKNOWN'
+  | 'INGEST_KPI_UNIT_MISMATCH'
+  | 'INGEST_KPI_SOURCE_INVALID'
+  | 'INGEST_KPI_VALUE_INVALID';
+
+export interface KpiValidation {
+  ok: boolean;
+  code?: KpiRejectCode;
+}
+
+// Fachvalidierung VOR jedem privilegierten DB-Zugriff (Design §10.1):
+// KPI-ID aus Allowlist, Einheit passend, Quelle im Identifier-Format,
+// Wert endlich und im plausiblen Bereich.
+export function validateKpiPayload(payload: unknown): KpiValidation {
+  if (typeof payload !== 'object' || payload === null) {
+    return { ok: false, code: 'INGEST_KPI_UNKNOWN' };
+  }
+  const record = payload as Record<string, unknown>;
+  const kpiId = record['kpiId'];
+  if (typeof kpiId !== 'string' || !ALLOWED_KPI_IDS.includes(kpiId)) {
+    return { ok: false, code: 'INGEST_KPI_UNKNOWN' };
+  }
+  if ('unit' in record && record['unit'] !== undefined && record['unit'] !== KPI_UNITS[kpiId]) {
+    return { ok: false, code: 'INGEST_KPI_UNIT_MISMATCH' };
+  }
+  const source = record['sourceSystem'];
+  if (source !== undefined && (typeof source !== 'string' || !IDENTIFIER_PATTERN.test(source))) {
+    return { ok: false, code: 'INGEST_KPI_SOURCE_INVALID' };
+  }
+  const value = record['value'];
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > MAX_KPI_VALUE) {
+    return { ok: false, code: 'INGEST_KPI_VALUE_INVALID' };
+  }
+  return { ok: true };
+}
 
 function fail(code: IngressRejectCode): VerificationResult {
   return { ok: false, code };
@@ -111,14 +171,11 @@ export async function verifySignedRequest(
     }
     nonceStore.add(nonce, nowMs);
   }
-
   try {
     const payload: unknown = JSON.parse(rawBody);
-    const kpiId = typeof payload === 'object' && payload !== null
-      ? (payload as Record<string, unknown>)['kpiId']
-      : undefined;
-    if (typeof kpiId !== 'string' || !ALLOWED_KPI_IDS.includes(kpiId)) {
-      return fail('INGEST_KPI_UNKNOWN');
+    const validation = validateKpiPayload(payload);
+    if (!validation.ok) {
+      return fail(validation.code ?? 'INGEST_KPI_UNKNOWN');
     }
   } catch {
     return fail('INGEST_KPI_UNKNOWN');

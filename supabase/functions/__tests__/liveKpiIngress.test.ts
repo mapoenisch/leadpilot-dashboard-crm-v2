@@ -6,6 +6,7 @@ import { assertEquals } from '@std/assert';
 import {
   type IngressHeaders,
   type NonceStore,
+  validateKpiPayload,
   verifySignedRequest,
 } from '../_shared/verifyLeadPilotSignature.ts';
 
@@ -151,5 +152,41 @@ Deno.test('unbekannte KPI wird abgewiesen', async () => {
   assertEquals(result.ok, false);
   if (!result.ok) {
     assertEquals(result.code, 'INGEST_KPI_UNKNOWN');
+  }
+});
+
+Deno.test('Fachvalidierung akzeptiert vollständigen gültigen Payload', () => {
+  const result = validateKpiPayload({
+    kpiId: 'arr',
+    unit: 'EUR',
+    sourceSystem: 'n8n',
+    value: 411840,
+  });
+  assertEquals(result, { ok: true });
+});
+
+Deno.test('Fachvalidierung weist falsche Einheit ab', () => {
+  const result = validateKpiPayload({ kpiId: 'arr', unit: 'count', value: 1 });
+  assertEquals(result.ok, false);
+  if (!result.ok) {
+    assertEquals(result.code, 'INGEST_KPI_UNIT_MISMATCH');
+  }
+});
+
+Deno.test('Fachvalidierung weist ungültige Quelle ab', () => {
+  const result = validateKpiPayload({ kpiId: 'arr', sourceSystem: 'böse quelle!', value: 1 });
+  assertEquals(result.ok, false);
+  if (!result.ok) {
+    assertEquals(result.code, 'INGEST_KPI_SOURCE_INVALID');
+  }
+});
+
+Deno.test('Fachvalidierung weist unplausible Werte ab', () => {
+  for (const value of [Number.NaN, -1, 1e13, 'viel']) {
+    const result = validateKpiPayload({ kpiId: 'mrr', value });
+    assertEquals(result.ok, false, `Wert abgewiesen: ${String(value)}`);
+    if (!result.ok) {
+      assertEquals(result.code, 'INGEST_KPI_VALUE_INVALID');
+    }
   }
 });
