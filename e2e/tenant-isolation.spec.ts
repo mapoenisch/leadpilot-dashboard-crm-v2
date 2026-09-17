@@ -40,4 +40,19 @@ test.describe('Mandantentrennung (Gate G45)', () => {
     await expect(page.getByText('Firma B1').first()).toBeAttached();
     await expect(page.getByText('Firma A1')).toHaveCount(0);
   });
+
+  test('3. Ohne gültige Organisationssitzung führt jede geschützte Route zu /login', async ({
+    page,
+  }) => {
+    // G45-Nacharbeit: Benutzer ohne Mitgliedschaft (analog suspendiert —
+    // Provider bildet keine Sitzung) passiert ProtectedRoute nicht.
+    await page.goto('/login');
+    await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL_NOMEMBER'));
+    await page.fill('#login-password', requireEnv('E2E_AUTH_PASSWORD'));
+    await page.click('button[type="submit"]');
+    // Supabase-Login erfolgreich, aber ohne Org-Sitzung bleibt /login.
+    await expect(page).toHaveURL(/\/login/);
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/login/);
+  });
 });
