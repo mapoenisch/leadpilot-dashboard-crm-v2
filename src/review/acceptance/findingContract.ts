@@ -154,6 +154,9 @@ const ORDER: readonly V23FindingId[] = [
 // unveränderten Sollvertrag grün und stehen auf passing. Alle übrigen
 // Findings bleiben failing; IDs, Titel, Gates und Runner sind unverändert.
 const PASSING_SINCE_G45: readonly V23FindingId[] = ['PR-AUTH-01', 'PR-RLS-02'];
+// G46 (Auftrag 067C): PR-INGEST-03 und PR-SEED-05 erfuellen denselben
+// unveraenderten Sollvertrag gruen und stehen auf passing.
+const PASSING_SINCE_G46: readonly V23FindingId[] = ['PR-INGEST-03', 'PR-SEED-05'];
 
 export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
   id,
@@ -161,7 +164,8 @@ export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
   severity: severityById[id],
   targetGate: gateById[id],
   runner: runnerById[id],
-  expected: PASSING_SINCE_G45.includes(id) ? 'passing' : 'failing',
+  expected:
+    PASSING_SINCE_G45.includes(id) || PASSING_SINCE_G46.includes(id) ? 'passing' : 'failing',
 }));
 
 export function getFinding(id: V23FindingId): V23FindingContract {

@@ -21,7 +21,7 @@
     "severity": "critical",
     "targetGate": "G46",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-SOURCE-04",
@@ -37,7 +37,7 @@
     "severity": "critical",
     "targetGate": "G46",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-BASELINE-06",
