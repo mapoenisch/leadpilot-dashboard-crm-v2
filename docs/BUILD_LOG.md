@@ -7608,7 +7608,7 @@ n8n-Workflow (14 Nodes): Code-Guard (Timestamp/Nonce/KPI/Base) → Crypto-HMAC (
 
 ## [2026-09-17] Gate G46: Zweites unabhängiges Review – weitere Nacharbeit erforderlich
 
-**Review-Baseline:** `296853b` auf `feat/auftrag-067c-ingress`  
+**Review-Baseline:** `296853b` auf `feat/auftrag-067c-ingress`
 **Ergebnis:** **NICHT FREIGEGEBEN** – 067D bleibt blockiert; kein Push und keine Integration.
 
 ### Unabhängig bestätigte Nachweise
@@ -7666,4 +7666,39 @@ PR-INGEST-03-Guard-Matcher schlug erneut auf Workflow-Kommentar an („HMAC-Basi
 
 ### Finale Gate-Ergebnisse (Nacharbeit 3)
 - `deno test --allow-read` 25/25 · `supabase test db` 36/36 + Race-Skript grün · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
+- **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
+
+## [2026-09-17] Gate G46: Drittes unabhängiges Review – weitere Nacharbeit erforderlich
+
+**Review-Baseline:** `22f5cfc` auf `feat/auftrag-067c-ingress`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067D bleibt blockiert; kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise
+
+- Die drei isolierten Ingress-Suiten sind mit **25/25 grün**; `deno check supabase/functions/live-kpi-ingest/index.ts` und `npx tsc --noEmit` sind grün.
+- Der Raw-Binary-Pfad hat keinen `json.body`-Fallback mehr. Die zweistufige n8n-Guard-Kette trennt `valid === true` von dem nachfolgenden Signaturvergleich; verwaiste Connection-Ziele sind im Strukturtest nicht vorhanden.
+- Schutzbereich gegen `6543571` ist leer. `npm run verify` und `npm run build` konnten in dieser Prüfungsumgebung nicht anlaufen: `tsx` darf keinen temporären IPC-Socket öffnen bzw. Vite keine temporäre Config-Datei erzeugen (`EPERM`), kein projektbezogener Testfehler.
+
+### Blockierende Review-Befunde
+
+1. **Critical – n8n-Ingress hat weiterhin kein verpflichtendes Body-Limit:** Der n8n-WebHook setzt nur `options.rawBody: true`. Weder `Pass-Through Raw Contract Payload` noch `Verify Ingress Signature` enthalten eine Byte-/Content-Length-Prüfung; der Pass-Through dekodiert jedes beliebig große `binary.data`-Payload vollständig in einen String. Damit kann ein direkter n8n-Request den 256-KB-Vertrag aus Design §10.1 umgehen und Speicher vor HMAC/Guard/DB-Claim belegen. Der Edge-Handler schützt diesen getrennten Pfad nicht. Vor dem Decodieren muss die Größe der Originalbytes begrenzt werden, mit eindeutigem 413-Zweig, und ein Workflow-Harness muss Oversize ohne Claim/DB-Nachfolger belegen.
+2. **Important – der behauptete Diff-Check ist nicht sauber:** `git diff --check 6543571..HEAD` meldet in `docs/BUILD_LOG.md:7611` nachlaufenden Whitespace. Die Zeile stammt aus `22f5cfc`, ist aber im G46-Diff enthalten; die Aussage „diff-check sauber" ist daher in diesem Stand nicht belegt. Die Leerzeichen entfernen und den Check erneut ausführen.
+
+### Erforderliche Nacharbeit
+
+- Den Raw-Binary-n8n-Pfad vor vollständiger Dekodierung auf dieselbe dokumentierte Maximalgröße begrenzen und Oversize deterministisch mit 413, ohne HMAC-/Slot-/DB-Pfad, beantworten.
+- Den nachlaufenden Whitespace im Ledger bereinigen und den Diff-Check gegen `6543571` erneut belegen.
+
+Danach G46 erneut unabhängig prüfen lassen. Kein Push, keine Integration und kein Start von 067D bis zur Freigabe.
+
+## [2026-09-17] Gate G46: Nacharbeit zur vierten Review-Runde (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review mündlich (kein Ledger-Eintrag möglich): NICHT FREIGEGEBEN (1 Critical + 1 Important: n8n-Body-Limit, Ledger-Whitespace). Umgebung: Node v22.11.0, Deno 2.9.6, lokale Supabase CLI 2.117.0.
+
+### Behebung je Befund
+1. **Critical n8n-Body-Limit:** Pass-Through misst Base64-Länge minus Padding exakt gegen 256 KB und reicht nur kodierte Bytes weiter (Dekodierung erst im Verify nach Freigabe); Oversize → `{valid:false, code:INGEST_BODY_TOO_LARGE}` → IF-Kette → neuer 413-Respond (kein HMAC-/Slot-/DB-Pfad). Harness: Byte-Maße je Variante, Oversize-End-to-End (Pass-Through→Verify) mit 413-Code.
+2. **Important Ledger-Whitespace:** Nachlaufende Leerzeichen in Reviewer-Zeile 7611 entfernt (freigegeben); `git diff --check 6543571..HEAD` erneut belegt (sauber).
+
+### Finale Gate-Ergebnisse (Nacharbeit 4)
+- `deno test --allow-read` 26/26 · `supabase test db` 36/36 + Race-Skript grün · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
 - **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
