@@ -7432,3 +7432,23 @@ tsc 0; verify 001–025 grün; `npm test` 100 Files / 380 Tests grün (+3/+8 aus
 - Keine offenen Critical- oder Important-Befunde für 067A/G44.
 - Keine Produktlogik, Migrationen oder Secrets geändert; Schutzbereich bleibt leer.
 - **Gate G44 ist freigegeben.**
+
+## [2026-09-17] Gate G45: Charakterisierung und Regression (Auftrag 067B, Builder-Eintrag)
+
+**Branch:** `feat/auftrag-067b-auth-rls` ab G44-Abschluss `8f06f43`. Serielle Einzelarbeit, kein Push, keine Integration.
+
+### 1. Spec-Grundlage und Lücken
+Verbindlich: Master-Plan Task 2 + Design §5 (keine separate 067B-Auftragsdatei auf dem Planungsbranch). Zwei dokumentierte Abweichungen/Entscheidungen: (a) `localAuthAdapter.ts` als harter Stub statt Delete — Design §5.2 („aus dem produktiven Pfad entfernt") hat Vorrang vor Master-Plan-„Delete", und nur so bleibt der eingefrorene PR-AUTH-01-Vertrag ohne Vertragsänderung grün. (b) Status-Flip PR-AUTH-01/PR-RLS-02 → `passing` in `findingContract.ts`/`v2.3.0-known-findings.json`/Register — exakt die erlaubte Operation (nur Status, keine ID-/Titel-/Gate-/Runner-Änderung). (c) Freigegebene E2E-Anpassung (User-Entscheid): `e2e/global-setup.ts` (Supabase-Login), `e2e/auth.spec.ts` (Supabase-Verhalten), neu `e2e/tenant-isolation.spec.ts`. (d) Reviewte datenbedingte Visual-Abweichung (User-Entscheid): 6 Snapshots `/dashboard`+`/crm/leads` diffen mit Keys-Build (echte statt Demo-Daten, Diff-Bilder geprüft, kein UI-Bruch, Snapshots unangetastet); CI baut ohne Keys (Demo-Pfad, dort stabil) — E2E-Strategie für CI folgt in 067L.
+
+### 2. Datenbank (Steps 1–4)
+Lokale Supabase (CLI 2.117.0 neu, Docker-Daemon gestartet): `supabase/migrations/20260916_identity_and_tenant_rls.sql` — `organizations`, `organization_members` (UNIQUE(user_id) = genau eine Org), `organization_id NOT NULL` + Demo-Org-Backfill, `current_organization_id()/current_organization_role()/has_org_role()`, Kontakt-Org-Trigger, RLS ohne `USING(true)` (SELECT eigene Org + Mitgliedschaft, Writes nur admin). `supabase/tests/tenant_isolation.sql`: 15/15 pgTAP grün (`supabase test db`) nach Rotlauf ohne Migration. CRM-Schreibrechte: nur admin (manager/viewer lesen) — dokumentierte Festlegung.
+
+### 3. App (Step 5)
+Neu: `src/types/organization.ts` (Rolle/Session/`isOrganizationRole`), `src/types/database.generated.ts` (`supabase gen types --local`, mit begründeter max-lines-Ausnahme für Generiertes), `src/auth/permissions.ts` (Matrix + `can()`), `src/auth/supabaseAuthAdapter.ts` (kein Storage/Fallback), `src/auth/organizationContext.tsx`. Umbau: `AuthContext` (Supabase-Adapter, kein Storage-Sync), `LoginPage` (kein Demo-Autofill/Defaults/Hinweis), `.env.example` (Demo-Vars entfernt), `supabase/schema.sql` (Zielstand mit Org-Spalten/Policies).
+
+### 4. E2E (Step 6)
+Lokale Auth-User + Org-Seed nur per Admin-API/SQL (keine Secrets im Repo); Preview-Build lokal mit Dev-Keys (nicht committet). `auth.spec` + `tenant-isolation.spec` (Org A/B sehen je nur eigene Companies, Fremd-Count 0 in beiden DOMs): 18/18 grün. Normale Suite: 165 + 6 neue = 171 Tests, davon 165 grün.
+
+### 5. Gates
+`supabase test db` 15/15 · PR-AUTH-01 + PR-RLS-02 grün (unverändert) · `verify:v23:baseline` Exit 0 (18/18/0) · tsc 0 · `npm run verify` 001–025 · `npm test` 100/395 · build · lint 4/0 · format 85 · `git diff --check` sauber · Schutzbereich außerhalb 067B-Freigabe leer (types: nur `organization.ts` + `database.generated.ts`, beide freigegeben).
+- **G45-Status: BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, 067C bleibt bis zur Freigabe blockiert.
