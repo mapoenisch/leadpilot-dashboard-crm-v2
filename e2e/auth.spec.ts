@@ -6,8 +6,15 @@ import { test, expect } from '@playwright/test';
 // Unauthentifizierter Zustand: storageState für diesen Spec explizit leeren
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const E2E_EMAIL = process.env.E2E_AUTH_EMAIL || 'admin-a@tenant-test.local';
-const E2E_PASSWORD = process.env.E2E_AUTH_PASSWORD || 'Testpasswort1!';
+// Credentials ausschließlich aus der Umgebung — ohne gesetzte Variablen
+// brechen nur die Login-Tests ehrlich ab (keine Fallbacks im Repo).
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`E2E-Abruch: Umgebungsvariable ${name} ist nicht gesetzt.`);
+  }
+  return value;
+}
 
 test.describe('Supabase-Authentifizierung (Gate G45)', () => {
   test('1. Ungemeldeter Aufruf einer geschützten Route leitet zu /login weiter', async ({
@@ -39,8 +46,8 @@ test.describe('Supabase-Authentifizierung (Gate G45)', () => {
     await page.goto('/crm/leads');
     await expect(page).toHaveURL(/\/login/);
 
-    await page.fill('#login-email', E2E_EMAIL);
-    await page.fill('#login-password', E2E_PASSWORD);
+    await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL'));
+    await page.fill('#login-password', requireEnv('E2E_AUTH_PASSWORD'));
     await page.click('button[type="submit"]');
 
     await expect(page).toHaveURL(/\/crm\/leads/);
@@ -65,8 +72,8 @@ test.describe('Supabase-Authentifizierung (Gate G45)', () => {
 
   test('4. Logout entfernt Session und leitet zurück zu /login weiter', async ({ page }) => {
     await page.goto('/login');
-    await page.fill('#login-email', E2E_EMAIL);
-    await page.fill('#login-password', E2E_PASSWORD);
+    await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL'));
+    await page.fill('#login-password', requireEnv('E2E_AUTH_PASSWORD'));
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/\/dashboard/);
 
@@ -80,5 +87,21 @@ test.describe('Supabase-Authentifizierung (Gate G45)', () => {
     // Folgeversuch geschützter Routenaufruf führt erneut zu /login
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/login/);
+  });
+
+  test('5. Reload stellt die Supabase-Sitzung ohne erneuten Login wieder her', async ({ page }) => {
+    await page.goto('/login');
+    await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL'));
+    await page.fill('#login-password', requireEnv('E2E_AUTH_PASSWORD'));
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByTestId('logout-button')).toBeAttached();
+
+    // Echter Reload: Hydration muss die Sitzung wiederherstellen —
+    // kein Redirect zu /login, kein erneutes Ausfüllen nötig.
+    await page.reload();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByTestId('logout-button')).toBeAttached();
+    await expect(page.getByRole('heading', { name: 'Anmeldung zur Plattform' })).toHaveCount(0);
   });
 });

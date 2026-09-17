@@ -4,7 +4,16 @@ import fs from 'fs';
 
 // G45 (Auftrag 067B, Step 6 — freigegebene E2E-Anpassung): Baut den
 // Auth-State per Supabase-Login statt Demo-Fill auf. Credentials ausschließlich
-// aus Umgebungsvariablen (lokale E2E-Defaults, niemals committete Secrets).
+// aus Umgebungsvariablen — ohne gesetzte Variablen bricht das Setup ehrlich
+// ab (keine nutzbaren Fallback-Zugangsdaten im Repo, Review-Nacharbeit).
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`E2E-Abruch: Umgebungsvariable ${name} ist nicht gesetzt.`);
+  }
+  return value;
+}
+
 async function globalSetup(config: FullConfig) {
   const authFile = path.resolve('playwright/.auth/user.json');
   fs.mkdirSync(path.dirname(authFile), { recursive: true });
@@ -15,11 +24,8 @@ async function globalSetup(config: FullConfig) {
 
   try {
     await page.goto('/login', { waitUntil: 'networkidle' });
-    const email = process.env.E2E_AUTH_EMAIL || 'admin-a@tenant-test.local';
-    const password = process.env.E2E_AUTH_PASSWORD || 'Testpasswort1!';
-
-    await page.fill('#login-email', email);
-    await page.fill('#login-password', password);
+    await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL'));
+    await page.fill('#login-password', requireEnv('E2E_AUTH_PASSWORD'));
     await page.click('button[type="submit"]');
 
     await page.waitForURL('**/dashboard');

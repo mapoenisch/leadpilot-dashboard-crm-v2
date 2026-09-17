@@ -6,8 +6,14 @@ import { test, expect, type Page } from '@playwright/test';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const PASSWORD = process.env.E2E_AUTH_PASSWORD || 'Testpasswort1!';
-const PASSWORD_B = process.env.E2E_AUTH_PASSWORD_B || PASSWORD;
+// Credentials ausschließlich aus der Umgebung (keine Fallbacks im Repo).
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`E2E-Abruch: Umgebungsvariable ${name} ist nicht gesetzt.`);
+  }
+  return value;
+}
 
 async function loginAs(page: Page, email: string, password: string): Promise<void> {
   await page.goto('/login');
@@ -19,7 +25,7 @@ async function loginAs(page: Page, email: string, password: string): Promise<voi
 
 test.describe('Mandantentrennung (Gate G45)', () => {
   test('1. Org-A-Admin sieht nur eigene Companies', async ({ page }) => {
-    await loginAs(page, 'admin-a@tenant-test.local', PASSWORD);
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
     await page.goto('/crm/companies');
     // toBeAttached statt toBeVisible: Doppel-DOM (PR-A11Y-12, Fix in 067J)
     // versteckt je Viewport eine Variante per CSS; Datenpräsenz zählt.
@@ -29,7 +35,7 @@ test.describe('Mandantentrennung (Gate G45)', () => {
   });
 
   test('2. Org-B-Admin sieht nur eigene Companies', async ({ page }) => {
-    await loginAs(page, 'admin-b@tenant-test.local', PASSWORD_B);
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL_B'), requireEnv('E2E_AUTH_PASSWORD_B'));
     await page.goto('/crm/companies');
     await expect(page.getByText('Firma B1').first()).toBeAttached();
     await expect(page.getByText('Firma A1')).toHaveCount(0);
