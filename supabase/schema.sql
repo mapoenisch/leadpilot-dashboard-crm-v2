@@ -2,6 +2,32 @@
 -- LeadPilot Enterprise Dashboard — Supabase / PostgreSQL Schema (Phase 2.2)
 -- ====================================================================
 
+-- 0. IDENTITY TABLES (G45): Organisationen und Mitgliedschaften — vor allen FK-Referenzen.
+CREATE TABLE IF NOT EXISTS organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  mode TEXT NOT NULL CHECK (mode IN ('synthetic', 'real')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS organization_members (
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('admin', 'manager', 'viewer')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, organization_id),
+  CONSTRAINT organization_members_single_org UNIQUE (user_id)
+);
+
+
+INSERT INTO organizations (id, name, mode, status)
+VALUES ('00000000-0000-0000-0000-000000000001', 'LeadPilot Demo', 'synthetic', 'active')
+ON CONFLICT (id) DO NOTHING;
+
+
+
 -- 1. COMPANIES TABLE
 CREATE TABLE IF NOT EXISTS companies (
   id TEXT PRIMARY KEY,
@@ -47,34 +73,10 @@ CREATE TABLE IF NOT EXISTS imported_funnel_deals (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3b. IDENTITY TABLES (G45): Organisationen und Mitgliedschaften.
-CREATE TABLE IF NOT EXISTS organizations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  mode TEXT NOT NULL CHECK (mode IN ('synthetic', 'real')),
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS organization_members (
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK (role IN ('admin', 'manager', 'viewer')),
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (user_id, organization_id),
-  CONSTRAINT organization_members_single_org UNIQUE (user_id)
-);
-
+-- ====================================================================
 ALTER TABLE companies ADD CONSTRAINT companies_org_id_unique UNIQUE (organization_id, id);
 ALTER TABLE contacts ADD CONSTRAINT contacts_same_org_fkey FOREIGN KEY (company_id, organization_id) REFERENCES companies(id, organization_id) ON DELETE CASCADE;
 
-INSERT INTO organizations (id, name, mode, status)
-VALUES ('00000000-0000-0000-0000-000000000001', 'LeadPilot Demo', 'synthetic', 'active')
-ON CONFLICT (id) DO NOTHING;
-
-
--- ====================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES — G45: Mandantentrennung (Design §5.3)
 -- Jeder Read-/Write-Pfad prüft auth.uid(), aktive Mitgliedschaft,
 -- organization_id und Rolle. USING (true) / WITH CHECK (true) verboten.
@@ -196,7 +198,15 @@ CREATE POLICY "member_select_own_organization" ON organizations
 DROP POLICY IF EXISTS "member_select_own_membership" ON organization_members;
 CREATE POLICY "member_select_own_membership" ON organization_members
   FOR SELECT TO authenticated
-  USING (user_id = auth.uid());
+  USING (
+    user_id = auth.uid()
+    AND status = 'active'
+    AND EXISTS (
+      SELECT 1 FROM organizations AS org
+      WHERE org.id = organization_id
+        AND org.status = 'active'
+    )
+  );
 
 
 -- ====================================================================
