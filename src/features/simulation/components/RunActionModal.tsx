@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useActiveVersion, useDraftMeasures, useRunActions, useRuns } from '../../../store/hooks';
+import { useOrganization } from '../../../auth/organizationContext';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Alert';
@@ -14,6 +15,9 @@ interface RunActionModalProps {
 export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose }) => {
   const activeVersion = useActiveVersion();
   const { runVersion, reRun, reproduce } = useRunActions();
+  // 067F / G49 (freigegebene UI-Verdrahtung): Mit Sitzungs-Mandant läuft der
+  // Run mandantengebunden und persistiert atomar auf dem Server.
+  const { session } = useOrganization();
   const runs = useRuns();
   const draftMeasures = useDraftMeasures();
   const [selectedRunId, setSelectedRunId] = useState<string>('');
@@ -24,7 +28,7 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
   const handleStartRun = async () => {
     if (!activeVersion) return;
     try {
-      await runVersion(activeVersion.id);
+      await runVersion(activeVersion.id, session?.organizationId);
       onClose();
     } catch (err) {
       setErrorMsg((err instanceof Error ? err.message : '') || 'Fehler beim Starten des Runs.');

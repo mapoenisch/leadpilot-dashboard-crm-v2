@@ -13,7 +13,10 @@ export interface RunSlice {
   runs: SimulationRun[];
   aggregation: ScenarioAggregationResult;
   workerProgress: { completedRuns: number; totalRuns: number };
-  runVersion: (versionId: string) => Promise<void>;
+  // 067F / G49: Mit organizationId läuft der Run mandantengebunden und wird
+  // danach atomar auf dem Server persistiert (fail-closed); ohne bleibt das
+  // bisherige reine In-Memory-Verhalten.
+  runVersion: (versionId: string, organizationId?: string) => Promise<void>;
   reRun: (versionId: string) => Promise<void>;
   reproduce: (runId: string) => Promise<void>;
 }
@@ -28,10 +31,11 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
       totalRuns: initialRuns.length || 1,
     },
 
-    runVersion: async (versionId: string) => {
+    runVersion: async (versionId: string, organizationId?: string) => {
       await scenarioService.runScenarioVersion(versionId, undefined, undefined, {
         correlationId: systemContext.nextCorrelationId(),
         measures: get().draftMeasures,
+        ...(organizationId ? { organizationId, persistToServer: true as const } : {}),
       });
       get().refreshData();
     },

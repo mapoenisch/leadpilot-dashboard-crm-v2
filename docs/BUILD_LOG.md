@@ -7928,3 +7928,47 @@ Danach G47 erneut unabhängig prüfen lassen. Kein Push, keine Integration und k
 
 - `.playwright-mcp/` blieb unberührt.
 - Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
+
+## [2026-09-17] Gate G49: Builder-Nachtrag 067F Dauerhafte Persistenz (kein Push)
+
+**Ziel und Baseline-Commit:** 067F / G49 — Szenarien, Versionen, Runs, Events, Zeitreihen und Snapshots liegen in Supabase; atomarer Serverpfad (vollständig oder gar nicht); Reload, Ab-/Anmeldung und zweiter Browser zeigen denselben Stand. Baseline: `359ab1b` (G48-Freigabe). Branch: `feat/auftrag-067f-persistenz`. Umgebung: Node v22.11.0, Supabase CLI 2.117.0, Docker lokal.
+
+### Geänderte Dateien
+- Neu: `supabase/migrations/20260922_scenario_run_persistence.sql` (6 Tabellen, Indizes, RLS, atomarer RPC `persist_completed_run`; Dateiname weicht vom Plan ab — `20260919` war belegt).
+- Neu: `supabase/migrations/20260923_run_seed_bigint.sql` (Nacharbeit: seed/rng_state BIGINT + RPC-Casts).
+- Neu: `supabase/tests/scenario_run_persistence.sql` (22 pgTAP-Tests).
+- Neu: `src/services/runs/runRepository.ts` (RPC + Row→Domain-Mapper), `supabaseClientLike.ts`, `runPersistenceService.ts` (fail-closed Validierung), `__tests__/runPersistenceService.vitest.ts` (7 Tests), `src/services/scenarios/scenarioRepository.ts` (Reads).
+- Geändert: `src/simulation/scenarioService.ts` (`persistToServer`-Opt-in, `loadScenarioWorkspace`), `src/types/scenario.ts` (`persistToServer`), `src/types/snapshot.ts` (optionales `organizationId`), `src/store/slices/runSlice.ts` (org-gebundener Run), `src/store/slices/scenarioSlice.ts` (`hydrateWorkspace`).
+- Neu: `e2e/persistence-multisession.spec.ts` (Reload + zweiter Browser).
+- Freigegebene UI-Verdrahtung (Marcs Freigabe): `src/app/App.tsx` (`WorkspaceHydrator` bei Sitzung, Fehler geloggt), `src/features/simulation/components/RunActionModal.tsx` (Session-Org an `runVersion`).
+
+### Roter Starttest und Ursache
+Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema fehlte). Ursache: Persistenz ausschließlich In-Memory-Maps (`scenarioRepository`), kein Serverpfad.
+
+### Implementierung und Architekturentscheidung
+- Schreibmodell: direkte INSERT/UPDATE/DELETE für alle App-Rollen gesperrt (RLS Default-Deny); einziger Schreibpfad ist der SECURITY-DEFINER-RPC (Mitgliedschaft in der Zielorg, rollenunabhängig — Persistenz folgt der Run-Berechtigung). Upserts + Kinder-Ersatz machen Retries idempotent.
+- Service validiert fail-closed vor DB-Kontakt (Org vorhanden, kein Bundle/Manifest-Mix, IDs konsistent); jeder Fehler wird `RunPersistenceError`, nichts verschluckt. Ohne konfiguriertes Supabase `NOT_CONFIGURED` statt stillem Memory-Fallback.
+- `runVersion` ohne Org bleibt reines In-Memory-Verhalten (alle Bestandsaufrufer unverändert); mit Org mandantengebunden + atomar persistiert. `hydrateWorkspace` füllt das In-Memory-Repo nur über öffentliche Save-APIs.
+
+### Funktionale und negative Prüfungen
+- pgTAP 22/22: atomarer Erfolg (Run/Events/Timeseries/Snapshots/Szenario/Version), Rollback bei Eventfehler (Counts unverändert), Fremdorg-Angriff (RPC-Ablehnung, keine Reste, keine Sicht), Viewer eigene Org, ohne Mitgliedschaft, Direkt-INSERT-Sperre, BIGINT-PRNG-Zustand.
+- Vitest 7/7: RPC-Mapping, RPC-Fehler, fehlende Org, Mandanten-Mix, NOT_CONFIGURED, Workspace-Mapping/Filter, Workspace-Fehler.
+- E2E lokal ausgeführt und grün: UI-Run → Reload → zweiter Browser zeigen dieselbe neue Run-ID; Server-Kontrolle: 1 COMPLETED-Run + 86 Events in der E2E-Org.
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- Erlaubt (067F-Matrix + 2 freigegebene UI-Dateien): siehe Dateiliste; `src/simulation/scenarioService.ts`, Slices, Typen.
+- Unerlaubte Pfade leer: `src/simulation` sonst unberührt (Engine/Regeln), `src/context`, `src/features/resources`, RNG/Seed, CRM-Schreibpfade. In-Memory-`scenarioRepository` unverändert (Hydrierung nutzt nur öffentliche Saves).
+
+### Vollständige automatisierte Verifikation
+- `supabase test db`: 58/58 grün (22 neu + 36 Bestand). `npm run verify` (001–025): grün. `npm test`: 104 Dateien / 419 Tests grün. `npx tsc --noEmit`: 0. `npm run build`: grün (2×: lokal-env für E2E, danach Standard-env neu gebaut). `npx playwright test e2e/persistence-multisession.spec.ts`: grün (desktop-1440, lokale Supabase + Seed-User).
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber.
+
+### Bekannte Vorbefunde (außerhalb 067F, dokumentiert statt erweitert)
+- `supabase db reset` ist vorbestehend defekt (Migrationen allein bauen `companies` u. a. nicht — nur `schema.sql` enthält sie); verifiziert via fehlgeschlagenem Reset vor jeder 067F-Änderung. Lokaler Arbeitsfluss: `schema.sql` per Docker-psql + `migration up`. Keine 067F-Datei ändert daran etwas.
+- E2E-Seed-Skript und Debug-Datei waren temporär und sind gelöscht; E2E-Zeilen (Org, Benutzer, Runs) leben nur in lokalen Docker-Volumes, nicht im Repo. `.env` unverändert (Cloud), Builds für E2E nur per Kommandozeilen-Env.
+
+### Reviewer-Befund
+- Offen — **G49 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067G bleibt blockiert.
+
+### Freigabestatus und Abschlusscommit
+- Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067f-persistenz`.

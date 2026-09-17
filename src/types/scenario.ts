@@ -102,6 +102,9 @@ export interface RunOptions {
   // übergibt beides aus dem Manifest; Abweichungen brechen fail-closed ab.
   organizationId?: string;
   expectedBaselineHash?: string;
+  // 067F / G49: Opt-in Server-Persistenz des abgeschlossenen Runs (atomarer
+  // RPC). Fehler propagieren — kein stiller In-Memory-Fallback.
+  persistToServer?: boolean;
 }
 
 import { BaselineComparisonResult, GoalTargetEvaluationResult } from './kpi';

@@ -8,8 +8,10 @@ import { ROUTE_PAGES } from '@/app/routePages';
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
 import { AuthProvider } from '@/auth/AuthContext';
-import { OrganizationProvider } from '@/auth/organizationContext';
+import { OrganizationProvider, useOrganization } from '@/auth/organizationContext';
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
+import { useSimulationStore } from '@/store/simulationStore';
+import { logger } from '@/services/logger';
 import '@/services/data';
 
 const LoginPage = React.lazy(() =>
@@ -24,12 +26,32 @@ const DesignSystemPage = React.lazy(() =>
   })),
 );
 
+// 067F / G49 (freigegebene UI-Verdrahtung): Lädt bei bestehender
+// Organisationssitzung einmalig den Server-Workspace (Reload / zweite Sitzung
+// sehen denselben Stand). Fehler werden geloggt, nicht verschluckt.
+function WorkspaceHydrator() {
+  const { session } = useOrganization();
+  const hydratedFor = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!session || hydratedFor.current === session.organizationId) return;
+    hydratedFor.current = session.organizationId;
+    useSimulationStore
+      .getState()
+      .hydrateWorkspace(session.organizationId)
+      .catch((err: unknown) => {
+        logger.error('Workspace-Hydrierung fehlgeschlagen:', err);
+      });
+  }, [session]);
+  return null;
+}
+
 export function App() {
   return (
     <RouteErrorBoundary resetKey="app-root">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <OrganizationProvider>
+            <WorkspaceHydrator />
             <BrowserRouter>
               <Routes>
                 {/* Unbeschützte Login-Route (Gate G42, Entscheidung 4) */}

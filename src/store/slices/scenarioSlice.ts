@@ -50,6 +50,9 @@ export interface ScenarioSlice {
   updateDraftMeasure: (measure: Measure) => void;
   removeDraftMeasure: (measureId: string) => void;
   setDraftMeasures: (measures: Measure[]) => void;
+  // 067F / G49: Lädt den mandantengebundenen Server-Workspace und hydriert
+  // den Store (Reload / zweite Sitzung zeigen denselben Stand).
+  hydrateWorkspace: (organizationId: string) => Promise<void>;
   previewMeasures: (
     measuresToPreview?: Measure[],
     targetTicks?: number,
@@ -164,6 +167,11 @@ export const createScenarioSlice: StateCreator<SimulationStoreState, [], [], Sce
 
   setDraftMeasures: (measures: Measure[]) => {
     set({ draftMeasures: measures });
+  },
+
+  hydrateWorkspace: async (organizationId: string) => {
+    await scenarioService.loadScenarioWorkspace(organizationId);
+    get().refreshData();
   },
 
   previewMeasures: async (measuresToPreview?: Measure[], targetTicks = 50) => {

@@ -20,6 +20,11 @@ import {
   UNKNOWN_ORGANIZATION_ID,
 } from '../services/data/baselineSnapshotService';
 import { mapBaselineToSimulationInput } from '../services/data/baselineMapper';
+import {
+  loadScenarioWorkspace as loadWorkspaceFromServer,
+  persistCompletedRun,
+  type ScenarioWorkspace,
+} from '../services/runs/runPersistenceService';
 import { dataSourceRegistry } from '../services/data';
 import { DataSourceError } from '../types/dataSource';
 import { ISnapshotRepository } from '../services/db/ISnapshotRepository';
@@ -471,6 +476,28 @@ export class ScenarioService {
       }
     }
 
+    // 067F / G49: Opt-in Server-Persistenz (atomarer RPC, alles oder nichts).
+    // Fehler propagieren fail-closed — kein stiller In-Memory-Fallback.
+    if (opts?.persistToServer) {
+      const scenario = this.repo.getScenario(version.scenarioId);
+      if (!scenario) {
+        throw new ScenarioError(
+          'NOT_FOUND',
+          `Szenario "${version.scenarioId}" wurde nicht gefunden.`,
+        );
+      }
+      const snapshots = this.snapshotRepo ? await this.snapshotRepo.getByRun(runId) : [];
+      await persistCompletedRun({
+        organizationId: manifest.organizationId,
+        scenario,
+        version,
+        run,
+        events,
+        timeSeries,
+        snapshots,
+      });
+    }
+
     return {
       run,
       state: currentState,
@@ -527,6 +554,25 @@ export class ScenarioService {
       expectedBaselineHash: existingRun.manifest.baselineHash,
       measures: existingRun.manifest.measures ? [...existingRun.manifest.measures] : undefined,
     });
+  }
+
+  /**
+   * 067F / G49 — lädt Szenarien, Versionen und Runs genau eines Mandanten vom
+   * Server und hydriert das In-Memory-Repository (Reload / zweite Sitzung).
+   * Nur öffentliche Repository-APIs; kein Backend schreibt am Store vorbei.
+   */
+  public async loadScenarioWorkspace(organizationId: string): Promise<ScenarioWorkspace> {
+    const workspace = await loadWorkspaceFromServer(organizationId);
+    for (const scenario of workspace.scenarios) {
+      this.repo.saveScenario(scenario);
+    }
+    for (const version of workspace.versions) {
+      this.repo.saveVersion(version);
+    }
+    for (const run of workspace.runs) {
+      this.repo.saveRun(run);
+    }
+    return workspace;
   }
 
   /**
