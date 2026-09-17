@@ -7412,3 +7412,23 @@ tsc 0; verify 001–025 grün; `npm test` 100 Files / 380 Tests grün (+3/+8 aus
 ### Finale Gate-Ergebnisse (Nacharbeit 3)
 - `verify:v23:baseline` Exit 0: 20/20/0, 0 technische Fehler · direkte Suites 19+1 rot · Selbsttests 21/21 (Register 2 + Verifier 19) · tsc 0 · verify 001–025 · `npm test` 100/395 · build · playwright 165 · lint 4/0 · format 85 · `git diff --check` sauber · Schutzbereichs-Diff leer · Golden-SHA unverändert.
 - **G44-Status: ERNEUT BEREIT FÜR VIERTES UNABHÄNGIGES REVIEW.** Kein Push, keine Integration auf `462d32c`, 067B bleibt blockiert.
+
+## [2026-09-17] Gate G44: Viertes unabhängiges Review – Freigabe
+
+**Review-Baseline:** `7602f03` auf `feat/auftrag-067a-characterization`
+**Ergebnis:** **FREIGEGEBEN** – die drei Befunde der dritten Review-Runde sind geschlossen. 067B darf gemäß der seriellen Reihenfolge starten; Push und Integration sind nicht Bestandteil dieser Freigabe.
+
+### Unabhängig bestätigte Nachweise
+
+- Doppelte Vertragszeilen werden sowohl im JSON-Register (exakt 20 Einträge mit 20 eindeutigen IDs) als auch im Soll-/Ist-Abgleich als `duplicate-contract` abgewiesen. Der synthetische 21-zu-20-Gegenbeweis ist grün und ergibt zuverlässig `ok: false`.
+- Vitest-Datei- und Hookfehler werden nun neben einer markierten Assertion als technische Fehler erfasst; der Verifier akzeptiert dann kein fachliches Finding. Die Gegenproben für Datei-/Hookfehler sind grün.
+- Eine erfolgreiche, aber nicht-arrayförmige Ruleset-Antwort bricht vor jeglicher Evidence-Dateischreibung ab; nur der explizite 403-Sonderfall darf einen leeren Ruleset-Befund erzeugen.
+- `verify:v23:baseline` Exit 0: 20 erwartete/20 gemessene rote Findings/0 Abweichungen; die Selbsttests sind 21/21 grün. Der Clipping-Test misst weiterhin beide Ziele mit allen vorgesehenen Grenzverletzungen.
+- TypeScript, Integrity 001–025, Build, `git diff --check`, Schutzbereichsdiff und normale Playwright-Suite (165/165) grün. Golden-Fixture-SHA unverändert: `949a90235d30a4ea2f79acac29cd30691860717b201728ef4415a5962b278305`.
+- Qualitätsbaselines unverändert: ESLint 4 Fehler/0 Warnungen, Prettier 85 Abweichungen. Der normale Vitest-Volltest ist lokal unter Node 26 weiterhin wegen drei bekannter WebStorage-Layouttests nicht repräsentativ; der Builder-Nachweis auf Node 22.11.0 dokumentiert 100/395 grün.
+
+### Freigabestatus
+
+- Keine offenen Critical- oder Important-Befunde für 067A/G44.
+- Keine Produktlogik, Migrationen oder Secrets geändert; Schutzbereich bleibt leer.
+- **Gate G44 ist freigegeben.**
