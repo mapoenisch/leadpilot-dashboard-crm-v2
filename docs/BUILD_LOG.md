@@ -7650,3 +7650,20 @@ PR-INGEST-03-Guard-Matcher firing auf Kommentarwort „HMAC-Basis" im Pass-Throu
 ### Finale Gate-Ergebnisse (Nacharbeit 2)
 - `deno test --allow-read` 22/22 · `supabase test db` 36/36 + Race-Skript grün · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 · diff-check sauber bis auf Reviewer-Zeile 7611 (unangetastet) · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
 - **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
+
+## [2026-09-17] Gate G46: Nacharbeit zur dritten Review-Runde (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Mündlich übermitteltes Review (kein Ledger-Eintrag möglich — Tool-Limit beim Reviewer): NICHT FREIGEGEBEN (4 Befunde: Signatur-IF-Bypass, Raw-Binary-Fallback, optionale unit/source, 401-statt-422, dblink-falsch + verwaiste Connection). Zitierte Befunde oben je Punkt adressiert. Umgebung: Node v22.11.0, Deno 2.9.6, lokale Supabase CLI 2.117.0.
+
+### Behebung je Befund
+1. **Signatur-IF-Bypass:** Statt eines IFs mit ternärem Selbstvergleich zwei hintereinandergeschaltete IF-Nodes (`Ingress Valid?` boolesch + `Signature Match?` String-Vergleich); Verify gibt bei Reject `signatureComputed: null` aus (Defense in depth). Ein `signature: invalid`-Angriff scheitert an beiden Stufen (strukturell getestet).
+2. **Raw-Binary ohne Fallback:** Pass-Through kennt ausschließlich `binary.data` (Throw `INGEST_NO_RAW_BODY` sonst); Harness-Negativfall beweist den Abbruch. Webhook-`rawBody` + Harness-Byte-Identität unverändert grün.
+3. **unit/source Pflicht + 401/422:** `validateKpiPayload` und n8n-Verify fordern Einheit + Quelle; alle Test-Payloads vervollständigt. Handler + n8n (`KPI Reject?`-IF → 422-Respond) trennen Fachfehler (422) von Auth-/Replay-Fehlern (401); Handler-Gegenfall (falsche unit → 422 ohne DB-Kontakt) grün.
+4. **dblink/Orphan:** Ungenutzter dblink-Entwurf gelöscht (Shell-Race-Beweis maßgeblich); verwaisten `Signature Valid?`- und `Nonce Fresh?`-Connection-Keys entfernt; No-Orphan-Strukturtest (alle Quellen/Ziele existieren) grün.
+
+### Bekannte Vertrags-Schwäche (eingefroren, zweites Auftreten)
+PR-INGEST-03-Guard-Matcher schlug erneut auf Workflow-Kommentar an („HMAC-Basis" im Pass-Through); markerfrei umformuliert. Konvention: Marker-Wörter nur in echten Guard-Nodes. Matcher-Logik nur per Marc-Freigabe änderbar.
+
+### Finale Gate-Ergebnisse (Nacharbeit 3)
+- `deno test --allow-read` 25/25 · `supabase test db` 36/36 + Race-Skript grün · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
+- **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
