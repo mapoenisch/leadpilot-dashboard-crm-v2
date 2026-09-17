@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS companies (
   city TEXT NOT NULL,
   postal_code TEXT NOT NULL,
   employee_count INTEGER DEFAULT 0,
-  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
+  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001' REFERENCES organizations(id) ON DELETE RESTRICT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS contacts (
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   job_title TEXT NOT NULL,
-  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
+  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001' REFERENCES organizations(id) ON DELETE RESTRICT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS imported_funnel_deals (
   amount NUMERIC(12, 2) DEFAULT 0,
   close_date DATE NOT NULL,
   pipeline TEXT NOT NULL,
-  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
+  organization_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001' REFERENCES organizations(id) ON DELETE RESTRICT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -60,10 +60,14 @@ CREATE TABLE IF NOT EXISTS organization_members (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   role TEXT NOT NULL CHECK (role IN ('admin', 'manager', 'viewer')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (user_id, organization_id),
   CONSTRAINT organization_members_single_org UNIQUE (user_id)
 );
+
+ALTER TABLE companies ADD CONSTRAINT companies_org_id_unique UNIQUE (organization_id, id);
+ALTER TABLE contacts ADD CONSTRAINT contacts_same_org_fkey FOREIGN KEY (company_id, organization_id) REFERENCES companies(id, organization_id) ON DELETE CASCADE;
 
 INSERT INTO organizations (id, name, mode, status)
 VALUES ('00000000-0000-0000-0000-000000000001', 'LeadPilot Demo', 'synthetic', 'active')
@@ -75,6 +79,26 @@ ON CONFLICT (id) DO NOTHING;
 -- Jeder Read-/Write-Pfad prüft auth.uid(), aktive Mitgliedschaft,
 -- organization_id und Rolle. USING (true) / WITH CHECK (true) verboten.
 -- ====================================================================
+
+-- Helper (G45): aktive Mitgliedschaft in aktiver Organisation.
+CREATE OR REPLACE FUNCTION public.current_organization_id()
+RETURNS UUID LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp
+AS $$ SELECT m.organization_id FROM public.organization_members AS m
+  JOIN public.organizations AS o ON o.id = m.organization_id
+  WHERE m.user_id = auth.uid() AND m.status = 'active' AND o.status = 'active' LIMIT 1 $$;
+
+CREATE OR REPLACE FUNCTION public.has_org_role(required_roles TEXT[])
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp
+AS $$ SELECT EXISTS (SELECT 1 FROM public.organization_members AS m
+  JOIN public.organizations AS o ON o.id = m.organization_id
+  WHERE m.user_id = auth.uid() AND m.status = 'active' AND o.status = 'active'
+  AND m.role = ANY (required_roles)) $$;
+
+CREATE OR REPLACE FUNCTION public.is_active_member()
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp
+AS $$ SELECT EXISTS (SELECT 1 FROM public.organization_members AS m
+  JOIN public.organizations AS o ON o.id = m.organization_id
+  WHERE m.user_id = auth.uid() AND m.status = 'active' AND o.status = 'active') $$;
 
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
@@ -88,10 +112,12 @@ CREATE POLICY "tenant_select_companies" ON companies
   FOR SELECT TO authenticated
   USING (
     organization_id = public.current_organization_id()
+    AND public.is_active_member()
     AND EXISTS (
       SELECT 1 FROM public.organization_members AS membership
       WHERE membership.user_id = auth.uid()
         AND membership.organization_id = organization_id
+        AND membership.status = 'active'
     )
   );
 
@@ -100,10 +126,12 @@ CREATE POLICY "tenant_select_contacts" ON contacts
   FOR SELECT TO authenticated
   USING (
     organization_id = public.current_organization_id()
+    AND public.is_active_member()
     AND EXISTS (
       SELECT 1 FROM public.organization_members AS membership
       WHERE membership.user_id = auth.uid()
         AND membership.organization_id = organization_id
+        AND membership.status = 'active'
     )
   );
 
@@ -112,10 +140,12 @@ CREATE POLICY "tenant_select_deals" ON imported_funnel_deals
   FOR SELECT TO authenticated
   USING (
     organization_id = public.current_organization_id()
+    AND public.is_active_member()
     AND EXISTS (
       SELECT 1 FROM public.organization_members AS membership
       WHERE membership.user_id = auth.uid()
         AND membership.organization_id = organization_id
+        AND membership.status = 'active'
     )
   );
 

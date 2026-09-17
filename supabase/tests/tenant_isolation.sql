@@ -7,14 +7,15 @@
 
 BEGIN;
 
-SELECT plan(15);
+SELECT plan(27);
 
 -- ---------------------------------------------------------------- Setup --
 -- Feste UUIDs für reproduzierbare Läufe; Cleanup zuerst (idempotenter Re-Run).
-DELETE FROM public.organization_members;
-DELETE FROM public.organizations;
+-- Reihenfolge beachten (FKs): Contacts → Companies → Members → Organisationen.
 DELETE FROM public.contacts;
 DELETE FROM public.companies;
+DELETE FROM public.organization_members;
+DELETE FROM public.organizations;
 DELETE FROM auth.users WHERE email LIKE '%@tenant-test.local';
 
 INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
@@ -177,6 +178,129 @@ SELECT is(
 );
 
 RESET ROLE;
+
+-- ------------------------------------------------- 15..19: Rollenmatrix je Tabelle
+SELECT set_config('request.jwt.claims', '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+SET ROLE authenticated;
+
+SELECT is(
+  (SELECT count(*) FROM public.companies),
+  2::bigint,
+  'Manager Org A liest eigene Companies (A1, A2)'
+);
+
+TRUNCATE probe_result;
+DO $$
+DECLARE affected INT;
+BEGIN
+  UPDATE public.companies SET name = 'Manager-Edit'
+  WHERE id = 'c0000000-0000-0000-0000-000000000001';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  INSERT INTO probe_result VALUES (affected);
+END $$;
+
+SELECT is(
+  (SELECT n FROM probe_result),
+  0::bigint,
+  'Manager kann eigene Company nicht ändern'
+);
+
+TRUNCATE probe_result;
+DO $$
+DECLARE affected INT;
+BEGIN
+  DELETE FROM public.companies WHERE id = 'c0000000-0000-0000-0000-000000000001';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  INSERT INTO probe_result VALUES (affected);
+END $$;
+
+SELECT is(
+  (SELECT n FROM probe_result),
+  0::bigint,
+  'Manager kann eigene Company nicht löschen'
+);
+
+SELECT set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+
+SELECT throws_ok(
+  $$ INSERT INTO public.companies (id, domain, name, industry, city, postal_code, organization_id)
+     VALUES ('c0000000-0000-0000-0000-0000000000cc', 'ax.test', 'Firma AX', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') $$,
+  NULL,
+  'Viewer kann nicht einmal in eigener Org schreiben'
+);
+
+SELECT set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+
+SELECT lives_ok(
+  $$ UPDATE public.companies SET name = 'Firma A1' WHERE id = 'c0000000-0000-0000-0000-000000000001' $$,
+  'Admin darf in eigener Org ändern'
+);
+
+-- ------------------------------------------------- 20..22: FK-Grenzen
+SELECT throws_ok(
+  $$ INSERT INTO public.companies (id, domain, name, industry, city, postal_code, organization_id)
+     VALUES ('c0000000-0000-0000-0000-0000000000dd', 'zz.test', 'Firma ZZ', 'IT', 'X', '00000', '99999999-9999-9999-9999-999999999999') $$,
+  NULL,
+  'Company mit unbekannter Organisation scheitert am FK'
+);
+
+SELECT throws_ok(
+  $$ INSERT INTO public.contacts (id, company_id, email, first_name, last_name, job_title, organization_id)
+     VALUES ('d0000000-0000-0000-0000-0000000000ee', 'c0000000-0000-0000-0000-000000000002', 'e@e.test', 'E', 'F', 'G', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') $$,
+  NULL,
+  'Contact mit fremder Company trotz eigener Org scheitert am zusammengesetzten FK'
+);
+
+SELECT lives_ok(
+  $$ INSERT INTO public.imported_funnel_deals (id, deal_name, stage, amount, close_date, pipeline, organization_id)
+     VALUES ('e0000000-0000-0000-0000-0000000000aa', 'Deal A1', 'LEAD', 1000, '2026-06-01', 'default', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') $$,
+  'Admin darf Deal in eigener Org anlegen'
+);
+
+-- ------------------------------------------------- 23..26: Suspendierung
+SELECT set_config('request.jwt.claims', '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}', true);
+
+SELECT is(
+  (SELECT count(*) FROM public.imported_funnel_deals),
+  0::bigint,
+  'Viewer Org B sieht fremden Deal nicht'
+);
+
+RESET ROLE;
+UPDATE public.organization_members SET status = 'suspended'
+WHERE user_id = '33333333-3333-3333-3333-333333333333';
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+
+SELECT is(
+  (SELECT count(*) FROM public.companies),
+  0::bigint,
+  'Suspendiertes Mitglied sieht nichts mehr'
+);
+
+SELECT is(
+  public.has_org_role(ARRAY['viewer']),
+  false,
+  'Suspendiertes Mitglied besteht keine Rollenprüfung'
+);
+
+RESET ROLE;
+UPDATE public.organization_members SET status = 'active'
+WHERE user_id = '33333333-3333-3333-3333-333333333333';
+UPDATE public.organizations SET status = 'suspended'
+WHERE id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-4444-444444444444","role":"authenticated"}', true);
+
+SELECT is(
+  (SELECT count(*) FROM public.companies),
+  0::bigint,
+  'Mitglied suspendierter Organisation sieht nichts mehr'
+);
+
+RESET ROLE;
+UPDATE public.organizations SET status = 'active'
+WHERE id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 
 SELECT is(
   (SELECT count(*) FROM public.companies),
