@@ -21,7 +21,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// LeadPilot live-kpi-event/v1 Raw Payload Pass-Through Node\n// Das eingehende Webhook-Payload wird unverändert und ohne Typ-Coercion oder Defaults weitergereicht.\nconst item = $input.first().json;\nconst rawPayload = (item && typeof item === 'object' && 'body' in item)\n  ? item.body\n  : item;\n\nconst payloadString = (typeof rawPayload === 'string')\n  ? rawPayload\n  : JSON.stringify(rawPayload);\n\nreturn [{\n  json: {\n    rawPayload: payloadString\n  }\n}];"
+        "jsCode": "// LeadPilot G46-Nacharbeit: Original-Request-Bytes aus dem Binary-Feld.\n// Der Webhook läuft mit Raw-Body-Option; n8n legt die Originalbytes als\n// Base64 in binary.data ab. Diese Bytes werden verlustfrei (Buffer, utf-8)\n// zur Prüfbasis dekodiert — niemals reserialisiert. Fehlende Bytes sind ein\n// Konfigurationsfehler und brechen laut ab (kein stiller Fallback).\nconst first = $input.first();\nconst binaryEntry = first.binary && first.binary.data;\nconst base64Body = binaryEntry && binaryEntry.data;\nlet rawPayload;\nif (typeof base64Body === 'string' && base64Body.length > 0) {\n  rawPayload = Buffer.from(base64Body, 'base64').toString('utf-8');\n} else if (typeof first.json.body === 'string') {\n  rawPayload = first.json.body;\n} else {\n  throw new Error('INGEST_NO_RAW_BODY: Webhook liefert keine Originalbytes (Raw-Body-Option prüfen).');\n}\n\nreturn [{\n  json: {\n    rawPayload: rawPayload\n  }\n}];"
       },
       "id": "validate-prepare-node",
       "name": "Pass-Through Raw Contract Payload",
@@ -181,7 +181,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// LeadPilot G46: Verify Ingress Signature (Design §10.1).\n// Prüft Timestamp-Fenster (5 Minuten), Nonce-Format und KPI-Allowlist und\n// baut die HMAC-Basis timestamp + '.' + nonce + '.' + rawBody. Die HMAC-Signatur\n// selbst prüft der Folge-Node (HMAC Sign Base, Crypto) gegen den Header\n// X-LeadPilot-Signature. Secret niemals hier, sondern im n8n-Credential-Store.\nconst ALLOWED_KPI_IDS = ['arr','mrr','pipeline_coverage','arr_direct','arr_partner','arr_outbound','arr_other','pipeline_leads','pipeline_mql','pipeline_sql','pipeline_offers','pipeline_won'];\nconst WINDOW_MS = 5 * 60 * 1000;\n\nconst trigger = $('Webhook Ingest Trigger').first().json;\nconst headers = trigger.headers || {};\nconst timestamp = String(headers['x-leadpilot-timestamp'] || '');\nconst nonce = String(headers['x-leadpilot-nonce'] || '');\nconst signature = String(headers['x-leadpilot-signature'] || '');\nconst rawPayload = $input.first().json.rawPayload;\n\nfunction reject(code) {\n  return [{ json: { valid: false, code } }];\n}\n\nconst atMs = Date.parse(timestamp);\nif (!timestamp || !nonce || !signature) return reject('INGEST_SIGNATURE_MISSING');\nif (!Number.isFinite(atMs)) return reject('INGEST_TIMESTAMP_INVALID');\nif (Math.abs(Date.now() - atMs) > WINDOW_MS) return reject('INGEST_TIMESTAMP_EXPIRED');\nif (nonce.length > 128) return reject('INGEST_REPLAY_DETECTED');\n\nlet kpiId = null;\ntry {\n  const parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;\n  kpiId = parsed && parsed.kpiId;\n} catch (e) { return reject('INGEST_KPI_UNKNOWN'); }\nif (!ALLOWED_KPI_IDS.includes(kpiId)) return reject('INGEST_KPI_UNKNOWN');\n\nreturn [{ json: {\n  valid: true,\n  timestamp,\n  nonce,\n  signature,\n  rawBody: typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload),\n  signatureBase: timestamp + '.' + nonce + '.' + (typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload)),\n  kpiId,\n} }];"
+        "jsCode": "// LeadPilot G46: Verify Ingress Signature (Design §10.1).\n// Prüft Timestamp-Fenster (5 Minuten), Nonce-Format und KPI-Allowlist und\n// baut die HMAC-Basis timestamp + '.' + nonce + '.' + rawBody. Die HMAC-Signatur\n// selbst prüft der Folge-Node (HMAC Sign Base, Crypto) gegen den Header\n// X-LeadPilot-Signature. Secret niemals hier, sondern im n8n-Credential-Store.\nconst ALLOWED_KPI_IDS = ['arr','mrr','pipeline_coverage','arr_direct','arr_partner','arr_outbound','arr_other','pipeline_leads','pipeline_mql','pipeline_sql','pipeline_offers','pipeline_won'];\nconst WINDOW_MS = 5 * 60 * 1000;\n\nconst trigger = $('Webhook Ingest Trigger').first().json;\nconst headers = trigger.headers || {};\nconst timestamp = String(headers['x-leadpilot-timestamp'] || '');\nconst nonce = String(headers['x-leadpilot-nonce'] || '');\nconst signature = String(headers['x-leadpilot-signature'] || '');\nconst rawPayload = $input.first().json.rawPayload;\n\nfunction reject(code) {\n  return [{ json: { valid: false, code } }];\n}\n\nconst atMs = Date.parse(timestamp);\nif (!timestamp || !nonce || !signature) return reject('INGEST_SIGNATURE_MISSING');\nif (!Number.isFinite(atMs)) return reject('INGEST_TIMESTAMP_INVALID');\nif (Math.abs(Date.now() - atMs) > WINDOW_MS) return reject('INGEST_TIMESTAMP_EXPIRED');\nif (nonce.length > 128) return reject('INGEST_REPLAY_DETECTED');\n\nlet kpiId = null;\nlet parsed = null;\ntry {\n  parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;\n  kpiId = parsed && parsed.kpiId;\n} catch (e) { return reject('INGEST_KPI_UNKNOWN'); }\nif (!ALLOWED_KPI_IDS.includes(kpiId)) return reject('INGEST_KPI_UNKNOWN');\n// Fachvalidierung VOR jedem privilegierten DB-Zugriff (Design §10.1):\n// Einheit passend, Quelle im Identifier-Format, Wert endlich und plausibel.\nconst KPI_UNITS = {arr:'EUR',mrr:'EUR',pipeline_coverage:'x',arr_direct:'EUR',arr_partner:'EUR',arr_outbound:'EUR',arr_other:'EUR',pipeline_leads:'count',pipeline_mql:'count',pipeline_sql:'count',pipeline_offers:'count',pipeline_won:'count'};\nconst unit = parsed && parsed.unit;\nif (unit !== undefined && unit !== KPI_UNITS[kpiId]) return reject('INGEST_KPI_UNIT_MISMATCH');\nconst sourceSystem = parsed && parsed.sourceSystem;\nif (sourceSystem !== undefined && (typeof sourceSystem !== 'string' || !/^[a-zA-Z0-9._-]{1,128}$/.test(sourceSystem))) return reject('INGEST_KPI_SOURCE_INVALID');\nconst value = parsed && parsed.value;\nif (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1e12) return reject('INGEST_KPI_VALUE_INVALID');\n\nreturn [{ json: {\n  valid: true,\n  timestamp,\n  nonce,\n  signature,\n  rawBody: typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload),\n  signatureBase: timestamp + '.' + nonce + '.' + (typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload)),\n  kpiId,\n} }];"
       },
       "id": "verify-signature-node",
       "name": "Verify Ingress Signature",
@@ -250,7 +250,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT public.claim_ingress_nonce($1::text) AS nonce_fresh;",
+        "query": "SELECT public.claim_ingress_slot($1::text, NULL, 'n8n', 120) AS slot;",
         "additionalFields": {
           "queryParams": "={{ [ $json.nonce ] }}"
         }
@@ -269,37 +269,6 @@
           "name": "LeadPilot PostgreSQL (n8n_ingest role)"
         }
       }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "if-nonce-node-cond",
-              "leftValue": "={{ $json.nonce_fresh }}",
-              "rightValue": true,
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ]
-        },
-        "looseTypeValidation": true
-      },
-      "id": "if-nonce-node",
-      "name": "Nonce Fresh?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        1360,
-        300
-      ]
     },
     {
       "parameters": {
@@ -332,6 +301,96 @@
       "typeVersion": 1,
       "position": [
         1560,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.slot }}",
+                    "rightValue": "ok",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.slot }}",
+                    "rightValue": "replay",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.slot }}",
+                    "rightValue": "rate_limited",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "switch-slot-node",
+      "name": "Slot Status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: 'RATE_LIMITED' } }}",
+        "options": {
+          "responseCode": 429
+        }
+      },
+      "id": "response-rate-limited",
+      "name": "Respond Rate Limited",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1760,
         520
       ]
     }
@@ -403,7 +462,7 @@
       "main": [
         [
           {
-            "node": "Nonce Fresh?",
+            "node": "Slot Status",
             "type": "main",
             "index": 0
           }
@@ -458,6 +517,31 @@
         [
           {
             "node": "Respond Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slot Status": {
+      "main": [
+        [
+          {
+            "node": "Execute Ingest RPC (Postgres)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Replay Detected",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Rate Limited",
             "type": "main",
             "index": 0
           }
