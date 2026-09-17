@@ -5,6 +5,7 @@ import { defaultAuthAdapter } from './supabaseAuthAdapter';
 export interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
+  isHydrated: boolean;
   login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
 }
@@ -18,15 +19,22 @@ export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children, adapter = defaultAuthAdapter }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(() => adapter.getSession());
+  // G45-Nacharbeit: Hydration-Flag — der Route-Guard wartet die asynchrone
+  // Sitzungsherstellung ab, statt vor getSession() umzuleiten.
+  const [isHydrated, setIsHydrated] = useState(() => adapter.initialize === undefined);
 
   // G45: Sitzungsnachführung über den Adapter (Supabase onAuthStateChange).
   // Kein localStorage, keine manipulierbare Browser-Sitzung mehr.
   useEffect(() => {
     if (!adapter.initialize) {
       setUser(adapter.getSession());
+      setIsHydrated(true);
       return;
     }
-    return adapter.initialize(setUser);
+    return adapter.initialize((next) => {
+      setUser(next);
+      setIsHydrated(true);
+    });
   }, [adapter]);
 
   const login = useCallback(
@@ -47,10 +55,11 @@ export function AuthProvider({ children, adapter = defaultAuthAdapter }: AuthPro
     () => ({
       user,
       isAuthenticated: user !== null,
+      isHydrated,
       login,
       logout,
     }),
-    [user, login, logout],
+    [user, isHydrated, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

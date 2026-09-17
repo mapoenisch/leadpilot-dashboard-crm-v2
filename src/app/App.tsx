@@ -8,6 +8,7 @@ import { ROUTE_PAGES } from '@/app/routePages';
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
 import { AuthProvider } from '@/auth/AuthContext';
+import { OrganizationProvider } from '@/auth/organizationContext';
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import '@/services/data';
 
@@ -28,45 +29,82 @@ export function App() {
     <RouteErrorBoundary resetKey="app-root">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Unbeschützte Login-Route (Gate G42, Entscheidung 4) */}
-              <Route
-                path="/login"
-                element={
-                  <RouteErrorBoundary resetKey="login">
-                    <React.Suspense
-                      fallback={
-                        <div
-                          role="status"
-                          aria-live="polite"
-                          className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
-                        >
-                          Anmeldung wird geladen …
-                        </div>
+          <OrganizationProvider>
+            <BrowserRouter>
+              <Routes>
+                {/* Unbeschützte Login-Route (Gate G42, Entscheidung 4) */}
+                <Route
+                  path="/login"
+                  element={
+                    <RouteErrorBoundary resetKey="login">
+                      <React.Suspense
+                        fallback={
+                          <div
+                            role="status"
+                            aria-live="polite"
+                            className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
+                          >
+                            Anmeldung wird geladen …
+                          </div>
+                        }
+                      >
+                        <LoginPage />
+                      </React.Suspense>
+                    </RouteErrorBoundary>
+                  }
+                />
+
+                {/* Alle 41 Kern-Routen geschützt unter ProtectedRoute (Entscheidung 4) */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<Layout />}>
+                    {/* Root-Redirect zum Executive Dashboard */}
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+                    {/* Generisches deklaratives Routing aller 41 Routen mit RouteErrorBoundary */}
+                    {APP_ROUTES.map((route) => {
+                      const PageComponent = ROUTE_PAGES[route.id];
+                      return (
+                        <Route
+                          key={route.id}
+                          path={route.path}
+                          element={
+                            <RouteErrorBoundary resetKey={route.id}>
+                              <React.Suspense
+                                fallback={
+                                  <div
+                                    role="status"
+                                    aria-live="polite"
+                                    className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
+                                  >
+                                    Ansicht wird geladen …
+                                  </div>
+                                }
+                              >
+                                <PageComponent />
+                              </React.Suspense>
+                            </RouteErrorBoundary>
+                          }
+                        />
+                      );
+                    })}
+
+                    {/* Explizite 404-Fallback-Route für unbekannte Pfade */}
+                    <Route
+                      path="*"
+                      element={
+                        <RouteErrorBoundary resetKey="not-found">
+                          <NotFoundPage />
+                        </RouteErrorBoundary>
                       }
-                    >
-                      <LoginPage />
-                    </React.Suspense>
-                  </RouteErrorBoundary>
-                }
-              />
+                    />
 
-              {/* Alle 41 Kern-Routen geschützt unter ProtectedRoute (Entscheidung 4) */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<Layout />}>
-                  {/* Root-Redirect zum Executive Dashboard */}
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-                  {/* Generisches deklaratives Routing aller 41 Routen mit RouteErrorBoundary */}
-                  {APP_ROUTES.map((route) => {
-                    const PageComponent = ROUTE_PAGES[route.id];
-                    return (
+                    {/* G38: Design-System-Galerie — nur im Dev-Modus registriert,
+                in Prod existiert die Route nicht (kein Navi-Eintrag). */}
+                    {import.meta.env.DEV && (
                       <Route
-                        key={route.id}
-                        path={route.path}
+                        path="/design-system"
                         element={
-                          <RouteErrorBoundary resetKey={route.id}>
+                          <RouteErrorBoundary resetKey="design-system">
                             <React.Suspense
                               fallback={
                                 <div
@@ -78,52 +116,17 @@ export function App() {
                                 </div>
                               }
                             >
-                              <PageComponent />
+                              <DesignSystemPage />
                             </React.Suspense>
                           </RouteErrorBoundary>
                         }
                       />
-                    );
-                  })}
-
-                  {/* Explizite 404-Fallback-Route für unbekannte Pfade */}
-                  <Route
-                    path="*"
-                    element={
-                      <RouteErrorBoundary resetKey="not-found">
-                        <NotFoundPage />
-                      </RouteErrorBoundary>
-                    }
-                  />
-
-                  {/* G38: Design-System-Galerie — nur im Dev-Modus registriert,
-                in Prod existiert die Route nicht (kein Navi-Eintrag). */}
-                  {import.meta.env.DEV && (
-                    <Route
-                      path="/design-system"
-                      element={
-                        <RouteErrorBoundary resetKey="design-system">
-                          <React.Suspense
-                            fallback={
-                              <div
-                                role="status"
-                                aria-live="polite"
-                                className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
-                              >
-                                Ansicht wird geladen …
-                              </div>
-                            }
-                          >
-                            <DesignSystemPage />
-                          </React.Suspense>
-                        </RouteErrorBoundary>
-                      }
-                    />
-                  )}
+                    )}
+                  </Route>
                 </Route>
-              </Route>
-            </Routes>
-          </BrowserRouter>
+              </Routes>
+            </BrowserRouter>
+          </OrganizationProvider>
         </AuthProvider>
       </QueryClientProvider>
     </RouteErrorBoundary>
