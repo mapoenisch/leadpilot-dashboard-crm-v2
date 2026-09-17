@@ -59,6 +59,7 @@ import {
   SimulationOpportunity,
   SimulationState,
 } from '../types/simulation';
+import type { SimulationSnapshot } from '../types/snapshot';
 import { SalesQueueEntry } from '../types/salesQueue';
 import { CSQueueEntry } from '../types/csQueue';
 
@@ -476,7 +477,9 @@ export class ScenarioService {
       }
     }
 
-    // 067F / G49: Opt-in Server-Persistenz (atomarer RPC, alles oder nichts).
+    // 067F / G49 (Nacharbeit P1): Produktiver Snapshot-Bindungspfad — jeder
+    // Server-persistierte Run trägt mindestens seinen Final-Snapshot (plus
+    // vorhandene Snapshots aus dem Snapshot-Repository, dedupliziert).
     // Fehler propagieren fail-closed — kein stiller In-Memory-Fallback.
     if (opts?.persistToServer) {
       const scenario = this.repo.getScenario(version.scenarioId);
@@ -486,7 +489,47 @@ export class ScenarioService {
           `Szenario "${version.scenarioId}" wurde nicht gefunden.`,
         );
       }
-      const snapshots = this.snapshotRepo ? await this.snapshotRepo.getByRun(runId) : [];
+      const finalSnapshot: SimulationSnapshot = {
+        snapshotId: `${runId}_tick_${targetTicks}`,
+        runId,
+        scenarioId: version.scenarioId,
+        scenarioVersionId: version.id,
+        tickId: targetTicks,
+        simulationDay: currentState.dayIndex,
+        simulatedDate: currentState.simulatedDate,
+        modelVersion: manifest.modelVersion,
+        schemaVersion: manifest.schemaVersion,
+        baselineVersion: manifest.baselineVersion,
+        organizationId: manifest.organizationId,
+        state: currentState,
+        projection: {
+          snapshotId: `${runId}_tick_${targetTicks}`,
+          runId,
+          scenarioId: version.scenarioId,
+          scenarioVersionId: version.id,
+          tickId: targetTicks,
+          simulationDay: currentState.dayIndex,
+          simulatedDate: currentState.simulatedDate,
+          arr: currentState.metrics?.liveARR ?? 0,
+          mrr: currentState.metrics?.liveMRR ?? 0,
+          customers: currentState.metrics?.liveCustomers ?? 0,
+          wonDeals: currentState.metrics?.liveWonDeals ?? 0,
+          leadsCount: leads.length,
+          opportunitiesCount: opportunities.length,
+          conversionRate: currentState.metrics?.conversionRate ?? 0,
+        },
+        createdAt: completedAtIso,
+      };
+      const stored = this.snapshotRepo ? await this.snapshotRepo.getByRun(runId) : [];
+      const seen = new Set(stored.map((s) => s.snapshotId));
+      const snapshots = [...stored];
+      if (!seen.has(finalSnapshot.snapshotId)) {
+        snapshots.push(finalSnapshot);
+        // Eigene In-Memory-Heimat für spätere Hydrierung ohne Snapshot-Repo.
+        this.repo.saveSnapshots(runId, snapshots);
+      }
+      // Run-Events erhalten ihre In-Memory-Heimat für die Hydrierung.
+      this.repo.saveEvents(runId, events);
       await persistCompletedRun({
         organizationId: manifest.organizationId,
         scenario,
@@ -596,6 +639,19 @@ export class ScenarioService {
     }
     for (const run of workspace.runs) {
       this.repo.saveRun(run);
+    }
+    // 067F / G49 (Nacharbeit P1): Run-Detailhistorie je Run hydrieren.
+    for (const [runId, events] of Object.entries(workspace.eventsByRun)) {
+      this.repo.saveEvents(runId, events);
+    }
+    const snapshotsByRun = new Map<string, SimulationSnapshot[]>();
+    for (const snapshot of workspace.snapshots) {
+      const list = snapshotsByRun.get(snapshot.runId) ?? [];
+      list.push(snapshot);
+      snapshotsByRun.set(snapshot.runId, list);
+    }
+    for (const [runId, snapshots] of snapshotsByRun) {
+      this.repo.saveSnapshots(runId, snapshots);
     }
     return workspace;
   }

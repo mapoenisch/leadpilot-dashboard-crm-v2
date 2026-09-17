@@ -1,5 +1,5 @@
 import type { RunManifest, Scenario, ScenarioVersion, SimulationRun } from '@/types/scenario';
-import type { SimulationEvent } from '@/types/simulation';
+import type { SimulationEvent, SimulationEventType } from '@/types/simulation';
 import type { TimeSeriesPoint } from '@/types/aggregation';
 import type { SimulationSnapshot } from '@/types/snapshot';
 import { resultData, type SupabaseLike } from './supabaseClientLike';
@@ -76,6 +76,7 @@ interface RunRow {
   status?: SimulationRun['status'];
   manifest?: Partial<RunManifest> | null;
   final_metrics?: SimulationRun['finalMetrics'] | null;
+  final_state?: SimulationRun['finalState'] | null;
   rng_state?: number | null;
   started_at?: string;
   completed_at?: string | null;
@@ -122,6 +123,7 @@ export function mapRunRow(row: RunRow): SimulationRun {
     completedAt: row.completed_at ?? undefined,
     manifest: manifest as RunManifest,
     finalMetrics: row.final_metrics ?? undefined,
+    finalState: row.final_state ?? undefined,
     correlationId: row.correlation_id ?? manifest.correlationId ?? '',
   };
 }
@@ -130,6 +132,64 @@ interface TimeseriesRow {
   run_id?: string;
   tick?: number;
   metrics?: unknown;
+}
+
+interface EventRow {
+  id?: number;
+  run_id?: string;
+  tick?: number;
+  event_type?: string;
+  title?: string | null;
+  payload?: unknown;
+}
+
+interface SnapshotRow {
+  snapshot_id?: string;
+  run_id?: string;
+  tick_id?: number;
+  state?: unknown;
+  projection?: unknown;
+  created_at?: string;
+}
+
+/** Stellt ein Event aus der Vollobjekt-Konvention wieder her. */
+export function mapEventRow(row: EventRow): SimulationEvent {
+  const payload = row.payload as Partial<SimulationEvent> | null | undefined;
+  if (payload && typeof payload === 'object' && typeof payload.id === 'string') {
+    return payload as SimulationEvent;
+  }
+  return {
+    id: `${row.run_id ?? 'run'}-tick-${row.tick ?? 0}`,
+    tick: row.tick ?? 0,
+    dayIndex: row.tick ?? 0,
+    simulatedDate: '',
+    type: (row.event_type as SimulationEventType) ?? 'SYSTEM_INFO',
+    title: row.title ?? '',
+    details: '',
+    timestamp: '',
+  };
+}
+
+/** Stellt einen Snapshot wieder her; Szenario-Kontext kommt aus dem Run. */
+export function mapSnapshotRow(row: SnapshotRow, run: SimulationRun): SimulationSnapshot {
+  const state = (row.state ?? {}) as SimulationSnapshot['state'];
+  const projection = (row.projection ?? {}) as SimulationSnapshot['projection'];
+  return {
+    snapshotId: row.snapshot_id ?? `${run.runId}_tick_${row.tick_id ?? 0}`,
+    runId: run.runId,
+    scenarioId: run.scenarioId,
+    scenarioVersionId: run.scenarioVersionId,
+    tickId: row.tick_id ?? 0,
+    simulationDay: 0,
+    simulatedDate: '',
+    modelVersion: run.modelVersion,
+    schemaVersion: run.schemaVersion,
+    baselineVersion: run.baselineVersion,
+    organizationId: run.manifest.organizationId,
+    state,
+    projection,
+    createdAt: row.created_at ?? '',
+  };
 }
 
 /** Stellt einen Zeitreihenpunkt aus der Vollobjekt-Konvention wieder her. */
@@ -169,18 +229,24 @@ export interface WorkspaceRows {
   scenarios: Scenario[];
   versions: ScenarioVersion[];
   runs: SimulationRun[];
+  /** Domänen-Events besitzen keine runId — Gruppierung erfolgt beim Laden. */
+  eventsByRun: Record<string, SimulationEvent[]>;
+  snapshots: SimulationSnapshot[];
 }
 
 export async function loadWorkspaceRows(
   client: SupabaseLike,
   organizationId: string,
 ): Promise<WorkspaceRows> {
-  const [scenarioRows, versionRows, runRows, timeseriesRows] = await Promise.all([
-    selectByOrg<ScenarioRow>(client, 'simulation_scenarios', organizationId),
-    selectByOrg<VersionRow>(client, 'simulation_scenario_versions', organizationId),
-    selectByOrg<RunRow>(client, 'simulation_runs', organizationId),
-    selectByOrg<TimeseriesRow>(client, 'simulation_timeseries', organizationId),
-  ]);
+  const [scenarioRows, versionRows, runRows, timeseriesRows, eventRows, snapshotRows] =
+    await Promise.all([
+      selectByOrg<ScenarioRow>(client, 'simulation_scenarios', organizationId),
+      selectByOrg<VersionRow>(client, 'simulation_scenario_versions', organizationId),
+      selectByOrg<RunRow>(client, 'simulation_runs', organizationId),
+      selectByOrg<TimeseriesRow>(client, 'simulation_timeseries', organizationId),
+      selectByOrg<EventRow>(client, 'simulation_events', organizationId),
+      selectByOrg<SnapshotRow>(client, 'simulation_snapshots', organizationId),
+    ]);
   // Zeitreihen gehören zum Run (Aggregation/Charts nach Reload intakt).
   const pointsByRun = new Map<string, TimeSeriesPoint[]>();
   for (const row of timeseriesRows) {
@@ -194,9 +260,22 @@ export async function loadWorkspaceRows(
     const points = (pointsByRun.get(run.runId) ?? []).sort((a, b) => a.tick - b.tick);
     return points.length > 0 ? { ...run, timeSeries: points } : run;
   });
+  const runsById = new Map(runs.map((run) => [run.runId, run]));
+  const snapshots: SimulationSnapshot[] = [];
+  for (const row of snapshotRows) {
+    const run = row.run_id ? runsById.get(row.run_id) : undefined;
+    if (run) snapshots.push(mapSnapshotRow(row, run));
+  }
+  const eventsByRun: Record<string, SimulationEvent[]> = {};
+  for (const row of eventRows) {
+    if (!row.run_id || !runsById.has(row.run_id)) continue;
+    (eventsByRun[row.run_id] ??= []).push(mapEventRow(row));
+  }
   return {
     scenarios: scenarioRows.map(mapScenarioRow),
     versions: versionRows.map(mapVersionRow),
     runs,
+    eventsByRun,
+    snapshots,
   };
 }

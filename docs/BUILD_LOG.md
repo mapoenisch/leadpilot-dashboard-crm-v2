@@ -7988,7 +7988,25 @@ Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema 
 - `npx playwright test e2e/persistence-multisession.spec.ts` (lokal, Seed-User): grün — Run, Re-Run und Reproduktion je mit Reload; alle drei IDs zusätzlich im zweiten Browser; Server-Kontrolle: 5 COMPLETED-Runs + 255 Zeitreihenpunkte in der E2E-Org.
 - `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade (`src/context`, `src/features/resources`, Engine/Regeln) leer.
 
-### Bekannte Grenze (dokumentiert)
-- Events/Snapshots liegen durabel in Supabase (pgTAP + RPC), hydrated werden Runs inkl. Zeitreihen (Aggregation/Charts); Event-Streams und Snapshot-Browser bleiben Live-Konstrukte ohne Repo-Heimat — Nachladung folgt in späterem Gate.
+### Bekannte Grenze (dokumentiert, Stand 41eac26 — überholt, siehe Nacharbeit 2 unten)
+- Events/Snapshots lagen durabel in Supabase, wurden aber nicht hydriert — geschlossen in Nacharbeit 2 (final_state, Snapshot-Bindungspfad, Events-/Snapshot-Hydrierung).
 - E2E-Hinweis: fachliches 10-Runs-Limit je Szenario — Multisession-Spec bewusst als Ein-Fluss-Test (3 Runs); lokale E2E-Zeilen nur in Docker-Volumes.
+- **G49-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067G bleibt blockiert.
+
+## [2026-09-18] Gate G49: Nacharbeit 2 zum Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `7d720e7` (alte drei Befunde geschlossen) → weiter NICHT FREIGEGEBEN (2 neue P1: leere Snapshots bei UI-Runs; unvollständiger Reload ohne finalState/Events/Snapshots). Umgebung: Node v22.11.0, Supabase CLI 2.117.0, Docker lokal.
+
+### Behebung je Befund
+1. **P1 Snapshots (Migration 20260926 + Service):** `simulation_runs.final_state JSONB` (RPC mappt `p_run.finalState`, pgTAP-Roundtrip tickCount 50). Produktiver Bindungspfad: `runScenarioVersion` baut bei `persistToServer` immer den Final-Snapshot (Tick = targetTicks, State + Projection aus aktuellem State; dedupliziert gegen Snapshot-Repo) — `p_snapshots` nie mehr leer. Service-Test belegt Bundle (finalState-Tick, 6 Zeitreihenpunkte, Events, Final-Snapshot `runId_tick_5`).
+2. **P1 Roundtrip (Repo + Workspace + E2E):** `mapRunRow` stellt `finalState` wieder her (Audit-Defaults geschlossen); Vollobjekt-Konvention für Events/Zeitreihen; Workspace lädt Events/Snapshots mandantengebunden; In-Memory-Repo (Auftrag-Schutzfreigabe 067F für `src/simulation/**`) mit Events-/Snapshots-Maps erweitert und bei Hydrierung gefüllt; Hydrierungs-Test auf finalState/Events/Snapshots erweitert.
+3. **E2E:** Audit-Modal (Snapshot-Tab) Vorher/Nachher textidentisch inkl. `Tick-Anzahl: 50` und `INVARIANTEN 100% VALIDE`; Server-Count via öffentlicher REST-API (RLS-geschützt, neue Env-Vars `E2E_SUPABASE_URL`/`E2E_SUPABASE_ANON_KEY`): Snapshots ≥ 1 mit Tick 50, Events ≥ 1.
+
+### E2E-Diagnosen (dokumentiert, behoben)
+- Seed-Zellen sind ebenfalls `font-mono` — Locator auf `td.font-mono.font-semibold` verengt (sonst Seed statt Run-ID).
+- Fachliches 10-Runs-Limit: Spec als Ein-Fluss-Test (3 Runs); lokale E2E-Org per Docker-psql gewiped (nur Volumes).
+
+### Finale Gate-Ergebnisse (Nacharbeit 2)
+- `supabase test db`: 66/66 grün (30 Persistenz + 36 Bestand). `npm test`: 106 Dateien / 424 Tests grün. `verify` 001–025 grün. tsc 0. Build grün (lokal-env für E2E, Standard-env danach neu). E2E lokal grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade (`src/context`, `src/features/resources`, Engine/Regeln, UI-Komponenten) leer.
 - **G49-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067G bleibt blockiert.

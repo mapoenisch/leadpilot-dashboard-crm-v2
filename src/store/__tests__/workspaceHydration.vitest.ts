@@ -80,12 +80,99 @@ describe('workspaceHydration (G49 Org-Wechsel)', () => {
     repo.saveScenario(scenario('scen-a'));
     repo.saveVersion(version('ver-a-1', 'scen-a'));
     repo.saveRun(run('run-a-1', 'scen-a', 'ver-a-1', 'org-a'));
+    repo.saveEvents('run-a-1', [
+      {
+        id: 'e-a-1',
+        tick: 0,
+        dayIndex: 0,
+        simulatedDate: '2026-01-01',
+        type: 'SYSTEM_INFO',
+        title: 'Alt',
+        details: 'Alt',
+        timestamp: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
     expect(repo.getScenario('scen-a')).not.toBeNull();
 
     const workspaceB: ScenarioWorkspace = {
       scenarios: [scenario('scen-b')],
       versions: [version('ver-b-1', 'scen-b')],
-      runs: [run('run-b-1', 'scen-b', 'ver-b-1', 'org-b')],
+      runs: [
+        {
+          ...run('run-b-1', 'scen-b', 'ver-b-1', 'org-b'),
+          finalState: {
+            isRunning: false,
+            tickCount: 50,
+            dayIndex: 49,
+            simulatedDate: '2026-01-01',
+            seed: 1,
+            speed: 1,
+            intervalMs: 12000,
+            lastTickTimestamp: '2026-01-01 (Tick #50)',
+            totalLeadsGenerated: 0,
+            totalDealsWon: 0,
+            currentARR: 411840,
+          },
+        },
+      ],
+      eventsByRun: {
+        'run-b-1': [
+          {
+            id: 'e-b-1',
+            tick: 0,
+            dayIndex: 0,
+            simulatedDate: '2026-01-01',
+            type: 'SYSTEM_INFO',
+            title: 'Start',
+            details: 'Los',
+            timestamp: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+      },
+      snapshots: [
+        {
+          snapshotId: 'run-b-1_tick_50',
+          runId: 'run-b-1',
+          scenarioId: 'scen-b',
+          scenarioVersionId: 'ver-b-1',
+          tickId: 50,
+          simulationDay: 49,
+          simulatedDate: '2026-01-01',
+          modelVersion: '1.0.0-v1',
+          schemaVersion: '1.0.0',
+          baselineVersion: 'b',
+          state: {
+            isRunning: false,
+            tickCount: 50,
+            dayIndex: 49,
+            simulatedDate: '2026-01-01',
+            seed: 1,
+            speed: 1,
+            intervalMs: 12000,
+            lastTickTimestamp: 'x',
+            totalLeadsGenerated: 0,
+            totalDealsWon: 0,
+            currentARR: 1,
+          },
+          projection: {
+            snapshotId: 'run-b-1_tick_50',
+            runId: 'run-b-1',
+            scenarioId: 'scen-b',
+            scenarioVersionId: 'ver-b-1',
+            tickId: 50,
+            simulationDay: 49,
+            simulatedDate: '2026-01-01',
+            arr: 1,
+            mrr: 1,
+            customers: 1,
+            wonDeals: 0,
+            leadsCount: 0,
+            opportunitiesCount: 0,
+            conversionRate: 0,
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
     };
     vi.mocked(mockedLoad).mockResolvedValue(workspaceB);
 
@@ -96,6 +183,11 @@ describe('workspaceHydration (G49 Org-Wechsel)', () => {
     expect(repo.getRun('run-a-1')).toBeNull();
     expect(repo.getScenario('scen-b')).not.toBeNull();
     expect(repo.getRun('run-b-1')).not.toBeNull();
+    // Vollständiger Run-Zustand hydriert (keine Audit-Defaults).
+    expect(repo.getRun('run-b-1')?.finalState?.tickCount).toBe(50);
+    expect(repo.getEventsByRun('run-b-1')).toHaveLength(1);
+    expect(repo.getEventsByRun('run-a-1')).toHaveLength(0);
+    expect(repo.getSnapshotsByRun('run-b-1')).toHaveLength(1);
     const state = useSimulationStore.getState();
     expect(state.activeOrganizationId).toBe('org-b');
     expect(state.activeScenarioId).toBe('scen-b');

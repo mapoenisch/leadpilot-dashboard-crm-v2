@@ -7,7 +7,7 @@
 
 BEGIN;
 
-SELECT plan(28);
+SELECT plan(30);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.simulation_snapshots;
@@ -239,6 +239,26 @@ SELECT is(
   (SELECT payload ->> 'title' FROM public.simulation_events WHERE run_id = 'run-px'),
   'Original',
   'Event ohne Payload-Schlüssel landet verlustfrei als Gesamtobjekt'
+);
+
+-- --------------------------------------- 29: final_state-Roundtrip --
+SELECT lives_ok(
+  $$SELECT public.persist_completed_run(
+    'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    '{"id":"scen-pa-1","name":"Szenario PA","status":"ACTIVE","currentVersionId":"ver-pa-1","isProtected":false}'::jsonb,
+    '{"id":"ver-pa-1","scenarioId":"scen-pa-1","versionNumber":1,"parameters":{}}'::jsonb,
+    '{"runId":"run-pa-final","seed":3,"status":"COMPLETED","manifest":{},"finalState":{"tickCount":50,"dayIndex":49},"correlationId":"corr-final"}'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  'Run mit finalState persistiert'
+);
+
+SELECT is(
+  (SELECT (final_state ->> 'tickCount')::integer FROM public.simulation_runs WHERE run_id = 'run-pa-final'),
+  50::integer,
+  'finalState steht verlustfrei (Tick-Anzahl)'
 );
 
 SELECT * FROM finish();

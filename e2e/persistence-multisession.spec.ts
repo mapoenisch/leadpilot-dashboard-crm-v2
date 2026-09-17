@@ -32,7 +32,8 @@ async function readRunIds(page: Page): Promise<string[]> {
   await expect(page.getByText('Technische Run-Historie').first()).toBeAttached({
     timeout: 30_000,
   });
-  return page.locator('table td.font-mono').allTextContents();
+  // Nur Run-ID-Zellen (font-semibold) — Seed-Zellen sind ebenfalls font-mono.
+  return page.locator('table td.font-mono.font-semibold').allTextContents();
 }
 
 async function openRunModal(page: Page): Promise<void> {
@@ -52,6 +53,37 @@ function newestRunId(before: string[], after: string[]): string {
   return fresh[fresh.length - 1];
 }
 
+async function readAuditSnapshotTab(page: Page, runId: string): Promise<string> {
+  await page.goto('/crm/live-simulation');
+  await page.getByRole('tab', { name: /Technik & Audit/ }).click();
+  await page.locator('tr', { hasText: runId }).getByRole('button', { name: 'Audit' }).click();
+  await page.getByRole('button', { name: 'Snapshot Integrität & State' }).click();
+  const dialog = page.locator('[role="dialog"]');
+  await expect(dialog.getByText(/Tick-Anzahl:/)).toBeVisible({ timeout: 30_000 });
+  const parts = await dialog.allTextContents();
+  return parts.join('\n').replace(/\s+/g, ' ').trim();
+}
+
+async function restCount(
+  page: Page,
+  table: string,
+  runId: string,
+): Promise<Array<Record<string, unknown>>> {
+  const supabaseUrl = requireEnv('E2E_SUPABASE_URL');
+  const anonKey = requireEnv('E2E_SUPABASE_ANON_KEY');
+  const jwt = await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((k) => k.endsWith('-auth-token'));
+    if (!key) throw new Error('kein Auth-Token im Browser');
+    return (JSON.parse(localStorage.getItem(key)!) as { access_token: string }).access_token;
+  });
+  const res = await page.request.get(
+    `${supabaseUrl}/rest/v1/${table}?run_id=eq.${runId}&select=*`,
+    { headers: { apikey: anonKey, Authorization: `Bearer ${jwt}` } },
+  );
+  expect(res.ok(), `REST ${table} erreichbar`).toBe(true);
+  return (await res.json()) as Array<Record<string, unknown>>;
+}
+
 test.describe('Persistenz über Sitzungen (Gate G49)', () => {
   test('Run, Re-Run und Reproduktion überstehen Reload und zweiten Browser', async ({
     page,
@@ -68,8 +100,14 @@ test.describe('Persistenz über Sitzungen (Gate G49)', () => {
     await waitRunDone(page);
     const runId = newestRunId(known, await readRunIds(page));
     known.push(runId);
+    // Sichtbare Auditdaten vorher sichern (finalState statt Defaults).
+    const auditBefore = await readAuditSnapshotTab(page, runId);
+    expect(auditBefore).toContain('Tick-Anzahl: 50');
+    expect(auditBefore).toContain('INVARIANTEN 100% VALIDE');
     await page.reload();
     expect(await readRunIds(page)).toContain(runId);
+    // Nach Reload: dieselben Auditdaten, keine Defaults.
+    expect(await readAuditSnapshotTab(page, runId)).toBe(auditBefore);
 
     // Weg 2: Re-Run.
     await openRunModal(page);
@@ -107,5 +145,14 @@ test.describe('Persistenz über Sitzungen (Gate G49)', () => {
     } finally {
       await context2.close();
     }
+
+    // Server-Count und Inhalte über die öffentliche REST-API (RLS-geschützt):
+    // Snapshots und Events des Runs liegen mandantengebunden vor.
+    const snapshots = await restCount(page, 'simulation_snapshots', runId);
+    expect(snapshots.length, 'mindestens der Final-Snapshot').toBeGreaterThan(0);
+    const ticks = snapshots.map((s) => s.tick_id);
+    expect(ticks).toContain(50);
+    const events = await restCount(page, 'simulation_events', runId);
+    expect(events.length, 'Events persistiert').toBeGreaterThan(0);
   });
 });

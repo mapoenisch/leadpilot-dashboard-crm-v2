@@ -90,6 +90,8 @@ export interface ScenarioWorkspace {
   scenarios: Scenario[];
   versions: ScenarioVersion[];
   runs: SimulationRun[];
+  eventsByRun: Record<string, SimulationEvent[]>;
+  snapshots: SimulationSnapshot[];
 }
 
 /** Lädt Szenarien, Versionen und Runs genau eines Mandanten. */
