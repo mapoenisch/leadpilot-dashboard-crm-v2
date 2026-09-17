@@ -232,6 +232,7 @@ export class SimulationEngine {
       updatedDeals,
       updatedLeads,
       historicalMetrics.baseCustomers,
+      historicalMetrics.baseARR,
     );
     updatedState = {
       ...updatedState,

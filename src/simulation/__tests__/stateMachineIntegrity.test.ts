@@ -226,7 +226,7 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST K: Invariant 1 (ARR = MRR * 12) verified cleanly
   // ---------------------------------------------------------
   log.push('\n--- TEST K: Invariant 1 (ARR = MRR * 12) verified ---');
-  const invK = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead]);
+  const invK = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead], 66, 411840);
   const testKPassed = !invK.hasViolation;
 
   if (testKPassed) {
@@ -247,7 +247,7 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
       liveARR: 500000, // Corrupted: does not match liveMRR * 12 = 423840
     },
   };
-  const invL = TickInvariantValidator.verifyTickInvariants(corruptedState, [sampleDeal], [sampleLead]);
+  const invL = TickInvariantValidator.verifyTickInvariants(corruptedState, [sampleDeal], [sampleLead], 66, 411840);
   const testLPassed = invL.hasViolation && invL.violations.some((v) => v.includes('Invariante 1'));
 
   if (testLPassed) {
@@ -261,7 +261,7 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST M: Invariant 2 (0 active ARR from churned customers) verified
   // ---------------------------------------------------------
   log.push('\n--- TEST M: Invariant 2 (0 active ARR from churned customers) verified ---');
-  const invM = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead]);
+  const invM = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead], 66, 411840);
   const testMPassed = !invM.violations.some((v) => v.includes('Invariante 2'));
 
   if (testMPassed) {
@@ -275,7 +275,7 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST N: Invariant 3 (Customer count equation) verified
   // ---------------------------------------------------------
   log.push('\n--- TEST N: Invariant 3 (Customer count equation) verified ---');
-  const invN = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead]);
+  const invN = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead], 66, 411840);
   const testNPassed = !invN.violations.some((v) => v.includes('Invariante 3'));
 
   if (testNPassed) {
@@ -289,7 +289,7 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST O: Invariant 4 (Valide Funnel/Deal Kombinationen) verified
   // ---------------------------------------------------------
   log.push('\n--- TEST O: Invariant 4 (Valide Funnel-Verteilung) verified ---');
-  const invO = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead]);
+  const invO = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead], 66, 411840);
   const testOPassed = !invO.violations.some((v) => v.includes('Invariante 4'));
 
   if (testOPassed) {

@@ -290,13 +290,11 @@ export class ScenarioService {
     }
 
     const dataset = BaselineSnapshotService.get(baselineVersion);
-    // Run und Baseline müssen demselben Mandanten angehören — außer im
-    // Legacy-Kontext (beidseitig 'unknown', z. B. Golden Run).
-    if (
-      dataset.organizationId !== UNKNOWN_ORGANIZATION_ID &&
-      organizationId !== UNKNOWN_ORGANIZATION_ID &&
-      dataset.organizationId !== organizationId
-    ) {
+    // Run und Baseline müssen demselben Mandanten angehören. Fail-closed:
+    // Erlaubt ist nur unknown-gegen-unknown (Legacy-Kontext, z. B. Golden
+    // Run); jeder Mischfall lehnt mit ORG_MISMATCH ab — eine
+    // Legacy-/unknown-Baseline bedient niemals einen realen Mandanten.
+    if (dataset.organizationId !== organizationId) {
       throw new ScenarioError(
         'ORG_MISMATCH',
         `Lauf-Mandant "${organizationId}" passt nicht zur Baseline "${baselineVersion}" (Mandant "${dataset.organizationId}").`,

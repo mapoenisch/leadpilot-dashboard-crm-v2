@@ -7896,3 +7896,16 @@ Danach G47 erneut unabhängig prüfen lassen. Kein Push, keine Integration und k
 
 ### Freigabestatus und Abschlusscommit
 - Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067e-baseline-engine`.
+
+## [2026-09-17] Gate G48: Nacharbeit zum Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `de7f534` → NICHT FREIGEGEBEN (2 P1: ARR-Literal im Invariant-Validator; ORG-Prüfung für unknown-Mischfälle fail-open). Umgebung: Node v22.11.0.
+
+### Behebung je Befund
+1. **P1a Validator-Literal (mit Marcs schriftlicher Freigabe zur Matrixerweiterung):** `verifyTickInvariants` nimmt `baseARR` als Pflicht-Parameter aus dem Engine-Pfad; Literal `411840` in `tickInvariantValidator.ts` entfernt, Engine übergibt `historicalMetrics.baseARR`. 5 Aufrufstellen in `stateMachineIntegrity.test.ts` mechanisch mit expliziten Ankerwerten ergänzt (keine Assertion geändert). Negativtest im Repro-File: Override-Lauf (baseARR 12000) hat `hasInvariantViolation === false`.
+2. **P1b ORG fail-closed:** Nur noch strikte Gleichheit — unknown-gegen-unknown (Legacy/Golden) zulässig, jeder Mischfall (unknown-Baseline/realer Mandant und umgekehrt) wirft `ORG_MISMATCH`. Zwei neue Gegenfälle im Repro-File.
+
+### Finale Gate-Ergebnisse (Nacharbeit G48)
+- Fokussierte G48-Tests 17/17 (8 Unit + 9 Run) · `npm test` 103 Dateien / 412 Tests grün · `verify` 001–025 grün (inkl. reparierter StateMachine-Aufrufe) · tsc 0 · build grün · `npm run lint` weiterhin nur die 4 bekannten `max-lines`-Fehler · `git diff --check` sauber · unerlaubter Schutzbereich leer.
+- Beinahe-Rückschlag dokumentiert: `prettier --write` auf `stateMachineIntegrity.test.ts` hätte die Datei versehentlich voll-reformatiert (482→570 Zeilen, neuer Lint-Fehler) — zurückgerollt auf minimale 5-Zeilen-Änderung.
+- **G48-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067F bleibt blockiert.

@@ -89,6 +89,9 @@ describe('067E G48 — Baseline-Verdrahtung und Hash-Prüfung', () => {
     });
     expect(other.run.finalMetrics).not.toEqual(anchored.run.finalMetrics);
     expect(other.run.manifest.baselineHash).not.toBe(anchored.run.manifest.baselineHash);
+    // P1a-Negativtest: Die Override-Baseline (baseARR 12000) verletzt keine
+    // Invariante — der Validator rechnet mit Baseline-Werten, nicht mit 411840.
+    expect(other.run.finalState?.hasInvariantViolation).toBe(false);
   }, 60_000);
 
   it('manipulierte Baseline bricht mit BASELINE_HASH_MISMATCH ab', async () => {
@@ -133,5 +136,42 @@ describe('067E G48 — Baseline-Verdrahtung und Hash-Prüfung', () => {
       organizationId: 'org-a',
     });
     expect(same.run.manifest.organizationId).toBe('org-a');
+  }, 60_000);
+
+  it('unknown-Baseline bedient keinen realen Mandanten (und umgekehrt)', async () => {
+    setup();
+    await BaselineSnapshotService.capture(
+      'simulated-crm',
+      'g48-legacy',
+      '2026-01-01',
+      '2026-01-01T00:00:00.000Z',
+    );
+    await BaselineSnapshotService.capture(
+      'simulated-crm',
+      'g48-org-mix',
+      '2026-01-01',
+      '2026-01-01T00:00:00.000Z',
+      {
+        organizationId: 'org-a',
+      },
+    );
+    const service = ScenarioService.getInstance();
+    const { version } = service.createScenario('G48-Legacy-Mix', 'v23-g48-legacy-mix');
+    await expect(
+      service.runScenarioVersion(version.id, 777001, 5, {
+        baselineVersion: 'g48-legacy',
+        organizationId: 'org-real-review',
+      }),
+    ).rejects.toMatchObject({ name: 'ScenarioError', code: 'ORG_MISMATCH' });
+    await expect(
+      service.runScenarioVersion(version.id, 777001, 5, {
+        baselineVersion: 'g48-org-mix',
+      }),
+    ).rejects.toMatchObject({ name: 'ScenarioError', code: 'ORG_MISMATCH' });
+    // unknown-gegen-unknown (Legacy, z. B. Golden Run) bleibt zulässig.
+    const legacy = await service.runScenarioVersion(version.id, 777001, 5, {
+      baselineVersion: 'g48-legacy',
+    });
+    expect(legacy.run.manifest.organizationId).toBe('unknown');
   }, 60_000);
 });

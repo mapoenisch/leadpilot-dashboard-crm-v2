@@ -8,12 +8,17 @@ import { InvariantViolationReport } from '../types/stateMachine';
 export class TickInvariantValidator {
   /**
    * Verifies tick invariants against current simulation state, deals, and leads.
+   * 067E / G48 (Nacharbeit P1a mit Matrixfreigabe): `baseARR` ist ein
+   * Pflicht-Parameter aus den Baseline-Metriken des Engine-Pfads — kein
+   * Literal im Validator. Ein Override (z. B. baseARR 12000) darf keinen
+   * Invariant-Verstoß erzeugen.
    */
   public static verifyTickInvariants(
     state: SimulationState,
     deals: SimulationDeal[],
     _leads: SimulationLead[],
-    baseCustomers = 66
+    baseCustomers = 66,
+    baseARR: number,
   ): InvariantViolationReport {
     const violations: string[] = [];
     const metrics = state.metrics;
@@ -31,7 +36,7 @@ export class TickInvariantValidator {
     const expectedARRFromMRR = metrics.liveMRR * 12;
     if (Math.abs(metrics.liveARR - expectedARRFromMRR) > 12) {
       violations.push(
-        `Invariante 1 verletzt: liveARR (${metrics.liveARR} €) entspricht nicht liveMRR × 12 (${expectedARRFromMRR} €).`
+        `Invariante 1 verletzt: liveARR (${metrics.liveARR} €) entspricht nicht liveMRR × 12 (${expectedARRFromMRR} €).`,
       );
     }
 
@@ -40,10 +45,10 @@ export class TickInvariantValidator {
     const activeDeals = deals.filter((d) => !d.isChurned);
 
     const activeWonARR = activeDeals.reduce((sum, d) => sum + (d.arr || 0), 0);
-    const expectedARR = Math.max(0, 411840 + activeWonARR);
+    const expectedARR = Math.max(0, baseARR + activeWonARR);
     if (metrics.liveARR !== expectedARR) {
       violations.push(
-        `Invariante 2 verletzt: Gekündigte Verträge beeinflussen fälschlicherweise den aktiven liveARR (liveARR: ${metrics.liveARR} €, Erwartet: ${expectedARR} €).`
+        `Invariante 2 verletzt: Gekündigte Verträge beeinflussen fälschlicherweise den aktiven liveARR (liveARR: ${metrics.liveARR} €, Erwartet: ${expectedARR} €).`,
       );
     }
 
@@ -51,14 +56,17 @@ export class TickInvariantValidator {
     const expectedCustomers = Math.max(0, baseCustomers + activeDeals.length - churnedDeals.length);
     if (metrics.liveCustomers !== expectedCustomers) {
       violations.push(
-        `Invariante 3 verletzt: liveCustomers (${metrics.liveCustomers}) entspricht nicht baseCustomers + WonDeals - ChurnedDeals (${expectedCustomers}).`
+        `Invariante 3 verletzt: liveCustomers (${metrics.liveCustomers}) entspricht nicht baseCustomers + WonDeals - ChurnedDeals (${expectedCustomers}).`,
       );
     }
 
     // Invariante 4: Valide Funnel-Verteilung
-    if (metrics.liveMQLs + metrics.liveSQLs + metrics.liveHotLeads > metrics.liveLeads && metrics.liveLeads > 0) {
+    if (
+      metrics.liveMQLs + metrics.liveSQLs + metrics.liveHotLeads > metrics.liveLeads &&
+      metrics.liveLeads > 0
+    ) {
       violations.push(
-        `Invariante 4 verletzt: Summe qualifizierter Leads (${metrics.liveMQLs + metrics.liveSQLs + metrics.liveHotLeads}) übersteigt Gesamtzahl liveLeads (${metrics.liveLeads}).`
+        `Invariante 4 verletzt: Summe qualifizierter Leads (${metrics.liveMQLs + metrics.liveSQLs + metrics.liveHotLeads}) übersteigt Gesamtzahl liveLeads (${metrics.liveLeads}).`,
       );
     }
 
