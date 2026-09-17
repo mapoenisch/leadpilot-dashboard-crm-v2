@@ -7802,3 +7802,37 @@ Der Freigabe-Eintrag nennt `6b4fbe2`, beschreibt inhaltlich jedoch den Stand `ab
 
 ### Freigabestatus und Abschlusscommit
 - Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067d-crm-envelope`.
+
+## [2026-09-17] Gate G47: Unabhängiges Review – Nacharbeit erforderlich
+
+**Review-Baseline:** `e31a710` auf `feat/auftrag-067d-crm-envelope`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067E bleibt blockiert; kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise
+
+- Die fokussierten G47-Tests sind **15/15 grün** (`crmReadModelService`, `useCrmQueries`, `DataBasisPage`); `npx tsc --noEmit` und `git diff --check 78b2a63..HEAD` sind grün.
+- Der Service liefert bei Quellfehlern und ungültigen Runtime-Daten einen leeren `unavailable`-Envelope. `DataBasisPage` behandelt diesen Zustand sichtbar als Fehler ohne Ersatzdaten.
+
+### Blockierende Review-Befunde
+
+1. **Critical – die Hooks wählen Synthetik weiterhin still aus:** `useCrmReadModelEnvelope()` setzt standardmäßig `organizationId = DEMO_ORGANIZATION_ID` und übergibt in jedem Fall `allowSynthetic: true` (`src/hooks/queries/useCrmQueries.ts`). Da die Registry standardmäßig `simulated-crm` aktiviert, beziehen alle aufrufenden CRM-Seiten ohne explizite Mandanten-/Demo-Auswahl synthetische Demo-Daten. Das verletzt Design §6: Der Wechsel auf Synthetik ist nur als bewusste Auswahl des Demo-Mandanten zulässig. Organisation und Demo-Freigabe müssen aus dem tatsächlichen Kontext bzw. einer expliziten Auswahl stammen; für reale oder fehlende Auswahl ist fail-closed `unavailable` erforderlich. Ein Hook-Gegenfall für „realer Mandant/keine Demo-Auswahl“ muss diesen Zustand beweisen.
+2. **Critical – die sichtbare CRM-Aktivitätshistorie bleibt außerhalb des Envelopes:** `src/features/crm/components/ActivitiesView.tsx` erzeugt weiterhin `INITIAL_ACTIVITIES` und mischt sie mit Simulation-Activities/-Events. Sie liest weder `CrmReadModelEnvelope.data.activities` noch dessen Provenienz/Status. Damit kommen Activities nicht aus demselben Envelope wie Companies, Contacts, Deals und Audit; es bleibt ein statischer/simulierter Mischzustand. Der Änderungsbedarf liegt außerhalb der G47-Dateimatrix. Vor einer Änderung ist dafür Marcs explizite Freigabe zur Anpassung von `ActivitiesView.tsx` (und ggf. des zugehörigen Hooks) erforderlich.
+
+### Erforderliche Nacharbeit
+
+- Automatische Demo-Defaults aus der Hook-Schicht entfernen und bewusste Mandanten-/Demo-Auswahl explizit verdrahten und negativ testen.
+- Nach Freigabe des erweiterten Dateiumfangs die Aktivitätshistorie aus dem Envelope beziehen oder sie als nicht-CRM-Ansicht eindeutig aus dem CRM-Bereich herauslösen; kein Mischzustand.
+
+Danach G47 erneut unabhängig prüfen lassen. Kein Push, keine Integration und kein Start von 067E bis zur Freigabe.
+
+## [2026-09-17] Gate G47: Nacharbeit zum Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `e31a710` → NICHT FREIGEGEBEN (2 Critical: stille Demo-Defaults in Hooks; ActivitiesView außerhalb des Envelopes). Umgebung: Node v22.11.0.
+
+### Behebung je Befund
+1. **Critical stille Demo-Defaults:** `useCrmReadModelEnvelope(scope)` löst die Organisation aus dem tatsächlichen Sitzungskontext (`useOrganization`, G45) oder expliziter Übergabe — Default `DEMO_ORGANIZATION_ID` und bedingungsloses `allowSynthetic: true` sind entfernt. `allowSynthetic` nur bei explizitem Opt-in oder kontextabgeleiteter Demo-Mitgliedschaft (bewusste Demo-Auswahl); explizites `false` gewinnt immer. Fehlende Auswahl → `INVALID_ORG`-Fehler, reale Auswahl ohne Demo-Freigabe → `unavailable` (`SYNTHETIC_NOT_ALLOWED`). Zwei neue Hook-Gegenfälle beweisen beides.
+2. **Critical ActivitiesView-Mix (mit Marcs schriftlicher Freigabe zur Matrixerweiterung):** `src/features/crm/components/ActivitiesView.tsx` liest ausschließlich `envelope.data.activities` (Entity-Namen aus demselben Envelope aufgelöst) und zeigt Quelle/Status als Badges. `INITIAL_ACTIVITIES` und der Simulations-Mix (`useSimulationActivities`/`useSimulationEvents`) sind ersatzlos entfallen; unavailable ist Fehler ohne Ersatzliste. Neuer UI-Test beweist Envelope-Herkunft und Abwesenheit des alten Statik-/Simulationsbestands.
+
+### Finale Gate-Ergebnisse (Nacharbeit G47)
+- Fokussierte G47-Tests 19/19 (6 Service + 8 Hooks + 3 DataBasisPage + 2 ActivitiesView) · `npm test` 101 Dateien / 399 Tests grün · `verify` 001–025 grün · tsc 0 · build grün · eslint der geänderten Dateien sauber · `git diff --check` sauber · unerlaubter Schutzbereich (`src/simulation`, `src/context`, `src/features/resources`) leer.
+- **G47-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067E bleibt blockiert.

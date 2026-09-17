@@ -10,6 +10,7 @@ import {
   useCrmReadModelEnvelope,
 } from '../useCrmQueries';
 import { loadCrmReadModel, DEMO_ORGANIZATION_ID } from '@/services/data/crmReadModelService';
+import { useOrganization } from '@/auth/organizationContext';
 import type { CrmReadModelEnvelope } from '@/types/dataSource';
 
 vi.mock('@/services/data/crmReadModelService', async (importOriginal) => {
@@ -17,7 +18,19 @@ vi.mock('@/services/data/crmReadModelService', async (importOriginal) => {
   return { ...actual, loadCrmReadModel: vi.fn() };
 });
 
+vi.mock('@/auth/organizationContext', () => ({
+  useOrganization: vi.fn(),
+}));
+
 const mockedLoad = vi.mocked(loadCrmReadModel);
+const mockedOrg = vi.mocked(useOrganization);
+
+function demoSession() {
+  mockedOrg.mockReturnValue({
+    session: { userId: 'u-demo', organizationId: DEMO_ORGANIZATION_ID, role: 'viewer' },
+    isLoading: false,
+  });
+}
 
 function healthyEnvelope(): CrmReadModelEnvelope {
   return {
@@ -68,6 +81,17 @@ function healthyEnvelope(): CrmReadModelEnvelope {
   };
 }
 
+function unavailableEnvelope(orgId: string, errorCode: string): CrmReadModelEnvelope {
+  const base = healthyEnvelope();
+  return {
+    ...base,
+    organizationId: orgId,
+    status: 'unavailable',
+    data: { ...base.data, companies: [], contacts: [], deals: [] },
+    errorCode,
+  };
+}
+
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -84,6 +108,7 @@ function createWrapper() {
 describe('useCrmQueries (G47 Envelope)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    demoSession();
     mockedLoad.mockResolvedValue(healthyEnvelope());
   });
 
@@ -132,20 +157,34 @@ describe('useCrmQueries (G47 Envelope)', () => {
   });
 
   it('unavailable schaltet niemals still auf Demodaten, sondern ist Fehler', async () => {
-    mockedLoad.mockResolvedValue({
-      ...healthyEnvelope(),
-      status: 'unavailable',
-      data: {
-        ...healthyEnvelope().data,
-        companies: [],
-        contacts: [],
-        deals: [],
-      },
-      errorCode: 'FETCH_FAILED',
-    });
+    mockedLoad.mockResolvedValue(unavailableEnvelope(DEMO_ORGANIZATION_ID, 'FETCH_FAILED'));
     const { result } = renderHook(() => useCrmCompanies(), { wrapper: createWrapper() });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
+  });
+
+  it('Gegenfall: realer Mandant ohne Demo-Auswahl bekommt kein Synthetik', async () => {
+    mockedOrg.mockReturnValue({
+      session: { userId: 'u-real', organizationId: 'org-real-1', role: 'viewer' },
+      isLoading: false,
+    });
+    mockedLoad.mockResolvedValue(unavailableEnvelope('org-real-1', 'SYNTHETIC_NOT_ALLOWED'));
+    const { result } = renderHook(() => useCrmCompanies(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.data).toBeUndefined();
+    expect(mockedLoad).toHaveBeenCalledWith('org-real-1', 'simulated-crm', {
+      allowSynthetic: false,
+    });
+  });
+
+  it('Gegenfall: ohne Sitzung und ohne Auswahl ist INVALID_ORG statt Demo', async () => {
+    mockedOrg.mockReturnValue({ session: null, isLoading: false });
+    const { result } = renderHook(() => useCrmCompanies(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error?.message).toContain('INVALID_ORG');
+    expect(mockedLoad).not.toHaveBeenCalled();
   });
 });

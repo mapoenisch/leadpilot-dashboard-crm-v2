@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { DataBasisPage } from '../DataBasisPage';
 import { loadCrmReadModel, DEMO_ORGANIZATION_ID } from '@/services/data/crmReadModelService';
+import { useOrganization } from '@/auth/organizationContext';
 import type { CrmReadModelEnvelope } from '@/types/dataSource';
 
 vi.mock('@/services/data/crmReadModelService', async (importOriginal) => {
@@ -11,7 +12,12 @@ vi.mock('@/services/data/crmReadModelService', async (importOriginal) => {
   return { ...actual, loadCrmReadModel: vi.fn() };
 });
 
+vi.mock('@/auth/organizationContext', () => ({
+  useOrganization: vi.fn(),
+}));
+
 const mockedLoad = vi.mocked(loadCrmReadModel);
+const mockedOrg = vi.mocked(useOrganization);
 
 function envelopeWith(
   status: CrmReadModelEnvelope['status'],
@@ -64,6 +70,10 @@ function createWrapper() {
 describe('DataBasisPage (G47 Provenienz)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedOrg.mockReturnValue({
+      session: { userId: 'u-demo', organizationId: DEMO_ORGANIZATION_ID, role: 'viewer' },
+      isLoading: false,
+    });
   });
 
   it('zeigt Quelle, Modus, Abrufzeit, Alter und Status', async () => {
