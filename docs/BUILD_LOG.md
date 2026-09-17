@@ -7702,3 +7702,33 @@ Danach G46 erneut unabhängig prüfen lassen. Kein Push, keine Integration und k
 ### Finale Gate-Ergebnisse (Nacharbeit 4)
 - `deno test --allow-read` 26/26 · `supabase test db` 36/36 + Race-Skript grün · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
 - **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
+## [2026-09-17] Gate G46: Viertes unabhängiges Review – weitere Nacharbeit erforderlich
+
+**Review-Baseline:** `3366193` auf `feat/auftrag-067c-ingress`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067D bleibt blockiert; kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise
+
+- Die drei isolierten Ingress-Suiten sind mit **26/26 grün**; `deno check supabase/functions/live-kpi-ingest/index.ts`, `npx tsc --noEmit`, `npm run verify` (001–025), `npm run build` und `git diff --check 6543571..HEAD` sind grün.
+- Der Pass-Through misst die Base64-Bytezahl vor jeder Dekodierung korrekt. Der 413-Respond, der Slot-/DB-Ausschluss und der leere Schutzbereich gegen `6543571` sind strukturell nachweisbar.
+
+### Blockierender Review-Befund
+
+1. **Critical – Oversize läuft weiterhin durch den HMAC-Node:** Der reale Graph lautet `Pass-Through Raw Contract Payload → Verify Ingress Signature → HMAC Sign Base → Ingress Valid? → KPI Reject? → Size Reject? → Respond Payload Too Large`. Bei `INGEST_BODY_TOO_LARGE` erreicht der Workflow damit den Crypto-Node, obwohl `signatureBase` nicht gesetzt ist. Der Harness führt den Crypto-Node nicht aus und kann daher weder den behaupteten Ausschluss noch eine deterministische 413-Antwort belegen. Die Größen-/Validitätsweiche muss vor `HMAC Sign Base` liegen; nur der `valid === true`-Ast darf anschließend den HMAC und den Signaturvergleich durchlaufen. Ein Graph-/Harness-Gegenfall muss ausdrücklich beweisen, dass es vom Oversize-Ergebnis keinen Pfad zum HMAC-, Slot- oder DB-Node gibt.
+
+### Erforderliche Nacharbeit
+
+- Die n8n-Verbindungen so umordnen, dass `Ingress Valid?` vor dem HMAC liegt und Oversize direkt über den 413-Zweig endet; den negativen Erreichbarkeitsnachweis ergänzen.
+
+Danach G46 erneut unabhängig prüfen lassen. Kein Push, keine Integration und kein Start von 067D bis zur Freigabe.
+
+## [2026-09-17] Gate G46: Nacharbeit zur fünften Review-Runde (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review mündlich: NICHT FREIGEGEBEN (1 Critical: Oversize durchläuft HMAC-Node). Umgebung: Node v22.11.0, Deno 2.9.6, lokale Supabase CLI 2.117.0.
+
+### Behebung
+Verbindungen umgeordnet: `Verify → Ingress Valid?` (statt Verify → HMAC); nur der True-Ast erreicht `HMAC Sign Base` → `Signature Match?` → Claim → Slot → Ingest; der False-Ast läuft direkt ins bestehende KPI/Size/401-Reject-Routing (dabei Zyklus-Rest `HMAC → Ingress Valid?` entfernt). Negativ-Nachweis als Strukturtest: ab Valid-False sind HMAC/Slot/DB unerreichbar, 413-Zweig erreichbar; ab Valid-True werden HMAC und Signaturvergleich erreicht.
+
+### Finale Gate-Ergebnisse (Nacharbeit 5)
+- `deno test --allow-read` 27/27 · `supabase test db` 36/36 + Race-Skript grün · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
+- **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
