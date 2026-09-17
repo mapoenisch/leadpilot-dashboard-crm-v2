@@ -7493,3 +7493,39 @@ Lokale Auth-User + Org-Seed nur per Admin-API/SQL (keine Secrets im Repo); Previ
 ### Finale Gate-Ergebnisse (Nacharbeit)
 - `supabase test db` 27/27 · `verify:v23:baseline` Exit 0 (18/18/0) · tsc 0 · verify 001–025 · `npm test` 100/395 · build · Playwright 168 + 6 bekannte Visual-Diffs (User-Entscheid, Snapshots unangetastet) · lint 4/0 · format 85 · diff-check sauber · Schutzbereich außerhalb 067B-Freigabe leer · Golden-SHA unverändert.
 - **G45-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, 067C bleibt blockiert.
+
+## [2026-09-17] Gate G45: Zweites unabhängiges Review – weitere Nacharbeit erforderlich
+
+**Review-Baseline:** `9281770` auf `feat/auftrag-067b-auth-rls`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067C bleibt blockiert; kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise
+
+- Die neue Migration erzwingt die `organization_id`-FKs auf allen drei CRM-Tabellen sowie den zusammengesetzten Contact-zu-Company-FK. `supabase test db` ist unabhängig **27/27 grün**.
+- `npx tsc --noEmit`, `npm run verify` (Suites 001–025) und `npm run build` sind grün. `git diff --check` ist sauber; der Schutzbereich außerhalb der für 067B freigegebenen Typdateien bleibt leer.
+- `verify:v23:baseline` ist ohne E2E-Secrets korrekt fail-closed abgebrochen: `E2E_AUTH_EMAIL` fehlt im zwingenden `global-setup`; daraus wurde kein fachlicher Befund abgeleitet.
+
+### Blockierende Review-Befunde
+
+1. **Critical – suspendierte Mitgliedschaft oder Organisation erhält weiterhin eine UI-Organisationssitzung:** `OrganizationProvider` liest nur `organization_id, role` aus `organization_members` und akzeptiert jede eigene Zeile als `session` (`src/auth/organizationContext.tsx:36–46`). Die dazugehörige RLS-Policy erlaubt aber unverändert jede eigene Mitgliedschaft ohne Status- oder Organisationsprüfung (`supabase/migrations/20260916_identity_and_tenant_rls.sql:221–224`). Daher liefern sowohl ein suspendiertes Mitglied als auch ein Mitglied einer suspendierten Organisation eine nicht-null `session`; `ProtectedRoute` lässt den Zugriff dann zu (`src/auth/ProtectedRoute.tsx:21–25`). Die CRM-Daten-Policies verbergen zwar Daten, die geforderte Sperre „ohne gültige Organisationssitzung → /login“ ist im Produktpfad nicht erfüllt. Es fehlt zudem ein E2E-Gegenfall für diesen Redirect.
+2. **Important – `supabase/schema.sql` ist als frischer Zielstand nicht ausführbar:** Die drei CRM-Tabellen referenzieren ab Zeile 14/30/46 `organizations(id)`, die Tabelle `organizations` wird jedoch erst ab Zeile 51 erzeugt. PostgreSQL löst einen FK bei `CREATE TABLE` sofort auf; ein Lauf gegen eine leere Datenbank bricht damit vor der Identitätstabelle ab. Die Migration ist funktionsfähig, aber die behauptete synchrone Schema-Quelle muss in eine ausführbare Reihenfolge gebracht werden.
+3. **Important – der verpflichtende PR-E2E-Job ist ohne Secret-Übergabe rot:** `.github/workflows/ci.yml:106–125` startet `npx playwright test` ohne `E2E_AUTH_*`; `e2e/global-setup.ts:9–28` verlangt diese Werte zwingend. Der unabhängige Verifier reproduziert denselben Abbruch. Die Credentials dürfen nicht zurück ins Repository; es braucht eine explizite, zulässige Strategie (gesicherte CI-Secrets oder ein vom Auth-Setup getrennter, dokumentierter CI-Pfad). Falls dies bewusst erst in 067L gelöst wird, darf G45 nicht länger einen vollständigen grünen CI-/Verifier-Nachweis behaupten.
+
+### Erforderliche Nacharbeit
+
+- Die Organisationssitzung nur aus einer aktiven Mitgliedschaft einer aktiven Organisation bilden (und die Membership-RLS entsprechend begrenzen); den Redirect für suspendiertes Mitglied und suspendierte Organisation per E2E beweisen.
+- `supabase/schema.sql` so ordnen, dass `organizations` vor allen FK-Referenzen entsteht, und den Frischlauf belegen.
+- Die E2E-/CI-Strategie ohne eingecheckte Zugangsdaten verbindlich klären und den Nachweis im G45-Bericht korrekt begrenzen bzw. grün belegen.
+
+## [2026-09-17] Gate G45: Nacharbeit zum zweiten Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `9281770` → NICHT FREIGEGEBEN (2 Critical + 1 Important... tatsächlich 3 Punkte: 1 Critical + 2 Important). Umgebung: Node v22.11.0, lokale Supabase CLI 2.117.0.
+
+### Behebung je Befund
+1. **Critical suspendierte UI-Sitzung:** Migration `20260918_active_membership_self_read.sql` — `member_select_own_membership` nur für aktive Mitgliedschaft in aktiver Org; `OrganizationProvider` bildet Sitzung nur aus `status active` + Org-`active` (Embed-Join, Defense in depth); `ProtectedRoute` lässt ohne Sitzung nicht durch. E2E-Gegenfall: `nomember`-User (ohne Mitgliedschaft, analog suspendiert) bleibt auf `/login`, `/dashboard`-Direktaufruf ebenfalls (tenant-isolation Test 3, alle Viewports).
+2. **Important schema.sql-Reihenfolge:** Identity-Block vor CRM-Tabellen, Constraint-ALTERs hinter Deals-Definition, Membership-Policy synchron. Frischlauf-Beleg auf leerer DB `g45fresh` (mit dokumentierten Supabase-Plattform-Stubs `auth`-Schema/`auth.uid()`/Realtime-Publication): 8 Tabellen, 9 Policies, 0 Fehler; danach DB gedroppt. Zugehörig: `member_select_own_membership` synchronisiert, Helper mit Statusfilter + `is_active_member()` im Zielstand.
+3. **Important CI-Secrets-Strategie (User-Entscheid):** „Lokal belegen" — G45-E2E-Nachweis ausschließlich lokal mit exportierten Vars (24/24 E2E); keine Secrets im Repo; CI-Supabase + Secrets-Verdrahtung folgt in 067L. G45-Bericht damit korrekt begrenzt (Reviewer-Alternative).
+
+### Finale Gate-Ergebnisse (Nacharbeit 2)
+- `supabase test db` 27/27 · `verify:v23:baseline` Exit 0 (18/18/0) · tsc 0 · verify 001–025 · `npm test` 100/395 · build · Playwright 171 + 6 bekannte Visual-Diffs (User-Entscheid) · lint 4/0 · format 85 · diff-check sauber · Schutzbereich außerhalb 067B-Freigabe leer · Golden-SHA unverändert.
+- **G45-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067C bleibt blockiert.
