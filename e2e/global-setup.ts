@@ -2,6 +2,9 @@ import { chromium, type FullConfig } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 
+// G45 (Auftrag 067B, Step 6 — freigegebene E2E-Anpassung): Baut den
+// Auth-State per Supabase-Login statt Demo-Fill auf. Credentials ausschließlich
+// aus Umgebungsvariablen (lokale E2E-Defaults, niemals committete Secrets).
 async function globalSetup(config: FullConfig) {
   const authFile = path.resolve('playwright/.auth/user.json');
   fs.mkdirSync(path.dirname(authFile), { recursive: true });
@@ -12,43 +15,17 @@ async function globalSetup(config: FullConfig) {
 
   try {
     await page.goto('/login', { waitUntil: 'networkidle' });
-    const demoEmail = process.env.VITE_DEMO_AUTH_EMAIL || 'demo@leadpilot.io';
-    const demoPassword = process.env.VITE_DEMO_AUTH_PASSWORD || 'demo';
+    const email = process.env.E2E_AUTH_EMAIL || 'admin-a@tenant-test.local';
+    const password = process.env.E2E_AUTH_PASSWORD || 'Testpasswort1!';
 
-    await page.fill('#login-email', demoEmail);
-    await page.fill('#login-password', demoPassword);
+    await page.fill('#login-email', email);
+    await page.fill('#login-password', password);
     await page.click('button[type="submit"]');
 
     await page.waitForURL('**/dashboard');
     await page.waitForSelector('[data-testid="logout-button"]');
 
-    // Speichere Browser Storage State
     await page.context().storageState({ path: authFile });
-
-    // Ergänze robust sowohl 127.0.0.1 als auch localhost Origins
-    try {
-      const stateContent = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
-      const sessionItem = {
-        name: 'leadpilot_auth_session',
-        value: JSON.stringify({ id: 'demo-user-id', email: demoEmail }),
-      };
-
-      const origins = stateContent.origins || [];
-      const has127 = origins.some((o: { origin: string }) => o.origin.includes('127.0.0.1'));
-      const hasLocalhost = origins.some((o: { origin: string }) => o.origin.includes('localhost'));
-
-      if (!has127) {
-        origins.push({ origin: 'http://127.0.0.1:4321', localStorage: [sessionItem] });
-      }
-      if (!hasLocalhost) {
-        origins.push({ origin: 'http://localhost:4321', localStorage: [sessionItem] });
-      }
-
-      stateContent.origins = origins;
-      fs.writeFileSync(authFile, JSON.stringify(stateContent, null, 2), 'utf-8');
-    } catch {
-      // Best-effort Origin-Ergänzung
-    }
   } finally {
     await browser.close();
   }

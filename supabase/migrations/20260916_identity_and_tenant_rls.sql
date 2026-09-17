@@ -137,7 +137,14 @@ DROP POLICY IF EXISTS "Allow public read access to imported_funnel_deals" ON pub
 DROP POLICY IF EXISTS "tenant_select_companies" ON public.companies;
 CREATE POLICY "tenant_select_companies" ON public.companies
   FOR SELECT TO authenticated
-  USING (organization_id = public.current_organization_id());
+  USING (
+    organization_id = public.current_organization_id()
+    AND EXISTS (
+      SELECT 1 FROM public.organization_members AS membership
+      WHERE membership.user_id = auth.uid()
+        AND membership.organization_id = organization_id
+    )
+  );
 DROP POLICY IF EXISTS "tenant_write_companies" ON public.companies;
 CREATE POLICY "tenant_write_companies" ON public.companies
   FOR ALL TO authenticated
@@ -154,7 +161,14 @@ CREATE POLICY "tenant_write_companies" ON public.companies
 DROP POLICY IF EXISTS "tenant_select_contacts" ON public.contacts;
 CREATE POLICY "tenant_select_contacts" ON public.contacts
   FOR SELECT TO authenticated
-  USING (organization_id = public.current_organization_id());
+  USING (
+    organization_id = public.current_organization_id()
+    AND EXISTS (
+      SELECT 1 FROM public.organization_members AS membership
+      WHERE membership.user_id = auth.uid()
+        AND membership.organization_id = organization_id
+    )
+  );
 DROP POLICY IF EXISTS "tenant_write_contacts" ON public.contacts;
 CREATE POLICY "tenant_write_contacts" ON public.contacts
   FOR ALL TO authenticated
@@ -171,7 +185,14 @@ CREATE POLICY "tenant_write_contacts" ON public.contacts
 DROP POLICY IF EXISTS "tenant_select_deals" ON public.imported_funnel_deals;
 CREATE POLICY "tenant_select_deals" ON public.imported_funnel_deals
   FOR SELECT TO authenticated
-  USING (organization_id = public.current_organization_id());
+  USING (
+    organization_id = public.current_organization_id()
+    AND EXISTS (
+      SELECT 1 FROM public.organization_members AS membership
+      WHERE membership.user_id = auth.uid()
+        AND membership.organization_id = organization_id
+    )
+  );
 DROP POLICY IF EXISTS "tenant_write_deals" ON public.imported_funnel_deals;
 CREATE POLICY "tenant_write_deals" ON public.imported_funnel_deals
   FOR ALL TO authenticated
