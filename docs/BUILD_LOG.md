@@ -7547,3 +7547,21 @@ Lokale Auth-User + Org-Seed nur per Admin-API/SQL (keine Secrets im Repo); Previ
 - Keine offenen Critical- oder Important-Befunde für 067B/G45.
 - Kein Push, keine Integration, keine eingecheckten Credentials.
 - **Gate G45 ist freigegeben.**
+
+## [2026-09-17] Gate G46: Charakterisierung und Regression (Auftrag 067C, Builder-Eintrag)
+
+**Branch:** `feat/auftrag-067c-ingress` ab G45-Abschluss `6543571`. Serielle Einzelarbeit, kein Push, keine Integration.
+
+### 1. Spec-Grundlage und Entscheidungen
+Verbindlich: Master-Plan Task 3 + Design §10 (keine separate 067C-Auftragsdatei). Dokumentierte Entscheidungen: (a) `crmSeeder.ts` als harter Stub statt Delete — G45-Präzedenz (LocalAuth-Stub, freigegeben): nur so bleibt der eingefrorene PR-SEED-05-Vertrag ohne Vertragsänderung grün; RPC/Transaktion-Nachweis via wahrer Bootstrap-Verweis (engl. „transactional", nach Transkript-Korrektur K→C). (b) Status-Flip PR-INGEST-03/PR-SEED-05 → `passing` (nur Status). (c) User-Freigaben: E2E-Anpassungen bereits in 067B; Seed-UI-Kette (`LeadsPage`, `useCrmSync` + Test gelöscht, `crmRepository`-Block entfernt) und überflüssige Seeder-Tests gelöscht. (d) `deno.json` (Root-Workspace) + `deno.lock` als notwendige Test-Infra (Config-Discovery) außerhalb der Dateiliste, dokumentiert. (e) Erster Commit enthält mitgestagte Deletions aus Staging — Historie, kein Inhaltsfehler.
+
+### 2. Ingress (Steps 1–3)
+Deno 2.9.6 (brew): `verifyLeadPilotSignature.ts` (HMAC-SHA-256 timing-safe, 5-Minuten-Fenster, Nonce-Store-Interface, 256-KB-Limit, 12er-KPI-Allowlist) + 8 deno-Vertragsfälle grün (TDD-rot via fehlendem Import), lint/fmt sauber. Edge Function `live-kpi-ingest` (Verify → Rate-Limit 120/min → Nonce-Claim → Ingest-RPC, Codes 201/200/401/413/422/429, Secrets nur aus Umgebung). Migration `20260919_ingress_nonce_store.sql` mit `claim_ingress_nonce()` (Erst/ Replay/Leer verifiziert) + Rate-Zähler + rollengesicherte Grants. Repariert: PL/pgSQL-Typfehler, `deno install`-Schaden an `node_modules/.bin` (per `npm install` behoben, package.json/lock unverändert).
+n8n-Workflow (14 Nodes): Code-Guard (Timestamp/Nonce/KPI/Base) → Crypto-HMAC (Credential-Platzhalter, Secret im Store) → IF-Vergleich → Postgres-Nonce-Claim → IF-Replay → bestehender RPC-Pfad; 401-Zweige neu; README-B2 mit Operator-Anleitung. PR-INGEST-03 unverändert grün.
+
+### 3. Seeder/Header (Steps 4–5)
+`crmRepository.seedDatabase()` entkoppelt (harter Fehler); Bootstrap-Migration `20260920_demo_bootstrap.sql` (Demo-Org + 2/2/1 Bestand, idempotent, lokal verifiziert). `public/_headers` (CSP + 4 Schutzheader, ASSET-14-Teilnachweis) + `vite.config.ts`-Dev-Header (ohne CSP wegen HMR).
+
+### 4. Gates
+`deno test` 8/8 · `supabase test db` 27/27 (unverändert) · `verify:v23:baseline` Exit 0 (16/16/0, mit Env; ohne Env korrekt fail-closed) · tsc 0 · verify 001–025 · `npm test` 98/384 (7 Seeder + 1 Block + 3 Sync-Mutation entfernt) · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 (LeadsPage aus 85er-Baseline nebenbei konform = Verbesserung) · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
+- **G46-Status: BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, 067D bleibt bis zur Freigabe blockiert.
