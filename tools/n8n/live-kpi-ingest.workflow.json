@@ -6,7 +6,9 @@
         "httpMethod": "POST",
         "path": "live-kpi-ingest",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "rawBody": true
+        }
       },
       "id": "webhook-trigger",
       "name": "Webhook Ingest Trigger",
