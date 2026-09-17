@@ -34,7 +34,7 @@ Deno.test('Webhook erhält Original-Request-Bytes (Raw Body)', async () => {
   assertEquals(options['rawBody'], true);
 });
 
-Deno.test('Pass-Through reicht Binary-Bytes verlustfrei durch (Harness, 3 Varianten)', async () => {
+Deno.test('Pass-Through misst Größe und reicht Base64 weiter (Harness, 3 Varianten)', async () => {
   const workflow = await readWorkflow();
   const pass = (workflow.nodes ?? []).find((node) => (node.name ?? '').includes('Pass-Through'));
   assert(pass, 'Pass-Through-Node vorhanden');
@@ -54,9 +54,13 @@ Deno.test('Pass-Through reicht Binary-Bytes verlustfrei durch (Harness, 3 Varian
     const run = new Function('$input', 'Buffer', `${jsCode}\n`) as (
       $input: unknown,
       buffer: unknown,
-    ) => Array<{ json: { rawPayload: string } }>;
+    ) => Array<{ json: { rawBase64?: string; byteLength?: number } }>;
     const out = run($input, Buffer);
-    assertEquals(out[0]?.json?.rawPayload, original);
+    assertEquals(out[0]?.json?.byteLength, new TextEncoder().encode(original).length);
+    assertEquals(
+      Buffer.from(out[0]?.json?.rawBase64 ?? '', 'base64').toString('utf-8'),
+      original,
+    );
   }
 });
 
@@ -78,6 +82,41 @@ Deno.test('Pass-Through ohne Binary-Bytes bricht laut ab (kein Fallback)', async
     thrown = error instanceof Error ? error.message : String(error);
   }
   assert(thrown?.includes('INGEST_NO_RAW_BODY') ?? false, 'Throw mit INGEST_NO_RAW_BODY');
+});
+
+Deno.test('Oversize stoppt vor Dekodierung mit 413-Code ohne DB-Pfad (Harness)', async () => {
+  const workflow = await readWorkflow();
+  const pass = (workflow.nodes ?? []).find((node) => (node.name ?? '').includes('Pass-Through'));
+  const verify = (workflow.nodes ?? []).find((node) => node.name === 'Verify Ingress Signature');
+  assert(pass && verify, 'Pass-Through- und Verify-Node vorhanden');
+  const passCode = String((pass?.parameters as Record<string, unknown>)?.['jsCode'] ?? '');
+  const verifyCode = String((verify?.parameters as Record<string, unknown>)?.['jsCode'] ?? '');
+  const bigBody = `{"kpiId":"arr","unit":"EUR","sourceSystem":"n8n-harness","value":1,"pad":"${
+    'x'.repeat(300 * 1024)
+  }"}`;
+  const bigBase64 = Buffer.from(bigBody, 'utf-8').toString('base64');
+  const runPass = new Function('$input', 'Buffer', `${passCode}\n`) as (
+    $input: unknown,
+    buffer: unknown,
+  ) => Array<{ json: Record<string, unknown> }>;
+  const passOut = runPass(
+    { first: () => ({ json: {}, binary: { data: { data: bigBase64 } } }) },
+    Buffer,
+  )[0]?.json;
+  assertEquals(passOut?.['valid'], false);
+  assertEquals(passOut?.['code'], 'INGEST_BODY_TOO_LARGE');
+  // Verify reicht den Oversize-Befund ohne Dekodierung/Prüfung weiter.
+  const runVerify = new Function('$', '$input', `${verifyCode}\n`) as (
+    $: unknown,
+    $input: unknown,
+  ) => Array<{ json: Record<string, unknown> }>;
+  const verifyOut = runVerify(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Harness spiegelt n8n-$-Signatur; der Name ist Doku.
+    (_name: string) => ({ first: () => ({ json: { headers: {} } }) }),
+    { first: () => ({ json: passOut }) },
+  )[0]?.json;
+  assertEquals(verifyOut?.['valid'], false);
+  assertEquals(verifyOut?.['code'], 'INGEST_BODY_TOO_LARGE');
 });
 
 Deno.test('Verify-Node weist fachlich ungültige Payloads vor DB-Zugriff ab (Harness)', async () => {
@@ -102,7 +141,9 @@ Deno.test('Verify-Node weist fachlich ungültige Payloads vor DB-Zugriff ab (Har
         },
       }),
     });
-    const $input = { first: () => ({ json: { rawPayload: rawBody } }) };
+    const $input = {
+      first: () => ({ json: { rawBase64: Buffer.from(rawBody, 'utf-8').toString('base64') } }),
+    };
     const run = new Function('$', '$input', `${jsCode}\n`) as (
       $: unknown,
       $input: unknown,

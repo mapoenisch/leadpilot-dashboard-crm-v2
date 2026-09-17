@@ -21,7 +21,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// LeadPilot G46-Nacharbeit: Original-Request-Bytes aus dem Binary-Feld.\n// Der Webhook läuft mit Raw-Body-Option; n8n legt die Originalbytes als\n// Base64 in binary.data ab. Diese Bytes werden verlustfrei (Buffer, utf-8)\n// zur Prüfbasis dekodiert — niemals reserialisiert. Fehlende Bytes sind ein\n// Konfigurationsfehler und brechen laut ab (kein stiller Fallback).\nconst first = $input.first();\nconst binaryEntry = first.binary && first.binary.data;\nconst base64Body = binaryEntry && binaryEntry.data;\n// Strikter Byte-Pfad ohne Fallback: Nur Binary-Bytes werden akzeptiert.\n// Ein Rückfall auf geparste json.body würde reserialisieren und die\n// Prüfbasis verfälschen (G46-Nacharbeit).\nif (typeof base64Body !== 'string' || base64Body.length === 0) {\n  throw new Error('INGEST_NO_RAW_BODY: Webhook liefert keine Originalbytes (Raw-Body-Option prüfen).');\n}\nconst rawPayload = Buffer.from(base64Body, 'base64').toString('utf-8');\n\nreturn [{\n  json: {\n    rawPayload: rawPayload\n  }\n}];"
+        "jsCode": "// LeadPilot G46-Nacharbeit (4. Runde): Größenprüfung VOR Dekodierung.\n// Der Webhook läuft mit Raw-Body-Option; n8n legt die Originalbytes als\n// Base64 in binary.data ab. Dieser Node misst nur (Base64-Länge minus Padding,\n// exakt auf 256 KB) und reicht die kodierten Bytes weiter — Dekodierung erst\n// im Folge-Node nach Freigabe. Fehlende Bytes brechen laut ab.\nconst MAX_BODY_BYTES = 256 * 1024;\nconst first = $input.first();\nconst binaryEntry = first.binary && first.binary.data;\nconst base64Body = binaryEntry && binaryEntry.data;\nif (typeof base64Body !== 'string' || base64Body.length === 0) {\n  throw new Error('INGEST_NO_RAW_BODY: Webhook liefert keine Originalbytes (Raw-Body-Option prüfen).');\n}\nconst padding = base64Body.endsWith('==') ? 2 : base64Body.endsWith('=') ? 1 : 0;\nconst decodedBytes = Math.floor(base64Body.length * 3 / 4) - padding;\nif (decodedBytes > MAX_BODY_BYTES) {\n  return [{ json: { valid: false, code: 'INGEST_BODY_TOO_LARGE' } }];\n}\n\nreturn [{\n  json: {\n    rawBase64: base64Body,\n    byteLength: decodedBytes\n  }\n}];"
       },
       "id": "validate-prepare-node",
       "name": "Pass-Through Raw Contract Payload",
@@ -181,7 +181,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// LeadPilot G46: Verify Ingress Signature (Design §10.1).\n// Prüft Timestamp-Fenster (5 Minuten), Nonce-Format und KPI-Allowlist und\n// baut die HMAC-Basis timestamp + '.' + nonce + '.' + rawBody. Die HMAC-Signatur\n// selbst prüft der Folge-Node (HMAC Sign Base, Crypto) gegen den Header\n// X-LeadPilot-Signature. Secret niemals hier, sondern im n8n-Credential-Store.\nconst ALLOWED_KPI_IDS = ['arr','mrr','pipeline_coverage','arr_direct','arr_partner','arr_outbound','arr_other','pipeline_leads','pipeline_mql','pipeline_sql','pipeline_offers','pipeline_won'];\nconst WINDOW_MS = 5 * 60 * 1000;\n\nconst trigger = $('Webhook Ingest Trigger').first().json;\nconst headers = trigger.headers || {};\nconst timestamp = String(headers['x-leadpilot-timestamp'] || '');\nconst nonce = String(headers['x-leadpilot-nonce'] || '');\nconst signature = String(headers['x-leadpilot-signature'] || '');\nconst rawPayload = $input.first().json.rawPayload;\n\nfunction reject(code) {\n  return [{ json: { valid: false, code, signatureComputed: null } }];\n}\n\nconst atMs = Date.parse(timestamp);\nif (!timestamp || !nonce || !signature) return reject('INGEST_SIGNATURE_MISSING');\nif (!Number.isFinite(atMs)) return reject('INGEST_TIMESTAMP_INVALID');\nif (Math.abs(Date.now() - atMs) > WINDOW_MS) return reject('INGEST_TIMESTAMP_EXPIRED');\nif (nonce.length > 128) return reject('INGEST_REPLAY_DETECTED');\n\nlet kpiId = null;\nlet parsed = null;\ntry {\n  parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;\n  kpiId = parsed && parsed.kpiId;\n} catch (e) { return reject('INGEST_KPI_UNKNOWN'); }\nif (!ALLOWED_KPI_IDS.includes(kpiId)) return reject('INGEST_KPI_UNKNOWN');\n// Fachvalidierung VOR jedem privilegierten DB-Zugriff (Design §10.1):\n// Einheit passend, Quelle im Identifier-Format, Wert endlich und plausibel.\nconst KPI_UNITS = {arr:'EUR',mrr:'EUR',pipeline_coverage:'x',arr_direct:'EUR',arr_partner:'EUR',arr_outbound:'EUR',arr_other:'EUR',pipeline_leads:'count',pipeline_mql:'count',pipeline_sql:'count',pipeline_offers:'count',pipeline_won:'count'};\nconst unit = parsed && parsed.unit;\nif (typeof unit !== 'string' || unit !== KPI_UNITS[kpiId]) return reject('INGEST_KPI_UNIT_MISMATCH');\nconst sourceSystem = parsed && parsed.sourceSystem;\nif (typeof sourceSystem !== 'string' || !/^[a-zA-Z0-9._-]{1,128}$/.test(sourceSystem)) return reject('INGEST_KPI_SOURCE_INVALID');\nconst value = parsed && parsed.value;\nif (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1e12) return reject('INGEST_KPI_VALUE_INVALID');\n\nreturn [{ json: {\n  valid: true,\n  timestamp,\n  nonce,\n  signature,\n  rawBody: typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload),\n  signatureBase: timestamp + '.' + nonce + '.' + (typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload)),\n  kpiId,\n} }];"
+        "jsCode": "// LeadPilot G46: Verify Ingress Signature (Design §10.1).\n// Prüft Timestamp-Fenster (5 Minuten), Nonce-Format und KPI-Allowlist und\n// baut die HMAC-Basis timestamp + '.' + nonce + '.' + rawBody. Die HMAC-Signatur\n// selbst prüft der Folge-Node (HMAC Sign Base, Crypto) gegen den Header\n// X-LeadPilot-Signature. Secret niemals hier, sondern im n8n-Credential-Store.\nconst ALLOWED_KPI_IDS = ['arr','mrr','pipeline_coverage','arr_direct','arr_partner','arr_outbound','arr_other','pipeline_leads','pipeline_mql','pipeline_sql','pipeline_offers','pipeline_won'];\nconst WINDOW_MS = 5 * 60 * 1000;\n\nconst trigger = $('Webhook Ingest Trigger').first().json;\nconst headers = trigger.headers || {};\nconst timestamp = String(headers['x-leadpilot-timestamp'] || '');\nconst nonce = String(headers['x-leadpilot-nonce'] || '');\nconst signature = String(headers['x-leadpilot-signature'] || '');\n\n\n// G46-Nacharbeit (4. Runde): Dekodierung erst nach Größenfreigabe des\n// Pass-Through (kein unbegrenztes Decode im Workflow).\nconst MAX_BODY_BYTES = 256 * 1024;\nconst incoming = $input.first().json;\nif (incoming && incoming.valid === false) {\n  return [{ json: incoming }];\n}\nconst rawBase64 = incoming && incoming.rawBase64;\nif (typeof rawBase64 !== 'string' || rawBase64.length === 0) {\n  return reject('INGEST_SIGNATURE_MISSING');\n}\nconst rawPayload = Buffer.from(rawBase64, 'base64').toString('utf-8');\nconst decodedBytes = Buffer.byteLength(rawPayload, 'utf-8');\nif (decodedBytes > MAX_BODY_BYTES) {\n  return reject('INGEST_BODY_TOO_LARGE');\n}\n\nfunction reject(code) {\n  return [{ json: { valid: false, code, signatureComputed: null } }];\n}\n\nconst atMs = Date.parse(timestamp);\nif (!timestamp || !nonce || !signature) return reject('INGEST_SIGNATURE_MISSING');\nif (!Number.isFinite(atMs)) return reject('INGEST_TIMESTAMP_INVALID');\nif (Math.abs(Date.now() - atMs) > WINDOW_MS) return reject('INGEST_TIMESTAMP_EXPIRED');\nif (nonce.length > 128) return reject('INGEST_REPLAY_DETECTED');\n\nlet kpiId = null;\nlet parsed = null;\ntry {\n  parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;\n  kpiId = parsed && parsed.kpiId;\n} catch (e) { return reject('INGEST_KPI_UNKNOWN'); }\nif (!ALLOWED_KPI_IDS.includes(kpiId)) return reject('INGEST_KPI_UNKNOWN');\n// Fachvalidierung VOR jedem privilegierten DB-Zugriff (Design §10.1):\n// Einheit passend, Quelle im Identifier-Format, Wert endlich und plausibel.\nconst KPI_UNITS = {arr:'EUR',mrr:'EUR',pipeline_coverage:'x',arr_direct:'EUR',arr_partner:'EUR',arr_outbound:'EUR',arr_other:'EUR',pipeline_leads:'count',pipeline_mql:'count',pipeline_sql:'count',pipeline_offers:'count',pipeline_won:'count'};\nconst unit = parsed && parsed.unit;\nif (typeof unit !== 'string' || unit !== KPI_UNITS[kpiId]) return reject('INGEST_KPI_UNIT_MISMATCH');\nconst sourceSystem = parsed && parsed.sourceSystem;\nif (typeof sourceSystem !== 'string' || !/^[a-zA-Z0-9._-]{1,128}$/.test(sourceSystem)) return reject('INGEST_KPI_SOURCE_INVALID');\nconst value = parsed && parsed.value;\nif (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1e12) return reject('INGEST_KPI_VALUE_INVALID');\n\nreturn [{ json: {\n  valid: true,\n  timestamp,\n  nonce,\n  signature,\n  rawBody: typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload),\n  signatureBase: timestamp + '.' + nonce + '.' + (typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload)),\n  kpiId,\n} }];"
       },
       "id": "verify-signature-node",
       "name": "Verify Ingress Signature",
@@ -472,6 +472,54 @@
         1360,
         620
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if-size-reject-cond",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "INGEST_BODY_TOO_LARGE",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true
+      },
+      "id": "if-size-reject-node",
+      "name": "Size Reject?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: $json.code } }}",
+        "options": {
+          "responseCode": 413
+        }
+      },
+      "id": "response-payload-too-large",
+      "name": "Respond Payload Too Large",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        700
+      ]
     }
   ],
   "connections": {
@@ -632,6 +680,24 @@
         [
           {
             "node": "Respond Invalid Payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Size Reject?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Size Reject?": {
+      "main": [
+        [
+          {
+            "node": "Respond Payload Too Large",
             "type": "main",
             "index": 0
           }
