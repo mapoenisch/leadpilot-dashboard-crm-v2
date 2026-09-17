@@ -7565,3 +7565,43 @@ n8n-Workflow (14 Nodes): Code-Guard (Timestamp/Nonce/KPI/Base) → Crypto-HMAC (
 ### 4. Gates
 `deno test` 8/8 · `supabase test db` 27/27 (unverändert) · `verify:v23:baseline` Exit 0 (16/16/0, mit Env; ohne Env korrekt fail-closed) · tsc 0 · verify 001–025 · `npm test` 98/384 (7 Seeder + 1 Block + 3 Sync-Mutation entfernt) · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 (LeadsPage aus 85er-Baseline nebenbei konform = Verbesserung) · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
 - **G46-Status: BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, 067D bleibt bis zur Freigabe blockiert.
+
+## [2026-09-17] Gate G46: Unabhängiges Review – Nacharbeit erforderlich
+
+**Review-Baseline:** `23330e3` auf `feat/auftrag-067c-ingress`
+**Ergebnis:** **NICHT FREIGEGEBEN** – 067D bleibt blockiert; kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise
+
+- Die isolierten Deno-Vertragsfälle für den Helper sind **8/8 grün**. `npx tsc --noEmit`, `npm run verify` (001–025) und `npm run build` sind ebenfalls grün. Der Schutzbereich ist leer und `git diff --check` sauber.
+- Der Browser-UI-Trigger und die direkte Repository-Delegation sind entfernt; Deployment- und lokale Dev-Header sind vorhanden.
+
+### Blockierende Review-Befunde
+
+1. **Critical – n8n prüft nicht die signierten Originalbytes:** Der Webhook hat kein Raw-Body-Handling (`options: {}`); der Pass-Through übernimmt das bereits geparste `item.body` und bildet mit `JSON.stringify` einen neuen Text (`tools/n8n/live-kpi-ingest.workflow.json:9,22`). Die HMAC-Basis wird damit für formatiertes oder anders serialisiertes, aber korrekt signiertes JSON verändert. Das verletzt den Vertrag `timestamp + '.' + nonce + '.' + rawBody`; gültige Sender-Requests können abgewiesen werden. Original-Bytes müssen am Webhook erhalten und genau diese Bytes vor jedem DB-Node signiert werden; einen Whitespace-/Key-Order-Gegenfall als Workflow-/Ingress-Test ergänzen.
+2. **Critical – Nonce- und Rate-RPCs bleiben öffentlich ausführbar:** `claim_ingress_nonce` und `ingress_nonce_count_last_minute` sind `SECURITY DEFINER` (`supabase/migrations/20260919_ingress_nonce_store.sql:21–59`), aber die Migration enthält keinen `REVOKE EXECUTE … FROM PUBLIC, anon, authenticated`; die bedingten Grants an `n8n_ingest` ersetzen den öffentlichen Standard-Grant nicht. Dadurch kann jeder API-Rolle Nonces vorab beanspruchen und den Ingress per Replay-/Rate-DoS stören. Beide Funktionen müssen zunächst für PUBLIC/anon/authenticated gesperrt und ausschließlich der benötigten Ingest-Identität erteilt werden; die Negativ-Grant-Prüfung gehört in die SQL-Tests.
+3. **Important – Rate- und Body-Limit sind im produktiven Edge-Pfad nicht belastbar:** Der Edge-Handler liest den kompletten Request mit `await req.text()` vor jeder Größenprüfung (`supabase/functions/live-kpi-ingest/index.ts:42`); ein großer/chunked Body kann damit Speicher belegen. Außerdem sind Count (`68–75`) und Nonce-Claim (`77–85`) getrennte RPC-Aufrufe, so dass parallele Requests die 120/min-Grenze zwischen Messung und Claim überschreiten können. Größenprüfung vor dem vollständigen Lesen (Content-Length plus begrenztes Streaming) und atomarer Rate-Claim in einem Serverpfad implementieren und konkurrenz-/Oversize-Gegenfälle testen.
+4. **Important – die ausdrücklich entschiedene Seeder-Löschung ist nicht umgesetzt:** Der Plan fordert `Delete: src/services/import/crmSeeder.ts`; nach der Freigabe „Überflüssiges löschen“ sollte die Seeder-Datei vollständig entfernt werden. Sie verbleibt jedoch als `SeedResult`-/`seedSupabaseDatabase()`-Stub (`src/services/import/crmSeeder.ts:1–24`). Das ist keine freigegebene G46-Ausnahme. Datei und verbliebene historische Aufrufer/Tests entfernen statt einen neuen Stub-Vertrag einzuführen.
+5. **Important – das behauptete pgTAP-Gate ist aktuell rot:** Die Bootstrap-Migration legt einen Demo-Deal an (`20260920_demo_bootstrap.sql:28–29`), doch der Test-Setup löscht nur Contacts und Companies, dann die Organisation (`supabase/tests/tenant_isolation.sql:15–18`). Mein unabhängiger `supabase test db`-Lauf bricht daher mit `deals_organization_id_fkey` ab und führt **0/27** Tests aus. Die Cleanup-Reihenfolge muss Deals vor der Demo-Organisation löschen; danach 27/27 erneut belegen.
+
+### Erforderliche Nacharbeit
+
+- Original-Raw-Body im n8n-Pfad beibehalten und exakt diesen HMAC-prüfen; öffentliche Security-Definer-RPCs schließen.
+- Rate-/Body-Limit im produktiven Pfad atomar und ressourcenschonend durchsetzen, nicht nur im Helper.
+- Browser-Seeder gemäß freigegebener Löschung vollständig entfernen.
+- pgTAP-Setup reparieren und alle G46-Gates erneut fahren. Anschließend erneut unabhängiges Review anfordern; 067D bleibt bis dahin blockiert.
+
+## [2026-09-17] Gate G46: Nacharbeit zu 5 Review-Befunden (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `23330e3` → NICHT FREIGEGEBEN (2 Critical + 3 Important). Umgebung: Node v22.11.0, Deno 2.9.6, lokale Supabase CLI 2.117.0.
+
+### Behebung je Befund
+1. **Critical Raw-Body:** Webhook-Node `options.rawBody: true` (Doku-verifiziert) — Originalbytes bleiben erhalten; Pass-Through reicht Strings unverändert durch. Struktur-Gegenfälle als deno-Test (4/4, `--allow-read`): Raw-Body-Option, kein Reserialisieren, 3 Whitespace-/Key-Order-Varianten mit je eigener Signatur ok, Guard-Kette geschlossen.
+2. **Critical RPC-Lockdown:** Migration `20260921_ingress_rpc_lockdown.sql` — REVOKE EXECUTE für PUBLIC/anon/authenticated auf allen 3 Ingress-Funktionen + bedingte n8n_grants. Neue `ingress_nonce.sql` (9 Tests): Claim/Replay/Leer, atomarer Slot (ok/replay/rate_limited), 3× 42501-Deny als anon. pgTAP gesamt 36/36. Nebenbei pgTAP-Semantik geklärt (3. throws_ok-Arg ist errmsg-Exaktmatch; Code-Assertion via 2-arg + Kommentar).
+3. **Important atomar/ressourcenschonend:** `ingressHandler.ts` (injizierbar) — Content-Length vor Lesen, Streaming-Abbruch ohne Länge, genau ein Slot-RPC (kein Count+Claim-TOCTOU, 429 aus Transaktion mit Nonce-Rücknahme). 5 Handler-Gegenfälle grün (201+1 Slot-Call, 413 ohne DB-Kontakt, 5-parallele Nonce → 1×201/4×401, voller Bucket → 429, ohne Secrets → 500). `deno check` beider Handler-Dateien grün (nach einmaligem `deno install` + `npm install`-Reparatur, package.json/lock unverändert). Gesamt deno 17/17.
+4. **Important Seeder-Delete (User-Entscheid „Delete + Nachweis"):** `crmSeeder.ts` gelöscht; SEED-Vertrag minimal auf Nicht-Existenz + Bootstrap-Transaktionalität/Idempotenz umgestellt (einzige Vertragsänderung, freigegeben); PR-SEED-05 unverändert grün; Register nachgezogen.
+5. **Important pgTAP-Cleanup:** Deals vor Orgs/Companies gelöscht (FK-Reihenfolge) — 27/27 + 9/9 = 36/36 belegt.
+
+### Finale Gate-Ergebnisse (Nacharbeit)
+- `deno test` 17/17 · `supabase test db` 36/36 · `verify:v23:baseline` Exit 0 (16/16/0, mit Env) · tsc 0 · verify 001–025 · `npm test` 98/384 · build · Playwright 171 + 6 bekannte Visual-Diffs · lint 4/0 · format 84 (Verbesserung, keine Verschlechterung) · diff-check sauber · Schutzbereich außerhalb Freigabe leer · Golden-SHA unverändert.
+- **G46-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067D bleibt blockiert.
