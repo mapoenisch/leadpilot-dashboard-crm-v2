@@ -7972,3 +7972,23 @@ Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema 
 
 ### Freigabestatus und Abschlusscommit
 - Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067f-persistenz`.
+
+## [2026-09-17] Gate G49: Nacharbeit zum Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `41eac26` → NICHT FREIGEGEBEN (1 P0 Sicherheitsloch, 2 P1). Umgebung: Node v22.11.0, Supabase CLI 2.117.0, Docker lokal.
+
+### Behebung je Befund
+1. **P0 mandantenfremdes Überschreiben (Migration 20260924):** Composite-UNIQUE `(id, organization_id)` + Composite-FKs (Version→Szenario, Run→Szenario/Version) plus serverseitige Ownership-Checks vor jedem Upsert; Kinder-DELETEs zusätzlich mandantengebunden. Neuer pgTAP-Gegenfall: Org-B-Mitglied mit eigener Org-ID auf bestehende A-Ressourcen schlägt vollständig fehl (Counts/Szenario unverändert, Angreifer-Org leer) — 27/28 Tests.
+2. **P1 Re-Run/Reproduktion ohne Persistenz:** Store führt `activeOrganizationId` (gesetzt bei Hydrierung); `reRun`/`reproduce` persistieren genau dann auf dem Server (`reproduce` mit neuem `persistToServer`-Flag, Org aus Manifest). Kein UI-Eingriff nötig (Slice-Actions lesen die gespeicherte Org). E2E deckt alle drei Wege mit Reload ab.
+3. **P1 Hydrierung additiv:** `loadScenarioWorkspace` lädt erst, setzt dann zurück und füllt (Fehler → alter Stand bleibt); Slice ersetzt zusätzlich die aktive Auswahl mandantenspezifisch. Zwei Wechsel-Gegenfälle (Ersetzung + Fehler-Isolation) im neuen `workspaceHydration`-Test.
+4. **E2E-Fund (kein Befund, echte Lücke):** Reproduktion nach Reload brach mit UNKNOWN_SOURCE ab (generierte Baseline nur im Speicher). `reproduce()` rekonstruiert sie aus `manifest.dataSourceId` unter demselben Namen — Identität beweist der erwartete Hash. Service-Reload-Test ergänzt.
+
+### Finale Gate-Ergebnisse (Nacharbeit G49)
+- `supabase test db`: 64/64 grün (28 Persistenz + 36 Bestand). `npm test`: 105 Dateien / 422 Tests grün. `verify` 001–025 grün. tsc 0. Build grün (2×: lokal-env für E2E, Standard-env danach neu).
+- `npx playwright test e2e/persistence-multisession.spec.ts` (lokal, Seed-User): grün — Run, Re-Run und Reproduktion je mit Reload; alle drei IDs zusätzlich im zweiten Browser; Server-Kontrolle: 5 COMPLETED-Runs + 255 Zeitreihenpunkte in der E2E-Org.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade (`src/context`, `src/features/resources`, Engine/Regeln) leer.
+
+### Bekannte Grenze (dokumentiert)
+- Events/Snapshots liegen durabel in Supabase (pgTAP + RPC), hydrated werden Runs inkl. Zeitreihen (Aggregation/Charts); Event-Streams und Snapshot-Browser bleiben Live-Konstrukte ohne Repo-Heimat — Nachladung folgt in späterem Gate.
+- E2E-Hinweis: fachliches 10-Runs-Limit je Szenario — Multisession-Spec bewusst als Ein-Fluss-Test (3 Runs); lokale E2E-Zeilen nur in Docker-Volumes.
+- **G49-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067G bleibt blockiert.

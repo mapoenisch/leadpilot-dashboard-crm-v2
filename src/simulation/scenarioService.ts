@@ -526,7 +526,11 @@ export class ScenarioService {
    * Organisations-, Schema- und Modellhash aus dem Manifest — jede
    * Abweichung bricht fail-closed ab statt still anders zu rechnen.
    */
-  public async reproduce(existingRunId: string, targetTicks = 50): Promise<RunExecutionResult> {
+  public async reproduce(
+    existingRunId: string,
+    targetTicks = 50,
+    persistToServer = false,
+  ): Promise<RunExecutionResult> {
     const existingRun = this.repo.getRun(existingRunId);
     if (!existingRun) {
       throw new ScenarioError('NOT_FOUND', `Ergebnislauf "${existingRunId}" wurde nicht gefunden.`);
@@ -545,6 +549,23 @@ export class ScenarioService {
         `Schemaversion "${existingRun.manifest.schemaVersion}" wird für Reproduktion nicht unterstützt.`,
       );
     }
+    // 067F / G49 (Nacharbeit): Nach Reload / in zweiter Sitzung ist die
+    // generierte Baseline nicht mehr im Speicher. Rekonstruktion aus der im
+    // Manifest verzeichneten Quelle unter demselben Versionsnamen — die
+    // Identität beweist der erwartete Baseline-Hash im folgenden Lauf
+    // (Manipulation bricht mit BASELINE_HASH_MISMATCH ab).
+    if (
+      !BaselineSnapshotService.has(existingRun.manifest.baselineVersion) &&
+      existingRun.manifest.dataSourceId
+    ) {
+      await BaselineSnapshotService.capture(
+        existingRun.manifest.dataSourceId,
+        existingRun.manifest.baselineVersion,
+        BASELINE_PERIOD_START,
+        systemContext.now(),
+        { organizationId: existingRun.manifest.organizationId },
+      );
+    }
     return this.runScenarioVersion(scenarioVersionId, seed, targetTicks, {
       simulationStartDate: existingRun.manifest.simulationStartDate,
       baselineVersion: existingRun.manifest.baselineVersion,
@@ -552,17 +573,21 @@ export class ScenarioService {
       dataSourceId: existingRun.manifest.dataSourceId,
       organizationId: existingRun.manifest.organizationId,
       expectedBaselineHash: existingRun.manifest.baselineHash,
+      persistToServer,
       measures: existingRun.manifest.measures ? [...existingRun.manifest.measures] : undefined,
     });
   }
 
   /**
    * 067F / G49 — lädt Szenarien, Versionen und Runs genau eines Mandanten vom
-   * Server und hydriert das In-Memory-Repository (Reload / zweite Sitzung).
+   * Server und ERSETZT den In-Memory-Workspace atomar (Nacharbeit P1:
+   * additiv würde beim Organisationswechsel fremde Daten leaken). Ablauf:
+   * erst laden (Fehler → alter Stand bleibt), dann zurücksetzen und füllen.
    * Nur öffentliche Repository-APIs; kein Backend schreibt am Store vorbei.
    */
   public async loadScenarioWorkspace(organizationId: string): Promise<ScenarioWorkspace> {
     const workspace = await loadWorkspaceFromServer(organizationId);
+    this.repo.resetToDefaults();
     for (const scenario of workspace.scenarios) {
       this.repo.saveScenario(scenario);
     }

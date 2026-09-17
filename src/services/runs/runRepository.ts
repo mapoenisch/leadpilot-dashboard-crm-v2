@@ -24,13 +24,21 @@ export async function saveRunBundle(
   client: SupabaseLike,
   bundle: RunBundlePayload,
 ): Promise<string> {
+  // Vollobjekt-Konvention (Migration 20260925): Events tragen das komplette
+  // Event als Payload, Zeitreihen den kompletten Punkt als `metrics` — die
+  // Hydrierung stellt Runs damit inklusive Charts verlustfrei wieder her.
   const result = await client.rpc('persist_completed_run', {
     p_organization_id: bundle.organizationId,
     p_scenario: bundle.scenario,
     p_version: bundle.version,
     p_run: bundle.run,
-    p_events: bundle.events,
-    p_timeseries: bundle.timeSeries,
+    p_events: bundle.events.map((event) => ({
+      tick: event.tick,
+      eventType: event.type,
+      title: event.title,
+      payload: event,
+    })),
+    p_timeseries: bundle.timeSeries.map((point) => ({ tick: point.tick, metrics: point })),
     p_snapshots: bundle.snapshots,
   });
   const runId = resultData<string | null>(result, 'persist_completed_run');
@@ -118,6 +126,36 @@ export function mapRunRow(row: RunRow): SimulationRun {
   };
 }
 
+interface TimeseriesRow {
+  run_id?: string;
+  tick?: number;
+  metrics?: unknown;
+}
+
+/** Stellt einen Zeitreihenpunkt aus der Vollobjekt-Konvention wieder her. */
+export function mapTimeseriesPoint(row: TimeseriesRow): TimeSeriesPoint {
+  const metrics = row.metrics as Record<string, unknown> | null | undefined;
+  if (
+    metrics &&
+    typeof metrics === 'object' &&
+    typeof (metrics as { tick?: unknown }).tick === 'number' &&
+    typeof (metrics as { metrics?: unknown }).metrics === 'object'
+  ) {
+    return metrics as unknown as TimeSeriesPoint;
+  }
+  return {
+    tick: row.tick ?? 0,
+    dayIndex: row.tick ?? 0,
+    simulatedDate: '',
+    metrics: (metrics as TimeSeriesPoint['metrics']) ?? {
+      arr: 0,
+      mrr: 0,
+      customers: 0,
+      wonDeals: 0,
+    },
+  };
+}
+
 async function selectByOrg<T>(
   client: SupabaseLike,
   table: string,
@@ -137,14 +175,28 @@ export async function loadWorkspaceRows(
   client: SupabaseLike,
   organizationId: string,
 ): Promise<WorkspaceRows> {
-  const [scenarioRows, versionRows, runRows] = await Promise.all([
+  const [scenarioRows, versionRows, runRows, timeseriesRows] = await Promise.all([
     selectByOrg<ScenarioRow>(client, 'simulation_scenarios', organizationId),
     selectByOrg<VersionRow>(client, 'simulation_scenario_versions', organizationId),
     selectByOrg<RunRow>(client, 'simulation_runs', organizationId),
+    selectByOrg<TimeseriesRow>(client, 'simulation_timeseries', organizationId),
   ]);
+  // Zeitreihen gehören zum Run (Aggregation/Charts nach Reload intakt).
+  const pointsByRun = new Map<string, TimeSeriesPoint[]>();
+  for (const row of timeseriesRows) {
+    if (!row.run_id) continue;
+    const list = pointsByRun.get(row.run_id) ?? [];
+    list.push(mapTimeseriesPoint(row));
+    pointsByRun.set(row.run_id, list);
+  }
+  const runs = runRows.map((row) => {
+    const run = mapRunRow(row);
+    const points = (pointsByRun.get(run.runId) ?? []).sort((a, b) => a.tick - b.tick);
+    return points.length > 0 ? { ...run, timeSeries: points } : run;
+  });
   return {
     scenarios: scenarioRows.map(mapScenarioRow),
     versions: versionRows.map(mapVersionRow),
-    runs: runRows.map(mapRunRow),
+    runs,
   };
 }

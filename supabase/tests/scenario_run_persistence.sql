@@ -7,7 +7,7 @@
 
 BEGIN;
 
-SELECT plan(22);
+SELECT plan(28);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.simulation_snapshots;
@@ -180,6 +180,65 @@ SELECT is(
   (SELECT rng_state FROM public.simulation_runs WHERE run_id = 'run-pa-bigseed'),
   1527526101518::bigint,
   'Großer rng_state steht verlustfrei'
+);
+
+-- ----------------- 23..27: Angriff mit eigener Org-ID auf fremde IDs --
+SELECT lives_ok(
+  $$SELECT public.persist_completed_run(
+    'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    '{"id":"scen-px","name":"Szenario PX Original","status":"ACTIVE","currentVersionId":"ver-px","isProtected":false}'::jsonb,
+    '{"id":"ver-px","scenarioId":"scen-px","versionNumber":1,"parameters":{}}'::jsonb,
+    '{"runId":"run-px","seed":9,"status":"COMPLETED","manifest":{},"correlationId":"corr-px"}'::jsonb,
+    '[{"tick":0,"eventType":"NOTE","title":"Original"}]'::jsonb,
+    '[{"tick":0,"metrics":{}}]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  'Org PA besitzt scen-px/ver-px/run-px'
+);
+
+-- Als Admin von Org PB einloggen und mit EIGENER Org-ID aber FREMDEN
+-- Ressourcen-IDs angreifen (P0-Angriffspfad).
+SELECT set_config('request.jwt.claims', '{"sub":"73333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+
+SELECT throws_ok(
+  $$SELECT public.persist_completed_run(
+    'dddddddd-dddd-dddd-dddd-dddddddddddd',
+    '{"id":"scen-px","name":"Gekapert","status":"ACTIVE","currentVersionId":"ver-px","isProtected":false}'::jsonb,
+    '{"id":"ver-px","scenarioId":"scen-px","versionNumber":1,"parameters":{}}'::jsonb,
+    '{"runId":"run-px","seed":9,"status":"COMPLETED","manifest":{},"correlationId":"corr-px"}'::jsonb,
+    '[{"tick":0,"eventType":"GEKAPERT","title":"Angriff"}]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  NULL,
+  'Angriff mit eigener Org-ID auf fremde IDs schlägt vollständig fehl'
+);
+
+SELECT set_config('request.jwt.claims', '{"sub":"71111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+
+SELECT is(
+  (SELECT name FROM public.simulation_scenarios WHERE id = 'scen-px'),
+  'Szenario PX Original',
+  'Angriff überschreibt kein fremdes Szenario'
+);
+
+SELECT is(
+  (SELECT count(*) FROM public.simulation_events WHERE run_id = 'run-px'),
+  1::bigint,
+  'Angriff löscht/ersetzt keine fremden Events'
+);
+
+SELECT is(
+  (SELECT count(*) FROM public.simulation_runs WHERE organization_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd'),
+  0::bigint,
+  'Angreifer-Org besitzt danach keine Runs'
+);
+
+-- ----------------------------------- 28: Vollobjekt-Payload ohne Verlust --
+SELECT is(
+  (SELECT payload ->> 'title' FROM public.simulation_events WHERE run_id = 'run-px'),
+  'Original',
+  'Event ohne Payload-Schlüssel landet verlustfrei als Gesamtobjekt'
 );
 
 SELECT * FROM finish();

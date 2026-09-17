@@ -112,6 +112,21 @@ describe('067E G48 — Baseline-Verdrahtung und Hash-Prüfung', () => {
     expect(reproduced.run.finalMetrics).toEqual(good.run.finalMetrics);
   }, 60_000);
 
+  it('Reproduktion gelingt nach Speicher-Verlust (Reload) per Rekonstruktion', async () => {
+    setup();
+    const service = ScenarioService.getInstance();
+    const { version } = service.createScenario('G49-Reload', 'v23-g49-reload');
+    const good = await service.runScenarioVersion(version.id, 777001, 5, {
+      dataSourceId: 'simulated-crm',
+    });
+    // Reload-Simulation: eingefrorene Baselines vergessen, Repository bleibt.
+    BaselineSnapshotService.clear();
+    expect(BaselineSnapshotService.has(good.run.manifest.baselineVersion)).toBe(false);
+    const reproduced = await service.reproduce(good.run.runId, 5);
+    expect(reproduced.run.finalMetrics).toEqual(good.run.finalMetrics);
+    expect(reproduced.run.manifest.baselineHash).toBe(good.run.manifest.baselineHash);
+  }, 60_000);
+
   it('fremder Mandant bricht mit ORG_MISMATCH ab', async () => {
     setup();
     await BaselineSnapshotService.capture(

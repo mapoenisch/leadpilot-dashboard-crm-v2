@@ -1,9 +1,12 @@
 import { test, expect, type Page, type Browser } from '@playwright/test';
 
-// 067F / G49 (Step 5): Multisession-Persistenz. Ein abgeschlossener Run ist
-// nach Reload und in einem zweiten berechtigten Browser identisch vorhanden
-// (Server als Quelle, kein In-Memory-Verlust). Credentials ausschließlich aus
-// der Umgebung (Muster wie tenant-isolation, keine Fallbacks im Repo).
+// 067F / G49 (Step 5 + Nacharbeit P1): Multisession-Persistenz. Abgeschlossene
+// Runs sind nach Reload und in einem zweiten berechtigten Browser identisch
+// vorhanden (Server als Quelle, kein In-Memory-Verlust). Ein einziger Fluss
+// deckt alle drei Wege ab (Run, Re-Run, Reproduktion) und bleibt damit
+// deutlich unter dem fachlichen Limit von 10 Runs je Szenario.
+// Credentials ausschließlich aus der Umgebung (Muster wie tenant-isolation,
+// keine Fallbacks im Repo).
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -32,38 +35,74 @@ async function readRunIds(page: Page): Promise<string[]> {
   return page.locator('table td.font-mono').allTextContents();
 }
 
+async function openRunModal(page: Page): Promise<void> {
+  await page.goto('/crm/live-simulation');
+  await page.getByRole('button', { name: 'Run / Re-Run' }).click();
+  await expect(page.getByText('SimulationRun Steuerung')).toBeVisible();
+}
+
+async function waitRunDone(page: Page): Promise<void> {
+  // Modal schließt nach Abschluss; großzügiges Timeout für 50 Ticks.
+  await expect(page.getByText('SimulationRun Steuerung')).toBeHidden({ timeout: 120_000 });
+}
+
+function newestRunId(before: string[], after: string[]): string {
+  const fresh = after.filter((id) => !before.includes(id));
+  expect(fresh.length, 'genau ein neuer Run').toBeGreaterThan(0);
+  return fresh[fresh.length - 1];
+}
+
 test.describe('Persistenz über Sitzungen (Gate G49)', () => {
-  test('Run übersteht Reload und zweiten Browser', async ({ page, browser }) => {
+  test('Run, Re-Run und Reproduktion überstehen Reload und zweiten Browser', async ({
+    page,
+    browser,
+  }) => {
     const email = requireEnv('E2E_AUTH_EMAIL');
     const password = requireEnv('E2E_AUTH_PASSWORD');
     await loginAs(page, email, password);
+    const known: string[] = await readRunIds(page);
 
-    const before = await readRunIds(page);
-
-    // Neuen Run über die UI starten (persistiert mandantengebunden).
-    await page.goto('/crm/live-simulation');
-    await page.getByRole('button', { name: 'Run / Re-Run' }).click();
+    // Weg 1: Run.
+    await openRunModal(page);
     await page.getByRole('button', { name: 'Neuen Run Starten' }).click();
-    // Modal schließt nach Abschluss; großzügiges Timeout für 50 Ticks.
-    await expect(page.getByText('SimulationRun Steuerung')).toBeHidden({ timeout: 120_000 });
+    await waitRunDone(page);
+    const runId = newestRunId(known, await readRunIds(page));
+    known.push(runId);
+    await page.reload();
+    expect(await readRunIds(page)).toContain(runId);
 
-    const after = await readRunIds(page);
-    const fresh = after.filter((id) => !before.includes(id));
-    expect(fresh.length, 'genau ein neuer Run').toBeGreaterThan(0);
-    const freshRunId = fresh[fresh.length - 1];
+    // Weg 2: Re-Run.
+    await openRunModal(page);
+    await page.getByRole('button', { name: 'Re-Run Ausführen' }).click();
+    await waitRunDone(page);
+    const reRunId = newestRunId(known, await readRunIds(page));
+    known.push(reRunId);
+    await page.reload();
+    expect(await readRunIds(page)).toContain(reRunId);
 
-    // 1. Reload: derselbe Stand.
+    // Weg 3: Reproduktion.
+    await openRunModal(page);
+    await page.getByRole('combobox').click();
+    await page.getByRole('option', { name: new RegExp(reRunId) }).click();
+    await page.getByRole('button', { name: 'Reproduzieren' }).click();
+    await waitRunDone(page);
+    const reproducedId = newestRunId(known, await readRunIds(page));
+
     await page.reload();
     const reloaded = await readRunIds(page);
-    expect(reloaded).toContain(freshRunId);
+    expect(reloaded).toContain(runId);
+    expect(reloaded).toContain(reRunId);
+    expect(reloaded).toContain(reproducedId);
 
-    // 2. Zweiter berechtigter Browser (eigener Kontext, derselbe Benutzer).
+    // Zweiter berechtigter Browser (eigener Kontext, derselbe Benutzer).
     const context2 = await (browser as Browser).newContext();
     try {
       const page2 = await context2.newPage();
       await loginAs(page2, email, password);
       const other = await readRunIds(page2);
-      expect(other).toContain(freshRunId);
+      expect(other).toContain(runId);
+      expect(other).toContain(reRunId);
+      expect(other).toContain(reproducedId);
       await page2.close();
     } finally {
       await context2.close();

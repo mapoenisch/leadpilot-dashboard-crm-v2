@@ -125,7 +125,12 @@ describe('067F G49 runPersistenceService', () => {
     expect(args.p_organization_id).toBe('org-a');
     expect(args.p_run).toMatchObject({ runId: 'run-1' });
     expect(args.p_events).toHaveLength(1);
-    expect(args.p_timeseries).toHaveLength(1);
+    // Vollobjekt-Konvention: Event und Punkt liegen vollständig im Payload.
+    const events = args.p_events as Array<Record<string, unknown>>;
+    expect(events[0]?.payload).toMatchObject({ id: 'e1', title: 'Start' });
+    const points = args.p_timeseries as Array<Record<string, unknown>>;
+    expect(points).toHaveLength(1);
+    expect(points[0]?.metrics).toMatchObject({ tick: 0, metrics: { arr: 411840 } });
   });
 
   it('RPC-Fehler werden nicht verschluckt (RPC_FAILED)', async () => {
@@ -170,13 +175,21 @@ describe('067F G49 runPersistenceService', () => {
     client.eq
       .mockResolvedValueOnce({ data: [{ id: 'scen-1', name: 'Szenario' }], error: null })
       .mockResolvedValueOnce({ data: [{ id: 'ver-1', scenario_id: 'scen-1' }], error: null })
-      .mockResolvedValueOnce({ data: [{ run_id: 'run-1', seed: 7 }], error: null });
+      .mockResolvedValueOnce({ data: [{ run_id: 'run-1', seed: 7 }], error: null })
+      .mockResolvedValueOnce({
+        data: [{ run_id: 'run-1', tick: 0, metrics: { tick: 0, metrics: { arr: 1 } } }],
+        error: null,
+      });
     const workspace = await loadScenarioWorkspace('org-a', client);
-    expect(client.from).toHaveBeenCalledWith('simulation_scenarios');
+    expect(client.from).toHaveBeenCalledWith('simulation_timeseries');
     expect(client.eq).toHaveBeenCalledWith('organization_id', 'org-a');
     expect(workspace.scenarios).toHaveLength(1);
     expect(workspace.versions).toHaveLength(1);
     expect(workspace.runs).toHaveLength(1);
+    // Zeitreihe hängt am Run (Aggregation nach Reload intakt).
+    const firstRun = workspace.runs[0];
+    expect(firstRun).toBeDefined();
+    expect(firstRun?.timeSeries).toHaveLength(1);
   });
 
   it('Workspace-Fehler werden nicht verschluckt (WORKSPACE_FAILED)', async () => {

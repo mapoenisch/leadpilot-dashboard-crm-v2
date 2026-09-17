@@ -41,15 +41,24 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
     },
 
     reRun: async (versionId: string) => {
+      // 067F / G49 (Nacharbeit P1): Mit hydriertem Workspace läuft der Re-Run
+      // mandantengebunden und persistiert; ohne bleibt In-Memory-Verhalten.
+      const activeOrganizationId = get().activeOrganizationId ?? undefined;
       await scenarioService.reRun(versionId, undefined, {
         correlationId: systemContext.nextCorrelationId(),
         measures: get().draftMeasures,
+        ...(activeOrganizationId
+          ? { organizationId: activeOrganizationId, persistToServer: true as const }
+          : {}),
       });
       get().refreshData();
     },
 
     reproduce: async (runId: string) => {
-      await scenarioService.reproduce(runId);
+      // 067F / G49 (Nacharbeit P1): Reproduktion persistiert genau dann, wenn
+      // ein Workspace hydriert ist (aktiver Mandant).
+      const persistToServer = get().activeOrganizationId !== null;
+      await scenarioService.reproduce(runId, 50, persistToServer);
       get().refreshData();
     },
   };
