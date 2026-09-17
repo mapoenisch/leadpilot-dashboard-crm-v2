@@ -549,7 +549,7 @@
       "main": [
         [
           {
-            "node": "HMAC Sign Base",
+            "node": "Ingress Valid?",
             "type": "main",
             "index": 0
           }
@@ -560,7 +560,7 @@
       "main": [
         [
           {
-            "node": "Ingress Valid?",
+            "node": "Signature Match?",
             "type": "main",
             "index": 0
           }
@@ -643,7 +643,7 @@
       "main": [
         [
           {
-            "node": "Signature Match?",
+            "node": "HMAC Sign Base",
             "type": "main",
             "index": 0
           }

@@ -203,6 +203,50 @@ Deno.test('Whitespace-/Key-Order-Varianten verifizieren je mit eigener Signatur'
   }
 });
 
+Deno.test('Oversize erreicht weder HMAC noch Slot noch DB (negativ)', async () => {
+  const workflow = await readWorkflow();
+  const branchTargets = (from: string, branch: number): string[] => {
+    const groups = workflow.connections?.[from]?.main ?? [];
+    return (groups[branch] ?? []).map((edge) => edge?.node ?? '').filter((name) => name.length > 0);
+  };
+  const reachableFrom = (starts: string[]): Set<string> => {
+    const successors = (from: string): string[] => {
+      const outputs = workflow.connections?.[from]?.main ?? [];
+      return outputs.flat().map((edge) => edge?.node ?? '').filter((name) => name.length > 0);
+    };
+    const visited = new Set<string>();
+    const queue = [...starts];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (!current || visited.has(current)) {
+        continue;
+      }
+      visited.add(current);
+      queue.push(...successors(current));
+    }
+    return visited;
+  };
+  // Verify gibt direkt an die Valid-Weiche (nicht an den HMAC).
+  assertEquals(branchTargets('Verify Ingress Signature', 0), ['Ingress Valid?']);
+  // False-Ast: nur Reject-Routing, niemals HMAC/Slot/DB.
+  const fromFalse = reachableFrom(branchTargets('Ingress Valid?', 1));
+  for (
+    const forbidden of [
+      'HMAC Sign Base',
+      'Claim Nonce (Postgres)',
+      'Slot Status',
+      'Execute Ingest RPC (Postgres)',
+    ]
+  ) {
+    assert(!fromFalse.has(forbidden), `Valid-False erreicht nicht: ${forbidden}`);
+  }
+  assert(fromFalse.has('Respond Payload Too Large'), '413-Zweig erreichbar');
+  // True-Ast: HMAC und Signaturvergleich werden erreicht.
+  const fromTrue = reachableFrom(branchTargets('Ingress Valid?', 0));
+  assert(fromTrue.has('HMAC Sign Base'), 'Valid-True erreicht HMAC');
+  assert(fromTrue.has('Signature Match?'), 'Valid-True erreicht Signaturvergleich');
+});
+
 Deno.test('keine verwaisten Connections im Workflow', async () => {
   const workflow = await readWorkflow();
   const names = new Set((workflow.nodes ?? []).map((node) => node.name ?? ''));
