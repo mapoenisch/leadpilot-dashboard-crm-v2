@@ -7836,3 +7836,21 @@ Danach G47 erneut unabhängig prüfen lassen. Kein Push, keine Integration und k
 ### Finale Gate-Ergebnisse (Nacharbeit G47)
 - Fokussierte G47-Tests 19/19 (6 Service + 8 Hooks + 3 DataBasisPage + 2 ActivitiesView) · `npm test` 101 Dateien / 399 Tests grün · `verify` 001–025 grün · tsc 0 · build grün · eslint der geänderten Dateien sauber · `git diff --check` sauber · unerlaubter Schutzbereich (`src/simulation`, `src/context`, `src/features/resources`) leer.
 - **G47-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067E bleibt blockiert.
+
+## [2026-09-17] Gate G47: Unabhängiges Review – Freigabe
+
+**Review-Baseline:** `5dc9c32` auf `feat/auftrag-067d-crm-envelope`
+**Ergebnis:** **FREIGEGEBEN** – G47 ist erfüllt; 067E darf seriell starten. Kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise (Node 22.11.0)
+
+- Fokussierte G47-Tests: 19/19 grün.
+- Vollsuite: 101 Dateien / 399 Tests grün.
+- `tsc`, `verify` 001–025, Build, ESLint und `git diff --check`: grün.
+- Schutzbereich `src/simulation`, `src/context`, `src/features/resources`: leer.
+
+### Freigabeumfang
+
+- Die beiden Critical-Befunde sind geschlossen: kein stiller Demo-Fallback mehr und Activities stammen ausschließlich aus dem gemeinsamen CRM-Envelope.
+- Der unversionierte Ordner `.playwright-mcp/` war bereits vorhanden und blieb unverändert.
+- Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
