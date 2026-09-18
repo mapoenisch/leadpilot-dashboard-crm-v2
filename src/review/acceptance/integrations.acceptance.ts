@@ -13,8 +13,11 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 interface WorkflowNode {
   name?: string;
   type?: string;
+  typeVersion?: number | string;
   parameters?: {
     url?: string;
+    mode?: string;
+    numberInputs?: number;
     queryParameters?: { parameters?: Array<{ name?: string; value?: string }> };
     jsCode?: string;
   };
@@ -39,6 +42,12 @@ function codeOf(workflow: HubSpotWorkflow, namePart: string): string {
 
 interface HubSpotEdge {
   node?: string;
+  index?: number;
+}
+
+interface HubSpotWorkflow {
+  nodes?: WorkflowNode[];
+  settings?: Record<string, unknown>;
 }
 
 interface HubSpotGraph extends HubSpotWorkflow {
@@ -139,6 +148,7 @@ describe('v2.3.0 hubspot import findings', () => {
   });
 
   it('[PR-HUBSPOT-11] Map läuft genau einmal über Fan-in (kein unvollständiger Envelope)', () => {
+    const workflow = readWorkflow();
     const graph = readGraph();
     const connections = graph.connections ?? {};
 
@@ -171,5 +181,24 @@ describe('v2.3.0 hubspot import findings', () => {
       'More Contacts?',
       'More Deals?',
     ]);
+
+    // Echter Drei-Input-Fan-in: Merge ist auf drei Inputs konfiguriert und
+    // jede Kette hängt an einem eigenen Input-Index (0/1/2) — sonst wartet
+    // der Node nicht auf alle verbundenen Inputs.
+    const mergeNode = (workflow.nodes ?? []).find((node) => node.name === 'Merge Envelopes');
+    expect(mergeNode?.parameters?.mode, 'Merge-Modus append').toBe('append');
+    expect(mergeNode?.parameters?.numberInputs, 'Merge-Input-Anzahl 3').toBe(3);
+    const expectedIndex: Record<string, number> = {
+      'More Companies?': 0,
+      'More Contacts?': 1,
+      'More Deals?': 2,
+    };
+    for (const [moreName, index] of Object.entries(expectedIndex)) {
+      const falseBranch = (connections[moreName]?.main ?? [])[1] ?? [];
+      expect(
+        falseBranch.map((edge) => edge?.index),
+        `${moreName}-false hängt an Input-Index ${index}`,
+      ).toEqual([index]);
+    }
   });
 });

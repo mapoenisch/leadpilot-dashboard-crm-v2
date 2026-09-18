@@ -115,6 +115,26 @@ describe('067H G51 hubSpotPageLoader', () => {
     expect(sleeps).toEqual([]);
   });
 
+  it('Gegenfall: Abort während Backoff startet keinen Retry', async () => {
+    const controller = new AbortController();
+    const fetchPage = vi
+      .fn()
+      .mockRejectedValueOnce(httpError(429))
+      .mockResolvedValueOnce(page(['late']));
+    await expect(
+      loadAllPages((after, signal) => fetchPage(after, signal), {
+        signal: controller.signal,
+        baseBackoffMs: 50,
+        maxRetries429: 5,
+        sleep: () => {
+          controller.abort();
+          return Promise.resolve();
+        },
+      }),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetchPage).toHaveBeenCalledTimes(1);
+  });
+
   it('Gegenfall: hängender Fetch wird per Deadline abgebrochen', async () => {
     const fetchPage = vi.fn(
       (_after: string | undefined, signal?: AbortSignal) =>

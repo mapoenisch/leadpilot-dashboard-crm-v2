@@ -77,6 +77,8 @@ export async function loadAllPages<T>(
 
   /** Fetch mit Deadline-Kopplung: Budget aufgebraucht oder hängend → Timeout. */
   const runFetch = async (cursor: string | undefined): Promise<HubSpotPage<T>> => {
+    // Bereits abgebrochen → gar nicht erst fetchen (Abort während Backoff).
+    signal?.throwIfAborted();
     const remaining = maxRuntimeMs - elapsed();
     if (remaining <= 0) {
       throw new HubSpotPageLoaderError(
@@ -138,6 +140,9 @@ export async function loadAllPages<T>(
             );
           }
           await sleep(delay);
+          // Abort während des Backoffs: kein Retry mehr (das Signal löst
+          // beim späteren addEventListener nicht erneut aus).
+          signal?.throwIfAborted();
           attempt += 1;
           continue;
         }

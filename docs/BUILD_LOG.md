@@ -8159,3 +8159,16 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 - Fokustests 10/10 (8 Loader + 2 Acceptance). `npm test`: 109 Dateien / 450 Tests grün. `verify` 001–025 grün. tsc 0. Build grün. PR-HUBSPOT-10/11 separat grün.
 - `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade leer.
 - **G51-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, der nächste Auftrag bleibt blockiert.
+
+## [2026-09-18] Gate G51: Nacharbeit 2 zum Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `018d771` → weiter NICHT FREIGEGEBEN (1 P0: Merge ohne Input-Anzahl, alle Zuflüsse an Input 0; 1 P1: Abort während Backoff startet Retry). Umgebung: Node v22.11.0.
+
+### Behebung je Befund
+1. **P0 Drei-Input-Fan-in:** Merge auf `mode: append` + `numberInputs: 3` (typeVersion 3.2) konfiguriert, belegt per n8n-Vendorquelle (Append-Pattern mit `mergeNode.input(0/1/2)`); Zuflüsse auf Indizes 0/1/2 gelegt. Graph-Test erweitert: Modus, Input-Anzahl und Index je Kette.
+2. **P1 Abort im Backoff:** `throwIfAborted` nach Sleep sowie in `runFetch` bei Eintritt — abgebrochenes Signal löst beim späteren Listener nicht erneut aus, Retry entfällt. Gegenfall aus dem Befund (429, Abort im Sleep, kein zweiter Fetch) grün.
+
+### Finale Gate-Ergebnisse (Nacharbeit 2)
+- Fokustests 11/11 (9 Loader + 2 Acceptance). `npm test`: 109 Dateien / 451 Tests grün. `verify` 001–025 grün. tsc 0. Build grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade leer.
+- **G51-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, der nächste Auftrag bleibt blockiert.

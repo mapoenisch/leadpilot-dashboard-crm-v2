@@ -390,12 +390,13 @@
     },
     {
       "parameters": {
-        "mode": "append"
+        "mode": "append",
+        "numberInputs": 3
       },
       "id": "merge-envelopes",
       "name": "Merge Envelopes",
       "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
+      "typeVersion": 3.2,
       "position": [
         1420,
         300
@@ -521,7 +522,7 @@
           {
             "node": "Merge Envelopes",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -583,7 +584,7 @@
           {
             "node": "Merge Envelopes",
             "type": "main",
-            "index": 0
+            "index": 2
           }
         ]
       ]
