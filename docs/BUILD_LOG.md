@@ -8304,6 +8304,7 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Funktionale und negative Prüfungen
 - jsdom-Spiegel 12/12 (11 Seiten + Chart-Summaries). `npx playwright test e2e/semantic-routes.spec.ts --list`: 240 Tests gelistet.
+- Unabhängiger E2E-Lauf (Reviewer, Marcs Terminal, gespeicherter Browser-Login, keine `.env`/Passwort-Lesung, frischer Build mit lokalen öffentlichen Supabase-Werten): **240/240 grün in 22,2 s** (20 Routen × 4 Prüfungen × 3 Viewports). Arbeitsbaum dabei unverändert außer G53-README und `.playwright-mcp/`.
 
 ### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
 - 067I ist kein Schutzbereichs-Auftrag (nur Darstellung, Domändaten gelesen nicht geändert). `git diff 90e414e -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
@@ -8311,7 +8312,7 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 ### Vollständige automatisierte Verifikation
 - `npx tsc --noEmit`: 0. `npm run verify` (001–025): grün. `npm test`: 111 Dateien / 473 Tests grün. `npm run build`: grün.
 - `npm run lint`: nur die 4 bekannten `max-lines`-Altbefunde außerhalb des Diffs. `git diff --check`: sauber.
-- E2E-Lauf nicht ausführbar (`E2E_AUTH_*` fehlen in der Builder-Shell) — bleibt Reviewer-Sache mit frischem Login.
+- E2E-Lauf durch Reviewer nachgeholt (siehe oben): 240/240 grün. Screenshot-Matrix `auftrag-067-g53/README.md` von `offen` auf `4/4` gesetzt.
 
 ### Reviewer-Befund
-- Offen — **G53 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, G54 bleibt blockiert.
+- Offen — **G53 BEREIT FÜR ABSCHLIESSENDE FREIGABE (E2E 240/240 belegt).** Kein Push, keine Integration, G54 bleibt blockiert.

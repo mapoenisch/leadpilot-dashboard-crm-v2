@@ -8,7 +8,7 @@ Regressionsmaß — die visuelle Änderung ist beabsichtigt. Nachweis stattdesse
 × 4 Prüfungen × 3 Viewports = 240 Tests) plus jsdom-Spiegel
 `src/app/__tests__/g53SemanticPages.ui.vitest.tsx`.
 
-## Ergebnis je Route und Viewport (jsdom 12/12 grün, E2E im Re-Review)
+## Ergebnis je Route und Viewport (240/240 grün in 22,2 s, unabhängiger Lauf)
 
 | Route | 1440 | 768 | 375 | Befund |
 |---|---|---|---|---|
