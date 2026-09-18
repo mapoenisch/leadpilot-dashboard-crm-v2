@@ -8026,3 +8026,21 @@ Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema 
 - Fokustests 10/10 (neue Mapper-Roundtrips). `npm test`: 106 Dateien / 427 Tests grün. `verify` 001–025 grün. tsc 0. Build grün (lokal-env für E2E, Standard-env danach neu). E2E lokal grün (dieser Durchgang selbst ausgeführt).
 - `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade leer.
 - **G49-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067G bleibt blockiert.
+
+## [2026-09-18] Gate G49: Unabhängiges Review – Freigabe
+
+**Review-Baseline:** `ce28a0d` auf `feat/auftrag-067f-persistenz`
+**Ergebnis:** **FREIGEGEBEN** – G49 ist erfüllt; 067G darf seriell starten. Kein Push und keine Integration.
+
+### Unabhängig bestätigte Nachweise
+
+- `ce28a0d` schließt den letzten P1: Snapshot-Tag und -Datum werden korrekt aus Projection bzw. State rekonstruiert, inklusive defensiver Gegenfälle.
+- Snapshot-Test: 10/10 grün.
+- Vollsuite: 106 Dateien / 427 Tests grün.
+- TypeScript und Produktionsbuild: grün.
+- Diff-Check sauber.
+- pgTAP 66/66 war auf dem unveränderten DB-Stand bereits grün.
+
+### Freigabeumfang
+
+- Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
