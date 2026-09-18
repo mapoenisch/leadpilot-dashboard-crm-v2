@@ -9,17 +9,23 @@ Route und Viewport (1440/768/375), ausgeführt per `e2e/semantic-routes.spec.ts`
 Viewports = 384 Tests) plus jsdom-Spiegel
 `src/app/__tests__/g55SemanticPages.ui.vitest.tsx`.
 
-## Ergebnis je Route und Viewport (jsdom 4/4 grün, E2E offen bis 384er-Lauf)
+## Ergebnis je Route und Viewport (jsdom 4/4 grün, E2E 384/384 grün)
 
 | Route | 1440 | 768 | 375 | Befund |
 |---|---|---|---|---|
-| `/organisation/headcount` | offen | offen | offen | Kapazitätstabelle + FTE-Balken mit Summary, kein WebP, 1 Content-h1, 0px Overflow |
-| `/organisation/hr` | offen | offen | offen | HR-Kennzahlen-dl, 0px Overflow |
-| `/organisation/team` | offen | offen | offen | Organigramm-Liste + Engpässe, 0px Overflow |
+| `/organisation/headcount` | grün | grün | grün | Kapazitätstabelle + FTE-Balken mit Summary, kein WebP, 1 Content-h1, 0px Overflow |
+| `/organisation/hr` | grün | grün | grün | HR-Kennzahlen-dl, 0px Overflow |
+| `/organisation/team` | grün | grün | grün | Organigramm-Liste + Engpässe, 0px Overflow |
 
 Routeweite Gesamtnachprüfung: alle 32 Vertragsrouten (G52: 9, G53: 11, G54: 9,
 G55: 3) laufen im selben 384er-Vertrag; die G52–G54-Matrizen bleiben
 unverändert gültig.
+
+**E2E-Nachweis (384er-Lauf):** `npx playwright test e2e/semantic-routes.spec.ts`
+— **384 passed (34.7s)**, alle drei Projekte (`desktop-1440`, `tablet-768`,
+`mobile-375`). Lauf gegen Commit `efe92c4` auf Branch
+`feat/auftrag-067i-welle-g55`, Seed-User `e2e-persist@persist-test.local`.
+Damit ist G55 vollständig abgeschlossen (jsdom + E2E beide grün).
 
 Prüfpunkte je Zelle: kein `.webp`-Bild, genau eine Content-h1 (Header-h1 ist
 App-Chrome), >200 Zeichen auswählbarer Text, semantische Struktur

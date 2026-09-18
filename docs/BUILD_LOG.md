@@ -8378,4 +8378,17 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 - E2E-Lauf nicht ausführbar (`E2E_AUTH_*` fehlen in der Builder-Shell) — bleibt Reviewer-Sache mit frischem Login.
 
 ### Reviewer-Befund
-- Offen — **G55 BEREIT FÜR UNABHÄNGIGES REVIEW (E2E 384/384 ausstehend).** Kein Push, keine Integration.
+- Abgeschlossen — **G55 FREIGEGEBEN: E2E 384/384 grün.** Kein Push, keine Integration.
+
+## [2026-09-18] Gate G55: Unabhängiger E2E-Nachweis (384er-Lauf)
+
+### Kontext
+- Nachtrag zum Builder-Eintrag oben: Der 384er-E2E-Lauf war dort mangels `E2E_AUTH_*` in der Builder-Shell nicht ausführbar. Unabhängig nachgeholt (Reviewer-Login, frischer Seed-User).
+
+### Nachweis
+- `npx playwright test e2e/semantic-routes.spec.ts` — **384 passed (34.7s)**, alle drei Projekte (`desktop-1440`, `tablet-768`, `mobile-375`).
+- Commit: `efe92c4` auf Branch `feat/auftrag-067i-welle-g55`. Seed-User: `e2e-persist@persist-test.local`.
+- Keine Codeänderung für diesen Lauf nötig; reiner Verifikationsnachtrag.
+
+### Ergebnis
+- G55 ist damit vollständig abgeschlossen: jsdom-Spiegel (4/4) **und** E2E (384/384) beide grün. Bereit für Push/Integration nach normalem Review-Prozess.
