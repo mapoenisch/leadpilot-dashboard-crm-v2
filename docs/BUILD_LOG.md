@@ -8438,3 +8438,55 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Ergebnis
 - G56 ist damit technisch vollständig: PR-SEMANTIC-11, PR-A11Y-12, PR-ASSET-14 (Vitest) **und** PR-CLIP-13 (Playwright) alle grün. **G56 FREIGABEFÄHIG.** Kein Push, keine Integration.
+
+## [2026-09-18] Gate G57: Builder 067K Toolchain und Codequalität (kein Push)
+
+**Ziel und Baseline-Commit:** 067K / G57 — PR-DEPENDENCY-15 und PR-QUALITY-16 schließen. Baseline: `62e7651` (G56-HEAD). Branch: `feat/auftrag-067k-toolchain`. Umgebung: Node v22.18.0 (reproduzierbar gepinnt in `.nvmrc`, `.node-version`, `package.json`).
+
+### Geänderte Dateien
+- Konfiguration / Toolchain: `.node-version`, `.nvmrc`, `package.json`, `package-lock.json`, `vitest.config.ts`, `.github/workflows/ci.yml`.
+- Modulaufteilung `ScenarioService`: `src/simulation/scenarioService.ts` (von 1563 auf 122 Zeilen verkürzt), neu: `src/simulation/scenarioCompare.ts`, `scenarioLifecycle.ts`, `scenarioMultiCompare.ts`, `scenarioRunExecutor.ts`, `scenarioTickRunner.ts`, `scenarioTradeoffs.ts`, `scenarioWorkspace.ts`.
+- Modulaufteilung `eventRules`: `src/simulation/eventRules.ts` (von 600 auf 49 Zeilen verkürzt), neu: `src/simulation/eventLeadRules.ts`, `eventChurnMetrics.ts`.
+- Modulaufteilung `ResourceViewer`: `src/features/resources/components/ResourceViewer.tsx` (von 760 auf 137 Zeilen verkürzt), neu: `ResourceViewerContent.tsx`, `ResourceViewerPanels.tsx`, `useResourceViewerControls.ts`.
+- Test-Tail-Splits zur Einhaltung von `max-lines` in Testdateien: `csHealthIntegrityTail.test.ts`, `financialIntegrityCashFlow.test.ts`, `salesQueueIntegrityTail.test.ts`, `scenarioComparisonTail.test.ts`, `snapshotIntegrityTail.test.ts`, `stateMachineIntegrityTail.test.ts`, `timeSeriesIntegrityTail.test.ts`, `workerIntegrityTail.test.ts`.
+- Coverage- & Branch-Tests: Characterization- und Branch-Suiten in `src/app/__tests__`, `src/features/**/__tests__`, `src/services/**/__tests__`, `src/simulation/**/__tests__`.
+- Review- und Befunddokumente: `docs/reviews/v2.3.0-audit-risk-acceptance.md`, `docs/reviews/v2.3.0-finding-register.md`, `docs/reviews/v2.3.0-known-findings.json`, `src/review/acceptance/qualityRelease.acceptance.ts`.
+
+### Roter Starttest und Ursache
+- Startmessung G44: ESLint 4 Fehler / 0 Warnungen (`max-lines` in `scenarioService.ts`, `eventRules.ts`, `ResourceViewer.tsx`, `financialIntegrity.test.ts`), Prettier 85 abweichende Dateien, globale Coverage-Schwellen auf 0.
+- `npm audit --omit=dev`: 2 moderate (total 2), Gesamtaudit 16 mit 8 high (React Router, Vite, LHCI).
+- Sollverträge in `src/review/acceptance/qualityRelease.acceptance.ts` für `[PR-DEPENDENCY-15]` und `[PR-QUALITY-16]` rot.
+
+### Implementierung und Architekturentscheidung
+- Node-Engine auf reproduzierbare Version `22.18.0` via `.node-version`, `.nvmrc` und `package.json` (`>=22.18.0 <23`) gepinnt.
+- `react-router-dom` auf `7.18.4`, `vite` auf `6.4.3`, `@vitejs/plugin-react` auf `4.7.0` aktualisiert, transitiver `tmp`-Override auf `0.2.7`. Produktionsaudit ist 0 (`npm audit --omit=dev` = 0).
+- Die 6 dev-only Highs in der gepinnten `@lhci/cli@0.15.1`-Kette wurden im Risikonachweis `docs/reviews/v2.3.0-audit-risk-acceptance.md` dokumentiert und durch Marc Poenisch freigegeben (G57-Abnahme per dokumentierter Ausnahme; 067L prüft den LHCI-Lauf erneut).
+- `ScenarioService`, `eventRules` und `ResourceViewer` nach Single-Responsibility aufgeteilt; alle öffentlichen Fassaden und Signaturen bleiben 100% identisch; alle Dateien im Repo unterschreiten nun die Grenze von 400 Zeilen (`max-lines: error`).
+- ESLint-Baselines auf 0 (`--max-warnings 0`), Prettier auf 0 Abweichungen, globale Coverage-Schwellen in `vitest.config.ts` verbindlich auf 80/80/75/70 gesetzt.
+
+### Funktionale und negative Prüfungen
+- Golden Run Charakterisierung (`v23GoldenRun.characterization.vitest.ts`) besteht exakt gegen `v2.2.0-golden-run.json` (identische Hashes für Manifest, Metriken, RNG-State, Event-Signaturen, Zeitreihen).
+- Alle 24 Integrity-Suiten in `verifyIntegrity.ts` (001 bis 025) bestehen fehlerfrei.
+- Alle 243 Vitest-Testdateien (1302 Tests) grün.
+- Sollverträge `[PR-DEPENDENCY-15]` und `[PR-QUALITY-16]` in `qualityRelease.acceptance.ts` grün.
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- Erlaubt für 067K gemäß Master-Auftrag 067: `src/simulation/**` (Aufteilung `scenarioService.ts`, `eventRules.ts`, Test-Splits), `src/features/resources/**` (Aufteilung `ResourceViewer.tsx`).
+- `src/context/**`: unberührt (`git diff 62e7651 -- src/context` ist leer).
+- `src/types/**` und `src/services/data/**`: ausschließlich Prettier-Formatierungsangleichungen.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint`: 0 Fehler, 0 Warnungen (`eslint . --max-warnings 0`).
+- `npm run format:check`: 0 Abweichungen (`All matched files use Prettier code style!`).
+- `npm run verify`: alle 24 Integrity-Suiten grün (001 bis 025).
+- `npm test`: 243 Dateien, 1302 Tests grün.
+- `npm run test:coverage`: Lines 91.06% (≥ 80%), Branches 83.23% (≥ 80%), Functions 83.85% (≥ 75%), Statements 89.97% (≥ 70%) — alle Schwellen übertroffen.
+- `npm run build`: Produktions-Build fehlerfrei erstellt.
+- `git diff --check`: sauber.
+
+### Screenshot-/SQL-/GitHub-Actions-Nachweis
+- Reines Toolchain-, Qualitäts- und Refactoring-Gate: keine UI-Veränderungen, daher keine Screenshots erforderlich.
+
+### Reviewer-Befund
+- Offen — **G57 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration.

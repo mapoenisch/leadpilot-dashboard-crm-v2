@@ -13,14 +13,14 @@ export function BalancedScorecardPage() {
         emptyText="Keine Scorecard-Perspektiven erfasst."
       >
         <section aria-label="Perspektiven">
-        <dl>
-          {BSC.perspectives.map((perspective) => (
-            <div key={perspective.name}>
-              <dt>{perspective.name}</dt>
-              <dd>{perspective.kpis}</dd>
-            </div>
-          ))}
-        </dl>
+          <dl>
+            {BSC.perspectives.map((perspective) => (
+              <div key={perspective.name}>
+                <dt>{perspective.name}</dt>
+                <dd>{perspective.kpis}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
       </DataState>
     </div>

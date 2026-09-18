@@ -10,7 +10,10 @@ export function TeamStructurePage() {
     <div>
       <h1>Teamstruktur</h1>
       <p>{TEAM.title}: funktionale Einheiten mit Führungsspanne und Engpässen.</p>
-      <DataState status={einheiten.length > 0 ? 'ready' : 'empty'} emptyText="Keine Teamstruktur erfasst.">
+      <DataState
+        status={einheiten.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Teamstruktur erfasst."
+      >
         <section aria-label="Organigramm">
           <h2>Organigramm</h2>
           <ul>

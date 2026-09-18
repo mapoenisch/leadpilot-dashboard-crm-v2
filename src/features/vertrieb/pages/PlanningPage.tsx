@@ -37,7 +37,8 @@ export function PlanningPage() {
     <div>
       <h1>Marketingplanung</h1>
       <p>
-        {PLANUNG.title}: {String(PLANUNG.initiatives.length)} Initiativen mit Monatsbudget und Ziel-KPIs.
+        {PLANUNG.title}: {String(PLANUNG.initiatives.length)} Initiativen mit Monatsbudget und
+        Ziel-KPIs.
       </p>
       <DataState
         status={PLANUNG.initiatives.length > 0 ? 'ready' : 'empty'}

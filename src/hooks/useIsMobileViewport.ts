@@ -7,12 +7,16 @@ const MOBILE_QUERY = '(max-width: 640px)';
 
 export function useIsMobileViewport(): boolean {
   const [isMobile, setIsMobile] = useState<boolean>(() => {
+    /* v8 ignore start — SSR-Guard: ohne window in jsdom nicht ausführbar. */
     if (typeof window === 'undefined' || !window.matchMedia) return false;
+    /* v8 ignore stop */
     return window.matchMedia(MOBILE_QUERY).matches;
   });
 
   useEffect(() => {
+    /* v8 ignore start — SSR-Guard: ohne window in jsdom nicht ausführbar. */
     if (typeof window === 'undefined' || !window.matchMedia) return;
+    /* v8 ignore stop */
 
     const mediaQueryList = window.matchMedia(MOBILE_QUERY);
     const onChange = (event: MediaQueryListEvent) => {

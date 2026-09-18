@@ -9,8 +9,8 @@ export function YearHighlightsPage() {
     <div>
       <h1>Jahres-Highlights 2025</h1>
       <p>
-        Das Geschäftsjahr 2025 in Erfolgen und Baustellen — Kennzahlen aus dem
-        verbindlichen Faktenblatt.
+        Das Geschäftsjahr 2025 in Erfolgen und Baustellen — Kennzahlen aus dem verbindlichen
+        Faktenblatt.
       </p>
       <DataState status={ready ? 'ready' : 'empty'} emptyText="Keine Jahres-Highlights erfasst.">
         <section aria-label="Erfolge">

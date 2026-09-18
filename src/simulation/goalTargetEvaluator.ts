@@ -20,7 +20,7 @@ export class GoalTargetEvaluator {
     kpiId: string,
     actualValue: number,
     target?: GoalTarget,
-    tick = 0
+    tick = 0,
   ): GoalTargetEvaluationResult {
     const kpiDef = KPIRegistry.getKPI(kpiId);
 
@@ -40,7 +40,8 @@ export class GoalTargetEvaluator {
     let explanation = '';
 
     if (kpiDef.direction === 'HIGHER_IS_BETTER') {
-      achievementPercent = targetVal !== 0 ? parseFloat(((actualValue / targetVal) * 100).toFixed(1)) : 100;
+      achievementPercent =
+        targetVal !== 0 ? parseFloat(((actualValue / targetVal) * 100).toFixed(1)) : 100;
 
       if (achievementPercent >= 100) {
         status = 'ACHIEVED';
@@ -54,7 +55,8 @@ export class GoalTargetEvaluator {
       }
     } else {
       // LOWER_IS_BETTER (e.g. CAC, Churn, Queue Time)
-      achievementPercent = actualValue !== 0 ? parseFloat(((targetVal / actualValue) * 100).toFixed(1)) : 100;
+      achievementPercent =
+        actualValue !== 0 ? parseFloat(((targetVal / actualValue) * 100).toFixed(1)) : 100;
 
       if (actualValue <= targetVal) {
         status = 'ACHIEVED';
@@ -86,7 +88,7 @@ export class GoalTargetEvaluator {
   public static computeBaselineComparison(
     kpiId: string,
     scenarioValue: number,
-    baselineValue: number
+    baselineValue: number,
   ): BaselineComparisonResult {
     const kpiDef = KPIRegistry.getKPI(kpiId);
     const absoluteDelta = parseFloat((scenarioValue - baselineValue).toFixed(2));
@@ -95,7 +97,9 @@ export class GoalTargetEvaluator {
     if (baselineValue === 0) {
       percentChange = scenarioValue === 0 ? 0 : 100;
     } else {
-      percentChange = parseFloat((((scenarioValue - baselineValue) / Math.abs(baselineValue)) * 100).toFixed(2));
+      percentChange = parseFloat(
+        (((scenarioValue - baselineValue) / Math.abs(baselineValue)) * 100).toFixed(2),
+      );
     }
 
     const isPositiveChange =

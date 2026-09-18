@@ -32,7 +32,10 @@ export function CompetitionPage() {
     <div>
       <h1>Wettbewerbslandschaft</h1>
       <p>{WETTBEWERB.title}: Anbieter, Fokus und Differenzierung der LeadPilot GmbH.</p>
-      <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine Wettbewerbsdaten erfasst.">
+      <DataState
+        status={rows.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Wettbewerbsdaten erfasst."
+      >
         <section aria-label="Anbietervergleich">
           <Table
             columns={[

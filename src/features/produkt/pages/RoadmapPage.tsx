@@ -9,14 +9,18 @@ export function RoadmapPage() {
     <div>
       <h1>Releases &amp; Roadmap</h1>
       <p>
-        {ROADMAP.title}: {String(ROADMAP.releases.length)} Releases, davon {String(released)} ausgeliefert.
+        {ROADMAP.title}: {String(ROADMAP.releases.length)} Releases, davon {String(released)}{' '}
+        ausgeliefert.
       </p>
       <DataState
         status={ROADMAP.releases.length > 0 ? 'ready' : 'empty'}
         emptyText="Keine Roadmap-Einträge erfasst."
       >
         {ROADMAP.releases.map((release) => (
-          <section key={`${release.quarter}-${release.title}`} aria-label={`${release.quarter}: ${release.title}`}>
+          <section
+            key={`${release.quarter}-${release.title}`}
+            aria-label={`${release.quarter}: ${release.title}`}
+          >
             <h2>
               {release.quarter}: {release.title} ({release.status})
             </h2>

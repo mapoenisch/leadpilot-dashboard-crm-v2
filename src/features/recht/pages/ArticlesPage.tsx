@@ -7,8 +7,14 @@ export function ArticlesPage() {
   return (
     <div>
       <h1>Satzung LeadPilot GmbH</h1>
-      <p>{SATZUNG.title}: Die folgenden Paragraphen geben den Gesellschaftsvertrag auszugsweise wieder.</p>
-      <DataState status={SATZUNG.sections.length > 0 ? 'ready' : 'empty'} emptyText="Keine Satzungsinhalte erfasst.">
+      <p>
+        {SATZUNG.title}: Die folgenden Paragraphen geben den Gesellschaftsvertrag auszugsweise
+        wieder.
+      </p>
+      <DataState
+        status={SATZUNG.sections.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Satzungsinhalte erfasst."
+      >
         {SATZUNG.sections.map((section) => (
           <section key={section[0]} aria-label={section[0]}>
             <h2>{section[0]}</h2>

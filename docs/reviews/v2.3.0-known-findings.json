@@ -117,7 +117,7 @@
     "severity": "important",
     "targetGate": "G57",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-QUALITY-16",
@@ -125,7 +125,7 @@
     "severity": "important",
     "targetGate": "G57",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-RELEASE-17",

@@ -97,7 +97,9 @@ describe('ActivitiesView (G47 Envelope)', () => {
     mockedLoad.mockResolvedValue(envelopeWithActivities());
     const { container } = render(<ActivitiesView />, { wrapper: createWrapper() });
 
-    await waitFor(() => expect(screen.getAllByText('Envelope-Notiz zur Acme').length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(screen.getAllByText('Envelope-Notiz zur Acme').length).toBeGreaterThan(0),
+    );
     expect(screen.getAllByText('Envelope-Anruf zur Acme').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Acme GmbH').length).toBeGreaterThan(0);
     expect(container.textContent).toContain('simulated-crm');

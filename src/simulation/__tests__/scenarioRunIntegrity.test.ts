@@ -16,9 +16,20 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
   // TEST A: Scenario Versioning & Stable ScenarioId
   // ---------------------------------------------------------
   log.push('\n--- TEST A: Scenario Versioning & Stable ScenarioId ---');
-  const { scenario, version: v1 } = service.createScenario('Wachstums-Initiative Q3', 'Szenario mit erhöhten Marketing-Aufwendungen');
-  const v2 = service.createScenarioVersion(scenario.id, { marketingBudgetYearly: 120000 }, 'Erhöhung auf 120.000 €/Jahr');
-  const v3 = service.createScenarioVersion(scenario.id, { salesRepCount: 4 }, 'Skalierung Vertriebsteam auf 4 FTE');
+  const { scenario, version: v1 } = service.createScenario(
+    'Wachstums-Initiative Q3',
+    'Szenario mit erhöhten Marketing-Aufwendungen',
+  );
+  const v2 = service.createScenarioVersion(
+    scenario.id,
+    { marketingBudgetYearly: 120000 },
+    'Erhöhung auf 120.000 €/Jahr',
+  );
+  const v3 = service.createScenarioVersion(
+    scenario.id,
+    { salesRepCount: 4 },
+    'Skalierung Vertriebsteam auf 4 FTE',
+  );
 
   const testAPassed =
     v1.scenarioId === scenario.id &&
@@ -31,7 +42,9 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
     v2.id !== v3.id;
 
   if (testAPassed) {
-    log.push(`✅ TEST A PASSED: Scenario "${scenario.id}" has 3 distinct versions with stable scenarioId.`);
+    log.push(
+      `✅ TEST A PASSED: Scenario "${scenario.id}" has 3 distinct versions with stable scenarioId.`,
+    );
   } else {
     log.push('❌ TEST A FAILED: Scenario IDs or Version numbers diverged!');
     overallPassed = false;
@@ -49,10 +62,16 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
     typeof v2.parameters.churnRateMonthly === 'number';
 
   const v1ParamsAfter = JSON.stringify(repo.getVersion(v1.id)?.parameters);
-  const testBPassed = v2HasFullParams && v1ParamsBefore === v1ParamsAfter && v2.parameters.marketingBudgetYearly === 120000 && v1.parameters.marketingBudgetYearly === 65000;
+  const testBPassed =
+    v2HasFullParams &&
+    v1ParamsBefore === v1ParamsAfter &&
+    v2.parameters.marketingBudgetYearly === 120000 &&
+    v1.parameters.marketingBudgetYearly === 65000;
 
   if (testBPassed) {
-    log.push(`✅ TEST B PASSED: Version v2 stores full parameter set (12.000 € budget). Version v1 remains 100% unchanged (5.000 € budget).`);
+    log.push(
+      `✅ TEST B PASSED: Version v2 stores full parameter set (12.000 € budget). Version v1 remains 100% unchanged (5.000 € budget).`,
+    );
   } else {
     log.push('❌ TEST B FAILED: Version 1 was mutated or Version 2 is missing full parameter set!');
     overallPassed = false;
@@ -65,9 +84,14 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
   const runResult1 = await service.runScenarioVersion(v2.id, 42, 30);
   const run1 = runResult1.run;
 
-  const testCPassed = run1.scenarioId === scenario.id && run1.scenarioVersionId === v2.id && run1.status === 'COMPLETED';
+  const testCPassed =
+    run1.scenarioId === scenario.id &&
+    run1.scenarioVersionId === v2.id &&
+    run1.status === 'COMPLETED';
   if (testCPassed) {
-    log.push(`✅ TEST C PASSED: Run "${run1.runId}" correctly references scenario "${run1.scenarioId}" and version "${run1.scenarioVersionId}".`);
+    log.push(
+      `✅ TEST C PASSED: Run "${run1.runId}" correctly references scenario "${run1.scenarioId}" and version "${run1.scenarioVersionId}".`,
+    );
   } else {
     log.push('❌ TEST C FAILED: Run assignment mismatch!');
     overallPassed = false;
@@ -88,7 +112,8 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
     manifest.schemaVersion === '1.0.0' &&
     Boolean(manifest.baselineVersion) &&
     Boolean(manifest.createdAt) &&
-    (manifest.simulationStartDate === '2026-01-01' || manifest.simulationStartDate === '01.01.2026') &&
+    (manifest.simulationStartDate === '2026-01-01' ||
+      manifest.simulationStartDate === '01.01.2026') &&
     manifest.targetTicks === 30 &&
     typeof manifest.parameters === 'object';
 
@@ -96,7 +121,9 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
   const testDPassed = manifestComplete && isFrozen;
 
   if (testDPassed) {
-    log.push(`✅ TEST D PASSED: RunManifest contains all mandatory reproducibility metadata and is 100% frozen/readonly.`);
+    log.push(
+      `✅ TEST D PASSED: RunManifest contains all mandatory reproducibility metadata and is 100% frozen/readonly.`,
+    );
   } else {
     log.push('❌ TEST D FAILED: RunManifest is incomplete or missing immutability freeze!');
     overallPassed = false;
@@ -116,7 +143,9 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
     runReRun.scenarioId === run1.scenarioId;
 
   if (testEPassed) {
-    log.push(`✅ TEST E PASSED: Re-Run generated new runId ("${runReRun.runId}") and new seed (${runReRun.seed} vs ${run1.seed}) for same version.`);
+    log.push(
+      `✅ TEST E PASSED: Re-Run generated new runId ("${runReRun.runId}") and new seed (${runReRun.seed} vs ${run1.seed}) for same version.`,
+    );
   } else {
     log.push('❌ TEST E FAILED: Re-Run reuse existing runId or seed!');
     overallPassed = false;
@@ -132,14 +161,20 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
   const leadsIdentical = JSON.stringify(runResult1.leads) === JSON.stringify(reproResult.leads);
   const dealsIdentical = JSON.stringify(runResult1.deals) === JSON.stringify(reproResult.deals);
   const eventsIdentical = JSON.stringify(runResult1.events) === JSON.stringify(reproResult.events);
-  const metricsIdentical = JSON.stringify(runResult1.state.metrics) === JSON.stringify(reproResult.state.metrics);
+  const metricsIdentical =
+    JSON.stringify(runResult1.state.metrics) === JSON.stringify(reproResult.state.metrics);
 
-  const testFPassed = stateIdentical && leadsIdentical && dealsIdentical && eventsIdentical && metricsIdentical;
+  const testFPassed =
+    stateIdentical && leadsIdentical && dealsIdentical && eventsIdentical && metricsIdentical;
 
   if (testFPassed) {
-    log.push(`✅ TEST F PASSED: Reproduce using original seed (${run1.seed}) & manifest yielded 100% byte-for-byte identical state, deals, leads, events & ARR (${reproResult.state.metrics?.liveARR} €).`);
+    log.push(
+      `✅ TEST F PASSED: Reproduce using original seed (${run1.seed}) & manifest yielded 100% byte-for-byte identical state, deals, leads, events & ARR (${reproResult.state.metrics?.liveARR} €).`,
+    );
   } else {
-    log.push(`❌ TEST F FAILED: Reproduce output diverged! State: ${stateIdentical}, Leads: ${leadsIdentical}, Deals: ${dealsIdentical}, Events: ${eventsIdentical}`);
+    log.push(
+      `❌ TEST F FAILED: Reproduce output diverged! State: ${stateIdentical}, Leads: ${leadsIdentical}, Deals: ${dealsIdentical}, Events: ${eventsIdentical}`,
+    );
     overallPassed = false;
   }
 
@@ -155,7 +190,9 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
 
   const testGPassed = run1Snapshot === run1Afterv4;
   if (testGPassed) {
-    log.push(`✅ TEST G PASSED: Creating Version v4 (100.000 € budget) did NOT mutate existing Run "${run1.runId}".`);
+    log.push(
+      `✅ TEST G PASSED: Creating Version v4 (100.000 € budget) did NOT mutate existing Run "${run1.runId}".`,
+    );
   } else {
     log.push('❌ TEST G FAILED: Existing run was mutated by subsequent version creation!');
     overallPassed = false;
@@ -190,9 +227,13 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
 
   const testHPassed = savedRunsBefore === 10 && errorCaught;
   if (testHPassed) {
-    log.push(`✅ TEST H PASSED: 10 runs created successfully. 11th run correctly rejected with MAX_RUNS_EXCEEDED error.`);
+    log.push(
+      `✅ TEST H PASSED: 10 runs created successfully. 11th run correctly rejected with MAX_RUNS_EXCEEDED error.`,
+    );
   } else {
-    log.push(`❌ TEST H FAILED: 11th run was not rejected properly! Saved runs count: ${savedRunsBefore}, error caught: ${errorCaught}`);
+    log.push(
+      `❌ TEST H FAILED: 11th run was not rejected properly! Saved runs count: ${savedRunsBefore}, error caught: ${errorCaught}`,
+    );
     overallPassed = false;
   }
 
@@ -213,11 +254,16 @@ export async function runScenarioRunTest(): Promise<{ success: boolean; log: str
     }
   }
 
-  const testIPassed = Boolean(baseScenario) && baseScenario?.isProtected === true && baseDeleteError;
+  const testIPassed =
+    Boolean(baseScenario) && baseScenario?.isProtected === true && baseDeleteError;
   if (testIPassed) {
-    log.push('✅ TEST I PASSED: Base 2026 Scenario ("scenario-base-2026") is protected and deletion was rejected with SCENARIO_PROTECTED_ERROR.');
+    log.push(
+      '✅ TEST I PASSED: Base 2026 Scenario ("scenario-base-2026") is protected and deletion was rejected with SCENARIO_PROTECTED_ERROR.',
+    );
   } else {
-    log.push(`❌ TEST I FAILED: Base 2026 Scenario protection check failed! Protected: ${baseScenario?.isProtected}, Error: ${baseDeleteError}`);
+    log.push(
+      `❌ TEST I FAILED: Base 2026 Scenario protection check failed! Protected: ${baseScenario?.isProtected}, Error: ${baseDeleteError}`,
+    );
     overallPassed = false;
   }
 

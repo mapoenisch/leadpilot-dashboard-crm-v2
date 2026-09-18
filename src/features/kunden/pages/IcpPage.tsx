@@ -9,7 +9,10 @@ export function IcpPage() {
     <div>
       <h1>Ideal Customer Profile</h1>
       <p>{ICP.title}: Firmografie, Kaufsignale und Ausschlusskriterien.</p>
-      <DataState status={ready ? 'ready' : 'empty'} emptyText="Kein Ideal Customer Profile erfasst.">
+      <DataState
+        status={ready ? 'ready' : 'empty'}
+        emptyText="Kein Ideal Customer Profile erfasst."
+      >
         <section aria-label="Firmografie">
           <h2>Firmografie</h2>
           <dl>

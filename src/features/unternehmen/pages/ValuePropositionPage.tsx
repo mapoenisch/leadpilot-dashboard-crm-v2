@@ -8,7 +8,10 @@ export function ValuePropositionPage() {
     <div>
       <h1>Value Proposition</h1>
       <p>{VALUE.title}: Positionierung der LeadPilot GmbH am B2B-Markt.</p>
-      <DataState status={VALUE.coreBenefits.length > 0 ? 'ready' : 'empty'} emptyText="Keine Value Proposition erfasst.">
+      <DataState
+        status={VALUE.coreBenefits.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Value Proposition erfasst."
+      >
         <p>{VALUE.heroStatement}</p>
         {VALUE.coreBenefits.map((nutzen) => (
           <section key={nutzen.title} aria-label={nutzen.title}>

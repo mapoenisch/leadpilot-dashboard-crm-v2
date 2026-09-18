@@ -33,7 +33,10 @@ export function OkrsPage() {
     <div>
       <h1>Ziele &amp; OKRs</h1>
       <p>{OKR.title}: Objectives mit messbaren Key Results für 2026.</p>
-      <DataState status={OKR.objectives.length > 0 ? 'ready' : 'empty'} emptyText="Keine Objectives erfasst.">
+      <DataState
+        status={OKR.objectives.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Objectives erfasst."
+      >
         {OKR.objectives.map((objective) => (
           <section key={objective.title} aria-label={objective.title}>
             <h2>{objective.title}</h2>

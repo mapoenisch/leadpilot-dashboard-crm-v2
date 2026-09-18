@@ -187,7 +187,8 @@ export class SimulationService implements ISimulationService {
       this.events.unshift(evt);
     }
 
-    const latestEvent = output.newEvents.length > 0 ? output.newEvents[output.newEvents.length - 1] ?? null : null;
+    const latestEvent =
+      output.newEvents.length > 0 ? (output.newEvents[output.newEvents.length - 1] ?? null) : null;
     this.notifyListeners(latestEvent);
   }
 

@@ -17,14 +17,14 @@ export function CommercialRegisterPage() {
         emptyText="Keine Registerdaten erfasst."
       >
         <section aria-label="Registerdaten">
-        <dl>
-          {HANDELSREGISTER.details.map((detail) => (
-            <div key={detail[0]}>
-              <dt>{detail[0]}</dt>
-              <dd>{detail[1]}</dd>
-            </div>
-          ))}
-        </dl>
+          <dl>
+            {HANDELSREGISTER.details.map((detail) => (
+              <div key={detail[0]}>
+                <dt>{detail[0]}</dt>
+                <dd>{detail[1]}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
       </DataState>
     </div>

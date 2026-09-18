@@ -22,7 +22,10 @@ export function GrowthDriversPage() {
       <p>
         {TREIBER.title}: Die {TREIBER.drivers.length} Hebel für das ARR-Wachstum ab 2026.
       </p>
-      <DataState status={TREIBER.drivers.length > 0 ? 'ready' : 'empty'} emptyText="Keine Wachstumstreiber erfasst.">
+      <DataState
+        status={TREIBER.drivers.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Wachstumstreiber erfasst."
+      >
         <ul>
           {TREIBER.drivers.map((driver) => (
             <li key={driver}>{driver}</li>

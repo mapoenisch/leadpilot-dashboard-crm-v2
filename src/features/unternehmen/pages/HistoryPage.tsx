@@ -8,7 +8,10 @@ export function HistoryPage() {
     <div>
       <h1>Gründung &amp; Entwicklung</h1>
       <p>{HISTORIE.title}: von der Gründung bis zum zweiten Marktjahr.</p>
-      <DataState status={HISTORIE.events.length > 0 ? 'ready' : 'empty'} emptyText="Keine Historie erfasst.">
+      <DataState
+        status={HISTORIE.events.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Historie erfasst."
+      >
         <ol>
           {HISTORIE.events.map((ereignis) => (
             <li key={`${ereignis.date}-${ereignis.title}`}>

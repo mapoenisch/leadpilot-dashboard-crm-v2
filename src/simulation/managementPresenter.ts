@@ -25,42 +25,44 @@ export class ManagementPresenter {
 
   public static getManagementViewData(
     aggregation: ScenarioAggregationResult,
-    state: SimulationState
+    state: SimulationState,
   ): ManagementViewData {
     const arrMedian = aggregation.metrics.arr.median;
     const mrrMedian = aggregation.metrics.mrr.median;
     const custMedian = aggregation.metrics.customers.median;
     const ebitdaVal =
-      aggregation.metrics.financialMetrics?.ebitda.median ?? state.metrics?.financialMetrics?.ebitda ?? 0;
+      aggregation.metrics.financialMetrics?.ebitda.median ??
+      state.metrics?.financialMetrics?.ebitda ??
+      0;
 
     const arrComp = GoalTargetEvaluator.computeBaselineComparison(
       'liveARR',
       arrMedian,
-      this.BASELINE_ARR
+      this.BASELINE_ARR,
     );
     const mrrComp = GoalTargetEvaluator.computeBaselineComparison(
       'liveMRR',
       mrrMedian,
-      this.BASELINE_MRR
+      this.BASELINE_MRR,
     );
     const custComp = GoalTargetEvaluator.computeBaselineComparison(
       'liveCustomers',
       custMedian,
-      this.BASELINE_CUSTOMERS
+      this.BASELINE_CUSTOMERS,
     );
 
     const arrGoal = GoalTargetEvaluator.evaluateGoalTarget(
       'liveARR',
       arrMedian,
       { kpiId: 'liveARR', targetValue: 500000 },
-      state.tickCount
+      state.tickCount,
     );
 
     const ebitdaGoal = GoalTargetEvaluator.evaluateGoalTarget(
       'ebitda',
       ebitdaVal,
       { kpiId: 'ebitda', targetValue: 50000 },
-      state.tickCount
+      state.tickCount,
     );
 
     return {

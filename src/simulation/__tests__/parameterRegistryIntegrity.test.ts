@@ -36,9 +36,13 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   const testAPassed = requiredV1Levers.every((lever) => defKeys.includes(lever));
 
   if (testAPassed) {
-    log.push(`✅ TEST A PASSED: All 7 required V1 control levers are registered in ParameterRegistry.`);
+    log.push(
+      `✅ TEST A PASSED: All 7 required V1 control levers are registered in ParameterRegistry.`,
+    );
   } else {
-    log.push(`❌ TEST A FAILED: Missing required V1 levers in registry! Registered: ${defKeys.join(', ')}`);
+    log.push(
+      `❌ TEST A FAILED: Missing required V1 levers in registry! Registered: ${defKeys.join(', ')}`,
+    );
     overallPassed = false;
   }
 
@@ -62,7 +66,9 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
     defaults.salesCycleDays === 38;
 
   if (defaultsValid) {
-    log.push('✅ TEST B PASSED: ParameterRegistry provides binding V1 defaults (65.000 € Budget, 2.8 % Churn, 38d Cycle, 2 FTE Sales/CS).');
+    log.push(
+      '✅ TEST B PASSED: ParameterRegistry provides binding V1 defaults (65.000 € Budget, 2.8 % Churn, 38d Cycle, 2 FTE Sales/CS).',
+    );
   } else {
     log.push(`❌ TEST B FAILED: Default values diverged! Defaults: ${JSON.stringify(defaults)}`);
     overallPassed = false;
@@ -86,9 +92,13 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
     validChurn === null;
 
   if (testCPassed) {
-    log.push('✅ TEST C PASSED: Values outside range correctly rejected (Churn 5.1% rejected due to binding 5.0% max limit). Valid 3.5% accepted.');
+    log.push(
+      '✅ TEST C PASSED: Values outside range correctly rejected (Churn 5.1% rejected due to binding 5.0% max limit). Valid 3.5% accepted.',
+    );
   } else {
-    log.push(`❌ TEST C FAILED: Range validation failed! Low Churn: ${errLowChurn}, High Churn: ${errHighChurn}`);
+    log.push(
+      `❌ TEST C FAILED: Range validation failed! Low Churn: ${errLowChurn}, High Churn: ${errHighChurn}`,
+    );
     overallPassed = false;
   }
 
@@ -100,10 +110,13 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   const errNanType = registry.validateSingleParameter('salesCycleDays', NaN);
   const validNumType = registry.validateSingleParameter('salesRepCount', 4);
 
-  const testDPassed = typeof errStringType === 'string' && typeof errNanType === 'string' && validNumType === null;
+  const testDPassed =
+    typeof errStringType === 'string' && typeof errNanType === 'string' && validNumType === null;
 
   if (testDPassed) {
-    log.push('✅ TEST D PASSED: Non-numeric values ("zwei", NaN) rejected. Numeric integer (4) accepted.');
+    log.push(
+      '✅ TEST D PASSED: Non-numeric values ("zwei", NaN) rejected. Numeric integer (4) accepted.',
+    );
   } else {
     log.push('❌ TEST D FAILED: Data type validation allowed invalid non-numeric values!');
     overallPassed = false;
@@ -120,22 +133,34 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   // Mix 2: Sum = 80% (Must be auto-normalized proportionally to 100%)
   const mix2 = { linkedIn: 30, seo: 20, partner: 15, webinar: 10, outbound: 5 };
   const res2 = registry.normalizeChannelMix(mix2);
-  const sumRes2 = res2.mix.linkedIn + res2.mix.seo + res2.mix.partner + res2.mix.webinar + res2.mix.outbound;
+  const sumRes2 =
+    res2.mix.linkedIn + res2.mix.seo + res2.mix.partner + res2.mix.webinar + res2.mix.outbound;
 
   // Mix 3: Invalid negative value (Must be rejected)
   let mix3Rejected = false;
   try {
-    registry.normalizeChannelMix({ linkedIn: -10, seo: 50, partner: 20, webinar: 20, outbound: 20 });
+    registry.normalizeChannelMix({
+      linkedIn: -10,
+      seo: 50,
+      partner: 20,
+      webinar: 20,
+      outbound: 20,
+    });
   } catch {
     mix3Rejected = true;
   }
 
-  const testEPassed = !res1.normalized && res2.normalized && Math.abs(sumRes2 - 100) < 0.01 && mix3Rejected;
+  const testEPassed =
+    !res1.normalized && res2.normalized && Math.abs(sumRes2 - 100) < 0.01 && mix3Rejected;
 
   if (testEPassed) {
-    log.push(`✅ TEST E PASSED: Valid 100% mix accepted unchanged. 80% sum mix proportionally auto-normalized to exact 100.00% (${sumRes2}%). Negative channel value correctly rejected.`);
+    log.push(
+      `✅ TEST E PASSED: Valid 100% mix accepted unchanged. 80% sum mix proportionally auto-normalized to exact 100.00% (${sumRes2}%). Negative channel value correctly rejected.`,
+    );
   } else {
-    log.push(`❌ TEST E FAILED: Channel mix normalization failed! SumRes2: ${sumRes2}, Mix3Rejected: ${mix3Rejected}`);
+    log.push(
+      `❌ TEST E FAILED: Channel mix normalization failed! SumRes2: ${sumRes2}, Mix3Rejected: ${mix3Rejected}`,
+    );
     overallPassed = false;
   }
 
@@ -144,7 +169,7 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   // ---------------------------------------------------------
   log.push('\n--- TEST F: Full Parameter Set Validation in Preflight ---');
   const { version: validVersion } = service.createScenario('Preflight Test Scenario');
-  
+
   // Corrupt version parameters in repo to test missing parameter detection
   const corruptVersion = JSON.parse(JSON.stringify(validVersion));
   corruptVersion.id = 'ver-corrupt';
@@ -152,12 +177,18 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   repo.saveVersion(corruptVersion);
 
   const preflightCorrupt = PreflightValidator.validateRun('ver-corrupt', 42, repo, registry);
-  const testFPassed = !preflightCorrupt.valid && preflightCorrupt.errors.some((e) => e.message.includes('salesRepCount'));
+  const testFPassed =
+    !preflightCorrupt.valid &&
+    preflightCorrupt.errors.some((e) => e.message.includes('salesRepCount'));
 
   if (testFPassed) {
-    log.push('✅ TEST F PASSED: Preflight validator correctly rejected version missing mandatory parameter "salesRepCount".');
+    log.push(
+      '✅ TEST F PASSED: Preflight validator correctly rejected version missing mandatory parameter "salesRepCount".',
+    );
   } else {
-    log.push('❌ TEST F FAILED: Preflight validator allowed version with missing mandatory parameter!');
+    log.push(
+      '❌ TEST F FAILED: Preflight validator allowed version with missing mandatory parameter!',
+    );
     overallPassed = false;
   }
 
@@ -179,7 +210,9 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
     crmContactsBefore === crmContactsAfter;
 
   if (testGPassed) {
-    log.push('✅ TEST G PASSED: Preflight validation executed with 100% zero side-effects on state and CRM baseline.');
+    log.push(
+      '✅ TEST G PASSED: Preflight validation executed with 100% zero side-effects on state and CRM baseline.',
+    );
   } else {
     log.push('❌ TEST G FAILED: Preflight validation produced side-effects!');
     overallPassed = false;
@@ -201,7 +234,9 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   }
 
   if (invalidRunBlocked) {
-    log.push('✅ TEST H PASSED: ScenarioService.runScenarioVersion() blocked run execution when Preflight failed.');
+    log.push(
+      '✅ TEST H PASSED: ScenarioService.runScenarioVersion() blocked run execution when Preflight failed.',
+    );
   } else {
     log.push('❌ TEST H FAILED: Invalid run execution was not blocked by Preflight!');
     overallPassed = false;
@@ -215,7 +250,9 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   const testIPassed = validRunResult.run.status === 'COMPLETED';
 
   if (testIPassed) {
-    log.push(`✅ TEST I PASSED: Valid scenario version passed Preflight and completed run "${validRunResult.run.runId}".`);
+    log.push(
+      `✅ TEST I PASSED: Valid scenario version passed Preflight and completed run "${validRunResult.run.runId}".`,
+    );
   } else {
     log.push('❌ TEST I FAILED: Valid run failed to complete!');
     overallPassed = false;
@@ -229,12 +266,19 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   const baselineContacts = await CRMRepository.getContacts();
   const baselineDeals = await CRMRepository.getImportedFunnelDeals();
 
-  const testJPassed = baselineCompanies.length === 20 && baselineContacts.length === 100 && baselineDeals.length === 40;
+  const testJPassed =
+    baselineCompanies.length === 20 &&
+    baselineContacts.length === 100 &&
+    baselineDeals.length === 40;
 
   if (testJPassed) {
-    log.push('✅ TEST J PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).');
+    log.push(
+      '✅ TEST J PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).',
+    );
   } else {
-    log.push('❌ TEST J FAILED: Historical Ebene A baseline was mutated by parameter validation or preflight!');
+    log.push(
+      '❌ TEST J FAILED: Historical Ebene A baseline was mutated by parameter validation or preflight!',
+    );
     overallPassed = false;
   }
 
@@ -242,7 +286,8 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
   // TEST K: Single Source of Truth
   // ---------------------------------------------------------
   log.push('\n--- TEST K: Single Source of Truth ---');
-  const repoBaseParams = ScenarioRepository.getInstance().getScenario('scenario-base-2026')?.currentVersionId;
+  const repoBaseParams =
+    ScenarioRepository.getInstance().getScenario('scenario-base-2026')?.currentVersionId;
   const baseVersionObj = repoBaseParams ? repo.getVersion(repoBaseParams) : null;
   const registryDefaults = registry.getDefaultParameters();
 
@@ -251,9 +296,13 @@ export async function runParameterRegistryTest(): Promise<{ success: boolean; lo
     JSON.stringify(baseVersionObj.parameters) === JSON.stringify(registryDefaults);
 
   if (testKPassed) {
-    log.push('✅ TEST K PASSED: ScenarioRepository base parameters match ParameterRegistry defaults 100%. ParameterRegistry is Single Source of Truth.');
+    log.push(
+      '✅ TEST K PASSED: ScenarioRepository base parameters match ParameterRegistry defaults 100%. ParameterRegistry is Single Source of Truth.',
+    );
   } else {
-    log.push(`❌ TEST K FAILED: Parameter mismatch between Repository defaults and ParameterRegistry!`);
+    log.push(
+      `❌ TEST K FAILED: Parameter mismatch between Repository defaults and ParameterRegistry!`,
+    );
     overallPassed = false;
   }
 

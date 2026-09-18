@@ -31,7 +31,10 @@ export function HeadcountPage() {
     <div>
       <h1>Headcount-Entwicklung</h1>
       <p>Mitarbeiterkapazität je Bereich mit FTE-Verlauf seit Q1 2024.</p>
-      <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine Headcount-Daten erfasst.">
+      <DataState
+        status={rows.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Headcount-Daten erfasst."
+      >
         <section aria-label="Kapazität je Bereich">
           <Table
             columns={[

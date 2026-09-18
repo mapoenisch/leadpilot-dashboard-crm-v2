@@ -27,10 +27,13 @@ export function PnLPage() {
     <div>
       <h1>Gewinn- und Verlustrechnung</h1>
       <p>
-        GuV der LeadPilot GmbH: FY 2024 und FY 2025 sind Ist-Werte, Plan 2026 ist die
-        verabschiedete Planung. Alle Beträge in Euro.
+        GuV der LeadPilot GmbH: FY 2024 und FY 2025 sind Ist-Werte, Plan 2026 ist die verabschiedete
+        Planung. Alle Beträge in Euro.
       </p>
-      <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine GuV-Positionen erfasst.">
+      <DataState
+        status={rows.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine GuV-Positionen erfasst."
+      >
         <section aria-label="GuV-Tabelle">
           <Table
             columns={[

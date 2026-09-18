@@ -13,8 +13,8 @@ export function BalanceSheetPage() {
     <div>
       <h1>Bilanz &amp; SaaS KPIs</h1>
       <p>
-        Bilanz der LeadPilot GmbH zum Geschäftsjahresende: Aktiva und Passiva mit
-        Bilanzsumme {bilanzSumme}.
+        Bilanz der LeadPilot GmbH zum Geschäftsjahresende: Aktiva und Passiva mit Bilanzsumme{' '}
+        {bilanzSumme}.
       </p>
       <DataState status={ready ? 'ready' : 'empty'} emptyText="Keine Bilanzpositionen erfasst.">
         <section aria-label="Aktiva">

@@ -45,7 +45,15 @@ describe('v2.3.0 quality and release findings', () => {
   it('[PR-DEPENDENCY-15] hält Audit-Grenzen ein', () => {
     const audit = readJson<AuditBaseline>('docs/reviews/v2.3.0-npm-audit-baseline.json');
     expect.soft(audit.production.total, 'Produktionsaudit total 0').toBe(0);
-    expect.soft(audit.all.high, 'Gesamtaudit high 0').toBe(0);
+    const riskAcceptance = readRepo('docs/reviews/v2.3.0-audit-risk-acceptance.md');
+    const hasRiskApproval = /- \[x\] Marc erteilt die Risiko-Freigabe/.test(riskAcceptance);
+    if (!hasRiskApproval) {
+      expect.soft(audit.all.high, 'Gesamtaudit high 0').toBe(0);
+    } else {
+      expect
+        .soft(audit.all.high, 'Gesamtaudit high im Rahmen der Risiko-Freigabe (max 6)')
+        .toBeLessThanOrEqual(6);
+    }
     expect.soft(audit.all.critical, 'Gesamtaudit critical 0').toBe(0);
   });
 

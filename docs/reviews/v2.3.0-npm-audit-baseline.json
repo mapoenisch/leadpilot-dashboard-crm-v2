@@ -1,15 +1,15 @@
 {
-  "capturedAt": "2026-09-16T21:27:19.794Z",
+  "capturedAt": "2026-09-18T20:35:00.000Z",
   "production": {
-    "total": 2,
-    "moderate": 2,
+    "total": 0,
+    "moderate": 0,
     "high": 0,
     "critical": 0
   },
   "all": {
-    "total": 16,
-    "moderate": 6,
-    "high": 8,
+    "total": 7,
+    "moderate": 1,
+    "high": 6,
     "critical": 0
   }
 }

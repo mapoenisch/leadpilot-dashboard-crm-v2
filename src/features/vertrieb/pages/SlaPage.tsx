@@ -13,7 +13,10 @@ export function SlaPage() {
     <div>
       <h1>SLA Marketing &amp; Sales</h1>
       <p>{SLA.handoff.title}: Zuständigkeiten an der Übergabe von MQL zu SQL.</p>
-      <DataState status={uebergabe.length > 0 ? 'ready' : 'empty'} emptyText="Keine SLA-Regeln erfasst.">
+      <DataState
+        status={uebergabe.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine SLA-Regeln erfasst."
+      >
         <section aria-label={SLA.handoff.title}>
           <h2>{SLA.handoff.title}</h2>
           <Table

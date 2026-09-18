@@ -12,7 +12,10 @@ function readParam(key: string, initialValue: string): string {
 // keine Remounts) und folgt dem Zurück-Button per popstate. Ohne
 // Router-Kontext (z. B. isolierte Unit-Tests) reines useState-Verhalten.
 // Die serverseitige Query-Synchronisation bleibt 067N-Sache.
-export function useUrlSyncedState(key: string, initialValue: string): [string, (next: string) => void] {
+export function useUrlSyncedState(
+  key: string,
+  initialValue: string,
+): [string, (next: string) => void] {
   const inRouter = useInRouterContext();
   const [value, setValueState] = useState<string>(() =>
     inRouter ? readParam(key, initialValue) : initialValue,

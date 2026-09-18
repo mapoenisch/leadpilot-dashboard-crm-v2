@@ -7,8 +7,13 @@ export function PricingPage() {
   return (
     <div>
       <h1>Preismodell</h1>
-      <p>{PRICING.title}: {String(PRICING.tiers.length)} Tarife mit Leistungsumfang.</p>
-      <DataState status={PRICING.tiers.length > 0 ? 'ready' : 'empty'} emptyText="Keine Tarife erfasst.">
+      <p>
+        {PRICING.title}: {String(PRICING.tiers.length)} Tarife mit Leistungsumfang.
+      </p>
+      <DataState
+        status={PRICING.tiers.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Tarife erfasst."
+      >
         {PRICING.tiers.map((tarif) => (
           <section key={tarif.name} aria-label={`Tarif ${tarif.name}`}>
             <h2>

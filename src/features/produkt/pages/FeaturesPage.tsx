@@ -8,7 +8,10 @@ export function FeaturesPage() {
     <div>
       <h1>Produkt &amp; Funktionsweise</h1>
       <p>{FUNKTION.title}: die vier Module der LeadPilot-Plattform.</p>
-      <DataState status={FUNKTION.modules.length > 0 ? 'ready' : 'empty'} emptyText="Keine Produktmodule erfasst.">
+      <DataState
+        status={FUNKTION.modules.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Produktmodule erfasst."
+      >
         {FUNKTION.modules.map((modul) => (
           <section key={modul.name} aria-label={modul.name}>
             <h2>{modul.name}</h2>

@@ -28,8 +28,7 @@ export function ChannelsPage() {
     if ((daten[guenstigst] ?? 0) > wert) guenstigst = index;
     if ((daten[teuerst] ?? 0) < wert) teuerst = index;
   });
-  const euro = (index: number): string =>
-    `${(daten[index] ?? 0).toLocaleString('de-DE')} Euro`;
+  const euro = (index: number): string => `${(daten[index] ?? 0).toLocaleString('de-DE')} Euro`;
   const summary =
     `Günstigster Kanal ist ${labels[guenstigst]} mit ${euro(guenstigst)} Marketing-CAC, ` +
     `teuerster ist ${labels[teuerst]} mit ${euro(teuerst)}.`;
@@ -37,7 +36,8 @@ export function ChannelsPage() {
     <div>
       <h1>Kanalperformance</h1>
       <p>
-        Akquisitionskanäle mit Anteil, Neukunden und {(KANAELE.chartRoi.datasets[0]?.label ?? 'Marketing-CAC').toLowerCase()}.
+        Akquisitionskanäle mit Anteil, Neukunden und{' '}
+        {(KANAELE.chartRoi.datasets[0]?.label ?? 'Marketing-CAC').toLowerCase()}.
       </p>
       <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine Kanaldaten erfasst.">
         <section aria-label="Kanalvergleich">

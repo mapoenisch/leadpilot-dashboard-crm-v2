@@ -33,13 +33,15 @@ export function PerformancePage() {
     `${CHART_PRODUKT.datasets[1]?.label} von ${scoring(0)} auf ${scoring(quartale.length - 1)}.`;
   const churnTop = CHART_CHURN.labels[0];
   const churnTopWert = CHART_CHURN.datasets[0]?.data[0] ?? 0;
-  const churnSummary =
-    `Häufigster Kündigungsgrund ist ${churnTop} mit ${String(churnTopWert)} Nennungen.`;
+  const churnSummary = `Häufigster Kündigungsgrund ist ${churnTop} mit ${String(churnTopWert)} Nennungen.`;
   return (
     <div>
       <h1>Produkt-Performance</h1>
       <p>{PERF.title}: Verfügbarkeit, Aktivierung und Kündigungsgründe.</p>
-      <DataState status={PERF.metrics.length > 0 ? 'ready' : 'empty'} emptyText="Keine Performance-Daten erfasst.">
+      <DataState
+        status={PERF.metrics.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Performance-Daten erfasst."
+      >
         <section aria-label="Kernmetriken">
           <h2>Kernmetriken</h2>
           <dl>
@@ -51,7 +53,10 @@ export function PerformancePage() {
             ))}
           </dl>
         </section>
-        <AccessibleChartSummary title="Quartalsverlauf Aktivierung & Scoring" summary={verlaufSummary}>
+        <AccessibleChartSummary
+          title="Quartalsverlauf Aktivierung & Scoring"
+          summary={verlaufSummary}
+        >
           {reihen.map((reihe) => (
             <section key={reihe.label} aria-label={reihe.label}>
               <h3>{reihe.label}</h3>

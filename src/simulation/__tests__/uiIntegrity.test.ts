@@ -1,7 +1,11 @@
 import { CRMRepository } from '../../services/db/crmRepository';
 import { ScenarioService } from '../scenarioService';
 import { simulationService } from '../simulationService';
-import { DEFAULT_BASE_2026_SCENARIO_ID, DEFAULT_BASE_2026_VERSION_ID, ScenarioRepository } from '../scenarioRepository';
+import {
+  DEFAULT_BASE_2026_SCENARIO_ID,
+  DEFAULT_BASE_2026_VERSION_ID,
+  ScenarioRepository,
+} from '../scenarioRepository';
 import { parameterRegistry } from '../parameterRegistry';
 import { createSnapshotRepository } from '../../services/db/indexedDbSnapshotRepository';
 import { ScenarioParameters } from '../../types/scenario';
@@ -18,10 +22,13 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   // ---------------------------------------------------------
   log.push('\n--- TEST A: Szenarioübersicht via ScenarioService ---');
   const scenarios = scenService.getScenarios();
-  const testAPassed = scenarios.length > 0 && scenarios.some((s) => s.id === DEFAULT_BASE_2026_SCENARIO_ID);
+  const testAPassed =
+    scenarios.length > 0 && scenarios.some((s) => s.id === DEFAULT_BASE_2026_SCENARIO_ID);
 
   if (testAPassed) {
-    log.push(`✅ TEST A PASSED: ${scenarios.length} scenarios successfully loaded via ScenarioService (Base 2026 found).`);
+    log.push(
+      `✅ TEST A PASSED: ${scenarios.length} scenarios successfully loaded via ScenarioService (Base 2026 found).`,
+    );
   } else {
     log.push('❌ TEST A FAILED: Scenario loading failed!');
     overallPassed = false;
@@ -98,7 +105,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   const testFPassed = typeof progressRatio === 'number' && progressRatio >= 0 && progressRatio <= 1;
 
   if (testFPassed) {
-    log.push(`✅ TEST F PASSED: Worker progress ratio strictly formatted as completedRuns / totalRuns (${completedRuns} / ${totalRuns}).`);
+    log.push(
+      `✅ TEST F PASSED: Worker progress ratio strictly formatted as completedRuns / totalRuns (${completedRuns} / ${totalRuns}).`,
+    );
   } else {
     log.push('❌ TEST F FAILED: Worker progress protocol error!');
     overallPassed = false;
@@ -113,7 +122,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   const testGPassed = !stateAfterPause.isRunning;
 
   if (testGPassed) {
-    log.push('✅ TEST G PASSED: SimulationService pause/resume controls triggered cleanly via Application Service layer.');
+    log.push(
+      '✅ TEST G PASSED: SimulationService pause/resume controls triggered cleanly via Application Service layer.',
+    );
   } else {
     log.push('❌ TEST G FAILED: Control actions failed!');
     overallPassed = false;
@@ -130,7 +141,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
     typeof reRunResult.run.seed === 'number';
 
   if (testHPassed) {
-    log.push(`✅ TEST H PASSED: Re-Run protocol executed successfully with new random seed (${reRunResult.run.seed}).`);
+    log.push(
+      `✅ TEST H PASSED: Re-Run protocol executed successfully with new random seed (${reRunResult.run.seed}).`,
+    );
   } else {
     log.push('❌ TEST H FAILED: Re-Run protocol error!');
     overallPassed = false;
@@ -148,7 +161,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
     reproduceResult.run.manifest.seed === reRunResult.run.manifest.seed;
 
   if (testIPassed) {
-    log.push(`✅ TEST I PASSED: Reproduce protocol strictly preserved original seed (${reproduceResult.run.seed}) and manifest.`);
+    log.push(
+      `✅ TEST I PASSED: Reproduce protocol strictly preserved original seed (${reproduceResult.run.seed}) and manifest.`,
+    );
   } else {
     log.push('❌ TEST I FAILED: Reproduce seed mismatch!');
     overallPassed = false;
@@ -165,7 +180,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
     typeof snapRepoJ.listProjectionsByRun === 'function';
 
   if (testJPassed) {
-    log.push('✅ TEST J PASSED: Snapshot and AnalyticsProjection accessed strictly via ISnapshotRepository service layer.');
+    log.push(
+      '✅ TEST J PASSED: Snapshot and AnalyticsProjection accessed strictly via ISnapshotRepository service layer.',
+    );
   } else {
     log.push('❌ TEST J FAILED: Snapshot abstraction error!');
     overallPassed = false;
@@ -183,7 +200,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
     typeof aggResult.metrics.arr.p90 === 'number';
 
   if (testKPassed) {
-    log.push(`✅ TEST K PASSED: MonteCarloAggregator computed statistics (P50 ARR: ${aggResult.metrics.arr.median.toLocaleString('de-DE')} €).`);
+    log.push(
+      `✅ TEST K PASSED: MonteCarloAggregator computed statistics (P50 ARR: ${aggResult.metrics.arr.median.toLocaleString('de-DE')} €).`,
+    );
   } else {
     log.push('❌ TEST K FAILED: Monte-Carlo aggregation calculation error!');
     overallPassed = false;
@@ -197,7 +216,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   const testLPassed = arrMetrics.p10 <= arrMetrics.median && arrMetrics.median <= arrMetrics.p90;
 
   if (testLPassed) {
-    log.push(`✅ TEST L PASSED: Quantil ordering strictly holds: P10 (${arrMetrics.p10}) <= P50 (${arrMetrics.median}) <= P90 (${arrMetrics.p90}).`);
+    log.push(
+      `✅ TEST L PASSED: Quantil ordering strictly holds: P10 (${arrMetrics.p10}) <= P50 (${arrMetrics.median}) <= P90 (${arrMetrics.p90}).`,
+    );
   } else {
     log.push('❌ TEST L FAILED: Percentile ordering violated!');
     overallPassed = false;
@@ -225,7 +246,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   const testNPassed = typeof runsN.validRunCount === 'number';
 
   if (testNPassed) {
-    log.push('✅ TEST N PASSED: Zero direct indexedDB or ScenarioRepository calls in React components.');
+    log.push(
+      '✅ TEST N PASSED: Zero direct indexedDB or ScenarioRepository calls in React components.',
+    );
   } else {
     log.push('❌ TEST N FAILED: Architecture violation detected!');
     overallPassed = false;
@@ -248,7 +271,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   }
 
   if (blockedInvalidRunO) {
-    log.push('✅ TEST O PASSED: Preflight validator correctly rejected invalid parameter values (Churn 15%).');
+    log.push(
+      '✅ TEST O PASSED: Preflight validator correctly rejected invalid parameter values (Churn 15%).',
+    );
   } else {
     log.push('❌ TEST O FAILED: Preflight failed to block invalid parameters!');
     overallPassed = false;
@@ -266,7 +291,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   }
 
   if (blockedBaseDeleteP) {
-    log.push('✅ TEST P PASSED: Protected Base 2026 Scenario cannot be deleted from repository/UI.');
+    log.push(
+      '✅ TEST P PASSED: Protected Base 2026 Scenario cannot be deleted from repository/UI.',
+    );
   } else {
     log.push('❌ TEST P FAILED: Base 2026 scenario deletion went unblocked!');
     overallPassed = false;
@@ -280,10 +307,15 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   const baselineContacts = await CRMRepository.getContacts();
   const baselineDeals = await CRMRepository.getImportedFunnelDeals();
 
-  const testQPassed = baselineCompanies.length === 20 && baselineContacts.length === 100 && baselineDeals.length === 40;
+  const testQPassed =
+    baselineCompanies.length === 20 &&
+    baselineContacts.length === 100 &&
+    baselineDeals.length === 40;
 
   if (testQPassed) {
-    log.push('✅ TEST Q PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).');
+    log.push(
+      '✅ TEST Q PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).',
+    );
   } else {
     log.push('❌ TEST Q FAILED: Historical Ebene A baseline was mutated!');
     overallPassed = false;
@@ -293,7 +325,9 @@ export async function runUiIntegrityTest(): Promise<{ success: boolean; log: str
   // TEST R: Regression Check (Suites 001-006)
   // ---------------------------------------------------------
   log.push('\n--- TEST R: Regression Check ---');
-  log.push('✅ TEST R PASSED: All previous test suites (001, 002, 003, 004, 005, 006) remain 100% green.');
+  log.push(
+    '✅ TEST R PASSED: All previous test suites (001, 002, 003, 004, 005, 006) remain 100% green.',
+  );
 
   log.push('\n=================================================================');
   if (overallPassed) {

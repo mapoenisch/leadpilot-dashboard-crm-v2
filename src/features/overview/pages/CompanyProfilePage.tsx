@@ -8,10 +8,13 @@ export function CompanyProfilePage() {
     <div>
       <h1>Unternehmenssteckbrief</h1>
       <p>
-        LeadPilot GmbH im Überblick: Rechtsform, Sitz, Register und Gesellschafter aus
-        dem verbindlichen Faktenblatt.
+        LeadPilot GmbH im Überblick: Rechtsform, Sitz, Register und Gesellschafter aus dem
+        verbindlichen Faktenblatt.
       </p>
-      <DataState status={PROFILE_ROWS.length > 0 ? 'ready' : 'empty'} emptyText="Kein Unternehmenssteckbrief erfasst.">
+      <DataState
+        status={PROFILE_ROWS.length > 0 ? 'ready' : 'empty'}
+        emptyText="Kein Unternehmenssteckbrief erfasst."
+      >
         <dl>
           {PROFILE_ROWS.map((row) => (
             <div key={row[0]}>

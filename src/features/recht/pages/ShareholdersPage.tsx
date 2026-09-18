@@ -16,19 +16,22 @@ export function ShareholdersPage() {
     <div>
       <h1>Gesellschafterliste</h1>
       <p>
-        Gesellschafter der LeadPilot GmbH mit Geschäftsanteilen und Stimmrechten,
-        Summe {summeStimmen}.
+        Gesellschafter der LeadPilot GmbH mit Geschäftsanteilen und Stimmrechten, Summe{' '}
+        {summeStimmen}.
       </p>
-      <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine Gesellschafter erfasst.">
+      <DataState
+        status={rows.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Gesellschafter erfasst."
+      >
         <section aria-label="Gesellschaftertabelle">
-        <Table
-          columns={[
-            { key: 'name', label: GESELLSCHAFTER.headers[0] ?? 'Gesellschafter' },
-            { key: 'anteil', label: GESELLSCHAFTER.headers[1] ?? 'Anteil' },
-            { key: 'stimmen', label: GESELLSCHAFTER.headers[2] ?? 'Stimmen' },
-          ]}
-          rows={rows}
-        />
+          <Table
+            columns={[
+              { key: 'name', label: GESELLSCHAFTER.headers[0] ?? 'Gesellschafter' },
+              { key: 'anteil', label: GESELLSCHAFTER.headers[1] ?? 'Anteil' },
+              { key: 'stimmen', label: GESELLSCHAFTER.headers[2] ?? 'Stimmen' },
+            ]}
+            rows={rows}
+          />
         </section>
       </DataState>
     </div>

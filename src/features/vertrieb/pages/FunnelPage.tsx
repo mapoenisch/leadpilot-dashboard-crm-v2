@@ -35,10 +35,13 @@ export function FunnelPage() {
     <div>
       <h1>Sales Funnel</h1>
       <p>
-        Trichterstufen {FUNNEL.chart.labels.join(', ')}: von Leads bis Neukunden mit
-        Conversion je Stufe.
+        Trichterstufen {FUNNEL.chart.labels.join(', ')}: von Leads bis Neukunden mit Conversion je
+        Stufe.
       </p>
-      <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine Funnel-Daten erfasst.">
+      <DataState
+        status={rows.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Funnel-Daten erfasst."
+      >
         <section aria-label="Trichtertabelle">
           <Table
             columns={[

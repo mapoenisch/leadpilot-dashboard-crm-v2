@@ -10,7 +10,10 @@ export function IdeaPage() {
       <p>
         {IDEE.title}: {IDEE.subtitle}
       </p>
-      <DataState status={IDEE.paragraphs.length > 0 ? 'ready' : 'empty'} emptyText="Keine Geschäftsidee erfasst.">
+      <DataState
+        status={IDEE.paragraphs.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Geschäftsidee erfasst."
+      >
         {IDEE.paragraphs.map((absatz) => (
           <p key={absatz}>{absatz}</p>
         ))}

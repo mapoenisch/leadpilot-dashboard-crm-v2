@@ -32,7 +32,10 @@ export function SegmentsPage() {
     <div>
       <h1>Kundensegmente</h1>
       <p>{SEGMENTE.title}: Branchenverteilung und regionale Streuung des Kundenbestands.</p>
-      <DataState status={segmente.length > 0 ? 'ready' : 'empty'} emptyText="Keine Kundensegmente erfasst.">
+      <DataState
+        status={segmente.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Kundensegmente erfasst."
+      >
         <section aria-label="Branchen">
           <h2>Branchen</h2>
           <Table
