@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
+import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { CrmResponsiveList, CrmColumn } from './CrmResponsiveList';
 import { useCrmReadModelEnvelope } from '@/hooks/queries/useCrmQueries';
 import type { CrmSourceHealth, CrmReadModel } from '@/types/dataSource';
@@ -54,8 +55,9 @@ function formatTimestamp(timestamp: string): string {
 // kein Mischzustand mehr. Unavailable ist Fehler ohne Ersatzdaten.
 export function ActivitiesView() {
   const { data: envelope, isLoading, isError, error } = useCrmReadModelEnvelope();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('ALL');
+  // 067J / G56: Filterzustand ist über die URL wiederherstellbar.
+  const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
+  const [typeFilter, setTypeFilter] = useUrlSyncedState('typ', 'ALL');
 
   const combinedActivities: ActivityItem[] = useMemo(() => {
     if (!envelope) return [];

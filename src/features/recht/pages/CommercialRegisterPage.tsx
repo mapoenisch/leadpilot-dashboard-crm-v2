@@ -16,6 +16,7 @@ export function CommercialRegisterPage() {
         status={HANDELSREGISTER.details.length > 0 ? 'ready' : 'empty'}
         emptyText="Keine Registerdaten erfasst."
       >
+        <section aria-label="Registerdaten">
         <dl>
           {HANDELSREGISTER.details.map((detail) => (
             <div key={detail[0]}>
@@ -24,6 +25,7 @@ export function CommercialRegisterPage() {
             </div>
           ))}
         </dl>
+        </section>
       </DataState>
     </div>
   );

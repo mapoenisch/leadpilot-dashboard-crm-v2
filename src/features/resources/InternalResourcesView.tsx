@@ -49,8 +49,8 @@ export function InternalResourcesView() {
       <Card padding="var(--space-4)">
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "var(--space-4)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ color: "var(--color-text-muted)", fontSize: "13px" }}>Dokumente & Decks:</span>
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", minWidth: 0 }}>
+            <span style={{ color: "var(--color-text-muted)", fontSize: "13px" }}>Dokumente & Decks:</span>
               <strong style={{ color: "var(--color-text)", fontSize: "15px" }}>{allResources.length}</strong>
             </div>
             <div style={{ width: "1px", height: "18px", background: "var(--color-border)" }} />
@@ -101,8 +101,8 @@ export function InternalResourcesView() {
         </div>
       </Card>
 
-      {/* Filter Tabs */}
-      <div style={{ display: "flex", gap: "8px", borderBottom: "1px solid var(--color-border-soft)", paddingBottom: "8px" }}>
+      {/* Filter Tabs — 067J / G56: Umbruch statt Clipping bei 375 px (PR-CLIP-13). */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", borderBottom: "1px solid var(--color-border-soft)", paddingBottom: "8px" }}>
         {[
           { id: "ALL", label: "Alle Materialien" },
           { id: "MARKETING", label: "Marketing & Roadmaps" },
@@ -124,6 +124,7 @@ export function InternalResourcesView() {
                 fontSize: "13px",
                 cursor: "pointer",
                 transition: "all 150ms ease",
+                flexShrink: 0,
               }}
             >
               {tab.label}

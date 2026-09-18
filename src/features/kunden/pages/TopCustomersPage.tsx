@@ -20,6 +20,7 @@ export function TopCustomersPage() {
         {TOP10.title}: {String(TOP10.rows.length)} Referenzkunden mit Paket und ARR.
       </p>
       <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine Referenzkunden erfasst.">
+        <section aria-label="Referenzkundentabelle">
         <Table
           columns={[
             { key: 'kunde', label: TOP10.headers[0] ?? 'Kunde' },
@@ -31,6 +32,7 @@ export function TopCustomersPage() {
           ]}
           rows={rows}
         />
+        </section>
       </DataState>
     </div>
   );

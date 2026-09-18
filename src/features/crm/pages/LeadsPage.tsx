@@ -13,6 +13,7 @@ import {
   useCrmDeals,
 } from '@/hooks/queries/useCrmQueries';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
+import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 
 // Stabile Fallbacks, damit abgeleitete Memos (companyMap) nicht pro Render
 // neu laufen, solange noch keine Query-Daten vorliegen.
@@ -21,7 +22,8 @@ const EMPTY_CONTACTS: Contact[] = [];
 const EMPTY_DEALS: ImportedFunnelDeal[] = [];
 
 export function LeadsPage() {
-  const [activeTab, setActiveTab] = React.useState('contacts');
+  // 067J / G56: Tab-Zustand ist über die URL wiederherstellbar.
+  const [activeTab, setActiveTab] = useUrlSyncedState('tab', 'contacts');
 
   // Vier parallele Reads über TanStack Query (statt manuellem Promise.all).
   // Der auditSummary-Wert wird nicht gerendert, Query läuft trotzdem mit —

@@ -9,6 +9,7 @@ export function HrPage() {
       <h1>HR-Kennzahlen</h1>
       <p>Personalökonomie der LeadPilot GmbH: Bestand, Fluktuation und Kosten je FTE.</p>
       <DataState status={HR.metrics.length > 0 ? 'ready' : 'empty'} emptyText="Keine HR-Kennzahlen erfasst.">
+        <section aria-label="Personalkennzahlen">
         <dl>
           {HR.metrics.map((metric) => (
             <div key={metric.label}>
@@ -17,6 +18,7 @@ export function HrPage() {
             </div>
           ))}
         </dl>
+        </section>
       </DataState>
     </div>
   );

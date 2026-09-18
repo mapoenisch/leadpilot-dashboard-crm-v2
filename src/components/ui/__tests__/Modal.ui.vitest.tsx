@@ -39,8 +39,9 @@ describe('Modal', () => {
       </Modal>,
     );
 
-    const buttons = screen.getAllByRole('button', { name: 'Dialog schließen' });
-    const closeBtn = buttons[1]!;
+    // 067J / G56: Genau ein Schließen-Button — der Backdrop ist kein
+    // falscher Button mehr.
+    const closeBtn = screen.getByRole('button', { name: 'Dialog schließen' });
     await user.click(closeBtn);
     expect(handleClose).toHaveBeenCalled();
   });
@@ -68,8 +69,8 @@ describe('Modal', () => {
     fireEvent.click(screen.getByTestId('modal-inner'));
     expect(handleClose).not.toHaveBeenCalled();
 
-    const [overlay] = screen.getAllByRole('button', { name: 'Dialog schließen' });
-    fireEvent.click(overlay!);
+    const overlay = screen.getByTestId('modal-overlay');
+    fireEvent.click(overlay);
     expect(handleClose).toHaveBeenCalled();
   });
 });

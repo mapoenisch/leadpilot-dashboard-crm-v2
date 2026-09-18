@@ -20,6 +20,7 @@ export function ShareholdersPage() {
         Summe {summeStimmen}.
       </p>
       <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine Gesellschafter erfasst.">
+        <section aria-label="Gesellschaftertabelle">
         <Table
           columns={[
             { key: 'name', label: GESELLSCHAFTER.headers[0] ?? 'Gesellschafter' },
@@ -28,6 +29,7 @@ export function ShareholdersPage() {
           ]}
           rows={rows}
         />
+        </section>
       </DataState>
     </div>
   );

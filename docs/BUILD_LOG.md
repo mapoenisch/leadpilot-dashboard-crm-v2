@@ -8392,3 +8392,37 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Ergebnis
 - G55 ist damit vollständig abgeschlossen: jsdom-Spiegel (4/4) **und** E2E (384/384) beide grün. Bereit für Push/Integration nach normalem Review-Prozess.
+
+## [2026-09-18] Gate G56: Builder 067J UX/A11y/Assets/Clipping (kein Push)
+
+**Ziel und Baseline-Commit:** G56 — PR-A11Y-12, PR-CLIP-13, PR-ASSET-14 schließen (roter Start per `test:v23:findings` belegt). Baseline: `8aa9320` (G55-Doku-Nachtrag). Branch: `feat/auftrag-067j-ux-a11y`. Umgebung: Node v22.11.0.
+
+### Geänderte Dateien
+- Neu: `src/hooks/useIsMobileViewport.ts` (640-px-Breakpoint wie CSS), `src/hooks/useUrlSyncedState.ts` (Filter/Tab per `history.replaceState` + `popstate`, ohne Router reines useState), `src/features/crm/components/CrmDesktopTable.tsx`, `src/features/crm/components/CrmMobileCards.tsx`, `public/assets/logo/leadpilot-mark.svg`, `public/fonts/*.woff2` (3 Dateien, ~102 KB), `docs/screenshots/auftrag-067-g56/README.md`.
+- Umgebaut: `Layout.tsx` (Skip-Link `#main-content`, `id` auf `main`), `Sidebar.tsx` (Drawer-`autoFocus`, Backdrop als natives Button-Geschwister), `Modal.tsx` (Backdrop als natives Button-Geschwister, `data-testid="modal-overlay"`), `CrmResponsiveList.tsx` (genau ein DOM via Hook, API unverändert), `DealsView`/`CompaniesView`/`ActivitiesView`/`LeadsPage` (`suche`/`stufe`/`branche`/`typ`/`tab` URL-synchron), `InternalResourcesView.tsx` (Banner/Tabs umbrechen bei 375 px), `ResourceCard.tsx` (`<picture>` WebP+PNG, Bildmaße), `index.html` (lokales SVG-Icon, Google-Fonts entfernt), `global.css` (`@font-face` lokal), `Modal.ui.vitest.tsx` (ehrliche Button-Selektoren).
+- Nachlauf SEMANTIC-11 (Quell-Vertrag): `ShareholdersPage`, `CommercialRegisterPage`, `BalancedScorecardPage`, `MarketOverviewPage`, `TopCustomersPage`, `HrPage` (je ein `<section>`-Wrapper, null visuelle Änderung), `DataBasisPage` (eine h1 via `DataBasisShell`, Testid-Verhalten des Ready-Zweigs erhalten).
+
+### Roter Starttest und Ursache
+`test:v23:findings`: PR-A11Y-12 und PR-ASSET-14 rot (Skip-Link/ID, `autoFocus`, `role="button"`-Backdrop, Doppel-DOM, Logo-Pfad, Google-Fonts). Header (`public/_headers`, G46) standen bereits. PR-SEMANTIC-11 rot durch 6 dl/Table-Seiten ohne Section-Tag plus 3 h1 in `DataBasisPage`.
+
+### Implementierung und Architekturentscheidung
+- Backdrops als native `<button type="button" tabIndex={-1}>`-Geschwister (ehrlich bedienbar, kein Tab-Stopp, kein falscher Button); Dialog/Drawer unverändert darüber.
+- Single-DOM: Aufteilung auf zwei Komponenten statt CSS-Doppelrender; öffentliche `CrmResponsiveList`-API identisch (4 Konsumenten unverändert angebunden).
+- URL-State bewusst clientseitig (`replaceState`, kein Verlaufseintrag); Server-Sync bleibt 067N.
+- Fonts als variable woff2 (eine Datei je Familie deckt alle Gewichte); WebP-Schwestern per PIL (1,5 MB → 70 KB, 792 KB → 29 KB).
+- Schutzbereiche: `src/simulation src/types src/context src/services/data src/store` unberührt; `src/features/resources`-Änderungen sind für 067J freigegeben.
+
+### Funktionale und negative Prüfungen
+- `test:v23:findings`: PR-SEMANTIC-11, PR-A11Y-12, PR-ASSET-14 alle grün. PR-CLIP-13 (Playwright, Auth nötig) bleibt Reviewer-Lauf.
+- Reparierte Regressionen: `Modal.ui` (ehrliche Selektoren), `ActivitiesView` (Hook ohne Router), `DataBasisPage` (Testid erst im Ready-Zweig).
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- `git diff 8aa9320 -- src/simulation src/types src/context src/services/data src/store`: leer. Nur `src/features/resources` geändert (067J-frei).
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm run verify` (001–025): grün. `npm test`: 113 Dateien / 487 Tests grün. `npm run build`: grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Altbefunde außerhalb des Diffs. `git diff --check`: sauber.
+- E2E/Clipping nicht ausführbar (`E2E_AUTH_*` fehlen in der Builder-Shell) — bleibt Reviewer-Sache mit frischem Login.
+
+### Reviewer-Befund
+- Offen — **G56 BEREIT FÜR UNABHÄNGIGES REVIEW (Clipping-E2E ausstehend).** Kein Push, keine Integration.

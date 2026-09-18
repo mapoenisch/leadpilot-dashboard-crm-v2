@@ -8,6 +8,27 @@ export interface ResourceCardProps {
   onOpen: (resource: ResourceMetadata) => void;
 }
 
+// 067J / G56: Natürliche Maße der zwei großen PNG-Thumbnails (per sips
+// vermessen) für explizite width/height-Attribute gegen Layout-Shift.
+const THUMBNAIL_DIMS: Record<string, { width: number; height: number }> = {
+  '/resources/graphics/sla-matrix.png': { width: 1536, height: 1024 },
+  '/resources/videos/leadpilot-werbespot-poster.png': { width: 1280, height: 720 },
+};
+
+function webpVariant(thumbnailPath: string): string {
+  return thumbnailPath in THUMBNAIL_DIMS
+    ? thumbnailPath.replace(/\.png$/, '.webp')
+    : thumbnailPath;
+}
+
+function thumbnailWidth(thumbnailPath: string): number | undefined {
+  return THUMBNAIL_DIMS[thumbnailPath]?.width;
+}
+
+function thumbnailHeight(thumbnailPath: string): number | undefined {
+  return THUMBNAIL_DIMS[thumbnailPath]?.height;
+}
+
 export function ResourceCard({ resource, onOpen }: ResourceCardProps) {
   const getTypeBadge = () => {
     switch (resource.type) {
@@ -90,18 +111,27 @@ export function ResourceCard({ resource, onOpen }: ResourceCardProps) {
               <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Live-Demo & ROI-Rechner</div>
             </div>
           ) : (
-            <img
-              src={resource.thumbnailPath}
-              alt={resource.title}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'top center',
-                transition: 'transform 200ms ease',
-              }}
-              loading="lazy"
-            />
+            // 067J / G56: WebP-Variante mit PNG-Fallback plus explizite
+            // Bildmaße (PR-ASSET-14) — nur die zwei großen PNG-Thumbnails
+            // besitzen eine .webp-Schwester, alle anderen Pfade fallen
+            // unverändert auf das Original zurück.
+            <picture style={{ width: '100%', height: '100%', display: 'block' }}>
+              <source srcSet={webpVariant(resource.thumbnailPath)} type="image/webp" />
+              <img
+                src={resource.thumbnailPath}
+                alt={resource.title}
+                width={thumbnailWidth(resource.thumbnailPath)}
+                height={thumbnailHeight(resource.thumbnailPath)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'top center',
+                  transition: 'transform 200ms ease',
+                }}
+                loading="lazy"
+              />
+            </picture>
           )}
 
           {resource.type === 'VIDEO' && (

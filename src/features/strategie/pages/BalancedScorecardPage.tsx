@@ -12,6 +12,7 @@ export function BalancedScorecardPage() {
         status={BSC.perspectives.length > 0 ? 'ready' : 'empty'}
         emptyText="Keine Scorecard-Perspektiven erfasst."
       >
+        <section aria-label="Perspektiven">
         <dl>
           {BSC.perspectives.map((perspective) => (
             <div key={perspective.name}>
@@ -20,6 +21,7 @@ export function BalancedScorecardPage() {
             </div>
           ))}
         </dl>
+        </section>
       </DataState>
     </div>
   );

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="LeadPilot Logo">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0B211F"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#00D9C6" stroke-width="3"/>
+  <path d="M20 46 V20 h11" fill="none" stroke="#00D9C6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M33 46 V20 h11" fill="none" stroke="#7CEFE6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

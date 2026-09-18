@@ -47,6 +47,15 @@ function dataAge(fetchedAt: string, now: number): string {
 // Gate G47 (Auftrag 067D): echte Datenbasis-Seite statt WebP-Platzhalter.
 // Quelle, Modus, letzter Abruf, Datenalter, Hash und Status sind sichtbar;
 // `unavailable` sieht niemals wie ein erfolgreicher Live-Zustand aus.
+function DataBasisShell({ children, testId }: { children: React.ReactNode; testId?: string }) {
+  return (
+    <main data-testid={testId}>
+      <h1>Datenbasis</h1>
+      {children}
+    </main>
+  );
+}
+
 export function DataBasisPage() {
   const { data: envelope, isLoading, isError, error } = useCrmReadModelEnvelope();
   const [now, setNow] = React.useState(() => Date.now());
@@ -55,29 +64,29 @@ export function DataBasisPage() {
     return () => window.clearInterval(timer);
   }, []);
 
+  // 067J / G56: Genau eine h1 im Quelltext — alle Zustände (loading,
+  // error, ready) teilen sich dieselbe Seitenhülle.
   if (isLoading) {
     return (
-      <main>
-        <h1>Datenbasis</h1>
+      <DataBasisShell>
         <ManagementChartState
           type="loading"
           message="Lade CRM-Envelope…"
           sourceLabel="CRM-Quellenwahrheit (G47)"
         />
-      </main>
+      </DataBasisShell>
     );
   }
 
   if (isError || !envelope) {
     return (
-      <main>
-        <h1>Datenbasis</h1>
+      <DataBasisShell>
         <ManagementChartState
           type="error"
           message={`Datenquelle nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Es werden keine Ersatzdaten angezeigt.`}
           sourceLabel="CRM-Quellenwahrheit (G47)"
         />
-      </main>
+      </DataBasisShell>
     );
   }
 
@@ -89,8 +98,7 @@ export function DataBasisPage() {
   ];
 
   return (
-    <main data-testid="data-basis-page">
-      <h1>Datenbasis</h1>
+    <DataBasisShell testId="data-basis-page">
       <SectionHeader
         eyebrow="CRM-Quellenwahrheit (G47)"
         title="Quelle und Zustand"
@@ -152,6 +160,6 @@ export function DataBasisPage() {
           </p>
         )}
       </Card>
-    </main>
+    </DataBasisShell>
   );
 }
