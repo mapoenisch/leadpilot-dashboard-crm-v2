@@ -8,19 +8,19 @@ Regressionsmaß — die visuelle Änderung ist beabsichtigt. Nachweis stattdesse
 Routen × 4 Prüfungen × 3 Viewports = 348 Tests) plus jsdom-Spiegel
 `src/app/__tests__/g54SemanticPages.ui.vitest.tsx`.
 
-## Ergebnis je Route und Viewport (jsdom 10/10 grün, E2E offen bis 348er-Lauf)
+## Ergebnis je Route und Viewport (348/348 grün in 29,3 s, unabhängiger Lauf)
 
 | Route | 1440 | 768 | 375 | Befund |
 |---|---|---|---|---|
-| `/company/profile` | offen | offen | offen | Steckbrief-dl + Strukturnotiz, kein WebP, 1 Content-h1, 0px Overflow |
-| `/company/highlights` | offen | offen | offen | Erfolge/Baustellen-dl + Fazit, 0px Overflow |
-| `/company/idea` | offen | offen | offen | Thesen-Absätze + USP-Liste, 0px Overflow |
-| `/company/value-proposition` | offen | offen | offen | Kernbotschaft + Nutzen-Sections, 0px Overflow |
-| `/company/history` | offen | offen | offen | Meilensteine als geordnete Liste, 0px Overflow |
-| `/product/features` | offen | offen | offen | Modul-Sections, 0px Overflow |
-| `/product/pricing` | offen | offen | offen | Tarif-Sections mit Merkmalslisten, 0px Overflow |
-| `/product/performance` | offen | offen | offen | Metriken-dl + Verlaufs/Churn-Balken mit Summary, 0px Overflow |
-| `/product/roadmap` | offen | offen | offen | Release-Sections mit Status, 0px Overflow |
+| `/company/profile` | 4/4 | 4/4 | 4/4 | Steckbrief-dl + Strukturnotiz, kein WebP, 1 Content-h1, 0px Overflow |
+| `/company/highlights` | 4/4 | 4/4 | 4/4 | Erfolge/Baustellen-dl + Fazit, 0px Overflow |
+| `/company/idea` | 4/4 | 4/4 | 4/4 | Thesen-Absätze + USP-Liste, 0px Overflow |
+| `/company/value-proposition` | 4/4 | 4/4 | 4/4 | Kernbotschaft + Nutzen-Sections, 0px Overflow |
+| `/company/history` | 4/4 | 4/4 | 4/4 | Meilensteine als geordnete Liste, 0px Overflow |
+| `/product/features` | 4/4 | 4/4 | 4/4 | Modul-Sections, 0px Overflow |
+| `/product/pricing` | 4/4 | 4/4 | 4/4 | Tarif-Sections mit Merkmalslisten, 0px Overflow |
+| `/product/performance` | 4/4 | 4/4 | 4/4 | Metriken-dl + Verlaufs/Churn-Balken mit Summary, 0px Overflow |
+| `/product/roadmap` | 4/4 | 4/4 | 4/4 | Release-Sections mit Status, 0px Overflow |
 
 Prüfpunkte je Zelle: kein `.webp`-Bild, genau eine Content-h1 (Header-h1 ist
 App-Chrome), >200 Zeichen auswählbarer Text, semantische Struktur

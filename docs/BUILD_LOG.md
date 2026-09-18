@@ -8343,7 +8343,7 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 ### Vollständige automatisierte Verifikation
 - `npx tsc --noEmit`: 0. `npm run verify` (001–025): grün. `npm test`: 112 Dateien / 483 Tests grün. `npm run build`: grün.
 - `npm run lint`: nur die 4 bekannten `max-lines`-Altbefunde außerhalb des Diffs. `git diff --check`: sauber.
-- E2E-Lauf nicht ausführbar (`E2E_AUTH_*` fehlen in der Builder-Shell) — bleibt Reviewer-Sache mit frischem Login.
+- E2E-Lauf durch Reviewer nachgeholt: **348/348 grün in 29,3 s** (29 Routen × 4 Prüfungen × 3 Viewports). Screenshot-Matrix `auftrag-067-g54/README.md` von `offen` auf `4/4` gesetzt.
 
 ### Reviewer-Befund
-- Offen — **G54 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, G55 bleibt blockiert.
+- Offen — **G54 BEREIT FÜR ABSCHLIESSENDE FREIGABE (E2E 348/348 belegt).** Kein Push, keine Integration, G55 bleibt blockiert.
