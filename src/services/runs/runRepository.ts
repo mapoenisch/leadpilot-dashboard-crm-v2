@@ -180,8 +180,13 @@ export function mapSnapshotRow(row: SnapshotRow, run: SimulationRun): Simulation
     scenarioId: run.scenarioId,
     scenarioVersionId: run.scenarioVersionId,
     tickId: row.tick_id ?? 0,
-    simulationDay: 0,
-    simulatedDate: '',
+    // 067F / G49 (Nacharbeit P1): Tag und Datum aus Projection (primär) oder
+    // State (Fallback) ableiten statt auf 0/'' zu verfallen — sonst ist der
+    // Roundtrip nicht feldtreu. Ungültiges wird validiert und fällt defensiv
+    // zurück (der Mapper darf die Workspace-Ladung nie sprengen; die
+    // CHECK-Constraints sichern die Schreibseite).
+    simulationDay: pickSimulationDay(projection, state),
+    simulatedDate: pickSimulatedDate(projection, state),
     modelVersion: run.modelVersion,
     schemaVersion: run.schemaVersion,
     baselineVersion: run.baselineVersion,
@@ -190,6 +195,32 @@ export function mapSnapshotRow(row: SnapshotRow, run: SimulationRun): Simulation
     projection,
     createdAt: row.created_at ?? '',
   };
+}
+
+function pickSimulationDay(
+  projection: Partial<SimulationSnapshot['projection']>,
+  state: Partial<SimulationSnapshot['state']>,
+): number {
+  const candidates = [projection.simulationDay, state.dayIndex];
+  for (const candidate of candidates) {
+    if (typeof candidate === 'number' && Number.isFinite(candidate) && candidate >= 0) {
+      return Math.floor(candidate);
+    }
+  }
+  return 0;
+}
+
+function pickSimulatedDate(
+  projection: Partial<SimulationSnapshot['projection']>,
+  state: Partial<SimulationSnapshot['state']>,
+): string {
+  const candidates = [projection.simulatedDate, state.simulatedDate];
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.length > 0) {
+      return candidate;
+    }
+  }
+  return '';
 }
 
 /** Stellt einen Zeitreihenpunkt aus der Vollobjekt-Konvention wieder her. */

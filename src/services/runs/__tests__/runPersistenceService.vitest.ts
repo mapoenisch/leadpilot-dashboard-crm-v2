@@ -4,6 +4,7 @@ import {
   loadScenarioWorkspace,
   type RunBundle,
 } from '../runPersistenceService';
+import { mapSnapshotRow } from '../runRepository';
 import type { Scenario, ScenarioVersion, SimulationRun } from '@/types/scenario';
 import type { SimulationEvent } from '@/types/simulation';
 import type { TimeSeriesPoint } from '@/types/aggregation';
@@ -198,5 +199,56 @@ describe('067F G49 runPersistenceService', () => {
     await expect(loadScenarioWorkspace('org-a', client)).rejects.toMatchObject({
       code: 'WORKSPACE_FAILED',
     });
+  });
+});
+
+describe('067F G49 mapSnapshotRow (Roundtrip-Treue)', () => {
+  const run = bundle().run;
+
+  it('leitet Tag und Datum aus der Projection ab (Tag 49 / 2026-02-19)', () => {
+    const snapshot = mapSnapshotRow(
+      {
+        snapshot_id: 'run-1_tick_49',
+        run_id: 'run-1',
+        tick_id: 49,
+        state: { dayIndex: 49, simulatedDate: '2026-02-19' },
+        projection: { simulationDay: 49, simulatedDate: '2026-02-19' },
+      },
+      run,
+    );
+    expect(snapshot.simulationDay).toBe(49);
+    expect(snapshot.simulatedDate).toBe('2026-02-19');
+    expect(snapshot.runId).toBe('run-1');
+    expect(snapshot.organizationId).toBe('org-a');
+  });
+
+  it('fällt auf State-Werte zurück, wenn die Projection schweigt', () => {
+    const snapshot = mapSnapshotRow(
+      {
+        snapshot_id: 'run-1_tick_7',
+        run_id: 'run-1',
+        tick_id: 7,
+        state: { dayIndex: 7, simulatedDate: '2026-01-08' },
+        projection: {},
+      },
+      run,
+    );
+    expect(snapshot.simulationDay).toBe(7);
+    expect(snapshot.simulatedDate).toBe('2026-01-08');
+  });
+
+  it('fällt defensiv auf 0/leer zurück statt die Ladung zu sprengen', () => {
+    const snapshot = mapSnapshotRow(
+      {
+        snapshot_id: 'run-1_tick_0',
+        run_id: 'run-1',
+        tick_id: 0,
+        state: { dayIndex: -3, simulatedDate: '' },
+        projection: { simulationDay: Number.NaN },
+      },
+      run,
+    );
+    expect(snapshot.simulationDay).toBe(0);
+    expect(snapshot.simulatedDate).toBe('');
   });
 });

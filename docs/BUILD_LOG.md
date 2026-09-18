@@ -8010,3 +8010,19 @@ Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema 
 - `supabase test db`: 66/66 grün (30 Persistenz + 36 Bestand). `npm test`: 106 Dateien / 424 Tests grün. `verify` 001–025 grün. tsc 0. Build grün (lokal-env für E2E, Standard-env danach neu). E2E lokal grün.
 - `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade (`src/context`, `src/features/resources`, Engine/Regeln, UI-Komponenten) leer.
 - **G49-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067G bleibt blockiert.
+
+## [2026-09-18] Gate G49: Nacharbeit 3 zum Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review gegen `586898f` → weiter NICHT FREIGEGEBEN (1 neuer P1: `mapSnapshotRow` setzt `simulationDay`/`simulatedDate` immer auf 0/leer). Umgebung: Node v22.11.0, Supabase CLI 2.117.0, Docker lokal.
+
+### Behebung
+- Beide Werte werden robust aus Projection (primär) oder State (Fallback) abgeleitet, validiert (finite Zahl ≥ 0, nicht-leerer String) und fallen defensiv auf 0/leer zurück, ohne die Ladung zu sprengen. Nur `src/services/runs/runRepository.ts` geändert.
+- Roundtrip-Tests: Tag 49 / `2026-02-19` aus Projection feldtreu; State-Fallback; defensiver Fallback bei ungültigen Werten.
+
+### E2E-Anmerkung (Flakiness, kein Codefehler)
+- Ein E2E-Versuch hing ohne Modal-Fehler bei 7 vorbestehenden Org-Runs (Ursache nicht reproduzierbar — Run-Pfad ist von der Mapper-Änderung unberührt, Unit-belegt); sauberer Neustart mit gewipter Org grün in 2,2 s. Betriebsregel bestätigt: E2E-Org braucht ≥ 3 freie Slots (10-Runs-Limit), lokale Wiederholungen erfordern Wipe per Docker-psql.
+
+### Finale Gate-Ergebnisse (Nacharbeit 3)
+- Fokustests 10/10 (neue Mapper-Roundtrips). `npm test`: 106 Dateien / 427 Tests grün. `verify` 001–025 grün. tsc 0. Build grün (lokal-env für E2E, Standard-env danach neu). E2E lokal grün (dieser Durchgang selbst ausgeführt).
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade leer.
+- **G49-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067G bleibt blockiert.
