@@ -8316,3 +8316,34 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Reviewer-Befund
 - Offen — **G53 BEREIT FÜR ABSCHLIESSENDE FREIGABE (E2E 240/240 belegt).** Kein Push, keine Integration, G54 bleibt blockiert.
+
+## [2026-09-18] Gate G54: Builder 067I Welle Unternehmen/Übersicht/Produkt (kein Push)
+
+**Ziel und Baseline-Commit:** G54 — 9 Ganzseiten-WebP (Übersicht 2, Unternehmen 3, Produkt 4) als echte React-Seiten mit auswählbarem Inhalt, genau einer Content-h1, semantischen Tabellen/Listen, zugänglichen Chartzusammenfassungen, Loading/Empty/Error/Ready. Baseline: `f22c605` (G53-E2E-Nachtrag). Branch: `feat/auftrag-067i-welle-g54`. Umgebung: Node v22.11.0.
+
+### Geänderte Dateien
+- Umgebaut (je Route): `CompanyProfilePage`, `YearHighlightsPage`, `IdeaPage`, `ValuePropositionPage`, `HistoryPage`, `FeaturesPage`, `PricingPage`, `PerformancePage`, `RoadmapPage` — ausschließlich vorhandene Domändaten (`execData`-PROFILE/HIGHLIGHTS, `unternehmenData`, `produktData`) und Primitives (Table, dl-/ul-/ol-Semantik, `ChartBarList`).
+- Neu: `src/app/__tests__/g54SemanticPages.ui.vitest.tsx` (jsdom-Spiegel, 10 Tests), `docs/screenshots/auftrag-067-g54/README.md` (Text-Matrix, Zellen `offen` bis 348er-Lauf — G53-P1-Lehre).
+- Erweitert: `e2e/semantic-routes.spec.ts` (G54-Routen ergänzt: 29 Routen × 4 Prüfungen × 3 Viewports = 348 Tests, Login-Redirect-Guard für alle).
+
+### Roter Starttest und Ursache
+9/9 Seiten renderten ausschließlich `<img src="...webp">` (per grep belegt: 037g 01/02/04–10). Bereits semantisch und nicht Teil der Welle: `/company/location` (nur dekoratives Backdrop), `/product/integration`, `/company/data-basis`.
+
+### Implementierung und Architekturentscheidung
+- Content-h1 genau eine je Route (Header-h1 ist App-Chrome; E2E zählt `main h1`). Kein eigenes `<main>` je Seite; `<main aria-label="Hauptinhalt">` stellt das Layout.
+- `DataState` mit ready/empty aus Datenvorhandensein (kein simuliertes Loading bei statischen Imports).
+- G52-P1-Lehre: alle Summaries/Einleitungen aus Domändaten abgeleitet (Performance beide `CHART_PRODUKT`-Reihen wie OKR, Churn-Top programmatisch, Roadmap-Zähler aus Array-Längen); Grep findet keine Betrags-Literale in den 9 Seiten.
+
+### Funktionale und negative Prüfungen
+- jsdom-Spiegel 10/10 (9 Seiten + Chart-Summaries). `npx playwright test e2e/semantic-routes.spec.ts --list`: 348 Tests gelistet.
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- 067I ist kein Schutzbereichs-Auftrag (nur Darstellung, Domändaten gelesen nicht geändert). `git diff f22c605 -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm run verify` (001–025): grün. `npm test`: 112 Dateien / 483 Tests grün. `npm run build`: grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Altbefunde außerhalb des Diffs. `git diff --check`: sauber.
+- E2E-Lauf nicht ausführbar (`E2E_AUTH_*` fehlen in der Builder-Shell) — bleibt Reviewer-Sache mit frischem Login.
+
+### Reviewer-Befund
+- Offen — **G54 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, G55 bleibt blockiert.
