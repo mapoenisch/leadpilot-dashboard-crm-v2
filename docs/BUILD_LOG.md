@@ -8283,3 +8283,35 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Reviewer-Befund
 - Offen — **G52 ERNEUT BEREIT FÜR UNABHÄNGIGES RE-REVIEW (E2E mit frischem Login).** Kein Push, keine Integration, G53 bleibt blockiert.
+
+## [2026-09-18] Gate G53: Builder 067I Welle Markt/Kunden/Vertrieb (kein Push)
+
+**Ziel und Baseline-Commit:** G53 — 11 Ganzseiten-WebP (Markt 3, Kunden 4, Vertrieb 4) als echte React-Seiten mit auswählbarem Inhalt, genau einer Content-h1, semantischen Tabellen/Listen, zugänglichen Chartzusammenfassungen, Loading/Empty/Error/Ready. Baseline: `90e414e` (G52-Nachbesserungen). Branch: `feat/auftrag-067i-welle-g53`. Umgebung: Node v22.11.0.
+
+### Geänderte Dateien
+- Umgebaut (je Route): `MarketOverviewPage`, `CompetitionPage`, `SwotPage`, `IcpPage`, `PersonaPage`, `SegmentsPage`, `TopCustomersPage`, `FunnelPage`, `SlaPage`, `ChannelsPage`, `PlanningPage` — ausschließlich vorhandene Domändaten (`marktData`, `kundenData` inkl. `icpData`/`personaData`, `vertriebData`) und Primitives (Table, dl-/ul-Semantik, `ChartBarList` auf `<meter>`-Basis).
+- Neu: `src/app/__tests__/g53SemanticPages.ui.vitest.tsx` (jsdom-Spiegel, 12 Tests), `docs/screenshots/auftrag-067-g53/README.md` (Text-Matrix, keine Binärdateien).
+- Erweitert: `e2e/semantic-routes.spec.ts` (G53-Routen ergänzt, gemeinsame `ALL_SEMANTIC_ROUTES`: 20 Routen × 4 Prüfungen × 3 Viewports = 240 Tests, Login-Redirect-Guard für alle).
+
+### Roter Starttest und Ursache
+11/11 Seiten renderten ausschließlich `<img src="...webp">` (per grep belegt: 037d 7× Markt/Kunden, 037e 4× Vertrieb).
+
+### Implementierung und Architekturentscheidung
+- Content-h1 genau eine je Route (Header-h1 ist App-Chrome; E2E zählt `main h1`). Kein eigenes `<main>` je Seite; `<main aria-label="Hauptinhalt">` stellt das Layout.
+- `DataState` mit ready/empty aus Datenvorhandensein (kein simuliertes Loading bei statischen Imports).
+- G52-P1-Lehre: alle Summaries/Einleitungen aus Domändaten abgeleitet (Funnel alle 4 Quartalsreihen, Planung Basis/Ziel wie OKR, Channels Min/Max-CAC programmatisch); Grep findet keine alten Betrags-Literale mehr in den 11 Seiten.
+- Mehrserien-Charts (Funnel, Planung) wie OKR als mehrere strukturierte `ChartBarList` mit Reihen-Labels.
+
+### Funktionale und negative Prüfungen
+- jsdom-Spiegel 12/12 (11 Seiten + Chart-Summaries). `npx playwright test e2e/semantic-routes.spec.ts --list`: 240 Tests gelistet.
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- 067I ist kein Schutzbereichs-Auftrag (nur Darstellung, Domändaten gelesen nicht geändert). `git diff 90e414e -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm run verify` (001–025): grün. `npm test`: 111 Dateien / 473 Tests grün. `npm run build`: grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Altbefunde außerhalb des Diffs. `git diff --check`: sauber.
+- E2E-Lauf nicht ausführbar (`E2E_AUTH_*` fehlen in der Builder-Shell) — bleibt Reviewer-Sache mit frischem Login.
+
+### Reviewer-Befund
+- Offen — **G53 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, G54 bleibt blockiert.

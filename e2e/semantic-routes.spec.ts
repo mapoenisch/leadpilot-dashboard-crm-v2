@@ -1,10 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
 
-// 067I / G52 (Step 1): Roter Route-Test für Welle G52 (Finanzen, Recht,
-// Strategie). Jede Route ist eine echte React-Seite: kein Ganzseiten-WebP,
-// genau eine h1, auswählbarer Text, Chartzusammenfassung erreichbar.
-// Vor der Welle rot (WebP-Platzhalter), danach grün. Nutzt den gespeicherten
-// Auth-State der globalen E2E-Einrichtung (alle Routen geschützt).
+// 067I / G52–G53: Route-Tests für Welle G52 (Finanzen, Recht, Strategie)
+// und Welle G53 (Markt, Kunden, Vertrieb). Jede Route ist eine echte
+// React-Seite: kein Ganzseiten-WebP, genau eine h1, auswählbarer Text,
+// Chartzusammenfassung erreichbar. Vor der jeweiligen Welle rot
+// (WebP-Platzhalter), danach grün. Nutzt den gespeicherten Auth-State der
+// globalen E2E-Einrichtung (alle Routen geschützt).
 
 const G52_ROUTES = [
   '/finance/p-and-l',
@@ -16,6 +17,21 @@ const G52_ROUTES = [
   '/strategy/okrs',
   '/strategy/balanced-scorecard',
   '/strategy/growth-drivers',
+];
+
+// 067I / G53: Zweite Welle — Markt (3), Kunden (4), Vertrieb (4).
+const G53_ROUTES = [
+  '/market/overview',
+  '/market/competition',
+  '/market/swot',
+  '/customers/icp',
+  '/customers/persona',
+  '/customers/segments',
+  '/customers/top-customers',
+  '/sales/funnel',
+  '/sales/sla',
+  '/sales/channels',
+  '/sales/planning',
 ];
 
 // G52-Re-Review (P1 Login-Redirect): Abgelaufener Auth-State leitet nach
@@ -30,8 +46,13 @@ async function gotoAuthenticatedRoute(page: Page, route: string) {
   ).toBeVisible({ timeout: 15_000 });
 }
 
-for (const route of G52_ROUTES) {
-  test.describe(`G52 semantische Route ${route}`, () => {
+const ALL_SEMANTIC_ROUTES: Array<[string, string]> = [
+  ...G52_ROUTES.map((route) => ['G52', route] as [string, string]),
+  ...G53_ROUTES.map((route) => ['G53', route] as [string, string]),
+];
+
+for (const [welle, route] of ALL_SEMANTIC_ROUTES) {
+  test.describe(`${welle} semantische Route ${route}`, () => {
     test('kein Ganzseiten-WebP', async ({ page }) => {
       await gotoAuthenticatedRoute(page, route);
       await expect(page.locator('img[src$=".webp"]')).toHaveCount(0);
