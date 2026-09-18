@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { importCrmData, parseCsv } from '../crmImporter';
+import { importCrmData, parseCsv, assertHubSpotImportIntegrity } from '../crmImporter';
 import * as rawCsvDataModule from '@/services/import/rawCsvData';
 
 describe('crmImporter', () => {
@@ -165,6 +165,88 @@ DealComma;Won;2500,50;2026-06-01;MidMarket`;
       expect(res.audit.companiesLoaded).toBe(0);
       expect(res.audit.contactsLoaded).toBe(0);
       expect(res.audit.dealsLoaded).toBe(0);
+    });
+  });
+
+  describe('assertHubSpotImportIntegrity (067H G51)', () => {
+    const validBatch = () => ({
+      companies: [{ id: 'c1', name: 'Acme' }],
+      contacts: [{ id: 'p1', companyId: 'c1', email: 'a@acme.test' }],
+      deals: [
+        {
+          id: 'd1',
+          dealName: 'Deal',
+          stage: 'WON',
+          amount: 1000,
+          closeDate: '2026-03-01',
+          pipeline: 'default',
+          companyId: 'c1',
+        },
+      ],
+      activities: [{ id: 'a1', timestamp: '2026-06-01T00:00:00.000Z' }],
+      periodStart: '2026-01-01',
+    });
+
+    it('akzeptiert konsistente Batches', () => {
+      expect(() => assertHubSpotImportIntegrity(validBatch())).not.toThrow();
+    });
+
+    it('lehnt leere Counts ab', () => {
+      expect(() => assertHubSpotImportIntegrity({ ...validBatch(), companies: [] })).toThrow(
+        /keine Companies/,
+      );
+      expect(() => assertHubSpotImportIntegrity({ ...validBatch(), deals: [] })).toThrow(
+        /keine Deals/,
+      );
+    });
+
+    it('lehnt dangling Referenzen ab', () => {
+      expect(() =>
+        assertHubSpotImportIntegrity({
+          ...validBatch(),
+          contacts: [{ id: 'p1', companyId: 'fremd', email: 'a@acme.test' }],
+        }),
+      ).toThrow(/ohne gültige Company/);
+      expect(() =>
+        assertHubSpotImportIntegrity({
+          ...validBatch(),
+          deals: [
+            {
+              id: 'd1',
+              dealName: 'Deal',
+              stage: 'WON',
+              amount: 1000,
+              closeDate: '2026-03-01',
+              pipeline: 'default',
+              companyId: 'fremd',
+            },
+          ],
+        }),
+      ).toThrow(/ohne gültige Company/);
+    });
+
+    it('lehnt fehlende Pflichtfelder und Zeitraumverletzung ab', () => {
+      expect(() =>
+        assertHubSpotImportIntegrity({
+          ...validBatch(),
+          deals: [
+            {
+              id: 'd1',
+              dealName: '',
+              stage: 'WON',
+              amount: Number.NaN,
+              closeDate: '2026-03-01',
+              pipeline: 'default',
+            },
+          ],
+        }),
+      ).toThrow(/Pflichtfelder/);
+      expect(() =>
+        assertHubSpotImportIntegrity({
+          ...validBatch(),
+          activities: [{ id: 'a1', timestamp: '2024-01-01T00:00:00.000Z' }],
+        }),
+      ).toThrow(/Zeitraums/);
     });
   });
 });

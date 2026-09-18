@@ -8110,3 +8110,39 @@ Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema 
 ### Freigabeumfang
 
 - Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
+
+## [2026-09-18] Gate G51: Builder-Nachtrag 067H HubSpot-Importhärtung (kein Push)
+
+**Ziel und Baseline-Commit:** 067H / G51 — alle Seiten über `paging.next.after`, 429-Backoff/Abort/Maximallaufzeit, Quarantäne statt LOST, Importfreigabe über Counts/Referenzen/Pflichtfelder/Zeitraum. Baseline: `99bd708` (G50-Freigabe). Branch: `feat/auftrag-067h-hubspot`. Umgebung: Node v22.11.0.
+
+### Geänderte Dateien
+- Neu: `src/services/import/hubSpotPageLoader.ts` (`loadAllPages` mit Cursor-Kette, 429-Backoff mit Obergrenze, Abort, Maximallaufzeit), `hubSpotStageMapper.ts` (known/quarantined, idempotent), Tests für beide (6 + 4).
+- Geändert: `src/services/import/crmImporter.ts` (`assertHubSpotImportIntegrity`), `__tests__/crmImporter.vitest.ts` (+4 Tests), `src/services/data/sources/hubSpotBaselineSource.ts` (Quarantäne + Freigabe).
+- Geändert: `tools/n8n/generate-baseline-hubspot.workflow.json` (6 → 18 Nodes: Paging-Schleifen mit Split/IF/Wait/Set, Retry-Einstellungen, executionTimeout, Quarantäne, Metadaten/Hash), `hubspot-stage-map.json` (Quarantäne-Doku), `tools/n8n/README.md` (Abschnitt F, Pfadkorrektur).
+- Metadaten: `contentHash` (djb2 über kanonische Form, Algorithmus in Map-Node dokumentiert) in beiden HubSpot-Dateien ergänzt.
+
+### Roter Starttest und Ursache
+Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot. Ursache: Single-Page-Fetch mit limit=100, `|| 'LOST'`-Fallback, keine Limits/Quarantäne.
+
+### Implementierung und Architekturentscheidung
+- Ausführbare Garantien (Paging/Backoff/Abort/Timeout) in TS mit Unit-Tests; n8n-Workflow verdrahtet Vendor-Mechanismen (Retry-Einstellungen, Wait-Nodes, executionTimeout, Split/IF-Loop mit `$('Fetch X').all()`-Akkumulation). Geteilte Arbeit dokumentiert in README/F.
+- Quarantäne beidseitig (n8n: `QUARANTINED` + `quarantineReason`; TS: `QUARANTINED` + `dealsErrors`, sichtbar degraded-tauglich) — nie auto-LOST.
+- Mapper-Idempotenz (eigene Ausgabe ist No-op) — ohne sie würden eingefrorene Dateien vollquarantäniert (hätte Suite 025 gebrochen; erkannt und behoben).
+- Fixture-Hashes sind echte berechnete Fingerprints, keine Platzhalter; die App hasht zur Capture-Zeit ohnehin neu (kanonisch SHA-256).
+
+### Funktionale und negative Prüfungen
+- 10 Loader/Mapper-Tests (3 Seiten, Backoff-Steigerung, RATE_LIMITED, Abort ohne Retry, TIMEOUT, 500-Sofortabbruch, Mapping, Quarantäne, Leerwerte, Idempotenz) + 4 Integritäts-Tests + 5 Quellen-Tests.
+- PR-HUBSPOT-10 (G44-Charakterisierung, war rot) jetzt grün.
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- Erlaubt (067H-Matrix): alle geänderten Dateien (inkl. `tools/n8n/*`, Test-Begleitung). `src/simulation` (außer unveränderter Test-Harness-Nutzung), `src/context`, `src/types`, Engine/Worker unberührt.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm run verify` (001–025, inkl. Suite 025): grün. `npm test`: 109 Dateien / 448 Tests grün. `npm run build`: grün. PR-HUBSPOT-10 separat grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber.
+
+### Reviewer-Befund
+- Offen — **G51 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, der nächste Auftrag bleibt blockiert.
+
+### Freigabestatus und Abschlusscommit
+- Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067h-hubspot`.

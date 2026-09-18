@@ -13,5 +13,6 @@
   "Entscheidungsträger hat zugestimmt": "PROPOSAL",
   "Vertrag gesendet": "CLOSING",
   "Abgeschlossen und gewonnen": "WON",
-  "Abgeschlossen und verloren": "LOST"
+  "Abgeschlossen und verloren": "LOST",
+  "_quarantine": "Unbekannte dealstage-Werte werden NICHT gemappt und NIEMALS als LOST interpretiert. Der Map-Node legt sie unter stage=QUARANTINED mit Rohwert in quarantineReason ab (TS-Spiegel: hubSpotStageMapper.mapDealStage)."
 }

@@ -20,12 +20,14 @@ Dieses Verzeichnis enthält die Konfiguration und Vorlagen für die n8n-Offline-
 ## 2. HubSpot Baseline-Pull (`generate-baseline-hubspot.workflow.json`)
 
 ### A. Credential in n8n anlegen (`http://localhost:5678`)
-- **Credential-Typ:** *Generic Credential Type* → *Header Auth* (`httpHeaderAuth`)
+
+- **Credential-Typ:** _Generic Credential Type_ → _Header Auth_ (`httpHeaderAuth`)
 - **Credential Name:** `HubSpot Service Key – LeadPilot`
 - **Header Name:** `Authorization`
 - **Header Value:** `Bearer <hubspot_service_key>`
 
 ### B. Erforderliche Scopes
+
 - `crm.objects.companies.read`
 - `crm.objects.contacts.read`
 - `crm.objects.deals.read`
@@ -33,30 +35,30 @@ Dieses Verzeichnis enthält die Konfiguration und Vorlagen für die n8n-Offline-
 
 ### C. Feldmapping HubSpot → LeadPilot (`src/types/crm.ts`)
 
-| Ziel-Entität (`src/types/crm.ts`) | LeadPilot-Feld | HubSpot Property | Bemerkung |
-|---|---|---|---|
-| **Company** | `id` | `hs_object_id` / `id` | Eindeutige ID |
-| | `name` | `properties.name` | Pflichtfeld |
-| | `domain` | `properties.domain` | Optional |
-| | `industry` | `properties.industry` | Fallback 'Allgemein' |
-| | `city` | `properties.city` | Fallback 'Unbekannt' |
-| | `postalCode` | `properties.zip` | Optional |
-| | `employeeCount` | `properties.numberofemployees` | Fallback 1 |
-| | `createdAt` | `properties.createdate` | ISO-Datum |
-| **Contact** | `id` | `hs_object_id` / `id` | Eindeutige ID |
-| | `companyId` | `associatedcompanyid` / Assoziation | FK auf `Company.id` (Dangling verworfen) |
-| | `email` | `properties.email` | Fallback `contact-<id>@leadpilot.internal` |
-| | `firstName` | `properties.firstname` | Optional |
-| | `lastName` | `properties.lastname` | Optional |
-| | `jobTitle` | `properties.jobtitle` | Optional |
-| | `name` | `${firstname} ${lastname}` | Berechnet |
-| **ImportedFunnelDeal** | `id` | `hs_object_id` / `id` | Eindeutige ID |
-| | `companyId` | Assoziation `companies` | Optionaler FK |
-| | `dealName` | `properties.dealname` | Fallback `Deal <id>` |
-| | `stage` | `STAGE_MAP[dealstage]` | Siehe `hubspot-stage-map.json` |
-| | `amount` | `properties.amount` | Numerischer Wert (€) |
-| | `closeDate` | `properties.closedate` | YYYY-MM-DD |
-| | `pipeline` | `properties.pipeline` | Pipeline-Identifier |
+| Ziel-Entität (`src/types/crm.ts`) | LeadPilot-Feld  | HubSpot Property                    | Bemerkung                                  |
+| --------------------------------- | --------------- | ----------------------------------- | ------------------------------------------ |
+| **Company**                       | `id`            | `hs_object_id` / `id`               | Eindeutige ID                              |
+|                                   | `name`          | `properties.name`                   | Pflichtfeld                                |
+|                                   | `domain`        | `properties.domain`                 | Optional                                   |
+|                                   | `industry`      | `properties.industry`               | Fallback 'Allgemein'                       |
+|                                   | `city`          | `properties.city`                   | Fallback 'Unbekannt'                       |
+|                                   | `postalCode`    | `properties.zip`                    | Optional                                   |
+|                                   | `employeeCount` | `properties.numberofemployees`      | Fallback 1                                 |
+|                                   | `createdAt`     | `properties.createdate`             | ISO-Datum                                  |
+| **Contact**                       | `id`            | `hs_object_id` / `id`               | Eindeutige ID                              |
+|                                   | `companyId`     | `associatedcompanyid` / Assoziation | FK auf `Company.id` (Dangling verworfen)   |
+|                                   | `email`         | `properties.email`                  | Fallback `contact-<id>@leadpilot.internal` |
+|                                   | `firstName`     | `properties.firstname`              | Optional                                   |
+|                                   | `lastName`      | `properties.lastname`               | Optional                                   |
+|                                   | `jobTitle`      | `properties.jobtitle`               | Optional                                   |
+|                                   | `name`          | `${firstname} ${lastname}`          | Berechnet                                  |
+| **ImportedFunnelDeal**            | `id`            | `hs_object_id` / `id`               | Eindeutige ID                              |
+|                                   | `companyId`     | Assoziation `companies`             | Optionaler FK                              |
+|                                   | `dealName`      | `properties.dealname`               | Fallback `Deal <id>`                       |
+|                                   | `stage`         | `STAGE_MAP[dealstage]`              | Siehe `hubspot-stage-map.json`             |
+|                                   | `amount`        | `properties.amount`                 | Numerischer Wert (€)                       |
+|                                   | `closeDate`     | `properties.closedate`              | YYYY-MM-DD                                 |
+|                                   | `pipeline`      | `properties.pipeline`               | Pipeline-Identifier                        |
 
 ### D. Stage-Mapping (`tools/n8n/hubspot-stage-map.json`)
 
@@ -73,11 +75,22 @@ Dieses Verzeichnis enthält die Konfiguration und Vorlagen für die n8n-Offline-
 ```
 
 ### E. Durchführung & Übernahme
+
 1. Workflow `tools/n8n/generate-baseline-hubspot.workflow.json` in n8n importieren.
 2. Credential `HubSpot Service Key – LeadPilot` zuweisen.
 3. Workflow ausführen (`Test workflow`).
-4. Output-Envelope validieren und als `src/features/crm/data/baselines/baseline-hubspot-<datum>.json` speichern.
+4. Output-Envelope validieren und als `src/services/data/baselines/baseline-hubspot-<datum>.json` speichern.
 5. In `src/services/data/sources/hubSpotBaselineSource.ts` in der `FILES`-Map registrieren.
+6. `contentHash` nach dem dokumentierten Algorithmus (Abschnitt F) berechnen und einbetten.
+
+### F. Härtung G51 (Design §10.2) — Paginierung, Quarantäne, Limits
+
+- **Paginierung:** Jede Fetch-Node (`Companies`, `Contacts`, `Deals`) sendet `limit=100` plus Cursor `after={{ $json.after }}` und läuft in einer Schleife `Fetch → Split → More? → Wait → Next → Fetch`, bis `paging.next.after` leer ist. Die Map-Node führt alle Seiten via `$('Fetch X').all()` zu genau einem Envelope zusammen — kein 100er-Limit als stilles Ende.
+- **429-Backoff:** Fetch-Nodes mit `retryOnFail` (5 Versuche, 2 s Abstand) plus `Wait`-Nodes (1 s Abstand zwischen Seiten). TS-Spiegel mit ausführbaren Garantien: `src/services/import/hubSpotPageLoader.ts` (Unit-getestet).
+- **Abbruch/Maximallaufzeit:** Workflow-Settings `executionTimeout: 300`; TS-Seite mit `AbortSignal` und `maxRuntimeMs`.
+- **Quarantäne:** Unbekannte `dealstage`-Werte werden unter `stage: QUARANTINED` mit Rohwert in `quarantineReason` abgelegt — niemals still `LOST` (TS-Spiegel: `hubSpotStageMapper.mapDealStage`).
+- **Importfreigabe:** Map-Node und Assert-Node prüfen Counts, Referenzen, Pflichtfelder und Zeitraum (`periodStart` + 365 Tage); TS-Spiegel: `assertHubSpotImportIntegrity` in `src/services/import/crmImporter.ts`.
+- **Envelope-Metadaten:** `sourceSystem: hubspot`, `hubspotPortalId` (je Portal beim Einrichten in der Map-Node setzen), `generatedAt`, `contentHash` (djb2-Hex über kanonische Darstellung ohne `generatedAt`/`contentHash`; Algorithmus in der Map-Node und im TS-Build-Skript identisch).
 
 ---
 
@@ -86,6 +99,7 @@ Dieses Verzeichnis enthält die Konfiguration und Vorlagen für die n8n-Offline-
 Die Live-KPI-Pipeline verarbeitet Live-Ist-Ereignisse nach dem standardisierten Contract `live-kpi-event/v1` (`src/types/liveKpi.ts`) und schreibt sie idempotent über die Ingest-RPC `public.ingest_live_kpi_event` in Supabase.
 
 ### A. Architektur & Sicherheitsprinzip
+
 - **Keine Laufzeit-Kopplung der Webanwendung**: Die App ruft n8n niemals zur Laufzeit auf. n8n ist eine reine Offline-/Batch-Integrationsschicht.
 - **Minimal privilegierte Datenbankrolle**: Der Workflow verbindet sich über einen nativen PostgreSQL-Node (`n8n-nodes-base.postgres`) mit der dedizierten Datenbankrolle `n8n_ingest`.
 - **Kein administrativer Service-Role-Schlüssel**: Der Workflow verwendet niemals überprivilegierte Admin- oder Superuser-Keys.
@@ -95,7 +109,8 @@ Die Live-KPI-Pipeline verarbeitet Live-Ist-Ereignisse nach dem standardisierten 
 - **Deterministischer Rejection-Schutz (Kein Kontext-Logging)**: Bei Ablehnungen (`rejected`) wird der `context` bewusst nicht persistiert, sondern deterministisch als `'{}'::jsonb` in `public.live_kpi_rejections.sanitized_context` abgelegt. Dadurch wird jedes Risiko ausgeschlossen, dass unbereinigte, beliebig benannte oder verschachtelte Secrets (z. B. `Authorization`, Tokens, Passwörter, API-Keys) in Rejection-Logs gelangen. Eine unvollständige Blacklist-Redaktion existiert nicht mehr.
 
 ### B. Sichere Credential-Einrichtung in n8n (`http://localhost:5678`)
-- **Credential-Typ:** *Postgres*
+
+- **Credential-Typ:** _Postgres_
 - **Credential-Name:** `LeadPilot PostgreSQL (n8n_ingest role)`
 - **Host / Port / Database:** Entsprechend der lokalen oder Staging-Supabase-Instanz.
 - **User:** `n8n_ingest`
@@ -103,15 +118,18 @@ Die Live-KPI-Pipeline verarbeitet Live-Ist-Ereignisse nach dem standardisierten 
 - **SSL:** `require` (oder `disable` für rein lokale Docker-Umgebungen).
 
 ### B2. Signaturprüfung G46 (Design §10.1) — manuelle Schritte
+
 Der Workflow prüft vor dem Postgres-Zugriff `X-LeadPilot-Timestamp` (5-Minuten-Fenster),
 `X-LeadPilot-Nonce` (Format; Einmaligkeit per `claim_ingress_nonce`) und
 `X-LeadPilot-Signature` (HMAC-SHA-256 über `timestamp.nonce.rawBody`):
-1. In n8n ein **Crypto-Credential** `LeadPilot Ingest HMAC (in n8n anlegen)` vom Typ *HMAC Secret* erstellen; Secret aus dem Passwortmanager (identisch zu Function-Secret `LEADPILOT_INGEST_SECRET`, niemals ins Repo).
+
+1. In n8n ein **Crypto-Credential** `LeadPilot Ingest HMAC (in n8n anlegen)` vom Typ _HMAC Secret_ erstellen; Secret aus dem Passwortmanager (identisch zu Function-Secret `LEADPILOT_INGEST_SECRET`, niemals ins Repo).
 2. Dem Node `HMAC Sign Base` dieses Credential zuweisen (im Workflow-JSON als Platzhalter `id: null` markiert).
 3. Der Node `Claim Nonce (Postgres)` nutzt das bestehende PostgreSQL-Credential; die Rolle `n8n_ingest` benötigt zusätzlich `GRANT EXECUTE ON FUNCTION public.claim_ingress_nonce` (Operator-SQL, außerhalb des Repos).
 4. Ungültige Signatur → 401, Replay → 401, danach bestehender Ingest-Pfad (201/200/422).
 
 ### C. Import & Ausführung des Ingest-Workflows
+
 1. Workflow `tools/n8n/live-kpi-ingest.workflow.json` in n8n importieren.
 2. Dem PostgreSQL-Node das Credential `LeadPilot PostgreSQL (n8n_ingest role)` zuweisen.
 3. Der Workflow nimmt Events via Webhook (`POST /webhook/live-kpi-ingest`) oder Manual Trigger entgegen, leitet das Rohpayload ohne Defaults oder Typ-Coercion weiter, ruft parametrisiert `SELECT public.ingest_live_kpi_event($1::jsonb)` auf und verzweigt strikt nach:
@@ -120,7 +138,9 @@ Der Workflow prüft vor dem Postgres-Zugriff `X-LeadPilot-Timestamp` (5-Minuten-
    - **Rejected (422):** Validierungsfehler, sicher in `public.live_kpi_rejections` protokolliert (Kontextdaten werden deterministisch auf `'{}'::jsonb` gesetzt und nicht gespeichert).
 
 ### D. Lokaler Replay- & Staging-Ablauf mit Test-Fixtures
+
 In `tools/n8n/live-kpi-replay.fixture.json` sind deterministische, rein synthetische Testfälle hinterlegt:
+
 - `valid_event_1` & `valid_event_2`: Gültige synthetische Test-Payloads.
 - `duplicate_event`: Duplikat zur Verifikation der Idempotenz.
 - `invalid_*`: Systematische Negativtests (falsche Version, ungültige Zeitstempel wie `"tomorrow"` oder `"invalid-date"`, ungültige Typen, falsche Herkunft).
@@ -160,6 +180,7 @@ npx tsx scripts/runLiveKpiE2e.ts
 ```
 
 Der Runner prüft in zwei Phasen:
+
 - **Phase 1 (Ingest & Datenbank-Projektion):**
   - Erreichbarkeit des öffentlichen Supabase-Feeds (`public.live_kpi_public_feed`).
   - Vorab-Vertragsprüfung (G18) jedes Payloads inklusive `correlationId`.
@@ -187,26 +208,28 @@ Für V2.1 definiert `src/services/liveKpi/liveKpiDefinitions.ts` einen verbindli
 
 ### A. Katalog-Übersicht & spätere UI-Verbraucher
 
-| KPI-ID | Kanonische Einheit | Format | Gruppe | Späterer UI-Verbraucher |
-|---|---|---|---|---|
-| `arr` | `EUR` | `currency` | `core` | Executive Dashboard (`/dashboard`) – Core KPI Cards |
-| `mrr` | `EUR` | `currency` | `core` | Executive Dashboard (`/dashboard`) – Core KPI Cards |
-| `pipeline_coverage` | `x` | `ratio` | `core` | Executive Dashboard (`/dashboard`) – Core KPI Cards |
-| `arr_direct` | `EUR` | `currency` | `arr_mix` | ARR Mix Breakdown – Stacked Bar / Area Chart |
-| `arr_partner` | `EUR` | `currency` | `arr_mix` | ARR Mix Breakdown – Stacked Bar / Area Chart |
-| `arr_outbound` | `EUR` | `currency` | `arr_mix` | ARR Mix Breakdown – Stacked Bar / Area Chart |
-| `arr_other` | `EUR` | `currency` | `arr_mix` | ARR Mix Breakdown – Stacked Bar / Area Chart |
-| `pipeline_leads` | `count` | `count` | `funnel` | Funnel Distribution – Stage KPI & Trend |
-| `pipeline_mql` | `count` | `count` | `funnel` | Funnel Distribution – Stage KPI & Trend |
-| `pipeline_sql` | `count` | `count` | `funnel` | Funnel Distribution – Stage KPI & Trend |
-| `pipeline_offers` | `count` | `count` | `funnel` | Funnel Distribution – Stage KPI & Trend |
-| `pipeline_won` | `count` | `count` | `funnel` | Funnel Distribution – Stage KPI & Trend |
+| KPI-ID              | Kanonische Einheit | Format     | Gruppe    | Späterer UI-Verbraucher                             |
+| ------------------- | ------------------ | ---------- | --------- | --------------------------------------------------- |
+| `arr`               | `EUR`              | `currency` | `core`    | Executive Dashboard (`/dashboard`) – Core KPI Cards |
+| `mrr`               | `EUR`              | `currency` | `core`    | Executive Dashboard (`/dashboard`) – Core KPI Cards |
+| `pipeline_coverage` | `x`                | `ratio`    | `core`    | Executive Dashboard (`/dashboard`) – Core KPI Cards |
+| `arr_direct`        | `EUR`              | `currency` | `arr_mix` | ARR Mix Breakdown – Stacked Bar / Area Chart        |
+| `arr_partner`       | `EUR`              | `currency` | `arr_mix` | ARR Mix Breakdown – Stacked Bar / Area Chart        |
+| `arr_outbound`      | `EUR`              | `currency` | `arr_mix` | ARR Mix Breakdown – Stacked Bar / Area Chart        |
+| `arr_other`         | `EUR`              | `currency` | `arr_mix` | ARR Mix Breakdown – Stacked Bar / Area Chart        |
+| `pipeline_leads`    | `count`            | `count`    | `funnel`  | Funnel Distribution – Stage KPI & Trend             |
+| `pipeline_mql`      | `count`            | `count`    | `funnel`  | Funnel Distribution – Stage KPI & Trend             |
+| `pipeline_sql`      | `count`            | `count`    | `funnel`  | Funnel Distribution – Stage KPI & Trend             |
+| `pipeline_offers`   | `count`            | `count`    | `funnel`  | Funnel Distribution – Stage KPI & Trend             |
+| `pipeline_won`      | `count`            | `count`    | `funnel`  | Funnel Distribution – Stage KPI & Trend             |
 
 ### B. Pipeline-Prinzip & Generischer Contract
+
 - **Generischer Ingest-Contract (`live-kpi-event/v1`)**: Der bestehende native PostgreSQL-Ingest-Workflow (`tools/n8n/live-kpi-ingest.workflow.json`) bleibt bewusst generisch und fungiert als alleiniger Schreibpfad in die Datenbank. Er erzwingt keine statische Allowlist in der Datenbank, sondern validiert den V1-Transportvertrag.
 - **Upstream-Emittenten**: n8n-Workflows oder Upstream-Systeme können Events für alle zwölf definierten KPI-IDs emittieren.
 - **Clientseitige Darstellungsgrenze**: Das Frontend rendert zur Anzeige ausschließlich Events, deren `kpiId` im Katalog `LIVE_KPI_DEFINITIONS` registriert ist (`isSupportedLiveKpiId`). Unbekannte KPI-IDs werden im UI ignoriert.
 - **Keine Laufzeit-Kopplung**: Die Webanwendung ruft n8n niemals zur Laufzeit auf.
 
 ### C. Ehrlicher Offline- & Operator-Status
+
 Die in `tools/n8n/live-kpi-replay.fixture.json` unter `v21_catalog_events` hinterlegten Datensätze sind rein synthetische Offline-Testdaten. Sie stellen keine Produktionsdaten, keine echten CRM-/HubSpot-Werte und keinen Nachweis eines externen Live-Laufs dar. Ohne eine vom Operator konfigurierte Staging- oder Produktivumgebung mit aktiven Zugangsdaten verbleibt die Validierung auf der Ebene der lokalen Contract-, Schema- und Fixture-Prüfungen (`scripts/verifyLiveKpiCatalog.ts`, `scripts/verifyLiveKpiContract.ts`).
