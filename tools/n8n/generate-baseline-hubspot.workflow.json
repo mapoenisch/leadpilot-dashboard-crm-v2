@@ -371,7 +371,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1420,
+        1600,
         300
       ]
     },
@@ -384,7 +384,20 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1640,
+        1800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "merge-envelopes",
+      "name": "Merge Envelopes",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1420,
         300
       ]
     }
@@ -444,7 +457,7 @@
         ],
         [
           {
-            "node": "Map & Validate Envelope",
+            "node": "Merge Envelopes",
             "type": "main",
             "index": 0
           }
@@ -506,7 +519,7 @@
         ],
         [
           {
-            "node": "Map & Validate Envelope",
+            "node": "Merge Envelopes",
             "type": "main",
             "index": 0
           }
@@ -568,7 +581,7 @@
         ],
         [
           {
-            "node": "Map & Validate Envelope",
+            "node": "Merge Envelopes",
             "type": "main",
             "index": 0
           }
@@ -602,6 +615,17 @@
         [
           {
             "node": "Assert Integrity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Envelopes": {
+      "main": [
+        [
+          {
+            "node": "Map & Validate Envelope",
             "type": "main",
             "index": 0
           }

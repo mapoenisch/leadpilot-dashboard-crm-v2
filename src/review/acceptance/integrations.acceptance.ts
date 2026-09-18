@@ -137,4 +137,39 @@ describe('v2.3.0 hubspot import findings', () => {
     expect.soft(mapCode, '429-Backoff vorhanden').toMatch(/429/);
     expect.soft(mapCode, 'Abbruchsignal/Maximallaufzeit vorhanden').toMatch(/abortsignal|timeout/i);
   });
+
+  it('[PR-HUBSPOT-11] Map läuft genau einmal über Fan-in (kein unvollständiger Envelope)', () => {
+    const graph = readGraph();
+    const connections = graph.connections ?? {};
+
+    // Alle Vorgänger von Map & Validate (exakt ein Fan-in-Knoten).
+    const predecessors = Object.entries(connections)
+      .filter(([, outputs]) =>
+        (outputs?.main ?? []).flat().some((edge) => edge?.node === 'Map & Validate Envelope'),
+      )
+      .map(([name]) => name);
+    expect(predecessors, 'genau ein Vorgänger (Fan-in) vor Map').toEqual(['Merge Envelopes']);
+
+    // Alle drei Terminalpfade (IF-false) münden in den Fan-in.
+    for (const moreName of ['More Companies?', 'More Contacts?', 'More Deals?']) {
+      const falseBranch = (connections[moreName]?.main ?? [])[1] ?? [];
+      expect(
+        falseBranch.map((edge) => edge?.node),
+        `${moreName}-false führt in den Fan-in`,
+      ).toEqual(['Merge Envelopes']);
+    }
+
+    // Der Fan-in sammelt aus allen drei Ketten (kein direkter Fetch-Pfad).
+    const mergeIncoming = Object.entries(connections)
+      .filter(([, outputs]) =>
+        (outputs?.main ?? []).flat().some((edge) => edge?.node === 'Merge Envelopes'),
+      )
+      .map(([name]) => name)
+      .sort();
+    expect(mergeIncoming, 'Fan-in aus allen drei Ketten').toEqual([
+      'More Companies?',
+      'More Contacts?',
+      'More Deals?',
+    ]);
+  });
 });

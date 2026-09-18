@@ -93,4 +93,43 @@ describe('067H G51 hubSpotPageLoader', () => {
     ).rejects.toMatchObject({ status: 500 });
     expect(fetchPage).toHaveBeenCalledTimes(1);
   });
+
+  it('Gegenfall: Backoff über Budget liefert TIMEOUT statt späterem Erfolg', async () => {
+    const sleeps: number[] = [];
+    const fetchPage = vi
+      .fn()
+      .mockRejectedValueOnce(httpError(429))
+      .mockResolvedValueOnce(page(['late']));
+    await expect(
+      loadAllPages((after) => fetchPage(after), {
+        maxRuntimeMs: 100,
+        baseBackoffMs: 1000,
+        maxRetries429: 5,
+        sleep: (ms) => {
+          sleeps.push(ms);
+          return Promise.resolve();
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'TIMEOUT_EXCEEDED' });
+    expect(fetchPage).toHaveBeenCalledTimes(1);
+    expect(sleeps).toEqual([]);
+  });
+
+  it('Gegenfall: hängender Fetch wird per Deadline abgebrochen', async () => {
+    const fetchPage = vi.fn(
+      (_after: string | undefined, signal?: AbortSignal) =>
+        new Promise<never>((_, reject) => {
+          signal?.addEventListener('abort', () => {
+            reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+          });
+        }),
+    );
+    await expect(
+      loadAllPages((after, signal) => fetchPage(after, signal), {
+        maxRuntimeMs: 30,
+        sleep: () => Promise.resolve(),
+      }),
+    ).rejects.toMatchObject({ code: 'TIMEOUT_EXCEEDED' });
+    expect(fetchPage).toHaveBeenCalledTimes(1);
+  });
 });

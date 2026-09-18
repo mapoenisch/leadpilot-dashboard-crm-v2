@@ -8146,3 +8146,16 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Freigabestatus und Abschlusscommit
 - Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067h-hubspot`.
+
+## [2026-09-18] Gate G51: Nacharbeit zum Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `81f129c` → NICHT FREIGEGEBEN (1 P0: drei Fan-out-Pfade ohne Fan-in zur Map-Node; 1 P1: Deadline nicht während Backoff/Fetch erzwungen). Umgebung: Node v22.11.0.
+
+### Behebung je Befund
+1. **P0 Fan-in:** `Merge Envelopes`-Node (append) sammelt alle drei Terminalpfade (IF-false je Kette); Map läuft genau einmal mit vollständigem Material. Neuer Graph-Test [PR-HUBSPOT-11] (additiv, PR-HUBSPOT-10 unangetastet): einziger Map-Vorgänger ist der Fan-in, alle drei false-Zweige münden in ihn, alle drei Ketten speisen ihn.
+2. **P1 Deadline:** Budget-Prüfung vor jedem Retry (Backoff über Budget → sofort TIMEOUT ohne Sleep/Erfolg); Fetch über deadline-gekoppelten AbortController begrenzt (hängend → TIMEOUT, externer Abort weiter AbortError). Zwei Gegenfall-Tests aus dem Befund (Backoff-1000-bei-100, hängender Fetch).
+
+### Finale Gate-Ergebnisse (Nacharbeit G51)
+- Fokustests 10/10 (8 Loader + 2 Acceptance). `npm test`: 109 Dateien / 450 Tests grün. `verify` 001–025 grün. tsc 0. Build grün. PR-HUBSPOT-10/11 separat grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade leer.
+- **G51-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, der nächste Auftrag bleibt blockiert.

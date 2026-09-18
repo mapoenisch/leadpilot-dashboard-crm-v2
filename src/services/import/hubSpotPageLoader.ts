@@ -73,9 +73,45 @@ export async function loadAllPages<T>(
   const all: T[] = [];
   let after: string | undefined;
 
+  const elapsed = (): number => now() - startedAt;
+
+  /** Fetch mit Deadline-Kopplung: Budget aufgebraucht oder hängend → Timeout. */
+  const runFetch = async (cursor: string | undefined): Promise<HubSpotPage<T>> => {
+    const remaining = maxRuntimeMs - elapsed();
+    if (remaining <= 0) {
+      throw new HubSpotPageLoaderError(
+        'TIMEOUT_EXCEEDED',
+        `HubSpot-Pagination überschreitet ${maxRuntimeMs} ms.`,
+      );
+    }
+    const controller = new AbortController();
+    const onExternalAbort = (): void => controller.abort();
+    signal?.addEventListener('abort', onExternalAbort, { once: true });
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, remaining);
+    // Node < 20 kennt kein AbortSignal.any — manuelle Kopplung.
+    try {
+      return await fetchPage(cursor, controller.signal);
+    } catch (error) {
+      if (timedOut) {
+        throw new HubSpotPageLoaderError(
+          'TIMEOUT_EXCEEDED',
+          `HubSpot-Request überschreitet Restbudget von ${remaining} ms.`,
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onExternalAbort);
+    }
+  };
+
   for (;;) {
     signal?.throwIfAborted();
-    if (now() - startedAt >= maxRuntimeMs) {
+    if (elapsed() >= maxRuntimeMs) {
       throw new HubSpotPageLoaderError(
         'TIMEOUT_EXCEEDED',
         `HubSpot-Pagination überschreitet ${maxRuntimeMs} ms.`,
@@ -86,13 +122,22 @@ export async function loadAllPages<T>(
     let attempt = 0;
     for (;;) {
       try {
-        page = await fetchPage(after, signal);
+        page = await runFetch(after);
         break;
       } catch (error) {
         // Abbruch wird niemals wiederholt oder maskiert.
         if (isAbortError(error) || signal?.aborted) throw error;
         if (errorStatus(error) === 429 && attempt < maxRetries429) {
-          await sleep(baseBackoffMs * 2 ** attempt);
+          const delay = baseBackoffMs * 2 ** attempt;
+          // Backoff ohne Restbudget ist zwecklos — sofort abbrechen statt
+          // schlafen und danach doch erfolgreich zu liefern.
+          if (elapsed() + delay > maxRuntimeMs) {
+            throw new HubSpotPageLoaderError(
+              'TIMEOUT_EXCEEDED',
+              `Backoff (${delay} ms) sprengt Restbudget von ${maxRuntimeMs} ms.`,
+            );
+          }
+          await sleep(delay);
           attempt += 1;
           continue;
         }
