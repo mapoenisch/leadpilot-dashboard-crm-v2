@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 
-// 067I / G52–G54: Route-Tests für Welle G52 (Finanzen, Recht, Strategie),
-// Welle G53 (Markt, Kunden, Vertrieb) und Welle G54 (Unternehmen, Übersicht,
-// Produkt). Jede Route ist eine echte
+// 067I / G52–G55: Route-Tests für Welle G52 (Finanzen, Recht, Strategie),
+// Welle G53 (Markt, Kunden, Vertrieb), Welle G54 (Unternehmen, Übersicht,
+// Produkt) und Welle G55 (Organisation). Jede Route ist eine echte
 // React-Seite: kein Ganzseiten-WebP, genau eine h1, auswählbarer Text,
 // Chartzusammenfassung erreichbar. Vor der jeweiligen Welle rot
 // (WebP-Platzhalter), danach grün. Nutzt den gespeicherten Auth-State der
@@ -60,10 +60,19 @@ const G54_ROUTES = [
   '/product/roadmap',
 ];
 
+// 067I / G55: Vierte Welle — Organisation (3) plus routeweite
+// Gesamtnachprüfung über alle aufgebauten Wellen.
+const G55_ROUTES = [
+  '/organisation/headcount',
+  '/organisation/hr',
+  '/organisation/team',
+];
+
 const ALL_SEMANTIC_ROUTES: Array<[string, string]> = [
   ...G52_ROUTES.map((route) => ['G52', route] as [string, string]),
   ...G53_ROUTES.map((route) => ['G53', route] as [string, string]),
   ...G54_ROUTES.map((route) => ['G54', route] as [string, string]),
+  ...G55_ROUTES.map((route) => ['G55', route] as [string, string]),
 ];
 
 for (const [welle, route] of ALL_SEMANTIC_ROUTES) {

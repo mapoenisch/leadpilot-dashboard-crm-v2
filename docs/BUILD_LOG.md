@@ -8347,3 +8347,35 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Reviewer-Befund
 - Offen — **G54 BEREIT FÜR ABSCHLIESSENDE FREIGABE (E2E 348/348 belegt).** Kein Push, keine Integration, G55 bleibt blockiert.
+
+## [2026-09-18] Gate G55: Builder 067I Welle Organisation + Gesamtnachprüfung (kein Push)
+
+**Ziel und Baseline-Commit:** G55 — letzte 3 Ganzseiten-WebP (Organisation) als echte React-Seiten plus routeweite Gesamtnachprüfung über alle 067I-Wellen. Baseline: `99b7125` (G54-E2E-Nachtrag). Branch: `feat/auftrag-067i-welle-g55`. Umgebung: Node v22.11.0.
+
+### Geänderte Dateien
+- Umgebaut (je Route): `HeadcountPage`, `HrPage`, `TeamStructurePage` — ausschließlich vorhandene Domändaten (`organisationData`: HEADCOUNT/HR/TEAM, Organigramm via `getOrganisationStructure()` aus HEADCOUNT abgeleitet) und Primitives (Table, dl-/ul-Semantik, `ChartBarList`).
+- Neu: `src/app/__tests__/g55SemanticPages.ui.vitest.tsx` (jsdom-Spiegel, 4 Tests), `docs/screenshots/auftrag-067-g55/README.md` (Text-Matrix, Zellen `offen` bis 384er-Lauf — G53-P1-Lehre).
+- Erweitert: `e2e/semantic-routes.spec.ts` (G55-Routen ergänzt: 32 Routen × 4 Prüfungen × 3 Viewports = 384 Tests, Login-Redirect-Guard für alle).
+
+### Roter Starttest und Ursache
+3/3 Seiten renderten ausschließlich `<img src="...webp">` (per grep belegt: 037f 01–03). Nicht Teil der Welle: dekorative Backdrops (`alt=""`, `aria-hidden`) in `LocationPage`/`OrganisationStructure`, bereits semantische `/company/location`, `/product/integration`, `/company/data-basis`.
+
+### Implementierung und Architekturentscheidung
+- Content-h1 genau eine je Route (Header-h1 ist App-Chrome; E2E zählt `main h1`). Kein eigenes `<main>` je Seite; `<main aria-label="Hauptinhalt">` stellt das Layout.
+- `DataState` mit ready/empty aus Datenvorhandensein (kein simuliertes Loading bei statischen Imports).
+- G52-P1-Lehre: alle Summaries/Einleitungen aus Domändaten abgeleitet (FTE-Verlauf mit Start/Stand/Ziel, Ziel-FTE aus letzter HEADCOUNT-Zeile); Grep findet keine Betrags-Literale in den 3 Seiten.
+- Zählung: 32 Vertragsrouten plus bereits vorher semantische `/company/location` = 33 semantische Seiten des Masterplans.
+
+### Funktionale und negative Prüfungen
+- jsdom-Spiegel 4/4 (3 Seiten + Chart-Summary). `npx playwright test e2e/semantic-routes.spec.ts --list`: 384 Tests gelistet.
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- 067I ist kein Schutzbereichs-Auftrag (nur Darstellung, Domändaten gelesen nicht geändert). `git diff 99b7125 -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm run verify` (001–025): grün. `npm test`: 113 Dateien / 487 Tests grün. `npm run build`: grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Altbefunde außerhalb des Diffs. `git diff --check`: sauber.
+- E2E-Lauf nicht ausführbar (`E2E_AUTH_*` fehlen in der Builder-Shell) — bleibt Reviewer-Sache mit frischem Login.
+
+### Reviewer-Befund
+- Offen — **G55 BEREIT FÜR UNABHÄNGIGES REVIEW (E2E 384/384 ausstehend).** Kein Push, keine Integration.
