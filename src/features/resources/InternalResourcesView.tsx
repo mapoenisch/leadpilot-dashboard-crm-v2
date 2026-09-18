@@ -45,28 +45,29 @@ export function InternalResourcesView() {
         description="Authentische Primärquellen, Marketing-Roadmaps, Sales Decks, Playbooks und Live-Landingpage der LeadPilot GmbH."
       />
 
-      {/* Top Banner with Stats & Quick Actions */}
+      {/* Top Banner with Stats & Quick Actions — 067J / G56: jede Ebene
+          bricht bei 375 px um, nichts erzwingt Mindestbreite (PR-CLIP-13). */}
       <Card padding="var(--space-4)">
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "var(--space-4)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
-          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", minWidth: 0 }}>
-            <span style={{ color: "var(--color-text-muted)", fontSize: "13px" }}>Dokumente & Decks:</span>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "var(--space-4)", minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", rowGap: "8px", columnGap: "8px", minWidth: 0, flex: "1 1 200px" }}>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", minWidth: 0 }}>
+              <span style={{ color: "var(--color-text-muted)", fontSize: "13px" }}>Dokumente & Decks:</span>
               <strong style={{ color: "var(--color-text)", fontSize: "15px" }}>{allResources.length}</strong>
             </div>
             <div style={{ width: "1px", height: "18px", background: "var(--color-border)" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", minWidth: 0 }}>
               <span style={{ color: "var(--color-text-muted)", fontSize: "13px" }}>Seiten / Folien:</span>
               <strong style={{ color: "var(--color-primary)", fontSize: "15px" }}>{totalPages}</strong>
             </div>
             <div style={{ width: "1px", height: "18px", background: "var(--color-border)" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", minWidth: 0 }}>
               <span style={{ color: "var(--color-text-muted)", fontSize: "13px" }}>Status:</span>
               <Badge variant="mint">100% Verlustfrei integriert</Badge>
             </div>
           </div>
 
           {/* Search Box */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", minWidth: 0, flex: "1 1 160px" }}>
             <input
               type="text"
               placeholder="Dokument oder Tag suchen..."
@@ -79,8 +80,12 @@ export function InternalResourcesView() {
                 padding: "6px 12px",
                 color: "var(--color-text)",
                 fontSize: "13px",
-                width: "220px",
+                width: "100%",
+                maxWidth: "220px",
+                minWidth: 0,
+                flex: "1 1 140px",
                 outline: "none",
+                boxSizing: "border-box",
               }}
             />
             {searchQuery && (
