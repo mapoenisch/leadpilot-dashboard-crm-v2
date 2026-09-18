@@ -1,13 +1,26 @@
+import { BSC } from '@/domain/strategieData';
+import { DataState } from '@/components/ui/DataState';
+
+// 067I / G52: Echte Balanced-Scorecard-Seite statt WebP — genau eine h1,
+// vier Perspektiven mit Kennzahlen als Definitionsliste.
 export function BalancedScorecardPage() {
   return (
-    <div className="auftrag-037f-webp-view">
-      <img
-        src="/assets/auftrag-037f/05-balanced-scorecard.webp"
-        alt="Balanced Scorecard Steuerungskennzahlen"
-        data-testid="strategy-bsc-webp"
-        className="auftrag-037f-webp-img"
-        loading="eager"
-      />
+    <div>
+      <h1>Balanced Scorecard</h1>
+      <p>{BSC.title}: Vier Perspektiven mit den Steuerungskennzahlen des Geschäftsjahres.</p>
+      <DataState
+        status={BSC.perspectives.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Scorecard-Perspektiven erfasst."
+      >
+        <dl>
+          {BSC.perspectives.map((perspective) => (
+            <div key={perspective.name}>
+              <dt>{perspective.name}</dt>
+              <dd>{perspective.kpis}</dd>
+            </div>
+          ))}
+        </dl>
+      </DataState>
     </div>
   );
 }

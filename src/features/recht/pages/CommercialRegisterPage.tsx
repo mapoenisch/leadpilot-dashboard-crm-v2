@@ -1,13 +1,26 @@
+import { HANDELSREGISTER } from '@/domain/rechtData';
+import { DataState } from '@/components/ui/DataState';
+
+// 067I / G52: Echte Handelsregister-Seite statt WebP — genau eine h1,
+// Registerdaten als Definitionsliste.
 export function CommercialRegisterPage() {
   return (
-    <div className="auftrag-037f-webp-view">
-      <img
-        src="/assets/auftrag-037f/09-handelsregister.webp"
-        alt="Handelsregisterdaten und Vertretungsbefugnis"
-        data-testid="legal-register-webp"
-        className="auftrag-037f-webp-img"
-        loading="eager"
-      />
+    <div>
+      <h1>Handelsregister</h1>
+      <p>{HANDELSREGISTER.title}: Registergericht Leipzig, HRB 40912.</p>
+      <DataState
+        status={HANDELSREGISTER.details.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Registerdaten erfasst."
+      >
+        <dl>
+          {HANDELSREGISTER.details.map((detail) => (
+            <div key={detail[0]}>
+              <dt>{detail[0]}</dt>
+              <dd>{detail[1]}</dd>
+            </div>
+          ))}
+        </dl>
+      </DataState>
     </div>
   );
 }

@@ -8111,6 +8111,41 @@ Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema 
 
 - Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
 
+## [2026-09-18] Gate G52: Builder-Nachtrag 067I Welle Finanzen/Recht/Strategie (kein Push)
+
+**Ziel und Baseline-Commit:** G52 — 9 Ganzseiten-WebP (Finanzen, Recht, Strategie) als echte React-Seiten mit auswählbarem Inhalt, genau einer Content-h1, semantischen Tabellen/Listen, zugänglichen Chartzusammenfassungen, Loading/Empty/Error/Ready. Baseline: `80389da` (G51-Freigabe). Branch: `feat/auftrag-067i-welle-g52`. Umgebung: Node v22.11.0, Chromium-E2E lokal.
+
+### Geänderte Dateien
+- Neu: `src/components/ui/DataState.tsx`, `src/components/ui/AccessibleChartSummary.tsx` (mit `ChartBarList` auf `<meter>`-Basis — kein Inline-Style per G38-Regel).
+- Neu: `e2e/semantic-routes.spec.ts` (Rot-Vertrag: kein WebP, h1, Text, Struktur, 375px-Overflow), `src/app/__tests__/g52SemanticPages.ui.vitest.tsx` (jsdom-Spiegel, 10 Tests), `docs/screenshots/auftrag-067-g52/README.md` (Text-Matrix, keine Binärdateien).
+- Umgebaut (je Route): `PnLPage`, `BalanceSheetPage`, `UnitEconomicsPage`, `ArticlesPage`, `ShareholdersPage`, `CommercialRegisterPage`, `OkrsPage`, `BalancedScorecardPage`, `GrowthDriversPage` — ausschließlich vorhandene Domändaten (`finanzenData`, `rechtData`, `strategieData`) und Primitives (Table, Card-/dl-/ul-Semantik).
+
+### Roter Starttest und Ursache
+9/9 Seiten renderten ausschließlich `<img src="...webp">` (per grep belegt); E2E-Vertrag danach geschrieben.
+
+### Implementierung und Architekturentscheidung
+- Content-h1 genau eine je Route (Header-h1 ist App-Chrome und bleibt — routeweite Bereinigung ist G55-Sache; E2E zählt `main h1`).
+- Kein eigenes `<main>` je Seite (keine verschachtelten Landmarks); `<main aria-label="Hauptinhalt">` stellt das Layout.
+- `DataState` mit ready/empty aus Datenvorhandensein (kein simuliertes Loading bei statischen Imports).
+- Balken als `<meter>` mit textlicher Summary statt Canvas-Only.
+
+### Funktionale und negative Prüfungen
+- jsdom-Spiegel 10/10 (alle 9 Seiten + Chart-Summaries). E2E 108/108 auf 1440/768/375 (kein WebP, h1, >200 Zeichen, Struktur, 0px Overflow).
+- E2E-Diagnosen: Lazy-Chunks brauchen Warte-Assertions (Suspense-Fallback maß sonst 22 Zeichen); Header-h1 ist App-Chrome (Assertion auf `main h1` verengt).
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- 067I ist kein Schutzbereichs-Auftrag (nur Darstellung, Domändaten gelesen nicht geändert). Unverändert: `src/simulation`, `src/context`, `src/types`, `src/services/data`, Engine, Worker, CRM-Pfade.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm run verify` (001–025): grün. `npm test`: 110 Dateien / 461 Tests grün. `npm run build`: grün (lokal-env für E2E, Standard-env danach neu).
+- `npm run lint`: neue Dateien sauber (ein G38-Inline-Style-Fund sofort auf `<meter>` umgebaut); Rest die 4 bekannten `max-lines`. `git diff --check`: sauber.
+
+### Reviewer-Befund
+- Offen — **G52 BEREIT FÜR UNABHÄNGIGES REVIEW (Teilreview der Welle).** Kein Push, keine Integration, G53 bleibt blockiert.
+
+### Freigabestatus und Abschlusscommit
+- Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067i-welle-g52`.
+
 ## [2026-09-18] Gate G51: Builder-Nachtrag 067H HubSpot-Importhärtung (kein Push)
 
 **Ziel und Baseline-Commit:** 067H / G51 — alle Seiten über `paging.next.after`, 429-Backoff/Abort/Maximallaufzeit, Quarantäne statt LOST, Importfreigabe über Counts/Referenzen/Pflichtfelder/Zeitraum. Baseline: `99bd708` (G50-Freigabe). Branch: `feat/auftrag-067h-hubspot`. Umgebung: Node v22.11.0.
