@@ -8222,3 +8222,64 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 ### Freigabeumfang
 
 - Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
+
+## [2026-09-18] Gate G52: Nachbesserung 2x P1 auf 50b6075 (Builder, kein Push)
+
+**Ziel und Baseline-Commit:** Review-Befund auf `50b6075` schließen (2x P1), G52 erneut reviewfähig machen. Branch: `feat/auftrag-067i-welle-g52`. Umgebung: Node v22.11.0.
+
+### Geänderte Dateien
+- `src/features/strategie/pages/OkrsPage.tsx` — beide `CHART_OKR`-Reihen als strukturierte Listen (Basis + Ziel mit Labels aus Dataset), Summary aus Labels/Werten abgeleitet.
+- `src/features/finanzen/pages/PnLPage.tsx` — Erlös-Summary aus `CHART_ERLOESE`-Labels/Werten (`toLocaleString('de-DE')`) abgeleitet.
+- `src/features/finanzen/pages/UnitEconomicsPage.tsx` — Kosten-Summary aus `BUDGET.allocations` (Top-2 nach Budget sortiert) abgeleitet.
+- `src/features/strategie/pages/GrowthDriversPage.tsx` — Treiber-Summary aus `CHART_TREIBER`-Labels/Werten abgeleitet, Hebel-Anzahl aus `TREIBER.drivers.length`.
+- `src/features/finanzen/pages/BalanceSheetPage.tsx` — Bilanzsumme aus letzter `BILANZ.aktiva`-Zeile.
+- `src/features/recht/pages/CommercialRegisterPage.tsx` — Gericht/Nummer aus `HANDELSREGISTER.details[0/1]`.
+- `src/features/recht/pages/ShareholdersPage.tsx` — Stimmensumme aus letzter `GESELLSCHAFTER`-Zeile.
+
+### Roter Start / Befund
+1. **[P1] Basiswerte gehen verloren** (`OkrsPage.tsx:8-12`): nur `datasets[1]` übernommen.
+2. **[P1] Domänenwerte sind dupliziert** (`PnLPage.tsx:39-42`): Summary-Beträge als Literale; gleiche Bereinigung für Bilanz, Unit Economics, Register, Gesellschafter, OKR, Wachstumstreiber gefordert.
+
+### Implementierung
+- Keine neuen Abhängigkeiten, keine Domain-Änderung (nur gelesen), keine Schutzbereichs-Pfade. Fallback-Labels generisch (`Basis`/`Ziel`), nie Domain-Literale.
+- Grep-Nachweis: keine der alten Literale (`307.600`, `23.000`, `490.000`, `72.000`, `41,2`, `479.000`, `100,0`, `HRB 40912`) mehr als Literal in den 7 Seiten.
+
+### Funktionale Prüfungen
+- G52-jsdom `g52SemanticPages.ui.vitest.tsx`: 10/10 (Probes weiter enthalten, jetzt via Domändaten gerendert).
+
+### Schutzbereichs-Diff
+- `git diff 50b6075 -- src/simulation src/types src/context src/services/data src/features/resources`: leer. 067I bleibt Darstellungs-Auftrag.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm run verify` (001–025): grün. `npm test`: 110 Dateien / 461 Tests grün. `npm run build`: grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Altbefunde außerhalb des Diffs. `git diff --check`: sauber.
+
+### Screenshot-Nachweis
+- Nur Text-Ableitung, kein Layoutwechsel (zweite `<ChartBarList>` + `<h3>` auf OKR-Seite); E2E nicht wiederholt (blockierter Befund, `/login` ohne Session wie gemeldet). Vorher/Nachher-Screenshots bei Bedarf im Re-Review.
+
+### Reviewer-Befund
+- Offen — **G52 ERNEUT BEREIT FÜR UNABHÄNGIGES RE-REVIEW.** Kein Push, keine Integration, G53 bleibt blockiert.
+
+## [2026-09-18] Gate G52: Nachbesserung E2E-P1 Login-Redirect (Builder, kein Push)
+
+**Ziel und Baseline-Commit:** Unabhängiger E2E-Befund schließen — `kein WebP` und `main h1 === 1` bestanden fälschlich auf `/login` bei abgelaufenem Auth-State (54/108 falsch-grün, 54/108 korrekt-rot). Basis: `50b6075` plus Seiten-P1-Nachbesserung. Branch: `feat/auftrag-067i-welle-g52`.
+
+### Geänderte Dateien
+- `e2e/semantic-routes.spec.ts` — zentrale `gotoAuthenticatedRoute(page, route)`: nach jedem `goto` erst `not.toHaveURL(/\/login/)` plus `main[aria-label="Hauptinhalt"]` sichtbar (15 s), danach erst die Routen-Assertion. Alle 4 Tests je Route (WebP, h1, Text, Overflow) nutzen sie.
+
+### Befund
+- **[P1] Login-Redirect wird teilweise als Erfolg gewertet** (`semantic-routes.spec.ts:23-29`): ohne URL-/Landmarken-Guard zählt die Login-Seite als Bestand. Behoben per zentralem Guard; kein Seiten- oder Domain-Code geändert.
+
+### Funktionale Prüfungen
+- G52-jsdom 10/10. `npx playwright test e2e/semantic-routes.spec.ts --list`: 108 Tests gelistet (9 Routen × 4 Tests × 3 Projekte).
+
+### Schutzbereichs-Diff
+- `git diff HEAD -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm test`: 110 Dateien / 461 Tests grün. `npm run verify` (001–025): grün. `npm run build`: grün.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Altbefunde außerhalb des Diffs. `git diff --check`: sauber.
+- E2E nicht ausführbar: `E2E_AUTH_*` in der Shell fehlen, vorhandener Auth-State abgelaufen — frischer Login bleibt Reviewer-Sache.
+
+### Reviewer-Befund
+- Offen — **G52 ERNEUT BEREIT FÜR UNABHÄNGIGES RE-REVIEW (E2E mit frischem Login).** Kein Push, keine Integration, G53 bleibt blockiert.

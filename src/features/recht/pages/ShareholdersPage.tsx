@@ -10,11 +10,14 @@ export function ShareholdersPage() {
     anteil: row[1] ?? '',
     stimmen: row[2] ?? '',
   }));
+  const summenzeile = GESELLSCHAFTER.rows[GESELLSCHAFTER.rows.length - 1];
+  const summeStimmen = summenzeile?.[2] ?? '';
   return (
     <div>
       <h1>Gesellschafterliste</h1>
       <p>
-        Gesellschafter der LeadPilot GmbH mit Geschäftsanteilen und Stimmrechten, Summe 100,0 Prozent.
+        Gesellschafter der LeadPilot GmbH mit Geschäftsanteilen und Stimmrechten,
+        Summe {summeStimmen}.
       </p>
       <DataState status={rows.length > 0 ? 'ready' : 'empty'} emptyText="Keine Gesellschafter erfasst.">
         <Table

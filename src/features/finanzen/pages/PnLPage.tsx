@@ -17,6 +17,12 @@ export function PnLPage() {
     value: CHART_ERLOESE.datasets[0]?.data[index] ?? 0,
     display: `${(CHART_ERLOESE.datasets[0]?.data[index] ?? 0).toLocaleString('de-DE')} €`,
   }));
+  const erloesBetrag = (index: number): string =>
+    `${(CHART_ERLOESE.datasets[0]?.data[index] ?? 0).toLocaleString('de-DE')} Euro`;
+  const erloesSummary =
+    `${CHART_ERLOESE.labels[0]} trägt mit ${erloesBetrag(0)} den größten Anteil, ` +
+    `gefolgt von ${CHART_ERLOESE.labels[1]} mit ${erloesBetrag(1)} und ` +
+    `${CHART_ERLOESE.labels[2]} mit ${erloesBetrag(2)}.`;
   return (
     <div>
       <h1>Gewinn- und Verlustrechnung</h1>
@@ -36,10 +42,7 @@ export function PnLPage() {
             rows={rows}
           />
         </section>
-        <AccessibleChartSummary
-          title="Erlösaufteilung FY 2025"
-          summary="Der Abo-Umsatz trägt mit 307.600 Euro den größten Anteil, gefolgt von Onboarding & Setup mit 23.000 Euro und sonstigen Erlösen mit 5.400 Euro."
-        >
+        <AccessibleChartSummary title="Erlösaufteilung FY 2025" summary={erloesSummary}>
           <ChartBarList items={erloese} />
         </AccessibleChartSummary>
       </DataState>

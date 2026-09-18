@@ -10,10 +10,18 @@ export function GrowthDriversPage() {
     value: CHART_TREIBER.datasets[0]?.data[index] ?? 0,
     display: `${(CHART_TREIBER.datasets[0]?.data[index] ?? 0).toLocaleString('de-DE')} €`,
   }));
+  const effektBetrag = (index: number): string =>
+    `${(CHART_TREIBER.datasets[0]?.data[index] ?? 0).toLocaleString('de-DE')} Euro`;
+  const treiberSummary =
+    `Der größte Effekt kommt aus ${CHART_TREIBER.labels[0]} mit ${effektBetrag(0)}, ` +
+    `gefolgt von ${CHART_TREIBER.labels[1]} mit ${effektBetrag(1)} und ` +
+    `${CHART_TREIBER.labels[2]} mit ${effektBetrag(2)}.`;
   return (
     <div>
       <h1>Wachstumstreiber</h1>
-      <p>{TREIBER.title}: Die fünf Hebel für das ARR-Wachstum ab 2026.</p>
+      <p>
+        {TREIBER.title}: Die {TREIBER.drivers.length} Hebel für das ARR-Wachstum ab 2026.
+      </p>
       <DataState status={TREIBER.drivers.length > 0 ? 'ready' : 'empty'} emptyText="Keine Wachstumstreiber erfasst.">
         <ul>
           {TREIBER.drivers.map((driver) => (
@@ -22,7 +30,7 @@ export function GrowthDriversPage() {
         </ul>
         <AccessibleChartSummary
           title={CHART_TREIBER.datasets[0]?.label ?? 'ARR-Wachstumseffekt'}
-          summary="Der größte Effekt kommt aus Trial-to-Paid mit 72.000 Euro, gefolgt von Churn-Senkung mit 58.000 Euro und Partnerprogramm mit 34.000 Euro."
+          summary={treiberSummary}
         >
           <ChartBarList items={effekte} />
         </AccessibleChartSummary>

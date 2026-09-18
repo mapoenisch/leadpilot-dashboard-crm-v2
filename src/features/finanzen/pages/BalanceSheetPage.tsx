@@ -7,13 +7,14 @@ import { DataState } from '@/components/ui/DataState';
 export function BalanceSheetPage() {
   const aktiva = BILANZ.aktiva.map((row) => ({ position: row[0] ?? '', betrag: row[1] ?? '' }));
   const passiva = BILANZ.passiva.map((row) => ({ position: row[0] ?? '', betrag: row[1] ?? '' }));
+  const bilanzSumme = BILANZ.aktiva[BILANZ.aktiva.length - 1]?.[1] ?? '';
   const ready = aktiva.length > 0 && passiva.length > 0;
   return (
     <div>
       <h1>Bilanz &amp; SaaS KPIs</h1>
       <p>
         Bilanz der LeadPilot GmbH zum Geschäftsjahresende: Aktiva und Passiva mit
-        Bilanzsumme 479.000 Euro.
+        Bilanzsumme {bilanzSumme}.
       </p>
       <DataState status={ready ? 'ready' : 'empty'} emptyText="Keine Bilanzpositionen erfasst.">
         <section aria-label="Aktiva">

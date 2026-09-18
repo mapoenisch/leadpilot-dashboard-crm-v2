@@ -16,6 +16,14 @@ export function UnitEconomicsPage() {
     value: euroToNumber(item.budget),
     display: `${item.budget} (${item.share})`,
   }));
+  const nachBudget = [...BUDGET.allocations].sort(
+    (a, b) => euroToNumber(b.budget) - euroToNumber(a.budget),
+  );
+  const groesste = nachBudget[0];
+  const naechste = nachBudget[1];
+  const kostenSummary =
+    `Der ${groesste?.area} dominiert mit ${groesste?.budget} und ${groesste?.share}, ` +
+    `gefolgt von ${naechste?.area} mit ${naechste?.budget}.`;
   return (
     <div>
       <h1>Unit Economics 2026</h1>
@@ -32,10 +40,7 @@ export function UnitEconomicsPage() {
             ))}
           </dl>
         </section>
-        <AccessibleChartSummary
-          title={BUDGET.title}
-          summary="Der Personalaufwand dominiert mit 490.000 Euro und 76 Prozent, gefolgt von Miete und Verwaltung mit 52.000 Euro."
-        >
+        <AccessibleChartSummary title={BUDGET.title} summary={kostenSummary}>
           <ChartBarList items={kosten} />
         </AccessibleChartSummary>
       </DataState>
