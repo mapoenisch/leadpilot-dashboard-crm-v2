@@ -95,6 +95,9 @@ export interface MainThreadTickInput {
 
 export interface TickRunResult {
   state: SimulationState;
+  // 067G / G50 (Nacharbeit P1): PRNG-Endzustand des Laufs — im Worker-Pfad
+  // aus dem COMPLETED-Payload, sonst aus dem Main-Thread-Rng.
+  rngState: number;
   leads: SimulationLead[];
   opportunities: SimulationOpportunity[];
   deals: SimulationDeal[];
@@ -169,7 +172,16 @@ export function executeTicksMainThread(input: MainThreadTickInput): TickRunResul
   }
 
   currentState.isRunning = false;
-  return { state: currentState, leads, opportunities, deals, activities, events, timeSeries };
+  return {
+    state: currentState,
+    rngState: input.rng.getState(),
+    leads,
+    opportunities,
+    deals,
+    activities,
+    events,
+    timeSeries,
+  };
 }
 
 /** Produktpfad nur mit echtem Worker (Browser); sonst Main-Thread. */
@@ -526,7 +538,9 @@ export class ScenarioService {
       scenarioId: version.scenarioId,
       scenarioVersionId: version.id,
       seed,
-      rngState: rng.getState(),
+      // 067G / G50 (Nacharbeit P1): Endzustand aus dem ausführenden Pfad —
+      // im Browser der Worker, sonst der Main-Thread-Rng.
+      rngState: tickResult.rngState,
       modelVersion: manifest.modelVersion,
       schemaVersion: manifest.schemaVersion,
       baselineVersion: manifest.baselineVersion,
@@ -665,6 +679,7 @@ export class ScenarioService {
         }
         return {
           state: result.finalState,
+          rngState: result.rngState,
           leads: result.leads,
           opportunities: result.opportunities,
           deals: result.deals,

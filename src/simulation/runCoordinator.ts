@@ -41,6 +41,9 @@ export interface CoordinatorRunInput {
 
 export interface WorkerRunResult {
   finalState: SimulationState;
+  // 067G / G50 (Nacharbeit P1): PRNG-Endzustand aus dem Worker — der Service
+  // persistiert ihn statt des unveränderten Main-Thread-Starts.
+  rngState: number;
   finalMetrics?: SimulationMetrics;
   leads: SimulationLead[];
   opportunities: SimulationOpportunity[];
@@ -80,6 +83,7 @@ export class RunCoordinator {
   private resolveDone: ((result: WorkerRunResult) => void) | null = null;
   private rejectDone: ((err: CoordinatorError) => void) | null = null;
   private unsubscribeAdapter: (() => void) | null = null;
+  private unsubscribeAdapterError: (() => void) | null = null;
 
   constructor(adapter?: ISimulationWorkerAdapter) {
     this.adapter = adapter ?? createWorkerAdapter();
@@ -97,6 +101,11 @@ export class RunCoordinator {
     this.correlationId = input.correlationId;
     this.totalUnits = input.targetTicks;
     this.unsubscribeAdapter = this.adapter.onMessage((evt) => this.handleWorkerEvent(evt));
+    // 067G / G50 (Nacharbeit P1): Nativer Crash kommt als error-Event statt
+    // Protokollereignis — als FAILED behandeln und terminieren.
+    this.unsubscribeAdapterError = this.adapter.onError((err) =>
+      this.fail(new CoordinatorError('WORKER_CRASH', err.message)),
+    );
     this.adapter.postMessage({
       protocolVersion: WORKER_PROTOCOL_VERSION,
       command: 'START',
@@ -142,6 +151,8 @@ export class RunCoordinator {
     this.settled = true;
     this.unsubscribeAdapter?.();
     this.unsubscribeAdapter = null;
+    this.unsubscribeAdapterError?.();
+    this.unsubscribeAdapterError = null;
     this.adapter.terminate();
   }
 
@@ -164,6 +175,7 @@ export class RunCoordinator {
       totalUnits?: number;
       error?: { code: string; message: string };
       finalState?: SimulationState;
+      rngState?: number;
       finalMetrics?: SimulationMetrics;
       leads?: SimulationLead[];
       opportunities?: SimulationOpportunity[];
@@ -179,14 +191,20 @@ export class RunCoordinator {
 
     if (status === 'completed') {
       const finalState = evt.payload?.finalState;
+      const rngState = evt.payload?.rngState;
       if (!finalState) {
         this.fail(new CoordinatorError('INVALID_RESULT', 'COMPLETED ohne finalState.'));
+        return;
+      }
+      if (typeof rngState !== 'number' || !Number.isFinite(rngState)) {
+        this.fail(new CoordinatorError('INVALID_RESULT', 'COMPLETED ohne PRNG-Endzustand.'));
         return;
       }
       this.emit('completed', this.totalUnits);
       const resolve = this.resolveDone;
       const result: WorkerRunResult = {
         finalState,
+        rngState,
         finalMetrics: evt.payload?.finalMetrics,
         leads: evt.payload?.leads ?? [],
         opportunities: evt.payload?.opportunities ?? [],

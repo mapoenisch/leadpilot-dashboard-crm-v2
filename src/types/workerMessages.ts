@@ -51,6 +51,9 @@ export interface WorkerEventPayload {
   processedUnits?: number;
   totalUnits?: number;
   correlationId?: string;
+  // 067G / G50 (Nacharbeit P1): PRNG-Endzustand des Worker-Laufs — der
+  // Service persistiert ihn statt des unveränderten Main-Thread-Starts.
+  rngState?: number;
   finalState?: SimulationState;
   finalMetrics?: SimulationMetrics;
   leads?: SimulationLead[];

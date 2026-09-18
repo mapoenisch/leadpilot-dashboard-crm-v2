@@ -397,6 +397,8 @@ class SimulationWorkerRunner {
           processedUnits: this.currentTick,
           totalUnits: this.targetTicks,
           correlationId: this.correlationId,
+          // 067G / G50 (Nacharbeit P1): PRNG-Endzustand für Audit/Persistenz.
+          rngState: this.rng ? this.rng.getState() : 0,
           finalState: this.currentState,
           finalMetrics: this.currentState.metrics,
           leads: this.leads,

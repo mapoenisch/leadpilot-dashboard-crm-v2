@@ -8080,3 +8080,17 @@ Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema 
 
 ### Freigabestatus und Abschlusscommit
 - Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067g-worker`.
+
+## [2026-09-18] Gate G50: Nacharbeit zum Review (Builder-Nachtrag, kein Push)
+
+**Ausgang:** Review `c40a549` → NICHT FREIGEGEBEN (2 P1: `rngState` bleibt im Browser auf Initialwert; nativer Worker-Crash hängt Promise/Fortschritt/Coordinator). Umgebung: Node v22.11.0.
+
+### Behebung je Befund
+1. **P1 rngState:** COMPLETED-Payload und `WorkerRunResult` tragen den PRNG-Endzustand (Pflicht — fehlt er, verwirft der Coordinator mit `INVALID_RESULT`); der Service persistiert `tickResult.rngState` statt des unveränderten Main-Thread-Starts. Gegenfall im Paritätstest: Worker- und Main-Thread-Endzustand sind identisch und verschieden vom Startwert.
+2. **P1 Crash:** `ISimulationWorkerAdapter.onError` — Browser-Adapter verdrahtet `worker.onerror`, Coordinator behandelt ihn als `WORKER_CRASH`-FAILED und terminiert (Listener + Worker). Terminierungstest mit simuliertem Crash (failed-Status, Promise-Verwerfung, keine Listener-Reste).
+
+### Finale Gate-Ergebnisse (Nacharbeit G50, vollständig)
+- Fokustests 7/7. `npm test`: 107 Dateien / 434 Tests grün. `verify` 001–025 grün. tsc 0. Build grün (lokal-env für E2E, Standard-env danach neu). Beide E2E lokal grün (Multisession + Responsiveness, desktop-1440).
+- Server-Beweis P1 rngState: 4 Worker-Runs mit Endzuständen ≠ Seed (z. B. Seed 477179 → 1870029172252); Reproduktion mit identischem Seed liefert identischen Endzustand (1038498556364) — Determinismus im Worker-Pfad; je Run 1 Snapshot.
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber. Unerlaubte Pfade leer.
+- **G50-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067H bleibt blockiert.

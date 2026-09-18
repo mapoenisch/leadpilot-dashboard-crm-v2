@@ -20,6 +20,7 @@ class StubAdapter implements ISimulationWorkerAdapter {
   posted: WorkerMessageCommand[] = [];
   terminated = false;
   listeners = new Set<(evt: WorkerMessageEvent) => void>();
+  errorListeners = new Set<(err: Error) => void>();
 
   postMessage(command: WorkerMessageCommand): void {
     this.posted.push(command);
@@ -32,13 +33,25 @@ class StubAdapter implements ISimulationWorkerAdapter {
     };
   }
 
+  onError(listener: (err: Error) => void): () => void {
+    this.errorListeners.add(listener);
+    return () => {
+      this.errorListeners.delete(listener);
+    };
+  }
+
   terminate(): void {
     this.terminated = true;
     this.listeners.clear();
+    this.errorListeners.clear();
   }
 
   emit(evt: WorkerMessageEvent): void {
     for (const fn of [...this.listeners]) fn(evt);
+  }
+
+  crash(err: Error): void {
+    for (const fn of [...this.errorListeners]) fn(err);
   }
 }
 
@@ -119,6 +132,7 @@ describe('runCoordinator (G50)', () => {
         completedRuns: 1,
         processedUnits: 10,
         totalUnits: 10,
+        rngState: 424242,
         finalMetrics: { liveARR: 411840 } as never,
         finalState: { tickCount: 10 } as never,
       }),
@@ -126,6 +140,7 @@ describe('runCoordinator (G50)', () => {
 
     const result = await done;
     expect(result.finalMetrics).toMatchObject({ liveARR: 411840 });
+    expect(result.rngState).toBe(424242);
     expect(seen.map((s) => s.status)).toEqual(['queued', 'running', 'progress', 'completed']);
     expect(seen[2]).toMatchObject({ processedUnits: 4, totalUnits: 10 });
     expect(adapter.terminated).toBe(true);
@@ -191,7 +206,29 @@ describe('runCoordinator (G50)', () => {
     await expect(done).rejects.toMatchObject({ code: 'CANCELLED' });
     expect(adapter.terminated).toBe(true);
     expect(adapter.listeners.size).toBe(0);
+    expect(adapter.errorListeners.size).toBe(0);
     expect(seen[seen.length - 1]?.status).toBe('failed');
+  });
+
+  it('nativer Worker-Crash wird als FAILED behandelt und terminiert', async () => {
+    const adapter = new StubAdapter();
+    const coordinator = new RunCoordinator(adapter);
+    const seen = collect(coordinator);
+
+    const done = coordinator.execute({
+      manifest: makeManifest(),
+      targetTicks: 10,
+      correlationId: 'corr-coord-1',
+    });
+    adapter.emit(workerEvent('QUEUED'));
+    adapter.emit(workerEvent('PROGRESS', { processedUnits: 2, totalUnits: 10 }));
+    adapter.crash(new Error('Worker-Crash: out of memory'));
+
+    await expect(done).rejects.toMatchObject({ code: 'WORKER_CRASH' });
+    expect(seen[seen.length - 1]?.status).toBe('failed');
+    expect(adapter.terminated).toBe(true);
+    expect(adapter.listeners.size).toBe(0);
+    expect(adapter.errorListeners.size).toBe(0);
   });
 
   it('Integration: echter Worker rechnet mit monotonen Einheiten bis COMPLETED', async () => {
@@ -267,5 +304,9 @@ describe('runCoordinator (G50)', () => {
       correlationId: 'corr-coord-1',
     });
     expect(viaMain.state.metrics).toEqual(viaWorker.finalState?.metrics);
+    // P1-Gegenfall: PRNG-Endzustand stimmt pfadübergreifend überein.
+    const mainEndState = new DeterministicRNG(manifest.seed).getState();
+    expect(mainEndState).not.toBe(viaWorker.rngState);
+    expect(viaMain.rngState).toBe(viaWorker.rngState);
   }, 30_000);
 });
