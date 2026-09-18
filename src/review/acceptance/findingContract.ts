@@ -157,6 +157,9 @@ const PASSING_SINCE_G45: readonly V23FindingId[] = ['PR-AUTH-01', 'PR-RLS-02'];
 // G46 (Auftrag 067C): PR-INGEST-03 und PR-SEED-05 erfuellen denselben
 // unveraenderten Sollvertrag gruen und stehen auf passing.
 const PASSING_SINCE_G46: readonly V23FindingId[] = ['PR-INGEST-03', 'PR-SEED-05'];
+// G57 (Auftrag 067K): PR-DEPENDENCY-15 und PR-QUALITY-16 erfuellen die
+// Qualitaets- und Auditgrenzen (mit dokumentierter Risikofreigabe) und stehen auf passing.
+const PASSING_SINCE_G57: readonly V23FindingId[] = ['PR-DEPENDENCY-15', 'PR-QUALITY-16'];
 
 export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
   id,
@@ -165,7 +168,11 @@ export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
   targetGate: gateById[id],
   runner: runnerById[id],
   expected:
-    PASSING_SINCE_G45.includes(id) || PASSING_SINCE_G46.includes(id) ? 'passing' : 'failing',
+    PASSING_SINCE_G45.includes(id) ||
+    PASSING_SINCE_G46.includes(id) ||
+    PASSING_SINCE_G57.includes(id)
+      ? 'passing'
+      : 'failing',
 }));
 
 export function getFinding(id: V23FindingId): V23FindingContract {
