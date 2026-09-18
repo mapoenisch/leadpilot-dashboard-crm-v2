@@ -13,7 +13,7 @@ beabsichtigt bzw. neutral (kein Redesign); Nachweis über Sollverträge
 | PR-SEMANTIC-11 (Nachlauf: 6 section-Wrapper, DataBasis-h1) | `test:v23:findings` | grün |
 | PR-A11Y-12 (Skip-Link, Fokus, Single-DOM) | `test:v23:findings` | grün |
 | PR-ASSET-14 (Assets lokal, Header) | `test:v23:findings` | grün |
-| PR-CLIP-13 (Bounding-Box, 375 px) | `test:v23:clipping` (Playwright) | offen bis Lauf mit frischem Login |
+| PR-CLIP-13 (Bounding-Box, 375 px) | `test:v23:clipping` (Playwright) | 1 passed in 2,2 s (unabhängiger Lauf) |
 | Neue Hooks (`useIsMobileViewport`, `useUrlSyncedState`) | `npm test` (Vollsuite 113/487) | grün |
 
 ## Was geändert wurde (funktional neutral)

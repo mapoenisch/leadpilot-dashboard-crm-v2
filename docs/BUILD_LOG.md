@@ -8426,3 +8426,15 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Reviewer-Befund
 - Offen — **G56 BEREIT FÜR UNABHÄNGIGES REVIEW (Clipping-E2E ausstehend).** Kein Push, keine Integration.
+
+## [2026-09-18] Gate G56: Clipping-Nachbesserung + unabhängiger E2E-Nachweis (kein Push)
+
+### Nachbesserung
+- Erster Clipping-Lauf rot: Badge `100% Verlustfrei integriert` mit rechtem Rand 393,5 px statt ≤ 375 px (Overflow ca. 18,5 px) — Statistikzeile und festes Suchfeld (220 px) verhinderten den Umbruch.
+- Behoben in `cda7e14` (`InternalResourcesView.tsx`): jede Banner-Ebene bricht um (`flex-wrap` + `min-width: 0` + flexible Anteile), Suchfeld schrumpft (`max-width: 220px`, `flex: 1 1 140px`). Tabs waren bereits umbrechend.
+
+### Nachweis
+- `npm run test:v23:clipping` — **1 passed in 2,2 s** (unabhängiger Lauf, Login erfolgreich, frischer Build). Die `zsh: read-only variable: status`-Meldung stammt aus dem Shell-Aufräumen danach und betrifft den Test nicht.
+
+### Ergebnis
+- G56 ist damit technisch vollständig: PR-SEMANTIC-11, PR-A11Y-12, PR-ASSET-14 (Vitest) **und** PR-CLIP-13 (Playwright) alle grün. **G56 FREIGABEFÄHIG.** Kein Push, keine Integration.
