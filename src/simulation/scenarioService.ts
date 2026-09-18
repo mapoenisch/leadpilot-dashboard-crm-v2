@@ -51,6 +51,7 @@ import {
   KeyDifferenceItem,
 } from '../types/scenario';
 import {
+  HistoricalSimulationMetrics,
   SimulationActivity,
   SimulationDeal,
   SimulationEvent,
@@ -60,6 +61,7 @@ import {
   SimulationState,
 } from '../types/simulation';
 import type { SimulationSnapshot } from '../types/snapshot';
+import { RunCoordinator, type WorkerRunResult } from './runCoordinator';
 import { SalesQueueEntry } from '../types/salesQueue';
 import { CSQueueEntry } from '../types/csQueue';
 
@@ -73,10 +75,113 @@ export interface RunExecutionResult {
   events: SimulationEvent[];
 }
 
+// 067G / G50 — Main-Thread-Executor, ausschließlich für Tests und
+// Headless-Betrieb (Node/jsdom ohne Worker). Der Produktpfad (Browser mit
+// Worker) läuft über RunCoordinator; beide rechnen denselben Tick-Loop.
+export interface MainThreadTickInput {
+  rng: DeterministicRNG;
+  initialState: SimulationState;
+  leads: SimulationLead[];
+  opportunities: SimulationOpportunity[];
+  deals: SimulationDeal[];
+  activities: SimulationActivity[];
+  historicalMetrics: HistoricalSimulationMetrics;
+  baseParameters: ScenarioParameters;
+  measures: readonly Measure[];
+  targetTicks: number;
+  correlationId: string;
+  onProgress?: (processedUnits: number, totalUnits: number) => void;
+}
+
+export interface TickRunResult {
+  state: SimulationState;
+  leads: SimulationLead[];
+  opportunities: SimulationOpportunity[];
+  deals: SimulationDeal[];
+  activities: SimulationActivity[];
+  events: SimulationEvent[];
+  timeSeries: TimeSeriesPoint[];
+}
+
+export function executeTicksMainThread(input: MainThreadTickInput): TickRunResult {
+  const resolver = new EffectiveParameterResolver(input.baseParameters, [...input.measures]);
+  let queueEntries: SalesQueueEntry[] = [];
+  let csQueueEntries: CSQueueEntry[] = [];
+  let currentState = input.initialState;
+  let leads = [...input.leads];
+  let opportunities = [...input.opportunities];
+  let deals = [...input.deals];
+  let activities = [...input.activities];
+  const events: SimulationEvent[] = [];
+  const timeSeries: TimeSeriesPoint[] = [];
+
+  for (let i = 0; i < input.targetTicks; i++) {
+    const eff = resolver.at(i);
+    const output: TickOutput = SimulationEngine.executeTick({
+      state: currentState,
+      rng: input.rng,
+      leads,
+      opportunities,
+      deals,
+      activities,
+      historicalMetrics: input.historicalMetrics,
+      salesRepCount: eff.salesRepCount,
+      csRepCount: eff.csRepCount,
+      churnRateMonthly: eff.churnRateMonthly,
+      marketingBudgetYearly: eff.marketingBudgetYearly,
+      channelMix: eff.channelMix,
+      trialToPaidConversion: eff.trialToPaidConversion,
+      salesCycleDays: eff.salesCycleDays,
+      discountPercent: eff.discountPercent,
+      queueEntries,
+      csQueueEntries,
+    });
+
+    currentState = output.state;
+    leads = output.leads;
+    opportunities = output.opportunities;
+    deals = output.deals;
+    activities = output.activities;
+    if (output.queueEntries) queueEntries = output.queueEntries;
+    if (output.csQueueEntries) csQueueEntries = output.csQueueEntries;
+
+    for (const evt of output.newEvents) {
+      if (evt.correlationId === undefined) evt.correlationId = input.correlationId;
+      events.unshift(evt);
+    }
+
+    timeSeries.push({
+      tick: currentState.tickCount,
+      dayIndex: currentState.dayIndex,
+      simulatedDate: currentState.simulatedDate,
+      metrics: {
+        arr: currentState.metrics?.liveARR ?? 0,
+        mrr: currentState.metrics?.liveMRR ?? 0,
+        customers: currentState.metrics?.liveCustomers ?? 0,
+        wonDeals: currentState.metrics?.liveWonDeals ?? 0,
+        ebitda: currentState.metrics?.financialMetrics?.ebitda ?? 0,
+        netRevenue: currentState.metrics?.financialMetrics?.netRevenue ?? 0,
+        netCashFlow: currentState.metrics?.financialMetrics?.netCashFlow ?? 0,
+        cumulativeCashFlow: currentState.metrics?.financialMetrics?.cumulativeCashFlow ?? 0,
+      },
+    });
+    input.onProgress?.(i + 1, input.targetTicks);
+  }
+
+  currentState.isRunning = false;
+  return { state: currentState, leads, opportunities, deals, activities, events, timeSeries };
+}
+
+/** Produktpfad nur mit echtem Worker (Browser); sonst Main-Thread. */
+export function shouldUseWorker(): boolean {
+  return typeof window !== 'undefined' && typeof Worker !== 'undefined';
+}
+
 export class ScenarioService {
   private static instance: ScenarioService;
   private repo: ScenarioRepository;
   private snapshotRepo?: ISnapshotRepository;
+  private activeCoordinator: RunCoordinator | null = null;
 
   private constructor(repo = ScenarioRepository.getInstance(), snapshotRepo?: ISnapshotRepository) {
     this.repo = repo;
@@ -381,62 +486,36 @@ export class ScenarioService {
       },
     ];
 
-    // 3. Execute ticks using strictly SimulationEngine.executeTick() with EffectiveParameterResolver
-    const resolver = new EffectiveParameterResolver(manifest.parameters, measures);
-    let queueEntries: SalesQueueEntry[] = [];
-    let csQueueEntries: CSQueueEntry[] = [];
-
-    for (let i = 0; i < targetTicks; i++) {
-      const eff = resolver.at(i);
-      const output: TickOutput = SimulationEngine.executeTick({
-        state: currentState,
-        rng,
-        leads,
-        opportunities,
-        deals,
-        activities,
-        historicalMetrics: baselineInput.historicalMetrics,
-        salesRepCount: eff.salesRepCount,
-        csRepCount: eff.csRepCount,
-        churnRateMonthly: eff.churnRateMonthly,
-        marketingBudgetYearly: eff.marketingBudgetYearly,
-        channelMix: eff.channelMix,
-        trialToPaidConversion: eff.trialToPaidConversion,
-        salesCycleDays: eff.salesCycleDays,
-        discountPercent: eff.discountPercent,
-        queueEntries,
-        csQueueEntries,
-      });
-
-      currentState = output.state;
-      leads = output.leads;
-      opportunities = output.opportunities;
-      deals = output.deals;
-      activities = output.activities;
-      if (output.queueEntries) queueEntries = output.queueEntries;
-      if (output.csQueueEntries) csQueueEntries = output.csQueueEntries;
-
-      for (const evt of output.newEvents) {
-        if (evt.correlationId === undefined) evt.correlationId = correlationId;
-        events.unshift(evt);
-      }
-
-      timeSeries.push({
-        tick: currentState.tickCount,
-        dayIndex: currentState.dayIndex,
-        simulatedDate: currentState.simulatedDate,
-        metrics: {
-          arr: currentState.metrics?.liveARR ?? 0,
-          mrr: currentState.metrics?.liveMRR ?? 0,
-          customers: currentState.metrics?.liveCustomers ?? 0,
-          wonDeals: currentState.metrics?.liveWonDeals ?? 0,
-          ebitda: currentState.metrics?.financialMetrics?.ebitda ?? 0,
-          netRevenue: currentState.metrics?.financialMetrics?.netRevenue ?? 0,
-          netCashFlow: currentState.metrics?.financialMetrics?.netCashFlow ?? 0,
-          cumulativeCashFlow: currentState.metrics?.financialMetrics?.cumulativeCashFlow ?? 0,
-        },
-      });
+    // 3. Execute ticks: Produktpfad im Web Worker, sonst Main-Thread
+    // (Tests/Headless/Node). Beide Pfade rechnen denselben deterministischen
+    // Tick-Loop; der Fortschritt stammt aus echten Berechnungseinheiten.
+    const tickInput = {
+      rng,
+      initialState: currentState,
+      leads,
+      opportunities,
+      deals,
+      activities,
+      historicalMetrics: baselineInput.historicalMetrics,
+      baseParameters: manifest.parameters,
+      measures: [...measures],
+      targetTicks,
+      correlationId,
+      onProgress: opts?.onProgress,
+    };
+    let tickResult;
+    if (shouldUseWorker()) {
+      tickResult = await this.executeTicksInWorker(tickInput, manifest);
+    } else {
+      tickResult = executeTicksMainThread(tickInput);
     }
+    currentState = tickResult.state;
+    leads = tickResult.leads;
+    opportunities = tickResult.opportunities;
+    deals = tickResult.deals;
+    activities = tickResult.activities;
+    events.push(...tickResult.events);
+    timeSeries.push(...tickResult.timeSeries);
 
     currentState.isRunning = false;
     const completedAtIso = systemContext.now();
@@ -553,6 +632,63 @@ export class ScenarioService {
   }
 
   /**
+   * 067G / G50 — Worker-Pfad: Ticks rechnen im Web Worker, Ergebnis und
+   * Fortschritt kommen aus echten Berechnungseinheiten. Bei Abbruch, Fehler
+   * und Abschluss terminiert der Coordinator den Worker (kein Leak).
+   */
+  private async executeTicksInWorker(
+    tickInput: MainThreadTickInput,
+    manifest: RunManifest,
+  ): Promise<TickRunResult> {
+    const coordinator = new RunCoordinator();
+    this.activeCoordinator = coordinator;
+    const onProgress = tickInput.onProgress;
+    try {
+      const unsubscribe = onProgress
+        ? coordinator.onEvent((evt) => {
+            if (evt.status === 'progress' || evt.status === 'running') {
+              onProgress(evt.processedUnits, evt.totalUnits);
+            }
+          })
+        : null;
+      try {
+        const result: WorkerRunResult = await coordinator.execute({
+          manifest,
+          initialState: tickInput.initialState,
+          historicalMetrics: tickInput.historicalMetrics,
+          measures: [...tickInput.measures],
+          targetTicks: tickInput.targetTicks,
+          correlationId: tickInput.correlationId,
+        });
+        for (const evt of result.events) {
+          if (evt.correlationId === undefined) evt.correlationId = tickInput.correlationId;
+        }
+        return {
+          state: result.finalState,
+          leads: result.leads,
+          opportunities: result.opportunities,
+          deals: result.deals,
+          activities: result.activities,
+          // Worker stellt wie der Main-Thread neueste Events zuerst.
+          events: [...result.events],
+          // Tick 0 baut der Service (Parität beider Pfade).
+          timeSeries: result.timeSeries.filter((p) => p.tick > 0),
+        };
+      } finally {
+        unsubscribe?.();
+      }
+    } finally {
+      if (this.activeCoordinator === coordinator) this.activeCoordinator = null;
+    }
+  }
+
+  /** Abbruch des laufenden Worker-Runs (Navigation/Unmount/Fehler). */
+  public cancelActiveRun(): void {
+    this.activeCoordinator?.cancel();
+    this.activeCoordinator = null;
+  }
+
+  /**
    * Re-Run protocol ("Erneut ausführen")
    */
   public async reRun(
@@ -573,6 +709,7 @@ export class ScenarioService {
     existingRunId: string,
     targetTicks = 50,
     persistToServer = false,
+    onProgress?: (processedUnits: number, totalUnits: number) => void,
   ): Promise<RunExecutionResult> {
     const existingRun = this.repo.getRun(existingRunId);
     if (!existingRun) {
@@ -617,6 +754,7 @@ export class ScenarioService {
       organizationId: existingRun.manifest.organizationId,
       expectedBaselineHash: existingRun.manifest.baselineHash,
       persistToServer,
+      onProgress,
       measures: existingRun.manifest.measures ? [...existingRun.manifest.measures] : undefined,
     });
   }

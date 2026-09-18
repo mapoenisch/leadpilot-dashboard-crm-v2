@@ -8044,3 +8044,39 @@ Vitest rot (`Cannot find module '../runPersistenceService'`); pgTAP rot (Schema 
 ### Freigabeumfang
 
 - Kein Push, keine Integration. Der nächste Auftrag bleibt seriell und beginnt erst ab dieser Freigabe.
+
+## [2026-09-18] Gate G50: Builder-Nachtrag 067G Produktiver Web Worker (kein Push)
+
+**Ziel und Baseline-Commit:** 067G / G50 — Produktpfad rechnet ausschließlich im Web Worker; queued/running/progress/completed/failed aus echtem Berechnungsfortschritt; kein Worker-Leak bei Navigation/Fehler/Abschluss. Baseline: `41cdd0c` (G49-Freigabe). Branch: `feat/auftrag-067g-worker`. Umgebung: Node v22.11.0, Chromium-E2E lokal.
+
+### Geänderte Dateien
+- Neu: `src/simulation/runCoordinator.ts` (Zustandsmaschine, Fortschrittsprüfung, Lifecycle).
+- Neu: `src/simulation/__tests__/vitest/runCoordinator.vitest.ts` (6 Tests).
+- Neu: `e2e/worker-responsiveness.spec.ts` (Bedienbarkeit + Fortschritt während Runs).
+- Geändert: `src/types/workerMessages.ts` (QUEUED, processedUnits/totalUnits/correlationId, historischeMetrics/measures im Command), `src/simulation/worker/simulation.worker.ts` (QUEUED-Ereignis, echte Einheiten, Baseline-Metriken, Maßnahmen-Resolver), `src/simulation/scenarioService.ts` (`executeTicksMainThread`-Export, Worker-Pfad, `cancelActiveRun`, `onProgress`), `src/types/scenario.ts` (`onProgress`), `src/store/slices/runSlice.ts` (`runProgress`, `cancelRun`), `src/features/simulation/pages/LiveSimulationPage.tsx` (Fortschritts-Badge, Unmount-Abbruch).
+
+### Roter Starttest und Ursache
+`runCoordinator`-Suite rot (`Cannot find module`); Ursache: kein Coordinator — Produktläufe rechneten im Main-Thread, Fortschritt kam aus aggregierten Runs statt Berechnung, Worker ohne Einheiten/Queue/Lifecycle.
+
+### Implementierung und Architekturentscheidung
+- Coordinator mappt QUEUED/STARTED/PROGRESS/COMPLETED/FAILED(+CANCELLED→failed) auf queued/running/progress/completed/failed; nicht-monotone/inkonsistente Einheiten → `INVALID_PROGRESS` (kein Timer-Blindflug); terminate bei Abschluss/Fehler/Abbruch.
+- Worker nutzt Maßnahmen-Resolver + Baseline-Metriken aus dem START-Payload (deterministisch identisch zum Service); ohne Manifest exakt das alte undefined-Verhalten (workerIntegrity-Parität TEST I bleibt grün).
+- Service wählt Worker nur im Browser mit Worker-Objekt; Tests/Headless/Node laufen `executeTicksMainThread` (byte-identische Ergebnisse, Paritätstest belegt). Main-Thread-Live-Loop (`simulationService`) unangetastet — B20 trennt Live/Produktpfad bewusst.
+- Slice meldet `runProgress` (queued→progress→null) aus echten Einheiten beider Pfade; Page zeigt Badge und bricht bei Unmount ab.
+
+### Funktionale und negative Prüfungen
+- 6 Coordinator-Tests: Zustandsfolge mit Einheiten, synthetischer Rücksprung → INVALID_PROGRESS, Worker-Fehler → failed, cancel ohne Leak, Integration mit echtem Worker (monotone Einheiten bis 6/6), Main-Thread/Worker-Parität.
+- E2E: Fortschritts-Badge sichtbar, Tier-Wechsel während Run, Abschluss ohne hängenden Worker. Multisession-E2E als Regressionsschutz erneut grün (Worker-persistierte Runs).
+
+### Schutzbereichs-Diff mit erlaubten und unerlaubten Pfaden
+- Erlaubt (067G-Matrix): alle geänderten Dateien liegen in der Matrix; `src/context`, `src/features/resources`, `src/services/data`, RNG/Seed, CRM-Pfade unberührt. Live-Loop und Headless-Adapter unverändert im Verhalten.
+
+### Vollständige automatisierte Verifikation
+- `npx tsc --noEmit`: 0. `npm run verify` (001–025, inkl. workerIntegrity-Parität): grün. `npm test`: 107 Dateien / 433 Tests grün. `npm run build`: grün (lokal-env für E2E, Standard-env danach neu). Beide E2E lokal grün (desktop-1440).
+- `npm run lint`: nur die 4 bekannten `max-lines`-Fehler. `git diff --check`: sauber.
+
+### Reviewer-Befund
+- Offen — **G50 BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration, 067H bleibt blockiert.
+
+### Freigabestatus und Abschlusscommit
+- Ungeprüfter Builder-Stand; Freigabe nur durch Reviewer. Commit folgt nach diesem Eintrag auf `feat/auftrag-067g-worker`.

@@ -105,6 +105,9 @@ export interface RunOptions {
   // 067F / G49: Opt-in Server-Persistenz des abgeschlossenen Runs (atomarer
   // RPC). Fehler propagieren — kein stiller In-Memory-Fallback.
   persistToServer?: boolean;
+  // 067G / G50: Fortschritts-Callback mit echten Berechnungseinheiten
+  // (processedUnits, totalUnits) — Worker- wie Main-Thread-Pfad.
+  onProgress?: (processedUnits: number, totalUnits: number) => void;
 }
 
 import { BaselineComparisonResult, GoalTargetEvaluationResult } from './kpi';
