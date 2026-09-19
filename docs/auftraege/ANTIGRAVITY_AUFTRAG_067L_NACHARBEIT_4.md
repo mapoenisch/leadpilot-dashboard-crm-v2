@@ -81,6 +81,66 @@ Marc entscheidet (Ergebnis wird hier nachgetragen):
    Komponente) oder als bekannter Befund einer späteren Aufgabe zuordnen.
 3. Integration der Linux-Baselines aus `837967a` vor dem ersten Actions-Lauf.
 
+## Entscheidungen von Marc (2026-09-19) und daraus folgende Aufgaben
+
+Die Regel „keine Testabschwächung, keine Änderung an `src/**`“ oben gilt ab jetzt **nur noch
+außerhalb** der drei folgenden ausdrücklich freigegebenen Punkte.
+
+### E1 — `tenant-isolation` 1 und 2 zurückstellen (bis 067N/G60)
+- In `e2e/tenant-isolation.spec.ts` genau die Tests „1. Org-A-Admin sieht nur eigene Companies“
+  und „2. Org-B-Admin sieht nur eigene Companies“ auf `test.fixme(...)` umstellen. Testkörper
+  **unverändert** lassen, nichts löschen. Test 3 bleibt aktiv.
+- Kommentar an jedem: Grund (Gate G47 lässt für Nicht-Demo-Organisationen bei synthetischer
+  Quelle nur `SYNTHETIC_NOT_ALLOWED` zu; echte Mandantenquelle erst 067N/G60), „in G60 wieder
+  aktivieren“, und Hinweis, dass die DB-Ebene durch `supabase/tests/tenant_isolation.sql`
+  (pgTAP) abgedeckt bleibt.
+- Der Prüfer hat die Auflage für G60 bereits im Master-Auftrag (Abschnitt 067N) verankert.
+- Erweiterte Zieldatei: `e2e/tenant-isolation.spec.ts` (nur diese zwei Tests).
+
+### E2 — Front-End-Fix `scrollable-region-focusable` (Barrierefreiheit)
+- Betroffen: `e2e/a11y.spec.ts` für `/dashboard` und `/finance/p-and-l` (Axe `serious`,
+  je 1 Knoten), auch mit Demo-Nutzer reproduziert. Zusätzlich `routes.spec.ts`
+  `/company/data-basis`: Ursache klären; ist es ein Front-End-Defekt derselben Art
+  (Landmark/Barrierefreiheit), im selben Zug beheben, sonst berichten und stoppen.
+- Vorgehen: Selektor/Komponente des Axe-Knotens im Test-Output ermitteln; minimal beheben (z. B.
+  Tastaturzugriff für den scrollbaren Bereich: `tabIndex={0}` mit passender Rolle und
+  zugänglichem Namen, oder Scrollcontainer vermeiden). Rot vor grün: `e2e/a11y.spec.ts` und die
+  betroffene `routes`-Spec vorher rot, nachher grün, jeweils auf frischem Backend
+  (`supabase stop --no-backup`), Node >= 22.12 (besser die `.nvmrc`-Version).
+- **Verboten:** die bekannte-Verstöße-Liste (Allowlist) der a11y-Spec erweitern, Regeln in Axe
+  abschalten, Selektoren ausschließen.
+- Erlaubt: die betroffene Komponente unter `src/**` **außer** den Schutzbereichen
+  (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`).
+  Liegt der Knoten in einem Schutzbereich: stoppen und Marc fragen.
+- UI-Änderung nach `CLAUDE.md` §7: Screenshot-Harness für die betroffenen Routen (Vorher/Nachher
+  auf 1440/768/375, SHA-256, 0 px horizontaler Overflow); nur die textuelle Matrix
+  `docs/screenshots/auftrag-067l-g58/README.md` committen, keine Bilddateien. Erwartet ist ein
+  weitgehend unsichtbarer Fix (höchstens ein Fokusring); identische Hashes sind dann zulässig
+  und im Eintrag zu begründen.
+- Unit-/jsdom-Gates müssen weiter grün sein (`npm test`, `npm run verify`).
+
+### E3 — Linux-Baselines und Workflow aus `837967a` übernehmen
+- `git fetch origin`, dann **cherry-pick** von `837967a` (kein Merge, kein Rebase der ganzen
+  Historie). Betrifft `.github/workflows/update-visual-baselines.yml`, `playwright.config.ts`
+  (`maxDiffPixelRatio: 0.001`, Begründung im Commit, Issue #12) und 7 Linux-Baseline-PNGs.
+  Autor bleibt erhalten.
+- Konflikt in `playwright.config.ts` mit der CI-Trace-Absicherung aus Nacharbeit 2 auflösen,
+  beides behalten.
+- Vom Prüfer geprüft: die drei gepinnten SHAs im übernommenen Workflow sind echt und entsprechen
+  `v4.4.0`, `v4.4.0` und `v4.6.2`; der Workflow läuft nur auf Branches `visual-baselines/**` und
+  nutzt keine Secrets. **Anpassungen nötig**, weil `e2e/global-setup.ts` seit der Auth-
+  Umstellung einen Login verlangt:
+  - denselben temporären Supabase-Backend-Ablauf wie im Job `e2e` von `ci.yml` einbauen
+    (inklusive der korrigierten Reihenfolge aus P1-5 und aller `E2E_*`/`VITE_*`-Variablen),
+  - `node-version: 22.18.0` statt `22.x`,
+  - `permissions: contents: read`.
+- Die 7 übernommenen PNGs stammen vom UI-Stand v2.2.0 und passen nicht zur umgebauten Oberfläche.
+  Die Baselines müssen nach dem Push mit dem Workflow neu erzeugt werden (Branch
+  `visual-baselines/<name>`, Artefakt sichtprüfen, in den Feature-Branch committen). Das ist
+  **kein** Schritt für Antigravity, sondern ein Stopp-Punkt: Marc gibt den Push frei.
+  Antigravity bereitet vor und beschreibt den Ablauf in `docs/operations/ci-e2e-backend.md`.
+- `PR-CI-18` und die SHA-Prüfung müssen auch für den übernommenen Workflow grün bleiben.
+
 ## Stopp-Punkte (unverändert)
 Kein Push, kein Ruleset, kein Actions-Lauf ohne ausdrückliche Freigabe von Marc. Der Job `e2e`
 läuft nur bei `pull_request`, `workflow_dispatch` und Push auf `main`. Kein Merge, kein Tag,
@@ -98,5 +158,8 @@ Pflicht-Verifikation aus 067L, zusätzlich:
 - `ci.yml` startet das Backend auf leerer Datenbank fehlerfrei (Reihenfolge wie oben).
 - BUILD_LOG: Status und LHCI-Diagnose korrigiert, nur belegte Aussagen.
 - `.lighthouseci/` ignoriert.
-- Untersuchungsbericht zu den restlichen Playwright-Fehlern liegt vor, ohne Testabschwächung.
+- Untersuchungsbericht zu `worker-responsiveness` und `visual` liegt vor, ohne Testabschwächung
+  außerhalb von E1 bis E3.
+- E1: zwei Tests als `test.fixme` mit G60-Verweis. E2: a11y-Spec und `routes`-Spec grün, Allowlist
+  unverändert. E3: `837967a` übernommen, Workflow an das lokale Backend angepasst.
 - Erst nach den Entscheidungen von Marc und einer Push-Freigabe folgt der Actions-Lauf.

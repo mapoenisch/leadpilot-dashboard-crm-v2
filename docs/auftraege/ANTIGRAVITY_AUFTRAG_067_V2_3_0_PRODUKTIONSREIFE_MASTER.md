@@ -201,6 +201,13 @@ Viewer dürfen dies nicht. Eine Organisation behält immer mindestens einen akti
 organisationsgebunden und URL-synchron. CSV-Export respektiert aktive Filter, Rolle und
 Mandant und schützt vor Formel-Injection.
 
+**Auflage aus dem G58-Review (2026-09-19):** In G58 wurden die E2E-Tests
+`tenant-isolation` 1 und 2 (`e2e/tenant-isolation.spec.ts`) auf Marcs Entscheidung mit
+`test.fixme` zurückgestellt, weil Organisationen ungleich der Demo-Organisation bei
+synthetischer Quelle `SYNTHETIC_NOT_ALLOWED` liefern. 067N/G60 muss eine echte, mandantengebundene
+CRM-Quelle liefern und **beide Tests wieder aktivieren** (`test.fixme` entfernen, Testkörper
+unverändert, grün). G60 ist ohne das nicht abnahmefähig.
+
 ### 067O / G61 — Quelle und Frische
 
 **Ergebnis:** Datenführende Kernseiten zeigen Quelle, synthetisch/real, letzten Abruf,
