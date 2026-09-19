@@ -49,10 +49,10 @@ function dataAge(fetchedAt: string, now: number): string {
 // `unavailable` sieht niemals wie ein erfolgreicher Live-Zustand aus.
 function DataBasisShell({ children, testId }: { children: React.ReactNode; testId?: string }) {
   return (
-    <main data-testid={testId}>
+    <div data-testid={testId}>
       <h1>Datenbasis</h1>
       {children}
-    </main>
+    </div>
   );
 }
 

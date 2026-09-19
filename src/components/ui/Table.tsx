@@ -13,6 +13,7 @@ export interface TableProps<T = Record<string, unknown>> {
   rows: T[];
   emptyText?: string;
   minWidth?: string;
+  ariaLabel?: string;
 }
 
 // minWidth ist ein offener String-Prop: alle im Repo vorkommenden Werte sind
@@ -39,9 +40,15 @@ export function Table<T extends object>({
   rows = [],
   emptyText = 'Keine Einträge vorhanden',
   minWidth,
+  ariaLabel,
 }: TableProps<T>) {
   return (
-    <div className="w-full overflow-x-auto [-webkit-overflow-scrolling:touch]">
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label={ariaLabel ?? 'Tabelle'}
+      className="w-full overflow-x-auto focus:outline-none [-webkit-overflow-scrolling:touch]"
+    >
       <table
         className={cn(
           tableVariants({

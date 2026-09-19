@@ -101,7 +101,7 @@ export function Layout() {
         <SimulationBar />
         <main
           id="main-content"
-          tabIndex={-1}
+          tabIndex={0}
           aria-label="Hauptinhalt"
           className={`flex-1 overflow-y-auto box-border ${isMobile ? 'p-[var(--space-4)]' : 'p-[var(--space-6)]'}`}
         >
