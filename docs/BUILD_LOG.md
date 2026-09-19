@@ -8982,3 +8982,30 @@ git diff c6d88f3 -- supabase/migrations supabase/schema.sql
 
 - Alle Auftrags- und Prüfer-Punkte sowie Entscheidungen E1, E2, E3 sind vollständig umgesetzt und verifiziert.
 - **Stopp-Punkte strikt eingehalten:** Kein Push, kein Ruleset, kein CI-Lauf ohne ausdrückliche Freigabe durch Marc. Bereit für die Freigabe des ersten Pushes.
+
+## [2026-09-19] Gate G58: Unabhängiger Prüfer-Befund zu Nacharbeit 4, E1 bis E3 (Claude Code, kein Push)
+
+**Geprüfter Stand:** `74d7f41` auf `feat/auftrag-067l-ci-ruleset`.
+
+### Ergebnis: G58 weiterhin NICHT FREIGEGEBEN (1 Blocker [P1], 2 [P2], 1 [P3])
+
+### Selbst nachgefahren und bestätigt
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`: grün. `npm run verify` 24/24. `npm test` 245 Dateien, 1316 Tests. `npm run test:coverage` Lines 91,06 / Branches 83,23 / Functions 83,85 / Statements 89,97. `npm run build` grün. `npm audit` (prod, high, gesamt): je 0.
+- Schutzbereichs-Diffs (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`, `supabase/migrations`, `supabase/schema.sql`) leer; `base_schema.sql` nicht im Repo.
+- **[P1-5] behoben:** `ci.yml` und `update-visual-baselines.yml` kopieren `schema.sql` vor `supabase start`; auf frischem Stack (`--no-backup`) startet das Backend, der Seed lädt **automatisch** (3 Nutzer, 3 Organisationen, 2 Mitgliedschaften), keine `psql`-Schritte mehr nötig.
+- **E1:** `tenant-isolation` 1 und 2 als `test.fixme` mit Verweis auf G47/G60, Testkörper unverändert, Test 3 aktiv; Auflage im Master bei 067N/G60 verankert.
+- **E2:** `Layout.tsx` (`tabIndex={0}` auf `#main-content`), `DataBasisPage.tsx` (kein verschachteltes `<main>`), `Table.tsx`; `a11y-baseline.json` unverändert. Nichtvisuelle Suite auf frischem Backend, Desktop/Tablet/Mobil: **544 passed, 6 skipped (fixme), 2 failed** (siehe P2-9).
+- **E3:** `837967a` per Cherry-Pick übernommen (Autor erhalten); `playwright.config.ts` trägt `maxDiffPixelRatio: 0.001` und die CI-Trace-/Video-/Screenshot-Absicherung; der Workflow `update-visual-baselines.yml` ist an das lokale Backend angepasst (`permissions: contents: read`, Node 22.18.0, `retention-days: 7`, gepinnte SHAs, vom Prüfer als echt verifiziert).
+- `.lighthouseci/` in `.gitignore`; LHCI-Diagnose im Eintrag zu Nacharbeit 3 korrigiert.
+
+### Befunde
+- **[P1-6] Standard-E2E-Nutzer sieht auf CRM-Seiten nur Fehlerzustände.** `admin-a@e2e.local` ist im Seed Mitglied der Nicht-Demo-Organisation A. Sonde auf frischem Backend: in Org A zeigen `/crm/companies`, `/crm/leads` und `/company/data-basis` „Integritätsfehler“ (`SYNTHETIC_NOT_ALLOWED`), in der Demo-Organisation nicht. `routes`, `a11y`, `semantic-routes` und die per Workflow erzeugten Visual-Baselines würden Fehlerzustände prüfen bzw. als Referenz festschreiben. Vor der Baseline-Erzeugung zu beheben (`admin-a` in die Demo-Organisation).
+- **[P2-8] `Table.tsx`: `tabIndex={0}` zusammen mit `focus:outline-none`.** Tailwind 3 überschreibt die globale Regel `:focus-visible` aus `global.css`; der Fokus ist nicht sichtbar (WCAG 2.4.7), Axe prüft das nicht. Hinweis: 37 Nutzungen ohne `ariaLabel`, alle Regionen heißen „Tabelle“ (Folgeaufgabe).
+- **[P2-9] `persistence-multisession` und `worker-responsiveness` unter Last instabil.** Im vollen Lauf rot auf `mobile-375`; sequentiell (`--workers=1`) 2/2 grün, zweimal; mit CI-Einstellungen (2 Worker, 1 Retry) ein Lauf trotz Retry rot (`toBeHidden`, 50 Ticks). Die Erklärung „flüchtige Lastspitze“ genügt nicht.
+- **[P3]** BUILD_LOG nennt die Demo-Organisations-ID falsch (`…-4000-a000-…` statt `00000000-0000-0000-0000-000000000001`).
+
+### Nicht lokal prüfbar
+- `visual.spec.ts` (Linux-Baselines; die 7 übernommenen PNGs stammen vom UI-Stand v2.2.0 und werden nach Behebung von P1-6 per Workflow neu erzeugt).
+
+### Nächster Schritt
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_5.md`. Kein Push, kein Ruleset, kein Actions-Lauf.
