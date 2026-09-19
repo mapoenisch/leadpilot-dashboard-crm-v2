@@ -49,6 +49,36 @@ export interface ReadinessOptions {
   migrationsDir?: string;
   e2eReportPath?: string;
   runSubprocesses?: boolean;
+  maxArtifactAgeMs?: number;
+}
+
+export function getMaxArtifactAgeMs(options: ReadinessOptions = {}): number {
+  if (typeof options.maxArtifactAgeMs === 'number') {
+    return options.maxArtifactAgeMs;
+  }
+  if (process.env.MAX_ARTIFACT_AGE_MS) {
+    const parsed = parseInt(process.env.MAX_ARTIFACT_AGE_MS, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return 60 * 60 * 1000; // 60 Minuten Default
+}
+
+export function isArtifactFresh(
+  filePath: string,
+  maxAgeMs: number,
+): { fresh: boolean; ageMs: number } {
+  try {
+    const stat = fs.statSync(filePath);
+    const ageMs = Date.now() - stat.mtimeMs;
+    return {
+      fresh: ageMs <= maxAgeMs,
+      ageMs,
+    };
+  } catch {
+    return { fresh: false, ageMs: Infinity };
+  }
 }
 
 export interface ReadinessReport {
@@ -91,6 +121,42 @@ export function checkCoverage(options: ReadinessOptions = {}): CheckResult {
         id: 16,
         name: 'Coverage components/',
         actual: 'FEHLT',
+        target: '≥ 60 %',
+        status: 'OFFEN',
+        note: errorMsg,
+      },
+    );
+    return { ok: false, metrics, errors };
+  }
+
+  const maxAgeMs = getMaxArtifactAgeMs(options);
+  const freshness = isArtifactFresh(coveragePath, maxAgeMs);
+  if (!freshness.fresh) {
+    const ageMinutes = Math.round(freshness.ageMs / 60000);
+    const maxMinutes = Math.round(maxAgeMs / 60000);
+    const errorMsg = `Coverage-Artefakt ist veraltet (${ageMinutes} min alt, maximal erlaubt: ${maxMinutes} min): ${coveragePath}`;
+    errors.push(errorMsg);
+    metrics.push(
+      {
+        id: 14,
+        name: 'Coverage services/ + hooks/',
+        actual: 'VERALTET',
+        target: '≥ 90 %',
+        status: 'OFFEN',
+        note: errorMsg,
+      },
+      {
+        id: 15,
+        name: 'Coverage simulation/',
+        actual: 'VERALTET',
+        target: '≥ 80 %',
+        status: 'OFFEN',
+        note: errorMsg,
+      },
+      {
+        id: 16,
+        name: 'Coverage components/',
+        actual: 'VERALTET',
         target: '≥ 60 %',
         status: 'OFFEN',
         note: errorMsg,
@@ -239,7 +305,44 @@ export function checkLighthouse(options: ReadinessOptions = {}): CheckResult {
       return { ok: false, metrics, errors };
     }
 
-    const latestLhr = JSON.parse(fs.readFileSync(path.join(lhciDir, lhrFiles[0]), 'utf8'));
+    lhrFiles.sort((a, b) => {
+      const statA = fs.statSync(path.join(lhciDir, a)).mtimeMs;
+      const statB = fs.statSync(path.join(lhciDir, b)).mtimeMs;
+      return statB - statA;
+    });
+
+    const latestFile = lhrFiles[0];
+    const latestLhrPath = path.join(lhciDir, latestFile);
+
+    const maxAgeMs = getMaxArtifactAgeMs(options);
+    const freshness = isArtifactFresh(latestLhrPath, maxAgeMs);
+    if (!freshness.fresh) {
+      const ageMinutes = Math.round(freshness.ageMs / 60000);
+      const maxMinutes = Math.round(maxAgeMs / 60000);
+      const errorMsg = `Lighthouse-Artefakt ist veraltet (${ageMinutes} min alt, maximal erlaubt: ${maxMinutes} min): ${latestFile}`;
+      errors.push(errorMsg);
+      metrics.push(
+        {
+          id: 19,
+          name: 'Lighthouse Performance',
+          actual: 'VERALTET',
+          target: '≥ 90',
+          status: 'OFFEN',
+          note: errorMsg,
+        },
+        {
+          id: 20,
+          name: 'Lighthouse Accessibility',
+          actual: 'VERALTET',
+          target: '≥ 95',
+          status: 'OFFEN',
+          note: errorMsg,
+        },
+      );
+      return { ok: false, metrics, errors };
+    }
+
+    const latestLhr = JSON.parse(fs.readFileSync(latestLhrPath, 'utf8'));
     const perfScore = Math.round((latestLhr.categories?.performance?.score ?? 0) * 100);
     const a11yScore = Math.round((latestLhr.categories?.accessibility?.score ?? 0) * 100);
 
@@ -522,6 +625,24 @@ export function checkE2E(options: ReadinessOptions = {}): CheckResult {
       id: 26,
       name: 'E2E & A11y Playwright Report',
       actual: 'FEHLT',
+      target: 'Report vorhanden',
+      status: 'OFFEN',
+      note: errorMsg,
+    });
+    return { ok: false, metrics, errors };
+  }
+
+  const maxAgeMs = getMaxArtifactAgeMs(options);
+  const freshness = isArtifactFresh(reportPath, maxAgeMs);
+  if (!freshness.fresh) {
+    const ageMinutes = Math.round(freshness.ageMs / 60000);
+    const maxMinutes = Math.round(maxAgeMs / 60000);
+    const errorMsg = `E2E-Playwright-Report ist veraltet (${ageMinutes} min alt, maximal erlaubt: ${maxMinutes} min): ${reportPath}`;
+    errors.push(errorMsg);
+    metrics.push({
+      id: 26,
+      name: 'E2E & A11y Playwright Report',
+      actual: 'VERALTET',
       target: 'Report vorhanden',
       status: 'OFFEN',
       note: errorMsg,

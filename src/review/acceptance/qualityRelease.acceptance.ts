@@ -108,7 +108,7 @@ describe('v2.3.0 quality and release findings', () => {
 
   it('[PR-CI-18] pinnt Actions und testet E2E auf PR und main', () => {
     const workflow = readRepo('.github/workflows/ci.yml');
-    const usesLines = workflow.split('\n').filter((line) => line.trim().startsWith('uses:'));
+    const usesLines = workflow.split('\n').filter((line) => /^\s*(-\s+)?uses:/.test(line));
     const external = usesLines.filter((line) => line.includes('/') && !line.includes('docker://'));
     expect.soft(external.length, 'externe Actions vorhanden').toBeGreaterThan(0);
     for (const line of external) {

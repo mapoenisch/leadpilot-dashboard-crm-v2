@@ -125,11 +125,26 @@ jobs:
           restore-keys: |
             playwright-chromium-${{ runner.os }}-
       - run: npx playwright install --with-deps chromium
-      - run: npx vite build
+      - name: Build für E2E und Lighthouse
+        run: npx vite build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - name: Playwright E2E & Axe Accessibility Tests
         run: npx playwright test e2e/a11y.spec.ts && npx playwright test
+        env:
+          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL }}
+          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
+          E2E_AUTH_EMAIL_B: ${{ secrets.E2E_AUTH_EMAIL_B }}
+          E2E_AUTH_PASSWORD_B: ${{ secrets.E2E_AUTH_PASSWORD_B }}
+          E2E_AUTH_EMAIL_NOMEMBER: ${{ secrets.E2E_AUTH_EMAIL_NOMEMBER }}
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
       - name: Lighthouse CI
         run: npx lhci autorun
+        env:
+          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL }}
+          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
       - name: Coverage für Readiness erzeugen
         run: npm run test:coverage
       - name: ReleaseReadiness Orchestrator (Fail-Closed)

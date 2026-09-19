@@ -104,6 +104,84 @@ describe('verifyV23ReleaseReadiness fail-closed behavior', () => {
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
+  it('weist veraltetes Coverage-Artefakt fail-closed ab (> 60m)', () => {
+    const tempCoverageFile = path.resolve('/tmp/stale-coverage-summary.json');
+    fs.writeFileSync(
+      tempCoverageFile,
+      JSON.stringify({
+        total: {
+          lines: { total: 100, covered: 100, pct: 100 },
+          statements: { total: 100, covered: 100, pct: 100 },
+          functions: { total: 100, covered: 100, pct: 100 },
+          branches: { total: 100, covered: 100, pct: 100 },
+        },
+      }),
+    );
+    // Setze mtime auf vor 2 Stunden (7200 Sekunden in der Vergangenheit)
+    const twoHoursAgo = (Date.now() - 7_200_000) / 1000;
+    fs.utimesSync(tempCoverageFile, twoHoursAgo, twoHoursAgo);
+
+    try {
+      const result = checkCoverage({
+        coverageSummaryPath: tempCoverageFile,
+        maxArtifactAgeMs: 3_600_000,
+      });
+      expect(result.ok).toBe(false);
+      expect(result.errors.some((e) => /veraltet|stale|alter/i.test(e))).toBe(true);
+      expect(result.metrics.some((m) => m.status === 'OFFEN')).toBe(true);
+    } finally {
+      fs.rmSync(tempCoverageFile, { force: true });
+    }
+  });
+
+  it('weist veraltete Lighthouse-Artefakte fail-closed ab (> 60m)', () => {
+    const tempLhDir = path.resolve('/tmp/stale-lhci');
+    fs.mkdirSync(tempLhDir, { recursive: true });
+    const reportFile = path.join(tempLhDir, 'lhr-12345.json');
+    fs.writeFileSync(
+      reportFile,
+      JSON.stringify({
+        categories: {
+          performance: { score: 1.0 },
+          accessibility: { score: 1.0 },
+        },
+      }),
+    );
+    const twoHoursAgo = (Date.now() - 7_200_000) / 1000;
+    fs.utimesSync(reportFile, twoHoursAgo, twoHoursAgo);
+
+    try {
+      const result = checkLighthouse({
+        lighthouseDir: tempLhDir,
+        maxArtifactAgeMs: 3_600_000,
+      });
+      expect(result.ok).toBe(false);
+      expect(result.errors.some((e) => /veraltet|stale|alter/i.test(e))).toBe(true);
+      expect(result.metrics.some((m) => m.status === 'OFFEN')).toBe(true);
+    } finally {
+      fs.rmSync(tempLhDir, { recursive: true, force: true });
+    }
+  });
+
+  it('weist veraltete E2E-Reports fail-closed ab (> 60m)', () => {
+    const tempReport = path.resolve('/tmp/stale-playwright-report.html');
+    fs.writeFileSync(tempReport, '<html><body>OK</body></html>');
+    const twoHoursAgo = (Date.now() - 7_200_000) / 1000;
+    fs.utimesSync(tempReport, twoHoursAgo, twoHoursAgo);
+
+    try {
+      const result = checkE2E({
+        e2eReportPath: tempReport,
+        maxArtifactAgeMs: 3_600_000,
+      });
+      expect(result.ok).toBe(false);
+      expect(result.errors.some((e) => /veraltet|stale|alter/i.test(e))).toBe(true);
+      expect(result.metrics.some((m) => m.status === 'OFFEN')).toBe(true);
+    } finally {
+      fs.rmSync(tempReport, { force: true });
+    }
+  });
+
   it('propagiert rote Unterprozess-Ergebnisse strikt als Gesamtfehler (success: false)', async () => {
     const report = await runReleaseReadiness({
       coverageSummaryPath: '/tmp/nonexistent-coverage.json',
