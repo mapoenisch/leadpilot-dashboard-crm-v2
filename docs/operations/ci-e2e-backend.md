@@ -87,3 +87,36 @@ CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" npx l
 ```bash
 npx supabase stop --no-backup
 ```
+
+---
+
+## 4. Ablauf: Aktualisierung der visuellen Baselines (Linux-Runner)
+
+Die Playwright-Visual-Regression-Tests (`e2e/visual.spec.ts`) vergleichen Screenshots mit Linux-Referenzbildern (`*-linux.png`). Da Entwickler-Workstations (z. B. macOS) Schriftarten und Rasterung anders rendern, dürfen Baselines niemals lokal unter macOS überschrieben werden.
+
+Stattdessen existiert der dedizierte Workflow `.github/workflows/update-visual-baselines.yml`, der exakt in der GitHub-Actions-Umgebung (`ubuntu-latest`) läuft:
+
+1. **Voraussetzung:** Feature-Stand ist committet und der Push wurde von Marc freigegeben (Stopp-Punkt).
+2. **Neuen Baselines-Branch anlegen und pushen:**
+   ```bash
+   git checkout -b visual-baselines/regen-v23
+   git push origin visual-baselines/regen-v23
+   ```
+3. **Workflow abwarten:** Der Workflow `Update Visual Baselines` startet automatisch bei Branches unter `visual-baselines/**`. Er initialisiert das flüchtige Supabase-Backend mit Seed, baut die App und führt `npx playwright test e2e/visual.spec.ts --update-snapshots` aus.
+4. **Artefakt herunterladen & sichtprüfen:**
+   - Im GitHub-Actions-Run das Artefakt `visual-baselines` herunterladen.
+   - Die erzeugten PNG-Snapshots entpacken und einer manuellen Sichtprüfung unterziehen (keine ungewollten Layout-Brüche oder Artefakte).
+5. **Baselines in den Arbeitsbranch übernehmen:**
+   ```bash
+   git checkout feat/auftrag-067l-ci-ruleset
+   # Neue Snapshots nach e2e/visual.spec.ts-snapshots/ kopieren
+   cp -r /pfad/zu/entpackten/visual-baselines/* e2e/visual.spec.ts-snapshots/
+   git add e2e/visual.spec.ts-snapshots/
+   git commit -m "test(visual): Linux-Baselines via Actions-Runner aktualisiert"
+   ```
+6. **Temporären Branch löschen:**
+   ```bash
+   git push origin --delete visual-baselines/regen-v23
+   git branch -D visual-baselines/regen-v23
+   ```
+
