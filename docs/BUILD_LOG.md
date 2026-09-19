@@ -8696,3 +8696,28 @@ git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/f
 1. **Marc legt die 9 Secrets** im Repo `mapoenisch/leadpilot-dashboard-crm-v2` an (gemäß `docs/operations/ci-secrets.md`) und bestätigt dies.
 2. **Freigabe von Marc abwarten**: Erst nach ausdrücklicher Freigabe Push des Feature-Branches und Beobachtung des GitHub Actions-Laufs.
 3. Erst nach grünem Actions-Lauf: Branch-Ruleset via API aktivieren und `PR-BRANCH-20` abschließen.
+
+## [2026-09-19] Gate G58: Unabhängiger Prüfer-Befund zu Nacharbeit 1 (Claude Code, kein Push)
+
+**Geprüfter Stand:** `262d8f1` auf `feat/auftrag-067l-ci-ruleset`.
+
+### Ergebnis: Nacharbeit 1 erfüllt; G58 weiterhin NICHT FREIGEGEBEN (2 neue Befunde vor dem ersten Push)
+
+### Selbst nachgefahren und bestätigt
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`: grün. `npm run verify` 24/24. `npm test` 244/244 Dateien, 1313/1313 Tests. `npm run test:coverage` Lines 91,06 / Branches 83,23 / Functions 83,85 / Statements 89,97. `npm run build` grün. `npm audit --omit=dev`, `--audit-level=high` und gesamt: je 0 Befunde.
+- Schutzbereichs-Diff `git diff c6d88f3 HEAD -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
+- **[P2-3]** `PR-CI-18` erkennt nun `- uses:`; unabhängig nachgewiesen: eingefügtes `- uses: actions/checkout@v4` macht den Test rot (`SHA-gepinnt: - uses: actions/checkout@v4`), Datei danach wiederhergestellt. (Ein erster Versuch des Prüfers mit macOS-`sed` hatte die Zeile gar nicht ersetzt und ist verworfen.)
+- **[P2-4]** Frische-Prüfung (Coverage, Lighthouse, Playwright-Report; Fenster 60 min, `MAX_ARTIFACT_AGE_MS`) im Code und in 3 neuen Tests vorhanden.
+- **[P1-3]** `scripts/lighthouse-auth.cjs` fail-closed ohne `E2E_AUTH_*`, keine Werte in Logs; Secrets in `ci.yml` nur an die Schritte `Build`, `Playwright` und `Lighthouse CI` des Jobs `e2e`; `docs/operations/ci-secrets.md` enthält nur Namen. Keine Zugangsdaten in den Diffs gefunden.
+- **[P2-1]/[P2-2]** Dokumentation korrigiert; Scope-Erweiterungen als von Marc bestätigt ausgewiesen.
+
+### Neue Befunde
+- **[P1-4] Zugangsdaten über Playwright-Report-Artefakt.** `trace: 'on-first-retry'` bei `retries: 1` in der CI und Upload von `playwright-report/` (`if: always()`) in ein **öffentliches** Repo; Traces enthalten getippte Werte und Auth-Request-Bodies, GitHub maskiert Artefakt-Dateien nicht. Vor dem ersten Push zu beheben.
+- **[P2-5] Unbelegte Aussagen im Nacharbeit-1-Eintrag.** „Bekanntes Problem gelöst“ deckt `PR-FREEZE-07`/`PR-PERSIST-08` nicht ab; der geforderte lokale LHCI-Lauf mit echtem Login ist nicht dokumentiert (nur `lhci healthcheck`). Die Echtheit des Logins ist damit noch nicht bewiesen; erster Beleg wäre der Actions-Lauf.
+- **[P3]** `ci.yml` ohne `permissions:`-Block; `permissions: contents: read` setzen.
+
+### Hinweis für den Push
+- Der Job `e2e` läuft nur bei `pull_request`, `workflow_dispatch` und Push auf `main`; für den Nachweis braucht es einen PR oder `workflow_dispatch` auf dem Branch.
+
+### Nächster Schritt
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_2.md` (P1-4, P2-5, P3). Kein Push, kein Ruleset, kein Actions-Lauf bis dahin.
