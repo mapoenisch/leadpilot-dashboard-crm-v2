@@ -8600,3 +8600,34 @@ git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/f
 - Kein `git push` erfolgt.
 - Kein Ruleset auf GitHub angelegt.
 - Kein GitHub-Actions-Lauf ausgelöst.
+
+## [2026-09-19] Gate G58: Unabhängiger Prüfer-Befund (Claude Code, kein Push)
+
+**Geprüfter Stand:** `03ec17f` auf `feat/auftrag-067l-ci-ruleset` (Baseline `c6d88f3`, Auftrag in `4fcc404`/`acc1a72`).
+
+### Ergebnis: NICHT FREIGEGEBEN — 3 Blocker [P1], 2 [P2], 1 [P3]
+
+Alle lokalen Gates sind grün, der echte Actions-Lauf würde aber nachweislich rot. Ohne grünen Lauf darf das Ruleset nicht aktiviert werden (der Required Check `e2e` würde sonst jeden PR blockieren).
+
+### Selbst nachgefahren und bestätigt
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `git diff --check`: grün.
+- `npm run verify` 24/24 (001–025). `npm test` 244/244 Dateien, 1310/1310 Tests. `npm run test:coverage` Lines 91,06 / Branches 83,23 / Functions 83,85 / Statements 89,97. `npm run build` grün.
+- `npm audit --omit=dev`, `npm audit --audit-level=high`, `npm audit`: je 0 Befunde. `[PR-DEPENDENCY-15]` wieder strikt `audit.all.high === 0` ohne Risiko-Häkchen.
+- Schutzbereichs-Diff `git diff c6d88f3 HEAD -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
+- Alle 4 gepinnten Action-SHAs existieren auf GitHub und entsprechen exakt `checkout v4.2.2`, `setup-node v4.1.0`, `upload-artifact v4.6.1`, `cache v4.2.2`; kein `uses:` ohne 40-stellige SHA.
+- `findingContract.ts`, `v2.3.0-known-findings.json`, Register konsistent: `PR-RELEASE-17`, `PR-CI-18` passing; `PR-BRANCH-20` (G58) und `PR-LICENSE-19` (G65) bleiben failing. Korrektur zum Auftrag 067L: dort war `PR-LICENSE-19` fälschlich für G58 genannt; Zuordnung laut Contract ist G65, Builder lag richtig.
+- LHCI-Kette: Overrides wirken. `npx lhci autorun` auf Node 24 ohne Workaround-Flag: Healthcheck, Puppeteer-Laden und Preview-Server laufen.
+
+### Befunde
+- **[P1-1] `.lighthouserc.json` unverändert mit macOS-Pfad.** `chromePath: "/Applications/Google Chrome.app/..."` (eingeführt in `8656178`) existiert auf `ubuntu-latest` nicht; `lhci autorun` scheitert dort. Der Builder-Eintrag nennt die Datei „Bereinigt und vorbereitet“, sie ist aber nicht im Commit. Erwartet: `chromePath` entfernen.
+- **[P1-2] Readiness-Schritt im `e2e`-Job ohne Coverage.** `scripts/verifyV23ReleaseReadiness.ts` verlangt `coverage/coverage-summary.json` (fail-closed, Zeile 66–70). Der `e2e`-Job erzeugt keine Coverage (nur der `test`-Job), der Schritt scheitert dort immer. Erwartet: Coverage im selben Job erzeugen oder Readiness in einen Job mit allen Artefakten verlagern; Job-Namen müssen zu den Required Checks in `github-main-ruleset.md` passen.
+- **[P1-3] E2E und Lighthouse laufen in der CI ohne Authentifizierung.** `e2e/global-setup.ts` wirft ohne `E2E_AUTH_EMAIL`/`_PASSWORD` (weitere `_B`, `_NOMEMBER` in `tenant-isolation.spec.ts`); `ci.yml` setzt kein `env:`/`secrets`, das Repo `mapoenisch/leadpilot-dashboard-crm-v2` hat 0 Secrets und 0 Variablen. `scripts/lighthouse-auth.cjs` setzt noch eine LocalAuth-Fake-Session (`leadpilot_auth_session`); seit Supabase Auth leitet `/dashboard` auf `/login` um (lokal reproduziert: „Lighthouse-Auth fehlgeschlagen: Weiterleitung auf /login“). Das war das im Auftrag genannte „Bekannte Problem“ und wurde nicht bearbeitet oder dokumentiert. Braucht eine Entscheidung von Marc (Supabase-Testprojekt und GitHub-Secrets).
+- **[P2-1] Dokumentation überzieht.** BUILD_LOG/Risikonachweis melden die G57-Befristung als „erfolgreich beendet“; der Audit ist auf 0, der geforderte LHCI-Lauf im echten Actions-Lauf ist aber nicht nachgewiesen (Befund P1-3). `.lighthouserc.json`-Eintrag siehe P1-1.
+- **[P2-2] Scope über die schriftliche Erweiterung hinaus.** `vitest.config.ts` (Test-Include für `scripts/__tests__`) und die `PR-RELEASE-17`-Umstellung in `qualityRelease.acceptance.ts` waren nicht in der Zieldatei-Liste (dort „nur PR-DEPENDENCY-15“). Beides ist fachlich nötig; Marc muss die Erweiterung bestätigen und der Builder sie im Eintrag als solche ausweisen.
+- **[P3] Action-SHAs ohne Versionskommentar** (`# v4.2.2` o. ä.). Empfohlen für Lesbarkeit und Dependabot.
+
+### Nebenbefund
+- Lokale Prüfumgebung war Node 22.11.0 (Repo pinnt 22.18.0); Ergebnisse unverändert grün, die CI nutzt 22.18.0.
+
+### Freigabestatus
+- **G58: NICHT FREIGEGEBEN**, zurück an Antigravity zur Nacharbeit (P1-1, P1-2, P1-3, P2-1, P2-2). Kein Push, kein Ruleset, kein Actions-Lauf; Reihenfolge danach: Push des Feature-Branches, grüner Actions-Lauf, erst dann Ruleset.
