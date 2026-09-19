@@ -8763,3 +8763,9 @@ git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/f
 2. **Freigabe von Marc abwarten**: Erst nach ausdrücklicher Freigabe Push des Feature-Branches `feat/auftrag-067l-ci-ruleset`.
 3. **CI-Lauf auslösen**: Da der `e2e`-Job nur bei `pull_request`, `workflow_dispatch` oder Push auf `main` läuft, wird entweder ein PR erstellt oder der Workflow manuell per `workflow_dispatch` auf dem Branch getriggert.
 4. Erst nach grünem Actions-Lauf: Branch-Ruleset via API aktivieren und `PR-BRANCH-20` abschließen.
+
+### Nachtrag Prüfer (2026-09-19): Entscheidung zum E2E-Backend
+- Marc stellt klar: Es gibt **kein** gehostetes Supabase-Testprojekt; das einzige Projekt (`leadpilot-crm`, `main`) ist kein Testprojekt. Die frühere Annahme („es gibt ein Testprojekt“) ist damit widerrufen.
+- Prüfer-Befunde dazu: in `mapoenisch/leadpilot-dashboard-crm-v2` und im Repo ohne `-v2` stehen 0 Actions-Secrets; im Dashboard-Screenshot des Projekts ist die Nutzerliste leer; im Repo gibt es keinen Seed mit loginfähigen Nutzern (`supabase/seed.sql` fehlt, `tenant_isolation.sql` nutzt das Fake-Passwort `x` in einer zurückgerollten Transaktion und löscht am Anfang Mandantendaten: nie gegen ein gehostetes Projekt ausführen).
+- **Konsequenz:** Der Secrets-Weg (Nacharbeit 1, P1-3 Teil A) ist verworfen. Ersatz: temporäres lokales Supabase im Job `e2e` mit Seed. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_3.md`. Nacharbeit 2 (P1-4, P2-5, P3) bleibt gültig und wird mit der nächsten Prüfung mitgeprüft; Angaben des Builders dazu sind bis dahin nicht vom Prüfer verifiziert.
+- G58 bleibt **NICHT FREIGEGEBEN**.
