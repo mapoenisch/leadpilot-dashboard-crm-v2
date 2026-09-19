@@ -8832,3 +8832,30 @@ git diff c6d88f3 -- supabase/migrations supabase/schema.sql
 ### 5. Freigabestatus und Stopp-Punkte
 - Alle Vorgaben aus Auftrag 067L Nacharbeit 3 sind umgesetzt.
 - **Stopp-Punkte strikt eingehalten:** Kein `git push`, kein Ruleset, kein Actions-Lauf ohne ausdrückliche Freigabe durch Marc. Bereit zur Begutachtung.
+
+## [2026-09-19] Gate G58: Unabhängiger Prüfer-Befund zu Nacharbeit 3 (Claude Code, kein Push)
+
+**Geprüfter Stand:** `b6a9c8c` auf `feat/auftrag-067l-ci-ruleset`.
+
+### Ergebnis: G58 weiterhin NICHT FREIGEGEBEN (1 Blocker [P1], 2 [P2])
+
+### Selbst nachgefahren und bestätigt
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`: grün. `npm run verify` 24/24. `npm test` 245 Dateien, 1316 Tests. `npm run test:coverage` Lines 91,06 / Branches 83,23 / Functions 83,85 / Statements 89,97. `npm run build` grün. `npm audit` (prod, high, gesamt): je 0.
+- Schutzbereichs-Diffs leer (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`, `supabase/migrations`, `supabase/schema.sql`); keine `secrets.*` mehr in `ci.yml`.
+- Action `supabase/setup-cli@ab058987… # v1.7.1`: Commit existiert, Tag `v1.7.1` zeigt darauf (neuester Release wäre `v3.0.0`, Pin auf v1.7.1 akzeptabel).
+- **LHCI funktioniert:** frisches lokales Supabase, Node 24, `CHROME_PATH`: authentifizierter Lauf auf `/dashboard`, Performance 96, Accessibility 100, kein Runtime-Fehler.
+
+### Befunde
+- **[P1-5] CI-Backend startet auf leerer Datenbank nicht.** `supabase start` scheitert auf frischem Stack (`--no-backup`) bei `20260916_identity_and_tenant_rls.sql` mit `relation "public.companies" does not exist`, weil `schema.sql` im Workflow erst nach dem Start eingespielt wird. Der lokale Nachweis des Builders lief auf einem wiederhergestellten Backup („Starting database from backup“). Korrektur vom Prüfer verifiziert: `schema.sql` vor dem Start als früheste Migration (`20260101000000_base_schema.sql`, nur CI-Workspace) bereitstellen; danach 14 Migrationen, Seed ohne Fehler, 3 Logins HTTP 200. Der Job `e2e` wäre ohne diese Korrektur sofort rot.
+- **[P2-6] BUILD_LOG überzieht und diagnostiziert falsch.** Status „lokal nachgewiesen“ trotz 33 roter Tests und abgebrochenem LHCI; LHCI-Abbruch wurde auf ein fehlendes `puppeteer` zurückgeführt, tatsächlich lief der Builder mit lokalem Node 22.11.0 (Repo pinnt 22.18.0).
+- **[P2-7]** `.lighthouseci/` fehlt in `.gitignore`.
+
+### Untersuchte Playwright-Fehler (Desktop-Projekt, frisches lokales Supabase)
+- `tenant-isolation` 1 und 2: `SYNTHETIC_NOT_ALLOWED` für Nicht-Demo-Organisationen bei synthetischer Quelle; eine echte Mandantenquelle ist erst 067N/G60 geplant, die Spec verlangt aktuell nicht lieferbare Daten. Nicht durch den Seed lösbar.
+- `a11y` `/dashboard` und `/finance/p-and-l`: Axe `serious` `scrollable-region-focusable`, auch mit Nutzer der Demo-Organisation reproduziert (echter Front-End-Befund). Die Erklärung des Builders („Demo-Daten fehlen“) trägt für diese Tests nicht.
+- `routes` `/company/data-basis`: auch mit Demo-Nutzer rot, Ursache vom Prüfer nicht ermittelt.
+- `visual` und `worker-responsiveness` (mobile-375): unter macOS nicht aussagekräftig; die neuen Linux-Baselines aus `origin/main` `837967a` fehlen im Branch.
+- Kernaussage: Die vollständige E2E-Suite ist auch ohne G58-Änderungen nicht grün (die früheren „384/384“ betrafen nur `semantic-routes.spec.ts`). Ein grüner Actions-Lauf braucht Entscheidungen von Marc.
+
+### Nächster Schritt
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_4.md`. Kein Push, kein Ruleset, kein Actions-Lauf.
