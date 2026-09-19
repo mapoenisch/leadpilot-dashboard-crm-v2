@@ -3,18 +3,18 @@ import { SimulationLead } from '../types/simulation';
 
 /**
  * Technical Implementation Assumptions for Sales Queue Domain:
- * 
+ *
  * 1. Sales Capacity Derivation:
  *    availableCapacity = Math.max(1, salesRepCount)
  *    Each sales rep (1 FTE) provides capacity to actively process 1 sales item per tick (1 day).
- * 
+ *
  * 2. Workload Points Derivation:
  *    workloadPoints = 1 tick per stage progression step (Qualification, Pitch/Demo, Proposal, Closing).
- * 
+ *
  * 3. Priority Scoring Formula:
  *    priority = (leadQualityScore * 10) + Math.floor(estimatedValue / 10000) + (queueAgeTicks * 2)
  *    Deterministic multi-factor score incorporating lead score, deal value, and waiting age.
- * 
+ *
  * 4. Non-Preemption Rule (Decision 1367):
  *    Entries with status 'IN_PROGRESS' are NEVER preempted by higher priority 'WAITING' entries.
  *    They remain active until their current stage processing completes.
@@ -51,7 +51,11 @@ export class SalesQueueManager {
    * Dynamically calculates priority score for a queue entry.
    * Higher score = higher priority.
    */
-  public static calculatePriority(leadScore: number, estimatedValue: number, queueAgeTicks: number): number {
+  public static calculatePriority(
+    leadScore: number,
+    estimatedValue: number,
+    queueAgeTicks: number,
+  ): number {
     const qualityWeight = leadScore * 10;
     const valueWeight = Math.floor(estimatedValue / 10000);
     const ageWeight = queueAgeTicks * 2;
@@ -65,7 +69,7 @@ export class SalesQueueManager {
     currentEntries: SalesQueueEntry[],
     salesRepCount: number,
     currentTick: number,
-    activeLeads: SimulationLead[]
+    activeLeads: SimulationLead[],
   ): {
     updatedEntries: SalesQueueEntry[];
     projection: SalesQueueProjection;
@@ -79,7 +83,9 @@ export class SalesQueueManager {
       if (lead.status === 'Won' || lead.status === 'Lost' || lead.status === 'Disqualified') {
         continue;
       }
-      const existing = entries.find((e) => e.leadId === lead.id && e.status !== 'COMPLETED' && e.status !== 'CANCELLED');
+      const existing = entries.find(
+        (e) => e.leadId === lead.id && e.status !== 'COMPLETED' && e.status !== 'CANCELLED',
+      );
       if (!existing) {
         let stage: SalesQueueEntry['stage'] = 'QUALIFICATION';
         if (lead.status === 'MQL') stage = 'PITCH_DEMO';
@@ -116,7 +122,9 @@ export class SalesQueueManager {
     // Separate into in-progress and waiting
     const inProgressList = entries.filter((e) => e.status === 'IN_PROGRESS');
     const waitingList = entries.filter((e) => e.status === 'WAITING');
-    const completedOrCancelled = entries.filter((e) => e.status === 'COMPLETED' || e.status === 'CANCELLED');
+    const completedOrCancelled = entries.filter(
+      (e) => e.status === 'COMPLETED' || e.status === 'CANCELLED',
+    );
 
     // Advance IN_PROGRESS items first
     for (const entry of inProgressList) {
@@ -211,7 +219,11 @@ export class SalesQueueManager {
   /**
    * Builds the persistent projection for the current tick.
    */
-  public static buildProjection(entries: SalesQueueEntry[], capacity: number, currentTick: number): SalesQueueProjection {
+  public static buildProjection(
+    entries: SalesQueueEntry[],
+    capacity: number,
+    currentTick: number,
+  ): SalesQueueProjection {
     const waitingList = entries.filter((e) => e.status === 'WAITING');
     const inProgressList = entries.filter((e) => e.status === 'IN_PROGRESS');
     const completedList = entries.filter((e) => e.status === 'COMPLETED');
@@ -229,14 +241,18 @@ export class SalesQueueManager {
         maxQueueTicks = e.queueTicks;
       }
     }
-    const avgQueueTicks = waitingList.length > 0 ? Math.round((totalQueueTicks / waitingList.length) * 10) / 10 : 0;
+    const avgQueueTicks =
+      waitingList.length > 0 ? Math.round((totalQueueTicks / waitingList.length) * 10) / 10 : 0;
 
     let totalProcessTicks = 0;
     const activeAndCompleted = [...inProgressList, ...completedList];
     for (const e of activeAndCompleted) {
       totalProcessTicks += e.processTicks;
     }
-    const avgProcessTicks = activeAndCompleted.length > 0 ? Math.round((totalProcessTicks / activeAndCompleted.length) * 10) / 10 : 0;
+    const avgProcessTicks =
+      activeAndCompleted.length > 0
+        ? Math.round((totalProcessTicks / activeAndCompleted.length) * 10) / 10
+        : 0;
 
     // Bottleneck condition: avgQueueTicks > 0 OR (waitingCount > 0 AND freeCapacity === 0)
     const isSalesBottleneck = avgQueueTicks > 0 || (waitingList.length > 0 && freeCapacity === 0);
@@ -266,9 +282,10 @@ export class SalesQueueManager {
    * Computes summary metrics for real-time analytics.
    */
   public static calculateMetrics(projection: SalesQueueProjection): SalesQueueMetrics {
-    const capacityUtilization = projection.availableCapacity > 0
-      ? Math.min(100, Math.round((projection.usedCapacity / projection.availableCapacity) * 100))
-      : 0;
+    const capacityUtilization =
+      projection.availableCapacity > 0
+        ? Math.min(100, Math.round((projection.usedCapacity / projection.availableCapacity) * 100))
+        : 0;
 
     return {
       waitingCount: projection.waitingCount,

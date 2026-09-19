@@ -48,8 +48,12 @@ export class FinancialModelManager {
     const normalizedSalesRepCount = Math.max(0, Math.floor(salesRepCount));
     const normalizedCSRepCount = Math.max(0, Math.floor(csRepCount));
 
-    const salesHeadcountCost = Math.round((normalizedSalesRepCount * this.COST_PER_SALES_REP_PER_MONTH) / 30);
-    const csHeadcountCost = Math.round((normalizedCSRepCount * this.COST_PER_CS_REP_PER_MONTH) / 30);
+    const salesHeadcountCost = Math.round(
+      (normalizedSalesRepCount * this.COST_PER_SALES_REP_PER_MONTH) / 30,
+    );
+    const csHeadcountCost = Math.round(
+      (normalizedCSRepCount * this.COST_PER_CS_REP_PER_MONTH) / 30,
+    );
     const totalHeadcountCost = salesHeadcountCost + csHeadcountCost;
 
     // 2. Revenue & Churn Loss (Daily scale)
@@ -80,10 +84,12 @@ export class FinancialModelManager {
 
     // 5. EBITDA & Operating Margin
     const ebitda = netRevenue - totalOpex;
-    const operatingMargin = netRevenue > 0 ? parseFloat(((ebitda / netRevenue) * 100).toFixed(2)) : 0;
+    const operatingMargin =
+      netRevenue > 0 ? parseFloat(((ebitda / netRevenue) * 100).toFixed(2)) : 0;
 
     // 6. Customer Acquisition Cost (CAC) with Division-by-Zero Safety
-    const cac = newCustomers > 0 ? Math.round((variableSalesCost + marketingCost) / newCustomers) : 0;
+    const cac =
+      newCustomers > 0 ? Math.round((variableSalesCost + marketingCost) / newCustomers) : 0;
 
     // 7. Operative Cash Flow
     const cashInflow = netRevenue;

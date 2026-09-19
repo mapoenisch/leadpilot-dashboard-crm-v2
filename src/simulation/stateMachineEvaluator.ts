@@ -32,7 +32,7 @@ export class StateMachineEvaluator {
     lead: SimulationLead,
     targetStatus: LeadStatus,
     actionName: string,
-    clock: ClockContext
+    clock: ClockContext,
   ): StateTransitionResult<SimulationLead> {
     const allowedNextStates = this.LEAD_TRANSITION_GRAPH[lead.status] || [];
 
@@ -72,7 +72,7 @@ export class StateMachineEvaluator {
    */
   public static validateAndTransitionDealChurn(
     deal: SimulationDeal,
-    clock: ClockContext
+    clock: ClockContext,
   ): StateTransitionResult<SimulationDeal> {
     if (deal.isChurned) {
       const rejectedEntry: RejectedTransitionEntry = {

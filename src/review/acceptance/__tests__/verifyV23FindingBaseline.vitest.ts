@@ -1,0 +1,378 @@
+// G44 (Auftrag 067A, Block A): Selbsttest des Finding-Baseline-Verifiers.
+// Grün — beweist, dass exakt erwartete rote Findings akzeptiert, jede
+// zusätzliche, fehlende oder unerwartet grüne Abweichung aber abgewiesen wird.
+// Nach Review-Nacharbeit zusätzlich: synthetische Gegenproben für technische
+// Fehler, Runner-Mismatch und widersprüchliche Ergebnisse (fail-closed).
+import { describe, expect, it } from 'vitest';
+import {
+  compareFindingResults,
+  parsePlaywrightFindingResults,
+  parseVitestFindingResults,
+  type FindingRunResult,
+  type V23FindingContractLike,
+} from '../compareFindingResults';
+import { V23_FINDINGS } from '../findingContract';
+
+const contracts: readonly V23FindingContractLike[] = [
+  {
+    id: 'PR-AUTH-01',
+    title: 'Browser-/Demo-Auth und manipulierbare LocalStorage-Sitzung',
+    severity: 'critical',
+    targetGate: 'G45',
+    runner: 'vitest',
+    expected: 'failing',
+  },
+  {
+    id: 'PR-CLIP-13',
+    title: 'internes Clipping auf /resources/materials bei 375 Pixel',
+    severity: 'important',
+    targetGate: 'G56',
+    runner: 'playwright',
+    expected: 'failing',
+  },
+];
+
+function result(
+  id: string,
+  runner: 'vitest' | 'playwright',
+  actual: 'failing' | 'passing',
+): FindingRunResult {
+  return { id, runner, actual };
+}
+
+describe('compareFindingResults', () => {
+  it('akzeptiert exakt die erwarteten roten Findings', () => {
+    const exact = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'failing'),
+    ];
+    expect(compareFindingResults(contracts, exact)).toEqual({ ok: true, mismatches: [] });
+  });
+
+  it('weist ein zusätzliches rotes Finding ab', () => {
+    const extra = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'failing'),
+      result('PR-RLS-02', 'vitest', 'failing'),
+    ];
+    const comparison = compareFindingResults(contracts, extra);
+    expect(comparison.ok).toBe(false);
+    expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-RLS-02'))).toBe(true);
+  });
+
+  it('weist ein fehlendes erwartetes Finding ab', () => {
+    const missing = [result('PR-AUTH-01', 'vitest', 'failing')];
+    const comparison = compareFindingResults(contracts, missing);
+    expect(comparison.ok).toBe(false);
+    expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13'))).toBe(true);
+  });
+
+  it('weist ein unerwartet grünes Finding ab', () => {
+    const green = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'passing'),
+    ];
+    const comparison = compareFindingResults(contracts, green);
+    expect(comparison.ok).toBe(false);
+    expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13'))).toBe(true);
+  });
+
+  it('weist ein Ergebnis aus falschem Runner ab', () => {
+    const wrongRunner = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'vitest', 'failing'),
+    ];
+    const comparison = compareFindingResults(contracts, wrongRunner);
+    expect(comparison.ok).toBe(false);
+    expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13'))).toBe(true);
+  });
+
+  it('weist widersprüchliche Ergebnisse derselben ID ab', () => {
+    const conflicted = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-AUTH-01', 'vitest', 'passing'),
+      result('PR-CLIP-13', 'playwright', 'failing'),
+    ];
+    const comparison = compareFindingResults(contracts, conflicted);
+    expect(comparison.ok).toBe(false);
+    expect(
+      comparison.mismatches.some(
+        (mismatch) => mismatch.includes('PR-AUTH-01') && mismatch.includes('duplicate'),
+      ),
+    ).toBe(true);
+  });
+
+  it('weist identische Duplikate derselben Runner-ID ab', () => {
+    const duplicated = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'failing'),
+    ];
+    const comparison = compareFindingResults(contracts, duplicated);
+    expect(comparison.ok).toBe(false);
+    expect(
+      comparison.mismatches.some(
+        (mismatch) => mismatch.includes('PR-AUTH-01') && mismatch.includes('duplicate'),
+      ),
+    ).toBe(true);
+  });
+
+  it('weist zusätzliche passing-Ergebnisse aus falschem Runner ab', () => {
+    const extraPassing = [
+      result('PR-AUTH-01', 'vitest', 'failing'),
+      result('PR-CLIP-13', 'playwright', 'failing'),
+      result('PR-CLIP-13', 'vitest', 'passing'),
+    ];
+    const comparison = compareFindingResults(contracts, extraPassing);
+    expect(comparison.ok).toBe(false);
+    expect(comparison.mismatches.some((mismatch) => mismatch.includes('PR-CLIP-13'))).toBe(true);
+  });
+
+  it('weist einen doppelten Registereintrag ab (21-zu-20-Gegenbeweis)', () => {
+    const first = V23_FINDINGS.find((finding) => finding.id === 'PR-AUTH-01');
+    if (!first) {
+      throw new Error('Testsetup: PR-AUTH-01 fehlt im Register.');
+    }
+    const contracts21 = [...V23_FINDINGS, first];
+    const results20 = V23_FINDINGS.map((finding) => result(finding.id, finding.runner, 'failing'));
+    const comparison = compareFindingResults(contracts21, results20);
+    expect(comparison.ok).toBe(false);
+    expect(
+      comparison.mismatches.some(
+        (mismatch) => mismatch.includes('PR-AUTH-01') && mismatch.includes('duplicate-contract'),
+      ),
+    ).toBe(true);
+  });
+});
+
+describe('parseVitestFindingResults', () => {
+  it('meldet Collection-Fehler als technischen Fehler statt Befund', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'broken.acceptance.ts',
+          status: 'failed',
+          message: 'Error: Cannot find module',
+          assertionResults: [],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.length).toBe(1);
+  });
+
+  it('meldet fehlgeschlagene Assertion ohne Expect-Signatur als technischen Fehler', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'io.acceptance.ts',
+          status: 'failed',
+          assertionResults: [
+            {
+              ancestorTitles: [],
+              title: '[PR-AUTH-01] io',
+              status: 'failed',
+              failureMessages: ['Error: ENOENT: no such file or directory'],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('PR-AUTH-01'))).toBe(true);
+  });
+
+  it('wertet fehlgeschlagene Expect-Assertion mit Produktmarker als fachliches failing', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'ok.acceptance.ts',
+          status: 'failed',
+          assertionResults: [
+            {
+              ancestorTitles: [],
+              title: '[PR-AUTH-01] vertrag',
+              status: 'failed',
+              failureMessages: [
+                "AssertionError: expected '...' not to contain 'from './localAuthAdapter''",
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.technicalErrors).toEqual([]);
+    expect(parsed.results).toEqual([result('PR-AUTH-01', 'vitest', 'failing')]);
+  });
+
+  it('weist markerlose Expect-Assertion als technischen Fehler ab', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'nav.acceptance.ts',
+          status: 'failed',
+          assertionResults: [
+            {
+              ancestorTitles: [],
+              title: '[PR-CLIP-13] sichtbarkeit',
+              status: 'failed',
+              failureMessages: [
+                'AssertionError: expected locator to be visible: expect(received).toBeVisible() Expected: visible',
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('missing-marker'))).toBe(true);
+  });
+
+  it('meldet Dateifehler auch neben markierter Assertion als technischen Fehler', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'mixed.acceptance.ts',
+          status: 'failed',
+          message: 'Unhandled Rejection: setup failed after test',
+          assertionResults: [
+            {
+              ancestorTitles: [],
+              title: '[PR-AUTH-01] vertrag',
+              status: 'failed',
+              failureMessages: [
+                "AssertionError: expected '...' not to contain 'from './localAuthAdapter''",
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.results).toEqual([result('PR-AUTH-01', 'vitest', 'failing')]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('file error'))).toBe(true);
+  });
+
+  it('meldet Hookfehler trotz markierter Textnähe als technischen Fehler', () => {
+    const report = JSON.stringify({
+      testResults: [
+        {
+          name: 'hooked.acceptance.ts',
+          status: 'failed',
+          assertionResults: [
+            {
+              ancestorTitles: ['beforeAll hook'],
+              title: '[PR-AUTH-01] vertrag',
+              status: 'failed',
+              failureMessages: ["AssertionError: hook setup failed for from './localAuthAdapter'"],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parseVitestFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('hook failure'))).toBe(true);
+  });
+});
+
+describe('parsePlaywrightFindingResults', () => {
+  it('meldet Timeouts ohne Expect-Signatur als technischen Fehler', () => {
+    const report = JSON.stringify({
+      suites: [
+        {
+          title: 'element-clipping.acceptance.ts',
+          specs: [
+            {
+              title: '[PR-CLIP-13] clipping',
+              tests: [
+                {
+                  results: [{ status: 'timedOut', error: { message: 'Timeout 30000ms exceeded' } }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parsePlaywrightFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('PR-CLIP-13'))).toBe(true);
+  });
+
+  it('meldet Report-Level-Fehler (z. B. Auth-Setup) als technischen Fehler', () => {
+    const report = JSON.stringify({
+      suites: [],
+      errors: [{ message: 'Global setup failed: login to /login timed out' }],
+    });
+    const parsed = parsePlaywrightFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.length).toBe(1);
+  });
+
+  it('weist Sichtbarkeitsfehler nach Navigation ohne Produktmarker technisch ab', () => {
+    const report = JSON.stringify({
+      suites: [
+        {
+          title: 'element-clipping.acceptance.ts',
+          specs: [
+            {
+              title: '[PR-CLIP-13] clipping',
+              tests: [
+                {
+                  results: [
+                    {
+                      status: 'failed',
+                      error: {
+                        message:
+                          'Error: element sichtbar\n\nexpect(locator).toBeVisible()\n\nExpected: visible\nReceived: hidden',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parsePlaywrightFindingResults(report);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.technicalErrors.some((entry) => entry.includes('missing-marker'))).toBe(true);
+  });
+
+  it('wertet fehlgeschlagenen Expect mit Produktmarker als fachliches failing', () => {
+    const report = JSON.stringify({
+      suites: [
+        {
+          title: 'element-clipping.acceptance.ts',
+          specs: [
+            {
+              title: '[PR-CLIP-13] clipping',
+              tests: [
+                {
+                  results: [
+                    {
+                      status: 'failed',
+                      error: {
+                        message:
+                          'Error: rechter Rand\n\nexpect(received).toBeLessThanOrEqual(expected)\n\nExpected: <= 375',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const parsed = parsePlaywrightFindingResults(report);
+    expect(parsed.technicalErrors).toEqual([]);
+    expect(parsed.results).toEqual([result('PR-CLIP-13', 'playwright', 'failing')]);
+  });
+});

@@ -10,7 +10,7 @@ describe('025 - HubSpot Source', () => {
       const failures = result.log.filter((l) => l.includes('\u274c'));
       throw new Error(
         'Integrity-Suite fehlgeschlagen:\n' +
-          (failures.join('\n') || result.log.slice(-5).join('\n'))
+          (failures.join('\n') || result.log.slice(-5).join('\n')),
       );
     }
     expect(result.success).toBe(true);

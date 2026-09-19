@@ -3,9 +3,14 @@ import { InMemorySnapshotRepository } from '../../services/db/indexedDbSnapshotR
 import { SnapshotPruningManager } from '../snapshotPruningManager';
 import { SimulationSnapshot } from '../../types/snapshot';
 
-export async function runSnapshotPruningIntegrityTest(): Promise<{ success: boolean; log: string[] }> {
+export async function runSnapshotPruningIntegrityTest(): Promise<{
+  success: boolean;
+  log: string[];
+}> {
   const log: string[] = [];
-  log.push('=== STARTING AUFTRAG 013 TEST SUITE (PHYSICAL SNAPSHOT PRUNING & LONG-TERM STORAGE OPTIMIZATION) ===');
+  log.push(
+    '=== STARTING AUFTRAG 013 TEST SUITE (PHYSICAL SNAPSHOT PRUNING & LONG-TERM STORAGE OPTIMIZATION) ===',
+  );
 
   let overallPassed = true;
   const repo = new InMemorySnapshotRepository();
@@ -72,7 +77,9 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const testAPassed = Boolean(retentionSet && retentionSet.size > 0);
 
   if (testAPassed) {
-    log.push(`✅ TEST A PASSED: SnapshotPruningManager retention set calculated (${retentionSet.size} retained ticks).`);
+    log.push(
+      `✅ TEST A PASSED: SnapshotPruningManager retention set calculated (${retentionSet.size} retained ticks).`,
+    );
   } else {
     log.push('❌ TEST A FAILED: Retention set calculation failed!');
     overallPassed = false;
@@ -139,9 +146,13 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const testFPassed = pruneSummary.prunedCount === 87 && remainingSnapshots.length === 4; // Ticks 0, 30, 60, 90
 
   if (testFPassed) {
-    log.push(`✅ TEST F PASSED: Successfully pruned ${pruneSummary.prunedCount} intermediate snapshots (${remainingSnapshots.length} remaining).`);
+    log.push(
+      `✅ TEST F PASSED: Successfully pruned ${pruneSummary.prunedCount} intermediate snapshots (${remainingSnapshots.length} remaining).`,
+    );
   } else {
-    log.push(`❌ TEST F FAILED: Pruning mismatch! Pruned: ${pruneSummary.prunedCount}, Remaining: ${remainingSnapshots.length}`);
+    log.push(
+      `❌ TEST F FAILED: Pruning mismatch! Pruned: ${pruneSummary.prunedCount}, Remaining: ${remainingSnapshots.length}`,
+    );
     overallPassed = false;
   }
 
@@ -155,7 +166,9 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   if (testGPassed) {
     log.push(`✅ TEST G PASSED: All 91 AnalyticsProjections remain 100% intact after pruning.`);
   } else {
-    log.push(`❌ TEST G FAILED: AnalyticsProjections were deleted! Remaining: ${projections.length}`);
+    log.push(
+      `❌ TEST G FAILED: AnalyticsProjections were deleted! Remaining: ${projections.length}`,
+    );
     overallPassed = false;
   }
 
@@ -163,7 +176,10 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   // TEST H: Event logs remain 100% untouched
   // ---------------------------------------------------------
   log.push('\n--- TEST H: Event logs remain 100% untouched ---');
-  const dummyEvents = [{ id: 'evt-1', tick: 1, type: 'DEAL_WON' }, { id: 'evt-2', tick: 2, type: 'CUSTOMER_CHURNED' }];
+  const dummyEvents = [
+    { id: 'evt-1', tick: 1, type: 'DEAL_WON' },
+    { id: 'evt-2', tick: 2, type: 'CUSTOMER_CHURNED' },
+  ];
   const frozenEvents = Object.freeze([...dummyEvents]);
   await SnapshotPruningManager.pruneRunSnapshots(runId, repo, targetTicks, 30);
   const testHPassed = frozenEvents.length === 2 && frozenEvents[0]?.id === 'evt-1';
@@ -183,9 +199,13 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const testIPassed = metricsI.totalSnapshots === 4 && metricsI.totalProjections === 91;
 
   if (testIPassed) {
-    log.push(`✅ TEST I PASSED: Storage metrics counts accurate (${metricsI.totalSnapshots} Snapshots, ${metricsI.totalProjections} Projections).`);
+    log.push(
+      `✅ TEST I PASSED: Storage metrics counts accurate (${metricsI.totalSnapshots} Snapshots, ${metricsI.totalProjections} Projections).`,
+    );
   } else {
-    log.push(`❌ TEST I FAILED: Storage metrics count mismatch! (${metricsI.totalSnapshots}, ${metricsI.totalProjections})`);
+    log.push(
+      `❌ TEST I FAILED: Storage metrics count mismatch! (${metricsI.totalSnapshots}, ${metricsI.totalProjections})`,
+    );
     overallPassed = false;
   }
 
@@ -196,7 +216,9 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const testJPassed = metricsI.estimatedBytes > 0;
 
   if (testJPassed) {
-    log.push(`✅ TEST J PASSED: Storage metrics byte size calculated (${metricsI.estimatedBytes.toLocaleString('de-DE')} Bytes).`);
+    log.push(
+      `✅ TEST J PASSED: Storage metrics byte size calculated (${metricsI.estimatedBytes.toLocaleString('de-DE')} Bytes).`,
+    );
   } else {
     log.push('❌ TEST J FAILED: Storage metrics estimatedBytes invalid!');
     overallPassed = false;
@@ -224,7 +246,9 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const testLPassed = latestL?.tickId === targetTicks;
 
   if (testLPassed) {
-    log.push(`✅ TEST L PASSED: getLatestByRun correctly returned final snapshot (Tick #${latestL?.tickId}).`);
+    log.push(
+      `✅ TEST L PASSED: getLatestByRun correctly returned final snapshot (Tick #${latestL?.tickId}).`,
+    );
   } else {
     log.push('❌ TEST L FAILED: Final snapshot lost after pruning!');
     overallPassed = false;
@@ -284,9 +308,13 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const testPPassed = pruneResP.prunedCount === 29 && pruneResP.remainingCount === 2; // Ticks 0 and 30
 
   if (testPPassed) {
-    log.push(`✅ TEST P PASSED: Post-run pruning executed successfully (${pruneResP.prunedCount} pruned, ${pruneResP.remainingCount} remaining).`);
+    log.push(
+      `✅ TEST P PASSED: Post-run pruning executed successfully (${pruneResP.prunedCount} pruned, ${pruneResP.remainingCount} remaining).`,
+    );
   } else {
-    log.push(`❌ TEST P FAILED: Post-run pruning failed! (${pruneResP.prunedCount}, ${pruneResP.remainingCount})`);
+    log.push(
+      `❌ TEST P FAILED: Post-run pruning failed! (${pruneResP.prunedCount}, ${pruneResP.remainingCount})`,
+    );
     overallPassed = false;
   }
 
@@ -296,10 +324,17 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   log.push('\n--- TEST Q: Pure deterministic retention calculation ---');
   const setQ1 = SnapshotPruningManager.calculateRetentionTicks(60, 30);
   const setQ2 = SnapshotPruningManager.calculateRetentionTicks(60, 30);
-  const testQPassed = setQ1.size === 3 && setQ1.has(0) && setQ1.has(30) && setQ1.has(60) && Array.from(setQ1).join(',') === Array.from(setQ2).join(',');
+  const testQPassed =
+    setQ1.size === 3 &&
+    setQ1.has(0) &&
+    setQ1.has(30) &&
+    setQ1.has(60) &&
+    Array.from(setQ1).join(',') === Array.from(setQ2).join(',');
 
   if (testQPassed) {
-    log.push('✅ TEST Q PASSED: SnapshotPruningManager retention calculation is 100% deterministic.');
+    log.push(
+      '✅ TEST Q PASSED: SnapshotPruningManager retention calculation is 100% deterministic.',
+    );
   } else {
     log.push('❌ TEST Q FAILED: Non-deterministic retention calculation!');
     overallPassed = false;
@@ -309,7 +344,8 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   // TEST R: ISnapshotRepository interface compliance
   // ---------------------------------------------------------
   log.push('\n--- TEST R: ISnapshotRepository interface compliance ---');
-  const testRPassed = typeof repo.pruneSnapshotsForRun === 'function' && typeof repo.deleteByRun === 'function';
+  const testRPassed =
+    typeof repo.pruneSnapshotsForRun === 'function' && typeof repo.deleteByRun === 'function';
 
   if (testRPassed) {
     log.push('✅ TEST R PASSED: Repository implements all required pruning & deletion methods.');
@@ -330,7 +366,9 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const testSPassed = sRemaining.length === 1 && sRemaining[0]?.tickId === 0;
 
   if (testSPassed) {
-    log.push('✅ TEST S PASSED: InMemorySnapshotRepository fully supports pruning & storage metrics.');
+    log.push(
+      '✅ TEST S PASSED: InMemorySnapshotRepository fully supports pruning & storage metrics.',
+    );
   } else {
     log.push('❌ TEST S FAILED: InMemorySnapshotRepository error!');
     overallPassed = false;
@@ -349,7 +387,9 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const testTPassed = deleteByRunCalled === false;
 
   if (testTPassed) {
-    log.push('✅ TEST T PASSED BINDING GUARANTEE: SnapshotPruningManager did NOT invoke deleteByRun().');
+    log.push(
+      '✅ TEST T PASSED BINDING GUARANTEE: SnapshotPruningManager did NOT invoke deleteByRun().',
+    );
   } else {
     log.push('❌ TEST T FAILED: SnapshotPruningManager erroneously invoked deleteByRun()!');
     overallPassed = false;
@@ -360,7 +400,8 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   // ---------------------------------------------------------
   log.push('\n--- TEST U: Financial metrics from Auftrag 011 preserved ---');
   const snapU = buildSnapshot(30);
-  const testUPassed = typeof snapU.state.currentARR === 'number' && typeof snapU.projection.arr === 'number';
+  const testUPassed =
+    typeof snapU.state.currentARR === 'number' && typeof snapU.projection.arr === 'number';
 
   if (testUPassed) {
     log.push('✅ TEST U PASSED: Auftrag 011 Financial metrics remain 100% functional.');
@@ -388,7 +429,8 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   // ---------------------------------------------------------
   log.push('\n--- TEST W: UI renders storage metrics without domain calculations ---');
   const testMetricsW = await repo.getStorageMetrics();
-  const testWPassed = typeof testMetricsW.estimatedBytes === 'number' && testMetricsW.estimatedBytes >= 0;
+  const testWPassed =
+    typeof testMetricsW.estimatedBytes === 'number' && testMetricsW.estimatedBytes >= 0;
 
   if (testWPassed) {
     log.push('✅ TEST W PASSED: React UI components receive pre-computed storage metrics.');
@@ -405,11 +447,16 @@ export async function runSnapshotPruningIntegrityTest(): Promise<{ success: bool
   const contacts = await CRMRepository.getContacts();
   const dealsEbeneA = await CRMRepository.getImportedFunnelDeals();
 
-  const testXPassed = companies.length === 20 && contacts.length === 100 && dealsEbeneA.length === 40;
+  const testXPassed =
+    companies.length === 20 && contacts.length === 100 && dealsEbeneA.length === 40;
   if (testXPassed) {
-    log.push(`✅ TEST X PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).`);
+    log.push(
+      `✅ TEST X PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).`,
+    );
   } else {
-    log.push(`❌ TEST X FAILED: Ebene A baseline mutated! Companies: ${companies.length}, Contacts: ${contacts.length}, Deals: ${dealsEbeneA.length}`);
+    log.push(
+      `❌ TEST X FAILED: Ebene A baseline mutated! Companies: ${companies.length}, Contacts: ${contacts.length}, Deals: ${dealsEbeneA.length}`,
+    );
     overallPassed = false;
   }
 

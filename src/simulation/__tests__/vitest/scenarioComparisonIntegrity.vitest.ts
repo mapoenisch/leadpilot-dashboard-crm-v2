@@ -24,7 +24,7 @@ describe('014 - Scenario Comparison', () => {
       const failures = result.log.filter((l) => l.includes('❌'));
       throw new Error(
         'Integrity-Suite fehlgeschlagen:\n' +
-          (failures.join('\n') || result.log.slice(-5).join('\n'))
+          (failures.join('\n') || result.log.slice(-5).join('\n')),
       );
     }
     expect(result.success).toBe(true);

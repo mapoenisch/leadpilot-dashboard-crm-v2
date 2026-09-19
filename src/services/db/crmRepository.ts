@@ -7,7 +7,6 @@ import {
   LeadStatus,
 } from '@/types/crm';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
-import { seedSupabaseDatabase, SeedResult } from '../import/crmSeeder';
 import { dataSourceRegistry } from '../data';
 
 /** Rohzeilen aus Supabase (`select('*')` ohne Schema-Typen) — snake_case oder camelCase. */
@@ -165,10 +164,14 @@ export class CRMRepository {
   }
 
   /**
-   * Trigger idempotent database seed to populate Supabase PostgreSQL tables
+   * G46 (Auftrag 067C): Browser-Seed entfernt (Design §10.3). Synthetische
+   * Demo-Daten entstehen über versionierte SQL-Migrationen; diese Methode
+   * existiert nur als harter, ehrlicher Fehler für alte Aufrufer.
    */
-  public static async seedDatabase(): Promise<SeedResult> {
-    return seedSupabaseDatabase();
+  public static async seedDatabase(): Promise<never> {
+    throw new Error(
+      'Browser-Seed wurde in G46 entfernt. Demo-Daten kommen aus versionierten SQL-Migrationen.',
+    );
   }
 
   // --- Operative write/stub methods guarded in Auftrag 016 ---

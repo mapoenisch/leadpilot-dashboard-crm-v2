@@ -9,11 +9,13 @@ export interface User {
 
 /**
  * AuthAdapter-Interface analog zur DataSource-Abstraktion (Entscheidung 2).
- * Ermöglicht den späteren Drop-in-Austausch gegen SupabaseAuthAdapter (Gate G28),
- * ohne AuthProvider, ProtectedRoute oder LoginPage anzufassen.
+ * G45: Standard-Implementierung ist der SupabaseAuthAdapter mit serverseitig
+ * prüfbarer Sitzung. Adapter mit asynchroner Sitzungsherstellung melden
+ * Änderungen über initialize(); getSession() liefert den gecachten Stand.
  */
 export interface AuthAdapter {
   login(email: string, password: string): Promise<User>;
   logout(): Promise<void>;
   getSession(): User | null;
+  initialize?(onChange: (user: User | null) => void): () => void;
 }

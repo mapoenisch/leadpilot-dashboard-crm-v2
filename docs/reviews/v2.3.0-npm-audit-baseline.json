@@ -1,0 +1,15 @@
+{
+  "capturedAt": "2026-09-18T20:35:00.000Z",
+  "production": {
+    "total": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0
+  },
+  "all": {
+    "total": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0
+  }
+}

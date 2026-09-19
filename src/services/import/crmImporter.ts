@@ -1,5 +1,6 @@
 import { Activity, Company, Contact, ImportedFunnelDeal, ImportAuditSummary } from '@/types/crm';
 import { RAW_COMPANIES_CSV, RAW_CONTACTS_CSV, RAW_DEALS_CSV } from '@/services/import/rawCsvData';
+import { DataSourceError } from '@/types/dataSource';
 
 export interface CrmImportResult {
   companies: Company[];
@@ -171,4 +172,93 @@ export function importCrmData(): CrmImportResult {
     audit,
     companyMap,
   };
+}
+
+// 067H / G51 — HubSpot-Importfreigabe (Design §10.2): Ein Import ist nur
+// erfolgreich, wenn Counts, Referenzen, Pflichtfelder und Zeitraum konsistent
+// sind. Verletzt ein Datensatz die Regeln, wirft der Import INTEGRITY statt
+// still zu übernehmen. Strukturelle Typen akzeptieren CRM- wie ReadModel-Form.
+export interface HubSpotImportBatch {
+  companies: Array<{ id: unknown; name: unknown }>;
+  contacts: Array<{ id: unknown; companyId: unknown; email: unknown }>;
+  deals: Array<{
+    id: unknown;
+    dealName: unknown;
+    stage: unknown;
+    amount: unknown;
+    closeDate: unknown;
+    pipeline: unknown;
+    companyId?: unknown;
+  }>;
+  activities?: Array<{ id: unknown; timestamp: unknown }>;
+  periodStart: string;
+}
+
+export function assertHubSpotImportIntegrity(batch: HubSpotImportBatch): void {
+  const violations: string[] = [];
+
+  if (batch.companies.length === 0) violations.push('keine Companies');
+  if (batch.deals.length === 0) violations.push('keine Deals');
+
+  const companyIds = new Set<string>();
+  for (const c of batch.companies) {
+    if (typeof c.id !== 'string' || !c.id || typeof c.name !== 'string' || !c.name) {
+      violations.push('Company ohne id/name');
+      continue;
+    }
+    companyIds.add(c.id);
+  }
+
+  for (const ct of batch.contacts) {
+    if (typeof ct.id !== 'string' || !ct.id || typeof ct.email !== 'string' || !ct.email) {
+      violations.push(`Contact ohne id/email`);
+      continue;
+    }
+    if (typeof ct.companyId !== 'string' || !companyIds.has(ct.companyId)) {
+      violations.push(`Contact ${ct.id} ohne gültige Company`);
+    }
+  }
+
+  for (const d of batch.deals) {
+    if (
+      typeof d.id !== 'string' ||
+      !d.id ||
+      typeof d.dealName !== 'string' ||
+      !d.dealName ||
+      typeof d.stage !== 'string' ||
+      !d.stage ||
+      typeof d.amount !== 'number' ||
+      !Number.isFinite(d.amount) ||
+      typeof d.closeDate !== 'string' ||
+      !d.closeDate ||
+      typeof d.pipeline !== 'string' ||
+      !d.pipeline
+    ) {
+      violations.push(
+        'Deal ohne Pflichtfelder (id/dealName/stage/finite amount/closeDate/pipeline)',
+      );
+      continue;
+    }
+    if (
+      d.companyId !== undefined &&
+      d.companyId !== '' &&
+      (typeof d.companyId !== 'string' || !companyIds.has(d.companyId))
+    ) {
+      violations.push(`Deal ${d.id} ohne gültige Company`);
+    }
+  }
+
+  const start = Date.parse(batch.periodStart);
+  const end = Number.isNaN(start) ? Number.NaN : start + 365 * 864e5;
+  for (const a of batch.activities ?? []) {
+    const t = typeof a.timestamp === 'string' ? Date.parse(a.timestamp) : Number.NaN;
+    if (Number.isNaN(t) || Number.isNaN(end) || t < start || t > end) {
+      violations.push(`Activity außerhalb des Zeitraums`);
+      break;
+    }
+  }
+
+  if (violations.length > 0) {
+    throw new DataSourceError('INTEGRITY', `HubSpot-Import abgelehnt: ${violations.join('; ')}`);
+  }
 }

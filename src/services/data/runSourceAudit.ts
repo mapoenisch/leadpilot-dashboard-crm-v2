@@ -19,7 +19,8 @@ export function resolveRunSourceAudit(run: SimulationRun): RunSourceAuditInfo {
   let dataSourceId = run.manifest.dataSourceId;
   let capturedAt: string | undefined;
   let periodStart: string | undefined;
-  let counts: { companies: number; contacts: number; deals: number; activities: number } | undefined;
+  let counts:
+    { companies: number; contacts: number; deals: number; activities: number } | undefined;
   let isFrozen = false;
 
   if (BaselineSnapshotService.has(baselineVersion)) {

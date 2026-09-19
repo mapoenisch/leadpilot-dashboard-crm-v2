@@ -1,14 +1,18 @@
-import { CRMRepository } from '../../services/db/crmRepository';
 import { SimulationEngine } from '../engine';
 import { SimulationClock, SimulationEventRules } from '../eventRules';
 import { DeterministicRNG } from '../prng';
 import { HeadlessTestWorkerAdapter } from '../worker/workerAdapter';
 import { workerRunner } from '../worker/simulation.worker';
+import { WORKER_PROTOCOL_VERSION, WorkerMessageEvent } from '../../types/workerMessages';
+import { runWorkerTailChecks, waitForWorkerEvent } from './workerIntegrityTail.test';
 import {
-  WORKER_PROTOCOL_VERSION,
-  WorkerMessageEvent,
-} from '../../types/workerMessages';
-import { SimulationLead, SimulationOpportunity, SimulationDeal, SimulationActivity, SimulationEvent, SimulationState } from '../../types/simulation';
+  SimulationLead,
+  SimulationOpportunity,
+  SimulationDeal,
+  SimulationActivity,
+  SimulationEvent,
+  SimulationState,
+} from '../../types/simulation';
 import { SalesQueueEntry } from '../../types/salesQueue';
 
 export async function runWorkerTest(): Promise<{ success: boolean; log: string[] }> {
@@ -17,27 +21,9 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
 
   let overallPassed = true;
 
-  // Helper to wait for worker events asynchronously
-  const waitForEvent = (
-    adapter: HeadlessTestWorkerAdapter,
-    predicate: (evt: WorkerMessageEvent) => boolean,
-    timeoutMs = 2000
-  ): Promise<WorkerMessageEvent> => {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        unsubscribe();
-        reject(new Error(`Timeout waiting for worker event after ${timeoutMs}ms`));
-      }, timeoutMs);
-
-      const unsubscribe = adapter.onMessage((evt) => {
-        if (predicate(evt)) {
-          clearTimeout(timer);
-          unsubscribe();
-          resolve(evt);
-        }
-      });
-    });
-  };
+  // 067K / G57: waitForEvent lebt in workerIntegrityTail.test.ts
+  // (einzige Quelle, hier importiert).
+  const waitForEvent = waitForWorkerEvent;
 
   // ---------------------------------------------------------
   // TEST A: Worker Start Command
@@ -64,7 +50,9 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   const testAPassed = evtA.type === 'STARTED' && evtA.runId === runIdA;
 
   if (testAPassed) {
-    log.push(`✅ TEST A PASSED: START command successfully transitioned worker to RUNNING and emitted STARTED event.`);
+    log.push(
+      `✅ TEST A PASSED: START command successfully transitioned worker to RUNNING and emitted STARTED event.`,
+    );
   } else {
     log.push('❌ TEST A FAILED: Worker did not emit STARTED event!');
     overallPassed = false;
@@ -86,10 +74,13 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   });
 
   const evtB = await failPromiseB;
-  const testBPassed = evtB.type === 'FAILED' && evtB.payload?.error?.code === 'INVALID_PROTOCOL_VERSION';
+  const testBPassed =
+    evtB.type === 'FAILED' && evtB.payload?.error?.code === 'INVALID_PROTOCOL_VERSION';
 
   if (testBPassed) {
-    log.push('✅ TEST B PASSED: Invalid protocol version ("0.9") rejected with INVALID_PROTOCOL_VERSION error.');
+    log.push(
+      '✅ TEST B PASSED: Invalid protocol version ("0.9") rejected with INVALID_PROTOCOL_VERSION error.',
+    );
   } else {
     log.push('❌ TEST B FAILED: Worker allowed invalid protocol version!');
     overallPassed = false;
@@ -118,7 +109,9 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   const testCPassed = evtC.runId === runIdC && evtC.requestId === reqIdC;
 
   if (testCPassed) {
-    log.push(`✅ TEST C PASSED: Worker events correctly preserve runId ("${evtC.runId}") and requestId ("${evtC.requestId}").`);
+    log.push(
+      `✅ TEST C PASSED: Worker events correctly preserve runId ("${evtC.runId}") and requestId ("${evtC.requestId}").`,
+    );
   } else {
     log.push('❌ TEST C FAILED: Message correlation identifiers diverged!');
     overallPassed = false;
@@ -177,7 +170,9 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
     evtCompletedD.runId === runIdD;
 
   if (testDPassed) {
-    log.push('✅ TEST D PASSED: PAUSE preserved execution state; RESUME continued seamlessly to COMPLETED without seed/runId changes.');
+    log.push(
+      '✅ TEST D PASSED: PAUSE preserved execution state; RESUME continued seamlessly to COMPLETED without seed/runId changes.',
+    );
   } else {
     log.push('❌ TEST D FAILED: Pause/Resume sequence failed!');
     overallPassed = false;
@@ -211,7 +206,9 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   const testEPassed = evtE.type === 'CANCELLED' && evtE.runId === runIdE;
 
   if (testEPassed) {
-    log.push('✅ TEST E PASSED: CANCEL command safely halted execution at batch boundary and set status to CANCELLED.');
+    log.push(
+      '✅ TEST E PASSED: CANCEL command safely halted execution at batch boundary and set status to CANCELLED.',
+    );
   } else {
     log.push('❌ TEST E FAILED: Cancel protocol failed!');
     overallPassed = false;
@@ -245,13 +242,15 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
     (pe) =>
       typeof pe.payload?.completedRuns === 'number' &&
       typeof pe.payload?.totalRuns === 'number' &&
-      pe.payload.totalRuns === 1
+      pe.payload.totalRuns === 1,
   );
 
   const testFPassed = progressEventsF.length > 0 && validProgressMetrics;
 
   if (testFPassed) {
-    log.push(`✅ TEST F PASSED: Progress reported exclusively as completedRuns / totalRuns (${progressEventsF[progressEventsF.length - 1]?.payload?.completedRuns} / ${progressEventsF[progressEventsF.length - 1]?.payload?.totalRuns}).`);
+    log.push(
+      `✅ TEST F PASSED: Progress reported exclusively as completedRuns / totalRuns (${progressEventsF[progressEventsF.length - 1]?.payload?.completedRuns} / ${progressEventsF[progressEventsF.length - 1]?.payload?.totalRuns}).`,
+    );
   } else {
     log.push('❌ TEST F FAILED: Invalid progress metric format!');
     overallPassed = false;
@@ -284,7 +283,9 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
     Array.isArray(payloadG?.events);
 
   if (testGPassed) {
-    log.push(`✅ TEST G PASSED: COMPLETED event contains final State, Metrics (Live ARR: ${payloadG?.finalMetrics?.liveARR} €), Leads (${payloadG?.leads?.length}), Deals (${payloadG?.deals?.length}) & Events (${payloadG?.events?.length}).`);
+    log.push(
+      `✅ TEST G PASSED: COMPLETED event contains final State, Metrics (Live ARR: ${payloadG?.finalMetrics?.liveARR} €), Leads (${payloadG?.leads?.length}), Deals (${payloadG?.deals?.length}) & Events (${payloadG?.events?.length}).`,
+    );
   } else {
     log.push('❌ TEST G FAILED: COMPLETED payload incomplete!');
     overallPassed = false;
@@ -316,7 +317,9 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
     typeof errorObj?.message === 'string';
 
   if (testHPassed) {
-    log.push(`✅ TEST H PASSED: Missing payload produced structured error payload (Code: "${errorObj?.code}", Message: "${errorObj?.message}").`);
+    log.push(
+      `✅ TEST H PASSED: Missing payload produced structured error payload (Code: "${errorObj?.code}", Message: "${errorObj?.message}").`,
+    );
   } else {
     log.push('❌ TEST H FAILED: Structured error handling failed!');
     overallPassed = false;
@@ -422,9 +425,13 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   const testIPassed = stateMatchI && leadsMatchI && dealsMatchI && eventsMatchI;
 
   if (testIPassed) {
-    log.push(`✅ TEST I PASSED: 50-tick multi-day simulation yielded 100% byte-for-byte identical output between Main-Thread and Worker execution (Live ARR: ${directState.metrics?.liveARR} €).`);
+    log.push(
+      `✅ TEST I PASSED: 50-tick multi-day simulation yielded 100% byte-for-byte identical output between Main-Thread and Worker execution (Live ARR: ${directState.metrics?.liveARR} €).`,
+    );
   } else {
-    log.push(`❌ TEST I FAILED: Parity mismatch! State: ${stateMatchI}, Leads: ${leadsMatchI}, Deals: ${dealsMatchI}, Events: ${eventsMatchI}`);
+    log.push(
+      `❌ TEST I FAILED: Parity mismatch! State: ${stateMatchI}, Leads: ${leadsMatchI}, Deals: ${dealsMatchI}, Events: ${eventsMatchI}`,
+    );
     overallPassed = false;
   }
   adapterI.terminate();
@@ -437,73 +444,18 @@ export async function runWorkerTest(): Promise<{ success: boolean; log: string[]
   const testJPassed = Boolean(workerRunner) && typeof workerRunner.handleMessage === 'function';
 
   if (testJPassed) {
-    log.push('✅ TEST J PASSED: simulation.worker.ts operates headlessly with zero React, DOM, or UI dependencies.');
+    log.push(
+      '✅ TEST J PASSED: simulation.worker.ts operates headlessly with zero React, DOM, or UI dependencies.',
+    );
   } else {
     log.push('❌ TEST J FAILED: Worker runner isolation failed!');
     overallPassed = false;
   }
 
-  // ---------------------------------------------------------
-  // TEST K: Race Condition Safety
-  // ---------------------------------------------------------
-  log.push('\n--- TEST K: Race Condition Safety ---');
-  const adapterK = new HeadlessTestWorkerAdapter();
-  const runIdK = 'run-race-test';
-
-  // Issue CANCEL immediately after START
-  adapterK.postMessage({
-    protocolVersion: WORKER_PROTOCOL_VERSION,
-    command: 'START',
-    runId: runIdK,
-    requestId: 'req-k1',
-    payload: { targetTicks: 50, batchSize: 5 },
-  });
-
-  adapterK.postMessage({
-    protocolVersion: WORKER_PROTOCOL_VERSION,
-    command: 'CANCEL',
-    runId: runIdK,
-    requestId: 'req-k2',
-  });
-
-  const evtK = await waitForEvent(adapterK, (e) => e.runId === runIdK && (e.type === 'CANCELLED' || e.type === 'COMPLETED'));
-
-  // Attempt invalid RESUME when worker is CANCELLED/IDLE
-  const failPromiseK = waitForEvent(adapterK, (e) => e.type === 'FAILED');
-  adapterK.postMessage({
-    protocolVersion: WORKER_PROTOCOL_VERSION,
-    command: 'RESUME',
-    runId: runIdK,
-    requestId: 'req-k3',
-  });
-
-  const evtFailK = await failPromiseK;
-  const testKPassed = evtK.type === 'CANCELLED' && evtFailK.type === 'FAILED' && evtFailK.payload?.error?.code === 'INVALID_STATE_TRANSITION';
-
-  if (testKPassed) {
-    log.push('✅ TEST K PASSED: Immediate CANCEL after START safely cancelled run; invalid RESUME rejected with INVALID_STATE_TRANSITION.');
-  } else {
-    log.push('❌ TEST K FAILED: Race condition handling failed!');
-    overallPassed = false;
-  }
-  adapterK.terminate();
-
-  // ---------------------------------------------------------
-  // TEST L: Ebene A CRM Baseline Integrity
-  // ---------------------------------------------------------
-  log.push('\n--- TEST L: Ebene A CRM Baseline Integrity ---');
-  const baselineCompanies = await CRMRepository.getCompanies();
-  const baselineContacts = await CRMRepository.getContacts();
-  const baselineDeals = await CRMRepository.getImportedFunnelDeals();
-
-  const testLPassed = baselineCompanies.length === 20 && baselineContacts.length === 100 && baselineDeals.length === 40;
-
-  if (testLPassed) {
-    log.push('✅ TEST L PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).');
-  } else {
-    log.push('❌ TEST L FAILED: Historical Ebene A baseline was mutated by worker test execution!');
-    overallPassed = false;
-  }
+  // 067K / G57: Schlussteil (TEST K–L) in workerIntegrityTail.test.ts —
+  // gleiche Reihenfolge, gleiche Logs.
+  const tailPassed = await runWorkerTailChecks(log);
+  overallPassed = tailPassed && overallPassed;
 
   log.push('\n=================================================================');
   if (overallPassed) {

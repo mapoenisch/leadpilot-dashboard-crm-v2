@@ -2,11 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CRMRepository } from '../crmRepository';
 import { dataSourceRegistry } from '../../data';
 import * as supabaseClientModule from '../supabaseClient';
-import * as crmSeederModule from '../../import/crmSeeder';
-
-vi.mock('../../import/crmSeeder', () => ({
-  seedSupabaseDatabase: vi.fn(),
-}));
 
 describe('CRMRepository', () => {
   beforeEach(() => {
@@ -211,23 +206,6 @@ describe('CRMRepository', () => {
       expect(audit).toBeDefined();
       expect(typeof audit.companiesLoaded).toBe('number');
       expect(typeof audit.dealsLoaded).toBe('number');
-    });
-  });
-
-  describe('seedDatabase', () => {
-    it('ruft seedSupabaseDatabase auf', async () => {
-      const mockResult: crmSeederModule.SeedResult = {
-        success: true,
-        companiesInserted: 20,
-        contactsInserted: 100,
-        dealsInserted: 40,
-        message: 'Database seeded successfully',
-      };
-      vi.mocked(crmSeederModule.seedSupabaseDatabase).mockResolvedValueOnce(mockResult);
-
-      const res = await CRMRepository.seedDatabase();
-      expect(res).toEqual(mockResult);
-      expect(crmSeederModule.seedSupabaseDatabase).toHaveBeenCalled();
     });
   });
 

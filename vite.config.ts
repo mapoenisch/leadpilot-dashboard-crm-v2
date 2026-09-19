@@ -13,6 +13,14 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    // G46 (067C, Step 5): ungefährliche Sicherheitsheader auch lokal (Parität
+    // mit public/_headers). Kein CSP in Dev — würde Vite-HMR blockieren.
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+      'X-Frame-Options': 'SAMEORIGIN',
+    },
   },
   build: {
     rollupOptions: {

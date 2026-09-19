@@ -6,23 +6,31 @@
         "httpMethod": "POST",
         "path": "live-kpi-ingest",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "rawBody": true
+        }
       },
       "id": "webhook-trigger",
       "name": "Webhook Ingest Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// LeadPilot live-kpi-event/v1 Raw Payload Pass-Through Node\n// Das eingehende Webhook-Payload wird unverändert und ohne Typ-Coercion oder Defaults weitergereicht.\nconst item = $input.first().json;\nconst rawPayload = (item && typeof item === 'object' && 'body' in item)\n  ? item.body\n  : item;\n\nconst payloadString = (typeof rawPayload === 'string')\n  ? rawPayload\n  : JSON.stringify(rawPayload);\n\nreturn [{\n  json: {\n    rawPayload: payloadString\n  }\n}];"
+        "jsCode": "// LeadPilot G46-Nacharbeit (4. Runde): Größenprüfung VOR Dekodierung.\n// Der Webhook läuft mit Raw-Body-Option; n8n legt die Originalbytes als\n// Base64 in binary.data ab. Dieser Node misst nur (Base64-Länge minus Padding,\n// exakt auf 256 KB) und reicht die kodierten Bytes weiter — Dekodierung erst\n// im Folge-Node nach Freigabe. Fehlende Bytes brechen laut ab.\nconst MAX_BODY_BYTES = 256 * 1024;\nconst first = $input.first();\nconst binaryEntry = first.binary && first.binary.data;\nconst base64Body = binaryEntry && binaryEntry.data;\nif (typeof base64Body !== 'string' || base64Body.length === 0) {\n  throw new Error('INGEST_NO_RAW_BODY: Webhook liefert keine Originalbytes (Raw-Body-Option prüfen).');\n}\nconst padding = base64Body.endsWith('==') ? 2 : base64Body.endsWith('=') ? 1 : 0;\nconst decodedBytes = Math.floor(base64Body.length * 3 / 4) - padding;\nif (decodedBytes > MAX_BODY_BYTES) {\n  return [{ json: { valid: false, code: 'INGEST_BODY_TOO_LARGE' } }];\n}\n\nreturn [{\n  json: {\n    rawBase64: base64Body,\n    byteLength: decodedBytes\n  }\n}];"
       },
       "id": "validate-prepare-node",
       "name": "Pass-Through Raw Contract Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [420, 300]
+      "position": [
+        420,
+        300
+      ]
     },
     {
       "parameters": {
@@ -36,7 +44,10 @@
       "name": "Execute Ingest RPC (Postgres)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
-      "position": [640, 300],
+      "position": [
+        1960,
+        300
+      ],
       "credentials": {
         "postgres": {
           "id": "n8n_ingest_postgres",
@@ -112,7 +123,10 @@
       "name": "Switch by Ingest Status",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [880, 300]
+      "position": [
+        2200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -126,7 +140,10 @@
       "name": "Respond Accepted",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1120, 180]
+      "position": [
+        2440,
+        180
+      ]
     },
     {
       "parameters": {
@@ -140,7 +157,10 @@
       "name": "Respond Duplicate",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1120, 300]
+      "position": [
+        2440,
+        300
+      ]
     },
     {
       "parameters": {
@@ -154,7 +174,352 @@
       "name": "Respond Rejected",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1120, 420]
+      "position": [
+        2440,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// LeadPilot G46: Verify Ingress Signature (Design §10.1).\n// Prüft Timestamp-Fenster (5 Minuten), Nonce-Format und KPI-Allowlist und\n// baut die HMAC-Basis timestamp + '.' + nonce + '.' + rawBody. Die HMAC-Signatur\n// selbst prüft der Folge-Node (HMAC Sign Base, Crypto) gegen den Header\n// X-LeadPilot-Signature. Secret niemals hier, sondern im n8n-Credential-Store.\nconst ALLOWED_KPI_IDS = ['arr','mrr','pipeline_coverage','arr_direct','arr_partner','arr_outbound','arr_other','pipeline_leads','pipeline_mql','pipeline_sql','pipeline_offers','pipeline_won'];\nconst WINDOW_MS = 5 * 60 * 1000;\n\nconst trigger = $('Webhook Ingest Trigger').first().json;\nconst headers = trigger.headers || {};\nconst timestamp = String(headers['x-leadpilot-timestamp'] || '');\nconst nonce = String(headers['x-leadpilot-nonce'] || '');\nconst signature = String(headers['x-leadpilot-signature'] || '');\n\n\n// G46-Nacharbeit (4. Runde): Dekodierung erst nach Größenfreigabe des\n// Pass-Through (kein unbegrenztes Decode im Workflow).\nconst MAX_BODY_BYTES = 256 * 1024;\nconst incoming = $input.first().json;\nif (incoming && incoming.valid === false) {\n  return [{ json: incoming }];\n}\nconst rawBase64 = incoming && incoming.rawBase64;\nif (typeof rawBase64 !== 'string' || rawBase64.length === 0) {\n  return reject('INGEST_SIGNATURE_MISSING');\n}\nconst rawPayload = Buffer.from(rawBase64, 'base64').toString('utf-8');\nconst decodedBytes = Buffer.byteLength(rawPayload, 'utf-8');\nif (decodedBytes > MAX_BODY_BYTES) {\n  return reject('INGEST_BODY_TOO_LARGE');\n}\n\nfunction reject(code) {\n  return [{ json: { valid: false, code, signatureComputed: null } }];\n}\n\nconst atMs = Date.parse(timestamp);\nif (!timestamp || !nonce || !signature) return reject('INGEST_SIGNATURE_MISSING');\nif (!Number.isFinite(atMs)) return reject('INGEST_TIMESTAMP_INVALID');\nif (Math.abs(Date.now() - atMs) > WINDOW_MS) return reject('INGEST_TIMESTAMP_EXPIRED');\nif (nonce.length > 128) return reject('INGEST_REPLAY_DETECTED');\n\nlet kpiId = null;\nlet parsed = null;\ntry {\n  parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;\n  kpiId = parsed && parsed.kpiId;\n} catch (e) { return reject('INGEST_KPI_UNKNOWN'); }\nif (!ALLOWED_KPI_IDS.includes(kpiId)) return reject('INGEST_KPI_UNKNOWN');\n// Fachvalidierung VOR jedem privilegierten DB-Zugriff (Design §10.1):\n// Einheit passend, Quelle im Identifier-Format, Wert endlich und plausibel.\nconst KPI_UNITS = {arr:'EUR',mrr:'EUR',pipeline_coverage:'x',arr_direct:'EUR',arr_partner:'EUR',arr_outbound:'EUR',arr_other:'EUR',pipeline_leads:'count',pipeline_mql:'count',pipeline_sql:'count',pipeline_offers:'count',pipeline_won:'count'};\nconst unit = parsed && parsed.unit;\nif (typeof unit !== 'string' || unit !== KPI_UNITS[kpiId]) return reject('INGEST_KPI_UNIT_MISMATCH');\nconst sourceSystem = parsed && parsed.sourceSystem;\nif (typeof sourceSystem !== 'string' || !/^[a-zA-Z0-9._-]{1,128}$/.test(sourceSystem)) return reject('INGEST_KPI_SOURCE_INVALID');\nconst value = parsed && parsed.value;\nif (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1e12) return reject('INGEST_KPI_VALUE_INVALID');\n\nreturn [{ json: {\n  valid: true,\n  timestamp,\n  nonce,\n  signature,\n  rawBody: typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload),\n  signatureBase: timestamp + '.' + nonce + '.' + (typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload)),\n  kpiId,\n} }];"
+      },
+      "id": "verify-signature-node",
+      "name": "Verify Ingress Signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{ $json.signatureBase }}",
+        "dataPropertyName": "signatureComputed",
+        "encoding": "HEX",
+        "options": {}
+      },
+      "id": "hmac-sign-node",
+      "name": "HMAC Sign Base",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        760,
+        300
+      ],
+      "credentials": {
+        "cryptoHmac": {
+          "id": null,
+          "name": "LeadPilot Ingest HMAC (in n8n anlegen)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT public.claim_ingress_slot($1::text, NULL, 'n8n', 120) AS slot;",
+        "additionalFields": {
+          "queryParams": "={{ [ $json.nonce ] }}"
+        }
+      },
+      "id": "claim-nonce-node",
+      "name": "Claim Nonce (Postgres)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1560,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n8n_ingest_postgres",
+          "name": "LeadPilot PostgreSQL (n8n_ingest role)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: $json.code || 'INGEST_SIGNATURE_INVALID' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "response-invalid-signature",
+      "name": "Respond Invalid Signature",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: 'INGEST_REPLAY_DETECTED' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "response-replay",
+      "name": "Respond Replay Detected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.slot }}",
+                    "rightValue": "ok",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.slot }}",
+                    "rightValue": "replay",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.slot }}",
+                    "rightValue": "rate_limited",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "switch-slot-node",
+      "name": "Slot Status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1760,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: 'RATE_LIMITED' } }}",
+        "options": {
+          "responseCode": 429
+        }
+      },
+      "id": "response-rate-limited",
+      "name": "Respond Rate Limited",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if-valid-node-cond",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true
+      },
+      "id": "if-valid-node",
+      "name": "Ingress Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        960,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if-signature-node-cond",
+              "leftValue": "={{ $json.signatureComputed }}",
+              "rightValue": "={{ $json.signature }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true
+      },
+      "id": "if-signature-node",
+      "name": "Signature Match?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if-kpi-reject-cond",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "INGEST_KPI",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true
+      },
+      "id": "if-kpi-reject-node",
+      "name": "KPI Reject?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: $json.code } }}",
+        "options": {
+          "responseCode": 422
+        }
+      },
+      "id": "response-invalid-payload",
+      "name": "Respond Invalid Payload",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if-size-reject-cond",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "INGEST_BODY_TOO_LARGE",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true
+      },
+      "id": "if-size-reject-node",
+      "name": "Size Reject?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'rejected', error: $json.code } }}",
+        "options": {
+          "responseCode": 413
+        }
+      },
+      "id": "response-payload-too-large",
+      "name": "Respond Payload Too Large",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        700
+      ]
     }
   ],
   "connections": {
@@ -173,7 +538,40 @@
       "main": [
         [
           {
-            "node": "Execute Ingest RPC (Postgres)",
+            "node": "Verify Ingress Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Ingress Signature": {
+      "main": [
+        [
+          {
+            "node": "Ingress Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HMAC Sign Base": {
+      "main": [
+        [
+          {
+            "node": "Signature Match?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Nonce (Postgres)": {
+      "main": [
+        [
+          {
+            "node": "Slot Status",
             "type": "main",
             "index": 0
           }
@@ -210,6 +608,103 @@
         [
           {
             "node": "Respond Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slot Status": {
+      "main": [
+        [
+          {
+            "node": "Execute Ingest RPC (Postgres)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Replay Detected",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Rate Limited",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingress Valid?": {
+      "main": [
+        [
+          {
+            "node": "HMAC Sign Base",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "KPI Reject?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signature Match?": {
+      "main": [
+        [
+          {
+            "node": "Claim Nonce (Postgres)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KPI Reject?": {
+      "main": [
+        [
+          {
+            "node": "Respond Invalid Payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Size Reject?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Size Reject?": {
+      "main": [
+        [
+          {
+            "node": "Respond Payload Too Large",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid Signature",
             "type": "main",
             "index": 0
           }

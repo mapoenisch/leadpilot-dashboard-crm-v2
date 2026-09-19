@@ -1,15 +1,15 @@
-import { CRMRepository } from '../../services/db/crmRepository';
 import { StateMachineEvaluator } from '../stateMachineEvaluator';
 import { TickInvariantValidator } from '../tickInvariantValidator';
 import { SimulationEngine } from '../engine';
 import { DeterministicRNG } from '../prng';
 import { SimulationState, SimulationLead, SimulationDeal } from '../../types/simulation';
-import { MonteCarloAggregator } from '../monteCarloAggregator';
-import { RunManifest, ScenarioParameters, SimulationRun } from '../../types/scenario';
+import { runStateMachineTailChecks } from './stateMachineIntegrityTail.test';
 
 export async function runStateMachineIntegrityTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];
-  log.push('=== STARTING AUFTRAG 012 TEST SUITE (STATE MACHINE EVALUATOR, ATOMIC TRANSITIONS & TICK INVARIANT ENGINE) ===');
+  log.push(
+    '=== STARTING AUFTRAG 012 TEST SUITE (STATE MACHINE EVALUATOR, ATOMIC TRANSITIONS & TICK INVARIANT ENGINE) ===',
+  );
 
   let overallPassed = true;
 
@@ -77,7 +77,12 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST A: StateMachineEvaluator exists & validates valid transition
   // ---------------------------------------------------------
   log.push('\n--- TEST A: StateMachineEvaluator validates valid transition ---');
-  const resA = StateMachineEvaluator.validateAndTransitionLead(sampleLead, 'MQL', 'Qualify MQL', clock);
+  const resA = StateMachineEvaluator.validateAndTransitionLead(
+    sampleLead,
+    'MQL',
+    'Qualify MQL',
+    clock,
+  );
   const testAPassed = resA.success && resA.updatedEntity?.status === 'MQL';
 
   if (testAPassed) {
@@ -91,11 +96,18 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST B: Direct forbidden jump (New -> Won) is rejected
   // ---------------------------------------------------------
   log.push('\n--- TEST B: Direct forbidden jump (New -> Won) is rejected ---');
-  const resB = StateMachineEvaluator.validateAndTransitionLead(sampleLead, 'Won', 'Jump to Won', clock);
+  const resB = StateMachineEvaluator.validateAndTransitionLead(
+    sampleLead,
+    'Won',
+    'Jump to Won',
+    clock,
+  );
   const testBPassed = !resB.success;
 
   if (testBPassed) {
-    log.push('✅ TEST B PASSED: Forbidden jump New -> Won was deterministically rejected (success = false).');
+    log.push(
+      '✅ TEST B PASSED: Forbidden jump New -> Won was deterministically rejected (success = false).',
+    );
   } else {
     log.push('❌ TEST B FAILED: Forbidden transition was incorrectly permitted!');
     overallPassed = false;
@@ -107,14 +119,16 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   log.push('\n--- TEST C: Rejected transition creates structured audit entry ---');
   const testCPassed = Boolean(
     resB.rejectedEntry &&
-      resB.rejectedEntry.entityId === sampleLead.id &&
-      resB.rejectedEntry.fromState === 'New' &&
-      resB.rejectedEntry.toState === 'Won' &&
-      resB.rejectedEntry.reason.includes('Verbotene State Transition')
+    resB.rejectedEntry.entityId === sampleLead.id &&
+    resB.rejectedEntry.fromState === 'New' &&
+    resB.rejectedEntry.toState === 'Won' &&
+    resB.rejectedEntry.reason.includes('Verbotene State Transition'),
   );
 
   if (testCPassed) {
-    log.push(`✅ TEST C PASSED: Structured RejectedTransitionEntry created (${resB.rejectedEntry?.reason}).`);
+    log.push(
+      `✅ TEST C PASSED: Structured RejectedTransitionEntry created (${resB.rejectedEntry?.reason}).`,
+    );
   } else {
     log.push('❌ TEST C FAILED: RejectedTransitionEntry missing or corrupted!');
     overallPassed = false;
@@ -138,7 +152,12 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // ---------------------------------------------------------
   log.push('\n--- TEST E: MQL -> SQL allowed by Lead Graph ---');
   const mqlLead: SimulationLead = { ...sampleLead, status: 'MQL' };
-  const resE = StateMachineEvaluator.validateAndTransitionLead(mqlLead, 'SQL', 'Qualify SQL', clock);
+  const resE = StateMachineEvaluator.validateAndTransitionLead(
+    mqlLead,
+    'SQL',
+    'Qualify SQL',
+    clock,
+  );
   const testEPassed = resE.success && resE.updatedEntity?.status === 'SQL';
 
   if (testEPassed) {
@@ -153,7 +172,12 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // ---------------------------------------------------------
   log.push('\n--- TEST F: SQL -> Hot allowed by Lead Graph ---');
   const sqlLead: SimulationLead = { ...sampleLead, status: 'SQL' };
-  const resF = StateMachineEvaluator.validateAndTransitionLead(sqlLead, 'Hot', 'Qualify Hot', clock);
+  const resF = StateMachineEvaluator.validateAndTransitionLead(
+    sqlLead,
+    'Hot',
+    'Qualify Hot',
+    clock,
+  );
   const testFPassed = resF.success && resF.updatedEntity?.status === 'Hot';
 
   if (testFPassed) {
@@ -183,7 +207,12 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // ---------------------------------------------------------
   log.push('\n--- TEST H: Disqualified lead -> Won transition is rejected ---');
   const disqLead: SimulationLead = { ...sampleLead, status: 'Disqualified' };
-  const resH = StateMachineEvaluator.validateAndTransitionLead(disqLead, 'Won', 'Reopen Won', clock);
+  const resH = StateMachineEvaluator.validateAndTransitionLead(
+    disqLead,
+    'Won',
+    'Reopen Won',
+    clock,
+  );
   const testHPassed = !resH.success;
 
   if (testHPassed) {
@@ -226,13 +255,21 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST K: Invariant 1 (ARR = MRR * 12) verified cleanly
   // ---------------------------------------------------------
   log.push('\n--- TEST K: Invariant 1 (ARR = MRR * 12) verified ---');
-  const invK = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead]);
+  const invK = TickInvariantValidator.verifyTickInvariants(
+    baseState,
+    [sampleDeal],
+    [sampleLead],
+    66,
+    411840,
+  );
   const testKPassed = !invK.hasViolation;
 
   if (testKPassed) {
     log.push('✅ TEST K PASSED: Invariant 1 (ARR = MRR * 12) verified cleanly with 0 violations.');
   } else {
-    log.push(`❌ TEST K FAILED: Invariant 1 false alarm! Violations: ${invK.violations.join('; ')}`);
+    log.push(
+      `❌ TEST K FAILED: Invariant 1 false alarm! Violations: ${invK.violations.join('; ')}`,
+    );
     overallPassed = false;
   }
 
@@ -247,7 +284,13 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
       liveARR: 500000, // Corrupted: does not match liveMRR * 12 = 423840
     },
   };
-  const invL = TickInvariantValidator.verifyTickInvariants(corruptedState, [sampleDeal], [sampleLead]);
+  const invL = TickInvariantValidator.verifyTickInvariants(
+    corruptedState,
+    [sampleDeal],
+    [sampleLead],
+    66,
+    411840,
+  );
   const testLPassed = invL.hasViolation && invL.violations.some((v) => v.includes('Invariante 1'));
 
   if (testLPassed) {
@@ -261,7 +304,13 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST M: Invariant 2 (0 active ARR from churned customers) verified
   // ---------------------------------------------------------
   log.push('\n--- TEST M: Invariant 2 (0 active ARR from churned customers) verified ---');
-  const invM = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead]);
+  const invM = TickInvariantValidator.verifyTickInvariants(
+    baseState,
+    [sampleDeal],
+    [sampleLead],
+    66,
+    411840,
+  );
   const testMPassed = !invM.violations.some((v) => v.includes('Invariante 2'));
 
   if (testMPassed) {
@@ -275,11 +324,19 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST N: Invariant 3 (Customer count equation) verified
   // ---------------------------------------------------------
   log.push('\n--- TEST N: Invariant 3 (Customer count equation) verified ---');
-  const invN = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead]);
+  const invN = TickInvariantValidator.verifyTickInvariants(
+    baseState,
+    [sampleDeal],
+    [sampleLead],
+    66,
+    411840,
+  );
   const testNPassed = !invN.violations.some((v) => v.includes('Invariante 3'));
 
   if (testNPassed) {
-    log.push('✅ TEST N PASSED: Invariant 3 verified (liveCustomers = 66 + WonDeals - ChurnedDeals).');
+    log.push(
+      '✅ TEST N PASSED: Invariant 3 verified (liveCustomers = 66 + WonDeals - ChurnedDeals).',
+    );
   } else {
     log.push('❌ TEST N FAILED: Invariant 3 failed!');
     overallPassed = false;
@@ -289,7 +346,13 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   // TEST O: Invariant 4 (Valide Funnel/Deal Kombinationen) verified
   // ---------------------------------------------------------
   log.push('\n--- TEST O: Invariant 4 (Valide Funnel-Verteilung) verified ---');
-  const invO = TickInvariantValidator.verifyTickInvariants(baseState, [sampleDeal], [sampleLead]);
+  const invO = TickInvariantValidator.verifyTickInvariants(
+    baseState,
+    [sampleDeal],
+    [sampleLead],
+    66,
+    411840,
+  );
   const testOPassed = !invO.violations.some((v) => v.includes('Invariante 4'));
 
   if (testOPassed) {
@@ -354,10 +417,13 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   log.push('\n--- TEST S: 0 Math.random() / Date.now() in State Machine Domain ---');
   const resS1 = StateMachineEvaluator.validateAndTransitionLead(sampleLead, 'MQL', 'Rule', clock);
   const resS2 = StateMachineEvaluator.validateAndTransitionLead(sampleLead, 'MQL', 'Rule', clock);
-  const testSPassed = resS1.success === resS2.success && resS1.updatedEntity?.status === resS2.updatedEntity?.status;
+  const testSPassed =
+    resS1.success === resS2.success && resS1.updatedEntity?.status === resS2.updatedEntity?.status;
 
   if (testSPassed) {
-    log.push('✅ TEST S PASSED: State Machine & Invariant Engine use 0 Math.random() and 0 Date.now() calls.');
+    log.push(
+      '✅ TEST S PASSED: State Machine & Invariant Engine use 0 Math.random() and 0 Date.now() calls.',
+    );
   } else {
     log.push('❌ TEST S FAILED: Non-deterministic call found!');
     overallPassed = false;
@@ -369,104 +435,29 @@ export async function runStateMachineIntegrityTest(): Promise<{ success: boolean
   log.push('\n--- TEST T: Immutabilität des SimulationState ---');
   const freezeState: SimulationState = { ...baseState };
   const stateCopy = JSON.stringify(freezeState);
-  SimulationEngine.executeTick({ state: freezeState, rng: new DeterministicRNG(1), leads: [], opportunities: [], deals: [], activities: [] });
+  SimulationEngine.executeTick({
+    state: freezeState,
+    rng: new DeterministicRNG(1),
+    leads: [],
+    opportunities: [],
+    deals: [],
+    activities: [],
+  });
   const testTPassed = JSON.stringify(freezeState) === stateCopy;
 
   if (testTPassed) {
-    log.push('✅ TEST T PASSED: Tick execution produced 100% zero side-effects/mutations on input SimulationState.');
+    log.push(
+      '✅ TEST T PASSED: Tick execution produced 100% zero side-effects/mutations on input SimulationState.',
+    );
   } else {
     log.push('❌ TEST T FAILED: SimulationState was mutated!');
     overallPassed = false;
   }
 
-  // ---------------------------------------------------------
-  // TEST U: Finanzmetriken aus Auftrag 011 bleiben unberührt
-  // ---------------------------------------------------------
-  log.push('\n--- TEST U: Finanzmetriken aus Auftrag 011 unberührt ---');
-  const testUPassed = Boolean(outP.state.metrics?.financialMetrics);
-
-  if (testUPassed) {
-    log.push('✅ TEST U PASSED: Auftrag 011 FinancialMetrics remain 100% intact and functional.');
-  } else {
-    log.push('❌ TEST U FAILED: FinancialMetrics regression detected!');
-    overallPassed = false;
-  }
-
-  // ---------------------------------------------------------
-  // TEST V: Monte Carlo Aggregation verarbeitet State Machine Felder
-  // ---------------------------------------------------------
-  log.push('\n--- TEST V: Monte Carlo Aggregation verarbeitet State Machine Felder ---');
-  const dummyManifest: RunManifest = {
-    runId: 'r-v1',
-    scenarioId: 'sc-1',
-    scenarioVersionId: 'v-1',
-    seed: 42,
-    initialRngState: 42,
-    modelVersion: '1.0',
-    schemaVersion: '1.0',
-    baselineVersion: '1.0',
-    createdAt: '2026-01-01T00:00:00Z',
-    simulationStartDate: '2026-01-01',
-    targetTicks: 10,
-    parameters: {} as ScenarioParameters,
-    correlationId: 'corr-test',
-  };
-
-  const runV: SimulationRun = {
-    runId: 'r-v1',
-    scenarioId: 'sc-1',
-    scenarioVersionId: 'v-1',
-    seed: 42,
-    rngState: 42,
-    modelVersion: '1.0',
-    schemaVersion: '1.0',
-    baselineVersion: '1.0',
-    status: 'COMPLETED',
-    startedAt: '2026-01-01T00:00:00Z',
-    correlationId: 'corr-test',
-    manifest: dummyManifest,
-    finalState: outP.state,
-    finalMetrics: outP.state.metrics,
-  };
-
-  const aggV = MonteCarloAggregator.aggregateRuns([runV]);
-  const testVPassed = aggV.validRunCount === 1;
-
-  if (testVPassed) {
-    log.push('✅ TEST V PASSED: MonteCarloAggregator processes runs with State Machine & Invariant fields seamlessly.');
-  } else {
-    log.push('❌ TEST V FAILED: Monte Carlo aggregation regression!');
-    overallPassed = false;
-  }
-
-  // ---------------------------------------------------------
-  // TEST W: UI enthält keine State-Machine- oder Invariantenberechnungen
-  // ---------------------------------------------------------
-  log.push('\n--- TEST W: UI enthält keine State-Machine- oder Invariantenberechnungen ---');
-  const testWPassed = typeof outP.state.hasInvariantViolation === 'boolean' && Array.isArray(outP.state.rejectedTransitions);
-
-  if (testWPassed) {
-    log.push('✅ TEST W PASSED: React UI components perform 0 state machine or invariant calculations.');
-  } else {
-    log.push('❌ TEST W FAILED: Domain calculations found in UI layer!');
-    overallPassed = false;
-  }
-
-  // ---------------------------------------------------------
-  // TEST X: Regressionsschutz Ebene A CRM Baseline
-  // ---------------------------------------------------------
-  log.push('\n--- TEST X: Regressionsschutz Ebene A CRM Baseline ---');
-  const companies = await CRMRepository.getCompanies();
-  const contacts = await CRMRepository.getContacts();
-  const dealsEbeneA = await CRMRepository.getImportedFunnelDeals();
-
-  const testXPassed = companies.length === 20 && contacts.length === 100 && dealsEbeneA.length === 40;
-  if (testXPassed) {
-    log.push(`✅ TEST X PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).`);
-  } else {
-    log.push(`❌ TEST X FAILED: Ebene A baseline mutated! Companies: ${companies.length}, Contacts: ${contacts.length}, Deals: ${dealsEbeneA.length}`);
-    overallPassed = false;
-  }
+  // 067K / G57: Schlussteil (TEST U–X) in stateMachineIntegrityTail.test.ts —
+  // gleiche Reihenfolge, gleiche Logs.
+  const tailPassed = await runStateMachineTailChecks(log, outP);
+  overallPassed = tailPassed && overallPassed;
 
   log.push('\n=================================================================');
   if (overallPassed) {

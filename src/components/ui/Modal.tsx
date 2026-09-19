@@ -22,12 +22,8 @@ const MODAL_MAX_WIDTHS: Record<string, string> = {
   '1100px': 'max-w-[min(1100px,calc(100vw-2rem))]',
 };
 
-const modalOverlayVariants = cva(
-  'fixed inset-0 bg-[rgba(6,22,19,0.78)] backdrop-blur-[4px] flex items-center justify-center z-[1000] p-4 box-border animate-[backdrop-fade-in_150ms_ease-out]',
-);
-
 const modalDialogVariants = cva(
-  'bg-surface border border-solid border-border rounded-xl w-full shadow-modal flex flex-col overflow-hidden box-border outline-none max-h-[calc(100dvh-2rem)]',
+  'relative bg-surface border border-solid border-border rounded-xl w-full shadow-modal flex flex-col overflow-hidden box-border outline-none max-h-[calc(100dvh-2rem)]',
 );
 
 export function Modal({
@@ -124,20 +120,20 @@ export function Modal({
 
   if (!open) return null;
 
+  // 067J / G56: Der Backdrop ist ein echtes (natives) Button-Element als
+  // Geschwister des Dialogs — kein fokussierbares div mit vorgetäuschter
+  // Rolle. Klick und Tastatur (nativ) schließen, Escape läuft zusätzlich
+  // über den window-Keydown-Listener, Fokus bleibt im Dialog (Trap + Restore).
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label="Dialog schließen"
-      className={cn(modalOverlayVariants())}
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClose();
-        }
-      }}
-    >
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 box-border">
+      <button
+        type="button"
+        data-testid="modal-overlay"
+        aria-label="Dialog schließen (Hintergrund)"
+        tabIndex={-1}
+        onClick={onClose}
+        className="absolute inset-0 bg-[rgba(6,22,19,0.78)] backdrop-blur-[4px] animate-[backdrop-fade-in_150ms_ease-out] cursor-default"
+      />
       <div
         ref={modalRef}
         role="dialog"

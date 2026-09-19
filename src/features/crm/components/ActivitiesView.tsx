@@ -1,164 +1,86 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
-import { useSimulationActivities, useSimulationEvents } from '@/store/hooks';
+import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
+import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { CrmResponsiveList, CrmColumn } from './CrmResponsiveList';
+import { useCrmReadModelEnvelope } from '@/hooks/queries/useCrmQueries';
+import type { CrmSourceHealth, CrmReadModel } from '@/types/dataSource';
 
 interface ActivityItem {
   id: string;
   date: string;
   type: string;
   actor: string;
+  channel: string;
   entityName: string;
   details: string;
   status?: string;
 }
 
-// Initial canonical CRM activities derived from real imported baseline accounts & deals
-const INITIAL_ACTIVITIES: ActivityItem[] = [
-  {
-    id: 'act-1',
-    date: '2026-08-26 14:30',
-    type: 'Meeting Booked',
-    actor: 'Sales Team',
-    entityName: 'Auto Vogel – Projekt',
-    details: 'Live-Präsentation LeadPilot Connect & KI-Scoring mit Geschäftsführung durchgeführt.',
-    status: 'COMPLETED',
-  },
-  {
-    id: 'act-2',
-    date: '2026-08-26 11:15',
-    type: 'Qualification',
-    actor: 'Account Executive',
-    entityName: 'Bergmann Handel – Projekt',
-    details: 'Erstgespräch zur ICP-Qualifikation & Bedarfsanalyse im Großhandel.',
-    status: 'COMPLETED',
-  },
-  {
-    id: 'act-3',
-    date: '2026-08-21 09:45',
-    type: 'Meeting Booked',
-    actor: 'Sales Team',
-    entityName: 'Reinigung Klar – Projekt',
-    details: 'Online-Termin zur Abstimmung der Lizenzanzahl (Growth-Paket) vereinbart.',
-    status: 'SCHEDULED',
-  },
-  {
-    id: 'act-4',
-    date: '2026-08-14 16:00',
-    type: 'Proposal Sent',
-    actor: 'Marc Pönisch (CEO)',
-    entityName: 'Sporthaus Degen – Projekt',
-    details: 'Vertragsangebot über 12 Lizenzen Growth (89 €/Nutzer/Monat) übermittelt.',
-    status: 'COMPLETED',
-  },
-  {
-    id: 'act-5',
-    date: '2026-08-07 10:20',
-    type: 'Inbound Ingestion',
-    actor: 'Marketing / Nurturing',
-    entityName: 'Druckerei Pfeil – Projekt',
-    details: 'Automatisiertes Nurturing-Whitepaper "Lead-Management im Mittelstand" versendet.',
-    status: 'COMPLETED',
-  },
-  {
-    id: 'act-6',
-    date: '2026-08-05 15:10',
-    type: 'Scoring Update',
-    actor: 'System / Scoring v1.5',
-    entityName: 'Studio Neun – Projekt',
-    details: 'Lead-Score erreichte 82 Punkte ➔ Statuswechsel von MQL zu SQL.',
-    status: 'COMPLETED',
-  },
-  {
-    id: 'act-7',
-    date: '2026-08-03 13:00',
-    type: 'Proposal Sent',
-    actor: 'Account Executive',
-    entityName: 'Bytewerk Software – Projekt',
-    details: 'SLA-Vertragsentwurf für 50 Lizenzen Pro-Paket übermittelt.',
-    status: 'COMPLETED',
-  },
-  {
-    id: 'act-8',
-    date: '2026-08-02 11:00',
-    type: 'Qualification',
-    actor: 'Sales Team',
-    entityName: 'Nordlicht Logistik – Projekt',
-    details: 'Qualifizierungsgespräch mit Abteilungsleiter Logistik geführt.',
-    status: 'COMPLETED',
-  },
-  {
-    id: 'act-9',
-    date: '2026-06-09 17:30',
-    type: 'Deal Closed Won',
-    actor: 'Sales Team',
-    entityName: 'Hotel Seeblick – Projekt',
-    details: 'Vertrag erfolgreich unterzeichnet. ARR: 21.000 € (Closed-Won).',
-    status: 'COMPLETED',
-  },
-  {
-    id: 'act-10',
-    date: '2026-06-05 16:45',
-    type: 'Deal Closed Won',
-    actor: 'Sales Team',
-    entityName: 'Pflegedienst Aurora – Projekt',
-    details: 'Vertrag erfolgreich unterzeichnet. ARR: 43.000 € (Closed-Won).',
-    status: 'COMPLETED',
-  },
-];
+function statusBadgeVariant(status: CrmSourceHealth): 'mint' | 'cyan' | 'orange' | 'red' {
+  switch (status) {
+    case 'healthy':
+      return 'mint';
+    case 'empty':
+      return 'cyan';
+    case 'degraded':
+      return 'orange';
+    case 'unavailable':
+      return 'red';
+  }
+}
 
+function formatTimestamp(timestamp: string): string {
+  const parsed = Date.parse(timestamp);
+  if (Number.isNaN(parsed)) return timestamp;
+  return new Date(parsed).toLocaleString('de-DE', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+// Gate G47 (Auftrag 067D, Nacharbeit zum Review-Befund 2 mit Marcs Freigabe
+// zur Matrixerweiterung): Die Historie stammt ausschließlich aus
+// `envelope.data.activities` — derselben Quelle wie Companies, Contacts, Deals
+// und Audit. Der frühere statische INITIAL-Bestand und der Simulations-Mix
+// (Activities/Events aus dem Simulations-Store) sind ersatzlos entfallen:
+// kein Mischzustand mehr. Unavailable ist Fehler ohne Ersatzdaten.
 export function ActivitiesView() {
-  const simActivities = useSimulationActivities();
-  const events = useSimulationEvents();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('ALL');
+  const { data: envelope, isLoading, isError, error } = useCrmReadModelEnvelope();
+  // 067J / G56: Filterzustand ist über die URL wiederherstellbar.
+  const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
+  const [typeFilter, setTypeFilter] = useUrlSyncedState('typ', 'ALL');
 
-  // Combine simulation activities (if any) with initial canonical activities
   const combinedActivities: ActivityItem[] = useMemo(() => {
-    const list: ActivityItem[] = [];
-
-    // 1. Simulation generated activities
-    if (simActivities && simActivities.length > 0) {
-      simActivities.forEach((act) => {
-        list.push({
-          id: act.id,
-          date: act.timestamp || `Tick #${act.tick}`,
-          type: act.type,
-          actor: 'Simulation Engine',
-          entityName: act.entityName,
-          details: act.description,
-          status: 'COMPLETED',
-        });
-      });
-    }
-
-    // 2. Simulation events
-    if (events && events.length > 0) {
-      events.slice(0, 30).forEach((evt) => {
-        list.push({
-          id: evt.id,
-          date: evt.simulatedDate || `Tick #${evt.tick}`,
-          type: evt.type,
-          actor: 'System / Event Log',
-          entityName: evt.title,
-          details: evt.details,
-          status: 'COMPLETED',
-        });
-      });
-    }
-
-    // 3. Always include baseline historical activities
-    if (list.length === 0) {
-      return INITIAL_ACTIVITIES;
-    }
-
-    return [...list, ...INITIAL_ACTIVITIES];
-  }, [simActivities, events]);
+    if (!envelope) return [];
+    const companiesById = new Map(envelope.data.companies.map((c) => [c.id, c.name]));
+    const contactsById = new Map(envelope.data.contacts.map((p) => [p.id, p.email]));
+    const dealsById = new Map(envelope.data.deals.map((d) => [d.id, d.dealName]));
+    const resolveEntity = (a: CrmReadModel['activities'][number]): string => {
+      if (a.companyId && companiesById.has(a.companyId)) return companiesById.get(a.companyId)!;
+      if (a.contactId && contactsById.has(a.contactId)) return contactsById.get(a.contactId)!;
+      if (a.dealId && dealsById.has(a.dealId)) return dealsById.get(a.dealId)!;
+      return a.companyId || a.contactId || a.dealId || a.id;
+    };
+    return envelope.data.activities.map((a) => ({
+      id: a.id,
+      date: formatTimestamp(a.timestamp),
+      type: a.type,
+      actor: a.performedBy,
+      channel: a.channel,
+      entityName: resolveEntity(a),
+      details: a.description,
+      status: a.status,
+    }));
+  }, [envelope]);
 
   const typeOptions: SelectOption[] = useMemo(() => {
     const set = new Set(combinedActivities.map((a) => a.type));
@@ -166,6 +88,20 @@ export function ActivitiesView() {
       { value: 'ALL', label: 'Alle Aktivitäten' },
       ...Array.from(set).map((t) => ({ value: t, label: t })),
     ];
+  }, [combinedActivities]);
+
+  const topChannel = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const a of combinedActivities) counts.set(a.channel, (counts.get(a.channel) ?? 0) + 1);
+    let top = '–';
+    let topCount = 0;
+    for (const [channel, count] of counts) {
+      if (count > topCount) {
+        top = channel;
+        topCount = count;
+      }
+    }
+    return top;
   }, [combinedActivities]);
 
   const filteredActivities = useMemo(() => {
@@ -210,7 +146,11 @@ export function ActivitiesView() {
     {
       key: 'actor',
       label: 'Ausgeführt durch',
-      render: (r) => <span className="text-[12px] text-[var(--color-text-muted)]">{r.actor}</span>,
+      render: (r) => (
+        <span className="text-[12px] text-[var(--color-text-muted)]">
+          {r.actor} · {r.channel}
+        </span>
+      ),
     },
     {
       key: 'status',
@@ -220,6 +160,40 @@ export function ActivitiesView() {
       ),
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
+        <SectionHeader
+          eyebrow="CRM & Pipeline"
+          title="Aktivitäten-Historie"
+          description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
+        />
+        <ManagementChartState
+          type="loading"
+          message="Lade Aktivitäten aus dem CRM-Envelope…"
+          sourceLabel="CRM-Quellenwahrheit (G47)"
+        />
+      </div>
+    );
+  }
+
+  if (isError || !envelope) {
+    return (
+      <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
+        <SectionHeader
+          eyebrow="CRM & Pipeline"
+          title="Aktivitäten-Historie"
+          description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
+        />
+        <ManagementChartState
+          type="error"
+          message={`Aktivitäten nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Es werden keine Ersatzdaten angezeigt.`}
+          sourceLabel="CRM-Quellenwahrheit (G47)"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
@@ -231,10 +205,20 @@ export function ActivitiesView() {
           description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
         />
         <div className="flex gap-[var(--space-2)] flex-wrap">
-          <Badge variant="cyan">Ebene A + Event Log</Badge>
-          <Badge variant="neutral">DSGVO-konform</Badge>
+          <Badge variant="cyan">Quelle: {envelope.sourceId}</Badge>
+          <Badge variant={statusBadgeVariant(envelope.status)}>{envelope.status}</Badge>
         </div>
       </div>
+
+      {envelope.status === 'empty' && (
+        <p>Die Quelle ist leer — das ist ein gültiges Ergebnis, keine Störung.</p>
+      )}
+      {envelope.status === 'degraded' && (
+        <p>
+          Die Quelle meldet Importfehler — die vorhandenen Aktivitäten sind sichtbar, aber als
+          eingeschränkt gekennzeichnet.
+        </p>
+      )}
 
       {/* 2. KPI Cards */}
       <div className="crm-v2-kpi-grid">
@@ -243,17 +227,15 @@ export function ActivitiesView() {
           <div className="font-display text-[28px] font-bold my-[4px] text-primary">
             {combinedActivities.length}
           </div>
-          <div className="text-[12px] text-success">Vollständiger Audit-Trail</div>
+          <div className="text-[12px] text-success">Aus dem CRM-Envelope</div>
         </Card>
 
         <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Aktivste Kanäle</div>
+          <div className="text-[13px] text-[var(--color-text-muted)]">Aktivster Kanal</div>
           <div className="font-display text-[24px] font-semibold my-[4px] text-text">
-            Demo & Calls
+            {topChannel}
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            Fokus auf ICP-Qualifizierung
-          </div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Aus dem CRM-Envelope</div>
         </Card>
 
         <Card variant="glass">
@@ -261,9 +243,7 @@ export function ActivitiesView() {
           <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {typeOptions.length - 1} Typen
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            Demos, Calls, Mails, Deals
-          </div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Aus dem CRM-Envelope</div>
         </Card>
 
         <Card variant="glass">
@@ -336,7 +316,9 @@ export function ActivitiesView() {
                 </div>
                 <div className="crm-v2-mobile-card-row">
                   <span className="crm-v2-mobile-card-label">Akteur</span>
-                  <span className="crm-v2-mobile-card-value">{r.actor}</span>
+                  <span className="crm-v2-mobile-card-value">
+                    {r.actor} · {r.channel}
+                  </span>
                 </div>
                 <div className="border-0 border-t border-dashed border-border-soft text-[12.5px] text-text px-0 py-[4px]">
                   {r.details}
