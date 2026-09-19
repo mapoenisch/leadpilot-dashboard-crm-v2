@@ -8641,3 +8641,4 @@ Alle lokalen Gates sind grün, der echte Actions-Lauf würde aber nachweislich r
 - **Zusätzlich festgestellt:** `[PR-CI-18]` prüft nur Zeilen, die mit `uses:` beginnen, nicht `- uses:` (Sollvertrag-Lücke, [P2-3]); Readiness prüft Existenz, aber nicht Frische der Artefakte ([P2-4]).
 - Offene Nacharbeit für Antigravity: `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_1.md` ([P1-3], [P2-1] bis [P2-4]).
 - G58 bleibt **NICHT FREIGEGEBEN**.
+- **[P2-2] erledigt:** Marc hat die beiden Scope-Erweiterungen (`vitest.config.ts`, `PR-RELEASE-17` in `qualityRelease.acceptance.ts`) am 2026-09-19 im Review-Dialog ausdrücklich bestätigt.

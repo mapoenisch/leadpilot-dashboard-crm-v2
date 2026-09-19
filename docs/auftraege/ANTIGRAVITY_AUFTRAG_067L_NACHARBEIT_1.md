@@ -68,11 +68,12 @@ enthalten.
 - Das „Bekannte Problem“ (`E2E_AUTH_EMAIL` fehlt, `PR-FREEZE-07`, `PR-PERSIST-08`) im Eintrag
   aufgreifen: Ursache und Lösung benennen.
 
-### [P2-2] Scope-Erweiterungen ausweisen
+### [P2-2] Scope-Erweiterungen ausweisen — von Marc bestätigt (2026-09-19)
 
 `vitest.config.ts` (Include `scripts/__tests__/**`) und die `PR-RELEASE-17`-Umstellung in
 `src/review/acceptance/qualityRelease.acceptance.ts` lagen außerhalb der schriftlichen
-Erweiterung. Im Eintrag als Erweiterung mit Begründung ausweisen. Weitere Dateien, die dieser
+Erweiterung. **Marc hat beide Änderungen am 2026-09-19 im Review-Dialog ausdrücklich erlaubt.**
+Im Eintrag als bestätigte Erweiterung mit Begründung ausweisen; kein weiterer Handlungsbedarf. Weitere Dateien, die dieser
 Auftrag braucht, sind hiermit erlaubt: `scripts/lighthouse-auth.cjs`,
 `docs/operations/ci-secrets.md`, `scripts/verifyV23ReleaseReadiness.ts` und sein Test,
 `src/review/acceptance/qualityRelease.acceptance.ts` (nur `PR-CI-18` und `PR-RELEASE-17`).
