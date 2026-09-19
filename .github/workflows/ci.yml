@@ -153,6 +153,11 @@ jobs:
         run: npx playwright test e2e/a11y.spec.ts e2e/auth.spec.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
       - name: Playwright Simulation & Worker Tests (sequentiell)
         run: npx playwright test e2e/persistence-multisession.spec.ts e2e/worker-responsiveness.spec.ts --workers=1
+      - name: Playwright-Chrome für Lighthouse bereitstellen
+        run: |
+          CHROME_PATH="$(node -e "const { chromium } = require('playwright'); process.stdout.write(chromium.executablePath())")"
+          test -x "$CHROME_PATH"
+          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
       - name: Lighthouse CI
         run: npx lhci autorun
       - name: Coverage für Readiness erzeugen
