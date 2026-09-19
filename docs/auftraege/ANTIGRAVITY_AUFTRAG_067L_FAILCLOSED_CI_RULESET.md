@@ -1,7 +1,8 @@
 # AUFTRAG 067L / Gate G58 — Fail-closed CI, SHA-Pinning und Ruleset
 
 **Baseline:** `c6d88f3` (G57 freigegeben, Prüfer-Befund committet) ·
-**Branch:** `feat/auftrag-067l-ci-ruleset` (von `c6d88f3` abzweigen) · **Status:** OFFEN
+**Branch:** `feat/auftrag-067l-ci-ruleset` (von `4fcc404` abzweigen, dort liegt dieser Auftrag;
+Baseline für den Schutzbereichs-Diff bleibt `c6d88f3`, dazwischen nur Doku) · **Status:** OFFEN
 
 Teilauftrag 067L des Master-Auftrags 067 (`ANTIGRAVITY_AUFTRAG_067_V2_3_0_PRODUKTIONSREIFE_MASTER.md`).
 Diese Datei ist die konkrete Arbeitsanweisung für G58 und ergänzt den Master um die Auflage
