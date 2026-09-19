@@ -17,7 +17,7 @@ export class EffectiveParameterResolver {
 
   constructor(
     private readonly base: Readonly<ScenarioParameters>,
-    measures: readonly Measure[]
+    measures: readonly Measure[],
   ) {
     for (const m of measures) {
       this.validate(m);
@@ -27,7 +27,7 @@ export class EffectiveParameterResolver {
       (a, b) =>
         a.startTick - b.startTick ||
         a.createdAt.localeCompare(b.createdAt) ||
-        a.id.localeCompare(b.id)
+        a.id.localeCompare(b.id),
     );
   }
 
@@ -124,11 +124,7 @@ export class EffectiveParameterResolver {
     return 1;
   }
 
-  private applyChange(
-    p: ScenarioParameters,
-    c: MeasureChange,
-    f: number
-  ): ScenarioParameters {
+  private applyChange(p: ScenarioParameters, c: MeasureChange, f: number): ScenarioParameters {
     if (c.parameter === 'channelMix') {
       // V1: channelMix measures apply direct set
       return p;
@@ -175,7 +171,7 @@ export class EffectiveParameterResolver {
       if (!MEASURE_PARAMETER_KEYS.includes(c.parameter)) {
         throw new MeasureError(
           'INVALID_PARAMETER',
-          `Maßnahme "${m.id}": Parameter "${c.parameter}" ist nicht im V1-Katalog.`
+          `Maßnahme "${m.id}": Parameter "${c.parameter}" ist nicht im V1-Katalog.`,
         );
       }
     }

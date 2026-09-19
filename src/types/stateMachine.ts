@@ -1,4 +1,3 @@
-
 export type EntityType = 'LEAD' | 'DEAL' | 'CUSTOMER';
 
 export interface RejectedTransitionEntry {

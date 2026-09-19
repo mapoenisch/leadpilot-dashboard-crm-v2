@@ -1,4 +1,3 @@
-
 /** V1-Maßnahmenkatalog (Entscheidungen 449–458). Bewusst NICHT: churnRateMonthly, csRepCount, targetPackageFocus. */
 export type MeasureParameterKey =
   | 'marketingBudgetYearly'
@@ -56,7 +55,7 @@ export interface MeasureKpiDelta {
 export class MeasureError extends Error {
   constructor(
     public code: 'INVALID_PARAMETER' | 'INVALID_TIMING' | 'EMPTY_CHANGES' | 'OUT_OF_BOUNDS',
-    message: string
+    message: string,
   ) {
     super(message);
     this.name = 'MeasureError';

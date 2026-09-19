@@ -69,6 +69,13 @@ export function Layout() {
 
   return (
     <div className="flex w-screen max-w-[100vw] h-screen overflow-hidden box-border font-body bg-[radial-gradient(120%_120%_at_50%_0%,var(--color-bg)_0%,var(--color-bg-deep)_100%)]">
+      {/* 067J / G56: Skip-Link zum Hauptinhalt (Tastaturbedienung, WCAG 2.4.1). */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[2000] focus:rounded-md focus:bg-background-deep focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold focus:text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+      >
+        Zum Hauptinhalt springen
+      </a>
       {/* Sidebar (Desktop static or Mobile Drawer) */}
       <Sidebar
         isMobile={isMobile}
@@ -93,6 +100,7 @@ export function Layout() {
         />
         <SimulationBar />
         <main
+          id="main-content"
           tabIndex={0}
           aria-label="Hauptinhalt"
           className={`flex-1 overflow-y-auto box-border ${isMobile ? 'p-[var(--space-4)]' : 'p-[var(--space-6)]'}`}

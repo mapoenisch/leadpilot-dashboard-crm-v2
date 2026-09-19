@@ -3,16 +3,10 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '@/auth/AuthContext';
 import { Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
 
-const DEFAULT_DEMO_EMAIL = 'demo@leadpilot.io';
-const DEFAULT_DEMO_PASSWORD = 'demo';
-
 export function LoginPage() {
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  const demoEmail = import.meta.env.VITE_DEMO_AUTH_EMAIL || DEFAULT_DEMO_EMAIL;
-  const demoPassword = import.meta.env.VITE_DEMO_AUTH_PASSWORD || DEFAULT_DEMO_PASSWORD;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,12 +20,6 @@ export function LoginPage() {
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
   }
-
-  const handleFillDemo = () => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setError(null);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,26 +63,13 @@ export function LoginPage() {
           </p>
         </div>
 
-        {/* Sichtbarer Demo-Modus Hinweis (Entscheidung 3) */}
+        {/* Supabase-Authentifizierung (G45): keine Demo-Zugangsdaten mehr. */}
         <div
           role="note"
-          aria-label="Hinweis zum Demo-Modus"
-          className="mb-5 p-3 rounded-lg border border-[var(--color-orange,#FF7A3D)]/40 bg-[var(--color-orange-a14,rgba(255,122,61,0.14))] text-[12px] text-[var(--color-orange-soft,#FFD1B8)] leading-relaxed"
+          aria-label="Hinweis zur Anmeldung"
+          className="mb-5 p-3 rounded-lg border border-border bg-black/30 text-[12px] text-[var(--color-text-muted,#94a3b8)] leading-relaxed"
         >
-          <div className="font-semibold text-white flex items-center gap-1.5 mb-1">
-            <span aria-hidden="true">⚠️</span> Demo-Modus (Gate G42)
-          </div>
-          <div>
-            App-seitige Authentifizierung ohne produktive Absicherung — echte
-            Backend-Authentifizierung und RLS-Durchsetzung folgen mit Gate G28.
-          </div>
-          <button
-            type="button"
-            onClick={handleFillDemo}
-            className="mt-2 text-[11px] font-medium text-primary hover:text-white underline cursor-pointer bg-transparent border-0 p-0 block transition-colors"
-          >
-            Demo-Zugangsdaten automatisch einfügen ({demoEmail})
-          </button>
+          Anmeldung mit deinem Organisationskonto (Supabase Auth, mandantengebunden).
         </div>
 
         {/* Fehlermeldung */}

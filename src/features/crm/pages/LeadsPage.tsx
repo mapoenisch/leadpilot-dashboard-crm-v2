@@ -3,15 +3,17 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Tabs } from '@/components/ui/Tabs';
-import { Button } from '@/components/ui/Button';
-import { Alert } from '@/components/ui/Alert';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { isSupabaseConfigured } from '@/services/db/supabaseClient';
 import { Company, Contact, ImportedFunnelDeal } from '@/types/crm';
-import { SeedResult } from '@/services/import/crmSeeder';
-import { useCrmAuditSummary, useCrmCompanies, useCrmContacts, useCrmDeals } from '@/hooks/queries/useCrmQueries';
-import { useCrmSyncStatus, useSeedDatabaseMutation } from '@/hooks/queries/useCrmSync';
+import {
+  useCrmAuditSummary,
+  useCrmCompanies,
+  useCrmContacts,
+  useCrmDeals,
+} from '@/hooks/queries/useCrmQueries';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
+import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 
 // Stabile Fallbacks, damit abgeleitete Memos (companyMap) nicht pro Render
 // neu laufen, solange noch keine Query-Daten vorliegen.
@@ -20,7 +22,8 @@ const EMPTY_CONTACTS: Contact[] = [];
 const EMPTY_DEALS: ImportedFunnelDeal[] = [];
 
 export function LeadsPage() {
-  const [activeTab, setActiveTab] = React.useState('contacts');
+  // 067J / G56: Tab-Zustand ist über die URL wiederherstellbar.
+  const [activeTab, setActiveTab] = useUrlSyncedState('tab', 'contacts');
 
   // Vier parallele Reads über TanStack Query (statt manuellem Promise.all).
   // Der auditSummary-Wert wird nicht gerendert, Query läuft trotzdem mit —
@@ -35,18 +38,16 @@ export function LeadsPage() {
   const importedFunnelDeals = dealsQuery.data ?? EMPTY_DEALS;
 
   const isLoading =
-    companiesQuery.isLoading || contactsQuery.isLoading || dealsQuery.isLoading || auditQuery.isLoading;
+    companiesQuery.isLoading ||
+    contactsQuery.isLoading ||
+    dealsQuery.isLoading ||
+    auditQuery.isLoading;
   const queryError =
     companiesQuery.error ?? contactsQuery.error ?? dealsQuery.error ?? auditQuery.error ?? null;
-  const isEmpty = !isLoading && !queryError && companies.length + contacts.length + importedFunnelDeals.length === 0;
-
-  const [seedResult, setSeedResult] = React.useState<SeedResult | null>(null);
-
-  // Optimistic Sync-Status (Block E): 'syncing' während der Mutation,
-  // Rollback auf den vorherigen Wert bei Fehler (siehe useCrmSync).
-  const { data: syncStatus = 'idle' } = useCrmSyncStatus();
-  const seedMutation = useSeedDatabaseMutation();
-  const isSeeding = syncStatus === 'syncing' || seedMutation.isPending;
+  const isEmpty =
+    !isLoading &&
+    !queryError &&
+    companies.length + contacts.length + importedFunnelDeals.length === 0;
 
   // Map for fast Company lookup by ID
   const companyMap = React.useMemo(() => {
@@ -57,24 +58,8 @@ export function LeadsPage() {
     return map;
   }, [companies]);
 
-  // Seed per useMutation (Block E): invalidiert companies/contacts/deals/
-  // auditSummary via onSettled statt manuellem Re-Fetch.
-  const handleSeedDatabase = () => {
-    setSeedResult(null);
-    seedMutation.mutate(undefined, {
-      onSuccess: (result) => setSeedResult(result),
-      onError: (err) =>
-        setSeedResult({
-          success: false,
-          companiesInserted: 0,
-          contactsInserted: 0,
-          dealsInserted: 0,
-          message: 'Fehler beim Datenbank-Seed',
-          error: String(err),
-        }),
-    });
-  };
-
+  // G46 (067C): Browser-Seed entfernt (Design §10.3) — Demo-Daten kommen aus
+  // versionierten SQL-Migrationen, kein UI-Trigger mehr.
   const companyColumns: CrmColumn<Company>[] = [
     {
       key: 'name',
@@ -84,11 +69,7 @@ export function LeadsPage() {
     {
       key: 'domain',
       label: 'Domain',
-      render: (r) => (
-        <span className="font-mono text-[12.5px] text-primary">
-          {r.domain}
-        </span>
-      ),
+      render: (r) => <span className="font-mono text-[12.5px] text-primary">{r.domain}</span>,
     },
     {
       key: 'industry',
@@ -108,16 +89,16 @@ export function LeadsPage() {
     {
       key: 'fullName',
       label: 'Name',
-      render: (r) => <strong className="text-text">{r.firstName} {r.lastName}</strong>,
+      render: (r) => (
+        <strong className="text-text">
+          {r.firstName} {r.lastName}
+        </strong>
+      ),
     },
     {
       key: 'email',
       label: 'E-Mail',
-      render: (r) => (
-        <span className="font-mono text-[12.5px] text-primary">
-          {r.email}
-        </span>
-      ),
+      render: (r) => <span className="font-mono text-[12.5px] text-primary">{r.email}</span>,
     },
     {
       key: 'jobTitle',
@@ -151,7 +132,15 @@ export function LeadsPage() {
       key: 'stage',
       label: 'Stage',
       render: (r) => (
-        <Badge variant={r.stage.includes('gewonnen') ? 'cyan' : r.stage.includes('verloren') ? 'neutral' : 'orange'}>
+        <Badge
+          variant={
+            r.stage.includes('gewonnen')
+              ? 'cyan'
+              : r.stage.includes('verloren')
+                ? 'neutral'
+                : 'orange'
+          }
+        >
           {r.stage}
         </Badge>
       ),
@@ -160,9 +149,7 @@ export function LeadsPage() {
       key: 'amount',
       label: 'Betrag (€)',
       render: (r) => (
-        <strong className="font-mono text-primary">
-          {r.amount.toLocaleString('de-DE')} €
-        </strong>
+        <strong className="font-mono text-primary">{r.amount.toLocaleString('de-DE')} €</strong>
       ),
     },
     { key: 'closeDate', label: 'Abschlussdatum' },
@@ -211,12 +198,16 @@ export function LeadsPage() {
           <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {importedFunnelDeals.length}
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Getrennter Import (Keine Fantasie-Matches)</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">
+            Getrennter Import (Keine Fantasie-Matches)
+          </div>
         </Card>
 
         <Card variant="glass">
           <div className="text-[13px] text-[var(--color-text-muted)]">Datenbank Status</div>
-          <div className={`font-display text-[18px] font-bold mt-[8px] mb-[4px] ${isSupabaseConfigured ? 'text-success' : 'text-accent'}`}>
+          <div
+            className={`font-display text-[18px] font-bold mt-[8px] mb-[4px] ${isSupabaseConfigured ? 'text-success' : 'text-accent'}`}
+          >
             {isSupabaseConfigured ? '⚡ Supabase Verbunden' : '📦 Lokaler Import (Fallback)'}
           </div>
           <div className="text-[12px] text-[var(--color-text-muted)]">
@@ -275,7 +266,9 @@ export function LeadsPage() {
                   return (
                     <div className="crm-v2-mobile-card">
                       <div className="crm-v2-mobile-card-header">
-                        <span className="crm-v2-mobile-card-title">{r.firstName} {r.lastName}</span>
+                        <span className="crm-v2-mobile-card-title">
+                          {r.firstName} {r.lastName}
+                        </span>
                         <Badge variant="cyan">{r.jobTitle}</Badge>
                       </div>
                       <div className="crm-v2-mobile-card-row">
@@ -290,7 +283,9 @@ export function LeadsPage() {
                           {comp ? (
                             <span>
                               <strong>{comp.name}</strong>{' '}
-                              <span className="text-[11px] text-[var(--color-text-muted)]">({comp.domain})</span>
+                              <span className="text-[11px] text-[var(--color-text-muted)]">
+                                ({comp.domain})
+                              </span>
                             </span>
                           ) : (
                             <span className="text-error">Nicht zugeordnet</span>
@@ -325,7 +320,9 @@ export function LeadsPage() {
                     </div>
                     <div className="crm-v2-mobile-card-row">
                       <span className="crm-v2-mobile-card-label">Standort</span>
-                      <span className="crm-v2-mobile-card-value">{r.postalCode} {r.city}</span>
+                      <span className="crm-v2-mobile-card-value">
+                        {r.postalCode} {r.city}
+                      </span>
                     </div>
                     <div className="crm-v2-mobile-card-row">
                       <span className="crm-v2-mobile-card-label">Mitarbeiter</span>
@@ -350,7 +347,15 @@ export function LeadsPage() {
                   <div className="crm-v2-mobile-card">
                     <div className="crm-v2-mobile-card-header">
                       <span className="crm-v2-mobile-card-title">{r.dealName}</span>
-                      <Badge variant={r.stage.includes('gewonnen') ? 'cyan' : r.stage.includes('verloren') ? 'neutral' : 'orange'}>
+                      <Badge
+                        variant={
+                          r.stage.includes('gewonnen')
+                            ? 'cyan'
+                            : r.stage.includes('verloren')
+                              ? 'neutral'
+                              : 'orange'
+                        }
+                      >
                         {r.stage}
                       </Badge>
                     </div>
@@ -381,35 +386,26 @@ export function LeadsPage() {
               <Card variant="glass" featured>
                 <div className="flex items-center justify-between flex-wrap gap-[var(--space-3)] mb-[var(--space-3)]">
                   <h3 className="m-0 font-display text-[16px] font-semibold text-primary">
-                    🗄️ Supabase PostgreSQL Persistence & Seed (Phase 2.2)
+                    🗄️ Supabase PostgreSQL Persistence (G46: Seed per SQL-Migration)
                   </h3>
-                  <Button variant="primary" onClick={handleSeedDatabase} disabled={isSeeding}>
-                    {isSeeding ? 'Seeding läuft...' : 'Datensätze in Supabase Synchronisieren / Seeden'}
-                  </Button>
                 </div>
 
-                {seedResult && (
-                  <div className="mb-[var(--space-4)]">
-                    <Alert
-                      variant={seedResult.success ? 'info' : 'warning'}
-                      title={seedResult.success ? '✅ Seed Erfolgreich' : '⚠️ Seed Hinweistext / Info'}
-                    >
-                      {seedResult.message}
-                      {seedResult.error && (
-                        <div className="mt-[4px] text-[12px] text-error">
-                          Details: {seedResult.error}
-                        </div>
-                      )}
-                    </Alert>
-                  </div>
-                )}
-
                 <div className="flex flex-col gap-[8px] text-[13.5px] text-text">
-                  <div>✔ <strong>Kontakte:</strong> {contacts.length} Datensätze (Schema: `contacts` Tabelle mit Foreign Key `company_id`).</div>
-                  <div>✔ <strong>Unternehmen:</strong> {companies.length} Datensätze (Schema: `companies` Tabelle in Supabase).</div>
-                  <div>✔ <strong>Funnel Deals:</strong> {importedFunnelDeals.length} Datensätze (Schema: `imported_funnel_deals` Tabelle).</div>
+                  <div>
+                    ✔ <strong>Kontakte:</strong> {contacts.length} Datensätze (Schema: `contacts`
+                    Tabelle mit Foreign Key `company_id`).
+                  </div>
+                  <div>
+                    ✔ <strong>Unternehmen:</strong> {companies.length} Datensätze (Schema:
+                    `companies` Tabelle in Supabase).
+                  </div>
+                  <div>
+                    ✔ <strong>Funnel Deals:</strong> {importedFunnelDeals.length} Datensätze
+                    (Schema: `imported_funnel_deals` Tabelle).
+                  </div>
                   <div className="text-[12.5px] mt-[4px] text-[var(--color-text-muted)]">
-                    🔒 <strong>Sicherheits- & Architekturregeln:</strong> Supabase Anon-Key für Client; RLS aktiviert; Keine Secrets im Code; Repository-Kapselung gewahrt.
+                    🔒 <strong>Sicherheits- & Architekturregeln:</strong> Supabase Anon-Key für
+                    Client; RLS aktiviert; Keine Secrets im Code; Repository-Kapselung gewahrt.
                   </div>
                 </div>
               </Card>

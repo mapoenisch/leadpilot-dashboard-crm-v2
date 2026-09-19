@@ -1,8 +1,34 @@
-# LeadPilot Dashboard-CRM — Bauplan (Post-V1.1)
+# LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 01.09.2026
-**Ausgangslage:** `v1.1.0` getaggt (Phase 0–3), AUFTRAG 020 (HubSpot-Quelle) umgesetzt. 25/25 Integrity-Suiten grün. `main` = `origin/main`.
-**Ziel dieses Plans:** die 7 Restbefunde (C4-1…7 aus `ARCHITECTURE_DECISIONS.md`) sauber abarbeiten, ohne Big-Bang, mit klaren Abnahmekriterien. **Alle C4-Befunde erledigt** (Gates G1–G4), Plan läuft als Phase-4-Roadmap weiter.
+**Stand:** 16.09.2026
+
+**Aktueller Ausgangsstand:** `v2.2.0` (`9380ace`)
+
+**Aktueller Masterauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_067_V2_3_0_PRODUKTIONSREIFE_MASTER.md`
+
+**Ziel:** `v2.3.0` – Produktionsnähe und Mehrbenutzerfähigkeit
+
+## Aktive Roadmap v2.3.0
+
+Die fachlich freigegebene Spezifikation liegt unter
+`docs/superpowers/specs/2026-09-15-v2-3-0-production-readiness-design.md`. Auftrag 067
+setzt sie über 19 strikt serielle Teilaufträge 067A–067S und Gates G44–G65 um.
+
+| Abschnitt | Gates | Inhalt | Status |
+|---|---|---|---|
+| Charakterisierung | G44 | rote Regressionen und Befundregister | offen |
+| Sicherheits- und Datenkern | G45–G51 | Auth/RLS, Ingress, CRM-Quelle, Baseline, Persistenz, Worker, HubSpot | offen |
+| Mängelbehebung Frontend/Qualität | G52–G58 | 33 semantische Seiten, UX/A11y, Toolchain, fail-closed CI | offen |
+| Freigegebene Ergänzungen | G59–G63 | Mitglieder, CRM Query/Export, Frische, Audit/Diagnose, Run-Steuerung | gesperrt bis G58 |
+| Abnahme und Release | G64–G65 | Gesamtprüfung, Migration, `All Rights Reserved`, Release `v2.3.0` | gesperrt bis G63 |
+
+Die folgenden Abschnitte bleiben als historische Post-V1.1-Roadmap erhalten.
+
+**Historische Ausgangslage:** `v1.1.0` getaggt (Phase 0–3), AUFTRAG 020
+(HubSpot-Quelle) umgesetzt. 25/25 Integrity-Suiten grün.
+
+**Historisches Ziel:** die 7 Restbefunde C4-1…7 aus `ARCHITECTURE_DECISIONS.md`
+abarbeiten; diese Gates G1–G4 wurden abgeschlossen.
 
 Referenz für alle Befund-Nummern: `ARCHITECTURE_DECISIONS.md` → Teil C.4.
 

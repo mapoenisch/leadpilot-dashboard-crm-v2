@@ -7,7 +7,10 @@
       "name": "When clicking ‘Test workflow’",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -24,6 +27,10 @@
             {
               "name": "properties",
               "value": "name,domain,industry,city,zip,numberofemployees,createdate"
+            },
+            {
+              "name": "after",
+              "value": "={{ $json.after }}"
             }
           ]
         },
@@ -33,13 +40,91 @@
       "name": "Fetch Companies",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [440, 180],
+      "position": [
+        440,
+        120
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "hubspot_service_key",
           "name": "HubSpot Service Key – LeadPilot"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "batchSize": 100
+      },
+      "id": "split-companies",
+      "name": "Split Companies",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        640,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "7a1dc94f-6c31-4211-bcff-e4919ba01aef",
+              "leftValue": "={{ $json.paging.next.after }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "more-companies",
+      "name": "More Companies?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        830,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "wait-companies",
+      "name": "Wait Companies",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1010,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cursor der Folgeseite aus paging.next.after übernehmen.\nconst after = $input.first().json.paging?.next?.after ?? \"\";\nreturn [{ json: { after } }];"
+      },
+      "id": "next-companies",
+      "name": "Next Companies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1190,
+        120
+      ]
     },
     {
       "parameters": {
@@ -60,6 +145,10 @@
             {
               "name": "associations",
               "value": "companies"
+            },
+            {
+              "name": "after",
+              "value": "={{ $json.after }}"
             }
           ]
         },
@@ -69,13 +158,91 @@
       "name": "Fetch Contacts",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [440, 300],
+      "position": [
+        440,
+        300
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "hubspot_service_key",
           "name": "HubSpot Service Key – LeadPilot"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "batchSize": 100
+      },
+      "id": "split-contacts",
+      "name": "Split Contacts",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "67a4b447-3c1b-416b-ac1c-ffd847189d93",
+              "leftValue": "={{ $json.paging.next.after }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "more-contacts",
+      "name": "More Contacts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        830,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "wait-contacts",
+      "name": "Wait Contacts",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1010,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cursor der Folgeseite aus paging.next.after übernehmen.\nconst after = $input.first().json.paging?.next?.after ?? \"\";\nreturn [{ json: { after } }];"
+      },
+      "id": "next-contacts",
+      "name": "Next Contacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1190,
+        300
+      ]
     },
     {
       "parameters": {
@@ -96,6 +263,10 @@
             {
               "name": "associations",
               "value": "companies"
+            },
+            {
+              "name": "after",
+              "value": "={{ $json.after }}"
             }
           ]
         },
@@ -105,33 +276,131 @@
       "name": "Fetch Deals",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [440, 420],
+      "position": [
+        440,
+        480
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "hubspot_service_key",
           "name": "HubSpot Service Key – LeadPilot"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "jsCode": "// Mapping Stage Table Definition\nconst STAGE_MAP = {\n  appointmentscheduled: 'LEAD',\n  qualifiedtobuy: 'QUALIFIED_LEAD',\n  presentationscheduled: 'PITCH_DEMO',\n  decisionmakerboughtin: 'PROPOSAL',\n  contractsent: 'CLOSING',\n  closedwon: 'WON',\n  closedlost: 'LOST',\n  'Termin vereinbart': 'LEAD',\n  'Für Kauf qualifiziert': 'QUALIFIED_LEAD',\n  'Präsentation vereinbart': 'PITCH_DEMO',\n  'Entscheidungsträger hat zugestimmt': 'PROPOSAL',\n  'Vertrag gesendet': 'CLOSING',\n  'Abgeschlossen und gewonnen': 'WON',\n  'Abgeschlossen und verloren': 'LOST'\n};\n\nconst rawCompanies = $('Fetch Companies').first()?.json?.results || [];\nconst rawContacts = $('Fetch Contacts').first()?.json?.results || [];\nconst rawDeals = $('Fetch Deals').first()?.json?.results || [];\n\nconst companies = [];\nconst companyIds = new Set();\nlet companiesErrors = 0;\n\nfor (const c of rawCompanies) {\n  const id = String(c.id || c.properties?.hs_object_id || '');\n  const name = String(c.properties?.name || '').trim();\n  if (!id || !name) {\n    companiesErrors++;\n    continue;\n  }\n  companyIds.add(id);\n  companies.push({\n    id,\n    name,\n    domain: c.properties?.domain || undefined,\n    industry: c.properties?.industry || 'Allgemein',\n    city: c.properties?.city || 'Unbekannt',\n    postalCode: c.properties?.zip || undefined,\n    employeeCount: Number(c.properties?.numberofemployees) || 1,\n    createdAt: c.properties?.createdate || c.createdAt || undefined\n  });\n}\n\nconst contacts = [];\nlet contactsErrors = 0;\nlet contactsMatched = 0;\n\nfor (const ct of rawContacts) {\n  const id = String(ct.id || ct.properties?.hs_object_id || '');\n  let companyId = ct.properties?.associatedcompanyid ? String(ct.properties.associatedcompanyid) : '';\n  if (!companyId && ct.associations?.companies?.results?.length > 0) {\n    companyId = String(ct.associations.companies.results[0].id);\n  }\n  if (!id || !companyId || !companyIds.has(companyId)) {\n    contactsErrors++;\n    continue;\n  }\n  contactsMatched++;\n  contacts.push({\n    id,\n    companyId,\n    email: ct.properties?.email || `contact-${id}@leadpilot.internal`,\n    firstName: ct.properties?.firstname || '',\n    lastName: ct.properties?.lastname || '',\n    jobTitle: ct.properties?.jobtitle || undefined,\n    name: `${ct.properties?.firstname || ''} ${ct.properties?.lastname || ''}`.trim() || undefined\n  });\n}\n\nconst importedFunnelDeals = [];\nlet dealsErrors = 0;\nconst unmappedStages = {};\n\nfor (const d of rawDeals) {\n  const id = String(d.id || d.properties?.hs_object_id || '');\n  const rawStage = String(d.properties?.dealstage || '').trim();\n  const mappedStage = STAGE_MAP[rawStage] || STAGE_MAP[rawStage.toLowerCase()] || 'LOST';\n  if (!STAGE_MAP[rawStage] && !STAGE_MAP[rawStage.toLowerCase()]) {\n    unmappedStages[rawStage] = (unmappedStages[rawStage] || 0) + 1;\n  }\n  let companyId = '';\n  if (d.associations?.companies?.results?.length > 0) {\n    companyId = String(d.associations.companies.results[0].id);\n  }\n  if (!id) {\n    dealsErrors++;\n    continue;\n  }\n  importedFunnelDeals.push({\n    id,\n    companyId: companyId && companyIds.has(companyId) ? companyId : undefined,\n    dealName: d.properties?.dealname || `Deal ${id}`,\n    stage: mappedStage,\n    amount: Number(d.properties?.amount) || 0,\n    closeDate: (d.properties?.closedate || '2026-01-01').slice(0, 10),\n    pipeline: d.properties?.pipeline || 'default'\n  });\n}\n\nconst audit = {\n  companiesLoaded: rawCompanies.length,\n  companiesValid: companies.length,\n  companiesErrors,\n  contactsLoaded: rawContacts.length,\n  contactsValid: contacts.length,\n  contactsMatched,\n  contactsErrors,\n  dealsLoaded: rawDeals.length,\n  dealsValid: importedFunnelDeals.length,\n  dealsErrors,\n  unmappedStages\n};\n\nconst now = new Date();\nconst dateStr = now.toISOString().slice(0, 10);\nconst version = `hubspot-${dateStr}`;\n\nconst envelope = {\n  version,\n  generatedAt: now.toISOString(),\n  generator: 'n8n',\n  generatorSeed: null,\n  sourceSystem: 'hubspot',\n  hubspotPortalId: 'hubspot-prod',\n  periodStart: '2026-01-01',\n  counts: {\n    companies: companies.length,\n    contacts: contacts.length,\n    deals: importedFunnelDeals.length,\n    activities: 0\n  },\n  companies,\n  contacts,\n  importedFunnelDeals,\n  activities: [],\n  audit\n};\n\nreturn [{ json: envelope }];"
+        "batchSize": 100
+      },
+      "id": "split-deals",
+      "name": "Split Deals",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        640,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "ce56f3b6-b338-483c-adac-a40068e06d8c",
+              "leftValue": "={{ $json.paging.next.after }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "more-deals",
+      "name": "More Deals?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        830,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "wait-deals",
+      "name": "Wait Deals",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1010,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cursor der Folgeseite aus paging.next.after übernehmen.\nconst after = $input.first().json.paging?.next?.after ?? \"\";\nreturn [{ json: { after } }];"
+      },
+      "id": "next-deals",
+      "name": "Next Deals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1190,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 067H / G51 — HubSpot-Baseline-Mapper: paginierte Seiten zusammenführen,\n// Stages mappen (Unbekannte in Quarantäne, NIEMALS still LOST), Integrität\n// prüfen und Envelope mit Portal/Zeit/Quelle/Hash erzeugen.\n//\n// Pull-Konfiguration (Spiegel der Fetch-Nodes):\n// - Seiten über paging.next.after bis zur Erschöpfung (kein 100er-Limit).\n// - 429-Backoff: Fetch-Retry (5 Versuche, 2 s Abstand) + Wait-Nodes (1 s).\n// - Abort: Workflow-Abbruch (AbortSignal-Semantik von n8n am Leben erhalten,\n//   keine schwalbenden Catch-Blöcke um Fetch-Aufrufe).\n// - Maximallaufzeit: Workflow-Settings executionTimeout (300 s).\nconst PULL_CONFIG = { maxPages: 50, backoffMs: 1000, maxRetries429: 5, maxRuntimeMs: 120000 };\nconst PORTAL_ID = 148979005; // Je Portal beim Einrichten setzen (HubSpot-Portal-ID).\nconst PERIOD_START = '2026-01-01';\n\n// Mapping Stage Table Definition (Spiegel von hubspot-stage-map.json).\nconst STAGE_MAP = {\n  appointmentscheduled: 'LEAD',\n  qualifiedtobuy: 'QUALIFIED_LEAD',\n  presentationscheduled: 'PITCH_DEMO',\n  decisionmakerboughtin: 'PROPOSAL',\n  contractsent: 'CLOSING',\n  closedwon: 'WON',\n  closedlost: 'LOST',\n  'Termin vereinbart': 'LEAD',\n  'Für Kauf qualifiziert': 'QUALIFIED_LEAD',\n  'Präsentation vereinbart': 'PITCH_DEMO',\n  'Entscheidungsträger hat zugestimmt': 'PROPOSAL',\n  'Vertrag gesendet': 'CLOSING',\n  'Abgeschlossen und gewonnen': 'WON',\n  'Abgeschlossen und verloren': 'LOST'\n};\n\nfunction allResults(nodeName) {\n  const pages = $(nodeName).all().map((i) => i.json);\n  if (pages.length > PULL_CONFIG.maxPages) {\n    throw new Error(`HubSpot-Baseline: Seitenlimit ${PULL_CONFIG.maxPages} überschritten.`);\n  }\n  return pages.flatMap((p) => p.results || []);\n}\n\nfunction stableStringify(value) {\n  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';\n  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;\n  const keys = Object.keys(value).sort();\n  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(',')}}`;\n}\n\nfunction contentHashOf(obj) {\n  const str = stableStringify(obj);\n  let h = 5381;\n  for (let i = 0; i < str.length; i++) {\n    h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;\n  }\n  return h.toString(16).padStart(8, '0');\n}\n\nconst rawCompanies = allResults('Fetch Companies');\nconst rawContacts = allResults('Fetch Contacts');\nconst rawDeals = allResults('Fetch Deals');\n\nconst companies = [];\nconst companyIds = new Set();\nlet companiesErrors = 0;\n\nfor (const c of rawCompanies) {\n  const id = String(c.id || c.properties?.hs_object_id || '');\n  const name = String(c.properties?.name || '').trim();\n  if (!id || !name) {\n    companiesErrors++;\n    continue;\n  }\n  companyIds.add(id);\n  companies.push({\n    id,\n    name,\n    domain: c.properties?.domain || undefined,\n    industry: c.properties?.industry || 'Allgemein',\n    city: c.properties?.city || 'Unbekannt',\n    postalCode: c.properties?.zip || undefined,\n    employeeCount: Number(c.properties?.numberofemployees) || 1,\n    createdAt: c.properties?.createdate || c.createdAt || undefined\n  });\n}\n\nconst contacts = [];\nlet contactsErrors = 0;\nlet contactsMatched = 0;\n\nfor (const ct of rawContacts) {\n  const id = String(ct.id || ct.properties?.hs_object_id || '');\n  let companyId = ct.properties?.associatedcompanyid ? String(ct.properties.associatedcompanyid) : '';\n  if (!companyId && ct.associations?.companies?.results?.length > 0) {\n    companyId = String(ct.associations.companies.results[0].id);\n  }\n  if (!id || !companyId || !companyIds.has(companyId)) {\n    contactsErrors++;\n    continue;\n  }\n  contactsMatched++;\n  contacts.push({\n    id,\n    companyId,\n    email: ct.properties?.email || `contact-${id}@leadpilot.internal`,\n    firstName: ct.properties?.firstname || '',\n    lastName: ct.properties?.lastname || '',\n    jobTitle: ct.properties?.jobtitle || undefined,\n    name: `${ct.properties?.firstname || ''} ${ct.properties?.lastname || ''}`.trim() || undefined\n  });\n}\n\nconst importedFunnelDeals = [];\nlet dealsErrors = 0;\nlet quarantinedStages = 0;\n\nfor (const d of rawDeals) {\n  const id = String(d.id || d.properties?.hs_object_id || '');\n  const rawStage = String(d.properties?.dealstage || '').trim();\n  const mapped = STAGE_MAP[rawStage] || (rawStage ? STAGE_MAP[rawStage.toLowerCase()] : undefined);\n  let companyId = '';\n  if (d.associations?.companies?.results?.length > 0) {\n    companyId = String(d.associations.companies.results[0].id);\n  }\n  if (!id) {\n    dealsErrors++;\n    continue;\n  }\n  if (!mapped) {\n    // Quarantäne statt still LOST: unbekannte Stage bleibt sichtbar.\n    quarantinedStages++;\n    importedFunnelDeals.push({\n      id,\n      dealName: String(d.properties?.dealname || 'Unbenannt'),\n      stage: 'QUARANTINED',\n      quarantineReason: rawStage,\n      amount: Number(d.properties?.amount) || 0,\n      closeDate: d.properties?.closedate || '',\n      pipeline: String(d.properties?.pipeline || 'default'),\n      companyId: companyId || undefined\n    });\n    continue;\n  }\n  importedFunnelDeals.push({\n    id,\n    dealName: String(d.properties?.dealname || 'Unbenannt'),\n    stage: mapped,\n    amount: Number(d.properties?.amount) || 0,\n    closeDate: d.properties?.closedate || '',\n    pipeline: String(d.properties?.pipeline || 'default'),\n    companyId: companyId || undefined\n  });\n}\n\nconst generatedAt = new Date().toISOString();\nconst counts = {\n  companies: companies.length,\n  contacts: contacts.length,\n  deals: importedFunnelDeals.length,\n  activities: 0\n};\nconst audit = {\n  companiesLoaded: rawCompanies.length,\n  companiesValid: companies.length,\n  companiesErrors,\n  contactsLoaded: rawContacts.length,\n  contactsValid: contacts.length,\n  contactsMatched,\n  contactsErrors,\n  dealsLoaded: rawDeals.length,\n  dealsValid: importedFunnelDeals.length,\n  dealsErrors,\n  quarantinedStages\n};\n\nconst envelope = {\n  version: `hubspot-${generatedAt.slice(0, 10)}`,\n  generatedAt,\n  generator: 'n8n-hubspot-pull',\n  sourceSystem: 'hubspot',\n  hubspotPortalId: PORTAL_ID,\n  periodStart: PERIOD_START,\n  counts,\n  companies,\n  contacts,\n  importedFunnelDeals,\n  activities: [],\n  audit\n};\nenvelope.contentHash = contentHashOf({\n  version: envelope.version,\n  sourceSystem: envelope.sourceSystem,\n  hubspotPortalId: envelope.hubspotPortalId,\n  periodStart: envelope.periodStart,\n  counts: envelope.counts,\n  companies: envelope.companies,\n  contacts: envelope.contacts,\n  importedFunnelDeals: envelope.importedFunnelDeals,\n  activities: envelope.activities,\n  audit: envelope.audit\n});\n\nreturn [{ json: envelope }];\n"
       },
       "id": "map-validate",
       "name": "Map & Validate Envelope",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 300]
+      "position": [
+        1600,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const envelope = $input.first().json;\n\nif (!envelope.companies || envelope.companies.length === 0) {\n  throw new Error('HubSpot Baseline Assert Error: Keine Companies gefunden.');\n}\n\nconst companyIds = new Set(envelope.companies.map(c => c.id));\nfor (const ct of envelope.contacts) {\n  if (!companyIds.has(ct.companyId)) {\n    throw new Error(`HubSpot Baseline Assert Error: Dangling Contact ${ct.id} -> Company ${ct.companyId}`);\n  }\n}\n\nreturn [{ json: envelope }];"
+        "jsCode": "// 067H / G51 — Importfreigabe: Counts, Referenzen, Pflichtfelder und\n// Zeitraum müssen konsistent sein, sonst kein Baseline-Artefakt.\nconst envelope = $input.first().json;\n\nif (!envelope.companies || envelope.companies.length === 0) {\n  throw new Error('HubSpot Baseline Assert Error: Keine Companies gefunden.');\n}\nif (!envelope.importedFunnelDeals || envelope.importedFunnelDeals.length === 0) {\n  throw new Error('HubSpot Baseline Assert Error: Keine Deals gefunden.');\n}\n\nconst companyIds = new Set(envelope.companies.map((c) => c.id));\nfor (const c of envelope.companies) {\n  if (!c.id || !c.name) {\n    throw new Error('HubSpot Baseline Assert Error: Company ohne id/name.');\n  }\n}\nfor (const ct of envelope.contacts) {\n  if (!companyIds.has(ct.companyId)) {\n    throw new Error(`HubSpot Baseline Assert Error: Dangling Contact ${ct.id} -> Company ${ct.companyId}`);\n  }\n}\n\nconst KNOWN_STAGES = new Set(['LEAD', 'QUALIFIED_LEAD', 'PITCH_DEMO', 'PROPOSAL', 'CLOSING', 'WON', 'LOST', 'QUARANTINED']);\nfor (const d of envelope.importedFunnelDeals) {\n  if (!d.id || !d.dealName || !d.pipeline || !Number.isFinite(d.amount)) {\n    throw new Error(`HubSpot Baseline Assert Error: Deal ohne Pflichtfelder (${d.id}).`);\n  }\n  if (!KNOWN_STAGES.has(d.stage)) {\n    throw new Error(`HubSpot Baseline Assert Error: Unbekannte Stage ohne Quarantäne (${d.stage}).`);\n  }\n  if (d.companyId && !companyIds.has(d.companyId)) {\n    throw new Error(`HubSpot Baseline Assert Error: Dangling Deal ${d.id} -> Company ${d.companyId}.`);\n  }\n}\n\nconst periodStart = Date.parse(envelope.periodStart || '2026-01-01');\nif (Number.isNaN(periodStart)) {\n  throw new Error('HubSpot Baseline Assert Error: periodStart ungültig.');\n}\nfor (const a of envelope.activities || []) {\n  const t = Date.parse(a.timestamp);\n  if (Number.isNaN(t) || t < periodStart || t > periodStart + 365 * 864e5) {\n    throw new Error(`HubSpot Baseline Assert Error: Activity ${a.id} außerhalb des Zeitraums.`);\n  }\n}\n\nfor (const field of ['hubspotPortalId', 'generatedAt', 'sourceSystem', 'contentHash']) {\n  if (envelope[field] === undefined || envelope[field] === null || envelope[field] === '') {\n    throw new Error(`HubSpot Baseline Assert Error: Metadatum ${field} fehlt.`);\n  }\n}\n\nreturn [{ json: envelope }];\n"
       },
       "id": "assert-integrity",
       "name": "Assert Integrity",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [920, 300]
+      "position": [
+        1800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 3
+      },
+      "id": "merge-envelopes",
+      "name": "Merge Envelopes",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1420,
+        300
+      ]
     }
   ],
   "connections": {
@@ -160,7 +429,58 @@
       "main": [
         [
           {
-            "node": "Map & Validate Envelope",
+            "node": "Split Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Companies": {
+      "main": [
+        [
+          {
+            "node": "More Companies?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "More Companies?": {
+      "main": [
+        [
+          {
+            "node": "Wait Companies",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Envelopes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Companies": {
+      "main": [
+        [
+          {
+            "node": "Next Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Next Companies": {
+      "main": [
+        [
+          {
+            "node": "Fetch Companies",
             "type": "main",
             "index": 0
           }
@@ -171,7 +491,58 @@
       "main": [
         [
           {
-            "node": "Map & Validate Envelope",
+            "node": "Split Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Contacts": {
+      "main": [
+        [
+          {
+            "node": "More Contacts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "More Contacts?": {
+      "main": [
+        [
+          {
+            "node": "Wait Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Envelopes",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Wait Contacts": {
+      "main": [
+        [
+          {
+            "node": "Next Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Next Contacts": {
+      "main": [
+        [
+          {
+            "node": "Fetch Contacts",
             "type": "main",
             "index": 0
           }
@@ -182,7 +553,58 @@
       "main": [
         [
           {
-            "node": "Map & Validate Envelope",
+            "node": "Split Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Deals": {
+      "main": [
+        [
+          {
+            "node": "More Deals?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "More Deals?": {
+      "main": [
+        [
+          {
+            "node": "Wait Deals",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Envelopes",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Wait Deals": {
+      "main": [
+        [
+          {
+            "node": "Next Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Next Deals": {
+      "main": [
+        [
+          {
+            "node": "Fetch Deals",
             "type": "main",
             "index": 0
           }
@@ -199,6 +621,21 @@
           }
         ]
       ]
+    },
+    "Merge Envelopes": {
+      "main": [
+        [
+          {
+            "node": "Map & Validate Envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
+  },
+  "settings": {
+    "executionTimeout": 300,
+    "timezone": "Europe/Berlin"
   }
 }

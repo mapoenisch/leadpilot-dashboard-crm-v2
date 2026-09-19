@@ -91,7 +91,10 @@ export type AggregationErrorCode =
   | 'MAX_RUNS_EXCEEDED';
 
 export class AggregationError extends Error {
-  constructor(public code: AggregationErrorCode, message: string) {
+  constructor(
+    public code: AggregationErrorCode,
+    message: string,
+  ) {
     super(message);
     this.name = 'AggregationError';
   }

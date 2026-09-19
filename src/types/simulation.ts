@@ -7,7 +7,8 @@ export type SimulationSpeed = 1 | 2 | 5 | 10;
 
 export type LeadStatus = 'New' | 'MQL' | 'SQL' | 'Hot' | 'Won' | 'Lost' | 'Disqualified';
 
-export type OpportunityStage = 'Discovery' | 'Proposal' | 'Negotiation' | 'Closed Won' | 'Closed Lost';
+export type OpportunityStage =
+  'Discovery' | 'Proposal' | 'Negotiation' | 'Closed Won' | 'Closed Lost';
 
 export interface SimulationMetrics {
   liveLeads: number;
@@ -100,23 +101,32 @@ export interface SimulationDeal {
 export interface SimulationActivity {
   id: string;
   tick: number;
-  type: 'Inbound Ingestion' | 'Scoring Update' | 'Qualification' | 'Meeting Booked' | 'Proposal Sent' | 'Deal Closed Won' | 'Deal Closed Lost' | 'Customer Churned' | 'Re-Engagement Triggered';
+  type:
+    | 'Inbound Ingestion'
+    | 'Scoring Update'
+    | 'Qualification'
+    | 'Meeting Booked'
+    | 'Proposal Sent'
+    | 'Deal Closed Won'
+    | 'Deal Closed Lost'
+    | 'Customer Churned'
+    | 'Re-Engagement Triggered';
   description: string;
   entityName: string;
   timestamp: string;
 }
 
-export type SimulationEventType = 
-  | 'NEW_LEAD' 
-  | 'QUALIFIED_MQL' 
-  | 'QUALIFIED_SQL' 
-  | 'QUALIFIED_HOT' 
-  | 'OPPORTUNITY_CREATED' 
-  | 'DEAL_WON' 
-  | 'DEAL_LOST' 
+export type SimulationEventType =
+  | 'NEW_LEAD'
+  | 'QUALIFIED_MQL'
+  | 'QUALIFIED_SQL'
+  | 'QUALIFIED_HOT'
+  | 'OPPORTUNITY_CREATED'
+  | 'DEAL_WON'
+  | 'DEAL_LOST'
   | 'STATUS_CHANGE'
   | 'AI_INSIGHT'
-  | 'ACTIVITY_LOGGED' 
+  | 'ACTIVITY_LOGGED'
   | 'SYSTEM_INFO'
   | 'CUSTOMER_CHURNED'
   | 'RE_ENGAGEMENT_STARTED';
@@ -135,4 +145,27 @@ export interface SimulationEvent {
   churnCause?: ChurnCause;
   timestamp: string;
   correlationId?: string;
+}
+
+// 067E / G48 — historische Kennzahlen einer Baseline (Design §7.2). Der
+// produktive Run-Pfad bezieht diese Werte ausschließlich hierüber; die
+// früheren Literale 66 / 34320 / 411840 existieren nur noch als versionierter
+// Demo-Anker in `baselineMapper.DEFAULT_HISTORICAL_METRICS`.
+export interface HistoricalSimulationMetrics {
+  baseCustomers: number;
+  baseMRR: number;
+  baseARR: number;
+}
+
+// 067E / G48 — kanonischer Engine-Einstieg pro Baseline (Design §7.2).
+export interface SimulationBaselineInput {
+  baselineId: string;
+  baselineHash: string;
+  organizationId: string;
+  initialState: SimulationState;
+  leads: SimulationLead[];
+  opportunities: SimulationOpportunity[];
+  deals: SimulationDeal[];
+  activities: SimulationActivity[];
+  historicalMetrics: HistoricalSimulationMetrics;
 }

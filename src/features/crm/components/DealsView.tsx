@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { ImportedFunnelDeal } from '@/types/crm';
+import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { CrmResponsiveList, CrmColumn } from './CrmResponsiveList';
 
 export interface DealsViewProps {
@@ -14,8 +15,9 @@ export interface DealsViewProps {
 }
 
 export function DealsView({ deals, loading }: DealsViewProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [stageFilter, setStageFilter] = useState<string>('ALL');
+  // 067J / G56: Filterzustand ist über die URL wiederherstellbar.
+  const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
+  const [stageFilter, setStageFilter] = useUrlSyncedState('stufe', 'ALL');
 
   const stageOptions: SelectOption[] = useMemo(() => {
     const set = new Set(deals.map((d) => d.stage).filter(Boolean));

@@ -1,6 +1,4 @@
-import {
-  scenarioRepository,
-} from '../scenarioRepository';
+import { scenarioRepository } from '../scenarioRepository';
 import { scenarioService } from '../scenarioService';
 import { systemContext } from '../systemContext';
 import { GoalTargetEvaluator } from '../goalTargetEvaluator';
@@ -17,7 +15,7 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   logger.info('--- TEST 1: P10 <= P50 <= P90 Corridor Monotonicity across all ticks ---');
   const { version: testVer } = scenarioService.createScenario(
     'KPI TS Test Scenario',
-    'Isolation test for Auftrag 018'
+    'Isolation test for Auftrag 018',
   );
 
   systemContext.__overrideForTest({
@@ -31,7 +29,7 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   const runPromises = [101, 102, 103, 104, 105].map((seed) =>
     scenarioService.runScenarioVersion(testVer.id, seed, 30, {
       correlationId: `corr-ts-seed-${seed}`,
-    })
+    }),
   );
   await Promise.all(runPromises);
 
@@ -55,7 +53,9 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
       throw new Error(`TEST 1 FAILED: At tick ${pt.tick}, p90 (${p90}) > max (${max})`);
     }
   }
-  logger.info(`✅ TEST 1 PASSED: Strict monotonicity P10 <= P50 <= P90 holds for all ${aggRes.metrics.timeSeries.length} ticks.`);
+  logger.info(
+    `✅ TEST 1 PASSED: Strict monotonicity P10 <= P50 <= P90 holds for all ${aggRes.metrics.timeSeries.length} ticks.`,
+  );
 
   // -------------------------------------------------------------------------
   // Test 2: History Transition at Tick 0 (Ebene A Baseline Invariance)
@@ -68,9 +68,13 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
 
   // Baseline ARR is 411.840 €
   if (Math.abs(tick0.metrics.arr.median - 411840) > 1000) {
-    throw new Error(`TEST 2 FAILED: Expected Tick 0 ARR to align with Ebene A baseline (411.840 €), got ${tick0.metrics.arr.median}`);
+    throw new Error(
+      `TEST 2 FAILED: Expected Tick 0 ARR to align with Ebene A baseline (411.840 €), got ${tick0.metrics.arr.median}`,
+    );
   }
-  logger.info(`✅ TEST 2 PASSED: Tick 0 anchors to Ebene A baseline (ARR = ${tick0.metrics.arr.median.toLocaleString('de-DE')} €).`);
+  logger.info(
+    `✅ TEST 2 PASSED: Tick 0 anchors to Ebene A baseline (ARR = ${tick0.metrics.arr.median.toLocaleString('de-DE')} €).`,
+  );
 
   // -------------------------------------------------------------------------
   // Test 3: Monte Carlo Histogram Bucketing Integrity
@@ -106,9 +110,13 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
 
   const totalBucketCount = buckets.reduce((sum, b) => sum + b.count, 0);
   if (totalBucketCount !== arrValues.length) {
-    throw new Error(`TEST 3 FAILED: Histogram sum (${totalBucketCount}) !== total runs (${arrValues.length})`);
+    throw new Error(
+      `TEST 3 FAILED: Histogram sum (${totalBucketCount}) !== total runs (${arrValues.length})`,
+    );
   }
-  logger.info(`✅ TEST 3 PASSED: Histogram buckets account for 100% of runs (${totalBucketCount}/${arrValues.length} runs).`);
+  logger.info(
+    `✅ TEST 3 PASSED: Histogram buckets account for 100% of runs (${totalBucketCount}/${arrValues.length} runs).`,
+  );
 
   // -------------------------------------------------------------------------
   // Test 4: GoalTargetEvaluator - Target Path & Status Classifications
@@ -124,7 +132,11 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
 
   // 2. AT_RISK (80% - 99.9%)
   const resAtRisk = GoalTargetEvaluator.evaluateGoalTarget('liveARR', 450000, arrTarget, 30);
-  if (resAtRisk.status !== 'AT_RISK' || (resAtRisk.achievementPercent ?? 0) < 80 || (resAtRisk.achievementPercent ?? 0) >= 100) {
+  if (
+    resAtRisk.status !== 'AT_RISK' ||
+    (resAtRisk.achievementPercent ?? 0) < 80 ||
+    (resAtRisk.achievementPercent ?? 0) >= 100
+  ) {
     throw new Error(`TEST 4 FAILED: Expected AT_RISK, got ${resAtRisk.status}`);
   }
 
@@ -144,13 +156,19 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   const cacTarget: GoalTarget = { kpiId: 'cac', targetValue: 500 };
   const resCacAchieved = GoalTargetEvaluator.evaluateGoalTarget('cac', 480, cacTarget, 30);
   if (resCacAchieved.status !== 'ACHIEVED') {
-    throw new Error(`TEST 4 FAILED: Expected ACHIEVED for CAC under target, got ${resCacAchieved.status}`);
+    throw new Error(
+      `TEST 4 FAILED: Expected ACHIEVED for CAC under target, got ${resCacAchieved.status}`,
+    );
   }
   const resCacMissed = GoalTargetEvaluator.evaluateGoalTarget('cac', 700, cacTarget, 30);
   if (resCacMissed.status !== 'MISSED') {
-    throw new Error(`TEST 4 FAILED: Expected MISSED for CAC exceeding target by > 25%, got ${resCacMissed.status}`);
+    throw new Error(
+      `TEST 4 FAILED: Expected MISSED for CAC exceeding target by > 25%, got ${resCacMissed.status}`,
+    );
   }
-  logger.info('✅ TEST 4 PASSED: GoalTargetEvaluator accurately classifies ACHIEVED, AT_RISK, MISSED and NO_TARGET.');
+  logger.info(
+    '✅ TEST 4 PASSED: GoalTargetEvaluator accurately classifies ACHIEVED, AT_RISK, MISSED and NO_TARGET.',
+  );
 
   // -------------------------------------------------------------------------
   // Test 5: Comparison Modes (Absolute, Delta, Percent) Mathematical Precision
@@ -162,7 +180,9 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   }
   const expectedPct = parseFloat((((460000 - 411840) / 411840) * 100).toFixed(2));
   if (compArr.percentChange !== expectedPct) {
-    throw new Error(`TEST 5 FAILED: Expected percentChange=${expectedPct}, got ${compArr.percentChange}`);
+    throw new Error(
+      `TEST 5 FAILED: Expected percentChange=${expectedPct}, got ${compArr.percentChange}`,
+    );
   }
   if (!compArr.isPositiveChange) {
     throw new Error(`TEST 5 FAILED: ARR increase should be positive.`);
@@ -205,7 +225,9 @@ export async function runKpiTimeSeriesTest(): Promise<boolean> {
   if (arrDef.direction !== 'HIGHER_IS_BETTER' || arrDef.unit !== '€') {
     throw new Error('TEST 7 FAILED: Invalid definition for liveARR in KPIRegistry.');
   }
-  logger.info('✅ TEST 7 PASSED: KPIRegistry contains all domain KPIs with explicit directionality and units.');
+  logger.info(
+    '✅ TEST 7 PASSED: KPIRegistry contains all domain KPIs with explicit directionality and units.',
+  );
 
   systemContext.__resetForTest();
   logger.info('\n=================================================================');

@@ -27,6 +27,10 @@ export interface ScenarioSlice {
   scenarios: Scenario[];
   activeScenarioId: string;
   activeVersionId: string;
+  // 067F / G49 (Nacharbeit P1): Mandant des hydrierten Workspace. Re-Run und
+  // Reproduktion persistieren genau dann auf dem Server, wenn er gesetzt ist;
+  // ohne Hydrierung bleibt reines In-Memory-Verhalten (kein stiller Org-Rat).
+  activeOrganizationId: string | null;
   versions: ScenarioVersion[];
   draftMeasures: Measure[];
   selectScenario: (scenarioId: string) => void;
@@ -50,6 +54,9 @@ export interface ScenarioSlice {
   updateDraftMeasure: (measure: Measure) => void;
   removeDraftMeasure: (measureId: string) => void;
   setDraftMeasures: (measures: Measure[]) => void;
+  // 067F / G49: Lädt den mandantengebundenen Server-Workspace und hydriert
+  // den Store (Reload / zweite Sitzung zeigen denselben Stand).
+  hydrateWorkspace: (organizationId: string) => Promise<void>;
   previewMeasures: (
     measuresToPreview?: Measure[],
     targetTicks?: number,
@@ -83,6 +90,7 @@ export const createScenarioSlice: StateCreator<SimulationStoreState, [], [], Sce
   scenarios: scenarioService.getScenarios(),
   activeScenarioId: DEFAULT_BASE_2026_SCENARIO_ID,
   activeVersionId: DEFAULT_BASE_2026_VERSION_ID,
+  activeOrganizationId: null,
   versions: readVersions(DEFAULT_BASE_2026_SCENARIO_ID),
   draftMeasures: [],
 
@@ -164,6 +172,29 @@ export const createScenarioSlice: StateCreator<SimulationStoreState, [], [], Sce
 
   setDraftMeasures: (measures: Measure[]) => {
     set({ draftMeasures: measures });
+  },
+
+  hydrateWorkspace: async (organizationId: string) => {
+    const workspace = await scenarioService.loadScenarioWorkspace(organizationId);
+    // Nacharbeit P1: Auswahl mandantenspezifisch ersetzen — eine Auswahl der
+    // vorherigen Organisation darf nicht in den neuen Mandanten zeigen.
+    const knownScenarioIds = new Set(workspace.scenarios.map((s) => s.id));
+    const { activeScenarioId } = get();
+    let nextScenarioId = activeScenarioId;
+    let nextVersionId = get().activeVersionId;
+    if (!knownScenarioIds.has(activeScenarioId)) {
+      const first = workspace.scenarios[0];
+      nextScenarioId = first ? first.id : DEFAULT_BASE_2026_SCENARIO_ID;
+      const versions = first ? workspace.versions.filter((v) => v.scenarioId === first.id) : [];
+      const latest = versions[versions.length - 1];
+      nextVersionId = latest ? latest.id : DEFAULT_BASE_2026_VERSION_ID;
+    }
+    set({
+      activeOrganizationId: organizationId,
+      activeScenarioId: nextScenarioId,
+      activeVersionId: nextVersionId,
+    });
+    get().refreshData();
   },
 
   previewMeasures: async (measuresToPreview?: Measure[], targetTicks = 50) => {

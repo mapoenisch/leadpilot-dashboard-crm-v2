@@ -19,7 +19,9 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:4321',
     storageState: 'playwright/.auth/user.json',
     reducedMotion: 'reduce',
-    trace: 'on-first-retry',
+    trace: process.env.CI ? 'off' : 'on-first-retry',
+    video: process.env.CI ? 'off' : undefined,
+    screenshot: process.env.CI ? 'off' : undefined,
   },
   expect: {
     // S6: 0 statt 0.02 — erst bei 0 sieht toHaveScreenshot komponentengroße

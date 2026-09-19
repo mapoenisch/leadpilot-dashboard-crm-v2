@@ -96,28 +96,23 @@ export class MonteCarloAggregator {
    */
   public static aggregateRuns(runs: SimulationRun[]): ScenarioAggregationResult {
     if (!runs || runs.length === 0) {
-      throw new AggregationError(
-        'NO_VALID_RUNS',
-        'Keine Läufe zur Aggregation übergeben.'
-      );
+      throw new AggregationError('NO_VALID_RUNS', 'Keine Läufe zur Aggregation übergeben.');
     }
 
     if (runs.length > 10) {
       throw new AggregationError(
         'MAX_RUNS_EXCEEDED',
-        `Maximal 10 Läufe pro Szenario erlaubt (Übergeben: ${runs.length}).`
+        `Maximal 10 Läufe pro Szenario erlaubt (Übergeben: ${runs.length}).`,
       );
     }
 
     // Filter only COMPLETED runs with valid final metrics
-    const completedRuns = runs.filter(
-      (r) => r.status === 'COMPLETED' && r.finalMetrics
-    );
+    const completedRuns = runs.filter((r) => r.status === 'COMPLETED' && r.finalMetrics);
 
     if (completedRuns.length === 0) {
       throw new AggregationError(
         'NO_VALID_RUNS',
-        'Keine abgeschlossenen (COMPLETED) Läufe zur Aggregation vorhanden.'
+        'Keine abgeschlossenen (COMPLETED) Läufe zur Aggregation vorhanden.',
       );
     }
 
@@ -134,7 +129,7 @@ export class MonteCarloAggregator {
       if (run.scenarioVersionId !== targetVersionId) {
         throw new AggregationError(
           'INCOMPATIBLE_SCENARIO_VERSION',
-          `Läufe unterschiedlicher Szenario-Versionen können nicht zusammen aggregiert werden (${run.scenarioVersionId} vs ${targetVersionId}).`
+          `Läufe unterschiedlicher Szenario-Versionen können nicht zusammen aggregiert werden (${run.scenarioVersionId} vs ${targetVersionId}).`,
         );
       }
     }
@@ -150,7 +145,7 @@ export class MonteCarloAggregator {
       ) {
         throw new AggregationError(
           'INCOMPATIBLE_MANIFEST_VERSION',
-          `Inkompatible Manifest-Versionen (Model: ${m.modelVersion}, Schema: ${m.schemaVersion}, Baseline: ${m.baselineVersion}).`
+          `Inkompatible Manifest-Versionen (Model: ${m.modelVersion}, Schema: ${m.schemaVersion}, Baseline: ${m.baselineVersion}).`,
         );
       }
     }
@@ -180,7 +175,7 @@ export class MonteCarloAggregator {
         if (!run.timeSeries || run.timeSeries.length !== seriesLength) {
           throw new AggregationError(
             'INCOMPATIBLE_TIMESERIES',
-            `Inkompatible Zeitreihen-Strukturen oder unterschiedliche Tick-Längen unter den Läufen.`
+            `Inkompatible Zeitreihen-Strukturen oder unterschiedliche Tick-Längen unter den Läufen.`,
           );
         }
       }
@@ -190,7 +185,10 @@ export class MonteCarloAggregator {
         const expectedPoint = firstTimeSeries[i];
         if (!expectedPoint) {
           // Unerreichbar: i läuft über firstTimeSeries.length.
-          throw new AggregationError('INCOMPATIBLE_TIMESERIES', `Referenz-Tick bei Index ${i} fehlt.`);
+          throw new AggregationError(
+            'INCOMPATIBLE_TIMESERIES',
+            `Referenz-Tick bei Index ${i} fehlt.`,
+          );
         }
         const expectedTick = expectedPoint.tick;
         for (const run of orderedRuns) {
@@ -198,13 +196,13 @@ export class MonteCarloAggregator {
           if (!point) {
             throw new AggregationError(
               'INCOMPATIBLE_TIMESERIES',
-              `Tick-Ausrichtung fehlgeschlagen: Zeitreihe von Lauf "${run.runId}" endet vor Index ${i}.`
+              `Tick-Ausrichtung fehlgeschlagen: Zeitreihe von Lauf "${run.runId}" endet vor Index ${i}.`,
             );
           }
           if (point.tick !== expectedTick) {
             throw new AggregationError(
               'INCOMPATIBLE_TIMESERIES',
-              `Tick-Ausrichtung fehlgeschlagen: Inkompatibler Tick bei Index ${i} (${point.tick} vs ${expectedTick}).`
+              `Tick-Ausrichtung fehlgeschlagen: Inkompatibler Tick bei Index ${i} (${point.tick} vs ${expectedTick}).`,
             );
           }
         }
@@ -216,14 +214,17 @@ export class MonteCarloAggregator {
         const refPoint = firstTimeSeries[i];
         if (!refPoint) {
           // Unerreichbar: i läuft über firstTimeSeries.length.
-          throw new AggregationError('INCOMPATIBLE_TIMESERIES', `Referenz-Tick bei Index ${i} fehlt.`);
+          throw new AggregationError(
+            'INCOMPATIBLE_TIMESERIES',
+            `Referenz-Tick bei Index ${i} fehlt.`,
+          );
         }
         const pointAt = (r: SimulationRun): TimeSeriesPoint => {
           const point = r.timeSeries?.[i];
           if (!point) {
             throw new AggregationError(
               'INCOMPATIBLE_TIMESERIES',
-              `Zeitreihe von Lauf "${r.runId}" endet vor Tick-Index ${i}.`
+              `Zeitreihe von Lauf "${r.runId}" endet vor Tick-Index ${i}.`,
             );
           }
           return point;
@@ -235,7 +236,9 @@ export class MonteCarloAggregator {
         const tickEbitda = orderedRuns.map((r) => pointAt(r).metrics.ebitda ?? 0);
         const tickNetRevenue = orderedRuns.map((r) => pointAt(r).metrics.netRevenue ?? 0);
         const tickNetCashFlow = orderedRuns.map((r) => pointAt(r).metrics.netCashFlow ?? 0);
-        const tickCumulativeCashFlow = orderedRuns.map((r) => pointAt(r).metrics.cumulativeCashFlow ?? 0);
+        const tickCumulativeCashFlow = orderedRuns.map(
+          (r) => pointAt(r).metrics.cumulativeCashFlow ?? 0,
+        );
 
         aggregatedTimeSeries.push({
           tick: refPoint.tick,
@@ -256,14 +259,30 @@ export class MonteCarloAggregator {
     }
 
     const financialMetrics = {
-      grossRevenue: MonteCarloAggregator.calculateStats(orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.grossRevenue ?? 0)),
-      netRevenue: MonteCarloAggregator.calculateStats(orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.netRevenue ?? 0)),
-      ebitda: MonteCarloAggregator.calculateStats(orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.ebitda ?? 0)),
-      operatingMargin: MonteCarloAggregator.calculateStats(orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.operatingMargin ?? 0)),
-      cac: MonteCarloAggregator.calculateStats(orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.cac ?? 0)),
-      netCashFlow: MonteCarloAggregator.calculateStats(orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.netCashFlow ?? 0)),
-      cumulativeCashFlow: MonteCarloAggregator.calculateStats(orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.cumulativeCashFlow ?? 0)),
-      totalOpex: MonteCarloAggregator.calculateStats(orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.totalOpex ?? 0)),
+      grossRevenue: MonteCarloAggregator.calculateStats(
+        orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.grossRevenue ?? 0),
+      ),
+      netRevenue: MonteCarloAggregator.calculateStats(
+        orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.netRevenue ?? 0),
+      ),
+      ebitda: MonteCarloAggregator.calculateStats(
+        orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.ebitda ?? 0),
+      ),
+      operatingMargin: MonteCarloAggregator.calculateStats(
+        orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.operatingMargin ?? 0),
+      ),
+      cac: MonteCarloAggregator.calculateStats(
+        orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.cac ?? 0),
+      ),
+      netCashFlow: MonteCarloAggregator.calculateStats(
+        orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.netCashFlow ?? 0),
+      ),
+      cumulativeCashFlow: MonteCarloAggregator.calculateStats(
+        orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.cumulativeCashFlow ?? 0),
+      ),
+      totalOpex: MonteCarloAggregator.calculateStats(
+        orderedRuns.map((r) => r.finalMetrics?.financialMetrics?.totalOpex ?? 0),
+      ),
     };
 
     const metrics: AggregatedMetrics = {

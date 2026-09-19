@@ -126,9 +126,11 @@ export function Sidebar({
       <div className="border-0 flex items-center justify-between gap-[var(--space-3)] border-b border-solid border-border-soft p-[var(--space-4)]">
         <div className="flex items-center gap-[var(--space-3)]">
           <img
-            src="/assets/logo/leadpilot-logo-full.png"
+            src="/assets/logo/leadpilot-mark.svg"
             alt="LeadPilot Logo"
-            className="h-[26px] object-contain"
+            width={26}
+            height={26}
+            className="h-[26px] w-[26px] object-contain"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
@@ -144,6 +146,7 @@ export function Sidebar({
             type="button"
             onClick={onCloseMobileDrawer}
             aria-label="Menü schließen"
+            autoFocus
             className="flex items-center justify-center cursor-pointer rounded border-0 bg-transparent p-[6px] text-[var(--color-text-muted)] hover:text-primary"
           >
             <X size={18} />
@@ -216,20 +219,19 @@ export function Sidebar({
   );
 
   if (isMobile) {
+    // 067J / G56: Der Backdrop ist ein echtes (natives) Button-Element als
+    // Geschwister des Drawers — kein fokussierbares div mit vorgetäuschter
+    // Rolle. Klick und Tastatur (nativ) schließen, Escape läuft zusätzlich
+    // über den window-Keydown-Listener (inkl. Fokus-Restore auf den Trigger).
     return (
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Menü schließen"
-        className="fixed inset-0 z-[1040] bg-[rgba(6,22,19,0.78)] backdrop-blur-[4px] animate-[backdrop-fade-in_150ms_ease-out]"
-        onClick={onCloseMobileDrawer}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onCloseMobileDrawer?.();
-          }
-        }}
-      >
+      <div className="fixed inset-0 z-[1040] animate-[backdrop-fade-in_150ms_ease-out]">
+        <button
+          type="button"
+          aria-label="Menü schließen (Hintergrund)"
+          tabIndex={-1}
+          onClick={onCloseMobileDrawer}
+          className="absolute inset-0 bg-[rgba(6,22,19,0.78)] backdrop-blur-[4px] cursor-default"
+        />
         <aside
           ref={drawerRef}
           id="mobile-sidebar-drawer"

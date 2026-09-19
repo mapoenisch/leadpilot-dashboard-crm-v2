@@ -19,6 +19,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
     modelVersion: '1.0.0-v1',
     schemaVersion: '1.0.0',
     baselineVersion: 'Faktenblatt_v1.1',
+    baselineId: 'Faktenblatt_v1.1',
+    baselineHash: 'a'.repeat(64),
+    organizationId: 'unknown',
     simulationStartDate: '01.01.2026',
     targetTicks: 50,
     parameters: {
@@ -45,9 +48,14 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
     wonDeals = 5,
     status: RunStatus = 'COMPLETED',
     versionId = 'ver-1',
-    manifestOverrides: Partial<RunManifest> = {}
+    manifestOverrides: Partial<RunManifest> = {},
   ): SimulationRun => {
-    const manifest: RunManifest = { ...mockManifest, runId, scenarioVersionId: versionId, ...manifestOverrides };
+    const manifest: RunManifest = {
+      ...mockManifest,
+      runId,
+      scenarioVersionId: versionId,
+      ...manifestOverrides,
+    };
     const metrics: SimulationMetrics = {
       liveLeads: 10,
       liveMQLs: 5,
@@ -100,7 +108,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
     statsA.stdDev === 0;
 
   if (testAPassed) {
-    log.push('✅ TEST A PASSED: Single run aggregation yields median = p10 = p90 = mean = min = max (400.000 €) and stdDev = 0.');
+    log.push(
+      '✅ TEST A PASSED: Single run aggregation yields median = p10 = p90 = mean = min = max (400.000 €) and stdDev = 0.',
+    );
   } else {
     log.push('❌ TEST A FAILED: Single run statistics diverged!');
     overallPassed = false;
@@ -125,10 +135,13 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   ];
   const resultBEven = MonteCarloAggregator.aggregateRuns(runsBEven);
 
-  const testBPassed = resultBOdd.metrics.arr.median === 400000 && resultBEven.metrics.arr.median === 250000;
+  const testBPassed =
+    resultBOdd.metrics.arr.median === 400000 && resultBEven.metrics.arr.median === 250000;
 
   if (testBPassed) {
-    log.push('✅ TEST B PASSED: Median calculated correctly for odd (400.000 €) and even (250.000 €) run sets.');
+    log.push(
+      '✅ TEST B PASSED: Median calculated correctly for odd (400.000 €) and even (250.000 €) run sets.',
+    );
   } else {
     log.push('❌ TEST B FAILED: Median calculation error!');
     overallPassed = false;
@@ -148,9 +161,13 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   const testCPassed = arrC.p10 === 19 && arrC.p90 === 91;
 
   if (testCPassed) {
-    log.push(`✅ TEST C PASSED: P10 (${arrC.p10}) and P90 (${arrC.p90}) match exact linear interpolation formula.`);
+    log.push(
+      `✅ TEST C PASSED: P10 (${arrC.p10}) and P90 (${arrC.p90}) match exact linear interpolation formula.`,
+    );
   } else {
-    log.push(`❌ TEST C FAILED: Quantile mismatch! Expected P10=19, P90=91. Got P10=${arrC.p10}, P90=${arrC.p90}`);
+    log.push(
+      `❌ TEST C FAILED: Quantile mismatch! Expected P10=19, P90=91. Got P10=${arrC.p10}, P90=${arrC.p90}`,
+    );
     overallPassed = false;
   }
 
@@ -170,7 +187,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   const testDPassed = arrD.mean === 20 && Math.abs(arrD.stdDev - 10) < 0.0001;
 
   if (testDPassed) {
-    log.push(`✅ TEST D PASSED: Mean (${arrD.mean}) and Sample StdDev (${arrD.stdDev}) calculated with mathematical accuracy.`);
+    log.push(
+      `✅ TEST D PASSED: Mean (${arrD.mean}) and Sample StdDev (${arrD.stdDev}) calculated with mathematical accuracy.`,
+    );
   } else {
     log.push('❌ TEST D FAILED: Mean or StdDev error!');
     overallPassed = false;
@@ -191,7 +210,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   const testEPassed = arrE.min === 150000 && arrE.max === 600000;
 
   if (testEPassed) {
-    log.push(`✅ TEST E PASSED: Min (${arrE.min} €) and Max (${arrE.max} €) bounds correctly captured.`);
+    log.push(
+      `✅ TEST E PASSED: Min (${arrE.min} €) and Max (${arrE.max} €) bounds correctly captured.`,
+    );
   } else {
     log.push('❌ TEST E FAILED: Min/Max error!');
     overallPassed = false;
@@ -214,7 +235,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   const testFPassed = arrF.max === 1500000 && arrF.min === 100000;
 
   if (testFPassed) {
-    log.push(`✅ TEST F PASSED: Extreme outlier (1.500.000 €) preserved without clipping or trimming.`);
+    log.push(
+      `✅ TEST F PASSED: Extreme outlier (1.500.000 €) preserved without clipping or trimming.`,
+    );
   } else {
     log.push('❌ TEST F FAILED: Outlier was incorrectly altered!');
     overallPassed = false;
@@ -233,10 +256,13 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   ];
   const resultG = MonteCarloAggregator.aggregateRuns(runsG);
 
-  const testGPassed = resultG.runCount === 5 && resultG.validRunCount === 2 && resultG.metrics.arr.median === 450000;
+  const testGPassed =
+    resultG.runCount === 5 && resultG.validRunCount === 2 && resultG.metrics.arr.median === 450000;
 
   if (testGPassed) {
-    log.push(`✅ TEST G PASSED: Only 2 COMPLETED runs aggregated out of 5 total (validRunCount: 2, median ARR: 450.000 €).`);
+    log.push(
+      `✅ TEST G PASSED: Only 2 COMPLETED runs aggregated out of 5 total (validRunCount: 2, median ARR: 450.000 €).`,
+    );
   } else {
     log.push('❌ TEST G FAILED: Non-completed runs were improperly included in aggregation!');
     overallPassed = false;
@@ -259,7 +285,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   }
 
   if (testHPassed) {
-    log.push('✅ TEST H PASSED: Divergent scenarioVersionIds ("ver-1" vs "ver-2") rejected with INCOMPATIBLE_SCENARIO_VERSION.');
+    log.push(
+      '✅ TEST H PASSED: Divergent scenarioVersionIds ("ver-1" vs "ver-2") rejected with INCOMPATIBLE_SCENARIO_VERSION.',
+    );
   } else {
     log.push('❌ TEST H FAILED: Failed to enforce version isolation!');
     overallPassed = false;
@@ -270,8 +298,12 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   // ---------------------------------------------------------
   log.push('\n--- TEST I: Model / Baseline Version Compatibility ---');
   const runsI = [
-    createMockRun('run-i1', 400000, 33333, 66, 5, 'COMPLETED', 'ver-1', { modelVersion: '1.0.0-v1' }),
-    createMockRun('run-i2', 500000, 41666, 70, 7, 'COMPLETED', 'ver-1', { modelVersion: '2.0.0-v2' }),
+    createMockRun('run-i1', 400000, 33333, 66, 5, 'COMPLETED', 'ver-1', {
+      modelVersion: '1.0.0-v1',
+    }),
+    createMockRun('run-i2', 500000, 41666, 70, 7, 'COMPLETED', 'ver-1', {
+      modelVersion: '2.0.0-v2',
+    }),
   ];
 
   let testIPassed = false;
@@ -282,7 +314,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   }
 
   if (testIPassed) {
-    log.push('✅ TEST I PASSED: Incompatible model versions ("1.0.0-v1" vs "2.0.0-v2") rejected with INCOMPATIBLE_MANIFEST_VERSION.');
+    log.push(
+      '✅ TEST I PASSED: Incompatible model versions ("1.0.0-v1" vs "2.0.0-v2") rejected with INCOMPATIBLE_MANIFEST_VERSION.',
+    );
   } else {
     log.push('❌ TEST I FAILED: Incompatible model version was allowed!');
     overallPassed = false;
@@ -311,11 +345,12 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   const resultJ1 = MonteCarloAggregator.aggregateRuns(runsJOriginal);
   const resultJ2 = MonteCarloAggregator.aggregateRuns(runsJShuffled);
 
-  const testJPassed =
-    JSON.stringify(resultJ1.metrics) === JSON.stringify(resultJ2.metrics);
+  const testJPassed = JSON.stringify(resultJ1.metrics) === JSON.stringify(resultJ2.metrics);
 
   if (testJPassed) {
-    log.push('✅ TEST J PASSED: Shuffled input order produced 100% byte-for-byte identical aggregation results.');
+    log.push(
+      '✅ TEST J PASSED: Shuffled input order produced 100% byte-for-byte identical aggregation results.',
+    );
   } else {
     log.push('❌ TEST J FAILED: Aggregation output depended on input array ordering!');
     overallPassed = false;
@@ -334,7 +369,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   const testKPassed = runKSnapshot === runKAfter;
 
   if (testKPassed) {
-    log.push('✅ TEST K PASSED: Aggregation executed with 100% zero side-effects on input run objects and manifests.');
+    log.push(
+      '✅ TEST K PASSED: Aggregation executed with 100% zero side-effects on input run objects and manifests.',
+    );
   } else {
     log.push('❌ TEST K FAILED: Input run object was mutated during aggregation!');
     overallPassed = false;
@@ -354,7 +391,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
     resL1.metrics.arr.stdDev === resL2.metrics.arr.stdDev;
 
   if (testLPassed) {
-    log.push('✅ TEST L PASSED: Repeated aggregation calls yield 100% identical deterministic output.');
+    log.push(
+      '✅ TEST L PASSED: Repeated aggregation calls yield 100% identical deterministic output.',
+    );
   } else {
     log.push('❌ TEST L FAILED: Aggregation was non-deterministic!');
     overallPassed = false;
@@ -377,7 +416,9 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   const testMPassed = resultM.runCount === 10 && resultM.validRunCount === 7;
 
   if (testMPassed) {
-    log.push(`✅ TEST M PASSED: Partial run set (10 total, 7 completed) correctly calculated validRunCount = 7.`);
+    log.push(
+      `✅ TEST M PASSED: Partial run set (10 total, 7 completed) correctly calculated validRunCount = 7.`,
+    );
   } else {
     log.push('❌ TEST M FAILED: Partial run set handling error!');
     overallPassed = false;
@@ -391,12 +432,19 @@ export async function runMonteCarloTest(): Promise<{ success: boolean; log: stri
   const baselineContacts = await CRMRepository.getContacts();
   const baselineDeals = await CRMRepository.getImportedFunnelDeals();
 
-  const testNPassed = baselineCompanies.length === 20 && baselineContacts.length === 100 && baselineDeals.length === 40;
+  const testNPassed =
+    baselineCompanies.length === 20 &&
+    baselineContacts.length === 100 &&
+    baselineDeals.length === 40;
 
   if (testNPassed) {
-    log.push('✅ TEST N PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).');
+    log.push(
+      '✅ TEST N PASSED: Historical Ebene A CRM baseline remains 100% pristine (20 Companies, 100 Contacts, 40 Deals).',
+    );
   } else {
-    log.push('❌ TEST N FAILED: Historical Ebene A baseline was mutated by Monte Carlo aggregation!');
+    log.push(
+      '❌ TEST N FAILED: Historical Ebene A baseline was mutated by Monte Carlo aggregation!',
+    );
     overallPassed = false;
   }
 

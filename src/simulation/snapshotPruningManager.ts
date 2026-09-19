@@ -41,7 +41,7 @@ export class SnapshotPruningManager {
     runId: string,
     repo: ISnapshotRepository,
     targetTicks = 365,
-    milestoneInterval = 30
+    milestoneInterval = 30,
   ): Promise<PruneSummary> {
     const keepSet = this.calculateRetentionTicks(targetTicks, milestoneInterval);
     const keepArray = Array.from(keepSet).sort((a, b) => a - b);
@@ -64,7 +64,7 @@ export class SnapshotPruningManager {
     runIds: string[],
     repo: ISnapshotRepository,
     targetTicks = 365,
-    milestoneInterval = 30
+    milestoneInterval = 30,
   ): Promise<PruneSummary> {
     let totalPruned = 0;
     let totalRemaining = 0;
@@ -75,7 +75,9 @@ export class SnapshotPruningManager {
       totalRemaining += summary.remainingCount;
     }
 
-    const keepArray = Array.from(this.calculateRetentionTicks(targetTicks, milestoneInterval)).sort((a, b) => a - b);
+    const keepArray = Array.from(this.calculateRetentionTicks(targetTicks, milestoneInterval)).sort(
+      (a, b) => a - b,
+    );
 
     return {
       prunedCount: totalPruned,

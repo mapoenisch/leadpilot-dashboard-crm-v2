@@ -4,7 +4,9 @@ import { DeterministicRNG } from '../prng';
 
 export async function runDataIntegrityTest(): Promise<{ success: boolean; log: string[] }> {
   const log: string[] = [];
-  log.push('=== STARTING DETERMINISTIC SIMULATION & INTEGRITY TEST SUITE (AUFTRAG 001 AUDIT FIX) ===');
+  log.push(
+    '=== STARTING DETERMINISTIC SIMULATION & INTEGRITY TEST SUITE (AUFTRAG 001 AUDIT FIX) ===',
+  );
 
   let overallPassed = true;
 
@@ -14,12 +16,26 @@ export async function runDataIntegrityTest(): Promise<{ success: boolean; log: s
   log.push('\n--- TEST A: PRNG Determinism ---');
   const rng1 = new DeterministicRNG(42);
   const rng2 = new DeterministicRNG(42);
-  const seq1 = [rng1.next(), rng1.next(), rng1.nextInt(1, 100), rng1.nextBoolean(), rng1.getState()];
-  const seq2 = [rng2.next(), rng2.next(), rng2.nextInt(1, 100), rng2.nextBoolean(), rng2.getState()];
+  const seq1 = [
+    rng1.next(),
+    rng1.next(),
+    rng1.nextInt(1, 100),
+    rng1.nextBoolean(),
+    rng1.getState(),
+  ];
+  const seq2 = [
+    rng2.next(),
+    rng2.next(),
+    rng2.nextInt(1, 100),
+    rng2.nextBoolean(),
+    rng2.getState(),
+  ];
 
   const testAPassed = JSON.stringify(seq1) === JSON.stringify(seq2);
   if (testAPassed) {
-    log.push('✅ TEST A PASSED: Identical seeds produce 100% identical PRNG sequences & internal RNG state.');
+    log.push(
+      '✅ TEST A PASSED: Identical seeds produce 100% identical PRNG sequences & internal RNG state.',
+    );
   } else {
     log.push('❌ TEST A FAILED: PRNG sequences diverged for same seed!');
     overallPassed = false;
@@ -28,8 +44,10 @@ export async function runDataIntegrityTest(): Promise<{ success: boolean; log: s
   // ---------------------------------------------------------
   // TEST B: Complete Simulation State Comparability (Seed 42, 50 Ticks)
   // ---------------------------------------------------------
-  log.push('\n--- TEST B: Complete Simulation State Comparability (State, Leads, Opps, Deals, Activities, Events & RNG State) ---');
-  
+  log.push(
+    '\n--- TEST B: Complete Simulation State Comparability (State, Leads, Opps, Deals, Activities, Events & RNG State) ---',
+  );
+
   // Run 1: 50 Ticks with Seed 42
   simulationService.resetSimulation(42);
   for (let i = 0; i < 50; i++) {
@@ -61,12 +79,17 @@ export async function runDataIntegrityTest(): Promise<{ success: boolean; log: s
   const activitiesMatch = JSON.stringify(run1Activities) === JSON.stringify(run2Activities);
   const eventsMatch = JSON.stringify(run1Events) === JSON.stringify(run2Events);
 
-  const testBPassed = stateMatch && leadsMatch && oppsMatch && dealsMatch && activitiesMatch && eventsMatch;
+  const testBPassed =
+    stateMatch && leadsMatch && oppsMatch && dealsMatch && activitiesMatch && eventsMatch;
 
   if (testBPassed) {
-    log.push(`✅ TEST B PASSED: 100% byte-for-byte state equality across 50 ticks (State, Leads[${run1Leads.length}], Opps[${run1Opps.length}], Deals[${run1Deals.length}], Activities[${run1Activities.length}], Events[${run1Events.length}] & Metrics Live ARR: ${run1State.metrics?.liveARR} €).`);
+    log.push(
+      `✅ TEST B PASSED: 100% byte-for-byte state equality across 50 ticks (State, Leads[${run1Leads.length}], Opps[${run1Opps.length}], Deals[${run1Deals.length}], Activities[${run1Activities.length}], Events[${run1Events.length}] & Metrics Live ARR: ${run1State.metrics?.liveARR} €).`,
+    );
   } else {
-    log.push(`❌ TEST B FAILED: Simulation output diverged! State: ${stateMatch}, Leads: ${leadsMatch}, Opps: ${oppsMatch}, Deals: ${dealsMatch}, Activities: ${activitiesMatch}, Events: ${eventsMatch}`);
+    log.push(
+      `❌ TEST B FAILED: Simulation output diverged! State: ${stateMatch}, Leads: ${leadsMatch}, Opps: ${oppsMatch}, Deals: ${dealsMatch}, Activities: ${activitiesMatch}, Events: ${eventsMatch}`,
+    );
     overallPassed = false;
   }
 
@@ -91,8 +114,12 @@ export async function runDataIntegrityTest(): Promise<{ success: boolean; log: s
 
   if (testCPassed) {
     log.push(`✅ TEST C PASSED: Seed 99999 produced distinct business metrics:`);
-    log.push(`   - Seed 42:    ARR ${run1State.metrics?.liveARR} €, MRR ${run1State.metrics?.liveMRR} €, Customers ${run1State.metrics?.liveCustomers}, Deals Won ${run1Deals.length}`);
-    log.push(`   - Seed 99999: ARR ${run3State.metrics?.liveARR} €, MRR ${run3State.metrics?.liveMRR} €, Customers ${run3State.metrics?.liveCustomers}, Deals Won ${run3Deals.length}`);
+    log.push(
+      `   - Seed 42:    ARR ${run1State.metrics?.liveARR} €, MRR ${run1State.metrics?.liveMRR} €, Customers ${run1State.metrics?.liveCustomers}, Deals Won ${run1Deals.length}`,
+    );
+    log.push(
+      `   - Seed 99999: ARR ${run3State.metrics?.liveARR} €, MRR ${run3State.metrics?.liveMRR} €, Customers ${run3State.metrics?.liveCustomers}, Deals Won ${run3Deals.length}`,
+    );
   } else {
     log.push('❌ TEST C FAILED: Different seeds produced identical business metrics!');
     overallPassed = false;
@@ -102,7 +129,7 @@ export async function runDataIntegrityTest(): Promise<{ success: boolean; log: s
   // TEST D: Absolute Wall-Clock Independence Verification
   // ---------------------------------------------------------
   log.push('\n--- TEST D: Wall-Clock Independence Verification ---');
-  
+
   // Execution Run Alpha
   simulationService.resetSimulation(12345);
   for (let i = 0; i < 20; i++) {
@@ -133,9 +160,13 @@ export async function runDataIntegrityTest(): Promise<{ success: boolean; log: s
   const testDPassed = clockIndependentState && clockIndependentEvents && clockIndependentLeads;
 
   if (testDPassed) {
-    log.push(`✅ TEST D PASSED: Simulation output is 100% identical regardless of wall-clock delay (Sample event timestamp: "${alphaEvents[0]?.timestamp}").`);
+    log.push(
+      `✅ TEST D PASSED: Simulation output is 100% identical regardless of wall-clock delay (Sample event timestamp: "${alphaEvents[0]?.timestamp}").`,
+    );
   } else {
-    log.push(`❌ TEST D FAILED: Wall-clock dependency detected! State: ${clockIndependentState}, Events: ${clockIndependentEvents}, Leads: ${clockIndependentLeads}`);
+    log.push(
+      `❌ TEST D FAILED: Wall-clock dependency detected! State: ${clockIndependentState}, Events: ${clockIndependentEvents}, Leads: ${clockIndependentLeads}`,
+    );
     overallPassed = false;
   }
 
@@ -150,7 +181,9 @@ export async function runDataIntegrityTest(): Promise<{ success: boolean; log: s
   const fullEvents = simulationService.getEvents();
   const testEPassed = fullEvents.length > 50;
   if (testEPassed) {
-    log.push(`✅ TEST E PASSED: Full event store retained ${fullEvents.length} events (greater than 50).`);
+    log.push(
+      `✅ TEST E PASSED: Full event store retained ${fullEvents.length} events (greater than 50).`,
+    );
   } else {
     log.push(`❌ TEST E FAILED: Event store was truncated to ${fullEvents.length} events!`);
     overallPassed = false;
@@ -168,9 +201,14 @@ export async function runDataIntegrityTest(): Promise<{ success: boolean; log: s
   log.push(`[Ebene A Check] Contacts: ${baselineContacts.length} (Expected: 100)`);
   log.push(`[Ebene A Check] Imported Funnel Deals: ${baselineDeals.length} (Expected: 40)`);
 
-  const testFPassed = baselineCompanies.length === 20 && baselineContacts.length === 100 && baselineDeals.length === 40;
+  const testFPassed =
+    baselineCompanies.length === 20 &&
+    baselineContacts.length === 100 &&
+    baselineDeals.length === 40;
   if (testFPassed) {
-    log.push('✅ TEST F PASSED: Ebene A historical CRM baseline remains 100% pristine and unmodified.');
+    log.push(
+      '✅ TEST F PASSED: Ebene A historical CRM baseline remains 100% pristine and unmodified.',
+    );
   } else {
     log.push('❌ TEST F FAILED: Ebene A historical CRM baseline was mutated!');
     overallPassed = false;

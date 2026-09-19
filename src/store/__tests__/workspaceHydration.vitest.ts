@@ -1,0 +1,210 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useSimulationStore } from '../simulationStore';
+import { ScenarioRepository } from '@/simulation/scenarioRepository';
+import type { Scenario, ScenarioVersion, SimulationRun } from '@/types/scenario';
+import type { ScenarioWorkspace } from '@/services/runs/runPersistenceService';
+
+vi.mock('@/services/runs/runPersistenceService', () => ({
+  loadScenarioWorkspace: vi.fn(),
+  persistCompletedRun: vi.fn(),
+}));
+
+import { loadScenarioWorkspace as mockedLoad } from '@/services/runs/runPersistenceService';
+
+function scenario(id: string): Scenario {
+  return {
+    id,
+    name: id,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    currentVersionId: `${id}-v1`,
+    isProtected: false,
+  };
+}
+
+function version(id: string, scenarioId: string): ScenarioVersion {
+  return {
+    id,
+    scenarioId,
+    versionNumber: 1,
+    parameters: {} as ScenarioVersion['parameters'],
+    createdAt: '2026-01-01T00:00:00.000Z',
+  };
+}
+
+function run(id: string, scenarioId: string, versionId: string, org: string): SimulationRun {
+  return {
+    runId: id,
+    scenarioId,
+    scenarioVersionId: versionId,
+    seed: 1,
+    rngState: 1,
+    modelVersion: '1.0.0-v1',
+    schemaVersion: '1.0.0',
+    baselineVersion: 'b',
+    status: 'COMPLETED',
+    startedAt: '2026-01-01T00:00:00.000Z',
+    manifest: {
+      runId: id,
+      scenarioId,
+      scenarioVersionId: versionId,
+      seed: 1,
+      initialRngState: 1,
+      modelVersion: '1.0.0-v1',
+      schemaVersion: '1.0.0',
+      baselineVersion: 'b',
+      baselineId: 'b',
+      baselineHash: 'h'.repeat(64),
+      organizationId: org,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      simulationStartDate: '2026-01-01',
+      targetTicks: 1,
+      parameters: {} as ScenarioVersion['parameters'],
+      correlationId: 'corr',
+    },
+    correlationId: 'corr',
+  };
+}
+
+// 067F / G49 (Nacharbeit P1): Organisationswechsel im selben Browser leakt
+// keinen lokalen Zustand — die Hydrierung ersetzt den Workspace.
+describe('workspaceHydration (G49 Org-Wechsel)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ScenarioRepository.getInstance().resetToDefaults();
+  });
+
+  it('ersetzt Szenarien, Versionen, Runs und Auswahl beim Mandantenwechsel', async () => {
+    const repo = ScenarioRepository.getInstance();
+    repo.saveScenario(scenario('scen-a'));
+    repo.saveVersion(version('ver-a-1', 'scen-a'));
+    repo.saveRun(run('run-a-1', 'scen-a', 'ver-a-1', 'org-a'));
+    repo.saveEvents('run-a-1', [
+      {
+        id: 'e-a-1',
+        tick: 0,
+        dayIndex: 0,
+        simulatedDate: '2026-01-01',
+        type: 'SYSTEM_INFO',
+        title: 'Alt',
+        details: 'Alt',
+        timestamp: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+    expect(repo.getScenario('scen-a')).not.toBeNull();
+
+    const workspaceB: ScenarioWorkspace = {
+      scenarios: [scenario('scen-b')],
+      versions: [version('ver-b-1', 'scen-b')],
+      runs: [
+        {
+          ...run('run-b-1', 'scen-b', 'ver-b-1', 'org-b'),
+          finalState: {
+            isRunning: false,
+            tickCount: 50,
+            dayIndex: 49,
+            simulatedDate: '2026-01-01',
+            seed: 1,
+            speed: 1,
+            intervalMs: 12000,
+            lastTickTimestamp: '2026-01-01 (Tick #50)',
+            totalLeadsGenerated: 0,
+            totalDealsWon: 0,
+            currentARR: 411840,
+          },
+        },
+      ],
+      eventsByRun: {
+        'run-b-1': [
+          {
+            id: 'e-b-1',
+            tick: 0,
+            dayIndex: 0,
+            simulatedDate: '2026-01-01',
+            type: 'SYSTEM_INFO',
+            title: 'Start',
+            details: 'Los',
+            timestamp: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+      },
+      snapshots: [
+        {
+          snapshotId: 'run-b-1_tick_50',
+          runId: 'run-b-1',
+          scenarioId: 'scen-b',
+          scenarioVersionId: 'ver-b-1',
+          tickId: 50,
+          simulationDay: 49,
+          simulatedDate: '2026-01-01',
+          modelVersion: '1.0.0-v1',
+          schemaVersion: '1.0.0',
+          baselineVersion: 'b',
+          state: {
+            isRunning: false,
+            tickCount: 50,
+            dayIndex: 49,
+            simulatedDate: '2026-01-01',
+            seed: 1,
+            speed: 1,
+            intervalMs: 12000,
+            lastTickTimestamp: 'x',
+            totalLeadsGenerated: 0,
+            totalDealsWon: 0,
+            currentARR: 1,
+          },
+          projection: {
+            snapshotId: 'run-b-1_tick_50',
+            runId: 'run-b-1',
+            scenarioId: 'scen-b',
+            scenarioVersionId: 'ver-b-1',
+            tickId: 50,
+            simulationDay: 49,
+            simulatedDate: '2026-01-01',
+            arr: 1,
+            mrr: 1,
+            customers: 1,
+            wonDeals: 0,
+            leadsCount: 0,
+            opportunitiesCount: 0,
+            conversionRate: 0,
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+    vi.mocked(mockedLoad).mockResolvedValue(workspaceB);
+
+    await useSimulationStore.getState().hydrateWorkspace('org-b');
+
+    expect(mockedLoad).toHaveBeenCalledWith('org-b');
+    expect(repo.getScenario('scen-a')).toBeNull();
+    expect(repo.getRun('run-a-1')).toBeNull();
+    expect(repo.getScenario('scen-b')).not.toBeNull();
+    expect(repo.getRun('run-b-1')).not.toBeNull();
+    // Vollständiger Run-Zustand hydriert (keine Audit-Defaults).
+    expect(repo.getRun('run-b-1')?.finalState?.tickCount).toBe(50);
+    expect(repo.getEventsByRun('run-b-1')).toHaveLength(1);
+    expect(repo.getEventsByRun('run-a-1')).toHaveLength(0);
+    expect(repo.getSnapshotsByRun('run-b-1')).toHaveLength(1);
+    const state = useSimulationStore.getState();
+    expect(state.activeOrganizationId).toBe('org-b');
+    expect(state.activeScenarioId).toBe('scen-b');
+    expect(state.runs.some((r) => r.runId === 'run-a-1')).toBe(false);
+    expect(state.runs.some((r) => r.runId === 'run-b-1')).toBe(true);
+  });
+
+  it('lässt den alten Stand bei Serverfehler unberührt', async () => {
+    const repo = ScenarioRepository.getInstance();
+    repo.saveScenario(scenario('scen-a'));
+    useSimulationStore.setState({ activeOrganizationId: 'org-a', activeScenarioId: 'scen-a' });
+    vi.mocked(mockedLoad).mockRejectedValue(new Error('offline'));
+    await expect(useSimulationStore.getState().hydrateWorkspace('org-b')).rejects.toThrow(
+      'offline',
+    );
+    expect(repo.getScenario('scen-a')).not.toBeNull();
+    expect(useSimulationStore.getState().activeOrganizationId).toBe('org-a');
+    expect(useSimulationStore.getState().activeScenarioId).toBe('scen-a');
+  });
+});

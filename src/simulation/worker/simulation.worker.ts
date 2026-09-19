@@ -1,6 +1,9 @@
 import { SimulationEngine } from '../engine';
 import { SimulationEventRules, SimulationClock } from '../eventRules';
 import { DeterministicRNG } from '../prng';
+import { EffectiveParameterResolver } from '../effectiveParameterResolver';
+import { DEFAULT_BASE_2026_PARAMETERS } from '../scenarioRepository';
+import { DEFAULT_HISTORICAL_METRICS } from '../../services/data/baselineMapper';
 import {
   WORKER_PROTOCOL_VERSION,
   WorkerErrorPayload,
@@ -8,7 +11,7 @@ import {
   WorkerMessageEvent,
   WorkerState,
 } from '../../types/workerMessages';
-import { RunManifest } from '../../types/scenario';
+import type { RunManifest } from '../../types/scenario';
 import { TimeSeriesPoint } from '../../types/aggregation';
 import {
   SimulationActivity,
@@ -20,6 +23,7 @@ import {
 } from '../../types/simulation';
 import { SalesQueueEntry } from '../../types/salesQueue';
 import { CSQueueEntry } from '../../types/csQueue';
+import type { Measure } from '../../types/measure';
 
 class SimulationWorkerRunner {
   private state: WorkerState = 'CREATED';
@@ -34,6 +38,10 @@ class SimulationWorkerRunner {
   private currentTick = 0;
   private targetTicks = 50;
   private batchSize = 10;
+  private correlationId = '';
+  private historicalMetrics = DEFAULT_HISTORICAL_METRICS;
+  private baseParameters = DEFAULT_BASE_2026_PARAMETERS;
+  private measures: Measure[] = [];
 
   private completedRuns = 0;
   private totalRuns = 1;
@@ -108,11 +116,18 @@ class SimulationWorkerRunner {
     const { manifest, initialState, targetTicks, batchSize, totalRuns } = cmd.payload;
 
     this.currentRunId = manifest?.runId ?? cmd.runId ?? 'nomanifest';
-    const seed = manifest ? manifest.seed : (initialState ? initialState.seed : 42);
+    const seed = manifest ? manifest.seed : initialState ? initialState.seed : 42;
     this.runId = cmd.runId;
     this.requestId = cmd.requestId;
     this.manifest = manifest || null;
     this.rng = new DeterministicRNG(seed);
+    // 067G / G50: Baseline-Metriken und Maßnahmen aus dem Coordinator —
+    // derselbe deterministische Pfad wie der Service (Anker als Fallback für
+    // Aufrufer ohne Baseline-Kontext).
+    this.correlationId = manifest?.correlationId ?? '';
+    this.historicalMetrics = cmd.payload?.historicalMetrics ?? DEFAULT_HISTORICAL_METRICS;
+    this.baseParameters = manifest?.parameters ?? DEFAULT_BASE_2026_PARAMETERS;
+    this.measures = cmd.payload?.measures ?? [];
 
     this.targetTicks = targetTicks || (manifest ? manifest.targetTicks : 50);
     this.batchSize = batchSize || 10;
@@ -155,14 +170,29 @@ class SimulationWorkerRunner {
       dayIndex: 0,
       simulatedDate,
       metrics: {
-        arr: initialMetrics.liveARR,
-        mrr: initialMetrics.liveMRR,
-        customers: initialMetrics.liveCustomers,
-        wonDeals: initialMetrics.liveWonDeals,
+        arr: this.currentState.metrics?.liveARR ?? 0,
+        mrr: this.currentState.metrics?.liveMRR ?? 0,
+        customers: this.currentState.metrics?.liveCustomers ?? 0,
+        wonDeals: this.currentState.metrics?.liveWonDeals ?? 0,
       },
     });
 
     this.state = 'RUNNING';
+
+    // 067G / G50: Annahme bestätigt (QUEUED), danach startet die Berechnung.
+    this.postEvent({
+      protocolVersion: WORKER_PROTOCOL_VERSION,
+      type: 'QUEUED',
+      runId: this.runId,
+      requestId: this.requestId,
+      payload: {
+        completedRuns: this.completedRuns,
+        totalRuns: this.totalRuns,
+        processedUnits: 0,
+        totalUnits: this.targetTicks,
+        correlationId: this.correlationId,
+      },
+    });
 
     this.postEvent({
       protocolVersion: WORKER_PROTOCOL_VERSION,
@@ -259,15 +289,20 @@ class SimulationWorkerRunner {
     }
 
     let ticksInBatch = 0;
+    // Maßnahmen pro Tick auflösen — identisch zum Service-Pfad, aber nur mit
+    // Manifest-Kontext. Ohne Manifest (Legacy/Test-Aufrufe) gelten exakt die
+    // früheren undefined-Defaults (Parität, workerIntegrity TEST I).
+    const hasRunContext = this.manifest !== null;
+    const resolver = hasRunContext
+      ? new EffectiveParameterResolver(this.baseParameters, this.measures)
+      : null;
 
     while (
       this.state === 'RUNNING' &&
       this.currentTick < this.targetTicks &&
       ticksInBatch < this.batchSize
     ) {
-      const salesRepCount = this.manifest?.parameters?.salesRepCount ?? 2;
-      const csRepCount = this.manifest?.parameters?.csRepCount ?? 2;
-      const churnRateMonthly = this.manifest?.parameters?.churnRateMonthly ?? 2.8;
+      const eff = resolver?.at(this.currentTick);
 
       const output = SimulationEngine.executeTick({
         state: this.currentState,
@@ -276,9 +311,15 @@ class SimulationWorkerRunner {
         opportunities: this.opportunities,
         deals: this.deals,
         activities: this.activities,
-        salesRepCount,
-        csRepCount,
-        churnRateMonthly,
+        historicalMetrics: this.historicalMetrics,
+        salesRepCount: eff?.salesRepCount ?? 2,
+        csRepCount: eff?.csRepCount ?? 2,
+        churnRateMonthly: eff?.churnRateMonthly ?? 2.8,
+        marketingBudgetYearly: eff?.marketingBudgetYearly,
+        channelMix: eff?.channelMix,
+        trialToPaidConversion: eff?.trialToPaidConversion,
+        salesCycleDays: eff?.salesCycleDays,
+        discountPercent: eff?.discountPercent,
         queueEntries: this.queueEntries || [],
         csQueueEntries: this.csQueueEntries || [],
       });
@@ -338,6 +379,9 @@ class SimulationWorkerRunner {
         payload: {
           completedRuns: 1,
           totalRuns: 1,
+          processedUnits: this.currentTick,
+          totalUnits: this.targetTicks,
+          correlationId: this.correlationId,
         },
       });
 
@@ -350,6 +394,11 @@ class SimulationWorkerRunner {
         payload: {
           completedRuns: 1,
           totalRuns: 1,
+          processedUnits: this.currentTick,
+          totalUnits: this.targetTicks,
+          correlationId: this.correlationId,
+          // 067G / G50 (Nacharbeit P1): PRNG-Endzustand für Audit/Persistenz.
+          rngState: this.rng ? this.rng.getState() : 0,
           finalState: this.currentState,
           finalMetrics: this.currentState.metrics,
           leads: this.leads,
@@ -370,6 +419,9 @@ class SimulationWorkerRunner {
         payload: {
           completedRuns: 0,
           totalRuns: 1,
+          processedUnits: this.currentTick,
+          totalUnits: this.targetTicks,
+          correlationId: this.correlationId,
         },
       });
 
@@ -390,7 +442,14 @@ class SimulationWorkerRunner {
   }
 
   private postEvent(evt: WorkerMessageEvent): void {
-    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : ({} as Record<string, unknown>)));
+    const globalObj =
+      typeof globalThis !== 'undefined'
+        ? globalThis
+        : typeof self !== 'undefined'
+          ? self
+          : typeof window !== 'undefined'
+            ? window
+            : ({} as Record<string, unknown>);
     const postMessage = (globalObj as { postMessage?: unknown }).postMessage;
     if (typeof postMessage === 'function') {
       (postMessage as (message: WorkerMessageEvent) => void)(evt);

@@ -9,10 +9,30 @@ export interface AIDecision {
 }
 
 const SAMPLE_REASONS = [
-  { status: 'MQL' as LeadStatus, delta: 15, reason: 'ICP-Fit identifiziert: Maschinenbau-KMU mit 85 MA & Tabellen-Chaos.', action: 'Nurturing-Sequenz "Vertriebsleiter Volker" starten' },
-  { status: 'Hot' as LeadStatus, delta: 25, reason: 'Testversion gestartet & Onboarding-Schritt 2 (Import) abgeschlossen.', action: 'Vertriebs-Call innerhalb von 24h anfordern' },
-  { status: 'Won' as LeadStatus, delta: 30, reason: 'Vertragsangebot für Growth-Paket (89 €/Nutzer) akzeptiert.', action: 'Customer Success Onboarding initiieren' },
-  { status: 'Disqualified' as LeadStatus, delta: -20, reason: 'Großkonzern mit > 500 MA — erfordert TISAX-Zertifizierung (Negative Fit).', action: 'Lead archivieren & Marketing-Nutzen dokumentieren' },
+  {
+    status: 'MQL' as LeadStatus,
+    delta: 15,
+    reason: 'ICP-Fit identifiziert: Maschinenbau-KMU mit 85 MA & Tabellen-Chaos.',
+    action: 'Nurturing-Sequenz "Vertriebsleiter Volker" starten',
+  },
+  {
+    status: 'Hot' as LeadStatus,
+    delta: 25,
+    reason: 'Testversion gestartet & Onboarding-Schritt 2 (Import) abgeschlossen.',
+    action: 'Vertriebs-Call innerhalb von 24h anfordern',
+  },
+  {
+    status: 'Won' as LeadStatus,
+    delta: 30,
+    reason: 'Vertragsangebot für Growth-Paket (89 €/Nutzer) akzeptiert.',
+    action: 'Customer Success Onboarding initiieren',
+  },
+  {
+    status: 'Disqualified' as LeadStatus,
+    delta: -20,
+    reason: 'Großkonzern mit > 500 MA — erfordert TISAX-Zertifizierung (Negative Fit).',
+    action: 'Lead archivieren & Marketing-Nutzen dokumentieren',
+  },
 ];
 
 export class AIDecisionMaker {
@@ -23,14 +43,16 @@ export class AIDecisionMaker {
       return {
         recommendedStatus: 'MQL',
         scoreDelta: 15,
-        reason: 'Automatischer ICP-Match: Passt zu 94% auf Buyer Persona Volker (Mittelstand, DACH).',
+        reason:
+          'Automatischer ICP-Match: Passt zu 94% auf Buyer Persona Volker (Mittelstand, DACH).',
         suggestedAction: 'Lead an Marc Pönisch zur Qualifizierung übergeben',
       };
     } else if (lead.status === 'MQL') {
       return {
         recommendedStatus: 'Hot',
         scoreDelta: 20,
-        reason: 'Aktivitätssignal: Lead hat die LeadPilot Demo-Webseite 3x besucht & Whitepaper heruntergeladen.',
+        reason:
+          'Aktivitätssignal: Lead hat die LeadPilot Demo-Webseite 3x besucht & Whitepaper heruntergeladen.',
         suggestedAction: 'Prioritären Rückruf im Dashboard markieren',
       };
     } else if (lead.status === 'Hot') {

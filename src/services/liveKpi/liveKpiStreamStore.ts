@@ -9,6 +9,7 @@
  */
 
 import { isSupportedLiveKpiId } from './liveKpiDefinitions';
+import { compareSnapshots, mergeIntoHistory, normalizeHistory } from './liveKpiStreamHistory';
 import { logger } from '@/services/logger';
 import {
   isLiveKpiReadConfigured,
@@ -92,48 +93,6 @@ const DEFAULT_SNAPSHOT_STATE: LiveKpiStreamState = Object.freeze({
   status: 'unconfigured',
   error: null,
 }) as LiveKpiStreamState;
-
-/**
- * Vergleicht zwei Snapshots lexikografisch nach (occurredAt, ingestedAt).
- * > 0 wenn a neuer als b ist; < 0 wenn a älter ist; 0 bei Identität.
- */
-function compareSnapshots(a: LiveKpiSnapshot, b: LiveKpiSnapshot): number {
-  if (a.occurredAt < b.occurredAt) return -1;
-  if (a.occurredAt > b.occurredAt) return 1;
-  if (a.ingestedAt < b.ingestedAt) return -1;
-  if (a.ingestedAt > b.ingestedAt) return 1;
-  return 0;
-}
-
-function mergeIntoHistory(existing: readonly LiveKpiSnapshot[], newItem: LiveKpiSnapshot): LiveKpiSnapshot[] {
-  // Duplikatprüfung
-  const isDuplicate = existing.some((item) => compareSnapshots(item, newItem) === 0);
-  if (isDuplicate) {
-    return existing as LiveKpiSnapshot[];
-  }
-
-  const updated = [...existing, newItem].sort(compareSnapshots);
-  if (updated.length > 30) {
-    // Ältesten Punkt entfernen (FIFO)
-    return updated.slice(updated.length - 30);
-  }
-  return updated;
-}
-
-function normalizeHistory(rawItems: LiveKpiSnapshot[]): LiveKpiSnapshot[] {
-  const sorted = [...rawItems].sort(compareSnapshots);
-  const deduped: LiveKpiSnapshot[] = [];
-  for (const item of sorted) {
-    const last = deduped[deduped.length - 1];
-    if (last === undefined || compareSnapshots(last, item) !== 0) {
-      deduped.push(item);
-    }
-  }
-  if (deduped.length > 30) {
-    return deduped.slice(deduped.length - 30);
-  }
-  return deduped;
-}
 
 /**
  * G34: fetchLatest-Nachzug teilen sich propagateStatus (Feed live) und refresh.
