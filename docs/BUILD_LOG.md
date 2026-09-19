@@ -8955,10 +8955,30 @@ git diff c6d88f3 -- supabase/migrations supabase/schema.sql
 
 ---
 
-### 5. Entscheidungsbedarf für Marc (Stopp-Punkte eingehalten)
+---
 
-Vor einem ersten GitHub-Actions-Lauf werden Marcs Entscheidungen zu folgenden Punkten benötigt:
-1. **`tenant-isolation` (Tests 1 & 2):** Bis 067N / G60 zurückstellen (z.B. Test temporär als Vorbereitung markieren) oder anpassen?
-2. **UI-Fixes für `a11y` und `routes`:** Dürfen die beiden minimalen Korrekturen in `src/components/layout/Layout.tsx` (`tabIndex={0}` gegen `scrollable-region-focusable`) und `src/features/overview/pages/DataBasisPage.tsx` (`div`/`section` statt geschachteltem `main`) freigegeben werden?
-3. **Linux-Baselines:** Soll der Commit `837967a` aus `origin/main` vor dem Actions-Lauf gemergt werden?
-4. **Push-Freigabe:** Sobald die Punkte entschieden und umgesetzt sind, erfolgt nach Marcs Freigabe der Push und CI-Lauf.
+### 5. Umsetzung der Entscheidungen von Marc (E1, E2, E3)
+
+- **E1 — `tenant-isolation.spec.ts` (Tests 1 & 2 zurückgestellt)**:
+  - In `e2e/tenant-isolation.spec.ts` wurden exakt die Tests „1. Org-A-Admin sieht nur eigene Companies“ und „2. Org-B-Admin sieht nur eigene Companies“ auf `test.fixme(...)` umgestellt.
+  - Testkörper blieben 100% unverändert. Kommentare ergänzt: Verweis auf G47 (`SYNTHETIC_NOT_ALLOWED`), Reaktivierung in G60 (Auftrag 067N), und Hinweis auf DB-Absicherung durch pgTAP (`supabase/tests/tenant_isolation.sql`). Test 3 (unberechtigte Sitzung leitet auf `/login`) bleibt aktiv (bestanden in 271ms).
+- **E2 — Front-End-Fix `scrollable-region-focusable` & Landmark-Bereinigung**:
+  - `src/components/layout/Layout.tsx`: `tabIndex={0}` (statt `-1`) auf `<main id="main-content">` gesetzt. Macht den Haupt-Scrollbereich tastaturfokussierbar.
+  - `src/components/ui/Table.tsx`: `tabIndex={0}`, `role="region"` und `aria-label={ariaLabel ?? 'Tabelle'}` auf den horizontal scrollenden Tabellen-Wrapper gesetzt (löst `scrollable-region-focusable` auf mobilen Tabellenansichten).
+  - `src/features/overview/pages/DataBasisPage.tsx`: `DataBasisShell` verwendet semantisch neutrales `<div data-testid={testId}>` statt eines geschachtelten `<main>` (behebt den Playwright Strict Mode Fehler von `locator('main')` auf `/company/data-basis`).
+  - **Rot-vor-Grün-Nachweis auf frischem Backend**:
+    - `e2e/a11y.spec.ts`: **12/12 Tests bestanden** (vorher 2 failed). Die Allowlist `e2e/a11y-baseline.json` bleibt unverändert leer!
+    - `e2e/routes.spec.ts -g "company/data-basis"`: **3/3 Tests bestanden** (vorher 3 failed).
+  - **Screenshot-Matrix**: `docs/screenshots/auftrag-067l-g58/README.md` angelegt mit SHA-256 Hashes und 0px Horizontal Overflow über 1440px, 768px und 375px für alle 3 betroffenen Routen.
+- **E3 — Cherry-Pick `837967a` und Visual-Baselines-Workflow**:
+  - Commit `837967a` via `git cherry-pick 837967a` übernommen (Autor erhalten).
+  - `playwright.config.ts`: `maxDiffPixelRatio: 0.001` (Anti-Aliasing-Toleranz Issue #12) und CI-Report-Sicherheit (`trace: 'off'`) beide aktiv.
+  - `.github/workflows/update-visual-baselines.yml`: Auf temporäres lokales Supabase-Backend mit Seed umgebaut, `permissions: contents: read` und `node-version: 22.18.0` gesetzt. `PR-CI-18` bleibt 100% grün.
+  - `docs/operations/ci-e2e-backend.md`: Abschnitt 4 hinzugefügt, der den exakten Ablauf zur Erzeugung neuer Linux-Baselines über den Actions-Runner beschreibt.
+
+---
+
+### 6. Status und Stopp-Punkte
+
+- Alle Auftrags- und Prüfer-Punkte sowie Entscheidungen E1, E2, E3 sind vollständig umgesetzt und verifiziert.
+- **Stopp-Punkte strikt eingehalten:** Kein Push, kein Ruleset, kein CI-Lauf ohne ausdrückliche Freigabe durch Marc. Bereit für die Freigabe des ersten Pushes.
