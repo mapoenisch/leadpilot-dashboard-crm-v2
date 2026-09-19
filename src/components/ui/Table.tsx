@@ -47,7 +47,7 @@ export function Table<T extends object>({
       tabIndex={0}
       role="region"
       aria-label={ariaLabel ?? 'Tabelle'}
-      className="w-full overflow-x-auto focus:outline-none [-webkit-overflow-scrolling:touch]"
+      className="w-full overflow-x-auto [-webkit-overflow-scrolling:touch]"
     >
       <table
         className={cn(

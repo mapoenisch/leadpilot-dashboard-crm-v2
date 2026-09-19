@@ -20,10 +20,10 @@ Für automatisierte E2E-Tests wird **kein gehostetes Supabase-Projekt** verwende
 
 Die Testnutzer sind ausschließlich in `supabase/seed.sql` für flüchtige lokale und CI-Container definiert. Sie existieren in keinem Produktiv- oder Hostsystem.
 
-- **Organisation A Admin (Haupt-Testnutzer für Suite & Lighthouse):**
+- **Demo-Organisation Admin (Haupt-Testnutzer für Suite & Lighthouse):**
   - E-Mail: `admin-a@e2e.local`
   - Passwort: `TestPassword123!`
-  - Rolle: `admin` in Organisation A (`aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`)
+  - Rolle: `admin` in Demo-Organisation (`00000000-0000-0000-0000-000000000001`, Gate G58 / [P1-6])
 - **Organisation B Admin (Mandantentrennung):**
   - E-Mail: `admin-b@e2e.local`
   - Passwort: `TestPassword123!`

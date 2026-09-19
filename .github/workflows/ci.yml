@@ -133,6 +133,7 @@ jobs:
           echo "VITE_SUPABASE_ANON_KEY=${ANON_KEY}" >> $GITHUB_ENV
           echo "E2E_SUPABASE_URL=${API_URL}" >> $GITHUB_ENV
           echo "E2E_SUPABASE_ANON_KEY=${ANON_KEY}" >> $GITHUB_ENV
+          echo "E2E_CLEANUP_KEY=${SERVICE_ROLE_KEY}" >> $GITHUB_ENV
           echo "E2E_AUTH_EMAIL=admin-a@e2e.local" >> $GITHUB_ENV
           echo "E2E_AUTH_PASSWORD=TestPassword123!" >> $GITHUB_ENV
           echo "E2E_AUTH_EMAIL_B=admin-b@e2e.local" >> $GITHUB_ENV
@@ -149,7 +150,9 @@ jobs:
       - name: Build für E2E und Lighthouse
         run: npx vite build
       - name: Playwright E2E & Axe Accessibility Tests
-        run: npx playwright test e2e/a11y.spec.ts && npx playwright test
+        run: npx playwright test e2e/a11y.spec.ts e2e/auth.spec.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
+      - name: Playwright Simulation & Worker Tests (sequentiell)
+        run: npx playwright test e2e/persistence-multisession.spec.ts e2e/worker-responsiveness.spec.ts --workers=1
       - name: Lighthouse CI
         run: npx lhci autorun
       - name: Coverage für Readiness erzeugen

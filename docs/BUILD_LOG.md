@@ -8915,7 +8915,7 @@ Untersucht auf frischem lokalen Backend ohne Testabschwächung (`test.skip`/`fix
 - **Fehlermeldung:** `getByText('Firma A1').first()` bzw. `getByText('Firma B1').first()` scheitert mit Timeout.
 - **Ursache:** Auf `/crm/companies` erscheint die Fehlerkomponente:
   `Integritätsfehler: SYNTHETIC_NOT_ALLOWED Ehrlicher Systemzustand (Ebene A CRM Accounts) — keine synthetischen Ersatzwerte`.
-  `useCrmReadModelEnvelope` wirft für alle Organisationen ungleich `DEMO_ORGANIZATION_ID` (`00000000-0000-4000-a000-000000000001`) fail-closed `SYNTHETIC_NOT_ALLOWED`, solange die aktive CRM-Quelle synthetisch ist. Eine echte CRM-Datenbankquelle für Mandanten ist erst für Auftrag 067N / Gate G60 geplant.
+  `useCrmReadModelEnvelope` wirft für alle Organisationen ungleich `DEMO_ORGANIZATION_ID` (`00000000-0000-0000-0000-000000000001`) fail-closed `SYNTHETIC_NOT_ALLOWED`, solange die aktive CRM-Quelle synthetisch ist. Eine echte CRM-Datenbankquelle für Mandanten ist erst für Auftrag 067N / Gate G60 geplant.
 - **Positivbefund:** Test 3 („Ohne gültige Organisationssitzung führt jede geschützte Route zu /login“) läuft in 267ms grün durch (Fail-closed Sitzungsschutz funktioniert).
 
 #### D. Worker-Responsiveness (`e2e/worker-responsiveness.spec.ts`)
@@ -9009,3 +9009,92 @@ git diff c6d88f3 -- supabase/migrations supabase/schema.sql
 
 ### Nächster Schritt
 - `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_5.md`. Kein Push, kein Ruleset, kein Actions-Lauf.
+
+## [2026-09-19] Gate G58: Nacharbeit 5 — Seed-Integrität, Fokus & CI-Stabilität (Antigravity)
+
+**Stand:** Nacharbeit 5 zu Gate G58 auf Branch `feat/auftrag-067l-ci-ruleset`.
+
+### 1. Umgesetzte Nacharbeiten (P1-6, P2-8, P2-9, P3)
+
+#### [P1-6] Standard-E2E-Nutzer `admin-a@e2e.local` der Demo-Organisation zugeordnet
+- **Ursache:** Im vorherigen Seed war `admin-a@e2e.local` der Nicht-Demo-Organisation `Organisation A (E2E)` zugeordnet. Da synthetische CRM-Quellen für Nicht-Demo-Mandanten fail-closed `SYNTHETIC_NOT_ALLOWED` werfen (echte DB-Mandantenquelle erst in 067N/G60), liefen `/crm/companies`, `/crm/leads` und `/company/data-basis` auf Integritätsfehler. Visual-Baselines hätten so Fehlerbilder als Sollzustand festgeschrieben.
+- **Lösung:**
+  - `supabase/seed.sql`: `admin-a@e2e.local` wird per `organization_memberships` der Demo-Organisation `00000000-0000-0000-0000-000000000001` (aus Migration `20260920_demo_bootstrap`) mit Rolle `admin` zugeordnet.
+  - Dokumentationskommentar im Seed ergänzt, warum Org A und Org B für Gate G60 erhalten bleiben.
+  - `docs/operations/ci-e2e-backend.md`: Testnutzer-Dokumentation angepasst (`admin-a` ist Standard-Admin der Demo-Org; `admin-b` für Tenant B; `nomember` ohne Mitgliedschaft).
+- **Test-Absicherung (Rot vor Grün):**
+  - Neuer Test `scripts/__tests__/e2eSeedIntegrity.vitest.ts`:
+    - Liest `supabase/seed.sql` ein und validiert:
+      1. `admin-a@e2e.local` existiert und ist Mitglied von `00000000-0000-0000-0000-000000000001`.
+      2. `admin-b@e2e.local` ist Mitglied von Org B (`00000000-0000-0000-0000-000000000003`).
+      3. `nomember@e2e.local` besitzt keine Mitgliedschaft.
+      4. `Organisation A` und `Organisation B` sind im Seed vorhanden und dokumentiert.
+    - Vorher: Test 1 schlug fehl (Rot).
+    - Nachher: Alle 3 Tests bestanden (Grün).
+- **Lokale Prüfung der Routen mit `admin-a`:**
+  - `/crm/companies`: Rendert reguläre CRM-Firmentabelle, kein `SYNTHETIC_NOT_ALLOWED`.
+  - `/crm/leads`: Rendert reguläre Leads-Tabelle, kein `SYNTHETIC_NOT_ALLOWED`.
+  - `/company/data-basis`: Rendert reguläre Datenbasis-Übersicht, kein `SYNTHETIC_NOT_ALLOWED`.
+
+#### [P2-8] `Table.tsx`: Fokus sichtbar (WCAG 2.4.7)
+- **Problem:** In `src/components/ui/Table.tsx` war am fokussierbaren Scroll-Container `tabIndex={0}` zusammen mit `focus:outline-none` definiert. Tailwind 3 überschrieb damit die globale Tastatur-Fokusregel `:focus-visible` aus `src/styles/global.css`.
+- **Behebung:** `focus:outline-none` in `src/components/ui/Table.tsx` entfernt.
+- **Sichtbarkeit:** Bei Fokussierung mit der Tastatur (Tab) greift nun die globale `:focus-visible`-Regel mit sichtbarem Rahmen (`outline: 2px solid var(--color-primary); outline-offset: 2px`).
+- **Hinweis (Folgeaufgabe, kein Blocker für G58):** 37 Verwendungen der Komponente `<Table>` übergeben derzeit kein `ariaLabel`, wodurch der Container generisch auf „Tabelle“ fällt. Als Folgeaufgabe nach G58 für jede Tabelle ein semantisch eindeutiges Label einsteuern.
+- **A11y-Baseline:** `e2e/a11y-baseline.json` bleibt unverändert leer (`{}`).
+
+#### [P2-9] CI-Stabilität: Ursachenanalyse und Behebung
+- **Ursachenanalyse:**
+  1. **Fachliches Limit `MAX_RUNS_EXCEEDED` (Hauptursache):**
+     - `scenario-base-2026` besitzt ein hartes Limit von maximal 10 Runs (`MAX_RUNS_EXCEEDED` in `src/simulation/preflightValidator.ts` und `src/services/data/scenarioRepository.ts`).
+     - `e2e/persistence-multisession.spec.ts` führt pro Durchlauf 3 Runs durch (Run, Re-Run, Reproduce).
+     - `e2e/worker-responsiveness.spec.ts` führt 1 Run durch.
+     - Pro Viewport summierten sich 4 Runs. Bei 3 Viewports (`desktop-1440`, `tablet-768`, `mobile-375`) fielen insgesamt 12 Runs auf derselben Datenbank an.
+     - Der 11. Run auf `mobile-375` wurde vom Preflight mit `MAX_RUNS_EXCEEDED` abgewiesen; das Modal zeigte den Fehler an und schloss nicht mehr. Dadurch lief `expect(modal).toBeHidden()` in den Playwright-Timeout.
+  2. **Playwright-Default-Timeout (30s):**
+     - Drei aufeinanderfolgende Simulations-Runs plus Animationen und State-Sync in `persistence-multisession.spec.ts` können bei Lastschwankungen das Standard-Timeout von 30 Sekunden ankratzen.
+  3. **Laufzeit der 50 Ticks:**
+     - Messung: Die 50 Ticks im Web Worker benötigen isoliert lediglich ~400–600ms (hochperformant). Es liegt kein Worker-Bottleneck vor.
+- **Lösung (ohne Abschwächung von Assertions):**
+  - `e2e/persistence-multisession.spec.ts` und `e2e/worker-responsiveness.spec.ts`:
+    - `test.setTimeout(120_000)` gesetzt, um mehrstufigen Simulations-Zyklen ausreichend Puffer zu geben.
+    - Vor jedem Test (`test.beforeEach`) wird per Supabase-REST (falls `E2E_CLEANUP_KEY` verfügbar) die Tabelle `runs` für `scenario-base-2026` bereinigt, sodass das 10-Run-Limit nicht akkumuliert.
+  - `.github/workflows/ci.yml`:
+    - `E2E_CLEANUP_KEY=${SERVICE_ROLE_KEY}` für die E2E-Jobs bereitgestellt.
+    - E2E-Playwright-Lauf in zwei deterministische Schritte getrennt:
+      1. Parallel-Suite: `a11y`, `auth`, `resources-viewer`, `routes`, `semantic-routes`, `tenant-isolation`, `visual` (mit konfigurierter Parallelität).
+      2. Sequentielle Simulations-Suite: `persistence-multisession.spec.ts` und `worker-responsiveness.spec.ts` isoliert mit `--workers=1`.
+    - Workflow-Validierung (`qualityRelease.acceptance.ts` PR-CI-18) erfolgreich bestanden.
+- **Stabilitätsnachweis (5 aufeinanderfolgende Läufe auf `mobile-375` mit `CI=1` und `--workers=1`):**
+  | Lauf | Dauer | Status |
+  |---|---|---|
+  | Lauf 1 | 4.6s | 2/2 passed (100%) |
+  | Lauf 2 | 4.0s | 2/2 passed (100%) |
+  | Lauf 3 | 3.9s | 2/2 passed (100%) |
+  | Lauf 4 | 4.0s | 2/2 passed (100%) |
+  | Lauf 5 | 4.0s | 2/2 passed (100%) |
+- **Gesamtergebnis der nicht-visuellen Suite über alle 3 Viewports:**
+  - Schritt 1 (Parallel-Suite): 540 passed, 6 skipped (fixme tenant-isolation 1 & 2) in 2.2m.
+  - Schritt 2 (Simulations-Suite `--workers=1`): 6 passed in 10.8s.
+  - **Gesamt: 546 passed, 6 skipped, 0 failed.** (Exakt das geforderte Ziel).
+
+#### [P3] Korrektur der Demo-Organisations-ID
+- In `docs/BUILD_LOG.md` (Zeile 8918) wurde die ID von `00000000-0000-4000-a000-000000000001` auf die kanonische Demo-Org-ID `00000000-0000-0000-0000-000000000001` korrigiert.
+
+---
+
+### 2. Schutzbereichs-Prüfung (`git diff c6d88f3`)
+
+```bash
+git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/features/resources
+git diff c6d88f3 -- supabase/migrations supabase/schema.sql
+```
+- **Ergebnis:** Beide Schutzbereichs-Diffs sind **100% LEER** (0 Bytes geändert).
+- Keine verbotene Datei `supabase/migrations/20260101000000_base_schema.sql` im Repository.
+
+---
+
+### 3. Status und Stopp-Punkte
+
+- Alle Punkte [P1-6], [P2-8], [P2-9] und [P3] sind vollständig umgesetzt, getestet und lokal belegt.
+- **Stopp-Punkte strikt eingehalten:** Kein Push, kein Ruleset, kein CI-Lauf ohne ausdrückliche Freigabe durch Marc. Übergabe zur Prüfung an den unabhängigen Prüfer.

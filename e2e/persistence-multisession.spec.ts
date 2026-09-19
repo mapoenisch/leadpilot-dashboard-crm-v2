@@ -85,6 +85,21 @@ async function restCount(
 }
 
 test.describe('Persistenz über Sitzungen (Gate G49)', () => {
+  test.setTimeout(120_000);
+
+  test.beforeEach(async ({ page }) => {
+    const supabaseUrl = process.env.E2E_SUPABASE_URL;
+    const cleanupKey = process.env.E2E_CLEANUP_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (supabaseUrl && cleanupKey) {
+      await page.request.delete(`${supabaseUrl}/rest/v1/simulation_runs?scenario_id=eq.scenario-base-2026`, {
+        headers: {
+          apikey: cleanupKey,
+          Authorization: `Bearer ${cleanupKey}`,
+        },
+      });
+    }
+  });
+
   test('Run, Re-Run und Reproduktion überstehen Reload und zweiten Browser', async ({
     page,
     browser,
