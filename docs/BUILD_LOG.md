@@ -8631,3 +8631,13 @@ Alle lokalen Gates sind grün, der echte Actions-Lauf würde aber nachweislich r
 
 ### Freigabestatus
 - **G58: NICHT FREIGEGEBEN**, zurück an Antigravity zur Nacharbeit (P1-1, P1-2, P1-3, P2-1, P2-2). Kein Push, kein Ruleset, kein Actions-Lauf; Reihenfolge danach: Push des Feature-Branches, grüner Actions-Lauf, erst dann Ruleset.
+
+### Nachtrag Prüfer (2026-09-19): Sofort-Fixes auf Anweisung von Marc
+- Marc hat den Prüfer ausdrücklich angewiesen, **[P1-1]**, **[P1-2]** und **[P3]** selbst zu beheben (Ausnahme von „Prüfer baut nichts“).
+- **[P1-1]** `.lighthouserc.json`: `chromePath` entfernt. Nachweis: `lhci healthcheck` findet Chrome lokal mit `CHROME_PATH`; auf `ubuntu-latest` findet LHCI Chrome selbst (nicht lokal verifizierbar, Beleg erst im Actions-Lauf).
+- **[P1-2]** `.github/workflows/ci.yml`, Job `e2e`: Schritt „Coverage für Readiness erzeugen“ (`npm run test:coverage`) vor dem Readiness-Schritt. YAML valide, Job-Namen unverändert.
+- **[P3]** Versionskommentare hinter allen SHAs; Tag→SHA per `gh api` verifiziert.
+- Nachgeprüft: `[PR-DEPENDENCY-15]`, `[PR-QUALITY-16]`, `[PR-RELEASE-17]`, `[PR-CI-18]` grün, `findingContract.characterization` 2/2.
+- **Zusätzlich festgestellt:** `[PR-CI-18]` prüft nur Zeilen, die mit `uses:` beginnen, nicht `- uses:` (Sollvertrag-Lücke, [P2-3]); Readiness prüft Existenz, aber nicht Frische der Artefakte ([P2-4]).
+- Offene Nacharbeit für Antigravity: `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_1.md` ([P1-3], [P2-1] bis [P2-4]).
+- G58 bleibt **NICHT FREIGEGEBEN**.
