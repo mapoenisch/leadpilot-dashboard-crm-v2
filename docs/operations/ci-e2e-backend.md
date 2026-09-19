@@ -39,14 +39,19 @@ Die Testnutzer sind ausschließlich in `supabase/seed.sql` für flüchtige lokal
 
 Entwickler können die vollständige E2E-Testkette lokal wie folgt ausführen:
 
-### Schritt 1: Supabase starten und befüllen
+### Schritt 1: Supabase starten und befüllen (auf leerem Stack)
 ```bash
-# 1. Supabase starten (minimale Dienste)
+# 1. Bestehende Container verwerfen (frischer Stack ohne alte Volumes)
+npx supabase stop --no-backup
+
+# 2. Schema temporär als früheste Migration bereitstellen (wird NICHT committet)
+cp supabase/schema.sql supabase/migrations/20260101000000_base_schema.sql
+
+# 3. Supabase starten (minimale Dienste; wendet alle 14 Migrationen und seed.sql automatisch an)
 npx supabase start -x studio,imgproxy,storage-api,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta
 
-# 2. Schema und Seed einspielen (falls nicht automatisch geladen)
-docker exec -i supabase_db_LeadPilot_Dashboard-CRM psql -U postgres -d postgres < supabase/schema.sql
-docker exec -i supabase_db_LeadPilot_Dashboard-CRM psql -U postgres -d postgres < supabase/seed.sql
+# 4. Temporäre Migrationsdatei sofort wieder entfernen
+rm supabase/migrations/20260101000000_base_schema.sql
 ```
 
 ### Schritt 2: Umgebungsvariablen ermitteln und Frontend bauen
@@ -73,11 +78,12 @@ npx playwright test
 ```
 
 ### Schritt 4: Lighthouse CI ausführen
+> **Hinweis:** Erfordert Node.js >= 22.12 (oder das in `.nvmrc` gepinnte 22.18.0) wegen `require(esm)`.
 ```bash
 CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" npx lhci autorun
 ```
 
 ### Schritt 5: Lokales Backend stoppen
 ```bash
-npx supabase stop
+npx supabase stop --no-backup
 ```

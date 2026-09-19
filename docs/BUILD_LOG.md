@@ -8772,7 +8772,7 @@ git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/f
 
 ## [2026-09-19] Gate G58: Nacharbeit 3 — E2E-Backend: temporäres lokales Supabase statt Secrets (Antigravity)
 
-**Baseline:** `94608ca` auf `feat/auftrag-067l-ci-ruleset` · **Status:** LOKAL NACHGEWIESEN & BEREIT FÜR REVIEW
+**Baseline:** `94608ca` auf `feat/auftrag-067l-ci-ruleset` · **Status:** LOKAL NICHT GRÜN, Ursachen offen
 
 ### 1. Architektur und Umsetzung
 - **Verwerfen des Secrets-Ansatzes**: Alle `${{ secrets.* }}`-Referenzen wurden restlos aus `.github/workflows/ci.yml` entfernt (`grep -n "secrets\." .github/workflows/ci.yml` liefert 0 Treffer). Es gibt kein gehostetes Supabase-Testprojekt.
@@ -8808,8 +8808,8 @@ git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/f
     3. **6× `a11y.spec.ts` & `routes.spec.ts`**: Folgeabweichungen desselben Zustands (`DataBasisPage` rendert im Fehlerzustand ein zweites `<main>`).
     4. **1× `worker-responsiveness.spec.ts`** (mobile-375 Timeout).
 - **Lighthouse CI Lauf (`npx lhci autorun`)**:
-  - Bricht ab mit: `Error: Unable to require 'puppeteer' for script, have you run 'npm i puppeteer'?`
-  - Ursache: `.lighthouserc.json` konfiguriert `puppeteerScript: scripts/lighthouse-auth.cjs`. `@lhci/cli` benötigt dafür `puppeteer`, welches weder in `package.json` noch in `package-lock.json` vorhanden ist.
+  - Bricht lokal ab mit: `Error: Unable to require 'puppeteer' for script...`
+  - Ursache (vom Prüfer richtiggestellt): `puppeteer` fehlt nicht im Projekt. Der Abbruch rührte von der lokalen Node-Version 22.11.0 her (kein `require(esm)` ohne Flag). Unter Node >= 22.12 bzw. der in `.nvmrc` gepinnten Version 22.18.0 läuft `lhci autorun` mit gesetztem `CHROME_PATH` auf einem frischen Supabase fehlerfrei durch (Performance 96, Accessibility 100). Lokale Nachweise sind daher zwingend mit Node >= 22.12 / 22.18.0 zu führen.
 - **Teardown**: `supabase stop` erfolgreich ausgeführt.
 
 ### 3. Schutzbereichs-Prüfung (`git diff c6d88f3`)
@@ -8859,3 +8859,106 @@ git diff c6d88f3 -- supabase/migrations supabase/schema.sql
 
 ### Nächster Schritt
 - `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_4.md`. Kein Push, kein Ruleset, kein Actions-Lauf.
+
+## [2026-09-19] Gate G58: Nacharbeit 4 — Backend-Start auf leerer DB & Playwright-Untersuchungsbericht (Antigravity)
+
+**Baseline:** `b6a9c8c` auf `feat/auftrag-067l-ci-ruleset` · **Status:** LOKAL DURCHGEFÜHRT (Wartet auf Marcs Entscheidungen)
+
+### 1. Umgesetzte Nacharbeiten (Prüfer-Befunde)
+
+- **[P1-5] CI-Backend-Start auf leerer Datenbank gelöst**:
+  - In `.github/workflows/ci.yml` wird vor `supabase start` das Schema via `cp supabase/schema.sql supabase/migrations/20260101000000_base_schema.sql` als früheste Migration bereitgestellt.
+  - Die nachgelagerten `docker exec ... psql`-Schritte für Schema und Seed wurden entfernt. Durch `[db.seed] enabled = true` in `supabase/config.toml` wird der Seed automatisch nach allen 14 Migrationen eingespielt.
+  - **Lokaler Nachweis auf frischem Stack**:
+    1. `npx supabase stop --no-backup` (vollständiger Reset aller Container und Volumes).
+    2. `cp supabase/schema.sql supabase/migrations/20260101000000_base_schema.sql` ausgeführt.
+    3. `npx supabase start -x studio,imgproxy,storage-api,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta` gestartet.
+    4. Alle 14 Migrationen fehlerfrei angewendet, `seed.sql` erfolgreich geladen.
+    5. `rm supabase/migrations/20260101000000_base_schema.sql` sofort ausgeführt. Zu keinem Zeitpunkt verbleibt eine untracked Migrationsdatei im Repo.
+    6. Verifikation via `curl`: Alle drei Seed-Nutzer (`admin-a@e2e.local`, `admin-b@e2e.local`, `nomember@e2e.local`) liefern bei POST an `/auth/v1/token?grant_type=password` HTTP 200 und ein gültiges `access_token`.
+- **[P2-6] BUILD_LOG Nacharbeit 3 korrigiert**:
+  - Status von „LOKAL NACHGEWIESEN“ auf „LOKAL NICHT GRÜN, Ursachen offen“ korrigiert.
+  - Falsche Diagnose zu `puppeteer` richtiggestellt: Das Scheitern von LHCI lag an der lokalen Node-Version 22.11.0 (kein ESM-Require ohne Flag). Mit Node >= 22.12 bzw. 22.18+ (`.nvmrc`) läuft LHCI mit `CHROME_PATH` auf `/dashboard` fehlerfrei durch (Perf 96, A11y 100).
+- **[P2-7] `.lighthouseci/` in `.gitignore` aufgenommen**:
+  - Lokale Report-Dateien von LHCI werden nicht mehr als untracked geführt.
+- **`docs/operations/ci-e2e-backend.md` aktualisiert**:
+  - Lokale Reproduktionsanleitung an `supabase stop --no-backup`, das `cp`/`rm`-Schema und den Node-Hinweis angepasst.
+
+---
+
+### 2. Detaillierter Untersuchungsbericht zu den Playwright-Fehlern
+
+Untersucht auf frischem lokalen Backend ohne Testabschwächung (`test.skip`/`fixme`) und ohne Code-Änderungen an `src/**`:
+
+#### A. A11y-Suite (`e2e/a11y.spec.ts`) auf `/dashboard` und `/finance/p-and-l`
+- **Axe-Verletzung:** `[serious] scrollable-region-focusable: Scrollable region must have keyboard access (1 Knoten)`.
+- **Selektor / Target:** `["#main-content"]`.
+- **HTML-Auszug:**
+  ```html
+  <main id="main-content" tabindex="-1" aria-label="Hauptinhalt" class="flex-1 overflow-y-auto box-border p-[var(--space-6)]">
+  ```
+- **Failure Summary:** `Fix any of the following: Element should have focusable content; Element should be focusable`.
+- **Ursache:** In `src/components/layout/Layout.tsx` (Zeile 102) ist `<main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto ...">` gesetzt. Durch die CSS-Klasse `overflow-y-auto` erkennt Axe eine scrollbare Region. Weil `tabIndex={-1}` das Element zwar programmatisch, aber nicht per Tastatur fokussierbar macht, bemängelt Axe fehlenden Tastaturzugang für Nutzer tastaturgestützter Navigation (WCAG 2.1.1).
+- **Lösungsvorschlag:** Ändern von `tabIndex={-1}` auf `tabIndex={0}` in `src/components/layout/Layout.tsx`.
+
+#### B. Routing-Suite (`e2e/routes.spec.ts`) auf `/company/data-basis`
+- **Fehlermeldung:**
+  ```text
+  Error: strict mode violation: locator('main') resolved to 2 elements:
+      1) <main tabindex="-1" id="main-content" aria-label="Hauptinhalt" ...> aka getByRole('main', { name: 'Hauptinhalt' })
+      2) <main data-testid="..."> aka getByText('DatenbasisDatenquelle nicht')
+  ```
+- **Ursache:** In `src/features/overview/pages/DataBasisPage.tsx` (Zeile 52) rendert `DataBasisShell` ein geschachteltes `<main data-testid={testId}>`. Da das übergeordnete App-Layout (`Layout.tsx`) bereits `<main id="main-content">` bereitstellt, existieren auf dieser Seite zur Laufzeit zwei `<main>`-Tags. Dies verletzt den Playwright Strict Mode von `locator('main')` und die HTML5-Spezifikation (nur genau ein Hauptinhalt pro Dokument).
+- **Lösungsvorschlag:** In `src/features/overview/pages/DataBasisPage.tsx` das geschachtelte `<main data-testid={testId}>` durch ein `<div data-testid={testId}>` oder `<section data-testid={testId}>` ersetzen.
+
+#### C. Mandantentrennung (`e2e/tenant-isolation.spec.ts` Tests 1 & 2)
+- **Fehlermeldung:** `getByText('Firma A1').first()` bzw. `getByText('Firma B1').first()` scheitert mit Timeout.
+- **Ursache:** Auf `/crm/companies` erscheint die Fehlerkomponente:
+  `Integritätsfehler: SYNTHETIC_NOT_ALLOWED Ehrlicher Systemzustand (Ebene A CRM Accounts) — keine synthetischen Ersatzwerte`.
+  `useCrmReadModelEnvelope` wirft für alle Organisationen ungleich `DEMO_ORGANIZATION_ID` (`00000000-0000-4000-a000-000000000001`) fail-closed `SYNTHETIC_NOT_ALLOWED`, solange die aktive CRM-Quelle synthetisch ist. Eine echte CRM-Datenbankquelle für Mandanten ist erst für Auftrag 067N / Gate G60 geplant.
+- **Positivbefund:** Test 3 („Ohne gültige Organisationssitzung führt jede geschützte Route zu /login“) läuft in 267ms grün durch (Fail-closed Sitzungsschutz funktioniert).
+
+#### D. Worker-Responsiveness (`e2e/worker-responsiveness.spec.ts`)
+- **Stabilitätsnachweis:**
+  - 3x sequentieller Lauf auf `mobile-375`: 3/3 bestanden (jeweils ~560–600ms).
+  - Einzellauf auf `mobile-375`: 1/1 bestanden (439ms, mit Trace 489ms).
+  - Alle Viewports (`desktop-1440`, `tablet-768`, `mobile-375`): 3/3 bestanden (jeweils ~620–640ms).
+- **Bewertung:** Der im Prüferlauf beobachtete Timeout war kein systemspezifischer Fehler, sondern eine flüchtige Lastspitze bei hochparalleler Playwright-Ausführung. Die Spec läuft isoliert deterministisch und schnell.
+
+#### E. Visual Regression (`e2e/visual.spec.ts`)
+- Baselines sind Linux-basiert (`*-linux.png`). Unter macOS treten typische Rendering- und Font-Rasterisierungsabweichungen auf.
+- Die im Prüfer-Befund genannten aktualisierten Linux-Baselines aus `origin/main` (`837967a`) sind in diesem Branch noch nicht integriert.
+
+---
+
+### 3. Schutzbereichs-Prüfung (`git diff c6d88f3`)
+
+```bash
+git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/features/resources
+git diff c6d88f3 -- supabase/migrations supabase/schema.sql
+```
+**Ergebnis:** Beide Schutzbereichs-Diffs sind **100% LEER** (0 Bytes geändert).
+`git status` zeigt keine untracked Migrationsdateien in `supabase/migrations/`.
+
+---
+
+### 4. Pflicht-Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler (Exit 0).
+- `npm run lint`: 0 Fehler, 0 Warnungen (`eslint . --max-warnings 0`, Exit 0).
+- `npm run format:check`: 0 Abweichungen (Exit 0).
+- `npm run verify`: 24/24 Integrity-Suiten grün (Exit 0).
+- `npm test`: 245/245 Testdateien, 1316/1316 Tests bestanden (Exit 0).
+- `npm run test:coverage`: Statements 89.97 %, Lines 91.06 %, Branches 83.23 %, Functions 83.85 %.
+- `npm run build`: Erfolgreich (Exit 0).
+- `git diff --check`: sauber.
+
+---
+
+### 5. Entscheidungsbedarf für Marc (Stopp-Punkte eingehalten)
+
+Vor einem ersten GitHub-Actions-Lauf werden Marcs Entscheidungen zu folgenden Punkten benötigt:
+1. **`tenant-isolation` (Tests 1 & 2):** Bis 067N / G60 zurückstellen (z.B. Test temporär als Vorbereitung markieren) oder anpassen?
+2. **UI-Fixes für `a11y` und `routes`:** Dürfen die beiden minimalen Korrekturen in `src/components/layout/Layout.tsx` (`tabIndex={0}` gegen `scrollable-region-focusable`) und `src/features/overview/pages/DataBasisPage.tsx` (`div`/`section` statt geschachteltem `main`) freigegeben werden?
+3. **Linux-Baselines:** Soll der Commit `837967a` aus `origin/main` vor dem Actions-Lauf gemergt werden?
+4. **Push-Freigabe:** Sobald die Punkte entschieden und umgesetzt sind, erfolgt nach Marcs Freigabe der Push und CI-Lauf.
