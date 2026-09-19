@@ -8538,3 +8538,65 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 
 ### Freigabestatus
 - **G57: FREIGEGEBEN** (mit befristeter Risikoausnahme bis G58). Kein Push, keine Integration, kein Merge/Tag ohne ausdrückliche Freigabe.
+
+## [2026-09-19] Gate G58: Fail-closed CI, SHA-Pinning und Ruleset (Antigravity)
+
+**Baseline:** `c6d88f3` (G57 freigegeben) · **Branch:** `feat/auftrag-067l-ci-ruleset` · **Status:** LOKAL FERTIG (Wartet auf Freigabe für Push/Ruleset/Actions)
+
+### 1. Ziel und Kontext
+Umsetzung von Teilauftrag 067L / Gate G58 des Master-Plans v2.3.0. Härtung der CI/CD-Pipeline und des Release-Prozesses auf echtes Fail-Closed-Verhalten:
+1. Vollständige Schließung der befristeten G57-Auflage: `npm audit` auf 0 High / 0 Critical / 0 Total gebracht; `PR-DEPENDENCY-15` wieder auf die strikte Form `audit.all.high === 0` ohne Risiko-Häkchen zurückgesetzt.
+2. Neues Fail-closed Release-Readiness-Audit-Skript `scripts/verifyV23ReleaseReadiness.ts` inklusive Tests `scripts/__tests__/verifyV23ReleaseReadiness.vitest.ts`.
+3. Vollständiges SHA-Pinning (40-stellige Commit-SHAs) aller externen GitHub Actions in `.github/workflows/ci.yml`; Ausführung von E2E, Axe, Migration, Audit und Readiness auf PRs und `main`.
+4. Vollständige Dokumentation und Vorbereitung des GitHub Branch-Rulesets für `main` in `docs/operations/github-main-ruleset.md`.
+
+### 2. Geänderte und neue Dateien
+- `scripts/verifyV23ReleaseReadiness.ts` (neu): Fail-closed Release-Readiness Orchestrator; misst alle Kennzahlen im aktuellen Zustand ohne Default-/Baseline-Fallbacks; beendet sich bei Mängeln oder fehlenden Artefakten strikt mit Exit 1.
+- `scripts/__tests__/verifyV23ReleaseReadiness.vitest.ts` (neu): 8 Vitest-Tests gegen fehlende Coverage-, Lighthouse-, Audit-, Migration-, E2E- und Bundle-Artefakte sowie rote Unterprozesse (alle 8 grün).
+- `docs/operations/github-main-ruleset.md` (neu): Detaillierte Ruleset-Spezifikation für `main` auf `mapoenisch/leadpilot-dashboard-crm-v2` inklusive API-Aufrufen zur Erstellung und Verifikation.
+- `.github/workflows/ci.yml`: Alle Actions auf 40-stellige SHAs gepinnt (`checkout`, `setup-node`, `upload-artifact`, `cache`); E2E-Job um Trigger für `refs/heads/main` erweitert; Axe Accessibility und `ReleaseReadiness` integriert.
+- `.lighthouserc.json`: Bereinigt und vorbereitet.
+- `package.json`: Overrides für `tmp` (0.2.7), `uuid` (^11.1.1) und `@puppeteer/browsers` (^3.2.2); neues Script `"verify:v23:readiness"`.
+- `package-lock.json`: Transitive Abhängigkeiten bereinigt, 0 Vulnerabilities.
+- `vitest.config.ts`: `scripts/__tests__/**/*.vitest.ts` in `unit`-Projekt aufgenommen.
+- `src/review/acceptance/qualityRelease.acceptance.ts`: `PR-RELEASE-17` auf `scripts/verifyV23ReleaseReadiness.ts` umgestellt; `PR-DEPENDENCY-15` auf strikt `audit.all.high === 0` ohne Risikoausnahme zurückgesetzt.
+- `src/review/acceptance/findingContract.ts`: `PASSING_SINCE_G58` für `PR-RELEASE-17` und `PR-CI-18` eingetragen.
+- `docs/reviews/v2.3.0-known-findings.json` & `docs/reviews/v2.3.0-finding-register.md`: Synchron auf Passing für `PR-RELEASE-17` und `PR-CI-18` aktualisiert.
+- `docs/reviews/v2.3.0-npm-audit-baseline.json`: Aktualisiert auf 0/0/0/0 (Produktion und Gesamt).
+- `docs/reviews/v2.3.0-audit-risk-acceptance.md`: Vollständige Schließung der Auflage dokumentiert.
+
+### 3. Bewertung des Remote-Commits `837967a` auf `origin/main`
+- Commit `837967a` („test(visual): Baselines nach G39 nachziehen und Toleranz auf 0.001 (#12)“, 2026-09-15) fügt `.github/workflows/update-visual-baselines.yml` hinzu, aktualisiert Visual-Snapshot-PNGs in `e2e/visual.spec.ts-snapshots/` und passt `maxDiffPixelRatio` in `playwright.config.ts` von 0 auf 0.001 an.
+- **Bewertung:** Keine Berührung mit Kernlogik oder Schutzbereichen. Kein Rebase/Merge vor der Gesamtfreigabe durch Marc.
+
+### 4. Schutzbereichs-Prüfung (`git diff c6d88f3`)
+```
+git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/features/resources
+```
+**Ergebnis:** 100% LEER (0 Bytes geändert). Alle Schutzbereiche vollständig unberührt.
+
+### 5. Automatisierte Verifikation (alle Pflichtprüfungen grün)
+- `npx tsc --noEmit`: 0 Fehler (Exit 0)
+- `npm run lint`: 0 Fehler, 0 Warnungen (`eslint . --max-warnings 0`) (Exit 0)
+- `npm run format:check`: 0 Abweichungen (Exit 0)
+- `npm run verify`: 24/24 Integrity-Suiten (001 bis 025) grün (Exit 0)
+- `npm run test:coverage`: Statements 89.97 %, Lines 91.06 %, Branches 83.23 %, Functions 83.85 % (Schwellen 80/80/75/70 erfüllt) (Exit 0)
+- `npm test`: 244/244 Dateien, 1310/1310 Tests grün (Exit 0)
+- `npm run build`: Produktions-Build erfolgreich (Exit 0)
+- `npm audit --omit=dev`: 0 Befunde (Exit 0)
+- `npm audit --audit-level=high`: 0 Befunde (Exit 0)
+- `git diff --check`: sauber (Exit 0)
+
+### 6. Sollverträge Status
+- `[PR-DEPENDENCY-15]`: ✅ GRÜN (Audit total=0, high=0, critical=0)
+- `[PR-QUALITY-16]`: ✅ GRÜN (Lint 0/0, Prettier 0, Coverage 80/80/75/70)
+- `[PR-RELEASE-17]`: ✅ GRÜN (Readiness ehrlich per Exit-Code, kein Fallback)
+- `[PR-CI-18]`: ✅ GRÜN (Alle Actions SHA-gepinnt, E2E auf PR und main mit A11y & Readiness)
+- `[PR-LICENSE-19]`: ⏳ ROT (planmäßig Gate G65)
+- `[PR-BRANCH-20]`: ⏳ ROT (wartet auf Freigabe zur Ruleset-Aktivierung via GitHub API)
+
+### 7. Ergebnis und Freigabestatus
+**G58 lokal fertig, wartet auf Freigabe für Push/Ruleset/Actions.**
+- Kein `git push` erfolgt.
+- Kein Ruleset auf GitHub angelegt.
+- Kein GitHub-Actions-Lauf ausgelöst.

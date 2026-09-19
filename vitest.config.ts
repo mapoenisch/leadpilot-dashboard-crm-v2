@@ -18,7 +18,11 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           setupFiles: ['./vitest.setup.ts'],
-          include: ['src/**/*.vitest.ts', 'src/**/*.vitest.tsx'],
+          include: [
+            'src/**/*.vitest.ts',
+            'src/**/*.vitest.tsx',
+            'scripts/__tests__/**/*.vitest.ts',
+          ],
           exclude: ['src/**/*.ui.vitest.ts', 'src/**/*.ui.vitest.tsx'],
         },
       },

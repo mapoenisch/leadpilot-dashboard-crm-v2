@@ -133,7 +133,7 @@
     "severity": "important",
     "targetGate": "G58",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-CI-18",
@@ -141,7 +141,7 @@
     "severity": "important",
     "targetGate": "G58",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-LICENSE-19",

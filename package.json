@@ -16,6 +16,7 @@
     "test:v23:findings": "vitest run --config vitest.v23-findings.config.ts --reporter=json --outputFile=test-results/v23-findings/vitest.json",
     "test:v23:clipping": "playwright test --config playwright.v23-findings.config.ts",
     "verify:v23:baseline": "tsx scripts/verifyV23FindingBaseline.ts",
+    "verify:v23:readiness": "tsx scripts/verifyV23ReleaseReadiness.ts",
     "lint": "eslint . --max-warnings 0",
     "lint:report": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
@@ -76,7 +77,9 @@
     "vitest": "^4.1.11"
   },
   "overrides": {
-    "tmp": "0.2.7"
+    "tmp": "0.2.7",
+    "uuid": "^11.1.1",
+    "@puppeteer/browsers": "^3.2.2"
   },
   "engines": {
     "node": ">=22.18.0 <23",

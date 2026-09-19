@@ -1,7 +1,5 @@
-# Gate G31 (Auftrag 046): CI-Pipeline. Alle sechs Jobs, e2e nur bei PR +
-# workflow_dispatch (privates Repo, Actions-Minuten). lint/typecheck als
-# Baseline-Ratsche (R2, G30-Stand) — NICHT continue-on-error, NICHT weglassen.
-# G35 senkt die Baselines schrittweise auf 0.
+# Gate G58 (Auftrag 067L): CI-Pipeline. Fail-closed, SHA-Pinning aller externen
+# Actions, vollständige E2E-, A11y- und Readiness-Prüfung bei PR und main.
 name: CI
 
 on:
@@ -19,8 +17,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22.18.0
           cache: npm
@@ -34,8 +32,8 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22.18.0
           cache: npm
@@ -49,8 +47,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22.18.0
           cache: npm
@@ -59,9 +57,17 @@ jobs:
         run: npm run test:coverage
       - name: Legacy-Harness (Parallelbetrieb bis Schritt d)
         run: npm run verify
+      - name: Dependency Audit Check
+        run: |
+          npm audit --omit=dev
+          npm audit --audit-level=high
+      - name: Migration Integrity Check
+        run: |
+          test -d supabase/migrations
+          test $(ls supabase/migrations/*.sql 2>/dev/null | wc -l) -gt 0
       - name: Coverage-Bericht als Artefakt
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: coverage
           path: coverage/
@@ -69,8 +75,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22.18.0
           cache: npm
@@ -78,12 +84,10 @@ jobs:
       - run: npm run build
 
   livekpi-verifiers:
-    # G31 (Nacharbeit Runde 3): alle 2 Live-KPI-Verifier laufen automatisch.
-    # Surface-Abschnitt 11 (042-Harness-Check) entfernt — S8-Folge, Ersatz Playwright.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22.18.0
           cache: npm
@@ -94,8 +98,8 @@ jobs:
   size-limit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22.18.0
           cache: npm
@@ -104,17 +108,17 @@ jobs:
       - run: npx size-limit
 
   e2e:
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22.18.0
           cache: npm
       - run: npm ci
       - name: Playwright-Browser cachen
-        uses: actions/cache@v4
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-1243
@@ -122,18 +126,21 @@ jobs:
             playwright-chromium-${{ runner.os }}-
       - run: npx playwright install --with-deps chromium
       - run: npx vite build
-      - run: npx playwright test
+      - name: Playwright E2E & Axe Accessibility Tests
+        run: npx playwright test e2e/a11y.spec.ts && npx playwright test
       - name: Lighthouse CI
         run: npx lhci autorun
+      - name: ReleaseReadiness Orchestrator (Fail-Closed)
+        run: npx tsx scripts/verifyV23ReleaseReadiness.ts
       - name: Playwright-Report als Artefakt
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: playwright-report
           path: playwright-report/
       - name: Lighthouse-Report als Artefakt
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: lighthouse-report
           path: .lighthouseci/
