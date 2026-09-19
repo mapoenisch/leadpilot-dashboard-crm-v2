@@ -182,6 +182,14 @@ vollständige Commit-SHAs gepinnt. `main` besitzt ein aktives GitHub-Ruleset mit
 Request-Pflicht, Required Checks und gesperrtem Direktpush. Der echte Actions-Lauf ist
 grün. Erst damit sind alle Review-Mängel behoben.
 
+**Auflage aus dem G57-Review (2026-09-19, befristete Ausnahme):** G57 wurde mit 6
+dev-only High-Advisories in der `@lhci/cli@0.15.1`-Kette abgenommen (Freigabe Marc
+Poenisch, `docs/reviews/v2.3.0-audit-risk-acceptance.md`). 067L muss (1) die
+LHCI-Kette schließen und den LHCI-Lauf im echten Actions-Lauf nachweisen und (2) den
+Sollvertrag `[PR-DEPENDENCY-15]` in `qualityRelease.acceptance.ts` wieder auf
+`audit.all.high === 0` ohne Risiko-Häkchen zurücksetzen. G58 ist ohne beides nicht
+abnahmefähig.
+
 ### 067M / G59 — Mitgliederverwaltung
 
 **Ergebnis:** Admins laden ein, widerrufen, deaktivieren und ändern Rollen. Manager und

@@ -8506,3 +8506,35 @@ Beide neuen Suiten rot (`Cannot find module`); Workflow-Befund PR-HUBSPOT-10 rot
 - `npm run verify`: 24/24 Integrity-Suiten grün (001 bis 025).
 - `npm run build`: Produktions-Build erfolgreich.
 - **G57-Status: ERNEUT BEREIT FÜR UNABHÄNGIGES REVIEW.** Kein Push, keine Integration.
+
+## [2026-09-19] Gate G57: Unabhängiger Prüfer-Befund zur Nacharbeit (Claude Code, kein Push)
+
+**Geprüfter Stand:** `051e8c4` auf `feat/auftrag-067k-toolchain` (Baseline G57: `62e7651`).
+
+### Ergebnis: FREIGEGEBEN mit befristeter, dokumentierter Risikoausnahme
+
+- Blocker [P1] aus dem ersten Review (`PR-DEPENDENCY-15` / `PR-QUALITY-16` fehlten im Passing-Status von `findingContract.ts`) ist behoben; `findingContract.characterization.vitest.ts` grün.
+
+### Selbst nachgefahrene Verifikation
+- `npx tsc --noEmit`: 0 Fehler. `npm run lint` (`--max-warnings 0`): grün. `npm run format:check`: grün. `git diff --check 62e7651 HEAD`: sauber.
+- `npm run verify`: alle Suiten 001–025 grün. `npm test`: 243/243 Dateien, 1302/1302 Tests.
+- `npm run test:coverage`: Lines 91,06 %, Branches 83,23 %, Functions 83,85 %, Statements 89,97 % (Schwellen 80/80/75/70 erfüllt).
+- `npm run build`: grün. `npm audit --omit=dev`: 0 Befunde; `npm audit` gesamt: 7 (6 high, 1 moderate, 0 critical).
+- Sollverträge `[PR-DEPENDENCY-15]` und `[PR-QUALITY-16]` in `qualityRelease.acceptance.ts` grün. Rot bleiben erwartungsgemäß nur die G58-Findings `PR-CI-18`, `PR-RELEASE-17`, `PR-LICENSE-19`, `PR-BRANCH-20`.
+
+### Schutzbereichs-Prüfung (`git diff 62e7651 HEAD`)
+- `src/context/**`: unberührt.
+- `src/types/**`, `src/services/data/**`: ausschließlich Formatierung (Vergleich ohne Whitespace/Kommas/Klammern identisch).
+- `src/simulation/**`, `src/features/resources/**`: inhaltliche Änderungen nur in den laut Master-Auftrag 067K erlaubten Splits (`scenarioService`, `eventRules`, `ResourceViewer`) und Test-Splits; übrige Dateien formatierungsgleich. Golden-Run-Charakterisierung grün.
+
+### Abweichung vom Master-Auftrag und Risikofreigabe
+- Der Master-Auftrag verlangt für G57 "hohe/kritische Gesamtadvisories sind null". **Nicht erreicht:** 6 dev-only Highs in der gepinnten `@lhci/cli@0.15.1`-Kette (`lighthouse`, `puppeteer-core`, `@puppeteer/browsers`, `extract-zip`, `@lhci/cli`, `@lhci/utils`); kein Produkt-/Bundle-Bezug, `npm audit --omit=dev` = 0.
+- **Befund:** Das Freigabe-Häkchen in `docs/reviews/v2.3.0-audit-risk-acceptance.md` und die Aufweichung des Sollvertrags `[PR-DEPENDENCY-15]` (`high <= 6` bei gesetztem Häkchen) stammten vom Builder, ohne belegte Freigabe.
+- **Freigabe:** Marc Poenisch hat die Ausnahme am 2026-09-19 im Review-Dialog ausdrücklich erteilt. Die Freigabe gilt ab dieser Bestätigung; Risikonachweis entsprechend korrigiert.
+- **Befristung / Auflage für 067L (G58):** Die Ausnahme endet mit 067L. 067L muss (1) die LHCI-Kette schließen und den LHCI-Lauf im echten Actions-Lauf nachweisen und (2) `[PR-DEPENDENCY-15]` wieder auf `audit.all.high === 0` ohne Risiko-Häkchen zurücksetzen. G58 ist ohne beides nicht abnahmefähig. Auflage ist im Master-Auftrag (Abschnitt 067L) und im Risikonachweis verankert.
+
+### Nebenbefund (kein Blocker)
+- `npm run verify:v23:baseline` bricht lokal ab (`E2E_AUTH_EMAIL` nicht gesetzt, zwei Marker-Fehler `PR-FREEZE-07`/`PR-PERSIST-08`): Umgebungsproblem, nicht durch G57 verursacht; von 067L zu berücksichtigen.
+
+### Freigabestatus
+- **G57: FREIGEGEBEN** (mit befristeter Risikoausnahme bis G58). Kein Push, keine Integration, kein Merge/Tag ohne ausdrückliche Freigabe.
