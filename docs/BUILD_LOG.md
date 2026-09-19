@@ -8666,7 +8666,8 @@ Alle lokalen Gates sind grün, der echte Actions-Lauf würde aber nachweislich r
   - `scripts/lighthouse-auth.cjs`: Komplett auf echten Supabase-Login umgebaut (`/login`, Eingabe in `#login-email` und `#login-password`, Submit, Warten auf `/dashboard` und `[data-testid="logout-button"]`). Fail-closed: Fehlen `E2E_AUTH_EMAIL` oder `E2E_AUTH_PASSWORD`, bricht das Skript mit klarer Fehlermeldung ab. Keine Fake-Session mehr.
   - `.github/workflows/ci.yml`: Im Job `e2e` werden Secrets gezielt per `env:` an die Schritte `Build für E2E und Lighthouse` (`VITE_SUPABASE_*`), `Playwright E2E & Axe Accessibility Tests` (`E2E_*`) und `Lighthouse CI` (`E2E_AUTH_*`) übergeben.
   - `docs/operations/ci-secrets.md`: Neue Dokumentationsdatei angelegt mit Übersicht aller 9 benötigten Secrets, Verwendungszweck, CI-Schritten und Anleitung zur Hinterlegung per `gh secret set`. Keine Werte enthalten.
-  - **Bekanntes Problem gelöst**: Ursache für den Abbruch bei `verify:v23:baseline` (`PR-FREEZE-07`, `PR-PERSIST-08`) war das Fehlen von `E2E_AUTH_EMAIL` im CI- bzw. lokalen Test-Runner. Durch die strukturierte Secrets-Übergabe in CI und die Dokumentation ist dies gelöst.
+  - **Bekanntes Problem präzisiert ([P2-5])**: Ursache für den Playwright-Report-Fehler in `verify:v23:baseline` geklärt (fehlende `E2E_AUTH_EMAIL` in CI/lokal). Die separaten Marker-Fehler `PR-FREEZE-07` und `PR-PERSIST-08` in `verify:v23:baseline` bleiben bis zur Behebung der dortigen Tests/Marker offen.
+  - **Lokaler LHCI-Nachweis ([P2-5])**: Mangels lokal gesetzter E2E-Credentials in der Entwicklungsumgebung konnte ein authentifizierter Login lokal nicht ausgeführt werden (nur `lhci healthcheck` erfolgreich); der vollständige authentifizierte Nachweis erfolgt im GitHub Actions-Lauf.
 - **[P2-1] Doku richtiggestellt**:
   - Builder-Eintrag G58 bzgl. `.lighthouserc.json` korrigiert.
   - `docs/reviews/v2.3.0-audit-risk-acceptance.md`: Klarstellung, dass Audit 0 erreicht ist, der LHCI-Lauf im echten Actions-Lauf jedoch noch nachzuweisen ist; endgültige Ablösung der G57-Ausnahme erfolgt nach erfolgreichem Actions-Run.
@@ -8721,3 +8722,44 @@ git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/f
 
 ### Nächster Schritt
 - `docs/auftraege/ANTIGRAVITY_AUFTRAG_067L_NACHARBEIT_2.md` (P1-4, P2-5, P3). Kein Push, kein Ruleset, kein Actions-Lauf bis dahin.
+
+## [2026-09-19] Gate G58: Nacharbeit 2 — Artefakt-Sicherheit, Workflow-Permissions & Doku-Präzisierung (Antigravity)
+
+**Baseline:** `6b40ec4` auf `feat/auftrag-067l-ci-ruleset` · **Status:** LOKAL FERTIG (Wartet auf Marc: Secrets anlegen + Freigabe für Push/CI-Lauf)
+
+### 1. Umgesetzte Nacharbeit durch Antigravity
+- **[P1-4] Playwright-Report-Artefakt gegen Secret Leakage gehärtet**:
+  - `playwright.config.ts`: In CI (`process.env.CI`) werden `trace: 'off'`, `video: 'off'` und `screenshot: 'off'` erzwungen. Verhindert, dass getippte Test-Passwörter oder Auth-Request-Bodies in öffentlich herunterladbaren Artefakten des Repos landen. Lokal bleibt `trace: 'on-first-retry'` aktiv.
+  - `ci.yml`: Für beide Report-Uploads (`playwright-report` und `lighthouse-report`) wurde `retention-days: 7` konfiguriert.
+  - `scripts/__tests__/ciSecurityConfig.vitest.ts` (neu): Automatischer Test prüft strikt die Deaktivierung von Trace/Video/Screenshot in CI, das Vorhandensein von `permissions: contents: read` und die 7-Tage-Retention.
+  - **Rot-vor-Grün-Nachweis**: Temporäres Setzen von `trace: 'on'` schlug erwartungsgemäß fehl (`AssertionError: expected ... not to match /trace:\s*['"](on|on-first-retry|retain-on-failure)['"]/`). Nach Revert 3/3 Tests grün.
+  - `docs/operations/ci-secrets.md`: Sicherheitsrichtlinie ergänzt (Wegwerf-Konten, isolierte Passwörter, sofortige Rotation bei Verdacht).
+- **[P3] Workflow-Berechtigungen auf das Minimum beschränkt**:
+  - `ci.yml` auf Root-Ebene mit `permissions: contents: read` versehen.
+  - Verifiziert: Alle Jobs (lint, typecheck, test, build, livekpi, size-limit, e2e inkl. Cache und Artifact-Upload) benötigen keine weitergehenden Schreibberechtigungen; `PR-CI-18` bleibt 1/1 grün.
+- **[P2-5] Aussagen zu Bekanntem Problem und lokalem LHCI-Nachweis präzisiert**:
+  - Aussage im Nacharbeit-1-Eintrag korrigiert: Ursache des Playwright-Report-Abbruchs ist das Fehlen der CI-Secrets; die separaten Marker-Fehler `PR-FREEZE-07` und `PR-PERSIST-08` in `verify:v23:baseline` bleiben bis zur Behebung der dortigen Tests/Marker offen.
+  - Lokaler LHCI-Nachweis: Mangels gesetzter E2E-Credentials in der lokalen Entwicklungsumgebung konnte ein authentifizierter Login lokal nicht ausgeführt werden (nur `lhci healthcheck` erfolgreich); der vollständige authentifizierte Nachweis erfolgt im GitHub Actions-Lauf.
+
+### 2. Schutzbereichs-Prüfung (`git diff c6d88f3`)
+```
+git diff c6d88f3 -- src/simulation src/types src/context src/services/data src/features/resources
+```
+**Ergebnis:** 100% LEER (0 Bytes geändert). Alle Schutzbereiche vollständig unberührt.
+
+### 3. Pflicht-Verifikation
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint`: 0 Fehler, 0 Warnungen (`eslint . --max-warnings 0`).
+- `npm run format:check`: 0 Formatierungsabweichungen.
+- `npm test`: 245/245 Dateien, 1316/1316 Tests grün (inkl. 3/3 ciSecurityConfig-Tests).
+- `npm run verify`: 24/24 Integrity-Suiten (001 bis 025) grün.
+- `npm run build`: Produktions-Build erfolgreich.
+- `npm audit --omit=dev`: 0 Befunde.
+- `npm audit --audit-level=high`: 0 Befunde.
+- `git diff --check`: sauber.
+
+### 4. Nächste Schritte (Stopp-Punkte eingehalten)
+1. **Marc legt die 9 Secrets** im Repo `mapoenisch/leadpilot-dashboard-crm-v2` an (gemäß `docs/operations/ci-secrets.md`) und bestätigt dies.
+2. **Freigabe von Marc abwarten**: Erst nach ausdrücklicher Freigabe Push des Feature-Branches `feat/auftrag-067l-ci-ruleset`.
+3. **CI-Lauf auslösen**: Da der `e2e`-Job nur bei `pull_request`, `workflow_dispatch` oder Push auf `main` läuft, wird entweder ein PR erstellt oder der Workflow manuell per `workflow_dispatch` auf dem Branch getriggert.
+4. Erst nach grünem Actions-Lauf: Branch-Ruleset via API aktivieren und `PR-BRANCH-20` abschließen.

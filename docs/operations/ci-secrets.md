@@ -54,3 +54,11 @@ gh secret set E2E_AUTH_EMAIL_NOMEMBER -R mapoenisch/leadpilot-dashboard-crm-v2
 - Alle Benutzer müssen in einem separaten Supabase-Testprojekt existieren.
 - Das Testprojekt darf keine Produktivdaten enthalten.
 - Organisation A und Organisation B müssen entsprechend vorkonfiguriert sein (`Firma A1` in Org A, `Firma B1` in Org B).
+
+---
+
+## Sicherheits- und Rotationsrichtlinie für Testkonten ([P1-4])
+
+- **Wegwerf-Konten**: Alle Test-Benutzerkonten müssen dedizierte Wegwerf-Konten sein, die ausschließlich für automatisierte Tests (CI und lokale E2E-Läufe) verwendet werden.
+- **Isolierte Passwörter**: Die vergebenen Passwörter dürfen nirgendwo sonst (weder privat noch in Produktivsystemen) zum Einsatz kommen.
+- **Unverzügliche Rotation**: Bei jeglichem Verdacht auf Offenlegung, versehentliche Trace-Aufzeichnung oder Kompromittierung müssen die Zugangsdaten im Supabase-Projekt sowie in den GitHub Secrets umgehend neu vergeben und rotiert werden.
