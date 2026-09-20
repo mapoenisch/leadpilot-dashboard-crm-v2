@@ -79,7 +79,7 @@ auf privilegierte Daten oder die Supabase-Service-Role sind verboten.
 
 | Art | Dateien |
 |---|---|
-| Create | `supabase/migrations/20260925_organization_invitations.sql`, `supabase/functions/manage-members/index.ts`, `supabase/functions/__tests__/manageMembers.test.ts`, `supabase/tests/member_management.sql`, `src/services/admin/memberService.ts`, `src/services/admin/__tests__/memberService.vitest.ts`, `src/features/admin/components/InvitationForm.tsx`, `src/features/admin/pages/MembersPage.tsx`, `src/features/admin/pages/__tests__/MembersPage.vitest.tsx`, `e2e/member-management.spec.ts`, `docs/screenshots/auftrag-067m-g59/README.md` |
+| Create | `supabase/migrations/20260927_organization_invitations.sql`, `supabase/functions/manage-members/index.ts`, `supabase/functions/__tests__/manageMembers.test.ts`, `supabase/tests/member_management.sql`, `src/services/admin/memberService.ts`, `src/services/admin/__tests__/memberService.vitest.ts`, `src/features/admin/components/InvitationForm.tsx`, `src/features/admin/pages/MembersPage.tsx`, `src/features/admin/pages/__tests__/MembersPage.vitest.tsx`, `e2e/member-management.spec.ts`, `docs/screenshots/auftrag-067m-g59/README.md` |
 | Modify | `src/app/routes.tsx`, `src/app/routePages.tsx`, `src/components/layout/Sidebar.tsx`, `docs/BUILD_LOG.md` |
 
 Jede weitere Datei ist ein Stopp-Punkt. Besonders `src/simulation/**`, `src/types/**`,
@@ -95,7 +95,7 @@ bestehende RLS-Policies außerhalb der ausdrücklich benötigten G59-Migration b
   Suspendierung können den letzten aktiven Admin entfernen. Ergänzend den roten Deno-Test für
   fehlenden/ungültigen Bearer-Token, fremde Ziel-ID und die zulässigen Fehlercodes schreiben.
 - [ ] **Step 2 — Migration und serverseitiger Verwaltungsendpunkt:**
-  `20260925_organization_invitations.sql` idempotent schreiben. Sie enthält Tabelle,
+  `20260927_organization_invitations.sql` idempotent schreiben. Sie enthält Tabelle,
   Fremdschlüssel, Status-/Ablauf-Constraints, RLS Default-Deny und eine transaktionale
   Trigger-/Function-Sperre für `LAST_ACTIVE_ADMIN`. Danach `manage-members` mit den Operationen
   `list`, `invite`, `revokeInvitation`, `changeRole` und `deactivateMember` minimal
