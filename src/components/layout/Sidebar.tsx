@@ -6,6 +6,7 @@ import { Icon } from '../ui/Icon';
 import { Badge } from '../ui/Badge';
 import { X } from 'lucide-react';
 import { routeForViewId, routeForPathname } from '@/app/routes';
+import { useOrganization } from '@/auth/organizationContext';
 
 export interface SidebarProps {
   isMobile?: boolean;
@@ -35,6 +36,8 @@ export function Sidebar({
 }: SidebarProps) {
   const location = useLocation();
   const currentRoute = routeForPathname(location.pathname);
+  const { session } = useOrganization();
+  const isAdmin = session?.role === 'admin';
 
   // Finde die Kategorie des aktuellen Pfads heraus
   const currentCategory = NAV_CATEGORIES.find((cat) =>
@@ -209,6 +212,21 @@ export function Sidebar({
             </div>
           );
         })}
+
+        {isAdmin && (
+          <div className="mt-[var(--space-3)] pt-[var(--space-3)] border-0 border-t border-solid border-border-soft">
+            <div className="px-[10px] py-[6px] font-body text-[11px] font-semibold uppercase tracking-[0.05em] text-accent">
+              Administration
+            </div>
+            <NavItem
+              to="/admin/members"
+              dataTestId="nav-item-admin-members"
+              label="Mitgliederverwaltung"
+              active={currentRoute.id === 's-admin-members'}
+              onClick={handleLinkClick}
+            />
+          </div>
+        )}
       </nav>
 
       <div className="border-0 border-t border-solid border-border-soft px-[var(--space-4)] py-[var(--space-3)] text-[11px] text-[var(--color-text-muted)]">

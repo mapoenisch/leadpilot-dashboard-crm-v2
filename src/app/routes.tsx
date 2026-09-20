@@ -253,6 +253,14 @@ export const APP_ROUTES = [
     title: 'Handelsregister',
     categoryLabel: 'Recht & Gründung',
   },
+
+  // 13. Administration (Admin-only)
+  {
+    id: 's-admin-members',
+    path: '/admin/members',
+    title: 'Mitgliederverwaltung',
+    categoryLabel: 'Administration',
+  },
 ] as const;
 
 export type AppRouteId = (typeof APP_ROUTES)[number]['id'];
@@ -283,7 +291,7 @@ export function routeForPathname(pathname: string): AppRouteMeta {
   };
 }
 
-// Dev-Guard: Prüft Vollständigkeit und Einzigartigkeit aller 41 IDs
+// Dev-Guard: Prüft Vollständigkeit und Einzigartigkeit aller IDs
 if (import.meta.env.DEV) {
   const allNavIds = new Set<string>();
   for (const cat of NAV_CATEGORIES) {
@@ -301,9 +309,11 @@ if (import.meta.env.DEV) {
     }
   }
 
-  if (APP_ROUTES.length !== allNavIds.size) {
+  const adminRouteIds = new Set(['s-admin-members']);
+  const standardRoutes = APP_ROUTES.filter((r) => !adminRouteIds.has(r.id));
+  if (standardRoutes.length !== allNavIds.size) {
     logger.error(
-      `[routes.tsx] Anzahl Routen (${APP_ROUTES.length}) weicht von NAV_CATEGORIES (${allNavIds.size}) ab!`,
+      `[routes.tsx] Anzahl Standard-Routen (${standardRoutes.length}) weicht von NAV_CATEGORIES (${allNavIds.size}) ab!`,
     );
   }
 }
