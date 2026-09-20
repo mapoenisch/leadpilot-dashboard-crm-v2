@@ -9,7 +9,18 @@ import { LogOut } from 'lucide-react';
 
 export type ThemeMode = 'dark' | 'light';
 
-const THEME_STORAGE_KEY = 'leadpilot-theme';
+export const THEME_STORAGE_KEY = 'leadpilot-theme';
+
+export function getInitialTheme(): ThemeMode {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(THEME_STORAGE_KEY) === 'light' ? 'light' : 'dark';
+    }
+  } catch {
+    // Private-Modus, SecurityError oder Storage nicht verfügbar: Fallback auf dark.
+  }
+  return 'dark';
+}
 
 export function Layout() {
   const location = useLocation();
@@ -18,16 +29,14 @@ export function Layout() {
   // G39 Welle 1 (Auftrag 054, Block A): explizite Theme-Umschaltung.
   // Standard exakt der heutige Zustand (dunkel), kein prefers-color-scheme-
   // Automatismus — Persistenz in localStorage.
-  const [theme, setTheme] = useState<ThemeMode>(() =>
-    typeof window !== 'undefined' && window.localStorage.getItem(THEME_STORAGE_KEY) === 'light'
-      ? 'light'
-      : 'dark',
-  );
+  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+      }
     } catch {
       // Private-Modus o. ä.: Theme gilt für die Session, kein Fehler.
     }
