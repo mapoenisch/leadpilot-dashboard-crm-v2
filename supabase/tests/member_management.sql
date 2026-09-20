@@ -7,7 +7,7 @@
 
 BEGIN;
 
-SELECT plan(21);
+SELECT plan(26);
 SET CONSTRAINTS ALL IMMEDIATE;
 
 -- ---------------------------------------------------------------- Setup --
@@ -238,6 +238,55 @@ SELECT throws_matching(
      VALUES ('a0000000-0000-0000-0000-00000000000a', 'invalid@test.local', 'viewer', 'a1111111-1111-1111-1111-111111111111', 'invalid_status') $$,
   'check constraint',
   'Ungueltiger Einladungsstatus wird durch CHECK constraint abgewiesen'
+);
+
+-- --------------------------------- 21: P0: Direkter RPC-Bypass durch authenticated wird abgewiesen
+SET LOCAL ROLE authenticated;
+SET LOCAL "request.jwt.claim.sub" TO 'a8888888-8888-8888-8888-888888888888';
+SELECT throws_matching(
+  $$ SELECT public.accept_organization_invitation('a8888888-8888-8888-8888-888888888888', 'invitee@member-test.local') $$,
+  'permission denied|FORBIDDEN|42501',
+  'Direkter RPC-Aufruf von accept_organization_invitation durch authenticated wird abgewiesen'
+);
+RESET ROLE;
+
+-- --------------------------------- 22: P1: Organisationswechsel ueber Einladung wird abgewiesen
+INSERT INTO public.organization_invitations (id, organization_id, email, role, invited_by, status)
+VALUES ('e2222222-2222-2222-2222-222222222222', 'a0000000-0000-0000-0000-00000000000a', 'admin-b@member-test.local', 'viewer', 'a1111111-1111-1111-1111-111111111111', 'pending');
+
+SELECT throws_matching(
+  $$ SELECT public.accept_organization_invitation('b4444444-4444-4444-4444-444444444444', 'admin-b@member-test.local', 'e2222222-2222-2222-2222-222222222222') $$,
+  'CANNOT_CHANGE_ORGANIZATION',
+  'Organisationswechsel eines bestehenden Mitglieds wird abgewiesen'
+);
+
+-- --------------------------------- 23: P2: E-Mail-Mismatch wird mit FORBIDDEN abgewiesen
+INSERT INTO public.organization_invitations (id, organization_id, email, role, invited_by, status)
+VALUES ('e3333333-3333-3333-3333-333333333333', 'a0000000-0000-0000-0000-00000000000a', 'mismatch@member-test.local', 'viewer', 'a1111111-1111-1111-1111-111111111111', 'pending');
+
+SELECT throws_matching(
+  $$ SELECT public.accept_organization_invitation('a8888888-8888-8888-8888-888888888888', 'other@member-test.local', 'e3333333-3333-3333-3333-333333333333') $$,
+  'FORBIDDEN',
+  'E-Mail-Mismatch bei Einladungsannahme wird mit FORBIDDEN abgewiesen'
+);
+
+-- --------------------------------- 24: P1: Automatischer Trigger bei E-Mail-Bestaetigung in auth.users
+INSERT INTO public.organization_invitations (id, organization_id, email, role, invited_by, status)
+VALUES ('e4444444-4444-4444-4444-444444444444', 'a0000000-0000-0000-0000-00000000000a', 'autouser@member-test.local', 'viewer', 'a1111111-1111-1111-1111-111111111111', 'pending');
+
+INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, last_sign_in_at)
+VALUES ('a9999999-9999-9999-9999-999999999999', 'authenticated', 'authenticated', 'autouser@member-test.local', 'x', now(), now());
+
+SELECT is(
+  (SELECT status FROM public.organization_invitations WHERE id = 'e4444444-4444-4444-4444-444444444444'),
+  'accepted',
+  'Trigger nimmt Einladung bei Auth-User Bestaetigung automatisch an'
+);
+
+SELECT is(
+  (SELECT role FROM public.organization_members WHERE user_id = 'a9999999-9999-9999-9999-999999999999'),
+  'viewer',
+  'Trigger legt Mitgliedschaft fuer bestaetigten User automatisch an'
 );
 
 ROLLBACK;

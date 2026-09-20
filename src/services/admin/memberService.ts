@@ -24,7 +24,6 @@ export interface OrganizationInvitation {
   status: InvitationStatus;
   createdAt: string;
   expiresAt: string;
-  invitationLink?: string | null;
 }
 
 export type MemberServiceErrorCode =
@@ -32,6 +31,7 @@ export type MemberServiceErrorCode =
   | 'FORBIDDEN'
   | 'LAST_ACTIVE_ADMIN'
   | 'INVITATION_NOT_PENDING'
+  | 'CANNOT_CHANGE_ORGANIZATION'
   | 'NOT_FOUND'
   | 'INVALID_REQUEST'
   | 'UNKNOWN';
@@ -92,6 +92,7 @@ async function callManageMembers<T = Record<string, unknown>>(
       rawCode === 'FORBIDDEN' ||
       rawCode === 'LAST_ACTIVE_ADMIN' ||
       rawCode === 'INVITATION_NOT_PENDING' ||
+      rawCode === 'CANNOT_CHANGE_ORGANIZATION' ||
       rawCode === 'NOT_FOUND' ||
       rawCode === 'INVALID_REQUEST'
     ) {

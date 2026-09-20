@@ -106,6 +106,9 @@ function createMockDb(): { db: ManageMembersDb; state: MockDbState } {
       if (token === 'invited-user-token') {
         return { id: '99999999-9999-9999-9999-999999999999', email: 'invited@org-a.local' };
       }
+      if (token === 'user-org-b-token') {
+        return { id: '44444444-4444-4444-4444-444444444444', email: 'invited@org-a.local' };
+      }
       return null;
     },
     getMembership: async (userId: string) => {
@@ -207,6 +210,10 @@ function createMockDb(): { db: ManageMembersDb; state: MockDbState } {
         (i) => i.email === normalizedEmail && i.status === 'pending',
       );
       if (!inv) return { error: 'NOT_FOUND' };
+      const existing = state.memberships.find((m) => m.userId === userId);
+      if (existing && existing.organizationId !== inv.organizationId) {
+        return { error: 'CANNOT_CHANGE_ORGANIZATION' };
+      }
       inv.status = 'accepted';
       state.memberships.push({
         userId,
@@ -401,4 +408,22 @@ Deno.test('ManageMembers: Annahme einer gültigen Einladung durch authentifizier
   assertEquals(data.status, 'accepted');
   assertEquals(data.role, 'viewer');
   assertEquals(data.organizationId, ORG_A_ID);
+});
+
+Deno.test('ManageMembers: Annahme durch Mitglied einer anderen Organisation liefert 409 CANNOT_CHANGE_ORGANIZATION', async () => {
+  const { db } = createMockDb();
+  const req = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer user-org-b-token',
+    },
+    body: JSON.stringify({
+      action: 'acceptInvitation',
+    }),
+  });
+  const res = await handleManageMembers(req, db);
+  assertEquals(res.status, 409);
+  const data = await res.json();
+  assertEquals(data.code, 'CANNOT_CHANGE_ORGANIZATION');
 });

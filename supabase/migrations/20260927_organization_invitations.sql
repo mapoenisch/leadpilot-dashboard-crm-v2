@@ -102,9 +102,16 @@ SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_invitation RECORD;
-  v_member RECORD;
+  v_existing_member RECORD;
+  v_member_exists BOOLEAN := FALSE;
   v_norm_email TEXT;
 BEGIN
+  -- P0: Direkten RPC-Bypass durch unprivilegierte Rollen serverseitig abwehren
+  IF current_user != 'postgres' AND (auth.role() IS NULL OR auth.role() != 'service_role') THEN
+    RAISE EXCEPTION 'FORBIDDEN' USING ERRCODE = '42501',
+      DETAIL = 'Direkter Aufruf der Funktion accept_organization_invitation ist nicht gestattet.';
+  END IF;
+
   v_norm_email := lower(trim(p_user_email));
 
   IF p_invitation_id IS NOT NULL THEN
@@ -152,30 +159,49 @@ BEGIN
     RAISE EXCEPTION 'INVITATION_NOT_PENDING' USING ERRCODE = 'P0003';
   END IF;
 
+  -- P1: Organisationswechsel verhindern (LeadPilot ist strikt Single-Tenant je User)
+  SELECT EXISTS(
+    SELECT 1 FROM public.organization_members WHERE user_id = p_user_id
+  ) INTO v_member_exists;
+
+  IF v_member_exists THEN
+    SELECT * INTO v_existing_member
+    FROM public.organization_members
+    WHERE user_id = p_user_id;
+
+    IF v_existing_member.organization_id != v_invitation.organization_id THEN
+      RAISE EXCEPTION 'CANNOT_CHANGE_ORGANIZATION' USING ERRCODE = 'P0001',
+        DETAIL = 'Benutzer besitzt bereits eine Mitgliedschaft in einer anderen Organisation.';
+    END IF;
+  END IF;
+
   -- 1. Status atomar auf accepted aktualisieren
   UPDATE public.organization_invitations
   SET status = 'accepted'
   WHERE id = v_invitation.id;
 
   -- 2. Mitgliedschaft atomar in derselben Transaktion erstellen / reaktivieren
-  INSERT INTO public.organization_members (
-    organization_id,
-    user_id,
-    role,
-    status
-  )
-  VALUES (
-    v_invitation.organization_id,
-    p_user_id,
-    v_invitation.role,
-    'active'
-  )
-  ON CONFLICT (user_id)
-  DO UPDATE SET
-    organization_id = EXCLUDED.organization_id,
-    role = EXCLUDED.role,
-    status = 'active'
-  RETURNING * INTO v_member;
+  IF NOT v_member_exists THEN
+    INSERT INTO public.organization_members (
+      organization_id,
+      user_id,
+      role,
+      status
+    )
+    VALUES (
+      v_invitation.organization_id,
+      p_user_id,
+      v_invitation.role,
+      'active'
+    );
+  ELSE
+    -- Selbe Organisation: Status auf active setzen und ggf. Rolle anpassen
+    UPDATE public.organization_members
+    SET role = v_invitation.role,
+        status = 'active'
+    WHERE user_id = p_user_id
+      AND organization_id = v_invitation.organization_id;
+  END IF;
 
   RETURN jsonb_build_object(
     'organization_id', v_invitation.organization_id,
@@ -186,5 +212,39 @@ BEGIN
 END;
 $$;
 
-REVOKE EXECUTE ON FUNCTION public.accept_organization_invitation(UUID, TEXT, UUID) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.accept_organization_invitation(UUID, TEXT, UUID) TO authenticated, service_role;
+-- P0: Berechtigungen strikt auf service_role beschraenken (kein authenticated, kein anon, kein PUBLIC)
+REVOKE ALL ON FUNCTION public.accept_organization_invitation(UUID, TEXT, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.accept_organization_invitation(UUID, TEXT, UUID) TO service_role;
+
+-- ------------------------------------------------- 5. Automatischer Annahmeweg nach E-Mail-Link
+CREATE OR REPLACE FUNCTION public.handle_auth_user_accept_invitation()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  -- Wenn der Nutzer bestaetigt oder eingeloggt ist und eine offene Einladung vorliegt
+  IF NEW.email IS NOT NULL AND (NEW.email_confirmed_at IS NOT NULL OR NEW.last_sign_in_at IS NOT NULL) THEN
+    IF EXISTS (
+      SELECT 1 FROM public.organization_invitations
+      WHERE lower(email) = lower(trim(NEW.email))
+        AND status = 'pending'
+        AND expires_at > NOW()
+    ) THEN
+      BEGIN
+        PERFORM public.accept_organization_invitation(NEW.id, NEW.email);
+      EXCEPTION WHEN OTHERS THEN
+        -- Konflikte (z.B. CANNOT_CHANGE_ORGANIZATION) sollen den Auth-Vorgang nicht blockieren
+      END;
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_confirmed_accept_invitation ON auth.users;
+CREATE TRIGGER on_auth_user_confirmed_accept_invitation
+  AFTER INSERT OR UPDATE OF email_confirmed_at, last_sign_in_at ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_auth_user_accept_invitation();

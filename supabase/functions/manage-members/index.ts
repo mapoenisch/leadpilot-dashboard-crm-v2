@@ -32,7 +32,6 @@ export interface OrganizationInvitation {
   status: InvitationStatus;
   createdAt: string;
   expiresAt: string;
-  invitationLink?: string | null;
 }
 
 export interface ManageMembersDb {
@@ -73,7 +72,7 @@ export interface ManageMembersDb {
     success?: boolean;
     organizationId?: string;
     role?: MemberRole;
-    error?: 'NOT_FOUND' | 'INVITATION_NOT_PENDING' | 'FORBIDDEN';
+    error?: 'NOT_FOUND' | 'INVITATION_NOT_PENDING' | 'CANNOT_CHANGE_ORGANIZATION' | 'FORBIDDEN';
   }>;
 }
 
@@ -160,6 +159,15 @@ export async function handleManageMembers(
           message: 'Die Einladung ist nicht mehr gültig oder bereits angenommen/abgelaufen.',
         },
         422,
+      );
+    }
+    if (result.error === 'CANNOT_CHANGE_ORGANIZATION') {
+      return jsonResponse(
+        {
+          code: 'CANNOT_CHANGE_ORGANIZATION',
+          message: 'Benutzer besitzt bereits eine Mitgliedschaft in einer anderen Organisation.',
+        },
+        409,
       );
     }
     if (result.error === 'FORBIDDEN') {
@@ -506,7 +514,6 @@ if (import.meta.main) {
       // Supabase-Auth-Einladung / Link-Generierung (FAIL-CLOSED)
       const siteUrl = Deno.env.get('SITE_URL') || 'http://127.0.0.1:4321';
       const redirectTo = `${siteUrl}/login`;
-      let actionLink: string | null = null;
       let authSucceeded = false;
 
       // 1. Versuch: inviteUserByEmail (funktioniert mit konfiguriertem SMTP)
@@ -534,7 +541,6 @@ if (import.meta.main) {
             },
           });
           if (linkRes.data?.properties?.action_link) {
-            actionLink = linkRes.data.properties.action_link;
             authSucceeded = true;
           }
         } catch {
@@ -554,7 +560,6 @@ if (import.meta.main) {
             },
           });
           if (magicRes.data?.properties?.action_link) {
-            actionLink = magicRes.data.properties.action_link;
             authSucceeded = true;
           }
         } catch {
@@ -593,7 +598,6 @@ if (import.meta.main) {
         status: data.status as OrganizationInvitation['status'],
         createdAt: data.created_at,
         expiresAt: data.expires_at,
-        invitationLink: actionLink,
       };
     },
 
@@ -686,6 +690,12 @@ if (import.meta.main) {
         }
         if (error.message?.includes('INVITATION_NOT_PENDING') || error.code === 'P0003') {
           return { error: 'INVITATION_NOT_PENDING' };
+        }
+        if (
+          error.message?.includes('CANNOT_CHANGE_ORGANIZATION') ||
+          error.details?.includes('CANNOT_CHANGE_ORGANIZATION')
+        ) {
+          return { error: 'CANNOT_CHANGE_ORGANIZATION' };
         }
         if (error.message?.includes('FORBIDDEN') || error.code === '42501') {
           return { error: 'FORBIDDEN' };

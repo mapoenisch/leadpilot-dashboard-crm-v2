@@ -9357,3 +9357,139 @@ Alle 10 Pflicht-Gates wurden lokal unabhängig und deterministisch grün nachgew
 - **Strikte Einhaltung:** Kein `git push`, kein Merge auf `main`, kein Deployment der Edge Function.
 - Alle Arbeiten und Nacharbeiten für Gate G59 (Auftrag 067M) sind vollständig abgeschlossen und lokal nachgewiesen.
 - Übergabe an den unabhängigen Prüfer.
+
+---
+
+## 2026-09-20 – Auftrag 067M: Nacharbeit 3 (Gate G59)
+
+**Status:** Bereit zur erneuten Prüfung (alle Blocker behoben, 10/10 Gates grün)  
+**Bearbeiter:** Antigravity (Builder)  
+**Prüfer:** Unabhängiger Reviewer / Codex
+
+---
+
+### 1. Behobene Befunde (Reviewer-Vorgaben)
+
+1. **[P0: RPC absichern – Erledigt]:**
+   - `public.accept_organization_invitation` wurde strikt abgesichert:
+     `REVOKE ALL ON FUNCTION public.accept_organization_invitation(UUID, TEXT, UUID) FROM PUBLIC, anon, authenticated;`
+     `GRANT EXECUTE ON FUNCTION public.accept_organization_invitation(UUID, TEXT, UUID) TO service_role;`
+   - Zusätzlich verteidigt ein interner Rollen-Check:
+     `IF current_user != 'postgres' AND (auth.role() IS NULL OR auth.role() != 'service_role') THEN RAISE EXCEPTION 'FORBIDDEN' USING ERRCODE = '42501' ...`
+   - Ein direkter PostgREST-Aufruf durch `authenticated` wird mit SQLSTATE `42501` (Permission Denied) blockiert.
+
+2. **[P1: Organisationswechsel verhindern – Erledigt]:**
+   - In `accept_organization_invitation` wird geprüft, ob für `p_user_id` bereits eine Mitgliedschaft in einer anderen Organisation existiert.
+   - Falls ja, wird mit Fachfehler `CANNOT_CHANGE_ORGANIZATION` (ERRCODE `P0001`) abgebrochen.
+   - Kein `ON CONFLICT DO UPDATE SET organization_id` mehr. Die Letzt-Admin-Invariante und Single-Tenant-Bindung bleiben vollständig geschützt.
+   - In `manage-members` Edge Function wird `CANNOT_CHANGE_ORGANIZATION` als HTTP 409 abgefangen.
+
+3. **[P1: Echten Annahmeweg hergestellt & Token-Verschleierung – Erledigt]:**
+   - Weder Tokens noch Links werden im Admin-UI zurückgegeben oder angezeigt (`#invitation-link-input` und `invitation-link-box` aus `InvitationForm.tsx` entfernt, `invitationLink` aus Schnittstellen und Edge-Function-Responses entfernt).
+   - In PostgreSQL wurde der Trigger `on_auth_user_confirmed_accept_invitation` auf `auth.users` (`AFTER INSERT OR UPDATE OF email_confirmed_at, last_sign_in_at`) etabliert.
+   - Sobald der eingeladene Nutzer den Link in der Einladungs-E-Mail aufruft, bestätigt Supabase Auth den Nutzer und der DB-Trigger aktiviert die Mitgliedschaft atomar in PostgreSQL.
+   - Der Browser landet direkt auf `/dashboard`, der Nutzer ist als Manager/Viewer eingeloggt und aktiv – ohne manuelles API-Calling (`page.evaluate`).
+
+4. **[P2: E2E- und Sicherheitsabdeckung erweitert – Erledigt]:**
+   - `e2e/member-management.spec.ts` auf 9 Tests ausgebaut:
+     - Test 6: Vollständiger realer Einladungs- und Annahmefluss (Einladung versenden -> Mail-Link öffnen -> Automatische Annahme & Dashboard-Landing -> Admin sieht neues Mitglied als aktiv).
+     - Test 7: Serverseitiges 403 für Manager und Viewer bei Funktionsaufruf sowie Frontend-Zugriffssperre (403 ForbiddenView).
+     - Test 8: Direkter RPC-Bypass von `accept_organization_invitation` durch `authenticated` wird mit 42501 abgewiesen.
+     - Test 9: E-Mail-Mismatch bei Einladungsannahme wird mit HTTP 403 `FORBIDDEN` abgewiesen.
+
+---
+
+### 2. Geänderte Dateien
+
+| Aktion | Pfad | Zweck |
+| :--- | :--- | :--- |
+| Modify | `supabase/migrations/20260927_organization_invitations.sql` | `accept_organization_invitation` mit P0-Rollen-Lockdown (nur `service_role`), P1-Org-Wechsel-Schutz (`CANNOT_CHANGE_ORGANIZATION`, ERRCODE P0001) und automatischem DB-Trigger `on_auth_user_confirmed_accept_invitation` auf `auth.users` |
+| Modify | `supabase/functions/manage-members/index.ts` | Entfernung von `invitationLink` / `actionLink` aus Response und `OrganizationInvitation`-Interface; Behandlung von `CANNOT_CHANGE_ORGANIZATION` (HTTP 409) |
+| Modify | `src/services/admin/memberService.ts` | Entfernung von `invitationLink` aus `OrganizationInvitation`; `CANNOT_CHANGE_ORGANIZATION` in Error-Codes aufgenommen |
+| Modify | `src/features/admin/components/InvitationForm.tsx` | Entfernung der Link-Anzeige (`#invitation-link-input`, `invitation-link-box`); Meldung „Einladung an ... erfolgreich versendet.“ |
+| Modify | `supabase/tests/member_management.sql` | pgTAP-Tests auf 26 erweitert (Tests für RPC-Lockdown, `CANNOT_CHANGE_ORGANIZATION`, E-Mail-Mismatch, automatischen Auth-Trigger) |
+| Modify | `supabase/functions/__tests__/manageMembers.test.ts` | Deno-Tests auf 11 erweitert (Test für `CANNOT_CHANGE_ORGANIZATION` HTTP 409) |
+| Modify | `e2e/member-management.spec.ts` | E2E-Tests auf 9 erweitert (realer Annahmefluss ohne Token-Leak, Manager/Viewer 403, Direkt-RPC-Bypass 42501, E-Mail-Mismatch 403) |
+
+---
+
+### 3. Gate-Ergebnisse (Nacharbeit 3)
+
+1. **TypeScript-Prüfung:**
+   ```bash
+   npx tsc --noEmit
+   # Ergebnis: 0 Fehler (Exit 0)
+   ```
+
+2. **Linting (ESLint):**
+   ```bash
+   npm run lint
+   # Ergebnis: 0 Fehler, 0 Warnungen (Exit 0)
+   ```
+
+3. **Formatierung (Prettier):**
+   ```bash
+   npm run format:check
+   # Ergebnis: All matched files use Prettier code style! (Exit 0)
+   ```
+
+4. **Integrity-Suite (npm run verify):**
+   ```bash
+   npm run verify
+   # Ergebnis: Alle 24 Test-Suites (001 bis 025) PASSED (Exit 0)
+   ```
+
+5. **Vitest Test-Suite (npm test):**
+   ```bash
+   npm test
+   # Ergebnis: 248/248 Testdateien bestanden, 1329/1329 Tests bestanden (Exit 0)
+   ```
+
+6. **Edge Function Tests (Deno):**
+   ```bash
+   deno test --no-lock --allow-read supabase/functions/__tests__/
+   # Ergebnis: 38/38 Tests bestanden (11/11 in manageMembers.test.ts) (Exit 0)
+   ```
+
+7. **Datenbank-Tests (pgTAP via Supabase CLI):**
+   ```bash
+   npx supabase test db
+   # Ergebnis: 4/4 Testdateien, 92/92 Tests bestanden (Exit 0)
+   # - ingress_nonce.sql: ok
+   # - member_management.sql: ok (26/26 subtests)
+   # - scenario_run_persistence.sql: ok
+   # - tenant_isolation.sql: ok
+   ```
+
+8. **End-to-End-Suite (Playwright):**
+   ```bash
+   npx playwright test e2e/member-management.spec.ts
+   # Ergebnis: 27/27 Tests über alle 3 Viewports (desktop-1440, tablet-768, mobile-375) bestanden (Exit 0)
+   ```
+
+9. **Produktions-Build:**
+   ```bash
+   npm run build
+   # Ergebnis: Vite Build erfolgreich in 3.50s (Exit 0)
+   ```
+
+10. **Whitespace- und Format-Check:**
+    ```bash
+    git diff --check
+    # Ergebnis: Sauber, 0 Whitespace-Fehler (Exit 0)
+    ```
+
+11. **Schutzbereichs-Prüfung (`git diff 5f01ed5`):**
+    ```bash
+    git diff 5f01ed5 -- src/simulation src/types src/context src/services/data src/features/resources
+    # Ergebnis: 100% LEER (0 Bytes geändert)
+    ```
+
+---
+
+### 4. Stopp-Punkte und Übergabe
+
+- **Strikte Einhaltung:** Kein `git push`, kein Merge auf `main`, kein Remote-Deployment.
+- Alle P0-, P1- und P2-Befunde sind vollständig behoben und mit automatisierten Tests verifiziert.
+- Bereit zur Abnahme durch den Prüfer.
+

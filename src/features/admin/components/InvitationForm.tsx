@@ -15,13 +15,11 @@ export function InvitationForm({ onInvitationCreated }: InvitationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
-    setGeneratedLink(null);
 
     const trimmed = email.trim();
     if (!trimmed) {
@@ -31,11 +29,8 @@ export function InvitationForm({ onInvitationCreated }: InvitationFormProps) {
 
     setIsSubmitting(true);
     try {
-      const inv = await memberService.inviteMember(trimmed, role);
-      setSuccessMessage(`Einladung an ${trimmed} erfolgreich ausgestellt.`);
-      if (inv.invitationLink) {
-        setGeneratedLink(inv.invitationLink);
-      }
+      await memberService.inviteMember(trimmed, role);
+      setSuccessMessage(`Einladung an ${trimmed} erfolgreich versendet.`);
       setEmail('');
       setRole('viewer');
       onInvitationCreated();
@@ -74,25 +69,6 @@ export function InvitationForm({ onInvitationCreated }: InvitationFormProps) {
           className="bg-[rgba(80,250,123,0.1)] border border-solid border-success text-success text-xs rounded p-[var(--space-2)]"
         >
           {successMessage}
-        </div>
-      )}
-
-      {generatedLink && (
-        <div
-          data-testid="invitation-link-box"
-          className="p-[var(--space-3)] bg-background-deep border border-solid border-border rounded flex flex-col gap-1 text-xs"
-        >
-          <span className="font-semibold text-text">Generierter Einladungslink:</span>
-          <div className="flex items-center gap-2">
-            <input
-              id="invitation-link-input"
-              data-testid="invitation-link-input"
-              readOnly
-              value={generatedLink}
-              className="flex-1 bg-black/40 border border-border rounded px-2 py-1 text-xs text-[var(--color-primary)] font-mono select-all focus:outline-none"
-              aria-label="Generierter Einladungslink"
-            />
-          </div>
         </div>
       )}
 
