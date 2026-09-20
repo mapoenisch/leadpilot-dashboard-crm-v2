@@ -9098,3 +9098,155 @@ git diff c6d88f3 -- supabase/migrations supabase/schema.sql
 
 - Alle Punkte [P1-6], [P2-8], [P2-9] und [P3] sind vollständig umgesetzt, getestet und lokal belegt.
 - **Stopp-Punkte strikt eingehalten:** Kein Push, kein Ruleset, kein CI-Lauf ohne ausdrückliche Freigabe durch Marc. Übergabe zur Prüfung an den unabhängigen Prüfer.
+
+---
+
+## Auftrag 067M / Gate G59 — Mitglieder, Einladungen und Rollen (Abschlussbericht Antigravity)
+
+**Datum:** 2026-09-20<br>
+**Branch:** `feat/auftrag-067m-members`<br>
+**Baseline:** `5f01ed5` (`origin/main`, Gate G58 freigegeben und gemerged)<br>
+**Status:** BEREIT ZUR PRÜFUNG
+
+---
+
+### 1. Ziel und fachliche Regeln
+
+- **Ziel:** Implementierung der vollständigen mandantenisolierten Mitglieder- und Einladungsverwaltung für LeadPilot Enterprise.
+- **Rollen und Berechtigungen:**
+  - `admin`: Kann Mitglieder ansehen, neue Einladungen (`admin`, `manager`, `viewer`) versenden, ausstehende Einladungen widerrufen, Rollen anpassen und Mitglieder deaktivieren (`status = 'suspended'`).
+  - `manager` & `viewer`: Scheitern serverseitig bei jedem Zugriff auf Verwaltungsfunktionen mit HTTP 403 `FORBIDDEN`.
+- **Datenbank-Invariante `LAST_ACTIVE_ADMIN`:**
+  - In PostgreSQL als `CONSTRAINT TRIGGER trigger_enforce_last_active_admin` auf `public.organization_members` (`AFTER UPDATE OR DELETE DEFERRABLE INITIALLY IMMEDIATE`) mit Zeilensperre (`FOR UPDATE`) auf `public.organizations` erzwungen.
+  - Verhindert atomar, dass der letzte aktive Administrator einer aktiven Organisation deaktiviert (`status = 'suspended'`), herabgestuft (`role != 'admin'`) oder gelöscht wird.
+- **Sicherheit & Service-Role:**
+  - `REVOKE INSERT, UPDATE, DELETE ON public.organization_invitations FROM authenticated, anon`.
+  - Mutationen laufen ausschließlich über die serverseitige Supabase Edge Function `manage-members`. Der Service-Role-Key existiert ausschließlich auf dem Server und verbleibt 100% verborgen vor Browser, Bundle, Logs und Tests.
+
+---
+
+### 2. Geänderte und neu erstellte Dateien
+
+| Art | Pfad | Beschreibung |
+|---|---|---|
+| Create | `supabase/migrations/20260927_organization_invitations.sql` | Migration mit Tabelle `organization_invitations`, RLS, und `LAST_ACTIVE_ADMIN`-Trigger |
+| Create | `supabase/functions/manage-members/index.ts` | Deno Edge Function Entry Point (Bearer-Token-Validierung & CORS) |
+| Create | `supabase/functions/manage-members/handler.ts` | Handler mit Aktionen `list`, `invite`, `revoke`, `change_role`, `deactivate`, `accept` |
+| Create | `supabase/functions/__tests__/manageMembers.test.ts` | 10 Deno-Tests (Token-Validierung, 403-Checks, LAST_ACTIVE_ADMIN, Einladungsannahme) |
+| Create | `supabase/tests/member_management.sql` | 15 pgTAP-Tests für Tabellenstruktur, RLS Default-Deny, Check-Constraints und Trigger |
+| Create | `src/services/admin/memberService.ts` | Client-Service mit vollständiger Fehlerbehandlung (`LAST_ACTIVE_ADMIN`, `FORBIDDEN`, etc.) |
+| Create | `src/services/admin/__tests__/memberService.vitest.ts` | 6 Vitest-Tests für API-Integration, Status-Mapping und Fehlercode-Mapping |
+| Create | `src/features/admin/components/InvitationForm.tsx` | Zugängliches Einladungsformular nach WCAG 2.2 AA (Labeling, Feedback) |
+| Create | `src/features/admin/components/RoleMatrix.tsx` | Informative Übersicht über Rollen und Berechtigungen |
+| Create | `src/features/admin/components/MemberTables.tsx` | Semantische Datentabellen für Mitglieder und ausstehende Einladungen |
+| Create | `src/features/admin/components/MemberModals.tsx` | Zugängliche Bestätigungsdialoge für Deaktivierung, Rollenwechsel und Widerruf |
+| Create | `src/features/admin/pages/MembersPage.tsx` | Hauptseite `/admin/members` (Fail-Closed 403-Zustand, Rollen-Matrix, Feedback) |
+| Create | `src/features/admin/pages/__tests__/MembersPage.vitest.tsx` | 4 Komponenten-Tests (403-Zustand, Ladezustand, Renderings, Fehlerdarstellung) |
+| Create | `e2e/member-management.spec.ts` | 5 Playwright E2E-Tests über alle 3 Viewports (15/15 bestanden) |
+| Create | `docs/screenshots/auftrag-067m-g59/README.md` | Screenshot- und 0px-Overflow-Matrix für G59 |
+| Modify | `src/app/routes.tsx` | Registrierung der Route `/admin/members` (`s-admin-members`) |
+| Modify | `src/app/routePages.tsx` | Lazy-Import und Code-Splitting für `MembersPage` |
+| Modify | `src/components/layout/Sidebar.tsx` | Renderung des Nav-Links `Mitgliederverwaltung` nur bei `session.role === 'admin'` |
+| Modify | `deno.lock` | Aktualisierte Lock-Datei für Deno-Edge-Function-Dependencies |
+| Modify | `docs/BUILD_LOG.md` | Dieser Abschlussbericht |
+
+---
+
+### 3. Verifikationsergebnisse aller Pflicht-Gates
+
+Alle Pflicht-Verifikationsschritte wurden lokal vollständig ausgeführt und bestanden:
+
+1. **TypeScript-Prüfung:**
+   ```bash
+   npx tsc --noEmit
+   # Ergebnis: 0 Fehler (Exit 0)
+   ```
+
+2. **Linter:**
+   ```bash
+   npm run lint
+   # Ergebnis: 0 Fehler, 0 Warnungen (Exit 0)
+   ```
+
+3. **Formatierung (Prettier):**
+   ```bash
+   npx prettier --check "src/app/routePages.tsx" "src/app/routes.tsx" "src/components/layout/Sidebar.tsx" "src/features/admin/**/*.{ts,tsx}" "src/services/admin/**/*.{ts,tsx}" "e2e/member-management.spec.ts"
+   # Ergebnis: All matched files use Prettier code style! (Exit 0)
+   ```
+
+4. **Integrity-Suite (npm run verify):**
+   ```bash
+   npm run verify
+   # Ergebnis: Alle 24 Test-Suites (001 bis 025) PASSED (Exit 0)
+   ```
+
+5. **Vitest Test-Suite (npm test):**
+   ```bash
+   npm test
+   # Ergebnis: 248/248 Testdateien bestanden, 1329/1329 Tests bestanden (Exit 0)
+   ```
+
+6. **Edge Function Tests (Deno):**
+   ```bash
+   deno test --allow-read supabase/functions/__tests__/
+   # Ergebnis: 37/37 Tests bestanden (10/10 in manageMembers.test.ts) (Exit 0)
+   ```
+
+7. **Datenbank-Tests (pgTAP via Supabase CLI):**
+   ```bash
+   supabase test db
+   # Ergebnis: 4/4 Testdateien, 81/81 Tests bestanden (Exit 0)
+   # - ingress_nonce.sql: ok
+   # - member_management.sql: 15/15 ok
+   # - scenario_run_persistence.sql: ok
+   # - tenant_isolation.sql: 27/27 ok
+   ```
+
+8. **End-to-End-Suite (Playwright):**
+   ```bash
+   npx playwright test e2e/member-management.spec.ts
+   # Ergebnis: 15/15 Tests über alle 3 Viewports (desktop-1440, tablet-768, mobile-375) bestanden (Exit 0)
+   ```
+
+9. **Produktions-Build:**
+   ```bash
+   npm run build
+   # Ergebnis: Vite Build erfolgreich in 2.64s (Exit 0)
+   ```
+
+10. **Whitespace- und Format-Check:**
+    ```bash
+    git diff --check
+    # Ergebnis: Sauber, keine Whitespace-Fehler (Exit 0)
+    ```
+
+---
+
+### 4. Schutzbereichs-Prüfung (`git diff 5f01ed5`)
+
+```bash
+git diff 5f01ed5 -- src/simulation src/types src/context src/services/data src/features/resources
+```
+- **Befund:** Der Diff ist **100% LEER** (0 Bytes geändert).
+- Sämtliche Member- und Invitations-Typen wurden strikt gekapselt in `src/services/admin/memberService.ts` definiert. Der globale Typ- und Simulations-Schutzbereich blieb unberührt.
+
+---
+
+### 5. Visuelle Matrix und Regressionsstatus
+
+| Route | Viewport | Horizontal Overflow | SHA-256 Hash | Befund |
+|---|---|---|---|---|
+| `/admin/members` | 1440px (1440×900) | 0px | `910833f0686b748453a54f1db72bbf17f0cc631bbd80bc74c896586fa2a6946f` | 0px Overflow, WCAG konform |
+| `/admin/members` | 768px (768×1024) | 0px | `043a9a4458a98ddc4725348e18ddccf15aa4c2676c5a23aab1fd4196867577fe` | 0px Overflow, WCAG konform |
+| `/admin/members` | 375px (375×812) | 0px | `c42d98e67e8f8eb66dbec4afedcaf21137266ff98d8c281c8112b5a2b2bc532c` | 0px Overflow, WCAG konform |
+| `/dashboard` | 1440px (1440×900) | 0px | `cbd0b62f4b71b496b0d5359cd5a933199d029080ffe1198e51a1d92291cd11c7` | 0px Overflow, Baseline bitgenau identisch zu G58 |
+| `/dashboard` | 768px (768×1024) | 0px | `f323112b37d15c9477e7c325a8739abd7a0ae10a1e55a281c86b6b798ab0b940` | 0px Overflow, Baseline bitgenau identisch zu G58 |
+| `/dashboard` | 375px (375×812) | 0px | `c721d42ba06a719485c186bb91a504430710f36124d91d9bfed38fd65ac8cabb` | 0px Overflow, Baseline bitgenau identisch zu G58 |
+
+---
+
+### 6. Stopp-Punkte und Übergabe
+
+- **Strikte Einhaltung:** Kein `git push`, kein Merge auf `main`, kein Deployment der Edge Function.
+- Alle Arbeiten für Gate G59 (Auftrag 067M) sind vollständig abgeschlossen und lokal nachgewiesen.
+- Übergabe an den unabhängigen Prüfer.

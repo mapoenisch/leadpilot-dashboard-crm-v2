@@ -231,6 +231,13 @@ const CommercialRegisterPage = React.lazy(() =>
   })),
 );
 
+// 13. Administration
+const MembersPage = React.lazy(() =>
+  import('@/features/admin/pages/MembersPage').then((m) => ({
+    default: m.MembersPage,
+  })),
+);
+
 export interface RoutePageEntry {
   id: AppRouteId;
   component: React.ComponentType;
@@ -301,6 +308,9 @@ export const ROUTE_PAGE_ENTRIES: readonly RoutePageEntry[] = [
   { id: 's-satzung', component: ArticlesPage },
   { id: 's-gesellschafter', component: ShareholdersPage },
   { id: 's-handelsregister', component: CommercialRegisterPage },
+
+  // 13. Administration
+  { id: 's-admin-members', component: MembersPage },
 ] as const;
 
 // Dev-Guard: Validiert Vollständigkeit und Duplikate gegen APP_ROUTES
