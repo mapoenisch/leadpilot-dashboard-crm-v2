@@ -14,6 +14,154 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function getBaseUrl(): string {
+  return process.env.VITE_SUPABASE_URL || process.env.E2E_SUPABASE_URL || 'http://127.0.0.1:54321';
+}
+
+function getAnonKey(): string {
+  const key = process.env.VITE_SUPABASE_ANON_KEY || process.env.E2E_SUPABASE_ANON_KEY;
+  if (!key) throw new Error('VITE_SUPABASE_ANON_KEY oder E2E_SUPABASE_ANON_KEY erforderlich');
+  return key;
+}
+
+function getServiceKey(): string {
+  const key = process.env.E2E_CLEANUP_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error('E2E_CLEANUP_KEY oder SUPABASE_SERVICE_ROLE_KEY erforderlich');
+  return key;
+}
+
+async function fetchInviteLinkFromMailCatcher(email: string, timeoutMs = 15000): Promise<string> {
+  const mailUrl = process.env.MAILPIT_URL || process.env.INBUCKET_URL || 'http://127.0.0.1:54324';
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeoutMs) {
+    // 1. Mailpit API
+    try {
+      const searchRes = await fetch(`${mailUrl}/api/v1/search?query=to:${encodeURIComponent(email)}`);
+      if (searchRes.ok) {
+        const data = await searchRes.json();
+        const msg = data.messages?.[0];
+        if (msg) {
+          const detailRes = await fetch(`${mailUrl}/api/v1/message/${msg.ID}`);
+          if (detailRes.ok) {
+            const detail = await detailRes.json();
+            const content = `${detail.Text || ''}\n${detail.HTML || ''}`;
+            const match = content.match(/https?:\/\/[^\s"'<>]+(?:\/auth\/v1\/verify|\/verify)\?[^\s"'<>]+/);
+            if (match) {
+              return match[0].replace(/&amp;/g, '&');
+            }
+          }
+        }
+      }
+    } catch {
+      // Weiter mit Fallback
+    }
+
+    // 2. Inbucket API Fallback
+    try {
+      const mailbox = email.split('@')[0];
+      const inbucketRes = await fetch(`${mailUrl}/api/v1/mailbox/${encodeURIComponent(mailbox)}`);
+      if (inbucketRes.ok) {
+        const messages = await inbucketRes.json();
+        if (Array.isArray(messages) && messages.length > 0) {
+          const latest = messages[messages.length - 1];
+          const msgDetail = await fetch(`${mailUrl}/api/v1/mailbox/${encodeURIComponent(mailbox)}/${latest.id}`);
+          if (msgDetail.ok) {
+            const detail = await msgDetail.json();
+            const content = `${detail.body?.text || ''}\n${detail.body?.html || ''}`;
+            const match = content.match(/https?:\/\/[^\s"'<>]+(?:\/auth\/v1\/verify|\/verify)\?[^\s"'<>]+/);
+            if (match) {
+              return match[0].replace(/&amp;/g, '&');
+            }
+          }
+        }
+      }
+    } catch {
+      // Retry
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  throw new Error(`Keine Einladungs-E-Mail für ${email} im Mail-Catcher innerhalb von ${timeoutMs}ms gefunden.`);
+}
+
+async function ensureE2EUsers(): Promise<void> {
+  const serviceKey = getServiceKey();
+  const supabaseAdmin = createClient(getBaseUrl(), serviceKey);
+
+  const adminEmail = requireEnv('E2E_AUTH_EMAIL');
+  const password = requireEnv('E2E_AUTH_PASSWORD');
+  const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+  let adminUser = usersData?.users.find((u) => u.email === adminEmail);
+
+  if (!adminUser) {
+    const { data: created } = await supabaseAdmin.auth.admin.createUser({
+      email: adminEmail,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: 'Admin Demo Org' },
+    });
+    adminUser = created.user;
+  }
+
+  // Demo Organisation sicherstellen
+  const { data: orgs } = await supabaseAdmin.from('organizations').select('id, status');
+  let orgId = orgs?.find((o) => o.status === 'active')?.id;
+  if (!orgId) {
+    if (orgs && orgs.length > 0) {
+      orgId = orgs[0].id;
+      await supabaseAdmin.from('organizations').update({ status: 'active' }).eq('id', orgId);
+    } else {
+      const { data: newOrg } = await supabaseAdmin
+        .from('organizations')
+        .insert({
+          id: '00000000-0000-0000-0000-000000000001',
+          name: 'LeadPilot Technologies GmbH',
+          mode: 'live',
+          status: 'active',
+        })
+        .select('id')
+        .single();
+      orgId = newOrg!.id;
+    }
+  }
+
+  // Mitgliedschaft von admin-a sicherstellen
+  const { data: member } = await supabaseAdmin
+    .from('organization_members')
+    .select('role, status')
+    .eq('user_id', adminUser!.id)
+    .maybeSingle();
+
+  if (!member) {
+    await supabaseAdmin.from('organization_members').insert({
+      organization_id: orgId,
+      user_id: adminUser!.id,
+      role: 'admin',
+      status: 'active',
+    });
+  } else if (member.role !== 'admin' || member.status !== 'active') {
+    await supabaseAdmin
+      .from('organization_members')
+      .update({ role: 'admin', status: 'active' })
+      .eq('user_id', adminUser!.id);
+  }
+
+  // nomember User sicherstellen
+  const nomemberEmail = process.env.E2E_AUTH_EMAIL_NOMEMBER;
+  if (nomemberEmail) {
+    const hasNomember = usersData?.users.find((u) => u.email === nomemberEmail);
+    if (!hasNomember) {
+      await supabaseAdmin.auth.admin.createUser({
+        email: nomemberEmail,
+        password,
+        email_confirm: true,
+      });
+    }
+  }
+}
+
 async function loginAsAdmin(page: Page): Promise<void> {
   await page.goto('/login');
   await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL'));
@@ -23,6 +171,9 @@ async function loginAsAdmin(page: Page): Promise<void> {
 }
 
 test.describe('Mitgliederverwaltung (Gate G59)', () => {
+  test.beforeAll(async () => {
+    await ensureE2EUsers();
+  });
   test('1. Admin sieht Navigationslink und erreicht /admin/members', async ({ page }) => {
     await loginAsAdmin(page);
 
@@ -160,29 +311,23 @@ test.describe('Mitgliederverwaltung (Gate G59)', () => {
     await expect(page.locator('#invitation-link-input')).toHaveCount(0);
     await expect(page.getByTestId('invitation-link-box')).toHaveCount(0);
 
-    // 2. Mail-Link simulieren (wie wenn der eingeladene Nutzer seine E-Mail abruft)
-    const baseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
-    const serviceKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.E2E_CLEANUP_KEY ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
-
-    const supabaseAdmin = createClient(baseUrl, serviceKey);
-    const linkRes = await supabaseAdmin.auth.admin.generateLink({
-      type: 'invite',
-      email: inviteeEmail,
-      options: { redirectTo: 'http://127.0.0.1:4321/dashboard' },
-    });
-    const actionLink = linkRes.data?.properties?.action_link;
+    // 2. Original-Link direkt aus dem lokalen Mail-Catcher abrufen (keine Service-Role im Nutzerfluss)
+    const actionLink = await fetchInviteLinkFromMailCatcher(inviteeEmail);
     expect(actionLink).toBeTruthy();
 
-    // 3. Nutzer klickt den Link in einem separaten Browser-Kontext
+    // 3. Nutzer klickt den Original-Link in einem separaten Browser-Kontext
     const inviteeContext = await browser.newContext({ storageState: { cookies: [], origins: [] } });
     const inviteePage = await inviteeContext.newPage();
 
     try {
-      await inviteePage.goto(actionLink!);
-      await inviteePage.waitForURL('**/dashboard', { timeout: 15_000 });
+      await inviteePage.goto(actionLink);
+      await inviteePage.waitForURL(
+        (url) => url.pathname.includes('/dashboard') || url.pathname.includes('/login'),
+        { timeout: 15_000 },
+      );
+      if (!inviteePage.url().includes('/dashboard')) {
+        await inviteePage.waitForURL('**/dashboard', { timeout: 15_000 });
+      }
       await expect(inviteePage.getByTestId('logout-button')).toBeVisible();
 
       // Eingeladener Manager hat keinen Zugriff auf /admin/members
@@ -202,111 +347,117 @@ test.describe('Mitgliederverwaltung (Gate G59)', () => {
       await expect(pendingSection.locator('tr', { hasText: inviteeEmail })).toHaveCount(0);
     } finally {
       await inviteeContext.close();
+      const serviceKey = getServiceKey();
+      const supabaseAdmin = createClient(getBaseUrl(), serviceKey);
+      const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+      const createdUser = usersData?.users.find((u) => u.email === inviteeEmail);
+      if (createdUser) {
+        await supabaseAdmin.from('organization_members').delete().eq('user_id', createdUser.id);
+        await supabaseAdmin.auth.admin.deleteUser(createdUser.id);
+      }
     }
   });
 
   test('7. P2: Serverseitiges 403 für Manager und Viewer sowie UI-Schutz', async ({
     browser,
   }) => {
-    const baseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
-    const anonKey =
-      process.env.VITE_SUPABASE_ANON_KEY ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
-    const serviceKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.E2E_CLEANUP_KEY ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
-
+    const baseUrl = getBaseUrl();
+    const anonKey = getAnonKey();
+    const serviceKey = getServiceKey();
     const supabaseAdmin = createClient(baseUrl, serviceKey);
-    const managerEmail = `e2e-manager-${Date.now()}@e2e.local`;
-    const password = 'TestPassword123!';
 
     const { data: adminOrg } = await supabaseAdmin
       .from('organization_members')
       .select('organization_id')
       .limit(1)
       .single();
+    expect(adminOrg).toBeTruthy();
 
-    const { data: userRecord, error: userErr } = await supabaseAdmin.auth.admin.createUser({
-      email: managerEmail,
-      password,
-      email_confirm: true,
-    });
-    expect(userErr).toBeNull();
+    const rolesToTest = ['manager', 'viewer'] as const;
 
-    await supabaseAdmin.from('organization_members').insert({
-      organization_id: adminOrg!.organization_id,
-      user_id: userRecord!.user.id,
-      role: 'manager',
-      status: 'active',
-    });
+    for (const testRole of rolesToTest) {
+      const userEmail = `e2e-${testRole}-${Date.now()}@e2e.local`;
+      const password = 'TestPassword123!';
 
-    const managerContext = await browser.newContext({ storageState: { cookies: [], origins: [] } });
-    const managerPage = await managerContext.newPage();
+      const { data: userRecord, error: userErr } = await supabaseAdmin.auth.admin.createUser({
+        email: userEmail,
+        password,
+        email_confirm: true,
+      });
+      expect(userErr).toBeNull();
 
-    try {
-      await managerPage.goto('/login');
-      await managerPage.fill('#login-email', managerEmail);
-      await managerPage.fill('#login-password', password);
-      await managerPage.click('button[type="submit"]');
-      await managerPage.waitForURL('**/dashboard');
+      await supabaseAdmin.from('organization_members').insert({
+        organization_id: adminOrg!.organization_id,
+        user_id: userRecord!.user.id,
+        role: testRole,
+        status: 'active',
+      });
 
-      // Manager sieht keinen Admin-Link
-      await expect(managerPage.getByTestId('nav-item-admin-members')).toHaveCount(0);
+      const userContext = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+      const userPage = await userContext.newPage();
 
-      // Direkter UI-Aufruf von /admin/members zeigt 403 ForbiddenView
-      await managerPage.goto('/admin/members');
-      await expect(
-        managerPage.getByRole('heading', { name: 'Zugriff verweigert (403)' }),
-      ).toBeVisible();
+      try {
+        await userPage.goto('/login');
+        await userPage.fill('#login-email', userEmail);
+        await userPage.fill('#login-password', password);
+        await userPage.click('button[type="submit"]');
+        await userPage.waitForURL('**/dashboard');
 
-      // Manager versucht API-Aufruf an /functions/v1/manage-members (Server-Schutz)
-      const token = await managerPage.evaluate(() => {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
-            try {
-              const parsed = JSON.parse(localStorage.getItem(key) || '{}');
-              if (parsed.access_token) return parsed.access_token;
-            } catch {
-              // ignore
+        // Rolle sieht keinen Admin-Link
+        await expect(userPage.getByTestId('nav-item-admin-members')).toHaveCount(0);
+
+        // Direkter UI-Aufruf von /admin/members zeigt 403 ForbiddenView
+        await userPage.goto('/admin/members');
+        await expect(
+          userPage.getByRole('heading', { name: 'Zugriff verweigert (403)' }),
+        ).toBeVisible();
+
+        // Rolle versucht API-Aufruf an /functions/v1/manage-members (Server-Schutz)
+        const token = await userPage.evaluate(() => {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+              try {
+                const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+                if (parsed.access_token) return parsed.access_token;
+              } catch {
+                // ignore
+              }
             }
           }
-        }
-        return null;
-      });
+          return null;
+        });
 
-      expect(token).toBeTruthy();
+        expect(token).toBeTruthy();
 
-      const apiRes = await fetch(`${baseUrl}/functions/v1/manage-members`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          apikey: anonKey,
-        },
-        body: JSON.stringify({
-          action: 'invite',
-          email: 'unauthorized@e2e.local',
-          role: 'viewer',
-        }),
-      });
+        const apiRes = await fetch(`${baseUrl}/functions/v1/manage-members`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            apikey: anonKey,
+          },
+          body: JSON.stringify({
+            action: 'invite',
+            email: `unauthorized-${testRole}@e2e.local`,
+            role: 'viewer',
+          }),
+        });
 
-      expect(apiRes.status).toBe(403);
-      const errBody = await apiRes.json();
-      expect(errBody.code).toBe('FORBIDDEN');
-    } finally {
-      await managerContext.close();
-      await supabaseAdmin.from('organization_members').delete().eq('user_id', userRecord!.user.id);
-      await supabaseAdmin.auth.admin.deleteUser(userRecord!.user.id);
+        expect(apiRes.status).toBe(403);
+        const errBody = await apiRes.json();
+        expect(errBody.code).toBe('FORBIDDEN');
+      } finally {
+        await userContext.close();
+        await supabaseAdmin.from('organization_members').delete().eq('user_id', userRecord!.user.id);
+        await supabaseAdmin.auth.admin.deleteUser(userRecord!.user.id);
+      }
     }
   });
 
   test('8. P2: Direkt-RPC-Bypass von accept_organization_invitation durch authenticated wird abgewiesen', async () => {
-    const baseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
-    const anonKey =
-      process.env.VITE_SUPABASE_ANON_KEY ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+    const baseUrl = getBaseUrl();
+    const anonKey = getAnonKey();
 
     const client = createClient(baseUrl, anonKey);
     const { data: authRes } = await client.auth.signInWithPassword({
@@ -326,14 +477,9 @@ test.describe('Mitgliederverwaltung (Gate G59)', () => {
   });
 
   test('9. P2: E-Mail-Mismatch bei Einladungsannahme wird mit 403 FORBIDDEN abgewiesen', async () => {
-    const baseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
-    const anonKey =
-      process.env.VITE_SUPABASE_ANON_KEY ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
-    const serviceKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.E2E_CLEANUP_KEY ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+    const baseUrl = getBaseUrl();
+    const anonKey = getAnonKey();
+    const serviceKey = getServiceKey();
 
     const supabaseAdmin = createClient(baseUrl, serviceKey);
     const targetEmail = `target-${Date.now()}@e2e.local`;

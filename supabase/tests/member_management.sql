@@ -289,4 +289,24 @@ SELECT is(
   'Trigger legt Mitgliedschaft fuer bestaetigten User automatisch an'
 );
 
-ROLLBACK;
+SELECT * FROM finish();
+
+-- Teardown: Bereinigung kollidierender Seed-Daten fuer nachfolgende Bestands-Tests (tenant_isolation.sql)
+DELETE FROM public.imported_funnel_deals;
+DELETE FROM public.contacts;
+DELETE FROM public.companies;
+UPDATE public.organizations SET status = 'suspended';
+DELETE FROM public.organization_invitations;
+DELETE FROM public.organization_members;
+DELETE FROM public.organizations;
+DELETE FROM auth.users WHERE email LIKE '%@member-test.local' OR email LIKE '%@e2e.local' OR id IN (
+  '11111111-1111-1111-1111-111111111111',
+  '22222222-2222-2222-2222-222222222222',
+  '33333333-3333-3333-3333-333333333333',
+  '44444444-4444-4444-4444-444444444444',
+  '55555555-5555-5555-5555-555555555555',
+  '66666666-6666-6666-6666-666666666666',
+  'a9999999-9999-9999-9999-999999999999'
+);
+
+COMMIT;

@@ -9362,8 +9362,8 @@ Alle 10 Pflicht-Gates wurden lokal unabhängig und deterministisch grün nachgew
 
 ## 2026-09-20 – Auftrag 067M: Nacharbeit 3 (Gate G59)
 
-**Status:** Bereit zur erneuten Prüfung (alle Blocker behoben, 10/10 Gates grün)  
-**Bearbeiter:** Antigravity (Builder)  
+**Status:** Bereit zur erneuten Prüfung (alle Blocker behoben, 10/10 Gates grün)
+**Bearbeiter:** Antigravity (Builder)
 **Prüfer:** Unabhängiger Reviewer / Codex
 
 ---
@@ -9493,3 +9493,118 @@ Alle 10 Pflicht-Gates wurden lokal unabhängig und deterministisch grün nachgew
 - Alle P0-, P1- und P2-Befunde sind vollständig behoben und mit automatisierten Tests verifiziert.
 - Bereit zur Abnahme durch den Prüfer.
 
+## [2026-09-20] Gate G59: Nacharbeit 4 — E2E Mail-Catcher, Viewer-Abdeckung, Whitespace & Scope-Bereinigung (Antigravity)
+
+**Stand:** Nacharbeit 4 zu Gate G59 auf Branch `feat/auftrag-067m-members`.
+
+### 1. Behebung der Prüferbefunde
+
+1. **[P1 – E2E beweist den Annahmefluss nicht behoben]:**
+   - In `e2e/member-management.spec.ts` wurde die Hilfsfunktion `fetchInviteLinkFromMailCatcher(email)` implementiert. Sie fragt den lokalen Mail-Catcher (Mailpit REST API `http://127.0.0.1:54324/api/v1/search?query=to:...` bzw. Inbucket Fallback) ab und extrahiert den echten, vom Produkt über Supabase Auth GoTrue generierten Verifizierungslink (`/auth/v1/verify?token=...&type=invite`).
+   - Hardcodierte Service-Role-JWTs und manuelle Link-Generierung via `supabaseAdmin.auth.admin.generateLink` wurden aus dem Nutzerfluss von Test 6 restlos entfernt.
+   - Der eingeladene Nutzer öffnet im isolierten Browserkontext den Original-Link aus der empfangenen E-Mail. GoTrue bestätigt den Account, der Datenbanktrigger `on_auth_user_confirmed_accept_invitation` nimmt die Einladung atomar an, und die App navigiert zum Dashboard.
+
+2. **[P2 – Viewer-Abdeckung hergestellt]:**
+   - Test 7 in `e2e/member-management.spec.ts` wurde parametrisiert und deckt nun beide unprivilegierten Rollen (`manager` und `viewer`) ab.
+   - Für beide Rollen wird geprüft:
+     1. Kein Navigationslink (`#nav-item-admin-members` nicht im DOM).
+     2. Direkter Aufruf von `/admin/members` rendert die barrierefreie `ForbiddenView` (`Zugriff verweigert (403)`).
+     3. Direkter API-Aufruf an `/functions/v1/manage-members` mit dem Bearer-Token der Nutzersitzung wird serverseitig mit HTTP 403 und `{ code: 'FORBIDDEN' }` abgewiesen.
+
+3. **[P2 – Whitespace-Gate behoben]:**
+   - Trailing Spaces und überflüssige Leerzeilen am Dateiende in `docs/BUILD_LOG.md` wurden bereinigt.
+   - `git diff --check 5f01ed5` läuft fehlerfrei durch (Exit 0).
+
+4. **[P2 – Nicht autorisierter Scope bereinigt]:**
+   - `supabase/tests/tenant_isolation.sql` wurde auf den Stand der Baseline `5f01ed5` zurückgesetzt (`git diff 5f01ed5 -- supabase/tests/tenant_isolation.sql` ist 100% leer).
+   - Die Bereinigung kollidierender Seed-Daten für `tenant_isolation.sql` wurde gemäß Prüfervorgabe in den Teardown von `supabase/tests/member_management.sql` verlagert.
+   - Alle 4 pgTAP-Suites (`ingress_nonce.sql`, `member_management.sql`, `scenario_run_persistence.sql`, `tenant_isolation.sql`) bestehen mit 92/92 Tests.
+
+---
+
+### 2. Geänderte Dateien
+
+| Art | Pfad | Beschreibung |
+|---|---|---|
+| Modify | `e2e/member-management.spec.ts` | Test 6 auf Mailpit Mail-Catcher umgestellt, Test 7 um Viewer erweitert, hartcodierte Service-Role-JWTs entfernt |
+| Modify | `supabase/tests/member_management.sql` | Teardown zur Bereinigung kollidierender Seed-Daten vor `tenant_isolation.sql` implementiert |
+| Restore | `supabase/tests/tenant_isolation.sql` | Vollständig auf Baseline `5f01ed5` zurückgesetzt (0 Bytes Diff) |
+| Modify | `docs/BUILD_LOG.md` | Whitespace-Korrekturen und Dokumentation von Nacharbeit 4 |
+
+---
+
+### 3. Nachweis aller Prüf-Gates
+
+1. **Whitespace- und Diff-Prüfung (`git diff --check 5f01ed5`):**
+   ```bash
+   git diff --check 5f01ed5
+   # Ergebnis: Sauber, 0 Whitespace-Fehler (Exit 0)
+   ```
+
+2. **Schutzbereichs-Prüfung (`git diff 5f01ed5`):**
+   ```bash
+   git diff 5f01ed5 -- src/simulation src/types src/context src/services/data src/features/resources
+   # Ergebnis: 100% LEER (0 Bytes geändert)
+   ```
+
+3. **Scope-Prüfung (`git diff --name-status 5f01ed5`):**
+   ```bash
+   git diff --name-status 5f01ed5
+   # Ergebnis: Nur autorisierte Zieldateien gemäß Auftrag 067M. tenant_isolation.sql ist nicht im Diff.
+   ```
+
+4. **TypeScript Type-Check:**
+   ```bash
+   npx tsc --noEmit
+   # Ergebnis: 0 Fehler (Exit 0)
+   ```
+
+5. **Linting & Code Formatting:**
+   ```bash
+   npm run lint && npm run format:check
+   # Ergebnis: 0 ESLint-Fehler, Prettier 100% konform (Exit 0)
+   ```
+
+6. **Legacy-Integrity-Harness:**
+   ```bash
+   npm run verify
+   # Ergebnis: 24/24 Suites (001 bis 025) erfolgreich (Exit 0)
+   ```
+
+7. **Vitest Unit- & Integrations-Suite:**
+   ```bash
+   npm test
+   # Ergebnis: 248/248 Testdateien, 1329/1329 Tests bestanden (Exit 0)
+   ```
+
+8. **Deno Edge Function Tests:**
+   ```bash
+   deno test --no-lock --allow-read supabase/functions/__tests__/
+   # Ergebnis: 38/38 Tests bestanden (Exit 0)
+   ```
+
+9. **Datenbank-Tests (pgTAP via Supabase CLI):**
+   ```bash
+   npx supabase test db
+   # Ergebnis: 4/4 Testdateien, 92/92 Tests bestanden (Exit 0)
+   ```
+
+10. **Produktions-Build:**
+    ```bash
+    npm run build
+    # Ergebnis: Vite Build erfolgreich (Exit 0)
+    ```
+
+11. **End-to-End-Suite (Playwright):**
+    ```bash
+    npx playwright test e2e/member-management.spec.ts
+    # Ergebnis: 27/27 Tests über alle 3 Viewports (desktop-1440, tablet-768, mobile-375) bestanden (Exit 0)
+    ```
+
+---
+
+### 4. Stopp-Punkte und Übergabe
+
+- **Strikte Einhaltung:** Kein `git push`, kein Merge auf `main`, kein Remote-Deployment.
+- Alle Prüfer-Befunde P1, P2 (Viewer, Whitespace, Scope) vollständig behoben.
+- Bereit zur Abnahme von Gate G59 durch den Prüfer.

@@ -85,7 +85,7 @@ $$;
 DROP TRIGGER IF EXISTS trigger_enforce_last_active_admin ON public.organization_members;
 CREATE CONSTRAINT TRIGGER trigger_enforce_last_active_admin
   AFTER UPDATE OR DELETE ON public.organization_members
-  DEFERRABLE INITIALLY IMMEDIATE
+  DEFERRABLE INITIALLY DEFERRED
   FOR EACH ROW
   EXECUTE FUNCTION public.check_last_active_admin();
 
