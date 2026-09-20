@@ -9712,3 +9712,100 @@ Alle 10 Pflicht-Gates wurden lokal unabhängig und deterministisch grün nachgew
 - **Strikte Einhaltung:** Kein `git push`, kein Merge auf `main`, kein Remote-Deployment.
 - Dokumentationsfehler behoben und Gate-Ausnahme sauber protokolliert.
 - Bereit zur finalen Freigabe von Gate G59 durch den Prüfer.
+
+## [2026-09-20] Basis-Fix: Resiliente Theme-Storage-Initialisierung unter Node 26.9 (Antigravity)
+
+**Stand:** Separater Basis-Fix auf Branch `fix/layout-theme-storage-node26` (Basis: `5f01ed5`, gemergt in `main` als `aba9078`).
+
+### 1. Problem & Ursache
+
+- **Fehler:** Unter Node 26.9.0 (native Web Storage API ohne `--localstorage-file` bzw. in Testumgebungen mit opaker Origin) schlug `npm test` mit 3 Fehlern in `src/components/layout/__tests__/Layout.ui.vitest.tsx` fehl: `TypeError: Cannot read properties of undefined (reading 'getItem')`.
+- **Ursache:** In `src/components/layout/Layout.tsx` wurde bei der Initialisierung des Themes (`useState`) ungeschützt `window.localStorage.getItem(...)` aufgerufen, wenn `typeof window !== 'undefined'`. Wenn `window.localStorage` in Node 26 `undefined` ist oder beim Zugriff eine `SecurityError`-Exception auslöst, stürzte die Komponente ab.
+
+### 2. Lösung (Minimal fail-safe)
+
+- In `src/components/layout/Layout.tsx`:
+  - Hilfsfunktion `getInitialTheme(): ThemeMode` extrahiert:
+    - Prüft defensiv `typeof window !== 'undefined' && window.localStorage`.
+    - Gekapselt in `try { ... } catch { return 'dark'; }`.
+    - Fällt bei `undefined`, `SecurityError`, Quota- oder Sandbox-Fehlern deterministisch auf `dark` zurück.
+  - In `useEffect`: Schreibzugriff auf `localStorage.setItem` zusätzlich mit `window.localStorage`-Prüfung abgesichert.
+  - Browser-Verhalten und interaktive Theme-Umschaltung bleiben uneingeschränkt erhalten.
+- In `src/components/layout/__tests__/Layout.ui.vitest.tsx`:
+  - Charakterisierungstests ergänzt für:
+    - Deterministischer Fallback auf `dark`, wenn `localStorage` `undefined` ist oder wirft (`SecurityError`).
+    - Korrektes Auslesen von `light`, wenn im Storage hinterlegt.
+    - Theme-Umschaltung über den Header-Button auch bei fehlschlagendem/werfendem `setItem`.
+
+### 3. Autorisierter Scope & Schutzbereiche
+
+| Datei | Art | Beschreibung |
+|---|---|---|
+| `src/components/layout/Layout.tsx` | Modify | Minimal fail-safe `getInitialTheme()` und `useEffect`-Absicherung |
+| `src/components/layout/__tests__/Layout.ui.vitest.tsx` | Modify | Absicherung & Tests für Theme-Resilienz unter Node 26 |
+| `docs/BUILD_LOG.md` | Modify | Dokumentation des Basis-Fixes |
+
+- **Schutzbereich:** `src/simulation/`, `src/types/`, `src/context/`, `src/services/data/`, `src/features/resources/`, Supabase, Routing und Konfiguration blieben 100% unberührt (0 Bytes Diff).
+- **Keine 067M-Dateien:** Branch `feat/auftrag-067m-members` bleibt isoliert, unverändert und ungemergt.
+
+### 4. Pflicht-Gates (Lokal verifiziert)
+
+1. **TypeScript (`npx tsc --noEmit`):**
+   - 0 Fehler (Exit 0).
+2. **Linting (`npm run lint`):**
+   - 0 ESLint-Warnungen/Fehler (Exit 0).
+3. **Formatierung (`npm run format:check`):**
+   - 100% Prettier-konform (Exit 0).
+4. **Vollständige Vitest-Suite (`npm test`):**
+   - Unter Node 26.9.0: **246/246 Testdateien, 1323/1323 Tests bestanden (Exit 0)**.
+   - Unter Node 22 (LTS): **246/246 Testdateien, 1323/1323 Tests bestanden (Exit 0)**.
+5. **Legacy-Integrity-Harness (`npm run verify`):**
+   - **25/25 Suites grün (Exit 0)**.
+6. **Produktions-Build (`npm run build`):**
+   - Vite Build erfolgreich in 3.33s (Exit 0).
+7. **Whitespace- und Diff-Prüfung (`git diff --check 5f01ed5`):**
+   - 0 Whitespace-Fehler (Exit 0).
+
+## [2026-09-20] Gate G59: Integration Basis-Fix aus main (aba9078) & finale Freigabeprüfung (Antigravity)
+
+**Stand:** Integration des aktuellen lokalen `main`-Stands (`aba9078`) in `feat/auftrag-067m-members`.
+
+### 1. Integration & Konfliktbehebung
+
+- **Übernahme:** Merge von `main` (`aba9078` inkl. Basis-Fix für Theme-Storage-Resilienz in `src/components/layout/Layout.tsx` und `Layout.ui.vitest.tsx`).
+- **Konflikte:** Einziger Konflikt in `docs/BUILD_LOG.md` (beide Branches führten sequentielle Einträge am Dateiende); sauber aufgelöst unter Beibehaltung der vollständigen Chronologie.
+- **Wegfall der Gate-Ausnahme:** Die in Nacharbeit 5 noch dokumentierte Baseline-Gate-Ausnahme für `npm test` unter Node 26.9.0 ist durch den Basis-Fix vollständig behoben.
+
+### 2. Durchgeführte lokale Gates für G59
+
+1. **Whitespace- und Diff-Prüfung (`git diff --check aba9078`):**
+   - 0 Whitespace-Fehler (Exit 0).
+2. **Schutzbereichs-Prüfung (`git diff origin/main`):**
+   - `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`
+   - Ergebnis: 100% LEER (0 Bytes geändert).
+3. **Scope-Prüfung:**
+   - Ausschließlich autorisierte Zieldateien für Auftrag 067M plus die integrierten Layout-Resilienz-Dateien aus `main`.
+4. **TypeScript Type-Check (`npx tsc --noEmit`):**
+   - 0 Fehler (Exit 0).
+5. **Linting & Formatierung (`npm run lint && npm run format:check`):**
+   - 0 ESLint-Warnungen/Fehler, 100% Prettier-konform (Exit 0).
+6. **Integrity-Harness (`npm run verify`):**
+   - 25/25 Suites (001 bis 025) bestanden (Exit 0).
+7. **Vitest Unit- & Integrations-Suite (`npm test`):**
+   - Unter Node 26.9.0: **248/248 Testdateien, 1333/1333 Tests bestanden (Exit 0)**. Keine Ausnahmen.
+8. **Deno Edge Function Tests:**
+   - `deno test --no-lock --allow-read supabase/functions/__tests__/`
+   - Ergebnis: **38/38 Tests bestanden (11/11 in manageMembers.test.ts) (Exit 0)**.
+9. **Datenbank-Tests (pgTAP via Supabase CLI):**
+   - `npx supabase test db`
+   - Ergebnis: **4/4 Testdateien, 92/92 Tests bestanden (Exit 0)**.
+10. **Produktions-Build (`npm run build`):**
+    - Vite Build erfolgreich (Exit 0).
+11. **End-to-End-Suite (Playwright):**
+    - `npx playwright test e2e/member-management.spec.ts`
+    - Ergebnis: **27/27 Tests über alle 3 Viewports (desktop-1440, tablet-768, mobile-375) bestanden (Exit 0)**.
+
+### 3. Stopp-Punkte und Handoff
+
+- **Strikte Einhaltung:** Kein weiterer Push, kein PR, kein Merge nach main und kein Deploy.
+- **Status:** **Bereit zur Prüfung**.
