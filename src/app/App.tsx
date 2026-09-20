@@ -20,12 +20,6 @@ const LoginPage = React.lazy(() =>
   })),
 );
 
-const AcceptInvitationPage = React.lazy(() =>
-  import('@/features/admin/pages/AcceptInvitationPage').then((m) => ({
-    default: m.AcceptInvitationPage,
-  })),
-);
-
 const DesignSystemPage = React.lazy(() =>
   import('@/app/DesignSystemPage').then((m) => ({
     default: m.DesignSystemPage,
@@ -77,28 +71,6 @@ export function App() {
                         }
                       >
                         <LoginPage />
-                      </React.Suspense>
-                    </RouteErrorBoundary>
-                  }
-                />
-
-                {/* Einladungsannahme für eingeladene Nutzer (Gate G59) */}
-                <Route
-                  path="/accept-invitation"
-                  element={
-                    <RouteErrorBoundary resetKey="accept-invitation">
-                      <React.Suspense
-                        fallback={
-                          <div
-                            role="status"
-                            aria-live="polite"
-                            className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
-                          >
-                            Einladung wird geladen …
-                          </div>
-                        }
-                      >
-                        <AcceptInvitationPage />
                       </React.Suspense>
                     </RouteErrorBoundary>
                   }

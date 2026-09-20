@@ -24,6 +24,7 @@ export interface OrganizationInvitation {
   status: InvitationStatus;
   createdAt: string;
   expiresAt: string;
+  invitationLink?: string | null;
 }
 
 export type MemberServiceErrorCode =

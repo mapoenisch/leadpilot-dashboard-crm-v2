@@ -134,23 +134,100 @@ test.describe('Mitgliederverwaltung (Gate G59)', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('6. Eingeladener Nutzer ruft /accept-invitation auf', async ({ page }) => {
-    // Unangemeldeter Aufruf zeigt Hinweis zur Anmeldung
-    await page.goto('/accept-invitation');
-    await expect(page.getByRole('heading', { level: 1, name: 'Einladung annehmen' })).toBeVisible();
-    await expect(
-      page.getByText('Um eine Einladung anzunehmen, müssen Sie angemeldet sein'),
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Zur Anmeldung' })).toBeVisible();
+  test('6. Einladungsfluss: Einladung erzeugen -> Link verwenden -> Mitgliedschaft nachweisen', async ({
+    page,
+  }) => {
+    await loginAsAdmin(page);
+    await page.goto('/admin/members');
 
-    // 0 px horizontaler Overflow auf allen Viewports
-    const overflow = await page.evaluate(() =>
-      Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
-    );
-    expect(overflow).toBe(0);
+    const inviteeEmail = `e2e-accept-${Date.now()}@e2e.local`;
 
-    // Nach Klick auf 'Zur Anmeldung' wird /login aufgerufen
-    await page.getByRole('button', { name: 'Zur Anmeldung' }).click();
-    await expect(page).toHaveURL(/\/login/);
+    // 1. Einladung erzeugen
+    await page.fill('#invite-email', inviteeEmail);
+    await page.selectOption('#invite-role', 'manager');
+    await page.getByRole('button', { name: 'Einladung senden' }).click();
+
+    const successStatus = page.locator('[role="status"]').filter({ hasText: 'Einladung an' });
+    await expect(successStatus).toBeVisible();
+
+    const linkInput = page.getByTestId('invitation-link-input');
+    await expect(linkInput).toBeVisible();
+    const inviteLink = await linkInput.inputValue();
+    expect(inviteLink).toBeTruthy();
+
+    // 2. Link in isoliertem Kontext verwenden
+    const inviteeContext = await page.context().browser()!.newContext();
+    const inviteePage = await inviteeContext.newPage();
+
+    try {
+      await inviteePage.goto(inviteLink);
+      await inviteePage.waitForURL(/\/login/);
+
+      // Session-Token des eingeladenen Nutzers auslesen
+      const token = await inviteePage.evaluate(() => {
+        const hash = window.location.hash;
+        if (hash) {
+          const params = new URLSearchParams(hash.replace(/^#/, ''));
+          const at = params.get('access_token');
+          if (at) return at;
+        }
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            try {
+              const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+              if (parsed.access_token) return parsed.access_token;
+            } catch {
+              // ignore
+            }
+          }
+        }
+        return null;
+      });
+
+      expect(token).toBeTruthy();
+
+      // Einladung atomar über Edge Function annehmen
+      const baseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
+      const anonKey =
+        process.env.VITE_SUPABASE_ANON_KEY ||
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+
+      const acceptRes = await inviteePage.evaluate(
+        async ({ url, tok, key }) => {
+          const res = await fetch(`${url}/functions/v1/manage-members`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${tok}`,
+              apikey: key,
+            },
+            body: JSON.stringify({ action: 'acceptInvitation' }),
+          });
+          return { status: res.status, data: await res.json() };
+        },
+        { url: baseUrl, tok: token, key: anonKey },
+      );
+
+      expect(acceptRes.status).toBe(200);
+      expect(acceptRes.data.status).toBe('accepted');
+      expect(acceptRes.data.role).toBe('manager');
+
+      // 3. Mitgliedschaft im Admin-Dashboard nachweisen
+      await page.reload();
+      await page.waitForURL('**/admin/members');
+
+      const membersSection = page.getByRole('region', { name: 'Mitgliederliste' });
+      const memberRow = membersSection.locator('tr', { hasText: inviteeEmail });
+      await expect(memberRow).toBeVisible();
+      await expect(memberRow.locator('span', { hasText: 'manager' })).toBeVisible();
+      await expect(memberRow.locator('span', { hasText: 'Aktiv' })).toBeVisible();
+
+      // Einladung ist nicht mehr in den ausstehenden Einladungen
+      const pendingSection = page.getByRole('region', { name: 'Ausstehende Einladungen' });
+      await expect(pendingSection.locator('tr', { hasText: inviteeEmail })).toHaveCount(0);
+    } finally {
+      await inviteeContext.close();
+    }
   });
 });

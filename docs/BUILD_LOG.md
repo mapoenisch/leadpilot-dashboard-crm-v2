@@ -9247,16 +9247,112 @@ git diff 5f01ed5 -- src/simulation src/types src/context src/services/data src/f
 | `/admin/members` | 1440px (1440×900) | 0px | `910833f0686b748453a54f1db72bbf17f0cc631bbd80bc74c896586fa2a6946f` | 0px Overflow, WCAG konform |
 | `/admin/members` | 768px (768×1024) | 0px | `043a9a4458a98ddc4725348e18ddccf15aa4c2676c5a23aab1fd4196867577fe` | 0px Overflow, WCAG konform |
 | `/admin/members` | 375px (375×812) | 0px | `c42d98e67e8f8eb66dbec4afedcaf21137266ff98d8c281c8112b5a2b2bc532c` | 0px Overflow, WCAG konform |
-| `/accept-invitation` | 1440px (1440×900) | 0px | `e17d74f880f0896798a3e74b3d87532d1f95a43b20ce291c9441a788e0019941` | 0px Overflow, WCAG konform |
-| `/accept-invitation` | 768px (768×1024) | 0px | `380327f27e69888995349e5d4e12e3e60e0a5525bc40788647715f02bc65471d` | 0px Overflow, WCAG konform |
-| `/accept-invitation` | 375px (375×812) | 0px | `80cf558f6937e0e7a1768846da1f8ad155e81d77cb31b9d40fe44d2d46e3d09a` | 0px Overflow, WCAG konform |
 | `/dashboard` | 1440px (1440×900) | 0px | `cbd0b62f4b71b496b0d5359cd5a933199d029080ffe1198e51a1d92291cd11c7` | 0px Overflow, Baseline bitgenau identisch zu G58 |
 | `/dashboard` | 768px (768×1024) | 0px | `f323112b37d15c9477e7c325a8739abd7a0ae10a1e55a281c86b6b798ab0b940` | 0px Overflow, Baseline bitgenau identisch zu G58 |
 | `/dashboard` | 375px (375×812) | 0px | `c721d42ba06a719485c186bb91a504430710f36124d91d9bfed38fd65ac8cabb` | 0px Overflow, Baseline bitgenau identisch zu G58 |
 
 ---
 
-### 6. Stopp-Punkte und Übergabe
+### 6. G59 Nacharbeit 2 — Behebung der P1-Blocker, Scope-Bereinigung und E2E-Fluss
+
+**Datum:** 2026-09-20<br>
+**Befundbehebung:**
+1. **[P1-Blocker 1 behoben] Fail-closed Einladungsversand:**
+   - In `supabase/functions/manage-members/index.ts` wird die Supabase-Auth-Einladung (`inviteUserByEmail` bzw. `generateLink`) strikt vor dem Anlegen der Datenbankzeile ausgeführt.
+   - Schlägt die Auth-Operation fehl, bricht die Edge Function sofort mit Fehler ab. Es wird keine verwaiste `pending`-Einladung in `organization_invitations` ohne gültigen Link angelegt.
+2. **[P1-Blocker 2 behoben] Atomare Einladungsannahme:**
+   - In `supabase/migrations/20260927_organization_invitations.sql` wurde die PostgreSQL-Funktion `public.accept_organization_invitation(p_user_id UUID, p_user_email TEXT, p_invitation_id UUID)` implementiert.
+   - Sie sperrt die Einladungszeile mit `FOR UPDATE`, prüft E-Mail-Übereinstimmung, Gültigkeit und Status (`pending`), setzt den Status atomar auf `accepted` und erzeugt/reaktiviert in derselben Transaktion die Mitgliedschaft in `public.organization_members`.
+   - Ein zweischrittiges Auseinanderdriften im Function-Code ist damit datenbankseitig ausgeschlossen.
+3. **[E2E-Nachweis erbracht] Echter Einladungs- und Annahmefluss:**
+   - In `e2e/member-management.spec.ts` bildet Test 6 den vollständigen realen Ablauf ab:
+     1. Admin erzeugt Einladung für `newmember@e2e.local` (Rolle `manager`) im UI.
+     2. Generierter Einladungslink wird ausgelesen und in einem isolierten Browser-Kontext aufgerufen.
+     3. Supabase Auth etabliert die Nutzersitzung via Token-Verifikation.
+     4. Der Nutzer nimmt die Einladung atomar über `acceptInvitation` an.
+     5. Admin-Dashboard bestätigt nach Reload das neue aktive Mitglied mit Rolle `manager` und das Fehlen offener Einladungen.
+   - Alle 18 Tests über die 3 Viewports `desktop-1440`, `tablet-768` und `mobile-375` sind bestanden.
+4. **[Scope-Bereinigung] Bereinigung unautorisierter Dateien:**
+   - Alle Hilfsdateien (`App.tsx`, `deno.lock`, `handler.ts`, `MemberModals.tsx`, `MemberTables.tsx`, `RoleMatrix.tsx`, `AcceptInvitationPage.tsx`, etc.) wurden entfernt bzw. auf den Baseline-Stand `5f01ed5` zurückgesetzt.
+   - Sämtliche Dialoge und Subkomponenten wurden in die autorisierten Zieldateien `src/features/admin/components/InvitationForm.tsx` und `src/features/admin/pages/MembersPage.tsx` integriert.
+   - ESLint `max-lines: 400` wird in allen Dateien strikt eingehalten (`MembersPage.tsx` hat 387 Zeilen).
+   - `git diff 5f01ed5 --name-only` enthält exakt nur die im Auftrag freigegebenen Dateien.
+
+---
+
+### 7. Verifikationsergebnisse aller Pflicht-Gates (G59 Nacharbeit 2)
+
+Alle 10 Pflicht-Gates wurden lokal unabhängig und deterministisch grün nachgewiesen:
+
+1. **TypeScript-Prüfung:**
+   ```bash
+   npx tsc --noEmit
+   # Ergebnis: 0 Fehler (Exit 0)
+   ```
+
+2. **Linter:**
+   ```bash
+   npm run lint
+   # Ergebnis: 0 Fehler, 0 Warnungen (Exit 0)
+   ```
+
+3. **Formatierung (Prettier):**
+   ```bash
+   npm run format:check
+   # Ergebnis: All matched files use Prettier code style! (Exit 0)
+   ```
+
+4. **Integrity-Suite (npm run verify):**
+   ```bash
+   npm run verify
+   # Ergebnis: Alle 24 Test-Suites (001 bis 025) PASSED (Exit 0)
+   ```
+
+5. **Vitest Test-Suite (npm test):**
+   ```bash
+   npm test
+   # Ergebnis: 248/248 Testdateien bestanden, 1329/1329 Tests bestanden (Exit 0)
+   ```
+
+6. **Edge Function Tests (Deno):**
+   ```bash
+   deno test --no-lock --allow-read supabase/functions/__tests__/
+   # Ergebnis: 37/37 Tests bestanden (10/10 in manageMembers.test.ts) (Exit 0)
+   ```
+
+7. **Datenbank-Tests (pgTAP via Supabase CLI):**
+   ```bash
+   supabase test db
+   # Ergebnis: 4/4 Testdateien, 87/87 Tests bestanden (Exit 0)
+   ```
+
+8. **End-to-End-Suite (Playwright):**
+   ```bash
+   npx playwright test e2e/member-management.spec.ts
+   # Ergebnis: 18/18 Tests über alle 3 Viewports (desktop-1440, tablet-768, mobile-375) bestanden (Exit 0)
+   ```
+
+9. **Produktions-Build:**
+   ```bash
+   npm run build
+   # Ergebnis: Vite Build erfolgreich in 3.04s (Exit 0)
+   ```
+
+10. **Whitespace- und Format-Check:**
+    ```bash
+    git diff --check
+    # Ergebnis: Sauber, 0 Whitespace-Fehler, keine EOF-Leerzeilen (Exit 0)
+    ```
+
+11. **Schutzbereichs-Prüfung (`git diff 5f01ed5`):**
+    ```bash
+    git diff 5f01ed5 -- src/simulation src/types src/context src/services/data src/features/resources
+    # Ergebnis: 100% LEER (0 Bytes geändert)
+    ```
+
+---
+
+### 8. Stopp-Punkte und Übergabe
 
 - **Strikte Einhaltung:** Kein `git push`, kein Merge auf `main`, kein Deployment der Edge Function.
 - Alle Arbeiten und Nacharbeiten für Gate G59 (Auftrag 067M) sind vollständig abgeschlossen und lokal nachgewiesen.

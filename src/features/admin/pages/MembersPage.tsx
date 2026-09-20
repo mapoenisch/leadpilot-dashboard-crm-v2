@@ -1,8 +1,11 @@
 // G59 (Auftrag 067M, Step 3): Mitgliederverwaltung für Administratoren.
-// Enthält Mitgliederliste, Einladungsliste, Rollenmatrix und Bestätigungsdialoge.
+// Enthält Mitgliederliste, Einladungsliste, Bestätigungsdialoge und Rollenmatrix.
 // Schützt vor der Herabstufung/Deaktivierung des letzten Administrators (LAST_ACTIVE_ADMIN).
 import { useEffect, useState, useCallback } from 'react';
 import { useOrganization } from '@/auth/organizationContext';
+import { Table, type Column } from '@/components/ui/Table';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import {
   memberService,
   MemberServiceError,
@@ -10,10 +13,12 @@ import {
   type OrganizationInvitation,
   type OrganizationRole,
 } from '@/services/admin/memberService';
-import { InvitationForm } from '../components/InvitationForm';
-import { MemberTables } from '../components/MemberTables';
-import { RoleMatrix } from '../components/RoleMatrix';
-import { MemberModals } from '../components/MemberModals';
+import {
+  InvitationForm,
+  RoleMatrix,
+  ConfirmActionModal,
+  ForbiddenView,
+} from '../components/InvitationForm';
 
 export function MembersPage() {
   const { session, isLoading: isOrgLoading } = useOrganization();
@@ -58,7 +63,6 @@ export function MembersPage() {
     }
   }, [session, loadData]);
 
-  // 1. Ladezustand des Organisationskontexts
   if (isOrgLoading) {
     return (
       <main tabIndex={-1} id="main-content" aria-label="Hauptinhalt" className="p-[var(--space-6)]">
@@ -69,34 +73,10 @@ export function MembersPage() {
     );
   }
 
-  // 2. Nicht-Admin: Fail-Closed 403 Zustand
   if (!session || session.role !== 'admin') {
-    return (
-      <main
-        tabIndex={-1}
-        id="main-content"
-        aria-label="Hauptinhalt"
-        className="p-[var(--space-6)] max-w-[800px] mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center"
-      >
-        <div className="bg-surface border border-solid border-border rounded-xl p-[var(--space-6)] w-full flex flex-col items-center gap-[var(--space-4)]">
-          <div className="w-12 h-12 rounded-full bg-[rgba(255,85,85,0.1)] text-error flex items-center justify-center text-xl font-bold">
-            !
-          </div>
-          <h1 className="text-2xl font-bold text-text m-0">Zugriff verweigert (403)</h1>
-          <p className="text-sm text-[var(--color-text-muted)] max-w-[480px] m-0">
-            Dieser Bereich ist ausschließlich für Administratoren zugänglich. Als{' '}
-            <strong className="text-text">
-              {session?.role ?? 'nicht authentifizierter Nutzer'}
-            </strong>{' '}
-            besitzen Sie keine Berechtigung zur Einsicht oder Verwaltung von Mitgliedern und
-            Einladungen.
-          </p>
-        </div>
-      </main>
-    );
+    return <ForbiddenView currentRole={session?.role} />;
   }
 
-  // Aktionen ausführen
   const handleConfirmDeactivate = async () => {
     if (!deactivateTarget) return;
     setIsActionPending(true);
@@ -108,15 +88,13 @@ export function MembersPage() {
       setDeactivateTarget(null);
       await loadData();
     } catch (err: unknown) {
-      if (err instanceof MemberServiceError) {
-        setErrorMessage(
-          err.code === 'LAST_ACTIVE_ADMIN'
-            ? 'Der letzte aktive Administrator kann nicht deaktiviert werden.'
-            : err.message,
-        );
-      } else {
-        setErrorMessage('Fehler beim Deaktivieren des Mitglieds.');
-      }
+      setErrorMessage(
+        err instanceof MemberServiceError && err.code === 'LAST_ACTIVE_ADMIN'
+          ? 'Der letzte aktive Administrator kann nicht deaktiviert werden.'
+          : err instanceof Error
+            ? err.message
+            : 'Fehler beim Deaktivieren.',
+      );
     } finally {
       setIsActionPending(false);
     }
@@ -138,15 +116,13 @@ export function MembersPage() {
       setRoleChangeTarget(null);
       await loadData();
     } catch (err: unknown) {
-      if (err instanceof MemberServiceError) {
-        setErrorMessage(
-          err.code === 'LAST_ACTIVE_ADMIN'
-            ? 'Der letzte aktive Administrator kann nicht herabgestuft werden.'
-            : err.message,
-        );
-      } else {
-        setErrorMessage('Fehler beim Ändern der Rolle.');
-      }
+      setErrorMessage(
+        err instanceof MemberServiceError && err.code === 'LAST_ACTIVE_ADMIN'
+          ? 'Der letzte aktive Administrator kann nicht herabgestuft werden.'
+          : err instanceof Error
+            ? err.message
+            : 'Fehler beim Ändern der Rolle.',
+      );
     } finally {
       setIsActionPending(false);
     }
@@ -163,15 +139,125 @@ export function MembersPage() {
       setRevokeTarget(null);
       await loadData();
     } catch (err: unknown) {
-      if (err instanceof MemberServiceError) {
-        setErrorMessage(err.message);
-      } else {
-        setErrorMessage('Fehler beim Widerrufen der Einladung.');
-      }
+      setErrorMessage(err instanceof Error ? err.message : 'Fehler beim Widerrufen der Einladung.');
     } finally {
       setIsActionPending(false);
     }
   };
+
+  const memberColumns: Column<OrganizationMember>[] = [
+    {
+      key: 'email',
+      label: 'Benutzer / E-Mail',
+      render: (m) => (
+        <div className="flex flex-col">
+          <span className="font-medium text-text">{m.email}</span>
+          <span className="text-[11px] text-[var(--color-text-muted)]">ID: {m.userId}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'role',
+      label: 'Rolle',
+      render: (m) => (
+        <Badge variant={m.role === 'admin' ? 'orange' : m.role === 'manager' ? 'cyan' : 'neutral'}>
+          {m.role}
+        </Badge>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (m) => (
+        <Badge variant={m.status === 'active' ? 'mint' : 'red'}>
+          {m.status === 'active' ? 'Aktiv' : 'Suspendiert'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Aktionen',
+      render: (m) => (
+        <div className="flex items-center gap-2">
+          <select
+            aria-label={`Rolle von ${m.email} ändern`}
+            value={m.role}
+            disabled={m.status === 'suspended'}
+            onChange={(e) =>
+              setRoleChangeTarget({ member: m, newRole: e.target.value as OrganizationRole })
+            }
+            className="bg-background-deep border border-solid border-border rounded px-2 py-1 text-xs text-text focus:outline-none focus:border-primary"
+          >
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="viewer">Viewer</option>
+          </select>
+          {m.status === 'active' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setDeactivateTarget(m)}
+              aria-label={`Mitglied ${m.email} deaktivieren`}
+            >
+              Deaktivieren
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const invitationColumns: Column<OrganizationInvitation>[] = [
+    {
+      key: 'email',
+      label: 'E-Mail',
+      render: (i) => <span className="font-medium text-text">{i.email}</span>,
+    },
+    {
+      key: 'role',
+      label: 'Zielrolle',
+      render: (i) => (
+        <Badge variant={i.role === 'admin' ? 'orange' : i.role === 'manager' ? 'cyan' : 'neutral'}>
+          {i.role}
+        </Badge>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (i) => {
+        const v = i.status === 'pending' ? 'cyan' : i.status === 'accepted' ? 'mint' : 'neutral';
+        return <Badge variant={v}>{i.status}</Badge>;
+      },
+    },
+    {
+      key: 'expiresAt',
+      label: 'Gültig bis',
+      render: (i) => (
+        <span className="text-xs text-[var(--color-text-muted)]">
+          {new Date(i.expiresAt).toLocaleDateString('de-DE')}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Aktionen',
+      render: (i) => (
+        <div>
+          {i.status === 'pending' && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setRevokeTarget(i)}
+              aria-label={`Einladung für ${i.email} widerrufen`}
+            >
+              Widerrufen
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <main
@@ -187,7 +273,6 @@ export function MembersPage() {
         </p>
       </header>
 
-      {/* Globale Status- und Fehlermeldungen */}
       {errorMessage && (
         <div
           role="alert"
@@ -220,38 +305,111 @@ export function MembersPage() {
         </div>
       )}
 
-      {/* Formular zum Einladen */}
       <section aria-labelledby="section-invite-title">
         <InvitationForm onInvitationCreated={loadData} />
       </section>
 
-      {/* Mitglieder- und Einladungstabellen */}
-      <MemberTables
-        members={members}
-        invitations={invitations}
-        isLoadingData={isLoadingData}
-        onRefresh={loadData}
-        onSelectRoleChange={(member, newRole) => setRoleChangeTarget({ member, newRole })}
-        onSelectDeactivate={(member) => setDeactivateTarget(member)}
-        onSelectRevoke={(invitation) => setRevokeTarget(invitation)}
-      />
+      <section
+        aria-label="Mitgliederliste"
+        className="bg-surface border border-solid border-border rounded-lg p-[var(--space-4)] flex flex-col gap-[var(--space-3)]"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 id="section-members-title" className="text-base font-semibold text-text m-0">
+              Mitglieder der Organisation
+            </h2>
+            <p className="text-xs text-[var(--color-text-muted)] m-0">
+              {members.length} {members.length === 1 ? 'Mitglied' : 'Mitglieder'} registriert.
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={loadData}
+            disabled={isLoadingData}
+            aria-label="Mitgliederliste aktualisieren"
+          >
+            {isLoadingData ? 'Lade...' : 'Aktualisieren'}
+          </Button>
+        </div>
+        <Table
+          rows={members}
+          columns={memberColumns}
+          emptyText="Keine Mitglieder in dieser Organisation gefunden."
+          ariaLabel="Mitgliedertabelle"
+        />
+      </section>
 
-      {/* Rollenmatrix */}
+      <section
+        aria-label="Ausstehende Einladungen"
+        className="bg-surface border border-solid border-border rounded-lg p-[var(--space-4)] flex flex-col gap-[var(--space-3)]"
+      >
+        <div>
+          <h2 id="section-invitations-title" className="text-base font-semibold text-text m-0">
+            Ausstehende Einladungen
+          </h2>
+          <p className="text-xs text-[var(--color-text-muted)] m-0">
+            Übersicht aller offenen Einladungs-Tokens für diese Organisation.
+          </p>
+        </div>
+        <Table
+          rows={invitations.filter((i) => i.status === 'pending')}
+          columns={invitationColumns}
+          emptyText="Keine Einladungen vorhanden."
+          ariaLabel="Einladungstabelle"
+        />
+      </section>
+
       <RoleMatrix />
 
-      {/* Bestätigungsdialoge */}
-      <MemberModals
-        deactivateTarget={deactivateTarget}
-        onCloseDeactivate={() => setDeactivateTarget(null)}
-        onConfirmDeactivate={handleConfirmDeactivate}
-        roleChangeTarget={roleChangeTarget}
-        onCloseRoleChange={() => setRoleChangeTarget(null)}
-        onConfirmRoleChange={handleConfirmRoleChange}
-        revokeTarget={revokeTarget}
-        onCloseRevoke={() => setRevokeTarget(null)}
-        onConfirmRevoke={handleConfirmRevoke}
-        isActionPending={isActionPending}
-      />
+      {/* Dialoge */}
+      <ConfirmActionModal
+        open={deactivateTarget !== null}
+        onClose={() => setDeactivateTarget(null)}
+        title="Mitglied deaktivieren"
+        confirmLabel="Ja, deaktivieren"
+        variant="danger"
+        loading={isActionPending}
+        onConfirm={handleConfirmDeactivate}
+      >
+        <p className="text-sm text-text m-0">
+          Möchten Sie das Mitglied{' '}
+          <strong className="text-primary">{deactivateTarget?.email}</strong> wirklich deaktivieren?
+        </p>
+      </ConfirmActionModal>
+
+      <ConfirmActionModal
+        open={roleChangeTarget !== null}
+        onClose={() => setRoleChangeTarget(null)}
+        title="Rolle ändern"
+        confirmLabel="Rolle ändern"
+        variant="primary"
+        loading={isActionPending}
+        onConfirm={handleConfirmRoleChange}
+      >
+        <p className="text-sm text-text m-0">
+          Möchten Sie die Rolle von{' '}
+          <strong className="text-primary">{roleChangeTarget?.member.email}</strong> auf{' '}
+          <strong className="text-primary">{roleChangeTarget?.newRole}</strong> ändern?
+        </p>
+      </ConfirmActionModal>
+
+      <ConfirmActionModal
+        open={revokeTarget !== null}
+        onClose={() => setRevokeTarget(null)}
+        title="Einladung widerrufen"
+        confirmLabel="Ja, widerrufen"
+        variant="danger"
+        loading={isActionPending}
+        onConfirm={handleConfirmRevoke}
+      >
+        <p className="text-sm text-text m-0">
+          Möchten Sie die Einladung an{' '}
+          <strong className="text-primary">{revokeTarget?.email}</strong> widerrufen?
+        </p>
+      </ConfirmActionModal>
     </main>
   );
 }
+
+export default MembersPage;

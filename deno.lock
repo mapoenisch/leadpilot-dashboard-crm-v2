@@ -23,6 +23,7 @@
     "npm:@testing-library/user-event@^14.6.7": "14.6.7_@testing-library+dom@10.4.2",
     "npm:@types/react-dom@^18.3.0": "18.3.7_@types+react@18.3.31",
     "npm:@types/react@^18.3.3": "18.3.31",
+    "npm:@vitejs/plugin-react@^4.2.1": "4.7.0_vite@5.4.21",
     "npm:@vitest/coverage-v8@^4.1.11": "4.1.11_vitest@4.1.11_jsdom@25.0.1_vite@5.4.21",
     "npm:autoprefixer@^10.5.5": "10.6.1_postcss@8.5.28",
     "npm:class-variance-authority@~0.7.1": "0.7.1",
@@ -42,6 +43,7 @@
     "npm:postcss@^8.5.28": "8.5.28",
     "npm:prettier@^3.9.6": "3.9.7",
     "npm:react-dom@^18.3.1": "18.3.1_react@18.3.1",
+    "npm:react-router-dom@^6.30.6": "6.30.6_react@18.3.1_react-dom@18.3.1",
     "npm:react@^18.3.1": "18.3.1",
     "npm:recharts@^2.15.4": "2.15.4_react@18.3.1_react-dom@18.3.1",
     "npm:size-limit@^13.0.3": "13.1.1",
@@ -50,6 +52,7 @@
     "npm:tsx@^4.7.1": "4.23.13",
     "npm:typescript-eslint@^8.70.0": "8.70.0_eslint@9.39.5_typescript@5.9.3",
     "npm:typescript@^5.2.2": "5.9.3",
+    "npm:vite@^5.1.4": "5.4.21",
     "npm:vitest@^4.1.11": "4.1.11_@vitest+coverage-v8@4.1.11_jsdom@25.0.1_vite@5.4.21",
     "npm:zustand@5.0.15": "5.0.15_@types+react@18.3.31_react@18.3.1"
   },
@@ -6060,7 +6063,7 @@
         "npm:@testing-library/user-event@^14.6.7",
         "npm:@types/react-dom@^18.3.0",
         "npm:@types/react@^18.3.3",
-        "npm:@vitejs/plugin-react@^4.7.0",
+        "npm:@vitejs/plugin-react@^4.2.1",
         "npm:@vitest/coverage-v8@^4.1.11",
         "npm:autoprefixer@^10.5.5",
         "npm:class-variance-authority@~0.7.1",
@@ -6080,7 +6083,7 @@
         "npm:postcss@^8.5.28",
         "npm:prettier@^3.9.6",
         "npm:react-dom@^18.3.1",
-        "npm:react-router-dom@^7.18.4",
+        "npm:react-router-dom@^6.30.6",
         "npm:react@^18.3.1",
         "npm:recharts@^2.15.4",
         "npm:size-limit@^13.0.3",
@@ -6089,15 +6092,10 @@
         "npm:tsx@^4.7.1",
         "npm:typescript-eslint@^8.70.0",
         "npm:typescript@^5.2.2",
-        "npm:vite@^6.4.3",
+        "npm:vite@^5.1.4",
         "npm:vitest@^4.1.11",
         "npm:zustand@5.0.15"
-      ],
-      "overrides": {
-        "tmp": "0.2.7",
-        "uuid": "^11.1.1",
-        "@puppeteer/browsers": "^3.2.2"
-      }
+      ]
     },
     "members": {
       "supabase/functions": {

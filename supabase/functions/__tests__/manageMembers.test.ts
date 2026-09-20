@@ -8,7 +8,7 @@ import {
   handleManageMembers,
   type ManageMembersDb,
   type MemberUser,
-} from '../manage-members/handler.ts';
+} from '../manage-members/index.ts';
 
 const ADMIN_USER: MemberUser = {
   id: '11111111-1111-1111-1111-111111111111',

@@ -7,7 +7,8 @@
 
 BEGIN;
 
-SELECT plan(16);
+SELECT plan(21);
+SET CONSTRAINTS ALL IMMEDIATE;
 
 -- ---------------------------------------------------------------- Setup --
 -- Feste, kollisionsfreie UUIDs für deterministische Testläufe.
@@ -40,7 +41,8 @@ VALUES
   ('a2222222-2222-2222-2222-222222222222', 'authenticated', 'authenticated', 'manager-a@member-test.local', 'x', now()),
   ('a3333333-3333-3333-3333-333333333333', 'authenticated', 'authenticated', 'viewer-a@member-test.local', 'x', now()),
   ('b4444444-4444-4444-4444-444444444444', 'authenticated', 'authenticated', 'admin-b@member-test.local', 'x', now()),
-  ('a7777777-7777-7777-7777-777777777777', 'authenticated', 'authenticated', 'admin-a2@member-test.local', 'x', now());
+  ('a7777777-7777-7777-7777-777777777777', 'authenticated', 'authenticated', 'admin-a2@member-test.local', 'x', now()),
+  ('a8888888-8888-8888-8888-888888888888', 'authenticated', 'authenticated', 'invitee@member-test.local', 'x', now());
 
 INSERT INTO public.organizations (id, name, mode, status)
 VALUES
@@ -191,9 +193,46 @@ SELECT throws_matching(
   'Direkter UPDATE auf organization_invitations durch authenticated ist per RLS verboten'
 );
 
--- --------------------------------- 15: Einladungs-Status Constraint
--- Zurueck zur postgres Rolle
+-- --------------------------------- 15..19: Atomare Einladungsannahme (accept_organization_invitation)
 RESET ROLE;
+-- Vorbereitung Test-Einladung
+INSERT INTO public.organization_invitations (id, organization_id, email, role, invited_by, status)
+VALUES ('e1111111-1111-1111-1111-111111111111', 'a0000000-0000-0000-0000-00000000000a', 'invitee@member-test.local', 'manager', 'a1111111-1111-1111-1111-111111111111', 'pending');
+
+-- 16: Erfolgreiche Annahme legt Mitgliedschaft atomar an
+SELECT lives_ok(
+  $$ SELECT public.accept_organization_invitation('a8888888-8888-8888-8888-888888888888', 'invitee@member-test.local', 'e1111111-1111-1111-1111-111111111111') $$,
+  'accept_organization_invitation gelingt fuer gueltige Einladung atomar'
+);
+
+-- Pruefe, dass Status nun 'accepted' ist und Mitglied existiert
+SELECT is(
+  (SELECT status FROM public.organization_invitations WHERE id = 'e1111111-1111-1111-1111-111111111111'),
+  'accepted',
+  'Einladungsstatus nach Annahme ist accepted'
+);
+
+SELECT is(
+  (SELECT role FROM public.organization_members WHERE user_id = 'a8888888-8888-8888-8888-888888888888' AND organization_id = 'a0000000-0000-0000-0000-00000000000a'),
+  'manager',
+  'Mitgliedschaft nach Annahme hat die vorgesehene Rolle'
+);
+
+-- 18: Erneute Annahme der bereits angenommenen Einladung scheitert mit INVITATION_NOT_PENDING
+SELECT throws_matching(
+  $$ SELECT public.accept_organization_invitation('a8888888-8888-8888-8888-888888888888', 'invitee@member-test.local', 'e1111111-1111-1111-1111-111111111111') $$,
+  'INVITATION_NOT_PENDING',
+  'Erneute Annahme scheitert mit INVITATION_NOT_PENDING'
+);
+
+-- 19: Annahme einer nicht existierenden Einladung scheitert mit NOT_FOUND
+SELECT throws_matching(
+  $$ SELECT public.accept_organization_invitation('a8888888-8888-8888-8888-888888888888', 'nonexistent@member-test.local') $$,
+  'NOT_FOUND',
+  'Annahme nicht existierender Einladung scheitert mit NOT_FOUND'
+);
+
+-- --------------------------------- 20: Einladungs-Status Constraint
 SELECT throws_matching(
   $$ INSERT INTO public.organization_invitations (organization_id, email, role, invited_by, status)
      VALUES ('a0000000-0000-0000-0000-00000000000a', 'invalid@test.local', 'viewer', 'a1111111-1111-1111-1111-111111111111', 'invalid_status') $$,

@@ -88,3 +88,103 @@ CREATE CONSTRAINT TRIGGER trigger_enforce_last_active_admin
   DEFERRABLE INITIALLY IMMEDIATE
   FOR EACH ROW
   EXECUTE FUNCTION public.check_last_active_admin();
+
+-- ------------------------------------------------- 4. Atomare Einladungsannahme
+CREATE OR REPLACE FUNCTION public.accept_organization_invitation(
+  p_user_id UUID,
+  p_user_email TEXT,
+  p_invitation_id UUID DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_invitation RECORD;
+  v_member RECORD;
+  v_norm_email TEXT;
+BEGIN
+  v_norm_email := lower(trim(p_user_email));
+
+  IF p_invitation_id IS NOT NULL THEN
+    SELECT * INTO v_invitation
+    FROM public.organization_invitations
+    WHERE id = p_invitation_id
+    FOR UPDATE;
+  ELSE
+    SELECT * INTO v_invitation
+    FROM public.organization_invitations
+    WHERE lower(email) = v_norm_email
+      AND status = 'pending'
+    ORDER BY created_at DESC
+    LIMIT 1
+    FOR UPDATE;
+  END IF;
+
+  IF NOT FOUND THEN
+    SELECT * INTO v_invitation
+    FROM public.organization_invitations
+    WHERE lower(email) = v_norm_email
+    ORDER BY created_at DESC
+    LIMIT 1;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'NOT_FOUND' USING ERRCODE = 'P0002';
+    ELSE
+      RAISE EXCEPTION 'INVITATION_NOT_PENDING' USING ERRCODE = 'P0003';
+    END IF;
+  END IF;
+
+  IF lower(v_invitation.email) != v_norm_email THEN
+    RAISE EXCEPTION 'FORBIDDEN' USING ERRCODE = '42501',
+      DETAIL = 'E-Mail der Einladung stimmt nicht mit Benutzer ueberein.';
+  END IF;
+
+  IF v_invitation.status != 'pending' THEN
+    RAISE EXCEPTION 'INVITATION_NOT_PENDING' USING ERRCODE = 'P0003';
+  END IF;
+
+  IF v_invitation.expires_at <= NOW() THEN
+    UPDATE public.organization_invitations
+    SET status = 'expired'
+    WHERE id = v_invitation.id;
+    RAISE EXCEPTION 'INVITATION_NOT_PENDING' USING ERRCODE = 'P0003';
+  END IF;
+
+  -- 1. Status atomar auf accepted aktualisieren
+  UPDATE public.organization_invitations
+  SET status = 'accepted'
+  WHERE id = v_invitation.id;
+
+  -- 2. Mitgliedschaft atomar in derselben Transaktion erstellen / reaktivieren
+  INSERT INTO public.organization_members (
+    organization_id,
+    user_id,
+    role,
+    status
+  )
+  VALUES (
+    v_invitation.organization_id,
+    p_user_id,
+    v_invitation.role,
+    'active'
+  )
+  ON CONFLICT (user_id)
+  DO UPDATE SET
+    organization_id = EXCLUDED.organization_id,
+    role = EXCLUDED.role,
+    status = 'active'
+  RETURNING * INTO v_member;
+
+  RETURN jsonb_build_object(
+    'organization_id', v_invitation.organization_id,
+    'role', v_invitation.role,
+    'status', 'active',
+    'invitation_id', v_invitation.id
+  );
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.accept_organization_invitation(UUID, TEXT, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.accept_organization_invitation(UUID, TEXT, UUID) TO authenticated, service_role;
