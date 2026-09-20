@@ -9098,3 +9098,56 @@ git diff c6d88f3 -- supabase/migrations supabase/schema.sql
 
 - Alle Punkte [P1-6], [P2-8], [P2-9] und [P3] sind vollständig umgesetzt, getestet und lokal belegt.
 - **Stopp-Punkte strikt eingehalten:** Kein Push, kein Ruleset, kein CI-Lauf ohne ausdrückliche Freigabe durch Marc. Übergabe zur Prüfung an den unabhängigen Prüfer.
+
+## [2026-09-20] Basis-Fix: Resiliente Theme-Storage-Initialisierung unter Node 26.9 (Antigravity)
+
+**Stand:** Separater Basis-Fix auf Branch `fix/layout-theme-storage-node26` (Basis: `5f01ed5`).
+
+### 1. Problem & Ursache
+
+- **Fehler:** Unter Node 26.9.0 (native Web Storage API ohne `--localstorage-file` bzw. in Testumgebungen mit opaker Origin) schlug `npm test` mit 3 Fehlern in `src/components/layout/__tests__/Layout.ui.vitest.tsx` fehl: `TypeError: Cannot read properties of undefined (reading 'getItem')`.
+- **Ursache:** In `src/components/layout/Layout.tsx` wurde bei der Initialisierung des Themes (`useState`) ungeschützt `window.localStorage.getItem(...)` aufgerufen, wenn `typeof window !== 'undefined'`. Wenn `window.localStorage` in Node 26 `undefined` ist oder beim Zugriff eine `SecurityError`-Exception auslöst, stürzte die Komponente ab.
+
+### 2. Lösung (Minimal fail-safe)
+
+- In `src/components/layout/Layout.tsx`:
+  - Hilfsfunktion `getInitialTheme(): ThemeMode` extrahiert:
+    - Prüft defensiv `typeof window !== 'undefined' && window.localStorage`.
+    - Gekapselt in `try { ... } catch { return 'dark'; }`.
+    - Fällt bei `undefined`, `SecurityError`, Quota- oder Sandbox-Fehlern deterministisch auf `dark` zurück.
+  - In `useEffect`: Schreibzugriff auf `localStorage.setItem` zusätzlich mit `window.localStorage`-Prüfung abgesichert.
+  - Browser-Verhalten und interaktive Theme-Umschaltung bleiben uneingeschränkt erhalten.
+- In `src/components/layout/__tests__/Layout.ui.vitest.tsx`:
+  - Charakterisierungstests ergänzt für:
+    - Deterministischer Fallback auf `dark`, wenn `localStorage` `undefined` ist oder wirft (`SecurityError`).
+    - Korrektes Auslesen von `light`, wenn im Storage hinterlegt.
+    - Theme-Umschaltung über den Header-Button auch bei fehlschlagendem/werfendem `setItem`.
+
+### 3. Autorisierter Scope & Schutzbereiche
+
+| Datei | Art | Beschreibung |
+|---|---|---|
+| `src/components/layout/Layout.tsx` | Modify | Minimal fail-safe `getInitialTheme()` und `useEffect`-Absicherung |
+| `src/components/layout/__tests__/Layout.ui.vitest.tsx` | Modify | Absicherung & Tests für Theme-Resilienz unter Node 26 |
+| `docs/BUILD_LOG.md` | Modify | Dokumentation des Basis-Fixes |
+
+- **Schutzbereich:** `src/simulation/`, `src/types/`, `src/context/`, `src/services/data/`, `src/features/resources/`, Supabase, Routing und Konfiguration blieben 100% unberührt (0 Bytes Diff).
+- **Keine 067M-Dateien:** Branch `feat/auftrag-067m-members` bleibt isoliert, unverändert und ungemergt.
+
+### 4. Pflicht-Gates (Lokal verifiziert)
+
+1. **TypeScript (`npx tsc --noEmit`):**
+   - 0 Fehler (Exit 0).
+2. **Linting (`npm run lint`):**
+   - 0 ESLint-Warnungen/Fehler (Exit 0).
+3. **Formatierung (`npm run format:check`):**
+   - 100% Prettier-konform (Exit 0).
+4. **Vollständige Vitest-Suite (`npm test`):**
+   - Unter Node 26.9.0: **246/246 Testdateien, 1323/1323 Tests bestanden (Exit 0)**.
+   - Unter Node 22 (LTS): **246/246 Testdateien, 1323/1323 Tests bestanden (Exit 0)**.
+5. **Legacy-Integrity-Harness (`npm run verify`):**
+   - **25/25 Suites grün (Exit 0)**.
+6. **Produktions-Build (`npm run build`):**
+   - Vite Build erfolgreich in 3.33s (Exit 0).
+7. **Whitespace- und Diff-Prüfung (`git diff --check 5f01ed5`):**
+   - 0 Whitespace-Fehler (Exit 0).

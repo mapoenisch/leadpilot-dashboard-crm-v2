@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { Layout } from '../Layout';
+import { Layout, getInitialTheme, THEME_STORAGE_KEY } from '../Layout';
 import { AuthProvider } from '@/auth/AuthContext';
 
 describe('Layout', () => {
@@ -51,6 +51,87 @@ describe('Layout', () => {
     act(() => {
       window.innerWidth = 1200;
       window.dispatchEvent(new Event('resize'));
+    });
+  });
+
+  describe('Theme resilience and fallback', () => {
+    const originalLocalStorage = window.localStorage;
+
+    afterEach(() => {
+      Object.defineProperty(window, 'localStorage', {
+        value: originalLocalStorage,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('falls back to dark when localStorage is undefined or throws', () => {
+      Object.defineProperty(window, 'localStorage', {
+        get() {
+          throw new DOMException('Storage is not available for opaque origins', 'SecurityError');
+        },
+        configurable: true,
+      });
+
+      expect(getInitialTheme()).toBe('dark');
+    });
+
+    it('reads light theme when localStorage has light configured', () => {
+      const mockStorage = {
+        getItem: vi.fn((key: string) => (key === THEME_STORAGE_KEY ? 'light' : null)),
+        setItem: vi.fn(),
+      };
+      Object.defineProperty(window, 'localStorage', {
+        value: mockStorage,
+        writable: true,
+        configurable: true,
+      });
+
+      expect(getInitialTheme()).toBe('light');
+    });
+
+    it('falls back to dark when localStorage contains unknown value or dark', () => {
+      const mockStorage = {
+        getItem: vi.fn(() => 'other-value'),
+        setItem: vi.fn(),
+      };
+      Object.defineProperty(window, 'localStorage', {
+        value: mockStorage,
+        writable: true,
+        configurable: true,
+      });
+
+      expect(getInitialTheme()).toBe('dark');
+    });
+
+    it('allows toggling theme via Header button even if localStorage throws on write', async () => {
+      const user = userEvent.setup();
+      const mockStorage = {
+        getItem: vi.fn(() => 'dark'),
+        setItem: vi.fn(() => {
+          throw new Error('QuotaExceededError');
+        }),
+      };
+      Object.defineProperty(window, 'localStorage', {
+        value: mockStorage,
+        writable: true,
+        configurable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/dashboard']}>
+          <AuthProvider>
+            <Layout />
+          </AuthProvider>
+        </MemoryRouter>,
+      );
+
+      const themeToggle = screen.getByRole('button', { name: /Zum hellen Design wechseln/i });
+      expect(themeToggle).toBeInTheDocument();
+
+      await user.click(themeToggle);
+
+      expect(document.documentElement.dataset.theme).toBe('light');
     });
   });
 });
