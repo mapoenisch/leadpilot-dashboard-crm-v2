@@ -9608,3 +9608,107 @@ Alle 10 Pflicht-Gates wurden lokal unabhängig und deterministisch grün nachgew
 - **Strikte Einhaltung:** Kein `git push`, kein Merge auf `main`, kein Remote-Deployment.
 - Alle Prüfer-Befunde P1, P2 (Viewer, Whitespace, Scope) vollständig behoben.
 - Bereit zur Abnahme von Gate G59 durch den Prüfer.
+
+## [2026-09-20] Gate G59: Nacharbeit 5 — Screenshot-README Dokumentation & Gate-Ausnahme Baseline (Antigravity)
+
+**Stand:** Nacharbeit 5 zu Gate G59 auf Branch `feat/auftrag-067m-members`.
+
+### 1. Behebung der Prüferbefunde
+
+1. **[P2 – Screenshot README Testanzahl korrigiert]:**
+   - In `docs/screenshots/auftrag-067m-g59/README.md` wurde die veraltete Angabe von „18/18 Tests (6 Tests über alle 3 Viewports)“ auf den aktuellen tatsächlichen Testumfang von „27/27 Tests (9 Tests über alle 3 Viewports)“ aktualisiert.
+
+2. **[Dokumentierte Gate-Ausnahme: Globaler Testfehler in `Layout.ui.vitest.tsx` unter Node 26.9.0]:**
+   - **Befund:** Unter Node 26.9.0 (native Web Storage API) schlagen 3 Tests in `src/components/layout/__tests__/Layout.ui.vitest.tsx` fehl, da `Layout.tsx` (Zeile 21–25) bei der Initialisierung `window.localStorage.getItem(THEME_STORAGE_KEY)` ohne `try/catch` aufruft und in Node 26 der Zugriff auf `localStorage` bei undeklarierter bzw. opaker Origin zu einem Laufzeitfehler führt.
+   - **Baseline-Nachweis:** Dieser Befund existiert nachweislich bereits in der Baseline `5f01ed5` (vor Auftrag 067M) und wurde nicht durch 067M verursacht.
+   - **Scope-Konformität:** Gemäß Auftrag 067M (`ANTIGRAVITY_AUFTRAG_067M_MITGLIEDERVERWALTUNG.md`) sind `src/components/layout/Layout.tsx` und `src/components/layout/__tests__/Layout.ui.vitest.tsx` nicht Teil der autorisierten Zieldateien. Jede Änderung daran würde die Scope-Invariante verletzen.
+   - **Status:** Ausdrücklich als dokumentierte Gate-Ausnahme für G59 verbucht; Behebung erfolgt über einen separaten Basis-Auftrag.
+   - **Lokaler Testnachweis:** Unter Node 22 (LTS) läuft die gesamte Vitest-Suite mit 248/248 Testdateien und 1329/1329 Tests vollständig grün durch.
+
+---
+
+### 2. Geänderte Dateien
+
+| Art | Pfad | Beschreibung |
+|---|---|---|
+| Modify | `docs/screenshots/auftrag-067m-g59/README.md` | Testanzahl von 18/18 auf 27/27 korrigiert |
+| Modify | `docs/BUILD_LOG.md` | Dokumentation Nacharbeit 5 und Baseline-Gate-Ausnahme |
+
+---
+
+### 3. Nachweis aller Prüf-Gates
+
+1. **Whitespace- und Diff-Prüfung (`git diff --check 5f01ed5`):**
+   ```bash
+   git diff --check 5f01ed5
+   # Ergebnis: Sauber, 0 Whitespace-Fehler (Exit 0)
+   ```
+
+2. **Schutzbereichs-Prüfung (`git diff 5f01ed5`):**
+   ```bash
+   git diff 5f01ed5 -- src/simulation src/types src/context src/services/data src/features/resources
+   # Ergebnis: 100% LEER (0 Bytes geändert)
+   ```
+
+3. **Scope-Prüfung (`git diff --name-status 5f01ed5`):**
+   ```bash
+   git diff --name-status 5f01ed5
+   # Ergebnis: Ausschließlich autorisierte Zieldateien gemäß Auftrag 067M.
+   ```
+
+4. **TypeScript Type-Check:**
+   ```bash
+   npx tsc --noEmit
+   # Ergebnis: 0 Fehler (Exit 0)
+   ```
+
+5. **Linting & Code Formatting:**
+   ```bash
+   npm run lint && npm run format:check
+   # Ergebnis: 0 ESLint-Fehler, Prettier 100% konform (Exit 0)
+   ```
+
+6. **Legacy-Integrity-Harness:**
+   ```bash
+   npm run verify
+   # Ergebnis: 25/25 Suites erfolgreich (Exit 0)
+   ```
+
+7. **Vitest Unit- & Integrations-Suite:**
+   ```bash
+   npm test
+   # Ergebnis: 248/248 Testdateien, 1329/1329 Tests bestanden (Exit 0; Node 22)
+   # Gate-Ausnahme: Unter Node 26.9.0 schlagen 3 Layout-Tests auf Grund ungeschütztem localStorage-Zugriff fehl (Baseline-Fehler aus 5f01ed5).
+   ```
+
+8. **Deno Edge Function Tests:**
+   ```bash
+   deno test --no-lock --allow-read supabase/functions/__tests__/
+   # Ergebnis: 38/38 Tests bestanden (11/11 in manageMembers.test.ts) (Exit 0)
+   ```
+
+9. **Datenbank-Tests (pgTAP via Supabase CLI):**
+   ```bash
+   npx supabase test db
+   # Ergebnis: 4/4 Testdateien, 92/92 Tests bestanden (Exit 0)
+   ```
+
+10. **Produktions-Build:**
+    ```bash
+    npm run build
+    # Ergebnis: Vite Build erfolgreich (Exit 0)
+    ```
+
+11. **End-to-End-Suite (Playwright):**
+    ```bash
+    npx playwright test e2e/member-management.spec.ts
+    # Ergebnis: 27/27 Tests über alle 3 Viewports (desktop-1440, tablet-768, mobile-375) bestanden (Exit 0)
+    ```
+
+---
+
+### 4. Stopp-Punkte und Übergabe
+
+- **Strikte Einhaltung:** Kein `git push`, kein Merge auf `main`, kein Remote-Deployment.
+- Dokumentationsfehler behoben und Gate-Ausnahme sauber protokolliert.
+- Bereit zur finalen Freigabe von Gate G59 durch den Prüfer.
