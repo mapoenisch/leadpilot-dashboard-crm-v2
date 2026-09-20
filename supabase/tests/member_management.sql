@@ -7,7 +7,7 @@
 
 BEGIN;
 
-SELECT plan(26);
+SELECT plan(31);
 SET CONSTRAINTS ALL IMMEDIATE;
 
 -- ---------------------------------------------------------------- Setup --
@@ -289,6 +289,50 @@ SELECT is(
   'Trigger legt Mitgliedschaft fuer bestaetigten User automatisch an'
 );
 
+-- --------------------------------- 25..29: P1: Zwei Organisationen mit derselben Empfaenger-E-Mail
+-- Beide Organisationen (Org A und Org B) erstellen eine offene Einladung fuer dieselbe E-Mail
+INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
+VALUES ('c1111111-1111-1111-1111-111111111111', 'authenticated', 'authenticated', 'multi@member-test.local', 'x', now());
+
+INSERT INTO public.organization_invitations (id, organization_id, email, role, invited_by, status, created_at)
+VALUES
+  ('e5555555-5555-5555-5555-555555555555', 'a0000000-0000-0000-0000-00000000000a', 'multi@member-test.local', 'manager', 'a1111111-1111-1111-1111-111111111111', 'pending', now() - INTERVAL '1 hour'),
+  ('e6666666-6666-6666-6666-666666666666', 'b0000000-0000-0000-0000-00000000000b', 'multi@member-test.local', 'viewer', 'b4444444-4444-4444-4444-444444444444', 'pending', now());
+
+-- 25: Annahme ohne invitation_id MUSS mit AMBIGUOUS_INVITATION scheitern (kein blindes Raten/ORDER BY created_at DESC)
+SELECT throws_matching(
+  $$ SELECT public.accept_organization_invitation('c1111111-1111-1111-1111-111111111111', 'multi@member-test.local') $$,
+  'AMBIGUOUS_INVITATION',
+  'Annahme ohne invitation_id scheitert bei mehreren offenen Einladungen mit AMBIGUOUS_INVITATION'
+);
+
+-- 26: Annahme mit konkreter ID von Einladung A gelingt atomar
+SELECT lives_ok(
+  $$ SELECT public.accept_organization_invitation('c1111111-1111-1111-1111-111111111111', 'multi@member-test.local', 'e5555555-5555-5555-5555-555555555555') $$,
+  'Annahme mit konkreter ID fuer Org A gelingt trotz zweiter offener Einladung'
+);
+
+-- 27: Einladung A ist status = accepted
+SELECT is(
+  (SELECT status FROM public.organization_invitations WHERE id = 'e5555555-5555-5555-5555-555555555555'),
+  'accepted',
+  'Einladung A ist nun accepted'
+);
+
+-- 28: Einladung B bleibt unveraendert pending
+SELECT is(
+  (SELECT status FROM public.organization_invitations WHERE id = 'e6666666-6666-6666-6666-666666666666'),
+  'pending',
+  'Einladung B bleibt unverändert pending'
+);
+
+-- 29: Versuch des nun in Org A gebundenen Users, Einladung B anzunehmen, scheitert mit CANNOT_CHANGE_ORGANIZATION
+SELECT throws_matching(
+  $$ SELECT public.accept_organization_invitation('c1111111-1111-1111-1111-111111111111', 'multi@member-test.local', 'e6666666-6666-6666-6666-666666666666') $$,
+  'CANNOT_CHANGE_ORGANIZATION',
+  'Annahme von Einladung B scheitert, da Nutzer bereits Mitglied in Org A ist'
+);
+
 SELECT * FROM finish();
 
 -- Teardown: Bereinigung kollidierender Seed-Daten fuer nachfolgende Bestands-Tests (tenant_isolation.sql)
@@ -306,7 +350,8 @@ DELETE FROM auth.users WHERE email LIKE '%@member-test.local' OR email LIKE '%@e
   '44444444-4444-4444-4444-444444444444',
   '55555555-5555-5555-5555-555555555555',
   '66666666-6666-6666-6666-666666666666',
-  'a9999999-9999-9999-9999-999999999999'
+  'a9999999-9999-9999-9999-999999999999',
+  'c1111111-1111-1111-1111-111111111111'
 );
 
 COMMIT;

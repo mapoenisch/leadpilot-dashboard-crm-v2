@@ -9808,4 +9808,71 @@ Alle 10 Pflicht-Gates wurden lokal unabhängig und deterministisch grün nachgew
 ### 3. Stopp-Punkte und Handoff
 
 - **Strikte Einhaltung:** Kein weiterer Push, kein PR, kein Merge nach main und kein Deploy.
+- **Status:** Vorprüfung abgeschlossen; Überleitung in Nacharbeit 6.
+
+## [2026-09-20] Gate G59 / Auftrag 067M: Nacharbeit 6 — Behebung P1-Befund (Mehrdeutige Einladungsannahme & Organisationsisolation) (Antigravity)
+
+**Befund:** P1 aus Codex-Review zu Commit `3a767a5` (`supabase/migrations/20260927_organization_invitations.sql:123-129` und `228-236`).
+Ohne `p_invitation_id` wählte `accept_organization_invitation` die neueste offene Einladung allein nach E-Mail (`ORDER BY created_at DESC LIMIT 1`); der `auth.users`-Trigger übergab keine Einladungs-ID. Bei zwei offenen Einladungen für dieselbe E-Mail konnte der Auth-Link von Organisation A die Einladung von Organisation B annehmen.
+
+### 1. Durchgeführte Korrekturen
+
+1. **Datenbankmigration (`supabase/migrations/20260927_organization_invitations.sql`):**
+   - `ORDER BY created_at DESC LIMIT 1` ersatzlos entfernt.
+   - Wenn `p_invitation_id` nicht übergeben wird: Ermittlung von `v_pending_count` für die normalisierte E-Mail. Bei `v_pending_count > 1` wirft die RPC sofort `AMBIGUOUS_INVITATION` (Code `P0001`). Nur bei exakt `v_pending_count = 1` wird die eindeutige Einladung ausgewählt.
+   - `handle_auth_user_accept_invitation`: Extrahiert `invitation_id` aus `NEW.raw_user_meta_data` oder `NEW.raw_app_meta_data`. Falls vorhanden, wird gezielt `accept_organization_invitation(NEW.id, NEW.email, v_invitation_id)` gerufen. Fehlt die ID in den Metadaten, wird nur bei `v_pending_count = 1` automatisch angenommen; bei mehreren offenen Einladungen erfolgt keine automatische Annahme.
+2. **Edge Function (`supabase/functions/manage-members/index.ts`):**
+   - `createInvitation`: Generiert `invitationId = crypto.randomUUID()` vorab und übergibt `{ invitation_id: invitationId, organization_id: organizationId, role }` im `data`-Payload an Supabase Auth (`inviteUserByEmail` bzw. `generateLink`) sowie in `redirectTo: ${siteUrl}/login?invitation_id=${invitationId}`. Persistiert die Einladung mit exakt dieser `id`.
+   - `handleManageMembers`: Behandelt den Fehler `AMBIGUOUS_INVITATION` mit HTTP 400 (`{ code: 'AMBIGUOUS_INVITATION', message: 'Mehrere offene Einladungen vorhanden. invitationId ist erforderlich.' }`).
+   - Keine Organisation oder Rolle wird aus dem Browser-Body akzeptiert; Rolle und Organisation stammen strikt aus dem DB-Datensatz.
+3. **Frontend-Service (`src/services/admin/memberService.ts`):**
+   - `AMBIGUOUS_INVITATION` zu `MemberServiceErrorCode` und Fehlerbehandlung hinzugefügt.
+   - `acceptInvitation(invitationId?: string)` Signatur erweitert.
+4. **pgTAP-Suite (`supabase/tests/member_management.sql`):**
+   - Plan auf 31 Tests erhöht.
+   - Tests 25..29 ergänzt: Zwei Organisationen (Org A und Org B) laden dieselbe Empfänger-E-Mail ein. Annahme ohne ID scheitert mit `AMBIGUOUS_INVITATION`. Annahme mit ID von Einladung A gelingt atomar. Einladung B bleibt `pending`. Zweiter Annahmeversuch für Einladung B scheitert mit `CANNOT_CHANGE_ORGANIZATION`.
+5. **Deno-Suite (`supabase/functions/__tests__/manageMembers.test.ts`):**
+   - 3 neue Tests ergänzt:
+     - Zwei Organisationen für dieselbe E-Mail: Annahme ohne ID liefert HTTP 400 `AMBIGUOUS_INVITATION`.
+     - Annahme mit konkreter ID bindet an diese Organisation (HTTP 200).
+     - Annahme ignoriert manipulierte Rolle und Organisation aus dem Browser-Payload.
+   - Alle 14 Tests in `manageMembers.test.ts` (41 Tests gesamt) grün.
+6. **Playwright E2E (`e2e/member-management.spec.ts`):**
+   - Test 10 ergänzt: E2E-Negativtest für Multi-Org-Einladungen für dieselbe Empfänger-E-Mail (Annahme ohne ID scheitert mit 400, mit ID gelingt und bindet an Org A, Annahme B scheitert mit 409, manipulierte Rolle/Org im Payload wird verworfen).
+   - Alle 30 Tests über alle 3 Viewports (desktop-1440, tablet-768, mobile-375) bestanden.
+7. **Dokumentation (`docs/screenshots/auftrag-067m-g59/README.md`):**
+   - Testumfang auf 30/30 Tests aktualisiert.
+
+### 2. Pflicht-Gates (Lokal verifiziert)
+
+1. **Whitespace- und Diff-Prüfung (`git diff --check`):**
+   - 0 Whitespace-Fehler (Exit 0).
+2. **Schutzbereichs-Prüfung (`git diff origin/main`):**
+   - `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`
+   - Ergebnis: 100% LEER (0 Bytes geändert).
+3. **Scope-Prüfung:**
+   - Ausschließlich autorisierte Zieldateien gemäß Auftrag 067M. `deno.lock` ist unangetastet und bit-identisch zum Stand von `3a767a56` / `origin/main` (0 Bytes Diff).
+4. **TypeScript Type-Check (`npx tsc --noEmit`):**
+   - 0 Fehler (Exit 0).
+5. **Linting & Formatierung (`npm run lint && npm run format:check`):**
+   - 0 ESLint-Warnungen/Fehler, 100% Prettier-konform (Exit 0).
+6. **Integrity-Harness (`npm run verify`):**
+   - 25/25 Suites (001 bis 025) bestanden (Exit 0).
+7. **Vitest Unit- & Integrations-Suite (`npm test`):**
+   - Unter Node 26.9.0: **248/248 Testdateien, 1333/1333 Tests bestanden (Exit 0)**.
+8. **Deno Edge Function Tests:**
+   - `deno test --no-lock --allow-read supabase/functions/__tests__/`
+   - Ergebnis: **41/41 Tests bestanden (14/14 in manageMembers.test.ts) (Exit 0)**. Lockfile bleibt unverändert.
+9. **Datenbank-Tests (pgTAP via Supabase CLI):**
+   - `npx supabase test db`
+   - Ergebnis: **4/4 Testdateien, 97/97 Tests bestanden (Exit 0)**.
+10. **Produktions-Build (`npm run build`):**
+    - Vite Build erfolgreich in 4.51s (Exit 0).
+11. **End-to-End-Suite (Playwright):**
+    - `npx playwright test e2e/member-management.spec.ts`
+    - Ergebnis: **30/30 Tests über alle 3 Viewports (desktop-1440, tablet-768, mobile-375) bestanden (Exit 0)**.
+
+### 3. Stopp-Punkte und Handoff
+
+- **Strikte Einhaltung:** Nur lokal nachgearbeitet und committet. `deno.lock` unverändert. Kein Push, kein PR, kein Merge nach main und kein Deploy.
 - **Status:** **Bereit zur Prüfung**.

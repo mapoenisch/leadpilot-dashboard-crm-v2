@@ -32,6 +32,7 @@ export type MemberServiceErrorCode =
   | 'LAST_ACTIVE_ADMIN'
   | 'INVITATION_NOT_PENDING'
   | 'CANNOT_CHANGE_ORGANIZATION'
+  | 'AMBIGUOUS_INVITATION'
   | 'NOT_FOUND'
   | 'INVALID_REQUEST'
   | 'UNKNOWN';
@@ -93,6 +94,7 @@ async function callManageMembers<T = Record<string, unknown>>(
       rawCode === 'LAST_ACTIVE_ADMIN' ||
       rawCode === 'INVITATION_NOT_PENDING' ||
       rawCode === 'CANNOT_CHANGE_ORGANIZATION' ||
+      rawCode === 'AMBIGUOUS_INVITATION' ||
       rawCode === 'NOT_FOUND' ||
       rawCode === 'INVALID_REQUEST'
     ) {
@@ -156,11 +158,13 @@ export const memberService = {
     });
   },
 
-  async acceptInvitation(): Promise<{ organizationId: string; role: OrganizationRole }> {
+  async acceptInvitation(
+    invitationId?: string,
+  ): Promise<{ organizationId: string; role: OrganizationRole }> {
     return callManageMembers<{
       status: string;
       organizationId: string;
       role: OrganizationRole;
-    }>({ action: 'acceptInvitation' });
+    }>({ action: 'acceptInvitation', ...(invitationId ? { invitationId } : {}) });
   },
 };

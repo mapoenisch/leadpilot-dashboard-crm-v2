@@ -21,6 +21,6 @@ Gemessen mit Chromium über Vite Preview (Port 4321), authentifiziert mit Seed-A
 
 ## Verifikationsergebnis
 
-- `e2e/member-management.spec.ts`: 27/27 Tests bestanden (9 Tests über alle 3 Viewports).
+- `e2e/member-management.spec.ts`: 30/30 Tests bestanden (10 Tests über alle 3 Viewports).
 - Rollenmatrix und Formulare sind per Tastatur voll bedienbar.
 - Modaldialoge fangen den Fokus ein und bieten eindeutige Schließen- und Bestätigungs-Aktionen.

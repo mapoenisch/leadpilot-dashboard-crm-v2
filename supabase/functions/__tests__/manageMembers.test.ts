@@ -109,6 +109,9 @@ function createMockDb(): { db: ManageMembersDb; state: MockDbState } {
       if (token === 'user-org-b-token') {
         return { id: '44444444-4444-4444-4444-444444444444', email: 'invited@org-a.local' };
       }
+      if (token === 'multi-org-token') {
+        return { id: '77777777-7777-7777-7777-777777777777', email: 'multi@shared.local' };
+      }
       return null;
     },
     getMembership: async (userId: string) => {
@@ -121,7 +124,7 @@ function createMockDb(): { db: ManageMembersDb; state: MockDbState } {
         .filter((m) => m.organizationId === organizationId)
         .map((m) => ({
           userId: m.userId,
-          email: state.users.get(m.userId)?.email ?? 'unknown',
+          email: state.users.get(m.userId)?.email || 'unbekannt',
           role: m.role,
           status: m.status,
           createdAt: m.createdAt,
@@ -204,12 +207,29 @@ function createMockDb(): { db: ManageMembersDb; state: MockDbState } {
       member.status = 'suspended';
       return { success: true };
     },
-    acceptInvitation: async (userId: string, userEmail: string) => {
+    acceptInvitation: async (userId: string, userEmail: string, invitationId?: string) => {
       const normalizedEmail = userEmail.toLowerCase().trim();
-      const inv = state.invitations.find(
-        (i) => i.email === normalizedEmail && i.status === 'pending',
-      );
-      if (!inv) return { error: 'NOT_FOUND' };
+      let inv;
+      if (invitationId) {
+        inv = state.invitations.find((i) => i.id === invitationId);
+        if (!inv) return { error: 'NOT_FOUND' };
+        if (inv.email !== normalizedEmail) return { error: 'FORBIDDEN' };
+      } else {
+        const matching = state.invitations.filter(
+          (i) => i.email === normalizedEmail && i.status === 'pending',
+        );
+        if (matching.length > 1) {
+          return { error: 'AMBIGUOUS_INVITATION' };
+        }
+        if (matching.length === 1) {
+          inv = matching[0];
+        } else {
+          return { error: 'NOT_FOUND' };
+        }
+      }
+
+      if (inv.status !== 'pending') return { error: 'INVITATION_NOT_PENDING' };
+
       const existing = state.memberships.find((m) => m.userId === userId);
       if (existing && existing.organizationId !== inv.organizationId) {
         return { error: 'CANNOT_CHANGE_ORGANIZATION' };
@@ -426,4 +446,134 @@ Deno.test('ManageMembers: Annahme durch Mitglied einer anderen Organisation lief
   assertEquals(res.status, 409);
   const data = await res.json();
   assertEquals(data.code, 'CANNOT_CHANGE_ORGANIZATION');
+});
+
+Deno.test('ManageMembers: Zwei Organisationen für dieselbe E-Mail - Annahme ohne ID liefert 400 AMBIGUOUS_INVITATION', async () => {
+  const { db, state } = createMockDb();
+  state.invitations.push(
+    {
+      id: 'inv-shared-a',
+      organizationId: ORG_A_ID,
+      email: 'multi@shared.local',
+      role: 'manager',
+      invitedBy: ADMIN_USER.id,
+      status: 'pending',
+      createdAt: '2026-09-10T10:00:00Z',
+      expiresAt: '2026-09-27T10:00:00Z',
+    },
+    {
+      id: 'inv-shared-b',
+      organizationId: ORG_B_ID,
+      email: 'multi@shared.local',
+      role: 'viewer',
+      invitedBy: '44444444-4444-4444-4444-444444444444',
+      status: 'pending',
+      createdAt: '2026-09-10T11:00:00Z',
+      expiresAt: '2026-09-27T11:00:00Z',
+    },
+  );
+  const req = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer multi-org-token',
+    },
+    body: JSON.stringify({
+      action: 'acceptInvitation',
+    }),
+  });
+  const res = await handleManageMembers(req, db);
+  assertEquals(res.status, 400);
+  const data = await res.json();
+  assertEquals(data.code, 'AMBIGUOUS_INVITATION');
+});
+
+Deno.test('ManageMembers: Zwei Organisationen für dieselbe E-Mail - Annahme mit konkreter ID bindet an diese Organisation', async () => {
+  const { db, state } = createMockDb();
+  state.invitations.push(
+    {
+      id: 'inv-shared-a',
+      organizationId: ORG_A_ID,
+      email: 'multi@shared.local',
+      role: 'manager',
+      invitedBy: ADMIN_USER.id,
+      status: 'pending',
+      createdAt: '2026-09-10T10:00:00Z',
+      expiresAt: '2026-09-27T10:00:00Z',
+    },
+    {
+      id: 'inv-shared-b',
+      organizationId: ORG_B_ID,
+      email: 'multi@shared.local',
+      role: 'viewer',
+      invitedBy: '44444444-4444-4444-4444-444444444444',
+      status: 'pending',
+      createdAt: '2026-09-10T11:00:00Z',
+      expiresAt: '2026-09-27T11:00:00Z',
+    },
+  );
+  const req = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer multi-org-token',
+    },
+    body: JSON.stringify({
+      action: 'acceptInvitation',
+      invitationId: 'inv-shared-a',
+    }),
+  });
+  const res = await handleManageMembers(req, db);
+  assertEquals(res.status, 200);
+  const data = await res.json();
+  assertEquals(data.status, 'accepted');
+  assertEquals(data.role, 'manager');
+  assertEquals(data.organizationId, ORG_A_ID);
+});
+
+Deno.test('ManageMembers: Annahme ignoriert manipulierte Rolle und Organisation aus dem Browser-Payload', async () => {
+  const { db, state } = createMockDb();
+  state.invitations.push(
+    {
+      id: 'inv-shared-a',
+      organizationId: ORG_A_ID,
+      email: 'multi@shared.local',
+      role: 'manager',
+      invitedBy: ADMIN_USER.id,
+      status: 'pending',
+      createdAt: '2026-09-10T10:00:00Z',
+      expiresAt: '2026-09-27T10:00:00Z',
+    },
+    {
+      id: 'inv-shared-b',
+      organizationId: ORG_B_ID,
+      email: 'multi@shared.local',
+      role: 'viewer',
+      invitedBy: '44444444-4444-4444-4444-444444444444',
+      status: 'pending',
+      createdAt: '2026-09-10T11:00:00Z',
+      expiresAt: '2026-09-27T11:00:00Z',
+    },
+  );
+  const req = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer multi-org-token',
+    },
+    body: JSON.stringify({
+      action: 'acceptInvitation',
+      invitationId: 'inv-shared-b',
+      // Manipulationsversuch im Browser: Rolle admin und falsche Organisation mitsenden
+      role: 'admin',
+      organizationId: ORG_A_ID,
+    }),
+  });
+  const res = await handleManageMembers(req, db);
+  assertEquals(res.status, 200);
+  const data = await res.json();
+  // Die Rolle MUSS aus der Einladung (viewer) stammen, NICHT aus dem Payload (admin)
+  assertEquals(data.role, 'viewer');
+  // Die Organisation MUSS aus der Einladung (ORG_B_ID) stammen, NICHT aus dem Payload (ORG_A_ID)
+  assertEquals(data.organizationId, ORG_B_ID);
 });

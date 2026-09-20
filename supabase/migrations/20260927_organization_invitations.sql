@@ -105,6 +105,7 @@ DECLARE
   v_existing_member RECORD;
   v_member_exists BOOLEAN := FALSE;
   v_norm_email TEXT;
+  v_pending_count INT;
 BEGIN
   -- P0: Direkten RPC-Bypass durch unprivilegierte Rollen serverseitig abwehren
   IF current_user != 'postgres' AND (auth.role() IS NULL OR auth.role() != 'service_role') THEN
@@ -115,31 +116,47 @@ BEGIN
   v_norm_email := lower(trim(p_user_email));
 
   IF p_invitation_id IS NOT NULL THEN
+    -- Konkrete Einladung nach ID suchen
     SELECT * INTO v_invitation
     FROM public.organization_invitations
     WHERE id = p_invitation_id
     FOR UPDATE;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'NOT_FOUND' USING ERRCODE = 'P0002',
+        DETAIL = 'Einladung mit angegebener ID nicht gefunden.';
+    END IF;
   ELSE
-    SELECT * INTO v_invitation
+    -- Keine ID uebergeben: Pruefe Anzahl offener gueltiger Einladungen
+    SELECT COUNT(*) INTO v_pending_count
     FROM public.organization_invitations
     WHERE lower(email) = v_norm_email
       AND status = 'pending'
-    ORDER BY created_at DESC
-    LIMIT 1
-    FOR UPDATE;
-  END IF;
+      AND expires_at > NOW();
 
-  IF NOT FOUND THEN
-    SELECT * INTO v_invitation
-    FROM public.organization_invitations
-    WHERE lower(email) = v_norm_email
-    ORDER BY created_at DESC
-    LIMIT 1;
-
-    IF NOT FOUND THEN
-      RAISE EXCEPTION 'NOT_FOUND' USING ERRCODE = 'P0002';
+    IF v_pending_count > 1 THEN
+      RAISE EXCEPTION 'AMBIGUOUS_INVITATION' USING ERRCODE = 'P0001',
+        DETAIL = 'Mehrere offene Einladungen fuer diese E-Mail vorhanden; konkrete invitation_id ist erforderlich.';
+    ELSIF v_pending_count = 1 THEN
+      SELECT * INTO v_invitation
+      FROM public.organization_invitations
+      WHERE lower(email) = v_norm_email
+        AND status = 'pending'
+        AND expires_at > NOW()
+      FOR UPDATE;
     ELSE
-      RAISE EXCEPTION 'INVITATION_NOT_PENDING' USING ERRCODE = 'P0003';
+      -- Keine offene Einladung gefunden: pruefe, ob es ueberhaupt eine Einladung gab
+      SELECT * INTO v_invitation
+      FROM public.organization_invitations
+      WHERE lower(email) = v_norm_email
+      ORDER BY created_at DESC
+      LIMIT 1;
+
+      IF NOT FOUND THEN
+        RAISE EXCEPTION 'NOT_FOUND' USING ERRCODE = 'P0002';
+      ELSE
+        RAISE EXCEPTION 'INVITATION_NOT_PENDING' USING ERRCODE = 'P0003';
+      END IF;
     END IF;
   END IF;
 
@@ -223,20 +240,52 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
+DECLARE
+  v_invitation_id UUID;
+  v_pending_count INT;
 BEGIN
-  -- Wenn der Nutzer bestaetigt oder eingeloggt ist und eine offene Einladung vorliegt
+  -- Wenn der Nutzer bestaetigt oder eingeloggt ist
   IF NEW.email IS NOT NULL AND (NEW.email_confirmed_at IS NOT NULL OR NEW.last_sign_in_at IS NOT NULL) THEN
-    IF EXISTS (
-      SELECT 1 FROM public.organization_invitations
+    -- 1. Pruefe, ob eine konkrete invitation_id in den Auth-Metadaten hinterlegt ist
+    IF NEW.raw_user_meta_data IS NOT NULL AND NEW.raw_user_meta_data->>'invitation_id' IS NOT NULL THEN
+      BEGIN
+        v_invitation_id := (NEW.raw_user_meta_data->>'invitation_id')::UUID;
+      EXCEPTION WHEN OTHERS THEN
+        v_invitation_id := NULL;
+      END;
+    END IF;
+
+    IF v_invitation_id IS NULL AND NEW.raw_app_meta_data IS NOT NULL AND NEW.raw_app_meta_data->>'invitation_id' IS NOT NULL THEN
+      BEGIN
+        v_invitation_id := (NEW.raw_app_meta_data->>'invitation_id')::UUID;
+      EXCEPTION WHEN OTHERS THEN
+        v_invitation_id := NULL;
+      END;
+    END IF;
+
+    -- 2. Wenn konkrete invitation_id vorliegt: gezielt annehmen
+    IF v_invitation_id IS NOT NULL THEN
+      BEGIN
+        PERFORM public.accept_organization_invitation(NEW.id, NEW.email, v_invitation_id);
+      EXCEPTION WHEN OTHERS THEN
+        -- Konflikte oder ungueltige ID blockieren Auth nicht
+      END;
+    ELSE
+      -- 3. Keine ID im Token/Metadaten: Nur annehmen, wenn genau EINE eindeutige offene Einladung existiert
+      SELECT COUNT(*) INTO v_pending_count
+      FROM public.organization_invitations
       WHERE lower(email) = lower(trim(NEW.email))
         AND status = 'pending'
-        AND expires_at > NOW()
-    ) THEN
-      BEGIN
-        PERFORM public.accept_organization_invitation(NEW.id, NEW.email);
-      EXCEPTION WHEN OTHERS THEN
-        -- Konflikte (z.B. CANNOT_CHANGE_ORGANIZATION) sollen den Auth-Vorgang nicht blockieren
-      END;
+        AND expires_at > NOW();
+
+      IF v_pending_count = 1 THEN
+        BEGIN
+          PERFORM public.accept_organization_invitation(NEW.id, NEW.email, NULL);
+        EXCEPTION WHEN OTHERS THEN
+          -- Konflikte blockieren Auth nicht
+        END;
+      END IF;
+      -- Bei v_pending_count > 1 wird HIER ABSICHTLICH KEINE Einladung automatisch angenommen!
     END IF;
   END IF;
   RETURN NEW;

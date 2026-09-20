@@ -536,4 +536,150 @@ test.describe('Mitgliederverwaltung (Gate G59)', () => {
 
     await supabaseAdmin.from('organization_invitations').delete().eq('id', inv.id);
   });
+
+  test('10. P1: Zwei Organisationen mit derselben Empfänger-E-Mail: Annahme ohne ID liefert 400 AMBIGUOUS_INVITATION, konkrete Annahme bindet an Organisation A, Annahme B scheitert mit 409, übergebene Rollen/Orgs werden ignoriert', async () => {
+    const baseUrl = getBaseUrl();
+    const anonKey = getAnonKey();
+    const serviceKey = getServiceKey();
+    const supabaseAdmin = createClient(baseUrl, serviceKey);
+
+    const testEmail = `multi-e2e-${Date.now()}@e2e.local`;
+    const testPassword = 'TestPassword123!';
+
+    // 1. Zwei unterschiedliche Organisationen ermitteln
+    const { data: orgs } = await supabaseAdmin
+      .from('organizations')
+      .select('id')
+      .eq('status', 'active')
+      .limit(2);
+    expect(orgs).toBeTruthy();
+    expect(orgs!.length).toBeGreaterThanOrEqual(2);
+
+    const orgAId = orgs![0].id;
+    const orgBId = orgs![1].id;
+
+    const { data: adminUser } = await supabaseAdmin
+      .from('organization_members')
+      .select('user_id')
+      .eq('role', 'admin')
+      .limit(1)
+      .single();
+    expect(adminUser).toBeTruthy();
+
+    // 2. Auth-User für den Testempfänger anlegen
+    const { data: userRecord, error: userErr } = await supabaseAdmin.auth.admin.createUser({
+      email: testEmail,
+      password: testPassword,
+      email_confirm: true,
+    });
+    expect(userErr).toBeNull();
+    expect(userRecord.user).toBeTruthy();
+
+    const invAId = crypto.randomUUID();
+    const invBId = crypto.randomUUID();
+
+    try {
+      // 3. Beide Organisationen erstellen eine offene Einladung für dieselbe E-Mail
+      const { error: errA } = await supabaseAdmin.from('organization_invitations').insert({
+        id: invAId,
+        organization_id: orgAId,
+        email: testEmail,
+        role: 'manager',
+        status: 'pending',
+        invited_by: adminUser!.user_id,
+        created_at: new Date(Date.now() - 60000).toISOString(),
+      });
+      expect(errA).toBeNull();
+
+      const { error: errB } = await supabaseAdmin.from('organization_invitations').insert({
+        id: invBId,
+        organization_id: orgBId,
+        email: testEmail,
+        role: 'viewer',
+        status: 'pending',
+        invited_by: adminUser!.user_id,
+        created_at: new Date().toISOString(),
+      });
+      expect(errB).toBeNull();
+
+      // 4. Testnutzer an AuthService anmelden
+      const client = createClient(baseUrl, anonKey);
+      const { data: authRes } = await client.auth.signInWithPassword({
+        email: testEmail,
+        password: testPassword,
+      });
+      expect(authRes.session).toBeTruthy();
+      const token = authRes.session!.access_token;
+
+      // 5. Test a: Annahme ohne invitationId MUSS mit 400 AMBIGUOUS_INVITATION scheitern
+      const resNoId = await fetch(`${baseUrl}/functions/v1/manage-members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
+          action: 'acceptInvitation',
+        }),
+      });
+      expect(resNoId.status).toBe(400);
+      const bodyNoId = await resNoId.json();
+      expect(bodyNoId.code).toBe('AMBIGUOUS_INVITATION');
+
+      // 6. Test b: Annahme mit konkreter ID von Einladung A gelingt;
+      // Manipulationsversuch (Übermittlung von role: admin und organisationId: orgBId im Body) wird ignoriert
+      const resA = await fetch(`${baseUrl}/functions/v1/manage-members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
+          action: 'acceptInvitation',
+          invitationId: invAId,
+          role: 'admin',
+          organizationId: orgBId,
+        }),
+      });
+      expect(resA.status).toBe(200);
+      const bodyA = await resA.json();
+      expect(bodyA.status).toBe('accepted');
+      expect(bodyA.role).toBe('manager'); // Rolle aus DB, NICHT aus Body!
+      expect(bodyA.organizationId).toBe(orgAId); // Org aus DB, NICHT aus Body!
+
+      // 7. Mitgliedschaft in Org A prüfen
+      const { data: memberRecord } = await supabaseAdmin
+        .from('organization_members')
+        .select('organization_id, role, status')
+        .eq('user_id', userRecord.user.id)
+        .single();
+      expect(memberRecord).toBeTruthy();
+      expect(memberRecord!.organization_id).toBe(orgAId);
+      expect(memberRecord!.role).toBe('manager');
+      expect(memberRecord!.status).toBe('active');
+
+      // 8. Test c: Versuch, Einladung B anzunehmen, scheitert mit 409 CANNOT_CHANGE_ORGANIZATION
+      const resB = await fetch(`${baseUrl}/functions/v1/manage-members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
+          action: 'acceptInvitation',
+          invitationId: invBId,
+        }),
+      });
+      expect(resB.status).toBe(409);
+      const bodyB = await resB.json();
+      expect(bodyB.code).toBe('CANNOT_CHANGE_ORGANIZATION');
+    } finally {
+      await supabaseAdmin.from('organization_members').delete().eq('user_id', userRecord.user.id);
+      await supabaseAdmin.from('organization_invitations').delete().eq('email', testEmail);
+      await supabaseAdmin.auth.admin.deleteUser(userRecord.user.id);
+    }
+  });
 });

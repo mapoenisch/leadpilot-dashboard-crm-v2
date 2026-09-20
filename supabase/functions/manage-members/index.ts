@@ -72,7 +72,12 @@ export interface ManageMembersDb {
     success?: boolean;
     organizationId?: string;
     role?: MemberRole;
-    error?: 'NOT_FOUND' | 'INVITATION_NOT_PENDING' | 'CANNOT_CHANGE_ORGANIZATION' | 'FORBIDDEN';
+    error?:
+      | 'NOT_FOUND'
+      | 'INVITATION_NOT_PENDING'
+      | 'CANNOT_CHANGE_ORGANIZATION'
+      | 'FORBIDDEN'
+      | 'AMBIGUOUS_INVITATION';
   }>;
 }
 
@@ -146,6 +151,15 @@ export async function handleManageMembers(
   if (action === 'acceptInvitation') {
     const invitationId = typeof body.invitationId === 'string' ? body.invitationId : undefined;
     const result = await db.acceptInvitation(user.id, user.email, invitationId);
+    if (result.error === 'AMBIGUOUS_INVITATION') {
+      return jsonResponse(
+        {
+          code: 'AMBIGUOUS_INVITATION',
+          message: 'Mehrere offene Einladungen vorhanden. invitationId ist erforderlich.',
+        },
+        400,
+      );
+    }
     if (result.error === 'NOT_FOUND') {
       return jsonResponse(
         { code: 'NOT_FOUND', message: 'Keine passende Einladung gefunden.' },
@@ -512,15 +526,21 @@ if (import.meta.main) {
       }
 
       // Supabase-Auth-Einladung / Link-Generierung (FAIL-CLOSED)
+      const invitationId = crypto.randomUUID();
       const siteUrl = Deno.env.get('SITE_URL') || 'http://127.0.0.1:4321';
-      const redirectTo = `${siteUrl}/login`;
+      const redirectTo = `${siteUrl}/login?invitation_id=${invitationId}`;
+      const authData = {
+        invitation_id: invitationId,
+        organization_id: organizationId,
+        role,
+      };
       let authSucceeded = false;
 
       // 1. Versuch: inviteUserByEmail (funktioniert mit konfiguriertem SMTP)
       try {
         const inviteRes = await supabase.auth.admin.inviteUserByEmail(normalizedEmail, {
           redirectTo,
-          data: { organization_id: organizationId, role },
+          data: authData,
         });
         if (inviteRes.data?.user && !inviteRes.error) {
           authSucceeded = true;
@@ -537,7 +557,7 @@ if (import.meta.main) {
             email: normalizedEmail,
             options: {
               redirectTo,
-              data: { organization_id: organizationId, role },
+              data: authData,
             },
           });
           if (linkRes.data?.properties?.action_link) {
@@ -556,7 +576,7 @@ if (import.meta.main) {
             email: normalizedEmail,
             options: {
               redirectTo,
-              data: { organization_id: organizationId, role },
+              data: authData,
             },
           });
           if (magicRes.data?.properties?.action_link) {
@@ -576,6 +596,7 @@ if (import.meta.main) {
       const { data, error } = await supabase
         .from('organization_invitations')
         .insert({
+          id: invitationId,
           organization_id: organizationId,
           email: normalizedEmail,
           role,
@@ -685,6 +706,12 @@ if (import.meta.main) {
       });
 
       if (error) {
+        if (
+          error.message?.includes('AMBIGUOUS_INVITATION') ||
+          error.details?.includes('AMBIGUOUS_INVITATION')
+        ) {
+          return { error: 'AMBIGUOUS_INVITATION' };
+        }
         if (error.message?.includes('NOT_FOUND') || error.code === 'P0002') {
           return { error: 'NOT_FOUND' };
         }
