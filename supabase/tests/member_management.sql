@@ -7,7 +7,7 @@
 
 BEGIN;
 
-SELECT plan(15);
+SELECT plan(16);
 
 -- ---------------------------------------------------------------- Setup --
 -- Feste, kollisionsfreie UUIDs für deterministische Testläufe.
@@ -86,6 +86,15 @@ SELECT throws_matching(
        AND organization_id = 'a0000000-0000-0000-0000-00000000000a' $$,
   'LAST_ACTIVE_ADMIN',
   'Loeschung des einzigen aktiven Admins scheitert mit LAST_ACTIVE_ADMIN'
+);
+
+-- Versuch 4: Loeschung des einzigen Mitglieds einer Organisation (Org B hat nur Admin B, v_remaining_members = 0)
+SELECT throws_matching(
+  $$ DELETE FROM public.organization_members
+     WHERE user_id = 'b4444444-4444-4444-4444-444444444444'
+       AND organization_id = 'b0000000-0000-0000-0000-00000000000b' $$,
+  'LAST_ACTIVE_ADMIN',
+  'Loeschung des einzigen Mitglieds (Admin) einer Organisation scheitert mit LAST_ACTIVE_ADMIN'
 );
 
 -- --------------------------------- 5..8: Multi-Admin Verhalten

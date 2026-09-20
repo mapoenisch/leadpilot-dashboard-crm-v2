@@ -133,4 +133,24 @@ test.describe('Mitgliederverwaltung (Gate G59)', () => {
     await page.goto('/admin/members');
     await expect(page).toHaveURL(/\/login/);
   });
+
+  test('6. Eingeladener Nutzer ruft /accept-invitation auf', async ({ page }) => {
+    // Unangemeldeter Aufruf zeigt Hinweis zur Anmeldung
+    await page.goto('/accept-invitation');
+    await expect(page.getByRole('heading', { level: 1, name: 'Einladung annehmen' })).toBeVisible();
+    await expect(
+      page.getByText('Um eine Einladung anzunehmen, müssen Sie angemeldet sein'),
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Zur Anmeldung' })).toBeVisible();
+
+    // 0 px horizontaler Overflow auf allen Viewports
+    const overflow = await page.evaluate(() =>
+      Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+    );
+    expect(overflow).toBe(0);
+
+    // Nach Klick auf 'Zur Anmeldung' wird /login aufgerufen
+    await page.getByRole('button', { name: 'Zur Anmeldung' }).click();
+    await expect(page).toHaveURL(/\/login/);
+  });
 });

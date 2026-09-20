@@ -164,6 +164,36 @@ Deno.serve(async (req: Request): Promise<Response> => {
         throw error ?? new Error('Fehler beim Erstellen der Einladung.');
       }
 
+      // Supabase-Auth-Einladung versenden / Auth-User registrieren
+      const siteUrl = Deno.env.get('SITE_URL') || 'http://127.0.0.1:4321';
+      let authInvited = false;
+      try {
+        const inviteRes = await supabase.auth.admin.inviteUserByEmail(email, {
+          redirectTo: `${siteUrl}/accept-invitation`,
+          data: { organization_id: organizationId, role },
+        });
+        if (inviteRes.data?.user) {
+          authInvited = true;
+        }
+      } catch {
+        // Fallback, falls lokaler SMTP-Server nicht aktiv ist
+      }
+
+      if (!authInvited) {
+        try {
+          await supabase.auth.admin.generateLink({
+            type: 'invite',
+            email,
+            options: {
+              redirectTo: `${siteUrl}/accept-invitation`,
+              data: { organization_id: organizationId, role },
+            },
+          });
+        } catch {
+          // Ignorieren falls User bereits existiert
+        }
+      }
+
       return {
         id: data.id,
         organizationId: data.organization_id,
@@ -255,15 +285,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const normalizedEmail = userEmail.toLowerCase().trim();
       const now = new Date().toISOString();
 
-      const { data: inv, error: invErr } = await supabase
+      const { data: existingInv } = await supabase
         .from('organization_invitations')
         .select('*')
         .eq('email', normalizedEmail)
-        .eq('status', 'pending')
-        .gt('expires_at', now)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (invErr || !inv) return { error: 'NOT_FOUND' };
+      if (!existingInv) return { error: 'NOT_FOUND' };
+      if (existingInv.status !== 'pending' || existingInv.expires_at <= now) {
+        return { error: 'INVITATION_NOT_PENDING' };
+      }
+      const inv = existingInv;
 
       // Einladung als akzeptiert markieren
       await supabase

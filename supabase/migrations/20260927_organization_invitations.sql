@@ -49,23 +49,21 @@ SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 DECLARE
-  v_remaining_members BIGINT;
+  v_org_status TEXT;
   v_active_admins BIGINT;
 BEGIN
   -- Relevanzpruefung: Ein aktiver Admin soll herabgestuft, deaktiviert oder geloescht werden
   IF (TG_OP = 'DELETE' AND OLD.role = 'admin' AND OLD.status = 'active') OR
      (TG_OP = 'UPDATE' AND OLD.role = 'admin' AND OLD.status = 'active' AND (NEW.role != 'admin' OR NEW.status != 'active')) THEN
 
-    -- Exklusiver Lock auf die Organisation, um Concurrency-Races zu eliminieren
-    PERFORM 1 FROM public.organizations WHERE id = OLD.organization_id FOR UPDATE;
+    -- Pruefe den Status der Organisation (mit Lock gegen Concurrency-Races)
+    SELECT status INTO v_org_status
+    FROM public.organizations
+    WHERE id = OLD.organization_id
+    FOR UPDATE;
 
-    -- Zaehle alle in der Organisation verbleibenden Mitglieder
-    SELECT COUNT(*) INTO v_remaining_members
-    FROM public.organization_members
-    WHERE organization_id = OLD.organization_id;
-
-    -- Wenn ueberhaupt noch Mitglieder verbleiben, muss mindestens ein aktiver Admin darunter sein
-    IF v_remaining_members > 0 THEN
+    -- Wenn die Organisation existiert und aktiv ist, MUSS mindestens ein aktiver Admin verbleiben
+    IF v_org_status = 'active' THEN
       SELECT COUNT(*) INTO v_active_admins
       FROM public.organization_members
       WHERE organization_id = OLD.organization_id
