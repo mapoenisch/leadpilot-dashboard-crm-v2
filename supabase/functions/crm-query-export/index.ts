@@ -50,6 +50,7 @@ const bad = (message: string, code = 'INVALID_QUERY', status = 400) =>
 
 interface ResourceCfg {
   table: string;
+  columns: string;
   allowedSort: string[];
   defaultSort: string;
   defaultOrder: 'asc' | 'desc';
@@ -64,6 +65,7 @@ const splitS = (s: string) => s.split(',');
 const RESOURCE_CONFIG: Record<CrmResource, ResourceCfg> = {
   companies: {
     table: 'companies',
+    columns: 'id,organization_id,name,domain,industry,city,postal_code,employee_count,created_at',
     allowedSort: splitS('name,domain,industry,city,postal_code,employee_count,created_at,id'),
     defaultSort: 'name',
     defaultOrder: 'asc',
@@ -75,6 +77,7 @@ const RESOURCE_CONFIG: Record<CrmResource, ResourceCfg> = {
   },
   contacts: {
     table: 'contacts',
+    columns: 'id,organization_id,company_id,email,first_name,last_name,job_title,created_at',
     allowedSort: splitS('first_name,last_name,email,job_title,created_at,id'),
     defaultSort: 'last_name',
     defaultOrder: 'asc',
@@ -85,7 +88,8 @@ const RESOURCE_CONFIG: Record<CrmResource, ResourceCfg> = {
     ),
   },
   deals: {
-    table: 'deals',
+    table: 'imported_funnel_deals',
+    columns: 'id,organization_id,deal_name,stage,amount,close_date,pipeline,created_at',
     allowedSort: splitS('deal_name,stage,amount,close_date,created_at,id'),
     defaultSort: 'close_date',
     defaultOrder: 'desc',
@@ -108,7 +112,7 @@ const FIELD_MAPPINGS: Record<CrmResource, string> = {
 export function sanitizeCsvCell(value: unknown): string {
   if (value === null || value === undefined) return '';
   let str = String(value);
-  if (/^[=+\-@\t\r]/.test(str)) str = "'" + str;
+  if (/^\s*[=+\-@\t\r]/.test(str)) str = "'" + str;
   if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
     return `"${str.replace(/"/g, '""')}"`;
   }
@@ -290,7 +294,7 @@ function buildCanonicalCrmQuery(
   const config = RESOURCE_CONFIG[params.resource];
   let query = supabase
     .from(config.table)
-    .select('*', options?.count ? { count: options.count } : undefined)
+    .select(config.columns, options?.count ? { count: options.count } : undefined)
     .eq('organization_id', params.organizationId);
 
   if (params.filters) {
@@ -334,9 +338,8 @@ async function execCrmQuery(
     console.error('CRM DB Error:', error);
     throw new Error('Interner Fehler bei der CRM-Abfrage.');
   }
-  const items = (data || []).map((row: Record<string, unknown>) =>
-    mapRowToFrontend(params.resource, row),
-  );
+  const rows = (data as unknown as Record<string, unknown>[]) || [];
+  const items = rows.map((row) => mapRowToFrontend(params.resource, row));
   return { items, total: count ?? 0 };
 }
 

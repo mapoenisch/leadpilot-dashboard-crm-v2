@@ -10063,3 +10063,84 @@ Keine geschützten Simulations-, Kontext- oder Datenabstraktionsdateien wurden m
 
 - **Strikte Einhaltung:** Lokaler Stand auf `feat/auftrag-067n-crm-query-export`. Kein Push, kein PR, kein Merge nach `main`.
 - **Status:** **ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG (Review durch Codex / Claude Code)**.
+
+---
+
+## [2026-09-21] Gate G60 / Auftrag 067N: Unabhängiger Codex-Review Nacharbeit 1 — NICHT FREIGEGEBEN
+
+**Vergleich:** `146de7f..fe015fd`
+**Review-Umfang:** Auftragsvertrag, Live-Datenpfade, CSV-Sicherheit, Scope/Schutzbereiche und frische lokale Gates.
+
+### P1 — vor einer erneuten Prüfung beheben
+
+1. **Der produktive Deals-Pfad verwendet eine nicht vorhandene Tabelle.** `supabase/functions/crm-query-export/index.ts:87-96` ordnet die Ressource `deals` der Tabelle `deals` zu. Die maßgebliche Schema-, Seed- und Migrationsquelle enthält jedoch ausschließlich `public.imported_funnel_deals` (`supabase/schema.sql:65`, `supabase/seed.sql:208-214`, `supabase/migrations/20260928_crm_query_indexes.sql:42-59`). Damit schlagen Liste und Export von `/crm/deals` in der produktiven Function mit einem Datenbankfehler fehl. Der Deno-Mock maskiert das, weil er selbst einen fiktiven `deals`-Bestand bereitstellt. Die Zuordnung muss auf `imported_funnel_deals` korrigiert und über den echten Edge-/E2E-Pfad nachgewiesen werden.
+2. **Der CSV-Formelschutz verletzt den verbindlichen Whitespace-Vertrag.** `sanitizeCsvCell` in `supabase/functions/crm-query-export/index.ts:108-115` prüft nur das allererste Zeichen. Der frische Gegencheck liefert für `sanitizeCsvCell(" =1+1")` unverändert `" =1+1"`; nach dem Auftrag müssen Zellen, die *nach optionalen Leerzeichen* mit `=`, `+`, `-` oder `@` beginnen, ein führendes Apostroph erhalten. Das ist eine Formel-Injection-Lücke. Regex und Tests müssen führende Leerzeichen (und die übrigen geforderten Präfixe) abdecken.
+
+### P2 — mit der Nacharbeit schließen
+
+1. **Die serverseitige Spalten-Whitelist ist nicht geschlossen.** `buildCanonicalCrmQuery` ruft in `supabase/functions/crm-query-export/index.ts:291-294` `.select('*')` auf. Der Auftrag verlangt eine statische Ressourcen-/Spalten-Whitelist. Die spätere Browser-Abbildung ist zwar enger, die Service-Role-Abfrage selbst ist jedoch nicht explizit auf das erlaubte Schema begrenzt. Eine pro Ressource statische Select-Liste verwenden und testen.
+2. **Die geforderten Rollen- und Formel-Negativnachweise sind unvollständig.** `e2e/crm-query-export.spec.ts` testet nur den Admin-Flow; weder Manager noch Viewer werden end-to-end ausgeführt. Auch der als Formelschutz bezeichnete E2E-Test prüft keine formelanfällige Zelle. In den Deno-Tests fehlt der Manager-Fall. Die Akzeptanzkriterien verlangen Nachweise für alle drei Rollen sowie Formel-Injection mindestens Function-/SQL- und E2E-seitig.
+
+### Frische Prüfung
+
+- `deno test --no-lock --allow-read supabase/functions/__tests__/crmQueryExport.test.ts` — **14/14 grün**, deckt jedoch den falschen Deals-Tabellennamen und führende Leerzeichen in CSV-Zellen nicht ab.
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check` und `npm run build` — **grün**.
+- `npm run verify` und `npm test` — **grün** (Vitest: 251 Dateien / 1342 Tests).
+- `git diff --check 146de7f..fe015fd` — **grün**; Schutzbereichs-Diff gegen `146de7f` — **leer**.
+
+### Ergebnis
+
+**Gate G60 bleibt nicht freigegeben.** Rückgabe an Antigravity für die zwei P1- und zwei P2-Befunde. Danach den echten Deals-List-/Exportpfad, die Whitespace-Formelneutralisierung und die fehlenden Rollen-/E2E-Nachweise frisch vorlegen. Der Reviewer hat keinen Produktcode geändert, keinen Push, PR, Merge oder Deploy ausgelöst.
+
+---
+
+## [2026-09-21] Gate G60 / Auftrag 067N: Nacharbeit 2 — Behebung der Review-Befunde (Antigravity)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `feat/auftrag-067n-crm-query-export` · **Baseline:** `146de7f`
+
+### 1. Behebung der P1-Befunde
+
+1. **P1-1: Tabelle `imported_funnel_deals` für die Ressource Deals korrigiert:**
+   - In `supabase/functions/crm-query-export/index.ts` wurde die Tabellenzuordnung von `deals` auf `imported_funnel_deals` korrigiert (maßgebliche Schema-, Seed- und Migrationswahrheit).
+   - In `e2e/crm-query-export.spec.ts` weist Test 7 (`Deals-Pfad: Listet echte Mandantendaten aus imported_funnel_deals`) den Live-Aufruf über den echten Edge-/DB-Pfad nach (`Enterprise Paket A1` sichtbar, fremdes `Growth Paket B1` nicht vorhanden).
+2. **P1-2: Verbindlicher Whitespace-Formelschutz im CSV-Export:**
+   - In `supabase/functions/crm-query-export/index.ts` prüft `sanitizeCsvCell` jetzt per Regex `/^\s*[=+\-@\t\r]/`, ob eine Zelle nach optionalen führenden Whitespaces mit einem Formelzeichen (`=`, `+`, `-`, `@`, `\t`, `\r`) beginnt, und stellt in diesem Fall ein führendes Apostroph `'` voran.
+   - Deno-Unit-Tests in `supabase/functions/__tests__/crmQueryExport.test.ts` prüfen direkte Fälle (`" =1+1"`, `"   @evil"`, `" \t+Marketing"`, `" -Munich"`, `"123"`, `"Normaler Text"`).
+   - E2E-Test 3 prüft die tatsächliche CSV-Datei: die heruntergeladene CSV enthält die neutralisierte Zelle `' =1+1 Formel-Firma'`.
+   - pgTAP-Test in `supabase/tests/crm_query_export.sql` weist die Speicherung als statischen Text auf DB-Ebene nach.
+
+### 2. Behebung der P2-Befunde
+
+1. **P2-1: Geschlossene statische Spalten-Whitelist:**
+   - `RESOURCE_CONFIG` in `supabase/functions/crm-query-export/index.ts` definiert pro Ressource eine explizite Spalten-Whitelist (`columns`).
+   - `buildCanonicalCrmQuery` verwendet `.select(config.columns, ...)` statt `.select('*')`. Kein unbeschränktes PostgREST-Wildcard-Select mehr.
+2. **P2-2: Vollständige Rollen- und Formel-Negativnachweise (Admin, Manager, Viewer):**
+   - In `supabase/seed.sql` wurden für Organisation A `manager-a@e2e.local` (Rolle `manager`) und `viewer-a@e2e.local` (Rolle `viewer`) in `auth.users`, `auth.identities` und `public.organization_members` ergänzt sowie Testdaten mit Formelpräfixen hinterlegt.
+   - `docs/operations/ci-e2e-backend.md` dokumentiert `E2E_AUTH_EMAIL_MANAGER` und `E2E_AUTH_EMAIL_VIEWER`.
+   - `e2e/crm-query-export.spec.ts` Test 8 führt den echten Fluss für Manager (UI-Zugriff & erfolgreicher CSV-Download) und Viewer (direkter Export scheitert serverseitig mit 403 `FORBIDDEN`) aus.
+   - Deno-Tests prüfen Export durch `MANAGER_USER` (Status 200) und Viewer (Status 403) separat.
+3. **Dateilängenlimit (< 400 Zeilen pro Datei):**
+   - `supabase/functions/crm-query-export/index.ts`: 393 Zeilen (< 400)
+   - `supabase/functions/__tests__/crmQueryExport.test.ts`: 358 Zeilen (< 400)
+   - `e2e/crm-query-export.spec.ts`: 259 Zeilen (< 400)
+   - `supabase/seed.sql`: 280 Zeilen (< 400)
+   - `supabase/tests/crm_query_export.sql`: 115 Zeilen (< 400)
+   - `docs/operations/ci-e2e-backend.md`: 129 Zeilen (< 400)
+
+### 3. Pflicht-Gates nach Nacharbeit 2
+
+- **TypeScript (`npx tsc --noEmit`):** 0 Fehler (Exit 0)
+- **ESLint (`npm run lint`):** 0 Fehler, 0 Warnungen (Exit 0)
+- **Prettier (`npm run format:check`):** All matched files use Prettier code style (Exit 0)
+- **Integritätssuite (`npm run verify`):** 24/24 Suiten bestanden (Exit 0)
+- **Vitest (`npm test`):** 251/251 Testdateien, 1342/1342 Tests bestanden (Exit 0)
+- **Deno Edge Functions (`deno test --no-lock --allow-read supabase/functions/__tests__/`):** 57/57 Tests bestanden inkl. 16/16 in `crmQueryExport.test.ts` (Exit 0)
+- **pgTAP DB-Tests (`npx supabase test db`):** 5/5 Dateien, 120/120 Tests bestanden (Exit 0)
+- **Playwright E2E (`npx playwright test e2e/crm-query-export.spec.ts e2e/tenant-isolation.spec.ts`):** 33/33 Tests bestanden über Desktop (1440px), Tablet (768px) und Mobile (375px) (Exit 0)
+- **Diff-Syntaxcheck (`git diff --check 146de7f`):** 0 Fehler (Exit 0)
+- **Schutzbereichs-Diff (`146de7f..HEAD`):** Exakt 0 Zeilen Diff
+
+### 4. Status und Handoff
+
+- **Strikte Einhaltung:** Lokaler Stand auf `feat/auftrag-067n-crm-query-export`. Kein Push, kein PR, kein Merge nach `main`.
+- **Status:** **ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG (Review durch Codex / Claude Code)**.

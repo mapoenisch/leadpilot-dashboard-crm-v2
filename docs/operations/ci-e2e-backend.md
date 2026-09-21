@@ -71,6 +71,8 @@ npm run build
 ```bash
 export E2E_AUTH_EMAIL="admin-a@e2e.local"
 export E2E_AUTH_PASSWORD="TestPassword123!"
+export E2E_AUTH_EMAIL_MANAGER="manager-a@e2e.local"
+export E2E_AUTH_EMAIL_VIEWER="viewer-a@e2e.local"
 export E2E_AUTH_EMAIL_B="admin-b@e2e.local"
 export E2E_AUTH_PASSWORD_B="TestPassword123!"
 export E2E_AUTH_EMAIL_NOMEMBER="nomember@e2e.local"

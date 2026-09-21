@@ -3,7 +3,7 @@
 -- ============================================================================
 BEGIN;
 
-SELECT plan(22);
+SELECT plan(23);
 
 -- 1..16: Index-Prüfungen für public.companies, contacts, imported_funnel_deals
 SELECT has_index('public', 'companies', 'idx_companies_org_name', 'Index idx_companies_org_name existiert');
@@ -47,7 +47,8 @@ ON CONFLICT (user_id) DO UPDATE SET organization_id = EXCLUDED.organization_id, 
 INSERT INTO public.companies (id, domain, name, industry, city, postal_code, organization_id)
 VALUES
   ('c0000000-0000-0000-0000-000000000001', 'a1.test', 'Firma A1', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-  ('c0000000-0000-0000-0000-000000000002', 'b1.test', 'Firma B1', 'IT', 'Hamburg', '20095', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb')
+  ('c0000000-0000-0000-0000-000000000002', 'b1.test', 'Firma B1', 'IT', 'Hamburg', '20095', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+  ('c0000000-0000-0000-0000-000000000003', 'calc.test', ' =1+1 Formel-Firma', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
 ON CONFLICT (id) DO UPDATE SET organization_id = EXCLUDED.organization_id, name = EXCLUDED.name;
 
 INSERT INTO public.contacts (id, company_id, email, first_name, last_name, job_title, organization_id)
@@ -57,7 +58,8 @@ ON CONFLICT (id) DO UPDATE SET organization_id = EXCLUDED.organization_id;
 
 INSERT INTO public.imported_funnel_deals (id, deal_name, stage, amount, close_date, pipeline, organization_id)
 VALUES
-  ('e0000000-0000-0000-0000-000000000001', 'Deal A1', 'PROPOSAL', 50000, '2026-12-01', 'default', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+  ('e0000000-0000-0000-0000-000000000001', 'Deal A1', 'PROPOSAL', 50000, '2026-12-01', 'default', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  ('e0000000-0000-0000-0000-000000000003', ' =2+2 Formel Deal', 'LEAD', 5000, '2026-12-31', 'default', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
 ON CONFLICT (id) DO UPDATE SET organization_id = EXCLUDED.organization_id;
 
 -- 17..22: Mandantenabfragen unter RLS (Org A vs Org B)
@@ -66,8 +68,8 @@ SET ROLE authenticated;
 
 SELECT is(
   (SELECT count(*) FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-  1::bigint,
-  'Org A sieht eigene Company (Firma A1)'
+  2::bigint,
+  'Org A sieht eigene Companies (inkl. Formel-Testdatensatz)'
 );
 
 SELECT is(
@@ -84,8 +86,14 @@ SELECT is(
 
 SELECT is(
   (SELECT count(*) FROM public.imported_funnel_deals WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  2::bigint,
+  'Org A sieht eigene Funnel Deals (inkl. Formel-Testdatensatz)'
+);
+
+SELECT is(
+  (SELECT count(*) FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' AND name LIKE ' =1+1%'),
   1::bigint,
-  'Org A sieht eigenen Funnel Deal'
+  'Formeldatensatz in public.companies ist als statischer Text mandantenisoliert abgelegt'
 );
 
 -- Wechsel auf Admin B

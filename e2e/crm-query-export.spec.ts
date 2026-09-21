@@ -86,6 +86,8 @@ test.describe('CRM Query und Export (Gate G60)', () => {
 
     // Enthält eigene Daten
     expect(csvContent).toContain('Firma A1');
+    // Enthält formelneutralisierte Zelle mit führendem Whitespace und Apostroph
+    expect(csvContent).toContain("' =1+1 Formel-Firma");
     // Enthält keine fremden Daten
     expect(csvContent).not.toContain('Firma B1');
   });
@@ -204,5 +206,54 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     expect(body.code).toBe('INVALID_QUERY');
     expect(JSON.stringify(body)).not.toContain('DROP TABLE');
     expect(JSON.stringify(body)).not.toContain('syntax');
+  });
+
+  test('7. Deals-Pfad: Listet echte Mandantendaten aus imported_funnel_deals', async ({ page }) => {
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
+    await page.goto('/crm/deals');
+    await expect(page.getByText('Enterprise Paket A1').first()).toBeAttached();
+    await expect(page.getByText('Growth Paket B1')).toHaveCount(0);
+  });
+
+  test('8. Rollennachweis: Manager kann exportieren, Viewer wird serverseitig abgewiesen', async ({
+    page,
+    request,
+  }) => {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
+    const anonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+    const managerEmail = process.env.E2E_AUTH_EMAIL_MANAGER || 'manager-a@e2e.local';
+    const viewerEmail = process.env.E2E_AUTH_EMAIL_VIEWER || 'viewer-a@e2e.local';
+    const password = requireEnv('E2E_AUTH_PASSWORD');
+
+    // 1. Manager UI & CSV-Export
+    await loginAs(page, managerEmail, password);
+    await page.goto('/crm/companies');
+    await expect(page.getByText('Firma A1').first()).toBeAttached();
+
+    const exportBtn = page.getByRole('button', { name: /CSV.*Export/i });
+    await expect(exportBtn).toBeVisible();
+    const downloadPromise = page.waitForEvent('download');
+    await exportBtn.click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe('companies-export.csv');
+
+    // 2. Viewer API-Export liefert strikt 403 FORBIDDEN
+    const viewerLoginRes = await request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+      headers: { apikey: anonKey },
+      data: { email: viewerEmail, password },
+    });
+    const { access_token: viewerToken } = await viewerLoginRes.json();
+
+    const viewerExportRes = await request.post(`${supabaseUrl}/functions/v1/crm-query-export`, {
+      headers: {
+        Authorization: `Bearer ${viewerToken}`,
+        apikey: anonKey,
+        'Content-Type': 'application/json',
+      },
+      data: { action: 'export', resource: 'companies' },
+    });
+    expect(viewerExportRes.status()).toBe(403);
+    const viewerBody = await viewerExportRes.json();
+    expect(viewerBody.code).toBe('FORBIDDEN');
   });
 });

@@ -2,6 +2,7 @@
 import { assertEquals } from '@std/assert';
 import {
   handleCrmQueryExport,
+  sanitizeCsvCell,
   type CrmQueryDb,
   type CrmUser,
   type CrmMembership,
@@ -68,10 +69,10 @@ function createMockDb(): { db: CrmQueryDb; state: MockDbState } {
       },
       {
         id: 'c2',
-        name: '=SUM(A1:A10)', // Formula injection test candidate
-        domain: '@evil.test', // Formula injection test candidate
-        industry: '+Marketing', // Formula injection test candidate
-        city: '-Munich', // Formula injection test candidate
+        name: ' =SUM(A1:A10)', // Leading space formula candidate
+        domain: '   @evil.test', // Leading spaces formula candidate
+        industry: ' \t+Marketing', // Space + tab formula candidate
+        city: ' -Munich', // Leading space formula candidate
         postalCode: '80331',
         employeeCount: 25,
       },
@@ -265,12 +266,31 @@ Deno.test('crm-query-export: Action export durch Admin/Manager liefert CSV mit N
   );
 
   const csvText = await res.text();
-  // Formel-Injection Neutralisierung prüfen:
-  // Werte, die mit =, +, -, @ beginnen, müssen mit Apostroph neutralisiert sein
-  assertEquals(csvText.includes("'=SUM"), true);
-  assertEquals(csvText.includes("'@evil"), true);
-  assertEquals(csvText.includes("'+Marketing"), true);
-  assertEquals(csvText.includes("'-Munich"), true);
+  // Formel-Injection Neutralisierung mit führenden Whitespaces prüfen:
+  assertEquals(csvText.includes("'' =SUM"), false); // kein doppeltes Apostroph
+  assertEquals(csvText.includes("' =SUM"), true);
+  assertEquals(csvText.includes("'   @evil"), true);
+  assertEquals(csvText.includes("' \t+Marketing"), true);
+  assertEquals(csvText.includes("' -Munich"), true);
+});
+
+Deno.test('crm-query-export: Action export durch Manager gelingt ebenfalls', async () => {
+  const { db } = createMockDb();
+  const req = makeRequest(MANAGER_USER.id, { action: 'export', resource: 'companies' });
+  const res = await handleCrmQueryExport(req, db);
+  assertEquals(res.status, 200);
+  assertEquals(res.headers.get('Content-Type'), 'text/csv; charset=utf-8');
+});
+
+Deno.test('crm-query-export: sanitizeCsvCell neutralisiert Formel-Präfixe auch mit Whitespaces', () => {
+  assertEquals(sanitizeCsvCell(' =1+1'), "' =1+1");
+  assertEquals(sanitizeCsvCell('   @calc'), "'   @calc");
+  assertEquals(sanitizeCsvCell(' \t+cmd'), "' \t+cmd");
+  assertEquals(sanitizeCsvCell(' -10'), "' -10");
+  assertEquals(sanitizeCsvCell('=cmd|'), "'=cmd|");
+  assertEquals(sanitizeCsvCell('Normaler Text'), 'Normaler Text');
+  assertEquals(sanitizeCsvCell(123), '123');
+  assertEquals(sanitizeCsvCell(null), '');
 });
 
 Deno.test('crm-query-export: Unbekannter Filter liefert 400 INVALID_QUERY', async () => {
