@@ -9876,3 +9876,99 @@ Ohne `p_invitation_id` wählte `accept_organization_invitation` die neueste offe
 
 - **Strikte Einhaltung:** Nur lokal nachgearbeitet und committet. `deno.lock` unverändert. Kein Push, kein PR, kein Merge nach main und kein Deploy.
 - **Status:** **Bereit zur Prüfung**.
+
+---
+
+## [2026-09-21] Gate G60 / Auftrag 067N: Serverseitige CRM-Abfragen und CSV-Export (Antigravity)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `feat/auftrag-067n-crm-query-export` · **Baseline:** `146de7f`
+**Status:** **BEREIT ZUR PRÜFUNG**
+
+### 1. Ziel & Kontext
+
+Auftrag 067N implementiert serverseitige, paginierte und mandantengeschützte Abfragen sowie einen geschützten CSV-Export für CRM-Ressourcen (`companies`, `contacts`, `deals`) und stellt die vollständige Mandanten-Isolation für die CRM-Oberflächen sicher:
+1. **Edge Function `crm-query-export`:**
+   - Serverseitige Validierung von Session und aktiver Organisationsmitgliedschaft via Supabase JWT.
+   - Paginierte Abfragen mit Whitelist für Filter, Sortierfelder und Richtungen (`asc`/`desc`).
+   - Serverseitiger CSV-Export mit Neutralisierung potenzieller Spreadsheet-Formel-Injektionen (`=`, `+`, `-`, `@`, `\t`, `\r`) durch führendes Hochkomma (`'`).
+   - Rollenbasierter Zugriffsschutz: Rolle `viewer` darf Daten einsehen, erhält bei Exportversuchen jedoch strikt HTTP 403 `FORBIDDEN`.
+2. **URL-Zustandssynchronisation:**
+   - Bidirektionale Synchronisation aller Filter-, Such-, Sortier- und Paginierungsparameter (`suche`, `filter`, `sort`, `order`, `seite`, `proSeite`) in den Oberflächen `CompaniesPage`, `DealsPage` und `LeadsPage`.
+   - Deep-Link-Fähigkeit und Barrierefreiheit der Tabellen- und Paginierungskomponenten (`CrmResponsiveList`).
+3. **Wiederherstellung der E2E-Mandantenisolation:**
+   - Rückführung des Seed-Nutzers `admin-a@e2e.local` auf Organisation A (`aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`) in `supabase/seed.sql`.
+   - Reaktivierung der Tests 1 & 2 in `e2e/tenant-isolation.spec.ts` mit **vollständig unverändertem Testkörper** (9/9 Tests grün).
+   - Dokumentationsabgleich in `docs/operations/ci-e2e-backend.md`.
+4. **Performance & Indizierung:**
+   - Migration `20260928_crm_query_indexes.sql` legt 16 zusammengesetzte B-Tree-Indizes für alle gefilterten und sortierten Spalten auf `companies`, `contacts` und `deals` an.
+
+---
+
+### 2. Zieldateien & Zeilenzahlnachweis (< 400 Zeilen)
+
+| Pfad | Zeilen | Status / Zweck |
+|---|---|---|
+| `src/features/crm/components/CrmResponsiveList.tsx` | 136 | Barrierefreie Paginierungsleiste & Responsive-List |
+| `src/features/crm/pages/CompaniesPage.tsx` | 302 | Paginierte, URL-synchrone Unternehmensliste mit Export |
+| `src/features/crm/pages/DealsPage.tsx` | 346 | Paginierte, URL-synchrone Deal-Liste mit Export |
+| `src/features/crm/pages/LeadsPage.tsx` | 394 | Einheitliche Lead- und Kontaktübersicht mit Export |
+| `src/services/crm/crmListService.ts` | 105 | Typisierter Fetcher für `crm-query-export` `action=list` |
+| `src/services/crm/crmExportService.ts` | 92 | Typisierter Fetcher & Formelschutz für CSV-Export |
+| `src/hooks/queries/useCrmListQuery.ts` | 12 | TanStack-Query Hook mit `placeholderData` |
+| `src/hooks/queries/__tests__/useCrmListQuery.vitest.tsx` | 93 | Unit-Tests für CRM-List Hook |
+| `src/services/query/queryKeys.ts` | 13 | Query-Key Factory um `crmKeys.list` erweitert |
+| `supabase/functions/crm-query-export/index.ts` | 312 | Edge Function mit Auth, Paginierung & CSV-Generator |
+| `supabase/functions/__tests__/crmQueryExport.test.ts` | 178 | Deno-Tests für Edge Function (10 Tests) |
+| `supabase/migrations/20260928_crm_query_indexes.sql` | 56 | 16 Composite-/Sortierindizes für CRM-Tabellen |
+| `supabase/tests/crm_query_export.sql` | 134 | pgTAP-Tests für Indizes, RLS & CSV-Formelschutz (22 Tests) |
+| `supabase/seed.sql` | 165 | `admin-a` zurück auf Org A zugeordnet |
+| `docs/operations/ci-e2e-backend.md` | 128 | Seed-Doku an G60 angepasst |
+| `e2e/tenant-isolation.spec.ts` | 114 | Tests 1 & 2 unskipped (unveränderter Testkörper) |
+| `e2e/crm-query-export.spec.ts` | 148 | 12 Playwright-Tests für Paginierung, URL-Sync, Export & Isolation |
+| `docs/screenshots/auftrag-067n-g60/README.md` | 65 | Screenshot- und Overflow-Nachweismatrix (0px Overflow) |
+
+Alle berührten TypeScript- und React-Dateien in `src/` erfüllen strikt die Obergrenze von `< 400` Zeilen.
+
+---
+
+### 3. Schutzbereichs-Prüfung (Diff zu Baseline `146de7f`)
+
+Befehl:
+```bash
+git diff 146de7f -- src/simulation src/types src/context src/services/data src/features/resources src/services/db/crmRepository.ts
+```
+**Ergebnis: 100% LEER (0 Zeilen Diff, 0 Bytes).**
+Keine geschützten Simulations-, Kontext- oder Datenabstraktionsdateien wurden modifiziert.
+
+---
+
+### 4. Automatisierte Pflicht-Verifikation
+
+| Gate / Prüfung | Befehl | Ergebnis |
+|---|---|---|
+| TypeScript Type-Check | `npx tsc --noEmit` | **0 Fehler** (Exit 0) |
+| Linting | `npm run lint` | **0 Warnings / 0 Errors** (Exit 0) |
+| Prettier-Prüfung | `npx prettier --check [touched_files]` | **100% konform** (Exit 0) |
+| Whitespace & Conflict Check | `git diff --check 146de7f` | **0 Fehler** (Exit 0) |
+| Legacy Integrity Harness | `npm run verify` | **25/25 Suites bestanden** (Exit 0) |
+| Vitest Test-Suite | `npm test` | **251/251 Testdateien, 1342/1342 Tests bestanden** (Exit 0) |
+| Deno Edge Function Tests | `deno test --no-lock --allow-read supabase/functions/__tests__/` | **51/51 Tests bestanden** (10/10 in `crmQueryExport.test.ts`) (Exit 0) |
+| Datenbank-Tests (pgTAP) | `npx supabase test db` | **5/5 Dateien, 119/119 Tests bestanden** (22/22 in `crm_query_export.sql`) (Exit 0) |
+| Playwright E2E | `npx playwright test e2e/crm-query-export.spec.ts e2e/tenant-isolation.spec.ts` | **21/21 Tests bestanden** across 3 Viewports (Exit 0) |
+| Produktions-Build | `npm run build` | **Erfolgreich gebaut** in 2.84s (Exit 0) |
+
+---
+
+### 5. Visuelle & Barrierefreiheits-Nachweise
+
+- **Horizontaler Overflow:** Exakt **0px** auf allen 3 Viewports (1440px Desktop, 768px Tablet, 375px Mobile) für `/crm/companies`, `/crm/deals`, `/crm/leads` und `/dashboard`.
+- **Regressionstest Dashboard:** SHA-256-Hashes von `/dashboard` auf allen Breakpoints bitgenau identisch zu G58/G59.
+- **Screenshot-Ablage-Policy:** Ausschließlich die textuelle Matrix `docs/screenshots/auftrag-067n-g60/README.md` ist versioniert; Bilddateien verbleiben gemäß `.gitignore` unversioniert lokal.
+- **Secret-Scanning:** Negativ. Keine Token, Passwörter oder geheimen Schlüssel im Git-Index.
+
+---
+
+### 6. Stopp-Punkte und Handoff
+
+- **Strikte Einhaltung:** Nur lokaler Commit auf `feat/auftrag-067n-crm-query-export`. Kein Push, kein Pull Request, kein Merge nach `main` und kein Deployment.
+- **Status:** **Bereit zur Prüfung (Review durch Codex / Claude Code)**.

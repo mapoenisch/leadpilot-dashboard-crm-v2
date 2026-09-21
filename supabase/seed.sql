@@ -46,7 +46,7 @@ INSERT INTO auth.users (
   updated_at
 )
 VALUES
-  -- 1. Demo Org Admin (Haupt-Testnutzer für E2E & Lighthouse)
+  -- 1. Org A Admin (Haupt-Testnutzer für E2E & Mandantentrennung)
   (
     '11111111-1111-1111-1111-111111111111',
     '00000000-0000-0000-0000-000000000000',
@@ -61,7 +61,7 @@ VALUES
     '',
     '',
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{"full_name":"Admin Demo Org"}'::jsonb,
+    '{"full_name":"Admin Org A"}'::jsonb,
     false,
     NOW(),
     NOW()
@@ -166,15 +166,14 @@ ON CONFLICT (provider_id, provider) DO UPDATE SET
 
 -- ----------------------------------------------------------------------------
 -- 4. Organisations-Mitgliedschaften (public.organization_members)
--- Gate G58 / [P1-6]: admin-a@e2e.local muss der Demo-Organisation
--- 00000000-0000-0000-0000-000000000001 angehören, damit E2E- und Visual-Tests
--- keinen SYNTHETIC_NOT_ALLOWED-Integritätsfehler anzeigen.
--- Org A und Org B bleiben im Seed angelegt, da Nicht-Demo-Mandanten erst ab
--- Auftrag 067N / Gate G60 an eine echte Mandanten-CRM-Quelle angebunden werden.
+-- Gate G60 (Auftrag 067N): admin-a@e2e.local ist regulärer Admin von Organisation A
+-- ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') für echte serverseitige Mandantentrennung.
+-- Historische G58-Zuordnung: ('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000001', 'admin')
+-- wurde durch die serverseitige Mandanten-CRM-Quelle abgelöst.
 -- ----------------------------------------------------------------------------
 INSERT INTO public.organization_members (user_id, organization_id, role)
 VALUES
-  ('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000001', 'admin'),
+  ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'admin'),
   ('44444444-4444-4444-4444-444444444444', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'admin')
 ON CONFLICT (user_id) DO UPDATE SET
   organization_id = EXCLUDED.organization_id,

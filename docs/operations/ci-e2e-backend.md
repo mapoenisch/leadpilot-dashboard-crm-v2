@@ -20,10 +20,10 @@ Für automatisierte E2E-Tests wird **kein gehostetes Supabase-Projekt** verwende
 
 Die Testnutzer sind ausschließlich in `supabase/seed.sql` für flüchtige lokale und CI-Container definiert. Sie existieren in keinem Produktiv- oder Hostsystem.
 
-- **Demo-Organisation Admin (Haupt-Testnutzer für Suite & Lighthouse):**
+- **Organisation A Admin (Haupt-Testnutzer für Suite & Mandantentrennung):**
   - E-Mail: `admin-a@e2e.local`
   - Passwort: `TestPassword123!`
-  - Rolle: `admin` in Demo-Organisation (`00000000-0000-0000-0000-000000000001`, Gate G58 / [P1-6])
+  - Rolle: `admin` in Organisation A (`aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`, Gate G60 / Auftrag 067N)
 - **Organisation B Admin (Mandantentrennung):**
   - E-Mail: `admin-b@e2e.local`
   - Passwort: `TestPassword123!`
@@ -40,6 +40,7 @@ Die Testnutzer sind ausschließlich in `supabase/seed.sql` für flüchtige lokal
 Entwickler können die vollständige E2E-Testkette lokal wie folgt ausführen:
 
 ### Schritt 1: Supabase starten und befüllen (auf leerem Stack)
+
 ```bash
 # 1. Bestehende Container verwerfen (frischer Stack ohne alte Volumes)
 npx supabase stop --no-backup
@@ -55,6 +56,7 @@ rm supabase/migrations/20260101000000_base_schema.sql
 ```
 
 ### Schritt 2: Umgebungsvariablen ermitteln und Frontend bauen
+
 ```bash
 # Anon-Key und URL auslesen
 export VITE_SUPABASE_URL="http://127.0.0.1:54321"
@@ -65,6 +67,7 @@ npm run build
 ```
 
 ### Schritt 3: Playwright E2E ausführen
+
 ```bash
 export E2E_AUTH_EMAIL="admin-a@e2e.local"
 export E2E_AUTH_PASSWORD="TestPassword123!"
@@ -78,12 +81,15 @@ npx playwright test
 ```
 
 ### Schritt 4: Lighthouse CI ausführen
+
 > **Hinweis:** Erfordert Node.js >= 22.12 (oder das in `.nvmrc` gepinnte 22.18.0) wegen `require(esm)`.
+
 ```bash
 CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" npx lhci autorun
 ```
 
 ### Schritt 5: Lokales Backend stoppen
+
 ```bash
 npx supabase stop --no-backup
 ```
@@ -119,4 +125,3 @@ Stattdessen existiert der dedizierte Workflow `.github/workflows/update-visual-b
    git push origin --delete visual-baselines/regen-v23
    git branch -D visual-baselines/regen-v23
    ```
-

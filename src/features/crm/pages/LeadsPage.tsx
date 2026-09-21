@@ -1,8 +1,11 @@
-import React from 'react';
+import { useMemo, useState } from 'react';
+import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Tabs } from '@/components/ui/Tabs';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { isSupabaseConfigured } from '@/services/db/supabaseClient';
 import { Company, Contact, ImportedFunnelDeal } from '@/types/crm';
@@ -12,22 +15,84 @@ import {
   useCrmContacts,
   useCrmDeals,
 } from '@/hooks/queries/useCrmQueries';
-import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
 import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
+import { useOrganization } from '@/auth/organizationContext';
+import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
+import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
 
-// Stabile Fallbacks, damit abgeleitete Memos (companyMap) nicht pro Render
-// neu laufen, solange noch keine Query-Daten vorliegen.
 const EMPTY_COMPANIES: Company[] = [];
 const EMPTY_CONTACTS: Contact[] = [];
 const EMPTY_DEALS: ImportedFunnelDeal[] = [];
 
-export function LeadsPage() {
-  // 067J / G56: Tab-Zustand ist über die URL wiederherstellbar.
-  const [activeTab, setActiveTab] = useUrlSyncedState('tab', 'contacts');
+const COMPANY_COLUMNS: CrmColumn<Company>[] = [
+  {
+    key: 'name',
+    label: 'Unternehmensname',
+    render: (r) => <strong className="text-text">{r.name}</strong>,
+  },
+  {
+    key: 'domain',
+    label: 'Domain',
+    render: (r) => <span className="font-mono text-[12.5px] text-primary">{r.domain}</span>,
+  },
+  { key: 'industry', label: 'Branche', render: (r) => <Badge variant="cyan">{r.industry}</Badge> },
+  { key: 'city', label: 'Stadt' },
+  { key: 'postalCode', label: 'PLZ' },
+  {
+    key: 'employeeCount',
+    label: 'Mitarbeiter',
+    render: (r) => <Badge variant="neutral">{r.employeeCount} MA</Badge>,
+  },
+];
 
-  // Vier parallele Reads über TanStack Query (statt manuellem Promise.all).
-  // Der auditSummary-Wert wird nicht gerendert, Query läuft trotzdem mit —
-  // ihr Lade-/Fehlerzustand fließt unten in loading/error ein.
+const DEAL_COLUMNS: CrmColumn<ImportedFunnelDeal>[] = [
+  {
+    key: 'dealName',
+    label: 'Deal Name',
+    render: (r) => <strong className="text-text">{r.dealName}</strong>,
+  },
+  {
+    key: 'stage',
+    label: 'Stage',
+    render: (r) => {
+      const v = r.stage.includes('gewonnen')
+        ? 'cyan'
+        : r.stage.includes('verloren')
+          ? 'neutral'
+          : 'orange';
+      return <Badge variant={v}>{r.stage}</Badge>;
+    },
+  },
+  {
+    key: 'amount',
+    label: 'Betrag (€)',
+    render: (r) => (
+      <strong className="font-mono text-primary">{r.amount.toLocaleString('de-DE')} €</strong>
+    ),
+  },
+  { key: 'closeDate', label: 'Abschlussdatum' },
+  {
+    key: 'pipeline',
+    label: 'Pipeline',
+    render: (r) => <Badge variant="neutral">{r.pipeline}</Badge>,
+  },
+];
+
+export function LeadsPage() {
+  const { session } = useOrganization();
+  const isViewer = session?.role === 'viewer';
+
+  const [activeTab, setActiveTab] = useUrlSyncedState('tab', 'contacts');
+  const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
+  const [pageStr, setPageStr] = useUrlSyncedState('seite', '1');
+  const [pageSizeStr, setPageSizeStr] = useUrlSyncedState('proSeite', '20');
+
+  const page = Math.max(1, parseInt(pageStr, 10) || 1);
+  const pageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
+
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const companiesQuery = useCrmCompanies();
   const contactsQuery = useCrmContacts();
   const dealsQuery = useCrmDeals();
@@ -49,160 +114,184 @@ export function LeadsPage() {
     !queryError &&
     companies.length + contacts.length + importedFunnelDeals.length === 0;
 
-  // Map for fast Company lookup by ID
-  const companyMap = React.useMemo(() => {
-    const map: Record<string, Company> = {};
-    companies.forEach((c) => {
-      map[c.id] = c;
-    });
-    return map;
-  }, [companies]);
+  const companyMap = useMemo(
+    () => Object.fromEntries(companies.map((c) => [c.id, c])),
+    [companies],
+  );
 
-  // G46 (067C): Browser-Seed entfernt (Design §10.3) — Demo-Daten kommen aus
-  // versionierten SQL-Migrationen, kein UI-Trigger mehr.
-  const companyColumns: CrmColumn<Company>[] = [
-    {
-      key: 'name',
-      label: 'Unternehmensname',
-      render: (r) => <strong className="text-text">{r.name}</strong>,
-    },
-    {
-      key: 'domain',
-      label: 'Domain',
-      render: (r) => <span className="font-mono text-[12.5px] text-primary">{r.domain}</span>,
-    },
-    {
-      key: 'industry',
-      label: 'Branche',
-      render: (r) => <Badge variant="cyan">{r.industry}</Badge>,
-    },
-    { key: 'city', label: 'Stadt' },
-    { key: 'postalCode', label: 'PLZ' },
-    {
-      key: 'employeeCount',
-      label: 'Mitarbeiter',
-      render: (r) => <Badge variant="neutral">{r.employeeCount} MA</Badge>,
-    },
-  ];
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    setPageStr('1');
+    setSearchTerm('');
+  };
 
-  const contactColumns: CrmColumn<Contact>[] = [
-    {
-      key: 'fullName',
-      label: 'Name',
-      render: (r) => (
-        <strong className="text-text">
-          {r.firstName} {r.lastName}
-        </strong>
-      ),
-    },
-    {
-      key: 'email',
-      label: 'E-Mail',
-      render: (r) => <span className="font-mono text-[12.5px] text-primary">{r.email}</span>,
-    },
-    {
-      key: 'jobTitle',
-      label: 'Jobbezeichnung',
-      render: (r) => <Badge variant="cyan">{r.jobTitle}</Badge>,
-    },
-    {
-      key: 'company',
-      label: 'Zugeordnetes Unternehmen',
-      render: (r) => {
-        const comp = companyMap[r.companyId];
-        return comp ? (
-          <span>
-            <strong className="text-text">{comp.name}</strong>{' '}
-            <span className="text-[11px] text-[var(--color-text-muted)]">({comp.domain})</span>
-          </span>
-        ) : (
-          <span className="text-error">Nicht zugeordnet</span>
-        );
+  const currentResource =
+    activeTab === 'companies' ? 'companies' : activeTab === 'funnel_deals' ? 'deals' : 'contacts';
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      await downloadCrmExport({ resource: currentResource, q: searchTerm.trim() || undefined });
+    } catch (err) {
+      setExportError(err instanceof CrmServiceError ? err.message : 'Fehler beim CSV-Export.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const contactColumns: CrmColumn<Contact>[] = useMemo(
+    () => [
+      {
+        key: 'fullName',
+        label: 'Name',
+        render: (r) => (
+          <strong className="text-text">
+            {r.firstName} {r.lastName}
+          </strong>
+        ),
       },
-    },
-  ];
+      {
+        key: 'email',
+        label: 'E-Mail',
+        render: (r) => <span className="font-mono text-[12.5px] text-primary">{r.email}</span>,
+      },
+      {
+        key: 'jobTitle',
+        label: 'Jobbezeichnung',
+        render: (r) => <Badge variant="cyan">{r.jobTitle}</Badge>,
+      },
+      {
+        key: 'company',
+        label: 'Zugeordnetes Unternehmen',
+        render: (r) => {
+          const comp = companyMap[r.companyId];
+          return comp ? (
+            <span>
+              <strong className="text-text">{comp.name}</strong>{' '}
+              <span className="text-[11px] text-[var(--color-text-muted)]">({comp.domain})</span>
+            </span>
+          ) : (
+            <span className="text-error">Nicht zugeordnet</span>
+          );
+        },
+      },
+    ],
+    [companyMap],
+  );
 
-  const dealColumns: CrmColumn<ImportedFunnelDeal>[] = [
+  const activeConfig = useMemo(() => {
+    if (activeTab === 'companies') {
+      return {
+        items: companies,
+        match: (c: Company, q: string) =>
+          `${c.name} ${c.domain ?? ''} ${c.city}`.toLowerCase().includes(q),
+        cols: COMPANY_COLUMNS as CrmColumn<object>[],
+        caption: 'Unternehmen und Accounts Übersicht',
+      };
+    }
+    if (activeTab === 'funnel_deals') {
+      return {
+        items: importedFunnelDeals,
+        match: (d: ImportedFunnelDeal, q: string) =>
+          `${d.dealName} ${d.pipeline} ${d.stage}`.toLowerCase().includes(q),
+        cols: DEAL_COLUMNS as CrmColumn<object>[],
+        caption: 'Funnel Deals Übersicht',
+      };
+    }
+    return {
+      items: contacts,
+      match: (c: Contact, q: string) =>
+        `${c.firstName} ${c.lastName} ${c.email} ${c.jobTitle}`.toLowerCase().includes(q),
+      cols: contactColumns as CrmColumn<object>[],
+      caption: 'Kontakte und Lead-Übersicht',
+    };
+  }, [activeTab, companies, importedFunnelDeals, contacts, contactColumns]);
+
+  const { currentRows, currentTotal } = useMemo(() => {
+    const q = searchTerm.toLowerCase();
+    const filtered = (activeConfig.items as object[]).filter(
+      (item) => !q || (activeConfig.match as (i: object, query: string) => boolean)(item, q),
+    );
+    return {
+      currentRows: filtered.slice((page - 1) * pageSize, page * pageSize),
+      currentTotal: filtered.length,
+    };
+  }, [activeConfig, searchTerm, page, pageSize]);
+
+  const kpis = [
     {
-      key: 'dealName',
-      label: 'Deal Name',
-      render: (r) => <strong className="text-text">{r.dealName}</strong>,
+      title: 'Kontakte Gesamt',
+      value: contacts.length,
+      note: '100 % Unternehmen zugeordnet',
+      featured: true,
+      color: 'text-primary',
     },
     {
-      key: 'stage',
-      label: 'Stage',
-      render: (r) => (
-        <Badge
-          variant={
-            r.stage.includes('gewonnen')
-              ? 'cyan'
-              : r.stage.includes('verloren')
-                ? 'neutral'
-                : 'orange'
-          }
-        >
-          {r.stage}
-        </Badge>
-      ),
+      title: 'Unternehmen (Accounts)',
+      value: companies.length,
+      note: '100 % valide Domains',
+      color: 'text-text',
     },
     {
-      key: 'amount',
-      label: 'Betrag (€)',
-      render: (r) => (
-        <strong className="font-mono text-primary">{r.amount.toLocaleString('de-DE')} €</strong>
-      ),
-    },
-    { key: 'closeDate', label: 'Abschlussdatum' },
-    {
-      key: 'pipeline',
-      label: 'Pipeline',
-      render: (r) => <Badge variant="neutral">{r.pipeline}</Badge>,
+      title: 'Importierte Funnel Deals',
+      value: importedFunnelDeals.length,
+      note: 'Getrennter Import',
+      color: 'text-text',
     },
   ];
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
-      {/* 1. Page Header */}
       <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Leads & Kontakte"
-          description="Persistierter CRM-Datenbestand aus Supabase / PostgreSQL mit 100 Kontakten und zugeordneten Accounts."
+          description="Persistierter CRM-Datenbestand aus Supabase / PostgreSQL mit Kontakten, Accounts und Paginierung."
         />
-        <div className="flex gap-[var(--space-2)] flex-wrap">
+        <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A CRM</Badge>
           <Badge variant="neutral">PostgreSQL / Supabase</Badge>
+          {activeTab !== 'audit' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              iconLeft={<Download size={14} />}
+              onClick={handleExport}
+              disabled={isViewer || isExporting}
+              title={
+                isViewer
+                  ? 'Viewer besitzen keine Exportberechtigung'
+                  : 'Aktuelle Liste als CSV exportieren'
+              }
+              aria-label="CSV Export"
+            >
+              {isExporting ? 'Exportiere...' : 'CSV Export'}
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* 2. Audit KPI Overview in responsivem Grid */}
+      {exportError && (
+        <div
+          role="alert"
+          className="flex items-center gap-[var(--space-2)] p-[var(--space-3)] rounded-md bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-error text-[13px]"
+        >
+          <AlertCircle size={16} />
+          <span>{exportError}</span>
+        </div>
+      )}
+
       <div className="crm-v2-kpi-grid">
-        <Card variant="glass" featured>
-          <div className="text-[13px] text-[var(--color-text-muted)]">Kontakte Gesamt</div>
-          <div className="font-display text-[28px] font-bold my-[4px] text-primary">
-            {contacts.length}
-          </div>
-          <div className="text-[12px] text-success">100 % Unternehmen zugeordnet</div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Unternehmen (Accounts)</div>
-          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
-            {companies.length}
-          </div>
-          <div className="text-[12px] text-success">100 % valide Domains</div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Importierte Funnel Deals</div>
-          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
-            {importedFunnelDeals.length}
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            Getrennter Import (Keine Fantasie-Matches)
-          </div>
-        </Card>
-
+        {kpis.map((kpi) => (
+          <Card key={kpi.title} variant="glass" featured={kpi.featured}>
+            <div className="text-[13px] text-[var(--color-text-muted)]">{kpi.title}</div>
+            <div className={`font-display text-[28px] font-bold my-[4px] ${kpi.color}`}>
+              {kpi.value}
+            </div>
+            <div className="text-[12px] text-success">{kpi.note}</div>
+          </Card>
+        ))}
         <Card variant="glass">
           <div className="text-[13px] text-[var(--color-text-muted)]">Datenbank Status</div>
           <div
@@ -216,7 +305,6 @@ export function LeadsPage() {
         </Card>
       </div>
 
-      {/* 3. Barrierefreie Tabs */}
       <div className="crm-v2-tabs-wrapper">
         <Tabs
           items={[
@@ -226,192 +314,80 @@ export function LeadsPage() {
             { id: 'audit', label: 'Supabase & Import Audit' },
           ]}
           activeId={activeTab}
-          onChange={setActiveTab}
+          onChange={handleTabChange}
         />
       </div>
 
-      {/* 4. Tab Views mit CrmResponsiveList */}
-      {isLoading ? (
+      {activeTab !== 'audit' && !isLoading && !queryError && !isEmpty && (
+        <div className="crm-v2-filter-bar">
+          <div className="flex-[1_1_280px] max-w-full">
+            <Input
+              type="search"
+              aria-label="Suche in Liste"
+              placeholder="Suchbegriff eingeben..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPageStr('1');
+              }}
+              leadingIcon={<Search size={16} />}
+              sizeVariant="sm"
+            />
+          </div>
+        </div>
+      )}
+
+      {isLoading || queryError || isEmpty ? (
         <ManagementChartState
-          type="loading"
-          message="Lade Daten aus CRM Repository..."
+          type={isLoading ? 'loading' : queryError ? 'error' : 'empty'}
+          message={
+            isLoading
+              ? 'Lade Daten aus CRM Repository...'
+              : queryError
+                ? `Integritätsfehler: ${queryError instanceof Error ? queryError.message : 'Fehler beim Laden der CRM-Daten'}`
+                : 'Keine CRM-Daten erfasst'
+          }
           sourceLabel="Ebene A CRM"
           height={220}
         />
-      ) : queryError ? (
-        <ManagementChartState
-          type="error"
-          message={`Integritätsfehler: ${queryError instanceof Error ? queryError.message : 'Fehler beim Laden der CRM-Daten'}`}
-          sourceLabel="Ebene A CRM"
-          height={220}
-        />
-      ) : isEmpty ? (
-        <ManagementChartState
-          type="empty"
-          message="Keine CRM-Daten erfasst"
-          sourceLabel="Ebene A CRM"
-          height={220}
-        />
+      ) : activeTab !== 'audit' ? (
+        <Card variant="glass" padding="0">
+          <CrmResponsiveList
+            caption={activeConfig.caption}
+            columns={activeConfig.cols}
+            rows={currentRows}
+            keyExtractor={(r) => (r as { id: string }).id}
+            page={page}
+            pageSize={pageSize}
+            total={currentTotal}
+            onPageChange={(p) => setPageStr(String(p))}
+            onPageSizeChange={(s) => {
+              setPageSizeStr(String(s));
+              setPageStr('1');
+            }}
+          />
+        </Card>
       ) : (
-        <>
-          {activeTab === 'contacts' && (
-            <Card variant="glass" padding="0">
-              <CrmResponsiveList
-                caption="Kontakte und Lead-Übersicht"
-                columns={contactColumns}
-                rows={contacts}
-                keyExtractor={(r) => r.id}
-                renderMobileCard={(r) => {
-                  const comp = companyMap[r.companyId];
-                  return (
-                    <div className="crm-v2-mobile-card">
-                      <div className="crm-v2-mobile-card-header">
-                        <span className="crm-v2-mobile-card-title">
-                          {r.firstName} {r.lastName}
-                        </span>
-                        <Badge variant="cyan">{r.jobTitle}</Badge>
-                      </div>
-                      <div className="crm-v2-mobile-card-row">
-                        <span className="crm-v2-mobile-card-label">E-Mail</span>
-                        <span className="crm-v2-mobile-card-value font-mono text-primary">
-                          {r.email}
-                        </span>
-                      </div>
-                      <div className="crm-v2-mobile-card-row">
-                        <span className="crm-v2-mobile-card-label">Unternehmen</span>
-                        <span className="crm-v2-mobile-card-value">
-                          {comp ? (
-                            <span>
-                              <strong>{comp.name}</strong>{' '}
-                              <span className="text-[11px] text-[var(--color-text-muted)]">
-                                ({comp.domain})
-                              </span>
-                            </span>
-                          ) : (
-                            <span className="text-error">Nicht zugeordnet</span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                }}
-              />
-            </Card>
-          )}
-
-          {activeTab === 'companies' && (
-            <Card variant="glass" padding="0">
-              <CrmResponsiveList
-                caption="Unternehmen und Accounts Übersicht"
-                columns={companyColumns}
-                rows={companies}
-                keyExtractor={(r) => r.id}
-                renderMobileCard={(r) => (
-                  <div className="crm-v2-mobile-card">
-                    <div className="crm-v2-mobile-card-header">
-                      <span className="crm-v2-mobile-card-title">{r.name}</span>
-                      <Badge variant="cyan">{r.industry}</Badge>
-                    </div>
-                    <div className="crm-v2-mobile-card-row">
-                      <span className="crm-v2-mobile-card-label">Domain</span>
-                      <span className="crm-v2-mobile-card-value font-mono text-primary">
-                        {r.domain}
-                      </span>
-                    </div>
-                    <div className="crm-v2-mobile-card-row">
-                      <span className="crm-v2-mobile-card-label">Standort</span>
-                      <span className="crm-v2-mobile-card-value">
-                        {r.postalCode} {r.city}
-                      </span>
-                    </div>
-                    <div className="crm-v2-mobile-card-row">
-                      <span className="crm-v2-mobile-card-label">Mitarbeiter</span>
-                      <span className="crm-v2-mobile-card-value">
-                        <Badge variant="neutral">{r.employeeCount} MA</Badge>
-                      </span>
-                    </div>
-                  </div>
-                )}
-              />
-            </Card>
-          )}
-
-          {activeTab === 'funnel_deals' && (
-            <Card variant="glass" padding="0">
-              <CrmResponsiveList
-                caption="Funnel Deals Übersicht"
-                columns={dealColumns}
-                rows={importedFunnelDeals}
-                keyExtractor={(r) => r.id}
-                renderMobileCard={(r) => (
-                  <div className="crm-v2-mobile-card">
-                    <div className="crm-v2-mobile-card-header">
-                      <span className="crm-v2-mobile-card-title">{r.dealName}</span>
-                      <Badge
-                        variant={
-                          r.stage.includes('gewonnen')
-                            ? 'cyan'
-                            : r.stage.includes('verloren')
-                              ? 'neutral'
-                              : 'orange'
-                        }
-                      >
-                        {r.stage}
-                      </Badge>
-                    </div>
-                    <div className="crm-v2-mobile-card-row">
-                      <span className="crm-v2-mobile-card-label">Volumen</span>
-                      <span className="crm-v2-mobile-card-value font-mono font-semibold text-primary">
-                        {r.amount.toLocaleString('de-DE')} €
-                      </span>
-                    </div>
-                    <div className="crm-v2-mobile-card-row">
-                      <span className="crm-v2-mobile-card-label">Abschlussdatum</span>
-                      <span className="crm-v2-mobile-card-value">{r.closeDate}</span>
-                    </div>
-                    <div className="crm-v2-mobile-card-row">
-                      <span className="crm-v2-mobile-card-label">Pipeline</span>
-                      <span className="crm-v2-mobile-card-value">
-                        <Badge variant="neutral">{r.pipeline}</Badge>
-                      </span>
-                    </div>
-                  </div>
-                )}
-              />
-            </Card>
-          )}
-
-          {activeTab === 'audit' && (
-            <div className="flex flex-col gap-[var(--space-4)]">
-              <Card variant="glass" featured>
-                <div className="flex items-center justify-between flex-wrap gap-[var(--space-3)] mb-[var(--space-3)]">
-                  <h3 className="m-0 font-display text-[16px] font-semibold text-primary">
-                    🗄️ Supabase PostgreSQL Persistence (G46: Seed per SQL-Migration)
-                  </h3>
-                </div>
-
-                <div className="flex flex-col gap-[8px] text-[13.5px] text-text">
-                  <div>
-                    ✔ <strong>Kontakte:</strong> {contacts.length} Datensätze (Schema: `contacts`
-                    Tabelle mit Foreign Key `company_id`).
-                  </div>
-                  <div>
-                    ✔ <strong>Unternehmen:</strong> {companies.length} Datensätze (Schema:
-                    `companies` Tabelle in Supabase).
-                  </div>
-                  <div>
-                    ✔ <strong>Funnel Deals:</strong> {importedFunnelDeals.length} Datensätze
-                    (Schema: `imported_funnel_deals` Tabelle).
-                  </div>
-                  <div className="text-[12.5px] mt-[4px] text-[var(--color-text-muted)]">
-                    🔒 <strong>Sicherheits- & Architekturregeln:</strong> Supabase Anon-Key für
-                    Client; RLS aktiviert; Keine Secrets im Code; Repository-Kapselung gewahrt.
-                  </div>
-                </div>
-              </Card>
+        <Card variant="glass" featured>
+          <h3 className="m-0 mb-3 font-display text-[16px] font-semibold text-primary">
+            🗄️ Supabase PostgreSQL Persistence (G46: Seed per SQL-Migration)
+          </h3>
+          <div className="flex flex-col gap-2 text-[13.5px] text-text">
+            {[
+              ['Kontakte', contacts.length, 'contacts Tabelle mit Foreign Key company_id'],
+              ['Unternehmen', companies.length, 'companies Tabelle in Supabase'],
+              ['Funnel Deals', importedFunnelDeals.length, 'imported_funnel_deals Tabelle'],
+            ].map(([lbl, count, detail]) => (
+              <div key={lbl as string}>
+                ✔ <strong>{lbl}:</strong> {count} Datensätze (Schema: `{detail}`).
+              </div>
+            ))}
+            <div className="text-[12.5px] mt-1 text-[var(--color-text-muted)]">
+              🔒 <strong>Sicherheits- & Architekturregeln:</strong> Supabase Anon-Key für Client;
+              RLS aktiviert; Keine Secrets im Code; Repository-Kapselung gewahrt.
             </div>
-          )}
-        </>
+          </div>
+        </Card>
       )}
     </div>
   );
