@@ -25,10 +25,22 @@ export interface CrmPageResult<T> {
 export type CrmServiceErrorCode =
   'UNAUTHORIZED' | 'FORBIDDEN' | 'INVALID_QUERY' | 'NOT_FOUND' | 'SERVER_ERROR';
 
+export const SAFE_CLIENT_ERROR_MESSAGES: Record<CrmServiceErrorCode, string> = {
+  UNAUTHORIZED: 'Sitzung abgelaufen oder nicht authentifiziert. Bitte melden Sie sich erneut an.',
+  FORBIDDEN: 'Zugriff verweigert. Fehlende Berechtigung für diese CRM-Aktion.',
+  INVALID_QUERY: 'Ungültige Abfrageparameter. Bitte überprüfen Sie Ihre Filter- und Sucheingaben.',
+  NOT_FOUND: 'Die angeforderte CRM-Ressource wurde nicht gefunden.',
+  SERVER_ERROR: 'Ein interner Serverfehler ist aufgetreten. Bitte versuchen Sie es später erneut.',
+};
+
+export function resolveSafeErrorMessage(code: CrmServiceErrorCode): string {
+  return SAFE_CLIENT_ERROR_MESSAGES[code] || SAFE_CLIENT_ERROR_MESSAGES.SERVER_ERROR;
+}
+
 export class CrmServiceError extends Error {
   constructor(
     public readonly code: CrmServiceErrorCode,
-    message: string,
+    message: string = resolveSafeErrorMessage(code),
   ) {
     super(message);
     this.name = 'CrmServiceError';
@@ -45,12 +57,12 @@ function normalizeErrorCode(rawCode?: string): CrmServiceErrorCode {
 
 export async function fetchCrmList<T>(params: CrmListQueryParams): Promise<CrmPageResult<T>> {
   if (!isSupabaseConfigured || !supabase) {
-    throw new CrmServiceError('UNAUTHORIZED', 'Supabase ist nicht konfiguriert.');
+    throw new CrmServiceError('UNAUTHORIZED');
   }
 
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session?.access_token) {
-    throw new CrmServiceError('UNAUTHORIZED', 'Keine aktive Sitzung vorhanden.');
+    throw new CrmServiceError('UNAUTHORIZED');
   }
 
   const token = data.session.access_token;
@@ -84,20 +96,14 @@ export async function fetchCrmList<T>(params: CrmListQueryParams): Promise<CrmPa
         pageSize: params.pageSize ?? 20,
       }),
     });
-  } catch (err) {
-    throw new CrmServiceError(
-      'SERVER_ERROR',
-      err instanceof Error ? err.message : 'Netzwerkfehler beim Laden der CRM-Daten.',
-    );
+  } catch {
+    throw new CrmServiceError('SERVER_ERROR');
   }
 
   if (!response.ok) {
     const errorBody = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     const code = normalizeErrorCode(errorBody.code as string | undefined);
-    const message =
-      (errorBody.message as string | undefined) ||
-      `Serverfehler beim Laden der ${params.resource} (Status ${response.status}).`;
-    throw new CrmServiceError(code, message);
+    throw new CrmServiceError(code);
   }
 
   const result = (await response.json()) as CrmPageResult<T>;

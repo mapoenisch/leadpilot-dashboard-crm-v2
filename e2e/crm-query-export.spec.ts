@@ -130,4 +130,79 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     expect(names).toContain('Firma A1');
     expect(names).not.toContain('Firma B1');
   });
+
+  test('5. Sichtbare Sortier- und Filter-Controls auf Companies-, Deals- und Leads-Seiten', async ({
+    page,
+  }) => {
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
+
+    // Helper für LeadPilot Custom Select (Button + Listbox)
+    async function selectOption(label: string, optionText: string) {
+      const trigger = page.getByRole('combobox', { name: label });
+      await expect(trigger).toBeVisible();
+      await trigger.click();
+      const option = page.getByRole('option', { name: optionText });
+      await expect(option).toBeVisible();
+      await option.click();
+    }
+
+    // Companies: Sortiercontrol bedienbar
+    await page.goto('/crm/companies');
+    await selectOption('Sortierung:', 'Stadt');
+    await expect(page).toHaveURL(/sort=city/);
+
+    await selectOption('Reihenfolge:', 'Absteigend (Z-A)');
+    await expect(page).toHaveURL(/order=desc/);
+
+    // Deals: Sortiercontrol bedienbar
+    await page.goto('/crm/deals');
+    await selectOption('Sortierung:', 'Betrag');
+    await expect(page).toHaveURL(/sort=amount/);
+
+    // Leads: Paginierung und Filterung serverseitig mit bedienbaren Controls
+    await page.goto('/crm/leads');
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: 'Leads & Kontakte' }),
+    ).toBeVisible();
+    await selectOption('Sortierung:', 'Erstelldatum');
+    await expect(page).toHaveURL(/sort=created_at/);
+
+    const leadsFilterTrigger = page.getByRole('combobox', { name: 'Jobtitel:' });
+    await expect(leadsFilterTrigger).toBeVisible();
+  });
+
+  test('6. Unbekannter Filter wird mit 400 INVALID_QUERY ohne SQL-Offenlegung abgewiesen', async ({
+    request,
+  }) => {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
+    const anonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+
+    const loginRes = await request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+      headers: { apikey: anonKey },
+      data: {
+        email: requireEnv('E2E_AUTH_EMAIL'),
+        password: requireEnv('E2E_AUTH_PASSWORD'),
+      },
+    });
+    const { access_token: token } = await loginRes.json();
+
+    const badQueryRes = await request.post(`${supabaseUrl}/functions/v1/crm-query-export`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: anonKey,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        action: 'list',
+        resource: 'companies',
+        filters: { evil_injection: "'; DROP TABLE crm_companies; --" },
+      },
+    });
+
+    expect(badQueryRes.status()).toBe(400);
+    const body = await badQueryRes.json();
+    expect(body.code).toBe('INVALID_QUERY');
+    expect(JSON.stringify(body)).not.toContain('DROP TABLE');
+    expect(JSON.stringify(body)).not.toContain('syntax');
+  });
 });

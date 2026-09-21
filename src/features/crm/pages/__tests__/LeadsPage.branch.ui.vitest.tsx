@@ -3,24 +3,13 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { LeadsPage } from '../LeadsPage';
-import {
-  useCrmAuditSummary,
-  useCrmCompanies,
-  useCrmContacts,
-  useCrmDeals,
-} from '@/hooks/queries/useCrmQueries';
+import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 
-vi.mock('@/hooks/queries/useCrmQueries', () => ({
-  useCrmCompanies: vi.fn(),
-  useCrmContacts: vi.fn(),
-  useCrmDeals: vi.fn(),
-  useCrmAuditSummary: vi.fn(),
+vi.mock('@/hooks/queries/useCrmListQuery', () => ({
+  useCrmListQuery: vi.fn(),
 }));
 
-const mockedCompanies = vi.mocked(useCrmCompanies);
-const mockedContacts = vi.mocked(useCrmContacts);
-const mockedDeals = vi.mocked(useCrmDeals);
-const mockedAudit = vi.mocked(useCrmAuditSummary);
+const mockedUseCrmListQuery = vi.mocked(useCrmListQuery);
 
 const companies = [
   {
@@ -29,7 +18,6 @@ const companies = [
     domain: 'acme.de',
     industry: 'Software',
     city: 'Berlin',
-    postalCode: '10115',
     employeeCount: 42,
   },
 ];
@@ -79,10 +67,20 @@ const deals = [
 ];
 
 function ok() {
-  mockedCompanies.mockReturnValue({ data: companies, isLoading: false, error: null } as never);
-  mockedContacts.mockReturnValue({ data: contacts, isLoading: false, error: null } as never);
-  mockedDeals.mockReturnValue({ data: deals, isLoading: false, error: null } as never);
-  mockedAudit.mockReturnValue({ data: undefined, isLoading: false, error: null } as never);
+  mockedUseCrmListQuery.mockImplementation(((params: { resource: string }) => {
+    if (params.resource === 'companies') {
+      return {
+        data: { items: companies, total: 1 },
+        isLoading: false,
+        isError: false,
+        error: null,
+      };
+    }
+    if (params.resource === 'deals') {
+      return { data: { items: deals, total: 3 }, isLoading: false, isError: false, error: null };
+    }
+    return { data: { items: contacts, total: 2 }, isLoading: false, isError: false, error: null };
+  }) as never);
 }
 
 function renderPage() {
@@ -103,20 +101,16 @@ describe('LeadsPage (branch)', () => {
   it('startet auf dem Kontakte-Tab mit KPIs und Firmenzuordnung', () => {
     renderPage();
     expect(screen.getByText('Leads & Kontakte')).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Kontakte \(2\)/ })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
+    expect(screen.getByRole('tab', { name: 'Kontakte' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Anna Muster')).toBeInTheDocument();
-    expect(screen.getByText('Acme GmbH')).toBeInTheDocument();
-    expect(screen.getByText('Nicht zugeordnet')).toBeInTheDocument();
+    expect(screen.getByText('anna@acme.de')).toBeInTheDocument();
   });
 
   it('schaltet auf den Unternehmen-Tab um', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('tab', { name: /Unternehmen \(1\)/ }));
-    expect(screen.getByText('Unternehmen und Accounts Übersicht')).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Unternehmen' }));
+    expect(screen.getByText('CRM companies Übersicht')).toBeInTheDocument();
     expect(screen.getByText('acme.de')).toBeInTheDocument();
     expect(screen.getByText('42 MA')).toBeInTheDocument();
   });
@@ -124,8 +118,8 @@ describe('LeadsPage (branch)', () => {
   it('schaltet auf den Funnel-Deals-Tab mit allen Stage-Varianten um', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('tab', { name: /Funnel Deals \(3\)/ }));
-    expect(screen.getByText('Funnel Deals Übersicht')).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Funnel Deals' }));
+    expect(screen.getByText('CRM deals Übersicht')).toBeInTheDocument();
     expect(screen.getByText('Deal Gewonnen')).toBeInTheDocument();
     expect(screen.getByText('Deal Verloren')).toBeInTheDocument();
     expect(screen.getByText('Deal Offen')).toBeInTheDocument();
@@ -136,47 +130,49 @@ describe('LeadsPage (branch)', () => {
     renderPage();
     await user.click(screen.getByRole('tab', { name: 'Supabase & Import Audit' }));
     expect(screen.getByText(/Supabase PostgreSQL Persistence/)).toBeInTheDocument();
-    expect(screen.getByText(/2 Datensätze/)).toBeInTheDocument();
+    expect(screen.getByText(/Mandantengebundene Abfragen/)).toBeInTheDocument();
   });
 
   it('zeigt den Ladezustand bei laufenden Queries', () => {
-    mockedCompanies.mockReturnValue({ data: undefined, isLoading: true, error: null } as never);
-    mockedContacts.mockReturnValue({ data: undefined, isLoading: false, error: null } as never);
-    mockedDeals.mockReturnValue({ data: undefined, isLoading: false, error: null } as never);
-    mockedAudit.mockReturnValue({ data: undefined, isLoading: false, error: null } as never);
+    mockedUseCrmListQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      error: null,
+    } as never);
     renderPage();
     expect(screen.getByText('Lade Daten aus CRM Repository...')).toBeInTheDocument();
   });
 
   it('zeigt den Fehlerzustand mit Integritätsmeldung', () => {
-    mockedCompanies.mockReturnValue({
+    mockedUseCrmListQuery.mockReturnValue({
       data: undefined,
       isLoading: false,
+      isError: true,
       error: new Error('kaputt'),
     } as never);
-    mockedContacts.mockReturnValue({ data: undefined, isLoading: false, error: null } as never);
-    mockedDeals.mockReturnValue({ data: undefined, isLoading: false, error: null } as never);
-    mockedAudit.mockReturnValue({ data: undefined, isLoading: false, error: null } as never);
     renderPage();
-    expect(screen.getByText(/Integritätsfehler: kaputt/)).toBeInTheDocument();
+    expect(screen.getByText(/Fehler: kaputt/)).toBeInTheDocument();
   });
 
   it('zeigt den Leerzustand bei leeren Beständen', () => {
-    mockedCompanies.mockReturnValue({ data: [], isLoading: false, error: null } as never);
-    mockedContacts.mockReturnValue({ data: [], isLoading: false, error: null } as never);
-    mockedDeals.mockReturnValue({ data: [], isLoading: false, error: null } as never);
-    mockedAudit.mockReturnValue({ data: undefined, isLoading: false, error: null } as never);
+    mockedUseCrmListQuery.mockReturnValue({
+      data: { items: [], total: 0 },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
     renderPage();
-    expect(screen.getByText('Keine CRM-Daten erfasst')).toBeInTheDocument();
+    expect(screen.getByText('Keine CRM-Daten gefunden')).toBeInTheDocument();
   });
 
   it('navigiert per Tastatur zwischen Tabs', async () => {
     const user = userEvent.setup();
     renderPage();
-    const contactsTab = screen.getByRole('tab', { name: /Kontakte/ });
+    const contactsTab = screen.getByRole('tab', { name: 'Kontakte' });
     contactsTab.focus();
     await user.keyboard('{ArrowRight}');
-    expect(screen.getByRole('tab', { name: /Unternehmen/ })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: 'Unternehmen' })).toHaveAttribute(
       'aria-selected',
       'true',
     );

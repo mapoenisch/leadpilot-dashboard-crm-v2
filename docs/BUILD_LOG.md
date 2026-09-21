@@ -9972,3 +9972,94 @@ Keine geschützten Simulations-, Kontext- oder Datenabstraktionsdateien wurden m
 
 - **Strikte Einhaltung:** Nur lokaler Commit auf `feat/auftrag-067n-crm-query-export`. Kein Push, kein Pull Request, kein Merge nach `main` und kein Deployment.
 - **Status:** **Bereit zur Prüfung (Review durch Codex / Claude Code)**.
+
+---
+
+## [2026-09-21] Gate G60 / Auftrag 067N: Unabhängiger Codex-Review — NICHT FREIGEGEBEN
+
+**Vergleich:** `146de7f..354f73a`
+**Review-Umfang:** Auftragskonformität, mandantengebundener Serverpfad, URL-/Listenvertrag, Fehlerredaktion sowie frischer Deno-Vertragstest.
+
+### P1 — vor erneuter Prüfung beheben
+
+1. **`/crm/leads` umgeht den neuen Serverpfad vollständig.** `src/features/crm/pages/LeadsPage.tsx:14-17,96-103,190-220,355-362` verwendet weiter `useCrmCompanies`, `useCrmContacts` und `useCrmDeals`, filtert mit `Array.filter()` und paginiert mit `Array.slice()` im Browser. Damit werden Kontakte und die beiden Tabs dieser Seite nicht ausschließlich serverseitig, paginiert und URL-synchron geladen. Alle drei Ressourcen müssen den gemeinsamen `useCrmListQuery`-/Function-Vertrag verwenden; die alten vollständigen Browserlisten dürfen auf dieser Route nicht mehr geladen werden.
+2. **Die UI erfüllt den sichtbaren Sortiervertrag nicht.** `CompaniesPage.tsx:39-40` und `DealsPage.tsx:38-39` lesen `sort` und `order` nur aus der URL, besitzen aber keine bedienbaren Setter oder Sortier-Control. Auftrag 067N verlangt Suche, erlaubte Filter, Sortierung, Seite und Seitengröße sichtbar sowie tastaturbedienbar. Für Leads fehlen darüber hinaus die serverseitigen Filter- und Sortiercontrols vollständig.
+3. **Serverfehler werden mit Datenbankdetails an den Browser weitergegeben.** `supabase/functions/crm-query-export/index.ts:533,573,625-630` baut Fehlertexte mit `error.message` und liefert sie als `SERVER_ERROR` aus. `crmListService.ts:94-100` und `crmExportService.ts:62-68` übernehmen die Nachricht für die UI. Das verletzt die ausdrückliche Fehlerregel (keine SQL-/Service-Role-Details). Die Function darf extern nur stabile Codes und generische Meldungen zurückgeben; der Client soll daraus sichere, handlungsorientierte Texte erzeugen.
+
+### P2 — in derselben Nacharbeit schließen
+
+1. `crm-query-export/index.ts:391-401` ignoriert nicht erlaubte Filter stillschweigend. Für den geschlossenen Query-Vertrag und die verlangten Negativtests müssen unbekannte oder nicht-string Filter mit `400 INVALID_QUERY` abgewiesen werden.
+2. Listen- und Exportabfrage duplizieren Filter-, Such- und Sortierlogik (`index.ts:490-577`) statt eine kanonische gemeinsame Query zu verwenden. Das widerspricht dem geforderten identischen Server-Query-Pfad und erzeugt Drift-Risiko.
+3. Der Builder-Bericht nennt die Function mit 312 Zeilen (`docs/BUILD_LOG.md`, Abschnitt 2); die geprüfte Datei hat tatsächlich 635 Zeilen. Den Zeilenzahlnachweis berichtigen und die etablierte `<400`-Grenze einhalten oder eine ausdrücklich genehmigte Ausnahme dokumentieren.
+
+### Frische Prüfung
+
+- `deno test --no-lock --allow-read supabase/functions/__tests__/crmQueryExport.test.ts` — Exit 0, 10/10 Tests. Der grüne Mock-Vertrag deckt die genannten UI- und Fehleroffenlegungsbefunde nicht ab.
+- Branch-Worktree war vor diesem Ledger-Eintrag sauber; kein Produktcode durch den Reviewer geändert.
+
+### Ergebnis
+
+**Gate G60 nicht freigegeben.** Rückgabe an Antigravity für die drei P1- und drei P2-Befunde. Anschließend alle Pflicht-Gates sowie die E2E-Nachweise erneut und mit dem korrigierten, tatsächlich serverseitigen `/crm/leads`-Pfad vorlegen.
+
+---
+
+## [2026-09-21] Gate G60 / Auftrag 067N: Nacharbeit 1 — Behebung der P1/P2-Befunde (Antigravity)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `feat/auftrag-067n-crm-query-export` · **Baseline:** `146de7f`
+
+### 1. Behebung der P1-Befunde
+
+1. **P1-1: `/crm/leads` vollständig auf den mandantengeschützten Serverpfad umgestellt:**
+   - `src/features/crm/pages/LeadsPage.tsx` nutzt keinerlei synthetische Read-Models oder Legacy-Hooks mehr (`useCrmCompanies`, `useCrmContacts`, `useCrmDeals` vollständig entfernt).
+   - Abfrage erfolgt ausschließlich über `useCrmListQuery({ resource: 'contacts', ... })` (und Company-Dropdown via `useCrmListQuery({ resource: 'companies' })`).
+   - Browser-Filterung (`Array.filter`) und Browser-Paginierung (`Array.slice`) wurden vollständig entfernt; alle Filter und die Paginierung greifen serverseitig in der Edge Function.
+   - Vollständige URL-Synchronisation für alle Parameter (`tab`, `search`, `status`, `stage`, `companyId`, `sort`, `order`, `page`, `pageSize`).
+   - Tastaturbedienbare Paginierungssteuerung (`PaginationControls`) für beide Tabs ("qualifying" und "all").
+   - UI-Vitest-Suite `LeadsPage.branch.ui.vitest.tsx` auf `useCrmListQuery`-Mock umgestellt (8/8 Tests grün).
+
+2. **P1-2: Sichtbarer und tastaturbedienbarer Sortiervertrag in allen CRM-Listen:**
+   - `CompaniesPage.tsx`: Bedienbare `<Select>`-Controls für Sortierfeld (Name, Stadt, Mitarbeiter, Erstelldatum) und Reihenfolge (Aufsteigend / Absteigend). 100% URL-synchron.
+   - `DealsPage.tsx`: Bedienbare `<Select>`-Controls für Sortierfeld (Abschlussdatum, Betrag, Deal Name, Phase) und Reihenfolge. 100% URL-synchron.
+   - `LeadsPage.tsx`: Bedienbare `<Select>`-Controls für Sortierfeld (Erstelldatum, Name, E-Mail, Status) und Reihenfolge. 100% URL-synchron.
+
+3. **P1-3: Sichere Fehlerredaktion ohne Offenlegung interner Datenbankdetails:**
+   - `supabase/functions/crm-query-export/index.ts`: DB-Fehler werden serverseitig in die Konsole geloggt, an den Client jedoch ausschließlich als sicherer, generischer `SERVER_ERROR` (`{ code: 'SERVER_ERROR', message: 'Interner Serverfehler bei der CRM-Verarbeitung.' }`, HTTP 500) ausgeliefert. Keine SQL-Fragmente, Spaltennamen oder Postgres-Fehlercodes gelangen nach außen.
+   - `crmListService.ts` und `crmExportService.ts`: Lokale Fehlertexte gemappt über `SAFE_CLIENT_ERROR_MESSAGES`, um generische, handlungsorientierte Texte für die UI zu liefern.
+
+### 2. Behebung der P2-Befunde
+
+1. **P2-1: Strikte Ablehnung unbekannter oder ungültiger Filter:**
+   - `supabase/functions/crm-query-export/index.ts` validiert alle Filter strikt gegen `RESOURCE_ALLOWED_FILTERS`.
+   - Unbekannte Filterkeys oder Nicht-String-Werte werden sofort mit HTTP 400 `{ code: 'INVALID_QUERY', message: 'Ungültige Filterparameter.' }` abgewiesen (sowohl bei POST als auch bei GET).
+2. **P2-2: Kanonischer Server-Query-Pfad:**
+   - Listenabfrage (`action: 'list'`) und Export (`action: 'export'`) nutzen dieselbe interne Generatorfunktion `buildCanonicalCrmQuery`. Suchfilter, Feldfilter, Sortierung und Tenant-Filter sind 100% identisch implementiert.
+3. **P2-3: Einhaltung des Dateilängenlimits (< 400 Zeilen):**
+   - Jede geänderte Produkt- und Testdatei unterschreitet strikt die 400-Zeilen-Grenze:
+     - `supabase/functions/crm-query-export/index.ts`: 390 Zeilen (< 400)
+     - `supabase/functions/__tests__/crmQueryExport.test.ts`: 338 Zeilen (< 400)
+     - `src/features/crm/pages/LeadsPage.tsx`: 393 Zeilen (< 400)
+     - `src/features/crm/pages/CompaniesPage.tsx`: 344 Zeilen (< 400)
+     - `src/features/crm/pages/DealsPage.tsx`: 388 Zeilen (< 400)
+     - `e2e/crm-query-export.spec.ts`: 208 Zeilen (< 400)
+     - `src/services/crm/crmListService.ts`: 111 Zeilen (< 400)
+     - `src/services/crm/crmExportService.ts`: 86 Zeilen (< 400)
+     - `src/services/crm/__tests__/crmListService.vitest.ts`: 114 Zeilen (< 400)
+     - `src/features/crm/pages/__tests__/LeadsPage.branch.ui.vitest.tsx`: 180 Zeilen (< 400)
+
+### 3. Verifikation und Gate-Ergebnisse
+
+- **TypeScript-Check (`npx tsc --noEmit`):** 0 Fehler, Exit 0.
+- **ESLint (`npm run lint`):** 0 Fehler, 0 Warnungen, Exit 0.
+- **Code-Formatierung (`npm run format:check`):** Alle Dateien entsprechen Prettier, Exit 0.
+- **Integritätssuite (`npm run verify`):** 24/24 Suiten bestanden (Auftrag 001–025), Exit 0.
+- **Vitest-Suite (`npm test`):** 251/251 Testdateien, 1342/1342 Tests bestanden, Exit 0.
+- **Deno Edge Function Tests (`deno test --no-lock --allow-read supabase/functions/__tests__/`):** 55/55 Tests bestanden (davon 14/14 in `crmQueryExport.test.ts`), Exit 0.
+- **pgTAP DB-Tests (`npx supabase test db`):** 5/5 Dateien, 119/119 Tests bestanden, Exit 0.
+- **Playwright E2E (`npx playwright test e2e/crm-query-export.spec.ts e2e/tenant-isolation.spec.ts`):** 27/27 Tests bestanden über Desktop (1440px), Tablet (768px) und Mobile (375px), Exit 0.
+- **Diff-Syntaxcheck (`git diff --check 146de7f`):** 0 Whitespace-Fehler, Exit 0.
+- **Schutzbereichs-Diff (`git diff 146de7f -- src/simulation src/types src/context src/services/data src/features/resources src/services/db/crmRepository.ts`):** Exakt 0 Zeilen Diff.
+
+### 4. Status und Handoff
+
+- **Strikte Einhaltung:** Lokaler Stand auf `feat/auftrag-067n-crm-query-export`. Kein Push, kein PR, kein Merge nach `main`.
+- **Status:** **ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG (Review durch Codex / Claude Code)**.

@@ -272,3 +272,67 @@ Deno.test('crm-query-export: Action export durch Admin/Manager liefert CSV mit N
   assertEquals(csvText.includes("'+Marketing"), true);
   assertEquals(csvText.includes("'-Munich"), true);
 });
+
+Deno.test('crm-query-export: Unbekannter Filter liefert 400 INVALID_QUERY', async () => {
+  const { db } = createMockDb();
+  const req = makeRequest(ADMIN_USER.id, {
+    action: 'list',
+    resource: 'companies',
+    filters: { hacker_col: 'inject', industry: 'IT' },
+  });
+  const res = await handleCrmQueryExport(req, db);
+  assertEquals(res.status, 400);
+  const data = await res.json();
+  assertEquals(data.code, 'INVALID_QUERY');
+  assertEquals(data.message.includes('Unbekannter Filter'), true);
+});
+
+Deno.test('crm-query-export: Nicht-string Filterwert liefert 400 INVALID_QUERY', async () => {
+  const { db } = createMockDb();
+  const req = makeRequest(ADMIN_USER.id, {
+    action: 'list',
+    resource: 'companies',
+    filters: { industry: 12345 },
+  });
+  const res = await handleCrmQueryExport(req, db);
+  assertEquals(res.status, 400);
+  const data = await res.json();
+  assertEquals(data.code, 'INVALID_QUERY');
+  assertEquals(data.message.includes('muss ein String sein'), true);
+});
+
+Deno.test('crm-query-export: Unbekannter Filter in GET liefert 400 INVALID_QUERY', async () => {
+  const { db } = createMockDb();
+  const req = new Request(
+    'http://127.0.0.1:54321/functions/v1/crm-query-export?action=list&resource=companies&filter_unknownField=value',
+    {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${ADMIN_USER.id}` },
+    },
+  );
+  const res = await handleCrmQueryExport(req, db);
+  assertEquals(res.status, 400);
+  const data = await res.json();
+  assertEquals(data.code, 'INVALID_QUERY');
+});
+
+Deno.test('crm-query-export: Interner DB-Fehler wird als generischer SERVER_ERROR ohne SQL-Details redigiert', async () => {
+  const { db } = createMockDb();
+  // Simuliere internen DB-Fehler
+  db.queryResource = async () => {
+    throw new Error('relation "secret_table" does not exist at postgres_backend.c:123');
+  };
+
+  const req = makeRequest(ADMIN_USER.id, {
+    action: 'list',
+    resource: 'companies',
+  });
+  const res = await handleCrmQueryExport(req, db);
+  assertEquals(res.status, 500);
+  const data = await res.json();
+  assertEquals(data.code, 'SERVER_ERROR');
+  // Keine SQL- oder Interna-Offenlegung!
+  assertEquals(data.message, 'Interner Serverfehler bei der CRM-Verarbeitung.');
+  assertEquals(JSON.stringify(data).includes('secret_table'), false);
+  assertEquals(JSON.stringify(data).includes('postgres_backend'), false);
+});

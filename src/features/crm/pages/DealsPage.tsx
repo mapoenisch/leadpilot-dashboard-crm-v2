@@ -17,13 +17,25 @@ import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
 
 const BASE_STAGE_OPTIONS: SelectOption[] = [
   { value: 'ALL', label: 'Alle Stages' },
-  { value: 'Lead', label: 'Lead' },
-  { value: 'Qualifiziert', label: 'Qualifiziert' },
-  { value: 'Präsentation', label: 'Präsentation' },
-  { value: 'Angebot', label: 'Angebot' },
+  { value: 'Lead eingegangen', label: 'Lead eingegangen' },
+  { value: 'Erstgespräch geführt', label: 'Erstgespräch geführt' },
+  { value: 'Bedarfsanalyse', label: 'Bedarfsanalyse' },
+  { value: 'Angebot erstellt', label: 'Angebot erstellt' },
   { value: 'Verhandlung', label: 'Verhandlung' },
-  { value: 'Gewonnen', label: 'Gewonnen' },
-  { value: 'Verloren', label: 'Verloren' },
+  { value: 'Deal gewonnen', label: 'Deal gewonnen' },
+  { value: 'Deal verloren', label: 'Deal verloren' },
+];
+
+const DEAL_SORT_OPTIONS: SelectOption[] = [
+  { value: 'close_date', label: 'Abschlussdatum' },
+  { value: 'amount', label: 'Betrag' },
+  { value: 'deal_name', label: 'Deal Name' },
+  { value: 'stage', label: 'Stage' },
+];
+
+const ORDER_OPTIONS: SelectOption[] = [
+  { value: 'desc', label: 'Absteigend' },
+  { value: 'asc', label: 'Aufsteigend' },
 ];
 
 export function DealsPage() {
@@ -35,11 +47,21 @@ export function DealsPage() {
   const [stageFilter, setStageFilter] = useUrlSyncedState('stufe', 'ALL');
   const [pageStr, setPageStr] = useUrlSyncedState('seite', '1');
   const [pageSizeStr, setPageSizeStr] = useUrlSyncedState('proSeite', '20');
-  const [sortField] = useUrlSyncedState('sort', 'closeDate');
-  const [sortOrder] = useUrlSyncedState('order', 'desc');
+  const [sortField, setSortField] = useUrlSyncedState('sort', 'close_date');
+  const [sortOrder, setSortOrder] = useUrlSyncedState('order', 'desc');
 
   const page = Math.max(1, parseInt(pageStr, 10) || 1);
   const pageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
+
+  const handleSortChange = (val: string) => {
+    setSortField(val);
+    setPageStr('1');
+  };
+
+  const handleOrderChange = (val: string) => {
+    setSortOrder(val);
+    setPageStr('1');
+  };
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, error } = useCrmListQuery<ImportedFunnelDeal>({
@@ -250,12 +272,32 @@ export function DealsPage() {
         </div>
 
         <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
-          <div className="min-w-[180px] w-full max-w-[240px]">
+          <div className="min-w-[170px] w-full max-w-[210px]">
             <Select
               label="Stage:"
               options={stageOptions}
               value={stageFilter}
               onChange={handleStageChange}
+              sizeVariant="sm"
+              fullWidth
+            />
+          </div>
+          <div className="min-w-[170px] w-full max-w-[210px]">
+            <Select
+              label="Sortierung:"
+              options={DEAL_SORT_OPTIONS}
+              value={sortField}
+              onChange={handleSortChange}
+              sizeVariant="sm"
+              fullWidth
+            />
+          </div>
+          <div className="min-w-[150px] w-full max-w-[180px]">
+            <Select
+              label="Reihenfolge:"
+              options={ORDER_OPTIONS}
+              value={sortOrder}
+              onChange={handleOrderChange}
               sizeVariant="sm"
               fullWidth
             />

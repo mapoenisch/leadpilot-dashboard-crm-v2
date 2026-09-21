@@ -106,7 +106,9 @@ describe('crmListService', () => {
     } catch (err) {
       expect(err).toBeInstanceOf(CrmServiceError);
       expect((err as CrmServiceError).code).toBe('FORBIDDEN');
-      expect((err as CrmServiceError).message).toBe('Zugriff verweigert.');
+      expect((err as CrmServiceError).message).toBe(
+        'Zugriff verweigert. Fehlende Berechtigung für diese CRM-Aktion.',
+      );
     }
   });
 });

@@ -27,6 +27,18 @@ const BASE_INDUSTRY_OPTIONS: SelectOption[] = [
   { value: 'Logistik', label: 'Logistik' },
 ];
 
+const COMPANY_SORT_OPTIONS: SelectOption[] = [
+  { value: 'name', label: 'Unternehmensname' },
+  { value: 'city', label: 'Stadt' },
+  { value: 'employee_count', label: 'Mitarbeiter' },
+  { value: 'created_at', label: 'Erstelldatum' },
+];
+
+const ORDER_OPTIONS: SelectOption[] = [
+  { value: 'asc', label: 'Aufsteigend (A-Z)' },
+  { value: 'desc', label: 'Absteigend (Z-A)' },
+];
+
 export function CompaniesPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
@@ -36,11 +48,21 @@ export function CompaniesPage() {
   const [industryFilter, setIndustryFilter] = useUrlSyncedState('branche', 'ALL');
   const [pageStr, setPageStr] = useUrlSyncedState('seite', '1');
   const [pageSizeStr, setPageSizeStr] = useUrlSyncedState('proSeite', '20');
-  const [sortField] = useUrlSyncedState('sort', 'name');
-  const [sortOrder] = useUrlSyncedState('order', 'asc');
+  const [sortField, setSortField] = useUrlSyncedState('sort', 'name');
+  const [sortOrder, setSortOrder] = useUrlSyncedState('order', 'asc');
 
   const page = Math.max(1, parseInt(pageStr, 10) || 1);
   const pageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
+
+  const handleSortChange = (val: string) => {
+    setSortField(val);
+    setPageStr('1');
+  };
+
+  const handleOrderChange = (val: string) => {
+    setSortOrder(val);
+    setPageStr('1');
+  };
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, error } = useCrmListQuery<Company>({
@@ -222,12 +244,32 @@ export function CompaniesPage() {
         </div>
 
         <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
-          <div className="min-w-[180px] w-full max-w-[240px]">
+          <div className="min-w-[170px] w-full max-w-[210px]">
             <Select
               label="Branche:"
               options={industryOptions}
               value={industryFilter}
               onChange={handleIndustryChange}
+              sizeVariant="sm"
+              fullWidth
+            />
+          </div>
+          <div className="min-w-[170px] w-full max-w-[210px]">
+            <Select
+              label="Sortierung:"
+              options={COMPANY_SORT_OPTIONS}
+              value={sortField}
+              onChange={handleSortChange}
+              sizeVariant="sm"
+              fullWidth
+            />
+          </div>
+          <div className="min-w-[150px] w-full max-w-[180px]">
+            <Select
+              label="Reihenfolge:"
+              options={ORDER_OPTIONS}
+              value={sortOrder}
+              onChange={handleOrderChange}
               sizeVariant="sm"
               fullWidth
             />

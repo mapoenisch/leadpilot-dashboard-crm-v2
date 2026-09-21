@@ -1,32 +1,13 @@
 // G60 (Auftrag 067N): Serverseitige CRM-Abfragen und CSV-Export Edge Function
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2';
 
 export type CrmResource = 'companies' | 'contacts' | 'deals';
 export type CrmQueryAction = 'list' | 'export';
 export type MemberRole = 'admin' | 'manager' | 'viewer';
 export type MemberStatus = 'active' | 'suspended';
 
-export interface CrmUser {
-  id: string;
-  email: string;
-}
-
-export interface CrmMembership {
-  organizationId: string;
-  role: MemberRole;
-  status: MemberStatus;
-}
-
-export interface CrmQueryResourceParams {
-  resource: CrmResource;
-  organizationId: string;
-  q?: string;
-  filters?: Record<string, string>;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  page: number;
-  pageSize: number;
-}
+export type CrmUser = { id: string; email: string };
+export type CrmMembership = { organizationId: string; role: MemberRole; status: MemberStatus };
 
 export interface CrmExportResourceParams {
   resource: CrmResource;
@@ -35,6 +16,11 @@ export interface CrmExportResourceParams {
   filters?: Record<string, string>;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+}
+
+export interface CrmQueryResourceParams extends CrmExportResourceParams {
+  page: number;
+  pageSize: number;
 }
 
 export interface CrmQueryDb {
@@ -55,238 +41,133 @@ export const CORS_HEADERS = {
 export function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      'Content-Type': 'application/json',
-      ...CORS_HEADERS,
-    },
+    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
   });
 }
 
-// Whitelist-Definitionen für Spalten und Filter
-const RESOURCE_CONFIG: Record<
-  CrmResource,
-  {
-    table: string;
-    allowedSort: Record<string, string>; // mapping param -> db_column
-    defaultSort: string;
-    defaultOrder: 'asc' | 'desc';
-    allowedFilters: string[]; // db_columns
-    searchFields: string[]; // db_columns
-    csvColumns: { header: string; dbKey: string; itemKey: string }[];
-  }
-> = {
+const bad = (message: string, code = 'INVALID_QUERY', status = 400) =>
+  jsonResponse({ code, message }, status);
+
+interface ResourceCfg {
+  table: string;
+  allowedSort: string[];
+  defaultSort: string;
+  defaultOrder: 'asc' | 'desc';
+  allowedFilters: string[];
+  searchFields: string[];
+  csvColumns: [header: string, dbKey: string, itemKey: string][];
+}
+
+const parseCols = (s: string) => s.split(',').map((p) => p.split(':') as [string, string, string]);
+const splitS = (s: string) => s.split(',');
+
+const RESOURCE_CONFIG: Record<CrmResource, ResourceCfg> = {
   companies: {
     table: 'companies',
-    allowedSort: {
-      name: 'name',
-      domain: 'domain',
-      industry: 'industry',
-      city: 'city',
-      postalCode: 'postal_code',
-      postal_code: 'postal_code',
-      employeeCount: 'employee_count',
-      employee_count: 'employee_count',
-      createdAt: 'created_at',
-      created_at: 'created_at',
-      id: 'id',
-    },
+    allowedSort: splitS('name,domain,industry,city,postal_code,employee_count,created_at,id'),
     defaultSort: 'name',
     defaultOrder: 'asc',
-    allowedFilters: ['industry', 'city'],
-    searchFields: ['name', 'domain', 'city'],
-    csvColumns: [
-      { header: 'ID', dbKey: 'id', itemKey: 'id' },
-      { header: 'Unternehmensname', dbKey: 'name', itemKey: 'name' },
-      { header: 'Domain', dbKey: 'domain', itemKey: 'domain' },
-      { header: 'Branche', dbKey: 'industry', itemKey: 'industry' },
-      { header: 'Stadt', dbKey: 'city', itemKey: 'city' },
-      { header: 'PLZ', dbKey: 'postal_code', itemKey: 'postalCode' },
-      { header: 'Mitarbeiter', dbKey: 'employee_count', itemKey: 'employeeCount' },
-    ],
+    allowedFilters: splitS('industry,city'),
+    searchFields: splitS('name,domain,city'),
+    csvColumns: parseCols(
+      'ID:id:id,Unternehmensname:name:name,Domain:domain:domain,Branche:industry:industry,Stadt:city:city,PLZ:postal_code:postalCode,Mitarbeiter:employee_count:employeeCount',
+    ),
   },
   contacts: {
     table: 'contacts',
-    allowedSort: {
-      lastName: 'last_name',
-      last_name: 'last_name',
-      firstName: 'first_name',
-      first_name: 'first_name',
-      email: 'email',
-      jobTitle: 'job_title',
-      job_title: 'job_title',
-      companyId: 'company_id',
-      company_id: 'company_id',
-      createdAt: 'created_at',
-      created_at: 'created_at',
-      id: 'id',
-    },
+    allowedSort: splitS('first_name,last_name,email,job_title,created_at,id'),
     defaultSort: 'last_name',
     defaultOrder: 'asc',
-    allowedFilters: ['company_id', 'job_title'],
-    searchFields: ['first_name', 'last_name', 'email', 'job_title'],
-    csvColumns: [
-      { header: 'ID', dbKey: 'id', itemKey: 'id' },
-      { header: 'Vorname', dbKey: 'first_name', itemKey: 'firstName' },
-      { header: 'Nachname', dbKey: 'last_name', itemKey: 'lastName' },
-      { header: 'E-Mail', dbKey: 'email', itemKey: 'email' },
-      { header: 'Jobtitel', dbKey: 'job_title', itemKey: 'jobTitle' },
-      { header: 'Company-ID', dbKey: 'company_id', itemKey: 'companyId' },
-    ],
+    allowedFilters: splitS('job_title,company_id'),
+    searchFields: splitS('first_name,last_name,email,job_title'),
+    csvColumns: parseCols(
+      'ID:id:id,Company ID:company_id:companyId,E-Mail:email:email,Vorname:first_name:firstName,Nachname:last_name:lastName,Jobbezeichnung:job_title:jobTitle',
+    ),
   },
   deals: {
-    table: 'imported_funnel_deals',
-    allowedSort: {
-      dealName: 'deal_name',
-      deal_name: 'deal_name',
-      stage: 'stage',
-      amount: 'amount',
-      closeDate: 'close_date',
-      close_date: 'close_date',
-      pipeline: 'pipeline',
-      createdAt: 'created_at',
-      created_at: 'created_at',
-      id: 'id',
-    },
+    table: 'deals',
+    allowedSort: splitS('deal_name,stage,amount,close_date,created_at,id'),
     defaultSort: 'close_date',
     defaultOrder: 'desc',
-    allowedFilters: ['stage', 'pipeline'],
-    searchFields: ['deal_name', 'stage', 'pipeline'],
-    csvColumns: [
-      { header: 'ID', dbKey: 'id', itemKey: 'id' },
-      { header: 'Deal-Name', dbKey: 'deal_name', itemKey: 'dealName' },
-      { header: 'Stage', dbKey: 'stage', itemKey: 'stage' },
-      { header: 'Betrag (€)', dbKey: 'amount', itemKey: 'amount' },
-      { header: 'Abschlussdatum', dbKey: 'close_date', itemKey: 'closeDate' },
-      { header: 'Pipeline', dbKey: 'pipeline', itemKey: 'pipeline' },
-    ],
+    allowedFilters: splitS('stage,pipeline'),
+    searchFields: splitS('deal_name,stage,pipeline'),
+    csvColumns: parseCols(
+      'ID:id:id,Deal Name:deal_name:dealName,Stage:stage:stage,Betrag:amount:amount,Abschlussdatum:close_date:closeDate,Pipeline:pipeline:pipeline',
+    ),
   },
 };
 
-// Formel-Injection Neutralisierung
-export function sanitizeCsvCell(value: unknown): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-  let str = String(value);
-  const trimmed = str.trimStart();
-  // Wenn nach führenden Leerzeichen mit =, +, -, @ begonnen wird: führendes Apostroph voranstellen
-  if (
-    trimmed.startsWith('=') ||
-    trimmed.startsWith('+') ||
-    trimmed.startsWith('-') ||
-    trimmed.startsWith('@')
-  ) {
-    str = `'${str}`;
-  }
+const FIELD_MAPPINGS: Record<CrmResource, string> = {
+  companies:
+    'name:name,domain:domain,industry:industry,city:city,postalCode:postal_code,employeeCount:employee_count',
+  contacts:
+    'companyId:company_id,email:email,firstName:first_name,lastName:last_name,jobTitle:job_title',
+  deals: 'dealName:deal_name,stage:stage,closeDate:close_date,pipeline:pipeline',
+};
 
-  // Wenn Zeichen enthalten sind, die CSV-Escaping erfordern: in Anführungszeichen setzen und " verdoppeln
-  if (
-    str.includes('"') ||
-    str.includes(',') ||
-    str.includes('\n') ||
-    str.includes('\r') ||
-    str.includes(';')
-  ) {
+export function sanitizeCsvCell(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  let str = String(value);
+  if (/^[=+\-@\t\r]/.test(str)) str = "'" + str;
+  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
 }
 
-export function buildCsv(
-  resource: CrmResource,
-  items: Record<string, unknown>[],
-): string {
-  const config = RESOURCE_CONFIG[resource];
-  const headers = config.csvColumns.map((col) => sanitizeCsvCell(col.header)).join(',');
-  const rows = items.map((item) => {
-    return config.csvColumns
-      .map((col) => {
-        // Wert entweder über itemKey (camelCase) oder dbKey (snake_case)
-        const val = item[col.itemKey] !== undefined ? item[col.itemKey] : item[col.dbKey];
-        return sanitizeCsvCell(val);
-      })
-      .join(',');
-  });
-
-  // UTF-8 BOM voranstellen
+export function buildCsv(resource: CrmResource, items: Record<string, unknown>[]): string {
+  const { csvColumns } = RESOURCE_CONFIG[resource];
+  const headers = csvColumns.map(([h]) => sanitizeCsvCell(h)).join(',');
+  const rows = items.map((item) =>
+    csvColumns.map(([, dbKey, itemKey]) => sanitizeCsvCell(item[itemKey] ?? item[dbKey])).join(','),
+  );
   return '\uFEFF' + [headers, ...rows].join('\r\n');
 }
 
-export async function handleCrmQueryExport(
-  req: Request,
-  db: CrmQueryDb,
-): Promise<Response> {
-  // CORS Preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
-  }
+export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promise<Response> {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
 
-  // 1. Authentifizierung: Bearer-Token extrahieren
-  const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return jsonResponse(
-      { code: 'UNAUTHORIZED', message: 'Fehlender oder ungültiger Authorization-Header.' },
-      401,
-    );
-  }
-
-  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-  if (!token) {
-    return jsonResponse(
-      { code: 'UNAUTHORIZED', message: 'Bearer-Token ist leer.' },
-      401,
-    );
-  }
+  // 1. Authentifizierung
+  const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  if (!token) return bad('Authentifizierung erforderlich.', 'UNAUTHORIZED', 401);
 
   const user = await db.getUserFromToken(token);
-  if (!user) {
-    return jsonResponse(
-      { code: 'UNAUTHORIZED', message: 'Ungültiger oder abgelaufener Token.' },
-      401,
-    );
-  }
+  if (!user) return bad('Ungültiger oder abgelaufener Token.', 'UNAUTHORIZED', 401);
 
-  // 2. Mitgliedschaft und Mandant verifizieren
+  // 2. Mandanten-Mitgliedschaft
   const membership = await db.getMembership(user.id);
   if (!membership || membership.status !== 'active') {
-    return jsonResponse(
-      { code: 'FORBIDDEN', message: 'Keine aktive Organisationsmitgliedschaft vorhanden.' },
-      403,
-    );
+    return bad('Keine aktive Organisationsmitgliedschaft vorhanden.', 'FORBIDDEN', 403);
   }
 
   const verifiedOrgId = membership.organizationId;
   const userRole = membership.role;
 
-  // 3. Request-Parameter parsen (POST Body oder GET SearchParams)
-  let rawAction: string | undefined;
-  let rawResource: string | undefined;
-  let rawQ: string | undefined;
-  let rawFilters: Record<string, string> | undefined;
-  let rawSortBy: string | undefined;
-  let rawSortOrder: string | undefined;
-  let rawPage: unknown;
-  let rawPageSize: unknown;
+  // 3. Request-Parameter
+  let rawAction: string | undefined, rawResource: string | undefined, rawQ: string | undefined;
+  let rawFilters: Record<string, unknown> | undefined,
+    rawSortBy: string | undefined,
+    rawSortOrder: string | undefined;
+  let rawPage: unknown, rawPageSize: unknown;
 
   if (req.method === 'POST') {
     try {
-      const body = (await req.json()) as Record<string, unknown>;
-      rawAction = typeof body.action === 'string' ? body.action : undefined;
-      rawResource = typeof body.resource === 'string' ? body.resource : undefined;
-      rawQ = typeof body.q === 'string' ? body.q : undefined;
-      rawFilters =
-        typeof body.filters === 'object' && body.filters !== null
-          ? (body.filters as Record<string, string>)
-          : undefined;
-      rawSortBy = typeof body.sortBy === 'string' ? body.sortBy : undefined;
-      rawSortOrder = typeof body.sortOrder === 'string' ? body.sortOrder : undefined;
-      rawPage = body.page;
-      rawPageSize = body.pageSize;
+      const b = (await req.json()) as Record<string, unknown>;
+      rawAction = typeof b.action === 'string' ? b.action : undefined;
+      rawResource = typeof b.resource === 'string' ? b.resource : undefined;
+      rawQ = typeof b.q === 'string' ? b.q : undefined;
+      if (b.filters !== undefined && b.filters !== null) {
+        if (typeof b.filters !== 'object' || Array.isArray(b.filters))
+          return bad('Ungültiger Filter-Parameter.');
+        rawFilters = b.filters as Record<string, unknown>;
+      }
+      rawSortBy = typeof b.sortBy === 'string' ? b.sortBy : undefined;
+      rawSortOrder = typeof b.sortOrder === 'string' ? b.sortOrder : undefined;
+      rawPage = b.page;
+      rawPageSize = b.pageSize;
     } catch {
-      return jsonResponse(
-        { code: 'INVALID_QUERY', message: 'Ungültiger JSON-Request-Body.' },
-        400,
-      );
+      return bad('Ungültiger JSON-Request-Body.');
     }
   } else if (req.method === 'GET') {
     const url = new URL(req.url);
@@ -295,85 +176,49 @@ export async function handleCrmQueryExport(
     rawQ = url.searchParams.get('q') || undefined;
     rawSortBy = url.searchParams.get('sortBy') || undefined;
     rawSortOrder = url.searchParams.get('sortOrder') || undefined;
-    const pageStr = url.searchParams.get('page');
-    rawPage = pageStr ? Number(pageStr) : undefined;
-    const pageSizeStr = url.searchParams.get('pageSize');
-    rawPageSize = pageSizeStr ? Number(pageSizeStr) : undefined;
-
-    // Filter-Parameter (Präfix filter_)
-    const filters: Record<string, string> = {};
-    for (const [k, v] of url.searchParams.entries()) {
-      if (k.startsWith('filter_')) {
-        filters[k.replace('filter_', '')] = v;
-      }
-    }
-    if (Object.keys(filters).length > 0) {
-      rawFilters = filters;
-    }
+    rawPage = url.searchParams.get('page') ? Number(url.searchParams.get('page')) : undefined;
+    rawPageSize = url.searchParams.get('pageSize')
+      ? Number(url.searchParams.get('pageSize'))
+      : undefined;
+    const f: Record<string, unknown> = {};
+    for (const [k, v] of url.searchParams.entries())
+      if (k.startsWith('filter_')) f[k.replace('filter_', '')] = v;
+    if (Object.keys(f).length > 0) rawFilters = f;
   } else {
-    return jsonResponse(
-      { code: 'INVALID_QUERY', message: 'Nur GET und POST Anfragen erlaubt.' },
-      400,
-    );
+    return bad('Nur GET und POST Anfragen erlaubt.');
   }
 
-  // 4. Action validieren
+  // 4. Action & Rolle
   const action: CrmQueryAction = rawAction === 'export' ? 'export' : 'list';
-  if (rawAction && rawAction !== 'list' && rawAction !== 'export') {
-    return jsonResponse(
-      { code: 'INVALID_QUERY', message: 'Ungültige Aktion. Erlaubt sind list und export.' },
-      400,
-    );
-  }
+  if (rawAction && rawAction !== 'list' && rawAction !== 'export')
+    return bad('Ungültige Aktion. Erlaubt sind list und export.');
+  if (action === 'export' && userRole === 'viewer')
+    return bad('Export für Rolle viewer nicht gestattet.', 'FORBIDDEN', 403);
 
-  // 5. Rolle prüfen für export
-  if (action === 'export' && userRole === 'viewer') {
-    return jsonResponse(
-      { code: 'FORBIDDEN', message: 'Export für Rolle viewer nicht gestattet.' },
-      403,
-    );
-  }
-
-  // 6. Ressource validieren
-  if (!rawResource || !['companies', 'contacts', 'deals'].includes(rawResource)) {
-    return jsonResponse(
-      { code: 'INVALID_QUERY', message: 'Unbekannte Ressource. Erlaubt sind companies, contacts, deals.' },
-      400,
-    );
-  }
+  // 5. Ressource
+  if (!rawResource || !['companies', 'contacts', 'deals'].includes(rawResource))
+    return bad('Unbekannte Ressource.');
   const resource = rawResource as CrmResource;
   const config = RESOURCE_CONFIG[resource];
 
-  // 7. Paginierung validieren
+  // 6. Paginierung
   const page = rawPage === undefined || rawPage === null ? 1 : Number(rawPage);
-  const pageSize =
-    rawPageSize === undefined || rawPageSize === null ? 20 : Number(rawPageSize);
+  const pageSize = rawPageSize === undefined || rawPageSize === null ? 20 : Number(rawPageSize);
+  if (!Number.isInteger(page) || page < 1) return bad('Ungültiger page-Parameter.');
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100)
+    return bad('Ungültiger pageSize-Parameter.');
 
-  if (!Number.isInteger(page) || page < 1) {
-    return jsonResponse(
-      { code: 'INVALID_QUERY', message: 'Ungültiger page-Parameter. Muss eine Ganzzahl >= 1 sein.' },
-      400,
-    );
-  }
-
-  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
-    return jsonResponse(
-      { code: 'INVALID_QUERY', message: 'Ungültiger pageSize-Parameter. Muss zwischen 1 und 100 liegen.' },
-      400,
-    );
-  }
-
-  // 8. Sortierung validieren (Whitelist)
+  // 7. Sortierung
   let sortBy = config.defaultSort;
   let sortOrder: 'asc' | 'desc' = config.defaultOrder;
 
-  if (rawSortBy && config.allowedSort[rawSortBy]) {
-    sortBy = config.allowedSort[rawSortBy];
-  } else if (rawSortBy) {
-    return jsonResponse(
-      { code: 'INVALID_QUERY', message: `Ungültiges Sortierfeld: ${rawSortBy}` },
-      400,
-    );
+  if (rawSortBy) {
+    const norm = rawSortBy.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`);
+    if (config.allowedSort.includes(norm)) {
+      sortBy = norm;
+    } else {
+      return bad(`Ungültiges Sortierfeld: ${rawSortBy}`);
+    }
   }
 
   if (rawSortOrder) {
@@ -381,86 +226,133 @@ export async function handleCrmQueryExport(
     if (lower === 'asc' || lower === 'desc') {
       sortOrder = lower;
     } else {
-      return jsonResponse(
-        { code: 'INVALID_QUERY', message: 'Ungültige Sortierreihenfolge. Erlaubt sind asc und desc.' },
-        400,
-      );
+      return bad('Ungültige Sortierreihenfolge.');
     }
   }
 
-  // 9. Filter bereinigen (nur Whitelist-Felder)
+  // 8. Filter (P2-1: Unbekannte oder Nicht-String Filter mit 400 ablehnen)
   const cleanFilters: Record<string, string> = {};
   if (rawFilters) {
     for (const [k, v] of Object.entries(rawFilters)) {
-      // camelCase zu snake_case normalisieren
-      const normalizedKey = k.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-      if (config.allowedFilters.includes(normalizedKey) && v && v !== 'ALL') {
-        cleanFilters[normalizedKey] = String(v).trim();
-      }
+      const normKey = k.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`);
+      if (!config.allowedFilters.includes(normKey)) return bad(`Unbekannter Filter: ${k}`);
+      if (typeof v !== 'string') return bad(`Filterwert für ${k} muss ein String sein.`);
+      const trimmed = v.trim();
+      if (trimmed !== '' && trimmed !== 'ALL') cleanFilters[normKey] = trimmed;
     }
   }
 
-  // 10. Suchbegriff säubern
   const cleanQ = rawQ ? String(rawQ).trim().slice(0, 200) : undefined;
 
-  // 11. Ausführung (list oder export)
-  if (action === 'export') {
-    const items = await db.exportResource({
-      resource,
-      organizationId: verifiedOrgId,
-      q: cleanQ,
-      filters: cleanFilters,
-      sortBy,
-      sortOrder,
-    });
-
-    const csvContent = buildCsv(resource, items);
-    return new Response(csvContent, {
-      status: 200,
-      headers: {
-        ...CORS_HEADERS,
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="${resource}-export.csv"`,
-      },
-    });
-  }
-
-  // action === 'list'
-  const result = await db.queryResource({
+  const qParams: CrmExportResourceParams = {
     resource,
     organizationId: verifiedOrgId,
     q: cleanQ,
     filters: cleanFilters,
     sortBy,
     sortOrder,
-    page,
-    pageSize,
-  });
+  };
 
-  return jsonResponse({
-    items: result.items,
-    total: result.total,
-    page,
-    pageSize,
-    resource,
-  });
+  // 9. DB-Ausführung (P1-3: Sichere Fehlerbehandlung)
+  try {
+    if (action === 'export') {
+      const items = await db.exportResource(qParams);
+      return new Response(buildCsv(resource, items), {
+        status: 200,
+        headers: {
+          ...CORS_HEADERS,
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${resource}-export.csv"`,
+        },
+      });
+    }
+
+    const result = await db.queryResource({ ...qParams, page, pageSize });
+    return jsonResponse({ items: result.items, total: result.total, page, pageSize, resource });
+  } catch (err) {
+    console.error('CRM-Datenbankfehler:', err);
+    return jsonResponse(
+      { code: 'SERVER_ERROR', message: 'Interner Serverfehler bei der CRM-Verarbeitung.' },
+      500,
+    );
+  }
 }
 
-// Live Supabase DB Implementierung
-export function createSupabaseCrmDb(): CrmQueryDb {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY fehlt.');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupaClient = SupabaseClient<any, any, any>;
+
+// P2-2: Kanonischer Query-Pfad für List- und Export-Abfragen
+function buildCanonicalCrmQuery(
+  supabase: SupaClient,
+  params: CrmExportResourceParams,
+  options?: { count?: 'exact' },
+) {
+  const config = RESOURCE_CONFIG[params.resource];
+  let query = supabase
+    .from(config.table)
+    .select('*', options?.count ? { count: options.count } : undefined)
+    .eq('organization_id', params.organizationId);
+
+  if (params.filters) {
+    for (const [col, val] of Object.entries(params.filters)) query = query.eq(col, val);
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey);
+  if (params.q) {
+    const sanitized = params.q.replace(/[%_,()]/g, '');
+    if (sanitized)
+      query = query.or(config.searchFields.map((f) => `${f}.ilike.%${sanitized}%`).join(','));
+  }
+
+  const sortCol = params.sortBy || config.defaultSort;
+  query = query.order(sortCol, { ascending: (params.sortOrder || config.defaultOrder) === 'asc' });
+  if (sortCol !== 'id') query = query.order('id', { ascending: true });
+  return query;
+}
+
+function mapRowToFrontend(res: CrmResource, r: Record<string, unknown>): Record<string, unknown> {
+  const o: Record<string, unknown> = { id: r.id, createdAt: r.created_at };
+  if (res === 'deals') o.amount = r.amount !== null ? Number(r.amount) : 0;
+  for (const p of FIELD_MAPPINGS[res].split(',')) {
+    const [to, from] = p.split(':');
+    o[to] = r[from];
+  }
+  return o;
+}
+
+async function execCrmQuery(
+  supabase: SupaClient,
+  params: CrmQueryResourceParams | CrmExportResourceParams,
+  isExport = false,
+) {
+  let query = buildCanonicalCrmQuery(supabase, params, isExport ? undefined : { count: 'exact' });
+  if (!isExport && 'page' in params && 'pageSize' in params) {
+    const from = (params.page - 1) * params.pageSize;
+    query = query.range(from, from + params.pageSize - 1);
+  }
+  const { data, error, count } = await query;
+  if (error) {
+    console.error('CRM DB Error:', error);
+    throw new Error('Interner Fehler bei der CRM-Abfrage.');
+  }
+  const items = (data || []).map((row: Record<string, unknown>) =>
+    mapRowToFrontend(params.resource, row),
+  );
+  return { items, total: count ?? 0 };
+}
+
+// Live Supabase DB Implementierung mit kanonischem Query-Pfad
+export function createSupabaseCrmDb(): CrmQueryDb {
+  const [url, key] = [
+    Deno.env.get('SUPABASE_URL') || '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '',
+  ];
+  if (!url || !key) throw new Error('SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY fehlt.');
+  const supabase = createClient(url, key);
 
   return {
     async getUserFromToken(token: string): Promise<CrmUser | null> {
       const { data, error } = await supabase.auth.getUser(token);
-      if (error || !data.user) return null;
-      return { id: data.user.id, email: data.user.email ?? '' };
+      return error || !data.user ? null : { id: data.user.id, email: data.user.email ?? '' };
     },
 
     async getMembership(userId: string): Promise<CrmMembership | null> {
@@ -469,167 +361,30 @@ export function createSupabaseCrmDb(): CrmQueryDb {
         .select('organization_id, role, status, organizations!inner(status)')
         .eq('user_id', userId)
         .maybeSingle();
-
       if (error || !data) return null;
-      const orgStatus = (data as { organizations?: { status?: unknown } }).organizations?.status;
-      if (data.status !== 'active' || orgStatus !== 'active') {
-        return {
-          organizationId: data.organization_id as string,
-          role: data.role as MemberRole,
-          status: 'suspended',
-        };
-      }
-
+      const orgActive =
+        (data as { organizations?: { status?: unknown } }).organizations?.status === 'active';
+      const status: MemberStatus = data.status === 'active' && orgActive ? 'active' : 'suspended';
       return {
         organizationId: data.organization_id as string,
         role: data.role as MemberRole,
-        status: 'active',
+        status,
       };
     },
 
-    async queryResource(
-      params: CrmQueryResourceParams,
-    ): Promise<{ items: Record<string, unknown>[]; total: number }> {
-      const config = RESOURCE_CONFIG[params.resource];
-      let query = supabase
-        .from(config.table)
-        .select('*', { count: 'exact' })
-        .eq('organization_id', params.organizationId);
-
-      // Filter anwenden
-      if (params.filters) {
-        for (const [col, val] of Object.entries(params.filters)) {
-          query = query.eq(col, val);
-        }
-      }
-
-      // Suche anwenden
-      if (params.q) {
-        const sanitized = params.q.replace(/[%_,()]/g, '');
-        if (sanitized) {
-          const orFilter = config.searchFields
-            .map((field) => `${field}.ilike.%${sanitized}%`)
-            .join(',');
-          query = query.or(orFilter);
-        }
-      }
-
-      // Sortierung anwenden
-      const sortCol = params.sortBy || config.defaultSort;
-      const ascending = (params.sortOrder || config.defaultOrder) === 'asc';
-      query = query.order(sortCol, { ascending });
-      // Sekundärer Tie-Breaker für stabile Paginierung
-      if (sortCol !== 'id') {
-        query = query.order('id', { ascending: true });
-      }
-
-      // Paginierung anwenden
-      const from = (params.page - 1) * params.pageSize;
-      const to = from + params.pageSize - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
-      if (error) {
-        throw new Error(`DB-Fehler bei ${params.resource}: ${error.message}`);
-      }
-
-      // Mapping DB snake_case -> Frontend camelCase
-      const items = (data || []).map((row) => mapRowToFrontend(params.resource, row));
-      return { items, total: count ?? 0 };
-    },
-
-    async exportResource(params: CrmExportResourceParams): Promise<Record<string, unknown>[]> {
-      const config = RESOURCE_CONFIG[params.resource];
-      let query = supabase
-        .from(config.table)
-        .select('*')
-        .eq('organization_id', params.organizationId);
-
-      if (params.filters) {
-        for (const [col, val] of Object.entries(params.filters)) {
-          query = query.eq(col, val);
-        }
-      }
-
-      if (params.q) {
-        const sanitized = params.q.replace(/[%_,()]/g, '');
-        if (sanitized) {
-          const orFilter = config.searchFields
-            .map((field) => `${field}.ilike.%${sanitized}%`)
-            .join(',');
-          query = query.or(orFilter);
-        }
-      }
-
-      const sortCol = params.sortBy || config.defaultSort;
-      const ascending = (params.sortOrder || config.defaultOrder) === 'asc';
-      query = query.order(sortCol, { ascending });
-      if (sortCol !== 'id') {
-        query = query.order('id', { ascending: true });
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        throw new Error(`DB-Export-Fehler bei ${params.resource}: ${error.message}`);
-      }
-
-      return (data || []).map((row) => mapRowToFrontend(params.resource, row));
-    },
+    queryResource: (p) => execCrmQuery(supabase, p, false),
+    exportResource: async (p) => (await execCrmQuery(supabase, p, true)).items,
   };
 }
 
-function mapRowToFrontend(resource: CrmResource, row: Record<string, unknown>): Record<string, unknown> {
-  if (resource === 'companies') {
-    return {
-      id: row.id,
-      name: row.name,
-      domain: row.domain,
-      industry: row.industry,
-      city: row.city,
-      postalCode: row.postal_code,
-      employeeCount: row.employee_count,
-      createdAt: row.created_at,
-    };
-  }
-  if (resource === 'contacts') {
-    return {
-      id: row.id,
-      companyId: row.company_id,
-      email: row.email,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      jobTitle: row.job_title,
-      createdAt: row.created_at,
-    };
-  }
-  if (resource === 'deals') {
-    return {
-      id: row.id,
-      dealName: row.deal_name,
-      stage: row.stage,
-      amount: row.amount !== null ? Number(row.amount) : 0,
-      closeDate: row.close_date,
-      pipeline: row.pipeline,
-      createdAt: row.created_at,
-    };
-  }
-  return row;
-}
-
-// Deno / Supabase Edge Runtime Entrypoint
 if (import.meta.main) {
   Deno.serve(async (req) => {
     try {
       const db = createSupabaseCrmDb();
       return await handleCrmQueryExport(req, db);
     } catch (err) {
-      return jsonResponse(
-        {
-          code: 'SERVER_ERROR',
-          message: err instanceof Error ? err.message : 'Interner Serverfehler.',
-        },
-        500,
-      );
+      console.error('Unhandled Edge Function Error:', err);
+      return jsonResponse({ code: 'SERVER_ERROR', message: 'Interner Serverfehler.' }, 500);
     }
   });
 }

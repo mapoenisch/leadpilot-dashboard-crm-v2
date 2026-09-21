@@ -15,12 +15,12 @@ function normalizeErrorCode(rawCode?: string): CrmServiceErrorCode {
 
 export async function fetchCrmExportBlob(params: CrmExportParams): Promise<Blob> {
   if (!isSupabaseConfigured || !supabase) {
-    throw new CrmServiceError('UNAUTHORIZED', 'Supabase ist nicht konfiguriert.');
+    throw new CrmServiceError('UNAUTHORIZED');
   }
 
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session?.access_token) {
-    throw new CrmServiceError('UNAUTHORIZED', 'Keine aktive Sitzung vorhanden.');
+    throw new CrmServiceError('UNAUTHORIZED');
   }
 
   const token = data.session.access_token;
@@ -52,20 +52,14 @@ export async function fetchCrmExportBlob(params: CrmExportParams): Promise<Blob>
         sortOrder: params.sortOrder,
       }),
     });
-  } catch (err) {
-    throw new CrmServiceError(
-      'SERVER_ERROR',
-      err instanceof Error ? err.message : 'Netzwerkfehler beim CSV-Export.',
-    );
+  } catch {
+    throw new CrmServiceError('SERVER_ERROR');
   }
 
   if (!response.ok) {
     const errorBody = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     const code = normalizeErrorCode(errorBody.code as string | undefined);
-    const message =
-      (errorBody.message as string | undefined) ||
-      `Export für ${params.resource} fehlgeschlagen (Status ${response.status}).`;
-    throw new CrmServiceError(code, message);
+    throw new CrmServiceError(code);
   }
 
   const blob = await response.blob();
