@@ -12,6 +12,7 @@ import { ScenarioManagerModal } from './components/ScenarioManagerModal';
 import { RunActionModal } from './components/RunActionModal';
 import { MeasureManagerModal } from './components/MeasureManagerModal';
 import { MultiScenarioComparisonModal } from './components/MultiScenarioComparisonModal';
+import { DataSourceStatus } from '../../components/data/DataSourceStatus';
 
 export function LiveDashboardView() {
   const leads = useSimulationLeads();
@@ -66,6 +67,7 @@ export function LiveDashboardView() {
             activeId={activeTier}
             onChange={setActiveTier}
           />
+          <DataSourceStatus variant="compact" />
         </div>
       </Card>
 
