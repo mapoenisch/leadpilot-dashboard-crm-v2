@@ -10117,12 +10117,12 @@ Keine geschützten Simulations-, Kontext- oder Datenabstraktionsdateien wurden m
 2. **P2-2: Vollständige Rollen- und Formel-Negativnachweise (Admin, Manager, Viewer):**
    - In `supabase/seed.sql` wurden für Organisation A `manager-a@e2e.local` (Rolle `manager`) und `viewer-a@e2e.local` (Rolle `viewer`) in `auth.users`, `auth.identities` und `public.organization_members` ergänzt sowie Testdaten mit Formelpräfixen hinterlegt.
    - `docs/operations/ci-e2e-backend.md` dokumentiert `E2E_AUTH_EMAIL_MANAGER` und `E2E_AUTH_EMAIL_VIEWER`.
-   - `e2e/crm-query-export.spec.ts` Test 8 führt den echten Fluss für Manager (UI-Zugriff & erfolgreicher CSV-Download) und Viewer (direkter Export scheitert serverseitig mit 403 `FORBIDDEN`) aus.
+   - `e2e/crm-query-export.spec.ts` Test 8 führt den echten Fluss für Manager (UI-Zugriff & erfolgreicher CSV-Download) sowie Viewer aus (UI: CSV-Export-Button ist sichtbar deaktiviert mit Tooltip 'Viewer besitzen keine Exportberechtigung'; API: direkter Export scheitert serverseitig mit 403 `FORBIDDEN`).
    - Deno-Tests prüfen Export durch `MANAGER_USER` (Status 200) und Viewer (Status 403) separat.
 3. **Dateilängenlimit (< 400 Zeilen pro Datei):**
    - `supabase/functions/crm-query-export/index.ts`: 393 Zeilen (< 400)
    - `supabase/functions/__tests__/crmQueryExport.test.ts`: 358 Zeilen (< 400)
-   - `e2e/crm-query-export.spec.ts`: 259 Zeilen (< 400)
+   - `e2e/crm-query-export.spec.ts`: 279 Zeilen (< 400)
    - `supabase/seed.sql`: 280 Zeilen (< 400)
    - `supabase/tests/crm_query_export.sql`: 115 Zeilen (< 400)
    - `docs/operations/ci-e2e-backend.md`: 129 Zeilen (< 400)

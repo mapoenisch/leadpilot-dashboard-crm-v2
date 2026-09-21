@@ -217,6 +217,7 @@ test.describe('CRM Query und Export (Gate G60)', () => {
 
   test('8. Rollennachweis: Manager kann exportieren, Viewer wird serverseitig abgewiesen', async ({
     page,
+    browser,
     request,
   }) => {
     const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
@@ -237,7 +238,26 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('companies-export.csv');
 
-    // 2. Viewer API-Export liefert strikt 403 FORBIDDEN
+    // 2. Viewer UI: Im isolierten Kontext anmelden - Export-Button ist sichtbar deaktiviert
+    const viewerContext = await browser.newContext();
+    const viewerPage = await viewerContext.newPage();
+    try {
+      await loginAs(viewerPage, viewerEmail, password);
+      await viewerPage.goto('/crm/companies');
+      await expect(viewerPage.getByText('Firma A1').first()).toBeAttached();
+
+      const viewerExportBtn = viewerPage.getByRole('button', { name: /CSV.*Export/i });
+      await expect(viewerExportBtn).toBeVisible();
+      await expect(viewerExportBtn).toBeDisabled();
+      await expect(viewerExportBtn).toHaveAttribute(
+        'title',
+        'Viewer besitzen keine Exportberechtigung',
+      );
+    } finally {
+      await viewerContext.close();
+    }
+
+    // 3. Viewer API-Export liefert strikt 403 FORBIDDEN
     const viewerLoginRes = await request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
       headers: { apikey: anonKey },
       data: { email: viewerEmail, password },
