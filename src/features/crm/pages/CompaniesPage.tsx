@@ -1,5 +1,5 @@
 // G60 (Auftrag 067N, Step 4): URL-synchrone serverseitige Companies-Ansicht mit Pagination und Export
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -13,35 +13,68 @@ import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
+import { DataSourceStatus } from '@/components/data/DataSourceStatus';
+import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
+
+const toOptions = (arr: [string, string][]): SelectOption[] =>
+  arr.map(([value, label]) => ({ value, label }));
 
 const BASE_INDUSTRY_OPTIONS: SelectOption[] = [
   { value: 'ALL', label: 'Alle Branchen' },
-  { value: 'IT', label: 'IT' },
-  { value: 'Maschinenbau', label: 'Maschinenbau' },
-  { value: 'Automotive', label: 'Automotive' },
-  { value: 'Finanzen', label: 'Finanzen' },
-  { value: 'Consulting', label: 'Consulting' },
-  { value: 'Handel', label: 'Handel' },
-  { value: 'Gesundheitswesen', label: 'Gesundheitswesen' },
-  { value: 'Logistik', label: 'Logistik' },
+  ...'IT,Maschinenbau,Automotive,Finanzen,Consulting,Handel,Gesundheitswesen,Logistik'
+    .split(',')
+    .map((i) => ({ value: i, label: i })),
 ];
 
-const COMPANY_SORT_OPTIONS: SelectOption[] = [
-  { value: 'name', label: 'Unternehmensname' },
-  { value: 'city', label: 'Stadt' },
-  { value: 'employee_count', label: 'Mitarbeiter' },
-  { value: 'created_at', label: 'Erstelldatum' },
-];
+const COMPANY_SORT_OPTIONS = toOptions([
+  ['name', 'Unternehmensname'],
+  ['city', 'Stadt'],
+  ['employee_count', 'Mitarbeiter'],
+  ['created_at', 'Erstelldatum'],
+]);
 
-const ORDER_OPTIONS: SelectOption[] = [
-  { value: 'asc', label: 'Aufsteigend (A-Z)' },
-  { value: 'desc', label: 'Absteigend (Z-A)' },
-];
+const ORDER_OPTIONS = toOptions([
+  ['asc', 'Aufsteigend (A-Z)'],
+  ['desc', 'Absteigend (Z-A)'],
+]);
 
 export function CompaniesPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
+  const { provenance, isLoading: isProvLoading } = useCrmProvenance('companies');
+
+  // Session-gebundener Storage-Key für Filter-Isolation (P2-1)
+  const storageKey = session?.userId
+    ? `lp_crm_companies_${session.userId}`
+    : 'lp_crm_companies_anon';
+  const bounceKey = `${storageKey}_auth_bounce`;
+
+  // URL-State vor Initialisierung synchron wiederherstellen, falls durch Auth-Bounce temporär verloren
+  if (typeof window !== 'undefined' && !window.location.search) {
+    try {
+      let candidate: string | null = null;
+      const nav = window.performance?.getEntriesByType?.('navigation')?.[0] as
+        PerformanceNavigationTiming | undefined;
+      if (nav?.name) {
+        const navUrl = new URL(nav.name, window.location.origin);
+        if (navUrl.pathname === window.location.pathname && navUrl.search) {
+          candidate = navUrl.search;
+        }
+      }
+      if (candidate) {
+        sessionStorage.removeItem(storageKey);
+        sessionStorage.removeItem(bounceKey);
+        window.history.replaceState(null, '', window.location.pathname + candidate);
+      } else {
+        // Absichtlich neutrale Route: alten Zustand zwingend löschen (P2-1)
+        sessionStorage.removeItem(storageKey);
+        sessionStorage.removeItem(bounceKey);
+      }
+    } catch {
+      // Storage-Fehler abfangen
+    }
+  }
 
   // URL-synchroner Zustand
   const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
@@ -54,15 +87,44 @@ export function CompaniesPage() {
   const page = Math.max(1, parseInt(pageStr, 10) || 1);
   const pageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
 
-  const handleSortChange = (val: string) => {
-    setSortField(val);
-    setPageStr('1');
-  };
+  const handleSortChange = (val: string) => (setSortField(val), setPageStr('1'));
+  const handleOrderChange = (val: string) => (setSortOrder(val), setPageStr('1'));
 
-  const handleOrderChange = (val: string) => {
-    setSortOrder(val);
-    setPageStr('1');
-  };
+  // Suchzustand für Seiten-Reload kontinuierlich sichern bzw. bei neutraler Route bereinigen (P2-1)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (window.location.search) {
+        sessionStorage.setItem(storageKey, window.location.search);
+      } else {
+        sessionStorage.removeItem(storageKey);
+        sessionStorage.removeItem(bounceKey);
+      }
+    } catch {
+      // Storage-Fehler abfangen
+    }
+    const onBeforeUnload = () => {
+      if (window.location.search) {
+        try {
+          sessionStorage.setItem(storageKey, window.location.search);
+          sessionStorage.setItem(bounceKey, '1');
+        } catch {
+          // Storage-Fehler abfangen
+        }
+      }
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [
+    searchTerm,
+    industryFilter,
+    pageStr,
+    pageSizeStr,
+    sortField,
+    sortOrder,
+    storageKey,
+    bounceKey,
+  ]);
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, error } = useCrmListQuery<Company>({
@@ -78,15 +140,8 @@ export function CompaniesPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setPageStr('1');
-  };
-
-  const handleIndustryChange = (val: string) => {
-    setIndustryFilter(val);
-    setPageStr('1');
-  };
+  const handleSearchChange = (val: string) => (setSearchTerm(val), setPageStr('1'));
+  const handleIndustryChange = (val: string) => (setIndustryFilter(val), setPageStr('1'));
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -161,6 +216,7 @@ export function CompaniesPage() {
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A Import</Badge>
+          <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{total} B2B Accounts</Badge>
           <Button
             variant="secondary"
@@ -192,41 +248,39 @@ export function CompaniesPage() {
 
       {/* 2. KPI Cards */}
       <div className="crm-v2-kpi-grid">
-        <Card variant="glass" featured>
-          <div className="text-[13px] text-[var(--color-text-muted)]">Unternehmen Gesamt</div>
-          <div className="font-display text-[28px] font-bold my-[4px] text-primary">{total}</div>
-          <div className="text-[12px] text-success">Mandanten-geprüft</div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Aktuelle Seite</div>
-          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
-            {page} / {Math.max(1, Math.ceil(total / pageSize))}
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            {pageSize} Accounts pro Seite
-          </div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Gewählte Branche</div>
-          <div className="font-display text-[20px] font-semibold my-[4px] text-text truncate">
-            {industryFilter === 'ALL' ? 'Alle Branchen' : industryFilter}
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            {industryOptions.length - 1} Branchen verfügbar
-          </div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Daten-Herkunft</div>
-          <div className="font-display text-[18px] font-bold mt-[8px] mb-[4px] text-accent">
-            Server Query
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            Edge Function / RLS geschützt
-          </div>
-        </Card>
+        {[
+          {
+            t: 'Unternehmen Gesamt',
+            v: total,
+            n: 'Mandanten-geprüft',
+            c: 'text-primary font-bold',
+            f: true,
+          },
+          {
+            t: 'Aktuelle Seite',
+            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            n: `${pageSize} Accounts pro Seite`,
+            c: 'text-text font-semibold',
+          },
+          {
+            t: 'Gewählte Branche',
+            v: industryFilter === 'ALL' ? 'Alle Branchen' : industryFilter,
+            n: `${industryOptions.length - 1} Branchen verfügbar`,
+            c: 'text-text font-semibold text-[20px]',
+          },
+          {
+            t: 'Daten-Herkunft',
+            v: 'Server Query',
+            n: 'Edge Function / RLS geschützt',
+            c: 'text-accent font-bold text-[18px]',
+          },
+        ].map((k) => (
+          <Card key={k.t} variant="glass" featured={Boolean(k.f)}>
+            <div className="text-[13px] text-[var(--color-text-muted)]">{k.t}</div>
+            <div className={`font-display text-[28px] my-[4px] truncate ${k.c}`}>{k.v}</div>
+            <div className="text-[12px] text-success">{k.n}</div>
+          </Card>
+        ))}
       </div>
 
       {/* 3. Filter & Search Bar */}

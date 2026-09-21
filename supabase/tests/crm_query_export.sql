@@ -3,7 +3,7 @@
 -- ============================================================================
 BEGIN;
 
-SELECT plan(23);
+SELECT plan(25);
 
 -- 1..16: Index-Prüfungen für public.companies, contacts, imported_funnel_deals
 SELECT has_index('public', 'companies', 'idx_companies_org_name', 'Index idx_companies_org_name existiert');
@@ -48,7 +48,8 @@ INSERT INTO public.companies (id, domain, name, industry, city, postal_code, org
 VALUES
   ('c0000000-0000-0000-0000-000000000001', 'a1.test', 'Firma A1', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   ('c0000000-0000-0000-0000-000000000002', 'b1.test', 'Firma B1', 'IT', 'Hamburg', '20095', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
-  ('c0000000-0000-0000-0000-000000000003', 'calc.test', ' =1+1 Formel-Firma', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+  ('c0000000-0000-0000-0000-000000000003', 'calc.test', ' =1+1 Formel-Firma', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  ('c0000000-0000-0000-0000-000000000004', 'a2.test', 'Firma A2', 'Finanzen', 'München', '80331', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
 ON CONFLICT (id) DO UPDATE SET organization_id = EXCLUDED.organization_id, name = EXCLUDED.name;
 
 INSERT INTO public.contacts (id, company_id, email, first_name, last_name, job_title, organization_id)
@@ -68,8 +69,8 @@ SET ROLE authenticated;
 
 SELECT is(
   (SELECT count(*) FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-  2::bigint,
-  'Org A sieht eigene Companies (inkl. Formel-Testdatensatz)'
+  3::bigint,
+  'Org A sieht eigene Companies (inkl. Formel-Testdatensatz und Paginierungs-Seed)'
 );
 
 SELECT is(
@@ -96,7 +97,7 @@ SELECT is(
   'Formeldatensatz in public.companies ist als statischer Text mandantenisoliert abgelegt'
 );
 
--- Wechsel auf Admin B
+-- 23: Wechsel auf Admin B
 SELECT set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-4444-444444444444","role":"authenticated"}', true);
 
 SELECT is(
@@ -109,6 +110,21 @@ SELECT is(
   (SELECT count(*) FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   0::bigint,
   'Org B sieht fremde Company nicht'
+);
+
+-- 24..25: Deterministische Paginierung mit id-Tie-Breaker bei identischem Sortierwert (Org A)
+SELECT set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+
+SELECT is(
+  (SELECT id FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' AND industry = 'IT' ORDER BY industry ASC, id ASC LIMIT 1 OFFSET 0),
+  'c0000000-0000-0000-0000-000000000001'::text,
+  'Tie-Breaker: Bei identischer Branche liefert LIMIT 1 OFFSET 0 stabil die kleinere ID'
+);
+
+SELECT is(
+  (SELECT id FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' AND industry = 'IT' ORDER BY industry ASC, id ASC LIMIT 1 OFFSET 1),
+  'c0000000-0000-0000-0000-000000000003'::text,
+  'Tie-Breaker: Bei identischer Branche liefert LIMIT 1 OFFSET 1 stabil die nachfolgende ID'
 );
 
 SELECT * FROM finish();

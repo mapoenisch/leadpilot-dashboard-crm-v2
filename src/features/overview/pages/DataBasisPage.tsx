@@ -5,6 +5,14 @@ import { Badge } from '@/components/ui/Badge';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { useCrmReadModelEnvelope } from '@/hooks/queries/useCrmQueries';
 import type { CrmSourceHealth } from '@/types/dataSource';
+import { DataSourceStatus } from '@/components/data/DataSourceStatus';
+import {
+  deriveProvenanceState,
+  formatDataAge,
+  formatStatusLabel,
+  classifyFreshness,
+  formatFreshnessLabel,
+} from '@/services/data/sourceFreshness';
 
 function statusBadgeVariant(status: CrmSourceHealth): 'mint' | 'cyan' | 'orange' | 'red' {
   switch (status) {
@@ -17,31 +25,6 @@ function statusBadgeVariant(status: CrmSourceHealth): 'mint' | 'cyan' | 'orange'
     case 'unavailable':
       return 'red';
   }
-}
-
-function statusLabel(status: CrmSourceHealth): string {
-  switch (status) {
-    case 'healthy':
-      return 'Gesund';
-    case 'empty':
-      return 'Leer (gültig)';
-    case 'degraded':
-      return 'Eingeschränkt (degraded)';
-    case 'unavailable':
-      return 'Nicht verfügbar';
-  }
-}
-
-function dataAge(fetchedAt: string, now: number): string {
-  const diffMs = now - Date.parse(fetchedAt);
-  if (!Number.isFinite(diffMs) || diffMs < 0) return 'unbekannt';
-  const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return 'weniger als eine Minute';
-  if (minutes === 1) return '1 Minute';
-  if (minutes < 60) return `${minutes} Minuten`;
-  const hours = Math.floor(minutes / 60);
-  if (hours === 1) return '1 Stunde';
-  return `${hours} Stunden`;
 }
 
 // Gate G47 (Auftrag 067D): echte Datenbasis-Seite statt WebP-Platzhalter.
@@ -78,18 +61,34 @@ export function DataBasisPage() {
     );
   }
 
-  if (isError || !envelope) {
+  // 067O / G61 Nacharbeit (P2-1 & P2-2): Im Fehlerfall / Ausfall (isError, kein Envelope oder unavailable)
+  // standardisierte DataSourceStatus-Komponenten rendern (inkl. role="alert") und sichere Fehlertexte anzeigen.
+  // Es werden niemals Counts, Hashes oder Ersatzdaten ausgegeben (Fail-Closed).
+  if (isError || !envelope || envelope.status === 'unavailable') {
+    const provenance = deriveProvenanceState(envelope, error, now);
     return (
-      <DataBasisShell>
+      <DataBasisShell testId="data-basis-page">
+        <SectionHeader
+          eyebrow="CRM-Quellenwahrheit (G47)"
+          title="Quelle und Zustand"
+          description="Herkunft und Zustand der CRM-Daten aus genau einer Quelle"
+          actions={<DataSourceStatus variant="compact" provenance={provenance} />}
+        />
+
+        <div className="my-3">
+          <DataSourceStatus variant="banner" provenance={provenance} />
+        </div>
+
         <ManagementChartState
           type="error"
-          message={`Datenquelle nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Es werden keine Ersatzdaten angezeigt.`}
+          message={`Datenquelle nicht verfügbar: ${provenance.statusDescription} Es werden keine Ersatzdaten angezeigt.`}
           sourceLabel="CRM-Quellenwahrheit (G47)"
         />
       </DataBasisShell>
     );
   }
 
+  const provenance = deriveProvenanceState(envelope, null, now);
   const counts = [
     { label: 'Unternehmen', value: envelope.data.companies.length },
     { label: 'Kontakte', value: envelope.data.contacts.length },
@@ -103,9 +102,18 @@ export function DataBasisPage() {
         eyebrow="CRM-Quellenwahrheit (G47)"
         title="Quelle und Zustand"
         description="Herkunft und Zustand der CRM-Daten aus genau einer Quelle"
+        actions={<DataSourceStatus variant="compact" provenance={provenance} envelope={envelope} />}
       />
+
+      {/* Auftrag 067O / Gate G61: Ausführlicher Provenienz- und Frischekasten */}
+      <div className="my-3">
+        <DataSourceStatus variant="banner" provenance={provenance} envelope={envelope} />
+      </div>
+
       <p>
-        <Badge variant={statusBadgeVariant(envelope.status)}>{statusLabel(envelope.status)}</Badge>
+        <Badge variant={statusBadgeVariant(envelope.status)}>
+          {formatStatusLabel(envelope.status)}
+        </Badge>
       </p>
       <Card>
         <dl data-testid="data-basis-provenance">
@@ -125,7 +133,11 @@ export function DataBasisPage() {
           </div>
           <div>
             <dt>Datenalter</dt>
-            <dd>{dataAge(envelope.fetchedAt, now)}</dd>
+            <dd>{formatDataAge(envelope.fetchedAt, now)}</dd>
+          </div>
+          <div>
+            <dt>Frische</dt>
+            <dd>{formatFreshnessLabel(classifyFreshness(envelope.fetchedAt, now))}</dd>
           </div>
           <div>
             <dt>Inhalts-Hash</dt>
@@ -142,24 +154,30 @@ export function DataBasisPage() {
         </dl>
       </Card>
       <Card>
-        <h2>Bestand</h2>
-        <ul data-testid="data-basis-counts">
+        <h2>Geladene Datensätze</h2>
+        <dl data-testid="data-basis-counts">
           {counts.map((c) => (
-            <li key={c.label}>
-              {c.label}: <strong>{c.value}</strong>
-            </li>
+            <div key={c.label}>
+              <dt>{c.label}</dt>
+              <dd>{c.value}</dd>
+            </div>
           ))}
-        </ul>
-        {envelope.status === 'empty' && (
+        </dl>
+      </Card>
+      {envelope.status === 'empty' && (
+        <Card>
           <p>Die Quelle ist leer — das ist ein gültiges Ergebnis, keine Störung.</p>
-        )}
-        {envelope.status === 'degraded' && (
+        </Card>
+      )}
+      {envelope.status === 'degraded' && (
+        <Card>
+          <h2>Hinweise zur Datenqualität (degraded)</h2>
           <p>
             Die Quelle meldet Importfehler — die vorhandenen Daten sind sichtbar, aber als
             eingeschränkt gekennzeichnet.
           </p>
-        )}
-      </Card>
+        </Card>
+      )}
     </DataBasisShell>
   );
 }

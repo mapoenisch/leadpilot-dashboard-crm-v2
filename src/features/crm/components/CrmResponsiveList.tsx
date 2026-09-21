@@ -100,6 +100,7 @@ export function CrmResponsiveList<T extends object>({
                   onChange={(e) => onPageSizeChange(Number(e.target.value))}
                   className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-2 py-0.5 text-text text-xs focus:outline-none focus:ring-1 focus:ring-primary"
                 >
+                  <option value={1}>1</option>
                   <option value={10}>10</option>
                   <option value={20}>20</option>
                   <option value={50}>50</option>

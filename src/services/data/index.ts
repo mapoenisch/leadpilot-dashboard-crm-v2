@@ -21,3 +21,4 @@ export {
   makeHubSpotBaselineSource,
   listHubSpotBaselineVersions,
 } from './sources/hubSpotBaselineSource';
+export * from './sourceFreshness';

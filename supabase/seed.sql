@@ -250,7 +250,8 @@ INSERT INTO public.companies (id, domain, name, industry, city, postal_code, emp
 VALUES
   ('c0000000-0000-0000-0000-000000000001', 'a1.test', 'Firma A1', 'IT', 'Berlin', '10115', 50, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   ('c0000000-0000-0000-0000-000000000002', 'b1.test', 'Firma B1', 'IT', 'Hamburg', '20095', 30, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
-  ('c0000000-0000-0000-0000-000000000003', 'calc.test', ' =1+1 Formel-Firma', 'IT', 'Berlin', '10115', 10, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+  ('c0000000-0000-0000-0000-000000000003', 'calc.test', ' =1+1 Formel-Firma', 'IT', 'Berlin', '10115', 10, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  ('c0000000-0000-0000-0000-000000000004', 'a2.test', 'Firma A2', 'Finanzen', 'München', '80331', 80, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   domain = EXCLUDED.domain,

@@ -13,6 +13,8 @@ import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
+import { DataSourceStatus } from '@/components/data/DataSourceStatus';
+import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
 
 const BASE_STAGE_OPTIONS: SelectOption[] = [
@@ -41,6 +43,7 @@ const ORDER_OPTIONS: SelectOption[] = [
 export function DealsPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
+  const { provenance, isLoading: isProvLoading } = useCrmProvenance('deals');
 
   // URL-synchroner Zustand
   const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
@@ -132,37 +135,25 @@ export function DealsPage() {
     },
     {
       key: 'stage',
-      label: 'Deal Stage',
-      render: (r) => (
-        <Badge
-          variant={
-            r.stage.toLowerCase().includes('gewonnen')
-              ? 'cyan'
-              : r.stage.toLowerCase().includes('verloren')
-                ? 'neutral'
-                : 'orange'
-          }
-        >
-          {r.stage}
-        </Badge>
-      ),
+      label: 'Stage',
+      render: (r) => {
+        const s = r.stage.toLowerCase();
+        const v = s.includes('gewonnen') ? 'cyan' : s.includes('verloren') ? 'neutral' : 'orange';
+        return <Badge variant={v}>{r.stage}</Badge>;
+      },
     },
     {
       key: 'amount',
       label: 'Deal-Volumen (€)',
-      render: (r) => (
-        <strong
-          className={`font-mono ${
-            r.stage.toLowerCase().includes('gewonnen')
-              ? 'text-primary'
-              : r.stage.toLowerCase().includes('verloren')
-                ? 'text-[var(--color-text-muted)]'
-                : 'text-accent'
-          }`}
-        >
-          {r.amount.toLocaleString('de-DE')} €
-        </strong>
-      ),
+      render: (r) => {
+        const s = r.stage.toLowerCase();
+        const cls = s.includes('gewonnen')
+          ? 'text-primary'
+          : s.includes('verloren')
+            ? 'text-[var(--color-text-muted)]'
+            : 'text-accent';
+        return <strong className={`font-mono ${cls}`}>{r.amount.toLocaleString('de-DE')} €</strong>;
+      },
     },
     {
       key: 'closeDate',
@@ -189,6 +180,7 @@ export function DealsPage() {
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A Pipeline</Badge>
+          <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{total} Funnel Deals</Badge>
           <Button
             variant="secondary"
@@ -220,41 +212,39 @@ export function DealsPage() {
 
       {/* 2. KPI Cards */}
       <div className="crm-v2-kpi-grid">
-        <Card variant="glass" featured>
-          <div className="text-[13px] text-[var(--color-text-muted)]">Funnel Deals Gesamt</div>
-          <div className="font-display text-[28px] font-bold my-[4px] text-primary">{total}</div>
-          <div className="text-[12px] text-success">Mandanten-geprüft</div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Aktuelle Seite</div>
-          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
-            {page} / {Math.max(1, Math.ceil(total / pageSize))}
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            {pageSize} Deals pro Seite
-          </div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Gewählte Stage</div>
-          <div className="font-display text-[20px] font-semibold my-[4px] text-text truncate">
-            {stageFilter === 'ALL' ? 'Alle Stages' : stageFilter}
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            {stageOptions.length - 1} Stages definiert
-          </div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Daten-Herkunft</div>
-          <div className="font-display text-[18px] font-bold mt-[8px] mb-[4px] text-accent">
-            Server Query
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            Edge Function / RLS geschützt
-          </div>
-        </Card>
+        {[
+          {
+            t: 'Funnel Deals Gesamt',
+            v: total,
+            n: 'Mandanten-geprüft',
+            c: 'text-primary font-bold',
+            f: true,
+          },
+          {
+            t: 'Aktuelle Seite',
+            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            n: `${pageSize} Deals pro Seite`,
+            c: 'text-text font-semibold',
+          },
+          {
+            t: 'Gewählte Stage',
+            v: stageFilter === 'ALL' ? 'Alle Stages' : stageFilter,
+            n: `${stageOptions.length - 1} Stages definiert`,
+            c: 'text-text font-semibold text-[20px]',
+          },
+          {
+            t: 'Daten-Herkunft',
+            v: 'Server Query',
+            n: 'Edge Function / RLS geschützt',
+            c: 'text-accent font-bold text-[18px]',
+          },
+        ].map((k) => (
+          <Card key={k.t} variant="glass" featured={Boolean(k.f)}>
+            <div className="text-[13px] text-[var(--color-text-muted)]">{k.t}</div>
+            <div className={`font-display text-[28px] my-[4px] truncate ${k.c}`}>{k.v}</div>
+            <div className="text-[12px] text-success">{k.n}</div>
+          </Card>
+        ))}
       </div>
 
       {/* 3. Filter & Search Bar */}

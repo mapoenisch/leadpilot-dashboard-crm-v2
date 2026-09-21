@@ -273,8 +273,8 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
 
     const result = await db.queryResource({ ...qParams, page, pageSize });
     return jsonResponse({ items: result.items, total: result.total, page, pageSize, resource });
-  } catch (err) {
-    console.error('CRM-Datenbankfehler:', err);
+  } catch {
+    console.error('CRM-Verarbeitungsfehler aufgetreten [Code: SERVER_ERROR]');
     return jsonResponse(
       { code: 'SERVER_ERROR', message: 'Interner Serverfehler bei der CRM-Verarbeitung.' },
       500,
@@ -335,7 +335,7 @@ async function execCrmQuery(
   }
   const { data, error, count } = await query;
   if (error) {
-    console.error('CRM DB Error:', error);
+    console.error('CRM DB-Abfrage fehlgeschlagen [Code: DB_QUERY_ERROR]');
     throw new Error('Interner Fehler bei der CRM-Abfrage.');
   }
   const rows = (data as unknown as Record<string, unknown>[]) || [];
@@ -385,8 +385,8 @@ if (import.meta.main) {
     try {
       const db = createSupabaseCrmDb();
       return await handleCrmQueryExport(req, db);
-    } catch (err) {
-      console.error('Unhandled Edge Function Error:', err);
+    } catch {
+      console.error('crm-query-export unerwarteter Fehler [Code: UNCAUGHT_SERVER_ERROR]');
       return jsonResponse({ code: 'SERVER_ERROR', message: 'Interner Serverfehler.' }, 500);
     }
   });

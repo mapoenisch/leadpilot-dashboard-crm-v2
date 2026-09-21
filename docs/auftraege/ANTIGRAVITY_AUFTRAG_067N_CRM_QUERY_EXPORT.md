@@ -77,8 +77,14 @@ aus statischen oder synthetischen Browserdaten erfunden werden.
 
 | Art | Dateien |
 |---|---|
-| Create | `supabase/migrations/20260928_crm_query_indexes.sql`, `supabase/functions/crm-query-export/index.ts`, `supabase/functions/__tests__/crmQueryExport.test.ts`, `supabase/tests/crm_query_export.sql`, `src/services/crm/crmListService.ts`, `src/services/crm/crmExportService.ts`, `src/services/crm/__tests__/crmListService.vitest.ts`, `src/services/crm/__tests__/crmExportService.vitest.ts`, `src/hooks/queries/useCrmListQuery.ts`, `src/hooks/queries/__tests__/useCrmListQuery.vitest.tsx`, `e2e/crm-query-export.spec.ts`, `docs/screenshots/auftrag-067n-g60/README.md` |
-| Modify | `supabase/seed.sql`, `docs/operations/ci-e2e-backend.md`, `src/features/crm/pages/LeadsPage.tsx`, `src/features/crm/pages/CompaniesPage.tsx`, `src/features/crm/pages/DealsPage.tsx`, `src/features/crm/components/CrmResponsiveList.tsx`, `src/services/query/queryKeys.ts`, `e2e/tenant-isolation.spec.ts`, `docs/BUILD_LOG.md` |
+| Create | `docs/auftraege/ANTIGRAVITY_AUFTRAG_067N_CRM_QUERY_EXPORT.md`, `supabase/migrations/20260928_crm_query_indexes.sql`, `supabase/functions/crm-query-export/index.ts`, `supabase/functions/__tests__/crmQueryExport.test.ts`, `supabase/tests/crm_query_export.sql`, `src/services/crm/crmListService.ts`, `src/services/crm/crmExportService.ts`, `src/services/crm/__tests__/crmListService.vitest.ts`, `src/services/crm/__tests__/crmExportService.vitest.ts`, `src/hooks/queries/useCrmListQuery.ts`, `src/hooks/queries/__tests__/useCrmListQuery.vitest.tsx`, `e2e/crm-query-export.spec.ts`, `docs/screenshots/auftrag-067n-g60/README.md` |
+| Modify | `.github/workflows/ci.yml`, `supabase/seed.sql`, `docs/operations/ci-e2e-backend.md`, `src/features/crm/pages/LeadsPage.tsx`, `src/features/crm/pages/__tests__/LeadsPage.branch.ui.vitest.tsx`, `src/features/crm/pages/CompaniesPage.tsx`, `src/features/crm/pages/DealsPage.tsx`, `src/features/crm/components/CrmResponsiveList.tsx`, `src/services/query/queryKeys.ts`, `e2e/tenant-isolation.spec.ts`, `docs/BUILD_LOG.md` |
+
+> **Scope-Erweiterung (freigegeben durch Marc am 2026-09-21):**
+> Die Zieldateien wurden im Rahmen der Review-Nacharbeiten autorisiert um:
+> - `docs/auftraege/ANTIGRAVITY_AUFTRAG_067N_CRM_QUERY_EXPORT.md` (Auftragsspezifikation selbst)
+> - `.github/workflows/ci.yml` (Aktivierung von `edge-runtime` für den E2E-CRM-Pfad in CI gemäß P1)
+> - `src/features/crm/pages/__tests__/LeadsPage.branch.ui.vitest.tsx` (Anpassung der Branch-UI-Tests an den `useCrmListQuery`-Serverpfad der `LeadsPage`)
 
 Jede weitere Datei ist ein Stopp-Punkt. Besonders unverändert bleiben
 `src/simulation/**`, `src/types/**`, `src/context/**`, `src/services/data/**`,
