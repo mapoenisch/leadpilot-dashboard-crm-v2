@@ -10540,3 +10540,64 @@ Alle Dateien liegen strikt unter dem 400-Zeilen-Grenzwert (Maximum: 293 Zeilen i
 
 - **Strikte Einhaltung:** Lokaler Stand auf Branch `feat/auftrag-067o-source-freshness`. Kein Push, kein PR, kein Merge nach `main`.
 - **Status:** **ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG (Gate G61 durch Codex / Claude Code)**.
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Unabhängiger Codex-Review — NICHT FREIGEGEBEN
+
+**Vergleich:** `3d44ef8..10005cf`
+**Review-Umfang:** Quellenwahrheit, Frische-/Fehlervertrag, Scope, A11y-/Screenshot-Nachweise
+und frische lokale Gates.
+
+### P1 — vor erneuter Prüfung beheben
+
+1. **Drei der vier Kernansichten zeigen nicht ihre eigene Provenienz.**
+   `DataSourceStatus.tsx:219-255` lädt ohne übergebenen Envelope immer
+   `useCrmReadModelEnvelope()`. Dieser Hook nimmt über `useCrmQueries.ts:39-64` die aktive
+   Registry-Quelle; `services/data/index.ts:9-15` registriert zuerst `simulated-crm`. Dadurch
+   zeigen `CRMView.tsx:30`, `ExecutiveDashboardPage.tsx:20,29` und
+   `LiveDashboardView.tsx:70` den alten CRM-Envelope bzw. dessen Fehler — nicht den G60-
+   Supabase-Query, die Executive-Baseline oder die Run-/Snapshot-Provenienz. Auf einem echten
+   Mandanten kann die CRM-Leiste daher „Synthetisch (Demo)“ oder „Nicht verfügbar“ zeigen,
+   obwohl die G60-Liste erfolgreich serverseitig geladen wurde. Die Statuskomponente muss ein
+   reiner Presenter bleiben; jede Seite liefert ausschließlich ihren bereits vorhandenen,
+   fachlich passenden Provenienzvertrag. Kein zusätzlicher Demo-/Envelope-Abruf als Ersatz.
+
+2. **Der verpflichtende visuelle und Axe-Nachweis fehlt.** Der lokale Ordner
+   `docs/screenshots/auftrag-067o-g61/` enthält nur `README.md`; die Matrix enthält keine
+   SHA-256-Hashes und keine nachprüfbare Harness-Ausführung. Der frische Lauf
+   `npx playwright test e2e/a11y.spec.ts` bricht vor Testbeginn ab, weil `E2E_AUTH_EMAIL`
+   fehlt. Den lokalen E2E-Seed bzw. die erlaubte Testkonfiguration reproduzierbar bereitstellen,
+   Axe für die G61-Routen erfolgreich ausführen und die textuelle Matrix mit Route, Viewport,
+   Hash und 0-px-Overflow aus dem tatsächlich ausgeführten Screenshot-Harness ergänzen.
+
+### P2 — mit der Nacharbeit schließen
+
+1. **Interne Fehlermeldungen können in die UI gelangen.**
+   `sourceFreshness.ts:180-198` übernimmt `error.message` in `errorCode` und
+   `statusDescription`; `DataSourceStatus.tsx:61-63,129` rendert den Wert. Ebenso gibt
+   `DataBasisPage.tsx:63-72` `error.message` direkt in `ManagementChartState` weiter. Nur
+   geschlossene, sichere Codes bzw. handlungsorientierte Texte dürfen sichtbar sein; SQL-,
+   Netzwerk- oder Service-Details müssen im Browser unterdrückt werden. Einen Negativtest mit
+   einer absichtlich sensitiven Fehlermeldung ergänzen.
+2. **Datenbasis umgeht den neuen `unavailable`-Vertrag.** Bei `isError || !envelope` kehrt
+   `DataBasisPage.tsx:63-72` vor beiden `DataSourceStatus`-Instanzen zurück. Damit erhält diese
+   Kernseite im Ausfall weder die standardisierte Statusregion noch deren `role="alert"`-
+   Verhalten. Den Fehlerpfad durch dieselbe sichere Statuskomponente führen und weiterhin keine
+   Counts, Hashes oder Ersatzdaten anzeigen.
+
+### Frische Prüfung
+
+- `npx tsc --noEmit`, `npm run verify`, `npm test` (**255 Dateien / 1364 Tests**) und
+  `npm run build` liefen auf `10005cf` erfolgreich.
+- `git diff --check 3d44ef8..10005cf` ist leer; der Schutzbereichs-Diff für
+  `src/simulation`, `src/types`, `src/context`, `src/features/resources`,
+  `src/services/db/crmRepository.ts`, `src/auth` und `src/features/auth` ist leer.
+- `npx playwright test e2e/a11y.spec.ts` startete nicht: `E2E_AUTH_EMAIL` ist lokal nicht
+  gesetzt. Das ist kein grüner A11y-Nachweis.
+
+### Ergebnis
+
+**Gate G61 bleibt nicht freigegeben.** Rückgabe an Antigravity für die zwei P1- und zwei
+P2-Befunde. Der Reviewer hat keinen Produktcode verändert sowie keinen Push, Pull Request,
+Merge oder Deploy ausgelöst.
