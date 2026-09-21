@@ -10976,3 +10976,46 @@ verändert sowie keinen Push, Pull Request, Merge oder Deploy ausgelöst.
 
 - **Bereit zur erneuten Prüfung (Gate G61 durch Codex / Claude Code).**
 - **Kein Push, kein Merge, kein PR.**
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Review 5 (Codex) — FREIGEGEBEN
+
+**Geprüfter Builder-Commit:** `7995a7e` (`fix(g61): add visible fetched timestamp to compact status and update tests`)
+**Review-Basis:** `3d44ef8` (G60)
+**Zweig:** `feat/auftrag-067o-source-freshness`
+
+### Ergebnis
+
+**Gate G61 ist freigegeben.** Der P1-Befund aus Review 4 ist behoben: Die gemeinsame
+kompakte Anzeige rendert nun sichtbar `Stand: {formattedFetchedAt}`. Sie wird auf allen
+produktiven CRM-Routen eingebunden (`LeadsPage`, `CompaniesPage`, `DealsPage`,
+`ActivitiesPage`), sodass Quelle, Modus, Status, Datenalter und letzter erfolgreicher
+Abruf jeweils sichtbar sind. Der Ressourcenwechsel Kontakte → fehlerhafte Deals →
+Kontakte prüft außerdem den Wechsel Zeitstempel → `Nicht verfügbar` → Zeitstempel.
+
+### Unabhängig ausgeführte Gates
+
+- Gezielte neue UI-Tests: **2 Dateien / 6 Tests** grün.
+- TypeScript, ESLint und Prettier: grün.
+- Integrität: `npm run verify` mit **25/25 Suiten** grün.
+- Gesamttests: `npm test` mit **257 Dateien / 1380 Tests** grün.
+- Produktions-Build: grün.
+- Datenbank: `npx supabase test db` mit **5 Dateien / 122 Tests** grün.
+- Edge Functions: Deno mit **59 Tests** grün.
+- Axe-A11y: **18/18** grün, keine critical/serious Verstöße.
+- Screenshot-/Overflow-Harness: **12/12 Captures**, jeder mit **0 px horizontalem
+  Overflow**. Die mobile CRM-Leads-Ansicht wurde zusätzlich visuell geprüft.
+- `git diff --check 3d44ef8..7995a7e` sowie der Schutzbereichs-Diff für
+  `src/simulation`, `src/types`, `src/context`, `src/features/resources`,
+  `src/services/db/crmRepository.ts`, `src/auth` und `src/features/auth` sind leer.
+
+### Hinweis zum Screenshot-Nachweis
+
+Der sichtbare Abrufzeitpunkt ist absichtlich zeitabhängig. Daher unterscheiden sich die
+Pixel-Hashes der betroffenen CRM-Captures zwischen getrennten Harness-Läufen, obwohl der
+Layout- und Overflow-Gate grün ist. Die Hashes sind als Laufprotokoll zu verstehen,
+nicht als stabiler Snapshot-Vergleich über verschiedene Abrufzeitpunkte.
+
+Der Reviewer hat keinen Produktcode verändert sowie keinen Push, Pull Request, Merge
+oder Deploy ausgelöst.
