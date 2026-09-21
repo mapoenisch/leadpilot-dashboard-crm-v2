@@ -60,6 +60,14 @@ function renderFreshnessBadge(state: ProvenanceState) {
     );
   }
 
+  if (state.isTimelessBaseline) {
+    return (
+      <Badge variant="neutral" size="sm" icon={<Clock size={12} aria-hidden="true" />}>
+        Snapshot: {state.ageText}
+      </Badge>
+    );
+  }
+
   switch (state.freshness) {
     case 'fresh':
       return (

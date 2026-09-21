@@ -246,13 +246,15 @@ describe('sourceFreshness', () => {
   });
 
   describe('Domain-specific provenance builders (P1-1)', () => {
-    it('derives executive cockpit provenance (Ebene A Baseline)', () => {
-      const execState = deriveExecutiveProvenanceState();
+    it('derives executive cockpit provenance (Ebene A Baseline) as timeless baseline', () => {
+      const execState = deriveExecutiveProvenanceState(BASE_TIME);
       expect(execState.sourceKind).toBe('file');
       expect(execState.sourceLabel).toBe('LeadPilot Baseline (Ebene A)');
       expect(execState.isSynthetic).toBe(false);
+      expect(execState.isTimelessBaseline).toBe(true);
       expect(execState.status).toBe('healthy');
-      expect(execState.freshness).toBe('fresh');
+      expect(execState.freshness).toBe('expired');
+      expect(execState.freshnessLabel).toBe('Historischer Snapshot');
       expect(execState.ageText).toBe('Stand 31.12.2025');
     });
 

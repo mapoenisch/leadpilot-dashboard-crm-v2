@@ -10715,3 +10715,50 @@ Frischevertrag, A11y-/Screenshot-Nachweise, Schutzbereiche und frische lokale Ga
 **Gate G61 bleibt nicht freigegeben.** Rückgabe an Antigravity für die drei P1-Befunde.
 Der Reviewer hat keinen Produktcode verändert sowie keinen Push, Pull Request, Merge oder
 Deploy ausgelöst.
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Nacharbeit 2 (Antigravity) — BEREIT ZUR ERNEUTEN PRÜFUNG
+
+**Rolle:** Builder (Antigravity)
+**Branch:** `feat/auftrag-067o-source-freshness`
+**Baseline:** `3d44ef8` (G60 Freigabe)
+
+### 1. Behebung der drei P1-Befunde aus Review 2
+
+1. **P1-1: CRM-Provenienz ist vollständig reaktiv & seitenspezifisch angebunden**
+   - **Reaktiver Hook:** Neuer Hook `useCrmProvenance(activeSubView)` in `src/features/crm/hooks/useCrmProvenance.ts` abonniert den TanStack QueryCache via `queryCache.subscribe(...)`.
+   - **Seitenspezifische Bindung:** Mappt Subviews auf die jeweilige Abfrage (`['crm', 'list', 'contacts']` für Leads/Kontakte, `['crm', 'list', 'companies']` für Unternehmen, `['crm', 'list', 'deals']` für Deals, `['crm', 'envelope']` für Aktivitäten).
+   - **Kein künstlicher Initialzustand:** Solange keine Abfrageergebnisse vorliegen oder Abfragen im Erstabruf sind, liefert der Hook `isLoading: true`, sodass `DataSourceStatus` wahrheitsgemäß `Lade Quellenstatus…` anzeigt, anstatt verfrüht "Gesund / Live" zu behaupten.
+   - **Reaktivität auf Fehler & dataUpdatedAt:** Schlägt eine Abfrage fehl, schaltet der Header reaktiv auf `unavailable` mit sanitisiertem Fehlercode um. Bei Datenankunft oder späteren Aktualisierungen wird der Timestamp reaktiv neu abgeleitet.
+   - **Testnachweis:** `src/features/crm/__tests__/CRMView.ui.vitest.tsx` (5/5 Tests) und `src/features/crm/hooks/__tests__/useCrmProvenance.ui.vitest.tsx` (4/4 Tests) beweisen Initialzustand, Datenankunft, Reaktionsfähigkeit auf Query-Fehler (`AUTH_REQUIRED`, `FORBIDDEN`) und Subview-Wechsel.
+
+2. **P1-2: Frischevertrag & Zeitlose Baseline im Executive Dashboard**
+   - **Zentrale Frischeklassifikation:** In `src/services/data/sourceFreshness.ts` wendet `deriveExecutiveProvenanceState(now)` die zentrale Klassifikation `classifyFreshness('2025-12-31T23:59:59.000Z', now)` an, die für historische Zeitstempel ehrlich `expired` ausgibt.
+   - **Modellierung als zeitlose Baseline:** `ProvenanceState` wurde um `isTimelessBaseline?: boolean` erweitert. `deriveExecutiveProvenanceState` setzt `isTimelessBaseline: true`, `freshnessLabel: 'Historischer Snapshot'` und `ageText: 'Stand 31.12.2025'`.
+   - **Neutrale Darstellung:** In `src/components/data/DataSourceStatus.tsx` rendert eine zeitlose Baseline einen neutralen Badge (`<Badge variant="neutral">Snapshot: {state.ageText}</Badge>`) ohne mintfarbenen "Frische: Aktuell"-Erfolgsstatus.
+   - **Testnachweis:** `sourceFreshness.vitest.ts`, `DataSourceStatus.ui.vitest.tsx` und `ExecutiveDashboardPage.ui.vitest.tsx` belegen die zeitlose Kennzeichnung und den Ausschluss irreführender Frischebehauptungen.
+
+3. **P1-3: Vollständiger Axe-Nachweis & erfolgreicher Playwright-Lauf**
+   - **Route-Abdeckung:** `e2e/a11y.spec.ts` wurde um die beiden G61-Kernrouten `/company/data-basis` und `/crm/live-simulation` erweitert (nun alle 4 G61-Kernrouten plus Bestandsrouten geprüft: 6 Routen insgesamt).
+   - **Baseline:** `e2e/a11y-baseline.json` um `/company/data-basis` und `/crm/live-simulation` ergänzt.
+   - **Seed-Ausführung & Playwright-Ergebnis:** Lokales Backend mit `supabase/seed.sql` validiert (`admin-a@e2e.local` / `TestPassword123!`). Playwright-A11y-Lauf: **18/18 Tests bestanden (Exit 0)** über alle 3 Viewports (1440, 768, 375). `test-results/.last-run.json` meldet `status: passed`.
+   - **Screenshot- & Overflow-Matrix:** Frische Ausführung von `scripts/captureGateG61Screenshots.mjs`: alle 12 Screenshots mit 0px horizontalem Overflow neu erfasst und SHA-256-Hashes in `docs/screenshots/auftrag-067o-g61/README.md` aktualisiert.
+
+### 2. Verifikations-Ergebnisse (Gates)
+
+- `npx tsc --noEmit`: **0 Fehler** (Exit 0).
+- `npm run lint`: **0 Warnungen, 0 Fehler** (Exit 0).
+- `npm run format:check`: **vollständig grün** (Exit 0).
+- `npm test`: **256 Dateien, 1378 Tests bestanden** (Exit 0).
+- `npm run verify`: **25/25 Suiten bestanden** (Exit 0).
+- `deno test --allow-env --allow-net --allow-read supabase/functions/`: **59/59 Tests bestanden** (Exit 0).
+- `npx supabase test db`: **122/122 Tests bestanden** (Exit 0).
+- `npx playwright test e2e/a11y.spec.ts`: **18/18 Tests bestanden** (Exit 0).
+- **Schutzbereich-Diff:** `git diff 3d44ef8 -- src/simulation src/types src/context src/features/resources src/services/db/crmRepository.ts src/auth src/features/auth` liefert **exakt 0 Zeilen Diff**.
+- **Dateilängen:** Alle Dateien liegen strikt unter dem 400-Zeilen-Grenzwert (Maximum: 394 Zeilen in `sourceFreshness.ts`, 304 Zeilen in `LiveDashboardView.tsx`, 238 Zeilen in `DataSourceStatus.tsx`, 92 Zeilen in `useCrmProvenance.ts`).
+
+### Status
+
+- **Lokaler Stand auf Branch:** `feat/auftrag-067o-source-freshness`.
+- **Status:** **BEREIT ZUR ERNEUTEN PRÜFUNG (Gate G61 durch Codex / Claude Code)**.

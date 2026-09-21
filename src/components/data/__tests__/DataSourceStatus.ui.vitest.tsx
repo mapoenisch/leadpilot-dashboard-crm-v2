@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DataSourceStatus } from '../DataSourceStatus';
+import { deriveExecutiveProvenanceState } from '@/services/data/sourceFreshness';
 import type { CrmReadModelEnvelope } from '../../../types/dataSource';
 
 function renderWithClient(ui: React.ReactElement) {
@@ -105,5 +106,17 @@ describe('DataSourceStatus', () => {
     renderWithClient(<DataSourceStatus variant="compact" isLoading={true} />);
 
     expect(screen.getByText('Lade Quellenstatus…')).toBeDefined();
+  });
+
+  it('renders timeless baseline without false freshness claim', () => {
+    const baselineProvenance = deriveExecutiveProvenanceState(now);
+    renderWithClient(
+      <DataSourceStatus variant="compact" provenance={baselineProvenance} isLoading={false} />,
+    );
+
+    expect(screen.getByText('LeadPilot Baseline (Ebene A)')).toBeDefined();
+    expect(screen.getByText(/Snapshot: Stand 31.12.2025/)).toBeDefined();
+    // Must NOT claim "Frische: Aktuell"
+    expect(screen.queryByText(/Frische: Aktuell/)).toBeNull();
   });
 });

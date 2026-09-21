@@ -22,6 +22,7 @@ export interface ProvenanceState {
   sourceKind: SourceKind;
   sourceLabel: string;
   isSynthetic: boolean;
+  isTimelessBaseline?: boolean;
   status: CrmSourceHealth;
   statusLabel: string;
   statusDescription: string;
@@ -53,21 +54,22 @@ export function sanitizeErrorCode(
   if (rawError instanceof Error) {
     msg = rawError.message;
     if ((SAFE_ERROR_CODES as readonly string[]).includes(msg)) return msg as SafeErrorCode;
-    if ('code' in rawError && typeof (rawError as Record<string, unknown>).code === 'string') {
-      const code = (rawError as Record<string, unknown>).code as string;
-      if ((SAFE_ERROR_CODES as readonly string[]).includes(code)) return code as SafeErrorCode;
+    const errWithCode = rawError as Error & { code?: unknown };
+    if (
+      typeof errWithCode.code === 'string' &&
+      (SAFE_ERROR_CODES as readonly string[]).includes(errWithCode.code)
+    ) {
+      return errWithCode.code as SafeErrorCode;
     }
   } else if (typeof rawError === 'object' && rawError !== null) {
-    if ('code' in rawError && typeof (rawError as Record<string, unknown>).code === 'string') {
-      const code = (rawError as Record<string, unknown>).code as string;
-      if ((SAFE_ERROR_CODES as readonly string[]).includes(code)) return code as SafeErrorCode;
-    }
+    const rec = rawError as Record<string, unknown>;
     if (
-      'message' in rawError &&
-      typeof (rawError as Record<string, unknown>).message === 'string'
+      typeof rec.code === 'string' &&
+      (SAFE_ERROR_CODES as readonly string[]).includes(rec.code)
     ) {
-      msg = (rawError as Record<string, unknown>).message as string;
+      return rec.code as SafeErrorCode;
     }
+    if (typeof rec.message === 'string') msg = rec.message;
   }
 
   if (/auth|unauthorized|401/i.test(msg)) return 'AUTH_REQUIRED';
@@ -254,19 +256,22 @@ export function deriveProvenanceState(
   };
 }
 
-export function deriveExecutiveProvenanceState(): ProvenanceState {
+export function deriveExecutiveProvenanceState(now: number = Date.now()): ProvenanceState {
+  const fetchedAt = '2025-12-31T23:59:59.000Z';
+  const freshness = classifyFreshness(fetchedAt, now);
   return {
     sourceId: 'leadpilot-baseline-2025',
     sourceKind: 'file',
     sourceLabel: 'LeadPilot Baseline (Ebene A)',
     isSynthetic: false,
+    isTimelessBaseline: true,
     status: 'healthy',
     statusLabel: formatStatusLabel('healthy'),
     statusDescription: 'Geprüfte Geschäftsjahres-Baseline 2025 mit Ebene-C-Echtzeitfeed.',
-    freshness: 'fresh',
-    freshnessLabel: 'Gültig',
+    freshness,
+    freshnessLabel: 'Historischer Snapshot',
     ageText: 'Stand 31.12.2025',
-    fetchedAt: '2025-12-31T23:59:59.000Z',
+    fetchedAt,
     formattedFetchedAt: '31.12.2025, 23:59:59',
   };
 }
