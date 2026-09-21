@@ -124,10 +124,13 @@ jobs:
         uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
         with:
           version: 2.117.0
-      - name: Lokales Supabase-Backend starten und initialisieren
+      - name: Lokales Supabase-Backend mit deterministischem Seed initialisieren
         run: |
           cp supabase/schema.sql supabase/migrations/20260101000000_base_schema.sql
-          supabase start -x studio,imgproxy,storage-api,logflare,vector,supavisor,mailpit,postgres-meta
+          # `supabase start` startet nur Container; der Seed wird erst mit `db reset`
+          # zuverlässig auf die frische lokale DB angewendet. Ohne diesen Reset sind
+          # auth.users / organization_members leer und der Login-Setup bricht ab.
+          supabase db reset --yes
           eval $(supabase status -o env)
           echo "VITE_SUPABASE_URL=${API_URL}" >> $GITHUB_ENV
           echo "VITE_SUPABASE_ANON_KEY=${ANON_KEY}" >> $GITHUB_ENV
