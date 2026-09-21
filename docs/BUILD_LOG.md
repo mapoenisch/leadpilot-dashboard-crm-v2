@@ -10651,3 +10651,67 @@ Merge oder Deploy ausgelöst.
 
 - **Lokaler Stand auf Branch:** `feat/auftrag-067o-source-freshness`.
 - **Status:** **NACHGEARBEITET — BEREIT ZUR PRÜFUNG (Gate G61 durch Codex / Claude Code)**.
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Unabhängiger Codex-Review 2 — NICHT FREIGEGEBEN
+
+**Vergleich:** `3d44ef8..64335a9`
+**Review-Umfang:** Nacharbeit auf die vier vorherigen Befunde, Quellenwahrheit,
+Frischevertrag, A11y-/Screenshot-Nachweise, Schutzbereiche und frische lokale Gates.
+
+### P1 — vor erneuter Prüfung beheben
+
+1. **CRM-Provenienz reagiert nicht auf das Ergebnis der fachlichen G60-Abfrage.**
+   `CRMView.tsx:27-36` liest den TanStack-Query-Cache synchron mit
+   `queryClient.getQueryCache().findAll()` und abonniert weder Cache- noch
+   Query-Updates. Beim ersten Render liegt die Liste noch leer vor (die Unterseite startet
+   ihre `useCrmListQuery()` erst danach); damit wird dauerhaft der künstliche Zustand
+   `healthy` mit `Live` abgeleitet. Ein späterer Query-Fehler oder der echte
+   `dataUpdatedAt` der G60-Listen löst im Parent kein Re-Render aus. Die Kopfzeile kann
+   deshalb weiter „Supabase CRM / Gesund / Live“ melden, während die angezeigte CRM-Liste
+   fehlgeschlagen oder veraltet ist. Die Provenienz muss aus einem reaktiven,
+   seitenspezifischen Vertrag der tatsächlich gerenderten Listenabfrage stammen; ein Test
+   muss erst einen Query-Fehler bzw. Aktualisierungszeitpunkt setzen und dann den sichtbaren
+   Status beweisen.
+
+2. **Der Frischevertrag wird im Executive Dashboard umgangen.**
+   `deriveExecutiveProvenanceState()` in `sourceFreshness.ts:257-271` setzt für einen
+   festen Abrufzeitpunkt vom `2025-12-31` ungeachtet von `now` `freshness: 'fresh'`,
+   mintfarbenen Erfolgsstatus und „Gültig“. Das widerspricht der verpflichtenden
+   Klassifikation (`fresh` nur bis 15 Minuten, sonst `stale` bzw. `expired`) und kann einen
+   historischen Stand wie einen aktuellen Live-Zustand darstellen. Die zentrale
+   Klassifikation auch dort anwenden oder den historischen Snapshot ausdrücklich als
+   zeitlose Baseline ohne Frischebehauptung modellieren.
+
+3. **Der dokumentierte Axe-Nachweis deckt zwei verpflichtende Kernseiten nicht ab und
+   der frische lokale Lauf ist nicht grün.** `e2e/a11y.spec.ts:16` prüft nur
+   `/dashboard`, `/crm/leads`, `/finance/p-and-l` und `/market/overview`; die G61-Routen
+   `/company/data-basis` und `/crm/live-simulation` fehlen. Dennoch behauptet die
+   Screenshot-Matrix einen Nachweis für alle vier Kernseiten. Zusätzlich meldet der
+   unmittelbar nach dem Review ausgeführte Lauf mit dem dokumentierten Seed-Testkonto in
+   `test-results/.last-run.json` den Status `failed` (ohne ausgeführte Einzelfälle).
+   Die A11y-Suite muss die vier G61-Routen tatsächlich prüfen; erst ein frischer erfolgreicher
+   Lauf über alle drei Viewports ist ein belastbarer Gate-Nachweis.
+
+### Frische Prüfung
+
+- `npx tsc --noEmit`: erfolgreich (Exit 0).
+- `npm run lint`: erfolgreich, 0 Warnungen (Exit 0).
+- `npm run format:check`: erfolgreich (Exit 0).
+- `npm run verify`: 25/25 Integritätssuiten erfolgreich (Exit 0).
+- `npm test`: **255 Dateien / 1370 Tests** erfolgreich (Exit 0; erwartete jsdom-Ausgaben
+  aus Error-Boundary-Tests bleiben im Protokoll).
+- `npm run build`: erfolgreich (Exit 0).
+- `git diff --check 3d44ef8..64335a9`: leer.
+- Schutzbereichs-Diff für `src/simulation`, `src/types`, `src/context`,
+  `src/features/resources`, `src/services/db/crmRepository.ts`, `src/auth` und
+  `src/features/auth`: leer.
+- Die zwölf lokal vorhandenen Screenshot-Dateien stimmen bytegenau mit den SHA-256-Werten
+  der G61-Matrix überein; das ersetzt den fehlenden vollständigen Axe-Nachweis nicht.
+
+### Ergebnis
+
+**Gate G61 bleibt nicht freigegeben.** Rückgabe an Antigravity für die drei P1-Befunde.
+Der Reviewer hat keinen Produktcode verändert sowie keinen Push, Pull Request, Merge oder
+Deploy ausgelöst.
