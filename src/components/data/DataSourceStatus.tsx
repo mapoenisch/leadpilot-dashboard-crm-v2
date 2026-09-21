@@ -233,6 +233,14 @@ export function DataSourceStatus({
       </Badge>
       {renderHealthBadge(state)}
       {renderFreshnessBadge(state)}
+      {state.formattedFetchedAt && (
+        <span
+          data-testid="data-source-timestamp"
+          className="text-[11px] text-[var(--color-text-dim)] font-mono whitespace-nowrap"
+        >
+          Stand: {state.formattedFetchedAt}
+        </span>
+      )}
     </div>
   );
 }

@@ -25,18 +25,18 @@ Gemessen mit Chromium über Vite Preview (Port 4321), authentifiziert mit lokale
 
 | Route | Viewport | Datei | SHA-256 Hash | Horizontal Overflow | Befund |
 |---|---|---|---|---|---|
-| `/dashboard` | 1440px (1440×900) | `dashboard-1440.png` | `f8e60a4b4c8814e2fe11dc09520bebbf1d8487df483a19687dd95f85b8016c02` | 0px | 0px Overflow, WCAG AA konform |
-| `/dashboard` | 768px (768×1024) | `dashboard-768.png` | `acd051f36cceff303bb387ae04412e9eb7c160d4573fe0cdc941eba5e596d403` | 0px | 0px Overflow, WCAG AA konform |
-| `/dashboard` | 375px (375×812) | `dashboard-375.png` | `5b9d0f1aec10b5e5fd82aa01dd0f3772d3726c3b4c73f2fcc31fe70861635c30` | 0px | 0px Overflow, WCAG AA konform |
-| `/company/data-basis` | 1440px (1440×900) | `company-data-basis-1440.png` | `6e6a0a0e546a8471b627c993e499af4a427338b5b1358c988d0fbee73946f089` | 0px | 0px Overflow, WCAG AA konform |
-| `/company/data-basis` | 768px (768×1024) | `company-data-basis-768.png` | `885f930be4e874a5f7e185ab189429f4385ae3d66e74b7bf921e06669ed8e218` | 0px | 0px Overflow, WCAG AA konform |
-| `/company/data-basis` | 375px (375×812) | `company-data-basis-375.png` | `9205a6e43307d77dceca7651b457da268d899eba6788de7f4d39a85d01a4999e` | 0px | 0px Overflow, WCAG AA konform |
-| `/crm/leads` | 1440px (1440×900) | `crm-leads-1440.png` | `a6e1fe3a93f80d426ebded8bd26411997e3e9bbd9fe2b029bb2aff349bfaf454` | 0px | 0px Overflow, WCAG AA konform |
-| `/crm/leads` | 768px (768×1024) | `crm-leads-768.png` | `80c227c1050c6a86d897e7b38c78b6ebba7963d21635b0185a35478a8f9e5208` | 0px | 0px Overflow, WCAG AA konform |
-| `/crm/leads` | 375px (375×812) | `crm-leads-375.png` | `c1aedf14add3b035a427151a84861c1ba2fe271cd6656674533ceef9f0047252` | 0px | 0px Overflow, WCAG AA konform |
-| `/crm/live-simulation` | 1440px (1440×900) | `crm-live-simulation-1440.png` | `adecae322ccc5926d780885d84c9a9eb154c4b7de7795ec9046032fbaa665809` | 0px | 0px Overflow, WCAG AA konform |
-| `/crm/live-simulation` | 768px (768×1024) | `crm-live-simulation-768.png` | `1a2c781b869be856084d6921c67e2ba448d5a7d8cd492e2b8e9882344e17288d` | 0px | 0px Overflow, WCAG AA konform |
-| `/crm/live-simulation` | 375px (375×812) | `crm-live-simulation-375.png` | `279100cbabd816ff27cf70fc1301592c714265741681b61ded1e37e36778bcb7` | 0px | 0px Overflow, WCAG AA konform |
+| `/dashboard` | 1440px (1440×900) | `dashboard-1440.png` | `210d6d00ea329a3fb316e77b80b018635aab2e505efb2c85b50c37241af922a0` | 0px | 0px Overflow, WCAG AA konform |
+| `/dashboard` | 768px (768×1024) | `dashboard-768.png` | `56a8f6de578d7e95b4275bf1de9df63ac123b655321902380279d8023abc7c6f` | 0px | 0px Overflow, WCAG AA konform |
+| `/dashboard` | 375px (375×812) | `dashboard-375.png` | `089ce0d46e13f9c61502745a287dafd19e5c65eea3f6ca71e46bb28b3b574be3` | 0px | 0px Overflow, WCAG AA konform |
+| `/company/data-basis` | 1440px (1440×900) | `company-data-basis-1440.png` | `72854e8b85d7ad0322f734ff5fa0f12f22f67df6c1e1fc6515c4b1b0ddab276f` | 0px | 0px Overflow, WCAG AA konform |
+| `/company/data-basis` | 768px (768×1024) | `company-data-basis-768.png` | `c77242c63c7cb724079bd0c686139f34ff8bf3694fcd0d743fdf2b67e66b1eb4` | 0px | 0px Overflow, WCAG AA konform |
+| `/company/data-basis` | 375px (375×812) | `company-data-basis-375.png` | `1b8486d04706a46776a839fec82b4963d032fd2c3d20b3c16b95d3c854ae2911` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/leads` | 1440px (1440×900) | `crm-leads-1440.png` | `8775d71f1d25ddf74b42d814cf0aa08ef25efd633740f6548189c3ccdc3700ce` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/leads` | 768px (768×1024) | `crm-leads-768.png` | `b08e32458fe3097ae2f431bc321b5080d874d66fe761a35b31249c50298cfcb2` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/leads` | 375px (375×812) | `crm-leads-375.png` | `7ad403444794c9d2b36594b9a2bc52f917a3c908ff179f058c764cea5a78cc6b` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/live-simulation` | 1440px (1440×900) | `crm-live-simulation-1440.png` | `c460e3bc2e1e08817935f14fa7bb95c413a61a2de81befed1c711c330ec29ab7` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/live-simulation` | 768px (768×1024) | `crm-live-simulation-768.png` | `82254c51dd98d5c5c682f9f6e3b25d16db38e41af1cb57adb97f68cfa136b3a2` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/live-simulation` | 375px (375×812) | `crm-live-simulation-375.png` | `32cf47125d645b946dec6ff0574c1dcb0dfd002c2b8b9664d0c643d476ca17c7` | 0px | 0px Overflow, WCAG AA konform |
 
 ---
 

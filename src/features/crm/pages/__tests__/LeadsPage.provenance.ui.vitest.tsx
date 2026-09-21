@@ -47,14 +47,21 @@ describe('LeadsPage Provenance & Tab Switch Reactive Tracking (P1-1)', () => {
     }) as never);
   });
 
-  it('dynamically switches DataSourceStatus from healthy to unavailable when navigating from healthy Contacts to errored Funnel Deals', () => {
+  it('dynamically switches DataSourceStatus and timestamp when navigating from healthy Contacts to errored Funnel Deals', () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
 
-    // 1. Contacts query in TanStack Query Cache is healthy
-    queryClient.setQueryData(['crm', 'list', 'contacts', { page: 1 }], {
-      items: [{ id: 'p1' }],
+    // 1. Contacts query in TanStack Query Cache is healthy with concrete timestamp
+    const now = Date.now();
+    const contactsTime = now - 2 * 60 * 1000;
+    const contactsQuery = queryClient.getQueryCache().build(queryClient, {
+      queryKey: ['crm', 'list', 'contacts', { page: 1 }],
+    });
+    contactsQuery.setData({ items: [{ id: 'p1' }] });
+    contactsQuery.setState({
+      status: 'success',
+      dataUpdatedAt: contactsTime,
     });
 
     // 2. Deals query in TanStack Query Cache is errored (FORBIDDEN)
@@ -74,26 +81,29 @@ describe('LeadsPage Provenance & Tab Switch Reactive Tracking (P1-1)', () => {
       </QueryClientProvider>,
     );
 
-    // Initial state on Contacts tab: query succeeds -> DataSourceStatus is healthy
+    // Initial state on Contacts tab: query succeeds -> DataSourceStatus is healthy with visible timestamp
     const statusContainer = screen.getByTestId('data-source-status');
     expect(statusContainer).toHaveTextContent('Supabase CRM');
     expect(statusContainer).toHaveTextContent(/Status: Gesund/i);
     expect(statusContainer).toHaveTextContent(/Frische: Aktuell/i);
+    expect(statusContainer).toHaveTextContent(/Stand:\s*21\.09\.2026/);
 
     // 2. Click "Funnel Deals" tab
     const dealsTab = screen.getByRole('tab', { name: 'Funnel Deals' });
     fireEvent.click(dealsTab);
 
-    // 3. Negative contract: DataSourceStatus MUST dynamically track the deals resource and switch to unavailable with sanitized error code
+    // 3. Negative contract: DataSourceStatus MUST dynamically track the deals resource and switch to unavailable with sanitized error code and 'Nicht verfügbar' timestamp
     expect(statusContainer).toHaveTextContent(/Status: Nicht verfügbar/i);
     expect(statusContainer).toHaveTextContent(/FORBIDDEN/);
+    expect(statusContainer).toHaveTextContent('Stand: Nicht verfügbar');
 
     // 4. Click back to "Kontakte" tab
     const contactsTab = screen.getByRole('tab', { name: 'Kontakte' });
     fireEvent.click(contactsTab);
 
-    // 5. DataSourceStatus immediately recovers to healthy
+    // 5. DataSourceStatus immediately recovers to healthy with exact timestamp
     expect(statusContainer).toHaveTextContent(/Status: Gesund/i);
     expect(statusContainer).toHaveTextContent('Supabase CRM');
+    expect(statusContainer).toHaveTextContent(/Stand:\s*21\.09\.2026/);
   });
 });

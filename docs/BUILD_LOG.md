@@ -10931,3 +10931,48 @@ wurde deshalb nicht erneut als Ersatznachweis gewertet.
 **Gate G61 bleibt nicht freigegeben.** Rückgabe an Antigravity für den P1-Befund und
 einen reproduzierbar grünen UI-Gate-Nachweis. Der Reviewer hat keinen Produktcode
 verändert sowie keinen Push, Pull Request, Merge oder Deploy ausgelöst.
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Nacharbeit 4 (Builder-Bericht Antigravity) — BEREIT ZUR ERNEUTEN PRÜFUNG
+
+**Review-Basis:** `bd9cfd7` (Review 4)
+**Zweig:** `feat/auftrag-067o-source-freshness`
+**Schutzbereichs-Basis:** `3d44ef8`
+**Arbeitsbaum:** Vollständig committet (Working Tree Clean)
+
+### 1. Behebung P1-1 (Sichtbarer Abrufzeitpunkt auf allen produktiven CRM-Seiten)
+
+1. **Kompakte Statusanzeige (`src/components/data/DataSourceStatus.tsx`):**
+   - In der `compact`-Variante wird nun `state.formattedFetchedAt` explizit als Zeitstempel gerendert:
+     `<span data-testid="data-source-timestamp" className="text-[11px] text-[var(--color-text-dim)] font-mono whitespace-nowrap">Stand: {state.formattedFetchedAt}</span>`.
+   - Da alle vier produktiven CRM-Routen (`LeadsPage.tsx`, `CompaniesPage.tsx`, `DealsPage.tsx`, `ActivitiesPage.tsx`) `<DataSourceStatus variant="compact">` einbinden, verfügen nun alle vier Routen über den geforderten konkreten „Stand“-Zeitstempel.
+   - Bei erfolgreichem Abruf zeigt die Anzeige das exakte Datum und die Uhrzeit (z. B. `Stand: 21.09.2026, 22:15:00`), bei Fehler `Stand: Nicht verfügbar` und bei Streaming `Stand: Live`.
+
+2. **UI-Tests & Absicherung des Ressourcenwechsels:**
+   - `src/components/data/__tests__/DataSourceStatus.ui.vitest.tsx`: Test erweitert; prüft explizit das Vorhandensein des `Stand:`-Zeitstempels in der kompakten Variante.
+   - `src/features/crm/pages/__tests__/LeadsPage.provenance.ui.vitest.tsx`: Test erweitert; weist nach, dass auf dem Kontakte-Tab ein konkreter Zeitstempel (`Stand: 21.09.2026...`) angezeigt wird, beim Wechsel auf die fehlerhafte Funnel-Deals-Ressource (`FORBIDDEN`) sofort auf `Stand: Nicht verfügbar` umgeschaltet wird und beim Rückwechsel auf Kontakte der konkrete Zeitstempel wiederhergestellt wird.
+
+3. **E2E-Login-Setup & UI-Gate-Nachweis:**
+   - `.env` wurde für lokale Entwicklungs- und Testläufe mit der lokalen Supabase-URL (`http://127.0.0.1:54321`) und dem gültigen Anon-Key konfiguriert. Damit bauen `npm run build` und `vite preview` standardmäßig gegen das lokale Backend, sodass der E2E-Login von `admin-a@e2e.local` deterministisch durchläuft.
+   - `playwright test e2e/a11y.spec.ts`: **18/18 Tests bestanden** (Exit 0, 13.1s; 0 critical/serious Axe-Verstöße über alle 6 Routen und alle 3 Viewports).
+   - Screenshot- & Overflow-Harness `node scripts/captureGateG61Screenshots.mjs`: Alle 12 Captures erfolgreich erstellt, **exakt 0 px horizontaler Overflow** (1440px, 768px, 375px). Alle 12 SHA-256-Hashes in `docs/screenshots/auftrag-067o-g61/README.md` aktualisiert.
+
+### 2. Verifikationsergebnisse aller Qualitäts-Gates
+
+- **TypeScript:** `npx tsc --noEmit` mit **0 Fehlern** (Exit 0).
+- **Lint & Format:** `npm run lint && npm run format:check` mit **0 Warnungen**, Prettier 100% konform (Exit 0).
+- **Integritätssuiten:** `npm run verify` (**25/25 Suiten bestanden**, Exit 0).
+- **Vollständige Test-Suite:** `npm test` (**257 Testdateien / 1380 Tests bestanden**, Exit 0, 22.7s).
+- **Produktions-Build:** `npm run build` erfolgreich (Exit 0, 3.06s).
+- **Edge Functions:** `deno test --allow-env --allow-net --allow-read supabase/functions/` (**59/59 Tests bestanden**, Exit 0, 180ms).
+- **Datenbank pgTAP:** `npx supabase test db` (**5 Dateien / 122 Tests bestanden**, Exit 0).
+- **Axe-Accessibility E2E:** `E2E_AUTH_EMAIL="admin-a@e2e.local" E2E_AUTH_PASSWORD="TestPassword123!" npx playwright test e2e/a11y.spec.ts`: **18/18 Tests bestanden** (Exit 0, 13.1s).
+- **Screenshot- & Overflow-Harness:** `node scripts/captureGateG61Screenshots.mjs`: **12/12 Captures, exakt 0 px Overflow**.
+- **Schutzbereich-Diff:** `git diff 3d44ef8 -- src/simulation src/types src/context src/features/resources src/services/db/crmRepository.ts src/auth src/features/auth` liefert **exakt 0 Zeilen Diff**.
+- **Dateilängen:** Alle Dateien liegen strikt unter dem 400-Zeilen-Grenzwert (`DataSourceStatus.tsx`: 246, `LeadsPage.tsx`: 398, `CompaniesPage.tsx`: 398, `DealsPage.tsx`: 378, `ActivitiesView.tsx`: 355, `sourceFreshness.ts`: 394, `useCrmProvenance.ts`: 96, `ActivitiesPage.tsx`: 14).
+
+### 3. Status
+
+- **Bereit zur erneuten Prüfung (Gate G61 durch Codex / Claude Code).**
+- **Kein Push, kein Merge, kein PR.**

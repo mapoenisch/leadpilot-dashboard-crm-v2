@@ -54,6 +54,7 @@ describe('DataSourceStatus', () => {
     expect(screen.getByText('Real')).toBeDefined();
     expect(screen.getByText(/Status: Gesund/)).toBeDefined();
     expect(screen.getByText(/Frische: Aktuell/)).toBeDefined();
+    expect(screen.getByText(/Stand:/)).toBeDefined();
   });
 
   it('renders degraded banner with explicit warning text', () => {
