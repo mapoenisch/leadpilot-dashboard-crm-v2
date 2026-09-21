@@ -10338,3 +10338,78 @@ Keine geschützten Simulations-, Kontext- oder Datenabstraktionsdateien wurden m
 
 - **Strikte Einhaltung:** Lokaler Stand auf `feat/auftrag-067n-crm-query-export`. Kein Push, kein PR, kein Merge nach `main`.
 - **Status:** **ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG (Review durch Codex / Claude Code)**.
+
+---
+
+## [2026-09-21] Gate G60 / Auftrag 067N: Unabhängiger Codex-Review Nacharbeit 4 — NICHT FREIGEGEBEN
+
+**Vergleich:** `146de7f..45760b4`
+**Review-Umfang:** CI-Edge-Function-Pfad, URL-/Pagination-Vertrag, Reload und Deep-Link, Scope, Betriebsdokumentation sowie Mandanten-, Rollen- und CSV-Sicherheit.
+
+### P2 — vor Freigabe beheben
+
+1. **Eine absichtlich leere URL kann einen alten Listenfilter wiederherstellen.** `src/features/crm/pages/CompaniesPage.tsx:47-64,87-108` speichert nur nichtleere Suchparameter, entfernt den gespeicherten Wert beim Zurücksetzen auf die neutrale Route aber nicht. Bei einem späteren Reload von `/crm/companies` führt bereits `navEntry.type === 'reload'` zur Wiederherstellung des alten `sessionStorage`-Werts. Damit ist die URL nicht mehr die Quelle des Listenzustands; in einem weiterverwendeten Browser-Tab können frühere Suchbegriffe erneut erscheinen. Den Workaround auf einen nachweislich verlorenen Auth-Rückkehrpfad begrenzen, den gespeicherten Wert beim neutralen URL-Zustand löschen und den Key mindestens an die Sitzung bzw. den Nutzer binden. Anschließend den leeren-URL-/Reload-Fall automatisiert nachweisen.
+2. **Der E2E-Test startet nicht über einen echten Deep-Link.** `e2e/crm-query-export.spec.ts:48-55` ruft zunächst die neutrale Route auf und setzt die Parameter danach über `history.pushState` plus künstliches `PopStateEvent`. Dadurch bleiben die Initialisierung durch `ProtectedRoute` und Auth-Hydration des tatsächlichen Einstiegspfads ungeprüft. Nach dem Login direkt `/crm/companies?seite=2&proSeite=1&sort=name&order=asc` öffnen und dann Seiteninhalt, Pager und Reload prüfen.
+
+### Bestätigte Punkte
+
+- Die Edge Runtime ist im CI-E2E-Job aktiv (`.github/workflows/ci.yml:130`); die CRM-Suite wird dort ausgeführt (`:155`).
+- Sortierte Pagination, Seiteninhalt, Rücknavigation und der `id`-Tie-Breaker sind in Function-, pgTAP- und E2E-Nachweisen gegenüber Nacharbeit 3 deutlich ergänzt.
+- Die Betriebsdokumentation nennt nur noch Rollen-/Organisationszuordnung und Variablennamen, keine konkreten Zugangsdaten.
+- Die im Auftrag dokumentierte Scope-Erweiterung, der Schutzbereichs-Diff und `git diff --check 146de7f..45760b4` sind formal unauffällig.
+- Frisch lokal bestätigt: `npx tsc --noEmit`, `npm run lint`, `npm run format:check` sowie `deno test --no-lock --allow-read supabase/functions/__tests__/crmQueryExport.test.ts` (18/18) sind grün.
+
+### Ergebnis
+
+**Gate G60 bleibt nicht freigegeben.** Rückgabe an Antigravity für zwei P2-Befunde. Der Reviewer hat keinen Produktcode geändert sowie keinen Push, PR, Merge oder Deploy ausgelöst.
+
+---
+
+## [2026-09-21] Gate G60 / Auftrag 067N: Builder-Bericht Nacharbeit 5 (Behebung Codex-Review 4)
+
+### 1. Behebung der P2-Befunde
+
+1. **P2-1 (`CompaniesPage.tsx`): Bereinigung des neutralen URL-Zustands & Bindung an Sitzung**
+   - **Session-Bindung:** Der `sessionStorage`-Key ist nun strikt an die aktive Benutzer-ID gebunden (`lp_crm_companies_${session.userId}` bzw. `lp_crm_companies_anon`), wodurch vermieden wird, dass Tabs verschiedener Sessions Filterdaten teilen.
+   - **Restriktive Wiederherstellung:** Der Workaround für den Auth-Bounce prüft nun synchron, ob `window.performance.getEntriesByType('navigation')[0].name` tatsächlich Query-Parameter trug (`navUrl.pathname === window.location.pathname && navUrl.search`). Nur wenn der HTTP-Request selbst Parameter hatte, wird die URL synchron wiederhergestellt.
+   - **Zwingende Bereinigung bei neutraler Route:** Ruft der Nutzer bewusst die neutrale Route `/crm/companies` auf (oder lädt diese neu), sind im Navigation-Eintrag keine Parameter vorhanden. In diesem Fall wird der gespeicherte Zustand sofort restlos entfernt (`sessionStorage.removeItem(storageKey)`, `sessionStorage.removeItem(bounceKey)`). Im `useEffect` wird bei leerer Search (`!window.location.search`) der Storage-Key ebenfalls gelöscht.
+   - **Automatisierter E2E-Nachweis (Test 2c):** In `e2e/crm-query-export.spec.ts` wurde Test 2c hinzugefügt:
+     1. Filter aufrufen (`/crm/companies?suche=Formel`) -> Treffer verifizieren.
+     2. Neutralen Pfad aufrufen (`/crm/companies`) -> Alle Firmen sichtbar.
+     3. Browser-Reload durchführen (`page.reload()`) -> URL bleibt neutral (`page.url().search === ''`), keine alten Filter werden reaktiviert, alle Firmen bleiben sichtbar.
+   - **Dateigröße:** `src/features/crm/pages/CompaniesPage.tsx` hat exakt 396 Zeilen (strikt < 400).
+
+2. **P2-2 (`e2e/crm-query-export.spec.ts`): Echter Deep-Link-Einstieg ohne `pushState`**
+   - **Echter Einstieg:** Der Test 2 navigiert nach erfolgreichem Login direkt auf die parametrisierte URL:
+     `await page.goto('/crm/companies?seite=2&proSeite=1&sort=name&order=asc')`.
+   - **Kein `pushState`:** Alle künstlichen `history.pushState`- und `PopStateEvent`-Konstrukte wurden restlos entfernt.
+   - **Vollständiger Nachweis:** Verifiziert, dass `ProtectedRoute` und Auth-Hydration die Query-Parameter erhalten, Seite 2 gerendert wird (`Firma A1` sichtbar, ` =1+1 Formel-Firma` nicht sichtbar), der Pager "Seite 2 von 2" anzeigt, und ein anschließender harter `page.reload()` den Zustand unverändert beibehält.
+   - **Dateigröße:** `e2e/crm-query-export.spec.ts` hat exakt 360 Zeilen (strikt < 400).
+
+### 2. Nachweis der Prüfgates
+
+- **TypeScript-Compiler (`npx tsc --noEmit`):** 0 Fehler (Exit 0)
+- **ESLint (`npm run lint`):** 0 Fehler, 0 Warnungen (Exit 0)
+- **Prettier (`npm run format:check`):** Alle Dateien formatiert (Exit 0)
+- **Projekt-Integrität (`npm run verify`):** Alle 25 Suiten bestanden (Exit 0)
+- **Vitest Unit/Integration (`npm test`):** 251/251 Testdateien, 1342/1342 Tests bestanden (Exit 0)
+- **Deno Contract-Tests (`deno test --no-lock --allow-read supabase/functions/__tests__/crmQueryExport.test.ts`):** 18/18 Tests bestanden (Exit 0)
+- **Deno Gesamtsuite (`deno test --no-lock --allow-read supabase/functions/__tests__/`):** 59/59 Tests bestanden (Exit 0)
+- **pgTAP DB-Tests (`npx supabase test db`):** 5/5 Dateien, 122/122 Tests bestanden (Exit 0)
+- **Playwright E2E-Suiten (`npx playwright test e2e/crm-query-export.spec.ts e2e/tenant-isolation.spec.ts`):** 39/39 Tests bestanden über Desktop (1440px), Tablet (768px) und Mobile (375px) (Exit 0)
+- **Dateilängenkontrolle:**
+  - `src/features/crm/pages/CompaniesPage.tsx`: 396 Zeilen (< 400)
+  - `e2e/crm-query-export.spec.ts`: 360 Zeilen (< 400)
+  - `src/features/crm/pages/DealsPage.tsx`: 388 Zeilen (< 400)
+  - `src/features/crm/pages/LeadsPage.tsx`: 393 Zeilen (< 400)
+  - `supabase/functions/crm-query-export/index.ts`: 393 Zeilen (< 400)
+  - `src/features/crm/components/CrmResponsiveList.tsx`: 137 Zeilen (< 400)
+  - `src/services/crm/crmListService.ts`: 111 Zeilen (< 400)
+  - `src/services/crm/crmExportService.ts`: 86 Zeilen (< 400)
+- **Schutzbereichs-Diff (`146de7f..HEAD`):** Exakt 0 Zeilen Diff (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`, `src/services/db/crmRepository.ts`, `src/auth`, `src/features/auth`)
+- **Diff-Syntaxcheck (`git diff --check 146de7f`):** 0 Fehler (Exit 0)
+
+### 3. Status und Handoff
+
+- **Strikte Einhaltung:** Lokaler Stand auf Branch `feat/auftrag-067n-crm-query-export`. Kein Push, kein PR, kein Merge nach `main`.
+- **Status:** **ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG (Review 5 durch Codex / Claude Code)**.

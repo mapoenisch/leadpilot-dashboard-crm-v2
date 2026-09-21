@@ -15,48 +15,58 @@ import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
 
+const BASE_INDUSTRIES =
+  'IT,Maschinenbau,Automotive,Finanzen,Consulting,Handel,Gesundheitswesen,Logistik'.split(',');
 const BASE_INDUSTRY_OPTIONS: SelectOption[] = [
   { value: 'ALL', label: 'Alle Branchen' },
-  { value: 'IT', label: 'IT' },
-  { value: 'Maschinenbau', label: 'Maschinenbau' },
-  { value: 'Automotive', label: 'Automotive' },
-  { value: 'Finanzen', label: 'Finanzen' },
-  { value: 'Consulting', label: 'Consulting' },
-  { value: 'Handel', label: 'Handel' },
-  { value: 'Gesundheitswesen', label: 'Gesundheitswesen' },
-  { value: 'Logistik', label: 'Logistik' },
+  ...BASE_INDUSTRIES.map((i) => ({ value: i, label: i })),
 ];
 
-const COMPANY_SORT_OPTIONS: SelectOption[] = [
-  { value: 'name', label: 'Unternehmensname' },
-  { value: 'city', label: 'Stadt' },
-  { value: 'employee_count', label: 'Mitarbeiter' },
-  { value: 'created_at', label: 'Erstelldatum' },
-];
+const toOptions = (arr: [string, string][]): SelectOption[] =>
+  arr.map(([value, label]) => ({ value, label }));
 
-const ORDER_OPTIONS: SelectOption[] = [
-  { value: 'asc', label: 'Aufsteigend (A-Z)' },
-  { value: 'desc', label: 'Absteigend (Z-A)' },
-];
+const COMPANY_SORT_OPTIONS = toOptions([
+  ['name', 'Unternehmensname'],
+  ['city', 'Stadt'],
+  ['employee_count', 'Mitarbeiter'],
+  ['created_at', 'Erstelldatum'],
+]);
+
+const ORDER_OPTIONS = toOptions([
+  ['asc', 'Aufsteigend (A-Z)'],
+  ['desc', 'Absteigend (Z-A)'],
+]);
 
 export function CompaniesPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
 
-  // URL-State vor Initialisierung synchron wiederherstellen, falls durch Auth-Bounce nach Reload temporär verloren
+  // Session-gebundener Storage-Key für Filter-Isolation (P2-1)
+  const storageKey = session?.userId
+    ? `lp_crm_companies_${session.userId}`
+    : 'lp_crm_companies_anon';
+  const bounceKey = `${storageKey}_auth_bounce`;
+
+  // URL-State vor Initialisierung synchron wiederherstellen, falls durch Auth-Bounce temporär verloren
   if (typeof window !== 'undefined' && !window.location.search) {
     try {
-      const navEntry = window.performance?.getEntriesByType?.('navigation')?.[0] as
+      let candidate: string | null = null;
+      const nav = window.performance?.getEntriesByType?.('navigation')?.[0] as
         PerformanceNavigationTiming | undefined;
-      const isReload =
-        sessionStorage.getItem('lp_crm_companies_reload') === '1' || navEntry?.type === 'reload';
-      if (isReload) {
-        sessionStorage.removeItem('lp_crm_companies_reload');
-        const saved = sessionStorage.getItem('lp_crm_companies_search');
-        if (saved) {
-          sessionStorage.removeItem('lp_crm_companies_search');
-          window.history.replaceState(null, '', window.location.pathname + saved);
+      if (nav?.name) {
+        const navUrl = new URL(nav.name, window.location.origin);
+        if (navUrl.pathname === window.location.pathname && navUrl.search) {
+          candidate = navUrl.search;
         }
+      }
+      if (candidate) {
+        sessionStorage.removeItem(storageKey);
+        sessionStorage.removeItem(bounceKey);
+        window.history.replaceState(null, '', window.location.pathname + candidate);
+      } else {
+        // Absichtlich neutrale Route: alten Zustand zwingend löschen (P2-1)
+        sessionStorage.removeItem(storageKey);
+        sessionStorage.removeItem(bounceKey);
       }
     } catch {
       // Storage-Fehler abfangen
@@ -74,30 +84,27 @@ export function CompaniesPage() {
   const page = Math.max(1, parseInt(pageStr, 10) || 1);
   const pageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
 
-  const handleSortChange = (val: string) => {
-    setSortField(val);
-    setPageStr('1');
-  };
+  const handleSortChange = (val: string) => (setSortField(val), setPageStr('1'));
+  const handleOrderChange = (val: string) => (setSortOrder(val), setPageStr('1'));
 
-  const handleOrderChange = (val: string) => {
-    setSortOrder(val);
-    setPageStr('1');
-  };
-
-  // Suchzustand für Seiten-Reload kontinuierlich und vor Unload sichern
+  // Suchzustand für Seiten-Reload kontinuierlich sichern bzw. bei neutraler Route bereinigen (P2-1)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.search) {
-      try {
-        sessionStorage.setItem('lp_crm_companies_search', window.location.search);
-      } catch {
-        // Storage-Fehler abfangen
+    if (typeof window === 'undefined') return;
+    try {
+      if (window.location.search) {
+        sessionStorage.setItem(storageKey, window.location.search);
+      } else {
+        sessionStorage.removeItem(storageKey);
+        sessionStorage.removeItem(bounceKey);
       }
+    } catch {
+      // Storage-Fehler abfangen
     }
     const onBeforeUnload = () => {
-      if (typeof window !== 'undefined' && window.location.search) {
+      if (window.location.search) {
         try {
-          sessionStorage.setItem('lp_crm_companies_search', window.location.search);
-          sessionStorage.setItem('lp_crm_companies_reload', '1');
+          sessionStorage.setItem(storageKey, window.location.search);
+          sessionStorage.setItem(bounceKey, '1');
         } catch {
           // Storage-Fehler abfangen
         }
@@ -105,7 +112,16 @@ export function CompaniesPage() {
     };
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [searchTerm, industryFilter, pageStr, pageSizeStr, sortField, sortOrder]);
+  }, [
+    searchTerm,
+    industryFilter,
+    pageStr,
+    pageSizeStr,
+    sortField,
+    sortOrder,
+    storageKey,
+    bounceKey,
+  ]);
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, error } = useCrmListQuery<Company>({
@@ -121,15 +137,8 @@ export function CompaniesPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setPageStr('1');
-  };
-
-  const handleIndustryChange = (val: string) => {
-    setIndustryFilter(val);
-    setPageStr('1');
-  };
+  const handleSearchChange = (val: string) => (setSearchTerm(val), setPageStr('1'));
+  const handleIndustryChange = (val: string) => (setIndustryFilter(val), setPageStr('1'));
 
   const handleExport = async () => {
     setIsExporting(true);

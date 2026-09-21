@@ -45,14 +45,8 @@ test.describe('CRM Query und Export (Gate G60)', () => {
   }) => {
     await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
 
-    await page.goto('/crm/companies');
-    await expect(page.getByText(' =1+1 Formel-Firma').first()).toBeVisible();
-
-    // Deep Link mit Paginierung, Sortierung und Filter über URL-Zustand anwenden
-    await page.evaluate(() => {
-      window.history.pushState(null, '', '/crm/companies?seite=2&proSeite=1&sort=name&order=asc');
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    });
+    // Direkter Aufruf des Deep Links mit Paginierung und Sortierung
+    await page.goto('/crm/companies?seite=2&proSeite=1&sort=name&order=asc');
 
     // Erwarteter Inhalt auf Seite 2 bei sort=name&order=asc:
     // Seite 1 ist ' =1+1 Formel-Firma', Seite 2 ist 'Firma A1', Seite 3 ist 'Firma A2'
@@ -123,6 +117,29 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     // Seite 1: Datenwechsel zurück verifizieren! ' =1+1 Formel-Firma' wieder sichtbar, 'Firma A1' nicht
     await expect(page.getByText(' =1+1 Formel-Firma').first()).toBeVisible();
     await expect(page.getByText('Firma A1')).toHaveCount(0);
+  });
+
+  test('2c. Neutrale URL bleibt nach Reload neutral und reaktiviert keine alten Filter (P2-1)', async ({
+    page,
+  }) => {
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
+
+    // 1. Zunächst gefilterte Liste aufrufen
+    await page.goto('/crm/companies?suche=Formel');
+    await expect(page.getByText(' =1+1 Formel-Firma').first()).toBeVisible();
+    await expect(page.getByText('Firma A1')).toHaveCount(0);
+
+    // 2. Bewusst neutrale Route aufrufen (ohne Such-/Filterparameter)
+    await page.goto('/crm/companies');
+    await expect(page.getByText(' =1+1 Formel-Firma').first()).toBeVisible();
+    await expect(page.getByText('Firma A1').first()).toBeVisible();
+
+    // 3. Reload auf neutraler Route: darf keine alten Filter aus sessionStorage reaktivieren
+    await page.reload();
+    await expect(page).toHaveURL(/\/crm\/companies(?:\?.*)?$/);
+    expect(new URL(page.url()).search).toBe('');
+    await expect(page.getByText(' =1+1 Formel-Firma').first()).toBeVisible();
+    await expect(page.getByText('Firma A1').first()).toBeVisible();
   });
 
   test('3. CSV-Export lädt gefilterte Mandantendaten mit Formelschutz herunter', async ({
