@@ -4,10 +4,13 @@ import { HERO, EXEC_KPIS_1, EXEC_KPIS_2, CHART_ARR } from '@/domain/execData';
 import { ExecutiveCockpit } from '@/components/executiveCockpit';
 import { LivePerformanceSection } from '@/components/liveKpi/LivePerformanceSection';
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
+import { deriveExecutiveProvenanceState } from '@/services/data/sourceFreshness';
 
 // Hinweis: LiveKpiCard (u.a. pipeline_coverage) ist nun gebündelt in LivePerformanceSection eingebunden.
 
 export function ExecutiveDashboardPage() {
+  const provenance = deriveExecutiveProvenanceState();
+
   return (
     <div className="flex flex-col gap-[var(--space-6,24px)] w-full">
       {/* Page Header mit klarer Zeitebenenkennzeichnung und Datenprovenienz */}
@@ -17,7 +20,7 @@ export function ExecutiveDashboardPage() {
         description={`Integrierte Unternehmenssteuerung: Finanzielle Baseline (${EXEC_KPIS_1.length + EXEC_KPIS_2.length} KPIs, ${CHART_ARR.labels.length} Quartale), operative Einheiten und Ebene-C-Echtzeitfeed.`}
         actions={
           <div className="flex items-center gap-[var(--space-2,8px)] flex-wrap">
-            <DataSourceStatus variant="compact" />
+            <DataSourceStatus variant="compact" provenance={provenance} />
             <Badge variant="cyan">Ebene A Baseline</Badge>
             <Badge variant="neutral">Stand: 31.12.2025</Badge>
             <Badge variant="orange">Ebene C Realtime</Badge>
@@ -26,7 +29,7 @@ export function ExecutiveDashboardPage() {
       />
 
       {/* Auftrag 067O / Gate G61: Provenienz- und Frische-Statusanzeige */}
-      <DataSourceStatus variant="banner" />
+      <DataSourceStatus variant="banner" provenance={provenance} />
 
       {/* Auftrag 042: Ebene C Live Performance Surface als führende Ebene vor Ebene A */}
       <LivePerformanceSection />

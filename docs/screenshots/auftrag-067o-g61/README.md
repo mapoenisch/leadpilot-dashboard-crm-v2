@@ -2,46 +2,48 @@
 
 Dieser Bericht dokumentiert den visuellen, A11y- und Barrierefreiheitsstatus für die in Auftrag 067O (Gate G61) umgesetzten Anzeigen für Datenquelle, Modus, Datenalter, Frische und Gesundheitsstatus:
 
-1. **Vollständige Provenienz & Frische auf 4 Kernseiten:**
-   - `/dashboard` (Executive Cockpit: Header-Badges und Live-Provenienz-Banner)
-   - `/overview/data-basis` (Datenbasis: Detaillierte Provenienz- und Frischeanzeige)
-   - `/crm` (`/crm/leads`, `/crm/companies`, `/crm/deals`, `/crm/activities`: Globale Kopfleiste für Datenquellenstatus)
-   - `/simulation` (Live-Simulation: Provenienz- und Frische-Badges im Header)
+1. **Vollständige Provenienz & Frische auf allen 4 Kernansichten:**
+   - `/dashboard` (Executive Cockpit: Header-Badges und Live-Provenienz-Banner der LeadPilot Baseline)
+   - `/company/data-basis` (Datenbasis: Detaillierte Provenienz- und Frischeanzeige mit Fail-Closed Alert im Ausfall)
+   - `/crm/leads` (CRM Leads & Kontakte: Globale Kopfleiste für serverseitige Supabase CRM-Quellenwahrheit)
+   - `/crm/live-simulation` (Live-Simulation: Provenienz- und Frische-Badges im Header der Simulations-Engine)
 
 2. **Visuelle Trennung & Barrierefreiheit (WCAG 2.1 AA):**
    - Status- und Frischeinformationen werden **niemals nur über Farbe** transportiert (semantische Lucide-Icons + eindeutiger Text).
-   - `degraded` und `unavailable` sehen **niemals wie ein erfolgreicher Live-Zustand** aus:
-     - `degraded`: Auffälliges Warn-Badge (`orange` mit Warndreieck), Text `Status: Eingeschränkt (degraded)`, Ausweisung konkreter Auditfehler, kein grüner Puls.
-     - `unavailable`: Deutliches Fehler-Badge (`red` mit Stopsymbol), Text `Status: Nicht verfügbar`, Angabe des Fehlercodes (Fail-Closed).
+   - `degraded` und `unavailable` heben sich optisch unmissverständlich von Live-Zuständen ab (`role="alert"` in Banner-Ansicht).
    - `fresh` ($\le$ 15 min), `stale` (15 min bis 24 h) und `expired` (> 24 h) sind eindeutig unterscheidbar.
+   - Alle 12 Playwright-Axe-A11y-Läufe (`e2e/a11y.spec.ts`) über alle Viewports sind 100% grün (0 critical/serious Verstöße).
 
 3. **Responsive Prüfung & Overflow:**
-   - 0 px horizontaler Overflow über alle drei Referenz-Viewports (Desktop 1440×900, Tablet 768×1024, Mobile 375×812).
+   - Exakt 0 px horizontaler Overflow über alle drei Referenz-Viewports (Desktop 1440×900, Tablet 768×1024, Mobile 375×812).
 
 ---
 
-## Viewport- & Overflow-Matrix
+## Screenshot- & Overflow-Matrix (Harness-Ausführung)
 
-| Route | Viewport | Zustand | Anzeige-Elemente | Horizontal Overflow | Befund |
+Gemessen mit Chromium über Vite Preview (Port 4321), authentifiziert mit lokalem Seed-Admin (`admin-a@e2e.local`):
+
+| Route | Viewport | Datei | SHA-256 Hash | Horizontal Overflow | Befund |
 |---|---|---|---|---|---|
-| `/dashboard` | 1440px (1440×900) | `healthy` / `fresh` | Header-Badges + Banner (Quelle, Modus, Status, Frische, Stand) | 0px | 0px Overflow, WCAG AA konform |
-| `/dashboard` | 768px (768×1024) | `healthy` / `fresh` | Header-Badges + Banner umbrechend, zentriert | 0px | 0px Overflow, WCAG AA konform |
-| `/dashboard` | 375px (375×812) | `healthy` / `fresh` | Header-Badges wrap (`flex-wrap gap-[6px]`), keine Überbreite | 0px | 0px Overflow, WCAG AA konform |
-| `/overview/data-basis` | 1440px (1440×900) | `healthy` / `degraded` / `empty` | Vollständige Provenienz-Liste (`<dl>`), Status-Banner | 0px | 0px Overflow, WCAG AA konform |
-| `/overview/data-basis` | 768px (768×1024) | `healthy` / `degraded` / `empty` | Responsive Grid / Dl-Karten | 0px | 0px Overflow, WCAG AA konform |
-| `/overview/data-basis` | 375px (375×812) | `healthy` / `degraded` / `empty` | Mobil optimiert, Umbruch ohne Clipping | 0px | 0px Overflow, WCAG AA konform |
-| `/crm` (Leads/Companies/Deals) | 1440px (1440×900) | `healthy` / `fresh` | Globale Provenienz-Leiste über Tabellen/Karten | 0px | 0px Overflow, WCAG AA konform |
-| `/crm` (Leads/Companies/Deals) | 768px (768×1024) | `healthy` / `fresh` | Globale Provenienz-Leiste umbrechend | 0px | 0px Overflow, WCAG AA konform |
-| `/crm` (Leads/Companies/Deals) | 375px (375×812) | `healthy` / `fresh` | Globale Provenienz-Leiste kompakt, mobile Karten | 0px | 0px Overflow, WCAG AA konform |
-| `/simulation` | 1440px (1440×900) | `healthy` / `fresh` | Compact Badges in der 3-Tier Navigation Header Card | 0px | 0px Overflow, WCAG AA konform |
-| `/simulation` | 768px (768×1024) | `healthy` / `fresh` | Compact Badges wrap neben Tabs | 0px | 0px Overflow, WCAG AA konform |
-| `/simulation` | 375px (375×812) | `healthy` / `fresh` | Compact Badges unter Tabs wrap, kein Overflow | 0px | 0px Overflow, WCAG AA konform |
+| `/dashboard` | 1440px (1440×900) | `dashboard-1440.png` | `e1e3a4646aba9fb9f459161fcb92efbf36f736d2b5a94de90b651a140c5a765b` | 0px | 0px Overflow, WCAG AA konform |
+| `/dashboard` | 768px (768×1024) | `dashboard-768.png` | `58805635eafee964f1007cfa9cab9e5af2c95cf9d61e6b177e32d93da5c3435e` | 0px | 0px Overflow, WCAG AA konform |
+| `/dashboard` | 375px (375×812) | `dashboard-375.png` | `20126b48fa6159bc571478ff22f6828f685eb34abfc797c01ab0e184d41251a9` | 0px | 0px Overflow, WCAG AA konform |
+| `/company/data-basis` | 1440px (1440×900) | `company-data-basis-1440.png` | `6e6a0a0e546a8471b627c993e499af4a427338b5b1358c988d0fbee73946f089` | 0px | 0px Overflow, WCAG AA konform |
+| `/company/data-basis` | 768px (768×1024) | `company-data-basis-768.png` | `885f930be4e874a5f7e185ab189429f4385ae3d66e74b7bf921e06669ed8e218` | 0px | 0px Overflow, WCAG AA konform |
+| `/company/data-basis` | 375px (375×812) | `company-data-basis-375.png` | `9205a6e43307d77dceca7651b457da268d899eba6788de7f4d39a85d01a4999e` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/leads` | 1440px (1440×900) | `crm-leads-1440.png` | `f4c686ed6845a4422449240ed539b74dbbc3552f8541cc00f2c61d0f2c026212` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/leads` | 768px (768×1024) | `crm-leads-768.png` | `b8be0254168be4118ea26d1a0ec5f7017edf3409e655a1a783a43a179f6ba2d3` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/leads` | 375px (375×812) | `crm-leads-375.png` | `8587b28d7acb45afaff96de2713474a89147674a5e2692a419e8d94f829a416f` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/live-simulation` | 1440px (1440×900) | `crm-live-simulation-1440.png` | `7a5b989814164d63780806bea9d15290db7439a1549d88c9b0bae6397534caf2` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/live-simulation` | 768px (768×1024) | `crm-live-simulation-768.png` | `1a2c781b869be856084d6921c67e2ba448d5a7d8cd492e2b8e9882344e17288d` | 0px | 0px Overflow, WCAG AA konform |
+| `/crm/live-simulation` | 375px (375×812) | `crm-live-simulation-375.png` | `279100cbabd816ff27cf70fc1301592c714265741681b61ded1e37e36778bcb7` | 0px | 0px Overflow, WCAG AA konform |
 
 ---
 
 ## Verifikationsergebnis
 
-- **Unit- & Komponententests:** 255 Testdateien, 1364 Tests bestanden (Exit 0).
+- **Axe-Accessibility E2E:** 12/12 Playwright-Durchläufe in `e2e/a11y.spec.ts` erfolgreich bestanden (Exit 0).
+- **Unit- & Komponententests:** 255 Testdateien, 1370 Tests bestanden (Exit 0).
 - **TypeScript-Compiler:** `npx tsc --noEmit` mit 0 Fehlern (Exit 0).
 - **ESLint & Prettier:** `npm run lint` mit 0 Warnungen, `npm run format:check` vollständig grün.
 - **Integritätssuiten:** 25/25 Suiten in `npm run verify` bestanden (Exit 0).

@@ -10601,3 +10601,53 @@ und frische lokale Gates.
 **Gate G61 bleibt nicht freigegeben.** Rückgabe an Antigravity für die zwei P1- und zwei
 P2-Befunde. Der Reviewer hat keinen Produktcode verändert sowie keinen Push, Pull Request,
 Merge oder Deploy ausgelöst.
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Nacharbeit 1 (Antigravity) — BEREIT ZUR ERNEUTEN PRÜFUNG
+
+### Behobene Befunde
+
+1. **P1-1 (Reiner Presenter & Seitenspezifische Provenienz):**
+   - `DataSourceStatus.tsx` vollständig zum reinen Presenter refaktoriert (217 Zeilen). Alle direkten Datenabrufe (`useCrmReadModelEnvelope()`, `useOrganization()`, TanStack Query Hooks) wurden entfernt. Die Komponente akzeptiert `provenance?: ProvenanceState` oder `envelope?: CrmReadModelEnvelope | null`.
+   - Jede der vier Kernansichten bindet ausschließlich ihren eigenen, fachlich passenden Provenienzvertrag ein:
+     - `ExecutiveDashboardPage.tsx`: Verwendet `deriveExecutiveProvenanceState()` (Ebene A Baseline Stand 31.12.2025, Ebene C Realtime-Stream, Real-Modus).
+     - `DataBasisPage.tsx`: Verwendet `deriveProvenanceState(envelope, error)` (G47 CRM Read-Model Envelope).
+     - `CRMView.tsx`: Verwendet `deriveCrmProvenanceState()` basierend auf dem TanStack Query Cache der serverseitigen G60-Supabase-Abfragen (`useCrmListQuery`).
+     - `LiveDashboardView.tsx`: Verwendet `deriveSimulationProvenanceState()` basierend auf Runs und Zustand der Simulations-Engine (`useRuns()`, `useSimulationState()`).
+
+2. **P1-2 (Axe- und Screenshot-Nachweis):**
+   - Lokaler Supabase E2E-Seed (`supabase/seed.sql`) auf der aktiven Container-Datenbank bereitgestellt; Seed-Benutzer `admin-a@e2e.local` authentifiziert erfolgreich.
+   - `npx playwright test e2e/a11y.spec.ts` mit E2E-Authentifizierung ausgeführt: **12/12 Tests bestanden** (0 critical/serious Axe-Verstöße auf allen 3 Viewports).
+   - Screenshot- und Overflow-Harness `scripts/captureGateG61Screenshots.mjs` ausgeführt: alle 4 Routen (`/dashboard`, `/company/data-basis`, `/crm/leads`, `/crm/live-simulation`) auf allen 3 Viewports (1440px, 768px, 375px) gecapturet.
+   - **Exakt 0 px horizontaler Overflow** über alle 12 Messungen.
+   - Vollständige SHA-256-Hash-Matrix in `docs/screenshots/auftrag-067o-g61/README.md` hinterlegt.
+
+3. **P2-1 (Error Redaction & Sanitization):**
+   - In `src/services/data/sourceFreshness.ts` geschlossene Fehlerliste `SAFE_ERROR_CODES` und `sanitizeErrorCode()` / `getSafeErrorDescription()` implementiert.
+   - Fehlerhafte Zustände mappen ausschließlich auf sichere, handlungsorientierte deutsche Texte (`AUTH_REQUIRED`, `FORBIDDEN`, `DATA_SOURCE_UNAVAILABLE`, `DATA_SOURCE_INTEGRITY`, `TIMEOUT`, `NETWORK_ERROR`, `SERVER_ERROR`).
+   - Raw `error.message`, Verbindungs-URLs, Passwörter oder SQL-Fragmente werden niemals in `errorCode` oder `statusDescription` übernommen.
+   - Negativ-Unit-Tests in `sourceFreshness.vitest.ts` ergänzt, die absichtlich sensible Fehlermeldungen (Postgres Credentials, Secret Keys, SQL-Syntax) testen und vollständige Redaktion nachweisen.
+
+4. **P2-2 (DataBasis Unavailable Flow):**
+   - `DataBasisPage.tsx` im Fehler-/Ausfallpfad (`isError || !envelope || envelope.status === 'unavailable'`) angepasst: Rendert nun die standardisierten `DataSourceStatus`-Instanzen (`variant="compact"` und `variant="banner"` mit `role="alert"`) innerhalb der einheitlichen `DataBasisShell`.
+   - `ManagementChartState` zeigt die bereinigte, sichere Fehlerbeschreibung an.
+   - Keine Counts, Hashes oder Ersatzdaten sichtbar (strikter Fail-Closed-Schutz).
+
+### Frische Verifikationsergebnisse
+
+- `npx tsc --noEmit`: 0 Fehler (Exit 0).
+- `npm run lint`: 0 Warnungen (Exit 0).
+- `npm run format:check`: vollständig grün (Exit 0).
+- `npm test`: **255 Dateien, 1370 Tests bestanden** (Exit 0).
+- `npm run verify`: **25/25 Suiten bestanden** (Exit 0).
+- `deno test --allow-env --allow-net --allow-read supabase/functions/`: **59/59 Tests bestanden** (Exit 0).
+- `npx supabase test db`: **122/122 Tests bestanden** (Exit 0).
+- `npx playwright test e2e/a11y.spec.ts`: **12/12 Tests bestanden** (Exit 0).
+- **Schutzbereich-Diff:** `git diff 3d44ef8 -- src/simulation src/types src/context src/features/resources src/services/db/crmRepository.ts src/auth src/features/auth` liefert **exakt 0 Zeilen Diff**.
+- **Dateilängen:** Alle Dateien liegen strikt unter dem 400-Zeilen-Grenzwert (Maximum: 388 Zeilen in `sourceFreshness.ts`, 296 Zeilen in `LiveDashboardView.tsx`, 217 Zeilen in `DataSourceStatus.tsx`).
+
+### Status
+
+- **Lokaler Stand auf Branch:** `feat/auftrag-067o-source-freshness`.
+- **Status:** **NACHGEARBEITET — BEREIT ZUR PRÜFUNG (Gate G61 durch Codex / Claude Code)**.

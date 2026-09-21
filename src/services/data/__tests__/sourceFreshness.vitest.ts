@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 import {
   classifyFreshness,
   deriveProvenanceState,
+  deriveExecutiveProvenanceState,
+  deriveCrmProvenanceState,
+  deriveSimulationProvenanceState,
   formatDataAge,
   formatSourceLabel,
   formatStatusLabel,
+  sanitizeErrorCode,
+  getSafeErrorDescription,
+  SAFE_ERROR_CODES,
 } from '../sourceFreshness';
 import type { CrmReadModelEnvelope } from '../../../types/dataSource';
 
@@ -95,6 +101,8 @@ describe('sourceFreshness', () => {
       expect(formatSourceLabel('synthetic', 'simulated-crm')).toBe('Synthetisch (Demo)');
       expect(formatSourceLabel('supabase', 'supabase')).toBe('Supabase CRM');
       expect(formatSourceLabel('hubspot', 'hubspot-baseline:v1')).toBe('HubSpot Baseline');
+      expect(formatSourceLabel('file', 'file-baseline')).toBe('LeadPilot Baseline');
+      expect(formatSourceLabel('simulation', 'simulation-engine')).toBe('Simulations-Engine');
     });
 
     it('maps health statuses to clear German labels', () => {
@@ -102,6 +110,47 @@ describe('sourceFreshness', () => {
       expect(formatStatusLabel('empty')).toBe('Leer (gültig)');
       expect(formatStatusLabel('degraded')).toBe('Eingeschränkt (degraded)');
       expect(formatStatusLabel('unavailable')).toBe('Nicht verfügbar');
+    });
+  });
+
+  describe('sanitizeErrorCode & getSafeErrorDescription (P2-1)', () => {
+    it('redacts sensitive raw error messages and maps to safe allowlist code and description', () => {
+      // Sensitive connection string with password and host
+      const sensitiveDbError = new Error(
+        'FATAL: password authentication failed for user "postgres" at postgresql://postgres:SuperSecret123!@db.internal:5432/leadpilot',
+      );
+      const code = sanitizeErrorCode(sensitiveDbError);
+      expect(SAFE_ERROR_CODES).toContain(code);
+      expect(code).toBe('AUTH_REQUIRED');
+
+      const desc = getSafeErrorDescription(code);
+      expect(desc).not.toContain('postgres');
+      expect(desc).not.toContain('SuperSecret123!');
+      expect(desc).not.toContain('5432');
+      expect(desc).not.toContain('leadpilot');
+      expect(desc).toBe('Authentifizierung erforderlich. Bitte melden Sie sich erneut an.');
+    });
+
+    it('redacts SQL syntax errors and internal details', () => {
+      const sqlError = new Error('syntax error at or near "SELECT secret_token FROM admin_keys"');
+      const code = sanitizeErrorCode(sqlError);
+      expect(SAFE_ERROR_CODES).toContain(code);
+      expect(code).toBe('DATA_SOURCE_UNAVAILABLE');
+
+      const state = deriveProvenanceState(null, sqlError, BASE_TIME);
+      expect(state.status).toBe('unavailable');
+      expect(state.errorCode).toBe('DATA_SOURCE_UNAVAILABLE');
+      expect(state.statusDescription).not.toContain('SELECT');
+      expect(state.statusDescription).not.toContain('secret_token');
+      expect(state.statusDescription).not.toContain('admin_keys');
+      expect(state.statusDescription).toBe('Die Datenquelle ist derzeit nicht erreichbar.');
+    });
+
+    it('maps network and timeout errors appropriately', () => {
+      expect(sanitizeErrorCode(new Error('Failed to fetch from https://api.supabase.co'))).toBe(
+        'NETWORK_ERROR',
+      );
+      expect(sanitizeErrorCode(new Error('Gateway timeout 504'))).toBe('TIMEOUT');
     });
   });
 
@@ -193,6 +242,51 @@ describe('sourceFreshness', () => {
       expect(stateFromError.statusLabel).toBe('Nicht verfügbar');
       expect(stateFromError.freshness).toBe('expired');
       expect(stateFromError.errorCode).toBe('DATA_SOURCE_UNAVAILABLE');
+    });
+  });
+
+  describe('Domain-specific provenance builders (P1-1)', () => {
+    it('derives executive cockpit provenance (Ebene A Baseline)', () => {
+      const execState = deriveExecutiveProvenanceState();
+      expect(execState.sourceKind).toBe('file');
+      expect(execState.sourceLabel).toBe('LeadPilot Baseline (Ebene A)');
+      expect(execState.isSynthetic).toBe(false);
+      expect(execState.status).toBe('healthy');
+      expect(execState.freshness).toBe('fresh');
+      expect(execState.ageText).toBe('Stand 31.12.2025');
+    });
+
+    it('derives crm list provenance for healthy and unavailable states', () => {
+      const healthyCrm = deriveCrmProvenanceState('healthy', undefined, BASE_TIME, BASE_TIME);
+      expect(healthyCrm.sourceKind).toBe('supabase');
+      expect(healthyCrm.sourceLabel).toBe('Supabase CRM');
+      expect(healthyCrm.status).toBe('healthy');
+      expect(healthyCrm.isSynthetic).toBe(false);
+
+      const errorCrm = deriveCrmProvenanceState('unavailable', new Error('AUTH_REQUIRED'));
+      expect(errorCrm.status).toBe('unavailable');
+      expect(errorCrm.errorCode).toBe('AUTH_REQUIRED');
+      expect(errorCrm.freshness).toBe('expired');
+      expect(errorCrm.statusDescription).toBe(
+        'Authentifizierung erforderlich. Bitte melden Sie sich erneut an.',
+      );
+    });
+
+    it('derives simulation engine provenance', () => {
+      const simState = deriveSimulationProvenanceState(
+        {
+          runId: 'run-abcdef123456',
+          createdAt: new Date(BASE_TIME).toISOString(),
+          status: 'completed',
+        },
+        'idle',
+        BASE_TIME,
+      );
+      expect(simState.sourceKind).toBe('simulation');
+      expect(simState.sourceLabel).toBe('Simulations-Engine');
+      expect(simState.status).toBe('healthy');
+      expect(simState.isSynthetic).toBe(true);
+      expect(simState.statusDescription).toContain('run-abcd');
     });
   });
 });

@@ -7,6 +7,7 @@ import { useCrmReadModelEnvelope } from '@/hooks/queries/useCrmQueries';
 import type { CrmSourceHealth } from '@/types/dataSource';
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import {
+  deriveProvenanceState,
   formatDataAge,
   formatStatusLabel,
   classifyFreshness,
@@ -60,18 +61,34 @@ export function DataBasisPage() {
     );
   }
 
-  if (isError || !envelope) {
+  // 067O / G61 Nacharbeit (P2-1 & P2-2): Im Fehlerfall / Ausfall (isError, kein Envelope oder unavailable)
+  // standardisierte DataSourceStatus-Komponenten rendern (inkl. role="alert") und sichere Fehlertexte anzeigen.
+  // Es werden niemals Counts, Hashes oder Ersatzdaten ausgegeben (Fail-Closed).
+  if (isError || !envelope || envelope.status === 'unavailable') {
+    const provenance = deriveProvenanceState(envelope, error, now);
     return (
-      <DataBasisShell>
+      <DataBasisShell testId="data-basis-page">
+        <SectionHeader
+          eyebrow="CRM-Quellenwahrheit (G47)"
+          title="Quelle und Zustand"
+          description="Herkunft und Zustand der CRM-Daten aus genau einer Quelle"
+          actions={<DataSourceStatus variant="compact" provenance={provenance} />}
+        />
+
+        <div className="my-3">
+          <DataSourceStatus variant="banner" provenance={provenance} />
+        </div>
+
         <ManagementChartState
           type="error"
-          message={`Datenquelle nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Es werden keine Ersatzdaten angezeigt.`}
+          message={`Datenquelle nicht verfügbar: ${provenance.statusDescription} Es werden keine Ersatzdaten angezeigt.`}
           sourceLabel="CRM-Quellenwahrheit (G47)"
         />
       </DataBasisShell>
     );
   }
 
+  const provenance = deriveProvenanceState(envelope, null, now);
   const counts = [
     { label: 'Unternehmen', value: envelope.data.companies.length },
     { label: 'Kontakte', value: envelope.data.contacts.length },
@@ -85,12 +102,12 @@ export function DataBasisPage() {
         eyebrow="CRM-Quellenwahrheit (G47)"
         title="Quelle und Zustand"
         description="Herkunft und Zustand der CRM-Daten aus genau einer Quelle"
-        actions={<DataSourceStatus variant="compact" envelope={envelope} />}
+        actions={<DataSourceStatus variant="compact" provenance={provenance} envelope={envelope} />}
       />
 
       {/* Auftrag 067O / Gate G61: Ausführlicher Provenienz- und Frischekasten */}
       <div className="my-3">
-        <DataSourceStatus variant="banner" envelope={envelope} />
+        <DataSourceStatus variant="banner" provenance={provenance} envelope={envelope} />
       </div>
 
       <p>

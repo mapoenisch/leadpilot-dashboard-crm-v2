@@ -1,20 +1,16 @@
 import React from 'react';
-import { QueryClientContext } from '@tanstack/react-query';
 import { Database, Clock, CheckCircle2, AlertTriangle, AlertCircle, Layers } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Alert } from '@/components/ui/Alert';
-import { useOrganization } from '@/auth/organizationContext';
-import { useCrmReadModelEnvelope } from '@/hooks/queries/useCrmQueries';
-import {
-  deriveProvenanceState,
-  type ProvenanceState,
-} from '@/services/data/sourceFreshness';
+import { deriveProvenanceState, type ProvenanceState } from '@/services/data/sourceFreshness';
 import type { CrmReadModelEnvelope } from '@/types/dataSource';
 
 export interface DataSourceStatusProps {
   /** Darstellungsvariante: 'compact' (Header-Badges) oder 'banner' (ausführlicher Meldekasten). Standard: 'compact'. */
   variant?: 'compact' | 'banner';
-  /** Optionaler manueller Envelope. Falls ausgelassen, wird useCrmReadModelEnvelope() verwendet. */
+  /** Direkter, fachlich passender Provenienz-Zustand (reiner Presenter). */
+  provenance?: ProvenanceState;
+  /** Alternativer CrmReadModelEnvelope (wird via deriveProvenanceState konvertiert). */
   envelope?: CrmReadModelEnvelope | null;
   /** Optionaler externer Fehler. */
   error?: unknown;
@@ -86,8 +82,15 @@ function renderFreshnessBadge(state: ProvenanceState) {
   }
 }
 
-function DataSourceStatusView({
+/**
+ * 067O / Gate G61 (Nacharbeit): Reiner Presenter für Datenquellen- und Frischeanzeige.
+ * Lädt keine eigenen Hooks oder Daten; jede Seite übergibt ihren fachlich passenden Zustand.
+ * Kommuniziert Zustand niemals nur über Farbe (immer Text + semantische Icons).
+ * `degraded` und `unavailable` heben sich optisch unmissverständlich von Live-Zuständen ab.
+ */
+export function DataSourceStatus({
   variant = 'compact',
+  provenance,
   envelope,
   error,
   isLoading,
@@ -108,14 +111,18 @@ function DataSourceStatusView({
         aria-label="Datenquellenstatus wird geladen"
         className={`flex items-center gap-2 flex-wrap text-[11px] text-[var(--color-text-dim)] ${className}`}
       >
-        <Badge variant="neutral" size="sm" icon={<Clock size={12} className="animate-spin" aria-hidden="true" />}>
+        <Badge
+          variant="neutral"
+          size="sm"
+          icon={<Clock size={12} className="animate-spin" aria-hidden="true" />}
+        >
           Lade Quellenstatus…
         </Badge>
       </div>
     );
   }
 
-  const state = deriveProvenanceState(envelope, error, now);
+  const state = provenance ?? deriveProvenanceState(envelope, error, now);
 
   if (variant === 'banner') {
     if (state.status === 'unavailable') {
@@ -124,7 +131,11 @@ function DataSourceStatusView({
           <Alert variant="error" title="Datenquelle nicht verfügbar">
             <div className="flex flex-col gap-1 text-[12px]">
               <div>
-                <strong>Quelle:</strong> {state.sourceLabel} ({state.isSynthetic ? 'Synthetisch' : 'Real'})
+                <strong>Quelle:</strong> {state.sourceLabel} (
+                {state.isSynthetic ? 'Synthetisch' : 'Real'})
+              </div>
+              <div>
+                <strong>Fehlercode:</strong> {state.errorCode ?? 'DATA_SOURCE_UNAVAILABLE'}
               </div>
               <div>{state.statusDescription}</div>
               <div className="text-[11px] text-[var(--color-text-dim)]">
@@ -139,7 +150,8 @@ function DataSourceStatusView({
     if (state.status === 'degraded') {
       const audit = envelope?.data?.audit;
       const errorDetails: string[] = [];
-      if (audit?.companiesErrors) errorDetails.push(`${audit.companiesErrors} Fehler bei Unternehmen`);
+      if (audit?.companiesErrors)
+        errorDetails.push(`${audit.companiesErrors} Fehler bei Unternehmen`);
       if (audit?.contactsErrors) errorDetails.push(`${audit.contactsErrors} Fehler bei Kontakten`);
       if (audit?.dealsErrors) errorDetails.push(`${audit.dealsErrors} Fehler bei Deals`);
 
@@ -149,7 +161,8 @@ function DataSourceStatusView({
             <div className="flex flex-col gap-1 text-[12px]">
               <div className="flex items-center gap-2 flex-wrap">
                 <span>
-                  <strong>Quelle:</strong> {state.sourceLabel} ({state.isSynthetic ? 'Synthetisch' : 'Real'})
+                  <strong>Quelle:</strong> {state.sourceLabel} (
+                  {state.isSynthetic ? 'Synthetisch' : 'Real'})
                 </span>
                 <span>·</span>
                 <span>
@@ -214,43 +227,4 @@ function DataSourceStatusView({
       {renderFreshnessBadge(state)}
     </div>
   );
-}
-
-function DataSourceStatusEnvelopeLoader(props: DataSourceStatusProps) {
-  const { data: envelope, error, isLoading } = useCrmReadModelEnvelope();
-  return (
-    <DataSourceStatusView
-      {...props}
-      envelope={props.envelope !== undefined ? props.envelope : envelope}
-      error={props.error !== undefined ? props.error : error}
-      isLoading={props.isLoading !== undefined ? props.isLoading : isLoading}
-    />
-  );
-}
-
-function DataSourceStatusConnected(props: DataSourceStatusProps) {
-  const org = useOrganization();
-  if (!org || typeof org !== 'object') {
-    return (
-      <DataSourceStatusView
-        {...props}
-        isLoading={false}
-        error={new Error('AUTH_REQUIRED')}
-      />
-    );
-  }
-  return <DataSourceStatusEnvelopeLoader {...props} />;
-}
-
-/**
- * 067O / Gate G61 — Einheitliche, barrierefreie Datenquellen- und Frischeanzeige.
- * Kommuniziert Zustand niemals nur über Farbe (immer Text + semantische Icons).
- * `degraded` und `unavailable` heben sich optisch unmissverständlich von Live-Zuständen ab.
- */
-export function DataSourceStatus(props: DataSourceStatusProps) {
-  const queryClient = React.useContext(QueryClientContext);
-  if (!queryClient || props.envelope !== undefined) {
-    return <DataSourceStatusView {...props} />;
-  }
-  return <DataSourceStatusConnected {...props} />;
 }

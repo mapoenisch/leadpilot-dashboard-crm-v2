@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { useSimulationDeals, useSimulationEvents, useSimulationLeads } from '../../store/hooks';
+import {
+  useSimulationDeals,
+  useSimulationEvents,
+  useSimulationLeads,
+  useRuns,
+  useSimulationState,
+} from '../../store/hooks';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Tabs } from '../../components/ui/Tabs';
@@ -13,11 +19,16 @@ import { RunActionModal } from './components/RunActionModal';
 import { MeasureManagerModal } from './components/MeasureManagerModal';
 import { MultiScenarioComparisonModal } from './components/MultiScenarioComparisonModal';
 import { DataSourceStatus } from '../../components/data/DataSourceStatus';
+import { deriveSimulationProvenanceState } from '../../services/data/sourceFreshness';
 
 export function LiveDashboardView() {
   const leads = useSimulationLeads();
   const deals = useSimulationDeals();
   const events = useSimulationEvents();
+  const runs = useRuns();
+  const simState = useSimulationState();
+  const latestRun = runs.length > 0 ? runs[runs.length - 1] : null;
+  const provenance = deriveSimulationProvenanceState(latestRun, simState);
 
   // Tier switching: 'management' | 'detail' | 'audit' | 'operativ'
   const [activeTier, setActiveTier] = useState<string>('management');
@@ -67,7 +78,7 @@ export function LiveDashboardView() {
             activeId={activeTier}
             onChange={setActiveTier}
           />
-          <DataSourceStatus variant="compact" />
+          <DataSourceStatus variant="compact" provenance={provenance} />
         </div>
       </Card>
 
