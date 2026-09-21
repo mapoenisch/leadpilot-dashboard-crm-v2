@@ -10762,3 +10762,55 @@ Deploy ausgelöst.
 
 - **Lokaler Stand auf Branch:** `feat/auftrag-067o-source-freshness`.
 - **Status:** **BEREIT ZUR ERNEUTEN PRÜFUNG (Gate G61 durch Codex / Claude Code)**.
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Unabhängiger Codex-Review 3 — NICHT FREIGEGEBEN
+
+**Vergleich:** `3d44ef8..a688efe`
+**Review-Umfang:** Nacharbeit 2, produktiver Routenpfad, Quellenwahrheit,
+A11y-/Screenshot-Nachweis, Schutzbereiche und frische lokale Gates.
+
+### P1 — vor erneuter Prüfung beheben
+
+1. **Die CRM-Provenienz ist im Produktpfad nicht integriert.**
+   `CRMView.tsx` ist außerhalb seiner Unit-Tests nirgends importiert (`rg "CRMView" src`
+   liefert nur die Komponente und ihre Tests). Die produktive App rendert in `App.tsx:87-100`
+   direkt `ROUTE_PAGES[route.id]`; `routePages.tsx:255-258` ordnet die CRM-Routen unmittelbar
+   `LeadsPage`, `CompaniesPage`, `DealsPage` und `ActivitiesPage` zu. Daher laufen weder
+   `useCrmProvenance()` noch `DataSourceStatus` auf `/crm/leads`, `/crm/companies`,
+   `/crm/deals` oder `/crm/activities`; die verpflichtende Quellen-, Modus-, Abruf-,
+   Alters- und Health-Anzeige fehlt dort vollständig. Die neuen CRMView-Tests testen nur den
+   unerreichbaren Parallelpfad. Für die Behebung ist eine schriftliche Erweiterung der
+   Zieldateien um die produktive Routen-/Seitenkomposition erforderlich, bevor Antigravity
+   diesen Pfad ändern darf.
+
+   Zusätzlich darf die bestehende `s-leads`-Zuordnung in `useCrmProvenance.ts:13-17` nicht
+   unverändert übernommen werden: `LeadsPage.tsx:73-121` kann innerhalb derselben Route
+   Kontakte, Unternehmen oder Deals anzeigen, während der Hook stets nur den Contacts-Key
+   beobachtet. Ein Fehler der aktuell sichtbaren Funnel-Deals könnte also weiter hinter einem
+   gesunden Contacts-Status verborgen bleiben. Der produktive Vertrag muss die tatsächlich
+   gerenderte Ressource abbilden und diesen Wechsel negativ testen.
+
+### Frische Prüfung
+
+- `npx tsc --noEmit`: erfolgreich (Exit 0).
+- Gezielte G61-Tests: **3 Dateien / 30 Tests** erfolgreich (Exit 0).
+- `npm run lint` und `npm run format:check`: erfolgreich (Exit 0).
+- `npm run verify`: 25/25 Integritätssuiten erfolgreich (Exit 0).
+- `npm test`: **256 Dateien / 1378 Tests** erfolgreich (Exit 0; erwartete jsdom-Ausgaben
+  aus Error-Boundary-Tests bleiben im Protokoll).
+- `npm run build`: erfolgreich (Exit 0).
+- `git diff --check 3d44ef8..a688efe`: leer; der Schutzbereichs-Diff für
+  `src/simulation`, `src/types`, `src/context`, `src/features/resources`,
+  `src/services/db/crmRepository.ts`, `src/auth` und `src/features/auth` ist leer.
+- Der unmittelbar erneut gestartete Axe-Lauf mit dem dokumentierten Seed-Testkonto endet
+  lokal wieder vor Einzelfällen mit `test-results/.last-run.json: {"status":"failed",
+  "failedTests":[]}`. `npx supabase status` meldet zugleich mehrere gestoppte lokale Dienste.
+  Das ist kein zusätzlicher Produktbefund, aber kein frischer grüner A11y-Gate-Nachweis.
+
+### Ergebnis
+
+**Gate G61 bleibt nicht freigegeben.** Rückgabe an Antigravity nach schriftlicher
+Scope-Erweiterung für die produktive CRM-Routenintegration. Der Reviewer hat keinen
+Produktcode verändert sowie keinen Push, Pull Request, Merge oder Deploy ausgelöst.
