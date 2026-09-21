@@ -130,6 +130,7 @@ jobs:
           # `supabase start` startet nur Container; der Seed wird erst mit `db reset`
           # zuverlässig auf die frische lokale DB angewendet. Ohne diesen Reset sind
           # auth.users / organization_members leer und der Login-Setup bricht ab.
+          supabase start -x studio,imgproxy,storage-api,logflare,vector,supavisor,mailpit,postgres-meta
           supabase db reset --yes
           eval $(supabase status -o env)
           echo "VITE_SUPABASE_URL=${API_URL}" >> $GITHUB_ENV
