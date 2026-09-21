@@ -10868,3 +10868,66 @@ Produktcode verändert sowie keinen Push, Pull Request, Merge oder Deploy ausgel
 
 - **Bereit zur erneuten Prüfung (Gate G61 durch Codex / Claude Code).**
 - **Kein Push, kein Merge, kein PR.**
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Review 4 (Codex) — NICHT FREIGEGEBEN
+
+**Geprüfter Builder-Commit:** `3bcecc9` (`fix(g61): integrate crm provenance into productive route composition and tab switches`)
+**Review-Basis:** `3d44ef8` (G60)
+**Zweig:** `feat/auftrag-067o-source-freshness`
+
+### Befund P1-1 — Produktions-CRM zeigt den letzten erfolgreichen Abruf weiterhin nicht
+
+**Vertrag verletzt:** Auftrag 067O fordert für jede datenführende Kernseite Quelle, Modus,
+**letzten erfolgreichen Abruf**, Datenalter und Gesundheitsstatus (Auftrag Zeilen 22–24 und
+37). Die produktiven CRM-Routen verwenden nach der Nacharbeit nun korrekt
+`useCrmProvenance(...)`, übergeben aber ausschließlich
+`<DataSourceStatus variant="compact" ... />`:
+
+- `src/features/crm/pages/LeadsPage.tsx:224`
+- `src/features/crm/pages/CompaniesPage.tsx:219`
+- `src/features/crm/pages/DealsPage.tsx:183`
+- `src/features/crm/pages/ActivitiesPage.tsx:10`
+
+Die Variante `compact` rendert in `src/components/data/DataSourceStatus.tsx:220–236`
+Quelle, Modus, Status und Frische/Datenalter, aber keinen Wert aus
+`formattedFetchedAt`. Der explizite Abrufzeitpunkt (`Stand: ...`) existiert ausschließlich
+in der Banner-Variante bei Zeilen 212–214, die auf den produktiven CRM-Routen nicht
+gerendert wird. Damit fehlt genau ein verpflichtendes Provenienzfeld auf den realen
+CRM-Seiten; der neue Ressourcenwechsel-Test kann dieses Feld folglich auch nicht
+absichern.
+
+**Erwartete Nacharbeit:** Den letzten erfolgreichen Abruf auf allen vier produktiven
+CRM-Routen sichtbar machen (z. B. in der kompakten Variante oder zusätzlich als Banner)
+und einen UI-Test für den sichtbaren Zeitstempel sowie den Wechsel der zugehörigen
+Ressource ergänzen. Keine Produktänderung durch den Reviewer.
+
+### Positiv geprüft
+
+- Der produktive CRM-Pfad ist jetzt angebunden: Die vier direkten Routen verwenden den
+  reaktiven Provenienz-Hook; der bisher tote `CRMView`-Pfad ist nicht mehr alleinige
+  Integrationsstelle.
+- Der neue Negativtest für den Wechsel Kontakte → fehlerhafte Deals → Kontakte sowie die
+  Hook-Tests sind unabhängig grün: **2 Dateien / 6 Tests**.
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm run verify`, `npm test`
+  und `npm run build` sind unabhängig erfolgreich. Die vollständige Test-Suite ergibt
+  **257 Dateien / 1380 Tests**; die Integritätsprüfung meldet **25/25 Suiten**.
+- `git diff --check 3d44ef8..3bcecc9` ist leer. Der Schutzbereichs-Diff für
+  `src/simulation`, `src/types`, `src/context`, `src/features/resources`,
+  `src/services/db/crmRepository.ts`, `src/auth` und `src/features/auth` ist leer.
+- Die 12 vorhandenen Screenshot-Dateien stimmen bytegenau mit den SHA-256-Werten in
+  `docs/screenshots/auftrag-067o-g61/README.md` überein.
+
+### UI-Gate-Nachweis
+
+Der erneut ausgeführte Axe-Lauf endet im globalen Login-Setup vor allen Einzelfällen mit
+`page.waitForURL('**/dashboard')` (30-s-Timeout). Das ist kein zusätzlicher
+Produktbefund, aber auch kein frischer grüner A11y-Gate-Nachweis. Der Screenshot-Harness
+wurde deshalb nicht erneut als Ersatznachweis gewertet.
+
+### Ergebnis
+
+**Gate G61 bleibt nicht freigegeben.** Rückgabe an Antigravity für den P1-Befund und
+einen reproduzierbar grünen UI-Gate-Nachweis. Der Reviewer hat keinen Produktcode
+verändert sowie keinen Push, Pull Request, Merge oder Deploy ausgelöst.
