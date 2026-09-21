@@ -40,28 +40,48 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     await expect(page.getByText('Firma B1')).toHaveCount(0);
   });
 
-  test('2. URL-Roundtrip: Deep-Link stellt Filter und Paginierung exakt wieder her', async ({
+  test('2. URL-Roundtrip: Deep-Link stellt Filter, Sortierung und Paginierung exakt wieder her und übersteht Reload', async ({
     page,
   }) => {
     await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
-    await page.goto('/crm/companies');
 
-    // Deep Link mit URL-Parametern wiederherstellen
+    await page.goto('/crm/companies');
+    await expect(page.getByText(' =1+1 Formel-Firma').first()).toBeVisible();
+
+    // Deep Link mit Paginierung, Sortierung und Filter über URL-Zustand anwenden
     await page.evaluate(() => {
-      window.history.pushState(null, '', '/crm/companies?suche=A1&branche=IT');
+      window.history.pushState(null, '', '/crm/companies?seite=2&proSeite=1&sort=name&order=asc');
       window.dispatchEvent(new PopStateEvent('popstate'));
     });
 
-    // Input muss mit 'A1' befüllt sein
-    const searchInput = page.getByRole('searchbox', { name: 'Unternehmen suchen' });
-    await expect(searchInput).toHaveValue('A1');
+    // Erwarteter Inhalt auf Seite 2 bei sort=name&order=asc:
+    // Seite 1 ist ' =1+1 Formel-Firma', Seite 2 ist 'Firma A1', Seite 3 ist 'Firma A2'
+    await expect(page.getByText('Firma A1').first()).toBeVisible();
+    await expect(page.getByText(' =1+1 Formel-Firma')).toHaveCount(0);
+    await expect(page.getByText('Firma A2')).toHaveCount(0);
 
-    // Treffer muss angezeigt werden
-    await expect(page.getByText('Firma A1').first()).toBeAttached();
-    await expect(page.getByText('Firma B1')).toHaveCount(0);
+    // Dropdown und Pager-State prüfen
+    const pageSizeSelect = page.getByRole('combobox', { name: 'Zeilen pro Seite' });
+    await expect(pageSizeSelect).toHaveValue('1');
+    const prevBtn = page.getByRole('button', { name: 'Vorherige Seite' });
+    const nextBtn = page.getByRole('button', { name: 'Nächste Seite' });
+    await expect(prevBtn).toBeEnabled();
+    await expect(nextBtn).toBeEnabled();
+
+    // Echter Page-Reload: muss den identischen Zustand und Inhalt bewahren
+    await page.reload();
+    await expect(page).toHaveURL(/seite=2/);
+    await expect(page).toHaveURL(/proSeite=1/);
+    await expect(page).toHaveURL(/sort=name/);
+    await expect(page).toHaveURL(/order=asc/);
+    await expect(page.getByText('Firma A1').first()).toBeVisible();
+    await expect(page.getByText(' =1+1 Formel-Firma')).toHaveCount(0);
+    await expect(page.getByText('Firma A2')).toHaveCount(0);
+    await expect(prevBtn).toBeEnabled();
+    await expect(nextBtn).toBeEnabled();
   });
 
-  test('2b. Pagination-Vertrag: Mehrseitige Navigation, Zeilenauswahl und Pager-Bedienung', async ({
+  test('2b. Pagination-Vertrag: Mehrseitige Navigation, Datenwechsel und Pager-Bedienung', async ({
     page,
   }) => {
     await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
@@ -75,6 +95,10 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     // URL muss 'proSeite=1' enthalten
     await expect(page).toHaveURL(/proSeite=1/);
 
+    // Seite 1: ' =1+1 Formel-Firma' sichtbar, 'Firma A1' nicht sichtbar
+    await expect(page.getByText(' =1+1 Formel-Firma').first()).toBeVisible();
+    await expect(page.getByText('Firma A1')).toHaveCount(0);
+
     // Paginierungs-Status & Buttons auf Seite 1 (Vorherige disabled, Nächste enabled)
     const prevBtn = page.getByRole('button', { name: 'Vorherige Seite' });
     const nextBtn = page.getByRole('button', { name: 'Nächste Seite' });
@@ -86,11 +110,19 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     await expect(page).toHaveURL(/seite=2/);
     await expect(prevBtn).toBeEnabled();
 
+    // Seite 2: Datenwechsel verifizieren! 'Firma A1' sichtbar, ' =1+1 Formel-Firma' nicht sichtbar
+    await expect(page.getByText('Firma A1').first()).toBeVisible();
+    await expect(page.getByText(' =1+1 Formel-Firma')).toHaveCount(0);
+
     // Zurück zur Seite 1 blättern
     await prevBtn.click();
     await expect(page).not.toHaveURL(/seite=2/);
     await expect(prevBtn).toBeDisabled();
     await expect(nextBtn).toBeEnabled();
+
+    // Seite 1: Datenwechsel zurück verifizieren! ' =1+1 Formel-Firma' wieder sichtbar, 'Firma A1' nicht
+    await expect(page.getByText(' =1+1 Formel-Firma').first()).toBeVisible();
+    await expect(page.getByText('Firma A1')).toHaveCount(0);
   });
 
   test('3. CSV-Export lädt gefilterte Mandantendaten mit Formelschutz herunter', async ({

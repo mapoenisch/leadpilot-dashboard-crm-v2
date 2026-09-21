@@ -10,25 +10,10 @@ import {
   type CrmExportResourceParams,
 } from '../crm-query-export/index.ts';
 
-const ADMIN_USER: CrmUser = {
-  id: '11111111-1111-1111-1111-111111111111',
-  email: 'admin@org-a.local',
-};
-
-const MANAGER_USER: CrmUser = {
-  id: '22222222-2222-2222-2222-222222222222',
-  email: 'manager@org-a.local',
-};
-
-const VIEWER_USER: CrmUser = {
-  id: '33333333-3333-3333-3333-333333333333',
-  email: 'viewer@org-a.local',
-};
-
-const SUSPENDED_USER: CrmUser = {
-  id: '77777777-7777-7777-7777-777777777777',
-  email: 'suspended@org-a.local',
-};
+const ADMIN_USER: CrmUser = { id: '11111111-1111-1111-1111-111111111111', email: 'admin@org-a.local' };
+const MANAGER_USER: CrmUser = { id: '22222222-2222-2222-2222-222222222222', email: 'manager@org-a.local' };
+const VIEWER_USER: CrmUser = { id: '33333333-3333-3333-3333-333333333333', email: 'viewer@org-a.local' };
+const SUSPENDED_USER: CrmUser = { id: '77777777-7777-7777-7777-777777777777', email: 'suspended@org-a.local' };
 
 const ORG_A_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const ORG_B_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
@@ -81,20 +66,37 @@ function createMockDb(): { db: CrmQueryDb; state: MockDbState } {
     },
     async queryResource(params: CrmQueryResourceParams) {
       state.lastQueryParams = params;
-      let items: Record<string, unknown>[] = [];
-      if (params.resource === 'companies') items = state.companies;
-      if (params.resource === 'contacts') items = state.contacts;
-      if (params.resource === 'deals') items = state.deals;
-      const total = items.length;
+      const raw = (state[params.resource as keyof MockDbState] as Record<string, unknown>[]) || [];
+      let items = [...raw];
+      if (params.filters) {
+        for (const [k, v] of Object.entries(params.filters)) items = items.filter((it) => String(it[k] ?? '') === String(v));
+      }
+      const sortCol = params.sortBy || (params.resource === 'deals' ? 'deal_name' : params.resource === 'contacts' ? 'last_name' : 'name');
+      const asc = (params.sortOrder || 'asc') === 'asc';
+      items.sort((a, b) => {
+        const va = String(a[sortCol] ?? '');
+        const vb = String(b[sortCol] ?? '');
+        if (va !== vb) return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+        return String(a.id ?? '').localeCompare(String(b.id ?? ''));
+      });
       const from = (params.page - 1) * params.pageSize;
-      return { items: items.slice(from, from + params.pageSize), total };
+      return { items: items.slice(from, from + params.pageSize), total: items.length };
     },
     async exportResource(params: CrmExportResourceParams) {
       state.lastExportParams = params;
-      let items: Record<string, unknown>[] = [];
-      if (params.resource === 'companies') items = state.companies;
-      if (params.resource === 'contacts') items = state.contacts;
-      if (params.resource === 'deals') items = state.deals;
+      const raw = (state[params.resource as keyof MockDbState] as Record<string, unknown>[]) || [];
+      let items = [...raw];
+      if (params.filters) {
+        for (const [k, v] of Object.entries(params.filters)) items = items.filter((it) => String(it[k] ?? '') === String(v));
+      }
+      const sortCol = params.sortBy || (params.resource === 'deals' ? 'deal_name' : params.resource === 'contacts' ? 'last_name' : 'name');
+      const asc = (params.sortOrder || 'asc') === 'asc';
+      items.sort((a, b) => {
+        const va = String(a[sortCol] ?? '');
+        const vb = String(b[sortCol] ?? '');
+        if (va !== vb) return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+        return String(a.id ?? '').localeCompare(String(b.id ?? ''));
+      });
       return items;
     },
   };
@@ -332,49 +334,46 @@ Deno.test('crm-query-export: Interner DB-Fehler wird als generischer SERVER_ERRO
 
 Deno.test('crm-query-export: Pagination-Vertrag liefert getrennte Seiten, Paging-Metadaten und stabile Sortierung', async () => {
   const { db, state } = createMockDb();
-  // Seite 1 mit pageSize=1
-  const reqPage1 = makeRequest(ADMIN_USER.id, {
-    action: 'list',
-    resource: 'companies',
-    page: 1,
-    pageSize: 1,
-  });
-  const res1 = await handleCrmQueryExport(reqPage1, db);
+  // Seite 1 mit pageSize=1 (name ASC: c2 (' =SUM...') kommt zuerst)
+  const req1 = makeRequest(ADMIN_USER.id, { action: 'list', resource: 'companies', page: 1, pageSize: 1, sortBy: 'name', sortOrder: 'asc' });
+  const res1 = await handleCrmQueryExport(req1, db);
   assertEquals(res1.status, 200);
   const data1 = await res1.json();
   assertEquals(data1.page, 1);
   assertEquals(data1.pageSize, 1);
   assertEquals(data1.total, 3);
-  assertEquals(data1.items.length, 1);
-  assertEquals(data1.items[0].id, 'c1');
+  assertEquals(data1.items[0].id, 'c2');
   assertEquals(state.lastQueryParams?.page, 1);
-  assertEquals(state.lastQueryParams?.pageSize, 1);
 
-  // Seite 2 mit pageSize=1 (zweite Seite nachweisen)
-  const reqPage2 = makeRequest(ADMIN_USER.id, {
-    action: 'list',
-    resource: 'companies',
-    page: 2,
-    pageSize: 1,
-  });
-  const res2 = await handleCrmQueryExport(reqPage2, db);
+  // Seite 2 mit pageSize=1 (zweite Seite: c1 ('Firma A1'))
+  const req2 = makeRequest(ADMIN_USER.id, { action: 'list', resource: 'companies', page: 2, pageSize: 1, sortBy: 'name', sortOrder: 'asc' });
+  const res2 = await handleCrmQueryExport(req2, db);
   assertEquals(res2.status, 200);
   const data2 = await res2.json();
   assertEquals(data2.page, 2);
   assertEquals(data2.pageSize, 1);
   assertEquals(data2.total, 3);
-  assertEquals(data2.items.length, 1);
-  assertEquals(data2.items[0].id, 'c2');
+  assertEquals(data2.items[0].id, 'c1');
 
-  // Rücknavigation auf Seite 1 liefert wieder ersten Eintrag
-  const reqBack = makeRequest(ADMIN_USER.id, {
-    action: 'list',
-    resource: 'companies',
-    page: 1,
-    pageSize: 1,
-  });
+  // Rücknavigation auf Seite 1 liefert wieder ersten Eintrag (c2)
+  const reqBack = makeRequest(ADMIN_USER.id, { action: 'list', resource: 'companies', page: 1, pageSize: 1, sortBy: 'name', sortOrder: 'asc' });
   const resBack = await handleCrmQueryExport(reqBack, db);
   assertEquals(resBack.status, 200);
   const dataBack = await resBack.json();
-  assertEquals(dataBack.items[0].id, 'c1');
+  assertEquals(dataBack.items[0].id, 'c2');
+});
+
+Deno.test('crm-query-export: Deterministischer id-Tie-Breaker bei identischen Sortierwerten', async () => {
+  const { db, state } = createMockDb();
+  state.companies.push({ id: 'c0', name: 'Firma A1', domain: 'a0.test', industry: 'IT', city: 'Köln', postalCode: '50667', employeeCount: 10 });
+  // c0 und c1 haben denselben Namen 'Firma A1'. id ASC entscheidet: c0 vor c1
+  const reqPage2 = makeRequest(ADMIN_USER.id, { action: 'list', resource: 'companies', page: 2, pageSize: 1, sortBy: 'name', sortOrder: 'asc' });
+  const res2 = await handleCrmQueryExport(reqPage2, db);
+  const data2 = await res2.json();
+  assertEquals(data2.items[0].id, 'c0');
+
+  const reqPage3 = makeRequest(ADMIN_USER.id, { action: 'list', resource: 'companies', page: 3, pageSize: 1, sortBy: 'name', sortOrder: 'asc' });
+  const res3 = await handleCrmQueryExport(reqPage3, db);
+  const data3 = await res3.json();
+  assertEquals(data3.items[0].id, 'c1');
 });

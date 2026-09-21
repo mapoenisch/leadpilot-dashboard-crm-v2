@@ -1,5 +1,5 @@
 // G60 (Auftrag 067N, Step 4): URL-synchrone serverseitige Companies-Ansicht mit Pagination und Export
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -43,6 +43,26 @@ export function CompaniesPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
 
+  // URL-State vor Initialisierung synchron wiederherstellen, falls durch Auth-Bounce nach Reload temporär verloren
+  if (typeof window !== 'undefined' && !window.location.search) {
+    try {
+      const navEntry = window.performance?.getEntriesByType?.('navigation')?.[0] as
+        PerformanceNavigationTiming | undefined;
+      const isReload =
+        sessionStorage.getItem('lp_crm_companies_reload') === '1' || navEntry?.type === 'reload';
+      if (isReload) {
+        sessionStorage.removeItem('lp_crm_companies_reload');
+        const saved = sessionStorage.getItem('lp_crm_companies_search');
+        if (saved) {
+          sessionStorage.removeItem('lp_crm_companies_search');
+          window.history.replaceState(null, '', window.location.pathname + saved);
+        }
+      }
+    } catch {
+      // Storage-Fehler abfangen
+    }
+  }
+
   // URL-synchroner Zustand
   const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
   const [industryFilter, setIndustryFilter] = useUrlSyncedState('branche', 'ALL');
@@ -63,6 +83,29 @@ export function CompaniesPage() {
     setSortOrder(val);
     setPageStr('1');
   };
+
+  // Suchzustand für Seiten-Reload kontinuierlich und vor Unload sichern
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search) {
+      try {
+        sessionStorage.setItem('lp_crm_companies_search', window.location.search);
+      } catch {
+        // Storage-Fehler abfangen
+      }
+    }
+    const onBeforeUnload = () => {
+      if (typeof window !== 'undefined' && window.location.search) {
+        try {
+          sessionStorage.setItem('lp_crm_companies_search', window.location.search);
+          sessionStorage.setItem('lp_crm_companies_reload', '1');
+        } catch {
+          // Storage-Fehler abfangen
+        }
+      }
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [searchTerm, industryFilter, pageStr, pageSizeStr, sortField, sortOrder]);
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, error } = useCrmListQuery<Company>({

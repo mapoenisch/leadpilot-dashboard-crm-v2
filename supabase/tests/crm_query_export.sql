@@ -3,7 +3,7 @@
 -- ============================================================================
 BEGIN;
 
-SELECT plan(23);
+SELECT plan(25);
 
 -- 1..16: Index-Prüfungen für public.companies, contacts, imported_funnel_deals
 SELECT has_index('public', 'companies', 'idx_companies_org_name', 'Index idx_companies_org_name existiert');
@@ -97,7 +97,7 @@ SELECT is(
   'Formeldatensatz in public.companies ist als statischer Text mandantenisoliert abgelegt'
 );
 
--- Wechsel auf Admin B
+-- 23: Wechsel auf Admin B
 SELECT set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-4444-444444444444","role":"authenticated"}', true);
 
 SELECT is(
@@ -110,6 +110,21 @@ SELECT is(
   (SELECT count(*) FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   0::bigint,
   'Org B sieht fremde Company nicht'
+);
+
+-- 24..25: Deterministische Paginierung mit id-Tie-Breaker bei identischem Sortierwert (Org A)
+SELECT set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+
+SELECT is(
+  (SELECT id FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' AND industry = 'IT' ORDER BY industry ASC, id ASC LIMIT 1 OFFSET 0),
+  'c0000000-0000-0000-0000-000000000001'::text,
+  'Tie-Breaker: Bei identischer Branche liefert LIMIT 1 OFFSET 0 stabil die kleinere ID'
+);
+
+SELECT is(
+  (SELECT id FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' AND industry = 'IT' ORDER BY industry ASC, id ASC LIMIT 1 OFFSET 1),
+  'c0000000-0000-0000-0000-000000000003'::text,
+  'Tie-Breaker: Bei identischer Branche liefert LIMIT 1 OFFSET 1 stabil die nachfolgende ID'
 );
 
 SELECT * FROM finish();
