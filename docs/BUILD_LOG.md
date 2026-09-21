@@ -10413,3 +10413,34 @@ Keine geschützten Simulations-, Kontext- oder Datenabstraktionsdateien wurden m
 
 - **Strikte Einhaltung:** Lokaler Stand auf Branch `feat/auftrag-067n-crm-query-export`. Kein Push, kein PR, kein Merge nach `main`.
 - **Status:** **ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG (Review 5 durch Codex / Claude Code)**.
+
+---
+
+## [2026-09-21] Gate G60 / Auftrag 067N: Unabhängiger Codex-Review Nacharbeit 5 — FREIGEGEBEN
+
+**Vergleich:** `146de7f..02c8af7`
+**Review-Umfang:** Nacharbeit zu neutraler URL-/Reload-Isolation und echtem Deep-Link-Einstieg; zusätzlich CI-, Scope-, Mandanten-, Rollen-, CSV- und Schutzbereichsprüfung.
+
+### Bestätigte Behebungen
+
+1. `src/features/crm/pages/CompaniesPage.tsx` bindet den temporären Listenstatus an die aktive Nutzer-ID, löscht ihn bei einer neutralen Route und stellt Parameter nur noch aus dem passenden Navigationseintrag wieder her. Damit kann ein Reload von `/crm/companies` keinen alten Filter reaktivieren; Test 2c deckt diesen Ablauf ab.
+2. `e2e/crm-query-export.spec.ts` ruft den parametrisierten Companies-Pfad direkt auf. Deep-Link, Seiteninhalt, Pager und Reload werden ohne künstliches `pushState`/`PopStateEvent` geprüft.
+3. Die Nacharbeit bleibt im dokumentierten Scope. CI startet die Edge Runtime, die Betriebsdokumentation enthält keine konkreten Zugangsdaten, und der Schutzbereichs-Diff bleibt leer.
+
+### Frisch unabhängige Gates
+
+- `npx tsc --noEmit`: grün.
+- `npm run lint`: grün, ohne Warnungen.
+- `npm run format:check`: grün.
+- `npm run build`: grün.
+- `npm run verify`: 25/25 Suiten grün.
+- `npm test`: 251/251 Dateien, 1342/1342 Tests grün.
+- `deno test --no-lock --allow-read supabase/functions/__tests__/`: 59/59 Tests grün.
+- `npx supabase test db`: 5/5 Dateien, 122/122 Tests grün.
+- `git diff --check 146de7f..02c8af7` und der Schutzbereichs-Diff: leer.
+
+Der lokale Playwright-Neustart erreichte wegen des derzeit abweichenden Auth-Fixtures keine Testausführung; der von Antigravity frisch dokumentierte vollständige Lauf (39/39) ist im Review konsistent mit den Spezifikationen und dem diffgeprüften Code.
+
+### Ergebnis
+
+**Gate G60 / Auftrag 067N ist freigegeben.** Keine offenen P1-, P2- oder P3-Befunde. Der Reviewer hat keinen Produktcode geändert sowie keinen Push, PR, Merge oder Deploy ausgelöst.
