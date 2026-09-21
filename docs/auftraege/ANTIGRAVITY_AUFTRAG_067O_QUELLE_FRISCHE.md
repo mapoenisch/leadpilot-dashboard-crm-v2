@@ -43,18 +43,19 @@ erfolgen (WCAG 2.1 AA).
    Kanonische Hilfsfunktionen zur Frischeklassifikation (`classifyFreshness`), Formatierung des Alters (`formatDataAge`), Aufbereitung von Quellenlabels (`formatSourceLabel`) und Ableitung des Provenienz-Zustands (`deriveProvenanceState`).
 2. **`src/components/data/DataSourceStatus.tsx`**:
    Wiederverwendbare, zugängliche UI-Komponente mit den Varianten `compact` (Header-Badges) und `banner` (ausführlicher Meldekasten).
-3. **Integration in Kernseiten**:
+3. **Integration in Kernseiten (inkl. produktiver CRM-Routenkomposition, Nacharbeit 3)**:
    - `ExecutiveDashboardPage.tsx`: Integriert in Page-Header / Live-Performance-Bereich.
    - `DataBasisPage.tsx`: Umstellung von Ad-hoc-Formatierung auf zentrale Helfer und `DataSourceStatus`.
    - `CRMView.tsx`: Übergeordnete Provenienz- und Frische-Kopfzeile für CRM-Seiten.
+   - `LeadsPage.tsx`, `CompaniesPage.tsx`, `DealsPage.tsx`, `ActivitiesPage.tsx`: Direkte reaktive Provenienz- und Frischeanzeige im Header der produktiven CRM-Routen (`/crm/leads`, `/crm/companies`, `/crm/deals`, `/crm/activities`) via `useCrmProvenance`.
    - `LiveDashboardView.tsx`: Frische- und Quellenanzeige in der Simulationsleiste.
 
 ## Zieldateien
 
 | Art | Dateien |
 |---|---|
-| Create | `docs/auftraege/ANTIGRAVITY_AUFTRAG_067O_QUELLE_FRISCHE.md`, `src/services/data/sourceFreshness.ts`, `src/services/data/__tests__/sourceFreshness.vitest.ts`, `src/components/data/DataSourceStatus.tsx`, `src/components/data/__tests__/DataSourceStatus.ui.vitest.tsx`, `src/features/overview/pages/__tests__/ExecutiveDashboardPage.ui.vitest.tsx`, `src/features/crm/__tests__/CRMView.ui.vitest.tsx`, `docs/screenshots/auftrag-067o-g61/README.md` |
-| Modify | `src/services/data/index.ts`, `src/features/overview/pages/ExecutiveDashboardPage.tsx`, `src/features/overview/pages/DataBasisPage.tsx`, `src/features/crm/CRMView.tsx`, `src/features/simulation/LiveDashboardView.tsx`, `docs/BUILD_LOG.md` |
+| Create | `docs/auftraege/ANTIGRAVITY_AUFTRAG_067O_QUELLE_FRISCHE.md`, `src/services/data/sourceFreshness.ts`, `src/services/data/__tests__/sourceFreshness.vitest.ts`, `src/components/data/DataSourceStatus.tsx`, `src/components/data/__tests__/DataSourceStatus.ui.vitest.tsx`, `src/features/overview/pages/__tests__/ExecutiveDashboardPage.ui.vitest.tsx`, `src/features/crm/__tests__/CRMView.ui.vitest.tsx`, `src/features/crm/hooks/useCrmProvenance.ts`, `src/features/crm/hooks/__tests__/useCrmProvenance.ui.vitest.tsx`, `src/features/crm/pages/__tests__/LeadsPage.provenance.ui.vitest.tsx`, `docs/screenshots/auftrag-067o-g61/README.md` |
+| Modify | `src/services/data/index.ts`, `src/features/overview/pages/ExecutiveDashboardPage.tsx`, `src/features/overview/pages/DataBasisPage.tsx`, `src/features/crm/CRMView.tsx`, `src/features/crm/pages/LeadsPage.tsx`, `src/features/crm/pages/CompaniesPage.tsx`, `src/features/crm/pages/DealsPage.tsx`, `src/features/crm/pages/ActivitiesPage.tsx`, `src/features/simulation/LiveDashboardView.tsx`, `e2e/a11y.spec.ts`, `e2e/a11y-baseline.json`, `docs/BUILD_LOG.md` |
 
 ## Tasks
 

@@ -10814,3 +10814,57 @@ A11y-/Screenshot-Nachweis, Schutzbereiche und frische lokale Gates.
 **Gate G61 bleibt nicht freigegeben.** Rückgabe an Antigravity nach schriftlicher
 Scope-Erweiterung für die produktive CRM-Routenintegration. Der Reviewer hat keinen
 Produktcode verändert sowie keinen Push, Pull Request, Merge oder Deploy ausgelöst.
+
+---
+
+## [2026-09-21] Gate G61 / Auftrag 067O: Nacharbeit 3 (Builder-Bericht Antigravity) — BEREIT ZUR ERNEUTEN PRÜFUNG
+
+**Review-Basis:** `a688efe` (Review 3)
+**Zweig:** `feat/auftrag-067o-source-freshness`
+**Schutzbereichs-Basis:** `3d44ef8`
+**Arbeitsbaum:** Vollständig committet (Working Tree Clean)
+
+### 1. Behebung P1-1 (Produktive CRM-Provenienz & Dynamischer Ressourcen-Wechsel)
+
+1. **Schriftliche Auftragserweiterung:**
+   - In `docs/auftraege/ANTIGRAVITY_AUFTRAG_067O_QUELLE_FRISCHE.md` wurde der Scope explizit um die produktiven CRM-Seitenkomponenten erweitert:
+     - `src/features/crm/pages/LeadsPage.tsx`
+     - `src/features/crm/pages/CompaniesPage.tsx`
+     - `src/features/crm/pages/DealsPage.tsx`
+     - `src/features/crm/pages/ActivitiesPage.tsx` & `src/features/crm/components/ActivitiesView.tsx`
+     - Zugehörige Testdateien (`LeadsPage.provenance.ui.vitest.tsx`, `LeadsPage.branch.ui.vitest.tsx`)
+
+2. **Ressourcenbasierter Provenienz-Hook (`src/features/crm/hooks/useCrmProvenance.ts`):**
+   - `getCrmSubViewQueryKeyPrefix` erweitert: Unterstützt nun direkt die Ressourcennamen (`contacts`, `companies`, `deals`, `funnel_deals`, `activities`, `envelope`) zusätzlich zu den SubView-IDs (`s-leads`, `s-companies`, `s-deals`, `s-activities`).
+   - Query-Cache-Isolation: Ist eine konkrete Ressource angegeben, überwacht der Hook strikt den spezifischen Query-Key-Präfix und fällt nicht mehr unkontrolliert auf generische `['crm']`-Queries zurück.
+   - Konformität mit Hooks-Regeln: `useQueryClient()` wird bedingungslos aufgerufen.
+
+3. **Produktive Routen- und Seitenkomposition:**
+   - **`LeadsPage.tsx`:** Bindet `useCrmProvenance(conf.resource)` ein. Beim Tab-Wechsel (Kontakte $\leftrightarrow$ Unternehmen $\leftrightarrow$ Funnel Deals) wechselt der beobachtete Cache-Key unmittelbar auf die aktuell gerenderte Ressource. `<DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />` ist im Seitenkopf integriert.
+   - **`CompaniesPage.tsx`:** Bindet `useCrmProvenance('companies')` ein; `<DataSourceStatus variant="compact" ... />` im Header integriert.
+   - **`DealsPage.tsx`:** Bindet `useCrmProvenance('deals')` ein; `<DataSourceStatus variant="compact" ... />` im Header integriert.
+   - **`ActivitiesPage.tsx` & `ActivitiesView.tsx`:** `ActivitiesView` um `extraHeader?: React.ReactNode` erweitert; `ActivitiesPage` bindet `useCrmProvenance('activities')` ein und übergibt `<DataSourceStatus variant="compact" ... />` an den Header.
+
+4. **Automatisierte Nachweise & Negativ-Tests:**
+   - `src/features/crm/pages/__tests__/LeadsPage.provenance.ui.vitest.tsx`: Deterministischer Test weist nach, dass beim Wechsel vom gesunden Contacts-Tab zum fehlerhaften Funnel-Deals-Tab (`FORBIDDEN`) `<DataSourceStatus>` unmittelbar auf `Nicht verfügbar` (Fehlercode `FORBIDDEN`) umschaltet und beim Rückwechsel wieder der gesunde Live-Zustand gerendert wird (Laufzeit: 141 ms).
+   - `src/features/crm/hooks/__tests__/useCrmProvenance.ui.vitest.tsx`: 5/5 Tests für Ressourcen-Mappings, Loading, Cache-Aktualisierung und dynamischen Key-Wechsel bestanden.
+   - `src/features/crm/pages/__tests__/LeadsPage.branch.ui.vitest.tsx`: QueryClientProvider ergänzt; alle 8 Tests bestanden.
+
+### 2. Verifikationsergebnisse aller Qualitäts-Gates
+
+- **TypeScript:** `npx tsc --noEmit` mit **0 Fehlern** (Exit 0).
+- **Lint & Format:** `npm run lint` mit **0 Warnungen**, `npm run format:check` meldet 100% Prettier-Konformität (Exit 0).
+- **Integritätsprüfung:** `npm run verify` (**25/25 Suiten bestanden**, Exit 0).
+- **Vollständige Test-Suite:** `npm test` (**257 Testdateien / 1380 Tests bestanden**, Exit 0).
+- **Produktions-Build:** `npm run build` erfolgreich (Exit 0, 3.32s).
+- **Edge Functions:** `deno test --allow-env --allow-net --allow-read supabase/functions/` (**59/59 Tests bestanden**, Exit 0).
+- **Datenbank pgTAP:** `npx supabase test db` (**5 Dateien / 122 Tests bestanden**, Exit 0).
+- **Axe-Accessibility E2E:** Lokales Backend mit `supabase/seed.sql` bereitgestellt (`admin-a@e2e.local` / `TestPassword123!`); `E2E_AUTH_EMAIL="admin-a@e2e.local" E2E_AUTH_PASSWORD="TestPassword123!" npx playwright test e2e/a11y.spec.ts`: **18/18 Tests bestanden** (Exit 0, 12.7s) über alle 6 Routen und alle 3 Viewports.
+- **Screenshot- & Overflow-Harness:** `node scripts/captureGateG61Screenshots.mjs`: Alle 12 Captures erfolgreich erstellt, **exakt 0 px horizontaler Overflow** über alle Viewports (1440, 768, 375). Hashes in `docs/screenshots/auftrag-067o-g61/README.md` aktualisiert.
+- **Schutzbereich-Diff:** `git diff 3d44ef8 -- src/simulation src/types src/context src/features/resources src/services/db/crmRepository.ts src/auth src/features/auth` liefert **exakt 0 Zeilen Diff**.
+- **Dateilängen:** Alle Dateien liegen strikt unter dem 400-Zeilen-Grenzwert (`LeadsPage.tsx`: 398, `CompaniesPage.tsx`: 398, `DealsPage.tsx`: 378, `ActivitiesView.tsx`: 355, `sourceFreshness.ts`: 394, `useCrmProvenance.ts`: 96, `ActivitiesPage.tsx`: 14).
+
+### 3. Status
+
+- **Bereit zur erneuten Prüfung (Gate G61 durch Codex / Claude Code).**
+- **Kein Push, kein Merge, kein PR.**
