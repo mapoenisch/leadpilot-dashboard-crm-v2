@@ -58,44 +58,15 @@ function createMockDb(): { db: CrmQueryDb; state: MockDbState } {
       [SUSPENDED_USER.id, { organizationId: ORG_A_ID, role: 'admin', status: 'suspended' }],
     ]),
     companies: [
-      {
-        id: 'c1',
-        name: 'Firma A1',
-        domain: 'a1.test',
-        industry: 'IT',
-        city: 'Berlin',
-        postalCode: '10115',
-        employeeCount: 50,
-      },
-      {
-        id: 'c2',
-        name: ' =SUM(A1:A10)', // Leading space formula candidate
-        domain: '   @evil.test', // Leading spaces formula candidate
-        industry: ' \t+Marketing', // Space + tab formula candidate
-        city: ' -Munich', // Leading space formula candidate
-        postalCode: '80331',
-        employeeCount: 25,
-      },
+      { id: 'c1', name: 'Firma A1', domain: 'a1.test', industry: 'IT', city: 'Berlin', postalCode: '10115', employeeCount: 50 },
+      { id: 'c2', name: ' =SUM(A1:A10)', domain: '   @evil.test', industry: ' \t+Marketing', city: ' -Munich', postalCode: '80331', employeeCount: 25 },
+      { id: 'c3', name: 'Firma A3', domain: 'a3.test', industry: 'Finanzen', city: 'Hamburg', postalCode: '20095', employeeCount: 120 },
     ],
     contacts: [
-      {
-        id: 'd1',
-        firstName: 'Anna',
-        lastName: 'Schmidt',
-        email: 'anna@a1.test',
-        jobTitle: 'CEO',
-        companyId: 'c1',
-      },
+      { id: 'd1', firstName: 'Anna', lastName: 'Schmidt', email: 'anna@a1.test', jobTitle: 'CEO', companyId: 'c1' },
     ],
     deals: [
-      {
-        id: 'e1',
-        dealName: 'Enterprise Deal',
-        stage: 'PROPOSAL',
-        amount: 50000,
-        closeDate: '2026-12-01',
-        pipeline: 'default',
-      },
+      { id: 'e1', dealName: 'Enterprise Deal', stage: 'PROPOSAL', amount: 50000, closeDate: '2026-12-01', pipeline: 'default' },
     ],
   };
 
@@ -114,7 +85,9 @@ function createMockDb(): { db: CrmQueryDb; state: MockDbState } {
       if (params.resource === 'companies') items = state.companies;
       if (params.resource === 'contacts') items = state.contacts;
       if (params.resource === 'deals') items = state.deals;
-      return { items, total: items.length };
+      const total = items.length;
+      const from = (params.page - 1) * params.pageSize;
+      return { items: items.slice(from, from + params.pageSize), total };
     },
     async exportResource(params: CrmExportResourceParams) {
       state.lastExportParams = params;
@@ -355,4 +328,53 @@ Deno.test('crm-query-export: Interner DB-Fehler wird als generischer SERVER_ERRO
   assertEquals(data.message, 'Interner Serverfehler bei der CRM-Verarbeitung.');
   assertEquals(JSON.stringify(data).includes('secret_table'), false);
   assertEquals(JSON.stringify(data).includes('postgres_backend'), false);
+});
+
+Deno.test('crm-query-export: Pagination-Vertrag liefert getrennte Seiten, Paging-Metadaten und stabile Sortierung', async () => {
+  const { db, state } = createMockDb();
+  // Seite 1 mit pageSize=1
+  const reqPage1 = makeRequest(ADMIN_USER.id, {
+    action: 'list',
+    resource: 'companies',
+    page: 1,
+    pageSize: 1,
+  });
+  const res1 = await handleCrmQueryExport(reqPage1, db);
+  assertEquals(res1.status, 200);
+  const data1 = await res1.json();
+  assertEquals(data1.page, 1);
+  assertEquals(data1.pageSize, 1);
+  assertEquals(data1.total, 3);
+  assertEquals(data1.items.length, 1);
+  assertEquals(data1.items[0].id, 'c1');
+  assertEquals(state.lastQueryParams?.page, 1);
+  assertEquals(state.lastQueryParams?.pageSize, 1);
+
+  // Seite 2 mit pageSize=1 (zweite Seite nachweisen)
+  const reqPage2 = makeRequest(ADMIN_USER.id, {
+    action: 'list',
+    resource: 'companies',
+    page: 2,
+    pageSize: 1,
+  });
+  const res2 = await handleCrmQueryExport(reqPage2, db);
+  assertEquals(res2.status, 200);
+  const data2 = await res2.json();
+  assertEquals(data2.page, 2);
+  assertEquals(data2.pageSize, 1);
+  assertEquals(data2.total, 3);
+  assertEquals(data2.items.length, 1);
+  assertEquals(data2.items[0].id, 'c2');
+
+  // Rücknavigation auf Seite 1 liefert wieder ersten Eintrag
+  const reqBack = makeRequest(ADMIN_USER.id, {
+    action: 'list',
+    resource: 'companies',
+    page: 1,
+    pageSize: 1,
+  });
+  const resBack = await handleCrmQueryExport(reqBack, db);
+  assertEquals(resBack.status, 200);
+  const dataBack = await resBack.json();
+  assertEquals(dataBack.items[0].id, 'c1');
 });

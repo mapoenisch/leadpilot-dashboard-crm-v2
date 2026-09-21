@@ -48,7 +48,8 @@ INSERT INTO public.companies (id, domain, name, industry, city, postal_code, org
 VALUES
   ('c0000000-0000-0000-0000-000000000001', 'a1.test', 'Firma A1', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   ('c0000000-0000-0000-0000-000000000002', 'b1.test', 'Firma B1', 'IT', 'Hamburg', '20095', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
-  ('c0000000-0000-0000-0000-000000000003', 'calc.test', ' =1+1 Formel-Firma', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+  ('c0000000-0000-0000-0000-000000000003', 'calc.test', ' =1+1 Formel-Firma', 'IT', 'Berlin', '10115', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  ('c0000000-0000-0000-0000-000000000004', 'a2.test', 'Firma A2', 'Finanzen', 'München', '80331', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
 ON CONFLICT (id) DO UPDATE SET organization_id = EXCLUDED.organization_id, name = EXCLUDED.name;
 
 INSERT INTO public.contacts (id, company_id, email, first_name, last_name, job_title, organization_id)
@@ -68,8 +69,8 @@ SET ROLE authenticated;
 
 SELECT is(
   (SELECT count(*) FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-  2::bigint,
-  'Org A sieht eigene Companies (inkl. Formel-Testdatensatz)'
+  3::bigint,
+  'Org A sieht eigene Companies (inkl. Formel-Testdatensatz und Paginierungs-Seed)'
 );
 
 SELECT is(

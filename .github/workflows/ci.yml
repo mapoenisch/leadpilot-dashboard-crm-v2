@@ -139,6 +139,8 @@ jobs:
           echo "E2E_AUTH_EMAIL_B=admin-b@e2e.local" >> $GITHUB_ENV
           echo "E2E_AUTH_PASSWORD_B=TestPassword123!" >> $GITHUB_ENV
           echo "E2E_AUTH_EMAIL_NOMEMBER=nomember@e2e.local" >> $GITHUB_ENV
+          echo "E2E_AUTH_EMAIL_MANAGER=manager-a@e2e.local" >> $GITHUB_ENV
+          echo "E2E_AUTH_EMAIL_VIEWER=viewer-a@e2e.local" >> $GITHUB_ENV
       - name: Playwright-Browser cachen
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
@@ -150,7 +152,7 @@ jobs:
       - name: Build für E2E und Lighthouse
         run: npx vite build
       - name: Playwright E2E & Axe Accessibility Tests
-        run: npx playwright test e2e/a11y.spec.ts e2e/auth.spec.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
+        run: npx playwright test e2e/a11y.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
       - name: Playwright Simulation & Worker Tests (sequentiell)
         run: npx playwright test e2e/persistence-multisession.spec.ts e2e/worker-responsiveness.spec.ts --workers=1
       - name: Playwright-Chrome für Lighthouse bereitstellen

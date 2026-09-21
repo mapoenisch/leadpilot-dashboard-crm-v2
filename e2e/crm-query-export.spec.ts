@@ -61,6 +61,38 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     await expect(page.getByText('Firma B1')).toHaveCount(0);
   });
 
+  test('2b. Pagination-Vertrag: Mehrseitige Navigation, Zeilenauswahl und Pager-Bedienung', async ({
+    page,
+  }) => {
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
+    await page.goto('/crm/companies');
+
+    // Zeilen pro Seite auf 1 setzen über UI-Dropdown
+    const pageSizeSelect = page.getByRole('combobox', { name: 'Zeilen pro Seite' });
+    await expect(pageSizeSelect).toBeVisible();
+    await pageSizeSelect.selectOption('1');
+
+    // URL muss 'proSeite=1' enthalten
+    await expect(page).toHaveURL(/proSeite=1/);
+
+    // Paginierungs-Status & Buttons auf Seite 1 (Vorherige disabled, Nächste enabled)
+    const prevBtn = page.getByRole('button', { name: 'Vorherige Seite' });
+    const nextBtn = page.getByRole('button', { name: 'Nächste Seite' });
+    await expect(prevBtn).toBeDisabled();
+    await expect(nextBtn).toBeEnabled();
+
+    // Zur Seite 2 blättern
+    await nextBtn.click();
+    await expect(page).toHaveURL(/seite=2/);
+    await expect(prevBtn).toBeEnabled();
+
+    // Zurück zur Seite 1 blättern
+    await prevBtn.click();
+    await expect(page).not.toHaveURL(/seite=2/);
+    await expect(prevBtn).toBeDisabled();
+    await expect(nextBtn).toBeEnabled();
+  });
+
   test('3. CSV-Export lädt gefilterte Mandantendaten mit Formelschutz herunter', async ({
     page,
   }) => {
