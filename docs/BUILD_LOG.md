@@ -11894,3 +11894,20 @@ Linux-Baselines enthalten den Zeitstempel des Aufnahmelaufs. Produkt und Daten i
 Maske + drei Linux-Baselines umgesetzt, alle Gates grün, Stopp-Punkte eingehalten.
 **Übergabe an den Prüfer** — danach Push, PR-CI als vollständiger Nachweis und erst bei
 grüner CI Issue #13 schließen. Merge/Deploy bleiben separate Entscheidung.
+
+## [2026-09-22] Auftrag 067P-N5 — Prüferfreigabe für PR-CI
+
+**Rolle:** unabhängiger Prüfer · **Baseline:** `1060a44` · **geprüfter Commit:** `d4fb4e3`
+· **Status:** FÜR PR-CI FREIGEGEBEN — kein Merge, Deploy oder Issue-Close.
+
+Der Diff ist auf `e2e/visual.spec.ts`, genau drei `/crm/leads`-Linux-Baselines und den
+Builder-Nachweis begrenzt. Nur auf dieser Route maskiert Playwright den Laufzeit-Textknoten
+`Stand:` innerhalb des Datenquellenstatus; Sichtbarkeit bleibt explizit geprüft. Status,
+Frische, Datenanzahl, Auth-Fail-Closed-Checks und alle anderen Routen bleiben im
+Pixelvergleich. Die drei Baselines wurden direkt geprüft: echte Seed-Daten, keine
+`AUTH_REQUIRED`-Fehlerseite, kein Clipping und 0 px Overflow.
+
+Unabhängig grün: `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm run verify`,
+die Liste aller 15 Visualtests, `git diff --check 1060a44..d4fb4e3` und der
+Schutzbereichs-Diff. Der vollständige Auth-/E2E-Lauf benötigt den CI-Backend-Stack und wird
+deshalb jetzt durch PR-CI belegt. Issue #13 bleibt bis zu einem grünen Gesamt-Run offen.
