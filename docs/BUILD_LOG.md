@@ -11713,3 +11713,22 @@ Unabhängig grün: `npx tsc --noEmit`, `npm run lint`, die Liste der drei
 `visual /crm/leads`-Projekte sowie `git diff --check 40a6251..0bb9182`. Der Schutzbereichs-Diff
 ist leer. Der echte Lauf erfordert das CI-Backend samt Auth-Variablen und wird daher jetzt
 durch PR-CI belegt. Issue #13 bleibt bis zu einem grünen Gesamt-Run offen.
+
+## [2026-09-22] Auftrag 067P-N3 — Prüferbefund: globaler Logout widerruft Visual-Token
+
+**Rolle:** unabhängiger Prüfer · **geprüfter Commit:** `3467b26` · **PR-CI:** `35745787694`
+· **Status:** NACHARBEIT ERFORDERLICH — kein Merge, Deploy oder Issue-Close.
+
+N3 hat den Fehler richtig fail-closed offengelegt: Der Logout-Button war sichtbar, während
+`/crm/leads` in allen drei Viewports `AUTH_REQUIRED` meldete. Der Auth-State ist folglich im
+Browser vorhanden; die Edge-Function lehnt seinen Token ab. Die Zeit zwischen Setup und Visual
+liegt unter der konfigurierten JWT-Laufzeit von 3600 Sekunden.
+
+Der exakte Widerrufspfad ist belegt: `auth.spec.ts` Test 4 meldet sich als derselbe Nutzer
+`admin-a` an, den `global-setup.ts` als Default-Storage-State speichert. Dessen produktiver
+Adapter ruft `supabase.auth.signOut()` ohne Scope auf. Der installierte Supabase-Client definiert
+dafür den Default `global`, der alle Sitzungen dieses Nutzers widerruft. Die funktionierenden
+CRM-Query-Tests melden sich hingegen jeweils frisch an. Folgeauftrag
+`docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_NACHARBEIT_4_AUTH_LOGOUT_ISOLATION.md` isoliert nur
+den Logout-Test auf den vorhandenen Nutzer `admin-b`; Produkt-Logout, Baselines und N3 bleiben
+unverändert.
