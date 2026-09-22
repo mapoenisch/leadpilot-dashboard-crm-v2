@@ -23,6 +23,15 @@ for (const routePath of ROUTES) {
       'E2E-Auth fehlt: CRM-Fehlerzustand (AUTH_REQUIRED) gerendert.',
     ).toHaveCount(0);
     if (routePath === '/crm/leads') {
+      // 067P-N6-Abschluss (fail-closed Seed-Prüfung, dauerhaft): Vor Telemetrie
+      // und Screenshot muss der CRM-Seed-Zustand belegt sein. Schlägt einer dieser
+      // Checks fehl, ist das ein Diagnosefehler, keine Screenshot-Differenz.
+      const sourceStatus = page.getByRole('status', { name: 'Status der Datenquelle' });
+      await expect(sourceStatus).toContainText('Supabase CRM');
+      await expect(sourceStatus).toContainText(/Status: Gesund/i);
+      await expect(sourceStatus).toContainText(/Frische: Aktuell/i);
+      await expect(sourceStatus).not.toContainText('SERVER_ERROR');
+      await expect(page.getByText(/^1 Einträge$/i)).toBeVisible();
       // 067P-N5: Volatiler Laufzeit-Zeitstempel (Stand: …) aus dem Pixelvergleich
       // isolieren. Nur der Textknoten ab Stand: innerhalb des Datenquellenstatus
       // wird maskiert (Surface: --color-bg/--charcoal #0B211F im Dark-Theme);
