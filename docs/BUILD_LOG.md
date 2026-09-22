@@ -11365,3 +11365,34 @@ Sicherheits- beziehungsweise Testintegritaet erforderlich.
 **Freigabestatus:** Push des Feature-Branches und Fast-Forward-Merge nach gruener
 CI sind freigegeben. Kein Deploy: Ein getrenntes Staging-Ziel ist im Repository
 nicht konfiguriert.
+
+## [2026-09-22] Gate G62 / Auftrag 067P: Remote-CI-Nachweis — Merge angehalten
+
+**Pruefer:** Codex
+
+**Pull Request:** #20 (`feat/auftrag-067p-audit-diagnostics` nach `main`)
+
+Der Feature-Branch wurde gepusht; der direkte `main`-Push wurde korrekt durch die
+Repository-Regel „Pull Request erforderlich" abgewiesen. Der anschliessende
+PR-CI-Lauf ist nicht gruen. Deshalb kein Merge und kein Deploy.
+
+### Befunde ausserhalb von G62
+
+1. Der Coverage-Job scheiterte in dem unveraenderten Alt-Test
+   `MeasureManagerModal.branch.ui.vitest.tsx`: Der Test erwartete die
+   Dauer-Validierung, im CI-DOM war nur die vorherige Namens-Validierung sichtbar.
+   Derselbe Commit war im Feature-CI bereits gruen; der Einzeltest und der exakte
+   Coverage-Lauf sind lokal gruen. Das ist ein nicht deterministischer Alt-Test,
+   nicht eine G62-Regression.
+2. Der E2E-Job hatte 591 bestandene Tests und 6 erwartete Screenshot-Differenzen
+   (`/dashboard` und `/crm/leads`, je 1440/768/375). Die Linux-Snapshot-Baselines
+   wurden nach den frueheren G60/G61-UI-Aenderungen an CRM-Provenienz und
+   Dashboard-Status nicht nachgezogen. Die G62-Audit-/Health-E2E-Suite blieb
+   lokal gruen; die betroffenen visuellen Baselines sind ausserhalb des
+   067P-Auftrags.
+
+### Naechster Schritt
+
+Ein separater Builder-Auftrag muss die sechs visuellen Linux-Baselines nach
+visueller Pruefung aktualisieren und den fluechtigen Alt-Test unter CI Node 22.18
+stabilisieren. Erst nach gruener PR-CI ist der Merge nach `main` wieder zulässig.
