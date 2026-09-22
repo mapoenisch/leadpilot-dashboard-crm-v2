@@ -6,6 +6,9 @@ import { defineConfig } from '@playwright/test';
 // maxDiffPixelRatio 0.02 (nur Anti-Aliasing-Drift), kein mask initial.
 export default defineConfig({
   testDir: './e2e',
+  // 067P-N2 (Issue #13): nimmt zusaetzlich die vorhandene Acceptance-Spec auf;
+  // alle regulaeren E2E-Dateien (*.spec.ts) bleiben unveraendert entdeckt.
+  testMatch: ['**/*.spec.ts', '**/*.acceptance.ts'],
   globalSetup: './e2e/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

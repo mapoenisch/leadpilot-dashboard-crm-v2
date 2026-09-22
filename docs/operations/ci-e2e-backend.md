@@ -8,7 +8,7 @@ Diese Dokumentation beschreibt die Backend-Architektur für den E2E- und Lightho
 
 Für automatisierte E2E-Tests wird **kein gehostetes Supabase-Projekt** verwendet. Stattdessen startet der CI-Runner (und der Entwickler lokal) eine flüchtige, temporäre PostgreSQL-/Supabase-Instanz via Supabase CLI und Docker:
 
-1. **Flüchtige Instanz:** Der Job `e2e` startet per `supabase start` die minimale Dienstarchitektur (`db`, `auth`, `rest`, `kong`). Ressourcenintensive, für E2E irrelevante Dienste (`studio`, `imgproxy`, `storage-api`, `edge-runtime`, `logflare`, `vector`, `supavisor`, `mailpit`, `postgres-meta`) werden per `-x` explizit deaktiviert.
+1. **Flüchtige Instanz:** Der Job `e2e` startet per `supabase start` die minimale Dienstarchitektur (`db`, `auth`, `rest`, `kong`, `edge-runtime`). Ressourcenintensive, für E2E irrelevante Dienste (`studio`, `imgproxy`, `storage-api`, `logflare`, `vector`, `supavisor`, `mailpit`, `postgres-meta`) werden per `-x` explizit deaktiviert.
 2. **Schema & Migrationen:** Das Schema (`supabase/schema.sql`) und alle Migrationen (`supabase/migrations/`) werden auf die lokale Datenbank angewendet.
 3. **Deterministischer Seed:** `supabase/seed.sql` richtet Test-Organisationen, loginfähige Testbenutzer und CRM-Testdaten ein.
 4. **Keine Secrets:** URL und Anon-Key werden zur Laufzeit dynamisch aus `supabase status -o env` bezogen und an den Vite-Build sowie die Testwerkzeuge übergeben. Im gesamten Repository existieren keine GitHub Actions Secrets für das Testbackend.
@@ -16,22 +16,17 @@ Für automatisierte E2E-Tests wird **kein gehostetes Supabase-Projekt** verwende
 
 ---
 
-## 2. Testbenutzer und Zugangsdaten (Seed)
+## 2. Testbenutzer und Rollen- / Organisationszuordnung
 
-Die Testnutzer sind ausschließlich in `supabase/seed.sql` für flüchtige lokale und CI-Container definiert. Sie existieren in keinem Produktiv- oder Hostsystem.
+Die Testnutzer werden flüchtig über `supabase/seed.sql` für lokale und CI-Testcontainer bereitgestellt. Konkrete Zugangsdaten sind nicht in der Dokumentation hinterlegt, sondern werden als Umgebungsvariablen übergeben bzw. aus der Seed-Konfiguration bezogen:
 
-- **Demo-Organisation Admin (Haupt-Testnutzer für Suite & Lighthouse):**
-  - E-Mail: `admin-a@e2e.local`
-  - Passwort: `TestPassword123!`
-  - Rolle: `admin` in Demo-Organisation (`00000000-0000-0000-0000-000000000001`, Gate G58 / [P1-6])
-- **Organisation B Admin (Mandantentrennung):**
-  - E-Mail: `admin-b@e2e.local`
-  - Passwort: `TestPassword123!`
-  - Rolle: `admin` in Organisation B (`bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb`)
-- **No-Member (Nicht zugeordnete Sitzung):**
-  - E-Mail: `nomember@e2e.local`
-  - Passwort: `TestPassword123!`
-  - Keine Organisationsmitgliedschaft (beweist Fail-Closed-Verhalten)
+| Rolle / Kontext | Organisation | Relevante Umgebungsvariablen | Zweck |
+|---|---|---|---|
+| Admin | Organisation A (`aaaaaaaa-...`) | `E2E_AUTH_EMAIL`, `E2E_AUTH_PASSWORD` | Haupt-Testnutzer für Suite, CRM-Management & Export |
+| Manager | Organisation A (`aaaaaaaa-...`) | `E2E_AUTH_EMAIL_MANAGER`, `E2E_AUTH_PASSWORD` | Operativer Nutzer mit Export-Berechtigung |
+| Viewer | Organisation A (`aaaaaaaa-...`) | `E2E_AUTH_EMAIL_VIEWER`, `E2E_AUTH_PASSWORD` | Lesezugriff, Export deaktiviert & 403-Schutz |
+| Admin | Organisation B (`bbbbbbbb-...`) | `E2E_AUTH_EMAIL_B`, `E2E_AUTH_PASSWORD_B` | Mandantentrennung (Cross-Tenant-Isolation) |
+| Nicht zugeordnet (No-Member) | Keine Organisation | `E2E_AUTH_EMAIL_NOMEMBER`, `E2E_AUTH_PASSWORD` | Nachweis von Fail-Closed-Verhalten ohne Organisationsbindung |
 
 ---
 
@@ -40,6 +35,7 @@ Die Testnutzer sind ausschließlich in `supabase/seed.sql` für flüchtige lokal
 Entwickler können die vollständige E2E-Testkette lokal wie folgt ausführen:
 
 ### Schritt 1: Supabase starten und befüllen (auf leerem Stack)
+
 ```bash
 # 1. Bestehende Container verwerfen (frischer Stack ohne alte Volumes)
 npx supabase stop --no-backup
@@ -47,14 +43,15 @@ npx supabase stop --no-backup
 # 2. Schema temporär als früheste Migration bereitstellen (wird NICHT committet)
 cp supabase/schema.sql supabase/migrations/20260101000000_base_schema.sql
 
-# 3. Supabase starten (minimale Dienste; wendet alle 14 Migrationen und seed.sql automatisch an)
-npx supabase start -x studio,imgproxy,storage-api,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta
+# 3. Supabase starten (minimale Dienste inkl. edge-runtime; wendet alle Migrationen und seed.sql automatisch an)
+npx supabase start -x studio,imgproxy,storage-api,logflare,vector,supavisor,mailpit,postgres-meta
 
 # 4. Temporäre Migrationsdatei sofort wieder entfernen
 rm supabase/migrations/20260101000000_base_schema.sql
 ```
 
 ### Schritt 2: Umgebungsvariablen ermitteln und Frontend bauen
+
 ```bash
 # Anon-Key und URL auslesen
 export VITE_SUPABASE_URL="http://127.0.0.1:54321"
@@ -65,12 +62,16 @@ npm run build
 ```
 
 ### Schritt 3: Playwright E2E ausführen
+
 ```bash
-export E2E_AUTH_EMAIL="admin-a@e2e.local"
-export E2E_AUTH_PASSWORD="TestPassword123!"
-export E2E_AUTH_EMAIL_B="admin-b@e2e.local"
-export E2E_AUTH_PASSWORD_B="TestPassword123!"
-export E2E_AUTH_EMAIL_NOMEMBER="nomember@e2e.local"
+# E2E-Authentifizierungsvariablen setzen (Werte aus seed.sql bzw. lokaler Testumgebung)
+export E2E_AUTH_EMAIL="<in seed.sql definierte Admin-A-Adresse>"
+export E2E_AUTH_PASSWORD="<in seed.sql definiertes Testpasswort>"
+export E2E_AUTH_EMAIL_MANAGER="<in seed.sql definierte Manager-A-Adresse>"
+export E2E_AUTH_EMAIL_VIEWER="<in seed.sql definierte Viewer-A-Adresse>"
+export E2E_AUTH_EMAIL_B="<in seed.sql definierte Admin-B-Adresse>"
+export E2E_AUTH_PASSWORD_B="<in seed.sql definiertes Testpasswort>"
+export E2E_AUTH_EMAIL_NOMEMBER="<in seed.sql definierte No-Member-Adresse>"
 export E2E_SUPABASE_URL="http://127.0.0.1:54321"
 export E2E_SUPABASE_ANON_KEY="$VITE_SUPABASE_ANON_KEY"
 
@@ -78,12 +79,15 @@ npx playwright test
 ```
 
 ### Schritt 4: Lighthouse CI ausführen
+
 > **Hinweis:** Erfordert Node.js >= 22.12 (oder das in `.nvmrc` gepinnte 22.18.0) wegen `require(esm)`.
+
 ```bash
 CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" npx lhci autorun
 ```
 
 ### Schritt 5: Lokales Backend stoppen
+
 ```bash
 npx supabase stop --no-backup
 ```
@@ -119,4 +123,3 @@ Stattdessen existiert der dedizierte Workflow `.github/workflows/update-visual-b
    git push origin --delete visual-baselines/regen-v23
    git branch -D visual-baselines/regen-v23
    ```
-

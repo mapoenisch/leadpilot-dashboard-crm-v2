@@ -225,6 +225,20 @@ export function Sidebar({
               active={currentRoute.id === 's-admin-members'}
               onClick={handleLinkClick}
             />
+            <NavItem
+              to="/admin/audit"
+              dataTestId="nav-item-admin-audit"
+              label="Audit-Log"
+              active={currentRoute.id === 's-admin-audit'}
+              onClick={handleLinkClick}
+            />
+            <NavItem
+              to="/admin/health"
+              dataTestId="nav-item-admin-health"
+              label="Systemdiagnose"
+              active={currentRoute.id === 's-admin-health'}
+              onClick={handleLinkClick}
+            />
           </div>
         )}
       </nav>

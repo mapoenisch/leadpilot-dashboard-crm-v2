@@ -9,4 +9,5 @@ export const crmKeys = {
   auditSummary: () => [...crmKeys.all, 'auditSummary'] as const,
   pipelineOverview: () => [...crmKeys.all, 'pipelineOverview'] as const,
   syncStatus: () => [...crmKeys.all, 'syncStatus'] as const,
+  list: (resource: string, params?: unknown) => [...crmKeys.all, 'list', resource, params] as const,
 };

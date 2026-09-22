@@ -7,6 +7,11 @@
 // vermessen werden, auch wenn das erste bereits überläuft.
 import { expect, test } from '@playwright/test';
 
+// 067P-N (Issue #13): Der Test legt seinen Viewport selbst fest, damit
+// VIEWPORT_WIDTH = 375 in jedem Playwright-Projekt gilt — auch wenn die CI
+// diese Spec zusätzlich unter Desktop-/Tablet-Projekten einplant.
+test.use({ viewport: { width: 375, height: 812 } });
+
 const CLIP_LABELS = ['100% Verlustfrei integriert', 'Operations & SLA'] as const;
 const VIEWPORT_WIDTH = 375;
 

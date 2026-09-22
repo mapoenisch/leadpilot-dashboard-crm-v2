@@ -97,6 +97,8 @@ describe('DataBasisPage (G47 Provenienz)', () => {
     render(<DataBasisPage />, { wrapper: createWrapper() });
 
     await waitFor(() => expect(screen.getByTestId('management-chart-error')).toBeTruthy());
+    expect(screen.getByRole('alert')).toBeTruthy();
+    expect(screen.getAllByText('Datenquelle nicht verfügbar').length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByTestId('data-basis-provenance')).toBeNull();
     expect(screen.queryByTestId('data-basis-counts')).toBeNull();
   });

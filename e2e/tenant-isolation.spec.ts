@@ -24,11 +24,8 @@ async function loginAs(page: Page, email: string, password: string): Promise<voi
 }
 
 test.describe('Mandantentrennung (Gate G45)', () => {
-  // Zurückgestellt bis 067N / Gate G60: Gate G47 lässt für Nicht-Demo-Organisationen
-  // bei aktiver synthetischer Quelle nur fail-closed SYNTHETIC_NOT_ALLOWED zu.
-  // Echte Mandantenquelle für Firmen folgt erst in 067N/G60 (dort wieder aktivieren).
-  // Die Datenbankebene (RLS) bleibt durch supabase/tests/tenant_isolation.sql (pgTAP) abgedeckt.
-  test.fixme('1. Org-A-Admin sieht nur eigene Companies', async ({ page }) => {
+  // Gate G60 (Auftrag 067N): Reaktiviert mit serverseitiger Mandanten-CRM-Quelle
+  test('1. Org-A-Admin sieht nur eigene Companies', async ({ page }) => {
     await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
     await page.goto('/crm/companies');
     // toBeAttached statt toBeVisible: Doppel-DOM (PR-A11Y-12, Fix in 067J)
@@ -38,11 +35,8 @@ test.describe('Mandantentrennung (Gate G45)', () => {
     await expect(page.getByText('Firma B1')).toHaveCount(0);
   });
 
-  // Zurückgestellt bis 067N / Gate G60: Gate G47 lässt für Nicht-Demo-Organisationen
-  // bei aktiver synthetischer Quelle nur fail-closed SYNTHETIC_NOT_ALLOWED zu.
-  // Echte Mandantenquelle für Firmen folgt erst in 067N/G60 (dort wieder aktivieren).
-  // Die Datenbankebene (RLS) bleibt durch supabase/tests/tenant_isolation.sql (pgTAP) abgedeckt.
-  test.fixme('2. Org-B-Admin sieht nur eigene Companies', async ({ page }) => {
+  // Gate G60 (Auftrag 067N): Reaktiviert mit serverseitiger Mandanten-CRM-Quelle
+  test('2. Org-B-Admin sieht nur eigene Companies', async ({ page }) => {
     await loginAs(page, requireEnv('E2E_AUTH_EMAIL_B'), requireEnv('E2E_AUTH_PASSWORD_B'));
     await page.goto('/crm/companies');
     await expect(page.getByText('Firma B1').first()).toBeAttached();

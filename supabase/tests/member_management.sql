@@ -13,6 +13,17 @@ SET CONSTRAINTS ALL IMMEDIATE;
 -- ---------------------------------------------------------------- Setup --
 -- Feste, kollisionsfreie UUIDs für deterministische Testläufe.
 -- Cleanup vorab für idempotente Re-Runs (FKs beachten).
+-- G62-Folgeanpassung (Trigger trg_audit_log_member_changes, genehmigte
+-- Scope-Erweiterung 2026-09-22): audit_log ist append-only — alte Test-Zeilen
+-- werden bei pausierten Triggern geloescht, Member-Cleanup erzeugt keine
+-- neuen Audit-Zeilen.
+ALTER TABLE public.organization_members DISABLE TRIGGER trg_audit_log_member_changes;
+ALTER TABLE public.audit_log DISABLE TRIGGER trg_audit_log_immutable;
+DELETE FROM public.audit_log WHERE organization_id IN (
+  'a0000000-0000-0000-0000-00000000000a',
+  'b0000000-0000-0000-0000-00000000000b'
+);
+ALTER TABLE public.audit_log ENABLE TRIGGER trg_audit_log_immutable;
 DELETE FROM public.imported_funnel_deals WHERE organization_id IN (
   'a0000000-0000-0000-0000-00000000000a',
   'b0000000-0000-0000-0000-00000000000b'
@@ -34,6 +45,9 @@ DELETE FROM public.organizations WHERE id IN (
   'b0000000-0000-0000-0000-00000000000b'
 );
 DELETE FROM auth.users WHERE email LIKE '%@member-test.local';
+
+-- G62-Folgeanpassung: Member-Trigger fuer den Test-Body reaktivieren.
+ALTER TABLE public.organization_members ENABLE TRIGGER trg_audit_log_member_changes;
 
 INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
 VALUES
@@ -336,6 +350,16 @@ SELECT throws_matching(
 SELECT * FROM finish();
 
 -- Teardown: Bereinigung kollidierender Seed-Daten fuer nachfolgende Bestands-Tests (tenant_isolation.sql)
+-- G62-Folgeanpassung: Member-Trigger pausieren (keine neuen Audit-Zeilen beim
+-- Loeschen), alte Audit-Zeilen bei pausiertem Immutabilitaets-Trigger loeschen
+-- — sonst blockiert CASCADE auf die append-only Tabelle den Org-Cleanup.
+ALTER TABLE public.organization_members DISABLE TRIGGER trg_audit_log_member_changes;
+ALTER TABLE public.audit_log DISABLE TRIGGER trg_audit_log_immutable;
+DELETE FROM public.audit_log WHERE organization_id IN (
+  'a0000000-0000-0000-0000-00000000000a',
+  'b0000000-0000-0000-0000-00000000000b'
+);
+ALTER TABLE public.audit_log ENABLE TRIGGER trg_audit_log_immutable;
 DELETE FROM public.imported_funnel_deals;
 DELETE FROM public.contacts;
 DELETE FROM public.companies;
