@@ -11911,3 +11911,27 @@ Unabhängig grün: `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `
 die Liste aller 15 Visualtests, `git diff --check 1060a44..d4fb4e3` und der
 Schutzbereichs-Diff. Der vollständige Auth-/E2E-Lauf benötigt den CI-Backend-Stack und wird
 deshalb jetzt durch PR-CI belegt. Issue #13 bleibt bis zu einem grünen Gesamt-Run offen.
+
+## [2026-09-22] Auftrag 067P-N6 — Prüferbefund: KPI-Grid nicht CI-deterministisch
+
+**Rolle:** unabhängiger Prüfer · **PR-CI:** `35755068622` · **Status:** NACHARBEIT
+ERFORDERLICH — kein Merge, Deploy oder Issue-Close.
+
+Der N5-Zeitstempelbefund ist geschlossen: Die Maskenbox liegt in Ist- und Sollbild an
+derselben Stelle. Der aktuelle Lauf zählt **598/600 Playwright-Tests grün**; Mobile ist
+grün, allein `/crm/leads` scheitert auf Desktop (3.996 px) und Tablet (2.351/2.360 px).
+Kein `AUTH_REQUIRED`-Zustand liegt vor.
+
+Pixelvergleich der Artefakte: Die drei versionierten N5-Linux-Baselines sind bytegleich mit
+den Sollbildern aus dem Report. Die Istbilder unterscheiden sich jedoch außerhalb des
+Zeitstempels über `x=33..1406, y=83..671`: Das CRM-KPI-Raster verteilt seine Tracks auf
+GitHub-Ubuntu anders. Ursache ist `.crm-v2-kpi-grid` mit `repeat(..., 1fr)`; dessen
+intrinsische min-content-Breite hängt bei „⚡ Supabase Verbunden“ vom Font-Fallback ab.
+
+Folgeauftrag
+`docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_NACHARBEIT_6_CI_GRID_DETERMINISM.md` sichert die
+Rastertracks mit `minmax(0, 1fr)`, fügt dafür einen red-vor-grün Layout-Nachweis ein und
+übernimmt die drei Baselines ausschließlich aus dem vorhandenen GitHub-Ubuntu-Workflow
+`Update Visual Baselines`. Keine Toleranzlockerung, keine weiteren Masken und keine
+Produkt-/Auth-/Konfigurationsänderung. Issue #13 bleibt offen, bis die vollständige PR-CI
+grün ist.
