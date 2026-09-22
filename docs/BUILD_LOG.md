@@ -11019,3 +11019,99 @@ nicht als stabiler Snapshot-Vergleich über verschiedene Abrufzeitpunkte.
 
 Der Reviewer hat keinen Produktcode verändert sowie keinen Push, Pull Request, Merge
 oder Deploy ausgelöst.
+
+## [2026-09-22] Gate G62 / Auftrag 067P: Builder-Bericht (Antigravity) — BEREIT ZUR PRÜFUNG
+
+**Basis:** `60ad64c` (G61 gemerged, Schutzbereichs-Baseline)
+**Zweig:** `feat/auftrag-067p-audit-diagnostics`
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_AUDIT_DIAGNOSE.md`
+
+### Ziel & Kontext
+
+Append-only Audit-Log (`audit_log`, RLS, Immutabilitäts-Trigger), `auditService`
+(Sanitizer ohne Secrets/PII), `systemHealthService` (5 Subsysteme ohne Secrets/PII)
+sowie zwei Admin-UI-Seiten (`AuditPage`, `SystemHealthPage`) mit Routing
+(`/admin/audit`, `/admin/health`) und Sidebar-Links. Vollständige Unit-/UI-Tests,
+pgTAP-Tests und Playwright-E2E für Admin/Viewer/Manager.
+
+### Geänderte Dateien
+
+NEU: `supabase/migrations/20260929_audit_log.sql`, `supabase/tests/audit_log.sql`,
+`src/services/audit/auditService.ts`,
+`src/services/audit/__tests__/auditService.vitest.ts`,
+`src/services/health/systemHealthService.ts`,
+`src/services/health/__tests__/systemHealthService.vitest.ts`,
+`src/features/admin/pages/AuditPage.tsx`,
+`src/features/admin/pages/__tests__/AuditPage.ui.vitest.tsx`,
+`src/features/admin/pages/SystemHealthPage.tsx`,
+`src/features/admin/pages/__tests__/SystemHealthPage.ui.vitest.tsx`,
+`e2e/audit-health.spec.ts`, `docs/screenshots/auftrag-067p-g62/README.md`
+(nur Matrix — PNGs per `.gitignore` ausgeschlossen).
+MODIFY: `src/app/routes.tsx`, `src/app/routePages.tsx`,
+`src/components/layout/Sidebar.tsx`.
+Alle Dateien < 400 Zeilen, keine neuen npm-Pakete (`package.json` unverändert).
+
+### Funktionale Prüfungen
+
+- Audit-Log-Seite rendert als Admin Filter + Tabelle (leer bei frischer DB: plausibel),
+  Detail-Modal zeigt bereinigte Details; Viewer/Manager sehen die 403-Ansicht.
+- Systemdiagnose-Seite: Auth OK, Database OK, Sync OK, Worker OK, Ingress
+  „Eingeschränkt" — ehrliches Signal (RLS auf `ingress_nonces` ohne Policies,
+  Änderung wäre auftragsfremd und wurde nicht angefasst).
+
+### During-build-Fixes (eigene Fehler, behoben)
+
+1. `systemHealthService`-Test „overall ok" schlug fehl: `Worker` ist in Node
+   undefiniert → Worker-Stub im Test ergänzt.
+2. `checkDatabase` nutzte `rpc('pg_try_advisory_lock')` — PostgREST meldet
+   PGRST202 („Could not find the function ..."), also fragile Sonde. Ersetzt durch
+   echten Lese-Probe auf `organizations` (DB-Liveness + RLS-Lesepfad).
+3. `e2e/audit-health.spec.ts`: doppelte Headings (Banner + Main) → auf `main`
+   gescopte Selektoren; Viewer/Manager-Describes mit leerem StorageState
+   (sonst leitet `/login` als Admin um); `textContent` → `innerText` (las
+   `<style>`-Inhalte mit); Credential-Prüfung auf präzise Muster
+   (`eyj`, `service_role`, `anon_key`, `api_key`, `apikey`, `bearer`) verengt —
+   das UI-Wort „Secrets" im Untertitel ist legitime UX-Copy, kein Leak;
+   Sidebar-Test öffnet auf kleinen Viewports erst den Menü-Toggle.
+
+### Schutzbereich-Prüfung
+
+`git diff 60ad64c -- src/simulation src/types src/context src/services/data src/features/resources src/services/db/crmRepository.ts src/auth src/features/auth`
+ist leer (0 Zeilen). `deno.lock`-Nebenprodukt des Deno-Laufs wurde revertiert.
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint` + `npm run format:check`: grün.
+- `npm run verify`: 25/25 Suiten grün.
+- Neue 067P-Tests: 4 Dateien / 32 Tests grün.
+- `npm test`: 260 Dateien / 1411 Tests grün, **1 vorbestehender auftragsfremder
+  Fehler**: `LeadsPage.provenance.ui.vitest.tsx` erwartet hartkodiert
+  `Stand: 21.09.2026`, heute ist `22.09.2026` (G61-Datumsdrift, zuletzt angefasst
+  in `7995a7e`, außerhalb der 067P-Ziel-Dateien — bewusst nicht angefasst).
+- `npm run build`: grün.
+- `deno test supabase/functions/`: 59/59 grün.
+- `npx supabase test db`: 6 Dateien / 136 Tests grün, inkl. neuem `audit_log.sql`.
+- Playwright `e2e/audit-health.spec.ts`: 30/30 (10 Tests × 3 Viewport-Projekte).
+
+### Lokale DB-Hinweise (keine Repo-Änderung)
+
+Der lokale Supabase-Stack war gestoppt; `supabase db reset` scheitert
+vorbestehend an Migration `20260916` (setzt `companies` aus `schema.sql` voraus,
+die `db reset` nicht lädt). Lokal repariert: `schema.sql` + `migration up`
+(inkl. `20260929_audit_log`) + `seed.sql` per `docker exec psql`, danach
+`NOTIFY pgrst, 'reload schema'`. Falls `supabase test db` die Seed-Auth-User
+entfernt, Seed erneut einspielen (siehe oben) — betrifft nur die lokale Umgebung.
+
+### Screenshot-Matrix
+
+Siehe `docs/screenshots/auftrag-067p-g62/README.md`: 6/6 Captures
+(`/admin/audit` + `/admin/health` × 1440/768/375), alle mit 0 px horizontalem
+Overflow, visuell geprüft (Audit-Tabelle + Filter, Diagnose-Banner + 5 Karten).
+
+### Ergebnis & Freigabestatus
+
+**Bereit zur Prüfung durch Codex/Claude Code.** Einziger offener Punkt ist der
+vorbestehende G61-Datumsdrift in `LeadsPage.provenance.ui.vitest.tsx` (außerhalb
+des 067P-Schutz- und Zielbereichs). Kein Push, Pull Request, Merge oder Deploy
+ausgelöst.
