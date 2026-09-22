@@ -1,6 +1,10 @@
-// G62 (Auftrag 067P, Step 3a): Audit-Log-Service fuer Eintragen und Abfragen von Audit-Events.
-// Typen werden HIER definiert (nicht in src/types/) um den Schutzbereich zu wahren.
-// Keine Secrets, Tokens, JWTs oder PII in details-Payloads — Sanitizer entfernt sensible Felder.
+// G62 (Auftrag 067P, Nacharbeit P0 + P1): Audit-Log-Service.
+// Schreibzugriff läuft ausschließlich über die SECURITY-DEFINER-Funktion
+// `log_audit_event(...)` — Organisation und Akteur werden serverseitig aus der
+// Sitzung abgeleitet (kein Client-Input), Aktion/Kontext gegen Whitelist.
+// G62-Vertrag: keine PII — weder actor_email noch ip_address werden gespeichert
+// oder gelesen; Details werden clientseitig sanitisiert (Server prüft zusätzlich
+// auf JSON-Objektform).
 import { supabase, isSupabaseConfigured } from '@/services/db/supabaseClient';
 
 // ---------------------------------------------------------------- Typen
@@ -24,13 +28,11 @@ export interface AuditEntry {
   id: string;
   organizationId: string;
   actorId: string | null;
-  actorEmail: string | null;
   action: AuditAction | string;
   targetType: string | null;
   targetId: string | null;
   details: Record<string, unknown>;
   correlationId: string | null;
-  ipAddress: string | null;
   createdAt: string;
 }
 
@@ -56,53 +58,82 @@ export class AuditServiceError extends Error {
 }
 
 // ---------------------------------------------------------------- Sanitizer
-const SENSITIVE_KEYS = new Set([
+// Substring-Regeln (kleingeschrieben): deckt zusammengesetzte Feldnamen wie
+// `userEmail`, `apiKey`, `authToken`, `clientSecret` ab. Arrays werden rekursiv
+// bereinigt, unbekannte Strukturen fallen auf REDACTED zurück.
+const SENSITIVE_SUBSTRINGS = [
   'password',
-  'token',
-  'access_token',
-  'refresh_token',
+  'passwd',
   'secret',
-  'key',
+  'token',
   'api_key',
   'apikey',
-  'authorization',
+  'auth',
+  'credential',
   'jwt',
   'bearer',
-  'credential',
+  'session',
+  'cookie',
   'email',
+  'e-mail',
   'phone',
+  'tel_nr',
   'ssn',
+  'social_security',
   'dob',
-]);
+  'birthdate',
+  'geburt',
+  'address',
+  'adresse',
+  'iban',
+  'creditcard',
+  'kreditkarte',
+];
+
+function isSensitiveKey(key: string): boolean {
+  const lower = key.toLowerCase().replace(/[_-]/g, '');
+  const compact = SENSITIVE_SUBSTRINGS.map((s) => s.toLowerCase().replace(/[_-]/g, ''));
+  return compact.some((s) => s.length > 0 && lower.includes(s));
+}
+
+function sanitizeValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeValue(item));
+  }
+  if (value !== null && typeof value === 'object') {
+    return sanitizeDetails(value as Record<string, unknown>);
+  }
+  return value;
+}
 
 function sanitizeDetails(raw: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(raw)) {
-    const lower = k.toLowerCase();
-    if (SENSITIVE_KEYS.has(lower) || lower.includes('secret') || lower.includes('token')) {
+    if (isSensitiveKey(k)) {
       result[k] = 'REDACTED';
-    } else if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
-      result[k] = sanitizeDetails(v as Record<string, unknown>);
     } else {
-      result[k] = v;
+      result[k] = sanitizeValue(v);
     }
   }
   return result;
 }
 
 // ---------------------------------------------------------------- Row-Mapper
+// Explizite Spaltenliste statt select('*') — PII-Spalten existieren serverseitig
+// nicht mehr und werden hier grundsätzlich nicht gemappt.
+const AUDIT_COLUMNS =
+  'id,organization_id,actor_id,action,target_type,target_id,details,correlation_id,created_at';
+
 function mapRow(row: Record<string, unknown>): AuditEntry {
   return {
     id: String(row.id ?? ''),
     organizationId: String(row.organization_id ?? ''),
     actorId: row.actor_id != null ? String(row.actor_id) : null,
-    actorEmail: row.actor_email != null ? String(row.actor_email) : null,
     action: String(row.action ?? ''),
     targetType: row.target_type != null ? String(row.target_type) : null,
     targetId: row.target_id != null ? String(row.target_id) : null,
     details: (row.details as Record<string, unknown>) ?? {},
     correlationId: row.correlation_id != null ? String(row.correlation_id) : null,
-    ipAddress: row.ip_address != null ? String(row.ip_address) : null,
     createdAt: String(row.created_at ?? ''),
   };
 }
@@ -119,30 +150,25 @@ async function getSession() {
   return data.session;
 }
 
-/** Schreibt einen Audit-Eintrag fuer die eigene Organisation. */
+/** Schreibt ein Audit-Ereignis über den kontrollierten Serverpfad. */
 export async function logAuditEvent(params: {
   action: AuditAction | string;
   targetType?: string;
   targetId?: string;
   details?: Record<string, unknown>;
   correlationId?: string;
-  organizationId: string;
 }): Promise<void> {
-  const session = await getSession();
+  await getSession();
   const db = supabase!;
 
   const sanitized = sanitizeDetails(params.details ?? {});
 
-  const { error } = await db.from('audit_log').insert({
-    organization_id: params.organizationId,
-    actor_id: session.user.id,
-    actor_email: 'REDACTED',
-    action: params.action,
-    target_type: params.targetType ?? null,
-    target_id: params.targetId ?? null,
-    details: sanitized,
-    correlation_id: params.correlationId ?? null,
-    ip_address: null,
+  const { error } = await db.rpc('log_audit_event', {
+    p_action: params.action,
+    p_target_type: params.targetType ?? null,
+    p_target_id: params.targetId ?? null,
+    p_details: sanitized,
+    p_correlation_id: params.correlationId ?? null,
   });
 
   if (error) {
@@ -160,7 +186,7 @@ export async function listAuditLogs(
 
   let query = db
     .from('audit_log')
-    .select('*')
+    .select(AUDIT_COLUMNS)
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(filter.limit ?? 100)

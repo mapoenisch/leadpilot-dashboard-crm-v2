@@ -11115,3 +11115,78 @@ Overflow, visuell geprüft (Audit-Tabelle + Filter, Diagnose-Banner + 5 Karten).
 vorbestehende G61-Datumsdrift in `LeadsPage.provenance.ui.vitest.tsx` (außerhalb
 des 067P-Schutz- und Zielbereichs). Kein Push, Pull Request, Merge oder Deploy
 ausgelöst.
+
+## [2026-09-22] Gate G62 / Auftrag 067P: Nacharbeit (Builder-Bericht Antigravity) — BEREIT ZUR ERNEUTEN PRÜFUNG
+
+**Basis:** `0934585` (Builder-Commit G62)
+**Zweig:** `feat/auftrag-067p-audit-diagnostics`
+**Anlass:** Review-Befund (G62 nicht freigegeben): P0 (direkte INSERT-Rechte),
+  2× P1 (PII im Audit-Pfad; Sync ohne letzte Synchronisation), rote Gates
+  (`format:check`, G61-Datumsdrift in `npm test`).
+
+### P0 — Direkte Browser-Schreibrechte entfernt (sicherheitsrelevant)
+
+- NEU `supabase/migrations/20260930_audit_log_hardening.sql`: `DROP POLICY
+  member_insert_audit_log`, `REVOKE INSERT ... FROM authenticated, anon`
+  (RLS-Default-Deny greift zusätzlich). Einziger Schreibpfad ist die neue
+  SECURITY-DEFINER-Funktion `public.log_audit_event(p_action, p_target_type,
+  p_target_id, p_details, p_correlation_id)`: Akteur (`auth.uid()`) und
+  Organisation (`current_organization_id()`) werden serverseitig abgeleitet,
+  Aktion und Ziel-Typ gegen geschlossene Whitelists geprüft, Details müssen ein
+  JSON-Objekt sein, Längenbegrenzung (128) für IDs. `GRANT EXECUTE` nur an
+  `authenticated`.
+- `src/services/audit/auditService.ts`: `logAuditEvent` ruft `rpc('log_audit_event')`
+  auf (kein `organizationId`-Parameter mehr — nichts Client-seitiges zu fälschen).
+- `supabase/tests/audit_log.sql` (jetzt 19 Tests): Negativtests für direkte
+  INSERTs als Admin/Manager/Viewer (alle 42501), RPC-Positivtest mit
+  UUID-Rückgabe und Nachweis der serverseitigen Org-/Akteur-Ableitung,
+  Whitelist-Ablehnung (Aktion, Ziel-Typ, Details-Array), Immutabilität,
+  PII-Spalten-Abwesenheit.
+
+### P1 — Keine PII im Audit-Pfad
+
+- Migration 20260930 entfernt `actor_email`/`ip_address` (G62: keine PII).
+- Service nutzt explizite Spaltenliste (`AUDIT_COLUMNS`, kein `select('*')`);
+  `AuditEntry` ohne `actorEmail`/`ipAddress`.
+- Sanitizer gehärtet: Substring-Regeln (deckt `userEmail`, `apiKey`, `authToken`
+  u. Ä. ab), Rekursion in Arrays und verschachtelte Objekte.
+
+### P1 — Sync-Check mit letzter Synchronisation
+
+- `checkSync` liest jüngsten Kontakt-Import (`MAX(created_at)`, RLS grenzt auf
+  eigene Org ein) und klassifiziert Frische (`classifyFreshness`, wiederverwendet
+  aus `src/services/data/sourceFreshness.ts` — Datei selbst unverändert):
+  frisch → ok mit „Bestand: N, letzter Sync …", sonst degraded mit Alter.
+  Reiner Bestand ohne Zeitbezug gilt nicht mehr als Sync-Beleg.
+
+### Rote Gates
+
+- `format:check`: Ursache waren Nacher-Edits nach dem ersten grünen Lauf
+  (Worker-Stub-Einrückung, DB-Sonden-Umbau). Per `prettier --write` behoben,
+  jetzt grün (wie `lint` und `tsc --noEmit`).
+- G61-Datumsdrift: `LeadsPage.provenance.ui.vitest.tsx` leitet das erwartete
+  Tagesdatum dynamisch aus dem Seed-Zeitpunkt ab statt `21.09.2026` hartkodiert.
+  Test-only-Änderung außerhalb der 067P-Ziel-Dateien, vom Review explizit als
+  Blocker markiert — daher hier behoben und dokumentiert.
+
+### Automatisierte Verifikation (Nacharbeit)
+
+- `npx tsc --noEmit`: 0 Fehler. `npm run lint`, `npm run format:check`: grün.
+- `npm run verify`: 25/25 Suiten grün.
+- `npm test`: **261 Dateien / 1418 Tests grün (Exit 0)** — kein Fehler mehr.
+- `npm run build`: grün.
+- `npx supabase test db`: 6 Dateien / 141 Tests grün.
+- Playwright `e2e/audit-health.spec.ts`: 30/30 (unverändert grün gegen neue Services).
+- Screenshots neu erfasst (Sync-Meldung geändert): 6/6 Captures, 0 px Overflow,
+  Hashes in `docs/screenshots/auftrag-067p-g62/README.md` aktualisiert.
+
+### Schutzbereich-Prüfung
+
+`git diff 60ad64c -- src/simulation src/types src/context src/services/data src/features/resources src/services/db/crmRepository.ts src/auth src/features/auth`
+ist leer (0 Zeilen); `src/services/data/sourceFreshness.ts` wird nur importiert,
+nicht geändert. `git diff --check` ist leer.
+
+### Ergebnis & Freigabestatus
+
+**Bereit zur erneuten Prüfung.** Alle vier Review-Befunde sind behoben, alle Gates
+grün. Kein Push, Pull Request, Merge oder Deploy ausgelöst.

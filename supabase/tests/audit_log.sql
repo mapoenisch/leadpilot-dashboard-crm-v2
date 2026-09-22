@@ -1,11 +1,13 @@
--- G62 (Auftrag 067P, Step 2): pgTAP-Tests fuer audit_log.
--- Prueft: Admin kann SELECTen, Viewer/Manager koennen nicht SELECTen,
--- Cross-Tenant-Zugriff ist blockiert, UPDATE und DELETE schlagen fehl.
+-- G62-Nacharbeit (Auftrag 067P, Review-Befund P0 + P1): pgTAP-Tests fuer audit_log-Haertung.
+-- Prueft: Direkte INSERTs sind fuer ALLE Rollen blockiert (42501), Audit-Ereignisse
+-- laufen ueber log_audit_event() mit serverseitiger Org-/Akteur-Ableitung und
+-- geschlossener Action-/Ziel-Whitelist, UPDATE/DELETE bleiben verboten,
+-- PII-Spalten (actor_email, ip_address) existieren nicht mehr.
 -- Ausfuehrung: npx supabase test db
 
 BEGIN;
 
-SELECT plan(14);
+SELECT plan(19);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.audit_log WHERE organization_id IN (
@@ -41,27 +43,25 @@ VALUES
   ('aaaaaaaa-0000-0000-0000-000000000003', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'viewer'),
   ('aaaaaaaa-0000-0000-0000-000000000004', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'admin');
 
--- Seed-Eintraege ueber Service-Role (umgeht RLS direkt)
-INSERT INTO public.audit_log (id, organization_id, actor_id, actor_email, action, details)
+-- Seed-Eintraege als Superuser (umgeht RLS direkt, kein PII mehr)
+INSERT INTO public.audit_log (id, organization_id, actor_id, action, details)
 VALUES
   (
     'a0000000-0000-0000-0000-000000000001',
     'cccccccc-cccc-cccc-cccc-cccccccccccc',
     'aaaaaaaa-0000-0000-0000-000000000001',
-    'REDACTED',
     'auth.login',
-    '{"ip":"REDACTED"}'::JSONB
+    '{}'::JSONB
   ),
   (
     'a0000000-0000-0000-0000-000000000002',
     'dddddddd-dddd-dddd-dddd-dddddddddddd',
     'aaaaaaaa-0000-0000-0000-000000000004',
-    'REDACTED',
     'auth.login',
-    '{"ip":"REDACTED"}'::JSONB
+    '{}'::JSONB
   );
 
--- ---------------------------------------------------------------- Test 1-3: Admin von Org C kann SELECTen --
+-- ---------------------------------------------------------------- Test 1-3: Admin SELECT (eigene Org, Isolation) --
 SELECT set_config(
   'request.jwt.claims',
   '{"sub":"aaaaaaaa-0000-0000-0000-000000000001","role":"authenticated"}',
@@ -110,7 +110,7 @@ SELECT ok(
   'Viewer (Org C) kann audit_log nicht lesen (RLS)'
 );
 
--- ---------------------------------------------------------------- Test 6: Admin aus Org D sieht Org-C-Eintraege nicht --
+-- ---------------------------------------------------------------- Test 6: Cross-Tenant SELECT --
 SELECT set_config(
   'request.jwt.claims',
   '{"sub":"aaaaaaaa-0000-0000-0000-000000000004","role":"authenticated"}',
@@ -123,7 +123,7 @@ SELECT ok(
   'Admin (Org D) sieht keine Org-C-Eintraege (Cross-Tenant-Isolation)'
 );
 
--- ---------------------------------------------------------------- Test 7-9: INSERT ist erlaubt fuer Mitglieder --
+-- ---------------------------------------------------------------- Test 7-9: Direkte INSERTs sind fuer ALLE blockiert (P0) --
 SELECT set_config(
   'request.jwt.claims',
   '{"sub":"aaaaaaaa-0000-0000-0000-000000000001","role":"authenticated"}',
@@ -131,17 +131,19 @@ SELECT set_config(
 );
 SET LOCAL role TO authenticated;
 
-SELECT lives_ok(
+SELECT throws_ok(
   $$
     INSERT INTO public.audit_log (organization_id, actor_id, action, details)
     VALUES (
       'cccccccc-cccc-cccc-cccc-cccccccccccc',
       'aaaaaaaa-0000-0000-0000-000000000001',
-      'data_source.switch',
-      '{"source":"hubspot"}'::JSONB
+      'auth.login',
+      '{}'::JSONB
     )
   $$,
-  'Admin (Org C) kann audit_log-Eintrag einfuegen'
+  '42501',
+  NULL,
+  'Direkter INSERT als Admin schlaegt fehl (kein Browser-Schreibrecht)'
 );
 
 SELECT set_config(
@@ -151,7 +153,7 @@ SELECT set_config(
 );
 SET LOCAL role TO authenticated;
 
-SELECT lives_ok(
+SELECT throws_ok(
   $$
     INSERT INTO public.audit_log (organization_id, actor_id, action, details)
     VALUES (
@@ -161,7 +163,9 @@ SELECT lives_ok(
       '{}'::JSONB
     )
   $$,
-  'Manager (Org C) kann audit_log-Eintrag einfuegen'
+  '42501',
+  NULL,
+  'Direkter INSERT als Manager schlaegt fehl (kein Browser-Schreibrecht)'
 );
 
 SELECT set_config(
@@ -171,20 +175,6 @@ SELECT set_config(
 );
 SET LOCAL role TO authenticated;
 
-SELECT lives_ok(
-  $$
-    INSERT INTO public.audit_log (organization_id, actor_id, action, details)
-    VALUES (
-      'cccccccc-cccc-cccc-cccc-cccccccccccc',
-      'aaaaaaaa-0000-0000-0000-000000000003',
-      'auth.logout',
-      '{}'::JSONB
-    )
-  $$,
-  'Viewer (Org C) kann audit_log-Eintrag einfuegen'
-);
-
--- ---------------------------------------------------------------- Test 10: Cross-Tenant INSERT schlaegt fehl --
 SELECT throws_ok(
   $$
     INSERT INTO public.audit_log (organization_id, actor_id, action, details)
@@ -195,12 +185,67 @@ SELECT throws_ok(
       '{}'::JSONB
     )
   $$,
+  '42501',
   NULL,
-  NULL,
-  'Viewer (Org C) kann keine Eintraege in Org D einfuegen (RLS)'
+  'Direkter INSERT als Viewer in fremde Org schlaegt fehl (kein Browser-Schreibrecht)'
 );
 
--- ---------------------------------------------------------------- Test 11-12: UPDATE und DELETE schlagen fehl --
+-- ---------------------------------------------------------------- Test 10-11: Serverpfad mit Ableitung --
+SELECT set_config(
+  'request.jwt.claims',
+  '{"sub":"aaaaaaaa-0000-0000-0000-000000000003","role":"authenticated"}',
+  true
+);
+SET LOCAL role TO authenticated;
+
+SELECT ok(
+  (SELECT public.log_audit_event(
+    'auth.logout', NULL, NULL, '{"source":"web"}'::JSONB, 'corr-viewer-1'
+  ))::TEXT ~ '^[0-9a-f]{8}-[0-9a-f]{4}-',
+  'Serverpfad gibt UUID zurueck (Viewer darf eigenes Ereignis protokollieren)'
+);
+
+RESET role;
+
+SELECT ok(
+  (SELECT organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+     AND actor_id = 'aaaaaaaa-0000-0000-0000-000000000003'
+     AND action = 'auth.logout'
+     AND correlation_id = 'corr-viewer-1'
+   FROM public.audit_log WHERE correlation_id = 'corr-viewer-1'),
+  'Serverpfad leitet Organisation und Akteur aus der Sitzung ab (kein Client-Input)'
+);
+
+-- ---------------------------------------------------------------- Test 12-14: Whitelist-Ablehnung --
+SELECT set_config(
+  'request.jwt.claims',
+  '{"sub":"aaaaaaaa-0000-0000-0000-000000000001","role":"authenticated"}',
+  true
+);
+SET LOCAL role TO authenticated;
+
+SELECT throws_ok(
+  $$ SELECT public.log_audit_event('tamper.drop_table', NULL, NULL, '{}'::JSONB, NULL) $$,
+  'P0001',
+  NULL,
+  'Serverpfad lehnt unbekannte Aktion ab (Action-Whitelist)'
+);
+
+SELECT throws_ok(
+  $$ SELECT public.log_audit_event('auth.login', ' dropped_table', NULL, '{}'::JSONB, NULL) $$,
+  'P0001',
+  NULL,
+  'Serverpfad lehnt unbekannten Ziel-Typ ab (Kontext-Whitelist)'
+);
+
+SELECT throws_ok(
+  $$ SELECT public.log_audit_event('auth.login', NULL, NULL, '["kein","objekt"]'::JSONB, NULL) $$,
+  'P0001',
+  NULL,
+  'Serverpfad lehnt Details ohne JSON-Objekt ab'
+);
+
+-- ---------------------------------------------------------------- Test 15-16: UPDATE und DELETE schlagen fehl --
 RESET role;
 
 SELECT throws_ok(
@@ -224,9 +269,19 @@ SELECT throws_ok(
   'DELETE auf audit_log schlaegt fehl (Immutabilitaets-Trigger)'
 );
 
--- ---------------------------------------------------------------- Test 13: Korrekte Spalten vorhanden --
-SELECT has_column('public', 'audit_log', 'id',             'Spalte id vorhanden');
-SELECT has_column('public', 'audit_log', 'organization_id','Spalte organization_id vorhanden');
+-- ---------------------------------------------------------------- Test 17: Keine PII-Spalten mehr --
+SELECT ok(
+  NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'audit_log'
+      AND column_name IN ('actor_email', 'ip_address')
+  ),
+  'PII-Spalten actor_email und ip_address existieren nicht (G62: keine PII)'
+);
+
+-- ---------------------------------------------------------------- Test 18-19: Kernspalten vorhanden --
+SELECT has_column('public', 'audit_log', 'id', 'Spalte id vorhanden');
+SELECT has_column('public', 'audit_log', 'organization_id', 'Spalte organization_id vorhanden');
 
 -- ---------------------------------------------------------------- Teardown --
 RESET role;

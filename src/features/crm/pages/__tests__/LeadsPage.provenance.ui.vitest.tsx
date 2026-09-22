@@ -82,11 +82,16 @@ describe('LeadsPage Provenance & Tab Switch Reactive Tracking (P1-1)', () => {
     );
 
     // Initial state on Contacts tab: query succeeds -> DataSourceStatus is healthy with visible timestamp
+    // (G62-Nacharbeit: erwartetes Tagesdatum dynamisch aus dem Seed-Zeitpunkt ableiten
+    // statt hartkodiert — der Test war tagesabhängig rot.)
+    const expectedDay = new Date(contactsTime)
+      .toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      .replace(/\./g, '\\.');
     const statusContainer = screen.getByTestId('data-source-status');
     expect(statusContainer).toHaveTextContent('Supabase CRM');
     expect(statusContainer).toHaveTextContent(/Status: Gesund/i);
     expect(statusContainer).toHaveTextContent(/Frische: Aktuell/i);
-    expect(statusContainer).toHaveTextContent(/Stand:\s*21\.09\.2026/);
+    expect(statusContainer).toHaveTextContent(new RegExp(`Stand:\\s*${expectedDay}`));
 
     // 2. Click "Funnel Deals" tab
     const dealsTab = screen.getByRole('tab', { name: 'Funnel Deals' });
@@ -104,6 +109,6 @@ describe('LeadsPage Provenance & Tab Switch Reactive Tracking (P1-1)', () => {
     // 5. DataSourceStatus immediately recovers to healthy with exact timestamp
     expect(statusContainer).toHaveTextContent(/Status: Gesund/i);
     expect(statusContainer).toHaveTextContent('Supabase CRM');
-    expect(statusContainer).toHaveTextContent(/Stand:\s*21\.09\.2026/);
+    expect(statusContainer).toHaveTextContent(new RegExp(`Stand:\\s*${expectedDay}`));
   });
 });
