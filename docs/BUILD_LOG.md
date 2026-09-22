@@ -12256,3 +12256,31 @@ Last-Flake an der Rennstelle beseitigt, Beleg (`toHaveValue`) dauerhaft im Test
 verankert. **Übergabe an die unabhängige Prüfung** — erst danach neuer PR-CI-Lauf als
 maßgeblicher Nachweis. Struktur-CI (Doppel-Läufe, zweite Coverage-Ausführung) bleibt
 getrennt unter Issue #5. Kein Push/Merge/Deploy durch den Builder.
+
+## [2026-09-23] PR #21 — unabhängige Prüfung der Nacharbeit
+
+**Rolle:** Codex (Prüfer) · **geprüfter Commit:** `e424438` · **Basis:** `e55cbe1` ·
+**PR-CI:** [Run 35792710179](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/35792710179) ·
+**Status:** Code und Gates freigegeben; Merge erst nach grünem CI-Lauf auf dem
+finalen PR-HEAD.
+
+- Der Nacharbeits-Diff enthält nur den Characterization-Test und diesen
+  BUILD_LOG-Eintrag. `fireEvent.change` setzt den kontrollierten Namen synchron;
+  `toHaveValue` belegt ihn vor dem Speicherklick. Die Speicher-Assertions blieben
+  unverändert. Produktcode, E2E, Baselines und CI wurden nicht geändert.
+- Unabhängig mit Node 22.18.0 geprüft: Characterization-Spec 5/5, vollständiges
+  `npm run test:coverage` Exit 0, `npx tsc --noEmit`, `npm run lint`,
+  `npm run format:check`, `npm run verify` (001–025) und `npm run build` jeweils Exit 0.
+  `git diff --check` und der Schutzbereichs-Diff gegen `origin/main` sind leer.
+- PR-CI auf `e424438`: alle sieben Pflichtjobs grün. Der E2E-Job umfasste
+  Playwright, Lighthouse, den zuvor fehlgeschlagenen zweiten Coverage-Lauf und
+  den fail-closed Readiness-Orchestrator.
+- Der ursprüngliche Flake ließ sich lokal nicht zuverlässig reproduzieren.
+  Die CI-Fehlersignatur und die zwei dokumentierten Vorfälle am selben Eingabefeld
+  stützen die Testinteraktions-Hypothese; eine allgemeine Ursachenbehauptung über
+  alle `user.type`-Aufrufe folgt daraus nicht. Issue #5 verfolgt die doppelte
+  Coverage-Ausführung und die doppelten Branch-Läufe getrennt.
+
+**Entscheidung:** PR #21 ist nach einem grünen Pflichtcheck-Satz auf dem finalen
+HEAD mergefähig. Kein Deploy und keine Freigabe weiterer Teilaufträge durch
+diesen Befund.
