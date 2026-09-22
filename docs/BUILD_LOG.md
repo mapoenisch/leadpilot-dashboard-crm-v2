@@ -12073,3 +12073,25 @@ der TDD-Teil gesperrt: **kein `minmax(0, 1fr)` ohne Erklärung der Tablet-Differ
 kein weiterer Preflight ohne neuen Prüferauftrag.
 **Übergabe an den Prüfer** — getrennte Entscheidung über Desktop und Tablet.
 Feature-Branch und PR #20 ungepusht, Issue #13 offen.
+
+## [2026-09-22] Auftrag 067P-N6 — Prüferentscheidung: CI-Baseline-Pipeline reparieren
+
+**Rolle:** unabhängiger Prüfer · **geprüfter Commit:** `85ab3a8` · **Preflight-Run:**
+`35773552422` · **Status:** ABSCHLUSSAUFTRAG FREIGEGEBEN — kein CSS-Fix.
+
+Der korrigierte Preflight ist aussagekräftig: gültige Seed-Daten und bytegleiche Istbilder zu
+PR-CI `35755068622` schließen eine Parallelitäts- oder Auth-Zufallsursache für die aktuelle
+CI-Signatur aus. Die aktuelle GitHub-CI rendert deterministisch. Die sichtbare Desktop-
+Track-Spreizung stützt eine mögliche Grid-Erklärung, der aktuell gleich breite Tablet-Track
+erklärt die abweichende Tablet-Baseline aber nicht. Ein Produkt-CSS-Fix wäre deshalb nicht
+belegt und wird nicht freigegeben.
+
+Die bestehende Baseline-Kette ist dagegen nicht zuverlässig: Ihr regulärer Workflow schloss
+die CRM-`edge-runtime` aus und konnte damit keine gültigen CRM-Sollbilder garantieren. Die
+präzise Ursache der vorhandenen N5-Geometrie bleibt offen, aber sie wird nicht weiter geraten
+oder durch CSS kaschiert. Freigegeben sind nur die Workflow-Angleichung, die dauerhaften
+fail-closed Seed-Checks, ein dreifacher Post-Update-Visual-Lauf und drei Artefakt-basiert
+übernommene Linux-CRM-Baselines gemäß Abschlussauftrag.
+
+Kein Push des Feature-Branches, kein Merge, Deploy oder Issue-Close. Nach unabhängiger
+Prüfung muss die vollständige PR-CI grün sein; erst dann darf Issue #13 geschlossen werden.

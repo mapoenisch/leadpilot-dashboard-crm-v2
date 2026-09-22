@@ -208,3 +208,67 @@ im kurzlebigen Diagnose-Branch geändert und niemals in den Feature-Branch über
 
 Committe lokal mit einer präzisen Nachricht und übergib an den Prüfer. **Issue #13 bleibt
 offen, bis die vollständige PR-CI grün ist.**
+
+## Abschlussauftrag nach gültigem Preflight: Baseline-Pipeline reparieren
+
+**Dieser Abschnitt ersetzt die gesperrte TDD-Umsetzung oben vollständig.** Es gibt keinen
+CSS-Fix, keine Track-Invariante und kein `minmax(0, 1fr)`: Der korrigierte GitHub-Run
+`35773552422` hat mit gültigen Seed-Daten dieselben Istbilder wie die PR-CI gerendert.
+Damit sind weder geteilter Testzustand noch eine neue Produkt-Regression belegt. Der Grund
+für die abweichenden N5-Sollbilder bleibt im Detail offen; ihre Produktionskette war jedoch
+nicht CI-gleich, weil der reguläre Baseline-Workflow die `edge-runtime` ausschloss. Sie ist
+damit keine belastbare Quelle für künftige CRM-Baselines.
+
+Ziel ist jetzt ausschließlich eine dauerhaft fail-closed arbeitende, CI-gleiche
+Baseline-Produktion und drei daraus übernommene CRM-Sollbilder.
+
+### Erlaubter Scope
+
+| Art | Dateien |
+|---|---|
+| Modify | `.github/workflows/update-visual-baselines.yml`, `e2e/visual.spec.ts`, `docs/BUILD_LOG.md` |
+| Update – ausschließlich Linux | `e2e/visual.spec.ts-snapshots/visual-crm-leads-1-desktop-1440-linux.png`, `e2e/visual.spec.ts-snapshots/visual-crm-leads-1-tablet-768-linux.png`, `e2e/visual.spec.ts-snapshots/visual-crm-leads-1-mobile-375-linux.png` |
+
+Alle Produktdateien, insbesondere `src/styles/global.css`, die globale Playwright-Konfiguration,
+`ci.yml`, Auth, Datenmodell, Schutzbereiche und alle übrigen Baselines bleiben unverändert.
+Der normale Feature-Branch und PR #20 bleiben bis zur unabhängigen Prüferfreigabe ungepusht.
+
+### Verbindliche Schritte
+
+1. Entferne in `.github/workflows/update-visual-baselines.yml` ausschließlich
+   `edge-runtime` aus der `supabase start -x`-Ausschlussliste. So läuft die CRM-Edge-Function
+   bei der regulären Baseline-Produktion wie in `ci.yml`.
+2. Übernimm in den bestehenden `/crm/leads`-Zweig von `e2e/visual.spec.ts` vor dem Screenshot
+   die fail-closed Seed-Prüfung aus dem gültigen Preflight: Datenquelle `Supabase CRM`,
+   `Status: Gesund`, `Frische: Aktuell`, sichtbarer Text `1 Einträge` und kein
+   `SERVER_ERROR`. Die N3-Auth-Prüfung sowie die N5-Sichtbarkeitsassertion und Maske für
+   `Stand:` bleiben unverändert. Preflight-Telemetrie (`CI_VISUAL_PREFLIGHT`) wird nicht
+   in den Feature-Branch übernommen.
+3. Lasse den normalen Snapshot-Update-Befehl unverändert laufen und füge danach im selben
+   Workflow als dauerhaften Selbstnachweis exakt diesen Befehl ein:
+
+   ```bash
+   npx playwright test e2e/visual.spec.ts --repeat-each=3
+   ```
+
+   Er muss vor dem Artefakt-Upload grün sein. Die drei Wiederholungen prüfen die eben
+   produzierten Linux-Sollbilder gegen dieselbe Backend-Konfiguration.
+4. Lege vom aktualisierten Feature-Commit den kurzlebigen Branch
+   `visual-baselines/067p-valid-crm-baselines` an und pushe **nur** diesen Branch, damit
+   `Update Visual Baselines` läuft. Übernimm aus seinem erfolgreichen Artefakt ausschließlich
+   die drei genannten `visual-crm-leads-1-*-linux.png`-Dateien in den Feature-Branch.
+   Kein Feature-Branch-Push, Merge, Deploy oder Issue-Close.
+5. Prüfe jedes der drei Bilder einzeln: Anna Schmidt, genau ein Eintrag, Supabase CRM,
+   gesunder und aktueller Datenstatus, kein `AUTH_REQUIRED`/`SERVER_ERROR`, nur der
+   Zeitstempel ist maskiert und horizontaler Overflow beträgt 0 px. Dokumentiere Run-ID,
+   SHA-256, Viewport und Sichtprüfung im BUILD_LOG.
+
+### Gates und Übergabe
+
+Führe `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm run verify`,
+`npm run test:coverage` und `npm run build` aus. Der Update-Workflow samt dreifacher
+Visual-Verifikation muss grün sein. Zusätzlich sind `git diff --check` und der
+Schutzbereichs-Diff leer; der Diff enthält weder Secrets noch weitere Baselines.
+
+Danach lokal committen und zur unabhängigen Prüfung übergeben. Erst der danach grüne,
+vollständige PR-CI-Lauf erlaubt das Schließen von Issue #13.
