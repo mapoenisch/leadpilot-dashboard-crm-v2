@@ -11696,3 +11696,20 @@ alle drei `/crm/leads`-Viewports gegen die versionierten Linux-Baselines.
 Steps B + C umgesetzt, alle lokal fahrbaren Gates grün, Stopp-Punkte eingehalten.
 **Übergabe an den Prüfer** — erst nach dessen Freigabe Push in PR #20, dann grüne CI,
 erst dann Issue #13 schließen. Merge/Deploy bleiben separate Entscheidung.
+
+## [2026-09-22] Auftrag 067P-N3 — Prüferfreigabe für PR-CI
+
+**Rolle:** unabhängiger Prüfer · **Baseline:** `40a6251` · **geprüfter Commit:** `0bb9182`
+· **Status:** FÜR PR-CI FREIGEGEBEN — kein Merge, Deploy oder Issue-Close.
+
+Der Diff ist auf `e2e/global-setup.ts`, `e2e/visual.spec.ts` und den Builder-Nachweis
+beschränkt. `global-setup.ts` wartet maximal zehn Sekunden ausschließlich auf den Namen eines
+`sb-*-auth-token`-Schlüssels, bevor der State gespeichert wird; weder Tokenwert noch
+Credentials werden gelesen oder ausgegeben. `visual.spec.ts` prüft vor jedem Screenshot den
+sichtbaren Logout-Button und den fehlenden `AUTH_REQUIRED`-Zustand. Das verhindert zuverlässig,
+dass eine abgemeldete Fehlerseite als Baseline akzeptiert wird.
+
+Unabhängig grün: `npx tsc --noEmit`, `npm run lint`, die Liste der drei
+`visual /crm/leads`-Projekte sowie `git diff --check 40a6251..0bb9182`. Der Schutzbereichs-Diff
+ist leer. Der echte Lauf erfordert das CI-Backend samt Auth-Variablen und wird daher jetzt
+durch PR-CI belegt. Issue #13 bleibt bis zu einem grünen Gesamt-Run offen.
