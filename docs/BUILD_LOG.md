@@ -12095,3 +12095,49 @@ fail-closed Seed-Checks, ein dreifacher Post-Update-Visual-Lauf und drei Artefak
 
 Kein Push des Feature-Branches, kein Merge, Deploy oder Issue-Close. Nach unabhängiger
 Prüfung muss die vollständige PR-CI grün sein; erst dann darf Issue #13 geschlossen werden.
+
+## [2026-09-22] Auftrag 067P-N6 — Baseline-Pipeline repariert, CI-Sollbilder übernommen (Builder)
+
+**Rolle:** Builder · **Branch:** `feat/auftrag-067p-audit-diagnostics` (lokal, ungepusht)
+· **Diagnose-Branch:** `visual-baselines/067p-valid-crm-baselines` (einzig gepusht)
+· **Run:** `35776962495` (`Update Visual Baselines`, Conclusion **success**)
+· **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG. Kein Merge, Deploy oder Issue-Close.
+
+### Umsetzung (Abschlussauftrag, kein CSS-Fix)
+
+- `update-visual-baselines.yml`: ausschließlich `edge-runtime` aus der `-x`-Liste
+  entfernt (Backend jetzt CI-gleich); Update-Befehl unverändert; danach dauerhafter
+  Selbstnachweis `npx playwright test e2e/visual.spec.ts --repeat-each=3` (muss grün
+  sein, läuft vor Artefakt-Upload).
+- `e2e/visual.spec.ts`: fail-closed Seed-Check im `/crm/leads`-Zweig (Supabase CRM,
+  `Status: Gesund`, `Frische: Aktuell`, `1 Einträge` sichtbar, kein `SERVER_ERROR`);
+  N3-Auth, N5-Sichtbarkeit und -Maske unverändert; keine Telemetrie im Feature-Branch.
+- Lokale Gates: `tsc` 0 Fehler · `lint` grün · `format:check` grün · `verify` grün ·
+  `test:coverage` EXIT 0 · `build` grün.
+- Run `35776962495`: Update + **45/45 Verifikation grün** (15 Tests × 3). Aus dem
+  Artefakt `visual-baselines` ausschließlich die drei CRM-Linux-PNGs übernommen; alle
+  übrigen Snapshots (inkl. Darwin) bytegleich unverändert.
+
+### Übernommene Baselines (SHA-256, Sichtprüfung je Bild)
+
+- Desktop 1440 (`7f43df56…51aac3f`, 1440×900): Anna Schmidt, genau 1 Eintrag, Supabase
+  CRM, Status gesund, Frische aktuell, nur `Stand:` maskiert (unsichtbar), kein
+  `AUTH_REQUIRED`/`SERVER_ERROR`, kein Clipping, 0 px Overflow.
+- Tablet 768 (`a10cb969…8716773`, 768×1024): derselbe Seed-Zustand, sauberer 2-spaltiger
+  Umbruch, sonst wie Desktop.
+- Mobile 375 (`82a4f5f0…e1aac596`, 375×812): gegenüber N5 bytegleich (PR-CI war dort
+  grün), Seed-Zustand wie oben.
+
+### Schutzbereichs-Prüfung
+
+- `git diff --check`: leer. Geändert ausschließlich erlaubte Dateien (Workflow,
+  `visual.spec.ts`, 2 PNGs — Mobile per No-Op unverändert — plus dieser Eintrag).
+  `src/*`, Auth, Datenmodell, `ci.yml`, globale Playwright-Konfig und alle übrigen
+  Baselines unberührt. Keine Secrets in Diff, Artefakten oder Log.
+
+### Ergebnis & Freigabestatus
+
+Fail-closed CI-Baseline-Produktion steht, Sollbilder stammen aus erfolgreicher
+GitHub-Ubuntu-Erzeugung mit Seed-Nachweis. **Übergabe an den Prüfer** — erst nach
+Freigabe Push von PR #20 und genau ein maßgeblicher PR-CI-Lauf; erst bei Grün
+Issue #13 schließen. Merge/Deploy separate Entscheidung.
