@@ -11326,3 +11326,42 @@ und der Member-Trigger aktiv ist.
 
 **Committet auf `feat/auftrag-067p-audit-diagnostics`, bereit zur Prüfung.** Kein Push,
 Pull Request, Merge oder Deploy ausgelöst.
+
+## [2026-09-22] Gate G62 / Auftrag 067P: Unabhängige Prüfung — FREIGEGEBEN
+
+**Prüfer:** Codex
+
+**Basis:** `60ad64c`
+
+**Geprüfter Stand:** `d01b9f8` auf `feat/auftrag-067p-audit-diagnostics`
+
+### Ergebnis
+
+G62 ist freigegeben. Der Browser besitzt weder einen direkten INSERT-Pfad auf
+`audit_log` noch einen schreibenden Audit-RPC. Produktive Audit-Ereignisse werden
+ausschliesslich durch den Datenbank-Trigger auf `organization_members` erzeugt.
+Der Audit-Lesepfad nutzt eine explizite Spaltenliste; E-Mail- und IP-Spalten sind
+nicht Teil des Audit-Schemas. Der Sync-Status bewertet den Zeitpunkt des juengsten
+Kontaktimports statt nur den vorhandenen Bestand.
+
+Die von Marc genehmigten Scope-Erweiterungen (`20260930_audit_log_hardening.sql`,
+`LeadsPage.provenance.ui.vitest.tsx` und die test-only Folgeanpassung in
+`supabase/tests/member_management.sql`) sind nachvollziehbar und fuer die
+Sicherheits- beziehungsweise Testintegritaet erforderlich.
+
+### Unabhaengig ausgefuehrte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint` und `npm run format:check`: gruen
+- `npm run verify`: 25/25 Suiten gruen
+- `npm test`: 261 Dateien / 1413 Tests gruen
+- `npm run build`: gruen
+- `deno test --allow-env --allow-net --allow-read supabase/functions/`: 59/59 gruen
+- `npx supabase test db`: 6 Dateien / 140 Tests gruen
+- Playwright `e2e/audit-health.spec.ts`: gruen
+- `git diff --check`: leer
+- Schutzbereichs-Diff: leer
+
+**Freigabestatus:** Push des Feature-Branches und Fast-Forward-Merge nach gruener
+CI sind freigegeben. Kein Deploy: Ein getrenntes Staging-Ziel ist im Repository
+nicht konfiguriert.
