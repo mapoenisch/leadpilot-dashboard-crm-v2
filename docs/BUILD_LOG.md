@@ -11791,3 +11791,20 @@ Logout-Button. Kein Screenshot-Update; die Linux-Baselines bleiben korrekt.
 Minimaler Fix umgesetzt, alle lokal fahrbaren Gates grün, Stopp-Punkte eingehalten.
 **Übergabe an den Prüfer** — erst nach dessen Freigabe Push in PR #20, dann grüne CI,
 erst dann Issue #13 schließen. Merge/Deploy bleiben separate Entscheidung.
+
+## [2026-09-22] Auftrag 067P-N4 — Prüferfreigabe für PR-CI
+
+**Rolle:** unabhängiger Prüfer · **Baseline:** `ee5ae51` · **geprüfter Commit:** `75f8eb7`
+· **Status:** FÜR PR-CI FREIGEGEBEN — kein Merge, Deploy oder Issue-Close.
+
+Der Diff beschränkt sich in `e2e/auth.spec.ts` auf Test 4: Sein Login verwendet nun den
+bereits vorgesehenen Testnutzer `E2E_AUTH_EMAIL_B` (`admin-b`), während der vom
+`global-setup` gespeicherte Visual-Nutzer `admin-a` unverändert bleibt. Der echte produktive
+Logout, dessen Assertions und die übrigen Auth-Tests sind unverändert. Dadurch kann der
+globale Token-Widerruf aus Test 4 die drei `/crm/leads`-Visual-Tests nicht mehr invalidieren.
+
+Unabhängig grün: `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm run verify`,
+die Liste der 15 Auth-Tests, die Liste der 3 `/crm/leads`-Visual-Tests sowie
+`git diff --check ee5ae51..75f8eb7`. Der Schutzbereichs-Diff ist leer. Der echte E2E-Lauf
+benötigt das CI-Backend samt Auth-Variablen und wird durch PR-CI belegt. Issue #13 bleibt bis
+zu einem grünen Gesamt-Run offen.
