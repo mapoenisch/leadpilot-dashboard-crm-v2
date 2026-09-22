@@ -12165,3 +12165,43 @@ dem Builder-Eintrag überein; Sichtprüfung bestätigt Seed-Zustand, Zeitstempel
 Freigabe umfasst ausschließlich den Push von `feat/auftrag-067p-audit-diagnostics` nach
 PR #20 und genau den dadurch ausgelösten maßgeblichen PR-CI-Lauf. Kein Merge, Deploy oder
 Issue-Close. Issue #13 bleibt bis zum vollständig grünen PR-Lauf offen.
+
+## [2026-09-22] PR #19 Prüferbefund-Nacharbeit — `admin-a`-Logout aus `visual.spec.ts` entfernt (Builder)
+
+**Rolle:** Builder · **Basis:** `origin/main` (`e8ba4ec`, PR #19 gemergt) · **Branch:**
+`fix/pr19-visual-admina-logout-nacharbeit` (lokal, ungepusht) · **Befund:** GitHub-Kommentar
+auf PR #19 von Marc (2026-09-22): P1 — Nacharbeit vor Merge erforderlich · **Status:**
+ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG. Kein Push, Merge oder Deploy.
+
+### Ursache
+
+PR #19 brachte in `e2e/visual.spec.ts` einen neuen `test.beforeEach` ein, der vor jedem
+`/crm/leads`-Visual einen produktiven Logout für `E2E_AUTH_EMAIL` (= `admin-a`) ausführt
+und sich erneut anmeldet. `supabase.auth.signOut()` widerruft standardmäßig global — bei
+`fullyParallel: true` und zwei CI-Workern kann das parallele `admin-a`-Sitzungen
+invalidieren (die in 067P-N4 behobene Race-Bedingung).
+
+### Umsetzung (freigegebener Scope, exakt eingehalten)
+
+- Ausschließlich `requireEnv()` und den neuen `beforeEach`-Block aus
+  `e2e/visual.spec.ts` entfernt (−23 Zeilen, reine Löschung).
+- Unverändert: N3-Fail-Closed-Auth-Checks, N5-Zeitstempelmaske + Sichtbarkeitsassertion,
+  N6-Seed-Prüfung, alle übrigen Routen, CI-Änderung `supabase db reset --yes`, keine
+  Baseline-, Produkt-, Auth- oder sonstigen Konfigurationsänderungen.
+
+### Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npx eslint e2e/visual.spec.ts`: grün. `npx prettier --check e2e/visual.spec.ts` meldet
+  eine Abweichung — vorbestehend auf `origin/main` (per `git stash` verifiziert), nicht
+  durch diese Änderung eingeführt; keine Formatierungs-Nebenänderung vorgenommen.
+- `npm run verify`: alle Integrity-Suiten (001–025) grün.
+- `npm run build`: erfolgreich (3.30 s).
+- `git diff --check`: leer. Schutzbereichs-Diff (`src/simulation`, `src/types`,
+  `src/context`, `src/services/data`, `src/services/db/crmRepository.ts`, `src/auth`,
+  `src/features/auth`): leer. Keine Secrets in Diff oder Log.
+
+### Ergebnis & Freigabestatus
+
+P1-Befund behoben, Scope exakt eingehalten. **Übergabe an den Prüfer** — danach
+vollständige PR-CI als maßgeblicher E2E-Nachweis. Kein Push/Merge/Deploy durch den Builder.
