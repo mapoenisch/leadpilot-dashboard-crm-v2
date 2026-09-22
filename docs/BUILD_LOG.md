@@ -11808,3 +11808,21 @@ die Liste der 15 Auth-Tests, die Liste der 3 `/crm/leads`-Visual-Tests sowie
 `git diff --check ee5ae51..75f8eb7`. Der Schutzbereichs-Diff ist leer. Der echte E2E-Lauf
 benötigt das CI-Backend samt Auth-Variablen und wird durch PR-CI belegt. Issue #13 bleibt bis
 zu einem grünen Gesamt-Run offen.
+
+## [2026-09-22] Auftrag 067P-N5 — Prüferbefund: volatiler Zeitstempel in CRM-Visual-Baseline
+
+**Rolle:** unabhängiger Prüfer · **PR-CI:** `35751368896` · **Status:** NACHARBEIT
+ERFORDERLICH — kein Merge, Deploy oder Issue-Close.
+
+N4 hat den Auth-Befund geschlossen: 598 von 600 Playwright-Tests sind grün, alle
+`AUTH_REQUIRED`-Prüfungen bestanden, und der Logout-Test mit `admin-b` ist grün. Die zwei
+verbleibenden Fehler sind ausschließlich Bilddifferenzen für `visual /crm/leads` auf Desktop
+(4.108 px) und Tablet (2.459 px); Mobile ist grün. Die CI-Artefakte belegen echte CRM-Daten
+und denselben Aufbau, aber einen anderen Sekunden-Zeitstempel bei `Stand:`.
+
+Der Laufzeitwert `DataSourceStatus.formattedFetchedAt` darf nicht Bestandteil eines dauerhaften
+Pixel-Sollbilds sein. Folgeauftrag
+`docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_NACHARBEIT_5_VOLATILE_VISUAL_TIMESTAMP.md` maskiert
+nur diesen Locator im `/crm/leads`-Visualtest, prüft ihn separat auf Sichtbarkeit und aktualisiert
+kontrolliert die drei zugehörigen Linux-Baselines. Produktcode, Authentifizierung und der
+Schutzbereich bleiben unverändert.
