@@ -11554,3 +11554,38 @@ gegen `d984068` ist für `src/simulation`, `src/types`, `src/context`,
 `src/services/data`, `src/services/db/crmRepository.ts`, `src/auth` und
 `src/features/auth` leer. Erst nach der Nacharbeit und einem grünen PR-Lauf darf Issue #13
 geschlossen werden.
+
+## [2026-09-22] Auftrag 067P-N2 — Testentdeckung geschlossen (Builder)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `feat/auftrag-067p-audit-diagnostics`
+**Baseline:** `01c09a6` · **Node:** v22.18.0 · **Status:** ABGESCHLOSSEN —
+BEREIT ZUR PRÜFUNG. Kein Push, Merge, Deploy, Workflow-Dispatch oder Issue-Close.
+
+### Aenderung (exakt 1 Zeile + Kommentar, keine Glob-Verbreiterung)
+
+`playwright.config.ts`: `testMatch: ['**/*.spec.ts', '**/*.acceptance.ts']`
+direkt unter `testDir`. Keine Aenderung an Projekt-, Retry- oder
+Worker-Einstellungen; Baselines, UI, CI-Workflow und Vitest-Fix aus `01c09a6`
+unveraendert.
+
+### Nachweise
+
+- `npx playwright test e2e/element-clipping.acceptance.ts --project=mobile-375 --list`:
+  `[mobile-375] › element-clipping.acceptance.ts:57:1 › [PR-CLIP-13]
+  beschneidet keine Inhalte im Scroll-Container` — **Total: 1 test in 1 file**.
+- Direktlauf: **1 passed** (258 ms, Seed-Backend, Preview-Build).
+- `npx playwright test --list`: **Total: 666 tests in 13 files**
+  (663 Bestand + 3× `[PR-CLIP-13]` in desktop-1440/tablet-768/mobile-375);
+  alle bisherigen `.spec.ts`-Tests unveraendert enthalten.
+- `npx tsc --noEmit`: 0 Fehler · `npm run lint`: gruen ·
+  `npm run format:check`: gruen · `npm run verify`: 25/25 gruen ·
+  `npm run test:coverage`: 261/1413 gruen · `npm run build`: gruen.
+- `git diff --check 01c09a6`: leer. Schutzbereichs-Diff (`src/simulation`,
+  `src/types`, `src/context`, `src/services/data`, `src/features/resources`,
+  `src/services/db/crmRepository.ts`, `src/auth`, `src/features/auth`): **leer**.
+
+### Ergebnis & Freigabestatus
+
+Der Stopp-Punkt aus 067P-N ist geschlossen: Das Issue-#13-Gate wird von der CI
+eingesammelt und laeuft nachweislich. **Uebergabe an den Pruefer** — erst nach
+gruenem PR-Lauf darf Issue #13 geschlossen werden.
