@@ -11732,3 +11732,62 @@ CRM-Query-Tests melden sich hingegen jeweils frisch an. Folgeauftrag
 `docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_NACHARBEIT_4_AUTH_LOGOUT_ISOLATION.md` isoliert nur
 den Logout-Test auf den vorhandenen Nutzer `admin-b`; Produkt-Logout, Baselines und N3 bleiben
 unverändert.
+
+## [2026-09-22] Auftrag 067P-N4 — Logout auf admin-b isolieren (Builder)
+
+**Rolle:** Builder · **Branch:** `feat/auftrag-067p-audit-diagnostics`
+**Baseline:** `3467b26` · **Node:** v22.18.0 · **Status:** ABGESCHLOSSEN —
+BEREIT ZUR PRÜFUNG. Kein Push, Merge, Deploy, Workflow-Dispatch oder Issue-Close.
+
+### Ziel & Kontext (Step A — Red-Nachweis)
+
+PR-CI `35745787694` belegte den Root Cause: `auth.spec.ts` Test 4 lief vor den Visual-Tests
+als derselbe Nutzer `admin-a`, den `global-setup.ts` als Default-`storageState` speichert.
+Sein produktiver Adapter-Logout (`supabase.auth.signOut()` ohne Scope, Default `global`)
+widerruft serverseitig alle Sitzungen dieses Nutzers. Danach schlugen ausschließlich alle
+drei `/crm/leads`-Visuals (1440/768/375) mit `AUTH_REQUIRED` fehl — bei sichtbarem
+Logout-Button. Kein Screenshot-Update; die Linux-Baselines bleiben korrekt.
+
+### Geänderte Dateien (nur erlaubte)
+
+- `e2e/auth.spec.ts` (+3/−1): ausschließlich Test 4 („Logout entfernt Session …") meldet
+  sich jetzt mit `requireEnv('E2E_AUTH_EMAIL_B')` (`admin-b@e2e.local`) an; Passwort bleibt
+  die vorhandene `E2E_AUTH_PASSWORD`-Pflicht. Alle Assertions (Dashboard, Logout-Klick,
+  Redirect nach `/login`, erneuter geschützter Aufruf) unverändert. Tests 1/2/3/5 und der
+  produktive Logout-Pfad selbst sind unberührt.
+- `docs/BUILD_LOG.md`: dieser Eintrag.
+
+### Funktionale Prüfungen (Steps C+D — ehrlicher Stand)
+
+- `npx playwright test e2e/auth.spec.ts --list`: **15 Tests** (5 Tests × 3 Projekte).
+- `npx playwright test e2e/visual.spec.ts -g 'visual /crm/leads' --list`: **3 Tests**.
+- Direktläufe waren in dieser Shell nicht möglich: `global-setup.ts` bricht ehrlich ab
+  (`E2E_AUTH_EMAIL ist nicht gesetzt`) — kein Backend, keine Secrets lokal. Die geforderte
+  Reihenfolge (Auth-Spec inkl. Test 4, dann 3× `/crm/leads`-Visuals grün gegen bestehende
+  Linux-Baselines) sowie der vollständige erste CI-E2E-Befehl müssen daher von der PR-CI mit
+  frischem Supabase-Backend belegt werden.
+- Dokumentiert sind nur Rollen (`admin-a` = Visual-Nutzer, `admin-b` = Logout-Testnutzer);
+  keine Token, Credentials oder Storage-Werte in Diff, BUILD_LOG oder Ausgabe.
+
+### Schutzbereichs-Prüfung
+
+- `git diff --check 3467b26`: leer.
+- Schutzbereichs-Diff (`src/simulation`, `src/types`, `src/context`, `src/services/data`,
+  `src/features/resources`, `src/services/db/crmRepository.ts`, `src/auth`,
+  `src/features/auth`, `e2e/global-setup.ts`, `e2e/visual.spec.ts`,
+  `playwright.config.ts`, `.github/workflows/ci.yml`): **leer**.
+- N3 (`global-setup.ts`, `visual.spec.ts`), Produktcode, Supabase-Konfig und alle
+  PNG-Baselines unverändert.
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler · `npm run lint`: grün · `npm run format:check`: grün.
+- `npm run verify`: alle Integrity-Suiten grün (EXIT 0) · `npm run test:coverage`: EXIT 0 ·
+  `npm run build`: grün.
+- Secret-Scan über `git diff 3467b26`: keine Tokenwerte, Credentials oder Storage-State.
+
+### Ergebnis & Freigabestatus
+
+Minimaler Fix umgesetzt, alle lokal fahrbaren Gates grün, Stopp-Punkte eingehalten.
+**Übergabe an den Prüfer** — erst nach dessen Freigabe Push in PR #20, dann grüne CI,
+erst dann Issue #13 schließen. Merge/Deploy bleiben separate Entscheidung.
