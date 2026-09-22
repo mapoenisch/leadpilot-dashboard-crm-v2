@@ -11937,3 +11937,70 @@ Grid-Tracks. Nur wenn dieser Preflight die Rasterhypothese bestätigt, folgen
 `minmax(0, 1fr)` und CI-generierte Baselines. Keine Toleranzlockerung, keine weiteren Masken
 und keine Produkt-/Auth-/Konfigurationsänderung. Issue #13 bleibt offen, bis die vollständige
 PR-CI grün ist.
+
+## [2026-09-22] Auftrag 067P-N6 — Preflight durchgeführt, Hypothese teils bestätigt (Builder)
+
+**Rolle:** Builder · **Branch:** `feat/auftrag-067p-audit-diagnostics` (unverändert,
+ungepusht) · **Diagnose-Branch:** `visual-baselines/067p-ci-preflight` (einzige
+Push-Ausnahme laut Auftrag, Commit `d1daf0d`) · **Run:** `35760287093`
+(`Update Visual Baselines`) · **Status:** PREFLIGHT AUSGEWERTET — keine Umsetzung des
+TDD-Teils, kein Merge, Deploy oder Issue-Close.
+
+### Preflight-Aufbau (Scope eingehalten)
+
+- Temporärer Branch ab N5-Stand, darin ausschließlich: Workflow-Aufruf
+  `--update-snapshots` → `npx playwright test e2e/visual.spec.ts --repeat-each=3`
+  (2 Worker via `CI=true`, keine Baseline-Änderung) plus die vorgegebene secret-freie
+  `[CI_VISUAL_PREFLIGHT]`-Telemetrie im `/crm/leads`-Zweig. Keine Baselines, kein
+  Produktcode, keine BUILD_LOG-Änderung im Diagnose-Branch. `tsc`/`lint` dort grün.
+- Ergebnis: **36 bestanden, 9 gescheitert** (45 Läufe = 15 Tests × 3). Gescheitert ist
+  ausschließlich `visual /crm/leads` (je 3× Desktop/Tablet/Mobile, je inkl. Retry);
+  alle übrigen Routen in allen Wiederholungen grün.
+
+### Entscheidender Befund: Preflight-Signatur ≠ PR-CI-Signatur
+
+- Preflight-Diffs: **30.804 / 21.674 / 7.861 px (Ratio 0,03)**. PR-CI `35755068622`:
+  Desktop 3.996, Tablet 2.351/2.360, Mobile grün. Die Abweichung ist 7–8-fach größer
+  und trifft erstmals auch Mobile — keine Reproduktion der PR-CI-Signatur.
+- Belegte Ursache: Der Diagnose-Workflow startet das Backend **ohne** `edge-runtime`
+  (`-x …edge-runtime…`, Log: `supabase_edge_runtime` gestoppt; PR-CI `ci.yml` enthält
+  ihn). Das Istbild zeigt folgerichtig `STATUS: NICHT VERFÜGBAR`,
+  `FRISCHE: KEINE DATEN (SERVER_ERROR)`, `0 EINTRÄGE` und Fehlertabelle statt der
+  Seed-Daten (Anna Schmidt, 1 Eintrag). Der Preflight verglich Fehlerzustand gegen
+  Seed-Baselines — die Rasterfrage ist damit **nicht isoliert getestet**.
+
+### Telemetrie (deterministisch, je Viewport 6× identisch, Browser Chromium Linux 1243)
+
+- Desktop 1440 (dpr 1): `236.438px ×3 + 358.672px`, Karten
+  `[236.4375 ×3, 358.671875]` — **ungleiche Tracks (Spreizung 122 px)** in allen
+  Ausführungen. Der Mechanismus (`1fr`→`minmax(auto,1fr)`, 4. Karte treibt
+  min-content) liegt in GitHub-Ubuntu datenunabhängig vor (auch im Fehlerzustand).
+- Tablet 768: `360px ×2`, alle Karten 360 — **gleiche Tracks**. Das Raster erklärt den
+  PR-CI-Tablet-Diff nicht; dessen Ursache bleibt offen.
+- Mobile 375: ein Track `358.672px`, alle Karten gleich — deterministisch; der
+  Preflight-Mobile-Fehler stammt aus dem Fehlerzustand (PR-CI-Mobile war grün).
+- Viewport/dpr exakt, `Inter`/`Space Grotesk`/`JetBrains Mono` überall geladen
+  (`loaded: true`), Browser-Version identisch zur CI-Linie (Cache-Key 1243).
+
+### Bewertung gegen Auftrag Schritt 4 und Folgen
+
+- Weder Aussage 1 (Reproduktion derselben Desktop-/Tablet-Abweichung) noch Aussage 2
+  (grün → Parallelität) ist sauber bewiesen: kein Repro, kein Grün — sondern ein
+  belegter Backend-Unterschied. Der TDD-Teil (`minmax`, Track-Invariante, Baselines)
+  bleibt daher **gesperrt**; es erfolgt keine CSS- oder Baseline-Änderung.
+- Folgefunde für den Prüfer: (a) `update-visual-baselines.yml` kann ohne
+  `edge-runtime` grundsätzlich keine gültigen CRM-Baselines erzeugen — vor N6-Schritt 5
+  an `ci.yml` angleichen; (b) ein korrigierter Preflight (gleicher Diagnose-Branch plus
+  `edge-runtime`) würde die Rasterfrage auf Seed-Daten isolieren. Beides liegt
+  außerhalb des Builder-Scopes und braucht Prüferentscheidung.
+- Artefakte: Run `35760287093` (`visual-baselines`, `regen-report`, 7 Tage), Logs mit
+  36 `[CI_VISUAL_PREFLIGHT]`-Zeilen, Istbilder gesichtet. Keine Secrets in Diff, Logs
+  oder Artefakten (nur Rollen-/Technik-Telemetrie).
+
+### Ergebnis & Freigabestatus
+
+Preflight belegt: Desktop-Raster ungleich in CI-Ubuntu (Hypothese gestützt, aber wegen
+Backend-Divergenz kein isolierter Nachweis), Tablet-Ursache offen, Workflow-Divergenz
+(`edge-runtime`) als Sperre für jede CI-Baseline aus diesem Workflow nachgewiesen.
+**Übergabe an den Prüfer** — erst nach schriftlichem Befund darf der TDD-Teil laufen.
+Feature-Branch und PR #20 bleiben ungepusht, Issue #13 offen.
