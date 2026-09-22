@@ -11610,3 +11610,22 @@ unveraendert.
 Der Stopp-Punkt aus 067P-N ist geschlossen: Das Issue-#13-Gate wird von der CI
 eingesammelt und laeuft nachweislich. **Uebergabe an den Pruefer** — erst nach
 gruenem PR-Lauf darf Issue #13 geschlossen werden.
+
+## [2026-09-22] Auftrag 067P-N2 — Prüferbefund aus PR-CI: CRM-Visuals ohne Auth-State
+
+**Rolle:** unabhängiger Prüfer · **geprüfter Commit:** `81a7150` · **PR-CI:** `35737662086`
+· **Status:** NACHARBEIT ERFORDERLICH — kein Merge, Deploy oder Issue-Close.
+
+Die CI bestätigte die Testentdeckung und Ausführung von Issue #13: Der Clipping-Test lief in
+allen drei Playwright-Projekten grün. Typecheck, Lint, Tests, Build, Size-Limit und
+Live-KPI-Prüfungen sind ebenfalls grün. E2E endete mit **597 bestanden, 3 fehlgeschlagen**.
+
+Alle drei Fehler sind ausschließlich `visual /crm/leads` (1440, 768, 375). Die CI-Artefakte
+zeigen `Status: Nicht verfügbar`, `Frische: Keine Daten (AUTH_REQUIRED)` und `0 Einträge`.
+Damit ist nicht die Linux-Baseline zu ändern: Der Visual-Test nimmt einen abgemeldeten
+Fehlerzustand auf. Die Ursache ist der nicht verlässlich verfügbare gespeicherte E2E-Auth-State
+vor dem Screenshot. Folgeauftrag
+`docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_NACHARBEIT_3_E2E_AUTH_VISUAL.md` stabilisiert diesen
+State und macht das Visual-Gate vor der Aufnahme fail-closed. Die CI-Ausgabe enthält keine
+relevanten Secrets; die vom Runner erzeugten Infrastruktur-/Cache-Warnungen sind nicht die
+Fehlerursache.
