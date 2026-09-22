@@ -12028,3 +12028,48 @@ nicht die Tablet-Ursache; dort waren die aktuellen Tracks bereits gleich breit. 
 der TDD-Teil einschließlich `minmax(0, 1fr)`, Track-Assertion und Baseline-Update gesperrt,
 bis der korrigierte Run die vollständige PR-CI-Signatur mit gültigen Seed-Daten reproduziert.
 Kein Push des Feature-Branches, kein Merge, Deploy oder Issue-Close.
+
+## [2026-09-22] Auftrag 067P-N6 — Korrigierter Preflight: Signatur exakt reproduziert (Builder)
+
+**Rolle:** Builder · **Diagnose-Branch:** `visual-baselines/067p-ci-preflight`
+(Commit `8486b4e`, einzig gepushter Branch) · **Run:** `35773552422`
+· **Vergleichs-Run:** PR-CI `35755068622` · **Status:** SIGNATUR ISOLIERT —
+TDD-Teil weiter gesperrt, kein Merge, Deploy oder Issue-Close.
+
+### Korrektur (freigegebener Scope, `tsc`/`lint` grün)
+
+- `edge-runtime` aus der `-x`-Ausschlussliste von `update-visual-baselines.yml` entfernt
+  (identischer Backend-Stack wie `ci.yml`); dreifacher Visual-Lauf und Telemetrie
+  unverändert.
+- Fail-Closed-Seed-Check für `/crm/leads` vor Telemetrie/Screenshot (exakt nach Vorgabe):
+  `Supabase CRM`, `/Status: Gesund/i`, `/Frische: Aktuell/i`, kein `SERVER_ERROR`,
+  `/^1 Einträge$/i` sichtbar. Kein CSS, keine Baselines, keine BUILD_LOG-Änderung im
+  Diagnose-Branch.
+
+### Ergebnis je Viewport (Seed-Check überall grün, 0 Diagnosefehler)
+
+- Run: **39 bestanden, 6 gescheitert** — ausschließlich `visual /crm/leads` Desktop
+  (3×) und Tablet (3×); Mobile und alle übrigen Routen in allen Wiederholungen grün.
+- Desktop: **3.996 px** — identisch zu PR-CI (3.996). Tablet: **2.360/2.361 px** —
+  PR-CI-Muster (2.351/2.360, ±10 px Lauf-Jitter). Mobile: grün wie PR-CI.
+- Istbilder **bytegleich** zu PR-CI: Desktop-Aktuell (`369c…`, md5 `1eda2c45…`) und
+  Tablet-Aktuell (`2004…`, md5 `4d3785fd…`) sind in beiden Runs identisch; die
+  N5-Baselines ebenso. Diff-Bounding-Box damit dieselbe Grid-Region
+  (`x=33..1406, y=83..671`).
+- Sichtprüfung (korrigierter Ist-Desktop): Seed-Daten (Anna Schmidt, 1 Eintrag,
+  SUPABASE CRM, STATUS: GESUND, FRISCHE: AKTUELL), Masken-Box unsichtbar, kein
+  `AUTH_REQUIRED`/`SERVER_ERROR`, 0 px Overflow.
+- Telemetrie auf Seed-Daten (je Viewport in allen Ausführungen identisch, dpr 1,
+  Fonts geladen, Chromium-Linie 1243): Desktop `236.438px ×3 + 358.672px`
+  (Spreizung 122 px, ungleich); Tablet `360px ×2` (gleich); Mobile ein Track
+  (gleich).
+
+### Bewertung
+
+Gültiger Seed-Check **und** gleiche Signatur — die Baseline-/Rasterfrage ist damit
+isoliert: Desktop-Ungleichheit in CI-Ubuntu auf Seed-Daten bestätigt (Hypothese
+gestützt), Tablet-Ursache weiter unbelegt (Tracks dort gleich). Per Entscheidung bleibt
+der TDD-Teil gesperrt: **kein `minmax(0, 1fr)` ohne Erklärung der Tablet-Differenz**,
+kein weiterer Preflight ohne neuen Prüferauftrag.
+**Übergabe an den Prüfer** — getrennte Entscheidung über Desktop und Tablet.
+Feature-Branch und PR #20 ungepusht, Issue #13 offen.
