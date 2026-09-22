@@ -52,8 +52,11 @@ function formatTimestamp(timestamp: string): string {
 // `envelope.data.activities` — derselben Quelle wie Companies, Contacts, Deals
 // und Audit. Der frühere statische INITIAL-Bestand und der Simulations-Mix
 // (Activities/Events aus dem Simulations-Store) sind ersatzlos entfallen:
-// kein Mischzustand mehr. Unavailable ist Fehler ohne Ersatzdaten.
-export function ActivitiesView() {
+export interface ActivitiesViewProps {
+  extraHeader?: React.ReactNode;
+}
+
+export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
   const { data: envelope, isLoading, isError, error } = useCrmReadModelEnvelope();
   // 067J / G56: Filterzustand ist über die URL wiederherstellbar.
   const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
@@ -164,11 +167,16 @@ export function ActivitiesView() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
-        <SectionHeader
-          eyebrow="CRM & Pipeline"
-          title="Aktivitäten-Historie"
-          description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
-        />
+        <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
+          <SectionHeader
+            eyebrow="CRM & Pipeline"
+            title="Aktivitäten-Historie"
+            description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
+          />
+          {extraHeader && (
+            <div className="flex gap-[var(--space-2)] items-center flex-wrap">{extraHeader}</div>
+          )}
+        </div>
         <ManagementChartState
           type="loading"
           message="Lade Aktivitäten aus dem CRM-Envelope…"
@@ -181,11 +189,16 @@ export function ActivitiesView() {
   if (isError || !envelope) {
     return (
       <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
-        <SectionHeader
-          eyebrow="CRM & Pipeline"
-          title="Aktivitäten-Historie"
-          description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
-        />
+        <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
+          <SectionHeader
+            eyebrow="CRM & Pipeline"
+            title="Aktivitäten-Historie"
+            description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
+          />
+          {extraHeader && (
+            <div className="flex gap-[var(--space-2)] items-center flex-wrap">{extraHeader}</div>
+          )}
+        </div>
         <ManagementChartState
           type="error"
           message={`Aktivitäten nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Es werden keine Ersatzdaten angezeigt.`}
@@ -204,7 +217,8 @@ export function ActivitiesView() {
           title="Aktivitäten-Historie"
           description="Lückenloser Aktivitäten- und Ereignisstrom für Lead-Interaktionen, Statusübergänge und Vertriebsaktivitäten."
         />
-        <div className="flex gap-[var(--space-2)] flex-wrap">
+        <div className="flex gap-[var(--space-2)] items-center flex-wrap">
+          {extraHeader}
           <Badge variant="cyan">Quelle: {envelope.sourceId}</Badge>
           <Badge variant={statusBadgeVariant(envelope.status)}>{envelope.status}</Badge>
         </div>

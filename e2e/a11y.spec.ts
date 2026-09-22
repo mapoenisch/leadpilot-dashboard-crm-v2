@@ -13,7 +13,14 @@ const baseline = JSON.parse(
 // (Prinzip wie lint/tsc-Baselines): bekannte Verstöße aus a11y-baseline.json
 // werden herausgefiltert, jeder NEUE critical/serious-Verstoß lässt den Test
 // fehlschlagen. Fixes der Baseline in G35.
-const ROUTES = ['/dashboard', '/crm/leads', '/finance/p-and-l', '/market/overview'] as const;
+const ROUTES = [
+  '/dashboard',
+  '/company/data-basis',
+  '/crm/leads',
+  '/crm/live-simulation',
+  '/finance/p-and-l',
+  '/market/overview',
+] as const;
 
 for (const routePath of ROUTES) {
   test(`a11y ${routePath} — keine neuen critical/serious-Verstöße`, async ({ page }) => {

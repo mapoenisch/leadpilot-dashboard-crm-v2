@@ -13,17 +13,19 @@ import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
+import { DataSourceStatus } from '@/components/data/DataSourceStatus';
+import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
-
-const BASE_INDUSTRIES =
-  'IT,Maschinenbau,Automotive,Finanzen,Consulting,Handel,Gesundheitswesen,Logistik'.split(',');
-const BASE_INDUSTRY_OPTIONS: SelectOption[] = [
-  { value: 'ALL', label: 'Alle Branchen' },
-  ...BASE_INDUSTRIES.map((i) => ({ value: i, label: i })),
-];
 
 const toOptions = (arr: [string, string][]): SelectOption[] =>
   arr.map(([value, label]) => ({ value, label }));
+
+const BASE_INDUSTRY_OPTIONS: SelectOption[] = [
+  { value: 'ALL', label: 'Alle Branchen' },
+  ...'IT,Maschinenbau,Automotive,Finanzen,Consulting,Handel,Gesundheitswesen,Logistik'
+    .split(',')
+    .map((i) => ({ value: i, label: i })),
+];
 
 const COMPANY_SORT_OPTIONS = toOptions([
   ['name', 'Unternehmensname'],
@@ -40,6 +42,7 @@ const ORDER_OPTIONS = toOptions([
 export function CompaniesPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
+  const { provenance, isLoading: isProvLoading } = useCrmProvenance('companies');
 
   // Session-gebundener Storage-Key für Filter-Isolation (P2-1)
   const storageKey = session?.userId
@@ -213,6 +216,7 @@ export function CompaniesPage() {
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A Import</Badge>
+          <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{total} B2B Accounts</Badge>
           <Button
             variant="secondary"
@@ -244,41 +248,39 @@ export function CompaniesPage() {
 
       {/* 2. KPI Cards */}
       <div className="crm-v2-kpi-grid">
-        <Card variant="glass" featured>
-          <div className="text-[13px] text-[var(--color-text-muted)]">Unternehmen Gesamt</div>
-          <div className="font-display text-[28px] font-bold my-[4px] text-primary">{total}</div>
-          <div className="text-[12px] text-success">Mandanten-geprüft</div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Aktuelle Seite</div>
-          <div className="font-display text-[28px] font-semibold my-[4px] text-text">
-            {page} / {Math.max(1, Math.ceil(total / pageSize))}
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            {pageSize} Accounts pro Seite
-          </div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Gewählte Branche</div>
-          <div className="font-display text-[20px] font-semibold my-[4px] text-text truncate">
-            {industryFilter === 'ALL' ? 'Alle Branchen' : industryFilter}
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            {industryOptions.length - 1} Branchen verfügbar
-          </div>
-        </Card>
-
-        <Card variant="glass">
-          <div className="text-[13px] text-[var(--color-text-muted)]">Daten-Herkunft</div>
-          <div className="font-display text-[18px] font-bold mt-[8px] mb-[4px] text-accent">
-            Server Query
-          </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">
-            Edge Function / RLS geschützt
-          </div>
-        </Card>
+        {[
+          {
+            t: 'Unternehmen Gesamt',
+            v: total,
+            n: 'Mandanten-geprüft',
+            c: 'text-primary font-bold',
+            f: true,
+          },
+          {
+            t: 'Aktuelle Seite',
+            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            n: `${pageSize} Accounts pro Seite`,
+            c: 'text-text font-semibold',
+          },
+          {
+            t: 'Gewählte Branche',
+            v: industryFilter === 'ALL' ? 'Alle Branchen' : industryFilter,
+            n: `${industryOptions.length - 1} Branchen verfügbar`,
+            c: 'text-text font-semibold text-[20px]',
+          },
+          {
+            t: 'Daten-Herkunft',
+            v: 'Server Query',
+            n: 'Edge Function / RLS geschützt',
+            c: 'text-accent font-bold text-[18px]',
+          },
+        ].map((k) => (
+          <Card key={k.t} variant="glass" featured={Boolean(k.f)}>
+            <div className="text-[13px] text-[var(--color-text-muted)]">{k.t}</div>
+            <div className={`font-display text-[28px] my-[4px] truncate ${k.c}`}>{k.v}</div>
+            <div className="text-[12px] text-success">{k.n}</div>
+          </Card>
+        ))}
       </div>
 
       {/* 3. Filter & Search Bar */}

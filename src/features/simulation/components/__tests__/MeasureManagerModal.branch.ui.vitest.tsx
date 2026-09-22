@@ -56,7 +56,13 @@ describe('MeasureManagerModal (branch)', () => {
   it('ungültige Dauer blockt Speichern, gültige Dauer + Ramp-up werden übernommen', async () => {
     const user = userEvent.setup();
     render(<MeasureManagerModal isOpen={true} onClose={() => {}} />);
-    await user.type(screen.getByPlaceholderText('z. B. Sales-Team Verdopplung'), 'Dauer-Test');
+    const nameInput = screen.getByPlaceholderText('z. B. Sales-Team Verdopplung');
+    // Determinismus unter CI-/Coverage-Last (Node 22.18): synchroner Change
+    // statt user.type — Tippen blieb unter Last nachweislich stehen (CI-Run
+    // 35708776868: leer; lokale Coverage-Läufe: "Dau"), danach griff die
+    // Namens- statt der Dauer-Validierung. Beleg direkt danach:
+    fireEvent.change(nameInput, { target: { value: 'Dauer-Test' } });
+    expect(nameInput).toHaveValue('Dauer-Test');
     const durationInput = screen.getByPlaceholderText('dauerhaft');
     fireEvent.change(durationInput, { target: { value: '-3' } });
     await user.click(screen.getByRole('button', { name: '6. Maßnahme speichern' }));
@@ -80,7 +86,11 @@ describe('MeasureManagerModal (branch)', () => {
   it('Speichern ohne Beschreibung setzt undefined, Timeline zeigt Dauerhaft', async () => {
     const user = userEvent.setup();
     render(<MeasureManagerModal isOpen={true} onClose={() => {}} />);
-    await user.type(screen.getByPlaceholderText('z. B. Sales-Team Verdopplung'), 'Ohne Details');
+    const nameInputOhneDetails = screen.getByPlaceholderText('z. B. Sales-Team Verdopplung');
+    // Gleicher Last-Flake wie im Dauer-Test ("Ohne D" unter Coverage-Last):
+    // synchroner Change, danach Beleg des kontrollierten Feldwerts.
+    fireEvent.change(nameInputOhneDetails, { target: { value: 'Ohne Details' } });
+    expect(nameInputOhneDetails).toHaveValue('Ohne Details');
     await user.click(screen.getByRole('button', { name: '6. Maßnahme speichern' }));
     const saved = useSimulationStore.getState().draftMeasures;
     expect(saved).toHaveLength(1);

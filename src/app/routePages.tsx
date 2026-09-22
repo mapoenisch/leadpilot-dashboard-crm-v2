@@ -237,6 +237,16 @@ const MembersPage = React.lazy(() =>
     default: m.MembersPage,
   })),
 );
+const AuditPage = React.lazy(() =>
+  import('@/features/admin/pages/AuditPage').then((m) => ({
+    default: m.AuditPage,
+  })),
+);
+const SystemHealthPage = React.lazy(() =>
+  import('@/features/admin/pages/SystemHealthPage').then((m) => ({
+    default: m.SystemHealthPage,
+  })),
+);
 
 export interface RoutePageEntry {
   id: AppRouteId;
@@ -311,6 +321,8 @@ export const ROUTE_PAGE_ENTRIES: readonly RoutePageEntry[] = [
 
   // 13. Administration
   { id: 's-admin-members', component: MembersPage },
+  { id: 's-admin-audit', component: AuditPage },
+  { id: 's-admin-health', component: SystemHealthPage },
 ] as const;
 
 // Dev-Guard: Validiert Vollständigkeit und Duplikate gegen APP_ROUTES

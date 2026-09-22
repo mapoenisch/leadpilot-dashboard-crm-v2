@@ -261,6 +261,18 @@ export const APP_ROUTES = [
     title: 'Mitgliederverwaltung',
     categoryLabel: 'Administration',
   },
+  {
+    id: 's-admin-audit',
+    path: '/admin/audit',
+    title: 'Audit-Log',
+    categoryLabel: 'Administration',
+  },
+  {
+    id: 's-admin-health',
+    path: '/admin/health',
+    title: 'Systemdiagnose',
+    categoryLabel: 'Administration',
+  },
 ] as const;
 
 export type AppRouteId = (typeof APP_ROUTES)[number]['id'];
@@ -309,7 +321,7 @@ if (import.meta.env.DEV) {
     }
   }
 
-  const adminRouteIds = new Set(['s-admin-members']);
+  const adminRouteIds = new Set(['s-admin-members', 's-admin-audit', 's-admin-health']);
   const standardRoutes = APP_ROUTES.filter((r) => !adminRouteIds.has(r.id));
   if (standardRoutes.length !== allNavIds.size) {
     logger.error(

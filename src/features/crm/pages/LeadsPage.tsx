@@ -14,6 +14,8 @@ import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
+import { DataSourceStatus } from '@/components/data/DataSourceStatus';
+import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
 
 const mkOpts = (csv: string) =>
@@ -29,45 +31,43 @@ const col = (key: string, label: string, render?: (r: R) => React.ReactNode): Cr
   label,
   render,
 });
-const str = (v: unknown) => String(v ?? '');
-const bCyan = (v: unknown) => <Badge variant="cyan">{str(v)}</Badge>;
-const bMono = (v: unknown) => (
-  <span className="font-mono text-[12.5px] text-primary">{str(v)}</span>
-);
-const bStrong = (v: unknown) => <strong className="text-text">{str(v)}</strong>;
-const bMoney = (v: unknown) => (
-  <strong className="font-mono text-primary">{Number(v ?? 0).toLocaleString('de-DE')} €</strong>
+const bStrong = (v: unknown) => <strong className="text-text">{String(v ?? '')}</strong>;
+const bSpan = (v: unknown, cls: string) => <span className={cls}>{String(v ?? '')}</span>;
+const bBadge = (v: unknown, variant: 'cyan' | 'neutral' = 'cyan') => (
+  <Badge variant={variant}>{String(v ?? '')}</Badge>
 );
 
 const COL_CONTACTS: CrmColumn<R>[] = [
-  col('name', 'Name', (r) => bStrong(`${str(r.firstName)} ${str(r.lastName)}`.trim())),
-  col('email', 'E-Mail', (r) => bMono(r.email)),
-  col('jobTitle', 'Jobbezeichnung', (r) => bCyan(r.jobTitle)),
-  col('companyId', 'Company-ID', (r) => (
-    <span className="font-mono text-[11px] text-[var(--color-text-muted)]">{str(r.companyId)}</span>
-  )),
+  col('name', 'Name', (r) =>
+    bStrong(`${String(r.firstName ?? '')} ${String(r.lastName ?? '')}`.trim()),
+  ),
+  col('email', 'E-Mail', (r) => bSpan(r.email, 'font-mono text-[12.5px] text-primary')),
+  col('jobTitle', 'Jobbezeichnung', (r) => bBadge(r.jobTitle)),
+  col('companyId', 'Company-ID', (r) =>
+    bSpan(r.companyId, 'font-mono text-[11px] text-[var(--color-text-muted)]'),
+  ),
 ];
 
 const COL_COMPANIES: CrmColumn<R>[] = [
   col('name', 'Unternehmensname', (r) => bStrong(r.name)),
-  col('domain', 'Domain', (r) => bMono(r.domain)),
-  col('industry', 'Branche', (r) => bCyan(r.industry)),
+  col('domain', 'Domain', (r) => bSpan(r.domain, 'font-mono text-[12.5px] text-primary')),
+  col('industry', 'Branche', (r) => bBadge(r.industry)),
   col('city', 'Stadt'),
-  col('employeeCount', 'Mitarbeiter', (r) => (
-    <Badge variant="neutral">{str(r.employeeCount || 0)} MA</Badge>
-  )),
+  col('employeeCount', 'Mitarbeiter', (r) => bBadge(`${r.employeeCount || 0} MA`, 'neutral')),
 ];
 
 const COL_DEALS: CrmColumn<R>[] = [
   col('dealName', 'Deal Name', (r) => bStrong(r.dealName)),
   col('stage', 'Stage', (r) => {
-    const s = str(r.stage);
+    const s = String(r.stage ?? '');
     const v = s.includes('gewonnen') ? 'cyan' : s.includes('verloren') ? 'neutral' : 'orange';
     return <Badge variant={v}>{s}</Badge>;
   }),
-  col('amount', 'Betrag (€)', (r) => bMoney(r.amount)),
+  col('amount', 'Betrag (€)', (r) =>
+    bSpan(`${Number(r.amount ?? 0).toLocaleString('de-DE')} €`, 'font-mono text-primary font-bold'),
+  ),
   col('closeDate', 'Abschlussdatum'),
-  col('pipeline', 'Pipeline', (r) => <Badge variant="neutral">{str(r.pipeline)}</Badge>),
+  col('pipeline', 'Pipeline', (r) => bBadge(r.pipeline, 'neutral')),
 ];
 
 const TAB_CONFIG = {
@@ -137,6 +137,7 @@ export function LeadsPage() {
   const [pageSizeStr, setPageSizeStr] = useUrlSyncedState('proSeite', '20');
 
   const conf = TAB_CONFIG[activeTab as keyof typeof TAB_CONFIG] ?? TAB_CONFIG.contacts;
+  const { provenance, isLoading: isProvLoading } = useCrmProvenance(conf.resource);
   const [sortField, setSortField] = useUrlSyncedState('sort', conf.sort);
   const [sortOrder, setSortOrder] = useUrlSyncedState('order', conf.order);
 
@@ -220,6 +221,7 @@ export function LeadsPage() {
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A CRM</Badge>
+          <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{total} Einträge</Badge>
           {activeTab !== 'audit' && (
             <Button
@@ -253,33 +255,36 @@ export function LeadsPage() {
 
       <div className="crm-v2-kpi-grid">
         {[
-          ['Gefundene Datensätze', total, 'Mandanten-geprüft', 'text-primary font-bold', true],
-          [
-            'Aktuelle Seite',
-            `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
-            `${pageSize} pro Seite`,
-            'text-text font-semibold',
-            false,
-          ],
-          [
-            'Aktiver Tab',
-            activeTab === 'audit' ? 'Audit' : conf.label,
-            'Serverseitig abgefragt',
-            'text-text font-semibold text-[20px]',
-            false,
-          ],
-          [
-            'Datenbank Status',
-            isSupabaseConfigured ? '⚡ Supabase Verbunden' : '📦 Lokaler Fallback',
-            'Edge Function & RLS aktiv',
-            isSupabaseConfigured ? 'text-success text-[18px]' : 'text-accent text-[18px]',
-            false,
-          ],
-        ].map(([title, val, note, cls, feat]) => (
-          <Card key={title as string} variant="glass" featured={Boolean(feat)}>
-            <div className="text-[13px] text-[var(--color-text-muted)]">{title}</div>
-            <div className={`font-display text-[28px] my-[4px] truncate ${cls}`}>{val}</div>
-            <div className="text-[12px] text-success">{note}</div>
+          {
+            t: 'Gefundene Datensätze',
+            v: total,
+            n: 'Mandanten-geprüft',
+            c: 'text-primary font-bold',
+            f: true,
+          },
+          {
+            t: 'Aktuelle Seite',
+            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            n: `${pageSize} pro Seite`,
+            c: 'text-text font-semibold',
+          },
+          {
+            t: 'Aktiver Tab',
+            v: activeTab === 'audit' ? 'Audit' : conf.label,
+            n: 'Serverseitig abgefragt',
+            c: 'text-text font-semibold text-[20px]',
+          },
+          {
+            t: 'Datenbank Status',
+            v: isSupabaseConfigured ? '⚡ Supabase Verbunden' : '📦 Lokaler Fallback',
+            n: 'Edge Function & RLS aktiv',
+            c: isSupabaseConfigured ? 'text-success text-[18px]' : 'text-accent text-[18px]',
+          },
+        ].map((k) => (
+          <Card key={k.t} variant="glass" featured={Boolean(k.f)}>
+            <div className="text-[13px] text-[var(--color-text-muted)]">{k.t}</div>
+            <div className={`font-display text-[28px] my-[4px] truncate ${k.c}`}>{k.v}</div>
+            <div className="text-[12px] text-success">{k.n}</div>
           </Card>
         ))}
       </div>

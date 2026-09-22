@@ -71,8 +71,10 @@ test.describe('Supabase-Authentifizierung (Gate G45)', () => {
   });
 
   test('4. Logout entfernt Session und leitet zurück zu /login weiter', async ({ page }) => {
+    // 067P-N4: Produktiver globaler Logout, aber isoliert auf admin-b. Der global
+    // gespeicherte Visual-Nutzer admin-a bleibt vom serverseitigen Widerruf unberuehrt.
     await page.goto('/login');
-    await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL'));
+    await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL_B'));
     await page.fill('#login-password', requireEnv('E2E_AUTH_PASSWORD'));
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/\/dashboard/);
