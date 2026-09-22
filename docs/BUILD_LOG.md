@@ -11532,3 +11532,25 @@ meldet „No tests found"). **Kein Push/Merge/Deploy/Issue-Close durch den
 Builder — Uebergabe an den Pruefer.** Issue #13 erst nach gruenem PR-Lauf
 schliessen. Vorgeschlagener lokaler Commit:
 `fix(ci): stabilize PR gates and enforce issue 13 clipping check`.
+
+## [2026-09-22] Auftrag 067P-N — Prüferbefund: Testentdeckung blockiert Issue #13
+
+**Rolle:** unabhängiger Prüfer · **Baseline:** `d984068` · **geprüfter Commit:** `01c09a6`
+· **Status:** NACHARBEIT ERFORDERLICH — kein Push, Merge, Deploy oder Issue-Close.
+
+Der Builder-Befund ist bestätigt. Der unabhängige Lauf
+`npx playwright test e2e/element-clipping.acceptance.ts --project=mobile-375 --list`
+endet mit `No tests found` und `Total: 0 tests in 0 files`. `playwright.config.ts` enthält
+keinen `testMatch`; alle bisherigen E2E-Dateien enden auf `.spec.ts`, die neue
+`element-clipping.acceptance.ts` dagegen nicht. Damit wird die Datei trotz Nennung in
+`.github/workflows/ci.yml` nicht eingesammelt und Issue #13 wäre weiter ungeschützt.
+
+Der engste korrekte Fix ist als Folgeauftrag
+`docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_NACHARBEIT_2_TESTMATCH.md` dokumentiert:
+ein `testMatch` ausschließlich für `**/*.spec.ts` und `**/*.acceptance.ts` in
+`playwright.config.ts`, gefolgt von List- und Ausführungsnachweis für `[PR-CLIP-13]` im
+Projekt `mobile-375`. Der Prüfer hat keine Produktdatei geändert. Der Schutzbereichs-Diff
+gegen `d984068` ist für `src/simulation`, `src/types`, `src/context`,
+`src/services/data`, `src/services/db/crmRepository.ts`, `src/auth` und
+`src/features/auth` leer. Erst nach der Nacharbeit und einem grünen PR-Lauf darf Issue #13
+geschlossen werden.
