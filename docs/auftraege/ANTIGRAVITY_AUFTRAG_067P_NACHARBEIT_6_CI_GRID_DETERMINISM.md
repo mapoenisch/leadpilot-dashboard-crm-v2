@@ -63,6 +63,46 @@ Baseline gelangen, bevor der folgende Preflight beide Punkte nachweist.
    „Umsetzung – strikt TDD“ ausgeführt werden. Der Preflight ist ein einzelner gezielter
    GitHub-Run, keine weitere PR-CI-Runde.
 
+## Preflight-Revision nach Run `35760287093`
+
+Der erste Preflight ist **ungültig**, weil sein Workflow `edge-runtime` in `supabase start -x`
+abschaltet. Die CRM-Edge-Function liefert dann `SERVER_ERROR`; alle drei Visuals zeigen einen
+Fehlerzustand statt der PR-CI-Seed-Daten. Die gemessenen Pixelwerte sind deshalb nicht mit
+PR-CI `35755068622` vergleichbar.
+
+Der bestehende Diagnose-Branch `visual-baselines/067p-ci-preflight` wird einmalig korrigiert
+und erneut gepusht. Er darf weiterhin weder den Feature-Branch noch PR #20 verändern:
+
+1. Entferne **nur** `edge-runtime` aus der Ausschlussliste von
+   `.github/workflows/update-visual-baselines.yml`. Damit startet derselbe lokale
+   Supabase-Edge-Function-Dienst wie in `ci.yml`. `E2E_CLEANUP_KEY`, Manager- und Viewer-Login
+   bleiben bewusst ausgenommen: `e2e/visual.spec.ts` verwendet nur den existierenden
+   `admin-a`-Login und führt weder Cleanup noch Rollenwechsel aus.
+2. Behalte den normalen, dreifach wiederholten Visualbefehl und die vorhandene Telemetrie bei.
+   Ergänze vor Telemetrie und Screenshot für `/crm/leads` einen Fail-Closed-Seed-Check:
+
+   ```ts
+   const sourceStatus = page.getByRole('status', { name: 'Status der Datenquelle' });
+   await expect(sourceStatus).toContainText('Supabase CRM');
+   await expect(sourceStatus).toContainText(/Status: Gesund/i);
+   await expect(sourceStatus).toContainText(/Frische: Aktuell/i);
+   await expect(sourceStatus).not.toContainText('SERVER_ERROR');
+   await expect(page.getByText(/^1 Einträge$/i)).toBeVisible();
+   ```
+
+   Schlägt einer dieser Checks fehl, ist das ein Diagnosefehler, keine Screenshot-Differenz;
+   es werden weder CSS noch Baselines geändert.
+3. Lade `regen-report` nach dem Lauf herunter und vergleiche für jeden Viewport das aktuelle
+   Istbild mit dem Istbild aus PR-CI `35755068622`. Dokumentiere je Viewport: Seed-Check,
+   Diff-Pixelzahl, Diff-Bounding-Box und ob die PR-CI-Signatur (Desktop/Tablet rot, Mobile
+   grün) reproduziert ist.
+4. Auswertung:
+   - Nur bei gültigem Seed-Check **und** gleicher Signatur ist die Baseline-/Rasterfrage
+     isoliert. Der Prüfer entscheidet dann getrennt über Desktop und Tablet; ein
+     `minmax(0, 1fr)`-Fix darf nicht ohne Erklärung der Tablet-Differenz erfolgen.
+   - Bei abweichender Signatur bleibt N6 gesperrt. Dokumentiere die Differenz, aber starte
+     weder CSS-Änderung noch einen weiteren Preflight ohne neuen Prüferauftrag.
+
 ## Erlaubter Scope
 
 **Temporärer Diagnose-Branch, nie Feature-Branch/PR:**

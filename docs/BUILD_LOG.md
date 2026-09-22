@@ -12004,3 +12004,27 @@ Backend-Divergenz kein isolierter Nachweis), Tablet-Ursache offen, Workflow-Dive
 (`edge-runtime`) als Sperre für jede CI-Baseline aus diesem Workflow nachgewiesen.
 **Übergabe an den Prüfer** — erst nach schriftlichem Befund darf der TDD-Teil laufen.
 Feature-Branch und PR #20 bleiben ungepusht, Issue #13 offen.
+
+## [2026-09-22] Auftrag 067P-N6 — Prüferentscheidung: Preflight einmalig korrigieren
+
+**Rolle:** unabhängiger Prüfer · **geprüfter Commit:** `651b303` · **Preflight-Run:**
+`35760287093` · **Status:** KORRIGIERTER PREFLIGHT FREIGEGEBEN — TDD-Teil weiter gesperrt.
+
+Der Preflight-Befund ist korrekt: `update-visual-baselines.yml` schließt mit
+`supabase start -x …edge-runtime…` genau den Dienst aus, den `ci.yml` für die echte
+CRM-Listenabfrage startet. Dadurch sind die 30.804/21.674/7.861-Pixel-Differenzen ein
+Fehlerzustand (`SERVER_ERROR`, 0 Einträge), nicht die PR-CI-Signatur. Dieser Run darf weder
+für einen CSS-Fix noch für Baselines verwendet werden.
+
+Freigegeben ist genau **ein** korrigierter, weiterhin isolierter Run auf dem bestehenden
+Diagnose-Branch: `edge-runtime` wird aus der Ausschlussliste entfernt, der dreifache
+Visual-Lauf beibehalten und vor jedem CRM-Screenshot fail-closed auf Supabase CRM,
+`Status: Gesund`, aktuelle Frische und `1 Einträge` geprüft. Cleanup- sowie Manager-/Viewer-
+Variablen bleiben ausgeschlossen, weil `visual.spec.ts` sie nicht verwendet. Nach dem Lauf
+werden seine Istbilder je Viewport gegen die PR-CI-Istbilder aus `35755068622` verglichen.
+
+Die Desktop-Telemetrie stützt die Grid-Hypothese (122 px Track-Spreizung), beweist aber noch
+nicht die Tablet-Ursache; dort waren die aktuellen Tracks bereits gleich breit. Deshalb bleibt
+der TDD-Teil einschließlich `minmax(0, 1fr)`, Track-Assertion und Baseline-Update gesperrt,
+bis der korrigierte Run die vollständige PR-CI-Signatur mit gültigen Seed-Daten reproduziert.
+Kein Push des Feature-Branches, kein Merge, Deploy oder Issue-Close.
