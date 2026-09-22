@@ -12141,3 +12141,27 @@ Fail-closed CI-Baseline-Produktion steht, Sollbilder stammen aus erfolgreicher
 GitHub-Ubuntu-Erzeugung mit Seed-Nachweis. **Übergabe an den Prüfer** — erst nach
 Freigabe Push von PR #20 und genau ein maßgeblicher PR-CI-Lauf; erst bei Grün
 Issue #13 schließen. Merge/Deploy separate Entscheidung.
+
+## [2026-09-22] Auftrag 067P-N6 — Unabhängige Prüfung: Push für PR-CI freigegeben
+
+**Rolle:** unabhängiger Prüfer · **geprüfte Commit-Kette:** `a3ce0be..14dcce4`
+und `4c6182c` (temporärer Baseline-Branch) · **Workflow-Run:** `35776962495`
+· **Status:** FREIGEGEBEN FÜR EINEN PR-CI-LAUF.
+
+Scope und Schutzbereich geprüft: ausschließlich Baseline-Workflow, CRM-Visual-Sicherung,
+BUILD_LOG und die zwei veränderten Linux-PNGs; Mobile ist bytegleich. `edge-runtime` startet
+nun wie in `ci.yml`; der Update-Befehl bleibt unverändert und der folgende 3×-Visual-Lauf
+ist vor Artefakt-Upload fail-closed. Run `35776962495` ist unabhängig als erfolgreich
+verifiziert, einschließlich des Schritts „Erzeugte Baselines dreifach verifizieren“.
+
+Eigene Gates auf `14dcce4`: `npx tsc --noEmit`, `npm run lint`,
+`npm run format:check`, `npm run verify`, `npm run test:coverage` und `npm run build`
+jeweils Exit 0. Der erwartete `Design-System-Demo-Fehler` erscheint als abgedeckter
+Fehlergrenzen-Test in Coverage-Ausgabe, nicht als fehlgeschlagener Test. `git diff --check`
+und Schutzbereichs-Diff sind leer. Die SHA-256-Werte der drei CRM-Linux-Bilder stimmen mit
+dem Builder-Eintrag überein; Sichtprüfung bestätigt Seed-Zustand, Zeitstempelmaske und
+0 px Overflow.
+
+Freigabe umfasst ausschließlich den Push von `feat/auftrag-067p-audit-diagnostics` nach
+PR #20 und genau den dadurch ausgelösten maßgeblichen PR-CI-Lauf. Kein Merge, Deploy oder
+Issue-Close. Issue #13 bleibt bis zum vollständig grünen PR-Lauf offen.
