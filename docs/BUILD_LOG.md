@@ -11555,6 +11555,27 @@ gegen `d984068` ist für `src/simulation`, `src/types`, `src/context`,
 `src/features/auth` leer. Erst nach der Nacharbeit und einem grünen PR-Lauf darf Issue #13
 geschlossen werden.
 
+## [2026-09-22] Auftrag 067P-N2 — Prüferbefund: Acceptance-Spec wird entdeckt
+
+**Rolle:** unabhängiger Prüfer · **Baseline:** `01c09a6` · **geprüfter Commit:** `3b766ce`
+· **Status:** PR-CI-Nachweis ausstehend — kein Merge, Deploy oder Issue-Close.
+
+Die Scope-Erweiterung ist korrekt und minimal: `playwright.config.ts` ergänzt nur
+`testMatch: ['**/*.spec.ts', '**/*.acceptance.ts']`; der Schutzbereichs-Diff gegen
+`01c09a6` ist leer. Unabhängig bestätigt:
+
+- `npx playwright test e2e/element-clipping.acceptance.ts --project=mobile-375 --list`
+  listet `[PR-CLIP-13]` als **1 Test in 1 Datei**.
+- Der vollständige `npx playwright test --list`-Lauf listet denselben Test für Desktop,
+  Tablet und Mobile und insgesamt **666 Tests in 13 Dateien**.
+
+Der Prüferlauf der tatsächlichen mobilen Ausführung konnte in dieser Shell nicht starten,
+weil vor dem Test in `e2e/global-setup.ts` die lokale Umgebungsvariable `E2E_AUTH_EMAIL`
+fehlte. Das ist kein Assertion- oder Produktfehler; der Builder-Nachweis für den Lauf mit
+initialisiertem Test-Backend bleibt vorerst maßgeblich. Nächster notwendiger Nachweis ist die
+vollständige GitHub-PR-CI mit dieser Konfiguration. Erst nach deren Erfolg darf Issue #13
+geschlossen werden.
+
 ## [2026-09-22] Auftrag 067P-N2 — Testentdeckung geschlossen (Builder)
 
 **Rolle:** Builder (Antigravity) · **Branch:** `feat/auftrag-067p-audit-diagnostics`
