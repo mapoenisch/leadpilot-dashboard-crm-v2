@@ -11925,13 +11925,15 @@ Kein `AUTH_REQUIRED`-Zustand liegt vor.
 Pixelvergleich der Artefakte: Die drei versionierten N5-Linux-Baselines sind bytegleich mit
 den Sollbildern aus dem Report. Die Istbilder unterscheiden sich jedoch außerhalb des
 Zeitstempels über `x=33..1406, y=83..671`: Das CRM-KPI-Raster verteilt seine Tracks auf
-GitHub-Ubuntu anders. Ursache ist `.crm-v2-kpi-grid` mit `repeat(..., 1fr)`; dessen
-intrinsische min-content-Breite hängt bei „⚡ Supabase Verbunden“ vom Font-Fallback ab.
+GitHub-Ubuntu anders. Die Erklärung über `.crm-v2-kpi-grid` mit `repeat(..., 1fr)` und die
+intrinsische min-content-Breite von „⚡ Supabase Verbunden“ ist eine **unbestätigte
+Hypothese**, nicht der Root Cause.
 
 Folgeauftrag
-`docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_NACHARBEIT_6_CI_GRID_DETERMINISM.md` sichert die
-Rastertracks mit `minmax(0, 1fr)`, fügt dafür einen red-vor-grün Layout-Nachweis ein und
-übernimmt die drei Baselines ausschließlich aus dem vorhandenen GitHub-Ubuntu-Workflow
-`Update Visual Baselines`. Keine Toleranzlockerung, keine weiteren Masken und keine
-Produkt-/Auth-/Konfigurationsänderung. Issue #13 bleibt offen, bis die vollständige PR-CI
-grün ist.
+`docs/auftraege/ANTIGRAVITY_AUFTRAG_067P_NACHARBEIT_6_CI_GRID_DETERMINISM.md` verlangt
+zuerst einen gezielten CI-Preflight: gleicher Ubuntu-Workflow, normale Screenshot-Prüfung
+ohne Baseline-Update, drei Wiederholungen und Telemetrie zu Browser, Fonts, Viewport und
+Grid-Tracks. Nur wenn dieser Preflight die Rasterhypothese bestätigt, folgen
+`minmax(0, 1fr)` und CI-generierte Baselines. Keine Toleranzlockerung, keine weiteren Masken
+und keine Produkt-/Auth-/Konfigurationsänderung. Issue #13 bleibt offen, bis die vollständige
+PR-CI grün ist.

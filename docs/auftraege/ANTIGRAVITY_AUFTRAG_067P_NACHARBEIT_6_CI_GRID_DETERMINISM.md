@@ -4,31 +4,75 @@
 
 Du bist der **Builder**. Setze ausschließlich diese Nacharbeit um, führe die verlangten
 Gates aus und dokumentiere das Ergebnis in `docs/BUILD_LOG.md`. Kein Push des
-Feature-Branches, Merge, Deploy oder Issue-Close. Die einzige Ausnahme ist der in Schritt 5
-verlangte, kurzlebige Push von `visual-baselines/067p-n6`, damit die bestehende
-Baseline-Erzeugung in GitHub Actions laufen kann.
+Feature-Branches, Merge, Deploy oder Issue-Close. Die einzige Ausnahme ist der im
+Preflight verlangte, kurzlebige Push von `visual-baselines/067p-ci-preflight`, damit die
+bestehende Baseline-Erzeugung in GitHub Actions als Diagnose-Umgebung laufen kann.
 
-Die Authentifizierung ist geschlossen, die Zeitstempelmaske greift. Der PR-CI-Lauf
+**N6 darf noch nicht implementiert werden.** Die Authentifizierung ist geschlossen, die
+Zeitstempelmaske greift. Der PR-CI-Lauf
 `35755068622` scheitert dennoch mit genau zwei Visualtests: `/crm/leads` auf Desktop
 (3.996 differierende Pixel) und Tablet (2.351/2.360 differierende Pixel). Mobile und die
 restlichen 598 Playwright-Tests sind grün.
 
-## Belegter Root Cause
+## Belegte Fakten und unbestätigte Hypothese
 
 Die Zeitstempelmaske ist **nicht** die Ursache: In den CI-Artefakten liegt ihre Box an
 derselben Stelle, während die Differenzen von `x=33..1406, y=83..671` reichen. Die
 committeten N5-Baselines stimmen bytegleich mit den Sollbildern im CI-Report überein; die
 Istbilder zeigen jedoch ein anders verteiltes CRM-KPI-Raster.
 
-`.crm-v2-kpi-grid` verwendet aktuell `repeat(4, 1fr)` bzw. `repeat(2, 1fr)`. Bei diesem
-Grid-Sizing dürfen intrinsische Mindestbreiten der Kartentexte das jeweilige `1fr`-Track
-verformen. Der Fallback des `⚡`-Glyphen in „⚡ Supabase Verbunden“ variiert zwischen der
-Baseline-Umgebung und dem echten GitHub-Ubuntu-Runner. Das verschiebt Karten, Text und
-nachgelagerte Elemente, obwohl Inhalt und Daten korrekt sind. `minmax(0, 1fr)` unterbindet
-diesen min-content-Einfluss und macht die vier bzw. zwei Tracks unabhängig von Font-Fallbacks
-gleich breit.
+Die Baseline-/Istbild-Differenz ist damit belegt. Die Erklärung über das intrinsische
+Grid-Mindestmaß und den `⚡`-Font-Fallback ist dagegen nur eine **Hypothese**: Sie erklärt das
+sichtbare unterschiedliche Raster, ist aber noch nicht in derselben GitHub-Ubuntu-Ausführung
+experimentell gegengetestet. `minmax(0, 1fr)` darf daher weder in Produkt-CSS noch in eine
+Baseline gelangen, bevor der folgende Preflight beide Punkte nachweist.
+
+## Pflicht-Preflight vor jeder Produktänderung
+
+1. Lege ausschließlich für die Untersuchung den temporären Branch
+   `visual-baselines/067p-ci-preflight` vom unveränderten N5-Stand an. Der Feature-Branch,
+   die PR und ihre Baselines bleiben unverändert.
+2. Ändere nur auf diesem temporären Branch den bestehenden Baseline-Workflow so, dass er
+   `e2e/visual.spec.ts` ohne `--update-snapshots`, mit denselben zwei Workern und mindestens
+   drei Wiederholungen ausführt. Das erwartete rote Ergebnis liefert den Report, aber ändert
+   keine versionierte Baseline.
+3. Gib im temporären Testlauf für `/crm/leads` maschinenlesbar aus: Browser-Version,
+   `window.innerWidth`, `devicePixelRatio`, die geladenen lokalen Font-Familien,
+   `gridTemplateColumns` der `.crm-v2-kpi-grid` sowie alle vier bzw. zwei Kartenbreiten.
+   Keine Tokens, URLs mit Schlüsseln oder Storage-State ausgeben.
+
+   ```ts
+   const ciVisualPreflight = await page.locator('.crm-v2-kpi-grid').evaluate((grid) => ({
+     viewport: { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio },
+     gridTemplateColumns: getComputedStyle(grid).gridTemplateColumns,
+     cards: Array.from(grid.children, (card) => card.getBoundingClientRect().width),
+     fonts: ['Inter', 'Space Grotesk', 'JetBrains Mono'].map((family) => ({
+       family,
+       loaded: document.fonts.check(`16px "${family}"`),
+     })),
+   }));
+   console.info(`[CI_VISUAL_PREFLIGHT] ${JSON.stringify(ciVisualPreflight)}`);
+   ```
+4. Beweise anhand des Artefakts eine von zwei Aussagen:
+   - Das isolierte Ubuntu-Visual reproduziert dieselbe Desktop-/Tablet-Abweichung: Dann ist
+     eine umgebungsabhängige Rasterberechnung bestätigt und die `minmax(0, 1fr)`-Hypothese
+     wird mit einem zweiten, kleinen A/B-Test geprüft.
+   - Das isolierte Visual ist grün: Dann ist Parallelität bzw. geteilter Testzustand die
+     Ursache; N6 wird gestoppt und es erfolgt **keine** CSS- oder Baseline-Änderung.
+5. Erst nach schriftlichem Prüferbefund aus diesem Preflight darf der nachfolgende Teil
+   „Umsetzung – strikt TDD“ ausgeführt werden. Der Preflight ist ein einzelner gezielter
+   GitHub-Run, keine weitere PR-CI-Runde.
 
 ## Erlaubter Scope
+
+**Temporärer Diagnose-Branch, nie Feature-Branch/PR:**
+
+- `.github/workflows/update-visual-baselines.yml` – nur den Aufruf von
+  `--update-snapshots` auf den normalen dreifach wiederholten Visualtest umstellen
+- `e2e/visual.spec.ts` – nur die oben definierte, secret-freie Preflight-Telemetrie
+- keine Baselines, kein Produktcode, keine BUILD_LOG-Änderung in diesem Branch
+
+**Erst nach bestandenem Preflight im Feature-Branch:**
 
 - `src/styles/global.css` – ausschließlich `.crm-v2-kpi-grid` und ihre zwei vorhandenen
   Breakpoint-Regeln
@@ -39,9 +83,10 @@ gleich breit.
 - `docs/BUILD_LOG.md`
 
 Produktdaten, Authentifizierung, `DataSourceStatus`, globale Playwright-Konfiguration,
-Workflows, sonstige Baselines und Schutzbereiche bleiben unverändert.
+sonstige Baselines und Schutzbereiche bleiben unverändert. Der Workflow wird ausschließlich
+im kurzlebigen Diagnose-Branch geändert und niemals in den Feature-Branch übernommen.
 
-## Umsetzung – strikt TDD
+## Umsetzung – strikt TDD (gesperrt bis der Preflight die Hypothese bestätigt)
 
 1. Ergänze im bestehenden `/crm/leads`-Zweig **vor** `toHaveScreenshot` eine explizite
    Layout-Invariante für `.crm-v2-kpi-grid`. Lies `getComputedStyle(grid).gridTemplateColumns`,
