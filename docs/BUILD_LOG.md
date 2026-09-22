@@ -12165,3 +12165,122 @@ dem Builder-Eintrag überein; Sichtprüfung bestätigt Seed-Zustand, Zeitstempel
 Freigabe umfasst ausschließlich den Push von `feat/auftrag-067p-audit-diagnostics` nach
 PR #20 und genau den dadurch ausgelösten maßgeblichen PR-CI-Lauf. Kein Merge, Deploy oder
 Issue-Close. Issue #13 bleibt bis zum vollständig grünen PR-Lauf offen.
+
+## [2026-09-22] PR #19 Prüferbefund-Nacharbeit — `admin-a`-Logout aus `visual.spec.ts` entfernt (Builder)
+
+**Rolle:** Builder · **Basis:** `origin/main` (`e8ba4ec`, PR #19 gemergt) · **Branch:**
+`fix/pr19-visual-admina-logout-nacharbeit` (lokal, ungepusht) · **Befund:** GitHub-Kommentar
+auf PR #19 von Marc (2026-09-22): P1 — Nacharbeit vor Merge erforderlich · **Status:**
+ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG. Kein Push, Merge oder Deploy.
+
+### Ursache
+
+PR #19 brachte in `e2e/visual.spec.ts` einen neuen `test.beforeEach` ein, der vor jedem
+`/crm/leads`-Visual einen produktiven Logout für `E2E_AUTH_EMAIL` (= `admin-a`) ausführt
+und sich erneut anmeldet. `supabase.auth.signOut()` widerruft standardmäßig global — bei
+`fullyParallel: true` und zwei CI-Workern kann das parallele `admin-a`-Sitzungen
+invalidieren (die in 067P-N4 behobene Race-Bedingung).
+
+### Umsetzung (freigegebener Scope, exakt eingehalten)
+
+- Ausschließlich `requireEnv()` und den neuen `beforeEach`-Block aus
+  `e2e/visual.spec.ts` entfernt (−23 Zeilen, reine Löschung).
+- Unverändert: N3-Fail-Closed-Auth-Checks, N5-Zeitstempelmaske + Sichtbarkeitsassertion,
+  N6-Seed-Prüfung, alle übrigen Routen, CI-Änderung `supabase db reset --yes`, keine
+  Baseline-, Produkt-, Auth- oder sonstigen Konfigurationsänderungen.
+
+### Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npx eslint e2e/visual.spec.ts`: grün. `npx prettier --check e2e/visual.spec.ts` meldet
+  eine Abweichung — vorbestehend auf `origin/main` (per `git stash` verifiziert), nicht
+  durch diese Änderung eingeführt; keine Formatierungs-Nebenänderung vorgenommen.
+- `npm run verify`: alle Integrity-Suiten (001–025) grün.
+- `npm run build`: erfolgreich (3.30 s).
+- `git diff --check`: leer. Schutzbereichs-Diff (`src/simulation`, `src/types`,
+  `src/context`, `src/services/data`, `src/services/db/crmRepository.ts`, `src/auth`,
+  `src/features/auth`): leer. Keine Secrets in Diff oder Log.
+
+### Ergebnis & Freigabestatus
+
+P1-Befund behoben, Scope exakt eingehalten. **Übergabe an den Prüfer** — danach
+vollständige PR-CI als maßgeblicher E2E-Nachweis. Kein Push/Merge/Deploy durch den Builder.
+
+## [2026-09-22] PR #21 Prüferbefund-Nacharbeit — Characterization-Test unter Coverage-Last stabilisiert (Builder)
+
+**Rolle:** Builder (Antigravity) · **Basis:** `e55cbe1` (PR #21, offen/blockiert) ·
+**Befund:** Prüferkommentar auf PR #21 (2026-09-22): CI-Lauf `35787151773` — zweiter
+`npm run test:coverage` im E2E-Job rot: `MeasureManagerModal.characterization.ui.vitest.tsx`,
+„gültige Maßnahme wird gespeichert und Zähler steigt“ (1/1413); `test`-Job desselben
+Commits grün · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG. Kein Push, Merge, Deploy
+oder blinder CI-Re-Run.
+
+### Diagnose (gezielt belegt, kein Neustart als Lösung)
+
+- Fehlersignatur CI: `0 Maßnahmen` + „Bitte geben Sie einen Namen für die Maßnahme ein.“
+  — exakt das Bild einer leeren/abgebrochenen Namenseingabe beim Speicherklick, kein
+  Produktfehler (Speicher-Logik unverändert, erster Coverage-Lauf grün).
+- Mechanismus-Vorbeleg am selben Input derselben Komponente: Zwei Branch-Tests
+  dokumentieren abgebrochenes `user.type` unter Coverage-Last (CI-Run `35708776868`:
+  leer; lokale Läufe: „Dau“/„Ohne D“), stabilisiert per synchronem `fireEvent.change` +
+  `toHaveValue`-Beleg.
+- Eigene Prüfung unter Node 22.18.0 (CI-Version, lokal nach `/tmp` installiert):
+  Voll-Coverage auf unfixiertem Stand 1× grün (261 Dateien), Characterization-Spec
+  10× einzeln grün — der Flake reproduziert lokal nicht auf Bestellung (lastabhängige
+  Race: zweiter Coverage-Lauf im E2E-Job bei parallelen Workern). Die unvollständige
+  Eingabe ist damit per Signatur + Doppel-Präzedenz belegt; der Fix beseitigt die
+  Rennstelle statt auf Repro zu warten.
+
+### Umsetzung (enger Scope, exakt eingehalten)
+
+- Ausschließlich `MeasureManagerModal.characterization.ui.vitest.tsx`, Test
+  „gültige Maßnahme wird gespeichert und Zähler steigt“: `user.type` → synchroner
+  `fireEvent.change` + `expect(nameInput).toHaveValue('Vertriebsoffensive Q2')` vor dem
+  Speicherklick (Muster 1:1 aus den Branch-Tests). Speicher-Assertions unverändert.
+- Unverändert: `MeasureManagerModal`, Store, E2E, Baselines, CI, alle übrigen Tests.
+
+### Verifikation (Node v22.18.0 wie CI)
+
+- Gezielter Test: 5/5 grün.
+- Vollständiges `npm run test:coverage` **3× hintereinander**: 261 Dateien / 1413 Tests,
+  jeweils Exit 0.
+- `npx tsc --noEmit`: 0 Fehler. `npm run lint`: grün. `npm run format:check`: grün.
+- `npm run verify`: Suiten 001–025 grün. `npm run build`: erfolgreich (3.15 s).
+- `git diff --check`: leer. Schutzbereichs-Diff (`src/simulation`, `src/types`,
+  `src/context`, `src/services/data`, `src/services/db/crmRepository.ts`, `src/auth`,
+  `src/features/auth`, `src/features/resources`): leer. Keine Secrets in Diff oder Log.
+
+### Ergebnis & Freigabestatus
+
+Last-Flake an der Rennstelle beseitigt, Beleg (`toHaveValue`) dauerhaft im Test
+verankert. **Übergabe an die unabhängige Prüfung** — erst danach neuer PR-CI-Lauf als
+maßgeblicher Nachweis. Struktur-CI (Doppel-Läufe, zweite Coverage-Ausführung) bleibt
+getrennt unter Issue #5. Kein Push/Merge/Deploy durch den Builder.
+
+## [2026-09-23] PR #21 — unabhängige Prüfung der Nacharbeit
+
+**Rolle:** Codex (Prüfer) · **geprüfter Commit:** `e424438` · **Basis:** `e55cbe1` ·
+**PR-CI:** [Run 35792710179](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/35792710179) ·
+**Status:** Code und Gates freigegeben; Merge erst nach grünem CI-Lauf auf dem
+finalen PR-HEAD.
+
+- Der Nacharbeits-Diff enthält nur den Characterization-Test und diesen
+  BUILD_LOG-Eintrag. `fireEvent.change` setzt den kontrollierten Namen synchron;
+  `toHaveValue` belegt ihn vor dem Speicherklick. Die Speicher-Assertions blieben
+  unverändert. Produktcode, E2E, Baselines und CI wurden nicht geändert.
+- Unabhängig mit Node 22.18.0 geprüft: Characterization-Spec 5/5, vollständiges
+  `npm run test:coverage` Exit 0, `npx tsc --noEmit`, `npm run lint`,
+  `npm run format:check`, `npm run verify` (001–025) und `npm run build` jeweils Exit 0.
+  `git diff --check` und der Schutzbereichs-Diff gegen `origin/main` sind leer.
+- PR-CI auf `e424438`: alle sieben Pflichtjobs grün. Der E2E-Job umfasste
+  Playwright, Lighthouse, den zuvor fehlgeschlagenen zweiten Coverage-Lauf und
+  den fail-closed Readiness-Orchestrator.
+- Der ursprüngliche Flake ließ sich lokal nicht zuverlässig reproduzieren.
+  Die CI-Fehlersignatur und die zwei dokumentierten Vorfälle am selben Eingabefeld
+  stützen die Testinteraktions-Hypothese; eine allgemeine Ursachenbehauptung über
+  alle `user.type`-Aufrufe folgt daraus nicht. Issue #5 verfolgt die doppelte
+  Coverage-Ausführung und die doppelten Branch-Läufe getrennt.
+
+**Entscheidung:** PR #21 ist nach einem grünen Pflichtcheck-Satz auf dem finalen
+HEAD mergefähig. Kein Deploy und keine Freigabe weiterer Teilaufträge durch
+diesen Befund.
