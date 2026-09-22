@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MeasureManagerModal } from '../MeasureManagerModal';
 import { useSimulationStore } from '@/store/simulationStore';
@@ -39,10 +39,14 @@ describe('MeasureManagerModal (characterization)', () => {
   it('gültige Maßnahme wird gespeichert und Zähler steigt', async () => {
     const user = userEvent.setup();
     render(<MeasureManagerModal isOpen={true} onClose={() => {}} />);
-    await user.type(
-      screen.getByPlaceholderText('z. B. Sales-Team Verdopplung'),
-      'Vertriebsoffensive Q2',
-    );
+    const nameInput = screen.getByPlaceholderText('z. B. Sales-Team Verdopplung');
+    // Determinismus unter Coverage-Last (Node 22.18, CI-Run 35787151773):
+    // user.type brach im zweiten Coverage-Lauf des E2E-Jobs ab — 0 Maßnahmen
+    // plus Namens-Validierung statt Speichern. Gleicher Last-Flake wie in den
+    // Branch-Tests belegt (CI-Run 35708776868, lokale "Dau"/"Ohne D"): daher
+    // synchroner Change und Beleg des kontrollierten Feldwerts vor dem Klick.
+    fireEvent.change(nameInput, { target: { value: 'Vertriebsoffensive Q2' } });
+    expect(nameInput).toHaveValue('Vertriebsoffensive Q2');
     await user.click(screen.getByRole('button', { name: '6. Maßnahme speichern' }));
     expect(screen.getByText('Aktive Maßnahmen: 1')).toBeInTheDocument();
     expect(useSimulationStore.getState().draftMeasures).toHaveLength(1);

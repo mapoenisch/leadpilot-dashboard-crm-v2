@@ -12205,3 +12205,54 @@ invalidieren (die in 067P-N4 behobene Race-Bedingung).
 
 P1-Befund behoben, Scope exakt eingehalten. **Übergabe an den Prüfer** — danach
 vollständige PR-CI als maßgeblicher E2E-Nachweis. Kein Push/Merge/Deploy durch den Builder.
+
+## [2026-09-22] PR #21 Prüferbefund-Nacharbeit — Characterization-Test unter Coverage-Last stabilisiert (Builder)
+
+**Rolle:** Builder (Antigravity) · **Basis:** `e55cbe1` (PR #21, offen/blockiert) ·
+**Befund:** Prüferkommentar auf PR #21 (2026-09-22): CI-Lauf `35787151773` — zweiter
+`npm run test:coverage` im E2E-Job rot: `MeasureManagerModal.characterization.ui.vitest.tsx`,
+„gültige Maßnahme wird gespeichert und Zähler steigt“ (1/1413); `test`-Job desselben
+Commits grün · **Status:** ABGESCHLOSSEN — BEREIT ZUR PRÜFUNG. Kein Push, Merge, Deploy
+oder blinder CI-Re-Run.
+
+### Diagnose (gezielt belegt, kein Neustart als Lösung)
+
+- Fehlersignatur CI: `0 Maßnahmen` + „Bitte geben Sie einen Namen für die Maßnahme ein.“
+  — exakt das Bild einer leeren/abgebrochenen Namenseingabe beim Speicherklick, kein
+  Produktfehler (Speicher-Logik unverändert, erster Coverage-Lauf grün).
+- Mechanismus-Vorbeleg am selben Input derselben Komponente: Zwei Branch-Tests
+  dokumentieren abgebrochenes `user.type` unter Coverage-Last (CI-Run `35708776868`:
+  leer; lokale Läufe: „Dau“/„Ohne D“), stabilisiert per synchronem `fireEvent.change` +
+  `toHaveValue`-Beleg.
+- Eigene Prüfung unter Node 22.18.0 (CI-Version, lokal nach `/tmp` installiert):
+  Voll-Coverage auf unfixiertem Stand 1× grün (261 Dateien), Characterization-Spec
+  10× einzeln grün — der Flake reproduziert lokal nicht auf Bestellung (lastabhängige
+  Race: zweiter Coverage-Lauf im E2E-Job bei parallelen Workern). Die unvollständige
+  Eingabe ist damit per Signatur + Doppel-Präzedenz belegt; der Fix beseitigt die
+  Rennstelle statt auf Repro zu warten.
+
+### Umsetzung (enger Scope, exakt eingehalten)
+
+- Ausschließlich `MeasureManagerModal.characterization.ui.vitest.tsx`, Test
+  „gültige Maßnahme wird gespeichert und Zähler steigt“: `user.type` → synchroner
+  `fireEvent.change` + `expect(nameInput).toHaveValue('Vertriebsoffensive Q2')` vor dem
+  Speicherklick (Muster 1:1 aus den Branch-Tests). Speicher-Assertions unverändert.
+- Unverändert: `MeasureManagerModal`, Store, E2E, Baselines, CI, alle übrigen Tests.
+
+### Verifikation (Node v22.18.0 wie CI)
+
+- Gezielter Test: 5/5 grün.
+- Vollständiges `npm run test:coverage` **3× hintereinander**: 261 Dateien / 1413 Tests,
+  jeweils Exit 0.
+- `npx tsc --noEmit`: 0 Fehler. `npm run lint`: grün. `npm run format:check`: grün.
+- `npm run verify`: Suiten 001–025 grün. `npm run build`: erfolgreich (3.15 s).
+- `git diff --check`: leer. Schutzbereichs-Diff (`src/simulation`, `src/types`,
+  `src/context`, `src/services/data`, `src/services/db/crmRepository.ts`, `src/auth`,
+  `src/features/auth`, `src/features/resources`): leer. Keine Secrets in Diff oder Log.
+
+### Ergebnis & Freigabestatus
+
+Last-Flake an der Rennstelle beseitigt, Beleg (`toHaveValue`) dauerhaft im Test
+verankert. **Übergabe an die unabhängige Prüfung** — erst danach neuer PR-CI-Lauf als
+maßgeblicher Nachweis. Struktur-CI (Doppel-Läufe, zweite Coverage-Ausführung) bleibt
+getrennt unter Issue #5. Kein Push/Merge/Deploy durch den Builder.
