@@ -1,15 +1,29 @@
--- G62-Nacharbeit (Auftrag 067P, Review-Befund P0 + P1): pgTAP-Tests fuer audit_log-Haertung.
--- Prueft: Direkte INSERTs sind fuer ALLE Rollen blockiert (42501), Audit-Ereignisse
--- laufen ueber log_audit_event() mit serverseitiger Org-/Akteur-Ableitung und
--- geschlossener Action-/Ziel-Whitelist, UPDATE/DELETE bleiben verboten,
--- PII-Spalten (actor_email, ip_address) existieren nicht mehr.
+-- G62-Nacharbeit (Auftrag 067P, Review-Befund P0 + P1, Scope-Erweiterung
+-- 2026-09-22; RPC-Entfernung am 2026-09-22 angewiesen): pgTAP-Tests fuer
+-- audit_log-Haertung.
+-- Prueft: Direkte INSERTs sind fuer ALLE Rollen blockiert (42501), die RPC
+-- `log_audit_event()` EXISTIERT NICHT MEHR (42883 — kein schreibender
+-- Einstieg), echte Ereignisse erzeugt der DB-Trigger
+-- `trg_audit_log_member_changes` auf `organization_members`, UPDATE/DELETE
+-- bleiben verboten, PII-Spalten (actor_email, ip_address) existieren nicht.
 -- Ausfuehrung: npx supabase test db
 
 BEGIN;
 
-SELECT plan(19);
+SELECT plan(18);
 
 -- ---------------------------------------------------------------- Setup --
+-- G62: audit_log ist append-only (Immutabilitaets-Trigger) — alte Test-Zeilen
+-- sind nicht per DELETE entfernbar, solange der Trigger aktiv ist. Fuer
+-- idempotente Re-Runs: Member-Trigger pausieren, alte Zeilen loeschen,
+-- Schutz wieder aktivieren.
+ALTER TABLE public.organization_members DISABLE TRIGGER trg_audit_log_member_changes;
+ALTER TABLE public.audit_log DISABLE TRIGGER trg_audit_log_immutable;
+DELETE FROM public.audit_log WHERE organization_id IN (
+  'cccccccc-cccc-cccc-cccc-cccccccccccc',
+  'dddddddd-dddd-dddd-dddd-dddddddddddd'
+);
+ALTER TABLE public.audit_log ENABLE TRIGGER trg_audit_log_immutable;
 DELETE FROM public.audit_log WHERE organization_id IN (
   'cccccccc-cccc-cccc-cccc-cccccccccccc',
   'dddddddd-dddd-dddd-dddd-dddddddddddd'
@@ -43,6 +57,10 @@ VALUES
   ('aaaaaaaa-0000-0000-0000-000000000003', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'viewer'),
   ('aaaaaaaa-0000-0000-0000-000000000004', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'admin');
 
+-- Member-Trigger fuer den Test-Body reaktivieren (Setup-INSERTs feuern ihn
+-- bewusst nicht, damit die Count-Assertions deterministisch bleiben).
+ALTER TABLE public.organization_members ENABLE TRIGGER trg_audit_log_member_changes;
+
 -- Seed-Eintraege als Superuser (umgeht RLS direkt, kein PII mehr)
 INSERT INTO public.audit_log (id, organization_id, actor_id, action, details)
 VALUES
@@ -70,7 +88,7 @@ SELECT set_config(
 SET LOCAL role TO authenticated;
 
 SELECT ok(
-  (SELECT COUNT(*) FROM public.audit_log WHERE organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc') = 1,
+  (SELECT COUNT(*) FROM public.audit_log WHERE organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc' AND action = 'auth.login') = 1,
   'Admin (Org C) kann eigene audit_log-Eintraege lesen'
 );
 
@@ -190,62 +208,18 @@ SELECT throws_ok(
   'Direkter INSERT als Viewer in fremde Org schlaegt fehl (kein Browser-Schreibrecht)'
 );
 
--- ---------------------------------------------------------------- Test 10-11: Serverpfad mit Ableitung --
-SELECT set_config(
-  'request.jwt.claims',
-  '{"sub":"aaaaaaaa-0000-0000-0000-000000000003","role":"authenticated"}',
-  true
-);
-SET LOCAL role TO authenticated;
-
-SELECT ok(
-  (SELECT public.log_audit_event(
-    'auth.logout', NULL, NULL, '{"source":"web"}'::JSONB, 'corr-viewer-1'
-  ))::TEXT ~ '^[0-9a-f]{8}-[0-9a-f]{4}-',
-  'Serverpfad gibt UUID zurueck (Viewer darf eigenes Ereignis protokollieren)'
-);
-
-RESET role;
-
-SELECT ok(
-  (SELECT organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
-     AND actor_id = 'aaaaaaaa-0000-0000-0000-000000000003'
-     AND action = 'auth.logout'
-     AND correlation_id = 'corr-viewer-1'
-   FROM public.audit_log WHERE correlation_id = 'corr-viewer-1'),
-  'Serverpfad leitet Organisation und Akteur aus der Sitzung ab (kein Client-Input)'
-);
-
--- ---------------------------------------------------------------- Test 12-14: Whitelist-Ablehnung --
-SELECT set_config(
-  'request.jwt.claims',
-  '{"sub":"aaaaaaaa-0000-0000-0000-000000000001","role":"authenticated"}',
-  true
-);
-SET LOCAL role TO authenticated;
-
+-- ---------------------------------------------------------------- Test 10: Kein RPC-Einstieg mehr (P0) --
+-- `public.log_audit_event(...)` ist ersatzlos entfernt (Migration 20260930,
+-- Abschnitt 3): Es existiert kein schreibender RPC-Einstieg mehr — weder fuer
+-- Browser-Rollen noch sonst. Der Funktionsname darf nicht mehr aufgeloest werden.
 SELECT throws_ok(
-  $$ SELECT public.log_audit_event('tamper.drop_table', NULL, NULL, '{}'::JSONB, NULL) $$,
-  'P0001',
+  $$ SELECT public.log_audit_event('auth.logout', NULL, NULL, '{}'::JSONB, NULL) $$,
+  '42883',
   NULL,
-  'Serverpfad lehnt unbekannte Aktion ab (Action-Whitelist)'
+  'RPC log_audit_event existiert nicht mehr (undefined_function)'
 );
 
-SELECT throws_ok(
-  $$ SELECT public.log_audit_event('auth.login', ' dropped_table', NULL, '{}'::JSONB, NULL) $$,
-  'P0001',
-  NULL,
-  'Serverpfad lehnt unbekannten Ziel-Typ ab (Kontext-Whitelist)'
-);
-
-SELECT throws_ok(
-  $$ SELECT public.log_audit_event('auth.login', NULL, NULL, '["kein","objekt"]'::JSONB, NULL) $$,
-  'P0001',
-  NULL,
-  'Serverpfad lehnt Details ohne JSON-Objekt ab'
-);
-
--- ---------------------------------------------------------------- Test 15-16: UPDATE und DELETE schlagen fehl --
+-- ---------------------------------------------------------------- Test 11-12: UPDATE und DELETE schlagen fehl --
 RESET role;
 
 SELECT throws_ok(
@@ -269,7 +243,7 @@ SELECT throws_ok(
   'DELETE auf audit_log schlaegt fehl (Immutabilitaets-Trigger)'
 );
 
--- ---------------------------------------------------------------- Test 17: Keine PII-Spalten mehr --
+-- ---------------------------------------------------------------- Test 13: Keine PII-Spalten mehr --
 SELECT ok(
   NOT EXISTS (
     SELECT 1 FROM information_schema.columns
@@ -279,9 +253,56 @@ SELECT ok(
   'PII-Spalten actor_email und ip_address existieren nicht (G62: keine PII)'
 );
 
--- ---------------------------------------------------------------- Test 18-19: Kernspalten vorhanden --
+-- ---------------------------------------------------------------- Test 14-15: Kernspalten vorhanden --
 SELECT has_column('public', 'audit_log', 'id', 'Spalte id vorhanden');
 SELECT has_column('public', 'audit_log', 'organization_id', 'Spalte organization_id vorhanden');
+
+-- ---------------------------------------------------------------- Test 16-18: DB-Trigger als produktiver Producer (P1) --
+-- Echte Mitglieds-Aktionen erzeugen Audit-Zeilen ohne jeden Browser-Schreibpfad:
+-- Organisation aus der Zeile, Akteur aus der Sitzung, Details ohne PII.
+UPDATE public.organization_members
+SET role = 'manager'
+WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000003'
+  AND organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+SELECT ok(
+  EXISTS (
+    SELECT 1 FROM public.audit_log
+    WHERE organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+      AND action = 'member.role_changed'
+      AND target_type = 'member'
+      AND target_id = 'aaaaaaaa-0000-0000-0000-000000000003'
+      AND details->>'old_role' = 'viewer'
+      AND details->>'new_role' = 'manager'
+  ),
+  'Trigger protokolliert Rollenwechsel (member.role_changed mit Org aus der Zeile)'
+);
+
+INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
+VALUES ('aaaaaaaa-0000-0000-0000-000000000005', 'authenticated', 'authenticated', 'trigger-e@audit-test.local', 'x', now());
+
+INSERT INTO public.organization_members (user_id, organization_id, role)
+VALUES ('aaaaaaaa-0000-0000-0000-000000000005', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'viewer');
+
+SELECT ok(
+  EXISTS (
+    SELECT 1 FROM public.audit_log
+    WHERE organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+      AND action = 'member.invited'
+      AND target_type = 'member'
+      AND target_id = 'aaaaaaaa-0000-0000-0000-000000000005'
+  ),
+  'Trigger protokolliert Einladung/Beitritt (member.invited)'
+);
+
+SELECT ok(
+  NOT EXISTS (
+    SELECT 1 FROM public.audit_log
+    WHERE organization_id IN ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'dddddddd-dddd-dddd-dddd-dddddddddddd')
+      AND (details ? 'email' OR details ? 'actor_email' OR details ? 'ip_address')
+  ),
+  'Trigger-Details enthalten keine PII-Schluessel (G62: keine PII)'
+);
 
 -- ---------------------------------------------------------------- Teardown --
 RESET role;

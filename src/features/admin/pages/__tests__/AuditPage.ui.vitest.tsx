@@ -12,7 +12,6 @@ vi.mock('@/auth/organizationContext', () => ({
 vi.mock('@/services/audit/auditService', () => ({
   auditService: {
     listAuditLogs: vi.fn(),
-    logAuditEvent: vi.fn(),
   },
   AuditServiceError: class AuditServiceError extends Error {
     constructor(

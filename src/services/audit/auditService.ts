@@ -1,10 +1,12 @@
-// G62 (Auftrag 067P, Nacharbeit P0 + P1): Audit-Log-Service.
-// Schreibzugriff läuft ausschließlich über die SECURITY-DEFINER-Funktion
-// `log_audit_event(...)` — Organisation und Akteur werden serverseitig aus der
-// Sitzung abgeleitet (kein Client-Input), Aktion/Kontext gegen Whitelist.
+// G62 (Auftrag 067P, Nacharbeit P0 + P1, Scope-Erweiterung 2026-09-22):
+// Audit-Log-Service — NUR LESEPFAD.
+// Es existiert kein schreibender RPC-Einstieg mehr: `log_audit_event(...)`
+// wurde ersatzlos entfernt (Migration 20260930), direkte INSERTs sind per RLS
+// Default-Deny blockiert. Echte Ereignisse erzeugt ausschließlich der DB-Trigger
+// `trg_audit_log_member_changes` auf `organization_members` (Organisation aus
+// der Zeile, Akteur aus `auth.uid()`, keine PII).
 // G62-Vertrag: keine PII — weder actor_email noch ip_address werden gespeichert
-// oder gelesen; Details werden clientseitig sanitisiert (Server prüft zusätzlich
-// auf JSON-Objektform).
+// oder gelesen.
 import { supabase, isSupabaseConfigured } from '@/services/db/supabaseClient';
 
 // ---------------------------------------------------------------- Typen
@@ -57,67 +59,6 @@ export class AuditServiceError extends Error {
   }
 }
 
-// ---------------------------------------------------------------- Sanitizer
-// Substring-Regeln (kleingeschrieben): deckt zusammengesetzte Feldnamen wie
-// `userEmail`, `apiKey`, `authToken`, `clientSecret` ab. Arrays werden rekursiv
-// bereinigt, unbekannte Strukturen fallen auf REDACTED zurück.
-const SENSITIVE_SUBSTRINGS = [
-  'password',
-  'passwd',
-  'secret',
-  'token',
-  'api_key',
-  'apikey',
-  'auth',
-  'credential',
-  'jwt',
-  'bearer',
-  'session',
-  'cookie',
-  'email',
-  'e-mail',
-  'phone',
-  'tel_nr',
-  'ssn',
-  'social_security',
-  'dob',
-  'birthdate',
-  'geburt',
-  'address',
-  'adresse',
-  'iban',
-  'creditcard',
-  'kreditkarte',
-];
-
-function isSensitiveKey(key: string): boolean {
-  const lower = key.toLowerCase().replace(/[_-]/g, '');
-  const compact = SENSITIVE_SUBSTRINGS.map((s) => s.toLowerCase().replace(/[_-]/g, ''));
-  return compact.some((s) => s.length > 0 && lower.includes(s));
-}
-
-function sanitizeValue(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map((item) => sanitizeValue(item));
-  }
-  if (value !== null && typeof value === 'object') {
-    return sanitizeDetails(value as Record<string, unknown>);
-  }
-  return value;
-}
-
-function sanitizeDetails(raw: Record<string, unknown>): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(raw)) {
-    if (isSensitiveKey(k)) {
-      result[k] = 'REDACTED';
-    } else {
-      result[k] = sanitizeValue(v);
-    }
-  }
-  return result;
-}
-
 // ---------------------------------------------------------------- Row-Mapper
 // Explizite Spaltenliste statt select('*') — PII-Spalten existieren serverseitig
 // nicht mehr und werden hier grundsätzlich nicht gemappt.
@@ -148,32 +89,6 @@ async function getSession() {
     throw new AuditServiceError('UNAUTHORIZED', 'Keine aktive Sitzung vorhanden.');
   }
   return data.session;
-}
-
-/** Schreibt ein Audit-Ereignis über den kontrollierten Serverpfad. */
-export async function logAuditEvent(params: {
-  action: AuditAction | string;
-  targetType?: string;
-  targetId?: string;
-  details?: Record<string, unknown>;
-  correlationId?: string;
-}): Promise<void> {
-  await getSession();
-  const db = supabase!;
-
-  const sanitized = sanitizeDetails(params.details ?? {});
-
-  const { error } = await db.rpc('log_audit_event', {
-    p_action: params.action,
-    p_target_type: params.targetType ?? null,
-    p_target_id: params.targetId ?? null,
-    p_details: sanitized,
-    p_correlation_id: params.correlationId ?? null,
-  });
-
-  if (error) {
-    throw new AuditServiceError('UNKNOWN', error.message);
-  }
 }
 
 /** Listet Audit-Eintraege fuer Admins der eigenen Organisation. */
@@ -217,4 +132,4 @@ export async function listAuditLogs(
   return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
 }
 
-export const auditService = { logAuditEvent, listAuditLogs };
+export const auditService = { listAuditLogs };

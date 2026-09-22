@@ -11190,3 +11190,139 @@ nicht geändert. `git diff --check` ist leer.
 
 **Bereit zur erneuten Prüfung.** Alle vier Review-Befunde sind behoben, alle Gates
 grün. Kein Push, Pull Request, Merge oder Deploy ausgelöst.
+
+## [2026-09-22] Gate G62 / Auftrag 067P: Nacharbeit 2 (P0/P1/Scope) — BEREIT ZUR PRÜFUNG
+
+**Basis:** `3b6f557` (Nacharbeit 1) · **Zweig:** `feat/auftrag-067p-audit-diagnostics`
+**Anlass:** Review-Befund „G62 bleibt nicht freigegeben": P0 (Browser-RPC fälschbar
+trotz SECURITY DEFINER), P1 (kein produktiver Producer), Scope-rot (2 Dateien
+außerhalb der 067P-Ziel-Liste). **Genehmigungen von Marc (2026-09-22, Review-Dialog):**
+(1) beide Scope-Überschreitungen (`20260930`-Migration, `LeadsPage.provenance`-Fix)
+bleiben im Gate; (2) Producer-Design: DB-Trigger.
+
+### Ziel & Kontext
+
+P0 schließen (kein Browser-Schreibpfad mehr), P1 schließen (echte Ereignisse aus
+einem vertrauenswürdigen Producer), alles innerhalb der genehmigten Scope-Grenzen.
+Muster für den RPC-Lockdown: `accept_organization_invitation` aus 067M (service_role
++ Guard mit 42501).
+
+### Geänderte Dateien (uncommittet auf dem Builder-Branch)
+
+- `supabase/migrations/20260930_audit_log_hardening.sql` (Scope genehmigt):
+  Rollen-Guard am Funktionskopf (`authenticated`/`anon` → 42501, vor jeder Ableitung);
+  `REVOKE ALL ... FROM PUBLIC, anon, authenticated`, `GRANT EXECUTE ... TO service_role`;
+  NEU `audit_log_member_changes()` (SECURITY DEFINER, INSERT direkt als Owner, Org aus
+  der Zeile, Akteur aus `auth.uid()`, Details nur Rollen-/Statuswerte, keine PII) +
+  `trg_audit_log_member_changes` (AFTER INSERT/UPDATE/DELETE auf `organization_members`,
+  `member.invited` / `member.role_changed` / `member.deactivated`).
+- `src/services/audit/auditService.ts` (067P-Ziel): **nur noch Lesepfad** —
+  `logAuditEvent` und Sanitizer entfernt (keine Client-Schreib-API mehr), `listAuditLogs`,
+  Typen und Fehlertypen unverändert.
+- `src/services/audit/__tests__/auditService.vitest.ts` (067P-Ziel): statt 7
+  Writer-Tests jetzt 2 P0-Tests (kein `logAuditEvent`-Export, niemals `rpc` auf dem
+  Lesepfad); Lesepfad-Tests unverändert.
+- `src/features/admin/pages/__tests__/AuditPage.ui.vitest.tsx` (067P-Ziel):
+  `logAuditEvent`-Mock entfernt (1 Zeile).
+- `supabase/tests/audit_log.sql` (067P-Ziel, jetzt 23 Tests): RPC-als-Browser schlägt
+  fehl (3× 42501, fail-closed ohne Zeile), Guard-vor-Whitelist (3× 42501), NEU 3
+  Trigger-Producer-Tests (Rollenwechsel, Beitritt, keine PII-Schlüssel); Setup für
+  idempotente Re-Runs (Trigger-Pause + Audit-Cleanup bei pausiertem
+  Immutabilitaets-Trigger).
+- `supabase/tests/member_management.sql` (067M-Datei, **nicht** in 067P-Zielen):
+  **Folgeanpassung, Genehmigung ausstehend** — nur Setup/Teardown (Trigger-Pause +
+  Audit-Cleanup, je ~10 Zeilen, 0 Test-Assertions geändert). Grund: Der genehmigte
+  Member-Trigger erzeugt append-only Audit-Zeilen, sodass der alte Teardown
+  (`DELETE members/orgs` → CASCADE auf unlöschbare Tabelle) mit
+  `LP_AUDIT_IMMUTABLE` abbrach. Ohne diese Anpassung bleibt `supabase test db` rot.
+  Bei Ablehnung bitte melden — Alternative wäre ein Revert des Triggers (P1 wieder offen).
+
+### Funktionale Prüfungen
+
+- Browser-Forge unmöglich: kein `rpc('log_audit_event')` mehr im Client-Bundle
+  (`grep` leer außer Tests), RPC als `authenticated` → 42501 (pgTAP 10–15).
+- Echte Ereignisse: Rollenwechsel/Einladung in `organization_members` erzeugt
+  `member.role_changed`/`member.invited` mit Org aus der Zeile (pgTAP 21–23);
+  Audit-Seite zeigt sie Admins lesend an (E2E 30/30, inkl. „keine echten E-Mails").
+- Keine PII: Spalten abwesend, Trigger-Details ohne E-Mail-/Secret-Schlüssel (pgTAP 18, 23).
+
+### Schutzbereich-Prüfung
+
+`git diff 60ad64c -- src/simulation src/types src/context src/services/data src/features/resources src/services/db/crmRepository.ts src/auth src/features/auth`
+ist leer (0 Zeilen). `git diff --check` leer.
+
+### Automatisierte Verifikation (Nacharbeit 2)
+
+- `npx tsc --noEmit`: 0 Fehler. `npm run lint`, `npm run format:check`: grün.
+- `npm run verify`: 25/25 Suiten grün.
+- `npm test`: **261 Dateien / 1413 Tests grün** (Delta −5: 7 Writer-Tests raus, 2 P0-Tests rein).
+- `npm run build`: grün.
+- `npx supabase test db`: **6 Dateien / 145 Tests grün, 2× hintereinander** (idempotente Re-Runs).
+- Playwright `e2e/audit-health.spec.ts`: **30/30**.
+- Screenshots: keine UI-Änderung → keine neuen Captures nötig (Matrix aus Nacharbeit 1 gültig).
+
+### Lokale DB-Hinweise (keine Repo-Änderung)
+
+- `supabase test db` wendet editierte Migrationen nicht erneut an: `20260930`-Neufassung
+  per `docker exec psql` eingespielt, danach Trigger/RPC-Guard verifiziert.
+- `member_management`-Teardown löscht E2E-Seed-User (`%@e2e.local`): `seed.sql` erneut
+  eingespielt + `NOTIFY pgrst` vor dem E2E-Lauf (betrifft nur die lokale Umgebung).
+
+### Ergebnis & Freigabestatus
+
+**Bereit zur erneuten Prüfung.** P0/P1 sind mit dem gewählten Trigger-Design geschlossen,
+alle Gates grün. Offen: (a) Prüfer-Befund, (b) Marcs nachträgliche Freigabe der
+`member_management.sql`-Folgeanpassung. Nicht committet, kein Push, Pull Request, Merge
+oder Deploy ausgelöst.
+
+## [2026-09-22] Gate G62 / Auftrag 067P: Nacharbeit 3 (RPC-Entfernung + Commit)
+
+**Basis:** uncommittete Nacharbeit 2 auf `feat/auftrag-067p-audit-diagnostics`
+**Anlass:** Marcs Anweisung (2026-09-22): Test-Scope genehmigt, `log_audit_event()`
+samt zugehörigen Tests entfernen, erneut committen.
+
+### Genehmigt
+
+Die `member_management.sql`-Folgeanpassung (Setup/Teardown, Test-only) ist von Marc
+genehmigt — kein offener Scope-Punkt mehr.
+
+### Entfernt
+
+- `supabase/migrations/20260930_audit_log_hardening.sql`, Abschnitt 3: Funktionsrumpf
+  (~100 Zeilen, Whitelists, Guard, Grants) ersetzt durch
+  `DROP FUNCTION IF EXISTS public.log_audit_event(TEXT, TEXT, TEXT, JSONB, TEXT)`.
+  Begründung: Nach dem Lockdown hatte die RPC keinen Produzenten mehr (Trigger schreiben
+  direkt, Browser dürfen nichts schreiben) — nur ungenutzte Angriffsfläche. Es existiert
+  kein schreibender RPC-Einstieg mehr.
+- `supabase/tests/audit_log.sql`: 6 RPC-Guard-Tests entfernt, 1 Test neu (Funktion
+  existiert nicht mehr → 42883 `undefined_function`). Plan 23 → 18. Übrige Tests
+  (INSERT-Blockade, Immutabilität, PII-Abwesenheit, Kernspalten, 3 Trigger-Nachweise)
+  unverändert, nur renummeriert.
+- TS-Kommentare in `auditService.ts` / `auditService.vitest.ts` auf „kein RPC-Einstieg"
+  nachgezogen (keine Logikänderung; Client hatte bereits keine Schreib-API mehr).
+
+### Schutzbereich-Prüfung
+
+`git diff 60ad64c -- src/simulation src/types src/context src/services/data src/features/resources src/services/db/crmRepository.ts src/auth src/features/auth`
+ist leer (0 Zeilen). `git diff --check` leer.
+
+### Automatisierte Verifikation (Nacharbeit 3)
+
+- `npx tsc --noEmit`: 0 Fehler. `npm run lint`, `npm run format:check`: grün.
+- `npm run verify`: 25/25 Suiten grün.
+- `npm test`: **261 Dateien / 1413 Tests grün**.
+- `npm run build`: grün.
+- `npx supabase test db`: **6 Dateien / 140 Tests grün, 2× hintereinander**.
+- Playwright `e2e/audit-health.spec.ts`: **30/30** (Seed nach pgTAP-Teardown erneut
+  eingespielt, nur lokale Umgebung).
+
+### Lokale DB-Hinweise (keine Repo-Änderung)
+
+Neufassung der `20260930`-Migration per `docker exec psql` eingespielt; per
+`pg_proc`-Abfrage verifiziert, dass `log_audit_event` nicht mehr existiert (count 0)
+und der Member-Trigger aktiv ist.
+
+### Ergebnis & Freigabestatus
+
+**Committet auf `feat/auftrag-067p-audit-diagnostics`, bereit zur Prüfung.** Kein Push,
+Pull Request, Merge oder Deploy ausgelöst.
