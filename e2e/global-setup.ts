@@ -31,6 +31,18 @@ async function globalSetup(config: FullConfig) {
     await page.waitForURL('**/dashboard');
     await page.waitForSelector('[data-testid="logout-button"]');
 
+    // 067P-N3 (Step B): Erst speichern, wenn der Supabase-Auth-Eintrag wirklich
+    // im Local Storage des Test-Origins liegt. Begrenzte Wartebedingung auf den
+    // Schluesselnamen (sb-*-auth-token) — kein Tokenwert wird gelesen/geloggt.
+    await page.waitForFunction(
+      () =>
+        Object.keys(window.localStorage).some(
+          (key) => key.startsWith('sb-') && key.endsWith('-auth-token'),
+        ),
+      null,
+      { timeout: 10_000 },
+    );
+
     await page.context().storageState({ path: authFile });
   } finally {
     await browser.close();

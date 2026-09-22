@@ -11,6 +11,17 @@ for (const routePath of ROUTES) {
     await page.goto(routePath, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(1000);
+    // 067P-N3 (Step C, fail-closed): Kein Screenshot eines abgemeldeten oder
+    // AUTH_REQUIRED-Zustands. Bei fehlender Sitzung scheitert der Test hier mit
+    // dieser Ursache, statt eine Fehlerseite als Bilddifferenz zu melden.
+    await expect(
+      page.locator('[data-testid="logout-button"]'),
+      'E2E-Auth fehlt: Logout-Button nicht sichtbar, kein Screenshot.',
+    ).toBeVisible();
+    await expect(
+      page.getByText('AUTH_REQUIRED'),
+      'E2E-Auth fehlt: CRM-Fehlerzustand (AUTH_REQUIRED) gerendert.',
+    ).toHaveCount(0);
     await expect(page).toHaveScreenshot({ fullPage: true });
   });
 }

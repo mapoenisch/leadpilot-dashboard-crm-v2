@@ -11629,3 +11629,70 @@ vor dem Screenshot. Folgeauftrag
 State und macht das Visual-Gate vor der Aufnahme fail-closed. Die CI-Ausgabe enthält keine
 relevanten Secrets; die vom Runner erzeugten Infrastruktur-/Cache-Warnungen sind nicht die
 Fehlerursache.
+
+## [2026-09-22] Auftrag 067P-N3 — Stabiler E2E-Auth-State für CRM-Visual-Gate (Builder)
+
+**Rolle:** Builder · **Branch:** `feat/auftrag-067p-audit-diagnostics`
+**Baseline:** `81a7150` · **Node:** v22.18.0 · **Status:** ABGESCHLOSSEN —
+BEREIT ZUR PRÜFUNG. Kein Push, Merge, Deploy, Workflow-Dispatch oder Issue-Close.
+
+### Ziel & Kontext
+
+PR-CI `35737662086` zeigte: nur `visual /crm/leads` (1440/768/375) scheitert, weil der
+gespeicherte Auth-State nicht verlässlich vorlag (Artefakte: `AUTH_REQUIRED`-Fehlerzustand).
+Die sechs Linux-Baselines bleiben unverändert — der Fehler lag im Setup, nicht im Bild.
+
+### Geänderte Dateien (nur erlaubte)
+
+- `e2e/global-setup.ts` (+12): nach Login + Logout-Button-Wartebedingung zusätzlich
+  begrenzte `waitForFunction` (10 s) auf Schlüsselnamen `sb-*-auth-token` im Local Storage
+  des Test-Origins, erst danach `storageState`. Env-Pflicht (`E2E_AUTH_EMAIL/PASSWORD`)
+  unverändert; keine Credentials, Fallbacks oder Sleeps; kein Tokenwert gelesen/geloggt.
+- `e2e/visual.spec.ts` (+11): vor jedem `toHaveScreenshot` fail-closed — Logout-Button
+  muss sichtbar sein, `AUTH_REQUIRED`-Text muss Count 0 haben (mit Ursachen-Meldung).
+  Fünf Routen, Warte-/Font-Konvention und Screenshot-Assertion unverändert.
+- `docs/BUILD_LOG.md`: dieser Eintrag.
+
+### Funktionale Prüfungen
+
+- Step A: Schlüsselmuster-Prüfung implementiert; lokale Reproduktion mit frischem
+  Seed-Backend war in dieser Shell nicht möglich (`E2E_AUTH_EMAIL` nicht gesetzt —
+  Setup bricht ehrlich ab, siehe unten). Es wurden weder Tokenwerte noch Storage-State
+  geloggt, ausgegeben oder committet.
+- Step D: `npx playwright test e2e/visual.spec.ts -g 'visual /crm/leads' --list` findet
+  **3 Tests** (desktop-1440/tablet-768/mobile-375). Die geforderte 3×-Wiederholung unter
+  frischem Auth-State kann erst die PR-CI mit initialisiertem Supabase-Backend liefern.
+
+### Schutzbereichs-Prüfung
+
+- `git diff --check 81a7150`: leer.
+- Schutzbereichs-Diff (`src/simulation`, `src/types`, `src/context`, `src/services/data`,
+  `src/features/resources`, `src/services/db/crmRepository.ts`, `src/auth`,
+  `src/features/auth`, `playwright.config.ts`, `.github/workflows/ci.yml`): **leer**.
+- Keine PNG-Baseline angefasst; `playwright/.auth/user.json` bleibt git-ignoriert.
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler · `npm run lint`: grün · `npm run format:check`: grün.
+- `npm run verify`: alle Integrity-Suiten grün (EXIT 0) · `npm run test:coverage`: EXIT 0 ·
+  `npm run build`: grün (7.84 s).
+- `npx playwright test --list`: **Total: 666 tests in 13 files** (inkl. 3× Issue-#13-Check).
+- E2E-Direktlauf bricht erwartbar ehrlich ab:
+  `Error: E2E-Abruch: Umgebungsvariable E2E_AUTH_EMAIL ist nicht gesetzt (global-setup.ts:12)`
+  — kein Produkt-, kein Assertionsfehler.
+- Secret-Scan über `git diff 81a7150`: keine Tokenwerte, Credentials oder Storage-State;
+  einziger Treffer ist der Schlüsselmuster-Name `sb-*-auth-token` in Kommentar/Doku.
+
+### Screenshot-Matrix
+
+Keine neuen Screenshots: Baselines unverändert per Auftrag. Nächster Nachweis ist die
+PR-CI (`npx playwright test e2e/a11y.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts
+e2e/element-clipping.acceptance.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts
+e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts`), darunter
+alle drei `/crm/leads`-Viewports gegen die versionierten Linux-Baselines.
+
+### Ergebnis & Freigabestatus
+
+Steps B + C umgesetzt, alle lokal fahrbaren Gates grün, Stopp-Punkte eingehalten.
+**Übergabe an den Prüfer** — erst nach dessen Freigabe Push in PR #20, dann grüne CI,
+erst dann Issue #13 schließen. Merge/Deploy bleiben separate Entscheidung.
