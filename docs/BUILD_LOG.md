@@ -11396,3 +11396,139 @@ PR-CI-Lauf ist nicht gruen. Deshalb kein Merge und kein Deploy.
 Ein separater Builder-Auftrag muss die sechs visuellen Linux-Baselines nach
 visueller Pruefung aktualisieren und den fluechtigen Alt-Test unter CI Node 22.18
 stabilisieren. Erst nach gruener PR-CI ist der Merge nach `main` wieder zulässig.
+
+## [2026-09-22] Auftrag 067P-N — PR-CI-Nacharbeit & Issue #13 (Builder)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `feat/auftrag-067p-audit-diagnostics`
+**Baseline:** `d984068` · **Node:** v22.18.0 (exakt, per Tarball belegt)
+**Status:** ABGESCHLOSSEN mit 1 Stopp-Punkt — BEREIT ZUR PRÜFUNG. Kein Push, kein
+Merge, kein Deploy, kein Issue-Close, kein Workflow-Dispatch (auftragskonform).
+
+### Ziel & Kontext
+
+PR #20 war rot aus genau zwei Gruenden (Pruefer-Befund oben): (1) fluechtiger
+Vitest-Alt-Test `MeasureManagerModal.branch.ui.vitest.tsx` (CI-Run 35708776868:
+nach `user.type('Dauer-Test')` war im DOM nur die Namens-Validierung
+„Bitte geben Sie einen Namen …" sichtbar, die erwartete Dauer-Validierung fehlte);
+(2) sechs veraltete Linux-Visual-Baselines (`/dashboard`, `/crm/leads` ×
+1440/768/375) nach G60/G61. Dazu Issue #13: echter 375-px-Clipping-Test als
+CI-Pflichtgate.
+
+### A — Issue #13 zuerst (gruen ohne Produktänderung)
+
+- Lokales E2E-Backend: laufender Stack war leer (`auth.users` 0 Zeilen) →
+  projekteigenes `supabase/seed.sql` eingespielt (idempotent, nur Test-User/Orgs;
+  reine Umgebung, keine Repo-Datei).
+- `e2e/element-clipping.acceptance.ts` auf 375 px ausgefuehrt (Seed-Backend,
+  Preview-Build, alle 3 Projekte): **3/3 gruen** (mobile-375, desktop-1440,
+  tablet-768 — der Test legt seinen Viewport per `test.use({ viewport:
+  { width: 375, height: 812 } })` selbst fest, `VIEWPORT_WIDTH = 375` gilt damit
+  projektunabhaengig).
+- Konsequenz nach Schritt B: **kein Rot → `InternalResourcesView.tsx`
+  unveraendert**, keine Charakterisierungsassertion ergaenzt. Beide #13-Texte
+  (`100% Verlustfrei integriert`, `Operations & SLA`) bestehen Viewport- und
+  Container-Grenzpruefungen.
+
+### B — CI-Verdrahtung (verlangt, umgesetzt; mit Stopp-Punkt)
+
+- `e2e/element-clipping.acceptance.ts`: `test.use`-Viewport-Fix (s. o.).
+- `.github/workflows/ci.yml`: Spec in den ersten Playwright-Schritt
+  („Playwright E2E & Axe Accessibility Tests") aufgenommen (alphabetisch
+  einsortiert, sonst unveraendert).
+- **Stopp-Punkt (Datei ausserhalb der Zieldateien, nicht angefasst):**
+  `playwright.config.ts` hat kein `testMatch`, also gilt Default
+  `**/*.@(spec|test).*` — `element-clipping.acceptance.ts` wird nie
+  eingesammelt. Belegt: `npx playwright test
+  e2e/element-clipping.acceptance.ts --project=mobile-375` → „No tests found";
+  in gemischter Liste laeuft der Rest gruen und die Spec wird **still
+  uebersprungen** (MIXED-Probe: `Total: 5 tests in 1 file`, Exit 0).
+  Vorschlag an den Pruefer (1 Zeile, kein anderes Verhalten):
+  `testMatch: ['**/*.spec.ts', '**/*.acceptance.ts']` in `playwright.config.ts`.
+  Erst damit greift das Pflicht-Gate und das Verifikationskommando.
+  Die Spec selbst ist per Temp-Config ausserhalb des Repos nachweislich gruen.
+
+### C — Vitest-Flake (Ursache gefunden, deterministisch behoben)
+
+- Ursache (schaerfer als vermutet): Unter Voll-Last bleibt `user.type` selbst
+  stehen. Beleg aus lokaler Coverage-Reproduktion: nach `await user.type(...)`
+  enthielt das Feld nur `Dau` / `Ohne D` (statt `Dauer-Test` / `Ohne Details`).
+  Ein `waitFor(toHaveValue(...))`-Versuch lief folgerichtig in den Timeout —
+  das Tippen kam nie an. Im CI-Run war das Feld noch leerer (Namens-Validierung).
+- Fix **ausschliesslich Testinteraktion** (keine Produktionsaenderung an
+  `MeasureManagerModal`, keine abgeschwaechte Assertion — die Fehlermeldungs-,
+  `durationTicks`- und `rampUpTicks`-Assertions sind unveraendert):
+  Namensfeld beider betroffener Tests per synchronem
+  `fireEvent.change(input, { target: { value } })` befuellen (Muster wie die
+  bestehenden Dauer-/Ramp-up-Changes im selben Test) + sofortiger harter Beleg
+  `expect(input).toHaveValue(...)` vor dem Speichern-Klick.
+- Nachweis unter Node v22.18.0: betroffene Spec 3× gruen (9/9);
+  `npm run test:coverage` **3× hintereinander gruen: 261 Dateien / 1413 Tests**.
+
+### D — Sechs Linux-Baselines (CI-nah erzeugt, sichtgeprueft)
+
+- Umgebung: Ubuntu 24.04 `linux/amd64` (wie `ubuntu-latest`), Node v22.18.0,
+  Chromium Headless Shell 1243 (CI-Cache-Key), Seed-Backend. Befehl:
+  `npx playwright test e2e/visual.spec.ts -g 'visual /(dashboard|crm/leads)'
+  --update-snapshots` → 6/6 neu geschrieben („re-generated").
+- Re-Run ohne `--update-snapshots` im selben Container: **15/15 gruen**.
+- Sichtpruefung (alle 6 PNGs einzeln): Dashboard zeigt G61-Freshness
+  (`SNAPSHOT: STAND 31.12.2025`, `Stand: 31.12.2025, 23:59:59`), CRM zeigt
+  G60-Provenance (`SUPABASE CRM`, `FRISCHE: AKTUELL (GERADE EBEN)`,
+  `1 EINTRÄGE`, Seed-Tabelle). Keine Fehlerseite, kein Clipping, keine
+  unmotivierte Layoutaenderung; 375-px-Ansichten brechen sauber um.
+- Zeitstempel-Hinweis: CRM-`Stand` = Client-`dataUpdatedAt` (Wall-Clock des
+  Fetch; `:34` vs. `:44` im selben Lauf) — Re-Run trotzdem 15/15, Drift bleibt
+  weit unter `maxDiffPixelRatio 0.001`. Dashboard-`Stand` ist statisch.
+- Matrix: `docs/screenshots/auftrag-067p-nacharbeit-ci/README.md`.
+- Scope: `git status` zeigt nur die 6 `*-linux.png`; Darwin-Snapshots,
+  `/resources/materials` und die uebrigen Routen sind unberuehrt.
+
+### Geaenderte Dateien (exakt die Zieldateien)
+
+Modify: `.github/workflows/ci.yml` (1 Zeile: Spec in E2E-Schritt),
+`e2e/element-clipping.acceptance.ts` (`test.use`-Viewport),
+`src/features/simulation/components/__tests__/MeasureManagerModal.branch.ui.vitest.tsx`
+(synchrone Namensfeld-Interaktion + Beleg, 2 Tests).
+Update: 6× `e2e/visual.spec.ts-snapshots/*-{dashboard,crm-leads}-*-linux.png`.
+Create: `docs/screenshots/auftrag-067p-nacharbeit-ci/README.md`.
+Plus dieser BUILD_LOG-Eintrag.
+
+### Automatisierte Verifikation (Node v22.18.0)
+
+- `node --version`: v22.18.0 · `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: gruen (0 Fehler/Warnungen) · `npm run format:check`: gruen
+- `npm run verify`: 25/25 Suiten gruen
+- `npm run test:coverage`: 3× 261/1413 gruen (s. o.)
+- `npm run build`: gruen
+- Clipping: 3/3 Projekte gruen (Temp-Config, Repo-Config nach testMatch-Fix)
+- E2E-Vollliste lokal: 580 bestanden; 15 Darwin-Visual-Diffs (macOS-Rendering +
+  G60/G61-Drift, ausserhalb der Linux-Zielliste, CI nutzt Linux) + 2
+  CRM-Export-Flakes unter Parallellast (isoliert 10/10 gruen, laufzeitneutral
+  zu diesem Auftrag).
+- Overflow-Messung `/dashboard` + `/crm/leads` × 1440/768/375: **0 px** ueberall.
+- `git diff --check d984068`: leer.
+- Schutzbereichs-Diff (`src/simulation src/types src/context src/services/data
+  src/services/db/crmRepository.ts src/auth src/features/auth` sowie
+  `src/features/resources`): **leer** — die #13-Produktdatei blieb unveraendert.
+
+### Lokale Umfeld-Notizen (keine Repo-Aenderung)
+
+- `supabase/seed.sql` auf den leeren lokalen Stack angewandt (5 E2E-User);
+  Stack wurde weder gestoppt noch neu gestartet.
+- Zwischenzeitlich schrieb ein Container-`npm ci` (Bind-Mount) Host-`node_modules`
+  mit Linux-Binaries und ein Container-Build `dist/` mit Container-Backend-URL;
+  beides per Host-`npm ci` + Host-`npm run build` wiederhergestellt
+  (kein Diff, `git status` sauber bis auf die 9 Auftragsdateien).
+
+### Ergebnis & Freigabestatus
+
+Alle Auftragsziele sind umgesetzt: Vitest deterministisch (3× Coverage gruen),
+6 Linux-Baselines CI-nah erneuert + sichtgeprueft (15/15), Issue-#13-Test auf
+375 px gruen ohne Produktänderung und in der CI verdrahtet. **Offen vor Gruen:**
+der dokumentierte `testMatch`-Stopp-Punkt (`playwright.config.ts`, 1 Zeile) —
+ohne ihn laeuft PR #20 rot weiter (6 Visual-Diffs waeren mit diesem Stand
+behoben, aber der Clipping-Gate liefe still ins Leere bzw. der Direktbefehl
+meldet „No tests found"). **Kein Push/Merge/Deploy/Issue-Close durch den
+Builder — Uebergabe an den Pruefer.** Issue #13 erst nach gruenem PR-Lauf
+schliessen. Vorgeschlagener lokaler Commit:
+`fix(ci): stabilize PR gates and enforce issue 13 clipping check`.
