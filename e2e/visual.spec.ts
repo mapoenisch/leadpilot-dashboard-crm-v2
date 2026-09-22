@@ -22,6 +22,26 @@ for (const routePath of ROUTES) {
       page.getByText('AUTH_REQUIRED'),
       'E2E-Auth fehlt: CRM-Fehlerzustand (AUTH_REQUIRED) gerendert.',
     ).toHaveCount(0);
+    if (routePath === '/crm/leads') {
+      // 067P-N5: Volatiler Laufzeit-Zeitstempel (Stand: …) aus dem Pixelvergleich
+      // isolieren. Nur der Textknoten ab Stand: innerhalb des Datenquellenstatus
+      // wird maskiert (Surface: --color-bg/--charcoal #0B211F im Dark-Theme);
+      // Statuswerte, Frischeklassifizierung und Datenanzahl bleiben sichtbar.
+      // Die fachliche Darstellung ist separat belegt (Sichtbarkeit + Provenance-Tests).
+      const standLocator = page
+        .locator('[aria-label="Status der Datenquelle"]')
+        .getByText(/^Stand:/);
+      await expect(
+        standLocator,
+        'CRM-Zeitstempel (Stand:) wird nicht gerendert.',
+      ).toBeVisible();
+      await expect(page).toHaveScreenshot({
+        fullPage: true,
+        mask: [standLocator],
+        maskColor: '#0B211F',
+      });
+      return;
+    }
     await expect(page).toHaveScreenshot({ fullPage: true });
   });
 }

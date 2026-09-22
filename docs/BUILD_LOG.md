@@ -11826,3 +11826,71 @@ Pixel-Sollbilds sein. Folgeauftrag
 nur diesen Locator im `/crm/leads`-Visualtest, prüft ihn separat auf Sichtbarkeit und aktualisiert
 kontrolliert die drei zugehörigen Linux-Baselines. Produktcode, Authentifizierung und der
 Schutzbereich bleiben unverändert.
+
+## [2026-09-22] Auftrag 067P-N5 — Volatilen CRM-Zeitstempel maskieren (Builder)
+
+**Rolle:** Builder · **Branch:** `feat/auftrag-067p-audit-diagnostics`
+**Baseline:** `1060a44` · **Node:** v22.18.0 · **Status:** ABGESCHLOSSEN —
+BEREIT ZUR PRÜFUNG. Kein Push, Merge, Deploy, Workflow-Dispatch oder Issue-Close.
+
+### Ziel & Kontext (Red-Nachweis)
+
+PR-CI `35751368896`: 598/600 grün, nirgends `AUTH_REQUIRED`. Übrig nur
+`visual /crm/leads` Desktop (4.108 px) und Tablet (2.459 px) Differenz; Mobile grün.
+Ursache: `DataSourceStatus` rendert `Stand: <Fetch-Wall-Clock mit Sekunden>`, die
+Linux-Baselines enthalten den Zeitstempel des Aufnahmelaufs. Produkt und Daten identisch.
+
+### Geänderte Dateien (nur erlaubter Scope)
+
+- `e2e/visual.spec.ts` (+20): ausschließlich im `/crm/leads`-Zweig — Locator
+  `[aria-label="Status der Datenquelle"]` + `getByText(/^Stand:/)`, separate
+  Sichtbarkeits-Assertion (fachliche Darstellung bleibt belegt), dann
+  `toHaveScreenshot({ fullPage: true, mask: [standLocator], maskColor: '#0B211F' })`.
+  Maskenfarbe = `--color-bg`/`--charcoal` im Dark-Theme (blattiert unsichtbar ein);
+  Statuswerte, Frischeklassifizierung und Datenanzahl bleiben unverdeckt. Alle anderen
+  Routen, N3-fail-closed-Assertions und die Screenshot-Konvention unverändert.
+- Genau die drei Baselines `e2e/visual.spec.ts-snapshots/visual-crm-leads-1-*-linux.png`
+  (1440/768/375), alle mit Masken-Box neu geschrieben (265/192/90 KB).
+- `docs/BUILD_LOG.md`: dieser Eintrag.
+
+### Regen-Umgebung (festgelegt Ubuntu/Chromium, kein macOS-Overwrite)
+
+- Lokaler Container `mcr.microsoft.com/playwright:v1.63.0-noble` (`linux/amd64`,
+  Ubuntu 24.04 noble), Node v22.18.0, Playwright/Chromium 1.63.0 (CI-Linie),
+  Repo-Kopie ohne `node_modules` (darin `npm ci` + `vite build`). Backend: laufender
+  lokaler E2E-Minimal-Stack (db/auth/rest/kong/edge-runtime), Seed verifiziert ohne
+  Drift (4 Companies, 2 Contacts, 3 Deals, 4 Memberships, alle 5 E2E-Nutzer bestätigt).
+- Kernbefund: Playwright legt `mask` nur aufs Aktuell-Bild; das Expected-Baseline bleibt
+  unmaskiert. Deshalb mussten alle drei Baselines die Masken-Box einfrieren: Desktop und
+  Tablet lagen mit Maske zunächst unter der Toleranz (kein Rewrite), Mobile wies
+  517 px (Ratio 0,01, ausschließlich die alte `Stand:`-Zeile im Diff-Bild) aus. Nach
+  Löschen der zwei alten Dateien wurden alle drei kontrolliert neu geschrieben.
+
+### Nachweise
+
+- Update-Läufe: 3/3 + 3/3 grün (nur `/crm/leads`, alle Projekte).
+- Stabilität: `--repeat-each=3` → **9/9 grün** gegen die neuen Baselines; danach volles
+  `e2e/visual.spec.ts` (alle 5 Routen × 3 Projekte) → **15/15 grün**. Ein einzelner
+  mobiler Rewrite zwischen zwei Update-Läufen (transient) blieb danach in allen
+  12 Folge-Ausführungen stabil grün.
+- Sichtprüfung je Bild: echte CRM-Seed-Daten (Anna Schmidt, 1 Eintrag, SUPABASE CRM,
+  STATUS: GESUND, FRISCHE: AKTUELL), keine `AUTH_REQUIRED`-Fehlerseite, Masken-Box auf
+  dem dunklen Surface unsichtbar, kein Clipping, kein Layout-Bruch.
+- Overflow: PNG-Breiten exakt 1440/768/375 px → **0 px horizontaler Overflow**.
+- Lokale Gates (macOS): `npx tsc --noEmit` 0 Fehler · `npm run lint` grün ·
+  `npm run format:check` grün · `npm run verify` alle Suiten grün ·
+  `npm run test:coverage` EXIT 0 · `npm run build` grün.
+
+### Schutzbereichs-Prüfung
+
+- `git diff --check`: leer. Schutzbereichs-Diff (`src/*`, `e2e/global-setup.ts`,
+  `e2e/auth.spec.ts`, `playwright.config.ts`, `.github/workflows/ci.yml`, alle übrigen
+  Baselines inkl. Darwin-Snapshots): **leer**.
+- Secret-Scan: keine Token, Credentials oder Storage-Werte in Diff oder Log (Anon-Key
+  und Seed-Passwörter nur als lokale Container-Env, nie committet).
+
+### Ergebnis & Freigabestatus
+
+Maske + drei Linux-Baselines umgesetzt, alle Gates grün, Stopp-Punkte eingehalten.
+**Übergabe an den Prüfer** — danach Push, PR-CI als vollständiger Nachweis und erst bei
+grüner CI Issue #13 schließen. Merge/Deploy bleiben separate Entscheidung.
