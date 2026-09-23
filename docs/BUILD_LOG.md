@@ -12343,6 +12343,26 @@ Lighthouse selbst war grün. `test` lud Coverage bereits als Artefakt hoch, und
 
 ### Übergabe
 
-Bereit für genau einen PR-CI-Lauf. Issue #5 bleibt offen, bis die geänderte
-CI auf dem finalen PR-HEAD alle sieben Pflichtjobs besteht und der Merge
-entschieden ist. 067Q/G63 bleibt im Recovery-Freeze.
+Bereit für den PR-CI-Nachweis. Issue #5 bleibt offen, bis die geänderte CI
+auf dem finalen PR-HEAD alle sieben Pflichtjobs besteht, PR #22 gemergt ist
+und auch der anschließende `main`-CI-Lauf alle sieben Jobs besteht. 067Q/G63
+bleibt bis dahin im Recovery-Freeze.
+
+## [2026-09-23] PR #22 — unabhängiger Review vor dem Merge
+
+**Rolle:** Codex (Prüfer) · **geprüfter Commit:** `c43dbd6` · **Basis:** `11dae9b` ·
+**PR-CI:** [Run 35829075503](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/35829075503), sieben Jobs grün ·
+**Status:** Dokumentationsnacharbeit vor neuem finalen PR-CI-Lauf.
+
+- Workflow und Tests erfüllen den freigegebenen Artefaktvertrag; sieben
+  Jobnamen und SHA-Pinning blieben stabil. Der Schutzbereichs-Diff ist leer.
+- Zwei Dokumentationsbefunde wurden vor dem Merge korrigiert: G60/G61 kamen
+  bereits mit PR #20 auf `main`; Issue #5 bleibt bis nach grünem `main`-CI offen.
+  Die im Plan ausdrücklich vorgesehene `src/review/acceptance`-Ausnahme ist nun
+  auch in den globalen Grenzen genannt.
+- `npm run verify` (Integrity 001–025), `npx tsc --noEmit`, `npm run build`
+  und `git diff --check` bestanden nach dem Review. Der finale PR-HEAD braucht
+  vor dem Merge erneut alle sieben grünen Checks.
+
+**Entscheidung:** Merge erst nach finalem grünem PR-CI-Lauf. Kein Deploy;
+067Q/G63 bleibt bis zum grünen `main`-CI-Lauf gesperrt.

@@ -16,9 +16,13 @@ fail-closed Readiness script. Existing seven job identities stay stable.
 
 ## Global Constraints
 
-- Baseline `11dae9b`; no changes in `src/`, Supabase, E2E specs or product code.
+- Baseline `11dae9b`; no changes in `src/` except the approved
+  `src/review/acceptance/findingContract.ts` status correction. No changes in
+  Supabase, E2E specs or other product code.
 - No new npm dependency. All external Actions use a full 40-character SHA.
-- No merge, deploy, issue closure or 067Q implementation in this task.
+- Merge only after independent review, a green final-HEAD PR-CI run and
+  separate authorization. No deploy or 067Q implementation during recovery;
+  close Issue #5 only after green post-merge `main` CI.
 
 ---
 
@@ -62,5 +66,8 @@ fail-closed Readiness script. Existing seven job identities stay stable.
 - [x] Check the diff since `11dae9b`, including protected paths and secrets.
 - [x] Append a BUILD_LOG entry with changed paths, tests, GitHub Ruleset
       evidence and PR-CI status.
-- [ ] Commit and open a recovery PR; observe one complete seven-job PR-CI run.
-      Keep Issue #5 open until that run is green and reviewed.
+- [x] Commit and open recovery PR #22; observe one complete seven-job PR-CI run
+      on its original HEAD `c43dbd6` (run `35829075503`, green).
+- [ ] Complete independent review, obtain seven green PR checks on the final
+      HEAD, merge, then verify all seven jobs in the resulting `main` CI run.
+      Keep Issue #5 open until that `main` run is green.

@@ -44,6 +44,7 @@ aus dem anderen Repository ohne `-v2` und behauptet, kein Ruleset sei vorhanden.
 - TypeScript, Lint, Format, `npm run verify`, vollständige Coverage und Build
   bestehen unter Node `>=22.18.0 <23`; `git diff --check` ist leer.
 - Der Schutzbereichs-Diff seit `11dae9b` ist leer.
-- Genau ein PR-CI-Lauf mit sieben grünen Jobs bestätigt den Artefaktfluss. Erst
-  danach ist eine Entscheidung über Issue #5 möglich. Merge und Deploy werden
+- Ein PR-CI-Lauf mit sieben grünen Jobs auf dem finalen HEAD bestätigt den
+  Artefaktfluss vor dem Merge. Issue #5 bleibt bis nach dem Merge und einem
+  grünen `main`-CI-Lauf mit allen sieben Jobs offen. Merge und Deploy werden
   durch diese Spezifikation nicht freigegeben.

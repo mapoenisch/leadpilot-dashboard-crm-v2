@@ -37,6 +37,8 @@ dokumentiert das Ledger die erfolgreichen Wellenläufe; es enthält dort keinen
 jeweils eigenen formalen Prüfer-Freigabe-Commit. Ihre Integration auf `main`
 ist durch PR #16 belegt. Die Commit-Spalte nennt den spezifischsten
 Abschlussnachweis, die letzte Spalte den `main`-Integrationspunkt.
+PR #20 integrierte G60 und G61 bereits vor dem späteren Merge von PR #19;
+der Branch-Merge `60ad64c` ist selbst kein `main`-Integrationspunkt.
 
 | Gate | Auftrag / Ergebnis | Abschlussnachweis | Auf `main` seit |
 |---|---|---|---|
@@ -56,8 +58,8 @@ Abschlussnachweis, die letzte Spalte den `main`-Integrationspunkt.
 | G57 | 067K Toolchain und Qualität | `c6d88f3` Prüferfreigabe | `5f01ed5` · PR #16 |
 | G58 | 067L CI und Ruleset | `5f01ed5` · sieben Pflichtjobs und aktives Ruleset | `5f01ed5` · PR #16 |
 | G59 | 067M Mitgliederverwaltung | `146de7f` | `146de7f` |
-| G60 | 067N CRM Query und Export | `3d44ef8` Prüferfreigabe | `e8ba4ec` · PR #19 |
-| G61 | 067O Quelle und Frische | `967862e` Prüferfreigabe | `60ad64c` |
+| G60 | 067N CRM Query und Export | `3d44ef8` Prüferfreigabe | `94e8f65` · PR #20 |
+| G61 | 067O Quelle und Frische | `967862e` Prüferfreigabe | `94e8f65` · PR #20 |
 | G62 | 067P Audit und Diagnose | `c23ef7a` Prüferfreigabe; N6-Nachweis im BUILD_LOG | `94e8f65` · PR #20 |
 
 PR #21 (`11dae9b`) entfernte anschließend die `admin-a`-Logout-Race aus den
