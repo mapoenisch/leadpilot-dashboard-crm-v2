@@ -58,6 +58,13 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.9.6
+      - name: Deno Edge Functions typecheck
+        run: deno check --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen-lockfile --node-modules-dir=none supabase/functions/*/index.ts
+      - name: Deno Edge Functions tests
+        run: deno test --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen-lockfile --node-modules-dir=none --allow-env --allow-net --allow-read supabase/functions/
       - name: Vitest mit Coverage
         run: npm run test:coverage
       - name: Legacy-Harness (Parallelbetrieb bis Schritt d)
