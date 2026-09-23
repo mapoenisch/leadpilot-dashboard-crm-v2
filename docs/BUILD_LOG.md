@@ -12366,3 +12366,35 @@ bleibt bis dahin im Recovery-Freeze.
 
 **Entscheidung:** Merge erst nach finalem grünem PR-CI-Lauf. Kein Deploy;
 067Q/G63 bleibt bis zum grünen `main`-CI-Lauf gesperrt.
+
+## [2026-09-23] Nach CI-Recovery — Bauplan und Altbestand einzeln abgeglichen
+
+**Basis:** `dec0aa5` (PR #22) · **Auftrag:** Marcs Fortsetzung der
+Recovery-Bestandsbereinigung · **Status:** Dokumentations-PR vorbereitet;
+kein Produktcode, kein Deploy, kein Beginn von 067Q/G63.
+
+- PR #22 wurde nach unabhängigem Review auf finalem HEAD `c385917` gemergt.
+  [PR-CI 35833733689](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/35833733689)
+  und [main-CI 35834951857](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/35834951857)
+  bestanden je alle sieben Pflichtjobs; der `main`-E2E-Job bestätigte
+  Coverage-Download, Artefaktprüfung und Readiness. Issue #5 wurde danach
+  geschlossen.
+- `BUILD_PLAN.md` nennt den bestätigten Recovery-Merge und hebt nur den
+  Recovery-Freeze auf. 067Q/G63 bleibt der nächste Fachauftrag, braucht aber
+  vor der Umsetzung einen eigenen freigegebenen Detailauftrag.
+- `docs/reviews/2026-09-23-open-stock-triage.md` bewertet fünf alte PRs,
+  die offenen Issues und Remote-Branches einzeln gegen `main`. Nur PRs #11,
+  #14, #15 wurden nach konkretem Überholungsnachweis geschlossen und ihre
+  ungenutzten Remote-Branches gelöscht; Issue #8 ist erfüllt und geschlossen.
+  PRs #1/#10 sowie Issues #2/#3/#7/#9 bleiben offen. Die vier Branches ohne
+  PR und der im ursprünglichen Worktree ausgecheckte PR-21-Branch blieben
+  unangetastet.
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm run verify`
+  (Integrity 001–025), `npm test` (261 Dateien, 1415 Tests) und
+  `npm run build` bestanden mit Exit 0. `git diff --check` ist leer.
+  Schutzbereichs-Diff gegen `dec0aa5` für `src/simulation`, `src/types`,
+  `src/context`, `src/services/data` und `src/features/resources`: leer.
+  Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Übergabe:** Nur die Dokumentation in den PR geben und dort CI/Review
+abwarten. 067Q nicht mit der Bestandsbereinigung vermischen.
