@@ -3,7 +3,7 @@
 **Stand:** 23.09.2026
 
 **Roadmap-Basis:** `v2.2.0` (`9380ace`)
-**Aktueller `main`-Stand:** `11dae9b` (PR #21, sieben Pflichtjobs grün)
+**Bestätigter CI-Recovery-Merge auf `main`:** `dec0aa5` (PR #22, sieben Pflichtjobs grün)
 
 **Aktueller Masterauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_067_V2_3_0_PRODUKTIONSREIFE_MASTER.md`
 
@@ -14,11 +14,18 @@
 Die fachlich freigegebene Spezifikation liegt unter
 `docs/superpowers/specs/2026-09-15-v2-3-0-production-readiness-design.md`. Auftrag 067
 setzt sie über 19 strikt serielle Teilaufträge 067A–067S und Gates G44–G65 um.
-G44–G62 sind in `main` integriert. Die nach PR #21 angekündigte
+G44–G62 sind in `main` integriert. Die
 [CI-Recovery](docs/superpowers/specs/2026-09-23-ci-recovery-design.md) zu
-Issue #5 ist der einzige aktive Lieferauftrag. Der Fachauftrag 067Q/G63
-beginnt erst nach einem grünen und geprüften Recovery-PR-Lauf. Es erfolgt
-bis dahin kein Deploy.
+Issue #5 wurde mit PR #22 abgeschlossen: finaler PR-Lauf `35833733689` und
+`main`-Lauf `35834951857` bestanden alle sieben Pflichtjobs. Issue #5 ist
+geschlossen. Der Recovery-Freeze für 067Q/G63 ist damit aufgehoben; vor der
+Umsetzung braucht 067Q einen konkreten, freigegebenen Detailauftrag. Kein Deploy
+vor G65/067S und Marcs ausdrücklicher Release-Freigabe.
+
+Die [Bestandsprüfung vom 23.09.2026](docs/reviews/2026-09-23-open-stock-triage.md)
+dokumentiert die einzeln bewerteten Alt-PRs, Issues und Remote-Branches; offene
+Sicherheits- und Release-Issues bleiben für 067R/G64 beziehungsweise 067S/G65
+sichtbar.
 
 | Abschnitt | Gates | Inhalt | Status |
 |---|---|---|---|
@@ -26,7 +33,7 @@ bis dahin kein Deploy.
 | Sicherheits- und Datenkern | G45–G51 | Auth/RLS, Ingress, CRM-Quelle, Baseline, Persistenz, Worker, HubSpot | ✅ auf `main` |
 | Frontend/Qualität | G52–G58 | 33 semantische Seiten, UX/A11y, Toolchain, fail-closed CI | ✅ auf `main` |
 | Ergänzungen | G59–G62 | Mitglieder, CRM Query/Export, Frische, Audit/Diagnose | ✅ auf `main` |
-| Nächster Fachauftrag | G63 / 067Q | Run-Steuerung | ⏸ Recovery-Freeze |
+| Nächster Fachauftrag | G63 / 067Q | Run-Steuerung | Detailauftrag ausstehend |
 | Gesamtabnahme | G64 / 067R | vollständige Abnahme | nach G63 |
 | Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` | nach G64 und Marcs Freigabe |
 
@@ -64,8 +71,9 @@ der Branch-Merge `60ad64c` ist selbst kein `main`-Integrationspunkt.
 
 PR #21 (`11dae9b`) entfernte anschließend die `admin-a`-Logout-Race aus den
 Visualtests. Sein `main`-Lauf `35795310797` war mit allen sieben Jobs grün.
-Issue #5 und die doppelte CI-Ausführung werden in der separaten Recovery-PR
-bearbeitet; der grüne Lauf von PR #21 schließt dieses Restproblem nicht.
+PR #22 (`dec0aa5`) beseitigte danach die doppelten Feature-Push- und
+Coverage-Läufe; der `main`-Lauf `35834951857` bestätigte alle sieben Jobs
+einschließlich E2E und Readiness.
 
 Die folgenden Abschnitte bleiben als historische Post-V1.1-Roadmap erhalten.
 
