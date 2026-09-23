@@ -157,6 +157,6 @@
     "severity": "important",
     "targetGate": "G58",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   }
 ]

@@ -160,9 +160,9 @@ const PASSING_SINCE_G46: readonly V23FindingId[] = ['PR-INGEST-03', 'PR-SEED-05'
 // G57 (Auftrag 067K): PR-DEPENDENCY-15 und PR-QUALITY-16 erfuellen die
 // Qualitaets- und Auditgrenzen (mit dokumentierter Risikofreigabe) und stehen auf passing.
 const PASSING_SINCE_G57: readonly V23FindingId[] = ['PR-DEPENDENCY-15', 'PR-QUALITY-16'];
-// G58 (Auftrag 067L): PR-RELEASE-17 und PR-CI-18 erfuellen die
-// Fail-Closed-Readiness- und CI-SHA-Pinning-Sollvertraege und stehen auf passing.
-const PASSING_SINCE_G58: readonly V23FindingId[] = ['PR-RELEASE-17', 'PR-CI-18'];
+// G58 (Auftrag 067L): Readiness, CI und das seit 19.09. aktive main-Ruleset
+// erfüllen ihre Sollverträge; PR-BRANCH-20 wurde am 23.09. erneut belegt.
+const PASSING_SINCE_G58: readonly V23FindingId[] = ['PR-RELEASE-17', 'PR-CI-18', 'PR-BRANCH-20'];
 
 export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
   id,

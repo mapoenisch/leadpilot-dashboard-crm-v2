@@ -12284,3 +12284,65 @@ finalen PR-HEAD.
 **Entscheidung:** PR #21 ist nach einem grünen Pflichtcheck-Satz auf dem finalen
 HEAD mergefähig. Kein Deploy und keine Freigabe weiterer Teilaufträge durch
 diesen Befund.
+
+## [2026-09-23] CI-Recovery / Issue #5 — lokaler Builder-Nachweis vor PR-CI
+
+**Basis:** `11dae9b` (`main` nach PR #21) · **Branch:** `codex/ci-recovery` ·
+**Auftrag:** `docs/superpowers/specs/2026-09-23-ci-recovery-design.md` ·
+**Status:** lokal verifiziert, PR-CI ausstehend. Kein Merge oder Deploy.
+
+### Ursache und Änderung
+
+`ci.yml` startete auf jedem Feature-Push einen zweiten Workflow zusätzlich zum
+PR-Lauf. Innerhalb jedes Laufs riefen `test` und `e2e` jeweils
+`npm run test:coverage` auf. Der zweite Aufruf war der rote Schritt in PR #21;
+Lighthouse selbst war grün. `test` lud Coverage bereits als Artefakt hoch, und
+`verifyV23ReleaseReadiness.ts` liest dessen Summary fail-closed.
+
+- `.github/workflows/ci.yml`: Push-Trigger auf `main` begrenzt; `e2e` wartet
+  mit `needs: test`, lädt das `coverage`-Artefakt aus demselben Lauf über
+  SHA-gepinntes `actions/download-artifact@v4`, prüft die Summary-Datei und
+  startet Readiness ohne zweiten Vitest-Lauf. Die sieben Jobnamen bleiben gleich.
+- `scripts/__tests__/ciSecurityConfig.vitest.ts`: Trigger- und Artefaktvertrag.
+  Roter Start: 2 neue Assertions fehlgeschlagen (unbeschränkter Push, zwei
+  Coverage-Aufrufe); nach Änderung 5/5 grün.
+- `docs/operations/github-main-ruleset.md`,
+  `docs/reviews/v2.3.0-github-ruleset-baseline.json`: API-geprüfter
+  `main-protection`-Stand (ID `23709388`, aktiv, PR-Pflicht, sieben Checks,
+  keine Bypass-Akteure) im richtigen `-v2`-Repository. Der alte 403-Befund
+  bleibt als Historie des anderen Repositorys erhalten.
+- `src/review/acceptance/findingContract.ts`,
+  `docs/reviews/v2.3.0-known-findings.json` und
+  `docs/reviews/v2.3.0-finding-register.md`: ausschließlich der erlaubte
+  Statuswechsel `PR-BRANCH-20` auf `passing`; ID, Titel, Runner und Gate
+  unverändert. Roter Registertest nach JSON-Änderung: 1/2; danach 2/2 grün
+  und der gezielte `[PR-BRANCH-20]`-Sollvertrag grün.
+- `BUILD_PLAN.md`: G44–G62 mit Abschluss- und Merge-Commits aktualisiert;
+  nächster Fachauftrag 067Q/G63, danach 067R/G64 und 067S/G65. Design und
+  Umsetzungsplan liegen unter `docs/superpowers/`.
+
+### Lokale Gates und Schutzbereiche
+
+- Node `v22.23.2` (erfüllt `>=22.18.0 <23`): TypeScript 0 Fehler, Lint 0
+  Fehler/Warnungen, Format 0 Abweichungen, Integrity 001–025 grün.
+- `npm test`: 261 Dateien / 1415 Tests grün. `npm run test:coverage`:
+  Exit 0; Statements 87,28 %, Branches 81,06 %, Functions 81,68 %,
+  Lines 88,4 %. Die in jsdom sichtbaren erwarteten Fehlergrenzen-Logs
+  sind keine fehlgeschlagenen Tests.
+- Build Exit 0; `size-limit`: Initial JS 168,51/180 kB, größter Chunk
+  86,16/250 kB. `npm audit --omit=dev` und `npm audit --audit-level=high`:
+  jeweils 0 Schwachstellen. YAML per Prettier geprüft; beide JSON-Dateien
+  erfolgreich geparst.
+- `git diff --check` leer. Schutzbereichs-Diff gegen `11dae9b` für
+  `src/simulation`, `src/types`, `src/context`, `src/services/data` und
+  `src/features/resources` leer. Keine UI- oder Screenshot-Änderung; kein
+  Secret im Diff.
+- Der bereits gemergte PR #21 und sein `main`-Run `35795310797` sind grün.
+  Diese ältere CI prüft den neuen Artefaktfluss noch nicht. Maßgeblicher
+  Nachweis wird der erste vollständige Lauf der Recovery-PR.
+
+### Übergabe
+
+Bereit für genau einen PR-CI-Lauf. Issue #5 bleibt offen, bis die geänderte
+CI auf dem finalen PR-HEAD alle sieben Pflichtjobs besteht und der Merge
+entschieden ist. 067Q/G63 bleibt im Recovery-Freeze.

@@ -1,8 +1,9 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 16.09.2026
+**Stand:** 23.09.2026
 
-**Aktueller Ausgangsstand:** `v2.2.0` (`9380ace`)
+**Roadmap-Basis:** `v2.2.0` (`9380ace`)
+**Aktueller `main`-Stand:** `11dae9b` (PR #21, sieben Pflichtjobs grün)
 
 **Aktueller Masterauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_067_V2_3_0_PRODUKTIONSREIFE_MASTER.md`
 
@@ -13,14 +14,56 @@
 Die fachlich freigegebene Spezifikation liegt unter
 `docs/superpowers/specs/2026-09-15-v2-3-0-production-readiness-design.md`. Auftrag 067
 setzt sie über 19 strikt serielle Teilaufträge 067A–067S und Gates G44–G65 um.
+G44–G62 sind in `main` integriert. Die nach PR #21 angekündigte
+[CI-Recovery](docs/superpowers/specs/2026-09-23-ci-recovery-design.md) zu
+Issue #5 ist der einzige aktive Lieferauftrag. Der Fachauftrag 067Q/G63
+beginnt erst nach einem grünen und geprüften Recovery-PR-Lauf. Es erfolgt
+bis dahin kein Deploy.
 
 | Abschnitt | Gates | Inhalt | Status |
 |---|---|---|---|
-| Charakterisierung | G44 | rote Regressionen und Befundregister | offen |
-| Sicherheits- und Datenkern | G45–G51 | Auth/RLS, Ingress, CRM-Quelle, Baseline, Persistenz, Worker, HubSpot | offen |
-| Mängelbehebung Frontend/Qualität | G52–G58 | 33 semantische Seiten, UX/A11y, Toolchain, fail-closed CI | offen |
-| Freigegebene Ergänzungen | G59–G63 | Mitglieder, CRM Query/Export, Frische, Audit/Diagnose, Run-Steuerung | gesperrt bis G58 |
-| Abnahme und Release | G64–G65 | Gesamtprüfung, Migration, `All Rights Reserved`, Release `v2.3.0` | gesperrt bis G63 |
+| Charakterisierung | G44 | rote Regressionen und Befundregister | ✅ auf `main` |
+| Sicherheits- und Datenkern | G45–G51 | Auth/RLS, Ingress, CRM-Quelle, Baseline, Persistenz, Worker, HubSpot | ✅ auf `main` |
+| Frontend/Qualität | G52–G58 | 33 semantische Seiten, UX/A11y, Toolchain, fail-closed CI | ✅ auf `main` |
+| Ergänzungen | G59–G62 | Mitglieder, CRM Query/Export, Frische, Audit/Diagnose | ✅ auf `main` |
+| Nächster Fachauftrag | G63 / 067Q | Run-Steuerung | ⏸ Recovery-Freeze |
+| Gesamtabnahme | G64 / 067R | vollständige Abnahme | nach G63 |
+| Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` | nach G64 und Marcs Freigabe |
+
+### Nachweise G44–G62
+
+Die Prüfer- und E2E-Einträge stehen in `docs/BUILD_LOG.md`. Bei G52–G54
+dokumentiert das Ledger die erfolgreichen Wellenläufe; es enthält dort keinen
+jeweils eigenen formalen Prüfer-Freigabe-Commit. Ihre Integration auf `main`
+ist durch PR #16 belegt. Die Commit-Spalte nennt den spezifischsten
+Abschlussnachweis, die letzte Spalte den `main`-Integrationspunkt.
+
+| Gate | Auftrag / Ergebnis | Abschlussnachweis | Auf `main` seit |
+|---|---|---|---|
+| G44 | 067A Charakterisierung | `8f06f43` Freigabe | `5f01ed5` · PR #16 |
+| G45 | 067B Identität und RLS | `6543571` Freigabe | `5f01ed5` · PR #16 |
+| G46 | 067C Ingress und Schreibsicherheit | `78b2a63` Freigabe | `5f01ed5` · PR #16 |
+| G47 | 067D CRM-Quellenwahrheit | `751e53c` Freigabe | `5f01ed5` · PR #16 |
+| G48 | 067E Baseline zur Engine | `359ab1b` Freigabe | `5f01ed5` · PR #16 |
+| G49 | 067F Persistenz | `41cdd0c` Freigabe | `5f01ed5` · PR #16 |
+| G50 | 067G Web Worker | `99bd708` Freigabe | `5f01ed5` · PR #16 |
+| G51 | 067H HubSpot-Import | `80389da` Freigabe | `5f01ed5` · PR #16 |
+| G52 | 067I Finanzen, Recht, Strategie | `90e414e` Nacharbeit und E2E-Guard | `5f01ed5` · PR #16 |
+| G53 | 067I Markt, Kunden, Vertrieb | `f22c605` · 240/240 E2E | `5f01ed5` · PR #16 |
+| G54 | 067I Unternehmen, Übersicht, Produkt | `99b7125` · 348/348 E2E | `5f01ed5` · PR #16 |
+| G55 | 067I Organisation und Gesamtnachprüfung | `8aa9320` · 384/384 E2E | `5f01ed5` · PR #16 |
+| G56 | 067J UX, A11y und Clipping | `62e7651` · Clipping-Nachweis | `5f01ed5` · PR #16 |
+| G57 | 067K Toolchain und Qualität | `c6d88f3` Prüferfreigabe | `5f01ed5` · PR #16 |
+| G58 | 067L CI und Ruleset | `5f01ed5` · sieben Pflichtjobs und aktives Ruleset | `5f01ed5` · PR #16 |
+| G59 | 067M Mitgliederverwaltung | `146de7f` | `146de7f` |
+| G60 | 067N CRM Query und Export | `3d44ef8` Prüferfreigabe | `e8ba4ec` · PR #19 |
+| G61 | 067O Quelle und Frische | `967862e` Prüferfreigabe | `60ad64c` |
+| G62 | 067P Audit und Diagnose | `c23ef7a` Prüferfreigabe; N6-Nachweis im BUILD_LOG | `94e8f65` · PR #20 |
+
+PR #21 (`11dae9b`) entfernte anschließend die `admin-a`-Logout-Race aus den
+Visualtests. Sein `main`-Lauf `35795310797` war mit allen sieben Jobs grün.
+Issue #5 und die doppelte CI-Ausführung werden in der separaten Recovery-PR
+bearbeitet; der grüne Lauf von PR #21 schließt dieses Restproblem nicht.
 
 Die folgenden Abschnitte bleiben als historische Post-V1.1-Roadmap erhalten.
 

@@ -7,6 +7,8 @@ permissions:
 
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -111,6 +113,7 @@ jobs:
       - run: npx size-limit
 
   e2e:
+    needs: test
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -166,8 +169,13 @@ jobs:
           echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
       - name: Lighthouse CI
         run: npx lhci autorun
-      - name: Coverage für Readiness erzeugen
-        run: npm run test:coverage
+      - name: Coverage aus test-Job laden
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: coverage
+          path: coverage/
+      - name: Coverage-Artefakt für Readiness prüfen
+        run: test -s coverage/coverage-summary.json
       - name: ReleaseReadiness Orchestrator (Fail-Closed)
         run: npx tsx scripts/verifyV23ReleaseReadiness.ts
       - name: Lokales Supabase-Backend stoppen
