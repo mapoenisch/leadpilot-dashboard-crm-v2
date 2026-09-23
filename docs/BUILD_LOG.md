@@ -12398,3 +12398,39 @@ kein Produktcode, kein Deploy, kein Beginn von 067Q/G63.
 
 **Übergabe:** Nur die Dokumentation in den PR geben und dort CI/Review
 abwarten. 067Q nicht mit der Bestandsbereinigung vermischen.
+
+## [2026-09-23] Separates Deno-Edge-CI-Gate — Builder-Nachweis vor PR
+
+**Basis:** `66f85a8` (PR #23) · **Auftrag:**
+`docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_DENO_EDGE_GATE.md` ·
+**Rolle:** Codex als von Marc ausdrücklich freigegebener Builder nur für
+diesen CI-PR · **Status:** lokale Gates grün, PR-CI/Review ausstehend.
+
+- PR #23 wurde als `66f85a8` gemergt. Der nachfolgende
+  [`main`-Lauf 35869178334](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/35869178334)
+  bestand alle sieben Pflichtjobs einschließlich E2E.
+- Im bestehenden `test`-Job installiert ein SHA-gepinntes `setup-deno`
+  Deno `v2.9.6`; `deno check` prüft alle drei Edge-Function-Entry-Points und
+  `deno test` alle vorhandenen Edge-Function-Tests. Fehler stoppen den Job;
+  die sieben Jobnamen und der Coverage-/E2E-Artefaktfluss bleiben unverändert.
+- Das eigene `supabase/functions/deno.lock` wird mit
+  `--frozen-lockfile --node-modules-dir=none` benutzt. Der Root-Lock und
+  Produktionsdateien wurden nicht geändert. Der unisolierte Baseline-Aufruf
+  scheiterte bereits vor Tests an abweichenden Supabase-Versionen zwischen
+  Root-Lock und npm-`node_modules`; der isolierte eingefrorene Aufruf bestand.
+- Lokal: Deno 2.9.6 `check` für 3/3 Entry-Points, Deno `test` 59/59,
+  `npx tsc --noEmit`, `npm run lint`, `npm run format:check`,
+  `npm run verify` (Integrity 001–025 mit Node 22.23.2),
+  `npm test` (261 Dateien, 1415 Tests), `npm run build`,
+  YAML-/JSON-Validierung und `git diff --check` bestanden.
+  `npm run verify` musste wegen einer lokalen Sandbox-`EPERM`-Sperre
+  für `tsx`-IPC mit freigegebener Ausführung wiederholt werden;
+  der zweite Lauf endete mit Exit 0.
+- Schutzbereichs-Diff gegen `66f85a8` für `src/simulation`, `src/types`,
+  `src/context`, `src/services/data` und `src/features/resources`: leer.
+  Keine UI-Änderung, daher keine Screenshot-Matrix. Kein Deploy und
+  keine 067Q-Implementierung.
+
+**Übergabe:** Vor Merge unabhängigen Review und die sieben Pflichtjobs auf
+finalem PR-HEAD prüfen; anschließend den `main`-Lauf. Bis dahin keine
+Freigabe für 067Q/G63.

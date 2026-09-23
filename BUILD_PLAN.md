@@ -22,6 +22,12 @@ geschlossen. Der Recovery-Freeze für 067Q/G63 ist damit aufgehoben; vor der
 Umsetzung braucht 067Q einen konkreten, freigegebenen Detailauftrag. Kein Deploy
 vor G65/067S und Marcs ausdrücklicher Release-Freigabe.
 
+Vor dem Start von 067Q wird zusätzlich das separate
+[Deno-Edge-CI-Gate](docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_DENO_EDGE_GATE.md)
+für die vorhandenen Edge Functions eingezogen. Es ist kein neuer Fachauftrag
+und ändert die sieben Pflichtjobnamen nicht. Die Freigabe erfordert grüne
+PR- und anschließende `main`-CI auf dem jeweiligen finalen Stand.
+
 Die [Bestandsprüfung vom 23.09.2026](docs/reviews/2026-09-23-open-stock-triage.md)
 dokumentiert die einzeln bewerteten Alt-PRs, Issues und Remote-Branches; offene
 Sicherheits- und Release-Issues bleiben für 067R/G64 beziehungsweise 067S/G65
