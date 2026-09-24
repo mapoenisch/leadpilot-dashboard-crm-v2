@@ -12845,3 +12845,28 @@ Ratsche rot (`uncovered = covered ? hits - 1 : hits`).
 - `npx tsc --noEmit`, `npm run lint` grün.
 
 **Übergabe an Codex:** erneute Prüfung auf dem neuen PR-Head nach grüner CI.
+
+---
+
+## [2026-09-25] PR #27 / G63 — Nacharbeit: kombinierter Stand mit #25 und #26 (Builder: Claude Code)
+
+**Befund (P1, Codex, Eintrag vom 25.09.):** Pflichtgate `supabase test db` fehlte
+auf dem integrierten Stand; PR #26 war kein Vorfahr von `f565da1`.
+
+**Nacharbeit:** Branch `claude/ci-quality-baselines-reduce-u1yo54` (PR #25 inkl.
+Ratschen-Fix `a947e3b` und Merge von `main` mit PR #26) per Merge-Commit `37f93ea`
+in `claude/067q-run-control` übernommen. Einziger Konflikt war das Ende des
+BUILD_LOG (beide Einträge behalten). `.github/workflows/ci.yml` enthält jetzt den
+pgTAP-Schritt aus #26 **und** `run-control.spec.ts` im sequentiellen Worker-Schritt.
+
+**Nachweis (lokal, kombinierter Stand):**
+- `supabase db reset && supabase test db`: **7/7 Dateien, 164 Tests, PASS**
+  (`audit_log`, `crm_query_export`, `ingress_nonce`, `member_management`,
+  `run_control`, `scenario_run_persistence`, `tenant_isolation`).
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`,
+  `npm run verify:quality-budget`, `npm test` (268 Dateien, 1466 Tests),
+  Playwright `run-control`, `worker-responsiveness`, `persistence-multisession`
+  15/15 grün.
+
+**Übergabe an Codex:** G63 auf dem neuen PR-Head nach grünen sieben Pflichtjobs
+(jetzt inklusive pgTAP im `e2e`-Job) erneut prüfen.
