@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_BUDGET_PATH,
+  areaFor,
   countInlineStyles,
   countSuppressions,
   evaluateBudget,
@@ -59,6 +60,27 @@ describe('verifyQualityBudget', () => {
       ['src/frozen/', 'src/'],
     );
     expect(counts).toEqual({ 'src/frozen/': 1, 'src/': 1 });
+  });
+
+  it('erkennt style-Attribute mit Whitespace um das Gleichheitszeichen', () => {
+    const counts = countInlineStyles(
+      [{ path: 'src/B.tsx', content: '<a style = {{}} />\n<b style ={x} />\n<c style= {y} />' }],
+      ['src/'],
+    );
+    expect(counts).toEqual({ 'src/': 3 });
+  });
+
+  it('ordnet überlappende Bereiche nach dem längsten Präfix zu (Key-Reihenfolge egal)', () => {
+    const files = [
+      { path: 'src/frozen/A.tsx', content: '<div style={{}} />' },
+      { path: 'src/B.tsx', content: '<a style={{}} />' },
+    ];
+    expect(countInlineStyles(files, ['src/', 'src/frozen/'])).toEqual({
+      'src/': 1,
+      'src/frozen/': 1,
+    });
+    expect(areaFor('src/frozen/x/A.tsx', ['src/', 'src/frozen/'])).toBe('src/frozen/');
+    expect(areaFor('lib/A.tsx', ['src/'])).toBeUndefined();
   });
 
   it('meldet Überschreitung als Regression', () => {

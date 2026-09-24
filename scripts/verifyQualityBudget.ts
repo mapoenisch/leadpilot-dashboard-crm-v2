@@ -43,7 +43,8 @@ export interface BudgetFinding {
 
 const TEST_FILE = /(__tests__\/|\.vitest\.tsx?$|\.test\.tsx?$|\.spec\.tsx?$)/;
 const DISABLE_DIRECTIVE = /(?:\/\/|\/\*)\s*eslint-disable(?:-next-line|-line)?(?=[\s*]|$)([^\n]*)/g;
-const STYLE_ATTR = /\bstyle=\{/g;
+// Whitespace um `=` ist gültiges JSX (Prettier läuft in der CI nicht für jede Datei).
+const STYLE_ATTR = /\bstyle\s*=\s*\{/g;
 
 /** Zählt eslint-disable-Direktiven je Regel. Direktiven ohne Regelnamen zählen als `*`. */
 export function countSuppressions(files: SourceFile[]): Record<string, number> {
@@ -67,6 +68,16 @@ export function countSuppressions(files: SourceFile[]): Record<string, number> {
 }
 
 /**
+ * Bereich mit dem längsten passenden Präfix — unabhängig von der Reihenfolge
+ * der Keys in debt-budget.json (`src/features/resources/` vor `src/`).
+ */
+export function areaFor(filePath: string, areas: string[]): string | undefined {
+  return areas
+    .filter((prefix) => filePath.startsWith(prefix))
+    .sort((a, b) => b.length - a.length)[0];
+}
+
+/**
  * Zählt `style={…}`-Attribute in Produktions-TSX, die NICHT durch eine
  * zeilengenaue, begründete forbid-dom-props-Ausnahme gedeckt sind (die sind
  * bereits im Suppression-Budget). Zuordnung zum ersten passenden Pfad-Präfix.
@@ -75,7 +86,7 @@ export function countInlineStyles(files: SourceFile[], areas: string[]): Record<
   const counts: Record<string, number> = Object.fromEntries(areas.map((area) => [area, 0]));
   for (const file of files) {
     if (!file.path.endsWith('.tsx') || TEST_FILE.test(file.path)) continue;
-    const area = areas.find((prefix) => file.path.startsWith(prefix));
+    const area = areaFor(file.path, areas);
     const lines = file.content.split('\n');
     lines.forEach((line, index) => {
       const hits = line.match(STYLE_ATTR)?.length ?? 0;
