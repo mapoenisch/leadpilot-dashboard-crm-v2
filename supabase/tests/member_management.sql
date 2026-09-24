@@ -12,42 +12,9 @@ SET CONSTRAINTS ALL IMMEDIATE;
 
 -- ---------------------------------------------------------------- Setup --
 -- Feste, kollisionsfreie UUIDs für deterministische Testläufe.
--- Cleanup vorab für idempotente Re-Runs (FKs beachten).
--- G62-Folgeanpassung (Trigger trg_audit_log_member_changes, genehmigte
--- Scope-Erweiterung 2026-09-22): audit_log ist append-only — alte Test-Zeilen
--- werden bei pausierten Triggern geloescht, Member-Cleanup erzeugt keine
--- neuen Audit-Zeilen.
-ALTER TABLE public.organization_members DISABLE TRIGGER trg_audit_log_member_changes;
-ALTER TABLE public.audit_log DISABLE TRIGGER trg_audit_log_immutable;
-DELETE FROM public.audit_log WHERE organization_id IN (
-  'a0000000-0000-0000-0000-00000000000a',
-  'b0000000-0000-0000-0000-00000000000b'
-);
-ALTER TABLE public.audit_log ENABLE TRIGGER trg_audit_log_immutable;
-DELETE FROM public.imported_funnel_deals WHERE organization_id IN (
-  'a0000000-0000-0000-0000-00000000000a',
-  'b0000000-0000-0000-0000-00000000000b'
-);
-DELETE FROM public.contacts WHERE organization_id IN (
-  'a0000000-0000-0000-0000-00000000000a',
-  'b0000000-0000-0000-0000-00000000000b'
-);
-DELETE FROM public.companies WHERE organization_id IN (
-  'a0000000-0000-0000-0000-00000000000a',
-  'b0000000-0000-0000-0000-00000000000b'
-);
-DELETE FROM public.organization_members WHERE organization_id IN (
-  'a0000000-0000-0000-0000-00000000000a',
-  'b0000000-0000-0000-0000-00000000000b'
-);
-DELETE FROM public.organizations WHERE id IN (
-  'a0000000-0000-0000-0000-00000000000a',
-  'b0000000-0000-0000-0000-00000000000b'
-);
-DELETE FROM auth.users WHERE email LIKE '%@member-test.local';
-
--- G62-Folgeanpassung: Member-Trigger fuer den Test-Body reaktivieren.
-ALTER TABLE public.organization_members ENABLE TRIGGER trg_audit_log_member_changes;
+-- Kein Vorab-Cleanup: Die Datei läuft komplett in BEGIN … ROLLBACK, legt nur
+-- eigene Organisationen/Nutzer an und hinterlässt nichts. audit_log bleibt
+-- append-only — Trigger werden weder pausiert noch Audit-Zeilen gelöscht.
 
 INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
 VALUES
@@ -349,33 +316,7 @@ SELECT throws_matching(
 
 SELECT * FROM finish();
 
--- Teardown: Bereinigung kollidierender Seed-Daten fuer nachfolgende Bestands-Tests (tenant_isolation.sql)
--- G62-Folgeanpassung: Member-Trigger pausieren (keine neuen Audit-Zeilen beim
--- Loeschen), alte Audit-Zeilen bei pausiertem Immutabilitaets-Trigger loeschen
--- — sonst blockiert CASCADE auf die append-only Tabelle den Org-Cleanup.
-ALTER TABLE public.organization_members DISABLE TRIGGER trg_audit_log_member_changes;
-ALTER TABLE public.audit_log DISABLE TRIGGER trg_audit_log_immutable;
-DELETE FROM public.audit_log WHERE organization_id IN (
-  'a0000000-0000-0000-0000-00000000000a',
-  'b0000000-0000-0000-0000-00000000000b'
-);
-ALTER TABLE public.audit_log ENABLE TRIGGER trg_audit_log_immutable;
-DELETE FROM public.imported_funnel_deals;
-DELETE FROM public.contacts;
-DELETE FROM public.companies;
-UPDATE public.organizations SET status = 'suspended';
-DELETE FROM public.organization_invitations;
-DELETE FROM public.organization_members;
-DELETE FROM public.organizations;
-DELETE FROM auth.users WHERE email LIKE '%@member-test.local' OR email LIKE '%@e2e.local' OR id IN (
-  '11111111-1111-1111-1111-111111111111',
-  '22222222-2222-2222-2222-222222222222',
-  '33333333-3333-3333-3333-333333333333',
-  '44444444-4444-4444-4444-444444444444',
-  '55555555-5555-5555-5555-555555555555',
-  '66666666-6666-6666-6666-666666666666',
-  'a9999999-9999-9999-9999-999999999999',
-  'c1111111-1111-1111-1111-111111111111'
-);
-
-COMMIT;
+-- Kein Teardown nötig: ROLLBACK verwirft alle Testdaten inklusive der vom
+-- Trigger trg_audit_log_member_changes erzeugten Audit-Zeilen. Seed-Daten
+-- (supabase/seed.sql) werden nicht angefasst.
+ROLLBACK;
