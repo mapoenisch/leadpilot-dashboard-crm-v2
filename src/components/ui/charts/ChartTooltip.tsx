@@ -1,5 +1,4 @@
-import React from 'react';
-import { CHART_THEME } from '../chartTheme';
+import { cn } from '@/lib/utils';
 
 export interface TooltipItem {
   label: string;
@@ -15,7 +14,7 @@ export interface ChartTooltipProps {
   x?: number;
   y?: number;
   visible?: boolean;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
 export function ChartTooltip({
@@ -24,93 +23,54 @@ export function ChartTooltip({
   x = 0,
   y = 0,
   visible = true,
-  style,
+  className,
 }: ChartTooltipProps) {
   if (!visible || items.length === 0) return null;
 
   return (
     <div
       role="tooltip"
-      style={{
-        position: 'absolute',
-        left: `${x}px`,
-        top: `${y}px`,
-        transform: 'translate(-50%, -105%)',
-        background: CHART_THEME.colors.tooltipBg,
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)',
-        padding: '8px 12px',
-        boxShadow: 'var(--shadow-modal)',
-        pointerEvents: 'none',
-        zIndex: 100,
-        fontSize: '12px',
-        fontFamily: 'var(--font-body)',
-        minWidth: '120px',
-        maxWidth: '260px',
-        backdropFilter: 'blur(6px)',
-        transition: 'opacity 150ms ease, transform 150ms ease',
-        ...style,
-      }}
+      className={cn(
+        'pointer-events-none absolute z-[100] min-w-[120px] max-w-[260px] rounded-md border border-solid border-border bg-background-deep px-[12px] py-[8px] font-body text-[12px] shadow-modal backdrop-blur-[6px] [transform:translate(-50%,-105%)] [transition:opacity_150ms_ease,transform_150ms_ease]',
+        className,
+      )}
+      // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Tooltip-Position aus Pointer-Koordinaten)
+      style={{ left: `${x}px`, top: `${y}px` }}
     >
       {title && (
-        <div
-          style={{
-            fontWeight: 600,
-            color: 'var(--color-text)',
-            marginBottom: '4px',
-            borderBottom: '1px solid var(--color-border-soft)',
-            paddingBottom: '3px',
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-          }}
-        >
+        <div className="mb-[4px] border-0 border-b border-solid border-border-soft pb-[3px] text-[11px] font-semibold uppercase tracking-[0.04em] text-text">
           {title}
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+      <div className="flex flex-col gap-[3px]">
         {items.map((item, idx) => (
-          <div
-            key={idx}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div key={idx} className="flex items-center justify-between gap-[12px]">
+            <div className="flex items-center gap-[6px]">
               {item.color && (
                 <span
-                  style={{
-                    width: '7px',
-                    height: '7px',
-                    borderRadius: '50%',
-                    background: item.color,
-                    flexShrink: 0,
-                  }}
+                  className="h-[7px] w-[7px] shrink-0 rounded-[50%]"
+                  // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Serienfarbe aus Daten)
+                  style={{ background: item.color }}
                 />
               )}
-              <span style={{ color: 'var(--color-text-muted)' }}>{item.label}</span>
+              <span className="text-[var(--color-text-muted)]">{item.label}</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <strong style={{ color: 'var(--color-text)' }}>
+            <div className="flex items-center gap-[4px]">
+              <strong className="text-text">
                 {typeof item.value === 'number' ? item.value.toLocaleString('de-DE') : item.value}
               </strong>
               {item.delta !== undefined && (
                 <span
-                  style={{
-                    fontSize: '10.5px',
-                    fontWeight: 600,
-                    color:
-                      item.isFavorable !== undefined
-                        ? item.isFavorable
-                          ? 'var(--color-primary)'
-                          : 'var(--color-warning)'
-                        : 'var(--color-text-muted)',
-                  }}
+                  className={cn(
+                    'text-[10.5px] font-semibold',
+                    item.isFavorable === undefined
+                      ? 'text-[var(--color-text-muted)]'
+                      : item.isFavorable
+                        ? 'text-[var(--color-primary)]'
+                        : 'text-[var(--color-warning)]',
+                  )}
                 >
                   ({item.delta})
                 </span>

@@ -28,87 +28,35 @@ export const ManagementChartTooltip: React.FC<ManagementChartTooltipProps> = ({
     return null;
   }
 
+  // Issue #7: Farben aus MANAGEMENT_CHART_THEME als literale Klassen
+  // (border #00D9C6/0.2, glow 0.15, neutral #8FA3A1, primary #00D9C6).
   return (
-    <div
-      style={{
-        background: 'rgba(5, 20, 19, 0.92)',
-        backdropFilter: 'blur(12px)',
-        border: `1px solid ${MANAGEMENT_CHART_THEME.colors.border}`,
-        boxShadow: `0 8px 32px rgba(0, 0, 0, 0.6), 0 0 12px ${MANAGEMENT_CHART_THEME.colors.glow}`,
-        borderRadius: '6px',
-        padding: '10px 14px',
-        minWidth: '180px',
-        color: '#E2E8F0',
-        fontSize: '12px',
-        fontFamily: MANAGEMENT_CHART_THEME.typography.fontFamily,
-        pointerEvents: 'none',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '8px',
-          borderBottom: '1px solid rgba(0, 217, 198, 0.12)',
-          paddingBottom: '6px',
-          marginBottom: '8px',
-        }}
-      >
-        <span style={{ fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>{label}</span>
+    <div className="pointer-events-none min-w-[180px] rounded-[6px] border border-solid border-[rgba(0,217,198,0.2)] bg-[rgba(5,20,19,0.92)] px-[14px] py-[10px] font-[family-name:var(--font-sans,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif)] text-[12px] text-[#E2E8F0] [backdrop-filter:blur(12px)] [box-shadow:0_8px_32px_rgba(0,0,0,0.6),0_0_12px_rgba(0,217,198,0.15)]">
+      <div className="mb-[8px] flex items-center justify-between gap-[8px] border-0 border-b border-solid border-[rgba(0,217,198,0.12)] pb-[6px]">
+        <span className="font-bold tracking-[-0.01em] text-[#FFFFFF]">{label}</span>
         {sourceLabel && (
-          <span
-            style={{
-              fontSize: '9.5px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              padding: '1px 5px',
-              borderRadius: '3px',
-              background: 'rgba(0, 217, 198, 0.12)',
-              color: MANAGEMENT_CHART_THEME.colors.primary,
-              fontWeight: 600,
-            }}
-          >
+          <span className="rounded-[3px] bg-[rgba(0,217,198,0.12)] px-[5px] py-[1px] text-[9.5px] font-semibold uppercase tracking-[0.05em] text-[#00D9C6]">
             {sourceLabel}
           </span>
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div className="flex flex-col gap-[6px]">
         {payload.map((entry, idx) => {
           const val = typeof entry.value === 'number' ? entry.value : Number(entry.value);
           const color = entry.color || MANAGEMENT_CHART_THEME.colors.primary;
 
           return (
-            <div
-              key={`item-${idx}`}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '12px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div key={`item-${idx}`} className="flex items-center justify-between gap-[12px]">
+              <div className="flex items-center gap-[6px]">
                 <span
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '2px',
-                    background: color,
-                    display: 'inline-block',
-                    boxShadow: `0 0 6px ${color}66`,
-                  }}
+                  className="inline-block h-[8px] w-[8px] rounded-[2px]"
+                  // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Serienfarbe aus Recharts-Payload)
+                  style={{ background: color, boxShadow: `0 0 6px ${color}66` }}
                 />
-                <span style={{ color: MANAGEMENT_CHART_THEME.colors.neutral, fontSize: '11.5px' }}>
-                  {entry.name || 'Wert'}
-                </span>
+                <span className="text-[11.5px] text-[#8FA3A1]">{entry.name || 'Wert'}</span>
               </div>
-              <span
-                style={{ fontWeight: 700, color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}
-              >
-                {valueFormatter(val)}
-              </span>
+              <span className="font-bold tabular-nums text-[#FFFFFF]">{valueFormatter(val)}</span>
             </div>
           );
         })}

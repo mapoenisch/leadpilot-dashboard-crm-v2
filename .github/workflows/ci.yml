@@ -40,11 +40,11 @@ jobs:
             const msgs = r.flatMap((f) => f.messages);
             const total = r.reduce((s, f) => s + f.errorCount + f.warningCount, 0);
             const rule = (id) => msgs.filter((m) => m.ruleId === id).length;
-            console.log(total, rule("max-lines"), rule("react/forbid-dom-props"));
+            console.log(total, rule("max-lines"), rule("react/forbid-dom-props") + rule("react/forbid-component-props"));
           ')
           echo "ESLint errors+warnings: $COUNT (baseline $LINT_BASELINE)"
           echo "max-lines: $MAX_LINES (baseline $MAX_LINES_BASELINE)"
-          echo "react/forbid-dom-props: $INLINE_STYLE (baseline $INLINE_STYLE_BASELINE)"
+          echo "Inline-Style-Verstöße: $INLINE_STYLE (baseline $INLINE_STYLE_BASELINE)"
           [ "$COUNT" -le "$LINT_BASELINE" ] || { echo "::error::ESLint-Regression $COUNT > $LINT_BASELINE"; exit 1; }
           [ "$MAX_LINES" -le "$MAX_LINES_BASELINE" ] || { echo "::error::max-lines-Regression $MAX_LINES > $MAX_LINES_BASELINE"; exit 1; }
           [ "$INLINE_STYLE" -le "$INLINE_STYLE_BASELINE" ] || { echo "::error::Inline-Style-Regression $INLINE_STYLE > $INLINE_STYLE_BASELINE"; exit 1; }

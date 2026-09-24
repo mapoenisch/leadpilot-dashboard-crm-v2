@@ -17,7 +17,6 @@ export interface MetricTokenProps {
   glyph?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
-  style?: React.CSSProperties;
 }
 
 const TONE_CLASSES: Record<
@@ -77,23 +76,17 @@ export const MetricToken: React.FC<MetricTokenProps> = ({
   glyph,
   size = 'md',
   className = '',
-  style,
 }) => {
   const toneClasses = TONE_CLASSES[tone];
   const sizeClasses = SIZE_CLASSES[size];
-  // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
-  // style-Passthrough (Konsumenten u. a. in features/**).
+  // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via className.
   const ownClassName =
     `facelift-metric-token flex flex-col justify-between box-border rounded-md border border-solid ` +
     `${toneClasses.borderClass} ${toneClasses.bgClass} ${sizeClasses.paddingClass} ` +
     `transition-[border-color_0.2s_ease,background-color_0.2s_ease]${className ? ` ${className}` : ''}`;
 
   return (
-    <div
-      className={ownClassName}
-      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props (externe Konsumenten), siehe Auftrag 054 Block D
-      style={style}
-    >
+    <div className={ownClassName}>
       <div className="flex items-center justify-between gap-[var(--space-2)]">
         <span
           className={`font-display tracking-[0.02em] text-[var(--color-text-muted)] ${sizeClasses.labelClass}`}

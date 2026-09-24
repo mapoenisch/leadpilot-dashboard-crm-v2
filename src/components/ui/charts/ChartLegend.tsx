@@ -1,4 +1,4 @@
-import React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface LegendItem {
   label: string;
@@ -13,7 +13,7 @@ export interface ChartLegendProps {
   orientation?: 'horizontal' | 'vertical';
   size?: 'sm' | 'md';
   onItemHover?: (index: number | null) => void;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
 export function ChartLegend({
@@ -21,26 +21,22 @@ export function ChartLegend({
   orientation = 'horizontal',
   size = 'md',
   onItemHover,
-  style,
+  className,
 }: ChartLegendProps) {
   const isHoriz = orientation === 'horizontal';
-  const fontSize = size === 'sm' ? '11px' : '12px';
 
   return (
     <div
       role="list"
       aria-label="Diagrammlegende"
-      style={{
-        display: 'flex',
-        flexDirection: isHoriz ? 'row' : 'column',
-        flexWrap: 'wrap',
-        gap: isHoriz ? 'var(--space-3)' : '6px',
-        alignItems: isHoriz ? 'center' : 'stretch',
-        justifyContent: isHoriz ? 'center' : 'flex-start',
-        fontSize,
-        color: 'var(--color-text-muted)',
-        ...style,
-      }}
+      className={cn(
+        'flex flex-wrap text-[var(--color-text-muted)]',
+        isHoriz
+          ? 'flex-row items-center justify-center gap-3'
+          : 'flex-col items-stretch justify-start gap-[6px]',
+        size === 'sm' ? 'text-[11px]' : 'text-[12px]',
+        className,
+      )}
     >
       {items.map((item, idx) => (
         <div
@@ -48,70 +44,48 @@ export function ChartLegend({
           role="listitem"
           onMouseEnter={() => onItemHover?.(idx)}
           onMouseLeave={() => onItemHover?.(null)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            userSelect: 'none',
-            cursor: onItemHover ? 'pointer' : 'default',
-          }}
+          className={cn(
+            'flex select-none items-center gap-[6px]',
+            onItemHover ? 'cursor-pointer' : 'cursor-default',
+          )}
         >
-          {/* Shape Icon */}
+          {/* Shape Icon — Form als Klasse, Farbe kommt aus den Daten */}
           {item.shape === 'line' ? (
             <span
-              style={{
-                width: '14px',
-                height: '3px',
-                background: item.color,
-                borderRadius: '1px',
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
+              className="inline-block h-[3px] w-[14px] shrink-0 rounded-[1px]"
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Serienfarbe aus Daten)
+              style={{ background: item.color }}
             />
           ) : item.shape === 'dashed' ? (
             <span
-              style={{
-                width: '14px',
-                height: '0px',
-                borderTop: `2px dashed ${item.color}`,
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
+              className="inline-block h-0 w-[14px] shrink-0 border-0 border-t-2 border-dashed"
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Serienfarbe aus Daten)
+              style={{ borderTopColor: item.color }}
             />
           ) : item.shape === 'rect' ? (
             <span
-              style={{
-                width: '10px',
-                height: '10px',
-                background: item.color,
-                borderRadius: '2px',
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
+              className="inline-block h-[10px] w-[10px] shrink-0 rounded-[2px]"
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Serienfarbe aus Daten)
+              style={{ background: item.color }}
             />
           ) : (
             <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: item.color,
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
+              className="inline-block h-[8px] w-[8px] shrink-0 rounded-[50%]"
+              // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Serienfarbe aus Daten)
+              style={{ background: item.color }}
             />
           )}
 
-          <span style={{ color: 'var(--color-text-muted)' }}>{item.label}</span>
+          <span className="text-[var(--color-text-muted)]">{item.label}</span>
 
           {item.value !== undefined && (
-            <strong style={{ color: 'var(--color-text)', marginLeft: '2px' }}>
+            <strong className="ml-[2px] text-text">
               {typeof item.value === 'number' ? item.value.toLocaleString('de-DE') : item.value}
             </strong>
           )}
 
           {item.sharePercent !== undefined && (
-            <span style={{ fontSize: '10.5px', color: 'var(--color-text-muted)', opacity: 0.8 }}>
+            <span className="text-[10.5px] text-[var(--color-text-muted)] opacity-80">
               ({item.sharePercent.toFixed(0)}%)
             </span>
           )}

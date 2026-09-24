@@ -58,18 +58,11 @@ export function MultiScenarioComparisonChart({
   const getY = (val: number) => padTop + plotHeight - ((val - minY) / rangeY) * plotHeight;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        width: '100%',
-        position: 'relative',
-      }}
-    >
+    <div className="relative flex w-full flex-col gap-[8px]">
       <svg
         viewBox={`0 0 ${svgWidth} ${height}`}
-        style={{ width: '100%', height: `${height}px`, overflow: 'visible' }}
+        height={height}
+        className="w-full overflow-visible"
         role="img"
         aria-label={ariaLabel}
         onMouseLeave={() => setHoverIdx(null)}

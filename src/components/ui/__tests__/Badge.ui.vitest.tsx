@@ -8,14 +8,17 @@ describe('Badge', () => {
     expect(screen.getByText('Test Badge')).toBeInTheDocument();
   });
 
-  it('renders with icon and style passthrough', () => {
+  it('renders with icon and merges className overrides without inline style', () => {
     render(
-      <Badge icon={<span data-testid="badge-icon">★</span>} style={{ opacity: 0.8 }}>
+      <Badge icon={<span data-testid="badge-icon">★</span>} className="text-[9.5px]">
         With Icon
       </Badge>,
     );
     expect(screen.getByTestId('badge-icon')).toBeInTheDocument();
-    expect(screen.getByText('With Icon')).toBeInTheDocument();
+    const badge = screen.getByText('With Icon');
+    expect(badge).toHaveClass('text-[9.5px]');
+    expect(badge).not.toHaveClass('text-[11px]');
+    expect(badge).not.toHaveAttribute('style');
   });
 
   it('renders all variants and sizes', () => {

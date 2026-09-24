@@ -110,7 +110,7 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
                 Streaming-Ebene C · maximal 30 Datenpunkte · Leuchtkurve mit Halo
               </span>
             </div>
-            <Badge variant={status === 'live' ? 'mint' : 'neutral'} style={{ fontSize: '9.5px' }}>
+            <Badge variant={status === 'live' ? 'mint' : 'neutral'} className="text-[9.5px]">
               {status === 'live' ? `${chartData.length} Punkte aktiv` : status}
             </Badge>
           </div>

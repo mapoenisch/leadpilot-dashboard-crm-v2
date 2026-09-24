@@ -2,7 +2,8 @@ import React from 'react';
 import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+// Kein style-Prop: Overrides laufen über className (tailwind-merge), siehe Issue #7.
+export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'style'> {
   variant?: 'primary' | 'secondary' | 'accent' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
@@ -83,7 +84,6 @@ export function Button({
   children,
   onClick,
   type = 'button',
-  style,
   className,
   ...rest
 }: ButtonProps) {
@@ -106,10 +106,6 @@ export function Button({
         buttonVariants({ variant, size, fullWidth, inactive: isInactive, hovered }),
         className,
       )}
-      // Ausnahme (G38-Entscheidung 5, Nachtrag): style-Passthrough bleibt,
-      // weil Konsumenten Overrides übergeben. Disable-Anweisung in Block D.
-      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props, siehe Auftrag 053 Entscheidung 5
-      style={style}
       {...rest}
     >
       {loading ? (

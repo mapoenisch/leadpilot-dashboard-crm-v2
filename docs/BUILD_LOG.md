@@ -12468,3 +12468,47 @@ Freigabe für 067Q/G63.
 
 **Übergabe:** Abbau der Inline-Styles (`src/` 17 → 0, Charts 128 → 0) erfolgt
 über eigene Aufträge gemäß `docs/quality/DEBT_BUDGET.md`.
+
+---
+
+## [2026-09-24] Issue #7 — Qualitätsschulden im Code abgebaut (Builder: Claude Code)
+
+**Rolle:** Claude Code als Builder (Rollenwechsel laut `CLAUDE.md` §4, Commit `4631faf`) ·
+**Prüfer:** Codex · **Status:** lokale Gates grün, Codex-Review und PR-CI ausstehend.
+
+- **Inline-Styles:** Alle 145 unbegründeten `style`-Attribute außerhalb von
+  `src/features/resources/` sind jetzt Tailwind-Klassen: 128 in
+  `src/components/ui/charts/` (16 Dateien), 17 im übrigen `src/`.
+  Echte Laufzeitwerte (Balkengeometrie, Tooltip-Position, Datenfarben)
+  bleiben zeilengenau begründet (+21, Budget `react/forbid-dom-props` 35 → 50).
+- **Passthrough-Props entfernt:** `style` an Badge, Button, MetricToken,
+  FaceliftGlyph und DiagramCanvas (`style`, `svgStyle`) sowie an den Chart-Helfern
+  ChartFrame, ChartInsight, ChartEmptyState, ChartLegend, ChartMetricHeader und
+  ChartTooltip. Stattdessen gibt es `className` mit tailwind-merge. Nur `Card` behält
+  den Passthrough, weil der eingefrorene `ResourceCard` ihn nutzt.
+- **ESLint:** Die fünf Wellen-Scopes aus G38/G39 sind durch einen globalen Block
+  für `src/**/*.tsx` ersetzt (`react/forbid-dom-props` + `react/forbid-component-props`,
+  ohne Resources und Tests). Der CI-Zähler `INLINE_STYLE_BASELINE` erfasst beide Regeln.
+- **Pixel-Parität:** Referenz-Screenshots vorher (`4631faf`) und nachher für
+  41 Routen × 1440/768/375 mit lokalem Supabase und `maxDiffPixels: 0`. 114/123
+  auf Anhieb pixelgleich. Die 9 Abweichungen liegen auf Routen, die schon beim
+  Leerlauf Vorher-gegen-Vorher rauschen (`/crm/*`, `/company/location`,
+  `/resources/materials`, 6–21 px). `/dashboard` war im Vergleichslauf einmal
+  mit 185 px abweichend, danach 12/12 Wiederholungen pixelgleich.
+- **Verifikation:** `npx tsc --noEmit`, `npm run lint` (0 Fehler/0 Warnungen),
+  `npm run format:check`, `npm run test:coverage` (262 Dateien, 1422 Tests;
+  87,28 % Statements / 80,93 % Branches / 81,68 % Functions / 88,4 % Lines),
+  `npm run verify` (001–025), `npm run build`, `npx size-limit` (168,81 kB / 86,4 kB),
+  `npm run verify:quality-budget`, Playwright `a11y`, `routes`, `semantic-routes`,
+  `element-clipping` 528/528.
+- **Schutzbereichs-Diff** gegen `4631faf` für `src/simulation`, `src/types`,
+  `src/context`, `src/services/data`, `src/features/resources`: leer.
+- **Nebenbefund (nicht behoben):** `VertriebView.tsx`/`FinanzenView.tsx` samt
+  `MarketingBudgetPage`, `BrandPage`, `CampaignPlanningPage`, `BudgetPage` sind
+  nicht geroutet (toter Code). Mehrere Chart-Bausteine (DivergingBar, Waterfall,
+  SteppedFunnel, TimeSeriesCorridor, ChartInsight, ChartMetricHeader) werden nur
+  in Tests genutzt. Wird als eigener Aufräum-Auftrag vorgeschlagen.
+
+**Übergabe an Codex:** Review der Klassen-Umsetzung (Tailwind-Preflight ist aus,
+deshalb setzen Einzelrahmen explizit `border-0`), der ESLint-Konsolidierung und
+des neuen Budgets. Danach PR-CI inklusive `visual.spec.ts` auf Linux-Baselines.

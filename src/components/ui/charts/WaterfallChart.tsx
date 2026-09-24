@@ -1,4 +1,21 @@
 import { formatChartMetric } from '../chartTheme';
+import { cn } from '@/lib/utils';
+
+// Issue #7: Balken-Tonalität als literale Klassen statt Inline-Style.
+const WATERFALL_TONE = {
+  total: {
+    bar: 'border-[var(--color-primary)] [background:linear-gradient(180deg,var(--color-primary)_0%,rgba(0,217,198,0.5)_100%)]',
+    label: 'text-[var(--color-primary)]',
+  },
+  positive: {
+    bar: 'border-[var(--color-success)] [background:linear-gradient(180deg,var(--color-success)_0%,rgba(78,204,163,0.5)_100%)]',
+    label: 'text-[var(--color-success)]',
+  },
+  negative: {
+    bar: 'border-[var(--color-warning)] [background:linear-gradient(180deg,var(--color-warning)_0%,rgba(255,122,61,0.5)_100%)]',
+    label: 'text-[var(--color-warning)]',
+  },
+} as const;
 
 export interface WaterfallStep {
   label: string;
@@ -45,16 +62,11 @@ export function WaterfallChart({
   const getY = (v: number) => padTop + plotH - ((v - minVal) / range) * plotH;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+    <div className="flex w-full flex-col gap-[8px]">
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'stretch',
-          height: `${height}px`,
-          position: 'relative',
-          paddingBottom: `${padBottom}px`,
-          borderBottom: '1px solid var(--color-border)',
-        }}
+        className="relative flex items-stretch border-0 border-b border-solid border-border"
+        // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (height-Prop, abgeleiteter Innenabstand)
+        style={{ height: `${height}px`, paddingBottom: `${padBottom}px` }}
       >
         {computed.map((st, idx) => {
           const topVal = Math.max(st.start, st.end);
@@ -65,75 +77,39 @@ export function WaterfallChart({
 
           const isPos = st.val >= 0;
           const isTotal = st.isTotal;
-
-          const barColor = isTotal
-            ? 'var(--color-primary)'
+          const tone = isTotal
+            ? WATERFALL_TONE.total
             : isPos
-              ? 'var(--color-success)'
-              : 'var(--color-warning)';
+              ? WATERFALL_TONE.positive
+              : WATERFALL_TONE.negative;
 
           return (
-            <div
-              key={idx}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                position: 'relative',
-                height: '100%',
-              }}
-            >
+            <div key={idx} className="relative flex h-full flex-1 flex-col items-center">
               {/* Floating Bar */}
               <div
-                style={{
-                  position: 'absolute',
-                  top: `${topY}px`,
-                  height: `${barH}px`,
-                  width: '70%',
-                  background: isTotal
-                    ? 'linear-gradient(180deg, var(--color-primary) 0%, rgba(0, 217, 198, 0.5) 100%)'
-                    : isPos
-                      ? 'linear-gradient(180deg, var(--color-success) 0%, rgba(78, 204, 163, 0.5) 100%)'
-                      : 'linear-gradient(180deg, var(--color-warning) 0%, rgba(255, 122, 61, 0.5) 100%)',
-                  borderRadius: '3px',
-                  border: `1px solid ${barColor}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                className={cn(
+                  'absolute flex w-[70%] items-center justify-center rounded-[3px] border border-solid',
+                  tone.bar,
+                )}
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Balkenlage aus Daten)
+                style={{ top: `${topY}px`, height: `${barH}px` }}
               />
 
               {/* Value Label */}
               <span
-                style={{
-                  position: 'absolute',
-                  top: `${topY - 16}px`,
-                  fontSize: '10.5px',
-                  fontWeight: 600,
-                  fontFamily: 'var(--font-mono)',
-                  color: isTotal ? 'var(--color-text)' : barColor,
-                  whiteSpace: 'nowrap',
-                }}
+                className={cn(
+                  'absolute whitespace-nowrap font-mono text-[10.5px] font-semibold',
+                  isTotal ? 'text-text' : tone.label,
+                )}
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Label-Lage aus Daten)
+                style={{ top: `${topY - 16}px` }}
               >
                 {!isTotal && isPos ? '+' : ''}
                 {formatChartMetric(st.val, '')}
               </span>
 
               {/* Step X-Label */}
-              <span
-                style={{
-                  position: 'absolute',
-                  bottom: '-24px',
-                  fontSize: '10px',
-                  color: 'var(--color-text-muted)',
-                  textAlign: 'center',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '90%',
-                }}
-              >
+              <span className="absolute bottom-[-24px] max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-center text-[10px] text-[var(--color-text-muted)]">
                 {st.label}
               </span>
             </div>

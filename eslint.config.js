@@ -74,10 +74,7 @@ export default tseslint.config(
       'react/jsx-no-target-blank': 'error',
 
       // ── Datei-Größe ─────────────────────────────────────────────────────────
-      'max-lines': [
-        'error',
-        { max: 400, skipBlankLines: true, skipComments: true },
-      ],
+      'max-lines': ['error', { max: 400, skipBlankLines: true, skipComments: true }],
 
       // ── Schichtenarchitektur (import/no-restricted-paths) ───────────────────
       // Erlaubte Richtung: app → features → components → services → simulation | domain | types
@@ -89,34 +86,29 @@ export default tseslint.config(
             {
               target: './src/components',
               from: './src/features',
-              message:
-                'Layering-Verstoß: components → features verboten. Refactor nach G35.',
+              message: 'Layering-Verstoß: components → features verboten. Refactor nach G35.',
             },
             // services darf nicht aus components oder features importieren
             {
               target: './src/services',
               from: './src/components',
-              message:
-                'Layering-Verstoß: services → components verboten. Refactor nach G35.',
+              message: 'Layering-Verstoß: services → components verboten. Refactor nach G35.',
             },
             {
               target: './src/services',
               from: './src/features',
-              message:
-                'Layering-Verstoß: services → features verboten. Refactor nach G35.',
+              message: 'Layering-Verstoß: services → features verboten. Refactor nach G35.',
             },
             // simulation darf nicht aus components oder features importieren
             {
               target: './src/simulation',
               from: './src/components',
-              message:
-                'Layering-Verstoß: simulation → components verboten. Refactor nach G35.',
+              message: 'Layering-Verstoß: simulation → components verboten. Refactor nach G35.',
             },
             {
               target: './src/simulation',
               from: './src/features',
-              message:
-                'Layering-Verstoß: simulation → features verboten. Refactor nach G35.',
+              message: 'Layering-Verstoß: simulation → features verboten. Refactor nach G35.',
             },
             // domain und types dürfen aus keiner höheren Ebene importieren
             {
@@ -128,8 +120,7 @@ export default tseslint.config(
             {
               target: './src/types',
               from: ['./src/components', './src/features', './src/services', './src/simulation'],
-              message:
-                'Layering-Verstoß: types darf nur von unten importieren. Refactor nach G35.',
+              message: 'Layering-Verstoß: types darf nur von unten importieren. Refactor nach G35.',
             },
             // Feature-zu-Feature-Imports:
             // import/no-restricted-paths kann horizontale Feature-Grenzen nicht sauber prüfen.
@@ -144,53 +135,27 @@ export default tseslint.config(
         },
       ],
 
-
-
       // ── ESLint-Kommentar-Disziplin ──────────────────────────────────────────
       'eslint-comments/require-description': 'error',
     },
   },
 
-  // ── G38: kein Inline-Style in Primitives + Design-System-Route ─────────────
-  // Nur selbst erfundene style-Attribute sind verboten; zeilengenaue
-  // eslint-disables (Passthrough Badge/Card/Button, Laufzeit-Geometrie
-  // Charts) bleiben erlaubt. Scope bewusst nur Top-Level-*.tsx (die 19
-  // migrierten Primitives): src/components/ui/charts/**-Helfer sind
-  // unmigrierter G39-Scope und dürfen nicht rot werden (Dateien nicht
-  // in diesem Auftrag anfassen). Gilt NICHT global (G39-Gebiet unangetastet).
+  // ── Issue #7: kein Inline-Style im gesamten App-Code ────────────────────────
+  // Ersetzt die G38/G39-Wellen-Scopes (Aufträge 053–057), die nur einzelne
+  // Ordner abdeckten. Gilt für DOM-Elemente (forbid-dom-props) UND für
+  // Custom-Komponenten (forbid-component-props), damit style nicht über
+  // Passthrough-Props zurückkommt. Echte Laufzeit-Geometrie/-Farbe bleibt nur
+  // mit zeilengenauem Disable + Begründung erlaubt; der Bestand ist in
+  // docs/quality/debt-budget.json budgetiert.
+  // Ausnahme: src/features/resources/** ist Schutzbereich (CLAUDE.md §6) und
+  // wird über das Debt-Budget gezählt, bis ein eigener Auftrag ihn freigibt.
   {
-    files: ['src/components/ui/*.tsx', 'src/app/DesignSystemPage.tsx'],
-    rules: {
-      'react/forbid-dom-props': [
-        'error',
-        {
-          forbid: [
-            {
-              propName: 'style',
-              message:
-                'G38: kein Inline-Style in Primitives — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
-            },
-          ],
-        },
-      ],
-    },
-  },
-
-  // ── G39 Welle 1 (Auftrag 054, Block D): Scope um die 22 migrierten
-  // Welle-1-Dateien erweitert (Entscheidung 5) — schützt vor Rückfällen.
-  // Erlaubte Reste dort: Custom-Komponenten-Passthroughs (Badge/Card/
-  // MetricToken/DiagramCanvas/FaceliftGlyph, kein DOM-Prop) + 1
-  // Laufzeit-Geometrie (PipelineSnapshot-Balkenbreite) — jeweils mit
-  // zeilengenauem Disable + Begründung, keine Datei-Ausnahme.
-  {
-    files: [
-      'src/app/App.tsx',
-      'src/app/NotFoundPage.tsx',
-      'src/components/layout/*.tsx',
-      'src/components/liveKpi/*.tsx',
-      'src/components/executiveCockpit/*.tsx',
-      'src/components/ai/*.tsx',
-      'src/components/facelift/*.tsx',
+    files: ['src/**/*.tsx'],
+    ignores: [
+      'src/features/resources/**',
+      'src/**/__tests__/**',
+      'src/**/*.vitest.tsx',
+      'src/**/*.test.tsx',
     ],
     rules: {
       'react/forbid-dom-props': [
@@ -200,94 +165,18 @@ export default tseslint.config(
             {
               propName: 'style',
               message:
-                'G38: kein Inline-Style in Primitives — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
+                'Kein Inline-Style — Tailwind-Klassen nutzen. Laufzeitwerte nur zeilengenau mit Begründung (Issue #7).',
             },
           ],
         },
       ],
-    },
-  },
-
-  // ── G39 Welle 2 (Auftrag 055, Block E): Scope um die 23 migrierten
-  // Welle-2-Dateien erweitert (Verzeichnis-Globs; übrige Dateien dort
-  // haben 0 style und werden nicht rot). Erlaubte Reste: Farben/
-  // Geometrie aus Domain-Daten (jeweils zeilengenaues Disable +
-  // Begründung, keine Datei-Ausnahme).
-  {
-    files: [
-      'src/features/crm/**/*.tsx',
-      'src/features/finanzen/**/*.tsx',
-      'src/features/generic/*.tsx',
-      'src/features/geschaeftsmodell/**/*.tsx',
-      'src/features/kunden/**/*.tsx',
-      'src/features/markt/**/*.tsx',
-    ],
-    rules: {
-      'react/forbid-dom-props': [
+      'react/forbid-component-props': [
         'error',
         {
           forbid: [
             {
               propName: 'style',
-              message:
-                'G39: kein Inline-Style in migrierten Dateien — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
-            },
-          ],
-        },
-      ],
-    },
-  },
-
-  // ── G39 Welle 3 (Auftrag 056, Block E): Scope um die 27 migrierten
-  // Welle-3-Dateien erweitert. Erlaubte Reste: Farben/Geometrie aus
-  // Simulations-/Domain-Daten (jeweils zeilengenaues Disable +
-  // Begründung, keine Datei-Ausnahme).
-  {
-    files: [
-      'src/features/organisation/**/*.tsx',
-      'src/features/overview/**/*.tsx',
-      'src/features/produkt/**/*.tsx',
-      'src/features/projektkontext/**/*.tsx',
-      'src/features/recht/**/*.tsx',
-      'src/features/simulation/**/*.tsx',
-    ],
-    rules: {
-      'react/forbid-dom-props': [
-        'error',
-        {
-          forbid: [
-            {
-              propName: 'style',
-              message:
-                'G39: kein Inline-Style in migrierten Dateien — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
-            },
-          ],
-        },
-      ],
-    },
-  },
-
-  // ── G39 Welle 4 (Auftrag 057, Block D): Scope um die 19 migrierten
-  // Welle-4-Dateien erweitert (Verzeichnis-Globs; übrige Dateien dort
-  // haben 0 style und werden nicht rot). Einziger erlaubter Rest:
-  // FunnelLeakageWaterfall-Balkenbreiten aus Funnel-Daten (2×
-  // zeilengenaues Disable + Begründung, keine Datei-Ausnahme).
-  {
-    files: [
-      'src/features/strategie/**/*.tsx',
-      'src/features/unternehmen/**/*.tsx',
-      'src/features/vertrieb/**/*.tsx',
-      'src/features/standalone/**/*.tsx',
-    ],
-    rules: {
-      'react/forbid-dom-props': [
-        'error',
-        {
-          forbid: [
-            {
-              propName: 'style',
-              message:
-                'G39: kein Inline-Style in migrierten Dateien — cva + Tailwind-Klassen nutzen (Ausnahmen nur zeilengenau mit Begründung).',
+              message: 'Kein style-Passthrough an Komponenten — className nutzen (Issue #7).',
             },
           ],
         },

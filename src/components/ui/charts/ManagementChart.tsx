@@ -290,11 +290,9 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
   return (
     <div
       data-testid="management-chart-container"
-      style={{
-        width: '100%',
-        height: `${height}px`,
-        position: 'relative',
-      }}
+      className="relative w-full"
+      // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (height-Prop des Aufrufers)
+      style={{ height: `${height}px` }}
     >
       <ResponsiveContainer width="100%" height="100%">
         {renderChart()}

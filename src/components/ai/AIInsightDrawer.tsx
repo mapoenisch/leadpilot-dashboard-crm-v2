@@ -72,7 +72,7 @@ export function AIInsightDrawer({ open, onClose }: AIInsightDrawerProps) {
         </Button>
 
         {analysisText && (
-          <Card padding="var(--space-4)" style={{ background: 'var(--color-bg-deep)' }}>
+          <Card padding="var(--space-4)" className="bg-background-deep">
             <div className="text-[13px] leading-[1.6] whitespace-pre-wrap text-text">
               {analysisText}
             </div>

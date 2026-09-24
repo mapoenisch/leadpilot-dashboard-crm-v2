@@ -159,3 +159,34 @@ export const KPI_CONFIGS: KpiConfigItem[] = [
 ];
 
 export const RUN_OVERLAY_COLORS = ['#f59e0b', '#ec4899', '#8b5cf6', '#10b981', '#06b6d4'];
+
+// Button-Klassen je Overlay-Farbe (Index = RUN_OVERLAY_COLORS). Literale
+// Klassen, damit Tailwind sie zur Build-Zeit erzeugt (Issue #7, kein style).
+export const RUN_OVERLAY_BUTTON_CLASSES: ReadonlyArray<{ selected: string; unselected: string }> = [
+  {
+    selected: 'border-[#f59e0b] bg-[#f59e0b] text-[#fff]',
+    unselected: 'border-[#f59e0b] text-[#f59e0b]',
+  },
+  {
+    selected: 'border-[#ec4899] bg-[#ec4899] text-[#fff]',
+    unselected: 'border-[#ec4899] text-[#ec4899]',
+  },
+  {
+    selected: 'border-[#8b5cf6] bg-[#8b5cf6] text-[#fff]',
+    unselected: 'border-[#8b5cf6] text-[#8b5cf6]',
+  },
+  {
+    selected: 'border-[#10b981] bg-[#10b981] text-[#fff]',
+    unselected: 'border-[#10b981] text-[#10b981]',
+  },
+  {
+    selected: 'border-[#06b6d4] bg-[#06b6d4] text-[#fff]',
+    unselected: 'border-[#06b6d4] text-[#06b6d4]',
+  },
+];
+
+export function runOverlayButtonClass(colorIdx: number, isSelected: boolean): string {
+  const classes = RUN_OVERLAY_BUTTON_CLASSES[colorIdx];
+  if (classes) return isSelected ? classes.selected : classes.unselected;
+  return isSelected ? 'text-[#fff]' : 'text-[var(--color-text-muted)]';
+}

@@ -18,9 +18,9 @@
       "rationale": "Fachlich begründete Ausnahme: useLiveKpiActivity nutzt `version` aus useSyncExternalStore als Re-Render-Trigger, das Muster erkennt die Regel nicht."
     },
     "react/forbid-dom-props": {
-      "budget": 35,
-      "target": 35,
-      "rationale": "Fachlich begründete Ausnahmen: zeilengenaue Disables für Laufzeit-Geometrie/-Farbe aus Daten und style-Passthrough der Primitives (Aufträge 053–057). Jede neue Ausnahme erhöht das Budget und braucht Review."
+      "budget": 50,
+      "target": 50,
+      "rationale": "Fachlich begründete Ausnahmen, jede zeilengenau kommentiert: Laufzeit-Geometrie (Balkenbreiten/-höhen, Tooltip-Position, height-/size-Props) und Laufzeit-Farben aus Daten (Serien-/Segmentfarben), dazu der Card-style-Passthrough für den eingefrorenen Resources-Bereich. Statische Werte sind seit Issue #7 vollständig Tailwind-Klassen."
     }
   },
   "inlineStyles": {
@@ -29,15 +29,10 @@
       "target": 96,
       "rationale": "Fachlich begründete Ausnahme: Schutzbereich Internal Resources ist eingefroren (CLAUDE.md §6). Abbau nur mit eigenem Auftrag, dann Ziel 0."
     },
-    "src/components/ui/charts/": {
-      "budget": 128,
-      "target": 0,
-      "rationale": "Unmigrierter G39-Scope der Chart-Helfer. Abbau schrittweise: nach Tailwind/cva migrieren oder als Laufzeit-Geometrie zeilengenau begründen (wandert dann ins Suppression-Budget)."
-    },
     "src/": {
-      "budget": 17,
+      "budget": 0,
       "target": 0,
-      "rationale": "Style-Props an Custom-Komponenten (v. a. Badge in liveKpi), die react/forbid-dom-props nicht erfasst, plus Dateien außerhalb der Regel-Scopes. Ziel 0."
+      "rationale": "Ziel erreicht (Issue #7): außerhalb des Resources-Schutzbereichs kein unbegründeter Inline-Style mehr. ESLint erzwingt das zusätzlich über react/forbid-dom-props und react/forbid-component-props."
     }
   }
 }

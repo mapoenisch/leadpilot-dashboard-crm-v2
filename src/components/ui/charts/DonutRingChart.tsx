@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { formatChartMetric, CHART_THEME } from '../chartTheme';
+import { cn } from '@/lib/utils';
 
 export interface DonutSegment {
   label: string;
@@ -47,24 +48,18 @@ export function DonutRingChart({
     hoverIdx !== null && hoverIdx >= 0 && hoverIdx < segments.length ? segments[hoverIdx] : null;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 'var(--space-4)',
-        padding: '6px 0',
-        width: '100%',
-      }}
-    >
+    <div className="flex w-full flex-wrap items-center justify-between gap-4 px-0 py-[6px]">
       {/* 1. Ring Chart with Center Metric */}
-      <div style={{ position: 'relative', width: `${size}px`, height: `${size}px`, flexShrink: 0 }}>
+      <div
+        className="relative shrink-0"
+        // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (size-Prop des Aufrufers)
+        style={{ width: `${size}px`, height: `${size}px` }}
+      >
         <svg
           width={size}
           height={size}
           viewBox="-1.15 -1.15 2.3 2.3"
-          style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}
+          className="overflow-visible [transform:rotate(-90deg)]"
           role="img"
           aria-label={`${totalLabel}: ${formatChartMetric(total, unit)}`}
           onMouseLeave={() => setHoverIdx(null)}
@@ -79,12 +74,10 @@ export function DonutRingChart({
                 stroke="var(--color-surface)"
                 strokeWidth="0.04"
                 opacity={hoverIdx === null || isHovered ? 1 : 0.45}
-                style={{
-                  cursor: 'pointer',
-                  transform: isHovered ? 'scale(1.04)' : 'scale(1)',
-                  transformOrigin: '0 0',
-                  transition: 'transform 150ms ease, opacity 150ms ease',
-                }}
+                className={cn(
+                  'cursor-pointer origin-[0_0] [transition:transform_150ms_ease,opacity_150ms_ease]',
+                  isHovered ? '[transform:scale(1.04)]' : '[transform:scale(1)]',
+                )}
                 onMouseEnter={() => setHoverIdx(p.idx)}
               />
             );
@@ -95,37 +88,11 @@ export function DonutRingChart({
         </svg>
 
         {/* Centered Total Overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            pointerEvents: 'none',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '10px',
-              color: 'var(--color-text-muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-            }}
-          >
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="text-[10px] uppercase tracking-[0.04em] text-[var(--color-text-muted)]">
             {hoveredSeg ? hoveredSeg.label : totalLabel}
           </span>
-          <span
-            style={{
-              fontSize: '16px',
-              fontWeight: 700,
-              fontFamily: 'var(--font-display)',
-              color: 'var(--color-text)',
-              marginTop: '1px',
-            }}
-          >
+          <span className="mt-[1px] font-display text-[16px] font-bold text-text">
             {hoveredSeg
               ? formatChartMetric(hoveredSeg.value, unit)
               : formatChartMetric(total, unit)}
@@ -135,15 +102,7 @@ export function DonutRingChart({
 
       {/* 2. Sorted Breakdown Comparison Bars */}
       {showBars && (
-        <div
-          style={{
-            flex: '1 1 200px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            minWidth: 0,
-          }}
-        >
+        <div className="flex min-w-0 flex-[1_1_200px] flex-col gap-[8px]">
           {segments.map((seg, idx) => {
             const pct = Math.round(((seg.value || 0) / total) * 100);
             const segColor = seg.color || colors[idx % colors.length];
@@ -165,69 +124,39 @@ export function DonutRingChart({
                     setHoverIdx(idx);
                   }
                 }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '3px',
-                  cursor: 'pointer',
-                  padding: '2px 4px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: isHovered ? 'var(--color-surface-raised)' : 'transparent',
-                  transition: 'background 150ms ease',
-                }}
+                className={cn(
+                  'flex cursor-pointer flex-col gap-[3px] rounded-sm px-[4px] py-[2px] [transition:background_150ms_ease]',
+                  isHovered ? 'bg-[var(--color-surface-raised)]' : 'bg-transparent',
+                )}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                <div className="flex justify-between text-[12px]">
+                  <div className="flex min-w-0 items-center gap-[6px]">
                     <span
-                      style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        background: segColor,
-                        flexShrink: 0,
-                      }}
+                      className="h-[8px] w-[8px] shrink-0 rounded-[50%]"
+                      // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Farbe (Segmentfarbe aus Daten)
+                      style={{ background: segColor }}
                     />
                     <span
-                      style={{
-                        color: isHovered ? 'var(--color-text)' : 'var(--color-text-muted)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
+                      className={cn(
+                        'overflow-hidden text-ellipsis whitespace-nowrap',
+                        isHovered ? 'text-text' : 'text-[var(--color-text-muted)]',
+                      )}
                     >
                       {seg.label}
                     </span>
                   </div>
-                  <div
-                    style={{ display: 'flex', alignItems: 'baseline', gap: '4px', flexShrink: 0 }}
-                  >
-                    <strong style={{ color: 'var(--color-text)' }}>
-                      {formatChartMetric(seg.value, unit)}
-                    </strong>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                      ({pct}%)
-                    </span>
+                  <div className="flex shrink-0 items-baseline gap-[4px]">
+                    <strong className="text-text">{formatChartMetric(seg.value, unit)}</strong>
+                    <span className="text-[11px] text-[var(--color-text-muted)]">({pct}%)</span>
                   </div>
                 </div>
 
                 {/* Micro Progress Bar */}
-                <div
-                  style={{
-                    width: '100%',
-                    height: '4px',
-                    background: 'var(--color-bg-deep)',
-                    borderRadius: '2px',
-                    overflow: 'hidden',
-                  }}
-                >
+                <div className="h-[4px] w-full overflow-hidden rounded-[2px] bg-background-deep">
                   <div
-                    style={{
-                      width: `${pct}%`,
-                      height: '100%',
-                      background: segColor,
-                      borderRadius: '2px',
-                      transition: 'width 300ms ease',
-                    }}
+                    className="h-full rounded-[2px] [transition:width_300ms_ease]"
+                    // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie/-Farbe (Anteil und Segmentfarbe aus Daten)
+                    style={{ width: `${pct}%`, background: segColor }}
                   />
                 </div>
               </div>

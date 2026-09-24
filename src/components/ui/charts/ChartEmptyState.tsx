@@ -1,5 +1,5 @@
-import React from 'react';
 import { Icon } from '../Icon';
+import { cn } from '@/lib/utils';
 
 export interface ChartEmptyStateProps {
   title?: string;
@@ -8,7 +8,7 @@ export interface ChartEmptyStateProps {
   currentCount?: number;
   minRequired?: number;
   iconName?: string;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
 export function ChartEmptyState({
@@ -18,60 +18,25 @@ export function ChartEmptyState({
   currentCount,
   minRequired,
   iconName = 'trendingUp',
-  style,
+  className,
 }: ChartEmptyStateProps) {
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        padding: 'var(--space-6) var(--space-4)',
-        background: 'var(--color-bg-deep)',
-        borderRadius: 'var(--radius-md)',
-        border: '1px dashed var(--color-border)',
-        color: 'var(--color-text-muted)',
-        gap: 'var(--space-2)',
-        width: '100%',
-        boxSizing: 'border-box',
-        ...style,
-      }}
+      className={cn(
+        'box-border flex w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border bg-background-deep px-4 py-6 text-center text-[var(--color-text-muted)]',
+        className,
+      )}
     >
-      <div
-        style={{
-          width: '36px',
-          height: '36px',
-          borderRadius: '50%',
-          background: 'var(--color-surface)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--color-primary)',
-          marginBottom: '2px',
-        }}
-      >
+      <div className="mb-[2px] flex h-[36px] w-[36px] items-center justify-center rounded-[50%] bg-surface text-[var(--color-primary)]">
         <Icon name={iconName} size={18} />
       </div>
 
-      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text)' }}>{title}</div>
+      <div className="text-[13px] font-semibold text-text">{title}</div>
 
-      <div style={{ fontSize: '12px', maxWidth: '380px', lineHeight: 1.4 }}>{message}</div>
+      <div className="max-w-[380px] text-[12px] leading-[1.4]">{message}</div>
 
       {(currentCount !== undefined || requirement) && (
-        <div
-          style={{
-            marginTop: '6px',
-            padding: '3px 10px',
-            borderRadius: 'var(--radius-full)',
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border-soft)',
-            fontSize: '11px',
-            color: 'var(--color-primary)',
-            fontWeight: 500,
-          }}
-        >
+        <div className="mt-[6px] rounded-full border border-solid border-border-soft bg-surface px-[10px] py-[3px] text-[11px] font-medium text-[var(--color-primary)]">
           {requirement ||
             (minRequired
               ? `Status: ${currentCount} von ${minRequired} Läufen ausgeführt`

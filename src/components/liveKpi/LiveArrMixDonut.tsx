@@ -123,7 +123,7 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
                 4 Quellen · Streaming-Ebene C
               </span>
             </div>
-            <Badge variant={isComplete ? 'mint' : 'neutral'} style={{ fontSize: '9.5px' }}>
+            <Badge variant={isComplete ? 'mint' : 'neutral'} className="text-[9.5px]">
               {isComplete ? 'Mix vollständig' : `${confirmedItems.length}/4 Werte`}
             </Badge>
           </div>
@@ -131,7 +131,7 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
           {/* Degraded Qualitätswarnung */}
           {hasDegraded && (
             <div className="mb-[10px]">
-              <Badge variant="orange" style={{ padding: '2px 8px', fontSize: '9.5px' }}>
+              <Badge variant="orange" size="sm">
                 Qualität eingeschränkt (Degraded Snapshot)
               </Badge>
             </div>

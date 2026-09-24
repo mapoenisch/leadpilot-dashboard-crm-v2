@@ -3,6 +3,7 @@ import { formatChartMetric } from '../chartTheme';
 import { ChartEmptyState } from './ChartEmptyState';
 import { ChartLegend } from './ChartLegend';
 import { ChartTooltip } from './ChartTooltip';
+import { cn } from '@/lib/utils';
 
 export interface HistogramBucket {
   min: number;
@@ -57,27 +58,12 @@ export function MonteCarloHistogramChart({
     hoverIdx !== null && hoverIdx >= 0 && hoverIdx < buckets.length ? buckets[hoverIdx] : null;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        width: '100%',
-        position: 'relative',
-      }}
-    >
+    <div className="relative flex w-full flex-col gap-[10px]">
       {/* Histogram Canvas */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          height: `${height}px`,
-          gap: '6px',
-          paddingBottom: '24px',
-          borderBottom: '1px solid var(--color-border)',
-          boxSizing: 'border-box',
-          position: 'relative',
-        }}
+        className="relative box-border flex items-end gap-[6px] border-0 border-b border-solid border-border pb-[24px]"
+        // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (height-Prop des Aufrufers)
+        style={{ height: `${height}px` }}
       >
         {buckets.map((b, i) => {
           const heightPct = Math.max(6, (b.count / maxCount) * 100);
@@ -100,62 +86,41 @@ export function MonteCarloHistogramChart({
                   setHoverIdx(i);
                 }
               }}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                height: '100%',
-                justifyContent: 'flex-end',
-                gap: '4px',
-                cursor: 'pointer',
-              }}
+              className="flex h-full flex-1 cursor-pointer flex-col items-center justify-end gap-[4px]"
             >
               {/* Count label above bar */}
               <span
-                style={{
-                  fontSize: '11px',
-                  color: isMedianBucket ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                  fontWeight: 600,
-                  fontFamily: 'var(--font-mono)',
-                  opacity: b.count > 0 ? 1 : 0,
-                }}
+                className={cn(
+                  'font-mono text-[11px] font-semibold',
+                  isMedianBucket ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]',
+                  b.count > 0 ? 'opacity-100' : 'opacity-0',
+                )}
               >
                 {b.count > 0 ? b.count : ''}
               </span>
 
               {/* Bar Polygon */}
               <div
-                style={{
-                  width: '100%',
-                  height: `${heightPct}%`,
-                  background: isMedianBucket
-                    ? 'linear-gradient(180deg, var(--color-accent) 0%, rgba(0, 229, 255, 0.4) 100%)'
+                className={cn(
+                  'w-full rounded-[4px_4px_0_0] border border-solid [transition:height_250ms_ease,background_150ms_ease]',
+                  isMedianBucket
+                    ? 'border-[var(--color-accent)] shadow-[0_0_10px_rgba(0,229,255,0.35)] [background:linear-gradient(180deg,var(--color-accent)_0%,rgba(0,229,255,0.4)_100%)]'
                     : isHovered
-                      ? 'linear-gradient(180deg, var(--color-primary) 0%, rgba(0, 217, 198, 0.5) 100%)'
-                      : 'linear-gradient(180deg, rgba(0, 217, 198, 0.7) 0%, rgba(0, 217, 198, 0.25) 100%)',
-                  borderRadius: '4px 4px 0 0',
-                  border: isMedianBucket
-                    ? '1px solid var(--color-accent)'
-                    : '1px solid rgba(0, 217, 198, 0.3)',
-                  boxShadow: isMedianBucket ? '0 0 10px rgba(0, 229, 255, 0.35)' : 'none',
-                  transition: 'height 250ms ease, background 150ms ease',
-                }}
+                      ? 'border-[rgba(0,217,198,0.3)] [background:linear-gradient(180deg,var(--color-primary)_0%,rgba(0,217,198,0.5)_100%)]'
+                      : 'border-[rgba(0,217,198,0.3)] [background:linear-gradient(180deg,rgba(0,217,198,0.7)_0%,rgba(0,217,198,0.25)_100%)]',
+                )}
+                // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Balkenhöhe aus Verteilung)
+                style={{ height: `${heightPct}%` }}
               />
 
               {/* Bottom Bucket Range Label */}
               <span
-                style={{
-                  fontSize: '9.5px',
-                  color: isMedianBucket ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                  fontWeight: isMedianBucket ? 700 : 400,
-                  fontFamily: 'var(--font-mono)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '65px',
-                  textAlign: 'center',
-                }}
+                className={cn(
+                  'max-w-[65px] overflow-hidden text-ellipsis whitespace-nowrap text-center font-mono text-[9.5px]',
+                  isMedianBucket
+                    ? 'font-bold text-[var(--color-accent)]'
+                    : 'font-normal text-[var(--color-text-muted)]',
+                )}
               >
                 {Math.round(b.min).toLocaleString('de-DE')}
               </span>
@@ -179,32 +144,15 @@ export function MonteCarloHistogramChart({
       )}
 
       {/* Statistical Summary Footer */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '8px',
-          fontSize: '11.5px',
-          color: 'var(--color-text-muted)',
-          padding: '0 4px',
-        }}
-      >
+      <div className="flex flex-wrap items-center justify-between gap-[8px] px-[4px] py-0 text-[11.5px] text-[var(--color-text-muted)]">
         <span>
-          Min (P10):{' '}
-          <strong style={{ color: 'var(--color-text)' }}>
-            {formatChartMetric(p10 ?? minVal, unit)}
-          </strong>
+          Min (P10): <strong className="text-text">{formatChartMetric(p10 ?? minVal, unit)}</strong>
         </span>
-        <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
+        <span className="font-semibold text-[var(--color-accent)]">
           P50 Median: <strong>{formatChartMetric(median, unit)}</strong>
         </span>
         <span>
-          Max (P90):{' '}
-          <strong style={{ color: 'var(--color-text)' }}>
-            {formatChartMetric(p90 ?? maxVal, unit)}
-          </strong>
+          Max (P90): <strong className="text-text">{formatChartMetric(p90 ?? maxVal, unit)}</strong>
         </span>
       </div>
 
