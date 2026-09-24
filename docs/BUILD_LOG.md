@@ -12618,3 +12618,24 @@ PR #25 (`d6add92`) · **Prüfer:** Codex · **Status:** lokale Gates grün, Revi
 
 **Übergabe an Codex:** Review G63 gegen die Abnahmekriterien des Auftrags,
 insbesondere Migration/RPC-Rechte, Determinismusnachweis und E2E in der PR-CI.
+
+---
+
+## [2026-09-24] Issue #7 — Nacharbeit zum Codex-Review von PR #25 (Builder: Claude Code)
+
+**Befund:** Codex-Review (Bot-Kommentare 4098557318, 4098557329, 4098557339,
+4098557349; von Marc als Prüferbefund übernommen) — Gates rot bis zur Nacharbeit.
+
+| Priorität | Befund | Nacharbeit | Commit |
+|---|---|---|---|
+| P1 | Detailauftrag für Issue #7 fehlt (AGENTS.md Z. 28–33) | `docs/auftraege/ANTIGRAVITY_AUFTRAG_ISSUE_7_QUALITY_DEBT.md` nachträglich angelegt (als solcher gekennzeichnet) mit Ziel-Dateiliste und Abnahmekriterien. **Scope-Prüfung:** alle 50 geänderten Dateien plus Matrix-README liegen in der Ziel-Dateiliste (0 außerhalb); Schutzbereichs-Diff gegen `main` leer. | `927a15d` |
+| P1 | Versionierte Screenshot-Nachweismatrix fehlt | Harness `scripts/captureIssue7ParityScreenshots.mjs` (41 Routen × 1440/768/375, SHA-256, Overflow, Vergleichsmodus mit Rauschreferenz) und Matrix `docs/screenshots/issue-7/README.md`. Ergebnis: 117/123 SHA-identisch, 6 als Rauschen belegt (gleiche Abweichung zwischen zwei Vorher-Läufen), 0 Abweichungen, 0 px Overflow; 122/123 Nachher-Aufnahmen SHA-gleich zu einem Vorher-Lauf. | dieser Commit |
+| P2 | Budgetzähler erkennt nur `style={` | Muster `\bstyle\s*=\s*\{`, Negativtest mit drei Whitespace-Varianten. | `927a15d` |
+| P2 | Überlappende Bereiche hängen von der Key-Reihenfolge ab | Zuordnung nach längstem Präfix (`areaFor`), Test mit umgekehrter Reihenfolge. | `927a15d` |
+
+**Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm run format:check`,
+`scripts/__tests__/verifyQualityBudget.vitest.ts` 9/9, `npm run verify:quality-budget`
+(Zählung unverändert: Resources 96, übriges `src/` 0, Suppressions 50/1/1/1).
+Bilddateien nicht committet (CLAUDE.md §7).
+
+**Übergabe an Codex:** erneute Prüfung von PR #25; alle Review-Threads beantwortet.
