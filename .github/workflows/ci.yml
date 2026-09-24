@@ -172,6 +172,8 @@ jobs:
           echo "E2E_AUTH_EMAIL_NOMEMBER=nomember@e2e.local" >> $GITHUB_ENV
           echo "E2E_AUTH_EMAIL_MANAGER=manager-a@e2e.local" >> $GITHUB_ENV
           echo "E2E_AUTH_EMAIL_VIEWER=viewer-a@e2e.local" >> $GITHUB_ENV
+      - name: pgTAP-Datenbanktests (supabase test db)
+        run: supabase test db
       - name: Playwright-Browser cachen
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
