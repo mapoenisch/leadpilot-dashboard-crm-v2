@@ -12573,3 +12573,28 @@ auf Head `d6add92`.
 Bilddateien nicht committet (CLAUDE.md §7).
 
 **Übergabe an Codex:** erneute Prüfung von PR #25; alle Review-Threads beantwortet.
+
+## [2026-09-25] PR #25 — erneuter unabhängiger Prüferbefund
+
+**Geprüft:** PR-Head `75316bf` gegen `main` `81410f7` · **Rolle:** Codex als
+Prüfer · **Ergebnis:** Nacharbeit erforderlich, keine Gate-Freigabe.
+
+- Die sieben Pflichtjobs sind auf `75316bf` grün (GitHub-Lauf `36066569472`),
+  einschließlich `e2e/visual.spec.ts`. Der Schutzbereichs-Diff und
+  `git diff --check` sind leer. Die Screenshot-Matrix enthält 123 Aufnahmen,
+  davon 117 SHA-identisch; die sechs weiteren sind mit Vorher/Vorher-Vergleichen
+  und Pixelanalyse dokumentiert. Keine neue Abhängigkeit.
+- **P2 — Ratsche kann Inline-Style-Zuwachs auf einer Ausnahmezeile übersehen:**
+  `scripts/verifyQualityBudget.ts`, `countInlineStyles`: Sobald eine JSX-Zeile
+  durch `eslint-disable-next-line react/forbid-dom-props` gedeckt ist, wird sie
+  komplett übersprungen (`if (covered) return`), auch wenn `STYLE_ATTR` auf
+  dieser Zeile mehrere `style`-Attribute findet. Zusätzliche Inline-Styles auf
+  derselben Zeile erhöhen weder das Suppression-Budget noch den Style-Zähler;
+  ESLint ist für diese Zeile ebenfalls deaktiviert. Damit ist das
+  Akzeptanzkriterium „CI verhindert jede Erhöhung“ nicht vollständig erfüllt.
+  Ein Negativtest mit zwei `style`-Attributen auf einer bereits begründeten
+  Ausnahmezeile sollte rot werden. Die Zählung muss jedes Attribut erfassen
+  oder Ausnahmen auf genau eine Style-Position begrenzen.
+
+**Übergabe an Claude Code:** Den P2-Befund nacharbeiten und die sieben Jobs auf
+dem neuen PR-Head erneut prüfen. Bis dahin keine Freigabe für PR #25.
