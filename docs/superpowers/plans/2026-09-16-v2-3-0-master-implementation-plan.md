@@ -15,6 +15,7 @@
 - Ausgangscode ist Commit `9380ace8290524456e7ce76852b570612a51df06` (`v2.2.0`); Zielversion ist `v2.3.0`.
 - Reihenfolge ist zwingend `067A` bis `067S`; ein rotes Gate blockiert den nächsten Teilauftrag.
 - Antigravity baut; Codex oder Claude Code prüft unabhängig und schreibt den Befund in `docs/BUILD_LOG.md`.
+  **Revision 2026-09-24 (Marc):** Ab 067Q bis zum Release `v2.3.0` baut Claude Code (inklusive Detailaufträge); Codex prüft unabhängig. Siehe `CLAUDE.md` §4.
 - Der aktive Teilauftrag darf ausschließlich seine ausdrücklich genannten Ziel-Dateien ändern.
 - Schutzbereiche sind nur innerhalb der in diesem Plan benannten Teilaufträge freigegeben; alle anderen Schutzbereichs-Diffs müssen leer bleiben.
 - Jeder Verhaltenswechsel beginnt mit einem reproduzierbar roten Test und endet mit Regression, Pflicht-Gates und einem kleinen Commit.
