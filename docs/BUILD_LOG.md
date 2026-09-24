@@ -12434,3 +12434,65 @@ diesen CI-PR · **Status:** lokale Gates grün, PR-CI/Review ausstehend.
 **Übergabe:** Vor Merge unabhängigen Review und die sieben Pflichtjobs auf
 finalem PR-HEAD prüfen; anschließend den `main`-Lauf. Bis dahin keine
 Freigabe für 067Q/G63.
+
+## [2026-09-24] pgTAP-Tests `member_management` / `tenant_isolation` — Audit-Log-Cleanup-Konflikt behoben
+
+**Basis:** `81410f7` · **Auftrag:** Direktauftrag von Marc (Fix zweier roter
+pgTAP-Dateien bei `supabase test db`) · **Rolle:** Claude Code als Builder
+nur für diese Testdateien · **Status:** lokale Gates grün, PR-CI/Review ausstehend.
+
+**Ziel & Kontext:** `supabase test db` scheiterte auf `main` in
+`member_management.sql` (Teardown, `DELETE FROM public.organizations`) und
+`tenant_isolation.sql` (Cleanup am Anfang) mit `LP_AUDIT_IMMUTABLE`. Beide
+Dateien löschten *alle* Organisationen inklusive der Seed-Orgs; deren
+Audit-Zeilen (aus `trg_audit_log_member_changes` beim Seed) wurden per
+`ON DELETE CASCADE` mitgelöscht, was `trg_audit_log_immutable` korrekt
+blockiert. `tenant_isolation.sql` nutzte zudem dieselben Org-/User-/Company-
+IDs und Domains wie `supabase/seed.sql`.
+
+**Entscheidung:** Weg 1 (alles in `BEGIN … ROLLBACK`, eigene IDs, kein
+Löschen vorhandener Daten). Weg 2 (nur Zeilen ohne Audit-Bezug löschen)
+verworfen: Jede Org mit Mitgliedern hat Audit-Bezug, der Cleanup wäre von
+Seed-Inhalten abhängig und bliebe fragil. Keine Änderung an
+Immutabilitäts-Trigger oder FK-Verhalten (Architekturentscheidung, nicht
+freigegeben).
+
+**Geänderte Dateien:**
+- `supabase/tests/member_management.sql`: Vorab-Cleanup und Teardown entfernt,
+  inklusive des bisherigen `DISABLE TRIGGER trg_audit_log_immutable` /
+  `trg_audit_log_member_changes` und der Audit-Zeilen-Löschung (diese
+  Test-Hintertür weichte die Unveränderlichkeit auf). `COMMIT` → `ROLLBACK`.
+  Die 31 Assertions sind unverändert.
+- `supabase/tests/tenant_isolation.sql`: globale `DELETE`s entfernt; eigene
+  IDs (Präfix `7e…`) und Domains/E-Mails (`ti-*.test`), die nicht mit dem Seed
+  kollidieren. Die Kontroll-Assertion 27 zählt nur Companies der beiden
+  Test-Orgs. Nebenbefund behoben: Assertion 5 nutzte die ungültige UUID
+  `c0000000-0000-0000-0000-00000000ff` und bestand dadurch per Syntaxfehler
+  statt per RLS — jetzt gültige UUID, Assertion besteht weiterhin (RLS).
+  Die 27 Assertions sind inhaltlich unverändert.
+
+**Funktionale Prüfungen (lokales Supabase CLI 2.117.0, wie CI):**
+- Vorher: `supabase db reset && supabase test db` → `member_management.sql`
+  (Zeile 369) und `tenant_isolation.sql` (Zeile 19) rot mit
+  `LP_AUDIT_IMMUTABLE`, `Result: FAIL`.
+- Nachher: alle 6 Dateien `ok`, 140 Tests, `Result: PASS`; zweiter Lauf ohne
+  Reset ebenfalls `PASS` (idempotent). Seed danach unverändert
+  (3 Orgs, 4 Mitglieder, 6 Companies, 4 Audit-Zeilen, 0 Test-User übrig).
+
+**Schutzbereichs-Prüfung:** `git diff 81410f7 -- src/simulation src/types
+src/context src/services/data src/features/resources`: leer. Keine Migration,
+kein Schema, kein Seed geändert.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` (0 Fehler),
+`npm run verify` (Integrity 001–025 bestanden), `npm run build` bestanden.
+Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**CI-Lücke (nicht behoben, nur festgestellt):** `.github/workflows/ci.yml`
+führt im Job `e2e` zwar `supabase start` und `supabase db reset` aus, aber
+**kein** `supabase test db`. Die pgTAP-Suiten laufen damit in CI nicht, was
+erklärt, warum die Regression unbemerkt auf `main` kam. Vorschlag: nach
+`supabase db reset --yes` einen Schritt `supabase test db` ergänzen — eigener
+Auftrag, da CI-Workflow außerhalb dieses Fixes.
+
+**Ergebnis & Freigabestatus:** Builder-Nachweis grün. Unabhängiger Review
+durch Codex/Claude Code ausstehend.
