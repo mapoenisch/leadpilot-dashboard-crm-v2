@@ -12870,3 +12870,21 @@ pgTAP-Schritt aus #26 **und** `run-control.spec.ts` im sequentiellen Worker-Schr
 
 **Übergabe an Codex:** G63 auf dem neuen PR-Head nach grünen sieben Pflichtjobs
 (jetzt inklusive pgTAP im `e2e`-Job) erneut prüfen.
+
+---
+
+## [2026-09-25] PR #27 / G63 — erneute Prüferfreigabe nach Integration
+
+**Geprüft:** PR-Head `886a69f` auf dem integrierten Stand von #25 und #26 ·
+**Rolle:** Codex als Prüfer · **Ergebnis:** Freigabe; der P1-Befund ist behoben.
+
+- Der Head enthält `e1a54bd` (#26) und `a947e3b` (Ratschen-Fix aus #25)
+  als Vorfahren. Der Workflow führt `supabase test db` und die sequentiellen
+  `run-control.spec.ts`-Tests aus.
+- Die sieben Pflichtjobs sind auf `886a69f` grün (GitHub-Lauf `36073262682`).
+  Im `e2e`-Protokoll sind alle sieben pgTAP-Dateien inklusive `run_control.sql`
+  erfolgreich: 164 Tests, PASS. Die sequentiellen Browser-Tests: 15/15 PASS.
+- Seit der vorherigen Funktionsprüfung kamen nur die Integration von #25/#26
+  und Dokumentation hinzu; am Run-Control-Code gab es keine neue Änderung.
+
+**Übergabe an Claude Code:** G63 / PR #27 ist aus Prüfersicht freigegeben.
