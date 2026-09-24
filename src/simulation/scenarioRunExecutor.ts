@@ -15,8 +15,15 @@ import { dataSourceRegistry } from '../services/data';
 import { DataSourceError } from '../types/dataSource';
 import { ISnapshotRepository } from '../services/db/ISnapshotRepository';
 import { TimeSeriesPoint } from '../types/aggregation';
-import { RunManifest, RunOptions, ScenarioError, SimulationRun } from '../types/scenario';
+import {
+  RunManifest,
+  RunOptions,
+  ScenarioError,
+  ScenarioVersion,
+  SimulationRun,
+} from '../types/scenario';
 import type { SimulationSnapshot } from '../types/snapshot';
+import type { RunResumeSnapshotBody } from '../types/runControl';
 import {
   SimulationActivity,
   SimulationDeal,
@@ -37,10 +44,19 @@ import { ScenarioRepository } from './scenarioRepository';
 // 067K / G57 — aus scenarioService.ts herausgelöster Run-Pfad (reine
 // Code-Bewegung, keine Verhaltensänderung). Instanzzustand (Repository,
 // Snapshot-Repo, Worker-Ausführung) fließt über einen expliziten Kontext.
+// 067Q / G63: Modell- und Schemaversion neuer Runs — ein Resume aus Snapshot
+// akzeptiert nur Zwischenstände genau dieser Versionen.
+export const RUN_MODEL_VERSION = '1.0.0-v1';
+export const RUN_SCHEMA_VERSION = '1.0.0';
+
 export interface ScenarioRunContext {
   repo: ScenarioRepository;
   getSnapshotRepo: () => ISnapshotRepository | undefined;
-  runTicksInWorker: (input: MainThreadTickInput, manifest: RunManifest) => Promise<TickRunResult>;
+  runTicksInWorker: (
+    input: MainThreadTickInput,
+    manifest: RunManifest,
+    resumeSnapshot?: RunResumeSnapshotBody,
+  ) => Promise<TickRunResult>;
 }
 
 /**
@@ -169,8 +185,8 @@ export async function runScenarioVersionWith(
     scenarioVersionId: version.id,
     seed,
     initialRngState,
-    modelVersion: '1.0.0-v1',
-    schemaVersion: '1.0.0',
+    modelVersion: RUN_MODEL_VERSION,
+    schemaVersion: RUN_SCHEMA_VERSION,
     baselineVersion,
     baselineId: dataset.version,
     baselineHash: dataset.baselineHash,
@@ -231,6 +247,7 @@ export async function runScenarioVersionWith(
     targetTicks,
     correlationId,
     onProgress: opts?.onProgress,
+    onPaused: opts?.onPaused,
   };
   let tickResult;
   if (shouldUseWorker()) {
@@ -246,6 +263,60 @@ export async function runScenarioVersionWith(
   events.push(...tickResult.events);
   timeSeries.push(...tickResult.timeSeries);
 
+  return finalizeRunWith(ctx, {
+    version,
+    manifest,
+    runId,
+    seed,
+    measures,
+    targetTicks,
+    correlationId,
+    startedAt: nowIso,
+    rngState: tickResult.rngState,
+    state: currentState,
+    leads,
+    opportunities,
+    deals,
+    activities,
+    events,
+    timeSeries,
+    opts,
+  });
+}
+
+export interface FinalizeRunInput {
+  version: ScenarioVersion;
+  manifest: RunManifest;
+  runId: string;
+  seed: number;
+  measures: SimulationRun['measures'];
+  targetTicks: number;
+  correlationId: string;
+  startedAt: string;
+  rngState: number;
+  state: SimulationState;
+  leads: SimulationLead[];
+  opportunities: SimulationOpportunity[];
+  deals: SimulationDeal[];
+  activities: SimulationActivity[];
+  events: SimulationEvent[];
+  timeSeries: TimeSeriesPoint[];
+  opts?: RunOptions;
+}
+
+/**
+ * Schritt 4 des Run-Pfads: Run-Objekt bauen, lokal speichern und optional
+ * atomar auf dem Server persistieren. 067Q / G63: gemeinsam für den normalen
+ * Lauf und den Resume aus Snapshot, damit beide identische Runs erzeugen.
+ */
+export async function finalizeRunWith(
+  ctx: ScenarioRunContext,
+  f: FinalizeRunInput,
+): Promise<RunExecutionResult> {
+  const { version, manifest, runId, seed, measures, targetTicks, correlationId, opts } = f;
+  const { leads, opportunities, deals, activities, events, timeSeries } = f;
+  const currentState = f.state;
+  const nowIso = f.startedAt;
   currentState.isRunning = false;
   const completedAtIso = systemContext.now();
 
@@ -257,7 +328,7 @@ export async function runScenarioVersionWith(
     seed,
     // 067G / G50 (Nacharbeit P1): Endzustand aus dem ausführenden Pfad —
     // im Browser der Worker, sonst der Main-Thread-Rng.
-    rngState: tickResult.rngState,
+    rngState: f.rngState,
     modelVersion: manifest.modelVersion,
     schemaVersion: manifest.schemaVersion,
     baselineVersion: manifest.baselineVersion,

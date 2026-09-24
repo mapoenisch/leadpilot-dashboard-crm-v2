@@ -12532,3 +12532,72 @@ erst nach CI-Lauf und Sichtung der visuellen Abweichungen.
 
 **Builder-Reaktion (Claude Code):** PR geöffnet; CI-Ergebnis und Zuordnung der
 visuellen Abweichungen folgen als eigener Eintrag.
+
+---
+
+## [2026-09-24] Auftrag 067Q / G63 — Run-Steuerung gebaut (Builder: Claude Code)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_067Q_RUN_STEUERUNG.md` (von Claude Code
+geschrieben, Rollenwechsel `CLAUDE.md` §4) · **Branch:** `claude/067q-run-control` auf
+PR #25 (`d6add92`) · **Prüfer:** Codex · **Status:** lokale Gates grün, Review/PR-CI ausstehend.
+
+### Ziel & Umsetzung
+
+- **Pause/Fortsetzen/Abbruch** kooperativ an Tick-Grenzen über das bestehende
+  Worker-Protokoll. `PAUSED` liefert einen vollständigen Zwischenstand
+  (`RunResumeSnapshot`: PRNG, Zustand, Sammlungen, Queues, Events, Zeitreihe,
+  historische Kennzahlen, Manifest). Der Abbruch endet mit `SIMULATION_CANCELLED`
+  (vorher `CANCELLED` als `failed`).
+- **Resume aus Snapshot** (`scenarioRunResume.ts`): Der Snapshot wird über den
+  SHA-256 seiner kanonischen JSON-Form versiegelt. Hash, Manifest-Bindung,
+  Organisation, Baseline-Hash, Modell-/Schemaversion und Tick-Grenzen werden
+  fail-closed geprüft (`SIMULATION_RESUME_INVALID`). Der Resume läuft über
+  denselben Abschlusspfad (`finalizeRunWith`) wie ein normaler Run.
+- **Retry** mit gleichem Seed, idempotent: gleichzeitige Aufrufe ergeben einen Lauf.
+- **Rollen:** nur Admin/Manager (`simulation:run`), geprüft in UI, Store und DB (RPC).
+  Viewer sieht den Zustand ohne Aktionen.
+- **Persistenz** (Migration `20261001_run_control.sql`): Tabelle
+  `simulation_run_pauses` (RLS nur lesend für die eigene Organisation, Schreiben
+  nur per RPC), RPCs `save_run_pause`/`discard_run_pause`/`record_run_control`.
+  Ein Trigger löscht die Pause atomar mit `persist_completed_run`. Audit:
+  `scenario.run_paused|resumed|cancelled|retried` ohne PII.
+- **UI:** `RunControlBar` im Run-Modal und auf `/crm/live-simulation`,
+  `PausedRunsPanel` für gespeicherte Pausen (nach Reload oder in zweiter Sitzung).
+
+### Gefundene und behobene Fehler während des Baus
+
+1. `DeterministicRNG`-Zustand wächst über 2³². Ein Kürzen beim Wiederherstellen
+   ergab dieselbe Zufallsfolge, aber einen abweichenden persistierten `rngState`.
+   `fromState` übernimmt jetzt den Rohwert.
+2. Pause/Abbruch während der Baseline-Erfassung (vor dem Worker-Start) liefen ins
+   Leere, auch der Navigations-Abbruch aus G50. Der Befehl wird jetzt vorgemerkt
+   und beim Start angewendet.
+3. `canonicalStringify` wirft bei `undefined`. Deshalb wird vor dem Versiegeln
+   JSON-normalisiert, identisch zur JSONB-Speicherung.
+
+### Verifikation
+
+- Golden Run + `reproducibilityIntegrity` vorher und nachher grün (unverändert).
+- Kernnachweis: Pause + Resume im selben Worker, Resume in frischem Worker und
+  Resume im Main-Thread-Pfad sind **byte-identisch** zum ununterbrochenen Lauf.
+- `npx tsc --noEmit`, `npm run lint` (0/0), `npm run format:check`,
+  `npm run verify:quality-budget`, `npm run test:coverage` (268 Dateien, 1454 Tests;
+  87,34 % Statements / 81,1 % Branches / 82 % Functions / 88,55 % Lines),
+  `npm run verify` (001–025), `npm run build`, `npx size-limit`
+  (172,09 kB / 86,4 kB; +3,3 kB initial durch Run-Steuerung im Store).
+- `supabase test db`: `run_control.sql` 22/22 grün. `member_management.sql` und
+  `tenant_isolation.sql` scheitern **bereits ohne diese Änderung** am
+  Audit-Immutabilitäts-Trigger beim Aufräumen (Altbefund, separat vorgeschlagen).
+- Playwright `run-control.spec.ts` 9/9 (3 Breiten), dazu `persistence-multisession`,
+  `worker-responsiveness`, `a11y`, `routes`, `semantic-routes`, `element-clipping`
+  und `auth` grün. `tenant-isolation.spec.ts` lokal rot, weil die Edge-Runtime
+  im Sandbox-Container die npm-Registry nicht erreicht (Zertifikat des Proxys).
+  Das ist unabhängig von 067Q; die CI führt den Test aus.
+- Pixelvergleich gegen `4631faf`, 41 Routen × 3 Breiten: `/crm/live-simulation`
+  in allen Breiten pixelgleich. Abweichungen nur auf den bekannten Rausch-Routen.
+- **Schutzbereiche:** `src/simulation` und `src/types` nur in den Zieldateien
+  des Auftrags (freigegeben für 067Q). `src/context`, `src/services/data`,
+  `src/features/resources`: Diff gegen `d6add92` leer.
+
+**Übergabe an Codex:** Review G63 gegen die Abnahmekriterien des Auftrags,
+insbesondere Migration/RPC-Rechte, Determinismusnachweis und E2E in der PR-CI.

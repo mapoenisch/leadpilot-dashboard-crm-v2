@@ -1,6 +1,7 @@
 import { RunManifest } from './scenario';
 import { TimeSeriesPoint } from './aggregation';
 import { Measure } from './measure';
+import type { RunResumeSnapshotBody } from './runControl';
 import {
   HistoricalSimulationMetrics,
   SimulationActivity,
@@ -34,6 +35,8 @@ export interface WorkerCommandPayload {
   targetTicks?: number;
   batchSize?: number;
   totalRuns?: number;
+  // 067Q / G63: Start an einer gespeicherten Tick-Grenze statt bei Tick 0.
+  resumeSnapshot?: RunResumeSnapshotBody;
 }
 
 export interface WorkerErrorPayload {
@@ -63,6 +66,9 @@ export interface WorkerEventPayload {
   events?: SimulationEvent[];
   timeSeries?: TimeSeriesPoint[];
   error?: WorkerErrorPayload;
+  // 067Q / G63: Vollständiger Zwischenstand bei PAUSED (ohne Hash — den
+  // berechnet der Main-Thread über die kanonische Serialisierung).
+  snapshot?: RunResumeSnapshotBody;
 }
 
 export interface WorkerMessageCommand {

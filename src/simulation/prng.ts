@@ -20,6 +20,20 @@ export class DeterministicRNG {
   }
 
   /**
+   * 067Q / G63: Stellt einen Generator an einem gespeicherten Zustand wieder
+   * her (Resume aus Snapshot). Der Rohwert wird unverändert übernommen:
+   * `next()` lässt den Zustand über 2^32 wachsen, und ein Kürzen würde zwar
+   * dieselbe Zufallsfolge, aber einen abweichenden persistierten Endzustand
+   * liefern.
+   */
+  public static fromState(seed: number, state: number): DeterministicRNG {
+    if (!Number.isFinite(state)) throw new Error('Ungültiger PRNG-Zustand.');
+    const rng = new DeterministicRNG(seed);
+    rng.state = state;
+    return rng;
+  }
+
+  /**
    * Generates a deterministic float in [0, 1)
    */
   public next(): number {

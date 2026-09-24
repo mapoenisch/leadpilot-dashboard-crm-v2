@@ -134,3 +134,21 @@ export function useRunActions() {
     refreshData: s.refreshData,
   }));
 }
+
+// 067Q / G63: Zustand und Befehle der Run-Steuerung (Pause, Fortsetzen,
+// Abbruch, Retry, Resume aus gespeichertem Snapshot).
+export function useRunControl() {
+  return useShallowSelector((s) => ({
+    runProgress: s.runProgress,
+    interruptedRun: s.interruptedRun,
+    pausedRuns: s.pausedRuns,
+    runControlError: s.runControlError,
+    pauseRun: s.pauseRun,
+    resumeRun: s.resumeRun,
+    cancelRun: s.cancelRun,
+    retryRun: s.retryRun,
+    loadPausedRuns: s.loadPausedRuns,
+    resumePausedRun: s.resumePausedRun,
+    discardPausedRun: s.discardPausedRun,
+  }));
+}

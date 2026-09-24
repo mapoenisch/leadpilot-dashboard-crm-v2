@@ -203,11 +203,13 @@ describe('runCoordinator (G50)', () => {
     adapter.emit(workerEvent('QUEUED'));
     coordinator.cancel();
 
-    await expect(done).rejects.toMatchObject({ code: 'CANCELLED' });
+    // 067Q / G63: Abbruch ist kein Fehlerzustand, sondern SIMULATION_CANCELLED.
+    await expect(done).rejects.toMatchObject({ code: 'SIMULATION_CANCELLED' });
     expect(adapter.terminated).toBe(true);
     expect(adapter.listeners.size).toBe(0);
     expect(adapter.errorListeners.size).toBe(0);
-    expect(seen[seen.length - 1]?.status).toBe('failed');
+    expect(seen[seen.length - 1]?.status).toBe('cancelled');
+    expect(adapter.posted.map((c) => c.command)).toEqual(['START', 'CANCEL']);
   });
 
   it('nativer Worker-Crash wird als FAILED behandelt und terminiert', async () => {

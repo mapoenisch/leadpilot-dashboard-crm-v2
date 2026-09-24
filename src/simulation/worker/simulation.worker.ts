@@ -24,6 +24,9 @@ import {
 import { SalesQueueEntry } from '../../types/salesQueue';
 import { CSQueueEntry } from '../../types/csQueue';
 import type { Measure } from '../../types/measure';
+import type { RunResumeSnapshotBody } from '../../types/runControl';
+import { tickTimeSeriesPoint } from '../scenarioTickRunner';
+import { buildWorkerSnapshot, restoreWorkerSnapshot, type WorkerRunFields } from './workerSnapshot';
 
 class SimulationWorkerRunner {
   private state: WorkerState = 'CREATED';
@@ -165,17 +168,25 @@ class SimulationWorkerRunner {
           currentARR: initialMetrics.liveARR,
         };
 
-    this.timeSeries.push({
-      tick: 0,
-      dayIndex: 0,
-      simulatedDate,
-      metrics: {
-        arr: this.currentState.metrics?.liveARR ?? 0,
-        mrr: this.currentState.metrics?.liveMRR ?? 0,
-        customers: this.currentState.metrics?.liveCustomers ?? 0,
-        wonDeals: this.currentState.metrics?.liveWonDeals ?? 0,
-      },
-    });
+    // 067Q / G63: Resume an einer gespeicherten Tick-Grenze — PRNG, Zustand
+    // und alle Sammlungen exakt wie beim Pausieren, damit der Rest des Laufs
+    // byte-identisch zum ununterbrochenen Lauf rechnet.
+    const resume = cmd.payload.resumeSnapshot;
+    if (resume) {
+      Object.assign(this, restoreWorkerSnapshot(resume));
+    } else {
+      this.timeSeries.push({
+        tick: 0,
+        dayIndex: 0,
+        simulatedDate,
+        metrics: {
+          arr: this.currentState.metrics?.liveARR ?? 0,
+          mrr: this.currentState.metrics?.liveMRR ?? 0,
+          customers: this.currentState.metrics?.liveCustomers ?? 0,
+          wonDeals: this.currentState.metrics?.liveWonDeals ?? 0,
+        },
+      });
+    }
 
     this.state = 'RUNNING';
 
@@ -188,7 +199,7 @@ class SimulationWorkerRunner {
       payload: {
         completedRuns: this.completedRuns,
         totalRuns: this.totalRuns,
-        processedUnits: 0,
+        processedUnits: this.currentTick,
         totalUnits: this.targetTicks,
         correlationId: this.correlationId,
       },
@@ -226,9 +237,20 @@ class SimulationWorkerRunner {
       payload: {
         completedRuns: this.completedRuns,
         totalRuns: this.totalRuns,
+        processedUnits: this.currentTick,
+        totalUnits: this.targetTicks,
+        correlationId: this.correlationId,
         finalState: this.currentState ? { ...this.currentState } : undefined,
+        snapshot: this.buildSnapshot(),
       },
     });
+  }
+
+  private buildSnapshot(): RunResumeSnapshotBody | undefined {
+    // Ohne Manifest (Legacy-Start ohne Run-Kontext) gibt es keinen Snapshot.
+    if (!this.manifest || !this.currentState || !this.rng) return undefined;
+    // Feldnamen des Runners entsprechen WorkerRunFields (siehe workerSnapshot).
+    return buildWorkerSnapshot(this as unknown as WorkerRunFields);
   }
 
   private handleResume(cmd: WorkerMessageCommand): void {
@@ -279,6 +301,9 @@ class SimulationWorkerRunner {
       payload: {
         completedRuns: this.completedRuns,
         totalRuns: this.totalRuns,
+        processedUnits: this.currentTick,
+        totalUnits: this.targetTicks,
+        correlationId: this.correlationId,
       },
     });
   }
@@ -340,21 +365,7 @@ class SimulationWorkerRunner {
         this.events.unshift(evt);
       }
 
-      this.timeSeries.push({
-        tick: this.currentState.tickCount,
-        dayIndex: this.currentState.dayIndex,
-        simulatedDate: this.currentState.simulatedDate,
-        metrics: {
-          arr: this.currentState.metrics?.liveARR ?? 0,
-          mrr: this.currentState.metrics?.liveMRR ?? 0,
-          customers: this.currentState.metrics?.liveCustomers ?? 0,
-          wonDeals: this.currentState.metrics?.liveWonDeals ?? 0,
-          ebitda: this.currentState.metrics?.financialMetrics?.ebitda ?? 0,
-          netRevenue: this.currentState.metrics?.financialMetrics?.netRevenue ?? 0,
-          netCashFlow: this.currentState.metrics?.financialMetrics?.netCashFlow ?? 0,
-          cumulativeCashFlow: this.currentState.metrics?.financialMetrics?.cumulativeCashFlow ?? 0,
-        },
-      });
+      this.timeSeries.push(tickTimeSeriesPoint(this.currentState));
 
       this.currentTick += 1;
       ticksInBatch += 1;
@@ -442,15 +453,8 @@ class SimulationWorkerRunner {
   }
 
   private postEvent(evt: WorkerMessageEvent): void {
-    const globalObj =
-      typeof globalThis !== 'undefined'
-        ? globalThis
-        : typeof self !== 'undefined'
-          ? self
-          : typeof window !== 'undefined'
-            ? window
-            : ({} as Record<string, unknown>);
-    const postMessage = (globalObj as { postMessage?: unknown }).postMessage;
+    // globalThis ist im Worker, im Browser und in Node vorhanden (ES2020).
+    const postMessage = (globalThis as { postMessage?: unknown }).postMessage;
     if (typeof postMessage === 'function') {
       (postMessage as (message: WorkerMessageEvent) => void)(evt);
     }
