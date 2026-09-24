@@ -12434,3 +12434,37 @@ diesen CI-PR · **Status:** lokale Gates grün, PR-CI/Review ausstehend.
 **Übergabe:** Vor Merge unabhängigen Review und die sieben Pflichtjobs auf
 finalem PR-HEAD prüfen; anschließend den `main`-Lauf. Bis dahin keine
 Freigabe für 067Q/G63.
+
+---
+
+## Issue #7 — Quality-Debt-Budget statt dauerhaft tolerierter Baselines (2026-09-24)
+
+**Rolle:** Claude Code · **Basis:** `81410f7` · **Status:** lokale Gates grün, PR-CI/Review ausstehend.
+
+- **Befund:** Die ci.yml-Baselines standen bereits auf 0, aber `MAX_LINES_BASELINE`
+  und `INLINE_STYLE_BASELINE` wurden nirgends ausgewertet, ESLint-Warnungen
+  zählten nicht, und `react/forbid-dom-props` greift nur in einzelnen Ordnern
+  und nur an DOM-Elementen. Tatsächlich stehen 276 `style={…}` in
+  Produktions-TSX (35 zeilengenau begründet, 241 unbegründet) sowie 38
+  `eslint-disable`-Direktiven ohne Budget.
+- **Änderungen:** Lint-Job zählt Fehler **+ Warnungen** und wertet
+  `MAX_LINES_BASELINE`/`INLINE_STYLE_BASELINE` tatsächlich aus. Neuer Schritt
+  `npm run verify:quality-budget` (`scripts/verifyQualityBudget.ts`) prüft
+  Suppressions je Regel und unbegründete Inline-Styles je Bereich gegen
+  `docs/quality/debt-budget.json` — Ratsche in beide Richtungen (Anstieg rot,
+  Abbau ohne Budgetsenkung rot). Owner, Review-Termin, Ziele und Abbauplan in
+  `docs/quality/DEBT_BUDGET.md`. Keine neue Abhängigkeit, kein neuer CI-Job.
+- **Baseline:** Suppressions `max-lines` 1, `no-console` 1,
+  `react-hooks/exhaustive-deps` 1, `react/forbid-dom-props` 35 (begründete
+  Ausnahmen). Inline-Styles `resources/` 96 (eingefroren, Ausnahme),
+  `ui/charts/` 128 → Ziel 0, Rest `src/` 17 → Ziel 0.
+- **Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test`
+  (262 Dateien, 1422 Tests, davon 7 neu), `npm run verify` (001–025),
+  `npm run build`, `PR-QUALITY-16`-Acceptance und der Lint-Schritt lokal
+  bestanden.
+- **Schutzbereichs-Diff** gegen `81410f7` für `src/simulation`, `src/types`,
+  `src/context`, `src/services/data`, `src/features/resources`: leer. Kein
+  `src/`-Code geändert, keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Übergabe:** Abbau der Inline-Styles (`src/` 17 → 0, Charts 128 → 0) erfolgt
+über eigene Aufträge gemäß `docs/quality/DEBT_BUDGET.md`.

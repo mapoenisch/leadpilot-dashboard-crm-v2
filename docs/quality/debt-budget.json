@@ -1,0 +1,43 @@
+{
+  "owner": "@mapoenisch",
+  "reviewBy": "2026-12-31",
+  "suppressions": {
+    "max-lines": {
+      "budget": 1,
+      "target": 1,
+      "rationale": "Fachlich begründete Ausnahme: src/types/database.generated.ts wird per `supabase gen types` erzeugt; eine Aufteilung würde die Regeneration brechen (G45/067B)."
+    },
+    "no-console": {
+      "budget": 1,
+      "target": 1,
+      "rationale": "Fachlich begründete Ausnahme: src/services/logger.ts ist die einzige zentrale Konsolen-Senke (G35/Auftrag 050 Block C)."
+    },
+    "react-hooks/exhaustive-deps": {
+      "budget": 1,
+      "target": 1,
+      "rationale": "Fachlich begründete Ausnahme: useLiveKpiActivity nutzt `version` aus useSyncExternalStore als Re-Render-Trigger, das Muster erkennt die Regel nicht."
+    },
+    "react/forbid-dom-props": {
+      "budget": 35,
+      "target": 35,
+      "rationale": "Fachlich begründete Ausnahmen: zeilengenaue Disables für Laufzeit-Geometrie/-Farbe aus Daten und style-Passthrough der Primitives (Aufträge 053–057). Jede neue Ausnahme erhöht das Budget und braucht Review."
+    }
+  },
+  "inlineStyles": {
+    "src/features/resources/": {
+      "budget": 96,
+      "target": 96,
+      "rationale": "Fachlich begründete Ausnahme: Schutzbereich Internal Resources ist eingefroren (CLAUDE.md §6). Abbau nur mit eigenem Auftrag, dann Ziel 0."
+    },
+    "src/components/ui/charts/": {
+      "budget": 128,
+      "target": 0,
+      "rationale": "Unmigrierter G39-Scope der Chart-Helfer. Abbau schrittweise: nach Tailwind/cva migrieren oder als Laufzeit-Geometrie zeilengenau begründen (wandert dann ins Suppression-Budget)."
+    },
+    "src/": {
+      "budget": 17,
+      "target": 0,
+      "rationale": "Style-Props an Custom-Komponenten (v. a. Badge in liveKpi), die react/forbid-dom-props nicht erfasst, plus Dateien außerhalb der Regel-Scopes. Ziel 0."
+    }
+  }
+}
