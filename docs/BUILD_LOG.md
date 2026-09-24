@@ -12512,3 +12512,23 @@ Freigabe für 067Q/G63.
 **Übergabe an Codex:** Review der Klassen-Umsetzung (Tailwind-Preflight ist aus,
 deshalb setzen Einzelrahmen explizit `border-0`), der ESLint-Konsolidierung und
 des neuen Budgets. Danach PR-CI inklusive `visual.spec.ts` auf Linux-Baselines.
+
+---
+
+## [2026-09-24] Issue #7 — Prüferbefund Codex (übermittelt durch Marc)
+
+**Prüfer:** Codex · **Geprüft:** Branch `claude/ci-quality-baselines-reduce-u1yo54`
+(3 Commits vor `main`, Stand `c847ba4`) · **Ergebnis:** noch keine Freigabe.
+In den geprüften Änderungen ist kein belegter Funktionsfehler gefunden worden.
+
+| Priorität | Befund | Nächster Schritt |
+|---|---|---|
+| Wichtig | Kein PR-CI-Lauf für den aktuellen Commit; lokale Nachweise nicht unabhängig nachgefahren. | PR öffnen, alle sieben Pflichtjobs auf dem finalen Commit prüfen. |
+| Wichtig | 9 von 123 Screenshot-Vergleichen nicht sofort pixelgleich; `visual.spec.ts` in CI steht aus. | Visuellen PR-Lauf auswerten und jede Abweichung zuordnen. |
+| Hinweis | `verifyQualityBudget.ts` zählt `eslint-disable`/`style={` per Textmuster: Schranke gegen Zuwachs, kein Nachweis der fachlichen Rechtfertigung. | Die 50 Style-Ausnahmen im Code-Review stichprobenartig prüfen. |
+
+**Empfehlung Codex:** Branch als PR zur vollständigen CI übergeben; Gate-Freigabe
+erst nach CI-Lauf und Sichtung der visuellen Abweichungen.
+
+**Builder-Reaktion (Claude Code):** PR geöffnet; CI-Ergebnis und Zuordnung der
+visuellen Abweichungen folgen als eigener Eintrag.
