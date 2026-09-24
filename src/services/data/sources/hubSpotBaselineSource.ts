@@ -1,7 +1,11 @@
 import { DataSource, CrmReadModel, DataSourceError } from '../../../types/dataSource';
+import { mapDealStage } from '../../import/hubSpotStageMapper';
+import { assertHubSpotImportIntegrity } from '../../import/crmImporter';
+import { BASELINE_PERIOD_START } from '../../../simulation/constants';
 
 interface HubSpotBaselineContent {
   sourceSystem?: string;
+  periodStart?: string;
   companies: CrmReadModel['companies'];
   contacts: CrmReadModel['contacts'];
   importedFunnelDeals: CrmReadModel['deals'];
@@ -36,13 +40,33 @@ export function makeHubSpotBaselineSource(version: string): DataSource {
       if (ds.sourceSystem !== 'hubspot') {
         throw new DataSourceError('INTEGRITY', `Envelope ${version} ist keine HubSpot-Quelle.`);
       }
-      return {
+      // 067H / G51: Unbekannte Stages landen in Quarantäne statt LOST; der
+      // Audit-Fehlerzähler markiert sie sichtbar (degraded-tauglich).
+      let quarantined = 0;
+      const deals = ds.importedFunnelDeals.map((deal) => {
+        const mapped = mapDealStage(deal.stage);
+        if (mapped.kind === 'known') return { ...deal, stage: mapped.stage };
+        quarantined += 1;
+        return { ...deal, stage: 'QUARANTINED' };
+      });
+      const audit = {
+        ...ds.audit,
+        dealsLoaded: ds.audit.dealsLoaded,
+        dealsErrors: ds.audit.dealsErrors + quarantined,
+      };
+      const model: CrmReadModel = {
         companies: ds.companies,
         contacts: ds.contacts,
-        deals: ds.importedFunnelDeals,
+        deals,
         activities: ds.activities ?? [],
-        audit: ds.audit,
+        audit,
       };
+      // Importfreigabe: Counts, Referenzen, Pflichtfelder, Zeitraum.
+      assertHubSpotImportIntegrity({
+        ...model,
+        periodStart: ds.periodStart ?? BASELINE_PERIOD_START,
+      });
+      return model;
     },
   };
 }

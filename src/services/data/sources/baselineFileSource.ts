@@ -1,4 +1,9 @@
-import { DataSource, CrmReadModel, HistoricalActivity, DataSourceError } from '../../../types/dataSource';
+import {
+  DataSource,
+  CrmReadModel,
+  HistoricalActivity,
+  DataSourceError,
+} from '../../../types/dataSource';
 
 interface BaselineFileJson {
   version?: string;

@@ -2,7 +2,13 @@ import { ScenarioRepository } from '../scenarioRepository';
 import { systemContext } from '../systemContext';
 import { DeterministicRNG } from '../prng';
 import { SimulationEngine, TickOutput } from '../engine';
-import { SimulationLead, SimulationOpportunity, SimulationDeal, SimulationActivity, SimulationState } from '../../types/simulation';
+import {
+  SimulationLead,
+  SimulationOpportunity,
+  SimulationDeal,
+  SimulationActivity,
+  SimulationState,
+} from '../../types/simulation';
 import { SalesQueueEntry } from '../../types/salesQueue';
 import { CSQueueEntry } from '../../types/csQueue';
 
@@ -10,7 +16,9 @@ export async function runQueueHistoryTest(): Promise<{ success: boolean; log: st
   const log: string[] = [];
   let ok = true;
 
-  log.push('=== STARTING AUFTRAG 015A TEST SUITE (QUEUE HISTORY INTEGRITY & BOUNDED PROJECTIONS) ===');
+  log.push(
+    '=== STARTING AUFTRAG 015A TEST SUITE (QUEUE HISTORY INTEGRITY & BOUNDED PROJECTIONS) ===',
+  );
 
   try {
     systemContext.__overrideForTest({
@@ -124,7 +132,7 @@ export async function runQueueHistoryTest(): Promise<{ success: boolean; log: st
     const test1 = assert(
       log,
       `Full queue history tracked in updatedEntries (Sales max: ${maxSalesUpdatedLength}, CS max: ${maxCSUpdatedLength})`,
-      salesAccPassed
+      salesAccPassed,
     );
     ok = test1 && ok;
 
@@ -132,7 +140,7 @@ export async function runQueueHistoryTest(): Promise<{ success: boolean; log: st
     const test2 = assert(
       log,
       `UI projection is bounded to <= 20 entries (Sales max proj: ${maxSalesProjectionLength}, CS max proj: ${maxCSProjectionLength})`,
-      maxSalesProjectionLength <= 20 && maxCSProjectionLength <= 20
+      maxSalesProjectionLength <= 20 && maxCSProjectionLength <= 20,
     );
     ok = test2 && ok;
 
@@ -140,11 +148,13 @@ export async function runQueueHistoryTest(): Promise<{ success: boolean; log: st
     const test3 = assert(
       log,
       'No queue entry ID lost across ticks (Sales: 0 lost, CS: 0 lost)',
-      !anySalesLost && !anyCSLost
+      !anySalesLost && !anyCSLost,
     );
     ok = test3 && ok;
   } catch (err) {
-    log.push(`❌ Unexpected error in Queue History Test: ${err instanceof Error ? err.message : (err as { message: string }).message}`);
+    log.push(
+      `❌ Unexpected error in Queue History Test: ${err instanceof Error ? err.message : (err as { message: string }).message}`,
+    );
     ok = false;
   } finally {
     systemContext.__resetForTest();

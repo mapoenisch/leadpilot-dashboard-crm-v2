@@ -6,9 +6,11 @@ import {
   ScenarioVersion,
   SimulationRun,
 } from '../types/scenario';
+import { SimulationEvent } from '../types/simulation';
+import { SimulationSnapshot } from '../types/snapshot';
 
 export const DEFAULT_BASE_2026_PARAMETERS: Readonly<ScenarioParameters> = Object.freeze(
-  parameterRegistry.getDefaultParameters()
+  parameterRegistry.getDefaultParameters(),
 );
 
 export const DEFAULT_BASE_2026_SCENARIO_ID = 'scenario-base-2026';
@@ -29,6 +31,13 @@ export interface IScenarioRepository {
   getRunsByScenario(scenarioId: string): SimulationRun[];
   getRunsByVersion(versionId: string): SimulationRun[];
   saveRun(run: SimulationRun): void;
+
+  // 067F / G49 (Nacharbeit): Run-Detailhistorie je Run (Events, Snapshots)
+  // für die Workspace-Hydrierung nach Reload / zweiter Sitzung.
+  getEventsByRun(runId: string): SimulationEvent[];
+  saveEvents(runId: string, events: SimulationEvent[]): void;
+  getSnapshotsByRun(runId: string): SimulationSnapshot[];
+  saveSnapshots(runId: string, snapshots: SimulationSnapshot[]): void;
 }
 
 export class ScenarioRepository implements IScenarioRepository {
@@ -37,6 +46,8 @@ export class ScenarioRepository implements IScenarioRepository {
   private scenarios: Map<string, Scenario> = new Map();
   private versions: Map<string, ScenarioVersion> = new Map();
   private runs: Map<string, SimulationRun> = new Map();
+  private eventsByRun: Map<string, SimulationEvent[]> = new Map();
+  private snapshotsByRun: Map<string, SimulationSnapshot[]> = new Map();
 
   private constructor() {
     this.seedDefaultBaseScenario();
@@ -53,6 +64,8 @@ export class ScenarioRepository implements IScenarioRepository {
     this.scenarios.clear();
     this.versions.clear();
     this.runs.clear();
+    this.eventsByRun.clear();
+    this.snapshotsByRun.clear();
     this.seedDefaultBaseScenario();
   }
 
@@ -100,7 +113,10 @@ export class ScenarioRepository implements IScenarioRepository {
       throw new ScenarioError('NOT_FOUND', `Szenario "${id}" wurde nicht gefunden.`);
     }
     if (scenario.isProtected) {
-      throw new ScenarioError('SCENARIO_PROTECTED_ERROR', `Das geschützte Basis-Szenario "${scenario.name}" kann nicht gelöscht werden.`);
+      throw new ScenarioError(
+        'SCENARIO_PROTECTED_ERROR',
+        `Das geschützte Basis-Szenario "${scenario.name}" kann nicht gelöscht werden.`,
+      );
     }
     this.scenarios.delete(id);
   }
@@ -149,7 +165,7 @@ export class ScenarioRepository implements IScenarioRepository {
     if (!isExisting && scenarioRuns.length >= 10) {
       throw new ScenarioError(
         'MAX_RUNS_EXCEEDED',
-        `Das Limit von maximal 10 Ergebnisläufen für Szenario "${run.scenarioId}" ist erreicht. Ein 11. Lauf wurde fachlich abgelehnt.`
+        `Das Limit von maximal 10 Ergebnisläufen für Szenario "${run.scenarioId}" ist erreicht. Ein 11. Lauf wurde fachlich abgelehnt.`,
       );
     }
 
@@ -160,6 +176,24 @@ export class ScenarioRepository implements IScenarioRepository {
     Object.freeze(clonedRun);
 
     this.runs.set(run.runId, clonedRun);
+  }
+
+  public getEventsByRun(runId: string): SimulationEvent[] {
+    const items = this.eventsByRun.get(runId) ?? [];
+    return JSON.parse(JSON.stringify(items));
+  }
+
+  public saveEvents(runId: string, events: SimulationEvent[]): void {
+    this.eventsByRun.set(runId, JSON.parse(JSON.stringify(events)));
+  }
+
+  public getSnapshotsByRun(runId: string): SimulationSnapshot[] {
+    const items = this.snapshotsByRun.get(runId) ?? [];
+    return JSON.parse(JSON.stringify(items));
+  }
+
+  public saveSnapshots(runId: string, snapshots: SimulationSnapshot[]): void {
+    this.snapshotsByRun.set(runId, JSON.parse(JSON.stringify(snapshots)));
   }
 }
 

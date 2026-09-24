@@ -2,9 +2,9 @@ export type ParameterType = 'number' | 'percentage' | 'enum' | 'object';
 
 export interface ChannelMix {
   linkedIn: number; // percentage (0-100)
-  seo: number;      // percentage (0-100)
-  partner: number;  // percentage (0-100)
-  webinar: number;  // percentage (0-100)
+  seo: number; // percentage (0-100)
+  partner: number; // percentage (0-100)
+  webinar: number; // percentage (0-100)
   outbound: number; // percentage (0-100)
 }
 

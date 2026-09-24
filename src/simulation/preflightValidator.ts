@@ -11,7 +11,7 @@ export class PreflightValidator {
     versionId: string,
     seed: number,
     repo: IScenarioRepository = scenarioRepository,
-    registry: ParameterRegistry = parameterRegistry
+    registry: ParameterRegistry = parameterRegistry,
   ): PreflightResult {
     const errors: PreflightIssue[] = [];
     const warnings: PreflightIssue[] = [];

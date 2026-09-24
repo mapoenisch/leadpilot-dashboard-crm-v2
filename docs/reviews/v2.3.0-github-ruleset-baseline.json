@@ -1,0 +1,29 @@
+{
+  "capturedAt": "2026-09-23T06:45:24Z",
+  "repository": "mapoenisch/leadpilot-dashboard-crm-v2",
+  "activeRulesets": [
+    {
+      "name": "main-protection",
+      "enforcement": "active",
+      "target": "branch",
+      "appliesToMain": true,
+      "allowsBypass": false,
+      "requiredChecks": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "livekpi-verifiers",
+        "size-limit",
+        "e2e"
+      ],
+      "allowsDirectPush": false
+    }
+  ],
+  "captureNote": "GitHub Rulesets-API: main-protection (ID 23709388) aktiv; PR-Pflicht, keine Bypass-Akteure, sieben Required Checks; Stand vor CI-Recovery-PR.",
+  "previousCapture": {
+    "capturedAt": "2026-09-16T21:27:19.795Z",
+    "repository": "mapoenisch/leadpilot-dashboard-crm",
+    "note": "Historischer 403-Befund des anderen privaten Repositorys ohne -v2; kein Nachweis für das aktuelle Repository."
+  }
+}

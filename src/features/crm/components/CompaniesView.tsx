@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { Company } from '@/types/crm';
+import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { CrmResponsiveList, CrmColumn } from './CrmResponsiveList';
 
 export interface CompaniesViewProps {
@@ -14,8 +15,9 @@ export interface CompaniesViewProps {
 }
 
 export function CompaniesView({ companies, loading }: CompaniesViewProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [industryFilter, setIndustryFilter] = useState<string>('ALL');
+  // 067J / G56: Filterzustand ist über die URL wiederherstellbar.
+  const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
+  const [industryFilter, setIndustryFilter] = useUrlSyncedState('branche', 'ALL');
 
   const industryOptions: SelectOption[] = useMemo(() => {
     const set = new Set(companies.map((c) => c.industry).filter(Boolean));

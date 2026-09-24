@@ -11,6 +11,7 @@ coverage/
 Archiv.zip
 .cdp_*
 *.log
+.lighthouseci/
 
 # Screenshots (Belege lokal erzeugen, nur textuelle README-Matrizen committen — Kennzahl #21)
 docs/screenshots/**/*.png

@@ -3,10 +3,10 @@ export type CSQueueStatus = 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED
 export type ChurnCause = 'HEALTH_PROBLEM' | 'CS_CAPACITY' | 'BASELINE_CHURN';
 
 export interface CustomerHealthFactors {
-  onboardingScore: number;     // 0 - 100
-  supportScore: number;        // 0 - 100
-  engagementScore: number;     // 0 - 100
-  openIssuesScore: number;     // 0 - 100
+  onboardingScore: number; // 0 - 100
+  supportScore: number; // 0 - 100
+  engagementScore: number; // 0 - 100
+  openIssuesScore: number; // 0 - 100
   csQueueTimePenalty?: number; // 0 - 20 pts penalty
 }
 

@@ -1,13 +1,31 @@
+import { IDEE } from '@/domain/unternehmenData';
+import { DataState } from '@/components/ui/DataState';
+
+// 067I / G54: Echte Ideen-Seite statt WebP — genau eine h1,
+// These als Absätze, Alleinstellungsmerkmale als Liste.
 export function IdeaPage() {
   return (
-    <div className="auftrag-037g-webp-view">
-      <img
-        src="/assets/auftrag-037g/04-geschaeftsidee.webp"
-        alt="LeadPilot Geschäftsidee – B2B-Lead-Management-Software für den Mittelstand"
-        data-testid="company-idea-webp"
-        className="auftrag-037g-webp-img"
-        loading="eager"
-      />
+    <div>
+      <h1>Geschäftsidee</h1>
+      <p>
+        {IDEE.title}: {IDEE.subtitle}
+      </p>
+      <DataState
+        status={IDEE.paragraphs.length > 0 ? 'ready' : 'empty'}
+        emptyText="Keine Geschäftsidee erfasst."
+      >
+        {IDEE.paragraphs.map((absatz) => (
+          <p key={absatz}>{absatz}</p>
+        ))}
+        <section aria-label="Alleinstellungsmerkmale">
+          <h2>Alleinstellungsmerkmale</h2>
+          <ul>
+            {IDEE.usps.map((usp) => (
+              <li key={usp}>{usp}</li>
+            ))}
+          </ul>
+        </section>
+      </DataState>
     </div>
   );
 }

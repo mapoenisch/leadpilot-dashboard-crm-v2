@@ -1,0 +1,162 @@
+[
+  {
+    "id": "PR-AUTH-01",
+    "title": "Browser-/Demo-Auth und manipulierbare LocalStorage-Sitzung",
+    "severity": "critical",
+    "targetGate": "G45",
+    "runner": "vitest",
+    "expected": "passing"
+  },
+  {
+    "id": "PR-RLS-02",
+    "title": "öffentliche Reads und fehlende Organisationsgrenze in RLS",
+    "severity": "critical",
+    "targetGate": "G45",
+    "runner": "vitest",
+    "expected": "passing"
+  },
+  {
+    "id": "PR-INGEST-03",
+    "title": "n8n-Ingress ohne HMAC, Timestamp und Nonce",
+    "severity": "critical",
+    "targetGate": "G46",
+    "runner": "vitest",
+    "expected": "passing"
+  },
+  {
+    "id": "PR-SOURCE-04",
+    "title": "stiller Demo-Fallback und mögliche Quellenmischung",
+    "severity": "critical",
+    "targetGate": "G47",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-SEED-05",
+    "title": "nicht-atomarer Browser-Seeder mit öffentlichen Schreibpfaden",
+    "severity": "critical",
+    "targetGate": "G46",
+    "runner": "vitest",
+    "expected": "passing"
+  },
+  {
+    "id": "PR-BASELINE-06",
+    "title": "Baseline wird erfasst, aber nicht in die Engine eingespeist",
+    "severity": "critical",
+    "targetGate": "G48",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-FREEZE-07",
+    "title": "nur flaches Freeze und kein kanonischer Content-Hash",
+    "severity": "critical",
+    "targetGate": "G48",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-PERSIST-08",
+    "title": "Szenarien und Runs leben nur in In-Memory-Maps",
+    "severity": "critical",
+    "targetGate": "G49",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-WORKER-09",
+    "title": "vorhandener Web Worker wird im Produktpfad nicht verwendet",
+    "severity": "important",
+    "targetGate": "G50",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-HUBSPOT-10",
+    "title": "Limit 100, keine Pagination, unbekannte Stage wird LOST",
+    "severity": "important",
+    "targetGate": "G51",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-SEMANTIC-11",
+    "title": "33 Ansichten transportieren Fachinhalt als Ganzseiten-WebP",
+    "severity": "important",
+    "targetGate": "G55",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-A11Y-12",
+    "title": "Skip-Link, Fokusführung und doppelte Responsive-DOMs",
+    "severity": "important",
+    "targetGate": "G56",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-CLIP-13",
+    "title": "internes Clipping auf /resources/materials bei 375 Pixel",
+    "severity": "important",
+    "targetGate": "G56",
+    "runner": "playwright",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-ASSET-14",
+    "title": "fehlerhafte Assets, externe Fonts, fehlende Sicherheitsheader",
+    "severity": "important",
+    "targetGate": "G56",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-DEPENDENCY-15",
+    "title": "bekannte produktive und hohe Dev-Abhängigkeitsbefunde",
+    "severity": "important",
+    "targetGate": "G57",
+    "runner": "vitest",
+    "expected": "passing"
+  },
+  {
+    "id": "PR-QUALITY-16",
+    "title": "Lint-/Max-Lines-Baselines, Format und globale Coverage",
+    "severity": "important",
+    "targetGate": "G57",
+    "runner": "vitest",
+    "expected": "passing"
+  },
+  {
+    "id": "PR-RELEASE-17",
+    "title": "Release-Readiness hardcodiert Werte und endet immer mit Exit 0",
+    "severity": "important",
+    "targetGate": "G58",
+    "runner": "vitest",
+    "expected": "passing"
+  },
+  {
+    "id": "PR-CI-18",
+    "title": "bewegliche Action-Tags und unvollständige E2E-Ausführung",
+    "severity": "important",
+    "targetGate": "G58",
+    "runner": "vitest",
+    "expected": "passing"
+  },
+  {
+    "id": "PR-LICENSE-19",
+    "title": "Root-Lizenz fehlt; Entscheidung ist All Rights Reserved",
+    "severity": "important",
+    "targetGate": "G65",
+    "runner": "vitest",
+    "expected": "failing"
+  },
+  {
+    "id": "PR-BRANCH-20",
+    "title": "main besitzt kein nachgewiesenes Ruleset",
+    "severity": "important",
+    "targetGate": "G58",
+    "runner": "vitest",
+    "expected": "passing"
+  }
+]

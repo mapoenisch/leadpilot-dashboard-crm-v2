@@ -2,6 +2,18 @@ import { chromium, type FullConfig } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 
+// G45 (Auftrag 067B, Step 6 — freigegebene E2E-Anpassung): Baut den
+// Auth-State per Supabase-Login statt Demo-Fill auf. Credentials ausschließlich
+// aus Umgebungsvariablen — ohne gesetzte Variablen bricht das Setup ehrlich
+// ab (keine nutzbaren Fallback-Zugangsdaten im Repo, Review-Nacharbeit).
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`E2E-Abruch: Umgebungsvariable ${name} ist nicht gesetzt.`);
+  }
+  return value;
+}
+
 async function globalSetup(config: FullConfig) {
   const authFile = path.resolve('playwright/.auth/user.json');
   fs.mkdirSync(path.dirname(authFile), { recursive: true });
@@ -12,43 +24,26 @@ async function globalSetup(config: FullConfig) {
 
   try {
     await page.goto('/login', { waitUntil: 'networkidle' });
-    const demoEmail = process.env.VITE_DEMO_AUTH_EMAIL || 'demo@leadpilot.io';
-    const demoPassword = process.env.VITE_DEMO_AUTH_PASSWORD || 'demo';
-
-    await page.fill('#login-email', demoEmail);
-    await page.fill('#login-password', demoPassword);
+    await page.fill('#login-email', requireEnv('E2E_AUTH_EMAIL'));
+    await page.fill('#login-password', requireEnv('E2E_AUTH_PASSWORD'));
     await page.click('button[type="submit"]');
 
     await page.waitForURL('**/dashboard');
     await page.waitForSelector('[data-testid="logout-button"]');
 
-    // Speichere Browser Storage State
+    // 067P-N3 (Step B): Erst speichern, wenn der Supabase-Auth-Eintrag wirklich
+    // im Local Storage des Test-Origins liegt. Begrenzte Wartebedingung auf den
+    // Schluesselnamen (sb-*-auth-token) — kein Tokenwert wird gelesen/geloggt.
+    await page.waitForFunction(
+      () =>
+        Object.keys(window.localStorage).some(
+          (key) => key.startsWith('sb-') && key.endsWith('-auth-token'),
+        ),
+      null,
+      { timeout: 10_000 },
+    );
+
     await page.context().storageState({ path: authFile });
-
-    // Ergänze robust sowohl 127.0.0.1 als auch localhost Origins
-    try {
-      const stateContent = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
-      const sessionItem = {
-        name: 'leadpilot_auth_session',
-        value: JSON.stringify({ id: 'demo-user-id', email: demoEmail }),
-      };
-
-      const origins = stateContent.origins || [];
-      const has127 = origins.some((o: { origin: string }) => o.origin.includes('127.0.0.1'));
-      const hasLocalhost = origins.some((o: { origin: string }) => o.origin.includes('localhost'));
-
-      if (!has127) {
-        origins.push({ origin: 'http://127.0.0.1:4321', localStorage: [sessionItem] });
-      }
-      if (!hasLocalhost) {
-        origins.push({ origin: 'http://localhost:4321', localStorage: [sessionItem] });
-      }
-
-      stateContent.origins = origins;
-      fs.writeFileSync(authFile, JSON.stringify(stateContent, null, 2), 'utf-8');
-    } catch {
-      // Best-effort Origin-Ergänzung
-    }
   } finally {
     await browser.close();
   }

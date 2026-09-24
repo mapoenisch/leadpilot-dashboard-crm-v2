@@ -43,9 +43,9 @@ export class CSQueueManager {
   public static calculateChurnRisk(
     healthScore: number,
     csQueueTicks: number,
-    churnRateMonthly: number
+    churnRateMonthly: number,
   ): number {
-    const baseDailyRisk = (churnRateMonthly / 100) / 30;
+    const baseDailyRisk = churnRateMonthly / 100 / 30;
     const healthRiskFactor = (100 - healthScore) / 100; // 0 (100 health) to 1.0 (0 health)
     const queueRiskFactor = Math.min(1.0, csQueueTicks * 0.05);
 
@@ -66,7 +66,7 @@ export class CSQueueManager {
     healthScore: number,
     churnRisk: number,
     customerValue: number,
-    queueAgeTicks: number
+    queueAgeTicks: number,
   ): number {
     const healthPrio = (100 - healthScore) * 5;
     const riskPrio = Math.round(churnRisk * 300);
@@ -82,10 +82,7 @@ export class CSQueueManager {
    * - CS_CAPACITY: if healthScore >= 40 && queueTicks > 3
    * - BASELINE_CHURN: otherwise
    */
-  public static classifyChurnCause(
-    healthScore: number,
-    queueTicks: number
-  ): ChurnCause {
+  public static classifyChurnCause(healthScore: number, queueTicks: number): ChurnCause {
     if (healthScore < 40) {
       return 'HEALTH_PROBLEM';
     }
@@ -104,7 +101,7 @@ export class CSQueueManager {
     existingEntries: CSQueueEntry[],
     csRepCount: number,
     currentTick: number,
-    activeDeals: SimulationDeal[]
+    activeDeals: SimulationDeal[],
   ): { updatedEntries: CSQueueEntry[]; projection: CSQueueProjection } {
     const capacity = this.calculateCSCapacity(csRepCount);
     const nextEntries: CSQueueEntry[] = [];
@@ -149,7 +146,9 @@ export class CSQueueManager {
     // Update priorities of WAITING items and sort deterministically
     const updatedWaiting = waitingList.map((e) => {
       const queueAge = currentTick - e.enteredQueueTick;
-      const deal = activeDeals.find((d) => d.id === e.customerId || d.companyName === e.companyName);
+      const deal = activeDeals.find(
+        (d) => d.id === e.customerId || d.companyName === e.companyName,
+      );
       const val = deal ? deal.arr : 10000;
       const health = e.healthScoreAtQueue;
       const risk = e.churnRiskAtQueue;
@@ -222,7 +221,7 @@ export class CSQueueManager {
     capacity: number,
     currentTick: number,
     dayIndex = 0,
-    simulatedDate = '2026-01-01'
+    simulatedDate = '2026-01-01',
   ): CSQueueProjection {
     const waiting = entries.filter((e) => e.status === 'WAITING');
     const inProgress = entries.filter((e) => e.status === 'IN_PROGRESS');
@@ -245,7 +244,8 @@ export class CSQueueManager {
 
     const totalCount = entries.length;
     const avgQueueTicks = totalCount > 0 ? Math.round((totalQueueTicks / totalCount) * 10) / 10 : 0;
-    const avgProcessTicks = totalCount > 0 ? Math.round((totalProcessTicks / totalCount) * 10) / 10 : 0;
+    const avgProcessTicks =
+      totalCount > 0 ? Math.round((totalProcessTicks / totalCount) * 10) / 10 : 0;
     const capacityUtilization = capacity > 0 ? Math.round((usedCapacity / capacity) * 100) : 0;
 
     const isCSBottleneck = avgQueueTicks > 0 || (waiting.length > 0 && freeCapacity === 0);
@@ -276,7 +276,7 @@ export class CSQueueManager {
   public static calculateMetrics(
     entries: CSQueueEntry[],
     deals: SimulationDeal[],
-    capacity: number
+    capacity: number,
   ): { csQueueMetrics: CSQueueMetrics; customerHealthMetrics: CustomerHealthMetrics } {
     const proj = this.buildProjection(entries, capacity, 0);
 

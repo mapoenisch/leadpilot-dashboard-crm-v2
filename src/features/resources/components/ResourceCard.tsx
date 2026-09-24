@@ -8,6 +8,25 @@ export interface ResourceCardProps {
   onOpen: (resource: ResourceMetadata) => void;
 }
 
+// 067J / G56: Natürliche Maße der zwei großen PNG-Thumbnails (per sips
+// vermessen) für explizite width/height-Attribute gegen Layout-Shift.
+const THUMBNAIL_DIMS: Record<string, { width: number; height: number }> = {
+  '/resources/graphics/sla-matrix.png': { width: 1536, height: 1024 },
+  '/resources/videos/leadpilot-werbespot-poster.png': { width: 1280, height: 720 },
+};
+
+function webpVariant(thumbnailPath: string): string {
+  return thumbnailPath in THUMBNAIL_DIMS ? thumbnailPath.replace(/\.png$/, '.webp') : thumbnailPath;
+}
+
+function thumbnailWidth(thumbnailPath: string): number | undefined {
+  return THUMBNAIL_DIMS[thumbnailPath]?.width;
+}
+
+function thumbnailHeight(thumbnailPath: string): number | undefined {
+  return THUMBNAIL_DIMS[thumbnailPath]?.height;
+}
+
 export function ResourceCard({ resource, onOpen }: ResourceCardProps) {
   const getTypeBadge = () => {
     switch (resource.type) {
@@ -26,10 +45,14 @@ export function ResourceCard({ resource, onOpen }: ResourceCardProps) {
 
   const getCategoryLabel = () => {
     switch (resource.category) {
-      case 'MARKETING': return 'Marketing';
-      case 'SALES': return 'Vertrieb & Pitches';
-      case 'PRODUCT': return 'Produkt';
-      case 'OPERATIONS': return 'Operations & SLA';
+      case 'MARKETING':
+        return 'Marketing';
+      case 'SALES':
+        return 'Vertrieb & Pitches';
+      case 'PRODUCT':
+        return 'Produkt';
+      case 'OPERATIONS':
+        return 'Operations & SLA';
     }
   };
 
@@ -83,25 +106,50 @@ export function ResourceCard({ resource, onOpen }: ResourceCardProps) {
         >
           {resource.type === 'INTERACTIVE_HTML' ? (
             <div style={{ textAlign: 'center', padding: 'var(--space-4)' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--color-primary-soft)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', marginBottom: '8px' }}>
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: 'var(--color-primary-soft)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--color-primary)',
+                  marginBottom: '8px',
+                }}
+              >
                 <Icon name="zap" size={24} />
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>Interaktive Landingpage</div>
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Live-Demo & ROI-Rechner</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
+                Interaktive Landingpage
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                Live-Demo & ROI-Rechner
+              </div>
             </div>
           ) : (
-            <img
-              src={resource.thumbnailPath}
-              alt={resource.title}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'top center',
-                transition: 'transform 200ms ease',
-              }}
-              loading="lazy"
-            />
+            // 067J / G56: WebP-Variante mit PNG-Fallback plus explizite
+            // Bildmaße (PR-ASSET-14) — nur die zwei großen PNG-Thumbnails
+            // besitzen eine .webp-Schwester, alle anderen Pfade fallen
+            // unverändert auf das Original zurück.
+            <picture style={{ width: '100%', height: '100%', display: 'block' }}>
+              <source srcSet={webpVariant(resource.thumbnailPath)} type="image/webp" />
+              <img
+                src={resource.thumbnailPath}
+                alt={resource.title}
+                width={thumbnailWidth(resource.thumbnailPath)}
+                height={thumbnailHeight(resource.thumbnailPath)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'top center',
+                  transition: 'transform 200ms ease',
+                }}
+                loading="lazy"
+              />
+            </picture>
           )}
 
           {resource.type === 'VIDEO' && (
@@ -138,30 +186,77 @@ export function ResourceCard({ resource, onOpen }: ResourceCardProps) {
           )}
 
           {/* Type Badge Overlay */}
-          <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-            {getTypeBadge()}
-          </div>
+          <div style={{ position: 'absolute', top: '10px', right: '10px' }}>{getTypeBadge()}</div>
         </div>
 
         {/* Card Body */}
-        <div style={{ padding: 'var(--space-4)', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            padding: 'var(--space-4)',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary)', fontWeight: 600, marginBottom: '4px' }}>
+            <div
+              style={{
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: 'var(--color-primary)',
+                fontWeight: 600,
+                marginBottom: '4px',
+              }}
+            >
               {getCategoryLabel()}
             </div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>
+            <h4
+              style={{
+                margin: '0 0 6px 0',
+                fontSize: '15px',
+                color: 'var(--color-text)',
+                fontFamily: 'var(--font-display)',
+              }}
+            >
               {resource.title}
             </h4>
-            <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '12.5px',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
               {resource.subtitle}
             </p>
           </div>
 
-          <div style={{ marginTop: 'var(--space-4)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              marginTop: 'var(--space-4)',
+              paddingTop: 'var(--space-3)',
+              borderTop: '1px solid var(--color-border-soft)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
             <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
               Quelle: {resource.originalSource}
             </span>
-            <span style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span
+              style={{
+                fontSize: '12px',
+                color: 'var(--color-primary)',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
               Öffnen →
             </span>
           </div>

@@ -28,6 +28,9 @@ export interface SimulationSnapshot {
   modelVersion: string;
   schemaVersion: string;
   baselineVersion: string;
+  // 067F / G49: Mandantenzuordnung für Server-Roundtrips (optional — rein
+  // lokale Snapshots tragen keinen Mandanten).
+  organizationId?: string;
   state: Readonly<SimulationState>;
   projection: Readonly<AnalyticsProjection>;
   createdAt: string; // Technical persistence timestamp
@@ -57,7 +60,10 @@ export type PersistenceErrorCode =
   | 'DUPLICATE_SNAPSHOT';
 
 export class SnapshotError extends Error {
-  constructor(public code: PersistenceErrorCode, message: string) {
+  constructor(
+    public code: PersistenceErrorCode,
+    message: string,
+  ) {
     super(message);
     this.name = 'SnapshotError';
   }

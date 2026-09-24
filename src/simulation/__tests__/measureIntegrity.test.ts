@@ -1,4 +1,8 @@
-import { scenarioRepository, DEFAULT_BASE_2026_SCENARIO_ID, DEFAULT_BASE_2026_VERSION_ID } from '../scenarioRepository';
+import {
+  scenarioRepository,
+  DEFAULT_BASE_2026_SCENARIO_ID,
+  DEFAULT_BASE_2026_VERSION_ID,
+} from '../scenarioRepository';
 import { scenarioService } from '../scenarioService';
 import { systemContext } from '../systemContext';
 import { EffectiveParameterResolver } from '../effectiveParameterResolver';
@@ -27,18 +31,24 @@ export async function runMeasureTest(): Promise<boolean> {
 
   const pBefore = resolverRamp.at(9);
   if (pBefore.salesRepCount !== 2) {
-    throw new Error(`TEST 1 FAILED: Expected salesRepCount=2 before startTick, got ${pBefore.salesRepCount}`);
+    throw new Error(
+      `TEST 1 FAILED: Expected salesRepCount=2 before startTick, got ${pBefore.salesRepCount}`,
+    );
   }
 
   const pMid = resolverRamp.at(15);
   // at tick 15, ramp factor is (15 - 10) / 10 = 0.5; value = 2 + (6 - 2) * 0.5 = 4
   if (Math.abs(pMid.salesRepCount - 4) > 0.001) {
-    throw new Error(`TEST 1 FAILED: Expected salesRepCount=4 at mid ramp, got ${pMid.salesRepCount}`);
+    throw new Error(
+      `TEST 1 FAILED: Expected salesRepCount=4 at mid ramp, got ${pMid.salesRepCount}`,
+    );
   }
 
   const pFull = resolverRamp.at(20);
   if (pFull.salesRepCount !== 6) {
-    throw new Error(`TEST 1 FAILED: Expected salesRepCount=6 at full ramp, got ${pFull.salesRepCount}`);
+    throw new Error(
+      `TEST 1 FAILED: Expected salesRepCount=6 at full ramp, got ${pFull.salesRepCount}`,
+    );
   }
   logger.info('✅ TEST 1 PASSED: Resolver calculates ramp-up linear interpolation accurately.');
 
@@ -54,15 +64,23 @@ export async function runMeasureTest(): Promise<boolean> {
     changes: [{ parameter: 'salesRepCount', mode: 'set', value: 5 }],
     createdAt: '2026-01-01T00:00:00.000Z',
   };
-  const resolverDur = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [measureDuration]);
+  const resolverDur = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [
+    measureDuration,
+  ]);
 
   if (resolverDur.at(12).salesRepCount !== 5) {
-    throw new Error(`TEST 2 FAILED: Expected salesRepCount=5 during active duration, got ${resolverDur.at(12).salesRepCount}`);
+    throw new Error(
+      `TEST 2 FAILED: Expected salesRepCount=5 during active duration, got ${resolverDur.at(12).salesRepCount}`,
+    );
   }
   if (resolverDur.at(15).salesRepCount !== 2) {
-    throw new Error(`TEST 2 FAILED: Expected salesRepCount=2 after expiration, got ${resolverDur.at(15).salesRepCount}`);
+    throw new Error(
+      `TEST 2 FAILED: Expected salesRepCount=2 after expiration, got ${resolverDur.at(15).salesRepCount}`,
+    );
   }
-  logger.info('✅ TEST 2 PASSED: Resolver reverts effective parameter to base value after durationTicks.');
+  logger.info(
+    '✅ TEST 2 PASSED: Resolver reverts effective parameter to base value after durationTicks.',
+  );
 
   // -------------------------------------------------------------------------
   // Test 3: Resolver - Clamping against Registry Bounds
@@ -78,15 +96,23 @@ export async function runMeasureTest(): Promise<boolean> {
     ],
     createdAt: '2026-01-01T00:00:00.000Z',
   };
-  const resolverOverflow = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [measureOverflow]);
+  const resolverOverflow = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [
+    measureOverflow,
+  ]);
   const pClamped = resolverOverflow.at(1);
   if (pClamped.salesRepCount !== 10) {
-    throw new Error(`TEST 3 FAILED: Expected salesRepCount clamped to 10, got ${pClamped.salesRepCount}`);
+    throw new Error(
+      `TEST 3 FAILED: Expected salesRepCount clamped to 10, got ${pClamped.salesRepCount}`,
+    );
   }
   if (pClamped.marketingBudgetYearly !== 150000) {
-    throw new Error(`TEST 3 FAILED: Expected marketingBudgetYearly clamped to 150000, got ${pClamped.marketingBudgetYearly}`);
+    throw new Error(
+      `TEST 3 FAILED: Expected marketingBudgetYearly clamped to 150000, got ${pClamped.marketingBudgetYearly}`,
+    );
   }
-  logger.info('✅ TEST 3 PASSED: EffectiveParameterResolver clamps values strictly to registry min/max bounds.');
+  logger.info(
+    '✅ TEST 3 PASSED: EffectiveParameterResolver clamps values strictly to registry min/max bounds.',
+  );
 
   // -------------------------------------------------------------------------
   // Test 4: Multiple Measures combination & ordering
@@ -106,10 +132,15 @@ export async function runMeasureTest(): Promise<boolean> {
     changes: [{ parameter: 'salesRepCount', mode: 'delta', value: 1 }],
     createdAt: '2026-01-01T00:01:00.000Z',
   };
-  const resolverMulti = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [measureDelta1, measureDelta2]);
+  const resolverMulti = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [
+    measureDelta1,
+    measureDelta2,
+  ]);
   const pMulti = resolverMulti.at(10);
   if (pMulti.salesRepCount !== 4) {
-    throw new Error(`TEST 4 FAILED: Expected salesRepCount=4 (2 + 1 + 1), got ${pMulti.salesRepCount}`);
+    throw new Error(
+      `TEST 4 FAILED: Expected salesRepCount=4 (2 + 1 + 1), got ${pMulti.salesRepCount}`,
+    );
   }
   logger.info('✅ TEST 4 PASSED: Multiple additive measures combine deterministically.');
 
@@ -133,13 +164,20 @@ export async function runMeasureTest(): Promise<boolean> {
     changes: [{ parameter: 'marketingBudgetYearly', mode: 'set', value: 120000 }],
     createdAt: '2026-01-01T00:01:00.000Z',
   };
-  const resolverConf = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [measureConf1, measureConf2]);
+  const resolverConf = new EffectiveParameterResolver(DEFAULT_BASE_2026_PARAMETERS, [
+    measureConf1,
+    measureConf2,
+  ]);
   const conflicts = resolverConf.detectConflicts();
   const firstConflict = conflicts[0];
   if (conflicts.length !== 1 || firstConflict?.kind !== 'MULTIPLE_SET') {
-    throw new Error(`TEST 5 FAILED: Expected 1 MULTIPLE_SET conflict, got ${JSON.stringify(conflicts)}`);
+    throw new Error(
+      `TEST 5 FAILED: Expected 1 MULTIPLE_SET conflict, got ${JSON.stringify(conflicts)}`,
+    );
   }
-  logger.info('✅ TEST 5 PASSED: Measure conflict detection generates non-preempting warning reports.');
+  logger.info(
+    '✅ TEST 5 PASSED: Measure conflict detection generates non-preempting warning reports.',
+  );
 
   // -------------------------------------------------------------------------
   // Test 6: Reproducibility with Measures
@@ -206,10 +244,15 @@ export async function runMeasureTest(): Promise<boolean> {
     correlationId: 'corr-golden-017',
   });
 
-  if (goldenRun.run.finalMetrics?.liveARR === undefined || goldenRun.run.finalMetrics.liveARR <= 0) {
+  if (
+    goldenRun.run.finalMetrics?.liveARR === undefined ||
+    goldenRun.run.finalMetrics.liveARR <= 0
+  ) {
     throw new Error(`TEST 7 FAILED: Invalid golden run ARR.`);
   }
-  logger.info(`✅ TEST 7 PASSED: Golden run executes with ARR = ${goldenRun.run.finalMetrics.liveARR.toLocaleString('de-DE')} €.`);
+  logger.info(
+    `✅ TEST 7 PASSED: Golden run executes with ARR = ${goldenRun.run.finalMetrics.liveARR.toLocaleString('de-DE')} €.`,
+  );
 
   // -------------------------------------------------------------------------
   // Test 8: previewMeasures persists NO runs and NO versions
@@ -217,23 +260,37 @@ export async function runMeasureTest(): Promise<boolean> {
   logger.info('--- TEST 8: previewMeasures side-effect-free execution ---');
   systemContext.__resetForTest();
   const runsBefore = scenarioRepository.getRunsByVersion(DEFAULT_BASE_2026_VERSION_ID).length;
-  const versionsBefore = scenarioRepository.getVersionsByScenario(DEFAULT_BASE_2026_SCENARIO_ID).length;
+  const versionsBefore = scenarioRepository.getVersionsByScenario(
+    DEFAULT_BASE_2026_SCENARIO_ID,
+  ).length;
 
-  const previewRes = await scenService.previewMeasures(DEFAULT_BASE_2026_VERSION_ID, [testMeasure], 30);
+  const previewRes = await scenService.previewMeasures(
+    DEFAULT_BASE_2026_VERSION_ID,
+    [testMeasure],
+    30,
+  );
 
   const runsAfter = scenarioRepository.getRunsByVersion(DEFAULT_BASE_2026_VERSION_ID).length;
-  const versionsAfter = scenarioRepository.getVersionsByScenario(DEFAULT_BASE_2026_SCENARIO_ID).length;
+  const versionsAfter = scenarioRepository.getVersionsByScenario(
+    DEFAULT_BASE_2026_SCENARIO_ID,
+  ).length;
 
   if (runsBefore !== runsAfter) {
-    throw new Error(`TEST 8 FAILED: previewMeasures persisted runs! Before=${runsBefore}, After=${runsAfter}`);
+    throw new Error(
+      `TEST 8 FAILED: previewMeasures persisted runs! Before=${runsBefore}, After=${runsAfter}`,
+    );
   }
   if (versionsBefore !== versionsAfter) {
-    throw new Error(`TEST 8 FAILED: previewMeasures created scenario versions! Before=${versionsBefore}, After=${versionsAfter}`);
+    throw new Error(
+      `TEST 8 FAILED: previewMeasures created scenario versions! Before=${versionsBefore}, After=${versionsAfter}`,
+    );
   }
   if (!previewRes.kpiDeltas || previewRes.kpiDeltas.length < 5) {
     throw new Error(`TEST 8 FAILED: previewMeasures did not produce KPI deltas.`);
   }
-  logger.info('✅ TEST 8 PASSED: previewMeasures creates zero runs and zero scenario versions in repository.');
+  logger.info(
+    '✅ TEST 8 PASSED: previewMeasures creates zero runs and zero scenario versions in repository.',
+  );
 
   // -------------------------------------------------------------------------
   // Test 9: Sensitivity Tests for all 6 catalog levers (Gate G3)
@@ -243,70 +300,129 @@ export async function runMeasureTest(): Promise<boolean> {
   // Lever 1: salesRepCount
   const previewSales = await scenService.previewMeasures(
     DEFAULT_BASE_2026_VERSION_ID,
-    [{ id: 'm-sens-sales', name: 'Sales FTE', startTick: 0, changes: [{ parameter: 'salesRepCount', mode: 'set', value: 8 }], createdAt: '2026-01-01T00:00:00.000Z' }],
+    [
+      {
+        id: 'm-sens-sales',
+        name: 'Sales FTE',
+        startTick: 0,
+        changes: [{ parameter: 'salesRepCount', mode: 'set', value: 8 }],
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
     50,
-    { seed: 999111 }
+    { seed: 999111 },
   );
-  const salesArrDelta = previewSales.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
-  const salesCashDelta = previewSales.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveCash')?.delta ?? 0;
+  const salesArrDelta =
+    previewSales.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
+  const salesCashDelta =
+    previewSales.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveCash')?.delta ?? 0;
   if (salesArrDelta === 0 && salesCashDelta === 0) {
     throw new Error(`TEST 9 FAILED: salesRepCount had zero KPI impact.`);
   }
-  logger.info(`  - Lever salesRepCount: ARR Delta = ${salesArrDelta} €, Cash Delta = ${salesCashDelta} €`);
+  logger.info(
+    `  - Lever salesRepCount: ARR Delta = ${salesArrDelta} €, Cash Delta = ${salesCashDelta} €`,
+  );
 
   // Lever 2: marketingBudgetYearly
   const previewMkt = await scenService.previewMeasures(
     DEFAULT_BASE_2026_VERSION_ID,
-    [{ id: 'm-sens-mkt', name: 'Marketing Budget', startTick: 0, changes: [{ parameter: 'marketingBudgetYearly', mode: 'set', value: 140000 }], createdAt: '2026-01-01T00:00:00.000Z' }],
+    [
+      {
+        id: 'm-sens-mkt',
+        name: 'Marketing Budget',
+        startTick: 0,
+        changes: [{ parameter: 'marketingBudgetYearly', mode: 'set', value: 140000 }],
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
     50,
-    { seed: 999222 }
+    { seed: 999222 },
   );
-  const mktCashDelta = previewMkt.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveCash')?.delta ?? 0;
-  const mktEbitdaDelta = previewMkt.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveEBITDA')?.delta ?? 0;
+  const mktCashDelta =
+    previewMkt.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveCash')?.delta ?? 0;
+  const mktEbitdaDelta =
+    previewMkt.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveEBITDA')?.delta ?? 0;
   if (mktCashDelta === 0 && mktEbitdaDelta === 0) {
     throw new Error(`TEST 9 FAILED: marketingBudgetYearly had zero financial impact.`);
   }
-  logger.info(`  - Lever marketingBudgetYearly: Cash Delta = ${mktCashDelta} €, EBITDA Delta = ${mktEbitdaDelta} €`);
+  logger.info(
+    `  - Lever marketingBudgetYearly: Cash Delta = ${mktCashDelta} €, EBITDA Delta = ${mktEbitdaDelta} €`,
+  );
 
   // Lever 3: trialToPaidConversion
   const previewConv = await scenService.previewMeasures(
     DEFAULT_BASE_2026_VERSION_ID,
-    [{ id: 'm-sens-conv', name: 'Conversion Boost', startTick: 0, changes: [{ parameter: 'trialToPaidConversion', mode: 'set', value: 40 }], createdAt: '2026-01-01T00:00:00.000Z' }],
+    [
+      {
+        id: 'm-sens-conv',
+        name: 'Conversion Boost',
+        startTick: 0,
+        changes: [{ parameter: 'trialToPaidConversion', mode: 'set', value: 40 }],
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
     50,
-    { seed: 999333 }
+    { seed: 999333 },
   );
-  const convArrDelta = previewConv.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
-  const convCustDelta = previewConv.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveCustomers')?.delta ?? 0;
+  const convArrDelta =
+    previewConv.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
+  const convCustDelta =
+    previewConv.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveCustomers')?.delta ?? 0;
   if (convArrDelta === 0 && convCustDelta === 0) {
     throw new Error(`TEST 9 FAILED: trialToPaidConversion had zero KPI impact.`);
   }
-  logger.info(`  - Lever trialToPaidConversion: ARR Delta = ${convArrDelta} €, Customers Delta = ${convCustDelta}`);
+  logger.info(
+    `  - Lever trialToPaidConversion: ARR Delta = ${convArrDelta} €, Customers Delta = ${convCustDelta}`,
+  );
 
   // Lever 4: salesCycleDays
   const previewCycle = await scenService.previewMeasures(
     DEFAULT_BASE_2026_VERSION_ID,
-    [{ id: 'm-sens-cycle', name: 'Longer Sales Cycle', startTick: 0, changes: [{ parameter: 'salesCycleDays', mode: 'set', value: 90 }], createdAt: '2026-01-01T00:00:00.000Z' }],
+    [
+      {
+        id: 'm-sens-cycle',
+        name: 'Longer Sales Cycle',
+        startTick: 0,
+        changes: [{ parameter: 'salesCycleDays', mode: 'set', value: 90 }],
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
     50,
-    { seed: 999444 }
+    { seed: 999444 },
   );
-  const cycleArrDelta = previewCycle.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
+  const cycleArrDelta =
+    previewCycle.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
   logger.info(`  - Lever salesCycleDays: ARR Delta = ${cycleArrDelta} €`);
 
   // Lever 5: discountPercent
   const previewDiscount = await scenService.previewMeasures(
     DEFAULT_BASE_2026_VERSION_ID,
-    [{ id: 'm-sens-disc', name: 'High Discount', startTick: 0, changes: [{ parameter: 'discountPercent', mode: 'set', value: 30 }], createdAt: '2026-01-01T00:00:00.000Z' }],
+    [
+      {
+        id: 'm-sens-disc',
+        name: 'High Discount',
+        startTick: 0,
+        changes: [{ parameter: 'discountPercent', mode: 'set', value: 30 }],
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
     50,
-    { seed: 999555 }
+    { seed: 999555 },
   );
-  const discArrDelta = previewDiscount.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
-  const discMrrDelta = previewDiscount.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveMRR')?.delta ?? 0;
+  const discArrDelta =
+    previewDiscount.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveARR')?.delta ?? 0;
+  const discMrrDelta =
+    previewDiscount.kpiDeltas.find((k: MeasureKpiDelta) => k.kpiId === 'liveMRR')?.delta ?? 0;
   if (discArrDelta === 0 && discMrrDelta === 0) {
     throw new Error(`TEST 9 FAILED: discountPercent had zero KPI impact.`);
   }
-  logger.info(`  - Lever discountPercent: ARR Delta = ${discArrDelta} €, MRR Delta = ${discMrrDelta} €`);
+  logger.info(
+    `  - Lever discountPercent: ARR Delta = ${discArrDelta} €, MRR Delta = ${discMrrDelta} €`,
+  );
 
-  logger.info('✅ TEST 9 PASSED: All wired catalog levers demonstrate significant and measurable KPI sensitivity.');
+  logger.info(
+    '✅ TEST 9 PASSED: All wired catalog levers demonstrate significant and measurable KPI sensitivity.',
+  );
 
   systemContext.__resetForTest();
   logger.info('\n=================================================================');

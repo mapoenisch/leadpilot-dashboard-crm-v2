@@ -70,7 +70,8 @@ export const V1_PARAMETER_DEFINITIONS: {
   churnRateMonthly: {
     id: 'churnRateMonthly',
     label: 'Ziel-Churn (monatlich)',
-    description: 'Monatliche Kundenabwanderungsquote in Prozent (Verbindlicher Bereich: 0,5 - 5,0 %/Monat)',
+    description:
+      'Monatliche Kundenabwanderungsquote in Prozent (Verbindlicher Bereich: 0,5 - 5,0 %/Monat)',
     type: 'percentage',
     unit: '% / Monat',
     defaultValue: 2.8,
@@ -170,7 +171,13 @@ export class ParameterRegistry {
     }
     const rawMix = inputMix as Record<keyof ChannelMix, unknown>;
 
-    const requiredKeys: (keyof ChannelMix)[] = ['linkedIn', 'seo', 'partner', 'webinar', 'outbound'];
+    const requiredKeys: (keyof ChannelMix)[] = [
+      'linkedIn',
+      'seo',
+      'partner',
+      'webinar',
+      'outbound',
+    ];
     const numericMix = {} as Record<keyof ChannelMix, number>;
     for (const key of requiredKeys) {
       const raw = rawMix[key];
@@ -210,7 +217,12 @@ export class ParameterRegistry {
     };
 
     // Adjust last channel to guarantee exact 100.00% sum
-    const normSum = rawNormalized.linkedIn + rawNormalized.seo + rawNormalized.partner + rawNormalized.webinar + rawNormalized.outbound;
+    const normSum =
+      rawNormalized.linkedIn +
+      rawNormalized.seo +
+      rawNormalized.partner +
+      rawNormalized.webinar +
+      rawNormalized.outbound;
     const diff = Number((100 - normSum).toFixed(2));
     rawNormalized.outbound = Number((rawNormalized.outbound + diff).toFixed(2));
 
@@ -259,7 +271,11 @@ export class ParameterRegistry {
   /**
    * Validates and normalizes full ScenarioParameters set against Registry.
    */
-  public validateAllParameters(params: unknown): { valid: boolean; errors: string[]; normalizedParams: ScenarioParameters } {
+  public validateAllParameters(params: unknown): {
+    valid: boolean;
+    errors: string[];
+    normalizedParams: ScenarioParameters;
+  } {
     const errors: string[] = [];
     const defaults = this.getDefaultParameters();
 
@@ -272,7 +288,9 @@ export class ParameterRegistry {
     }
     const input = params as Record<string, unknown>;
 
-    const keys: (keyof ScenarioParameters)[] = Object.keys(V1_PARAMETER_DEFINITIONS) as (keyof ScenarioParameters)[];
+    const keys: (keyof ScenarioParameters)[] = Object.keys(
+      V1_PARAMETER_DEFINITIONS,
+    ) as (keyof ScenarioParameters)[];
     const resultParams: Record<string, unknown> = { ...input };
 
     for (const key of keys) {

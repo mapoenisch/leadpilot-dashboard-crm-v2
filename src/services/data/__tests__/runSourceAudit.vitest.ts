@@ -27,6 +27,10 @@ describe('runSourceAudit', () => {
       capturedAt: '2026-08-31T12:00:00Z',
       periodStart: '2026-01-01',
       counts: { companies: 20, contacts: 100, deals: 40, activities: 0 },
+      // 067E: Pflichtfelder des erweiterten BaselineDataset (reine Typ-Reparatur).
+      baselineHash: 'a'.repeat(64),
+      historicalMetrics: { baseCustomers: 66, baseMRR: 34320, baseARR: 411840 },
+      organizationId: 'unknown',
       companies: [],
       contacts: [],
       deals: [],
