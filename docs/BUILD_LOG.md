@@ -12487,12 +12487,17 @@ kein Schema, kein Seed geändert.
 `npm run verify` (Integrity 001–025 bestanden), `npm run build` bestanden.
 Keine UI-Änderung, daher keine Screenshot-Matrix.
 
-**CI-Lücke (nicht behoben, nur festgestellt):** `.github/workflows/ci.yml`
-führt im Job `e2e` zwar `supabase start` und `supabase db reset` aus, aber
-**kein** `supabase test db`. Die pgTAP-Suiten laufen damit in CI nicht, was
-erklärt, warum die Regression unbemerkt auf `main` kam. Vorschlag: nach
-`supabase db reset --yes` einen Schritt `supabase test db` ergänzen — eigener
-Auftrag, da CI-Workflow außerhalb dieses Fixes.
+**CI-Lücke (festgestellt und geschlossen, Freigabe Marc 2026-09-24):**
+`.github/workflows/ci.yml` führte im Job `e2e` zwar `supabase start` und
+`supabase db reset` aus, aber **kein** `supabase test db` — die pgTAP-Suiten
+liefen in CI nicht, daher blieb die Regression auf `main` unbemerkt. Marc hat
+die Aufnahme des CI-Schritts in diesen PR ausdrücklich freigegeben
+(Zielerweiterung um `.github/workflows/ci.yml`). Neuer Schritt
+„pgTAP-Datenbanktests (supabase test db)“ direkt nach der DB-Initialisierung
+und vor den Playwright-Tests; da alle Testdateien per `ROLLBACK` enden, bleibt
+der Seed für E2E unverändert (lokal nachgeprüft: 3 Orgs, 4 Mitglieder,
+6 Companies nach dem Lauf). YAML-Validierung bestanden; die sieben Jobnamen
+bleiben unverändert.
 
 **Ergebnis & Freigabestatus:** Builder-Nachweis grün. Unabhängiger Review
 durch Codex/Claude Code ausstehend.
