@@ -126,14 +126,27 @@ describe('runControlService (G63)', () => {
     const { coordinator, done } = run();
     const snapshot = await pauseAfterFirstBatch(coordinator);
     expect(coordinator.getStatus()).toBe('paused');
-    expect(snapshot.tick).toBeGreaterThan(0);
-    expect(snapshot.tick).toBeLessThan(TARGET);
+    // Pause greift an der nächsten Tick-Grenze: angefordert nach Tick 1.
+    expect(snapshot.tick).toBe(1);
     // Doppelte Pause sendet keinen zweiten Befehl.
     expect(coordinator.pause()).toBe(false);
     expect(coordinator.resume()).toBe(true);
     expect(coordinator.resume()).toBe(false);
 
     expect(comparable(await done)).toBe(comparable(reference));
+  });
+
+  it('Pause im Zustand queued greift nach dem ersten Tick, nicht nach einem Batch', async () => {
+    const { coordinator, done } = run();
+    const paused = new Promise<RunResumeSnapshotBody>((resolve) =>
+      coordinator.onEvent((evt) => {
+        if (evt.status === 'paused' && evt.snapshot) resolve(evt.snapshot);
+      }),
+    );
+    expect(coordinator.pause()).toBe(true);
+    expect((await paused).tick).toBe(1);
+    coordinator.cancel();
+    await expect(done).rejects.toMatchObject({ code: 'SIMULATION_CANCELLED' });
   });
 
   it('Resume aus Snapshot in frischem Worker ist byte-identisch', async () => {
@@ -195,6 +208,23 @@ describe('runControlService (G63)', () => {
     );
     await expect(validateRunSnapshot(await resealed({ tick: TARGET }))).rejects.toEqual(invalid);
     await expect(validateRunSnapshot(await resealed({ tick: 0 }))).rejects.toEqual(invalid);
+
+    // Versiegelt, aber semantisch inkonsistent (Befund Codex-Review PR #27).
+    const inconsistent: Array<Partial<RunResumeSnapshotBody>> = [
+      { state: { ...sealed.state, tickCount: sealed.tick + 2 } },
+      { leads: undefined as unknown as RunResumeSnapshotBody['leads'] },
+      { timeSeries: sealed.timeSeries.slice(0, -1) },
+      { timeSeries: [...sealed.timeSeries].reverse() },
+      { historicalMetrics: undefined as unknown as RunResumeSnapshotBody['historicalMetrics'] },
+      { correlationId: '' },
+      {
+        targetTicks: TARGET + 0.5,
+        manifest: { ...sealed.manifest, targetTicks: TARGET + 0.5 },
+      },
+    ];
+    for (const patch of inconsistent) {
+      await expect(validateRunSnapshot(await resealed(patch))).rejects.toEqual(invalid);
+    }
 
     // Sitzung/Anwendung passen nicht zum Snapshot.
     await expect(validateRunSnapshot(sealed, { organizationId: 'org-b' })).rejects.toEqual(invalid);

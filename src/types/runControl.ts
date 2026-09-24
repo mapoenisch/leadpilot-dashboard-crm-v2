@@ -19,8 +19,9 @@ export const RUN_RESUME_SNAPSHOT_SCHEMA = 'run-resume-snapshot/1' as const;
 
 export type RunControlCommand = 'pause' | 'resume' | 'cancel' | 'retry' | 'resumeFromSnapshot';
 
+// `pausing`: Worker hat pausiert, der Server-Snapshot wird noch gespeichert.
 export type RunControlStatus =
-  'queued' | 'running' | 'progress' | 'paused' | 'completed' | 'cancelled' | 'failed';
+  'queued' | 'running' | 'progress' | 'pausing' | 'paused' | 'completed' | 'cancelled' | 'failed';
 
 export type RunControlErrorCode =
   'SIMULATION_CANCELLED' | 'SIMULATION_RESUME_INVALID' | 'FORBIDDEN' | 'INVALID_STATE_TRANSITION';

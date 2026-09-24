@@ -15,6 +15,7 @@ const STATUS_TEXT: Record<string, string> = {
   queued: 'Run wartet',
   running: 'Run rechnet',
   progress: 'Run rechnet',
+  pausing: 'Pause wird gespeichert',
   paused: 'Run pausiert',
   cancelled: 'Run abgebrochen',
   failed: 'Run fehlgeschlagen',

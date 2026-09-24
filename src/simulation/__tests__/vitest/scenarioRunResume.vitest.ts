@@ -2,17 +2,35 @@
 // Node): Ein im Worker pausierter Lauf, im Main-Thread aus dem versiegelten
 // Snapshot fortgesetzt, ergibt denselben Endstand wie der ununterbrochene
 // Worker-Lauf. Unbekannte Version und fremde Organisation brechen ab.
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { RunCoordinator, type WorkerRunResult } from '../../runCoordinator';
 import { HeadlessTestWorkerAdapter } from '../../worker/workerAdapter';
 import { sealRunSnapshot } from '../../runControlService';
 import { resumeRunFromSnapshotWith } from '../../scenarioRunResume';
 import { ScenarioRepository, DEFAULT_BASE_2026_VERSION_ID } from '../../scenarioRepository';
 import type { ScenarioRunContext } from '../../scenarioRunExecutor';
+import { BASELINE_PERIOD_START } from '../../constants';
+import { BaselineSnapshotService } from '../../../services/data/baselineSnapshotService';
+import { dataSourceRegistry } from '../../../services/data';
 import type { RunManifest } from '../../../types/scenario';
 import type { RunResumeSnapshot, RunResumeSnapshotBody } from '../../../types/runControl';
 
 const TARGET = 24;
+const BASELINE_VERSION = 'baseline-resume-svc-test';
+let baseline: { sourceId: string; hash: string };
+
+beforeAll(async () => {
+  // Echte, eingefrorene Baseline des Mandanten — der Resume prüft ihren Hash.
+  const sourceId = dataSourceRegistry.getActive().info.id;
+  const ds = await BaselineSnapshotService.capture(
+    sourceId,
+    BASELINE_VERSION,
+    BASELINE_PERIOD_START,
+    '2026-01-01T00:00:00.000Z',
+    { organizationId: 'org-a' },
+  );
+  baseline = { sourceId, hash: ds.baselineHash };
+});
 
 function manifest(): RunManifest {
   const version = ScenarioRepository.getInstance().getVersion(DEFAULT_BASE_2026_VERSION_ID);
@@ -25,9 +43,10 @@ function manifest(): RunManifest {
     initialRngState: 90210,
     modelVersion: '1.0.0-v1',
     schemaVersion: '1.0.0',
-    baselineVersion: 'baseline-x',
-    baselineId: 'baseline-x',
-    baselineHash: 'e'.repeat(64),
+    baselineVersion: BASELINE_VERSION,
+    baselineId: BASELINE_VERSION,
+    baselineHash: baseline.hash,
+    dataSourceId: baseline.sourceId,
     organizationId: 'org-a',
     createdAt: '2026-01-01T00:00:00.000Z',
     simulationStartDate: '2026-01-01',
@@ -81,10 +100,15 @@ describe('scenarioRunResume (G63)', () => {
     const sealed = await snapshot();
     expect(sealed.tick).toBeGreaterThan(0);
 
+    let accepted = 0;
     const resumed = await resumeRunFromSnapshotWith(ctx, sealed, {
       organizationId: 'org-a',
       persist: false,
+      onAccepted: () => {
+        accepted += 1;
+      },
     });
+    expect(accepted).toBe(1);
 
     expect(resumed.run.runId).toBe('run-resume-svc');
     expect(resumed.run.status).toBe('COMPLETED');
@@ -100,6 +124,38 @@ describe('scenarioRunResume (G63)', () => {
     expect(JSON.stringify(resumed.events)).toBe(JSON.stringify(withCorr));
     // Der Snapshot selbst bleibt unverändert (Hash weiter gültig).
     expect((await sealRunSnapshot(sealed)).snapshotHash).toBe(sealed.snapshotHash);
+  });
+
+  it('geänderte oder nicht auflösbare aktive Baseline → SIMULATION_RESUME_INVALID', async () => {
+    const sealed = await snapshot();
+    const invalid = expect.objectContaining({ code: 'SIMULATION_RESUME_INVALID' });
+    let accepted = 0;
+    const onAccepted = () => {
+      accepted += 1;
+    };
+    // Snapshot trägt den Hash einer älteren Baseline (Daten seit der Pause geändert).
+    const stale = await sealRunSnapshot({
+      ...sealed,
+      baselineHash: 'f'.repeat(64),
+      manifest: { ...sealed.manifest, baselineHash: 'f'.repeat(64) },
+    });
+    await expect(
+      resumeRunFromSnapshotWith(ctx, stale, { persist: false, onAccepted }),
+    ).rejects.toEqual(invalid);
+    // Baseline weder eingefroren noch aus einer Quelle neu erfassbar.
+    const unknownSource = await sealRunSnapshot({
+      ...sealed,
+      manifest: {
+        ...sealed.manifest,
+        baselineVersion: 'baseline-unbekannt',
+        dataSourceId: 'quelle-unbekannt',
+      },
+    });
+    await expect(
+      resumeRunFromSnapshotWith(ctx, unknownSource, { persist: false, onAccepted }),
+    ).rejects.toEqual(invalid);
+    // Abgelehnte Resumes werden nie als angenommen gemeldet (kein Audit).
+    expect(accepted).toBe(0);
   });
 
   it('fremde Organisation und unbekannte Version → SIMULATION_RESUME_INVALID', async () => {

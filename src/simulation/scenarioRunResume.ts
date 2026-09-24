@@ -3,6 +3,12 @@
 // endet über denselben Abschlusspfad wie ein normaler Run. Ergebnis:
 // byte-identisch zum ununterbrochenen Lauf gleicher Baseline und gleichen Seeds.
 import { DeterministicRNG } from './prng';
+import { BASELINE_PERIOD_START } from './constants';
+import { systemContext } from './systemContext';
+import {
+  BaselineSnapshotService,
+  UNKNOWN_ORGANIZATION_ID,
+} from '../services/data/baselineSnapshotService';
 import { validateRunSnapshot } from './runControlService';
 import {
   RUN_MODEL_VERSION,
@@ -21,6 +27,38 @@ import type { RunOptions } from '../types/scenario';
 import type { SimulationEvent } from '../types/simulation';
 import type { TimeSeriesPoint } from '../types/aggregation';
 
+/**
+ * Hash der aktiven Baseline des Snapshots — aufgelöst wie für neue Runs
+ * (eingefrorene Version oder Neuerfassung aus der Quelle des Manifests). Der
+ * Hash enthält keinen Erfassungszeitpunkt: unveränderte Daten ergeben
+ * denselben Hash, geänderte einen anderen (fail-closed).
+ */
+async function activeBaselineHash(snapshot: RunResumeSnapshot): Promise<string> {
+  const { baselineVersion, dataSourceId } = snapshot.manifest;
+  const organizationId = snapshot.organizationId ?? UNKNOWN_ORGANIZATION_ID;
+  try {
+    if (!BaselineSnapshotService.has(baselineVersion)) {
+      if (!dataSourceId) throw new Error('Manifest ohne Datenquelle');
+      await BaselineSnapshotService.capture(
+        dataSourceId,
+        baselineVersion,
+        BASELINE_PERIOD_START,
+        systemContext.now(),
+        { organizationId },
+      );
+    }
+    const dataset = BaselineSnapshotService.get(baselineVersion);
+    if (dataset.organizationId !== organizationId)
+      throw new Error('Baseline eines anderen Mandanten');
+    return dataset.baselineHash;
+  } catch (err) {
+    throw new RunControlError(
+      'SIMULATION_RESUME_INVALID',
+      `Snapshot ungültig: aktive Baseline "${baselineVersion}" nicht prüfbar (${err instanceof Error ? err.message : 'unbekannt'}).`,
+    );
+  }
+}
+
 export async function resumeRunFromSnapshotWith(
   ctx: ScenarioRunContext,
   snapshot: RunResumeSnapshot,
@@ -31,6 +69,9 @@ export async function resumeRunFromSnapshotWith(
     modelVersion: RUN_MODEL_VERSION,
     schemaVersion: RUN_SCHEMA_VERSION,
   });
+  // Die aktive Baseline muss noch dieselbe sein wie beim Pausieren — sonst
+  // würde ein alter Zwischenstand als aktuelles Ergebnis persistiert.
+  await validateRunSnapshot(snapshot, { baselineHash: await activeBaselineHash(snapshot) });
   const version = ctx.repo.getVersion(snapshot.scenarioVersionId);
   if (!version) {
     throw new RunControlError(
@@ -38,6 +79,9 @@ export async function resumeRunFromSnapshotWith(
       `Snapshot ungültig: Szenarioversion "${snapshot.scenarioVersionId}" ist nicht geladen.`,
     );
   }
+  // Befehl angenommen (Snapshot, Baseline und Version geprüft) — erst jetzt
+  // darf der Aufrufer den Resume protokollieren.
+  opts.onAccepted?.();
 
   // Tiefe Kopie: der validierte Snapshot bleibt unverändert (Hash bleibt gültig).
   const s = structuredClone(snapshot);

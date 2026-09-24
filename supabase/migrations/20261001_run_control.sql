@@ -79,6 +79,7 @@ DECLARE
   v_org UUID;
   v_tick INTEGER;
   v_target INTEGER;
+  v_written INTEGER;
 BEGIN
   v_org := public.run_control_organization(p_organization_id);
 
@@ -119,7 +120,17 @@ BEGIN
     snapshot_hash = EXCLUDED.snapshot_hash,
     correlation_id = EXCLUDED.correlation_id,
     created_by = EXCLUDED.created_by,
-    created_at = NOW();
+    created_at = NOW()
+  -- Mandantengebundenes Update: Zwei Organisationen können dieselbe run_id
+  -- gleichzeitig speichern, ohne dass die EXISTS-Prüfung oben die jeweils
+  -- andere sieht. Der Konflikt darf dann nie den fremden Datensatz überschreiben.
+  WHERE public.simulation_run_pauses.organization_id = EXCLUDED.organization_id;
+
+  GET DIAGNOSTICS v_written = ROW_COUNT;
+  IF v_written = 0 THEN
+    RAISE EXCEPTION 'SIMULATION_RESUME_INVALID: Run gehört nicht zur Organisation'
+      USING ERRCODE = '22023';
+  END IF;
 
   INSERT INTO public.audit_log (
     organization_id, actor_id, action, target_type, target_id, details, correlation_id

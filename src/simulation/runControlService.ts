@@ -18,6 +18,8 @@ const ALLOWED_BY_STATUS: Record<RunControlStatus, readonly RunControlCommand[]> 
   queued: ['pause', 'cancel'],
   running: ['pause', 'cancel'],
   progress: ['pause', 'cancel'],
+  // Erst nach gespeichertem Snapshot fortsetzbar; Abbruch ist jederzeit möglich.
+  pausing: ['cancel'],
   paused: ['resume', 'cancel'],
   cancelled: ['retry'],
   failed: ['retry'],
@@ -81,6 +83,54 @@ function invalid(reason: string): never {
   throw new RunControlError('SIMULATION_RESUME_INVALID', `Snapshot ungültig: ${reason}.`);
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * Ein korrekter Hash beweist nur unveränderte Bytes. Vor dem Rechnen müssen
+ * auch Pflichtfelder und ihre Beziehungen stimmen (Tick ↔ Zustand ↔
+ * Zeitreihe), sonst liefert ein versiegelter, aber inkonsistenter Snapshot
+ * falsche Ergebnisse oder einen generischen Laufzeitfehler.
+ */
+function assertSnapshotSemantics(snapshot: RunResumeSnapshot): void {
+  if (!Number.isInteger(snapshot.targetTicks) || snapshot.targetTicks <= 0) {
+    invalid('Tick-Ziel ist keine positive Ganzzahl');
+  }
+  if (!Number.isInteger(snapshot.seed)) invalid('Seed ist keine Ganzzahl');
+  if (typeof snapshot.scenarioVersionId !== 'string' || snapshot.scenarioVersionId === '') {
+    invalid('Szenarioversion fehlt');
+  }
+  if (typeof snapshot.correlationId !== 'string' || snapshot.correlationId === '') {
+    invalid('Korrelations-ID fehlt');
+  }
+  if (!isRecord(snapshot.state) || snapshot.state.tickCount !== snapshot.tick) {
+    invalid('Zustand passt nicht zum Tick');
+  }
+  if (!isRecord(snapshot.historicalMetrics)) invalid('historische Kennzahlen fehlen');
+  if (!isRecord(snapshot.manifest.parameters)) invalid('Parameter fehlen im Manifest');
+  if (snapshot.manifest.measures !== undefined && !Array.isArray(snapshot.manifest.measures)) {
+    invalid('Maßnahmen im Manifest sind keine Liste');
+  }
+  const collections = [
+    snapshot.leads,
+    snapshot.opportunities,
+    snapshot.deals,
+    snapshot.activities,
+    snapshot.queueEntries,
+    snapshot.csQueueEntries,
+    snapshot.events,
+  ];
+  if (!collections.every(Array.isArray)) invalid('Sammlungen fehlen');
+  const series = snapshot.timeSeries;
+  if (
+    !Array.isArray(series) ||
+    series.length !== snapshot.tick + 1 ||
+    series.some((point, index) => !isRecord(point) || point.tick !== index)
+  ) {
+    invalid('Zeitreihe passt nicht zum Tick');
+  }
+}
+
 /**
  * Prüft Hash, Schema, Tick-Grenzen und die Bindung an Manifest und Sitzung.
  * Jede Abweichung bricht ab — ein manipulierter Snapshot rechnet nie weiter.
@@ -111,6 +161,7 @@ export async function validateRunSnapshot(
     invalid('Tick liegt außerhalb des Laufs');
   }
   if (!Number.isFinite(snapshot.rngState)) invalid('PRNG-Zustand fehlt');
+  assertSnapshotSemantics(snapshot);
   if (
     expected.organizationId !== undefined &&
     snapshot.organizationId !== expected.organizationId

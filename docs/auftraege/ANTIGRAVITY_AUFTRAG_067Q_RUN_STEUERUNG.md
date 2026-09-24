@@ -84,6 +84,7 @@ Quellen: Spec `docs/superpowers/specs/2026-09-15-v2-3-0-production-readiness-des
 | `supabase/tests/run_control.sql` | NEU — Rollen-, Mandanten- und Atomizitätstests |
 | `src/store/slices/runSlice.ts` | MODIFY — `pauseRun`, `resumeRun`, `cancelRun`, `retryRun`, `resumeFromSnapshot`, Status `paused` |
 | `src/store/hooks.ts` | MODIFY — `useRunControl` |
+| `src/store/slices/runControlSupport.ts` | NEU — Retry-Bindung, serielle Server-Warteschlange (Nacharbeit Codex-Review, ausgelagert wegen `max-lines`) |
 | `src/features/simulation/components/RunControlBar.tsx` | NEU — Aktionen je Status und Rolle |
 | `src/features/simulation/components/RunActionModal.tsx` | MODIFY — RunControlBar während des Laufs |
 | `src/features/simulation/pages/LiveSimulationPage.tsx` | MODIFY — Status inkl. `paused`, gespeicherte Pausen fortsetzen |

@@ -72,6 +72,9 @@ export class CoordinatorError extends Error {
   }
 }
 
+/** Frist für die CANCELLED-Bestätigung des Workers (danach harter Abbruch). */
+export const CANCEL_CONFIRM_TIMEOUT_MS = 2000;
+
 const STATUS_BY_EVENT = {
   QUEUED: 'queued',
   STARTED: 'running',
@@ -91,6 +94,7 @@ export class RunCoordinator {
   private totalUnits = 0;
   private correlationId = '';
   private runId = '';
+  private manifest: RunManifest | null = null;
   private status: CoordinatorStatus | null = null;
   private pendingCommand: 'PAUSE' | 'RESUME' | null = null;
   private lastSnapshot: RunResumeSnapshotBody | null = null;
@@ -98,8 +102,17 @@ export class RunCoordinator {
   private rejectDone: ((err: CoordinatorError) => void) | null = null;
   private unsubscribeAdapter: (() => void) | null = null;
   private unsubscribeAdapterError: (() => void) | null = null;
+  private cancelRequested = false;
+  private cancelTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(adapter?: ISimulationWorkerAdapter) {
+  /**
+   * @param cancelTimeoutMs Frist, in der der Worker einen Abbruch bestätigen
+   * muss (CANCELLED an der nächsten Tick-Grenze); danach wird er hart beendet.
+   */
+  constructor(
+    adapter?: ISimulationWorkerAdapter,
+    private readonly cancelTimeoutMs = CANCEL_CONFIRM_TIMEOUT_MS,
+  ) {
     this.adapter = adapter ?? createWorkerAdapter();
   }
 
@@ -112,6 +125,7 @@ export class RunCoordinator {
 
   public execute(input: CoordinatorRunInput): Promise<WorkerRunResult> {
     this.runId = input.manifest.runId;
+    this.manifest = input.manifest;
     this.correlationId = input.correlationId;
     this.totalUnits = input.targetTicks;
     this.lastProcessedUnits = input.resumeSnapshot?.tick ?? 0;
@@ -133,6 +147,9 @@ export class RunCoordinator {
         historicalMetrics: input.historicalMetrics,
         measures: input.measures,
         targetTicks: input.targetTicks,
+        // 067Q / G63: Ein Tick pro Batch — der Worker gibt nach jedem Tick die
+        // Event-Loop frei und nimmt PAUSE/CANCEL an der nächsten Tick-Grenze an.
+        batchSize: 1,
         totalRuns: 1,
         ...(input.resumeSnapshot ? { resumeSnapshot: input.resumeSnapshot } : {}),
       },
@@ -151,6 +168,11 @@ export class RunCoordinator {
     return this.runId;
   }
 
+  /** Manifest des Laufs (Baseline-Bindung, Maßnahmen) — Grundlage für Retry. */
+  public getManifest(): RunManifest | null {
+    return this.manifest;
+  }
+
   /** Zwischenstand der letzten Pause (null, solange nie pausiert wurde). */
   public getLastSnapshot(): RunResumeSnapshotBody | null {
     return this.lastSnapshot;
@@ -161,23 +183,34 @@ export class RunCoordinator {
    * Pause unterwegs → kein zweiter Befehl (Rückgabe false).
    */
   public pause(): boolean {
-    if (this.settled || this.pendingCommand || this.status === 'paused') return false;
+    if (this.settled || this.cancelRequested || this.pendingCommand || this.status === 'paused') {
+      return false;
+    }
     return this.send('PAUSE');
   }
 
   /** Fortsetzen nur aus `paused`; sonst kein Befehl (Rückgabe false). */
   public resume(): boolean {
-    if (this.settled || this.pendingCommand || this.status !== 'paused') return false;
+    if (this.settled || this.cancelRequested || this.pendingCommand || this.status !== 'paused') {
+      return false;
+    }
     return this.send('RESUME');
   }
 
   /**
-   * Abbruch (Benutzer, Navigation, Unmount): CANCEL an den Worker, danach sofort
-   * terminieren — Ergebnis ist SIMULATION_CANCELLED, nie ein stiller Erfolg.
+   * Abbruch (Benutzer, Navigation, Unmount): kooperativ per CANCEL — der Worker
+   * bestätigt an der nächsten Tick-Grenze mit CANCELLED, erst dann wird er
+   * terminiert. Antwortet er nicht innerhalb der Frist, wird er hart beendet.
+   * Ergebnis ist immer SIMULATION_CANCELLED, nie ein stiller Erfolg.
    */
   public cancel(): void {
-    if (this.settled) return;
+    if (this.settled || this.cancelRequested) return;
+    this.cancelRequested = true;
     this.adapter.postMessage(this.command('CANCEL'));
+    this.cancelTimer = setTimeout(() => this.failCancelled(), this.cancelTimeoutMs);
+  }
+
+  private failCancelled(): void {
     this.fail(new CoordinatorError('SIMULATION_CANCELLED', 'Run abgebrochen.'), 'cancelled');
   }
 
@@ -215,6 +248,8 @@ export class RunCoordinator {
 
   private teardown(): void {
     this.settled = true;
+    if (this.cancelTimer) clearTimeout(this.cancelTimer);
+    this.cancelTimer = null;
     this.unsubscribeAdapter?.();
     this.unsubscribeAdapter = null;
     this.unsubscribeAdapterError?.();
@@ -287,7 +322,7 @@ export class RunCoordinator {
     }
 
     if (status === 'cancelled') {
-      this.fail(new CoordinatorError('SIMULATION_CANCELLED', 'Run abgebrochen.'), 'cancelled');
+      this.failCancelled();
       return;
     }
 

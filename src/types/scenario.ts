@@ -112,6 +112,9 @@ export interface RunOptions {
   // 067Q / G63: Worker hat an einer Tick-Grenze pausiert; der Zwischenstand
   // (ohne Hash) kann versiegelt und persistiert werden.
   onPaused?: (snapshot: RunResumeSnapshotBody) => void;
+  // 067Q / G63: Resume aus Snapshot wurde angenommen (Snapshot, aktive
+  // Baseline und Version geprüft) — erst danach protokolliert der Aufrufer.
+  onAccepted?: () => void;
 }
 
 import { BaselineComparisonResult, GoalTargetEvaluationResult } from './kpi';

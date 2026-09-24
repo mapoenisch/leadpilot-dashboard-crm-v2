@@ -12639,3 +12639,34 @@ insbesondere Migration/RPC-Rechte, Determinismusnachweis und E2E in der PR-CI.
 Bilddateien nicht committet (CLAUDE.md §7).
 
 **Übergabe an Codex:** erneute Prüfung von PR #25; alle Review-Threads beantwortet.
+
+---
+
+## [2026-09-24] Auftrag 067Q / G63 — Nacharbeit zum Codex-Review von PR #27 (Builder: Claude Code)
+
+**Befund:** Codex-Review von PR #27 (Commit `f948103`), sechs P1 und vier P2.
+Alle zehn Punkte sind berechtigt und umgesetzt.
+
+| Prio | Befund | Nacharbeit | Nachweis |
+|---|---|---|---|
+| P1 | PAUSE greift erst nach einem 10er-Batch | Coordinator startet den Worker mit `batchSize: 1`; der Worker gibt nach jedem Tick die Event-Loop frei | Test: Pause nach Tick 1 und im Zustand `queued` → Snapshot-Tick 1 |
+| P2 | Worker wird vor der CANCELLED-Bestätigung terminiert | Abbruch kooperativ; Terminierung erst nach `CANCELLED`, harter Abbruch nach 2 s ohne Antwort | Tests: kooperativer Abbruch, Timeout mit Fake-Timern |
+| P1 | Resume prüft den Hash der aktiven Baseline nicht | Aktive Baseline wird wie bei neuen Runs aufgelöst (eingefroren oder Neuerfassung aus der Manifest-Quelle); ihr Hash muss passen, sonst `SIMULATION_RESUME_INVALID` | Tests: veralteter Hash, nicht auflösbare Quelle |
+| P1 | Versiegelter, aber inkonsistenter Snapshot wird angenommen | Semantische Prüfung: Tick ↔ `state.tickCount` ↔ Zeitreihe (0…Tick), Pflichtsammlungen, ganzzahlige Ziele, Korrelations-ID, Parameter | 7 neue Negativfälle |
+| P1 | Upsert kann bei gleichzeitiger `run_id` einen fremden Mandanten überschreiben | `ON CONFLICT … DO UPDATE … WHERE organization_id = EXCLUDED.organization_id`, 0 geschriebene Zeilen → Abbruch | pgTAP 24/24, inkl. simuliertem Konflikt |
+| P1 | Abbruch eines Snapshot-Resumes wird nicht als unterbrochener Run geführt | Angenommener, dann abgebrochener/fehlgeschlagener Resume → `interruptedRun` (Retry mit gleichem Seed); Pausenliste wird immer neu geladen | Store-Test |
+| P1 | Pausenliste bevorzugt den veralteten Workspace-Mandanten | Sitzungsorganisation ist maßgeblich; Wechsel leert die Liste sofort, Fehler ebenso; veraltete Antworten werden verworfen | Store-Test |
+| P2 | Retry nutzt aktuelle statt ursprüngliche Maßnahmen/Quelle | `InterruptedRun.binding`: Maßnahmen und Datenquelle beim Start, Baseline-Version/-Hash aus dem Manifest | Store-Test mit geänderten Entwurfsmaßnahmen |
+| P2 | Pause wird vor dem Speichern bestätigt; Verwerfen kann vor dem Speichern laufen | Neuer Zustand `pausing` (nur Abbruch erlaubt), `paused` erst nach gespeichertem Snapshot; Speichern, Audit und Verwerfen laufen seriell | Store-Tests inkl. Abbruch während des Speicherns |
+| P2 | Audit „resumed/retried“ vor der Annahme | `onAccepted` nach Snapshot-, Baseline- und Versionsprüfung bzw. nach dem ersten Worker-Ereignis des Retrys | Tests: kein Audit bei abgelehntem Resume |
+
+**Verifikation:** `npx tsc --noEmit`, `npm run lint` (0/0), `npm run format:check`,
+`npm run verify:quality-budget`, `npm run test:coverage` (268 Dateien, 1464 Tests;
+87,45 % / 81,25 % / 82,07 % / 88,71 %), `npm run verify` (001–025), `npm run build`,
+`npx size-limit` (173,18 kB / 86,4 kB), `supabase test db` → `run_control.sql` 24/24
+(die zwei bekannten Altbefunde unverändert), Playwright `run-control`,
+`worker-responsiveness`, `persistence-multisession` 15/15 sowie `a11y`, `routes`,
+`semantic-routes`, `element-clipping`, `auth` 543/543. Golden Run unverändert grün.
+Schutzbereiche `src/context`, `src/services/data`, `src/features/resources`: Nulldiff.
+
+**Übergabe an Codex:** erneute Prüfung von PR #27; alle zehn Threads beantwortet.

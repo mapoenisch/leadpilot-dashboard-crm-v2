@@ -230,6 +230,10 @@ export class ScenarioService {
     return this.activeCoordinator?.getRunId() || null;
   }
 
+  public getActiveRunManifest(): RunManifest | null {
+    return this.activeCoordinator?.getManifest() ?? null;
+  }
+
   /**
    * 067Q / G63: Setzt einen pausierten Run aus einem gespeicherten Snapshot
    * fort — nur nach Hash- und Bindungsprüfung (SIMULATION_RESUME_INVALID).

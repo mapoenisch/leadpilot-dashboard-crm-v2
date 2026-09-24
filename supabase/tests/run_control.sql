@@ -5,7 +5,7 @@
 
 BEGIN;
 
-SELECT plan(22);
+SELECT plan(24);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.simulation_run_pauses;
@@ -161,6 +161,30 @@ SELECT is(
   (SELECT count(*) FROM public.simulation_run_pauses WHERE run_id = 'run-ra-1'),
   0::bigint,
   'Abschluss des Runs löscht den Pausen-Snapshot in derselben Transaktion'
+);
+
+-- ---------------- 23..24: Konflikt-Update ist mandantengebunden (Race-Schutz) --
+-- Simuliert den Wettlauf ohne Vorprüfung: Org B hält run-race, Org A upsertet
+-- dieselbe run_id mit exakt dem Konfliktziel und der WHERE-Bedingung der RPC.
+RESET ROLE;
+INSERT INTO public.simulation_run_pauses (run_id, organization_id, scenario_version_id, tick, target_ticks, snapshot, snapshot_hash)
+VALUES ('run-race', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'v', 3, 50, '{"owner":"B"}'::jsonb, repeat('b', 64));
+
+INSERT INTO public.simulation_run_pauses (run_id, organization_id, scenario_version_id, tick, target_ticks, snapshot, snapshot_hash)
+VALUES ('run-race', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'v', 9, 50, '{"owner":"A"}'::jsonb, repeat('a', 64))
+ON CONFLICT (run_id) DO UPDATE SET
+  tick = EXCLUDED.tick, snapshot = EXCLUDED.snapshot, snapshot_hash = EXCLUDED.snapshot_hash
+WHERE public.simulation_run_pauses.organization_id = EXCLUDED.organization_id;
+
+SELECT is(
+  (SELECT snapshot ->> 'owner' FROM public.simulation_run_pauses WHERE run_id = 'run-race'),
+  'B',
+  'Konflikt-Update aus Org A überschreibt den Snapshot von Org B nicht'
+);
+SELECT is(
+  (SELECT organization_id FROM public.simulation_run_pauses WHERE run_id = 'run-race'),
+  'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid,
+  'Organisation des Datensatzes bleibt unverändert'
 );
 
 SELECT * FROM finish();

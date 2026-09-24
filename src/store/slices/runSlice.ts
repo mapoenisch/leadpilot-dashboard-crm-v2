@@ -15,9 +15,10 @@ import {
   recordRunControl,
   type RunControlAuditAction,
 } from '../../services/runs/runPersistenceService';
+import { dataSourceRegistry } from '../../services/data';
 import type { ScenarioAggregationResult } from '../../types/aggregation';
 import type { OrganizationRole } from '../../types/organization';
-import type { RunOptions, SimulationRun } from '../../types/scenario';
+import type { SimulationRun } from '../../types/scenario';
 import {
   RunControlError,
   type RunControlStatus,
@@ -25,6 +26,14 @@ import {
   type RunResumeSnapshotBody,
 } from '../../types/runControl';
 import type { SimulationStoreState } from '../simulationStore';
+import {
+  bindingOptions,
+  bindingWithManifest,
+  createSerialQueue,
+  errorCode,
+  errorMessage as message,
+  type RunBinding,
+} from './runControlSupport';
 
 // Gate G37 (Auftrag 052): Run-Slice — Runs, Aggregation, Fortschritt und die
 // Run-Aktionen. Jede Aktion ruft danach refreshData (Scenario-Slice), genau
@@ -33,7 +42,7 @@ import type { SimulationStoreState } from '../simulationStore';
 // gespeichertem Snapshot). Rolle und Zustand prüft runControlService; die
 // Datenbank prüft Rolle und Mandant ein zweites Mal (RPC).
 export interface RunProgress {
-  status: 'queued' | 'running' | 'progress' | 'paused';
+  status: 'queued' | 'running' | 'progress' | 'pausing' | 'paused';
   processedUnits: number;
   totalUnits: number;
 }
@@ -45,6 +54,8 @@ export interface InterruptedRun {
   status: 'cancelled' | 'failed';
   runId?: string;
   message: string;
+  /** Ursprüngliche Bindung (Maßnahmen, Datenquelle, Baseline) für den Retry. */
+  binding: RunBinding;
 }
 
 export interface RunSlice {
@@ -56,6 +67,8 @@ export interface RunSlice {
   runProgress: RunProgress | null;
   interruptedRun: InterruptedRun | null;
   pausedRuns: RunResumeSnapshot[];
+  /** Mandant, zu dem `pausedRuns` gehört (Wechsel leert die Liste sofort). */
+  pausedRunsOrganizationId: string | null;
   runControlError: string | null;
   // 067F / G49: Mit organizationId läuft der Run mandantengebunden und wird
   // danach atomar auf dem Server persistiert (fail-closed); ohne bleibt das
@@ -68,7 +81,7 @@ export interface RunSlice {
   pauseRun: (role: OrganizationRole | null) => void;
   resumeRun: (role: OrganizationRole | null) => void;
   retryRun: (role: OrganizationRole | null) => Promise<void>;
-  /** Organisation aus der Sitzung, falls der Workspace noch nicht hydriert ist. */
+  /** Die Sitzungsorganisation ist maßgeblich (Workspace kann noch veraltet sein). */
   loadPausedRuns: (sessionOrganizationId?: string) => Promise<void>;
   resumePausedRun: (runId: string, role: OrganizationRole | null) => Promise<void>;
   discardPausedRun: (runId: string, role: OrganizationRole | null) => Promise<void>;
@@ -86,25 +99,26 @@ export function currentRunControlStatus(
 const retryGate = new IdempotentCommandGate();
 const RETRY_KEY = 'retry';
 
-function errorCode(err: unknown): string | undefined {
-  return typeof err === 'object' && err !== null && 'code' in err
-    ? String((err as { code: unknown }).code)
-    : undefined;
-}
-
-function message(err: unknown, fallback: string): string {
-  return (err instanceof Error ? err.message : '') || fallback;
-}
-
 export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice> = (set, get) => {
   const initialRuns = scenarioService.getRunsForVersion(DEFAULT_BASE_2026_VERSION_ID);
   // Snapshot des laufenden Runs (für Abbruch nach Pause: Server-Pause verwerfen).
   let activePause: RunResumeSnapshotBody | null = null;
-  // Run-ID des laufenden Worker-Runs (für Audit und Retry nach Abbruch).
+  // Run-ID und Bindung des laufenden Runs (für Audit und Retry nach Abbruch).
   let activeRunId: string | null = null;
+  let activeBinding: RunBinding = { measures: [] };
+  // Einmaliger Hook, sobald der Lauf angenommen ist (erstes Worker-Ereignis).
+  let onFirstProgress: (() => void) | null = null;
+  const serverQueue = createSerialQueue();
 
   const reportProgress = (processedUnits: number, totalUnits: number) => {
     activeRunId = scenarioService.getActiveRunId() ?? activeRunId;
+    activeBinding = bindingWithManifest(activeBinding, scenarioService.getActiveRunManifest());
+    const accepted = onFirstProgress;
+    onFirstProgress = null;
+    accepted?.();
+    const current = get().runProgress?.status;
+    // Während Pause/Speichern keine Fortschrittsmeldung den Status überschreiben.
+    if (current === 'pausing' || current === 'paused') return;
     set({
       runProgress:
         processedUnits >= totalUnits
@@ -119,71 +133,103 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
 
   const organizationId = () => get().activeOrganizationId ?? undefined;
 
-  /** Audit fire-and-forget: ein Protokollfehler wird sichtbar, blockiert aber nicht. */
+  /** Audit seriell nach offenen Server-Befehlen; ein Fehler wird sichtbar, blockiert aber nicht. */
   const audit = (runId: string, action: RunControlAuditAction) => {
     const org = organizationId();
     if (!org) return;
-    recordRunControl(org, runId, action, systemContext.nextCorrelationId()).catch((err) =>
-      set({ runControlError: message(err, 'Audit-Eintrag fehlgeschlagen.') }),
-    );
+    serverQueue(() =>
+      recordRunControl(org, runId, action, systemContext.nextCorrelationId()),
+    ).catch((err) => set({ runControlError: message(err, 'Audit-Eintrag fehlgeschlagen.') }));
   };
 
+  const setPauseStatus = (status: 'pausing' | 'paused', body: RunResumeSnapshotBody) =>
+    set({ runProgress: { status, processedUnits: body.tick, totalUnits: body.targetTicks } });
+
+  /**
+   * Der Worker hat an einer Tick-Grenze pausiert. Bei Server-Runs gilt die
+   * Pause erst nach erfolgreich gespeichertem Snapshot als bestätigt; bis dahin
+   * ist nur Abbruch möglich (`pausing`).
+   */
   const onPaused = (body: RunResumeSnapshotBody) => {
     activePause = body;
-    set({
-      runProgress: { status: 'paused', processedUnits: body.tick, totalUnits: body.targetTicks },
-    });
-    if (!body.organizationId || body.organizationId !== organizationId()) return;
-    sealRunSnapshot(body)
-      .then((sealed) => persistRunPause(sealed))
-      .catch((err) => set({ runControlError: message(err, 'Pause nicht gespeichert.') }));
+    const persist = !!body.organizationId && body.organizationId === organizationId();
+    setPauseStatus(persist ? 'pausing' : 'paused', body);
+    if (!persist) return;
+    serverQueue(async () => persistRunPause(await sealRunSnapshot(body)))
+      .catch((err) =>
+        set({
+          runControlError: message(
+            err,
+            'Pause nicht gespeichert — im Browser fortsetzbar, nach einem Reload nicht.',
+          ),
+        }),
+      )
+      .finally(() => {
+        if (activePause === body && get().runProgress?.status === 'pausing') {
+          setPauseStatus('paused', body);
+        }
+      });
   };
 
-  /** Führt einen Lauf aus und merkt sich Abbruch/Fehler für Retry. */
+  const interrupted = (
+    err: unknown,
+    versionId: string,
+    seed: number,
+    binding: RunBinding,
+  ): InterruptedRun => {
+    const cancelled = errorCode(err) === 'SIMULATION_CANCELLED';
+    return {
+      versionId,
+      seed,
+      status: cancelled ? 'cancelled' : 'failed',
+      ...(activeRunId ? { runId: activeRunId } : {}),
+      message: message(err, cancelled ? 'Run abgebrochen.' : 'Run fehlgeschlagen.'),
+      binding,
+    };
+  };
+
+  /** Führt einen Lauf aus und merkt sich Abbruch/Fehler samt Bindung für Retry. */
   const executeRun = async (
     versionId: string,
     seed: number,
     org: string | undefined,
-    run: (opts: RunOptions) => Promise<unknown>,
+    binding: RunBinding,
+    onAccepted?: () => void,
   ) => {
     activePause = null;
     activeRunId = null;
+    activeBinding = binding;
+    onFirstProgress = onAccepted ?? null;
     set({
       runProgress: { status: 'queued', processedUnits: 0, totalUnits: 1 },
       interruptedRun: null,
       runControlError: null,
     });
     try {
-      await run({
+      await scenarioService.runScenarioVersion(versionId, seed, undefined, {
         correlationId: systemContext.nextCorrelationId(),
-        measures: get().draftMeasures,
+        ...bindingOptions(binding),
         ...(org ? { organizationId: org, persistToServer: true as const } : {}),
         onProgress: reportProgress,
         onPaused,
       });
     } catch (err) {
-      const cancelled = errorCode(err) === 'SIMULATION_CANCELLED';
-      set({
-        interruptedRun: {
-          versionId,
-          seed,
-          status: cancelled ? 'cancelled' : 'failed',
-          ...(activeRunId ? { runId: activeRunId } : {}),
-          message: message(err, cancelled ? 'Run abgebrochen.' : 'Run fehlgeschlagen.'),
-        },
-      });
+      set({ interruptedRun: interrupted(err, versionId, seed, activeBinding) });
       throw err;
     } finally {
       activePause = null;
+      onFirstProgress = null;
       set({ runProgress: null });
     }
     get().refreshData();
   };
 
+  /** Neuer Lauf: Bindung an die Maßnahmen und die Datenquelle beim Start. */
   const startVersion = (versionId: string, seed: number, org: string | undefined) =>
-    executeRun(versionId, seed, org, (opts) =>
-      scenarioService.runScenarioVersion(versionId, seed, undefined, opts),
-    );
+    executeRun(versionId, seed, org, {
+      measures: structuredClone(get().draftMeasures),
+      dataSourceId: dataSourceRegistry.getActive().info.id,
+    });
 
   return {
     runs: initialRuns,
@@ -195,6 +241,7 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
     runProgress: null,
     interruptedRun: null,
     pausedRuns: [],
+    pausedRunsOrganizationId: null,
     runControlError: null,
 
     runVersion: (versionId: string, org?: string) =>
@@ -232,10 +279,10 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
       set({ runProgress: null });
       if (role === undefined) return;
       const org = organizationId();
-      // Gespeicherte Pause verwerfen (protokolliert den Abbruch in der DB),
-      // sonst den Abbruch des laufenden Runs direkt protokollieren.
-      if (org && pause) {
-        discardRunPause(org, pause.runId).catch((err) =>
+      // Gespeicherte Pause verwerfen (protokolliert den Abbruch in der DB) —
+      // seriell nach dem Speichern; sonst den Abbruch direkt protokollieren.
+      if (org && pause?.organizationId === org) {
+        serverQueue(() => discardRunPause(org, pause.runId)).catch((err) =>
           set({ runControlError: message(err, 'Pause nicht verworfen.') }),
         );
       } else if (runId) {
@@ -252,6 +299,7 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
       assertRunCommandAllowed('resume', get().runProgress?.status ?? null, role);
       const pause = activePause;
       if (!scenarioService.resumeActiveRun()) return;
+      activePause = null;
       const progress = get().runProgress;
       if (progress) set({ runProgress: { ...progress, status: 'progress' } });
       if (pause) audit(pause.runId, 'resumed');
@@ -269,24 +317,30 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
         }
         return retryGate.run(RETRY_KEY, () => Promise.resolve());
       }
-      const interrupted = get().interruptedRun;
-      assertRunCommandAllowed('retry', interrupted?.status ?? null, role);
-      if (!interrupted) return Promise.resolve();
-      return retryGate.run(RETRY_KEY, async () => {
-        if (interrupted.runId) audit(interrupted.runId, 'retried');
-        await startVersion(interrupted.versionId, interrupted.seed, organizationId());
-      });
+      const last = get().interruptedRun;
+      assertRunCommandAllowed('retry', last?.status ?? null, role);
+      if (!last) return Promise.resolve();
+      // Gleicher Seed und gleiche Bindung; protokolliert erst, wenn der Lauf
+      // angenommen ist (erstes Worker-Ereignis nach dem Preflight).
+      return retryGate.run(RETRY_KEY, () =>
+        executeRun(last.versionId, last.seed, organizationId(), last.binding, () => {
+          if (last.runId) audit(last.runId, 'retried');
+        }),
+      );
     },
 
     loadPausedRuns: async (sessionOrganizationId) => {
-      const org = organizationId() ?? sessionOrganizationId;
-      if (!org) {
-        set({ pausedRuns: [] });
-        return;
+      const org = sessionOrganizationId ?? organizationId() ?? null;
+      if (org !== get().pausedRunsOrganizationId) {
+        // Mandantenwechsel: alte Liste sofort verwerfen, nie mischen.
+        set({ pausedRuns: [], pausedRunsOrganizationId: org });
       }
+      if (!org) return;
       try {
-        set({ pausedRuns: await loadRunPauses(org) });
+        const pauses = await loadRunPauses(org);
+        if (get().pausedRunsOrganizationId === org) set({ pausedRuns: pauses });
       } catch (err) {
+        if (get().pausedRunsOrganizationId === org) set({ pausedRuns: [] });
         set({ runControlError: message(err, 'Pausierte Runs nicht geladen.') });
       }
     },
@@ -296,38 +350,57 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
       const snapshot = get().pausedRuns.find((p) => p.runId === runId);
       if (!snapshot) return;
       const org = organizationId();
+      const binding = bindingWithManifest({ measures: [] }, snapshot.manifest);
+      let accepted = false;
+      let failure: unknown = null;
       activePause = snapshot;
+      activeRunId = snapshot.runId;
+      activeBinding = binding;
       set({
         runProgress: {
           status: 'progress',
           processedUnits: snapshot.tick,
           totalUnits: snapshot.targetTicks,
         },
+        interruptedRun: null,
         runControlError: null,
       });
-      audit(runId, 'resumed');
       try {
         await scenarioService.resumeFromSnapshot(snapshot, {
           ...(org ? { organizationId: org, persistToServer: true as const } : {}),
           onProgress: reportProgress,
           onPaused,
+          // Protokolliert erst nach Snapshot-, Baseline- und Versionsprüfung.
+          onAccepted: () => {
+            accepted = true;
+            audit(runId, 'resumed');
+          },
         });
       } catch (err) {
+        failure = err;
         set({ runControlError: message(err, 'Fortsetzen fehlgeschlagen.') });
-        throw err;
+        // Ein angenommener, dann abgebrochener/fehlgeschlagener Lauf ist ein
+        // unterbrochener Run (Retry mit gleichem Seed von vorn).
+        if (accepted) {
+          set({
+            interruptedRun: interrupted(err, snapshot.scenarioVersionId, snapshot.seed, binding),
+          });
+        }
       } finally {
         activePause = null;
         set({ runProgress: null });
       }
-      get().refreshData();
+      // Pausenliste in jedem Fall mit dem Server abgleichen.
       await get().loadPausedRuns();
+      if (failure) throw failure;
+      get().refreshData();
     },
 
     discardPausedRun: async (runId, role) => {
       assertRunCommandAllowed('resumeFromSnapshot', null, role);
       const org = organizationId();
       if (!org) return;
-      await discardRunPause(org, runId);
+      await serverQueue(() => discardRunPause(org, runId));
       await get().loadPausedRuns();
     },
   };

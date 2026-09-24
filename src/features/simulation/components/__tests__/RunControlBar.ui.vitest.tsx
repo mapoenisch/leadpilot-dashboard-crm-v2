@@ -82,6 +82,19 @@ describe('RunControlBar (G63)', () => {
     expect(resumeRun).toHaveBeenCalledWith('admin');
   });
 
+  it('Pause wird gespeichert: nur Abbrechen, kein Fortsetzen', () => {
+    asRole('admin');
+    useSimulationStore.setState({
+      runProgress: { status: 'pausing', processedUnits: 20, totalUnits: 50 },
+    });
+    render(<RunControlBar />);
+    expect(screen.getByTestId('run-control-status')).toHaveTextContent('Pause wird gespeichert');
+    expect(screen.queryByRole('button', { name: 'Fortsetzen' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Pausieren' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    expect(cancelRun).toHaveBeenCalledWith('admin');
+  });
+
   it('abgebrochener Run: Wiederholen mit Hinweis auf gleichen Seed', () => {
     asRole('admin');
     useSimulationStore.setState({
@@ -90,6 +103,7 @@ describe('RunControlBar (G63)', () => {
         seed: 1,
         status: 'cancelled',
         message: 'Run abgebrochen.',
+        binding: { measures: [] },
       },
     });
     render(<RunControlBar />);
