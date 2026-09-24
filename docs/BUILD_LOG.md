@@ -12501,3 +12501,35 @@ bleiben unverändert.
 
 **Ergebnis & Freigabestatus:** Builder-Nachweis grün. Unabhängiger Review
 durch Codex/Claude Code ausstehend.
+
+## [2026-09-25] PR #26 — unabhängiger Prüferbefund
+
+**Basis:** `81410f7` · **geprüfter PR-HEAD:** `ca81d06` · **Rolle:** Codex als
+unabhängiger Prüfer · **Ergebnis:** keine blockierenden Befunde; PR zur
+Integration freigegeben, `main`-CI nach dem Merge weiterhin erforderlich.
+
+- **Ziel & Kontext:** Die pgTAP-Dateien `member_management.sql` und
+  `tenant_isolation.sql` wurden auf transaktionalen Rollback umgestellt. Der
+  E2E-Job führt `supabase test db` nach `supabase db reset --yes` aus.
+- **Geänderte Dateien geprüft:** `.github/workflows/ci.yml`,
+  `supabase/tests/member_management.sql`, `supabase/tests/tenant_isolation.sql`
+  und der Builder-Eintrag in `docs/BUILD_LOG.md`. Beide geänderten SQL-Suiten
+  beginnen mit `BEGIN` und enden mit `ROLLBACK`; globale Datenlöschungen und
+  das Pausieren des Audit-Immutabilitäts-Triggers wurden entfernt. Die
+  Tenant-Isolation verwendet eigene IDs und Test-Domains.
+- **Funktionale Prüfung:** GitHub-E2E-Protokoll zu Run `36062874200`, Job
+  `107846617046`: alle sechs pgTAP-Dateien erfolgreich, 140 Tests,
+  `Result: PASS`. Danach lief der E2E-Job vollständig grün. Alle sieben
+  Pflichtjobs (`lint`, `typecheck`, `test`, `build`, `livekpi-verifiers`,
+  `size-limit`, `e2e`) sind auf `ca81d06` grün.
+- **Schutzbereich:** `git diff 81410f7...ca81d06 -- src/simulation src/types
+  src/context src/services/data src/features/resources` ist leer.
+  `git diff --check 81410f7...ca81d06` ist ebenfalls leer. Keine UI-Änderung;
+  Screenshot-Matrix entfällt.
+- **Lokale Grenze:** Docker war in der Prüfer-Sandbox nicht zugänglich. Der
+  Datenbanklauf wurde daher anhand des vollständigen GitHub-CI-Protokolls
+  geprüft; ein eigener lokaler `supabase test db`-Lauf fand nicht statt.
+
+**Freigabe:** PR #26 kann nach diesem Review gemergt werden. Der anschließende
+`main`-Lauf ist getrennt zu prüfen; dieser Befund erteilt keine Freigabe für
+einen Release oder Deploy.
