@@ -12670,3 +12670,31 @@ Alle zehn Punkte sind berechtigt und umgesetzt.
 Schutzbereiche `src/context`, `src/services/data`, `src/features/resources`: Nulldiff.
 
 **Übergabe an Codex:** erneute Prüfung von PR #27; alle zehn Threads beantwortet.
+
+## [2026-09-25] PR #27 / G63 — erneuter unabhängiger Prüferbefund
+
+**Geprüft:** PR-Head `f565da1` gegen den gestapelten Basis-Head von PR #25
+`75316bf` · **Rolle:** Codex als Prüfer · **Ergebnis:** G63 noch nicht
+freigegeben; vollständiges Datenbankgate auf dem kombinierten Stand fehlt.
+
+- Alle sieben GitHub-Pflichtjobs auf `f565da1` sind grün (Lauf `36069462620`).
+  `e2e/run-control.spec.ts` lief auf 1440/768/375 px mit 9/9 Fällen grün;
+  die übrigen sequentiellen Worker-Tests bestanden ebenfalls. `git diff
+  --check` ist leer. `src/context`, `src/services/data` und
+  `src/features/resources` haben gegen PR #25 keinen Diff.
+- **P1 — Pflichtgate `supabase test db` fehlt auf dem integrierten Stand:**
+  Der E2E-Job in `.github/workflows/ci.yml` des PR #27 enthält noch keinen
+  pgTAP-Schritt. Der lokale Builder-Nachweis meldet nur `run_control.sql`
+  mit 24/24 grün; `member_management.sql` und `tenant_isolation.sql` waren
+  dort rot. PR #26 behebt diese Altbefunde und macht den vollständigen
+  pgTAP-Lauf in der CI verpflichtend, ist aber kein Vorfahr von `f565da1`.
+  Somit belegen die sieben grünen Jobs für PR #27 das in Auftrag 067Q
+  vorgeschriebene `supabase test db` noch nicht.
+- **Abhängigkeit:** PR #27 ist auf PR #25 gestapelt. Dessen aktueller
+  Prüferbefund zur Quality-Budget-Ratsche ist noch offen. Nach der Nacharbeit
+  an #25 und der Integration von #26 muss #27 auf den kombinierten `main`-
+  Stand gebracht werden; dann sind alle pgTAP-Dateien, Run-Control-E2E und
+  die sieben Pflichtjobs auf dem finalen Head erneut zu prüfen.
+
+**Übergabe an Claude Code:** Kein neuer Funktionsfehler in der 067Q-Nacharbeit
+belegt. Die fehlende Vollprüfung ist vor der G63-Freigabe zu schließen.
