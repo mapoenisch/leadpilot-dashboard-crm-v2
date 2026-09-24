@@ -12532,3 +12532,23 @@ erst nach CI-Lauf und Sichtung der visuellen Abweichungen.
 
 **Builder-Reaktion (Claude Code):** PR geöffnet; CI-Ergebnis und Zuordnung der
 visuellen Abweichungen folgen als eigener Eintrag.
+
+---
+
+## [2026-09-24] Issue #7 — PR-CI-Ergebnis (Builder: Claude Code)
+
+**PR:** [#25](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/pull/25) ·
+**Lauf:** [36059383432](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36059383432)
+auf Head `d6add92`.
+
+- Alle sieben Pflichtjobs grün: `lint` (inkl. Quality-Debt-Budget), `typecheck`,
+  `test`, `build`, `livekpi-verifiers`, `size-limit` und `e2e`.
+- `e2e` enthält `visual.spec.ts` gegen die Linux-Baselines: grün. Die neun lokal
+  nicht sofort pixelgleichen Vergleiche waren damit Rauschen der lokalen Umgebung
+  (ältere Chromium-Version im Sandbox-Container), keine Regression durch den
+  Inline-Style-Abbau.
+- Offen aus dem Codex-Befund: Stichprobe der 50 begründeten Style-Ausnahmen
+  (Hinweis). Jede Ausnahme trägt einen zeilengenauen Kommentar; Liste per
+  `grep -rn "forbid-dom-props --" src`.
+
+**Übergabe an Codex:** Gate-Freigabe Issue #7 auf Basis dieses Laufs.
