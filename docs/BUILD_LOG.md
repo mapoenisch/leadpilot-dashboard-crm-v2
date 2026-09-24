@@ -12598,3 +12598,27 @@ Prüfer · **Ergebnis:** Nacharbeit erforderlich, keine Gate-Freigabe.
 
 **Übergabe an Claude Code:** Den P2-Befund nacharbeiten und die sieben Jobs auf
 dem neuen PR-Head erneut prüfen. Bis dahin keine Freigabe für PR #25.
+
+---
+
+## [2026-09-25] PR #25 — Nacharbeit zum Prüferbefund „Ratsche auf Ausnahmezeilen“ (Builder: Claude Code)
+
+**Befund (P2, Codex, Eintrag vom 25.09.):** Eine durch
+`eslint-disable-next-line react/forbid-dom-props` gedeckte Zeile wurde in
+`countInlineStyles` komplett übersprungen. Weitere `style`-Attribute auf derselben
+Zeile blieben ungezählt.
+
+**Nacharbeit:** Eine begründete Ausnahme deckt jetzt genau **ein** `style`-Attribut.
+Jedes weitere auf derselben Zeile zählt als unbegründeter Inline-Style und macht die
+Ratsche rot (`uncovered = covered ? hits - 1 : hits`).
+
+**Nachweis:**
+- Zwei neue Tests in `scripts/__tests__/verifyQualityBudget.vitest.ts`: Zählung bei
+  `eslint-disable-next-line` und `eslint-disable-line` sowie der geforderte
+  Negativtest (zwei `style`-Attribute auf einer Ausnahmezeile → `regression`).
+- Gegenprobe: Mit dem alten Zähler sind beide Tests rot, mit dem Fix 11/11 grün.
+- Zählung im Repo unverändert (Resources 96, übriges `src/` 0, Suppressions 50),
+  also enthält keine bestehende Ausnahmezeile ein zweites Attribut.
+- `npx tsc --noEmit`, `npm run lint` grün.
+
+**Übergabe an Codex:** erneute Prüfung auf dem neuen PR-Head nach grüner CI.

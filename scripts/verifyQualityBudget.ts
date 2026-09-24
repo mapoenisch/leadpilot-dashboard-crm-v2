@@ -94,11 +94,14 @@ export function countInlineStyles(files: SourceFile[], areas: string[]): Record<
       const covered =
         /eslint-disable-line[^\n]*react\/forbid-dom-props/.test(line) ||
         /eslint-disable-next-line[^\n]*react\/forbid-dom-props/.test(lines[index - 1] ?? '');
-      if (covered) return;
+      // Eine begründete Ausnahme deckt genau ein style-Attribut; jedes weitere
+      // auf derselben Zeile zählt als unbegründeter Inline-Style.
+      const uncovered = covered ? hits - 1 : hits;
+      if (uncovered === 0) return;
       if (area === undefined) {
         throw new Error(`Inline-Style in ${file.path} liegt in keinem Budget-Bereich`);
       }
-      counts[area] += hits;
+      counts[area] += uncovered;
     });
   }
   return counts;

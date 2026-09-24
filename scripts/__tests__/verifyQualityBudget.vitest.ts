@@ -83,6 +83,50 @@ describe('verifyQualityBudget', () => {
     expect(areaFor('lib/A.tsx', ['src/'])).toBeUndefined();
   });
 
+  it('Ausnahme deckt genau ein style-Attribut; weitere auf derselben Zeile zählen', () => {
+    const counts = countInlineStyles(
+      [
+        {
+          path: 'src/B.tsx',
+          content: [
+            '{/* eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie */}',
+            '<div style={{ width }}><span style={{ color: "red" }} /></div>',
+            '<div style={{ height }} /> {/* eslint-disable-line react/forbid-dom-props -- Laufzeit */}',
+            '<a style={{}} /><b style={{}} /> {/* eslint-disable-line react/forbid-dom-props -- x */}',
+          ].join('\n'),
+        },
+      ],
+      ['src/'],
+    );
+    // Zeile 2: 2 Attribute, 1 gedeckt → 1; Zeile 3: 1 gedeckt → 0; Zeile 4: 2, 1 gedeckt → 1.
+    expect(counts).toEqual({ 'src/': 2 });
+  });
+
+  it('Negativtest: zweites style auf einer Ausnahmezeile macht die Ratsche rot', () => {
+    const files = [
+      { path: 'src/frozen/A.tsx', content: '<div style={{}} />' },
+      { path: 'src/B.tsx', content: '<a style={{}} />' },
+      {
+        path: 'src/C.tsx',
+        content: [
+          '/* eslint-disable no-console -- ok */',
+          '{/* eslint-disable-next-line react/forbid-dom-props -- Laufzeit */}',
+          '<div style={{ width }}><i style={{ color }} /></div>',
+        ].join('\n'),
+      },
+    ];
+    expect(
+      evaluateBudget(
+        files,
+        budget({
+          suppressions: { ...budget().suppressions, 'react/forbid-dom-props': entry(1, 1) },
+        }),
+      ),
+    ).toEqual([
+      expect.objectContaining({ metric: 'inlineStyles:src/', actual: 2, kind: 'regression' }),
+    ]);
+  });
+
   it('meldet Überschreitung als Regression', () => {
     const files = [
       { path: 'src/frozen/A.tsx', content: '<div style={{}} />' },
