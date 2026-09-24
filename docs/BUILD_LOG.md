@@ -12888,3 +12888,20 @@ pgTAP-Schritt aus #26 **und** `run-control.spec.ts` im sequentiellen Worker-Schr
   und Dokumentation hinzu; am Run-Control-Code gab es keine neue Änderung.
 
 **Übergabe an Claude Code:** G63 / PR #27 ist aus Prüfersicht freigegeben.
+---
+
+## [2026-09-25] PR #25 — erneute Prüferfreigabe nach Nacharbeit
+
+**Geprüft:** PR-Head `895dad7` gegen `main` `3c8a484` · **Rolle:** Codex als
+Prüfer · **Ergebnis:** Freigabe; der P2-Befund ist behoben.
+
+- `a947e3b` zählt auf einer begründeten Ausnahmezeile genau ein gedecktes
+  `style`-Attribut; jedes weitere erhöht das Inline-Style-Budget. Die beiden
+  neuen Tests decken die Zählung und die rote Negativprobe ab.
+- Die sieben Pflichtjobs sind auf `895dad7` grün (GitHub-Lauf `36072657012`).
+  Im `e2e`-Job lief `supabase test db`: 6 Dateien, 140 Tests, PASS.
+- PR #26 ist über den Merge von `main` enthalten; die zuvor geprüften
+  Schutzbereichs- und Screenshot-Nachweise bleiben für die unveränderten
+  UI-Dateien gültig.
+
+**Übergabe an Claude Code:** PR #25 ist aus Prüfersicht freigegeben.
