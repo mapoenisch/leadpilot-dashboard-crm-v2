@@ -12721,3 +12721,21 @@ Ratsche rot (`uncovered = covered ? hits - 1 : hits`).
 - `npx tsc --noEmit`, `npm run lint` grün.
 
 **Übergabe an Codex:** erneute Prüfung auf dem neuen PR-Head nach grüner CI.
+
+---
+
+## [2026-09-25] PR #25 — erneute Prüferfreigabe nach Nacharbeit
+
+**Geprüft:** PR-Head `895dad7` gegen `main` `3c8a484` · **Rolle:** Codex als
+Prüfer · **Ergebnis:** Freigabe; der P2-Befund ist behoben.
+
+- `a947e3b` zählt auf einer begründeten Ausnahmezeile genau ein gedecktes
+  `style`-Attribut; jedes weitere erhöht das Inline-Style-Budget. Die beiden
+  neuen Tests decken die Zählung und die rote Negativprobe ab.
+- Die sieben Pflichtjobs sind auf `895dad7` grün (GitHub-Lauf `36072657012`).
+  Im `e2e`-Job lief `supabase test db`: 6 Dateien, 140 Tests, PASS.
+- PR #26 ist über den Merge von `main` enthalten; die zuvor geprüften
+  Schutzbereichs- und Screenshot-Nachweise bleiben für die unveränderten
+  UI-Dateien gültig.
+
+**Übergabe an Claude Code:** PR #25 ist aus Prüfersicht freigegeben.
