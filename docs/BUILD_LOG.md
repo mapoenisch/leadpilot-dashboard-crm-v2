@@ -13284,3 +13284,16 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
 - Den Status „veröffentlicht“ tragen die Release Notes erst nach Tag, Push und grüner `main`-CI.
 
 **Rollen:** Laut `CLAUDE.md` §4 endet mit dem Release der Rollenwechsel (Claude Code baut, Codex prüft). Danach gilt wieder die vorherige Verteilung (Antigravity baut, Codex/Claude Code prüfen), sofern Marc nichts anderes festlegt.
+
+---
+
+## [2026-09-25] Release v2.3.0 veröffentlicht
+
+- **Release-Commit:** `aff4b958845f1706873c6e5882e8aa64bc425180`, der Merge von PR #31, von GitHub signiert (`gpgsig`).
+- **Tag:** `v2.3.0`, annotiert, Tagger Marc Pönisch, zeigt auf `aff4b95`. Gesetzt von Marc lokal per `git tag -a` und gepusht. Aus der Builder-Sitzung heraus lehnt der Git-Proxy Tag-Pushes mit HTTP 403 ab.
+- **CI auf `main`:** [Lauf 160](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36145748479) auf `aff4b95`, 7/7 Jobs grün. Das umfasst Migrationsnachweis, Finding-Baseline, Readiness sowie Backup und Wiederherstellung.
+- **GitHub-Release:** „LeadPilot v2.3.0“ auf dem Tag `v2.3.0`, Text aus `docs/releases/V2.3.0.md` mit absoluten Links auf den Tag.
+- **Masterplan Task 19, Step 7, erfüllt:** signierter Release-Commit, annotierter Tag, Push, danach grüne GitHub Actions.
+- **Rollen:** Mit dem Release endet der Rollenwechsel aus `CLAUDE.md` §4. Ab jetzt gilt wieder die vorherige Verteilung (Antigravity baut, Codex/Claude Code prüfen), sofern Marc nichts anderes festlegt.
+- **Bekannte Abweichung im getaggten Stand (Codex-Review PR #33):** `docs/releases/V2.3.0.md` im Tag `v2.3.0` nennt noch den Status vor der Veröffentlichung. Der veröffentlichte Tag wird nicht verschoben. Maßgeblich sind `main` und das GitHub-Release; die Datei auf `main` trägt dazu einen Hinweis.
+- **BUILD_PLAN:** Masterauftrag 067 als abgeschlossen gekennzeichnet, alte Arbeitsanweisungen (Detailauftrag vor 067Q, Deploy-Sperre vor G65) als historisch markiert. Nächster Auftrag: noch nicht festgelegt (Entscheidung Marc).

@@ -1,17 +1,23 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 24.09.2026
+**Stand:** 25.09.2026
 
-**Roadmap-Basis:** `v2.2.0` (`9380ace`)
-**Bestätigter CI-Recovery-Merge auf `main`:** `dec0aa5` (PR #22, sieben Pflichtjobs grün)
+**Aktueller Release:** `v2.3.0` (annotierter Tag auf `aff4b95`, `main`-CI grün)
+**Nächster Auftrag:** noch nicht festgelegt. Die Entscheidung liegt bei Marc. Bis dahin
+steht kein Auftrag zur Umsetzung an.
+**Rollen:** Mit `v2.3.0` gilt wieder die Verteilung vor dem 24.09.2026 (Antigravity baut,
+Codex und Claude Code prüfen), sofern Marc nichts anderes festlegt (`CLAUDE.md` §4).
 
-**Aktueller Masterauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_067_V2_3_0_PRODUKTIONSREIFE_MASTER.md`
+## Abgeschlossen: Roadmap v2.3.0
 
-**Ziel:** `v2.3.0` – Produktionsnähe und Mehrbenutzerfähigkeit
+**Masterauftrag (abgeschlossen):** `docs/auftraege/ANTIGRAVITY_AUFTRAG_067_V2_3_0_PRODUKTIONSREIFE_MASTER.md`
+**Ziel:** `v2.3.0` – Produktionsnähe und Mehrbenutzerfähigkeit. **Erreicht und veröffentlicht am 25.09.2026.**
+**Roadmap-Basis:** `v2.2.0` (`9380ace`) · CI-Recovery-Merge `dec0aa5` (PR #22)
 
-## Aktive Roadmap v2.3.0
+Die folgenden Absätze sind der historische Planungsstand und keine offenen
+Arbeitsanweisungen mehr.
 
-**Rollenwechsel (24.09.2026, Entscheidung Marc):** Bis zum Release `v2.3.0`
+**Rollenwechsel (24.09.2026, Entscheidung Marc, galt bis `v2.3.0`):** Bis zum Release `v2.3.0`
 ist Claude Code Builder und schreibt fehlende Detailaufträge selbst; Codex
 prüft unabhängig. Details in `CLAUDE.md` §4. Vor 067Q wird Issue #7
 (Qualitätsschulden) im Code abgebaut, nicht nur budgetiert.
@@ -19,16 +25,17 @@ prüft unabhängig. Details in `CLAUDE.md` §4. Vor 067Q wird Issue #7
 Die fachlich freigegebene Spezifikation liegt unter
 `docs/superpowers/specs/2026-09-15-v2-3-0-production-readiness-design.md`. Auftrag 067
 setzt sie über 19 strikt serielle Teilaufträge 067A–067S und Gates G44–G65 um.
-**Stand 25.09.2026: G44–G65 sind in `main` integriert, v2.3.0 ist von Marc freigegeben; der Tag folgt.**
-G44–G62 sind in `main` integriert. Die
+**Stand 25.09.2026: G44–G65 sind in `main` integriert. v2.3.0 ist veröffentlicht (Tag `v2.3.0` auf `aff4b95`).**
+Historisch (vor G63): Die
 [CI-Recovery](docs/superpowers/specs/2026-09-23-ci-recovery-design.md) zu
 Issue #5 wurde mit PR #22 abgeschlossen: finaler PR-Lauf `35833733689` und
 `main`-Lauf `35834951857` bestanden alle sieben Pflichtjobs. Issue #5 ist
 geschlossen. Der Recovery-Freeze für 067Q/G63 ist damit aufgehoben; vor der
-Umsetzung braucht 067Q einen konkreten, freigegebenen Detailauftrag. Kein Deploy
-vor G65/067S und Marcs ausdrücklicher Release-Freigabe.
+Umsetzung brauchte 067Q einen konkreten Detailauftrag (erledigt, PR #27). Die Sperre
+„kein Deploy vor G65/067S und Marcs Release-Freigabe“ ist mit G65 und der Freigabe
+vom 25.09.2026 erfüllt.
 
-Vor dem Start von 067Q wird zusätzlich das separate
+Vor dem Start von 067Q wurde zusätzlich das separate
 [Deno-Edge-CI-Gate](docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_DENO_EDGE_GATE.md)
 für die vorhandenen Edge Functions eingezogen. Es ist kein neuer Fachauftrag
 und ändert die sieben Pflichtjobnamen nicht. Die Freigabe erfordert grüne
@@ -36,7 +43,7 @@ PR- und anschließende `main`-CI auf dem jeweiligen finalen Stand.
 
 Die [Bestandsprüfung vom 23.09.2026](docs/reviews/2026-09-23-open-stock-triage.md)
 dokumentiert die einzeln bewerteten Alt-PRs, Issues und Remote-Branches; offene
-Sicherheits- und Release-Issues bleiben für 067R/G64 beziehungsweise 067S/G65
+Sicherheits- und Release-Issues blieben für 067R/G64 beziehungsweise 067S/G65
 sichtbar.
 
 | Abschnitt | Gates | Inhalt | Status |
@@ -49,7 +56,7 @@ sichtbar.
 | Fachauftrag | G63 / 067Q | Run-Steuerung | ✅ auf `main` (PR #27) |
 | Gesamtabnahme | G64 / 067R | vollständige Abnahme ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067R_GESAMTABNAHME.md), [Matrix](docs/reviews/v2.3.0-acceptance-matrix.md)) | ✅ auf `main` (PR #28) |
 | Nachtrag G49/G63 | Viewer strikt lesend | Viewer starten keine Läufe; Server, Store und UI ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)) | ✅ auf `main` (PR #29) |
-| Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067S_MIGRATION_LIZENZ_RELEASE.md), [Release Notes](docs/releases/V2.3.0.md)) | ✅ auf `main` (PR #30), von Marc am 25.09.2026 freigegeben; annotierter Tag `v2.3.0` folgt nach dem Release-PR |
+| Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067S_MIGRATION_LIZENZ_RELEASE.md), [Release Notes](docs/releases/V2.3.0.md)) | ✅ auf `main` (PR #30), freigegeben und veröffentlicht am 25.09.2026 (Tag `v2.3.0` auf `aff4b95`) |
 
 ### Nachweise G44–G62
 
