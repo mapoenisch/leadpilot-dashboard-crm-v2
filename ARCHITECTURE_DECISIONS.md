@@ -1592,6 +1592,7 @@ Scenario → ScenarioVersion → SimulationRun → RunManifest / Events / Snapsh
 - Domain-, Persistence- und View-Modelle bleiben getrennt.
 - Referenzielle Integrität zwischen Companies, Contacts, Deals, Customers, Runs und Events.
 - Soft Delete / Archivierung als Regel; physisches Löschen nur für eindeutig technische, nicht revisionsrelevante Daten.
+- **Revision 25.09.2026 (Entscheid Marc Poenisch, Nachtrag zu G49/G63):** Das Speichern von Simulationsläufen (`persist_completed_run`) ist nicht mehr rollenunabhängig. Es folgt der Berechtigung `simulation:run` (Admin, Manager). Viewer bleiben strikt lesend: Sie sehen Runs, Ergebnisse und Pausen, starten, wiederholen und reproduzieren aber keine Läufe. Durchgesetzt in Datenbank (42501), Store (`FORBIDDEN`) und UI. Nicht persistierende Vorschau und Szenariovergleich bleiben für Viewer erlaubt. Die frühere G49-Festlegung bleibt als Historie in `docs/BUILD_LOG.md` stehen.
 
 ## B18. UI-Architektur & Designsystem
 
@@ -2037,6 +2038,7 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 | 2026-09-01 | **Release `v1.1.0`** (Phase 3 = Aufträge 015–019) getaggt & auf GitHub veröffentlicht; Fresh-Clone-Test 24/24 grün. Release-Doku `docs/releases/V1.1.md`. |
 | 2026-09-01 | Doku-Hygiene: Release-Meldungen → `docs/releases/`, Detail-Auftragsdateien → `docs/auftraege/`, `LEADPILOT_GAP_ANALYSIS.md` + `chat_protokoll_auftrag_016_gate_g2.md` → `docs/archiv/`, `CONTENT_VISUAL_REINTEGRATION_PLAN.md` → `docs/`. `Archiv.zip` (326 MB, gitignore) in den Papierkorb. |
 | 2026-09-01 | AUFTRAG 020 — HubSpot als erste reale Datenquelle (offline über n8n eingefroren, `HubSpotBaselineSource` mit `kind: 'external'`, Stage-Map `tools/n8n/hubspot-stage-map.json`, Workflow `generate-baseline-hubspot.workflow.json`, Test-Suite 025). Gate G4 erfüllt. |
+| 2026-09-25 | Revision zu B17 (Nachtrag zu G49/G63): Viewer strikt lesend bei Simulationsläufen; `persist_completed_run` nur für Admin/Manager ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)). |
 
 ## D5. MASTERSTATUS
 

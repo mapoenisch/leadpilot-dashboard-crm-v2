@@ -44,9 +44,10 @@ sichtbar.
 | Sicherheits- und Datenkern | G45–G51 | Auth/RLS, Ingress, CRM-Quelle, Baseline, Persistenz, Worker, HubSpot | ✅ auf `main` |
 | Frontend/Qualität | G52–G58 | 33 semantische Seiten, UX/A11y, Toolchain, fail-closed CI | ✅ auf `main` |
 | Ergänzungen | G59–G62 | Mitglieder, CRM Query/Export, Frische, Audit/Diagnose | ✅ auf `main` |
-| Qualitätsschulden | Issue #7 | Inline-Styles und Suppressions im Code abbauen | von Codex freigegeben (PR #25), Merge durch Marc |
-| Fachauftrag | G63 / 067Q | Run-Steuerung | von Codex freigegeben (PR #27), Merge durch Marc |
-| Gesamtabnahme | G64 / 067R | vollständige Abnahme ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067R_GESAMTABNAHME.md), [Matrix](docs/reviews/v2.3.0-acceptance-matrix.md)) | gebaut (Claude Code), Codex-Review ausstehend |
+| Qualitätsschulden | Issue #7 | Inline-Styles und Suppressions im Code abbauen | ✅ auf `main` (PR #25) |
+| Fachauftrag | G63 / 067Q | Run-Steuerung | ✅ auf `main` (PR #27) |
+| Gesamtabnahme | G64 / 067R | vollständige Abnahme ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067R_GESAMTABNAHME.md), [Matrix](docs/reviews/v2.3.0-acceptance-matrix.md)) | ✅ auf `main` (PR #28) |
+| Nachtrag G49/G63 | Viewer strikt lesend | Viewer starten keine Läufe; Server, Store und UI ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)) | gebaut (Claude Code), Codex-Review ausstehend |
 | Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` | nach G64 und Marcs Freigabe |
 
 ### Nachweise G44–G62

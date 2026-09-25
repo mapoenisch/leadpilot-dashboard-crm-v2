@@ -73,9 +73,15 @@ export interface RunSlice {
   // 067F / G49: Mit organizationId läuft der Run mandantengebunden und wird
   // danach atomar auf dem Server persistiert (fail-closed); ohne bleibt das
   // bisherige reine In-Memory-Verhalten.
-  runVersion: (versionId: string, organizationId?: string) => Promise<void>;
-  reRun: (versionId: string) => Promise<void>;
-  reproduce: (runId: string) => Promise<void>;
+  // Viewer strikt lesend (Entscheid 25.09.2026): Start, Re-Run und Reproduce
+  // nur mit `simulation:run`; ohne Rolle nur ein nicht persistierender Demo-Lauf.
+  runVersion: (
+    versionId: string,
+    organizationId: string | undefined,
+    role: OrganizationRole | null,
+  ) => Promise<void>;
+  reRun: (versionId: string, role: OrganizationRole | null) => Promise<void>;
+  reproduce: (runId: string, role: OrganizationRole | null) => Promise<void>;
   // 067G / G50 + 067Q / G63: Abbruch (Benutzer, Navigation, Unmount).
   cancelRun: (role?: OrganizationRole | null) => void;
   pauseRun: (role: OrganizationRole | null) => void;
@@ -98,6 +104,16 @@ export function currentRunControlStatus(
 
 const retryGate = new IdempotentCommandGate();
 const RETRY_KEY = 'retry';
+
+/**
+ * Viewer strikt lesend: Admin/Manager starten immer; ohne Rolle (Demo ohne
+ * Sitzung) nur, solange nichts auf dem Server persistiert wird. Sonst
+ * FORBIDDEN vor jedem Worker-Start. Der Server prüft zusätzlich (42501).
+ */
+function assertRunStartAllowed(role: OrganizationRole | null, persists: boolean): void {
+  if (canControlRuns(role) || (role === null && !persists)) return;
+  throw new RunControlError('FORBIDDEN', 'Diese Rolle darf keine Simulationsläufe starten.');
+}
 
 export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice> = (set, get) => {
   const initialRuns = scenarioService.getRunsForVersion(DEFAULT_BASE_2026_VERSION_ID);
@@ -252,19 +268,25 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
     pausedRunsOrganizationId: null,
     runControlError: null,
 
-    runVersion: (versionId: string, org?: string) =>
-      startVersion(versionId, systemContext.newRunSeed(), org),
+    runVersion: async (versionId, org, role) => {
+      assertRunStartAllowed(role, !!org);
+      return startVersion(versionId, systemContext.newRunSeed(), org);
+    },
 
     // Re-Run = neuer Seed für dieselbe Version (wie scenarioService.reRun),
     // der Seed bleibt hier bekannt, damit ein Abbruch wiederholbar ist.
     // 067F / G49 (Nacharbeit P1): mit hydriertem Workspace mandantengebunden.
-    reRun: (versionId: string) =>
-      startVersion(versionId, systemContext.newRunSeed(), organizationId()),
+    reRun: async (versionId, role) => {
+      const org = organizationId();
+      assertRunStartAllowed(role, !!org);
+      return startVersion(versionId, systemContext.newRunSeed(), org);
+    },
 
-    reproduce: async (runId: string) => {
+    reproduce: async (runId, role) => {
       // 067F / G49 (Nacharbeit P1): Reproduktion persistiert genau dann, wenn
       // ein Workspace hydriert ist (aktiver Mandant).
       const persistToServer = get().activeOrganizationId !== null;
+      assertRunStartAllowed(role, persistToServer);
       set({
         runProgress: { status: 'queued', processedUnits: 0, totalUnits: 1 },
       });

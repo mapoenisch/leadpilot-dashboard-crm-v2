@@ -13074,3 +13074,54 @@ Die manuelle Gegenprüfung ist ausgeführt und protokolliert. **G64 bereit für 
 - Schutzbereichs-Diff gegen `9877697`: laut Builder-Nachweis leer; der nachgereichte Diff ändert diese Schutzbereiche nicht.
 
 **Ergebnis:** G64 **aus Code-Review-Sicht freigegeben**. Die manuelle Ausführung ist als Builder-Nachweis dokumentiert, die automatisierten Gates sind auf dem PR-Head in der CI grün. Kein Merge und kein Release-Tag durch diesen Review; PR #28 bleibt in der vorgesehenen Reihenfolge nach #25 und #27.
+
+---
+
+## [2026-09-25] Entscheidung: Viewer strikt lesend bei Simulationsläufen (Nachtrag zu G49/G63)
+
+**Entscheid Marc Poenisch (25.09.2026):** Viewer starten, wiederholen und reproduzieren keine Simulationsläufe mehr. Sie sehen weiterhin alle Runs, Ergebnisse und Pausen.
+
+- **Anlass:** Die manuelle G64-Gegenprüfung (067R) hat gezeigt, dass Viewer über „Run / Re-Run“ Läufe starten, die serverseitig gespeichert werden. Das ist eine Schreibaktion, obwohl das Rollenmodell `simulation:run` nur Admin/Manager zuordnet.
+- **Revision:** Die G49-Festlegung „Persistenz rollenunabhängig“ gilt für Schreibpfade von Läufen nicht mehr.
+- **Umsetzung:** [`ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md`](auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md). Gebaut wird nach der G64-Freigabe und dem Merge von #25/#27/#28, damit der laufende G64-Review unverändert bleibt.
+
+---
+
+## [2026-09-25] Nachtrag G49/G63: Viewer strikt lesend bei Simulationsläufen (Builder: Claude Code)
+
+**Ziel & Kontext:** Umsetzung des [Auftrags](auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md) nach Marcs Entscheid vom 25.09.2026. Viewer sehen Runs, Ergebnisse und Pausen, starten, wiederholen und reproduzieren aber keine Läufe mehr. Baseline: `origin/main` `84b0703` (Merge PR #28).
+
+### Roter Start (Task 1)
+- pgTAP `scenario_run_persistence.sql` gegen den alten Stand: 4/34 rot (Viewer-Persist ohne Fehler, Run/Szenario/Version als Reste).
+- Slice-Test „Viewer strikt lesend“ gegen den alten Store: 2 rot (Viewer und rollenloser Mandantenlauf starten den Worker).
+
+### Geänderte Dateien
+- `supabase/migrations/20261002_run_write_roles.sql` (neu): `persist_completed_run` verlangt zusätzlich `has_org_role(admin, manager)`, sonst 42501 vor jedem Schreibzugriff. Funktionskörper sonst identisch mit `20260926_run_final_state.sql`, Signatur und Rechte unverändert, idempotent.
+- `supabase/tests/scenario_run_persistence.sql`: Die alte Erwartung „Viewer darf persistieren“ (G49) ist ersetzt durch: Viewer 42501, kein Run, kein Szenario, keine Version; neuer Manager-Nutzer persistiert weiter. Plan 30 → 34.
+- `src/store/slices/runSlice.ts`: `runVersion(versionId, org, role)`, `reRun(versionId, role)`, `reproduce(runId, role)` prüfen vor dem Start `assertRunStartAllowed`. Admin/Manager immer, rollenlos nur ohne Persistenz (Demo ohne Sitzung), sonst `FORBIDDEN` ohne Worker-Start.
+- `src/features/simulation/components/ManagementTierView.tsx`, `RunActionModal.tsx`, `AuditTierView.tsx`: Für Viewer entfallen „Run / Re-Run“, die Start-Aktionen im Run-Modal sowie Re-Run/Reproduce in der Audit-Ansicht; stattdessen „nur Lesezugriff“. Die Rolle wird bis in den Store gereicht.
+- Tests: `src/store/__tests__/runControlSlice.vitest.ts` (3 neue Fälle), `src/features/simulation/components/__tests__/RunStartPermissions.ui.vitest.tsx` (neu, 7 Fälle je Rolle), Erwartungen in `AuditTierView.branch` und `RunActionModal.branch` um das Rollenargument ergänzt.
+- `e2e/run-control.spec.ts`: Viewer sieht keinen Start-Knopf; ein direkter RPC-Aufruf mit Viewer-Token wird mit 403/42501 abgewiesen und hinterlässt keinen Run und kein Szenario.
+- Doku: `ARCHITECTURE_DECISIONS.md` (Revision zu B17 und Zeile in D4, Historie unverändert), `BUILD_PLAN.md`, Auftrag (Checkboxen, Ergebnis der offenen Frage), `docs/screenshots/auftrag-viewer-read-only/README.md`.
+
+### Funktionale Prüfungen
+- **Offene Frage Vorschau/Vergleich:** `previewMeasures` rechnet mit `persist: false`, `compareMultipleVersions` liest nur vorhandene Runs. Beide schreiben nichts und bleiben für Viewer erlaubt.
+- Steuerbefehle (Pause/Abbruch/Retry) waren seit G63 bereits gesperrt und sind unverändert.
+- **Demo ohne Sitzung:** Ohne Supabase-Sitzung gibt es keinen Mandanten und damit keine Persistenz; die Knöpfe bleiben sichtbar, ein lokaler Lauf bleibt möglich.
+
+### Schutzbereichs-Prüfung
+`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
+
+### Automatisierte Verifikation (lokal)
+- `tsc --noEmit`: 0 Fehler · `lint`: 0/0 · `format:check`: grün · `verify:quality-budget`: grün (Budgets unverändert)
+- `test:coverage`: 271 Dateien, 1497/1497 grün (87,58 / 81,35 / 82,19 / 88,83 %)
+- `npm run verify`: Integrity 001–025 grün · `build`: grün · `size-limit`: 173,14 kB (Grenze 180) / 86,4 kB
+- `supabase test db` nach `db reset`: alle 7 Dateien grün, `scenario_run_persistence.sql` 34/34
+- Playwright mit `--workers=1` wie in CI: `persistence-multisession`, `worker-responsiveness`, `run-control` 18/18. Ein paralleler Lauf über drei Viewports gegen dieselbe Datenbank erzeugt zwei Pausen gleichzeitig; das ist der Grund für `--workers=1` in CI, kein Befund.
+- Playwright `a11y`, `semantic-routes`, `routes`, `visual`: 537/540. Rot sind nur die drei `visual /crm/leads`, bekannte lokale Edge-Grenze (G64); maßgeblich ist CI.
+
+### Screenshot-Matrix
+`docs/screenshots/auftrag-viewer-read-only/README.md`: Viewer 6/6 wie erwartet geändert; Admin/Manager 9/12 identisch, 3 mit Rauschen außerhalb der Knopfleiste; Overflow 0 px.
+
+### Ergebnis & Freigabestatus
+Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung.** Merge nur durch Marc.

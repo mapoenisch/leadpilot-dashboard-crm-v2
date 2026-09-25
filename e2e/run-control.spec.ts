@@ -5,6 +5,8 @@ import { test, expect, type Page } from '@playwright/test';
 //    Pausen-Snapshot atomar entfernt.
 // 2. Admin bricht ab → Wiederholen (gleicher Seed) → Run abgeschlossen.
 // 3. Viewer sieht gespeicherte Pausen nur lesend, ohne Aktionen.
+// 4. Viewer strikt lesend (Entscheid 25.09.2026): kein „Run / Re-Run“, und der
+//    Server weist einen direkten persist_completed_run-Aufruf ab (42501).
 // Credentials ausschließlich aus der Umgebung (keine Fallbacks im Repo).
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -184,5 +186,57 @@ test.describe('Run-Steuerung (Gate G63)', () => {
     await expect(panel).toContainText('run-viewer-e2e · Tick 5/50', { timeout: 30_000 });
     await expect(panel).toContainText('nur Lesezugriff');
     await expect(panel.getByRole('button')).toHaveCount(0);
+  });
+  test('Viewer startet keine Runs: keine Start-Knöpfe, Server weist Persist ab', async ({
+    page,
+  }) => {
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL_VIEWER'), requireEnv('E2E_AUTH_PASSWORD'));
+    await page.goto('/crm/live-simulation');
+    await expect(page.getByText('Runs: nur Lesezugriff')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('button', { name: 'Run / Re-Run' })).toHaveCount(0);
+
+    // Direkter RPC-Aufruf mit dem Token des Viewers (am UI vorbei).
+    const base = requireEnv('E2E_SUPABASE_URL');
+    const anon = requireEnv('E2E_SUPABASE_ANON_KEY');
+    const login = await page.request.post(`${base}/auth/v1/token?grant_type=password`, {
+      headers: { apikey: anon, 'Content-Type': 'application/json' },
+      data: {
+        email: requireEnv('E2E_AUTH_EMAIL_VIEWER'),
+        password: requireEnv('E2E_AUTH_PASSWORD'),
+      },
+    });
+    expect(login.ok()).toBe(true);
+    const { access_token: token } = (await login.json()) as { access_token: string };
+    const persisted = await page.request.post(`${base}/rest/v1/rpc/persist_completed_run`, {
+      headers: {
+        apikey: anon,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        p_organization_id: ORG_A,
+        p_scenario: { id: 'scen-viewer-e2e', name: 'Viewer', status: 'ACTIVE' },
+        p_version: { id: 'ver-viewer-e2e', scenarioId: 'scen-viewer-e2e', versionNumber: 1 },
+        p_run: { runId: 'run-viewer-persist-e2e', seed: 1, status: 'COMPLETED' },
+        p_events: [],
+        p_timeseries: [],
+        p_snapshots: [],
+      },
+    });
+    expect(persisted.status()).toBe(403);
+    expect(await persisted.text()).toContain('42501');
+
+    const runs = await rest(
+      page,
+      'GET',
+      'simulation_runs?run_id=eq.run-viewer-persist-e2e&select=run_id',
+    );
+    expect(await runs.json()).toEqual([]);
+    const scenarios = await rest(
+      page,
+      'GET',
+      'simulation_scenarios?id=eq.scen-viewer-e2e&select=id',
+    );
+    expect(await scenarios.json()).toEqual([]);
   });
 });

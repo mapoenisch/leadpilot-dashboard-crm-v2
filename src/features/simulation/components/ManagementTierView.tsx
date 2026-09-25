@@ -16,6 +16,8 @@ import { Button } from '../../../components/ui/Button';
 import { Icon } from '../../../components/ui/Icon';
 import { Alert } from '../../../components/ui/Alert';
 import { ManagementPresenter } from '../../../simulation/managementPresenter';
+import { canControlRuns } from '../../../simulation/runControlService';
+import { useOrganization } from '../../../auth/organizationContext';
 import { BaselineComparisonMode } from '../../../types/kpi';
 
 interface ManagementTierViewProps {
@@ -38,6 +40,9 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
   const workerProgress = useWorkerProgress();
   const draftMeasures = useDraftMeasures();
   const { start, pause, resetSimulation } = useSimulationControls();
+  // Viewer strikt lesend (Entscheid 25.09.2026): kein Start persistierender Läufe.
+  const { session } = useOrganization();
+  const readOnly = session !== null && !canControlRuns(session.role);
 
   const isRunning = state.isRunning;
   const arrStats = aggregation.metrics.arr;
@@ -127,14 +132,20 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
                   Szenariovergleich (3–4)
                 </Button>
               )}
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={onOpenRunModal}
-                iconLeft={<Icon name="playCircle" size={13} />}
-              >
-                Run / Re-Run
-              </Button>
+              {readOnly ? (
+                <span className="self-center text-[12px] text-[var(--color-text-muted)]">
+                  Runs: nur Lesezugriff
+                </span>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={onOpenRunModal}
+                  iconLeft={<Icon name="playCircle" size={13} />}
+                >
+                  Run / Re-Run
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="secondary"

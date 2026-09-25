@@ -171,9 +171,9 @@ describe('AuditTierView (branch)', () => {
     });
     render(<AuditTierView />);
     await user.click(screen.getByRole('button', { name: 'Re-Run' }));
-    expect(reRun).toHaveBeenCalledWith('v-1');
+    expect(reRun).toHaveBeenCalledWith('v-1', null);
     await user.click(screen.getByRole('button', { name: 'Reproduce' }));
-    expect(reproduce).toHaveBeenCalledWith('run-act');
+    expect(reproduce).toHaveBeenCalledWith('run-act', null);
   });
 
   it('Reproduce-Button im Snapshot-Tab reproduziert geöffneten Run', async () => {
@@ -187,6 +187,6 @@ describe('AuditTierView (branch)', () => {
     await user.click(screen.getByRole('button', { name: 'Audit' }));
     await user.click(screen.getByRole('button', { name: 'Snapshot Integrität & State' }));
     await user.click(screen.getByRole('button', { name: 'Diesen Run exakt Reproduzieren' }));
-    expect(reproduce).toHaveBeenCalledWith('run-modal-repro');
+    expect(reproduce).toHaveBeenCalledWith('run-modal-repro', null);
   });
 });
