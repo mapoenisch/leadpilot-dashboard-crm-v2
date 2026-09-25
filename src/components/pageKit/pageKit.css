@@ -871,3 +871,27 @@ dl.pk-grid {
   font-size: 15px;
   color: var(--color-text);
 }
+.pk-meter {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 4rem;
+  overflow: visible;
+}
+.pk-meter-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 12rem;
+}
+.pk-kv[data-lead='true'] dt {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.pk-kv[data-lead='true'] dd {
+  font-size: 15px;
+}
+.pk-table[data-wrap='true'] td:not([data-lead='true']) {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}

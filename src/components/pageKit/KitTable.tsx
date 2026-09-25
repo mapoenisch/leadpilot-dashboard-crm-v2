@@ -21,6 +21,8 @@ export interface KitTableProps {
   accentRows?: number[];
   /** Erste Spalte in Markenfarbe (Kanal-, Kunden-, Positionsnamen). */
   leadColumn?: boolean;
+  /** Fließtext-Tabelle: lange Wörter umbrechen statt seitlich zu scrollen. */
+  wrapText?: boolean;
 }
 
 export function KitTable({
@@ -30,12 +32,13 @@ export function KitTable({
   highlightRows = [],
   accentRows = [],
   leadColumn = false,
+  wrapText = false,
 }: KitTableProps) {
   const mark = (index: number) =>
     accentRows.includes(index) ? 'accent' : highlightRows.includes(index) ? 'true' : undefined;
   return (
     <div className="pk-table-wrap">
-      <table className="pk-table">
+      <table className="pk-table" data-wrap={wrapText ? 'true' : undefined}>
         <caption className="sr-only">{caption}</caption>
         <thead>
           <tr>

@@ -16,5 +16,5 @@ export {
 export type { RowItem } from './Content';
 export { KitTable } from './KitTable';
 export type { KitColumn } from './KitTable';
-export { ChartFigure, BarList, ColumnChart, LineChart, Donut } from './Charts';
+export { ChartFigure, BarList, ColumnChart, LineChart, Donut, Meter } from './Charts';
 export type { BarDatum, ColumnSeries, LineSeries, DonutSegment } from './Charts';

@@ -56,9 +56,16 @@ export function ToneList({
   );
 }
 
-export function KeyValueList({ rows }: { rows: Array<[ReactNode, ReactNode]> }) {
+export function KeyValueList({
+  rows,
+  lead = false,
+}: {
+  rows: Array<[ReactNode, ReactNode]>;
+  /** Merkmale in Markenfarbe (Registerdaten, Verträge). */
+  lead?: boolean;
+}) {
   return (
-    <dl className="pk-kv">
+    <dl className="pk-kv" data-lead={lead ? 'true' : undefined}>
       {rows.map(([key, value], index) => (
         <div className="pk-kv__row" key={index}>
           <dt>{key}</dt>

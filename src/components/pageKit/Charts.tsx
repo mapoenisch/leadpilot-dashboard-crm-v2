@@ -69,6 +69,25 @@ export function BarList({ items, max }: { items: BarDatum[]; max?: number }) {
   );
 }
 
+/** Einzelner Fortschrittsbalken (z. B. Stimmrechtsanteil in einer Tabellenzelle). */
+export function Meter({
+  value,
+  max = 100,
+  tone = 'cyan',
+}: {
+  value: number;
+  max?: number;
+  tone?: Tone;
+}) {
+  const pct = max > 0 ? Math.max(1.5, Math.min(100, (value / max) * 100)) : 0;
+  return (
+    <svg className="pk-meter" data-tone={tone} width="100%" height="8" aria-hidden="true">
+      <rect className="pk-track" x="0" y="0" width="100%" height="8" rx="4" />
+      <rect className="pk-fill" x="0" y="0" width={`${pct.toFixed(2)}%`} height="8" rx="4" />
+    </svg>
+  );
+}
+
 export interface ColumnSeries {
   name: string;
   values: number[];
