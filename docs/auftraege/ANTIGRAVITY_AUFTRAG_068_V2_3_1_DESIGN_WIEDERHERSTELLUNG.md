@@ -28,6 +28,12 @@ echter Text, genau eine h1, Tabellen, Listen und Chart-Zusammenfassungen.
 - Design-Vorlage: die v2.2.0-WebPs unter `public/assets/auftrag-037d`–`037g`
   (32 Seiten), gleiche Farben, Panels, Pills, Charts und Tabellen.
 
+## Nicht im Umfang
+
+- **Executive Dashboard (`/dashboard`):** bleibt unverändert. Marc will es grundsätzlich
+  neu gestalten lassen (25.09.2026, „das hat mir auch vorher nicht gefallen“). Dafür
+  kommt ein eigener Auftrag nach v2.3.1 mit Marcs Vorgaben.
+
 ## Globale Grenzen
 
 - Schutzbereiche `src/simulation/**`, `src/types/**`, `src/context/**`,
