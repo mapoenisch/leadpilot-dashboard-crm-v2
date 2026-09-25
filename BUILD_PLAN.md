@@ -52,11 +52,12 @@ sichtbar.
 
 ### Nachweise G44–G62
 
-Die Prüfer- und E2E-Einträge stehen in `docs/BUILD_LOG.md`. Bei G52–G54
-dokumentiert das Ledger die erfolgreichen Wellenläufe; es enthält dort keinen
-jeweils eigenen formalen Prüfer-Freigabe-Commit. Ihre Integration auf `main`
-ist durch PR #16 belegt. Die Commit-Spalte nennt den spezifischsten
-Abschlussnachweis, die letzte Spalte den `main`-Integrationspunkt.
+Die Prüfer- und E2E-Einträge stehen in `docs/BUILD_LOG.md`. Für G52–G54
+enthält das Ledger seit dem 25.09.2026 je eine eigene nachträgliche
+Codex-Freigabe auf Basis der dokumentierten Wellenläufe und der aktuellen CI.
+Ihre Integration auf `main` ist durch PR #16 belegt. Die Commit-Spalte nennt
+den spezifischsten historischen Abschlussnachweis, die letzte Spalte den
+`main`-Integrationspunkt.
 PR #20 integrierte G60 und G61 bereits vor dem späteren Merge von PR #19;
 der Branch-Merge `60ad64c` ist selbst kein `main`-Integrationspunkt.
 
