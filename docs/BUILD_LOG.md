@@ -13356,3 +13356,17 @@ SHA-256 in 0 von 99 Fällen gleich, horizontaler Überlauf vorher 2 (375 px), na
 
 **Ergebnis & Freigabestatus:** Builder-Tasks 1–6 umgesetzt, lokal grün bis auf Blocker 1. Kein PR, keine
 Gate-Freigabe; G66 wartet auf Marcs Entscheidung zu den Blockern und danach auf das Codex-Review.
+
+**Nachtrag (25.09.2026, nach Marcs Entscheidung zu beiden Blockern):**
+- **Blocker 1 behoben** (`e6ae50a`): `PR-SEMANTIC-11` rendert jede der 33 Seiten per
+  `renderToStaticMarkup` (in leerem `QueryClientProvider`) und wendet dieselben Regeln auf das HTML an.
+  `npm run test:v23:findings` 20/20 grün. Gegenprobe: h2 statt h1 im `PageHero` → 32 h1-Verstöße, Test rot.
+- **Axe lokal** (Mock-Dev-Server, alle 32 Seiten + Login, 1440 und 375 px): zunächst
+  `scrollable-region-focusable` bei seitlich scrollenden Tabellen (375 px) und `definition-list`/`dlitem`
+  auf der Scorecard. Behoben in `5287710` (Tabellen-Wrapper als benannte, fokussierbare Region; Scorecard
+  als Liste mit h2). Danach 0 critical/serious-Verstöße.
+- **Blocker 2 in Arbeit:** Branch `visual-baselines/v2.3.1` (`e6ae50a`), Workflow-Lauf
+  [36195970682](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36195970682) grün
+  (Neuerzeugung plus dreifache Verifikation). Das Artefakt `visual-baselines` lässt sich aus der
+  Builder-Umgebung nicht laden (Netzwerk-Richtlinie sperrt den GitHub-Artefaktspeicher); Übernahme der
+  Bilder offen. `5287710` ändert keine der fünf Referenzseiten optisch.
