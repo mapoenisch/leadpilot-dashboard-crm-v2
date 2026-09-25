@@ -861,3 +861,13 @@ ul.pk-grid {
   color: var(--pk-tone, var(--cyan));
   font-weight: 700;
 }
+dl.pk-grid {
+  margin: 0;
+}
+.pk-unit__body > dd {
+  margin: 0;
+}
+.pk-unit__text--strong {
+  font-size: 15px;
+  color: var(--color-text);
+}
