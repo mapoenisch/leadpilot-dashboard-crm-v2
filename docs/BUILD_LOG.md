@@ -13063,6 +13063,20 @@ Die manuelle Gegenprüfung ist ausgeführt und protokolliert. **G64 bereit für 
 
 ---
 
+## [2026-09-25] Gate G64 / PR #28: zweiter unabhängiger Codex-Review
+
+**Review-Stand:** `d834ec5d`; [GitHub-Review](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/pull/28#pullrequestreview-5315158098).
+
+- Der offene Punkt aus dem Review auf `db88a733` ist bearbeitet: Die manuelle Gegenprüfung nach Masterplan Task 18 Step 3 steht oben mit 12 Browser- und 16 Server-/Angriffsszenarien. Die Skripte wurden vom Builder lokal ausgeführt und nicht committet; Codex hat ihre Ergebnisse nicht selbst erneut ausgeführt.
+- Der Diff der Nacharbeit behebt die dabei gefundenen doppelten `main`-/`#main-content`-Bereiche auf den Admin-Seiten und ergänzt den Auditpfad für einen Abbruch im Zustand `queued`. Ein neuer Slice-Test prüft den Abbruch nach Bekanntwerden der Run-ID. Bei der erneuten Diff-Prüfung ergab sich kein weiterer belegbarer Codefehler.
+- [CI-Lauf 36108812947](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36108812947) auf diesem Head: 7/7 Jobs grün, darunter e2e mit pgTAP, Playwright, Finding-Baseline, Lighthouse und Release-Readiness.
+- Der lokale Gesamt-Orchestrator bleibt wegen der dokumentierten Edge-Umgebung bei Gate 21 rot und blockiert Gate 24. Die grüne CI ist ein separater Nachweis; ein lokaler Exit 0 wird nicht behauptet.
+- Schutzbereichs-Diff gegen `9877697`: laut Builder-Nachweis leer; der nachgereichte Diff ändert diese Schutzbereiche nicht.
+
+**Ergebnis:** G64 **aus Code-Review-Sicht freigegeben**. Die manuelle Ausführung ist als Builder-Nachweis dokumentiert, die automatisierten Gates sind auf dem PR-Head in der CI grün. Kein Merge und kein Release-Tag durch diesen Review; PR #28 bleibt in der vorgesehenen Reihenfolge nach #25 und #27.
+
+---
+
 ## [2026-09-25] Entscheidung: Viewer strikt lesend bei Simulationsläufen (Nachtrag zu G49/G63)
 
 **Entscheid Marc Poenisch (25.09.2026):** Viewer starten, wiederholen und reproduzieren keine Simulationsläufe mehr. Sie sehen weiterhin alle Runs, Ergebnisse und Pausen.
