@@ -41,17 +41,35 @@ export function StatTile({
   value,
   hint,
   tone = 'cyan',
+  icon: Icon,
 }: {
   label: ReactNode;
   value: ReactNode;
   hint?: ReactNode;
   tone?: Tone;
+  /** Runde Icon-Kachel links (KPI-Raster wie Unit Economics). */
+  icon?: LucideIcon;
 }) {
-  return (
-    <div className="pk-stat" data-tone={tone}>
+  const body = (
+    <>
       <span className="pk-stat__label">{label}</span>
       <span className="pk-stat__value">{value}</span>
       {hint ? <span className="pk-stat__hint">{hint}</span> : null}
+    </>
+  );
+  if (!Icon) {
+    return (
+      <div className="pk-stat" data-tone={tone}>
+        {body}
+      </div>
+    );
+  }
+  return (
+    <div className="pk-stat" data-tone={tone} data-with-icon="true">
+      <span className="pk-icon" data-shape="round" aria-hidden="true">
+        <Icon size={24} strokeWidth={2} />
+      </span>
+      <div className="pk-stat__body">{body}</div>
     </div>
   );
 }

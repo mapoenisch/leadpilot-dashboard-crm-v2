@@ -49,14 +49,18 @@ export function BarList({ items, max }: { items: BarDatum[]; max?: number }) {
               {item.display}
               {item.note ? <small>{item.note}</small> : null}
             </span>
-            <svg
-              className="pk-bar__track"
-              viewBox="0 0 100 8"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <rect className="pk-track" x="0" y="0" width="100" height="8" rx="4" />
-              <rect className="pk-fill" x="0" y="0" width={pct} height="8" rx="4" />
+            {/* Breiten in Prozent statt gestreckter viewBox: sonst wird das
+                Leuchten horizontal mitgestreckt und läuft aus dem Panel. */}
+            <svg className="pk-bar__track" width="100%" height="8" aria-hidden="true">
+              <rect className="pk-track" x="0" y="0" width="100%" height="8" rx="4" />
+              <rect
+                className="pk-fill"
+                x="0"
+                y="0"
+                width={`${pct.toFixed(2)}%`}
+                height="8"
+                rx="4"
+              />
             </svg>
           </li>
         );
@@ -117,7 +121,7 @@ export function ColumnChart({
   const pct = (value: number) => `${value.toFixed(3)}%`;
   return (
     <>
-      <div className="pk-colchart">
+      <div className="pk-colchart" data-dense={labels.length >= 5 ? 'true' : undefined}>
         <svg className="pk-colchart__axis" width="44" height={height} aria-hidden="true">
           {Array.from({ length: tickCount + 1 }, (_, i) => {
             const v = minV + step * i;
@@ -170,6 +174,7 @@ export function ColumnChart({
                 })}
                 <text
                   className="pk-svg-text pk-colchart__label"
+                  data-odd={li % 2 === 1 ? 'true' : undefined}
                   x={pct(group * li + group / 2)}
                   y={height - 10}
                   textAnchor="middle"
@@ -190,6 +195,115 @@ export function ColumnChart({
           ))}
         </ul>
       ) : null}
+    </>
+  );
+}
+
+export interface LineSeries {
+  name: string;
+  values: number[];
+  tone?: Tone;
+  /** Fläche unter der Linie leuchtend füllen (Hauptreihe). */
+  area?: boolean;
+}
+
+/**
+ * Liniendiagramm mit Achse, Punkten und Legende. Linien und Flächen liegen in
+ * einem gestreckten Innen-SVG (nicht skalierende Strichstärke), Punkte und
+ * Beschriftungen in Prozent — die Schrift bleibt auf jeder Breite gleich groß.
+ */
+export function LineChart({ labels, series }: { labels: string[]; series: LineSeries[] }) {
+  const height = 220;
+  const top = 12;
+  const bottom = 30;
+  const all = series.flatMap((s) => s.values);
+  const ticks = 4;
+  const step = niceCeil(Math.max(...all, 0) / ticks) || 1;
+  const maxV = Math.ceil(Math.max(...all, 0) / step) * step || step;
+  const innerH = height - top - bottom;
+  const y = (v: number) => top + ((maxV - v) / maxV) * innerH;
+  const tickCount = Math.round(maxV / step);
+  // Randabstand, damit erste und letzte Beschriftung nicht abgeschnitten werden.
+  const pad = 6;
+  const x = (i: number) =>
+    labels.length > 1 ? pad + (i / (labels.length - 1)) * (100 - 2 * pad) : 50;
+  const pct = (value: number) => `${value.toFixed(3)}%`;
+  const points = (values: number[]) =>
+    values.map((v, i) => `${x(i).toFixed(3)},${y(v).toFixed(2)}`).join(' ');
+  const axisWidth = maxV >= 10000 ? 64 : 36;
+  return (
+    <>
+      <div className="pk-colchart">
+        <svg className="pk-colchart__axis" width={axisWidth} height={height} aria-hidden="true">
+          {Array.from({ length: tickCount + 1 }, (_, i) => {
+            const v = step * i;
+            return (
+              <text key={i} className="pk-svg-text" x={axisWidth - 6} y={y(v) + 4} textAnchor="end">
+                {fmt(v)}
+              </text>
+            );
+          })}
+        </svg>
+        <svg className="pk-colchart__plot" width="100%" height={height} aria-hidden="true">
+          {Array.from({ length: tickCount + 1 }, (_, i) => (
+            <line
+              key={i}
+              className="pk-svg-grid"
+              x1="0"
+              x2="100%"
+              y1={y(step * i)}
+              y2={y(step * i)}
+            />
+          ))}
+          <svg
+            x="0"
+            y="0"
+            width="100%"
+            height={height}
+            viewBox={`0 0 100 ${height}`}
+            preserveAspectRatio="none"
+          >
+            {series.map((s) => (
+              <g key={s.name} data-tone={s.tone ?? 'cyan'}>
+                {s.area ? (
+                  <polygon
+                    className="pk-line__area"
+                    points={`${x(0).toFixed(3)},${y(0)} ${points(s.values)} ${x(
+                      s.values.length - 1,
+                    ).toFixed(3)},${y(0)}`}
+                  />
+                ) : null}
+                <polyline className="pk-line" points={points(s.values)} />
+              </g>
+            ))}
+          </svg>
+          {series.map((s) => (
+            <g key={s.name} data-tone={s.tone ?? 'cyan'}>
+              {s.values.map((v, i) => (
+                <circle key={i} className="pk-line__dot" cx={pct(x(i))} cy={y(v)} r="4" />
+              ))}
+            </g>
+          ))}
+          {labels.map((label, i) => (
+            <text
+              key={label}
+              className="pk-svg-text pk-colchart__label"
+              x={pct(x(i))}
+              y={height - 8}
+              textAnchor="middle"
+            >
+              {label}
+            </text>
+          ))}
+        </svg>
+      </div>
+      <ul className="pk-legend">
+        {series.map((s) => (
+          <li key={s.name} data-tone={s.tone ?? 'cyan'}>
+            {s.name}
+          </li>
+        ))}
+      </ul>
     </>
   );
 }

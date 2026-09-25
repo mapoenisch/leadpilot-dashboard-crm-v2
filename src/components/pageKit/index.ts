@@ -7,5 +7,5 @@ export type { Tone } from './Panel';
 export { ToneList, KeyValueList, StatTile, Callout, Quote } from './Content';
 export { KitTable } from './KitTable';
 export type { KitColumn } from './KitTable';
-export { ChartFigure, BarList, ColumnChart, Donut } from './Charts';
-export type { BarDatum, ColumnSeries, DonutSegment } from './Charts';
+export { ChartFigure, BarList, ColumnChart, LineChart, Donut } from './Charts';
+export type { BarDatum, ColumnSeries, LineSeries, DonutSegment } from './Charts';
