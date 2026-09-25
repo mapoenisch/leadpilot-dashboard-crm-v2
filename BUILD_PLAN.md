@@ -19,7 +19,7 @@ prüft unabhängig. Details in `CLAUDE.md` §4. Vor 067Q wird Issue #7
 Die fachlich freigegebene Spezifikation liegt unter
 `docs/superpowers/specs/2026-09-15-v2-3-0-production-readiness-design.md`. Auftrag 067
 setzt sie über 19 strikt serielle Teilaufträge 067A–067S und Gates G44–G65 um.
-**Stand 25.09.2026: G44–G65 sind in `main` integriert, v2.3.0 ist von Marc freigegeben.**
+**Stand 25.09.2026: G44–G65 sind in `main` integriert, v2.3.0 ist von Marc freigegeben; der Tag folgt.**
 G44–G62 sind in `main` integriert. Die
 [CI-Recovery](docs/superpowers/specs/2026-09-23-ci-recovery-design.md) zu
 Issue #5 wurde mit PR #22 abgeschlossen: finaler PR-Lauf `35833733689` und
@@ -49,7 +49,7 @@ sichtbar.
 | Fachauftrag | G63 / 067Q | Run-Steuerung | ✅ auf `main` (PR #27) |
 | Gesamtabnahme | G64 / 067R | vollständige Abnahme ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067R_GESAMTABNAHME.md), [Matrix](docs/reviews/v2.3.0-acceptance-matrix.md)) | ✅ auf `main` (PR #28) |
 | Nachtrag G49/G63 | Viewer strikt lesend | Viewer starten keine Läufe; Server, Store und UI ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)) | ✅ auf `main` (PR #29) |
-| Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067S_MIGRATION_LIZENZ_RELEASE.md), [Release Notes](docs/releases/V2.3.0.md)) | ✅ auf `main` (PR #30), von Marc am 25.09.2026 freigegeben; Tag `v2.3.0` |
+| Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067S_MIGRATION_LIZENZ_RELEASE.md), [Release Notes](docs/releases/V2.3.0.md)) | ✅ auf `main` (PR #30), von Marc am 25.09.2026 freigegeben; annotierter Tag `v2.3.0` folgt nach dem Release-PR |
 
 ### Nachweise G44–G62
 

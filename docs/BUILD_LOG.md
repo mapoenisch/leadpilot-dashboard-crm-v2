@@ -13226,13 +13226,13 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
 - Alle sieben CI-Checks sind grün, Auto-Merge war aus.
 - Eine formale GitHub-Approve-Review ist mit dem PR-Eigentümerkonto nicht möglich.
 
-**Merge:** PR #30 per Merge-Commit `6ead29a` auf `main` (25.09.2026). Issue #9 ist geschlossen.
+**Merge:** PR #30 per Merge-Commit `6ead29a` auf `main` (25.09.2026). Issue #9 ist geschlossen (per API: `closed`, `closed_by_pull_requests` = PR #30).
 
 **Release-Freigabe:** Marc Pönisch am 25.09.2026 („v2.3.0 freigeben“), Spec §22 Punkt 12.
 
 **Definition of Done v2.3.0 (Spec §22):**
 1. Gates G44–G65 sind bestanden und im BUILD_LOG dokumentiert.
-2. Die 19 Teilaufträge sind seriell umgesetzt und unabhängig geprüft.
+2. Die 19 Teilaufträge sind seriell umgesetzt. **Einschränkung (Codex-Bot-Review PR #31):** Für G52, G53 und G54 enthält das Ledger keine eigene abschließende Prüfer-Freigabe. Die letzten Reviewer-Einträge lauten „bereit für (abschließende) Freigabe“ (BUILD_LOG ab Zeile 8261, 8318, 8349), und `BUILD_PLAN.md` hält diese Lücke fest. Inhaltlich abgedeckt sind die drei Gates durch die G55-Gesamtnachprüfung über alle 067I-Wellen (E2E 384/384, freigegeben), durch `PR-SEMANTIC-11` grün in G64 und durch die grüne CI. Der Masterauftrag verlangt aber vier eigenständige Review-Zyklen für G52–G55, deshalb gilt Punkt 2 bis zu Marcs Entscheidung als **offen**.
 3. Kein Critical-/Important-Befund ist offen; das Finding-Register steht auf 20/20.
 4. Der Demo-Mandant läuft über echte Auth-, RLS-, Persistenz- und Auditpfade.
 5. Die 33 semantischen Seiten sind umgesetzt.
@@ -13244,6 +13244,9 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
 11. Der Release-Commit wird mit diesem PR geprüft, der Arbeitsbaum ist sauber.
 12. Marcs Freigabe liegt vor.
 
-**Tag:** `v2.3.0` setzt Marc nach dem Merge dieses Release-PRs auf `main`.
+**Release-Commit und Tag (Masterplan Task 19, Step 7):**
+- Der Release-Commit auf `main` ist der Merge-Commit dieses PRs. GitHub signiert Merge-Commits aus der Weboberfläche (`gpgsig`, „Verified“, wie bei `6ead29a`). Der Branch-Commit selbst ist unsigniert, weil in der Builder-Umgebung kein Signierschlüssel liegt.
+- Der Tag `v2.3.0` wird als **annotierter** Tag auf diesem Merge-Commit gesetzt. Die Releases-Oberfläche von GitHub legt nur einen leichtgewichtigen Tag an, deshalb geht es per `git tag -a`.
+- Den Status „veröffentlicht“ tragen die Release Notes erst nach Tag, Push und grüner `main`-CI.
 
 **Rollen:** Laut `CLAUDE.md` §4 endet mit dem Release der Rollenwechsel (Claude Code baut, Codex prüft). Danach gilt wieder die vorherige Verteilung (Antigravity baut, Codex/Claude Code prüfen), sofern Marc nichts anderes festlegt.
