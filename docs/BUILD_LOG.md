@@ -13213,6 +13213,40 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
   - Danach ist `supabase test db` grün (PASS).
 - **Rollback-Doku:** Der Weg über das Backup verweist auf Abschnitt 7. Ein Backup aus v2.2.0 enthält keine Supabase-Auth-Benutzer.
 
+## [2026-09-25] Gate G52: Nachträgliche unabhängige Codex-Freigabe
+
+**Prüfgegenstand:** 067I, Finanzen/Recht/Strategie (9 Seiten). Dies ist die Entscheidung vom 25.09.2026 auf `main` `6ead29a`, keine auf den 18.09.2026 rückdatierte Freigabe.
+
+### Nachweise und Befund
+- Der G52-Builder-Stand und die Nachbesserungen bis `90e414e` sind oben protokolliert. Die beiden Seiten-P1 (fehlende OKR-Basiswerte, fest codierte Domänenwerte) sind im heutigen Code behoben: Beide OKR-Reihen und die Finanz-Zusammenfassungen lesen aus den Domändaten. Der Login-Redirect-P1 ist durch einen URL- und Hauptinhalt-Guard vor jeder Routenprüfung geschlossen.
+- Die ursprüngliche Angabe **108/108** aus dem ersten G52-Lauf ist wegen des damaligen Login-Redirects **kein belastbarer Freigabenachweis**. Maßgeblich ist der spätere unabhängige G53-Lauf mit gültigem Auth-State und korrigiertem Guard: **240/240** für G52 und G53 zusammen. Der unabhängige G55-Gesamtlauf bestätigt alle G52-Routen erneut (**384/384** insgesamt). Die ursprüngliche G52-Matrix steht in `docs/screenshots/auftrag-067-g52/README.md`, der unabhängige Nachweis in `docs/screenshots/auftrag-067-g53/README.md`.
+- Gegenprüfung auf integriertem `main`: `e2e/semantic-routes.spec.ts` enthält alle 9 G52-Routen mit vier Prüfungen je drei Viewports; die aktuelle [CI auf `6ead29a`](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36131811100) ist grün, einschließlich Typecheck, Tests, Build und E2E mit dieser Datei.
+
+### Entscheidung
+**G52 FREIGEGEBEN (nachträglich am 25.09.2026).** Die Freigabe gilt für die G52-Seitenwelle. Sie ersetzt nicht den historischen Befund zum ersten 108er-Lauf und ist keine Release-Freigabe.
+
+## [2026-09-25] Gate G53: Nachträgliche unabhängige Codex-Freigabe
+
+**Prüfgegenstand:** 067I, Markt/Kunden/Vertrieb (11 Seiten). Entscheidung vom 25.09.2026 auf `main` `6ead29a`.
+
+### Nachweise und Befund
+- Der G53-Stand `f22c605` und die Matrix `docs/screenshots/auftrag-067-g53/README.md` dokumentieren den unabhängigen Browserlauf **240/240** für G52 und G53 zusammen, mit gültigem Auth-State, Redirect-Guard und Prüfungen bei 1440/768/375 px. Der jsdom-Spiegel lief **12/12**; Typecheck, Integrity-Tests und Build waren grün.
+- `e2e/semantic-routes.spec.ts` enthält alle 11 G53-Routen; der unabhängige G55-Gesamtlauf prüfte sie erneut (**384/384** insgesamt). Auf `main` `6ead29a` ist die [CI einschließlich E2E](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36131811100) grün. Keine offene G53-Nachbesserung ist im Ledger dokumentiert.
+
+### Entscheidung
+**G53 FREIGEGEBEN (nachträglich am 25.09.2026).** Die Freigabe gilt für die G53-Seitenwelle; sie ist keine Release-Freigabe.
+
+## [2026-09-25] Gate G54: Nachträgliche unabhängige Codex-Freigabe
+
+**Prüfgegenstand:** 067I, Unternehmen/Übersicht/Produkt (9 Seiten). Entscheidung vom 25.09.2026 auf `main` `6ead29a`.
+
+### Nachweise und Befund
+- Der G54-Stand `99b7125` und die Matrix `docs/screenshots/auftrag-067-g54/README.md` dokumentieren den unabhängigen Browserlauf **348/348** für G52 bis G54 zusammen, mit gültigem Auth-State, Redirect-Guard und Prüfungen bei 1440/768/375 px. Der jsdom-Spiegel lief **10/10**; Typecheck, Integrity-Tests und Build waren grün.
+- `e2e/semantic-routes.spec.ts` enthält alle 9 G54-Routen; der unabhängige G55-Gesamtlauf prüfte sie erneut (**384/384** insgesamt). Auf `main` `6ead29a` ist die [CI einschließlich E2E](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36131811100) grün. Keine offene G54-Nachbesserung ist im Ledger dokumentiert.
+
+### Entscheidung
+**G54 FREIGEGEBEN (nachträglich am 25.09.2026).** Die Freigabe gilt für die G54-Seitenwelle; sie ist keine Release-Freigabe.
+
 ---
 
 ## [2026-09-25] Gate G65 / PR #30: Codex-Nachprüfung und Release-Freigabe v2.3.0
@@ -13232,7 +13266,7 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
 
 **Definition of Done v2.3.0 (Spec §22):**
 1. Gates G44–G65 sind bestanden und im BUILD_LOG dokumentiert.
-2. Die 19 Teilaufträge sind seriell umgesetzt. **Einschränkung (Codex-Bot-Review PR #31):** Für G52, G53 und G54 enthält das Ledger keine eigene abschließende Prüfer-Freigabe. Die letzten Reviewer-Einträge lauten „bereit für (abschließende) Freigabe“ (BUILD_LOG ab Zeile 8261, 8318, 8349), und `BUILD_PLAN.md` hält diese Lücke fest. Inhaltlich abgedeckt sind die drei Gates durch die G55-Gesamtnachprüfung über alle 067I-Wellen (E2E 384/384, freigegeben), durch `PR-SEMANTIC-11` grün in G64 und durch die grüne CI. Der Masterauftrag verlangt aber vier eigenständige Review-Zyklen für G52–G55, deshalb gilt Punkt 2 bis zu Marcs Entscheidung als **offen**.
+2. Die 19 Teilaufträge sind seriell umgesetzt und unabhängig geprüft. Die zunächst fehlenden eigenen Freigaben für G52, G53 und G54 (Hinweis des Codex-Bots zu PR #31) hat Codex am 25.09.2026 nachträglich erteilt. Sie stehen als getrennte Einträge unmittelbar oberhalb, sind nicht zurückdatiert und kamen mit PR #32 auf `main`.
 3. Kein Critical-/Important-Befund ist offen; das Finding-Register steht auf 20/20.
 4. Der Demo-Mandant läuft über echte Auth-, RLS-, Persistenz- und Auditpfade.
 5. Die 33 semantischen Seiten sind umgesetzt.
