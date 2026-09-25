@@ -1,6 +1,6 @@
 // Gate G64 (Auftrag 067R): Der Finding-Check der Release-Readiness ist
 // fail-closed — fehlende/veraltete Reports, technische Fehler, jede
-// Register-Abweichung und offene Findings vor G65 ergeben OFFEN.
+// Register-Abweichung und jedes offene Finding ergeben OFFEN (seit G65 ohne Ausnahme).
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -83,16 +83,28 @@ describe('checkFindings (G64)', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  it('ist erfüllt, wenn Messung und Register übereinstimmen und nur G65 offen ist', () => {
+  it('ist erfüllt, wenn Messung und Register übereinstimmen und alles grün ist', () => {
+    const known = KNOWN.map((f) => ({ ...f, expected: 'passing' }));
+    write(
+      known,
+      { 'PR-SOURCE-04': 'passed', 'PR-LICENSE-19': 'passed' },
+      { 'PR-CLIP-13': 'passed' },
+    );
+    const result = check();
+    expect(result.ok).toBe(true);
+    expect(result.metrics[0]).toMatchObject({ status: 'ERFÜLLT', actual: '3/3 grün' });
+    expect(result.metrics[0]?.note).toBeUndefined();
+  });
+
+  it('weist seit G65 auch ein offenes Lizenz-Finding ab (keine Ausnahme mehr)', () => {
     write(
       KNOWN,
       { 'PR-SOURCE-04': 'passed', 'PR-LICENSE-19': 'failed' },
       { 'PR-CLIP-13': 'passed' },
     );
     const result = check();
-    expect(result.ok).toBe(true);
-    expect(result.metrics[0]).toMatchObject({ status: 'ERFÜLLT', actual: '2/3 grün' });
-    expect(result.metrics[0]?.note).toContain('PR-LICENSE-19');
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/ohne Gate-Nachweis: PR-LICENSE-19/);
   });
 
   it('weist fehlende Reports ab', () => {
@@ -140,7 +152,7 @@ describe('checkFindings (G64)', () => {
     expect(result.errors.join(' ')).toMatch(/ohne Gate-Nachweis: PR-SOURCE-04/);
   });
 
-  it('weist ein weiteres auf G65 registriertes offenes Finding ab (nur PR-LICENSE-19 zulässig)', () => {
+  it('weist ein weiteres auf G65 registriertes offenes Finding ab', () => {
     const known = KNOWN.map((f) =>
       f.id === 'PR-SOURCE-04' ? { ...f, targetGate: 'G65', expected: 'failing' } : f,
     );

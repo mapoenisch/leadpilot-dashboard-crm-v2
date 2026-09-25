@@ -8,7 +8,8 @@
  * - technische Runner-Fehler (Timeout, Collection, markerlose Assertion) → OFFEN
  * - jede Abweichung zwischen Register und Messung → OFFEN
  * - ein als `failing` registriertes Finding außerhalb des Release-Gates → OFFEN
- *   (vor G65 darf nur noch das Lizenz-Finding offen sein)
+ *   (G65/067S: Mit der Root-Lizenz ist kein Finding mehr zulässig offen; die
+ *   frühere Ausnahme für PR-LICENSE-19 ist entfallen)
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -20,8 +21,11 @@ import {
 } from '../src/review/acceptance/compareFindingResults.js';
 
 export const RELEASE_GATE = 'G65';
-/** Einzige vor G65 zulässig offene Findings (Codex-Review #28: explizite ID-Menge). */
-export const RELEASE_GATE_FINDINGS: readonly string[] = ['PR-LICENSE-19'];
+/**
+ * Zulässig offene Findings des Release-Gates (Codex-Review #28: explizite ID-Menge).
+ * Seit G65 leer: Ein Release ist nur mit 20/20 grünen Findings möglich.
+ */
+export const RELEASE_GATE_FINDINGS: readonly string[] = [];
 
 export interface FindingCheckMetric {
   id: number;

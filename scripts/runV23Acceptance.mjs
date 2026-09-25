@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gate G64 (Auftrag 067R): Gesamt-Abnahme v2.3.0 in einem Lauf.
+ * Gate G64 (Auftrag 067R), ergänzt in G65 (067S): Gesamt-Abnahme v2.3.0 in einem Lauf.
  *
  * Führt alle Abnahme-Gates nacheinander aus, schreibt je Gate ein Log und eine
  * maschinenlesbare Zusammenfassung nach artifacts/v2.3.0/ und endet mit einem
@@ -80,6 +80,15 @@ export const GATES = [
     code: 24,
     needs: ['unit-coverage', 'bundle', 'audit', 'e2e', 'findings', 'lighthouse'],
     steps: [['npx', 'tsx', 'scripts/verifyV23ReleaseReadiness.ts']],
+  },
+  // G65 (Auftrag 067S): Lizenz- und Migrationsnachweis. Neue Codes hinten
+  // angefügt, damit die Codes 11–24 aus G64 stabil bleiben.
+  { id: 'licenses', code: 25, steps: [['npm', 'run', 'verify:licenses']] },
+  {
+    id: 'migrations',
+    code: 26,
+    needs: ['sql-rls'],
+    steps: [['npm', 'run', 'verify:migrations']],
   },
 ];
 

@@ -1,13 +1,17 @@
 {
   "name": "leadpilot-enterprise-dashboard",
   "private": true,
-  "version": "2.2.0",
+  "version": "2.3.0",
+  "license": "UNLICENSED",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:production": "node scripts/checkProductionConfig.mjs && vite build",
     "preview": "vite preview",
     "verify": "npx tsx scripts/verifyIntegrity.ts",
+    "verify:licenses": "node scripts/checkThirdPartyLicenses.mjs",
+    "verify:migrations": "node scripts/verifyMigrationUpgrade.mjs",
     "verify:facelift": "tsx scripts/verifyFacelift.ts",
     "test": "vitest run",
     "test:watch": "vitest",
