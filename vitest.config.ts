@@ -1,6 +1,12 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 
+// 067R / G64: Unit- und UI-Suiten laufen hermetisch ohne echtes Supabase.
+// Ohne diese Abschirmung lasen die Integrity-Suiten bei gesetzten
+// VITE_SUPABASE_*-Variablen (z. B. aus der lokalen E2E-Umgebung) die echte
+// Datenbank; der frühere stille Demo-Fallback (PR-SOURCE-04) hatte das verdeckt.
+const HERMETIC_ENV = { VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '' };
+
 export default defineConfig({
   test: {
     globals: true,
@@ -18,6 +24,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           setupFiles: ['./vitest.setup.ts'],
+          env: HERMETIC_ENV,
           include: [
             'src/**/*.vitest.ts',
             'src/**/*.vitest.tsx',
@@ -36,6 +43,7 @@ export default defineConfig({
           name: 'ui',
           environment: 'jsdom',
           setupFiles: ['./vitest.setup.ts'],
+          env: HERMETIC_ENV,
           include: ['src/**/*.ui.vitest.ts', 'src/**/*.ui.vitest.tsx'],
         },
       },

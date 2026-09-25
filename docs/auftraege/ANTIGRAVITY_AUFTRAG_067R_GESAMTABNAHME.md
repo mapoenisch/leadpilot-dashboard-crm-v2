@@ -77,6 +77,7 @@ Neuausrichtung steht mit Begründung im Register und im BUILD_LOG.
 | `scripts/verifyV23ReleaseReadiness.ts` | ändern (Finding-Check einbinden, Kennzahl 27) |
 | `.github/workflows/ci.yml` | ändern (Finding-Baseline im e2e-Job; bisher nie in der CI gelaufene E2E-Specs `audit-health`/`member-management` aufnehmen) |
 | `package.json`, `.gitignore` | ändern (Skript, `artifacts/`) |
+| `vitest.config.ts` | ändern (Unit-/UI-Suiten hermetisch ohne `VITE_SUPABASE_*`; Befund aus dem Abnahmelauf) |
 | `docs/screenshots/auftrag-067r/README.md` | neu (Paritätsmatrix) |
 | `BUILD_PLAN.md`, `docs/BUILD_LOG.md` | ändern |
 
