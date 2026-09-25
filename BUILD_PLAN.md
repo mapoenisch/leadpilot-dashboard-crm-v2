@@ -47,8 +47,8 @@ sichtbar.
 | Qualitätsschulden | Issue #7 | Inline-Styles und Suppressions im Code abbauen | ✅ auf `main` (PR #25) |
 | Fachauftrag | G63 / 067Q | Run-Steuerung | ✅ auf `main` (PR #27) |
 | Gesamtabnahme | G64 / 067R | vollständige Abnahme ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067R_GESAMTABNAHME.md), [Matrix](docs/reviews/v2.3.0-acceptance-matrix.md)) | ✅ auf `main` (PR #28) |
-| Nachtrag G49/G63 | Viewer strikt lesend | Viewer starten keine Läufe; Server, Store und UI ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)) | gebaut (Claude Code), Codex-Review ausstehend |
-| Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` | nach G64 und Marcs Freigabe |
+| Nachtrag G49/G63 | Viewer strikt lesend | Viewer starten keine Läufe; Server, Store und UI ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)) | ✅ auf `main` (PR #29) |
+| Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_067S_MIGRATION_LIZENZ_RELEASE.md), [Release Notes](docs/releases/V2.3.0.md)) | gebaut (Claude Code), Codex-Review ausstehend; Tag nach Marcs Freigabe |
 
 ### Nachweise G44–G62
 
