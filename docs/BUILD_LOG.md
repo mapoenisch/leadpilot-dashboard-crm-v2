@@ -13060,3 +13060,13 @@ einem grünen, frischen Nachweis zugeordnet
 Die manuelle Gegenprüfung ist ausgeführt und protokolliert. **G64 bereit für die erneute Codex-Prüfung.** Die finale G64-Wertung hält getrennt fest:
 - Der lokale Gesamtlauf bleibt bei Gate 21 rot (nur Edge-abhängige Specs) und blockiert Gate 24.
 - Die CI ist 7/7 grün.
+
+---
+
+## [2026-09-25] Entscheidung: Viewer strikt lesend bei Simulationsläufen (Nachtrag zu G49/G63)
+
+**Entscheid Marc Poenisch (25.09.2026):** Viewer starten, wiederholen und reproduzieren keine Simulationsläufe mehr. Sie sehen weiterhin alle Runs, Ergebnisse und Pausen.
+
+- **Anlass:** Die manuelle G64-Gegenprüfung (067R) hat gezeigt, dass Viewer über „Run / Re-Run“ Läufe starten, die serverseitig gespeichert werden. Das ist eine Schreibaktion, obwohl das Rollenmodell `simulation:run` nur Admin/Manager zuordnet.
+- **Revision:** Die G49-Festlegung „Persistenz rollenunabhängig“ gilt für Schreibpfade von Läufen nicht mehr.
+- **Umsetzung:** [`ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md`](auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md). Gebaut wird nach der G64-Freigabe und dem Merge von #25/#27/#28, damit der laufende G64-Review unverändert bleibt.
