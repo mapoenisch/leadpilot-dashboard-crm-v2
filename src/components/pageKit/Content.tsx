@@ -77,24 +77,40 @@ export function StatTile({
 export function Callout({
   title,
   children,
+  paragraphs,
   tone = 'orange',
   icon: Icon,
+  headingLevel,
 }: {
   title: ReactNode;
   children?: ReactNode;
+  /** Mehrere Absätze, je als eigenes <p>. */
+  paragraphs?: string[];
   tone?: Tone;
   icon?: LucideIcon;
+  /** Titel als echte Überschrift (Hinweis ist eigener Abschnitt der Seite). */
+  headingLevel?: 2 | 3;
 }) {
+  const Title = headingLevel === 2 ? 'h2' : headingLevel === 3 ? 'h3' : 'p';
   return (
-    <aside className="pk-callout" data-tone={tone}>
+    <aside
+      className="pk-callout"
+      data-tone={tone}
+      aria-label={typeof title === 'string' ? title : undefined}
+    >
       {Icon ? (
         <span className="pk-icon" aria-hidden="true">
           <Icon size={24} strokeWidth={2} />
         </span>
       ) : null}
       <div>
-        <p className="pk-callout__title">{title}</p>
+        <Title className="pk-callout__title">{title}</Title>
         {children ? <p className="pk-callout__text">{children}</p> : null}
+        {paragraphs?.map((absatz) => (
+          <p className="pk-callout__text" key={absatz}>
+            {absatz}
+          </p>
+        ))}
       </div>
     </aside>
   );

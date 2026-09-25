@@ -105,9 +105,12 @@ export function FunnelPage() {
             rows={rows}
           />
         </Panel>
-        <Callout title={FUNNEL.note.title} icon={TrendingUp}>
-          {FUNNEL.note.paragraphs.join(' ')}
-        </Callout>
+        <Callout
+          title={FUNNEL.note.title}
+          icon={TrendingUp}
+          headingLevel={2}
+          paragraphs={FUNNEL.note.paragraphs}
+        />
       </DataState>
     </div>
   );

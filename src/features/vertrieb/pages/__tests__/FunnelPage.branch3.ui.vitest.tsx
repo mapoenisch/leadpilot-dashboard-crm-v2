@@ -21,7 +21,9 @@ describe('FunnelPage (branch3)', () => {
   it('leere Funnel-Daten zeigen den Empty-Zustand', () => {
     FUNNEL.rows.splice(0, FUNNEL.rows.length);
     render(<FunnelPage />);
-    expect(screen.getByRole('heading', { level: 1, name: 'Sales Funnel' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Sales Funnel 2025' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Keine Funnel-Daten erfasst.')).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Trichtertabelle' })).not.toBeInTheDocument();
   });
@@ -33,11 +35,11 @@ describe('FunnelPage (branch3)', () => {
     expect(screen.getByText(/Aus.*Leads werden.*MQLs/)).toBeInTheDocument();
   });
 
-  it('ohne Chart-Datasets entfallen die Quartals-Sektionen, Hinweis bleibt', () => {
+  it('ohne Chart-Datasets entfällt die Quartalslegende, Hinweis bleibt', () => {
     FUNNEL.chart.datasets.splice(0, FUNNEL.chart.datasets.length);
-    render(<FunnelPage />);
-    expect(screen.getByText('Quartalsverlauf je Stufe')).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Leads' })).not.toBeInTheDocument();
+    const { container } = render(<FunnelPage />);
+    expect(screen.getByRole('figure', { name: 'Quartalsverlauf je Stufe' })).toBeInTheDocument();
+    expect(container.querySelectorAll('.pk-legend li')).toHaveLength(0);
     expect(screen.getByText(FUNNEL.note.title)).toBeInTheDocument();
   });
 
@@ -54,9 +56,11 @@ describe('FunnelPage (branch3)', () => {
       FUNNEL.chart.datasets.length,
       ...origDatasets.slice(0, 1).map((d) => ({ ...d, data: [7] })),
     );
-    render(<FunnelPage />);
-    expect(screen.getByRole('region', { name: 'Leads' })).toBeInTheDocument();
-    expect(screen.getAllByText('0').length).toBeGreaterThanOrEqual(1);
+    const { container } = render(<FunnelPage />);
+    const quartale = screen.getByRole('figure', { name: 'Quartalsverlauf je Stufe' });
+    // Eine Säule je Quartal, fehlende Werte als Nullhöhe (Mindesthöhe 2 px).
+    expect(quartale.querySelectorAll('rect.pk-fill')).toHaveLength(FUNNEL.chart.labels.length);
+    expect(container.querySelectorAll('.pk-legend li')).toHaveLength(0);
   });
 
   it('fehlende Header nutzen Spalten-Fallbacks', () => {

@@ -18,9 +18,7 @@ afterEach(() => {
 describe('CompetitionPage (branch3)', () => {
   it('rendert h1, Anbietervergleich und Marktanteile', () => {
     render(<CompetitionPage />);
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Wettbewerbslandschaft' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: WETTBEWERB.title })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Anbietervergleich' })).toBeInTheDocument();
     expect(screen.getByText(/führt mit/)).toBeInTheDocument();
   });
@@ -35,7 +33,8 @@ describe('CompetitionPage (branch3)', () => {
   it('fehlendes Marktanteil-Dataset nutzt Fallback-Titel und Nullwerte', () => {
     CHART_WETTBEWERB.datasets.splice(0, CHART_WETTBEWERB.datasets.length);
     render(<CompetitionPage />);
-    expect(screen.getAllByText('Marktanteil').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByRole('figure', { name: 'Marktanteil' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Marktanteil' })).toBeInTheDocument();
     expect(screen.getAllByText('0 %').length).toBeGreaterThanOrEqual(1);
   });
 
