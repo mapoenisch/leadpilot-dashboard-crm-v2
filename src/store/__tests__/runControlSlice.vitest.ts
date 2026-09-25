@@ -124,6 +124,33 @@ describe('runSlice — Run-Steuerung (G63)', () => {
     expect(() => useSimulationStore.getState().retryRun('viewer')).toThrow();
   });
 
+  it('Abbruch im Zustand queued wird protokolliert, sobald die Run-ID bekannt ist (G64)', async () => {
+    const activeId = vi.spyOn(scenarioService, 'getActiveRunId').mockReturnValue(null);
+    vi.spyOn(scenarioService, 'cancelActiveRun').mockImplementation(() => undefined);
+    let release: () => void = () => undefined;
+    const cancelled = new Promise<void>((r) => (release = r));
+    vi.spyOn(scenarioService, 'runScenarioVersion').mockImplementation(async (_v, _s, _t, opts) => {
+      await cancelled;
+      // Der Worker hat den Lauf angenommen und meldet die ID, bevor der Abbruch greift.
+      activeId.mockReturnValue('run-q');
+      opts?.onProgress?.(0, 50);
+      throw new RunControlError('SIMULATION_CANCELLED', 'Run abgebrochen.');
+    });
+    const running = useSimulationStore.getState().runVersion('ver-1', 'org-a');
+    useSimulationStore.getState().cancelRun('admin');
+    expect(persistence.recordRunControl).not.toHaveBeenCalled();
+    release();
+    await expect(running).rejects.toMatchObject({ code: 'SIMULATION_CANCELLED' });
+    await flush();
+    expect(persistence.recordRunControl).toHaveBeenCalledTimes(1);
+    expect(persistence.recordRunControl).toHaveBeenCalledWith(
+      'org-a',
+      'run-q',
+      'cancelled',
+      expect.any(String),
+    );
+  });
+
   it('Pause gilt erst nach gespeichertem Snapshot; Abbruch verwirft danach', async () => {
     let captured: RunOptions | undefined;
     vi.spyOn(scenarioService, 'runScenarioVersion').mockImplementation(

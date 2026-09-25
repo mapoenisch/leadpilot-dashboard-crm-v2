@@ -215,10 +215,8 @@ export function ConfirmActionModal({
 
 export function ForbiddenView({ currentRole }: { currentRole?: string }) {
   return (
-    <main
-      tabIndex={-1}
-      id="main-content"
-      aria-label="Hauptinhalt"
+    <section
+      aria-label="Zugriff verweigert"
       className="p-[var(--space-6)] max-w-[800px] mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center"
     >
       <div className="bg-surface border border-solid border-border rounded-xl p-[var(--space-6)] w-full flex flex-col items-center gap-[var(--space-4)]">
@@ -233,6 +231,6 @@ export function ForbiddenView({ currentRole }: { currentRole?: string }) {
           Einladungen.
         </p>
       </div>
-    </main>
+    </section>
   );
 }

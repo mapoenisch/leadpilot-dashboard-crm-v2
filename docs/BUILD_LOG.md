@@ -12993,3 +12993,70 @@ einem grünen, frischen Nachweis zugeordnet
 
 ### Ergebnis & Freigabestatus
 **G64 bereit für den unabhängigen Codex-Review.** Mit dem Review folgt die manuelle Gegenprüfung nach Plan Step 3: zwei Organisationen, drei Rollen, Reload/Zweitbrowser, n8n-Angriffe, Hash-Manipulation und Workersteuerung. Kein Merge, kein Tag; Merge nur durch Marc, nach #25 und #27.
+
+---
+
+## [2026-09-25] Gate G64 / Auftrag 067R: Manuelle Gegenprüfung (Plan Step 3) und Nacharbeit (Builder Claude Code)
+
+**Anlass:** Codex-Review auf PR #28 (`db88a73`) ohne Codefehler, aber die manuelle Gegenprüfung nach Masterplan Task 18 Step 3 fehlte.
+
+**Durchführung:**
+- Ausgeführt vom Builder gegen das lokale Supabase (frischer `db reset` mit Seed) und den Produktions-Build.
+- Zwei Skripte, bewusst nicht committet:
+  - Browser: Playwright als echter Nutzer mit Login, Klicks und Reload.
+  - Server/Angriffe: `supabase-js` mit echten Nutzer-JWTs sowie der echte Ingress-Handler `supabase/functions/_shared/ingressHandler.ts` gegen die echten Ingress-RPCs.
+- Nutzer aus `supabase/seed.sql`:
+  - Organisation A: admin-a, manager-a, viewer-a
+  - Organisation B: admin-b
+- Endstand auf dem Nacharbeitsstand: **Browser 12/12, Server/Angriffe 16/16.**
+
+### Szenarien und Ergebnis
+| # | Szenario | Beobachtung | Ergebnis |
+|---|---|---|---|
+| R1 | Drei Rollen, UI-Rechte | viewer-a und manager-a: `/admin/members`, `/admin/audit` und `/admin/health` zeigen „Zugriff verweigert“. admin-a hat Zugriff. | ✅ |
+| R2 | Rollen an den Steuer-RPCs | `record_run_control`: viewer 42501, manager ok, admin-b für Org A 42501. `discard_run_pause` als viewer: 42501. Direkter Aufruf von `accept_organization_invitation` als authenticated: abgewiesen. | ✅ |
+| T1 | Zwei Organisationen, RLS je Tabelle | `companies`, `contacts`, `imported_funnel_deals`, `simulation_runs`, `simulation_run_pauses`, `audit_log`, `organization_members`: jeweils 0 fremde Zeilen für Org A/B. Die Zeilenzahlen entsprechen der DB je Organisation; bei `organization_members` sieht der Admin nur die eigene Zeile, die Verwaltung läuft über die Edge-Function. | ✅ |
+| T2 | Direktschreiben in fremde Organisation | `INSERT companies` von admin-a mit `organization_id` = Org B: abgewiesen (42501). | ✅ |
+| W1 | Workersteuerung Pause | admin-a pausiert im Browser-Worker. UI zeigt `1/50`, die DB-Pause hat Tick 1/50, Org A und einen Hash. | ✅ |
+| RB1 | Reload | Nach dem Reload listet das Panel die Pause weiter. | ✅ |
+| RB2 | Zweitbrowser / Rollen / Fremdorg | Zweite Sitzung admin-a sieht die Pause. viewer-a sieht sie ohne Aktionen (0 Buttons). admin-b sieht sie nicht. | ✅ |
+| W2 | Fortsetzen im Zweitbrowser | Run COMPLETED, Pause atomar gelöscht (0 Zeilen). Die erste Sitzung zeigt nach dem Reload keine Pause mehr. | ✅ |
+| W3 | Abbrechen → Wiederholen | Abbruch im Audit (`scenario.run_cancelled`, `run-s525774…`). Der Retry läuft mit demselben Seed 525774 und endet COMPLETED. | ✅ (nach Fix B) |
+| W4 | Manager steuert | manager-a pausiert, die Pause ist gespeichert. | ✅ |
+| H1 | Hash-Manipulation Client | Echter Pausen-Snapshot: gültig. Manipulationen werden als `SIMULATION_RESUME_INVALID` abgewiesen: <ul><li>ARR geändert: Hash stimmt nicht</li><li>`rngState` geändert: Hash stimmt nicht</li><li>Tick geändert: Hash stimmt nicht</li><li>Organisation geändert und Hash neu berechnet: Organisation weicht ab</li><li>Baseline-Hash geändert und Hash neu berechnet: Baseline-Hash weicht ab</li></ul> | ✅ |
+| H2 | Hash-Manipulation Server | `save_run_pause` mit falschem Hash: 22023. Org B auf eine fremde `run_id`: 22023. Der gespeicherte Hash bleibt unverändert. | ✅ |
+| N1 | n8n-Ingress-Angriffe | <ul><li>gültig: 201</li><li>Replay gleiche Nonce: 401 `INGEST_REPLAY_DETECTED`</li><li>ohne Header: 401 `INGEST_SIGNATURE_MISSING`</li><li>falsches Secret: 401 `INGEST_SIGNATURE_INVALID`</li><li>Body nach der Signatur verändert: 401 `INGEST_SIGNATURE_INVALID`</li><li>Zeitstempel 10 min alt: 401 `INGEST_TIMESTAMP_EXPIRED`</li><li>unbekannte KPI: 422</li><li>Body über 256 KiB: 413</li></ul> | ✅ |
+| N2 | Persistenz / RPC-Sperre | Genau 1 Event aus dem Lauf in `live_kpi_events`, kein Replay. `ingest_live_kpi_event` als anon/admin-a: 42501. `claim_ingress_slot` als admin-a: 42501. | ✅ |
+
+### Befunde der manuellen Prüfung (behoben)
+- **A — verschachteltes `main` mit doppelter Sprungmarke (A11y, PR-A11Y-12-Absicht):**
+  - `MembersPage`, `AuditPage`, `SystemHealthPage` und `ForbiddenView` (G59/G62) renderten ein eigenes `<main id="main-content">` im Layout-`main`. Belegt: 2× `main`, 2× `#main-content`.
+  - Fix: benannte `section` ohne eigene ID.
+  - `audit-health` und `member-management` verlangen jetzt genau ein `main` bzw. `#main-content`.
+  - Pixelparität der drei Admin-Seiten (admin/viewer × 1440/768/375, Inhaltsbereich):
+    - Lauf 1: 15/18 identisch, dabei `admin /admin/members 1440` als Rauschen (vorher ≠ vorher-2) und zwei Abweichungen auf den Viewer-Seiten bei 768.
+    - Wiederholung dieser beiden: hash-gleich vorher/nachher (`970500cda528` bzw. `c3c38d69e698`), die Abweichungen waren also Rauschen zwischen den Läufen.
+    - Overflow überall 0 px.
+- **B — Abbruch im Zustand `queued` ohne Audit (G63):**
+  - Ein Abbruch vor der Run-ID wurde nie protokolliert. Belegt: im ersten Durchlauf fehlte `scenario.run_cancelled`, nur `run_retried` stand im Audit.
+  - Fix: `runSlice` merkt den Abbruch und protokolliert ihn, sobald die Unterbrechung mit Run-ID eintrifft.
+  - Neuer Slice-Test, negativ belegt: mit dem alten Slice rot.
+- **C — ESLint prüfte gitignorierte Laufartefakte:** `artifacts/**` ist in den ESLint-Ignores.
+
+### Beobachtung ohne Änderung
+- Viewer sehen „Run / Re-Run“ und dürfen Simulationen starten. Das ist so seit G49: Persistenz folgt der Run-Berechtigung, rollenunabhängig. Steuerbefehle sind für Viewer gesperrt (R2, RB2).
+- Ob Viewer überhaupt starten dürfen, ist eine Produktentscheidung für Marc und kein G64-Mangel.
+- `ResourceViewerContent` rendert ebenfalls ein `main`. Das liegt im eingefrorenen Schutzbereich `src/features/resources` und wurde nicht angefasst.
+
+### Verifikation nach der Nacharbeit
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm run verify:quality-budget` und `npm run verify` (001–025): grün.
+- `npx vitest run` mit gesetzter E2E-Umgebung: 270 Dateien, 1487 Tests grün.
+- `npm run verify:v23:baseline`: exakt die registrierten Findings sind rot (nur PR-LICENSE-19).
+- `e2e/audit-health.spec.ts` lokal: 30/30.
+- `member-management` lokal nur Edge-unabhängig prüfbar, maßgeblich ist die CI.
+- Schutzbereichs-Diff gegen `9877697`: leer.
+
+### Freigabestatus
+Die manuelle Gegenprüfung ist ausgeführt und protokolliert. **G64 bereit für die erneute Codex-Prüfung.** Die finale G64-Wertung hält getrennt fest:
+- Der lokale Gesamtlauf bleibt bei Gate 21 rot (nur Edge-abhängige Specs) und blockiert Gate 24.
+- Die CI ist 7/7 grün.

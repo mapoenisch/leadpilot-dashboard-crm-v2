@@ -77,6 +77,10 @@ Neuausrichtung steht mit Begründung im Register und im BUILD_LOG.
 | `package.json`, `.gitignore` | ändern (Skript, `artifacts/`) |
 | `vitest.config.ts` | ändern (Unit-/UI-Suiten hermetisch ohne `VITE_SUPABASE_*`; Befund aus dem Abnahmelauf) |
 | `docs/screenshots/auftrag-067r/README.md` | neu (Paritätsmatrix) |
+| `src/features/admin/pages/MembersPage.tsx`, `AuditPage.tsx`, `SystemHealthPage.tsx`, `src/features/admin/components/InvitationForm.tsx` | ändern (Befund der manuellen Gegenprüfung: verschachteltes `main` mit doppelter `#main-content` → benannte `section`, pixelgleich) |
+| `e2e/audit-health.spec.ts`, `e2e/member-management.spec.ts` | ändern (genau ein `main`/`#main-content`; Abschnitt als `region`) |
+| `src/store/slices/runSlice.ts`, `src/store/__tests__/runControlSlice.vitest.ts` | ändern (Befund der manuellen Gegenprüfung: Abbruch im Zustand `queued` ohne Audit) |
+| `eslint.config.js` | ändern (`artifacts/**` ignorieren — gitignorierte Laufartefakte) |
 | `BUILD_PLAN.md`, `docs/BUILD_LOG.md` | ändern |
 
 ## Tasks
@@ -111,8 +115,10 @@ Neuausrichtung steht mit Begründung im Register und im BUILD_LOG.
   Übersprungene Gates (`--skip`) machen den Lauf **unvollständig** (Exit 2), nie grün.
 - [ ] **8. Matrix** `docs/reviews/v2.3.0-acceptance-matrix.md`: Spec-Abschnitte,
   20 Findings und offene Issues, jeweils mit Gate, Nachweis und Status.
-- [ ] **9. Verifikation und BUILD_LOG;** Übergabe an Codex (G64-Review). Die manuelle
-  Gegenprüfung (Plan Step 3) protokolliert Codex im Review.
+- [ ] **9. Manuelle Gegenprüfung (Plan Step 3)** durch den Builder gegen das lokale
+  Supabase: zwei Organisationen, drei Rollen, Reload/Zweitbrowser, n8n-Angriffe,
+  Hash-Manipulation, Workersteuerung; Befunde beheben (Codex-Review #28 vom 25.09.).
+- [ ] **10. Verifikation und BUILD_LOG;** Übergabe an Codex (G64-Review).
 
 ## Abnahme
 

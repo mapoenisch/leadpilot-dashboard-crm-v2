@@ -16,6 +16,8 @@ export default tseslint.config(
   {
     ignores: [
       'dist/**',
+      // G64 (Auftrag 067R): Laufartefakte des Abnahme-Orchestrators (gitignored).
+      'artifacts/**',
       'node_modules/**',
       'scripts/**',
       'tools/**',

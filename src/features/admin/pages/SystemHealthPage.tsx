@@ -13,14 +13,14 @@ import {
 // ---------------------------------------------------------------- Forbidden-Guard
 function ForbiddenView() {
   return (
-    <main tabIndex={-1} id="main-content" aria-label="Hauptinhalt" className="p-[var(--space-6)]">
+    <section aria-label="Systemdiagnose" className="p-[var(--space-6)]">
       <div
         role="alert"
         className="rounded-lg border border-red-800/40 bg-red-900/20 p-[var(--space-4)] text-sm text-red-300"
       >
         <strong>Zugriff verweigert.</strong> Diese Seite ist nur für Administratoren zugänglich.
       </div>
-    </main>
+    </section>
   );
 }
 
@@ -145,11 +145,11 @@ export function SystemHealthPage() {
 
   if (isOrgLoading) {
     return (
-      <main tabIndex={-1} id="main-content" aria-label="Hauptinhalt" className="p-[var(--space-6)]">
+      <section aria-label="Systemdiagnose" className="p-[var(--space-6)]">
         <div className="text-sm text-[var(--color-text-muted)] animate-pulse">
           Lade Organisationsdaten...
         </div>
-      </main>
+      </section>
     );
   }
 
@@ -160,12 +160,7 @@ export function SystemHealthPage() {
   const subsystemOrder = ['auth', 'database', 'ingress', 'sync', 'worker'] as const;
 
   return (
-    <main
-      tabIndex={-1}
-      id="main-content"
-      aria-label="Systemdiagnose"
-      className="p-[var(--space-6)]"
-    >
+    <section aria-label="Systemdiagnose" className="p-[var(--space-6)]">
       <div className="mb-[var(--space-6)] flex items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-xl font-bold text-text">Systemdiagnose</h1>
@@ -215,6 +210,6 @@ export function SystemHealthPage() {
           </div>
         </>
       )}
-    </main>
+    </section>
   );
 }
