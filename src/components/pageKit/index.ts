@@ -11,9 +11,10 @@ export {
   Callout,
   Quote,
   RowList,
+  FeatureList,
   splitValueHint,
 } from './Content';
-export type { RowItem } from './Content';
+export type { RowItem, FeatureItem } from './Content';
 export { KitTable } from './KitTable';
 export type { KitColumn } from './KitTable';
 export { ChartFigure, BarList, ColumnChart, LineChart, Donut, Meter } from './Charts';

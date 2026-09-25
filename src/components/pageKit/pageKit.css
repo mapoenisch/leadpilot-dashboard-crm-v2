@@ -895,3 +895,124 @@ dl.pk-grid {
   overflow-wrap: anywhere;
   hyphens: auto;
 }
+.pk-list[data-marker='check'] > li {
+  padding-left: 28px;
+}
+.pk-list[data-marker='check'] > li::before {
+  content: none;
+}
+.pk-list__check {
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  color: var(--pk-tone, var(--cyan));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--pk-tone, var(--cyan)) 60%, transparent));
+}
+.pk-features {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.pk-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+.pk-feature:first-child {
+  padding-top: 0;
+}
+.pk-feature:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.pk-feature .pk-icon {
+  flex: none;
+}
+.pk-feature__body {
+  min-width: 0;
+}
+.pk-feature__title {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--pk-tone, var(--cyan));
+}
+.pk-feature__text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text);
+}
+.pk-timeline {
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 28px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.pk-timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  border-left: 1.5px solid color-mix(in srgb, var(--cyan) 45%, transparent);
+}
+.pk-timeline > li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+}
+.pk-timeline > li::before {
+  content: '';
+  position: absolute;
+  left: -27px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--pk-tone, var(--cyan));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--pk-tone, var(--cyan)) 80%, transparent);
+}
+.pk-timeline .pk-chip {
+  justify-self: start;
+  font-size: 13px;
+  padding: 6px 14px;
+}
+@media (max-width: 639px) {
+  .pk-timeline > li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+  .pk-timeline > li::before {
+    top: 14px;
+    margin-top: 0;
+  }
+}
+.pk-panel__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+.pk-prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 72rem;
+}
+.pk-prose > p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text);
+}

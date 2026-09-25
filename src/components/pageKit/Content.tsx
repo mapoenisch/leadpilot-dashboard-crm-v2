@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import { CheckCircle2, type LucideIcon } from 'lucide-react';
 import type { Tone } from './Panel';
 
 // Auftrag 068 / G66: Inhaltsbausteine — Aufzählung mit Farbpunkten,
@@ -42,15 +42,53 @@ export function ToneList({
   items,
   tone = 'cyan',
   compact = false,
+  marker = 'bar',
 }: {
   items: ReactNode[];
   tone?: Tone;
   compact?: boolean;
+  /** Leuchtbalken (Standard) oder Häkchen (USPs, Leistungsumfang). */
+  marker?: 'bar' | 'check';
 }) {
   return (
-    <ul className="pk-list" data-tone={tone} data-compact={compact ? 'true' : undefined}>
+    <ul
+      className="pk-list"
+      data-tone={tone}
+      data-compact={compact ? 'true' : undefined}
+      data-marker={marker}
+    >
       {items.map((item, index) => (
-        <li key={index}>{item}</li>
+        <li key={index}>
+          {marker === 'check' ? (
+            <CheckCircle2 className="pk-list__check" size={18} aria-hidden="true" />
+          ) : null}
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export interface FeatureItem {
+  title: string;
+  text: ReactNode;
+  icon: LucideIcon;
+}
+
+/** Einträge mit Icon-Kachel, Titel (h3) und Text — Erfolge, Herausforderungen, Funktionen. */
+export function FeatureList({ items, tone = 'cyan' }: { items: FeatureItem[]; tone?: Tone }) {
+  return (
+    <ul className="pk-features" data-tone={tone}>
+      {items.map(({ title, text, icon: Icon }) => (
+        <li className="pk-feature" key={title}>
+          <span className="pk-icon" aria-hidden="true">
+            <Icon size={24} strokeWidth={2} />
+          </span>
+          <div className="pk-feature__body">
+            <h3 className="pk-feature__title">{title}</h3>
+            <p className="pk-feature__text">{text}</p>
+          </div>
+        </li>
       ))}
     </ul>
   );
