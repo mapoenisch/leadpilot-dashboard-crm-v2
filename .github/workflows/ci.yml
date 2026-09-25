@@ -50,6 +50,9 @@ jobs:
           [ "$INLINE_STYLE" -le "$INLINE_STYLE_BASELINE" ] || { echo "::error::Inline-Style-Regression $INLINE_STYLE > $INLINE_STYLE_BASELINE"; exit 1; }
       - name: Quality-Debt-Budget (Suppressions + Inline-Styles, Ratsche)
         run: npm run verify:quality-budget
+      # G65 (Auftrag 067S, Spec §21): Produktionsabhängigkeiten nur mit erlaubten Lizenzen.
+      - name: Third-Party-License-Check
+        run: npm run verify:licenses
 
   typecheck:
     runs-on: ubuntu-latest
@@ -176,6 +179,10 @@ jobs:
           echo "E2E_AUTH_EMAIL_VIEWER=viewer-a@e2e.local" >> $GITHUB_ENV
       - name: pgTAP-Datenbanktests (supabase test db)
         run: supabase test db
+      # G65 (Auftrag 067S, Spec §19): Neuaufbau aus leerer DB und Upgrade vom Stand
+      # v2.2.0 in Wegwerf-Datenbanken; Schemagleichheit, Bootstrap-Idempotenz, pgTAP.
+      - name: Migrationsnachweis (leere DB und Upgrade v2.2.0)
+        run: npm run verify:migrations
       - name: Playwright-Browser cachen
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
@@ -208,6 +215,10 @@ jobs:
         run: npm run verify:v23:baseline
       - name: ReleaseReadiness Orchestrator (Fail-Closed)
         run: npx tsx scripts/verifyV23ReleaseReadiness.ts
+      # G65 (Codex-Review PR #30): Backup inkl. auth, Totalverlust (db reset --no-seed),
+      # Wiederherstellung, Login-Nachweis. Setzt die lokale DB zurück, deshalb als letzter Schritt.
+      - name: Backup- und Wiederherstellungsnachweis (inkl. Auth-Benutzer)
+        run: npm run verify:backup
       - name: Lokales Supabase-Backend stoppen
         if: always()
         run: supabase stop

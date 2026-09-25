@@ -49,6 +49,9 @@ describe('runV23Acceptance', () => {
       'findings',
       'lighthouse',
       'readiness',
+      'licenses',
+      'migrations',
+      'backup',
     ]);
   });
 

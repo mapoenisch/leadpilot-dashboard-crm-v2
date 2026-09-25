@@ -2039,6 +2039,7 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 | 2026-09-01 | Doku-Hygiene: Release-Meldungen → `docs/releases/`, Detail-Auftragsdateien → `docs/auftraege/`, `LEADPILOT_GAP_ANALYSIS.md` + `chat_protokoll_auftrag_016_gate_g2.md` → `docs/archiv/`, `CONTENT_VISUAL_REINTEGRATION_PLAN.md` → `docs/`. `Archiv.zip` (326 MB, gitignore) in den Papierkorb. |
 | 2026-09-01 | AUFTRAG 020 — HubSpot als erste reale Datenquelle (offline über n8n eingefroren, `HubSpotBaselineSource` mit `kind: 'external'`, Stage-Map `tools/n8n/hubspot-stage-map.json`, Workflow `generate-baseline-hubspot.workflow.json`, Test-Suite 025). Gate G4 erfüllt. |
 | 2026-09-25 | Revision zu B17 (Nachtrag zu G49/G63): Viewer strikt lesend bei Simulationsläufen; `persist_completed_run` nur für Admin/Manager ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)). |
+| 2026-09-25 | G65 (067S): Upgrade von v2.2.0 abgesichert (`20260100000000_v2_2_upgrade_prep.sql`), Neuaufbau und Upgrade auf identisches Schema gebracht (`20261003_tenant_schema_convergence.sql`: kein stiller Demo-Default mehr auf `organization_id`, Ergänzung zu B17), Lizenz `All Rights Reserved`, Runbook und getesteter Rollback (Frontend zurück, Schema bleibt). |
 
 ## D5. MASTERSTATUS
 

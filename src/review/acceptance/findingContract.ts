@@ -179,6 +179,9 @@ const PASSING_SINCE_G64: readonly V23FindingId[] = [
   'PR-CLIP-13',
   'PR-ASSET-14',
 ];
+// G65 (Auftrag 067S): Root-LICENSE mit All Rights Reserved; damit sind alle
+// 20 Findings grün belegt.
+const PASSING_SINCE_G65: readonly V23FindingId[] = ['PR-LICENSE-19'];
 
 export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
   id,
@@ -191,7 +194,8 @@ export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
     PASSING_SINCE_G46.includes(id) ||
     PASSING_SINCE_G57.includes(id) ||
     PASSING_SINCE_G58.includes(id) ||
-    PASSING_SINCE_G64.includes(id)
+    PASSING_SINCE_G64.includes(id) ||
+    PASSING_SINCE_G65.includes(id)
       ? 'passing'
       : 'failing',
 }));

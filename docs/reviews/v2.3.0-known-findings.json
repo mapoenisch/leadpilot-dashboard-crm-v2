@@ -149,7 +149,7 @@
     "severity": "important",
     "targetGate": "G65",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-BRANCH-20",

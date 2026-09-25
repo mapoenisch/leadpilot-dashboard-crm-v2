@@ -9,7 +9,7 @@ LeadPilot Dashboard-CRM ist ein React-basiertes Echtzeit-Dashboard fuer das fikt
 - React 18, TypeScript, Vite und Tailwind CSS
 - Supabase fuer Authentifizierung, Mandantentrennung und Datenzugriff
 - Vitest, Playwright, pgTAP und Deno fuer die Verifikation
-- Aktive Roadmap: Version 2.3.0 (Masterauftrag 067)
+- Version 2.3.0 (Masterauftrag 067, Release Notes: [docs/releases/V2.3.0.md](docs/releases/V2.3.0.md))
 
 Die verbindliche Architektur und der aktuelle Umsetzungsstand stehen in [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md), [BUILD_PLAN.md](BUILD_PLAN.md) und [docs/BUILD_LOG.md](docs/BUILD_LOG.md).
 
@@ -43,6 +43,8 @@ npm test
 npm run build
 deno test --allow-env --allow-net --allow-read supabase/functions/
 npx supabase test db
+npm run verify:migrations   # leere DB + Upgrade v2.2.0, lokales Supabase noetig
+npm run verify:licenses
 ```
 
 UI-Aenderungen werden zusaetzlich mit Playwright und der passenden Screenshot-Matrix in `docs/screenshots/` geprueft. Screenshots bleiben lokal; nur ihre textuelle Nachweismatrix wird versioniert.
@@ -64,6 +66,20 @@ UI-Aenderungen werden zusaetzlich mit Playwright und der passenden Screenshot-Ma
 
 Eine Bereitstellung ist nicht Bestandteil dieses Repositories: Es ist derzeit kein Deploy-Provider und kein Staging-Ziel konfiguriert.
 
+## Betrieb
+
+Konfiguration, Free-Tier-Grenzen, Backup, Rollout und Smoke-Test stehen im
+[Betriebs-Runbook v2.3.0](docs/operations/v2.3.0-runbook.md), der getestete Rollback in
+[docs/operations/v2.3.0-rollback.md](docs/operations/v2.3.0-rollback.md). Ein Produktivbuild
+läuft nur über `npm run build:production`; er bricht ohne gültige Supabase-Werte ab.
+
+## Lizenz
+
+Proprietär: **All Rights Reserved.** Copyright (c) 2026 Marc Pönisch. Ohne ausdrückliche
+schriftliche Erlaubnis ist keine Vervielfältigung, Veränderung, Weitergabe, Veröffentlichung
+oder kommerzielle Nutzung gestattet. Der vollständige Text steht in [LICENSE](LICENSE).
+Lizenzen von Drittanbieter-Abhängigkeiten bleiben unberührt; `npm run verify:licenses` prüft sie.
+
 ## Weitere Dokumentation
 
 - [Architekturentscheidungen](ARCHITECTURE_DECISIONS.md)
@@ -71,3 +87,4 @@ Eine Bereitstellung ist nicht Bestandteil dieses Repositories: Es ist derzeit ke
 - [Build-Log](docs/BUILD_LOG.md)
 - [Auftraege](docs/auftraege/)
 - [Betriebsdokumentation fuer CI und E2E](docs/operations/ci-e2e-backend.md)
+- [Betriebs-Runbook v2.3.0](docs/operations/v2.3.0-runbook.md)
