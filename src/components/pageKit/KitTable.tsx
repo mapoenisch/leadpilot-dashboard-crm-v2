@@ -37,7 +37,9 @@ export function KitTable({
   const mark = (index: number) =>
     accentRows.includes(index) ? 'accent' : highlightRows.includes(index) ? 'true' : undefined;
   return (
-    <div className="pk-table-wrap">
+    // Auf schmalen Breiten scrollt die Tabelle seitlich: per Tastatur
+    // erreichbar und als benannter Bereich (axe scrollable-region-focusable).
+    <div className="pk-table-wrap" role="region" aria-label={caption} tabIndex={0}>
       <table className="pk-table" data-wrap={wrapText ? 'true' : undefined}>
         <caption className="sr-only">{caption}</caption>
         <thead>
