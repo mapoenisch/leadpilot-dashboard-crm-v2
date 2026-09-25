@@ -7,7 +7,7 @@
 
 BEGIN;
 
-SELECT plan(30);
+SELECT plan(34);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.simulation_snapshots;
@@ -20,7 +20,8 @@ DELETE FROM public.organization_members WHERE user_id IN (
   '71111111-1111-1111-1111-111111111111',
   '72222222-2222-2222-2222-222222222222',
   '73333333-3333-3333-3333-333333333333',
-  '74444444-4444-4444-4444-444444444444'
+  '74444444-4444-4444-4444-444444444444',
+  '75555555-5555-5555-5555-555555555555'
 );
 DELETE FROM public.organizations WHERE id IN (
   'cccccccc-cccc-cccc-cccc-cccccccccccc',
@@ -33,7 +34,8 @@ VALUES
   ('71111111-1111-1111-1111-111111111111', 'authenticated', 'authenticated', 'admin-pa@persist-test.local', 'x', now()),
   ('72222222-2222-2222-2222-222222222222', 'authenticated', 'authenticated', 'viewer-pa@persist-test.local', 'x', now()),
   ('73333333-3333-3333-3333-333333333333', 'authenticated', 'authenticated', 'admin-pb@persist-test.local', 'x', now()),
-  ('74444444-4444-4444-4444-444444444444', 'authenticated', 'authenticated', 'nomember-p@persist-test.local', 'x', now());
+  ('74444444-4444-4444-4444-444444444444', 'authenticated', 'authenticated', 'nomember-p@persist-test.local', 'x', now()),
+  ('75555555-5555-5555-5555-555555555555', 'authenticated', 'authenticated', 'manager-pa@persist-test.local', 'x', now());
 
 INSERT INTO public.organizations (id, name, mode, status)
 VALUES
@@ -44,7 +46,8 @@ INSERT INTO public.organization_members (user_id, organization_id, role)
 VALUES
   ('71111111-1111-1111-1111-111111111111', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'admin'),
   ('72222222-2222-2222-2222-222222222222', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'viewer'),
-  ('73333333-3333-3333-3333-333333333333', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'admin');
+  ('73333333-3333-3333-3333-333333333333', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'admin'),
+  ('75555555-5555-5555-5555-555555555555', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'manager');
 
 -- Als Admin von Org PA einloggen.
 SELECT set_config('request.jwt.claims', '{"sub":"71111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
@@ -117,23 +120,46 @@ SELECT set_config('request.jwt.claims', '{"sub":"73333333-3333-3333-3333-3333333
 
 SELECT is((SELECT count(*) FROM public.simulation_runs), 0::bigint, 'Admin PB sieht keine PA-Runs');
 
--- ------------------------------------------- 16..17: Viewer eigene Org --
+-- ------------------------- 16..21: Schreibrollen (Viewer strikt lesend) --
+-- Entscheid Marc Poenisch (25.09.2026), Revision G49: Viewer persistieren
+-- keine Läufe mehr; Admin und Manager weiterhin.
 SELECT set_config('request.jwt.claims', '{"sub":"72222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+
+SELECT throws_ok(
+  $$SELECT public.persist_completed_run(
+    'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    '{"id":"scen-pa-v","name":"Viewer-Szenario","status":"ACTIVE","currentVersionId":"ver-pa-v","isProtected":false}'::jsonb,
+    '{"id":"ver-pa-v","scenarioId":"scen-pa-v","versionNumber":1,"parameters":{}}'::jsonb,
+    '{"runId":"run-pa-2","seed":2,"status":"COMPLETED","manifest":{},"correlationId":"corr-pa-2"}'::jsonb,
+    '[{"tick":0,"eventType":"NOTE","title":"Viewer"}]'::jsonb,
+    '[{"tick":0,"metrics":{}}]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  '42501',
+  NULL,
+  'Viewer PA darf keine Runs persistieren (42501)'
+);
+
+SELECT is((SELECT count(*) FROM public.simulation_runs), 1::bigint, 'Viewer-Versuch hinterlässt keinen Run');
+SELECT is((SELECT count(*) FROM public.simulation_scenarios WHERE id = 'scen-pa-v'), 0::bigint, 'Viewer-Versuch hinterlässt kein Szenario');
+SELECT is((SELECT count(*) FROM public.simulation_scenario_versions WHERE id = 'ver-pa-v'), 0::bigint, 'Viewer-Versuch hinterlässt keine Version');
+
+SELECT set_config('request.jwt.claims', '{"sub":"75555555-5555-5555-5555-555555555555","role":"authenticated"}', true);
 
 SELECT lives_ok(
   $$SELECT public.persist_completed_run(
     'cccccccc-cccc-cccc-cccc-cccccccccccc',
     '{"id":"scen-pa-1","name":"Szenario PA","status":"ACTIVE","currentVersionId":"ver-pa-1","isProtected":false}'::jsonb,
     '{"id":"ver-pa-1","scenarioId":"scen-pa-1","versionNumber":1,"parameters":{}}'::jsonb,
-    '{"runId":"run-pa-2","seed":2,"status":"COMPLETED","manifest":{},"correlationId":"corr-pa-2"}'::jsonb,
+    '{"runId":"run-pa-m","seed":4,"status":"COMPLETED","manifest":{},"correlationId":"corr-pa-m"}'::jsonb,
     '[]'::jsonb,
     '[]'::jsonb,
     '[]'::jsonb
   )$$,
-  'Viewer PA darf eigene Org-Bundles persistieren (Mitgliedschaft)'
+  'Manager PA persistiert eigene Org-Bundles'
 );
 
-SELECT is((SELECT count(*) FROM public.simulation_runs), 2::bigint, 'Viewer-Run gespeichert');
+SELECT is((SELECT count(*) FROM public.simulation_runs WHERE run_id = 'run-pa-m'), 1::bigint, 'Manager-Run gespeichert');
 
 -- ------------------------------------------------ 18: ohne Mitgliedschaft --
 SELECT set_config('request.jwt.claims', '{"sub":"74444444-4444-4444-4444-444444444444","role":"authenticated"}', true);

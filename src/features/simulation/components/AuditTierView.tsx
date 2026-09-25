@@ -7,10 +7,16 @@ import { Modal } from '../../../components/ui/Modal';
 import { SimulationRun } from '../../../types/scenario';
 
 import { resolveRunSourceAudit } from '../../../services/data/runSourceAudit';
+import { canControlRuns } from '../../../simulation/runControlService';
+import { useOrganization } from '../../../auth/organizationContext';
 
 export const AuditTierView: React.FC = () => {
   const runs = useRuns();
   const { reRun, reproduce } = useRunActions();
+  // Viewer strikt lesend (Entscheid 25.09.2026): Audit ja, Re-Run/Reproduce nein.
+  const { session } = useOrganization();
+  const role = session?.role ?? null;
+  const readOnly = session !== null && !canControlRuns(role);
   const [selectedRun, setSelectedRun] = useState<SimulationRun | null>(null);
   const [activeModalTab, setActiveModalTab] = useState<'manifest' | 'snapshot'>('manifest');
 
@@ -49,7 +55,12 @@ export const AuditTierView: React.FC = () => {
               Seeds, Manifeste, Snapshots und Status.
             </p>
           </div>
-          <Badge variant="neutral">Gesamtläufe: {runs.length}</Badge>
+          <div className="flex items-center gap-[8px]">
+            {readOnly && (
+              <span className="text-[12px] text-[var(--color-text-muted)]">(nur Lesezugriff)</span>
+            )}
+            <Badge variant="neutral">Gesamtläufe: {runs.length}</Badge>
+          </div>
         </div>
       </Card>
 
@@ -107,16 +118,24 @@ export const AuditTierView: React.FC = () => {
                         <Button size="sm" variant="secondary" onClick={() => handleInspectRun(run)}>
                           Audit
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => reRun(run.scenarioVersionId)}
-                        >
-                          Re-Run
-                        </Button>
-                        <Button size="sm" variant="secondary" onClick={() => reproduce(run.runId)}>
-                          Reproduce
-                        </Button>
+                        {!readOnly && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => reRun(run.scenarioVersionId, role)}
+                            >
+                              Re-Run
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => reproduce(run.runId, role)}
+                            >
+                              Reproduce
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -322,11 +341,17 @@ export const AuditTierView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-[8px] mt-[12px]">
-                  <Button size="sm" variant="primary" onClick={() => reproduce(selectedRun.runId)}>
-                    Diesen Run exakt Reproduzieren
-                  </Button>
-                </div>
+                {!readOnly && (
+                  <div className="flex gap-[8px] mt-[12px]">
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={() => reproduce(selectedRun.runId, role)}
+                    >
+                      Diesen Run exakt Reproduzieren
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

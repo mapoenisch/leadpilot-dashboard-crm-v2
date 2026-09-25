@@ -95,7 +95,9 @@ describe('runSlice — Run-Steuerung (G63)', () => {
         return {} as never;
       });
 
-    await expect(useSimulationStore.getState().runVersion('ver-1', 'org-a')).rejects.toMatchObject({
+    await expect(
+      useSimulationStore.getState().runVersion('ver-1', 'org-a', 'admin'),
+    ).rejects.toMatchObject({
       code: 'SIMULATION_CANCELLED',
     });
     const interrupted = useSimulationStore.getState().interruptedRun;
@@ -136,7 +138,7 @@ describe('runSlice — Run-Steuerung (G63)', () => {
       opts?.onProgress?.(0, 50);
       throw new RunControlError('SIMULATION_CANCELLED', 'Run abgebrochen.');
     });
-    const running = useSimulationStore.getState().runVersion('ver-1', 'org-a');
+    const running = useSimulationStore.getState().runVersion('ver-1', 'org-a', 'admin');
     useSimulationStore.getState().cancelRun('admin');
     expect(persistence.recordRunControl).not.toHaveBeenCalled();
     release();
@@ -162,7 +164,7 @@ describe('runSlice — Run-Steuerung (G63)', () => {
           );
         }),
     );
-    const pending = useSimulationStore.getState().runVersion('ver-1', 'org-a');
+    const pending = useSimulationStore.getState().runVersion('ver-1', 'org-a', 'admin');
     await flush();
     const { snapshotHash: _h, ...body } = pausedBody();
     captured?.onPaused?.(body);
@@ -212,7 +214,7 @@ describe('runSlice — Run-Steuerung (G63)', () => {
           );
         }),
     );
-    const pending = useSimulationStore.getState().runVersion('ver-1', 'org-a');
+    const pending = useSimulationStore.getState().runVersion('ver-1', 'org-a', 'admin');
     await flush();
     const { snapshotHash: _h, ...body } = pausedBody();
     captured?.onPaused?.(body);
@@ -234,7 +236,7 @@ describe('runSlice — Run-Steuerung (G63)', () => {
       captured = opts;
       return new Promise(() => undefined);
     });
-    void useSimulationStore.getState().runVersion('ver-1', 'org-a');
+    void useSimulationStore.getState().runVersion('ver-1', 'org-a', 'admin');
     await flush();
     const { snapshotHash: _h, ...body } = pausedBody();
     captured?.onPaused?.({ ...body, organizationId: 'org-b' });
@@ -334,5 +336,52 @@ describe('runSlice — Run-Steuerung (G63)', () => {
     useSimulationStore.setState({ pausedRuns: [snapshot] });
     await useSimulationStore.getState().loadPausedRuns('org-b');
     expect(useSimulationStore.getState().pausedRuns).toEqual([]);
+  });
+});
+
+describe('runSlice — Viewer strikt lesend (Entscheid 25.09.2026)', () => {
+  it('Viewer startet, wiederholt und reproduziert keine Läufe; kein Worker-Start', async () => {
+    const run = vi.spyOn(scenarioService, 'runScenarioVersion');
+    const reproduce = vi.spyOn(scenarioService, 'reproduce');
+    const s = useSimulationStore.getState();
+    await expect(s.runVersion('ver-1', 'org-a', 'viewer')).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
+    await expect(s.reRun('ver-1', 'viewer')).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(s.reproduce('run-1', 'viewer')).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(run).not.toHaveBeenCalled();
+    expect(reproduce).not.toHaveBeenCalled();
+    expect(useSimulationStore.getState().runProgress).toBeNull();
+  });
+
+  it('ohne Rolle wird ein mandantengebundener (persistierender) Lauf abgewiesen', async () => {
+    const run = vi.spyOn(scenarioService, 'runScenarioVersion');
+    const reproduce = vi.spyOn(scenarioService, 'reproduce');
+    const s = useSimulationStore.getState();
+    await expect(s.runVersion('ver-1', 'org-a', null)).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
+    await expect(s.reRun('ver-1', null)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(s.reproduce('run-1', null)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(run).not.toHaveBeenCalled();
+    expect(reproduce).not.toHaveBeenCalled();
+  });
+
+  it('Admin und Manager starten weiter; Demo ohne Sitzung und ohne Mandant bleibt lokal möglich', async () => {
+    const run = vi.spyOn(scenarioService, 'runScenarioVersion').mockResolvedValue({} as never);
+    const reproduce = vi.spyOn(scenarioService, 'reproduce').mockResolvedValue({} as never);
+    const s = useSimulationStore.getState();
+    await s.runVersion('ver-1', 'org-a', 'admin');
+    await s.reRun('ver-1', 'manager');
+    await s.reproduce('run-1', 'manager');
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(reproduce).toHaveBeenCalledTimes(1);
+
+    useSimulationStore.setState({ activeOrganizationId: null });
+    await s.runVersion('ver-1', undefined, null);
+    await s.reproduce('run-1', null);
+    expect(run).toHaveBeenCalledTimes(3);
+    expect(run.mock.calls[2]?.[3]).not.toHaveProperty('persistToServer');
+    expect(reproduce).toHaveBeenLastCalledWith('run-1', 50, false, expect.any(Function));
   });
 });

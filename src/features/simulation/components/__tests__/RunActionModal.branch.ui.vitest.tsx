@@ -127,7 +127,7 @@ describe('RunActionModal (branch)', () => {
     await user.click(screen.getByRole('option', { name: /run-sel-1/ }));
     await user.click(screen.getByRole('button', { name: 'Reproduzieren' }));
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-    expect(reproduce).toHaveBeenCalledWith('run-sel-1');
+    expect(reproduce).toHaveBeenCalledWith('run-sel-1', null);
     unmount();
 
     reproduce.mockRejectedValueOnce(new Error('Repro boom'));

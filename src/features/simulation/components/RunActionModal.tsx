@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Alert';
 import { Select } from '../../../components/ui/Select';
 import { dataSourceRegistry } from '../../../services/data';
+import { canControlRuns } from '../../../simulation/runControlService';
 import { RunControlBar } from './RunControlBar';
 
 interface RunActionModalProps {
@@ -19,6 +20,9 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
   // 067F / G49 (freigegebene UI-Verdrahtung): Mit Sitzungs-Mandant läuft der
   // Run mandantengebunden und persistiert atomar auf dem Server.
   const { session } = useOrganization();
+  // Viewer strikt lesend (Entscheid 25.09.2026): keine Start-Aktionen.
+  const role = session?.role ?? null;
+  const readOnly = session !== null && !canControlRuns(role);
   const runs = useRuns();
   const draftMeasures = useDraftMeasures();
   const [selectedRunId, setSelectedRunId] = useState<string>('');
@@ -40,7 +44,7 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
   const handleStartRun = async () => {
     if (!activeVersion) return;
     try {
-      await runVersion(activeVersion.id, session?.organizationId);
+      await runVersion(activeVersion.id, session?.organizationId, role);
       onClose();
     } catch (err) {
       reportError(err, 'Fehler beim Starten des Runs.');
@@ -50,7 +54,7 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
   const handleReRun = async () => {
     if (!activeVersion) return;
     try {
-      await reRun(activeVersion.id);
+      await reRun(activeVersion.id, role);
       onClose();
     } catch (err) {
       reportError(err, 'Fehler beim Ausführen von Re-Run.');
@@ -63,7 +67,7 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
       return;
     }
     try {
-      await reproduce(selectedRunId);
+      await reproduce(selectedRunId, role);
       onClose();
     } catch (err) {
       setErrorMsg(
@@ -101,66 +105,75 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
           </div>
         </div>
 
-        {/* Action 1: Standard Run */}
-        <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
-          <div className="font-semibold text-[14px] text-text">
-            Run Ausführen (Preflight-Prüfung)
-          </div>
-          <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
-            Führt einen neuen Simulationslauf für die aktive Version aus. Vorab wird die
-            Preflight-Validierung durchgeführt.
+        {readOnly ? (
+          <p className="m-0 text-[12px] text-[var(--color-text-muted)]">
+            Runs und Ergebnisse sind sichtbar; Starten, Re-Run und Reproduzieren sind nur für Admin
+            und Manager möglich (nur Lesezugriff).
           </p>
-          <Button variant="primary" onClick={handleStartRun}>
-            Neuen Run Starten
-          </Button>
-        </div>
-
-        {/* Action 2: Re-Run (New Seed) */}
-        <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
-          <div className="font-semibold text-[14px] text-primary">
-            Re-Run (Erneut ausführen - Neuer Seed)
-          </div>
-          <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
-            Generiert einen neuen Zufalls-Seed für dieselbe Szenarioversion. Unveränderliches neues
-            RunManifest wird erzeugt.
-          </p>
-          <Button variant="secondary" onClick={handleReRun}>
-            Re-Run Ausführen
-          </Button>
-        </div>
-
-        {/* Action 3: Reproduce (Same Seed & Manifest) */}
-        <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
-          <div className="font-semibold text-[14px] text-accent">
-            Reproduce (Exakt Reproduzieren - Identischer Seed)
-          </div>
-          <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
-            Nutzt exakt den ursprünglichen Seed und das ursprüngliche Manifest eines bisherigen Runs
-            zur 100% deterministischen Wiederholung.
-          </p>
-
-          <div className="flex gap-[8px] items-center mt-[4px]">
-            <div className="flex-1">
-              <Select
-                options={[
-                  { value: '', label: '-- Run Auswählen --' },
-                  ...runs.map((r) => ({
-                    value: r.runId,
-                    label: `${r.runId} (Seed: ${r.seed})`,
-                  })),
-                ]}
-                value={selectedRunId}
-                onChange={setSelectedRunId}
-                placeholder="-- Run Auswählen --"
-                sizeVariant="sm"
-                fullWidth
-              />
+        ) : (
+          <>
+            {/* Action 1: Standard Run */}
+            <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
+              <div className="font-semibold text-[14px] text-text">
+                Run Ausführen (Preflight-Prüfung)
+              </div>
+              <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
+                Führt einen neuen Simulationslauf für die aktive Version aus. Vorab wird die
+                Preflight-Validierung durchgeführt.
+              </p>
+              <Button variant="primary" onClick={handleStartRun}>
+                Neuen Run Starten
+              </Button>
             </div>
-            <Button variant="secondary" onClick={handleReproduce}>
-              Reproduzieren
-            </Button>
-          </div>
-        </div>
+
+            {/* Action 2: Re-Run (New Seed) */}
+            <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
+              <div className="font-semibold text-[14px] text-primary">
+                Re-Run (Erneut ausführen - Neuer Seed)
+              </div>
+              <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
+                Generiert einen neuen Zufalls-Seed für dieselbe Szenarioversion. Unveränderliches
+                neues RunManifest wird erzeugt.
+              </p>
+              <Button variant="secondary" onClick={handleReRun}>
+                Re-Run Ausführen
+              </Button>
+            </div>
+
+            {/* Action 3: Reproduce (Same Seed & Manifest) */}
+            <div className="rounded border border-solid border-border-soft bg-background-deep p-[12px]">
+              <div className="font-semibold text-[14px] text-accent">
+                Reproduce (Exakt Reproduzieren - Identischer Seed)
+              </div>
+              <p className="text-[12px] text-[var(--color-text-muted)] mt-[4px] mb-[10px] mr-0 ml-0">
+                Nutzt exakt den ursprünglichen Seed und das ursprüngliche Manifest eines bisherigen
+                Runs zur 100% deterministischen Wiederholung.
+              </p>
+
+              <div className="flex gap-[8px] items-center mt-[4px]">
+                <div className="flex-1">
+                  <Select
+                    options={[
+                      { value: '', label: '-- Run Auswählen --' },
+                      ...runs.map((r) => ({
+                        value: r.runId,
+                        label: `${r.runId} (Seed: ${r.seed})`,
+                      })),
+                    ]}
+                    value={selectedRunId}
+                    onChange={setSelectedRunId}
+                    placeholder="-- Run Auswählen --"
+                    sizeVariant="sm"
+                    fullWidth
+                  />
+                </div>
+                <Button variant="secondary" onClick={handleReproduce}>
+                  Reproduzieren
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </Modal>
   );

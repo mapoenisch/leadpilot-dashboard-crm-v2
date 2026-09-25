@@ -49,12 +49,18 @@ Das revidiert die G49-Festlegung „rollenunabhängig“ für Schreibpfade von L
 - **Offene Frage für die Umsetzung:** Szenario-Vorschau und -Vergleich
   (`previewMeasures`, Vergleichs-Modals) sind nicht persistierend. Sie werden im Build
   geprüft; persistieren sie nicht, bleiben sie für Viewer erlaubt.
+  **Ergebnis im Build:** `previewMeasures` rechnet mit `persist: false` ohne
+  `persistToServer`, `compareMultipleVersions` liest nur vorhandene Runs. Beide
+  schreiben nichts und bleiben für Viewer erlaubt.
+- **Demo ohne Sitzung:** Ohne Supabase-Sitzung (Rolle `null`, kein Mandant) wird
+  nichts persistiert. Ein lokaler Lauf bleibt dort möglich; mit Mandant ohne
+  berechtigte Rolle gilt `FORBIDDEN`.
 
 ## Ziel-Dateien
 
 | Datei | Art |
 |---|---|
-| `supabase/migrations/2026XXXX_run_write_roles.sql` | neu (Rollenprüfung in `persist_completed_run`) |
+| `supabase/migrations/20261002_run_write_roles.sql` | neu (Rollenprüfung in `persist_completed_run`) |
 | `supabase/tests/scenario_run_persistence.sql` | ändern (Viewer 42501, keine Reste; Admin/Manager weiter ok) |
 | `src/store/slices/runSlice.ts`, `src/store/__tests__/runControlSlice.vitest.ts` | ändern (Rollenprüfung vor Start) |
 | `src/store/hooks.ts` | ggf. ändern (Rolle an `useRunActions`) |
@@ -64,12 +70,12 @@ Das revidiert die G49-Festlegung „rollenunabhängig“ für Schreibpfade von L
 
 ## Tasks
 
-- [ ] 1. Roter Start: pgTAP „Viewer darf `persist_completed_run` nicht aufrufen“ und
+- [x] 1. Roter Start: pgTAP „Viewer darf `persist_completed_run` nicht aufrufen“ und
   Slice-Test „Viewer-Start wirft `FORBIDDEN`“ laufen rot.
-- [ ] 2. Migration und pgTAP grün.
-- [ ] 3. Store-Prüfung und UI-Ausblendung; UI-Tests je Rolle.
-- [ ] 4. E2E: Viewer sieht keine Start-Knöpfe, ein direkter RPC-Aufruf wird abgewiesen.
+- [x] 2. Migration und pgTAP grün.
+- [x] 3. Store-Prüfung und UI-Ausblendung; UI-Tests je Rolle.
+- [x] 4. E2E: Viewer sieht keine Start-Knöpfe, ein direkter RPC-Aufruf wird abgewiesen.
   Admin und Manager laufen unverändert.
-- [ ] 5. Verifikation (tsc, lint, format, quality-budget, `npm test`, `npm run verify`,
+- [x] 5. Verifikation (tsc, lint, format, quality-budget, `npm test`, `npm run verify`,
   build, `supabase test db`, E2E), Screenshot-Matrix für die geänderten Ansichten
   (Viewer mit Hinweis statt Knopf, Admin/Manager pixelgleich), BUILD_LOG.
