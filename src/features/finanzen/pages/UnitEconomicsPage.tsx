@@ -20,6 +20,7 @@ import {
   PageHero,
   Panel,
   StatTile,
+  splitValueHint,
   type Tone,
 } from '@/components/pageKit';
 
@@ -39,12 +40,6 @@ const ICONS: LucideIcon[] = [
 ];
 const tones: Record<string, Tone> = { '#FF7A3D': 'orange', '#7CEFE6': 'mint' };
 const toneOf = (color: string | undefined): Tone => (color ? (tones[color] ?? 'cyan') : 'cyan');
-
-/** „2,7 : 1 (Ziel: ≥ 3,0 : 1)“ → Wert und Zielhinweis getrennt darstellen. */
-function splitHint(text: string): [string, string | undefined] {
-  const match = /^(.*?)\s*\((.+)\)$/.exec(text);
-  return match ? [match[1] ?? text, match[2]] : [text, undefined];
-}
 
 function euroToNumber(text: string): number {
   const cleaned = text.replace(/[^0-9]/g, '');
@@ -98,7 +93,7 @@ export function UnitEconomicsPage() {
           <h2 className="sr-only">Kernmetriken</h2>
           <ul className="pk-grid" data-cols="4">
             {UNIT.metrics.map((metric, index) => {
-              const [wert, hinweis] = splitHint(metric.val);
+              const [wert, hinweis] = splitValueHint(metric.val);
               return (
                 <li key={metric.label}>
                   <StatTile

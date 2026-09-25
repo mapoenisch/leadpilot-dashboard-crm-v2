@@ -5,6 +5,39 @@ import type { Tone } from './Panel';
 // Auftrag 068 / G66: Inhaltsbausteine — Aufzählung mit Farbpunkten,
 // Schlüssel-Wert-Liste, Kennzahl-Kachel, Hinweisbox, Zitat.
 
+/** „22 % (4 Zugänge …)“ → Wert und Nebenangabe getrennt darstellen (Text bleibt vollständig). */
+export function splitValueHint(text: string): [string, string | undefined] {
+  const match = /^(.*?)\s*\((.+)\)$/.exec(text);
+  return match ? [match[1] ?? text, match[2]] : [text, undefined];
+}
+
+export interface RowItem {
+  key: string;
+  title: ReactNode;
+  chip?: ReactNode;
+  text?: ReactNode;
+  aside?: ReactNode;
+  tone?: Tone;
+}
+
+/** Zeilenliste im Vorlagenstil (Kapazitäten, Meilensteine): Titel, Chip, Text, rechte Markierung. */
+export function RowList({ items, label }: { items: RowItem[]; label: string }) {
+  return (
+    <ul className="pk-rows" aria-label={label}>
+      {items.map((item) => (
+        <li className="pk-row" key={item.key} data-tone={item.tone ?? 'cyan'}>
+          <span className="pk-row__head">
+            <strong className="pk-row__title">{item.title}</strong>
+            {item.chip ?? null}
+          </span>
+          {item.text ? <span className="pk-row__text">{item.text}</span> : null}
+          {item.aside ? <span className="pk-row__aside">{item.aside}</span> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function ToneList({
   items,
   tone = 'cyan',

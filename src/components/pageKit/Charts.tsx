@@ -297,13 +297,15 @@ export function LineChart({ labels, series }: { labels: string[]; series: LineSe
           ))}
         </svg>
       </div>
-      <ul className="pk-legend">
-        {series.map((s) => (
-          <li key={s.name} data-tone={s.tone ?? 'cyan'}>
-            {s.name}
-          </li>
-        ))}
-      </ul>
+      {series.length > 1 ? (
+        <ul className="pk-legend">
+          {series.map((s) => (
+            <li key={s.name} data-tone={s.tone ?? 'cyan'}>
+              {s.name}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </>
   );
 }

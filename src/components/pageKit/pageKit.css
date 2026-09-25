@@ -414,6 +414,142 @@ ul.pk-grid {
   font-weight: 700;
 }
 
+/* ── Zeilenliste ──────────────────────────────────────────── */
+.pk-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.pk-row {
+  display: grid;
+  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: 12px var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--pk-tone) 30%, transparent);
+  background: color-mix(in srgb, var(--pk-tone) 5%, var(--color-bg-deep));
+}
+.pk-row__head {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.pk-row__title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--color-text);
+}
+.pk-row__text {
+  font-size: 14px;
+  color: var(--color-text);
+  min-width: 0;
+}
+.pk-row__aside {
+  justify-self: end;
+}
+@media (max-width: 767px) {
+  .pk-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pk-row__aside {
+    justify-self: start;
+  }
+}
+
+/* ── Organigramm ──────────────────────────────────────────── */
+.pk-org {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-5);
+}
+.pk-org__root {
+  align-self: center;
+  width: min(100%, 26rem);
+}
+.pk-org__units {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 640px) {
+  .pk-org__units {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1280px) {
+  .pk-org__units {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-top: var(--space-5);
+  }
+  /* Verbindungslinien: Querbalken über den Einheiten, Stich je Karte */
+  .pk-org__units::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12.5%;
+    right: 12.5%;
+    border-top: 1.5px solid color-mix(in srgb, var(--cyan) 55%, transparent);
+  }
+  .pk-org__units > li {
+    position: relative;
+  }
+  .pk-org__units > li::before {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--space-5));
+    left: 50%;
+    height: var(--space-5);
+    border-left: 1.5px solid color-mix(in srgb, var(--cyan) 55%, transparent);
+  }
+}
+.pk-unit {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid color-mix(in srgb, var(--pk-tone) 60%, transparent);
+  background: color-mix(in srgb, var(--pk-tone) 6%, var(--color-bg-deep));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--pk-tone) 18%, transparent);
+}
+.pk-unit__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.pk-unit__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.pk-unit__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.pk-unit__text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
 /* ── Kennzahlen ───────────────────────────────────────────── */
 .pk-stat {
   display: flex;
@@ -700,6 +836,24 @@ ul.pk-grid {
   stroke-width: 16;
 }
 
+.pk-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.pk-section-title {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.pk-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .pk-muted {
   color: var(--color-text-muted);
 }
