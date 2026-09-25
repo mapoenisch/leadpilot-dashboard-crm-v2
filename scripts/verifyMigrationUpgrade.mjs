@@ -28,7 +28,12 @@ const projectId = /^project_id\s*=\s*"([^"]+)"/m.exec(
 const container = process.env.SUPABASE_DB_CONTAINER ?? `supabase_db_${projectId}`;
 const supabaseCli = process.env.SUPABASE_BIN || 'supabase';
 const DEMO_ORG = '00000000-0000-0000-0000-000000000001';
-const PUBLIC_POLICY_ALLOWLIST = new Set(['live_kpi_public_feed:allow_anon_authenticated_read']);
+// Einzige zulässige offene Policy: die öffentliche Live-KPI-Anzeige, und nur in
+// genau dieser Definition (reiner Lesezugriff, nur anon/authenticated, kein
+// WITH CHECK). Jede Erweiterung (FOR ALL, PUBLIC, WITH CHECK) ist rot.
+const PUBLIC_POLICY_ALLOWLIST = new Set([
+  'live_kpi_public_feed:allow_anon_authenticated_read|SELECT|{anon,authenticated}|true|-|PERMISSIVE',
+]);
 
 const failures = [];
 const check = (ok, label, detail = '') => {
@@ -191,7 +196,9 @@ try {
   for (const db of ['lp_fresh', 'lp_upgrade']) {
     const open = query(
       db,
-      `SELECT tablename || ':' || policyname FROM pg_policies
+      `SELECT tablename || ':' || policyname || '|' || cmd || '|' || roles::text || '|'
+              || COALESCE(qual, '-') || '|' || COALESCE(with_check, '-') || '|' || permissive
+       FROM pg_policies
        WHERE schemaname = 'public' AND (qual = 'true' OR with_check = 'true') ORDER BY 1;`,
     )
       .split('\n')

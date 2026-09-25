@@ -3,22 +3,20 @@
 // Ohne Supabase-Werte startet die App bewusst im Demo-Modus (lokale
 // Entwicklung, CI-Build). Für einen Produktivbuild (`npm run build:production`)
 // ist das ein Fehler: Die Prüfung bricht vor `vite build` ab.
-// Werte kommen aus der Umgebung oder aus .env/.env.production (wie bei Vite).
-import { existsSync, readFileSync } from 'node:fs';
+// Werte liest Vites loadEnv('production') genauso wie `vite build` im selben Lauf.
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const PLACEHOLDERS = ['your-project', 'your-anon-public-key'];
 
-/** Liest einfache KEY=VALUE-Zeilen (ohne Export, Kommentare ignoriert). */
-export function parseDotenv(text) {
-  const values = {};
-  for (const line of text.split('\n')) {
-    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);
-    if (match && !line.trim().startsWith('#'))
-      values[match[1]] = match[2].replace(/^['"]|['"]$/g, '');
-  }
-  return values;
+/**
+ * Liefert die VITE_-Werte, die `vite build --mode production` für `root` verwendet:
+ * .env, .env.local, .env.production, .env.production.local mit Vites Präzedenz,
+ * VITE_-Variablen der Umgebung gewinnen.
+ */
+export async function readProductionEnv(root) {
+  const { loadEnv } = await import('vite');
+  return loadEnv('production', root, 'VITE_');
 }
 
 /** Rolle aus dem Payload eines Supabase-JWT, sonst null. */
@@ -62,13 +60,11 @@ export function checkProductionConfig(env) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  // Dieselben Werte wie der anschließende `vite build`: Vites loadEnv im Modus
+  // production liest .env, .env.local, .env.production, .env.production.local
+  // mit Vites Präzedenz und lässt VITE_-Variablen der Umgebung gewinnen.
   const root = resolve(import.meta.dirname, '..');
-  const fileValues = {};
-  for (const name of ['.env', '.env.production']) {
-    const file = resolve(root, name);
-    if (existsSync(file)) Object.assign(fileValues, parseDotenv(readFileSync(file, 'utf-8')));
-  }
-  const errors = checkProductionConfig({ ...fileValues, ...process.env });
+  const errors = checkProductionConfig(await readProductionEnv(root));
   if (errors.length > 0) {
     for (const e of errors) console.error(`  ${e}`);
     console.error(

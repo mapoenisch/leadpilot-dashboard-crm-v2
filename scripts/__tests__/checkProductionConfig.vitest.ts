@@ -1,6 +1,9 @@
 // G65 (Auftrag 067S, Spec §19): Produktivbuild nur mit vollständiger Konfiguration.
-import { describe, expect, it } from 'vitest';
-import { checkProductionConfig, parseDotenv } from '../checkProductionConfig.mjs';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { checkProductionConfig, readProductionEnv } from '../checkProductionConfig.mjs';
 
 const jwt = (role: string) =>
   ['e30', Buffer.from(JSON.stringify({ role })).toString('base64url'), 'sig'].join('.');
@@ -42,11 +45,36 @@ describe('checkProductionConfig', () => {
       }).join(' '),
     ).toMatch(/privilegierten Schlüssel/);
   });
+});
 
-  it('liest .env-Zeilen ohne Kommentare', () => {
-    expect(parseDotenv('# x\nVITE_SUPABASE_URL="https://a.b"\n  FOO = bar \n')).toEqual({
-      VITE_SUPABASE_URL: 'https://a.b',
-      FOO: 'bar',
-    });
+describe('readProductionEnv (dieselben Dateien wie vite build)', () => {
+  let dir = '';
+  // Vitest setzt VITE_SUPABASE_* hermetisch leer; Umgebungswerte schlagen bei Vite
+  // die Dateien. Für diesen Test gelten nur die Dateien im Temp-Verzeichnis.
+  const saved = { ...process.env };
+  beforeEach(() => {
+    delete process.env.VITE_SUPABASE_URL;
+    delete process.env.VITE_SUPABASE_ANON_KEY;
+  });
+  afterEach(() => {
+    process.env = { ...saved };
+    if (dir) fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('berücksichtigt .env.production.local mit Vorrang (Codex-Review #30, P1)', async () => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'prod-env-'));
+    fs.writeFileSync(
+      path.join(dir, '.env'),
+      `VITE_SUPABASE_URL=https://abc.supabase.co\nVITE_SUPABASE_ANON_KEY=${jwt('anon')}\n`,
+    );
+    expect(checkProductionConfig(await readProductionEnv(dir))).toEqual([]);
+
+    fs.writeFileSync(
+      path.join(dir, '.env.production.local'),
+      `VITE_SUPABASE_ANON_KEY=${jwt('service_role')}\n`,
+    );
+    expect(checkProductionConfig(await readProductionEnv(dir)).join(' ')).toMatch(
+      /privilegierten Schlüssel/,
+    );
   });
 });

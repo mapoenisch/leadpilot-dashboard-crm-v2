@@ -13190,3 +13190,7 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung.** Merge nur durc
 
 ### Ergebnis & Freigabestatus
 Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach entscheidet Marc über die Release-Freigabe (Spec §22 Punkt 12). Erst dann folgen Merge und Tag `v2.3.0`.
+
+### Nacharbeit nach Codex-Bot-Review PR #30 (25.09.2026)
+- **P1 Produktivkonfiguration:** Die Prüfung liest jetzt über Vites `loadEnv('production', root, 'VITE_')` genau die Dateien und die Präzedenz des anschließenden `vite build --mode production`. Das sind `.env`, `.env.local`, `.env.production` und `.env.production.local`; VITE_-Umgebungswerte haben Vorrang. Bisher fehlten die beiden `*.local`-Dateien. Ein neuer Test belegt, dass ein service_role-Schlüssel in `.env.production.local` den Check rot macht; mit dem alten Dateileser wäre er grün geblieben.
+- **P2 Policy-Ausnahme:** Die Live-KPI-Ausnahme im Migrationsnachweis vergleicht jetzt die vollständige Definition (`SELECT`, `{anon,authenticated}`, `USING (true)`, ohne `WITH CHECK`, permissive) statt nur den Namen. Gegenprobe: Nach `ALTER POLICY … TO public` passt der Eintrag nicht mehr zur Ausnahme und würde rot gemeldet. `npm run verify:migrations` ist weiterhin grün.
