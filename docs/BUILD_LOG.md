@@ -13246,3 +13246,41 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
 
 ### Entscheidung
 **G54 FREIGEGEBEN (nachträglich am 25.09.2026).** Die Freigabe gilt für die G54-Seitenwelle; sie ist keine Release-Freigabe.
+
+---
+
+## [2026-09-25] Gate G65 / PR #30: Codex-Nachprüfung und Release-Freigabe v2.3.0
+
+**Codex-Nachprüfung auf `8a4281c`** (von Marc übermittelt, sinngemäß übernommen, weil kein eigener Codex-Eintrag vorliegt):
+- **Keine neuen blockierenden Befunde.**
+- Der Produktiv-Check nutzt Vites `loadEnv`, und der Test deckt das beanstandete `.env.production.local`-Szenario ab.
+- Backup: Der frühere Befund war zu pauschal. Der Datendump enthält `auth`, der Schemadump nicht.
+- Der Restore-Test baut das Schema aus den Migrationen auf und weist in der CI Benutzer, Trigger und einen erfolgreichen Login nach.
+- Den datenbanklöschenden Restore-Test hat Codex nicht zusätzlich lokal ausgeführt.
+- Alle sieben CI-Checks sind grün, Auto-Merge war aus.
+- Eine formale GitHub-Approve-Review ist mit dem PR-Eigentümerkonto nicht möglich.
+
+**Merge:** PR #30 per Merge-Commit `6ead29a` auf `main` (25.09.2026). Issue #9 ist geschlossen (per API: `closed`, `closed_by_pull_requests` = PR #30).
+
+**Release-Freigabe:** Marc Pönisch am 25.09.2026 („v2.3.0 freigeben“), Spec §22 Punkt 12.
+
+**Definition of Done v2.3.0 (Spec §22):**
+1. Gates G44–G65 sind bestanden und im BUILD_LOG dokumentiert.
+2. Die 19 Teilaufträge sind seriell umgesetzt und unabhängig geprüft. Die zunächst fehlenden eigenen Freigaben für G52, G53 und G54 (Hinweis des Codex-Bots zu PR #31) hat Codex am 25.09.2026 nachträglich erteilt. Sie stehen als getrennte Einträge unmittelbar oberhalb, sind nicht zurückdatiert und kamen mit PR #32 auf `main`.
+3. Kein Critical-/Important-Befund ist offen; das Finding-Register steht auf 20/20.
+4. Der Demo-Mandant läuft über echte Auth-, RLS-, Persistenz- und Auditpfade.
+5. Die 33 semantischen Seiten sind umgesetzt.
+6. Alle Abnahmegrenzen sind im aktuellen Lauf gemessen (CI auf `8a4281c`).
+7. Der Neuaufbau aus Migrationen ist nachgewiesen (`verify:migrations`).
+8. Release Notes, Runbook und Free-Tier-Grenzen sind dokumentiert.
+9. `LICENSE`, README und Release Notes nennen einheitlich `All Rights Reserved`.
+10. Das `main`-Ruleset ist aktiv, die Actions sind SHA-gepinnt.
+11. Der Release-Commit wird mit diesem PR geprüft, der Arbeitsbaum ist sauber.
+12. Marcs Freigabe liegt vor.
+
+**Release-Commit und Tag (Masterplan Task 19, Step 7):**
+- Der Release-Commit auf `main` ist der Merge-Commit dieses PRs. GitHub signiert Merge-Commits aus der Weboberfläche (`gpgsig`, „Verified“, wie bei `6ead29a`). Der Branch-Commit selbst ist unsigniert, weil in der Builder-Umgebung kein Signierschlüssel liegt.
+- Der Tag `v2.3.0` wird als **annotierter** Tag auf diesem Merge-Commit gesetzt. Die Releases-Oberfläche von GitHub legt nur einen leichtgewichtigen Tag an, deshalb geht es per `git tag -a`.
+- Den Status „veröffentlicht“ tragen die Release Notes erst nach Tag, Push und grüner `main`-CI.
+
+**Rollen:** Laut `CLAUDE.md` §4 endet mit dem Release der Rollenwechsel (Claude Code baut, Codex prüft). Danach gilt wieder die vorherige Verteilung (Antigravity baut, Codex/Claude Code prüfen), sofern Marc nichts anderes festlegt.
