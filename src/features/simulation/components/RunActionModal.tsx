@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Alert';
 import { Select } from '../../../components/ui/Select';
 import { dataSourceRegistry } from '../../../services/data';
+import { RunControlBar } from './RunControlBar';
 
 interface RunActionModalProps {
   isOpen: boolean;
@@ -25,13 +26,24 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
 
   const activeSource = dataSourceRegistry.getActive();
 
+  // 067Q / G63: Ein Abbruch ist kein Fehler — die Steuerleiste zeigt ihn samt
+  // Wiederholen-Option; alle anderen Fehler bleiben als Alert sichtbar.
+  const reportError = (err: unknown, fallback: string) => {
+    const code =
+      typeof err === 'object' && err !== null && 'code' in err
+        ? (err as { code: unknown }).code
+        : undefined;
+    if (code === 'SIMULATION_CANCELLED') return;
+    setErrorMsg((err instanceof Error ? err.message : '') || fallback);
+  };
+
   const handleStartRun = async () => {
     if (!activeVersion) return;
     try {
       await runVersion(activeVersion.id, session?.organizationId);
       onClose();
     } catch (err) {
-      setErrorMsg((err instanceof Error ? err.message : '') || 'Fehler beim Starten des Runs.');
+      reportError(err, 'Fehler beim Starten des Runs.');
     }
   };
 
@@ -41,7 +53,7 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
       await reRun(activeVersion.id);
       onClose();
     } catch (err) {
-      setErrorMsg((err instanceof Error ? err.message : '') || 'Fehler beim Ausführen von Re-Run.');
+      reportError(err, 'Fehler beim Ausführen von Re-Run.');
     }
   };
 
@@ -63,6 +75,8 @@ export const RunActionModal: React.FC<RunActionModalProps> = ({ isOpen, onClose 
   return (
     <Modal open={isOpen} onClose={onClose} title="SimulationRun Steuerung" maxWidth="600px">
       <div className="flex flex-col gap-[var(--space-4)] w-full">
+        <RunControlBar />
+
         {errorMsg && (
           <Alert variant="error" title="Fehler bei Run-Ausführung">
             {errorMsg}

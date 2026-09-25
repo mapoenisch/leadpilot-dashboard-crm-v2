@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { DeterministicRNG } from '../../prng';
 import { SimulationEventRules } from '../../eventRules';
 import { RunCoordinator, type CoordinatorEvent } from '../../runCoordinator';
@@ -190,7 +190,7 @@ describe('runCoordinator (G50)', () => {
     expect(adapter.terminated).toBe(true);
   });
 
-  it('cancel terminiert ohne Leak (Navigation/Unmount)', async () => {
+  it('cancel ist kooperativ: Worker erst nach CANCELLED terminiert', async () => {
     const adapter = new StubAdapter();
     const coordinator = new RunCoordinator(adapter);
     const seen = collect(coordinator);
@@ -202,12 +202,41 @@ describe('runCoordinator (G50)', () => {
     });
     adapter.emit(workerEvent('QUEUED'));
     coordinator.cancel();
+    coordinator.cancel();
 
-    await expect(done).rejects.toMatchObject({ code: 'CANCELLED' });
+    // 067Q / G63: Bis zur Bestätigung läuft der Worker weiter (Tick-Grenze).
+    expect(adapter.terminated).toBe(false);
+    expect(adapter.posted.map((c) => c.command)).toEqual(['START', 'CANCEL']);
+    expect(coordinator.pause()).toBe(false);
+
+    adapter.emit(workerEvent('CANCELLED', { processedUnits: 3, totalUnits: 10 }));
+    await expect(done).rejects.toMatchObject({ code: 'SIMULATION_CANCELLED' });
     expect(adapter.terminated).toBe(true);
     expect(adapter.listeners.size).toBe(0);
     expect(adapter.errorListeners.size).toBe(0);
-    expect(seen[seen.length - 1]?.status).toBe('failed');
+    expect(seen[seen.length - 1]?.status).toBe('cancelled');
+  });
+
+  it('cancel ohne Bestätigung: harter Abbruch nach der Frist (kein Zombie-Worker)', async () => {
+    vi.useFakeTimers();
+    try {
+      const adapter = new StubAdapter();
+      const coordinator = new RunCoordinator(adapter, 500);
+      const done = coordinator.execute({
+        manifest: makeManifest(),
+        targetTicks: 10,
+        correlationId: 'corr-coord-1',
+      });
+      const rejected = expect(done).rejects.toMatchObject({ code: 'SIMULATION_CANCELLED' });
+      coordinator.cancel();
+      vi.advanceTimersByTime(499);
+      expect(adapter.terminated).toBe(false);
+      vi.advanceTimersByTime(1);
+      await rejected;
+      expect(adapter.terminated).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('nativer Worker-Crash wird als FAILED behandelt und terminiert', async () => {

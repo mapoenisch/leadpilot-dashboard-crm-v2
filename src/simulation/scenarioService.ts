@@ -15,7 +15,9 @@ import {
   VersionComparisonResult,
 } from '../types/scenario';
 import { ScenarioAggregationResult } from '../types/aggregation';
-import { RunCoordinator, type WorkerRunResult } from './runCoordinator';
+import { RunCoordinator, type CoordinatorStatus, type WorkerRunResult } from './runCoordinator';
+import { resumeRunFromSnapshotWith } from './scenarioRunResume';
+import type { RunResumeSnapshot, RunResumeSnapshotBody } from '../types/runControl';
 import type { ScenarioWorkspace } from '../services/runs/runPersistenceService';
 import { MainThreadTickInput, RunExecutionResult, TickRunResult } from './scenarioTickRunner';
 import { createScenarioVersionWith, createScenarioWith } from './scenarioLifecycle';
@@ -44,6 +46,10 @@ export class ScenarioService {
   private repo: ScenarioRepository;
   private snapshotRepo?: ISnapshotRepository;
   private activeCoordinator: RunCoordinator | null = null;
+  // 067Q / G63: Befehle, die vor dem Worker-Start eintreffen (z. B. während
+  // der Baseline-Erfassung), werden vorgemerkt und beim Start angewendet.
+  private runsInFlight = 0;
+  private pendingCommand: 'pause' | 'cancel' | null = null;
 
   private constructor(repo = ScenarioRepository.getInstance(), snapshotRepo?: ISnapshotRepository) {
     this.repo = repo;
@@ -65,7 +71,8 @@ export class ScenarioService {
     return {
       repo: this.repo,
       getSnapshotRepo: () => this.snapshotRepo,
-      runTicksInWorker: (input, manifest) => this.executeTicksInWorker(input, manifest),
+      runTicksInWorker: (input, manifest, resumeSnapshot) =>
+        this.executeTicksInWorker(input, manifest, resumeSnapshot),
     };
   }
 
@@ -114,7 +121,9 @@ export class ScenarioService {
     targetTicks = 50,
     opts?: RunOptions,
   ): Promise<RunExecutionResult> {
-    return runScenarioVersionWith(this.runContext(), versionId, seedOverride, targetTicks, opts);
+    return this.track(() =>
+      runScenarioVersionWith(this.runContext(), versionId, seedOverride, targetTicks, opts),
+    );
   }
 
   /**
@@ -125,27 +134,31 @@ export class ScenarioService {
   private async executeTicksInWorker(
     tickInput: MainThreadTickInput,
     manifest: RunManifest,
+    resumeSnapshot?: RunResumeSnapshotBody,
   ): Promise<TickRunResult> {
     const coordinator = new RunCoordinator();
     this.activeCoordinator = coordinator;
-    const onProgress = tickInput.onProgress;
+    const { onProgress, onPaused } = tickInput;
     try {
-      const unsubscribe = onProgress
-        ? coordinator.onEvent((evt) => {
-            if (evt.status === 'progress' || evt.status === 'running') {
-              onProgress(evt.processedUnits, evt.totalUnits);
-            }
-          })
-        : null;
+      const unsubscribe = coordinator.onEvent((evt) => {
+        if (evt.status === 'progress' || evt.status === 'running') {
+          onProgress?.(evt.processedUnits, evt.totalUnits);
+        }
+        // 067Q / G63: Zwischenstand an der Tick-Grenze an den Aufrufer.
+        if (evt.status === 'paused' && evt.snapshot) onPaused?.(evt.snapshot);
+      });
       try {
-        const result: WorkerRunResult = await coordinator.execute({
+        const done = coordinator.execute({
           manifest,
           initialState: tickInput.initialState,
           historicalMetrics: tickInput.historicalMetrics,
           measures: [...tickInput.measures],
           targetTicks: tickInput.targetTicks,
           correlationId: tickInput.correlationId,
+          ...(resumeSnapshot ? { resumeSnapshot } : {}),
         });
+        this.applyPendingCommand(coordinator);
+        const result: WorkerRunResult = await done;
         for (const evt of result.events) {
           if (evt.correlationId === undefined) evt.correlationId = tickInput.correlationId;
         }
@@ -162,17 +175,74 @@ export class ScenarioService {
           timeSeries: result.timeSeries.filter((p) => p.tick > 0),
         };
       } finally {
-        unsubscribe?.();
+        unsubscribe();
       }
     } finally {
       if (this.activeCoordinator === coordinator) this.activeCoordinator = null;
     }
   }
 
-  /** Abbruch des laufenden Worker-Runs (Navigation/Unmount/Fehler). */
+  /** Abbruch des laufenden Worker-Runs (Benutzer/Navigation/Unmount/Fehler). */
   public cancelActiveRun(): void {
+    if (!this.activeCoordinator && this.runsInFlight > 0) this.pendingCommand = 'cancel';
     this.activeCoordinator?.cancel();
     this.activeCoordinator = null;
+  }
+
+  /** 067Q / G63: Pause an der nächsten Tick-Grenze (false = kein Befehl gesendet). */
+  public pauseActiveRun(): boolean {
+    if (this.activeCoordinator) return this.activeCoordinator.pause();
+    if (this.runsInFlight === 0 || this.pendingCommand) return false;
+    this.pendingCommand = 'pause';
+    return true;
+  }
+
+  /** 067Q / G63: Fortsetzen eines pausierten (oder zur Pause vorgemerkten) Runs. */
+  public resumeActiveRun(): boolean {
+    if (this.activeCoordinator) return this.activeCoordinator.resume();
+    if (this.pendingCommand !== 'pause') return false;
+    this.pendingCommand = null;
+    return true;
+  }
+
+  private applyPendingCommand(coordinator: RunCoordinator): void {
+    const pending = this.pendingCommand;
+    this.pendingCommand = null;
+    if (pending === 'cancel') coordinator.cancel();
+    if (pending === 'pause') coordinator.pause();
+  }
+
+  private async track<T>(run: () => Promise<T>): Promise<T> {
+    this.runsInFlight += 1;
+    try {
+      return await run();
+    } finally {
+      this.runsInFlight -= 1;
+      if (this.runsInFlight === 0) this.pendingCommand = null;
+    }
+  }
+
+  public getActiveRunStatus(): CoordinatorStatus | null {
+    return this.activeCoordinator?.getStatus() ?? null;
+  }
+
+  public getActiveRunId(): string | null {
+    return this.activeCoordinator?.getRunId() || null;
+  }
+
+  public getActiveRunManifest(): RunManifest | null {
+    return this.activeCoordinator?.getManifest() ?? null;
+  }
+
+  /**
+   * 067Q / G63: Setzt einen pausierten Run aus einem gespeicherten Snapshot
+   * fort — nur nach Hash- und Bindungsprüfung (SIMULATION_RESUME_INVALID).
+   */
+  public async resumeFromSnapshot(
+    snapshot: RunResumeSnapshot,
+    opts?: RunOptions,
+  ): Promise<RunExecutionResult> {
+    return this.track(() => resumeRunFromSnapshotWith(this.runContext(), snapshot, opts));
   }
 
   /**
@@ -183,7 +253,7 @@ export class ScenarioService {
     targetTicks = 50,
     opts?: RunOptions,
   ): Promise<RunExecutionResult> {
-    return reRunWith(this.runContext(), versionId, targetTicks, opts);
+    return this.track(() => reRunWith(this.runContext(), versionId, targetTicks, opts));
   }
 
   /**
@@ -197,12 +267,8 @@ export class ScenarioService {
     persistToServer = false,
     onProgress?: (processedUnits: number, totalUnits: number) => void,
   ): Promise<RunExecutionResult> {
-    return reproduceWith(
-      this.runContext(),
-      existingRunId,
-      targetTicks,
-      persistToServer,
-      onProgress,
+    return this.track(() =>
+      reproduceWith(this.runContext(), existingRunId, targetTicks, persistToServer, onProgress),
     );
   }
 

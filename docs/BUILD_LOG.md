@@ -12651,6 +12651,72 @@ auf Head `d6add92`.
   `grep -rn "forbid-dom-props --" src`.
 
 **Übergabe an Codex:** Gate-Freigabe Issue #7 auf Basis dieses Laufs.
+## [2026-09-24] Auftrag 067Q / G63 — Run-Steuerung gebaut (Builder: Claude Code)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_067Q_RUN_STEUERUNG.md` (von Claude Code
+geschrieben, Rollenwechsel `CLAUDE.md` §4) · **Branch:** `claude/067q-run-control` auf
+PR #25 (`d6add92`) · **Prüfer:** Codex · **Status:** lokale Gates grün, Review/PR-CI ausstehend.
+
+### Ziel & Umsetzung
+
+- **Pause/Fortsetzen/Abbruch** kooperativ an Tick-Grenzen über das bestehende
+  Worker-Protokoll. `PAUSED` liefert einen vollständigen Zwischenstand
+  (`RunResumeSnapshot`: PRNG, Zustand, Sammlungen, Queues, Events, Zeitreihe,
+  historische Kennzahlen, Manifest). Der Abbruch endet mit `SIMULATION_CANCELLED`
+  (vorher `CANCELLED` als `failed`).
+- **Resume aus Snapshot** (`scenarioRunResume.ts`): Der Snapshot wird über den
+  SHA-256 seiner kanonischen JSON-Form versiegelt. Hash, Manifest-Bindung,
+  Organisation, Baseline-Hash, Modell-/Schemaversion und Tick-Grenzen werden
+  fail-closed geprüft (`SIMULATION_RESUME_INVALID`). Der Resume läuft über
+  denselben Abschlusspfad (`finalizeRunWith`) wie ein normaler Run.
+- **Retry** mit gleichem Seed, idempotent: gleichzeitige Aufrufe ergeben einen Lauf.
+- **Rollen:** nur Admin/Manager (`simulation:run`), geprüft in UI, Store und DB (RPC).
+  Viewer sieht den Zustand ohne Aktionen.
+- **Persistenz** (Migration `20261001_run_control.sql`): Tabelle
+  `simulation_run_pauses` (RLS nur lesend für die eigene Organisation, Schreiben
+  nur per RPC), RPCs `save_run_pause`/`discard_run_pause`/`record_run_control`.
+  Ein Trigger löscht die Pause atomar mit `persist_completed_run`. Audit:
+  `scenario.run_paused|resumed|cancelled|retried` ohne PII.
+- **UI:** `RunControlBar` im Run-Modal und auf `/crm/live-simulation`,
+  `PausedRunsPanel` für gespeicherte Pausen (nach Reload oder in zweiter Sitzung).
+
+### Gefundene und behobene Fehler während des Baus
+
+1. `DeterministicRNG`-Zustand wächst über 2³². Ein Kürzen beim Wiederherstellen
+   ergab dieselbe Zufallsfolge, aber einen abweichenden persistierten `rngState`.
+   `fromState` übernimmt jetzt den Rohwert.
+2. Pause/Abbruch während der Baseline-Erfassung (vor dem Worker-Start) liefen ins
+   Leere, auch der Navigations-Abbruch aus G50. Der Befehl wird jetzt vorgemerkt
+   und beim Start angewendet.
+3. `canonicalStringify` wirft bei `undefined`. Deshalb wird vor dem Versiegeln
+   JSON-normalisiert, identisch zur JSONB-Speicherung.
+
+### Verifikation
+
+- Golden Run + `reproducibilityIntegrity` vorher und nachher grün (unverändert).
+- Kernnachweis: Pause + Resume im selben Worker, Resume in frischem Worker und
+  Resume im Main-Thread-Pfad sind **byte-identisch** zum ununterbrochenen Lauf.
+- `npx tsc --noEmit`, `npm run lint` (0/0), `npm run format:check`,
+  `npm run verify:quality-budget`, `npm run test:coverage` (268 Dateien, 1454 Tests;
+  87,34 % Statements / 81,1 % Branches / 82 % Functions / 88,55 % Lines),
+  `npm run verify` (001–025), `npm run build`, `npx size-limit`
+  (172,09 kB / 86,4 kB; +3,3 kB initial durch Run-Steuerung im Store).
+- `supabase test db`: `run_control.sql` 22/22 grün. `member_management.sql` und
+  `tenant_isolation.sql` scheitern **bereits ohne diese Änderung** am
+  Audit-Immutabilitäts-Trigger beim Aufräumen (Altbefund, separat vorgeschlagen).
+- Playwright `run-control.spec.ts` 9/9 (3 Breiten), dazu `persistence-multisession`,
+  `worker-responsiveness`, `a11y`, `routes`, `semantic-routes`, `element-clipping`
+  und `auth` grün. `tenant-isolation.spec.ts` lokal rot, weil die Edge-Runtime
+  im Sandbox-Container die npm-Registry nicht erreicht (Zertifikat des Proxys).
+  Das ist unabhängig von 067Q; die CI führt den Test aus.
+- Pixelvergleich gegen `4631faf`, 41 Routen × 3 Breiten: `/crm/live-simulation`
+  in allen Breiten pixelgleich. Abweichungen nur auf den bekannten Rausch-Routen.
+- **Schutzbereiche:** `src/simulation` und `src/types` nur in den Zieldateien
+  des Auftrags (freigegeben für 067Q). `src/context`, `src/services/data`,
+  `src/features/resources`: Diff gegen `d6add92` leer.
+
+**Übergabe an Codex:** Review G63 gegen die Abnahmekriterien des Auftrags,
+insbesondere Migration/RPC-Rechte, Determinismusnachweis und E2E in der PR-CI.
 
 ---
 
@@ -12673,6 +12739,64 @@ Bilddateien nicht committet (CLAUDE.md §7).
 
 **Übergabe an Codex:** erneute Prüfung von PR #25; alle Review-Threads beantwortet.
 
+---
+
+## [2026-09-24] Auftrag 067Q / G63 — Nacharbeit zum Codex-Review von PR #27 (Builder: Claude Code)
+
+**Befund:** Codex-Review von PR #27 (Commit `f948103`), sechs P1 und vier P2.
+Alle zehn Punkte sind berechtigt und umgesetzt.
+
+| Prio | Befund | Nacharbeit | Nachweis |
+|---|---|---|---|
+| P1 | PAUSE greift erst nach einem 10er-Batch | Coordinator startet den Worker mit `batchSize: 1`; der Worker gibt nach jedem Tick die Event-Loop frei | Test: Pause nach Tick 1 und im Zustand `queued` → Snapshot-Tick 1 |
+| P2 | Worker wird vor der CANCELLED-Bestätigung terminiert | Abbruch kooperativ; Terminierung erst nach `CANCELLED`, harter Abbruch nach 2 s ohne Antwort | Tests: kooperativer Abbruch, Timeout mit Fake-Timern |
+| P1 | Resume prüft den Hash der aktiven Baseline nicht | Aktive Baseline wird wie bei neuen Runs aufgelöst (eingefroren oder Neuerfassung aus der Manifest-Quelle); ihr Hash muss passen, sonst `SIMULATION_RESUME_INVALID` | Tests: veralteter Hash, nicht auflösbare Quelle |
+| P1 | Versiegelter, aber inkonsistenter Snapshot wird angenommen | Semantische Prüfung: Tick ↔ `state.tickCount` ↔ Zeitreihe (0…Tick), Pflichtsammlungen, ganzzahlige Ziele, Korrelations-ID, Parameter | 7 neue Negativfälle |
+| P1 | Upsert kann bei gleichzeitiger `run_id` einen fremden Mandanten überschreiben | `ON CONFLICT … DO UPDATE … WHERE organization_id = EXCLUDED.organization_id`, 0 geschriebene Zeilen → Abbruch | pgTAP 24/24, inkl. simuliertem Konflikt |
+| P1 | Abbruch eines Snapshot-Resumes wird nicht als unterbrochener Run geführt | Angenommener, dann abgebrochener/fehlgeschlagener Resume → `interruptedRun` (Retry mit gleichem Seed); Pausenliste wird immer neu geladen | Store-Test |
+| P1 | Pausenliste bevorzugt den veralteten Workspace-Mandanten | Sitzungsorganisation ist maßgeblich; Wechsel leert die Liste sofort, Fehler ebenso; veraltete Antworten werden verworfen | Store-Test |
+| P2 | Retry nutzt aktuelle statt ursprüngliche Maßnahmen/Quelle | `InterruptedRun.binding`: Maßnahmen und Datenquelle beim Start, Baseline-Version/-Hash aus dem Manifest | Store-Test mit geänderten Entwurfsmaßnahmen |
+| P2 | Pause wird vor dem Speichern bestätigt; Verwerfen kann vor dem Speichern laufen | Neuer Zustand `pausing` (nur Abbruch erlaubt), `paused` erst nach gespeichertem Snapshot; Speichern, Audit und Verwerfen laufen seriell | Store-Tests inkl. Abbruch während des Speicherns |
+| P2 | Audit „resumed/retried“ vor der Annahme | `onAccepted` nach Snapshot-, Baseline- und Versionsprüfung bzw. nach dem ersten Worker-Ereignis des Retrys | Tests: kein Audit bei abgelehntem Resume |
+
+**Verifikation:** `npx tsc --noEmit`, `npm run lint` (0/0), `npm run format:check`,
+`npm run verify:quality-budget`, `npm run test:coverage` (268 Dateien, 1464 Tests;
+87,45 % / 81,25 % / 82,07 % / 88,71 %), `npm run verify` (001–025), `npm run build`,
+`npx size-limit` (173,18 kB / 86,4 kB), `supabase test db` → `run_control.sql` 24/24
+(die zwei bekannten Altbefunde unverändert), Playwright `run-control`,
+`worker-responsiveness`, `persistence-multisession` 15/15 sowie `a11y`, `routes`,
+`semantic-routes`, `element-clipping`, `auth` 543/543. Golden Run unverändert grün.
+Schutzbereiche `src/context`, `src/services/data`, `src/features/resources`: Nulldiff.
+
+**Übergabe an Codex:** erneute Prüfung von PR #27; alle zehn Threads beantwortet.
+
+## [2026-09-25] PR #27 / G63 — erneuter unabhängiger Prüferbefund
+
+**Geprüft:** PR-Head `f565da1` gegen den gestapelten Basis-Head von PR #25
+`75316bf` · **Rolle:** Codex als Prüfer · **Ergebnis:** G63 noch nicht
+freigegeben; vollständiges Datenbankgate auf dem kombinierten Stand fehlt.
+
+- Alle sieben GitHub-Pflichtjobs auf `f565da1` sind grün (Lauf `36069462620`).
+  `e2e/run-control.spec.ts` lief auf 1440/768/375 px mit 9/9 Fällen grün;
+  die übrigen sequentiellen Worker-Tests bestanden ebenfalls. `git diff
+  --check` ist leer. `src/context`, `src/services/data` und
+  `src/features/resources` haben gegen PR #25 keinen Diff.
+- **P1 — Pflichtgate `supabase test db` fehlt auf dem integrierten Stand:**
+  Der E2E-Job in `.github/workflows/ci.yml` des PR #27 enthält noch keinen
+  pgTAP-Schritt. Der lokale Builder-Nachweis meldet nur `run_control.sql`
+  mit 24/24 grün; `member_management.sql` und `tenant_isolation.sql` waren
+  dort rot. PR #26 behebt diese Altbefunde und macht den vollständigen
+  pgTAP-Lauf in der CI verpflichtend, ist aber kein Vorfahr von `f565da1`.
+  Somit belegen die sieben grünen Jobs für PR #27 das in Auftrag 067Q
+  vorgeschriebene `supabase test db` noch nicht.
+- **Abhängigkeit:** PR #27 ist auf PR #25 gestapelt. Dessen aktueller
+  Prüferbefund zur Quality-Budget-Ratsche ist noch offen. Nach der Nacharbeit
+  an #25 und der Integration von #26 muss #27 auf den kombinierten `main`-
+  Stand gebracht werden; dann sind alle pgTAP-Dateien, Run-Control-E2E und
+  die sieben Pflichtjobs auf dem finalen Head erneut zu prüfen.
+
+**Übergabe an Claude Code:** Kein neuer Funktionsfehler in der 067Q-Nacharbeit
+belegt. Die fehlende Vollprüfung ist vor der G63-Freigabe zu schließen.
 ## [2026-09-25] PR #25 — erneuter unabhängiger Prüferbefund
 
 **Geprüft:** PR-Head `75316bf` gegen `main` `81410f7` · **Rolle:** Codex als
@@ -12722,6 +12846,48 @@ Ratsche rot (`uncovered = covered ? hits - 1 : hits`).
 
 **Übergabe an Codex:** erneute Prüfung auf dem neuen PR-Head nach grüner CI.
 
+---
+
+## [2026-09-25] PR #27 / G63 — Nacharbeit: kombinierter Stand mit #25 und #26 (Builder: Claude Code)
+
+**Befund (P1, Codex, Eintrag vom 25.09.):** Pflichtgate `supabase test db` fehlte
+auf dem integrierten Stand; PR #26 war kein Vorfahr von `f565da1`.
+
+**Nacharbeit:** Branch `claude/ci-quality-baselines-reduce-u1yo54` (PR #25 inkl.
+Ratschen-Fix `a947e3b` und Merge von `main` mit PR #26) per Merge-Commit `37f93ea`
+in `claude/067q-run-control` übernommen. Einziger Konflikt war das Ende des
+BUILD_LOG (beide Einträge behalten). `.github/workflows/ci.yml` enthält jetzt den
+pgTAP-Schritt aus #26 **und** `run-control.spec.ts` im sequentiellen Worker-Schritt.
+
+**Nachweis (lokal, kombinierter Stand):**
+- `supabase db reset && supabase test db`: **7/7 Dateien, 164 Tests, PASS**
+  (`audit_log`, `crm_query_export`, `ingress_nonce`, `member_management`,
+  `run_control`, `scenario_run_persistence`, `tenant_isolation`).
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`,
+  `npm run verify:quality-budget`, `npm test` (268 Dateien, 1466 Tests),
+  Playwright `run-control`, `worker-responsiveness`, `persistence-multisession`
+  15/15 grün.
+
+**Übergabe an Codex:** G63 auf dem neuen PR-Head nach grünen sieben Pflichtjobs
+(jetzt inklusive pgTAP im `e2e`-Job) erneut prüfen.
+
+---
+
+## [2026-09-25] PR #27 / G63 — erneute Prüferfreigabe nach Integration
+
+**Geprüft:** PR-Head `886a69f` auf dem integrierten Stand von #25 und #26 ·
+**Rolle:** Codex als Prüfer · **Ergebnis:** Freigabe; der P1-Befund ist behoben.
+
+- Der Head enthält `e1a54bd` (#26) und `a947e3b` (Ratschen-Fix aus #25)
+  als Vorfahren. Der Workflow führt `supabase test db` und die sequentiellen
+  `run-control.spec.ts`-Tests aus.
+- Die sieben Pflichtjobs sind auf `886a69f` grün (GitHub-Lauf `36073262682`).
+  Im `e2e`-Protokoll sind alle sieben pgTAP-Dateien inklusive `run_control.sql`
+  erfolgreich: 164 Tests, PASS. Die sequentiellen Browser-Tests: 15/15 PASS.
+- Seit der vorherigen Funktionsprüfung kamen nur die Integration von #25/#26
+  und Dokumentation hinzu; am Run-Control-Code gab es keine neue Änderung.
+
+**Übergabe an Claude Code:** G63 / PR #27 ist aus Prüfersicht freigegeben.
 ---
 
 ## [2026-09-25] PR #25 — erneute Prüferfreigabe nach Nacharbeit

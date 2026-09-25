@@ -1,6 +1,7 @@
 import { ChannelMix } from './parameter';
 import { SimulationMetrics, SimulationState } from './simulation';
 import { TimeSeriesPoint } from './aggregation';
+import type { RunResumeSnapshotBody } from './runControl';
 
 // V1 PARAMETER SURFACE — bewusster Ausschnitt (10 Felder). NICHT in V1:
 // Kanalbudgets einzeln, Ramp-ups, Lead-Expiration, Setup-Fees, Paketpreise (Entsch. 149–478).
@@ -108,6 +109,12 @@ export interface RunOptions {
   // 067G / G50: Fortschritts-Callback mit echten Berechnungseinheiten
   // (processedUnits, totalUnits) — Worker- wie Main-Thread-Pfad.
   onProgress?: (processedUnits: number, totalUnits: number) => void;
+  // 067Q / G63: Worker hat an einer Tick-Grenze pausiert; der Zwischenstand
+  // (ohne Hash) kann versiegelt und persistiert werden.
+  onPaused?: (snapshot: RunResumeSnapshotBody) => void;
+  // 067Q / G63: Resume aus Snapshot wurde angenommen (Snapshot, aktive
+  // Baseline und Version geprüft) — erst danach protokolliert der Aufrufer.
+  onAccepted?: () => void;
 }
 
 import { BaselineComparisonResult, GoalTargetEvaluationResult } from './kpi';

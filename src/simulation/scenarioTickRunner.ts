@@ -5,6 +5,7 @@ import { SalesQueueEntry } from '../types/salesQueue';
 import { CSQueueEntry } from '../types/csQueue';
 import { ScenarioParameters, SimulationRun } from '../types/scenario';
 import { Measure } from '../types/measure';
+import type { RunResumeSnapshotBody } from '../types/runControl';
 import { TimeSeriesPoint } from '../types/aggregation';
 import {
   HistoricalSimulationMetrics,
@@ -45,6 +46,13 @@ export interface MainThreadTickInput {
   targetTicks: number;
   correlationId: string;
   onProgress?: (processedUnits: number, totalUnits: number) => void;
+  // 067Q / G63: Resume aus Snapshot — Start an einer Tick-Grenze mit den
+  // gespeicherten Queues (Standard: Tick 0, leere Queues).
+  startTick?: number;
+  // Nur Worker-Pfad: Pause an einer Tick-Grenze meldet den Zwischenstand.
+  onPaused?: (snapshot: RunResumeSnapshotBody) => void;
+  queueEntries?: SalesQueueEntry[];
+  csQueueEntries?: CSQueueEntry[];
 }
 
 export interface TickRunResult {
@@ -62,8 +70,8 @@ export interface TickRunResult {
 
 export function executeTicksMainThread(input: MainThreadTickInput): TickRunResult {
   const resolver = new EffectiveParameterResolver(input.baseParameters, [...input.measures]);
-  let queueEntries: SalesQueueEntry[] = [];
-  let csQueueEntries: CSQueueEntry[] = [];
+  let queueEntries: SalesQueueEntry[] = input.queueEntries ?? [];
+  let csQueueEntries: CSQueueEntry[] = input.csQueueEntries ?? [];
   let currentState = input.initialState;
   let leads = [...input.leads];
   let opportunities = [...input.opportunities];
@@ -72,7 +80,7 @@ export function executeTicksMainThread(input: MainThreadTickInput): TickRunResul
   const events: SimulationEvent[] = [];
   const timeSeries: TimeSeriesPoint[] = [];
 
-  for (let i = 0; i < input.targetTicks; i++) {
+  for (let i = input.startTick ?? 0; i < input.targetTicks; i++) {
     const eff = resolver.at(i);
     const output: TickOutput = SimulationEngine.executeTick({
       state: currentState,
@@ -107,21 +115,7 @@ export function executeTicksMainThread(input: MainThreadTickInput): TickRunResul
       events.unshift(evt);
     }
 
-    timeSeries.push({
-      tick: currentState.tickCount,
-      dayIndex: currentState.dayIndex,
-      simulatedDate: currentState.simulatedDate,
-      metrics: {
-        arr: currentState.metrics?.liveARR ?? 0,
-        mrr: currentState.metrics?.liveMRR ?? 0,
-        customers: currentState.metrics?.liveCustomers ?? 0,
-        wonDeals: currentState.metrics?.liveWonDeals ?? 0,
-        ebitda: currentState.metrics?.financialMetrics?.ebitda ?? 0,
-        netRevenue: currentState.metrics?.financialMetrics?.netRevenue ?? 0,
-        netCashFlow: currentState.metrics?.financialMetrics?.netCashFlow ?? 0,
-        cumulativeCashFlow: currentState.metrics?.financialMetrics?.cumulativeCashFlow ?? 0,
-      },
-    });
+    timeSeries.push(tickTimeSeriesPoint(currentState));
     input.onProgress?.(i + 1, input.targetTicks);
   }
 
@@ -135,6 +129,28 @@ export function executeTicksMainThread(input: MainThreadTickInput): TickRunResul
     activities,
     events,
     timeSeries,
+  };
+}
+
+/**
+ * Zeitreihenpunkt nach einem Tick — gemeinsam für Main-Thread und Worker, damit
+ * beide Pfade (und ein Resume aus Snapshot) identische Punkte erzeugen.
+ */
+export function tickTimeSeriesPoint(state: SimulationState): TimeSeriesPoint {
+  return {
+    tick: state.tickCount,
+    dayIndex: state.dayIndex,
+    simulatedDate: state.simulatedDate,
+    metrics: {
+      arr: state.metrics?.liveARR ?? 0,
+      mrr: state.metrics?.liveMRR ?? 0,
+      customers: state.metrics?.liveCustomers ?? 0,
+      wonDeals: state.metrics?.liveWonDeals ?? 0,
+      ebitda: state.metrics?.financialMetrics?.ebitda ?? 0,
+      netRevenue: state.metrics?.financialMetrics?.netRevenue ?? 0,
+      netCashFlow: state.metrics?.financialMetrics?.netCashFlow ?? 0,
+      cumulativeCashFlow: state.metrics?.financialMetrics?.cumulativeCashFlow ?? 0,
+    },
   };
 }
 

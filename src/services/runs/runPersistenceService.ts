@@ -2,6 +2,7 @@ import type { Scenario, ScenarioVersion, SimulationRun } from '@/types/scenario'
 import type { SimulationEvent } from '@/types/simulation';
 import type { TimeSeriesPoint } from '@/types/aggregation';
 import type { SimulationSnapshot } from '@/types/snapshot';
+import type { RunResumeSnapshot } from '@/types/runControl';
 import { loadWorkspaceRows, saveRunBundle } from './runRepository';
 import { resolveClient, type SupabaseLike } from './supabaseClientLike';
 
@@ -118,4 +119,99 @@ export async function loadScenarioWorkspace(
       e instanceof Error ? e.message : 'Unbekannter Ladefehler.',
     );
   }
+}
+
+// ------------------------------------------------ 067Q / G63: Run-Steuerung
+// Pausen-Snapshots und Steuerbefehle laufen ausschließlich über RPCs mit
+// Rollen- und Mandantenprüfung in der Datenbank (Migration 20261001). Fehler
+// propagieren fail-closed — kein stiller In-Memory-Fallback.
+
+function requireClient(client?: SupabaseLike | null): SupabaseLike {
+  const resolved = resolveClient(client);
+  if (!resolved) {
+    throw new RunPersistenceError(
+      'NOT_CONFIGURED',
+      'Supabase ist nicht konfiguriert — kein stiller In-Memory-Fallback.',
+    );
+  }
+  return resolved;
+}
+
+async function callRpc(
+  client: SupabaseLike,
+  fn: string,
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  const result = await client.rpc(fn, args);
+  if (result.error) throw new RunPersistenceError('RPC_FAILED', `${fn}: ${result.error.message}`);
+  return result.data;
+}
+
+/** Speichert den versiegelten Zwischenstand eines pausierten Runs (Upsert). */
+export async function persistRunPause(
+  snapshot: RunResumeSnapshot,
+  client?: SupabaseLike | null,
+): Promise<void> {
+  if (!isNonEmptyString(snapshot?.organizationId) || !isNonEmptyString(snapshot.runId)) {
+    throw new RunPersistenceError('INVALID_BUNDLE', 'Pausen-Snapshot ohne Organisation oder Run.');
+  }
+  await callRpc(requireClient(client), 'save_run_pause', {
+    p_organization_id: snapshot.organizationId,
+    p_run_id: snapshot.runId,
+    p_snapshot: snapshot,
+    p_snapshot_hash: snapshot.snapshotHash,
+  });
+}
+
+/** Verwirft einen gespeicherten Pausen-Snapshot (Abbruch). */
+export async function discardRunPause(
+  organizationId: string,
+  runId: string,
+  client?: SupabaseLike | null,
+): Promise<boolean> {
+  const data = await callRpc(requireClient(client), 'discard_run_pause', {
+    p_organization_id: organizationId,
+    p_run_id: runId,
+  });
+  return data === true;
+}
+
+export type RunControlAuditAction = 'resumed' | 'cancelled' | 'retried';
+
+/** Protokolliert einen Steuerbefehl im Audit-Log (ohne PII). */
+export async function recordRunControl(
+  organizationId: string,
+  runId: string,
+  action: RunControlAuditAction,
+  correlationId: string,
+  client?: SupabaseLike | null,
+): Promise<void> {
+  await callRpc(requireClient(client), 'record_run_control', {
+    p_organization_id: organizationId,
+    p_run_id: runId,
+    p_action: action,
+    p_correlation_id: correlationId,
+  });
+}
+
+/** Lädt die gespeicherten Pausen-Snapshots genau eines Mandanten (RLS). */
+export async function loadRunPauses(
+  organizationId: string,
+  client?: SupabaseLike | null,
+): Promise<RunResumeSnapshot[]> {
+  if (!isNonEmptyString(organizationId)) {
+    throw new RunPersistenceError('INVALID_BUNDLE', 'Pausen ohne organizationId.');
+  }
+  const result = await requireClient(client)
+    .from('simulation_run_pauses')
+    .select('snapshot')
+    .eq('organization_id', organizationId);
+  if (result.error) {
+    throw new RunPersistenceError(
+      'WORKSPACE_FAILED',
+      `simulation_run_pauses: ${result.error.message}`,
+    );
+  }
+  const rows = (result.data as Array<{ snapshot: RunResumeSnapshot }> | null) ?? [];
+  return rows.map((row) => row.snapshot);
 }
