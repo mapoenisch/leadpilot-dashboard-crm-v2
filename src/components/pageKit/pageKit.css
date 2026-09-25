@@ -967,7 +967,7 @@ dl.pk-grid {
 .pk-timeline > li {
   position: relative;
   display: grid;
-  grid-template-columns: 8rem minmax(0, 1fr);
+  grid-template-columns: 10.5rem minmax(0, 1fr);
   align-items: center;
   gap: var(--space-4);
 }
@@ -983,7 +983,7 @@ dl.pk-grid {
   background: var(--pk-tone, var(--cyan));
   box-shadow: 0 0 10px color-mix(in srgb, var(--pk-tone, var(--cyan)) 80%, transparent);
 }
-.pk-timeline .pk-chip {
+.pk-timeline > li > .pk-chip {
   justify-self: start;
   font-size: 13px;
   padding: 6px 14px;
@@ -1015,4 +1015,67 @@ dl.pk-grid {
   font-size: 15px;
   line-height: 1.6;
   color: var(--color-text);
+}
+.pk-prose-lead {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+.pk-tier {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.pk-tier[data-featured='true'] {
+  border-color: var(--cyan);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--cyan) 38%, transparent);
+}
+.pk-tier__price {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.pk-tier__price strong {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1;
+  color: var(--color-primary);
+}
+.pk-tier__price[data-offer='true'] strong {
+  font-size: 24px;
+  color: var(--orange);
+}
+.pk-tier__desc {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text);
+}
+.pk-milestone {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--pk-tone) 35%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--pk-tone) 5%, var(--color-bg-deep));
+}
+.pk-milestone:first-child,
+.pk-milestone:last-child {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid color-mix(in srgb, var(--pk-tone) 35%, transparent);
+}
+.pk-milestone__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text);
+}
+.pk-timeline > li > .pk-chip {
+  white-space: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  border-radius: var(--radius-md);
 }
