@@ -46,36 +46,68 @@ interface DealDbRow {
   pipeline: string;
 }
 import { logger } from '@/services/logger';
+import { DataSourceError } from '@/types/dataSource';
+
+// 067R / G64 (PR-SOURCE-04): Kein stiller Demo-Fallback mehr. Ist Supabase
+// konfiguriert, ist Supabase die einzige Quelle: Fehler werden zum expliziten
+// Quellenfehler `DATA_SOURCE_UNAVAILABLE`, eine leere Tabelle bleibt leer.
+// Nur ohne Supabase-Konfiguration (lokale Demo, Integrity-Suiten) wird die
+// aktive DataSource ausdrücklich gelesen — dann gibt es keine zweite Quelle,
+// die still ersetzt werden könnte.
+export function dataSourceUnavailable(entity: string, cause?: unknown): DataSourceError {
+  const detail =
+    cause instanceof Error
+      ? ` (${cause.message})`
+      : typeof cause === 'object' && cause !== null && 'message' in cause
+        ? ` (${String((cause as { message: unknown }).message)})`
+        : '';
+  return new DataSourceError(
+    'FETCH_FAILED',
+    `DATA_SOURCE_UNAVAILABLE: ${entity} konnten nicht aus Supabase geladen werden${detail}.`,
+  );
+}
+
+/** Ausdrückliche Lesung der aktiven Quelle — nur ohne Supabase-Konfiguration. */
+async function activeSnapshot() {
+  return dataSourceRegistry.getActive().fetchSnapshot();
+}
+
+/** `null` = Supabase nicht konfiguriert; sonst die Zeilen oder ein Quellenfehler. */
+async function readSupabaseTable<Row>(
+  entity: string,
+  table: string,
+  orderColumn: string,
+  ascending: boolean,
+): Promise<Row[] | null> {
+  if (!isSupabaseConfigured) return null;
+  if (!supabase) throw dataSourceUnavailable(entity);
+  let result: { data: unknown[] | null; error: unknown };
+  try {
+    result = await supabase.from(table).select('*').order(orderColumn, { ascending });
+  } catch (e) {
+    logger.warn(`Supabase fetch failed for ${entity}.`, e);
+    throw dataSourceUnavailable(entity, e);
+  }
+  if (result.error) throw dataSourceUnavailable(entity, result.error);
+  return (result.data ?? []) as Row[];
+}
 
 export class CRMRepository {
   /**
-   * Fetch all 20 Companies from Supabase PostgreSQL (or fallback to active DataSource)
+   * Companies aus Supabase, ohne Konfiguration aus der aktiven DataSource.
    */
   public static async getCompanies(): Promise<Company[]> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('companies')
-          .select('*')
-          .order('name', { ascending: true });
-
-        if (!error && data && data.length > 0) {
-          return data.map((row: CompanyDbRow) => ({
-            id: row.id,
-            domain: row.domain,
-            name: row.name,
-            industry: row.industry,
-            city: row.city,
-            postalCode: row.postal_code || row.postalCode,
-            employeeCount: row.employee_count || row.employeeCount || 0,
-          }));
-        }
-      } catch (e) {
-        logger.warn('Supabase fetch failed for companies, using fallback repository data.', e);
-      }
-    }
-    const snapshot = await dataSourceRegistry.getActive().fetchSnapshot();
-    return snapshot.companies;
+    const rows = await readSupabaseTable<CompanyDbRow>('Companies', 'companies', 'name', true);
+    if (rows === null) return (await activeSnapshot()).companies;
+    return rows.map((row) => ({
+      id: row.id,
+      domain: row.domain,
+      name: row.name,
+      industry: row.industry,
+      city: row.city,
+      postalCode: row.postal_code || row.postalCode,
+      employeeCount: row.employee_count || row.employeeCount || 0,
+    }));
   }
 
   /**
@@ -87,32 +119,19 @@ export class CRMRepository {
   }
 
   /**
-   * Fetch all 100 Contacts from Supabase PostgreSQL (or fallback to active DataSource)
+   * Contacts aus Supabase, ohne Konfiguration aus der aktiven DataSource.
    */
   public static async getContacts(): Promise<Contact[]> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('contacts')
-          .select('*')
-          .order('last_name', { ascending: true });
-
-        if (!error && data && data.length > 0) {
-          return data.map((row: ContactDbRow) => ({
-            id: row.id,
-            companyId: row.company_id || row.companyId || '',
-            email: row.email,
-            firstName: row.first_name || row.firstName || '',
-            lastName: row.last_name || row.lastName || '',
-            jobTitle: row.job_title || row.jobTitle || '',
-          }));
-        }
-      } catch (e) {
-        logger.warn('Supabase fetch failed for contacts, using fallback repository data.', e);
-      }
-    }
-    const snapshot = await dataSourceRegistry.getActive().fetchSnapshot();
-    return snapshot.contacts;
+    const rows = await readSupabaseTable<ContactDbRow>('Contacts', 'contacts', 'last_name', true);
+    if (rows === null) return (await activeSnapshot()).contacts;
+    return rows.map((row) => ({
+      id: row.id,
+      companyId: row.company_id || row.companyId || '',
+      email: row.email,
+      firstName: row.first_name || row.firstName || '',
+      lastName: row.last_name || row.lastName || '',
+      jobTitle: row.job_title || row.jobTitle || '',
+    }));
   }
 
   /**
@@ -124,43 +143,34 @@ export class CRMRepository {
   }
 
   /**
-   * Fetch all 40 Imported Funnel Deals from Supabase PostgreSQL (or fallback to active DataSource)
+   * Imported Funnel Deals aus Supabase, ohne Konfiguration aus der aktiven DataSource.
    */
   public static async getImportedFunnelDeals(): Promise<ImportedFunnelDeal[]> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('imported_funnel_deals')
-          .select('*')
-          .order('close_date', { ascending: false });
-
-        if (!error && data && data.length > 0) {
-          return data.map((row: DealDbRow) => ({
-            id: row.id,
-            dealName: row.deal_name || row.dealName || '',
-            stage: row.stage,
-            amount: parseFloat(String(row.amount)) || 0,
-            closeDate: row.close_date || row.closeDate || '',
-            pipeline: row.pipeline,
-          }));
-        }
-      } catch (e) {
-        logger.warn(
-          'Supabase fetch failed for imported funnel deals, using fallback repository data.',
-          e,
-        );
-      }
-    }
-    const snapshot = await dataSourceRegistry.getActive().fetchSnapshot();
-    return snapshot.deals;
+    const rows = await readSupabaseTable<DealDbRow>(
+      'Imported Funnel Deals',
+      'imported_funnel_deals',
+      'close_date',
+      false,
+    );
+    if (rows === null) return (await activeSnapshot()).deals;
+    return rows.map((row) => ({
+      id: row.id,
+      dealName: row.deal_name || row.dealName || '',
+      stage: row.stage,
+      amount: parseFloat(String(row.amount)) || 0,
+      closeDate: row.close_date || row.closeDate || '',
+      pipeline: row.pipeline,
+    }));
   }
 
   /**
-   * Fetch Import & Mapping Audit Summary
+   * Import- & Mapping-Audit. Supabase hat dafür keinen Lesepfad; bei
+   * konfiguriertem Supabase wäre die aktive (Demo-)Quelle eine stille
+   * Quellenmischung — deshalb expliziter Quellenfehler.
    */
   public static async getAuditSummary(): Promise<ImportAuditSummary> {
-    const snapshot = await dataSourceRegistry.getActive().fetchSnapshot();
-    return snapshot.audit;
+    if (isSupabaseConfigured) throw dataSourceUnavailable('Import-Audit');
+    return (await activeSnapshot()).audit;
   }
 
   /**

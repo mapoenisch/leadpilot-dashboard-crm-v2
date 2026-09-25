@@ -58,6 +58,18 @@ function healthyEnvelope(): CrmReadModelEnvelope {
 }
 
 describe('ExecutiveDashboardPage (characterization)', () => {
+  // 067R / G64 (PR-SOURCE-04): PipelineSnapshot liest seit 067R den
+  // CRM-Envelope und braucht daher denselben Sitzungs-/Envelope-Mock wie die
+  // übrigen CRM-Ansichten. Keine Assertion geändert.
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedOrg.mockReturnValue({
+      session: { userId: 'u-demo', organizationId: DEMO_ORGANIZATION_ID, role: 'viewer' },
+      isLoading: false,
+    });
+    mockedLoad.mockResolvedValue(healthyEnvelope());
+  });
+
   it('rendert Cockpit-Titel, Badges und Live-Sektion', () => {
     render(
       <MemoryRouter initialEntries={['/dashboard']}>

@@ -163,6 +163,22 @@ const PASSING_SINCE_G57: readonly V23FindingId[] = ['PR-DEPENDENCY-15', 'PR-QUAL
 // G58 (Auftrag 067L): Readiness, CI und das seit 19.09. aktive main-Ruleset
 // erfüllen ihre Sollverträge; PR-BRANCH-20 wurde am 23.09. erneut belegt.
 const PASSING_SINCE_G58: readonly V23FindingId[] = ['PR-RELEASE-17', 'PR-CI-18', 'PR-BRANCH-20'];
+// G64 (Auftrag 067R): Gesamtabnahme. Die in G47–G56 behobenen Findings sind
+// per frischem Vertragslauf grün belegt; PR-SOURCE-04, -BASELINE-06, -FREEZE-07,
+// -PERSIST-08 und -WORKER-09 nach Marcs Entscheid (25.09.2026) auf die
+// tatsächliche Umsetzung ausgerichtet. Einzig PR-LICENSE-19 bleibt bis G65 rot.
+const PASSING_SINCE_G64: readonly V23FindingId[] = [
+  'PR-SOURCE-04',
+  'PR-BASELINE-06',
+  'PR-FREEZE-07',
+  'PR-PERSIST-08',
+  'PR-WORKER-09',
+  'PR-HUBSPOT-10',
+  'PR-SEMANTIC-11',
+  'PR-A11Y-12',
+  'PR-CLIP-13',
+  'PR-ASSET-14',
+];
 
 export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
   id,
@@ -174,7 +190,8 @@ export const V23_FINDINGS: readonly V23FindingContract[] = ORDER.map((id) => ({
     PASSING_SINCE_G45.includes(id) ||
     PASSING_SINCE_G46.includes(id) ||
     PASSING_SINCE_G57.includes(id) ||
-    PASSING_SINCE_G58.includes(id)
+    PASSING_SINCE_G58.includes(id) ||
+    PASSING_SINCE_G64.includes(id)
       ? 'passing'
       : 'failing',
 }));

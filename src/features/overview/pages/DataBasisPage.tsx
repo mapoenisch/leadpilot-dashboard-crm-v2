@@ -30,12 +30,15 @@ function statusBadgeVariant(status: CrmSourceHealth): 'mint' | 'cyan' | 'orange'
 // Gate G47 (Auftrag 067D): echte Datenbasis-Seite statt WebP-Platzhalter.
 // Quelle, Modus, letzter Abruf, Datenalter, Hash und Status sind sichtbar;
 // `unavailable` sieht niemals wie ein erfolgreicher Live-Zustand aus.
+// 067R / G64 (PR-SEMANTIC-11): Die Seitenhülle ist ein benannter
+// Inhaltsabschnitt (`section` + `aria-labelledby`); `section` ist wie das
+// frühere `div` ein Blockelement ohne Eigenstil — die Darstellung bleibt gleich.
 function DataBasisShell({ children, testId }: { children: React.ReactNode; testId?: string }) {
   return (
-    <div data-testid={testId}>
-      <h1>Datenbasis</h1>
+    <section data-testid={testId} aria-labelledby="data-basis-title">
+      <h1 id="data-basis-title">Datenbasis</h1>
       {children}
-    </div>
+    </section>
   );
 }
 
