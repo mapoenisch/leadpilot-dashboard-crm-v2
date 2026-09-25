@@ -12971,6 +12971,19 @@ einem grünen, frischen Nachweis zugeordnet
 - **Orchestrator-Lauf 2 (Commit `00566f8`):** unit-coverage grün (1487/1487). Mitten im Lauf fiel der lokale Docker-Daemon aus, deshalb ist das Ergebnis der DB-Gates nicht verwertbar.
 - **Lokale Grenze:** Die Edge-Runtime erreicht die npm-Registry nicht, deshalb sind `crm-query-export`, `tenant-isolation`, `visual /crm/leads` und `member-management` lokal rot. Maßgeblich ist der CI-Job `e2e`. `audit-health` lokal: 30/30.
 
+- **Orchestrator-Lauf 3 (Commit `21a4a7e`, finaler Code-Stand):**
+
+  | Code | Gate | Status |
+  |---|---|---|
+  | 11–20 | typecheck, lint, format, quality-budget, unit-coverage (1486/1486), integrity, build, bundle, audit, sql-rls | grün |
+  | 21 | e2e | rot: 594 grün, 36 rot, ausschließlich Edge-abhängig (`crm-query-export` 9×3, `tenant-isolation` 2×3, `visual /crm/leads` ×3) |
+  | 22 | findings | grün |
+  | 23 | lighthouse | grün |
+  | 24 | readiness | blockiert durch e2e |
+
+  - Die sequentiellen Specs laufen im Orchestrator nach dem roten ersten E2E-Schritt nicht mehr. Separat gefahren: `persistence-multisession`, `worker-responsiveness`, `run-control`, 15/15 grün.
+- **CI:** Lauf `36102765397` auf `00566f8` ist mit 7/7 Pflichtjobs grün, inklusive e2e. Dort liefen erstmals `audit-health` und `member-management`, dazu die Finding-Baseline und die Readiness mit Kennzahl 27. Der Lauf auf `21a4a7e` folgt auf dem PR.
+
 ### Screenshot-Matrix
 [`docs/screenshots/auftrag-067r/README.md`](screenshots/auftrag-067r/README.md)
 - `/dashboard` ist auf allen drei Breiten identisch.
