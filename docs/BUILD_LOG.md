@@ -13212,3 +13212,38 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
   - Nach der Wiederherstellung sind die Zeilen aller 48 Tabellen, die Prüfsummen über `auth.users`/`auth.identities` und der Trigger identisch. Der Login des wiederhergestellten Benutzers gelingt, RLS liefert nur die eigene Organisation.
   - Danach ist `supabase test db` grün (PASS).
 - **Rollback-Doku:** Der Weg über das Backup verweist auf Abschnitt 7. Ein Backup aus v2.2.0 enthält keine Supabase-Auth-Benutzer.
+
+---
+
+## [2026-09-25] Gate G65 / PR #30: Codex-Nachprüfung und Release-Freigabe v2.3.0
+
+**Codex-Nachprüfung auf `8a4281c`** (von Marc übermittelt, sinngemäß übernommen, weil kein eigener Codex-Eintrag vorliegt):
+- **Keine neuen blockierenden Befunde.**
+- Der Produktiv-Check nutzt Vites `loadEnv`, und der Test deckt das beanstandete `.env.production.local`-Szenario ab.
+- Backup: Der frühere Befund war zu pauschal. Der Datendump enthält `auth`, der Schemadump nicht.
+- Der Restore-Test baut das Schema aus den Migrationen auf und weist in der CI Benutzer, Trigger und einen erfolgreichen Login nach.
+- Den datenbanklöschenden Restore-Test hat Codex nicht zusätzlich lokal ausgeführt.
+- Alle sieben CI-Checks sind grün, Auto-Merge war aus.
+- Eine formale GitHub-Approve-Review ist mit dem PR-Eigentümerkonto nicht möglich.
+
+**Merge:** PR #30 per Merge-Commit `6ead29a` auf `main` (25.09.2026). Issue #9 ist geschlossen.
+
+**Release-Freigabe:** Marc Pönisch am 25.09.2026 („v2.3.0 freigeben“), Spec §22 Punkt 12.
+
+**Definition of Done v2.3.0 (Spec §22):**
+1. Gates G44–G65 sind bestanden und im BUILD_LOG dokumentiert.
+2. Die 19 Teilaufträge sind seriell umgesetzt und unabhängig geprüft.
+3. Kein Critical-/Important-Befund ist offen; das Finding-Register steht auf 20/20.
+4. Der Demo-Mandant läuft über echte Auth-, RLS-, Persistenz- und Auditpfade.
+5. Die 33 semantischen Seiten sind umgesetzt.
+6. Alle Abnahmegrenzen sind im aktuellen Lauf gemessen (CI auf `8a4281c`).
+7. Der Neuaufbau aus Migrationen ist nachgewiesen (`verify:migrations`).
+8. Release Notes, Runbook und Free-Tier-Grenzen sind dokumentiert.
+9. `LICENSE`, README und Release Notes nennen einheitlich `All Rights Reserved`.
+10. Das `main`-Ruleset ist aktiv, die Actions sind SHA-gepinnt.
+11. Der Release-Commit wird mit diesem PR geprüft, der Arbeitsbaum ist sauber.
+12. Marcs Freigabe liegt vor.
+
+**Tag:** `v2.3.0` setzt Marc nach dem Merge dieses Release-PRs auf `main`.
+
+**Rollen:** Laut `CLAUDE.md` §4 endet mit dem Release der Rollenwechsel (Claude Code baut, Codex prüft). Danach gilt wieder die vorherige Verteilung (Antigravity baut, Codex/Claude Code prüfen), sofern Marc nichts anderes festlegt.

@@ -2040,6 +2040,7 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 | 2026-09-01 | AUFTRAG 020 — HubSpot als erste reale Datenquelle (offline über n8n eingefroren, `HubSpotBaselineSource` mit `kind: 'external'`, Stage-Map `tools/n8n/hubspot-stage-map.json`, Workflow `generate-baseline-hubspot.workflow.json`, Test-Suite 025). Gate G4 erfüllt. |
 | 2026-09-25 | Revision zu B17 (Nachtrag zu G49/G63): Viewer strikt lesend bei Simulationsläufen; `persist_completed_run` nur für Admin/Manager ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)). |
 | 2026-09-25 | G65 (067S): Upgrade von v2.2.0 abgesichert (`20260100000000_v2_2_upgrade_prep.sql`), Neuaufbau und Upgrade auf identisches Schema gebracht (`20261003_tenant_schema_convergence.sql`: kein stiller Demo-Default mehr auf `organization_id`, Ergänzung zu B17), Lizenz `All Rights Reserved`, Runbook und getesteter Rollback (Frontend zurück, Schema bleibt). |
+| 2026-09-25 | **Release `v2.3.0`** von Marc Pönisch freigegeben (Masterauftrag 067, Gates G44–G65; Release Notes `docs/releases/V2.3.0.md`). |
 
 ## D5. MASTERSTATUS
 
