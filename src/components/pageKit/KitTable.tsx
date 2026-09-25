@@ -17,6 +17,8 @@ export interface KitTableProps {
   caption: string;
   /** Indizes der Summen-/Kernzeilen. */
   highlightRows?: number[];
+  /** Indizes orange hervorgehobener Zeilen (LeadPilot selbst). */
+  accentRows?: number[];
   /** Erste Spalte in Markenfarbe (Kanal-, Kunden-, Positionsnamen). */
   leadColumn?: boolean;
 }
@@ -26,8 +28,11 @@ export function KitTable({
   rows,
   caption,
   highlightRows = [],
+  accentRows = [],
   leadColumn = false,
 }: KitTableProps) {
+  const mark = (index: number) =>
+    accentRows.includes(index) ? 'accent' : highlightRows.includes(index) ? 'true' : undefined;
   return (
     <div className="pk-table-wrap">
       <table className="pk-table">
@@ -43,10 +48,7 @@ export function KitTable({
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
-            <tr
-              key={rowIndex}
-              data-highlight={highlightRows.includes(rowIndex) ? 'true' : undefined}
-            >
+            <tr key={rowIndex} data-highlight={mark(rowIndex)}>
               {columns.map((column, columnIndex) => (
                 <td
                   key={column.key}

@@ -1,45 +1,36 @@
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { ICP } from '@/domain/kundenData';
 import { DataState } from '@/components/ui/DataState';
+import { Grid, KeyValueList, PageHero, Panel, ToneList } from '@/components/pageKit';
 
 // 067I / G53: Echte ICP-Seite statt WebP — genau eine h1,
 // Firmografie als Definitionsliste, Trigger und Ausschlüsse als Listen.
+// Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (04-ideal-customer-profile).
 export function IcpPage() {
   const ready = ICP.firmografie.length > 0;
   return (
-    <div>
-      <h1>Ideal Customer Profile</h1>
-      <p>{ICP.title}: Firmografie, Kaufsignale und Ausschlusskriterien.</p>
+    <div className="pk-page">
+      <PageHero
+        eyebrow="Kunden"
+        title={ICP.title}
+        subtitle="Kriterien für den perfekten Kunden-Fit."
+        pills={['Ideal Customer Profile', 'DACH B2B']}
+      />
       <DataState
         status={ready ? 'ready' : 'empty'}
         emptyText="Kein Ideal Customer Profile erfasst."
       >
-        <section aria-label="Firmografie">
-          <h2>Firmografie</h2>
-          <dl>
-            {ICP.firmografie.map((item) => (
-              <div key={item.key}>
-                <dt>{item.key}</dt>
-                <dd>{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-        <section aria-label="Kaufsignale">
-          <h2>Kaufsignale</h2>
-          <ul>
-            {ICP.triggers.map((trigger) => (
-              <li key={trigger}>{trigger}</li>
-            ))}
-          </ul>
-        </section>
-        <section aria-label="Ausschlusskriterien">
-          <h2>Ausschlusskriterien</h2>
-          <ul>
-            {ICP.exclusion.map((kriterium) => (
-              <li key={kriterium}>{kriterium}</li>
-            ))}
-          </ul>
-        </section>
+        <Panel title="Firmografische Kriterien" toneTitle>
+          <KeyValueList rows={ICP.firmografie.map((item) => [item.key, item.value])} />
+        </Panel>
+        <Grid cols="2">
+          <Panel title="Auslösende Trigger" icon={CheckCircle2} toneTitle>
+            <ToneList items={ICP.triggers} />
+          </Panel>
+          <Panel title="Ausschlusskriterien (Negative Fit)" tone="red" icon={XCircle} toneTitle>
+            <ToneList items={ICP.exclusion} tone="red" />
+          </Panel>
+        </Grid>
       </DataState>
     </div>
   );

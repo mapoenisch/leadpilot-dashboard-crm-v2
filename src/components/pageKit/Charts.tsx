@@ -81,99 +81,106 @@ function niceCeil(value: number): number {
   return step * exp;
 }
 
-/** Säulendiagramm, einzeln oder gruppiert, mit Achse und Legende. */
+/**
+ * Säulendiagramm, einzeln oder gruppiert, mit Achse und Legende. Horizontal in
+ * Prozent, vertikal in Pixeln: Die Schrift bleibt auf jeder Breite gleich groß.
+ */
 export function ColumnChart({
   labels,
   series,
   valueSuffix = '',
   highlightLast = false,
+  valueLabels,
 }: {
   labels: string[];
   series: ColumnSeries[];
   valueSuffix?: string;
-  /** Letzte Säule orange (teuerster Kanal, Planwert). */
+  /** Letzte Säule orange (teuerster Kanal, eigener Marktanteil). */
   highlightLast?: boolean;
+  /** Eigene Wertbeschriftung je Säule (z. B. „< 0,1 %“). */
+  valueLabels?: string[];
 }) {
-  const width = 640;
-  const height = 260;
-  const pad = { top: 24, right: 12, bottom: 36, left: 44 };
+  const height = 240;
+  const top = 22;
+  const bottom = 30;
   const all = series.flatMap((s) => s.values);
-  const maxV = niceCeil(Math.max(...all, 0));
-  const minV = -niceCeil(-Math.min(...all, 0));
-  const span = maxV - minV || 1;
-  const innerH = height - pad.top - pad.bottom;
-  const innerW = width - pad.left - pad.right;
-  const y = (v: number) => pad.top + ((maxV - v) / span) * innerH;
-  const group = innerW / Math.max(labels.length, 1);
-  const barW = Math.min(34, (group * 0.62) / Math.max(series.length, 1));
   const ticks = 4;
+  const step = niceCeil(Math.max(Math.max(...all, 0), -Math.min(...all, 0)) / ticks) || 1;
+  const maxV = Math.ceil(Math.max(...all, 0) / step) * step || step;
+  const minV = Math.floor(Math.min(...all, 0) / step) * step;
+  const span = maxV - minV || 1;
+  const innerH = height - top - bottom;
+  const y = (v: number) => top + ((maxV - v) / span) * innerH;
+  const tickCount = Math.round(span / step);
+  const group = 100 / Math.max(labels.length, 1);
+  const barW = Math.min((group * 0.7) / Math.max(series.length, 1), 7);
+  const pct = (value: number) => `${value.toFixed(3)}%`;
   return (
     <>
-      <svg className="pk-columns" viewBox={`0 0 ${width} ${height}`} role="img" aria-hidden="true">
-        {Array.from({ length: ticks + 1 }, (_, i) => {
-          const v = minV + (span * i) / ticks;
-          return (
-            <g key={i}>
-              <line
-                className="pk-svg-grid"
-                x1={pad.left}
-                x2={width - pad.right}
-                y1={y(v)}
-                y2={y(v)}
-              />
-              <text className="pk-svg-text" x={pad.left - 6} y={y(v) + 4} textAnchor="end">
-                {fmt(Math.round(v))}
+      <div className="pk-colchart">
+        <svg className="pk-colchart__axis" width="44" height={height} aria-hidden="true">
+          {Array.from({ length: tickCount + 1 }, (_, i) => {
+            const v = minV + step * i;
+            return (
+              <text key={i} className="pk-svg-text" x="38" y={y(v) + 4} textAnchor="end">
+                {fmt(v)}
               </text>
-            </g>
-          );
-        })}
-        {labels.map((label, li) => {
-          const gx = pad.left + group * li + (group - barW * series.length) / 2;
-          return (
-            <g key={label}>
-              {series.map((s, si) => {
-                const v = s.values[li] ?? 0;
-                const top = y(Math.max(v, 0));
-                const h = Math.max(2, Math.abs(y(v) - y(0)));
-                const tone =
-                  highlightLast && li === labels.length - 1 ? 'orange' : (s.tone ?? 'cyan');
-                return (
-                  <g key={s.name} data-tone={tone}>
-                    <rect
-                      className="pk-fill"
-                      x={gx + si * barW + 2}
-                      y={top}
-                      width={barW - 4}
-                      height={h}
-                      rx="3"
-                    />
-                    {series.length === 1 ? (
-                      <text
-                        className="pk-svg-text"
-                        data-strong="true"
-                        x={gx + barW / 2}
-                        y={top - 6}
-                        textAnchor="middle"
-                      >
-                        {fmt(v)}
-                        {valueSuffix}
-                      </text>
-                    ) : null}
-                  </g>
-                );
-              })}
-              <text
-                className="pk-svg-text"
-                x={pad.left + group * li + group / 2}
-                y={height - 12}
-                textAnchor="middle"
-              >
-                {label}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+            );
+          })}
+        </svg>
+        <svg className="pk-colchart__plot" width="100%" height={height} aria-hidden="true">
+          {Array.from({ length: tickCount + 1 }, (_, i) => {
+            const v = minV + step * i;
+            return <line key={i} className="pk-svg-grid" x1="0" x2="100%" y1={y(v)} y2={y(v)} />;
+          })}
+          {labels.map((label, li) => {
+            const start = group * li + (group - barW * series.length) / 2;
+            return (
+              <g key={label}>
+                {series.map((s, si) => {
+                  const v = s.values[li] ?? 0;
+                  const barTop = y(Math.max(v, 0));
+                  const h = Math.max(2, Math.abs(y(v) - y(0)));
+                  const tone =
+                    highlightLast && li === labels.length - 1 ? 'orange' : (s.tone ?? 'cyan');
+                  const x = start + si * barW;
+                  return (
+                    <g key={s.name} data-tone={tone}>
+                      <rect
+                        className="pk-fill"
+                        x={pct(x + barW * 0.08)}
+                        y={barTop}
+                        width={pct(barW * 0.84)}
+                        height={h}
+                        rx="3"
+                      />
+                      {series.length === 1 ? (
+                        <text
+                          className="pk-svg-text pk-colchart__value"
+                          data-strong="true"
+                          x={pct(x + barW / 2)}
+                          y={barTop - 6}
+                          textAnchor="middle"
+                        >
+                          {valueLabels?.[li] ?? `${fmt(v)}${valueSuffix}`}
+                        </text>
+                      ) : null}
+                    </g>
+                  );
+                })}
+                <text
+                  className="pk-svg-text pk-colchart__label"
+                  x={pct(group * li + group / 2)}
+                  y={height - 10}
+                  textAnchor="middle"
+                >
+                  {label}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
       {series.length > 1 ? (
         <ul className="pk-legend">
           {series.map((s) => (

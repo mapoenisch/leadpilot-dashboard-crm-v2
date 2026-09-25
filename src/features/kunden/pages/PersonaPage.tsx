@@ -1,54 +1,57 @@
+import { Megaphone, Target, UserRound, Zap } from 'lucide-react';
 import { PERSONA } from '@/domain/kundenData';
 import { DataState } from '@/components/ui/DataState';
+import { Grid, KeyValueList, PageHero, Panel, Quote, ToneList } from '@/components/pageKit';
 
 // 067I / G53: Echte Persona-Seite statt WebP — genau eine h1,
 // Stammdaten als Definitionsliste, Ziele und Hürden als Listen.
+// Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (05-buyer-persona-volker).
 export function PersonaPage() {
   return (
-    <div>
-      <h1>Buyer Persona {PERSONA.name}</h1>
-      <p>
-        {PERSONA.role}, {String(PERSONA.age)} Jahre: {PERSONA.companyType}.
-      </p>
+    <div className="pk-page">
+      <PageHero
+        eyebrow="Kunden"
+        title={`Buyer Persona „${PERSONA.name}“`}
+        subtitle="Entscheiderprofil im B2B-Mittelstand."
+        pills={['Entscheiderprofil', PERSONA.role]}
+      />
       <DataState status="ready" emptyText="Keine Persona erfasst.">
-        <section aria-label="Stammdaten">
-          <h2>Stammdaten</h2>
-          <dl>
-            <div>
-              <dt>Rolle</dt>
-              <dd>{PERSONA.role}</dd>
-            </div>
-            <div>
-              <dt>Paket-Fit</dt>
-              <dd>{PERSONA.packageFit}</dd>
-            </div>
-          </dl>
-          <p>{PERSONA.quote}</p>
-        </section>
-        <section aria-label="Ziele">
-          <h2>Ziele</h2>
-          <ul>
-            {PERSONA.goals.map((goal) => (
-              <li key={goal}>{goal}</li>
-            ))}
-          </ul>
-        </section>
-        <section aria-label="Hürden">
-          <h2>Hürden</h2>
-          <ul>
-            {PERSONA.painPoints.map((pain) => (
-              <li key={pain}>{pain}</li>
-            ))}
-          </ul>
-        </section>
-        <section aria-label="Kanäle">
-          <h2>Kanäle</h2>
-          <ul>
-            {PERSONA.channels.map((channel) => (
-              <li key={channel}>{channel}</li>
-            ))}
-          </ul>
-        </section>
+        <Panel
+          title={PERSONA.name}
+          toneTitle
+          chip={`${String(PERSONA.age)} Jahre – ${PERSONA.role}`}
+          chipTone="neutral"
+        >
+          <Quote>{PERSONA.quote}</Quote>
+          <Grid cols="2">
+            <Panel title="Ziele" icon={Target} toneTitle headingLevel={3}>
+              <ToneList items={PERSONA.goals} />
+            </Panel>
+            <Panel
+              title="Schmerzpunkte (Pain Points)"
+              tone="red"
+              icon={Zap}
+              toneTitle
+              headingLevel={3}
+            >
+              <ToneList items={PERSONA.painPoints} tone="red" />
+            </Panel>
+          </Grid>
+        </Panel>
+        <Grid cols="2">
+          <Panel title="Stammdaten" icon={UserRound}>
+            <KeyValueList
+              rows={[
+                ['Rolle', PERSONA.role],
+                ['Unternehmen', PERSONA.companyType],
+                ['Paket-Fit', PERSONA.packageFit],
+              ]}
+            />
+          </Panel>
+          <Panel title="Kanäle" tone="orange" icon={Megaphone}>
+            <ToneList items={PERSONA.channels} tone="orange" />
+          </Panel>
+        </Grid>
       </DataState>
     </div>
   );
