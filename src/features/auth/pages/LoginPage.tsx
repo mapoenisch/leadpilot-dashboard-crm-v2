@@ -43,9 +43,11 @@ export function LoginPage() {
         <div className="flex flex-col items-center text-center mb-6">
           <div className="flex items-center gap-3 mb-2">
             <img
-              src="/assets/logo/leadpilot-logo-full.png"
+              src="/assets/logo/leadpilot-logo.png"
               alt="LeadPilot Logo"
-              className="h-8 object-contain"
+              width={71}
+              height={32}
+              className="h-8 w-[71px] object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}

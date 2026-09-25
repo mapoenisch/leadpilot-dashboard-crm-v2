@@ -61,17 +61,22 @@ echter Text, genau eine h1, Tabellen, Listen und Chart-Zusammenfassungen.
 
 ## Tasks
 
-- [ ] **1. Roter Start:** Test, der für jede der 32 Seiten Gestaltung verlangt
+- [x] **1. Roter Start:** Test, der für jede der 32 Seiten Gestaltung verlangt
       (Seitenkopf mit Eyebrow, mindestens ein gestaltetes Panel) und das echte Logo in
       Sidebar und Login prüft. Vor dem Umbau rot.
-- [ ] **2. Page-Kit:** Seitenkopf (Eyebrow, Titel, Untertitel, Pills, Rasterleuchten),
+- [x] **2. Page-Kit:** Seitenkopf (Eyebrow, Titel, Untertitel, Pills, Rasterleuchten),
       Glow-Panel in den Tönen Cyan/Rot/Orange/Neutral mit Icon-Kachel, Aufzählungen mit
       Farbpunkten, Schlüssel-Wert-Liste, gestaltete Tabelle mit Chips und
       Hervorhebungszeilen, Balkenliste, Säulendiagramm, Donut, KPI-Kachel, Hinweisbox,
       Zitat. Alles responsiv (1440/768/375).
-- [ ] **3. Seiten:** alle 32 Seiten nach ihrer v2.2.0-Vorlage aufbauen.
-- [ ] **4. Logo:** echtes Logo als Modul-Import in Sidebar und Login, Favicon aus dem
-      Original. Das erfundene Zeichen entfällt.
+- [x] **3. Seiten:** alle 32 Seiten nach ihrer v2.2.0-Vorlage aufbauen.
+- [x] **4. Logo:** echtes Logo in Sidebar und Login, Favicon aus dem Original. Das
+      erfundene Zeichen entfällt. *Umsetzung:* statt Modul-Import des 667-KB-Originals
+      (lädt auf jeder Seite) liegen verkleinerte Ableitungen in `public/assets/logo/`
+      (`leadpilot-logo.png` 249×112 px, 21 KB; `leadpilot-favicon.png` 64×64 px aus dem
+      Netzwerk-Symbol). `public/` wird unverändert nach `dist/` kopiert, damit build-fest;
+      erzeugt per Browser-Canvas aus `assets/logo/leadpilot-logo-full.png`, ohne neue
+      Abhängigkeit.
 - [ ] **5. Design-Gate:** Screenshot-Harness für alle 32 Seiten plus Login und Sidebar auf
       1440/768/375: Vorher (v2.3.0) und Nachher, SHA-256 verschieden, 0 px horizontaler
       Überlauf, dazu die Vorlage aus v2.2.0 zum Sichtvergleich. Ergebnis-Matrix in

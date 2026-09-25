@@ -129,11 +129,11 @@ export function Sidebar({
       <div className="border-0 flex items-center justify-between gap-[var(--space-3)] border-b border-solid border-border-soft p-[var(--space-4)]">
         <div className="flex items-center gap-[var(--space-3)]">
           <img
-            src="/assets/logo/leadpilot-mark.svg"
+            src="/assets/logo/leadpilot-logo.png"
             alt="LeadPilot Logo"
-            width={26}
+            width={58}
             height={26}
-            className="h-[26px] w-[26px] object-contain"
+            className="h-[26px] w-[58px] object-contain"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
