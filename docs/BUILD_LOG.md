@@ -13295,3 +13295,5 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
 - **GitHub-Release:** „LeadPilot v2.3.0“ auf dem Tag `v2.3.0`, Text aus `docs/releases/V2.3.0.md` mit absoluten Links auf den Tag.
 - **Masterplan Task 19, Step 7, erfüllt:** signierter Release-Commit, annotierter Tag, Push, danach grüne GitHub Actions.
 - **Rollen:** Mit dem Release endet der Rollenwechsel aus `CLAUDE.md` §4. Ab jetzt gilt wieder die vorherige Verteilung (Antigravity baut, Codex/Claude Code prüfen), sofern Marc nichts anderes festlegt.
+- **Bekannte Abweichung im getaggten Stand (Codex-Review PR #33):** `docs/releases/V2.3.0.md` im Tag `v2.3.0` nennt noch den Status vor der Veröffentlichung. Der veröffentlichte Tag wird nicht verschoben. Maßgeblich sind `main` und das GitHub-Release; die Datei auf `main` trägt dazu einen Hinweis.
+- **BUILD_PLAN:** Masterauftrag 067 als abgeschlossen gekennzeichnet, alte Arbeitsanweisungen (Detailauftrag vor 067Q, Deploy-Sperre vor G65) als historisch markiert. Nächster Auftrag: noch nicht festgelegt (Entscheidung Marc).
