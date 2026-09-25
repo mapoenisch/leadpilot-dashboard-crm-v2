@@ -5,6 +5,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createElement, type ComponentType } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { FULL_PAGE_WEBP_ROUTES } from '../fixtures/fullPageWebpRoutes';
 
@@ -14,8 +17,27 @@ function readRepo(relativePath: string): string {
   return readFileSync(resolve(repoRoot, relativePath), 'utf-8');
 }
 
+// Auftrag 068 / G66 (Freigabe Marc, 25.09.2026): PR-SEMANTIC-11 prüft das
+// gerenderte HTML der Seite statt ihres Quelltexts. Seit v2.3.1 liegen h1,
+// Abschnitte und Tabellen in gemeinsamen Page-Kit-Bausteinen (PageHero,
+// Panel, KitTable); eine Textsuche im Seitenquelltext findet sie dort nicht.
+// Die Regeln selbst sind unverändert.
+async function renderPage(relativePath: string): Promise<string> {
+  const module = (await import(resolve(repoRoot, relativePath))) as Record<string, unknown>;
+  const name = Object.keys(module).find((key) => key.endsWith('Page'));
+  if (!name) throw new Error(`${relativePath}: keine *Page-Komponente exportiert`);
+  // Datenbasis nutzt React Query; ein leerer Client genügt für das Erst-Rendering.
+  return renderToStaticMarkup(
+    createElement(
+      QueryClientProvider,
+      { client: new QueryClient() },
+      createElement(module[name] as ComponentType),
+    ),
+  );
+}
+
 describe('v2.3.0 frontend findings', () => {
-  it('[PR-SEMANTIC-11] liefert Fachinhalt ohne Ganzseitenbild', () => {
+  it('[PR-SEMANTIC-11] liefert Fachinhalt ohne Ganzseitenbild', async () => {
     expect(FULL_PAGE_WEBP_ROUTES, 'exakt 33 Bildseiten erfasst').toHaveLength(33);
     expect(
       FULL_PAGE_WEBP_ROUTES.map((entry) => entry.file),
@@ -38,7 +60,7 @@ describe('v2.3.0 frontend findings', () => {
       '3 Organisation',
     ).toBe(3);
     for (const entry of FULL_PAGE_WEBP_ROUTES) {
-      const source = readRepo(entry.file);
+      const source = await renderPage(entry.file);
       const h1Count = (source.match(/<h1[\s>]/g) ?? []).length;
       expect.soft(h1Count, `${entry.route}: genau eine sichtbare h1`).toBe(1);
       expect
