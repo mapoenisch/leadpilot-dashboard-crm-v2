@@ -12,6 +12,7 @@
     "verify": "npx tsx scripts/verifyIntegrity.ts",
     "verify:licenses": "node scripts/checkThirdPartyLicenses.mjs",
     "verify:migrations": "node scripts/verifyMigrationUpgrade.mjs",
+    "verify:backup": "node scripts/verifyBackupRestore.mjs",
     "verify:facelift": "tsx scripts/verifyFacelift.ts",
     "test": "vitest run",
     "test:watch": "vitest",

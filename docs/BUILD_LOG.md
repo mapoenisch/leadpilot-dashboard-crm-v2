@@ -13194,3 +13194,21 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
 ### Nacharbeit nach Codex-Bot-Review PR #30 (25.09.2026)
 - **P1 Produktivkonfiguration:** Die Prüfung liest jetzt über Vites `loadEnv('production', root, 'VITE_')` genau die Dateien und die Präzedenz des anschließenden `vite build --mode production`. Das sind `.env`, `.env.local`, `.env.production` und `.env.production.local`; VITE_-Umgebungswerte haben Vorrang. Bisher fehlten die beiden `*.local`-Dateien. Ein neuer Test belegt, dass ein service_role-Schlüssel in `.env.production.local` den Check rot macht; mit dem alten Dateileser wäre er grün geblieben.
 - **P2 Policy-Ausnahme:** Die Live-KPI-Ausnahme im Migrationsnachweis vergleicht jetzt die vollständige Definition (`SELECT`, `{anon,authenticated}`, `USING (true)`, ohne `WITH CHECK`, permissive) statt nur den Namen. Gegenprobe: Nach `ALTER POLICY … TO public` passt der Eintrag nicht mehr zur Ausnahme und würde rot gemeldet. `npm run verify:migrations` ist weiterhin grün.
+
+### Nacharbeit nach Codex-Prüfbefund zu PR #30 (Marc, 25.09.2026)
+- **Befund 1 (Konfigurationscheck umgehbar):** Der Befund bezog sich auf `4351d6a` und ist mit `ea91f8a` bereits behoben (siehe oben, P1). Gegenprobe mit genau dem gemeldeten Szenario auf dem aktuellen Stand: gültige Werte in `.env` und `sb_secret_…` in `.env.production.local` ergeben ROT („privilegierter Schlüssel“).
+- **Befund 2 (Backup ohne `auth`):** Per `supabase db dump --dry-run` geprüft:
+  - Der Datendump (`--data-only`) enthält `auth`, also Benutzer, Identitäten und Sitzungen.
+  - Der Schemadump schließt `auth` aus. Damit ginge unser Trigger `on_auth_user_confirmed_accept_invitation` auf `auth.users` verloren.
+  - Eine getestete Wiederherstellung fehlte.
+- **Behebung:**
+  - Das Runbook (Abschnitt 3) sichert Rollen, Schema und Daten mit `--use-copy`; ausgenommen sind nur die zwei für `postgres` gesperrten Storage-Vektortabellen. Es dokumentiert, was jede Datei enthält.
+  - Neuer Abschnitt 7 „Wiederherstellung“: Die Struktur kommt aus den Migrationen (inklusive Trigger auf `auth.users`), die Daten inklusive `auth` aus dem Dump.
+  - Neu ist `scripts/verifyBackupRestore.mjs` (`npm run verify:backup`). Es läuft in der CI als letzter Schritt des e2e-Jobs und im Orchestrator als Gate `backup` (27).
+- **Nachweis lokal:**
+  - Ausgangsstand: Login admin-a, RLS liefert 3 Companies aus 1 Organisation.
+  - Backup mit 48 Tabellen inklusive `auth.users` und `auth.identities`.
+  - `supabase db reset --no-seed` hinterlässt 0 Benutzer.
+  - Nach der Wiederherstellung sind die Zeilen aller 48 Tabellen, die Prüfsummen über `auth.users`/`auth.identities` und der Trigger identisch. Der Login des wiederhergestellten Benutzers gelingt, RLS liefert nur die eigene Organisation.
+  - Danach ist `supabase test db` grün (PASS).
+- **Rollback-Doku:** Der Weg über das Backup verweist auf Abschnitt 7. Ein Backup aus v2.2.0 enthält keine Supabase-Auth-Benutzer.

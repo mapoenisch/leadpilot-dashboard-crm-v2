@@ -215,6 +215,10 @@ jobs:
         run: npm run verify:v23:baseline
       - name: ReleaseReadiness Orchestrator (Fail-Closed)
         run: npx tsx scripts/verifyV23ReleaseReadiness.ts
+      # G65 (Codex-Review PR #30): Backup inkl. auth, Totalverlust (db reset --no-seed),
+      # Wiederherstellung, Login-Nachweis. Setzt die lokale DB zurück, deshalb als letzter Schritt.
+      - name: Backup- und Wiederherstellungsnachweis (inkl. Auth-Benutzer)
+        run: npm run verify:backup
       - name: Lokales Supabase-Backend stoppen
         if: always()
         run: supabase stop

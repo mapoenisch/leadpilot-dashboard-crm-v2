@@ -90,6 +90,13 @@ export const GATES = [
     needs: ['sql-rls'],
     steps: [['npm', 'run', 'verify:migrations']],
   },
+  // Setzt die lokale DB zurück und stellt sie aus dem Backup wieder her: immer zuletzt.
+  {
+    id: 'backup',
+    code: 27,
+    needs: ['migrations'],
+    steps: [['npm', 'run', 'verify:backup']],
+  },
 ];
 
 function listArg(argv, name) {

@@ -68,6 +68,7 @@ Finding `PR-LICENSE-19`, Issue #9.
 | `scripts/v23FindingReadiness.ts`, `scripts/__tests__/v23FindingReadiness.vitest.ts`                                              | ändern (keine G65-Ausnahme mehr nötig)                                    |
 | `docs/reviews/v2.3.0-acceptance-matrix.md`                                                                                       | ändern (§19, §21, §22 auf Nachweis)                                       |
 | `scripts/checkProductionConfig.mjs`, `scripts/__tests__/checkProductionConfig.vitest.ts` | neu (Spec §19: kein Produktivbuild mit fehlenden Pflichtwerten, `npm run build:production`) |
+| `scripts/verifyBackupRestore.mjs` | neu (Prüfbefund Codex zu PR #30: Backup inkl. `auth`, Totalverlust, Wiederherstellung, Login; `npm run verify:backup`, CI, Orchestrator-Gate `backup` 27) |
 | `scripts/runV23Acceptance.mjs`, `scripts/__tests__/runV23Acceptance.vitest.ts` | ändern (Gates `licenses` 25 und `migrations` 26) |
 | `src/features/auth/pages/LoginPage.tsx` | ändern (Versionsangabe `V2.3.0` statt `V2.2.0-Härtung`) |
 | `docs/screenshots/auftrag-067s/README.md` | neu (Login vorher/nachher) |

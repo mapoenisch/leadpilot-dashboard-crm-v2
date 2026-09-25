@@ -51,6 +51,7 @@ describe('runV23Acceptance', () => {
       'readiness',
       'licenses',
       'migrations',
+      'backup',
     ]);
   });
 
