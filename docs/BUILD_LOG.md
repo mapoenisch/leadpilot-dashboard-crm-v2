@@ -13297,3 +13297,62 @@ Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach e
 - **Rollen:** Mit dem Release endet der Rollenwechsel aus `CLAUDE.md` §4. Ab jetzt gilt wieder die vorherige Verteilung (Antigravity baut, Codex/Claude Code prüfen), sofern Marc nichts anderes festlegt.
 - **Bekannte Abweichung im getaggten Stand (Codex-Review PR #33):** `docs/releases/V2.3.0.md` im Tag `v2.3.0` nennt noch den Status vor der Veröffentlichung. Der veröffentlichte Tag wird nicht verschoben. Maßgeblich sind `main` und das GitHub-Release; die Datei auf `main` trägt dazu einen Hinweis.
 - **BUILD_PLAN:** Masterauftrag 067 als abgeschlossen gekennzeichnet, alte Arbeitsanweisungen (Detailauftrag vor 067Q, Deploy-Sperre vor G65) als historisch markiert. Nächster Auftrag: noch nicht festgelegt (Entscheidung Marc).
+
+---
+
+## [2026-09-25] Auftrag 068 / G66 — v2.3.1 Design-Wiederherstellung (Builder-Bericht Claude Code, Zwischenstand)
+
+**Ziel & Kontext:** v2.3.0 lieferte die 32 G52–G55-Inhaltsseiten ohne Gestaltung aus und ersetzte
+das echte Logo durch ein erfundenes Zeichen. Auftrag 068 stellt das v2.2.0-Design wieder her, die
+Semantik aus G52–G55 bleibt. Builder Claude Code (Entscheidung Marc, 25.09.2026), Prüfer Codex.
+Branch `claude/fervent-cray-2snu5b` (übernimmt die Commits von `claude/ci-quality-baselines-reduce-u1yo54`),
+Schutzbereichs-Baseline `e63eec5`.
+
+**Geänderte Dateien:**
+- Neu: `src/components/pageKit/**` (PageHero, Panel, Grid, Chip, KitTable, StatTile, ToneList,
+  KeyValueList, RowList, FeatureList, Callout, Quote, BarList, ColumnChart, LineChart, Donut, Meter,
+  `pageKit.css`), `src/app/__tests__/g66DesignRestore.ui.vitest.tsx`,
+  `public/assets/logo/leadpilot-logo.png` (249×112 px, 21 KB), `public/assets/logo/leadpilot-favicon.png`
+  (64×64 px), `docs/releases/V2.3.1.md`, `docs/screenshots/auftrag-068/README.md`,
+  `scripts/captureAuftrag068Screenshots.mjs` (inkl. `SUPABASE_MOCK=1`).
+- Geändert: die 32 Seiten unter `src/features/{finanzen,recht,strategie,markt,kunden,vertrieb,overview,unternehmen,produkt,organisation}/pages/`,
+  `src/components/layout/Sidebar.tsx`, `src/features/auth/pages/LoginPage.tsx`, `index.html`,
+  `package.json`/`package-lock.json` (2.3.1), Tests der umgebauten Vertriebs-/Wettbewerbsseiten
+  (`ChannelsPage.branch3`, `FunnelPage.branch3`, `VertriebPages.branch2`, `CompetitionPage.branch3`),
+  `BUILD_PLAN.md`, Auftragsdatei 068.
+- Entfernt: `public/assets/logo/leadpilot-mark.svg` (erfundenes Zeichen).
+
+**Funktionale Prüfungen:**
+- Roter Start: `g66DesignRestore` auf `e63eec5` → 34 von 35 Prüfungen rot; auf dem Branch 35/35 grün.
+- Alle 32 Seiten: Seitenkopf mit Eyebrow, genau eine h1, gestaltete Flächen, nur `pk-table`-Tabellen,
+  Chart-Zusammenfassungen (`data-testid="chart-summary"`) erhalten; G52–G55-jsdom-Tests grün.
+- Datentreue: Werte nur aus `src/domain/*`; Abweichungen von der Vorlage (fehlende Datengrundlage)
+  sind in `docs/screenshots/auftrag-068/README.md` aufgeführt (u. a. „Engpass“ aus `TEAM.bottlenecks`
+  statt „Kapazitätsfokus“, Stammkapital 31.250,00 € statt 25.000 € der Vorlage).
+- Logo: Sidebar und Login `/assets/logo/leadpilot-logo.png`, Favicon `/assets/logo/leadpilot-favicon.png`,
+  beide in `dist/assets/logo/` nach `npm run build` vorhanden.
+
+**Schutzbereichs-Prüfung:** `git diff e63eec5 --stat -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
+
+**Automatisierte Verifikation (lokal, Branch-Stand):**
+- `npx tsc --noEmit` 0 Fehler · `npm run lint` 0 Warnungen · `npm run format:check` grün
+- `npx vitest run` 274 Dateien / 1540 Tests grün · `npm run verify` 001–025 grün · `npm run build` grün
+- `npm run verify:quality-budget` im Budget (Inline-Styles `src/` = 0) · `npx size-limit` 175,41 / 180 kB
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-068/README.md` — 99 Paare (32 Seiten + Login × 3 Breiten),
+SHA-256 in 0 von 99 Fällen gleich, horizontaler Überlauf vorher 2 (375 px), nachher 0. Lauf ohne Docker mit
+`SUPABASE_MOCK=1` gegen die echte App.
+
+**Offene Blocker (nicht freigabereif):**
+1. **`test:v23:findings` / CI-Schritt `verify:v23:baseline`:** `PR-SEMANTIC-11` in
+   `src/review/acceptance/frontend.acceptance.ts` prüft die Seiten-**Quelltexte** per Regex auf ein
+   literales `<h1`, `<section|table|ul…>` und Text in `<p|li|td|th>`. Mit dem Page-Kit steckt die h1 im
+   gemeinsamen `PageHero`, Tabellen und Abschnitte in `KitTable`/`Panel`; gerendert hat jede Seite genau
+   eine h1 (G52–G55- und G66-Tests). Der Vertrag liegt außerhalb der Ziel-Dateien von 068 → Rückfrage an
+   Marc, ob er auf eine Render-Prüfung umgestellt werden darf.
+2. **Visuelle CI-Baselines (`e2e/visual.spec.ts`):** Alle Referenzbilder zeigen die Sidebar; mit dem echten
+   Logo und den neuen Seiten weichen sie zwangsläufig ab. Neuerzeugung nur über einen Branch
+   `visual-baselines/**` (Workflow `update-visual-baselines.yml`) → Rückfrage an Marc.
+
+**Ergebnis & Freigabestatus:** Builder-Tasks 1–6 umgesetzt, lokal grün bis auf Blocker 1. Kein PR, keine
+Gate-Freigabe; G66 wartet auf Marcs Entscheidung zu den Blockern und danach auf das Codex-Review.

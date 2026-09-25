@@ -10,6 +10,12 @@
  * Aufruf: node scripts/captureAuftrag068Screenshots.mjs <label>   (z. B. before | after)
  * Voraussetzung: lokales Supabase läuft (`supabase start`, `db reset` mit Seed),
  * Dev-Server auf BASE_URL (Standard http://localhost:3000) mit VITE_SUPABASE_*.
+ *
+ * Ohne Docker/Supabase: SUPABASE_MOCK=1 fängt die Supabase-Aufrufe im Browser ab
+ * (Passwort-Login, aktive Admin-Mitgliedschaft, sonst leere Antworten). Der
+ * Dev-Server läuft dann mit VITE_SUPABASE_URL=http://supabase.mock und einem
+ * beliebigen VITE_SUPABASE_ANON_KEY. Die 32 Inhaltsseiten lesen ihre Werte aus
+ * src/domain/* und sind davon unabhängig; nur Layout und Login brauchen die Sitzung.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,7 +27,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LABEL = process.argv[2] ?? 'after';
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';
 const EMAIL = process.env.E2E_AUTH_EMAIL ?? 'admin-a@e2e.local';
-const PASSWORD = process.env.E2E_AUTH_PASSWORD;
+const MOCK = process.env.SUPABASE_MOCK === '1';
+const PASSWORD = process.env.E2E_AUTH_PASSWORD ?? (MOCK ? 'mock-passwort' : undefined);
 const OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-068', LABEL);
 
 export const ROUTES = [
@@ -65,6 +72,73 @@ const VIEWPORTS = [
   { key: '375', width: 375, height: 812 },
 ];
 
+const b64url = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+
+/** Supabase-Attrappe für Gate-Läufe ohne Docker (nur Auth + leere Daten). */
+async function mockSupabase(context) {
+  const now = Math.floor(Date.now() / 1000);
+  const user = {
+    id: '00000000-0000-4000-8000-000000000068',
+    aud: 'authenticated',
+    role: 'authenticated',
+    email: EMAIL,
+    app_metadata: { provider: 'email' },
+    user_metadata: {},
+    created_at: new Date().toISOString(),
+  };
+  const token = `${b64url({ alg: 'HS256', typ: 'JWT' })}.${b64url({
+    sub: user.id,
+    email: EMAIL,
+    role: 'authenticated',
+    aud: 'authenticated',
+    exp: now + 3600,
+    iat: now,
+  })}.mock`;
+  const json = (route, body, status = 200) =>
+    route.fulfill({
+      status,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify(body),
+    });
+  await context.route('http://supabase.mock/**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') {
+      return route.fulfill({
+        status: 204,
+        headers: {
+          'access-control-allow-origin': '*',
+          'access-control-allow-headers': '*',
+          'access-control-allow-methods': '*',
+        },
+      });
+    }
+    if (url.pathname.startsWith('/auth/v1/token')) {
+      return json(route, {
+        access_token: token,
+        token_type: 'bearer',
+        expires_in: 3600,
+        expires_at: now + 3600,
+        refresh_token: 'mock-refresh',
+        user,
+      });
+    }
+    if (url.pathname.startsWith('/auth/v1/user')) return json(route, user);
+    if (url.pathname.startsWith('/auth/v1/logout')) return route.fulfill({ status: 204 });
+    if (url.pathname.startsWith('/rest/v1/organization_members')) {
+      return json(route, {
+        organization_id: '00000000-0000-4000-8000-0000000000a1',
+        role: 'admin',
+        status: 'active',
+        organizations: { status: 'active' },
+      });
+    }
+    const single = (request.headers()['accept'] ?? '').includes('vnd.pgrst.object');
+    return json(route, single ? null : []);
+  });
+}
+
 const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const slug = (route) => route.replace(/^\//, '').replace(/\//g, '_') || 'root';
 
@@ -78,6 +152,7 @@ async function main() {
   const manifest = [];
   for (const vp of VIEWPORTS) {
     const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+    if (MOCK) await mockSupabase(context);
     const page = await context.newPage();
 
     await page.goto(`${BASE_URL}/login`);
@@ -95,9 +170,13 @@ async function main() {
       await page.goto(`${BASE_URL}${route}`);
       await page.getByRole('heading', { level: 1 }).first().waitFor({ timeout: 20_000 });
       await page.waitForTimeout(400);
-      const overflowPx = await page.evaluate(
-        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      );
+      // Überlauf im Dokument und im scrollenden Hauptbereich (#main-content).
+      const overflowPx = await page.evaluate(() => {
+        const doc = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+        const main = document.getElementById('main-content');
+        const inner = main ? main.scrollWidth - main.clientWidth : 0;
+        return Math.max(doc, inner);
+      });
       const file = path.join(OUT_DIR, `${slug(route)}_${vp.key}.png`);
       await page.screenshot({ path: file, fullPage: true });
       manifest.push({ route, viewport: vp.key, sha256: sha256(file), overflowPx });
