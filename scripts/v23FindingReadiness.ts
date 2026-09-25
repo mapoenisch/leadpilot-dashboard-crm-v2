@@ -20,6 +20,8 @@ import {
 } from '../src/review/acceptance/compareFindingResults.js';
 
 export const RELEASE_GATE = 'G65';
+/** Einzige vor G65 zulässig offene Findings (Codex-Review #28: explizite ID-Menge). */
+export const RELEASE_GATE_FINDINGS: readonly string[] = ['PR-LICENSE-19'];
 
 export interface FindingCheckMetric {
   id: number;
@@ -118,7 +120,9 @@ export function checkFindings(options: FindingCheckOptions): FindingCheckResult 
   }
 
   const openBeforeRelease = known.filter(
-    (finding) => finding.expected === 'failing' && finding.targetGate !== RELEASE_GATE,
+    (finding) =>
+      finding.expected === 'failing' &&
+      !(finding.targetGate === RELEASE_GATE && RELEASE_GATE_FINDINGS.includes(finding.id)),
   );
   if (openBeforeRelease.length > 0) {
     return open(

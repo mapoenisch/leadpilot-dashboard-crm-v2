@@ -93,6 +93,23 @@ function listArg(argv, name) {
     .filter(Boolean);
 }
 
+/**
+ * Das Ausgabeziel wird vor jedem Lauf rekursiv geleert. Zulässig ist deshalb
+ * nur ein echter Unterordner von artifacts/ — nie der Repo-Root, artifacts/
+ * selbst, ein Vorfahr oder ein Pfad außerhalb (Codex-Review #28).
+ */
+export function resolveOutDir(value, root = ROOT) {
+  const artifactsRoot = path.join(root, 'artifacts');
+  const resolved = path.resolve(root, value);
+  const relative = path.relative(artifactsRoot, resolved);
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error(
+      `Ausgabeziel muss ein Unterordner von ${path.relative(root, artifactsRoot) || 'artifacts'}/ sein: ${value}`,
+    );
+  }
+  return resolved;
+}
+
 /** Wertet die Argumente aus; unbekannte Gate-IDs sind ein Bedienfehler (Exit 1). */
 export function parseArgs(argv, gates = GATES) {
   const known = new Set(gates.map((g) => g.id));
@@ -108,7 +125,7 @@ export function parseArgs(argv, gates = GATES) {
     skip,
     failFast: argv.includes('--fail-fast'),
     list: argv.includes('--list'),
-    outDir: path.resolve(ROOT, outArg ? outArg.slice('--out='.length) : 'artifacts/v2.3.0'),
+    outDir: resolveOutDir(outArg ? outArg.slice('--out='.length) : 'artifacts/v2.3.0'),
   };
 }
 

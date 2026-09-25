@@ -12905,3 +12905,78 @@ Prüfer · **Ergebnis:** Freigabe; der P2-Befund ist behoben.
   UI-Dateien gültig.
 
 **Übergabe an Claude Code:** PR #25 ist aus Prüfersicht freigegeben.
+
+---
+
+## [2026-09-25] Gate G64 / Auftrag 067R: Vollständige Abnahme v2.3.0 (Builder Claude Code)
+
+**Ziel & Kontext:** Jede Spec-Anforderung, jedes G44-Finding und jedes Issue ist
+einem grünen, frischen Nachweis zugeordnet
+([Auftrag](auftraege/ANTIGRAVITY_AUFTRAG_067R_GESAMTABNAHME.md),
+[Matrix](reviews/v2.3.0-acceptance-matrix.md)).
+
+- **Branch:** `claude/067r-acceptance` (PR #28), gestapelt auf #27.
+- **Schutzbereichs-Baseline:** `9877697`.
+- **Entscheid Marc Poenisch (25.09.2026):** Veraltete G44-Verträge werden nach dem Muster G46/PR-SEED-05 neu ausgerichtet.
+
+### Roter Start
+- `vitest.v23-findings.config.ts`: 13 grün, 7 rot. Rot waren SOURCE-04, BASELINE-06, FREEZE-07, PERSIST-08, WORKER-09, SEMANTIC-11 und LICENSE-19.
+- `known-findings.json` führte 12 Findings als `failing`, darunter HUBSPOT-10, A11Y-12, CLIP-13 und ASSET-14, die tatsächlich grün sind.
+- `verify:v23:baseline` lief in keiner CI.
+
+### Befunde und Behebung
+1. **PR-SOURCE-04 (Restlücke):** `CRMRepository` ersetzte bei konfiguriertem Supabase Fehler oder leere Tabellen still durch Demodaten.
+   - Die Lesepfade sind jetzt fail-closed: Fehler werden zu `DataSourceError('FETCH_FAILED')` mit `DATA_SOURCE_UNAVAILABLE`, leer bleibt leer, Audit mit konfiguriertem Supabase ist ein Quellenfehler.
+   - Ohne Supabase-Konfiguration wird die aktive Quelle ausdrücklich gelesen, wie bisher.
+   - Der Pipeline-Hook bleibt auf dem Repository (siehe Codex-Review unten).
+2. **PR-SEMANTIC-11 (Restlücke):** Die Hülle von `DataBasisPage` ist jetzt eine benannte `section`, pixelgleich.
+3. **Verträge neu ausgerichtet:** SOURCE-04, BASELINE-06, FREEZE-07, PERSIST-08 und WORKER-09 prüfen jetzt Verhalten statt Text.
+   - **Negativproben:** Jede wurde temporär zurückgedreht und danach wiederhergestellt; jeder Vertrag ist dann rot:
+     - altes Repository
+     - Override in `resolveHistoricalMetrics` ignoriert
+     - ohne `deepFreeze`
+     - ohne Server-Persistenz
+     - `shouldUseWorker → false`
+   - Die Befund-Marker stehen in jeder Fehlermeldung.
+4. **Falsche Test-ID:** Die nicht registrierte ID `[PR-HUBSPOT-11]` am G51-Detailtest ist entfernt. Der Verifier hatte sie als unbekanntes Zusatzresultat abgewiesen.
+5. **Register:** 19/20 `passing` in TypeScript, JSON und Markdown (Charakterisierungstest grün). Nur PR-LICENSE-19 (G65) bleibt offen.
+6. **Readiness:**
+   - Kennzahl 27 (`scripts/v23FindingReadiness.ts`, fail-closed): fehlender, veralteter oder unlesbarer Report, technische Fehler, jede Register-Abweichung und jedes offene Finding außer PR-LICENSE-19 ergeben OFFEN.
+   - Die CI führt `verify:v23:baseline` vor der Readiness aus.
+7. **CI-Lücke:** `e2e/audit-health.spec.ts` (G62) und `e2e/member-management.spec.ts` (G59) liefen nie in der CI.
+   - Beide sind jetzt aufgenommen, `member-management` sequentiell. Mailpit bleibt im CI-Supabase an.
+   - Ein Wächter-Test verlangt jede E2E-Datei in Orchestrator und CI.
+8. **Hermetische Vitest-Suiten** (Befund aus dem ersten Abnahmelauf): Mit gesetzten `VITE_SUPABASE_*` lasen 17 Integrity-Suiten die echte lokale Datenbank; der stille Fallback hatte das verdeckt. `vitest.config.ts` setzt die Variablen für Unit und UI leer.
+9. **Orchestrator** `scripts/runV23Acceptance.mjs` (`npm run accept:v23`):
+   - 14 Gates, Exit-Codes 11–24.
+   - Blockierte Folge-Gates zählen als rot, übersprungene ergeben Exit 2.
+   - Ausgabe in `artifacts/v2.3.0/`, nur Unterordner von `artifacts/` zulässig.
+
+### Codex-Review auf PR #28 (Kommentar-Review `00566f8`)
+- **P1 Supabase-Pfad realer Organisationen:** Der Umstieg des Pipeline-Hooks auf den Envelope ist zurückgenommen, weil reale Mandanten `SYNTHETIC_NOT_ALLOWED` erhielten; eine mandantenfähige Supabase-Quelle läge im Schutzbereich `src/services/data`. Der Hook liest wieder über das nun fail-closed Repository. Der Vertrag prüft statt „kein Produktpfad am Envelope vorbei“ jetzt „leere Supabase-Tabelle bleibt leer“, negativ belegt: das alte Repository liefert 40 Demo-Deals.
+- **P1 rekursives Löschen des Ausgabeziels:** `resolveOutDir` lässt nur Unterordner von `artifacts/` zu. Test gegen `.`, `..`, `artifacts`, `src`, `/` und fremde Pfade.
+- **P2 G65-Ausnahme:** Die Ausnahme gilt nur für die explizite ID-Menge `['PR-LICENSE-19']`. Test: ein weiteres auf G65 gesetztes offenes Finding macht die Kennzahl OFFEN.
+- **P1 BUILD_LOG:** dieser Eintrag.
+
+### Schutzbereichs-Prüfung
+`git diff 9877697 -- src/simulation src/types src/context src/services/data src/features/resources`: **leer** (0 Zeilen). Die Negativproben haben Schutzbereichsdateien nur temporär geändert und per `git checkout` zurückgesetzt.
+
+### Automatisierte Verifikation (lokal, Node 22)
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check` und `npm run verify:quality-budget`: grün.
+- `npx vitest run` mit gesetzter E2E-Umgebung (hermetisch): 270 Dateien, 1486 Tests grün.
+- `npm run verify:v23:baseline`: „exakt die registrierten Findings sind rot“ (nur PR-LICENSE-19).
+- **Orchestrator-Lauf 1 (Commit `9f84d80`):**
+  - Grün: typecheck, lint, format, quality-budget, integrity, build, bundle, audit, sql-rls, findings.
+  - Rot: unit-coverage (17 Integrity-Suiten, siehe Befund 8), e2e (nur Edge-abhängige Tests, siehe Grenze unten) und lighthouse (Chrome-Pfad der Sandbox).
+- **Orchestrator-Lauf 2 (Commit `00566f8`):** unit-coverage grün (1487/1487). Mitten im Lauf fiel der lokale Docker-Daemon aus, deshalb ist das Ergebnis der DB-Gates nicht verwertbar.
+- **Lokale Grenze:** Die Edge-Runtime erreicht die npm-Registry nicht, deshalb sind `crm-query-export`, `tenant-isolation`, `visual /crm/leads` und `member-management` lokal rot. Maßgeblich ist der CI-Job `e2e`. `audit-health` lokal: 30/30.
+
+### Screenshot-Matrix
+[`docs/screenshots/auftrag-067r/README.md`](screenshots/auftrag-067r/README.md)
+- `/dashboard` ist auf allen drei Breiten identisch.
+- `/company/data-basis` ist auf 1440 und 375 identisch, auf 768 zeigt es Rauschen, weil sich schon vorher und vorher-2 unterscheiden.
+- Overflow ist in allen 123 Aufnahmen 0 px.
+- Die übrigen Abweichungen liegen auf nicht berührten Routen und sind per zweitem Nachher-Lauf als Harness-Rauschen belegt.
+
+### Ergebnis & Freigabestatus
+**G64 bereit für den unabhängigen Codex-Review.** Mit dem Review folgt die manuelle Gegenprüfung nach Plan Step 3: zwei Organisationen, drei Rollen, Reload/Zweitbrowser, n8n-Angriffe, Hash-Manipulation und Workersteuerung. Kein Merge, kein Tag; Merge nur durch Marc, nach #25 und #27.

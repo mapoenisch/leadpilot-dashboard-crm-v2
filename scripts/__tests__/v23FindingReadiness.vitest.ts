@@ -50,7 +50,9 @@ function write(
     status,
     failureMessages:
       status === 'failed'
-        ? [`AssertionError: DATA_SOURCE_UNAVAILABLE / All Rights Reserved: expected '' to contain 'x'`]
+        ? [
+            `AssertionError: DATA_SOURCE_UNAVAILABLE / All Rights Reserved: expected '' to contain 'x'`,
+          ]
         : [],
   }));
   fs.writeFileSync(
@@ -128,6 +130,20 @@ describe('checkFindings (G64)', () => {
 
   it('weist ein vor G65 als failing registriertes Finding ab', () => {
     const known = KNOWN.map((f) => (f.id === 'PR-SOURCE-04' ? { ...f, expected: 'failing' } : f));
+    write(
+      known,
+      { 'PR-SOURCE-04': 'failed', 'PR-LICENSE-19': 'failed' },
+      { 'PR-CLIP-13': 'passed' },
+    );
+    const result = check();
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/ohne Gate-Nachweis: PR-SOURCE-04/);
+  });
+
+  it('weist ein weiteres auf G65 registriertes offenes Finding ab (nur PR-LICENSE-19 zulässig)', () => {
+    const known = KNOWN.map((f) =>
+      f.id === 'PR-SOURCE-04' ? { ...f, targetGate: 'G65', expected: 'failing' } : f,
+    );
     write(
       known,
       { 'PR-SOURCE-04': 'failed', 'PR-LICENSE-19': 'failed' },

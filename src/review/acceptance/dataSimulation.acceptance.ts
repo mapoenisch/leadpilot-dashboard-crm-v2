@@ -9,8 +9,8 @@
 // Soll-Aussage — ID, Titel, Zielgate und Absicht unverändert, keine Abschwächung.
 // Jeder neu ausgerichtete Vertrag ist per Negativprobe gegen den alten Mangel
 // als rot belegt (docs/BUILD_LOG.md, 067R).
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as supabaseClientModule from '../../services/db/supabaseClient';
@@ -53,20 +53,6 @@ function mockFailingSupabase(): void {
   vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
     failing as unknown as typeof supabaseClientModule.supabase,
   );
-}
-
-function productSourceFiles(dir: string): string[] {
-  const files: string[] = [];
-  for (const name of readdirSync(dir)) {
-    const full = join(dir, name);
-    if (statSync(full).isDirectory()) {
-      if (name === '__tests__' || name === 'review') continue;
-      files.push(...productSourceFiles(full));
-    } else if (/\.(ts|tsx)$/.test(name) && !/\.(vitest|test|spec)\.tsx?$/.test(name)) {
-      files.push(relative(repoRoot, full).split('\\').join('/'));
-    }
-  }
-  return files;
 }
 
 afterEach(() => {
@@ -119,13 +105,24 @@ describe('v2.3.0 data and simulation findings', () => {
       )
       .toMatch(/^DATA_SOURCE_UNAVAILABLE/);
 
-    // 4. Produktpfad: kein UI-/Hook-Code liest mehr am Envelope vorbei.
-    const bypass = productSourceFiles(resolve(repoRoot, 'src')).filter(
-      (file) =>
-        file !== 'src/services/db/crmRepository.ts' &&
-        /from ['"][^'"]*crmRepository['"]/.test(readRepo(file)),
+    // 4. Leere Supabase-Tabelle ist ein gültiges leeres Ergebnis, kein Anlass
+    //    für Demodaten. Der Repository-Pfad bleibt für reale Mandanten die
+    //    Supabase-Lesung (RLS), denn eine mandantenfähige Supabase-Quelle für
+    //    den Envelope gibt es nicht (Codex-Review #28).
+    vi.restoreAllMocks();
+    const empty = {
+      from: () => ({ select: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }),
+    };
+    vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(true);
+    vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
+      empty as unknown as typeof supabaseClientModule.supabase,
     );
-    expect.soft(bypass, 'Produktpfad liest CRM nur über den Envelope').toEqual([]);
+    expect
+      .soft(
+        (await CRMRepository.getImportedFunnelDeals()).length,
+        'leere Tabelle ohne DATA_SOURCE_UNAVAILABLE-Ersatz durch Demodaten',
+      )
+      .toBe(0);
   });
 
   it('[PR-SEED-05] seedet ausschließlich privilegiert und atomar', () => {

@@ -9,6 +9,7 @@ import {
   E2E_SEQUENTIAL,
   GATES,
   parseArgs,
+  resolveOutDir,
   runGates,
   summarize,
 } from '../runV23Acceptance.mjs';
@@ -99,6 +100,24 @@ describe('runV23Acceptance', () => {
     );
     expect(steps).toEqual(['npm audit --omit=dev']);
     expect(results[0]).toMatchObject({ status: 'failed', exitCode: 1 });
+  });
+
+  it('erlaubt als rekursiv geleertes Ausgabeziel nur Unterordner von artifacts/', () => {
+    const root = path.resolve('/repo');
+    expect(resolveOutDir('artifacts/v2.3.0', root)).toBe(path.join(root, 'artifacts/v2.3.0'));
+    for (const bad of [
+      '.',
+      '..',
+      'artifacts',
+      'artifacts/..',
+      'src',
+      '/',
+      '/tmp/x',
+      '../artifacts/x',
+    ]) {
+      expect(() => resolveOutDir(bad, root), bad).toThrow(/Unterordner von artifacts/);
+    }
+    expect(() => parseArgs(['--out=.'])).toThrow(/Unterordner von artifacts/);
   });
 
   it('weist unbekannte Gate-IDs ab', () => {

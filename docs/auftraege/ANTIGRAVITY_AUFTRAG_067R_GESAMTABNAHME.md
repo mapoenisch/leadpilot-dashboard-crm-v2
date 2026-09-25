@@ -31,7 +31,7 @@ Deshalb ist die Abweichung zwischen Register und Ist-Zustand bisher unbemerkt ge
 
 | Finding | Ist | Ursache | Maßnahme in 067R |
 |---|---|---|---|
-| PR-SOURCE-04 | rot | **Echte Restlücke:** `CRMRepository` fällt bei konfiguriertem Supabase nach einem Fehler oder einer leeren Tabelle still auf die Demo-Quelle zurück. `PipelineSnapshot` (Executive Cockpit) liest noch darüber. Zusätzlich fordert der G44-Vertrag den stillen Fallback positiv (G44-Review-Befund 4). | Repository fail-closed, Pipeline-Hook auf den G47-Envelope, Vertrag neu ausrichten |
+| PR-SOURCE-04 | rot | **Echte Restlücke:** `CRMRepository` fällt bei konfiguriertem Supabase nach einem Fehler oder einer leeren Tabelle still auf die Demo-Quelle zurück. `PipelineSnapshot` (Executive Cockpit) liest noch darüber. Zusätzlich fordert der G44-Vertrag den stillen Fallback positiv (G44-Review-Befund 4). | Repository fail-closed, Vertrag neu ausrichten (Pipeline-Hook bleibt auf dem Repository, siehe Task 2) |
 | PR-BASELINE-06 | rot | Vertrag veraltet: Er vergleicht zwei Baselines ohne eigene `historicalMetrics`. Nach Marcs 067E-Entscheid gilt für beide der versionierte Anker. Die Einspeisung ist seit G48 umgesetzt. | Vertrag neu ausrichten |
 | PR-FREEZE-07 | rot | Vertrag veraltet: Er erwartet das Feld `contentHash`. G48 hat es als `baselineHash` umgesetzt. | Vertrag neu ausrichten |
 | PR-PERSIST-08 | rot | Vertrag veraltet: Er sucht Backend-Bezug neben `Map.set` im In-Memory-Cache. G49 persistiert über `runRepository`/`persist_completed_run`. | Vertrag neu ausrichten |
@@ -64,8 +64,6 @@ Neuausrichtung steht mit Begründung im Register und im BUILD_LOG.
 | `docs/auftraege/ANTIGRAVITY_AUFTRAG_067R_GESAMTABNAHME.md` | neu |
 | `src/services/db/crmRepository.ts` | ändern (nur Lesepfade) |
 | `src/services/db/__tests__/crmRepository.vitest.ts`, `crmRepository.branch.vitest.ts` | ändern (neues Sollverhalten) |
-| `src/hooks/queries/usePipelineOverview.ts`, `__tests__/usePipelineOverview.ui.vitest.tsx` | ändern |
-| `src/features/overview/pages/__tests__/OverviewSupplement.characterization.ui.vitest.tsx` | ändern (nur Envelope-Mock im `beforeEach`, keine Assertion) |
 | `src/features/overview/pages/DataBasisPage.tsx`, `__tests__/DataBasisPage.ui.vitest.tsx` | ändern (nur Markup, pixelgleich; Test auf `region`) |
 | `src/review/acceptance/dataSimulation.acceptance.ts` | ändern (Neuausrichtung) |
 | `src/review/acceptance/findingContract.ts` | ändern (Status `passing` seit G64) |
@@ -89,8 +87,10 @@ Neuausrichtung steht mit Begründung im Register und im BUILD_LOG.
   Fehler `DataSourceError('FETCH_FAILED')` mit dem Code `DATA_SOURCE_UNAVAILABLE` in der
   Meldung. Eine leere Tabelle ergibt eine leere Liste statt Demodaten. Ohne Supabase wird
   die aktive Quelle ausdrücklich gelesen, wie bisher; das ist kein Fallback.
-  `usePipelineOverview` liest die Deals aus `useCrmReadModelEnvelope()`, der Status
-  `unavailable` wird zu `isError`.
+  `usePipelineOverview` bleibt auf dem nun fail-closed Repository: Für reale Mandanten
+  gibt es keine registrierte Supabase-Quelle für den Envelope (sie läge im Schutzbereich
+  `src/services/data`). Ein Umstieg auf den Envelope hätte reale Organisationen in
+  `SYNTHETIC_NOT_ALLOWED` laufen lassen (Codex-Review #28, P1).
 - [ ] **3. PR-SEMANTIC-11:** `DataBasisPage` bekommt `<section>`-Gliederung mit
   `aria-labelledby`. Kein Stil ändert sich; die Pixelparität wird auf 1440/768/375 belegt.
 - [ ] **4. Verträge neu ausrichten** (BASELINE-06, FREEZE-07, PERSIST-08, WORKER-09,

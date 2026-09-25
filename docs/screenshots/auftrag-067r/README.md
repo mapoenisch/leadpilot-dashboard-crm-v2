@@ -2,7 +2,7 @@
 
 **Änderungen mit UI-Bezug:**
 - `DataBasisPage`: Seitenhülle `div` → `section` mit `aria-labelledby`; das ist reines Markup.
-- `PipelineSnapshot` (`/dashboard`) liest den CRM-Envelope statt des Repositorys.
+- Die Repository-Lesepfade sind fail-closed. Das betrifft `/dashboard` (`PipelineSnapshot`), dessen Hook nach Codex-Review #28 aber wieder im Ausgangszustand ist.
 
 Beides soll **pixelgleich** bleiben. Deshalb gilt, wie bei Issue #7, SHA-256-Gleichheit vorher/nachher als Nachweis.
 
