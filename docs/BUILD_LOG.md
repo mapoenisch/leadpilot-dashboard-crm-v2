@@ -12533,3 +12533,209 @@ Integration freigegeben, `main`-CI nach dem Merge weiterhin erforderlich.
 **Freigabe:** PR #26 kann nach diesem Review gemergt werden. Der anschließende
 `main`-Lauf ist getrennt zu prüfen; dieser Befund erteilt keine Freigabe für
 einen Release oder Deploy.
+
+---
+
+## Issue #7 — Quality-Debt-Budget statt dauerhaft tolerierter Baselines (2026-09-24)
+
+**Rolle:** Claude Code · **Basis:** `81410f7` · **Status:** lokale Gates grün, PR-CI/Review ausstehend.
+
+- **Befund:** Die ci.yml-Baselines standen bereits auf 0, aber `MAX_LINES_BASELINE`
+  und `INLINE_STYLE_BASELINE` wurden nirgends ausgewertet, ESLint-Warnungen
+  zählten nicht, und `react/forbid-dom-props` greift nur in einzelnen Ordnern
+  und nur an DOM-Elementen. Tatsächlich stehen 276 `style={…}` in
+  Produktions-TSX (35 zeilengenau begründet, 241 unbegründet) sowie 38
+  `eslint-disable`-Direktiven ohne Budget.
+- **Änderungen:** Lint-Job zählt Fehler **+ Warnungen** und wertet
+  `MAX_LINES_BASELINE`/`INLINE_STYLE_BASELINE` tatsächlich aus. Neuer Schritt
+  `npm run verify:quality-budget` (`scripts/verifyQualityBudget.ts`) prüft
+  Suppressions je Regel und unbegründete Inline-Styles je Bereich gegen
+  `docs/quality/debt-budget.json` — Ratsche in beide Richtungen (Anstieg rot,
+  Abbau ohne Budgetsenkung rot). Owner, Review-Termin, Ziele und Abbauplan in
+  `docs/quality/DEBT_BUDGET.md`. Keine neue Abhängigkeit, kein neuer CI-Job.
+- **Baseline:** Suppressions `max-lines` 1, `no-console` 1,
+  `react-hooks/exhaustive-deps` 1, `react/forbid-dom-props` 35 (begründete
+  Ausnahmen). Inline-Styles `resources/` 96 (eingefroren, Ausnahme),
+  `ui/charts/` 128 → Ziel 0, Rest `src/` 17 → Ziel 0.
+- **Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test`
+  (262 Dateien, 1422 Tests, davon 7 neu), `npm run verify` (001–025),
+  `npm run build`, `PR-QUALITY-16`-Acceptance und der Lint-Schritt lokal
+  bestanden.
+- **Schutzbereichs-Diff** gegen `81410f7` für `src/simulation`, `src/types`,
+  `src/context`, `src/services/data`, `src/features/resources`: leer. Kein
+  `src/`-Code geändert, keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Übergabe:** Abbau der Inline-Styles (`src/` 17 → 0, Charts 128 → 0) erfolgt
+über eigene Aufträge gemäß `docs/quality/DEBT_BUDGET.md`.
+
+---
+
+## [2026-09-24] Issue #7 — Qualitätsschulden im Code abgebaut (Builder: Claude Code)
+
+**Rolle:** Claude Code als Builder (Rollenwechsel laut `CLAUDE.md` §4, Commit `4631faf`) ·
+**Prüfer:** Codex · **Status:** lokale Gates grün, Codex-Review und PR-CI ausstehend.
+
+- **Inline-Styles:** Alle 145 unbegründeten `style`-Attribute außerhalb von
+  `src/features/resources/` sind jetzt Tailwind-Klassen: 128 in
+  `src/components/ui/charts/` (16 Dateien), 17 im übrigen `src/`.
+  Echte Laufzeitwerte (Balkengeometrie, Tooltip-Position, Datenfarben)
+  bleiben zeilengenau begründet (+21, Budget `react/forbid-dom-props` 35 → 50).
+- **Passthrough-Props entfernt:** `style` an Badge, Button, MetricToken,
+  FaceliftGlyph und DiagramCanvas (`style`, `svgStyle`) sowie an den Chart-Helfern
+  ChartFrame, ChartInsight, ChartEmptyState, ChartLegend, ChartMetricHeader und
+  ChartTooltip. Stattdessen gibt es `className` mit tailwind-merge. Nur `Card` behält
+  den Passthrough, weil der eingefrorene `ResourceCard` ihn nutzt.
+- **ESLint:** Die fünf Wellen-Scopes aus G38/G39 sind durch einen globalen Block
+  für `src/**/*.tsx` ersetzt (`react/forbid-dom-props` + `react/forbid-component-props`,
+  ohne Resources und Tests). Der CI-Zähler `INLINE_STYLE_BASELINE` erfasst beide Regeln.
+- **Pixel-Parität:** Referenz-Screenshots vorher (`4631faf`) und nachher für
+  41 Routen × 1440/768/375 mit lokalem Supabase und `maxDiffPixels: 0`. 114/123
+  auf Anhieb pixelgleich. Die 9 Abweichungen liegen auf Routen, die schon beim
+  Leerlauf Vorher-gegen-Vorher rauschen (`/crm/*`, `/company/location`,
+  `/resources/materials`, 6–21 px). `/dashboard` war im Vergleichslauf einmal
+  mit 185 px abweichend, danach 12/12 Wiederholungen pixelgleich.
+- **Verifikation:** `npx tsc --noEmit`, `npm run lint` (0 Fehler/0 Warnungen),
+  `npm run format:check`, `npm run test:coverage` (262 Dateien, 1422 Tests;
+  87,28 % Statements / 80,93 % Branches / 81,68 % Functions / 88,4 % Lines),
+  `npm run verify` (001–025), `npm run build`, `npx size-limit` (168,81 kB / 86,4 kB),
+  `npm run verify:quality-budget`, Playwright `a11y`, `routes`, `semantic-routes`,
+  `element-clipping` 528/528.
+- **Schutzbereichs-Diff** gegen `4631faf` für `src/simulation`, `src/types`,
+  `src/context`, `src/services/data`, `src/features/resources`: leer.
+- **Nebenbefund (nicht behoben):** `VertriebView.tsx`/`FinanzenView.tsx` samt
+  `MarketingBudgetPage`, `BrandPage`, `CampaignPlanningPage`, `BudgetPage` sind
+  nicht geroutet (toter Code). Mehrere Chart-Bausteine (DivergingBar, Waterfall,
+  SteppedFunnel, TimeSeriesCorridor, ChartInsight, ChartMetricHeader) werden nur
+  in Tests genutzt. Wird als eigener Aufräum-Auftrag vorgeschlagen.
+
+**Übergabe an Codex:** Review der Klassen-Umsetzung (Tailwind-Preflight ist aus,
+deshalb setzen Einzelrahmen explizit `border-0`), der ESLint-Konsolidierung und
+des neuen Budgets. Danach PR-CI inklusive `visual.spec.ts` auf Linux-Baselines.
+
+---
+
+## [2026-09-24] Issue #7 — Prüferbefund Codex (übermittelt durch Marc)
+
+**Prüfer:** Codex · **Geprüft:** Branch `claude/ci-quality-baselines-reduce-u1yo54`
+(3 Commits vor `main`, Stand `c847ba4`) · **Ergebnis:** noch keine Freigabe.
+In den geprüften Änderungen ist kein belegter Funktionsfehler gefunden worden.
+
+| Priorität | Befund | Nächster Schritt |
+|---|---|---|
+| Wichtig | Kein PR-CI-Lauf für den aktuellen Commit; lokale Nachweise nicht unabhängig nachgefahren. | PR öffnen, alle sieben Pflichtjobs auf dem finalen Commit prüfen. |
+| Wichtig | 9 von 123 Screenshot-Vergleichen nicht sofort pixelgleich; `visual.spec.ts` in CI steht aus. | Visuellen PR-Lauf auswerten und jede Abweichung zuordnen. |
+| Hinweis | `verifyQualityBudget.ts` zählt `eslint-disable`/`style={` per Textmuster: Schranke gegen Zuwachs, kein Nachweis der fachlichen Rechtfertigung. | Die 50 Style-Ausnahmen im Code-Review stichprobenartig prüfen. |
+
+**Empfehlung Codex:** Branch als PR zur vollständigen CI übergeben; Gate-Freigabe
+erst nach CI-Lauf und Sichtung der visuellen Abweichungen.
+
+**Builder-Reaktion (Claude Code):** PR geöffnet; CI-Ergebnis und Zuordnung der
+visuellen Abweichungen folgen als eigener Eintrag.
+
+---
+
+## [2026-09-24] Issue #7 — PR-CI-Ergebnis (Builder: Claude Code)
+
+**PR:** [#25](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/pull/25) ·
+**Lauf:** [36059383432](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36059383432)
+auf Head `d6add92`.
+
+- Alle sieben Pflichtjobs grün: `lint` (inkl. Quality-Debt-Budget), `typecheck`,
+  `test`, `build`, `livekpi-verifiers`, `size-limit` und `e2e`.
+- `e2e` enthält `visual.spec.ts` gegen die Linux-Baselines: grün. Die neun lokal
+  nicht sofort pixelgleichen Vergleiche waren damit Rauschen der lokalen Umgebung
+  (ältere Chromium-Version im Sandbox-Container), keine Regression durch den
+  Inline-Style-Abbau.
+- Offen aus dem Codex-Befund: Stichprobe der 50 begründeten Style-Ausnahmen
+  (Hinweis). Jede Ausnahme trägt einen zeilengenauen Kommentar; Liste per
+  `grep -rn "forbid-dom-props --" src`.
+
+**Übergabe an Codex:** Gate-Freigabe Issue #7 auf Basis dieses Laufs.
+
+---
+
+## [2026-09-24] Issue #7 — Nacharbeit zum Codex-Review von PR #25 (Builder: Claude Code)
+
+**Befund:** Codex-Review (Bot-Kommentare 4098557318, 4098557329, 4098557339,
+4098557349; von Marc als Prüferbefund übernommen) — Gates rot bis zur Nacharbeit.
+
+| Priorität | Befund | Nacharbeit | Commit |
+|---|---|---|---|
+| P1 | Detailauftrag für Issue #7 fehlt (AGENTS.md Z. 28–33) | `docs/auftraege/ANTIGRAVITY_AUFTRAG_ISSUE_7_QUALITY_DEBT.md` nachträglich angelegt (als solcher gekennzeichnet) mit Ziel-Dateiliste und Abnahmekriterien. **Scope-Prüfung:** alle 50 geänderten Dateien plus Matrix-README liegen in der Ziel-Dateiliste (0 außerhalb); Schutzbereichs-Diff gegen `main` leer. | `927a15d` |
+| P1 | Versionierte Screenshot-Nachweismatrix fehlt | Harness `scripts/captureIssue7ParityScreenshots.mjs` (41 Routen × 1440/768/375, SHA-256, Overflow, Vergleichsmodus mit Rauschreferenz) und Matrix `docs/screenshots/issue-7/README.md`. Ergebnis: 117/123 SHA-identisch, 6 als Rauschen belegt (gleiche Abweichung zwischen zwei Vorher-Läufen), 0 Abweichungen, 0 px Overflow; 122/123 Nachher-Aufnahmen SHA-gleich zu einem Vorher-Lauf. | dieser Commit |
+| P2 | Budgetzähler erkennt nur `style={` | Muster `\bstyle\s*=\s*\{`, Negativtest mit drei Whitespace-Varianten. | `927a15d` |
+| P2 | Überlappende Bereiche hängen von der Key-Reihenfolge ab | Zuordnung nach längstem Präfix (`areaFor`), Test mit umgekehrter Reihenfolge. | `927a15d` |
+
+**Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm run format:check`,
+`scripts/__tests__/verifyQualityBudget.vitest.ts` 9/9, `npm run verify:quality-budget`
+(Zählung unverändert: Resources 96, übriges `src/` 0, Suppressions 50/1/1/1).
+Bilddateien nicht committet (CLAUDE.md §7).
+
+**Übergabe an Codex:** erneute Prüfung von PR #25; alle Review-Threads beantwortet.
+
+## [2026-09-25] PR #25 — erneuter unabhängiger Prüferbefund
+
+**Geprüft:** PR-Head `75316bf` gegen `main` `81410f7` · **Rolle:** Codex als
+Prüfer · **Ergebnis:** Nacharbeit erforderlich, keine Gate-Freigabe.
+
+- Die sieben Pflichtjobs sind auf `75316bf` grün (GitHub-Lauf `36066569472`),
+  einschließlich `e2e/visual.spec.ts`. Der Schutzbereichs-Diff und
+  `git diff --check` sind leer. Die Screenshot-Matrix enthält 123 Aufnahmen,
+  davon 117 SHA-identisch; die sechs weiteren sind mit Vorher/Vorher-Vergleichen
+  und Pixelanalyse dokumentiert. Keine neue Abhängigkeit.
+- **P2 — Ratsche kann Inline-Style-Zuwachs auf einer Ausnahmezeile übersehen:**
+  `scripts/verifyQualityBudget.ts`, `countInlineStyles`: Sobald eine JSX-Zeile
+  durch `eslint-disable-next-line react/forbid-dom-props` gedeckt ist, wird sie
+  komplett übersprungen (`if (covered) return`), auch wenn `STYLE_ATTR` auf
+  dieser Zeile mehrere `style`-Attribute findet. Zusätzliche Inline-Styles auf
+  derselben Zeile erhöhen weder das Suppression-Budget noch den Style-Zähler;
+  ESLint ist für diese Zeile ebenfalls deaktiviert. Damit ist das
+  Akzeptanzkriterium „CI verhindert jede Erhöhung“ nicht vollständig erfüllt.
+  Ein Negativtest mit zwei `style`-Attributen auf einer bereits begründeten
+  Ausnahmezeile sollte rot werden. Die Zählung muss jedes Attribut erfassen
+  oder Ausnahmen auf genau eine Style-Position begrenzen.
+
+**Übergabe an Claude Code:** Den P2-Befund nacharbeiten und die sieben Jobs auf
+dem neuen PR-Head erneut prüfen. Bis dahin keine Freigabe für PR #25.
+
+---
+
+## [2026-09-25] PR #25 — Nacharbeit zum Prüferbefund „Ratsche auf Ausnahmezeilen“ (Builder: Claude Code)
+
+**Befund (P2, Codex, Eintrag vom 25.09.):** Eine durch
+`eslint-disable-next-line react/forbid-dom-props` gedeckte Zeile wurde in
+`countInlineStyles` komplett übersprungen. Weitere `style`-Attribute auf derselben
+Zeile blieben ungezählt.
+
+**Nacharbeit:** Eine begründete Ausnahme deckt jetzt genau **ein** `style`-Attribut.
+Jedes weitere auf derselben Zeile zählt als unbegründeter Inline-Style und macht die
+Ratsche rot (`uncovered = covered ? hits - 1 : hits`).
+
+**Nachweis:**
+- Zwei neue Tests in `scripts/__tests__/verifyQualityBudget.vitest.ts`: Zählung bei
+  `eslint-disable-next-line` und `eslint-disable-line` sowie der geforderte
+  Negativtest (zwei `style`-Attribute auf einer Ausnahmezeile → `regression`).
+- Gegenprobe: Mit dem alten Zähler sind beide Tests rot, mit dem Fix 11/11 grün.
+- Zählung im Repo unverändert (Resources 96, übriges `src/` 0, Suppressions 50),
+  also enthält keine bestehende Ausnahmezeile ein zweites Attribut.
+- `npx tsc --noEmit`, `npm run lint` grün.
+
+**Übergabe an Codex:** erneute Prüfung auf dem neuen PR-Head nach grüner CI.
+
+---
+
+## [2026-09-25] PR #25 — erneute Prüferfreigabe nach Nacharbeit
+
+**Geprüft:** PR-Head `895dad7` gegen `main` `3c8a484` · **Rolle:** Codex als
+Prüfer · **Ergebnis:** Freigabe; der P2-Befund ist behoben.
+
+- `a947e3b` zählt auf einer begründeten Ausnahmezeile genau ein gedecktes
+  `style`-Attribut; jedes weitere erhöht das Inline-Style-Budget. Die beiden
+  neuen Tests decken die Zählung und die rote Negativprobe ab.
+- Die sieben Pflichtjobs sind auf `895dad7` grün (GitHub-Lauf `36072657012`).
+  Im `e2e`-Job lief `supabase test db`: 6 Dateien, 140 Tests, PASS.
+- PR #26 ist über den Merge von `main` enthalten; die zuvor geprüften
+  Schutzbereichs- und Screenshot-Nachweise bleiben für die unveränderten
+  UI-Dateien gültig.
+
+**Übergabe an Claude Code:** PR #25 ist aus Prüfersicht freigegeben.

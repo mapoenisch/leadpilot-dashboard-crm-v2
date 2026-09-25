@@ -93,18 +93,11 @@ export function TimeSeriesCorridorChart({
     hoverIdx !== null && hoverIdx >= 0 && hoverIdx < points.length ? points[hoverIdx] : null;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        width: '100%',
-        position: 'relative',
-      }}
-    >
+    <div className="relative flex w-full flex-col gap-[8px]">
       <svg
         viewBox={`0 0 ${svgWidth} ${height}`}
-        style={{ width: '100%', height: `${height}px`, overflow: 'visible' }}
+        height={height}
+        className="w-full overflow-visible"
         role="img"
         aria-label={ariaLabel}
         onMouseLeave={() => setHoverIdx(null)}
@@ -205,7 +198,7 @@ export function TimeSeriesCorridorChart({
           strokeWidth="2.75"
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ filter: 'drop-shadow(0 0 6px rgba(0, 217, 198, 0.4))' }}
+          className="[filter:drop-shadow(0_0_6px_rgba(0,217,198,0.4))]"
         />
 
         {/* X-Axis Tick Labels & Event Markers */}
@@ -254,7 +247,7 @@ export function TimeSeriesCorridorChart({
                 width={plotWidth / points.length}
                 height={plotHeight}
                 fill="transparent"
-                style={{ cursor: 'pointer' }}
+                className="cursor-pointer"
                 onMouseEnter={() => setHoverIdx(idx)}
               />
 

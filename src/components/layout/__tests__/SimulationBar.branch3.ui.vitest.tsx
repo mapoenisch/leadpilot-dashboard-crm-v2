@@ -51,7 +51,8 @@ describe('SimulationBar (branch3)', () => {
     render(<SimulationBar />);
     expect(screen.getByText('SIMULATION AKTIV')).toBeInTheDocument();
     const toggle = screen.getByRole('button', { name: 'Pausieren' });
-    expect(toggle.getAttribute('style')).toContain('shadow-glow-cyan');
+    expect(toggle).toHaveClass('shadow-glow-cyan');
+    expect(toggle).not.toHaveAttribute('style');
     expect(screen.getByRole('radio', { name: '5x' })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('radio', { name: '1x' })).toHaveAttribute('aria-checked', 'false');
     await user.click(toggle);

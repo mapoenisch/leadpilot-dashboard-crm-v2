@@ -91,7 +91,7 @@ export const LiveActivityFeed = React.memo(function LiveActivityFeed({
                 Letzte Updates (max. 10) · Ebene C
               </span>
             </div>
-            <Badge variant={status === 'live' ? 'mint' : 'neutral'} style={{ fontSize: '9.5px' }}>
+            <Badge variant={status === 'live' ? 'mint' : 'neutral'} className="text-[9.5px]">
               {items.length > 0 ? `${items.length} Events` : status}
             </Badge>
           </div>
@@ -131,7 +131,7 @@ export const LiveActivityFeed = React.memo(function LiveActivityFeed({
                         {formattedVal}
                       </span>
                       {item.qualityStatus === 'degraded' && (
-                        <Badge variant="orange" style={{ padding: '1px 5px', fontSize: '8.5px' }}>
+                        <Badge variant="orange" className="px-[5px] py-[1px] text-[8.5px]">
                           Degraded
                         </Badge>
                       )}

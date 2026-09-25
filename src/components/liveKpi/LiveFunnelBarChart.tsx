@@ -205,7 +205,7 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
                 5 Stufen · Pseudo-3D-Balken mit Leuchtkanten · Ebene C
               </span>
             </div>
-            <Badge variant={confirmedCount > 0 ? 'mint' : 'neutral'} style={{ fontSize: '9.5px' }}>
+            <Badge variant={confirmedCount > 0 ? 'mint' : 'neutral'} className="text-[9.5px]">
               {confirmedCount === 5 ? '5/5 Stufen aktiv' : `${confirmedCount}/5 bestätigt`}
             </Badge>
           </div>
@@ -213,7 +213,7 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
           {/* Degraded Qualitätswarnung */}
           {hasDegraded && (
             <div className="mb-[10px]">
-              <Badge variant="orange" style={{ padding: '2px 8px', fontSize: '9.5px' }}>
+              <Badge variant="orange" size="sm">
                 Qualität eingeschränkt (Degraded Snapshot in einer Stufe)
               </Badge>
             </div>

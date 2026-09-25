@@ -19,18 +19,20 @@ Echtzeit-Dashboard für das fiktive Unternehmen LeadPilot. React 18 + TypeScript
 1. `ARCHITECTURE_DECISIONS.md` — Entscheidungs-Historie (Teil A), Ziel-Architektur (Teil B), Implementierungsstand/Audit (Teil C).
 2. `BUILD_PLAN.md` — aktueller Phasenplan, welcher Auftrag als Nächstes ansteht, welche Gates erfüllt sind.
 3. `docs/BUILD_LOG.md` — chronologisches Protokoll jedes abgeschlossenen Gates.
-4. `docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md` — die konkrete Arbeitsanweisung. Immer nur den zuletzt übergebenen Auftrag bearbeiten, nie mehrere gleichzeitig, nie einen selbst ausgedachten.
+4. `docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md` — die konkrete Arbeitsanweisung. Immer nur einen Auftrag gleichzeitig bearbeiten. Bis zum Release `v2.3.0` darf Claude Code fehlende Detailaufträge für die Teilaufträge des Masterplans (067Q–067S) und für offene Issues selbst schreiben; der Dateiname behält das Präfix `ANTIGRAVITY_AUFTRAG_` für die Kontinuität.
 
 ## 4. Rollen & Ablauf (aus `AGENTS.md`)
 
-Seriell, kein paralleles Arbeiten:
+**Rollenwechsel ab 24.09.2026 bis zum Release `v2.3.0` (Entscheidung Marc Poenisch):**
 
-1. **Antigravity baut** — implementiert den Auftrag, ist der schreibende Builder.
-2. **Codex oder Claude Code prüft** — nur Review + Gates, baut nichts selbst. Trägt den Befund in `docs/BUILD_LOG.md` ein und gibt ihn an Antigravity zurück.
-3. **Antigravity baut nach** — behebt die im Befund genannten Punkte.
-4. Wiederholung bis alle Gates bestanden sind.
+1. **Claude Code baut** — schreibt bei Bedarf den Detailauftrag, implementiert ihn und ist der schreibende Builder. Ziel: offene Fehler und Qualitätsschulden raus aus dem Code, Masterplan 067Q–067S abschließen.
+2. **Codex prüft** — unabhängiger Review + Gates, baut nichts selbst. Trägt den Befund in `docs/BUILD_LOG.md` ein und gibt ihn an Claude Code zurück.
+3. **Claude Code baut nach** — behebt die im Befund genannten Punkte.
+4. Wiederholung bis alle Gates bestanden sind. Seriell, kein paralleles Arbeiten.
 
-`docs/BUILD_LOG.md` ist das gemeinsame Ledger: Antigravity schreibt Builder-Einträge, Prüfer schreiben ihren Befund.
+Antigravity baut in dieser Phase nicht. Nach dem Release `v2.3.0` gilt wieder die vorherige Verteilung (Antigravity baut, Codex/Claude Code prüfen), sofern Marc nichts anderes festlegt. Ein Builder prüft nie seine eigene Arbeit: die Gate-Freigabe kommt immer von Codex.
+
+`docs/BUILD_LOG.md` ist das gemeinsame Ledger: der Builder schreibt Builder-Einträge, der Prüfer seinen Befund.
 
 ## 5. Wie ein Auftrag abgearbeitet wird
 

@@ -10,16 +10,13 @@ import { ManagementChartState } from '../ManagementChartState';
 import { ManagementChartTooltip } from '../ManagementChartTooltip';
 
 describe('Chart-Primitives (branch2)', () => {
-  it('EmptyState: eigenes Icon, Style und ohne Zähler kein Fortschritt', () => {
-    render(
-      <ChartEmptyState
-        title="Leer"
-        message="Nichts da"
-        iconName="info"
-        style={{ borderColor: 'red' }}
-      />,
+  it('EmptyState: eigenes Icon, className-Override und ohne Zähler kein Fortschritt', () => {
+    const { container } = render(
+      <ChartEmptyState title="Leer" message="Nichts da" iconName="info" className="border-error" />,
     );
     expect(screen.getByText('Leer')).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveClass('border-error');
+    expect(container.firstElementChild).not.toHaveClass('border-border');
     expect(screen.queryByText(/Aktuell:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/benötigt/)).not.toBeInTheDocument();
   });
@@ -68,7 +65,7 @@ describe('Chart-Primitives (branch2)', () => {
     expect(screen.getByRole('list', { name: 'Diagrammlegende' })).toBeInTheDocument();
     expect(screen.getByText('1.234')).toBeInTheDocument();
     expect(screen.getByText('(33%)')).toBeInTheDocument();
-    expect(container.firstChild).toHaveStyle({ flexDirection: 'column' });
+    expect(container.firstChild).toHaveClass('flex-col');
     const first = screen.getAllByRole('listitem')[0]!;
     fireEvent.mouseEnter(first);
     expect(onHover).toHaveBeenCalledWith(0);

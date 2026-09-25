@@ -51,15 +51,7 @@ export class RouteErrorBoundary extends React.Component<
         <div role="alert" aria-live="assertive" className={cn(routeErrorBoundaryVariants())}>
           <Card
             variant="glass"
-            style={{
-              maxWidth: '560px',
-              width: '100%',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 'var(--space-4)',
-            }}
+            className="flex w-full max-w-[560px] flex-col items-center gap-4 text-center"
           >
             <div className="w-[48px] h-[48px] rounded-full bg-[rgba(239,68,68,0.15)] text-error text-[24px] flex items-center justify-center">
               ⚠️

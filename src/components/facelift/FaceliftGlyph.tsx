@@ -6,7 +6,6 @@ export interface FaceliftGlyphProps {
   size?: number | string;
   tone?: VisualTone;
   className?: string;
-  style?: React.CSSProperties;
   ariaLabel?: string;
   ariaHidden?: boolean;
 }
@@ -34,7 +33,6 @@ export const FaceliftGlyph: React.FC<FaceliftGlyphProps> = ({
   size = 20,
   tone,
   className = '',
-  style,
   ariaLabel,
   ariaHidden,
 }) => {
@@ -230,10 +228,6 @@ export const FaceliftGlyph: React.FC<FaceliftGlyphProps> = ({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`facelift-glyph inline-block align-middle shrink-0 ${className}`}
-      // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
-      // style-Passthrough (Konsumenten in features/**).
-      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props (externe Konsumenten), siehe Auftrag 054 Block D
-      style={style}
       {...a11yProps}
     >
       {renderPaths()}

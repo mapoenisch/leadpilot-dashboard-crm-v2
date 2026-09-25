@@ -35,10 +35,7 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
               <span className="inline-block w-[9px] h-[9px] rounded-full shrink-0 bg-[#00f2fe] shadow-[0_0_10px_#00f2fe,0_0_3px_#00f2fe]" />
               Live Performance
             </h2>
-            <Badge
-              variant="cyan"
-              style={{ fontSize: '10.5px', padding: '3px 10px', letterSpacing: '0.02em' }}
-            >
+            <Badge variant="cyan" className="text-[10.5px] px-[10px] py-[3px] tracking-[0.02em]">
               Ebene C · bestätigte Live-Ist-Daten
             </Badge>
           </div>
@@ -51,10 +48,10 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
         </div>
 
         <div className="flex items-center gap-[8px] flex-wrap self-center">
-          <Badge variant="mint" style={{ fontSize: '10px', padding: '3px 8px' }}>
+          <Badge variant="mint" className="text-[10px] px-[8px] py-[3px]">
             Realtime Stream
           </Badge>
-          <Badge variant="neutral" style={{ fontSize: '10px', padding: '3px 8px' }}>
+          <Badge variant="neutral" className="text-[10px] px-[8px] py-[3px]">
             Multi-KPI Pipeline
           </Badge>
         </div>

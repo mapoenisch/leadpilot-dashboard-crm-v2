@@ -1,0 +1,38 @@
+{
+  "owner": "@mapoenisch",
+  "reviewBy": "2026-12-31",
+  "suppressions": {
+    "max-lines": {
+      "budget": 1,
+      "target": 1,
+      "rationale": "Fachlich begründete Ausnahme: src/types/database.generated.ts wird per `supabase gen types` erzeugt; eine Aufteilung würde die Regeneration brechen (G45/067B)."
+    },
+    "no-console": {
+      "budget": 1,
+      "target": 1,
+      "rationale": "Fachlich begründete Ausnahme: src/services/logger.ts ist die einzige zentrale Konsolen-Senke (G35/Auftrag 050 Block C)."
+    },
+    "react-hooks/exhaustive-deps": {
+      "budget": 1,
+      "target": 1,
+      "rationale": "Fachlich begründete Ausnahme: useLiveKpiActivity nutzt `version` aus useSyncExternalStore als Re-Render-Trigger, das Muster erkennt die Regel nicht."
+    },
+    "react/forbid-dom-props": {
+      "budget": 50,
+      "target": 50,
+      "rationale": "Fachlich begründete Ausnahmen, jede zeilengenau kommentiert: Laufzeit-Geometrie (Balkenbreiten/-höhen, Tooltip-Position, height-/size-Props) und Laufzeit-Farben aus Daten (Serien-/Segmentfarben), dazu der Card-style-Passthrough für den eingefrorenen Resources-Bereich. Statische Werte sind seit Issue #7 vollständig Tailwind-Klassen."
+    }
+  },
+  "inlineStyles": {
+    "src/features/resources/": {
+      "budget": 96,
+      "target": 96,
+      "rationale": "Fachlich begründete Ausnahme: Schutzbereich Internal Resources ist eingefroren (CLAUDE.md §6). Abbau nur mit eigenem Auftrag, dann Ziel 0."
+    },
+    "src/": {
+      "budget": 0,
+      "target": 0,
+      "rationale": "Ziel erreicht (Issue #7): außerhalb des Resources-Schutzbereichs kein unbegründeter Inline-Style mehr. ESLint erzwingt das zusätzlich über react/forbid-dom-props und react/forbid-component-props."
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { formatChartMetric } from '../chartTheme';
 import { StatusChip } from '../StatusChip';
+import { cn } from '@/lib/utils';
 
 export interface FunnelStage {
   name: string;
@@ -26,7 +27,7 @@ export function SteppedFunnelChart({
   const maxCount = Math.max(...stages.map((s) => s.count), 1);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+    <div className="flex w-full flex-col gap-[10px]">
       {stages.map((stage, idx) => {
         const isLast = idx === stages.length - 1;
         const widthPct = Math.max(18, (stage.count / maxCount) * 100);
@@ -37,81 +38,36 @@ export function SteppedFunnelChart({
             : stage.conversionRateToNext;
 
         return (
-          <div key={stage.name} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div key={stage.name} className="flex flex-col gap-[4px]">
             {/* Stage Bar Row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="flex items-center gap-[12px]">
               {/* Stage Info */}
-              <div
-                style={{
-                  width: '120px',
-                  flexShrink: 0,
-                  fontSize: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <strong
-                  style={{
-                    color: 'var(--color-text)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+              <div className="flex w-[120px] shrink-0 flex-col text-[12px]">
+                <strong className="overflow-hidden text-ellipsis whitespace-nowrap text-text">
                   {stage.name}
                 </strong>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                  Stufe {idx + 1}
-                </span>
+                <span className="text-[11px] text-[var(--color-text-muted)]">Stufe {idx + 1}</span>
               </div>
 
               {/* Funnel Step Bar */}
-              <div
-                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}
-              >
+              <div className="flex min-w-0 flex-1 items-center gap-[10px]">
                 <div
-                  style={{
-                    width: `${widthPct}%`,
-                    minWidth: '60px',
-                    height: '32px',
-                    background: stage.isBottleneck
-                      ? 'linear-gradient(90deg, rgba(255, 122, 61, 0.4) 0%, rgba(255, 122, 61, 0.85) 100%)'
+                  className={cn(
+                    'box-border flex h-[32px] min-w-[60px] items-center justify-between rounded-sm border border-solid px-[10px] py-0 [transition:width_300ms_ease]',
+                    stage.isBottleneck
+                      ? 'border-[var(--color-warning)] shadow-[0_0_10px_rgba(255,122,61,0.25)] [background:linear-gradient(90deg,rgba(255,122,61,0.4)_0%,rgba(255,122,61,0.85)_100%)]'
                       : isLast
-                        ? 'linear-gradient(90deg, rgba(0, 217, 198, 0.5) 0%, #00D9C6 100%)'
-                        : 'linear-gradient(90deg, rgba(0, 217, 198, 0.25) 0%, rgba(0, 217, 198, 0.6) 100%)',
-                    borderRadius: 'var(--radius-sm)',
-                    border: stage.isBottleneck
-                      ? '1px solid var(--color-warning)'
-                      : isLast
-                        ? '1px solid var(--color-primary)'
-                        : '1px solid rgba(0, 217, 198, 0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0 10px',
-                    boxSizing: 'border-box',
-                    boxShadow: stage.isBottleneck ? '0 0 10px rgba(255, 122, 61, 0.25)' : 'none',
-                    transition: 'width 300ms ease',
-                  }}
+                        ? 'border-[var(--color-primary)] [background:linear-gradient(90deg,rgba(0,217,198,0.5)_0%,#00D9C6_100%)]'
+                        : 'border-[rgba(0,217,198,0.3)] [background:linear-gradient(90deg,rgba(0,217,198,0.25)_0%,rgba(0,217,198,0.6)_100%)]',
+                  )}
+                  // eslint-disable-next-line react/forbid-dom-props -- Laufzeit-Geometrie (Stufenbreite aus Funnel-Daten)
+                  style={{ width: `${widthPct}%` }}
                 >
-                  <span
-                    style={{
-                      fontSize: '12.5px',
-                      fontWeight: 700,
-                      color: '#FFFFFF',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-                    }}
-                  >
+                  <span className="text-[12.5px] font-bold text-[#FFFFFF] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">
                     {formatChartMetric(stage.count, unit)}
                   </span>
                   {stage.value !== undefined && (
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        color: 'rgba(255,255,255,0.85)',
-                        fontFamily: 'var(--font-mono)',
-                      }}
-                    >
+                    <span className="font-mono text-[11px] text-[rgba(255,255,255,0.85)]">
                       {formatChartMetric(stage.value, valueUnit)}
                     </span>
                   )}
@@ -129,33 +85,14 @@ export function SteppedFunnelChart({
 
             {/* Conversion Connector to Next Stage */}
             {!isLast && calcConv !== undefined && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  paddingLeft: '130px',
-                  margin: '1px 0',
-                }}
-              >
-                <span style={{ color: 'var(--color-primary)', fontSize: '10px', opacity: 0.7 }}>
-                  ↓
-                </span>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    color: 'var(--color-text-muted)',
-                    background: 'var(--color-bg-deep)',
-                    padding: '1px 6px',
-                    borderRadius: '3px',
-                    border: '1px solid var(--color-border-soft)',
-                  }}
-                >
+              <div className="mx-0 my-[1px] flex items-center gap-[8px] pl-[130px]">
+                <span className="text-[10px] text-[var(--color-primary)] opacity-70">↓</span>
+                <span className="rounded-[3px] border border-solid border-border-soft bg-background-deep px-[6px] py-[1px] text-[11px] text-[var(--color-text-muted)]">
                   Conversion:{' '}
                   <strong
-                    style={{
-                      color: calcConv >= 30 ? 'var(--color-primary)' : 'var(--color-warning)',
-                    }}
+                    className={
+                      calcConv >= 30 ? 'text-[var(--color-primary)]' : 'text-[var(--color-warning)]'
+                    }
                   >
                     {calcConv.toFixed(1)}%
                   </strong>

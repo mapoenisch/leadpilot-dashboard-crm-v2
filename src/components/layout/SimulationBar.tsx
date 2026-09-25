@@ -50,17 +50,12 @@ export function SimulationBar() {
           size="sm"
         />
 
-        {/* G39 Welle 1: Glow an/aus sind zwei zur Build-Zeit bekannte Werte —
-            als Klasse nicht abbildbar, weil Button kein className-Prop hat
-            (API bleibt unverändert); Passthrough an Custom-Komponente. */}
         <Button
           size="sm"
           variant="primary"
           onClick={toggleRun}
           iconLeft={<Icon name={simState.isRunning ? 'pause' : 'play'} size={14} />}
-          style={{
-            boxShadow: simState.isRunning ? 'var(--shadow-glow-cyan)' : 'none',
-          }}
+          className={simState.isRunning ? 'shadow-glow-cyan' : 'shadow-none'}
         >
           {simState.isRunning ? 'Pausieren' : 'Starten'}
         </Button>

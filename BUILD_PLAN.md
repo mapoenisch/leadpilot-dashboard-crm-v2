@@ -1,6 +1,6 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 23.09.2026
+**Stand:** 24.09.2026
 
 **Roadmap-Basis:** `v2.2.0` (`9380ace`)
 **Bestätigter CI-Recovery-Merge auf `main`:** `dec0aa5` (PR #22, sieben Pflichtjobs grün)
@@ -10,6 +10,11 @@
 **Ziel:** `v2.3.0` – Produktionsnähe und Mehrbenutzerfähigkeit
 
 ## Aktive Roadmap v2.3.0
+
+**Rollenwechsel (24.09.2026, Entscheidung Marc):** Bis zum Release `v2.3.0`
+ist Claude Code Builder und schreibt fehlende Detailaufträge selbst; Codex
+prüft unabhängig. Details in `CLAUDE.md` §4. Vor 067Q wird Issue #7
+(Qualitätsschulden) im Code abgebaut, nicht nur budgetiert.
 
 Die fachlich freigegebene Spezifikation liegt unter
 `docs/superpowers/specs/2026-09-15-v2-3-0-production-readiness-design.md`. Auftrag 067
@@ -39,7 +44,8 @@ sichtbar.
 | Sicherheits- und Datenkern | G45–G51 | Auth/RLS, Ingress, CRM-Quelle, Baseline, Persistenz, Worker, HubSpot | ✅ auf `main` |
 | Frontend/Qualität | G52–G58 | 33 semantische Seiten, UX/A11y, Toolchain, fail-closed CI | ✅ auf `main` |
 | Ergänzungen | G59–G62 | Mitglieder, CRM Query/Export, Frische, Audit/Diagnose | ✅ auf `main` |
-| Nächster Fachauftrag | G63 / 067Q | Run-Steuerung | Detailauftrag ausstehend |
+| Qualitätsschulden | Issue #7 | Inline-Styles und Suppressions im Code abbauen | Claude Code baut |
+| Nächster Fachauftrag | G63 / 067Q | Run-Steuerung | Detailauftrag schreibt Claude Code |
 | Gesamtabnahme | G64 / 067R | vollständige Abnahme | nach G63 |
 | Release | G65 / 067S | Migration, `All Rights Reserved`, `v2.3.0` | nach G64 und Marcs Freigabe |
 

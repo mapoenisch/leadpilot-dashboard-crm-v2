@@ -14,9 +14,7 @@ export interface DiagramCanvasProps {
     metric?: string;
   };
   className?: string;
-  style?: React.CSSProperties;
   svgClassName?: string;
-  svgStyle?: React.CSSProperties;
   aspectRatio?: string;
 }
 
@@ -30,9 +28,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
   summary,
   source,
   className = '',
-  style,
   svgClassName = '',
-  svgStyle,
   aspectRatio,
 }) => {
   const generatedId = useId();
@@ -48,10 +44,6 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
     <figure
       id={baseId}
       className={`facelift-diagram-canvas box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-4)] ${className}`}
-      // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
-      // style-Passthrough (externe Konsumenten möglich).
-      // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-style-Props, siehe Auftrag 054 Block D
-      style={style}
     >
       {/* Header mit Titel und optionaler Beschreibung */}
       <div className="flex flex-col gap-[var(--space-1)] mb-[var(--space-3)]">
@@ -88,10 +80,6 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
               ? `${svgClassName} block w-full h-auto select-none`
               : 'block w-full h-auto select-none'
           }
-          // G39 Welle 1: eigene Anteile als Klassen; Aufrufer-Overrides via
-          // style-Passthrough.
-          // eslint-disable-next-line react/forbid-dom-props -- Passthrough des Aufrufer-svgStyle-Props, siehe Auftrag 054 Block D
-          style={svgStyle}
           xmlns="http://www.w3.org/2000/svg"
         >
           <title id={svgTitleId}>{title}</title>

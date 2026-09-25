@@ -16,11 +16,12 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
 - **Arbeitsweise**: Auftrags-Specs unter `docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md`.
   Jeder Auftrag durchläuft das Gate-System : TypeScript-Check,
   Test-Suite (`npm run verify`), Screenshot-Diffs vorher/nachher, Schutzbereichs-Diff.
-- **Ablauf** (seriell, kein paralleles Arbeiten): Antigravity baut → übergibt an Codex
-  oder Claude Code → der prüft nur (Review + Gates), baut nichts, gibt den Befund zurück
-  an Antigravity → Antigravity baut nach. Wiederholung bis alle Gates bestanden sind.
-- **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Antigravity ist der schreibende Builder;
-  Prüfer tragen ihren Befund ein und geben ihn zurück.
+- **Ablauf bis Release `v2.3.0`** (seriell, kein paralleles Arbeiten): **Claude Code baut**
+  (schreibt fehlende Detailaufträge selbst) → übergibt an **Codex** → der prüft nur
+  (Review + Gates), baut nichts, gibt den Befund zurück an Claude Code → Claude Code baut
+  nach. Wiederholung bis alle Gates bestanden sind. Antigravity baut in dieser Phase nicht.
+- **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Claude Code ist der schreibende Builder;
+  Codex trägt seinen Befund ein und gibt ihn zurück.
 - **Maßgebliche Dokumente**: `ARCHITECTURE_DECISIONS.md`, `BUILD_PLAN.md`, `docs/BUILD_LOG.md`.
   `readme.md` und `SKILL.md` dokumentieren den separaten Design-Skill, nicht die App-Logik.
 

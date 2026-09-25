@@ -7,6 +7,7 @@ import {
   AggregatedTimeSeriesPoint,
   KpiConfigItem,
   RUN_OVERLAY_COLORS,
+  runOverlayButtonClass,
 } from './kpiTimeSeriesConfig';
 
 interface KpiTimeSeriesChartSectionProps {
@@ -395,18 +396,13 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
             {completedRuns.slice(0, 15).map((r, idx) => {
               const isSelected = selectedRunIds.includes(r.runId);
               const colorIdx = selectedRunIds.indexOf(r.runId);
-              const assignedColor = colorIdx >= 0 ? RUN_OVERLAY_COLORS[colorIdx] : undefined;
               return (
                 <Button
                   key={r.runId}
                   size="sm"
                   variant={isSelected ? 'primary' : 'secondary'}
                   onClick={() => onToggleRunSelection(r.runId)}
-                  style={{
-                    borderColor: assignedColor,
-                    color: isSelected ? '#fff' : assignedColor || 'var(--color-text-muted)',
-                    background: isSelected ? assignedColor : undefined,
-                  }}
+                  className={runOverlayButtonClass(colorIdx, isSelected)}
                 >
                   Run #{idx + 1} ({activeKpiConfig.runValueExtractor(r).toLocaleString('de-DE')}{' '}
                   {activeKpiConfig.unit})

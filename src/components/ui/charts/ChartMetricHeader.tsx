@@ -1,6 +1,6 @@
-import React from 'react';
 import { StatusChip } from '../StatusChip';
 import { Icon } from '../Icon';
+import { cn } from '@/lib/utils';
 
 export interface ChartMetricHeaderProps {
   label: string;
@@ -11,7 +11,7 @@ export interface ChartMetricHeaderProps {
   deltaPercent?: number;
   isPositiveChange?: boolean;
   goalStatus?: string;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
 export function ChartMetricHeader({
@@ -23,55 +23,27 @@ export function ChartMetricHeader({
   deltaPercent,
   isPositiveChange = true,
   goalStatus,
-  style,
+  className,
 }: ChartMetricHeaderProps) {
   const formattedVal = typeof value === 'number' ? value.toLocaleString('de-DE') : value;
   const formattedBaseline =
     typeof baselineValue === 'number' ? baselineValue.toLocaleString('de-DE') : baselineValue;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 'var(--space-2)',
-        marginBottom: '6px',
-        ...style,
-      }}
-    >
+    <div className={cn('mb-[6px] flex flex-wrap items-start justify-between gap-2', className)}>
       <div>
-        <div
-          style={{
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            color: 'var(--color-text-muted)',
-          }}
-        >
+        <div className="text-[11px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
           {label}
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
-          <span
-            style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              fontFamily: 'var(--font-display)',
-              color: 'var(--color-text)',
-            }}
-          >
-            {formattedVal}
-          </span>
+        <div className="mt-[2px] flex items-baseline gap-[6px]">
+          <span className="font-display text-[24px] font-bold text-text">{formattedVal}</span>
           {unit && (
-            <span style={{ fontSize: '14px', color: 'var(--color-primary)', fontWeight: 600 }}>
-              {unit}
-            </span>
+            <span className="text-[14px] font-semibold text-[var(--color-primary)]">{unit}</span>
           )}
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+      <div className="flex flex-col items-end gap-[4px]">
         {goalStatus && (
           <StatusChip
             variant={
@@ -84,14 +56,10 @@ export function ChartMetricHeader({
 
         {(deltaAbsolute !== undefined || deltaPercent !== undefined) && (
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '11.5px',
-              fontWeight: 600,
-              color: isPositiveChange ? 'var(--color-primary)' : 'var(--color-warning)',
-            }}
+            className={cn(
+              'flex items-center gap-[4px] text-[11.5px] font-semibold',
+              isPositiveChange ? 'text-[var(--color-primary)]' : 'text-[var(--color-warning)]',
+            )}
           >
             <Icon name={isPositiveChange ? 'trendingUp' : 'trendingDown'} size={13} />
             <span>
@@ -104,7 +72,7 @@ export function ChartMetricHeader({
         )}
 
         {formattedBaseline !== undefined && (
-          <div style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
+          <div className="text-[10.5px] text-[var(--color-text-muted)]">
             Basis: {formattedBaseline} {unit}
           </div>
         )}

@@ -150,11 +150,11 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
               <span className="text-[12.5px] font-semibold text-[var(--color-text-muted)]">
                 {title}
               </span>
-              <Badge variant="mint" style={{ padding: '2px 8px', fontSize: '9.5px' }}>
+              <Badge variant="mint" size="sm">
                 Ebene C
               </Badge>
             </div>
-            <Badge variant={statusBadgeVariant} style={{ padding: '2px 8px', fontSize: '9.5px' }}>
+            <Badge variant={statusBadgeVariant} size="sm">
               {statusBadgeLabel}
             </Badge>
           </div>
@@ -199,7 +199,7 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
 
               {snapshot.qualityStatus === 'degraded' && (
                 <div className="inline-block mb-[4px]">
-                  <Badge variant="orange" style={{ padding: '1px 6px', fontSize: '9px' }}>
+                  <Badge variant="orange" className="px-[6px] py-[1px] text-[9px]">
                     Qualität eingeschränkt (Degraded)
                   </Badge>
                 </div>
