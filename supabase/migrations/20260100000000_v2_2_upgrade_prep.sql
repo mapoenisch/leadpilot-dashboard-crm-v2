@@ -1,6 +1,7 @@
 -- G65 (Auftrag 067S): Upgrade-Vorbereitung für Datenbanken im Stand v2.2.0.
 --
--- `20260101000000_base_schema.sql` beschreibt das Zielschema für eine leere
+-- `20260101000000_base_schema.sql` (Kopie von supabase/schema.sql, siehe
+-- docs/operations/ci-e2e-backend.md) beschreibt das Zielschema für eine leere
 -- Datenbank. In v2.2.0 existieren companies, contacts und
 -- imported_funnel_deals bereits, aber ohne organization_id. Dann überspringt
 -- base_schema das CREATE TABLE und bricht beim Constraint

@@ -132,10 +132,23 @@ FROM pg_trigger t WHERE NOT t.tgisinternal
                   WHERE n.nspname IN ('public', 'auth'))
 ORDER BY 1;`;
 
-const migrations = readdirSync(join(root, 'supabase/migrations'))
-  .filter((f) => f.endsWith('.sql'))
+// Das Basisschema ist nicht als Migration versioniert: CI und Rollout kopieren
+// supabase/schema.sql als 20260101000000_base_schema.sql (docs/operations/
+// ci-e2e-backend.md, v2.3.0-runbook.md). Liegt die Kopie lokal schon vor, muss
+// sie identisch sein; sonst wird schema.sql an ihrer Stelle eingereiht.
+const BASE_SCHEMA = '20260101000000_base_schema.sql';
+const schemaSql = join(root, 'supabase/schema.sql');
+const migrationDir = join(root, 'supabase/migrations');
+const migrationNames = readdirSync(migrationDir).filter((f) => f.endsWith('.sql'));
+if (
+  migrationNames.includes(BASE_SCHEMA) &&
+  readFileSync(join(migrationDir, BASE_SCHEMA), 'utf-8') !== readFileSync(schemaSql, 'utf-8')
+) {
+  check(false, `${BASE_SCHEMA} weicht von supabase/schema.sql ab`);
+}
+const migrations = [...new Set([...migrationNames, BASE_SCHEMA])]
   .sort()
-  .map((f) => join(root, 'supabase/migrations', f));
+  .map((f) => (f === BASE_SCHEMA ? schemaSql : join(migrationDir, f)));
 const fixtures = readdirSync(join(root, 'scripts/fixtures/v2.2.0'))
   .filter((f) => f.endsWith('.sql'))
   .sort()

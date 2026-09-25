@@ -2,8 +2,8 @@
 --
 -- scripts/verifyMigrationUpgrade.mjs vergleicht das Schema aus einer leeren
 -- Datenbank mit dem nach einem Upgrade von v2.2.0. Zwei Abweichungen gab es
--- nur beim Neuaufbau, beide aus den Inline-Definitionen in
--- 20260101000000_base_schema.sql:
+-- nur beim Neuaufbau, beide aus den Inline-Definitionen in supabase/schema.sql
+-- (als 20260101000000_base_schema.sql eingespielt):
 --
 -- 1. organization_id hatte auf companies, contacts und imported_funnel_deals
 --    den Default „Demo-Mandant“. Ein INSERT ohne Organisation wäre still dem

@@ -13125,3 +13125,68 @@ Die manuelle Gegenprüfung ist ausgeführt und protokolliert. **G64 bereit für 
 
 ### Ergebnis & Freigabestatus
 Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung.** Merge nur durch Marc.
+
+---
+
+## [2026-09-25] Auftrag 067S / Gate G65: Migration, Lizenz und Release-Kandidat v2.3.0 (Builder: Claude Code)
+
+**Ziel & Kontext:** Letzter Teilauftrag des Masterplans (Task 19), [Detailauftrag](auftraege/ANTIGRAVITY_AUFTRAG_067S_MIGRATION_LIZENZ_RELEASE.md). Baseline `main` `06d7269`. Den Tag `v2.3.0` setzt Marc nach seiner Freigabe; dieser Eintrag endet beim Release-Kandidaten.
+
+### Roter Start
+- `PR-LICENSE-19` rot (erwartet, keine `LICENSE`).
+- **Befund 1, Upgrade v2.2.0:** Auf einer Datenbank im ausgelieferten Stand v2.2.0 (`schema.sql` und die zwei Live-KPI-Migrationen aus dem Tag, dazu Demo-Zeilen ohne `organization_id`) bricht das Basisschema mit `column "organization_id" named in key does not exist` ab (`ALTER TABLE companies ADD CONSTRAINT companies_org_id_unique`). Das Upgrade der realen v2.2.0-Datenbank wäre gescheitert.
+- **Befund 2, Schemadrift:** Nach Behebung von Befund 1 unterscheiden sich Neuaufbau und Upgrade. Nur der Neuaufbau hat `organization_id DEFAULT <Demo-Mandant>` auf companies, contacts und imported_funnel_deals (stille Demo-Zuordnung, Spec §6) und einen doppelten Deals-Fremdschlüssel.
+- **Befund 3, Basisschema nicht versioniert (im Abnahmelauf gefunden):** `20260101000000_base_schema.sql` ist nicht im Repo. CI und lokale Reproduktion kopieren `supabase/schema.sql` dorthin. Im sauberen Klon lief der Migrationsnachweis deshalb ohne Basisschema rot.
+
+### Geänderte Dateien
+- **Migrationen (vorwärts, idempotent, nicht destruktiv):**
+  - `20260100000000_v2_2_upgrade_prep.sql` ergänzt nur bei vorhandenen Alt-Tabellen `organization_id` und ordnet Bestand dem Demo-Mandanten zu. Auf einer leeren DB ist sie wirkungslos.
+  - `20261003_tenant_schema_convergence.sql` entfernt den Demo-Default und den doppelten Fremdschlüssel.
+- **Nachweis:** `scripts/verifyMigrationUpgrade.mjs` (`npm run verify:migrations`) mit Fixture `scripts/fixtures/v2.2.0/` (Kopien aus dem Tag, byte-identisch geprüft). Wegwerf-Datenbanken `lp_fresh` und `lp_upgrade` im lokalen Supabase-Container; die E2E-Datenbank bleibt unberührt. Das Basisschema wird wie in der CI aus `schema.sql` eingereiht, eine abweichende lokale Kopie ist rot. Der Nachweis läuft in der CI im e2e-Job nach pgTAP.
+- **Lizenz:**
+  - `LICENSE` (All Rights Reserved, Copyright Marc Pönisch, Nutzungsbeschränkung, Drittlizenzen unberührt).
+  - `package.json` `"license": "UNLICENSED"`.
+  - README-Abschnitt „Lizenz“ und `docs/releases/V2.3.0.md` mit demselben Status.
+  - Register: `PR-LICENSE-19` → `passing` seit G65 (TS, JSON, MD).
+  - `scripts/v23FindingReadiness.ts`: Die G65-Ausnahme entfällt, die Readiness lässt kein offenes Finding mehr zu (Tests angepasst, dazu ein neuer Test für ein offenes Lizenz-Finding).
+- **Third-Party-Lizenzen:** `scripts/checkThirdPartyLicenses.mjs` (`npm run verify:licenses`) liest `package-lock.json` ohne Netz. Er prüft SPDX-Ausdrücke mit AND/OR gegen eine Allowlist; eine fehlende Angabe ist rot. Ergebnis: 184 Produktionspakete, alle erlaubt (MIT, ISC, Apache-2.0, BSD-3-Clause, 0BSD). Der Check läuft in der CI im lint-Job.
+- **Konfiguration:** `scripts/checkProductionConfig.mjs` mit `npm run build:production`. Der Build bricht ab bei fehlenden Werten, Platzhaltern, einer URL ohne https oder einem service_role-/secret-Schlüssel im Browser. `.env.example` listet Pflichtwerte und Function-Secrets ohne Werte.
+- **Betrieb:** `docs/operations/v2.3.0-runbook.md` (Konfiguration, Free-Tier-Grenzen, Backup vor Migration, Rollout-Reihenfolge mit Basisschema-Schritt und `--include-all`, Smoke-Test) und `docs/operations/v2.3.0-rollback.md`.
+- **Version:** `package.json`/`package-lock.json` auf `2.3.0` (`npm install --package-lock-only --offline`). Die Login-Fußzeile zeigt `V2.3.0`.
+- **Orchestrator:** neue Gates `licenses` (25) und `migrations` (26); die Codes 11–24 sind unverändert.
+- **Doku:** Abnahmematrix (§19, §21, Issues), Finding-Register, `BUILD_PLAN.md`, `ARCHITECTURE_DECISIONS.md` (D4).
+
+### Funktionale Prüfungen
+- **`npm run verify:migrations`**, lokal und im sauberen Klon grün:
+  - Leere DB und Upgrade v2.2.0 laufen mit je 22 Migrationen durch.
+  - Die v2.2.0-Zeilen gehören danach zu 4/4 dem Demo-Mandanten.
+  - Der Demo-Bootstrap läuft zweimal ohne Änderung (1/4/3/2 → 1/4/3/2).
+  - Keine offene `USING(true)`-Policy außer der öffentlichen Live-KPI-Anzeige.
+  - Das Schema ist auf beiden Wegen identisch (351 Katalogeinträge).
+  - pgTAP gegen die hochgezogene DB: PASS.
+- **Rollback getestet:** Das Frontend aus Tag `v2.2.0` läuft gegen das Schema v2.3.0.
+  - 6 Routen gerendert, 0 `pageerror`, 0 Schreibzugriffe, Datenbestand unverändert.
+  - Anonyme REST-Lesezugriffe liefern `200 []`, ein anonymer Upsert endet mit `42501`.
+  - Das Frontend von v2.2.0 hat die CRM-Tabellen beim Rundgang selbst nicht abgefragt. Deshalb sind die REST-Pfade, die es nutzt, direkt geprüft.
+- `supabase db reset` mit Seed und `supabase test db`: alle 7 Dateien grün.
+
+### Schutzbereichs-Prüfung
+`git diff 06d7269 -- src/simulation src/types src/context src/services/data src/features/resources`: leer.
+
+### Automatisierte Verifikation
+- **Lokal im Arbeitsverzeichnis:**
+  - tsc, lint 0/0, quality-budget und format grün.
+  - `test:coverage` 273 Dateien, 1505/1505 grün (87,58 / 81,35 / 82,19 / 88,83 %).
+  - Integrity 001–025 grün, build grün, size-limit 173,14 kB / 86,4 kB, `verify:licenses` grün.
+- **Gesamtabnahme aus sauberem Klon** (`git clone`, `npm ci` Exit 0 in 19 s, `npm run accept:v23` auf `50926e1`):
+  - Grün: typecheck, lint, format, quality-budget, unit-coverage, integrity, build, bundle, audit, sql-rls, findings (20/20 `passing`), lighthouse und licenses.
+  - `e2e` ist rot mit 36 von 630 Tests, ausschließlich in `crm-query-export`, `tenant-isolation` und `visual /crm/leads`. Das ist die bekannte lokale Edge-Grenze aus G64; alle übrigen E2E-Dateien sind grün.
+  - `readiness` ist dadurch blockiert.
+  - `migrations` war rot (Befund 3). Nach der Korrektur ist das Gate im selben Klon grün (`--only=migrations`, 12 s).
+  - Maßgeblich für e2e und readiness ist die CI auf dem PR.
+
+### Screenshot-Matrix
+`docs/screenshots/auftrag-067s/README.md`: `/login` 1440/768/375 geändert, nur die Fußzeile (V2.2.0-Härtung → V2.3.0); Overflow 0 px.
+
+### Ergebnis & Freigabestatus
+Gebaut und lokal verifiziert. **Bereit für die Codex-Prüfung (G65).** Danach entscheidet Marc über die Release-Freigabe (Spec §22 Punkt 12). Erst dann folgen Merge und Tag `v2.3.0`.
