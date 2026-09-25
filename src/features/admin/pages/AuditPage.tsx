@@ -13,14 +13,14 @@ import {
 // ---------------------------------------------------------------- Forbidden-Guard
 function ForbiddenView() {
   return (
-    <main tabIndex={-1} id="main-content" aria-label="Hauptinhalt" className="p-[var(--space-6)]">
+    <section aria-label="Audit-Log" className="p-[var(--space-6)]">
       <div
         role="alert"
         className="rounded-lg border border-red-800/40 bg-red-900/20 p-[var(--space-4)] text-sm text-red-300"
       >
         <strong>Zugriff verweigert.</strong> Diese Seite ist nur für Administratoren zugänglich.
       </div>
-    </main>
+    </section>
   );
 }
 
@@ -151,11 +151,11 @@ export function AuditPage() {
 
   if (isOrgLoading) {
     return (
-      <main tabIndex={-1} id="main-content" aria-label="Hauptinhalt" className="p-[var(--space-6)]">
+      <section aria-label="Audit-Log" className="p-[var(--space-6)]">
         <div className="text-sm text-[var(--color-text-muted)] animate-pulse">
           Lade Organisationsdaten...
         </div>
-      </main>
+      </section>
     );
   }
 
@@ -164,7 +164,7 @@ export function AuditPage() {
   }
 
   return (
-    <main tabIndex={-1} id="main-content" aria-label="Audit-Log" className="p-[var(--space-6)]">
+    <section aria-label="Audit-Log" className="p-[var(--space-6)]">
       {selectedEntry && (
         <DetailModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} />
       )}
@@ -296,6 +296,6 @@ export function AuditPage() {
           </tbody>
         </table>
       </div>
-    </main>
+    </section>
   );
 }

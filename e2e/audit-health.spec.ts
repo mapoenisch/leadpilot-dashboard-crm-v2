@@ -23,7 +23,9 @@ test.describe('Admin: Audit-Log und Systemdiagnose', () => {
 
   test('Admin sieht Audit-Log-Seite mit Tabelle', async ({ page }) => {
     await page.goto('/admin/audit', { waitUntil: 'networkidle' });
-    const main = page.getByRole('main', { name: 'Audit-Log' });
+    // 067R / G64: genau ein Hauptbereich (Layout); die Seite ist ein benannter Abschnitt darin.
+    await expect(page.getByRole('main')).toHaveCount(1);
+    const main = page.getByRole('main').getByRole('region', { name: 'Audit-Log' });
     await expect(main.getByRole('heading', { name: 'Audit-Log' })).toBeVisible();
     await expect(page.getByRole('table', { name: /Audit-Log Einträge/i })).toBeVisible();
     await expect(page.getByRole('search', { name: /Audit-Log Filter/i })).toBeVisible();
@@ -42,7 +44,9 @@ test.describe('Admin: Audit-Log und Systemdiagnose', () => {
 
   test('Admin sieht Systemdiagnose-Seite mit Diagnose-Button', async ({ page }) => {
     await page.goto('/admin/health', { waitUntil: 'networkidle' });
-    const main = page.getByRole('main', { name: 'Systemdiagnose' });
+    // 067R / G64: genau ein Hauptbereich (Layout); die Seite ist ein benannter Abschnitt darin.
+    await expect(page.getByRole('main')).toHaveCount(1);
+    const main = page.getByRole('main').getByRole('region', { name: 'Systemdiagnose' });
     await expect(main.getByRole('heading', { name: 'Systemdiagnose' })).toBeVisible();
     await expect(page.getByTestId('run-diagnosis-btn')).toBeVisible();
   });

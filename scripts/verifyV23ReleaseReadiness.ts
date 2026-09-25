@@ -10,6 +10,7 @@
  * - Migrationen (supabase/migrations/)
  * - E2E & A11y (playwright-report/ / e2e)
  * - Statische Code-Prüfungen (ESLint, TSC, Prettier)
+ * - v2.3.0-Findings (test-results/v23-findings/, G64 / Auftrag 067R)
  *
  * INVARIANTE: Kein Fallback auf Defaultwerte, kein bedingungsloser Exit 0.
  * Bei fehlendem Artefakt, Grenzwertüberschreitung oder rotem Unterprozess: Exit 1.
@@ -20,6 +21,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { checkFindings } from './v23FindingReadiness.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,6 +50,8 @@ export interface ReadinessOptions {
   distDir?: string;
   migrationsDir?: string;
   e2eReportPath?: string;
+  findingsDir?: string;
+  knownFindingsPath?: string;
   runSubprocesses?: boolean;
   maxArtifactAgeMs?: number;
 }
@@ -93,7 +97,8 @@ export interface ReadinessReport {
 
 export function checkCoverage(options: ReadinessOptions = {}): CheckResult {
   const root = options.rootDir ?? ROOT_DIR;
-  const coveragePath = options.coverageSummaryPath ?? path.join(root, 'coverage/coverage-summary.json');
+  const coveragePath =
+    options.coverageSummaryPath ?? path.join(root, 'coverage/coverage-summary.json');
   const metrics: MetricResult[] = [];
   const errors: string[] = [];
 
@@ -384,7 +389,8 @@ export function checkLighthouse(options: ReadinessOptions = {}): CheckResult {
 
 export function checkAudit(options: ReadinessOptions = {}): CheckResult {
   const root = options.rootDir ?? ROOT_DIR;
-  const auditPath = options.auditJsonPath ?? path.join(root, 'docs/reviews/v2.3.0-npm-audit-baseline.json');
+  const auditPath =
+    options.auditJsonPath ?? path.join(root, 'docs/reviews/v2.3.0-npm-audit-baseline.json');
   const metrics: MetricResult[] = [];
   const errors: string[] = [];
 
@@ -393,7 +399,7 @@ export function checkAudit(options: ReadinessOptions = {}): CheckResult {
       const data = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
       const high = data.all?.high ?? data.metadata?.vulnerabilities?.high ?? 0;
       const critical = data.all?.critical ?? data.metadata?.vulnerabilities?.critical ?? 0;
-      const totalProd = data.production?.total ?? (high + critical);
+      const totalProd = data.production?.total ?? high + critical;
 
       const auditOk = high === 0 && critical === 0 && totalProd === 0;
 
@@ -417,7 +423,11 @@ export function checkAudit(options: ReadinessOptions = {}): CheckResult {
 
   // Wenn keine Baseline-Datei übergeben, live ausführen
   try {
-    const stdout = execSync('npm audit --json', { cwd: root, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+    const stdout = execSync('npm audit --json', {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024,
+    });
     const parsed = JSON.parse(stdout);
     const vulns = parsed.metadata?.vulnerabilities ?? {};
     const high = vulns.high ?? 0;
@@ -787,7 +797,9 @@ export function checkStaticCode(options: ReadinessOptions = {}): CheckResult {
 // 8. Gesamt-Orchestrator (runReleaseReadiness)
 // ============================================================================
 
-export async function runReleaseReadiness(options: ReadinessOptions = {}): Promise<ReadinessReport> {
+export async function runReleaseReadiness(
+  options: ReadinessOptions = {},
+): Promise<ReadinessReport> {
   const allMetrics: MetricResult[] = [];
   const allErrors: string[] = [];
 
@@ -826,6 +838,16 @@ export async function runReleaseReadiness(options: ReadinessOptions = {}): Promi
   allMetrics.push(...e2eResult.metrics);
   allErrors.push(...e2eResult.errors);
 
+  // v2.3.0-Findings (G64 / Auftrag 067R)
+  const findingResult = checkFindings({
+    rootDir: options.rootDir ?? ROOT_DIR,
+    findingsDir: options.findingsDir,
+    knownFindingsPath: options.knownFindingsPath,
+    maxArtifactAgeMs: getMaxArtifactAgeMs(options),
+  });
+  allMetrics.push(...findingResult.metrics);
+  allErrors.push(...findingResult.errors);
+
   const hasOpenMetrics = allMetrics.some((m) => m.status === 'OFFEN');
   const success = !hasOpenMetrics && allErrors.length === 0;
 
@@ -841,11 +863,19 @@ export async function runReleaseReadiness(options: ReadinessOptions = {}): Promi
 // ============================================================================
 
 export function printReport(report: ReadinessReport): void {
-  console.log('\n================================================================================================');
+  console.log(
+    '\n================================================================================================',
+  );
   console.log('📊 DEFINITION OF DONE — ERGEBNIS-TABELLE V2.3.0 RELEASE READINESS (GATE G58)');
-  console.log('================================================================================================');
-  console.log('| #  | Kennzahl                               | Ist-Wert                  | Soll-Wert       | Status         |');
-  console.log('|----|----------------------------------------|---------------------------|-----------------|----------------|');
+  console.log(
+    '================================================================================================',
+  );
+  console.log(
+    '| #  | Kennzahl                               | Ist-Wert                  | Soll-Wert       | Status         |',
+  );
+  console.log(
+    '|----|----------------------------------------|---------------------------|-----------------|----------------|',
+  );
 
   let fulfilled = 0;
   let exceptions = 0;
@@ -869,9 +899,15 @@ export function printReport(report: ReadinessReport): void {
     else open++;
   }
 
-  console.log('================================================================================================');
-  console.log(`BILANZ: ${fulfilled} Erfüllt · ${exceptions} Dokumentierte Ausnahmen · ${open} Offen`);
-  console.log('================================================================================================\n');
+  console.log(
+    '================================================================================================',
+  );
+  console.log(
+    `BILANZ: ${fulfilled} Erfüllt · ${exceptions} Dokumentierte Ausnahmen · ${open} Offen`,
+  );
+  console.log(
+    '================================================================================================\n',
+  );
 
   if (report.errors.length > 0) {
     console.error('❌ FEHLER IM RELEASE-READINESS-LAUF:');

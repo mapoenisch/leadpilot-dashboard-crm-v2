@@ -18,6 +18,7 @@
     "verify:v23:baseline": "tsx scripts/verifyV23FindingBaseline.ts",
     "verify:quality-budget": "tsx scripts/verifyQualityBudget.ts",
     "verify:v23:readiness": "tsx scripts/verifyV23ReleaseReadiness.ts",
+    "accept:v23": "node scripts/runV23Acceptance.mjs",
     "lint": "eslint . --max-warnings 0",
     "lint:report": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",

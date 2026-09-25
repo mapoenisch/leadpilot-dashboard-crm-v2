@@ -12905,3 +12905,172 @@ Prüfer · **Ergebnis:** Freigabe; der P2-Befund ist behoben.
   UI-Dateien gültig.
 
 **Übergabe an Claude Code:** PR #25 ist aus Prüfersicht freigegeben.
+
+---
+
+## [2026-09-25] Gate G64 / Auftrag 067R: Vollständige Abnahme v2.3.0 (Builder Claude Code)
+
+**Ziel & Kontext:** Jede Spec-Anforderung, jedes G44-Finding und jedes Issue ist
+einem grünen, frischen Nachweis zugeordnet
+([Auftrag](auftraege/ANTIGRAVITY_AUFTRAG_067R_GESAMTABNAHME.md),
+[Matrix](reviews/v2.3.0-acceptance-matrix.md)).
+
+- **Branch:** `claude/067r-acceptance` (PR #28), gestapelt auf #27.
+- **Schutzbereichs-Baseline:** `9877697`.
+- **Entscheid Marc Poenisch (25.09.2026):** Veraltete G44-Verträge werden nach dem Muster G46/PR-SEED-05 neu ausgerichtet.
+
+### Roter Start
+- `vitest.v23-findings.config.ts`: 13 grün, 7 rot. Rot waren SOURCE-04, BASELINE-06, FREEZE-07, PERSIST-08, WORKER-09, SEMANTIC-11 und LICENSE-19.
+- `known-findings.json` führte 12 Findings als `failing`, darunter HUBSPOT-10, A11Y-12, CLIP-13 und ASSET-14, die tatsächlich grün sind.
+- `verify:v23:baseline` lief in keiner CI.
+
+### Befunde und Behebung
+1. **PR-SOURCE-04 (Restlücke):** `CRMRepository` ersetzte bei konfiguriertem Supabase Fehler oder leere Tabellen still durch Demodaten.
+   - Die Lesepfade sind jetzt fail-closed: Fehler werden zu `DataSourceError('FETCH_FAILED')` mit `DATA_SOURCE_UNAVAILABLE`, leer bleibt leer, Audit mit konfiguriertem Supabase ist ein Quellenfehler.
+   - Ohne Supabase-Konfiguration wird die aktive Quelle ausdrücklich gelesen, wie bisher.
+   - Der Pipeline-Hook bleibt auf dem Repository (siehe Codex-Review unten).
+2. **PR-SEMANTIC-11 (Restlücke):** Die Hülle von `DataBasisPage` ist jetzt eine benannte `section`, pixelgleich.
+3. **Verträge neu ausgerichtet:** SOURCE-04, BASELINE-06, FREEZE-07, PERSIST-08 und WORKER-09 prüfen jetzt Verhalten statt Text.
+   - **Negativproben:** Jede wurde temporär zurückgedreht und danach wiederhergestellt; jeder Vertrag ist dann rot:
+     - altes Repository
+     - Override in `resolveHistoricalMetrics` ignoriert
+     - ohne `deepFreeze`
+     - ohne Server-Persistenz
+     - `shouldUseWorker → false`
+   - Die Befund-Marker stehen in jeder Fehlermeldung.
+4. **Falsche Test-ID:** Die nicht registrierte ID `[PR-HUBSPOT-11]` am G51-Detailtest ist entfernt. Der Verifier hatte sie als unbekanntes Zusatzresultat abgewiesen.
+5. **Register:** 19/20 `passing` in TypeScript, JSON und Markdown (Charakterisierungstest grün). Nur PR-LICENSE-19 (G65) bleibt offen.
+6. **Readiness:**
+   - Kennzahl 27 (`scripts/v23FindingReadiness.ts`, fail-closed): fehlender, veralteter oder unlesbarer Report, technische Fehler, jede Register-Abweichung und jedes offene Finding außer PR-LICENSE-19 ergeben OFFEN.
+   - Die CI führt `verify:v23:baseline` vor der Readiness aus.
+7. **CI-Lücke:** `e2e/audit-health.spec.ts` (G62) und `e2e/member-management.spec.ts` (G59) liefen nie in der CI.
+   - Beide sind jetzt aufgenommen, `member-management` sequentiell. Mailpit bleibt im CI-Supabase an.
+   - Ein Wächter-Test verlangt jede E2E-Datei in Orchestrator und CI.
+8. **Hermetische Vitest-Suiten** (Befund aus dem ersten Abnahmelauf): Mit gesetzten `VITE_SUPABASE_*` lasen 17 Integrity-Suiten die echte lokale Datenbank; der stille Fallback hatte das verdeckt. `vitest.config.ts` setzt die Variablen für Unit und UI leer.
+9. **Orchestrator** `scripts/runV23Acceptance.mjs` (`npm run accept:v23`):
+   - 14 Gates, Exit-Codes 11–24.
+   - Blockierte Folge-Gates zählen als rot, übersprungene ergeben Exit 2.
+   - Ausgabe in `artifacts/v2.3.0/`, nur Unterordner von `artifacts/` zulässig.
+
+### Codex-Review auf PR #28 (Kommentar-Review `00566f8`)
+- **P1 Supabase-Pfad realer Organisationen:** Der Umstieg des Pipeline-Hooks auf den Envelope ist zurückgenommen, weil reale Mandanten `SYNTHETIC_NOT_ALLOWED` erhielten; eine mandantenfähige Supabase-Quelle läge im Schutzbereich `src/services/data`. Der Hook liest wieder über das nun fail-closed Repository. Der Vertrag prüft statt „kein Produktpfad am Envelope vorbei“ jetzt „leere Supabase-Tabelle bleibt leer“, negativ belegt: das alte Repository liefert 40 Demo-Deals.
+- **P1 rekursives Löschen des Ausgabeziels:** `resolveOutDir` lässt nur Unterordner von `artifacts/` zu. Test gegen `.`, `..`, `artifacts`, `src`, `/` und fremde Pfade.
+- **P2 G65-Ausnahme:** Die Ausnahme gilt nur für die explizite ID-Menge `['PR-LICENSE-19']`. Test: ein weiteres auf G65 gesetztes offenes Finding macht die Kennzahl OFFEN.
+- **P1 BUILD_LOG:** dieser Eintrag.
+
+### Schutzbereichs-Prüfung
+`git diff 9877697 -- src/simulation src/types src/context src/services/data src/features/resources`: **leer** (0 Zeilen). Die Negativproben haben Schutzbereichsdateien nur temporär geändert und per `git checkout` zurückgesetzt.
+
+### Automatisierte Verifikation (lokal, Node 22)
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check` und `npm run verify:quality-budget`: grün.
+- `npx vitest run` mit gesetzter E2E-Umgebung (hermetisch): 270 Dateien, 1486 Tests grün.
+- `npm run verify:v23:baseline`: „exakt die registrierten Findings sind rot“ (nur PR-LICENSE-19).
+- **Orchestrator-Lauf 1 (Commit `9f84d80`):**
+  - Grün: typecheck, lint, format, quality-budget, integrity, build, bundle, audit, sql-rls, findings.
+  - Rot: unit-coverage (17 Integrity-Suiten, siehe Befund 8), e2e (nur Edge-abhängige Tests, siehe Grenze unten) und lighthouse (Chrome-Pfad der Sandbox).
+- **Orchestrator-Lauf 2 (Commit `00566f8`):** unit-coverage grün (1487/1487). Mitten im Lauf fiel der lokale Docker-Daemon aus, deshalb ist das Ergebnis der DB-Gates nicht verwertbar.
+- **Lokale Grenze:** Die Edge-Runtime erreicht die npm-Registry nicht, deshalb sind `crm-query-export`, `tenant-isolation`, `visual /crm/leads` und `member-management` lokal rot. Maßgeblich ist der CI-Job `e2e`. `audit-health` lokal: 30/30.
+
+- **Orchestrator-Lauf 3 (Commit `21a4a7e`, finaler Code-Stand):**
+
+  | Code | Gate | Status |
+  |---|---|---|
+  | 11–20 | typecheck, lint, format, quality-budget, unit-coverage (1486/1486), integrity, build, bundle, audit, sql-rls | grün |
+  | 21 | e2e | rot: 594 grün, 36 rot, ausschließlich Edge-abhängig (`crm-query-export` 9×3, `tenant-isolation` 2×3, `visual /crm/leads` ×3) |
+  | 22 | findings | grün |
+  | 23 | lighthouse | grün |
+  | 24 | readiness | blockiert durch e2e |
+
+  - Die sequentiellen Specs laufen im Orchestrator nach dem roten ersten E2E-Schritt nicht mehr. Separat gefahren: `persistence-multisession`, `worker-responsiveness`, `run-control`, 15/15 grün.
+- **CI:** Lauf `36102765397` auf `00566f8` ist mit 7/7 Pflichtjobs grün, inklusive e2e. Dort liefen erstmals `audit-health` und `member-management`, dazu die Finding-Baseline und die Readiness mit Kennzahl 27. Der Lauf auf `21a4a7e` folgt auf dem PR.
+
+### Screenshot-Matrix
+[`docs/screenshots/auftrag-067r/README.md`](screenshots/auftrag-067r/README.md)
+- `/dashboard` ist auf allen drei Breiten identisch.
+- `/company/data-basis` ist auf 1440 und 375 identisch, auf 768 zeigt es Rauschen, weil sich schon vorher und vorher-2 unterscheiden.
+- Overflow ist in allen 123 Aufnahmen 0 px.
+- Die übrigen Abweichungen liegen auf nicht berührten Routen und sind per zweitem Nachher-Lauf als Harness-Rauschen belegt.
+
+### Ergebnis & Freigabestatus
+**G64 bereit für den unabhängigen Codex-Review.** Mit dem Review folgt die manuelle Gegenprüfung nach Plan Step 3: zwei Organisationen, drei Rollen, Reload/Zweitbrowser, n8n-Angriffe, Hash-Manipulation und Workersteuerung. Kein Merge, kein Tag; Merge nur durch Marc, nach #25 und #27.
+
+---
+
+## [2026-09-25] Gate G64 / Auftrag 067R: Manuelle Gegenprüfung (Plan Step 3) und Nacharbeit (Builder Claude Code)
+
+**Anlass:** Codex-Review auf PR #28 (`db88a73`) ohne Codefehler, aber die manuelle Gegenprüfung nach Masterplan Task 18 Step 3 fehlte.
+
+**Durchführung:**
+- Ausgeführt vom Builder gegen das lokale Supabase (frischer `db reset` mit Seed) und den Produktions-Build.
+- Zwei Skripte, bewusst nicht committet:
+  - Browser: Playwright als echter Nutzer mit Login, Klicks und Reload.
+  - Server/Angriffe: `supabase-js` mit echten Nutzer-JWTs sowie der echte Ingress-Handler `supabase/functions/_shared/ingressHandler.ts` gegen die echten Ingress-RPCs.
+- Nutzer aus `supabase/seed.sql`:
+  - Organisation A: admin-a, manager-a, viewer-a
+  - Organisation B: admin-b
+- Endstand auf dem Nacharbeitsstand: **Browser 12/12, Server/Angriffe 16/16.**
+
+### Szenarien und Ergebnis
+| # | Szenario | Beobachtung | Ergebnis |
+|---|---|---|---|
+| R1 | Drei Rollen, UI-Rechte | viewer-a und manager-a: `/admin/members`, `/admin/audit` und `/admin/health` zeigen „Zugriff verweigert“. admin-a hat Zugriff. | ✅ |
+| R2 | Rollen an den Steuer-RPCs | `record_run_control`: viewer 42501, manager ok, admin-b für Org A 42501. `discard_run_pause` als viewer: 42501. Direkter Aufruf von `accept_organization_invitation` als authenticated: abgewiesen. | ✅ |
+| T1 | Zwei Organisationen, RLS je Tabelle | `companies`, `contacts`, `imported_funnel_deals`, `simulation_runs`, `simulation_run_pauses`, `audit_log`, `organization_members`: jeweils 0 fremde Zeilen für Org A/B. Die Zeilenzahlen entsprechen der DB je Organisation; bei `organization_members` sieht der Admin nur die eigene Zeile, die Verwaltung läuft über die Edge-Function. | ✅ |
+| T2 | Direktschreiben in fremde Organisation | `INSERT companies` von admin-a mit `organization_id` = Org B: abgewiesen (42501). | ✅ |
+| W1 | Workersteuerung Pause | admin-a pausiert im Browser-Worker. UI zeigt `1/50`, die DB-Pause hat Tick 1/50, Org A und einen Hash. | ✅ |
+| RB1 | Reload | Nach dem Reload listet das Panel die Pause weiter. | ✅ |
+| RB2 | Zweitbrowser / Rollen / Fremdorg | Zweite Sitzung admin-a sieht die Pause. viewer-a sieht sie ohne Aktionen (0 Buttons). admin-b sieht sie nicht. | ✅ |
+| W2 | Fortsetzen im Zweitbrowser | Run COMPLETED, Pause atomar gelöscht (0 Zeilen). Die erste Sitzung zeigt nach dem Reload keine Pause mehr. | ✅ |
+| W3 | Abbrechen → Wiederholen | Abbruch im Audit (`scenario.run_cancelled`, `run-s525774…`). Der Retry läuft mit demselben Seed 525774 und endet COMPLETED. | ✅ (nach Fix B) |
+| W4 | Manager steuert | manager-a pausiert, die Pause ist gespeichert. | ✅ |
+| H1 | Hash-Manipulation Client | Echter Pausen-Snapshot: gültig. Manipulationen werden als `SIMULATION_RESUME_INVALID` abgewiesen: <ul><li>ARR geändert: Hash stimmt nicht</li><li>`rngState` geändert: Hash stimmt nicht</li><li>Tick geändert: Hash stimmt nicht</li><li>Organisation geändert und Hash neu berechnet: Organisation weicht ab</li><li>Baseline-Hash geändert und Hash neu berechnet: Baseline-Hash weicht ab</li></ul> | ✅ |
+| H2 | Hash-Manipulation Server | `save_run_pause` mit falschem Hash: 22023. Org B auf eine fremde `run_id`: 22023. Der gespeicherte Hash bleibt unverändert. | ✅ |
+| N1 | n8n-Ingress-Angriffe | <ul><li>gültig: 201</li><li>Replay gleiche Nonce: 401 `INGEST_REPLAY_DETECTED`</li><li>ohne Header: 401 `INGEST_SIGNATURE_MISSING`</li><li>falsches Secret: 401 `INGEST_SIGNATURE_INVALID`</li><li>Body nach der Signatur verändert: 401 `INGEST_SIGNATURE_INVALID`</li><li>Zeitstempel 10 min alt: 401 `INGEST_TIMESTAMP_EXPIRED`</li><li>unbekannte KPI: 422</li><li>Body über 256 KiB: 413</li></ul> | ✅ |
+| N2 | Persistenz / RPC-Sperre | Genau 1 Event aus dem Lauf in `live_kpi_events`, kein Replay. `ingest_live_kpi_event` als anon/admin-a: 42501. `claim_ingress_slot` als admin-a: 42501. | ✅ |
+
+### Befunde der manuellen Prüfung (behoben)
+- **A — verschachteltes `main` mit doppelter Sprungmarke (A11y, PR-A11Y-12-Absicht):**
+  - `MembersPage`, `AuditPage`, `SystemHealthPage` und `ForbiddenView` (G59/G62) renderten ein eigenes `<main id="main-content">` im Layout-`main`. Belegt: 2× `main`, 2× `#main-content`.
+  - Fix: benannte `section` ohne eigene ID.
+  - `audit-health` und `member-management` verlangen jetzt genau ein `main` bzw. `#main-content`.
+  - Pixelparität der drei Admin-Seiten (admin/viewer × 1440/768/375, Inhaltsbereich):
+    - Lauf 1: 15/18 identisch, dabei `admin /admin/members 1440` als Rauschen (vorher ≠ vorher-2) und zwei Abweichungen auf den Viewer-Seiten bei 768.
+    - Wiederholung dieser beiden: hash-gleich vorher/nachher (`970500cda528` bzw. `c3c38d69e698`), die Abweichungen waren also Rauschen zwischen den Läufen.
+    - Overflow überall 0 px.
+- **B — Abbruch im Zustand `queued` ohne Audit (G63):**
+  - Ein Abbruch vor der Run-ID wurde nie protokolliert. Belegt: im ersten Durchlauf fehlte `scenario.run_cancelled`, nur `run_retried` stand im Audit.
+  - Fix: `runSlice` merkt den Abbruch und protokolliert ihn, sobald die Unterbrechung mit Run-ID eintrifft.
+  - Neuer Slice-Test, negativ belegt: mit dem alten Slice rot.
+- **C — ESLint prüfte gitignorierte Laufartefakte:** `artifacts/**` ist in den ESLint-Ignores.
+
+### Beobachtung ohne Änderung
+- Viewer sehen „Run / Re-Run“ und dürfen Simulationen starten. Das ist so seit G49: Persistenz folgt der Run-Berechtigung, rollenunabhängig. Steuerbefehle sind für Viewer gesperrt (R2, RB2).
+- Ob Viewer überhaupt starten dürfen, ist eine Produktentscheidung für Marc und kein G64-Mangel.
+- `ResourceViewerContent` rendert ebenfalls ein `main`. Das liegt im eingefrorenen Schutzbereich `src/features/resources` und wurde nicht angefasst.
+
+### Verifikation nach der Nacharbeit
+- `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm run verify:quality-budget` und `npm run verify` (001–025): grün.
+- `npx vitest run` mit gesetzter E2E-Umgebung: 270 Dateien, 1487 Tests grün.
+- `npm run verify:v23:baseline`: exakt die registrierten Findings sind rot (nur PR-LICENSE-19).
+- `e2e/audit-health.spec.ts` lokal: 30/30.
+- `member-management` lokal nur Edge-unabhängig prüfbar, maßgeblich ist die CI.
+- Schutzbereichs-Diff gegen `9877697`: leer.
+
+### Freigabestatus
+Die manuelle Gegenprüfung ist ausgeführt und protokolliert. **G64 bereit für die erneute Codex-Prüfung.** Die finale G64-Wertung hält getrennt fest:
+- Der lokale Gesamtlauf bleibt bei Gate 21 rot (nur Edge-abhängige Specs) und blockiert Gate 24.
+- Die CI ist 7/7 grün.
+
+---
+
+## [2026-09-25] Gate G64 / PR #28: zweiter unabhängiger Codex-Review
+
+**Review-Stand:** `d834ec5d`; [GitHub-Review](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/pull/28#pullrequestreview-5315158098).
+
+- Der offene Punkt aus dem Review auf `db88a733` ist bearbeitet: Die manuelle Gegenprüfung nach Masterplan Task 18 Step 3 steht oben mit 12 Browser- und 16 Server-/Angriffsszenarien. Die Skripte wurden vom Builder lokal ausgeführt und nicht committet; Codex hat ihre Ergebnisse nicht selbst erneut ausgeführt.
+- Der Diff der Nacharbeit behebt die dabei gefundenen doppelten `main`-/`#main-content`-Bereiche auf den Admin-Seiten und ergänzt den Auditpfad für einen Abbruch im Zustand `queued`. Ein neuer Slice-Test prüft den Abbruch nach Bekanntwerden der Run-ID. Bei der erneuten Diff-Prüfung ergab sich kein weiterer belegbarer Codefehler.
+- [CI-Lauf 36108812947](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36108812947) auf diesem Head: 7/7 Jobs grün, darunter e2e mit pgTAP, Playwright, Finding-Baseline, Lighthouse und Release-Readiness.
+- Der lokale Gesamt-Orchestrator bleibt wegen der dokumentierten Edge-Umgebung bei Gate 21 rot und blockiert Gate 24. Die grüne CI ist ein separater Nachweis; ein lokaler Exit 0 wird nicht behauptet.
+- Schutzbereichs-Diff gegen `9877697`: laut Builder-Nachweis leer; der nachgereichte Diff ändert diese Schutzbereiche nicht.
+
+**Ergebnis:** G64 **aus Code-Review-Sicht freigegeben**. Die manuelle Ausführung ist als Builder-Nachweis dokumentiert, die automatisierten Gates sind auf dem PR-Head in der CI grün. Kein Merge und kein Release-Tag durch diesen Review; PR #28 bleibt in der vorgesehenen Reihenfolge nach #25 und #27.

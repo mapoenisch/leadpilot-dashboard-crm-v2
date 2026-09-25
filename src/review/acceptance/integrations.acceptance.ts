@@ -147,7 +147,11 @@ describe('v2.3.0 hubspot import findings', () => {
     expect.soft(mapCode, 'Abbruchsignal/Maximallaufzeit vorhanden').toMatch(/abortsignal|timeout/i);
   });
 
-  it('[PR-HUBSPOT-11] Map läuft genau einmal über Fan-in (kein unvollständiger Envelope)', () => {
+  // 067R / G64: Detailvertrag zu PR-HUBSPOT-10 aus G51. Er trug fälschlich die
+  // nicht registrierte ID `[PR-HUBSPOT-11]`, die der Baseline-Verifier als
+  // unbekanntes Zusatzresultat abweist. Ohne eigene ID gilt weiter fail-closed:
+  // ein Fehlschlag zählt als nicht registriertes rotes Resultat.
+  it('G51-Detail zu PR-HUBSPOT-10: Map läuft genau einmal über Fan-in (kein unvollständiger Envelope)', () => {
     const workflow = readWorkflow();
     const graph = readGraph();
     const connections = graph.connections ?? {};

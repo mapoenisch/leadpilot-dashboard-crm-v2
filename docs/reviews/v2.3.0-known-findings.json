@@ -29,7 +29,7 @@
     "severity": "critical",
     "targetGate": "G47",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-SEED-05",
@@ -45,7 +45,7 @@
     "severity": "critical",
     "targetGate": "G48",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-FREEZE-07",
@@ -53,7 +53,7 @@
     "severity": "critical",
     "targetGate": "G48",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-PERSIST-08",
@@ -61,7 +61,7 @@
     "severity": "critical",
     "targetGate": "G49",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-WORKER-09",
@@ -69,7 +69,7 @@
     "severity": "important",
     "targetGate": "G50",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-HUBSPOT-10",
@@ -77,7 +77,7 @@
     "severity": "important",
     "targetGate": "G51",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-SEMANTIC-11",
@@ -85,7 +85,7 @@
     "severity": "important",
     "targetGate": "G55",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-A11Y-12",
@@ -93,7 +93,7 @@
     "severity": "important",
     "targetGate": "G56",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-CLIP-13",
@@ -101,7 +101,7 @@
     "severity": "important",
     "targetGate": "G56",
     "runner": "playwright",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-ASSET-14",
@@ -109,7 +109,7 @@
     "severity": "important",
     "targetGate": "G56",
     "runner": "vitest",
-    "expected": "failing"
+    "expected": "passing"
   },
   {
     "id": "PR-DEPENDENCY-15",

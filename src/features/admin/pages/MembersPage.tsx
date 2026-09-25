@@ -65,11 +65,11 @@ export function MembersPage() {
 
   if (isOrgLoading) {
     return (
-      <main tabIndex={-1} id="main-content" aria-label="Hauptinhalt" className="p-[var(--space-6)]">
+      <section aria-label="Mitgliederverwaltung" className="p-[var(--space-6)]">
         <div className="text-sm text-[var(--color-text-muted)] animate-pulse">
           Lade Organisationsdaten...
         </div>
-      </main>
+      </section>
     );
   }
 
@@ -260,10 +260,8 @@ export function MembersPage() {
   ];
 
   return (
-    <main
-      tabIndex={-1}
-      id="main-content"
-      aria-label="Hauptinhalt"
+    <section
+      aria-label="Mitgliederverwaltung"
       className="p-[var(--space-6)] flex flex-col gap-[var(--space-6)] max-w-[1200px] mx-auto"
     >
       <header className="flex flex-col gap-1">
@@ -408,7 +406,7 @@ export function MembersPage() {
           <strong className="text-primary">{revokeTarget?.email}</strong> widerrufen?
         </p>
       </ConfirmActionModal>
-    </main>
+    </section>
   );
 }
 

@@ -82,6 +82,8 @@ describe('DataBasisPage (G47 Provenienz)', () => {
 
     await waitFor(() => expect(screen.getByTestId('data-basis-page')).toBeTruthy());
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Datenbasis');
+    // 067R / PR-SEMANTIC-11: benannter Inhaltsabschnitt statt anonymem div.
+    expect(screen.getByRole('region', { name: 'Datenbasis' }).tagName).toBe('SECTION');
     const provenance = screen.getByTestId('data-basis-provenance');
     expect(provenance.textContent).toContain('simulated-crm');
     expect(provenance.textContent).toContain('synthetic');

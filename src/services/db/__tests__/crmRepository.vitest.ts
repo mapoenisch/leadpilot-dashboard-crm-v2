@@ -44,7 +44,7 @@ describe('CRMRepository', () => {
       expect(companies[0]?.employeeCount).toBe(50);
     });
 
-    it('fällt auf aktive DataSource zurück wenn Supabase fehlschlägt oder Fehler wirft', async () => {
+    it('wirft DATA_SOURCE_UNAVAILABLE statt Demodaten, wenn Supabase fehlschlägt (PR-SOURCE-04)', async () => {
       const mockSelect = vi.fn().mockReturnValue({
         order: vi.fn().mockRejectedValue(new Error('DB Connection Failed')),
       });
@@ -58,11 +58,10 @@ describe('CRMRepository', () => {
         mockSupabase as unknown as typeof supabaseClientModule.supabase,
       );
 
-      const companies = await CRMRepository.getCompanies();
-      expect(companies.length).toBeGreaterThan(0);
+      await expect(CRMRepository.getCompanies()).rejects.toThrow(/DATA_SOURCE_UNAVAILABLE/);
     });
 
-    it('fällt auf aktive DataSource zurück wenn Supabase nicht konfiguriert ist', async () => {
+    it('liest die aktive DataSource, wenn Supabase nicht konfiguriert ist', async () => {
       vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(false);
       vi.spyOn(supabaseClientModule, 'supabase', 'get').mockReturnValue(
         null as unknown as typeof supabaseClientModule.supabase,
@@ -124,7 +123,7 @@ describe('CRMRepository', () => {
       expect(contacts[0]?.companyId).toBe('comp_1');
     });
 
-    it('fällt auf aktive DataSource zurück bei Fehler oder ohne Konfiguration', async () => {
+    it('liest die aktive DataSource ohne Supabase-Konfiguration', async () => {
       vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(false);
 
       const activeSnapshot = await dataSourceRegistry.getActive().fetchSnapshot();
@@ -181,7 +180,7 @@ describe('CRMRepository', () => {
       expect(deals[0]?.stage).toBe('Closed Won');
     });
 
-    it('fällt auf DataSource zurück wenn Supabase fehlschlägt', async () => {
+    it('wirft DATA_SOURCE_UNAVAILABLE statt Demo-Deals, wenn Supabase fehlschlägt', async () => {
       const mockSelect = vi.fn().mockReturnValue({
         order: vi.fn().mockRejectedValue(new Error('Deals DB fail')),
       });
@@ -195,17 +194,24 @@ describe('CRMRepository', () => {
         mockSupabase as unknown as typeof supabaseClientModule.supabase,
       );
 
-      const deals = await CRMRepository.getImportedFunnelDeals();
-      expect(deals.length).toBeGreaterThan(0);
+      await expect(CRMRepository.getImportedFunnelDeals()).rejects.toThrow(
+        /DATA_SOURCE_UNAVAILABLE/,
+      );
     });
   });
 
   describe('getAuditSummary', () => {
-    it('liefert Audit-Summary der aktiven Datenquelle', async () => {
+    it('liefert Audit-Summary der aktiven Datenquelle ohne Supabase-Konfiguration', async () => {
+      vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(false);
       const audit = await CRMRepository.getAuditSummary();
       expect(audit).toBeDefined();
       expect(typeof audit.companiesLoaded).toBe('number');
       expect(typeof audit.dealsLoaded).toBe('number');
+    });
+
+    it('mischt bei konfiguriertem Supabase kein Demo-Audit unter', async () => {
+      vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(true);
+      await expect(CRMRepository.getAuditSummary()).rejects.toThrow(/DATA_SOURCE_UNAVAILABLE/);
     });
   });
 

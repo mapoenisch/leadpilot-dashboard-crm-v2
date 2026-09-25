@@ -157,7 +157,9 @@ jobs:
           # `supabase start` startet nur Container; der Seed wird erst mit `db reset`
           # zuverlässig auf die frische lokale DB angewendet. Ohne diesen Reset sind
           # auth.users / organization_members leer und der Login-Setup bricht ab.
-          supabase start -x studio,imgproxy,storage-api,logflare,vector,supavisor,mailpit,postgres-meta
+          # G64 (Auftrag 067R): Mailpit bleibt an — der G59-Einladungsfluss liest den
+          # echten Einladungslink aus dem lokalen Mail-Catcher (e2e/member-management.spec.ts).
+          supabase start -x studio,imgproxy,storage-api,logflare,vector,supavisor,postgres-meta
           supabase db reset --yes
           eval $(supabase status -o env)
           echo "VITE_SUPABASE_URL=${API_URL}" >> $GITHUB_ENV
@@ -185,9 +187,9 @@ jobs:
       - name: Build für E2E und Lighthouse
         run: npx vite build
       - name: Playwright E2E & Axe Accessibility Tests
-        run: npx playwright test e2e/a11y.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts e2e/element-clipping.acceptance.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
+        run: npx playwright test e2e/a11y.spec.ts e2e/audit-health.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts e2e/element-clipping.acceptance.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
       - name: Playwright Simulation & Worker Tests (sequentiell)
-        run: npx playwright test e2e/persistence-multisession.spec.ts e2e/worker-responsiveness.spec.ts e2e/run-control.spec.ts --workers=1
+        run: npx playwright test e2e/persistence-multisession.spec.ts e2e/worker-responsiveness.spec.ts e2e/run-control.spec.ts e2e/member-management.spec.ts --workers=1
       - name: Playwright-Chrome für Lighthouse bereitstellen
         run: |
           CHROME_PATH="$(node -e "const { chromium } = require('playwright'); process.stdout.write(chromium.executablePath())")"
@@ -202,6 +204,8 @@ jobs:
           path: coverage/
       - name: Coverage-Artefakt für Readiness prüfen
         run: test -s coverage/coverage-summary.json
+      - name: v2.3.0-Finding-Baseline (G64, Register = Messung)
+        run: npm run verify:v23:baseline
       - name: ReleaseReadiness Orchestrator (Fail-Closed)
         run: npx tsx scripts/verifyV23ReleaseReadiness.ts
       - name: Lokales Supabase-Backend stoppen

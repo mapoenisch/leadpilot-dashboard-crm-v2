@@ -108,6 +108,8 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
   let activeBinding: RunBinding = { measures: [] };
   // Einmaliger Hook, sobald der Lauf angenommen ist (erstes Worker-Ereignis).
   let onFirstProgress: (() => void) | null = null;
+  // Abbruch vor der Run-ID (Zustand `queued`): Audit, sobald der Abbruch mit ID eintrifft.
+  let cancelAuditPending = false;
   const serverQueue = createSerialQueue();
 
   const reportProgress = (processedUnits: number, totalUnits: number) => {
@@ -198,6 +200,7 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
   ) => {
     activePause = null;
     activeRunId = null;
+    cancelAuditPending = false;
     activeBinding = binding;
     onFirstProgress = onAccepted ?? null;
     set({
@@ -214,7 +217,12 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
         onPaused,
       });
     } catch (err) {
-      set({ interruptedRun: interrupted(err, versionId, seed, activeBinding) });
+      const run = interrupted(err, versionId, seed, activeBinding);
+      set({ interruptedRun: run });
+      if (cancelAuditPending && run.status === 'cancelled' && run.runId) {
+        audit(run.runId, 'cancelled');
+      }
+      cancelAuditPending = false;
       throw err;
     } finally {
       activePause = null;
@@ -287,6 +295,8 @@ export const createRunSlice: StateCreator<SimulationStoreState, [], [], RunSlice
         );
       } else if (runId) {
         audit(runId, 'cancelled');
+      } else {
+        cancelAuditPending = true;
       }
     },
 

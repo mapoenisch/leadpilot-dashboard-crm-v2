@@ -24,3 +24,5 @@ docs/screenshots/**/*.webp
 .superpowers/
 .code-review-graph/
 eslint-report.json
+# G64 (Auftrag 067R): Abnahme-Artefakte werden je Lauf erzeugt, nicht committet
+artifacts/

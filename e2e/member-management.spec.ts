@@ -189,6 +189,9 @@ test.describe('Mitgliederverwaltung (Gate G59)', () => {
     await adminNavItem.click();
 
     await page.waitForURL('**/admin/members');
+    // 067R / G64: kein verschachteltes main, keine doppelte Sprungmarken-ID.
+    await expect(page.getByRole('main')).toHaveCount(1);
+    await expect(page.locator('#main-content')).toHaveCount(1);
     await expect(
       page.getByRole('main').getByRole('heading', { level: 1, name: 'Mitgliederverwaltung' }),
     ).toBeVisible();
