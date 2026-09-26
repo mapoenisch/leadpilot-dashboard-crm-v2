@@ -109,7 +109,7 @@ describe('G67 Bildseiten wie v2.2.0', () => {
   });
 
   for (const [key, Page] of pages) {
-    it(`${key}: Original-WebP, Kacheln und unsichtbare Textschicht`, () => {
+    it(`${key}: Original-WebP, Hochformat-Hinweis und unsichtbare Textschicht`, () => {
       const { src, testId } = IMAGE_PAGES[key];
       const { container } = render(
         <main>
@@ -120,14 +120,11 @@ describe('G67 Bildseiten wie v2.2.0', () => {
       expect(img.getAttribute('src')).toBe(src);
       expect(img.getAttribute('alt')?.length ?? 0).toBeGreaterThan(10);
 
-      // Genau ein Bild mit Alternativtext; die Kacheln sind dekorativ.
-      const described = [...container.querySelectorAll('img')].filter((node) => node.alt !== '');
-      expect(described).toHaveLength(1);
-      const tiles = screen.getByTestId('image-page-tiles');
-      expect(tiles.getAttribute('aria-hidden')).toBe('true');
-      const tileImgs = tiles.querySelectorAll('img');
-      expect(tileImgs).toHaveLength(2);
-      tileImgs.forEach((node) => expect(node.getAttribute('src')).toBe(src));
+      // Genau ein Bild, immer das ganze; der Hinweis ist für Screenreader ausgeblendet.
+      expect(container.querySelectorAll('img')).toHaveLength(1);
+      const hint = screen.getByTestId('image-page-hint');
+      expect(hint.getAttribute('aria-hidden')).toBe('true');
+      expect(hint.textContent).toMatch(/quer drehen oder mit zwei Fingern zoomen/);
 
       // Textschicht: optisch verborgen, aber im Accessibility-Tree.
       const layer = screen.getByTestId('image-page-text');
@@ -155,18 +152,17 @@ describe('G67 Bildseiten wie v2.2.0', () => {
     expect(config).toMatch(/PAGE_PRESENTATION: PagePresentation = 'bild';/);
   });
 
-  it('Kacheln: zwei überlappende Ausschnitte unter 600 px, Vergrößerung ≥ 1,6×', () => {
+  it('Handy: Hinweis nur im Hochformat unter 600 px, Zoom nicht gesperrt', () => {
     const css = fs.readFileSync(path.join(root, 'src/styles/global.css'), 'utf8');
     const block = css.slice(css.indexOf('.image-page {'), css.indexOf('/* Auftrag 038'));
-    const width = Number(/\.image-page__tile-img \{[^}]*width: ([\d.]+)%/.exec(block)?.[1]);
-    const shift = Number(
-      /--right \.image-page__tile-img \{[^}]*margin-left: -([\d.]+)%/.exec(block)?.[1],
+    expect(block).toMatch(/\.image-page__hint \{\s*display: none;/);
+    expect(block).toMatch(
+      /@media \(max-width: 599px\) and \(orientation: portrait\) \{\s*\.image-page__hint \{\s*display: flex;/,
     );
-    const shown = 100 / width; // sichtbarer Anteil je Kachel
-    const start = shift / width; // Beginn der rechten Kachel
-    expect(width / 100).toBeGreaterThanOrEqual(1.6);
-    expect(start).toBeLessThan(shown); // Überlappung, keine Lücke
-    expect(start + shown).toBeCloseTo(1, 4); // rechte Kachel endet am Bildrand
-    expect(block).toMatch(/@media \(max-width: 599px\)/);
+    expect(block).not.toMatch(/touch-action/);
+    const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    const viewport = /<meta name="viewport" content="([^"]+)"/.exec(html)?.[1] ?? '';
+    expect(viewport).toContain('width=device-width');
+    expect(viewport).not.toMatch(/user-scalable\s*=\s*(no|0)|maximum-scale\s*=\s*1(\.0)?\b/);
   });
 });

@@ -1621,8 +1621,9 @@ Simulation Progress, Goal Status, Event Timeline.
   G52–G55-Regeln „kein Ganzseiten-WebP“ und „Inhalt als sichtbarer, auswählbarer Text“ sowie das
   G66-Design-Gate gegen einen HTML-Nachbau. Maßstab ist das Aussehen von v2.2.0 (Bild-zu-Bild-Gate),
   nicht die Struktur. Erhalten bleiben genau eine `h1`, Chart-Zusammenfassungen und Inhalte aus
-  `src/domain/*` — als optisch verborgene Textschicht unter dem Bild. Unter 600 px zeigt die Seite
-  zwei überlappende Ausschnitte derselben Datei. Der Schalter `PAGE_PRESENTATION`
+  `src/domain/*` — als optisch verborgene Textschicht unter dem Bild. Auf dem Handy bleibt es das
+  ganze Bild; im Hochformat weist ein Hinweis auf Querformat oder Zwei-Finger-Zoom hin, der
+  Browser-Zoom wird nicht gesperrt (Entscheid Marc, verwirft die erste Kachel-Fassung). Der Schalter `PAGE_PRESENTATION`
   (`src/config/pagePresentation.ts`) stellt mit `'html'` das Aussehen von v2.3.1 wieder her; Tag
   `v2.3.1` bleibt unverändert. Interaktive Seiten und die Datenbasis-Seite (G47) sind nicht betroffen.
   Die früheren Festlegungen bleiben als Historie in `docs/BUILD_LOG.md` stehen.

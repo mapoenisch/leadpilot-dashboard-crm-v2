@@ -26,7 +26,7 @@ SHA-256 in den `ASSET_SOURCE.md`). Sie werden wieder angezeigt.
 | Dateiauswahl | Die „(final)“-Fassung gilt, sonst die Datei ohne Zusatz. Die Dateien im Repo folgen dieser Regel bereits (Originalnamen in `ASSET_SOURCE.md`). Releases & Roadmap: `10-releases-roadmap.webp` ist die in v2.2.0 gezeigte Datei; Marc bestätigt sie im Gate-Screenshot. |
 | Umfang | Nur die 32 statischen Inhaltsseiten. Executive Dashboard, Live-Simulation, Leads, Accounts, Deal-Pipeline, Aktivitäten und die Datenbasis-Seite (`s-daten`, seit G47 echte Live-Daten) bleiben interaktiv und unverändert. |
 | Logo | Keine Änderung. Das aktuelle Logo entspricht dem Stand vor v2.3.0. |
-| Mobile | **Kacheln:** Auf schmalen Bildschirmen wird das Bild in Ausschnitte geteilt, die untereinander stehen und dadurch größer und lesbar sind. **Unsichtbare Textschicht:** Unter dem Bild liegt der Seiteninhalt als Text für Screenreader, Suche und Barrierefreiheit, optisch nicht sichtbar. |
+| Mobile | **Revision 26.09.2026 (Marc, nach Sichtprüfung der Kachel-Fassung):** keine Kacheln. Auf dem Handy immer das ganze Bild in voller Breite. **Querformat:** Bild füllt die Breite, kein Hinweis. **Hochformat:** Hinweis „Handy quer drehen oder mit zwei Fingern zoomen“; der Zwei-Finger-Zoom des Browsers bleibt erlaubt. **Unsichtbare Textschicht:** Unter dem Bild liegt der Seiteninhalt als Text für Screenreader, Suche und Barrierefreiheit, optisch nicht sichtbar. *(Ursprünglich: Kacheln in überlappenden Ausschnitten; verworfen.)* |
 | Rückweg | v2.3.1 muss **jederzeit** wiederherstellbar sein (siehe unten). |
 
 ## Zurückgenommene Regeln
@@ -64,9 +64,9 @@ Sie leben ab jetzt in der unsichtbaren Textschicht. Die Rücknahme wird in
 - Schutzbereiche `src/simulation/**`, `src/types/**`, `src/context/**`,
   `src/services/data/**`, `src/features/resources/**`: **keine Änderung**.
 - WebP-Dateien werden **nicht verändert**: kein Zuschnitt, keine Neukodierung, keine Kopie in
-  Einzelteile. Kacheln sind reine CSS-Ausschnitte derselben Datei.
+  Einzelteile.
 - Keine neuen Abhängigkeiten, keine Inline-Styles (Budget `src/` = 0), keine neuen Suppressions.
-  Kachel-Positionen über CSS-Klassen bzw. CSS-Variablen aus Klassen, nicht über `style=`.
+- Zoom nicht sperren: kein `user-scalable=no`, kein `maximum-scale=1`, kein `touch-action` auf der Bildseite.
 - Interaktive Seiten, Sidebar, Topbar, Logo: keine Änderung.
 
 ## Ziel-Dateien
@@ -75,9 +75,9 @@ Sie leben ab jetzt in der unsichtbaren Textschicht. Die Rücknahme wird in
 |---|---|
 | `docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md` | neu |
 | `src/config/pagePresentation.ts` | neu (Schalter `'bild'` / `'html'`) |
-| `src/components/imagePage/**` | neu (Bildseite, Kachel-Definitionen, Textschicht) |
+| `src/components/imagePage/**` | neu (Bildseite, Hochformat-Hinweis, Textschicht) |
 | die 32 Seiten unter `src/features/{finanzen,kunden,markt,organisation,overview,produkt,recht,strategie,unternehmen,vertrieb}/pages/*.tsx` (ohne `DataBasisPage.tsx`) | ändern (Hülle: Bild oder v2.3.1-Inhalt) |
-| `src/styles/global.css` | ändern (Bildansicht, Kacheln, Textschicht) |
+| `src/styles/global.css` | ändern (Bildansicht, Hochformat-Hinweis) |
 | `src/app/__tests__/g5[2-5]SemanticPages.ui.vitest.tsx`, `g66DesignRestore.ui.vitest.tsx`, `g67ImagePages.ui.vitest.tsx` | ändern/neu |
 | `scripts/verify*WebpViews.ts`, `scripts/verifyIntegrity.ts` | ändern, falls sie der neuen Darstellung widersprechen |
 | `scripts/captureAuftrag069Screenshots.mjs`, `docs/screenshots/auftrag-069/README.md` | neu |
@@ -131,21 +131,15 @@ Der Builder gleicht die Tabelle vor Task 3 per `git grep webp-img v2.2.0 -- src`
       Textschicht, Textschicht optisch verborgen. Im Modus `'html'`: Ausgabe wie v2.3.1.
       Vor dem Umbau rot.
 - [x] **2. Schalter:** `src/config/pagePresentation.ts` mit `PAGE_PRESENTATION = 'bild'`.
-- [x] **3. Bildseite:** Komponente `ImagePage` (Bild, Kacheln, Textschicht). Ab 600 px Breite
+- [x] **3. Bildseite:** Komponente `ImagePage` (Bild, Hochformat-Hinweis, Textschicht). Auf allen Breiten
       das ganze Bild in voller Breite des Inhaltsbereichs, Seitenverhältnis erhalten, kein
       Beschnitt, keine Filter oder Überlagerungen, Darstellung wie `.auftrag-037x-webp-view` in
       v2.2.0.
-- [x] **4. Kacheln (unter 600 px):** je Bild eine Kachel-Definition (Ausschnitt in Prozent von
-      Breite/Höhe). Standard: linke und rechte Hälfte mit 4 % Überlappung. Wo ein Schnitt durch
-      Text oder ein Diagramm läuft, legt der Builder die Schnittlinie an eine Panel-Grenze
-      (Bild vorher ansehen). Bedingungen: alle Kacheln zusammen decken das ganze Bild ab,
-      jede Kachel wird mindestens 1,6× größer dargestellt als das Gesamtbild auf 375 px,
-      0 px horizontaler Overflow. Umsetzung als CSS-Ausschnitt derselben Datei.
-      *Umsetzung:* In allen 32 Bildern laufen Tabellenzeilen und Überschriften über die ganze
-      Breite, keine senkrechte Schnittlinie trifft nur Panel-Grenzen. Statt 4 % gilt deshalb
-      für alle Bilder eine Überlappung von 10 % (links 0–55 %, rechts 45–100 %): Text an der
-      Schnittlinie bis 10 % Bildbreite steht in mindestens einer Kachel vollständig.
-      Vergrößerung 1,82× (≥ 1,6× erfüllt).
+- [x] **4. Handy (Revision 26.09.2026):** ganzes Bild in voller Breite, im Hochformat unter
+      600 px ein Hinweis „Handy quer drehen oder mit zwei Fingern zoomen“ (`aria-hidden`, Icon
+      aus `lucide-react`), im Querformat kein Hinweis. Browser-Zoom bleibt erlaubt.
+      *Historie:* Die erste Fassung teilte das Bild in zwei überlappende Ausschnitte (0–55 % /
+      45–100 %). Marc hat das nach der Sichtprüfung verworfen.
 - [x] **5. Textschicht:** die bisherigen v2.3.1-Seiteninhalte (echte `h1`, Tabellen, Listen,
       Chart-Zusammenfassungen) werden im Modus `'bild'` visuell verborgen gerendert
       (`sr-only`-Muster, kein `display:none`, kein `aria-hidden`). Das Bild erhält ein kurzes
@@ -169,7 +163,7 @@ Der Builder gleicht die Tabelle vor Task 3 per `git grep webp-img v2.2.0 -- src`
 | G67-1 | Bild-Identität | Jede der 32 Seiten zeigt die Datei laut Tabelle; SHA-256 aller 32 Dateien = `ASSET_SOURCE.md`; `git diff v2.2.0 -- public/assets/auftrag-037*` leer. |
 | G67-2 | Bild-zu-Bild 1440 px | Inhaltsbereich neu vs. v2.2.0: Pixelabweichung ≤ 0,5 % je Seite. Abweichungen darüber werden einzeln begründet oder behoben. |
 | G67-3 | Bild-zu-Bild 768 px | wie G67-2. |
-| G67-4 | Mobile 375 px | Kacheln decken das Bild vollständig ab, Vergrößerung ≥ 1,6×, 0 px horizontaler Overflow. |
+| G67-4 | Handy 375×812 (hoch) und 812×375 (quer) | Genau ein Bild in voller Inhaltsbreite, Hinweis nur im Hochformat, Zoom nicht gesperrt, 0 px horizontaler Overflow. |
 | G67-5 | Textschicht | Genau eine `h1`, Inhalt im DOM, optisch unsichtbar (Bounding-Box 1×1 bzw. geclippt), axe ohne neue Verstöße. |
 | G67-6 | Rückweg | Modus `'html'` = v2.3.1-Darstellung (Test); Tag `v2.3.1` unverändert. |
 | G67-7 | Unberührt | Interaktive Seiten, Datenbasis, Sidebar, Logo: Screenshots gleich v2.3.1. Schutzbereichs-Diff leer. |

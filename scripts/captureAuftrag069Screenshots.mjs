@@ -3,7 +3,7 @@
  * Auftrag 069 / Gate G67: Bild-zu-Bild-Gate für die 32 statischen Inhaltsseiten.
  *
  * Vergleicht den neuen Stand pixelweise mit v2.2.0 (1440/768 px), prüft die
- * Kacheln auf 375 px, die unsichtbare Textschicht, horizontalen Überlauf und
+ * Handy-Ansicht (375 px hoch, 812 px quer), die unsichtbare Textschicht, Überlauf und
  * dass interaktive Seiten, Login und Sidebar gegenüber der Baseline unverändert
  * sind. Bilder bleiben lokal (.gitignore), das Ergebnis steht in
  * docs/screenshots/auftrag-069/manifest.json und README.md.
@@ -32,7 +32,6 @@ const OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-069');
 const EMAIL = 'admin-a@e2e.local';
 const PASSWORD = 'mock-passwort';
 const MAX_DIFF = 0.005; // G67-2/3: ≤ 0,5 % abweichende Pixel
-const MIN_ZOOM = 1.6; // G67-4
 const ONLY = process.env.ROUTES ? process.env.ROUTES.split(',') : null;
 const V231_COMMIT = '1bbe32da01d8b4b1b00b3a85e7d3c8108ce338e2';
 
@@ -85,7 +84,8 @@ const UNCHANGED_ROUTES = [
 const VIEWPORTS = [
   { key: '1440', width: 1440, height: 900 },
   { key: '768', width: 768, height: 1024 },
-  { key: '375', width: 375, height: 812 },
+  { key: '375', width: 375, height: 812, phone: 'hoch' },
+  { key: '812q', width: 812, height: 375, phone: 'quer' },
 ];
 
 const b64url = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -295,7 +295,7 @@ async function main() {
   const result = { compare: [], mobile: [], textLayer: [], axe: [], unchanged: [], tag: null };
 
   for (const vp of VIEWPORTS) {
-    const ref = vp.key === '375' ? null : await openV220App(browser, vp);
+    const ref = vp.phone ? null : await openV220App(browser, vp);
     const cur = await openSupabaseApp(browser, vp, BASE_URL);
 
     for (const [route, testId] of Object.entries(PAGES)) {
@@ -348,39 +348,34 @@ async function main() {
           `${vp.key} ${route} diff=${(diff.ratio * 100).toFixed(3)}% overflow=${overflowPx}px`,
         );
       } else {
-        // G67-4: Kacheln auf 375 px.
-        const tiles = cur.page.locator('[data-testid="image-page-tiles"]');
-        await tiles.waitFor({ state: 'visible', timeout: 20_000 });
-        await tiles.locator('img').first().scrollIntoViewIfNeeded();
-        await cur.page.waitForTimeout(300);
-        const geometry = await cur.page.evaluate(() => {
-          const full = document.querySelector('.image-page__full');
-          const tileNodes = [...document.querySelectorAll('.image-page__tile')];
-          const zoom = tileNodes.map((tile) => {
-            const img = tile.querySelector('img');
-            return img.getBoundingClientRect().width / tile.getBoundingClientRect().width;
-          });
+        // G67-4: Handy. Immer das ganze Bild in voller Inhaltsbreite; Hinweis
+        // „quer drehen oder zoomen“ nur im Hochformat.
+        const img = await waitForImage(cur.page, testId);
+        const geometry = await cur.page.evaluate((id) => {
+          const node = document.querySelector(`[data-testid="${id}"]`);
+          const box = node.getBoundingClientRect();
+          const parent = node.parentElement.getBoundingClientRect();
+          const hint = document.querySelector('[data-testid="image-page-hint"]');
           return {
-            fullHidden: getComputedStyle(full).display === 'none',
-            tiles: tileNodes.length,
-            zoom,
+            imgWidth: box.width,
+            containerWidth: parent.width,
+            hintVisible: getComputedStyle(hint).display !== 'none',
+            images: document.querySelectorAll('[data-testid="image-page"] img').length,
           };
+        }, testId);
+        await img.scrollIntoViewIfNeeded();
+        const file = path.join(OUT_DIR, 'after', `${slug(route)}_${vp.key}.png`);
+        await cur.page.screenshot({ path: file });
+        result.mobile.push({
+          route,
+          viewport: vp.key,
+          phone: vp.phone,
+          ...geometry,
+          overflowPx,
+          sha256: sha256(file),
         });
-        const tileImgs = await tiles.locator('img').all();
-        for (const img of tileImgs) {
-          await img.evaluate((node) =>
-            node.complete && node.naturalWidth > 0
-              ? true
-              : new Promise((resolve) =>
-                  node.addEventListener('load', () => resolve(true), { once: true }),
-                ),
-          );
-        }
-        const file = path.join(OUT_DIR, 'after', `${slug(route)}_375.png`);
-        await tiles.screenshot({ path: file });
-        result.mobile.push({ route, ...geometry, overflowPx, sha256: sha256(file) });
         console.log(
-          `375 ${route} zoom=${geometry.zoom.map((z) => z.toFixed(2)).join('/')} overflow=${overflowPx}px`,
+          `${vp.key} ${route} hinweis=${geometry.hintVisible} bild=${geometry.imgWidth.toFixed(1)}/${geometry.containerWidth.toFixed(1)} overflow=${overflowPx}px`,
         );
       }
     }
@@ -390,7 +385,7 @@ async function main() {
 
   // G67-5: axe-Scan (alle Schweregrade) je Seite, neuer Stand gegen Baseline.
   // „Neu“ = Regel-ID, die im neuen Stand verletzt ist, in der Baseline aber nicht.
-  for (const vp of VIEWPORTS.filter((entry) => entry.key !== '768')) {
+  for (const vp of VIEWPORTS.filter((entry) => entry.key === '1440' || entry.key === '375')) {
     const scans = {};
     for (const [label, url] of [
       ['baseline', BASELINE_URL],
@@ -422,7 +417,7 @@ async function main() {
   }
 
   // G67-7: interaktive Seiten, Login, Sidebar unverändert gegenüber der Baseline.
-  for (const vp of VIEWPORTS) {
+  for (const vp of VIEWPORTS.filter((entry) => entry.key !== '812q')) {
     for (const [label, url] of [
       ['baseline', BASELINE_URL],
       ['after', BASE_URL],
@@ -480,9 +475,12 @@ async function main() {
     ...result.mobile
       .filter(
         (e) =>
-          !e.fullHidden || e.tiles !== 2 || e.zoom.some((z) => z < MIN_ZOOM) || e.overflowPx > 0,
+          e.images !== 1 ||
+          Math.abs(e.imgWidth - e.containerWidth) > 0.5 ||
+          e.hintVisible !== (e.phone === 'hoch') ||
+          e.overflowPx > 0,
       )
-      .map((e) => `mobile ${e.route}`),
+      .map((e) => `handy ${e.route}@${e.viewport}`),
     ...result.textLayer
       .filter((e) => e.h1 !== 1 || e.textLength < 100 || e.width > 1 || e.height > 1)
       .map((e) => `textschicht ${e.route}@${e.viewport}`),
