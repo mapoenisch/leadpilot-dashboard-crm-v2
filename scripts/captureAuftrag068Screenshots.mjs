@@ -139,6 +139,24 @@ async function mockSupabase(context) {
   });
 }
 
+/**
+ * G66-Review (PR #34): Der Inhalt scrollt in #main-content, nicht im Dokument;
+ * `fullPage` erfasste deshalb nur den Viewport. Für die Aufnahme wird die
+ * Höhenbegrenzung des Layouts aufgehoben, damit das Dokument die volle
+ * Inhaltshöhe hat. Nur für die Aufnahme — der Überlauf wird vorher im echten
+ * Layout gemessen, danach wird der Zustand zurückgesetzt.
+ */
+const FULL_CONTENT_CSS = `
+  .h-screen { height: auto !important; min-height: 100vh; overflow: visible !important; }
+  #main-content { overflow: visible !important; flex: none !important; }
+`;
+async function screenshotFullContent(page, file) {
+  const style = await page.addStyleTag({ content: FULL_CONTENT_CSS });
+  await page.waitForTimeout(150);
+  await page.screenshot({ path: file, fullPage: true });
+  await style.evaluate((node) => node.remove());
+}
+
 /** Überlauf im Dokument und im scrollenden Hauptbereich (#main-content). */
 const measureOverflow = (page) =>
   page.evaluate(() => {
@@ -204,7 +222,7 @@ async function main() {
       await page.waitForTimeout(400);
       const overflowPx = await measureOverflow(page);
       const file = path.join(OUT_DIR, `${slug(route)}_${vp.key}.png`);
-      await page.screenshot({ path: file, fullPage: true });
+      await screenshotFullContent(page, file);
       manifest.push({ route, viewport: vp.key, sha256: sha256(file), overflowPx });
       console.log(`${vp.key} ${route} overflow=${overflowPx}px`);
     }

@@ -13404,3 +13404,20 @@ Harness-Exit 0. Schutzbereichs-Diff gegen `e63eec5` leer.
 
 **Visuelle Baselines:** Befunde 4 und 6 ändern die Desktop-Sidebar und die GuV-Diagramme. Neue Baselines
 über Branch `visual-baselines/v2.3.1-r2`; die Korrekturen gehen erst zusammen mit den Bildern in den PR.
+
+### Nachtrag PR #34 — G66-Review Marc/Codex („Änderungen erforderlich“), Stand 26.09.2026
+
+1. **Screenshots erfassten nur den Viewport.** Ursache: Das Layout ist `h-screen overflow-hidden`,
+   der Inhalt scrollt in `#main-content`; `fullPage` sieht nur das Dokument. Behoben in
+   `scripts/captureAuftrag068Screenshots.mjs` und `e2e/visual.spec.ts`: Vor der Aufnahme wird die
+   Höhenbegrenzung aufgehoben (`.h-screen` auf `height: auto`, `#main-content` ohne Overflow), der
+   Überlauf wird vorher im echten Layout gemessen. Beleg: GuV 1440 × 1594 px mit Tabelle bis
+   „Jahresfehlbetrag“ statt 1440 × 900; 375 px: 2682 px statt 812.
+2. **Sichtvergleich nachvollziehbar abgeschlossen:** Alle 32 Seiten wurden als Aufnahme in voller Länge
+   (1440 px) neben ihrer v2.2.0-Vorlage bis zum Seitenende verglichen. Das Ergebnis steht je Seite mit
+   Bildhöhen in `docs/screenshots/auftrag-068/README.md`. Keine neuen Befunde; Abweichungen nur dort, wo
+   die Vorlage Angaben ohne Datengrundlage zeigt (dort aufgeführt). Die CI-Baselines bleiben bei fünf
+   Routen; sie sind Regressionsschutz, nicht der Designnachweis.
+
+Design-Gate neu (volle Aufnahmen): 102 Paare, 0 identisch, Überlauf vorher 2 / nachher 0, Exit 0.
+Neue Linux-Baselines über `visual-baselines/v2.3.1-r3`, weil sich die CI-Aufnahmen verlängern.
