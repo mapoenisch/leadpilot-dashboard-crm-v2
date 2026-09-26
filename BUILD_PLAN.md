@@ -13,9 +13,10 @@ Codex und Claude Code prüfen), sofern Marc nichts anderes festlegt (`CLAUDE.md`
 
 **Ziel:** Das LeadPilot-Design der 32 Inhaltsseiten und das echte Logo wiederherstellen, die
 v2.3.0 verloren hat; Semantik aus G52–G55 bleibt.
-**Stand 25.09.2026:** Builder-Tasks 1–6 erledigt (Designtest G66, Page-Kit, 32 Seiten, Logo,
-Design-Gate, Version `2.3.1`). Zwei CI-Blocker warten auf Marcs Entscheidung (Finding-Vertrag
-PR-SEMANTIC-11, visuelle Baselines; siehe BUILD_LOG). Danach PR, CI, Codex-Review G66, Freigabe und Tag.
+**Stand 26.09.2026:** Builder-Tasks 1–7 erledigt. Die beiden CI-Blocker (Finding-Vertrag
+PR-SEMANTIC-11 und visuelle Baselines) sind behoben; PR #34 ist auf `42502a2` mit 7/7
+CI-Jobs grün. Der G66-Prüferbefund steht im BUILD_LOG. Der Tag `v2.3.1` durch Marc folgt
+nach der Freigabe.
 **Danach:** eigener Auftrag zur Neugestaltung des Executive Dashboards (`/dashboard`) mit
 Marcs Vorgaben. Nicht Teil von v2.3.1.
 

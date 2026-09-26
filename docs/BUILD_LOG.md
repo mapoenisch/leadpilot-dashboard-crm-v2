@@ -13427,3 +13427,31 @@ Neue Linux-Baselines über `visual-baselines/v2.3.1-r3`, weil sich die CI-Aufnah
 14 von 15 Linux-Bildern neu (exakt die 14 zuvor roten Vergleiche), jetzt in voller Inhaltshöhe
 (z. B. GuV 375 × 2667, Dashboard 1440 × 3814). `market-overview` 768 unverändert. Sichtprüfung: echtes
 Logo, vollständige Seiten bis zum letzten Element.
+
+---
+
+## [2026-09-26] Auftrag 068 / G66 — unabhängige Codex-Prüfung
+
+**Geprüfter Code-Stand:** PR #34, Commit `42502a297d80596d6b6fff4ff1820b287bfc6da5`
+gegen Baseline `e63eec5dd0f3a298924e055c8dd1337b06080125`.
+
+**Befund:** Die sechs früheren P2-Punkte sind behoben. Das Screenshot-Harness prüft
+Vorher-/Nachher-Hashes, Login-Überlauf und den geöffneten mobilen Sidebar-Drawer.
+Die Aufnahmen umfassen den scrollenden Inhalt; die GuV wurde auf 1440 und 375 px
+bis zur letzten Tabellenzeile sowie gegen die v2.2.0-Vorlage gesichtet. Die Matrix
+unter `docs/screenshots/auftrag-068/README.md` dokumentiert 102 Paare, 0 identische
+Hashes und 0 px horizontalen Überlauf nach der Änderung. Die übrigen 31 Seiten
+sind dort mit ihrem Sichtvergleich und den Bildhöhen einzeln dokumentiert.
+
+**Automatisierte Gates:** CI-Lauf
+[36230217438](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36230217438)
+auf `42502a2` abgeschlossen, alle sieben Jobs grün: `test`, `lint`, `typecheck`,
+`build`, `size-limit`, `livekpi-verifiers` und `e2e` (einschließlich Playwright,
+Axe, Lighthouse, Migration, Readiness sowie Backup/Wiederherstellung).
+`git diff --check e63eec5...42502a2` ohne Fehler. Der Diff in
+`src/simulation`, `src/types`, `src/context`, `src/services/data` und
+`src/features/resources` ist leer.
+
+**Gate-Entscheidung:** G66 für den geprüften Code-Stand **freigegeben**. Dieser
+Prüfervermerk und die Statuskorrekturen in Auftrag/BUILD_PLAN sind reine
+Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.

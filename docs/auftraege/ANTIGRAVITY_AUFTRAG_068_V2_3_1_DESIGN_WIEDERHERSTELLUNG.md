@@ -77,13 +77,13 @@ echter Text, genau eine h1, Tabellen, Listen und Chart-Zusammenfassungen.
       Netzwerk-Symbol). `public/` wird unverändert nach `dist/` kopiert, damit build-fest;
       erzeugt per Browser-Canvas aus `assets/logo/leadpilot-logo-full.png`, ohne neue
       Abhängigkeit.
-- [ ] **5. Design-Gate:** Screenshot-Harness für alle 32 Seiten plus Login und Sidebar auf
+- [x] **5. Design-Gate:** Screenshot-Harness für alle 32 Seiten plus Login und Sidebar auf
       1440/768/375: Vorher (v2.3.0) und Nachher, SHA-256 verschieden, 0 px horizontaler
       Überlauf, dazu die Vorlage aus v2.2.0 zum Sichtvergleich. Ergebnis-Matrix in
       `docs/screenshots/auftrag-068/README.md`.
-- [ ] **6. Version und Doku:** `2.3.1`, Release Notes, BUILD_PLAN, BUILD_LOG.
-- [ ] **7. Verifikation und PR;** Übergabe an Codex (G66-Review). Danach Freigabe und Tag
-      `v2.3.1` durch Marc.
+- [x] **6. Version und Doku:** `2.3.1`, Release Notes, BUILD_PLAN, BUILD_LOG.
+- [x] **7. Verifikation und PR;** Übergabe an Codex (G66-Review).
+- [ ] **8. Release:** Nach G66-Freigabe Tag `v2.3.1` durch Marc.
 
 ## Abnahme
 
