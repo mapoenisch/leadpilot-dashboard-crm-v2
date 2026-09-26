@@ -13591,3 +13591,15 @@ Marc hat am 26.09.2026 die Sichtprüfung freigegeben („Sichtprüfung passt“)
 **Hinweis für später (nicht blockierend):** Der axe-Vergleich erkennt neue Regel-IDs. Er erkennt aber nicht, wenn bei einer schon verletzten Regel weitere Elemente betroffen sind. Das betrifft nur `landmark-unique` auf `/customers/segments` und `/sales/sla`. Der Punkt bleibt als Folgepunkt offen und wird nicht in diesem Auftrag behoben.
 
 **Bedingung:** Über Merge und Tag `v2.3.2` wird erst entschieden, wenn die Pflichtprüfungen des PR-CI-Laufs auf dem finalen Stand grün sind.
+
+---
+
+## [2026-09-26] Auftrag 069 / PR #37 — Codex-Review (Bot) nachgearbeitet (Builder: Claude Code)
+
+Der Codex-Connector hat auf `d4640cc` drei Befunde gemeldet. Alle drei sind berechtigt und behoben:
+
+- **P1 `e2e/semantic-routes.spec.ts`:** Die Pflicht-Suite der CI verlangte weiter „kein WebP“ und sichtbaren Fließtext. Damit wäre die e2e-CI auf allen 32 Routen rot geworden. Die Suite folgt jetzt dem Schalter `PAGE_PRESENTATION`. Im Modus `'bild'` prüft sie genau ein geladenes Original-WebP, genau eine `h1`, Text und Struktur in der Textschicht (`textContent`) sowie 0 px Überlauf auf 375 px. Im Modus `'html'` gelten die bisherigen G52–G55-Assertions. Lokal kompiliert die Suite (384 Tests gelistet). Ausführen lässt sie sich nur mit echtem Supabase-Login, deshalb ist der PR-CI-Lauf der Nachweis.
+- **P2 Tab-Reihenfolge:** `KitTable` setzt `tabIndex=0` auf den Scrollbereich. In der unsichtbaren Textschicht landete der Tastaturfokus dadurch auf geclippten Tabellen. `ImagePage` setzt jetzt alle fokussierbaren Elemente der Textschicht auf `tabindex=-1`, auch nachgeladene (MutationObserver). Für Screenreader bleibt die Textschicht erhalten. Neuer Test je Seite: rot auf den 12 `KitTable`-Seiten ohne Fix, grün mit Fix.
+- **P2 Fest verdrahteter Standard:** Der Test „Standard ist die Bilddarstellung“ hätte den dokumentierten Rückweg (`'html'`) in der CI rot gemacht. Er ist ersetzt durch „Schalter hat einen gültigen Wert“ (`'bild'` oder `'html'`).
+
+**Verifikation:** `tsc` 0 Fehler; `lint` und `format:check` grün; `vitest` 275 Dateien und 1641 Tests grün; `npm run verify` alle Suiten grün; `build` erfolgreich. Der Schutzbereichs-Diff ist leer.

@@ -147,10 +147,29 @@ describe('G67 Bildseiten wie v2.2.0', () => {
     });
   }
 
-  it('Standard ist die Bilddarstellung', () => {
+  // Codex-Review PR #37: kein fest verdrahteter Standardwert — der Rückweg
+  // PAGE_PRESENTATION = 'html' muss ohne Testfehler auslieferbar sein.
+  it('Schalter hat einen gültigen Wert', () => {
     const config = fs.readFileSync(path.join(root, 'src/config/pagePresentation.ts'), 'utf8');
-    expect(config).toMatch(/PAGE_PRESENTATION: PagePresentation = 'bild';/);
+    expect(config).toMatch(/PAGE_PRESENTATION: PagePresentation = '(bild|html)';/);
   });
+
+  // Codex-Review PR #37: Die Textschicht ist unsichtbar, also darf nichts darin
+  // per Tab erreichbar sein (KitTable setzt tabIndex=0 auf den Scrollbereich).
+  for (const [key, Page] of pages) {
+    it(`${key}: Textschicht nicht per Tab erreichbar`, () => {
+      render(<Page />);
+      const layer = screen.getByTestId('image-page-text');
+      const reachable = [...layer.querySelectorAll<HTMLElement>('*')].filter(
+        (node) => node.tabIndex >= 0 && node.getAttribute('tabindex') !== null,
+      );
+      expect(reachable).toHaveLength(0);
+      const links = layer.querySelectorAll(
+        'a[href]:not([tabindex="-1"]), button:not([tabindex="-1"])',
+      );
+      expect(links).toHaveLength(0);
+    });
+  }
 
   it('Handy: Hinweis nur im Hochformat unter 600 px, Zoom nicht gesperrt', () => {
     const css = fs.readFileSync(path.join(root, 'src/styles/global.css'), 'utf8');
