@@ -22,6 +22,7 @@ import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REF_URL = process.env.REF_URL ?? 'http://localhost:3100';
@@ -291,7 +292,7 @@ async function main() {
     executablePath: process.env.CHROMIUM_PATH || undefined,
   });
   const diffPage = await browser.newPage();
-  const result = { compare: [], mobile: [], textLayer: [], unchanged: [], tag: null };
+  const result = { compare: [], mobile: [], textLayer: [], axe: [], unchanged: [], tag: null };
 
   for (const vp of VIEWPORTS) {
     const ref = vp.key === '375' ? null : await openV220App(browser, vp);
@@ -387,6 +388,39 @@ async function main() {
     await cur.context.close();
   }
 
+  // G67-5: axe-Scan (alle Schweregrade) je Seite, neuer Stand gegen Baseline.
+  // „Neu“ = Regel-ID, die im neuen Stand verletzt ist, in der Baseline aber nicht.
+  for (const vp of VIEWPORTS.filter((entry) => entry.key !== '768')) {
+    const scans = {};
+    for (const [label, url] of [
+      ['baseline', BASELINE_URL],
+      ['after', BASE_URL],
+    ]) {
+      const app = await openSupabaseApp(browser, vp, url);
+      scans[label] = {};
+      for (const route of Object.keys(PAGES)) {
+        if (ONLY && !ONLY.includes(route)) continue;
+        await app.page.goto(`${url}${route}`);
+        await app.page.getByRole('heading', { level: 1 }).first().waitFor({ timeout: 20_000 });
+        await app.page.waitForLoadState('networkidle');
+        await app.page.evaluate(() => document.fonts.ready);
+        await app.page.waitForTimeout(500);
+        const { violations } = await new AxeBuilder({ page: app.page }).analyze();
+        scans[label][route] = violations.map((v) => `${v.id} [${v.impact}]`);
+      }
+      await app.context.close();
+    }
+    for (const route of Object.keys(scans.after)) {
+      const before = scans.baseline[route] ?? [];
+      const after = scans.after[route];
+      const fresh = after.filter((entry) => !before.includes(entry));
+      result.axe.push({ route, viewport: vp.key, baseline: before, after, fresh });
+      console.log(
+        `axe ${vp.key} ${route} baseline=${before.length} neu=${after.length} zusätzlich=${fresh.length}`,
+      );
+    }
+  }
+
   // G67-7: interaktive Seiten, Login, Sidebar unverändert gegenüber der Baseline.
   for (const vp of VIEWPORTS) {
     for (const [label, url] of [
@@ -437,6 +471,9 @@ async function main() {
   fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), JSON.stringify(result, null, 2));
 
   const failures = [
+    ...result.axe
+      .filter((e) => e.fresh.length > 0)
+      .map((e) => `axe ${e.route}@${e.viewport}: ${e.fresh.join(', ')}`),
     ...result.compare
       .filter((e) => e.diffRatio > MAX_DIFF || e.overflowPx > 0)
       .map((e) => `vergleich ${e.route}@${e.viewport}`),
