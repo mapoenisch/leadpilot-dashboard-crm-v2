@@ -19,7 +19,9 @@ describe('ChannelsPage (branch3)', () => {
   it('leere Kanaldaten zeigen den Empty-Zustand', () => {
     KANAELE.rows.splice(0, KANAELE.rows.length);
     render(<ChannelsPage />);
-    expect(screen.getByRole('heading', { level: 1, name: 'Kanalperformance' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Kanalperformance & CAC-Index' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Keine Kanaldaten erfasst.')).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Kanalvergleich' })).not.toBeInTheDocument();
   });
@@ -27,8 +29,8 @@ describe('ChannelsPage (branch3)', () => {
   it('fehlendes CAC-Dataset nutzt Fallback-Label und Nullwerte', () => {
     KANAELE.chartRoi.datasets.splice(0, KANAELE.chartRoi.datasets.length);
     render(<ChannelsPage />);
-    expect(screen.getByText(/mit Anteil, Neukunden und marketing-cac\./)).toBeInTheDocument();
-    expect(screen.getByText('Kanalvergleich')).toBeInTheDocument();
+    expect(screen.getByRole('figure', { name: 'Marketing-CAC' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Kanalvergleich' })).toBeInTheDocument();
     expect(screen.getByText(/Günstigster Kanal ist .* mit 0 Euro/)).toBeInTheDocument();
   });
 
@@ -44,7 +46,7 @@ describe('ChannelsPage (branch3)', () => {
     render(<ChannelsPage />);
     expect(screen.getByText('Kanal')).toBeInTheDocument();
     expect(screen.getByText('Anteil')).toBeInTheDocument();
-    expect(screen.getByText('Neukunden')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Neukunden' })).toBeInTheDocument();
     expect(screen.getByText('CAC')).toBeInTheDocument();
     expect(screen.getByText('Bewertung')).toBeInTheDocument();
   });

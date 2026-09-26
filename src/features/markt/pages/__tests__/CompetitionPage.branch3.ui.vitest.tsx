@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { CompetitionPage } from '../CompetitionPage';
 import { WETTBEWERB, CHART_WETTBEWERB } from '@/domain/marktData';
 
@@ -18,9 +18,7 @@ afterEach(() => {
 describe('CompetitionPage (branch3)', () => {
   it('rendert h1, Anbietervergleich und Marktanteile', () => {
     render(<CompetitionPage />);
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Wettbewerbslandschaft' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: WETTBEWERB.title })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Anbietervergleich' })).toBeInTheDocument();
     expect(screen.getByText(/führt mit/)).toBeInTheDocument();
   });
@@ -35,7 +33,9 @@ describe('CompetitionPage (branch3)', () => {
   it('fehlendes Marktanteil-Dataset nutzt Fallback-Titel und Nullwerte', () => {
     CHART_WETTBEWERB.datasets.splice(0, CHART_WETTBEWERB.datasets.length);
     render(<CompetitionPage />);
-    expect(screen.getAllByText('Marktanteil').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByRole('figure', { name: 'Marktanteil' })).toBeInTheDocument();
+    const vergleich = within(screen.getByRole('region', { name: 'Anbietervergleich' }));
+    expect(vergleich.getByRole('columnheader', { name: 'Marktanteil' })).toBeInTheDocument();
     expect(screen.getAllByText('0 %').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -49,10 +49,10 @@ describe('CompetitionPage (branch3)', () => {
   it('fehlende Header nutzen Spalten-Fallbacks', () => {
     WETTBEWERB.headers.splice(0, WETTBEWERB.headers.length);
     render(<CompetitionPage />);
-    expect(screen.getByText('Anbieter')).toBeInTheDocument();
-    expect(screen.getByText('Marktanteil')).toBeInTheDocument();
-    expect(screen.getByText('Fokus')).toBeInTheDocument();
-    expect(screen.getByText('Schwachstelle')).toBeInTheDocument();
-    expect(screen.getByText('Differenzierung')).toBeInTheDocument();
+    // Nur die sichtbare Vergleichstabelle (das Diagramm trägt eine eigene sr-only-Tabelle).
+    const vergleich = within(screen.getByRole('region', { name: 'Anbietervergleich' }));
+    for (const name of ['Anbieter', 'Marktanteil', 'Fokus', 'Schwachstelle', 'Differenzierung']) {
+      expect(vergleich.getByRole('columnheader', { name })).toBeInTheDocument();
+    }
   });
 });

@@ -1,41 +1,45 @@
 import { TOP10 } from '@/domain/kundenData';
-import { Table } from '@/components/ui/Table';
 import { DataState } from '@/components/ui/DataState';
+import { Chip, KitTable, PageHero, Panel } from '@/components/pageKit';
 
 // 067I / G53: Echte Top-Kunden-Seite statt WebP — genau eine h1,
 // Referenzkunden als semantische Tabelle, voll auswählbarer Text.
+// Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (07-top-10-kunden).
 export function TopCustomersPage() {
   const rows = TOP10.rows.map((row) => ({
-    kunde: row[0] ?? '',
+    kunde: <strong>{row[0] ?? ''}</strong>,
     branche: row[1] ?? '',
-    mitarbeiter: row[2] ?? '',
-    paket: row[3] ?? '',
-    nutzer: row[4] ?? '',
-    arr: row[5] ?? '',
+    mitarbeiter: <span className="pk-strong-tone">{row[2] ?? ''}</span>,
+    paket: <Chip strong>{row[3] ?? ''}</Chip>,
+    nutzer: <Chip tone="neutral">{row[4] ?? ''}</Chip>,
+    arr: <strong>{row[5] ?? ''}</strong>,
   }));
   return (
-    <div>
-      <h1>Top-Referenzkunden</h1>
-      <p>
-        {TOP10.title}: {String(TOP10.rows.length)} Referenzkunden mit Paket und ARR.
-      </p>
+    <div className="pk-page">
+      <PageHero
+        eyebrow="Kunden"
+        title={TOP10.title}
+        subtitle="Die wichtigsten B2B-Referenzkunden der LeadPilot GmbH."
+        pills={['Key Accounts', `${String(TOP10.rows.length)} Referenzkunden`]}
+      />
       <DataState
         status={rows.length > 0 ? 'ready' : 'empty'}
         emptyText="Keine Referenzkunden erfasst."
       >
-        <section aria-label="Referenzkundentabelle">
-          <Table
+        <Panel title="Referenzkunden" subtitle="Paket, Nutzer und ARR je Key Account" flush>
+          <KitTable
+            caption="Referenzkundentabelle"
             columns={[
               { key: 'kunde', label: TOP10.headers[0] ?? 'Kunde' },
               { key: 'branche', label: TOP10.headers[1] ?? 'Branche' },
               { key: 'mitarbeiter', label: TOP10.headers[2] ?? 'Mitarbeiter' },
               { key: 'paket', label: TOP10.headers[3] ?? 'Paket' },
               { key: 'nutzer', label: TOP10.headers[4] ?? 'Nutzer' },
-              { key: 'arr', label: TOP10.headers[5] ?? 'ARR' },
+              { key: 'arr', label: TOP10.headers[5] ?? 'ARR', align: 'right' },
             ]}
             rows={rows}
           />
-        </section>
+        </Panel>
       </DataState>
     </div>
   );

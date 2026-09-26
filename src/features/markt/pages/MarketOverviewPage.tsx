@@ -1,27 +1,39 @@
 import { MARKT } from '@/domain/marktData';
 import { DataState } from '@/components/ui/DataState';
+import { KitTable, PageHero, Panel } from '@/components/pageKit';
 
-// 067I / G53: Echte Marktübersicht statt WebP — genau eine h1,
-// Marktlage-Kennzahlen als Definitionsliste, voll auswählbarer Text.
+// 067I / G53: Echte Marktübersicht statt WebP — genau eine h1, auswählbarer Text.
+// Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (01-marktlage-dach).
 export function MarketOverviewPage() {
+  const eigeneZeile = MARKT.overview.findIndex((row) => row[0]?.startsWith('LeadPilot'));
   return (
-    <div>
-      <h1>Marktlage DACH</h1>
-      <p>{MARKT.title}: Marktvolumen, Marktanteile und digitale Reichweite der LeadPilot GmbH.</p>
+    <div className="pk-page">
+      <PageHero
+        eyebrow="Markt & Wettbewerb"
+        title={MARKT.title}
+        subtitle="Marktpotenzial im DACH-Mittelstand."
+        pills={['DACH B2B', 'Marktanalyse 2025']}
+      />
       <DataState
         status={MARKT.overview.length > 0 ? 'ready' : 'empty'}
         emptyText="Keine Marktdaten erfasst."
       >
-        <section aria-label="Marktkennzahlen">
-          <dl>
-            {MARKT.overview.map((row) => (
-              <div key={row[0]}>
-                <dt>{row[0]}</dt>
-                <dd>{row[1]}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+        <Panel
+          title="Marktkennzahlen"
+          subtitle="Marktvolumen, Marktanteile und digitale Reichweite der LeadPilot GmbH"
+          flush
+        >
+          <KitTable
+            caption="Marktkennzahlen DACH"
+            leadColumn
+            accentRows={eigeneZeile >= 0 ? [eigeneZeile] : []}
+            columns={[
+              { key: 'segment', label: 'Markt-Segment' },
+              { key: 'daten', label: 'Potenzial & Daten' },
+            ]}
+            rows={MARKT.overview.map((row) => ({ segment: row[0] ?? '', daten: row[1] ?? '' }))}
+          />
+        </Panel>
       </DataState>
     </div>
   );

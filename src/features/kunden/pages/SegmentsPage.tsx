@@ -1,55 +1,71 @@
 import { SEGMENTE, REGIONEN, CHART_SEGMENT } from '@/domain/kundenData';
-import { Table } from '@/components/ui/Table';
 import { DataState } from '@/components/ui/DataState';
-import { AccessibleChartSummary, ChartBarList } from '@/components/ui/AccessibleChartSummary';
+import { ChartFigure, Chip, ColumnChart, KitTable, PageHero, Panel } from '@/components/pageKit';
 
 // 067I / G53: Echte Segmentseite statt WebP — genau eine h1,
 // Branchen und Regionen als Tabellen, ARR-Verteilung mit Summary.
+// Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (06-kundensegmente).
 export function SegmentsPage() {
   const segmente = SEGMENTE.rows.map((row) => ({
-    branche: row.branche,
-    anteil: row.anteil,
+    branche: <strong>{row.branche}</strong>,
+    anteil: <Chip strong>{row.anteil}</Chip>,
     charakter: row.charakter,
   }));
   const regionen = REGIONEN.rows.map((row) => ({
-    region: row.region,
+    region: <strong>{row.region}</strong>,
     kunden: String(row.kunden),
-    anteil: row.share,
-    status: row.status,
+    anteil: <Chip tone="neutral">{row.share}</Chip>,
+    status: <Chip strong>{row.status}</Chip>,
   }));
-  const verteilung = CHART_SEGMENT.labels.map((label, index) => ({
-    label,
-    value: CHART_SEGMENT.datasets[0]?.data[index] ?? 0,
-    display: `${(CHART_SEGMENT.datasets[0]?.data[index] ?? 0).toLocaleString('de-DE')} €`,
-  }));
-  const betrag = (index: number): string =>
-    `${(CHART_SEGMENT.datasets[0]?.data[index] ?? 0).toLocaleString('de-DE')} Euro`;
+  const daten = CHART_SEGMENT.datasets[0]?.data ?? [];
+  const betrag = (index: number): string => `${(daten[index] ?? 0).toLocaleString('de-DE')} Euro`;
   const summary =
     `${CHART_SEGMENT.labels[0]} trägt mit ${betrag(0)} den größten ARR-Anteil, ` +
     `gefolgt von ${CHART_SEGMENT.labels[1]} mit ${betrag(1)} und ` +
     `${CHART_SEGMENT.labels[2]} mit ${betrag(2)}.`;
   return (
-    <div>
-      <h1>Kundensegmente</h1>
-      <p>{SEGMENTE.title}: Branchenverteilung und regionale Streuung des Kundenbestands.</p>
+    <div className="pk-page">
+      <PageHero
+        eyebrow="Kunden"
+        title={SEGMENTE.title}
+        subtitle="Branchen und Kundensegmente im Fokus."
+        pills={['Kundensegmente', 'Kundenanalyse 2025']}
+      />
       <DataState
         status={segmente.length > 0 ? 'ready' : 'empty'}
         emptyText="Keine Kundensegmente erfasst."
       >
-        <section aria-label="Branchen">
-          <h2>Branchen</h2>
-          <Table
+        <Panel
+          title="ARR nach Kundensegment"
+          toneTitle
+          badge="Kundenanalyse 2025"
+          subtitle="Umsatzverteilung nach Industrie- und Dienstleistungssektoren"
+        >
+          <ChartFigure
+            title={CHART_SEGMENT.datasets[0]?.label ?? 'ARR-Verteilung'}
+            summary={summary}
+          >
+            <ColumnChart
+              labels={CHART_SEGMENT.labels}
+              series={[{ name: 'ARR', values: daten }]}
+              valueSuffix=" €"
+            />
+          </ChartFigure>
+        </Panel>
+        <Panel title="Branchenverteilung" flush>
+          <KitTable
+            caption="Branchenverteilung mit Anteil und Charakteristik"
             columns={[
               { key: 'branche', label: 'Branche' },
               { key: 'anteil', label: 'Anteil' },
-              { key: 'charakter', label: 'Charakter' },
+              { key: 'charakter', label: 'Charakteristik' },
             ]}
             rows={segmente}
           />
-        </section>
-        <section aria-label={REGIONEN.title}>
-          <h2>{REGIONEN.title}</h2>
-          <Table
+        </Panel>
+        <Panel title={REGIONEN.title} flush>
+          <KitTable
+            caption={REGIONEN.title}
             columns={[
               { key: 'region', label: REGIONEN.headers[0] ?? 'Region' },
               { key: 'kunden', label: REGIONEN.headers[1] ?? 'Kunden' },
@@ -58,13 +74,7 @@ export function SegmentsPage() {
             ]}
             rows={regionen}
           />
-        </section>
-        <AccessibleChartSummary
-          title={CHART_SEGMENT.datasets[0]?.label ?? 'ARR-Verteilung'}
-          summary={summary}
-        >
-          <ChartBarList items={verteilung} />
-        </AccessibleChartSummary>
+        </Panel>
       </DataState>
     </div>
   );

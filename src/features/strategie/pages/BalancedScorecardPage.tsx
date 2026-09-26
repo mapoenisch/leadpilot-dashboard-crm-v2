@@ -1,26 +1,45 @@
+import { BarChart3, GraduationCap, Settings, Users, type LucideIcon } from 'lucide-react';
 import { BSC } from '@/domain/strategieData';
 import { DataState } from '@/components/ui/DataState';
+import { PageHero } from '@/components/pageKit';
 
 // 067I / G52: Echte Balanced-Scorecard-Seite statt WebP — genau eine h1,
-// vier Perspektiven mit Kennzahlen als Definitionsliste.
+// vier Perspektiven mit Kennzahlen als Liste.
+// Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (05-balanced-scorecard).
+const ICONS: LucideIcon[] = [BarChart3, Users, Settings, GraduationCap];
+
 export function BalancedScorecardPage() {
   return (
-    <div>
-      <h1>Balanced Scorecard</h1>
-      <p>{BSC.title}: Vier Perspektiven mit den Steuerungskennzahlen des Geschäftsjahres.</p>
+    <div className="pk-page">
+      <PageHero
+        eyebrow="Strategie"
+        title={BSC.title}
+        subtitle="Vier Perspektiven mit den Steuerungskennzahlen des Geschäftsjahres."
+        pills={['Balanced Scorecard', `${BSC.perspectives.length} Perspektiven`]}
+      />
       <DataState
         status={BSC.perspectives.length > 0 ? 'ready' : 'empty'}
         emptyText="Keine Scorecard-Perspektiven erfasst."
       >
         <section aria-label="Perspektiven">
-          <dl>
-            {BSC.perspectives.map((perspective) => (
-              <div key={perspective.name}>
-                <dt>{perspective.name}</dt>
-                <dd>{perspective.kpis}</dd>
-              </div>
-            ))}
-          </dl>
+          <ul className="pk-grid" data-cols="2">
+            {BSC.perspectives.map((perspective, index) => {
+              const Icon = ICONS[index % ICONS.length] ?? BarChart3;
+              return (
+                <li key={perspective.name} className="pk-unit" data-tone="cyan">
+                  <span className="pk-icon" data-shape="round" aria-hidden="true">
+                    <Icon size={24} strokeWidth={2} />
+                  </span>
+                  <div className="pk-unit__body">
+                    <h2 className="pk-unit__title pk-strong-tone">
+                      {perspective.name} Perspektive
+                    </h2>
+                    <p className="pk-unit__text pk-unit__text--strong">{perspective.kpis}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </section>
       </DataState>
     </div>

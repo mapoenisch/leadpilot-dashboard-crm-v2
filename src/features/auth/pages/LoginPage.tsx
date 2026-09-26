@@ -43,19 +43,19 @@ export function LoginPage() {
         <div className="flex flex-col items-center text-center mb-6">
           <div className="flex items-center gap-3 mb-2">
             <img
-              src="/assets/logo/leadpilot-logo-full.png"
+              src="/assets/logo/leadpilot-logo.png"
               alt="LeadPilot Logo"
-              className="h-8 object-contain"
+              width={107}
+              height={48}
+              className="h-12 w-[107px] object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
             />
-            <div className="font-display font-bold text-2xl tracking-tight text-white">
-              LeadPilot{' '}
-              <span className="text-xs text-primary uppercase tracking-wider font-semibold">
-                Enterprise
-              </span>
-            </div>
+            {/* G66: Das Logo ist die Wortmarke; daneben nur noch der Produktzusatz. */}
+            <span className="text-xs text-primary uppercase tracking-wider font-semibold">
+              Enterprise
+            </span>
           </div>
           <h1 className="text-lg font-semibold text-text m-0">Anmeldung zur Plattform</h1>
           <p className="text-xs text-[var(--color-text-muted,#94a3b8)] mt-1 mb-0">
@@ -142,7 +142,7 @@ export function LoginPage() {
 
         <div className="mt-6 pt-4 border-t border-border/50 text-center">
           <span className="text-[11px] text-[var(--color-text-muted,#64748b)]">
-            LeadPilot Dashboard-CRM · V2.3.0
+            LeadPilot Dashboard-CRM · V2.3.1
           </span>
         </div>
       </main>
