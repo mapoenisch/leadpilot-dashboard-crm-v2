@@ -13540,3 +13540,34 @@ Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
 **Weiter offen:** (2) Der Push auf `visual-baselines/…` wartet auf Marcs ausdrückliche Freigabe, weil er auf einen anderen Branch geht. (3) und (4) sind Sichtprüfung durch Marc.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig, erneute Codex-Prüfung ausstehend.
+
+---
+
+## [2026-09-26] Auftrag 069 / G67 — Handy-Ansicht neu nach Marcs Entscheid (Builder: Claude Code)
+
+**Entscheid Marc (26.09.2026, nach Sichtprüfung der Kachel-Fassung):** Auf dem Handy gibt es keine überlappenden Ausschnitte. Im Querformat wird das ganze Bild gezeigt. Im Hochformat wird ebenfalls das ganze Bild gezeigt, mit Zwei-Finger-Zoom.
+
+**Umsetzung (`e2c6f89`):**
+- `ImagePage.tsx`: Kacheln entfernt. Es gibt genau ein Bild in voller Breite. Darüber steht der Hinweis „Für bessere Lesbarkeit das Handy quer drehen oder mit zwei Fingern zoomen.“ (`aria-hidden`, Icon `Smartphone` aus `lucide-react`).
+- `global.css`: Der Hinweis erscheint nur bei `(max-width: 599px) and (orientation: portrait)`. Die Kachel-Regeln sind entfernt. Der Zoom bleibt frei: kein `touch-action`, und das Viewport-Meta in `index.html` ist unverändert (ohne `user-scalable=no` und ohne `maximum-scale`).
+- `g67ImagePages.ui.vitest.tsx`: Die Kachel-Prüfungen sind ersetzt. Der Test prüft jetzt genau ein Bild, den Hinweis (`aria-hidden`, Text), die Hochformat-Media-Query und dass der Zoom nicht gesperrt ist.
+- Harness: Die Handy-Prüfung läuft auf 375×812 (hoch) und 812×375 (quer). Geprüft wird Bildbreite = Inhaltsbreite, Hinweis nur im Hochformat und 0 px Überlauf.
+- Die Dokumente sind angepasst: Auftrag (Revision in der Entscheidungstabelle, Task 4, G67-4), Revision B18 in `ARCHITECTURE_DECISIONS.md` und `docs/releases/V2.3.2.md`. Die 10-%-Überlappung aus der ersten Fassung entfällt.
+
+**Gesamtlauf G67 danach:** 0 Abweichungen.
+- Bildvergleich gegen v2.2.0: 64/64 mit 0,000 %.
+- Handy hoch: 32/32 mit 343 px Bildbreite und Hinweis.
+- Handy quer: 32/32 mit 780 px Bildbreite, ohne Hinweis.
+- Überall 0 px Überlauf.
+- Textschicht: 128/128 geprüft.
+- axe: 64/64 Scans ohne neuen Verstoß.
+- Unveränderte Seiten: höchstens 0,307 % Abweichung.
+- Tag `v2.3.1` ist unverändert.
+
+**Zur Kenntnis:** Im Querformat belegen Kopfleiste und Simulationsleiste etwa ein Drittel der Höhe (812×375). Beide gehören zur App-Hülle und sind nicht Teil dieses Auftrags.
+
+**Verifikation:** `npx tsc --noEmit` meldet 0 Fehler. `npm run lint` und `format:check` sind grün. `npx vitest run` läuft mit 275 Dateien und 1609 Tests grün. Der Schutzbereichs-Diff gegen `61e70dc` ist leer.
+
+**Visual-Baselines:** Marc hat den Push auf `visual-baselines/v2.3.2` freigegeben. Lauf 9 (`a7e349e`) enthielt noch die Kachel-Fassung und ist damit überholt. Der Branch ist auf `e2c6f89` nachgezogen, dort läuft [Lauf 36275394975](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36275394975). Die Bilder werden nach Abschluss übernommen.
+
+**Ergebnis & Freigabestatus:** Builder-Stand fertig. Offen sind die Baselines-Übernahme, die erneute Codex-Prüfung und die Sichtprüfung durch Marc (G67-9).

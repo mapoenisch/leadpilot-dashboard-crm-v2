@@ -30,8 +30,8 @@ committet wird nur diese Matrix.
 | G67-1 Bild-Identität | 32/32 Seiten zeigen die Datei laut Auftrag; SHA-256 = `ASSET_SOURCE.md` (Test); `git diff v2.2.0 -- public/assets/auftrag-037*` leer |
 | G67-2 Bild-zu-Bild 1440 px | 32/32 gleiche Größe, **0,000 %** Abweichung (max.) |
 | G67-3 Bild-zu-Bild 768 px | 32/32 gleiche Größe, **0,000 %** Abweichung (max.) |
-| G67-4 Mobile 375 px | 32/32: Vollbild ausgeblendet, 2 Kacheln, Vergrößerung 1,82×, 0 px Überlauf |
-| G67-5 Textschicht | 96/96 Aufnahmen: genau eine `h1` in `#main-content`, Textschicht 1×1 px, ≥ 371 Zeichen |
+| G67-4 Handy | 375×812 hoch: 32/32 ganzes Bild in voller Breite (343 px), Hinweis sichtbar. 812×375 quer: 32/32 volle Breite (780 px), kein Hinweis. 0 px Überlauf. Zoom nicht gesperrt (Test) |
+| G67-5 Textschicht | 128/128 Aufnahmen: genau eine `h1` in `#main-content`, Textschicht 1×1 px, ≥ 371 Zeichen |
 | G67-5 axe | 64/64 Scans (32 Seiten × 1440/375 px, alle Schweregrade): **0 neue Verstöße** gegenüber `61e70dc`. Vorbestehend in beiden Ständen: `landmark-unique` [moderate] auf `/customers/segments` und `/sales/sla` |
 | G67-6 Rückweg | Test beide Schalterstellungen grün; `v2.3.1^{commit}` = `1bbe32da01d8b4b1b00b3a85e7d3c8108ce338e2` |
 | G67-7 Unberührt | 21 Aufnahmen, max. 0,307 % (Login 375 px: Versionstext V2.3.2). Siehe unten |
@@ -44,42 +44,45 @@ Das Bild sitzt im neuen Stand auf allen Breiten 1 px tiefer als in v2.2.0. Auf 7
 Kopfleiste brach dort um); jetzt liegen alle 32 Seiten einheitlich. Ursache ist die Kopfleiste
 (Sidebar/Topbar), die laut Auftrag nicht geändert wird.
 
-## Matrix Bildseiten (Größe · Abweichung · Überlauf)
+## Matrix Bildseiten (Größe · Abweichung · Überlauf; Handy: Bildbreite · Hinweis · Überlauf)
 
-| Route | 1440 | 768 | 375 (Kacheln · Überlauf) | SHA-256 375 |
+Handy-Fassung nach Marcs Entscheid vom 26.09.2026: keine Kacheln, ganzes Bild; im Hochformat Hinweis
+„Handy quer drehen oder mit zwei Fingern zoomen“. Die erste Kachel-Fassung ist verworfen.
+
+| Route | 1440 | 768 | 375×812 hoch | 812×375 quer |
 |---|---|---|---|---|
-| `/market/overview` | 1116x596 · 0.000 % · 0 px | 736x394 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `465a63620d` |
-| `/market/competition` | 1116x596 · 0.000 % · 0 px | 736x394 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `cd873119d8` |
-| `/market/swot` | 1116x596 · 0.000 % · 0 px | 736x394 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `e0797cd6bd` |
-| `/customers/icp` | 1116x565 · 0.000 % · 0 px | 736x373 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `cd43c42168` |
-| `/customers/persona` | 1116x557 · 0.000 % · 0 px | 736x368 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `92186d8081` |
-| `/customers/segments` | 1116x554 · 0.000 % · 0 px | 736x366 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `96b678b8db` |
-| `/customers/top-customers` | 1116x555 · 0.000 % · 0 px | 736x367 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `a941cb4e7f` |
-| `/sales/funnel` | 1116x618 · 0.000 % · 0 px | 736x408 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `9e824c8cf9` |
-| `/sales/sla` | 1116x593 · 0.000 % · 0 px | 736x392 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `9a5f81c245` |
-| `/sales/channels` | 1116x593 · 0.000 % · 0 px | 736x392 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `02ba42274f` |
-| `/sales/planning` | 1116x596 · 0.000 % · 0 px | 736x393 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `d0bc99452f` |
-| `/finance/p-and-l` | 1116x597 · 0.000 % · 0 px | 736x394 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `a871539c04` |
-| `/finance/balance-sheet` | 1116x613 · 0.000 % · 0 px | 736x405 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `2937dc8123` |
-| `/finance/unit-economics` | 1116x611 · 0.000 % · 0 px | 736x404 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `e1416429b0` |
-| `/organisation/headcount` | 1116x596 · 0.000 % · 0 px | 736x393 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `ce78371574` |
-| `/organisation/hr` | 1116x571 · 0.000 % · 0 px | 736x377 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `f60fe055ae` |
-| `/organisation/team` | 1116x565 · 0.000 % · 0 px | 736x373 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `f234af23ce` |
-| `/strategy/okrs` | 1116x567 · 0.000 % · 0 px | 736x375 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `8cb788f36f` |
-| `/strategy/balanced-scorecard` | 1116x570 · 0.000 % · 0 px | 736x377 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `c9a97f3d49` |
-| `/strategy/growth-drivers` | 1116x570 · 0.000 % · 0 px | 736x377 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `e606f79e26` |
-| `/legal/articles` | 1116x569 · 0.000 % · 0 px | 736x376 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `3d33160e5a` |
-| `/legal/shareholders` | 1116x570 · 0.000 % · 0 px | 736x377 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `a897e461ef` |
-| `/legal/commercial-register` | 1116x571 · 0.000 % · 0 px | 736x377 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `41b474d14f` |
-| `/company/profile` | 1116x596 · 0.000 % · 0 px | 736x393 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `d82a17cd61` |
-| `/company/highlights` | 1116x599 · 0.000 % · 0 px | 736x395 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `47dd504abc` |
-| `/company/idea` | 1116x552 · 0.000 % · 0 px | 736x364 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `5308c120e5` |
-| `/company/value-proposition` | 1116x485 · 0.000 % · 0 px | 736x320 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `5045a6eb93` |
-| `/company/history` | 1116x491 · 0.000 % · 0 px | 736x324 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `5450247b89` |
-| `/product/features` | 1116x484 · 0.000 % · 0 px | 736x320 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `992b385d09` |
-| `/product/pricing` | 1116x499 · 0.000 % · 0 px | 736x330 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `151beb5422` |
-| `/product/performance` | 1116x471 · 0.000 % · 0 px | 736x311 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `65a636f72f` |
-| `/product/roadmap` | 1116x694 · 0.000 % · 0 px | 736x458 · 0.000 % · 0 px | 1.82 / 1.82× · 0 px | `c2e35188ed` |
+| `/market/overview` | 1116x596 · 0,000 % · 0 px | 736x394 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/market/competition` | 1116x596 · 0,000 % · 0 px | 736x394 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/market/swot` | 1116x596 · 0,000 % · 0 px | 736x394 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/customers/icp` | 1116x565 · 0,000 % · 0 px | 736x373 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/customers/persona` | 1116x557 · 0,000 % · 0 px | 736x368 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/customers/segments` | 1116x554 · 0,000 % · 0 px | 736x366 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/customers/top-customers` | 1116x555 · 0,000 % · 0 px | 736x367 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/sales/funnel` | 1116x618 · 0,000 % · 0 px | 736x408 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/sales/sla` | 1116x593 · 0,000 % · 0 px | 736x392 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/sales/channels` | 1116x593 · 0,000 % · 0 px | 736x392 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/sales/planning` | 1116x596 · 0,000 % · 0 px | 736x393 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/finance/p-and-l` | 1116x597 · 0,000 % · 0 px | 736x394 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/finance/balance-sheet` | 1116x613 · 0,000 % · 0 px | 736x405 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/finance/unit-economics` | 1116x611 · 0,000 % · 0 px | 736x404 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/organisation/headcount` | 1116x596 · 0,000 % · 0 px | 736x393 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/organisation/hr` | 1116x571 · 0,000 % · 0 px | 736x377 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/organisation/team` | 1116x565 · 0,000 % · 0 px | 736x373 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/strategy/okrs` | 1116x567 · 0,000 % · 0 px | 736x375 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/strategy/balanced-scorecard` | 1116x570 · 0,000 % · 0 px | 736x377 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/strategy/growth-drivers` | 1116x570 · 0,000 % · 0 px | 736x377 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/legal/articles` | 1116x569 · 0,000 % · 0 px | 736x376 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/legal/shareholders` | 1116x570 · 0,000 % · 0 px | 736x377 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/legal/commercial-register` | 1116x571 · 0,000 % · 0 px | 736x377 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/company/profile` | 1116x596 · 0,000 % · 0 px | 736x393 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/company/highlights` | 1116x599 · 0,000 % · 0 px | 736x395 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/company/idea` | 1116x552 · 0,000 % · 0 px | 736x364 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/company/value-proposition` | 1116x485 · 0,000 % · 0 px | 736x320 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/company/history` | 1116x491 · 0,000 % · 0 px | 736x324 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/product/features` | 1116x484 · 0,000 % · 0 px | 736x320 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/product/pricing` | 1116x499 · 0,000 % · 0 px | 736x330 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/product/performance` | 1116x471 · 0,000 % · 0 px | 736x311 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
+| `/product/roadmap` | 1116x694 · 0,000 % · 0 px | 736x458 · 0,000 % · 0 px | 343 px · Hinweis ja · 0 px | 780 px · Hinweis nein · 0 px |
 
 ## Unveränderte Seiten (Baseline `61e70dc` → neu)
 
@@ -89,24 +92,24 @@ Seiten ist unverändert.
 
 | Seite | Breite | Abweichung | SHA-256 gleich |
 |---|---|---|---|
-| login | 1440 | 0.072 % | nein |
-| company_data-basis | 1440 | 0.003 % | nein |
-| company_location | 1440 | 0.003 % | nein |
-| crm_leads | 1440 | 0.009 % | nein |
-| crm_companies | 1440 | 0.010 % | nein |
-| crm_deals | 1440 | 0.282 % | nein |
-| crm_activities | 1440 | 0.003 % | nein |
-| login | 768 | 0.118 % | nein |
-| company_data-basis | 768 | 0.000 % | ja |
-| company_location | 768 | 0.006 % | nein |
-| crm_leads | 768 | 0.009 % | nein |
-| crm_companies | 768 | 0.012 % | nein |
-| crm_deals | 768 | 0.033 % | nein |
-| crm_activities | 768 | 0.000 % | ja |
-| login | 375 | 0.307 % | nein |
-| company_data-basis | 375 | 0.000 % | ja |
-| company_location | 375 | 0.008 % | nein |
-| crm_leads | 375 | 0.028 % | nein |
-| crm_companies | 375 | 0.029 % | nein |
-| crm_deals | 375 | 0.026 % | nein |
-| crm_activities | 375 | 0.000 % | ja |
+| login | 1440 | 0,072 % | nein |
+| company_data-basis | 1440 | 0,003 % | nein |
+| company_location | 1440 | 0,003 % | nein |
+| crm_leads | 1440 | 0,009 % | nein |
+| crm_companies | 1440 | 0,012 % | nein |
+| crm_deals | 1440 | 0,012 % | nein |
+| crm_activities | 1440 | 0,003 % | nein |
+| login | 768 | 0,118 % | nein |
+| company_data-basis | 768 | 0,000 % | ja |
+| company_location | 768 | 0,006 % | nein |
+| crm_leads | 768 | 0,011 % | nein |
+| crm_companies | 768 | 0,033 % | nein |
+| crm_deals | 768 | 0,012 % | nein |
+| crm_activities | 768 | 0,000 % | ja |
+| login | 375 | 0,307 % | nein |
+| company_data-basis | 375 | 0,000 % | ja |
+| company_location | 375 | 0,008 % | nein |
+| crm_leads | 375 | 0,026 % | nein |
+| crm_companies | 375 | 0,027 % | nein |
+| crm_deals | 375 | 0,030 % | nein |
+| crm_activities | 375 | 0,000 % | ja |
