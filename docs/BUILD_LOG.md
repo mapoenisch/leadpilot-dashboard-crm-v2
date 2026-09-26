@@ -13573,3 +13573,11 @@ Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
 **Ergebnis & Freigabestatus:** Builder-Stand fertig. Offen sind die Baselines-Übernahme, die erneute Codex-Prüfung und die Sichtprüfung durch Marc (G67-9).
 
 **Nachtrag Visual-Baselines (26.09.2026):** Lauf [36275394975](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36275394975) auf `visual-baselines/v2.3.2` (`e2c6f89`) war erfolgreich. Der Digest des Artefakts `visual-baselines` ist geprüft (`sha256:e8cac1dd…2decff`, identisch mit der GitHub-Angabe). Von 15 Linux-Snapshots weichen genau 6 vom Repo ab: `market-overview` und `finance-p-and-l` auf 1440, 768 und 375 px. Bei der Sichtprüfung zeigen sie das Original-WebP, auf 375 px zusätzlich den Hochformat-Hinweis, und im Sidebar-Fuß „v2.3.2“. Diese 6 Snapshots sind nach `e2e/visual.spec.ts-snapshots/` übernommen. Die übrigen 9 sind byte-gleich und bleiben unverändert. Die Darwin-Snapshots werden wie bei v2.3.1 nicht angefasst. Der Hilfsbranch `visual-baselines/v2.3.2` bleibt bis zum Merge bestehen und wird danach gelöscht (Freigabe Marc, 26.09.2026).
+
+---
+
+## [2026-09-26] Auftrag 069 / G67-9 — Sichtprüfung Marc: bestanden
+
+Marc hat am 26.09.2026 die Sichtprüfung freigegeben („Sichtprüfung passt“). Grundlage war die private Vergleichsseite, Version 2: alle 32 Seiten in v2.2.0 und v2.3.2, dazu die Handy-Ansicht im Hoch- und Querformat. Die Freigabe umfasst auch Releases & Roadmap: Die angezeigte Datei `10-releases-roadmap.webp` (die Datei aus v2.2.0) ist bestätigt. Ebenso bestätigt ist die Handy-Lösung mit dem ganzen Bild, dem Hinweis im Hochformat und dem Zwei-Finger-Zoom.
+
+**Stand G67:** G67-1 bis G67-8 wurden vom Builder nachgewiesen, G67-9 ist bestanden. Offen ist noch die erneute Codex-Prüfung. Danach folgen der PR nach `main`, der Tag `v2.3.2` und das Löschen von `visual-baselines/v2.3.2`.
