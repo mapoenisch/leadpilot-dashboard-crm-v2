@@ -1,24 +1,20 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 25.09.2026
+**Stand:** 26.09.2026
 
-**Aktueller Release:** `v2.3.0` (annotierter Tag auf `aff4b95`, `main`-CI grün)
-**Aktueller Auftrag:** 068 — `v2.3.1` Design-Wiederherstellung, Gate G66
-(`docs/auftraege/ANTIGRAVITY_AUFTRAG_068_V2_3_1_DESIGN_WIEDERHERSTELLUNG.md`).
-**Rollen für 068:** Claude Code baut (Entscheidung Marc, 25.09.2026), Codex prüft G66.
-Sonst gilt mit `v2.3.0` wieder die Verteilung vor dem 24.09.2026 (Antigravity baut,
-Codex und Claude Code prüfen), sofern Marc nichts anderes festlegt (`CLAUDE.md` §4).
+**Aktueller Release:** `v2.3.1` (annotierter Tag auf `1bbe32d`, Merge von PR #34)
+**Nächster Auftrag:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.
+Der Detailauftrag ist noch nicht geschrieben; die Vorgaben und die Rollenverteilung legt Marc fest.
+**Rollen:** Für 068 baute Claude Code (Entscheidung Marc, 25.09.2026), Codex prüfte G66. Sonst gilt
+mit `v2.3.0` wieder die Verteilung vor dem 24.09.2026 (Antigravity baut, Codex und Claude Code prüfen),
+sofern Marc nichts anderes festlegt (`CLAUDE.md` §4).
 
-## Aktuell: v2.3.1 — Auftrag 068 (G66)
+## Abgeschlossen: v2.3.1 — Auftrag 068 (G66)
 
 **Ziel:** Das LeadPilot-Design der 32 Inhaltsseiten und das echte Logo wiederherstellen, die
-v2.3.0 verloren hat; Semantik aus G52–G55 bleibt.
-**Stand 26.09.2026:** Builder-Tasks 1–7 erledigt. Die beiden CI-Blocker (Finding-Vertrag
-PR-SEMANTIC-11 und visuelle Baselines) sind behoben; PR #34 ist auf `42502a2` mit 7/7
-CI-Jobs grün. Der G66-Prüferbefund steht im BUILD_LOG. Der Tag `v2.3.1` durch Marc folgt
-nach der Freigabe.
-**Danach:** eigener Auftrag zur Neugestaltung des Executive Dashboards (`/dashboard`) mit
-Marcs Vorgaben. Nicht Teil von v2.3.1.
+v2.3.0 verloren hat; Semantik aus G52–G55 bleibt. **Erreicht und veröffentlicht am 26.09.2026.**
+Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_068_V2_3_1_DESIGN_WIEDERHERSTELLUNG.md` · PR #34 ·
+G66 freigegeben von Codex auf Code-Stand `42502a2` · Tag `v2.3.1` auf `1bbe32d`.
 
 ## Abgeschlossen: Roadmap v2.3.0
 

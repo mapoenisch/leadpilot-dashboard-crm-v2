@@ -13455,3 +13455,15 @@ Axe, Lighthouse, Migration, Readiness sowie Backup/Wiederherstellung).
 **Gate-Entscheidung:** G66 für den geprüften Code-Stand **freigegeben**. Dieser
 Prüfervermerk und die Statuskorrekturen in Auftrag/BUILD_PLAN sind reine
 Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
+
+---
+
+## [2026-09-26] Release v2.3.1 veröffentlicht
+
+- **Release-Commit:** `1bbe32da01d8b4b1b00b3a85e7d3c8108ce338e2`, der Merge von PR #34, von GitHub signiert (`gpgsig`).
+- **Tag:** `v2.3.1`, annotiert, Tagger Marc Pönisch, zeigt auf `1bbe32d`. Gesetzt von Marc lokal per `git tag -a` und gepusht.
+- **Gate:** G66 freigegeben von Codex auf Code-Stand `42502a2` (Prüfervermerk oben, Review-Kommentar in PR #34).
+- **CI auf `main`:** [Lauf 36236872185](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36236872185) auf `1bbe32d`.
+- **Aufgeräumt:** Hilfsbranches `visual-baselines/v2.3.1`, `-r2`, `-r3` gelöscht.
+- **Bekannte Abweichung im getaggten Stand:** `docs/releases/V2.3.1.md` im Tag nennt noch den Prüfstatus; maßgeblich ist die Fassung auf `main`. Der Tag wird nicht verschoben.
+- **Nächster Auftrag:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.

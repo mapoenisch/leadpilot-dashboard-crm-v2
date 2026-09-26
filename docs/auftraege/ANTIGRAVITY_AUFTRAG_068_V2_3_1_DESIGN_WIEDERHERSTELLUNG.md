@@ -83,7 +83,7 @@ echter Text, genau eine h1, Tabellen, Listen und Chart-Zusammenfassungen.
       `docs/screenshots/auftrag-068/README.md`.
 - [x] **6. Version und Doku:** `2.3.1`, Release Notes, BUILD_PLAN, BUILD_LOG.
 - [x] **7. Verifikation und PR;** Übergabe an Codex (G66-Review).
-- [ ] **8. Release:** Nach G66-Freigabe Tag `v2.3.1` durch Marc.
+- [x] **8. Release:** Nach G66-Freigabe Tag `v2.3.1` durch Marc (26.09.2026, annotiert auf `1bbe32d`).
 
 ## Abnahme
 
