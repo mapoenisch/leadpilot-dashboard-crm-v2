@@ -13478,11 +13478,12 @@ Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
 **Geänderte Dateien:**
 - `src/components/layout/Sidebar.tsx`: `import { version as appVersion } from '../../../package.json'`, Footer-Text `LeadPilot v{appVersion}`. Vite bündelt nur das Feld `version` (im Build geprüft: keine Abhängigkeitslisten im Bundle).
 - `src/components/layout/__tests__/Sidebar.branch.ui.vitest.tsx`, `Sidebar.branch2.ui.vitest.tsx`: Erwartung auf `LeadPilot v${appVersion}` umgestellt.
+- `scripts/captureSidebarFooterScreenshots.mjs`, `docs/screenshots/sidebar-footer-version/README.md`: Screenshot-Harness und Ergebnis-Matrix.
 
 **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 
 **Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npx vitest run src/components/layout` 45/45 grün; `npm run verify` alle Integrity-Suiten grün; `npm run build` erfolgreich.
 
-**Screenshot-Matrix:** nicht erzeugt. Die Änderung betrifft nur eine Textzeile im Footer. Offen: Die Playwright-Visual-Baselines (Desktop/Tablet mit sichtbarer Sidebar) können wegen des neuen Textes über der Toleranz `maxDiffPixelRatio 0.001` liegen und müssten dann über den Workflow `update-visual-baselines.yml` neu erzeugt werden.
+**Screenshot-Matrix (Nacharbeit nach Codex-Review P1 in PR #36):** `docs/screenshots/sidebar-footer-version/README.md`. Harness `scripts/captureSidebarFooterScreenshots.mjs` (abgeleitet von 068, nur Sidebar mit Footer, Drawer unter 1024 px geöffnet), Lauf mit `SUPABASE_MOCK=1`. Vorher `be1284a` gegen Nachher: 3 von 3 Paaren mit unterschiedlichem SHA-256 (1440/768/375), 0 px horizontaler Überlauf vorher und nachher, Sichtprüfung: Footer „LeadPilot v2.3.1“ einzeilig, Rest der Sidebar unverändert. Login und Inhaltsseiten sind durch den Footer-Text nicht betroffen und nicht Teil des Laufs. Playwright-Visual-Baselines: Ergebnis des `e2e`-Jobs im CI-Lauf des PRs maßgeblich; bei Überschreitung von `maxDiffPixelRatio 0.001` Regenerierung über `update-visual-baselines.yml`.
 
 **Ergebnis & Freigabestatus:** Builder-Stand fertig, Codex-Prüfung ausstehend.
