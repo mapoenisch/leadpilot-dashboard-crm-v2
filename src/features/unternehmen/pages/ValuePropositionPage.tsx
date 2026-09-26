@@ -2,13 +2,14 @@ import { BarChart3, Clock, Zap, type LucideIcon } from 'lucide-react';
 import { VALUE } from '@/domain/unternehmenData';
 import { DataState } from '@/components/ui/DataState';
 import { Grid, PageHero, Panel, Quote } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G54: Echte Value-Proposition-Seite statt WebP — genau eine h1,
 // Kernbotschaft plus Nutzenversprechen als Abschnitte.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (05-value-proposition).
 const ICONS: LucideIcon[] = [BarChart3, Clock, Zap];
 
-export function ValuePropositionPage() {
+function ValuePropositionPageHtml() {
   return (
     <div className="pk-page">
       <PageHero
@@ -30,5 +31,15 @@ export function ValuePropositionPage() {
         </Grid>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function ValuePropositionPage() {
+  return (
+    <ImagePage page="company-value-proposition">
+      <ValuePropositionPageHtml />
+    </ImagePage>
   );
 }

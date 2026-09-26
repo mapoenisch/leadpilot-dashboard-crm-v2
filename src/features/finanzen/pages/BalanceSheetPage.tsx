@@ -1,6 +1,7 @@
 import { BILANZ } from '@/domain/finanzenData';
 import { DataState } from '@/components/ui/DataState';
 import { Grid, KitTable, PageHero, Panel } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G52: Echte Bilanz-Seite statt WebP — genau eine h1, Aktiva und
 // Passiva als semantische Tabellen mit übereinstimmender Bilanzsumme.
@@ -10,7 +11,7 @@ const spalten = [
   { key: 'betrag', label: 'Betrag', align: 'right' as const },
 ];
 
-export function BalanceSheetPage() {
+function BalanceSheetPageHtml() {
   const aktiva = BILANZ.aktiva.map((row) => ({ position: row[0] ?? '', betrag: row[1] ?? '' }));
   const passiva = BILANZ.passiva.map((row) => ({ position: row[0] ?? '', betrag: row[1] ?? '' }));
   const bilanzSumme = BILANZ.aktiva[BILANZ.aktiva.length - 1]?.[1] ?? '';
@@ -44,5 +45,15 @@ export function BalanceSheetPage() {
         </Grid>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function BalanceSheetPage() {
+  return (
+    <ImagePage page="finance-balance-sheet">
+      <BalanceSheetPageHtml />
+    </ImagePage>
   );
 }

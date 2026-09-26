@@ -3,11 +3,20 @@
 **Stand:** 26.09.2026
 
 **Aktueller Release:** `v2.3.1` (annotierter Tag auf `1bbe32d`, Merge von PR #34)
-**Nächster Auftrag:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.
+**In Arbeit:** v2.3.2 — Auftrag 069 (G67), echte Wiederherstellung der Bildseiten.
+**Danach:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.
 Der Detailauftrag ist noch nicht geschrieben; die Vorgaben und die Rollenverteilung legt Marc fest.
-**Rollen:** Für 068 baute Claude Code (Entscheidung Marc, 25.09.2026), Codex prüfte G66. Sonst gilt
+**Rollen:** Für 068 und 069 baut Claude Code, Codex prüft (Entscheidung Marc, 25./26.09.2026). Sonst gilt
 mit `v2.3.0` wieder die Verteilung vor dem 24.09.2026 (Antigravity baut, Codex und Claude Code prüfen),
 sofern Marc nichts anderes festlegt (`CLAUDE.md` §4).
+
+## In Arbeit: v2.3.2 — Auftrag 069 (G67)
+
+**Ziel:** Die 32 statischen Inhaltsseiten sehen wieder genau so aus wie in v2.2.0 (Original-WebPs,
+Bild-zu-Bild-Gate). v2.3.1 hat dieses Ziel verfehlt. Rückweg zu v2.3.1 per Schalter
+`PAGE_PRESENTATION` und unverändertem Tag.
+Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md` ·
+Branch `main-jytadn` · Stand: Builder fertig, wartet auf Codex-Prüfung G67 und Sichtprüfung Marc (G67-9).
 
 ## Abgeschlossen: v2.3.1 — Auftrag 068 (G66)
 

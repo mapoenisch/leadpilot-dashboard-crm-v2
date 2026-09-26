@@ -1,6 +1,7 @@
 import { HEADCOUNT, TEAM } from '@/domain/organisationData';
 import { DataState } from '@/components/ui/DataState';
 import { ChartFigure, Chip, LineChart, PageHero, Panel, RowList } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G55: Echte Headcount-Seite statt WebP — genau eine h1,
 // Kapazitätsliste plus FTE-Verlauf mit Summary, alles aus Domäne.
@@ -21,7 +22,7 @@ function formatFte(value: number): string {
   return `${value.toLocaleString('de-DE')} FTE`;
 }
 
-export function HeadcountPage() {
+function HeadcountPageHtml() {
   const bereiche = HEADCOUNT.rows.slice(0, -1);
   const gesamt = HEADCOUNT.rows[HEADCOUNT.rows.length - 1];
   const labels = HEADCOUNT.chart.labels;
@@ -82,5 +83,15 @@ export function HeadcountPage() {
         </section>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function HeadcountPage() {
+  return (
+    <ImagePage page="organisation-headcount">
+      <HeadcountPageHtml />
+    </ImagePage>
   );
 }

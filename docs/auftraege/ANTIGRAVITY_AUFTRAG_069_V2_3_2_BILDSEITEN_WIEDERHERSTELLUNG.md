@@ -126,35 +126,40 @@ Der Builder gleicht die Tabelle vor Task 3 per `git grep webp-img v2.2.0 -- src`
 
 ## Tasks
 
-- [ ] **1. Roter Start:** `g67ImagePages.ui.vitest.tsx` verlangt für jede der 32 Seiten im Modus
+- [x] **1. Roter Start:** `g67ImagePages.ui.vitest.tsx` verlangt für jede der 32 Seiten im Modus
       `'bild'`: genau ein sichtbares `<img>` mit der Datei laut Tabelle, genau eine `h1` in der
       Textschicht, Textschicht optisch verborgen. Im Modus `'html'`: Ausgabe wie v2.3.1.
       Vor dem Umbau rot.
-- [ ] **2. Schalter:** `src/config/pagePresentation.ts` mit `PAGE_PRESENTATION = 'bild'`.
-- [ ] **3. Bildseite:** Komponente `ImagePage` (Bild, Kacheln, Textschicht). Ab 600 px Breite
+- [x] **2. Schalter:** `src/config/pagePresentation.ts` mit `PAGE_PRESENTATION = 'bild'`.
+- [x] **3. Bildseite:** Komponente `ImagePage` (Bild, Kacheln, Textschicht). Ab 600 px Breite
       das ganze Bild in voller Breite des Inhaltsbereichs, Seitenverhältnis erhalten, kein
       Beschnitt, keine Filter oder Überlagerungen, Darstellung wie `.auftrag-037x-webp-view` in
       v2.2.0.
-- [ ] **4. Kacheln (unter 600 px):** je Bild eine Kachel-Definition (Ausschnitt in Prozent von
+- [x] **4. Kacheln (unter 600 px):** je Bild eine Kachel-Definition (Ausschnitt in Prozent von
       Breite/Höhe). Standard: linke und rechte Hälfte mit 4 % Überlappung. Wo ein Schnitt durch
       Text oder ein Diagramm läuft, legt der Builder die Schnittlinie an eine Panel-Grenze
       (Bild vorher ansehen). Bedingungen: alle Kacheln zusammen decken das ganze Bild ab,
       jede Kachel wird mindestens 1,6× größer dargestellt als das Gesamtbild auf 375 px,
       0 px horizontaler Overflow. Umsetzung als CSS-Ausschnitt derselben Datei.
-- [ ] **5. Textschicht:** die bisherigen v2.3.1-Seiteninhalte (echte `h1`, Tabellen, Listen,
+      *Umsetzung:* In allen 32 Bildern laufen Tabellenzeilen und Überschriften über die ganze
+      Breite, keine senkrechte Schnittlinie trifft nur Panel-Grenzen. Statt 4 % gilt deshalb
+      für alle Bilder eine Überlappung von 10 % (links 0–55 %, rechts 45–100 %): Text an der
+      Schnittlinie bis 10 % Bildbreite steht in mindestens einer Kachel vollständig.
+      Vergrößerung 1,82× (≥ 1,6× erfüllt).
+- [x] **5. Textschicht:** die bisherigen v2.3.1-Seiteninhalte (echte `h1`, Tabellen, Listen,
       Chart-Zusammenfassungen) werden im Modus `'bild'` visuell verborgen gerendert
       (`sr-only`-Muster, kein `display:none`, kein `aria-hidden`). Das Bild erhält ein kurzes
       `alt`, das auf die Textschicht verweist, damit Screenreader den Inhalt nicht doppelt lesen.
-- [ ] **6. Seiten:** die 32 Seiten auf `ImagePage` umstellen, Modus `'html'` rendert die
+- [x] **6. Seiten:** die 32 Seiten auf `ImagePage` umstellen, Modus `'html'` rendert die
       v2.3.1-Komponente unverändert.
-- [ ] **7. Tests und Suiten anpassen:** G52–G55/G66-Tests prüfen Semantik jetzt in der
+- [x] **7. Tests und Suiten anpassen:** G52–G55/G66-Tests prüfen Semantik jetzt in der
       Textschicht bzw. im Modus `'html'`. Assertions „kein WebP“ entfallen mit Verweis auf
       diesen Auftrag. Integrity-Suiten entsprechend.
-- [ ] **8. Bild-zu-Bild-Gate:** Screenshot-Harness baut `v2.2.0` und den neuen Stand, fotografiert
+- [x] **8. Bild-zu-Bild-Gate:** Screenshot-Harness baut `v2.2.0` und den neuen Stand, fotografiert
       alle 32 Routen und vergleicht den Inhaltsbereich pixelweise.
-- [ ] **9. Rückweg-Nachweis:** Test beide Modi; `git rev-parse v2.3.1^{commit}` =
+- [x] **9. Rückweg-Nachweis:** Test beide Modi; `git rev-parse v2.3.1^{commit}` =
       `1bbe32da01d8b4b1b00b3a85e7d3c8108ce338e2` im BUILD_LOG belegt.
-- [ ] **10. Version & Doku:** `2.3.2`, Release-Notiz, Revision in `ARCHITECTURE_DECISIONS.md`,
+- [x] **10. Version & Doku:** `2.3.2`, Release-Notiz, Revision in `ARCHITECTURE_DECISIONS.md`,
       `BUILD_PLAN.md`, BUILD_LOG-Eintrag.
 
 ## Gate G67 — Abnahmekriterien

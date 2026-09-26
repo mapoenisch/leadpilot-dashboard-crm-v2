@@ -1,10 +1,11 @@
 import { MARKT } from '@/domain/marktData';
 import { DataState } from '@/components/ui/DataState';
 import { KitTable, PageHero, Panel } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte Marktübersicht statt WebP — genau eine h1, auswählbarer Text.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (01-marktlage-dach).
-export function MarketOverviewPage() {
+function MarketOverviewPageHtml() {
   const eigeneZeile = MARKT.overview.findIndex((row) => row[0]?.startsWith('LeadPilot'));
   return (
     <div className="pk-page">
@@ -36,5 +37,15 @@ export function MarketOverviewPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function MarketOverviewPage() {
+  return (
+    <ImagePage page="market-dach">
+      <MarketOverviewPageHtml />
+    </ImagePage>
   );
 }

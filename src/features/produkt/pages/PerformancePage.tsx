@@ -13,6 +13,7 @@ import {
   splitValueHint,
   type Tone,
 } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G54: Echte Performance-Seite statt WebP — genau eine h1,
 // Qualitätsmetriken als Liste, beide Chart-Reihen strukturiert.
@@ -24,7 +25,7 @@ function formatProzent(value: number): string {
   return `${value.toLocaleString('de-DE')} %`;
 }
 
-export function PerformancePage() {
+function PerformancePageHtml() {
   const quartale = CHART_PRODUKT.labels;
   const aktivierung = (index: number): string =>
     formatProzent(CHART_PRODUKT.datasets[0]?.data[index] ?? 0);
@@ -126,5 +127,15 @@ export function PerformancePage() {
         </Grid>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function PerformancePage() {
+  return (
+    <ImagePage page="product-performance">
+      <PerformancePageHtml />
+    </ImagePage>
   );
 }

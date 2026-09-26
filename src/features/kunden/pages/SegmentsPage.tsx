@@ -1,11 +1,12 @@
 import { SEGMENTE, REGIONEN, CHART_SEGMENT } from '@/domain/kundenData';
 import { DataState } from '@/components/ui/DataState';
 import { ChartFigure, Chip, ColumnChart, KitTable, PageHero, Panel } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte Segmentseite statt WebP — genau eine h1,
 // Branchen und Regionen als Tabellen, ARR-Verteilung mit Summary.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (06-kundensegmente).
-export function SegmentsPage() {
+function SegmentsPageHtml() {
   const segmente = SEGMENTE.rows.map((row) => ({
     branche: <strong>{row.branche}</strong>,
     anteil: <Chip strong>{row.anteil}</Chip>,
@@ -77,5 +78,15 @@ export function SegmentsPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function SegmentsPage() {
+  return (
+    <ImagePage page="customers-segments">
+      <SegmentsPageHtml />
+    </ImagePage>
   );
 }

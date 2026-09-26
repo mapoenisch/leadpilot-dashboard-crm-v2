@@ -2,11 +2,12 @@ import { Lightbulb, Target } from 'lucide-react';
 import { IDEE } from '@/domain/unternehmenData';
 import { DataState } from '@/components/ui/DataState';
 import { PageHero, Panel, ToneList } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G54: Echte Ideen-Seite statt WebP — genau eine h1,
 // These als Absätze, Alleinstellungsmerkmale als Liste.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (04-geschaeftsidee).
-export function IdeaPage() {
+function IdeaPageHtml() {
   return (
     <div className="pk-page">
       <PageHero eyebrow="Unternehmen" title={IDEE.title} subtitle={IDEE.subtitle} />
@@ -26,5 +27,15 @@ export function IdeaPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function IdeaPage() {
+  return (
+    <ImagePage page="company-idea">
+      <IdeaPageHtml />
+    </ImagePage>
   );
 }

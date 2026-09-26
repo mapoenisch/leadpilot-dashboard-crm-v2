@@ -14,6 +14,7 @@ import { TEAM, getOrganisationStructure, type OrganisationUnit } from '@/domain/
 import { DataState } from '@/components/ui/DataState';
 import { Chip, PageHero, Panel } from '@/components/pageKit';
 import { hatEngpass } from './HeadcountPage';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G55: Echte Teamstruktur-Seite statt WebP — genau eine h1,
 // Organigramm aus HEADCOUNT abgeleitet plus Engpässe als Liste.
@@ -48,7 +49,7 @@ function Einheit({ einheit, icon: Icon }: { einheit: OrganisationUnit; icon: Luc
   );
 }
 
-export function TeamStructurePage() {
+function TeamStructurePageHtml() {
   const struktur = getOrganisationStructure();
   const einheiten = [struktur.root, ...struktur.units, struktur.total];
   return (
@@ -116,5 +117,15 @@ export function TeamStructurePage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function TeamStructurePage() {
+  return (
+    <ImagePage page="organisation-team">
+      <TeamStructurePageHtml />
+    </ImagePage>
   );
 }

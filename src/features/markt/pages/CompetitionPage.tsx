@@ -1,6 +1,7 @@
 import { WETTBEWERB, CHART_WETTBEWERB } from '@/domain/marktData';
 import { DataState } from '@/components/ui/DataState';
 import { ChartFigure, Chip, ColumnChart, KitTable, PageHero, Panel } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte Wettbewerbsseite statt WebP — genau eine h1,
 // Anbietervergleich als semantische Tabelle, Marktanteile mit Summary.
@@ -9,7 +10,7 @@ function formatAnteil(value: number): string {
   return `${value.toLocaleString('de-DE')} %`;
 }
 
-export function CompetitionPage() {
+function CompetitionPageHtml() {
   const eigene = WETTBEWERB.rows.findIndex((row) => row[0] === 'LeadPilot');
   const rows = WETTBEWERB.rows.map((row, index) => ({
     anbieter: row[0] ?? '',
@@ -74,5 +75,15 @@ export function CompetitionPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function CompetitionPage() {
+  return (
+    <ImagePage page="market-competition">
+      <CompetitionPageHtml />
+    </ImagePage>
   );
 }

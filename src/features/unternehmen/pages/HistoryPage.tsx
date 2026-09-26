@@ -2,13 +2,14 @@ import { BarChart3, Database, Handshake, Rocket, Trophy, type LucideIcon } from 
 import { HISTORIE } from '@/domain/unternehmenData';
 import { DataState } from '@/components/ui/DataState';
 import { Chip, PageHero, Panel } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G54: Echte Historien-Seite statt WebP — genau eine h1,
 // Meilensteine als zeitlich geordnete Abschnitte.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (06-gruendung-entwicklung).
 const ICONS: LucideIcon[] = [Rocket, Handshake, Database, BarChart3, Trophy];
 
-export function HistoryPage() {
+function HistoryPageHtml() {
   return (
     <div className="pk-page">
       <PageHero
@@ -36,5 +37,15 @@ export function HistoryPage() {
         </ol>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function HistoryPage() {
+  return (
+    <ImagePage page="company-history">
+      <HistoryPageHtml />
+    </ImagePage>
   );
 }

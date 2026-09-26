@@ -2,13 +2,14 @@ import { BarChart3, GraduationCap, Settings, Users, type LucideIcon } from 'luci
 import { BSC } from '@/domain/strategieData';
 import { DataState } from '@/components/ui/DataState';
 import { PageHero } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G52: Echte Balanced-Scorecard-Seite statt WebP — genau eine h1,
 // vier Perspektiven mit Kennzahlen als Liste.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (05-balanced-scorecard).
 const ICONS: LucideIcon[] = [BarChart3, Users, Settings, GraduationCap];
 
-export function BalancedScorecardPage() {
+function BalancedScorecardPageHtml() {
   return (
     <div className="pk-page">
       <PageHero
@@ -43,5 +44,15 @@ export function BalancedScorecardPage() {
         </section>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function BalancedScorecardPage() {
+  return (
+    <ImagePage page="strategy-bsc">
+      <BalancedScorecardPageHtml />
+    </ImagePage>
   );
 }

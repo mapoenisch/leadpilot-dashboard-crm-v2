@@ -10,13 +10,14 @@ import {
 import { ROADMAP } from '@/domain/produktData';
 import { DataState } from '@/components/ui/DataState';
 import { Chip, PageHero } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G54: Echte Roadmap-Seite statt WebP — genau eine h1,
 // Releases als Abschnitte mit Quartal, Status und Beschreibung.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (10-releases-roadmap).
 const ICONS: LucideIcon[] = [FileText, Brain, Link2, BarChart3, FlaskConical, Share2];
 
-export function RoadmapPage() {
+function RoadmapPageHtml() {
   const released = ROADMAP.releases.filter((release) => release.status === 'Released').length;
   return (
     <div className="pk-page">
@@ -60,5 +61,15 @@ export function RoadmapPage() {
         </ol>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function RoadmapPage() {
+  return (
+    <ImagePage page="product-roadmap">
+      <RoadmapPageHtml />
+    </ImagePage>
   );
 }

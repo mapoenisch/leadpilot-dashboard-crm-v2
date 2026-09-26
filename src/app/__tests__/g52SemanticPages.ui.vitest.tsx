@@ -11,7 +11,9 @@ import { BalancedScorecardPage } from '@/features/strategie/pages/BalancedScorec
 import { GrowthDriversPage } from '@/features/strategie/pages/GrowthDriversPage';
 
 // 067I / G52: jsdom-Spiegel der E2E-Route-Tests (läuft ohne Credentials) —
-// kein Ganzseiten-WebP, genau eine h1, auswählbarer Text, semantische Struktur.
+// genau eine h1, Text und semantische Struktur.
+// Auftrag 069 / G67: Regel „kein Ganzseiten-WebP“ zurückgenommen — die Seite zeigt
+// wieder das Original-WebP aus v2.2.0, die Semantik liegt in der Textschicht.
 const pages: Array<[string, () => JSX.Element, string]> = [
   ['GuV', PnLPage, '307.600'],
   ['Bilanz', BalanceSheetPage, '479.000'],
@@ -26,14 +28,14 @@ const pages: Array<[string, () => JSX.Element, string]> = [
 
 describe('G52 semantische Seiten (jsdom-Spiegel)', () => {
   for (const [name, Page, probe] of pages) {
-    it(`${name}: kein WebP, genau eine h1, Text und Struktur`, () => {
+    it(`${name}: Textschicht mit genau einer h1, Text und Struktur`, () => {
       // Das Layout stellt <main> (vgl. E2E-Scope auf Hauptinhalt).
       const { container } = render(
         <main>
           <Page />
         </main>,
       );
-      expect(container.querySelectorAll('img[src$=".webp"]')).toHaveLength(0);
+      expect(container.querySelector('[data-testid="image-page-text"] h1')).not.toBeNull();
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
       const main = container.querySelector('main');
       expect(main).not.toBeNull();

@@ -1615,6 +1615,18 @@ Line, Confidence Band, Distribution Chart, Funnel Chart, Health Indicator, Risk
 Indicator, Bottleneck Card, Scenario Card, Scenario Comparison, Simulation Status,
 Simulation Progress, Goal Status, Event Timeline.
 
+- **Revision 26.09.2026 (Entscheid Marc Poenisch, Auftrag 069 / G67):** Für die 32 statischen
+  Inhaltsseiten gilt wieder die Darstellung als Original-WebP aus v2.2.0
+  (`public/assets/auftrag-037d`–`037g`, bitgenau unverändert). Zurückgenommen sind damit die
+  G52–G55-Regeln „kein Ganzseiten-WebP“ und „Inhalt als sichtbarer, auswählbarer Text“ sowie das
+  G66-Design-Gate gegen einen HTML-Nachbau. Maßstab ist das Aussehen von v2.2.0 (Bild-zu-Bild-Gate),
+  nicht die Struktur. Erhalten bleiben genau eine `h1`, Chart-Zusammenfassungen und Inhalte aus
+  `src/domain/*` — als optisch verborgene Textschicht unter dem Bild. Unter 600 px zeigt die Seite
+  zwei überlappende Ausschnitte derselben Datei. Der Schalter `PAGE_PRESENTATION`
+  (`src/config/pagePresentation.ts`) stellt mit `'html'` das Aussehen von v2.3.1 wieder her; Tag
+  `v2.3.1` bleibt unverändert. Interaktive Seiten und die Datenbasis-Seite (G47) sind nicht betroffen.
+  Die früheren Festlegungen bleiben als Historie in `docs/BUILD_LOG.md` stehen.
+
 ## B19. Verbindliche technische Kernarchitektur — Kurzliste
 
 - Ebene A = historisch / read-only; Ebene B = Simulation
@@ -2041,6 +2053,7 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 | 2026-09-25 | Revision zu B17 (Nachtrag zu G49/G63): Viewer strikt lesend bei Simulationsläufen; `persist_completed_run` nur für Admin/Manager ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)). |
 | 2026-09-25 | G65 (067S): Upgrade von v2.2.0 abgesichert (`20260100000000_v2_2_upgrade_prep.sql`), Neuaufbau und Upgrade auf identisches Schema gebracht (`20261003_tenant_schema_convergence.sql`: kein stiller Demo-Default mehr auf `organization_id`, Ergänzung zu B17), Lizenz `All Rights Reserved`, Runbook und getesteter Rollback (Frontend zurück, Schema bleibt). |
 | 2026-09-25 | **Release `v2.3.0`** von Marc Pönisch freigegeben (Masterauftrag 067, Gates G44–G65; Release Notes `docs/releases/V2.3.0.md`). |
+| 2026-09-26 | Revision zu B18 (Auftrag 069 / G67): 32 statische Inhaltsseiten wieder als Original-WebP aus v2.2.0 mit unsichtbarer Textschicht; Regeln „kein Ganzseiten-WebP“ (G52–G55) und G66-Design-Gate zurückgenommen; Rückweg zu v2.3.1 per Schalter `PAGE_PRESENTATION` und unverändertem Tag ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md)). |
 
 ## D5. MASTERSTATUS
 

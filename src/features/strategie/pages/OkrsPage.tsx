@@ -2,6 +2,7 @@ import { Target } from 'lucide-react';
 import { OKR, CHART_OKR } from '@/domain/strategieData';
 import { DataState } from '@/components/ui/DataState';
 import { ChartFigure, ColumnChart, PageHero, Panel, ToneList } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G52: Echte OKR-Seite statt WebP — genau eine h1, Objectives mit
 // Key Results als Listen, Basis/Ziel-Vergleich mit Summary.
@@ -10,7 +11,7 @@ function formatOkrWert(value: number): string {
   return value.toLocaleString('de-DE');
 }
 
-export function OkrsPage() {
+function OkrsPageHtml() {
   const basis = CHART_OKR.datasets[0];
   const ziel = CHART_OKR.datasets[1];
   const wert = (reihe: number, index: number): string =>
@@ -62,5 +63,15 @@ export function OkrsPage() {
         ))}
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function OkrsPage() {
+  return (
+    <ImagePage page="strategy-okrs">
+      <OkrsPageHtml />
+    </ImagePage>
   );
 }

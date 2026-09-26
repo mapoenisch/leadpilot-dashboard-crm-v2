@@ -1,11 +1,12 @@
 import { TOP10 } from '@/domain/kundenData';
 import { DataState } from '@/components/ui/DataState';
 import { Chip, KitTable, PageHero, Panel } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte Top-Kunden-Seite statt WebP — genau eine h1,
 // Referenzkunden als semantische Tabelle, voll auswählbarer Text.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (07-top-10-kunden).
-export function TopCustomersPage() {
+function TopCustomersPageHtml() {
   const rows = TOP10.rows.map((row) => ({
     kunde: <strong>{row[0] ?? ''}</strong>,
     branche: row[1] ?? '',
@@ -42,5 +43,15 @@ export function TopCustomersPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function TopCustomersPage() {
+  return (
+    <ImagePage page="customers-top10">
+      <TopCustomersPageHtml />
+    </ImagePage>
   );
 }

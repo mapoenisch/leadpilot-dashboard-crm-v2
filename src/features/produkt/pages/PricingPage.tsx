@@ -2,11 +2,12 @@ import { Crown } from 'lucide-react';
 import { PRICING } from '@/domain/produktData';
 import { DataState } from '@/components/ui/DataState';
 import { Chip, Grid, PageHero, ToneList } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G54: Echte Preisseite statt WebP — genau eine h1,
 // Tarife als Abschnitte mit Merkmalslisten, Preise aus Domäne.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (08-preismodell).
-export function PricingPage() {
+function PricingPageHtml() {
   return (
     <div className="pk-page">
       <PageHero
@@ -51,5 +52,15 @@ export function PricingPage() {
         </Grid>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function PricingPage() {
+  return (
+    <ImagePage page="product-pricing">
+      <PricingPageHtml />
+    </ImagePage>
   );
 }

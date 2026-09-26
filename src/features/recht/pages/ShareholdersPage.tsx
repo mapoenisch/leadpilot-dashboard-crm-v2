@@ -1,6 +1,7 @@
 import { GESELLSCHAFTER } from '@/domain/rechtData';
 import { DataState } from '@/components/ui/DataState';
 import { Chip, KitTable, Meter, PageHero, Panel } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G52: Echte Gesellschafter-Seite statt WebP — genau eine h1,
 // Gesellschafterliste als semantische Tabelle mit Summenzeile.
@@ -8,7 +9,7 @@ import { Chip, KitTable, Meter, PageHero, Panel } from '@/components/pageKit';
 const prozent = (text: string | undefined): number =>
   Number((text ?? '0').replace('%', '').replace(',', '.').trim()) || 0;
 
-export function ShareholdersPage() {
+function ShareholdersPageHtml() {
   const rows = GESELLSCHAFTER.rows.map((row) => ({
     name: row[0] ?? '',
     anteil: row[1] ?? '',
@@ -48,5 +49,15 @@ export function ShareholdersPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function ShareholdersPage() {
+  return (
+    <ImagePage page="legal-shareholders">
+      <ShareholdersPageHtml />
+    </ImagePage>
   );
 }
