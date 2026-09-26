@@ -7,6 +7,7 @@ import { Badge } from '../ui/Badge';
 import { X } from 'lucide-react';
 import { routeForViewId, routeForPathname } from '@/app/routes';
 import { useOrganization } from '@/auth/organizationContext';
+import { version as appVersion } from '../../../package.json';
 
 export interface SidebarProps {
   isMobile?: boolean;
@@ -245,7 +246,7 @@ export function Sidebar({
 
       <div className="border-0 border-t border-solid border-border-soft px-[var(--space-4)] py-[var(--space-3)] text-[11px] text-[var(--color-text-muted)]">
         <div>LeadPilot GmbH © 2026</div>
-        <div className="text-primary">Simulation Engine v1.3.0</div>
+        <div className="text-primary">LeadPilot v{appVersion}</div>
       </div>
     </>
   );
