@@ -54,7 +54,7 @@ export function ImagePage({ page, children }: ImagePageProps) {
         className="image-page__img"
         loading="eager"
       />
-      <div className="sr-only" data-testid="image-page-text" ref={layerRef}>
+      <div className="sr-only image-page__text" data-testid="image-page-text" ref={layerRef}>
         {children}
       </div>
     </div>

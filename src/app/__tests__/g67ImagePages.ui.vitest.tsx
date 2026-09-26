@@ -171,6 +171,15 @@ describe('G67 Bildseiten wie v2.2.0', () => {
     });
   }
 
+  // PR #37 (CI a11y): In der Textschicht darf nichts scrollen, sonst verlangt
+  // axe Tastaturzugang (scrollable-region-focusable) für unsichtbare Bereiche.
+  it('Textschicht ohne scrollbare Bereiche', () => {
+    const css = fs.readFileSync(path.join(root, 'src/styles/global.css'), 'utf8');
+    expect(css).toMatch(/\.image-page \.image-page__text \* \{\s*overflow: visible;/);
+    render(<PnLPage />);
+    expect(screen.getByTestId('image-page-text').classList.contains('image-page__text')).toBe(true);
+  });
+
   it('Handy: Hinweis nur im Hochformat unter 600 px, Zoom nicht gesperrt', () => {
     const css = fs.readFileSync(path.join(root, 'src/styles/global.css'), 'utf8');
     const block = css.slice(css.indexOf('.image-page {'), css.indexOf('/* Auftrag 038'));

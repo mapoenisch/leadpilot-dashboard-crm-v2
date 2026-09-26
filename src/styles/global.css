@@ -1218,6 +1218,14 @@ input[type="number"].no-spinner {
   display: none;
 }
 
+/* PR #37: In der unsichtbaren Textschicht scrollt nichts. Sonst meldet axe jeden
+   scrollbaren Bereich ohne Tastaturzugang (scrollable-region-focusable), die
+   Elemente dort sind aber bewusst nicht per Tab erreichbar. Zwei Klassen
+   schlagen einzelne Klassenregeln wie .pk-table-wrap { overflow-x: auto }. */
+.image-page .image-page__text * {
+  overflow: visible;
+}
+
 @media (max-width: 599px) and (orientation: portrait) {
   .image-page__hint {
     display: flex;
