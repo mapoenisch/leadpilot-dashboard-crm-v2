@@ -13468,3 +13468,22 @@ Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
 - **Aufgeräumt:** Hilfsbranches `visual-baselines/v2.3.1`, `-r2`, `-r3` gelöscht.
 - **Bekannte Abweichung im getaggten Stand:** `docs/releases/V2.3.1.md` im Tag nennt noch den Prüfstatus; maßgeblich ist die Fassung auf `main`. Der Tag wird nicht verschoben.
 - **Nächster Auftrag:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.
+
+---
+
+## [2026-09-26] Sidebar-Footer: echte App-Version statt „Simulation Engine v1.3.0“ (Builder: Claude Code)
+
+**Ziel & Kontext:** Der Sidebar-Footer zeigte fest verdrahtet „Simulation Engine v1.3.0“. Diese Nummer existiert sonst nirgends im Code (keine Engine-Versionskonstante) und passt nicht zum Release-Stand `v2.3.1`. Auf Marcs Wunsch zeigt der Footer jetzt die App-Version aus `package.json`, damit die Anzeige nicht mehr veraltet.
+
+**Geänderte Dateien:**
+- `src/components/layout/Sidebar.tsx`: `import { version as appVersion } from '../../../package.json'`, Footer-Text `LeadPilot v{appVersion}`. Vite bündelt nur das Feld `version` (im Build geprüft: keine Abhängigkeitslisten im Bundle).
+- `src/components/layout/__tests__/Sidebar.branch.ui.vitest.tsx`, `Sidebar.branch2.ui.vitest.tsx`: Erwartung auf `LeadPilot v${appVersion}` umgestellt.
+- `scripts/captureSidebarFooterScreenshots.mjs`, `docs/screenshots/sidebar-footer-version/README.md`: Screenshot-Harness und Ergebnis-Matrix.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npx vitest run src/components/layout` 45/45 grün; `npm run verify` alle Integrity-Suiten grün; `npm run build` erfolgreich.
+
+**Screenshot-Matrix (Nacharbeit nach Codex-Review P1 in PR #36):** `docs/screenshots/sidebar-footer-version/README.md`. Harness `scripts/captureSidebarFooterScreenshots.mjs` (abgeleitet von 068, nur Sidebar mit Footer, Drawer unter 1024 px geöffnet), Lauf mit `SUPABASE_MOCK=1`. Vorher `be1284a` gegen Nachher: 3 von 3 Paaren mit unterschiedlichem SHA-256 (1440/768/375), 0 px horizontaler Überlauf vorher und nachher, Sichtprüfung: Footer „LeadPilot v2.3.1“ einzeilig, Rest der Sidebar unverändert. Login und Inhaltsseiten sind durch den Footer-Text nicht betroffen und nicht Teil des Laufs. Playwright-Visual-Baselines: Ergebnis des `e2e`-Jobs im CI-Lauf des PRs maßgeblich; bei Überschreitung von `maxDiffPixelRatio 0.001` Regenerierung über `update-visual-baselines.yml`.
+
+**Ergebnis & Freigabestatus:** Builder-Stand fertig, Codex-Prüfung ausstehend.

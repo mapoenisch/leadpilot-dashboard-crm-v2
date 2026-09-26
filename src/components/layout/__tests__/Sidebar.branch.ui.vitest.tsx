@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../Sidebar';
+import { version as appVersion } from '../../../../package.json';
 
 function renderDesktop(path = '/dashboard') {
   return render(
@@ -94,7 +95,7 @@ describe('Sidebar (branch)', () => {
     const { unmount } = renderDesktop();
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByText('LeadPilot GmbH © 2026')).toBeInTheDocument();
-    expect(screen.getByText('Simulation Engine v1.3.0')).toBeInTheDocument();
+    expect(screen.getByText(`LeadPilot v${appVersion}`)).toBeInTheDocument();
     unmount();
     render(
       <MemoryRouter initialEntries={['/dashboard']}>
