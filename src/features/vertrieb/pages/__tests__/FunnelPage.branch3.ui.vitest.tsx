@@ -66,7 +66,10 @@ describe('FunnelPage (branch3)', () => {
   it('fehlende Header nutzen Spalten-Fallbacks', () => {
     FUNNEL.headers.splice(0, FUNNEL.headers.length);
     const { container } = render(<FunnelPage />);
-    const ths = Array.from(container.querySelectorAll('th')).map((t) => t.textContent);
+    // Nur die sichtbare Trichtertabelle (das Diagramm trägt eine eigene sr-only-Tabelle).
+    const ths = Array.from(container.querySelectorAll('.pk-table-wrap th')).map(
+      (t) => t.textContent,
+    );
     expect(ths).toEqual(['Stufe', 'Q1', 'Q2', 'Q3', 'Q4', 'FY', 'Schnitt', 'Conversion']);
   });
 });

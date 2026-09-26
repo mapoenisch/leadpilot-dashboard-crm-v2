@@ -13376,3 +13376,31 @@ Gate-Freigabe; G66 wartet auf Marcs Entscheidung zu den Blockern und danach auf 
   wegen des Sidebar-Logos, GuV und Marktlage zusätzlich auf 768/375). Die übrigen 6 Linux-Bilder sind
   unverändert (Sidebar bei 768/375 als geschlossener Drawer). Die Commit-Nachricht von `8a97f43` nennt versehentlich 10. Sichtprüfung: echtes Logo, neues Seitendesign,
   Dashboard-Inhalt unverändert. Die `*-darwin.png` (nur für lokale macOS-Läufe) sind nicht neu erzeugt.
+
+### Nachtrag PR #34 — Codex-Review (6 × P2), Stand 26.09.2026
+
+CI auf `23d4141` war 7/7 grün. Der automatische Codex-Review meldete sechs P2-Befunde; alle umgesetzt:
+
+1. **Harness vergleicht Vorher/Nachher-Hashes:** Der Nachher-Lauf lädt `before/manifest.json` und endet mit
+   Exit 1 bei einem identischen SHA-256-Paar (oder fehlendem Vorher-Manifest).
+2. **Mobiler Sidebar-Drawer:** Das Harness öffnet unter 1024 px den Drawer (`#mobile-menu-trigger`) und nimmt
+   `/sidebar` je Breite auf.
+3. **Login-Überlauf** wird gemessen statt fest auf 0 gesetzt.
+4. **Überlappende Achsenbeschriftungen:** Säulendiagramme versetzen bei ≥ 5 Kategorien jede zweite
+   Beschriftung, sobald das Diagramm selbst schmaler als 720 px ist (≥ 7 Kategorien: 1000 px);
+   Container-Query statt Bildschirmbreite. Betrifft u. a. die GuV auf Desktop.
+5. **Diagrammdaten für Screenreader:** Säulen- und Liniendiagramme geben alle Werte zusätzlich als
+   unsichtbare Tabelle aus (`sr-only`-Container). Neuer G66-Test: OKR liefert alle 8 × Basis/Ziel.
+6. **Doppelte Wortmarke:** Sidebar und Login zeigen das Logo größer (36 bzw. 48 px) und daneben nur
+   „Enterprise“ statt „LeadPilot Enterprise“.
+
+Nebenbefund beim Umbau: Eine `pk-table` mit `sr-only` erzeugte auf 375 px Überlauf (Tabellen ignorieren
+`width: 1px`); behoben durch den umschließenden `sr-only`-Container. Das Harness hat es erkannt.
+
+**Verifikation:** tsc, Lint, Format grün; Vitest 274 Dateien / 1541 Tests; `verify` 001–025; Build;
+`test:v23:findings` 20/20; Quality-Budget Inline-Styles `src/` = 0; size-limit 175,38 kB; Axe (32 Seiten +
+Login, 1440/375 px) 0 critical/serious; Design-Gate 102 Paare, 0 identisch, Überlauf vorher 2 / nachher 0,
+Harness-Exit 0. Schutzbereichs-Diff gegen `e63eec5` leer.
+
+**Visuelle Baselines:** Befunde 4 und 6 ändern die Desktop-Sidebar und die GuV-Diagramme. Neue Baselines
+über Branch `visual-baselines/v2.3.1-r2`; die Korrekturen gehen erst zusammen mit den Bildern in den PR.

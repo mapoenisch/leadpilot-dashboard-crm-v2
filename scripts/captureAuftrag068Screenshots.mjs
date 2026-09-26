@@ -139,6 +139,15 @@ async function mockSupabase(context) {
   });
 }
 
+/** Überlauf im Dokument und im scrollenden Hauptbereich (#main-content). */
+const measureOverflow = (page) =>
+  page.evaluate(() => {
+    const doc = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+    const main = document.getElementById('main-content');
+    const inner = main ? main.scrollWidth - main.clientWidth : 0;
+    return Math.max(doc, inner);
+  });
+
 const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const slug = (route) => route.replace(/^\//, '').replace(/\//g, '_') || 'root';
 
@@ -159,24 +168,41 @@ async function main() {
     await page.waitForLoadState('networkidle');
     const loginFile = path.join(OUT_DIR, `login_${vp.key}.png`);
     await page.screenshot({ path: loginFile, fullPage: true });
-    manifest.push({ route: '/login', viewport: vp.key, sha256: sha256(loginFile), overflowPx: 0 });
+    const loginOverflow = await measureOverflow(page);
+    manifest.push({
+      route: '/login',
+      viewport: vp.key,
+      sha256: sha256(loginFile),
+      overflowPx: loginOverflow,
+    });
 
     await page.getByLabel(/E-Mail/i).fill(EMAIL);
     await page.getByLabel(/Passwort/i).fill(PASSWORD);
     await page.getByRole('button', { name: /Anmelden/i }).click();
     await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
 
+    // Sidebar mit Logo: unter 1024 px ist sie ein Drawer und wird dafür geöffnet.
+    await page.getByRole('heading', { level: 1 }).first().waitFor({ timeout: 20_000 });
+    const trigger = page.locator('#mobile-menu-trigger');
+    if (await trigger.isVisible()) {
+      await trigger.click();
+      await page.locator('#mobile-sidebar-drawer img[alt="LeadPilot Logo"]').waitFor();
+    }
+    await page.waitForTimeout(400);
+    const sidebarFile = path.join(OUT_DIR, `sidebar_${vp.key}.png`);
+    await page.screenshot({ path: sidebarFile });
+    manifest.push({
+      route: '/sidebar',
+      viewport: vp.key,
+      sha256: sha256(sidebarFile),
+      overflowPx: await measureOverflow(page),
+    });
+
     for (const route of only) {
       await page.goto(`${BASE_URL}${route}`);
       await page.getByRole('heading', { level: 1 }).first().waitFor({ timeout: 20_000 });
       await page.waitForTimeout(400);
-      // Überlauf im Dokument und im scrollenden Hauptbereich (#main-content).
-      const overflowPx = await page.evaluate(() => {
-        const doc = document.documentElement.scrollWidth - document.documentElement.clientWidth;
-        const main = document.getElementById('main-content');
-        const inner = main ? main.scrollWidth - main.clientWidth : 0;
-        return Math.max(doc, inner);
-      });
+      const overflowPx = await measureOverflow(page);
       const file = path.join(OUT_DIR, `${slug(route)}_${vp.key}.png`);
       await page.screenshot({ path: file, fullPage: true });
       manifest.push({ route, viewport: vp.key, sha256: sha256(file), overflowPx });
@@ -188,7 +214,24 @@ async function main() {
   fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), JSON.stringify(manifest, null, 2));
   const overflow = manifest.filter((entry) => entry.overflowPx > 0);
   console.log(`\n${manifest.length} Screenshots, ${overflow.length} mit horizontalem Überlauf.`);
-  process.exit(overflow.length === 0 ? 0 : 1);
+  // Nachher-Lauf: jedes Paar muss sich vom Vorher-Lauf unterscheiden (SHA-256).
+  let unchanged = [];
+  const beforeFile = path.join(ROOT, 'docs/screenshots/auftrag-068/before/manifest.json');
+  if (LABEL !== 'before') {
+    if (!fs.existsSync(beforeFile)) {
+      console.error('Vorher-Manifest fehlt: zuerst mit Label "before" gegen v2.3.0 laufen lassen.');
+      process.exit(1);
+    }
+    const before = new Map(
+      JSON.parse(fs.readFileSync(beforeFile, 'utf8')).map((e) => [`${e.route}|${e.viewport}`, e]),
+    );
+    unchanged = manifest.filter(
+      (entry) => before.get(`${entry.route}|${entry.viewport}`)?.sha256 === entry.sha256,
+    );
+    for (const entry of unchanged) console.error(`unverändert: ${entry.route} @${entry.viewport}`);
+    console.log(`${unchanged.length} Paare mit identischem SHA-256 gegenüber "before".`);
+  }
+  process.exit(overflow.length === 0 && unchanged.length === 0 ? 0 : 1);
 }
 
 main().catch((error) => {

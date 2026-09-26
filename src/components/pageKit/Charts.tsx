@@ -88,6 +88,49 @@ export function Meter({
   );
 }
 
+/**
+ * Vollständige Werte eines Diagramms für Screenreader (G66): Die Grafik selbst
+ * ist aria-hidden, die Zusammenfassung nennt nur Eckpunkte.
+ */
+function ChartDataTable({
+  labels,
+  series,
+  format,
+}: {
+  labels: string[];
+  series: Array<{ name: string; values: number[] }>;
+  format: (value: number) => string;
+}) {
+  return (
+    // Tabellen ignorieren width: 1px; der sr-only-Container hält sie aus dem Layout.
+    <div className="sr-only">
+      <table>
+        <caption>Datenwerte des Diagramms</caption>
+        <thead>
+          <tr>
+            <th scope="col">Kategorie</th>
+            {series.map((s) => (
+              <th scope="col" key={s.name}>
+                {s.name}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {labels.map((label, li) => (
+            <tr key={label}>
+              <th scope="row">{label}</th>
+              {series.map((s) => (
+                <td key={s.name}>{format(s.values[li] ?? 0)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export interface ColumnSeries {
   name: string;
   values: number[];
@@ -138,9 +181,12 @@ export function ColumnChart({
   const group = 100 / Math.max(labels.length, 1);
   const barW = Math.min((group * 0.7) / Math.max(series.length, 1), 7);
   const pct = (value: number) => `${value.toFixed(3)}%`;
+  // Dichte steuert, ab welcher Diagrammbreite (Container-Query) jede zweite
+  // Achsenbeschriftung eine Zeile tiefer rückt, damit nichts überlappt.
+  const dense = labels.length >= 7 ? 'high' : labels.length >= 5 ? 'true' : undefined;
   return (
-    <>
-      <div className="pk-colchart" data-dense={labels.length >= 5 ? 'true' : undefined}>
+    <div className="pk-chartbox">
+      <div className="pk-colchart" data-dense={dense}>
         <svg className="pk-colchart__axis" width="44" height={height} aria-hidden="true">
           {Array.from({ length: tickCount + 1 }, (_, i) => {
             const v = minV + step * i;
@@ -214,7 +260,8 @@ export function ColumnChart({
           ))}
         </ul>
       ) : null}
-    </>
+      <ChartDataTable labels={labels} series={series} format={(v) => `${fmt(v)}${valueSuffix}`} />
+    </div>
   );
 }
 
@@ -251,7 +298,7 @@ export function LineChart({ labels, series }: { labels: string[]; series: LineSe
     values.map((v, i) => `${x(i).toFixed(3)},${y(v).toFixed(2)}`).join(' ');
   const axisWidth = maxV >= 10000 ? 64 : 36;
   return (
-    <>
+    <div className="pk-chartbox">
       <div className="pk-colchart">
         <svg className="pk-colchart__axis" width={axisWidth} height={height} aria-hidden="true">
           {Array.from({ length: tickCount + 1 }, (_, i) => {
@@ -325,7 +372,8 @@ export function LineChart({ labels, series }: { labels: string[]; series: LineSe
           ))}
         </ul>
       ) : null}
-    </>
+      <ChartDataTable labels={labels} series={series} format={fmt} />
+    </div>
   );
 }
 

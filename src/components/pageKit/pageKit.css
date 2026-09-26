@@ -749,11 +749,29 @@ ul.pk-grid {
   .pk-colchart__value {
     font-size: 8px;
   }
-  /* Viele Kategorien: jede zweite Beschriftung eine Zeile tiefer. */
-  .pk-colchart[data-dense='true'] {
+}
+/* Viele Kategorien auf schmalem Diagramm: jede zweite Beschriftung eine Zeile
+   tiefer. Gemessen an der Diagrammbreite (Container), nicht am Bildschirm. */
+.pk-chartbox {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+@container (max-width: 720px) {
+  .pk-colchart[data-dense] {
     padding-bottom: 12px;
   }
-  .pk-colchart[data-dense='true'] .pk-colchart__label[data-odd='true'] {
+  .pk-colchart[data-dense] .pk-colchart__label[data-odd='true'] {
+    transform: translateY(12px);
+  }
+}
+@container (max-width: 1000px) {
+  .pk-colchart[data-dense='high'] {
+    padding-bottom: 12px;
+  }
+  .pk-colchart[data-dense='high'] .pk-colchart__label[data-odd='true'] {
     transform: translateY(12px);
   }
 }

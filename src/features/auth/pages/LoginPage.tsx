@@ -45,19 +45,17 @@ export function LoginPage() {
             <img
               src="/assets/logo/leadpilot-logo.png"
               alt="LeadPilot Logo"
-              width={71}
-              height={32}
-              className="h-8 w-[71px] object-contain"
+              width={107}
+              height={48}
+              className="h-12 w-[107px] object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
             />
-            <div className="font-display font-bold text-2xl tracking-tight text-white">
-              LeadPilot{' '}
-              <span className="text-xs text-primary uppercase tracking-wider font-semibold">
-                Enterprise
-              </span>
-            </div>
+            {/* G66: Das Logo ist die Wortmarke; daneben nur noch der Produktzusatz. */}
+            <span className="text-xs text-primary uppercase tracking-wider font-semibold">
+              Enterprise
+            </span>
           </div>
           <h1 className="text-lg font-semibold text-text m-0">Anmeldung zur Plattform</h1>
           <p className="text-xs text-[var(--color-text-muted,#94a3b8)] mt-1 mb-0">

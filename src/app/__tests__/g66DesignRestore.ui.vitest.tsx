@@ -3,6 +3,7 @@ import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { CHART_OKR } from '@/domain/strategieData';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { PnLPage } from '@/features/finanzen/pages/PnLPage';
 import { BalanceSheetPage } from '@/features/finanzen/pages/BalanceSheetPage';
@@ -93,12 +94,25 @@ describe('G66 Design-Wiederherstellung', () => {
       expect(kopf?.querySelector('.pk-eyebrow')?.textContent?.trim()).toBeTruthy();
       expect(kopf?.querySelector('h1.pk-title')).not.toBeNull();
       expect(container.querySelectorAll(GESTALTET).length).toBeGreaterThan(0);
-      // Keine ungestaltete Tabelle mehr (v2.3.0-Rückschritt).
-      for (const tabelle of Array.from(container.querySelectorAll('table'))) {
+      // Keine ungestaltete Tabelle mehr (v2.3.0-Rückschritt); ausgenommen sind die
+      // unsichtbaren Datentabellen der Diagramme für Screenreader.
+      const sichtbar = Array.from(container.querySelectorAll('table')).filter(
+        (tabelle) => !tabelle.closest('.sr-only'),
+      );
+      for (const tabelle of sichtbar) {
         expect(tabelle.classList.contains('pk-table')).toBe(true);
       }
     });
   }
+
+  it('Diagramme geben alle Werte für Screenreader aus (OKR: 8 × Basis/Ziel)', () => {
+    const { container } = render(<OkrsPage />);
+    const tabelle = container.querySelector('.sr-only table');
+    expect(tabelle).not.toBeNull();
+    const zeilen = Array.from(tabelle?.querySelectorAll('tbody tr') ?? []);
+    expect(zeilen.map((z) => z.querySelector('th')?.textContent)).toEqual(CHART_OKR.labels);
+    for (const zeile of zeilen) expect(zeile.querySelectorAll('td')).toHaveLength(2);
+  });
 
   it('Sidebar zeigt das echte LeadPilot-Logo', () => {
     const { container } = render(

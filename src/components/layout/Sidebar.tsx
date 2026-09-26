@@ -131,17 +131,17 @@ export function Sidebar({
           <img
             src="/assets/logo/leadpilot-logo.png"
             alt="LeadPilot Logo"
-            width={58}
-            height={26}
-            className="h-[26px] w-[58px] object-contain"
+            width={80}
+            height={36}
+            className="h-[36px] w-[80px] object-contain"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
           />
-          <div className="font-display font-bold text-[18px] text-text">
-            LeadPilot{' '}
-            <span className="text-[11px] text-primary uppercase tracking-[0.05em]">Enterprise</span>
-          </div>
+          {/* G66: Das Logo ist die Wortmarke; daneben nur noch der Produktzusatz. */}
+          <span className="text-[11px] font-bold text-primary uppercase tracking-[0.05em]">
+            Enterprise
+          </span>
         </div>
 
         {isMobile && onCloseMobileDrawer && (
