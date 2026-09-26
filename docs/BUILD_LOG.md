@@ -13370,3 +13370,9 @@ Gate-Freigabe; G66 wartet auf Marcs Entscheidung zu den Blockern und danach auf 
   (Neuerzeugung plus dreifache Verifikation). Das Artefakt `visual-baselines` lässt sich aus der
   Builder-Umgebung nicht laden (Netzwerk-Richtlinie sperrt den GitHub-Artefaktspeicher); Übernahme der
   Bilder offen. `5287710` ändert keine der fünf Referenzseiten optisch.
+- **Blocker 2 behoben:** Marc hat das Artefakt hochgeladen; SHA-256 der ZIP
+  `2151eaab…f275` = Digest des Artefakts `visual-baselines` (ID 10889544445) aus Lauf 36195970682.
+  Übernommen: die 10 geänderten `*-linux.png` in `e2e/visual.spec.ts-snapshots/` (alle Desktop-1440-Bilder
+  wegen des Sidebar-Logos, GuV und Marktlage zusätzlich auf 768/375). Die übrigen 5 Linux-Bilder sind
+  unverändert (Sidebar bei 768/375 als geschlossener Drawer). Sichtprüfung: echtes Logo, neues Seitendesign,
+  Dashboard-Inhalt unverändert. Die `*-darwin.png` (nur für lokale macOS-Läufe) sind nicht neu erzeugt.
