@@ -12,6 +12,7 @@ import {
   Panel,
   type Tone,
 } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte Funnel-Seite statt WebP — genau eine h1,
 // Trichterstufen als Tabelle, Quartalsreihen strukturiert, Hinweis aus Domäne.
@@ -20,7 +21,7 @@ const zahl = (text: string | undefined): number =>
   Number((text ?? '0').replace(/\./g, '').replace(',', '.'));
 const reihenTon: Tone[] = ['neutral', 'cyan', 'mint', 'orange'];
 
-export function FunnelPage() {
+function FunnelPageHtml() {
   const rows = FUNNEL.rows.map((row) => ({
     stufe: row[0] ?? '',
     q1: row[1] ?? '',
@@ -113,5 +114,15 @@ export function FunnelPage() {
         />
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function FunnelPage() {
+  return (
+    <ImagePage page="sales-funnel">
+      <FunnelPageHtml />
+    </ImagePage>
   );
 }

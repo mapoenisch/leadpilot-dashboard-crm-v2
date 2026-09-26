@@ -2,11 +2,12 @@ import { BarChart3, Target } from 'lucide-react';
 import { SLA } from '@/domain/vertriebData';
 import { DataState } from '@/components/ui/DataState';
 import { Grid, KitTable, PageHero, Panel, ToneList } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte SLA-Seite statt WebP — genau eine h1,
 // Übergabepunkt als Tabelle, Pflichten beider Seiten als Listen.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (02-sla-marketing-sales).
-export function SlaPage() {
+function SlaPageHtml() {
   const uebergabe = SLA.handoff.rows.map((row) => ({
     merkmal: row[0] ?? '',
     angabe: row[1] ?? '',
@@ -44,5 +45,15 @@ export function SlaPage() {
         </Grid>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function SlaPage() {
+  return (
+    <ImagePage page="sales-sla">
+      <SlaPageHtml />
+    </ImagePage>
   );
 }

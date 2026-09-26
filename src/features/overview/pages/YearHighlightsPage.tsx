@@ -13,6 +13,7 @@ import {
 import { HIGHLIGHTS_GOOD_ROWS, HIGHLIGHTS_BAD_ROWS, NOTE_HIGHLIGHTS } from '@/domain/execData';
 import { DataState } from '@/components/ui/DataState';
 import { Callout, FeatureList, Grid, PageHero, Panel } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G54: Echte Highlights-Seite statt WebP — genau eine h1,
 // Erfolge und Baustellen als Listen, Fazit aus Domäne.
@@ -20,7 +21,7 @@ import { Callout, FeatureList, Grid, PageHero, Panel } from '@/components/pageKi
 const ERFOLG_ICONS: LucideIcon[] = [BarChart3, Users, TrendingUp, ShieldCheck];
 const BAUSTELLE_ICONS: LucideIcon[] = [TrendingDown, User, Filter, Clock];
 
-export function YearHighlightsPage() {
+function YearHighlightsPageHtml() {
   const ready = HIGHLIGHTS_GOOD_ROWS.length > 0 || HIGHLIGHTS_BAD_ROWS.length > 0;
   const eintraege = (rows: string[][], icons: LucideIcon[]) =>
     rows.map((row, index) => ({
@@ -53,5 +54,15 @@ export function YearHighlightsPage() {
         />
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function YearHighlightsPage() {
+  return (
+    <ImagePage page="overview-highlights">
+      <YearHighlightsPageHtml />
+    </ImagePage>
   );
 }

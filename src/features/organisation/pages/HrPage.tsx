@@ -2,13 +2,14 @@ import { BarChart3, Coins, FileText, Home, User, Users, type LucideIcon } from '
 import { HR } from '@/domain/organisationData';
 import { DataState } from '@/components/ui/DataState';
 import { PageHero, StatTile, splitValueHint } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G55: Echte HR-Seite statt WebP — genau eine h1,
 // Personalkennzahlen als Liste, voll auswählbarer Text.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (02-hr-kennzahlen).
 const ICONS: LucideIcon[] = [Users, User, BarChart3, Coins, FileText, Home];
 
-export function HrPage() {
+function HrPageHtml() {
   return (
     <div className="pk-page">
       <PageHero
@@ -43,5 +44,15 @@ export function HrPage() {
         </section>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function HrPage() {
+  return (
+    <ImagePage page="organisation-hr">
+      <HrPageHtml />
+    </ImagePage>
   );
 }

@@ -23,6 +23,7 @@ import {
   splitValueHint,
   type Tone,
 } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G52: Echte Unit-Economics-Seite statt WebP — genau eine h1,
 // Kennzahlen als Liste, Kostenstruktur als Balken mit Summary.
@@ -46,7 +47,7 @@ function euroToNumber(text: string): number {
   return cleaned ? Number(cleaned) : 0;
 }
 
-export function UnitEconomicsPage() {
+function UnitEconomicsPageHtml() {
   const ready = UNIT.metrics.length > 0;
   const kosten = BUDGET.allocations.map((item, index) => ({
     label: item.area,
@@ -150,5 +151,15 @@ export function UnitEconomicsPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function UnitEconomicsPage() {
+  return (
+    <ImagePage page="finance-unit-economics">
+      <UnitEconomicsPageHtml />
+    </ImagePage>
   );
 }

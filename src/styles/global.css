@@ -1196,6 +1196,56 @@ input[type="number"].no-spinner {
   height: auto;
 }
 
+/* Auftrag 069 / G67: Original-WebPs aus v2.2.0 — Darstellung wie .auftrag-037x-webp-view.
+   Immer das ganze Bild. Handy im Hochformat: Hinweis „quer drehen oder zoomen“;
+   der Zwei-Finger-Zoom des Browsers bleibt erlaubt (Viewport ohne user-scalable=no). */
+.image-page {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.image-page__img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.image-page__hint {
+  display: none;
+}
+
+/* PR #37: In der unsichtbaren Textschicht scrollt nichts. Sonst meldet axe jeden
+   scrollbaren Bereich ohne Tastaturzugang (scrollable-region-focusable), die
+   Elemente dort sind aber bewusst nicht per Tab erreichbar. Zwei Klassen
+   schlagen einzelne Klassenregeln wie .pk-table-wrap { overflow-x: auto }. */
+.image-page .image-page__text * {
+  overflow: visible;
+}
+
+@media (max-width: 599px) and (orientation: portrait) {
+  .image-page__hint {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  .image-page__hint-icon {
+    flex: none;
+    color: var(--color-primary);
+  }
+}
+
 /* Auftrag 038: Live-KPI isolierte Zahlenübergänge & Barrierefreiheit */
 .live-kpi-animated-value {
   display: inline-block;

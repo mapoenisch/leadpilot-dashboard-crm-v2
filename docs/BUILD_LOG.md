@@ -13487,3 +13487,122 @@ Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
 **Screenshot-Matrix (Nacharbeit nach Codex-Review P1 in PR #36):** `docs/screenshots/sidebar-footer-version/README.md`. Harness `scripts/captureSidebarFooterScreenshots.mjs` (abgeleitet von 068, nur Sidebar mit Footer, Drawer unter 1024 px geöffnet), Lauf mit `SUPABASE_MOCK=1`. Vorher `be1284a` gegen Nachher: 3 von 3 Paaren mit unterschiedlichem SHA-256 (1440/768/375), 0 px horizontaler Überlauf vorher und nachher, Sichtprüfung: Footer „LeadPilot v2.3.1“ einzeilig, Rest der Sidebar unverändert. Login und Inhaltsseiten sind durch den Footer-Text nicht betroffen und nicht Teil des Laufs. Playwright-Visual-Baselines: Ergebnis des `e2e`-Jobs im CI-Lauf des PRs maßgeblich; bei Überschreitung von `maxDiffPixelRatio 0.001` Regenerierung über `update-visual-baselines.yml`.
 
 **Ergebnis & Freigabestatus:** Builder-Stand fertig, Codex-Prüfung ausstehend.
+
+---
+
+## [2026-09-26] Auftrag 069 / G67 — v2.3.2 echte Wiederherstellung der Bildseiten (Builder: Claude Code)
+
+**Ziel & Kontext:** v2.3.1 (Auftrag 068) hat das Ziel „Aussehen wie vor v2.3.0“ verfehlt: Der HTML-Nachbau wich bei Schriftgrößen, Kopfbereich, Diagrammen und Texten sichtbar ab, und G66 prüfte Struktur statt Aussehen. Marc hat am 26.09.2026 Option A entschieden: Die 32 statischen Inhaltsseiten zeigen wieder die Original-WebPs aus v2.2.0. Unter 600 px erscheinen zwei überlappende Ausschnitte, dazu kommt eine unsichtbare Textschicht. v2.3.1 bleibt jederzeit wiederherstellbar. Codex-Vorbefund zu `a3aa82e` („noch keine Implementierung“) ist hiermit abgearbeitet. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md`. Baseline `61e70dc`, Code-Stand `0bc56b6`.
+
+**Geänderte Dateien:**
+- `src/config/pagePresentation.ts` (neu): Schalter `PAGE_PRESENTATION = 'bild'`, `'html'` = Aussehen v2.3.1.
+- `src/components/imagePage/` (neu): `ImagePage` (Bild, zwei Kacheln `aria-hidden`, Textschicht `.sr-only`) und `imagePages.ts` (Seite → Datei, alt-Text und `data-testid` wie in v2.2.0).
+- 32 Seiten unter `src/features/*/pages/`: bisherige Komponente in `…Html` umbenannt und unverändert erhalten, Export umhüllt sie mit `ImagePage`. `DataBasisPage` bleibt unverändert (Live-Seite seit G47).
+- `src/styles/global.css`: Bildansicht wie `.auftrag-037x-webp-view`, Kacheln unter 600 px (Bildbreite 181,82 %, rechte Kachel −81,82 %).
+- `src/app/__tests__/g67ImagePages.ui.vitest.tsx` (neu, 68 Tests); `g52`–`g55SemanticPages`: Assertion „kein WebP“ ersetzt durch „h1 in der Textschicht“.
+- `scripts/captureAuftrag069Screenshots.mjs`, `docs/screenshots/auftrag-069/README.md` (neu).
+- Version `2.3.2` (`package.json`, `package-lock.json`, `LoginPage.tsx`), `docs/releases/V2.3.2.md`, `BUILD_PLAN.md`, Revision zu B18 und Zeile in D4 von `ARCHITECTURE_DECISIONS.md` (nur ergänzt).
+
+**Abweichung vom Auftrag (Task 4):** Überlappung 10 % statt 4 %. Tabellenzeilen und Überschriften laufen in allen 32 Bildern über die ganze Breite, eine Schnittlinie nur an Panel-Grenzen gibt es nicht. Mit 10 % steht Text an der Schnittlinie in mindestens einer Kachel vollständig. Die Vergrößerung beträgt 1,82× (gefordert ≥ 1,6×). Im Auftrag vermerkt.
+
+**Funktionale Prüfungen:**
+- Roter Start: G67-Test gegen die alten Seiten 32 von 68 rot, danach 68/68 grün.
+- G67-1: Zuordnung aller 32 Seiten per `git grep webp-img v2.2.0` abgeglichen. SHA-256 aller Dateien = `ASSET_SOURCE.md` (Test). `git diff v2.2.0 -- public/assets/auftrag-037*` ist leer.
+- G67-2/3: Pixelvergleich gegen einen v2.2.0-Build, 64/64 Aufnahmen mit gleicher Größe, **0,000 %** Abweichung.
+- G67-4: 32/32 auf 375 px mit 2 Kacheln und 1,82× Vergrößerung, Vollbild ausgeblendet, 0 px Überlauf.
+- G67-5: 96/96 Aufnahmen mit genau einer `h1`, Textschicht 1×1 px, mindestens 371 Zeichen.
+- G67-6: Test beider Schalterstellungen grün. `git rev-parse v2.3.1^{commit}` = `1bbe32da01d8b4b1b00b3a85e7d3c8108ce338e2`, Tag unverändert.
+- G67-7: Datenbasis, Standort, Leads, Accounts, Deals, Aktivitäten und Login gegenüber `61e70dc` höchstens 0,307 % Abweichung. Ursachen: Uhrzeit des Datenstands und Versionstext V2.3.2. Ihr Quellcode ist unverändert.
+- Messbefund (keine Änderung): Das Bild sitzt 1 px tiefer als in v2.2.0. Auf 768 px lagen 2 Seiten in v2.2.0 23,75 px tiefer, weil der Titel in der Kopfleiste umbrach. Details in der Screenshot-Matrix.
+
+**Schutzbereichs-Prüfung:** `git diff 61e70dc -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle Integrity-Suiten 001–025 grün; `npx vitest run` 275 Dateien / 1609 Tests grün; `npm run build` erfolgreich; `npm run lint` 0 Warnungen; `npm run verify:quality-budget` im Budget (Inline-Styles `src/` = 0).
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-069/README.md` (Harness `scripts/captureAuftrag069Screenshots.mjs`, 0 Abweichungen). Bilder lokal, nicht committet.
+
+**Offen:**
+- **Playwright-Visual-Baselines:** `e2e/visual.spec.ts-snapshots/visual-market-overview-*` und `visual-finance-p-and-l-*` zeigen noch v2.3.1. Der `e2e`-Job schlägt deshalb im PR-Lauf erwartbar fehl. Die Baselines müssen über `update-visual-baselines.yml` neu erzeugt werden. Dafür braucht es einen Push auf einen Branch `visual-baselines/**`, und den muss Marc freigeben.
+- **G67-9 Sichtprüfung Marc**, inklusive Releases & Roadmap (welche der Fassungen `17`, `17(2)` oder `17(3)` verwendet wurde, ist im Repo nicht belegt; gezeigt wird die Datei aus v2.2.0).
+
+**Ergebnis & Freigabestatus:** Builder-Stand fertig. Codex-Prüfung G67 ausstehend, danach Sichtprüfung durch Marc. Kein Tag `v2.3.2` vor beiden Freigaben.
+
+---
+
+## [2026-09-26] Auftrag 069 / G67 — Nacharbeit zum Codex-Befund (Builder: Claude Code)
+
+**Befund Codex (zu `501da87`):** Release-Kandidat, keine abschließende Freigabe. Offen: (1) axe-Nachweis „ohne neue Verstöße“ fehlt, (2) Visual-Baselines `market-overview`/`finance-p-and-l` auf `visual-baselines/…` neu erzeugen, (3) G67-9 Sichtprüfung Marc inkl. Releases & Roadmap, (4) 10-%-Überlappung bei der Handy-Sichtprüfung mitprüfen.
+
+**Behoben (1):** `scripts/captureAuftrag069Screenshots.mjs` scannt jede der 32 Seiten auf 1440 und 375 px mit `@axe-core/playwright` (bereits vorhandene Abhängigkeit), im neuen Stand und in der Baseline `61e70dc`. Jede Regel, die nur im neuen Stand verletzt ist, zählt als Fehler, egal welcher Schweregrad (strenger als `e2e/a11y.spec.ts`, das nur critical/serious prüft). Ergebnis: **64/64 Scans ohne neuen Verstoß.** In beiden Ständen gab es schon vorher `landmark-unique` [moderate] auf `/customers/segments` und `/sales/sla`. Dieser Verstoß stammt aus den v2.3.1-Inhalten, die jetzt in der Textschicht liegen. Er wurde durch 069 nicht verursacht und bleibt unverändert.
+
+**Gesamtlauf danach:** 0 Abweichungen. Bildvergleich 64/64 mit 0,000 %, Kacheln 32/32, Textschicht 96/96, unveränderte Seiten maximal 0,307 %, Tag `v2.3.1` unverändert. Die Matrix `docs/screenshots/auftrag-069/README.md` ist ergänzt. Code-Stand `785f7f1`, Schutzbereichs-Diff gegen `61e70dc` leer.
+
+**Weiter offen:** (2) Der Push auf `visual-baselines/…` wartet auf Marcs ausdrückliche Freigabe, weil er auf einen anderen Branch geht. (3) und (4) sind Sichtprüfung durch Marc.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig, erneute Codex-Prüfung ausstehend.
+
+---
+
+## [2026-09-26] Auftrag 069 / G67 — Handy-Ansicht neu nach Marcs Entscheid (Builder: Claude Code)
+
+**Entscheid Marc (26.09.2026, nach Sichtprüfung der Kachel-Fassung):** Auf dem Handy gibt es keine überlappenden Ausschnitte. Im Querformat wird das ganze Bild gezeigt. Im Hochformat wird ebenfalls das ganze Bild gezeigt, mit Zwei-Finger-Zoom.
+
+**Umsetzung (`e2c6f89`):**
+- `ImagePage.tsx`: Kacheln entfernt. Es gibt genau ein Bild in voller Breite. Darüber steht der Hinweis „Für bessere Lesbarkeit das Handy quer drehen oder mit zwei Fingern zoomen.“ (`aria-hidden`, Icon `Smartphone` aus `lucide-react`).
+- `global.css`: Der Hinweis erscheint nur bei `(max-width: 599px) and (orientation: portrait)`. Die Kachel-Regeln sind entfernt. Der Zoom bleibt frei: kein `touch-action`, und das Viewport-Meta in `index.html` ist unverändert (ohne `user-scalable=no` und ohne `maximum-scale`).
+- `g67ImagePages.ui.vitest.tsx`: Die Kachel-Prüfungen sind ersetzt. Der Test prüft jetzt genau ein Bild, den Hinweis (`aria-hidden`, Text), die Hochformat-Media-Query und dass der Zoom nicht gesperrt ist.
+- Harness: Die Handy-Prüfung läuft auf 375×812 (hoch) und 812×375 (quer). Geprüft wird Bildbreite = Inhaltsbreite, Hinweis nur im Hochformat und 0 px Überlauf.
+- Die Dokumente sind angepasst: Auftrag (Revision in der Entscheidungstabelle, Task 4, G67-4), Revision B18 in `ARCHITECTURE_DECISIONS.md` und `docs/releases/V2.3.2.md`. Die 10-%-Überlappung aus der ersten Fassung entfällt.
+
+**Gesamtlauf G67 danach:** 0 Abweichungen.
+- Bildvergleich gegen v2.2.0: 64/64 mit 0,000 %.
+- Handy hoch: 32/32 mit 343 px Bildbreite und Hinweis.
+- Handy quer: 32/32 mit 780 px Bildbreite, ohne Hinweis.
+- Überall 0 px Überlauf.
+- Textschicht: 128/128 geprüft.
+- axe: 64/64 Scans ohne neuen Verstoß.
+- Unveränderte Seiten: höchstens 0,307 % Abweichung.
+- Tag `v2.3.1` ist unverändert.
+
+**Zur Kenntnis:** Im Querformat belegen Kopfleiste und Simulationsleiste etwa ein Drittel der Höhe (812×375). Beide gehören zur App-Hülle und sind nicht Teil dieses Auftrags.
+
+**Verifikation:** `npx tsc --noEmit` meldet 0 Fehler. `npm run lint` und `format:check` sind grün. `npx vitest run` läuft mit 275 Dateien und 1609 Tests grün. Der Schutzbereichs-Diff gegen `61e70dc` ist leer.
+
+**Visual-Baselines:** Marc hat den Push auf `visual-baselines/v2.3.2` freigegeben. Lauf 9 (`a7e349e`) enthielt noch die Kachel-Fassung und ist damit überholt. Der Branch ist auf `e2c6f89` nachgezogen, dort läuft [Lauf 36275394975](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36275394975). Die Bilder werden nach Abschluss übernommen.
+
+**Ergebnis & Freigabestatus:** Builder-Stand fertig. Offen sind die Baselines-Übernahme, die erneute Codex-Prüfung und die Sichtprüfung durch Marc (G67-9).
+
+**Nachtrag Visual-Baselines (26.09.2026):** Lauf [36275394975](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36275394975) auf `visual-baselines/v2.3.2` (`e2c6f89`) war erfolgreich. Der Digest des Artefakts `visual-baselines` ist geprüft (`sha256:e8cac1dd…2decff`, identisch mit der GitHub-Angabe). Von 15 Linux-Snapshots weichen genau 6 vom Repo ab: `market-overview` und `finance-p-and-l` auf 1440, 768 und 375 px. Bei der Sichtprüfung zeigen sie das Original-WebP, auf 375 px zusätzlich den Hochformat-Hinweis, und im Sidebar-Fuß „v2.3.2“. Diese 6 Snapshots sind nach `e2e/visual.spec.ts-snapshots/` übernommen. Die übrigen 9 sind byte-gleich und bleiben unverändert. Die Darwin-Snapshots werden wie bei v2.3.1 nicht angefasst. Der Hilfsbranch `visual-baselines/v2.3.2` bleibt bis zum Merge bestehen und wird danach gelöscht (Freigabe Marc, 26.09.2026).
+
+---
+
+## [2026-09-26] Auftrag 069 / G67-9 — Sichtprüfung Marc: bestanden
+
+Marc hat am 26.09.2026 die Sichtprüfung freigegeben („Sichtprüfung passt“). Grundlage war die private Vergleichsseite, Version 2: alle 32 Seiten in v2.2.0 und v2.3.2, dazu die Handy-Ansicht im Hoch- und Querformat. Die Freigabe umfasst auch Releases & Roadmap: Die angezeigte Datei `10-releases-roadmap.webp` (die Datei aus v2.2.0) ist bestätigt. Ebenso bestätigt ist die Handy-Lösung mit dem ganzen Bild, dem Hinweis im Hochformat und dem Zwei-Finger-Zoom.
+
+**Stand G67:** G67-1 bis G67-8 wurden vom Builder nachgewiesen, G67-9 ist bestanden. Offen ist noch die erneute Codex-Prüfung. Danach folgen der PR nach `main`, der Tag `v2.3.2` und das Löschen von `visual-baselines/v2.3.2`.
+
+---
+
+## [2026-09-26] Auftrag 069 / G67 — Codex-Prüfung: für den PR freigegeben (übermittelt von Marc)
+
+**Befund Codex (Stand `5317891` gegen `61e70dc`):** Die Freigabe gilt für das Öffnen des PR. Die 32 Bildseiten, der Rückschalter zu HTML, die Textschicht und die überarbeitete Handy-Ansicht entsprechen dem Auftrag. Der axe-Nachweis steht im Harness. Die 6 Linux-Baselines sind übernommen, und der Baseline-Lauf 36275394975 war erfolgreich. G67-9 ist im Log als bestanden vermerkt. Die private Vergleichsseite konnte Codex nicht öffnen. **Keine blockierenden Befunde.**
+
+**Hinweis für später (nicht blockierend):** Der axe-Vergleich erkennt neue Regel-IDs. Er erkennt aber nicht, wenn bei einer schon verletzten Regel weitere Elemente betroffen sind. Das betrifft nur `landmark-unique` auf `/customers/segments` und `/sales/sla`. Der Punkt bleibt als Folgepunkt offen und wird nicht in diesem Auftrag behoben.
+
+**Bedingung:** Über Merge und Tag `v2.3.2` wird erst entschieden, wenn die Pflichtprüfungen des PR-CI-Laufs auf dem finalen Stand grün sind.
+
+---
+
+## [2026-09-26] Auftrag 069 / PR #37 — Codex-Review (Bot) nachgearbeitet (Builder: Claude Code)
+
+Der Codex-Connector hat auf `d4640cc` drei Befunde gemeldet. Alle drei sind berechtigt und behoben:
+
+- **P1 `e2e/semantic-routes.spec.ts`:** Die Pflicht-Suite der CI verlangte weiter „kein WebP“ und sichtbaren Fließtext. Damit wäre die e2e-CI auf allen 32 Routen rot geworden. Die Suite folgt jetzt dem Schalter `PAGE_PRESENTATION`. Im Modus `'bild'` prüft sie genau ein geladenes Original-WebP, genau eine `h1`, Text und Struktur in der Textschicht (`textContent`) sowie 0 px Überlauf auf 375 px. Im Modus `'html'` gelten die bisherigen G52–G55-Assertions. Lokal kompiliert die Suite (384 Tests gelistet). Ausführen lässt sie sich nur mit echtem Supabase-Login, deshalb ist der PR-CI-Lauf der Nachweis.
+- **P2 Tab-Reihenfolge:** `KitTable` setzt `tabIndex=0` auf den Scrollbereich. In der unsichtbaren Textschicht landete der Tastaturfokus dadurch auf geclippten Tabellen. `ImagePage` setzt jetzt alle fokussierbaren Elemente der Textschicht auf `tabindex=-1`, auch nachgeladene (MutationObserver). Für Screenreader bleibt die Textschicht erhalten. Neuer Test je Seite: rot auf den 12 `KitTable`-Seiten ohne Fix, grün mit Fix.
+- **P2 Fest verdrahteter Standard:** Der Test „Standard ist die Bilddarstellung“ hätte den dokumentierten Rückweg (`'html'`) in der CI rot gemacht. Er ist ersetzt durch „Schalter hat einen gültigen Wert“ (`'bild'` oder `'html'`).
+
+**Verifikation:** `tsc` 0 Fehler; `lint` und `format:check` grün; `vitest` 275 Dateien und 1641 Tests grün; `npm run verify` alle Suiten grün; `build` erfolgreich. Der Schutzbereichs-Diff ist leer.
+
+**Nachtrag CI (Lauf auf `e34cd3a`):** `semantic-routes` war jetzt grün, dafür schlug `e2e/a11y.spec.ts` auf `/finance/p-and-l` und `/market/overview` fehl (alle drei Breiten): `scrollable-region-focusable` [serious]. **Ursache war mein Tab-Fix.** Der scrollbare Tabellenbereich von `KitTable` hatte danach `tabindex=-1`, und axe verlangt für scrollbare Bereiche Tastaturzugang. Mein axe-Nachweis lief vor diesem Fix und konnte es deshalb nicht erkennen. Im Harness-Lauf ohne Fix ließ sich der Fehler lokal reproduzieren (4 Befunde).
+**Fix:** In der Textschicht (`.image-page .image-page__text *`) gilt `overflow: visible`. Die unsichtbare Schicht hat damit keine scrollbaren Bereiche mehr, und `tabindex=-1` ist unkritisch. Ein neuer Test prüft die Regel. Der Harness-axe-Lauf über alle 12 `KitTable`-Seiten auf 1440 und 375 px ergab danach 0 neue Verstöße, der Bildvergleich blieb unverändert bei 0,000 %. `tsc`, `lint`, `format`, `vitest` (1642), `verify`, `build` und `quality-budget` sind grün.

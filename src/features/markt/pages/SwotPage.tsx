@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { SWOT } from '@/domain/marktData';
 import { DataState } from '@/components/ui/DataState';
 import { Grid, PageHero, Panel, ToneList, type Tone } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte SWOT-Seite statt WebP — genau eine h1, vier Quadranten.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (03-swot-analyse).
@@ -13,7 +14,7 @@ const quadranten: Array<[string, string[], Tone, LucideIcon]> = [
   ['Risiken (Threats)', SWOT.threats, 'neutral', ShieldAlert],
 ];
 
-export function SwotPage() {
+function SwotPageHtml() {
   const ready = quadranten.some(([, items]) => items.length > 0);
   return (
     <div className="pk-page">
@@ -33,5 +34,15 @@ export function SwotPage() {
         </Grid>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function SwotPage() {
+  return (
+    <ImagePage page="market-swot">
+      <SwotPageHtml />
+    </ImagePage>
   );
 }

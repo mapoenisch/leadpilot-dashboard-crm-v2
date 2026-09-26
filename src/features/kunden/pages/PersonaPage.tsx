@@ -2,11 +2,12 @@ import { Megaphone, Target, UserRound, Zap } from 'lucide-react';
 import { PERSONA } from '@/domain/kundenData';
 import { DataState } from '@/components/ui/DataState';
 import { Grid, KeyValueList, PageHero, Panel, Quote, ToneList } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte Persona-Seite statt WebP — genau eine h1,
 // Stammdaten als Definitionsliste, Ziele und Hürden als Listen.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (05-buyer-persona-volker).
-export function PersonaPage() {
+function PersonaPageHtml() {
   return (
     <div className="pk-page">
       <PageHero
@@ -54,5 +55,15 @@ export function PersonaPage() {
         </Grid>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function PersonaPage() {
+  return (
+    <ImagePage page="customers-persona">
+      <PersonaPageHtml />
+    </ImagePage>
   );
 }

@@ -9,6 +9,7 @@ import {
   PageHero,
   Panel,
 } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte Planungsseite statt WebP — genau eine h1,
 // Initiativen als Tabelle, Monatsbudget und Basis/Ziel-KPIs strukturiert.
@@ -17,7 +18,7 @@ function formatPlanWert(value: number): string {
   return value.toLocaleString('de-DE');
 }
 
-export function PlanningPage() {
+function PlanningPageHtml() {
   const budget = PLANUNG.chartPlanbudget.datasets[0]?.data ?? [];
   const kpiWert = (reihe: number, index: number): string =>
     formatPlanWert(PLANUNG.chartPlankpi.datasets[reihe]?.data[index] ?? 0);
@@ -94,5 +95,15 @@ export function PlanningPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function PlanningPage() {
+  return (
+    <ImagePage page="sales-planning">
+      <PlanningPageHtml />
+    </ImagePage>
   );
 }

@@ -11,6 +11,7 @@ import {
   Panel,
   type Tone,
 } from '@/components/pageKit';
+import { ImagePage } from '@/components/imagePage';
 
 // 067I / G52: Echte GuV-Seite statt WebP — genau eine h1, semantische Tabelle,
 // auswählbarer Text, Chartzusammenfassung zur Erlösaufteilung.
@@ -19,7 +20,7 @@ const erloesTone = (index: number): Tone =>
   index === 1 ? 'orange' : index === 2 ? 'mint' : 'cyan';
 const KERNZEILEN = ['Umsatzerlöse (Gesamtumsatz)', 'EBITDA'];
 
-export function PnLPage() {
+function PnLPageHtml() {
   const rows = GUV.rows.map((row) => ({
     position: row[0] ?? '',
     fy2024: row[1] ?? '',
@@ -137,5 +138,15 @@ export function PnLPage() {
         </Panel>
       </DataState>
     </div>
+  );
+}
+
+// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
+// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
+export function PnLPage() {
+  return (
+    <ImagePage page="finance-pnl">
+      <PnLPageHtml />
+    </ImagePage>
   );
 }
