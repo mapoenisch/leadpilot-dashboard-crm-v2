@@ -13421,3 +13421,9 @@ Harness-Exit 0. Schutzbereichs-Diff gegen `e63eec5` leer.
 
 Design-Gate neu (volle Aufnahmen): 102 Paare, 0 identisch, Überlauf vorher 2 / nachher 0, Exit 0.
 Neue Linux-Baselines über `visual-baselines/v2.3.1-r3`, weil sich die CI-Aufnahmen verlängern.
+
+**Baselines eingespielt:** Artefakt `visual-baselines` (ID 10901256973) aus Run 36226622476
+(`visual-baselines/v2.3.1-r3`, `61f0afc`), hochgeladen von Marc; SHA-256 `828cc827…38e9` = Artefakt-Digest.
+14 von 15 Linux-Bildern neu (exakt die 14 zuvor roten Vergleiche), jetzt in voller Inhaltshöhe
+(z. B. GuV 375 × 2667, Dashboard 1440 × 3814). `market-overview` 768 unverändert. Sichtprüfung: echtes
+Logo, vollständige Seiten bis zum letzten Element.
