@@ -20,6 +20,8 @@ committet wird nur diese Matrix.
   Das neue Bild wird für die Aufnahme per `position: relative` um < 1 px auf denselben
   Bruchteil geschoben. Die echte Lage steht im Manifest (`refRect`/`curRect`).
 - Überlauf gemessen im Dokument und in `#main-content` (Maximum).
+- **axe (G67-5, Nacharbeit Codex-Befund):** `@axe-core/playwright` (vorhandene Abhängigkeit) je Seite im
+  neuen Stand und in der Baseline; „neu“ = Regel-ID, die nur im neuen Stand verletzt ist.
 
 ## Ergebnis
 
@@ -30,6 +32,7 @@ committet wird nur diese Matrix.
 | G67-3 Bild-zu-Bild 768 px | 32/32 gleiche Größe, **0,000 %** Abweichung (max.) |
 | G67-4 Mobile 375 px | 32/32: Vollbild ausgeblendet, 2 Kacheln, Vergrößerung 1,82×, 0 px Überlauf |
 | G67-5 Textschicht | 96/96 Aufnahmen: genau eine `h1` in `#main-content`, Textschicht 1×1 px, ≥ 371 Zeichen |
+| G67-5 axe | 64/64 Scans (32 Seiten × 1440/375 px, alle Schweregrade): **0 neue Verstöße** gegenüber `61e70dc`. Vorbestehend in beiden Ständen: `landmark-unique` [moderate] auf `/customers/segments` und `/sales/sla` |
 | G67-6 Rückweg | Test beide Schalterstellungen grün; `v2.3.1^{commit}` = `1bbe32da01d8b4b1b00b3a85e7d3c8108ce338e2` |
 | G67-7 Unberührt | 21 Aufnahmen, max. 0,307 % (Login 375 px: Versionstext V2.3.2). Siehe unten |
 | Horizontaler Überlauf 1440/768 | 0 von 64 |

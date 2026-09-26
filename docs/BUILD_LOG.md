@@ -13526,3 +13526,17 @@ Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
 - **G67-9 Sichtprüfung Marc**, inklusive Releases & Roadmap (welche der Fassungen `17`, `17(2)` oder `17(3)` verwendet wurde, ist im Repo nicht belegt; gezeigt wird die Datei aus v2.2.0).
 
 **Ergebnis & Freigabestatus:** Builder-Stand fertig. Codex-Prüfung G67 ausstehend, danach Sichtprüfung durch Marc. Kein Tag `v2.3.2` vor beiden Freigaben.
+
+---
+
+## [2026-09-26] Auftrag 069 / G67 — Nacharbeit zum Codex-Befund (Builder: Claude Code)
+
+**Befund Codex (zu `501da87`):** Release-Kandidat, keine abschließende Freigabe. Offen: (1) axe-Nachweis „ohne neue Verstöße“ fehlt, (2) Visual-Baselines `market-overview`/`finance-p-and-l` auf `visual-baselines/…` neu erzeugen, (3) G67-9 Sichtprüfung Marc inkl. Releases & Roadmap, (4) 10-%-Überlappung bei der Handy-Sichtprüfung mitprüfen.
+
+**Behoben (1):** `scripts/captureAuftrag069Screenshots.mjs` scannt jede der 32 Seiten auf 1440 und 375 px mit `@axe-core/playwright` (bereits vorhandene Abhängigkeit), im neuen Stand und in der Baseline `61e70dc`. Jede Regel, die nur im neuen Stand verletzt ist, zählt als Fehler, egal welcher Schweregrad (strenger als `e2e/a11y.spec.ts`, das nur critical/serious prüft). Ergebnis: **64/64 Scans ohne neuen Verstoß.** In beiden Ständen gab es schon vorher `landmark-unique` [moderate] auf `/customers/segments` und `/sales/sla`. Dieser Verstoß stammt aus den v2.3.1-Inhalten, die jetzt in der Textschicht liegen. Er wurde durch 069 nicht verursacht und bleibt unverändert.
+
+**Gesamtlauf danach:** 0 Abweichungen. Bildvergleich 64/64 mit 0,000 %, Kacheln 32/32, Textschicht 96/96, unveränderte Seiten maximal 0,307 %, Tag `v2.3.1` unverändert. Die Matrix `docs/screenshots/auftrag-069/README.md` ist ergänzt. Code-Stand `785f7f1`, Schutzbereichs-Diff gegen `61e70dc` leer.
+
+**Weiter offen:** (2) Der Push auf `visual-baselines/…` wartet auf Marcs ausdrückliche Freigabe, weil er auf einen anderen Branch geht. (3) und (4) sind Sichtprüfung durch Marc.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig, erneute Codex-Prüfung ausstehend.
