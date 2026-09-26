@@ -13487,3 +13487,42 @@ Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
 **Screenshot-Matrix (Nacharbeit nach Codex-Review P1 in PR #36):** `docs/screenshots/sidebar-footer-version/README.md`. Harness `scripts/captureSidebarFooterScreenshots.mjs` (abgeleitet von 068, nur Sidebar mit Footer, Drawer unter 1024 px geöffnet), Lauf mit `SUPABASE_MOCK=1`. Vorher `be1284a` gegen Nachher: 3 von 3 Paaren mit unterschiedlichem SHA-256 (1440/768/375), 0 px horizontaler Überlauf vorher und nachher, Sichtprüfung: Footer „LeadPilot v2.3.1“ einzeilig, Rest der Sidebar unverändert. Login und Inhaltsseiten sind durch den Footer-Text nicht betroffen und nicht Teil des Laufs. Playwright-Visual-Baselines: Ergebnis des `e2e`-Jobs im CI-Lauf des PRs maßgeblich; bei Überschreitung von `maxDiffPixelRatio 0.001` Regenerierung über `update-visual-baselines.yml`.
 
 **Ergebnis & Freigabestatus:** Builder-Stand fertig, Codex-Prüfung ausstehend.
+
+---
+
+## [2026-09-26] Auftrag 069 / G67 — v2.3.2 echte Wiederherstellung der Bildseiten (Builder: Claude Code)
+
+**Ziel & Kontext:** v2.3.1 (Auftrag 068) hat das Ziel „Aussehen wie vor v2.3.0“ verfehlt: Der HTML-Nachbau wich bei Schriftgrößen, Kopfbereich, Diagrammen und Texten sichtbar ab, und G66 prüfte Struktur statt Aussehen. Marc hat am 26.09.2026 Option A entschieden: Die 32 statischen Inhaltsseiten zeigen wieder die Original-WebPs aus v2.2.0. Unter 600 px erscheinen zwei überlappende Ausschnitte, dazu kommt eine unsichtbare Textschicht. v2.3.1 bleibt jederzeit wiederherstellbar. Codex-Vorbefund zu `a3aa82e` („noch keine Implementierung“) ist hiermit abgearbeitet. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md`. Baseline `61e70dc`, Code-Stand `0bc56b6`.
+
+**Geänderte Dateien:**
+- `src/config/pagePresentation.ts` (neu): Schalter `PAGE_PRESENTATION = 'bild'`, `'html'` = Aussehen v2.3.1.
+- `src/components/imagePage/` (neu): `ImagePage` (Bild, zwei Kacheln `aria-hidden`, Textschicht `.sr-only`) und `imagePages.ts` (Seite → Datei, alt-Text und `data-testid` wie in v2.2.0).
+- 32 Seiten unter `src/features/*/pages/`: bisherige Komponente in `…Html` umbenannt und unverändert erhalten, Export umhüllt sie mit `ImagePage`. `DataBasisPage` bleibt unverändert (Live-Seite seit G47).
+- `src/styles/global.css`: Bildansicht wie `.auftrag-037x-webp-view`, Kacheln unter 600 px (Bildbreite 181,82 %, rechte Kachel −81,82 %).
+- `src/app/__tests__/g67ImagePages.ui.vitest.tsx` (neu, 68 Tests); `g52`–`g55SemanticPages`: Assertion „kein WebP“ ersetzt durch „h1 in der Textschicht“.
+- `scripts/captureAuftrag069Screenshots.mjs`, `docs/screenshots/auftrag-069/README.md` (neu).
+- Version `2.3.2` (`package.json`, `package-lock.json`, `LoginPage.tsx`), `docs/releases/V2.3.2.md`, `BUILD_PLAN.md`, Revision zu B18 und Zeile in D4 von `ARCHITECTURE_DECISIONS.md` (nur ergänzt).
+
+**Abweichung vom Auftrag (Task 4):** Überlappung 10 % statt 4 %. Tabellenzeilen und Überschriften laufen in allen 32 Bildern über die ganze Breite, eine Schnittlinie nur an Panel-Grenzen gibt es nicht. Mit 10 % steht Text an der Schnittlinie in mindestens einer Kachel vollständig. Die Vergrößerung beträgt 1,82× (gefordert ≥ 1,6×). Im Auftrag vermerkt.
+
+**Funktionale Prüfungen:**
+- Roter Start: G67-Test gegen die alten Seiten 32 von 68 rot, danach 68/68 grün.
+- G67-1: Zuordnung aller 32 Seiten per `git grep webp-img v2.2.0` abgeglichen. SHA-256 aller Dateien = `ASSET_SOURCE.md` (Test). `git diff v2.2.0 -- public/assets/auftrag-037*` ist leer.
+- G67-2/3: Pixelvergleich gegen einen v2.2.0-Build, 64/64 Aufnahmen mit gleicher Größe, **0,000 %** Abweichung.
+- G67-4: 32/32 auf 375 px mit 2 Kacheln und 1,82× Vergrößerung, Vollbild ausgeblendet, 0 px Überlauf.
+- G67-5: 96/96 Aufnahmen mit genau einer `h1`, Textschicht 1×1 px, mindestens 371 Zeichen.
+- G67-6: Test beider Schalterstellungen grün. `git rev-parse v2.3.1^{commit}` = `1bbe32da01d8b4b1b00b3a85e7d3c8108ce338e2`, Tag unverändert.
+- G67-7: Datenbasis, Standort, Leads, Accounts, Deals, Aktivitäten und Login gegenüber `61e70dc` höchstens 0,307 % Abweichung. Ursachen: Uhrzeit des Datenstands und Versionstext V2.3.2. Ihr Quellcode ist unverändert.
+- Messbefund (keine Änderung): Das Bild sitzt 1 px tiefer als in v2.2.0. Auf 768 px lagen 2 Seiten in v2.2.0 23,75 px tiefer, weil der Titel in der Kopfleiste umbrach. Details in der Screenshot-Matrix.
+
+**Schutzbereichs-Prüfung:** `git diff 61e70dc -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle Integrity-Suiten 001–025 grün; `npx vitest run` 275 Dateien / 1609 Tests grün; `npm run build` erfolgreich; `npm run lint` 0 Warnungen; `npm run verify:quality-budget` im Budget (Inline-Styles `src/` = 0).
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-069/README.md` (Harness `scripts/captureAuftrag069Screenshots.mjs`, 0 Abweichungen). Bilder lokal, nicht committet.
+
+**Offen:**
+- **Playwright-Visual-Baselines:** `e2e/visual.spec.ts-snapshots/visual-market-overview-*` und `visual-finance-p-and-l-*` zeigen noch v2.3.1. Der `e2e`-Job schlägt deshalb im PR-Lauf erwartbar fehl. Die Baselines müssen über `update-visual-baselines.yml` neu erzeugt werden. Dafür braucht es einen Push auf einen Branch `visual-baselines/**`, und den muss Marc freigeben.
+- **G67-9 Sichtprüfung Marc**, inklusive Releases & Roadmap (welche der Fassungen `17`, `17(2)` oder `17(3)` verwendet wurde, ist im Repo nicht belegt; gezeigt wird die Datei aus v2.2.0).
+
+**Ergebnis & Freigabestatus:** Builder-Stand fertig. Codex-Prüfung G67 ausstehend, danach Sichtprüfung durch Marc. Kein Tag `v2.3.2` vor beiden Freigaben.
