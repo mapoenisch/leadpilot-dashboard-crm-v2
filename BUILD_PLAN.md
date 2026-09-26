@@ -17,6 +17,7 @@ Bild-zu-Bild-Gate). v2.3.1 hat dieses Ziel verfehlt. Rückweg zu v2.3.1 per Scha
 `PAGE_PRESENTATION` und unverändertem Tag.
 Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md` ·
 Branch `main-jytadn` · Stand: Builder fertig, wartet auf Codex-Prüfung G67 und Sichtprüfung Marc (G67-9).
+Nach dem Merge: Hilfsbranch `visual-baselines/v2.3.2` löschen (Freigabe Marc, 26.09.2026).
 
 ## Abgeschlossen: v2.3.1 — Auftrag 068 (G66)
 
