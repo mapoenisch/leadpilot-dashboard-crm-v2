@@ -13581,3 +13581,13 @@ Dokumentation. Der Release-Tag `v2.3.1` bleibt Marcs nachgelagerter Schritt.
 Marc hat am 26.09.2026 die Sichtprüfung freigegeben („Sichtprüfung passt“). Grundlage war die private Vergleichsseite, Version 2: alle 32 Seiten in v2.2.0 und v2.3.2, dazu die Handy-Ansicht im Hoch- und Querformat. Die Freigabe umfasst auch Releases & Roadmap: Die angezeigte Datei `10-releases-roadmap.webp` (die Datei aus v2.2.0) ist bestätigt. Ebenso bestätigt ist die Handy-Lösung mit dem ganzen Bild, dem Hinweis im Hochformat und dem Zwei-Finger-Zoom.
 
 **Stand G67:** G67-1 bis G67-8 wurden vom Builder nachgewiesen, G67-9 ist bestanden. Offen ist noch die erneute Codex-Prüfung. Danach folgen der PR nach `main`, der Tag `v2.3.2` und das Löschen von `visual-baselines/v2.3.2`.
+
+---
+
+## [2026-09-26] Auftrag 069 / G67 — Codex-Prüfung: für den PR freigegeben (übermittelt von Marc)
+
+**Befund Codex (Stand `5317891` gegen `61e70dc`):** Die Freigabe gilt für das Öffnen des PR. Die 32 Bildseiten, der Rückschalter zu HTML, die Textschicht und die überarbeitete Handy-Ansicht entsprechen dem Auftrag. Der axe-Nachweis steht im Harness. Die 6 Linux-Baselines sind übernommen, und der Baseline-Lauf 36275394975 war erfolgreich. G67-9 ist im Log als bestanden vermerkt. Die private Vergleichsseite konnte Codex nicht öffnen. **Keine blockierenden Befunde.**
+
+**Hinweis für später (nicht blockierend):** Der axe-Vergleich erkennt neue Regel-IDs. Er erkennt aber nicht, wenn bei einer schon verletzten Regel weitere Elemente betroffen sind. Das betrifft nur `landmark-unique` auf `/customers/segments` und `/sales/sla`. Der Punkt bleibt als Folgepunkt offen und wird nicht in diesem Auftrag behoben.
+
+**Bedingung:** Über Merge und Tag `v2.3.2` wird erst entschieden, wenn die Pflichtprüfungen des PR-CI-Laufs auf dem finalen Stand grün sind.
