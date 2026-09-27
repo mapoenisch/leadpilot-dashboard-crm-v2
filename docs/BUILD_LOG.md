@@ -13622,3 +13622,22 @@ Der Codex-Connector hat auf `d4640cc` drei Befunde gemeldet. Alle drei sind bere
 - **Nachweis (27.09.2026):** `git ls-remote --tags origin v2.3.2` zeigt `bd01a84` bzw. `9372b43` (`^{}`); `git cat-file -t v2.3.2` ergibt `tag`; `git ls-remote --heads origin visual-baselines/v2.3.2` ist leer; `package.json` auf `main` nennt `2.3.2`.
 - **Bekannte Abweichungen:** `docs/releases/V2.3.2.md` im Tag `v2.3.2` nennt noch den Status „Release-Kandidat“. Maßgeblich ist die Fassung auf `main`. Der Tag wird nicht verschoben.
 - **Verifikation dieses Doku-Stands (PR #38, 27.09.2026):** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle Integrity-Suiten 001–025 grün; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` (`9372b43`) leer. Nur Doku geändert (`docs/BUILD_LOG.md`, `docs/releases/V2.3.2.md`, `BUILD_PLAN.md`), keine UI-Änderung, daher keine Screenshot-Matrix. PR-CI [Lauf 180](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36304739376) auf `ad58c73` 7/7 grün.
+
+---
+
+## [2026-09-27] Auftrag 069 / G67 — Codex-Prüfung des finalen Stands: keine blockierenden Befunde (übermittelt von Marc)
+
+**Prüfumfang:** PR #37 auf dem finalen Stand, also die Nacharbeit `d4640cc..9372b43` (`e34cd3a`, `406e2b8`) nach der Codex-Freigabe auf `5317891`. Damit ist der offene Punkt aus dem Eintrag „Release v2.3.2 veröffentlicht“ nachgeholt.
+
+**Befund Codex:** Im finalen Stand gibt es keinen neuen blockierenden Befund.
+- Die drei früheren Befunde des Codex-Connectors (Review auf `d4640cc`) sind nachgearbeitet: `e2e/semantic-routes.spec.ts` berücksichtigt den Bildmodus, die unsichtbaren Tabellen der Textschicht liegen außerhalb der Tab-Reihenfolge, und der Schaltertest lässt den Rückweg `PAGE_PRESENTATION = 'html'` zu.
+- Die durch den ersten Tab-Fix entstandene axe-Regression (`scrollable-region-focusable`) ist mit `406e2b8` behoben.
+- CI: [Lauf 177](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36279056469) auf dem finalen PR-Commit `406e2b8` und [Lauf 178](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36279913005) auf dem Merge `9372b43` jeweils 7/7 grün.
+
+**Grenze der Prüfung (laut Codex):** Die dokumentierten 0,000 % Bildabweichung gegen v2.2.0 stützen sich auf die Ergebnis-Matrix des Projekts. Die lokal erzeugten Screenshots hat Codex nicht selbst visuell verglichen.
+
+**Einordnung:** Die Prüfung lag beim Setzen des Tags `v2.3.2` noch nicht vor. Diese Abweichung von `CLAUDE.md` §9 bleibt im Eintrag „Release v2.3.2 veröffentlicht“ dokumentiert. Da es keinen blockierenden Befund gibt, ist kein v2.3.3 nötig. Der Tag bleibt unverändert.
+
+**Verifikation dieses Doku-Stands:** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle Integrity-Suiten 001–025 grün; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` (`238e2e1`) leer. Geändert sind nur `docs/BUILD_LOG.md`, `BUILD_PLAN.md` und `docs/releases/V2.3.2.md`.
+
+**Ergebnis & Freigabestatus:** G67 ist auf dem finalen Stand von Codex geprüft, ohne blockierende Befunde. Auftrag 069 ist abgeschlossen.

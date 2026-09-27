@@ -3,7 +3,6 @@
 **Stand:** 27.09.2026
 
 **Aktueller Release:** `v2.3.2` (annotierter Tag auf `9372b43`, Merge von PR #37)
-**Offen zu v2.3.2:** nachträgliche Codex-Prüfung des finalen Stands `d4640cc..9372b43` (siehe BUILD_LOG, „Release v2.3.2 veröffentlicht“).
 **Nächster Auftrag:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.
 Der Detailauftrag ist noch nicht geschrieben; die Vorgaben und die Rollenverteilung legt Marc fest.
 **Rollen:** Für 068 und 069 baute Claude Code, Codex prüfte (Entscheidung Marc, 25./26.09.2026). Sonst gilt
@@ -16,7 +15,7 @@ sofern Marc nichts anderes festlegt (`CLAUDE.md` §4).
 Bild-zu-Bild-Gate). Rückweg zu v2.3.1 per Schalter `PAGE_PRESENTATION` und unverändertem Tag.
 **Erreicht und veröffentlicht am 27.09.2026.**
 Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md` · PR #37 ·
-Sichtprüfung Marc (G67-9) bestanden · Codex-Freigabe auf `5317891` für den PR, Prüfung des finalen Stands offen ·
+Sichtprüfung Marc (G67-9) bestanden · Codex-Freigabe auf `5317891` für den PR, finaler Stand `9372b43` am 27.09.2026 nachträglich ohne blockierende Befunde geprüft ·
 Tag `v2.3.2` auf `9372b43` · Hilfsbranch `visual-baselines/v2.3.2` gelöscht.
 
 ## Abgeschlossen: v2.3.1 — Auftrag 068 (G66)
