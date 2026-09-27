@@ -13629,6 +13629,8 @@ Der Codex-Connector hat auf `d4640cc` drei Befunde gemeldet. Alle drei sind bere
 
 **Prüfumfang:** PR #37 auf dem finalen Stand, also die Nacharbeit `d4640cc..9372b43` (`e34cd3a`, `406e2b8`) nach der Codex-Freigabe auf `5317891`. Damit ist der offene Punkt aus dem Eintrag „Release v2.3.2 veröffentlicht“ nachgeholt.
 
+**Quelle:** Codex-Unterhaltung, geteilt von Marc: <https://chatgpt.com/share/6ab92a76-477c-83eb-ae20-602bf2b9d441>. Der Befund unten ist der von Marc übermittelte Wortlaut, zusammengefasst.
+
 **Befund Codex:** Im finalen Stand gibt es keinen neuen blockierenden Befund.
 - Die drei früheren Befunde des Codex-Connectors (Review auf `d4640cc`) sind nachgearbeitet: `e2e/semantic-routes.spec.ts` berücksichtigt den Bildmodus, die unsichtbaren Tabellen der Textschicht liegen außerhalb der Tab-Reihenfolge, und der Schaltertest lässt den Rückweg `PAGE_PRESENTATION = 'html'` zu.
 - Die durch den ersten Tab-Fix entstandene axe-Regression (`scrollable-region-focusable`) ist mit `406e2b8` behoben.
