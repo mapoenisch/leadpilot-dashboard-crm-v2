@@ -1,23 +1,23 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 26.09.2026
+**Stand:** 27.09.2026
 
-**Aktueller Release:** `v2.3.1` (annotierter Tag auf `1bbe32d`, Merge von PR #34)
-**In Arbeit:** v2.3.2 — Auftrag 069 (G67), echte Wiederherstellung der Bildseiten.
-**Danach:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.
+**Aktueller Release:** `v2.3.2` (annotierter Tag auf `9372b43`, Merge von PR #37)
+**Offen zu v2.3.2:** nachträgliche Codex-Prüfung des finalen Stands `d4640cc..9372b43` (siehe BUILD_LOG, „Release v2.3.2 veröffentlicht“).
+**Nächster Auftrag:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.
 Der Detailauftrag ist noch nicht geschrieben; die Vorgaben und die Rollenverteilung legt Marc fest.
-**Rollen:** Für 068 und 069 baut Claude Code, Codex prüft (Entscheidung Marc, 25./26.09.2026). Sonst gilt
+**Rollen:** Für 068 und 069 baute Claude Code, Codex prüfte (Entscheidung Marc, 25./26.09.2026). Sonst gilt
 mit `v2.3.0` wieder die Verteilung vor dem 24.09.2026 (Antigravity baut, Codex und Claude Code prüfen),
 sofern Marc nichts anderes festlegt (`CLAUDE.md` §4).
 
-## In Arbeit: v2.3.2 — Auftrag 069 (G67)
+## Abgeschlossen: v2.3.2 — Auftrag 069 (G67)
 
 **Ziel:** Die 32 statischen Inhaltsseiten sehen wieder genau so aus wie in v2.2.0 (Original-WebPs,
-Bild-zu-Bild-Gate). v2.3.1 hat dieses Ziel verfehlt. Rückweg zu v2.3.1 per Schalter
-`PAGE_PRESENTATION` und unverändertem Tag.
-Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md` ·
-Branch `main-jytadn` · Stand: Builder fertig, Sichtprüfung Marc (G67-9) bestanden am 26.09.2026, wartet auf Codex-Prüfung G67.
-Nach dem Merge: Hilfsbranch `visual-baselines/v2.3.2` löschen (Freigabe Marc, 26.09.2026).
+Bild-zu-Bild-Gate). Rückweg zu v2.3.1 per Schalter `PAGE_PRESENTATION` und unverändertem Tag.
+**Erreicht und veröffentlicht am 27.09.2026.**
+Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md` · PR #37 ·
+Sichtprüfung Marc (G67-9) bestanden · Codex-Freigabe auf `5317891` für den PR, Prüfung des finalen Stands offen ·
+Tag `v2.3.2` auf `9372b43` · Hilfsbranch `visual-baselines/v2.3.2` gelöscht.
 
 ## Abgeschlossen: v2.3.1 — Auftrag 068 (G66)
 
