@@ -13606,3 +13606,17 @@ Der Codex-Connector hat auf `d4640cc` drei Befunde gemeldet. Alle drei sind bere
 
 **Nachtrag CI (Lauf auf `e34cd3a`):** `semantic-routes` war jetzt grün, dafür schlug `e2e/a11y.spec.ts` auf `/finance/p-and-l` und `/market/overview` fehl (alle drei Breiten): `scrollable-region-focusable` [serious]. **Ursache war mein Tab-Fix.** Der scrollbare Tabellenbereich von `KitTable` hatte danach `tabindex=-1`, und axe verlangt für scrollbare Bereiche Tastaturzugang. Mein axe-Nachweis lief vor diesem Fix und konnte es deshalb nicht erkennen. Im Harness-Lauf ohne Fix ließ sich der Fehler lokal reproduzieren (4 Befunde).
 **Fix:** In der Textschicht (`.image-page .image-page__text *`) gilt `overflow: visible`. Die unsichtbare Schicht hat damit keine scrollbaren Bereiche mehr, und `tabindex=-1` ist unkritisch. Ein neuer Test prüft die Regel. Der Harness-axe-Lauf über alle 12 `KitTable`-Seiten auf 1440 und 375 px ergab danach 0 neue Verstöße, der Bildvergleich blieb unverändert bei 0,000 %. `tsc`, `lint`, `format`, `vitest` (1642), `verify`, `build` und `quality-budget` sind grün.
+
+---
+
+## [2026-09-27] Release v2.3.2 veröffentlicht
+
+- **Release-Commit:** `9372b439332b159dc0d7b34cd9fd399ee33f6913`, der Merge von PR #37, von GitHub signiert (`gpgsig`).
+- **Tag:** `v2.3.2`, annotiert (Tag-Objekt `bd01a84`), Tagger Marc Pönisch, zeigt auf `9372b43`. Gesetzt von Marc lokal per `git tag -a` und gepusht. Aus der Builder-Sitzung heraus lehnt der Git-Proxy Tag-Pushes und das Löschen fremder Branches weiterhin mit HTTP 403 ab.
+- **Gate:** G67-1 bis G67-8 vom Builder nachgewiesen, G67-9 (Sichtprüfung Marc) bestanden, Codex-Prüfung ohne blockierende Befunde (Einträge oben). Die Bedingung „Pflichtprüfungen des PR-CI-Laufs auf dem finalen Stand grün“ ist erfüllt.
+- **CI auf `main`:** [Lauf 178](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36279913005) auf `9372b43`, 7/7 Jobs grün (build, typecheck, lint, size-limit, test, livekpi-verifiers, e2e inkl. Axe, Lighthouse, Migrationsnachweis, Finding-Baseline, Readiness sowie Backup und Wiederherstellung).
+- **GitHub-Release:** [„LeadPilot v2.3.2“](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/releases/tag/v2.3.2) auf dem Tag `v2.3.2`.
+- **Korrektur beim Taggen:** Der erste Anlauf über die Weboberfläche erzeugte den einfachen Tag `Versionv3.2.2` und das Release „LeadPilot v3.2.2“ (richtiger Commit, falscher Name). Beides ist korrigiert: `Versionv3.2.2` ist gelöscht, das Release hängt am annotierten Tag `v2.3.2` und heißt „LeadPilot v2.3.2“. Auf dem Remote gibt es danach nur noch den Tag `v2.3.2` für dieses Release.
+- **Aufgeräumt:** Hilfsbranch `visual-baselines/v2.3.2` gelöscht (Freigabe Marc, 26.09.2026). Sein letzter Commit `e2c6f89` war vorher vollständig in `main` enthalten.
+- **Nachweis (27.09.2026):** `git ls-remote --tags origin v2.3.2` zeigt `bd01a84` bzw. `9372b43` (`^{}`); `git cat-file -t v2.3.2` ergibt `tag`; `git ls-remote --heads origin visual-baselines/v2.3.2` ist leer; `package.json` auf `main` nennt `2.3.2`.
+- **Bekannte Abweichungen:** `docs/releases/V2.3.2.md` im Tag `v2.3.2` nennt noch den Status „Release-Kandidat“. Maßgeblich ist die Fassung auf `main`. Der Tag wird nicht verschoben. Das GitHub-Release hat noch keinen Beschreibungstext. Den Text aus `docs/releases/V2.3.2.md` kann Marc über „Edit release“ einfügen, wie bei v2.3.1.
