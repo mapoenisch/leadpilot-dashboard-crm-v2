@@ -13644,6 +13644,68 @@ Der Codex-Connector hat auf `d4640cc` drei Befunde gemeldet. Alle drei sind bere
 
 **Ergebnis & Freigabestatus:** G67 ist auf dem finalen Stand von Codex geprüft, ohne blockierende Befunde. Auftrag 069 ist abgeschlossen.
 
+
+---
+
+## [2026-10-01] PR #40 – Codex-Review der Claude-GitHub-Einrichtung
+
+**Prüfstand:** `3f632679c6fa03e66d3e6bb9c5117ae9c3d5e27d`, Basis `3f58868201d6cfd9c58d92ba863036bd05b17308`. PR: https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/pull/40.
+
+**Umfang:** Einzige PR-Änderung ist `.github/workflows/claude.yml` (50 Zeilen). Remote-Diff, Projektregeln auf dem PR-Stand, Secret-Namen und laufende CI gelesen. Keine Workflow-/App-Codeänderung durch Codex; keine GitHub-Kommentare gepostet.
+
+**[P2, blockierend für G58] Externe Actions nicht auf Commit-SHA gepinnt:** Zeile 29 verwendet `actions/checkout@v4`, Zeile 35 verwendet `anthropics/claude-code-action@v1`. Der v2.3.0-Produktionsentwurf §13/G58 und Auftrag 067L verlangen vollständige unveränderliche 40-stellige SHAs für sämtliche externen Actions. Bewegliche Tags verletzen diese Grenze. Korrektur: Checkout auf die bereits projektweit verwendete SHA `11bd71901bbe5b1630ceea73d27597364c9af683` und Claude-Action auf die am 01.10.2026 via GitHub API verifizierte v1-Commit-SHA `12dd8d74c712f5f3669365b2369b558c495b1104` pinnen, jeweilige Version als Kommentar dokumentieren.
+
+**Authentifizierung:** Secret-Name `CLAUDE_CODE_OAUTH_TOKEN` ist auf GitHub vorhanden und stimmt mit dem Workflow überein. Inhalt/Gültigkeit des Tokens wurden nicht eingesehen oder durch einen Agentenlauf getestet. Read-Rechte des Workflow-Tokens sind kein belegter Schreibfehler: die Claude-Action kann die gesonderte App-Identität benutzen. Tatsächliche App-Schreibfunktion bleibt im Funktionstest nachzuweisen.
+
+**Funktionsgrenze:** Der Workflow reagiert auf explizite `@claude`-Erwähnungen. Kein eigener Claude-Reviewjob vorhanden, passend zur Rollenentscheidung. Automatische Codex-Befundnacharbeit ohne Erwähnung und ohne Bot-Freigabe ist noch nicht eingerichtet; das ist ein separater Folgeauftrag, keine erfüllte Automatisierung.
+
+**CI-Snapshot:** build, lint, typecheck, livekpi-verifiers und size-limit erfolgreich; test noch ausstehend. E2E ist von test abhängig und im gelesenen Snapshot noch nicht abgeschlossen. Kein vollständiger Gate-Erfolg behauptet. Lokale App-Tests wurden nicht erneut ausgeführt; keine UI-Änderung, daher keine Screenshot-Matrix für diesen Review. Der PR-Schutzbereichs-Diff ist leer, da ausschließlich der neue Workflow betroffen ist.
+
+**Ergebnis:** Noch keine Merge-Freigabe. Claude Code korrigiert das SHA-Pinning; danach prüft Codex den neuen PR-Head und den vollständig abgeschlossenen CI-Lauf. Rollen-/Planänderungen aus dieser lokalen Unterhaltung sind bislang nicht Bestandteil von PR #40 und müssen vor dem Dashboard-Bau ins Remote-Repo übernommen werden.
+
+
+---
+
+## [2026-10-01] PR #40 – Codex-Nachprüfung des SHA-Pinnings
+
+**Prüfstand:** `dce5e2258f40129de37aafa151464c53a5cf475d`, Basis weiterhin `3f58868201d6cfd9c58d92ba863036bd05b17308`.
+
+**Befund:** Beide externen Actions sind jetzt auf die zuvor verifizierten vollständigen Commit-SHAs gepinnt, mit Versionskommentaren. Der Befund aus dem ersten Review ist behoben. Gegen die PR-Basis wird ausschließlich `.github/workflows/claude.yml` hinzugefügt; Schutzbereiche bleiben unverändert. Keine weiteren blockierenden Codebefunde im geprüften Workflow.
+
+**CI-Snapshot auf dem neuen Stand:** lint, typecheck, build, livekpi-verifiers und size-limit erfolgreich. test läuft noch; die abhängige E2E-Prüfung ist noch nicht abgeschlossen. Lauf: https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36838580643. Keine lokalen Prüfungen wiederholt, da der einzige neue Codeunterschied zwei Action-Referenzen betrifft.
+
+**Freigabestatus:** Codeprüfung bestanden; endgültige Merge-Freigabe steht bis zum vollständigen grünen CI-Abschluss desselben PR-Heads aus. Keine Freigabe für die noch separat einzurichtende Codex-/Claude-Nacharbeitsschleife. Claude-Action selbst muss nach Merge über einen begrenzten Auftrag funktional nachgewiesen werden. PR wurde durch Codex nicht gemergt und kein externer Kommentar gepostet.
+
+
+---
+
+## [2026-10-01] PR #40 – Ursache des roten CI-Laufs verifiziert
+
+**Stand:** `dce5e2258f40129de37aafa151464c53a5cf475d`, Lauf 36838580643. GitHub-Jobstatus mit einzelnen Step-Ergebnissen und `--log-failed` gelesen.
+
+**Tatsächlicher Fehler:** Job `test`, Step 10 „Dependency Audit Check“. `npm audit --omit=dev` meldet 0 Schwachstellen und ist erfolgreich. Der anschließende Voll-Audit `npm audit --audit-level=high` meldet `brace-expansion` (high) und `ip-address` (moderate) und beendet den Step mit Exit-Code 1.
+
+**Abgrenzung:** Step 8 „Vitest mit Coverage“ und Step 9 „Legacy-Harness“ sind erfolgreich. Die vorgelegte Fremddiagnose eines fehlgeschlagenen Coverage-Schritts und undichter UI-Fehlertests ist damit für diesen Lauf widerlegt. Console-Spies oder globale Unterdrückung von Konsolenausgaben sind keine begründete Behebung. Der nachfolgende E2E-Job wurde aufgrund der Abhängigkeit von `test` übersprungen; Migration Integrity Check wurde ebenfalls übersprungen.
+
+**Nacharbeit durch Builder:** Claude Code untersucht die betroffenen direkten/transitiven Entwicklungsabhängigkeiten und aktualisiert nur die notwendigen Pakete bzw. Lockfile-Auflösungen. Kein pauschales `npm audit fix --force`, keine Abschwächung der Audit-Schwelle, keine Änderung an bestandenen UI-Tests oder Vitest-Konfiguration. Nach Aktualisierung beide Audit-Kommandos sowie Pflichtgates und vollständige CI einschließlich E2E nachweisen. Codex prüft den neuen Diff unabhängig.
+
+**Freigabestatus:** Workflow-Codebefund bleibt behoben, Merge weiterhin nicht freigegeben wegen fehlgeschlagener Audit-Prüfung und übersprungener Pflichtprüfungen. Keine Paket-/Codeänderungen oder externe Nachrichten durch Codex.
+
+
+---
+
+## [2026-10-01] PR #40 – Lockfile-Nachprüfung und offene Review-Threads
+
+**Prüfstand:** `162b1f2e2b797dbec029b1d2ce1435965a287afb`. Remote-Diff, aktueller CI-Status und sämtliche drei Review-Threads gelesen.
+
+**Lockfile:** Ausschließlich drei Entwicklungsabhängigkeits-Auflösungen angehoben: brace-expansion 1.1.18 → 1.1.21, verschachtelt 5.0.9 → 5.0.12, ip-address 10.7.0 → 10.7.2, jeweils einschließlich resolved/integrity. Kein package.json-, Test-, Audit-Schwellen- oder Anwendungscodewechsel. Workflow-Pinning unverändert korrekt.
+
+**CI-Snapshot:** lint, typecheck, test einschließlich Audit, build, livekpi-verifiers und size-limit erfolgreich. E2E läuft noch. Lauf 36839664375; finale Gate-Freigabe nicht erteilt.
+
+**Offene Threads:** (1) Fehlender Detailauftrag und BUILD_LOG-Nachweis im PR ist berechtigt: der Remote-Diff enthält nur Workflow und Lockfile. Lokale Revieweinträge dieser Unterhaltung sind noch kein Bestandteil des PR. (2) SHA-Pinning-Befund technisch behoben, aber Thread noch unaufgelöst/veraltet. (3) assigned-Trigger ist berechtigt: jedes Zuweisen eines Issues, dessen Titel/Text @claude enthält, startet erneut Claude, auch wenn der Auftrag bereits beim Öffnen gestartet wurde. Minimaler Fix: issues.types auf [opened] begrenzen, sofern kein ausdrücklich benötigter Claude-Assignee vorgesehen ist. Keine Änderung durch Codex.
+
+**Nacharbeit:** Claude ergänzt begrenzten Auftrag und echte Gate-Nachweise, entfernt den unbegrenzten assigned-Trigger und liefert einen neuen PR-Stand. Erst nach Nachprüfung Befundthreads als erledigt markieren; gelöster Pinning-Thread darf schon jetzt geschlossen werden. Kommentare wurden gelesen, nicht extern beantwortet oder aufgelöst. Nach erneutem Commit zählen CI/Review des neuen Heads. Kein Merge.
+
 ---
 
 ## [2026-10-01] CI-Auftrag Claude-Workflow / PR #40 — Codex-Review (Bot) nachgearbeitet (Builder: Claude Code)
