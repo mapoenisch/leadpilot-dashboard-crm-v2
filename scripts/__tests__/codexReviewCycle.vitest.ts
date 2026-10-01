@@ -333,18 +333,54 @@ describe('Workflow-Verträge', () => {
     expect(request).toContain('tool=.cycle-tools/scripts/codexReviewCycle.mjs');
   });
 
-  it('gibt Claude keine Merge-, Freigabe- oder Force-Push-Werkzeuge', () => {
+  // Job-Abschnitte von codex-rework.yml (zwei Leerzeichen Einzug, Name mit Doppelpunkt).
+  const job = (name: string) => {
+    const start = rework.indexOf(`\n  ${name}:\n`);
+    const next = rework.slice(start + 1).search(/\n  [a-z]+:\n/);
+    return next === -1 ? rework.slice(start) : rework.slice(start, start + 1 + next);
+  };
+
+  it('gibt Claude keine Push-, Merge-, Freigabe- oder Kommentar-Werkzeuge', () => {
     const allowed = rework.match(/--allowedTools "([^"]+)"/)?.[1] ?? '';
-    expect(allowed).not.toMatch(/gh pr merge|gh pr review|gh api|--force|git push:\*/);
+    expect(allowed).not.toMatch(/git push|gh pr merge|gh pr review|gh pr comment|gh api|--force/);
     expect(rework).toMatch(
-      /--disallowedTools "[^"]*Bash\(gh pr merge:\*\)[^"]*Bash\(gh pr review:\*\)/,
+      /--disallowedTools "[^"]*Bash\(git push:\*\)[^"]*Bash\(gh pr merge:\*\)[^"]*Bash\(gh pr review:\*\)/,
     );
   });
 
-  it('sperrt Schutzbereiche und Workflows vor und nach dem Push', () => {
+  it('führt PR-Code nur im Job ohne Schreibrechte und ohne Zugangsdaten aus', () => {
+    const reworkJob = job('rework');
+    const permissions = reworkJob.slice(
+      reworkJob.indexOf('permissions:'),
+      reworkJob.indexOf('steps:'),
+    );
+    expect(permissions).not.toMatch(/: write/);
+    expect(permissions).not.toMatch(/id-token/);
+    expect(reworkJob).toContain('persist-credentials: false');
+    expect(reworkJob).toContain('npm ci --ignore-scripts');
+    expect(rework).not.toMatch(/npm ci\s*$/m);
+    expect(reworkJob).toContain('github_token: ${{ github.token }}');
+    expect(reworkJob).not.toMatch(/^\s*git push/m);
+  });
+
+  it('pusht nur im Job ohne PR-Code und erst nach Prüfung der Commits', () => {
+    const publish = job('publish');
+    expect(publish).not.toMatch(/\bnpm\b|\bnpx\b|\bnode\b|claude-code-action/);
     const guarded =
       'src/simulation src/types src/context src/services/data src/features/resources .github';
-    expect(rework.split(guarded).length - 1).toBe(2);
+    expect(publish).toContain(guarded);
+    expect(publish).toContain('git merge-base --is-ancestor "$START_SHA" codex-rework-result');
+    expect(publish.indexOf('git diff --name-only')).toBeLessThan(
+      publish.indexOf('git push origin'),
+    );
+    expect(publish).toMatch(/^\s*git push origin "codex-rework-result:refs\/heads\/\$HEAD_REF"$/m);
+    expect(publish).not.toMatch(/git push[^\n]*(--force|\s-f\b|\+)/);
+  });
+
+  it('entschärft die von PR-Code beeinflusste Zusammenfassung vor dem Veröffentlichen', () => {
+    const publish = job('publish');
+    expect(publish).toContain('s/<!--/\\&lt;!--/g');
+    expect(publish).toContain('s/@claude/claude/gI');
   });
 
   it('schreibt keine Kommentare, die den @claude-Workflow auslösen', () => {

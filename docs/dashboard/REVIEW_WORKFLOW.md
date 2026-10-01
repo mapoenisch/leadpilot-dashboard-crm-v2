@@ -11,9 +11,12 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
    Befunden, startet `codex-rework.yml` genau eine Nacharbeitsrunde. Das Ergebnis kann ein Review
    mit Inline-Befunden sein oder ein Ergebnis-Kommentar mit P-Befunden. Claude bearbeitet dabei
    alle Befunde zum aktuellen Head-SHA gemeinsam. Berechtigte Befunde behebt Claude,
-   unberechtigte begründet Claude im PR-Kommentar. Danach laufen die Gates, ein BUILD_LOG-Eintrag
-   entsteht und Claude pusht auf denselben Branch.
-4. Der neue Push startet CI und Codex-Review erneut. Gibt es keine Befunde mehr, endet der
+   unberechtigte begründet Claude. Danach laufen die Gates, ein BUILD_LOG-Eintrag entsteht und
+   Claude committet lokal, in einem Job nur mit Leserechten. Ein getrennter Job prüft die Commits
+   und pusht sie auf denselben Branch. Er veröffentlicht auch Claudes Zusammenfassung.
+4. Der neue Push startet die CI (per `workflow_dispatch`) und den Codex-Review erneut.
+   Codex soll auch Pushes des Workflow-Tokens prüfen. Falls nicht, gilt der manuelle Auslöser
+   unten. Gibt es keine Befunde mehr, endet der
    Kreislauf von selbst.
 5. Freigabe und Merge bleiben bei Marc (Codex-Freigabe des aktuellen Head, CI grün,
    `CLAUDE.md` §9).
@@ -27,8 +30,10 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
 | Veraltetes Ergebnis | Geprüfter SHA (Review-Commit bzw. eindeutiger SHA der Dateilinks) muss dem live gelesenen Head-SHA entsprechen, sonst Abbruch |
 | Doppelte Ausführung | `concurrency` je PR; Rundenmarkierung je Head-SHA und Review, nur von `github-actions[bot]` gezählt |
 | Endlosschleife | Höchstens 3 Runden pro PR, danach einmalig `@mapoenisch` im PR; fehlgeschlagene Runden zählen mit |
-| Schutzbereiche, Workflows, Force-Push | `pre-push`-Hook im Runner und Prüfung des Remote-Branches nach dem Lauf |
-| Merge oder Freigabe durch Claude | Keine Werkzeuge dafür (`gh pr merge`, `gh pr review`, `gh api` gesperrt) |
+| PR-Code mit Schreibrechten (z. B. `postinstall`) | PR-Code läuft nur im Job `rework` mit Leserechten, ohne gespeicherte Zugangsdaten und mit `npm ci --ignore-scripts` |
+| Schutzbereiche, Workflows, Force-Push | Job `publish` (ohne PR-Code) pusht nur einen Fast-Forward ohne Änderungen an Schutzbereichen, `.github` und Arbeitsdateien |
+| Merge oder Freigabe durch Claude | Lese-Token; keine Werkzeuge für Push, Merge, Review, Kommentar oder `gh api` |
+| Gefälschte Markierungen über Claudes Text | `<!--` und `@claude` werden vor dem Veröffentlichen entschärft |
 | Manipulierte Entscheidungslogik im PR | Das Skript wird immer vom Default-Branch geladen |
 
 ## Review anfordern

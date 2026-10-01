@@ -66,23 +66,32 @@ laufen damit im bestehenden CI-Job `test` mit. Die Vitest-Konfiguration bleibt u
   weder ein Codex-Review noch eine Codex-Reaktion zu diesem Stand vorliegt (Abgleich alle
   15 Minuten). Über das Label `codex-review` fordert Marc sofort an. Je Head-SHA wird höchstens
   einmal angefordert (Markierung `<!-- codex-review-cycle:request sha=… -->`).
-- [x] **Pflichtgates und Schutzbereiche:** Claude muss vor dem Push `tsc`, Lint, Vitest,
-  `verify` und Build grün haben und einen BUILD_LOG-Eintrag schreiben. Ein `pre-push`-Hook im
-  Runner blockiert Änderungen an `src/simulation`, `src/types`, `src/context`,
-  `src/services/data`, `src/features/resources` und `.github`. Ein Prüfschritt nach dem Lauf
-  vergleicht dieselben Pfade auf dem Remote-Branch. Bei einem Treffer schlägt der Job fehl und
-  Marc wird informiert. Die CI läuft auf dem neuen Push wie bei jedem PR.
+- [x] **Pflichtgates und Schutzbereiche, Rechtetrennung:** PR-Code (`npm ci`, Gates, Claude)
+  läuft nur im Job `rework`. Der hat ausschließlich Leserechte, kein `id-token` und damit kein
+  App-Token, keine gespeicherten Zugangsdaten (`persist-credentials: false`) und installiert mit
+  `npm ci --ignore-scripts`. Claude muss dort `tsc`, Lint, Vitest, `verify` und Build grün haben,
+  einen BUILD_LOG-Eintrag schreiben und committet nur lokal. Die Commits gehen als Git-Bundle an
+  den Job `publish`, der keinen PR-Code ausführt. `publish` pusht nur, wenn der Branch noch auf
+  dem geprüften SHA steht, das Ergebnis ein Fast-Forward ist (höchstens 20 Commits) und
+  `src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`,
+  `.github` und `.codex-review-cycle` unverändert sind. Danach stößt `publish` die CI per
+  `workflow_dispatch` an. Ein Push mit dem Job-Token löst keinen `pull_request`-Lauf aus.
+  Bei jedem Fehlschlag wird Marc informiert.
 - [x] **SHA-Pinning:** Alle `uses:` auf 40-stellige SHAs, gleiche Versionen wie in `ci.yml`
   bzw. `claude.yml`.
-- [x] **Kein Merge, keine Freigabe:** Claude bekommt nur Datei-, Git- (ohne Force) und
-  Gate-Werkzeuge sowie `gh pr comment`. `gh pr merge`, `gh pr review` und `gh api` sind nicht
-  freigegeben. Das Branch-Ruleset auf `main` bleibt unverändert.
+- [x] **Kein Merge, keine Freigabe:** Claude bekommt nur Datei-, lokale Git- und
+  Gate-Werkzeuge sowie `gh pr view`. Gesperrt sind `git push`, `gh pr merge`, `gh pr review`,
+  `gh pr comment` und `gh api`, und das Lese-Token erlaubt ohnehin nichts davon. Claudes
+  Zusammenfassung veröffentlicht `publish`. Kommentarmarkierungen (`<!--`) und `@claude` werden
+  dabei entschärft. Das Branch-Ruleset auf `main` bleibt unverändert.
 - [x] Lokal prüfen: Tests der Entscheidungslogik, `tsc`, Lint, Vitest, `verify`, Build,
   Schutzbereichs-Diff, SHA-Pinning, YAML-Syntax.
 - [x] Funktionstest Review-Anforderung auf `262b8eb`: Mit dem Label schreibt `github-actions[bot]`
   genau einen `@codex review`, beim erneuten Setzen überspringt der Workflow. Ob der
   Bot-Kommentar Codex auslöst, ist **nicht belegt** (siehe BUILD_LOG). Der manuelle Auslöser
   durch Marc bleibt deshalb dokumentierter Rückfall.
+- [x] Codex-Befund auf `76edfa7` nacharbeiten: P1 (PR-Lifecycle-Skripte liefen mit
+  Schreib-Token vor der Push-Sperre). Gelöst durch die Rechtetrennung oben.
 - [x] Codex-Befunde auf `262b8eb` nacharbeiten: P1 (Logik im Request-Workflow aus dem
   PR-Checkout) und P2 (Bot-Typ in der Job-Bedingung fehlt).
 - [ ] PR-CI grün; Codex prüft Diff und CI; Befund im BUILD_LOG.

@@ -13810,3 +13810,34 @@ Nicht lokal gelaufen sind die Deno-Schritte und der Migration-Check aus dem Job 
 **Grenzen:** `codex-rework.yml` lässt sich erst nach dem Merge Ende-zu-Ende testen, weil die Claude-Action eine mit dem Default-Branch identische Workflow-Datei verlangt. Geplante Läufe (`schedule`) gibt es nur auf dem Default-Branch. Vorgeschlagener Test nach dem Merge: Ein Test-PR mit einem kleinen, absichtlich beanstandbaren Doku-Punkt. Daran zu prüfen sind Runde 1, ein neuer Push und das erneute Codex-Ergebnis. Zusätzlich auf einem Entwurfs-PR der eindeutige Test des Bot-Auslösers.
 
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI auf dem neuen Head und die Codex-Prüfung von Diff und CI. Nicht gemergt.
+
+---
+
+## [2026-10-01] CI-Auftrag Codex-Nacharbeit / PR #42 — Codex-P1 auf `76edfa7` nachgearbeitet (Builder: Claude Code)
+
+**Befund (Codex-Nachprüfung, von Marc als PR-Kommentar `5934870856` übermittelt):** P1 vorher (Default-Branch-Logik) und P2 (Bot-Typ) sind bestätigt behoben, die CI war auf `76edfa7` 7/7 grün. **Neuer P1:** Der PR-Checkout hat das Job-Token mit `contents: write` gespeichert, danach führte `npm ci` die Lifecycle-Skripte des PR aus. Der `pre-push`-Hook kam erst danach. Ein PR hätte damit per `postinstall` geschützte Dateien ändern und selbst pushen können. Die nachträgliche Remote-Prüfung meldet das nur, sie verhindert es nicht. **Berechtigt.**
+
+**Nacharbeit: Rechtetrennung in vier Jobs** (`.github/workflows/codex-rework.yml`)
+
+| Job | Rechte | Führt PR-Code aus | Aufgabe |
+|---|---|---|---|
+| `gate` | contents read, pull-requests/issues write | nein (Logik vom Default-Branch) | Ergebnis prüfen, Runde beanspruchen, Befunde als Artefakt |
+| `rework` | nur read, kein `id-token` | ja | `persist-credentials: false`, `npm ci --ignore-scripts`, Claude mit Lese-Token (`github_token`); Claude committet nur lokal; Commits als Git-Bundle |
+| `publish` | contents write, pull-requests write, actions write | nein | Branch noch auf geprüftem SHA, Bundle gültig, Fast-Forward, höchstens 20 Commits, keine Änderung an Schutzbereichen, `.github`, `.codex-review-cycle`; dann Push und `workflow_dispatch` der CI; Zusammenfassung entschärft (`<!--`, `@claude`) veröffentlichen |
+| `notify` | pull-requests write | nein | `@mapoenisch` bei Fehlschlag |
+
+Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in einem Job ohne PR-Code. Zusätzlich hat der PR-Code-Job auch kein `pull-requests: write` mehr. Er kann also weder gefälschte Markierungen als `github-actions[bot]` schreiben noch einen Review abgeben. Der Job-Token in `publish` hat keine `workflows`-Berechtigung, Änderungen an `.github/workflows` lehnt GitHub beim Push deshalb ohnehin ab.
+
+**Nachweise:**
+- Vertragstests: 31 Tests grün, 5 neu bzw. angepasst. Geprüft wird: PR-Code-Job ohne Schreibrechte und ohne `id-token`, mit `persist-credentials: false`, `npm ci --ignore-scripts` und Lese-Token, ohne Push. `publish` ohne `npm`/`npx`/`node`/Claude-Action, Schutzpfad-Diff vor dem Push, Push ohne Force. Entschärfung der Zusammenfassung. Keine Push-, Kommentar- oder Merge-Werkzeuge für Claude. **Gegenprobe:** Mit dem alten Workflow-Stand (`76edfa7`) werden genau diese 4 Vertragstests rot.
+- Simulation der `publish`-Prüfkette mit echten Git-Bundles (lokales Bare-Repo): Änderung an `src/simulation/x.ts` blockiert, neue Datei unter `.github/` blockiert, fremde Historie blockiert („kein Fast-Forward“), reine Doku-Änderung gepusht.
+- `npm ci --ignore-scripts` reicht für alle Gates. Alle lokalen Prüfungen dieses PR liefen auf einer so installierten Arbeitskopie. Übersprungen werden die Install-Skripte von `esbuild` und `unrs-resolver`, die passenden Binärpakete kommen über optionale Abhängigkeiten.
+- `npx tsc --noEmit` 0 Fehler; `npm run lint` und `format:check` Exit 0; `npm run test:coverage` 276 Dateien und 1673 Tests grün; `npm run verify` alle Suiten 001–025 grün; `npm run build` erfolgreich; SHA-Pinning vollständig; YAML gültig; `git diff --check` sauber.
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer, `src/` unverändert.
+
+**Neue Grenzen (Ende-zu-Ende-Test nach dem Merge):**
+- Pushes mit dem Job-Token starten keinen `pull_request`-Lauf. Die CI startet deshalb per `workflow_dispatch` auf dem Branch. Ob das Ruleset diese Checks für den PR-Head anerkennt, prüft der Ende-zu-Ende-Test.
+- Ob Codex („Bei jedem Push“) auf Pushes des Job-Tokens reagiert, ist offen. Sonst gilt der manuelle Auslöser durch Marc (`docs/dashboard/REVIEW_WORKFLOW.md`).
+- `CLAUDE_CODE_OAUTH_TOKEN` steht im Job `rework` zwangsläufig zur Verfügung, dort läuft auch PR-Code. Der Zyklus gilt nur für PRs aus demselben Repository, deren Autoren ohnehin Schreibrechte haben.
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI auf dem neuen Head und die Codex-Nachprüfung. Nicht gemergt.
