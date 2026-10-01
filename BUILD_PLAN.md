@@ -1,11 +1,13 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 27.09.2026
+**Stand:** 01.10.2026
 
 **Aktueller Release:** `v2.3.2` (annotierter Tag auf `9372b43`, Merge von PR #37)
 **Nächster Auftrag:** Neugestaltung des Executive Dashboards (`/dashboard`) mit Marcs Vorgaben.
-Der Detailauftrag ist noch nicht geschrieben; die Vorgaben und die Rollenverteilung legt Marc fest.
-**Rollen:** Für 068 und 069 baute Claude Code, Codex prüfte (Entscheidung Marc, 25./26.09.2026). Sonst gilt
+Der inhaltliche Plan ist von Marc am 01.10.2026 festgelegt: `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, Produktentwurf unter `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`.
+**Vorgelagert:** Claude Code baut eine isolierte Testkachel; Codex prüft technisch, Marc gibt das Design frei. Erst danach beginnt der Umbau.
+**Rollen für diesen Dashboard-Abschnitt:** Claude Code baut und schreibt Detailaufträge, Codex prüft unabhängig. Unabhängige Agentenarbeit darf parallel erfolgen; Abhängigkeiten und Integrationsfreigaben bleiben geordnet. Der möglichst automatisierte CI-/PR-Review-/Nacharbeitszyklus wird eigens eingerichtet und nachgewiesen. Lazy Loading ist verbindlich. Verbindliches Versionsziel: `v2.4.0`; noch kein Release oder Versionswechsel ausgeführt.
+**Bisherige Rollen außerhalb dieses Dashboard-Abschnitts:** Für 068 und 069 baute Claude Code, Codex prüfte (Entscheidung Marc, 25./26.09.2026). Sonst gilt
 mit `v2.3.0` wieder die Verteilung vor dem 24.09.2026 (Antigravity baut, Codex und Claude Code prüfen),
 sofern Marc nichts anderes festlegt (`CLAUDE.md` §4).
 

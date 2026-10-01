@@ -13813,6 +13813,39 @@ Nicht lokal gelaufen sind die Deno-Schritte und der Migration-Check aus dem Job 
 
 ---
 
+## [2026-10-01] CI-Auftrag Codex-Nacharbeit — Codex-Prüfung: Nacharbeit erforderlich
+
+**Prüfstand:** `262b8eb635457b2df1b399773f7453ad73a47f63`, Basis `9d5eed3004e066a3d2f8998c1a7cd893f5690214`. Geprüft wurden der vollständige PR-Diff, Auftrag und Review-Ablauf sowie die lokalen Pflichtgates. Der GitHub-CI-Status war in dieser Umgebung nicht abrufbar, weil kein `GH_TOKEN` hinterlegt ist.
+
+**[P1, blockierend] Label-Auslöser führt das Skript aus dem untrusted PR-Checkout mit Schreib-Token aus:** `codex-review-request.yml` läuft bei `pull_request: labeled` mit `pull-requests: write`, checkt aber ohne festes `ref` den Pull-Request-Merge-Stand aus und startet anschließend `scripts/codexReviewCycle.mjs` aus genau diesem Checkout. Bei einem Same-Repository-PR kann der Branch damit das Skript verändern; wird danach das Label `codex-review` gesetzt, läuft der PR-kontrollierte JavaScript-Code mit dem Schreib-Token des Base-Workflows. Die Einschränkung auf `head.repo.full_name == github.repository` verhindert Forks, nicht aber manipulierte Same-Repository-Branches. Korrektur: Wie im Rework-Workflow muss die ausführbare Entscheidungslogik explizit vom Default-Branch ausgecheckt und von dort gestartet werden (alternativ den ganzen Checkout auf den unveränderlichen Default-Branch pinnen). Ein Vertragstest muss absichern, dass auch der Request-Workflow niemals das Skript aus dem PR-Stand ausführt.
+
+**[P2] Job-Bedingung prüft den geforderten Bot-Typ nicht:** Auftrag und PR-Beschreibung verlangen bereits in der Job-Bedingung die Kombination aus Login, Typ `Bot` und ID. `codex-rework.yml` prüft dort nur Login und ID; erst das später gestartete Skript prüft `type`. Die API-Prüfung verhindert derzeit zwar die Nacharbeit, die deklarierte Triggergrenze und ihr Vertragstest sind aber unvollständig. Korrektur: `github.event.review.user.type == 'Bot'` in die Job-Bedingung aufnehmen und im Workflow-Vertragstest behaupten.
+
+**Lokale Verifikation:** `npx vitest run scripts/__tests__/codexReviewCycle.vitest.ts` (1 Datei, 26 Tests), `npx tsc --noEmit`, `npm run lint`, `npm run verify` (Suiten 001–025) und `npm run build` sind grün. Der Schutzbereichs-Diff gegen die PR-Basis ist leer. Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Ergebnis & Freigabestatus:** Keine Freigabe. Claude Code behebt die beiden Befunde gesammelt; danach prüft Codex den neuen Head und die vollständige PR-CI erneut. Kein Merge durch Codex.
+
+---
+
+## [2026-10-01] PR #42 – Codex-Nachprüfung auf 76edfa7
+
+### Codex-Nachprüfung PR #42
+
+Prüfstand: `76edfa720eb6c36f43b749319179f615260f10ed`. Die bisherigen Befunde P1 (Default-Branch-Logik) und P2 (Bot-Typ) sind behoben. Alle sieben Pflichtjobs der CI sind auf diesem Head erfolgreich.
+
+**[P1] PR-Lifecycle-Skripte laufen vor der Push-Sperre mit Schreibzugriff.** Der PR-Checkout persistiert standardmäßig das Job-Token mit `contents: write`. Anschließend führt `npm ci` die vom PR kontrollierten Lifecycle-Skripte aus; der `pre-push`-Hook wird erst danach installiert. Ein Same-Repository-PR kann über `postinstall` geschützte Dateien ändern und unmittelbar auf seinen Branch pushen, bevor die Schutzprüfung greift. Die nachträgliche Remote-Prüfung kann das nur melden, nicht verhindern. Das verletzt die geforderte Sperre vor dem Push. Installation ohne Lifecycle-Skripte und ohne persistierte Schreib-Credentials durchführen; benötigte Install-Skripte nur gezielt in einer Umgebung ohne Schreibzugriff zulassen. Nur den Hook vorzuziehen reicht als Sicherheitsgrenze gegenüber beliebigem PR-Code nicht aus.
+
+https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/blob/76edfa720eb6c36f43b749319179f615260f10ed/.github/workflows/codex-rework.yml#L72-L102
+
+Nachweis: harmlose isolierte Offline-Probe mit dependency-freiem Paket; `npm ci` führte dessen `postinstall` aus und erzeugte eine Markerdatei. Kein Push, kein Angriff und keine Änderung am Anwendungscode.
+
+**Ergebnis: Nacharbeit erforderlich, keine Merge-Freigabe.** Der Funktionstest der vollständigen Schleife und des Bot-Kommentar-Auslösers bleibt nach dem Merge erforderlich. Keine Korrektur durch Codex.
+
+
+Prüfumfang: vollständiger PR-Diff, Auftrag, Review-Ablauf, Workflow-Verträge, gepinnter Claude-Action-Quellcode und aktueller GitHub-CI-Stand (Lauf 36878976385). Keine UI-Änderung; Schutzbereichs-Diff leer laut vollständiger PR-Dateiliste (keine src-Dateien). Lokale Pflichtgates nicht erneut ausgeführt; CI liefert auf exakt diesem Head lint, typecheck, test, build, livekpi-verifiers, size-limit und e2e erfolgreich. Token-Widerruf-Hypothese mit öffentlichem Git-Zugriff widerlegt und nicht als Befund gewertet. Bestehende lokale Änderungen bleiben erhalten.
+
+---
+
 ## [2026-10-01] CI-Auftrag Codex-Nacharbeit / PR #42 — Codex-P1 auf `76edfa7` nachgearbeitet (Builder: Claude Code)
 
 **Befund (Codex-Nachprüfung, von Marc als PR-Kommentar `5934870856` übermittelt):** P1 vorher (Default-Branch-Logik) und P2 (Bot-Typ) sind bestätigt behoben, die CI war auf `76edfa7` 7/7 grün. **Neuer P1:** Der PR-Checkout hat das Job-Token mit `contents: write` gespeichert, danach führte `npm ci` die Lifecycle-Skripte des PR aus. Der `pre-push`-Hook kam erst danach. Ein PR hätte damit per `postinstall` geschützte Dateien ändern und selbst pushen können. Die nachträgliche Remote-Prüfung meldet das nur, sie verhindert es nicht. **Berechtigt.**
@@ -13841,3 +13874,41 @@ Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in ei
 - `CLAUDE_CODE_OAUTH_TOKEN` steht im Job `rework` zwangsläufig zur Verfügung, dort läuft auch PR-Code. Der Zyklus gilt nur für PRs aus demselben Repository, deren Autoren ohnehin Schreibrechte haben.
 
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI auf dem neuen Head und die Codex-Nachprüfung. Nicht gemergt.
+
+---
+
+## [2026-10-01] PR #42 – Codex-Nachprüfung auf c1dde4f
+
+### Codex-Nachprüfung PR #42
+
+**Prüfstand:** `c1dde4fc5a90883d4d227e94d78787a42d778938`.
+
+**Keine neuen blockierenden Befunde.** Der P1 vom vorherigen Review ist behoben: PR-Code läuft im Job `rework` nur mit Leserechten, Checkout ohne persistierte Credentials, Installation mit `npm ci --ignore-scripts`. Der separate Job `publish` führt keinen PR-Code aus und prüft Bundle, Fast-Forward und Schutzpfade vor dem Push. Die bisherigen Befunde zur Default-Branch-Logik und Bot-Typ-Prüfung bleiben behoben.
+
+Alle sieben Pflichtjobs auf diesem Head sind erfolgreich: lint, typecheck, test, build, livekpi-verifiers, size-limit, e2e. CI-Lauf: https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36887138804
+
+Vollständiger Diff und Nacharbeitsdelta, Auftrag, Review-Ablauf, gepinnte Action und CI geprüft. Schutzbereiche unverändert (keine src-Dateien im PR-Diff). Keine UI-Änderung; Screenshot-Gate entfällt. Lokale Builds nicht wiederholt, CI auf exakt diesem Head liefert die Pflichtgates.
+
+**Review und CI bestanden; Merge durch Marc freigegeben.** Die vollständige Schleife, Ruleset-Anerkennung der per workflow_dispatch gestarteten CI und Review nach einem Workflow-Token-Push müssen anschließend am Test-PR nachgewiesen werden. Das ist noch keine Bestätigung des Ende-zu-Ende-Betriebs. Codex hat nichts gemergt und keinen Anwendungscode geändert.
+
+Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerhalb des PR-Diffs und wurden bei dieser Nachprüfung nicht aufgelöst.
+
+---
+
+## [2026-10-02] Doku-Abgleich: lokale Plan- und Regeländerungen ins Repo (Builder: Claude Code)
+
+**Ziel & Kontext:** Damit Cloud-Sitzungen (claude.ai/code, `@claude`) mit denselben Regeln arbeiten wie die lokale Sitzung, kommen Marcs bislang nur lokal vorhandene Änderungen vom 01.10.2026 ins Repo (Freigabe Marc). Basis `main` `7646d81`.
+
+**Übernommen:**
+- `CLAUDE.md` §4: abschnittsspezifische Entscheidung Marc vom 01.10.2026 zum Executive-Dashboard-Umbau, unverändert
+- `BUILD_PLAN.md`: Stand 01.10.2026, nächster Auftrag, Rollen, Versionsziel `v2.4.0`, unverändert
+- `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`: unverändert
+- `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`: Abschnitt „Review-Auslösung“ und Schritt 2 im Ablauf an das Ergebnis des Ende-zu-Ende-Tests (PR #43) angepasst, sonst unverändert
+- `docs/dashboard/AGENT_SETUP.md`: Nachtrag zum Stand am Anfang, überholter Befund als Verlauf erhalten
+- `docs/BUILD_LOG.md`: drei Codex-Einträge, die nur lokal standen (Prüfung auf `262b8eb`, Nachprüfungen auf `76edfa7` und `c1dde4f`), chronologisch eingeordnet und wörtlich übernommen. Die lokale Datei enthielt dort Konfliktmarkierungen mit jeweils leerer „theirs“-Seite. Entfernt wurden nur diese Markerzeilen, der Inhalt ist vollständig erhalten. Die übrigen fünf lokalen Einträge standen schon auf `main` und sind nicht doppelt übernommen.
+
+**Nicht übernommen:** `.playwright-mcp/` (lokale Browser-Logs).
+
+**Verifikation:** Secrets-Scan der übernommenen Dateien ohne Treffer; keine Konfliktmarkierungen; keine doppelten Überschriften; `npx tsc --noEmit` Exit 0; `npm run verify` Exit 0; `npm run build` Exit 0; Schutzbereichs-Diff gegen `origin/main` leer (0 Zeilen). Nur Doku, keine Screenshot-Matrix.
+
+**Ergebnis & Freigabestatus:** Builder-Prüfung abgeschlossen. Offen ist die Codex-Prüfung. Nicht gemergt.
