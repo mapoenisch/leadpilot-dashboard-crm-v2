@@ -13755,3 +13755,89 @@ Nicht lokal gelaufen sind die Deno-Schritte und der Migration-Check aus dem Job 
 **Workflow-Funktion:** Die Action läuft erst, wenn `claude.yml` identisch auf dem Default-Branch liegt. Im Lauf `36838469680` (Event `pull_request_review_comment` auf `3f63267`) hat sie mit „Workflow validation failed“ abgebrochen, ohne etwas zu tun. Ein Funktionstest mit `@claude` ist deshalb erst nach dem Merge möglich.
 
 **Ergebnis & Freigabestatus:** Alle Builder-Gates sind grün. Offen sind die PR-CI auf dem finalen Head und die Codex-Prüfung von Diff und CI. Nicht gemergt.
+
+---
+
+## [2026-10-01] CI-Auftrag Codex-Nacharbeit / PR #42 — automatische Nacharbeit eingerichtet (Builder: Claude Code)
+
+**Ziel & Kontext:** Kreislauf Claude baut → Codex reviewt → Claude bearbeitet berechtigte Befunde gesammelt → neuer Push → CI und Codex prüfen erneut. Höchstens drei Runden pro PR, kein Merge und keine Freigabe durch Claude. Basis `main` `9d5eed3` (nach PR #40). Die Claude-GitHub-Anbindung war vorher in Issue #41 erfolgreich getestet. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT.md`.
+
+**Geänderte Dateien (alle neu):** `.github/workflows/codex-rework.yml`, `.github/workflows/codex-review-request.yml`, `scripts/codexReviewCycle.mjs`, `scripts/__tests__/codexReviewCycle.vitest.ts`, `docs/dashboard/REVIEW_WORKFLOW.md`, `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT.md`, `docs/BUILD_LOG.md` (dieser Eintrag). Nicht geändert: `ci.yml`, `claude.yml`, Vitest-Konfiguration, `package.json`, `src/`.
+
+**Umsetzung (Kurzfassung):**
+- Auslöser für die Nacharbeit sind nur ganze Codex-Ergebnisse, also `pull_request_review: submitted` oder ein Ergebnis-Kommentar (`issue_comment: created`). Die Job-Bedingung prüft Login `chatgpt-codex-connector[bot]`, ID `199175422` und Typ `Bot`. Das Skript prüft dasselbe noch einmal über die API. `allowed_bots` enthält nur diesen Bot.
+- Das geprüfte Ergebnis muss zum live gelesenen Head-SHA passen, sonst wird übersprungen. Jede Runde wird vor dem Start per Markierung beansprucht. Markierungen zählen nur von `github-actions[bot]`. `concurrency` läuft je PR, laufende Runden werden nicht abgebrochen. Ab drei Runden geht einmalig ein Hinweis an `@mapoenisch`.
+- Claude hat keine Werkzeuge für Merge, Freigabe, `gh api` oder Force-Push. Ein `pre-push`-Hook und eine Prüfung des Remote-Branches sperren Schutzbereiche und `.github`. Die Gates sind Pflicht vor dem Push.
+- Die Entscheidungslogik wird in beiden Workflows vom Default-Branch geladen. Vor dem Merge überspringen beide deshalb mit Hinweis.
+- Alle `uses:` sind auf 40-stellige SHAs gepinnt, mit denselben Versionen wie in `ci.yml` bzw. `claude.yml`.
+
+**Funktionstest Review-Anforderung (PR #42, Head `262b8eb`, Logik noch aus dem PR):**
+
+| Zeit (UTC) | Ereignis |
+|---|---|
+| 14:19:59 | PR #42 geöffnet |
+| 14:20:11 | Codex reagiert mit 👀 auf den PR (automatischer Review, Einstellung „Team-PRs“ und „Bei jedem Push“) |
+| 14:20:27 | Label `codex-review`: [Lauf 36875530961](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36875530961), „request — Label codex-review gesetzt“; Kommentar `5933394094` von `github-actions[bot]` mit `@codex review` |
+| 14:21:06 | Label entfernt und neu gesetzt: [Lauf 36875619389](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36875619389), „skip — für 262b8eb… bereits angefordert“. Es bleibt bei genau einem Anforderungskommentar |
+| 14:23:46 | Codex-Ergebnis als PR-Kommentar `5933452386` (Aufgabenformat „Keine Freigabe – Nacharbeit erforderlich“, P1 und P2) |
+
+- **Dopplungsschutz:** belegt. Für denselben SHA gab es keinen zweiten Kommentar.
+- **Bot-Auslöser `@codex review`:** **nicht belegt.** Codex hat auf den Bot-Kommentar nicht reagiert (keine Reaktion auf `5933394094`). Das 👀 auf den PR kam 16 s vor dem Bot-Kommentar. Das Ergebnis lässt sich deshalb nicht eindeutig dem Bot-Kommentar zuordnen. Es kann genauso vom automatischen Review beim Öffnen stammen. **Folge:** Der manuelle Auslöser durch Marc (`@codex review` im PR, wenn 30 Minuten nach einem Push kein Codex-Ergebnis zum neuen Head vorliegt) ist in `docs/dashboard/REVIEW_WORKFLOW.md` als verbindlicher Rückfall festgehalten. Ein eindeutiger Test braucht einen Head ohne automatischen Review, zum Beispiel einen Entwurfs-PR. Er ist erst nach dem Merge möglich, weil die Logik jetzt vom Default-Branch kommt.
+- **Neuer Befund aus dem Test:** Codex lieferte sein Ergebnis hier als **Kommentar**, nicht als Review. Der erste Stand von `codex-rework.yml` hörte nur auf Reviews und hätte diese Befunde nie bearbeitet. Behoben: `issue_comment` als zweite Quelle. Der geprüfte SHA ergibt sich eindeutig aus den Dateilinks (`/blob/<sha>/`), gezählt werden nur Befunde mit Priorität (`**P0–P3`, P-Badge). Gegen den echten Kommentar `5933452386` geprüft (nur lesend): Quelle `comment-5933452386`, SHA `262b8eb…`, 2 Befunde → „rework, Runde 1“. Mit neuem Head → „veraltetes Ergebnis“.
+
+**Codex-Befunde auf `262b8eb` (Kommentar `5933452386`) und Nacharbeit:**
+- **P1, berechtigt:** Der Label-Pfad von `codex-review-request.yml` führte `scripts/codexReviewCycle.mjs` aus dem PR-Checkout aus, mit Schreibrecht. Jetzt lädt der Workflow die Logik per Sparse-Checkout vom Default-Branch nach `.cycle-tools`. Ein Vertragstest prüft das für beide Workflows und verbietet `node scripts/codexReviewCycle.mjs`.
+- **P2, berechtigt:** In der Job-Bedingung von `codex-rework.yml` fehlte `user.type == 'Bot'`. Jetzt prüft sie es für Review und Kommentar. Der Vertragstest prüft Login, ID und Typ für beide Quellen.
+- Codex nennt einen eigenen Ledger-Nachtrag (Commit `b0a125f`). Dieser Commit liegt nur in der Codex-Aufgabe und ist weder auf dem PR-Branch noch auf `origin`. Der Befund ist hier aus dem PR-Kommentar übernommen.
+
+**Automatisierte Verifikation (lokal, Nacharbeitsstand, Node 22.23.2):**
+- `npx vitest run scripts/__tests__/codexReviewCycle.vitest.ts`: 29 Tests grün. Mutationsprobe (erster Stand): Ohne Veraltet-Prüfung, ohne Rundenlimit oder ohne Anforderungsmarkierung werden jeweils die zugehörigen Tests rot (3 von 26).
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: Exit 0
+- `npm run format:check`: Exit 0; neue Skripte zusätzlich mit dem Repo-Prettier (3.9.6) geprüft
+- `npm run test:coverage`: 276 Testdateien, 1671 Tests grün
+- `npm run verify`: alle Integrity-Suiten 001–025 grün
+- `npm run build`: erfolgreich
+- `npm audit --audit-level=high`: 0
+- CLI lesend gegen die GitHub-API (PR #40, geschlossen): `rework-gate` und `request` → „skip — PR ist nicht offen“, Ausgaben korrekt. Ein unbekannter Befehl endet mit Exit 1.
+- SHA-Pinning: keine `uses:` ohne 40-stellige SHA; YAML aller Workflows gültig; `git diff --check` sauber
+- PR-CI [Lauf 191](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36875508604) auf `262b8eb`: 7/7 Pflichtjobs grün
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer, `src/` ist unverändert.
+
+**Screenshot-Matrix:** entfällt, keine UI-Änderung.
+
+**Grenzen:** `codex-rework.yml` lässt sich erst nach dem Merge Ende-zu-Ende testen, weil die Claude-Action eine mit dem Default-Branch identische Workflow-Datei verlangt. Geplante Läufe (`schedule`) gibt es nur auf dem Default-Branch. Vorgeschlagener Test nach dem Merge: Ein Test-PR mit einem kleinen, absichtlich beanstandbaren Doku-Punkt. Daran zu prüfen sind Runde 1, ein neuer Push und das erneute Codex-Ergebnis. Zusätzlich auf einem Entwurfs-PR der eindeutige Test des Bot-Auslösers.
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI auf dem neuen Head und die Codex-Prüfung von Diff und CI. Nicht gemergt.
+
+---
+
+## [2026-10-01] CI-Auftrag Codex-Nacharbeit / PR #42 — Codex-P1 auf `76edfa7` nachgearbeitet (Builder: Claude Code)
+
+**Befund (Codex-Nachprüfung, von Marc als PR-Kommentar `5934870856` übermittelt):** P1 vorher (Default-Branch-Logik) und P2 (Bot-Typ) sind bestätigt behoben, die CI war auf `76edfa7` 7/7 grün. **Neuer P1:** Der PR-Checkout hat das Job-Token mit `contents: write` gespeichert, danach führte `npm ci` die Lifecycle-Skripte des PR aus. Der `pre-push`-Hook kam erst danach. Ein PR hätte damit per `postinstall` geschützte Dateien ändern und selbst pushen können. Die nachträgliche Remote-Prüfung meldet das nur, sie verhindert es nicht. **Berechtigt.**
+
+**Nacharbeit: Rechtetrennung in vier Jobs** (`.github/workflows/codex-rework.yml`)
+
+| Job | Rechte | Führt PR-Code aus | Aufgabe |
+|---|---|---|---|
+| `gate` | contents read, pull-requests/issues write | nein (Logik vom Default-Branch) | Ergebnis prüfen, Runde beanspruchen, Befunde als Artefakt |
+| `rework` | nur read, kein `id-token` | ja | `persist-credentials: false`, `npm ci --ignore-scripts`, Claude mit Lese-Token (`github_token`); Claude committet nur lokal; Commits als Git-Bundle |
+| `publish` | contents write, pull-requests write, actions write | nein | Branch noch auf geprüftem SHA, Bundle gültig, Fast-Forward, höchstens 20 Commits, keine Änderung an Schutzbereichen, `.github`, `.codex-review-cycle`; dann Push und `workflow_dispatch` der CI; Zusammenfassung entschärft (`<!--`, `@claude`) veröffentlichen |
+| `notify` | pull-requests write | nein | `@mapoenisch` bei Fehlschlag |
+
+Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in einem Job ohne PR-Code. Zusätzlich hat der PR-Code-Job auch kein `pull-requests: write` mehr. Er kann also weder gefälschte Markierungen als `github-actions[bot]` schreiben noch einen Review abgeben. Der Job-Token in `publish` hat keine `workflows`-Berechtigung, Änderungen an `.github/workflows` lehnt GitHub beim Push deshalb ohnehin ab.
+
+**Nachweise:**
+- Vertragstests: 31 Tests grün, 5 neu bzw. angepasst. Geprüft wird: PR-Code-Job ohne Schreibrechte und ohne `id-token`, mit `persist-credentials: false`, `npm ci --ignore-scripts` und Lese-Token, ohne Push. `publish` ohne `npm`/`npx`/`node`/Claude-Action, Schutzpfad-Diff vor dem Push, Push ohne Force. Entschärfung der Zusammenfassung. Keine Push-, Kommentar- oder Merge-Werkzeuge für Claude. **Gegenprobe:** Mit dem alten Workflow-Stand (`76edfa7`) werden genau diese 4 Vertragstests rot.
+- Simulation der `publish`-Prüfkette mit echten Git-Bundles (lokales Bare-Repo): Änderung an `src/simulation/x.ts` blockiert, neue Datei unter `.github/` blockiert, fremde Historie blockiert („kein Fast-Forward“), reine Doku-Änderung gepusht.
+- `npm ci --ignore-scripts` reicht für alle Gates. Alle lokalen Prüfungen dieses PR liefen auf einer so installierten Arbeitskopie. Übersprungen werden die Install-Skripte von `esbuild` und `unrs-resolver`, die passenden Binärpakete kommen über optionale Abhängigkeiten.
+- `npx tsc --noEmit` 0 Fehler; `npm run lint` und `format:check` Exit 0; `npm run test:coverage` 276 Dateien und 1673 Tests grün; `npm run verify` alle Suiten 001–025 grün; `npm run build` erfolgreich; SHA-Pinning vollständig; YAML gültig; `git diff --check` sauber.
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer, `src/` unverändert.
+
+**Neue Grenzen (Ende-zu-Ende-Test nach dem Merge):**
+- Pushes mit dem Job-Token starten keinen `pull_request`-Lauf. Die CI startet deshalb per `workflow_dispatch` auf dem Branch. Ob das Ruleset diese Checks für den PR-Head anerkennt, prüft der Ende-zu-Ende-Test.
+- Ob Codex („Bei jedem Push“) auf Pushes des Job-Tokens reagiert, ist offen. Sonst gilt der manuelle Auslöser durch Marc (`docs/dashboard/REVIEW_WORKFLOW.md`).
+- `CLAUDE_CODE_OAUTH_TOKEN` steht im Job `rework` zwangsläufig zur Verfügung, dort läuft auch PR-Code. Der Zyklus gilt nur für PRs aus demselben Repository, deren Autoren ohnehin Schreibrechte haben.
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI auf dem neuen Head und die Codex-Nachprüfung. Nicht gemergt.
