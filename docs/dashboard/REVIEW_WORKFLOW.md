@@ -7,9 +7,10 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
 1. Claude Code baut auf einem PR-Branch und pusht.
 2. Die CI läuft. Codex prüft den Head-Commit. Codex ist auf „Team-PRs“ und „Bei jedem Push“
    eingestellt, „Alle PRs“ lässt sich nicht speichern.
-3. Schickt der Codex-Bot (`chatgpt-codex-connector[bot]`, ID `199175422`) einen Review mit
-   Inline-Befunden, startet `codex-rework.yml` genau eine Nacharbeitsrunde. Claude bearbeitet
-   dabei alle Befunde zum aktuellen Head-SHA gemeinsam. Berechtigte Befunde behebt Claude,
+3. Liefert der Codex-Bot (`chatgpt-codex-connector[bot]`, ID `199175422`) ein Ergebnis mit
+   Befunden, startet `codex-rework.yml` genau eine Nacharbeitsrunde. Das Ergebnis kann ein Review
+   mit Inline-Befunden sein oder ein Ergebnis-Kommentar mit P-Befunden. Claude bearbeitet dabei
+   alle Befunde zum aktuellen Head-SHA gemeinsam. Berechtigte Befunde behebt Claude,
    unberechtigte begründet Claude im PR-Kommentar. Danach laufen die Gates, ein BUILD_LOG-Eintrag
    entsteht und Claude pusht auf denselben Branch.
 4. Der neue Push startet CI und Codex-Review erneut. Gibt es keine Befunde mehr, endet der
@@ -22,8 +23,8 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
 | Risiko | Gegenmaßnahme |
 |---|---|
 | Fremder Bot oder Mensch löst Nacharbeit aus | Job-Bedingung und Skript prüfen Login, Typ `Bot` und ID von Codex; `allowed_bots` nur `chatgpt-codex-connector` |
-| Start pro Einzelkommentar | Auslöser ist nur `pull_request_review: submitted`; Inline-Kommentare starten nichts |
-| Veralteter Review | Review-SHA muss dem live gelesenen Head-SHA entsprechen, sonst Abbruch |
+| Start pro Einzelkommentar | Auslöser ist nur der ganze Review oder der Ergebnis-Kommentar von Codex; Inline-Kommentare starten nichts |
+| Veraltetes Ergebnis | Geprüfter SHA (Review-Commit bzw. eindeutiger SHA der Dateilinks) muss dem live gelesenen Head-SHA entsprechen, sonst Abbruch |
 | Doppelte Ausführung | `concurrency` je PR; Rundenmarkierung je Head-SHA und Review, nur von `github-actions[bot]` gezählt |
 | Endlosschleife | Höchstens 3 Runden pro PR, danach einmalig `@mapoenisch` im PR; fehlgeschlagene Runden zählen mit |
 | Schutzbereiche, Workflows, Force-Push | `pre-push`-Hook im Runner und Prüfung des Remote-Branches nach dem Lauf |
@@ -37,9 +38,11 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
   20 Minuten nach dem Head-Commit weder ein Review noch eine Reaktion von Codex vorliegt.
 - **Sofort per Label:** Marc setzt im PR das Label `codex-review`.
 - In allen drei Fällen gilt: je Head-SHA höchstens eine Anforderung.
-- **Manuell durch Marc:** Marc schreibt `@codex review` als Kommentar in den PR. Das geht immer
-  und ist der Rückfall, falls Codex auf den Bot-Kommentar nicht reagiert. Ergebnis des
-  Funktionstests: siehe `docs/BUILD_LOG.md`, Eintrag „CI-Auftrag Codex-Nacharbeit“.
+- **Manuell durch Marc (verbindlicher Rückfall):** Marc schreibt `@codex review` als Kommentar in
+  den PR. Das ist nötig, wenn nach einem Push 30 Minuten lang kein Codex-Ergebnis zum neuen
+  Head-SHA erscheint. Grund: Ob Codex auf den Bot-Kommentar reagiert, ist nicht belegt
+  (Funktionstest auf PR #42, siehe `docs/BUILD_LOG.md`). Jedes Ergebnis zählt nur für den Head-SHA,
+  auf den es sich bezieht.
 
 ## Eingreifen
 

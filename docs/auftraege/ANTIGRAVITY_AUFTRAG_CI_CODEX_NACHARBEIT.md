@@ -26,7 +26,7 @@ Marc im PR. Claude merged nie und gibt nie frei.
 
 | Datei | Änderung |
 |---|---|
-| `.github/workflows/codex-rework.yml` | Neu: Nacharbeit nach einem Codex-Review. |
+| `.github/workflows/codex-rework.yml` | Neu: Nacharbeit nach einem Codex-Ergebnis (Review oder Kommentar). |
 | `.github/workflows/codex-review-request.yml` | Neu: Review-Anforderung `@codex review` als Rückfallebene. |
 | `scripts/codexReviewCycle.mjs` | Neu: Entscheidungslogik und GitHub-Aufrufe (ohne Abhängigkeiten). |
 | `scripts/__tests__/codexReviewCycle.vitest.ts` | Neu: Tests der Entscheidungslogik und der Workflow-Verträge. |
@@ -39,17 +39,21 @@ laufen damit im bestehenden CI-Job `test` mit. Die Vitest-Konfiguration bleibt u
 
 ## Anforderungen und Umsetzung
 
-- [x] **Nur der verifizierte Codex-Bot:** Ein Review zählt nur, wenn `login`
+- [x] **Nur der verifizierte Codex-Bot:** Ein Ergebnis zählt nur, wenn `login`
   `chatgpt-codex-connector[bot]`, `type` `Bot` und die numerische ID `199175422` übereinstimmen.
   Die ID stammt aus dem Review auf PR #40. Der Workflow prüft das schon in der Job-Bedingung und
   das Skript prüft es noch einmal über die API. Die Claude-Action lässt nur diesen Bot zu
   (`allowed_bots`).
-- [x] **Gesammelt statt pro Kommentar:** Auslöser ist `pull_request_review: submitted`, also der
-  ganze Review. Inline-Kommentare (`pull_request_review_comment`) starten nichts. Das Skript
-  sammelt alle verifizierten Codex-Reviews zum Head-SHA samt Inline-Befunden in eine Datei. Claude
-  bearbeitet sie in einem Lauf.
-- [x] **Veraltete Reviews:** Bezieht sich ein Review nicht auf den aktuellen Head-SHA (live über
-  die API gelesen), wird er übersprungen.
+- [x] **Gesammelt statt pro Kommentar:** Codex liefert sein Ergebnis entweder als ganzen Review
+  (`pull_request_review: submitted`) oder als einen Ergebnis-Kommentar im Aufgabenformat
+  (`issue_comment: created`, so auf PR #42). Beides löst aus, Inline-Kommentare
+  (`pull_request_review_comment`) nicht. Das Skript sammelt alle verifizierten Codex-Ergebnisse
+  zum Head-SHA in eine Datei. Claude bearbeitet sie in einem Lauf. Ein Kommentar zählt nur mit
+  mindestens einem Prioritätsbefund (`**P0–P3`, P-Badge).
+- [x] **Veraltete Ergebnisse:** Bezieht sich ein Ergebnis nicht auf den aktuellen Head-SHA (live
+  über die API gelesen), wird es übersprungen. Beim Review ist das `commit_id`. Beim Kommentar ist
+  es der eine SHA aus seinen Dateilinks (`/blob/<sha>/`). Ist der SHA nicht eindeutig, wird
+  übersprungen.
 - [x] **Keine Doppelausführung:** `concurrency` je PR ohne Abbruch laufender Läufe. Vor dem Start
   schreibt der Workflow eine Markierung `<!-- codex-review-cycle:rework round=N sha=… review=… -->`
   in den PR. Gibt es für den SHA schon eine, wird übersprungen. Es zählen nur Markierungen von
@@ -75,9 +79,12 @@ laufen damit im bestehenden CI-Job `test` mit. Die Vitest-Konfiguration bleibt u
   freigegeben. Das Branch-Ruleset auf `main` bleibt unverändert.
 - [x] Lokal prüfen: Tests der Entscheidungslogik, `tsc`, Lint, Vitest, `verify`, Build,
   Schutzbereichs-Diff, SHA-Pinning, YAML-Syntax.
-- [ ] Funktionstest Bot-Auslöser: Im PR das Label `codex-review` setzen und prüfen, ob Codex auf
-  den Kommentar von `github-actions[bot]` reagiert. Label erneut setzen und prüfen, dass für
-  denselben SHA kein zweiter Kommentar entsteht.
+- [x] Funktionstest Review-Anforderung auf `262b8eb`: Mit dem Label schreibt `github-actions[bot]`
+  genau einen `@codex review`, beim erneuten Setzen überspringt der Workflow. Ob der
+  Bot-Kommentar Codex auslöst, ist **nicht belegt** (siehe BUILD_LOG). Der manuelle Auslöser
+  durch Marc bleibt deshalb dokumentierter Rückfall.
+- [x] Codex-Befunde auf `262b8eb` nacharbeiten: P1 (Logik im Request-Workflow aus dem
+  PR-Checkout) und P2 (Bot-Typ in der Job-Bedingung fehlt).
 - [ ] PR-CI grün; Codex prüft Diff und CI; Befund im BUILD_LOG.
 - [ ] Nach dem Merge durch Marc: Ende-zu-Ende-Test an einem Test-PR (siehe Grenzen).
 
@@ -88,7 +95,10 @@ laufen damit im bestehenden CI-Job `test` mit. Die Vitest-Konfiguration bleibt u
   Ende-zu-Ende testen. Vorher sind nur die Entscheidungslogik und die Review-Anforderung prüfbar.
 - Geplante Workflows (`schedule`) laufen nur vom Default-Branch. Der 15-Minuten-Abgleich wirkt
   erst nach dem Merge und kann sich bei GitHub um einige Minuten verzögern.
-- Wenn zwei Codex-Reviews zum selben SHA kurz hintereinander eintreffen, kann der zweite nach
+- Beide Workflows laden die Entscheidungslogik vom Default-Branch. Vor dem Merge überspringen sie
+  deshalb mit einem Hinweis. Der Label-Test auf `262b8eb` lief noch mit der Logik aus dem PR,
+  genau das hat Codex (P1) zu Recht beanstandet.
+- Wenn zwei Codex-Ergebnisse zum selben SHA kurz hintereinander eintreffen, kann der zweite nach
   dem Start der Runde ankommen. Er wird dann übersprungen. Seine Befunde meldet Codex beim
   nächsten Head erneut, falls sie noch gelten.
 - Bricht eine Runde ab, zählt sie trotzdem. So entstehen keine Endlosschleifen bei

@@ -1,27 +1,36 @@
-# CI-Auftrag Codex-Nacharbeit: Ein abgeschlossener Review des verifizierten Codex-Bots
-# startet eine gesammelte Nacharbeitsrunde durch Claude auf demselben PR-Branch.
-# Höchstens drei Runden pro PR, danach Hinweis an Marc. Kein Merge, keine Freigabe.
-# Entscheidungslogik: scripts/codexReviewCycle.mjs (immer vom Default-Branch geladen).
+# CI-Auftrag Codex-Nacharbeit: Ein Ergebnis des verifizierten Codex-Bots (ganzer Review
+# oder Ergebnis-Kommentar) startet eine gesammelte Nacharbeitsrunde durch Claude auf
+# demselben PR-Branch. Höchstens drei Runden pro PR, danach Hinweis an Marc.
+# Kein Merge, keine Freigabe. Entscheidungslogik: scripts/codexReviewCycle.mjs, immer vom
+# Default-Branch geladen, nie aus dem PR.
 name: Codex Rework
 
 on:
   pull_request_review:
     types: [submitted]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read
 
-# Ein Lauf pro PR; ein weiterer Review wartet, statt parallel denselben Branch zu bearbeiten.
+# Ein Lauf pro PR; ein weiteres Ergebnis wartet, statt parallel denselben Branch zu bearbeiten.
 concurrency:
-  group: codex-rework-${{ github.event.pull_request.number }}
+  group: codex-rework-${{ github.event.pull_request.number || github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
   rework:
     if: >-
-      github.event.review.user.login == 'chatgpt-codex-connector[bot]' &&
-      github.event.review.user.id == 199175422 &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      (github.event_name == 'pull_request_review' &&
+       github.event.review.user.login == 'chatgpt-codex-connector[bot]' &&
+       github.event.review.user.id == 199175422 &&
+       github.event.review.user.type == 'Bot') ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       github.event.comment.user.login == 'chatgpt-codex-connector[bot]' &&
+       github.event.comment.user.id == 199175422 &&
+       github.event.comment.user.type == 'Bot')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -31,12 +40,6 @@ jobs:
       id-token: write
       actions: read
     steps:
-      - name: PR-Branch auschecken
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
-
       - name: Entscheidungslogik vom Default-Branch laden
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -49,27 +52,39 @@ jobs:
         with:
           node-version: 22.18.0
 
-      - name: Review prüfen (Bot, Head-SHA, Dopplung, Rundenlimit)
+      - name: Ergebnis prüfen (Bot, Head-SHA, Dopplung, Rundenlimit)
         id: gate
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
           REVIEW_ID: ${{ github.event.review.id }}
+          COMMENT_ID: ${{ github.event.comment.id }}
         run: |
-          printf '%s\n' .cycle-tools .codex-review-cycle >> .git/info/exclude
           if [ ! -f .cycle-tools/scripts/codexReviewCycle.mjs ]; then
             echo "Review-Zyklus ist noch nicht auf dem Default-Branch: übersprungen."
             echo "action=skip" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          node .cycle-tools/scripts/codexReviewCycle.mjs rework-gate --pr="$PR" --review="$REVIEW_ID"
+          if [ -n "$REVIEW_ID" ]; then source="--review=$REVIEW_ID"; else source="--comment=$COMMENT_ID"; fi
+          node .cycle-tools/scripts/codexReviewCycle.mjs rework-gate --pr="$PR" "$source" \
+            --findings="$RUNNER_TEMP/codex-findings.md"
 
-      - name: Ausgecheckten Stand gegen Head-SHA prüfen
+      - name: PR-Branch auschecken
+        if: steps.gate.outputs.action == 'rework'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ steps.gate.outputs.head_ref }}
+          fetch-depth: 0
+
+      - name: Stand prüfen und Befunde bereitlegen
         if: steps.gate.outputs.action == 'rework'
         env:
           HEAD_SHA: ${{ steps.gate.outputs.head_sha }}
         run: |
           test "$(git rev-parse HEAD)" = "$HEAD_SHA" || { echo "Branch hat sich seit dem Review bewegt"; exit 1; }
+          printf '%s\n' .cycle-tools .codex-review-cycle >> .git/info/exclude
+          mkdir -p .codex-review-cycle
+          cp "$RUNNER_TEMP/codex-findings.md" .codex-review-cycle/findings.md
 
       - name: Abhängigkeiten installieren
         if: steps.gate.outputs.action == 'rework'
@@ -113,7 +128,7 @@ jobs:
             --allowedTools "Read,Edit,Write,Glob,Grep,Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git add:*),Bash(git commit:*),Bash(git push origin HEAD:*),Bash(npx tsc --noEmit),Bash(npm run lint),Bash(npm test),Bash(npm run verify),Bash(npm run build),Bash(npm run format:check),Bash(npx prettier --write:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
             --disallowedTools "Bash(git push --force:*),Bash(git push -f:*),Bash(git rebase:*),Bash(git reset:*),Bash(gh pr merge:*),Bash(gh pr review:*),Bash(gh api:*)"
           prompt: |
-            Du bist der Builder im LeadPilot-Repository. Codex hat PR #${{ github.event.pull_request.number }}
+            Du bist der Builder im LeadPilot-Repository. Codex hat PR #${{ github.event.pull_request.number || github.event.issue.number }}
             auf Head ${{ steps.gate.outputs.head_sha }} geprüft. Das ist die automatische Nacharbeitsrunde
             ${{ steps.gate.outputs.round }} von 3 auf dem Branch ${{ steps.gate.outputs.head_ref }}.
 
@@ -155,7 +170,7 @@ jobs:
         if: failure() && steps.gate.outputs.action == 'rework'
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
           ROUND: ${{ steps.gate.outputs.round }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |

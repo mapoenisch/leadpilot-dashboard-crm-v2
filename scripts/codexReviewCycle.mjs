@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // CI-Auftrag Codex-Nacharbeit (docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT.md):
 // Entscheidet, ob für einen PR ein Codex-Review angefordert wird (`request`) und ob ein
-// eingegangener Codex-Review eine Nacharbeitsrunde startet (`rework-gate`).
+// eingegangenes Codex-Ergebnis eine Nacharbeitsrunde startet (`rework-gate`). Codex liefert
+// Ergebnisse als Review (mit Inline-Befunden) oder als PR-Kommentar (Aufgabenformat).
 // Die Entscheidungen sind reine Funktionen; die CLI liest den Zustand über die GitHub-API
 // und schreibt Markierungskommentare, an denen spätere Läufe Dopplungen erkennen.
 import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -13,14 +14,15 @@ export const MARKER_AUTHOR = 'github-actions[bot]';
 export const MAX_ROUNDS = 3;
 export const REQUEST_DELAY_MS = 20 * 60 * 1000;
 export const ESCALATION_MARKER = '<!-- codex-review-cycle:escalated -->';
-export const FINDINGS_PATH = '.codex-review-cycle/findings.md';
 
 export const requestMarker = (sha) => `<!-- codex-review-cycle:request sha=${sha} -->`;
-export const reworkMarker = ({ round, sha, reviewId }) =>
-  `<!-- codex-review-cycle:rework round=${round} sha=${sha} review=${reviewId} -->`;
+export const reworkMarker = ({ round, sha, source }) =>
+  `<!-- codex-review-cycle:rework round=${round} sha=${sha} source=${source} -->`;
 
 const REWORK_PATTERN =
-  /<!-- codex-review-cycle:rework round=(\d+) sha=([0-9a-f]{40}) review=(\d+) -->/g;
+  /<!-- codex-review-cycle:rework round=(\d+) sha=([0-9a-f]{40}) source=((?:review|comment)-\d+) -->/g;
+const BLOB_SHA_PATTERN = /\/blob\/([0-9a-f]{40})\//g;
+const PRIORITY_PATTERN = /\*\*P[0-3]\b|!\[P[0-3] Badge\]/g;
 
 /** Ein Review/Kommentar/Reaktion stammt nur dann von Codex, wenn Login, Typ und ID passen. */
 export function isVerifiedCodex(user) {
@@ -43,10 +45,35 @@ export function parseReworkMarkers(comments) {
   const rounds = [];
   for (const comment of markerComments(comments)) {
     for (const match of (comment.body ?? '').matchAll(REWORK_PATTERN)) {
-      rounds.push({ round: Number(match[1]), sha: match[2], reviewId: Number(match[3]) });
+      rounds.push({ round: Number(match[1]), sha: match[2], source: match[3] });
     }
   }
   return rounds;
+}
+
+/** Der geprüfte Stand eines Codex-Kommentars: der eine SHA, auf den seine Dateilinks zeigen. */
+export function commentSha(body) {
+  const shas = new Set([...(body ?? '').matchAll(BLOB_SHA_PATTERN)].map((match) => match[1]));
+  return shas.size === 1 ? [...shas][0] : null;
+}
+
+/** Vereinheitlicht Codex-Reviews und -Kommentare zu Ergebnissen mit geprüftem SHA und Befundzahl. */
+export function codexResultFromReview(review, reviewComments) {
+  return {
+    source: `review-${review.id}`,
+    user: review.user,
+    sha: review.commit_id,
+    findingCount: reviewComments.length,
+  };
+}
+
+export function codexResultFromComment(comment) {
+  return {
+    source: `comment-${comment.id}`,
+    user: comment.user,
+    sha: commentSha(comment.body),
+    findingCount: (comment.body ?? '').match(PRIORITY_PATTERN)?.length ?? 0,
+  };
 }
 
 export function hasRequestMarker(comments, sha) {
@@ -84,6 +111,11 @@ export function decideReviewRequest({
   if (reviews.some((review) => isVerifiedCodex(review.user) && review.commit_id === sha)) {
     return { action: 'skip', reason: `Codex-Review zu ${sha} liegt vor` };
   }
+  if (
+    comments.some((comment) => isVerifiedCodex(comment.user) && commentSha(comment.body) === sha)
+  ) {
+    return { action: 'skip', reason: `Codex-Ergebnis zu ${sha} liegt als Kommentar vor` };
+  }
   const since = Date.parse(headCommittedAt);
   if (
     reactions.some(
@@ -100,19 +132,20 @@ export function decideReviewRequest({
   };
 }
 
-/** Startet ein eingegangener Review eine Nacharbeitsrunde, wird übersprungen oder an Marc eskaliert? */
-export function decideRework({ pr, review, reviewComments, comments }) {
+/** Startet ein eingegangenes Codex-Ergebnis eine Nacharbeitsrunde, wird übersprungen oder an Marc eskaliert? */
+export function decideRework({ pr, result, comments }) {
   const sha = pr.head.sha;
-  if (!isVerifiedCodex(review.user))
-    return { action: 'skip', reason: 'Review stammt nicht vom verifizierten Codex-Bot' };
+  if (!isVerifiedCodex(result.user))
+    return { action: 'skip', reason: 'Ergebnis stammt nicht vom verifizierten Codex-Bot' };
   if (pr.state !== 'open') return { action: 'skip', reason: 'PR ist nicht offen' };
   if (pr.head.repo?.full_name !== pr.base.repo?.full_name)
     return { action: 'skip', reason: 'PR aus einem Fork' };
-  if (review.commit_id !== sha)
-    return { action: 'skip', reason: `veralteter Review (${review.commit_id} statt Head ${sha})` };
-  if (reviewComments.length === 0) return { action: 'skip', reason: 'Review ohne Inline-Befunde' };
+  if (!result.sha) return { action: 'skip', reason: 'geprüfter Stand nicht eindeutig bestimmbar' };
+  if (result.sha !== sha)
+    return { action: 'skip', reason: `veraltetes Ergebnis (${result.sha} statt Head ${sha})` };
+  if (result.findingCount === 0) return { action: 'skip', reason: 'Ergebnis ohne Befunde' };
   const rounds = parseReworkMarkers(comments);
-  if (rounds.some((entry) => entry.sha === sha || entry.reviewId === review.id)) {
+  if (rounds.some((entry) => entry.sha === sha || entry.source === result.source)) {
     return { action: 'skip', reason: `Nacharbeit für ${sha} läuft bereits oder ist erledigt` };
   }
   if (rounds.length >= MAX_ROUNDS) {
@@ -127,13 +160,16 @@ export function decideRework({ pr, review, reviewComments, comments }) {
   };
 }
 
-/** Fasst alle verifizierten Codex-Reviews zum Head-SHA samt Inline-Befunden für Claude zusammen. */
-export function formatFindings({ pr, round, reviews, commentsByReview }) {
+/** Fasst alle verifizierten Codex-Ergebnisse zum Head-SHA (Reviews samt Inline-Befunden, Kommentare) zusammen. */
+export function formatFindings({ pr, round, reviews, commentsByReview, codexComments = [] }) {
   const lines = [
     `# Codex-Befunde für PR #${pr.number}, Head ${pr.head.sha}, Runde ${round} von ${MAX_ROUNDS}`,
     '',
-    'Quelle: ausschließlich Reviews von chatgpt-codex-connector[bot] zu genau diesem Head-SHA.',
+    'Quelle: ausschließlich Ergebnisse von chatgpt-codex-connector[bot] zu genau diesem Head-SHA.',
   ];
+  for (const comment of codexComments) {
+    lines.push('', `## Kommentar ${comment.id} (${comment.created_at})`, '', comment.body.trim());
+  }
   for (const review of reviews) {
     lines.push(
       '',
@@ -191,6 +227,7 @@ function createGitHub({ token, repo }) {
     issueReactions: (number) => all(`/issues/${number}/reactions`),
     commentReactions: (id) => all(`/issues/comments/${id}/reactions`),
     commit: (sha) => call('GET', `/commits/${sha}`),
+    issueComment: (id) => call('GET', `/issues/comments/${id}`),
     comment: (number, body) => call('POST', `/issues/${number}/comments`, { body }),
   };
 }
@@ -233,19 +270,23 @@ async function runRequest(gh, { prNumber, force }) {
   }
 }
 
-async function runReworkGate(gh, { prNumber, reviewId }) {
+async function runReworkGate(gh, { prNumber, reviewId, commentId, findingsFile }) {
   const pr = await gh.pr(prNumber);
-  const review = await gh.review(prNumber, reviewId);
   const comments = await gh.comments(prNumber);
-  const reviewComments = await gh.reviewComments(prNumber, reviewId);
-  const decision = decideRework({ pr, review, reviewComments, comments });
-  console.log(`PR #${prNumber}, Review ${reviewId}: ${decision.action} — ${decision.reason}`);
+  const result = reviewId
+    ? codexResultFromReview(
+        await gh.review(prNumber, reviewId),
+        await gh.reviewComments(prNumber, reviewId),
+      )
+    : codexResultFromComment(await gh.issueComment(commentId));
+  const decision = decideRework({ pr, result, comments });
+  console.log(`PR #${prNumber}, ${result.source}: ${decision.action} — ${decision.reason}`);
 
   if (decision.action === 'escalate') {
     await gh.comment(
       prNumber,
       `@mapoenisch Die automatische Nacharbeit ist gestoppt: ${decision.reason}. ` +
-        `Der neue Codex-Review ${reviewId} zu \`${pr.head.sha}\` wird nicht mehr automatisch bearbeitet. ` +
+        `Das neue Codex-Ergebnis (${result.source}) zu \`${pr.head.sha}\` wird nicht mehr automatisch bearbeitet. ` +
         `Bitte entscheide über das weitere Vorgehen.\n\n${ESCALATION_MARKER}`,
     );
   }
@@ -256,17 +297,27 @@ async function runReworkGate(gh, { prNumber, reviewId }) {
     const commentsByReview = new Map();
     for (const entry of headReviews)
       commentsByReview.set(entry.id, await gh.reviewComments(prNumber, entry.id));
-    mkdirSync(dirname(FINDINGS_PATH), { recursive: true });
+    const codexComments = comments.filter(
+      (entry) => isVerifiedCodex(entry.user) && commentSha(entry.body) === pr.head.sha,
+    );
+    mkdirSync(dirname(findingsFile), { recursive: true });
     writeFileSync(
-      FINDINGS_PATH,
-      formatFindings({ pr, round: decision.round, reviews: headReviews, commentsByReview }),
+      findingsFile,
+      formatFindings({
+        pr,
+        round: decision.round,
+        reviews: headReviews,
+        commentsByReview,
+        codexComments,
+      }),
     );
     // Die Markierung beansprucht die Runde vor dem Start, damit kein zweiter Lauf denselben Stand bearbeitet.
     await gh.comment(
       prNumber,
       `Automatische Nacharbeit gestartet: Runde ${decision.round} von ${MAX_ROUNDS} für Head \`${pr.head.sha}\` ` +
-        `(${headReviews.length} Codex-Review(s)). Kein Merge und keine Freigabe durch Claude.\n\n` +
-        reworkMarker({ round: decision.round, sha: pr.head.sha, reviewId }),
+        `(${headReviews.length} Review(s), ${codexComments.length} Kommentar(e) von Codex). ` +
+        `Kein Merge und keine Freigabe durch Claude.\n\n` +
+        reworkMarker({ round: decision.round, sha: pr.head.sha, source: result.source }),
     );
   }
   setOutputs({
@@ -293,8 +344,17 @@ async function main(argv) {
       prNumber: args.pr ? Number(args.pr) : undefined,
       force: args.force === 'true',
     });
-  if (command === 'rework-gate')
-    return runReworkGate(gh, { prNumber: Number(args.pr), reviewId: Number(args.review) });
+  if (command === 'rework-gate') {
+    if (Boolean(args.review) === Boolean(args.comment))
+      throw new Error('rework-gate braucht genau eines von --review oder --comment.');
+    if (!args.findings) throw new Error('rework-gate braucht --findings=<Datei>.');
+    return runReworkGate(gh, {
+      prNumber: Number(args.pr),
+      reviewId: args.review ? Number(args.review) : undefined,
+      commentId: args.comment ? Number(args.comment) : undefined,
+      findingsFile: args.findings,
+    });
+  }
   throw new Error(`Unbekannter Befehl: ${command ?? '(leer)'} — erlaubt: request, rework-gate`);
 }
 
