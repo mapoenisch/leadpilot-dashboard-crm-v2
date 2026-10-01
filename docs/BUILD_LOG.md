@@ -13841,3 +13841,13 @@ Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in ei
 - `CLAUDE_CODE_OAUTH_TOKEN` steht im Job `rework` zwangsläufig zur Verfügung, dort läuft auch PR-Code. Der Zyklus gilt nur für PRs aus demselben Repository, deren Autoren ohnehin Schreibrechte haben.
 
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI auf dem neuen Head und die Codex-Nachprüfung. Nicht gemergt.
+
+---
+
+## [2026-10-01] Test-PR Review-Zyklus — Kurzfassung (Builder: Claude Code)
+
+**Ziel & Kontext:** Ende-zu-Ende-Test des Review-Zyklus aus PR #42 (Codex-Prüfung → automatische Nacharbeit → neuer Push → CI und Codex erneut). Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_TEST_REVIEW_ZYKLUS.md`. Basis `main` `7646d81`. Der PR wird nicht gemergt.
+
+**Geänderte Dateien:** `docs/dashboard/REVIEW_CYCLE_KURZ.md` (neu), Auftragsdatei (neu), dieser Eintrag.
+
+**Verifikation (lokal):** `npx tsc --noEmit` Exit 0; `npm run verify` Exit 0 (Integrity-Suiten 001–025); `npm run build` Exit 0; Schutzbereichs-Diff gegen `origin/main` leer (0 Zeilen). Nur Doku, keine Screenshot-Matrix.
