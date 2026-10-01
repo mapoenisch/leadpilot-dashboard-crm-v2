@@ -13851,3 +13851,24 @@ Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in ei
 **Geänderte Dateien:** `docs/dashboard/REVIEW_CYCLE_KURZ.md` (neu), Auftragsdatei (neu), dieser Eintrag.
 
 **Verifikation (lokal):** `npx tsc --noEmit` Exit 0; `npm run verify` Exit 0 (Integrity-Suiten 001–025); `npm run build` Exit 0; Schutzbereichs-Diff gegen `origin/main` leer (0 Zeilen). Nur Doku, keine Screenshot-Matrix.
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün. Codex-Abnahme offen. Test-PR, nicht freigegeben, nicht mergen.
+
+---
+
+## [2026-10-01] Automatische Nacharbeit Runde 1 — Test-PR Review-Zyklus (Builder: Claude Code)
+
+**Befunde (Codex, Review 5385148020 auf `4efb5cf`):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4160174142 (P2) Auslösebedingung des Review-Requests | `docs/dashboard/REVIEW_CYCLE_KURZ.md` | Behoben: Bedingung „weder Review noch Reaktion“ und manueller Rückfall nach 30 Minuten ergänzt |
+| 4160174154 (P2) Push gehört in den Job `publish` | `docs/dashboard/REVIEW_CYCLE_KURZ.md` | Behoben: `rework` (lesend, lokale Commits) und `publish` (prüft, pusht) getrennt beschrieben |
+| 4160174164 (P2) Rundenlimit | `docs/dashboard/REVIEW_CYCLE_KURZ.md` | Behoben: drei statt fünf Runden |
+| 4160174176 (P2) Ergebnis- und Freigabestatus fehlt | `docs/BUILD_LOG.md` | Behoben: Status im Builder-Eintrag und hier ergänzt |
+
+**Gates:** `npx tsc --noEmit` 0 Fehler; `npm run lint` grün; `npm test` 276 Dateien / 1673 Tests grün; `npm run verify` Suiten 001–025 grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Ergebnis & Freigabestatus:** Alle Befunde behoben. Codex-Abnahme aus der Auftragsdatei steht noch aus. Test-PR, nicht freigegeben, nicht mergen.
