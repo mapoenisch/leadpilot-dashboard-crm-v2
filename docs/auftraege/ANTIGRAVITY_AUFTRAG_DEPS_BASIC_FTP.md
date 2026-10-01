@@ -31,6 +31,7 @@ zurückstufen, das ist ein Breaking Change.
 |---|---|
 | `package.json` | `overrides`: `"basic-ftp": "^6.2.1"` |
 | `package-lock.json` | Auflösung `basic-ftp` 5.3.1 → 6.2.1 |
+| `supabase/functions/deno.lock` | Gespiegelte Root-`overrides` um `basic-ftp` ergänzen, sonst scheitert `deno check --frozen-lockfile` |
 | `docs/auftraege/ANTIGRAVITY_AUFTRAG_DEPS_BASIC_FTP.md` | Diese Datei |
 | `docs/BUILD_LOG.md` | Builder-Nachweis |
 
@@ -47,4 +48,6 @@ zurückstufen, das ist ein Breaking Change.
 - [x] Override setzen, Lockfile mit `npm install --ignore-scripts` aktualisieren.
 - [x] `npm ci` aus dem Lockfile, `npm audit --omit=dev` und `npm audit --audit-level=high` bei 0.
 - [x] Gates: `tsc`, Lint, Vitest, `verify`, Build; Schutzbereichs-Diff leer.
+- [x] Edge-Lock nachziehen: `workspace.packageJson.overrides` in `supabase/functions/deno.lock`
+  spiegelt die Root-`overrides`. Nur diese eine Zeile, Root-`deno.lock` unverändert.
 - [ ] PR-CI 7/7 grün (Lighthouse im Job `e2e` nutzt `@lhci/cli`); Codex-Prüfung.

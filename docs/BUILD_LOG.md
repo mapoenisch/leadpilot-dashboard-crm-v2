@@ -13861,3 +13861,5 @@ Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in ei
 - Keine UI-Änderung, keine Screenshot-Matrix
 
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI (der Job `e2e` mit Lighthouse nutzt `@lhci/cli`) und die Codex-Prüfung. Nicht gemergt.
+
+**Nachtrag (PR #45, CI-Lauf auf `6f748bc` rot im Schritt „Deno Edge Functions typecheck“):** `supabase/functions/deno.lock` spiegelt unter `workspace.packageJson.overrides` die Root-`overrides`. Mit `--frozen-lockfile` bricht `deno check` deshalb ab, sobald `package.json` einen neuen Override hat. Im Lock ist jetzt nur `"basic-ftp": "^6.2.1"` ergänzt (2 Zeilen hinzu, 1 entfernt), das Root-`deno.lock` bleibt unverändert. Lokal unter Deno 2.9.6 mit den CI-Befehlen: `deno check` (3 Entry-Points) Exit 0, `deno test` 59 Tests grün. Gegenprobe ohne die Lock-Zeile: `deno check` Exit 1, wie in der CI.
