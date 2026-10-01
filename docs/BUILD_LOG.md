@@ -13643,3 +13643,53 @@ Der Codex-Connector hat auf `d4640cc` drei Befunde gemeldet. Alle drei sind bere
 **Verifikation dieses Doku-Stands:** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle Integrity-Suiten 001–025 grün; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` (`238e2e1`) leer. Geändert sind nur `docs/BUILD_LOG.md`, `BUILD_PLAN.md` und `docs/releases/V2.3.2.md`.
 
 **Ergebnis & Freigabestatus:** G67 ist auf dem finalen Stand von Codex geprüft, ohne blockierende Befunde. Auftrag 069 ist abgeschlossen.
+
+---
+
+## [2026-10-01] CI-Auftrag Claude-Workflow / PR #40 — Codex-Review (Bot) nachgearbeitet (Builder: Claude Code)
+
+**Ziel & Kontext:** Marc hat mit `/install-github-app` den Workflow `.github/workflows/claude.yml` angelegt (PR #40, Commit `3f63267`, Basis `main` `3f58868`). Der Codex-Connector hat auf `3f63267` drei Befunde gemeldet. Zusätzlich war der CI-Job `test` am Schritt „Dependency Audit Check“ rot. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CLAUDE_WORKFLOW.md` (nachträglich geschrieben).
+
+**Befunde und Nacharbeit:**
+- **P1 SHA-Pinning (G58):** `actions/checkout@v4` und `anthropics/claude-code-action@v1` sind jetzt auf 40-stellige SHAs gepinnt (`dce5e22`): `11bd71901bbe5b1630ceea73d27597364c9af683` (`v4.2.2`) und `12dd8d74c712f5f3669365b2369b558c495b1104` (`v1`). Geprüft über die GitHub-API: `git/ref/tags/v4.2.2` zeigt direkt auf den Commit; `v1` ist das annotierte Tag-Objekt `94d3801`, das auf `12dd8d7` zeigt. Der Lauf `36838469680` hat für `@v1` dieselbe SHA heruntergeladen.
+- **P1 Auftrag und Gate-Nachweis:** Der Auftrag ist ergänzt, dieser Eintrag ist der Nachweis.
+- **P2 `assigned`-Trigger:** Bei `issues` steht jetzt `types: [opened]` statt `[opened, assigned]`. Eine spätere Zuweisung eines Issues mit `@claude` startet damit keinen zweiten Lauf.
+- **Audit-Gate (CI-Lauf 186, `dce5e22`):** `npm audit --audit-level=high` meldete `brace-expansion` (high; GHSA-q2hr-2g5m-vwhr, GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p) und `ip-address` (moderate; GHSA-j6r3-76f7-8jcv, GHSA-h3mg-xc3c-68pw). `npm audit --omit=dev` war schon vorher bei 0. Mit `npm update brace-expansion ip-address` habe ich nur die Lockfile-Auflösung angehoben (`162b1f2`):
+
+| Paket | Pfad | alt → neu |
+|---|---|---|
+| `brace-expansion` | `eslint-plugin-import` → `minimatch@3.1.5` | 1.1.18 → 1.1.21 |
+| `brace-expansion` | `typescript-eslint` → `@typescript-eslint/typescript-estree` → `minimatch@10.2.6` | 5.0.9 → 5.0.12 |
+| `ip-address` | `@lhci/cli` → `proxy-agent` → `socks-proxy-agent` → `socks@2.8.10` | 10.7.0 → 10.7.2 |
+
+Alle neuen Versionen liegen innerhalb der Semver-Bereiche der Elternpakete. `package.json`, `overrides`, der Audit-Schritt in `ci.yml`, UI-Tests und die Vitest-Konfiguration sind unverändert, `--force` wurde nicht verwendet.
+
+**Geänderte Dateien (gegen `origin/main` `3f58868`):** `.github/workflows/claude.yml` (neu), `package-lock.json` (9 Zeilen raus, 9 rein), `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CLAUDE_WORKFLOW.md` (neu), `docs/BUILD_LOG.md` (dieser Eintrag).
+
+**Automatisierte Verifikation (lokal, finaler Stand, Node 22.23.2, nach `npm ci`):**
+- `npm audit --omit=dev`: 0 Schwachstellen, Exit 0
+- `npm audit --audit-level=high`: 0 Schwachstellen, Exit 0
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: Exit 0 (`--max-warnings 0`)
+- `npm run format:check`: Exit 0
+- `npm run test:coverage`: 275 Testdateien, 1642 Tests grün
+- `npm run verify`: alle Integrity-Suiten 001–025 grün
+- `npm run build`: erfolgreich
+- SHA-Pinning: `grep` über alle `uses:` in `.github/workflows/` findet keinen Eintrag ohne 40-stellige SHA
+- YAML-Syntax aller drei Workflows gültig (Ruby `YAML.load_file`); `actionlint` ist lokal nicht installiert
+
+Nicht lokal gelaufen sind die Deno-Schritte und der Migration-Check aus dem Job `test`. Sie hängen nicht vom npm-Lockfile ab, den Nachweis liefert die PR-CI.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer (0 Zeilen). `src/` ist gar nicht geändert.
+
+**Screenshot-Matrix:** entfällt, keine UI-Änderung.
+
+**PR-CI:**
+- [Lauf 185](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36838027706) auf `3f63267`: rot (`test`, Audit)
+- [Lauf 186](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36838580643) auf `dce5e22`: rot (`test`, Audit)
+- [Lauf 187](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36839664375) auf `162b1f2` (Audit-Fix): 7/7 Jobs grün (build, typecheck, lint, size-limit, test inkl. Audit, livekpi-verifiers, e2e)
+- Der Lauf auf dem finalen Head (Trigger-Änderung, Doku) steht beim Schreiben dieses Eintrags noch aus. Den Nachweis dafür prüft Codex.
+
+**Workflow-Funktion:** Die Action läuft erst, wenn `claude.yml` identisch auf dem Default-Branch liegt. Im Lauf `36838469680` (Event `pull_request_review_comment` auf `3f63267`) hat sie mit „Workflow validation failed“ abgebrochen, ohne etwas zu tun. Ein Funktionstest mit `@claude` ist deshalb erst nach dem Merge möglich.
+
+**Ergebnis & Freigabestatus:** Alle Builder-Gates sind grün. Offen sind die PR-CI auf dem finalen Head und die Codex-Prüfung von Diff und CI. Nicht gemergt.
