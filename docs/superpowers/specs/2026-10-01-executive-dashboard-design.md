@@ -37,7 +37,7 @@ Dashboard-Konfiguration und Katalog-Metadaten werden zuerst geladen. Platzhalter
 
 ## Gestaltungsregeln
 
-- Referenz: `/Users/marcpoenisch/Desktop/LP Screenshots/Bildschirmfoto 2026-09-30 um 08.47.29.png`.
+- Referenz: Bildschirmfoto vom 30.09.2026, 08:47:29 (liegt nur lokal bei Marc, nicht im Repo). Für Cloud-Builder muss Marc es vor der Testkachel erreichbar bereitstellen (z. B. PR-/Issue-Anhang); bis dahin ist die Testkachel blockiert.
 - Bestehende dunkle Markenbasis und Türkisfarben erhalten; Orange signalisiert fachliche Warnungen, nicht bloß Dekoration.
 - Säulen/Balken mit begrenzter SVG-Tiefe; Kreis/Ring mit dezenter Extrusion, ohne Neigung oder unterschiedliche optische Vergrößerung einzelner Segmente.
 - Messwerte werden über Vorderfläche, gemeinsame Skala und lesbare Zahlen repräsentiert; Tiefe kodiert keine zusätzliche Kennzahl.

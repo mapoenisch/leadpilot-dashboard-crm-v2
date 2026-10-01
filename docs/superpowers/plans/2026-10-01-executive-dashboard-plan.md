@@ -59,7 +59,7 @@
 
 ### Konfigurationsfenster
 
-- Suche und Kategorien: Finanzen, Vertrieb/CRM, Kunden, Marketing, Organisation, Produkt, Live.
+- Suche und Kategorien: Finanzen, Vertrieb/CRM, Kunden, Marketing, Organisation, Produkt, Markt, Strategie, Live.
 - Auswahl KPI oder Übersicht, optional zweite KPI und zulässige Berechnung.
 - Darstellung und Größe ausschließlich aus erlaubten Optionen.
 - Optional verständlicher eigener Titel; Standardtitel bleibt automatisch verfügbar.
@@ -217,6 +217,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 
 **Dateien:** isoliertes Preview-Modul `src/features/dashboard/preview/DashboardDesignPreview.tsx`, minimal benötigte Vorschau-Charts/-Styles und explizit benannte Vorschauintegration. Keine Änderungen am produktiven Executive-Inhalt oder dessen Datenquellen.
 
+- [ ] **Voraussetzung:** Marc stellt das Referenzbild für Cloud-Builder bereit (z. B. als PR-/Issue-Anhang oder freigegebener Ablageort; Bilddateien werden nicht ins Repo committet, siehe `CLAUDE.md` §7). Ohne erreichbare Referenz beginnt die Testkachel nicht; keine Gestaltung aus der Textbeschreibung raten.
 - [ ] Claude Code schreibt einen eng begrenzten Designprobe-Auftrag mit Referenzbild, Ziel-Dateien und Vorschauzugang.
 - [ ] Eine Testkachel mit umschaltbarer Zahl, Tabelle und allen geplanten Diagrammdarstellungen bauen; Größen und Fokus-/Hover-/Touchzustände demonstrieren.
 - [ ] Feste Design-Beispieldaten deutlich kennzeichnen, ohne Cloud-Speicherung, vollständigen Katalog oder produktive Kombinationslogik.
@@ -231,7 +232,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 
 **Dateien:** neues `docs/dashboard/KPI_CATALOG.md`; Katalog-/Konfigurations-/Validierungsmodelle; zugehörige Tests. Quellmodule ausschließlich lesen.
 
-- [ ] Alle Kandidaten aus `execData`, `finanzenData`, `vertriebData`, `kundenData`, `organisationData`, `produktData` und Live-Katalog inventarisieren.
+- [ ] Alle Kandidaten aus `execData`, `finanzenData`, `vertriebData`, `kundenData`, `organisationData`, `produktData`, `marktData` (u. a. `CHART_WETTBEWERB`), `strategieData` (u. a. `CHART_OKR`, `CHART_TREIBER`) und Live-Katalog inventarisieren (Quellen unter `src/domain/`). Ungeeignete Einträge mit konkretem Grund dokumentieren.
 - [ ] Für jeden Kandidaten tatsächliche Rohwerte, Zeitbasis, Einheit, Definition, Fachseitenziel und Berechtigungen nachweisen.
 - [ ] Katalogstatus setzen: aktiv, aufbereiten oder nicht geeignet. Text-/Bildseiten sind keine neue Datenquelle; Werte werden nicht aus Screenshots geschätzt.
 - [ ] Erste aktive Auswahl: bisherige Executive-Zahlen, ARR-Verlauf, MRR-Paketmix, belegte CRM-Pipelinewerte, 12 vorhandene Live-IDs und bisherige Übersichtskacheln.
@@ -329,7 +330,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 
 **Dateien:** geprüfte weitere Katalogeinträge und Datenadapter; E2E-Suite; Screenshot-Harness; ausschließlich textuelle Screenshot-Matrix; `docs/BUILD_LOG.md`.
 
-- [ ] Weitere belegte KPIs aus Finanzen, Vertrieb/Marketing, Kunden und Organisation aufnehmen; Annahmen/Planwerte klar kennzeichnen und nicht als Istwerte anbieten.
+- [ ] Weitere belegte KPIs aus Finanzen, Vertrieb/Marketing, Kunden, Organisation, Markt und Strategie aufnehmen; Annahmen/Planwerte klar kennzeichnen und nicht als Istwerte anbieten.
 - [ ] Kennzahlen ohne brauchbare Datenquelle nicht freischalten; Inventar dokumentiert den konkreten Grund und die nötige spätere Datenaufbereitung.
 - [ ] Zwei Browser-/Gerätesitzungen und Benutzerwechsel testen; Speicherung, Revisionen und Filterkontext nachweisen.
 - [ ] Alle acht Darstellungen, Übersichtskacheln, Kombinationen und alle Kachelgrößen prüfen.
@@ -413,7 +414,7 @@ Eingerichtet mit PR #42 (`.github/workflows/codex-rework.yml`, `codex-review-req
 - [ ] Geschützte Zugänge nur aus passender Runner-/Secret-Konfiguration verwenden. Ungeprüfter PR-Code erhält keine privilegierten Produktionszugänge; Vorschau nutzt isolierte Testdaten.
 - [ ] Den Ablauf an der Testkachel nachweisen: Commit → CI/Review → Befund → Nacharbeit → erneutes Review des aktuellen Commits. Designfreigabe durch Marc bleibt ein eigener Schritt.
 - [ ] Neue E2E-Suite ausdrücklich in die bestehende CI-Testliste aufnehmen: `ci.yml` führt eine feste Dateiliste aus und würde `e2e/personal-dashboard.spec.ts` sonst nicht automatisch prüfen.
-- [ ] Vorgesehene neue Workflow-Datei `.github/workflows/dashboard-review-cycle.yml`, passender Runner-Adapter unter `scripts/dashboardAutomation/` und schriftlicher Ablauf unter `docs/dashboard/REVIEW_WORKFLOW.md` werden im Automatisierungsauftrag mit exakter Dateiliste beschrieben. CI-Erweiterung und optionaler Vorschauworkflow erhalten ebenfalls explizite Ziel-Dateien.
+- [ ] Offen ist nur der Hinweis-/Freigabeschritt für die vorhandenen Workflows (`codex-rework.yml`, `codex-review-request.yml`): Marc-Ping nach jedem Nacharbeits-Push (Folgeauftrag `ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT_HINWEIS.md`) und Abgleich mit `docs/dashboard/REVIEW_WORKFLOW.md`. Kein zweiter Review-Workflow und kein weiterer Runner-Adapter. CI-Erweiterung und optionaler Vorschauworkflow erhalten explizite Ziel-Dateien.
 
 Die Dokumentänderung richtet keine periodische Codex-App-Automation ein und startet keinen Agenten. Falls ein benötigter Agentenrunner fehlt, wird er vor Aktivierung eingerichtet; bis dahin kann derselbe definierte Review-Zyklus manuell durch Claude Code und Codex durchgeführt werden. Kein automatisches Merge, Tag oder Produktionsdeployment allein aufgrund dieser Planfestlegung.
 

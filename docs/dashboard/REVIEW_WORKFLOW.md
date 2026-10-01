@@ -14,10 +14,12 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
    unberechtigte begründet Claude. Danach laufen die Gates, ein BUILD_LOG-Eintrag entsteht und
    Claude committet lokal, in einem Job nur mit Leserechten. Ein getrennter Job prüft die Commits
    und pusht sie auf denselben Branch. Er veröffentlicht auch Claudes Zusammenfassung.
-4. Der neue Push startet die CI (per `workflow_dispatch`) und den Codex-Review erneut.
-   Codex soll auch Pushes des Workflow-Tokens prüfen. Falls nicht, gilt der manuelle Auslöser
-   unten. Gibt es keine Befunde mehr, endet der
-   Kreislauf von selbst.
+4. Nach dem Nacharbeits-Push läuft nichts von selbst weiter (Ende-zu-Ende-Test PR #43): GitHub
+   hält die PR-CI dieses Pushes als `action_required` zurück, Codex prüft Pushes des
+   Workflow-Tokens nicht und reagiert nicht auf `@codex review` von `github-actions[bot]`.
+   Der Workflow pingt deshalb Marc im PR an. Marc gibt die CI mit „Approve and run workflows“
+   frei und kommentiert `@codex review` (siehe „Review anfordern“). Danach läuft die nächste
+   Runde wieder automatisch. Gibt es keine Befunde mehr, endet der Kreislauf.
 5. Freigabe und Merge bleiben bei Marc (Codex-Freigabe des aktuellen Head, CI grün,
    `CLAUDE.md` §9).
 
@@ -38,16 +40,17 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
 
 ## Review anfordern
 
-- **Automatisch:** Codex prüft bei jedem Push von sich aus.
-- **Rückfall alle 15 Minuten:** `codex-review-request.yml` schreibt `@codex review`, wenn
-  20 Minuten nach dem Head-Commit weder ein Review noch eine Reaktion von Codex vorliegt.
+- **Neuer PR und Pushes von Menschen:** Codex prüft von sich aus („Team-PRs“, „Bei jedem Push“).
+- **Nach einem Nacharbeits-Push (Entscheidung Marc, Variante A):** Marc gibt die CI mit
+  „Approve and run workflows“ frei und schreibt `@codex review` als Kommentar in den PR. Ohne
+  diese beiden Schritte bleibt die Schleife stehen. Grund: Codex reagiert weder auf den Push des
+  Workflow-Tokens noch auf einen Bot-Kommentar (PR #43, siehe `docs/BUILD_LOG.md`).
 - **Sofort per Label:** Marc setzt im PR das Label `codex-review`.
-- In allen drei Fällen gilt: je Head-SHA höchstens eine Anforderung.
-- **Manuell durch Marc (verbindlicher Rückfall):** Marc schreibt `@codex review` als Kommentar in
-  den PR. Das ist nötig, wenn nach einem Push 30 Minuten lang kein Codex-Ergebnis zum neuen
-  Head-SHA erscheint. Grund: Ob Codex auf den Bot-Kommentar reagiert, ist nicht belegt
-  (Funktionstest auf PR #42, siehe `docs/BUILD_LOG.md`). Jedes Ergebnis zählt nur für den Head-SHA,
-  auf den es sich bezieht.
+- **Rückfall alle 15 Minuten:** `codex-review-request.yml` schreibt `@codex review`, wenn
+  20 Minuten nach dem Head-Commit weder ein Review noch eine Reaktion von Codex vorliegt. Da
+  Codex Bot-Kommentare nicht beachtet, ersetzt das den Kommentar von Marc nicht.
+- In allen Fällen gilt: je Head-SHA höchstens eine Anforderung; jedes Ergebnis zählt nur für den
+  Head-SHA, auf den es sich bezieht.
 
 ## Eingreifen
 

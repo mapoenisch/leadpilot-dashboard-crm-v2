@@ -13912,3 +13912,18 @@ Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerh
 **Verifikation:** Secrets-Scan der übernommenen Dateien ohne Treffer; keine Konfliktmarkierungen; keine doppelten Überschriften; `npx tsc --noEmit` Exit 0; `npm run verify` Exit 0; `npm run build` Exit 0; Schutzbereichs-Diff gegen `origin/main` leer (0 Zeilen). Nur Doku, keine Screenshot-Matrix.
 
 **Ergebnis & Freigabestatus:** Builder-Prüfung abgeschlossen. Offen ist die Codex-Prüfung. Nicht gemergt.
+
+## Automatische Nacharbeit Runde 1 (PR #46, Head 422a86f)
+
+**Befunde (Codex, Review 5386194536):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4161021100 (P2) | `docs/dashboard/REVIEW_WORKFLOW.md` | behoben: Schritt 4 und „Review anfordern“ an das Ergebnis aus PR #43 angepasst (CI `action_required`, Marc gibt frei und kommentiert `@codex review`) |
+| 4161021114 (P2) | `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` | behoben: Punkt `dashboard-review-cycle.yml`/Runner-Adapter ersetzt durch den offenen Hinweis-/Freigabeschritt für die vorhandenen Workflows |
+| 4161021126 (P1) | `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`, Plan Teilauftrag 0 | teilweise behoben: lokaler Desktop-Pfad entfernt, Bereitstellung durch Marc als Voraussetzung und Blocker der Testkachel dokumentiert. Das Bild kann der Builder nicht liefern (liegt nur lokal bei Marc; Bilddateien werden nicht committet, `CLAUDE.md` §7) → Marc muss es bereitstellen |
+| 4161021133 (P1) | Plan Teilauftrag 1/8, Kategorien | behoben: `marktData`/`strategieData` (`src/domain/`) in Inventar, Kategorien und Ausbau aufgenommen |
+
+**Gates:** `npx tsc --noEmit` 0 Fehler; `npm run lint` grün; `npm test` 1673 Tests grün; `npm run verify` grün; `npm run build` grün.
+
+**Schutzbereichs-Diff** (`git diff 422a86f -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
