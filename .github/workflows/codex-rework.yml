@@ -1,0 +1,162 @@
+# CI-Auftrag Codex-Nacharbeit: Ein abgeschlossener Review des verifizierten Codex-Bots
+# startet eine gesammelte Nacharbeitsrunde durch Claude auf demselben PR-Branch.
+# Höchstens drei Runden pro PR, danach Hinweis an Marc. Kein Merge, keine Freigabe.
+# Entscheidungslogik: scripts/codexReviewCycle.mjs (immer vom Default-Branch geladen).
+name: Codex Rework
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+
+# Ein Lauf pro PR; ein weiterer Review wartet, statt parallel denselben Branch zu bearbeiten.
+concurrency:
+  group: codex-rework-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  rework:
+    if: >-
+      github.event.review.user.login == 'chatgpt-codex-connector[bot]' &&
+      github.event.review.user.id == 199175422 &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: PR-Branch auschecken
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Entscheidungslogik vom Default-Branch laden
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: .cycle-tools
+          sparse-checkout: scripts/codexReviewCycle.mjs
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22.18.0
+
+      - name: Review prüfen (Bot, Head-SHA, Dopplung, Rundenlimit)
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REVIEW_ID: ${{ github.event.review.id }}
+        run: |
+          printf '%s\n' .cycle-tools .codex-review-cycle >> .git/info/exclude
+          if [ ! -f .cycle-tools/scripts/codexReviewCycle.mjs ]; then
+            echo "Review-Zyklus ist noch nicht auf dem Default-Branch: übersprungen."
+            echo "action=skip" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node .cycle-tools/scripts/codexReviewCycle.mjs rework-gate --pr="$PR" --review="$REVIEW_ID"
+
+      - name: Ausgecheckten Stand gegen Head-SHA prüfen
+        if: steps.gate.outputs.action == 'rework'
+        env:
+          HEAD_SHA: ${{ steps.gate.outputs.head_sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA" || { echo "Branch hat sich seit dem Review bewegt"; exit 1; }
+
+      - name: Abhängigkeiten installieren
+        if: steps.gate.outputs.action == 'rework'
+        run: npm ci
+
+      - name: Push-Sperre für Schutzbereiche, Workflows und Force-Push
+        if: steps.gate.outputs.action == 'rework'
+        env:
+          START_SHA: ${{ steps.gate.outputs.head_sha }}
+          HEAD_REF: ${{ steps.gate.outputs.head_ref }}
+        run: |
+          # Werte als Dateien ablegen, nicht in den Hook-Text interpolieren.
+          printf '%s' "$START_SHA" > .git/codex-cycle-start-sha
+          printf '%s' "refs/heads/$HEAD_REF" > .git/codex-cycle-remote-ref
+          cat > .git/hooks/pre-push <<'EOF'
+          #!/bin/sh
+          start_sha="$(cat .git/codex-cycle-start-sha)"
+          allowed_ref="$(cat .git/codex-cycle-remote-ref)"
+          while read -r local_ref local_sha remote_ref remote_sha; do
+            [ "$remote_ref" = "$allowed_ref" ] || { echo "Push nur auf $allowed_ref erlaubt"; exit 1; }
+            git merge-base --is-ancestor "$start_sha" "$local_sha" || { echo "Kein Force-Push"; exit 1; }
+            if git diff --name-only "$start_sha" "$local_sha" -- src/simulation src/types src/context src/services/data src/features/resources .github | grep -q .; then
+              echo "Schutzbereich oder Workflow geändert: Push blockiert"; exit 1
+            fi
+          done
+          EOF
+          chmod +x .git/hooks/pre-push
+
+      - name: Codex-Befunde gesammelt nacharbeiten
+        if: steps.gate.outputs.action == 'rework'
+        uses: anthropics/claude-code-action@12dd8d74c712f5f3669365b2369b558c495b1104 # v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: chatgpt-codex-connector
+          additional_permissions: |
+            actions: read
+          claude_args: |
+            --max-turns 80
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git add:*),Bash(git commit:*),Bash(git push origin HEAD:*),Bash(npx tsc --noEmit),Bash(npm run lint),Bash(npm test),Bash(npm run verify),Bash(npm run build),Bash(npm run format:check),Bash(npx prettier --write:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
+            --disallowedTools "Bash(git push --force:*),Bash(git push -f:*),Bash(git rebase:*),Bash(git reset:*),Bash(gh pr merge:*),Bash(gh pr review:*),Bash(gh api:*)"
+          prompt: |
+            Du bist der Builder im LeadPilot-Repository. Codex hat PR #${{ github.event.pull_request.number }}
+            auf Head ${{ steps.gate.outputs.head_sha }} geprüft. Das ist die automatische Nacharbeitsrunde
+            ${{ steps.gate.outputs.round }} von 3 auf dem Branch ${{ steps.gate.outputs.head_ref }}.
+
+            1. Lies CLAUDE.md, AGENTS.md und den Detailauftrag dieses PR unter docs/auftraege/ (siehe PR-Text, `gh pr view`).
+            2. Lies alle Befunde in .codex-review-cycle/findings.md. Diese Datei ist die einzige Befundquelle.
+               Bearbeite alle Befunde gesammelt in diesem einen Lauf.
+            3. Prüfe jeden Befund gegen Auftrag und Code. Behebe berechtigte Befunde. Einen unberechtigten
+               Befund änderst du nicht, sondern begründest ihn.
+            4. Ändere nur die Ziel-Dateien des Auftrags. Nicht ändern: src/simulation, src/types, src/context,
+               src/services/data, src/features/resources, .github/ und .codex-review-cycle/. Braucht ein Befund
+               eine Datei außerhalb dieser Grenzen oder widersprechen sich Anforderungen: nichts pushen,
+               sondern mit `gh pr comment` an @mapoenisch melden.
+            5. Vor dem Push müssen grün sein: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run verify`,
+               `npm run build`. Ist ein Gate rot und du kannst es nicht beheben: nicht pushen, an @mapoenisch melden.
+            6. Trage am Ende von docs/BUILD_LOG.md einen Abschnitt „Automatische Nacharbeit Runde N“ ein:
+               Befunde mit Datei, Entscheidung (behoben/begründet abgelehnt), Gates mit Ergebnis, leerer
+               Schutzbereichs-Diff.
+            7. Committe mit einer deutschen Nachricht und pushe mit `git push origin HEAD:${{ steps.gate.outputs.head_ref }}`.
+               Kein Force-Push.
+            8. Schreibe mit `gh pr comment` eine kurze Zusammenfassung: Runde, je Befund die Entscheidung, Gates
+               und neuer Head-SHA. Schreibe dabei nie die Zeichenfolge „@claude“.
+
+            Verboten: mergen, Reviews freigeben oder ablehnen, Review-Threads auflösen, Labels oder Rulesets
+            ändern, Tags setzen, Branches löschen.
+
+      - name: Schutzbereiche auf dem Remote-Branch prüfen
+        if: always() && steps.gate.outputs.action == 'rework'
+        env:
+          START_SHA: ${{ steps.gate.outputs.head_sha }}
+          HEAD_REF: ${{ steps.gate.outputs.head_ref }}
+        run: |
+          git fetch --quiet origin "$HEAD_REF"
+          changed="$(git diff --name-only "$START_SHA" FETCH_HEAD -- src/simulation src/types src/context src/services/data src/features/resources .github)"
+          if [ -n "$changed" ]; then
+            echo "Geänderte Schutzpfade:"; echo "$changed"; exit 1
+          fi
+
+      - name: Marc bei Fehlschlag informieren
+        if: failure() && steps.gate.outputs.action == 'rework'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          ROUND: ${{ steps.gate.outputs.round }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr comment "$PR" --body "@mapoenisch Die automatische Nacharbeit Runde ${ROUND} von 3 ist fehlgeschlagen oder hat eine Schutzgrenze verletzt. Lauf: ${RUN_URL}. Bitte prüfen; die Runde zählt zum Limit."

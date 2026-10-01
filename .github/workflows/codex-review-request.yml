@@ -1,0 +1,56 @@
+# CI-Auftrag Codex-Nacharbeit: Rückfallebene für den Codex-Review.
+# Codex prüft Team-PRs bei jedem Push von sich aus. Dieser Workflow fordert nur nach,
+# wenn 20 Minuten nach dem Head-Commit weder Review noch Reaktion von Codex vorliegt,
+# oder sofort, wenn Marc das Label `codex-review` setzt. Je Head-SHA höchstens einmal.
+name: Codex Review Request
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'PR-Nummer (leer = alle offenen PRs)'
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codex-review-request
+  cancel-in-progress: false
+
+jobs:
+  request:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.label.name == 'codex-review' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22.18.0
+      - name: Codex-Review je Head-SHA höchstens einmal anfordern
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_FROM_LABEL: ${{ github.event.pull_request.number }}
+          PR_FROM_INPUT: ${{ github.event.inputs.pr }}
+        run: |
+          if [ -n "$PR_FROM_LABEL" ]; then
+            node scripts/codexReviewCycle.mjs request --pr="$PR_FROM_LABEL" --force
+          elif [ -n "$PR_FROM_INPUT" ]; then
+            case "$PR_FROM_INPUT" in *[!0-9]*) echo "PR-Nummer muss numerisch sein"; exit 1 ;; esac
+            node scripts/codexReviewCycle.mjs request --pr="$PR_FROM_INPUT"
+          else
+            node scripts/codexReviewCycle.mjs request
+          fi
