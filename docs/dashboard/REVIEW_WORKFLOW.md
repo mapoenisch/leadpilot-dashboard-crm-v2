@@ -17,8 +17,11 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
 4. Nach dem Nacharbeits-Push läuft nichts von selbst weiter (Ende-zu-Ende-Test PR #43): GitHub
    hält die PR-CI dieses Pushes als `action_required` zurück, Codex prüft Pushes des
    Workflow-Tokens nicht und reagiert nicht auf `@codex review` von `github-actions[bot]`.
-   Der Workflow pingt deshalb Marc im PR an. Marc gibt die CI mit „Approve and run workflows“
-   frei und kommentiert `@codex review` (siehe „Review anfordern“). Danach läuft die nächste
+   Marc muss deshalb selbst handeln: CI mit „Approve and run workflows“ freigeben und
+   `@codex review` kommentieren (siehe „Review anfordern“). Der automatische Ping von Marc nach
+   einem erfolgreichen Push ist **noch nicht umgesetzt**: `codex-rework.yml` pingt `@mapoenisch`
+   bisher nur bei Fehlschlag oder Rundenlimit. Umsetzung im Folgeauftrag
+   `ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT_HINWEIS.md`; bis dahin ist der Hinweis manuell. Danach läuft die nächste
    Runde wieder automatisch. Gibt es keine Befunde mehr, endet der Kreislauf.
 5. Freigabe und Merge bleiben bei Marc (Codex-Freigabe des aktuellen Head, CI grün,
    `CLAUDE.md` §9).
@@ -45,7 +48,9 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
   „Approve and run workflows“ frei und schreibt `@codex review` als Kommentar in den PR. Ohne
   diese beiden Schritte bleibt die Schleife stehen. Grund: Codex reagiert weder auf den Push des
   Workflow-Tokens noch auf einen Bot-Kommentar (PR #43, siehe `docs/BUILD_LOG.md`).
-- **Sofort per Label:** Marc setzt im PR das Label `codex-review`.
+- **Label `codex-review`:** Kein Ersatz für den Kommentar von Marc. Das Label löst denselben
+  Pfad wie der Zeitplan aus (`codex-review-request.yml`), also einen `@codex review`-Kommentar
+  von `github-actions[bot]`, den Codex ignoriert. Es startet daher keinen Review.
 - **Rückfall alle 15 Minuten:** `codex-review-request.yml` schreibt `@codex review`, wenn
   20 Minuten nach dem Head-Commit weder ein Review noch eine Reaktion von Codex vorliegt. Da
   Codex Bot-Kommentare nicht beachtet, ersetzt das den Kommentar von Marc nicht.

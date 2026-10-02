@@ -13949,3 +13949,19 @@ Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerh
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI (der Job `e2e` mit Lighthouse nutzt `@lhci/cli`) und die Codex-Prüfung. Nicht gemergt.
 
 **Nachtrag (PR #45, CI-Lauf auf `6f748bc` rot im Schritt „Deno Edge Functions typecheck“):** `supabase/functions/deno.lock` spiegelt unter `workspace.packageJson.overrides` die Root-`overrides`. Mit `--frozen-lockfile` bricht `deno check` deshalb ab, sobald `package.json` einen neuen Override hat. Im Lock ist jetzt nur `"basic-ftp": "^6.2.1"` ergänzt (2 Zeilen hinzu, 1 entfernt), das Root-`deno.lock` bleibt unverändert. Lokal unter Deno 2.9.6 mit den CI-Befehlen: `deno check` (3 Entry-Points) Exit 0, `deno test` 59 Tests grün. Gegenprobe ohne die Lock-Zeile: `deno check` Exit 1, wie in der CI.
+
+---
+
+## Automatische Nacharbeit Runde 2 (PR #46, Head c27bda4)
+
+**Befunde (Codex, Review 5387095230):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4161797253 (P2) | `docs/dashboard/REVIEW_WORKFLOW.md` | behoben: Marc-Ping nach erfolgreichem Push als noch nicht umgesetzt gekennzeichnet (`codex-rework.yml` pingt nur bei Fehlschlag/Rundenlimit), Folgeauftrag genannt, bis dahin manueller Hinweis |
+| 4161797256 (P2) | `docs/dashboard/REVIEW_WORKFLOW.md` | behoben: Label `codex-review` nicht mehr als sofortiger Auslöser dargestellt; es erzeugt nur einen von Codex ignorierten Bot-Kommentar |
+| 4161797257 (P2) | `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` | behoben: veralteten Bestandsbefund durch den vorhandenen Zyklus (PR #42) und den offenen Marc-Hinweis ersetzt, zweiter Workflow ausgeschlossen |
+
+**Gates:** `npx tsc --noEmit` 0 Fehler; `npm run lint` grün; `npm test` 1673 Tests grün; `npm run verify` grün; `npm run build` grün.
+
+**Schutzbereichs-Diff** (`git diff c27bda4 -- src/simulation src/types src/context src/services/data src/features/resources`): leer.

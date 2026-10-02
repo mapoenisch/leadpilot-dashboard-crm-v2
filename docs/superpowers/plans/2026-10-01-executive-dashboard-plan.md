@@ -379,7 +379,7 @@ Teilaufträge sind unabhängig prüfbar; freigeschaltet wird erst nach gemeinsam
 
 ### Vorhanden und noch einzurichten
 
-Die geprüfte `.github/workflows/ci.yml` läuft bereits bei Pull Requests, Push auf `main` und manueller Auslösung. Sie enthält Typecheck, Tests, Build, Integritäts-, Datenbank-, Accessibility- und weitere Prüfungen. Im lokalen Repo bestehen nur diese CI und ein Workflow für visuelle Baselines. Ein eigener automatisierter Claude-/Codex-Zyklus oder Deployment-Workflow ist dadurch nicht belegt.
+Die geprüfte `.github/workflows/ci.yml` läuft bereits bei Pull Requests, Push auf `main` und manueller Auslösung. Sie enthält Typecheck, Tests, Build, Integritäts-, Datenbank-, Accessibility- und weitere Prüfungen. Zusätzlich bestehen ein Workflow für visuelle Baselines und der mit PR #42 eingerichtete Claude-/Codex-Zyklus (`codex-rework.yml`, `codex-review-request.yml`, siehe „Review-Auslösung“). Offen ist nur der automatische Hinweis an Marc nach einem erfolgreichen Nacharbeits-Push (bisher pingt `codex-rework.yml` nur bei Fehlschlag oder Rundenlimit); ein zweiter Zyklus-Workflow ist nicht einzurichten. Ein Deployment-Workflow ist nicht belegt.
 
 **Empfehlung: Kombination aus a und b.** CI prüft objektive Gates; eine Vorschau erlaubt die Designbewertung. Codex reviewt den konkreten PR-Commit, Claude Code verarbeitet Befunde und liefert Nacharbeit. Produktivdeployment steht am Ende hinter den Freigaben, nicht am Anfang des Reviews.
 
