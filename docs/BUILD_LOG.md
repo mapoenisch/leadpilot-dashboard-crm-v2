@@ -14328,3 +14328,27 @@ Die drei automatischen Runden sind verbraucht; Bearbeitung durch Claude Code.
 Beide neuen Tests schlagen auf dem alten Code fehl und sind mit der Korrektur grün.
 
 **Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1747 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden und identisch mit Runde 4 (keine sichtbare Änderung), 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Designrückmeldung Marc zur Testkachel: Ring und Kreis überarbeitet (Head 506513c)
+
+**Rückmeldung Marc (02.10.2026, nach Ansicht der Vorschau):**
+
+1. Alles bleibt so, nur Ring und Kreis passen nicht zum Design der Säulen. Zwei angehängte Ausschnitte (Ring „MRR-Verteilung nach Paket“, unscharf wegen Zoomstufe) geben den Stil vor; in der Testkachel scharf umsetzen. Die Ausschnitte sind nur Stilvorlage und liegen nicht im Repo (`CLAUDE.md` §7).
+2. Mobilansicht: so lassen, nicht verkleinern (Diagramm scrollt auf schmalen Kacheln weiter innerhalb der Kachel).
+
+**Umsetzung:**
+
+| Datei | Änderung |
+|---|---|
+| `charts/Depth3dDonutChart.tsx` | Draufsicht ohne Verlängerung nach unten. Je Segment radialer Verlauf (innen abgedunkelt, Grundfarbe, helle Außenkante), Licht von oben wie bei den Säulen, dunkle Fugen zwischen den Segmenten, dezentes Leuchten hinter dem Ring, dunkle Ringmitte mit feiner Türkiskante, Wert größer in der Mitte. Winkel weiter exakt aus `donutSegments`. Verläufe je Kachel eindeutig (`idPrefix`). |
+| `charts/chartTypes.ts` | Anteilsfarben als Türkis-Abstufung vom größten (hell) zum kleinsten Anteil (dunkel); `shadeHex` für die Verlaufsstufen. |
+| `__tests__/depthGeometry.vitest.ts` | Tests für `shadeHex` und die abfallende Helligkeit der Abstufung. |
+| `docs/auftraege/ANTIGRAVITY_AUFTRAG_DASHBOARD_TESTKACHEL.md` | Revision Ring und Kreis nach zweiter Referenz, Mobilentscheidung. |
+| `docs/screenshots/auftrag-dashboard-testkachel/README.md` | Matrix neu aufgenommen. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1749 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical; geändert sind nur die Aufnahmen von Ring und Kreis. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+**Status:** Designfreigabe steht aus, bis Marc den überarbeiteten Ring und Kreis gesehen hat.

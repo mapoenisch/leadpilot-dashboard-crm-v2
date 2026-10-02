@@ -15,6 +15,7 @@ Aus dem Bild übernommener Stil, den die Probe weiterentwickelt:
 - Säulen mit kleiner fester Oberfläche (helle Kappe) und dunklerer rechter Seitenfläche, Verlauf von hell oben nach dunkel unten, dezentes Leuchten an den Kanten und am Boden.
 - Wert fett über jeder Säule, gestrichelte Hilfslinien, ruhige graue Achsenwerte, Beschriftung unter der Grundlinie.
 - Dunkle Karte mit türkiser Randlinie, Kleinschrift-Kopfzeile in Großbuchstaben, Titel, Status-Chip, darunter eine ruhige Tabelle mit türkisen Zahlen.
+- **Revision Ring und Kreis (Rückmeldung Marc, 02.10.2026):** Ring und Kreis passten nicht zu den Säulen. Zweite Referenz (Ring „MRR-Verteilung nach Paket“, nur als Stilvorlage, nicht im Repo): Draufsicht, Türkis-Abstufung vom größten (hell) zum kleinsten Anteil (dunkel), dunkle Fugen, Wölbung durch Verlauf (innen dunkler, helle Außenkante), dezentes Leuchten, Wert groß in der Mitte. Die Tiefe entsteht dort durch Schattierung statt durch eine Verlängerung nach unten. Alle übrigen Darstellungen bleiben unverändert; die Mobilansicht scrollt weiter (nicht verkleinern).
 - Farben aus `MANAGEMENT_CHART_THEME` (`src/components/ui/charts/managementChartTheme.ts`); Orange nur für Risiken und Abweichungen.
 
 ## Ziel
@@ -36,7 +37,7 @@ Eine **isolierte, bedienbare** Kachel, an der Marc Tiefe, Farben, Beschriftung, 
 | `src/features/dashboard/preview/DashboardDesignPreview.tsx` | Die Testkachel mit Darstellungsumschalter und Größenwahl |
 | `src/features/dashboard/preview/previewSampleData.ts` | Feste, gekennzeichnete Beispieldaten |
 | `src/features/dashboard/preview/charts/Depth3dBarChart.tsx` | Säulen/Balken mit Tiefe, Stil wie Referenz |
-| `src/features/dashboard/preview/charts/Depth3dDonutChart.tsx` | Ring mit geringer, gleichmäßiger Tiefe, exakte Winkelanteile |
+| `src/features/dashboard/preview/charts/Depth3dDonutChart.tsx` | Ring und Kreis, exakte Winkelanteile; Revision 02.10.2026: Stil nach zweiter Referenz (Wölbung statt Verlängerung) |
 | `src/features/dashboard/preview/charts/DepthLineChart.tsx` | Linie, klare Linie, dezenter Schatten, keine Tiefenverschiebung der Punkte |
 | `src/features/dashboard/preview/charts/DepthAreaChart.tsx` | Fläche mit dezentem Verlauf |
 | `src/features/dashboard/preview/charts/depthGeometry.ts` | Reine Funktionen für Tiefe, Winkel, Skalen (testbar) |

@@ -15,6 +15,7 @@ import { SAMPLE_SERIES, SAMPLE_SHARES, SAMPLE_STAGES } from '../previewSampleDat
 import fs from 'node:fs';
 import path from 'node:path';
 import { DASHBOARD_PREVIEW_PATH } from '../previewRoute';
+import { SERIES_COLORS, shadeHex } from '../charts/chartTypes';
 
 const AREA = { left: 10, top: 20, width: 400, height: 200 };
 const RING = { cx: 100, cy: 100, outer: 80, inner: 50 };
@@ -211,5 +212,25 @@ describe('summarizeSeries', () => {
 
   it('benennt leere Reihen', () => {
     expect(summarizeSeries([], 'Leads', 'Q3 2026', 'trend')).toBe('Keine Werte für Q3 2026.');
+  });
+});
+
+describe('Anteilsfarben', () => {
+  const luminance = (hex: string) =>
+    [1, 3, 5]
+      .map((start) => parseInt(hex.slice(start, start + 2), 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+      .reduce((sum, c, i) => sum + c * ([0.2126, 0.7152, 0.0722][i] ?? 0), 0);
+
+  it('mischt mit Schwarz und Weiß', () => {
+    expect(shadeHex('#808080', -1)).toBe('#000000');
+    expect(shadeHex('#808080', 1)).toBe('#ffffff');
+    expect(shadeHex('#204060', 0)).toBe('#204060');
+    expect(shadeHex('#204060', -0.5)).toBe('#102030');
+  });
+
+  it('stuft Türkis vom größten Anteil (hell) zum kleinsten (dunkel) ab', () => {
+    const values = SERIES_COLORS.map(luminance);
+    values.slice(1).forEach((value, index) => expect(value).toBeLessThan(values[index] ?? 0));
   });
 });
