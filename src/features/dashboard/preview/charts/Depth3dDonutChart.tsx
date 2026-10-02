@@ -5,7 +5,7 @@
 import { useMemo, useState } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
 import { ChartReadout, ChartSummary, LegendButtons, ScrollableChart } from './ChartReadout';
-import { CHART_VIEWBOX, SERIES_COLORS, seriesColor, shadeHex } from './chartTypes';
+import { CHART_VIEWBOX, shareColors, shadeHex } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
 import { donutSegments, formatDe, summarizeSeries } from './depthGeometry';
 
@@ -39,6 +39,8 @@ export function Depth3dDonutChart({
   const GEOMETRY = solid ? PIE_GEOMETRY : RING_GEOMETRY;
   const [active, setActive] = useState<number | null>(null);
   const segments = useMemo(() => donutSegments(data, GEOMETRY), [data, GEOMETRY]);
+  const colors = useMemo(() => shareColors(data.map((entry) => entry.value)), [data]);
+  const colorOf = (index: number) => colors[index] ?? '#1E7F7C';
   const total = data.reduce((sum, entry) => sum + entry.value, 0);
   const glow = `${idPrefix}-ring-glow`;
   const sheen = `${idPrefix}-ring-sheen`;
@@ -72,11 +74,9 @@ export function Depth3dDonutChart({
                 cy={GEOMETRY.cy}
                 r={GEOMETRY.outer}
               >
-                {bevelStops(seriesColor(segment.index), GEOMETRY.inner / GEOMETRY.outer).map(
-                  (stop) => (
-                    <stop key={stop.offset} offset={stop.offset} stopColor={stop.color} />
-                  ),
-                )}
+                {bevelStops(colorOf(segment.index), GEOMETRY.inner / GEOMETRY.outer).map((stop) => (
+                  <stop key={stop.offset} offset={stop.offset} stopColor={stop.color} />
+                ))}
               </radialGradient>
             ))}
             {/* Licht von oben wie bei den Säulen: oben aufgehellt, unten abgedunkelt. */}
@@ -101,7 +101,7 @@ export function Depth3dDonutChart({
           {/* Dezentes Leuchten hinter dem Ring. */}
           <g filter={`url(#${glow})`} opacity="0.35" aria-hidden="true">
             {segments.map((segment) => (
-              <path key={segment.label} d={segment.path} fill={seriesColor(segment.index)} />
+              <path key={segment.label} d={segment.path} fill={colorOf(segment.index)} />
             ))}
           </g>
           {segments.map((segment) => {
@@ -168,7 +168,7 @@ export function Depth3dDonutChart({
           <g transform="translate(330 62)">
             {segments.map((segment) => (
               <g key={segment.label} transform={`translate(0 ${segment.index * 30})`}>
-                <rect width="10" height="10" y="-9" rx="2" fill={seriesColor(segment.index)} />
+                <rect width="10" height="10" y="-9" rx="2" fill={colorOf(segment.index)} />
                 <text x="18" fontSize="12" fill="#e6f3f1">
                   {segment.label}
                 </text>
@@ -196,7 +196,7 @@ export function Depth3dDonutChart({
         data={data}
         activeIndex={active}
         onSelect={setActive}
-        colors={SERIES_COLORS}
+        colors={colors}
         ariaLabel={solid ? 'Kreisausschnitt wählen' : 'Segment wählen'}
       />
     </div>

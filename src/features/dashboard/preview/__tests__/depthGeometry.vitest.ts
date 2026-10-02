@@ -15,7 +15,7 @@ import { SAMPLE_SERIES, SAMPLE_SHARES, SAMPLE_STAGES } from '../previewSampleDat
 import fs from 'node:fs';
 import path from 'node:path';
 import { DASHBOARD_PREVIEW_PATH } from '../previewRoute';
-import { SERIES_COLORS, shadeHex } from '../charts/chartTypes';
+import { SERIES_COLORS, shadeHex, shareColors } from '../charts/chartTypes';
 
 const AREA = { left: 10, top: 20, width: 400, height: 200 };
 const RING = { cx: 100, cy: 100, outer: 80, inner: 50 };
@@ -232,5 +232,16 @@ describe('Anteilsfarben', () => {
   it('stuft Türkis vom größten Anteil (hell) zum kleinsten (dunkel) ab', () => {
     const values = SERIES_COLORS.map(luminance);
     values.slice(1).forEach((value, index) => expect(value).toBeLessThan(values[index] ?? 0));
+  });
+
+  it('vergibt den hellsten Ton dem größten Anteil, auch bei unsortierten Daten', () => {
+    expect(shareColors([5, 41, 16, 27.5, 10.5])).toEqual([
+      SERIES_COLORS[4],
+      SERIES_COLORS[0],
+      SERIES_COLORS[2],
+      SERIES_COLORS[1],
+      SERIES_COLORS[3],
+    ]);
+    expect(shareColors([10, 10])).toEqual([SERIES_COLORS[0], SERIES_COLORS[1]]);
   });
 });

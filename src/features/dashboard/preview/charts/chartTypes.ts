@@ -23,6 +23,21 @@ export interface DepthChartProps {
  */
 export const SERIES_COLORS = ['#6BF3EE', '#1FDCD0', '#12B9AF', '#159C96', '#1E7F7C'] as const;
 
+/**
+ * Farbe je Eintrag nach Anteilsgröße: der größte Wert bekommt den hellsten Ton, unabhängig von der
+ * Reihenfolge der Daten. Gleich große Werte behalten ihre Reihenfolge.
+ */
+export function shareColors(values: readonly number[]): string[] {
+  const order = values
+    .map((value, index) => ({ value, index }))
+    .sort((a, b) => b.value - a.value || a.index - b.index);
+  const colors = new Array<string>(values.length);
+  order.forEach((entry, rank) => {
+    colors[entry.index] = seriesColor(rank);
+  });
+  return colors;
+}
+
 /** Mischt eine Hex-Farbe mit Schwarz (t < 0) oder Weiß (t > 0); |t| zwischen 0 und 1. */
 export function shadeHex(hex: string, t: number): string {
   const target = t < 0 ? 0 : 255;

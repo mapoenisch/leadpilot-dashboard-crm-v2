@@ -14367,3 +14367,18 @@ Beide neuen Tests schlagen auf dem alten Code fehl und sind mit der Korrektur gr
 - **Offen für den Merge von PR #48:** grüne CI und Codex-Prüfung auf dem aktuellen Stand; Merge nur durch Marc.
 
 Nur Doku geändert; die Gates des Commits `f779901` gelten unverändert.
+
+
+---
+
+## Nacharbeit PR #48 Runde 6 (manuell, Head b018824)
+
+**Befund (Codex, Review 5393454540):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167054835 (P2) | `charts/Depth3dDonutChart.tsx` | behoben: Die Farbe richtet sich nach dem Rang des Werts statt nach der Position (`shareColors` in `charts/chartTypes.ts`); der größte Anteil ist auch bei unsortierten Daten am hellsten, die Segmentreihenfolge bleibt unverändert. Ring, Leuchten, Legende und Schaltflächen nutzen dieselbe Zuordnung. Test mit unsortierten und gleich großen Werten. |
+
+Sichtbar ändert sich nichts, weil die Beispieldaten bereits absteigend sind; die freigegebene Gestaltung (`f779901`) bleibt damit gültig.
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1750 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden und identisch mit der Matrix, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
