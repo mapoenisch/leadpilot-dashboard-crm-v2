@@ -3,7 +3,8 @@
 // „nicht_geeignet“ steht in unsuitableEntries.ts.
 // Simulations-KPIs sind ausgeschlossen (Plan §1) und stehen deshalb hier nicht.
 import type { CatalogSource, DashboardCategory, InventoryCatalogEntry } from '../dashboardCatalog';
-import { BASELINE_ACCESS, LIVE_ACCESS, LIVE_METADATA, LIVE_SOURCE } from './activeEntries';
+import { BASELINE_ACCESS } from './activeEntries';
+import { LIVE_ACCESS, LIVE_METADATA, LIVE_SOURCE } from './liveEntries';
 
 const D = (file: string) => `src/domain/${file}.ts`;
 const TA8 = 'Teilauftrag 8';

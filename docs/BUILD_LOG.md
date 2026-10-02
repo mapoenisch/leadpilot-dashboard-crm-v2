@@ -14267,3 +14267,14 @@ Durchsicht der automatischen Runde 3: Live-Kombinationen mit `liveKpiStreamStore
 Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt benannt („Marketing Qualified Leads“, „Sales Qualified Leads“).
 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 1743 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB. **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.
+
+
+---
+
+## Nacharbeit PR #49: CI-Lint rot auf ef1515f (manuell)
+
+**Befund CI:** Job `lint` rot, `max-lines` 1 > 0: `catalog/activeEntries.ts` lag nach der Aufteilung der Pipeline-Stufen bei 416 gezählten Zeilen. Lokal reproduziert. Ursache auf meiner Seite: Die Lint-Prüfung vor dem Push habe ich nur über die letzte Ausgabezeile gelesen, nicht über den Exit-Code.
+
+**Behebung:** Die zwölf Live-Einträge samt Live-Quelle, Metadaten und Zugriffstext stehen jetzt in `catalog/liveEntries.ts` (im Auftrag nachgetragen); `activeEntries.ts` 358 Zeilen. Inhalt und Reihenfolge des Katalogs unverändert.
+
+**Gates** (lokal, jeweils mit Exit-Code 0): `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test` (1743 Tests), `npm run verify`, `npm run build`, `verify:quality-budget`, `size-limit` (175,43 kB). **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.

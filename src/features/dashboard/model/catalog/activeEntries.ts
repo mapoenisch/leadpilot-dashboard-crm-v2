@@ -2,26 +2,14 @@
 // Bisherige Executive-Zahlen, ARR-Verlauf, MRR-Paketmix, CRM-Pipelinewerte, 12 Live-IDs und
 // die bisherigen Übersichtskacheln. Rohwerte und Nachweise: docs/dashboard/KPI_CATALOG.md.
 import type { ActiveCatalogEntry, CatalogSource, DashboardCategory } from '../dashboardCatalog';
+import { LIVE_ACCESS, LIVE_ENTRIES, LIVE_SOURCE } from './liveEntries';
 
 export const BASELINE_ACCESS =
   'Statische Stammdaten (Faktenblatt v1.1) im App-Bundle; sichtbar für jedes angemeldete aktive Organisationsmitglied hinter ProtectedRoute, organisationsunabhängig.';
 const CRM_ACCESS =
   'Tabelle imported_funnel_deals, RLS tenant_select_deals: nur aktive Mitglieder der aktuellen Organisation, alle Rollen einschließlich Viewer.';
-export const LIVE_ACCESS =
-  'Projektion live_kpi_public_feed: SELECT für anon und authenticated ohne Organisationsbezug (nicht mandantengetrennt, wie die bestehende Executive-Ansicht). Prüfung vor Übernahme in Teilauftrag 2 (Plan §6).';
-
 const EXEC = 'src/domain/execData.ts';
 const COCKPIT = 'src/domain/executiveCockpitData.ts';
-export const LIVE_SOURCE = {
-  layer: 'live',
-  module: 'src/services/liveKpi/liveKpiStreamStore.ts',
-  exportName: 'liveKpiStreamStore',
-} as const;
-export const LIVE_METADATA = {
-  module: 'src/services/liveKpi/liveKpiDefinitions.ts',
-  exportName: 'LIVE_KPI_DEFINITIONS',
-};
-
 const STAND_2025 = 'Stand 31.12.2025';
 const FY_2025 = 'Geschäftsjahr 2025';
 
@@ -293,73 +281,6 @@ const CRM_ENTRIES: ActiveCatalogEntry[] = [
       funnelStages: true,
     };
   }),
-];
-
-const LIVE_TIME_BASIS =
-  'Letzter Wert aus dem Live-Feed mit eigenem Zeitstempel; beim Öffnen lädt der Store bis zu 30 Feed-Punkte der letzten 30 Minuten, danach wird der Verlauf als Sitzungshistorie fortgeschrieben (höchstens 30 Punkte), keine Jahreszeitreihe.';
-
-const liveValue = (
-  liveKpiId: string,
-  name: string,
-  definition: string,
-  unit: string,
-  ratio = false,
-): ActiveCatalogEntry => ({
-  id: `live.${liveKpiId}`,
-  name,
-  category: 'live',
-  kind: 'kpi',
-  status: 'aktiv',
-  definition,
-  unit,
-  source: { ...LIVE_SOURCE, liveKpiId, metadata: LIVE_METADATA }, // Store liefert Werte
-  shape: ratio ? 'verhaeltnis' : 'einzelwert',
-  aggregation: ratio ? 'verhaeltnis' : 'bestand',
-  timeMode: 'live',
-  timeBasis: LIVE_TIME_BASIS,
-  views: ['zahl', 'tabelle'],
-  defaultView: 'zahl',
-  minSize: 'klein',
-  groupings: [],
-  filters: [],
-  detailRouteId: 's-exec',
-  access: LIVE_ACCESS,
-});
-
-const LIVE_ENTRIES: ActiveCatalogEntry[] = [
-  liveValue('arr', 'Live ARR', 'Annual Recurring Revenue aus dem Live-Feed.', 'EUR'),
-  liveValue('mrr', 'Live MRR', 'Monthly Recurring Revenue aus dem Live-Feed.', 'EUR'),
-  liveValue(
-    'pipeline_coverage',
-    'Pipeline Coverage',
-    'Pipeline-Deckung als Vielfaches laut Live-Feed.',
-    'x',
-    true,
-  ),
-  liveValue('arr_direct', 'ARR Direct', 'ARR aus dem Direktvertrieb laut Live-Feed.', 'EUR'),
-  liveValue('arr_partner', 'ARR Partner', 'ARR über Partner laut Live-Feed.', 'EUR'),
-  liveValue('arr_outbound', 'ARR Outbound', 'ARR aus Outbound laut Live-Feed.', 'EUR'),
-  liveValue('arr_other', 'ARR Sonstige', 'ARR aus sonstigen Kanälen laut Live-Feed.', 'EUR'),
-  liveValue('pipeline_leads', 'Pipeline Leads', 'Bestand an Leads laut Live-Feed.', 'Anzahl'),
-  liveValue(
-    'pipeline_mql',
-    'Pipeline MQL',
-    'Bestand an Marketing Qualified Leads (MQL) laut Live-Feed.',
-    'Anzahl',
-  ),
-  liveValue(
-    'pipeline_sql',
-    'Pipeline SQL',
-    'Bestand an Sales Qualified Leads (SQL) laut Live-Feed.',
-    'Anzahl',
-  ),
-  liveValue(
-    'pipeline_offers',
-    'Pipeline Angebote',
-    'Bestand an Angeboten laut Live-Feed.',
-    'Anzahl',
-  ),
-  liveValue('pipeline_won', 'Pipeline Won', 'Gewonnene Deals laut Live-Feed.', 'Anzahl'),
 ];
 
 const overview = (

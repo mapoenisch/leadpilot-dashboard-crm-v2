@@ -30,6 +30,7 @@ Ein maschinenprüfbarer Katalog aller Dashboard-Kandidaten mit Status, Quelle, Z
 | `src/features/dashboard/model/dashboardCatalog.ts` | Neu: Typen, Darstellungs- und Größenregeln, Katalogzugriff |
 | `src/features/dashboard/model/catalog/activeEntries.ts` | Neu: aktive Einträge (erste Auswahl laut Plan) |
 | `src/features/dashboard/model/catalog/inventoryEntries.ts` | Neu: Einträge mit Status „aufbereiten“ samt Grund |
+| `src/features/dashboard/model/catalog/liveEntries.ts` | Neu: die zwölf aktiven Live-KPIs (Wertquelle `liveKpiStreamStore`) |
 | `src/features/dashboard/model/catalog/unsuitableEntries.ts` | Neu: Einträge mit Status „nicht geeignet“ samt Grund |
 | `src/features/dashboard/model/dashboardConfig.ts` | Neu: versionierte Kachel- und Filterkonfiguration (Format 1) |
 | `src/features/dashboard/model/dashboardValidation.ts` | Neu: Prüfung von Katalog und Konfiguration (reine Funktionen) |
@@ -38,7 +39,7 @@ Ein maschinenprüfbarer Katalog aller Dashboard-Kandidaten mit Status, Quelle, Z
 | `docs/auftraege/ANTIGRAVITY_AUFTRAG_070_DASHBOARD_KPI_KATALOG.md` | Diese Datei |
 | `docs/BUILD_LOG.md` | Builder-Eintrag |
 
-Die Aufteilung des Katalogs auf vier Dateien folgt der 400-Zeilen-Grenze je Datei (Lint). Weitere Dateien nur nach Rückfrage (`CLAUDE.md` §5.3).
+Die Aufteilung des Katalogs auf fünf Dateien folgt der 400-Zeilen-Grenze je Datei (Lint). Weitere Dateien nur nach Rückfrage (`CLAUDE.md` §5.3).
 
 ## Umsetzung
 
