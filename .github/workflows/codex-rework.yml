@@ -237,6 +237,16 @@ jobs:
         # Pushes mit dem Job-Token lösen keine pull_request-Läufe aus; workflow_dispatch schon.
         run: gh workflow run ci.yml --ref "$HEAD_REF"
 
+      # Der Push des Job-Tokens löst `codex-status.yml` nicht aus: den neuen Head ausdrücklich auf
+      # `pending` setzen. Ist der Statusworkflow noch nicht auf dem Default-Branch, bleibt das folgenlos.
+      - name: Codex-Status für den neuen Head starten
+        if: steps.push.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PR: ${{ needs.gate.outputs.pr }}
+        run: gh workflow run codex-status.yml --ref "$DEFAULT_BRANCH" -f pr="$PR" || echo "codex-status.yml nicht startbar (noch nicht auf dem Default-Branch?)"
+
       - name: Zusammenfassung veröffentlichen
         env:
           GH_TOKEN: ${{ github.token }}

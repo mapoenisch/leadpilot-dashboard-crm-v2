@@ -14109,3 +14109,69 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates** (lokal auf dem Arbeitsstand dieser Runde, unmittelbar vor diesem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Der Ledger-Eintrag selbst ist reiner Text.
 
 **Stand des Prüfgegenstands:** gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+
+---
+
+## [2026-10-02] Auftrag CI-Automatisierung Restpunkte — Plan Abschnitt 11 (Builder: Claude Code)
+
+**Ziel & Kontext:** Fünf der sechs offenen Automatisierungspunkte aus dem Plan umgesetzt (Auftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_AUTOMATISIERUNG_RESTPUNKTE.md`). Entscheidungen Marc (02.10.2026): Vorschau ohne Hosting als CI-Artefakt; das Referenzbild für die Testkachel liefert Marc nach.
+
+**Geänderte Dateien:** `scripts/codexReviewCycle.mjs` (`decideCodexStatus`, `reviewedCommitMatches`, Befehl `status`), `.github/workflows/codex-status.yml` (neu), `.github/workflows/ci.yml` (Artefakt `dashboard-preview` im Job `build`), `scripts/__tests__/codexReviewCycle.vitest.ts`, `scripts/__tests__/e2eSpecsListed.vitest.ts` (neu), `docs/dashboard/REVIEW_WORKFLOW.md`, `docs/dashboard/AGENT_SETUP.md`, Plan Abschnitt 11, `BUILD_PLAN.md`, Auftragsdatei, dieses Ledger.
+
+**Umsetzung je Punkt:**
+1. **Abgleich:** `REVIEW_WORKFLOW.md` gegen die drei Workflows geprüft (Auslöser, Identität, Rundenlimit 3, Marker je Head-SHA, `concurrency`, 20 Minuten Wartezeit, 15-Minuten-Abgleich, Label, Leserechte für PR-Code, blockierter Push bei Schutzbereichen/`.github`/Arbeitsdateien): keine Abweichung. Folge dokumentiert: automatische Nacharbeit darf nichts unter `.github` ändern.
+2. **Zugänge/Hosting:** Befund in `AGENT_SETUP.md`: einziges Secret `CLAUDE_CODE_OAUTH_TOKEN`, Token-Rechte je Workflow, kein Hosting im Repo. Kontoeinstellungen und Branch-Schutz sind aus dem Repo nicht prüfbar und liegen bei Marc.
+3. **Codex-Status:** Commit-Status `codex-review` je Head-SHA (`pending`/`failure`/`success`), nur verifizierte Codex-Identität, Ergebnisse zu anderem Stand zählen nie. Der Workflow läuft auf `pull_request_target`/`pull_request_review`/`issue_comment` vom Default-Branch, ohne PR-Code, nur `statuses: write`. Er wirkt erst, wenn er auf `main` liegt. Offen für Marc: Pflicht im Branch-Schutz ja/nein.
+4. **E2E-Liste:** Wächtertest `e2eSpecsListed`; negativ geprüft (eine zusätzliche `e2e/zz-neu.spec.ts` ließ ihn fehlschlagen, Datei wieder entfernt). Alle 13 vorhandenen Suiten stehen in der Liste.
+5. **Ablaufnachweis an der Testkachel:** bewusst offen (Teilauftrag 0).
+6. **Vorschau:** Artefakt `dashboard-preview` (7 Tage), Anleitung in `REVIEW_WORKFLOW.md`.
+
+**Gates** (lokal, `npm ci --ignore-scripts`, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1699 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Prüfung** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI und die Codex-Prüfung. Der neue Workflow `codex-status.yml` lässt sich erst nach dem Merge auf `main` ausprobieren. Nicht gemergt.
+
+---
+
+## Automatische Nacharbeit Runde 1 (PR #47, Head ba71c3f)
+
+**Befund 4163474015 (P2, `scripts/codexReviewCycle.mjs`):** `decideCodexStatus` wertete befundfreie Ergebnisse nur aus Issue-Kommentaren aus; ein sauberes `pull_request_review` blieb `pending`. **Entscheidung: behoben.** Ein verifiziertes Codex-Review mit `commit_id` gleich Head-SHA und „Didn't find any major issues“ im Body zählt jetzt als sauber. Inline-Befunde gewinnen weiterhin; Reviews zu älteren Ständen oder von Fremden zählen nicht. Tests ergänzt in `scripts/__tests__/codexReviewCycle.vitest.ts`.
+
+**Gates:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1701 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+
+---
+
+## Nacharbeit PR #47, Runde 2 (manuell, Head 9a66627)
+
+**Warum manuell:** Zwei der drei Befunde betreffen `.github/workflows/`; die automatische Nacharbeit darf dort nicht pushen (Schutz in `codex-rework.yml`, Push würde blockiert). Daher alle drei Befunde in einem Push durch Claude Code.
+
+**Befunde (Codex, Review 5389135902):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4163590276 (P2) | `scripts/__tests__/e2eSpecsListed.vitest.ts` | behoben: Prüfung nur gegen tatsächliche `run`-Befehle mit `playwright test` (einzeilig und Blockform), Kommentare, Schrittnamen und `echo` zählen nicht; Hilfsfunktionen mit Tests |
+| 4163590279 (P2) | `.github/workflows/codex-status.yml` | behoben: Nacharbeits-Pushes des Job-Tokens lösen `pull_request_target` nicht aus. `codex-status.yml` hat `workflow_dispatch` (Eingabe `pr`), `codex-rework.yml` startet es nach dem Push; Vertragstest ergänzt |
+| 4163590283 (P2) | `docs/dashboard/AGENT_SETUP.md` | behoben: Rechte aller fünf Workflows und aller Jobs von `codex-rework.yml` vollständig, inklusive `id-token: write` in `claude.yml` |
+
+**Gates** (lokal, `npm ci --ignore-scripts`, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1704 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Stand des Prüfgegenstands:** 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md`, `CLAUDE.md`, `.github/` und `scripts/` unterscheiden sich von `origin/main`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+---
+
+## Automatische Nacharbeit Runde 3 (PR #47, Head 8f0345e)
+
+**Befunde (Codex, Review 5389185249):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4163631530 (P2) | `scripts/__tests__/e2eSpecsListed.vitest.ts` | behoben: `playwrightFiles` zerlegt `run`-Blöcke in einzelne Shell-Befehle (Fortsetzungszeilen verbunden, Inline-Kommentare entfernt, Trennung an `&&`, `\|\|`, `;`, `\|`, Zeilenumbruch) und wertet nur Argumente von Befehlen aus, die mit `playwright test` beginnen. `echo e2e/not-run.spec.ts` im selben Block zählt nicht. Testfälle ergänzt. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1704 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff 8f0345e -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.

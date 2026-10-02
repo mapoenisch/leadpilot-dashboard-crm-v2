@@ -3,6 +3,7 @@
 // Entscheidet, ob für einen PR ein Codex-Review angefordert wird (`request`) und ob ein
 // eingegangenes Codex-Ergebnis eine Nacharbeitsrunde startet (`rework-gate`). Codex liefert
 // Ergebnisse als Review (mit Inline-Befunden) oder als PR-Kommentar (Aufgabenformat).
+// Dritter Befehl `status`: setzt den Commit-Status `codex-review` für den Head (siehe codex-status.yml).
 // Die Entscheidungen sind reine Funktionen; die CLI liest den Zustand über die GitHub-API
 // und schreibt Markierungskommentare, an denen spätere Läufe Dopplungen erkennen.
 import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -86,6 +87,69 @@ export function hasEscalationMarker(comments) {
   return markerComments(comments).some((comment) =>
     (comment.body ?? '').includes(ESCALATION_MARKER),
   );
+}
+
+export const STATUS_CONTEXT = 'codex-review';
+const REVIEWED_COMMIT_PATTERN = /Reviewed commit:\*\*\s*`([0-9a-f]{7,40})`/;
+const CLEAN_RESULT_PATTERN = /Didn't find any major issues/;
+
+/** Codex nennt den geprüften Stand im Ergebnis-Kommentar gekürzt; er zählt nur als Präfix des Head-SHA. */
+export function reviewedCommitMatches(body, headSha) {
+  const match = (body ?? '').match(REVIEWED_COMMIT_PATTERN);
+  return Boolean(match) && headSha.startsWith(match[1]);
+}
+
+/**
+ * Serverseitig prüfbarer Status des Codex-Reviews für den aktuellen Head (Commit-Status `codex-review`).
+ * `failure`: Befunde zum Head. `success`: Codex meldet für genau diesen Head keine Befunde.
+ * `pending`: kein verwertbares Ergebnis zum Head. Der Status ersetzt keine Freigabe durch Marc.
+ * Ergebnisse zu anderen Ständen zählen nie; `reviewCommentCounts` bildet Review-ID auf Inline-Befunde ab.
+ */
+export function decideCodexStatus({ pr, reviews, reviewCommentCounts, comments }) {
+  const sha = pr.head.sha;
+  if (pr.state !== 'open') return { action: 'skip', reason: 'PR ist nicht offen' };
+  if (pr.head.repo?.full_name !== pr.base.repo?.full_name)
+    return { action: 'skip', reason: 'PR aus einem Fork' };
+
+  const reviewFindings = reviews
+    .filter((review) => isVerifiedCodex(review.user) && review.commit_id === sha)
+    .reduce((sum, review) => sum + (reviewCommentCounts[review.id] ?? 0), 0);
+  const verified = comments.filter((comment) => isVerifiedCodex(comment.user));
+  const commentFindings = verified
+    .filter((comment) => commentSha(comment.body) === sha)
+    .reduce((sum, comment) => sum + codexResultFromComment(comment).findingCount, 0);
+  const cleanComment = verified.some(
+    (comment) =>
+      CLEAN_RESULT_PATTERN.test(comment.body ?? '') && reviewedCommitMatches(comment.body, sha),
+  );
+  // Codex reicht das befundfreie Ergebnis teils als Review ein; maßgeblich ist dessen `commit_id`.
+  const cleanReview = reviews.some(
+    (review) =>
+      isVerifiedCodex(review.user) &&
+      review.commit_id === sha &&
+      CLEAN_RESULT_PATTERN.test(review.body ?? ''),
+  );
+  const clean = cleanComment || cleanReview;
+
+  if (reviewFindings + commentFindings > 0) {
+    return {
+      action: 'set',
+      state: 'failure',
+      description: `Codex: ${reviewFindings + commentFindings} Befund(e) zu ${sha.slice(0, 10)}`,
+    };
+  }
+  if (clean) {
+    return {
+      action: 'set',
+      state: 'success',
+      description: `Codex: keine Befunde zu ${sha.slice(0, 10)}`,
+    };
+  }
+  return {
+    action: 'set',
+    state: 'pending',
+    description: `Codex-Review zu ${sha.slice(0, 10)} ausstehend`,
+  };
 }
 
 /**
@@ -229,6 +293,7 @@ function createGitHub({ token, repo }) {
     commit: (sha) => call('GET', `/commits/${sha}`),
     issueComment: (id) => call('GET', `/issues/comments/${id}`),
     comment: (number, body) => call('POST', `/issues/${number}/comments`, { body }),
+    setStatus: (sha, body) => call('POST', `/statuses/${sha}`, body),
   };
 }
 
@@ -268,6 +333,34 @@ async function runRequest(gh, { prNumber, force }) {
       );
     }
   }
+}
+
+async function runStatus(gh, { prNumber }) {
+  const pr = await gh.pr(prNumber);
+  const reviews = await gh.reviews(prNumber);
+  const reviewCommentCounts = {};
+  for (const review of reviews.filter(
+    (entry) => isVerifiedCodex(entry.user) && entry.commit_id === pr.head.sha,
+  )) {
+    reviewCommentCounts[review.id] = (await gh.reviewComments(prNumber, review.id)).length;
+  }
+  const decision = decideCodexStatus({
+    pr,
+    reviews,
+    reviewCommentCounts,
+    comments: await gh.comments(prNumber),
+  });
+  if (decision.action === 'skip') {
+    console.log(`PR #${prNumber} (${pr.head.sha}): skip — ${decision.reason}`);
+    return;
+  }
+  console.log(`PR #${prNumber} (${pr.head.sha}): ${decision.state} — ${decision.description}`);
+  await gh.setStatus(pr.head.sha, {
+    state: decision.state,
+    context: STATUS_CONTEXT,
+    description: decision.description.slice(0, 140),
+    target_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/${prNumber}`,
+  });
 }
 
 async function runReworkGate(gh, { prNumber, reviewId, commentId, findingsFile }) {
@@ -344,6 +437,10 @@ async function main(argv) {
       prNumber: args.pr ? Number(args.pr) : undefined,
       force: args.force === 'true',
     });
+  if (command === 'status') {
+    if (!args.pr) throw new Error('status braucht --pr=<Nummer>.');
+    return runStatus(gh, { prNumber: Number(args.pr) });
+  }
   if (command === 'rework-gate') {
     if (Boolean(args.review) === Boolean(args.comment))
       throw new Error('rework-gate braucht genau eines von --review oder --comment.');
@@ -355,7 +452,9 @@ async function main(argv) {
       findingsFile: args.findings,
     });
   }
-  throw new Error(`Unbekannter Befehl: ${command ?? '(leer)'} — erlaubt: request, rework-gate`);
+  throw new Error(
+    `Unbekannter Befehl: ${command ?? '(leer)'} — erlaubt: request, rework-gate, status`,
+  );
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

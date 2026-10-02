@@ -4,6 +4,22 @@ Stand: 01.10.2026. Einrichtungshilfe für den Dashboard-Umbau mit Versionsziel v
 
 > **Nachtrag 01.10.2026 (abends):** Ein Teil des folgenden Befunds ist überholt. Die GitHub-Anmeldung (`gh`) ist gültig. Die Claude-GitHub-App ist eingerichtet (PR #40, Funktionstest Issue #41). Die automatische Nacharbeit von Codex-Befunden läuft seit PR #42 und ist auf PR #43 Ende-zu-Ende getestet. Der aktuelle Ablauf steht in `docs/dashboard/REVIEW_WORKFLOW.md`. Der Text unten bleibt als Einrichtungsverlauf erhalten.
 
+## Befund Zugänge und Vorschauhosting (02.10.2026)
+
+Festgestellt aus dem Repository (`.github/workflows/`), ohne Zugriff auf Kontoeinstellungen:
+
+- **Secrets in Workflows:** nur `CLAUDE_CODE_OAUTH_TOKEN` (in `claude.yml` und `codex-rework.yml`). Weitere Zugänge nutzen den Job-Token `github.token`. Kein Deployment-, Hosting- oder Datenbank-Secret in den Workflows.
+- **Token-Rechte je Workflow und Job** (`permissions`, Stand 02.10.2026):
+  - `ci.yml`: `contents: read` (Workflow-Ebene), keine Jobs mit mehr Rechten.
+  - `update-visual-baselines.yml`: `contents: read` (Workflow-Ebene).
+  - `claude.yml`, Job `claude`: `contents: read`, `pull-requests: read`, `issues: read`, `actions: read` und `id-token: write` (für die OIDC-Anmeldung der Claude-Action); die Action fordert zusätzlich `actions: read` an. Nutzt `CLAUDE_CODE_OAUTH_TOKEN`.
+  - `codex-review-request.yml`, Job `request`: `contents: read`, `pull-requests: write`.
+  - `codex-rework.yml`: Workflow-Ebene `contents: read`. Job `gate`: `contents: read`, `pull-requests: write`, `issues: write` (Rundenmarker, Eskalation). Job `rework` (führt PR-Code aus): `contents: read`, `pull-requests: read`, `issues: read`, `actions: read`, nutzt `CLAUDE_CODE_OAUTH_TOKEN`. Job `publish` (ohne PR-Code): `contents: write`, `pull-requests: write`, `actions: write` (Push, Kommentar, CI-/Status-Dispatch). Job `notify`: `pull-requests: write`.
+  - `codex-status.yml`, Job `status`: `contents: read`, `pull-requests: read`, `issues: read`, `statuses: write`.
+- **Codex:** Bot `chatgpt-codex-connector[bot]` (ID 199175422) prüft neue PRs von selbst. Pushes des Workflow-Tokens und Kommentare von `github-actions[bot]` löst er nicht aus (Test PR #43).
+- **Vorschauhosting:** keines. Es gibt keine `netlify.toml`, `vercel.json` oder einen Deployment-Workflow. Entscheidung Marc: Vorschau als CI-Artefakt `dashboard-preview` (Anleitung in `docs/dashboard/REVIEW_WORKFLOW.md`).
+- **Nicht prüfbar aus dem Repository:** Einstellungen der Codex- und Claude-Konten sowie der Branch-Schutz. Beides liegt bei Marc.
+
 ## Lokaler Befund
 
 - Zielrepository aus `origin`: `mapoenisch/leadpilot-dashboard-crm-v2`.

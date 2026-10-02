@@ -10,12 +10,15 @@ import {
   codexResultFromComment,
   codexResultFromReview,
   commentSha,
+  decideCodexStatus,
   decideReviewRequest,
   decideRework,
   formatFindings,
   isVerifiedCodex,
   parseReworkMarkers,
   requestMarker,
+  reviewedCommitMatches,
+  STATUS_CONTEXT,
   reworkMarker,
 } from '../codexReviewCycle.mjs';
 
@@ -396,5 +399,159 @@ describe('Workflow-Verträge', () => {
 
   it('schreibt keine Kommentare, die den @claude-Workflow auslösen', () => {
     expect(read('scripts/codexReviewCycle.mjs')).not.toContain('@claude');
+  });
+});
+
+// Punkt 3 der Automatisierungs-Restpunkte: serverseitig prüfbarer Status `codex-review`.
+const cleanBody = (sha: string) =>
+  `Codex Review: Didn't find any major issues. Hooray!\n\n**Reviewed commit:** \`${sha.slice(0, 10)}\``;
+const statusInput = (overrides = {}) => ({
+  pr: pr(),
+  reviews: [],
+  reviewCommentCounts: {},
+  comments: [],
+  ...overrides,
+});
+
+describe('decideCodexStatus', () => {
+  it('meldet pending, solange zum Head kein Codex-Ergebnis vorliegt', () => {
+    expect(decideCodexStatus(statusInput())).toMatchObject({ action: 'set', state: 'pending' });
+  });
+
+  it('meldet failure bei Inline-Befunden eines Reviews zum Head', () => {
+    const result = decideCodexStatus(
+      statusInput({ reviews: [review({ id: 11 })], reviewCommentCounts: { 11: 2 } }),
+    );
+    expect(result).toMatchObject({ state: 'failure' });
+    expect(result.description).toContain('2 Befund');
+  });
+
+  it('meldet failure bei Befunden im Ergebnis-Kommentar zum Head', () => {
+    const result = decideCodexStatus(
+      statusInput({ comments: [comment(codex, codexTaskBody(SHA))] }),
+    );
+    expect(result).toMatchObject({ state: 'failure' });
+  });
+
+  it('meldet success nur, wenn Codex für genau diesen Head keine Befunde meldet', () => {
+    expect(
+      decideCodexStatus(statusInput({ comments: [comment(codex, cleanBody(SHA))] })),
+    ).toMatchObject({ state: 'success' });
+    expect(
+      decideCodexStatus(statusInput({ comments: [comment(codex, cleanBody(OLD_SHA))] })),
+    ).toMatchObject({ state: 'pending' });
+  });
+
+  it('meldet success bei befundfreiem Review zum Head, aber nicht zu einem älteren Stand', () => {
+    const clean = (commit_id: string) => review({ id: 12, commit_id, body: cleanBody(commit_id) });
+    expect(decideCodexStatus(statusInput({ reviews: [clean(SHA)] }))).toMatchObject({
+      state: 'success',
+    });
+    expect(decideCodexStatus(statusInput({ reviews: [clean(OLD_SHA)] }))).toMatchObject({
+      state: 'pending',
+    });
+    expect(
+      decideCodexStatus(
+        statusInput({ reviews: [review({ id: 12, user: marc, body: cleanBody(SHA) })] }),
+      ),
+    ).toMatchObject({ state: 'pending' });
+  });
+
+  it('lässt Inline-Befunde gegen ein befundfreies Review zum Head gewinnen', () => {
+    const result = decideCodexStatus(
+      statusInput({
+        reviews: [review({ id: 12, body: cleanBody(SHA) })],
+        reviewCommentCounts: { 12: 1 },
+      }),
+    );
+    expect(result).toMatchObject({ state: 'failure' });
+  });
+
+  it('wertet Ergebnisse zu einem älteren Stand nie für den neuen Head', () => {
+    const result = decideCodexStatus(
+      statusInput({
+        reviews: [review({ id: 11, commit_id: OLD_SHA })],
+        reviewCommentCounts: { 11: 3 },
+        comments: [comment(codex, codexTaskBody(OLD_SHA)), comment(codex, cleanBody(OLD_SHA))],
+      }),
+    );
+    expect(result).toMatchObject({ state: 'pending' });
+  });
+
+  it('lässt Befunde gewinnen, wenn zum Head Befunde und ein Freigabe-Kommentar vorliegen', () => {
+    const result = decideCodexStatus(
+      statusInput({
+        reviews: [review({ id: 11 })],
+        reviewCommentCounts: { 11: 1 },
+        comments: [comment(codex, cleanBody(SHA))],
+      }),
+    );
+    expect(result).toMatchObject({ state: 'failure' });
+  });
+
+  it('ignoriert Freigabe-Texte von Menschen und fremden Bots', () => {
+    const result = decideCodexStatus(
+      statusInput({
+        comments: [
+          comment(marc, cleanBody(SHA)),
+          comment({ ...codex, id: 1 }, cleanBody(SHA)),
+          comment(workflowBot, cleanBody(SHA)),
+        ],
+      }),
+    );
+    expect(result).toMatchObject({ state: 'pending' });
+  });
+
+  it('überspringt geschlossene PRs und PRs aus Forks', () => {
+    expect(decideCodexStatus(statusInput({ pr: pr({ state: 'closed' }) })).action).toBe('skip');
+    expect(
+      decideCodexStatus(
+        statusInput({
+          pr: pr({ head: { sha: SHA, ref: 'x', repo: { full_name: 'fork/leadpilot' } } }),
+        }),
+      ).action,
+    ).toBe('skip');
+  });
+
+  it('erkennt den gekürzten geprüften Stand nur als Präfix des Head', () => {
+    expect(reviewedCommitMatches(cleanBody(SHA), SHA)).toBe(true);
+    expect(reviewedCommitMatches(cleanBody(OLD_SHA), SHA)).toBe(false);
+    expect(reviewedCommitMatches('kein Stand', SHA)).toBe(false);
+    expect(STATUS_CONTEXT).toBe('codex-review');
+  });
+});
+
+describe('Workflow codex-status.yml', () => {
+  const workflow = fs.readFileSync(
+    path.join(__dirname, '..', '..', '.github', 'workflows', 'codex-status.yml'),
+    'utf-8',
+  );
+
+  it('darf nur Status schreiben und checkt keinen PR-Code aus', () => {
+    expect(workflow).toContain('statuses: write');
+    expect(workflow).not.toMatch(/contents:\s*write/);
+    expect(workflow).not.toMatch(/pull-requests:\s*write/);
+    expect(workflow).toContain('pull_request_target');
+    expect(workflow).toContain('ref: ${{ github.event.repository.default_branch }}');
+    expect(workflow).not.toContain('github.event.pull_request.head.sha');
+    expect(workflow).not.toContain('github.head_ref');
+  });
+
+  it('lässt sich nach einem Nacharbeits-Push ausdrücklich starten (Job-Token löst keine Events aus)', () => {
+    expect(workflow).toContain('workflow_dispatch');
+    expect(workflow).toContain('github.event.inputs.pr');
+    const rework = fs.readFileSync(
+      path.join(__dirname, '..', '..', '.github', 'workflows', 'codex-rework.yml'),
+      'utf-8',
+    );
+    expect(rework).toContain('gh workflow run codex-status.yml');
+    expect(rework).toMatch(/-f pr="\$PR"/);
+  });
+
+  it('reagiert auf Reviews und Kommentare nur von der verifizierten Codex-Identität', () => {
+    expect(workflow).toContain('github.event.review.user.id == 199175422');
+    expect(workflow).toContain('github.event.comment.user.id == 199175422');
+    expect(workflow).toContain("github.event.review.user.type == 'Bot'");
+    expect(workflow).toContain("github.event.comment.user.type == 'Bot'");
   });
 });
