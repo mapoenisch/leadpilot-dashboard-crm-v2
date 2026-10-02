@@ -14098,3 +14098,14 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates** (lokal auf dem Arbeitsstand dieser Runde, unmittelbar vor diesem Ledger-Eintrag, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0, 0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Der Ledger-Eintrag selbst ist reiner Text.
 
 **Stand des Prüfgegenstands:** gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+
+---
+
+## Nacharbeit Runde 10 (manuell, PR #46, Head 763f418) — Gates auf dem finalen Stand
+
+**Befund (Codex, Review 5388705213):** 4163222357 (P2), Plan Teilauftrag 1: `GESELLSCHAFTER.rows` enthält zusätzlich die Summenzeile `Gesamt` (`src/domain/rechtData.ts`), die Zeilen ergäben zusammen 200 %. **Behoben:** Quelle geprüft (fünf Gesellschafter plus `Gesamt`); der Plan verlangt jetzt den Ausschluss der Summenzeile vor jeder Darstellung und die Prüfung der fünf Anteile auf exakt 100 %. Die Angabe „summiert auf 100 %“ aus Runde 7 war ungenau.
+
+**Gates** (lokal auf dem Arbeitsstand dieser Runde, unmittelbar vor diesem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Der Ledger-Eintrag selbst ist reiner Text.
+
+**Stand des Prüfgegenstands:** gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
