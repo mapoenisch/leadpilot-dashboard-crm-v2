@@ -14240,3 +14240,15 @@ Durchsicht der automatischen Runde 1: Filterwerte, erhaltene Kacheln mit unbekan
 | 4167990130 (P2, `2026-13-01` wirft `RangeError` in `toISOString()` statt `zeitraum` zu melden) | `src/features/dashboard/model/dashboardValidation.ts` | behoben: `isDay` prüft `getTime()` auf `Number.isFinite`, bevor konvertiert wird. Regressionstests (Monat 13/00, Tag 00/32) in `dashboardValidation.vitest.ts`. |
 
 **Gates:** `npx tsc --noEmit` grün; `npm run lint` grün; `npm test` 1741 Tests grün; `npm run verify` grün; `npm run build` grün. **Schutzbereichs-Diff** (`src/simulation src/types src/context src/services/data src/features/resources`) gegenüber `c676a9e`: leer.
+
+## Automatische Nacharbeit Runde 3 (PR #49, Auftrag 070)
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4168675905 (P2, Live-Kombinationen verweisen nicht auf die Messwertquelle) | `src/features/dashboard/model/catalog/inventoryEntries.ts`, `dashboardCatalog.ts` | behoben: `live.arr_mix`, `live.funnel` und `live.verlauf` zeigen auf `liveKpiStreamStore` mit `liveKpiIds`; `LIVE_KPI_DEFINITIONS` steht nur als `metadata`, `mergeIntoHistory` als `processing` (neue optionale Felder in `CatalogSource`). Test ergänzt (IDs gegen die Definitionen geprüft). |
+| 4168675908 (P2, Anzahl und Volumen der Pipeline-Stufen nicht getrennt) | `src/features/dashboard/model/catalog/activeEntries.ts`, `dashboardCatalog.ts` | behoben: neues optionales Feld `measures` mit den Messreihen Anzahl (Deals) und Volumen (EUR); `unit` nennt beide Einheiten. Test und `docs/dashboard/KPI_CATALOG.md` ergänzt. |
+| 4168675913 (P2, `crm.pipeline_gewonnen` als Bestand klassifiziert) | `src/features/dashboard/model/catalog/activeEntries.ts` | behoben: `crmValue` nimmt eine Aggregation entgegen, `wonVolume` ist `fluss`. Test und Doku ergänzt. |
+
+Zur Einhaltung von `max-lines` (400) wurden zwei Live-Definitionstexte (MQL, SQL) gekürzt und `LIVE_SOURCE`/`LIVE_METADATA` exportiert statt doppelt definiert.
+
+**Gates:** `npx tsc --noEmit` grün; `npm run lint` grün; `npm run format:check` grün; `npm test` 1743 Tests grün; `npm run verify` grün; `npm run build` grün. **Schutzbereichs-Diff** (`src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.

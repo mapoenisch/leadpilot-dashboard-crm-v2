@@ -3,10 +3,16 @@
 // „nicht_geeignet“ steht in unsuitableEntries.ts.
 // Simulations-KPIs sind ausgeschlossen (Plan §1) und stehen deshalb hier nicht.
 import type { CatalogSource, DashboardCategory, InventoryCatalogEntry } from '../dashboardCatalog';
-import { BASELINE_ACCESS, LIVE_ACCESS } from './activeEntries';
+import { BASELINE_ACCESS, LIVE_ACCESS, LIVE_METADATA, LIVE_SOURCE } from './activeEntries';
 
 const D = (file: string) => `src/domain/${file}.ts`;
 const TA8 = 'Teilauftrag 8';
+
+/** Messwertquelle der Live-Kombinationen: der Store; Definitionen liefern nur Metadaten. */
+const LIVE_STORE = { ...LIVE_SOURCE, metadata: LIVE_METADATA };
+const ARR_MIX_IDS = ['arr_direct', 'arr_partner', 'arr_outbound', 'arr_other'];
+const FUNNEL_IDS = ['leads', 'mql', 'sql', 'offers', 'won'].map((id) => `pipeline_${id}`);
+const LIVE_ALL_IDS = ['arr', 'mrr', 'pipeline_coverage', ...ARR_MIX_IDS, ...FUNNEL_IDS];
 
 export const entry = (
   id: string,
@@ -266,11 +272,7 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
     'live.arr_mix',
     'Live-ARR-Mix',
     'live',
-    {
-      layer: 'live',
-      module: 'src/services/liveKpi/liveKpiDefinitions.ts',
-      exportName: 'LIVE_KPI_DEFINITIONS',
-    },
+    { ...LIVE_STORE, liveKpiIds: ARR_MIX_IDS },
     'aufbereiten',
     'Aufteilung aus vier Live-Werten; ein gemeinsamer bestätigter Snapshot ist nicht belegt (Plan §4, Kombinationen). Die Einzelwerte sind aktiv.',
   ),
@@ -278,11 +280,7 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
     'live.funnel',
     'Live-Funnel',
     'live',
-    {
-      layer: 'live',
-      module: 'src/services/liveKpi/liveKpiDefinitions.ts',
-      exportName: 'LIVE_KPI_DEFINITIONS',
-    },
+    { ...LIVE_STORE, liveKpiIds: FUNNEL_IDS },
     'aufbereiten',
     'Funnel aus fünf Live-Werten; derselbe Snapshot ist nicht belegt; Funnel-Stufen nie Kreis. Die Einzelwerte sind aktiv.',
   ),
@@ -291,9 +289,12 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
     'Live-Verlauf',
     'live',
     {
-      layer: 'live',
-      module: 'src/services/liveKpi/liveKpiStreamHistory.ts',
-      exportName: 'mergeIntoHistory',
+      ...LIVE_STORE,
+      liveKpiIds: LIVE_ALL_IDS,
+      processing: {
+        module: 'src/services/liveKpi/liveKpiStreamHistory.ts',
+        exportName: 'mergeIntoHistory',
+      },
     },
     'aufbereiten',
     'Sitzungshistorie seit Seitenaufruf ist keine vollständige Zeitreihe (Plan §4); Verlaufsdarstellung erst mit Teilauftrag 2.',

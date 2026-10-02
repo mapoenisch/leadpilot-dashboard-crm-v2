@@ -59,6 +59,10 @@ export interface CatalogSource {
   liveKpiId?: string;
   /** Nur Live: Modul der reinen Metadaten (Label, Einheit, Format); Messwerte liefert `module`. */
   metadata?: { module: string; exportName: string };
+  /** Nur Live-Kombinationen: alle Live-KPI-IDs, deren Werte und Zeitstempel der Store liefert. */
+  liveKpiIds?: readonly string[];
+  /** Nur Live-Verlauf: reiner Verarbeitungsschritt auf den Store-Werten, keine Messwertquelle. */
+  processing?: { module: string; exportName: string };
 }
 
 interface CatalogEntryBase {
@@ -73,8 +77,10 @@ interface CatalogEntryBase {
 export interface ActiveCatalogEntry extends CatalogEntryBase {
   status: 'aktiv';
   definition: string;
-  /** Anzeigeeinheit, z. B. `EUR`, `Kunden`, `FTE`, `x`. */
+  /** Anzeigeeinheit, z. B. `EUR`, `Kunden`, `FTE`, `x`. Bei `measures` die Einheit je Messreihe. */
   unit: string;
+  /** Explizite Messreihen, wenn der aufgelöste Wert mehrere Größen mit eigener Einheit trägt. */
+  measures?: readonly { key: string; label: string; unit: string }[];
   shape: DataShape;
   aggregation: Aggregation;
   timeMode: TimeMode;

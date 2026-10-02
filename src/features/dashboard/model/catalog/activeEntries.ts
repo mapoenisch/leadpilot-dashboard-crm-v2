@@ -12,12 +12,12 @@ export const LIVE_ACCESS =
 
 const EXEC = 'src/domain/execData.ts';
 const COCKPIT = 'src/domain/executiveCockpitData.ts';
-const LIVE_SOURCE = {
+export const LIVE_SOURCE = {
   layer: 'live',
   module: 'src/services/liveKpi/liveKpiStreamStore.ts',
   exportName: 'liveKpiStreamStore',
 } as const;
-const LIVE_METADATA = {
+export const LIVE_METADATA = {
   module: 'src/services/liveKpi/liveKpiDefinitions.ts',
   exportName: 'LIVE_KPI_DEFINITIONS',
 };
@@ -208,6 +208,7 @@ const crmValue = (
   definition: string,
   unit: string,
   field: string,
+  aggregation: ActiveCatalogEntry['aggregation'] = 'bestand',
 ): ActiveCatalogEntry => ({
   id,
   name,
@@ -218,7 +219,7 @@ const crmValue = (
   unit,
   source: { layer: 'crm', module: COCKPIT, exportName: 'getPipelineOverview', path: [field] },
   shape: 'einzelwert',
-  aggregation: 'bestand',
+  aggregation,
   timeMode: 'aktuell',
   timeBasis: CRM_TIME_BASIS,
   views: ['zahl', 'tabelle'],
@@ -251,6 +252,7 @@ const CRM_ENTRIES: ActiveCatalogEntry[] = [
     'Summe der Deals in einer Stufe „gewonnen“.',
     'EUR',
     'wonVolume',
+    'fluss', // Summe abgeschlossener Deals, kein Pipeline-Bestand
   ),
   crmValue(
     'crm.pipeline_offen',
@@ -264,9 +266,13 @@ const CRM_ENTRIES: ActiveCatalogEntry[] = [
       'crm.pipeline_stufen',
       'Pipeline nach Stufe',
       'Anzahl und Volumen je Funnel-Stufe.',
-      'EUR',
+      'Deals bzw. EUR je Messreihe',
       'stages',
     ),
+    measures: [
+      { key: 'count', label: 'Anzahl', unit: 'Deals' },
+      { key: 'volume', label: 'Volumen', unit: 'EUR' },
+    ],
     shape: 'kategorien',
     views: ['balken', 'saeulen', 'tabelle'],
     defaultView: 'balken',
@@ -325,15 +331,10 @@ const LIVE_ENTRIES: ActiveCatalogEntry[] = [
   liveValue(
     'pipeline_mql',
     'Pipeline MQL',
-    'Bestand an Marketing Qualified Leads laut Live-Feed.',
+    'Bestand an Marketing-Leads (MQL), Live-Feed.',
     'Anzahl',
   ),
-  liveValue(
-    'pipeline_sql',
-    'Pipeline SQL',
-    'Bestand an Sales Qualified Leads laut Live-Feed.',
-    'Anzahl',
-  ),
+  liveValue('pipeline_sql', 'Pipeline SQL', 'Bestand an Sales-Leads (SQL), Live-Feed.', 'Anzahl'),
   liveValue(
     'pipeline_offers',
     'Pipeline Angebote',

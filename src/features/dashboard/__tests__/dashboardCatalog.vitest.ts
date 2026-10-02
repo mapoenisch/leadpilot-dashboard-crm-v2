@@ -120,6 +120,30 @@ describe('Dashboard-Katalog', () => {
     }
   });
 
+  it('führt Live-Kombinationen auf den Store mit gültigen KPI-IDs; mergeIntoHistory ist nur Verarbeitung', () => {
+    const definitionIds = LIVE_KPI_DEFINITIONS.map((definition) => definition.id);
+    for (const id of ['live.arr_mix', 'live.funnel', 'live.verlauf']) {
+      const source = byId(id).source;
+      expect(source.exportName, id).toBe('liveKpiStreamStore');
+      expect(source.metadata?.exportName, id).toBe('LIVE_KPI_DEFINITIONS');
+      expect(source.liveKpiIds?.length, id).toBeGreaterThan(0);
+      for (const liveId of source.liveKpiIds ?? []) expect(definitionIds, id).toContain(liveId);
+    }
+    expect(byId('live.verlauf').source.processing?.exportName).toBe('mergeIntoHistory');
+    expect([...(byId('live.verlauf').source.liveKpiIds ?? [])].sort()).toEqual(
+      [...definitionIds].sort(),
+    );
+  });
+
+  it('trennt Anzahl und Volumen der Pipeline-Stufen und klassifiziert gewonnenes Volumen als Fluss', () => {
+    const stages = byId('crm.pipeline_stufen') as ActiveCatalogEntry;
+    expect(stages.measures).toEqual([
+      { key: 'count', label: 'Anzahl', unit: 'Deals' },
+      { key: 'volume', label: 'Volumen', unit: 'EUR' },
+    ]);
+    expect((byId('crm.pipeline_gewonnen') as ActiveCatalogEntry).aggregation).toBe('fluss');
+  });
+
   it('enthält keine Simulations-KPIs', () => {
     for (const entry of DASHBOARD_CATALOG) {
       expect(entry.source.module).not.toMatch(/simulation/i);
