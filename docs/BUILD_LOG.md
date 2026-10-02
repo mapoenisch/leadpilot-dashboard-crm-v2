@@ -13895,41 +13895,6 @@ Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerh
 
 ---
 
-## [2026-10-02] Doku-Abgleich: lokale Plan- und Regeländerungen ins Repo (Builder: Claude Code)
-
-**Ziel & Kontext:** Damit Cloud-Sitzungen (claude.ai/code, `@claude`) mit denselben Regeln arbeiten wie die lokale Sitzung, kommen Marcs bislang nur lokal vorhandene Änderungen vom 01.10.2026 ins Repo (Freigabe Marc). Basis `main` `7646d81`.
-
-**Übernommen:**
-- `CLAUDE.md` §4: abschnittsspezifische Entscheidung Marc vom 01.10.2026 zum Executive-Dashboard-Umbau, unverändert
-- `BUILD_PLAN.md`: Stand 01.10.2026, nächster Auftrag, Rollen, Versionsziel `v2.4.0`, unverändert
-- `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`: unverändert
-- `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`: Abschnitt „Review-Auslösung“ und Schritt 2 im Ablauf an das Ergebnis des Ende-zu-Ende-Tests (PR #43) angepasst, sonst unverändert
-- `docs/dashboard/AGENT_SETUP.md`: Nachtrag zum Stand am Anfang, überholter Befund als Verlauf erhalten
-- `docs/BUILD_LOG.md`: drei Codex-Einträge, die nur lokal standen (Prüfung auf `262b8eb`, Nachprüfungen auf `76edfa7` und `c1dde4f`), chronologisch eingeordnet und wörtlich übernommen. Die lokale Datei enthielt dort Konfliktmarkierungen mit jeweils leerer „theirs“-Seite. Entfernt wurden nur diese Markerzeilen, der Inhalt ist vollständig erhalten. Die übrigen fünf lokalen Einträge standen schon auf `main` und sind nicht doppelt übernommen.
-
-**Nicht übernommen:** `.playwright-mcp/` (lokale Browser-Logs).
-
-**Verifikation:** Secrets-Scan der übernommenen Dateien ohne Treffer; keine Konfliktmarkierungen; keine doppelten Überschriften; `npx tsc --noEmit` Exit 0; `npm run verify` Exit 0; `npm run build` Exit 0; Schutzbereichs-Diff gegen `origin/main` leer (0 Zeilen). Nur Doku, keine Screenshot-Matrix.
-
-**Ergebnis & Freigabestatus:** Builder-Prüfung abgeschlossen. Offen ist die Codex-Prüfung. Nicht gemergt.
-
-## Automatische Nacharbeit Runde 1 (PR #46, Head 422a86f)
-
-**Befunde (Codex, Review 5386194536):**
-
-| Befund | Datei | Entscheidung |
-|---|---|---|
-| 4161021100 (P2) | `docs/dashboard/REVIEW_WORKFLOW.md` | behoben: Schritt 4 und „Review anfordern“ an das Ergebnis aus PR #43 angepasst (CI `action_required`, Marc gibt frei und kommentiert `@codex review`) |
-| 4161021114 (P2) | `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` | behoben: Punkt `dashboard-review-cycle.yml`/Runner-Adapter ersetzt durch den offenen Hinweis-/Freigabeschritt für die vorhandenen Workflows |
-| 4161021126 (P1) | `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`, Plan Teilauftrag 0 | teilweise behoben: lokaler Desktop-Pfad entfernt, Bereitstellung durch Marc als Voraussetzung und Blocker der Testkachel dokumentiert. Das Bild kann der Builder nicht liefern (liegt nur lokal bei Marc; Bilddateien werden nicht committet, `CLAUDE.md` §7) → Marc muss es bereitstellen |
-| 4161021133 (P1) | Plan Teilauftrag 1/8, Kategorien | behoben: `marktData`/`strategieData` (`src/domain/`) in Inventar, Kategorien und Ausbau aufgenommen |
-
-**Gates:** `npx tsc --noEmit` 0 Fehler; `npm run lint` grün; `npm test` 1673 Tests grün; `npm run verify` grün; `npm run build` grün.
-
-**Schutzbereichs-Diff** (`git diff 422a86f -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
-
----
-
 ## [2026-10-01] CI-Auftrag Codex-Nacharbeit — Ende-zu-Ende-Test (PR #43) und Folgeauftrag „Hinweis an Marc“ (Builder: Claude Code)
 
 **Ende-zu-Ende-Test auf PR #43** (Test-PR, wird nicht gemergt; Basis `main` `7646d81`). Die Kurzfassung `docs/dashboard/REVIEW_CYCLE_KURZ.md` enthielt zwei absichtliche Widersprüche zu `REVIEW_WORKFLOW.md`: fünf statt drei Runden und Push direkt aus dem Nacharbeitsjob.
@@ -13978,6 +13943,41 @@ Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerh
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI (der Job `e2e` mit Lighthouse nutzt `@lhci/cli`) und die Codex-Prüfung. Nicht gemergt.
 
 **Nachtrag (PR #45, CI-Lauf auf `6f748bc` rot im Schritt „Deno Edge Functions typecheck“):** `supabase/functions/deno.lock` spiegelt unter `workspace.packageJson.overrides` die Root-`overrides`. Mit `--frozen-lockfile` bricht `deno check` deshalb ab, sobald `package.json` einen neuen Override hat. Im Lock ist jetzt nur `"basic-ftp": "^6.2.1"` ergänzt (2 Zeilen hinzu, 1 entfernt), das Root-`deno.lock` bleibt unverändert. Lokal unter Deno 2.9.6 mit den CI-Befehlen: `deno check` (3 Entry-Points) Exit 0, `deno test` 59 Tests grün. Gegenprobe ohne die Lock-Zeile: `deno check` Exit 1, wie in der CI.
+
+---
+
+## [2026-10-02] Doku-Abgleich: lokale Plan- und Regeländerungen ins Repo (Builder: Claude Code)
+
+**Ziel & Kontext:** Damit Cloud-Sitzungen (claude.ai/code, `@claude`) mit denselben Regeln arbeiten wie die lokale Sitzung, kommen Marcs bislang nur lokal vorhandene Änderungen vom 01.10.2026 ins Repo (Freigabe Marc). Basis `main` `7646d81`.
+
+**Übernommen:**
+- `CLAUDE.md` §4: abschnittsspezifische Entscheidung Marc vom 01.10.2026 zum Executive-Dashboard-Umbau, unverändert
+- `BUILD_PLAN.md`: Stand 01.10.2026, nächster Auftrag, Rollen, Versionsziel `v2.4.0`, unverändert
+- `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`: unverändert
+- `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`: Abschnitt „Review-Auslösung“ und Schritt 2 im Ablauf an das Ergebnis des Ende-zu-Ende-Tests (PR #43) angepasst, sonst unverändert
+- `docs/dashboard/AGENT_SETUP.md`: Nachtrag zum Stand am Anfang, überholter Befund als Verlauf erhalten
+- `docs/BUILD_LOG.md`: drei Codex-Einträge, die nur lokal standen (Prüfung auf `262b8eb`, Nachprüfungen auf `76edfa7` und `c1dde4f`), chronologisch eingeordnet und wörtlich übernommen. Die lokale Datei enthielt dort Konfliktmarkierungen mit jeweils leerer „theirs“-Seite. Entfernt wurden nur diese Markerzeilen, der Inhalt ist vollständig erhalten. Die übrigen fünf lokalen Einträge standen schon auf `main` und sind nicht doppelt übernommen.
+
+**Nicht übernommen:** `.playwright-mcp/` (lokale Browser-Logs).
+
+**Verifikation:** Secrets-Scan der übernommenen Dateien ohne Treffer; keine Konfliktmarkierungen; keine doppelten Überschriften; `npx tsc --noEmit` Exit 0; `npm run verify` Exit 0; `npm run build` Exit 0; Schutzbereichs-Diff gegen `origin/main` leer (0 Zeilen). Nur Doku, keine Screenshot-Matrix.
+
+**Ergebnis & Freigabestatus:** Builder-Prüfung abgeschlossen. Offen ist die Codex-Prüfung. Nicht gemergt.
+
+## Automatische Nacharbeit Runde 1 (PR #46, Head 422a86f)
+
+**Befunde (Codex, Review 5386194536):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4161021100 (P2) | `docs/dashboard/REVIEW_WORKFLOW.md` | behoben: Schritt 4 und „Review anfordern“ an das Ergebnis aus PR #43 angepasst (CI `action_required`, Marc gibt frei und kommentiert `@codex review`) |
+| 4161021114 (P2) | `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` | behoben: Punkt `dashboard-review-cycle.yml`/Runner-Adapter ersetzt durch den offenen Hinweis-/Freigabeschritt für die vorhandenen Workflows |
+| 4161021126 (P1) | `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`, Plan Teilauftrag 0 | teilweise behoben: lokaler Desktop-Pfad entfernt, Bereitstellung durch Marc als Voraussetzung und Blocker der Testkachel dokumentiert. Das Bild kann der Builder nicht liefern (liegt nur lokal bei Marc; Bilddateien werden nicht committet, `CLAUDE.md` §7) → Marc muss es bereitstellen |
+| 4161021133 (P1) | Plan Teilauftrag 1/8, Kategorien | behoben: `marktData`/`strategieData` (`src/domain/`) in Inventar, Kategorien und Ausbau aufgenommen |
+
+**Gates:** `npx tsc --noEmit` 0 Fehler; `npm run lint` grün; `npm test` 1673 Tests grün; `npm run verify` grün; `npm run build` grün.
+
+**Schutzbereichs-Diff** (`git diff 422a86f -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
 
 ---
 
@@ -14048,3 +14048,19 @@ Nur Doku geändert. **Schutzbereichs-Diff** (`git diff 5042ced -- src simulation
 **Gates** (lokal, Basis `d21de96` plus diese Nacharbeit, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` 0 Fehler/0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Integrity-Suiten (001 bis 025) grün; `npm run build` erfolgreich.
 
 **Schutzbereichs-Diff** (`git diff d21de96 -- src/simulation src/types src/context src/services/data src/features/resources`): leer. Seit Runde 3 (`a773c8d`) wurden nur Doku-Dateien geändert; die Gates gelten damit für den finalen Stand dieser Änderung.
+
+
+---
+
+## Nacharbeit Runde 7 (manuell, PR #46, Head 340c50f)
+
+**Befunde (Codex, Review 5387479057):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4162133658 (P1) | Plan Teilauftrag 1/8, Kategorien | behoben: `unternehmenData` (`HISTORIE.events`) und `rechtData` (`GESELLSCHAFTER.rows`) in Kategorien, Inventar und Katalogausbau; Auslassungen nur mit dokumentiertem Grund |
+| 4162133663 (P2) | `docs/BUILD_LOG.md` | behoben: Abschnitt „Doku-Abgleich“ samt Runde 1 hinter die Einträge vom 01.10. (PR #43, `basic-ftp`) verschoben; reine Verschiebung, Inhalt unverändert |
+
+Quellen vor der Änderung gelesen: `HISTORIE.events` (strukturierte Meilensteine) und `GESELLSCHAFTER.rows` (Summe 100,0 %) wie von Codex beschrieben.
+
+Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- oder Konfigurationsdatei. **Schutzbereichs-Diff** (`git diff 340c50f -- src/simulation src/types src/context src/services/data src/features/resources`): leer.

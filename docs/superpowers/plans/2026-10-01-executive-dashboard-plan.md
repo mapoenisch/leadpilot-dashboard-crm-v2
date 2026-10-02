@@ -59,7 +59,7 @@
 
 ### Konfigurationsfenster
 
-- Suche und Kategorien: Finanzen, Vertrieb/CRM, Kunden, Marketing, Organisation, Produkt, Markt, Strategie, Live.
+- Suche und Kategorien: Finanzen, Vertrieb/CRM, Kunden, Marketing, Organisation, Produkt, Markt, Strategie, Unternehmen, Recht, Live.
 - Auswahl KPI oder Übersicht, optional zweite KPI und zulässige Berechnung.
 - Darstellung und Größe ausschließlich aus erlaubten Optionen.
 - Optional verständlicher eigener Titel; Standardtitel bleibt automatisch verfügbar.
@@ -232,7 +232,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 
 **Dateien:** neues `docs/dashboard/KPI_CATALOG.md`; Katalog-/Konfigurations-/Validierungsmodelle; zugehörige Tests. Quellmodule ausschließlich lesen.
 
-- [ ] Alle Kandidaten aus `execData`, `finanzenData`, `vertriebData`, `kundenData`, `organisationData`, `produktData`, `marktData` (u. a. `CHART_WETTBEWERB`), `strategieData` (u. a. `CHART_OKR`, `CHART_TREIBER`) und Live-Katalog inventarisieren (Quellen unter `src/domain/`). Ungeeignete Einträge mit konkretem Grund dokumentieren.
+- [ ] Alle Kandidaten aus `execData`, `finanzenData`, `vertriebData`, `kundenData`, `organisationData`, `produktData`, `marktData` (u. a. `CHART_WETTBEWERB`), `strategieData` (u. a. `CHART_OKR`, `CHART_TREIBER`), `unternehmenData` (u. a. `HISTORIE.events` als Meilensteinübersicht), `rechtData` (u. a. `GESELLSCHAFTER.rows` als Aufteilung, summiert auf 100 %) und Live-Katalog inventarisieren (Quellen unter `src/domain/`). Ungeeignete Einträge mit konkretem Grund dokumentieren.
 - [ ] Für jeden Kandidaten tatsächliche Rohwerte, Zeitbasis, Einheit, Definition, Fachseitenziel und Berechtigungen nachweisen.
 - [ ] Katalogstatus setzen: aktiv, aufbereiten oder nicht geeignet. Text-/Bildseiten sind keine neue Datenquelle; Werte werden nicht aus Screenshots geschätzt.
 - [ ] Erste aktive Auswahl: bisherige Executive-Zahlen, ARR-Verlauf, MRR-Paketmix, belegte CRM-Pipelinewerte, 12 vorhandene Live-IDs und bisherige Übersichtskacheln. Geeignete Produktkandidaten (z. B. `CHART_PRODUKT`, `CHART_CHURN` aus `src/domain/produktData.ts`) werden im Inventar bewertet und, soweit belegt, in Teilauftrag 8 aufgenommen.
@@ -332,7 +332,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 
 **Dateien:** geprüfte weitere Katalogeinträge und Datenadapter; E2E-Suite; Screenshot-Harness; ausschließlich textuelle Screenshot-Matrix; `docs/BUILD_LOG.md`.
 
-- [ ] Weitere belegte KPIs aus Produkt (u. a. `CHART_PRODUKT`, `CHART_CHURN`), Finanzen, Vertrieb/Marketing, Kunden, Organisation, Markt und Strategie aufnehmen; Annahmen/Planwerte klar kennzeichnen und nicht als Istwerte anbieten.
+- [ ] Weitere belegte KPIs aus Produkt (u. a. `CHART_PRODUKT`, `CHART_CHURN`), Finanzen, Vertrieb/Marketing, Kunden, Organisation, Markt, Strategie, Unternehmen (Meilensteine) und Recht (Gesellschafteranteile) aufnehmen, soweit geeignet; jede Auslassung mit Grund im Inventar; Annahmen/Planwerte klar kennzeichnen und nicht als Istwerte anbieten.
 - [ ] Kennzahlen ohne brauchbare Datenquelle nicht freischalten; Inventar dokumentiert den konkreten Grund und die nötige spätere Datenaufbereitung.
 - [ ] Zwei Browser-/Gerätesitzungen und Benutzerwechsel testen; Speicherung, Revisionen und Filterkontext nachweisen.
 - [ ] Alle acht Darstellungen, Übersichtskacheln, Kombinationen und alle Kachelgrößen prüfen.
