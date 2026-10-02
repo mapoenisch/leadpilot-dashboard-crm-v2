@@ -14268,3 +14268,21 @@ Die automatische Runde 1 konnte das Harness nicht ausführen. Lokal nachgeholt g
 - Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical.
 
 **Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1741 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start, 86,4 kB größter Chunk. **Schutzbereichs-Diff** inklusive `src/components/liveKpi`, `src/app` und `src/vite-env.d.ts`: leer.
+
+
+---
+
+## Automatische Nacharbeit Runde 3 (PR #48, Head 8c2d154)
+
+**Befunde (Codex, Review 5390381948):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164588356 (P2) | `DashboardDesignPreview.tsx` | behoben: „Wiederholen“ speichert Auswahl und Größe und lädt die Seite sofort neu; die Zwei-Stufen-Logik mit erneutem `import()` unter demselben Specifier entfällt. Test angepasst. |
+| 4164588368 (P2) | `DashboardDesignPreview.tsx` | behoben: Ladeplatzhalter reserviert 360 px (ungefähre Höhe der vollständigen Diagrammansicht) statt 220 px. |
+| 4164588372 (P2) | `charts/Depth3dDonutChart.tsx` | behoben: Erst alle Tiefenflächen, danach alle Segmentoberflächen (zwei Durchläufe). |
+| 4164588381 (P2) | `scripts/captureDashboardPreviewScreenshots.mjs` | behoben: Manifest wird ins Temp-Verzeichnis des Systems geschrieben statt ins Repo. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1741 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich. Screenshot-Harness nicht ausgeführt.
+
+**Schutzbereichs-Diff** (`git diff 8c2d154 -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.

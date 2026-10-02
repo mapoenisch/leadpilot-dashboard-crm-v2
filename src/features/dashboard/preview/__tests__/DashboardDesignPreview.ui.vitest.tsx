@@ -192,7 +192,7 @@ describe('DashboardDesignPreview', () => {
     }
   });
 
-  it('lädt nach einem zweiten Fehlschlag die Seite neu und behält die Auswahl', async () => {
+  it('lädt bei „Wiederholen“ sofort neu und behält die Auswahl', async () => {
     const loaders: ChartLoaders = {
       ...DEFAULT_CHART_LOADERS,
       saeulen: () => Promise.reject(new Error('Netz weg')),
@@ -209,10 +209,6 @@ describe('DashboardDesignPreview', () => {
       await act(async () => {
         await user.click(await screen.findByRole('button', { name: 'Wiederholen' }));
       });
-      expect(reloadPage).not.toHaveBeenCalled();
-      await act(async () => {
-        await user.click(await screen.findByRole('button', { name: 'Wiederholen' }));
-      });
       expect(reloadPage).toHaveBeenCalledTimes(1);
       first.unmount();
       render(<DashboardDesignPreview />);
@@ -223,28 +219,17 @@ describe('DashboardDesignPreview', () => {
     }
   });
 
-  it('zeigt bei einem fehlgeschlagenen Modul „Wiederholen“ und lädt danach neu', async () => {
-    let calls = 0;
+  it('zeigt bei einem fehlgeschlagenen Modul einen erklärten Zustand mit „Wiederholen“', async () => {
     const loaders: ChartLoaders = {
       ...DEFAULT_CHART_LOADERS,
-      saeulen: () => {
-        calls += 1;
-        return calls === 1
-          ? Promise.reject(new Error('Netz weg'))
-          : DEFAULT_CHART_LOADERS.saeulen();
-      },
+      saeulen: () => Promise.reject(new Error('Netz weg')),
     };
-    const user = userEvent.setup();
     // React meldet den absichtlich fehlschlagenden Import über console.error; im Test stumm schalten.
     const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     try {
       render(<DashboardDesignPreview chartLoaders={loaders} />);
       expect(await screen.findByRole('alert')).toHaveTextContent('nicht geladen');
-      await act(async () => {
-        await user.click(screen.getByRole('button', { name: 'Wiederholen' }));
-      });
-      expect(await screen.findByTestId('depth-bar-chart')).toBeInTheDocument();
-      expect(calls).toBe(2);
+      expect(screen.getByRole('button', { name: 'Wiederholen' })).toBeInTheDocument();
     } finally {
       quiet.mockRestore();
     }

@@ -39,21 +39,19 @@ export const DEFAULT_CHART_LOADERS: ChartLoaders = {
   flaeche: () => import('./charts/DepthAreaChart').then((m) => ({ default: m.DepthAreaChart })),
 };
 
-// Ein lazy-Modul je Loader-Satz, Darstellung und Ladeversuch. „Wiederholen“ erhöht den Versuch und
-// erzeugt damit einen frischen Import, weil React.lazy einen fehlgeschlagenen Import sonst behält.
+// Ein lazy-Modul je Loader-Satz und Darstellung.
 const lazyCache = new WeakMap<
   ChartLoaders,
   Map<string, React.LazyExoticComponent<React.ComponentType<DepthChartProps>>>
 >();
 
-function lazyChart(loaders: ChartLoaders, view: ChartView, attempt: number) {
+function lazyChart(loaders: ChartLoaders, view: ChartView) {
   const perLoaders = lazyCache.get(loaders) ?? new Map();
   lazyCache.set(loaders, perLoaders);
-  const key = `${view}:${attempt}`;
-  let component = perLoaders.get(key);
+  let component = perLoaders.get(view);
   if (!component) {
     component = React.lazy(loaders[view]);
-    perLoaders.set(key, component);
+    perLoaders.set(view, component);
   }
   return component;
 }
@@ -173,9 +171,9 @@ function NumberView({ dataset }: { dataset: Dataset }) {
   );
 }
 
-// Ein zweiter Fehlschlag desselben Moduls: Der Browser hält einen fehlgeschlagenen Modulabruf unter
-// demselben Specifier unter Umständen fest. Dann bleibt nur ein Neuladen der Seite; die Auswahl
-// (Darstellung, Größe) überlebt es über sessionStorage (nur diese Sitzung, kein Datenspeicher).
+// „Wiederholen“ lädt die Seite sofort neu: Der Browser hält einen fehlgeschlagenen Modulabruf unter
+// demselben Specifier fest, ein erneuter import() würde also wieder scheitern. Die Auswahl
+// (Darstellung, Größe) überlebt das Neuladen über sessionStorage (nur diese Sitzung, kein Datenspeicher).
 export const RETRY_STATE_KEY = 'dashboard-preview-retry';
 
 const isView = (value: unknown): value is PreviewView => VIEWS.some((entry) => entry.id === value);
@@ -200,7 +198,7 @@ export interface DashboardDesignPreviewProps {
   initialSize?: PreviewSize;
   /** Nur für Tests: Nachladefunktionen der Diagrammmodule ersetzen. */
   chartLoaders?: ChartLoaders;
-  /** Nur für Tests: Seite neu laden, wenn ein erneuter Import wieder scheitert. */
+  /** Nur für Tests: Seite neu laden, wenn „Wiederholen“ gewählt wird. */
   reloadPage?: () => void;
 }
 
@@ -213,13 +211,8 @@ export function DashboardDesignPreview({
   const [restored] = useState(takeRetryState);
   const [view, setView] = useState<PreviewView>(restored.view ?? initialView);
   const [size, setSize] = useState<PreviewSize>(restored.size ?? initialSize);
-  const [attempt, setAttempt] = useState(0);
 
   const retry = () => {
-    if (attempt === 0) {
-      setAttempt(1);
-      return;
-    }
     try {
       window.sessionStorage.setItem(RETRY_STATE_KEY, JSON.stringify({ view, size }));
     } catch {
@@ -233,10 +226,9 @@ export function DashboardDesignPreview({
   const dataset = DATASETS[view];
   const isChart = view !== 'zahl' && view !== 'tabelle';
 
-  // Je Darstellung und Versuch ein eigenes lazy-Modul: ein fehlgeschlagener Import bleibt sonst zwischengespeichert.
   const Chart = useMemo(
-    () => (isChart ? lazyChart(chartLoaders, view as ChartView, attempt) : null),
-    [view, isChart, chartLoaders, attempt],
+    () => (isChart ? lazyChart(chartLoaders, view as ChartView) : null),
+    [view, isChart, chartLoaders],
   );
 
   return (
@@ -283,7 +275,7 @@ export function DashboardDesignPreview({
           ) : null}
           {Chart ? (
             <>
-              <ChartModuleBoundary key={`${view}-${attempt}`} onRetry={retry}>
+              <ChartModuleBoundary key={view} onRetry={retry}>
                 <Suspense
                   fallback={
                     <div
@@ -291,7 +283,7 @@ export function DashboardDesignPreview({
                       aria-live="polite"
                       tabIndex={0}
                       aria-label={`${dataset.title}, ${dataset.period}: Darstellung wird geladen`}
-                      className="flex min-h-[220px] items-center rounded-md text-[13px] text-[var(--color-text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      className="flex min-h-[360px] items-center rounded-md text-[13px] text-[var(--color-text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                       {dataset.title}, {dataset.period}: Darstellung wird geladen …
                     </div>

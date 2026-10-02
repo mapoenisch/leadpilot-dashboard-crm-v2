@@ -11,6 +11,7 @@
  * Aufruf: BASE_URL=http://localhost:3000 node scripts/captureDashboardPreviewScreenshots.mjs
  */
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -103,7 +104,7 @@ async function main() {
     axeSevereTotal: rows.reduce((sum, row) => sum + row.axeSevere.length, 0),
     rows,
   };
-  fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), `${JSON.stringify(result, null, 2)}\n`);
+  fs.writeFileSync(path.join(os.tmpdir(), 'dashboard-preview-manifest.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(JSON.stringify({ ...result, rows: undefined }, null, 2));
   const ok = result.allHashesDistinct && result.maxOverflowPx === 0 && result.axeSevereTotal === 0;
   process.exit(ok ? 0 : 1);

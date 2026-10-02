@@ -56,6 +56,19 @@ export function Depth3dDonutChart({
             fill="rgba(0, 242, 254, 0.35)"
             filter={`url(#${glow})`}
           />
+          {/* Erst alle Tiefenflächen, dann alle Oberflächen: Verschobene Pfade überdecken so nie Segmentflächen. */}
+          {segments.map((segment) => (
+            <path
+              key={`depth-${segment.label}`}
+              d={segment.path}
+              transform={`translate(0 ${DEPTH})`}
+              fill={seriesColor(segment.index)}
+              fillOpacity="0.45"
+              stroke="#05181a"
+              strokeWidth="0.8"
+              opacity={active !== null && active !== segment.index ? 0.45 : 1}
+            />
+          ))}
           {segments.map((segment) => {
             const dimmed = active !== null && active !== segment.index;
             const color = seriesColor(segment.index);
@@ -68,14 +81,6 @@ export function Depth3dDonutChart({
                 className={transition}
                 onMouseEnter={() => setActive(segment.index)}
               >
-                <path
-                  d={segment.path}
-                  transform={`translate(0 ${DEPTH})`}
-                  fill={color}
-                  fillOpacity="0.45"
-                  stroke="#05181a"
-                  strokeWidth="0.8"
-                />
                 <path
                   d={segment.path}
                   fill={color}
