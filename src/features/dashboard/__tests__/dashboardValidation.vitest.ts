@@ -29,7 +29,40 @@ describe('validateDashboardConfig', () => {
       ],
     };
     const result = validateDashboardConfig(input);
-    expect(result).toEqual({ ok: true, config: input });
+    expect(result).toEqual({ ok: true, config: input, unavailable: [] });
+  });
+
+  it('speichert Startfilter und Kachelausnahmen als Werte und gibt sie unverändert zurück', () => {
+    const input = {
+      version: 1,
+      filters: { period: { from: '2026-01-01', to: '2026-03-31' }, pipeline: 'Direkt' },
+      tiles: [
+        tile({
+          catalogId: 'crm.pipeline_stufen',
+          view: 'balken',
+          size: 'mittel',
+          filterMode: 'dashboard',
+          pipeline: 'Partner',
+        }),
+      ],
+    };
+    expect(validateDashboardConfig(input)).toEqual({ ok: true, config: input, unavailable: [] });
+  });
+
+  it('prüft Filterwerte streng', () => {
+    const tiles: unknown[] = [];
+    const bad = (filters: unknown) => codesOf({ version: 1, filters, tiles });
+    expect(bad({ period: { from: '2026-03-31', to: '2026-01-01' } })).toEqual(['zeitraum']);
+    expect(bad({ period: { from: '2026-02-30', to: '2026-03-01' } })).toEqual(['zeitraum']);
+    expect(bad({ pipeline: '  ' })).toEqual(['pipeline']);
+    expect(bad({ extra: 1 })).toEqual(['feld_unbekannt']);
+    expect(bad('x')).toEqual(['form']);
+  });
+
+  it('prüft Kachelausnahmen gegen Katalog und Zeitbezug', () => {
+    const period = { from: '2026-01-01', to: '2026-01-31' };
+    expect(codesOf({ version: 1, tiles: [tile({ period })] })).toEqual(['zeitraum_ohne_modus']);
+    expect(codesOf({ version: 1, tiles: [tile({ pipeline: 'Direkt' })] })).toEqual(['filter']);
   });
 
   it('erlaubt dieselbe KPI mehrfach mit eigener Kachel-ID', () => {
@@ -63,13 +96,24 @@ describe('validateDashboardConfig', () => {
     ]);
   });
 
-  it('lehnt unbekannte und nicht freigegebene KPIs ab', () => {
-    expect(codesOf({ version: 1, tiles: [tile({ catalogId: 'baseline.gibt_es_nicht' })] })).toEqual(
-      ['katalog_unbekannt'],
-    );
-    expect(codesOf({ version: 1, tiles: [tile({ catalogId: 'baseline.mrr_plan' })] })).toEqual([
-      'katalog_inaktiv',
+  it('erhält Kacheln mit unbekannter oder nicht freigegebener KPI unverändert und meldet sie', () => {
+    const unknown = tile({ tileId: 'a', catalogId: 'baseline.gibt_es_nicht' });
+    const inactive = tile({ tileId: 'b', catalogId: 'baseline.mrr_plan' });
+    const input = { version: 1, tiles: [unknown, tile({ tileId: 'c' }), inactive] };
+    const result = validateDashboardConfig(input);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config).toEqual(input);
+    expect(result.unavailable.map((i) => [i.path, i.code])).toEqual([
+      ['tiles[0].catalogId', 'katalog_unbekannt'],
+      ['tiles[2].catalogId', 'katalog_inaktiv'],
     ]);
+  });
+
+  it('prüft bei nicht verfügbaren Kacheln weiterhin die Struktur', () => {
+    const broken = tile({ catalogId: 'baseline.gibt_es_nicht', view: 'foo', size: 'riesig' });
+    expect(codesOf({ version: 1, tiles: [broken] })).toEqual(['view_unbekannt', 'groesse']);
+    expect(codesOf({ version: 1, tiles: [tile({ catalogId: '' })] })).toEqual(['katalog_id']);
   });
 
   it('lässt nur freigegebene Darstellungen zu: ARR-Einzelwert nie als Linie, Funnel nie als Kreis', () => {

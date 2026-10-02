@@ -57,6 +57,8 @@ export interface CatalogSource {
   path?: readonly (string | number)[];
   /** Nur Live: ID aus `LIVE_KPI_DEFINITIONS`. */
   liveKpiId?: string;
+  /** Nur Live: Modul der reinen Metadaten (Label, Einheit, Format); Messwerte liefert `module`. */
+  metadata?: { module: string; exportName: string };
 }
 
 interface CatalogEntryBase {

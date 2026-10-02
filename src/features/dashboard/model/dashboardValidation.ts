@@ -4,6 +4,7 @@
 import {
   DASHBOARD_CATALOG,
   DASHBOARD_CATEGORIES,
+  MIN_SIZE_BY_VIEW,
   PIE_VIEWS,
   TILE_SIZES,
   VIEWS_BY_SHAPE,
@@ -14,7 +15,12 @@ import {
 } from './dashboardCatalog';
 import type { ActiveCatalogEntry, CatalogEntry, DashboardView, TileSize } from './dashboardCatalog';
 import { DASHBOARD_CONFIG_VERSION, MAX_TILES, MAX_TITLE_LENGTH } from './dashboardConfig';
-import type { DashboardConfig, DashboardTileConfig, TileFilterMode } from './dashboardConfig';
+import type {
+  DashboardConfig,
+  DashboardFilters,
+  DashboardTileConfig,
+  TileFilterMode,
+} from './dashboardConfig';
 
 export interface ValidationIssue {
   /** Ort des Problems, z. B. `tiles[2].view` oder eine Katalog-ID. */
@@ -82,11 +88,60 @@ export function validateCatalog(catalog: readonly CatalogEntry[]): ValidationIss
   return issues;
 }
 
-const TILE_KEYS = new Set(['tileId', 'catalogId', 'view', 'size', 'title', 'filterMode']);
+const TILE_KEYS = new Set([
+  'tileId',
+  'catalogId',
+  'view',
+  'size',
+  'title',
+  'filterMode',
+  'period',
+  'pipeline',
+]);
+const FILTER_KEYS = new Set(['period', 'pipeline']);
 const FILTER_MODES: readonly TileFilterMode[] = ['dashboard', 'eigener_zeitraum', 'fester_stand'];
+const ALL_VIEWS = Object.keys(MIN_SIZE_BY_VIEW);
+const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_PIPELINE_LENGTH = 64;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isDay = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  DAY_PATTERN.test(value) &&
+  new Date(`${value}T00:00:00Z`).toISOString().startsWith(value);
+
+function checkPeriod(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (!isRecord(value) || !isDay(value.from) || !isDay(value.to) || value.from > value.to) {
+    issues.push({
+      path,
+      code: 'zeitraum',
+      message: 'Zeitraum braucht from und to (JJJJ-MM-TT), from nicht nach to.',
+    });
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (key !== 'from' && key !== 'to')
+      issues.push({ path: `${path}.${key}`, code: 'feld_unbekannt', message: 'Unbekanntes Feld.' });
+  }
+}
+
+const isPipeline = (value: unknown): boolean =>
+  typeof value === 'string' && value.trim() !== '' && value.length <= MAX_PIPELINE_LENGTH;
+
+function checkFilters(raw: unknown, issues: ValidationIssue[]): void {
+  const add = (field: string, code: string, message: string): void => {
+    issues.push({ path: field, code, message });
+  };
+  if (!isRecord(raw)) return add('filters', 'form', 'Filter sind kein Objekt.');
+  for (const key of Object.keys(raw)) {
+    if (!FILTER_KEYS.has(key)) add(`filters.${key}`, 'feld_unbekannt', 'Unbekanntes Feld.');
+  }
+  if (raw.period !== undefined) checkPeriod(raw.period, 'filters.period', issues);
+  if (raw.pipeline !== undefined && !isPipeline(raw.pipeline))
+    add('filters.pipeline', 'pipeline', `Pipeline mit 1 bis ${MAX_PIPELINE_LENGTH} Zeichen.`);
+}
 
 function checkTile(
   raw: unknown,
@@ -94,6 +149,7 @@ function checkTile(
   catalog: readonly CatalogEntry[],
   tileIds: Set<string>,
   issues: ValidationIssue[],
+  unavailable: ValidationIssue[],
 ): void {
   const path = `tiles[${index}]`;
   const add = (field: string, code: string, message: string): void => {
@@ -103,7 +159,14 @@ function checkTile(
   for (const key of Object.keys(raw)) {
     if (!TILE_KEYS.has(key)) add(key, 'feld_unbekannt', 'Unbekanntes Feld.');
   }
-  const { tileId, catalogId, view, size, title, filterMode } = raw;
+  const { tileId, catalogId, view, size, title, filterMode, period, pipeline } = raw;
+  if (period !== undefined) {
+    if (filterMode !== 'eigener_zeitraum')
+      add('period', 'zeitraum_ohne_modus', 'Zeitraum nur mit eigenem Zeitraum.');
+    else checkPeriod(period, `${path}.period`, issues);
+  }
+  if (pipeline !== undefined && !isPipeline(pipeline))
+    add('pipeline', 'pipeline', `Pipeline mit 1 bis ${MAX_PIPELINE_LENGTH} Zeichen.`);
   if (typeof tileId !== 'string' || !TILE_ID_PATTERN.test(tileId))
     add('tileId', 'kachel_id', 'Ungültige Kachel-ID.');
   else if (tileIds.has(tileId)) add('tileId', 'kachel_id_doppelt', 'Kachel-ID ist doppelt.');
@@ -114,10 +177,25 @@ function checkTile(
   }
   if (typeof filterMode !== 'string' || !FILTER_MODES.includes(filterMode as TileFilterMode))
     add('filterMode', 'filter_modus', 'Unbekannter Zeitbezug.');
-  const entry = typeof catalogId === 'string' ? getCatalogEntry(catalogId, catalog) : undefined;
-  if (!entry) return add('catalogId', 'katalog_unbekannt', 'KPI ist nicht im Katalog.');
-  if (!isActiveEntry(entry))
-    return add('catalogId', 'katalog_inaktiv', 'KPI ist nicht freigegeben.');
+  if (typeof catalogId !== 'string' || catalogId.trim() === '')
+    return add('catalogId', 'katalog_id', 'Katalog-ID fehlt.');
+  const entry = getCatalogEntry(catalogId, catalog);
+  if (!entry || !isActiveEntry(entry)) {
+    // Ladevertrag (Plan §8, Teilauftrag 3): Kacheln mit entfernter, umbenannter oder (noch)
+    // nicht freigegebener KPI bleiben erhalten; nur die Verfügbarkeit wird gemeldet.
+    if (typeof view !== 'string' || !ALL_VIEWS.includes(view))
+      add('view', 'view_unbekannt', 'Unbekannte Darstellung.');
+    if (typeof size !== 'string' || !TILE_SIZES.includes(size as TileSize))
+      add('size', 'groesse', 'Unbekannte Größe.');
+    unavailable.push({
+      path: `${path}.catalogId`,
+      code: entry ? 'katalog_inaktiv' : 'katalog_unbekannt',
+      message: entry ? 'KPI ist nicht freigegeben.' : 'KPI ist nicht (mehr) im Katalog.',
+    });
+    return;
+  }
+  if (pipeline !== undefined && !entry.filters.includes('pipeline'))
+    add('pipeline', 'filter', 'Diese Quelle unterstützt keinen Pipeline-Filter.');
   if (typeof view !== 'string' || !entry.views.includes(view as DashboardView))
     return add('view', 'view_unzulaessig', 'Darstellung ist für diese KPI nicht zulässig.');
   if (typeof size !== 'string' || !TILE_SIZES.includes(size as TileSize))
@@ -134,7 +212,13 @@ function checkTile(
 }
 
 export type ConfigValidationResult =
-  { ok: true; config: DashboardConfig } | { ok: false; issues: ValidationIssue[] };
+  | {
+      ok: true;
+      config: DashboardConfig;
+      /** Kacheln mit unbekannter oder nicht freigegebener KPI: bleiben in `config`, Anzeige als Platzhalter. */
+      unavailable: ValidationIssue[];
+    }
+  | { ok: false; issues: ValidationIssue[] };
 
 /** Prüft eine (z. B. aus JSON gelesene) Konfiguration gegen Format und Katalog. */
 export function validateDashboardConfig(
@@ -146,7 +230,7 @@ export function validateDashboardConfig(
     return { ok: false, issues: [{ path: '', code: 'form', message: 'Kein Objekt.' }] };
   }
   for (const key of Object.keys(input)) {
-    if (key !== 'version' && key !== 'tiles')
+    if (key !== 'version' && key !== 'tiles' && key !== 'filters')
       issues.push({ path: key, code: 'feld_unbekannt', message: 'Unbekanntes Feld.' });
   }
   if (input.version !== DASHBOARD_CONFIG_VERSION) {
@@ -160,11 +244,20 @@ export function validateDashboardConfig(
   }
   if (input.tiles.length > MAX_TILES)
     issues.push({ path: 'tiles', code: 'zu_viele', message: `Höchstens ${MAX_TILES} Kacheln.` });
+  if (input.filters !== undefined) checkFilters(input.filters, issues);
   const tileIds = new Set<string>();
-  input.tiles.forEach((tile, index) => checkTile(tile, index, catalog, tileIds, issues));
+  const unavailable: ValidationIssue[] = [];
+  input.tiles.forEach((tile, index) =>
+    checkTile(tile, index, catalog, tileIds, issues, unavailable),
+  );
   if (issues.length > 0) return { ok: false, issues };
   return {
     ok: true,
-    config: { version: DASHBOARD_CONFIG_VERSION, tiles: input.tiles as DashboardTileConfig[] },
+    config: {
+      version: DASHBOARD_CONFIG_VERSION,
+      ...(input.filters !== undefined ? { filters: input.filters as DashboardFilters } : {}),
+      tiles: input.tiles as DashboardTileConfig[],
+    },
+    unavailable,
   };
 }

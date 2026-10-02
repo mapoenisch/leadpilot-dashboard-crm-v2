@@ -14200,3 +14200,22 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Screenshot-Matrix:** entfällt, keine Oberfläche.
 
 **Ergebnis & Freigabestatus:** Builder-Arbeit abgeschlossen. Ausstehend: CI und Codex-Prüfung, Merge durch Marc.
+
+
+---
+
+## Automatische Nacharbeit Runde 1 (PR #49, Auftrag 070, Builder Claude Code)
+
+**Befunde** (Codex, Head `3c9d448`):
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167841405 (P2) Filterwerte nicht speicherbar | `dashboardConfig.ts`, `dashboardValidation.ts` | behoben: Format 1 hat `filters` (`period` als `from`/`to` in `JJJJ-MM-TT`, `pipeline`) für Startfilter und je Kachel `period` (nur mit `eigener_zeitraum`) und `pipeline` (nur bei KPIs mit Pipeline-Filter). Werte werden streng geprüft (echtes Datum, von ≤ bis, Länge); unbekannte Felder bleiben abgelehnt. Tests ergänzt. |
+| 4167841411 (P2) Unbekannte Katalog-IDs verwerfen die Konfiguration | `dashboardValidation.ts` | behoben: Kacheln mit unbekannter oder nicht freigegebener ID bleiben unverändert in `config`; das Ergebnis meldet sie getrennt in `unavailable`. Struktur (Darstellung, Größe, Kachel-ID, Titel, Zeitbezug) wird weiter geprüft. Tests angepasst und ergänzt. |
+| 4167841418 (P2) Metadaten für inaktive Kandidaten | `dashboardCatalog.ts` | begründet abgelehnt: „aufbereiten“/„nicht geeignet“ heißt, dass Zeitbasis, Einheit, Definition und Berechtigung noch nicht belegt sind (Gründe im Eintrag und im Inventar). Typisierte Felder würden ungeprüfte Angaben erzwingen, entgegen „keine Werte schätzen“ (Auftrag, Globale Grenzen). Ein Eintrag wird erst aktiv, wenn `validateCatalog` alle Pflichtfelder prüft; die Berechtigung je Ebene steht in `KPI_CATALOG.md`. Teilauftrag 8 ergänzt die Metadaten bei der Aufbereitung. |
+| 4167841426 (P1) Live-Quelle ohne Messwerte | `catalog/activeEntries.ts`, `dashboardCatalog.ts` | behoben: `source` zeigt auf `liveKpiStreamStore` (Wertquelle); `LIVE_KPI_DEFINITIONS` steht nur noch in `source.metadata`. Test prüft Store-Export und Metadatenreferenz. Inventar angepasst. |
+| 4167841432 (P2) Zeitbasis Live-Verlauf | `catalog/activeEntries.ts` | behoben: Zeitbasis nennt Feed-Punkte der letzten 30 Minuten (höchstens 30) beim Öffnen und die danach fortgeschriebene Sitzungshistorie; ebenso für `uebersicht.live_aktivitaet` und im Inventar. |
+
+**Gates:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 279 Dateien, 1739 Tests grün; `npm run verify` grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff 3c9d448 -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.

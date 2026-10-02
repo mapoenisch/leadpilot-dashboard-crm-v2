@@ -110,6 +110,16 @@ describe('Dashboard-Katalog', () => {
     );
   });
 
+  it('führt Live-Kacheln auf den Store als Wertquelle, die Definitionen nur als Metadaten', () => {
+    const live = active.filter((e) => e.kind === 'kpi' && e.source.layer === 'live');
+    for (const entry of live) {
+      expect(entry.source.module, entry.id).toBe('src/services/liveKpi/liveKpiStreamStore.ts');
+      expect(entry.source.exportName, entry.id).toBe('liveKpiStreamStore');
+      expect(entry.source.metadata?.exportName, entry.id).toBe('LIVE_KPI_DEFINITIONS');
+      expect(entry.timeBasis, entry.id).toContain('30 Minuten');
+    }
+  });
+
   it('enthält keine Simulations-KPIs', () => {
     for (const entry of DASHBOARD_CATALOG) {
       expect(entry.source.module).not.toMatch(/simulation/i);

@@ -78,7 +78,7 @@ Quelle `executiveCockpitData.getPipelineOverview` über die importierten CRM-Dea
 
 ### Live (12)
 
-Quelle `LIVE_KPI_DEFINITIONS` (12 IDs). Zeitbasis: letzter Wert mit eigenem Zeitstempel. Der Verlauf existiert nur als Sitzungshistorie seit Seitenaufruf und ist keine Jahreszeitreihe, deshalb vorerst nur Zahl und Tabelle. Fachseite bis Teilauftrag 7: bestehende Executive-Ansicht (`s-exec`). Berechtigung siehe Befund oben.
+Wertquelle `liveKpiStreamStore` (Messwert und Zeitstempel); `LIVE_KPI_DEFINITIONS` (12 IDs) liefert nur Metadaten. Zeitbasis: letzter Wert mit eigenem Zeitstempel. Beim Öffnen lädt der Store bis zu 30 Feed-Punkte der letzten 30 Minuten, danach wird der Verlauf als Sitzungshistorie fortgeschrieben (höchstens 30 Punkte); er ist keine Jahreszeitreihe, deshalb vorerst nur Zahl und Tabelle. Fachseite bis Teilauftrag 7: bestehende Executive-Ansicht (`s-exec`). Berechtigung siehe Befund oben.
 
 | ID | Einheit | Form |
 |---|---|---|
@@ -93,7 +93,7 @@ Quelle `LIVE_KPI_DEFINITIONS` (12 IDs). Zeitbasis: letzter Wert mit eigenem Zeit
 |---|---|---|---|
 | `uebersicht.team_hr` | `getTeamHrSnapshot` (Struktur aus `HEADCOUNT.rows`, `HR.metrics`, `TEAM.bottlenecks`) | Stand 31.12.2025 | `s-team` |
 | `uebersicht.roadmap` | `getRoadmapSnapshot` (`ROADMAP.releases`, 6 Releases) | v1.2 (Feb 2025) bis v2.1 (geplant Q2 2026) | `s-roadmap` |
-| `uebersicht.live_aktivitaet` | zentraler Live-Stream (`liveKpiStreamStore`), höchstens 10 Ereignisse | seit Seitenaufruf | `s-exec` |
+| `uebersicht.live_aktivitaet` | zentraler Live-Stream (`liveKpiStreamStore`), höchstens 10 Ereignisse | Feed-Punkte der letzten 30 Minuten beim Öffnen, danach fortgeschrieben | `s-exec` |
 
 ## Inventar aller Kandidaten
 

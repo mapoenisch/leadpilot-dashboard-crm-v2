@@ -12,7 +12,15 @@ const LIVE_ACCESS =
 
 const EXEC = 'src/domain/execData.ts';
 const COCKPIT = 'src/domain/executiveCockpitData.ts';
-const LIVE_DEFS = 'src/services/liveKpi/liveKpiDefinitions.ts';
+const LIVE_SOURCE = {
+  layer: 'live',
+  module: 'src/services/liveKpi/liveKpiStreamStore.ts',
+  exportName: 'liveKpiStreamStore',
+} as const;
+const LIVE_METADATA = {
+  module: 'src/services/liveKpi/liveKpiDefinitions.ts',
+  exportName: 'LIVE_KPI_DEFINITIONS',
+};
 
 const STAND_2025 = 'Stand 31.12.2025';
 const FY_2025 = 'Geschäftsjahr 2025';
@@ -269,7 +277,7 @@ const CRM_ENTRIES: ActiveCatalogEntry[] = [
 ];
 
 const LIVE_TIME_BASIS =
-  'Letzter Wert aus dem Live-Feed mit eigenem Zeitstempel; Verlauf nur als Sitzungshistorie seit Seitenaufruf, keine Jahreszeitreihe.';
+  'Letzter Wert aus dem Live-Feed mit eigenem Zeitstempel; beim Öffnen lädt der Store bis zu 30 Feed-Punkte der letzten 30 Minuten, danach wird der Verlauf als Sitzungshistorie fortgeschrieben (höchstens 30 Punkte), keine Jahreszeitreihe.';
 
 const liveValue = (
   liveKpiId: string,
@@ -285,7 +293,7 @@ const liveValue = (
   status: 'aktiv',
   definition,
   unit,
-  source: { layer: 'live', module: LIVE_DEFS, exportName: 'LIVE_KPI_DEFINITIONS', liveKpiId },
+  source: { ...LIVE_SOURCE, liveKpiId, metadata: LIVE_METADATA }, // Store liefert Werte
   shape: ratio ? 'verhaeltnis' : 'einzelwert',
   aggregation: ratio ? 'verhaeltnis' : 'bestand',
   timeMode: 'live',
@@ -393,13 +401,10 @@ const OVERVIEW_ENTRIES: ActiveCatalogEntry[] = [
     category: 'live',
     definition: 'Die neuesten Live-Ereignisse über alle Live-KPIs, höchstens zehn.',
     unit: 'Ereignisse',
-    source: {
-      layer: 'live',
-      module: 'src/services/liveKpi/liveKpiStreamStore.ts',
-      exportName: 'liveKpiStreamStore',
-    },
+    source: LIVE_SOURCE,
     timeMode: 'live',
-    timeBasis: 'Ereignisse seit Seitenaufruf aus dem zentralen Live-Stream',
+    timeBasis:
+      'Neueste Ereignisse aus dem zentralen Live-Stream: Feed-Punkte der letzten 30 Minuten beim Öffnen, danach fortgeschrieben',
     detailRouteId: 's-exec',
     access: LIVE_ACCESS,
   }),
