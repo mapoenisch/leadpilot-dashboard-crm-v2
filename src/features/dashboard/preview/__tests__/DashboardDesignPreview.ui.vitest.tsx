@@ -356,8 +356,11 @@ describe('DashboardDesignPreview', () => {
     expect(reserve.querySelectorAll('button')).toHaveLength(0);
   });
 
-  it('animiert die Größenänderung bei reduzierter Bewegung nicht', () => {
+  it('animiert Größenänderung und Legende bei reduzierter Bewegung nicht', async () => {
     render(<DashboardDesignPreview />);
     expect(screen.getByTestId('dashboard-test-tile')).toHaveClass('motion-reduce:transition-none');
+    const legend = await screen.findByRole('group', { name: 'Säule wählen' });
+    for (const button of within(legend).getAllByRole('button'))
+      expect(button).toHaveClass('motion-reduce:transition-none');
   });
 });

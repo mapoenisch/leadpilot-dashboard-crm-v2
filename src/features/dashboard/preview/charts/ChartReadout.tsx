@@ -150,7 +150,7 @@ export function LegendButtons({
             onClick={() => onSelect(index)}
             className={cn(
               LEGEND_CHIP_CLASS,
-              'outline-none transition-[all_150ms_ease] focus-visible:ring-2 focus-visible:ring-primary',
+              'outline-none transition-[all_150ms_ease] motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-primary',
               active
                 ? 'border-primary text-primary'
                 : 'border-border text-[var(--color-text-muted)] hover:border-primary',

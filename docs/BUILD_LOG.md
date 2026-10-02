@@ -14399,3 +14399,18 @@ Sichtbar ändert sich nichts, weil die Beispieldaten bereits absteigend sind; di
 **Tests:** Platzhalter enthält das Gerüst; Fehlerzustand enthält das Gerüst mit fünf Legenden-Platzhaltern; Linie bekommt einen Regler statt einer Legende; das Gerüst ist `aria-hidden` und nicht fokussierbar.
 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1751 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB Start. Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical; geändert sind nur Linie und Fläche auf 1440 und 375 px (3 px Leerraum der früheren festen Mindesthöhe entfallen), die Gestaltung ist unverändert. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Nacharbeit PR #48 Runde 8 (manuell, Head b33cf9e)
+
+**Befund (Codex, Review 5394369649):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167818742 (P2) | `charts/ChartReadout.tsx` | Im Browser geprüft: Die globale Regel in `src/styles/global.css` (`prefers-reduced-motion: reduce` → `transition-duration: 0.01ms !important`) greift bereits, gemessen 0,01 ms statt 0,15 ms. Trotzdem ergänzt: `motion-reduce:transition-none` direkt an den Legenden-Schaltflächen, damit das Modul bei der Übernahme in Teilauftrag 4 nicht von der globalen Regel abhängt. Test (rot ohne die Klasse). |
+
+Keine sichtbare Änderung: Die Klasse wirkt nur auf Übergänge bei reduzierter Bewegung, das Screenshot-Harness läuft bereits mit reduzierter Bewegung.
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 1751 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html`, `src/vite-env.d.ts` gegenüber `main`: leer.
