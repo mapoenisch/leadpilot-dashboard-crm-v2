@@ -14293,3 +14293,20 @@ Die automatische Runde 1 konnte das Harness nicht ausführen. Lokal nachgeholt g
 ## Nacharbeit PR #48: Screenshot-Matrix nach Runde 3 (manuell, Head b3c0f65)
 
 Matrix auf den finalen Stand gebracht (Kreis/Ring jetzt in zwei Zeichendurchläufen). 24 Aufnahmen gegen `/dashboard-vorschau.html`, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical; das Harness legt sein Manifest jetzt im Temp-Verzeichnis ab, der Arbeitsbaum bleibt sauber. Nur Doku geändert; die Gates der Runde 3 (`tsc`, Lint, 1741 Tests, `verify`, Build) gelten für den unveränderten Code. Die drei automatischen Runden sind verbraucht, weitere Befunde bearbeitet Claude Code manuell.
+
+
+---
+
+## Nacharbeit PR #48 Runde 4 (manuell, Head 4b3e01d)
+
+Die drei automatischen Runden sind verbraucht; Bearbeitung durch Claude Code.
+
+**Befunde (Codex, Review 5390507457):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164688758 (P2) | `DashboardDesignPreview.tsx` | behoben: Hatte der Ladeplatzhalter den Tastaturfokus, übernimmt ihn nach dem Laden der Diagrammbereich (`FocusAfterLoad`, Diagrammbereich mit `tabIndex=-1`). Hat der Nutzer den Platzhalter vorher verlassen, wird kein Fokus gestohlen. Zwei Tests. |
+| 4164688744 (P2) | `ChartModuleBoundary.tsx` | behoben: Fehlerzustand reserviert wie Ladeplatzhalter und Diagrammbereich `min-h-[360px]`; Test. |
+| 4164688773 (P2) | `DashboardDesignPreview.tsx` | behoben: `motion-reduce:transition-none` an der Kachel, damit die Größenänderung bei reduzierter Bewegung nicht animiert; Test. |
+
+**Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1745 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical (Matrix aktualisiert). **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.

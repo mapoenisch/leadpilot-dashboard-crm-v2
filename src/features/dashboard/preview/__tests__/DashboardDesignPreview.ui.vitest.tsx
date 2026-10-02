@@ -234,4 +234,67 @@ describe('DashboardDesignPreview', () => {
       quiet.mockRestore();
     }
   });
+
+  it('gibt den Fokus vom Ladeplatzhalter an den Diagrammbereich weiter, wenn das Modul fertig ist', async () => {
+    let finish: () => void = () => undefined;
+    const loaders: ChartLoaders = {
+      ...DEFAULT_CHART_LOADERS,
+      saeulen: () =>
+        new Promise((resolve) => {
+          finish = () => resolve(DEFAULT_CHART_LOADERS.saeulen());
+        }),
+    };
+    render(<DashboardDesignPreview chartLoaders={loaders} />);
+    const placeholder = await screen.findByRole('status', { name: /Darstellung wird geladen/ });
+    expect(placeholder).toHaveClass('min-h-[360px]');
+    act(() => placeholder.focus());
+    expect(placeholder).toHaveFocus();
+    await act(async () => {
+      finish();
+    });
+    expect(await screen.findByTestId('depth-bar-chart')).toBeInTheDocument();
+    const slot = screen.getByRole('group', { name: /Fortschritt nach Stufe/ });
+    expect(slot).toHaveFocus();
+    expect(slot).toHaveClass('min-h-[360px]');
+  });
+
+  it('nimmt dem Diagrammbereich den Fokus nicht, wenn der Platzhalter ihn vorher verloren hat', async () => {
+    let finish: () => void = () => undefined;
+    const loaders: ChartLoaders = {
+      ...DEFAULT_CHART_LOADERS,
+      saeulen: () =>
+        new Promise((resolve) => {
+          finish = () => resolve(DEFAULT_CHART_LOADERS.saeulen());
+        }),
+    };
+    render(<DashboardDesignPreview chartLoaders={loaders} />);
+    const placeholder = await screen.findByRole('status', { name: /Darstellung wird geladen/ });
+    act(() => placeholder.focus());
+    const sizeButton = screen.getByRole('button', { name: 'Klein' });
+    act(() => sizeButton.focus());
+    await act(async () => {
+      finish();
+    });
+    await screen.findByTestId('depth-bar-chart');
+    expect(sizeButton).toHaveFocus();
+  });
+
+  it('reserviert im Fehlerzustand dieselbe Höhe wie Ladeplatzhalter und Diagramm', async () => {
+    const loaders: ChartLoaders = {
+      ...DEFAULT_CHART_LOADERS,
+      saeulen: () => Promise.reject(new Error('Netz weg')),
+    };
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      render(<DashboardDesignPreview chartLoaders={loaders} />);
+      expect(await screen.findByRole('alert')).toHaveClass('min-h-[360px]');
+    } finally {
+      quiet.mockRestore();
+    }
+  });
+
+  it('animiert die Größenänderung bei reduzierter Bewegung nicht', () => {
+    render(<DashboardDesignPreview />);
+    expect(screen.getByTestId('dashboard-test-tile')).toHaveClass('motion-reduce:transition-none');
+  });
 });

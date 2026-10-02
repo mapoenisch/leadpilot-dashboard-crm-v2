@@ -1,7 +1,7 @@
 // Designprobe Dashboard-Testkachel (Teilauftrag 0, Auftrag ANTIGRAVITY_AUFTRAG_DASHBOARD_TESTKACHEL.md).
 // Eine isolierte, bedienbare Kachel mit umschaltbarer Darstellung und Größe auf festen Beispieldaten.
 // Keine Abfragen, keine Speicherung, kein Katalog. Diagrammmodule werden je Darstellung nachgeladen.
-import React, { Suspense, useId, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { Tabs } from '@/components/ui/Tabs';
@@ -193,6 +193,28 @@ function takeRetryState(): { view?: PreviewView; size?: PreviewSize } {
   }
 }
 
+// Gemeinsame Mindesthöhe für Lade-, Fehler- und Diagrammzustand: kein Layoutsprung beim Wechsel.
+export const CHART_SLOT_MIN_HEIGHT = 'min-h-[360px]';
+
+/**
+ * Hatte der Ladeplatzhalter den Tastaturfokus, verschwindet er beim Auflösen von Suspense aus dem DOM.
+ * Damit der Fokus nicht auf den Seitenanfang zurückfällt, übernimmt ihn der Diagrammbereich.
+ */
+function FocusAfterLoad({
+  placeholderHadFocus,
+  target,
+}: {
+  placeholderHadFocus: React.MutableRefObject<boolean>;
+  target: React.RefObject<HTMLDivElement>;
+}) {
+  useEffect(() => {
+    if (!placeholderHadFocus.current) return;
+    placeholderHadFocus.current = false;
+    target.current?.focus();
+  }, [placeholderHadFocus, target]);
+  return null;
+}
+
 export interface DashboardDesignPreviewProps {
   initialView?: PreviewView;
   initialSize?: PreviewSize;
@@ -221,6 +243,8 @@ export function DashboardDesignPreview({
     reloadPage();
   };
   const reducedMotion = useReducedMotion();
+  const chartSlotRef = useRef<HTMLDivElement>(null);
+  const placeholderHadFocus = useRef(false);
   // useId liefert Doppelpunkte, die in SVG-Referenzen (url(#…)) stören: nur Buchstaben und Ziffern.
   const idPrefix = `tile-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const dataset = DATASETS[view];
@@ -237,7 +261,11 @@ export function DashboardDesignPreview({
       aria-label={`Testkachel: ${dataset.title}`}
       data-testid="dashboard-test-tile"
       data-size={size}
-      className={cn('w-full', SIZES.find((entry) => entry.id === size)?.className)}
+      // Card bringt eine Übergangsanimation mit; bei reduzierter Bewegung springt die Größe ohne Animation.
+      className={cn(
+        'w-full motion-reduce:transition-none',
+        SIZES.find((entry) => entry.id === size)?.className,
+      )}
     >
       <div className="flex flex-col gap-[14px]">
         <header className="flex flex-wrap items-start justify-between gap-[10px]">
@@ -283,22 +311,41 @@ export function DashboardDesignPreview({
                       aria-live="polite"
                       tabIndex={0}
                       aria-label={`${dataset.title}, ${dataset.period}: Darstellung wird geladen`}
+                      onFocus={() => {
+                        placeholderHadFocus.current = true;
+                      }}
+                      onBlur={(event) => {
+                        // Beim Entfernen aus dem DOM (Laden fertig) bleibt die Markierung für FocusAfterLoad.
+                        if (event.currentTarget.isConnected) placeholderHadFocus.current = false;
+                      }}
                       className="flex min-h-[360px] items-center rounded-md text-[13px] text-[var(--color-text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                       {dataset.title}, {dataset.period}: Darstellung wird geladen …
                     </div>
                   }
                 >
-                  <Chart
-                    idPrefix={idPrefix}
-                    data={dataset.data}
-                    unit={dataset.unit}
-                    period={dataset.period}
-                    title={dataset.title}
-                    reducedMotion={reducedMotion}
-                    orientation={view === 'balken' ? 'horizontal' : 'vertical'}
-                    solid={view === 'kreis'}
-                  />
+                  <FocusAfterLoad placeholderHadFocus={placeholderHadFocus} target={chartSlotRef} />
+                  <div
+                    ref={chartSlotRef}
+                    tabIndex={-1}
+                    role="group"
+                    aria-label={`${dataset.title}, ${dataset.period}`}
+                    className={cn(
+                      CHART_SLOT_MIN_HEIGHT,
+                      'rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    )}
+                  >
+                    <Chart
+                      idPrefix={idPrefix}
+                      data={dataset.data}
+                      unit={dataset.unit}
+                      period={dataset.period}
+                      title={dataset.title}
+                      reducedMotion={reducedMotion}
+                      orientation={view === 'balken' ? 'horizontal' : 'vertical'}
+                      solid={view === 'kreis'}
+                    />
+                  </div>
                 </Suspense>
               </ChartModuleBoundary>
               {/* Außerhalb der Fehlergrenze: Fällt die Grafik aus, bleibt die Datenalternative. */}

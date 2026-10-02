@@ -25,12 +25,13 @@ export class ChartModuleBoundary extends React.Component<Props, State> {
     this.props.onRetry();
   };
 
+  // Mindesthöhe wie Ladeplatzhalter und Diagramm (CHART_SLOT_MIN_HEIGHT): kein Layoutsprung im Fehlerfall.
   render() {
     if (this.state.failed) {
       return (
         <div
           role="alert"
-          className="flex min-h-[220px] flex-col items-start justify-center gap-[10px]"
+          className="flex min-h-[360px] flex-col items-start justify-center gap-[10px]"
         >
           <p className="m-0 text-[13px] text-[var(--color-text-muted)]">
             Die Darstellung konnte nicht geladen werden.
