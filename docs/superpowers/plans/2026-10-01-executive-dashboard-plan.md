@@ -379,7 +379,7 @@ Teilaufträge sind unabhängig prüfbar; freigeschaltet wird erst nach gemeinsam
 
 ### Vorhanden und noch einzurichten
 
-Die geprüfte `.github/workflows/ci.yml` läuft bereits bei Pull Requests, Push auf `main` und manueller Auslösung. Sie enthält Typecheck, Tests, Build, Integritäts-, Datenbank-, Accessibility- und weitere Prüfungen. Zusätzlich bestehen ein Workflow für visuelle Baselines und der mit PR #42 eingerichtete Claude-/Codex-Zyklus (`codex-rework.yml`, `codex-review-request.yml`, siehe „Review-Auslösung“). Offen ist nur der automatische Hinweis an Marc nach einem erfolgreichen Nacharbeits-Push (bisher pingt `codex-rework.yml` nur bei Fehlschlag oder Rundenlimit); ein zweiter Zyklus-Workflow ist nicht einzurichten. Ein Deployment-Workflow ist nicht belegt.
+Die geprüfte `.github/workflows/ci.yml` läuft bereits bei Pull Requests, Push auf `main` und manueller Auslösung. Sie enthält Typecheck, Tests, Build, Integritäts-, Datenbank-, Accessibility- und weitere Prüfungen. Zusätzlich bestehen ein Workflow für visuelle Baselines und der mit PR #42 eingerichtete Claude-/Codex-Zyklus (`codex-rework.yml`, `codex-review-request.yml`, siehe „Review-Auslösung“). Der automatische Hinweis an Marc nach einem erfolgreichen Nacharbeits-Push ist mit PR #44 umgesetzt (`codex-rework.yml`); ein zweiter Zyklus-Workflow ist nicht einzurichten. Ein Deployment-Workflow ist nicht belegt.
 
 **Empfehlung: Kombination aus a und b.** CI prüft objektive Gates; eine Vorschau erlaubt die Designbewertung. Codex reviewt den konkreten PR-Commit, Claude Code verarbeitet Befunde und liefert Nacharbeit. Produktivdeployment steht am Ende hinter den Freigaben, nicht am Anfang des Reviews.
 
@@ -399,7 +399,7 @@ Eingerichtet mit PR #42 (`.github/workflows/codex-rework.yml`, `codex-review-req
 
 - **Automatisch:** Codex prüft einen neu geöffneten PR von selbst (Einstellung „Team-PRs“ und „Bei jedem Push“). Ein Codex-Ergebnis mit Befunden startet die gesammelte Nacharbeit durch Claude. Claude arbeitet ohne Schreibrechte, ein getrennter Job prüft und pusht. Höchstens drei Runden, je Head-SHA höchstens eine.
 - **Nicht automatisch:** Codex prüft Pushes des Workflow-Tokens nicht von selbst und reagiert nicht auf `@codex review` von `github-actions[bot]`. GitHub hält die PR-CI dieses Pushes als „action_required“ zurück.
-- **Daher, Entscheidung Marc (Variante A):** Nach jedem Nacharbeits-Push pingt der Workflow Marc im PR an. Marc gibt die CI mit „Approve and run workflows“ frei und kommentiert `@codex review`. Danach läuft die nächste Runde wieder automatisch (Folgeauftrag `ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT_HINWEIS.md`).
+- **Daher, Entscheidung Marc (Variante A):** Nach jedem Nacharbeits-Push pingt der Workflow Marc im PR an (umgesetzt mit PR #44, Auftrag `ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT_HINWEIS.md`). Marc gibt die CI mit „Approve and run workflows“ frei und kommentiert `@codex review`. Danach läuft die nächste Runde wieder automatisch.
 - Ein Review ohne Bezug zum aktuellen Head-SHA zählt nicht als Freigabe.
 
 ### Technischer Automatisierungsauftrag
@@ -414,7 +414,7 @@ Eingerichtet mit PR #42 (`.github/workflows/codex-rework.yml`, `codex-review-req
 - [ ] Geschützte Zugänge nur aus passender Runner-/Secret-Konfiguration verwenden. Ungeprüfter PR-Code erhält keine privilegierten Produktionszugänge; Vorschau nutzt isolierte Testdaten.
 - [ ] Den Ablauf an der Testkachel nachweisen: Commit → CI/Review → Befund → Nacharbeit → erneutes Review des aktuellen Commits. Designfreigabe durch Marc bleibt ein eigener Schritt.
 - [ ] Neue E2E-Suite ausdrücklich in die bestehende CI-Testliste aufnehmen: `ci.yml` führt eine feste Dateiliste aus und würde `e2e/personal-dashboard.spec.ts` sonst nicht automatisch prüfen.
-- [ ] Offen ist nur der Hinweis-/Freigabeschritt für die vorhandenen Workflows (`codex-rework.yml`, `codex-review-request.yml`): Marc-Ping nach jedem Nacharbeits-Push (Folgeauftrag `ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT_HINWEIS.md`) und Abgleich mit `docs/dashboard/REVIEW_WORKFLOW.md`. Kein zweiter Review-Workflow und kein weiterer Runner-Adapter. CI-Erweiterung und optionaler Vorschauworkflow erhalten explizite Ziel-Dateien.
+- [ ] Offen ist nur der Abgleich der vorhandenen Workflows (`codex-rework.yml`, `codex-review-request.yml`) mit `docs/dashboard/REVIEW_WORKFLOW.md`; der Marc-Ping nach jedem Nacharbeits-Push ist erledigt (PR #44). Kein zweiter Review-Workflow und kein weiterer Runner-Adapter. CI-Erweiterung und optionaler Vorschauworkflow erhalten explizite Ziel-Dateien.
 
 Die Dokumentänderung richtet keine periodische Codex-App-Automation ein und startet keinen Agenten. Falls ein benötigter Agentenrunner fehlt, wird er vor Aktivierung eingerichtet; bis dahin kann derselbe definierte Review-Zyklus manuell durch Claude Code und Codex durchgeführt werden. Kein automatisches Merge, Tag oder Produktionsdeployment allein aufgrund dieser Planfestlegung.
 
