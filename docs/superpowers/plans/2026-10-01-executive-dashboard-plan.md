@@ -235,7 +235,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 - [ ] Alle Kandidaten aus `execData`, `finanzenData`, `vertriebData`, `kundenData`, `organisationData`, `produktData`, `marktData` (u. a. `CHART_WETTBEWERB`), `strategieData` (u. a. `CHART_OKR`, `CHART_TREIBER`) und Live-Katalog inventarisieren (Quellen unter `src/domain/`). Ungeeignete Einträge mit konkretem Grund dokumentieren.
 - [ ] Für jeden Kandidaten tatsächliche Rohwerte, Zeitbasis, Einheit, Definition, Fachseitenziel und Berechtigungen nachweisen.
 - [ ] Katalogstatus setzen: aktiv, aufbereiten oder nicht geeignet. Text-/Bildseiten sind keine neue Datenquelle; Werte werden nicht aus Screenshots geschätzt.
-- [ ] Erste aktive Auswahl: bisherige Executive-Zahlen, ARR-Verlauf, MRR-Paketmix, belegte CRM-Pipelinewerte, 12 vorhandene Live-IDs und bisherige Übersichtskacheln.
+- [ ] Erste aktive Auswahl: bisherige Executive-Zahlen, ARR-Verlauf, MRR-Paketmix, belegte CRM-Pipelinewerte, 12 vorhandene Live-IDs und bisherige Übersichtskacheln. Geeignete Produktkandidaten (z. B. `CHART_PRODUKT`, `CHART_CHURN` aus `src/domain/produktData.ts`) werden im Inventar bewertet und, soweit belegt, in Teilauftrag 8 aufgenommen.
 - [ ] Katalogtests zuerst formulieren: eindeutige IDs, Quelle, erlaubte Formen, keine Simulationseinträge, keine Kreisfreigabe für Funnel-Stufen.
 - [ ] Modell und Prüfung implementieren; Tests und Pflichtgates ausführen.
 
@@ -265,6 +265,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 - [ ] Laden/Speichern/Cachebereinigung implementieren; Fehler und Konflikt strukturiert zurückgeben.
 - [ ] Standard laden, falls keine persönliche Konfiguration existiert; keine unnötige Erstanlage beim bloßen Öffnen.
 - [ ] Upgrade aus bestehendem Schema und Sicherung/Wiederherstellung der neuen Konfiguration nachweisen.
+- [ ] Load-/Migrationsvertrag: Eine gespeicherte Kachel mit unbekannter oder entfernter KPI-ID (Katalogänderung, Umbenennung) bleibt beim Laden und Migrieren unverändert erhalten und wird nicht verworfen; kein stiller Rückfall auf die Standardansicht. Test mit gespeicherter unbekannter ID.
 
 **Abnahme:** Benutzer A kann Konfiguration von Benutzer B weder lesen noch schreiben. Nach erneutem Login ist das gespeicherte Layout verfügbar. Veraltete Revisionen überschreiben nichts.
 
@@ -295,6 +296,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 - [ ] Nutzungsablauf testen: Zahl hinzufügen, Größe wechseln, umsortieren, speichern, neu laden; anschließend Änderungen vornehmen und abbrechen.
 - [ ] Sichtbarkeitsgesteuertes Laden mit Platzhaltern umsetzen; rasches Scrollen, Vorladen, Tastaturbedienung, Filterwechsel und Aufräumen prüfen.
 - [ ] Konfigurator erst beim Öffnen laden; initial werden die Komponenten und Daten außerhalb des Sichtbereichs nicht pauschal aktiviert.
+- [ ] Unbekannte oder nicht verfügbare Kachel als erklärbaren Platzhalter im Raster anzeigen (Grund, Entfernen möglich); UI-Test mit gespeicherter unbekannter ID, Konfiguration geht nicht verloren.
 
 **Abnahme:** Bearbeiten funktioniert auf 1440/768/375 px und mit Tastatur. Abbrechen erhält die letzte gespeicherte Konfiguration; keine Änderung wird vor Speichern serverseitig übernommen.
 
@@ -330,7 +332,7 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 
 **Dateien:** geprüfte weitere Katalogeinträge und Datenadapter; E2E-Suite; Screenshot-Harness; ausschließlich textuelle Screenshot-Matrix; `docs/BUILD_LOG.md`.
 
-- [ ] Weitere belegte KPIs aus Finanzen, Vertrieb/Marketing, Kunden, Organisation, Markt und Strategie aufnehmen; Annahmen/Planwerte klar kennzeichnen und nicht als Istwerte anbieten.
+- [ ] Weitere belegte KPIs aus Produkt (u. a. `CHART_PRODUKT`, `CHART_CHURN`), Finanzen, Vertrieb/Marketing, Kunden, Organisation, Markt und Strategie aufnehmen; Annahmen/Planwerte klar kennzeichnen und nicht als Istwerte anbieten.
 - [ ] Kennzahlen ohne brauchbare Datenquelle nicht freischalten; Inventar dokumentiert den konkreten Grund und die nötige spätere Datenaufbereitung.
 - [ ] Zwei Browser-/Gerätesitzungen und Benutzerwechsel testen; Speicherung, Revisionen und Filterkontext nachweisen.
 - [ ] Alle acht Darstellungen, Übersichtskacheln, Kombinationen und alle Kachelgrößen prüfen.
@@ -410,7 +412,7 @@ Eingerichtet mit PR #42 (`.github/workflows/codex-rework.yml`, `codex-review-req
 - [ ] Eigenständige, serverseitig überprüfbare Statusmeldungen für CI und Codex-Review einrichten. Review-Identität muss von Builder-Identität getrennt sein; fehlende formale Approve-Berechtigung nicht durch einen scheinbaren Review-Erfolg ersetzen.
 - [ ] Auftrags-ID + PR + Head-SHA + Befund-ID als Verarbeitungskennung verwenden; eigene Bot-Kommentare, wiederholte Ereignisse und bereits erledigte Befunde lösen keine endlose Nacharbeit aus.
 - [ ] Pro Branch nur einen schreibenden Builder gleichzeitig zulassen; unabhängige Branches/Agenten dürfen parallel arbeiten. Gemeinsame Integrationsbranch-Schreibzugriffe koordinieren.
-- [ ] Nach drei erfolglosen automatischen Nacharbeitsrunden oder bei widersprüchlichen Anforderungen an Marc eskalieren; vorübergehende API-/Runnerausfälle als ausstehend markieren, nicht als Freigabe.
+- [ ] Nach drei gestarteten automatischen Nacharbeitsrunden (`decideRework` zählt jeden Rundenmarker, unabhängig vom Erfolg) oder bei widersprüchlichen Anforderungen an Marc eskalieren; weitere Befunde danach bearbeitet Claude Code manuell; vorübergehende API-/Runnerausfälle als ausstehend markieren, nicht als Freigabe.
 - [ ] Geschützte Zugänge nur aus passender Runner-/Secret-Konfiguration verwenden. Ungeprüfter PR-Code erhält keine privilegierten Produktionszugänge; Vorschau nutzt isolierte Testdaten.
 - [ ] Den Ablauf an der Testkachel nachweisen: Commit → CI/Review → Befund → Nacharbeit → erneutes Review des aktuellen Commits. Designfreigabe durch Marc bleibt ein eigener Schritt.
 - [ ] Neue E2E-Suite ausdrücklich in die bestehende CI-Testliste aufnehmen: `ci.yml` führt eine feste Dateiliste aus und würde `e2e/personal-dashboard.spec.ts` sonst nicht automatisch prüfen.

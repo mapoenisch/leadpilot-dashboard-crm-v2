@@ -14017,3 +14017,18 @@ Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerh
 **Befund (Codex, Review 5387377719):** 4162042012 (P2), `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` Zeile 13: Status nannte die Automatisierung „noch nicht eingerichtet“, obwohl der Zyklus mit PR #42/#44 besteht. **Behoben:** Status nennt den eingerichteten Zyklus, offen bleiben nur Abgleich- und Nachweisschritte (Abschnitt 11). Die drei automatischen Runden waren ausgeschöpft, daher manuell durch Claude Code.
 
 **Schutzbereichs-Diff** (`git diff aa648b0 -- src/simulation src/types src/context src/services/data src/features/resources`): leer. Nur Doku geändert, keine Code-Gates nötig.
+
+
+---
+
+## Nacharbeit Runde 5 (manuell, PR #46, Head 5042ced)
+
+**Befunde (Codex, Review 5387407118), alle drei in `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`:**
+
+| Befund | Stelle | Entscheidung |
+|---|---|---|
+| 4162068710 (P1) | Teilauftrag 1/8 | behoben: Produktkandidaten (`CHART_PRODUKT`, `CHART_CHURN`) in erster aktiver Auswahl-Bewertung und im Katalogausbau von Teilauftrag 8 aufgenommen |
+| 4162068720 (P2) | Teilauftrag 3/5 | behoben: Load-/Migrationsvertrag und UI-Test für gespeicherte unbekannte KPI-ID (Platzhalterkachel, kein Datenverlust) ergänzt |
+| 4162068726 (P2) | Abschnitt 11 | behoben: Limit als drei gestartete Runden formuliert (`decideRework` zählt jeden Rundenmarker); weitere Befunde manuell durch Claude Code |
+
+Nur Doku geändert. **Schutzbereichs-Diff** (`git diff 5042ced -- src simulation types context services/data features/resources`): leer.
