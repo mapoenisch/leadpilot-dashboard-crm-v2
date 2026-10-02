@@ -13813,6 +13813,39 @@ Nicht lokal gelaufen sind die Deno-Schritte und der Migration-Check aus dem Job 
 
 ---
 
+## [2026-10-01] CI-Auftrag Codex-Nacharbeit — Codex-Prüfung: Nacharbeit erforderlich
+
+**Prüfstand:** `262b8eb635457b2df1b399773f7453ad73a47f63`, Basis `9d5eed3004e066a3d2f8998c1a7cd893f5690214`. Geprüft wurden der vollständige PR-Diff, Auftrag und Review-Ablauf sowie die lokalen Pflichtgates. Der GitHub-CI-Status war in dieser Umgebung nicht abrufbar, weil kein `GH_TOKEN` hinterlegt ist.
+
+**[P1, blockierend] Label-Auslöser führt das Skript aus dem untrusted PR-Checkout mit Schreib-Token aus:** `codex-review-request.yml` läuft bei `pull_request: labeled` mit `pull-requests: write`, checkt aber ohne festes `ref` den Pull-Request-Merge-Stand aus und startet anschließend `scripts/codexReviewCycle.mjs` aus genau diesem Checkout. Bei einem Same-Repository-PR kann der Branch damit das Skript verändern; wird danach das Label `codex-review` gesetzt, läuft der PR-kontrollierte JavaScript-Code mit dem Schreib-Token des Base-Workflows. Die Einschränkung auf `head.repo.full_name == github.repository` verhindert Forks, nicht aber manipulierte Same-Repository-Branches. Korrektur: Wie im Rework-Workflow muss die ausführbare Entscheidungslogik explizit vom Default-Branch ausgecheckt und von dort gestartet werden (alternativ den ganzen Checkout auf den unveränderlichen Default-Branch pinnen). Ein Vertragstest muss absichern, dass auch der Request-Workflow niemals das Skript aus dem PR-Stand ausführt.
+
+**[P2] Job-Bedingung prüft den geforderten Bot-Typ nicht:** Auftrag und PR-Beschreibung verlangen bereits in der Job-Bedingung die Kombination aus Login, Typ `Bot` und ID. `codex-rework.yml` prüft dort nur Login und ID; erst das später gestartete Skript prüft `type`. Die API-Prüfung verhindert derzeit zwar die Nacharbeit, die deklarierte Triggergrenze und ihr Vertragstest sind aber unvollständig. Korrektur: `github.event.review.user.type == 'Bot'` in die Job-Bedingung aufnehmen und im Workflow-Vertragstest behaupten.
+
+**Lokale Verifikation:** `npx vitest run scripts/__tests__/codexReviewCycle.vitest.ts` (1 Datei, 26 Tests), `npx tsc --noEmit`, `npm run lint`, `npm run verify` (Suiten 001–025) und `npm run build` sind grün. Der Schutzbereichs-Diff gegen die PR-Basis ist leer. Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Ergebnis & Freigabestatus:** Keine Freigabe. Claude Code behebt die beiden Befunde gesammelt; danach prüft Codex den neuen Head und die vollständige PR-CI erneut. Kein Merge durch Codex.
+
+---
+
+## [2026-10-01] PR #42 – Codex-Nachprüfung auf 76edfa7
+
+### Codex-Nachprüfung PR #42
+
+Prüfstand: `76edfa720eb6c36f43b749319179f615260f10ed`. Die bisherigen Befunde P1 (Default-Branch-Logik) und P2 (Bot-Typ) sind behoben. Alle sieben Pflichtjobs der CI sind auf diesem Head erfolgreich.
+
+**[P1] PR-Lifecycle-Skripte laufen vor der Push-Sperre mit Schreibzugriff.** Der PR-Checkout persistiert standardmäßig das Job-Token mit `contents: write`. Anschließend führt `npm ci` die vom PR kontrollierten Lifecycle-Skripte aus; der `pre-push`-Hook wird erst danach installiert. Ein Same-Repository-PR kann über `postinstall` geschützte Dateien ändern und unmittelbar auf seinen Branch pushen, bevor die Schutzprüfung greift. Die nachträgliche Remote-Prüfung kann das nur melden, nicht verhindern. Das verletzt die geforderte Sperre vor dem Push. Installation ohne Lifecycle-Skripte und ohne persistierte Schreib-Credentials durchführen; benötigte Install-Skripte nur gezielt in einer Umgebung ohne Schreibzugriff zulassen. Nur den Hook vorzuziehen reicht als Sicherheitsgrenze gegenüber beliebigem PR-Code nicht aus.
+
+https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/blob/76edfa720eb6c36f43b749319179f615260f10ed/.github/workflows/codex-rework.yml#L72-L102
+
+Nachweis: harmlose isolierte Offline-Probe mit dependency-freiem Paket; `npm ci` führte dessen `postinstall` aus und erzeugte eine Markerdatei. Kein Push, kein Angriff und keine Änderung am Anwendungscode.
+
+**Ergebnis: Nacharbeit erforderlich, keine Merge-Freigabe.** Der Funktionstest der vollständigen Schleife und des Bot-Kommentar-Auslösers bleibt nach dem Merge erforderlich. Keine Korrektur durch Codex.
+
+
+Prüfumfang: vollständiger PR-Diff, Auftrag, Review-Ablauf, Workflow-Verträge, gepinnter Claude-Action-Quellcode und aktueller GitHub-CI-Stand (Lauf 36878976385). Keine UI-Änderung; Schutzbereichs-Diff leer laut vollständiger PR-Dateiliste (keine src-Dateien). Lokale Pflichtgates nicht erneut ausgeführt; CI liefert auf exakt diesem Head lint, typecheck, test, build, livekpi-verifiers, size-limit und e2e erfolgreich. Token-Widerruf-Hypothese mit öffentlichem Git-Zugriff widerlegt und nicht als Befund gewertet. Bestehende lokale Änderungen bleiben erhalten.
+
+---
+
 ## [2026-10-01] CI-Auftrag Codex-Nacharbeit / PR #42 — Codex-P1 auf `76edfa7` nachgearbeitet (Builder: Claude Code)
 
 **Befund (Codex-Nachprüfung, von Marc als PR-Kommentar `5934870856` übermittelt):** P1 vorher (Default-Branch-Logik) und P2 (Bot-Typ) sind bestätigt behoben, die CI war auf `76edfa7` 7/7 grün. **Neuer P1:** Der PR-Checkout hat das Job-Token mit `contents: write` gespeichert, danach führte `npm ci` die Lifecycle-Skripte des PR aus. Der `pre-push`-Hook kam erst danach. Ein PR hätte damit per `postinstall` geschützte Dateien ändern und selbst pushen können. Die nachträgliche Remote-Prüfung meldet das nur, sie verhindert es nicht. **Berechtigt.**
@@ -13841,6 +13874,24 @@ Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in ei
 - `CLAUDE_CODE_OAUTH_TOKEN` steht im Job `rework` zwangsläufig zur Verfügung, dort läuft auch PR-Code. Der Zyklus gilt nur für PRs aus demselben Repository, deren Autoren ohnehin Schreibrechte haben.
 
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI auf dem neuen Head und die Codex-Nachprüfung. Nicht gemergt.
+
+---
+
+## [2026-10-01] PR #42 – Codex-Nachprüfung auf c1dde4f
+
+### Codex-Nachprüfung PR #42
+
+**Prüfstand:** `c1dde4fc5a90883d4d227e94d78787a42d778938`.
+
+**Keine neuen blockierenden Befunde.** Der P1 vom vorherigen Review ist behoben: PR-Code läuft im Job `rework` nur mit Leserechten, Checkout ohne persistierte Credentials, Installation mit `npm ci --ignore-scripts`. Der separate Job `publish` führt keinen PR-Code aus und prüft Bundle, Fast-Forward und Schutzpfade vor dem Push. Die bisherigen Befunde zur Default-Branch-Logik und Bot-Typ-Prüfung bleiben behoben.
+
+Alle sieben Pflichtjobs auf diesem Head sind erfolgreich: lint, typecheck, test, build, livekpi-verifiers, size-limit, e2e. CI-Lauf: https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/actions/runs/36887138804
+
+Vollständiger Diff und Nacharbeitsdelta, Auftrag, Review-Ablauf, gepinnte Action und CI geprüft. Schutzbereiche unverändert (keine src-Dateien im PR-Diff). Keine UI-Änderung; Screenshot-Gate entfällt. Lokale Builds nicht wiederholt, CI auf exakt diesem Head liefert die Pflichtgates.
+
+**Review und CI bestanden; Merge durch Marc freigegeben.** Die vollständige Schleife, Ruleset-Anerkennung der per workflow_dispatch gestarteten CI und Review nach einem Workflow-Token-Push müssen anschließend am Test-PR nachgewiesen werden. Das ist noch keine Bestätigung des Ende-zu-Ende-Betriebs. Codex hat nichts gemergt und keinen Anwendungscode geändert.
+
+Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerhalb des PR-Diffs und wurden bei dieser Nachprüfung nicht aufgelöst.
 
 ---
 
@@ -13892,3 +13943,169 @@ Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in ei
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI (der Job `e2e` mit Lighthouse nutzt `@lhci/cli`) und die Codex-Prüfung. Nicht gemergt.
 
 **Nachtrag (PR #45, CI-Lauf auf `6f748bc` rot im Schritt „Deno Edge Functions typecheck“):** `supabase/functions/deno.lock` spiegelt unter `workspace.packageJson.overrides` die Root-`overrides`. Mit `--frozen-lockfile` bricht `deno check` deshalb ab, sobald `package.json` einen neuen Override hat. Im Lock ist jetzt nur `"basic-ftp": "^6.2.1"` ergänzt (2 Zeilen hinzu, 1 entfernt), das Root-`deno.lock` bleibt unverändert. Lokal unter Deno 2.9.6 mit den CI-Befehlen: `deno check` (3 Entry-Points) Exit 0, `deno test` 59 Tests grün. Gegenprobe ohne die Lock-Zeile: `deno check` Exit 1, wie in der CI.
+
+---
+
+## [2026-10-02] Doku-Abgleich: lokale Plan- und Regeländerungen ins Repo (Builder: Claude Code)
+
+**Ziel & Kontext:** Damit Cloud-Sitzungen (claude.ai/code, `@claude`) mit denselben Regeln arbeiten wie die lokale Sitzung, kommen Marcs bislang nur lokal vorhandene Änderungen vom 01.10.2026 ins Repo (Freigabe Marc). Basis `main` `7646d81`.
+
+**Übernommen:**
+- `CLAUDE.md` §4: abschnittsspezifische Entscheidung Marc vom 01.10.2026 zum Executive-Dashboard-Umbau, unverändert
+- `BUILD_PLAN.md`: Stand 01.10.2026, nächster Auftrag, Rollen, Versionsziel `v2.4.0`, unverändert
+- `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`: unverändert
+- `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`: Abschnitt „Review-Auslösung“ und Schritt 2 im Ablauf an das Ergebnis des Ende-zu-Ende-Tests (PR #43) angepasst, sonst unverändert
+- `docs/dashboard/AGENT_SETUP.md`: Nachtrag zum Stand am Anfang, überholter Befund als Verlauf erhalten
+- `docs/BUILD_LOG.md`: drei Codex-Einträge, die nur lokal standen (Prüfung auf `262b8eb`, Nachprüfungen auf `76edfa7` und `c1dde4f`), chronologisch eingeordnet und wörtlich übernommen. Die lokale Datei enthielt dort Konfliktmarkierungen mit jeweils leerer „theirs“-Seite. Entfernt wurden nur diese Markerzeilen, der Inhalt ist vollständig erhalten. Die übrigen fünf lokalen Einträge standen schon auf `main` und sind nicht doppelt übernommen.
+
+**Nicht übernommen:** `.playwright-mcp/` (lokale Browser-Logs).
+
+**Verifikation:** Secrets-Scan der übernommenen Dateien ohne Treffer; keine Konfliktmarkierungen; keine doppelten Überschriften; `npx tsc --noEmit` Exit 0; `npm run verify` Exit 0; `npm run build` Exit 0; Schutzbereichs-Diff gegen `origin/main` leer (0 Zeilen). Nur Doku, keine Screenshot-Matrix.
+
+**Ergebnis & Freigabestatus:** Builder-Prüfung abgeschlossen. Offen ist die Codex-Prüfung. Nicht gemergt.
+
+## Automatische Nacharbeit Runde 1 (PR #46, Head 422a86f)
+
+**Befunde (Codex, Review 5386194536):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4161021100 (P2) | `docs/dashboard/REVIEW_WORKFLOW.md` | behoben: Schritt 4 und „Review anfordern“ an das Ergebnis aus PR #43 angepasst (CI `action_required`, Marc gibt frei und kommentiert `@codex review`) |
+| 4161021114 (P2) | `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` | behoben: Punkt `dashboard-review-cycle.yml`/Runner-Adapter ersetzt durch den offenen Hinweis-/Freigabeschritt für die vorhandenen Workflows |
+| 4161021126 (P1) | `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`, Plan Teilauftrag 0 | teilweise behoben: lokaler Desktop-Pfad entfernt, Bereitstellung durch Marc als Voraussetzung und Blocker der Testkachel dokumentiert. Das Bild kann der Builder nicht liefern (liegt nur lokal bei Marc; Bilddateien werden nicht committet, `CLAUDE.md` §7) → Marc muss es bereitstellen |
+| 4161021133 (P1) | Plan Teilauftrag 1/8, Kategorien | behoben: `marktData`/`strategieData` (`src/domain/`) in Inventar, Kategorien und Ausbau aufgenommen |
+
+**Gates:** `npx tsc --noEmit` 0 Fehler; `npm run lint` grün; `npm test` 1673 Tests grün; `npm run verify` grün; `npm run build` grün.
+
+**Schutzbereichs-Diff** (`git diff 422a86f -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+---
+
+## Automatische Nacharbeit Runde 2 (PR #46, Head c27bda4)
+
+**Befunde (Codex, Review 5387095230):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4161797253 (P2) | `docs/dashboard/REVIEW_WORKFLOW.md` | behoben: Marc-Ping nach erfolgreichem Push als noch nicht umgesetzt gekennzeichnet (`codex-rework.yml` pingt nur bei Fehlschlag/Rundenlimit), Folgeauftrag genannt, bis dahin manueller Hinweis |
+| 4161797256 (P2) | `docs/dashboard/REVIEW_WORKFLOW.md` | behoben: Label `codex-review` nicht mehr als sofortiger Auslöser dargestellt; es erzeugt nur einen von Codex ignorierten Bot-Kommentar |
+| 4161797257 (P2) | `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` | behoben: veralteten Bestandsbefund durch den vorhandenen Zyklus (PR #42) und den offenen Marc-Hinweis ersetzt, zweiter Workflow ausgeschlossen |
+
+**Gates:** `npx tsc --noEmit` 0 Fehler; `npm run lint` grün; `npm test` 1673 Tests grün; `npm run verify` grün; `npm run build` grün.
+
+**Schutzbereichs-Diff** (`git diff c27bda4 -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+---
+
+## Automatische Nacharbeit Runde 3 (PR #46, Head a773c8d)
+
+**Befunde (Codex, Review 5387304787):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4161977064 (P2) | `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` | behoben: Marc-Ping nach Nacharbeits-Push ist mit PR #44 umgesetzt (`codex-rework.yml`, Zeilen 254–256 geprüft); Bestandsbefund, Entscheidung und Checkbox im Plan als erledigt gekennzeichnet |
+
+**Gates:** `npx tsc --noEmit` 0 Fehler; `npm run lint` grün; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` Suiten 001–025 grün; `npm run build` grün.
+
+**Schutzbereichs-Diff** (`git diff a773c8d -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+
+---
+
+## Nacharbeit Runde 4 (manuell, PR #46, Head aa648b0)
+
+**Befund (Codex, Review 5387377719):** 4162042012 (P2), `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` Zeile 13: Status nannte die Automatisierung „noch nicht eingerichtet“, obwohl der Zyklus mit PR #42/#44 besteht. **Behoben:** Status nennt den eingerichteten Zyklus, offen bleiben nur Abgleich- und Nachweisschritte (Abschnitt 11). Die drei automatischen Runden waren ausgeschöpft, daher manuell durch Claude Code.
+
+**Schutzbereichs-Diff** (`git diff aa648b0 -- src/simulation src/types src/context src/services/data src/features/resources`): leer. Nur Doku geändert, keine Code-Gates nötig.
+
+
+---
+
+## Nacharbeit Runde 5 (manuell, PR #46, Head 5042ced)
+
+**Befunde (Codex, Review 5387407118), alle drei in `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`:**
+
+| Befund | Stelle | Entscheidung |
+|---|---|---|
+| 4162068710 (P1) | Teilauftrag 1/8 | behoben: Produktkandidaten (`CHART_PRODUKT`, `CHART_CHURN`) in erster aktiver Auswahl-Bewertung und im Katalogausbau von Teilauftrag 8 aufgenommen |
+| 4162068720 (P2) | Teilauftrag 3/5 | behoben: Load-/Migrationsvertrag und UI-Test für gespeicherte unbekannte KPI-ID (Platzhalterkachel, kein Datenverlust) ergänzt |
+| 4162068726 (P2) | Abschnitt 11 | behoben: Limit als drei gestartete Runden formuliert (`decideRework` zählt jeden Rundenmarker); weitere Befunde manuell durch Claude Code |
+
+Nur Doku geändert. **Schutzbereichs-Diff** (`git diff 5042ced -- src simulation types context services/data features/resources`): leer.
+
+
+---
+
+## Nacharbeit Runde 6 (manuell, PR #46, Head d21de96) — Gate-Nachweis auf dem finalen Stand
+
+**Befunde (Codex, Review 5387434730):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4162093567 (P1) | `docs/BUILD_LOG.md` | behoben: Pflichtgates auf dem finalen Stand ausgeführt und hier protokolliert (Ergebnis unten) |
+| 4162093561 (P2) | `BUILD_PLAN.md` Zeile 9 | behoben: Zyklus als eingerichtet (PR #42/#44) gekennzeichnet, offen bleibt nur der Nachweis an der Testkachel |
+
+**Gates** (lokal, Basis `d21de96` plus diese Nacharbeit, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` 0 Fehler/0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Integrity-Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff d21de96 -- src/simulation src/types src/context src/services/data src/features/resources`): leer. Seit Runde 3 (`a773c8d`) wurden nur Doku-Dateien geändert; die Gates gelten damit für den finalen Stand dieser Änderung.
+
+
+---
+
+## Nacharbeit Runde 7 (manuell, PR #46, Head 340c50f)
+
+**Befunde (Codex, Review 5387479057):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4162133658 (P1) | Plan Teilauftrag 1/8, Kategorien | behoben: `unternehmenData` (`HISTORIE.events`) und `rechtData` (`GESELLSCHAFTER.rows`) in Kategorien, Inventar und Katalogausbau; Auslassungen nur mit dokumentiertem Grund |
+| 4162133663 (P2) | `docs/BUILD_LOG.md` | behoben: Abschnitt „Doku-Abgleich“ samt Runde 1 hinter die Einträge vom 01.10. (PR #43, `basic-ftp`) verschoben; reine Verschiebung, Inhalt unverändert |
+
+Quellen vor der Änderung gelesen: `HISTORIE.events` (strukturierte Meilensteine) und `GESELLSCHAFTER.rows` (Summe 100,0 %) wie von Codex beschrieben.
+
+Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- oder Konfigurationsdatei. **Schutzbereichs-Diff** (`git diff 340c50f -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+
+---
+
+## Nacharbeit Runde 8 (manuell, PR #46, Head cd1ae01) — Gates auf dem finalen Stand
+
+**Befunde (Codex, Review 5387508823):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4162161113 (P1) | `docs/BUILD_LOG.md` | behoben: Pflichtgates nach Runde 7 erneut ausgeführt (siehe unten) |
+| 4162161118 (P2) | Plan Abschnitt 11 | behoben: „Offen ist nur …“ ersetzt durch vollständige Restliste (6 offene Punkte) und separat benannte umgesetzte Punkte (PR #42, #44); im geprüften `.github/workflows/` gibt es weder Vorschau- noch Codex-Statusworkflow |
+
+**Gates** (lokal, Stand dieses Commits, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` 0 Fehler/0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Geprüft wurde der Arbeitsstand unmittelbar vor diesem Ledger-Eintrag; der Eintrag selbst ist reiner Text.
+
+**Stand des Prüfgegenstands:** Gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. Die Gates wurden auf diesem Stand ausgeführt; jede weitere Nacharbeitsrunde führt die Gates auf ihrem eigenen finalen Stand erneut aus und protokolliert sie.
+
+**Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+
+---
+
+## Nacharbeit Runde 9 (manuell, PR #46, Head 4c1c77d) — Gates auf dem finalen Stand
+
+**Befunde (Codex, Review 5388664392):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4163185013 (P1) | `docs/BUILD_LOG.md` | behoben: die pauschale Fortgeltung der Gates für spätere Doku-Commits ist gestrichen (Eintrag Runde 8, „Stand des Prüfgegenstands“); die Gates laufen auf dem finalen Stand jeder Runde neu, Ergebnis unten |
+| 4163185007 (P2) | `BUILD_PLAN.md` Zeile 9 | behoben: die sechs offenen Punkte stehen jetzt im Bauplan (Workflow-Abgleich, Zugänge/Vorschauhosting, serverseitiger Codex-Status, E2E in `ci.yml`, optionaler Vorschauworkflow, Testkachel-Nachweis) |
+
+**Gates** (lokal auf dem Arbeitsstand dieser Runde, unmittelbar vor diesem Ledger-Eintrag, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0, 0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Der Ledger-Eintrag selbst ist reiner Text.
+
+**Stand des Prüfgegenstands:** gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+
+---
+
+## Nacharbeit Runde 10 (manuell, PR #46, Head 763f418) — Gates auf dem finalen Stand
+
+**Befund (Codex, Review 5388705213):** 4163222357 (P2), Plan Teilauftrag 1: `GESELLSCHAFTER.rows` enthält zusätzlich die Summenzeile `Gesamt` (`src/domain/rechtData.ts`), die Zeilen ergäben zusammen 200 %. **Behoben:** Quelle geprüft (fünf Gesellschafter plus `Gesamt`); der Plan verlangt jetzt den Ausschluss der Summenzeile vor jeder Darstellung und die Prüfung der fünf Anteile auf exakt 100 %. Die Angabe „summiert auf 100 %“ aus Runde 7 war ungenau.
+
+**Gates** (lokal auf dem Arbeitsstand dieser Runde, unmittelbar vor diesem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Der Ledger-Eintrag selbst ist reiner Text.
+
+**Stand des Prüfgegenstands:** gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.

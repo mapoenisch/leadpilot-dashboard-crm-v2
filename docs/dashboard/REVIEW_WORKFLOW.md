@@ -43,17 +43,19 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
 
 ## Review anfordern
 
-- **Automatisch:** Codex prüft bei jedem Push von sich aus.
-- **Abgleich alle 15 Minuten:** `codex-review-request.yml` schreibt `@codex review`, wenn
-  20 Minuten nach dem Head-Commit weder ein Review noch eine Reaktion von Codex vorliegt. Codex
-  reagiert darauf nachweislich nicht (PR #43). Der Kommentar bleibt als sichtbarer Hinweis, dass
-  der Head noch ungeprüft ist.
-- **Sofort per Label:** Marc setzt im PR das Label `codex-review`.
-- In allen drei Fällen gilt: je Head-SHA höchstens eine Anforderung.
-- **Manuell durch Marc (verbindlich nach jeder automatischen Nacharbeit):** Marc schreibt
-  `@codex review` als Kommentar in den PR. Ein neuer PR, den Marc oder Claude Code öffnet, wird
-  dagegen automatisch geprüft (PR #43: Review 3 Minuten nach dem Öffnen). Jedes Ergebnis zählt
-  nur für den Head-SHA, auf den es sich bezieht.
+- **Neuer PR und Pushes von Menschen:** Codex prüft von sich aus („Team-PRs“, „Bei jedem Push“).
+- **Nach einem Nacharbeits-Push (Entscheidung Marc, Variante A):** Marc gibt die CI mit
+  „Approve and run workflows“ frei und schreibt `@codex review` als Kommentar in den PR. Ohne
+  diese beiden Schritte bleibt die Schleife stehen. Grund: Codex reagiert weder auf den Push des
+  Workflow-Tokens noch auf einen Bot-Kommentar (PR #43, siehe `docs/BUILD_LOG.md`).
+- **Label `codex-review`:** Kein Ersatz für den Kommentar von Marc. Das Label löst denselben
+  Pfad wie der Zeitplan aus (`codex-review-request.yml`), also einen `@codex review`-Kommentar
+  von `github-actions[bot]`, den Codex ignoriert. Es startet daher keinen Review.
+- **Rückfall alle 15 Minuten:** `codex-review-request.yml` schreibt `@codex review`, wenn
+  20 Minuten nach dem Head-Commit weder ein Review noch eine Reaktion von Codex vorliegt. Da
+  Codex Bot-Kommentare nicht beachtet, ersetzt das den Kommentar von Marc nicht.
+- In allen Fällen gilt: je Head-SHA höchstens eine Anforderung; jedes Ergebnis zählt nur für den
+  Head-SHA, auf den es sich bezieht.
 
 ## Eingreifen
 

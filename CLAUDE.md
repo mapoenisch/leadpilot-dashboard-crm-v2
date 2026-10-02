@@ -23,6 +23,8 @@ Echtzeit-Dashboard für das fiktive Unternehmen LeadPilot. React 18 + TypeScript
 
 ## 4. Rollen & Ablauf (aus `AGENTS.md`)
 
+**Abschnittsspezifische Entscheidung Marc vom 01.10.2026:** Für den Umbau des Executive Dashboards einschließlich der vorgelagerten Testkachel baut Claude Code und schreibt Detailaufträge; Codex prüft unabhängig. Unabhängige Agentenarbeit darf parallel erfolgen, mit koordinierter Integration. Vor dem eigentlichen Umbau muss Marc das Design der Testkachel ausdrücklich freigeben. Der möglichst automatisierte CI-/Review-/Nacharbeitsablauf und Lazy Loading sind im festgelegten Plan `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` beschrieben. Diese Entscheidung ersetzt für diesen Abschnitt abweichende Builder- und Serialitätsregeln; Schutzbereiche und Pflichtgates bleiben erhalten.
+
 **Rollenwechsel ab 24.09.2026 bis zum Release `v2.3.0` (Entscheidung Marc Poenisch):**
 
 1. **Claude Code baut** — schreibt bei Bedarf den Detailauftrag, implementiert ihn und ist der schreibende Builder. Ziel: offene Fehler und Qualitätsschulden raus aus dem Code, Masterplan 067Q–067S abschließen.
