@@ -57,6 +57,35 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
 - In allen Fällen gilt: je Head-SHA höchstens eine Anforderung; jedes Ergebnis zählt nur für den
   Head-SHA, auf den es sich bezieht.
 
+## Status `codex-review` (serverseitig prüfbar)
+
+`codex-status.yml` setzt für den Head-SHA eines PR den Commit-Status `codex-review`:
+
+| Status | Bedeutung |
+|---|---|
+| `pending` | zum aktuellen Head liegt kein verwertbares Codex-Ergebnis vor |
+| `failure` | Codex meldet zum aktuellen Head Befunde (Inline-Befunde oder P-Befunde im Kommentar) |
+| `success` | Codex meldet für genau diesen Head „Didn't find any major issues“ |
+
+- Der Status gilt nur für den Head, auf den sich das Ergebnis bezieht; ein neuer Push setzt ihn auf `pending`.
+- Nur die verifizierte Codex-Identität (Login, Typ, ID) zählt. Menschen und andere Bots können den Status nicht auf `success` bringen.
+- Der Workflow macht keinen Review und gibt nichts frei. Die Freigabe zum Merge bleibt bei Marc.
+- Der Workflow läuft vom Default-Branch ohne PR-Code und darf nur Status schreiben. Er wirkt erst, nachdem er auf `main` liegt.
+- **Entscheidung für Marc:** Soll `codex-review` im Branch-Schutz („Required status checks“) Pflicht werden? Das ist eine Repository-Einstellung und steht in keiner Datei.
+
+## Vorschau ohne Hosting
+
+Entscheidung Marc (02.10.2026): kein Vorschau-Hosting. Der CI-Job `build` lädt die gebaute Anwendung als Artefakt `dashboard-preview` hoch (7 Tage).
+
+1. Im PR unter Actions den CI-Lauf öffnen und das Artefakt `dashboard-preview` herunterladen und entpacken.
+2. Im Repository: `npx vite preview --outDir <entpackter-Ordner>` und die angezeigte Adresse öffnen.
+
+Für die Testkachel genügt das, weil sie feste, gekennzeichnete Beispieldaten nutzt und keinen Zugang zu Produktivdaten braucht.
+
+## Abgleich mit den Workflows (Stand 02.10.2026)
+
+Geprüft gegen `codex-rework.yml`, `codex-review-request.yml` und `codex-status.yml`: Auslöser, Codex-Identität, Rundenlimit 3, Rundenmarkierungen je Head-SHA, `concurrency` je PR, Wartezeit 20 Minuten, Abgleich alle 15 Minuten, Label `codex-review`, Leserechte für PR-Code (`npm ci --ignore-scripts`) und der blockierte Push bei Änderungen an Schutzbereichen, `.github` und Arbeitsdateien. Es gab keine Abweichung zum Dokument. Folge für Aufträge: Eine automatische Nacharbeit darf keine Dateien unter `.github` ändern; solche Befunde bearbeitet Claude Code manuell.
+
 ## Eingreifen
 
 - **Nacharbeit für einen PR stoppen:** den PR in den Entwurf zurücksetzen hilft nicht, weil Codex
