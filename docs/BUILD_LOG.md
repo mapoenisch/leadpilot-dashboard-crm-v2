@@ -13841,3 +13841,25 @@ Damit entfällt der `pre-push`-Hook. Die Sperre greift jetzt vor dem Push, in ei
 - `CLAUDE_CODE_OAUTH_TOKEN` steht im Job `rework` zwangsläufig zur Verfügung, dort läuft auch PR-Code. Der Zyklus gilt nur für PRs aus demselben Repository, deren Autoren ohnehin Schreibrechte haben.
 
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI auf dem neuen Head und die Codex-Nachprüfung. Nicht gemergt.
+
+---
+
+## [2026-10-01] Auftrag Deps `basic-ftp` — Advisory GHSA-c475-qrg2-pj4r behoben (Builder: Claude Code)
+
+**Ziel & Kontext:** `npm audit --audit-level=high` meldet `basic-ftp <=6.2.0` (high). Dadurch scheitert der Schritt „Dependency Audit Check“ im CI-Job `test` auf allen Branches, aufgefallen am Test-PR #43. Nur Dev-Abhängigkeit über `@lhci/cli` und `puppeteer-core`, `npm audit --omit=dev` war bei 0. Die Fix-Version 6.2.1 liegt außerhalb von `get-uri` `^5`. Mit Marcs Freigabe deshalb ein `overrides`-Eintrag. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_DEPS_BASIC_FTP.md`. Basis `main` `7646d81`.
+
+**Geänderte Dateien:** `package.json` (`overrides`: `"basic-ftp": "^6.2.1"`), `package-lock.json` (`basic-ftp` 5.3.1 → 6.2.1, eine Paketauflösung), Auftragsdatei (neu), dieser Eintrag.
+
+**Verträglichkeit:** `get-uri` nutzt nur `Client`, `access`, `lastMod`, `list`, `downloadTo` und `close`, alle vorhanden in 6.2.1. Einziger Breaking Change seit 5.x: Getrennte Transfer-Hosts sind standardmäßig gesperrt (Schutz gegen FTP-Bounce-Angriffe). Engines unverändert.
+
+**Verifikation (lokal, Node 22.23.2):**
+- `npm ci --ignore-scripts` aus dem neuen Lockfile: Exit 0; `npm ls basic-ftp`: beide Pfade auf 6.2.1 („overridden“ bzw. „deduped“)
+- `basic-ftp` und `get-uri` laden, `Client.list`/`downloadTo`/`lastMod` vorhanden; `npx lhci --version` → 0.15.1
+- `npm audit --omit=dev` 0 Schwachstellen (Exit 0); `npm audit --audit-level=high` 0 Schwachstellen (Exit 0)
+- `npx tsc --noEmit` 0 Fehler; `npm run lint` Exit 0; `npm run test:coverage` 276 Dateien, 1673 Tests grün; `npm run verify` alle Suiten 001–025 grün; `npm run build` erfolgreich
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer, `src/` unverändert
+- Keine UI-Änderung, keine Screenshot-Matrix
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI (der Job `e2e` mit Lighthouse nutzt `@lhci/cli`) und die Codex-Prüfung. Nicht gemergt.
+
+**Nachtrag (PR #45, CI-Lauf auf `6f748bc` rot im Schritt „Deno Edge Functions typecheck“):** `supabase/functions/deno.lock` spiegelt unter `workspace.packageJson.overrides` die Root-`overrides`. Mit `--frozen-lockfile` bricht `deno check` deshalb ab, sobald `package.json` einen neuen Override hat. Im Lock ist jetzt nur `"basic-ftp": "^6.2.1"` ergänzt (2 Zeilen hinzu, 1 entfernt), das Root-`deno.lock` bleibt unverändert. Lokal unter Deno 2.9.6 mit den CI-Befehlen: `deno check` (3 Entry-Points) Exit 0, `deno test` 59 Tests grün. Gegenprobe ohne die Lock-Zeile: `deno check` Exit 1, wie in der CI.
