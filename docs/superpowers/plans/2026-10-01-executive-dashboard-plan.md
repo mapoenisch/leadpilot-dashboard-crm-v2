@@ -10,7 +10,7 @@
 
 **Produktentwurf:** `docs/superpowers/specs/2026-10-01-executive-dashboard-design.md`.
 
-**Status:** Inhaltlich festgelegt durch Marc am 01.10.2026, einschließlich dieser Revision. Keine Implementierung begonnen, keine Gates ausgeführt, kein Commit oder Deployment. Automatisierung ist geplant, noch nicht eingerichtet. Verbindliches Versionsziel: v2.4.0 (Entscheidung Marc, 01.10.2026). Technische Dateinamen werden vor dem jeweiligen Detailauftrag gegen den aktuellen Repo-Stand abgeglichen.
+**Status:** Inhaltlich festgelegt durch Marc am 01.10.2026, einschließlich dieser Revision. Keine Implementierung begonnen, keine Gates ausgeführt, kein Commit oder Deployment. Der Review-Zyklus (Codex-Review, automatische Nacharbeit, Marc-Hinweis) ist eingerichtet (PR #42, PR #44); offen sind nur die Abgleich- und Nachweisschritte in Abschnitt 11. Verbindliches Versionsziel: v2.4.0 (Entscheidung Marc, 01.10.2026). Technische Dateinamen werden vor dem jeweiligen Detailauftrag gegen den aktuellen Repo-Stand abgeglichen.
 
 ## 1. Globale Grenzen
 
