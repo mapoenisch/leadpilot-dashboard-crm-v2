@@ -14079,6 +14079,22 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 
 **Gates** (lokal, Stand dieses Commits, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` 0 Fehler/0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Geprüft wurde der Arbeitsstand unmittelbar vor diesem Ledger-Eintrag; der Eintrag selbst ist reiner Text.
 
-**Nachweis, dass sich der Prüfgegenstand nicht ändert:** Gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. Dieser PR enthält ausschließlich Doku; weitere Nacharbeitsrunden ändern nur Plan und Ledger, sodass die hier protokollierten Gates für jeden folgenden Doku-Commit gelten, solange `git diff origin/main -- . ':!docs' ':!BUILD_PLAN.md' ':!CLAUDE.md'` leer bleibt.
+**Stand des Prüfgegenstands:** Gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. Die Gates wurden auf diesem Stand ausgeführt; jede weitere Nacharbeitsrunde führt die Gates auf ihrem eigenen finalen Stand erneut aus und protokolliert sie.
 
 **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+
+---
+
+## Nacharbeit Runde 9 (manuell, PR #46, Head 4c1c77d) — Gates auf dem finalen Stand
+
+**Befunde (Codex, Review 5388664392):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4163185013 (P1) | `docs/BUILD_LOG.md` | behoben: die pauschale Fortgeltung der Gates für spätere Doku-Commits ist gestrichen (Eintrag Runde 8, „Stand des Prüfgegenstands“); die Gates laufen auf dem finalen Stand jeder Runde neu, Ergebnis unten |
+| 4163185007 (P2) | `BUILD_PLAN.md` Zeile 9 | behoben: die sechs offenen Punkte stehen jetzt im Bauplan (Workflow-Abgleich, Zugänge/Vorschauhosting, serverseitiger Codex-Status, E2E in `ci.yml`, optionaler Vorschauworkflow, Testkachel-Nachweis) |
+
+**Gates** (lokal auf dem Arbeitsstand dieser Runde, unmittelbar vor diesem Ledger-Eintrag, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0, 0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Der Ledger-Eintrag selbst ist reiner Text.
+
+**Stand des Prüfgegenstands:** gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
