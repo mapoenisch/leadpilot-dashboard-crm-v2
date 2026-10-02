@@ -14310,3 +14310,21 @@ Die drei automatischen Runden sind verbraucht; Bearbeitung durch Claude Code.
 | 4164688773 (P2) | `DashboardDesignPreview.tsx` | behoben: `motion-reduce:transition-none` an der Kachel, damit die Größenänderung bei reduzierter Bewegung nicht animiert; Test. |
 
 **Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1745 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical (Matrix aktualisiert). **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Nacharbeit PR #48 Runde 5 (manuell, Head aff3edf)
+
+Die drei automatischen Runden sind verbraucht; Bearbeitung durch Claude Code.
+
+**Befunde (Codex, Review 5390623843):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164784254 (P2) | `ChartModuleBoundary.tsx` | behoben: Die Fehlergrenze erhält die Fokusmarkierung des Ladeplatzhalters. Scheitert das Modul, während der Platzhalter fokussiert ist, übernimmt „Wiederholen“ den Fokus (`componentDidUpdate` beim Übergang in den Fehlerzustand). Test mit langsam scheiterndem Lader. |
+| 4164784265 (P2) | `DashboardDesignPreview.tsx` | behoben: Der `useState`-Initialisierer liest den Retry-Zustand nur noch; gelöscht wird er nach dem Mount in einem `useEffect`. Unter `React.StrictMode` (doppelter Initialisierer) bleibt die Auswahl erhalten. Test unter StrictMode. |
+
+Beide neuen Tests schlagen auf dem alten Code fehl und sind mit der Korrektur grün.
+
+**Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1747 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden und identisch mit Runde 4 (keine sichtbare Änderung), 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.

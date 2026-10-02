@@ -179,11 +179,11 @@ export const RETRY_STATE_KEY = 'dashboard-preview-retry';
 const isView = (value: unknown): value is PreviewView => VIEWS.some((entry) => entry.id === value);
 const isSize = (value: unknown): value is PreviewSize => SIZES.some((entry) => entry.id === value);
 
-function takeRetryState(): { view?: PreviewView; size?: PreviewSize } {
+// Nur lesen: StrictMode ruft den useState-Initialisierer doppelt auf. Gelöscht wird nach dem Mount.
+function readRetryState(): { view?: PreviewView; size?: PreviewSize } {
   try {
     const raw = window.sessionStorage.getItem(RETRY_STATE_KEY);
     if (!raw) return {};
-    window.sessionStorage.removeItem(RETRY_STATE_KEY);
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) return {};
     const { view, size } = parsed as Record<string, unknown>;
@@ -230,9 +230,16 @@ export function DashboardDesignPreview({
   chartLoaders = DEFAULT_CHART_LOADERS,
   reloadPage = () => window.location.reload(),
 }: DashboardDesignPreviewProps) {
-  const [restored] = useState(takeRetryState);
+  const [restored] = useState(readRetryState);
   const [view, setView] = useState<PreviewView>(restored.view ?? initialView);
   const [size, setSize] = useState<PreviewSize>(restored.size ?? initialSize);
+  useEffect(() => {
+    try {
+      window.sessionStorage.removeItem(RETRY_STATE_KEY);
+    } catch {
+      /* ohne sessionStorage nichts aufzuräumen */
+    }
+  }, []);
 
   const retry = () => {
     try {
@@ -303,7 +310,11 @@ export function DashboardDesignPreview({
           ) : null}
           {Chart ? (
             <>
-              <ChartModuleBoundary key={view} onRetry={retry}>
+              <ChartModuleBoundary
+                key={view}
+                onRetry={retry}
+                placeholderHadFocus={placeholderHadFocus}
+              >
                 <Suspense
                   fallback={
                     <div

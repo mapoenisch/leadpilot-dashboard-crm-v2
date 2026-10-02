@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 
 interface Props {
   onRetry: () => void;
+  /** Hatte der Ladeplatzhalter den Fokus, übernimmt ihn im Fehlerfall „Wiederholen“. */
+  placeholderHadFocus?: React.MutableRefObject<boolean>;
   children: React.ReactNode;
 }
 
@@ -20,6 +22,17 @@ export class ChartModuleBoundary extends React.Component<Props, State> {
     return { failed: true };
   }
 
+  private alertRef = React.createRef<HTMLDivElement>();
+
+  // Der fokussierte Platzhalter verschwindet mit dem Fehler aus dem DOM; ohne Übergabe fiele der
+  // Fokus auf den Seitenanfang zurück.
+  componentDidUpdate(_prevProps: Props, prevState: State) {
+    const hadFocus = this.props.placeholderHadFocus;
+    if (prevState.failed || !this.state.failed || !hadFocus?.current) return;
+    hadFocus.current = false;
+    this.alertRef.current?.querySelector('button')?.focus();
+  }
+
   private retry = () => {
     this.setState({ failed: false });
     this.props.onRetry();
@@ -30,6 +43,7 @@ export class ChartModuleBoundary extends React.Component<Props, State> {
     if (this.state.failed) {
       return (
         <div
+          ref={this.alertRef}
           role="alert"
           className="flex min-h-[360px] flex-col items-start justify-center gap-[10px]"
         >

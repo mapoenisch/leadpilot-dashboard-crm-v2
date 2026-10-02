@@ -2,7 +2,7 @@
 
 Erzeugt mit `scripts/captureDashboardPreviewScreenshots.mjs` gegen `/dashboard-vorschau.html` (eigene Vorschauseite, Dev-Server, feste Beispieldaten, `prefers-reduced-motion: reduce`). Das Harness wartet je Darstellung auf deren eigenen Inhalt, nicht auf eine feste Zeit. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-02T10:00:54.736Z (Stand nach manueller Nacharbeit Runde 4: Fokusübergabe, gemeinsame Mindesthöhe 360 px, reduzierte Bewegung)
+- Aufnahme: 2026-10-02T10:00:54.736Z (Stand nach manueller Nacharbeit Runde 4: Fokusübergabe, gemeinsame Mindesthöhe 360 px, reduzierte Bewegung). Nach Runde 5 (nur Fokus im Fehlerfall und Retry-Zustand) am 2026-10-02T10:24:19Z erneut aufgenommen: alle 24 Hashes identisch, Matrix unverändert gültig.
 - Darstellungen: 8 (Zahl, Tabelle, Säulen, Balken, Kreis, Ring, Linie, Fläche) × 3 Breiten = 24 Aufnahmen
 - Alle SHA-256-Hashes verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel)

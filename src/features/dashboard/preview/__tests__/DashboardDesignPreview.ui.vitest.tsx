@@ -1,4 +1,5 @@
 // Designprobe Testkachel (Teilauftrag 0): Bedienung, Zugänglichkeit und Grenzen der Kachel.
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -291,6 +292,45 @@ describe('DashboardDesignPreview', () => {
     } finally {
       quiet.mockRestore();
     }
+  });
+
+  it('gibt den Fokus vom Ladeplatzhalter an „Wiederholen“, wenn das Modul scheitert', async () => {
+    let fail: () => void = () => undefined;
+    const loaders: ChartLoaders = {
+      ...DEFAULT_CHART_LOADERS,
+      saeulen: () =>
+        new Promise((_resolve, reject) => {
+          fail = () => reject(new Error('Netz weg'));
+        }),
+    };
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      render(<DashboardDesignPreview chartLoaders={loaders} />);
+      const placeholder = await screen.findByRole('status', { name: /Darstellung wird geladen/ });
+      act(() => placeholder.focus());
+      await act(async () => {
+        fail();
+      });
+      await screen.findByRole('alert');
+      expect(screen.getByRole('button', { name: 'Wiederholen' })).toHaveFocus();
+    } finally {
+      quiet.mockRestore();
+    }
+  });
+
+  it('behält die Auswahl nach dem Neuladen auch unter StrictMode', () => {
+    window.sessionStorage.setItem(
+      'dashboard-preview-retry',
+      JSON.stringify({ view: 'tabelle', size: 'gross' }),
+    );
+    render(
+      <React.StrictMode>
+        <DashboardDesignPreview />
+      </React.StrictMode>,
+    );
+    expect(screen.getByTestId('dashboard-test-tile')).toHaveAttribute('data-size', 'gross');
+    expect(screen.getByRole('tabpanel', { name: 'Tabelle' })).toBeInTheDocument();
+    expect(window.sessionStorage.getItem('dashboard-preview-retry')).toBeNull();
   });
 
   it('animiert die Größenänderung bei reduzierter Bewegung nicht', () => {
