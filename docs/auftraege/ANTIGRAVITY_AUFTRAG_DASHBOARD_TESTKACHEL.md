@@ -41,6 +41,11 @@ Eine **isolierte, bedienbare** Kachel, an der Marc Tiefe, Farben, Beschriftung, 
 | `src/features/dashboard/preview/charts/DepthAreaChart.tsx` | Fläche mit dezentem Verlauf |
 | `src/features/dashboard/preview/charts/depthGeometry.ts` | Reine Funktionen für Tiefe, Winkel, Skalen (testbar) |
 | `src/features/dashboard/preview/__tests__/*.vitest.ts(x)` | Geometrie-, Ansichts- und Zugänglichkeitstests |
+| `src/features/dashboard/preview/DashboardPreviewPage.tsx` | Nachtrag bei der Umsetzung: Vorschauseite um die Kachel |
+| `src/features/dashboard/preview/ChartModuleBoundary.tsx` | Nachtrag: Fehlergrenze mit „Wiederholen“ für nachgeladene Diagrammmodule |
+| `src/features/dashboard/preview/previewRoute.ts` | Nachtrag: Pfad der Vorschauroute |
+| `src/features/dashboard/preview/charts/ChartReadout.tsx` | Nachtrag: gemeinsame Tooltip-Zeile und Legenden-Schaltflächen |
+| `src/features/dashboard/preview/charts/chartTypes.ts` | Nachtrag: gemeinsame Typen und Serienfarben |
 | `src/app/App.tsx` | Vorschauroute `/dashboard-vorschau`, nur wenn `import.meta.env.DEV` oder `VITE_DASHBOARD_PREVIEW=true`; außerhalb von `ProtectedRoute`, lazy |
 | `src/vite-env.d.ts` | Typ für `VITE_DASHBOARD_PREVIEW` |
 | `.github/workflows/ci.yml` | Job `build`: `VITE_DASHBOARD_PREVIEW=true` nur dort, damit das Artefakt `dashboard-preview` die Probe enthält |
@@ -53,16 +58,16 @@ Weitere Dateien nur nach Rückfrage (`CLAUDE.md` §5.3).
 
 ## Umsetzung
 
-- [ ] Beispieldaten: eine Zahl mit Einheit und Stand, eine Tabelle mit fünf Zeilen, eine Kategorienreihe (Funnel-artig), ein Anteilssatz (fünf Anteile, exakt 100 %), eine Zeitreihe (12 Punkte). Alles deutlich als Beispiel gekennzeichnet.
-- [ ] Geometrie zuerst (Tests zuerst): Tiefe aus Säulenbreite (3 bis 8 px wie im bestehenden Stil), Ring-Winkel summieren exakt auf 360°, Skalenwerte „schön“ gerundet, leere und einzelne Werte, negative Werte abgewiesen.
-- [ ] Vier Diagrammmodule und die Zahl-/Tabellenansicht. Zahl und Tabelle erhalten **keinen** räumlichen Effekt.
-- [ ] Kachel mit Kopf (Kategorie in Großbuchstaben, Titel, Status-Chip), Umschalter „Zahl · Tabelle · Säulen · Ring · Linie · Fläche“, Größenwahl Klein/Mittel/Groß/Volle Breite nach dem Raster des Plans.
-- [ ] Zustände: Hover, Tastaturfokus, Touch, reduzierte Bewegung (keine Animation), Tooltip mit Wert, Einheit, Kategorie und Zeitraum. Kein Skalieren oder Rotieren der Kachel, keine blinkenden Werte, kein dauerndes Pulsieren.
-- [ ] Zugänglichkeit: jedes Diagramm hat eine Tabellenalternative, zugängliche Zusammenfassung, Fokusreihenfolge ohne Falle, Kontrast geprüft.
-- [ ] SVG-Verläufe und Filter mit eindeutiger ID je Kachel (mehrere Kacheln beeinflussen sich nicht), geprüft durch einen Test mit zwei Instanzen.
-- [ ] Route `/dashboard-vorschau` lazy, ohne Anmeldung, nur mit Dev-Modus oder Vorschau-Flag. In einem Produktionsbuild ohne Flag existiert sie nicht (Test).
-- [ ] Kachel zeigt Lade- und Fehlerzustand eines nachgeladenen Moduls mit „Wiederholen“.
-- [ ] Gates: `tsc`, Lint, Vitest, `verify`, Build; Schutzbereichs-Diff leer. Zusätzlich Screenshot-Harness (1440/768/375 px, SHA-256-Hashes verschieden, 0 px horizontaler Überlauf), Matrix als Text im BUILD_LOG.
+- [x] Beispieldaten: eine Zahl mit Einheit und Stand, eine Tabelle mit fünf Zeilen, eine Kategorienreihe (Funnel-artig), ein Anteilssatz (fünf Anteile, exakt 100 %), eine Zeitreihe (12 Punkte). Alles deutlich als Beispiel gekennzeichnet.
+- [x] Geometrie zuerst (Tests zuerst): Tiefe aus Säulenbreite (3 bis 8 px wie im bestehenden Stil), Ring-Winkel summieren exakt auf 360°, Skalenwerte „schön“ gerundet, leere und einzelne Werte, negative Werte abgewiesen.
+- [x] Vier Diagrammmodule und die Zahl-/Tabellenansicht. Zahl und Tabelle erhalten **keinen** räumlichen Effekt.
+- [x] Kachel mit Kopf (Kategorie in Großbuchstaben, Titel, Status-Chip), Umschalter „Zahl · Tabelle · Säulen · Ring · Linie · Fläche“, Größenwahl Klein/Mittel/Groß/Volle Breite nach dem Raster des Plans.
+- [x] Zustände: Hover, Tastaturfokus, Touch, reduzierte Bewegung (keine Animation), Tooltip mit Wert, Einheit, Kategorie und Zeitraum. Kein Skalieren oder Rotieren der Kachel, keine blinkenden Werte, kein dauerndes Pulsieren.
+- [x] Zugänglichkeit: jedes Diagramm hat eine Tabellenalternative, zugängliche Zusammenfassung, Fokusreihenfolge ohne Falle, Kontrast geprüft.
+- [x] SVG-Verläufe und Filter mit eindeutiger ID je Kachel (mehrere Kacheln beeinflussen sich nicht), geprüft durch einen Test mit zwei Instanzen.
+- [x] Route `/dashboard-vorschau` lazy, ohne Anmeldung, nur mit Dev-Modus oder Vorschau-Flag. In einem Produktionsbuild ohne Flag existiert sie nicht (Test).
+- [x] Kachel zeigt Lade- und Fehlerzustand eines nachgeladenen Moduls mit „Wiederholen“.
+- [x] Gates: `tsc`, Lint, Vitest, `verify`, Build; Schutzbereichs-Diff leer. Zusätzlich Screenshot-Harness (1440/768/375 px, SHA-256-Hashes verschieden, 0 px horizontaler Überlauf), Matrix als Text im BUILD_LOG.
 - [ ] PR-CI und Codex-Prüfung (Auftragstreue, technische Grenzen).
 - [ ] Marc bewertet die Vorschau. Bei Änderungswünschen dieselbe Testkachel überarbeiten. Designfreigabe mit Commit-SHA und Hinweis auf das Referenzbild im BUILD_LOG protokollieren.
 

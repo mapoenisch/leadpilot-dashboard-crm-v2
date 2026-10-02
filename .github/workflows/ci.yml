@@ -114,6 +114,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        # Designprobe Testkachel: Vorschauroute /dashboard-vorschau nur in diesem Artefakt-Build.
+        env:
+          VITE_DASHBOARD_PREVIEW: 'true'
       # Automatisierungs-Restpunkt 6 (Entscheidung Marc 02.10.2026): Vorschau ohne Hosting.
       # Die gebaute Anwendung liegt als Artefakt vor; lokales Öffnen siehe docs/dashboard/REVIEW_WORKFLOW.md.
       - name: Vorschau als Artefakt

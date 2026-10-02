@@ -14175,3 +14175,30 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1704 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
 
 **Schutzbereichs-Diff** (`git diff 8f0345e -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+
+---
+
+## [2026-10-02] Auftrag Dashboard-Testkachel — Designprobe Teilauftrag 0 (Builder: Claude Code)
+
+**Ziel & Kontext:** Isolierte, bedienbare Testkachel für die Designfreigabe durch Marc (Auftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_DASHBOARD_TESTKACHEL.md`, Plan Teilauftrag 0). Referenz: Bild des bestehenden Live-Funnels, nur für den 3D-Effekt der Diagramme (Entscheidung Marc 02.10.2026). Das Bild lag vorübergehend auf dem nicht zu mergenden Branch `ref/dashboard-referenzbild` und ist nicht Teil dieses PR.
+
+**Geänderte Dateien:** neues Modul `src/features/dashboard/preview/` (Kachel, Seite, Beispieldaten, Fehlergrenze, Routenpfad, Diagramme `Depth3dBarChart`, `Depth3dDonutChart`, `DepthLineChart`, `DepthAreaChart`, gemeinsame `ChartReadout`/`chartTypes`, reine Geometrie `depthGeometry`, Tests), `src/app/App.tsx` (Vorschauroute), `src/vite-env.d.ts`, `.github/workflows/ci.yml` (Vorschau-Flag im Job `build`), `scripts/captureDashboardPreviewScreenshots.mjs`, `docs/screenshots/auftrag-dashboard-testkachel/README.md`, Auftragsdatei. Fünf Hilfsdateien im Vorschau-Modul kamen bei der Umsetzung dazu und sind in der Ziel-Dateien-Tabelle des Auftrags als Nachtrag vermerkt.
+
+**Funktionale Prüfungen:**
+- Darstellungen Zahl, Tabelle, Säulen, Ring, Linie, Fläche; Größen Klein/Mittel/Groß/Volle Breite. Zahl und Tabelle ohne räumlichen Effekt.
+- Säulen im Stil des bestehenden Funnels (Kappe, Seitenfläche, Verlauf, Bodenleuchten, Tiefe 3 bis 8 px); Ring mit gerader Tiefe und exakten Anteilen (Winkelsumme 360°); Linie/Fläche ohne Tiefenverschiebung der Punkte.
+- Tooltip-Zeile mit Wert, Einheit, Kategorie, Zeitraum; Zugang per Maus, Legenden-Schaltflächen (Tastatur/Touch) bzw. Bereichsregler; „Werte als Tabelle“ zu jedem Diagramm; reduzierte Bewegung ohne Übergänge.
+- SVG-IDs je Kachel eindeutig (Test mit zwei Instanzen). Nachgeladene Diagrammmodule mit Lade- und Fehlerzustand und „Wiederholen“ (Test).
+- Route `/dashboard-vorschau` ohne Anmeldung nur im Dev-Modus oder mit `VITE_DASHBOARD_PREVIEW=true`. Geprüft per Build: ohne Flag enthält `dist/` weder den Chunk `DashboardPreviewPage` noch den Pfad; mit Flag beides. Vertragstest auf `App.tsx`.
+- Bestehender `LiveFunnelBarChart.tsx` unverändert.
+
+**Schutzbereichs-Prüfung** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources src/components/liveKpi`): leer.
+
+**Automatisierte Verifikation** (lokal, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1726 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich; `verify:quality-budget` grün (keine neue Suppression, 0 Inline-Styles); `size-limit` 175,44 kB gesamt, größter Chunk 86,4 kB (Grenze 250 kB).
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-dashboard-testkachel/README.md`. 18 Aufnahmen (1440/768/375 px × 6 Darstellungen), alle SHA-256 verschieden, 0 px Überlauf, 0 axe-Verstöße serious/critical. Neue Ansicht ohne Vorgänger, daher keine Vorher/Nachher-Paare.
+
+**Offene Bewertungspunkte für Marc:** Auf 375 px werden Achsen- und Säulenbeschriftungen sehr klein. Die Reiterleiste nutzt die bestehende `Tabs`-Komponente, die durch den fehlenden Tailwind-Reset einen Rahmen an allen Seiten zeigt (ebenso auf der Lead-Seite); nicht geändert, weil außerhalb der Ziel-Dateien.
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün. Offen: PR-CI, Codex-Prüfung, Designfreigabe durch Marc.

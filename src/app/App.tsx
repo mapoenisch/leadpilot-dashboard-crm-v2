@@ -13,6 +13,7 @@ import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { useSimulationStore } from '@/store/simulationStore';
 import { logger } from '@/services/logger';
 import '@/services/data';
+import { DASHBOARD_PREVIEW_PATH } from '@/features/dashboard/preview/previewRoute';
 
 const LoginPage = React.lazy(() =>
   import('@/features/auth/pages/LoginPage').then((m) => ({
@@ -25,6 +26,19 @@ const DesignSystemPage = React.lazy(() =>
     default: m.DesignSystemPage,
   })),
 );
+
+// Designprobe Dashboard-Testkachel (Teilauftrag 0): nur Dev-Modus oder Build mit Vorschau-Flag.
+// Der Ausdruck wird beim Build zu einer Konstanten; ohne Flag entfällt der Import samt Chunk.
+// Gleiche Regel wie isDashboardPreviewEnabled (dort getestet).
+const DASHBOARD_PREVIEW_ENABLED =
+  import.meta.env.DEV || import.meta.env.VITE_DASHBOARD_PREVIEW === 'true';
+const DashboardPreviewPage = DASHBOARD_PREVIEW_ENABLED
+  ? React.lazy(() =>
+      import('@/features/dashboard/preview/DashboardPreviewPage').then((m) => ({
+        default: m.DashboardPreviewPage,
+      })),
+    )
+  : null;
 
 // 067F / G49 (freigegebene UI-Verdrahtung): Lädt bei bestehender
 // Organisationssitzung einmalig den Server-Workspace (Reload / zweite Sitzung
@@ -75,6 +89,30 @@ export function App() {
                     </RouteErrorBoundary>
                   }
                 />
+
+                {/* Designprobe Testkachel: feste Beispieldaten, ohne Anmeldung, nur Dev/Vorschau-Build */}
+                {DashboardPreviewPage && (
+                  <Route
+                    path={DASHBOARD_PREVIEW_PATH}
+                    element={
+                      <RouteErrorBoundary resetKey="dashboard-preview">
+                        <React.Suspense
+                          fallback={
+                            <div
+                              role="status"
+                              aria-live="polite"
+                              className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
+                            >
+                              Vorschau wird geladen …
+                            </div>
+                          }
+                        >
+                          <DashboardPreviewPage />
+                        </React.Suspense>
+                      </RouteErrorBoundary>
+                    }
+                  />
+                )}
 
                 {/* Alle 41 Kern-Routen geschützt unter ProtectedRoute (Entscheidung 4) */}
                 <Route element={<ProtectedRoute />}>
