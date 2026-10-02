@@ -3,10 +3,17 @@
 // Die Fläche (filled) ergänzt einen ruhigen Verlauf. Zugang für Tastatur und Touch: Bereichsregler.
 import { useMemo, useState } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout, ScrollableChart } from './ChartReadout';
+import { ChartReadout, ChartSummary, ScrollableChart } from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
-import { areaPath, formatDe, linePath, linePoints, niceScale } from './depthGeometry';
+import {
+  areaPath,
+  formatDe,
+  linePath,
+  linePoints,
+  niceScale,
+  summarizeSeries,
+} from './depthGeometry';
 
 const AREA = { left: 56, top: 26, width: 470, height: 196 };
 const THEME = MANAGEMENT_CHART_THEME.colors;
@@ -28,6 +35,8 @@ export function DepthLineChart({
   const scale = useMemo(() => niceScale(Math.max(...data.map((d) => d.value), 0)), [data]);
   const points = useMemo(() => linePoints(data, AREA, scale.max), [data, scale.max]);
   const baseline = AREA.top + AREA.height;
+  const summaryId = `${idPrefix}-summary`;
+  const summary = useMemo(() => summarizeSeries(data, unit, period, 'trend'), [data, unit, period]);
   const fillId = `${idPrefix}-area`;
   const shadowId = `${idPrefix}-line-shadow`;
   const slot = points.length > 1 ? AREA.width / (points.length - 1) : AREA.width;
@@ -46,6 +55,7 @@ export function DepthLineChart({
           width="100%"
           role="img"
           aria-label={`${title}: ${filled ? 'Fläche' : 'Linie'}`}
+          aria-describedby={summaryId}
           className="block h-auto w-full min-w-[560px]"
           onMouseLeave={() => setActive(null)}
         >
@@ -148,6 +158,7 @@ export function DepthLineChart({
           ) : null}
         </svg>
       </ScrollableChart>
+      <ChartSummary id={summaryId} text={summary} />
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}

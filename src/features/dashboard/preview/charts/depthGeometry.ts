@@ -227,3 +227,37 @@ const numberFormat = new Intl.NumberFormat('de-DE');
 export function formatDe(value: number): string {
   return numberFormat.format(value);
 }
+
+export type SummaryKind = 'ranking' | 'share' | 'trend';
+
+/**
+ * Kernaussage einer Datenreihe als Satz für Screenreader: Anzahl, Spannweite, Verlauf bzw. Anteile.
+ * Leere Reihen und Summe 0 werden ehrlich benannt statt Anteile vorzutäuschen.
+ */
+export function summarizeSeries(
+  data: readonly DatumInput[],
+  unit: string,
+  period: string,
+  kind: SummaryKind,
+): string {
+  const first = data[0];
+  const last = data[data.length - 1];
+  if (!first || !last) return `Keine Werte für ${period}.`;
+  const withUnit = (value: number) => `${formatDe(value)} ${unit}`.trim();
+  const high = data.reduce((best, entry) => (entry.value > best.value ? entry : best), first);
+  const low = data.reduce((best, entry) => (entry.value < best.value ? entry : best), first);
+  const head = `${data.length} Werte, ${period}.`;
+  if (kind === 'share') {
+    const total = data.reduce((sum, entry) => sum + entry.value, 0);
+    if (total <= 0) return `${head} Summe 0, keine Anteile.`;
+    const share = Math.round((high.value / total) * 1000) / 10;
+    return `${head} Summe ${withUnit(total)}. Größter Anteil: ${high.label} mit ${withUnit(high.value)} (${formatDe(share)} Prozent).`;
+  }
+  if (kind === 'trend') {
+    const delta = last.value - first.value;
+    const direction = delta > 0 ? 'gestiegen' : delta < 0 ? 'gesunken' : 'unverändert';
+    const change = delta === 0 ? '' : ` um ${withUnit(Math.abs(delta))}`;
+    return `${head} Von ${first.label} (${withUnit(first.value)}) bis ${last.label} (${withUnit(last.value)}) ${direction}${change}. Höchster Wert: ${high.label}, ${withUnit(high.value)}. Niedrigster Wert: ${low.label}, ${withUnit(low.value)}.`;
+  }
+  return `${head} Höchster Wert: ${high.label}, ${withUnit(high.value)}. Niedrigster Wert: ${low.label}, ${withUnit(low.value)}.`;
+}

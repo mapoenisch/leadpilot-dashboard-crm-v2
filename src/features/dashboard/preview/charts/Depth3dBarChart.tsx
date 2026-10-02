@@ -5,10 +5,10 @@
 // auf der Grundlinie, damit kein Betrag vorgetäuscht wird.
 import { useMemo, useState } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout, LegendButtons, ScrollableChart } from './ChartReadout';
+import { ChartReadout, ChartSummary, LegendButtons, ScrollableChart } from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
-import { formatDe, layoutBars, layoutHBars, niceScale } from './depthGeometry';
+import { formatDe, layoutBars, layoutHBars, niceScale, summarizeSeries } from './depthGeometry';
 
 const AREA = { left: 56, top: 34, width: 480, height: 190 };
 const H_AREA = { left: 96, top: 14, width: 400, height: 210 };
@@ -32,6 +32,11 @@ export function Depth3dBarChart({
   const hBaseline = H_AREA.left;
   const front = `${idPrefix}-front`;
   const glow = `${idPrefix}-glow`;
+  const summaryId = `${idPrefix}-summary`;
+  const summary = useMemo(
+    () => summarizeSeries(data, unit, period, 'ranking'),
+    [data, unit, period],
+  );
   const transition = reducedMotion ? '' : 'transition-opacity duration-150';
 
   return (
@@ -47,6 +52,7 @@ export function Depth3dBarChart({
           width="100%"
           role="img"
           aria-label={`${title}: ${horizontal ? 'Balken' : 'Säulen'}`}
+          aria-describedby={summaryId}
           className="block h-auto w-full min-w-[560px]"
           onMouseLeave={() => setActive(null)}
         >
@@ -263,6 +269,7 @@ export function Depth3dBarChart({
               })}
         </svg>
       </ScrollableChart>
+      <ChartSummary id={summaryId} text={summary} />
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}

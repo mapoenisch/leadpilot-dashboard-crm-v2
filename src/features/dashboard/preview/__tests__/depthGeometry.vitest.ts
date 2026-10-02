@@ -9,6 +9,7 @@ import {
   linePath,
   linePoints,
   niceScale,
+  summarizeSeries,
 } from '../charts/depthGeometry';
 import { SAMPLE_SERIES, SAMPLE_SHARES, SAMPLE_STAGES } from '../previewSampleData';
 import fs from 'node:fs';
@@ -171,11 +172,59 @@ describe('Vorschauroute in src/app/App.tsx', () => {
     expect(route).toBeGreaterThan(app.indexOf('export function App()'));
     expect(route).toBeLessThan(app.indexOf('<AppWithProviders />'));
     const providers = app.slice(
-      app.indexOf('function AppWithProviders()'),
+      app.indexOf('const AppWithProviders = React.lazy'),
       app.indexOf('export function App()'),
     );
     expect(providers).toContain('<AuthProvider>');
     expect(providers).toContain('<WorkspaceHydrator />');
     expect(providers).not.toContain('DASHBOARD_PREVIEW_PATH');
+  });
+
+  it('lädt Auth, Organisation und Supabase-Pfad nur dynamisch, nicht beim Auswerten des Moduls', () => {
+    const staticImports = app.slice(0, app.indexOf('const LoginPage'));
+    for (const forbidden of [
+      '@/auth/',
+      '@/store/simulationStore',
+      '@/services/data',
+      '@/components/layout/Layout',
+    ]) {
+      expect(staticImports).not.toContain(forbidden);
+    }
+    expect(app).toContain("import('@/auth/AuthContext')");
+    expect(app).toContain("import('@/auth/organizationContext')");
+  });
+});
+
+describe('summarizeSeries', () => {
+  const data = [
+    { label: 'Q1', value: 10 },
+    { label: 'Q2', value: 30 },
+    { label: 'Q3', value: 20 },
+  ];
+
+  it('nennt Spannweite bei Rangfolge', () => {
+    const text = summarizeSeries(data, 'Leads', 'Q3 2026', 'ranking');
+    expect(text).toContain('3 Werte, Q3 2026.');
+    expect(text).toContain('Höchster Wert: Q2, 30 Leads');
+    expect(text).toContain('Niedrigster Wert: Q1, 10 Leads');
+  });
+
+  it('nennt Richtung und Änderung bei Verlauf', () => {
+    expect(summarizeSeries(data, 'Leads', 'Q3 2026', 'trend')).toContain(
+      'Von Q1 (10 Leads) bis Q3 (20 Leads) gestiegen um 10 Leads',
+    );
+  });
+
+  it('nennt größten Anteil bei Anteilen und vermeidet Anteile bei Summe 0', () => {
+    expect(summarizeSeries(data, 'Leads', 'Q3 2026', 'share')).toContain(
+      'Größter Anteil: Q2 mit 30 Leads (50 Prozent)',
+    );
+    expect(summarizeSeries([{ label: 'A', value: 0 }], 'Leads', 'Q3 2026', 'share')).toContain(
+      'keine Anteile',
+    );
+  });
+
+  it('benennt leere Reihen', () => {
+    expect(summarizeSeries([], 'Leads', 'Q3 2026', 'trend')).toBe('Keine Werte für Q3 2026.');
   });
 });

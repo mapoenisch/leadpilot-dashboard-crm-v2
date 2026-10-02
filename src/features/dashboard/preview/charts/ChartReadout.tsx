@@ -25,6 +25,15 @@ export function ScrollableChart({ label, children }: { label: string; children: 
   );
 }
 
+/** Datenabhängige Kurzfassung für Screenreader; per aria-describedby mit dem SVG verknüpft. */
+export function ChartSummary({ id, text }: { id: string; text: string }) {
+  return (
+    <p id={id} className="sr-only">
+      {text}
+    </p>
+  );
+}
+
 export interface ReadoutProps {
   entry: DatumInput | null;
   unit: string;

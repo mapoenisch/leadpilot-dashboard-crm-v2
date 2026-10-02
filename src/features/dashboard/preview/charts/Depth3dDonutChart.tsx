@@ -3,10 +3,10 @@
 // exakte Anteile (siehe donutSegments). Segmente tragen Legende und Werte.
 import { useMemo, useState } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout, LegendButtons, ScrollableChart } from './ChartReadout';
+import { ChartReadout, ChartSummary, LegendButtons, ScrollableChart } from './ChartReadout';
 import { CHART_VIEWBOX, SERIES_COLORS, seriesColor } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
-import { donutSegments, formatDe } from './depthGeometry';
+import { donutSegments, formatDe, summarizeSeries } from './depthGeometry';
 
 const RING_GEOMETRY = { cx: 180, cy: 128, outer: 96, inner: 58 };
 // Kreis: gleiche Lage und Tiefe, nur ohne Aussparung.
@@ -27,6 +27,8 @@ export function Depth3dDonutChart({
   const segments = useMemo(() => donutSegments(data, GEOMETRY), [data, GEOMETRY]);
   const total = data.reduce((sum, entry) => sum + entry.value, 0);
   const glow = `${idPrefix}-ring-glow`;
+  const summaryId = `${idPrefix}-summary`;
+  const summary = useMemo(() => summarizeSeries(data, unit, period, 'share'), [data, unit, period]);
   const transition = reducedMotion ? '' : 'transition-opacity duration-150';
 
   return (
@@ -37,6 +39,7 @@ export function Depth3dDonutChart({
           width="100%"
           role="img"
           aria-label={`${title}: ${solid ? 'Kreis' : 'Ring'}`}
+          aria-describedby={summaryId}
           className="block h-auto w-full min-w-[560px]"
           onMouseLeave={() => setActive(null)}
         >
@@ -128,6 +131,7 @@ export function Depth3dDonutChart({
           </g>
         </svg>
       </ScrollableChart>
+      <ChartSummary id={summaryId} text={summary} />
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}

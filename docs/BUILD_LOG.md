@@ -14235,3 +14235,19 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 Die automatische Runde 1 konnte das Harness nicht ausführen. Lokal nachgeholt gegen den Dev-Server: 8 Darstellungen (Zahl, Tabelle, Säulen, Balken, Kreis, Ring, Linie, Fläche) × 1440/768/375 px = 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. Matrix: `docs/screenshots/auftrag-dashboard-testkachel/README.md`. Vorher/Nachher: neue Route ohne Vorgänger, Begründung in der Matrix.
 
 **Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1736 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich. **Schutzbereichs-Diff** inklusive `src/components/liveKpi`: leer.
+
+---
+
+## Automatische Nacharbeit Runde 2 (PR #48, Head b9cadd4)
+
+**Befunde (Codex, Review 5389927690):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164235403 (P2) | `src/app/App.tsx` | behoben: `AppWithProviders` ist jetzt `React.lazy`; Layout, `AuthContext` (damit `supabaseAuthAdapter`/`supabaseClient`), `organizationContext`, `ProtectedRoute`, `simulationStore` und `@/services/data` werden erst beim Rendern des produktiven Baums per `import()` geladen. `/dashboard-vorschau` wertet den Supabase-Client nicht mehr aus. Vertragstest: keine statischen Imports dieser Module in `App.tsx`. |
+| 4164235408 (P2) | `charts/Depth3dBarChart.tsx` (auch Ring, Linie, Fläche) | behoben: `summarizeSeries` (`depthGeometry.ts`) erzeugt je Diagramm eine datenabhängige Kernaussage (Höchst-/Niedrigstwert, Summe und größter Anteil, Richtung und Änderung des Verlaufs); `ChartSummary` (`ChartReadout.tsx`) hängt sie per `aria-describedby` an das SVG. Tests. |
+| 4164235416 (P2) | `DashboardDesignPreview.tsx` | behoben: Ladeplatzhalter per Tastatur fokussierbar (`tabIndex=0`, Fokusring), nennt Titel und Zeitraum des Diagramms. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1741 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Screenshot-Harness nicht ausgeführt; sichtbar ändern sich nur Fokusring und Platzhaltertext.
+
+**Schutzbereichs-Diff** (`git diff b9cadd4 -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.

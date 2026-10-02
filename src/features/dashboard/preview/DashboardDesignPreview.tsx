@@ -289,9 +289,11 @@ export function DashboardDesignPreview({
                     <div
                       role="status"
                       aria-live="polite"
-                      className="flex min-h-[220px] items-center text-[13px] text-[var(--color-text-muted)]"
+                      tabIndex={0}
+                      aria-label={`${dataset.title}, ${dataset.period}: Darstellung wird geladen`}
+                      className="flex min-h-[220px] items-center rounded-md text-[13px] text-[var(--color-text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      Darstellung wird geladen …
+                      {dataset.title}, {dataset.period}: Darstellung wird geladen …
                     </div>
                   }
                 >
