@@ -29,12 +29,26 @@ export function runCommands(yaml: string): string[] {
   return commands;
 }
 
+/** Einzelne Shell-Befehle: Fortsetzungszeilen verbinden, Kommentare entfernen, an Operatoren trennen. */
+export function shellCommands(block: string): string[] {
+  return block
+    .replace(/\\\n/g, ' ')
+    .split('\n')
+    .map((line) => line.replace(/(^|\s)#.*$/, ''))
+    .join('\n')
+    .split(/&&|\|\||;|\||\n/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 export function playwrightFiles(yaml: string): Set<string> {
   const files = new Set<string>();
-  for (const command of runCommands(yaml)) {
-    if (!/playwright test/.test(command)) continue;
-    for (const match of command.matchAll(/\be2e\/[\w.-]+\.(?:spec|acceptance)\.ts\b/g)) {
-      files.add(match[0]);
+  for (const block of runCommands(yaml)) {
+    for (const command of shellCommands(block)) {
+      if (!/^(?:\w+=\S*\s+)*(?:npx\s+)?playwright\s+test\b/.test(command)) continue;
+      for (const match of command.matchAll(/\be2e\/[\w.-]+\.(?:spec|acceptance)\.ts\b/g)) {
+        files.add(match[0]);
+      }
     }
   }
   return files;
@@ -74,8 +88,18 @@ describe('playwrightFiles', () => {
       '  - run: |',
       '      # e2e/block-kommentar.spec.ts',
       '      cat e2e/cat.spec.ts',
+      '  - run: |',
+      '      npx playwright test e2e/mehr.spec.ts \\',
+      '        e2e/zeile.spec.ts # e2e/inline.spec.ts',
+      '      echo e2e/not-run.spec.ts',
+      '      npx playwright test e2e/nach.spec.ts && echo e2e/danach.spec.ts',
     ].join('\n');
-    expect([...playwrightFiles(yaml)]).toEqual(['e2e/echt.spec.ts']);
+    expect([...playwrightFiles(yaml)].sort()).toEqual([
+      'e2e/echt.spec.ts',
+      'e2e/mehr.spec.ts',
+      'e2e/nach.spec.ts',
+      'e2e/zeile.spec.ts',
+    ]);
   });
 });
 

@@ -14161,3 +14161,17 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates** (lokal, `npm ci --ignore-scripts`, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1704 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
 
 **Stand des Prüfgegenstands:** 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md`, `CLAUDE.md`, `.github/` und `scripts/` unterscheiden sich von `origin/main`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+---
+
+## Automatische Nacharbeit Runde 3 (PR #47, Head 8f0345e)
+
+**Befunde (Codex, Review 5389185249):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4163631530 (P2) | `scripts/__tests__/e2eSpecsListed.vitest.ts` | behoben: `playwrightFiles` zerlegt `run`-Blöcke in einzelne Shell-Befehle (Fortsetzungszeilen verbunden, Inline-Kommentare entfernt, Trennung an `&&`, `\|\|`, `;`, `\|`, Zeilenumbruch) und wertet nur Argumente von Befehlen aus, die mit `playwright test` beginnen. `echo e2e/not-run.spec.ts` im selben Block zählt nicht. Testfälle ergänzt. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1704 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff 8f0345e -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
