@@ -14175,3 +14175,28 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1704 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
 
 **Schutzbereichs-Diff** (`git diff 8f0345e -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+
+---
+
+## Auftrag 070: Dashboard Teilauftrag 1, KPI-Inventar und Datenvertrag (Builder Claude Code)
+
+**Ziel & Kontext:** Teilauftrag 1 des Plans `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` nach Marcs Designfreigabe der Testkachel (Stand `f779901`, PR #48) und seiner Freigabe am 02.10.2026 („Ja beginne mit Teilauftrag 1“). [Detailauftrag](auftraege/ANTIGRAVITY_AUFTRAG_070_DASHBOARD_KPI_KATALOG.md). Baseline `main` `d8805d9`, eigener Branch unabhängig von PR #48.
+
+**Geänderte Dateien (alle neu, außer Ledger):** `docs/dashboard/KPI_CATALOG.md`; `src/features/dashboard/model/dashboardCatalog.ts`, `dashboardConfig.ts`, `dashboardValidation.ts`, `catalog/activeEntries.ts`, `catalog/inventoryEntries.ts`, `catalog/unsuitableEntries.ts`; `src/features/dashboard/__tests__/dashboardCatalog.vitest.ts`, `dashboardValidation.vitest.ts`; Auftrag 070; dieser Eintrag.
+
+**Funktionale Prüfungen:**
+
+- Katalog mit 79 Einträgen: 30 aktiv (10 Baseline, 5 CRM, 12 Live, 3 Übersichten), 28 „aufbereiten“, 21 „nicht geeignet“, jeweils mit konkretem Grund. Inventar aller `src/domain/`-Exporte und des Live-Katalogs in `docs/dashboard/KPI_CATALOG.md`.
+- Quellennachweis per Test: Jeder aktive Baseline-Wert wird aus dem echten Modul aufgelöst und mit dem dokumentierten Rohwert verglichen (z. B. ARR 411.840, EBITDA −309.000, MRR-Paketmix 10.045/19.580/4.695 mit Summe × 12 = ARR). CRM-Felder über `getPipelineOverview`, Live-IDs gegen `LIVE_KPI_DEFINITIONS`, Übersichten über ihre Quellfunktionen, Modul und Export jedes Eintrags im Repo.
+- Regeln: eindeutige IDs mit Ebenenpräfix (`baseline.arr` ≠ `live.arr`), Darstellungen nur passend zur Datenform, Funnel-Stufen und negative Werte nie Kreis oder Ring, ARR-Einzelwert ohne Zeitreihe, keine Simulationseinträge, Fachseite jeder aktiven Kachel in `APP_ROUTES`, Gesellschafter ohne Summenzeile exakt 100 %.
+- Konfiguration Format 1: höchstens 24 Kacheln, eigene Kachel-IDs, Mindestgröße je Darstellung, historische Werte fest, kein unbelegter Zeitraum, unbekannte Felder und unbekannte Formatversion werden abgelehnt.
+- **Befund für Marc und Teilauftrag 2:** `live_kpi_public_feed` hat keine Organisationsspalte und ist für `anon` und `authenticated` lesbar, also nicht mandantengetrennt (bestehendes Verhalten, unverändert). Plan §6 verlangt die Prüfung vor der Übernahme.
+
+**Schutzbereichs-Prüfung:** `git diff d8805d9 -- src/simulation src/types src/context src/services src/features/resources src/domain src/app src/components`: leer. Quellmodule werden nur gelesen.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 279 Dateien, 1734 Tests grün (30 neue); `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (unverändert, der Katalog ist noch nicht eingebunden).
+
+**Screenshot-Matrix:** entfällt, keine Oberfläche.
+
+**Ergebnis & Freigabestatus:** Builder-Arbeit abgeschlossen. Ausstehend: CI und Codex-Prüfung, Merge durch Marc.
