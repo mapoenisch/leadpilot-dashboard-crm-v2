@@ -13,17 +13,25 @@ on:
     types: [submitted]
   issue_comment:
     types: [created]
+  # Pushes des Workflow-Tokens lösen kein `pull_request_target` aus; `codex-rework.yml` startet den
+  # Status nach seinem Nacharbeits-Push deshalb ausdrücklich (setzt den neuen Head auf `pending`).
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'PR-Nummer'
+        required: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: codex-status-${{ github.event.pull_request.number || github.event.issue.number }}
+  group: codex-status-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr }}
   cancel-in-progress: false
 
 jobs:
   status:
     if: >-
+      github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request_target' &&
        github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'pull_request_review' &&
@@ -57,7 +65,7 @@ jobs:
       - name: Status codex-review setzen
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr }}
         run: |
           tool=.cycle-tools/scripts/codexReviewCycle.mjs
           if [ ! -f "$tool" ]; then

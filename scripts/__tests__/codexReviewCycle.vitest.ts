@@ -537,6 +537,17 @@ describe('Workflow codex-status.yml', () => {
     expect(workflow).not.toContain('github.head_ref');
   });
 
+  it('lässt sich nach einem Nacharbeits-Push ausdrücklich starten (Job-Token löst keine Events aus)', () => {
+    expect(workflow).toContain('workflow_dispatch');
+    expect(workflow).toContain('github.event.inputs.pr');
+    const rework = fs.readFileSync(
+      path.join(__dirname, '..', '..', '.github', 'workflows', 'codex-rework.yml'),
+      'utf-8',
+    );
+    expect(rework).toContain('gh workflow run codex-status.yml');
+    expect(rework).toMatch(/-f pr="\$PR"/);
+  });
+
   it('reagiert auf Reviews und Kommentare nur von der verifizierten Codex-Identität', () => {
     expect(workflow).toContain('github.event.review.user.id == 199175422');
     expect(workflow).toContain('github.event.comment.user.id == 199175422');

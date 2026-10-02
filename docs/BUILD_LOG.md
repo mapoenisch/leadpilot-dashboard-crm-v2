@@ -14142,3 +14142,22 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1701 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
 
 **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+
+---
+
+## Nacharbeit PR #47, Runde 2 (manuell, Head 9a66627)
+
+**Warum manuell:** Zwei der drei Befunde betreffen `.github/workflows/`; die automatische Nacharbeit darf dort nicht pushen (Schutz in `codex-rework.yml`, Push würde blockiert). Daher alle drei Befunde in einem Push durch Claude Code.
+
+**Befunde (Codex, Review 5389135902):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4163590276 (P2) | `scripts/__tests__/e2eSpecsListed.vitest.ts` | behoben: Prüfung nur gegen tatsächliche `run`-Befehle mit `playwright test` (einzeilig und Blockform), Kommentare, Schrittnamen und `echo` zählen nicht; Hilfsfunktionen mit Tests |
+| 4163590279 (P2) | `.github/workflows/codex-status.yml` | behoben: Nacharbeits-Pushes des Job-Tokens lösen `pull_request_target` nicht aus. `codex-status.yml` hat `workflow_dispatch` (Eingabe `pr`), `codex-rework.yml` startet es nach dem Push; Vertragstest ergänzt |
+| 4163590283 (P2) | `docs/dashboard/AGENT_SETUP.md` | behoben: Rechte aller fünf Workflows und aller Jobs von `codex-rework.yml` vollständig, inklusive `id-token: write` in `claude.yml` |
+
+**Gates** (lokal, `npm ci --ignore-scripts`, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1704 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Stand des Prüfgegenstands:** 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md`, `CLAUDE.md`, `.github/` und `scripts/` unterscheiden sich von `origin/main`. **Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
