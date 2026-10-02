@@ -94,7 +94,7 @@ describe('Dashboard-Katalog', () => {
   it('aktiviert genau die erste Auswahl des Plans', () => {
     const count = (prefix: string) => active.filter((e) => e.id.startsWith(prefix)).length;
     expect(count('baseline.')).toBe(10);
-    expect(count('crm.')).toBe(5);
+    expect(count('crm.')).toBe(6);
     expect(count('live.')).toBe(12);
     expect(active.filter((e) => e.kind === 'uebersicht').map((e) => e.id)).toEqual([
       'uebersicht.team_hr',
@@ -136,12 +136,12 @@ describe('Dashboard-Katalog', () => {
   });
 
   it('trennt Anzahl und Volumen der Pipeline-Stufen und klassifiziert gewonnenes Volumen als Fluss', () => {
-    const stages = byId('crm.pipeline_stufen') as ActiveCatalogEntry;
-    expect(stages.measures).toEqual([
-      { key: 'count', label: 'Anzahl', unit: 'Deals' },
-      { key: 'volume', label: 'Volumen', unit: 'EUR' },
-    ]);
-    expect((byId('crm.pipeline_gewonnen') as ActiveCatalogEntry).aggregation).toBe('fluss');
+    const volume = byId('crm.pipeline_stufen_volumen');
+    const count = byId('crm.pipeline_stufen_anzahl');
+    expect([volume.source.measure, volume.unit]).toEqual(['volume', 'EUR']);
+    expect([count.source.measure, count.unit]).toEqual(['count', 'Deals']);
+    expect(byId('crm.pipeline_gewonnen').aggregation).toBe('fluss');
+    expect(byId('crm.pipeline_offen').aggregation).toBe('bestand');
   });
 
   it('enthält keine Simulations-KPIs', () => {
@@ -153,7 +153,11 @@ describe('Dashboard-Katalog', () => {
 
   it('bietet Funnel-Stufen und negative Werte nie als Kreis oder Ring an', () => {
     const guarded = active.filter((e) => e.funnelStages || e.mayBeNegative);
-    expect(guarded.map((e) => e.id)).toEqual(['baseline.ebitda', 'crm.pipeline_stufen']);
+    expect(guarded.map((e) => e.id)).toEqual([
+      'baseline.ebitda',
+      'crm.pipeline_stufen_volumen',
+      'crm.pipeline_stufen_anzahl',
+    ]);
     for (const entry of guarded) expect(entry.views.some((v) => PIE_VIEWS.includes(v))).toBe(false);
   });
 
@@ -259,7 +263,7 @@ describe('Dashboard-Katalog', () => {
 });
 
 describe('validateCatalog', () => {
-  const pipelineStages = byId('crm.pipeline_stufen');
+  const pipelineStages = byId('crm.pipeline_stufen_volumen');
 
   it('meldet Kreis für Funnel-Stufen, doppelte IDs, Simulation und fehlende Gründe', () => {
     const broken: CatalogEntry[] = [

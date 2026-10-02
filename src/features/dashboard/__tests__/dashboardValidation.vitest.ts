@@ -38,7 +38,7 @@ describe('validateDashboardConfig', () => {
       filters: { period: { from: '2026-01-01', to: '2026-03-31' }, pipeline: 'Direkt' },
       tiles: [
         tile({
-          catalogId: 'crm.pipeline_stufen',
+          catalogId: 'crm.pipeline_stufen_volumen',
           view: 'balken',
           size: 'mittel',
           filterMode: 'dashboard',
@@ -124,7 +124,7 @@ describe('validateDashboardConfig', () => {
       'view_unzulaessig',
     ]);
     const funnel = tile({
-      catalogId: 'crm.pipeline_stufen',
+      catalogId: 'crm.pipeline_stufen_volumen',
       view: 'kreis',
       size: 'mittel',
       filterMode: 'dashboard',

@@ -37,7 +37,7 @@ Dieses Dokument ist das Inventar zum maschinenlesbaren Katalog in `src/features/
 
 **Befund Live-Feed:** Der Live-Feed ist nicht nach Mandanten getrennt. Jeder angemeldete Benutzer und sogar ein anonymer Aufruf liest dieselben Werte. Die bestehende Executive-Ansicht verhält sich bereits so; der Katalog ändert daran nichts. Plan §6 verlangt die Prüfung vor der Übernahme: Teilauftrag 2 muss entscheiden, ob Live-Kacheln so bleiben oder eine mandantengetrennte Quelle brauchen. Bis dahin sind die Live-Einträge aktiv mit diesem Hinweis.
 
-## Aktive Einträge (30)
+## Aktive Einträge (31)
 
 ### Baseline (10)
 
@@ -64,17 +64,18 @@ Definitionen und Nachrechnung:
 - **MRR-Paketmix:** Summe 34.320 = Gesamt-MRR; Test prüft Summe × 12 = ARR. Die Paketbezeichnungen der Quelle enthalten Preise je Nutzer („Starter (49€)“); die Anzeige nimmt die Namen aus der Quelle.
 - **ARR-Verlauf:** Q4 2024 = 207.792 und Q4 2025 = 411.840 stimmen mit den Jahres-Highlights (+98 %) überein.
 
-### CRM (5)
+### CRM (6)
 
 Quelle `executiveCockpitData.getPipelineOverview` über die importierten CRM-Deals. Rohwerte hängen vom Datenbankstand ab; die Executive-Seite nennt „40 reale CRM-Deals“. Zeitbasis: aktueller Stand. Das Feld `closeDate` existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt, deshalb kein Zeitraumfilter. Das Feld `pipeline` existiert, daher ist ein Pipeline-Filter vorgesehen. Fachseite `s-deals`.
 
-| ID                      | Name                                                    | Feld                                        | Einheit                                     | Darstellungen                                      |
-| ----------------------- | ------------------------------------------------------- | ------------------------------------------- | ------------------------------------------- | -------------------------------------------------- |
-| `crm.pipeline_deals`    | Deals in der Pipeline                                   | `totalDeals`                                | Deals                                       | Zahl, Tabelle                                      |
-| `crm.pipeline_volumen`  | Pipeline-Volumen                                        | `totalVolume`                               | EUR                                         | Zahl, Tabelle                                      |
-| `crm.pipeline_gewonnen` | Gewonnenes Volumen (Fluss: Summe abgeschlossener Deals) | `wonVolume` (Stufe enthält „gewonnen“)      | EUR                                         | Zahl, Tabelle                                      |
-| `crm.pipeline_offen`    | Offenes Volumen                                         | `openVolume` (weder gewonnen noch verloren) | EUR                                         | Zahl, Tabelle                                      |
-| `crm.pipeline_stufen`   | Pipeline nach Stufe                                     | `stages`                                    | Messreihen Anzahl (Deals) und Volumen (EUR) | Balken, Säulen, Tabelle; nie Kreis (Funnel-Stufen) |
+| ID                            | Name                                                    | Feld                                        | Einheit | Darstellungen                                      |
+| ----------------------------- | ------------------------------------------------------- | ------------------------------------------- | ------- | -------------------------------------------------- |
+| `crm.pipeline_deals`          | Deals in der Pipeline                                   | `totalDeals`                                | Deals   | Zahl, Tabelle                                      |
+| `crm.pipeline_volumen`        | Pipeline-Volumen                                        | `totalVolume`                               | EUR     | Zahl, Tabelle                                      |
+| `crm.pipeline_gewonnen`       | Gewonnenes Volumen (Fluss: Summe abgeschlossener Deals) | `wonVolume` (Stufe enthält „gewonnen“)      | EUR     | Zahl, Tabelle                                      |
+| `crm.pipeline_offen`          | Offenes Volumen                                         | `openVolume` (weder gewonnen noch verloren) | EUR     | Zahl, Tabelle                                      |
+| `crm.pipeline_stufen_volumen` | Pipeline-Volumen nach Stufe                             | `stages[].volume`                           | EUR     | Balken, Säulen, Tabelle; nie Kreis (Funnel-Stufen) |
+| `crm.pipeline_stufen_anzahl`  | Deals nach Stufe                                        | `stages[].count`                            | Deals   | Balken, Säulen, Tabelle; nie Kreis (Funnel-Stufen) |
 
 ### Live (12)
 

@@ -261,25 +261,38 @@ const CRM_ENTRIES: ActiveCatalogEntry[] = [
     'EUR',
     'openVolume',
   ),
-  {
-    ...crmValue(
-      'crm.pipeline_stufen',
-      'Pipeline nach Stufe',
-      'Anzahl und Volumen je Funnel-Stufe.',
-      'Deals bzw. EUR je Messreihe',
-      'stages',
-    ),
-    measures: [
-      { key: 'count', label: 'Anzahl', unit: 'Deals' },
-      { key: 'volume', label: 'Volumen', unit: 'EUR' },
-    ],
-    shape: 'kategorien',
-    views: ['balken', 'saeulen', 'tabelle'],
-    defaultView: 'balken',
-    minSize: 'mittel',
-    groupings: ['stufe'],
-    funnelStages: true,
-  },
+  // Je Stufe liegen Anzahl und Volumen vor; jeder Eintrag stellt genau eine Messreihe mit eigener
+  // Einheit dar, damit Kachel und Konfiguration eindeutig bleiben.
+  ...(
+    [
+      [
+        'volume',
+        'crm.pipeline_stufen_volumen',
+        'Pipeline-Volumen nach Stufe',
+        'Summe der Deal-Beträge je Funnel-Stufe.',
+        'EUR',
+      ],
+      [
+        'count',
+        'crm.pipeline_stufen_anzahl',
+        'Deals nach Stufe',
+        'Anzahl der Deals je Funnel-Stufe.',
+        'Deals',
+      ],
+    ] as const
+  ).map(([measure, id, name, definition, unit]): ActiveCatalogEntry => {
+    const base = crmValue(id, name, definition, unit, 'stages');
+    return {
+      ...base,
+      source: { ...base.source, measure },
+      shape: 'kategorien',
+      views: ['balken', 'saeulen', 'tabelle'],
+      defaultView: 'balken',
+      minSize: 'mittel',
+      groupings: ['stufe'],
+      funnelStages: true,
+    };
+  }),
 ];
 
 const LIVE_TIME_BASIS =
@@ -331,10 +344,15 @@ const LIVE_ENTRIES: ActiveCatalogEntry[] = [
   liveValue(
     'pipeline_mql',
     'Pipeline MQL',
-    'Bestand an Marketing-Leads (MQL), Live-Feed.',
+    'Bestand an Marketing Qualified Leads (MQL) laut Live-Feed.',
     'Anzahl',
   ),
-  liveValue('pipeline_sql', 'Pipeline SQL', 'Bestand an Sales-Leads (SQL), Live-Feed.', 'Anzahl'),
+  liveValue(
+    'pipeline_sql',
+    'Pipeline SQL',
+    'Bestand an Sales Qualified Leads (SQL) laut Live-Feed.',
+    'Anzahl',
+  ),
   liveValue(
     'pipeline_offers',
     'Pipeline Angebote',

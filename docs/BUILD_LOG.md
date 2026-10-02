@@ -14252,3 +14252,18 @@ Durchsicht der automatischen Runde 1: Filterwerte, erhaltene Kacheln mit unbekan
 Zur Einhaltung von `max-lines` (400) wurden zwei Live-Definitionstexte (MQL, SQL) gekürzt und `LIVE_SOURCE`/`LIVE_METADATA` exportiert statt doppelt definiert.
 
 **Gates:** `npx tsc --noEmit` grün; `npm run lint` grün; `npm run format:check` grün; `npm test` 1743 Tests grün; `npm run verify` grün; `npm run build` grün. **Schutzbereichs-Diff** (`src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #49 nach Runde 3 (manuell, Head c7a6b1b)
+
+Durchsicht der automatischen Runde 3: Live-Kombinationen mit `liveKpiStreamStore` als Messwertquelle (Definitionen als Metadaten, `mergeIntoHistory` als Verarbeitungsschritt) und `crm.pipeline_gewonnen` als Fluss sind sauber umgesetzt. Die Tabellenformatierung im Inventar stammt von Prettier und ändert keinen Inhalt.
+
+| Befund | Entscheidung |
+|---|---|
+| 4168675908 (P2, Anzahl und Volumen der Pipeline-Stufen) | Runde 3 hat beide Messreihen in einem Eintrag (`measures`) geführt; eine Kachel kann ihre Reihe aber nicht speichern, die Mehrdeutigkeit bliebe also bestehen. Ersetzt durch zwei Einträge mit je einer Messreihe und eigener Einheit: `crm.pipeline_stufen_volumen` (EUR, `source.measure: 'volume'`) und `crm.pipeline_stufen_anzahl` (Deals, `source.measure: 'count'`), beide Funnel-Stufen, nie Kreis. Aktive Einträge damit 31 (6 CRM). |
+
+Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt benannt („Marketing Qualified Leads“, „Sales Qualified Leads“).
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 1743 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB. **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.
