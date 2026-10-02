@@ -115,10 +115,12 @@ const MAX_PIPELINE_LENGTH = 64;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const isDay = (value: unknown): value is string =>
-  typeof value === 'string' &&
-  DAY_PATTERN.test(value) &&
-  new Date(`${value}T00:00:00Z`).toISOString().startsWith(value);
+const isDay = (value: unknown): value is string => {
+  if (typeof value !== 'string' || !DAY_PATTERN.test(value)) return false;
+  const time = new Date(`${value}T00:00:00Z`).getTime();
+  // Ungültige Monate/Tage (z. B. 2026-13-01) ergeben NaN; toISOString() würde werfen.
+  return Number.isFinite(time) && new Date(time).toISOString().startsWith(value);
+};
 
 function checkPeriod(value: unknown, path: string, issues: ValidationIssue[]): void {
   if (!isRecord(value) || !isDay(value.from) || !isDay(value.to) || value.from > value.to) {

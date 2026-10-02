@@ -54,6 +54,9 @@ describe('validateDashboardConfig', () => {
     const bad = (filters: unknown) => codesOf({ version: 1, filters, tiles });
     expect(bad({ period: { from: '2026-03-31', to: '2026-01-01' } })).toEqual(['zeitraum']);
     expect(bad({ period: { from: '2026-02-30', to: '2026-03-01' } })).toEqual(['zeitraum']);
+    expect(bad({ period: { from: '2026-13-01', to: '2026-03-01' } })).toEqual(['zeitraum']);
+    expect(bad({ period: { from: '2026-01-01', to: '2026-00-10' } })).toEqual(['zeitraum']);
+    expect(bad({ period: { from: '2026-01-00', to: '2026-01-32' } })).toEqual(['zeitraum']);
     expect(bad({ pipeline: '  ' })).toEqual(['pipeline']);
     expect(bad({ extra: 1 })).toEqual(['feld_unbekannt']);
     expect(bad('x')).toEqual(['form']);

@@ -14232,3 +14232,11 @@ Durchsicht der automatischen Runde 1: Filterwerte, erhaltene Kacheln mit unbekan
 | 4167841418 (P2, Metadaten inaktiver Kandidaten) | Die Ablehnung der Runde 1 trägt nur für „nicht geeignet“ (Text, Plan- und Zielwerte; dort ergeben die Angaben keinen Sinn). Für die 28 Einträge „aufbereiten“ jetzt umgesetzt: `InventoryCatalogEntry` führt Einheit, Zeitbasis, Fachseite und Berechtigung, jeweils nur soweit in der Quelle belegt; fehlt eine Angabe (z. B. Zeitbasis der Kündigungsgründe, Fachseite nicht gerouteter Seiten), nennt der Grund die Lücke. `validateCatalog` verlangt Einheit und Berechtigung; Tests prüfen Fachseite gegen Grund und `APP_ROUTES`. |
 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 1741 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB. **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.
+
+## Automatische Nacharbeit Runde 2 (PR #49, Auftrag 070)
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167990130 (P2, `2026-13-01` wirft `RangeError` in `toISOString()` statt `zeitraum` zu melden) | `src/features/dashboard/model/dashboardValidation.ts` | behoben: `isDay` prüft `getTime()` auf `Number.isFinite`, bevor konvertiert wird. Regressionstests (Monat 13/00, Tag 00/32) in `dashboardValidation.vitest.ts`. |
+
+**Gates:** `npx tsc --noEmit` grün; `npm run lint` grün; `npm test` 1741 Tests grün; `npm run verify` grün; `npm run build` grün. **Schutzbereichs-Diff** (`src/simulation src/types src/context src/services/data src/features/resources`) gegenüber `c676a9e`: leer.
