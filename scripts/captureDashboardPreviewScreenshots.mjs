@@ -2,7 +2,7 @@
 /**
  * Auftrag Dashboard-Testkachel (Teilauftrag 0): Screenshot-Harness der Designprobe.
  *
- * Öffnet /dashboard-vorschau (ohne Anmeldung, feste Beispieldaten) auf 1440/768/375 px,
+ * Öffnet /dashboard-vorschau.html (ohne Anmeldung, feste Beispieldaten) auf 1440/768/375 px,
  * schaltet jede Darstellung durch und prüft je Aufnahme: SHA-256 (alle verschieden),
  * horizontalen Überlauf (muss 0 px sein) und axe-Verstöße der Stufen serious/critical.
  * Bilder bleiben lokal (.gitignore), committet wird nur die Matrix in README.md (CLAUDE.md §7).
@@ -51,7 +51,7 @@ async function main() {
       const context = await browser.newContext({ viewport });
       const page = await context.newPage();
       await page.emulateMedia({ reducedMotion: 'reduce' });
-      await page.goto(`${BASE_URL}/dashboard-vorschau`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/dashboard-vorschau.html`, { waitUntil: 'networkidle' });
       await page.getByTestId('dashboard-test-tile').waitFor();
       for (const view of VIEWS) {
         await page.getByRole('tab', { name: view.name, exact: true }).click();

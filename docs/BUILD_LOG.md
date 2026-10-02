@@ -14251,3 +14251,20 @@ Die automatische Runde 1 konnte das Harness nicht ausführen. Lokal nachgeholt g
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1741 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Screenshot-Harness nicht ausgeführt; sichtbar ändern sich nur Fokusring und Platzhaltertext.
 
 **Schutzbereichs-Diff** (`git diff b9cadd4 -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #48: Revision „Weg 2“, Vorschau als eigene Seite (manuell, Head 963fbb3)
+
+**Anlass:** Runde 2 der automatischen Nacharbeit hatte zur Supabase-Trennung (Befund 4164235403) den gesamten produktiven Provider-Baum in `App.tsx` per `React.lazy` nachgeladen. Das funktionierte (CI grün), verlegte aber für jede Produktiv-Sitzung einen zusätzlichen, nacheinander geladenen Abschnitt in den App-Start, verursacht durch eine reine Designprobe. **Entscheidung Marc (02.10.2026): „Weg 2“.**
+
+**Umsetzung:** `src/app/App.tsx` und `src/vite-env.d.ts` zurück auf den Stand von `main` (Diff leer). Neue Seite `dashboard-vorschau.html` mit eigenem Einstieg `src/features/dashboard/preview/previewMain.tsx` (nur Vorschauseite und globale Styles). `vite.config.ts` nimmt die Seite nur bei `VITE_DASHBOARD_PREVIEW=true` als Build-Eingang auf; im Dev-Modus liefert Vite sie ohnehin aus. Adresse jetzt `/dashboard-vorschau.html` (Skript, Matrix, Auftrag angepasst). Die drei Befunde aus Runde 2 bleiben damit behoben; die Supabase-Trennung gilt jetzt auf Modulebene ohne Eingriff in die Produktiv-App.
+
+**Nachweise:**
+- Build ohne Flag: keine `dashboard-vorschau.html`, kein Vorschau-Code im Bundle.
+- Build mit Flag: Die Vorschau lädt statisch und dynamisch nur `react-vendor`, `vendor`, `Button`, `Tabs`, `managementChartTheme`, `chartTypes`, die vier Diagrammmodule und ihren Einstieg; kein `supabase-vendor`, kein `createClient`.
+- Gefundene und behobene Nebenwirkung: Der benannte Build-Eingang hieß zunächst `main`, wodurch die Startdatei `main-*.js` statt `index-*.js` hieß und `.size-limit.json` (`dist/assets/index-*.js`) sie nicht mehr gemessen hätte (gemessen 117 statt 175 kB). Eingang heißt jetzt `index`; `size-limit` misst wieder 175,43 kB (wie `main`). Vertragstest sichert den Namen.
+- Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical.
+
+**Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1741 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start, 86,4 kB größter Chunk. **Schutzbereichs-Diff** inklusive `src/components/liveKpi`, `src/app` und `src/vite-env.d.ts`: leer.

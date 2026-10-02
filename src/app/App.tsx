@@ -1,12 +1,18 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { Layout } from '@/components/layout/Layout';
 import { queryClient } from '@/app/queryClient';
 import { APP_ROUTES } from '@/app/routes';
 import { ROUTE_PAGES } from '@/app/routePages';
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
-import { DASHBOARD_PREVIEW_PATH } from '@/features/dashboard/preview/previewRoute';
+import { AuthProvider } from '@/auth/AuthContext';
+import { OrganizationProvider, useOrganization } from '@/auth/organizationContext';
+import { ProtectedRoute } from '@/auth/ProtectedRoute';
+import { useSimulationStore } from '@/store/simulationStore';
+import { logger } from '@/services/logger';
+import '@/services/data';
 
 const LoginPage = React.lazy(() =>
   import('@/features/auth/pages/LoginPage').then((m) => ({
@@ -20,104 +26,107 @@ const DesignSystemPage = React.lazy(() =>
   })),
 );
 
-// Designprobe Dashboard-Testkachel (Teilauftrag 0): nur Dev-Modus oder Build mit Vorschau-Flag.
-// Der Ausdruck wird beim Build zu einer Konstanten; ohne Flag entfällt der Import samt Chunk.
-// Gleiche Regel wie isDashboardPreviewEnabled (dort getestet).
-const DASHBOARD_PREVIEW_ENABLED =
-  import.meta.env.DEV || import.meta.env.VITE_DASHBOARD_PREVIEW === 'true';
-const DashboardPreviewPage = DASHBOARD_PREVIEW_ENABLED
-  ? React.lazy(() =>
-      import('@/features/dashboard/preview/DashboardPreviewPage').then((m) => ({
-        default: m.DashboardPreviewPage,
-      })),
-    )
-  : null;
+// 067F / G49 (freigegebene UI-Verdrahtung): Lädt bei bestehender
+// Organisationssitzung einmalig den Server-Workspace (Reload / zweite Sitzung
+// sehen denselben Stand). Fehler werden geloggt, nicht verschluckt.
+function WorkspaceHydrator() {
+  const { session } = useOrganization();
+  const hydratedFor = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!session || hydratedFor.current === session.organizationId) return;
+    hydratedFor.current = session.organizationId;
+    useSimulationStore
+      .getState()
+      .hydrateWorkspace(session.organizationId)
+      .catch((err: unknown) => {
+        logger.error('Workspace-Hydrierung fehlgeschlagen:', err);
+      });
+  }, [session]);
+  return null;
+}
 
-// Alles außer der Designprobe: Auth, Organisation und Workspace-Hydrierung (produktive Daten).
-// Die Module werden erst beim Rendern geladen. So wertet die Designprobe unter
-// /dashboard-vorschau weder den Supabase-Client noch den Sitzungs-Refresh aus
-// (Trennung auf Modulebene, nicht nur auf Routenebene).
-const AppWithProviders = React.lazy(async () => {
-  const [
-    { Layout },
-    { AuthProvider },
-    { OrganizationProvider, useOrganization },
-    { ProtectedRoute },
-    { useSimulationStore },
-    { logger },
-  ] = await Promise.all([
-    import('@/components/layout/Layout'),
-    import('@/auth/AuthContext'),
-    import('@/auth/organizationContext'),
-    import('@/auth/ProtectedRoute'),
-    import('@/store/simulationStore'),
-    import('@/services/logger'),
-    import('@/services/data'),
-  ]);
-
-  // 067F / G49 (freigegebene UI-Verdrahtung): Lädt bei bestehender
-  // Organisationssitzung einmalig den Server-Workspace (Reload / zweite Sitzung
-  // sehen denselben Stand). Fehler werden geloggt, nicht verschluckt.
-  function WorkspaceHydrator() {
-    const { session } = useOrganization();
-    const hydratedFor = React.useRef<string | null>(null);
-    React.useEffect(() => {
-      if (!session || hydratedFor.current === session.organizationId) return;
-      hydratedFor.current = session.organizationId;
-      useSimulationStore
-        .getState()
-        .hydrateWorkspace(session.organizationId)
-        .catch((err: unknown) => {
-          logger.error('Workspace-Hydrierung fehlgeschlagen:', err);
-        });
-    }, [session]);
-    return null;
-  }
-
-  function AppWithProvidersInner() {
-    return (
+export function App() {
+  return (
+    <RouteErrorBoundary resetKey="app-root">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <OrganizationProvider>
             <WorkspaceHydrator />
-            <Routes>
-              {/* Unbeschützte Login-Route (Gate G42, Entscheidung 4) */}
-              <Route
-                path="/login"
-                element={
-                  <RouteErrorBoundary resetKey="login">
-                    <React.Suspense
-                      fallback={
-                        <div
-                          role="status"
-                          aria-live="polite"
-                          className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
-                        >
-                          Anmeldung wird geladen …
-                        </div>
+            <BrowserRouter>
+              <Routes>
+                {/* Unbeschützte Login-Route (Gate G42, Entscheidung 4) */}
+                <Route
+                  path="/login"
+                  element={
+                    <RouteErrorBoundary resetKey="login">
+                      <React.Suspense
+                        fallback={
+                          <div
+                            role="status"
+                            aria-live="polite"
+                            className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
+                          >
+                            Anmeldung wird geladen …
+                          </div>
+                        }
+                      >
+                        <LoginPage />
+                      </React.Suspense>
+                    </RouteErrorBoundary>
+                  }
+                />
+
+                {/* Alle 41 Kern-Routen geschützt unter ProtectedRoute (Entscheidung 4) */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<Layout />}>
+                    {/* Root-Redirect zum Executive Dashboard */}
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+                    {/* Generisches deklaratives Routing aller 41 Routen mit RouteErrorBoundary */}
+                    {APP_ROUTES.map((route) => {
+                      const PageComponent = ROUTE_PAGES[route.id];
+                      return (
+                        <Route
+                          key={route.id}
+                          path={route.path}
+                          element={
+                            <RouteErrorBoundary resetKey={route.id}>
+                              <React.Suspense
+                                fallback={
+                                  <div
+                                    role="status"
+                                    aria-live="polite"
+                                    className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
+                                  >
+                                    Ansicht wird geladen …
+                                  </div>
+                                }
+                              >
+                                <PageComponent />
+                              </React.Suspense>
+                            </RouteErrorBoundary>
+                          }
+                        />
+                      );
+                    })}
+
+                    {/* Explizite 404-Fallback-Route für unbekannte Pfade */}
+                    <Route
+                      path="*"
+                      element={
+                        <RouteErrorBoundary resetKey="not-found">
+                          <NotFoundPage />
+                        </RouteErrorBoundary>
                       }
-                    >
-                      <LoginPage />
-                    </React.Suspense>
-                  </RouteErrorBoundary>
-                }
-              />
+                    />
 
-              {/* Alle 41 Kern-Routen geschützt unter ProtectedRoute (Entscheidung 4) */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<Layout />}>
-                  {/* Root-Redirect zum Executive Dashboard */}
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-                  {/* Generisches deklaratives Routing aller 41 Routen mit RouteErrorBoundary */}
-                  {APP_ROUTES.map((route) => {
-                    const PageComponent = ROUTE_PAGES[route.id];
-                    return (
+                    {/* G38: Design-System-Galerie — nur im Dev-Modus registriert,
+                in Prod existiert die Route nicht (kein Navi-Eintrag). */}
+                    {import.meta.env.DEV && (
                       <Route
-                        key={route.id}
-                        path={route.path}
+                        path="/design-system"
                         element={
-                          <RouteErrorBoundary resetKey={route.id}>
+                          <RouteErrorBoundary resetKey="design-system">
                             <React.Suspense
                               fallback={
                                 <div
@@ -129,108 +138,19 @@ const AppWithProviders = React.lazy(async () => {
                                 </div>
                               }
                             >
-                              <PageComponent />
+                              <DesignSystemPage />
                             </React.Suspense>
                           </RouteErrorBoundary>
                         }
                       />
-                    );
-                  })}
-
-                  {/* Explizite 404-Fallback-Route für unbekannte Pfade */}
-                  <Route
-                    path="*"
-                    element={
-                      <RouteErrorBoundary resetKey="not-found">
-                        <NotFoundPage />
-                      </RouteErrorBoundary>
-                    }
-                  />
-
-                  {/* G38: Design-System-Galerie — nur im Dev-Modus registriert,
-                in Prod existiert die Route nicht (kein Navi-Eintrag). */}
-                  {import.meta.env.DEV && (
-                    <Route
-                      path="/design-system"
-                      element={
-                        <RouteErrorBoundary resetKey="design-system">
-                          <React.Suspense
-                            fallback={
-                              <div
-                                role="status"
-                                aria-live="polite"
-                                className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
-                              >
-                                Ansicht wird geladen …
-                              </div>
-                            }
-                          >
-                            <DesignSystemPage />
-                          </React.Suspense>
-                        </RouteErrorBoundary>
-                      }
-                    />
-                  )}
+                    )}
+                  </Route>
                 </Route>
-              </Route>
-            </Routes>
+              </Routes>
+            </BrowserRouter>
           </OrganizationProvider>
         </AuthProvider>
       </QueryClientProvider>
-    );
-  }
-
-  return { default: AppWithProvidersInner };
-});
-
-export function App() {
-  return (
-    <RouteErrorBoundary resetKey="app-root">
-      <BrowserRouter>
-        <Routes>
-          {/* Designprobe Testkachel: feste Beispieldaten, ohne Anmeldung und ohne Provider, nur Dev/Vorschau-Build */}
-          {DashboardPreviewPage && (
-            <Route
-              path={DASHBOARD_PREVIEW_PATH}
-              element={
-                <RouteErrorBoundary resetKey="dashboard-preview">
-                  <React.Suspense
-                    fallback={
-                      <div
-                        role="status"
-                        aria-live="polite"
-                        className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
-                      >
-                        Vorschau wird geladen …
-                      </div>
-                    }
-                  >
-                    <DashboardPreviewPage />
-                  </React.Suspense>
-                </RouteErrorBoundary>
-              }
-            />
-          )}
-          <Route
-            path="*"
-            element={
-              <React.Suspense
-                fallback={
-                  <div
-                    role="status"
-                    aria-live="polite"
-                    className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
-                  >
-                    Anwendung wird geladen …
-                  </div>
-                }
-              >
-                <AppWithProviders />
-              </React.Suspense>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
     </RouteErrorBoundary>
   );
 }

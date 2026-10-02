@@ -43,11 +43,13 @@ Eine **isolierte, bedienbare** Kachel, an der Marc Tiefe, Farben, Beschriftung, 
 | `src/features/dashboard/preview/__tests__/*.vitest.ts(x)` | Geometrie-, Ansichts- und Zugänglichkeitstests |
 | `src/features/dashboard/preview/DashboardPreviewPage.tsx` | Nachtrag bei der Umsetzung: Vorschauseite um die Kachel |
 | `src/features/dashboard/preview/ChartModuleBoundary.tsx` | Nachtrag: Fehlergrenze mit „Wiederholen“ für nachgeladene Diagrammmodule |
-| `src/features/dashboard/preview/previewRoute.ts` | Nachtrag: Pfad der Vorschauroute |
+| `src/features/dashboard/preview/previewRoute.ts` | Nachtrag: Adresse der Vorschau |
 | `src/features/dashboard/preview/charts/ChartReadout.tsx` | Nachtrag: gemeinsame Tooltip-Zeile und Legenden-Schaltflächen |
 | `src/features/dashboard/preview/charts/chartTypes.ts` | Nachtrag: gemeinsame Typen und Serienfarben |
-| `src/app/App.tsx` | Vorschauroute `/dashboard-vorschau`, nur wenn `import.meta.env.DEV` oder `VITE_DASHBOARD_PREVIEW=true`; außerhalb von `ProtectedRoute`, lazy |
-| `src/vite-env.d.ts` | Typ für `VITE_DASHBOARD_PREVIEW` |
+| `dashboard-vorschau.html` | Revision (Entscheidung Marc 02.10.2026, „Weg 2“): eigene Vorschauseite statt Route in der App |
+| `src/features/dashboard/preview/previewMain.tsx` | Revision: eigener Einstieg, lädt nur Vorschauseite und globale Styles |
+| `vite.config.ts` | Revision: `dashboard-vorschau.html` nur bei `VITE_DASHBOARD_PREVIEW=true` als Build-Eingang |
+| ~~`src/app/App.tsx`~~, ~~`src/vite-env.d.ts`~~ | Revision: bleiben unverändert wie auf `main`; die Produktiv-App kennt die Vorschau nicht |
 | `.github/workflows/ci.yml` | Job `build`: `VITE_DASHBOARD_PREVIEW=true` nur dort, damit das Artefakt `dashboard-preview` die Probe enthält |
 | `scripts/captureDashboardPreviewScreenshots.mjs` | Screenshot-Harness 1440/768/375 px, SHA-256, Überlauf |
 | `docs/screenshots/auftrag-dashboard-testkachel/README.md` | Nur die textuelle Ergebnis-Matrix, keine Bilddateien |
@@ -65,7 +67,7 @@ Weitere Dateien nur nach Rückfrage (`CLAUDE.md` §5.3).
 - [x] Zustände: Hover, Tastaturfokus, Touch, reduzierte Bewegung (keine Animation), Tooltip mit Wert, Einheit, Kategorie und Zeitraum. Kein Skalieren oder Rotieren der Kachel, keine blinkenden Werte, kein dauerndes Pulsieren.
 - [x] Zugänglichkeit: jedes Diagramm hat eine Tabellenalternative, zugängliche Zusammenfassung, Fokusreihenfolge ohne Falle, Kontrast geprüft.
 - [x] SVG-Verläufe und Filter mit eindeutiger ID je Kachel (mehrere Kacheln beeinflussen sich nicht), geprüft durch einen Test mit zwei Instanzen.
-- [x] Route `/dashboard-vorschau` lazy, ohne Anmeldung, nur mit Dev-Modus oder Vorschau-Flag. In einem Produktionsbuild ohne Flag existiert sie nicht (Test).
+- [x] Vorschau als eigene Seite `dashboard-vorschau.html` mit eigenem Einstieg, ohne Anmeldung und ohne Supabase; nur im Dev-Modus oder mit Vorschau-Flag gebaut. In einem Produktionsbuild ohne Flag existiert sie nicht (Build-Nachweis und Vertragstest). Revision nach Entscheidung Marc („Weg 2“): ursprünglich als Route in `App.tsx` geplant.
 - [x] Kachel zeigt Lade- und Fehlerzustand eines nachgeladenen Moduls mit „Wiederholen“.
 - [x] Gates: `tsc`, Lint, Vitest, `verify`, Build; Schutzbereichs-Diff leer. Zusätzlich Screenshot-Harness (1440/768/375 px, SHA-256-Hashes verschieden, 0 px horizontaler Überlauf), Matrix als Text im BUILD_LOG.
 - [ ] PR-CI und Codex-Prüfung (Auftragstreue, technische Grenzen).
@@ -73,8 +75,8 @@ Weitere Dateien nur nach Rückfrage (`CLAUDE.md` §5.3).
 
 ## Wie Marc die Vorschau öffnet
 
-1. **Lokal:** `npm run dev`, dann `/dashboard-vorschau` öffnen.
-2. **Ohne Entwicklungsumgebung:** CI-Artefakt `dashboard-preview` des PR herunterladen und entpacken, dann `npx vite preview --outDir <Ordner>` und `/dashboard-vorschau` öffnen (Anleitung in `docs/dashboard/REVIEW_WORKFLOW.md`).
+1. **Lokal:** `npm run dev`, dann `/dashboard-vorschau.html` öffnen.
+2. **Ohne Entwicklungsumgebung:** CI-Artefakt `dashboard-preview` des PR herunterladen und entpacken, dann `npx vite preview --outDir <Ordner>` und `/dashboard-vorschau.html` öffnen (Anleitung in `docs/dashboard/REVIEW_WORKFLOW.md`).
 
 ## Abnahme
 

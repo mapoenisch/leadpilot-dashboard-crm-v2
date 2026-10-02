@@ -1,14 +1,14 @@
 # Screenshot-Matrix Auftrag Dashboard-Testkachel (Teilauftrag 0)
 
-Erzeugt mit `scripts/captureDashboardPreviewScreenshots.mjs` gegen `/dashboard-vorschau` (Dev-Server, feste Beispieldaten, `prefers-reduced-motion: reduce`). Das Harness wartet je Darstellung auf deren eigenen Inhalt, nicht auf eine feste Zeit. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
+Erzeugt mit `scripts/captureDashboardPreviewScreenshots.mjs` gegen `/dashboard-vorschau.html` (eigene Vorschauseite, Dev-Server, feste Beispieldaten, `prefers-reduced-motion: reduce`). Das Harness wartet je Darstellung auf deren eigenen Inhalt, nicht auf eine feste Zeit. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-02T08:43:21.371Z (Stand nach Nacharbeit Runde 1, Head `f75df67`)
+- Aufnahme: 2026-10-02T09:34:17.021Z (Stand nach Revision „Weg 2“: eigene Vorschauseite, `App.tsx` wie `main`)
 - Darstellungen: 8 (Zahl, Tabelle, Säulen, Balken, Kreis, Ring, Linie, Fläche) × 3 Breiten = 24 Aufnahmen
 - Alle SHA-256-Hashes verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel)
 - axe-Verstöße serious/critical in der Kachel: 0
 
-**Vorher/Nachher:** Die Route `/dashboard-vorschau` existiert im Basis-Commit nicht, ein Vorher-Bild gibt es daher nicht. Bestehende Ansichten sind unverändert: `src/components/liveKpi/` und die Schutzbereiche haben einen leeren Diff; dass alle bestehenden Routen nach der Umstellung in `App.tsx` weiter greifen, prüft der CI-Job `e2e`.
+**Vorher/Nachher:** Die Vorschauseite existiert im Basis-Commit nicht, ein Vorher-Bild gibt es daher nicht. Die Produktiv-App ist unverändert: `src/app/App.tsx`, `src/app/main.tsx`, `index.html`, `src/components/liveKpi/` und die Schutzbereiche haben gegenüber `main` einen leeren Diff.
 
 | Breite | Darstellung | Überlauf | axe serious/critical | SHA-256 (gekürzt) |
 |---:|---|---:|---:|---|

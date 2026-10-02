@@ -145,53 +145,38 @@ describe('Beispieldaten', () => {
   });
 });
 
-describe('Vorschauroute in src/app/App.tsx', () => {
-  const app = fs.readFileSync(
-    path.join(__dirname, '..', '..', '..', '..', 'app', 'App.tsx'),
-    'utf-8',
-  );
+describe('Vorschau als eigener Einstieg, getrennt von der Produktiv-App', () => {
+  const root = path.join(__dirname, '..', '..', '..', '..', '..');
+  const read = (file: string) => fs.readFileSync(path.join(root, file), 'utf-8');
 
-  it('gibt es nur im Dev-Modus oder mit Vorschau-Flag, als statischen Ausdruck für den Build', () => {
-    expect(app).toMatch(
-      /DASHBOARD_PREVIEW_ENABLED =\s*import\.meta\.env\.DEV \|\| import\.meta\.env\.VITE_DASHBOARD_PREVIEW === 'true'/,
-    );
-    expect(app).toMatch(/DashboardPreviewPage = DASHBOARD_PREVIEW_ENABLED\s*\?\s*React\.lazy/);
-    expect(app).toContain('{DashboardPreviewPage && (');
-    expect(DASHBOARD_PREVIEW_PATH).toBe('/dashboard-vorschau');
+  it('liegt unter einer eigenen HTML-Seite mit eigenem Einstiegsskript', () => {
+    expect(DASHBOARD_PREVIEW_PATH).toBe('/dashboard-vorschau.html');
+    const html = read('dashboard-vorschau.html');
+    expect(html).toContain('src="/src/features/dashboard/preview/previewMain.tsx"');
+    expect(html).not.toContain('/src/app/main.tsx');
   });
 
-  it('liegt außerhalb von ProtectedRoute, weil die Probe nur Beispieldaten zeigt', () => {
-    expect(app.indexOf('path={DASHBOARD_PREVIEW_PATH}')).toBeGreaterThan(-1);
-    expect(app.indexOf('path={DASHBOARD_PREVIEW_PATH}')).toBeGreaterThan(
-      app.indexOf('export function App()'),
-    );
-  });
-
-  it('liegt außerhalb der Provider, damit die Probe weder Sitzung noch Workspace abfragt', () => {
-    const route = app.indexOf('path={DASHBOARD_PREVIEW_PATH}');
-    expect(route).toBeGreaterThan(app.indexOf('export function App()'));
-    expect(route).toBeLessThan(app.indexOf('<AppWithProviders />'));
-    const providers = app.slice(
-      app.indexOf('const AppWithProviders = React.lazy'),
-      app.indexOf('export function App()'),
-    );
-    expect(providers).toContain('<AuthProvider>');
-    expect(providers).toContain('<WorkspaceHydrator />');
-    expect(providers).not.toContain('DASHBOARD_PREVIEW_PATH');
-  });
-
-  it('lädt Auth, Organisation und Supabase-Pfad nur dynamisch, nicht beim Auswerten des Moduls', () => {
-    const staticImports = app.slice(0, app.indexOf('const LoginPage'));
-    for (const forbidden of [
-      '@/auth/',
-      '@/store/simulationStore',
-      '@/services/data',
-      '@/components/layout/Layout',
-    ]) {
-      expect(staticImports).not.toContain(forbidden);
+  it('berührt die Produktiv-App nicht: App und main kennen die Vorschau nicht', () => {
+    for (const file of ['src/app/App.tsx', 'src/app/main.tsx', 'index.html']) {
+      const source = read(file);
+      expect(source).not.toMatch(/dashboard\/preview|dashboard-vorschau|DASHBOARD_PREVIEW/);
     }
-    expect(app).toContain("import('@/auth/AuthContext')");
-    expect(app).toContain("import('@/auth/organizationContext')");
+  });
+
+  it('lädt im Einstieg weder Anmeldung, Organisation, Store noch Datendienste', () => {
+    const entry = read('src/features/dashboard/preview/previewMain.tsx');
+    expect(entry).not.toMatch(/@\/(auth|store|services|app)\b/);
+    expect(entry).toContain("from './DashboardPreviewPage'");
+  });
+
+  it('wird nur mit VITE_DASHBOARD_PREVIEW=true gebaut', () => {
+    const config = read('vite.config.ts');
+    expect(config).toMatch(/VITE_DASHBOARD_PREVIEW === 'true'/);
+    // Der Eingang der Produktiv-App muss `index` heißen: .size-limit.json misst dist/assets/index-*.js.
+    expect(config).toContain("index: path.resolve(__dirname, 'index.html')");
+    expect(config).toMatch(
+      /previewBuild\s*\?\s*\{ vorschau: path\.resolve\(__dirname, 'dashboard-vorschau\.html'\) \}\s*:\s*\{\}/,
+    );
   });
 });
 
