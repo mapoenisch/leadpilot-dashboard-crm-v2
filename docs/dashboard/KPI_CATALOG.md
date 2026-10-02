@@ -9,7 +9,7 @@ Dieses Dokument ist das Inventar zum maschinenlesbaren Katalog in `src/features/
 | Status | Bedeutung |
 |---|---|
 | aktiv | Im ersten Umfang wählbar. Quelle, Zeitbasis, Einheit, Darstellungen und Fachseite sind belegt. |
-| aufbereiten | Fachlich geeignet, braucht aber strukturierte Werte, eine geroutete Fachseite, eine Prüfung oder eine Freigabe. Vorgemerkt für Teilauftrag 8, sofern nicht anders genannt. |
+| aufbereiten | Fachlich geeignet, braucht aber strukturierte Werte, eine geroutete Fachseite, eine Prüfung oder eine Freigabe. Vorgemerkt für Teilauftrag 8, sofern nicht anders genannt. Im Code mit den belegten Metadaten (Einheit, Berechtigung, soweit belegt Zeitbasis und Fachseite); fehlt eine Angabe, nennt der Grund die Lücke. |
 | nicht geeignet | Plan-, Ziel- oder Schätzwerte, Fließtext oder technische Register. Text- und Bildseiten sind keine Datenquelle. |
 
 ## Regeln (maschinenprüfbar)

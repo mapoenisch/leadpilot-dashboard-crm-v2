@@ -3,11 +3,11 @@
 // die bisherigen Übersichtskacheln. Rohwerte und Nachweise: docs/dashboard/KPI_CATALOG.md.
 import type { ActiveCatalogEntry, CatalogSource, DashboardCategory } from '../dashboardCatalog';
 
-const BASELINE_ACCESS =
+export const BASELINE_ACCESS =
   'Statische Stammdaten (Faktenblatt v1.1) im App-Bundle; sichtbar für jedes angemeldete aktive Organisationsmitglied hinter ProtectedRoute, organisationsunabhängig.';
 const CRM_ACCESS =
   'Tabelle imported_funnel_deals, RLS tenant_select_deals: nur aktive Mitglieder der aktuellen Organisation, alle Rollen einschließlich Viewer.';
-const LIVE_ACCESS =
+export const LIVE_ACCESS =
   'Projektion live_kpi_public_feed: SELECT für anon und authenticated ohne Organisationsbezug (nicht mandantengetrennt, wie die bestehende Executive-Ansicht). Prüfung vor Übernahme in Teilauftrag 2 (Plan §6).';
 
 const EXEC = 'src/domain/execData.ts';

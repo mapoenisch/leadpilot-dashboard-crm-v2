@@ -82,8 +82,16 @@ export function validateCatalog(catalog: readonly CatalogEntry[]): ValidationIss
     if (entry.source.module.trim() === '' || entry.source.exportName.trim() === '')
       add('quelle', 'Quelle unvollständig.');
     if (isActiveEntry(entry)) checkActiveEntry(entry, issues);
-    else if (entry.reason.trim().length < MIN_REASON_LENGTH)
-      add('grund', 'Nicht aktive Einträge brauchen einen konkreten Grund.');
+    else {
+      if (entry.reason.trim().length < MIN_REASON_LENGTH)
+        add('grund', 'Nicht aktive Einträge brauchen einen konkreten Grund.');
+      // „aufbereiten“ trägt die belegten Metadaten; vorhandene Angaben dürfen nicht leer sein.
+      if (entry.status === 'aufbereiten' && (!entry.unit?.trim() || !entry.access?.trim()))
+        add('metadaten', 'Aufzubereitende Einträge brauchen Einheit und Berechtigung.');
+      for (const value of [entry.timeBasis, entry.detailRouteId]) {
+        if (value !== undefined && value.trim() === '') add('pflichtfeld', 'Leere Angabe.');
+      }
+    }
   }
   return issues;
 }

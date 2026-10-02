@@ -14219,3 +14219,16 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 279 Dateien, 1739 Tests grün; `npm run verify` grün; `npm run build` erfolgreich.
 
 **Schutzbereichs-Diff** (`git diff 3c9d448 -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #49 nach Runde 1 (manuell, Head 8d8e26a)
+
+Durchsicht der automatischen Runde 1: Filterwerte, erhaltene Kacheln mit unbekannter KPI, Live-Wertquelle und Live-Zeitbasis sind sauber umgesetzt und getestet.
+
+| Befund | Entscheidung |
+|---|---|
+| 4167841418 (P2, Metadaten inaktiver Kandidaten) | Die Ablehnung der Runde 1 trägt nur für „nicht geeignet“ (Text, Plan- und Zielwerte; dort ergeben die Angaben keinen Sinn). Für die 28 Einträge „aufbereiten“ jetzt umgesetzt: `InventoryCatalogEntry` führt Einheit, Zeitbasis, Fachseite und Berechtigung, jeweils nur soweit in der Quelle belegt; fehlt eine Angabe (z. B. Zeitbasis der Kündigungsgründe, Fachseite nicht gerouteter Seiten), nennt der Grund die Lücke. `validateCatalog` verlangt Einheit und Berechtigung; Tests prüfen Fachseite gegen Grund und `APP_ROUTES`. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 1741 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB. **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.

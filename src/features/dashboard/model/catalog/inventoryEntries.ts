@@ -3,6 +3,7 @@
 // „nicht_geeignet“ steht in unsuitableEntries.ts.
 // Simulations-KPIs sind ausgeschlossen (Plan §1) und stehen deshalb hier nicht.
 import type { CatalogSource, DashboardCategory, InventoryCatalogEntry } from '../dashboardCatalog';
+import { BASELINE_ACCESS, LIVE_ACCESS } from './activeEntries';
 
 const D = (file: string) => `src/domain/${file}.ts`;
 const TA8 = 'Teilauftrag 8';
@@ -37,8 +38,8 @@ export const base = (
   ...(path ? { path } : {}),
 });
 
-/** Fachlich geeignet, aber noch nicht aktiv. */
-export const PREPARE_CATALOG_ENTRIES: readonly InventoryCatalogEntry[] = [
+/** Kandidaten „aufbereiten“ ohne Metadaten; ergänzt unten aus PREPARE_META. */
+const PREPARE_BASE: InventoryCatalogEntry[] = [
   entry(
     'baseline.erloesmix',
     'Erlösmix 2025',
@@ -298,3 +299,107 @@ export const PREPARE_CATALOG_ENTRIES: readonly InventoryCatalogEntry[] = [
     'Sitzungshistorie seit Seitenaufruf ist keine vollständige Zeitreihe (Plan §4); Verlaufsdarstellung erst mit Teilauftrag 2.',
   ),
 ];
+
+type PrepareMeta = Pick<InventoryCatalogEntry, 'unit' | 'timeBasis' | 'detailRouteId'>;
+const FY = 'Geschäftsjahr 2025';
+const Q25 = 'Quartale 2025';
+
+/** Belegte Angaben je Kandidat; fehlende Zeitbasis oder Fachseite begründet `reason`. */
+const PREPARE_META: Record<string, PrepareMeta> = {
+  'baseline.erloesmix': { unit: 'EUR', timeBasis: FY, detailRouteId: 's-guv' },
+  'baseline.kostenstruktur': { unit: 'EUR', timeBasis: FY, detailRouteId: 's-unit' },
+  'baseline.guv': {
+    unit: 'EUR',
+    timeBasis: 'FY 2024 und FY 2025 (Ist), Plan 2026',
+    detailRouteId: 's-guv',
+  },
+  'baseline.kosten_vergleich': {
+    unit: 'T€',
+    timeBasis: 'FY 2024 und FY 2025',
+    detailRouteId: 's-guv',
+  },
+  'baseline.unit_economics': {
+    unit: 'gemischt (EUR, Monate, Prozent, Verhältnis)',
+    timeBasis: FY,
+    detailRouteId: 's-unit',
+  },
+  'baseline.bilanz': { unit: 'EUR', detailRouteId: 's-bilanz' },
+  'baseline.arr_nach_segment': {
+    unit: 'EUR',
+    timeBasis: 'Stand 31.12.2025 (Summe = ARR zum Stichtag)',
+    detailRouteId: 's-segmente',
+  },
+  'baseline.kunden_nach_region': {
+    unit: 'Kunden',
+    timeBasis: 'Stand 31.12.2025',
+    detailRouteId: 's-segmente',
+  },
+  'baseline.kunden_nach_branche': {
+    unit: 'Kunden',
+    timeBasis: 'Stand 31.12.2025',
+    detailRouteId: 's-segmente',
+  },
+  'baseline.top_kunden': { unit: 'EUR (ARR je Kunde)', detailRouteId: 's-top10' },
+  'baseline.customer_success': { unit: 'gemischt (Prozent, Punkte, Tage)', timeBasis: FY },
+  'baseline.funnel_2025': { unit: 'Anzahl', timeBasis: Q25, detailRouteId: 's-funnel' },
+  'baseline.neukunden_quartal': { unit: 'Anzahl und T€', timeBasis: Q25 },
+  'baseline.kanal_mix': { unit: 'Prozent', timeBasis: FY, detailRouteId: 's-kanaele' },
+  'baseline.kanal_cac': { unit: 'EUR je Neukunde', timeBasis: FY, detailRouteId: 's-kanaele' },
+  'baseline.marketing_budget': { unit: 'EUR', timeBasis: FY },
+  'baseline.reichweite': {
+    unit: 'gemischt (Besucher je Monat, Follower, Abonnenten)',
+    timeBasis: Q25,
+  },
+  'baseline.headcount_verlauf': {
+    unit: 'FTE',
+    timeBasis: 'Quartalsende Q1 2024 bis Q4 2025',
+    detailRouteId: 's-headcount',
+  },
+  'baseline.hr_kennzahlen': {
+    unit: 'gemischt (Prozent, EUR, FTE)',
+    timeBasis: FY,
+    detailRouteId: 's-hr',
+  },
+  'baseline.produkt_nutzung': { unit: 'Prozent', timeBasis: Q25, detailRouteId: 's-perf' },
+  'baseline.kuendigungsgruende': { unit: 'Accounts', detailRouteId: 's-perf' },
+  'baseline.produkt_qualitaet': {
+    unit: 'gemischt (Prozent, Minuten, Tickets)',
+    timeBasis: FY,
+    detailRouteId: 's-perf',
+  },
+  'baseline.marktanteile': { unit: 'Prozent', detailRouteId: 's-wettbewerb' },
+  'baseline.gesellschafter': {
+    unit: 'Prozent',
+    timeBasis: 'Stand nach Kapitalerhöhung Q1 2024',
+    detailRouteId: 's-gesellschafter',
+  },
+  'uebersicht.meilensteine': {
+    unit: 'Ereignisse',
+    timeBasis: '21.07.2022 bis Dez 2025',
+    detailRouteId: 's-historie',
+  },
+  'live.arr_mix': {
+    unit: 'EUR',
+    timeBasis: 'Live, Werte mit eigenem Zeitstempel',
+    detailRouteId: 's-exec',
+  },
+  'live.funnel': {
+    unit: 'Anzahl',
+    timeBasis: 'Live, Werte mit eigenem Zeitstempel',
+    detailRouteId: 's-exec',
+  },
+  'live.verlauf': {
+    unit: 'je KPI',
+    timeBasis: 'bis 30 Feed-Punkte der letzten 30 Minuten, danach Sitzungshistorie',
+    detailRouteId: 's-exec',
+  },
+};
+
+/** Fachlich geeignet, aber noch nicht aktiv; mit den belegten Metadaten. */
+export const PREPARE_CATALOG_ENTRIES: readonly InventoryCatalogEntry[] = PREPARE_BASE.map(
+  (item) => ({
+    ...item,
+    ...PREPARE_META[item.id],
+    access: item.source.layer === 'live' ? LIVE_ACCESS : BASELINE_ACCESS,
+  }),
+);

@@ -101,6 +101,14 @@ export interface InventoryCatalogEntry extends CatalogEntryBase {
   reason: string;
   /** Vorgesehene Aufnahme, z. B. „Teilauftrag 8“. */
   target?: string;
+  /**
+   * Nur bei „aufbereiten“ und nur, soweit in der Quelle belegt (nichts geschätzt): Einheit,
+   * Zeitbasis, Fachseite und Berechtigung. Fehlt eine Angabe, nennt `reason` den Grund.
+   */
+  unit?: string;
+  timeBasis?: string;
+  detailRouteId?: string;
+  access?: string;
 }
 
 export type CatalogEntry = ActiveCatalogEntry | InventoryCatalogEntry;

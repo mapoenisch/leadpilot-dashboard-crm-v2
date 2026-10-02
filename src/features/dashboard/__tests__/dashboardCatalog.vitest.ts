@@ -209,6 +209,23 @@ describe('Dashboard-Katalog', () => {
     expect(tenths.reduce((sum, value) => sum + value, 0)).toBe(1000);
   });
 
+  it('führt für aufzubereitende Kandidaten die belegten Metadaten', () => {
+    const routeIds = new Set(APP_ROUTES.map((route) => route.id));
+    const prepare = DASHBOARD_CATALOG.filter((e) => e.status === 'aufbereiten');
+    expect(prepare).toHaveLength(28);
+    for (const entry of prepare) {
+      if (entry.status === 'aktiv') continue;
+      expect(entry.unit, entry.id).toBeTruthy();
+      expect(entry.access, entry.id).toBeTruthy();
+      // Nennt der Grund eine Fachseite, steht sie auch als Ziel im Eintrag (und umgekehrt).
+      const named = /Fachseite (s-[a-z0-9-]+)/.exec(entry.reason)?.[1];
+      if (named) expect(entry.detailRouteId, entry.id).toBe(named);
+      if (entry.detailRouteId) expect(routeIds, entry.id).toContain(entry.detailRouteId);
+      if (/nicht geroutet/.test(entry.reason))
+        expect(entry.detailRouteId, entry.id).toBeUndefined();
+    }
+  });
+
   it('begründet jeden nicht aktiven Eintrag', () => {
     const inactive = DASHBOARD_CATALOG.filter((e) => e.status !== 'aktiv');
     expect(inactive.length).toBeGreaterThan(30);
@@ -249,6 +266,13 @@ describe('validateCatalog', () => {
         'grund',
       ]),
     );
+  });
+
+  it('verlangt Einheit und Berechtigung für aufzubereitende Einträge', () => {
+    const prepare = DASHBOARD_CATALOG.find((e) => e.id === 'baseline.erloesmix');
+    if (!prepare || prepare.status === 'aktiv') throw new Error('Eintrag fehlt');
+    const codes = validateCatalog([{ ...prepare, unit: undefined }]).map((issue) => issue.code);
+    expect(codes).toEqual(['metadaten']);
   });
 
   it('meldet Darstellungen, die nicht zur Datenform passen', () => {
