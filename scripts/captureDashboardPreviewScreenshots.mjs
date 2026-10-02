@@ -25,7 +25,18 @@ const WIDTHS = [
   { width: 768, height: 1024 },
   { width: 375, height: 812 },
 ];
-const VIEWS = ['Zahl', 'Tabelle', 'Säulen', 'Ring', 'Linie', 'Fläche'];
+// Je Darstellung das Element, das erst erscheint, wenn der echte Inhalt gerendert ist (nicht der
+// Ladeplatzhalter). Fehlt es, bricht die Aufnahme mit Zeitüberschreitung ab statt grün zu werden.
+const VIEWS = [
+  { name: 'Zahl', testId: 'number-view' },
+  { name: 'Tabelle', selector: 'table' },
+  { name: 'Säulen', testId: 'depth-bar-chart' },
+  { name: 'Balken', testId: 'depth-hbar-chart' },
+  { name: 'Kreis', testId: 'depth-donut-chart', label: /Kreis/ },
+  { name: 'Ring', testId: 'depth-donut-chart', label: /Ring/ },
+  { name: 'Linie', testId: 'depth-line-chart' },
+  { name: 'Fläche', testId: 'depth-area-chart' },
+];
 
 const sha256 = (buffer) => crypto.createHash('sha256').update(buffer).digest('hex');
 
@@ -43,18 +54,34 @@ async function main() {
       await page.goto(`${BASE_URL}/dashboard-vorschau`, { waitUntil: 'networkidle' });
       await page.getByTestId('dashboard-test-tile').waitFor();
       for (const view of VIEWS) {
-        await page.getByRole('tab', { name: view, exact: true }).click();
-        await page.waitForTimeout(250);
+        await page.getByRole('tab', { name: view.name, exact: true }).click();
+        const tile = page.getByTestId('dashboard-test-tile');
+        const content = view.testId ? tile.getByTestId(view.testId) : tile.locator(view.selector);
+        await content.first().waitFor({ state: 'visible', timeout: 15000 });
+        await tile
+          .getByText('Darstellung wird geladen')
+          .waitFor({ state: 'detached', timeout: 15000 });
+        if (view.label) {
+          await tile
+            .getByRole('img', { name: view.label })
+            .waitFor({ state: 'visible', timeout: 15000 });
+        }
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
         );
-        const file = `${viewport.width}-${view.toLowerCase().replace(/ä/g, 'ae')}.png`;
-        const image = await page.getByTestId('dashboard-test-tile').screenshot({ path: path.join(OUT_DIR, file) });
-        const axe = await new AxeBuilder({ page }).include('[data-testid="dashboard-test-tile"]').analyze();
-        const severe = axe.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+        const file = `${viewport.width}-${view.name.toLowerCase().replace(/ä/g, 'ae')}.png`;
+        const image = await page
+          .getByTestId('dashboard-test-tile')
+          .screenshot({ path: path.join(OUT_DIR, file) });
+        const axe = await new AxeBuilder({ page })
+          .include('[data-testid="dashboard-test-tile"]')
+          .analyze();
+        const severe = axe.violations.filter(
+          (v) => v.impact === 'serious' || v.impact === 'critical',
+        );
         rows.push({
           width: viewport.width,
-          view,
+          view: view.name,
           file,
           sha256: sha256(image),
           overflowPx: overflow,

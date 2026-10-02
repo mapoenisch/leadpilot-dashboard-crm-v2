@@ -23,7 +23,8 @@ import {
   SAMPLE_UNIT,
 } from './previewSampleData';
 
-export type PreviewView = 'zahl' | 'tabelle' | 'saeulen' | 'ring' | 'linie' | 'flaeche';
+export type PreviewView =
+  'zahl' | 'tabelle' | 'saeulen' | 'balken' | 'kreis' | 'ring' | 'linie' | 'flaeche';
 export type PreviewSize = 'klein' | 'mittel' | 'gross' | 'voll';
 type ChartView = Exclude<PreviewView, 'zahl' | 'tabelle'>;
 type ChartModule = { default: React.ComponentType<DepthChartProps> };
@@ -31,6 +32,8 @@ export type ChartLoaders = Record<ChartView, () => Promise<ChartModule>>;
 
 export const DEFAULT_CHART_LOADERS: ChartLoaders = {
   saeulen: () => import('./charts/Depth3dBarChart').then((m) => ({ default: m.Depth3dBarChart })),
+  balken: () => import('./charts/Depth3dBarChart').then((m) => ({ default: m.Depth3dBarChart })),
+  kreis: () => import('./charts/Depth3dDonutChart').then((m) => ({ default: m.Depth3dDonutChart })),
   ring: () => import('./charts/Depth3dDonutChart').then((m) => ({ default: m.Depth3dDonutChart })),
   linie: () => import('./charts/DepthLineChart').then((m) => ({ default: m.DepthLineChart })),
   flaeche: () => import('./charts/DepthAreaChart').then((m) => ({ default: m.DepthAreaChart })),
@@ -59,15 +62,20 @@ const VIEWS: { id: PreviewView; label: string }[] = [
   { id: 'zahl', label: 'Zahl' },
   { id: 'tabelle', label: 'Tabelle' },
   { id: 'saeulen', label: 'Säulen' },
+  { id: 'balken', label: 'Balken' },
+  { id: 'kreis', label: 'Kreis' },
   { id: 'ring', label: 'Ring' },
   { id: 'linie', label: 'Linie' },
   { id: 'flaeche', label: 'Fläche' },
 ];
 
+// Raster des Plans (Abschnitt „Vorgeschlagenes Raster“) auf der 1200-px-Vorschauseite:
+// Desktop (ab 1280 px) 3/12, 6/12, 9/12, 12/12 = 300, 600, 900, 1200 px; Tablet Klein 3/6 = halbe
+// Breite, Mittel und Groß 6/6 = volle Breite; Handy immer volle Breite.
 const SIZES: { id: PreviewSize; label: string; className: string }[] = [
-  { id: 'klein', label: 'Klein', className: 'max-w-[380px]' },
-  { id: 'mittel', label: 'Mittel', className: 'max-w-[680px]' },
-  { id: 'gross', label: 'Groß', className: 'max-w-[1000px]' },
+  { id: 'klein', label: 'Klein', className: 'md:max-w-[50%] xl:max-w-[300px]' },
+  { id: 'mittel', label: 'Mittel', className: 'xl:max-w-[600px]' },
+  { id: 'gross', label: 'Groß', className: 'xl:max-w-[900px]' },
   { id: 'voll', label: 'Volle Breite', className: 'max-w-full' },
 ];
 
@@ -101,6 +109,8 @@ const DATASETS: Record<PreviewView, Dataset> = {
   zahl: STAGES,
   tabelle: STAGES,
   saeulen: STAGES,
+  balken: STAGES,
+  kreis: SHARES,
   ring: SHARES,
   linie: SERIES,
   flaeche: SERIES,
@@ -163,21 +173,60 @@ function NumberView({ dataset }: { dataset: Dataset }) {
   );
 }
 
+// Ein zweiter Fehlschlag desselben Moduls: Der Browser hält einen fehlgeschlagenen Modulabruf unter
+// demselben Specifier unter Umständen fest. Dann bleibt nur ein Neuladen der Seite; die Auswahl
+// (Darstellung, Größe) überlebt es über sessionStorage (nur diese Sitzung, kein Datenspeicher).
+export const RETRY_STATE_KEY = 'dashboard-preview-retry';
+
+const isView = (value: unknown): value is PreviewView => VIEWS.some((entry) => entry.id === value);
+const isSize = (value: unknown): value is PreviewSize => SIZES.some((entry) => entry.id === value);
+
+function takeRetryState(): { view?: PreviewView; size?: PreviewSize } {
+  try {
+    const raw = window.sessionStorage.getItem(RETRY_STATE_KEY);
+    if (!raw) return {};
+    window.sessionStorage.removeItem(RETRY_STATE_KEY);
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) return {};
+    const { view, size } = parsed as Record<string, unknown>;
+    return { view: isView(view) ? view : undefined, size: isSize(size) ? size : undefined };
+  } catch {
+    return {};
+  }
+}
+
 export interface DashboardDesignPreviewProps {
   initialView?: PreviewView;
   initialSize?: PreviewSize;
   /** Nur für Tests: Nachladefunktionen der Diagrammmodule ersetzen. */
   chartLoaders?: ChartLoaders;
+  /** Nur für Tests: Seite neu laden, wenn ein erneuter Import wieder scheitert. */
+  reloadPage?: () => void;
 }
 
 export function DashboardDesignPreview({
   initialView = 'saeulen',
   initialSize = 'mittel',
   chartLoaders = DEFAULT_CHART_LOADERS,
+  reloadPage = () => window.location.reload(),
 }: DashboardDesignPreviewProps) {
-  const [view, setView] = useState<PreviewView>(initialView);
-  const [size, setSize] = useState<PreviewSize>(initialSize);
+  const [restored] = useState(takeRetryState);
+  const [view, setView] = useState<PreviewView>(restored.view ?? initialView);
+  const [size, setSize] = useState<PreviewSize>(restored.size ?? initialSize);
   const [attempt, setAttempt] = useState(0);
+
+  const retry = () => {
+    if (attempt === 0) {
+      setAttempt(1);
+      return;
+    }
+    try {
+      window.sessionStorage.setItem(RETRY_STATE_KEY, JSON.stringify({ view, size }));
+    } catch {
+      // Ohne sessionStorage startet die Kachel nach dem Neuladen mit der Standardauswahl.
+    }
+    reloadPage();
+  };
   const reducedMotion = useReducedMotion();
   // useId liefert Doppelpunkte, die in SVG-Referenzen (url(#…)) stören: nur Buchstaben und Ziffern.
   const idPrefix = `tile-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -233,30 +282,32 @@ export function DashboardDesignPreview({
             <ValueTable dataset={dataset} caption={`${dataset.title}, ${dataset.period}`} />
           ) : null}
           {Chart ? (
-            <ChartModuleBoundary
-              key={`${view}-${attempt}`}
-              onRetry={() => setAttempt((value) => value + 1)}
-            >
-              <Suspense
-                fallback={
-                  <div
-                    role="status"
-                    aria-live="polite"
-                    className="flex min-h-[220px] items-center text-[13px] text-[var(--color-text-muted)]"
-                  >
-                    Darstellung wird geladen …
-                  </div>
-                }
-              >
-                <Chart
-                  idPrefix={idPrefix}
-                  data={dataset.data}
-                  unit={dataset.unit}
-                  period={dataset.period}
-                  title={dataset.title}
-                  reducedMotion={reducedMotion}
-                />
-              </Suspense>
+            <>
+              <ChartModuleBoundary key={`${view}-${attempt}`} onRetry={retry}>
+                <Suspense
+                  fallback={
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      className="flex min-h-[220px] items-center text-[13px] text-[var(--color-text-muted)]"
+                    >
+                      Darstellung wird geladen …
+                    </div>
+                  }
+                >
+                  <Chart
+                    idPrefix={idPrefix}
+                    data={dataset.data}
+                    unit={dataset.unit}
+                    period={dataset.period}
+                    title={dataset.title}
+                    reducedMotion={reducedMotion}
+                    orientation={view === 'balken' ? 'horizontal' : 'vertical'}
+                    solid={view === 'kreis'}
+                  />
+                </Suspense>
+              </ChartModuleBoundary>
+              {/* Außerhalb der Fehlergrenze: Fällt die Grafik aus, bleibt die Datenalternative. */}
               <details className="mt-[10px] text-[12px] text-[var(--color-text-muted)]">
                 <summary className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   Werte als Tabelle
@@ -265,7 +316,7 @@ export function DashboardDesignPreview({
                   <ValueTable dataset={dataset} caption={`${dataset.title}, ${dataset.period}`} />
                 </div>
               </details>
-            </ChartModuleBoundary>
+            </>
           ) : null}
         </div>
 

@@ -82,6 +82,41 @@ export function layoutBars(data: readonly DatumInput[], area: Bounds, scaleMax: 
   });
 }
 
+export interface HBarRect {
+  index: number;
+  label: string;
+  value: number;
+  x: number;
+  y: number;
+  /** Länge der Vorderfläche; 0 für Nullwerte. */
+  length: number;
+  /** Gesamte Dicke inklusive Tiefe. */
+  thickness: number;
+  depth: number;
+}
+
+/** Horizontale Balken auf gleichmäßigen Plätzen; 0-Werte behalten eine Position, aber keine Länge. */
+export function layoutHBars(
+  data: readonly DatumInput[],
+  area: Bounds,
+  scaleMax: number,
+): HBarRect[] {
+  assertDrawable(data.map((entry) => entry.value));
+  if (data.length === 0) return [];
+  const slot = area.height / data.length;
+  const thickness = Math.min(slot * 0.62, 40);
+  return data.map((entry, index) => ({
+    index,
+    label: entry.label,
+    value: entry.value,
+    x: area.left,
+    y: area.top + slot * index + (slot - thickness) / 2,
+    length: scaleMax > 0 ? (entry.value / scaleMax) * area.width : 0,
+    thickness,
+    depth: barDepth(thickness),
+  }));
+}
+
 export function polarToCartesian(cx: number, cy: number, radius: number, angleDeg: number) {
   const radians = ((angleDeg - 90) * Math.PI) / 180;
   return { x: cx + radius * Math.cos(radians), y: cy + radius * Math.sin(radians) };

@@ -3,7 +3,7 @@
 // Die Fläche (filled) ergänzt einen ruhigen Verlauf. Zugang für Tastatur und Touch: Bereichsregler.
 import { useMemo, useState } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout } from './ChartReadout';
+import { ChartReadout, ScrollableChart } from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
 import { areaPath, formatDe, linePath, linePoints, niceScale } from './depthGeometry';
@@ -40,106 +40,114 @@ export function DepthLineChart({
       className="flex flex-col gap-[10px]"
       data-testid={filled ? 'depth-area-chart' : 'depth-line-chart'}
     >
-      <svg
-        viewBox={`0 0 ${CHART_VIEWBOX.width} ${CHART_VIEWBOX.height}`}
-        width="100%"
-        role="img"
-        aria-label={`${title}: ${filled ? 'Fläche' : 'Linie'}`}
-        className="block h-auto w-full"
-        onMouseLeave={() => setActive(null)}
-      >
-        <defs>
-          <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={THEME.primary} stopOpacity="0.32" />
-            <stop offset="100%" stopColor={THEME.primary} stopOpacity="0.02" />
-          </linearGradient>
-          <filter id={shadowId} x="-10%" y="-20%" width="120%" height="160%">
-            <feGaussianBlur stdDeviation="3" />
-          </filter>
-        </defs>
-        {scale.ticks.map((tick) => {
-          const y = baseline - (tick / scale.max) * AREA.height;
-          return (
-            <g key={tick}>
-              <line
-                x1={AREA.left}
-                x2={AREA.left + AREA.width}
-                y1={y}
-                y2={y}
-                stroke={tick === 0 ? THEME.border : THEME.grid}
-                strokeDasharray={tick === 0 ? undefined : '3 4'}
-              />
-              <text x={AREA.left - 8} y={y + 4} textAnchor="end" fontSize="10" fill={THEME.neutral}>
-                {formatDe(tick)}
-              </text>
-            </g>
-          );
-        })}
-        {filled ? <path d={areaPath(points, baseline)} fill={`url(#${fillId})`} /> : null}
-        <path
-          d={linePath(points)}
-          transform="translate(0 4)"
-          fill="none"
-          stroke={THEME.primary}
-          strokeWidth="3"
-          strokeOpacity="0.35"
-          filter={`url(#${shadowId})`}
-        />
-        <path
-          d={linePath(points)}
-          fill="none"
-          stroke={THEME.primary}
-          strokeWidth="2.2"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-        {points.map((point) => (
-          <g
-            key={point.label}
-            className={transition}
-            opacity={active !== null && active !== point.index ? 0.55 : 1}
-          >
-            <circle
-              data-testid="depth-line-point"
-              data-active={active === point.index ? 'true' : 'false'}
-              cx={point.x}
-              cy={point.y}
-              r={active === point.index ? 5 : 3}
-              fill={active === point.index ? '#ffffff' : THEME.darkSurface}
-              stroke={THEME.primary}
-              strokeWidth="1.8"
-            />
-            <text
-              x={point.x}
-              y={baseline + 18}
-              textAnchor="middle"
-              fontSize="10"
-              fill={THEME.neutral}
-            >
-              {point.label}
-            </text>
-            <rect
-              x={point.x - slot / 2}
-              y={AREA.top}
-              width={slot}
-              height={AREA.height}
-              fill="transparent"
-              onMouseEnter={() => setActive(point.index)}
-            />
-          </g>
-        ))}
-        {activePoint ? (
-          <line
-            x1={activePoint.x}
-            x2={activePoint.x}
-            y1={AREA.top}
-            y2={baseline}
-            stroke={THEME.secondary}
-            strokeOpacity="0.5"
-            strokeDasharray="2 3"
+      <ScrollableChart label={`${title}: ${filled ? 'Fläche' : 'Linie'}, waagerecht scrollbar`}>
+        <svg
+          viewBox={`0 0 ${CHART_VIEWBOX.width} ${CHART_VIEWBOX.height}`}
+          width="100%"
+          role="img"
+          aria-label={`${title}: ${filled ? 'Fläche' : 'Linie'}`}
+          className="block h-auto w-full min-w-[560px]"
+          onMouseLeave={() => setActive(null)}
+        >
+          <defs>
+            <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={THEME.primary} stopOpacity="0.32" />
+              <stop offset="100%" stopColor={THEME.primary} stopOpacity="0.02" />
+            </linearGradient>
+            <filter id={shadowId} x="-10%" y="-20%" width="120%" height="160%">
+              <feGaussianBlur stdDeviation="3" />
+            </filter>
+          </defs>
+          {scale.ticks.map((tick) => {
+            const y = baseline - (tick / scale.max) * AREA.height;
+            return (
+              <g key={tick}>
+                <line
+                  x1={AREA.left}
+                  x2={AREA.left + AREA.width}
+                  y1={y}
+                  y2={y}
+                  stroke={tick === 0 ? THEME.border : THEME.grid}
+                  strokeDasharray={tick === 0 ? undefined : '3 4'}
+                />
+                <text
+                  x={AREA.left - 8}
+                  y={y + 4}
+                  textAnchor="end"
+                  fontSize="10"
+                  fill={THEME.neutral}
+                >
+                  {formatDe(tick)}
+                </text>
+              </g>
+            );
+          })}
+          {filled ? <path d={areaPath(points, baseline)} fill={`url(#${fillId})`} /> : null}
+          <path
+            d={linePath(points)}
+            transform="translate(0 4)"
+            fill="none"
+            stroke={THEME.primary}
+            strokeWidth="3"
+            strokeOpacity="0.35"
+            filter={`url(#${shadowId})`}
           />
-        ) : null}
-      </svg>
+          <path
+            d={linePath(points)}
+            fill="none"
+            stroke={THEME.primary}
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+          {points.map((point) => (
+            <g
+              key={point.label}
+              className={transition}
+              opacity={active !== null && active !== point.index ? 0.55 : 1}
+            >
+              <circle
+                data-testid="depth-line-point"
+                data-active={active === point.index ? 'true' : 'false'}
+                cx={point.x}
+                cy={point.y}
+                r={active === point.index ? 5 : 3}
+                fill={active === point.index ? '#ffffff' : THEME.darkSurface}
+                stroke={THEME.primary}
+                strokeWidth="1.8"
+              />
+              <text
+                x={point.x}
+                y={baseline + 18}
+                textAnchor="middle"
+                fontSize="10"
+                fill={THEME.neutral}
+              >
+                {point.label}
+              </text>
+              <rect
+                x={point.x - slot / 2}
+                y={AREA.top}
+                width={slot}
+                height={AREA.height}
+                fill="transparent"
+                onMouseEnter={() => setActive(point.index)}
+              />
+            </g>
+          ))}
+          {activePoint ? (
+            <line
+              x1={activePoint.x}
+              x2={activePoint.x}
+              y1={AREA.top}
+              y2={baseline}
+              stroke={THEME.secondary}
+              strokeOpacity="0.5"
+              strokeDasharray="2 3"
+            />
+          ) : null}
+        </svg>
+      </ScrollableChart>
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}
@@ -153,6 +161,9 @@ export function DepthLineChart({
           max={data.length - 1}
           step={1}
           value={active ?? 0}
+          // Ohne Auswahl steht der Regler sichtbar auf dem ersten Zeitpunkt: mit Fokus wird er auch
+          // tatsächlich gewählt, damit der erste Pfeiltastendruck nicht einen Monat überspringt.
+          onFocus={() => setActive((current) => current ?? 0)}
           aria-valuetext={
             activeEntry
               ? `${activeEntry.label}: ${formatDe(activeEntry.value)} ${unit}`

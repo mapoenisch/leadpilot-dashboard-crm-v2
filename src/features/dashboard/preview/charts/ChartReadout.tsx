@@ -2,9 +2,28 @@
 // Tooltip-Zeile mit Wert, Einheit, Kategorie und Zeitraum sowie Legenden-Schaltflächen als
 // Tastatur- und Touch-Zugang zu den Datenpunkten. Die SVG-Fläche selbst bleibt für Screenreader
 // verborgen; Werte stehen in der Tooltip-Zeile und in der Tabellenansicht.
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { formatDe } from './depthGeometry';
 import type { DatumInput } from './depthGeometry';
+
+/**
+ * Diagramme behalten ihre Lesegröße (Mindestbreite 560 px = 1:1 zur Zeichenfläche). Auf schmalen
+ * Kacheln scrollt nur dieser Bereich waagerecht, statt Achsen- und Beschriftungstexte zu verkleinern.
+ * Der Bereich ist per Tastatur fokussierbar, damit das Scrollen ohne Maus möglich bleibt.
+ */
+export function ScrollableChart({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div
+      role="region"
+      aria-label={label}
+      tabIndex={0}
+      className="overflow-x-auto rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      {children}
+    </div>
+  );
+}
 
 export interface ReadoutProps {
   entry: DatumInput | null;
@@ -65,7 +84,10 @@ export function LegendButtons({
             key={entry.label}
             type="button"
             aria-pressed={active}
-            onClick={() => onSelect(active ? null : index)}
+            // Fokus wirkt wie Hover: Tastatur- und Touch-Nutzung sehen Wert und Hervorhebung sofort.
+            onFocus={() => onSelect(index)}
+            onBlur={() => onSelect(null)}
+            onClick={() => onSelect(index)}
             className={cn(
               'inline-flex items-center gap-[6px] rounded-full border border-solid bg-transparent px-[10px] py-[4px] font-body text-[11.5px] outline-none transition-[all_150ms_ease] focus-visible:ring-2 focus-visible:ring-primary',
               active

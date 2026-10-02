@@ -12,6 +12,10 @@ export interface DepthChartProps {
   /** Kurzer Titel für die zugängliche Zusammenfassung. */
   title: string;
   reducedMotion: boolean;
+  /** Nur Säulen/Balken: Ausrichtung (Standard senkrecht). */
+  orientation?: 'vertical' | 'horizontal';
+  /** Nur Ring/Kreis: ohne Aussparung als Kreis. */
+  solid?: boolean;
 }
 
 /** Konsistente Serienfarben: je Eintrag dieselbe Farbe in Säulen, Ring und Legende. */

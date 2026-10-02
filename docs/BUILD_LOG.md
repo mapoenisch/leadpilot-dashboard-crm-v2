@@ -14202,3 +14202,27 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Offene Bewertungspunkte für Marc:** Auf 375 px werden Achsen- und Säulenbeschriftungen sehr klein. Die Reiterleiste nutzt die bestehende `Tabs`-Komponente, die durch den fehlenden Tailwind-Reset einen Rahmen an allen Seiten zeigt (ebenso auf der Lead-Seite); nicht geändert, weil außerhalb der Ziel-Dateien.
 
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen: PR-CI, Codex-Prüfung, Designfreigabe durch Marc.
+
+---
+
+## Automatische Nacharbeit Runde 1 (PR #48, Head d7b4e7d)
+
+**Befunde (Codex, Review 5389751081):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164091611 (P1) | `DashboardDesignPreview.tsx` | behoben: Darstellungen „Balken“ (horizontal, `Depth3dBarChart` mit `orientation`) und „Kreis“ (`Depth3dDonutChart` mit `solid`, Radius 0 innen) ergänzt; `layoutHBars` in `depthGeometry.ts` mit Tests. |
+| 4164091615 (P2) | `DashboardDesignPreview.tsx` | behoben: erster „Wiederholen“ lädt das Modul neu; scheitert es erneut, speichert die Kachel Darstellung und Größe in `sessionStorage` und lädt die Seite neu (frischer Modulabruf), die Auswahl wird danach wiederhergestellt. Test ohne künstlich wechselnde Promises. |
+| 4164091617 (P2) | `charts/ChartReadout.tsx` | behoben: Legenden-Schaltflächen wählen bei `onFocus`, räumen bei `onBlur` auf; Klick wählt, statt umzuschalten. Test. |
+| 4164091620 (P2) | `charts/Depth3dBarChart.tsx` | behoben: Nullwerte zeichnen keine Kappe, Seitenfläche, Vorderfläche und kein Bodenleuchten, nur eine Markierung auf der Grundlinie. Test. |
+| 4164091626 (P1) | `docs/screenshots/auftrag-dashboard-testkachel/README.md` | begründet abgelehnt: Die Route existiert im Basis-Commit nicht, ein Vorher-Bild kann es nicht geben (Auftrag: „Neue Ansicht“). Regressionsschutz über leeren Diff auf `LiveFunnelBarChart.tsx` und Schutzbereiche. Die Matrix wurde um die neuen Darstellungen nicht neu erzeugt (siehe Hinweis in der README); das ist offen. |
+| 4164091635 (P2) | `DashboardDesignPreview.tsx` | behoben: Größen aus dem Raster des Plans: Desktop ab 1280 px 300/600/900/1200 px; Tablet Klein halbe Breite, Mittel/Groß volle Breite; Handy volle Breite. |
+| 4164091638 (P2) | `charts/DepthLineChart.tsx` (und Säulen, Ring) | behoben: Diagramme behalten Mindestbreite 560 px (1:1 zur Zeichenfläche) in einem fokussierbaren, waagerecht scrollbaren Bereich (`ScrollableChart`); Beschriftungen werden nicht mehr verkleinert. Test. |
+| 4164091642 (P1) | `scripts/captureDashboardPreviewScreenshots.mjs` | behoben: Statt fester 250 ms wartet das Harness je Darstellung auf das darstellungsspezifische Element und auf das Verschwinden des Ladestatus; Zeitüberschreitung bricht ab. Nicht gelaufen (siehe Gates). |
+| 4164091646 (P2) | `charts/DepthLineChart.tsx` | behoben: Der Regler wählt beim Fokus den ersten Zeitpunkt, kein unechter Nullzustand mehr bei der ersten Pfeiltaste. Test. |
+| 4164091650 (P2) | `src/app/App.tsx` | behoben: Vorschauroute liegt außerhalb von `QueryClientProvider`, `AuthProvider`, `OrganizationProvider` und `WorkspaceHydrator` (neu: `AppWithProviders` unter `path="*"`). Vertragstest ergänzt. |
+| 4164091652 (P2) | `DashboardDesignPreview.tsx` | behoben: „Werte als Tabelle“ liegt außerhalb von `ChartModuleBoundary`. Test. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1736 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Screenshot-Harness: nicht ausgeführt (kein Browser-Lauf in der automatischen Nacharbeit), Matrix steht aus.
+
+**Schutzbereichs-Diff** (`git diff d7b4e7d -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.

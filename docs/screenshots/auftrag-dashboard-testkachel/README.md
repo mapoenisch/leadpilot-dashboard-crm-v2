@@ -7,7 +7,9 @@ Erzeugt mit `scripts/captureDashboardPreviewScreenshots.mjs` gegen `/dashboard-v
 - Größter horizontaler Überlauf: 0 px
 - axe-Verstöße serious/critical in der Kachel: 0
 
-Neue Ansicht ohne Vorgänger: kein Vorher/Nachher-Paar, Vergleich über die Hashes je Breite und Darstellung.
+Neue Ansicht ohne Vorgänger: Die Route `/dashboard-vorschau` existiert im Basis-Commit nicht, ein Vorher-Bild gibt es daher nicht. Verglichen werden die Hashes je Breite und Darstellung; der Live-Funnel (`LiveFunnelBarChart.tsx`) ist per leerem Diff unverändert.
+
+**Stand der Matrix:** Die Tabelle unten stammt vom Head `d7b4e7d` und deckt sechs Darstellungen ab. Nach der Nacharbeit Runde 1 (PR #48) kommen „Balken“ und „Kreis“ hinzu und die Diagramme scrollen auf schmalen Kacheln. Das Harness wartet jetzt je Darstellung auf den echten Inhalt statt auf eine feste Zeit (8 Darstellungen × 3 Breiten = 24 Aufnahmen). Die neue Matrix liegt noch nicht vor: In der automatischen Nacharbeit war kein Browser-Lauf möglich. Sie muss lokal mit `BASE_URL=… node scripts/captureDashboardPreviewScreenshots.mjs` nachgezogen und hier ersetzt werden.
 
 | Breite | Darstellung | Überlauf | axe serious/critical | SHA-256 (gekürzt) |
 |---:|---|---:|---:|---|

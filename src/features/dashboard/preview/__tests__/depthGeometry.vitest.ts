@@ -5,6 +5,7 @@ import {
   barDepth,
   donutSegments,
   layoutBars,
+  layoutHBars,
   linePath,
   linePoints,
   niceScale,
@@ -65,6 +66,29 @@ describe('layoutBars', () => {
 
   it('liefert für leere Reihen keine Säulen', () => {
     expect(layoutBars([], AREA, 10)).toEqual([]);
+  });
+});
+
+describe('layoutHBars', () => {
+  it('skaliert die Länge auf die Skalenobergrenze, Nullwerte haben keine Länge', () => {
+    const bars = layoutHBars(
+      [
+        { label: 'a', value: 50 },
+        { label: 'b', value: 0 },
+      ],
+      AREA,
+      100,
+    );
+    expect(bars[0]?.length).toBe(200);
+    expect(bars[1]?.length).toBe(0);
+    expect(bars[0]?.depth).toBeGreaterThanOrEqual(3);
+    expect(bars[0]?.depth).toBeLessThanOrEqual(8);
+    expect((bars[1]?.y ?? 0) > (bars[0]?.y ?? 0)).toBe(true);
+  });
+
+  it('weist negative Werte ab und akzeptiert leere Daten', () => {
+    expect(() => layoutHBars([{ label: 'x', value: -1 }], AREA, 10)).toThrow(RangeError);
+    expect(layoutHBars([], AREA, 10)).toEqual([]);
   });
 });
 
@@ -137,8 +161,21 @@ describe('Vorschauroute in src/app/App.tsx', () => {
 
   it('liegt außerhalb von ProtectedRoute, weil die Probe nur Beispieldaten zeigt', () => {
     expect(app.indexOf('path={DASHBOARD_PREVIEW_PATH}')).toBeGreaterThan(-1);
-    expect(app.indexOf('path={DASHBOARD_PREVIEW_PATH}')).toBeLessThan(
-      app.indexOf('<Route element={<ProtectedRoute />}>'),
+    expect(app.indexOf('path={DASHBOARD_PREVIEW_PATH}')).toBeGreaterThan(
+      app.indexOf('export function App()'),
     );
+  });
+
+  it('liegt außerhalb der Provider, damit die Probe weder Sitzung noch Workspace abfragt', () => {
+    const route = app.indexOf('path={DASHBOARD_PREVIEW_PATH}');
+    expect(route).toBeGreaterThan(app.indexOf('export function App()'));
+    expect(route).toBeLessThan(app.indexOf('<AppWithProviders />'));
+    const providers = app.slice(
+      app.indexOf('function AppWithProviders()'),
+      app.indexOf('export function App()'),
+    );
+    expect(providers).toContain('<AuthProvider>');
+    expect(providers).toContain('<WorkspaceHydrator />');
+    expect(providers).not.toContain('DASHBOARD_PREVIEW_PATH');
   });
 });
