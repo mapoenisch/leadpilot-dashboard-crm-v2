@@ -14226,3 +14226,12 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1736 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Screenshot-Harness: nicht ausgeführt (kein Browser-Lauf in der automatischen Nacharbeit), Matrix steht aus.
 
 **Schutzbereichs-Diff** (`git diff d7b4e7d -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #48: Screenshot-Matrix nach Runde 1 (manuell, Head f75df67)
+
+Die automatische Runde 1 konnte das Harness nicht ausführen. Lokal nachgeholt gegen den Dev-Server: 8 Darstellungen (Zahl, Tabelle, Säulen, Balken, Kreis, Ring, Linie, Fläche) × 1440/768/375 px = 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. Matrix: `docs/screenshots/auftrag-dashboard-testkachel/README.md`. Vorher/Nachher: neue Route ohne Vorgänger, Begründung in der Matrix.
+
+**Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1736 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich. **Schutzbereichs-Diff** inklusive `src/components/liveKpi`: leer.
