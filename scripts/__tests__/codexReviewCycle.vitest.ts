@@ -442,6 +442,31 @@ describe('decideCodexStatus', () => {
     ).toMatchObject({ state: 'pending' });
   });
 
+  it('meldet success bei befundfreiem Review zum Head, aber nicht zu einem älteren Stand', () => {
+    const clean = (commit_id: string) => review({ id: 12, commit_id, body: cleanBody(commit_id) });
+    expect(decideCodexStatus(statusInput({ reviews: [clean(SHA)] }))).toMatchObject({
+      state: 'success',
+    });
+    expect(decideCodexStatus(statusInput({ reviews: [clean(OLD_SHA)] }))).toMatchObject({
+      state: 'pending',
+    });
+    expect(
+      decideCodexStatus(
+        statusInput({ reviews: [review({ id: 12, user: marc, body: cleanBody(SHA) })] }),
+      ),
+    ).toMatchObject({ state: 'pending' });
+  });
+
+  it('lässt Inline-Befunde gegen ein befundfreies Review zum Head gewinnen', () => {
+    const result = decideCodexStatus(
+      statusInput({
+        reviews: [review({ id: 12, body: cleanBody(SHA) })],
+        reviewCommentCounts: { 12: 1 },
+      }),
+    );
+    expect(result).toMatchObject({ state: 'failure' });
+  });
+
   it('wertet Ergebnisse zu einem älteren Stand nie für den neuen Head', () => {
     const result = decideCodexStatus(
       statusInput({

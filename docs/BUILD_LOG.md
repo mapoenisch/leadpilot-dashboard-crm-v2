@@ -14132,3 +14132,13 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Schutzbereichs-Prüfung** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
 
 **Ergebnis & Freigabestatus:** Builder-Gates grün. Offen sind die PR-CI und die Codex-Prüfung. Der neue Workflow `codex-status.yml` lässt sich erst nach dem Merge auf `main` ausprobieren. Nicht gemergt.
+
+---
+
+## Automatische Nacharbeit Runde 1 (PR #47, Head ba71c3f)
+
+**Befund 4163474015 (P2, `scripts/codexReviewCycle.mjs`):** `decideCodexStatus` wertete befundfreie Ergebnisse nur aus Issue-Kommentaren aus; ein sauberes `pull_request_review` blieb `pending`. **Entscheidung: behoben.** Ein verifiziertes Codex-Review mit `commit_id` gleich Head-SHA und „Didn't find any major issues“ im Body zählt jetzt als sauber. Inline-Befunde gewinnen weiterhin; Reviews zu älteren Ständen oder von Fremden zählen nicht. Tests ergänzt in `scripts/__tests__/codexReviewCycle.vitest.ts`.
+
+**Gates:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1701 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.

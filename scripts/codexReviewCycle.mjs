@@ -118,10 +118,18 @@ export function decideCodexStatus({ pr, reviews, reviewCommentCounts, comments }
   const commentFindings = verified
     .filter((comment) => commentSha(comment.body) === sha)
     .reduce((sum, comment) => sum + codexResultFromComment(comment).findingCount, 0);
-  const clean = verified.some(
+  const cleanComment = verified.some(
     (comment) =>
       CLEAN_RESULT_PATTERN.test(comment.body ?? '') && reviewedCommitMatches(comment.body, sha),
   );
+  // Codex reicht das befundfreie Ergebnis teils als Review ein; maßgeblich ist dessen `commit_id`.
+  const cleanReview = reviews.some(
+    (review) =>
+      isVerifiedCodex(review.user) &&
+      review.commit_id === sha &&
+      CLEAN_RESULT_PATTERN.test(review.body ?? ''),
+  );
+  const clean = cleanComment || cleanReview;
 
   if (reviewFindings + commentFindings > 0) {
     return {
