@@ -14382,3 +14382,20 @@ Nur Doku geändert; die Gates des Commits `f779901` gelten unverändert.
 Sichtbar ändert sich nichts, weil die Beispieldaten bereits absteigend sind; die freigegebene Gestaltung (`f779901`) bleibt damit gültig.
 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1750 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden und identisch mit der Matrix, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Nacharbeit PR #48 Runde 7 (manuell, Head ed68d9e)
+
+**Befund (Codex, Review 5393562638):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167144576 (P2) | `DashboardDesignPreview.tsx` | behoben, grundsätzlich statt mit einer weiteren festen Zahl: Die Endhöhe hängt von der Kachelbreite ab (Zeichenfläche 2:1 skaliert mit, Legende bricht um), gemessen 357 bis 659 px. Lade- und Fehlerzustand legen ihren Text jetzt über ein unsichtbares Gerüst mit derselben Struktur wie das geladene Diagramm (`ChartLayoutReserve` in `charts/ChartReadout.tsx`: Fläche `aspect-[2/1]` mit 560 px Mindestbreite, Ausgabezeile, dieselben Legenden-Schaltflächen bzw. derselbe Regler mit gemeinsamen Klassen). `ChartLoadingPlaceholder` und Fehlerzustand in `ChartModuleBoundary.tsx`; die feste Mindesthöhe 360 px entfällt. |
+
+**Browser-Nachweis** (Playwright gegen den Dev-Server, Diagrammmodule per Netzwerk-Routing angehalten bzw. abgebrochen, reduzierte Bewegung, damit die 200-ms-Breitenanimation nicht mitgemessen wird): 3 Breiten (1440/768/375) × 4 Größen × 6 Darstellungen × {Laden, Fehler} = 144 Kombinationen, Abweichung Platzhalter bzw. Fehlerzustand zu geladenem Diagramm in allen Fällen ≤ 1 px. Ohne reduzierte Bewegung zeigte eine erste Messung Abweichungen ausschließlich bei 1440 px direkt nach dem Größenwechsel, also mitten in der Übergangsanimation.
+
+**Tests:** Platzhalter enthält das Gerüst; Fehlerzustand enthält das Gerüst mit fünf Legenden-Platzhaltern; Linie bekommt einen Regler statt einer Legende; das Gerüst ist `aria-hidden` und nicht fokussierbar.
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1751 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB Start. Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical; geändert sind nur Linie und Fläche auf 1440 und 375 px (3 px Leerraum der früheren festen Mindesthöhe entfallen), die Gestaltung ist unverändert. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.

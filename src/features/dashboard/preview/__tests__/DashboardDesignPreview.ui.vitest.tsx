@@ -247,7 +247,7 @@ describe('DashboardDesignPreview', () => {
     };
     render(<DashboardDesignPreview chartLoaders={loaders} />);
     const placeholder = await screen.findByRole('status', { name: /Darstellung wird geladen/ });
-    expect(placeholder).toHaveClass('min-h-[360px]');
+    expect(within(placeholder).getByTestId('chart-layout-reserve')).toBeInTheDocument();
     act(() => placeholder.focus());
     expect(placeholder).toHaveFocus();
     await act(async () => {
@@ -256,7 +256,6 @@ describe('DashboardDesignPreview', () => {
     expect(await screen.findByTestId('depth-bar-chart')).toBeInTheDocument();
     const slot = screen.getByRole('group', { name: /Fortschritt nach Stufe/ });
     expect(slot).toHaveFocus();
-    expect(slot).toHaveClass('min-h-[360px]');
   });
 
   it('nimmt dem Diagrammbereich den Fokus nicht, wenn der Platzhalter ihn vorher verloren hat', async () => {
@@ -280,7 +279,7 @@ describe('DashboardDesignPreview', () => {
     expect(sizeButton).toHaveFocus();
   });
 
-  it('reserviert im Fehlerzustand dieselbe Höhe wie Ladeplatzhalter und Diagramm', async () => {
+  it('reserviert im Fehlerzustand das Gerüst des Diagramms wie der Ladeplatzhalter', async () => {
     const loaders: ChartLoaders = {
       ...DEFAULT_CHART_LOADERS,
       saeulen: () => Promise.reject(new Error('Netz weg')),
@@ -288,7 +287,10 @@ describe('DashboardDesignPreview', () => {
     const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     try {
       render(<DashboardDesignPreview chartLoaders={loaders} />);
-      expect(await screen.findByRole('alert')).toHaveClass('min-h-[360px]');
+      const alert = await screen.findByRole('alert');
+      const reserve = alert.parentElement?.querySelector('[data-testid="chart-layout-reserve"]');
+      expect(reserve).not.toBeNull();
+      expect(reserve?.querySelectorAll('button')).toHaveLength(5);
     } finally {
       quiet.mockRestore();
     }
@@ -331,6 +333,27 @@ describe('DashboardDesignPreview', () => {
     expect(screen.getByTestId('dashboard-test-tile')).toHaveAttribute('data-size', 'gross');
     expect(screen.getByRole('tabpanel', { name: 'Tabelle' })).toBeInTheDocument();
     expect(window.sessionStorage.getItem('dashboard-preview-retry')).toBeNull();
+  });
+
+  it('baut im Ladeplatzhalter die Bedienelemente der gewählten Darstellung nach', async () => {
+    const pending = () => new Promise<never>(() => undefined);
+    const loaders: ChartLoaders = {
+      ...DEFAULT_CHART_LOADERS,
+      saeulen: pending,
+      linie: pending,
+    };
+    const user = userEvent.setup();
+    render(<DashboardDesignPreview chartLoaders={loaders} />);
+    let reserve = await screen.findByTestId('chart-layout-reserve');
+    // Säulen: unsichtbar, nicht fokussierbar, eine Schaltfläche je Kategorie wie die Legende.
+    expect(reserve).toHaveAttribute('aria-hidden', 'true');
+    expect(reserve.querySelectorAll('button:disabled')).toHaveLength(5);
+    expect(reserve.querySelector('.aspect-\\[2\\/1\\].min-w-\\[560px\\]')).not.toBeNull();
+    await user.click(screen.getByRole('tab', { name: 'Linie' }));
+    reserve = await screen.findByTestId('chart-layout-reserve');
+    // Linie: Zeitregler statt Legende.
+    expect(reserve.querySelector('input[type="range"]:disabled')).not.toBeNull();
+    expect(reserve.querySelectorAll('button')).toHaveLength(0);
   });
 
   it('animiert die Größenänderung bei reduzierter Bewegung nicht', () => {

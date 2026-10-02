@@ -7,7 +7,8 @@ import { Card } from '@/components/ui/Card';
 import { Tabs } from '@/components/ui/Tabs';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
-import { ChartModuleBoundary } from './ChartModuleBoundary';
+import { ChartLoadingPlaceholder, ChartModuleBoundary } from './ChartModuleBoundary';
+import type { ChartReserveSpec } from './ChartModuleBoundary';
 import type { DepthChartProps } from './charts/chartTypes';
 import { formatDe } from './charts/depthGeometry';
 import type { DatumInput } from './charts/depthGeometry';
@@ -193,8 +194,16 @@ function readRetryState(): { view?: PreviewView; size?: PreviewSize } {
   }
 }
 
-// Gemeinsame Mindesthöhe für Lade-, Fehler- und Diagrammzustand: kein Layoutsprung beim Wechsel.
-export const CHART_SLOT_MIN_HEIGHT = 'min-h-[360px]';
+// Lade- und Fehlerzustand bauen das Gerüst der jeweiligen Darstellung nach: kein Layoutsprung.
+const reserveFor = (view: PreviewView, data: readonly DatumInput[]): ChartReserveSpec => ({
+  labels: data.map((entry) => entry.label),
+  controls:
+    view === 'linie' || view === 'flaeche'
+      ? 'slider'
+      : view === 'kreis' || view === 'ring'
+        ? 'legend-dots'
+        : 'legend',
+});
 
 /**
  * Hatte der Ladeplatzhalter den Tastaturfokus, verschwindet er beim Auflösen von Suspense aus dem DOM.
@@ -314,25 +323,15 @@ export function DashboardDesignPreview({
                 key={view}
                 onRetry={retry}
                 placeholderHadFocus={placeholderHadFocus}
+                reserve={reserveFor(view, dataset.data)}
               >
                 <Suspense
                   fallback={
-                    <div
-                      role="status"
-                      aria-live="polite"
-                      tabIndex={0}
-                      aria-label={`${dataset.title}, ${dataset.period}: Darstellung wird geladen`}
-                      onFocus={() => {
-                        placeholderHadFocus.current = true;
-                      }}
-                      onBlur={(event) => {
-                        // Beim Entfernen aus dem DOM (Laden fertig) bleibt die Markierung für FocusAfterLoad.
-                        if (event.currentTarget.isConnected) placeholderHadFocus.current = false;
-                      }}
-                      className="flex min-h-[360px] items-center rounded-md text-[13px] text-[var(--color-text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      {dataset.title}, {dataset.period}: Darstellung wird geladen …
-                    </div>
+                    <ChartLoadingPlaceholder
+                      label={`${dataset.title}, ${dataset.period}`}
+                      reserve={reserveFor(view, dataset.data)}
+                      hadFocus={placeholderHadFocus}
+                    />
                   }
                 >
                   <FocusAfterLoad placeholderHadFocus={placeholderHadFocus} target={chartSlotRef} />
@@ -341,10 +340,7 @@ export function DashboardDesignPreview({
                     tabIndex={-1}
                     role="group"
                     aria-label={`${dataset.title}, ${dataset.period}`}
-                    className={cn(
-                      CHART_SLOT_MIN_HEIGHT,
-                      'rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                    )}
+                    className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <Chart
                       idPrefix={idPrefix}

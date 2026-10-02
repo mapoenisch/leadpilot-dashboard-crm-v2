@@ -43,9 +43,9 @@ Eine **isolierte, bedienbare** Kachel, an der Marc Tiefe, Farben, Beschriftung, 
 | `src/features/dashboard/preview/charts/depthGeometry.ts` | Reine Funktionen für Tiefe, Winkel, Skalen (testbar) |
 | `src/features/dashboard/preview/__tests__/*.vitest.ts(x)` | Geometrie-, Ansichts- und Zugänglichkeitstests |
 | `src/features/dashboard/preview/DashboardPreviewPage.tsx` | Nachtrag bei der Umsetzung: Vorschauseite um die Kachel |
-| `src/features/dashboard/preview/ChartModuleBoundary.tsx` | Nachtrag: Fehlergrenze mit „Wiederholen“ für nachgeladene Diagrammmodule |
+| `src/features/dashboard/preview/ChartModuleBoundary.tsx` | Nachtrag: Fehlergrenze mit „Wiederholen“ und Ladeplatzhalter; beide mit dem Gerüst des erwarteten Diagramms |
 | `src/features/dashboard/preview/previewRoute.ts` | Nachtrag: Adresse der Vorschau |
-| `src/features/dashboard/preview/charts/ChartReadout.tsx` | Nachtrag: gemeinsame Tooltip-Zeile und Legenden-Schaltflächen |
+| `src/features/dashboard/preview/charts/ChartReadout.tsx` | Nachtrag: gemeinsame Tooltip-Zeile, Legenden-Schaltflächen und unsichtbares Diagrammgerüst (Endhöhe für Lade- und Fehlerzustand) |
 | `src/features/dashboard/preview/charts/chartTypes.ts` | Nachtrag: gemeinsame Typen und Serienfarben |
 | `dashboard-vorschau.html` | Revision (Entscheidung Marc 02.10.2026, „Weg 2“): eigene Vorschauseite statt Route in der App |
 | `src/features/dashboard/preview/previewMain.tsx` | Revision: eigener Einstieg, lädt nur Vorschauseite und globale Styles |

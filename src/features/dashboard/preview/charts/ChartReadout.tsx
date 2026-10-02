@@ -76,6 +76,57 @@ export interface LegendButtonsProps {
   ariaLabel: string;
 }
 
+/** Gemeinsame Klassen: Legende und Platzhalter umbrechen dadurch gleich. */
+const LEGEND_CHIP_CLASS =
+  'inline-flex items-center gap-[6px] rounded-full border border-solid bg-transparent px-[10px] py-[4px] font-body text-[11.5px]';
+export const SLIDER_ROW_CLASS =
+  'flex items-center gap-[10px] text-[11.5px] text-[var(--color-text-muted)]';
+export const SLIDER_LABEL = 'Zeitpunkt wählen';
+
+/** Bedienelemente unter dem Diagramm: Legende (mit oder ohne Farbpunkt) oder Zeitregler. */
+export type ChartControls = 'legend' | 'legend-dots' | 'slider';
+
+/**
+ * Unsichtbares Gerüst mit derselben Struktur wie ein geladenes Diagramm: Zeichenfläche 2:1 mit
+ * 560 px Mindestbreite, Ausgabezeile und dieselben Legenden-Schaltflächen bzw. derselbe Regler.
+ * Lade- und Fehlerzustand reservieren damit bei jeder Kachelbreite die Endhöhe.
+ */
+export function ChartLayoutReserve({
+  labels,
+  controls,
+}: {
+  labels: readonly string[];
+  controls: ChartControls;
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      data-testid="chart-layout-reserve"
+      className="invisible flex flex-col gap-[10px]"
+    >
+      <div className="overflow-hidden">
+        <div className="aspect-[2/1] w-full min-w-[560px]" />
+      </div>
+      <p className="m-0 min-h-[40px] text-[12px] leading-[1.4]">&nbsp;</p>
+      {controls === 'slider' ? (
+        <div className={SLIDER_ROW_CLASS}>
+          <span>{SLIDER_LABEL}</span>
+          <input type="range" disabled tabIndex={-1} className="min-w-0 flex-1" />
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-[6px]">
+          {labels.map((label) => (
+            <button key={label} type="button" disabled tabIndex={-1} className={LEGEND_CHIP_CLASS}>
+              {controls === 'legend-dots' ? <svg width="8" height="8" /> : null}
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Echte Schaltflächen: Tastatur (Tab, Enter) und Touch erreichen jeden Datenpunkt. */
 export function LegendButtons({
   data,
@@ -98,7 +149,8 @@ export function LegendButtons({
             onBlur={() => onSelect(null)}
             onClick={() => onSelect(index)}
             className={cn(
-              'inline-flex items-center gap-[6px] rounded-full border border-solid bg-transparent px-[10px] py-[4px] font-body text-[11.5px] outline-none transition-[all_150ms_ease] focus-visible:ring-2 focus-visible:ring-primary',
+              LEGEND_CHIP_CLASS,
+              'outline-none transition-[all_150ms_ease] focus-visible:ring-2 focus-visible:ring-primary',
               active
                 ? 'border-primary text-primary'
                 : 'border-border text-[var(--color-text-muted)] hover:border-primary',

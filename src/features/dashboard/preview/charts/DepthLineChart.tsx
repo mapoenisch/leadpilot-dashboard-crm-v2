@@ -3,7 +3,13 @@
 // Die Fläche (filled) ergänzt einen ruhigen Verlauf. Zugang für Tastatur und Touch: Bereichsregler.
 import { useMemo, useState } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout, ChartSummary, ScrollableChart } from './ChartReadout';
+import {
+  ChartReadout,
+  ChartSummary,
+  ScrollableChart,
+  SLIDER_LABEL,
+  SLIDER_ROW_CLASS,
+} from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
 import {
@@ -164,8 +170,8 @@ export function DepthLineChart({
         unit={unit}
         period={period}
       />
-      <label className="flex items-center gap-[10px] text-[11.5px] text-[var(--color-text-muted)]">
-        <span>Zeitpunkt wählen</span>
+      <label className={SLIDER_ROW_CLASS}>
+        <span>{SLIDER_LABEL}</span>
         <input
           type="range"
           min={0}
