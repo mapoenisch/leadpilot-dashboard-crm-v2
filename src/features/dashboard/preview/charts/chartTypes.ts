@@ -49,7 +49,11 @@ export function shadeHex(hex: string, t: number): string {
     .join('')}`;
 }
 
-export const seriesColor = (index: number): string =>
-  SERIES_COLORS[index % SERIES_COLORS.length] ?? SERIES_COLORS[0];
+/**
+ * Ton für einen Größenrang. Ränge jenseits der Palette bleiben beim dunkelsten Ton statt wieder
+ * hell zu beginnen: ein kleiner Anteil darf nie wie der größte aussehen (Fugen trennen die Segmente).
+ */
+export const seriesColor = (rank: number): string =>
+  SERIES_COLORS[Math.min(Math.max(rank, 0), SERIES_COLORS.length - 1)] ?? SERIES_COLORS[0];
 
 export const CHART_VIEWBOX = { width: 560, height: 280 } as const;

@@ -243,5 +243,9 @@ describe('Anteilsfarben', () => {
       SERIES_COLORS[3],
     ]);
     expect(shareColors([10, 10])).toEqual([SERIES_COLORS[0], SERIES_COLORS[1]]);
+    // Mehr Anteile als Töne: kleinere Ränge bleiben beim dunkelsten Ton, nie wieder hell.
+    const many = shareColors([70, 60, 50, 40, 30, 20, 10]);
+    expect(many.slice(4)).toEqual([SERIES_COLORS[4], SERIES_COLORS[4], SERIES_COLORS[4]]);
+    expect(many).not.toContain(undefined);
   });
 });

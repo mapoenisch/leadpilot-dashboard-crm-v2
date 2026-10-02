@@ -14414,3 +14414,18 @@ Sichtbar ändert sich nichts, weil die Beispieldaten bereits absteigend sind; di
 Keine sichtbare Änderung: Die Klasse wirkt nur auf Übergänge bei reduzierter Bewegung, das Screenshot-Harness läuft bereits mit reduzierter Bewegung.
 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 1751 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html`, `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Nacharbeit PR #48 Runde 9 (manuell, Head 7dd9e02)
+
+**Befund (Codex, Review 5394467148):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167901653 (P2) | `charts/chartTypes.ts` | behoben: `seriesColor` begrenzt Ränge jenseits der fünf Töne auf den dunkelsten Ton statt per Modulo wieder hell zu beginnen; ein kleiner Anteil sieht nie wie der größte aus, die Fugen trennen gleich gefärbte Segmente. Test mit sieben Anteilen (rot ohne die Korrektur). |
+
+Keine sichtbare Änderung: Die Beispieldaten haben fünf Anteile.
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 1751 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html`, `src/vite-env.d.ts` gegenüber `main`: leer.
