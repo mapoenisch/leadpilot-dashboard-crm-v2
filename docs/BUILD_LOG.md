@@ -14032,3 +14032,19 @@ Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerh
 | 4162068726 (P2) | Abschnitt 11 | behoben: Limit als drei gestartete Runden formuliert (`decideRework` zählt jeden Rundenmarker); weitere Befunde manuell durch Claude Code |
 
 Nur Doku geändert. **Schutzbereichs-Diff** (`git diff 5042ced -- src simulation types context services/data features/resources`): leer.
+
+
+---
+
+## Nacharbeit Runde 6 (manuell, PR #46, Head d21de96) — Gate-Nachweis auf dem finalen Stand
+
+**Befunde (Codex, Review 5387434730):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4162093567 (P1) | `docs/BUILD_LOG.md` | behoben: Pflichtgates auf dem finalen Stand ausgeführt und hier protokolliert (Ergebnis unten) |
+| 4162093561 (P2) | `BUILD_PLAN.md` Zeile 9 | behoben: Zyklus als eingerichtet (PR #42/#44) gekennzeichnet, offen bleibt nur der Nachweis an der Testkachel |
+
+**Gates** (lokal, Basis `d21de96` plus diese Nacharbeit, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` 0 Fehler/0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Integrity-Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff d21de96 -- src/simulation src/types src/context src/services/data src/features/resources`): leer. Seit Runde 3 (`a773c8d`) wurden nur Doku-Dateien geändert; die Gates gelten damit für den finalen Stand dieser Änderung.
