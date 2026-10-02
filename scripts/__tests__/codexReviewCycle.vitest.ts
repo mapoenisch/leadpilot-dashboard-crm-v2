@@ -383,6 +383,17 @@ describe('Workflow-Verträge', () => {
     expect(publish).toContain('s/@claude/claude/gI');
   });
 
+  it('pingt Marc nach jedem Nacharbeits-Push mit CI-Freigabe und @codex review', () => {
+    const publish = job('publish');
+    const hint = publish.slice(
+      publish.indexOf('if [ "$PUSHED" = "true" ]; then\n            printf'),
+    );
+    expect(hint).toContain('@mapoenisch Du bist dran');
+    expect(hint).toContain('Approve and run workflows');
+    expect(hint).toContain('`@codex review`');
+    expect(hint.indexOf('@mapoenisch')).toBeLessThan(hint.indexOf('gh pr comment'));
+  });
+
   it('schreibt keine Kommentare, die den @claude-Workflow auslösen', () => {
     expect(read('scripts/codexReviewCycle.mjs')).not.toContain('@claude');
   });

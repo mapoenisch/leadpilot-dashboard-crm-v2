@@ -249,6 +249,11 @@ jobs:
           sed -e 's/<!--/\&lt;!--/g' -e 's/@claude/claude/gI' "$RUNNER_TEMP/result/summary.md" | head -c 60000 > summary.md
           if [ "$PUSHED" = "true" ]; then status="Neuer Head \`$NEW_SHA\`."; else status="Keine Commits gepusht."; fi
           printf '**Automatische Nacharbeit Runde %s von 3.** %s\n\n' "$ROUND" "$status" | cat - summary.md > body.md
+          # Codex prüft Pushes des Job-Tokens nicht von selbst und reagiert nicht auf Bot-Kommentare;
+          # GitHub hält die PR-CI dieses Pushes zurück (Ende-zu-Ende-Test PR #43). Marc ist dran.
+          if [ "$PUSHED" = "true" ]; then
+            printf '\n\n---\n\n@mapoenisch Du bist dran, damit der Kreislauf weiterläuft:\n\n1. In diesem PR die zurückgehaltene CI mit **„Approve and run workflows“** freigeben (falls angezeigt).\n2. Einen Kommentar mit `@codex review` schreiben. Dann prüft Codex den Head `%s`, und bei neuen Befunden startet die nächste Runde automatisch.\n' "$NEW_SHA" >> body.md
+          fi
           gh pr comment "$PR" --body-file body.md
 
   notify:
