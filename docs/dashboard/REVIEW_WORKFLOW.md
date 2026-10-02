@@ -14,15 +14,15 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
    unberechtigte begründet Claude. Danach laufen die Gates, ein BUILD_LOG-Eintrag entsteht und
    Claude committet lokal, in einem Job nur mit Leserechten. Ein getrennter Job prüft die Commits
    und pusht sie auf denselben Branch. Er veröffentlicht auch Claudes Zusammenfassung.
-4. Nach dem Nacharbeits-Push läuft nichts von selbst weiter (Ende-zu-Ende-Test PR #43): GitHub
-   hält die PR-CI dieses Pushes als `action_required` zurück, Codex prüft Pushes des
-   Workflow-Tokens nicht und reagiert nicht auf `@codex review` von `github-actions[bot]`.
-   Marc muss deshalb selbst handeln: CI mit „Approve and run workflows“ freigeben und
-   `@codex review` kommentieren (siehe „Review anfordern“). Der automatische Ping von Marc nach
-   einem erfolgreichen Push ist **noch nicht umgesetzt**: `codex-rework.yml` pingt `@mapoenisch`
-   bisher nur bei Fehlschlag oder Rundenlimit. Umsetzung im Folgeauftrag
-   `ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT_HINWEIS.md`; bis dahin ist der Hinweis manuell. Danach läuft die nächste
-   Runde wieder automatisch. Gibt es keine Befunde mehr, endet der Kreislauf.
+4. Nach dem Push startet die CI per `workflow_dispatch`. Den nächsten Codex-Review stößt Marc an:
+   Im PR erscheint ein Kommentar „@mapoenisch Du bist dran“ mit zwei Handgriffen.
+   - die von GitHub zurückgehaltene PR-CI mit „Approve and run workflows“ freigeben
+   - `@codex review` kommentieren
+
+   Codex prüft Pushes des Workflow-Tokens nicht von selbst und reagiert nicht auf Kommentare von
+   `github-actions[bot]` (Ende-zu-Ende-Test PR #43). Mit dem neuen Codex-Ergebnis startet die
+   nächste Runde wieder automatisch. Gibt es keine Befunde mehr, endet der
+   Kreislauf von selbst.
 5. Freigabe und Merge bleiben bei Marc (Codex-Freigabe des aktuellen Head, CI grün,
    `CLAUDE.md` §9).
 

@@ -13930,6 +13930,35 @@ Hinweis zum lokalen Ledger: Bereits vorhandene Konfliktmarkierungen sind außerh
 
 ---
 
+## [2026-10-01] CI-Auftrag Codex-Nacharbeit — Ende-zu-Ende-Test (PR #43) und Folgeauftrag „Hinweis an Marc“ (Builder: Claude Code)
+
+**Ende-zu-Ende-Test auf PR #43** (Test-PR, wird nicht gemergt; Basis `main` `7646d81`). Die Kurzfassung `docs/dashboard/REVIEW_CYCLE_KURZ.md` enthielt zwei absichtliche Widersprüche zu `REVIEW_WORKFLOW.md`: fünf statt drei Runden und Push direkt aus dem Nacharbeitsjob.
+
+| Zeit (UTC) | Ereignis | Ergebnis |
+|---|---|---|
+| 20:28:52 | PR #43 geöffnet, Head `4efb5cf` | |
+| 20:28:59 | Codex-Bot 👀 auf den PR | automatischer Review läuft an |
+| 20:32:03 | Review `chatgpt-codex-connector[bot]` auf `4efb5cf`, 4 Inline-Befunde (P2): beide eingebauten Fehler, Auslösebedingung des Review-Requests, fehlender Freigabestatus im BUILD_LOG | ✅ Codex prüft neue PRs von selbst |
+| 20:32:21 | `gate`: „Runde 1 von 3“ beansprucht | ✅ Bot verifiziert, Head aktuell |
+| 20:35:32 | `rework`: Claude behebt alle 4 Befunde, nur `REVIEW_CYCLE_KURZ.md` und `BUILD_LOG.md`, Gates grün. `publish` prüft und pusht `738ed9e` (Autor `claude[bot]`), startet die CI per Dispatch und veröffentlicht die Zusammenfassung | ✅ gesammelte Nacharbeit, Rechtetrennung, keine Schutzpfade |
+| 20:35 | `pull_request`-CI zu `738ed9e`: „action_required“ (Auslöser `github-actions[bot]`). Dispatch-CI: 7 Check-Runs am Commit, `test` rot wegen `basic-ftp`. PR zeigt „no checks“, Status BLOCKED | ❌ PR-CI wird zurückgehalten |
+| 20:35–20:59 | kein Codex-Review zu `738ed9e` | ❌ Codex prüft Pushes des Job-Tokens nicht von selbst |
+| 20:59:42 | `codex-review-request.yml` manuell (`-f pr=43`): „request — kein Codex-Review nach Wartezeit“, Kommentar `5940432020` von `github-actions[bot]` | |
+| 20:59–21:20 | keine Reaktion, kein Review, kein Kommentar von Codex | ❌ **Bot-Kommentar `@codex review` löst Codex nicht aus** (eindeutig, kein automatischer Review ausstehend) |
+| 21:12:37 | erster geplanter Abgleich seit dem Merge (16:22): „skip — für 738ed9e bereits angefordert“ | ✅ Dopplungsschutz. ⚠️ Der Zeitplan startete erst rund fünf Stunden nach dem Merge |
+
+**Folgerung und Entscheidung Marc (Variante A):** Nach jeder automatischen Nacharbeit braucht der Kreislauf zwei Handgriffe von Marc: die zurückgehaltene PR-CI freigeben und `@codex review` kommentieren. `publish` pingt Marc dafür jetzt nach jedem Push an. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT_HINWEIS.md`.
+
+**Geänderte Dateien:** `.github/workflows/codex-rework.yml` (Hinweis in `publish`), `scripts/__tests__/codexReviewCycle.vitest.ts` (Vertragstest), `docs/dashboard/REVIEW_WORKFLOW.md`, Auftragsdatei (neu), dieser Eintrag.
+
+**Verifikation (lokal):** Der Kommentarschritt aus `publish` lief lokal mit Beispieldaten. Mit Push enthält er den Hinweis an `@mapoenisch` mit beiden Handgriffen, ohne Push keinen. `<!--` und `@claude` bleiben entschärft. Vertragstests 32 grün. `npx tsc --noEmit` 0 Fehler; `npm run lint` und `format:check` Exit 0; `npm run test:coverage` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten 001–025 grün; `npm run build` erfolgreich; SHA-Pinning vollständig; YAML gültig; Schutzbereichs-Diff gegen `origin/main` leer.
+
+**Bekannt rot:** Der Audit-Schritt im CI-Job `test` scheitert auf allen Branches an `basic-ftp` (GHSA-c475-qrg2-pj4r). Eigener Auftrag, siehe Auftragsdatei.
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün bis auf den bekannten Audit-Befund. Offen ist die Codex-Prüfung. PR #43 wird nach dieser Dokumentation geschlossen. Nicht gemergt.
+
+---
+
 ## [2026-10-01] Auftrag Deps `basic-ftp` — Advisory GHSA-c475-qrg2-pj4r behoben (Builder: Claude Code)
 
 **Ziel & Kontext:** `npm audit --audit-level=high` meldet `basic-ftp <=6.2.0` (high). Dadurch scheitert der Schritt „Dependency Audit Check“ im CI-Job `test` auf allen Branches, aufgefallen am Test-PR #43. Nur Dev-Abhängigkeit über `@lhci/cli` und `puppeteer-core`, `npm audit --omit=dev` war bei 0. Die Fix-Version 6.2.1 liegt außerhalb von `get-uri` `^5`. Mit Marcs Freigabe deshalb ein `overrides`-Eintrag. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_DEPS_BASIC_FTP.md`. Basis `main` `7646d81`.
