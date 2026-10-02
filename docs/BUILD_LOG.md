@@ -14064,3 +14064,21 @@ Nur Doku geändert. **Schutzbereichs-Diff** (`git diff 5042ced -- src simulation
 Quellen vor der Änderung gelesen: `HISTORIE.events` (strukturierte Meilensteine) und `GESELLSCHAFTER.rows` (Summe 100,0 %) wie von Codex beschrieben.
 
 Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- oder Konfigurationsdatei. **Schutzbereichs-Diff** (`git diff 340c50f -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+
+---
+
+## Nacharbeit Runde 8 (manuell, PR #46, Head cd1ae01) — Gates auf dem finalen Stand
+
+**Befunde (Codex, Review 5387508823):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4162161113 (P1) | `docs/BUILD_LOG.md` | behoben: Pflichtgates nach Runde 7 erneut ausgeführt (siehe unten) |
+| 4162161118 (P2) | Plan Abschnitt 11 | behoben: „Offen ist nur …“ ersetzt durch vollständige Restliste (6 offene Punkte) und separat benannte umgesetzte Punkte (PR #42, #44); im geprüften `.github/workflows/` gibt es weder Vorschau- noch Codex-Statusworkflow |
+
+**Gates** (lokal, Stand dieses Commits, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` 0 Fehler/0 Warnungen; `npm test` 276 Dateien, 1674 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Geprüft wurde der Arbeitsstand unmittelbar vor diesem Ledger-Eintrag; der Eintrag selbst ist reiner Text.
+
+**Nachweis, dass sich der Prüfgegenstand nicht ändert:** Gegenüber `origin/main` unterscheiden sich 0 Dateien außerhalb von `docs/`, `BUILD_PLAN.md` und `CLAUDE.md`. Dieser PR enthält ausschließlich Doku; weitere Nacharbeitsrunden ändern nur Plan und Ledger, sodass die hier protokollierten Gates für jeden folgenden Doku-Commit gelten, solange `git diff origin/main -- . ':!docs' ':!BUILD_PLAN.md' ':!CLAUDE.md'` leer bleibt.
+
+**Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
