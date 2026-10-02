@@ -72,7 +72,7 @@ Weitere Dateien nur nach Rückfrage (`CLAUDE.md` §5.3).
 - [x] Kachel zeigt Lade- und Fehlerzustand eines nachgeladenen Moduls mit „Wiederholen“.
 - [x] Gates: `tsc`, Lint, Vitest, `verify`, Build; Schutzbereichs-Diff leer. Zusätzlich Screenshot-Harness (1440/768/375 px, SHA-256-Hashes verschieden, 0 px horizontaler Überlauf), Matrix als Text im BUILD_LOG.
 - [ ] PR-CI und Codex-Prüfung (Auftragstreue, technische Grenzen).
-- [ ] Marc bewertet die Vorschau. Bei Änderungswünschen dieselbe Testkachel überarbeiten. Designfreigabe mit Commit-SHA und Hinweis auf das Referenzbild im BUILD_LOG protokollieren.
+- [x] Marc bewertet die Vorschau. Bei Änderungswünschen dieselbe Testkachel überarbeiten. Designfreigabe mit Commit-SHA und Hinweis auf das Referenzbild im BUILD_LOG protokollieren. **Erteilt am 02.10.2026 für Stand `f779901`** (nach Überarbeitung von Ring und Kreis).
 
 ## Wie Marc die Vorschau öffnet
 

@@ -14352,3 +14352,18 @@ Beide neuen Tests schlagen auf dem alten Code fehl und sind mit der Korrektur gr
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1749 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical; geändert sind nur die Aufnahmen von Ring und Kreis. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
 
 **Status:** Designfreigabe steht aus, bis Marc den überarbeiteten Ring und Kreis gesehen hat.
+
+
+---
+
+## Designfreigabe Testkachel durch Marc (Stand f779901)
+
+**Freigabe:** Marc Poenisch, 02.10.2026, nach Ansicht der Vorschau mit überarbeitetem Ring und Kreis: „Ja passt“.
+
+- **Freigegebener Stand:** Commit `f779901` (PR #48), Vorschauseite `/dashboard-vorschau.html`.
+- **Referenzen:** (1) Bestehender Live-Funnel (`LiveFunnelBarChart.tsx`) als Vorlage für den 3D-Effekt der Säulen und Balken; (2) Ring „MRR-Verteilung nach Paket“ als Vorlage für Ring und Kreis. Beide nur Stilvorlage, nicht im Repo (`CLAUDE.md` §7).
+- **Mitentschieden:** Mobilansicht bleibt scrollbar innerhalb der Kachel, keine Verkleinerung der Beschriftung.
+- **Folge:** Die Teilaufträge 1 bis 8 des Plans `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` dürfen beginnen. Freigegebene Teile (Tiefen-Diagramme, Geometrie, Farben) dürfen in Teilauftrag 4 übernommen werden. Die Probe selbst erhält kein produktives Release.
+- **Offen für den Merge von PR #48:** grüne CI und Codex-Prüfung auf dem aktuellen Stand; Merge nur durch Marc.
+
+Nur Doku geändert; die Gates des Commits `f779901` gelten unverändert.
