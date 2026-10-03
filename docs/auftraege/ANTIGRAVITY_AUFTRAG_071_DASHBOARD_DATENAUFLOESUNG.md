@@ -45,7 +45,9 @@ Jede Datei bleibt unter 400 Zeilen (Lint `max-lines`). Weitere Dateien nur nach 
 
 ## Belegte Quellen (vor Beginn gelesen, nicht raten)
 
-- **Stammdaten:** `CatalogSource.module`, `exportName`, `path` je aktivem Eintrag (`model/catalog/activeEntries.ts`). Übersichtskacheln: `getTeamHrSnapshot`, `getRoadmapSnapshot` aus `src/domain/executiveCockpitData.ts`. Zeitmodus `fest`.
+- **Stammdaten:** `CatalogSource.module`, `exportName`, `path` je aktivem Eintrag (`model/catalog/activeEntries.ts`). Zeitmodus `fest`. Die Reihen `baseline.arr_verlauf` und `baseline.mrr_paketmix` zeigen mit `path: ['datasets', 0, 'data']` nur auf ein Zahlenarray; die Beschriftungen stehen parallel in `CHART_ARR.labels` bzw. `CHART_MRR.labels` (`src/domain/execData.ts`). Regel: Bei `path` mit Endung `['datasets', n, 'data']` ist die Beschriftung `labels[i]` des Exports zum Wert `data[i]`; ungleiche Längen ergeben `fehler`.
+- **Übersichten (Stammdaten):** `getTeamHrSnapshot()` und `getRoadmapSnapshot()` aus `src/domain/executiveCockpitData.ts`. Sie liefern verschachtelte Strukturen (Organisationseinheiten, HR-Metriken, Engpässe als Text; Releases mit Status und Datum), keine Zahl und keine Zahlenreihe.
+- **Übersicht Live-Aktivität:** `uebersicht.live_aktivitaet` hat weder `liveKpiId` noch `liveKpiIds`. Sie aggregiert alle zwölf Live-IDs (`LIVE_KPI_DEFINITIONS` in `src/services/liveKpi/liveKpiDefinitions.ts`; dieselben zwölf wie `ACTIVITY_IDS` in `src/components/liveKpi/LiveActivityFeed.tsx`) über den bestehenden Hook `useLiveKpiActivity(ids, 10)` aus `src/hooks/useLiveKpiActivity.ts`: höchstens zehn Einträge `{ kpiId, value, unit, occurredAt, qualityStatus }`, neueste zuerst, plus Gesamtstatus.
 - **CRM:** `getPipelineOverview(source: FunnelDealSource)` in `src/domain/executiveCockpitData.ts` liefert `totalDeals`, `totalVolume`, `wonVolume`, `openVolume`, `stages[]` (`stage`, `count`, `volume`, `sharePercent`). `FunnelDealSource` hat genau eine Methode `getImportedFunnelDeals()`; der bestehende Hook `src/hooks/queries/usePipelineOverview.ts` übergibt `CRMRepository`. `ImportedFunnelDeal` hat die Felder `stage`, `amount`, `closeDate`, `pipeline` (`src/types/crm.ts`, nur lesen). Einträge mit `source.measure` lesen je Stufe `volume` bzw. `count`. Zeitmodus `aktuell`.
 - **Live:** `liveKpiStreamStore` (`src/services/liveKpi/liveKpiStreamStore.ts`) mit `acquire`, `subscribe`, `getSnapshot`; Muster in `src/hooks/useLiveKpi.ts`. Ein Feed-Kanal für alle KPIs (G34), Referenzzählung und 60 s Aufbewahrung (`RETENTION_MS`). Status `unconfigured | loading | live | offline | error`, Snapshot mit `value`, `unit`, `occurredAt`, `qualityStatus`. Zeitmodus `live`.
 - **Organisation:** `useOrganization()` aus `src/auth/organizationContext` (Muster in `src/hooks/queries/useCrmQueries.ts`, `session?.organizationId`).
@@ -59,11 +61,27 @@ type TileDataState =
   | 'laden' | 'bereit' | 'keine_daten' | 'fehler' | 'offline' | 'veraltet'
   | 'nicht_konfiguriert' | 'nicht_verfuegbar';
 
-interface TileData {
+type TileOverview =
+  | { kind: 'team_hr'; data: ReturnType<typeof getTeamHrSnapshot> }
+  | { kind: 'roadmap'; data: ReturnType<typeof getRoadmapSnapshot> }
+  | { kind: 'live_aktivitaet'; data: UseLiveKpiActivityResult['items'] };
+
+/** Kachel ohne aktiven Katalogeintrag: keine Metadaten erfinden. */
+interface UnavailableTileData {
   catalogId: string;
-  state: TileDataState;
+  state: 'nicht_verfuegbar';
+  reason: 'katalog_unbekannt' | 'katalog_inaktiv';
+  message: string;
+}
+
+type TileData = ResolvedTileData | UnavailableTileData;
+
+interface ResolvedTileData {
+  catalogId: string;
+  state: Exclude<TileDataState, 'nicht_verfuegbar'>;
   value: number | null;                 // Einzelwert/Verhältnis; null, wenn nicht vorhanden
   series: readonly { label: string; value: number }[] | null; // Kategorien, Anteile, Zeitreihe
+  overview: TileOverview | null;        // nur Übersichtskacheln (kind 'uebersicht')
   unit: string;                         // aus dem Katalog
   timeBasis: string;                    // aus dem Katalog; bei Live zusätzlich asOf
   asOf: string | null;                  // ISO-Zeitpunkt der Messung (Live: occurredAt), sonst null
@@ -79,7 +97,8 @@ interface TileData {
 - CRM ohne importierte Deals (leere Liste) ergibt `keine_daten` für alle CRM-Einträge, weil `getPipelineOverview` dann Nullen liefert, die nicht von einer echten Null unterscheidbar sind.
 - `veraltet`: Ein letzter Live-Wert existiert, der Stream ist aber `offline` oder `error`. Wert und `asOf` bleiben sichtbar. **Keine Altersschwelle erfinden.** Wenn eine Schwelle nötig erscheint, Rückfrage an Marc im BUILD_LOG.
 - `offline` bzw. `fehler` ohne letzten Wert: kein Wert. `unconfigured` wird zu `nicht_konfiguriert`.
-- `nicht_verfuegbar`: Katalog-ID unbekannt oder nicht `aktiv` (deckt `validateDashboardConfig().unavailable` aus Auftrag 070 ab). Die Kachel bleibt erhalten.
+- `nicht_verfuegbar`: Katalog-ID unbekannt oder nicht `aktiv` (deckt `validateDashboardConfig().unavailable` aus Auftrag 070 ab). Rückgabe ist `UnavailableTileData` **ohne** Einheit, Zeitbasis und Herkunft; nichts wird erfunden. Die Kachel bleibt erhalten.
+- Übersichtskacheln liefern `overview` mit dem unveränderten Ergebnis ihrer Quelle; `value` und `series` sind dort `null`. Team/HR und Roadmap sind `bereit`, sobald die Quelle ein Ergebnis liefert. Live-Aktivität: keine Einträge ergibt `keine_daten`, der Status folgt dem Gesamtstatus von `useLiveKpiActivity`.
 - Fehler aus Quellen (z. B. ungültiger Betrag in einem Deal, den `getPipelineOverview` als Exception meldet) werden zu `fehler` mit verständlichem `message`, ohne Absturz der übrigen Kacheln.
 - `funnelStages` und `mayBeNegative` aus dem Katalog bleiben in den Daten erkennbar über die Katalog-ID; die Leseschicht sortiert oder kürzt keine Stufen und entfernt keine negativen Werte.
 
@@ -97,6 +116,7 @@ interface TileData {
 - **CRM:** React Query mit Schlüssel aus `dashboardQueryKeys.ts`: `['dashboard', organizationId, 'crm', 'pipelineOverview', pipeline ?? null]`. Mehrere CRM-Kacheln mit gleichem Pipeline-Filter teilen **eine** Abfrage; die Werte je Eintrag werden per `select` bzw. reiner Funktion aus demselben Ergebnis gelesen. Ohne `organizationId` keine Abfrage. Der bestehende Schlüssel `crmKeys.pipelineOverview()` hat keine Organisation und wird deshalb nicht verwendet.
 - **Live:** je Kachel `acquire` + `subscribe` auf den bestehenden Store, wie `useLiveKpi`. Kein neuer Kanal. Mehrere Kacheln mit derselben Live-ID halten denselben Store-Eintrag (Referenzzählung). Kombinationskacheln mit `liveKpiIds` sind nicht aktiv und werden nicht aufgelöst. Der Store wird als optionaler Parameter übergeben (Vorgabe `liveKpiStreamStore`), damit Tests eine Instanz aus `createLiveKpiStreamStore(createFakeAdapter().adapter)` nutzen können.
 - **Stammdaten:** synchron, ohne Abfrage.
+- **Live-Aktivität:** über `useLiveKpiActivity` mit den zwölf IDs; derselbe Store, kein neuer Kanal. `enabled: false` darf den Hook nicht abonnieren lassen (z. B. leere ID-Liste übergeben, solange inaktiv).
 - `enabled: false` startet keine Abfrage und kein Live-Abo und liefert `laden` ohne Wert. Wechsel auf `true` startet genau einmal. Filterwechsel zeigt nie das alte Ergebnis als neues an: solange die Abfrage zum neuen Filter läuft, `laden` (oder vorheriger Wert ausdrücklich als alt gekennzeichnet, nicht beides vermischt).
 - Beim Unmount werden Live-Abos freigegeben (`release`), React Query räumt nach Standard auf.
 
@@ -108,9 +128,9 @@ interface TileData {
 
 - [ ] Tests zuerst: `dashboardFilters.vitest.ts` (Vorrang Kachelausnahme, Pipeline nur bei CRM, Zeitraum wirkt nirgends mit Begründung, `fester_stand` bleibt fest).
 - [ ] `dashboardFilters.ts` implementieren.
-- [ ] Tests zuerst: `dashboardData.vitest.ts` mit Fake-`FunnelDealSource` und Fake-Store-Adapter (`src/services/liveKpi/__tests__/fakes.ts` nur lesen bzw. importieren). Fälle: echte 0, leere Deal-Liste, Exception aus der Quelle, Pipeline-Filter, jede Live-Statuslage, veralteter Wert, degradiert, unbekannte und inaktive ID, jeder aktive Stammdaten-Eintrag löst sich zu `bereit` auf.
+- [ ] Tests zuerst: `dashboardData.vitest.ts` mit Fake-`FunnelDealSource` und Fake-Store-Adapter (`src/services/liveKpi/__tests__/fakes.ts` nur lesen bzw. importieren). Fälle: echte 0, leere Deal-Liste, Exception aus der Quelle, Pipeline-Filter, jede Live-Statuslage, veralteter Wert, degradiert, unbekannte und inaktive ID (Rückgabe ohne Metadaten), jeder aktive Stammdaten-Eintrag löst sich zu `bereit` auf und liefert **inhaltlich** das Erwartete: ARR-Verlauf mit acht Paaren `Q1 24`…`Q4 25` und den Werten aus `CHART_ARR`, MRR-Paketmix mit drei Paaren aus `CHART_MRR.labels`, Team/HR und Roadmap als `overview` gleich dem Quellergebnis. Ungleiche Längen von `labels` und `data` ergeben `fehler`.
 - [ ] `dashboardData.ts`, `resolveBaseline.ts`, `resolveCrm.ts`, `resolveLive.ts`, `dashboardQueryKeys.ts` implementieren.
-- [ ] Tests zuerst: `useDashboardData.ui.vitest.tsx`. Drei CRM-Kacheln mit gleichem Filter → eine Abfrage; andere Pipeline → zweite Abfrage. Drei Live-Kacheln derselben ID → ein Store-Eintrag, nach Unmount aller Kacheln Referenzzahl 0. `enabled: false` → keine Abfrage, kein `acquire`. Filterwechsel zeigt keinen alten Wert als neuen. Ohne Organisation keine CRM-Abfrage.
+- [ ] Tests zuerst: `useDashboardData.ui.vitest.tsx`. Drei CRM-Kacheln mit gleichem Filter → eine Abfrage; andere Pipeline → zweite Abfrage. Drei Live-Kacheln derselben ID → ein Store-Eintrag, nach Unmount aller Kacheln Referenzzahl 0. Live-Aktivität abonniert genau die zwölf IDs und liefert höchstens zehn Einträge, neueste zuerst; inaktiv kein Abo. `enabled: false` → keine Abfrage, kein `acquire`. Filterwechsel zeigt keinen alten Wert als neuen. Ohne Organisation keine CRM-Abfrage.
 - [ ] `useDashboardData.ts` implementieren.
 - [ ] Abschnitt „Datenauflösung (Auftrag 071)“ in `KPI_CATALOG.md` ergänzen.
 - [ ] Pflicht-Verifikation (`CLAUDE.md` §7): `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test`, `npm run verify`, `npm run build`, jeweils Exit-Code 0 prüfen, nicht nur die letzte Zeile. Schutzbereichs-Diff gegen die Basis leer.

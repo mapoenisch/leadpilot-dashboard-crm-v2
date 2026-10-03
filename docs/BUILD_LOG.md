@@ -14341,6 +14341,18 @@ Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt 
 
 **Schutzbereichs-Diff** gegen `a41b864`: leer.
 
-**Ergebnis:** Auftrag bereit für Antigravity. Kein Gate betroffen (reine Dokumentation).
+**Ergebnis:** Auftrag bereit für Antigravity, Prüfung durch Codex.
 
 **Nachtrag (03.10.2026):** Marc bestätigt die Vorgabe zum Live-Geltungsbereich („dann so lassen“): Live-Kacheln bleiben verfügbar und gekennzeichnet; Mandantentrennung des Live-Feeds später als eigener Auftrag möglich.
+
+**Nacharbeit PR #52, Codex-Review (Head 19270b7):**
+
+| Befund | Behebung |
+|---|---|
+| 4174085224 (P1) Übersichtsdaten passen nicht in `TileData` | `overview` als typisierter Payload (`team_hr`, `roadmap`, `live_aktivitaet`) mit unverändertem Quellergebnis; Test vergleicht Inhalt. |
+| 4174085227 (P2) Live-Aktivität ohne Auflösungsregel | Zwölf IDs aus `LIVE_KPI_DEFINITIONS` über bestehendes `useLiveKpiActivity(ids, 10)`; inaktiv kein Abo; Tests. |
+| 4174085243 (P1) Pflicht-Gates nicht ausgeführt | Ausgeführt auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1774 Tests), `npm run verify` 0, `npm run build` 0. |
+| 4174085233 (P2) `nicht_verfuegbar` erfindet Metadaten | Eigene Variante `UnavailableTileData` ohne Einheit, Zeitbasis und Herkunft. |
+| 4174085240 (P2) Beschriftungen der Baseline-Reihen fehlen | Regel `labels[i]` ↔ `datasets[n].data[i]`, ungleiche Längen ergeben `fehler`; Test prüft Werte und Beschriftungen (8 ARR-Quartale, 3 MRR-Pakete). |
+
+**Schutzbereichs-Diff** gegen `a41b864`: leer.
