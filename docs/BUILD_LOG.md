@@ -14278,3 +14278,19 @@ Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt 
 **Behebung:** Die zwölf Live-Einträge samt Live-Quelle, Metadaten und Zugriffstext stehen jetzt in `catalog/liveEntries.ts` (im Auftrag nachgetragen); `activeEntries.ts` 358 Zeilen. Inhalt und Reihenfolge des Katalogs unverändert.
 
 **Gates** (lokal, jeweils mit Exit-Code 0): `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test` (1743 Tests), `npm run verify`, `npm run build`, `verify:quality-budget`, `size-limit` (175,43 kB). **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.
+
+---
+
+## CI-Auftrag Audit-Ausnahme braces (Builder: Claude Code, 03.10.2026)
+
+**Ziel & Kontext:** Advisory GHSA-vfj7-8cjw-p6xm (`braces` ≤ 3.0.3, high, keine reparierte Version) macht den Audit-Schritt der CI auf allen Branches rot. Entscheidung Marc: befristete, begründete Ausnahme (Weg B). Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_AUDIT_AUSNAHME_BRACES.md`. Basis `origin/main` `faf97f4`.
+
+**Geänderte Dateien:** `scripts/auditAllowlist.mjs` (neu), `scripts/__tests__/auditAllowlist.vitest.ts` (neu), `.github/workflows/ci.yml` (Audit-Schritt), Auftragsdatei.
+
+**Funktionale Prüfungen:** Echter Audit-Bericht: `--omit=dev` und `--audit-level=high` Exit 0, zugelassen genau `braces`, `chokidar`, `micromatch`, `fast-glob`, `tailwindcss` über GHSA-vfj7-8cjw-p6xm. Tests: Ablauf am 03.11.2026 macht alle fünf wieder rot; zusätzliche Advisory an `braces` hebt die Zulassung auf; gleiche ID an anderem Paket zählt nicht; Stufenfilter; Kreise in `via`; CI-Vertrag (kein direktes `npm audit` mehr, gleiche Schwellen).
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test` (1752 Tests), `npm run verify` (Suiten 001–025), `npm run build` jeweils Exit 0.
+
+**Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+**Ergebnis & Freigabestatus:** Builder fertig. Prüfung durch Codex offen (Nutzungslimit); Ausnahme läuft am 02.11.2026 ab.
