@@ -14176,6 +14176,109 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 
 **Schutzbereichs-Diff** (`git diff 8f0345e -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
 
+
+---
+
+## Auftrag 070: Dashboard Teilauftrag 1, KPI-Inventar und Datenvertrag (Builder Claude Code)
+
+**Ziel & Kontext:** Teilauftrag 1 des Plans `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` nach Marcs Designfreigabe der Testkachel (Stand `f779901`, PR #48) und seiner Freigabe am 02.10.2026 („Ja beginne mit Teilauftrag 1“). [Detailauftrag](auftraege/ANTIGRAVITY_AUFTRAG_070_DASHBOARD_KPI_KATALOG.md). Baseline `main` `d8805d9`, eigener Branch unabhängig von PR #48.
+
+**Geänderte Dateien (alle neu, außer Ledger):** `docs/dashboard/KPI_CATALOG.md`; `src/features/dashboard/model/dashboardCatalog.ts`, `dashboardConfig.ts`, `dashboardValidation.ts`, `catalog/activeEntries.ts`, `catalog/inventoryEntries.ts`, `catalog/unsuitableEntries.ts`; `src/features/dashboard/__tests__/dashboardCatalog.vitest.ts`, `dashboardValidation.vitest.ts`; Auftrag 070; dieser Eintrag.
+
+**Funktionale Prüfungen:**
+
+- Katalog mit 79 Einträgen: 30 aktiv (10 Baseline, 5 CRM, 12 Live, 3 Übersichten), 28 „aufbereiten“, 21 „nicht geeignet“, jeweils mit konkretem Grund. Inventar aller `src/domain/`-Exporte und des Live-Katalogs in `docs/dashboard/KPI_CATALOG.md`.
+- Quellennachweis per Test: Jeder aktive Baseline-Wert wird aus dem echten Modul aufgelöst und mit dem dokumentierten Rohwert verglichen (z. B. ARR 411.840, EBITDA −309.000, MRR-Paketmix 10.045/19.580/4.695 mit Summe × 12 = ARR). CRM-Felder über `getPipelineOverview`, Live-IDs gegen `LIVE_KPI_DEFINITIONS`, Übersichten über ihre Quellfunktionen, Modul und Export jedes Eintrags im Repo.
+- Regeln: eindeutige IDs mit Ebenenpräfix (`baseline.arr` ≠ `live.arr`), Darstellungen nur passend zur Datenform, Funnel-Stufen und negative Werte nie Kreis oder Ring, ARR-Einzelwert ohne Zeitreihe, keine Simulationseinträge, Fachseite jeder aktiven Kachel in `APP_ROUTES`, Gesellschafter ohne Summenzeile exakt 100 %.
+- Konfiguration Format 1: höchstens 24 Kacheln, eigene Kachel-IDs, Mindestgröße je Darstellung, historische Werte fest, kein unbelegter Zeitraum, unbekannte Felder und unbekannte Formatversion werden abgelehnt.
+- **Befund für Marc und Teilauftrag 2:** `live_kpi_public_feed` hat keine Organisationsspalte und ist für `anon` und `authenticated` lesbar, also nicht mandantengetrennt (bestehendes Verhalten, unverändert). Plan §6 verlangt die Prüfung vor der Übernahme.
+
+**Schutzbereichs-Prüfung:** `git diff d8805d9 -- src/simulation src/types src/context src/services src/features/resources src/domain src/app src/components`: leer. Quellmodule werden nur gelesen.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 279 Dateien, 1734 Tests grün (30 neue); `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (unverändert, der Katalog ist noch nicht eingebunden).
+
+**Screenshot-Matrix:** entfällt, keine Oberfläche.
+
+**Ergebnis & Freigabestatus:** Builder-Arbeit abgeschlossen. Ausstehend: CI und Codex-Prüfung, Merge durch Marc.
+
+
+---
+
+## Automatische Nacharbeit Runde 1 (PR #49, Auftrag 070, Builder Claude Code)
+
+**Befunde** (Codex, Head `3c9d448`):
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167841405 (P2) Filterwerte nicht speicherbar | `dashboardConfig.ts`, `dashboardValidation.ts` | behoben: Format 1 hat `filters` (`period` als `from`/`to` in `JJJJ-MM-TT`, `pipeline`) für Startfilter und je Kachel `period` (nur mit `eigener_zeitraum`) und `pipeline` (nur bei KPIs mit Pipeline-Filter). Werte werden streng geprüft (echtes Datum, von ≤ bis, Länge); unbekannte Felder bleiben abgelehnt. Tests ergänzt. |
+| 4167841411 (P2) Unbekannte Katalog-IDs verwerfen die Konfiguration | `dashboardValidation.ts` | behoben: Kacheln mit unbekannter oder nicht freigegebener ID bleiben unverändert in `config`; das Ergebnis meldet sie getrennt in `unavailable`. Struktur (Darstellung, Größe, Kachel-ID, Titel, Zeitbezug) wird weiter geprüft. Tests angepasst und ergänzt. |
+| 4167841418 (P2) Metadaten für inaktive Kandidaten | `dashboardCatalog.ts` | begründet abgelehnt: „aufbereiten“/„nicht geeignet“ heißt, dass Zeitbasis, Einheit, Definition und Berechtigung noch nicht belegt sind (Gründe im Eintrag und im Inventar). Typisierte Felder würden ungeprüfte Angaben erzwingen, entgegen „keine Werte schätzen“ (Auftrag, Globale Grenzen). Ein Eintrag wird erst aktiv, wenn `validateCatalog` alle Pflichtfelder prüft; die Berechtigung je Ebene steht in `KPI_CATALOG.md`. Teilauftrag 8 ergänzt die Metadaten bei der Aufbereitung. |
+| 4167841426 (P1) Live-Quelle ohne Messwerte | `catalog/activeEntries.ts`, `dashboardCatalog.ts` | behoben: `source` zeigt auf `liveKpiStreamStore` (Wertquelle); `LIVE_KPI_DEFINITIONS` steht nur noch in `source.metadata`. Test prüft Store-Export und Metadatenreferenz. Inventar angepasst. |
+| 4167841432 (P2) Zeitbasis Live-Verlauf | `catalog/activeEntries.ts` | behoben: Zeitbasis nennt Feed-Punkte der letzten 30 Minuten (höchstens 30) beim Öffnen und die danach fortgeschriebene Sitzungshistorie; ebenso für `uebersicht.live_aktivitaet` und im Inventar. |
+
+**Gates:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 279 Dateien, 1739 Tests grün; `npm run verify` grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff 3c9d448 -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #49 nach Runde 1 (manuell, Head 8d8e26a)
+
+Durchsicht der automatischen Runde 1: Filterwerte, erhaltene Kacheln mit unbekannter KPI, Live-Wertquelle und Live-Zeitbasis sind sauber umgesetzt und getestet.
+
+| Befund | Entscheidung |
+|---|---|
+| 4167841418 (P2, Metadaten inaktiver Kandidaten) | Die Ablehnung der Runde 1 trägt nur für „nicht geeignet“ (Text, Plan- und Zielwerte; dort ergeben die Angaben keinen Sinn). Für die 28 Einträge „aufbereiten“ jetzt umgesetzt: `InventoryCatalogEntry` führt Einheit, Zeitbasis, Fachseite und Berechtigung, jeweils nur soweit in der Quelle belegt; fehlt eine Angabe (z. B. Zeitbasis der Kündigungsgründe, Fachseite nicht gerouteter Seiten), nennt der Grund die Lücke. `validateCatalog` verlangt Einheit und Berechtigung; Tests prüfen Fachseite gegen Grund und `APP_ROUTES`. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 1741 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB. **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.
+
+## Automatische Nacharbeit Runde 2 (PR #49, Auftrag 070)
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167990130 (P2, `2026-13-01` wirft `RangeError` in `toISOString()` statt `zeitraum` zu melden) | `src/features/dashboard/model/dashboardValidation.ts` | behoben: `isDay` prüft `getTime()` auf `Number.isFinite`, bevor konvertiert wird. Regressionstests (Monat 13/00, Tag 00/32) in `dashboardValidation.vitest.ts`. |
+
+**Gates:** `npx tsc --noEmit` grün; `npm run lint` grün; `npm test` 1741 Tests grün; `npm run verify` grün; `npm run build` grün. **Schutzbereichs-Diff** (`src/simulation src/types src/context src/services/data src/features/resources`) gegenüber `c676a9e`: leer.
+
+## Automatische Nacharbeit Runde 3 (PR #49, Auftrag 070)
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4168675905 (P2, Live-Kombinationen verweisen nicht auf die Messwertquelle) | `src/features/dashboard/model/catalog/inventoryEntries.ts`, `dashboardCatalog.ts` | behoben: `live.arr_mix`, `live.funnel` und `live.verlauf` zeigen auf `liveKpiStreamStore` mit `liveKpiIds`; `LIVE_KPI_DEFINITIONS` steht nur als `metadata`, `mergeIntoHistory` als `processing` (neue optionale Felder in `CatalogSource`). Test ergänzt (IDs gegen die Definitionen geprüft). |
+| 4168675908 (P2, Anzahl und Volumen der Pipeline-Stufen nicht getrennt) | `src/features/dashboard/model/catalog/activeEntries.ts`, `dashboardCatalog.ts` | behoben: neues optionales Feld `measures` mit den Messreihen Anzahl (Deals) und Volumen (EUR); `unit` nennt beide Einheiten. Test und `docs/dashboard/KPI_CATALOG.md` ergänzt. |
+| 4168675913 (P2, `crm.pipeline_gewonnen` als Bestand klassifiziert) | `src/features/dashboard/model/catalog/activeEntries.ts` | behoben: `crmValue` nimmt eine Aggregation entgegen, `wonVolume` ist `fluss`. Test und Doku ergänzt. |
+
+Zur Einhaltung von `max-lines` (400) wurden zwei Live-Definitionstexte (MQL, SQL) gekürzt und `LIVE_SOURCE`/`LIVE_METADATA` exportiert statt doppelt definiert.
+
+**Gates:** `npx tsc --noEmit` grün; `npm run lint` grün; `npm run format:check` grün; `npm test` 1743 Tests grün; `npm run verify` grün; `npm run build` grün. **Schutzbereichs-Diff** (`src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #49 nach Runde 3 (manuell, Head c7a6b1b)
+
+Durchsicht der automatischen Runde 3: Live-Kombinationen mit `liveKpiStreamStore` als Messwertquelle (Definitionen als Metadaten, `mergeIntoHistory` als Verarbeitungsschritt) und `crm.pipeline_gewonnen` als Fluss sind sauber umgesetzt. Die Tabellenformatierung im Inventar stammt von Prettier und ändert keinen Inhalt.
+
+| Befund | Entscheidung |
+|---|---|
+| 4168675908 (P2, Anzahl und Volumen der Pipeline-Stufen) | Runde 3 hat beide Messreihen in einem Eintrag (`measures`) geführt; eine Kachel kann ihre Reihe aber nicht speichern, die Mehrdeutigkeit bliebe also bestehen. Ersetzt durch zwei Einträge mit je einer Messreihe und eigener Einheit: `crm.pipeline_stufen_volumen` (EUR, `source.measure: 'volume'`) und `crm.pipeline_stufen_anzahl` (Deals, `source.measure: 'count'`), beide Funnel-Stufen, nie Kreis. Aktive Einträge damit 31 (6 CRM). |
+
+Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt benannt („Marketing Qualified Leads“, „Sales Qualified Leads“).
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` grün; `npm test` 1743 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB. **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.
+
+
+---
+
+## Nacharbeit PR #49: CI-Lint rot auf ef1515f (manuell)
+
+**Befund CI:** Job `lint` rot, `max-lines` 1 > 0: `catalog/activeEntries.ts` lag nach der Aufteilung der Pipeline-Stufen bei 416 gezählten Zeilen. Lokal reproduziert. Ursache auf meiner Seite: Die Lint-Prüfung vor dem Push habe ich nur über die letzte Ausgabezeile gelesen, nicht über den Exit-Code.
+
+**Behebung:** Die zwölf Live-Einträge samt Live-Quelle, Metadaten und Zugriffstext stehen jetzt in `catalog/liveEntries.ts` (im Auftrag nachgetragen); `activeEntries.ts` 358 Zeilen. Inhalt und Reihenfolge des Katalogs unverändert.
+
+**Gates** (lokal, jeweils mit Exit-Code 0): `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test` (1743 Tests), `npm run verify`, `npm run build`, `verify:quality-budget`, `size-limit` (175,43 kB). **Schutzbereichs-Diff** (inklusive `src/domain`, `src/services`, `src/app`, `src/components`) gegenüber `d8805d9`: leer.
+
 ---
 
 ## CI-Auftrag Zweite Automatisierung: Antigravity baut, Claude prüft (Builder: Claude Code, 03.10.2026)
