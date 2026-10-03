@@ -102,7 +102,7 @@ interface TileData {
 
 ### Live-Geltungsbereich (Rückfrage aus Auftrag 070)
 
-`live_kpi_public_feed` hat keine Organisationsspalte und ist für `anon` und `authenticated` lesbar. Eine mandantengetrennte Quelle bräuchte Schema- und Policy-Änderungen und ist **nicht** Teil dieses Auftrags. Vorgabe: Live-Kacheln bleiben verfügbar, `scope: 'organisationsuebergreifend'`. Der Abschnitt in `KPI_CATALOG.md` hält das fest. Die spätere Kachel zeigt den Hinweis (Teilauftrag 4). Entscheidet Marc anders, wird dieser Auftrag angepasst, bevor gebaut wird.
+`live_kpi_public_feed` hat keine Organisationsspalte und ist für `anon` und `authenticated` lesbar. Eine mandantengetrennte Quelle bräuchte Schema- und Policy-Änderungen und ist **nicht** Teil dieses Auftrags. Vorgabe: Live-Kacheln bleiben verfügbar, `scope: 'organisationsuebergreifend'`. Der Abschnitt in `KPI_CATALOG.md` hält das fest. Die spätere Kachel zeigt den Hinweis (Teilauftrag 4). **Bestätigt durch Marc am 03.10.2026** („dann so lassen“): Live-Kacheln bleiben mit Hinweis; eine mandantengetrennte Live-Quelle kann später als eigener Auftrag folgen, indem Quelle und `scope` ausgetauscht werden.
 
 ## Umsetzung
 

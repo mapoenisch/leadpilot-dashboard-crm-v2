@@ -14342,3 +14342,5 @@ Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt 
 **Schutzbereichs-Diff** gegen `a41b864`: leer.
 
 **Ergebnis:** Auftrag bereit für Antigravity. Kein Gate betroffen (reine Dokumentation).
+
+**Nachtrag (03.10.2026):** Marc bestätigt die Vorgabe zum Live-Geltungsbereich („dann so lassen“): Live-Kacheln bleiben verfügbar und gekennzeichnet; Mandantentrennung des Live-Feeds später als eigener Auftrag möglich.
