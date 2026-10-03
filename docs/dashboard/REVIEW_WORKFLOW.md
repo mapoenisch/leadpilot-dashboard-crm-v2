@@ -4,6 +4,8 @@ Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARB
 
 > **Zweite Automatisierung:** Für Branches `antigravity/*` gilt der umgekehrte Zyklus (Antigravity baut, Claude prüft), beschrieben in `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`. Dort fordert dieser Codex-Zyklus kein Review an und startet keine Nacharbeit durch Claude.
 
+> **Neue Aufteilung ab 03.10.2026 (Entscheidung Marc):** Die automatische Nacharbeit auf GitHub ist pausiert; Schritte 3 und 4 unten entfallen, solange das gilt. Vorrangig gilt der Abschnitt „Aufteilung ab 03.10.2026“ am Ende.
+
 ## Ablauf
 
 1. Claude Code baut auf einem PR-Branch und pusht.
@@ -95,3 +97,39 @@ Geprüft gegen `codex-rework.yml`, `codex-review-request.yml` und `codex-status.
   deaktivieren oder den PR schließen.
 - **Nach dem Rundenlimit:** Marc entscheidet. Weitere Nacharbeit läuft dann manuell (Claude-Code-
   Sitzung oder `@claude` im PR).
+
+## Aufteilung ab 03.10.2026 (Entscheidung Marc)
+
+Anlass: Die automatische Nacharbeit lief am 03.10. auf einem veralteten Head und brach mit
+„Branch hat sich seit dem Review bewegt“ ab (PR #52), während der Builder die Befunde schon
+selbst behoben hatte. Marc hat zusätzlich das Claude-Code-Plugin `codex-review`
+(`LuD1161/codex-review-skill`) lokal installiert.
+
+| Prüfweg | Wo | Wann | Status |
+|---|---|---|---|
+| CI (`ci.yml`) | GitHub | jeder Push | aktiv |
+| Codex-App (`chatgpt-codex-connector[bot]`) | GitHub | PR geöffnet und jeder Push (Einstellung in ChatGPT, kein Workflow) | aktiv |
+| Claude-Review (`claude-review.yml`) | GitHub | nur `antigravity/*`, Label `claude-review` oder manuell | aktiv, solange Antigravity baut |
+| Plugin `/codex-review:code`, `/codex-review:plan` | lokal bei Marc in Claude Code | auf Aufruf, vor dem Push | nach Bedarf |
+| `codex-review-request.yml`, `codex-status.yml`, `codex-rework.yml`, `claude.yml` | GitHub | – | pausiert |
+
+Ablauf für Claude Code als Builder (Zyklus 1):
+
+1. Claude Code baut und pusht. Die CI läuft, die Codex-App prüft den neuen Head.
+2. Befunde der Codex-App arbeitet der Builder selbst ab (Fix, Antwort im Thread, Thread auflösen,
+   BUILD_LOG-Eintrag). Es gibt keine automatische Nacharbeitsrunde mehr.
+3. Baut Claude Code lokal bei Marc, kann vor dem Push `/codex-review:code` laufen. Das Ergebnis
+   (Runden, letzte Codex-Aussage) gehört als Prüfnachweis in den BUILD_LOG-Eintrag.
+4. Freigabe und Merge bleiben bei Marc. Die Gate-Freigabe kommt weiterhin von Codex (App-Review
+   ohne Befund oder Plugin-Zustimmung zum aktuellen Stand), nie vom Builder selbst.
+
+Grenzen des Plugins: Es läuft nur in Claude Code auf Marcs Rechner, nicht in Cloud-Sitzungen und
+nicht für Antigravity. Es braucht die Codex-CLI und einen OpenAI-Zugang. Den Status `codex-review`
+setzt es nicht.
+
+Folge des Pausierens: Ohne `codex-status.yml` erscheint kein Status `codex-review` mehr. Ist er im
+Branch-Schutz als Pflicht-Check eingetragen, muss Marc ihn dort entfernen, sonst sind Merges
+blockiert. Ohne `claude.yml` reagiert Claude nicht mehr auf `@claude` in PRs.
+
+Zurückschalten: die vier Workflows unter Actions wieder aktivieren; die Abschnitte oben gelten dann
+unverändert.

@@ -14623,3 +14623,15 @@ Keine sichtbare Änderung: Die Beispieldaten haben fünf Anteile.
 | 4174129359 (P2) Store-Injektion für Live-Aktivität nicht umsetzbar | Aggregation als reine Funktion `aggregateLiveActivity(store, ids, limit)` in `resolveLive.ts` über den übergebenen Store, Regel wie `useLiveKpiActivity` (Status-Reihenfolge, Sortierung, zehn Einträge, fünf Felder); Paritätstest; `src/hooks/**` bleibt unverändert. |
 
 Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0. **Schutzbereichs-Diff** gegen `main`: leer.
+
+---
+
+## Aufteilung der Prüfwege ab 03.10.2026 (Claude Code, Dokumentation)
+
+**Ziel & Kontext:** Marc hat das Claude-Code-Plugin `codex-review` lokal installiert und die vorgeschlagene Aufteilung bestätigt („ja mach das“). Die automatische Nacharbeit auf GitHub wird pausiert, weil sie am 03.10. auf einem veralteten Head lief (PR #52, Abbruch „Branch hat sich seit dem Review bewegt“).
+
+**Geänderte Dateien:** `docs/dashboard/REVIEW_WORKFLOW.md` (Hinweis oben, neuer Abschnitt „Aufteilung ab 03.10.2026“), `CLAUDE.md` §4 (Entscheidung ergänzt, nichts umgeschrieben), dieser Eintrag. Keine Workflow-Datei geändert; das Pausieren erfolgt durch Marc unter Actions.
+
+**Schutzbereichs-Diff** gegen `main`: leer.
+
+Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.
