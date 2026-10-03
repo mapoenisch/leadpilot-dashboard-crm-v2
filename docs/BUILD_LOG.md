@@ -14281,6 +14281,22 @@ Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt 
 
 ---
 
+## CI-Auftrag Audit-Ausnahme braces (Builder: Claude Code, 03.10.2026)
+
+**Ziel & Kontext:** Advisory GHSA-vfj7-8cjw-p6xm (`braces` ≤ 3.0.3, high, keine reparierte Version) macht den Audit-Schritt der CI auf allen Branches rot. Entscheidung Marc: befristete, begründete Ausnahme (Weg B). Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_AUDIT_AUSNAHME_BRACES.md`. Basis `origin/main` `faf97f4`.
+
+**Geänderte Dateien:** `scripts/auditAllowlist.mjs` (neu), `scripts/__tests__/auditAllowlist.vitest.ts` (neu), `.github/workflows/ci.yml` (Audit-Schritt), Auftragsdatei.
+
+**Funktionale Prüfungen:** Echter Audit-Bericht: `--omit=dev` und `--audit-level=high` Exit 0, zugelassen genau `braces`, `chokidar`, `micromatch`, `fast-glob`, `tailwindcss` über GHSA-vfj7-8cjw-p6xm. Tests: Ablauf am 03.11.2026 macht alle fünf wieder rot; zusätzliche Advisory an `braces` hebt die Zulassung auf; gleiche ID an anderem Paket zählt nicht; Stufenfilter; Kreise in `via`; CI-Vertrag (kein direktes `npm audit` mehr, gleiche Schwellen).
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test` (1752 Tests), `npm run verify` (Suiten 001–025), `npm run build` jeweils Exit 0.
+
+**Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+**Ergebnis & Freigabestatus:** Builder fertig. Prüfung durch Codex offen (Nutzungslimit); Ausnahme läuft am 02.11.2026 ab.
+
+---
+
 ## CI-Auftrag Zweite Automatisierung: Antigravity baut, Claude prüft (Builder: Claude Code, 03.10.2026)
 
 **Ziel & Kontext:** Entscheidung Marc vom 03.10.2026: zweiter Kreislauf als Ausweichbetrieb für „Claude baut, Codex prüft“, wenn das Nutzungslimit von Codex erreicht ist. Auf Branches `antigravity/*` prüft Claude jeden neuen Head automatisch, veröffentlicht den Befund als PR-Kommentar und Commit-Status `claude-review`; Antigravity holt ihn lokal mit `npm run antigravity:inbox` nach `handoff/inbox.md`. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CLAUDE_REVIEW_ANTIGRAVITY.md`. Basis `origin/main` `d8805d9`, Branch `ci/claude-review-antigravity`.
