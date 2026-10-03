@@ -14612,3 +14612,5 @@ Keine sichtbare Änderung: Die Beispieldaten haben fünf Anteile.
 | 4174085240 (P2) Beschriftungen der Baseline-Reihen fehlen | Regel `labels[i]` ↔ `datasets[n].data[i]`, ungleiche Längen ergeben `fehler`; Test prüft Werte und Beschriftungen (8 ARR-Quartale, 3 MRR-Pakete). |
 
 **Schutzbereichs-Diff** gegen `a41b864`: leer.
+
+**Entscheidung Marc (03.10.2026, „antigravity baut den auftrag“):** Auftrag 071 baut Antigravity in Zyklus 2 (Claude prüft automatisch), obwohl Codex wieder verfügbar ist. Bewusste Ausnahme von der Rückkehr zu Zyklus 1; Codex kann zusätzlich reviewen, startet aber keine Nacharbeit.
