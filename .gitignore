@@ -26,3 +26,7 @@ docs/screenshots/**/*.webp
 eslint-report.json
 # G64 (Auftrag 067R): Abnahme-Artefakte werden je Lauf erzeugt, nicht committet
 artifacts/
+
+# Zweite Automatisierung (Antigravity baut, Claude prüft): lokaler Nachrichtenbus und Review-Arbeitsordner
+handoff/
+.claude-review/

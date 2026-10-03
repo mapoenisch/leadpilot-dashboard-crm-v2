@@ -177,6 +177,12 @@ describe('decideReviewRequest', () => {
     ).toBe('skip');
     expect(decideReviewRequest(requestInput({ pr: pr({ draft: true }) })).action).toBe('skip');
   });
+
+  it('fordert für Antigravity-Branches nie an, auch nicht mit Label (Claude prüft dort)', () => {
+    const antigravity = pr({ head: { sha: SHA, ref: 'antigravity/auftrag-071', repo: REPO } });
+    expect(decideReviewRequest(requestInput({ pr: antigravity })).action).toBe('skip');
+    expect(decideReviewRequest(requestInput({ pr: antigravity, force: true })).action).toBe('skip');
+  });
 });
 
 describe('decideRework', () => {
@@ -268,6 +274,10 @@ describe('decideRework', () => {
     expect(
       decideRework(input({ pr: pr({ head: { sha: SHA, repo: { full_name: 'x/y' } } }) })).action,
     ).toBe('skip');
+  });
+  it('startet auf Antigravity-Branches keine Nacharbeit durch Claude', () => {
+    const antigravity = pr({ head: { sha: SHA, ref: 'antigravity/auftrag-071', repo: REPO } });
+    expect(decideRework(input({ pr: antigravity }))).toMatchObject({ action: 'skip' });
   });
 });
 
