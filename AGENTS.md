@@ -45,9 +45,11 @@ Start von Auftrag 071 ungesicherte lokale Änderungen und unversionierte Ordner 
 - **Ohne ausdrückliche Zustimmung von Marc verboten:** `git reset --hard`, `git clean` (jede
   Variante), `git checkout -- <pfad>` / `git restore` auf fremde Änderungen, `git stash drop`,
   `git stash clear`, `git branch -D`, Force-Push.
-- **Im Repo-Root liegen absichtlich unversionierte Ordner und Dateien,** die weder in Git noch in
-  `.gitignore` stehen: `archive/`, `uploads/`, `reference/`, `ui_kits/`, `guidelines/`, `tokens/`,
-  `.playwright-mcp/`, `readme.md`, `SKILL.md` (siehe `CLAUDE.md` §2). Sie nie löschen oder verschieben.
+- **Im Repo-Root liegen absichtlich unversionierte Referenzordner:** `archive/`, `uploads/`,
+  `reference/`, `ui_kits/`, `guidelines/`, `tokens/`, `.playwright-mcp/`, `SKILL.md` (siehe
+  `CLAUDE.md` §2). Sie stehen in `.gitignore` und werden nie gelöscht oder verschoben. Die frühere
+  `readme.md` des Design-System-Skills liegt nicht im Root: Auf macOS wäre sie dieselbe Datei wie
+  das versionierte `README.md`.
 - **Arbeitsbaum nicht sauber?** (`git status --porcelain --untracked-files=no` nicht leer, also
   geänderte oder gestagte versionierte Dateien.) Stoppen und Marc fragen. Keine eigene Sicherung
   per `git stash` (auch nicht mit Pfadangabe oder `-u`) und kein `git stash create`; Marc
