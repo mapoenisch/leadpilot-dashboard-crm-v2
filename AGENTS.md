@@ -44,16 +44,15 @@ Start von Auftrag 071 ungesicherte lokale Änderungen und unversionierte Ordner 
 
 - **Ohne ausdrückliche Zustimmung von Marc verboten:** `git reset --hard`, `git clean` (jede
   Variante), `git checkout -- <pfad>` / `git restore` auf fremde Änderungen, `git stash drop`,
-  `git branch -D`, Force-Push.
+  `git stash clear`, `git branch -D`, Force-Push.
 - **Im Repo-Root liegen absichtlich unversionierte Ordner und Dateien,** die weder in Git noch in
   `.gitignore` stehen: `archive/`, `uploads/`, `reference/`, `ui_kits/`, `guidelines/`, `tokens/`,
   `.playwright-mcp/`, `readme.md`, `SKILL.md` (siehe `CLAUDE.md` §2). Sie nie löschen oder verschieben.
-- **Arbeitsbaum nicht sauber?** Stoppen und Marc fragen. Für einen neuen Branch genügt
-  `git fetch origin && git switch -c <branch> origin/main`; ungesicherte Änderungen bleiben dabei
-  erhalten oder Git bricht mit einer Meldung ab. Ist eine Sicherung nötig, dann nur die betroffenen
-  versionierten Pfade: `git stash push -m "<grund>" -- <pfad> …` (landet sichtbar in
-  `git stash list`). Nie `git stash -u`/`--include-untracked`/`--all`, denn das nimmt die
-  unversionierten Referenzordner mit und entfernt sie aus dem Arbeitsbaum; nie `git stash create`.
+- **Arbeitsbaum nicht sauber?** (`git status --porcelain --untracked-files=no` nicht leer, also
+  geänderte oder gestagte versionierte Dateien.) Stoppen und Marc fragen. Keine eigene Sicherung
+  per `git stash` (auch nicht mit Pfadangabe oder `-u`) und kein `git stash create`; Marc
+  entscheidet, ob er die Änderungen committet, sichert oder verwirft. Ist der Arbeitsbaum sauber,
+  genügt für einen neuen Branch `git fetch origin && git switch -c <branch> origin/main`.
 
 ## Kommunikation
 
