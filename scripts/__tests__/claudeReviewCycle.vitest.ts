@@ -101,6 +101,9 @@ describe('Befund und Veröffentlichung', () => {
     expect(parseVerdict('ohne Ergebnis')).toBe('unclear');
     expect(parseVerdict('ERGEBNIS: BEFUNDE\nERGEBNIS: KEINE BEFUNDE')).toBe('unclear');
     expect(parseVerdict('text ERGEBNIS: KEINE BEFUNDE')).toBe('unclear');
+    expect(parseVerdict('a\nERGEBNIS: KEINE BEFUNDE\n\nNachtrag: P1 in src/a.ts')).toBe('unclear');
+    expect(parseVerdict('a\nERGEBNIS: BEFUNDE\nnoch ein Satz')).toBe('unclear');
+    expect(parseVerdict('a\r\nERGEBNIS: KEINE BEFUNDE\r\n')).toBe('clean');
   });
 
   it('bildet das Ergebnis auf den Commit-Status ab, Unklares nie auf success', () => {

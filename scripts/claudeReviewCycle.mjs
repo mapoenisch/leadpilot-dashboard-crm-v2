@@ -28,6 +28,7 @@ export const reviewMarker = ({ round, sha, verdict }) =>
 const REVIEW_PATTERN =
   /<!-- claude-review-cycle:review round=(\d+) sha=([0-9a-f]{40}) verdict=(findings|clean|unclear) -->/g;
 const VERDICT_PATTERN = /^ERGEBNIS:\s*(BEFUNDE|KEINE BEFUNDE)\s*$/gm;
+const VERDICT_LINE = /^ERGEBNIS:\s*(BEFUNDE|KEINE BEFUNDE)\s*$/;
 
 export const isAntigravityPr = (pr) => Boolean(pr?.head?.ref?.startsWith(BRANCH_PREFIX));
 
@@ -82,10 +83,15 @@ export function decideClaudeReview({ pr, comments, force = false }) {
   };
 }
 
-/** Claude schließt den Befund mit genau einer Zeile `ERGEBNIS: BEFUNDE` oder `ERGEBNIS: KEINE BEFUNDE`. */
+/**
+ * Claude schließt den Befund mit genau einer Zeile `ERGEBNIS: BEFUNDE` oder `ERGEBNIS: KEINE BEFUNDE`.
+ * Sie muss die letzte nicht-leere Zeile sein; Text danach macht das Ergebnis unklar (nie `success`).
+ */
 export function parseVerdict(text) {
   const matches = [...(text ?? '').matchAll(VERDICT_PATTERN)].map((match) => match[1]);
   if (matches.length !== 1) return 'unclear';
+  const lastLine = (text ?? '').trimEnd().split('\n').at(-1) ?? '';
+  if (!VERDICT_LINE.test(lastLine)) return 'unclear';
   return matches[0] === 'BEFUNDE' ? 'findings' : 'clean';
 }
 
