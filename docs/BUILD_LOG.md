@@ -14614,3 +14614,12 @@ Keine sichtbare Änderung: Die Beispieldaten haben fünf Anteile.
 **Schutzbereichs-Diff** gegen `a41b864`: leer.
 
 **Entscheidung Marc (03.10.2026, „antigravity baut den auftrag“):** Auftrag 071 baut Antigravity in Zyklus 2 (Claude prüft automatisch), obwohl Codex wieder verfügbar ist. Bewusste Ausnahme von der Rückkehr zu Zyklus 1; Codex kann zusätzlich reviewen, startet aber keine Nacharbeit.
+
+**Nacharbeit PR #52, Codex-Review Runde 2 (Head 881d14a):**
+
+| Befund | Behebung |
+|---|---|
+| 4174129356 (P1) Umwandlung formatierter Stammdatenwerte offen | Regel festgelegt (Tausenderpunkt, Dezimalkomma, Unicode-Minus, Einheit entfernen, unlesbar = `fehler`); exakte Testwerte für alle acht Einzelwerte, gegen `src/domain/execData.ts` geprüft. |
+| 4174129359 (P2) Store-Injektion für Live-Aktivität nicht umsetzbar | Aggregation als reine Funktion `aggregateLiveActivity(store, ids, limit)` in `resolveLive.ts` über den übergebenen Store, Regel wie `useLiveKpiActivity` (Status-Reihenfolge, Sortierung, zehn Einträge, fünf Felder); Paritätstest; `src/hooks/**` bleibt unverändert. |
+
+Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0. **Schutzbereichs-Diff** gegen `main`: leer.
