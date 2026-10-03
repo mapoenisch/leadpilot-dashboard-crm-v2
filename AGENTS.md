@@ -37,6 +37,28 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
    gedeckt: stoppen und nachfragen.
 3. Nach der Änderung alle Gates fahren, Ergebnis in `docs/BUILD_LOG.md` festhalten.
 
+## Lokale Git-Befehle (Entscheidung Marc vom 03.10.2026)
+
+Gilt für alle Agenten, die in Marcs lokalem Repository arbeiten. Anlass: Antigravity hat beim
+Start von Auftrag 071 ungesicherte lokale Änderungen und unversionierte Ordner verworfen.
+
+- **Ohne ausdrückliche Zustimmung von Marc verboten ist jeder Befehl, der lokale Änderungen,
+  unversionierte Dateien, Stash-Einträge, Branches oder Remote-Historie verwirft oder überschreibt,**
+  egal in welcher Schreibweise. Beispiele (nicht abschließend): `git reset --hard`, `git clean`
+  (jede Variante), `git checkout .`, `git checkout -f`, `git checkout -- <pfad>`, `git restore`,
+  `git switch -f`/`--discard-changes`, `git stash drop`, `git stash clear`, `git branch -D`,
+  Force-Push. Im Zweifel gilt ein Befehl als verboten.
+- **Im Repo-Root liegen absichtlich unversionierte Referenzordner:** `archive/`, `uploads/`,
+  `reference/`, `ui_kits/`, `guidelines/`, `tokens/`, `.playwright-mcp/`, `SKILL.md` (siehe
+  `CLAUDE.md` §2). Sie stehen in `.gitignore` und werden nie gelöscht oder verschoben. Die frühere
+  `readme.md` des Design-System-Skills liegt nicht im Root: Auf macOS wäre sie dieselbe Datei wie
+  das versionierte `README.md`.
+- **Arbeitsbaum nicht sauber?** (`git status --porcelain` nicht leer: geänderte, gestagte oder
+  neue, nicht ignorierte Dateien; die Referenzordner bleiben wegen `.gitignore` unsichtbar.) Stoppen und Marc fragen. Keine eigene Sicherung
+  per `git stash` (auch nicht mit Pfadangabe oder `-u`) und kein `git stash create`; Marc
+  entscheidet, ob er die Änderungen committet, sichert oder verwirft. Ist der Arbeitsbaum sauber,
+  genügt für einen neuen Branch `git fetch origin && git switch -c <branch> origin/main`.
+
 ## Kommunikation
 
 Deutsch, Du-Form. Ergebnis zuerst, knapp, keine Floskeln.

@@ -30,3 +30,14 @@ artifacts/
 # Zweite Automatisierung (Antigravity baut, Claude prüft): lokaler Nachrichtenbus und Review-Arbeitsordner
 handoff/
 .claude-review/
+
+# Lokale Referenzordner aus dem Archiv-Repo (Design-System-Skill, nicht App-Code, CLAUDE.md §2).
+# Bewusst nicht versioniert (Repo-Migration v2.2.0); ignoriert, damit `git clean` sie nicht löscht.
+/archive/
+/uploads/
+/reference/
+/ui_kits/
+/guidelines/
+/tokens/
+/.playwright-mcp/
+/SKILL.md
