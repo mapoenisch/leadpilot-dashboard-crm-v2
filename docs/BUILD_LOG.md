@@ -14584,3 +14584,42 @@ Keine sichtbare Änderung: Die Beispieldaten haben fünf Anteile.
 **Nacharbeit PR #50, Codex-Befund (Kommentar 5969393588, P2, Head 5eb340f):** `parseVerdict` akzeptierte eine Ergebniszeile auch mit nachgestelltem Text, sodass z. B. `ERGEBNIS: KEINE BEFUNDE` gefolgt von einem Nachtrag zu `success` geführt hätte. Behoben: Die Ergebniszeile muss genau einmal vorkommen **und** die letzte nicht-leere Zeile sein, sonst `unclear` (Status `error`). Tests für Nachtrag nach beiden Ergebnissen und für CRLF ergänzt. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
 
 **Nacharbeit PR #48: Merge `main` nach PR #49/#50/#51 (03.10.2026):** Konflikt nur in `docs/BUILD_LOG.md` (beide Seiten hatten Abschnitte angehängt); aufgelöst durch Übernahme beider Seiten, Einträge der Testkachel vor denen der zweiten Automatisierung. Kein Code-Konflikt.
+
+---
+
+## Auftrag 071 geschrieben: Dashboard Teilauftrag 2, Datenauflösung und Filter (Claude Code, 03.10.2026)
+
+**Ziel & Kontext:** Marc hat am 03.10.2026 den ersten Auftrag für Zyklus 2 angefordert (Antigravity baut, Claude prüft). Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_071_DASHBOARD_DATENAUFLOESUNG.md` nach Plan Teilauftrag 2, Basis `main` `a41b864`. Builder: Antigravity auf `antigravity/auftrag-071`.
+
+**Inhalt:** Leseschicht `TileData` mit getrennten Zuständen (keine Daten ≠ 0, veraltet ohne erfundene Altersschwelle), effektiver Filter (Zeitraum wirkt heute auf keine Quelle und wird begründet gemeldet; Pipeline nur CRM über eine filternde `FunnelDealSource`), geteilte CRM-Abfrage je Organisation und Pipeline, Live über den bestehenden Store ohne neuen Kanal, Aktivierung über `enabled`. Live-Geltungsbereich als Vorgabe: Live-Kacheln bleiben, gekennzeichnet als organisationsübergreifend; mandantengetrennter Feed nicht Teil des Auftrags.
+
+**Geänderte Dateien:** nur die Auftragsdatei und dieser Eintrag. Kein Code.
+
+**Schutzbereichs-Diff** gegen `a41b864`: leer.
+
+**Ergebnis:** Auftrag bereit für Antigravity, Prüfung durch Codex.
+
+**Nachtrag (03.10.2026):** Marc bestätigt die Vorgabe zum Live-Geltungsbereich („dann so lassen“): Live-Kacheln bleiben verfügbar und gekennzeichnet; Mandantentrennung des Live-Feeds später als eigener Auftrag möglich.
+
+**Nacharbeit PR #52, Codex-Review (Head 19270b7):**
+
+| Befund | Behebung |
+|---|---|
+| 4174085224 (P1) Übersichtsdaten passen nicht in `TileData` | `overview` als typisierter Payload (`team_hr`, `roadmap`, `live_aktivitaet`) mit unverändertem Quellergebnis; Test vergleicht Inhalt. |
+| 4174085227 (P2) Live-Aktivität ohne Auflösungsregel | Zwölf IDs aus `LIVE_KPI_DEFINITIONS` über bestehendes `useLiveKpiActivity(ids, 10)`; inaktiv kein Abo; Tests. |
+| 4174085243 (P1) Pflicht-Gates nicht ausgeführt | Ausgeführt auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1774 Tests), `npm run verify` 0, `npm run build` 0. |
+| 4174085233 (P2) `nicht_verfuegbar` erfindet Metadaten | Eigene Variante `UnavailableTileData` ohne Einheit, Zeitbasis und Herkunft. |
+| 4174085240 (P2) Beschriftungen der Baseline-Reihen fehlen | Regel `labels[i]` ↔ `datasets[n].data[i]`, ungleiche Längen ergeben `fehler`; Test prüft Werte und Beschriftungen (8 ARR-Quartale, 3 MRR-Pakete). |
+
+**Schutzbereichs-Diff** gegen `a41b864`: leer.
+
+**Entscheidung Marc (03.10.2026, „antigravity baut den auftrag“):** Auftrag 071 baut Antigravity in Zyklus 2 (Claude prüft automatisch), obwohl Codex wieder verfügbar ist. Bewusste Ausnahme von der Rückkehr zu Zyklus 1; Codex kann zusätzlich reviewen, startet aber keine Nacharbeit.
+
+**Nacharbeit PR #52, Codex-Review Runde 2 (Head 881d14a):**
+
+| Befund | Behebung |
+|---|---|
+| 4174129356 (P1) Umwandlung formatierter Stammdatenwerte offen | Regel festgelegt (Tausenderpunkt, Dezimalkomma, Unicode-Minus, Einheit entfernen, unlesbar = `fehler`); exakte Testwerte für alle acht Einzelwerte, gegen `src/domain/execData.ts` geprüft. |
+| 4174129359 (P2) Store-Injektion für Live-Aktivität nicht umsetzbar | Aggregation als reine Funktion `aggregateLiveActivity(store, ids, limit)` in `resolveLive.ts` über den übergebenen Store, Regel wie `useLiveKpiActivity` (Status-Reihenfolge, Sortierung, zehn Einträge, fünf Felder); Paritätstest; `src/hooks/**` bleibt unverändert. |
+
+Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0. **Schutzbereichs-Diff** gegen `main`: leer.
