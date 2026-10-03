@@ -144,14 +144,14 @@ export async function resolveCrm(
     const filteredSource = new FilteredFunnelDealSource(source, effectiveFilter.pipeline);
     const overview = await getPipelineOverview(filteredSource);
     return resolveCrmFromOverview(entry, overview, effectiveFilter);
-  } catch (error) {
+  } catch {
     return {
       ...baseResult,
       state: 'fehler',
       value: null,
       series: null,
       overview: null,
-      message: error instanceof Error ? error.message : String(error),
+      message: 'CRM-Daten konnten nicht geladen werden',
     };
   }
 }

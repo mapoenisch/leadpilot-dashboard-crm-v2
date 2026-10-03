@@ -1,19 +1,18 @@
 // Executive Dashboard, Teilauftrag 2 (Auftrag 071): Stammdaten-Auflösung (synchron).
 // Löst Werte und Reihen aus den belegten Stammdaten-Quellen ohne Schätzwerte auf.
-import { CHART_ARR, CHART_MRR, EXEC_KPIS_1, EXEC_KPIS_2 } from '@/domain/execData';
-import { getRoadmapSnapshot, getTeamHrSnapshot } from '@/domain/executiveCockpitData';
+import * as execDataModule from '@/domain/execData';
+import * as cockpitDataModule from '@/domain/executiveCockpitData';
 import type { ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { EffectiveTileFilter } from '../model/dashboardFilters';
 import type { ResolvedTileData } from './dashboardData';
 
-const BASELINE_EXPORTS: Record<string, unknown> = {
-  EXEC_KPIS_1,
-  EXEC_KPIS_2,
-  CHART_ARR,
-  CHART_MRR,
-  getTeamHrSnapshot,
-  getRoadmapSnapshot,
-};
+function getBaselineExport(exportName: string): unknown {
+  const exec = execDataModule as Record<string, unknown>;
+  if (exportName in exec) return exec[exportName];
+  const cockpit = cockpitDataModule as Record<string, unknown>;
+  if (exportName in cockpit) return cockpit[exportName];
+  return undefined;
+}
 
 /**
  * Parst einen formatierten Zahlen-String aus den Stammdaten exakt nach Regel:
@@ -98,7 +97,7 @@ export function resolveBaseline(
       series: null,
       overview: {
         kind: 'team_hr',
-        data: getTeamHrSnapshot(),
+        data: cockpitDataModule.getTeamHrSnapshot(),
       },
     };
   }
@@ -111,39 +110,9 @@ export function resolveBaseline(
       series: null,
       overview: {
         kind: 'roadmap',
-        data: getRoadmapSnapshot(),
+        data: cockpitDataModule.getRoadmapSnapshot(),
       },
     };
-  }
-
-  // Test-Overrides (für absichtliche Fehlerfälle in Tests)
-  const sourceRecord = entry.source as unknown as Record<string, unknown>;
-  if (sourceRecord.customLabels && sourceRecord.customData) {
-    const labels = sourceRecord.customLabels as string[];
-    const data = sourceRecord.customData as number[];
-    if (!Array.isArray(labels) || !Array.isArray(data) || labels.length !== data.length) {
-      return {
-        ...baseResult,
-        state: 'fehler',
-        value: null,
-        series: null,
-        overview: null,
-        message: 'Beschriftungen und Datenpunkte stimmen nicht überein',
-      };
-    }
-  }
-  if (typeof sourceRecord.customRawValue === 'string') {
-    const parsed = parseFormattedBaselineNumber(sourceRecord.customRawValue);
-    if (parsed === null) {
-      return {
-        ...baseResult,
-        state: 'fehler',
-        value: null,
-        series: null,
-        overview: null,
-        message: `Wert "${sourceRecord.customRawValue}" konnte nicht als Zahl interpretiert werden`,
-      };
-    }
   }
 
   // 2. Zeitreihen / Anteile aus Datasets
@@ -155,7 +124,7 @@ export function resolveBaseline(
     path[path.length - 1] === 'data';
 
   if (isDatasetData) {
-    const exportObj = BASELINE_EXPORTS[entry.source.exportName] as
+    const exportObj = getBaselineExport(entry.source.exportName) as
       | {
           labels?: string[];
           datasets?: Array<{ data?: number[] }>;
@@ -204,7 +173,7 @@ export function resolveBaseline(
   }
 
   // 3. Einzelwerte (z. B. EXEC_KPIS_1/EXEC_KPIS_2)
-  const exportTarget = BASELINE_EXPORTS[entry.source.exportName];
+  const exportTarget = getBaselineExport(entry.source.exportName);
   if (exportTarget === undefined) {
     return {
       ...baseResult,

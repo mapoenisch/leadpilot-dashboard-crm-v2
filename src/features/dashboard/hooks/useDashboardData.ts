@@ -181,10 +181,10 @@ export function useDashboardData(
       return {
         ...loadingTileData(catalogEntry, effectiveFilter),
         state: 'fehler',
-        message: crmQuery.error instanceof Error ? crmQuery.error.message : String(crmQuery.error),
+        message: 'CRM-Daten konnten nicht geladen werden',
       };
     }
-    if (crmQuery.isLoading || crmQuery.isFetching || !crmQuery.data) {
+    if (crmQuery.isLoading || !crmQuery.data) {
       return loadingTileData(catalogEntry, effectiveFilter);
     }
     return resolveCrmFromOverview(catalogEntry, crmQuery.data, effectiveFilter);

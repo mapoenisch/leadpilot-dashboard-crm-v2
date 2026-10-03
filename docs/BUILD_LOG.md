@@ -14666,3 +14666,24 @@ Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:
 
 **Ergebnis & Freigabestatus:** Builder fertig. Push auf Branch `antigravity/auftrag-071` und PR-Eröffnung gegen `main` zur automatischen Prüfung durch Claude (`claude-review.yml`).
 
+---
+
+### Nacharbeit Claude-Review Runde 1 (Antigravity, 03.10.2026)
+
+**Befunde aus Review PR #54 (Head `9537a62`):**
+1. **P2 – Test-Hooks im Produktivcode (`resolveBaseline.ts`):** `resolveBaseline` las undeklarierte Felder `customLabels`, `customData` und `customRawValue` aus `entry.source` per `Record<string, unknown>`.
+   - *Entscheidung & Behebung:* Berechtigt. Block vollständig aus `resolveBaseline.ts` entfernt. Export-Auflösung auf dynamischen Import-Getter umgestellt. Fehlerfälle werden nun sauber ohne Test-Sonderpfade im Produktivcode über `vi.mock('@/domain/execData')` mit `vi.hoisted`-Overrides in `dashboardData.vitest.ts` getestet (`parseFormattedBaselineNumber` direkt und über den echten Parser- bzw. Dataset-Pfad).
+2. **P3 – Technische Fehlermeldungen an die Kachel:** Durchreichen von Rohfehlern in `resolveCrm.ts`, `resolveLive.ts` und `useDashboardData.ts`.
+   - *Entscheidung & Behebung:* Berechtigt. Durch benutzerfreundliche, feste deutsche Hinweise ersetzt (`'CRM-Daten konnten nicht geladen werden'`, `'Live-KPI-Stream ist fehlgeschlagen'`).
+3. **P3 – `laden` bei Hintergrund-Refetch:** `isFetching` in der Ladebedingung von `useDashboardData.ts` führte bei Refetches mit vorhandenen Daten zu kurzzeitigem `laden` ohne Wert.
+   - *Entscheidung & Behebung:* Berechtigt. `isFetching` aus Bedingung entfernt (`crmQuery.isLoading || !crmQuery.data`).
+
+**Automatisierte Verifikation (Pflicht-Gates nach Nacharbeit):**
+- `npx tsc --noEmit` → Exit 0 (0 Fehler)
+- `npm run lint` → Exit 0 (0 Fehler, 0 Warnungen; alle Dateien ≤ 387 Zeilen)
+- `npm run format:check` → Exit 0 (alle Dateien formatiert)
+- `npm test` → Exit 0 (286 Dateien, 1860 Tests bestanden)
+- `npm run verify` → Exit 0 (alle Suiten 001 bis 025 grün)
+- `npm run build` → Exit 0 (Produktionsbuild erfolgreich in 3.46s)
+- Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
+

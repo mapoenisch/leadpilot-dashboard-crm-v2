@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   resolveUnavailableTile,
   type ResolvedTileData,
@@ -15,10 +15,35 @@ import {
   getTeamHrSnapshot,
   type FunnelDealSource,
 } from '@/domain/executiveCockpitData';
-import { CHART_ARR, CHART_MRR } from '@/domain/execData';
+import { CHART_ARR, CHART_MRR, EXEC_KPIS_1 } from '@/domain/execData';
 import { createFakeAdapter, makeSnapshot } from '@/services/liveKpi/__tests__/fakes';
 import { createLiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import type { ImportedFunnelDeal } from '@/types/crm';
+
+const { getMockOverrides, setMockOverrides } = vi.hoisted(() => {
+  let chartArr: unknown = null;
+  let execKpis1: unknown = null;
+  return {
+    getMockOverrides: () => ({ chartArr, execKpis1 }),
+    setMockOverrides: (overrides: { chartArr?: unknown; execKpis1?: unknown }) => {
+      chartArr = overrides.chartArr ?? null;
+      execKpis1 = overrides.execKpis1 ?? null;
+    },
+  };
+});
+
+vi.mock('@/domain/execData', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/domain/execData')>();
+  return {
+    ...actual,
+    get CHART_ARR() {
+      return (getMockOverrides().chartArr as typeof actual.CHART_ARR) ?? actual.CHART_ARR;
+    },
+    get EXEC_KPIS_1() {
+      return (getMockOverrides().execKpis1 as typeof actual.EXEC_KPIS_1) ?? actual.EXEC_KPIS_1;
+    },
+  };
+});
 
 describe('dashboardData', () => {
   const dummyTile = (catalogId: string, pipeline?: string): DashboardTileConfig => ({
@@ -104,18 +129,17 @@ describe('dashboardData', () => {
 
     it('meldet Fehler bei unlesbarem Wertstring in Stammdaten', () => {
       const entry = getCatalogEntry('baseline.arr') as ActiveCatalogEntry;
-      const invalidEntry: ActiveCatalogEntry = {
-        ...entry,
-        source: {
-          ...entry.source,
-          customRawValue: 'nicht lesbar',
-        } as unknown as typeof entry.source,
-      };
-
-      const res = resolveBaseline(invalidEntry, resolveEffectiveFilter(dummyTile(entry.id), entry));
-      expect(res.state).toBe('fehler');
-      expect(res.value).toBeNull();
-      expect(res.message).toBeDefined();
+      setMockOverrides({
+        execKpis1: [{ label: 'ARR', value: 'nicht lesbar', note: '' }, ...EXEC_KPIS_1.slice(1)],
+      });
+      try {
+        const res = resolveBaseline(entry, resolveEffectiveFilter(dummyTile(entry.id), entry));
+        expect(res.state).toBe('fehler');
+        expect(res.value).toBeNull();
+        expect(res.message).toBe('Wert "nicht lesbar" konnte nicht als Zahl interpretiert werden');
+      } finally {
+        setMockOverrides({});
+      }
     });
 
     it('löst baseline.arr_verlauf mit genau 8 Paaren aus CHART_ARR auf', () => {
@@ -162,18 +186,21 @@ describe('dashboardData', () => {
 
     it('meldet fehler bei ungleichen Längen von Beschriftungen und Werten', () => {
       const entry = getCatalogEntry('baseline.arr_verlauf') as ActiveCatalogEntry;
-      const invalidEntry: ActiveCatalogEntry = {
-        ...entry,
-        source: {
-          ...entry.source,
-          customLabels: ['Q1'],
-          customData: [100, 200],
-        } as unknown as typeof entry.source,
-      };
-
-      const res = resolveBaseline(invalidEntry, resolveEffectiveFilter(dummyTile(entry.id), entry));
-      expect(res.state).toBe('fehler');
-      expect(res.series).toBeNull();
+      setMockOverrides({
+        chartArr: {
+          ...CHART_ARR,
+          labels: ['Q1'],
+          datasets: [{ ...CHART_ARR.datasets[0]!, data: [100, 200] }],
+        },
+      });
+      try {
+        const res = resolveBaseline(entry, resolveEffectiveFilter(dummyTile(entry.id), entry));
+        expect(res.state).toBe('fehler');
+        expect(res.series).toBeNull();
+        expect(res.message).toBe('Beschriftungen und Datenpunkte stimmen nicht überein');
+      } finally {
+        setMockOverrides({});
+      }
     });
   });
 
@@ -195,18 +222,16 @@ describe('dashboardData', () => {
       expect(res.scope).toBe('organisation');
     });
 
+    const makeDeal = (
+      id: string,
+      amount: number,
+      pipeline = 'standard',
+      stage = 'Lead',
+    ): ImportedFunnelDeal => ({ id, dealName: id, stage, amount, closeDate: '', pipeline });
+
     it('erhält eine echte 0 als bereit mit value: 0', async () => {
       const fakeSource: FunnelDealSource = {
-        getImportedFunnelDeals: async () => [
-          {
-            id: 'd-1',
-            dealName: 'Null Deal',
-            stage: 'Lead',
-            amount: 0,
-            closeDate: '2025-01-01',
-            pipeline: 'standard',
-          },
-        ],
+        getImportedFunnelDeals: async () => [makeDeal('d-1', 0)],
       };
       const res = await resolveCrm(
         fakeSource,
@@ -219,25 +244,12 @@ describe('dashboardData', () => {
     });
 
     it('filtert Deals nach Pipeline über FilteredFunnelDealSource', async () => {
-      const deals: ImportedFunnelDeal[] = [
-        {
-          id: 'd-1',
-          dealName: 'Std Deal',
-          stage: 'Lead',
-          amount: 1000,
-          closeDate: '',
-          pipeline: 'standard',
-        },
-        {
-          id: 'd-2',
-          dealName: 'Ent Deal',
-          stage: 'Qualifiziert',
-          amount: 5000,
-          closeDate: '',
-          pipeline: 'enterprise',
-        },
-      ];
-      const fakeSource: FunnelDealSource = { getImportedFunnelDeals: async () => deals };
+      const fakeSource: FunnelDealSource = {
+        getImportedFunnelDeals: async () => [
+          makeDeal('d-1', 1000, 'standard'),
+          makeDeal('d-2', 5000, 'enterprise', 'Qualifiziert'),
+        ],
+      };
       const res = await resolveCrm(
         fakeSource,
         volumeEntry,
@@ -249,25 +261,12 @@ describe('dashboardData', () => {
     });
 
     it('löst Pipeline-Stufen-Serien auf', async () => {
-      const deals: ImportedFunnelDeal[] = [
-        {
-          id: 'd-1',
-          dealName: 'D1',
-          stage: 'Qualifiziert',
-          amount: 3000,
-          closeDate: '',
-          pipeline: 'standard',
-        },
-        {
-          id: 'd-2',
-          dealName: 'D2',
-          stage: 'Lead',
-          amount: 1000,
-          closeDate: '',
-          pipeline: 'standard',
-        },
-      ];
-      const fakeSource: FunnelDealSource = { getImportedFunnelDeals: async () => deals };
+      const fakeSource: FunnelDealSource = {
+        getImportedFunnelDeals: async () => [
+          makeDeal('d-1', 3000, 'standard', 'Qualifiziert'),
+          makeDeal('d-2', 1000, 'standard', 'Lead'),
+        ],
+      };
       const res = await resolveCrm(
         fakeSource,
         stagesEntry,
@@ -282,16 +281,7 @@ describe('dashboardData', () => {
 
     it('fängt Exceptions aus der Quelle ab und liefert fehler', async () => {
       const fakeSource: FunnelDealSource = {
-        getImportedFunnelDeals: async () => [
-          {
-            id: 'bad',
-            dealName: 'Bad Deal',
-            stage: 'Lead',
-            amount: -500,
-            closeDate: '',
-            pipeline: 'standard',
-          },
-        ],
+        getImportedFunnelDeals: async () => [makeDeal('bad', -500)],
       };
 
       const res = await resolveCrm(
@@ -300,7 +290,7 @@ describe('dashboardData', () => {
         resolveEffectiveFilter(dummyTile(dealsEntry.id), dealsEntry),
       );
       expect(res.state).toBe('fehler');
-      expect(res.message).toMatch(/Ungültiger Betrag/);
+      expect(res.message).toBe('CRM-Daten konnten nicht geladen werden');
     });
   });
 

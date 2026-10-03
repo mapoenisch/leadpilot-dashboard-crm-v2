@@ -306,7 +306,7 @@ export function resolveLive(
       series: null,
       overview: null,
       asOf: null,
-      message: streamState.error?.message,
+      message: 'Live-KPI-Stream ist fehlgeschlagen',
     };
   }
 
