@@ -64,6 +64,10 @@ Abholskript (Entscheidung Marc). Höchstens fünf Runden pro PR. Claude merged n
   Veröffentlichen neutralisiert.
 - [x] **Rückkanal:** `npm run antigravity:inbox` liest den jüngsten Review zum aktuellen Head und
   schreibt `handoff/inbox.md`; liegt zum Head noch keiner vor, schreibt es nichts (Exit 2).
+- [x] **GitHub-MCP (Nachtrag 03.10.2026, Entscheidung Marc):** Antigravity liest den Befund
+  selbst über seinen GitHub-MCP (jüngster Markierungskommentar von `github-actions[bot]` zum
+  aktuellen Head) und öffnet seinen PR selbst; `antigravity:inbox` bleibt Rückfallebene. Verbote
+  für den MCP stehen in `AGENTS.md`.
 - [x] **Keine Kollision mit Zyklus 1:** `codexReviewCycle.mjs` überspringt `antigravity/*` bei
   Review-Anforderung und Nacharbeit.
 - [x] **Tests:** im vorhandenen Include-Muster `scripts/__tests__/**/*.vitest.ts`.

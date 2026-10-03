@@ -132,7 +132,8 @@ export function formatReviewComment({ round, sha, verdict, review, headMoved = f
       '',
       '---',
       '',
-      'Antigravity: lokal `npm run antigravity:inbox` ausführen, dann Antigravity mit „weiter“ starten. ' +
+      'Antigravity: mit „weiter“ starten; Antigravity liest diesen Befund über seinen GitHub-MCP ' +
+        '(ohne MCP vorher lokal `npm run antigravity:inbox`). ' +
         'Der nächste Push auf diesen Branch startet die nächste Review-Runde automatisch.',
     );
   }

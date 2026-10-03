@@ -28,13 +28,15 @@ eigene Arbeit. Sie warten, bis Codex wieder verfügbar ist.
 3. Der Workflow veröffentlicht den Befund als **PR-Kommentar** und setzt den Commit-Status
    **`claude-review`**: `failure` bei Befunden, `success` ohne Befunde, `error` bei unklarem
    Ergebnis, `pending` während des Reviews.
-4. **Rückkanal zu Antigravity (lokal auf Marcs Mac):**
+4. **Rückkanal zu Antigravity:** Marc startet Antigravity mit „weiter“. Antigravity liest den
+   Befund **selbst über seinen GitHub-MCP** aus dem PR (Regeln in `AGENTS.md`, Abschnitt
+   „Handoff-Protokoll“), arbeitet nach und pusht. Der Push startet Schritt 2 erneut.
+   **Rückfallebene ohne MCP** (lokal auf Marcs Mac), danach ebenfalls „weiter“:
    ```bash
    git switch antigravity/<auftrag>
    npm run antigravity:inbox      # schreibt handoff/inbox.md
    ```
-   Dann Antigravity mit „weiter“ starten. Antigravity arbeitet nach `AGENTS.md`, Abschnitt
-   „Handoff-Protokoll“, und pusht. Der Push startet Schritt 2 erneut.
+   GitHub kann Antigravity nicht selbst starten; das „weiter“ bleibt Marcs Schritt.
 5. Wiederholung, bis Claude `KEINE BEFUNDE` meldet. **Freigabe und Merge entscheidet Marc.**
 
 Voraussetzung für `antigravity:inbox`: `gh auth login` (oder `GH_TOKEN` gesetzt). Das Skript
@@ -44,6 +46,12 @@ vor, meldet es das mit Exit-Code 2 und schreibt nichts.
 
 ## Schutzmechanismen
 
+- **GitHub-MCP von Antigravity:** nur lesen und den eigenen PR öffnen. Mergen, Freigaben,
+  Kommentare, Labels und Workflow-Änderungen sind Antigravity verboten (`AGENTS.md`). Empfehlung,
+  damit das auch technisch gilt: dem MCP einen Fine-grained Token nur für dieses Repository geben
+  mit `Contents: Read-only`, `Pull requests: Read and write`, `Metadata: Read-only`. Ohne
+  Schreibrecht auf Contents kann der MCP nicht mergen und keine Dateien ändern; gepusht wird
+  weiter über Git mit Marcs normalem Zugang.
 - **Nur eigene Branches:** automatisch nur `antigravity/*` aus diesem Repository, keine Forks.
 - **Je Head höchstens ein Review**, erkannt an der Markierung
   `<!-- claude-review-cycle:review round=N sha=… verdict=… -->` von `github-actions[bot]`.
