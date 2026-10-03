@@ -33,7 +33,7 @@ export function parseFormattedBaselineNumber(raw: string): number | null {
 
   // Einheit und Leerzeichen entfernen
   s = s.replace(/[\s€]/g, '').replace(/FTE/gi, '');
-  if (!s) return null;
+  if (!s || !/\d/.test(s)) return null;
 
   // Wenn noch unerwartete Zeichen/Buchstaben enthalten sind -> ungültig
   if (/[^\d.,]/.test(s)) {
@@ -155,6 +155,17 @@ export function resolveBaseline(
         series: null,
         overview: null,
         message: 'Beschriftungen und Datenpunkte stimmen nicht überein',
+      };
+    }
+
+    if (!data.every(Number.isFinite)) {
+      return {
+        ...baseResult,
+        state: 'fehler',
+        value: null,
+        series: null,
+        overview: null,
+        message: 'Werte enthalten keine gültige endliche Zahl',
       };
     }
 

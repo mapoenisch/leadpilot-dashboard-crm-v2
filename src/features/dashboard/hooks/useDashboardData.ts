@@ -84,7 +84,6 @@ export function useDashboardData(
     queryFn: () =>
       getPipelineOverview(new FilteredFunnelDealSource(dealSource, effectiveFilter.pipeline)),
     enabled: crmEnabled,
-    refetchOnWindowFocus: false,
   });
 
   // Einzelne Live-KPI

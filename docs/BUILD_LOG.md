@@ -14699,3 +14699,31 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 - `npm run build` → Exit 0 (Produktionsbuild erfolgreich in 3.46s)
 - Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
 
+---
+
+### Nacharbeit Codex-Befunde & Sync mit origin/main (Antigravity, 03.10.2026)
+
+**Kontext & Merge:**
+- `origin/main` per `git merge origin/main` in `antigravity/auftrag-071` integriert (Merge-Commit `cd2a27d`).
+- Konflikt in `docs/BUILD_LOG.md` aufgelöst (beide Seiten chronologisch beibehalten).
+
+**Codex-Befunde abgearbeitet:**
+1. **`Number.isFinite`-Prüfung für Live-Werte in `resolveLive.ts`:**
+   - Falls ein Snapshot-Wert existiert, aber keine endliche Zahl ist (`!Number.isFinite(snap.value)`), wird sauber der Zustand `{ state: 'fehler', value: null, message: 'Wert ist keine endliche Zahl' }` zurückgegeben.
+2. **`Number.isFinite`-Prüfung für CRM-Stufenwerte in `resolveCrm.ts`:**
+   - Validierung der Stufenwerte: Falls ein Eintrag in der Stufenreihe kein `Number.isFinite(item.value)` aufweist (`!series.every(...)`), wird `{ state: 'fehler', value: null, message: 'Stufenwerte enthalten keine gültige endliche Zahl' }` zurückgegeben.
+3. **`refetchOnWindowFocus: false` entfernt in `useDashboardData.ts`:**
+   - Die explizite Deaktivierung von `refetchOnWindowFocus` in der `useQuery`-Konfiguration wurde entfernt, um Standard-Verhalten beizubehalten.
+4. **Zusätzliche Härtung in `resolveBaseline.ts`:**
+   - `parseFormattedBaselineNumber` prüft auf Vorhandensein von Ziffern (verhindert `0` für reine Trennzeichen/Symbole) und validiert Datensätze mit `!data.every(Number.isFinite)`.
+
+**Automatisierte Verifikation (Pflicht-Gates):**
+- `npx tsc --noEmit` → Exit 0 (0 Fehler)
+- `npm run lint` → Exit 0 (0 Fehler, 0 Warnungen; alle Dateien ≤ 381 Zeilen, strikt unter 400 Zeilen)
+- `npm run format:check` → Exit 0 (Prettier vollständig konform)
+- `npm test` → Exit 0 (286 Testdateien, 1861 Tests bestanden)
+- `npm run verify` → Exit 0 (alle Suiten 001 bis 025 grün)
+- `npm run build` → Exit 0 (Produktionsbuild erfolgreich)
+- Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
+
+

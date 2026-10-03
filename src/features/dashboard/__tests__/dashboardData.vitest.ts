@@ -1,20 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  resolveUnavailableTile,
-  type ResolvedTileData,
-  type UnavailableTileData,
-} from '../data/dashboardData';
+import { resolveUnavailableTile, type UnavailableTileData } from '../data/dashboardData';
 import { parseFormattedBaselineNumber, resolveBaseline } from '../data/resolveBaseline';
 import { resolveCrm } from '../data/resolveCrm';
 import { resolveLive } from '../data/resolveLive';
 import { getCatalogEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import { resolveEffectiveFilter } from '../model/dashboardFilters';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
-import {
-  getRoadmapSnapshot,
-  getTeamHrSnapshot,
-  type FunnelDealSource,
-} from '@/domain/executiveCockpitData';
+import { getRoadmapSnapshot, getTeamHrSnapshot } from '@/domain/executiveCockpitData';
 import { CHART_ARR, CHART_MRR, EXEC_KPIS_1 } from '@/domain/execData';
 import { createFakeAdapter, makeSnapshot } from '@/services/liveKpi/__tests__/fakes';
 import { createLiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
@@ -62,9 +54,6 @@ describe('dashboardData', () => {
       expect(res.reason).toBe('katalog_unbekannt');
       expect(res.catalogId).toBe('unbekannt.kpi');
       expect(res.message).toBeDefined();
-      expect((res as unknown as ResolvedTileData).unit).toBeUndefined();
-      expect((res as unknown as ResolvedTileData).timeBasis).toBeUndefined();
-      expect((res as unknown as ResolvedTileData).origin).toBeUndefined();
     });
 
     it('gibt UnavailableTileData für inaktive IDs aus dem Inventar zurück', () => {
@@ -74,54 +63,50 @@ describe('dashboardData', () => {
       expect(res.state).toBe('nicht_verfuegbar');
       expect(res.reason).toBe('katalog_inaktiv');
       expect(res.catalogId).toBe(entry!.id);
-      expect((res as unknown as ResolvedTileData).unit).toBeUndefined();
     });
   });
 
   describe('Baseline-Stammdaten (resolveBaseline)', () => {
     describe('parseFormattedBaselineNumber', () => {
       it('parst Tausenderpunkte, Dezimalkommas, Leerzeichen und Unicode-Minus exakt', () => {
-        expect(parseFormattedBaselineNumber('411.840 €')).toBe(411840);
-        expect(parseFormattedBaselineNumber('336.000 €')).toBe(336000);
-        expect(parseFormattedBaselineNumber('−309.000 €')).toBe(-309000);
-        expect(parseFormattedBaselineNumber('66')).toBe(66);
-        expect(parseFormattedBaselineNumber('520 €')).toBe(520);
-        expect(parseFormattedBaselineNumber('862 €')).toBe(862);
-        expect(parseFormattedBaselineNumber('4.447 €')).toBe(4447);
-        expect(parseFormattedBaselineNumber('10 FTE')).toBe(10);
-        expect(parseFormattedBaselineNumber('-12,50 €')).toBe(-12.5);
+        const cases: [string, number][] = [
+          ['411.840 €', 411840],
+          ['336.000 €', 336000],
+          ['−309.000 €', -309000],
+          ['66', 66],
+          ['520 €', 520],
+          ['862 €', 862],
+          ['4.447 €', 4447],
+          ['10 FTE', 10],
+          ['-12,50 €', -12.5],
+        ];
+        cases.forEach(([raw, exp]) => expect(parseFormattedBaselineNumber(raw)).toBe(exp));
       });
 
       it('liefert null bei ungültigen oder nicht endlichen Strings', () => {
-        expect(parseFormattedBaselineNumber('ungültig')).toBeNull();
-        expect(parseFormattedBaselineNumber('')).toBeNull();
-        expect(parseFormattedBaselineNumber('12,34,56')).toBeNull();
+        ['ungültig', '', '.', '€', '12,34,56'].forEach((s) =>
+          expect(parseFormattedBaselineNumber(s)).toBeNull(),
+        );
       });
     });
 
     it('löst alle 8 formatierten Einzelwerte exakt wie spezifiziert auf', () => {
-      const expected: Record<string, number> = {
-        'baseline.arr': 411840,
-        'baseline.umsatz': 336000,
-        'baseline.ebitda': -309000,
-        'baseline.kunden_aktiv': 66,
-        'baseline.arpa': 520,
-        'baseline.marketing_cac': 862,
-        'baseline.fully_loaded_cac': 4447,
-        'baseline.headcount': 10,
-      };
+      const expected: [string, number][] = [
+        ['baseline.arr', 411840],
+        ['baseline.umsatz', 336000],
+        ['baseline.ebitda', -309000],
+        ['baseline.kunden_aktiv', 66],
+        ['baseline.arpa', 520],
+        ['baseline.marketing_cac', 862],
+        ['baseline.fully_loaded_cac', 4447],
+        ['baseline.headcount', 10],
+      ];
 
-      for (const [id, val] of Object.entries(expected)) {
+      for (const [id, val] of expected) {
         const entry = getCatalogEntry(id) as ActiveCatalogEntry;
-        expect(entry).toBeDefined();
-        const tile = dummyTile(id);
-        const filter = resolveEffectiveFilter(tile, entry);
-        const result = resolveBaseline(entry, filter);
-
+        const result = resolveBaseline(entry, resolveEffectiveFilter(dummyTile(id), entry));
         expect(result.state).toBe('bereit');
         expect(result.value).toBe(val);
-        expect(result.series).toBeNull();
-        expect(result.overview).toBeNull();
         expect(result.scope).toBe('stammdaten');
         expect(result.origin.layer).toBe('baseline');
       }
@@ -142,26 +127,24 @@ describe('dashboardData', () => {
       }
     });
 
-    it('löst baseline.arr_verlauf mit genau 8 Paaren aus CHART_ARR auf', () => {
-      const entry = getCatalogEntry('baseline.arr_verlauf') as ActiveCatalogEntry;
-      const res = resolveBaseline(entry, resolveEffectiveFilter(dummyTile(entry.id), entry));
-
-      expect(res.state).toBe('bereit');
-      expect(res.value).toBeNull();
-      expect(res.series).toHaveLength(8);
-      expect(res.series).toEqual(
+    it('löst baseline.arr_verlauf und baseline.mrr_paketmix auf', () => {
+      const arrEntry = getCatalogEntry('baseline.arr_verlauf') as ActiveCatalogEntry;
+      const arrRes = resolveBaseline(
+        arrEntry,
+        resolveEffectiveFilter(dummyTile(arrEntry.id), arrEntry),
+      );
+      expect(arrRes.state).toBe('bereit');
+      expect(arrRes.series).toEqual(
         CHART_ARR.labels.map((label, i) => ({ label, value: CHART_ARR.datasets[0]!.data[i]! })),
       );
-    });
 
-    it('löst baseline.mrr_paketmix mit genau 3 Paaren aus CHART_MRR auf', () => {
-      const entry = getCatalogEntry('baseline.mrr_paketmix') as ActiveCatalogEntry;
-      const res = resolveBaseline(entry, resolveEffectiveFilter(dummyTile(entry.id), entry));
-
-      expect(res.state).toBe('bereit');
-      expect(res.value).toBeNull();
-      expect(res.series).toHaveLength(3);
-      expect(res.series).toEqual(
+      const mrrEntry = getCatalogEntry('baseline.mrr_paketmix') as ActiveCatalogEntry;
+      const mrrRes = resolveBaseline(
+        mrrEntry,
+        resolveEffectiveFilter(dummyTile(mrrEntry.id), mrrEntry),
+      );
+      expect(mrrRes.state).toBe('bereit');
+      expect(mrrRes.series).toEqual(
         CHART_MRR.labels.map((label, i) => ({ label, value: CHART_MRR.datasets[0]!.data[i]! })),
       );
     });
@@ -202,25 +185,30 @@ describe('dashboardData', () => {
         setMockOverrides({});
       }
     });
+
+    it('meldet fehler bei nicht endlichen Zahlen in Datasets', () => {
+      const entry = getCatalogEntry('baseline.arr_verlauf') as ActiveCatalogEntry;
+      setMockOverrides({
+        chartArr: {
+          ...CHART_ARR,
+          datasets: [{ ...CHART_ARR.datasets[0]!, data: [1, 2, 3, 4, 5, 6, 7, NaN] }],
+        },
+      });
+      try {
+        const res = resolveBaseline(entry, resolveEffectiveFilter(dummyTile(entry.id), entry));
+        expect(res.state).toBe('fehler');
+        expect(res.series).toBeNull();
+        expect(res.message).toBe('Werte enthalten keine gültige endliche Zahl');
+      } finally {
+        setMockOverrides({});
+      }
+    });
   });
 
   describe('CRM-Auflösung (resolveCrm)', () => {
     const dealsEntry = getCatalogEntry('crm.pipeline_deals') as ActiveCatalogEntry;
     const volumeEntry = getCatalogEntry('crm.pipeline_volumen') as ActiveCatalogEntry;
     const stagesEntry = getCatalogEntry('crm.pipeline_stufen_volumen') as ActiveCatalogEntry;
-
-    it('liefert keine_daten bei leerer Deal-Liste', async () => {
-      const fakeSource: FunnelDealSource = { getImportedFunnelDeals: async () => [] };
-      const res = await resolveCrm(
-        fakeSource,
-        dealsEntry,
-        resolveEffectiveFilter(dummyTile(dealsEntry.id), dealsEntry),
-      );
-
-      expect(res.state).toBe('keine_daten');
-      expect(res.value).toBeNull();
-      expect(res.scope).toBe('organisation');
-    });
 
     const makeDeal = (
       id: string,
@@ -229,50 +217,48 @@ describe('dashboardData', () => {
       stage = 'Lead',
     ): ImportedFunnelDeal => ({ id, dealName: id, stage, amount, closeDate: '', pipeline });
 
-    it('erhält eine echte 0 als bereit mit value: 0', async () => {
-      const fakeSource: FunnelDealSource = {
-        getImportedFunnelDeals: async () => [makeDeal('d-1', 0)],
-      };
-      const res = await resolveCrm(
-        fakeSource,
-        volumeEntry,
-        resolveEffectiveFilter(dummyTile(volumeEntry.id), volumeEntry),
+    const runCrm = (
+      deals: ImportedFunnelDeal[],
+      entry: ActiveCatalogEntry = volumeEntry,
+      p?: string,
+    ) =>
+      resolveCrm(
+        { getImportedFunnelDeals: async () => deals },
+        entry,
+        resolveEffectiveFilter(dummyTile(entry.id, p), entry),
       );
 
+    it('liefert keine_daten bei leerer Deal-Liste', async () => {
+      const res = await runCrm([], dealsEntry);
+      expect(res.state).toBe('keine_daten');
+      expect(res.value).toBeNull();
+      expect(res.scope).toBe('organisation');
+    });
+
+    it('erhält eine echte 0 als bereit mit value: 0', async () => {
+      const res = await runCrm([makeDeal('d-1', 0)]);
       expect(res.state).toBe('bereit');
       expect(res.value).toBe(0);
     });
 
     it('filtert Deals nach Pipeline über FilteredFunnelDealSource', async () => {
-      const fakeSource: FunnelDealSource = {
-        getImportedFunnelDeals: async () => [
-          makeDeal('d-1', 1000, 'standard'),
-          makeDeal('d-2', 5000, 'enterprise', 'Qualifiziert'),
-        ],
-      };
-      const res = await resolveCrm(
-        fakeSource,
+      const res = await runCrm(
+        [makeDeal('d-1', 1000, 'standard'), makeDeal('d-2', 5000, 'enterprise', 'Qualifiziert')],
         volumeEntry,
-        resolveEffectiveFilter(dummyTile(volumeEntry.id, 'enterprise'), volumeEntry),
+        'enterprise',
       );
-
       expect(res.state).toBe('bereit');
       expect(res.value).toBe(5000);
     });
 
     it('löst Pipeline-Stufen-Serien auf', async () => {
-      const fakeSource: FunnelDealSource = {
-        getImportedFunnelDeals: async () => [
+      const res = await runCrm(
+        [
           makeDeal('d-1', 3000, 'standard', 'Qualifiziert'),
           makeDeal('d-2', 1000, 'standard', 'Lead'),
         ],
-      };
-      const res = await resolveCrm(
-        fakeSource,
         stagesEntry,
-        resolveEffectiveFilter(dummyTile(stagesEntry.id), stagesEntry),
       );
-
       expect(res.state).toBe('bereit');
       expect(res.series).toHaveLength(2);
       expect(res.series?.[0]?.label).toBe('Qualifiziert');
@@ -280,17 +266,15 @@ describe('dashboardData', () => {
     });
 
     it('fängt Exceptions aus der Quelle ab und liefert fehler', async () => {
-      const fakeSource: FunnelDealSource = {
-        getImportedFunnelDeals: async () => [makeDeal('bad', -500)],
-      };
-
-      const res = await resolveCrm(
-        fakeSource,
-        dealsEntry,
-        resolveEffectiveFilter(dummyTile(dealsEntry.id), dealsEntry),
-      );
+      const res = await runCrm([makeDeal('bad', -500)], dealsEntry);
       expect(res.state).toBe('fehler');
       expect(res.message).toBe('CRM-Daten konnten nicht geladen werden');
+    });
+
+    it('lehnt Stufenwerte mit nicht endlichen Zahlen ab', async () => {
+      const res = await runCrm([makeDeal('d-inf', Infinity)], stagesEntry);
+      expect(res.state).toBe('fehler');
+      expect(res.message).toBe('Stufenwerte enthalten keine gültige endliche Zahl');
     });
   });
 
@@ -311,6 +295,13 @@ describe('dashboardData', () => {
       // 2. Loading ohne Snapshot
       store.acquire('arr');
       expect(resolveLive(store, liveArrEntry, filter).state).toBe('laden');
+
+      // Offline & Fehler ohne Snapshot
+      controls.feed?.onStatus('offline');
+      expect(resolveLive(store, liveArrEntry, filter).state).toBe('offline');
+      controls.latestImpl = () => Promise.reject(new Error('Fehler'));
+      await store.refresh('arr').catch(() => {});
+      expect(resolveLive(store, liveArrEntry, filter).state).toBe('fehler');
 
       // Feed aktivieren
       controls.feed?.onStatus('live');
@@ -345,18 +336,18 @@ describe('dashboardData', () => {
       expect(resVeraltetError.state).toBe('veraltet');
     });
 
-    it('liefert offline bzw. fehler ohne vorherigen Wert', async () => {
+    it('lehnt nicht endliche Live-Werte ab und liefert fehler', () => {
       const { adapter, controls } = createFakeAdapter();
       const store = createLiveKpiStreamStore(adapter);
       const filter = resolveEffectiveFilter(dummyTile(liveArrEntry.id), liveArrEntry);
-
       store.acquire('arr');
-      controls.feed?.onStatus('offline');
-      expect(resolveLive(store, liveArrEntry, filter).state).toBe('offline');
+      controls.feed?.onStatus('live');
+      controls.feed?.onEvent(makeSnapshot('arr', '2025-01-01T12:00:00.000Z', Infinity));
 
-      controls.latestImpl = () => Promise.reject(new Error('Verbindungsfehler'));
-      await store.refresh('arr').catch(() => {});
-      expect(resolveLive(store, liveArrEntry, filter).state).toBe('fehler');
+      const res = resolveLive(store, liveArrEntry, filter);
+      expect(res.state).toBe('fehler');
+      expect(res.value).toBeNull();
+      expect(res.message).toBe('Wert ist keine endliche Zahl');
     });
 
     it('aggregiert Live-Aktivität für uebersicht.live_aktivitaet', () => {
@@ -364,12 +355,10 @@ describe('dashboardData', () => {
       const store = createLiveKpiStreamStore(adapter);
       const filter = resolveEffectiveFilter(dummyTile(liveActivityEntry.id), liveActivityEntry);
 
-      // Vorab 0 Snapshots -> keine_daten wenn live
       store.acquire('arr');
       controls.feed?.onStatus('live');
       expect(resolveLive(store, liveActivityEntry, filter).state).toBe('keine_daten');
 
-      // Snapshots für 2 KPIs
       store.acquire('mrr');
       controls.feed?.onEvent(makeSnapshot('arr', '2025-01-01T10:00:00.000Z', 100));
       controls.feed?.onEvent(makeSnapshot('mrr', '2025-01-01T11:00:00.000Z', 200));

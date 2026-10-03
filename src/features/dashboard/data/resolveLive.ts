@@ -219,6 +219,17 @@ export function resolveLive(
 
   const streamState = store.getState(kpiId);
   const snap = streamState.snapshot;
+  if (snap && !Number.isFinite(snap.value)) {
+    return {
+      ...baseResult,
+      state: 'fehler',
+      value: null,
+      series: null,
+      overview: null,
+      asOf: snap.occurredAt,
+      message: 'Wert ist keine endliche Zahl',
+    };
+  }
   const quality = snap?.qualityStatus === 'degraded' ? ('degradiert' as const) : undefined;
 
   if (streamState.status === 'live') {

@@ -73,6 +73,17 @@ export function resolveCrmFromOverview(
       value: stage[measure],
     }));
 
+    if (!series.every((item) => Number.isFinite(item.value))) {
+      return {
+        ...baseResult,
+        state: 'fehler',
+        value: null,
+        series: null,
+        overview: null,
+        message: 'Stufenwerte enthalten keine gültige endliche Zahl',
+      };
+    }
+
     return {
       ...baseResult,
       state: 'bereit',
