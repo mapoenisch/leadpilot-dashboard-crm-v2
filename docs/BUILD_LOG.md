@@ -14175,3 +14175,21 @@ Nur Doku geändert, seit Runde 6 (Gates grün auf `d21de96`) keine Code-, Test- 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 277 Dateien, 1704 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
 
 **Schutzbereichs-Diff** (`git diff 8f0345e -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+---
+
+## CI-Auftrag Zweite Automatisierung: Antigravity baut, Claude prüft (Builder: Claude Code, 03.10.2026)
+
+**Ziel & Kontext:** Entscheidung Marc vom 03.10.2026: zweiter Kreislauf neben „Claude baut, Codex prüft“. Auf Branches `antigravity/*` prüft Claude jeden neuen Head automatisch, veröffentlicht den Befund als PR-Kommentar und Commit-Status `claude-review`; Antigravity holt ihn lokal mit `npm run antigravity:inbox` nach `handoff/inbox.md`. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CLAUDE_REVIEW_ANTIGRAVITY.md`. Basis `origin/main` `d8805d9`, Branch `ci/claude-review-antigravity`.
+
+**Geänderte Dateien:** `.github/workflows/claude-review.yml` (neu), `scripts/claudeReviewCycle.mjs` (neu), `scripts/__tests__/claudeReviewCycle.vitest.ts` (neu), `scripts/codexReviewCycle.mjs` und `scripts/__tests__/codexReviewCycle.vitest.ts` (Abgrenzung `antigravity/*`), `package.json` (Skript `antigravity:inbox`), `.gitignore` (`handoff/`, `.claude-review/`), `AGENTS.md` (Handoff-Protokoll), `CLAUDE.md` §4 (Entscheidung 03.10.2026), `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md` (neu), `docs/dashboard/REVIEW_WORKFLOW.md`, `docs/dashboard/AGENT_SETUP.md`, Auftragsdatei.
+
+**Funktionale Prüfungen (Unit- und Vertragstests):** Auslöser nur `antigravity/*` aus diesem Repo, sonst Label/Dispatch; je Head ein Review; Rundenzählung nur aus Workflow-Markierungen; Eskalation nach 5 Runden genau einmal; Ergebnis nur aus genau einer Schlusszeile, Unklares wird `error`, nie `success`; Entschärfung von `<!--`, `@claude`, `@codex`; Inbox nur für den aktuellen Head; Codex-Zyklus fordert auf `antigravity/*` weder Review an noch startet er Nacharbeit; Workflow: gepinnte Actions, kein `pull_request_target`, PR-Code nur im Job ohne Schreibrechte, Claude ohne Push-/Merge-/Kommentar-Werkzeuge, Gate/Publish laden Logik vom Default-Branch. CLI: YAML parsebar, Fehlermeldungen ohne Token korrekt, Repo-Erkennung aus `origin` bis zum API-Aufruf geprüft.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` Exit 0; `npm test` 278 Dateien, 1726 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+**Screenshot-Matrix:** entfällt (keine UI-Änderung).
+
+**Ergebnis & Freigabestatus:** Builder fertig, wartet auf Codex-Prüfung. Ende-zu-Ende-Nachweis erst nach Merge möglich, weil `claude-review.yml` seine Logik vom Default-Branch lädt (bis dahin überspringt jeder Lauf).

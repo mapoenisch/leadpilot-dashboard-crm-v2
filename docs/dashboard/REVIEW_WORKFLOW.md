@@ -2,6 +2,8 @@
 
 Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT.md`.
 
+> **Zweite Automatisierung:** Für Branches `antigravity/*` gilt der umgekehrte Zyklus (Antigravity baut, Claude prüft), beschrieben in `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`. Dort fordert dieser Codex-Zyklus kein Review an und startet keine Nacharbeit durch Claude.
+
 ## Ablauf
 
 1. Claude Code baut auf einem PR-Branch und pusht.

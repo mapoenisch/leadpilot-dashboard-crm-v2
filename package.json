@@ -10,6 +10,7 @@
     "build:production": "node scripts/checkProductionConfig.mjs && vite build --mode production",
     "preview": "vite preview",
     "verify": "npx tsx scripts/verifyIntegrity.ts",
+    "antigravity:inbox": "node scripts/claudeReviewCycle.mjs inbox",
     "verify:licenses": "node scripts/checkThirdPartyLicenses.mjs",
     "verify:migrations": "node scripts/verifyMigrationUpgrade.mjs",
     "verify:backup": "node scripts/verifyBackupRestore.mjs",
