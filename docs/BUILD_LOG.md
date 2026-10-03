@@ -14647,3 +14647,5 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 **Schutzbereichs-Diff** gegen `main`: leer.
 
 Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.
+
+**Nacharbeit PR #55, Codex-Befund 4174545899 (P2):** Die empfohlene Sicherung `git stash push -u` hätte die unversionierten Referenzordner mit in den Stash genommen und aus dem Arbeitsbaum entfernt. Behoben: Sicherung nur für die betroffenen versionierten Pfade (`git stash push -m "<grund>" -- <pfad> …`), `-u`/`--include-untracked`/`--all` ausdrücklich verboten. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.

@@ -50,8 +50,10 @@ Start von Auftrag 071 ungesicherte lokale Änderungen und unversionierte Ordner 
   `.playwright-mcp/`, `readme.md`, `SKILL.md` (siehe `CLAUDE.md` §2). Sie nie löschen oder verschieben.
 - **Arbeitsbaum nicht sauber?** Stoppen und Marc fragen. Für einen neuen Branch genügt
   `git fetch origin && git switch -c <branch> origin/main`; ungesicherte Änderungen bleiben dabei
-  erhalten oder Git bricht mit einer Meldung ab. Ist eine Sicherung nötig, dann
-  `git stash push -u -m "<grund>"` (landet sichtbar in `git stash list`), nie `git stash create`.
+  erhalten oder Git bricht mit einer Meldung ab. Ist eine Sicherung nötig, dann nur die betroffenen
+  versionierten Pfade: `git stash push -m "<grund>" -- <pfad> …` (landet sichtbar in
+  `git stash list`). Nie `git stash -u`/`--include-untracked`/`--all`, denn das nimmt die
+  unversionierten Referenzordner mit und entfernt sie aus dem Arbeitsbaum; nie `git stash create`.
 
 ## Kommunikation
 
