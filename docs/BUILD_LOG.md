@@ -14296,3 +14296,15 @@ Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt 
 **Screenshot-Matrix:** entfällt (keine UI-Änderung).
 
 **Ergebnis & Freigabestatus:** Builder fertig, wartet auf Codex-Prüfung. Ende-zu-Ende-Nachweis erst nach Merge möglich, weil `claude-review.yml` seine Logik vom Default-Branch lädt (bis dahin überspringt jeder Lauf).
+
+---
+
+## Abweichung: PR #49 (Auftrag 070) vor der letzten Codex-Prüfung gemergt (03.10.2026)
+
+**Was:** PR #49 (Dashboard Teilauftrag 1, KPI-Katalog und Datenvertrag) wurde am 03.10.2026 versehentlich gemergt, bevor Codex den letzten Stand geprüft hatte. Der Prüfkommentar von Marc galt PR #50 und war im falschen PR gelandet.
+
+**Stand beim Merge:** CI (`ci.yml`) auf Head `6f74074` grün (Lauf 255). Letzter Codex-Review auf `dc14995`. Ungeprüft durch Codex sind die drei Korrektur-Commits danach: `c7a6b1b` (Codex-Befunde Runde 3), `ef1515f` (Pipeline-Stufen), `6f74074` (Live-Einträge in eigene Datei, CI-Lint). Commit-Status `codex-review` auf `6f74074`: `pending`.
+
+**Verstoß:** `CLAUDE.md` §9 (kein Merge ohne grüne, dokumentierte Gates). Die Gate-Freigabe durch Codex fehlt; Grund für das Ausbleiben: Codex-Nutzungslimit.
+
+**Entscheidung Marc:** Kein Revert. Hinweis im PR #49 gesetzt. Nachprüfung durch Codex (`@codex review` in PR #49), sobald Codex wieder verfügbar ist; Befunde behebt Claude Code in einem eigenen Folge-PR. Bis dahin gilt Auftrag 070 als **gemergt, Gate-Freigabe offen**.
