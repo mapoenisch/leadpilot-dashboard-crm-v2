@@ -14328,3 +14328,17 @@ Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt 
 **Nachtrag PR #50 (03.10.2026, Entscheidung Marc): GitHub-MCP für Antigravity.** Antigravity liest den Claude-Befund selbst über seinen GitHub-MCP (nur jüngster Markierungskommentar von `github-actions[bot]` zum aktuellen Head) und öffnet seinen PR selbst; `npm run antigravity:inbox` bleibt Rückfallebene. MCP-Verbote (mergen, freigeben, kommentieren, Labels/Branches/Workflows ändern) in `AGENTS.md`; Empfehlung Fine-grained Token mit `Contents: Read-only`. Geändert: `AGENTS.md`, `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`, Auftragsdatei, Hinweistext in `scripts/claudeReviewCycle.mjs`. Audit-Ausnahme aus PR #51 per Merge übernommen. Gates auf diesem Stand: `tsc`, `lint`, `format:check`, `npm test` 1774 Tests, `verify`, `build`, Audit-Skript jeweils Exit 0; Schutzbereichs-Diff leer.
 
 **Nacharbeit PR #50, Codex-Befund (Kommentar 5969393588, P2, Head 5eb340f):** `parseVerdict` akzeptierte eine Ergebniszeile auch mit nachgestelltem Text, sodass z. B. `ERGEBNIS: KEINE BEFUNDE` gefolgt von einem Nachtrag zu `success` geführt hätte. Behoben: Die Ergebniszeile muss genau einmal vorkommen **und** die letzte nicht-leere Zeile sein, sonst `unclear` (Status `error`). Tests für Nachtrag nach beiden Ergebnissen und für CRLF ergänzt. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+---
+
+## Auftrag 071 geschrieben: Dashboard Teilauftrag 2, Datenauflösung und Filter (Claude Code, 03.10.2026)
+
+**Ziel & Kontext:** Marc hat am 03.10.2026 den ersten Auftrag für Zyklus 2 angefordert (Antigravity baut, Claude prüft). Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_071_DASHBOARD_DATENAUFLOESUNG.md` nach Plan Teilauftrag 2, Basis `main` `a41b864`. Builder: Antigravity auf `antigravity/auftrag-071`.
+
+**Inhalt:** Leseschicht `TileData` mit getrennten Zuständen (keine Daten ≠ 0, veraltet ohne erfundene Altersschwelle), effektiver Filter (Zeitraum wirkt heute auf keine Quelle und wird begründet gemeldet; Pipeline nur CRM über eine filternde `FunnelDealSource`), geteilte CRM-Abfrage je Organisation und Pipeline, Live über den bestehenden Store ohne neuen Kanal, Aktivierung über `enabled`. Live-Geltungsbereich als Vorgabe: Live-Kacheln bleiben, gekennzeichnet als organisationsübergreifend; mandantengetrennter Feed nicht Teil des Auftrags.
+
+**Geänderte Dateien:** nur die Auftragsdatei und dieser Eintrag. Kein Code.
+
+**Schutzbereichs-Diff** gegen `a41b864`: leer.
+
+**Ergebnis:** Auftrag bereit für Antigravity. Kein Gate betroffen (reine Dokumentation).
