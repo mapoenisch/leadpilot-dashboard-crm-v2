@@ -1,8 +1,22 @@
 # Review-Zyklus 2: Antigravity baut, Claude prüft, Antigravity arbeitet nach
 
-Zweite Automatisierung neben `REVIEW_WORKFLOW.md` (Claude baut, Codex prüft). Entscheidung Marc
-vom 03.10.2026. Workflow: `.github/workflows/claude-review.yml`, Logik:
+Ausweichbetrieb für `REVIEW_WORKFLOW.md` (Claude baut, Codex prüft), wenn das Nutzungslimit von
+Codex erreicht ist. Entscheidung Marc vom 03.10.2026. Workflow: `.github/workflows/claude-review.yml`, Logik:
 `scripts/claudeReviewCycle.mjs`, Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CLAUDE_REVIEW_ANTIGRAVITY.md`.
+
+## Wann umschalten
+
+| Lage | Zyklus |
+|---|---|
+| Codex verfügbar | Zyklus 1: Claude baut auf `claude/*`, Codex prüft (`REVIEW_WORKFLOW.md`). |
+| Codex-Nutzungslimit erreicht | Zyklus 2: Antigravity baut auf `antigravity/*`, Claude prüft (dieses Dokument). |
+| Codex wieder verfügbar | Laufende `antigravity/*`-PRs in Zyklus 2 zu Ende bringen, neue Aufträge wieder in Zyklus 1. |
+
+Umgeschaltet wird allein über den Branch-Namen; an den Workflows ist nichts zu ändern.
+
+**Offene Claude-PRs während des Limits** (z. B. ein PR, der auf Codex wartet): nicht per Label
+`claude-review` von Claude prüfen lassen. Claude hat sie gebaut, und ein Builder prüft nie seine
+eigene Arbeit. Sie warten, bis Codex wieder verfügbar ist.
 
 ## Ablauf
 

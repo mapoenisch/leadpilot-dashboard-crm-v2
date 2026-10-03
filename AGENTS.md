@@ -20,9 +20,10 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
   (schreibt fehlende Detailaufträge selbst) → übergibt an **Codex** → der prüft nur
   (Review + Gates), baut nichts, gibt den Befund zurück an Claude Code → Claude Code baut
   nach. Wiederholung bis alle Gates bestanden sind. Antigravity baut in dieser Phase nicht.
-- **Zweite Automatisierung (ab 03.10.2026, Entscheidung Marc):** Auf Branches `antigravity/*`
-  baut **Antigravity**, **Claude prüft** automatisch jeden Push (`claude-review.yml`), Antigravity
-  arbeitet nach. Gilt für Aufträge, die Marc Antigravity ausdrücklich zuweist. Details:
+- **Ausweichbetrieb bei Codex-Nutzungslimit (ab 03.10.2026, Entscheidung Marc):** Ist das Limit
+  von Codex erreicht, baut **Antigravity** auf Branches `antigravity/*`, **Claude prüft**
+  automatisch jeden Push (`claude-review.yml`), Antigravity arbeitet nach. Ist Codex wieder
+  verfügbar, gilt wieder der Ablauf oben. Details:
   `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`, Abschnitt „Handoff-Protokoll“ unten.
 - **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Claude Code ist der schreibende Builder;
   Codex trägt seinen Befund ein und gibt ihn zurück.

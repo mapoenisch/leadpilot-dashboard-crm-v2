@@ -5,7 +5,8 @@
 **Basis:** `main` (`d8805d9`, nach PR #47)
 
 **Auftraggeber:** Marc Poenisch (Entscheidung vom 03.10.2026: „zweite Automatisierung, bei der
-Claude die Reviews macht und Antigravity den Code schreibt“). **Builder dieses Auftrags:** Claude
+Claude die Reviews macht und Antigravity den Code schreibt“, als Ausweichbetrieb, wenn das
+Nutzungslimit von Codex erreicht ist). **Builder dieses Auftrags:** Claude
 Code. **Prüfer:** Codex (Diff und CI). **Merge:** nur Marc.
 
 **Abgrenzung:** Kein Dashboard-Umbau, keine Produktionslogik. Keine Änderung an `ci.yml`, an
@@ -15,7 +16,8 @@ bestehende Zyklus 1 (Claude baut, Codex prüft) bleibt unverändert, außer der 
 
 ## Ziel
 
-Ein zweiter, eigenständiger Kreislauf:
+Ein zweiter, eigenständiger Kreislauf als Ausweichbetrieb für Zyklus 1, solange Codex wegen
+seines Nutzungslimits nicht prüfen kann:
 
 1. Antigravity baut lokal auf einem Branch `antigravity/*` und pusht.
 2. Claude prüft jeden neuen Head automatisch in GitHub Actions (Gates, Auftrag, Schutzbereiche).
@@ -68,8 +70,7 @@ Abholskript (Entscheidung Marc). Höchstens fünf Runden pro PR. Claude merged n
 
 ## Offene Punkte (nicht Teil dieses Auftrags)
 
-- `CLAUDE.md` §4 nennt bis `v2.3.0` Claude Code als Builder. Zyklus 2 gilt nach Entscheidung Marc
-  vom 03.10.2026 zusätzlich für Aufträge, die Marc ausdrücklich Antigravity zuweist (Branch
-  `antigravity/*`). Welche Aufträge das sind, legt Marc fest.
+- Umschalten geschieht über den Branch-Namen (`antigravity/*`), nicht automatisch. Eine
+  automatische Erkennung des Codex-Limits ist nicht Teil dieses Auftrags.
 - Funktionsnachweis Ende-zu-Ende erst nach dem Merge möglich, weil der Workflow seine Logik vom
   Default-Branch lädt.
