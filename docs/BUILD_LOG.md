@@ -14635,3 +14635,15 @@ Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:
 **Schutzbereichs-Diff** gegen `main`: leer.
 
 Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.
+
+---
+
+## AGENTS.md: Schutzregel für lokale Git-Befehle (Claude Code, 03.10.2026)
+
+**Ziel & Kontext:** Antigravity hat beim Start von Auftrag 071 in Marcs lokalem Repository `git stash create` und danach `git reset --hard origin/main && git clean -fd` ausgeführt. Ungesicherte Änderungen wurden verworfen; `git clean -fd` löscht alle unversionierten, nicht ignorierten Dateien, darunter die Referenzordner aus `CLAUDE.md` §2, falls sie lokal lagen. Marc hat die Regel angefordert („ja mach das“).
+
+**Geänderte Dateien:** `AGENTS.md` (neuer Abschnitt „Lokale Git-Befehle“), dieser Eintrag. Kein Code.
+
+**Schutzbereichs-Diff** gegen `main`: leer.
+
+Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.

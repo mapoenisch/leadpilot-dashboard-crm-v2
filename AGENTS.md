@@ -37,6 +37,22 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
    gedeckt: stoppen und nachfragen.
 3. Nach der Änderung alle Gates fahren, Ergebnis in `docs/BUILD_LOG.md` festhalten.
 
+## Lokale Git-Befehle (Entscheidung Marc vom 03.10.2026)
+
+Gilt für alle Agenten, die in Marcs lokalem Repository arbeiten. Anlass: Antigravity hat beim
+Start von Auftrag 071 ungesicherte lokale Änderungen und unversionierte Ordner verworfen.
+
+- **Ohne ausdrückliche Zustimmung von Marc verboten:** `git reset --hard`, `git clean` (jede
+  Variante), `git checkout -- <pfad>` / `git restore` auf fremde Änderungen, `git stash drop`,
+  `git branch -D`, Force-Push.
+- **Im Repo-Root liegen absichtlich unversionierte Ordner und Dateien,** die weder in Git noch in
+  `.gitignore` stehen: `archive/`, `uploads/`, `reference/`, `ui_kits/`, `guidelines/`, `tokens/`,
+  `.playwright-mcp/`, `readme.md`, `SKILL.md` (siehe `CLAUDE.md` §2). Sie nie löschen oder verschieben.
+- **Arbeitsbaum nicht sauber?** Stoppen und Marc fragen. Für einen neuen Branch genügt
+  `git fetch origin && git switch -c <branch> origin/main`; ungesicherte Änderungen bleiben dabei
+  erhalten oder Git bricht mit einer Meldung ab. Ist eine Sicherung nötig, dann
+  `git stash push -u -m "<grund>"` (landet sichtbar in `git stash list`), nie `git stash create`.
+
 ## Kommunikation
 
 Deutsch, Du-Form. Ergebnis zuerst, knapp, keine Floskeln.
