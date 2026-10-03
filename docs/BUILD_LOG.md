@@ -14295,6 +14295,260 @@ Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt 
 
 **Ergebnis & Freigabestatus:** Builder fertig. Prüfung durch Codex offen (Nutzungslimit); Ausnahme läuft am 02.11.2026 ab.
 
+
+---
+
+## [2026-10-02] Auftrag Dashboard-Testkachel — Designprobe Teilauftrag 0 (Builder: Claude Code)
+
+**Ziel & Kontext:** Isolierte, bedienbare Testkachel für die Designfreigabe durch Marc (Auftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_DASHBOARD_TESTKACHEL.md`, Plan Teilauftrag 0). Referenz: Bild des bestehenden Live-Funnels, nur für den 3D-Effekt der Diagramme (Entscheidung Marc 02.10.2026). Das Bild lag vorübergehend auf dem nicht zu mergenden Branch `ref/dashboard-referenzbild` und ist nicht Teil dieses PR.
+
+**Geänderte Dateien:** neues Modul `src/features/dashboard/preview/` (Kachel, Seite, Beispieldaten, Fehlergrenze, Routenpfad, Diagramme `Depth3dBarChart`, `Depth3dDonutChart`, `DepthLineChart`, `DepthAreaChart`, gemeinsame `ChartReadout`/`chartTypes`, reine Geometrie `depthGeometry`, Tests), `src/app/App.tsx` (Vorschauroute), `src/vite-env.d.ts`, `.github/workflows/ci.yml` (Vorschau-Flag im Job `build`), `scripts/captureDashboardPreviewScreenshots.mjs`, `docs/screenshots/auftrag-dashboard-testkachel/README.md`, Auftragsdatei. Fünf Hilfsdateien im Vorschau-Modul kamen bei der Umsetzung dazu und sind in der Ziel-Dateien-Tabelle des Auftrags als Nachtrag vermerkt.
+
+**Funktionale Prüfungen:**
+- Darstellungen Zahl, Tabelle, Säulen, Ring, Linie, Fläche; Größen Klein/Mittel/Groß/Volle Breite. Zahl und Tabelle ohne räumlichen Effekt.
+- Säulen im Stil des bestehenden Funnels (Kappe, Seitenfläche, Verlauf, Bodenleuchten, Tiefe 3 bis 8 px); Ring mit gerader Tiefe und exakten Anteilen (Winkelsumme 360°); Linie/Fläche ohne Tiefenverschiebung der Punkte.
+- Tooltip-Zeile mit Wert, Einheit, Kategorie, Zeitraum; Zugang per Maus, Legenden-Schaltflächen (Tastatur/Touch) bzw. Bereichsregler; „Werte als Tabelle“ zu jedem Diagramm; reduzierte Bewegung ohne Übergänge.
+- SVG-IDs je Kachel eindeutig (Test mit zwei Instanzen). Nachgeladene Diagrammmodule mit Lade- und Fehlerzustand und „Wiederholen“ (Test).
+- Route `/dashboard-vorschau` ohne Anmeldung nur im Dev-Modus oder mit `VITE_DASHBOARD_PREVIEW=true`. Geprüft per Build: ohne Flag enthält `dist/` weder den Chunk `DashboardPreviewPage` noch den Pfad; mit Flag beides. Vertragstest auf `App.tsx`.
+- Bestehender `LiveFunnelBarChart.tsx` unverändert.
+
+**Schutzbereichs-Prüfung** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources src/components/liveKpi`): leer.
+
+**Automatisierte Verifikation** (lokal, `npm ci --ignore-scripts`): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1726 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich; `verify:quality-budget` grün (keine neue Suppression, 0 Inline-Styles); `size-limit` 175,44 kB gesamt, größter Chunk 86,4 kB (Grenze 250 kB).
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-dashboard-testkachel/README.md`. 18 Aufnahmen (1440/768/375 px × 6 Darstellungen), alle SHA-256 verschieden, 0 px Überlauf, 0 axe-Verstöße serious/critical. Neue Ansicht ohne Vorgänger, daher keine Vorher/Nachher-Paare.
+
+**Offene Bewertungspunkte für Marc:** Auf 375 px werden Achsen- und Säulenbeschriftungen sehr klein. Die Reiterleiste nutzt die bestehende `Tabs`-Komponente, die durch den fehlenden Tailwind-Reset einen Rahmen an allen Seiten zeigt (ebenso auf der Lead-Seite); nicht geändert, weil außerhalb der Ziel-Dateien.
+
+**Ergebnis & Freigabestatus:** Builder-Gates grün. Offen: PR-CI, Codex-Prüfung, Designfreigabe durch Marc.
+
+---
+
+## Automatische Nacharbeit Runde 1 (PR #48, Head d7b4e7d)
+
+**Befunde (Codex, Review 5389751081):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164091611 (P1) | `DashboardDesignPreview.tsx` | behoben: Darstellungen „Balken“ (horizontal, `Depth3dBarChart` mit `orientation`) und „Kreis“ (`Depth3dDonutChart` mit `solid`, Radius 0 innen) ergänzt; `layoutHBars` in `depthGeometry.ts` mit Tests. |
+| 4164091615 (P2) | `DashboardDesignPreview.tsx` | behoben: erster „Wiederholen“ lädt das Modul neu; scheitert es erneut, speichert die Kachel Darstellung und Größe in `sessionStorage` und lädt die Seite neu (frischer Modulabruf), die Auswahl wird danach wiederhergestellt. Test ohne künstlich wechselnde Promises. |
+| 4164091617 (P2) | `charts/ChartReadout.tsx` | behoben: Legenden-Schaltflächen wählen bei `onFocus`, räumen bei `onBlur` auf; Klick wählt, statt umzuschalten. Test. |
+| 4164091620 (P2) | `charts/Depth3dBarChart.tsx` | behoben: Nullwerte zeichnen keine Kappe, Seitenfläche, Vorderfläche und kein Bodenleuchten, nur eine Markierung auf der Grundlinie. Test. |
+| 4164091626 (P1) | `docs/screenshots/auftrag-dashboard-testkachel/README.md` | begründet abgelehnt: Die Route existiert im Basis-Commit nicht, ein Vorher-Bild kann es nicht geben (Auftrag: „Neue Ansicht“). Regressionsschutz über leeren Diff auf `LiveFunnelBarChart.tsx` und Schutzbereiche. Die Matrix wurde um die neuen Darstellungen nicht neu erzeugt (siehe Hinweis in der README); das ist offen. |
+| 4164091635 (P2) | `DashboardDesignPreview.tsx` | behoben: Größen aus dem Raster des Plans: Desktop ab 1280 px 300/600/900/1200 px; Tablet Klein halbe Breite, Mittel/Groß volle Breite; Handy volle Breite. |
+| 4164091638 (P2) | `charts/DepthLineChart.tsx` (und Säulen, Ring) | behoben: Diagramme behalten Mindestbreite 560 px (1:1 zur Zeichenfläche) in einem fokussierbaren, waagerecht scrollbaren Bereich (`ScrollableChart`); Beschriftungen werden nicht mehr verkleinert. Test. |
+| 4164091642 (P1) | `scripts/captureDashboardPreviewScreenshots.mjs` | behoben: Statt fester 250 ms wartet das Harness je Darstellung auf das darstellungsspezifische Element und auf das Verschwinden des Ladestatus; Zeitüberschreitung bricht ab. Nicht gelaufen (siehe Gates). |
+| 4164091646 (P2) | `charts/DepthLineChart.tsx` | behoben: Der Regler wählt beim Fokus den ersten Zeitpunkt, kein unechter Nullzustand mehr bei der ersten Pfeiltaste. Test. |
+| 4164091650 (P2) | `src/app/App.tsx` | behoben: Vorschauroute liegt außerhalb von `QueryClientProvider`, `AuthProvider`, `OrganizationProvider` und `WorkspaceHydrator` (neu: `AppWithProviders` unter `path="*"`). Vertragstest ergänzt. |
+| 4164091652 (P2) | `DashboardDesignPreview.tsx` | behoben: „Werte als Tabelle“ liegt außerhalb von `ChartModuleBoundary`. Test. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1736 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Screenshot-Harness: nicht ausgeführt (kein Browser-Lauf in der automatischen Nacharbeit), Matrix steht aus.
+
+**Schutzbereichs-Diff** (`git diff d7b4e7d -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #48: Screenshot-Matrix nach Runde 1 (manuell, Head f75df67)
+
+Die automatische Runde 1 konnte das Harness nicht ausführen. Lokal nachgeholt gegen den Dev-Server: 8 Darstellungen (Zahl, Tabelle, Säulen, Balken, Kreis, Ring, Linie, Fläche) × 1440/768/375 px = 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. Matrix: `docs/screenshots/auftrag-dashboard-testkachel/README.md`. Vorher/Nachher: neue Route ohne Vorgänger, Begründung in der Matrix.
+
+**Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1736 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich. **Schutzbereichs-Diff** inklusive `src/components/liveKpi`: leer.
+
+---
+
+## Automatische Nacharbeit Runde 2 (PR #48, Head b9cadd4)
+
+**Befunde (Codex, Review 5389927690):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164235403 (P2) | `src/app/App.tsx` | behoben: `AppWithProviders` ist jetzt `React.lazy`; Layout, `AuthContext` (damit `supabaseAuthAdapter`/`supabaseClient`), `organizationContext`, `ProtectedRoute`, `simulationStore` und `@/services/data` werden erst beim Rendern des produktiven Baums per `import()` geladen. `/dashboard-vorschau` wertet den Supabase-Client nicht mehr aus. Vertragstest: keine statischen Imports dieser Module in `App.tsx`. |
+| 4164235408 (P2) | `charts/Depth3dBarChart.tsx` (auch Ring, Linie, Fläche) | behoben: `summarizeSeries` (`depthGeometry.ts`) erzeugt je Diagramm eine datenabhängige Kernaussage (Höchst-/Niedrigstwert, Summe und größter Anteil, Richtung und Änderung des Verlaufs); `ChartSummary` (`ChartReadout.tsx`) hängt sie per `aria-describedby` an das SVG. Tests. |
+| 4164235416 (P2) | `DashboardDesignPreview.tsx` | behoben: Ladeplatzhalter per Tastatur fokussierbar (`tabIndex=0`, Fokusring), nennt Titel und Zeitraum des Diagramms. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1741 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich. Screenshot-Harness nicht ausgeführt; sichtbar ändern sich nur Fokusring und Platzhaltertext.
+
+**Schutzbereichs-Diff** (`git diff b9cadd4 -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #48: Revision „Weg 2“, Vorschau als eigene Seite (manuell, Head 963fbb3)
+
+**Anlass:** Runde 2 der automatischen Nacharbeit hatte zur Supabase-Trennung (Befund 4164235403) den gesamten produktiven Provider-Baum in `App.tsx` per `React.lazy` nachgeladen. Das funktionierte (CI grün), verlegte aber für jede Produktiv-Sitzung einen zusätzlichen, nacheinander geladenen Abschnitt in den App-Start, verursacht durch eine reine Designprobe. **Entscheidung Marc (02.10.2026): „Weg 2“.**
+
+**Umsetzung:** `src/app/App.tsx` und `src/vite-env.d.ts` zurück auf den Stand von `main` (Diff leer). Neue Seite `dashboard-vorschau.html` mit eigenem Einstieg `src/features/dashboard/preview/previewMain.tsx` (nur Vorschauseite und globale Styles). `vite.config.ts` nimmt die Seite nur bei `VITE_DASHBOARD_PREVIEW=true` als Build-Eingang auf; im Dev-Modus liefert Vite sie ohnehin aus. Adresse jetzt `/dashboard-vorschau.html` (Skript, Matrix, Auftrag angepasst). Die drei Befunde aus Runde 2 bleiben damit behoben; die Supabase-Trennung gilt jetzt auf Modulebene ohne Eingriff in die Produktiv-App.
+
+**Nachweise:**
+- Build ohne Flag: keine `dashboard-vorschau.html`, kein Vorschau-Code im Bundle.
+- Build mit Flag: Die Vorschau lädt statisch und dynamisch nur `react-vendor`, `vendor`, `Button`, `Tabs`, `managementChartTheme`, `chartTypes`, die vier Diagrammmodule und ihren Einstieg; kein `supabase-vendor`, kein `createClient`.
+- Gefundene und behobene Nebenwirkung: Der benannte Build-Eingang hieß zunächst `main`, wodurch die Startdatei `main-*.js` statt `index-*.js` hieß und `.size-limit.json` (`dist/assets/index-*.js`) sie nicht mehr gemessen hätte (gemessen 117 statt 175 kB). Eingang heißt jetzt `index`; `size-limit` misst wieder 175,43 kB (wie `main`). Vertragstest sichert den Namen.
+- Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical.
+
+**Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1741 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start, 86,4 kB größter Chunk. **Schutzbereichs-Diff** inklusive `src/components/liveKpi`, `src/app` und `src/vite-env.d.ts`: leer.
+
+
+---
+
+## Automatische Nacharbeit Runde 3 (PR #48, Head 8c2d154)
+
+**Befunde (Codex, Review 5390381948):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164588356 (P2) | `DashboardDesignPreview.tsx` | behoben: „Wiederholen“ speichert Auswahl und Größe und lädt die Seite sofort neu; die Zwei-Stufen-Logik mit erneutem `import()` unter demselben Specifier entfällt. Test angepasst. |
+| 4164588368 (P2) | `DashboardDesignPreview.tsx` | behoben: Ladeplatzhalter reserviert 360 px (ungefähre Höhe der vollständigen Diagrammansicht) statt 220 px. |
+| 4164588372 (P2) | `charts/Depth3dDonutChart.tsx` | behoben: Erst alle Tiefenflächen, danach alle Segmentoberflächen (zwei Durchläufe). |
+| 4164588381 (P2) | `scripts/captureDashboardPreviewScreenshots.mjs` | behoben: Manifest wird ins Temp-Verzeichnis des Systems geschrieben statt ins Repo. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1741 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich. Screenshot-Harness nicht ausgeführt.
+
+**Schutzbereichs-Diff** (`git diff 8c2d154 -- src/simulation src/types src/context src/services/data src/features/resources .github .codex-review-cycle`): leer.
+
+
+---
+
+## Nacharbeit PR #48: Screenshot-Matrix nach Runde 3 (manuell, Head b3c0f65)
+
+Matrix auf den finalen Stand gebracht (Kreis/Ring jetzt in zwei Zeichendurchläufen). 24 Aufnahmen gegen `/dashboard-vorschau.html`, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical; das Harness legt sein Manifest jetzt im Temp-Verzeichnis ab, der Arbeitsbaum bleibt sauber. Nur Doku geändert; die Gates der Runde 3 (`tsc`, Lint, 1741 Tests, `verify`, Build) gelten für den unveränderten Code. Die drei automatischen Runden sind verbraucht, weitere Befunde bearbeitet Claude Code manuell.
+
+
+---
+
+## Nacharbeit PR #48 Runde 4 (manuell, Head 4b3e01d)
+
+Die drei automatischen Runden sind verbraucht; Bearbeitung durch Claude Code.
+
+**Befunde (Codex, Review 5390507457):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164688758 (P2) | `DashboardDesignPreview.tsx` | behoben: Hatte der Ladeplatzhalter den Tastaturfokus, übernimmt ihn nach dem Laden der Diagrammbereich (`FocusAfterLoad`, Diagrammbereich mit `tabIndex=-1`). Hat der Nutzer den Platzhalter vorher verlassen, wird kein Fokus gestohlen. Zwei Tests. |
+| 4164688744 (P2) | `ChartModuleBoundary.tsx` | behoben: Fehlerzustand reserviert wie Ladeplatzhalter und Diagrammbereich `min-h-[360px]`; Test. |
+| 4164688773 (P2) | `DashboardDesignPreview.tsx` | behoben: `motion-reduce:transition-none` an der Kachel, damit die Größenänderung bei reduzierter Bewegung nicht animiert; Test. |
+
+**Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1745 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical (Matrix aktualisiert). **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Nacharbeit PR #48 Runde 5 (manuell, Head aff3edf)
+
+Die drei automatischen Runden sind verbraucht; Bearbeitung durch Claude Code.
+
+**Befunde (Codex, Review 5390623843):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4164784254 (P2) | `ChartModuleBoundary.tsx` | behoben: Die Fehlergrenze erhält die Fokusmarkierung des Ladeplatzhalters. Scheitert das Modul, während der Platzhalter fokussiert ist, übernimmt „Wiederholen“ den Fokus (`componentDidUpdate` beim Übergang in den Fehlerzustand). Test mit langsam scheiterndem Lader. |
+| 4164784265 (P2) | `DashboardDesignPreview.tsx` | behoben: Der `useState`-Initialisierer liest den Retry-Zustand nur noch; gelöscht wird er nach dem Mount in einem `useEffect`. Unter `React.StrictMode` (doppelter Initialisierer) bleibt die Auswahl erhalten. Test unter StrictMode. |
+
+Beide neuen Tests schlagen auf dem alten Code fehl und sind mit der Korrektur grün.
+
+**Gates** (lokal, Stand dieses Commits vor dem Ledger-Eintrag): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1747 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness gegen `/dashboard-vorschau.html`: 24 Aufnahmen, alle SHA-256 verschieden und identisch mit Runde 4 (keine sichtbare Änderung), 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Designrückmeldung Marc zur Testkachel: Ring und Kreis überarbeitet (Head 506513c)
+
+**Rückmeldung Marc (02.10.2026, nach Ansicht der Vorschau):**
+
+1. Alles bleibt so, nur Ring und Kreis passen nicht zum Design der Säulen. Zwei angehängte Ausschnitte (Ring „MRR-Verteilung nach Paket“, unscharf wegen Zoomstufe) geben den Stil vor; in der Testkachel scharf umsetzen. Die Ausschnitte sind nur Stilvorlage und liegen nicht im Repo (`CLAUDE.md` §7).
+2. Mobilansicht: so lassen, nicht verkleinern (Diagramm scrollt auf schmalen Kacheln weiter innerhalb der Kachel).
+
+**Umsetzung:**
+
+| Datei | Änderung |
+|---|---|
+| `charts/Depth3dDonutChart.tsx` | Draufsicht ohne Verlängerung nach unten. Je Segment radialer Verlauf (innen abgedunkelt, Grundfarbe, helle Außenkante), Licht von oben wie bei den Säulen, dunkle Fugen zwischen den Segmenten, dezentes Leuchten hinter dem Ring, dunkle Ringmitte mit feiner Türkiskante, Wert größer in der Mitte. Winkel weiter exakt aus `donutSegments`. Verläufe je Kachel eindeutig (`idPrefix`). |
+| `charts/chartTypes.ts` | Anteilsfarben als Türkis-Abstufung vom größten (hell) zum kleinsten Anteil (dunkel); `shadeHex` für die Verlaufsstufen. |
+| `__tests__/depthGeometry.vitest.ts` | Tests für `shadeHex` und die abfallende Helligkeit der Abstufung. |
+| `docs/auftraege/ANTIGRAVITY_AUFTRAG_DASHBOARD_TESTKACHEL.md` | Revision Ring und Kreis nach zweiter Referenz, Mobilentscheidung. |
+| `docs/screenshots/auftrag-dashboard-testkachel/README.md` | Matrix neu aufgenommen. |
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1749 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical; geändert sind nur die Aufnahmen von Ring und Kreis. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+**Status:** Designfreigabe steht aus, bis Marc den überarbeiteten Ring und Kreis gesehen hat.
+
+
+---
+
+## Designfreigabe Testkachel durch Marc (Stand f779901)
+
+**Freigabe:** Marc Poenisch, 02.10.2026, nach Ansicht der Vorschau mit überarbeitetem Ring und Kreis: „Ja passt“.
+
+- **Freigegebener Stand:** Commit `f779901` (PR #48), Vorschauseite `/dashboard-vorschau.html`.
+- **Referenzen:** (1) Bestehender Live-Funnel (`LiveFunnelBarChart.tsx`) als Vorlage für den 3D-Effekt der Säulen und Balken; (2) Ring „MRR-Verteilung nach Paket“ als Vorlage für Ring und Kreis. Beide nur Stilvorlage, nicht im Repo (`CLAUDE.md` §7).
+- **Mitentschieden:** Mobilansicht bleibt scrollbar innerhalb der Kachel, keine Verkleinerung der Beschriftung.
+- **Folge:** Die Teilaufträge 1 bis 8 des Plans `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` dürfen beginnen. Freigegebene Teile (Tiefen-Diagramme, Geometrie, Farben) dürfen in Teilauftrag 4 übernommen werden. Die Probe selbst erhält kein produktives Release.
+- **Offen für den Merge von PR #48:** grüne CI und Codex-Prüfung auf dem aktuellen Stand; Merge nur durch Marc.
+
+Nur Doku geändert; die Gates des Commits `f779901` gelten unverändert.
+
+
+---
+
+## Nacharbeit PR #48 Runde 6 (manuell, Head b018824)
+
+**Befund (Codex, Review 5393454540):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167054835 (P2) | `charts/Depth3dDonutChart.tsx` | behoben: Die Farbe richtet sich nach dem Rang des Werts statt nach der Position (`shareColors` in `charts/chartTypes.ts`); der größte Anteil ist auch bei unsortierten Daten am hellsten, die Segmentreihenfolge bleibt unverändert. Ring, Leuchten, Legende und Schaltflächen nutzen dieselbe Zuordnung. Test mit unsortierten und gleich großen Werten. |
+
+Sichtbar ändert sich nichts, weil die Beispieldaten bereits absteigend sind; die freigegebene Gestaltung (`f779901`) bleibt damit gültig.
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1750 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,43 kB Start (wie `main`). Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden und identisch mit der Matrix, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Nacharbeit PR #48 Runde 7 (manuell, Head ed68d9e)
+
+**Befund (Codex, Review 5393562638):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167144576 (P2) | `DashboardDesignPreview.tsx` | behoben, grundsätzlich statt mit einer weiteren festen Zahl: Die Endhöhe hängt von der Kachelbreite ab (Zeichenfläche 2:1 skaliert mit, Legende bricht um), gemessen 357 bis 659 px. Lade- und Fehlerzustand legen ihren Text jetzt über ein unsichtbares Gerüst mit derselben Struktur wie das geladene Diagramm (`ChartLayoutReserve` in `charts/ChartReadout.tsx`: Fläche `aspect-[2/1]` mit 560 px Mindestbreite, Ausgabezeile, dieselben Legenden-Schaltflächen bzw. derselbe Regler mit gemeinsamen Klassen). `ChartLoadingPlaceholder` und Fehlerzustand in `ChartModuleBoundary.tsx`; die feste Mindesthöhe 360 px entfällt. |
+
+**Browser-Nachweis** (Playwright gegen den Dev-Server, Diagrammmodule per Netzwerk-Routing angehalten bzw. abgebrochen, reduzierte Bewegung, damit die 200-ms-Breitenanimation nicht mitgemessen wird): 3 Breiten (1440/768/375) × 4 Größen × 6 Darstellungen × {Laden, Fehler} = 144 Kombinationen, Abweichung Platzhalter bzw. Fehlerzustand zu geladenem Diagramm in allen Fällen ≤ 1 px. Ohne reduzierte Bewegung zeigte eine erste Messung Abweichungen ausschließlich bei 1440 px direkt nach dem Größenwechsel, also mitten in der Übergangsanimation.
+
+**Tests:** Platzhalter enthält das Gerüst; Fehlerzustand enthält das Gerüst mit fünf Legenden-Platzhaltern; Linie bekommt einen Regler statt einer Legende; das Gerüst ist `aria-hidden` und nicht fokussierbar.
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 279 Dateien, 1751 Tests grün; `npm run verify` alle Suiten grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB Start. Screenshot-Harness: 24 Aufnahmen, alle SHA-256 verschieden, 0 px Seitenüberlauf, 0 axe-Verstöße serious/critical; geändert sind nur Linie und Fläche auf 1440 und 375 px (3 px Leerraum der früheren festen Mindesthöhe entfallen), die Gestaltung ist unverändert. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html` und `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Nacharbeit PR #48 Runde 8 (manuell, Head b33cf9e)
+
+**Befund (Codex, Review 5394369649):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167818742 (P2) | `charts/ChartReadout.tsx` | Im Browser geprüft: Die globale Regel in `src/styles/global.css` (`prefers-reduced-motion: reduce` → `transition-duration: 0.01ms !important`) greift bereits, gemessen 0,01 ms statt 0,15 ms. Trotzdem ergänzt: `motion-reduce:transition-none` direkt an den Legenden-Schaltflächen, damit das Modul bei der Übernahme in Teilauftrag 4 nicht von der globalen Regel abhängt. Test (rot ohne die Klasse). |
+
+Keine sichtbare Änderung: Die Klasse wirkt nur auf Übergänge bei reduzierter Bewegung, das Screenshot-Harness läuft bereits mit reduzierter Bewegung.
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 1751 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html`, `src/vite-env.d.ts` gegenüber `main`: leer.
+
+
+---
+
+## Nacharbeit PR #48 Runde 9 (manuell, Head 7dd9e02)
+
+**Befund (Codex, Review 5394467148):**
+
+| Befund | Datei | Entscheidung |
+|---|---|---|
+| 4167901653 (P2) | `charts/chartTypes.ts` | behoben: `seriesColor` begrenzt Ränge jenseits der fünf Töne auf den dunkelsten Ton statt per Modulo wieder hell zu beginnen; ein kleiner Anteil sieht nie wie der größte aus, die Fugen trennen gleich gefärbte Segmente. Test mit sieben Anteilen (rot ohne die Korrektur). |
+
+Keine sichtbare Änderung: Die Beispieldaten haben fünf Anteile.
+
+**Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 1751 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html`, `src/vite-env.d.ts` gegenüber `main`: leer.
+
 ---
 
 ## CI-Auftrag Zweite Automatisierung: Antigravity baut, Claude prüft (Builder: Claude Code, 03.10.2026)
@@ -14328,3 +14582,5 @@ Außerdem die von Runde 3 verkürzten Live-Definitionen wieder fachlich korrekt 
 **Nachtrag PR #50 (03.10.2026, Entscheidung Marc): GitHub-MCP für Antigravity.** Antigravity liest den Claude-Befund selbst über seinen GitHub-MCP (nur jüngster Markierungskommentar von `github-actions[bot]` zum aktuellen Head) und öffnet seinen PR selbst; `npm run antigravity:inbox` bleibt Rückfallebene. MCP-Verbote (mergen, freigeben, kommentieren, Labels/Branches/Workflows ändern) in `AGENTS.md`; Empfehlung Fine-grained Token mit `Contents: Read-only`. Geändert: `AGENTS.md`, `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`, Auftragsdatei, Hinweistext in `scripts/claudeReviewCycle.mjs`. Audit-Ausnahme aus PR #51 per Merge übernommen. Gates auf diesem Stand: `tsc`, `lint`, `format:check`, `npm test` 1774 Tests, `verify`, `build`, Audit-Skript jeweils Exit 0; Schutzbereichs-Diff leer.
 
 **Nacharbeit PR #50, Codex-Befund (Kommentar 5969393588, P2, Head 5eb340f):** `parseVerdict` akzeptierte eine Ergebniszeile auch mit nachgestelltem Text, sodass z. B. `ERGEBNIS: KEINE BEFUNDE` gefolgt von einem Nachtrag zu `success` geführt hätte. Behoben: Die Ergebniszeile muss genau einmal vorkommen **und** die letzte nicht-leere Zeile sein, sonst `unclear` (Status `error`). Tests für Nachtrag nach beiden Ergebnissen und für CRLF ergänzt. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+**Nacharbeit PR #48: Merge `main` nach PR #49/#50/#51 (03.10.2026):** Konflikt nur in `docs/BUILD_LOG.md` (beide Seiten hatten Abschnitte angehängt); aufgelöst durch Übernahme beider Seiten, Einträge der Testkachel vor denen der zweiten Automatisierung. Kein Code-Konflikt.
