@@ -14626,6 +14626,18 @@ Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:
 
 ---
 
+## Aufteilung der Prüfwege ab 03.10.2026 (Claude Code, Dokumentation)
+
+**Ziel & Kontext:** Marc hat das Claude-Code-Plugin `codex-review` lokal installiert und die vorgeschlagene Aufteilung bestätigt („ja mach das“). Die automatische Nacharbeit auf GitHub wird pausiert, weil sie am 03.10. auf einem veralteten Head lief (PR #52, Abbruch „Branch hat sich seit dem Review bewegt“).
+
+**Geänderte Dateien:** `docs/dashboard/REVIEW_WORKFLOW.md` (Hinweis oben, neuer Abschnitt „Aufteilung ab 03.10.2026“), `CLAUDE.md` §4 (Entscheidung ergänzt, nichts umgeschrieben), dieser Eintrag. Keine Workflow-Datei geändert; das Pausieren erfolgt durch Marc unter Actions.
+
+**Schutzbereichs-Diff** gegen `main`: leer.
+
+Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.
+
+---
+
 ## Auftrag 071: Dashboard Teilauftrag 2 – Datenauflösung und Filter (Builder: Antigravity, 03.10.2026)
 
 **Ziel & Kontext:** Umsetzung der Leseschicht `TileData` für das Executive Dashboard laut Plan Teilauftrag 2 (`docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`) und Spezifikation `docs/auftraege/ANTIGRAVITY_AUFTRAG_071_DASHBOARD_DATENAUFLOESUNG.md`. Builder: Antigravity auf Branch `antigravity/auftrag-071`. Prüfung automatisch über `claude-review.yml`.
