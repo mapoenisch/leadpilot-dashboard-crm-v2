@@ -89,10 +89,12 @@ jobs:
         run: npm run test:coverage
       - name: Legacy-Harness (Parallelbetrieb bis Schritt d)
         run: npm run verify
+      # Wie `npm audit`, aber mit befristeten, begründeten Ausnahmen aus scripts/auditAllowlist.mjs
+      # (Auftrag ANTIGRAVITY_AUFTRAG_CI_AUDIT_AUSNAHME_BRACES). Nach Ablauf greift keine Ausnahme mehr.
       - name: Dependency Audit Check
         run: |
-          npm audit --omit=dev
-          npm audit --audit-level=high
+          node scripts/auditAllowlist.mjs --omit=dev
+          node scripts/auditAllowlist.mjs --audit-level=high
       - name: Migration Integrity Check
         run: |
           test -d supabase/migrations
