@@ -14548,3 +14548,39 @@ Keine sichtbare Änderung: Die Klasse wirkt nur auf Übergänge bei reduzierter 
 Keine sichtbare Änderung: Die Beispieldaten haben fünf Anteile.
 
 **Gates** (lokal): `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm test` 1751 Tests grün; `npm run verify` grün; `npm run build` erfolgreich; `verify:quality-budget` grün; `size-limit` 175,42 kB. **Schutzbereichs-Diff** inklusive `src/app`, `src/components`, `index.html`, `src/vite-env.d.ts` gegenüber `main`: leer.
+
+---
+
+## CI-Auftrag Zweite Automatisierung: Antigravity baut, Claude prüft (Builder: Claude Code, 03.10.2026)
+
+**Ziel & Kontext:** Entscheidung Marc vom 03.10.2026: zweiter Kreislauf als Ausweichbetrieb für „Claude baut, Codex prüft“, wenn das Nutzungslimit von Codex erreicht ist. Auf Branches `antigravity/*` prüft Claude jeden neuen Head automatisch, veröffentlicht den Befund als PR-Kommentar und Commit-Status `claude-review`; Antigravity holt ihn lokal mit `npm run antigravity:inbox` nach `handoff/inbox.md`. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CLAUDE_REVIEW_ANTIGRAVITY.md`. Basis `origin/main` `d8805d9`, Branch `ci/claude-review-antigravity`.
+
+**Geänderte Dateien:** `.github/workflows/claude-review.yml` (neu), `scripts/claudeReviewCycle.mjs` (neu), `scripts/__tests__/claudeReviewCycle.vitest.ts` (neu), `scripts/codexReviewCycle.mjs` und `scripts/__tests__/codexReviewCycle.vitest.ts` (Abgrenzung `antigravity/*`), `package.json` (Skript `antigravity:inbox`), `.gitignore` (`handoff/`, `.claude-review/`), `AGENTS.md` (Handoff-Protokoll), `CLAUDE.md` §4 (Entscheidung 03.10.2026), `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md` (neu), `docs/dashboard/REVIEW_WORKFLOW.md`, `docs/dashboard/AGENT_SETUP.md`, Auftragsdatei.
+
+**Funktionale Prüfungen (Unit- und Vertragstests):** Auslöser nur `antigravity/*` aus diesem Repo, sonst Label/Dispatch; je Head ein Review; Rundenzählung nur aus Workflow-Markierungen; Eskalation nach 5 Runden genau einmal; Ergebnis nur aus genau einer Schlusszeile, Unklares wird `error`, nie `success`; Entschärfung von `<!--`, `@claude`, `@codex`; Inbox nur für den aktuellen Head; Codex-Zyklus fordert auf `antigravity/*` weder Review an noch startet er Nacharbeit; Workflow: gepinnte Actions, kein `pull_request_target`, PR-Code nur im Job ohne Schreibrechte, Claude ohne Push-/Merge-/Kommentar-Werkzeuge, Gate/Publish laden Logik vom Default-Branch. CLI: YAML parsebar, Fehlermeldungen ohne Token korrekt, Repo-Erkennung aus `origin` bis zum API-Aufruf geprüft.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` Exit 0; `npm run lint` Exit 0; `npm run format:check` Exit 0; `npm test` 278 Dateien, 1726 Tests grün; `npm run verify` alle Suiten (001 bis 025) grün; `npm run build` erfolgreich.
+
+**Schutzbereichs-Diff** (`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`): 0 Zeilen, also leer.
+
+**Screenshot-Matrix:** entfällt (keine UI-Änderung).
+
+**Ergebnis & Freigabestatus:** Builder fertig, wartet auf Codex-Prüfung. Ende-zu-Ende-Nachweis erst nach Merge möglich, weil `claude-review.yml` seine Logik vom Default-Branch lädt (bis dahin überspringt jeder Lauf).
+
+---
+
+## Abweichung: PR #49 (Auftrag 070) vor der letzten Codex-Prüfung gemergt (03.10.2026)
+
+**Was:** PR #49 (Dashboard Teilauftrag 1, KPI-Katalog und Datenvertrag) wurde am 03.10.2026 versehentlich gemergt, bevor Codex den letzten Stand geprüft hatte. Der Prüfkommentar von Marc galt PR #50 und war im falschen PR gelandet.
+
+**Stand beim Merge:** CI (`ci.yml`) auf Head `6f74074` grün (Lauf 255). Letzter Codex-Review auf `dc14995`. Ungeprüft durch Codex sind die drei Korrektur-Commits danach: `c7a6b1b` (Codex-Befunde Runde 3), `ef1515f` (Pipeline-Stufen), `6f74074` (Live-Einträge in eigene Datei, CI-Lint). Commit-Status `codex-review` auf `6f74074`: `pending`.
+
+**Verstoß:** `CLAUDE.md` §9 (kein Merge ohne grüne, dokumentierte Gates). Die Gate-Freigabe durch Codex fehlt; Grund für das Ausbleiben: Codex-Nutzungslimit.
+
+**Entscheidung Marc:** Kein Revert. Hinweis im PR #49 gesetzt. Nachprüfung durch Codex (`@codex review` in PR #49), sobald Codex wieder verfügbar ist; Befunde behebt Claude Code in einem eigenen Folge-PR. Bis dahin gilt Auftrag 070 als **gemergt, Gate-Freigabe offen**.
+
+**Nachtrag PR #50 (03.10.2026, Entscheidung Marc): GitHub-MCP für Antigravity.** Antigravity liest den Claude-Befund selbst über seinen GitHub-MCP (nur jüngster Markierungskommentar von `github-actions[bot]` zum aktuellen Head) und öffnet seinen PR selbst; `npm run antigravity:inbox` bleibt Rückfallebene. MCP-Verbote (mergen, freigeben, kommentieren, Labels/Branches/Workflows ändern) in `AGENTS.md`; Empfehlung Fine-grained Token mit `Contents: Read-only`. Geändert: `AGENTS.md`, `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`, Auftragsdatei, Hinweistext in `scripts/claudeReviewCycle.mjs`. Audit-Ausnahme aus PR #51 per Merge übernommen. Gates auf diesem Stand: `tsc`, `lint`, `format:check`, `npm test` 1774 Tests, `verify`, `build`, Audit-Skript jeweils Exit 0; Schutzbereichs-Diff leer.
+
+**Nacharbeit PR #50, Codex-Befund (Kommentar 5969393588, P2, Head 5eb340f):** `parseVerdict` akzeptierte eine Ergebniszeile auch mit nachgestelltem Text, sodass z. B. `ERGEBNIS: KEINE BEFUNDE` gefolgt von einem Nachtrag zu `success` geführt hätte. Behoben: Die Ergebniszeile muss genau einmal vorkommen **und** die letzte nicht-leere Zeile sein, sonst `unclear` (Status `error`). Tests für Nachtrag nach beiden Ergebnissen und für CRLF ergänzt. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+**Nacharbeit PR #48: Merge `main` nach PR #49/#50/#51 (03.10.2026):** Konflikt nur in `docs/BUILD_LOG.md` (beide Seiten hatten Abschnitte angehängt); aufgelöst durch Übernahme beider Seiten, Einträge der Testkachel vor denen der zweiten Automatisierung. Kein Code-Konflikt.

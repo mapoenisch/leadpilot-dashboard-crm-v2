@@ -3,6 +3,8 @@
 // Entscheidet, ob für einen PR ein Codex-Review angefordert wird (`request`) und ob ein
 // eingegangenes Codex-Ergebnis eine Nacharbeitsrunde startet (`rework-gate`). Codex liefert
 // Ergebnisse als Review (mit Inline-Befunden) oder als PR-Kommentar (Aufgabenformat).
+// Branches `antigravity/*` gehören zur zweiten Automatisierung (claudeReviewCycle.mjs: Antigravity baut,
+// Claude prüft): dort fordert dieser Zyklus weder Reviews an noch startet er eine Nacharbeit durch Claude.
 // Dritter Befehl `status`: setzt den Commit-Status `codex-review` für den Head (siehe codex-status.yml).
 // Die Entscheidungen sind reine Funktionen; die CLI liest den Zustand über die GitHub-API
 // und schreibt Markierungskommentare, an denen spätere Läufe Dopplungen erkennen.
@@ -15,6 +17,8 @@ export const MARKER_AUTHOR = 'github-actions[bot]';
 export const MAX_ROUNDS = 3;
 export const REQUEST_DELAY_MS = 20 * 60 * 1000;
 export const ESCALATION_MARKER = '<!-- codex-review-cycle:escalated -->';
+export const ANTIGRAVITY_BRANCH_PREFIX = 'antigravity/';
+const isAntigravityPr = (pr) => Boolean(pr.head?.ref?.startsWith(ANTIGRAVITY_BRANCH_PREFIX));
 
 export const requestMarker = (sha) => `<!-- codex-review-cycle:request sha=${sha} -->`;
 export const reworkMarker = ({ round, sha, source }) =>
@@ -169,6 +173,8 @@ export function decideReviewRequest({
   if (pr.state !== 'open') return { action: 'skip', reason: 'PR ist nicht offen' };
   if (pr.head.repo?.full_name !== pr.base.repo?.full_name)
     return { action: 'skip', reason: 'PR aus einem Fork' };
+  if (isAntigravityPr(pr))
+    return { action: 'skip', reason: 'Antigravity-PR: Claude prüft (claude-review.yml)' };
   if (pr.draft && !force) return { action: 'skip', reason: 'Entwurf' };
   if (hasRequestMarker(comments, sha))
     return { action: 'skip', reason: `für ${sha} bereits angefordert` };
@@ -204,6 +210,8 @@ export function decideRework({ pr, result, comments }) {
   if (pr.state !== 'open') return { action: 'skip', reason: 'PR ist nicht offen' };
   if (pr.head.repo?.full_name !== pr.base.repo?.full_name)
     return { action: 'skip', reason: 'PR aus einem Fork' };
+  if (isAntigravityPr(pr))
+    return { action: 'skip', reason: 'Antigravity-PR: Nacharbeit macht Antigravity, nicht Claude' };
   if (!result.sha) return { action: 'skip', reason: 'geprüfter Stand nicht eindeutig bestimmbar' };
   if (result.sha !== sha)
     return { action: 'skip', reason: `veraltetes Ergebnis (${result.sha} statt Head ${sha})` };

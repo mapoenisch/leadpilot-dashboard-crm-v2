@@ -1,0 +1,206 @@
+# CI-Auftrag Claude-Review für Antigravity (docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CLAUDE_REVIEW_ANTIGRAVITY.md):
+# Zweite Automatisierung neben dem Codex-Zyklus. Antigravity baut auf Branches `antigravity/*`,
+# Claude prüft jeden neuen Head automatisch, veröffentlicht den Befund als PR-Kommentar und setzt
+# den Commit-Status `claude-review`. Antigravity holt den Befund lokal mit `npm run antigravity:inbox`.
+# Andere Team-PRs prüft Claude nur, wenn Marc das Label `claude-review` setzt.
+# Kein Merge, keine Freigabe, keine Code-Änderung durch Claude. Höchstens fünf Runden pro PR.
+#
+# Rechtetrennung wie in codex-rework.yml: Nur der Job `review` führt PR-Code aus (npm ci, Gates,
+# Claude). Er hat ausschließlich Leserechte und keine gespeicherten Zugangsdaten. `gate` und
+# `publish` führen keinen PR-Code aus und laden ihre Logik immer vom Default-Branch.
+name: Claude Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'PR-Nummer'
+        required: true
+
+permissions:
+  contents: read
+
+# Ein Lauf pro PR; ein weiterer Push wartet und wird danach als neuer Head geprüft.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number || github.event.inputs.pr }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       ((github.event.action != 'labeled' && startsWith(github.event.pull_request.head.ref, 'antigravity/')) ||
+        (github.event.action == 'labeled' && github.event.label.name == 'claude-review')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    outputs:
+      action: ${{ steps.gate.outputs.action }}
+      round: ${{ steps.gate.outputs.round }}
+      head_sha: ${{ steps.gate.outputs.head_sha }}
+      base_ref: ${{ steps.gate.outputs.base_ref }}
+      pr: ${{ steps.gate.outputs.pr }}
+    steps:
+      - name: Entscheidungslogik vom Default-Branch laden
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: .cycle-tools
+          sparse-checkout: scripts/claudeReviewCycle.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22.18.0
+
+      - name: Prüfen (Branch, Head-SHA, Dopplung, Rundenlimit)
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || github.event.inputs.pr }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' || github.event.action == 'labeled' }}
+        run: |
+          case "$PR" in ''|*[!0-9]*) echo "PR-Nummer fehlt oder ist nicht numerisch"; exit 1 ;; esac
+          echo "pr=$PR" >> "$GITHUB_OUTPUT"
+          tool=.cycle-tools/scripts/claudeReviewCycle.mjs
+          if [ ! -f "$tool" ]; then
+            echo "Claude-Review-Zyklus ist noch nicht auf dem Default-Branch: übersprungen."
+            echo "action=skip" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$FORCE" = "true" ]; then
+            node "$tool" gate --pr="$PR" --force
+          else
+            node "$tool" gate --pr="$PR"
+          fi
+
+  review:
+    needs: gate
+    if: needs.gate.outputs.action == 'review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Führt PR-Code aus, deshalb nur Leserechte; kein id-token, also kein App-Token für Claude.
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      actions: read
+    steps:
+      - name: PR-Head ohne gespeicherte Zugangsdaten auschecken
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.gate.outputs.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22.18.0
+
+      - name: Abhängigkeiten ohne Lifecycle-Skripte installieren
+        run: |
+          printf '%s\n' .claude-review >> .git/info/exclude
+          mkdir -p .claude-review
+          npm ci --ignore-scripts
+
+      - name: Claude prüft den Head
+        uses: anthropics/claude-code-action@12dd8d74c712f5f3669365b2369b558c495b1104 # v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Lese-Token statt App-Token: Claude kann weder pushen noch kommentieren noch freigeben.
+          github_token: ${{ github.token }}
+          claude_args: |
+            --max-turns 80
+            --allowedTools "Read,Glob,Grep,Edit(.claude-review/**),Write(.claude-review/**),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(npx tsc --noEmit),Bash(npm run lint),Bash(npm test),Bash(npm run verify),Bash(npm run build),Bash(npm run format:check),Bash(gh pr view:*)"
+            --disallowedTools "Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git rebase:*),Bash(git reset:*),Bash(gh pr merge:*),Bash(gh pr review:*),Bash(gh pr comment:*),Bash(gh api:*)"
+          prompt: |
+            Du bist der Prüfer im LeadPilot-Repository. Antigravity ist der Builder und hat PR
+            #${{ needs.gate.outputs.pr }} auf Head ${{ needs.gate.outputs.head_sha }} gebracht. Das ist
+            die automatische Review-Runde ${{ needs.gate.outputs.round }} von 5. Du baust nichts, du prüfst.
+
+            1. Lies CLAUDE.md, AGENTS.md und den Detailauftrag dieses PR unter docs/auftraege/
+               (siehe PR-Text, `gh pr view ${{ needs.gate.outputs.pr }}`).
+            2. Prüfe die Änderungen gegen die Basis: `git diff origin/${{ needs.gate.outputs.base_ref }}...HEAD`.
+               Maßstab: Auftrag (Ziel-Dateien, Tasks, Globale Grenzen), CLAUDE.md, Korrektheit, Tests.
+            3. Fahre die Gates: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run verify`, `npm run build`.
+               Prüfe den Schutzbereichs-Diff: `git diff origin/${{ needs.gate.outputs.base_ref }}...HEAD --
+               src/simulation src/types src/context src/services/data src/features/resources` muss leer sein,
+               außer der Auftrag nennt den Pfad ausdrücklich als Ziel.
+            4. Prüfe, ob docs/BUILD_LOG.md einen Builder-Eintrag zu diesem Stand enthält.
+            5. Schreibe deinen Befund nach .claude-review/review.md, adressiert an Antigravity, auf Deutsch:
+               - Abschnitt „Gates“: je Gate Befehl und Ergebnis (grün/rot, bei rot die entscheidende Meldung).
+               - Abschnitt „Befunde“: nummeriert, je Befund Schwere (P1 blockierend, P2 muss behoben werden,
+                 P3 Hinweis), Datei und Zeile, was falsch ist, warum, und die konkrete Korrektur.
+                 Nur belegbare Befunde, keine Geschmacksfragen. P3-Hinweise allein sind keine Befunde.
+               - Letzte Zeile exakt `ERGEBNIS: BEFUNDE`, wenn mindestens ein P1/P2-Befund oder ein rotes Gate
+                 vorliegt, sonst exakt `ERGEBNIS: KEINE BEFUNDE`. Diese Zeile kommt genau einmal vor.
+            Der Workflow veröffentlicht die Datei als PR-Kommentar und setzt den Status `claude-review`.
+
+            Verboten: Dateien außerhalb von .claude-review/ ändern, committen, pushen, mergen, Reviews
+            freigeben oder ablehnen, Kommentare schreiben, Labels oder Rulesets ändern.
+
+      - name: Befund weitergeben
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/result"
+          if [ -f .claude-review/review.md ]; then
+            cp .claude-review/review.md "$RUNNER_TEMP/result/review.md"
+          else
+            printf 'Claude hat keinen Befund geschrieben (Lauf abgebrochen oder Gate-Zeitlimit).\n' > "$RUNNER_TEMP/result/review.md"
+          fi
+
+      - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        if: always()
+        with:
+          name: claude-review-result
+          path: ${{ runner.temp }}/result/
+          retention-days: 7
+
+  publish:
+    needs: [gate, review]
+    if: always() && needs.gate.outputs.action == 'review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Führt keinen PR-Code aus: nur Kommentar und Status.
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Veröffentlichungslogik vom Default-Branch laden
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: .cycle-tools
+          sparse-checkout: scripts/claudeReviewCycle.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22.18.0
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        continue-on-error: true
+        with:
+          name: claude-review-result
+          path: ${{ runner.temp }}/result
+
+      - name: Befund veröffentlichen und Status setzen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.gate.outputs.pr }}
+          SHA: ${{ needs.gate.outputs.head_sha }}
+          ROUND: ${{ needs.gate.outputs.round }}
+        run: |
+          node .cycle-tools/scripts/claudeReviewCycle.mjs publish --pr="$PR" --sha="$SHA" \
+            --round="$ROUND" --review="$RUNNER_TEMP/result/review.md"
