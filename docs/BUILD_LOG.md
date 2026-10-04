@@ -14746,3 +14746,27 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 - `npm run build` → Exit 0 (Produktionsbuild erfolgreich)
 - Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
 
+---
+
+### Nacharbeit Codex-Review Runde 2 & Sync mit origin/main (Antigravity, 04.10.2026)
+
+**Kontext & Merge:**
+- `origin/main` (inkl. PR #55 zu `AGENTS.md` Git-Schutzregel und `.gitignore`) per `git fetch origin && git merge origin/main` in `antigravity/auftrag-071` integriert (Merge-Commit `b683f72`).
+- Merge-Konflikt in `docs/BUILD_LOG.md` aufgelöst (beide Seiten chronologisch beibehalten).
+
+**Codex-Befund (Kommentar 4174712712) behoben:**
+- **`Number.isFinite`-Prüfung für aggregierte Live-Aktivität in `resolveLive.ts`:**
+  - In `resolveLive.ts` bei `uebersicht.live_aktivitaet` werden nun die von `aggregateLiveActivity` gelieferten Snapshot-Werte ebenfalls validiert (`if (!items.every((item) => Number.isFinite(item.value)))`).
+  - Enthält ein Snapshot keinen endlichen Zahlenwert (z. B. `NaN` oder `Infinity`), liefert die Kachel konsistent den Zustand `{ state: 'fehler', value: null, series: null, overview: null, asOf: newestAsOf, message: 'Aktivitätswerte enthalten keine gültige endliche Zahl' }`.
+  - Regressionstest in `dashboardData.vitest.ts` hinzugefügt (`lehnt nicht endliche Werte in Live-Aktivität ab und liefert fehler`).
+
+**Automatisierte Verifikation (Pflicht-Gates):**
+- `npx tsc --noEmit` → Exit 0 (0 Fehler)
+- `npm run lint` → Exit 0 (0 Fehler, 0 Warnungen; alle Dateien ≤ 389 Zeilen, strikt unter 400 Zeilen)
+- `npm run format:check` → Exit 0 (Prettier vollständig konform)
+- `npm test` → Exit 0 (286 Testdateien, 1862 Tests bestanden)
+- `npm run verify` → Exit 0 (alle Suiten 001 bis 025 grün)
+- `npm run build` → Exit 0 (Produktionsbuild erfolgreich)
+- Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
+
+

@@ -372,5 +372,18 @@ describe('dashboardData', () => {
         expect(resLive.overview.data[1]?.kpiId).toBe('arr');
       }
     });
+
+    it('lehnt nicht endliche Werte in Live-Aktivität ab und liefert fehler', () => {
+      const { adapter, controls } = createFakeAdapter();
+      const store = createLiveKpiStreamStore(adapter);
+      const filter = resolveEffectiveFilter(dummyTile(liveActivityEntry.id), liveActivityEntry);
+      store.acquire('arr');
+      controls.feed?.onStatus('live');
+      controls.feed?.onEvent(makeSnapshot('arr', '2025-01-01T10:00:00.000Z', NaN));
+      const res = resolveLive(store, liveActivityEntry, filter);
+      expect(res.state).toBe('fehler');
+      expect(res.overview).toBeNull();
+      expect(res.message).toBe('Aktivitätswerte enthalten keine gültige endliche Zahl');
+    });
   });
 });

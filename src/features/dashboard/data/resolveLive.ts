@@ -110,6 +110,18 @@ export function resolveLive(
     const { items, status } = aggregateLiveActivity(store, LIVE_IDS, 10);
     const newestAsOf = items.length > 0 ? (items[0]?.occurredAt ?? null) : null;
 
+    if (!items.every((item) => Number.isFinite(item.value))) {
+      return {
+        ...baseResult,
+        state: 'fehler',
+        value: null,
+        series: null,
+        overview: null,
+        asOf: newestAsOf,
+        message: 'Aktivitätswerte enthalten keine gültige endliche Zahl',
+      };
+    }
+
     if (status === 'live') {
       if (items.length > 0) {
         return {
