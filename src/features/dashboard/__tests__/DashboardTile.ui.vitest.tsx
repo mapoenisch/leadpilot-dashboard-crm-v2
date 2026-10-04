@@ -272,6 +272,23 @@ describe('DashboardTile', () => {
     expect(live).toHaveTextContent('Wert veraltet. Stand 04.10.2026, 14:05.');
   });
 
+  it('sagt eine verschlechterte Datenqualität über die Live-Region an', () => {
+    const { rerender } = render(
+      <DashboardTile tile={TILE} entry={ARR} data={resolved()} onShowDetails={() => undefined} />,
+    );
+    const live = screen.getByTestId('tile-live-status');
+    expect(live).toHaveTextContent('');
+    rerender(
+      <DashboardTile
+        tile={TILE}
+        entry={ARR}
+        data={resolved({ quality: 'degradiert' })}
+        onShowDetails={() => undefined}
+      />,
+    );
+    expect(live).toHaveTextContent('Datenqualität eingeschränkt.');
+  });
+
   it('zeigt bei veraltet den Wert weiter mit Zeitstempel', () => {
     renderTile(resolved({ state: 'veraltet', asOf: '2026-10-04T12:05:00Z' }));
     expect(screen.getByTestId('tile-notice')).toHaveTextContent(

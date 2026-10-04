@@ -110,10 +110,10 @@ export const SLIDER_LABEL = 'Zeitpunkt wählen';
 /**
  * Dashboard-Kacheln (Auftrag 073): Beim Laden sind die Kategorien noch unbekannt. Legende und
  * Platzhalter erhalten deshalb dieselbe Mindesthöhe für zwei Chipzeilen; bis zu zwei Zeilen
- * wächst die Kachel beim Datenempfang nicht. Mehr Zeilen entstehen erst bei vielen Kategorien
- * auf schmalen Kacheln (dokumentiert im BUILD_LOG).
+ * wächst die Kachel beim Datenempfang nicht. Die Höhe ist fest: weitere Zeilen (viele oder lange
+ * CRM-Stufen) scrollen innerhalb der Legende, die Schaltflächen bleiben per Tastatur erreichbar.
  */
-export const LEGEND_RESERVE_CLASS = 'min-h-[62px] content-start';
+export const LEGEND_RESERVE_CLASS = 'h-[62px] content-start overflow-y-auto';
 
 /** Bedienelemente unter dem Diagramm: Legende (mit oder ohne Farbpunkt) oder Zeitregler. */
 export type ChartControls = 'legend' | 'legend-dots' | 'slider';

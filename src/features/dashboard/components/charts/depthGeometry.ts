@@ -350,3 +350,8 @@ export function summarizeSeries(
   }
   return `${head} Höchster Wert: ${high.label}, ${withUnit(high.value)}. Niedrigster Wert: ${low.label}, ${withUnit(low.value)}.`;
 }
+
+/** Kürzt ein sichtbares SVG-Label auf `max` Zeichen; der Volltext gehört in ein `<title>`. */
+export function shortenLabel(label: string, max: number): string {
+  return label.length > max ? `${label.slice(0, max - 1).trimEnd()}…` : label;
+}

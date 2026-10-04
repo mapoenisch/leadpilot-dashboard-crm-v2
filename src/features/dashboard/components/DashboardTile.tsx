@@ -80,7 +80,9 @@ export function DashboardTile({
     ? `${data.state === 'fehler' ? 'Fehler: ' : ''}${blockingText(data)}`
     : data.state === 'veraltet'
       ? `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.`
-      : '';
+      : resolved?.quality === 'degradiert'
+        ? 'Datenqualität eingeschränkt.'
+        : '';
 
   return (
     <Card

@@ -13,7 +13,10 @@ import {
 } from './ChartReadout';
 import { CHART_VIEWBOX, shareColors, shadeHex } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
-import { donutSegments, formatDe, summarizeSeries } from './depthGeometry';
+import { donutSegments, formatDe, shortenLabel, summarizeSeries } from './depthGeometry';
+
+/** Legendenspalte neben dem Ring: Platz für etwa 16 Zeichen vor der Prozentangabe. */
+const LEGEND_LABEL_MAX = 16;
 
 const RING_GEOMETRY = { cx: 180, cy: 136, outer: 104, inner: 66 };
 // Kreis: gleiche Lage, nur ohne Aussparung.
@@ -181,7 +184,8 @@ export function Depth3dDonutChart({
               <g key={segment.label} transform={`translate(0 ${segment.index * 30})`}>
                 <rect width="10" height="10" y="-9" rx="2" fill={colorOf(segment.index)} />
                 <text x="18" fontSize="12" fill="#e6f3f1">
-                  {segment.label}
+                  <title>{segment.label}</title>
+                  {shortenLabel(segment.label, LEGEND_LABEL_MAX)}
                 </text>
                 <text
                   x="180"

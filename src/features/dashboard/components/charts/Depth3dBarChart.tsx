@@ -20,12 +20,15 @@ import {
   layoutBars,
   layoutHBars,
   niceSignedScale,
+  shortenLabel,
   summarizeSeries,
 } from './depthGeometry';
 
 const AREA = { left: 56, top: 34, width: 480, height: 190 };
 const H_AREA = { left: 96, top: 14, width: 400, height: 210 };
 const THEME = MANAGEMENT_CHART_THEME.colors;
+/** Linker Rand der Balkenansicht fasst etwa 14 Zeichen; längere Stufennamen werden gekürzt. */
+const H_LABEL_MAX = 14;
 /** Kategorien stehen bei baseline + 18; darüber bleibt Abstand für die Wertbeschriftung. */
 const CATEGORY_CLEARANCE = 6;
 
@@ -201,7 +204,8 @@ export function Depth3dBarChart({
                       fontSize="10.5"
                       fill={THEME.neutral}
                     >
-                      {bar.label}
+                      <title>{bar.label}</title>
+                      {shortenLabel(bar.label, H_LABEL_MAX)}
                     </text>
                     <text
                       x={bar.negative ? bar.zero + 8 : right + bar.depth + 8}

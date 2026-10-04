@@ -14942,3 +14942,18 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 4 (Head c43a148, Review 5407132288):**
+
+| Befund | Behebung |
+|---|---|
+| Review 5407132288 (P2) Ringlegende: langer Paketname läuft in die Prozentangabe | `shortenLabel` kürzt das sichtbare Label der Ringlegende auf 16 Zeichen; der Volltext steht im `<title>` des Labels, die Legendenschaltflächen darunter nennen ihn ebenfalls. UI-Test mit „Pro (Individuell / Ref. 80€)“. |
+| 4178415246 (P2) Balkenansicht: lange CRM-Stufennamen ragen aus dem linken Rand | Sichtbares Label der Balkenansicht auf 14 Zeichen gekürzt, Volltext im `<title>`; derselbe UI-Test. Säulenansicht unverändert (Kategorien stehen dort unter den Säulen, nicht im festen Rand). |
+| 4178415254 (P2) verschlechterte Datenqualität nicht angesagt | Live-Region meldet bei `quality: 'degradiert'` „Datenqualität eingeschränkt.“ (nicht blockierende Zustände behalten Vorrang). UI-Test mit Wechsel von normal zu degradiert. |
+| 4178415251 (P2) Legende bricht bei vielen oder langen CRM-Stufen auf mehr als zwei Zeilen | `LEGEND_RESERVE_CLASS` ist jetzt eine feste Höhe (`h-[62px]`, `overflow-y-auto`) für Platzhalter und fertige Legende: weitere Zeilen scrollen innerhalb der Legende, die Schaltflächen bleiben per Tastatur erreichbar. Die Restgrenze „mehr als zwei Legendenzeilen“ entfällt damit. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1976 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (173,38 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig: 430/461/430 px, Linie leer = voll: 385/416/385 px; Matrix aktualisiert).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

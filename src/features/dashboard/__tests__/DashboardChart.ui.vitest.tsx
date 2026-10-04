@@ -78,6 +78,16 @@ function renderChart(
   );
 }
 
+/** Sichtbarer Text je SVG-Label ohne das `<title>` mit dem Volltext. */
+function visibleLabels(root: HTMLElement): string[] {
+  return Array.from(root.querySelectorAll('text')).map((node) =>
+    Array.from(node.childNodes)
+      .filter((child) => child.nodeType === Node.TEXT_NODE)
+      .map((child) => child.textContent)
+      .join(''),
+  );
+}
+
 describe('DashboardChart', () => {
   it('zeigt eine Zahl kompakt und exakt für Screenreader', () => {
     renderChart('zahl', resolved({ value: 2_345_678 }), active('baseline.arr'));
@@ -116,6 +126,22 @@ describe('DashboardChart', () => {
   ])('rendert %s nach dem Nachladen', async (view, testId) => {
     renderChart(view, resolved({ series: SHARES }), active('baseline.arr_verlauf'));
     expect(await screen.findByTestId(testId)).toBeInTheDocument();
+  });
+
+  it('kürzt lange Stufennamen im Balkenrand und Ring, der Volltext bleibt im title', async () => {
+    const long = [
+      { label: 'Pro (Individuell / Ref. 80€)', value: 60 },
+      { label: 'Starter', value: 40 },
+    ];
+    const { unmount } = renderChart('balken', resolved({ series: long }));
+    const bars = await screen.findByTestId('depth-hbar-chart');
+    expect(visibleLabels(bars)).toContain('Pro (Individu…');
+    expect(bars.querySelector('text > title')?.textContent).toBe('Pro (Individuell / Ref. 80€)');
+    unmount();
+    renderChart('ring', resolved({ series: long }));
+    const ring = await screen.findByTestId('depth-donut-chart');
+    expect(visibleLabels(ring)).toContain('Pro (Individuel…');
+    expect(visibleLabels(ring)).toContain('Starter');
   });
 
   it('gibt der fertigen Legende dieselbe feste Höhe wie dem Ladeplatzhalter', async () => {
