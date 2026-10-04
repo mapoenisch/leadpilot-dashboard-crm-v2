@@ -14828,3 +14828,10 @@ Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:
 | 4176371371 (P2) Backup-Probe bleibt nach dem Lauf bestehen | `verifyBackupRestore.mjs` merkt sich per `RETURNING`, ob die Probe angelegt wurde, und entfernt sie im `finally` wieder (Prüfpunkt „Backup-Probe wieder entfernt“). SQL lokal geprüft: erster Lauf legt an, zweiter nicht, Aufräumen hinterlässt 0 Zeilen. |
 
 Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0; Schutzbereichs-Diff leer.
+
+**Lokaler Nachweis Docker-Supabase (Marc, 04.10.2026, Stand `main` 92180d3):** Die beiden in der Cloud-Umgebung offenen Skripte liefen lokal gegen den Supabase-Stack `LeadPilot_Dashboard-CRM`. Vorher `supabase db reset` mit Seed (Basisschema vorübergehend als `20260101000000_base_schema.sql` bereitgestellt und danach wieder entfernt, Arbeitsbaum sauber).
+
+- `node scripts/verifyMigrationUpgrade.mjs`: **GRÜN.** Leere DB mit allen 23 Migrationen, Upgrade von v2.2.0, Bestandszeilen dem Demo-Mandanten zugeordnet (4/4), Demo-Bootstrap idempotent, keine offene `USING(true)`-Policy (lp_fresh, lp_upgrade), Schema nach Upgrade = Schema aus leerer DB (368 Katalogeinträge), pgTAP gegen hochgezogene DB PASS.
+- `npm run verify:backup`: **GRÜN.** Ausgangsstand Login und RLS (3 Companies aus 1 Organisation), Präferenz-Probe angelegt (`1:53f3b839…`), Backup mit `auth.users`/`auth.identities` (53 Tabellen), nach Reset ohne Seed 0 Benutzer, Zeilen je Tabelle identisch, Prüfsumme `auth.users`/`identities` und Trigger `on_auth_user_confirmed_accept_invitation` identisch, persönliche Dashboard-Konfigurationen inhaltlich identisch (Konfiguration, Version, Revision), Login nach Restore mit RLS nur eigene Organisation, Backup-Probe wieder entfernt.
+
+Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster Backup-Lauf scheiterte mit „Login HTTP 400“, weil statt des Seed-Testpassworts ein Platzhalter übergeben wurde; kein Codefehler.
