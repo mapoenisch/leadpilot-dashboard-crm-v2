@@ -218,3 +218,21 @@ Wertquelle `liveKpiStreamStore` (Messwert und Zeitstempel); `LIVE_KPI_DEFINITION
 - **Nicht geroutete Seiten** (`BudgetPage`, `MarketingBudgetPage`, `BrandPage`, `CampaignPlanningPage`, `RiskRegisterPage`, `CustomerSuccessPage`): Ihre Daten bleiben „aufbereiten“, bis es ein Fachseitenziel gibt.
 - **Teilauftrag 2:** Live-Mandantentrennung entscheiden; Bedeutung von `closeDate` klären, bevor ein Zeitraumfilter für CRM aktiv wird.
 - **Teilauftrag 8:** „aufbereiten“-Einträge mit strukturierten Werten in die Quellen bringen (eigener Auftrag, Quellmodule sind in Teilauftrag 1 nur gelesen).
+
+## Datenauflösung (Auftrag 071)
+
+**Stand:** 03.10.2026 · **Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_071_DASHBOARD_DATENAUFLOESUNG.md`
+
+### Live-Geltungsbereich (Entscheidung Marc, 03.10.2026)
+
+- Die Projektion `live_kpi_public_feed` besitzt keine Organisationsspalte und ist für `anon` und `authenticated` lesbar.
+- Vorgabe bestätigt durch Marc („dann so lassen“): Live-Kacheln bleiben im ersten Umfang wählbar und werden in der Leseschicht mit `scope: 'organisationsuebergreifend'` markiert.
+- Die Kachelkomponente (Teilauftrag 4) kennzeichnet diesen Umstand visuell. Eine spätere Mandantentrennung erfordert Schema- und RLS-Migrationen und kann als separater Folgeauftrag umgesetzt werden.
+
+### Unterstützte Datumsfelder und Zeitfilter
+
+- Für den aktuellen Katalog wirkt ein Zeitraumfilter auf **keine** der Quellen (`SUPPORTED_DATE_FIELDS = { baseline: [], crm: [], live: [] }`).
+- **Baseline (Stammdaten):** Fester historischer Stand (`timeMode: 'fest'`). Keine Datumsfelder vorhanden; Begründung: _„Historischer Stand ist fest“_ bzw. _„Quelle hat kein belegtes Datumsfeld“_.
+- **CRM:** `closeDate` ist in `imported_funnel_deals` zwar vorhanden, aber fachlich nicht als Zeitfilter belegt. Der Zeitraumfilter greift daher nicht und wird mit der Begründung _„Quelle hat kein belegtes Datumsfeld“_ abgewiesen.
+- **Live:** Live-Stream (`timeMode: 'live'`) ohne historische Filterbarkeit; Begründung: _„Quelle ist ein Live-Feed ohne historischen Zeitraum“_.
+- Der effektive Filter meldet diesen Umstand pro Kachel transparent über `periodReason`, statt den Filter stillschweigend zu ignorieren.
