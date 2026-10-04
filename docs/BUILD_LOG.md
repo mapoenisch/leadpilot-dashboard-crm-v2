@@ -14655,3 +14655,118 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 **Ergänzung PR #55 (Entscheidung Marc, „ja mach“):** `.gitignore` um die lokalen Referenzordner erweitert (`/archive/`, `/uploads/`, `/reference/`, `/ui_kits/`, `/guidelines/`, `/tokens/`, `/.playwright-mcp/`, `/SKILL.md`), wurzelverankert, damit `docs/archiv/` und andere versionierte Pfade unberührt bleiben (geprüft mit `git check-ignore`). Ignorierte Dateien entfernt `git clean -fd` nicht. `readme.md` bewusst nicht aufgenommen: Auf macOS (Dateisystem ohne Groß-/Kleinschreibung) wäre sie dieselbe Datei wie das versionierte `README.md`; `AGENTS.md` entsprechend korrigiert. Kein versionierter Pfad liegt unter den neuen Mustern. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
 
 **Nacharbeit PR #55, Codex-Review Runde 3 (Head a7ea8b0):** 4174639706 (P2) – die Verbotsliste deckte gleichwertige Formen nicht ab (`git checkout .`, `checkout -f`, `switch -f`/`--discard-changes`); jetzt semantisch formuliert: verboten ist jeder Befehl, der lokale Änderungen, unversionierte Dateien, Stash-Einträge, Branches oder Remote-Historie verwirft, mit nicht abschließenden Beispielen. 4174639709 (P2) – die Sauberkeitsprüfung blendete neue, nicht ignorierte Dateien aus; jetzt `git status --porcelain` (Referenzordner bleiben dank `.gitignore` unsichtbar). Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+---
+
+## Auftrag 071: Dashboard Teilauftrag 2 – Datenauflösung und Filter (Builder: Antigravity, 03.10.2026)
+
+**Ziel & Kontext:** Umsetzung der Leseschicht `TileData` für das Executive Dashboard laut Plan Teilauftrag 2 (`docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`) und Spezifikation `docs/auftraege/ANTIGRAVITY_AUFTRAG_071_DASHBOARD_DATENAUFLOESUNG.md`. Builder: Antigravity auf Branch `antigravity/auftrag-071`. Prüfung automatisch über `claude-review.yml`.
+
+**Geänderte & erstellte Dateien:**
+- `src/features/dashboard/model/dashboardFilters.ts`: Reine Funktion `resolveEffectiveFilter` zur Ermittlung des wirksamen Filters je Kachel; Vorrang der Kachelausnahme vor zentralen Filtern; Konstante `SUPPORTED_DATE_FIELDS` (heute keine wirksamen Datumsfelder; Begründung via `periodReason`); Pipeline-Filterung ausschließlich für CRM.
+- `src/features/dashboard/data/dashboardData.ts`: Einheitliche Typen der Leseschicht (`TileData`, `ResolvedTileData`, `UnavailableTileData`, `TileDataState`, `TileOverview`); Hilfsfunktion `resolveUnavailableTile` für unbekannte und inaktive Katalog-IDs ohne erfundene Metadaten; `getScopeForLayer`.
+- `src/features/dashboard/data/dashboardQueryKeys.ts`: Query-Schlüssel des Dashboards mit Organisationsbezug (`dashboardQueryKeys.pipelineOverview(organizationId, pipeline)`).
+- `src/features/dashboard/data/resolveBaseline.ts`: Synchroner Stammdaten-Auflöser; exakte Zahlenumwandlung (`parseFormattedBaselineNumber`) mit Tausenderpunkten, Dezimalkommas, Unicode-Minus und Einheitenbereinigung; Auflösung der acht Einzelwerte; Zuordnung der Reihen `arr_verlauf` und `mrr_paketmix` mit Label-Data-Abgleich; Auflösung der Übersichten `team_hr` und `roadmap`.
+- `src/features/dashboard/data/resolveCrm.ts`: CRM-Auflöser mit `FilteredFunnelDealSource` zur Filterung nach Pipeline; Selektor `resolveCrmFromOverview` für Einzelwerte und Stufenreihen; leere Dealliste ergibt `keine_daten`; echte 0 bleibt `bereit`; Fehlerbehandlung für ungültige Daten.
+- `src/features/dashboard/data/resolveLive.ts`: Live-Auflöser über den übergebenen `LiveKpiStreamStore`; reine Funktion `aggregateLiveActivity` zur Aggregation der zwölf Live-IDs (höchstens 10 Snapshots, Sortierung nach `occurredAt`/`ingestedAt`, Status-Reihenfolge); Abbildung aller Live-Zustände (`bereit`, `veraltet`, `degradiert`, `keine_daten`, `offline`, `fehler`, `nicht_konfiguriert`).
+- `src/features/dashboard/hooks/useDashboardData.ts`: Zentraler Hook zur Kachelauflösung; bedarfsgesteuert über `enabled`; Abfrageteilung gleicher Pipeline-Filter über React Query; Singleton- bzw. Test-Store-Live-Abos via `useSyncExternalStore` mit Referenzzählung; kein altes Ergebnis beim Filterwechsel.
+- `src/features/dashboard/__tests__/dashboardFilters.vitest.ts`: Tests für Vorrang der Kachelausnahme, Pipeline nur bei CRM, Zeitraumwirkung mit Begründung, `fester_stand`.
+- `src/features/dashboard/__tests__/dashboardData.vitest.ts`: Unit-Tests mit Fakes für alle Stammdaten-, CRM- und Live-Zustände, exakte Zahlenwerte, unbekannte/inaktive IDs, Fehlerbehandlung.
+- `src/features/dashboard/__tests__/useDashboardData.ui.vitest.tsx`: Integrationstests für Abfrageteilung, organisationlose Aufrufe, Filterwechsel-Ladezustand, Live-Referenzzählung, Paritätstest zu `useLiveKpiActivity`.
+- `docs/dashboard/KPI_CATALOG.md`: Abschnitt „Datenauflösung (Auftrag 071)“ ergänzt (Live-Geltungsbereich `organisationsuebergreifend`, Datumsfelder und Zeitfilter).
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_071_DASHBOARD_DATENAUFLOESUNG.md`: Aufgaben abgehakt.
+- `docs/BUILD_LOG.md`: Dieser Eintrag.
+
+**Funktionale Prüfungen:**
+- 78 Tests im Dashboard-Feature (`npm test -- src/features/dashboard/__tests__/`) erfolgreich.
+- 11 Tests in `dashboardFilters.vitest.ts`: Vorrang Kachelausnahme, Pipeline nur für CRM, Zeitraum wirkt nirgends mit Begründung, `fester_stand` bleibt fest.
+- 18 Tests in `dashboardData.vitest.ts`: Alle 8 formatierten Einzelwerte exakt aufgelöst, unlesbare Strings als `fehler`, ARR- und MRR-Reihen mit Beschriftungen, ungleiche Längen als `fehler`, Fake-CRM mit echter 0 und leerer Liste, alle Live-Zustände (inkl. degradiert und veraltet), unbekannte/inaktive IDs ohne erfundene Metadaten.
+- 10 Tests in `useDashboardData.ui.vitest.tsx`: 3 CRM-Kacheln mit gleichem Filter teilen 1 Abfrage, abweichende Pipeline startet 2. Abfrage; Live-Kacheln teilen Store-Eintrag mit RefCount 0 nach Unmount; Paritätstest bestätigt identische Ergebnisse von `aggregateLiveActivity` und `useLiveKpiActivity`-Regel; `enabled: false` startet keine Abfrage und kein Live-Abo; Filterwechsel zeigt `laden` statt alter Werte; ohne Organisation keine CRM-Abfrage.
+
+**Schutzbereichs-Diff:**
+`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` → 0 Zeilen (vollständig leer).
+
+**Automatisierte Verifikation (Pflicht-Gates):**
+- `npx tsc --noEmit` → Exit 0 (0 Typfehler)
+- `npm run lint` → Exit 0 (0 Warnings, 0 Errors; alle Dateien ≤ 386 Zeilen, unter 400-Zeilen-Limit)
+- `npm run format:check` → Exit 0 (alle Dateien formatiert)
+- `npm test` → Exit 0 (286 Testdateien, 1860 Tests bestanden)
+- `npm run verify` → Exit 0 (alle Suiten 001 bis 025 grün)
+- `npm run build` → Exit 0 (Produktionsbuild erfolgreich in 3.51s)
+
+**Screenshot-Matrix:** entfällt (reine Daten-/Leseschicht ohne Oberfläche).
+
+**Ergebnis & Freigabestatus:** Builder fertig. Push auf Branch `antigravity/auftrag-071` und PR-Eröffnung gegen `main` zur automatischen Prüfung durch Claude (`claude-review.yml`).
+
+---
+
+### Nacharbeit Claude-Review Runde 1 (Antigravity, 03.10.2026)
+
+**Befunde aus Review PR #54 (Head `9537a62`):**
+1. **P2 – Test-Hooks im Produktivcode (`resolveBaseline.ts`):** `resolveBaseline` las undeklarierte Felder `customLabels`, `customData` und `customRawValue` aus `entry.source` per `Record<string, unknown>`.
+   - *Entscheidung & Behebung:* Berechtigt. Block vollständig aus `resolveBaseline.ts` entfernt. Export-Auflösung auf dynamischen Import-Getter umgestellt. Fehlerfälle werden nun sauber ohne Test-Sonderpfade im Produktivcode über `vi.mock('@/domain/execData')` mit `vi.hoisted`-Overrides in `dashboardData.vitest.ts` getestet (`parseFormattedBaselineNumber` direkt und über den echten Parser- bzw. Dataset-Pfad).
+2. **P3 – Technische Fehlermeldungen an die Kachel:** Durchreichen von Rohfehlern in `resolveCrm.ts`, `resolveLive.ts` und `useDashboardData.ts`.
+   - *Entscheidung & Behebung:* Berechtigt. Durch benutzerfreundliche, feste deutsche Hinweise ersetzt (`'CRM-Daten konnten nicht geladen werden'`, `'Live-KPI-Stream ist fehlgeschlagen'`).
+3. **P3 – `laden` bei Hintergrund-Refetch:** `isFetching` in der Ladebedingung von `useDashboardData.ts` führte bei Refetches mit vorhandenen Daten zu kurzzeitigem `laden` ohne Wert.
+   - *Entscheidung & Behebung:* Berechtigt. `isFetching` aus Bedingung entfernt (`crmQuery.isLoading || !crmQuery.data`).
+
+**Automatisierte Verifikation (Pflicht-Gates nach Nacharbeit):**
+- `npx tsc --noEmit` → Exit 0 (0 Fehler)
+- `npm run lint` → Exit 0 (0 Fehler, 0 Warnungen; alle Dateien ≤ 387 Zeilen)
+- `npm run format:check` → Exit 0 (alle Dateien formatiert)
+- `npm test` → Exit 0 (286 Dateien, 1860 Tests bestanden)
+- `npm run verify` → Exit 0 (alle Suiten 001 bis 025 grün)
+- `npm run build` → Exit 0 (Produktionsbuild erfolgreich in 3.46s)
+- Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
+
+---
+
+### Nacharbeit Codex-Befunde & Sync mit origin/main (Antigravity, 03.10.2026)
+
+**Kontext & Merge:**
+- `origin/main` per `git merge origin/main` in `antigravity/auftrag-071` integriert (Merge-Commit `cd2a27d`).
+- Konflikt in `docs/BUILD_LOG.md` aufgelöst (beide Seiten chronologisch beibehalten).
+
+**Codex-Befunde abgearbeitet:**
+1. **`Number.isFinite`-Prüfung für Live-Werte in `resolveLive.ts`:**
+   - Falls ein Snapshot-Wert existiert, aber keine endliche Zahl ist (`!Number.isFinite(snap.value)`), wird sauber der Zustand `{ state: 'fehler', value: null, message: 'Wert ist keine endliche Zahl' }` zurückgegeben.
+2. **`Number.isFinite`-Prüfung für CRM-Stufenwerte in `resolveCrm.ts`:**
+   - Validierung der Stufenwerte: Falls ein Eintrag in der Stufenreihe kein `Number.isFinite(item.value)` aufweist (`!series.every(...)`), wird `{ state: 'fehler', value: null, message: 'Stufenwerte enthalten keine gültige endliche Zahl' }` zurückgegeben.
+3. **`refetchOnWindowFocus: false` entfernt in `useDashboardData.ts`:**
+   - Die explizite Deaktivierung von `refetchOnWindowFocus` in der `useQuery`-Konfiguration wurde entfernt, um Standard-Verhalten beizubehalten.
+4. **Zusätzliche Härtung in `resolveBaseline.ts`:**
+   - `parseFormattedBaselineNumber` prüft auf Vorhandensein von Ziffern (verhindert `0` für reine Trennzeichen/Symbole) und validiert Datensätze mit `!data.every(Number.isFinite)`.
+
+**Automatisierte Verifikation (Pflicht-Gates):**
+- `npx tsc --noEmit` → Exit 0 (0 Fehler)
+- `npm run lint` → Exit 0 (0 Fehler, 0 Warnungen; alle Dateien ≤ 381 Zeilen, strikt unter 400 Zeilen)
+- `npm run format:check` → Exit 0 (Prettier vollständig konform)
+- `npm test` → Exit 0 (286 Testdateien, 1861 Tests bestanden)
+- `npm run verify` → Exit 0 (alle Suiten 001 bis 025 grün)
+- `npm run build` → Exit 0 (Produktionsbuild erfolgreich)
+- Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
+
+---
+
+### Nacharbeit Codex-Review Runde 2 & Sync mit origin/main (Antigravity, 04.10.2026)
+
+**Kontext & Merge:**
+- `origin/main` (inkl. PR #55 zu `AGENTS.md` Git-Schutzregel und `.gitignore`) per `git fetch origin && git merge origin/main` in `antigravity/auftrag-071` integriert (Merge-Commit `b683f72`).
+- Merge-Konflikt in `docs/BUILD_LOG.md` aufgelöst (beide Seiten chronologisch beibehalten).
+
+**Codex-Befund (Kommentar 4174712712) behoben:**
+- **`Number.isFinite`-Prüfung für aggregierte Live-Aktivität in `resolveLive.ts`:**
+  - In `resolveLive.ts` bei `uebersicht.live_aktivitaet` werden nun die von `aggregateLiveActivity` gelieferten Snapshot-Werte ebenfalls validiert (`if (!items.every((item) => Number.isFinite(item.value)))`).
+  - Enthält ein Snapshot keinen endlichen Zahlenwert (z. B. `NaN` oder `Infinity`), liefert die Kachel konsistent den Zustand `{ state: 'fehler', value: null, series: null, overview: null, asOf: newestAsOf, message: 'Aktivitätswerte enthalten keine gültige endliche Zahl' }`.
+  - Regressionstest in `dashboardData.vitest.ts` hinzugefügt (`lehnt nicht endliche Werte in Live-Aktivität ab und liefert fehler`).
+
+**Automatisierte Verifikation (Pflicht-Gates):**
+- `npx tsc --noEmit` → Exit 0 (0 Fehler)
+- `npm run lint` → Exit 0 (0 Fehler, 0 Warnungen; alle Dateien ≤ 389 Zeilen, strikt unter 400 Zeilen)
+- `npm run format:check` → Exit 0 (Prettier vollständig konform)
+- `npm test` → Exit 0 (286 Testdateien, 1862 Tests bestanden)
+- `npm run verify` → Exit 0 (alle Suiten 001 bis 025 grün)
+- `npm run build` → Exit 0 (Produktionsbuild erfolgreich)
+- Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
+
+
