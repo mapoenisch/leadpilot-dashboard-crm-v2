@@ -14638,6 +14638,26 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 
 ---
 
+## AGENTS.md: Schutzregel für lokale Git-Befehle (Claude Code, 03.10.2026)
+
+**Ziel & Kontext:** Antigravity hat beim Start von Auftrag 071 in Marcs lokalem Repository `git stash create` und danach `git reset --hard origin/main && git clean -fd` ausgeführt. Ungesicherte Änderungen wurden verworfen; `git clean -fd` löscht alle unversionierten, nicht ignorierten Dateien, darunter die Referenzordner aus `CLAUDE.md` §2, falls sie lokal lagen. Marc hat die Regel angefordert („ja mach das“).
+
+**Geänderte Dateien:** `AGENTS.md` (neuer Abschnitt „Lokale Git-Befehle“), dieser Eintrag. Kein Code.
+
+**Schutzbereichs-Diff** gegen `main`: leer.
+
+Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.
+
+**Nacharbeit PR #55, Codex-Befund 4174545899 (P2):** Die empfohlene Sicherung `git stash push -u` hätte die unversionierten Referenzordner mit in den Stash genommen und aus dem Arbeitsbaum entfernt. Behoben: Sicherung nur für die betroffenen versionierten Pfade (`git stash push -m "<grund>" -- <pfad> …`), `-u`/`--include-untracked`/`--all` ausdrücklich verboten. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+**Nacharbeit PR #55, Codex-Review Runde 2 (Head 8ecc462):** 4174568315 (P2) – auch ein Stash mit Pfadangabe nimmt bereits gestagte fremde Änderungen mit; 4174568313 (P2) – `git stash clear` fehlte in der Verbotsliste. Behoben: Agenten legen keine eigene Sicherung mehr an (kein `git stash` in jeder Form, kein `git stash create`); bei geänderten oder gestagten versionierten Dateien stoppen und Marc fragen. `git stash clear` ergänzt. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+**Ergänzung PR #55 (Entscheidung Marc, „ja mach“):** `.gitignore` um die lokalen Referenzordner erweitert (`/archive/`, `/uploads/`, `/reference/`, `/ui_kits/`, `/guidelines/`, `/tokens/`, `/.playwright-mcp/`, `/SKILL.md`), wurzelverankert, damit `docs/archiv/` und andere versionierte Pfade unberührt bleiben (geprüft mit `git check-ignore`). Ignorierte Dateien entfernt `git clean -fd` nicht. `readme.md` bewusst nicht aufgenommen: Auf macOS (Dateisystem ohne Groß-/Kleinschreibung) wäre sie dieselbe Datei wie das versionierte `README.md`; `AGENTS.md` entsprechend korrigiert. Kein versionierter Pfad liegt unter den neuen Mustern. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+**Nacharbeit PR #55, Codex-Review Runde 3 (Head a7ea8b0):** 4174639706 (P2) – die Verbotsliste deckte gleichwertige Formen nicht ab (`git checkout .`, `checkout -f`, `switch -f`/`--discard-changes`); jetzt semantisch formuliert: verboten ist jeder Befehl, der lokale Änderungen, unversionierte Dateien, Stash-Einträge, Branches oder Remote-Historie verwirft, mit nicht abschließenden Beispielen. 4174639709 (P2) – die Sauberkeitsprüfung blendete neue, nicht ignorierte Dateien aus; jetzt `git status --porcelain` (Referenzordner bleiben dank `.gitignore` unsichtbar). Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+---
+
 ## Auftrag 071: Dashboard Teilauftrag 2 – Datenauflösung und Filter (Builder: Antigravity, 03.10.2026)
 
 **Ziel & Kontext:** Umsetzung der Leseschicht `TileData` für das Executive Dashboard laut Plan Teilauftrag 2 (`docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`) und Spezifikation `docs/auftraege/ANTIGRAVITY_AUFTRAG_071_DASHBOARD_DATENAUFLOESUNG.md`. Builder: Antigravity auf Branch `antigravity/auftrag-071`. Prüfung automatisch über `claude-review.yml`.
@@ -14725,5 +14745,4 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 - `npm run verify` → Exit 0 (alle Suiten 001 bis 025 grün)
 - `npm run build` → Exit 0 (Produktionsbuild erfolgreich)
 - Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
-
 
