@@ -14835,3 +14835,25 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 - `npm run verify:backup`: **GRÜN.** Ausgangsstand Login und RLS (3 Companies aus 1 Organisation), Präferenz-Probe angelegt (`1:53f3b839…`), Backup mit `auth.users`/`auth.identities` (53 Tabellen), nach Reset ohne Seed 0 Benutzer, Zeilen je Tabelle identisch, Prüfsumme `auth.users`/`identities` und Trigger `on_auth_user_confirmed_accept_invitation` identisch, persönliche Dashboard-Konfigurationen inhaltlich identisch (Konfiguration, Version, Revision), Login nach Restore mit RLS nur eigene Organisation, Backup-Probe wieder entfernt.
 
 Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster Backup-Lauf scheiterte mit „Login HTTP 400“, weil statt des Seed-Testpassworts ein Platzhalter übergeben wurde; kein Codefehler.
+
+---
+
+## Auftrag 073 – Detailauftrag Dashboard Teilauftrag 4 (Kachelrahmen und Diagramme), Builder Claude Code
+
+**Ziel & Kontext:** Marc am 04.10.2026: „Teilauftrag 4 schreiben“. Detailauftrag nach Plan `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, Teilauftrag 4, auf Basis `main` `92180d3`, abgestimmt mit der Designfreigabe der Testkachel (`f779901`) und den Datenverträgen aus Auftrag 070/071. [Detailauftrag](auftraege/ANTIGRAVITY_AUFTRAG_073_DASHBOARD_KACHELRAHMEN_DIAGRAMME.md). Begründete Abweichung vom Plantext: Linie/Fläche aus den freigegebenen SVG-Diagrammen statt Recharts.
+
+**Geänderte Dateien:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_073_DASHBOARD_KACHELRAHMEN_DIAGRAMME.md` (neu), `docs/BUILD_LOG.md`. Kein Code.
+
+**Nacharbeit Codex-Review zum Auftragstext (PR #57, Head 040b83d, Review 5406780032):**
+
+| Befund | Behebung im Auftrag |
+|---|---|
+| 4178163875 (P1) Auftrag 073 nicht im BUILD_LOG | Dieser Eintrag. |
+| 4178163868 (P2) Netzwerknachweis `?ansicht=zahl` scheitert an der Testkachel (startet mit „Säulen“) | Mit `?ansicht=` blendet die Vorschauseite die Testkachel aus; ohne Parameter unverändert. |
+| 4178163872 (P2) Zeitbezug je Kachel fehlt (Plan §4 „Filter“) | Kachelkopf zeigt „Dashboard-Filter“ / „Eigener Zeitraum“ / „Fester historischer Stand“ aus `effectiveFilter.mode`, gesetzten Zeitraum/Pipeline und `periodReason`/`pipelineReason`; Tests und Galeriebeispiele ergänzt. |
+| 4178163871 (P2) Live-Geltungsbereich ohne Hinweis (Auftrag 071) | Sichtbarer Hinweis bei `scope: 'organisationsuebergreifend'`, Test positiv und negativ, Galeriebeispiel. |
+| 4178163878 (P2) leere Reihe rendert leeres Diagramm | Leere `series` bei reihenbasierten Darstellungen ergibt „Keine Daten“ ohne Diagramm und ohne Regler, auch bei `state: 'bereit'`; Regressionstest und Galeriebeispiel. |
+
+**Gates:** Nur Dokumente geändert; Code-Gates entfallen für diesen Eintrag und laufen mit der Umsetzung. Schutzbereichs-Diff gegen `92180d3` leer.
+
+**Ergebnis:** Auftragstext bereit zur erneuten Prüfung durch Codex. Umsetzung beginnt nach Freigabe.
