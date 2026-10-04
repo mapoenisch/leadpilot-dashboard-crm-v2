@@ -192,8 +192,14 @@ async function tiles(browser) {
         .getByTestId('tile-body')
         .boundingBox(),
     ]);
+    // Live-Kacheln reservieren zwei Hinweiszeilen: jeder Hinweisplatz ist gleich hoch (Codex-Befund).
+    const slotHeights = await page
+      .locator(GALLERY)
+      .locator('[data-testid="tile-notice-slot"].min-h-\\[36px\\]')
+      .evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
     heights.push({
       width: viewport.width,
+      slotPx: slotHeights,
       ladenPx: Math.round(loadingBox?.height ?? -1),
       bereitPx: Math.round(readyBox?.height ?? -2),
       linieLeerPx: Math.round(emptyBox?.height ?? -3),
@@ -266,7 +272,7 @@ function writeReadme(m) {
     `- Größter horizontaler Seitenüberlauf: ${m.maxOverflowPx} px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel, Designfreigabe)`,
     `- axe-Verstöße serious/critical in der Galerie: ${m.axeSevereTotal}`,
     `- Maus-Hover je Diagrammart hebt das Datum hervor und füllt die Ablesezeile: ${m.hoverOk ? 'ja' : 'nein'}`,
-    `- Inhaltshöhe gleich (Säulen „mittel“ Laden/fertig, Linie „mittel“ leer/mit Daten): ${m.heightsEqual ? 'ja' : 'nein'} (${m.heights.map((h) => `${h.width}: ${h.ladenPx}/${h.bereitPx} px, Linie leer/voll ${h.linieLeerPx}/${h.linieVollPx} px`).join(', ')})`,
+    `- Höhe gleich (Säulen „mittel“ Laden/fertig, Linie „mittel“ leer/mit Daten, Hinweisplatz aller Live-Kacheln): ${m.heightsEqual ? 'ja' : 'nein'} (${m.heights.map((h) => `${h.width}: ${h.ladenPx}/${h.bereitPx} px, Linie leer/voll ${h.linieLeerPx}/${h.linieVollPx} px, Hinweisplatz Live ${[...new Set(h.slotPx)].join('/')} px (${h.slotPx.length} Kacheln)`).join(', ')})`,
     `- Fokus je Diagrammart füllt die Ablesezeile (Wert, Einheit, Kategorie, Zeitraum): ${m.focusReadoutsFilled ? 'ja' : 'nein'}`,
     `- Netzwerk \`?ansicht=zahl\`: Testkachel ausgeblendet, geladene Diagrammmodule: ${m.network.zahl.chartModules.join(', ') || 'keine'}`,
     `- Netzwerk \`?ansicht=ring\`: Testkachel ausgeblendet, geladene Diagrammmodule: ${m.network.ring.chartModules.join(', ') || 'keine'}`,
@@ -349,7 +355,11 @@ async function main() {
         (row) => row.active && row.readout && !row.readout.startsWith('Datenpunkt'),
       ),
       heightsEqual: heights.every(
-        (row) => row.ladenPx === row.bereitPx && row.linieLeerPx === row.linieVollPx,
+        (row) =>
+          row.ladenPx === row.bereitPx &&
+          row.linieLeerPx === row.linieVollPx &&
+          row.slotPx.length >= 3 &&
+          new Set(row.slotPx).size === 1,
       ),
       focusReadoutsFilled: focus.every(
         (row) => row.readout && !row.readout.startsWith('Datenpunkt'),

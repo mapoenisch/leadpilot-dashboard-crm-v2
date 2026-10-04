@@ -67,7 +67,14 @@ export function Depth3dBarChart({
 }: DepthChartProps) {
   const horizontal = orientation === 'horizontal';
   const limit = horizontal ? MAX_HORIZONTAL : MAX_VERTICAL;
-  const data = useMemo(() => allData.slice(0, limit), [allData, limit]);
+  // Mehr als `limit` Kategorien: die größten nach dem dargestellten Wert, nicht nach Quellreihenfolge.
+  const data = useMemo(
+    () =>
+      allData.length > limit
+        ? [...allData].sort((a, b) => b.value - a.value).slice(0, limit)
+        : allData,
+    [allData, limit],
+  );
   const omitted = allData.length - data.length;
   // Spaltenbreite bestimmt, wie viele Zeichen eine senkrechte Kategorie fassen darf (6 px je Zeichen).
   const columnLabelMax = Math.max(4, Math.floor(AREA.width / Math.max(data.length, 1) / 6));
@@ -339,7 +346,7 @@ export function Depth3dBarChart({
         stableHeight={stableLegend}
         idleText={
           omitted > 0
-            ? `${data.length} von ${allData.length} Kategorien dargestellt, alle Werte stehen in der Tabelle.`
+            ? `Die ${data.length} größten von ${allData.length} Kategorien dargestellt, alle Werte stehen in der Tabelle.`
             : undefined
         }
       />

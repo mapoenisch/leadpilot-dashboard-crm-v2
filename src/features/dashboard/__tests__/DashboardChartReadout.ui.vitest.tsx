@@ -84,22 +84,24 @@ describe('Diagramm-Ablesezeile und Grenzen', () => {
     expect(screen.getByTestId('chart-readout')).not.toHaveTextContent('Anteil');
   });
 
-  it('begrenzt die Zeichenfläche auf lesbare Kategorien und verweist auf die Tabelle', async () => {
-    const many = Array.from({ length: 25 }, (_, i) => ({
-      label: `Stufe ${i + 1}`,
-      value: 100 - i,
-    }));
+  it('begrenzt die Zeichenfläche auf die größten Kategorien und verweist auf die Tabelle', async () => {
+    // Quellreihenfolge nach etwas anderem sortiert: die größten Werte stehen hinten.
+    const many = Array.from({ length: 25 }, (_, i) => ({ label: `Stufe ${i + 1}`, value: i + 1 }));
     const { unmount } = renderChart('balken', many);
     const bars = await screen.findByTestId('depth-hbar-chart');
     expect(within(bars).getAllByTestId('depth-bar')).toHaveLength(12);
+    expect(visibleLabels(bars)).toContain('Stufe 25');
+    expect(visibleLabels(bars)).not.toContain('Stufe 1');
     expect(screen.getByTestId('chart-readout')).toHaveTextContent(
-      '12 von 25 Kategorien dargestellt, alle Werte stehen in der Tabelle.',
+      'Die 12 größten von 25 Kategorien dargestellt, alle Werte stehen in der Tabelle.',
     );
     unmount();
     renderChart('saeulen', many);
     const columns = await screen.findByTestId('depth-bar-chart');
     expect(within(columns).getAllByTestId('depth-bar')).toHaveLength(10);
-    expect(screen.getByTestId('chart-readout')).toHaveTextContent('10 von 25 Kategorien');
+    expect(screen.getByTestId('chart-readout')).toHaveTextContent(
+      'Die 10 größten von 25 Kategorien',
+    );
   });
 
   it('kürzt Kategorien unter senkrechten Säulen nach Spaltenbreite, Volltext im title', async () => {

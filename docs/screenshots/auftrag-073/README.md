@@ -2,12 +2,12 @@
 
 Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Builds (`VITE_DASHBOARD_PREVIEW=true`, `vite preview`): Vorher = Basis `92180d3` (nur Testkachel), Nachher = dieser Stand (Testkachel und Kachelgalerie). Feste Testdaten, `prefers-reduced-motion: reduce`. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-04T17:18:36.684Z
+- Aufnahme: 2026-10-04T20:17:50.992Z
 - Vorher/Nachher-Paare verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel, Designfreigabe)
 - axe-Verstöße serious/critical in der Galerie: 0
 - Maus-Hover je Diagrammart hebt das Datum hervor und füllt die Ablesezeile: ja
-- Inhaltshöhe gleich (Säulen „mittel“ Laden/fertig, Linie „mittel“ leer/mit Daten): ja (1440: 450/450 px, Linie leer/voll 405/405 px, 768: 481/481 px, Linie leer/voll 436/436 px, 375: 450/450 px, Linie leer/voll 405/405 px)
+- Höhe gleich (Säulen „mittel“ Laden/fertig, Linie „mittel“ leer/mit Daten, Hinweisplatz aller Live-Kacheln): ja (1440: 450/450 px, Linie leer/voll 405/405 px, Hinweisplatz Live 36 px (4 Kacheln), 768: 481/481 px, Linie leer/voll 436/436 px, Hinweisplatz Live 36 px (4 Kacheln), 375: 450/450 px, Linie leer/voll 405/405 px, Hinweisplatz Live 36 px (4 Kacheln))
 - Fokus je Diagrammart füllt die Ablesezeile (Wert, Einheit, Kategorie, Zeitraum): ja
 - Netzwerk `?ansicht=zahl`: Testkachel ausgeblendet, geladene Diagrammmodule: keine
 - Netzwerk `?ansicht=ring`: Testkachel ausgeblendet, geladene Diagrammmodule: Depth3dDonutChart
@@ -16,49 +16,49 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 
 | Breite | Vorher | Nachher | Überlauf nachher |
 |---:|---|---|---:|
-| 1440 | `3df09d8680ac4ee5` | `0610bc850812229a` | 0 px |
-| 768 | `dc7ff51cb7b59fe2` | `38dbe5b0fb817874` | 0 px |
-| 375 | `2b9768d1dc550b24` | `5f834529983e5915` | 0 px |
+| 1440 | `3df09d8680ac4ee5` | `b1f50945ceccdf89` | 0 px |
+| 768 | `dc7ff51cb7b59fe2` | `e37ed68d70774d1a` | 0 px |
+| 375 | `c7d7daa76780cbe9` | `5458f46a0088c686` | 0 px |
 
 ## Fokus je Diagrammart (Galerie)
 
 | Breite | Diagramm | Ablesezeile | SHA-256 (gekürzt) |
 |---:|---|---|---|
-| 1440 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `f5cde40f3f03f863` |
-| 1440 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `0d08a11818b8fef4` |
-| 1440 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `208094b358a227c6` |
-| 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `423e7569dde771f6` |
-| 1440 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `6252dcf0f933679d` |
-| 768 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `648e0462e0926eaf` |
-| 768 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `6f2bc7288139cf3f` |
-| 768 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `61e458259f24d225` |
-| 768 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `e456e9560432616c` |
-| 768 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `d3777102190a6bc7` |
-| 375 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `e90a154febac0879` |
-| 375 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `7922b32587c4f388` |
-| 375 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `fb7610cc5dc35384` |
-| 375 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `811e89184d8bb7e4` |
-| 375 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `60c496971065301a` |
+| 1440 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `53410ca612920d81` |
+| 1440 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `26f1b9cc4a15c77e` |
+| 1440 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `d19f85265e832048` |
+| 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `84143547ff0cfd99` |
+| 1440 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `65d50c3f91e8bdb8` |
+| 768 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `8c732e860107b9e8` |
+| 768 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `c0c4fb8c3b40cfd5` |
+| 768 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `b60c845661899865` |
+| 768 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `02431b4c8bf46859` |
+| 768 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `e4db6a3f23de9a72` |
+| 375 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `183a8693e3972bf8` |
+| 375 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `6fc38828d11c2960` |
+| 375 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `9fd86adcbc4c4c41` |
+| 375 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `b96312445b7ee773` |
+| 375 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `a2403813c8278896` |
 
 ## Maus-Hover je Diagrammart (Galerie)
 
 | Breite | Diagramm | hervorgehoben | Ablesezeile | SHA-256 (gekürzt) |
 |---:|---|---|---|---|
-| 1440 | depth-bar-chart | ja | Q1 · 42.000 EUR · Testzeitraum | `b71077f8a1c72b45` |
-| 1440 | depth-hbar-chart | ja | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `5d54abe7f291fc13` |
-| 1440 | depth-donut-chart | ja | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `fb1ca4db6d52fa57` |
-| 1440 | depth-line-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `caa20679c0fd9414` |
-| 1440 | depth-area-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `bd904b7e511d8674` |
-| 768 | depth-bar-chart | ja | Q1 · 42.000 EUR · Testzeitraum | `6f4f8b703fd15c5f` |
-| 768 | depth-hbar-chart | ja | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `cb32a8b47b50cb7c` |
-| 768 | depth-donut-chart | ja | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `522d0485cb3b870d` |
-| 768 | depth-line-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `b0767eba2a1880c8` |
-| 768 | depth-area-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `67f1463a6adcbc46` |
-| 375 | depth-bar-chart | ja | Q1 · 42.000 EUR · Testzeitraum | `03722deb8cb2a2aa` |
-| 375 | depth-hbar-chart | ja | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `19d1f40e1226b006` |
-| 375 | depth-donut-chart | ja | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `5d1e2790d7a62eea` |
-| 375 | depth-line-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `1b8f084b0f9b5814` |
-| 375 | depth-area-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `695c4fbb879aee76` |
+| 1440 | depth-bar-chart | ja | Q1 · 42.000 EUR · Testzeitraum | `b5850d5110cbd935` |
+| 1440 | depth-hbar-chart | ja | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `31897122eadc8488` |
+| 1440 | depth-donut-chart | ja | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `aa3438a436c708f7` |
+| 1440 | depth-line-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `0f4642961ec8be52` |
+| 1440 | depth-area-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `885919a4c241787b` |
+| 768 | depth-bar-chart | ja | Q1 · 42.000 EUR · Testzeitraum | `9ad0af3091835a7b` |
+| 768 | depth-hbar-chart | ja | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `7e5981723d9ee4c2` |
+| 768 | depth-donut-chart | ja | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `acb4ea149b15ceab` |
+| 768 | depth-line-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `8c2482369ae0e6d4` |
+| 768 | depth-area-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `c0a20f7d6022f7af` |
+| 375 | depth-bar-chart | ja | Q1 · 42.000 EUR · Testzeitraum | `99c0c36bd4b18965` |
+| 375 | depth-hbar-chart | ja | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `dc025108957bd2b0` |
+| 375 | depth-donut-chart | ja | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `bfdb2446d8f5b432` |
+| 375 | depth-line-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `35de121dd770ea95` |
+| 375 | depth-area-chart | ja | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `d3e8ca030f42b1f3` |
 
 ## Kacheln
 
@@ -66,81 +66,81 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 
 | Breite | Nr. | Darstellung | Größe | Zustand | SHA-256 (gekürzt) |
 |---:|---:|---|---|---|---|
-| 1440 | 1 | zahl | klein | bereit | `f068b39e457baa41` |
-| 1440 | 2 | zahl | klein | veraltet | `250a5d7c1b46a336` |
-| 1440 | 3 | zahl | klein | offline | `f472d904d087e0dd` |
-| 1440 | 4 | zahl | klein | bereit | `56e858c811c4f2b5` |
-| 1440 | 5 | linie | mittel | bereit | `bd8127a6904292bd` |
-| 1440 | 6 | flaeche | mittel | bereit | `d4cc303a61620d48` |
-| 1440 | 7 | ring | mittel | bereit | `f9c1be2a46218822` |
-| 1440 | 8 | ring | mittel | bereit | `596ca02369522a46` |
-| 1440 | 9 | kreis | gross | bereit | `d2b5f9d1a429a979` |
-| 1440 | 10 | tabelle | mittel | bereit | `21c455d57883079d` |
-| 1440 | 11 | balken | mittel | bereit | `6a1214095a3f02c2` |
-| 1440 | 12 | zahl | mittel | bereit | `6d5ed6ca045ae362` |
-| 1440 | 13 | saeulen | mittel | bereit | `9bfd1447e7060a4e` |
-| 1440 | 14 | balken | mittel | bereit | `82579e86ebd496e7` |
-| 1440 | 15 | saeulen | mittel | bereit | `289e8475c748e5a3` |
-| 1440 | 16 | ring | mittel | bereit | `b99ecf384e8e7f1e` |
-| 1440 | 17 | linie | mittel | bereit | `7799b47988e24547` |
-| 1440 | 18 | saeulen | mittel | laden | `d068a99a38072732` |
-| 1440 | 19 | zahl | klein | keine_daten | `4d6621d79a460a67` |
-| 1440 | 20 | zahl | klein | fehler | `0ed9776912670d3f` |
-| 1440 | 21 | zahl | klein | nicht_konfiguriert | `143ce8172f133fdd` |
-| 1440 | 22 | zahl | klein | nicht_verfuegbar | `2d1f9cd1de75243e` |
-| 1440 | 23 | uebersicht | mittel | bereit | `7afeef1c21edd02b` |
-| 1440 | 24 | uebersicht | mittel | bereit | `913ef7863d3b0560` |
-| 1440 | 25 | saeulen | voll | bereit | `c1351b862f7cd0de` |
-| 768 | 1 | zahl | klein | bereit | `9acc458f1d95c561` |
-| 768 | 2 | zahl | klein | veraltet | `599147d4043e7512` |
-| 768 | 3 | zahl | klein | offline | `dc02db22048b2470` |
-| 768 | 4 | zahl | klein | bereit | `7464a7910f7f9cce` |
-| 768 | 5 | linie | mittel | bereit | `7c7c91a6bc579138` |
-| 768 | 6 | flaeche | mittel | bereit | `9f50c3e4fe46cb53` |
-| 768 | 7 | ring | mittel | bereit | `8504fbf1f9555261` |
-| 768 | 8 | ring | mittel | bereit | `8504fbf1f9555261` |
-| 768 | 9 | kreis | gross | bereit | `579303050adfbbdc` |
-| 768 | 10 | tabelle | mittel | bereit | `abc5e364f910bf37` |
-| 768 | 11 | balken | mittel | bereit | `62dc08ecf7962c06` |
-| 768 | 12 | zahl | mittel | bereit | `6280029edbda9ac6` |
-| 768 | 13 | saeulen | mittel | bereit | `d3cda72d6a7dd817` |
-| 768 | 14 | balken | mittel | bereit | `ca69b4f057f729e9` |
-| 768 | 15 | saeulen | mittel | bereit | `782101c6a0ed637e` |
-| 768 | 16 | ring | mittel | bereit | `f36767ca205e9752` |
-| 768 | 17 | linie | mittel | bereit | `553a6a57816ee625` |
-| 768 | 18 | saeulen | mittel | laden | `639cfcdba1bbbaa8` |
-| 768 | 19 | zahl | klein | keine_daten | `aaca7d0445ebc4bf` |
-| 768 | 20 | zahl | klein | fehler | `fdee0ea3666cca49` |
-| 768 | 21 | zahl | klein | nicht_konfiguriert | `4d6266d9dc31ae0e` |
-| 768 | 22 | zahl | klein | nicht_verfuegbar | `01b6c9a87be1102c` |
-| 768 | 23 | uebersicht | mittel | bereit | `0677ac5f31999ec5` |
-| 768 | 24 | uebersicht | mittel | bereit | `5649078361b548ae` |
-| 768 | 25 | saeulen | voll | bereit | `ab43098a0e92c945` |
-| 375 | 1 | zahl | klein | bereit | `09f2a207151cef13` |
-| 375 | 2 | zahl | klein | veraltet | `f376322f29c07f7d` |
-| 375 | 3 | zahl | klein | offline | `9bcd147390a6ba7b` |
-| 375 | 4 | zahl | klein | bereit | `00f2b08360053b9c` |
-| 375 | 5 | linie | mittel | bereit | `6990c0d0fc3a18bf` |
-| 375 | 6 | flaeche | mittel | bereit | `688c329d7ce21a82` |
-| 375 | 7 | ring | mittel | bereit | `a6ef0926602fd84d` |
-| 375 | 8 | ring | mittel | bereit | `a6ef0926602fd84d` |
-| 375 | 9 | kreis | gross | bereit | `f3b9f20a83863a4e` |
-| 375 | 10 | tabelle | mittel | bereit | `c4f2da4f21c65b1a` |
-| 375 | 11 | balken | mittel | bereit | `5ec1137e13d898ba` |
-| 375 | 12 | zahl | mittel | bereit | `f219aa9dfc6a5535` |
-| 375 | 13 | saeulen | mittel | bereit | `ef9adc4207cf09a6` |
-| 375 | 14 | balken | mittel | bereit | `d98855c994b43fc1` |
-| 375 | 15 | saeulen | mittel | bereit | `8a20c820d55b7503` |
-| 375 | 16 | ring | mittel | bereit | `0cecbb0475b38717` |
-| 375 | 17 | linie | mittel | bereit | `da1dc9b0cc0b5eb9` |
-| 375 | 18 | saeulen | mittel | laden | `effd59d4820e0f0d` |
-| 375 | 19 | zahl | klein | keine_daten | `9fe7ba2e2ef77015` |
-| 375 | 20 | zahl | klein | fehler | `a7e02f965be84359` |
-| 375 | 21 | zahl | klein | nicht_konfiguriert | `669db17da5b071b0` |
-| 375 | 22 | zahl | klein | nicht_verfuegbar | `b376b9fc3f78c60c` |
-| 375 | 23 | uebersicht | mittel | bereit | `2ee90fafd0ea3e36` |
-| 375 | 24 | uebersicht | mittel | bereit | `691ab3771de12d90` |
-| 375 | 25 | saeulen | voll | bereit | `ff3fc472d731738b` |
+| 1440 | 1 | zahl | klein | bereit | `147260ba2f0e1f41` |
+| 1440 | 2 | zahl | klein | veraltet | `ad538a1a162f19c1` |
+| 1440 | 3 | zahl | klein | offline | `8870a22c0f064703` |
+| 1440 | 4 | zahl | klein | bereit | `a50fc5e411942b76` |
+| 1440 | 5 | linie | mittel | bereit | `6b18047c8551d122` |
+| 1440 | 6 | flaeche | mittel | bereit | `fc5bdd3440862557` |
+| 1440 | 7 | ring | mittel | bereit | `91c50696e9c4719d` |
+| 1440 | 8 | ring | mittel | bereit | `d1d779b8d598fda6` |
+| 1440 | 9 | kreis | gross | bereit | `3dd783a520829ddf` |
+| 1440 | 10 | tabelle | mittel | bereit | `ba6166078cdd69e4` |
+| 1440 | 11 | balken | mittel | bereit | `75e3e713c9bb762b` |
+| 1440 | 12 | zahl | mittel | bereit | `ed61a9741158fc4a` |
+| 1440 | 13 | saeulen | mittel | bereit | `b76dc9aa92051fe5` |
+| 1440 | 14 | balken | mittel | bereit | `97bc5aafbcfc797f` |
+| 1440 | 15 | saeulen | mittel | bereit | `44ad35ffac626f9e` |
+| 1440 | 16 | ring | mittel | bereit | `b2dac781a7f78d0c` |
+| 1440 | 17 | linie | mittel | bereit | `aec644b91d9b5c43` |
+| 1440 | 18 | saeulen | mittel | laden | `4927b275d49e2cfc` |
+| 1440 | 19 | zahl | klein | keine_daten | `bb5ebf3ac81324cb` |
+| 1440 | 20 | zahl | klein | fehler | `6cd2fcbca8cbf32d` |
+| 1440 | 21 | zahl | klein | nicht_konfiguriert | `6417b78a62590c17` |
+| 1440 | 22 | zahl | klein | nicht_verfuegbar | `8e370734e7b74953` |
+| 1440 | 23 | uebersicht | mittel | bereit | `9757df675d6dfcd6` |
+| 1440 | 24 | uebersicht | mittel | bereit | `ece1c05f3c0d637c` |
+| 1440 | 25 | saeulen | voll | bereit | `03c30a2401421f57` |
+| 768 | 1 | zahl | klein | bereit | `80cdacad61c2fe99` |
+| 768 | 2 | zahl | klein | veraltet | `4e1ff4ba5753abaf` |
+| 768 | 3 | zahl | klein | offline | `3665d511eb306747` |
+| 768 | 4 | zahl | klein | bereit | `8e496da45ba8ae7a` |
+| 768 | 5 | linie | mittel | bereit | `34ee1b81f3fa7744` |
+| 768 | 6 | flaeche | mittel | bereit | `0f5c21b8bd061224` |
+| 768 | 7 | ring | mittel | bereit | `c9fe6ea5db85f964` |
+| 768 | 8 | ring | mittel | bereit | `c9fe6ea5db85f964` |
+| 768 | 9 | kreis | gross | bereit | `8a87fa2ac9a58c63` |
+| 768 | 10 | tabelle | mittel | bereit | `acdf054088aadc55` |
+| 768 | 11 | balken | mittel | bereit | `b8f2908f48a3538e` |
+| 768 | 12 | zahl | mittel | bereit | `38aa8aa8acad6119` |
+| 768 | 13 | saeulen | mittel | bereit | `bd43904bd282485b` |
+| 768 | 14 | balken | mittel | bereit | `46ce1f42dd7c4baa` |
+| 768 | 15 | saeulen | mittel | bereit | `a29ce5580757b4b2` |
+| 768 | 16 | ring | mittel | bereit | `c7af038a255be752` |
+| 768 | 17 | linie | mittel | bereit | `614f5c6cb2962628` |
+| 768 | 18 | saeulen | mittel | laden | `d30627d209e8adf4` |
+| 768 | 19 | zahl | klein | keine_daten | `6ceac3c95e651859` |
+| 768 | 20 | zahl | klein | fehler | `773ce9aa6961b923` |
+| 768 | 21 | zahl | klein | nicht_konfiguriert | `be009223770d8f54` |
+| 768 | 22 | zahl | klein | nicht_verfuegbar | `2e26b235d174a4b2` |
+| 768 | 23 | uebersicht | mittel | bereit | `b3d9070142ebfae2` |
+| 768 | 24 | uebersicht | mittel | bereit | `5e40cfbe39fba7bf` |
+| 768 | 25 | saeulen | voll | bereit | `c0c2309848d652da` |
+| 375 | 1 | zahl | klein | bereit | `6700b2a297e417f9` |
+| 375 | 2 | zahl | klein | veraltet | `d7cc81db3f55b65e` |
+| 375 | 3 | zahl | klein | offline | `ba023b9172940753` |
+| 375 | 4 | zahl | klein | bereit | `3fa3536b319cd2a5` |
+| 375 | 5 | linie | mittel | bereit | `3ddcbec063dce48d` |
+| 375 | 6 | flaeche | mittel | bereit | `3ce9305d01f55b56` |
+| 375 | 7 | ring | mittel | bereit | `cbede9b1030219ce` |
+| 375 | 8 | ring | mittel | bereit | `cbede9b1030219ce` |
+| 375 | 9 | kreis | gross | bereit | `3c51f6996590ac28` |
+| 375 | 10 | tabelle | mittel | bereit | `109c36788ef0f71f` |
+| 375 | 11 | balken | mittel | bereit | `9075283930745188` |
+| 375 | 12 | zahl | mittel | bereit | `f954679dd5f81c83` |
+| 375 | 13 | saeulen | mittel | bereit | `4cbb73548310197c` |
+| 375 | 14 | balken | mittel | bereit | `89b93e7c758cf792` |
+| 375 | 15 | saeulen | mittel | bereit | `f98fb7a7621ba565` |
+| 375 | 16 | ring | mittel | bereit | `89bf938958c26e18` |
+| 375 | 17 | linie | mittel | bereit | `7f3bc59fe5458bce` |
+| 375 | 18 | saeulen | mittel | laden | `53df323fea5bf1f7` |
+| 375 | 19 | zahl | klein | keine_daten | `29df41417a7841c4` |
+| 375 | 20 | zahl | klein | fehler | `a6f51681916f3a1f` |
+| 375 | 21 | zahl | klein | nicht_konfiguriert | `efd1cc5fce359eb8` |
+| 375 | 22 | zahl | klein | nicht_verfuegbar | `d3492211af41307f` |
+| 375 | 23 | uebersicht | mittel | bereit | `187c182aed31ceef` |
+| 375 | 24 | uebersicht | mittel | bereit | `46455f4f449223e8` |
+| 375 | 25 | saeulen | voll | bereit | `58f2cad4cadfbc0a` |
 
 | Breite | Seitenüberlauf | axe serious/critical |
 |---:|---:|---|

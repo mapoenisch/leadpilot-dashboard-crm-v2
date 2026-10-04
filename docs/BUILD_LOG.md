@@ -14990,3 +14990,20 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 7 (Head 639152a, Review 5407939040):**
+
+| Befund | Behebung |
+|---|---|
+| 4179129185 (P2) übernommener Fokus unsichtbar | Der Inhaltsbereich (`tile-body`) hat `focus-visible:ring-2` und zeigt den Fokus nach dem Ladeabschluss. UI-Test. |
+| 4179129174 (P2) Live-Hinweise verschieben die Kachel | Der Hinweisbereich bei Live-Kacheln (`tile-notice-slot`) reserviert zwei Zeilen (36 px) in allen Zuständen. Das Prüfskript misst ihn an allen Live-Kacheln der Galerie: gleich hoch (36 px) auf 1440/768/375 px; Ergebnismatrix ergänzt. |
+| 4179129179 (P2) abgeleiteter Leerzustand nicht angesagt | Ein bereiter Zustand, der als „Keine Daten“ erscheint (leere Reihe, fehlende Übersicht), wird in der Live-Region angesagt (`isDerivedEmpty` über dieselbe Eignungsprüfung wie die Darstellung). UI-Test Laden → leere Reihe. |
+| 4179129190 (P2) Kürzung nach Quellreihenfolge statt nach Messgröße | Mehr als 10 (Säulen) bzw. 12 (Balken) Kategorien: Es erscheinen die größten nach dem dargestellten Wert; der Hinweis lautet „Die N größten von M Kategorien dargestellt“. UI-Test mit 25 Kategorien in aufsteigender Quellreihenfolge. |
+| 4179129191 (P2) abgelehnte zentrale Pipeline unsichtbar | `DashboardTile` nimmt optional `dashboardFilters` und zeigt im Zeitbezug „Pipeline gewählt: …“ (Kachelwahl vor zentraler Wahl), wenn der Resolver die Pipeline nicht anwendet. `model/**` bleibt unverändert (Auftrag: nur lesen). UI-Test. |
+| 4179129195 (P2) lange Pipeline-Namen verbreitern die Kachel | Zeitbezug-Absätze brechen innerhalb langer Namen um (`overflow-wrap:anywhere`); Überlauf bleibt 0 px. UI-Test. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1990 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 36 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

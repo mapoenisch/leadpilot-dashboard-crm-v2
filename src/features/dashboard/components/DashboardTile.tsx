@@ -10,14 +10,21 @@ import {
   type ActiveCatalogEntry,
   type DashboardView,
 } from '../model/dashboardCatalog';
-import type { DashboardTileConfig } from '../model/dashboardConfig';
+import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
 import type { ResolvedTileData, TileData } from '../data/dashboardData';
 import { ChartLoadingPlaceholder, OVERLAY } from './charts/ChartModuleBoundary';
 import { ChartLayoutReserve } from './charts/ChartReadout';
 import { isChartView, type ChartLoaders } from './charts/chartLoaders';
-import { DashboardChart, reserveFor, TableToggleReserve } from './DashboardChart';
+import { checkTileValues, DashboardChart, reserveFor, TableToggleReserve } from './DashboardChart';
 import { BLOCKING_STATES, blockingText, TileNotices, TileStateBadge } from './TileStatus';
-import { filterModeLabel, formatAsOf, formatPeriod, SOURCE_LABEL, timeLabel } from './tileFormat';
+import {
+  filterModeLabel,
+  formatAsOf,
+  formatPeriod,
+  NO_DATA,
+  SOURCE_LABEL,
+  timeLabel,
+} from './tileFormat';
 
 export interface DashboardTileProps {
   tile: DashboardTileConfig;
@@ -33,6 +40,8 @@ export interface DashboardTileProps {
   onRetryChartLoad?: () => void;
   /** Nur für Tests: Nachladefunktionen ersetzen. */
   chartLoaders?: ChartLoaders;
+  /** Zentrale Filter: nur zur Anzeige einer abgelehnten Pipeline-Wahl im Zeitbezug. */
+  dashboardFilters?: DashboardFilters;
   className?: string;
 }
 
@@ -47,9 +56,23 @@ const MIN_HEIGHT: Partial<Record<DashboardView, string>> = {
 };
 const SCROLLING_VIEWS: readonly DashboardView[] = ['tabelle', 'uebersicht'];
 
+/** Lange Namen ohne Leerzeichen (Pipeline) brechen um, statt die Kachel zu verbreitern. */
+const BREAK = '[overflow-wrap:anywhere]';
 const MUTED = 'm-0 text-[12px] text-[var(--color-text-muted)]';
 const SCOPE_NOTICE =
   'Live-Feed, nicht nach Organisation getrennt: Die Werte gelten für alle Organisationen.';
+
+/** Bereite Daten, die als „Keine Daten“ erscheinen (z. B. leere Reihe): ansagen wie einen Zustand. */
+function isDerivedEmpty(
+  tile: DashboardTileConfig,
+  entry: ActiveCatalogEntry | undefined,
+  data: TileData,
+  title: string,
+): boolean {
+  if (data.state !== 'bereit') return false;
+  if (tile.view === 'uebersicht') return !data.overview;
+  return checkTileValues(tile.view, entry, data, title).kind === 'keine_daten';
+}
 
 export function DashboardTile({
   tile,
@@ -58,6 +81,7 @@ export function DashboardTile({
   onShowDetails,
   onRetryChartLoad = () => window.location.reload(),
   chartLoaders,
+  dashboardFilters,
   className,
 }: DashboardTileProps) {
   const title = tile.title ?? entry?.name ?? tile.catalogId;
@@ -82,7 +106,9 @@ export function DashboardTile({
       ? `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.`
       : resolved?.quality === 'degradiert'
         ? 'Datenqualität eingeschränkt.'
-        : '';
+        : isDerivedEmpty(tile, entry, data, title)
+          ? NO_DATA
+          : '';
 
   return (
     <Card
@@ -110,7 +136,7 @@ export function DashboardTile({
                 {period} · Quelle: {SOURCE_LABEL[resolved.origin.layer]}
               </p>
             ) : null}
-            <TimeReference tile={tile} data={resolved} />
+            <TimeReference tile={tile} data={resolved} dashboardFilters={dashboardFilters} />
           </div>
           <TileStateBadge data={data} />
         </header>
@@ -120,7 +146,13 @@ export function DashboardTile({
             {SCOPE_NOTICE}
           </p>
         ) : null}
-        <TileNotices data={data} />
+        {/* Live-Hinweise (veraltet, eingeschränkt) erscheinen nach dem Laden: zwei Zeilen reservieren. */}
+        <div
+          data-testid="tile-notice-slot"
+          className={resolved?.origin.layer === 'live' ? 'min-h-[36px]' : undefined}
+        >
+          <TileNotices data={data} />
+        </div>
 
         {/* Bleibt bestehen: Zustandswechsel (z. B. Laden → Fehler) werden vorgelesen. */}
         <p role="status" className="sr-only" data-testid="tile-live-status">
@@ -129,7 +161,7 @@ export function DashboardTile({
         <div
           ref={bodyRef}
           tabIndex={-1}
-          className="min-w-0 rounded-md outline-none"
+          className="min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary"
           data-testid="tile-body"
         >
           <TileBody
@@ -164,9 +196,11 @@ export function DashboardTile({
 function TimeReference({
   tile,
   data,
+  dashboardFilters,
 }: {
   tile: DashboardTileConfig;
   data: ResolvedTileData | null;
+  dashboardFilters?: DashboardFilters;
 }) {
   const filter = data?.effectiveFilter;
   const parts = [`Zeitbezug: ${filterModeLabel(filter?.mode ?? tile.filterMode)}`];
@@ -176,14 +210,19 @@ function TimeReference({
     parts.push(`gewählt: ${formatPeriod(tile.period)}`);
   }
   if (filter?.pipeline) parts.push(`Pipeline: ${filter.pipeline}`);
+  // Der Resolver setzt eine nicht wirksame Pipeline auf null; die gewählte bleibt sichtbar.
+  else if (filter?.pipelineReason) {
+    const requested = tile.pipeline ?? dashboardFilters?.pipeline;
+    if (requested) parts.push(`Pipeline gewählt: ${requested}`);
+  }
   const reasons = [filter?.periodReason, filter?.pipelineReason].filter(
     (reason): reason is string => Boolean(reason),
   );
   return (
     <div data-testid="tile-time-reference">
-      <p className={MUTED}>{parts.join(' · ')}</p>
+      <p className={cn(MUTED, BREAK)}>{parts.join(' · ')}</p>
       {reasons.map((reason) => (
-        <p key={reason} className={cn(MUTED, 'italic')}>
+        <p key={reason} className={cn(MUTED, BREAK, 'italic')}>
           {reason}
         </p>
       ))}
