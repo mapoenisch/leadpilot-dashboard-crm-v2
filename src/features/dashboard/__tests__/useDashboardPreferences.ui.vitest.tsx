@@ -247,4 +247,30 @@ describe('useDashboardPreferences', () => {
     expect(outcome).toEqual({ ok: false, error: { kind: 'sitzung_gewechselt' } });
     expect(client.getQueryData(dashboardPreferencesKey('org-a', 'user-a'))).toBeUndefined();
   });
+
+  it('räumt beim Aushängen (echter Logout) den Cache und verwirft spätere Speicherantworten', async () => {
+    mockedLoad.mockResolvedValue({ ok: true, value: null });
+    let finishSave: (value: Awaited<ReturnType<typeof savePreferences>>) => void = () => undefined;
+    mockedSave.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishSave = resolve;
+        }),
+    );
+    const { client, unmount, result } = setup();
+    await waitFor(() => expect(result.current.status).toBe('bereit'));
+
+    let pending: Promise<unknown> = Promise.resolve();
+    act(() => {
+      pending = result.current.save(STORED);
+    });
+    unmount();
+    await waitFor(() =>
+      expect(client.getQueryData(dashboardPreferencesKey('org-a', 'user-a'))).toBeUndefined(),
+    );
+
+    finishSave({ ok: true, value: { revision: 1, updatedAt: 'T1' } });
+    await expect(pending).resolves.toEqual({ ok: false, error: { kind: 'sitzung_gewechselt' } });
+    expect(client.getQueryData(dashboardPreferencesKey('org-a', 'user-a'))).toBeUndefined();
+  });
 });

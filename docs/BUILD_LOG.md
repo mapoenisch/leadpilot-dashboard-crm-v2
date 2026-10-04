@@ -14819,3 +14819,12 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 pgTAP lokal: neue Suite 33/33, alle übrigen Suiten grün.
 
 Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1892 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0; Schutzbereichs-Diff leer.
+
+**Nacharbeit PR #56, Codex-Review Runde 2 (Head 4a7c248):**
+
+| Befund | Behebung |
+|---|---|
+| 4176371366 (P2) Präferenzcache beim echten Logout nicht geräumt (ProtectedRoute hängt den Baum aus, bevor die Organisationssitzung leer wird) | Unmount-Cleanup im Hook: Identität wird ungültig (laufende Speicherantworten schreiben nicht mehr), die eigene Abfrage wird nach dem Aushängen entfernt, sobald sie keinen Beobachter mehr hat; zusätzlich `refetchOnMount: 'always'`, damit nie eine Fassung aus einer früheren Sitzung gezeigt wird. `src/auth/**` bleibt unverändert. Test hängt den Hook während eines offenen Speicherns aus (ohne Fix rot). |
+| 4176371371 (P2) Backup-Probe bleibt nach dem Lauf bestehen | `verifyBackupRestore.mjs` merkt sich per `RETURNING`, ob die Probe angelegt wurde, und entfernt sie im `finally` wieder (Prüfpunkt „Backup-Probe wieder entfernt“). SQL lokal geprüft: erster Lauf legt an, zweiter nicht, Aufräumen hinterlässt 0 Zeilen. |
+
+Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0; Schutzbereichs-Diff leer.

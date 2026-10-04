@@ -92,6 +92,8 @@ SELECT string_agg(tgname, ',' ORDER BY tgname) FROM pg_trigger
 // Auftrag 072: Eine persönliche Dashboard-Konfiguration muss inhaltlich gesichert und
 // wiederhergestellt werden. Vor dem Dump wird für den Login-Benutzer eine Probezeile
 // angelegt (falls keine existiert); verglichen werden Inhalt, Version und Revision.
+// Eine vom Skript angelegte Probe wird am Ende wieder entfernt, damit der Datenbestand
+// nach dem Lauf dem Ausgangsstand entspricht.
 const sqlText = (value) => `'${String(value).replace(/'/g, "''")}'`;
 const PREFERENCES_PROBE = `
 INSERT INTO public.executive_dashboard_preferences (organization_id, user_id, config, schema_version, revision)
@@ -100,7 +102,13 @@ SELECT m.organization_id, u.id,
   1, 7
 FROM auth.users AS u JOIN public.organization_members AS m ON m.user_id = u.id
 WHERE u.email = ${sqlText(LOGIN_EMAIL)}
-ON CONFLICT (organization_id, user_id) DO NOTHING;`;
+ON CONFLICT (organization_id, user_id) DO NOTHING
+RETURNING 'angelegt';`;
+const PREFERENCES_PROBE_CLEANUP = `
+DELETE FROM public.executive_dashboard_preferences AS p
+USING auth.users AS u
+WHERE p.user_id = u.id AND u.email = ${sqlText(LOGIN_EMAIL)}
+  AND p.config->'tiles'->0->>'tileId' = 'backup_probe' AND p.revision = 7;`;
 const PREFERENCES_FINGERPRINT = `
 SELECT count(*) || ':' || COALESCE(md5(string_agg(
   organization_id::text || user_id::text || config::text || schema_version || '/' || revision,
@@ -142,6 +150,7 @@ async function login() {
 const tmp = mkdtempSync(join(tmpdir(), 'lp-backup-'));
 const dataFile = join(tmp, 'backup-data.sql');
 let copiedBaseSchema = false;
+let probeCreated = false;
 try {
   // 1. Stand vor dem Backup
   const before0 = await login();
@@ -153,7 +162,7 @@ try {
     );
   }
 
-  query(PREFERENCES_PROBE);
+  probeCreated = query(PREFERENCES_PROBE) === 'angelegt';
   const beforePrefs = query(PREFERENCES_FINGERPRINT);
   check(
     !beforePrefs.startsWith('0:'),
@@ -236,6 +245,10 @@ try {
 } catch (error) {
   check(false, 'Ablauf', error instanceof Error ? error.message : String(error));
 } finally {
+  if (probeCreated) {
+    const cleanup = psql(PREFERENCES_PROBE_CLEANUP);
+    check(cleanup.code === 0, 'Backup-Probe wieder entfernt', cleanup.err.trim());
+  }
   if (copiedBaseSchema) rmSync(BASE_SCHEMA, { force: true });
   rmSync(tmp, { recursive: true, force: true });
 }

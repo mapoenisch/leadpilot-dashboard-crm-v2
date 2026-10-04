@@ -80,10 +80,29 @@ export function useDashboardPreferences(): UseDashboardPreferencesResult {
     });
   }, [queryClient, organizationId, userId, identity]);
 
+  // Aushängen (z. B. beim echten Logout hängt ProtectedRoute den Baum aus, bevor die
+  // Organisationssitzung leer wird): laufende Speichervorgänge dürfen danach nicht mehr in den
+  // Cache schreiben, und eine nicht mehr beobachtete Konfiguration wird entfernt. Der Abbau läuft
+  // verzögert, damit ein gleichzeitig neu eingehängter Nutzer derselben Abfrage sie behält.
+  useEffect(() => {
+    if (!organizationId || !userId) return undefined;
+    const key = dashboardPreferencesKey(organizationId, userId);
+    return () => {
+      identityRef.current = null;
+      setTimeout(() => {
+        const cached = queryClient.getQueryCache().find({ queryKey: key, exact: true });
+        if (cached && cached.getObserversCount() === 0)
+          queryClient.removeQueries({ queryKey: key, exact: true });
+      }, 0);
+    };
+  }, [queryClient, organizationId, userId]);
+
   const query = useQuery({
     queryKey,
     enabled: Boolean(organizationId && userId),
     retry: false,
+    // Beim Einhängen immer die Serverfassung laden, nie eine Fassung aus einer früheren Sitzung zeigen.
+    refetchOnMount: 'always',
     queryFn: async (): Promise<PreferencesState> => {
       const result = await loadPreferences();
       if (!result.ok) throw new PreferencesLoadError(result.error);
