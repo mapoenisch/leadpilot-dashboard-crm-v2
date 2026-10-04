@@ -126,7 +126,8 @@ export function DashboardChart(props: DashboardChartProps) {
   const check = checkTileValues(view, entry, data, title);
   const caption = `${title}, ${period}`;
 
-  if (view === 'uebersicht') {
+  // Unzulässige gespeicherte Kombination zuerst erklären, auch bei der Übersicht.
+  if (view === 'uebersicht' && check.kind !== 'hinweis') {
     return data.overview ? <TileOverview overview={data.overview} /> : <NoData />;
   }
   if (check.kind === 'keine_daten') return <NoData />;

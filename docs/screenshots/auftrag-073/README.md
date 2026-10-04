@@ -2,7 +2,7 @@
 
 Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Builds (`VITE_DASHBOARD_PREVIEW=true`, `vite preview`): Vorher = Basis `92180d3` (nur Testkachel), Nachher = dieser Stand (Testkachel und Kachelgalerie). Feste Testdaten, `prefers-reduced-motion: reduce`. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-04T15:25:00.429Z
+- Aufnahme: 2026-10-04T15:41:20.173Z
 - Vorher/Nachher-Paare verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel, Designfreigabe)
 - axe-Verstöße serious/critical in der Galerie: 0
@@ -14,9 +14,9 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 
 | Breite | Vorher | Nachher | Überlauf nachher |
 |---:|---|---|---:|
-| 1440 | `3df09d8680ac4ee5` | `082491be62e5bd1e` | 0 px |
-| 768 | `dc7ff51cb7b59fe2` | `722b19f88b1a7534` | 0 px |
-| 375 | `2b9768d1dc550b24` | `1e1f8ed3fb014c82` | 0 px |
+| 1440 | `3df09d8680ac4ee5` | `8ea05a24b9dbfcb2` | 0 px |
+| 768 | `dc7ff51cb7b59fe2` | `a360b12afbddc34c` | 0 px |
+| 375 | `c7d7daa76780cbe9` | `96dc0695c99e138e` | 0 px |
 
 ## Fokus je Diagrammart (Galerie)
 
@@ -25,7 +25,7 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 | 1440 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `efeac76e69a4fda3` |
 | 1440 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `d8e7b9b8123d7d9b` |
 | 1440 | depth-donut-chart | Starter · 18.400 EUR · Stand 31.12.2025 | `5697fcffb795beed` |
-| 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `3b369ce2ea069c7e` |
+| 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `90b6b5e0434069fe` |
 | 1440 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `bf14ac82a1dcc6e9` |
 | 768 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `d01db865b1399c67` |
 | 768 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `56fc11a7dbeda742` |
@@ -61,9 +61,9 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 1440 | 15 | saeulen | mittel | bereit | `70923409231ed858` |
 | 1440 | 16 | ring | mittel | bereit | `898a21d3d06a8160` |
 | 1440 | 17 | linie | mittel | bereit | `a460e07c3689bcc6` |
-| 1440 | 18 | saeulen | mittel | laden | `abb648cbe895a7ef` |
-| 1440 | 19 | zahl | klein | keine_daten | `9a1f600d27fad222` |
-| 1440 | 20 | zahl | klein | fehler | `24454f0476a2ec31` |
+| 1440 | 18 | saeulen | mittel | laden | `388bc3bd84cc1d72` |
+| 1440 | 19 | zahl | klein | keine_daten | `bbca2f6da215f505` |
+| 1440 | 20 | zahl | klein | fehler | `d5292082cf6fa96e` |
 | 1440 | 21 | zahl | klein | nicht_konfiguriert | `d40c8fed08f76a2c` |
 | 1440 | 22 | zahl | klein | nicht_verfuegbar | `bac4f2755e5df847` |
 | 1440 | 23 | uebersicht | mittel | bereit | `b63bce82704a1d1e` |
@@ -86,7 +86,7 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 768 | 15 | saeulen | mittel | bereit | `378fcd560311218c` |
 | 768 | 16 | ring | mittel | bereit | `3564f64fdb9f56d7` |
 | 768 | 17 | linie | mittel | bereit | `6add4f8034b245e1` |
-| 768 | 18 | saeulen | mittel | laden | `2efddb31d3a09c96` |
+| 768 | 18 | saeulen | mittel | laden | `44db020daf6a8678` |
 | 768 | 19 | zahl | klein | keine_daten | `b418ed0a946760d3` |
 | 768 | 20 | zahl | klein | fehler | `12b9a35e42502cba` |
 | 768 | 21 | zahl | klein | nicht_konfiguriert | `6eff8090dc3f1002` |
@@ -111,7 +111,7 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 375 | 15 | saeulen | mittel | bereit | `2bc78fe8eea69d70` |
 | 375 | 16 | ring | mittel | bereit | `0282ac12054b199a` |
 | 375 | 17 | linie | mittel | bereit | `4f07b035bbd6c800` |
-| 375 | 18 | saeulen | mittel | laden | `7a7d0d66ae2c1034` |
+| 375 | 18 | saeulen | mittel | laden | `64c9325ea1351b71` |
 | 375 | 19 | zahl | klein | keine_daten | `01290ed380f86b0c` |
 | 375 | 20 | zahl | klein | fehler | `9f3d94ac117c0c14` |
 | 375 | 21 | zahl | klein | nicht_konfiguriert | `232de4d5677c6ea2` |

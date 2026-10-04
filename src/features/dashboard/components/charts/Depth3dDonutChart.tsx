@@ -2,9 +2,15 @@
 // Stil nach Referenz Marc (02.10.2026): Türkis-Abstufung, dunkle Fugen zwischen den Segmenten,
 // Wölbung durch Verlauf (innen dunkler, Außenkante heller), Licht von oben wie bei den Säulen,
 // dezentes Leuchten. Keine Neigung und keine Verschiebung: Die Winkel bleiben exakte Anteile.
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout, ChartSummary, LegendButtons, ScrollableChart } from './ChartReadout';
+import {
+  ChartReadout,
+  ChartSummary,
+  LegendButtons,
+  ScrollableChart,
+  useActiveDatum,
+} from './ChartReadout';
 import { CHART_VIEWBOX, shareColors, shadeHex } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
 import { donutSegments, formatDe, summarizeSeries } from './depthGeometry';
@@ -38,7 +44,7 @@ export function Depth3dDonutChart({
   solid = false,
 }: DepthChartProps) {
   const GEOMETRY = solid ? PIE_GEOMETRY : RING_GEOMETRY;
-  const [active, setActive] = useState<number | null>(null);
+  const [active, setActive] = useActiveDatum(data);
   const segments = useMemo(() => donutSegments(data, GEOMETRY), [data, GEOMETRY]);
   const colors = useMemo(() => shareColors(data.map((entry) => entry.value)), [data]);
   const colorOf = (index: number) => colors[index] ?? '#1E7F7C';

@@ -2,10 +2,28 @@
 // Tooltip-Zeile mit Wert, Einheit, Kategorie und Zeitraum sowie Legenden-Schaltflächen als
 // Tastatur- und Touch-Zugang zu den Datenpunkten. Die SVG-Fläche selbst bleibt für Screenreader
 // verborgen; Werte stehen in der Tooltip-Zeile und in der Tabellenansicht.
-import type { ReactNode } from 'react';
+import { useState, type ReactNode, type SetStateAction } from 'react';
 import { cn } from '@/lib/utils';
 import { formatDe } from './depthGeometry';
 import type { DatumInput } from './depthGeometry';
+
+/**
+ * Auswahl eines Datenpunkts, gespeichert über sein Label statt über den Index: Sortiert ein
+ * Filterwechsel oder Refresh die Reihe neu, bleibt dieselbe Kategorie gewählt; fällt sie weg,
+ * ist nichts mehr gewählt.
+ */
+export function useActiveDatum(
+  data: readonly DatumInput[],
+): [number | null, (next: SetStateAction<number | null>) => void] {
+  const [label, setLabel] = useState<string | null>(null);
+  const index = label === null ? -1 : data.findIndex((entry) => entry.label === label);
+  const active = index >= 0 ? index : null;
+  const setActive = (next: SetStateAction<number | null>) => {
+    const value = typeof next === 'function' ? next(active) : next;
+    setLabel(value === null ? null : (data[value]?.label ?? null));
+  };
+  return [active, setActive];
+}
 
 /**
  * Diagramme behalten ihre Lesegröße (Mindestbreite 560 px = 1:1 zur Zeichenfläche). Auf schmalen
@@ -116,7 +134,8 @@ export function ChartLayoutReserve({
         </div>
       ) : (
         <div className="flex flex-wrap gap-[6px]">
-          {labels.map((label) => (
+          {/* Ohne bekannte Labels (Laden, blockierte Zustände) hält ein Platzhalter-Chip die Zeile. */}
+          {(labels.length > 0 ? labels : ['\u00a0']).map((label) => (
             <button key={label} type="button" disabled tabIndex={-1} className={LEGEND_CHIP_CLASS}>
               {controls === 'legend-dots' ? <svg width="8" height="8" /> : null}
               {label}

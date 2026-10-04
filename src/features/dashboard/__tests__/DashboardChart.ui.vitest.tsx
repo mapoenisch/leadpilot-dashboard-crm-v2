@@ -4,6 +4,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardChart } from '../components/DashboardChart';
 import { DEFAULT_CHART_LOADERS, type ChartLoaders } from '../components/charts/chartLoaders';
+import { negativeLabelY } from '../components/charts/Depth3dBarChart';
 import {
   getCatalogEntry,
   isActiveEntry,
@@ -173,6 +174,47 @@ describe('DashboardChart', () => {
     renderChart('ring', resolved({ value: 5 }), active('baseline.arr'));
     expect(screen.getByTestId('tile-chart-hint')).toHaveTextContent('passt nicht');
     expect(screen.getByTestId('tile-table')).toHaveTextContent('5 EUR');
+  });
+
+  it('erklärt auch eine gespeicherte Übersicht, die nicht zur Kennzahl passt', () => {
+    renderChart('uebersicht', resolved({ value: 5 }), active('baseline.arr'));
+    expect(screen.getByTestId('tile-chart-hint')).toHaveTextContent('passt nicht');
+    expect(screen.queryByTestId('tile-no-data')).toBeNull();
+  });
+
+  it('behält die Auswahl über das Label, wenn sich die Reihenfolge ändert', async () => {
+    const user = userEvent.setup();
+    const props = {
+      view: 'saeulen' as const,
+      title: 'Testkachel',
+      period: 'Geschäftsjahr 2025',
+      idPrefix: 'kachelA',
+      onRetryChartLoad: () => undefined,
+    };
+    const { rerender } = render(<DashboardChart {...props} data={resolved({ series: SHARES })} />);
+    await screen.findByTestId('depth-bar-chart');
+    await user.click(screen.getByRole('button', { name: 'Pro' }));
+    rerender(<DashboardChart {...props} data={resolved({ series: [...SHARES].reverse() })} />);
+    expect(screen.getByRole('button', { name: 'Pro' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Starter' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    rerender(
+      <DashboardChart
+        {...props}
+        data={resolved({ series: SHARES.filter((d) => d.label !== 'Pro') })}
+      />,
+    );
+    expect(screen.queryByRole('button', { pressed: true })).toBeNull();
+  });
+
+  it('hält den Wert negativer Säulen von den Kategorien fern', () => {
+    const baseline = 224;
+    // Kurze Säule: Wert darunter. Säule bis zum unteren Rand: Wert innerhalb der Säule.
+    expect(negativeLabelY(180, baseline)).toBe(194);
+    expect(negativeLabelY(baseline, baseline)).toBe(baseline - 6);
+    expect(negativeLabelY(baseline, baseline)).toBeLessThan(baseline + 18 - 11);
   });
 
   it('lädt für Zahl kein Diagrammmodul und für Ring nur das Kreis/Ring-Modul, einmal', async () => {

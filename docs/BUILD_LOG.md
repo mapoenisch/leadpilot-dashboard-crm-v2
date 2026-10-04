@@ -14896,3 +14896,18 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3` (`src/simulation src/types src/context src/services/data src/features/resources`): leer.
 
 **Ergebnis & Freigabestatus:** Builder fertig. Offen: PR-CI, Codex-Prüfung des Umsetzungsstands, Sichtprüfung der Galerie durch Marc (CI-Artefakt `dashboard-preview`), Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 1 (Head 0a5be33, Review 5406900105):**
+
+| Befund | Behebung |
+|---|---|
+| 4178276505 (P2) Legendenhöhe ohne geladene Daten | `ChartLayoutReserve` zeigt ohne Labels einen unsichtbaren Platzhalter-Chip, die Legendenzeile ist damit beim Laden und in blockierenden Zuständen reserviert; UI-Test für `laden`/`fehler` bei Säulen, Balken, Ring. |
+| 4178276513 (P2) Balkenauswahl nur über den Index | Neuer Hook `useActiveDatum` (`ChartReadout.tsx`) speichert das Label statt des Index; genutzt von Säulen/Balken, Kreis/Ring und Linie/Fläche. Nach Umsortierung bleibt dieselbe Kategorie gewählt, fällt sie weg, ist nichts gewählt; UI-Test mit `rerender`. |
+| 4178276515 (P2) Ungültige Übersichtsansicht nur als „Keine Daten“ | Der Kompatibilitätshinweis wird vor dem Übersichts-Sonderfall ausgewertet; UI-Test `baseline.arr` mit `uebersicht` zeigt „passt nicht“. |
+| 4178276509 (P2) Negativer Wert überlagert die Kategorie | `negativeLabelY`: Wert unter dem Säulenende nur mit Abstand zur Kategoriezeile, sonst innerhalb der Säule; Unit-Test für Säule bis zum unteren Rand. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1966 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,44 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Matrix aktualisiert, 0 px Überlauf, axe 0, Netzwerknachweis grün).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

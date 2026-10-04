@@ -4,9 +4,15 @@
 // der bestehende Funnel bleibt unverändert. Nullwerte erhalten keine Fläche, nur eine Markierung
 // auf der Nullachse, damit kein Betrag vorgetäuscht wird. Negative Werte reichen unter bzw. links
 // der Nullachse (Plan §4, Auftrag 073).
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout, ChartSummary, LegendButtons, ScrollableChart } from './ChartReadout';
+import {
+  ChartReadout,
+  ChartSummary,
+  LegendButtons,
+  ScrollableChart,
+  useActiveDatum,
+} from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
 import {
@@ -20,6 +26,17 @@ import {
 const AREA = { left: 56, top: 34, width: 480, height: 190 };
 const H_AREA = { left: 96, top: 14, width: 400, height: 210 };
 const THEME = MANAGEMENT_CHART_THEME.colors;
+/** Kategorien stehen bei baseline + 18; darüber bleibt Abstand für die Wertbeschriftung. */
+const CATEGORY_CLEARANCE = 6;
+
+/**
+ * Wert negativer Säulen: unter dem Säulenende, solange er die Kategorie darunter nicht berührt;
+ * reicht die Säule bis an den unteren Rand, steht er innerhalb der Säule.
+ */
+export function negativeLabelY(bottom: number, baseline: number): number {
+  const below = bottom + 14;
+  return below <= baseline + CATEGORY_CLEARANCE ? below : bottom - 6;
+}
 
 export function Depth3dBarChart({
   idPrefix,
@@ -32,7 +49,7 @@ export function Depth3dBarChart({
   orientation = 'vertical',
 }: DepthChartProps) {
   const horizontal = orientation === 'horizontal';
-  const [active, setActive] = useState<number | null>(null);
+  const [active, setActive] = useActiveDatum(data);
   const scale = useMemo(() => {
     const values = data.map((d) => d.value);
     return niceSignedScale(Math.min(...values, 0), Math.max(...values, 0));
@@ -259,7 +276,7 @@ export function Depth3dBarChart({
                       x={cx}
                       y={
                         bar.negative
-                          ? bar.y + bar.height + 14
+                          ? negativeLabelY(bar.y + bar.height, baseline)
                           : bar.y - (hasArea ? bar.depth : 0) - 6
                       }
                       textAnchor="middle"

@@ -149,6 +149,16 @@ describe('DashboardTile', () => {
   });
 
   it.each([
+    ['laden', 'saeulen'],
+    ['fehler', 'balken'],
+    ['laden', 'ring'],
+  ] as const)('reserviert bei %s (%s) ohne Labels eine Legendenzeile', (state, view) => {
+    renderTile(resolved({ state, value: null }), { ...TILE, view, size: 'mittel' });
+    const reserve = screen.getByTestId('chart-layout-reserve');
+    expect(reserve.querySelectorAll('button')).toHaveLength(1);
+  });
+
+  it.each([
     ['fehler', 'Quelle nicht erreichbar.', 'Quelle nicht erreichbar.'],
     ['fehler', undefined, 'Die Daten konnten nicht geladen werden.'],
     ['nicht_konfiguriert', undefined, 'Datenquelle nicht eingerichtet.'],
