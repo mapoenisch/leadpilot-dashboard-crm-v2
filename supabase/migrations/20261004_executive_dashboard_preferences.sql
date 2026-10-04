@@ -26,9 +26,22 @@ REVOKE ALL ON public.executive_dashboard_preferences FROM anon;
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.executive_dashboard_preferences FROM authenticated;
 GRANT SELECT ON public.executive_dashboard_preferences TO authenticated;
 
--- Serverseitige Formprüfung (Plan §6). Die fachliche Prüfung (Katalog, Darstellung, Größe)
--- übernimmt der Client mit validateDashboardConfig. Liefert NULL, wenn die Form passt,
--- sonst einen kurzen Grund.
+-- Serverseitige Formprüfung (Plan §6): erlaubte Schlüssel und Typen auf allen Ebenen, damit
+-- keine Kennzahlenwerte, SQL-Fragmente oder Formeln im JSON landen. Die fachliche Prüfung
+-- (Katalog, Darstellung, Größe) übernimmt der Client mit validateDashboardConfig.
+-- Liefert NULL, wenn die Form passt, sonst einen kurzen Grund.
+CREATE OR REPLACE FUNCTION public.dashboard_preferences_period_invalid(p_period JSONB)
+RETURNS BOOLEAN
+LANGUAGE sql
+IMMUTABLE
+SET search_path = public, pg_temp
+AS $$
+  SELECT jsonb_typeof(p_period) IS DISTINCT FROM 'object'
+    OR EXISTS (SELECT 1 FROM jsonb_object_keys(p_period) AS k WHERE k NOT IN ('from', 'to'))
+    OR jsonb_typeof(p_period->'from') IS DISTINCT FROM 'string'
+    OR jsonb_typeof(p_period->'to') IS DISTINCT FROM 'string'
+$$;
+
 CREATE OR REPLACE FUNCTION public.dashboard_preferences_invalid_reason(p_config JSONB)
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -37,6 +50,7 @@ SET search_path = public, pg_temp
 AS $$
 DECLARE
   tile JSONB;
+  filters JSONB := p_config->'filters';
 BEGIN
   IF p_config IS NULL OR jsonb_typeof(p_config) <> 'object' THEN
     RETURN 'kein Objekt';
@@ -52,8 +66,13 @@ BEGIN
   IF p_config->'version' IS DISTINCT FROM '1'::jsonb THEN
     RETURN 'unbekannte Version';
   END IF;
-  IF p_config ? 'filters' AND jsonb_typeof(p_config->'filters') <> 'object' THEN
-    RETURN 'filters ist kein Objekt';
+  IF filters IS NOT NULL THEN
+    IF jsonb_typeof(filters) <> 'object'
+      OR EXISTS (SELECT 1 FROM jsonb_object_keys(filters) AS k WHERE k NOT IN ('period', 'pipeline'))
+      OR (filters ? 'period' AND public.dashboard_preferences_period_invalid(filters->'period'))
+      OR (filters ? 'pipeline' AND jsonb_typeof(filters->'pipeline') <> 'string') THEN
+      RETURN 'filters ungültig';
+    END IF;
   END IF;
   IF jsonb_typeof(p_config->'tiles') IS DISTINCT FROM 'array' THEN
     RETURN 'tiles ist kein Array';
@@ -63,15 +82,26 @@ BEGIN
   END IF;
   FOR tile IN SELECT value FROM jsonb_array_elements(p_config->'tiles') LOOP
     IF jsonb_typeof(tile) <> 'object'
+      OR EXISTS (
+        SELECT 1 FROM jsonb_object_keys(tile) AS k
+        WHERE k NOT IN ('tileId', 'catalogId', 'view', 'size', 'title', 'filterMode', 'period', 'pipeline')
+      )
       OR jsonb_typeof(tile->'tileId') IS DISTINCT FROM 'string'
-      OR jsonb_typeof(tile->'catalogId') IS DISTINCT FROM 'string' THEN
-      RETURN 'Kachel ohne tileId oder catalogId';
+      OR jsonb_typeof(tile->'catalogId') IS DISTINCT FROM 'string'
+      OR jsonb_typeof(tile->'view') IS DISTINCT FROM 'string'
+      OR jsonb_typeof(tile->'size') IS DISTINCT FROM 'string'
+      OR jsonb_typeof(tile->'filterMode') IS DISTINCT FROM 'string'
+      OR (tile ? 'title' AND jsonb_typeof(tile->'title') <> 'string')
+      OR (tile ? 'pipeline' AND jsonb_typeof(tile->'pipeline') <> 'string')
+      OR (tile ? 'period' AND public.dashboard_preferences_period_invalid(tile->'period')) THEN
+      RETURN 'Kachel ungültig';
     END IF;
   END LOOP;
   RETURN NULL;
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.dashboard_preferences_period_invalid(JSONB) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.dashboard_preferences_invalid_reason(JSONB) FROM PUBLIC, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.save_dashboard_preferences(

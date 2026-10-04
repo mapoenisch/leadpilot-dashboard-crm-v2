@@ -14806,3 +14806,16 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 **Schutzbereichs-Diff** gegen `main`: leer. Persistenz-Ausnahme laut Auftrag: nur die neue Tabelle.
 
 **Ergebnis:** Builder fertig, Prüfung durch Codex offen.
+
+**Nacharbeit PR #56, Codex-Review zum Auftragstext (Head 5a851f2), umgesetzt im Code:**
+
+| Befund | Behebung |
+|---|---|
+| 4176320847 (P2) verschachtelte Felder serverseitig nicht geprüft | `dashboard_preferences_invalid_reason` prüft jetzt erlaubte Schlüssel und Typen für `filters`, `period` und jede Kachel (neue Hilfsfunktion `dashboard_preferences_period_invalid`); pgTAP-Fälle für fremde Schlüssel in Kachel, Filtern und Zeitraum sowie Titel kein Text. |
+| 4176320850 (P2) `anon`-Ausführungsrecht | `REVOKE ALL … FROM PUBLIC, anon` war in der Migration bereits gesetzt; Negativtest „anon darf die Speicherfunktion nicht ausführen“ ergänzt und im Auftrag festgehalten. |
+| 4176320854 (P2) Backup-Nachweis ohne Präferenzzeile | `scripts/verifyBackupRestore.mjs` legt vor dem Dump eine Probezeile für den Login-Benutzer an und vergleicht nach dem Restore Anzahl, Konfiguration, Version und Revision (md5). SQL der Probe lokal gegen PostgreSQL 16 geprüft; der Gesamtlauf braucht Docker-Supabase und bleibt für Marc offen. Ziel-Dateien im Auftrag ergänzt. |
+| 4176320857 (P2) veraltete Save-Antwort nach Benutzerwechsel | Identitätsprüfung im Hook: Antworten, die nach einem Wechsel von Benutzer oder Organisation eintreffen, schreiben nicht in den Cache und melden `sitzung_gewechselt`. Test wechselt während eines offenen Speicherns den Benutzer (ohne Fix rot). |
+
+pgTAP lokal: neue Suite 33/33, alle übrigen Suiten grün.
+
+Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1892 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0; Schutzbereichs-Diff leer.

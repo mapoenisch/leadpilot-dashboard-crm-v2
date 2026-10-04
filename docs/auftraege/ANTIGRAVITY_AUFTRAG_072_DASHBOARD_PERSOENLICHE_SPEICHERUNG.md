@@ -34,6 +34,7 @@ Jeder Benutzer speichert sein persönliches Dashboard je Organisation in Supabas
 | `src/features/dashboard/__tests__/defaultDashboard.vitest.ts` | Neu |
 | `src/features/dashboard/__tests__/dashboardPreferencesRepository.vitest.ts` | Neu |
 | `src/features/dashboard/__tests__/useDashboardPreferences.ui.vitest.tsx` | Neu |
+| `scripts/verifyBackupRestore.mjs` | Ergänzt (Codex-Befund PR #56): Probezeile vor dem Dump, inhaltlicher Vergleich nach dem Restore |
 | `docs/auftraege/ANTIGRAVITY_AUFTRAG_072_DASHBOARD_PERSOENLICHE_SPEICHERUNG.md` | Checkboxen abhaken |
 | `docs/BUILD_LOG.md` | Builder-Eintrag |
 
@@ -57,7 +58,7 @@ Jede Datei unter 400 Zeilen. Weitere Dateien nur nach Rückfrage (`CLAUDE.md` §
 - Funktion `public.save_dashboard_preferences(p_config JSONB, p_expected_revision INTEGER) RETURNS TABLE (revision INTEGER, updated_at TIMESTAMPTZ)`, `SECURITY DEFINER`, `SET search_path = public, pg_temp`, `GRANT EXECUTE` nur an `authenticated`:
   - Organisation und Benutzer kommen **nur** aus `public.current_organization_id()` und `auth.uid()`, nie aus Parametern. Ohne aktive Mitgliedschaft: Fehler `LP_DASHBOARD_NO_MEMBERSHIP`.
   - Alle aktiven Rollen dürfen speichern, auch `viewer` (Plan §6). Die Funktion schreibt ausschließlich die eigene Zeile; sie berührt keine CRM- oder Organisationsdaten.
-  - Servervalidierung, Fehler `LP_DASHBOARD_INVALID` mit Grund im Detail: `jsonb_typeof(p_config) = 'object'`; nur die Schlüssel `version`, `filters`, `tiles`; `version = 1`; `tiles` ist ein Array mit höchstens 24 Einträgen; jede Kachel ist ein Objekt mit Text-Feldern `tileId` und `catalogId`; Gesamtgröße `octet_length(p_config::text) <= 32768`. Die fachliche Prüfung (Katalog, Darstellung, Größe) bleibt im Client (`validateDashboardConfig`, Plan §6).
+  - Servervalidierung, Fehler `LP_DASHBOARD_INVALID` mit Grund im Detail, auf allen Ebenen mit erlaubten Schlüsseln und Typen (Codex-Befund PR #56): Objekt mit nur `version`, `filters`, `tiles`; `version = 1`; `filters` (optional) nur `period` und `pipeline` (Text); `period` nur `from` und `to` (Text); `tiles` Array mit höchstens 24 Kacheln; jede Kachel nur `tileId`, `catalogId`, `view`, `size`, `filterMode` (Text, Pflicht) sowie `title`, `pipeline` (Text) und `period` (wie oben); Gesamtgröße `octet_length(p_config::text) <= 32768`. Die fachliche Prüfung (Katalog, Darstellung, Größe) bleibt im Client (`validateDashboardConfig`, Plan §6).
   - Revision: `p_expected_revision = 0` legt an (`revision = 1`); existiert die Zeile schon, Fehler `LP_DASHBOARD_CONFLICT`. Sonst `UPDATE … WHERE revision = p_expected_revision`, neue Revision `+1`; trifft das `UPDATE` keine Zeile, Fehler `LP_DASHBOARD_CONFLICT`. Zwei gleichzeitige Erstanlagen: die zweite scheitert am Primärschlüssel und wird ebenfalls als `LP_DASHBOARD_CONFLICT` gemeldet.
   - `schema_version` wird aus `p_config->>'version'` übernommen.
 - Keine Änderung an bestehenden Tabellen, Policies oder Funktionen.
@@ -73,15 +74,15 @@ Eigene UUID-Präfixe, `BEGIN … ROLLBACK`, Stil wie `tenant_isolation.sql`. Fä
 5. Benutzer A sieht die Zeile von Benutzer B derselben Organisation nicht und kann sie nicht überschreiben (die Funktion schreibt immer die eigene).
 6. Organisation A sieht keine Zeile aus Organisation B.
 7. `viewer` kann speichern; ein Benutzer ohne Mitgliedschaft und ein gesperrtes Mitglied erhalten `LP_DASHBOARD_NO_MEMBERSHIP`.
-8. Direktes `INSERT`/`UPDATE`/`DELETE` als `authenticated` scheitert; `anon` sieht nichts.
-9. Ungültige Konfigurationen → `LP_DASHBOARD_INVALID`: kein Objekt, fremder Schlüssel, `version = 2`, 25 Kacheln, Kachel ohne `tileId`, Größe über 32768 Byte.
+8. Direktes `INSERT`/`UPDATE`/`DELETE` als `authenticated` scheitert; `anon` sieht nichts und darf die Speicherfunktion nicht ausführen (`REVOKE ALL … FROM PUBLIC, anon` vor dem `GRANT`).
+9. Ungültige Konfigurationen → `LP_DASHBOARD_INVALID`: kein Objekt, fremder Schlüssel, `version = 2`, 25 Kacheln, Kachel ohne `tileId`, Größe über 32768 Byte, fremder Schlüssel in einer Kachel, in den Filtern und im Zeitraum, Titel kein Text.
 10. Eine gespeicherte Kachel mit unbekannter `catalogId` wird angenommen und unverändert zurückgeliefert (Plan TA3, Load-/Migrationsvertrag).
 
 ### Frontend
 
 - **`defaultDashboard.ts`:** `DEFAULT_DASHBOARD_CONFIG` (Format 1) aus aktiven Katalogeinträgen der bisherigen Executive-Ansicht: die acht Stammdaten-Einzelwerte als `zahl`/`klein`, `baseline.arr_verlauf` als `linie`/`mittel`, `baseline.mrr_paketmix` als `ring`/`mittel`, die CRM-Pipelinewerte und die Übersichten Team/HR und Roadmap. Die Standardansicht muss `validateDashboardConfig` ohne Befund bestehen (Test). Dazu `interpretStoredConfig(row)`: liefert `{ kind: 'gespeichert', config, revision }`, `{ kind: 'zukuenftige_version', schemaVersion }` (Version > 1: nicht überschreiben, sichere Standardansicht anzeigen, Speichern gesperrt) oder `{ kind: 'ungueltig', issues }`. Kacheln mit unbekannter oder inaktiver ID bleiben erhalten (kein Verwerfen, kein stiller Rückfall auf den Standard).
 - **`dashboardPreferencesRepository.ts`:** `loadPreferences()` liest die eigene Zeile über `supabase.from('executive_dashboard_preferences').select(...).maybeSingle()`; keine Zeile ist kein Fehler. `savePreferences(config, expectedRevision)` ruft die RPC. Fehler werden strukturiert zurückgegeben: `{ kind: 'konflikt' }`, `{ kind: 'ungueltig', detail }`, `{ kind: 'keine_mitgliedschaft' }`, `{ kind: 'sitzung_abgelaufen' }` (PostgREST-/Auth-Fehler 401/JWT), `{ kind: 'nicht_konfiguriert' }` (kein Supabase), `{ kind: 'technisch' }` (Rohfehler nur intern, keine technische Meldung nach außen).
-- **`useDashboardPreferences.ts`:** React Query mit Schlüssel `['dashboard', 'preferences', organizationId, userId]`; ohne Sitzung keine Abfrage. Ohne gespeicherte Zeile liefert der Hook die Standardansicht mit `revision = 0` und legt **nichts** an. `save(config)` prüft vorher mit `validateDashboardConfig`, sendet die erwartete Revision und meldet Erfolg erst nach Serverbestätigung. Bei `konflikt` bleibt der Entwurf des Aufrufers unangetastet; der Hook bietet `reloadServerVersion()`. Wechselt `userId` oder `organizationId` oder endet die Sitzung, werden alle Abfragen mit Präfix `['dashboard', 'preferences']` außer der aktuellen aus dem Cache entfernt.
+- **`useDashboardPreferences.ts`:** React Query mit Schlüssel `['dashboard', 'preferences', organizationId, userId]`; ohne Sitzung keine Abfrage. Ohne gespeicherte Zeile liefert der Hook die Standardansicht mit `revision = 0` und legt **nichts** an. `save(config)` prüft vorher mit `validateDashboardConfig`, sendet die erwartete Revision und meldet Erfolg erst nach Serverbestätigung. Bei `konflikt` bleibt der Entwurf des Aufrufers unangetastet; der Hook bietet `reloadServerVersion()`. Wechselt `userId` oder `organizationId` oder endet die Sitzung, werden alle Abfragen mit Präfix `['dashboard', 'preferences']` außer der aktuellen aus dem Cache entfernt. Ein laufendes Speichern, dessen Antwort nach einem solchen Wechsel eintrifft, schreibt nicht in den Cache und meldet `sitzung_gewechselt` (Identitätsprüfung, Codex-Befund PR #56; Test mit Wechsel während eines offenen Speicherns).
 
 ## Umsetzung
 
@@ -90,7 +91,7 @@ Eigene UUID-Präfixe, `BEGIN … ROLLBACK`, Stil wie `tenant_isolation.sql`. Fä
 - [x] Tests zuerst für das Repository mit gemocktem Supabase-Client (jede Fehlerart, keine Zeile, Erfolg), dann implementieren.
 - [x] Tests zuerst für den Hook: Erstanlage nicht beim bloßen Öffnen; Reload liefert gespeicherte Konfiguration; zwei konkurrierende Saves → zweiter `konflikt`, Entwurf bleibt; abgelaufene Sitzung; Benutzerwechsel räumt den Cache; zukünftige Version sperrt Speichern. Dann implementieren.
 - [x] Pflicht-Verifikation (`CLAUDE.md` §7) mit Exit-Codes: `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test`, `npm run verify`, `npm run build`; Schutzbereichs-Diff leer.
-- [x] Datenbanknachweise, soweit lokal ein Supabase läuft: `supabase test db`, `node scripts/verifyMigrationUpgrade.mjs` (Upgrade aus v2.2.0 und Schemagleichheit), `node scripts/verifyBackupRestore.mjs` (die neue Tabelle wird mitgesichert und wiederhergestellt). Läuft lokal kein Supabase, im BUILD_LOG festhalten; dann gilt der CI-Job `e2e` (`supabase test db`) als Nachweis, und die beiden Skripte bleiben für Marc offen.
+- [x] Datenbanknachweise, soweit lokal ein Supabase läuft: `supabase test db`, `node scripts/verifyMigrationUpgrade.mjs` (Upgrade aus v2.2.0 und Schemagleichheit), `node scripts/verifyBackupRestore.mjs` (legt vor dem Dump eine Probezeile für den Login-Benutzer an und vergleicht danach Konfiguration, Version und Revision inhaltlich). Läuft lokal kein Supabase, im BUILD_LOG festhalten; dann gilt der CI-Job `e2e` (`supabase test db`) als Nachweis, und die beiden Skripte bleiben für Marc offen.
 - [x] BUILD_LOG-Eintrag, Push, PR gegen `main`.
 
 ## Abnahme

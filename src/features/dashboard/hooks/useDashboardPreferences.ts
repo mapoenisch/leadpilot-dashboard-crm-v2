@@ -1,7 +1,7 @@
 // Executive Dashboard, Teilauftrag 3 (Auftrag 072): Laden und Speichern der persönlichen
 // Konfiguration. Kein Autosave, keine Erstanlage beim bloßen Öffnen, Erfolg erst nach
 // Serverbestätigung. Bei Konflikt bleibt der Entwurf des Aufrufers unangetastet.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useOrganization } from '@/auth/organizationContext';
 import type { DashboardConfig } from '../model/dashboardConfig';
@@ -32,7 +32,15 @@ export class PreferencesLoadError extends Error {
 
 export type SaveResult =
   | { ok: true; revision: number }
-  | { ok: false; error: PreferencesError | { kind: 'gesperrt' } | { kind: 'keine_sitzung' } };
+  | {
+      ok: false;
+      error:
+        | PreferencesError
+        | { kind: 'gesperrt' }
+        | { kind: 'keine_sitzung' }
+        /** Benutzer oder Organisation haben während des Speicherns gewechselt. */
+        | { kind: 'sitzung_gewechselt' };
+    };
 
 export interface UseDashboardPreferencesResult {
   status: 'keine_sitzung' | 'laden' | 'bereit' | 'fehler';
@@ -54,8 +62,14 @@ export function useDashboardPreferences(): UseDashboardPreferencesResult {
   const queryKey =
     organizationId && userId ? dashboardPreferencesKey(organizationId, userId) : NO_SESSION_KEY;
 
+  // Aktuelle Identität für laufende Speichervorgänge: Antworten eines früheren Benutzers oder
+  // einer früheren Organisation dürfen den Cache nicht mehr beschreiben.
+  const identity = organizationId && userId ? `${organizationId}|${userId}` : null;
+  const identityRef = useRef(identity);
+
   // Benutzer- oder Organisationswechsel und Abmeldung: fremde Konfigurationen aus dem Cache entfernen.
   useEffect(() => {
+    identityRef.current = identity;
     queryClient.removeQueries({
       queryKey: DASHBOARD_PREFERENCES_KEY,
       predicate: (query) =>
@@ -64,7 +78,7 @@ export function useDashboardPreferences(): UseDashboardPreferencesResult {
         query.queryKey[2] !== organizationId ||
         query.queryKey[3] !== userId,
     });
-  }, [queryClient, organizationId, userId]);
+  }, [queryClient, organizationId, userId, identity]);
 
   const query = useQuery({
     queryKey,
@@ -91,7 +105,11 @@ export function useDashboardPreferences(): UseDashboardPreferencesResult {
       }
       setIsSaving(true);
       try {
+        const startedAs = identityRef.current;
         const result = await savePreferences(config, state.revision);
+        if (identityRef.current !== startedAs) {
+          return { ok: false, error: { kind: 'sitzung_gewechselt' } };
+        }
         if (!result.ok) return { ok: false, error: result.error };
         const saved = interpretStoredConfig({
           config,

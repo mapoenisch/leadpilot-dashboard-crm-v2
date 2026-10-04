@@ -216,4 +216,35 @@ describe('useDashboardPreferences', () => {
     await waitFor(() => expect(result.current.status).toBe('keine_sitzung'));
     expect(client.getQueryCache().findAll({ queryKey: DASHBOARD_PREFERENCES_KEY })).toHaveLength(0);
   });
+
+  it('schreibt die Antwort eines laufenden Speicherns nach einem Benutzerwechsel nicht in den Cache', async () => {
+    mockedLoad.mockResolvedValue({ ok: true, value: null });
+    let finishSave: (value: Awaited<ReturnType<typeof savePreferences>>) => void = () => undefined;
+    mockedSave.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishSave = resolve;
+        }),
+    );
+    const { client, rerender, result } = setup();
+    await waitFor(() => expect(result.current.status).toBe('bereit'));
+
+    let pending: Promise<unknown> = Promise.resolve();
+    act(() => {
+      pending = result.current.save(STORED);
+    });
+    signIn('user-b');
+    rerender();
+    await waitFor(() =>
+      expect(client.getQueryData(dashboardPreferencesKey('org-a', 'user-a'))).toBeUndefined(),
+    );
+
+    let outcome: unknown;
+    await act(async () => {
+      finishSave({ ok: true, value: { revision: 1, updatedAt: 'T1' } });
+      outcome = await pending;
+    });
+    expect(outcome).toEqual({ ok: false, error: { kind: 'sitzung_gewechselt' } });
+    expect(client.getQueryData(dashboardPreferencesKey('org-a', 'user-a'))).toBeUndefined();
+  });
 });

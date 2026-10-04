@@ -6,7 +6,7 @@
 
 BEGIN;
 
-SELECT plan(28);
+SELECT plan(33);
 
 INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
 VALUES
@@ -138,7 +138,7 @@ SELECT throws_ok(
   '42501', NULL, 'direktes DELETE ist gesperrt'
 );
 
--- --------------------------------------------- 19..25: Servervalidierung --
+-- --------------------------------------------- 19..29: Servervalidierung --
 SELECT throws_ok(
   $$SELECT * FROM public.save_dashboard_preferences('[]'::jsonb, 2)$$,
   '22023', 'LP_DASHBOARD_INVALID', 'kein Objekt'
@@ -167,13 +167,33 @@ SELECT throws_ok(
       jsonb_build_object('tileId', 't1', 'catalogId', 'baseline.arr', 'title', repeat('x', 33000)))), 2)$$,
   '22023', 'LP_DASHBOARD_INVALID', 'Konfiguration über 32768 Byte'
 );
+SELECT throws_ok(
+  $$SELECT * FROM public.save_dashboard_preferences(
+    '{"version":1,"tiles":[{"tileId":"t1","catalogId":"baseline.arr","view":"zahl","size":"klein","filterMode":"fester_stand","formula":"A/B"}]}'::jsonb, 2)$$,
+  '22023', 'LP_DASHBOARD_INVALID', 'unbekanntes Feld in einer Kachel'
+);
+SELECT throws_ok(
+  $$SELECT * FROM public.save_dashboard_preferences(
+    '{"version":1,"filters":{"pipeline":"Direkt","sql":"DROP TABLE x"},"tiles":[]}'::jsonb, 2)$$,
+  '22023', 'LP_DASHBOARD_INVALID', 'unbekanntes Feld in den Filtern'
+);
+SELECT throws_ok(
+  $$SELECT * FROM public.save_dashboard_preferences(
+    '{"version":1,"filters":{"period":{"from":"2026-01-01","to":"2026-01-31","value":411840}},"tiles":[]}'::jsonb, 2)$$,
+  '22023', 'LP_DASHBOARD_INVALID', 'unbekanntes Feld im Zeitraum'
+);
+SELECT throws_ok(
+  $$SELECT * FROM public.save_dashboard_preferences(
+    '{"version":1,"tiles":[{"tileId":"t1","catalogId":"baseline.arr","view":"zahl","size":"klein","filterMode":"fester_stand","title":42}]}'::jsonb, 2)$$,
+  '22023', 'LP_DASHBOARD_INVALID', 'Titel ist kein Text'
+);
 SELECT is(
   (SELECT revision FROM public.executive_dashboard_preferences),
   2,
   'abgelehnte Konfigurationen ändern nichts'
 );
 
--- --------------------------------------------- 26..28: unbekannte KPI-ID, anon --
+-- --------------------------------------------- 30..33: unbekannte KPI-ID, anon --
 SELECT lives_ok(
   $$SELECT * FROM public.save_dashboard_preferences((SELECT unknown_kpi FROM cfg), 2)$$,
   'Kachel mit unbekannter KPI-ID wird angenommen'
@@ -189,6 +209,10 @@ SET ROLE anon;
 SELECT throws_ok(
   $$SELECT count(*) FROM public.executive_dashboard_preferences$$,
   '42501', NULL, 'anon hat keinen Lesezugriff'
+);
+SELECT throws_ok(
+  $$SELECT * FROM public.save_dashboard_preferences('{"version":1,"tiles":[]}'::jsonb, 0)$$,
+  '42501', NULL, 'anon darf die Speicherfunktion nicht ausführen'
 );
 RESET ROLE;
 
