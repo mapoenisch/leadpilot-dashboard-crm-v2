@@ -15,9 +15,9 @@ import type { ResolvedTileData, TileData } from '../data/dashboardData';
 import { ChartLoadingPlaceholder, OVERLAY } from './charts/ChartModuleBoundary';
 import { ChartLayoutReserve } from './charts/ChartReadout';
 import { isChartView, type ChartLoaders } from './charts/chartLoaders';
-import { DashboardChart, reserveFor } from './DashboardChart';
+import { DashboardChart, reserveFor, TableToggleReserve } from './DashboardChart';
 import { BLOCKING_STATES, blockingText, TileNotices, TileStateBadge } from './TileStatus';
-import { filterModeLabel, formatPeriod, SOURCE_LABEL, timeLabel } from './tileFormat';
+import { filterModeLabel, formatAsOf, formatPeriod, SOURCE_LABEL, timeLabel } from './tileFormat';
 
 export interface DashboardTileProps {
   tile: DashboardTileConfig;
@@ -74,9 +74,13 @@ export function DashboardTile({
     loadingHadFocus.current = false;
     bodyRef.current?.focus();
   }, [data.state]);
+  // Auch nicht blockierende Wechsel ansagen: ein sichtbarer, aber veralteter Wert (Codex-Befund).
+  const stand = resolved?.asOf ? formatAsOf(resolved.asOf) : null;
   const liveText = BLOCKING_STATES.has(data.state)
     ? `${data.state === 'fehler' ? 'Fehler: ' : ''}${blockingText(data)}`
-    : '';
+    : data.state === 'veraltet'
+      ? `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.`
+      : '';
 
   return (
     <Card
@@ -312,14 +316,5 @@ function TileBody({
         loaders={chartLoaders}
       />
     </div>
-  );
-}
-
-/** Platz der Zeile „Werte als Tabelle“ unter jedem Diagramm: Laden und fertig sind gleich hoch. */
-function TableToggleReserve() {
-  return (
-    <details aria-hidden="true" className="invisible mt-[10px] text-[12px]">
-      <summary tabIndex={-1}>Werte als Tabelle</summary>
-    </details>
   );
 }

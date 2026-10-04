@@ -2,12 +2,12 @@
 
 Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Builds (`VITE_DASHBOARD_PREVIEW=true`, `vite preview`): Vorher = Basis `92180d3` (nur Testkachel), Nachher = dieser Stand (Testkachel und Kachelgalerie). Feste Testdaten, `prefers-reduced-motion: reduce`. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-04T15:56:50.736Z
+- Aufnahme: 2026-10-04T16:09:59.621Z
 - Vorher/Nachher-Paare verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel, Designfreigabe)
 - axe-Verstöße serious/critical in der Galerie: 0
 - Maus-Hover je Diagrammart hebt das Datum hervor und füllt die Ablesezeile: ja
-- Säulenkachel „mittel“: Inhaltshöhe beim Laden = fertig: ja (1440: 430/430 px, 768: 461/461 px, 375: 430/430 px)
+- Inhaltshöhe gleich (Säulen „mittel“ Laden/fertig, Linie „mittel“ leer/mit Daten): ja (1440: 430/430 px, Linie leer/voll 385/385 px, 768: 461/461 px, Linie leer/voll 416/416 px, 375: 430/430 px, Linie leer/voll 385/385 px)
 - Fokus je Diagrammart füllt die Ablesezeile (Wert, Einheit, Kategorie, Zeitraum): ja
 - Netzwerk `?ansicht=zahl`: Testkachel ausgeblendet, geladene Diagrammmodule: keine
 - Netzwerk `?ansicht=ring`: Testkachel ausgeblendet, geladene Diagrammmodule: Depth3dDonutChart
@@ -16,9 +16,9 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 
 | Breite | Vorher | Nachher | Überlauf nachher |
 |---:|---|---|---:|
-| 1440 | `3df09d8680ac4ee5` | `c6ef675247ca20ea` | 0 px |
-| 768 | `dc7ff51cb7b59fe2` | `b54dbd414ea6c69a` | 0 px |
-| 375 | `ad429e1a37a88aed` | `2d0a9c629da5045f` | 0 px |
+| 1440 | `3df09d8680ac4ee5` | `9e510f09e0b2ebeb` | 0 px |
+| 768 | `dc7ff51cb7b59fe2` | `e433638fdf1ac0da` | 0 px |
+| 375 | `c7d7daa76780cbe9` | `d3b79ee3d50968ef` | 0 px |
 
 ## Fokus je Diagrammart (Galerie)
 
@@ -26,17 +26,17 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 |---:|---|---|---|
 | 1440 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `823be66f292767bc` |
 | 1440 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `8005be2cdd1010cc` |
-| 1440 | depth-donut-chart | Starter · 18.400 EUR · Stand 31.12.2025 | `185db81cad94d419` |
-| 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `90b6b5e0434069fe` |
+| 1440 | depth-donut-chart | Starter · 18.400 EUR · Stand 31.12.2025 | `52adac6bbae11078` |
+| 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `3b369ce2ea069c7e` |
 | 1440 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `bf14ac82a1dcc6e9` |
 | 768 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `b312da8ab12e8e56` |
-| 768 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `0541ca54a7a7401f` |
-| 768 | depth-donut-chart | Starter · 18.400 EUR · Stand 31.12.2025 | `98cbfa6b9548822d` |
+| 768 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `48796738126ada17` |
+| 768 | depth-donut-chart | Starter · 18.400 EUR · Stand 31.12.2025 | `086640da85dde557` |
 | 768 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `bedf316660e6f3d5` |
-| 768 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `8a9b7156abf8e274` |
+| 768 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `d6e4a44f89046c0b` |
 | 375 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `a4d06e23ccca26cf` |
 | 375 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `0ef6e39c145ccbf8` |
-| 375 | depth-donut-chart | Starter · 18.400 EUR · Stand 31.12.2025 | `0b499ea1fa36d8de` |
+| 375 | depth-donut-chart | Starter · 18.400 EUR · Stand 31.12.2025 | `bb305da2e75ce436` |
 | 375 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `4ec5d1e7ea8992a0` |
 | 375 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `d6ab2ac7578746a5` |
 
@@ -81,16 +81,16 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 1440 | 13 | saeulen | mittel | bereit | `35859bb47cedb4a1` |
 | 1440 | 14 | balken | mittel | bereit | `877710ac474aeffa` |
 | 1440 | 15 | saeulen | mittel | bereit | `e3edddd62a751eb4` |
-| 1440 | 16 | ring | mittel | bereit | `898a21d3d06a8160` |
-| 1440 | 17 | linie | mittel | bereit | `a460e07c3689bcc6` |
-| 1440 | 18 | saeulen | mittel | laden | `deb0909335f04448` |
-| 1440 | 19 | zahl | klein | keine_daten | `aa71b33e3a7372af` |
-| 1440 | 20 | zahl | klein | fehler | `da082a038eddc3bf` |
-| 1440 | 21 | zahl | klein | nicht_konfiguriert | `d40c8fed08f76a2c` |
-| 1440 | 22 | zahl | klein | nicht_verfuegbar | `bac4f2755e5df847` |
-| 1440 | 23 | uebersicht | mittel | bereit | `cbc8219c0669202a` |
-| 1440 | 24 | uebersicht | mittel | bereit | `c35d146ec4cd385c` |
-| 1440 | 25 | saeulen | voll | bereit | `d697ccd358629be6` |
+| 1440 | 16 | ring | mittel | bereit | `a41d751455deea66` |
+| 1440 | 17 | linie | mittel | bereit | `226e7456a8cbe7f0` |
+| 1440 | 18 | saeulen | mittel | laden | `d63513535bca88f8` |
+| 1440 | 19 | zahl | klein | keine_daten | `62f1a8d0202daec6` |
+| 1440 | 20 | zahl | klein | fehler | `ee72e325fa7cfb04` |
+| 1440 | 21 | zahl | klein | nicht_konfiguriert | `143ce8172f133fdd` |
+| 1440 | 22 | zahl | klein | nicht_verfuegbar | `2d1f9cd1de75243e` |
+| 1440 | 23 | uebersicht | mittel | bereit | `85f876ff64743601` |
+| 1440 | 24 | uebersicht | mittel | bereit | `845fb604ce4d1cae` |
+| 1440 | 25 | saeulen | voll | bereit | `e1eecad88f4040a4` |
 | 768 | 1 | zahl | klein | bereit | `9acc458f1d95c561` |
 | 768 | 2 | zahl | klein | veraltet | `599147d4043e7512` |
 | 768 | 3 | zahl | klein | offline | `dc02db22048b2470` |
@@ -106,13 +106,13 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 768 | 13 | saeulen | mittel | bereit | `ec79e024d930d6ac` |
 | 768 | 14 | balken | mittel | bereit | `073bd1fbadf94811` |
 | 768 | 15 | saeulen | mittel | bereit | `785b2067b1e422f5` |
-| 768 | 16 | ring | mittel | bereit | `3564f64fdb9f56d7` |
-| 768 | 17 | linie | mittel | bereit | `6add4f8034b245e1` |
-| 768 | 18 | saeulen | mittel | laden | `26b36b9380ebbfe8` |
-| 768 | 19 | zahl | klein | keine_daten | `b418ed0a946760d3` |
-| 768 | 20 | zahl | klein | fehler | `12b9a35e42502cba` |
-| 768 | 21 | zahl | klein | nicht_konfiguriert | `6eff8090dc3f1002` |
-| 768 | 22 | zahl | klein | nicht_verfuegbar | `a9dbad0a7c17c2ed` |
+| 768 | 16 | ring | mittel | bereit | `fa50cddd6e7614c4` |
+| 768 | 17 | linie | mittel | bereit | `15ee885b5804fe81` |
+| 768 | 18 | saeulen | mittel | laden | `3261f44bb11eb7d4` |
+| 768 | 19 | zahl | klein | keine_daten | `aaca7d0445ebc4bf` |
+| 768 | 20 | zahl | klein | fehler | `f876668ccb59c6f0` |
+| 768 | 21 | zahl | klein | nicht_konfiguriert | `4d6266d9dc31ae0e` |
+| 768 | 22 | zahl | klein | nicht_verfuegbar | `01b6c9a87be1102c` |
 | 768 | 23 | uebersicht | mittel | bereit | `98e1ecfb99dca13d` |
 | 768 | 24 | uebersicht | mittel | bereit | `268fc94e5025f21d` |
 | 768 | 25 | saeulen | voll | bereit | `6d740497c3cc388c` |
@@ -131,16 +131,16 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 375 | 13 | saeulen | mittel | bereit | `b16ca6faf184d912` |
 | 375 | 14 | balken | mittel | bereit | `3b2f35a9b56aedcd` |
 | 375 | 15 | saeulen | mittel | bereit | `cad861def91fb4a8` |
-| 375 | 16 | ring | mittel | bereit | `0282ac12054b199a` |
-| 375 | 17 | linie | mittel | bereit | `4f07b035bbd6c800` |
-| 375 | 18 | saeulen | mittel | laden | `e8f489ed17242ca2` |
-| 375 | 19 | zahl | klein | keine_daten | `01290ed380f86b0c` |
-| 375 | 20 | zahl | klein | fehler | `9f3d94ac117c0c14` |
-| 375 | 21 | zahl | klein | nicht_konfiguriert | `232de4d5677c6ea2` |
-| 375 | 22 | zahl | klein | nicht_verfuegbar | `f963c13d6701d0b4` |
-| 375 | 23 | uebersicht | mittel | bereit | `36ac355288c74ae4` |
-| 375 | 24 | uebersicht | mittel | bereit | `36c46f6370f24cfe` |
-| 375 | 25 | saeulen | voll | bereit | `ec26eed3ec153cae` |
+| 375 | 16 | ring | mittel | bereit | `be2d9dd530377209` |
+| 375 | 17 | linie | mittel | bereit | `fc8965924b25d6ea` |
+| 375 | 18 | saeulen | mittel | laden | `b980ecc1b1b3b0f3` |
+| 375 | 19 | zahl | klein | keine_daten | `9fe7ba2e2ef77015` |
+| 375 | 20 | zahl | klein | fehler | `64b3cb81dafb6064` |
+| 375 | 21 | zahl | klein | nicht_konfiguriert | `669db17da5b071b0` |
+| 375 | 22 | zahl | klein | nicht_verfuegbar | `b376b9fc3f78c60c` |
+| 375 | 23 | uebersicht | mittel | bereit | `75504e14efd4919b` |
+| 375 | 24 | uebersicht | mittel | bereit | `691ab3771de12d90` |
+| 375 | 25 | saeulen | voll | bereit | `46464f6d2f4a3d19` |
 
 | Breite | Seitenüberlauf | axe serious/critical |
 |---:|---:|---|

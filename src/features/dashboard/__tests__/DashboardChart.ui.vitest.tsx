@@ -172,12 +172,56 @@ describe('DashboardChart', () => {
   it.each<DashboardView>(['saeulen', 'balken', 'kreis', 'ring', 'linie', 'flaeche'])(
     'zeigt eine leere Reihe bei %s als „Keine Daten“ ohne Diagramm und Regler',
     (view) => {
-      const { container } = renderChart(view, resolved({ state: 'bereit', series: [] }));
+      renderChart(view, resolved({ state: 'bereit', series: [] }));
       expect(screen.getByTestId('tile-no-data')).toHaveTextContent('Keine Daten');
-      expect(container.querySelector('svg')).toBeNull();
-      expect(container.querySelector('input[type="range"]')).toBeNull();
+      // Nur das unsichtbare Gerüst (aria-hidden) hält die Höhe; kein Diagramm, kein Regler.
+      expect(screen.queryByRole('img')).toBeNull();
+      expect(screen.queryByRole('slider')).toBeNull();
+      expect(screen.getByTestId('tile-chart-frame')).toContainElement(
+        screen.getByTestId('chart-layout-reserve'),
+      );
     },
   );
+
+  it('hält Hinweis und Tabelle einer Diagrammkachel in der Diagrammhöhe', () => {
+    renderChart(
+      'ring',
+      resolved({ series: [{ label: 'a', value: 0 }] }),
+      active('baseline.mrr_paketmix'),
+    );
+    const frame = screen.getByTestId('tile-chart-frame');
+    expect(frame).toContainElement(screen.getByTestId('tile-chart-hint'));
+    expect(frame).toContainElement(screen.getByTestId('chart-layout-reserve'));
+    expect(screen.getByRole('region', { name: /scrollbar/ })).toHaveAttribute('tabindex', '0');
+  });
+
+  it('löscht die Auswahl, wenn ihre Kategorie verschwindet, und belebt sie nicht wieder', async () => {
+    const user = userEvent.setup();
+    const two = [
+      { label: 'A', value: 3 },
+      { label: 'B', value: 2 },
+    ];
+    const view = (series: typeof two) => (
+      <DashboardChart
+        view="saeulen"
+        data={resolved({ series })}
+        title="Testkachel"
+        period="Geschäftsjahr 2025"
+        idPrefix="kachelA"
+        onRetryChartLoad={() => undefined}
+      />
+    );
+    const { rerender } = render(view(two));
+    await screen.findByTestId('depth-bar-chart');
+    await user.click(screen.getByRole('button', { name: 'B' }));
+    expect(screen.getByTestId('chart-readout')).toHaveTextContent('B');
+    rerender(view([two[0]!]));
+    rerender(view(two));
+    expect(screen.getByTestId('chart-readout')).not.toHaveTextContent('B ·');
+    for (const bar of screen.getAllByTestId('depth-bar')) {
+      expect(bar).toHaveAttribute('data-active', 'false');
+    }
+  });
 
   it('erklärt eine Darstellung, die nicht zur Kennzahl passt', () => {
     renderChart('ring', resolved({ value: 5 }), active('baseline.arr'));

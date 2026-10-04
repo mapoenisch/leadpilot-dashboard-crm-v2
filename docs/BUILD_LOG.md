@@ -14928,3 +14928,17 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 3 (Head 244f8a2, Review 5407074372):**
+
+| Befund | Behebung |
+|---|---|
+| 4178372241 (P2) Wert-Fallbacks einer Diagrammkachel schrumpfen | „Keine Daten“ und Hinweise samt Tabelle stehen bei Diagrammansichten in `ChartFrame`: unsichtbares Diagrammgerüst plus Zeile „Werte als Tabelle“, Inhalt darüber (bei Hinweisen fokussierbarer Scrollbereich). Prüfskript misst zusätzlich Linie „mittel“ leer gegen mit Daten: gleich hoch auf allen Breiten (385/416/385 px). UI-Tests. |
+| 4178372243 (P2) verschwundene Auswahl lebt wieder auf | `useActiveDatum` löscht das gespeicherte Label, sobald die Kategorie fehlt; kehrt sie zurück, ist nichts gewählt. UI-Test mit zweifachem `rerender`. |
+| 4178372244 (P2) Wechsel auf `veraltet` nicht angesagt | Live-Region meldet „Wert veraltet. Stand …“; UI-Test bereit → veraltet mit derselben Region. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1974 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0.
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

@@ -2,7 +2,7 @@
 // Tooltip-Zeile mit Wert, Einheit, Kategorie und Zeitraum sowie Legenden-Schaltflächen als
 // Tastatur- und Touch-Zugang zu den Datenpunkten. Die SVG-Fläche selbst bleibt für Screenreader
 // verborgen; Werte stehen in der Tooltip-Zeile und in der Tabellenansicht.
-import { useState, type ReactNode, type SetStateAction } from 'react';
+import { useEffect, useState, type ReactNode, type SetStateAction } from 'react';
 import { cn } from '@/lib/utils';
 import { formatDe } from './depthGeometry';
 import type { DatumInput } from './depthGeometry';
@@ -10,7 +10,7 @@ import type { DatumInput } from './depthGeometry';
 /**
  * Auswahl eines Datenpunkts, gespeichert über sein Label statt über den Index: Sortiert ein
  * Filterwechsel oder Refresh die Reihe neu, bleibt dieselbe Kategorie gewählt; fällt sie weg,
- * ist nichts mehr gewählt.
+ * wird die Auswahl dauerhaft gelöscht und lebt nicht wieder auf, wenn die Kategorie zurückkehrt.
  */
 export function useActiveDatum(
   data: readonly DatumInput[],
@@ -18,6 +18,10 @@ export function useActiveDatum(
   const [label, setLabel] = useState<string | null>(null);
   const index = label === null ? -1 : data.findIndex((entry) => entry.label === label);
   const active = index >= 0 ? index : null;
+  const missing = label !== null && index < 0;
+  useEffect(() => {
+    if (missing) setLabel(null);
+  }, [missing]);
   const setActive = (next: SetStateAction<number | null>) => {
     const value = typeof next === 'function' ? next(active) : next;
     setLabel(value === null ? null : (data[value]?.label ?? null));

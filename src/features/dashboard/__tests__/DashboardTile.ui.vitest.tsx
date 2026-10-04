@@ -255,6 +255,23 @@ describe('DashboardTile', () => {
     expect(screen.getByTestId('tile-state-badge')).toBeInTheDocument();
   });
 
+  it('sagt den Wechsel auf einen veralteten Wert über die Live-Region an', () => {
+    const { rerender } = render(
+      <DashboardTile tile={TILE} entry={ARR} data={resolved()} onShowDetails={() => undefined} />,
+    );
+    const live = screen.getByTestId('tile-live-status');
+    expect(live).toHaveTextContent('');
+    rerender(
+      <DashboardTile
+        tile={TILE}
+        entry={ARR}
+        data={resolved({ state: 'veraltet', asOf: '2026-10-04T12:05:00Z' })}
+        onShowDetails={() => undefined}
+      />,
+    );
+    expect(live).toHaveTextContent('Wert veraltet. Stand 04.10.2026, 14:05.');
+  });
+
   it('zeigt bei veraltet den Wert weiter mit Zeitstempel', () => {
     renderTile(resolved({ state: 'veraltet', asOf: '2026-10-04T12:05:00Z' }));
     expect(screen.getByTestId('tile-notice')).toHaveTextContent(

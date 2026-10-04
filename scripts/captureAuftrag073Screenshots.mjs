@@ -176,10 +176,28 @@ async function tiles(browser) {
         .getByTestId('tile-body')
         .boundingBox();
     const [loadingBox, readyBox] = await Promise.all([body('laden'), body('bereit')]);
+    // Linienkachel „mittel“: leere Reihe („Keine Daten“) gleich hoch wie mit Daten.
+    const lines = page
+      .locator(GALLERY)
+      .locator('[data-testid="dashboard-tile"][data-view="linie"][data-size="mittel"]');
+    const [emptyBox, filledBox] = await Promise.all([
+      lines
+        .filter({ has: page.getByTestId('tile-no-data') })
+        .first()
+        .getByTestId('tile-body')
+        .boundingBox(),
+      lines
+        .filter({ has: page.getByTestId('depth-line-chart') })
+        .first()
+        .getByTestId('tile-body')
+        .boundingBox(),
+    ]);
     heights.push({
       width: viewport.width,
       ladenPx: Math.round(loadingBox?.height ?? -1),
       bereitPx: Math.round(readyBox?.height ?? -2),
+      linieLeerPx: Math.round(emptyBox?.height ?? -3),
+      linieVollPx: Math.round(filledBox?.height ?? -4),
     });
     for (const testId of CHART_TESTIDS) {
       const tile = page
@@ -248,7 +266,7 @@ function writeReadme(m) {
     `- Größter horizontaler Seitenüberlauf: ${m.maxOverflowPx} px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel, Designfreigabe)`,
     `- axe-Verstöße serious/critical in der Galerie: ${m.axeSevereTotal}`,
     `- Maus-Hover je Diagrammart hebt das Datum hervor und füllt die Ablesezeile: ${m.hoverOk ? 'ja' : 'nein'}`,
-    `- Säulenkachel „mittel“: Inhaltshöhe beim Laden = fertig: ${m.heightsEqual ? 'ja' : 'nein'} (${m.heights.map((h) => `${h.width}: ${h.ladenPx}/${h.bereitPx} px`).join(', ')})`,
+    `- Inhaltshöhe gleich (Säulen „mittel“ Laden/fertig, Linie „mittel“ leer/mit Daten): ${m.heightsEqual ? 'ja' : 'nein'} (${m.heights.map((h) => `${h.width}: ${h.ladenPx}/${h.bereitPx} px, Linie leer/voll ${h.linieLeerPx}/${h.linieVollPx} px`).join(', ')})`,
     `- Fokus je Diagrammart füllt die Ablesezeile (Wert, Einheit, Kategorie, Zeitraum): ${m.focusReadoutsFilled ? 'ja' : 'nein'}`,
     `- Netzwerk \`?ansicht=zahl\`: Testkachel ausgeblendet, geladene Diagrammmodule: ${m.network.zahl.chartModules.join(', ') || 'keine'}`,
     `- Netzwerk \`?ansicht=ring\`: Testkachel ausgeblendet, geladene Diagrammmodule: ${m.network.ring.chartModules.join(', ') || 'keine'}`,
@@ -330,7 +348,9 @@ async function main() {
       hoverOk: hover.every(
         (row) => row.active && row.readout && !row.readout.startsWith('Datenpunkt'),
       ),
-      heightsEqual: heights.every((row) => row.ladenPx === row.bereitPx),
+      heightsEqual: heights.every(
+        (row) => row.ladenPx === row.bereitPx && row.linieLeerPx === row.linieVollPx,
+      ),
       focusReadoutsFilled: focus.every(
         (row) => row.readout && !row.readout.startsWith('Datenpunkt'),
       ),

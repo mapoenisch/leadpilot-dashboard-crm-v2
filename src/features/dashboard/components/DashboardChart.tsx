@@ -1,7 +1,7 @@
 // Executive Dashboard, Teilauftrag 4 (Auftrag 073): wählt die Darstellung einer Kachel und prüft
 // vorher, ob die Werte dafür taugen (Plan §4). Nichts wirft: ungeeignete Werte ergeben einen
 // erklärten Zustand mit Tabelle. Diagrammmodule werden je Darstellung nachgeladen (Plan §5).
-import { Suspense, useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef, type ReactNode } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { ActiveCatalogEntry, DashboardView } from '../model/dashboardCatalog';
 import type { ResolvedTileData } from '../data/dashboardData';
@@ -18,6 +18,7 @@ import {
   type ChartLoaders,
   type ChartView,
 } from './charts/chartLoaders';
+import { ChartLayoutReserve } from './charts/ChartReadout';
 import type { DatumInput } from './charts/depthGeometry';
 import { TileNumber, TileTable } from './TileValue';
 import { TileOverview } from './TileOverview';
@@ -131,15 +132,31 @@ export function DashboardChart(props: DashboardChartProps) {
   if (view === 'uebersicht' && check.kind !== 'hinweis') {
     return data.overview ? <TileOverview overview={data.overview} /> : <NoData />;
   }
-  if (check.kind === 'keine_daten') return <NoData />;
+  const chartView = isChartView(view) ? view : null;
+  if (check.kind === 'keine_daten') {
+    return chartView ? (
+      <ChartFrame view={chartView}>
+        <NoData />
+      </ChartFrame>
+    ) : (
+      <NoData />
+    );
+  }
   if (check.kind === 'hinweis') {
-    return (
+    const hint = (
       <div className="flex flex-col gap-[10px]">
         <p data-testid="tile-chart-hint" className="m-0 text-[13px] text-accent">
           {check.text}
         </p>
         <TileTable rows={check.rows} unit={data.unit} caption={caption} />
       </div>
+    );
+    return chartView ? (
+      <ChartFrame view={chartView} label={`${caption}, scrollbar`}>
+        {hint}
+      </ChartFrame>
+    ) : (
+      hint
     );
   }
   if (view === 'zahl' && check.rows[0]) {
@@ -149,6 +166,46 @@ export function DashboardChart(props: DashboardChartProps) {
     return <TileTable rows={check.rows} unit={data.unit} caption={caption} />;
   }
   return <LazyChart {...props} view={view} rows={check.rows} caption={caption} />;
+}
+
+/** Platz der Zeile „Werte als Tabelle“ unter jedem Diagramm: Laden und fertig sind gleich hoch. */
+export function TableToggleReserve() {
+  return (
+    <details aria-hidden="true" className="invisible mt-[10px] text-[12px]">
+      <summary tabIndex={-1}>Werte als Tabelle</summary>
+    </details>
+  );
+}
+
+/**
+ * Hinweise und „Keine Daten“ einer Diagrammkachel stehen in derselben Höhe wie das Diagramm
+ * (Gerüst plus Tabellenzeile), damit die Kachel beim Ladeabschluss nicht springt. Längere Inhalte
+ * scrollen innerhalb dieser Fläche (Codex-Befund PR #57).
+ */
+export function ChartFrame({
+  view,
+  label,
+  children,
+}: {
+  view: ChartView;
+  /** Mit Beschriftung wird die Fläche ein fokussierbarer Scrollbereich. */
+  label?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative" data-testid="tile-chart-frame">
+      <ChartLayoutReserve {...reserveFor(view, [])} />
+      <TableToggleReserve />
+      <div
+        role={label ? 'region' : undefined}
+        aria-label={label}
+        tabIndex={label ? 0 : undefined}
+        className="absolute inset-0 flex flex-col overflow-y-auto rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <div className="my-auto">{children}</div>
+      </div>
+    </div>
+  );
 }
 
 function LazyChart({
