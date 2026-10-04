@@ -2,7 +2,7 @@
 
 Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Builds (`VITE_DASHBOARD_PREVIEW=true`, `vite preview`): Vorher = Basis `92180d3` (nur Testkachel), Nachher = dieser Stand (Testkachel und Kachelgalerie). Feste Testdaten, `prefers-reduced-motion: reduce`. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-04T16:57:01.620Z
+- Aufnahme: 2026-10-04T17:18:36.684Z
 - Vorher/Nachher-Paare verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel, Designfreigabe)
 - axe-Verstöße serious/critical in der Galerie: 0
@@ -16,9 +16,9 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 
 | Breite | Vorher | Nachher | Überlauf nachher |
 |---:|---|---|---:|
-| 1440 | `3df09d8680ac4ee5` | `99b590fd45ae89eb` | 0 px |
-| 768 | `dc7ff51cb7b59fe2` | `4aedb927e57c3df6` | 0 px |
-| 375 | `ad429e1a37a88aed` | `147e1218794891ba` | 0 px |
+| 1440 | `3df09d8680ac4ee5` | `0610bc850812229a` | 0 px |
+| 768 | `dc7ff51cb7b59fe2` | `38dbe5b0fb817874` | 0 px |
+| 375 | `2b9768d1dc550b24` | `5f834529983e5915` | 0 px |
 
 ## Fokus je Diagrammart (Galerie)
 
@@ -27,18 +27,18 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 | 1440 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `f5cde40f3f03f863` |
 | 1440 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `0d08a11818b8fef4` |
 | 1440 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `208094b358a227c6` |
-| 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `5862a50e77743b04` |
+| 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `423e7569dde771f6` |
 | 1440 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `6252dcf0f933679d` |
 | 768 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `648e0462e0926eaf` |
 | 768 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `6f2bc7288139cf3f` |
-| 768 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `15ea568ea33bfc18` |
+| 768 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `61e458259f24d225` |
 | 768 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `e456e9560432616c` |
-| 768 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `b28d9cad051bc0f1` |
+| 768 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `d3777102190a6bc7` |
 | 375 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `e90a154febac0879` |
 | 375 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `7922b32587c4f388` |
 | 375 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `fb7610cc5dc35384` |
 | 375 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `811e89184d8bb7e4` |
-| 375 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `cff092238b8cab9d` |
+| 375 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `60c496971065301a` |
 
 ## Maus-Hover je Diagrammart (Galerie)
 
@@ -85,10 +85,10 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 1440 | 17 | linie | mittel | bereit | `7799b47988e24547` |
 | 1440 | 18 | saeulen | mittel | laden | `d068a99a38072732` |
 | 1440 | 19 | zahl | klein | keine_daten | `4d6621d79a460a67` |
-| 1440 | 20 | zahl | klein | fehler | `ef0ff8426ae93f3d` |
+| 1440 | 20 | zahl | klein | fehler | `0ed9776912670d3f` |
 | 1440 | 21 | zahl | klein | nicht_konfiguriert | `143ce8172f133fdd` |
 | 1440 | 22 | zahl | klein | nicht_verfuegbar | `2d1f9cd1de75243e` |
-| 1440 | 23 | uebersicht | mittel | bereit | `85f876ff64743601` |
+| 1440 | 23 | uebersicht | mittel | bereit | `7afeef1c21edd02b` |
 | 1440 | 24 | uebersicht | mittel | bereit | `913ef7863d3b0560` |
 | 1440 | 25 | saeulen | voll | bereit | `c1351b862f7cd0de` |
 | 768 | 1 | zahl | klein | bereit | `9acc458f1d95c561` |
@@ -110,10 +110,10 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 768 | 17 | linie | mittel | bereit | `553a6a57816ee625` |
 | 768 | 18 | saeulen | mittel | laden | `639cfcdba1bbbaa8` |
 | 768 | 19 | zahl | klein | keine_daten | `aaca7d0445ebc4bf` |
-| 768 | 20 | zahl | klein | fehler | `f876668ccb59c6f0` |
+| 768 | 20 | zahl | klein | fehler | `fdee0ea3666cca49` |
 | 768 | 21 | zahl | klein | nicht_konfiguriert | `4d6266d9dc31ae0e` |
 | 768 | 22 | zahl | klein | nicht_verfuegbar | `01b6c9a87be1102c` |
-| 768 | 23 | uebersicht | mittel | bereit | `98e1ecfb99dca13d` |
+| 768 | 23 | uebersicht | mittel | bereit | `0677ac5f31999ec5` |
 | 768 | 24 | uebersicht | mittel | bereit | `5649078361b548ae` |
 | 768 | 25 | saeulen | voll | bereit | `ab43098a0e92c945` |
 | 375 | 1 | zahl | klein | bereit | `09f2a207151cef13` |
@@ -135,10 +135,10 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 375 | 17 | linie | mittel | bereit | `da1dc9b0cc0b5eb9` |
 | 375 | 18 | saeulen | mittel | laden | `effd59d4820e0f0d` |
 | 375 | 19 | zahl | klein | keine_daten | `9fe7ba2e2ef77015` |
-| 375 | 20 | zahl | klein | fehler | `64b3cb81dafb6064` |
+| 375 | 20 | zahl | klein | fehler | `a7e02f965be84359` |
 | 375 | 21 | zahl | klein | nicht_konfiguriert | `669db17da5b071b0` |
 | 375 | 22 | zahl | klein | nicht_verfuegbar | `b376b9fc3f78c60c` |
-| 375 | 23 | uebersicht | mittel | bereit | `75504e14efd4919b` |
+| 375 | 23 | uebersicht | mittel | bereit | `2ee90fafd0ea3e36` |
 | 375 | 24 | uebersicht | mittel | bereit | `691ab3771de12d90` |
 | 375 | 25 | saeulen | voll | bereit | `ff3fc472d731738b` |
 

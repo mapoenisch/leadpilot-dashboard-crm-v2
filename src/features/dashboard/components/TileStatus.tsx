@@ -50,7 +50,8 @@ export function blockingText(data: TileData): string {
     case 'keine_daten':
       return NO_DATA;
     case 'fehler':
-      return data.message ?? 'Die Daten konnten nicht geladen werden.';
+      // Resolvermeldungen nennen interne Exporte und Felder: nie in der Kachel zeigen.
+      return 'Die Daten konnten nicht geladen werden.';
     case 'offline':
       // Auftrag 071: `offline` heißt ohne letzten Wert; ein vorhandener Wert kommt als `veraltet`.
       return 'Live-Verbindung getrennt, noch kein Wert empfangen.';

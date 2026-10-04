@@ -14975,3 +14975,18 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 6 (Head de842d0, Review 5407275632):**
+
+| Befund | Behebung |
+|---|---|
+| 4178550700 (P2) interne Resolvermeldungen im Fehlerzustand | Der Fehlerzustand zeigt immer „Die Daten konnten nicht geladen werden.“; Meldungen mit internen Exporten und Feldern erscheinen nicht in der Kachel (auch nicht in der Live-Region). UI-Tests angepasst, Meldung mit „Export …“ darf nicht erscheinen. |
+| 4178550697 (P2) Roadmap ohne Beschreibung | Jeder Release zeigt `desc` unter dem Titel; UI-Test über alle Releases. |
+| 4178550693 (P2) Hinweis der inkompatiblen Zahlansicht verschiebt Höhe | Der Hinweis samt Tabelle steht bei `zahl` in einem fokussierbaren Scrollbereich mit höchstens 96 px (Ladehöhe); UI-Test mit achtzeiliger Reihe. |
+| 4178550690 (P2) Balkenwerte ragen über den rechten Rand | `hValueLabel`: Passt der Wert nicht in die Zeichenfläche, steht er rechtsbündig innerhalb des Balkens (positiv am rechten Rand, rein negativ an der Nullachse). Unit-Test der Grenzfälle. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1986 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,44 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig: 450/481/450 px, Linie leer = voll: 405/436/405 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

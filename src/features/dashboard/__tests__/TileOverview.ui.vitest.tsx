@@ -56,9 +56,12 @@ describe('TileOverview', () => {
     ).toHaveLength(data.bottlenecks.length);
   });
 
-  it('zeigt alle Roadmap-Releases', () => {
+  it('zeigt alle Roadmap-Releases mit Beschreibung', () => {
     const data = getRoadmapSnapshot();
     render(<TileOverview overview={{ kind: 'roadmap', data }} />);
+    for (const release of data.releases) {
+      expect(screen.getByTestId('tile-overview')).toHaveTextContent(release.desc);
+    }
     expect(within(screen.getByTestId('tile-overview')).getAllByRole('listitem')).toHaveLength(
       data.releases.length,
     );

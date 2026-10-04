@@ -155,6 +155,17 @@ export function DashboardChart(props: DashboardChartProps) {
       <ChartFrame view={chartView} label={`${caption}, scrollbar`}>
         {hint}
       </ChartFrame>
+    ) : view === 'zahl' ? (
+      // Zahlkachel: der Hinweis bleibt in der reservierten Ladehöhe (96 px), der Rest scrollt.
+      <div
+        role="region"
+        aria-label={`${caption}, Hinweis, scrollbar`}
+        tabIndex={0}
+        data-testid="tile-hint-scroll"
+        className="max-h-[96px] overflow-y-auto outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        {hint}
+      </div>
     ) : (
       hint
     );

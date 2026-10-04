@@ -44,6 +44,16 @@ export function negativeLabelY(bottom: number, baseline: number): number {
   return below <= baseline + CATEGORY_CLEARANCE ? below : bottom - 6;
 }
 
+/**
+ * Wert am Balkenende: rechts daneben, solange er in die Zeichenfläche passt; sonst rechtsbündig
+ * innerhalb des Balkens (positive Werte am rechten Rand, rein negative Reihen an der Nullachse).
+ */
+export function hValueLabel(edge: number, chars: number): { x: number; anchor: 'start' | 'end' } {
+  const start = edge + 8;
+  if (start + chars * 7 <= CHART_VIEWBOX.width - 4) return { x: start, anchor: 'start' };
+  return { x: edge - 6, anchor: 'end' };
+}
+
 export function Depth3dBarChart({
   idPrefix,
   data: allData,
@@ -162,6 +172,10 @@ export function Depth3dBarChart({
                 const top = bar.y + bar.depth;
                 const right = bar.x + bar.length;
                 const cy = top + frontThickness / 2;
+                const valueLabel = hValueLabel(
+                  bar.negative ? bar.zero : right + bar.depth,
+                  formatDe(bar.value).length,
+                );
                 return (
                   <g
                     key={bar.label}
@@ -216,8 +230,9 @@ export function Depth3dBarChart({
                       {shortenLabel(bar.label, H_LABEL_MAX)}
                     </text>
                     <text
-                      x={bar.negative ? bar.zero + 8 : right + bar.depth + 8}
+                      x={valueLabel.x}
                       y={cy + 4}
+                      textAnchor={valueLabel.anchor}
                       fontSize="11.5"
                       fontWeight="700"
                       fill="#ffffff"

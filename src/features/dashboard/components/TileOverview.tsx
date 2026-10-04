@@ -58,6 +58,9 @@ export function TileOverview({ overview }: { overview: TileOverviewData }) {
             <span className="min-w-0">
               <span className="font-mono text-[12px] text-primary">{release.quarter}</span>{' '}
               <span className="text-[var(--color-text-primary,#e6f3f1)]">{release.title}</span>
+              <span className="block text-[12px] text-[var(--color-text-muted)]">
+                {release.desc}
+              </span>
             </span>
             <span className="shrink-0 text-[12px] text-[var(--color-text-muted)]">
               {release.status}

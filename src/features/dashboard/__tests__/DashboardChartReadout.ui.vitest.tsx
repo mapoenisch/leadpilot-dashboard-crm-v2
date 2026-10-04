@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardChart } from '../components/DashboardChart';
-import type { DashboardView } from '../model/dashboardCatalog';
+import { hValueLabel } from '../components/charts/Depth3dBarChart';
+import { getCatalogEntry, isActiveEntry, type DashboardView } from '../model/dashboardCatalog';
 import type { ResolvedTileData } from '../data/dashboardData';
 
 const SHARES = [
@@ -112,5 +113,32 @@ describe('Diagramm-Ablesezeile und Grenzen', () => {
     const columns = await screen.findByTestId('depth-bar-chart');
     expect(visibleLabels(columns)).toContain('Sehr la…');
     expect(columns.querySelector('text > title')?.textContent).toBe('Sehr lange Stufe 1');
+  });
+
+  it('hält den Hinweis einer inkompatiblen Zahlansicht in der Ladehöhe, der Rest scrollt', () => {
+    const entry = getCatalogEntry('baseline.arr_verlauf');
+    if (!entry || !isActiveEntry(entry)) throw new Error('Eintrag fehlt');
+    const series = Array.from({ length: 8 }, (_, i) => ({ label: `Q${i}`, value: i + 1 }));
+    render(
+      <DashboardChart
+        view="zahl"
+        entry={entry}
+        data={resolved(series)}
+        title="ARR-Verlauf"
+        period="2025"
+        idPrefix="kachelH"
+        onRetryChartLoad={() => undefined}
+      />,
+    );
+    const scroll = screen.getByTestId('tile-hint-scroll');
+    expect(scroll.className).toContain('max-h-[96px]');
+    expect(scroll).toHaveAttribute('tabindex', '0');
+    expect(within(scroll).getByTestId('tile-chart-hint')).toBeInTheDocument();
+  });
+
+  it('legt Balkenwerte am rechten Rand in den Balken statt aus der Zeichenfläche', () => {
+    expect(hValueLabel(300, 5)).toEqual({ x: 308, anchor: 'start' });
+    expect(hValueLabel(510, 9)).toEqual({ x: 504, anchor: 'end' });
+    expect(hValueLabel(552, 7)).toEqual({ x: 546, anchor: 'end' });
   });
 });

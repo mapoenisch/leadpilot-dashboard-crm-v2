@@ -176,7 +176,7 @@ describe('DashboardTile', () => {
       />,
     );
     expect(screen.getByTestId('tile-live-status')).toBe(live);
-    expect(live).toHaveTextContent('Fehler: Quelle nicht erreichbar.');
+    expect(live).toHaveTextContent('Fehler: Die Daten konnten nicht geladen werden.');
   });
 
   it('nennt den gewählten eigenen Zeitraum, auch wenn er für die Quelle nicht wirkt', () => {
@@ -246,12 +246,17 @@ describe('DashboardTile', () => {
   });
 
   it.each([
-    ['fehler', 'Quelle nicht erreichbar.', 'Quelle nicht erreichbar.'],
+    [
+      'fehler',
+      'Export "X" in Stammdaten nicht gefunden',
+      'Die Daten konnten nicht geladen werden.',
+    ],
     ['fehler', undefined, 'Die Daten konnten nicht geladen werden.'],
     ['nicht_konfiguriert', undefined, 'Datenquelle nicht eingerichtet.'],
   ] as const)('zeigt den Zustand %s verständlich', (state, message, text) => {
     renderTile(resolved({ state, value: null, message }));
     expect(screen.getByTestId('tile-blocked')).toHaveTextContent(text);
+    expect(screen.getByTestId('tile-blocked')).not.toHaveTextContent('Export');
     expect(screen.getByTestId('tile-state-badge')).toBeInTheDocument();
   });
 
