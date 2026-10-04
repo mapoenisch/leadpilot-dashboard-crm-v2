@@ -7,11 +7,19 @@ import { Card } from '@/components/ui/Card';
 import { Tabs } from '@/components/ui/Tabs';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
-import { ChartLoadingPlaceholder, ChartModuleBoundary } from './ChartModuleBoundary';
-import type { ChartReserveSpec } from './ChartModuleBoundary';
-import type { DepthChartProps } from './charts/chartTypes';
-import { formatDe } from './charts/depthGeometry';
-import type { DatumInput } from './charts/depthGeometry';
+import {
+  ChartLoadingPlaceholder,
+  ChartModuleBoundary,
+  FocusAfterLoad,
+} from '../components/charts/ChartModuleBoundary';
+import type { ChartReserveSpec } from '../components/charts/ChartModuleBoundary';
+import type { DepthChartProps } from '../components/charts/chartTypes';
+import {
+  DEFAULT_CHART_LOADERS as MODULE_LOADERS,
+  MODULE_BY_VIEW,
+} from '../components/charts/chartLoaders';
+import { formatDe } from '../components/charts/depthGeometry';
+import type { DatumInput } from '../components/charts/depthGeometry';
 import {
   SAMPLE_NOTICE,
   SAMPLE_PERIOD,
@@ -31,13 +39,14 @@ type ChartView = Exclude<PreviewView, 'zahl' | 'tabelle'>;
 type ChartModule = { default: React.ComponentType<DepthChartProps> };
 export type ChartLoaders = Record<ChartView, () => Promise<ChartModule>>;
 
+// Dieselben Diagrammmodule wie die Dashboard-Kacheln (Auftrag 073), hier je Darstellung ersetzbar.
 export const DEFAULT_CHART_LOADERS: ChartLoaders = {
-  saeulen: () => import('./charts/Depth3dBarChart').then((m) => ({ default: m.Depth3dBarChart })),
-  balken: () => import('./charts/Depth3dBarChart').then((m) => ({ default: m.Depth3dBarChart })),
-  kreis: () => import('./charts/Depth3dDonutChart').then((m) => ({ default: m.Depth3dDonutChart })),
-  ring: () => import('./charts/Depth3dDonutChart').then((m) => ({ default: m.Depth3dDonutChart })),
-  linie: () => import('./charts/DepthLineChart').then((m) => ({ default: m.DepthLineChart })),
-  flaeche: () => import('./charts/DepthAreaChart').then((m) => ({ default: m.DepthAreaChart })),
+  saeulen: MODULE_LOADERS[MODULE_BY_VIEW.saeulen],
+  balken: MODULE_LOADERS[MODULE_BY_VIEW.balken],
+  kreis: MODULE_LOADERS[MODULE_BY_VIEW.kreis],
+  ring: MODULE_LOADERS[MODULE_BY_VIEW.ring],
+  linie: MODULE_LOADERS[MODULE_BY_VIEW.linie],
+  flaeche: MODULE_LOADERS[MODULE_BY_VIEW.flaeche],
 };
 
 // Ein lazy-Modul je Loader-Satz und Darstellung.
@@ -204,25 +213,6 @@ const reserveFor = (view: PreviewView, data: readonly DatumInput[]): ChartReserv
         ? 'legend-dots'
         : 'legend',
 });
-
-/**
- * Hatte der Ladeplatzhalter den Tastaturfokus, verschwindet er beim Auflösen von Suspense aus dem DOM.
- * Damit der Fokus nicht auf den Seitenanfang zurückfällt, übernimmt ihn der Diagrammbereich.
- */
-function FocusAfterLoad({
-  placeholderHadFocus,
-  target,
-}: {
-  placeholderHadFocus: React.MutableRefObject<boolean>;
-  target: React.RefObject<HTMLDivElement>;
-}) {
-  useEffect(() => {
-    if (!placeholderHadFocus.current) return;
-    placeholderHadFocus.current = false;
-    target.current?.focus();
-  }, [placeholderHadFocus, target]);
-  return null;
-}
 
 export interface DashboardDesignPreviewProps {
   initialView?: PreviewView;

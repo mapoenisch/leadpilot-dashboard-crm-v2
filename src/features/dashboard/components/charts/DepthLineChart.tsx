@@ -35,6 +35,7 @@ export function DepthLineChart({
   period,
   title,
   reducedMotion,
+  formatValue,
   filled = false,
 }: DepthLineChartProps) {
   const [active, setActive] = useState<number | null>(null);
@@ -42,7 +43,10 @@ export function DepthLineChart({
   const points = useMemo(() => linePoints(data, AREA, scale.max), [data, scale.max]);
   const baseline = AREA.top + AREA.height;
   const summaryId = `${idPrefix}-summary`;
-  const summary = useMemo(() => summarizeSeries(data, unit, period, 'trend'), [data, unit, period]);
+  const summary = useMemo(
+    () => summarizeSeries(data, unit, period, 'trend', formatValue),
+    [data, unit, period, formatValue],
+  );
   const fillId = `${idPrefix}-area`;
   const shadowId = `${idPrefix}-line-shadow`;
   const slot = points.length > 1 ? AREA.width / (points.length - 1) : AREA.width;
@@ -168,6 +172,7 @@ export function DepthLineChart({
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}
+        formatValue={formatValue}
         period={period}
       />
       <label className={SLIDER_ROW_CLASS}>

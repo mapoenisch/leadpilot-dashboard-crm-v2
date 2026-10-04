@@ -28,7 +28,9 @@ Ein einheitlicher Kachelrahmen (`DashboardTile`) und eine Darstellungsauswahl (`
 | Datei | Änderung |
 |---|---|
 | `src/features/dashboard/preview/charts/*` → `src/features/dashboard/components/charts/*` | Verschoben (`git mv`): `Depth3dBarChart.tsx`, `Depth3dDonutChart.tsx`, `DepthLineChart.tsx`, `DepthAreaChart.tsx`, `ChartReadout.tsx`, `chartTypes.ts`, `depthGeometry.ts` |
-| `src/features/dashboard/preview/ChartModuleBoundary.tsx` → `src/features/dashboard/components/charts/ChartModuleBoundary.tsx` | Verschoben, Rückfall „Wiederholen“ unverändert |
+| `src/features/dashboard/preview/ChartModuleBoundary.tsx` → `src/features/dashboard/components/charts/ChartModuleBoundary.tsx` | Verschoben, Rückfall „Wiederholen“ unverändert; `FocusAfterLoad` aus der Testkachel hierher, damit Testkachel und Kacheln dieselbe Fokusübergabe nutzen |
+| `src/features/dashboard/components/charts/chartTypes.ts`, `ChartReadout.tsx`, `Depth3dDonutChart.tsx`, `DepthLineChart.tsx` | Ergänzt (Codex-Befund PR #57): optionale einheitenabhängige Formatierung `formatValue` für Ablesezeile und zugängliche Kurzfassung; Ringmitte nennt die Einheit („EUR gesamt“). Ohne `formatValue` unverändert (Testkachel) |
+| `src/features/dashboard/preview/previewSampleData.ts` | Nur Importpfad (Codex-Befund PR #57) |
 | `src/features/dashboard/components/charts/depthGeometry.ts` | Ergänzt: negative Werte bei Säulen/Balken (Nullachse), Mindestsichtbarkeit kleiner Werte |
 | `src/features/dashboard/components/charts/Depth3dBarChart.tsx` | Ergänzt: Nullachse und Säulen/Balken unterhalb von 0 |
 | `src/features/dashboard/components/charts/chartLoaders.ts` | Neu: dynamische Imports je Diagrammart, `lazy`-Cache |
@@ -82,8 +84,8 @@ Jede Datei unter 400 Zeilen (Lint `max-lines`). Weitere Dateien nur nach Rückfr
 |---|---|
 | `laden` | Reservefläche in Endhöhe mit „wird geladen“, fokussierbar |
 | `keine_daten` | „Keine Daten“, niemals 0 |
-| `fehler` | Verständlicher Text aus `message`, keine technische Meldung |
-| `offline` | Hinweis „Live-Verbindung getrennt“; vorhandener Wert bleibt mit Zeitstempel sichtbar |
+| `fehler` | Verständlicher Text aus `message`; fehlt `message` (z. B. `resolveLive` bei Live-Aktivität ohne Snapshot), „Die Daten konnten nicht geladen werden.“ Keine technische Meldung (Codex-Befund PR #57) |
+| `offline` | „Live-Verbindung getrennt, noch kein Wert empfangen“, ohne Wert. Vertrag Auftrag 071: `offline` heißt ohne letzten Wert; ein vorhandener Wert kommt als `veraltet` (Codex-Befund PR #57) |
 | `veraltet` | Wert bleibt sichtbar, Hinweis „veraltet“ mit Zeitstempel |
 | `nicht_konfiguriert` | „Datenquelle nicht eingerichtet“ |
 | `nicht_verfuegbar` | Hinweis aus `message`, Kachel bleibt entfernbar (Teilauftrag 5) |
@@ -96,11 +98,12 @@ Jede Datei unter 400 Zeilen (Lint `max-lines`). Weitere Dateien nur nach Rückfr
 - `x`: eine Nachkommastelle mit „x“ („3,2x“). `%`: eine Nachkommastelle mit Leerzeichen („12,5 %“). Andere Einheiten: Zahl plus Einheit.
 - Zeitraum/Stand: `timeBasis`; bei Live zusätzlich `asOf` als „Stand TT.MM.JJJJ, HH:MM“. Kein erfundener Zeitraum.
 - `null` ergibt „Keine Daten“, nie „0“.
+- Die Diagramme nutzen dieselbe Formatierung: `DashboardChart` reicht `formatTileValue(…, 'exakt')` als `formatValue` an Ablesezeile und zugängliche Kurzfassung durch; Achsen- und Säulenbeschriftungen bleiben reine Zahlen (Codex-Befund PR #57).
 
 ### Darstellung (`DashboardChart`)
 
 - Wählt anhand `tile.view`: `zahl`, `tabelle` (`TileValue`), `saeulen`/`balken` (`Depth3dBarChart`, `orientation`), `kreis`/`ring` (`Depth3dDonutChart`, `solid`), `linie`/`flaeche`, `uebersicht` (`TileOverview`). `series` wird zu `DatumInput[]`; ein Einzelwert erscheint in Zahl und Tabelle.
-- Eignung der **Werte** vor dem Zeichnen prüfen, ohne Ausnahme zu werfen: Kreis/Ring mit negativem Wert oder Summe 0 → erklärter Zustand „Nicht als Anteil darstellbar“ plus Tabelle. Nicht endliche Werte → „Keine Daten“. Leere Reihe (`series` ist `null` oder `[]`) bei einer reihenbasierten Darstellung (Säulen, Balken, Kreis, Ring, Linie, Fläche, Tabelle einer Reihe) → „Keine Daten“, auch wenn `state` `bereit` meldet; es wird kein Diagramm und kein Zeitpunktregler gerendert. Passt die Darstellung nicht zur Datenform des Eintrags (z. B. alte Konfiguration), erklärter Hinweis statt Diagramm.
+- Eignung der **Werte** vor dem Zeichnen prüfen, ohne Ausnahme zu werfen: Kreis/Ring mit negativem Wert oder Summe 0 → erklärter Zustand „Nicht als Anteil darstellbar“ plus Tabelle. Linie/Fläche mit negativen Werten → erklärter Hinweis plus Tabelle (die freigegebenen Linien zeichnen nur ab 0; kein Katalogeintrag liefert derzeit negative Verläufe). Nicht endliche Werte → „Keine Daten“. Leere Reihe (`series` ist `null` oder `[]`) bei einer reihenbasierten Darstellung (Säulen, Balken, Kreis, Ring, Linie, Fläche, Tabelle einer Reihe) → „Keine Daten“, auch wenn `state` `bereit` meldet; es wird kein Diagramm und kein Zeitpunktregler gerendert. Passt die Darstellung nicht zur Datenform des Eintrags (z. B. alte Konfiguration), erklärter Hinweis statt Diagramm.
 - Säulen/Balken: Skala über `min(0, kleinster Wert)` bis `max(0, größter Wert)`; Nullachse sichtbar; negative Werte unterhalb bzw. links der Achse. Nullwerte behalten ihren Platz ohne Fläche. Werte ungleich 0, deren Fläche unter 2 px läge, erhalten 2 px; Beschriftung, Tooltip und Tabelle zeigen den exakten Wert.
 - Kreis/Ring: exakte Winkelanteile, keine Mindestwinkel; kleine Anteile bleiben über Legende und Tabelle lesbar.
 - Unter jedem Diagramm die zugängliche Alternative „Werte als Tabelle“ (wie Testkachel), außerhalb der Fehlergrenze.
@@ -122,15 +125,15 @@ Jede Datei unter 400 Zeilen (Lint `max-lines`). Weitere Dateien nur nach Rückfr
 
 ## Umsetzung
 
-- [ ] Verschieben der Diagrammmodule und der Fehlergrenze (`git mv`), Importe in Testkachel und Tests anpassen; bestehende Tests der Testkachel unverändert grün.
-- [ ] Tests zuerst für `depthGeometry` (negative Werte, gemischte Vorzeichen, nur negative, Nullachse, Mindestsichtbarkeit 2 px, Nullwerte), dann implementieren; Säulen/Balken zeichnen die Nullachse.
-- [ ] Tests zuerst für `tileFormat` (EUR kompakt/exakt, x, %, `null`, Live-Zeitstempel), dann implementieren.
-- [ ] Tests zuerst für `DashboardChart` (jede Darstellung rendert; Ring mit negativem Wert bzw. Summe 0 → erklärter Zustand; nicht endliche Werte; leere Reihe mit `state: 'bereit'` → „Keine Daten“ ohne Diagramm und ohne Regler, je reihenbasierter Darstellung; Darstellung passt nicht zur Datenform; Loader nur bei Bedarf; zwei identische Kacheln mit getrennten SVG-IDs; reduzierte Bewegung durchgereicht), dann implementieren.
-- [ ] Tests zuerst für `DashboardTile` (Titel, eigener Titel, Quelle, Zeitraum/Stand; jeder Zustand der Tabelle oben; „Keine Daten“ statt 0; „Details“ ruft `onShowDetails(tileId)` per Klick und Tastatur, auch im Fehlerzustand; Zeitbezug für alle drei Modi samt gesetztem Zeitraum/Pipeline und `periodReason`; Geltungsbereichshinweis bei `organisationsuebergreifend`, keiner bei `stammdaten`/`organisation`; ohne Katalogeintrag keine erfundenen Metadaten), dann implementieren.
-- [ ] Galerie mit Testdaten und `?ansicht=`-Filter.
-- [ ] Screenshot-Skript `scripts/captureAuftrag073Screenshots.mjs` nach Vorbild `captureDashboardPreviewScreenshots.mjs`: Vorher (Basis `92180d3`, nur Testkachel) und Nachher (Galerie) auf 1440/768/375 px, SHA-256 je Bild, 0 px horizontaler Overflow der Seite; zusätzlich Hover-/Fokuszustand je Diagrammart. Netzwerknachweis (Testkachel dabei ausgeblendet): `?ansicht=zahl` lädt keinen Diagramm-Chunk, `?ansicht=ring` nur den Kreis/Ring-Chunk. Ergebnis als `docs/screenshots/auftrag-073/README.md`, PNG-Dateien nicht committen.
-- [ ] Pflicht-Verifikation (`CLAUDE.md` §7) mit Exit-Codes: `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test`, `npm run verify`, `npm run build`, `npm run verify:quality-budget`; `npx size-limit` unverändert innerhalb der Grenzen; Schutzbereichs-Diff gegen `92180d3` leer.
-- [ ] BUILD_LOG-Eintrag, Push, PR gegen `main`.
+- [x] Verschieben der Diagrammmodule und der Fehlergrenze (`git mv`), Importe in Testkachel und Tests anpassen; bestehende Tests der Testkachel unverändert grün.
+- [x] Tests zuerst für `depthGeometry` (negative Werte, gemischte Vorzeichen, nur negative, Nullachse, Mindestsichtbarkeit 2 px, Nullwerte), dann implementieren; Säulen/Balken zeichnen die Nullachse.
+- [x] Tests zuerst für `tileFormat` (EUR kompakt/exakt, x, %, `null`, Live-Zeitstempel), dann implementieren.
+- [x] Tests zuerst für `DashboardChart` (jede Darstellung rendert; Ring mit negativem Wert bzw. Summe 0 → erklärter Zustand; nicht endliche Werte; leere Reihe mit `state: 'bereit'` → „Keine Daten“ ohne Diagramm und ohne Regler, je reihenbasierter Darstellung; Darstellung passt nicht zur Datenform; Loader nur bei Bedarf; zwei identische Kacheln mit getrennten SVG-IDs; reduzierte Bewegung durchgereicht; Ablesezeile, Kurzfassung und Ringmitte nach Einheit formatiert, z. B. „3,0x“ und „EUR gesamt“), dann implementieren.
+- [x] Tests zuerst für `DashboardTile` (Titel, eigener Titel, Quelle, Zeitraum/Stand; jeder Zustand der Tabelle oben, `offline` ohne Wert, `fehler` ohne `message`; „Keine Daten“ statt 0; „Details“ ruft `onShowDetails(tileId)` per Klick und Tastatur, auch im Fehlerzustand; Zeitbezug für alle drei Modi samt gesetztem Zeitraum/Pipeline und `periodReason`; Geltungsbereichshinweis bei `organisationsuebergreifend`, keiner bei `stammdaten`/`organisation`; ohne Katalogeintrag keine erfundenen Metadaten), dann implementieren.
+- [x] Galerie mit Testdaten und `?ansicht=`-Filter.
+- [x] Screenshot-Skript `scripts/captureAuftrag073Screenshots.mjs` nach Vorbild `captureDashboardPreviewScreenshots.mjs`: Vorher (Basis `92180d3`, nur Testkachel) und Nachher (Galerie) auf 1440/768/375 px, SHA-256 je Bild; Vorher/Nachher-Vergleich je Breite, ein fehlendes oder identisches Paar beendet das Skript mit Exit ungleich 0 (Codex-Befund PR #57); 0 px horizontaler Overflow der Seite; axe-Auswertung der Galerie je Breite, Verstöße `serious`/`critical` = 0, Zahl in der Ergebnismatrix (Codex-Befund PR #57); zusätzlich Hover-/Fokuszustand je Diagrammart. Netzwerknachweis (Testkachel dabei ausgeblendet): `?ansicht=zahl` lädt keinen Diagramm-Chunk, `?ansicht=ring` nur den Kreis/Ring-Chunk. Das Skript schreibt das Ergebnis als `docs/screenshots/auftrag-073/README.md`, PNG-Dateien nicht committen.
+- [x] Pflicht-Verifikation (`CLAUDE.md` §7) mit Exit-Codes: `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test`, `npm run verify`, `npm run build`, `npm run verify:quality-budget`; `npx size-limit` unverändert innerhalb der Grenzen; Schutzbereichs-Diff gegen `92180d3` leer.
+- [x] BUILD_LOG-Eintrag, Push, PR gegen `main`.
 
 ## Abnahme
 

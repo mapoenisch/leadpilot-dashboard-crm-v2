@@ -9,13 +9,14 @@ import {
   linePath,
   linePoints,
   niceScale,
+  niceSignedScale,
   summarizeSeries,
-} from '../charts/depthGeometry';
-import { SAMPLE_SERIES, SAMPLE_SHARES, SAMPLE_STAGES } from '../previewSampleData';
+} from '../components/charts/depthGeometry';
+import { SAMPLE_SERIES, SAMPLE_SHARES, SAMPLE_STAGES } from '../preview/previewSampleData';
 import fs from 'node:fs';
 import path from 'node:path';
-import { DASHBOARD_PREVIEW_PATH } from '../previewRoute';
-import { SERIES_COLORS, shadeHex, shareColors } from '../charts/chartTypes';
+import { DASHBOARD_PREVIEW_PATH } from '../preview/previewRoute';
+import { SERIES_COLORS, shadeHex, shareColors } from '../components/charts/chartTypes';
 
 const AREA = { left: 10, top: 20, width: 400, height: 200 };
 const RING = { cx: 100, cy: 100, outer: 80, inner: 50 };
@@ -43,6 +44,32 @@ describe('niceScale', () => {
   });
 });
 
+describe('niceSignedScale', () => {
+  it('entspricht niceScale bei nur positiven Werten', () => {
+    expect(niceSignedScale(0, 1280)).toEqual({ min: 0, ...niceScale(1280) });
+  });
+
+  it('spiegelt bei nur negativen Werten', () => {
+    const scale = niceSignedScale(-1280, 0);
+    expect(scale.max).toBe(0);
+    expect(scale.min).toBe(-niceScale(1280).max);
+    expect(scale.ticks[0]).toBe(scale.min);
+    expect(scale.ticks[scale.ticks.length - 1]).toBe(0);
+  });
+
+  it('enthält bei gemischten Vorzeichen die 0 als Hilfslinie', () => {
+    const scale = niceSignedScale(-30, 120);
+    expect(scale.min).toBeLessThanOrEqual(-30);
+    expect(scale.max).toBeGreaterThanOrEqual(120);
+    expect(scale.ticks).toContain(0);
+  });
+
+  it('fällt bei fehlenden Werten auf 0 bis 1 zurück', () => {
+    expect(niceSignedScale(0, 0)).toEqual({ min: 0, max: 1, ticks: [0, 1] });
+    expect(niceSignedScale(Number.NaN, Number.NaN)).toEqual({ min: 0, max: 1, ticks: [0, 1] });
+  });
+});
+
 describe('layoutBars', () => {
   it('zeichnet den Höchstwert über die volle Höhe und 0 ohne Höhe', () => {
     const bars = layoutBars(
@@ -59,11 +86,46 @@ describe('layoutBars', () => {
     expect(bars[1]?.y).toBe(220);
   });
 
-  it('weist negative und nicht endliche Werte ab', () => {
-    expect(() => layoutBars([{ label: 'x', value: -1 }], AREA, 10)).toThrow(RangeError);
+  it('weist nicht endliche Werte ab', () => {
     expect(() => layoutBars([{ label: 'x', value: Number.POSITIVE_INFINITY }], AREA, 10)).toThrow(
       RangeError,
     );
+    expect(() => layoutBars([{ label: 'x', value: Number.NaN }], AREA, 10)).toThrow(RangeError);
+  });
+
+  it('zeichnet negative Werte unterhalb der Nullachse (Auftrag 073)', () => {
+    const bars = layoutBars(
+      [
+        { label: 'plus', value: 50 },
+        { label: 'minus', value: -50 },
+      ],
+      AREA,
+      { min: -100, max: 100 },
+    );
+    // Nullachse in der Mitte: 20 + 200 * 100 / 200 = 120.
+    expect(bars[0]).toMatchObject({ zero: 120, y: 70, height: 50, negative: false });
+    expect(bars[1]).toMatchObject({ zero: 120, y: 120, height: 50, negative: true });
+  });
+
+  it('legt die Nullachse bei nur negativen Werten an die Oberkante', () => {
+    const bars = layoutBars([{ label: 'a', value: -40 }], AREA, { min: -100, max: 0 });
+    expect(bars[0]).toMatchObject({ zero: 20, y: 20, height: 80, negative: true });
+  });
+
+  it('hebt kleine Werte ungleich 0 auf 2 px an, 0 bleibt ohne Fläche', () => {
+    const bars = layoutBars(
+      [
+        { label: 'groß', value: 10000 },
+        { label: 'klein', value: 1 },
+        { label: 'klein-minus', value: -1 },
+        { label: 'null', value: 0 },
+      ],
+      AREA,
+      { min: -10000, max: 10000 },
+    );
+    expect(bars[1]).toMatchObject({ height: 2, y: 118, value: 1 });
+    expect(bars[2]).toMatchObject({ height: 2, y: 120, value: -1 });
+    expect(bars[3]).toMatchObject({ height: 0, y: 120 });
   });
 
   it('liefert für leere Reihen keine Säulen', () => {
@@ -88,9 +150,24 @@ describe('layoutHBars', () => {
     expect((bars[1]?.y ?? 0) > (bars[0]?.y ?? 0)).toBe(true);
   });
 
-  it('weist negative Werte ab und akzeptiert leere Daten', () => {
-    expect(() => layoutHBars([{ label: 'x', value: -1 }], AREA, 10)).toThrow(RangeError);
+  it('akzeptiert leere Daten', () => {
     expect(layoutHBars([], AREA, 10)).toEqual([]);
+  });
+
+  it('zeichnet negative Werte links der Nullachse und hebt kleine Werte an', () => {
+    const bars = layoutHBars(
+      [
+        { label: 'plus', value: 50 },
+        { label: 'minus', value: -50 },
+        { label: 'klein', value: 0.001 },
+      ],
+      AREA,
+      { min: -100, max: 100 },
+    );
+    // Nullachse in der Mitte: 10 + 400 * 100 / 200 = 210.
+    expect(bars[0]).toMatchObject({ zero: 210, x: 210, length: 100, negative: false });
+    expect(bars[1]).toMatchObject({ zero: 210, x: 110, length: 100, negative: true });
+    expect(bars[2]).toMatchObject({ x: 210, length: 2 });
   });
 });
 
@@ -147,7 +224,7 @@ describe('Beispieldaten', () => {
 });
 
 describe('Vorschau als eigener Einstieg, getrennt von der Produktiv-App', () => {
-  const root = path.join(__dirname, '..', '..', '..', '..', '..');
+  const root = path.join(__dirname, '..', '..', '..', '..');
   const read = (file: string) => fs.readFileSync(path.join(root, file), 'utf-8');
 
   it('liegt unter einer eigenen HTML-Seite mit eigenem Einstiegsskript', () => {

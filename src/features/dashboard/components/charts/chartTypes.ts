@@ -15,6 +15,11 @@ export interface DepthChartProps {
   orientation?: 'vertical' | 'horizontal';
   /** Nur Ring/Kreis: ohne Aussparung als Kreis. */
   solid?: boolean;
+  /**
+   * Wert mit Einheit für Ablesezeile und zugängliche Kurzfassung (Auftrag 073, z. B. „3,0x“).
+   * Ohne Angabe: deutsche Zahl plus Einheit wie in der Testkachel.
+   */
+  formatValue?: (value: number) => string;
 }
 
 /**

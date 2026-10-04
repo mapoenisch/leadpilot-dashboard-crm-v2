@@ -40,9 +40,10 @@ export interface ReadoutProps {
   period: string;
   /** Anteile werden mit Prozentzeichen ohne Leerzeichen dargestellt. */
   idleText?: string;
+  formatValue?: (value: number) => string;
 }
 
-export function ChartReadout({ entry, unit, period, idleText }: ReadoutProps) {
+export function ChartReadout({ entry, unit, period, idleText, formatValue }: ReadoutProps) {
   return (
     <p
       role="status"
@@ -55,7 +56,7 @@ export function ChartReadout({ entry, unit, period, idleText }: ReadoutProps) {
           <span className="font-semibold text-[var(--color-text-primary,#fff)]">{entry.label}</span>
           {' · '}
           <span className="font-mono text-primary">
-            {formatDe(entry.value)} {unit}
+            {formatValue ? formatValue(entry.value) : `${formatDe(entry.value)} ${unit}`.trim()}
           </span>
           {' · '}
           {period}

@@ -34,6 +34,7 @@ export function Depth3dDonutChart({
   period,
   title,
   reducedMotion,
+  formatValue,
   solid = false,
 }: DepthChartProps) {
   const GEOMETRY = solid ? PIE_GEOMETRY : RING_GEOMETRY;
@@ -46,7 +47,10 @@ export function Depth3dDonutChart({
   const sheen = `${idPrefix}-ring-sheen`;
   const hole = `${idPrefix}-ring-hole`;
   const summaryId = `${idPrefix}-summary`;
-  const summary = useMemo(() => summarizeSeries(data, unit, period, 'share'), [data, unit, period]);
+  const summary = useMemo(
+    () => summarizeSeries(data, unit, period, 'share', formatValue),
+    [data, unit, period, formatValue],
+  );
   const transition = reducedMotion ? '' : 'transition-opacity duration-150';
 
   return (
@@ -161,7 +165,7 @@ export function Depth3dDonutChart({
                 fontSize="10.5"
                 fill={MANAGEMENT_CHART_THEME.colors.neutral}
               >
-                gesamt
+                {unit && unit !== '%' ? `${unit} gesamt` : 'gesamt'}
               </text>
             </>
           )}
@@ -190,6 +194,7 @@ export function Depth3dDonutChart({
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}
+        formatValue={formatValue}
         period={period}
       />
       <LegendButtons

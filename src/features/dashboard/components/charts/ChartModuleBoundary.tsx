@@ -1,10 +1,10 @@
-// Designprobe Dashboard-Testkachel (Teilauftrag 0): Fehlergrenze für nachgeladene Diagrammmodule.
+// Fehlergrenze für nachgeladene Diagrammmodule (Designprobe Teilauftrag 0, übernommen in Auftrag 073).
 // Scheitert das Laden eines Moduls, zeigt die Kachel einen erklärten Zustand mit „Wiederholen“,
 // ohne die übrige Kachel (Titel, Umschalter, Größe) zu verlieren.
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { ChartLayoutReserve } from './charts/ChartReadout';
-import type { ChartControls } from './charts/ChartReadout';
+import { ChartLayoutReserve } from './ChartReadout';
+import type { ChartControls } from './ChartReadout';
 
 /** Gerüst des erwarteten Diagramms; Lade- und Fehlerzustand legen ihren Inhalt darüber. */
 export interface ChartReserveSpec {
@@ -12,7 +12,7 @@ export interface ChartReserveSpec {
   controls: ChartControls;
 }
 
-const OVERLAY = 'absolute inset-0 flex flex-col justify-center gap-[10px]';
+export const OVERLAY = 'absolute inset-0 flex flex-col justify-center gap-[10px]';
 
 /**
  * Ladeplatzhalter mit der Endhöhe des Diagramms. Fokussierbar (Titel- und Zeitraumkontext); hatte er
@@ -105,4 +105,23 @@ export class ChartModuleBoundary extends React.Component<Props, State> {
     }
     return this.props.children;
   }
+}
+
+/**
+ * Hatte der Ladeplatzhalter den Tastaturfokus, verschwindet er beim Auflösen von Suspense aus dem DOM.
+ * Damit der Fokus nicht auf den Seitenanfang zurückfällt, übernimmt ihn der Diagrammbereich.
+ */
+export function FocusAfterLoad({
+  placeholderHadFocus,
+  target,
+}: {
+  placeholderHadFocus: React.MutableRefObject<boolean>;
+  target: React.RefObject<HTMLDivElement>;
+}) {
+  useEffect(() => {
+    if (!placeholderHadFocus.current) return;
+    placeholderHadFocus.current = false;
+    target.current?.focus();
+  }, [placeholderHadFocus, target]);
+  return null;
 }

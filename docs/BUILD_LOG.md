@@ -14854,6 +14854,45 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 | 4178163871 (P2) Live-Geltungsbereich ohne Hinweis (Auftrag 071) | Sichtbarer Hinweis bei `scope: 'organisationsuebergreifend'`, Test positiv und negativ, Galeriebeispiel. |
 | 4178163878 (P2) leere Reihe rendert leeres Diagramm | Leere `series` bei reihenbasierten Darstellungen ergibt „Keine Daten“ ohne Diagramm und ohne Regler, auch bei `state: 'bereit'`; Regressionstest und Galeriebeispiel. |
 
-**Gates:** Nur Dokumente geändert; Code-Gates entfallen für diesen Eintrag und laufen mit der Umsetzung. Schutzbereichs-Diff gegen `92180d3` leer.
+**Gates:** Siehe Umsetzungseintrag unten; alle Pflicht-Gates laufen auf dem gemeinsamen Stand von Auftragstext und Umsetzung (Codex-Befund 4178188843). Schutzbereichs-Diff gegen `92180d3` leer.
 
-**Ergebnis:** Auftragstext bereit zur erneuten Prüfung durch Codex. Umsetzung beginnt nach Freigabe.
+**Ergebnis:** Auftragstext nach Codex-Runde 1 überarbeitet; Umsetzung auf Marcs Freigabe vom 04.10.2026 („nach dem Codex-Review direkt bauen“) im selben PR.
+
+---
+
+## Auftrag 073 – Umsetzung Dashboard Teilauftrag 4 (Kachelrahmen und Diagramme), Builder Claude Code
+
+**Ziel & Kontext:** Umsetzung von [Auftrag 073](auftraege/ANTIGRAVITY_AUFTRAG_073_DASHBOARD_KACHELRAHMEN_DIAGRAMME.md) auf Basis `main` `92180d3`, Branch `claude/elegant-cerf-g28p04` (PR #57). Freigabe Marc 04.10.2026: „nach dem Codex-Review direkt bauen“.
+
+**Geänderte Dateien:**
+- Verschoben (`git mv`) von `preview/` nach `components/charts/`: `Depth3dBarChart.tsx`, `Depth3dDonutChart.tsx`, `DepthLineChart.tsx`, `DepthAreaChart.tsx`, `ChartReadout.tsx`, `chartTypes.ts`, `depthGeometry.ts`, `ChartModuleBoundary.tsx` (jetzt mit `FocusAfterLoad`); Test `depthGeometry.vitest.ts` nach `__tests__/`.
+- `depthGeometry.ts`: `niceSignedScale`, `assertFinite`, `layoutBars`/`layoutHBars` mit Nullachse, negativen Werten und 2-px-Mindestsichtbarkeit (`MIN_VISIBLE_PX`). `Depth3dBarChart.tsx` zeichnet danach. Optionale Formatierung `formatValue` in `chartTypes.ts`, `ChartReadout.tsx`, `summarizeSeries` und allen Diagrammen; Ringmitte nennt die Einheit.
+- Neu: `components/charts/chartLoaders.ts`, `components/tileFormat.ts`, `components/TileStatus.tsx`, `components/TileValue.tsx`, `components/TileOverview.tsx`, `components/DashboardChart.tsx`, `components/DashboardTile.tsx`, `preview/TileGalleryPreview.tsx`, `preview/tileGallerySampleData.ts`, `scripts/captureAuftrag073Screenshots.mjs`, `docs/screenshots/auftrag-073/README.md`.
+- Angepasst: `preview/DashboardDesignPreview.tsx` (Importe, Loader aus `chartLoaders.ts`, Verhalten unverändert), `preview/DashboardPreviewPage.tsx` (Galerie, `?ansicht=`), `preview/previewSampleData.ts` (Importpfad), `preview/__tests__/DashboardDesignPreview.ui.vitest.tsx` (Importpfad).
+- Tests neu: `tileFormat.vitest.ts` (8), `DashboardChart.ui.vitest.tsx` (25), `DashboardTile.ui.vitest.tsx` (26 inkl. Galerie); `depthGeometry.vitest.ts` um Vorzeichen- und Kleinwertfälle ergänzt (die beiden bisherigen Prüfungen „negative Werte werden abgewiesen“ für Säulen/Balken ersetzt, weil der Auftrag genau dieses Verhalten ändert; Kreis/Ring weist negative Werte weiter ab).
+
+**Funktionale Prüfungen:** Jede Darstellung rendert; Säulen/Balken mit negativen Werten unter bzw. links der Nullachse, Nullwerte ohne Fläche, Kleinstwerte 2 px bei exakter Beschriftung; Kreis/Ring mit negativem Wert oder Summe 0 und Linie/Fläche mit negativen Werten zeigen einen erklärten Hinweis plus Tabelle; leere Reihe und nicht endliche Werte → „Keine Daten“ ohne Diagramm und Regler; Zahl kompakt (z. B. „2,35 Mio. EUR“), Tabelle und Screenreader exakt; Zeitbezug in allen drei Modi samt Zeitraum, Pipeline und `periodReason`; Live-Geltungsbereichshinweis nur bei `organisationsuebergreifend`; `offline` ohne Wert, `veraltet` mit Wert und Zeitstempel, `fehler` ohne `message` mit verständlichem Text; „Details“ per Klick und Tastatur auch im Fehlerzustand; ohne Katalogeintrag keine erfundenen Metadaten; zwei identische Ring-Kacheln mit getrennten SVG-IDs und einmaligem Modulabruf; reduzierte Bewegung durchgereicht.
+
+**Nachladen:** Vorschau-Build erzeugt getrennte Chunks `Depth3dBarChart-*.js`, `Depth3dDonutChart-*.js`, `DepthLineChart-*.js`, `DepthAreaChart-*.js`. Netzwerknachweis: `?ansicht=zahl` lädt kein Diagrammmodul, `?ansicht=ring` nur `Depth3dDonutChart`.
+
+**Startbundle:** `npx size-limit` 175,44 kB (Basis `92180d3`: 175,42 kB). Der Unterschied stammt nur aus geänderten Chunk-Dateinamen: `index-*.js` ist nach Entfernen der Hashes inhaltsgleich zur Basis. Kein Import der neuen Module aus `src/app` oder `src/features/overview` (Diff leer).
+
+**Screenshot-Matrix:** [docs/screenshots/auftrag-073/README.md](screenshots/auftrag-073/README.md): Vorher/Nachher-Paare auf 1440/768/375 px verschieden, 0 px Seitenüberlauf, axe serious/critical 0, Fokus füllt die Ablesezeile je Diagrammart, Netzwerknachweis grün. Bilder lokal geprüft (u. a. negative Säulen/Balken, Ring auf 375 px scrollbar innerhalb der Kachel wie freigegeben).
+
+**Nacharbeit Codex-Review zum Auftragstext, Runde 2 (Head 07d008b, Review 5406814115):**
+
+| Befund | Behebung |
+|---|---|
+| 4178188843 (P1) Gates auch für die Auftragsänderung | Gates laufen auf dem gemeinsamen Stand (unten), Doku-Ausnahme gestrichen. |
+| 4178188848 (P2) `offline` widerspricht Vertrag 071 | `offline` ohne Wert („noch kein Wert empfangen“), Werterhalt nur bei `veraltet`; Test und Galerie angepasst. |
+| 4178188851 (P2) Einheitenformatierung in den Diagrammen | `formatValue` für Ablesezeile und Kurzfassung, Ringmitte mit Einheit; UI-Tests „3,0x“, „EUR gesamt“, „Summe 100 EUR“. |
+| 4178188855 (P2) Fehler ohne `message` | Fallback „Die Daten konnten nicht geladen werden.“; Test mit Live-Aktivität ohne `message`. |
+| 4178188858 (P2) Accessibility-Nachweis | axe serious/critical je Breite im Skript und in der Matrix, Exit ungleich 0 bei Verstoß. |
+| 4178188864 (P2) `previewSampleData.ts` fehlt in Ziel-Dateien | Ergänzt (nur Importpfad). |
+| 4178188867 (P2) unveränderte Screenshot-Paare | Paarvergleich je Breite, fehlendes oder identisches Paar → Exit ungleich 0. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1960 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0, `node scripts/captureAuftrag073Screenshots.mjs` 0.
+
+**Schutzbereichs-Diff** gegen `92180d3` (`src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+**Ergebnis & Freigabestatus:** Builder fertig. Offen: PR-CI, Codex-Prüfung des Umsetzungsstands, Sichtprüfung der Galerie durch Marc (CI-Artefakt `dashboard-preview`), Merge nur durch Marc.
