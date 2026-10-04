@@ -14770,3 +14770,61 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 - Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) → 0 Zeilen (vollständig leer)
 
 
+
+## Auftrag 072 geschrieben: Dashboard Teilauftrag 3, Persönliche Speicherung (Claude Code, 04.10.2026)
+
+**Ziel & Kontext:** Entscheidung Marc vom 04.10.2026: Rückkehr zu Zyklus 1 ohne Antigravity („du schreibst den nächsten Auftrag und Codex prüft“). Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_072_DASHBOARD_PERSOENLICHE_SPEICHERUNG.md` nach Plan Teilauftrag 3 und §6, Basis `main` `86a31bb`. Builder: Claude Code, Prüfer: Codex.
+
+**Inhalt:** Neue Tabelle `executive_dashboard_preferences` (Organisation + Benutzer, Revision), RLS nur Lesen der eigenen Zeile, Schreiben ausschließlich über `save_dashboard_preferences` mit erwarteter Revision und Servervalidierung (Form, Schlüssel, Version 1, höchstens 24 Kacheln, 32 KB); Viewer dürfen ihr Layout speichern; pgTAP-Fälle 1–10; Frontend-Standardansicht, Repository mit strukturierten Fehlern, Hook ohne Erstanlage beim Öffnen und mit Cachebereinigung bei Benutzerwechsel.
+
+**Geänderte Dateien:** nur die Auftragsdatei und dieser Eintrag. Kein Code.
+
+**Schutzbereichs-Diff** gegen `86a31bb`: leer.
+
+Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.
+
+---
+
+## Auftrag 072: Dashboard Teilauftrag 3 – Persönliche Speicherung (Builder: Claude Code, 04.10.2026)
+
+**Ziel & Kontext:** Umsetzung von `docs/auftraege/ANTIGRAVITY_AUFTRAG_072_DASHBOARD_PERSOENLICHE_SPEICHERUNG.md` in Zyklus 1 (Claude Code baut, Codex prüft). Prüfwege nach Entscheidung Marc vom 04.10.2026 („a“): Variante A, die Codex-App prüft, der Builder arbeitet Befunde selbst ab; die Nacharbeits-Workflows bleiben pausiert. Basis `main` nach PR #54 (Merge `f44a07e`).
+
+**Geänderte Dateien:**
+- `supabase/migrations/20261004_executive_dashboard_preferences.sql` (neu): Tabelle `executive_dashboard_preferences` (PK Organisation + Benutzer, `config`, `schema_version`, `revision`), RLS nur `SELECT` der eigenen Zeile, keine direkten Schreibrechte, `anon` ohne Zugriff; `dashboard_preferences_invalid_reason` (Formprüfung) und `save_dashboard_preferences(p_config, p_expected_revision)` (SECURITY DEFINER, Organisation/Benutzer nur aus der Sitzung, Revision 0 = Erstanlage, Konflikt bei veralteter Revision und doppelter Erstanlage).
+- `supabase/tests/executive_dashboard_preferences.sql` (neu): 28 pgTAP-Tests.
+- `src/features/dashboard/model/defaultDashboard.ts` (neu): Standardansicht (17 Kacheln) und `interpretStoredConfig` (standard, gespeichert, zukünftige Version mit Speichersperre, ungültig).
+- `src/features/dashboard/data/dashboardPreferencesRepository.ts` (neu): Laden/Speichern, strukturierte Fehler, Rohfehler nur über `logger`.
+- `src/features/dashboard/hooks/useDashboardPreferences.ts` (neu): Abfrage je Organisation und Benutzer, keine Erstanlage beim Öffnen, Prüfung vor dem Speichern, Konflikt ohne Eingriff in den Entwurf, `reloadServerVersion`, Cachebereinigung bei Benutzerwechsel und Abmeldung.
+- Tests: `defaultDashboard.vitest.ts`, `dashboardPreferencesRepository.vitest.ts`, `useDashboardPreferences.ui.vitest.tsx` (neu).
+
+**Funktionale Prüfungen:** pgTAP lokal gegen PostgreSQL 16 mit pgTAP und Supabase-Auth-Stubs (`auth.users`, `auth.uid()`, Rollen `anon`/`authenticated`), Schema + alle Migrationen geladen: neue Suite 28/28 grün; alle bestehenden Suiten weiterhin grün (audit_log 18, crm_query_export 25, ingress_nonce 9, member_management 31, run_control 24, scenario_run_persistence 34, tenant_isolation 27). Der erste Testlauf der Standardansicht deckte ungültige Kachel-IDs (Punkt im Namen) auf; behoben.
+
+**Nicht lokal ausführbar:** `scripts/verifyMigrationUpgrade.mjs` und `scripts/verifyBackupRestore.mjs` brauchen ein laufendes Supabase im Docker; in dieser Umgebung gibt es keinen Docker-Daemon. Nachweis über den CI-Job `e2e` (`supabase test db` lädt die neue Suite). Die beiden Skripte bleiben für Marc lokal offen.
+
+**Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1891 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Keine offene `USING (true)`-Policy.
+
+**Schutzbereichs-Diff** gegen `main`: leer. Persistenz-Ausnahme laut Auftrag: nur die neue Tabelle.
+
+**Ergebnis:** Builder fertig, Prüfung durch Codex offen.
+
+**Nacharbeit PR #56, Codex-Review zum Auftragstext (Head 5a851f2), umgesetzt im Code:**
+
+| Befund | Behebung |
+|---|---|
+| 4176320847 (P2) verschachtelte Felder serverseitig nicht geprüft | `dashboard_preferences_invalid_reason` prüft jetzt erlaubte Schlüssel und Typen für `filters`, `period` und jede Kachel (neue Hilfsfunktion `dashboard_preferences_period_invalid`); pgTAP-Fälle für fremde Schlüssel in Kachel, Filtern und Zeitraum sowie Titel kein Text. |
+| 4176320850 (P2) `anon`-Ausführungsrecht | `REVOKE ALL … FROM PUBLIC, anon` war in der Migration bereits gesetzt; Negativtest „anon darf die Speicherfunktion nicht ausführen“ ergänzt und im Auftrag festgehalten. |
+| 4176320854 (P2) Backup-Nachweis ohne Präferenzzeile | `scripts/verifyBackupRestore.mjs` legt vor dem Dump eine Probezeile für den Login-Benutzer an und vergleicht nach dem Restore Anzahl, Konfiguration, Version und Revision (md5). SQL der Probe lokal gegen PostgreSQL 16 geprüft; der Gesamtlauf braucht Docker-Supabase und bleibt für Marc offen. Ziel-Dateien im Auftrag ergänzt. |
+| 4176320857 (P2) veraltete Save-Antwort nach Benutzerwechsel | Identitätsprüfung im Hook: Antworten, die nach einem Wechsel von Benutzer oder Organisation eintreffen, schreiben nicht in den Cache und melden `sitzung_gewechselt`. Test wechselt während eines offenen Speicherns den Benutzer (ohne Fix rot). |
+
+pgTAP lokal: neue Suite 33/33, alle übrigen Suiten grün.
+
+Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1892 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0; Schutzbereichs-Diff leer.
+
+**Nacharbeit PR #56, Codex-Review Runde 2 (Head 4a7c248):**
+
+| Befund | Behebung |
+|---|---|
+| 4176371366 (P2) Präferenzcache beim echten Logout nicht geräumt (ProtectedRoute hängt den Baum aus, bevor die Organisationssitzung leer wird) | Unmount-Cleanup im Hook: Identität wird ungültig (laufende Speicherantworten schreiben nicht mehr), die eigene Abfrage wird nach dem Aushängen entfernt, sobald sie keinen Beobachter mehr hat; zusätzlich `refetchOnMount: 'always'`, damit nie eine Fassung aus einer früheren Sitzung gezeigt wird. `src/auth/**` bleibt unverändert. Test hängt den Hook während eines offenen Speicherns aus (ohne Fix rot). |
+| 4176371371 (P2) Backup-Probe bleibt nach dem Lauf bestehen | `verifyBackupRestore.mjs` merkt sich per `RETURNING`, ob die Probe angelegt wurde, und entfernt sie im `finally` wieder (Prüfpunkt „Backup-Probe wieder entfernt“). SQL lokal geprüft: erster Lauf legt an, zweiter nicht, Aufräumen hinterlässt 0 Zeilen. |
+
+Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0; Schutzbereichs-Diff leer.
