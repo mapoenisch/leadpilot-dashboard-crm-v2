@@ -331,7 +331,7 @@ export function Depth3dBarChart({
                       fill="#ffffff"
                       fontFamily="var(--font-mono, monospace)"
                     >
-                      {formatDe(bar.value)}
+                      {axisLabel(bar.value)}
                     </text>
                     <text
                       x={cx}

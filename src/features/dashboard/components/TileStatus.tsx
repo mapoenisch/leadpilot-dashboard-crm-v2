@@ -1,8 +1,15 @@
 // Executive Dashboard, Teilauftrag 4 (Auftrag 073): Datenzustand je Kachel (Plan §4).
 // Verständliche Texte statt technischer Meldungen; „Keine Daten“ statt 0.
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
-import type { TileData } from '../data/dashboardData';
-import { formatAsOf, NO_DATA } from './tileFormat';
+import { cn } from '@/lib/utils';
+import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
+import type { ResolvedTileData, TileData } from '../data/dashboardData';
+import { filterModeLabel, formatAsOf, formatPeriod, NO_DATA } from './tileFormat';
+
+/** Gedämpfter Kleintext der Kachel. */
+export const MUTED = 'm-0 text-[12px] text-[var(--color-text-muted)]';
+/** Lange Namen ohne Leerzeichen (Pipeline) brechen um, statt die Kachel zu verbreitern. */
+const BREAK = '[overflow-wrap:anywhere]';
 
 const BADGE: Record<TileData['state'], { text: string; variant: BadgeVariant } | null> = {
   bereit: null,
@@ -79,6 +86,47 @@ export function TileNotices({ data }: { data: TileData }) {
       {notices.map((text) => (
         <p key={text} className="m-0">
           {text}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/** Zeitbezug je Kachel (Plan §4, „Filter“) samt wirksamem Zeitraum, Pipeline und Hinweisen. */
+export function TimeReference({
+  tile,
+  data,
+  dashboardFilters,
+}: {
+  tile: DashboardTileConfig;
+  data: ResolvedTileData | null;
+  dashboardFilters?: DashboardFilters;
+}) {
+  const filter = data?.effectiveFilter;
+  const parts = [`Zeitbezug: ${filterModeLabel(filter?.mode ?? tile.filterMode)}`];
+  if (filter?.period) parts.push(formatPeriod(filter.period));
+  // Der Resolver setzt einen nicht wirksamen eigenen Zeitraum auf null; die Wahl bleibt sichtbar.
+  else if ((filter?.mode ?? tile.filterMode) === 'eigener_zeitraum' && tile.period) {
+    parts.push(`gewählt: ${formatPeriod(tile.period)}`);
+  } else if ((filter?.mode ?? tile.filterMode) === 'dashboard' && dashboardFilters?.period) {
+    // Der zentrale Zeitraum wird von allen derzeitigen Quellen abgelehnt; die Wahl bleibt sichtbar.
+    parts.push(`gewählt: ${formatPeriod(dashboardFilters.period)}`);
+  }
+  if (filter?.pipeline) parts.push(`Pipeline: ${filter.pipeline}`);
+  // Der Resolver setzt eine nicht wirksame Pipeline auf null; die gewählte bleibt sichtbar.
+  else if (filter?.pipelineReason) {
+    const requested = tile.pipeline ?? dashboardFilters?.pipeline;
+    if (requested) parts.push(`Pipeline gewählt: ${requested}`);
+  }
+  const reasons = [filter?.periodReason, filter?.pipelineReason].filter(
+    (reason): reason is string => Boolean(reason),
+  );
+  return (
+    <div data-testid="tile-time-reference">
+      <p className={cn(MUTED, BREAK)}>{parts.join(' · ')}</p>
+      {reasons.map((reason) => (
+        <p key={reason} className={cn(MUTED, BREAK, 'italic')}>
+          {reason}
         </p>
       ))}
     </div>

@@ -157,7 +157,11 @@ describe('Diagramm-Ablesezeile und Grenzen', () => {
       { label: 'Angebot', value: 4_000_000_000 },
     ]);
     const columns = await screen.findByTestId('depth-bar-chart');
-    expect(visibleLabels(columns).some((text) => text.endsWith('Mrd.'))).toBe(true);
+    const labels = visibleLabels(columns);
+    expect(labels.some((text) => text.endsWith('Mrd.'))).toBe(true);
+    // Auch die Werte über den Säulen sind kompakt: keine ausgeschriebenen Milliardenbeträge.
+    expect(labels.some((text) => /\d\.\d{3}\.\d{3}\.\d{3}/.test(text))).toBe(false);
+    expect(labels).toContain('10 Mrd.');
   });
 
   it('zeichnet die Tiefenflächen negativer Balken links der Nullachse', async () => {

@@ -33,14 +33,6 @@ const WIDTHS = [
   { width: 375, height: 812 },
 ];
 const CHART_MODULES = /(Depth3dBarChart|Depth3dDonutChart|DepthLineChart|DepthAreaChart)[-.]/;
-const CHART_TESTIDS = [
-  'depth-bar-chart',
-  'depth-hbar-chart',
-  'depth-donut-chart',
-  'depth-line-chart',
-  'depth-area-chart',
-];
-
 const GALLERY = 'section[aria-labelledby="kachelgalerie"]';
 const HOVER_MARKS = [
   ['depth-bar-chart', 'depth-bar'],
@@ -49,6 +41,7 @@ const HOVER_MARKS = [
   ['depth-line-chart', 'depth-line-point'],
   ['depth-area-chart', 'depth-line-point'],
 ];
+const CHART_TESTIDS = HOVER_MARKS.map(([testId]) => testId);
 const sha256 = (buffer) => crypto.createHash('sha256').update(buffer).digest('hex');
 const overflowOf = (page) =>
   page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

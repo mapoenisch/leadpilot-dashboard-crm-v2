@@ -15037,3 +15037,17 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 10 (Head 51428c0, Review 5408187577):**
+
+| Befund | Behebung |
+|---|---|
+| Review 5408187577, Depth3dBarChart L334 (P2) Werte über schmalen Säulen ausgeschrieben | Auch die Werte über den Säulen sind bei Dashboard-Kacheln kompakt („10 Mrd.“); exakte Werte stehen in Ablesezeile, Kurzfassung und Tabelle. UI-Test: kein ausgeschriebener Milliardenbetrag im Diagramm. |
+| 4179294259 (P2) Screenshot-Skript über der Dateigrenze | Das Skript hat 397 Zeilen (vorher 404; `CHART_TESTIDS` wird aus `HOVER_MARKS` abgeleitet). Alle Dateien dieses Stands liegen unter 400 Zeilen; `DashboardTile.tsx` blieb dabei unter 400, indem `TimeReference` nach `TileStatus.tsx` verschoben wurde (Zieldatei des Auftrags). Hinweis: ESLint `max-lines` zählt ohne Leerzeilen und Kommentare und erfasst `.mjs` unter `scripts/` nicht; die Prüfung der physischen Zeilen erfolgte per `wc -l` über alle geänderten Dateien. |
+| 4179294253 (P2) Kopfhöhe springt beim Live-Zeitstempel | Live-Kacheln ohne `asOf` hängen im Kopf einen unsichtbaren, für Screenreader ausgeblendeten Platzhalter „· Stand 00.00.0000, 00:00“ an die Metazeile, damit der Umbruch dem Endzustand entspricht. UI-Test (Laden, mit Stand, Stammdaten). |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2000 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 56 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

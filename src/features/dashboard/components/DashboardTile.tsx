@@ -11,20 +11,20 @@ import {
   type DashboardView,
 } from '../model/dashboardCatalog';
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
-import type { ResolvedTileData, TileData } from '../data/dashboardData';
+import type { TileData } from '../data/dashboardData';
 import { ChartLoadingPlaceholder, OVERLAY } from './charts/ChartModuleBoundary';
 import { ChartLayoutReserve } from './charts/ChartReadout';
 import { isChartView, type ChartLoaders } from './charts/chartLoaders';
 import { checkTileValues, DashboardChart, reserveFor, TableToggleReserve } from './DashboardChart';
-import { BLOCKING_STATES, blockingText, TileNotices, TileStateBadge } from './TileStatus';
 import {
-  filterModeLabel,
-  formatAsOf,
-  formatPeriod,
-  NO_DATA,
-  SOURCE_LABEL,
-  timeLabel,
-} from './tileFormat';
+  BLOCKING_STATES,
+  blockingText,
+  MUTED,
+  TileNotices,
+  TileStateBadge,
+  TimeReference,
+} from './TileStatus';
+import { formatAsOf, NO_DATA, SOURCE_LABEL, timeLabel } from './tileFormat';
 
 export interface DashboardTileProps {
   tile: DashboardTileConfig;
@@ -56,11 +56,8 @@ const MIN_HEIGHT: Partial<Record<DashboardView, string>> = {
 };
 const SCROLLING_VIEWS: readonly DashboardView[] = ['tabelle', 'uebersicht'];
 
-/** Lange Namen ohne Leerzeichen (Pipeline) brechen um, statt die Kachel zu verbreitern. */
-const BREAK = '[overflow-wrap:anywhere]';
 /** Live-Kacheln: feste Höhe für bis zu drei Hinweiszeilen; mehr scrollt. */
 const NOTICE_SLOT_CLASS = 'h-[56px] overflow-y-auto';
-const MUTED = 'm-0 text-[12px] text-[var(--color-text-muted)]';
 const SCOPE_NOTICE =
   'Live-Feed, nicht nach Organisation getrennt: Die Werte gelten für alle Organisationen.';
 
@@ -159,7 +156,14 @@ export function DashboardTile({
             </h3>
             {resolved ? (
               <p className={cn(MUTED, 'mt-[4px]')} data-testid="tile-meta">
-                {period} · Quelle: {SOURCE_LABEL[resolved.origin.layer]}
+                {period}
+                {resolved.origin.layer === 'live' && !resolved.asOf ? (
+                  // Reserviert den Umbruch des späteren „Stand …“, damit der Kopf nicht springt.
+                  <span aria-hidden="true" className="invisible" data-testid="tile-stand-reserve">
+                    {' · Stand 00.00.0000, 00:00'}
+                  </span>
+                ) : null}{' '}
+                · Quelle: {SOURCE_LABEL[resolved.origin.layer]}
               </p>
             ) : null}
             <TimeReference tile={tile} data={resolved} dashboardFilters={dashboardFilters} />
@@ -223,47 +227,6 @@ export function DashboardTile({
         </footer>
       </div>
     </Card>
-  );
-}
-
-/** Zeitbezug je Kachel (Plan §4, „Filter“) samt wirksamem Zeitraum, Pipeline und Hinweisen. */
-function TimeReference({
-  tile,
-  data,
-  dashboardFilters,
-}: {
-  tile: DashboardTileConfig;
-  data: ResolvedTileData | null;
-  dashboardFilters?: DashboardFilters;
-}) {
-  const filter = data?.effectiveFilter;
-  const parts = [`Zeitbezug: ${filterModeLabel(filter?.mode ?? tile.filterMode)}`];
-  if (filter?.period) parts.push(formatPeriod(filter.period));
-  // Der Resolver setzt einen nicht wirksamen eigenen Zeitraum auf null; die Wahl bleibt sichtbar.
-  else if ((filter?.mode ?? tile.filterMode) === 'eigener_zeitraum' && tile.period) {
-    parts.push(`gewählt: ${formatPeriod(tile.period)}`);
-  } else if ((filter?.mode ?? tile.filterMode) === 'dashboard' && dashboardFilters?.period) {
-    // Der zentrale Zeitraum wird von allen derzeitigen Quellen abgelehnt; die Wahl bleibt sichtbar.
-    parts.push(`gewählt: ${formatPeriod(dashboardFilters.period)}`);
-  }
-  if (filter?.pipeline) parts.push(`Pipeline: ${filter.pipeline}`);
-  // Der Resolver setzt eine nicht wirksame Pipeline auf null; die gewählte bleibt sichtbar.
-  else if (filter?.pipelineReason) {
-    const requested = tile.pipeline ?? dashboardFilters?.pipeline;
-    if (requested) parts.push(`Pipeline gewählt: ${requested}`);
-  }
-  const reasons = [filter?.periodReason, filter?.pipelineReason].filter(
-    (reason): reason is string => Boolean(reason),
-  );
-  return (
-    <div data-testid="tile-time-reference">
-      <p className={cn(MUTED, BREAK)}>{parts.join(' · ')}</p>
-      {reasons.map((reason) => (
-        <p key={reason} className={cn(MUTED, BREAK, 'italic')}>
-          {reason}
-        </p>
-      ))}
-    </div>
   );
 }
 

@@ -187,4 +187,23 @@ describe('DashboardTile Zustände', () => {
     expect(live).toHaveTextContent('Wert veraltet. Stand 04.10.2026, 14:05.');
     expect(live).toHaveTextContent('Datenqualität eingeschränkt.');
   });
+
+  it('reserviert im Kopf einer Live-Kachel ohne Zeitstempel den Platz für „Stand …“', () => {
+    const live = {
+      layer: 'live' as const,
+      module: 'src/services/liveKpi',
+      exportName: 'store',
+      liveKpiId: 'arr',
+    };
+    const { unmount } = show(resolved({ state: 'laden', value: null, origin: live }));
+    const reserve = screen.getByTestId('tile-stand-reserve');
+    expect(reserve).toHaveAttribute('aria-hidden', 'true');
+    expect(reserve.className).toContain('invisible');
+    unmount();
+    const withStand = show(resolved({ origin: live, asOf: '2026-10-04T12:05:00Z' }));
+    expect(screen.queryByTestId('tile-stand-reserve')).toBeNull();
+    withStand.unmount();
+    show(resolved());
+    expect(screen.queryByTestId('tile-stand-reserve')).toBeNull();
+  });
 });
