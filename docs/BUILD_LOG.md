@@ -15002,7 +15002,7 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 | 4179129191 (P2) abgelehnte zentrale Pipeline unsichtbar | `DashboardTile` nimmt optional `dashboardFilters` und zeigt im Zeitbezug „Pipeline gewählt: …“ (Kachelwahl vor zentraler Wahl), wenn der Resolver die Pipeline nicht anwendet. `model/**` bleibt unverändert (Auftrag: nur lesen). UI-Test. |
 | 4179129195 (P2) lange Pipeline-Namen verbreitern die Kachel | Zeitbezug-Absätze brechen innerhalb langer Namen um (`overflow-wrap:anywhere`); Überlauf bleibt 0 px. UI-Test. |
 
-**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1990 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 56 px).
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1990 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 36 px).
 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
