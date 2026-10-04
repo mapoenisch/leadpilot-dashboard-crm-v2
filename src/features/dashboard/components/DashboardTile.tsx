@@ -1,7 +1,7 @@
 // Executive Dashboard, Teilauftrag 4 (Auftrag 073): einheitlicher Kachelrahmen (Plan §3, §4).
 // Kopf mit Kategorie, Titel, Zeitraum/Stand, Quelle, Zeitbezug und Geltungsbereich; Inhalt über
 // DashboardChart; Fußzeile mit „Details“. Die Kachel lädt keine Daten selbst, sie bekommt sie.
-import { useEffect, useId, useRef, type MutableRefObject } from 'react';
+import { useEffect, useId, useRef, useState, type MutableRefObject } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
@@ -58,6 +58,8 @@ const SCROLLING_VIEWS: readonly DashboardView[] = ['tabelle', 'uebersicht'];
 
 /** Lange Namen ohne Leerzeichen (Pipeline) brechen um, statt die Kachel zu verbreitern. */
 const BREAK = '[overflow-wrap:anywhere]';
+/** Live-Kacheln: feste Höhe für bis zu drei Hinweiszeilen; mehr scrollt. */
+const NOTICE_SLOT_CLASS = 'h-[56px] overflow-y-auto';
 const MUTED = 'm-0 text-[12px] text-[var(--color-text-muted)]';
 const SCOPE_NOTICE =
   'Live-Feed, nicht nach Organisation getrennt: Die Werte gelten für alle Organisationen.';
@@ -70,8 +72,11 @@ function isDerivedEmpty(
   title: string,
 ): boolean {
   if (data.state !== 'bereit') return false;
+  const check = checkTileValues(tile.view, entry, data, title);
+  // Unpassende Kombination: sichtbar ist der Hinweis, nicht „Keine Daten“.
+  if (check.kind === 'hinweis') return false;
   if (tile.view === 'uebersicht') return !data.overview;
-  return checkTileValues(tile.view, entry, data, title).kind === 'keine_daten';
+  return check.kind === 'keine_daten';
 }
 
 export function DashboardTile({
@@ -100,6 +105,21 @@ export function DashboardTile({
   }, [data.state]);
   // Auch nicht blockierende Wechsel ansagen: ein sichtbarer, aber veralteter Wert (Codex-Befund).
   const stand = resolved?.asOf ? formatAsOf(resolved.asOf) : null;
+  // Rückkehr von „veraltet“ oder „eingeschränkt“ zu normalen Daten ansagen (Codex-Befund).
+  const warned = data.state === 'veraltet' || resolved?.quality === 'degradiert';
+  const wasWarned = useRef(false);
+  const [recovered, setRecovered] = useState(false);
+  useEffect(() => {
+    if (warned) {
+      wasWarned.current = true;
+      setRecovered(false);
+    } else if (wasWarned.current && data.state === 'bereit') {
+      wasWarned.current = false;
+      setRecovered(true);
+    } else if (data.state !== 'bereit') {
+      setRecovered(false);
+    }
+  }, [warned, data.state]);
   const liveText = BLOCKING_STATES.has(data.state)
     ? `${data.state === 'fehler' ? 'Fehler: ' : ''}${blockingText(data)}`
     : data.state === 'veraltet'
@@ -108,7 +128,9 @@ export function DashboardTile({
         ? 'Datenqualität eingeschränkt.'
         : isDerivedEmpty(tile, entry, data, title)
           ? NO_DATA
-          : '';
+          : recovered
+            ? 'Wert wieder aktuell.'
+            : '';
 
   return (
     <Card
@@ -149,7 +171,15 @@ export function DashboardTile({
         {/* Live-Hinweise (veraltet, eingeschränkt) erscheinen nach dem Laden: zwei Zeilen reservieren. */}
         <div
           data-testid="tile-notice-slot"
-          className={resolved?.origin.layer === 'live' ? 'min-h-[36px]' : undefined}
+          {...(resolved?.origin.layer === 'live'
+            ? {
+                className: NOTICE_SLOT_CLASS,
+                // Überläuft der Platz (beide Hinweise in einer schmalen Kachel): per Tastatur scrollbar.
+                ...(warned
+                  ? { role: 'region', tabIndex: 0, 'aria-label': 'Hinweise zur Datenqualität' }
+                  : {}),
+              }
+            : {})}
         >
           <TileNotices data={data} />
         </div>
@@ -208,6 +238,9 @@ function TimeReference({
   // Der Resolver setzt einen nicht wirksamen eigenen Zeitraum auf null; die Wahl bleibt sichtbar.
   else if ((filter?.mode ?? tile.filterMode) === 'eigener_zeitraum' && tile.period) {
     parts.push(`gewählt: ${formatPeriod(tile.period)}`);
+  } else if ((filter?.mode ?? tile.filterMode) === 'dashboard' && dashboardFilters?.period) {
+    // Der zentrale Zeitraum wird von allen derzeitigen Quellen abgelehnt; die Wahl bleibt sichtbar.
+    parts.push(`gewählt: ${formatPeriod(dashboardFilters.period)}`);
   }
   if (filter?.pipeline) parts.push(`Pipeline: ${filter.pipeline}`);
   // Der Resolver setzt eine nicht wirksame Pipeline auf null; die gewählte bleibt sichtbar.

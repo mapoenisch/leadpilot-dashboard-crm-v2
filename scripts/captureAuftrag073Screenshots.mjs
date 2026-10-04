@@ -195,7 +195,7 @@ async function tiles(browser) {
     // Live-Kacheln reservieren zwei Hinweiszeilen: jeder Hinweisplatz ist gleich hoch (Codex-Befund).
     const slotHeights = await page
       .locator(GALLERY)
-      .locator('[data-testid="tile-notice-slot"].min-h-\\[36px\\]')
+      .locator('[data-testid="tile-notice-slot"].h-\\[56px\\]')
       .evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
     heights.push({
       width: viewport.width,

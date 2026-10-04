@@ -15002,7 +15002,23 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 | 4179129191 (P2) abgelehnte zentrale Pipeline unsichtbar | `DashboardTile` nimmt optional `dashboardFilters` und zeigt im Zeitbezug „Pipeline gewählt: …“ (Kachelwahl vor zentraler Wahl), wenn der Resolver die Pipeline nicht anwendet. `model/**` bleibt unverändert (Auftrag: nur lesen). UI-Test. |
 | 4179129195 (P2) lange Pipeline-Namen verbreitern die Kachel | Zeitbezug-Absätze brechen innerhalb langer Namen um (`overflow-wrap:anywhere`); Überlauf bleibt 0 px. UI-Test. |
 
-**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1990 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 36 px).
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1990 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 56 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 8 (Head e45b8bc, Review 5408006405):**
+
+| Befund | Behebung |
+|---|---|
+| 4179186538 (P2) abgelehnter Dashboard-Zeitraum unsichtbar | Im Modus `dashboard` nennt der Zeitbezug „gewählt: <dashboardFilters.period>“, wenn der Resolver keinen Zeitraum anwendet (wie bei der Pipeline). UI-Test. |
+| 4179186549 (P2) lange Kategorien sprengen die Datentabelle | Zeilenköpfe der Tabelle brechen innerhalb langer Namen um (`overflow-wrap:anywhere`). UI-Test mit 115 Zeichen ohne Leerzeichen. |
+| 4179186553 (P2) Rückkehr zu aktuellen Daten nicht angesagt | Die Live-Region meldet nach „veraltet“ oder „eingeschränkt“ beim Wechsel zu normalen Daten „Wert wieder aktuell.“; ein erneuter Warnzustand oder ein blockierender Zustand setzt die Meldung zurück. UI-Test. |
+| 4179186543 (P2) unpassende Übersicht als „Keine Daten“ angesagt (Fehler aus Runde 7) | `isDerivedEmpty` wertet zuerst `checkTileValues` aus: Bei einem Kompatibilitätshinweis bleibt die Live-Region still, nur ein echter Leerzustand wird angesagt. UI-Test mit `baseline.arr` + `uebersicht`. |
+| 4179186544 (P2) kombinierter Live-Zustand sprengt den Hinweisplatz | Hinweisplatz fest `h-[56px]` mit `overflow-y-auto` (Raum für drei Zeilen), bei Warnzustand als Bereich „Hinweise zur Datenqualität“ per Tastatur scrollbar. Prüfskript: alle Live-Kacheln der Galerie 56 px auf 1440/768/375 px. UI-Test für `veraltet` + `degradiert`. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1995 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 56 px).
 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 

@@ -143,4 +143,11 @@ describe('Diagramm-Ablesezeile und Grenzen', () => {
     expect(hValueLabel(510, 9)).toEqual({ x: 504, anchor: 'end' });
     expect(hValueLabel(552, 7)).toEqual({ x: 546, anchor: 'end' });
   });
+
+  it('bricht lange Kategorienamen in der Datentabelle um', () => {
+    const long = 'Stufe_ohne_Leerzeichen_'.repeat(5);
+    renderChart('tabelle', [{ label: long, value: 5 }]);
+    const header = within(screen.getByTestId('tile-table')).getByRole('rowheader', { name: long });
+    expect(header.className).toContain('[overflow-wrap:anywhere]');
+  });
 });

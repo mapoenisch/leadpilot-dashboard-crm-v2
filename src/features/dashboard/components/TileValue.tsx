@@ -68,7 +68,7 @@ export function TileTable({
           >
             <th
               scope="row"
-              className="py-[8px] text-left font-normal text-[var(--color-text-primary,#e6f3f1)]"
+              className="py-[8px] text-left font-normal text-[var(--color-text-primary,#e6f3f1)] [overflow-wrap:anywhere]"
             >
               {row.label}
             </th>

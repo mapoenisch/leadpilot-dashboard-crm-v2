@@ -59,7 +59,7 @@ describe('DashboardTile Zustände', () => {
 
   it('reserviert bei Live-Kacheln Platz für Hinweise, sonst nicht', () => {
     const { unmount } = show(resolved());
-    expect(screen.getByTestId('tile-notice-slot').className).not.toContain('min-h-[36px]');
+    expect(screen.getByTestId('tile-notice-slot').className).not.toContain('h-[56px]');
     unmount();
     show(
       resolved({
@@ -71,7 +71,65 @@ describe('DashboardTile Zustände', () => {
         },
       }),
     );
-    expect(screen.getByTestId('tile-notice-slot').className).toContain('min-h-[36px]');
+    expect(screen.getByTestId('tile-notice-slot').className).toContain('h-[56px]');
+  });
+
+  it('hält den Hinweisplatz bei kombinierten Live-Zuständen fest und scrollbar', () => {
+    const live = {
+      layer: 'live' as const,
+      module: 'src/services/liveKpi',
+      exportName: 'store',
+      liveKpiId: 'arr',
+    };
+    show(
+      resolved({
+        state: 'veraltet',
+        quality: 'degradiert',
+        origin: live,
+        asOf: '2026-10-04T12:05:00Z',
+      }),
+    );
+    const slot = screen.getByTestId('tile-notice-slot');
+    expect(slot.className).toContain('h-[56px]');
+    expect(slot.className).toContain('overflow-y-auto');
+    expect(slot).toHaveAttribute('tabindex', '0');
+    expect(slot).toHaveAttribute('aria-label', 'Hinweise zur Datenqualität');
+  });
+
+  it('sagt die Rückkehr zu aktuellen Daten an', () => {
+    const { rerender } = show(resolved({ quality: 'degradiert' }));
+    const live = screen.getByTestId('tile-live-status');
+    expect(live).toHaveTextContent('Datenqualität eingeschränkt.');
+    rerender(
+      <DashboardTile tile={TILE} entry={ARR} data={resolved()} onShowDetails={() => undefined} />,
+    );
+    expect(live).toHaveTextContent('Wert wieder aktuell.');
+  });
+
+  it('meldet bei unpassender Übersicht nicht „Keine Daten“, sondern bleibt still', () => {
+    const tile = { ...TILE, view: 'uebersicht' as const };
+    show(resolved({ overview: null }), tile, ARR);
+    expect(screen.getByTestId('tile-chart-hint')).toHaveTextContent('passt nicht');
+    expect(screen.getByTestId('tile-live-status')).toHaveTextContent('');
+  });
+
+  it('nennt den abgelehnten zentralen Zeitraum im Dashboard-Modus', () => {
+    show(
+      resolved({
+        effectiveFilter: {
+          mode: 'dashboard',
+          period: null,
+          pipeline: null,
+          periodReason: 'Quelle hat kein belegtes Datumsfeld',
+        },
+      }),
+      TILE,
+      ARR,
+      { period: { from: '2026-01-01', to: '2026-03-31' } },
+    );
+    expect(screen.getByTestId('tile-time-reference')).toHaveTextContent(
+      'Zeitbezug: Dashboard-Filter · gewählt: 01.01.2026 – 31.03.2026',
+    );
   });
 
   it('sagt einen abgeleiteten Leerzustand („Keine Daten“) über die Live-Region an', () => {
