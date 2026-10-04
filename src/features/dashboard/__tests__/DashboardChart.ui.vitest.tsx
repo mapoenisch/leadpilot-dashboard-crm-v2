@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardChart } from '../components/DashboardChart';
+import { LEGEND_RESERVE_CLASS } from '../components/charts/ChartReadout';
 import { DEFAULT_CHART_LOADERS, type ChartLoaders } from '../components/charts/chartLoaders';
 import { negativeLabelY } from '../components/charts/Depth3dBarChart';
 import {
@@ -115,6 +116,14 @@ describe('DashboardChart', () => {
   ])('rendert %s nach dem Nachladen', async (view, testId) => {
     renderChart(view, resolved({ series: SHARES }), active('baseline.arr_verlauf'));
     expect(await screen.findByTestId(testId)).toBeInTheDocument();
+  });
+
+  it('gibt der fertigen Legende dieselbe feste Höhe wie dem Ladeplatzhalter', async () => {
+    renderChart('saeulen', resolved({ series: SHARES }));
+    await screen.findByTestId('depth-bar-chart');
+    expect(screen.getByRole('group', { name: 'Säule wählen' }).className).toContain(
+      LEGEND_RESERVE_CLASS,
+    );
   });
 
   it('zeichnet negative Säulen statt abzubrechen', async () => {

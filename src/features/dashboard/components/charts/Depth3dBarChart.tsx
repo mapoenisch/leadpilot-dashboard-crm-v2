@@ -46,6 +46,7 @@ export function Depth3dBarChart({
   title,
   reducedMotion,
   formatValue,
+  stableLegend = false,
   orientation = 'vertical',
 }: DepthChartProps) {
   const horizontal = orientation === 'horizontal';
@@ -309,6 +310,7 @@ export function Depth3dBarChart({
         period={period}
       />
       <LegendButtons
+        stableHeight={stableLegend}
         data={data}
         activeIndex={active}
         onSelect={setActive}

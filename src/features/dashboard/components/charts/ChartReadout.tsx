@@ -93,6 +93,8 @@ export interface LegendButtonsProps {
   /** Farben je Eintrag; ohne Angabe erscheint nur der Text. */
   colors?: readonly string[];
   ariaLabel: string;
+  /** Feste Mindesthöhe der Legendenzeile (Dashboard-Kacheln), siehe `LEGEND_RESERVE_CLASS`. */
+  stableHeight?: boolean;
 }
 
 /** Gemeinsame Klassen: Legende und Platzhalter umbrechen dadurch gleich. */
@@ -101,6 +103,13 @@ const LEGEND_CHIP_CLASS =
 export const SLIDER_ROW_CLASS =
   'flex items-center gap-[10px] text-[11.5px] text-[var(--color-text-muted)]';
 export const SLIDER_LABEL = 'Zeitpunkt wählen';
+/**
+ * Dashboard-Kacheln (Auftrag 073): Beim Laden sind die Kategorien noch unbekannt. Legende und
+ * Platzhalter erhalten deshalb dieselbe Mindesthöhe für zwei Chipzeilen; bis zu zwei Zeilen
+ * wächst die Kachel beim Datenempfang nicht. Mehr Zeilen entstehen erst bei vielen Kategorien
+ * auf schmalen Kacheln (dokumentiert im BUILD_LOG).
+ */
+export const LEGEND_RESERVE_CLASS = 'min-h-[62px] content-start';
 
 /** Bedienelemente unter dem Diagramm: Legende (mit oder ohne Farbpunkt) oder Zeitregler. */
 export type ChartControls = 'legend' | 'legend-dots' | 'slider';
@@ -113,9 +122,12 @@ export type ChartControls = 'legend' | 'legend-dots' | 'slider';
 export function ChartLayoutReserve({
   labels,
   controls,
+  stableLegend = false,
 }: {
   labels: readonly string[];
   controls: ChartControls;
+  /** Dieselbe feste Legendenhöhe wie `LegendButtons` mit `stableHeight`. */
+  stableLegend?: boolean;
 }) {
   return (
     <div
@@ -133,7 +145,7 @@ export function ChartLayoutReserve({
           <input type="range" disabled tabIndex={-1} className="min-w-0 flex-1" />
         </div>
       ) : (
-        <div className="flex flex-wrap gap-[6px]">
+        <div className={cn('flex flex-wrap gap-[6px]', stableLegend && LEGEND_RESERVE_CLASS)}>
           {/* Ohne bekannte Labels (Laden, blockierte Zustände) hält ein Platzhalter-Chip die Zeile. */}
           {(labels.length > 0 ? labels : ['\u00a0']).map((label) => (
             <button key={label} type="button" disabled tabIndex={-1} className={LEGEND_CHIP_CLASS}>
@@ -154,9 +166,14 @@ export function LegendButtons({
   onSelect,
   colors,
   ariaLabel,
+  stableHeight = false,
 }: LegendButtonsProps) {
   return (
-    <div role="group" aria-label={ariaLabel} className="flex flex-wrap gap-[6px]">
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={cn('flex flex-wrap gap-[6px]', stableHeight && LEGEND_RESERVE_CLASS)}
+    >
       {data.map((entry, index) => {
         const active = activeIndex === index;
         return (

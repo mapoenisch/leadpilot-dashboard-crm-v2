@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardTile } from '../components/DashboardTile';
+import { LEGEND_RESERVE_CLASS } from '../components/charts/ChartReadout';
 import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 import type { ResolvedTileData, TileData } from '../data/dashboardData';
@@ -134,9 +135,91 @@ describe('DashboardTile', () => {
 
   it('zeigt beim Laden einen fokussierbaren Platzhalter', () => {
     renderTile(resolved({ state: 'laden', value: null }));
-    const status = screen.getByRole('status');
+    const status = screen.getByRole('status', { name: /wird geladen/ });
     expect(status).toHaveAttribute('tabindex', '0');
-    expect(status).toHaveAccessibleName(/wird geladen/);
+  });
+
+  it('übergibt den Fokus nach dem Datenempfang an den Inhaltsbereich', () => {
+    const { rerender } = render(
+      <DashboardTile
+        tile={TILE}
+        entry={ARR}
+        data={resolved({ state: 'laden', value: null })}
+        onShowDetails={() => undefined}
+      />,
+    );
+    screen.getByRole('status', { name: /wird geladen/ }).focus();
+    rerender(
+      <DashboardTile tile={TILE} entry={ARR} data={resolved()} onShowDetails={() => undefined} />,
+    );
+    expect(document.activeElement).toBe(screen.getByTestId('tile-body'));
+  });
+
+  it('meldet den Wechsel von Laden zu Fehler über eine bestehende Live-Region', () => {
+    const { rerender } = render(
+      <DashboardTile
+        tile={TILE}
+        entry={ARR}
+        data={resolved({ state: 'laden', value: null })}
+        onShowDetails={() => undefined}
+      />,
+    );
+    const live = screen.getByTestId('tile-live-status');
+    expect(live).toHaveAttribute('role', 'status');
+    expect(live).toHaveTextContent('');
+    rerender(
+      <DashboardTile
+        tile={TILE}
+        entry={ARR}
+        data={resolved({ state: 'fehler', value: null, message: 'Quelle nicht erreichbar.' })}
+        onShowDetails={() => undefined}
+      />,
+    );
+    expect(screen.getByTestId('tile-live-status')).toBe(live);
+    expect(live).toHaveTextContent('Fehler: Quelle nicht erreichbar.');
+  });
+
+  it('nennt den gewählten eigenen Zeitraum, auch wenn er für die Quelle nicht wirkt', () => {
+    renderTile(
+      resolved({
+        effectiveFilter: {
+          mode: 'eigener_zeitraum',
+          period: null,
+          pipeline: null,
+          periodReason: 'Zeitraum wirkt nicht.',
+        },
+      }),
+      { ...TILE, filterMode: 'eigener_zeitraum', period: { from: '2026-07-01', to: '2026-09-30' } },
+    );
+    expect(screen.getByTestId('tile-time-reference')).toHaveTextContent(
+      'Zeitbezug: Eigener Zeitraum · gewählt: 01.07.2026 – 30.09.2026',
+    );
+  });
+
+  it('gibt Tabelle und Übersicht in Laden und fertigem Zustand dieselbe feste Höhe', () => {
+    const tableTile = { ...TILE, view: 'tabelle' as const, size: 'mittel' as const };
+    const { rerender } = render(
+      <DashboardTile
+        tile={tableTile}
+        entry={ARR}
+        data={resolved({ state: 'laden', value: null })}
+        onShowDetails={() => undefined}
+      />,
+    );
+    const loading = screen.getByRole('status', { name: /wird geladen/ });
+    expect(loading.className).toContain('h-[240px]');
+    rerender(
+      <DashboardTile
+        tile={tableTile}
+        entry={ARR}
+        data={resolved()}
+        onShowDetails={() => undefined}
+      />,
+    );
+    const region = screen.getByRole('region', { name: /scrollbar/ });
+    expect(region.className).toContain('h-[240px]');
+    expect(region.className).toContain('overflow-y-auto');
+    expect(region).toHaveAttribute('tabindex', '0');
   });
 
   it('reserviert beim Laden eines Diagramms die Endhöhe', () => {
@@ -156,6 +239,10 @@ describe('DashboardTile', () => {
     renderTile(resolved({ state, value: null }), { ...TILE, view, size: 'mittel' });
     const reserve = screen.getByTestId('chart-layout-reserve');
     expect(reserve.querySelectorAll('button')).toHaveLength(1);
+    // Dieselbe feste Höhe für zwei Chipzeilen wie die fertige Legende (Codex-Befund PR #57).
+    expect(reserve.querySelector('button')?.parentElement?.className).toContain(
+      LEGEND_RESERVE_CLASS,
+    );
   });
 
   it.each([

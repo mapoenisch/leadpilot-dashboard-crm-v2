@@ -14911,3 +14911,20 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 2 (Head f344574, Review 5406971378):**
+
+| Befund | Behebung |
+|---|---|
+| 4178319844 (P2) gewählter eigener Zeitraum unsichtbar | Zeitbezug nennt bei `eigener_zeitraum` ohne wirksamen Zeitraum „gewählt: <tile.period>“; Galerie wie der produktive Resolver (`effectiveFilter.period: null`); UI-Test. |
+| 4178319850 (P2) mehrzeilige Legende springt | `LEGEND_RESERVE_CLASS` (Mindesthöhe für zwei Chipzeilen) für Platzhalter und fertige Legende der Dashboard-Diagramme (`stableLegend`); Testkachel unverändert. Mehr als zwei Zeilen entstehen erst bei vielen Kategorien auf schmalen Kacheln. Zusätzlich reserviert der Platzhalter die Zeile „Werte als Tabelle“: Das Prüfskript fand dort einen Sprung von 28 px, jetzt gleiche Inhaltshöhe auf 1440/768/375 px (430/461/430 px). |
+| 4178319856 (P2) Tabellenplatzhalter zu klein | Tabelle und Übersicht mit fester Höhe 240 px in allen Zuständen, fertiger Inhalt als fokussierbarer Scrollbereich; UI-Test. |
+| 4178319859 (P2) keine Live-Region für Zustandswechsel | Dauerhafte `role="status"`-Region je Kachel meldet blockierende Zustände („Fehler: …“); UI-Test Laden → Fehler mit derselben Region. |
+| 4178319860 (P2) kein echter Hover im Screenshot-Gate | Skript fährt je Diagrammart mit der Maus auf ein gezeichnetes Datum und prüft Hervorhebung (`data-active`) und Ablesezeile getrennt vom Fokuspfad; Exit ungleich 0 bei Fehlschlag; Matrix um Hover-Tabelle ergänzt. |
+| 4178319864 (P2) Fokus geht beim Datenempfang verloren | Fokusstatus des Ladeplatzhalters liegt in der Kachel; nach dem Wechsel aus `laden` übernimmt der Inhaltsbereich (`tabIndex=-1`) den Fokus; UI-Test. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1971 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,44 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (0 px Überlauf, axe 0, Hover und Fokus je Diagrammart, Höhe Laden = fertig, Netzwerknachweis grün).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

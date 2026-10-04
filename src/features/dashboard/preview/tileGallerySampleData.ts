@@ -10,7 +10,11 @@ import {
   type DashboardView,
   type TileSize,
 } from '../model/dashboardCatalog';
-import type { DashboardTileConfig, TileFilterMode } from '../model/dashboardConfig';
+import type {
+  DashboardPeriod,
+  DashboardTileConfig,
+  TileFilterMode,
+} from '../model/dashboardConfig';
 import { getScopeForLayer, type ResolvedTileData, type TileData } from '../data/dashboardData';
 
 export const GALLERY_NOTICE = 'Testdaten · Kachelgalerie';
@@ -59,7 +63,7 @@ function tile(
   view: DashboardView,
   size: TileSize,
   overrides: Partial<ResolvedTileData> = {},
-  extra: { title?: string; filterMode?: TileFilterMode } = {},
+  extra: { title?: string; filterMode?: TileFilterMode; period?: DashboardPeriod } = {},
 ): GalleryTile {
   counter += 1;
   const resolved = data(source, overrides);
@@ -71,6 +75,7 @@ function tile(
       size,
       filterMode: extra.filterMode ?? resolved.effectiveFilter.mode,
       title: extra.title,
+      period: extra.period,
     },
     entry: source,
     data: resolved,
@@ -172,14 +177,15 @@ export const GALLERY_TILES: readonly GalleryTile[] = [
     {
       value: 37,
       effectiveFilter: {
+        // Wie der produktive Resolver: ein nicht wirksamer Zeitraum ist null, die Wahl steht in der Kachel.
         mode: 'eigener_zeitraum',
-        period: { from: '2026-07-01', to: '2026-09-30' },
+        period: null,
         pipeline: null,
         periodReason:
           'Zeitraum wirkt nicht: Die Bedeutung des CRM-Abschlussdatums ist nicht belegt.',
       },
     },
-    { filterMode: 'eigener_zeitraum' },
+    { filterMode: 'eigener_zeitraum', period: { from: '2026-07-01', to: '2026-09-30' } },
   ),
   testSeries('saeulen', 'Ergebnis je Quartal (Testreihe mit negativen Werten)', [
     { label: 'Q1', value: 42_000 },

@@ -1,7 +1,7 @@
 // Executive Dashboard, Teilauftrag 4 (Auftrag 073): einheitlicher Kachelrahmen (Plan §3, §4).
 // Kopf mit Kategorie, Titel, Zeitraum/Stand, Quelle, Zeitbezug und Geltungsbereich; Inhalt über
 // DashboardChart; Fußzeile mit „Details“. Die Kachel lädt keine Daten selbst, sie bekommt sie.
-import { useId, useRef } from 'react';
+import { useEffect, useId, useRef, type MutableRefObject } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
@@ -36,12 +36,16 @@ export interface DashboardTileProps {
   className?: string;
 }
 
-/** Mindesthöhe ohne Diagramm: Laden, Hinweis und fertige Darstellung bleiben gleich hoch. */
+/**
+ * Höhe ohne Diagramm: Laden, Hinweis und fertige Darstellung bleiben gleich hoch. Tabelle und
+ * Übersicht haben eine feste Höhe und scrollen innerhalb der Kachel (Codex-Befund PR #57).
+ */
 const MIN_HEIGHT: Partial<Record<DashboardView, string>> = {
   zahl: 'min-h-[96px]',
-  tabelle: 'min-h-[180px]',
-  uebersicht: 'min-h-[180px]',
+  tabelle: 'h-[240px]',
+  uebersicht: 'h-[240px]',
 };
+const SCROLLING_VIEWS: readonly DashboardView[] = ['tabelle', 'uebersicht'];
 
 const MUTED = 'm-0 text-[12px] text-[var(--color-text-muted)]';
 const SCOPE_NOTICE =
@@ -61,6 +65,18 @@ export function DashboardTile({
   const idPrefix = `tile${useId()}${tile.tileId}`.replace(/[^a-zA-Z0-9]/g, '');
   const resolved = data.state === 'nicht_verfuegbar' ? null : data;
   const period = resolved ? timeLabel(resolved.timeBasis, resolved.asOf) : '';
+  // Hatte der Ladeplatzhalter den Fokus, übernimmt ihn nach dem Datenempfang der Inhaltsbereich,
+  // statt auf den Seitenanfang zurückzufallen (Codex-Befund PR #57).
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const loadingHadFocus = useRef(false);
+  useEffect(() => {
+    if (data.state === 'laden' || !loadingHadFocus.current) return;
+    loadingHadFocus.current = false;
+    bodyRef.current?.focus();
+  }, [data.state]);
+  const liveText = BLOCKING_STATES.has(data.state)
+    ? `${data.state === 'fehler' ? 'Fehler: ' : ''}${blockingText(data)}`
+    : '';
 
   return (
     <Card
@@ -100,8 +116,18 @@ export function DashboardTile({
         ) : null}
         <TileNotices data={data} />
 
-        <div className="min-w-0" data-testid="tile-body">
+        {/* Bleibt bestehen: Zustandswechsel (z. B. Laden → Fehler) werden vorgelesen. */}
+        <p role="status" className="sr-only" data-testid="tile-live-status">
+          {liveText}
+        </p>
+        <div
+          ref={bodyRef}
+          tabIndex={-1}
+          className="min-w-0 rounded-md outline-none"
+          data-testid="tile-body"
+        >
           <TileBody
+            loadingHadFocus={loadingHadFocus}
             tile={tile}
             entry={entry}
             data={data}
@@ -139,6 +165,10 @@ function TimeReference({
   const filter = data?.effectiveFilter;
   const parts = [`Zeitbezug: ${filterModeLabel(filter?.mode ?? tile.filterMode)}`];
   if (filter?.period) parts.push(formatPeriod(filter.period));
+  // Der Resolver setzt einen nicht wirksamen eigenen Zeitraum auf null; die Wahl bleibt sichtbar.
+  else if ((filter?.mode ?? tile.filterMode) === 'eigener_zeitraum' && tile.period) {
+    parts.push(`gewählt: ${formatPeriod(tile.period)}`);
+  }
   if (filter?.pipeline) parts.push(`Pipeline: ${filter.pipeline}`);
   const reasons = [filter?.periodReason, filter?.pipelineReason].filter(
     (reason): reason is string => Boolean(reason),
@@ -156,6 +186,7 @@ function TimeReference({
 }
 
 function TileBody({
+  loadingHadFocus,
   tile,
   entry,
   data,
@@ -165,6 +196,7 @@ function TileBody({
   onRetryChartLoad,
   chartLoaders,
 }: {
+  loadingHadFocus: MutableRefObject<boolean>;
   tile: DashboardTileConfig;
   entry?: ActiveCatalogEntry;
   data: TileData;
@@ -174,18 +206,20 @@ function TileBody({
   onRetryChartLoad: () => void;
   chartLoaders?: ChartLoaders;
 }) {
-  const hadFocus = useRef(false);
   const chartView = isChartView(tile.view) ? tile.view : null;
   const caption = `${title}, ${period || 'Zeitraum unbekannt'}`;
 
   if (data.state === 'laden') {
     if (chartView) {
       return (
-        <ChartLoadingPlaceholder
-          label={caption}
-          reserve={reserveFor(chartView, [])}
-          hadFocus={hadFocus}
-        />
+        <>
+          <ChartLoadingPlaceholder
+            label={caption}
+            reserve={reserveFor(chartView, [])}
+            hadFocus={loadingHadFocus}
+          />
+          <TableToggleReserve />
+        </>
       );
     }
     return (
@@ -193,6 +227,13 @@ function TileBody({
         role="status"
         tabIndex={0}
         aria-label={`${caption}: wird geladen`}
+        onFocus={() => {
+          loadingHadFocus.current = true;
+        }}
+        onBlur={(event) => {
+          // Beim Entfernen aus dem DOM (Daten da) bleibt die Markierung für die Fokusübergabe.
+          if (event.currentTarget.isConnected) loadingHadFocus.current = false;
+        }}
         className={cn(
           'flex items-center rounded-md text-[13px] text-[var(--color-text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-primary',
           MIN_HEIGHT[tile.view],
@@ -210,6 +251,7 @@ function TileBody({
       return (
         <div className="relative">
           <ChartLayoutReserve {...reserveFor(chartView, [])} />
+          <TableToggleReserve />
           <p
             data-testid={testId}
             className={cn(OVERLAY, 'm-0 text-[13px] text-[var(--color-text-muted)]')}
@@ -233,6 +275,30 @@ function TileBody({
   }
 
   if (data.state === 'nicht_verfuegbar') return null;
+  if (SCROLLING_VIEWS.includes(tile.view)) {
+    return (
+      <div
+        role="region"
+        aria-label={`${caption}, scrollbar`}
+        tabIndex={0}
+        className={cn(
+          'overflow-y-auto rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary',
+          MIN_HEIGHT[tile.view],
+        )}
+      >
+        <DashboardChart
+          view={tile.view}
+          entry={entry}
+          data={data}
+          title={title}
+          period={period}
+          idPrefix={idPrefix}
+          onRetryChartLoad={onRetryChartLoad}
+          loaders={chartLoaders}
+        />
+      </div>
+    );
+  }
   return (
     <div className={MIN_HEIGHT[tile.view]}>
       <DashboardChart
@@ -246,5 +312,14 @@ function TileBody({
         loaders={chartLoaders}
       />
     </div>
+  );
+}
+
+/** Platz der Zeile „Werte als Tabelle“ unter jedem Diagramm: Laden und fertig sind gleich hoch. */
+function TableToggleReserve() {
+  return (
+    <details aria-hidden="true" className="invisible mt-[10px] text-[12px]">
+      <summary tabIndex={-1}>Werte als Tabelle</summary>
+    </details>
   );
 }

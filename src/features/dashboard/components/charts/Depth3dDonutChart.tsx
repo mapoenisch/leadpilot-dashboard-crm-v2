@@ -41,6 +41,7 @@ export function Depth3dDonutChart({
   title,
   reducedMotion,
   formatValue,
+  stableLegend = false,
   solid = false,
 }: DepthChartProps) {
   const GEOMETRY = solid ? PIE_GEOMETRY : RING_GEOMETRY;
@@ -204,6 +205,7 @@ export function Depth3dDonutChart({
         period={period}
       />
       <LegendButtons
+        stableHeight={stableLegend}
         data={data}
         activeIndex={active}
         onSelect={setActive}

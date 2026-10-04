@@ -20,6 +20,8 @@ export interface DepthChartProps {
    * Ohne Angabe: deutsche Zahl plus Einheit wie in der Testkachel.
    */
   formatValue?: (value: number) => string;
+  /** Dashboard-Kacheln: feste Legendenhöhe, damit Laden und fertige Darstellung gleich hoch sind. */
+  stableLegend?: boolean;
 }
 
 /**

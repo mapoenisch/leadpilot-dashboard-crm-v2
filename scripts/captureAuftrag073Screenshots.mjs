@@ -42,6 +42,13 @@ const CHART_TESTIDS = [
 ];
 
 const GALLERY = 'section[aria-labelledby="kachelgalerie"]';
+const HOVER_MARKS = [
+  ['depth-bar-chart', 'depth-bar'],
+  ['depth-hbar-chart', 'depth-bar'],
+  ['depth-donut-chart', 'depth-ring-segment'],
+  ['depth-line-chart', 'depth-line-point'],
+  ['depth-area-chart', 'depth-line-point'],
+];
 const sha256 = (buffer) => crypto.createHash('sha256').update(buffer).digest('hex');
 const overflowOf = (page) =>
   page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -90,6 +97,8 @@ async function beforeAfter(browser) {
 async function tiles(browser) {
   const rows = [];
   const focus = [];
+  const hover = [];
+  const heights = [];
   for (const viewport of WIDTHS) {
     const context = await browser.newContext({ viewport });
     const page = await context.newPage();
@@ -120,6 +129,58 @@ async function tiles(browser) {
         sha256: sha256(image),
       });
     }
+    // Echter Maus-Hover je Diagrammart, getrennt vom Fokuspfad (Codex-Befund PR #57).
+    for (const [testId, markId] of HOVER_MARKS) {
+      const tile = page
+        .locator(GALLERY)
+        .getByTestId('dashboard-tile')
+        .filter({ has: page.getByTestId(testId) })
+        .first();
+      const chart = tile.getByTestId(testId).first();
+      const mark = chart.getByTestId(markId).first();
+      await page.mouse.move(0, 0);
+      await mark.scrollIntoViewIfNeeded();
+      const point = await mark.evaluate((element) => {
+        const target = element.querySelector('path, rect, circle') ?? element;
+        if (target instanceof SVGPathElement) {
+          const local = target.getPointAtLength(target.getTotalLength() * 0.1);
+          const matrix = target.getScreenCTM();
+          return matrix ? new DOMPoint(local.x, local.y).matrixTransform(matrix) : null;
+        }
+        const box = target.getBoundingClientRect();
+        return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+      });
+      if (point) await page.mouse.move(point.x, point.y);
+      const active = await mark.getAttribute('data-active');
+      const readout = ((await chart.getByTestId('chart-readout').textContent()) ?? '').trim();
+      const file = `${viewport.width}-hover-${testId}.png`;
+      const image = await tile.screenshot({ path: path.join(OUT_DIR, file) });
+      hover.push({
+        width: viewport.width,
+        testId,
+        active: active === 'true',
+        readout,
+        file,
+        sha256: sha256(image),
+      });
+      await page.mouse.move(0, 0);
+    }
+    // Gleiche Höhe für Laden und fertige Säulenkachel derselben Größe (Legendenreserve).
+    const body = (state) =>
+      page
+        .locator(GALLERY)
+        .locator(
+          `[data-testid="dashboard-tile"][data-view="saeulen"][data-size="mittel"][data-state="${state}"]`,
+        )
+        .first()
+        .getByTestId('tile-body')
+        .boundingBox();
+    const [loadingBox, readyBox] = await Promise.all([body('laden'), body('bereit')]);
+    heights.push({
+      width: viewport.width,
+      ladenPx: Math.round(loadingBox?.height ?? -1),
+      bereitPx: Math.round(readyBox?.height ?? -2),
+    });
     for (const testId of CHART_TESTIDS) {
       const tile = page
         .locator(GALLERY)
@@ -150,7 +211,7 @@ async function tiles(browser) {
     });
     await context.close();
   }
-  return { rows, focus };
+  return { rows, focus, hover, heights };
 }
 
 async function network(browser) {
@@ -186,6 +247,8 @@ function writeReadme(m) {
     `- Vorher/Nachher-Paare verschieden: ${m.pairsDistinct ? 'ja' : 'nein'}`,
     `- Größter horizontaler Seitenüberlauf: ${m.maxOverflowPx} px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel, Designfreigabe)`,
     `- axe-Verstöße serious/critical in der Galerie: ${m.axeSevereTotal}`,
+    `- Maus-Hover je Diagrammart hebt das Datum hervor und füllt die Ablesezeile: ${m.hoverOk ? 'ja' : 'nein'}`,
+    `- Säulenkachel „mittel“: Inhaltshöhe beim Laden = fertig: ${m.heightsEqual ? 'ja' : 'nein'} (${m.heights.map((h) => `${h.width}: ${h.ladenPx}/${h.bereitPx} px`).join(', ')})`,
     `- Fokus je Diagrammart füllt die Ablesezeile (Wert, Einheit, Kategorie, Zeitraum): ${m.focusReadoutsFilled ? 'ja' : 'nein'}`,
     `- Netzwerk \`?ansicht=zahl\`: Testkachel ausgeblendet, geladene Diagrammmodule: ${m.network.zahl.chartModules.join(', ') || 'keine'}`,
     `- Netzwerk \`?ansicht=ring\`: Testkachel ausgeblendet, geladene Diagrammmodule: ${m.network.ring.chartModules.join(', ') || 'keine'}`,
@@ -205,6 +268,15 @@ function writeReadme(m) {
     '|---:|---|---|---|',
     ...m.focus.map(
       (f) => `| ${f.width} | ${f.testId} | ${f.readout.replace(/\|/g, '/')} | ${short(f.sha256)} |`,
+    ),
+    '',
+    '## Maus-Hover je Diagrammart (Galerie)',
+    '',
+    '| Breite | Diagramm | hervorgehoben | Ablesezeile | SHA-256 (gekürzt) |',
+    '|---:|---|---|---|---|',
+    ...m.hover.map(
+      (h) =>
+        `| ${h.width} | ${h.testId} | ${h.active ? 'ja' : 'nein'} | ${h.readout.replace(/\|/g, '/')} | ${short(h.sha256)} |`,
     ),
     '',
     '## Kacheln',
@@ -240,7 +312,7 @@ async function main() {
   let result;
   try {
     const pairs = await beforeAfter(browser);
-    const { rows, focus } = await tiles(browser);
+    const { rows, focus, hover, heights } = await tiles(browser);
     const net = await network(browser);
     const summaries = rows.filter((row) => row.summary);
     result = {
@@ -255,6 +327,10 @@ async function main() {
         ...pairs.map((pair) => pair.nachher.overflowPx),
       ),
       axeSevereTotal: summaries.reduce((sum, row) => sum + row.axeSevere.length, 0),
+      hoverOk: hover.every(
+        (row) => row.active && row.readout && !row.readout.startsWith('Datenpunkt'),
+      ),
+      heightsEqual: heights.every((row) => row.ladenPx === row.bereitPx),
       focusReadoutsFilled: focus.every(
         (row) => row.readout && !row.readout.startsWith('Datenpunkt'),
       ),
@@ -266,6 +342,8 @@ async function main() {
         net.ring.chartModules.join() === 'Depth3dDonutChart',
       pairs,
       focus,
+      hover,
+      heights,
       rows,
     };
   } finally {
@@ -284,6 +362,8 @@ async function main() {
     result.maxOverflowPx === 0 &&
     result.axeSevereTotal === 0 &&
     result.focusReadoutsFilled &&
+    result.hoverOk &&
+    result.heightsEqual &&
     result.networkOk;
   process.exit(ok ? 0 : 1);
 }

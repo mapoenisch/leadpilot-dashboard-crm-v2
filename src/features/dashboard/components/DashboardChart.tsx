@@ -41,6 +41,7 @@ export interface DashboardChartProps {
 export function reserveFor(view: ChartView, labels: readonly string[]): ChartReserveSpec {
   return {
     labels,
+    stableLegend: true,
     controls:
       view === 'linie' || view === 'flaeche'
         ? 'slider'
@@ -210,6 +211,7 @@ function LazyChart({
               orientation={view === 'balken' ? 'horizontal' : 'vertical'}
               solid={view === 'kreis'}
               formatValue={formatValue}
+              stableLegend
             />
           </div>
         </Suspense>

@@ -10,6 +10,8 @@ import type { ChartControls } from './ChartReadout';
 export interface ChartReserveSpec {
   labels: readonly string[];
   controls: ChartControls;
+  /** Dashboard-Kacheln: feste Legendenhöhe auch ohne bekannte Kategorien (Auftrag 073). */
+  stableLegend?: boolean;
 }
 
 export const OVERLAY = 'absolute inset-0 flex flex-col justify-center gap-[10px]';
