@@ -207,6 +207,12 @@ export function Depth3dDonutChart({
         unit={unit}
         formatValue={formatValue}
         period={period}
+        stableHeight={stableLegend}
+        extra={
+          active === null || !segments[active]
+            ? undefined
+            : `${formatDe(Math.round(segments[active].share * 1000) / 10)} % Anteil`
+        }
       />
       <LegendButtons
         stableHeight={stableLegend}

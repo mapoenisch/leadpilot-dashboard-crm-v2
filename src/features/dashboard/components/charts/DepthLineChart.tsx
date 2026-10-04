@@ -37,6 +37,7 @@ export function DepthLineChart({
   title,
   reducedMotion,
   formatValue,
+  stableLegend = false,
   filled = false,
 }: DepthLineChartProps) {
   const [active, setActive] = useActiveDatum(data);
@@ -175,6 +176,7 @@ export function DepthLineChart({
         unit={unit}
         formatValue={formatValue}
         period={period}
+        stableHeight={stableLegend}
       />
       <label className={SLIDER_ROW_CLASS}>
         <span>{SLIDER_LABEL}</span>

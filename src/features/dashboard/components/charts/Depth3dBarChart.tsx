@@ -29,6 +29,9 @@ const H_AREA = { left: 96, top: 14, width: 400, height: 210 };
 const THEME = MANAGEMENT_CHART_THEME.colors;
 /** Linker Rand der Balkenansicht fasst etwa 14 Zeichen; längere Stufennamen werden gekürzt. */
 const H_LABEL_MAX = 14;
+/** Mehr Kategorien passen nicht lesbar in die feste Zeichenfläche; der Rest steht in der Tabelle. */
+const MAX_VERTICAL = 10;
+const MAX_HORIZONTAL = 12;
 /** Kategorien stehen bei baseline + 18; darüber bleibt Abstand für die Wertbeschriftung. */
 const CATEGORY_CLEARANCE = 6;
 
@@ -43,7 +46,7 @@ export function negativeLabelY(bottom: number, baseline: number): number {
 
 export function Depth3dBarChart({
   idPrefix,
-  data,
+  data: allData,
   unit,
   period,
   title,
@@ -53,6 +56,11 @@ export function Depth3dBarChart({
   orientation = 'vertical',
 }: DepthChartProps) {
   const horizontal = orientation === 'horizontal';
+  const limit = horizontal ? MAX_HORIZONTAL : MAX_VERTICAL;
+  const data = useMemo(() => allData.slice(0, limit), [allData, limit]);
+  const omitted = allData.length - data.length;
+  // Spaltenbreite bestimmt, wie viele Zeichen eine senkrechte Kategorie fassen darf (6 px je Zeichen).
+  const columnLabelMax = Math.max(4, Math.floor(AREA.width / Math.max(data.length, 1) / 6));
   const [active, setActive] = useActiveDatum(data);
   const scale = useMemo(() => {
     const values = data.map((d) => d.value);
@@ -66,8 +74,8 @@ export function Depth3dBarChart({
   const glow = `${idPrefix}-glow`;
   const summaryId = `${idPrefix}-summary`;
   const summary = useMemo(
-    () => summarizeSeries(data, unit, period, 'ranking', formatValue),
-    [data, unit, period, formatValue],
+    () => summarizeSeries(allData, unit, period, 'ranking', formatValue),
+    [allData, unit, period, formatValue],
   );
   const transition = reducedMotion ? '' : 'transition-opacity duration-150';
 
@@ -299,7 +307,8 @@ export function Depth3dBarChart({
                       fontSize="10.5"
                       fill={THEME.neutral}
                     >
-                      {bar.label}
+                      <title>{bar.label}</title>
+                      {shortenLabel(bar.label, columnLabelMax)}
                     </text>
                   </g>
                 );
@@ -312,6 +321,12 @@ export function Depth3dBarChart({
         unit={unit}
         formatValue={formatValue}
         period={period}
+        stableHeight={stableLegend}
+        idleText={
+          omitted > 0
+            ? `${data.length} von ${allData.length} Kategorien dargestellt, alle Werte stehen in der Tabelle.`
+            : undefined
+        }
       />
       <LegendButtons
         stableHeight={stableLegend}

@@ -14957,3 +14957,21 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 5 (Head 5f98560, Review 5407192915):**
+
+| Befund | Behebung |
+|---|---|
+| Review 5407192915 (P2) Ablesezeile wächst bei langer Zeitangabe | Dashboard-Kacheln (`stableLegend`): Ablesezeile und Platzhalter haben eine feste Höhe von 60 px (drei Zeilen), Überlauf scrollt, fokussierbar. Testkachel unverändert. Prüfskript: Höhe Laden = fertig weiterhin gleich (450/481/450 px, Linie 405/436/405 px). UI-Test mit langer Zeitangabe. |
+| 4178467767 (P2) degradierte Live-Ereignisse ohne Kennzeichnung | `TileOverview` zeigt je Ereignis mit `qualityStatus: 'degraded'` das Badge „Eingeschränkt“; UI-Test positiv und negativ. |
+| 4178467756 (P2) nur sechs von bis zu zehn Ereignissen | Begrenzung auf sechs Zeilen entfernt (auch Team und Roadmap); der feste 240-px-Rahmen scrollt. UI-Tests mit zehn Ereignissen und allen Releases. |
+| 4178467774 (P2) Team-Übersicht ohne Struktur und Engpässe | Neben den Kennzahlen zeigt die Kachel jetzt Teamstruktur (Wurzel, Einheiten, Summe) und Engpässe samt Maßnahmen; UI-Test. |
+| 4178467763 (P2) Zeichenfläche bei vielen CRM-Stufen | Säulen zeigen höchstens 10, Balken höchstens 12 Kategorien lesbar; die Ablesezeile nennt „N von M Kategorien dargestellt, alle Werte stehen in der Tabelle“, Zeile „Werte als Tabelle“ und Kurzfassung enthalten alle. Senkrechte Kategorienamen werden nach Spaltenbreite gekürzt (Volltext im `<title>`). UI-Tests mit 25 Stufen. |
+| 4178467776 (P2) Anteil des Ringsegments fehlt | Ablesezeile von Ring und Kreis nennt den Anteil („40 % Anteil“); nur dort, nicht in Säulen, Balken oder Linien. UI-Test. |
+| 4178467770 (P2) interne Einheit `count` sichtbar | `formatTileValue` gibt `count` als einheitenlose Anzahl aus; UI-Test. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1984 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0.
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

@@ -28,6 +28,8 @@ export function formatTileValue(
     return `${millions.format(value / 1_000_000)} Mio. EUR`;
   }
   const number = exact.format(value);
+  // `count` ist die interne Einheit der Live-KPIs: eine einheitenlose Anzahl.
+  if (unit === 'count') return number;
   return unit ? `${number} ${unit}` : number;
 }
 

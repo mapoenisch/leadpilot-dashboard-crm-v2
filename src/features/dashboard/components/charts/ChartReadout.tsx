@@ -63,15 +63,36 @@ export interface ReadoutProps {
   /** Anteile werden mit Prozentzeichen ohne Leerzeichen dargestellt. */
   idleText?: string;
   formatValue?: (value: number) => string;
+  /** Zusatz hinter dem Wert, z. B. der Anteil eines Ringsegments („12,5 % Anteil“). */
+  extra?: string;
+  /** Dashboard-Kacheln: feste, intern scrollende Höhe; lange Zeitangaben verschieben nichts. */
+  stableHeight?: boolean;
 }
 
-export function ChartReadout({ entry, unit, period, idleText, formatValue }: ReadoutProps) {
+/** Feste Höhe der Ablesezeile (drei Textzeilen); Überlauf scrollt, siehe `ChartReadout`. */
+export const READOUT_STABLE_CLASS = 'h-[60px] overflow-y-auto';
+
+export function ChartReadout({
+  entry,
+  unit,
+  period,
+  idleText,
+  formatValue,
+  extra,
+  stableHeight = false,
+}: ReadoutProps) {
   return (
     <p
       role="status"
       aria-live="polite"
       data-testid="chart-readout"
-      className="m-0 min-h-[40px] text-[12px] leading-[1.4] text-[var(--color-text-muted)]"
+      tabIndex={stableHeight ? 0 : undefined}
+      className={cn(
+        'm-0 text-[12px] leading-[1.4] text-[var(--color-text-muted)]',
+        stableHeight
+          ? `${READOUT_STABLE_CLASS} outline-none focus-visible:ring-2 focus-visible:ring-primary`
+          : 'min-h-[40px]',
+      )}
     >
       {entry ? (
         <>
@@ -80,6 +101,7 @@ export function ChartReadout({ entry, unit, period, idleText, formatValue }: Rea
           <span className="font-mono text-primary">
             {formatValue ? formatValue(entry.value) : `${formatDe(entry.value)} ${unit}`.trim()}
           </span>
+          {extra ? ` · ${extra}` : ''}
           {' · '}
           {period}
         </>
@@ -142,7 +164,14 @@ export function ChartLayoutReserve({
       <div className="overflow-hidden">
         <div className="aspect-[2/1] w-full min-w-[560px]" />
       </div>
-      <p className="m-0 min-h-[40px] text-[12px] leading-[1.4]">&nbsp;</p>
+      <p
+        className={cn(
+          'm-0 text-[12px] leading-[1.4]',
+          stableLegend ? READOUT_STABLE_CLASS : 'min-h-[40px]',
+        )}
+      >
+        &nbsp;
+      </p>
       {controls === 'slider' ? (
         <div className={SLIDER_ROW_CLASS}>
           <span>{SLIDER_LABEL}</span>
