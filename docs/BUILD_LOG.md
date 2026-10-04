@@ -14655,3 +14655,17 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 **Ergänzung PR #55 (Entscheidung Marc, „ja mach“):** `.gitignore` um die lokalen Referenzordner erweitert (`/archive/`, `/uploads/`, `/reference/`, `/ui_kits/`, `/guidelines/`, `/tokens/`, `/.playwright-mcp/`, `/SKILL.md`), wurzelverankert, damit `docs/archiv/` und andere versionierte Pfade unberührt bleiben (geprüft mit `git check-ignore`). Ignorierte Dateien entfernt `git clean -fd` nicht. `readme.md` bewusst nicht aufgenommen: Auf macOS (Dateisystem ohne Groß-/Kleinschreibung) wäre sie dieselbe Datei wie das versionierte `README.md`; `AGENTS.md` entsprechend korrigiert. Kein versionierter Pfad liegt unter den neuen Mustern. Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
 
 **Nacharbeit PR #55, Codex-Review Runde 3 (Head a7ea8b0):** 4174639706 (P2) – die Verbotsliste deckte gleichwertige Formen nicht ab (`git checkout .`, `checkout -f`, `switch -f`/`--discard-changes`); jetzt semantisch formuliert: verboten ist jeder Befehl, der lokale Änderungen, unversionierte Dateien, Stash-Einträge, Branches oder Remote-Historie verwirft, mit nicht abschließenden Beispielen. 4174639709 (P2) – die Sauberkeitsprüfung blendete neue, nicht ignorierte Dateien aus; jetzt `git status --porcelain` (Referenzordner bleiben dank `.gitignore` unsichtbar). Gates: `tsc`, `lint`, `format:check`, `npm test`, `verify`, `build` jeweils Exit 0; Schutzbereichs-Diff leer.
+
+---
+
+## Auftrag 072 geschrieben: Dashboard Teilauftrag 3, Persönliche Speicherung (Claude Code, 04.10.2026)
+
+**Ziel & Kontext:** Entscheidung Marc vom 04.10.2026: Rückkehr zu Zyklus 1 ohne Antigravity („du schreibst den nächsten Auftrag und Codex prüft“). Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_072_DASHBOARD_PERSOENLICHE_SPEICHERUNG.md` nach Plan Teilauftrag 3 und §6, Basis `main` `86a31bb`. Builder: Claude Code, Prüfer: Codex.
+
+**Inhalt:** Neue Tabelle `executive_dashboard_preferences` (Organisation + Benutzer, Revision), RLS nur Lesen der eigenen Zeile, Schreiben ausschließlich über `save_dashboard_preferences` mit erwarteter Revision und Servervalidierung (Form, Schlüssel, Version 1, höchstens 24 Kacheln, 32 KB); Viewer dürfen ihr Layout speichern; pgTAP-Fälle 1–10; Frontend-Standardansicht, Repository mit strukturierten Fehlern, Hook ohne Erstanlage beim Öffnen und mit Cachebereinigung bei Benutzerwechsel.
+
+**Geänderte Dateien:** nur die Auftragsdatei und dieser Eintrag. Kein Code.
+
+**Schutzbereichs-Diff** gegen `86a31bb`: leer.
+
+Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.
