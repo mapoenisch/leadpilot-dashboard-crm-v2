@@ -14782,3 +14782,27 @@ Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm te
 **Schutzbereichs-Diff** gegen `86a31bb`: leer.
 
 Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0.
+
+---
+
+## Auftrag 072: Dashboard Teilauftrag 3 – Persönliche Speicherung (Builder: Claude Code, 04.10.2026)
+
+**Ziel & Kontext:** Umsetzung von `docs/auftraege/ANTIGRAVITY_AUFTRAG_072_DASHBOARD_PERSOENLICHE_SPEICHERUNG.md` in Zyklus 1 (Claude Code baut, Codex prüft). Prüfwege nach Entscheidung Marc vom 04.10.2026 („a“): Variante A, die Codex-App prüft, der Builder arbeitet Befunde selbst ab; die Nacharbeits-Workflows bleiben pausiert. Basis `main` nach PR #54 (Merge `f44a07e`).
+
+**Geänderte Dateien:**
+- `supabase/migrations/20261004_executive_dashboard_preferences.sql` (neu): Tabelle `executive_dashboard_preferences` (PK Organisation + Benutzer, `config`, `schema_version`, `revision`), RLS nur `SELECT` der eigenen Zeile, keine direkten Schreibrechte, `anon` ohne Zugriff; `dashboard_preferences_invalid_reason` (Formprüfung) und `save_dashboard_preferences(p_config, p_expected_revision)` (SECURITY DEFINER, Organisation/Benutzer nur aus der Sitzung, Revision 0 = Erstanlage, Konflikt bei veralteter Revision und doppelter Erstanlage).
+- `supabase/tests/executive_dashboard_preferences.sql` (neu): 28 pgTAP-Tests.
+- `src/features/dashboard/model/defaultDashboard.ts` (neu): Standardansicht (17 Kacheln) und `interpretStoredConfig` (standard, gespeichert, zukünftige Version mit Speichersperre, ungültig).
+- `src/features/dashboard/data/dashboardPreferencesRepository.ts` (neu): Laden/Speichern, strukturierte Fehler, Rohfehler nur über `logger`.
+- `src/features/dashboard/hooks/useDashboardPreferences.ts` (neu): Abfrage je Organisation und Benutzer, keine Erstanlage beim Öffnen, Prüfung vor dem Speichern, Konflikt ohne Eingriff in den Entwurf, `reloadServerVersion`, Cachebereinigung bei Benutzerwechsel und Abmeldung.
+- Tests: `defaultDashboard.vitest.ts`, `dashboardPreferencesRepository.vitest.ts`, `useDashboardPreferences.ui.vitest.tsx` (neu).
+
+**Funktionale Prüfungen:** pgTAP lokal gegen PostgreSQL 16 mit pgTAP und Supabase-Auth-Stubs (`auth.users`, `auth.uid()`, Rollen `anon`/`authenticated`), Schema + alle Migrationen geladen: neue Suite 28/28 grün; alle bestehenden Suiten weiterhin grün (audit_log 18, crm_query_export 25, ingress_nonce 9, member_management 31, run_control 24, scenario_run_persistence 34, tenant_isolation 27). Der erste Testlauf der Standardansicht deckte ungültige Kachel-IDs (Punkt im Namen) auf; behoben.
+
+**Nicht lokal ausführbar:** `scripts/verifyMigrationUpgrade.mjs` und `scripts/verifyBackupRestore.mjs` brauchen ein laufendes Supabase im Docker; in dieser Umgebung gibt es keinen Docker-Daemon. Nachweis über den CI-Job `e2e` (`supabase test db` lädt die neue Suite). Die beiden Skripte bleiben für Marc lokal offen.
+
+**Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1891 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Keine offene `USING (true)`-Policy.
+
+**Schutzbereichs-Diff** gegen `main`: leer. Persistenz-Ausnahme laut Auftrag: nur die neue Tabelle.
+
+**Ergebnis:** Builder fertig, Prüfung durch Codex offen.

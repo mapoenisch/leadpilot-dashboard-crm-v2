@@ -85,13 +85,13 @@ Eigene UUID-Präfixe, `BEGIN … ROLLBACK`, Stil wie `tenant_isolation.sql`. Fä
 
 ## Umsetzung
 
-- [ ] pgTAP-Tests zuerst (Fälle 1–10), dann Migration.
-- [ ] Tests zuerst für `defaultDashboard.ts` (Standard besteht die Validierung; zukünftige Version; unbekannte IDs bleiben erhalten), dann implementieren.
-- [ ] Tests zuerst für das Repository mit gemocktem Supabase-Client (jede Fehlerart, keine Zeile, Erfolg), dann implementieren.
-- [ ] Tests zuerst für den Hook: Erstanlage nicht beim bloßen Öffnen; Reload liefert gespeicherte Konfiguration; zwei konkurrierende Saves → zweiter `konflikt`, Entwurf bleibt; abgelaufene Sitzung; Benutzerwechsel räumt den Cache; zukünftige Version sperrt Speichern. Dann implementieren.
-- [ ] Pflicht-Verifikation (`CLAUDE.md` §7) mit Exit-Codes: `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test`, `npm run verify`, `npm run build`; Schutzbereichs-Diff leer.
-- [ ] Datenbanknachweise, soweit lokal ein Supabase läuft: `supabase test db`, `node scripts/verifyMigrationUpgrade.mjs` (Upgrade aus v2.2.0 und Schemagleichheit), `node scripts/verifyBackupRestore.mjs` (die neue Tabelle wird mitgesichert und wiederhergestellt). Läuft lokal kein Supabase, im BUILD_LOG festhalten; dann gilt der CI-Job `e2e` (`supabase test db`) als Nachweis, und die beiden Skripte bleiben für Marc offen.
-- [ ] BUILD_LOG-Eintrag, Push, PR gegen `main`.
+- [x] pgTAP-Tests zuerst (Fälle 1–10), dann Migration.
+- [x] Tests zuerst für `defaultDashboard.ts` (Standard besteht die Validierung; zukünftige Version; unbekannte IDs bleiben erhalten), dann implementieren.
+- [x] Tests zuerst für das Repository mit gemocktem Supabase-Client (jede Fehlerart, keine Zeile, Erfolg), dann implementieren.
+- [x] Tests zuerst für den Hook: Erstanlage nicht beim bloßen Öffnen; Reload liefert gespeicherte Konfiguration; zwei konkurrierende Saves → zweiter `konflikt`, Entwurf bleibt; abgelaufene Sitzung; Benutzerwechsel räumt den Cache; zukünftige Version sperrt Speichern. Dann implementieren.
+- [x] Pflicht-Verifikation (`CLAUDE.md` §7) mit Exit-Codes: `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test`, `npm run verify`, `npm run build`; Schutzbereichs-Diff leer.
+- [x] Datenbanknachweise, soweit lokal ein Supabase läuft: `supabase test db`, `node scripts/verifyMigrationUpgrade.mjs` (Upgrade aus v2.2.0 und Schemagleichheit), `node scripts/verifyBackupRestore.mjs` (die neue Tabelle wird mitgesichert und wiederhergestellt). Läuft lokal kein Supabase, im BUILD_LOG festhalten; dann gilt der CI-Job `e2e` (`supabase test db`) als Nachweis, und die beiden Skripte bleiben für Marc offen.
+- [x] BUILD_LOG-Eintrag, Push, PR gegen `main`.
 
 ## Abnahme
 
