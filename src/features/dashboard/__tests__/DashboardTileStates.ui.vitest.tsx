@@ -174,4 +174,17 @@ describe('DashboardTile Zustände', () => {
     expect(reference).toHaveTextContent(`Pipeline gewählt: ${long}`);
     expect(reference.querySelector('p')?.className).toContain('[overflow-wrap:anywhere]');
   });
+
+  it('sagt veraltet und eingeschränkt gemeinsam an', () => {
+    show(
+      resolved({
+        state: 'veraltet',
+        quality: 'degradiert',
+        asOf: '2026-10-04T12:05:00Z',
+      }),
+    );
+    const live = screen.getByTestId('tile-live-status');
+    expect(live).toHaveTextContent('Wert veraltet. Stand 04.10.2026, 14:05.');
+    expect(live).toHaveTextContent('Datenqualität eingeschränkt.');
+  });
 });

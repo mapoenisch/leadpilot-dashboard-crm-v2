@@ -16,6 +16,7 @@ import {
 import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
 import {
+  formatAxis,
   formatDe,
   layoutBars,
   layoutHBars,
@@ -66,6 +67,8 @@ export function Depth3dBarChart({
   orientation = 'vertical',
 }: DepthChartProps) {
   const horizontal = orientation === 'horizontal';
+  // Dashboard-Kacheln (formatValue gesetzt): kompakte Achsenwerte; die Testkachel bleibt unverändert.
+  const axisLabel = formatValue ? formatAxis : formatDe;
   const limit = horizontal ? MAX_HORIZONTAL : MAX_VERTICAL;
   // Mehr als `limit` Kategorien: die größten nach dem dargestellten Wert, nicht nach Quellreihenfolge.
   const data = useMemo(
@@ -143,7 +146,7 @@ export function Depth3dBarChart({
                     fontSize="10"
                     fill={THEME.neutral}
                   >
-                    {formatDe(tick)}
+                    {axisLabel(tick)}
                   </text>
                 </g>
               );
@@ -166,7 +169,7 @@ export function Depth3dBarChart({
                   fontSize="10"
                   fill={THEME.neutral}
                 >
-                  {formatDe(tick)}
+                  {axisLabel(tick)}
                 </text>
               </g>
             );
@@ -204,13 +207,21 @@ export function Depth3dBarChart({
                           strokeWidth="1"
                         />
                         <polygon
-                          points={`${bar.x},${top} ${bar.x + bar.depth},${bar.y} ${right + bar.depth},${bar.y} ${right},${top}`}
+                          points={
+                            bar.negative
+                              ? `${bar.x},${top} ${bar.x - bar.depth},${bar.y} ${right - bar.depth},${bar.y} ${right},${top}`
+                              : `${bar.x},${top} ${bar.x + bar.depth},${bar.y} ${right + bar.depth},${bar.y} ${right},${top}`
+                          }
                           fill="#b3f9f4"
                           stroke="#7cefe6"
                           strokeWidth="1"
                         />
                         <polygon
-                          points={`${right},${top} ${right + bar.depth},${bar.y} ${right + bar.depth},${bar.y + frontThickness} ${right},${top + frontThickness}`}
+                          points={
+                            bar.negative
+                              ? `${bar.x},${top} ${bar.x - bar.depth},${bar.y} ${bar.x - bar.depth},${bar.y + frontThickness} ${bar.x},${top + frontThickness}`
+                              : `${right},${top} ${right + bar.depth},${bar.y} ${right + bar.depth},${bar.y + frontThickness} ${right},${top + frontThickness}`
+                          }
                           fill="#005e55"
                           stroke="#008a7d"
                           strokeWidth="0.8"

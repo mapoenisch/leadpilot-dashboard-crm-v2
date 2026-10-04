@@ -150,4 +150,29 @@ describe('Diagramm-Ablesezeile und Grenzen', () => {
     const header = within(screen.getByTestId('tile-table')).getByRole('rowheader', { name: long });
     expect(header.className).toContain('[overflow-wrap:anywhere]');
   });
+
+  it('kürzt Achsenwerte sehr großer Beträge kompakt', async () => {
+    renderChart('saeulen', [
+      { label: 'Lead', value: 10_000_000_000 },
+      { label: 'Angebot', value: 4_000_000_000 },
+    ]);
+    const columns = await screen.findByTestId('depth-bar-chart');
+    expect(visibleLabels(columns).some((text) => text.endsWith('Mrd.'))).toBe(true);
+  });
+
+  it('zeichnet die Tiefenflächen negativer Balken links der Nullachse', async () => {
+    renderChart('balken', [
+      { label: 'Verlust', value: -50 },
+      { label: 'Gewinn', value: 100 },
+    ]);
+    const bars = await screen.findByTestId('depth-hbar-chart');
+    const negative = within(bars).getAllByTestId('depth-bar')[0];
+    const rect = negative?.querySelector('rect');
+    const front = Number(rect?.getAttribute('x')) + Number(rect?.getAttribute('width'));
+    const xs = Array.from(negative?.querySelectorAll('polygon') ?? []).flatMap((polygon) =>
+      (polygon.getAttribute('points') ?? '').split(' ').map((pair) => Number(pair.split(',')[0])),
+    );
+    expect(xs.length).toBeGreaterThan(0);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(front + 0.001);
+  });
 });

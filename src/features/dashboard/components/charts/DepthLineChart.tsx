@@ -15,6 +15,7 @@ import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
 import {
   areaPath,
+  formatAxis,
   formatDe,
   linePath,
   linePoints,
@@ -99,7 +100,7 @@ export function DepthLineChart({
                   fontSize="10"
                   fill={THEME.neutral}
                 >
-                  {formatDe(tick)}
+                  {formatValue ? formatAxis(tick) : formatDe(tick)}
                 </text>
               </g>
             );

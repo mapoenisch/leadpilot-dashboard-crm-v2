@@ -122,15 +122,19 @@ export function DashboardTile({
   }, [warned, data.state]);
   const liveText = BLOCKING_STATES.has(data.state)
     ? `${data.state === 'fehler' ? 'Fehler: ' : ''}${blockingText(data)}`
-    : data.state === 'veraltet'
-      ? `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.`
-      : resolved?.quality === 'degradiert'
-        ? 'Datenqualität eingeschränkt.'
-        : isDerivedEmpty(tile, entry, data, title)
-          ? NO_DATA
-          : recovered
-            ? 'Wert wieder aktuell.'
-            : '';
+    : warned
+      ? // Beide Warnungen zusammen (veraltet und eingeschränkt) in einer Meldung.
+        [
+          data.state === 'veraltet' ? `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.` : '',
+          resolved?.quality === 'degradiert' ? 'Datenqualität eingeschränkt.' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+      : isDerivedEmpty(tile, entry, data, title)
+        ? NO_DATA
+        : recovered
+          ? 'Wert wieder aktuell.'
+          : '';
 
   return (
     <Card

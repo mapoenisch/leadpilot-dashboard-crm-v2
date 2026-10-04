@@ -4,6 +4,7 @@ import {
   areaPath,
   barDepth,
   donutSegments,
+  formatAxis,
   layoutBars,
   layoutHBars,
   linePath,
@@ -324,5 +325,14 @@ describe('Anteilsfarben', () => {
     const many = shareColors([70, 60, 50, 40, 30, 20, 10]);
     expect(many.slice(4)).toEqual([SERIES_COLORS[4], SERIES_COLORS[4], SERIES_COLORS[4]]);
     expect(many).not.toContain(undefined);
+  });
+});
+
+describe('formatAxis', () => {
+  it('kürzt große Beträge kompakt und lässt kleine unverändert', () => {
+    expect(formatAxis(950)).toBe('950');
+    expect(formatAxis(2_500_000)).toBe('2,5 Mio.');
+    expect(formatAxis(10_000_000_000)).toBe('10 Mrd.');
+    expect(formatAxis(-3_000_000)).toBe('-3 Mio.');
   });
 });

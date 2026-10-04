@@ -316,6 +316,17 @@ export function formatDe(value: number): string {
   return numberFormat.format(value);
 }
 
+/**
+ * Achsenbeschriftung kompakt („10 Mrd.“, „2,5 Mio.“), damit sehr große Beträge in den festen
+ * Rand passen. Exakte Werte stehen in Ablesezeile, Kurzfassung und Tabelle.
+ */
+export function formatAxis(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1e9) return `${numberFormat.format(value / 1e9)} Mrd.`;
+  if (abs >= 1e6) return `${numberFormat.format(value / 1e6)} Mio.`;
+  return numberFormat.format(value);
+}
+
 export type SummaryKind = 'ranking' | 'share' | 'trend';
 
 /**

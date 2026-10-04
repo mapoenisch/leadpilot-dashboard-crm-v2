@@ -2,7 +2,7 @@
 
 Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Builds (`VITE_DASHBOARD_PREVIEW=true`, `vite preview`): Vorher = Basis `92180d3` (nur Testkachel), Nachher = dieser Stand (Testkachel und Kachelgalerie). Feste Testdaten, `prefers-reduced-motion: reduce`. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-04T20:33:41.686Z
+- Aufnahme: 2026-10-04T20:49:55.564Z
 - Vorher/Nachher-Paare verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px (auf 375 px scrollt nur das Diagramm innerhalb der Kachel, Designfreigabe)
 - axe-Verstöße serious/critical in der Galerie: 0
@@ -16,9 +16,9 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 
 | Breite | Vorher | Nachher | Überlauf nachher |
 |---:|---|---|---:|
-| 1440 | `3df09d8680ac4ee5` | `a3fc85218afc4b7b` | 0 px |
-| 768 | `dc7ff51cb7b59fe2` | `a2f5087847f5431f` | 0 px |
-| 375 | `c7d7daa76780cbe9` | `87e42dbbb94aeed9` | 0 px |
+| 1440 | `3df09d8680ac4ee5` | `8b12e822deb1414c` | 0 px |
+| 768 | `dc7ff51cb7b59fe2` | `ec98b0369289f146` | 0 px |
+| 375 | `ad429e1a37a88aed` | `5613e7091c41eff3` | 0 px |
 
 ## Fokus je Diagrammart (Galerie)
 
@@ -30,7 +30,7 @@ Erzeugt mit `scripts/captureAuftrag073Screenshots.mjs` gegen zwei Vorschau-Build
 | 1440 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `84143547ff0cfd99` |
 | 1440 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `c429c16d11d41bbd` |
 | 768 | depth-bar-chart | Q1 · 42.000 EUR · Testzeitraum | `8c732e860107b9e8` |
-| 768 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `c0c4fb8c3b40cfd5` |
+| 768 | depth-hbar-chart | Lead · 420.000 EUR · Aktueller Stand der importierten CRM-Deals; ein Abschlussdatum (closeDate) existiert, seine fachliche Bedeutung für Zeitfilter ist nicht belegt. | `1c24aed5618f3482` |
 | 768 | depth-donut-chart | Starter · 18.400 EUR · 29,7 % Anteil · Stand 31.12.2025 | `b60c845661899865` |
 | 768 | depth-line-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `02431b4c8bf46859` |
 | 768 | depth-area-chart | Q1 2024 · 410.000 EUR · Quartalsende Q1 2024 bis Q4 2025 | `50bb7cd5e361202a` |
@@ -79,8 +79,8 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 1440 | 11 | balken | mittel | bereit | `75e3e713c9bb762b` |
 | 1440 | 12 | zahl | mittel | bereit | `ed61a9741158fc4a` |
 | 1440 | 13 | saeulen | mittel | bereit | `b76dc9aa92051fe5` |
-| 1440 | 14 | balken | mittel | bereit | `97bc5aafbcfc797f` |
-| 1440 | 15 | saeulen | mittel | bereit | `44ad35ffac626f9e` |
+| 1440 | 14 | balken | mittel | bereit | `ed3916f7621af729` |
+| 1440 | 15 | saeulen | mittel | bereit | `8885746e16df95cc` |
 | 1440 | 16 | ring | mittel | bereit | `b2dac781a7f78d0c` |
 | 1440 | 17 | linie | mittel | bereit | `aec644b91d9b5c43` |
 | 1440 | 18 | saeulen | mittel | laden | `4927b275d49e2cfc` |
@@ -104,8 +104,8 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 768 | 11 | balken | mittel | bereit | `b8f2908f48a3538e` |
 | 768 | 12 | zahl | mittel | bereit | `38aa8aa8acad6119` |
 | 768 | 13 | saeulen | mittel | bereit | `bd43904bd282485b` |
-| 768 | 14 | balken | mittel | bereit | `46ce1f42dd7c4baa` |
-| 768 | 15 | saeulen | mittel | bereit | `a29ce5580757b4b2` |
+| 768 | 14 | balken | mittel | bereit | `2eccffe8b8389d05` |
+| 768 | 15 | saeulen | mittel | bereit | `2c7fd5094850355e` |
 | 768 | 16 | ring | mittel | bereit | `c7af038a255be752` |
 | 768 | 17 | linie | mittel | bereit | `614f5c6cb2962628` |
 | 768 | 18 | saeulen | mittel | laden | `d30627d209e8adf4` |
@@ -129,8 +129,8 @@ Die Ring-Kacheln Nr. 7 und 8 sind absichtlich identisch (getrennte SVG-IDs); gle
 | 375 | 11 | balken | mittel | bereit | `9075283930745188` |
 | 375 | 12 | zahl | mittel | bereit | `f954679dd5f81c83` |
 | 375 | 13 | saeulen | mittel | bereit | `4cbb73548310197c` |
-| 375 | 14 | balken | mittel | bereit | `89b93e7c758cf792` |
-| 375 | 15 | saeulen | mittel | bereit | `f98fb7a7621ba565` |
+| 375 | 14 | balken | mittel | bereit | `1e8124ce66261c42` |
+| 375 | 15 | saeulen | mittel | bereit | `99dd9de63fc12b79` |
 | 375 | 16 | ring | mittel | bereit | `89bf938958c26e18` |
 | 375 | 17 | linie | mittel | bereit | `7f3bc59fe5458bce` |
 | 375 | 18 | saeulen | mittel | laden | `53df323fea5bf1f7` |

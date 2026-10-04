@@ -15023,3 +15023,17 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 9 (Head e2f8977, Review 5408098734):**
+
+| Befund | Behebung |
+|---|---|
+| Review 5408098734, Depth3dBarChart L162–169 (P2) Achsenwerte sehr großer Beträge ragen aus dem Rand | `formatAxis` kürzt Achsenwerte kompakt („10 Mrd.“, „2,5 Mio.“); nur bei Dashboard-Kacheln (`formatValue` gesetzt), auch in der Linienansicht. Die Testkachel bleibt unverändert; exakte Werte stehen in Ablesezeile, Kurzfassung und Tabelle. Unit- und UI-Test. |
+| Review 5408098734, Depth3dBarChart L206–213 (P2) Tiefenfläche negativer Balken ragt über die Nullachse | Bei negativen Balken sind Ober- und Seitenfläche nach links gespiegelt (Tiefe am linken Balkenende); keine Fläche rechts der Nullachse. UI-Test prüft die x-Koordinaten. |
+| 4179238248 (P2) kombinierte Live-Warnungen nur zur Hälfte angesagt | Die Live-Region nennt bei `veraltet` plus `degradiert` beide Meldungen in einem Text. UI-Test. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1999 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 56 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
