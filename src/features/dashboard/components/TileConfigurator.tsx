@@ -163,7 +163,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
       setChoice(null);
     }
     // Nur beim Öffnen oder Wechsel der Kachel neu belegen.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- bewusst nur beim Öffnen oder Kachelwechsel
   }, [open, tile?.tileId]);
 
   useEffect(() => {

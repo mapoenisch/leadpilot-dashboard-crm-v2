@@ -69,7 +69,7 @@ export function DashboardGrid(props: DashboardGridProps) {
         : (button(focusRequest.action) ?? button(OPPOSITE[focusRequest.action]) ?? item);
     target.focus();
     // Nur eine neue Anforderung (id) löst Fokus aus, nicht jede Neudarstellung.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- bewusst nur die Anforderungs-ID als Auslöser
   }, [focusRequest?.id]);
 
   if (tiles.length === 0) {
