@@ -68,9 +68,8 @@ export function DashboardGrid(props: DashboardGridProps) {
         ? item
         : (button(focusRequest.action) ?? button(OPPOSITE[focusRequest.action]) ?? item);
     target.focus();
-    // Nur eine neue Anforderung (id) löst Fokus aus, nicht jede Neudarstellung.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- bewusst nur die Anforderungs-ID als Auslöser
-  }, [focusRequest?.id]);
+    // Jede Anforderung ist ein neues Objekt: nur sie löst den Fokus aus, nicht jede Neudarstellung.
+  }, [focusRequest]);
 
   if (tiles.length === 0) {
     return (
@@ -181,7 +180,8 @@ export function DashboardGrid(props: DashboardGridProps) {
                 </Button>
                 <Button
                   size="sm"
-                  variant="danger"
+                  variant="secondary"
+                  className="border-error text-error"
                   data-action="entfernen"
                   aria-label={label('Entfernen')}
                   disabled={locked}

@@ -1,6 +1,6 @@
 // Auftrag 073 (Dashboard Teilauftrag 4): Kachelrahmen, Zustände, Zeitbezug, Geltungsbereich, Details.
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardTile } from '../components/DashboardTile';
 import { LEGEND_RESERVE_CLASS } from '../components/charts/ChartReadout';
@@ -363,11 +363,25 @@ describe('DashboardTile', () => {
 describe('Kachelgalerie (Vorschau)', () => {
   it('rendert jede Galeriekachel mit „Details“', () => {
     render(<DashboardPreviewPage search="" />);
-    expect(screen.getAllByTestId('dashboard-tile')).toHaveLength(GALLERY_TILES.length);
-    expect(screen.getAllByRole('button', { name: /^Details zu / })).toHaveLength(
+    const gallery = within(screen.getByRole('region', { name: 'Kachelgalerie' }));
+    expect(gallery.getAllByTestId('dashboard-tile')).toHaveLength(GALLERY_TILES.length);
+    expect(gallery.getAllByRole('button', { name: /^Details zu / })).toHaveLength(
       GALLERY_TILES.length,
     );
     expect(screen.getByTestId('dashboard-test-tile')).toBeInTheDocument();
+  });
+
+  it('zeigt den Arbeitsbereich unter der Galerie; ?bereich=editor nur ihn; ?ansicht= nicht', () => {
+    const { unmount } = render(<DashboardPreviewPage search="" />);
+    expect(screen.getByTestId('dashboard-workspace')).toBeInTheDocument();
+    unmount();
+    const editor = render(<DashboardPreviewPage search="?bereich=editor" />);
+    expect(screen.getByTestId('dashboard-workspace')).toBeInTheDocument();
+    expect(screen.queryByTestId('dashboard-test-tile')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Kachelgalerie' })).toBeNull();
+    editor.unmount();
+    render(<DashboardPreviewPage search="?ansicht=zahl" />);
+    expect(screen.queryByTestId('dashboard-workspace')).toBeNull();
   });
 
   it('blendet mit ?ansicht= die Testkachel aus und filtert die Galerie', () => {

@@ -30,16 +30,6 @@ export function DashboardEditorPreview() {
   const storedRef = useRef(stored);
   storedRef.current = stored;
 
-  const state: PreferencesState = stored
-    ? {
-        kind: 'gespeichert',
-        config: stored.config,
-        revision: stored.revision,
-        unavailable: [],
-        canSave: true,
-      }
-    : { kind: 'standard', config: DEFAULT_DASHBOARD_CONFIG, revision: 0, canSave: true };
-
   const save = useCallback(
     async (config: DashboardConfig): Promise<SaveResult> => {
       setSaving(true);
@@ -73,12 +63,18 @@ export function DashboardEditorPreview() {
     if (server) setStored(server);
   }, [server]);
 
-  const preferences = useMemo(
-    () => ({ status: 'bereit' as const, state, isSaving: saving, save, reloadServerVersion }),
-    // `state` wird aus `stored` abgeleitet.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- bewusst über `stored` gesteuert
-    [stored, saving, save, reloadServerVersion],
-  );
+  const preferences = useMemo(() => {
+    const state: PreferencesState = stored
+      ? {
+          kind: 'gespeichert',
+          config: stored.config,
+          revision: stored.revision,
+          unavailable: [],
+          canSave: true,
+        }
+      : { kind: 'standard', config: DEFAULT_DASHBOARD_CONFIG, revision: 0, canSave: true };
+    return { status: 'bereit' as const, state, isSaving: saving, save, reloadServerVersion };
+  }, [stored, saving, save, reloadServerVersion]);
   const total = (stored?.config ?? DEFAULT_DASHBOARD_CONFIG).tiles.length;
 
   return (

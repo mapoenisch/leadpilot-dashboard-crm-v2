@@ -100,11 +100,23 @@ export function EditorToolbar(props: EditorToolbarProps) {
               >
                 Aktuelle Serveransicht laden
               </Button>
-              <Button size="sm" variant="secondary" disabled={locked} onClick={props.onTakeServer}>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="max-w-full shrink whitespace-normal text-left"
+                disabled={locked}
+                onClick={props.onTakeServer}
+              >
                 Entwurf verwerfen und Serverfassung übernehmen
               </Button>
               {serverLoaded ? (
-                <Button size="sm" variant="danger" disabled={locked} onClick={props.onSave}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="max-w-full shrink whitespace-normal border-error text-left text-error"
+                  disabled={locked}
+                  onClick={props.onSave}
+                >
                   Trotzdem speichern (ersetzt die neuere Fassung)
                 </Button>
               ) : null}

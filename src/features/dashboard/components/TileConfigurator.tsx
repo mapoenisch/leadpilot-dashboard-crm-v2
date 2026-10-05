@@ -32,6 +32,7 @@ import {
   type NewTileInput,
 } from '../hooks/dashboardEditorReducer';
 import { DashboardTile } from './DashboardTile';
+import { useEscapeToClose } from './UnsavedChangesDialog';
 import type { TileDataHook } from './LazyDashboardTile';
 
 const MODE_LABEL: Record<TileFilterMode, string> = {
@@ -137,20 +138,20 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
   const { open, tile, onClose } = props;
   const uid = useId();
   const editing = tile !== undefined;
-  const fixedEntry = tile ? activeEntryOf(tile) : undefined;
   const entries = useMemo(() => getActiveEntries(), []);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<DashboardCategory | ''>('');
   const [choice, setChoice] = useState<Choice | null>(null);
   const [error, setError] = useState('');
   const previewRef = useRef<HTMLDivElement | null>(null);
+  useEscapeToClose(open, onClose);
 
   useEffect(() => {
     if (!open) return;
     setError('');
     setQuery('');
     setCategory('');
-    if (tile && fixedEntry) {
+    if (tile && activeEntryOf(tile)) {
       setChoice({
         catalogId: tile.catalogId,
         view: tile.view,
@@ -163,8 +164,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
       setChoice(null);
     }
     // Nur beim Öffnen oder Wechsel der Kachel neu belegen.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- bewusst nur beim Öffnen oder Kachelwechsel
-  }, [open, tile?.tileId]);
+  }, [open, tile]);
 
   useEffect(() => {
     previewRef.current?.setAttribute('inert', '');

@@ -229,6 +229,19 @@ describe('DashboardWorkspace – Konfigurationsfenster und Verlassen', () => {
     expect(loader).toHaveBeenCalledTimes(2);
   });
 
+  it('schließt das Konfigurationsfenster mit Escape und gibt den Fokus zurück', async () => {
+    setup(prefs());
+    startEditing();
+    const trigger = screen.getByRole('button', { name: 'Kachel hinzufügen' });
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    // Aus dem Dialog heraus: `Modal` stoppt keydown dort, Escape muss trotzdem schließen.
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Dialog schließen' }), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(trigger).toHaveFocus();
+  });
+
   const CHART: DashboardTileConfig = {
     tileId: 'chart',
     catalogId: 'baseline.mrr_paketmix',
