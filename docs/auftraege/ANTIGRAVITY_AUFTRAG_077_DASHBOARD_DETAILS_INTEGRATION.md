@@ -2,7 +2,7 @@
 
 **Stand:** 05.10.2026
 
-**Basis:** Branch `claude/inspiring-pascal-hvjcog` `cf964a1` (PR #60, Auftrag 076, noch nicht gemergt). Die Umsetzung beginnt erst, wenn PR #60 in `main` gemergt ist. Dann wird dieser Branch auf `main` neu aufgesetzt, und die Baseline ist der Merge-Commit von PR #60. Plan: `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, Teilauftrag 7, §3 „Normalansicht“, §5 „Lazy Loading und Ladeverhalten“. Datenverträge: Aufträge 070 (Katalog), 071 (Datenauflösung), 072 (Speicherung), 073 (Kachelrahmen), 074 (Raster, Editor), 076 (Kombinationen).
+**Basis:** `main` `7a60dd8` (Merge von PR #60, Auftrag 076, am 05.10.2026). Baseline für den Schutzbereichs-Diff ist `7a60dd8`. Plan: `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, Teilauftrag 7, §3 „Normalansicht“, §5 „Lazy Loading und Ladeverhalten“. Datenverträge: Aufträge 070 (Katalog), 071 (Datenauflösung), 072 (Speicherung), 073 (Kachelrahmen), 074 (Raster, Editor), 076 (Kombinationen).
 
 **Voraussetzung:** Teilaufträge 5 und 6 sind gemergt (Plan: „integrierte Teilaufträge 5/6“).
 
@@ -110,7 +110,7 @@ Darunter führt „Zur Fachübersicht“ zur Fachseite aus dem Katalog. Filter d
 ## Aufgaben (Tests zuerst)
 
 - [x] Marcs Entscheidungen E1–E3 in diesem Auftrag festhalten (Datum, Wortlaut).
-- [ ] Branch nach dem Merge von PR #60 auf `main` neu aufsetzen und die Baseline-Commit-ID hier eintragen.
+- [x] Branch nach dem Merge von PR #60 auf `main` neu aufsetzen und die Baseline-Commit-ID hier eintragen.
 - [ ] Tests zuerst für Schalter und Einstieg: Schalter aus → alte Seite, kein Import der neuen Seite, Detail-URL ergibt 404. Schalter an → neue Seite, Detailroute aktiv, `routeForPathname` liefert „Kachel-Details“.
 - [ ] Tests zuerst für die Detailseite, jeweils mit Daten aus `useDashboardData`:
   - KPI: Titel, Definition, Wert, Zeitraum, Quelle, Aktualität, Tabelle
