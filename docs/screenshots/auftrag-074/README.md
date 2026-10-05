@@ -2,7 +2,7 @@
 
 Erzeugt mit `scripts/captureAuftrag074Screenshots.mjs` gegen zwei Vorschau-Builds (`VITE_DASHBOARD_PREVIEW=true`, `vite preview`): Vorher = Basis `6484368` (Testkachel und Galerie), Nachher = dieser Stand (`?bereich=editor`, nur Arbeitsbereich). Testdaten, Speicher-Ersatz im Arbeitsspeicher, `prefers-reduced-motion: reduce`. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-05T16:10:46.335Z
+- Aufnahme: 2026-10-05T16:42:26.118Z
 - Vorher/Nachher-Paare verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px
 - axe-Verstöße serious/critical: 0
