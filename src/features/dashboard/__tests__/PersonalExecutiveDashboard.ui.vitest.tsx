@@ -123,3 +123,41 @@ describe('Persönliche Ansicht: Bearbeitungsmodus (Entscheidung E3)', () => {
     link.remove();
   });
 });
+
+describe('Persönliche Ansicht: Zurück-Taste des Browsers im Editor', () => {
+  const editAndChange = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Dashboard bearbeiten' }));
+    const item = screen.getAllByRole('listitem').find((li) => li.textContent?.includes('Umsatz'))!;
+    fireEvent.click(within(item).getByRole('button', { name: /Entfernen/ }));
+  };
+
+  it('bleibt bei offenen Änderungen im Editor und fragt nach', async () => {
+    renderRoutes([{ pathname: '/finance/p-and-l' }, { pathname: '/dashboard' }]);
+    editAndChange();
+    await waitFor(() => expect(lastSeen().state).toMatchObject({ editorGuard: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Browser zurück' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(lastSeen().pathname).toBe('/dashboard');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Hier bleiben' }));
+    await waitFor(() => expect(lastSeen().state).toMatchObject({ editorGuard: true }));
+    expect(screen.getByRole('button', { name: 'Speichern' })).toBeInTheDocument();
+  });
+
+  it('geht nach „Verwerfen“ zur tatsächlich vorherigen Seite', async () => {
+    renderRoutes([{ pathname: '/finance/p-and-l' }, { pathname: '/dashboard' }]);
+    editAndChange();
+    await waitFor(() => expect(lastSeen().state).toMatchObject({ editorGuard: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Browser zurück' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /Verwerfen/ }));
+    await waitFor(() => expect(lastSeen().pathname).toBe('/finance/p-and-l'));
+  });
+
+  it('legt ohne Änderungen keinen Schutzeintrag an', () => {
+    renderRoutes([{ pathname: '/finance/p-and-l' }, { pathname: '/dashboard' }]);
+    fireEvent.click(screen.getByRole('button', { name: 'Dashboard bearbeiten' }));
+    expect(lastSeen().state).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Browser zurück' }));
+    expect(lastSeen().pathname).toBe('/finance/p-and-l');
+  });
+});

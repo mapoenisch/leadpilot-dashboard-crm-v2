@@ -78,12 +78,16 @@ function BackButton() {
   );
 }
 
-export function renderRoutes(initial: { pathname: string; state?: unknown }) {
+type Entry = { pathname: string; state?: unknown };
+
+/** Ein Eintrag oder ein Verlauf (der letzte ist aktiv, z. B. Fachseite → Dashboard). */
+export function renderRoutes(initial: Entry | Entry[]) {
+  const entries = Array.isArray(initial) ? initial : [initial];
   seen.length = 0;
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initial]}>
+      <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
         <LocationProbe />
         <BackButton />
         <Routes>

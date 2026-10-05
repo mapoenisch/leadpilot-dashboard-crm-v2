@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  E2E_DASHBOARD_V2,
   E2E_PARALLEL,
   E2E_SEQUENTIAL,
   GATES,
@@ -137,7 +138,7 @@ describe('runV23Acceptance', () => {
       .filter((name) => /\.(spec|acceptance)\.ts$/.test(name))
       .map((name) => `e2e/${name}`)
       .sort();
-    const orchestrated = [...E2E_PARALLEL, ...E2E_SEQUENTIAL].sort();
+    const orchestrated = [...E2E_PARALLEL, ...E2E_SEQUENTIAL, ...E2E_DASHBOARD_V2].sort();
     expect(orchestrated).toEqual(specs);
     const ci = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf-8');
     const ciRuns = ci

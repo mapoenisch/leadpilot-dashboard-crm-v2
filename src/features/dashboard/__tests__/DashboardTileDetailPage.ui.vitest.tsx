@@ -165,7 +165,7 @@ describe('Detailseite: Sonderfälle', () => {
     expect(screen.getByRole('heading', { name: 'Kachel nicht gefunden' })).toHaveFocus();
     fireEvent.click(screen.getByRole('button', { name: 'Zurück zum Dashboard' }));
     expect(lastSeen().pathname).toBe('/dashboard');
-    expect(readDashboardNavState(lastSeen().state, IDENTITY)?.returnFocus).toBeNull();
+    expect(readDashboardNavState(lastSeen().state, IDENTITY)?.returnFocus).toBe('gibt-es-nicht');
   });
 
   it('nennt eine nicht verfügbare Kachel ohne technische ID und ohne toten Link', () => {

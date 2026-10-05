@@ -15380,3 +15380,67 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-076/README.md`, Skript Exit 0: Vorher (Basis `4088ee3`) und Nachher je Breite 1440/768/375 verschieden; 0 px Seitenüberlauf; axe serious/critical 0 in Ansicht (24 Kacheln), Bearbeiten, gesperrter Partner, Konfigurator mit Kombination, nicht berechenbar, Ansicht nach Speichern; Tastaturablauf (Kennzahl, Partner, Verwerfen, Hinzufügen, Escape, Speichern) auf allen Breiten; Höhe aller 24 Kacheln Laden → bereit/nicht berechenbar ohne Abweichung, Raster gleich hoch; Lazy: 10/6/2 beim Start, 24 nach dem Scrollen.
 
 **Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR mit Auftragstext und Code gegen `main`, CI, Codex-Prüfung, Merge durch Marc.
+
+## Auftrag 077 – Umsetzung Dashboard Teilauftrag 7 (Details und Integration unter /dashboard), Builder Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Umsetzung von Teilauftrag 7 laut Plan und `docs/auftraege/ANTIGRAVITY_AUFTRAG_077_DASHBOARD_DETAILS_INTEGRATION.md`, Basis `main` `7a60dd8` (Merge von PR #60).
+- Marcs Entscheidungen vom 05.10.2026:
+  - E1: Build-Schalter `VITE_EXECUTIVE_DASHBOARD_V2`, Standard aus
+  - E2: kein Link zur alten Ansicht
+  - E3: „Details“ im Editor gesperrt mit Hinweis
+- Auftragstext und Code liegen in einem PR (#61), wie bei 076 (Marc: „ja wie bei 076“).
+- Die sechs Codex-Befunde zum Auftragstext (P1 Reload-Zustand, P2 Präfix, P1 Rückkehrzustand im Eintrag der Ansicht, P1 Lazy-Retry, P1 E2E nicht in CI, P1 Leave-Guard ohne Router) sind eingearbeitet. Die Tabelle steht im Auftrag.
+
+**Umsetzung:**
+- **Schalter und Routen:** Schalter in `model/dashboardRollout.ts` (einzige Lesestelle). Loader-Auswahl `pages/executiveDashboardEntry.ts` (alte und neue Ansicht je eigener Chunk). Detailroute `/dashboard/tiles/:tileId` nur mit Schalter (`App.tsx`). Seitenmetadaten „Kachel-Details“ mit ID `s-exec` nur für genau ein Segment (`routes.tsx`). `Sidebar.tsx` und die alte `ExecutiveDashboardPage` sind unverändert.
+- **Detailseite:** Kopf, Kennzahlen (Wert, Zeitraum, Quelle mit Geltungsbereich, Aktualität, Zustand), Diagramm, Tabelle, Kombination mit Formel, Operanden und Ergebnis, Übersichtsdetails, Fachübersicht aus dem Katalog oder Grund statt Link, unbekannte/gelöschte Kachel, Lade- und Fehlerzustände. Ersatzseite bei Nachladefehler mit echtem Reload (`withChunkFallback`).
+- **Navigation:** Sitzungsfilter und Fokusziel reisen in `location.state` mit. Der Eintrag der Ansicht wird vor dem Öffnen ersetzt (Browser-Zurück). Ladezeichen je Seitenaufruf und Identität verwerfen den Zustand nach Reload oder Benutzerwechsel. Die Fokus-Rückgabe geht auf „Details“; ist die Kachel weg, auf die Überschrift, jeweils mit Ansage.
+- **Editor-Schutz:** „Details“ `aria-disabled` mit Hinweis (E3). Linkschutz `useInAppLinkGuard` (Erfassungsphase vor React Router). Schutz der Zurück-Taste `useBrowserBackGuard` (Schutzeintrag mit gleichem Pfad, Rückfrage, „Verwerfen/Speichern und weiter“ zur tatsächlich vorherigen Seite).
+- **Im Gate gefunden und behoben:** Die Filterleiste erschien erst nach dem Laden und schob das Raster nach unten (Layoutverschiebung 0,124 auf 768 px und 0,187 auf 375 px). Sie steht jetzt gesperrt im Ladeplatz. Danach liegt die Layoutverschiebung der Ansicht bei 0 und das Maximum aller Zustände bei 0,014.
+- **CI:** Der E2E-Job baut zusätzlich mit Schalter, führt `e2e/personal-dashboard.spec.ts` aus und stellt danach den regulären Build für Lighthouse wieder her. Der Orchestrator `runV23Acceptance.mjs` führt dieselbe Gruppe aus.
+
+**Geänderte Dateien:** siehe Tabelle „Ziel-Dateien (gebaut)“ im Auftrag. Abweichungen vom Entwurf sind dort ebenfalls nachgetragen:
+- Statt einer Einstiegskomponente gibt es einen Loader.
+- Neu sind `DetailChunkError`, `useInAppLinkGuard`, `useBrowserBackGuard`, `vite-env.d.ts`, CI und Orchestrator.
+- Die Workspace-Props heißen `initialSession` und `onReturnFocus`.
+- Zwei bestehende Workspace-Tests prüfen den neuen Vorschau-Hinweistext.
+
+**Funktionale Prüfungen:**
+- **Unit- und UI-Tests:**
+  - Schalter nur bei genau `true`; Loader-Wahl; Pfadhelfer mit Kodierung und ohne tiefere Pfade; Metadaten mit und ohne Schalter.
+  - Kontext: Reload, Benutzerwechsel und kaputter Zustand werden verworfen.
+  - Linkschutz: interne, externe, `_blank`, Download, Zusatztasten.
+  - Detailseite:
+    - Kennzahl mit allen Angaben und Fokus.
+    - Fachübersicht navigiert.
+    - Kombination mit Formel, zwei Operanden und gleichem Wert wie die Kachel.
+    - Nicht berechenbar mit Grund und ohne Wert.
+    - Übersicht ohne Definition.
+    - Unbekannte und nicht verfügbare Kachel ohne technische ID.
+    - Laden, keine Sitzung, Fehler.
+    - Kontext beim Zurück, Nachladefehler.
+  - Ansicht:
+    - Details öffnen; Eintrag der Ansicht ersetzt.
+    - Fokus-Rückgabe bei „Zurück“ und Browser-Zurück; fehlende Kachel mit Überschrift und Ansage; fremder Zustand ignoriert.
+    - Editor: Sperre mit Beschreibung, Linkschutz mit Rückfrage.
+    - Zurück-Taste: Rückfrage, „Hier bleiben“ und „Verwerfen und weiter“; ohne Änderungen kein Schutzeintrag.
+- **E2E** `e2e/personal-dashboard.spec.ts` gegen einen lokalen Build mit Schalter und lokales Supabase (Testbenutzer `admin-a@e2e.local`): 6 Abläufe × 3 Breiten = 18 grün, dreimal mit `--repeat-each=3` = 162 von 162 grün. Ein früher wackelnder Lauf der Zurück-Taste ist behoben: Der Test wartet jetzt auf das gerenderte `data-back-guard`. Ein Mensch drückt nie innerhalb einer Renderzeit nach der Änderung.
+
+**Schutzbereichs-Prüfung:** `git diff 7a60dd8 -- src/simulation src/types src/context src/services/data src/features/resources` ist leer. Keine Migration, keine Änderung an `supabase/` und an `Modal.tsx`.
+
+**Automatisierte Verifikation (Exit-Codes):**
+- `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0
+- `npm test` 0 (312 Dateien, 2208 Tests), `npm run verify` 0, `npm run build` 0
+- `npm run verify:quality-budget` 0, `npx size-limit` 0 (Startbundle 175,88 kB gzip, größter Chunk 86,16 kB)
+- Startbundle gegenüber der Baseline: 171,40 → 172,15 KB gzip (+0,75 KB, also unter 1 KB). Mit und ohne Schalter ist es gleich groß.
+- `wc -l`: größte geänderte Dateien `DashboardTile.tsx` 385, `DashboardWorkspace.tsx` 378, `routePages.tsx` 356. Alle Code-, Test- und Skriptdateien haben unter 400 Zeilen.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-077/README.md`. Das Skript `scripts/captureAuftrag077Screenshots.mjs` endete mit Exit 0, gegen drei Builds mit lokalem Supabase (Schalter an, Schalter aus, Baseline `7a60dd8`):
+- Vorher/Nachher für `/dashboard` und die Detailseite auf 1440/768/375 sind verschieden.
+- 0 px Seitenüberlauf; axe serious/critical 0 in Ansicht (24 Kacheln), Bearbeiten (24 gesperrte „Details“) und Details zu Kennzahl, Diagramm, Kombination, CRM, Übersicht und unbekannter Kachel.
+- Größte Layoutverschiebung 0,014.
+- Schalter aus: dieselben Überschriften wie vorher, keine persönliche Ansicht, Detailroute 404.
+- Tastatur: Fokus auf der Überschrift, Rückkehr auf „Details“ der Ausgangskachel.
+- Die Testkonfiguration des Benutzers wird am Ende zurückgeschrieben.
+
+**Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen sind CI auf PR #61, die Codex-Prüfung des Codes und der Merge durch Marc. Der Schalter bleibt bis zur Gesamtabnahme (Teilauftrag 8) aus.

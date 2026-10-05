@@ -83,7 +83,9 @@ export function DashboardTileDetailPage() {
   } else if (!config) {
     body = <DetailStatus kind="laden" />;
   } else if (!tile) {
-    body = <DetailMissingTile onBack={() => nav.backToDashboard(null, session)} />;
+    // Die gesuchte ID reist als Fokusziel mit: die Ansicht findet sie nicht und fokussiert ihre
+    // Überschrift samt Ansage (Lehre 2 im Auftrag).
+    body = <DetailMissingTile onBack={() => nav.backToDashboard(tileId, session)} />;
   } else {
     body = (
       <ResolvedDetail

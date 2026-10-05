@@ -26,6 +26,7 @@ import type { TileDataHook } from './LazyDashboardTile';
 import type { TileConfiguratorProps } from './TileConfigurator';
 import { UnsavedChangesDialog, useEscapeToClose } from './UnsavedChangesDialog';
 import { useInAppLinkGuard } from '../hooks/useInAppLinkGuard';
+import { noBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import type { SessionFilters } from '../hooks/useDashboardNavigation';
 
 export interface WorkspacePreferences extends EditorPreferences {
@@ -48,6 +49,8 @@ export interface DashboardWorkspaceProps {
   onReturnFocus?: (found: boolean) => void;
   /** Auftrag 077: interne Navigation; mit offenen Änderungen erst nach Rückfrage. */
   navigate?: (to: string) => void;
+  /** Auftrag 077: Schutz der Zurück-Taste (Hook der Seite); ohne Router wirkungslos. */
+  useBackGuard?: (dirty: boolean, requestLeave: (proceed: () => void) => void) => boolean;
   /** Seite neu laden; Standard `window.location.reload()`. */
   onReload?: () => void;
   onTileActivated?: (tileId: string) => void;
@@ -175,6 +178,9 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   useInAppLinkGuard(Boolean(navigate) && editor.dirty, (to) =>
     editor.requestLeave(() => navigate?.(to)),
   );
+  // Fester Hook je Arbeitsbereich: die Seite reicht ihn einmal herein (wie `useData`).
+  const useBackGuard = props.useBackGuard ?? noBrowserBackGuard;
+  const backGuarded = useBackGuard(editor.dirty, editor.requestLeave);
 
   const move = (tileId: string, direction: 'hoch' | 'runter') => {
     editor.moveTile(tileId, direction);
@@ -239,7 +245,12 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   }
 
   return (
-    <div data-testid="dashboard-workspace" aria-busy={!ready} className="flex flex-col gap-4">
+    <div
+      data-testid="dashboard-workspace"
+      data-back-guard={backGuarded || undefined}
+      aria-busy={!ready}
+      className="flex flex-col gap-4"
+    >
       <EditorToolbar
         editing={editing}
         canStart={editor.canStart}
@@ -284,18 +295,17 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           </p>
         ) : null}
       </div>
-      {ready ? (
+      {/* Auftrag 077: Filterleiste schon beim Laden (gesperrt) — sonst schiebt sie danach das Raster. */}
+      <div ref={skeletonRef} aria-hidden={!ready || undefined} className="flex flex-col gap-4">
         <DashboardFilters
           value={filters}
           startFilters={shown?.filters}
           editing={editing}
-          locked={editor.locked}
+          locked={editor.locked || !ready}
           pipelineSupported={pipelineSupported}
           onApply={(value) => setSession({ value })}
           onStartFilters={(value) => void editor.setStartFilters(value)}
         />
-      ) : null}
-      <div ref={skeletonRef} aria-hidden={!ready || undefined}>
         <DashboardGrid
           tiles={tiles}
           filters={filters}

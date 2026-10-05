@@ -3,6 +3,7 @@
 // dem Router: „Details“ öffnet die Detailseite, die Rückkehr bringt Sitzungsfilter und Fokus mit.
 import { useRef, useState } from 'react';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
+import { useBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
@@ -53,6 +54,7 @@ export function PersonalExecutiveDashboard() {
         }}
         onShowDetails={nav.openDetails}
         navigate={nav.goTo}
+        useBackGuard={useBrowserBackGuard}
       />
     </div>
   );
