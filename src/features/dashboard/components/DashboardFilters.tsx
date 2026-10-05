@@ -35,6 +35,7 @@ export function DashboardFilters({
   onStartFilters,
 }: DashboardFiltersProps) {
   const noteId = useId();
+  const errorId = useId();
   const [pipeline, setPipeline] = useState(pipelineOf(value));
   useEffect(() => setPipeline(pipelineOf(value)), [value]);
 
@@ -43,11 +44,17 @@ export function DashboardFilters({
   const draft: FilterValues | undefined = trimmed ? { pipeline: trimmed } : undefined;
   const changed = trimmed !== pipelineOf(value);
   const differsFromStart = pipelineOf(startFilters) !== pipelineOf(value);
+  const canApply = !locked && !tooLong && changed;
 
   return (
-    <section
+    <form
       aria-label="Filter"
       data-testid="dashboard-filters"
+      onSubmit={(event) => {
+        // Enter im Feld wendet an, solange „Filter anwenden“ möglich ist.
+        event.preventDefault();
+        if (canApply) onApply(draft);
+      }}
       className="flex flex-wrap items-end gap-3 rounded-xl border border-solid border-border bg-surface p-3"
     >
       {pipelineSupported ? (
@@ -56,11 +63,17 @@ export function DashboardFilters({
             label="Pipeline"
             value={pipeline}
             maxLength={MAX_PIPELINE_LENGTH + 20}
-            error={tooLong ? `Höchstens ${MAX_PIPELINE_LENGTH} Zeichen.` : undefined}
+            error={tooLong}
             disabled={locked}
             onChange={(event) => setPipeline(event.target.value)}
-            aria-describedby={noteId}
+            aria-invalid={tooLong || undefined}
+            aria-describedby={tooLong ? `${errorId} ${noteId}` : noteId}
           />
+          {tooLong ? (
+            <p id={errorId} role="alert" className="m-0 mt-1 text-[12px] text-error">
+              Höchstens {MAX_PIPELINE_LENGTH} Zeichen.
+            </p>
+          ) : null}
         </div>
       ) : (
         <p className="m-0 text-sm text-[var(--color-text-muted)]">
@@ -69,14 +82,18 @@ export function DashboardFilters({
       )}
       {pipelineSupported ? (
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" disabled={locked || tooLong || !changed} onClick={() => onApply(draft)}>
+          <Button size="sm" type="submit" disabled={!canApply}>
             Filter anwenden
           </Button>
           <Button
             size="sm"
             variant="secondary"
             disabled={locked || (!value && !pipeline)}
-            onClick={() => onApply(undefined)}
+            onClick={() => {
+              // Auch eine noch nicht angewendete Eingabe leeren (der Prop bleibt dann unverändert).
+              setPipeline('');
+              onApply(undefined);
+            }}
           >
             Filter zurücksetzen
           </Button>
@@ -106,6 +123,6 @@ export function DashboardFilters({
         Ein Zeitraumfilter ist noch nicht verfügbar: Dafür gibt es kein belegtes Datumsfeld. Filter
         gelten für diese Sitzung{editing ? '; Startfilter erst nach „Speichern“' : ''}.
       </p>
-    </section>
+    </form>
   );
 }

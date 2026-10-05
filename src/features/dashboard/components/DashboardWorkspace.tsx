@@ -22,7 +22,7 @@ import { activeEntryOf } from '../hooks/dashboardEditorReducer';
 import { useDashboardEditor, type EditorPreferences } from '../hooks/useDashboardEditor';
 import type { ChartLoaders } from './charts/chartLoaders';
 import { DashboardFilters } from './DashboardFilters';
-import { DashboardGrid, type FocusRequest } from './DashboardGrid';
+import { DashboardGrid, EMPTY_FOCUS, type FocusRequest } from './DashboardGrid';
 import { EditorToolbar } from './EditorToolbar';
 import type { TileDataHook } from './LazyDashboardTile';
 import type { TileConfiguratorProps } from './TileConfigurator';
@@ -43,6 +43,8 @@ export interface DashboardWorkspaceProps {
   /** Seite neu laden; Standard `window.location.reload()`. */
   onReload?: () => void;
   onTileActivated?: (tileId: string) => void;
+  /** Meldet die aktuell dargestellten Kachel-IDs (Ansicht oder Entwurf), z. B. für Diagnoseanzeigen. */
+  onShownTilesChange?: (tileIds: readonly string[]) => void;
   /** Nur für Tests: Nachladefunktion des Konfigurationsfensters. */
   configuratorLoader?: () => Promise<ConfiguratorModule>;
 }
@@ -103,10 +105,16 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   const shown = editing ? editor.draft : (state?.config ?? null);
   const ready = preferences.status === 'bereit' && shown !== null;
   const tiles = shown?.tiles ?? DEFAULT_DASHBOARD_CONFIG.tiles;
-  const filters = session ? session.value : shown?.filters;
+  // Der Start-Sitzungsfilter kommt aus der gespeicherten Fassung, nie aus dem Entwurf: Änderungen
+  // am Entwurf (Startfilter entfernen, Standard) wirken erst nach „Speichern“.
+  const filters = session ? session.value : state?.config.filters;
   const pipelineSupported = tiles.some((tile) => activeEntryOf(tile)?.filters.includes('pipeline'));
   const unavailable = state?.kind === 'gespeichert' ? state.unavailable.length : 0;
   const skeletonRef = useRef<HTMLDivElement | null>(null);
+  const { onShownTilesChange } = props;
+  useEffect(() => {
+    onShownTilesChange?.(tiles.map((tile) => tile.tileId));
+  }, [tiles, onShownTilesChange]);
 
   useEffect(() => {
     if (!ready) skeletonRef.current?.setAttribute('inert', '');
@@ -127,7 +135,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
     const index = list.findIndex((tile) => tile.tileId === tileId);
     const next = list[index + 1] ?? list[index - 1];
     editor.removeTile(tileId);
-    if (next) focus(next.tileId, 'kachel');
+    focus(next ? next.tileId : EMPTY_FOCUS, 'kachel');
   };
   const submit: TileConfiguratorProps['onSubmit'] = (values) => {
     const tile = target?.tile;

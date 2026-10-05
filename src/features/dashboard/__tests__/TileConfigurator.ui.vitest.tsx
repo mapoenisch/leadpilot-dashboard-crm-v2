@@ -4,6 +4,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import TileConfigurator, { type TileConfiguratorProps } from '../components/TileConfigurator';
 import type { TileDataHook } from '../components/LazyDashboardTile';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
+import { DASHBOARD_CATEGORIES, getActiveEntries } from '../model/dashboardCatalog';
 
 const useData: TileDataHook = (t) => ({
   catalogId: t.catalogId,
@@ -138,5 +139,51 @@ describe('TileConfigurator', () => {
   it('rendert nichts, solange geschlossen', () => {
     setup({ open: false });
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('TileConfigurator: Codex-Befunde PR #59', () => {
+  it('findet Kennzahlen auch über Begriffe aus der Definition', () => {
+    setup();
+    const names = (term: string) => {
+      fireEvent.change(screen.getByLabelText('Kennzahl suchen'), { target: { value: term } });
+      return screen
+        .getAllByRole('radio')
+        .filter((r) => r.getAttribute('name')?.endsWith('kennzahl')).length;
+    };
+    const entry = getActiveEntries().find(
+      (item) => !item.name.toLowerCase().includes('zinsen') && /zinsen/i.test(item.definition),
+    );
+    expect(entry).toBeDefined();
+    expect(names('Zinsen')).toBeGreaterThan(0);
+  });
+
+  it('bietet nur Kategorien mit aktiven Einträgen an', () => {
+    setup();
+    const used = new Set<string>(
+      getActiveEntries().map((item) => DASHBOARD_CATEGORIES[item.category]),
+    );
+    const options = within(screen.getByLabelText('Kategorie'))
+      .getAllByRole('option')
+      .map((option) => option.textContent ?? '')
+      .filter((text) => text !== 'Alle Kategorien');
+    expect(options.length).toBeGreaterThan(0);
+    for (const label of options) expect(used.has(label)).toBe(true);
+    expect(options.length).toBe(used.size);
+  });
+
+  it('sagt die automatische Größenanhebung an', () => {
+    setup();
+    fireEvent.click(
+      screen.getAllByRole('radio').find((r) => r.getAttribute('name')?.endsWith('kennzahl'))!,
+    );
+    const table = screen.queryByRole('radio', { name: /^Tabelle/ });
+    if (!table) return;
+    fireEvent.click(table);
+    expect(
+      screen
+        .getAllByRole('status')
+        .some((el) => /Größe automatisch auf Mittel/.test(el.textContent ?? '')),
+    ).toBe(true);
   });
 });

@@ -106,6 +106,10 @@ describe('DashboardGrid', () => {
     expect(slots).toHaveLength(2);
     expect(slots[0]).toHaveTextContent(/bleibt in deiner Ansicht gespeichert/);
     expect(slots[0]).not.toHaveTextContent('gibt_es_nicht');
+    // Auch die Schaltflächenbeschriftungen nennen keine technische ID.
+    for (const button of within(items()[0]!).getAllByRole('button')) {
+      expect(button.getAttribute('aria-label') ?? '').not.toContain('gibt_es_nicht');
+    }
     // Entfernen bleibt möglich, Bearbeiten nicht.
     expect(within(items()[0]!).getByRole('button', { name: /Entfernen/ })).toBeEnabled();
     expect(within(items()[0]!).getByRole('button', { name: /Bearbeiten/ })).toBeDisabled();

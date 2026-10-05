@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { saveErrorMessage } from '../hooks/dashboardEditorReducer';
-import { useDashboardEditor, type EditorPreferences } from '../hooks/useDashboardEditor';
+import { tileTitle, useDashboardEditor, type EditorPreferences } from '../hooks/useDashboardEditor';
 import type { SaveResult } from '../hooks/useDashboardPreferences';
 import type { DashboardConfig, DashboardTileConfig } from '../model/dashboardConfig';
 import type { PreferencesState } from '../model/defaultDashboard';
@@ -331,5 +331,47 @@ describe('useDashboardEditor: Navigationsschutz', () => {
     expect(fire()).toBe(true);
     unmount();
     expect(fire()).toBe(false);
+  });
+});
+
+describe('useDashboardEditor: Codex-Befunde PR #59', () => {
+  it('erlaubt nach einem erneuten Konflikt wieder „Serveransicht laden“', async () => {
+    const save = vi.fn<Save>().mockResolvedValue({ ok: false, error: { kind: 'konflikt' } });
+    const { result } = setup({ save });
+    act(() => result.current.startEditing());
+    act(() => void result.current.moveTile('a', 'runter'));
+    await act(async () => void (await result.current.save()));
+    await act(async () => void (await result.current.loadServerVersion()));
+    expect(result.current.serverLoaded).toBe(true);
+    await act(async () => void (await result.current.save()));
+    expect(result.current.conflict).toBe(true);
+    expect(result.current.serverLoaded).toBe(false);
+  });
+
+  it('nennt unbekannte Kacheln nie mit der technischen ID', () => {
+    expect(tileTitle({ ...tile('u'), catalogId: 'baseline.gibt_es_nicht' })).toBe(
+      'Nicht verfügbare Kachel',
+    );
+    expect(tileTitle({ ...tile('v'), title: 'Eigen' })).toBe('Eigen');
+  });
+
+  it('ignoriert „Hier bleiben“ während des Speicherns', async () => {
+    let finish: (result: SaveResult) => void = () => undefined;
+    const save = vi.fn<Save>(() => new Promise<SaveResult>((resolve) => (finish = resolve)));
+    const { result } = setup({ save });
+    act(() => result.current.startEditing());
+    act(() => void result.current.moveTile('a', 'runter'));
+    act(() => result.current.requestLeave(() => undefined));
+    expect(result.current.leaveRequest).not.toBeNull();
+    let pending: Promise<void> = Promise.resolve();
+    act(() => {
+      pending = result.current.leaveSave();
+    });
+    act(() => result.current.leaveStay());
+    expect(result.current.leaveRequest).not.toBeNull();
+    await act(async () => {
+      finish({ ok: true, revision: 2 });
+      await pending;
+    });
   });
 });

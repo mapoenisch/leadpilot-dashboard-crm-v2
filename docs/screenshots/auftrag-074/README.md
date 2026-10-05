@@ -2,7 +2,7 @@
 
 Erzeugt mit `scripts/captureAuftrag074Screenshots.mjs` gegen zwei Vorschau-Builds (`VITE_DASHBOARD_PREVIEW=true`, `vite preview`): Vorher = Basis `6484368` (Testkachel und Galerie), Nachher = dieser Stand (`?bereich=editor`, nur Arbeitsbereich). Testdaten, Speicher-Ersatz im Arbeitsspeicher, `prefers-reduced-motion: reduce`. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-05T13:09:32.704Z
+- Aufnahme: 2026-10-05T14:03:23.427Z
 - Vorher/Nachher-Paare verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px
 - axe-Verstöße serious/critical: 0
@@ -29,22 +29,22 @@ Erzeugt mit `scripts/captureAuftrag074Screenshots.mjs` gegen zwei Vorschau-Build
 |---:|---|---:|---|---|
 | 1440 | ansicht | 0 px | keine | `1721f3bbb48e7908` |
 | 1440 | bearbeiten | 0 px | keine | `5d1f5c3c22bb6b9a` |
-| 1440 | konfigurator | 0 px | keine | `352649a17973fb78` |
-| 1440 | langtexte | 0 px | keine | `9e0cedb09a280b5c` |
-| 1440 | speicherfehler | 0 px | keine | `ed558d2de86707b4` |
-| 1440 | konflikt | 0 px | keine | `cfc479bf63ac4ec6` |
+| 1440 | konfigurator | 0 px | keine | `dcb3ebea63963b1b` |
+| 1440 | langtexte | 0 px | keine | `ffe7815df98f7572` |
+| 1440 | speicherfehler | 0 px | keine | `80fdfdaf8c7dbfc7` |
+| 1440 | konflikt | 0 px | keine | `f05b0f8ecd6c337c` |
 | 768 | ansicht | 0 px | keine | `e618a5e8615b277a` |
 | 768 | bearbeiten | 0 px | keine | `7a2a589cb79e8407` |
-| 768 | konfigurator | 0 px | keine | `aaa2d83def1a23d4` |
-| 768 | langtexte | 0 px | keine | `f325ada8ba92b261` |
-| 768 | speicherfehler | 0 px | keine | `102b5611d4bea47a` |
-| 768 | konflikt | 0 px | keine | `3085cc67d1ff91f9` |
+| 768 | konfigurator | 0 px | keine | `8b1cd91770ead2a7` |
+| 768 | langtexte | 0 px | keine | `e8112cc1892df994` |
+| 768 | speicherfehler | 0 px | keine | `d7e9d3d877051a41` |
+| 768 | konflikt | 0 px | keine | `4739af0f92608822` |
 | 375 | ansicht | 0 px | keine | `72ba05bf3af01957` |
 | 375 | bearbeiten | 0 px | keine | `6ed1a2c64deea62e` |
-| 375 | konfigurator | 0 px | keine | `662bcc86a96cc2ef` |
-| 375 | langtexte | 0 px | keine | `968cef16e09e9fd5` |
-| 375 | speicherfehler | 0 px | keine | `75bd5a7998e0f51a` |
-| 375 | konflikt | 0 px | keine | `370bd21174dc7267` |
+| 375 | konfigurator | 0 px | keine | `3c8289c6e06b4f93` |
+| 375 | langtexte | 0 px | keine | `cb93c435887a88d9` |
+| 375 | speicherfehler | 0 px | keine | `b0ea1c69a27db442` |
+| 375 | konflikt | 0 px | keine | `ce628a988e3f6822` |
 | 1440 | dialog | 0 px | keine | `8b8454e8f65768ff` |
 | 768 | dialog | 0 px | keine | `3a8a6321f10edd8b` |
 | 375 | dialog | 0 px | keine | `3f26abd9430c88f8` |

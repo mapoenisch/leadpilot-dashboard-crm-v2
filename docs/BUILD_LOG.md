@@ -15202,3 +15202,30 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-074/README.md`. Vorher (Basis) gegen Nachher auf 1440/768/375 mit unterschiedlichen Hashes; Zustände Ansicht, Bearbeiten, Konfigurator, Langtexte (Titel 80, Pipeline 64 Zeichen ohne Leerzeichen), Speicherfehler, Konflikt, Dialog: 0 px Seitenüberlauf, axe serious/critical 0; Tastaturablauf (Verschieben mit Fokus und Ansage, Escape gibt Fokus zurück), Hinzufügen, Fehler, Konflikt, Erfolg.
 
 **Ergebnis & Freigabestatus:** Auftrag 074 umgesetzt, Gates lokal grün. Offen: PR gegen `main` (Marc fragen), CI, Codex-Prüfung; Freigabe nie vom Builder, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 1 (PR #59, Head `0baf23f`, Review 5415528758), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat auf Marcs `@codex review` elf P2-Befunde gemeldet. Alle elf sind berechtigt und behoben, je mit Regressionstest.
+
+| Befund (Datei) | Behebung |
+|---|---|
+| 4184737238 Sitzungsfilter folgt dem Entwurf (`DashboardWorkspace`) | Der Start-Sitzungsfilter kommt aus der gespeicherten Fassung (`state.config.filters`), nie aus `draft`; Entfernen des Startfilters oder Zurücksetzen auf Standard ändert Abfragen erst nach „Speichern“. |
+| 4184737276 Suche nur im Namen (`TileConfigurator`) | Suche über Name und Definition. |
+| 4184737256 Zurücksetzen leert Entwurf nicht (`DashboardFilters`) | „Filter zurücksetzen“ leert auch eine nicht angewendete Eingabe. |
+| 4184737297 technische ID als Kacheltitel (`useDashboardEditor`) | `tileTitle`: Katalogname, sonst „Nicht verfügbare Kachel“; nie die ID. |
+| 4184737292 Fokus nach letzter Kachel (`DashboardWorkspace`) | Fokus auf „Kachel hinzufügen“ im Leerzustand (`EMPTY_FOCUS`). |
+| 4184737266 Enter wendet nicht an (`DashboardFilters`) | Filter ist ein Formular; Enter wendet an, solange „Filter anwenden“ möglich ist. |
+| 4184737325 Schließwege beim Speichern (`UnsavedChangesDialog`) | Escape, Kreuz, Hintergrund und Schaltfläche wirken bei `locked` nicht; zusätzlich ignoriert `leaveStay` im Hook den gesperrten Zustand. |
+| 4184737334 stille Größenanhebung (`TileConfigurator`) | Sichtbare Statuszeile in Live-Region: „Größe automatisch auf … angehoben.“ |
+| 4184737308 erneuter Konflikt sperrt Laden (`useDashboardEditor`) | Ein neuer Konflikt setzt `serverLoaded` zurück. |
+| 4184737317 Pipelinefehler nicht verknüpft (`DashboardFilters`) | Fehlertext mit `role="alert"`, `aria-invalid` und `aria-describedby`. |
+| 4184737371 Zähler der Vorschau (`DashboardEditorPreview`) | Neues optionales `onShownTilesChange` des Arbeitsbereichs; gezählt werden die angezeigten Kacheln (auch im Entwurf). |
+| 4184737353 leere Kategorien (`TileConfigurator`) | Nur Kategorien mit aktiven Einträgen. |
+
+**Weitere Änderung:** Der Test der Seiten-Einbindung wanderte von `DashboardTile.ui.vitest.tsx` nach `DashboardWorkspace.ui.vitest.tsx` (Dateigröße < 400 Zeilen).
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen (`TileConfigurator.tsx` 397).
+
+**Ergebnis & Freigabestatus:** Befunde behoben, Antworten in den Threads; Screenshot-Matrix erneut erzeugt. Offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.

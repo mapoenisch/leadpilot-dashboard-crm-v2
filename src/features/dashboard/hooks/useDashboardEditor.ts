@@ -3,6 +3,7 @@
 // Kein Autosave. „Gespeichert“ erst nach Bestätigung, bei jedem Fehler bleibt der Entwurf, ein
 // Konflikt überschreibt nichts still, und während des Speicherns sind alle Aktionen gesperrt.
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getCatalogEntry } from '../model/dashboardCatalog';
 import {
   MAX_TILES,
   type DashboardConfig,
@@ -12,7 +13,6 @@ import {
 import { validateDashboardConfig } from '../model/dashboardValidation';
 import type { PreferencesState } from '../model/defaultDashboard';
 import {
-  activeEntryOf,
   addTile as addTileTo,
   isSameConfig,
   moveTile as moveTileIn,
@@ -51,7 +51,8 @@ export interface Announcement {
 const BUSY: EditResult = { ok: false, reason: 'Gerade nicht möglich.' };
 
 export function tileTitle(tile: DashboardTileConfig): string {
-  return tile.title ?? activeEntryOf(tile)?.name ?? tile.catalogId;
+  // Nie die technische ID: ein bekannter, aber nicht freigegebener Eintrag nennt seinen Namen.
+  return tile.title ?? getCatalogEntry(tile.catalogId)?.name ?? 'Nicht verfügbare Kachel';
 }
 
 export function useDashboardEditor(preferences: EditorPreferences) {
@@ -246,6 +247,8 @@ export function useDashboardEditor(preferences: EditorPreferences) {
       const message = saveErrorMessage(result.error);
       setSaveStatus({ kind: 'fehler', message, error: result.error });
       setConflict(result.error.kind === 'konflikt');
+      // Ein weiterer Konflikt meint eine noch neuere Fassung: erneutes Laden muss möglich sein.
+      if (result.error.kind === 'konflikt') setServerLoaded(false);
       announce(message);
       return false;
     } finally {
@@ -290,7 +293,11 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     [dirty],
   );
 
-  const leaveStay = useCallback(() => setLeaveRequest(null), []);
+  const leaveStay = useCallback(() => {
+    // Während des Speicherns läuft `leaveSave` weiter und würde trotzdem navigieren.
+    if (lockedRef.current) return;
+    setLeaveRequest(null);
+  }, []);
 
   const leaveDiscard = useCallback(() => {
     if (lockedRef.current || !leaveRequest) return;

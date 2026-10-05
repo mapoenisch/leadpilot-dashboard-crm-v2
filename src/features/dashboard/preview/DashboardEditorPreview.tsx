@@ -25,6 +25,7 @@ export function DashboardEditorPreview() {
   const [saving, setSaving] = useState(false);
   const [nextSave, setNextSave] = useState<NextSave>('erfolg');
   const [activated, setActivated] = useState<ReadonlySet<string>>(new Set());
+  const [shownIds, setShownIds] = useState<readonly string[]>([]);
   const nextSaveRef = useRef<NextSave>('erfolg');
   nextSaveRef.current = nextSave;
   const storedRef = useRef(stored);
@@ -75,7 +76,8 @@ export function DashboardEditorPreview() {
       : { kind: 'standard', config: DEFAULT_DASHBOARD_CONFIG, revision: 0, canSave: true };
     return { status: 'bereit' as const, state, isSaving: saving, save, reloadServerVersion };
   }, [stored, saving, save, reloadServerVersion]);
-  const total = (stored?.config ?? DEFAULT_DASHBOARD_CONFIG).tiles.length;
+  // Gezählt wird, was der Arbeitsbereich gerade zeigt (auch der Entwurf); entfernte IDs zählen nicht.
+  const activeShown = shownIds.filter((id) => activated.has(id)).length;
 
   return (
     <section aria-labelledby="editor-vorschau" className="flex flex-col gap-4">
@@ -103,12 +105,13 @@ export function DashboardEditorPreview() {
           </label>
         ))}
         <span data-testid="aktivierte-kacheln" className="ml-auto text-[var(--color-text-muted)]">
-          aktivierte Kacheln {activated.size} von {total}
+          aktivierte Kacheln {activeShown} von {shownIds.length}
         </span>
       </fieldset>
       <DashboardWorkspace
         preferences={preferences}
         useData={useEditorPreviewData}
+        onShownTilesChange={setShownIds}
         onTileActivated={(tileId) =>
           setActivated((current) => (current.has(tileId) ? current : new Set(current).add(tileId)))
         }

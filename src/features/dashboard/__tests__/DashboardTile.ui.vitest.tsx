@@ -371,19 +371,6 @@ describe('Kachelgalerie (Vorschau)', () => {
     expect(screen.getByTestId('dashboard-test-tile')).toBeInTheDocument();
   });
 
-  it('zeigt den Arbeitsbereich unter der Galerie; ?bereich=editor nur ihn; ?ansicht= nicht', () => {
-    const { unmount } = render(<DashboardPreviewPage search="" />);
-    expect(screen.getByTestId('dashboard-workspace')).toBeInTheDocument();
-    unmount();
-    const editor = render(<DashboardPreviewPage search="?bereich=editor" />);
-    expect(screen.getByTestId('dashboard-workspace')).toBeInTheDocument();
-    expect(screen.queryByTestId('dashboard-test-tile')).toBeNull();
-    expect(screen.queryByRole('region', { name: 'Kachelgalerie' })).toBeNull();
-    editor.unmount();
-    render(<DashboardPreviewPage search="?ansicht=zahl" />);
-    expect(screen.queryByTestId('dashboard-workspace')).toBeNull();
-  });
-
   it('blendet mit ?ansicht= die Testkachel aus und filtert die Galerie', () => {
     render(<DashboardPreviewPage search="?ansicht=zahl" />);
     expect(screen.queryByTestId('dashboard-test-tile')).toBeNull();

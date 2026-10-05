@@ -33,16 +33,20 @@ export interface UnsavedChangesDialogProps {
 }
 
 export function UnsavedChangesDialog(props: UnsavedChangesDialogProps) {
-  useEscapeToClose(props.open, props.onStay);
+  // Während des Speicherns wirkt kein Schließweg (Escape, Kreuz, Hintergrund, Schaltfläche).
+  const stay = () => {
+    if (!props.locked) props.onStay();
+  };
+  useEscapeToClose(props.open, stay);
   return (
     <Modal
       open={props.open}
-      onClose={props.onStay}
+      onClose={stay}
       title="Ungespeicherte Änderungen"
       maxWidth="600px"
       footer={
         <div className="flex flex-wrap justify-end gap-2">
-          <Button variant="secondary" disabled={props.locked} onClick={props.onStay}>
+          <Button variant="secondary" disabled={props.locked} onClick={stay}>
             Hier bleiben
           </Button>
           <Button

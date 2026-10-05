@@ -111,24 +111,19 @@ function Option(props: {
   );
 }
 
-function Preview({
-  tile,
-  entry,
-  useData,
-  filters,
-}: {
-  tile: DashboardTileConfig;
-  entry: ActiveCatalogEntry;
-  useData: TileDataHook;
-  filters?: DashboardFilters;
-}) {
-  const data = useData(tile, filters, { enabled: true });
+function Preview(
+  props: Pick<TileConfiguratorProps, 'useData' | 'filters'> & {
+    tile: DashboardTileConfig;
+    entry: ActiveCatalogEntry;
+  },
+) {
+  const data = props.useData(props.tile, props.filters, { enabled: true });
   return (
     <DashboardTile
-      tile={tile}
-      entry={entry}
+      tile={props.tile}
+      entry={props.entry}
       data={data}
-      dashboardFilters={filters}
+      dashboardFilters={props.filters}
       onShowDetails={() => undefined}
     />
   );
@@ -139,16 +134,26 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
   const uid = useId();
   const editing = tile !== undefined;
   const entries = useMemo(() => getActiveEntries(), []);
+  // Nur Kategorien, die aktive Einträge haben: sonst wäre die Trefferliste garantiert leer.
+  const usedCategories = useMemo(
+    () =>
+      (Object.keys(DASHBOARD_CATEGORIES) as DashboardCategory[]).filter((key) =>
+        entries.some((item) => item.category === key),
+      ),
+    [entries],
+  );
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<DashboardCategory | ''>('');
   const [choice, setChoice] = useState<Choice | null>(null);
   const [error, setError] = useState('');
+  const [sizeNote, setSizeNote] = useState('');
   const previewRef = useRef<HTMLDivElement | null>(null);
   useEscapeToClose(open, onClose);
 
   useEffect(() => {
     if (!open) return;
     setError('');
+    setSizeNote('');
     setQuery('');
     setCategory('');
     if (tile && activeEntryOf(tile)) {
@@ -163,7 +168,6 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
     } else {
       setChoice(null);
     }
-    // Nur beim Öffnen oder Wechsel der Kachel neu belegen.
   }, [open, tile]);
 
   useEffect(() => {
@@ -174,7 +178,11 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
   const matches = entries.filter((item) => {
     if (category && item.category !== category) return false;
     const text = query.trim().toLowerCase();
-    return !text || item.name.toLowerCase().includes(text);
+    return (
+      !text ||
+      item.name.toLowerCase().includes(text) ||
+      item.definition.toLowerCase().includes(text)
+    );
   });
   const title = choice?.title.trim() ?? '';
   const candidate: DashboardTileConfig | null =
@@ -194,13 +202,16 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
 
   const update = (patch: Partial<Choice>) => {
     setError('');
+    setSizeNote('');
     setChoice((current) => (current ? { ...current, ...patch } : current));
   };
 
   const pickView = (view: DashboardView) => {
     if (!entry || !choice) return;
     const minimum = minSizeFor(entry, view);
-    update({ view, size: sizeRank(choice.size) < sizeRank(minimum) ? minimum : choice.size });
+    const raised = sizeRank(choice.size) < sizeRank(minimum);
+    update({ view, size: raised ? minimum : choice.size });
+    if (raised) setSizeNote(`Größe automatisch auf ${SIZE_LABEL[minimum]} angehoben.`);
   };
 
   const submit = () => {
@@ -251,9 +262,9 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
                   className="rounded-md border border-solid border-border bg-surface p-2 text-sm text-[var(--color-text)]"
                 >
                   <option value="">Alle Kategorien</option>
-                  {Object.entries(DASHBOARD_CATEGORIES).map(([key, label]) => (
+                  {usedCategories.map((key) => (
                     <option key={key} value={key}>
-                      {label}
+                      {DASHBOARD_CATEGORIES[key]}
                     </option>
                   ))}
                 </select>
@@ -293,6 +304,12 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
                   />
                 ))}
               </Group>
+              <p
+                role="status"
+                className="m-0 min-h-[18px] text-[12px] text-[var(--color-text-muted)]"
+              >
+                {sizeNote}
+              </p>
               <Group legend="Größe">
                 {TILE_SIZES.map((size) => {
                   const minimum = minSizeFor(entry, choice.view);

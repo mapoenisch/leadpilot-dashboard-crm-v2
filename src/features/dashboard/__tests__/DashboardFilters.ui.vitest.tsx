@@ -74,3 +74,35 @@ describe('DashboardFilters', () => {
     expect(screen.getByRole('button', { name: 'Filter zurücksetzen' })).toBeDisabled();
   });
 });
+
+describe('DashboardFilters: Codex-Befunde PR #59', () => {
+  it('wendet mit Enter (Formular-Submit) an', () => {
+    const { props } = setup();
+    fireEvent.change(screen.getByLabelText('Pipeline'), { target: { value: 'Direkt' } });
+    fireEvent.submit(screen.getByRole('form', { name: 'Filter' }));
+    expect(props.onApply).toHaveBeenCalledWith({ pipeline: 'Direkt' });
+  });
+
+  it('wendet mit Enter nichts an, wenn Anwenden gesperrt ist', () => {
+    const { props } = setup();
+    fireEvent.submit(screen.getByRole('form', { name: 'Filter' }));
+    expect(props.onApply).not.toHaveBeenCalled();
+  });
+
+  it('leert beim Zurücksetzen auch eine noch nicht angewendete Eingabe', () => {
+    setup({ value: undefined });
+    const input = screen.getByLabelText('Pipeline');
+    fireEvent.change(input, { target: { value: 'Entwurf' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Filter zurücksetzen' }));
+    expect(input).toHaveValue('');
+  });
+
+  it('verknüpft den Längenfehler mit dem Feld und sagt ihn an', () => {
+    setup();
+    const input = screen.getByLabelText('Pipeline');
+    fireEvent.change(input, { target: { value: 'x'.repeat(65) } });
+    const alert = screen.getByRole('alert');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input.getAttribute('aria-describedby')).toContain(alert.id);
+  });
+});

@@ -13,6 +13,9 @@ import { UnavailableTileSlot } from './UnavailableTileSlot';
 
 export type FocusAction = 'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel';
 
+/** Fokusziel nach dem Entfernen der letzten Kachel: die Schaltfläche im Leerzustand. */
+export const EMPTY_FOCUS = '__leer__';
+
 export interface FocusRequest {
   id: number;
   tileId: string;
@@ -55,6 +58,10 @@ export function DashboardGrid(props: DashboardGridProps) {
 
   useEffect(() => {
     if (!focusRequest) return;
+    if (focusRequest.tileId === EMPTY_FOCUS) {
+      document.querySelector<HTMLElement>('[data-testid="dashboard-empty"] button')?.focus();
+      return;
+    }
     const item = Array.from(listRef.current?.children ?? []).find(
       (child) => child.getAttribute('data-tile-id') === focusRequest.tileId,
     ) as HTMLElement | undefined;
