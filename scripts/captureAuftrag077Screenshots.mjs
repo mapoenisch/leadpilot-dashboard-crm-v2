@@ -253,6 +253,7 @@ async function main() {
     if (!original.config && !CLEANUP_KEY) {
       throw new Error('Keine Ausgangskonfiguration: E2E_CLEANUP_KEY zum Wiederherstellen setzen.');
     }
+    if (!original.config && !userId) throw new Error('Benutzer-ID der Sitzung fehlt.');
     const saved = await savePreferences(setup.page, SUPABASE, shotConfig(ROOT), original.revision);
     restore = {
       page: setup.page,

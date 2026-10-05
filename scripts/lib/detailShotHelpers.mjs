@@ -83,11 +83,28 @@ export const sessionUserId = (page) =>
     return null;
   });
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
+
+/**
+ * Der Aufräumschlüssel umgeht RLS: nur gegen ein lokales Supabase und nur für genau eine gültige
+ * Benutzer-ID verwenden, nie gegen ein entferntes Projekt oder mit leerem Filter.
+ */
+function assertScopedCleanup(url, userId) {
+  if (!LOCAL_HOSTS.has(new URL(url).hostname)) {
+    throw new Error(`Aufräumschlüssel nur für lokales Supabase, nicht für ${new URL(url).host}.`);
+  }
+  if (typeof userId !== 'string' || !UUID.test(userId)) {
+    throw new Error('Ungültige Benutzer-ID für das Aufräumen.');
+  }
+}
+
 /**
  * Entfernt die Präferenzzeile eines Benutzers. Benutzer dürfen das nicht selbst (RLS); nur der
  * lokale Aufräumschlüssel (`E2E_CLEANUP_KEY`, wie in den E2E-Specs) darf es.
  */
 export async function deletePreferences(supabase, cleanupKey, userId) {
+  assertScopedCleanup(supabase.url, userId);
   const response = await fetch(
     `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(userId)}`,
     { method: 'DELETE', headers: { apikey: cleanupKey, Authorization: `Bearer ${cleanupKey}` } },

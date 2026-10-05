@@ -6,6 +6,18 @@ import fs from 'node:fs';
 // anfangs fehlende Zeile entfernt nur der Aufräumschlüssel wieder (RLS erlaubt Benutzern kein DELETE).
 
 const AUTH_FILE = 'playwright/.auth/user.json';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
+
+/**
+ * Der Aufräumschlüssel umgeht RLS: nur gegen ein lokales Supabase (wie in der CI) und nur für
+ * genau den angemeldeten Testbenutzer, nie gegen ein entferntes Projekt oder mit leerem Filter.
+ */
+function assertScopedCleanup(url: string, userId: string): void {
+  const host = new URL(url).hostname;
+  if (!LOCAL_HOSTS.has(host)) throw new Error(`Aufräumschlüssel nur lokal, nicht für ${host}.`);
+  if (!UUID.test(userId)) throw new Error('Ungültige Benutzer-ID für das Aufräumen.');
+}
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -63,8 +75,11 @@ async function save(s: Session, config: unknown, expectedRevision: number): Prom
 export async function applyDashboardConfig(config: unknown): Promise<() => Promise<void>> {
   const s = session();
   const original = await readRow(s);
-  const cleanupKey = process.env.E2E_CLEANUP_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Nur der eigens für E2E gesetzte Schlüssel, kein allgemeiner Service-Role-Schlüssel aus der Umgebung.
+  const cleanupKey = process.env.E2E_CLEANUP_KEY;
   if (!original && !cleanupKey) throw new Error('E2E_CLEANUP_KEY zum Wiederherstellen fehlt.');
+  // Vor dem Schreiben prüfen: eine fehlende Zeile muss danach sicher entfernbar sein.
+  if (!original) assertScopedCleanup(s.url, s.userId);
   await save(s, config, original?.revision ?? 0);
   return async () => {
     const current = await readRow(s);
@@ -72,6 +87,7 @@ export async function applyDashboardConfig(config: unknown): Promise<() => Promi
       await save(s, original.config, current?.revision ?? 0);
       return;
     }
+    assertScopedCleanup(s.url, s.userId);
     const response = await fetch(
       `${s.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(s.userId)}`,
       {
