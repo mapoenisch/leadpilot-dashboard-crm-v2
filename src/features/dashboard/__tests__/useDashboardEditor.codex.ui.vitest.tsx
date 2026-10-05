@@ -116,3 +116,36 @@ describe('useDashboardEditor: Codex-Befunde PR #59, Runde 3', () => {
     expect(result.current.serverLoaded).toBe(false);
   });
 });
+
+describe('useDashboardEditor: Codex-Befunde PR #59, Runde 4', () => {
+  it('hebt die Freigabe bei einer weiteren Revision wieder auf', async () => {
+    const { result, rerender, prefs, save } = setup();
+    act(() => result.current.startEditing());
+    act(() => void result.current.moveTile('a', 'runter'));
+    rerender({ ...prefs, state: gespeichert(SERVER, 5) });
+    await act(async () => void (await result.current.loadServerVersion()));
+    expect(result.current.serverLoaded).toBe(true);
+    // Ein anderer Tab speichert erneut: Revision 6 darf nicht überschrieben werden.
+    rerender({ ...prefs, state: gespeichert(SERVER, 6) });
+    expect(result.current.serverLoaded).toBe(false);
+    expect(result.current.conflict).toBe(true);
+    await act(async () => void (await result.current.save()));
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('behält nach einem Nicht-Konflikt-Fehler beim Überschreiben den Wiederholungsweg', async () => {
+    const save = vi
+      .fn<Save>()
+      .mockResolvedValueOnce({ ok: false, error: { kind: 'konflikt' } })
+      .mockResolvedValueOnce({ ok: false, error: { kind: 'technisch' } });
+    const { result } = setup({ save });
+    act(() => result.current.startEditing());
+    act(() => void result.current.moveTile('a', 'runter'));
+    await act(async () => void (await result.current.save()));
+    await act(async () => void (await result.current.loadServerVersion()));
+    await act(async () => void (await result.current.save()));
+    expect(result.current.saveStatus.kind).toBe('fehler');
+    expect(result.current.conflict).toBe(true);
+    expect(result.current.serverLoaded).toBe(true);
+  });
+});

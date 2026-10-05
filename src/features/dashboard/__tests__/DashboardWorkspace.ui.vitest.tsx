@@ -199,7 +199,8 @@ describe('DashboardWorkspace – Bearbeiten', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Aktuelle Serveransicht laden' }));
     });
     expect(preferences.reloadServerVersion).toHaveBeenCalled();
-    // Nach dem Laden gibt es nur noch den bestätigten Weg, den gewöhnlichen Speichern-Knopf nicht.
+    // Die Freigabe folgt nach einem Takt; dann gibt es nur noch den bestätigten Weg, nicht „Speichern“.
+    await screen.findByRole('button', { name: /Trotzdem speichern/ });
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeDisabled();
     expect(
       screen.getByRole('button', { name: 'Trotzdem speichern (ersetzt die neuere Fassung)' }),

@@ -1,7 +1,7 @@
 // Auftrag 074: Regressionstests zu den Codex-Befunden aus PR #59 (Arbeitsbereich und Vorschau).
 import { describe, expect, it, vi } from 'vitest';
 import { useEffect } from 'react';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import {
   DashboardWorkspace,
   type DashboardWorkspaceProps,
@@ -189,6 +189,58 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 3', () => {
     const title = screen.getByLabelText('Eigener Titel (optional)');
     for (const text of ['A', 'AB', 'ABC']) fireEvent.change(title, { target: { value: text } });
     expect(mounts).toBe(before);
+  });
+});
+
+describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 4', () => {
+  it('schließt mit einem Escape nur den obersten Dialog', async () => {
+    const loader = vi.fn<() => Promise<never>>().mockRejectedValue(new Error('Chunk'));
+    const { props } = setup(prefs(), { configuratorLoader: loader });
+    startEditing();
+    fireEvent.click(within(items()[0]!).getByRole('button', { name: /Nach unten/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kachel hinzufügen' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Seite neu laden' }));
+    expect(screen.getAllByRole('dialog', { hidden: true }).length).toBe(2);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Hier bleiben' })).toBeNull());
+    // Die Hülle des Konfigurators bleibt: nur die Rückfrage wurde geschlossen.
+    expect(screen.getByRole('button', { name: 'Seite neu laden' })).toBeInTheDocument();
+    expect(props.onReload).not.toHaveBeenCalled();
+  });
+
+  it('startet für die Pipeline-Eingabe der Vorschau keine Abfrage je Buchstabe', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const seen = new Set<string | undefined>();
+      const useSpy: TileDataHook = (tile, filters, options) => {
+        seen.add(tile.pipeline);
+        return useData(tile, filters, options);
+      };
+      setup(prefs(), { useData: useSpy });
+      startEditing();
+      fireEvent.click(screen.getByRole('button', { name: 'Kachel hinzufügen' }));
+      fireEvent.change(await screen.findByLabelText('Kennzahl suchen'), {
+        target: { value: 'Pipeline' },
+      });
+      fireEvent.click(screen.getAllByRole('radio', { name: /Pipeline/ })[0]!);
+      seen.clear();
+      const field = await screen.findByLabelText(/Eigene Pipeline/);
+      for (const text of ['D', 'Di', 'Dir']) fireEvent.change(field, { target: { value: text } });
+      act(() => void vi.advanceTimersByTime(500));
+      expect([...seen].filter((value) => value && value !== 'Dir')).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('DashboardWorkspace: Neuladefehler mit vorhandener Fassung', () => {
+  it('zeigt weiter den Editor statt der Ladefehleranzeige', () => {
+    setup(prefs({ status: 'fehler' }));
+    expect(screen.queryByTestId('dashboard-error')).toBeNull();
+    expect(items()).toHaveLength(3);
+    fireEvent.click(screen.getByRole('button', { name: 'Dashboard bearbeiten' }));
+    expect(screen.getByRole('button', { name: 'Speichern' })).toBeInTheDocument();
   });
 });
 

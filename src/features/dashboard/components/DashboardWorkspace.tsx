@@ -53,17 +53,23 @@ export interface DashboardWorkspaceProps {
 const loadConfigurator = () => import('./TileConfigurator');
 
 /** Modale Hülle für Lade- und Fehlerzustand: Der übrige Arbeitsbereich ist währenddessen gesperrt. */
-function ConfiguratorShell({ onClose, children }: { onClose: () => void; children: ReactNode }) {
-  useEscapeToClose(true, onClose);
+function ConfiguratorShell(props: { onClose: () => void; active: boolean; children: ReactNode }) {
+  // Nur der oberste Dialog reagiert auf Escape: Liegt die Rückfrage darüber, ruht diese Hülle.
+  useEscapeToClose(props.active, props.onClose);
   return (
-    <Modal open onClose={onClose} title="Kachel konfigurieren" maxWidth="600px">
-      {children}
+    <Modal
+      open
+      onClose={() => props.active && props.onClose()}
+      title="Kachel konfigurieren"
+      maxWidth="600px"
+    >
+      {props.children}
     </Modal>
   );
 }
 
 class ConfiguratorBoundary extends Component<
-  { onRetry: () => void; onClose: () => void; children: ReactNode },
+  { onRetry: () => void; onClose: () => void; active: boolean; children: ReactNode },
   { failed: boolean }
 > {
   state = { failed: false };
@@ -73,7 +79,7 @@ class ConfiguratorBoundary extends Component<
   render() {
     if (!this.state.failed) return this.props.children;
     return (
-      <ConfiguratorShell onClose={this.props.onClose}>
+      <ConfiguratorShell onClose={this.props.onClose} active={this.props.active}>
         <div role="alert" className="flex flex-wrap items-center gap-2 text-sm">
           <span>Das Konfigurationsfenster konnte nicht geladen werden.</span>
           {/* Der Browser hält den fehlgeschlagenen Abruf fest: neu laden (mit Rückfrage bei Entwurf). */}
@@ -122,7 +128,10 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
 
   const editing = editor.mode === 'bearbeiten';
   const shown = editing ? editor.draft : (state?.config ?? null);
-  const ready = preferences.status === 'bereit' && shown !== null;
+  // Ein Neuladefehler mit vorhandener Fassung (`status: 'fehler'`, `state` gesetzt) lässt den Editor
+  // samt Entwurf sichtbar; nur ein Ladefehler ohne jede Fassung ersetzt den Arbeitsbereich.
+  const ready =
+    (preferences.status === 'bereit' || preferences.status === 'fehler') && shown !== null;
   const tiles = shown?.tiles ?? DEFAULT_DASHBOARD_CONFIG.tiles;
   // Der Start-Sitzungsfilter kommt aus der gespeicherten Fassung, nie aus dem Entwurf: Änderungen
   // am Entwurf (Startfilter entfernen, Standard) wirken erst nach „Speichern“.
@@ -186,7 +195,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
       </p>
     );
   }
-  if (preferences.status === 'fehler') {
+  if (preferences.status === 'fehler' && state === null) {
     return (
       <div
         role="alert"
@@ -281,12 +290,16 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
       </div>
       {target ? (
         <ConfiguratorBoundary
+          active={editor.leaveRequest === null}
           onRetry={() => editor.requestLeave(reload)}
           onClose={() => setTarget(null)}
         >
           <Suspense
             fallback={
-              <ConfiguratorShell onClose={() => setTarget(null)}>
+              <ConfiguratorShell
+                onClose={() => setTarget(null)}
+                active={editor.leaveRequest === null}
+              >
                 <p role="status" className="m-0 text-sm">
                   Konfigurationsfenster wird geladen …
                 </p>

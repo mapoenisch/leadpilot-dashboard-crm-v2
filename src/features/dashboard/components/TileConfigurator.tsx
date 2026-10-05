@@ -1,7 +1,7 @@
 // Executive Dashboard, Teilauftrag 5 (Auftrag 074): Konfigurationsfenster für eine Kachel. Wird
 // per React.lazy erst beim Öffnen geladen (Default-Export). Native Auswahlfelder, jede Option mit
 // Grund, wenn sie gesperrt ist; die Vorschau ist nur zum Ansehen und nicht bedienbar.
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -31,6 +31,7 @@ import {
   type EditResult,
   type NewTileInput,
 } from '../hooks/dashboardEditorReducer';
+import { Group, Option, useDebounced } from './ConfiguratorFields';
 import { DashboardTile } from './DashboardTile';
 import { useEscapeToClose } from './UnsavedChangesDialog';
 import type { TileDataHook } from './LazyDashboardTile';
@@ -70,45 +71,6 @@ function defaultsFor(entry: ActiveCatalogEntry): Choice {
     filterMode: first?.mode ?? 'dashboard',
     pipeline: '',
   };
-}
-
-function Group({ legend, children }: { legend: string; children: ReactNode }) {
-  return (
-    <fieldset className="m-0 min-w-0 border-0 p-0">
-      <legend className="mb-1 p-0 text-[13px] font-medium text-[var(--color-text-muted)]">
-        {legend}
-      </legend>
-      <div className="flex flex-col gap-1">{children}</div>
-    </fieldset>
-  );
-}
-
-function Option(props: {
-  name: string;
-  checked: boolean;
-  disabled?: boolean;
-  label: string;
-  hint?: string;
-  onSelect: () => void;
-}) {
-  return (
-    <label className="flex min-w-0 cursor-pointer items-start gap-2 text-sm [overflow-wrap:anywhere]">
-      <input
-        type="radio"
-        name={props.name}
-        checked={props.checked}
-        disabled={props.disabled}
-        onChange={props.onSelect}
-        className="mt-1"
-      />
-      <span className={props.disabled ? 'opacity-60' : undefined}>
-        {props.label}
-        {props.hint ? (
-          <span className="block text-[12px] text-[var(--color-text-muted)]">{props.hint}</span>
-        ) : null}
-      </span>
-    </label>
-  );
 }
 
 function Preview(
@@ -197,6 +159,11 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
           ...(choice.pipeline.trim() ? { pipeline: choice.pipeline.trim() } : {}),
         }
       : null;
+  const settledPipeline = useDebounced(choice?.pipeline.trim() ?? '', 400);
+  const previewTile: DashboardTileConfig | null = candidate && {
+    ...candidate,
+    pipeline: settledPipeline || undefined,
+  };
   const issues = candidate ? validateTileCandidate(candidate) : [];
   const valid = candidate !== null && issues.length === 0;
 
@@ -379,7 +346,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
             <div ref={previewRef} data-testid="configurator-preview">
               <Preview
                 key={candidate.catalogId}
-                tile={candidate}
+                tile={previewTile ?? candidate}
                 entry={entry}
                 useData={props.useData}
                 filters={props.filters}

@@ -20,6 +20,7 @@ import {
   type NewTileInput,
   type TilePatch,
 } from './dashboardEditorReducer';
+import { useLeaveGuard } from './useLeaveGuard';
 import type { SaveResult } from './useDashboardPreferences';
 
 export interface EditorPreferences {
@@ -50,7 +51,9 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const [draft, setDraft] = useState<DashboardConfig | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>({ kind: 'idle' });
   const [conflict, setConflict] = useState(false);
-  const [serverLoaded, setServerLoaded] = useState(false);
+  // Revision, zu der „Serveransicht laden“ den Entwurf freigegeben hat; eine weitere hebt sie auf.
+  const [loadedRev, setLoadedRev] = useState<number | null>(null);
+  const [loadPending, setLoadPending] = useState(false);
   const [takeServer, setTakeServer] = useState(false);
   // Stand der Serverfassung beim Start der Bearbeitung: der Entwurf gehört zu dieser Revision.
   const [snapshot, setSnapshot] = useState<{ config: DashboardConfig; revision: number } | null>(
@@ -58,7 +61,6 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   );
   const [saving, setSaving] = useState(false);
   const [announcement, setAnnouncement] = useState<Announcement>({ text: '', seq: 0 });
-  const [leaveRequest, setLeaveRequest] = useState<{ proceed: () => void } | null>(null);
 
   const draftRef = useRef<DashboardConfig | null>(null);
   const savingRef = useRef(false);
@@ -95,7 +97,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     setMode('bearbeiten');
     setSaveStatus({ kind: 'idle' });
     setConflict(false);
-    setServerLoaded(false);
+    setLoadedRev(null);
     announce(
       'Bearbeitungsmodus. Du bearbeitest eine Arbeitskopie; gespeichert wird erst mit „Speichern“.',
     );
@@ -105,7 +107,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     commit(null);
     setMode('ansicht');
     setConflict(false);
-    setServerLoaded(false);
+    setLoadedRev(null);
   }, [commit]);
 
   const cancel = useCallback(() => {
@@ -118,6 +120,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   /** Wendet eine Änderung auf die Arbeitskopie an, sofern bearbeitet wird und nichts speichert. */
   // Ändert sich die Serverfassung unter dem offenen Entwurf (z. B. Fokus-Neuladen), beginnt sofort
   // der Konfliktablauf: Der Entwurf wird nie stillschweigend auf die neue Revision gespeichert.
+  const serverLoaded = loadedRev !== null && state?.revision === loadedRev;
   const foreign =
     editing && snapshot !== null && state !== null && state.revision !== snapshot.revision;
   const reportConflict = useCallback(() => {
@@ -128,8 +131,24 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     announce(message);
   }, [announce]);
   useEffect(() => {
-    if (foreign && !saving && !serverLoaded && !takeServer && !conflict) reportConflict();
-  }, [foreign, saving, serverLoaded, takeServer, conflict, reportConflict]);
+    if (loadPending && state) {
+      setLoadPending(false);
+      setLoadedRev(state.revision);
+    } else if (loadedRev !== null && foreign && !serverLoaded && !saving) {
+      setLoadedRev(null); // noch eine Revision: erneut laden und bestätigen
+      reportConflict();
+    } else if (foreign && !saving && !serverLoaded && !takeServer && !conflict) reportConflict();
+  }, [
+    loadPending,
+    state,
+    loadedRev,
+    foreign,
+    serverLoaded,
+    saving,
+    takeServer,
+    conflict,
+    reportConflict,
+  ]);
 
   const edit = useCallback(
     (
@@ -260,9 +279,9 @@ export function useDashboardEditor(preferences: EditorPreferences) {
       }
       const message = saveErrorMessage(result.error);
       setSaveStatus({ kind: 'fehler', message, error: result.error });
-      setConflict(result.error.kind === 'konflikt');
-      // Ein weiterer Konflikt meint eine noch neuere Fassung: erneutes Laden muss möglich sein.
-      if (result.error.kind === 'konflikt') setServerLoaded(false);
+      // Auch ein anderer Fehler nach geladener Serverfassung bleibt im Überschreiben-Ablauf.
+      setConflict(result.error.kind === 'konflikt' || serverLoaded);
+      if (result.error.kind === 'konflikt') setLoadedRev(null);
       announce(message);
       return false;
     } finally {
@@ -275,6 +294,8 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const reloadOrReport = useCallback(async (): Promise<boolean> => {
     try {
       await preferences.reloadServerVersion();
+      // Einen Takt warten: Die Abfrage meldet die neue Serverfassung erst danach an die Ansicht.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
       return mountedRef.current;
     } catch {
       if (!mountedRef.current) return false;
@@ -290,16 +311,14 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const loadServerVersion = useCallback(async (): Promise<void> => {
     if (lockedRef.current) return;
     if (!(await reloadOrReport())) return;
-    setServerLoaded(true);
+    setLoadPending(true);
     announce('Aktuelle Serveransicht geladen. Dein Entwurf bleibt erhalten.');
   }, [reloadOrReport, announce]);
 
   const takeServerVersion = useCallback(async (): Promise<void> => {
     if (lockedRef.current) return;
     if (!(await reloadOrReport())) return;
-    // Einen Takt warten: Die Abfrage meldet die neue Serverfassung erst danach an die Ansicht.
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    if (mountedRef.current) setTakeServer(true);
+    setTakeServer(true);
   }, [reloadOrReport]);
 
   // Nach dem Laden der Serverfassung ersetzt sie die Arbeitskopie (Entwurf wird bewusst verworfen).
@@ -308,7 +327,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     setTakeServer(false);
     setSnapshot({ config: state.config, revision: state.revision });
     setConflict(false);
-    setServerLoaded(false);
+    setLoadedRev(null);
     setSaveStatus({ kind: 'idle' });
     if (!state.canSave) {
       // Neuere Formatversion: nicht speicherbar, also zurück in die (sichere) Ansicht.
@@ -323,49 +342,11 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     announce('Serverfassung übernommen. Dein Entwurf wurde verworfen.');
   }, [takeServer, state, commit, announce]);
 
-  const requestLeave = useCallback(
-    (proceed: () => void): void => {
-      if (lockedRef.current) return;
-      if (!dirty) proceed();
-      else setLeaveRequest({ proceed });
-    },
-    [dirty],
-  );
-
-  const leaveStay = useCallback(() => {
-    // Während des Speicherns läuft `leaveSave` weiter und würde trotzdem navigieren.
-    if (lockedRef.current) return;
-    setLeaveRequest(null);
-  }, []);
-
-  const leaveDiscard = useCallback(() => {
-    if (lockedRef.current || !leaveRequest) return;
-    const { proceed } = leaveRequest;
-    setLeaveRequest(null);
+  const discardDraft = useCallback(() => {
     leaveEditing();
     setSaveStatus({ kind: 'idle' });
-    proceed();
-  }, [leaveRequest, leaveEditing]);
-
-  const leaveSave = useCallback(async (): Promise<void> => {
-    if (!leaveRequest) return;
-    const { proceed } = leaveRequest;
-    if (await save()) {
-      setLeaveRequest(null);
-      proceed();
-    }
-  }, [leaveRequest, save]);
-
-  // Browser-Warnung beim Schließen oder Neuladen, nur solange Änderungen offen sind.
-  useEffect(() => {
-    if (!dirty) return undefined;
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = '';
-    };
-    window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
+  }, [leaveEditing]);
+  const guard = useLeaveGuard({ dirty, lockedRef, save, discard: discardDraft });
 
   return {
     mode,
@@ -378,7 +359,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     conflict,
     serverLoaded,
     announcement,
-    leaveRequest,
+    leaveRequest: guard.leaveRequest,
     startEditing,
     cancel,
     addTile,
@@ -391,9 +372,9 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     save,
     loadServerVersion,
     takeServerVersion,
-    requestLeave,
-    leaveSave,
-    leaveDiscard,
-    leaveStay,
+    requestLeave: guard.requestLeave,
+    leaveSave: guard.leaveSave,
+    leaveDiscard: guard.leaveDiscard,
+    leaveStay: guard.leaveStay,
   };
 }
