@@ -15309,3 +15309,20 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2123 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
 
 **Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 6 (PR #59, Head `560446a`, Review 5417761865), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 5 geprüft: vier P2, alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| 4186396630 verzögerte Pipeline startet leer (`TileConfigurator`) | `useDebounced` gilt bei Kachel- oder Kennzahlwechsel sofort; nur nachfolgende Eingaben sind verzögert. Kein falscher Erstabruf beim Öffnen. |
+| 4186396635 ausgeblendeter Pipeline-Entwurf wirkt weiter (`DashboardFilters`) | Ohne pipeline-fähige Kachel zählt das Feld weder für Prüfung noch für „Filter anwenden“. |
+| 4186396650 Fokus nach „Auf Standard zurücksetzen“ (`DashboardGrid`/Arbeitsbereich) | Fokus auf die erste Kachel der Standardansicht. |
+| 4186396632 parallele Konfliktaktionen (`useDashboardEditor`) | Der Neuladevorgang sperrt sofort (`reloadingRef`, `locked`); „Serverfassung übernehmen“ und „Serveransicht laden“ laufen nicht parallel. |
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2128 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben. Marc hat angewiesen, nach grüner CI sofort zu mergen (05.10.2026); das Merge-Protokoll folgt im Nachtrag.
