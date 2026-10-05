@@ -1,7 +1,7 @@
 // Designprobe Dashboard-Testkachel (Teilauftrag 0): feste Beispieldaten.
 // Alle Werte sind erfunden und dienen nur der Gestaltung. Sie stammen aus keiner Datenquelle,
 // werden nirgends gespeichert und dürfen nicht als Kennzahlen des Unternehmens gelesen werden.
-import type { DatumInput } from './charts/depthGeometry';
+import type { DatumInput } from '../components/charts/depthGeometry';
 
 export const SAMPLE_NOTICE = 'Beispieldaten · Designprobe';
 export const SAMPLE_PERIOD = 'Q3 2026';

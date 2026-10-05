@@ -136,7 +136,7 @@ describe('DashboardDesignPreview', () => {
   });
 
   it('zeichnet bei einem Nullwert keine Säulenflächen', async () => {
-    const { Depth3dBarChart } = await import('../charts/Depth3dBarChart');
+    const { Depth3dBarChart } = await import('../../components/charts/Depth3dBarChart');
     const { container } = render(
       <Depth3dBarChart
         idPrefix="t"

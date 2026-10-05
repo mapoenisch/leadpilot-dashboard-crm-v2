@@ -1,41 +1,101 @@
-// Designprobe Dashboard-Testkachel (Teilauftrag 0): Säulen und Balken mit Tiefe.
+// Säulen und Balken mit Tiefe (Designprobe Teilauftrag 0, übernommen in Auftrag 073).
 // Stil nach dem bestehenden Funnel (LiveFunnelBarChart): helle Oberkante, dunklere Seitenfläche,
 // Verlauf von hell nach dunkel, dezentes Leuchten am Boden. Eigenständige Weiterentwicklung,
 // der bestehende Funnel bleibt unverändert. Nullwerte erhalten keine Fläche, nur eine Markierung
-// auf der Grundlinie, damit kein Betrag vorgetäuscht wird.
-import { useMemo, useState } from 'react';
+// auf der Nullachse, damit kein Betrag vorgetäuscht wird. Negative Werte reichen unter bzw. links
+// der Nullachse (Plan §4, Auftrag 073).
+import { useMemo } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout, ChartSummary, LegendButtons, ScrollableChart } from './ChartReadout';
+import {
+  ChartReadout,
+  ChartSummary,
+  LegendButtons,
+  ScrollableChart,
+  useActiveDatum,
+} from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
-import { formatDe, layoutBars, layoutHBars, niceScale, summarizeSeries } from './depthGeometry';
+import {
+  formatAxis,
+  formatDe,
+  layoutBars,
+  layoutHBars,
+  niceSignedScale,
+  shortenLabel,
+  summarizeSeries,
+} from './depthGeometry';
 
 const AREA = { left: 56, top: 34, width: 480, height: 190 };
 const H_AREA = { left: 96, top: 14, width: 400, height: 210 };
 const THEME = MANAGEMENT_CHART_THEME.colors;
+/** Linker Rand der Balkenansicht fasst etwa 14 Zeichen; längere Stufennamen werden gekürzt. */
+const H_LABEL_MAX = 14;
+/** Mehr Kategorien passen nicht lesbar in die feste Zeichenfläche; der Rest steht in der Tabelle. */
+const MAX_VERTICAL = 10;
+const MAX_HORIZONTAL = 12;
+/** Kategorien stehen bei baseline + 18; darüber bleibt Abstand für die Wertbeschriftung. */
+const CATEGORY_CLEARANCE = 6;
+
+/**
+ * Wert negativer Säulen: unter dem Säulenende, solange er die Kategorie darunter nicht berührt;
+ * reicht die Säule bis an den unteren Rand, steht er innerhalb der Säule.
+ */
+export function negativeLabelY(bottom: number, baseline: number): number {
+  const below = bottom + 14;
+  return below <= baseline + CATEGORY_CLEARANCE ? below : bottom - 6;
+}
+
+/**
+ * Wert am Balkenende: rechts daneben, solange er in die Zeichenfläche passt; sonst rechtsbündig
+ * innerhalb des Balkens (positive Werte am rechten Rand, rein negative Reihen an der Nullachse).
+ */
+export function hValueLabel(edge: number, chars: number): { x: number; anchor: 'start' | 'end' } {
+  const start = edge + 8;
+  if (start + chars * 7 <= CHART_VIEWBOX.width - 4) return { x: start, anchor: 'start' };
+  return { x: edge - 6, anchor: 'end' };
+}
 
 export function Depth3dBarChart({
   idPrefix,
-  data,
+  data: allData,
   unit,
   period,
   title,
   reducedMotion,
+  formatValue,
+  stableLegend = false,
   orientation = 'vertical',
 }: DepthChartProps) {
   const horizontal = orientation === 'horizontal';
-  const [active, setActive] = useState<number | null>(null);
-  const scale = useMemo(() => niceScale(Math.max(...data.map((d) => d.value), 0)), [data]);
-  const bars = useMemo(() => layoutBars(data, AREA, scale.max), [data, scale.max]);
-  const hBars = useMemo(() => layoutHBars(data, H_AREA, scale.max), [data, scale.max]);
+  // Dashboard-Kacheln (formatValue gesetzt): kompakte Achsenwerte; die Testkachel bleibt unverändert.
+  const axisLabel = formatValue ? formatAxis : formatDe;
+  const limit = horizontal ? MAX_HORIZONTAL : MAX_VERTICAL;
+  // Mehr als `limit` Kategorien: die größten nach dem dargestellten Wert, nicht nach Quellreihenfolge.
+  const data = useMemo(
+    () =>
+      allData.length > limit
+        ? [...allData].sort((a, b) => b.value - a.value).slice(0, limit)
+        : allData,
+    [allData, limit],
+  );
+  const omitted = allData.length - data.length;
+  // Spaltenbreite bestimmt, wie viele Zeichen eine senkrechte Kategorie fassen darf (6 px je Zeichen).
+  const columnLabelMax = Math.max(4, Math.floor(AREA.width / Math.max(data.length, 1) / 6));
+  const [active, setActive] = useActiveDatum(data);
+  const scale = useMemo(() => {
+    const values = data.map((d) => d.value);
+    return niceSignedScale(Math.min(...values, 0), Math.max(...values, 0));
+  }, [data]);
+  const bars = useMemo(() => layoutBars(data, AREA, scale), [data, scale]);
+  const hBars = useMemo(() => layoutHBars(data, H_AREA, scale), [data, scale]);
+  const span = scale.max - scale.min;
   const baseline = AREA.top + AREA.height;
-  const hBaseline = H_AREA.left;
   const front = `${idPrefix}-front`;
   const glow = `${idPrefix}-glow`;
   const summaryId = `${idPrefix}-summary`;
   const summary = useMemo(
-    () => summarizeSeries(data, unit, period, 'ranking'),
-    [data, unit, period],
+    () => summarizeSeries(allData, unit, period, 'ranking', formatValue),
+    [allData, unit, period, formatValue],
   );
   const transition = reducedMotion ? '' : 'transition-opacity duration-150';
 
@@ -68,7 +128,7 @@ export function Depth3dBarChart({
 
           {scale.ticks.map((tick) => {
             if (horizontal) {
-              const x = hBaseline + (tick / scale.max) * H_AREA.width;
+              const x = H_AREA.left + ((tick - scale.min) / span) * H_AREA.width;
               return (
                 <g key={tick}>
                   <line
@@ -86,12 +146,12 @@ export function Depth3dBarChart({
                     fontSize="10"
                     fill={THEME.neutral}
                   >
-                    {formatDe(tick)}
+                    {axisLabel(tick)}
                   </text>
                 </g>
               );
             }
-            const y = baseline - (tick / scale.max) * AREA.height;
+            const y = AREA.top + ((scale.max - tick) / span) * AREA.height;
             return (
               <g key={tick}>
                 <line
@@ -109,7 +169,7 @@ export function Depth3dBarChart({
                   fontSize="10"
                   fill={THEME.neutral}
                 >
-                  {formatDe(tick)}
+                  {axisLabel(tick)}
                 </text>
               </g>
             );
@@ -122,6 +182,10 @@ export function Depth3dBarChart({
                 const top = bar.y + bar.depth;
                 const right = bar.x + bar.length;
                 const cy = top + frontThickness / 2;
+                const valueLabel = hValueLabel(
+                  bar.negative ? bar.zero : right + bar.depth,
+                  formatDe(bar.value).length,
+                );
                 return (
                   <g
                     key={bar.label}
@@ -143,13 +207,21 @@ export function Depth3dBarChart({
                           strokeWidth="1"
                         />
                         <polygon
-                          points={`${bar.x},${top} ${bar.x + bar.depth},${bar.y} ${right + bar.depth},${bar.y} ${right},${top}`}
+                          points={
+                            bar.negative
+                              ? `${bar.x},${top} ${bar.x - bar.depth},${bar.y} ${right - bar.depth},${bar.y} ${right},${top}`
+                              : `${bar.x},${top} ${bar.x + bar.depth},${bar.y} ${right + bar.depth},${bar.y} ${right},${top}`
+                          }
                           fill="#b3f9f4"
                           stroke="#7cefe6"
                           strokeWidth="1"
                         />
                         <polygon
-                          points={`${right},${top} ${right + bar.depth},${bar.y} ${right + bar.depth},${bar.y + frontThickness} ${right},${top + frontThickness}`}
+                          points={
+                            bar.negative
+                              ? `${bar.x},${top} ${bar.x - bar.depth},${bar.y} ${bar.x - bar.depth},${bar.y + frontThickness} ${bar.x},${top + frontThickness}`
+                              : `${right},${top} ${right + bar.depth},${bar.y} ${right + bar.depth},${bar.y + frontThickness} ${right},${top + frontThickness}`
+                          }
                           fill="#005e55"
                           stroke="#008a7d"
                           strokeWidth="0.8"
@@ -157,8 +229,8 @@ export function Depth3dBarChart({
                       </>
                     ) : (
                       <line
-                        x1={bar.x}
-                        x2={bar.x}
+                        x1={bar.zero}
+                        x2={bar.zero}
                         y1={top}
                         y2={top + frontThickness}
                         stroke="#7cefe6"
@@ -166,17 +238,19 @@ export function Depth3dBarChart({
                       />
                     )}
                     <text
-                      x={bar.x - 8}
+                      x={H_AREA.left - 8}
                       y={cy + 4}
                       textAnchor="end"
                       fontSize="10.5"
                       fill={THEME.neutral}
                     >
-                      {bar.label}
+                      <title>{bar.label}</title>
+                      {shortenLabel(bar.label, H_LABEL_MAX)}
                     </text>
                     <text
-                      x={right + bar.depth + 8}
+                      x={valueLabel.x}
                       y={cy + 4}
+                      textAnchor={valueLabel.anchor}
                       fontSize="11.5"
                       fontWeight="700"
                       fill="#ffffff"
@@ -205,7 +279,7 @@ export function Depth3dBarChart({
                       <>
                         <ellipse
                           cx={cx}
-                          cy={baseline}
+                          cy={bar.zero}
                           rx={Math.max(frontWidth * 0.55, 12)}
                           ry={3.5}
                           fill="rgba(0, 242, 254, 0.5)"
@@ -238,22 +312,26 @@ export function Depth3dBarChart({
                       <line
                         x1={bar.x}
                         x2={bar.x + frontWidth}
-                        y1={baseline}
-                        y2={baseline}
+                        y1={bar.zero}
+                        y2={bar.zero}
                         stroke="#7cefe6"
                         strokeWidth="2"
                       />
                     )}
                     <text
                       x={cx}
-                      y={bar.y - (hasArea ? bar.depth : 0) - 6}
+                      y={
+                        bar.negative
+                          ? negativeLabelY(bar.y + bar.height, baseline)
+                          : bar.y - (hasArea ? bar.depth : 0) - 6
+                      }
                       textAnchor="middle"
                       fontSize="11.5"
                       fontWeight="700"
                       fill="#ffffff"
                       fontFamily="var(--font-mono, monospace)"
                     >
-                      {formatDe(bar.value)}
+                      {axisLabel(bar.value)}
                     </text>
                     <text
                       x={cx}
@@ -262,7 +340,8 @@ export function Depth3dBarChart({
                       fontSize="10.5"
                       fill={THEME.neutral}
                     >
-                      {bar.label}
+                      <title>{bar.label}</title>
+                      {shortenLabel(bar.label, columnLabelMax)}
                     </text>
                   </g>
                 );
@@ -273,9 +352,17 @@ export function Depth3dBarChart({
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}
+        formatValue={formatValue}
         period={period}
+        stableHeight={stableLegend}
+        idleText={
+          omitted > 0
+            ? `Die ${data.length} größten von ${allData.length} Kategorien dargestellt, alle Werte stehen in der Tabelle.`
+            : undefined
+        }
       />
       <LegendButtons
+        stableHeight={stableLegend}
         data={data}
         activeIndex={active}
         onSelect={setActive}

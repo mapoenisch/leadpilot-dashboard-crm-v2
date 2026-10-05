@@ -2,10 +2,32 @@
 // Tooltip-Zeile mit Wert, Einheit, Kategorie und Zeitraum sowie Legenden-Schaltflächen als
 // Tastatur- und Touch-Zugang zu den Datenpunkten. Die SVG-Fläche selbst bleibt für Screenreader
 // verborgen; Werte stehen in der Tooltip-Zeile und in der Tabellenansicht.
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode, type SetStateAction } from 'react';
 import { cn } from '@/lib/utils';
 import { formatDe } from './depthGeometry';
 import type { DatumInput } from './depthGeometry';
+
+/**
+ * Auswahl eines Datenpunkts, gespeichert über sein Label statt über den Index: Sortiert ein
+ * Filterwechsel oder Refresh die Reihe neu, bleibt dieselbe Kategorie gewählt; fällt sie weg,
+ * wird die Auswahl dauerhaft gelöscht und lebt nicht wieder auf, wenn die Kategorie zurückkehrt.
+ */
+export function useActiveDatum(
+  data: readonly DatumInput[],
+): [number | null, (next: SetStateAction<number | null>) => void] {
+  const [label, setLabel] = useState<string | null>(null);
+  const index = label === null ? -1 : data.findIndex((entry) => entry.label === label);
+  const active = index >= 0 ? index : null;
+  const missing = label !== null && index < 0;
+  useEffect(() => {
+    if (missing) setLabel(null);
+  }, [missing]);
+  const setActive = (next: SetStateAction<number | null>) => {
+    const value = typeof next === 'function' ? next(active) : next;
+    setLabel(value === null ? null : (data[value]?.label ?? null));
+  };
+  return [active, setActive];
+}
 
 /**
  * Diagramme behalten ihre Lesegröße (Mindestbreite 560 px = 1:1 zur Zeichenfläche). Auf schmalen
@@ -40,23 +62,46 @@ export interface ReadoutProps {
   period: string;
   /** Anteile werden mit Prozentzeichen ohne Leerzeichen dargestellt. */
   idleText?: string;
+  formatValue?: (value: number) => string;
+  /** Zusatz hinter dem Wert, z. B. der Anteil eines Ringsegments („12,5 % Anteil“). */
+  extra?: string;
+  /** Dashboard-Kacheln: feste, intern scrollende Höhe; lange Zeitangaben verschieben nichts. */
+  stableHeight?: boolean;
 }
 
-export function ChartReadout({ entry, unit, period, idleText }: ReadoutProps) {
+/** Feste Höhe der Ablesezeile (drei Textzeilen); Überlauf scrollt, siehe `ChartReadout`. */
+export const READOUT_STABLE_CLASS = 'h-[60px] overflow-y-auto';
+
+export function ChartReadout({
+  entry,
+  unit,
+  period,
+  idleText,
+  formatValue,
+  extra,
+  stableHeight = false,
+}: ReadoutProps) {
   return (
     <p
       role="status"
       aria-live="polite"
       data-testid="chart-readout"
-      className="m-0 min-h-[40px] text-[12px] leading-[1.4] text-[var(--color-text-muted)]"
+      tabIndex={stableHeight ? 0 : undefined}
+      className={cn(
+        'm-0 text-[12px] leading-[1.4] text-[var(--color-text-muted)]',
+        stableHeight
+          ? `${READOUT_STABLE_CLASS} outline-none focus-visible:ring-2 focus-visible:ring-primary`
+          : 'min-h-[40px]',
+      )}
     >
       {entry ? (
         <>
           <span className="font-semibold text-[var(--color-text-primary,#fff)]">{entry.label}</span>
           {' · '}
           <span className="font-mono text-primary">
-            {formatDe(entry.value)} {unit}
+            {formatValue ? formatValue(entry.value) : `${formatDe(entry.value)} ${unit}`.trim()}
           </span>
+          {extra ? ` · ${extra}` : ''}
           {' · '}
           {period}
         </>
@@ -74,6 +119,8 @@ export interface LegendButtonsProps {
   /** Farben je Eintrag; ohne Angabe erscheint nur der Text. */
   colors?: readonly string[];
   ariaLabel: string;
+  /** Feste Mindesthöhe der Legendenzeile (Dashboard-Kacheln), siehe `LEGEND_RESERVE_CLASS`. */
+  stableHeight?: boolean;
 }
 
 /** Gemeinsame Klassen: Legende und Platzhalter umbrechen dadurch gleich. */
@@ -82,6 +129,13 @@ const LEGEND_CHIP_CLASS =
 export const SLIDER_ROW_CLASS =
   'flex items-center gap-[10px] text-[11.5px] text-[var(--color-text-muted)]';
 export const SLIDER_LABEL = 'Zeitpunkt wählen';
+/**
+ * Dashboard-Kacheln (Auftrag 073): Beim Laden sind die Kategorien noch unbekannt. Legende und
+ * Platzhalter erhalten deshalb dieselbe Mindesthöhe für zwei Chipzeilen; bis zu zwei Zeilen
+ * wächst die Kachel beim Datenempfang nicht. Die Höhe ist fest: weitere Zeilen (viele oder lange
+ * CRM-Stufen) scrollen innerhalb der Legende, die Schaltflächen bleiben per Tastatur erreichbar.
+ */
+export const LEGEND_RESERVE_CLASS = 'h-[62px] content-start overflow-y-auto';
 
 /** Bedienelemente unter dem Diagramm: Legende (mit oder ohne Farbpunkt) oder Zeitregler. */
 export type ChartControls = 'legend' | 'legend-dots' | 'slider';
@@ -94,9 +148,12 @@ export type ChartControls = 'legend' | 'legend-dots' | 'slider';
 export function ChartLayoutReserve({
   labels,
   controls,
+  stableLegend = false,
 }: {
   labels: readonly string[];
   controls: ChartControls;
+  /** Dieselbe feste Legendenhöhe wie `LegendButtons` mit `stableHeight`. */
+  stableLegend?: boolean;
 }) {
   return (
     <div
@@ -107,15 +164,23 @@ export function ChartLayoutReserve({
       <div className="overflow-hidden">
         <div className="aspect-[2/1] w-full min-w-[560px]" />
       </div>
-      <p className="m-0 min-h-[40px] text-[12px] leading-[1.4]">&nbsp;</p>
+      <p
+        className={cn(
+          'm-0 text-[12px] leading-[1.4]',
+          stableLegend ? READOUT_STABLE_CLASS : 'min-h-[40px]',
+        )}
+      >
+        &nbsp;
+      </p>
       {controls === 'slider' ? (
         <div className={SLIDER_ROW_CLASS}>
           <span>{SLIDER_LABEL}</span>
           <input type="range" disabled tabIndex={-1} className="min-w-0 flex-1" />
         </div>
       ) : (
-        <div className="flex flex-wrap gap-[6px]">
-          {labels.map((label) => (
+        <div className={cn('flex flex-wrap gap-[6px]', stableLegend && LEGEND_RESERVE_CLASS)}>
+          {/* Ohne bekannte Labels (Laden, blockierte Zustände) hält ein Platzhalter-Chip die Zeile. */}
+          {(labels.length > 0 ? labels : ['\u00a0']).map((label) => (
             <button key={label} type="button" disabled tabIndex={-1} className={LEGEND_CHIP_CLASS}>
               {controls === 'legend-dots' ? <svg width="8" height="8" /> : null}
               {label}
@@ -134,9 +199,14 @@ export function LegendButtons({
   onSelect,
   colors,
   ariaLabel,
+  stableHeight = false,
 }: LegendButtonsProps) {
   return (
-    <div role="group" aria-label={ariaLabel} className="flex flex-wrap gap-[6px]">
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={cn('flex flex-wrap gap-[6px]', stableHeight && LEGEND_RESERVE_CLASS)}
+    >
       {data.map((entry, index) => {
         const active = activeIndex === index;
         return (

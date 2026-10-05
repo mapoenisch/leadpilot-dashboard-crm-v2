@@ -1,0 +1,182 @@
+// Auftrag 073 (Dashboard Teilauftrag 4): Ablesezeile, Anteil im Ring und Grenzen der Zeichenfläche.
+import { describe, expect, it } from 'vitest';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { DashboardChart } from '../components/DashboardChart';
+import { hValueLabel } from '../components/charts/Depth3dBarChart';
+import { getCatalogEntry, isActiveEntry, type DashboardView } from '../model/dashboardCatalog';
+import type { ResolvedTileData } from '../data/dashboardData';
+
+const SHARES = [
+  { label: 'Starter', value: 40 },
+  { label: 'Pro', value: 35 },
+  { label: 'Enterprise', value: 25 },
+];
+
+function resolved(series: ResolvedTileData['series']): ResolvedTileData {
+  return {
+    catalogId: 'test',
+    state: 'bereit',
+    value: null,
+    series,
+    overview: null,
+    unit: 'EUR',
+    timeBasis: 'Geschäftsjahr 2025',
+    asOf: null,
+    origin: { layer: 'baseline', module: 'src/domain/x.ts', exportName: 'X' },
+    scope: 'stammdaten',
+    effectiveFilter: { mode: 'fester_stand', period: null, pipeline: null },
+  };
+}
+
+function renderChart(
+  view: DashboardView,
+  series: ResolvedTileData['series'],
+  period = 'Geschäftsjahr 2025',
+) {
+  return render(
+    <DashboardChart
+      view={view}
+      data={resolved(series)}
+      title="Testkachel"
+      period={period}
+      idPrefix="kachelR"
+      onRetryChartLoad={() => undefined}
+    />,
+  );
+}
+
+/** Sichtbarer Text je SVG-Label ohne das `<title>` mit dem Volltext. */
+function visibleLabels(root: HTMLElement): string[] {
+  return Array.from(root.querySelectorAll('text')).map((node) =>
+    Array.from(node.childNodes)
+      .filter((child) => child.nodeType === Node.TEXT_NODE)
+      .map((child) => child.textContent)
+      .join(''),
+  );
+}
+
+describe('Diagramm-Ablesezeile und Grenzen', () => {
+  it('hält die Ablesezeile fest hoch, auch mit langer Zeitangabe', async () => {
+    const user = userEvent.setup();
+    const longPeriod =
+      'Alle Deals der importierten Pipeline nach Stufen, Stand der letzten Synchronisierung';
+    renderChart('saeulen', SHARES, longPeriod);
+    await screen.findByTestId('depth-bar-chart');
+    const readout = screen.getByTestId('chart-readout');
+    expect(readout.className).toContain('h-[60px]');
+    await user.click(screen.getByRole('button', { name: /Starter/ }));
+    expect(readout).toHaveTextContent(longPeriod);
+    expect(readout.className).toContain('h-[60px]');
+    expect(readout).toHaveAttribute('tabindex', '0');
+  });
+
+  it('nennt im Ring den Anteil des gewählten Segments, in Säulen nicht', async () => {
+    const user = userEvent.setup();
+    const { unmount } = renderChart('ring', SHARES);
+    await screen.findByTestId('depth-donut-chart');
+    await user.click(screen.getByRole('button', { name: /Starter/ }));
+    expect(screen.getByTestId('chart-readout')).toHaveTextContent('Starter · 40 EUR · 40 % Anteil');
+    unmount();
+    renderChart('saeulen', SHARES);
+    await screen.findByTestId('depth-bar-chart');
+    await user.click(screen.getByRole('button', { name: /Starter/ }));
+    expect(screen.getByTestId('chart-readout')).not.toHaveTextContent('Anteil');
+  });
+
+  it('begrenzt die Zeichenfläche auf die größten Kategorien und verweist auf die Tabelle', async () => {
+    // Quellreihenfolge nach etwas anderem sortiert: die größten Werte stehen hinten.
+    const many = Array.from({ length: 25 }, (_, i) => ({ label: `Stufe ${i + 1}`, value: i + 1 }));
+    const { unmount } = renderChart('balken', many);
+    const bars = await screen.findByTestId('depth-hbar-chart');
+    expect(within(bars).getAllByTestId('depth-bar')).toHaveLength(12);
+    expect(visibleLabels(bars)).toContain('Stufe 25');
+    expect(visibleLabels(bars)).not.toContain('Stufe 1');
+    expect(screen.getByTestId('chart-readout')).toHaveTextContent(
+      'Die 12 größten von 25 Kategorien dargestellt, alle Werte stehen in der Tabelle.',
+    );
+    unmount();
+    renderChart('saeulen', many);
+    const columns = await screen.findByTestId('depth-bar-chart');
+    expect(within(columns).getAllByTestId('depth-bar')).toHaveLength(10);
+    expect(screen.getByTestId('chart-readout')).toHaveTextContent(
+      'Die 10 größten von 25 Kategorien',
+    );
+  });
+
+  it('kürzt Kategorien unter senkrechten Säulen nach Spaltenbreite, Volltext im title', async () => {
+    renderChart(
+      'saeulen',
+      Array.from({ length: 10 }, (_, i) => ({
+        label: `Sehr lange Stufe ${i + 1}`,
+        value: 10 + i,
+      })),
+    );
+    const columns = await screen.findByTestId('depth-bar-chart');
+    expect(visibleLabels(columns)).toContain('Sehr la…');
+    expect(columns.querySelector('text > title')?.textContent).toBe('Sehr lange Stufe 1');
+  });
+
+  it('hält den Hinweis einer inkompatiblen Zahlansicht in der Ladehöhe, der Rest scrollt', () => {
+    const entry = getCatalogEntry('baseline.arr_verlauf');
+    if (!entry || !isActiveEntry(entry)) throw new Error('Eintrag fehlt');
+    const series = Array.from({ length: 8 }, (_, i) => ({ label: `Q${i}`, value: i + 1 }));
+    render(
+      <DashboardChart
+        view="zahl"
+        entry={entry}
+        data={resolved(series)}
+        title="ARR-Verlauf"
+        period="2025"
+        idPrefix="kachelH"
+        onRetryChartLoad={() => undefined}
+      />,
+    );
+    const scroll = screen.getByTestId('tile-hint-scroll');
+    expect(scroll.className).toContain('max-h-[96px]');
+    expect(scroll).toHaveAttribute('tabindex', '0');
+    expect(within(scroll).getByTestId('tile-chart-hint')).toBeInTheDocument();
+  });
+
+  it('legt Balkenwerte am rechten Rand in den Balken statt aus der Zeichenfläche', () => {
+    expect(hValueLabel(300, 5)).toEqual({ x: 308, anchor: 'start' });
+    expect(hValueLabel(510, 9)).toEqual({ x: 504, anchor: 'end' });
+    expect(hValueLabel(552, 7)).toEqual({ x: 546, anchor: 'end' });
+  });
+
+  it('bricht lange Kategorienamen in der Datentabelle um', () => {
+    const long = 'Stufe_ohne_Leerzeichen_'.repeat(5);
+    renderChart('tabelle', [{ label: long, value: 5 }]);
+    const header = within(screen.getByTestId('tile-table')).getByRole('rowheader', { name: long });
+    expect(header.className).toContain('[overflow-wrap:anywhere]');
+  });
+
+  it('kürzt Achsenwerte sehr großer Beträge kompakt', async () => {
+    renderChart('saeulen', [
+      { label: 'Lead', value: 10_000_000_000 },
+      { label: 'Angebot', value: 4_000_000_000 },
+    ]);
+    const columns = await screen.findByTestId('depth-bar-chart');
+    const labels = visibleLabels(columns);
+    expect(labels.some((text) => text.endsWith('Mrd.'))).toBe(true);
+    // Auch die Werte über den Säulen sind kompakt: keine ausgeschriebenen Milliardenbeträge.
+    expect(labels.some((text) => /\d\.\d{3}\.\d{3}\.\d{3}/.test(text))).toBe(false);
+    expect(labels).toContain('10 Mrd.');
+  });
+
+  it('zeichnet die Tiefenflächen negativer Balken links der Nullachse', async () => {
+    renderChart('balken', [
+      { label: 'Verlust', value: -50 },
+      { label: 'Gewinn', value: 100 },
+    ]);
+    const bars = await screen.findByTestId('depth-hbar-chart');
+    const negative = within(bars).getAllByTestId('depth-bar')[0];
+    const rect = negative?.querySelector('rect');
+    const front = Number(rect?.getAttribute('x')) + Number(rect?.getAttribute('width'));
+    const xs = Array.from(negative?.querySelectorAll('polygon') ?? []).flatMap((polygon) =>
+      (polygon.getAttribute('points') ?? '').split(' ').map((pair) => Number(pair.split(',')[0])),
+    );
+    expect(xs.length).toBeGreaterThan(0);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(front + 0.001);
+  });
+});

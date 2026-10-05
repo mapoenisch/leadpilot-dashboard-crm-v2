@@ -1,7 +1,7 @@
 // Designprobe Dashboard-Testkachel (Teilauftrag 0): Linie und Fläche.
 // Klare Linie mit dezentem Schatten; die Datenpunkte liegen exakt auf dem Wert (keine Tiefenverschiebung).
 // Die Fläche (filled) ergänzt einen ruhigen Verlauf. Zugang für Tastatur und Touch: Bereichsregler.
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
 import {
   ChartReadout,
@@ -9,11 +9,13 @@ import {
   ScrollableChart,
   SLIDER_LABEL,
   SLIDER_ROW_CLASS,
+  useActiveDatum,
 } from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
 import {
   areaPath,
+  formatAxis,
   formatDe,
   linePath,
   linePoints,
@@ -35,14 +37,19 @@ export function DepthLineChart({
   period,
   title,
   reducedMotion,
+  formatValue,
+  stableLegend = false,
   filled = false,
 }: DepthLineChartProps) {
-  const [active, setActive] = useState<number | null>(null);
+  const [active, setActive] = useActiveDatum(data);
   const scale = useMemo(() => niceScale(Math.max(...data.map((d) => d.value), 0)), [data]);
   const points = useMemo(() => linePoints(data, AREA, scale.max), [data, scale.max]);
   const baseline = AREA.top + AREA.height;
   const summaryId = `${idPrefix}-summary`;
-  const summary = useMemo(() => summarizeSeries(data, unit, period, 'trend'), [data, unit, period]);
+  const summary = useMemo(
+    () => summarizeSeries(data, unit, period, 'trend', formatValue),
+    [data, unit, period, formatValue],
+  );
   const fillId = `${idPrefix}-area`;
   const shadowId = `${idPrefix}-line-shadow`;
   const slot = points.length > 1 ? AREA.width / (points.length - 1) : AREA.width;
@@ -93,7 +100,7 @@ export function DepthLineChart({
                   fontSize="10"
                   fill={THEME.neutral}
                 >
-                  {formatDe(tick)}
+                  {formatValue ? formatAxis(tick) : formatDe(tick)}
                 </text>
               </g>
             );
@@ -168,7 +175,9 @@ export function DepthLineChart({
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}
+        formatValue={formatValue}
         period={period}
+        stableHeight={stableLegend}
       />
       <label className={SLIDER_ROW_CLASS}>
         <span>{SLIDER_LABEL}</span>

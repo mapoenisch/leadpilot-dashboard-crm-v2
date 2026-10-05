@@ -14828,3 +14828,226 @@ Gates auf diesem Stand: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:
 | 4176371371 (P2) Backup-Probe bleibt nach dem Lauf bestehen | `verifyBackupRestore.mjs` merkt sich per `RETURNING`, ob die Probe angelegt wurde, und entfernt sie im `finally` wieder (Prüfpunkt „Backup-Probe wieder entfernt“). SQL lokal geprüft: erster Lauf legt an, zweiter nicht, Aufräumen hinterlässt 0 Zeilen. |
 
 Gates: `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0; Schutzbereichs-Diff leer.
+
+**Lokaler Nachweis Docker-Supabase (Marc, 04.10.2026, Stand `main` 92180d3):** Die beiden in der Cloud-Umgebung offenen Skripte liefen lokal gegen den Supabase-Stack `LeadPilot_Dashboard-CRM`. Vorher `supabase db reset` mit Seed (Basisschema vorübergehend als `20260101000000_base_schema.sql` bereitgestellt und danach wieder entfernt, Arbeitsbaum sauber).
+
+- `node scripts/verifyMigrationUpgrade.mjs`: **GRÜN.** Leere DB mit allen 23 Migrationen, Upgrade von v2.2.0, Bestandszeilen dem Demo-Mandanten zugeordnet (4/4), Demo-Bootstrap idempotent, keine offene `USING(true)`-Policy (lp_fresh, lp_upgrade), Schema nach Upgrade = Schema aus leerer DB (368 Katalogeinträge), pgTAP gegen hochgezogene DB PASS.
+- `npm run verify:backup`: **GRÜN.** Ausgangsstand Login und RLS (3 Companies aus 1 Organisation), Präferenz-Probe angelegt (`1:53f3b839…`), Backup mit `auth.users`/`auth.identities` (53 Tabellen), nach Reset ohne Seed 0 Benutzer, Zeilen je Tabelle identisch, Prüfsumme `auth.users`/`identities` und Trigger `on_auth_user_confirmed_accept_invitation` identisch, persönliche Dashboard-Konfigurationen inhaltlich identisch (Konfiguration, Version, Revision), Login nach Restore mit RLS nur eigene Organisation, Backup-Probe wieder entfernt.
+
+Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster Backup-Lauf scheiterte mit „Login HTTP 400“, weil statt des Seed-Testpassworts ein Platzhalter übergeben wurde; kein Codefehler.
+
+---
+
+## Auftrag 073 – Detailauftrag Dashboard Teilauftrag 4 (Kachelrahmen und Diagramme), Builder Claude Code
+
+**Ziel & Kontext:** Marc am 04.10.2026: „Teilauftrag 4 schreiben“. Detailauftrag nach Plan `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, Teilauftrag 4, auf Basis `main` `92180d3`, abgestimmt mit der Designfreigabe der Testkachel (`f779901`) und den Datenverträgen aus Auftrag 070/071. [Detailauftrag](auftraege/ANTIGRAVITY_AUFTRAG_073_DASHBOARD_KACHELRAHMEN_DIAGRAMME.md). Begründete Abweichung vom Plantext: Linie/Fläche aus den freigegebenen SVG-Diagrammen statt Recharts.
+
+**Geänderte Dateien:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_073_DASHBOARD_KACHELRAHMEN_DIAGRAMME.md` (neu), `docs/BUILD_LOG.md`. Kein Code.
+
+**Nacharbeit Codex-Review zum Auftragstext (PR #57, Head 040b83d, Review 5406780032):**
+
+| Befund | Behebung im Auftrag |
+|---|---|
+| 4178163875 (P1) Auftrag 073 nicht im BUILD_LOG | Dieser Eintrag. |
+| 4178163868 (P2) Netzwerknachweis `?ansicht=zahl` scheitert an der Testkachel (startet mit „Säulen“) | Mit `?ansicht=` blendet die Vorschauseite die Testkachel aus; ohne Parameter unverändert. |
+| 4178163872 (P2) Zeitbezug je Kachel fehlt (Plan §4 „Filter“) | Kachelkopf zeigt „Dashboard-Filter“ / „Eigener Zeitraum“ / „Fester historischer Stand“ aus `effectiveFilter.mode`, gesetzten Zeitraum/Pipeline und `periodReason`/`pipelineReason`; Tests und Galeriebeispiele ergänzt. |
+| 4178163871 (P2) Live-Geltungsbereich ohne Hinweis (Auftrag 071) | Sichtbarer Hinweis bei `scope: 'organisationsuebergreifend'`, Test positiv und negativ, Galeriebeispiel. |
+| 4178163878 (P2) leere Reihe rendert leeres Diagramm | Leere `series` bei reihenbasierten Darstellungen ergibt „Keine Daten“ ohne Diagramm und ohne Regler, auch bei `state: 'bereit'`; Regressionstest und Galeriebeispiel. |
+
+**Gates:** Siehe Umsetzungseintrag unten; alle Pflicht-Gates laufen auf dem gemeinsamen Stand von Auftragstext und Umsetzung (Codex-Befund 4178188843). Schutzbereichs-Diff gegen `92180d3` leer.
+
+**Ergebnis:** Auftragstext nach Codex-Runde 1 überarbeitet; Umsetzung auf Marcs Freigabe vom 04.10.2026 („nach dem Codex-Review direkt bauen“) im selben PR.
+
+---
+
+## Auftrag 073 – Umsetzung Dashboard Teilauftrag 4 (Kachelrahmen und Diagramme), Builder Claude Code
+
+**Ziel & Kontext:** Umsetzung von [Auftrag 073](auftraege/ANTIGRAVITY_AUFTRAG_073_DASHBOARD_KACHELRAHMEN_DIAGRAMME.md) auf Basis `main` `92180d3`, Branch `claude/elegant-cerf-g28p04` (PR #57). Freigabe Marc 04.10.2026: „nach dem Codex-Review direkt bauen“.
+
+**Geänderte Dateien:**
+- Verschoben (`git mv`) von `preview/` nach `components/charts/`: `Depth3dBarChart.tsx`, `Depth3dDonutChart.tsx`, `DepthLineChart.tsx`, `DepthAreaChart.tsx`, `ChartReadout.tsx`, `chartTypes.ts`, `depthGeometry.ts`, `ChartModuleBoundary.tsx` (jetzt mit `FocusAfterLoad`); Test `depthGeometry.vitest.ts` nach `__tests__/`.
+- `depthGeometry.ts`: `niceSignedScale`, `assertFinite`, `layoutBars`/`layoutHBars` mit Nullachse, negativen Werten und 2-px-Mindestsichtbarkeit (`MIN_VISIBLE_PX`). `Depth3dBarChart.tsx` zeichnet danach. Optionale Formatierung `formatValue` in `chartTypes.ts`, `ChartReadout.tsx`, `summarizeSeries` und allen Diagrammen; Ringmitte nennt die Einheit.
+- Neu: `components/charts/chartLoaders.ts`, `components/tileFormat.ts`, `components/TileStatus.tsx`, `components/TileValue.tsx`, `components/TileOverview.tsx`, `components/DashboardChart.tsx`, `components/DashboardTile.tsx`, `preview/TileGalleryPreview.tsx`, `preview/tileGallerySampleData.ts`, `scripts/captureAuftrag073Screenshots.mjs`, `docs/screenshots/auftrag-073/README.md`.
+- Angepasst: `preview/DashboardDesignPreview.tsx` (Importe, Loader aus `chartLoaders.ts`, Verhalten unverändert), `preview/DashboardPreviewPage.tsx` (Galerie, `?ansicht=`), `preview/previewSampleData.ts` (Importpfad), `preview/__tests__/DashboardDesignPreview.ui.vitest.tsx` (Importpfad).
+- Tests neu: `tileFormat.vitest.ts` (8), `DashboardChart.ui.vitest.tsx` (25), `DashboardTile.ui.vitest.tsx` (26 inkl. Galerie); `depthGeometry.vitest.ts` um Vorzeichen- und Kleinwertfälle ergänzt (die beiden bisherigen Prüfungen „negative Werte werden abgewiesen“ für Säulen/Balken ersetzt, weil der Auftrag genau dieses Verhalten ändert; Kreis/Ring weist negative Werte weiter ab).
+
+**Funktionale Prüfungen:** Jede Darstellung rendert; Säulen/Balken mit negativen Werten unter bzw. links der Nullachse, Nullwerte ohne Fläche, Kleinstwerte 2 px bei exakter Beschriftung; Kreis/Ring mit negativem Wert oder Summe 0 und Linie/Fläche mit negativen Werten zeigen einen erklärten Hinweis plus Tabelle; leere Reihe und nicht endliche Werte → „Keine Daten“ ohne Diagramm und Regler; Zahl kompakt (z. B. „2,35 Mio. EUR“), Tabelle und Screenreader exakt; Zeitbezug in allen drei Modi samt Zeitraum, Pipeline und `periodReason`; Live-Geltungsbereichshinweis nur bei `organisationsuebergreifend`; `offline` ohne Wert, `veraltet` mit Wert und Zeitstempel, `fehler` ohne `message` mit verständlichem Text; „Details“ per Klick und Tastatur auch im Fehlerzustand; ohne Katalogeintrag keine erfundenen Metadaten; zwei identische Ring-Kacheln mit getrennten SVG-IDs und einmaligem Modulabruf; reduzierte Bewegung durchgereicht.
+
+**Nachladen:** Vorschau-Build erzeugt getrennte Chunks `Depth3dBarChart-*.js`, `Depth3dDonutChart-*.js`, `DepthLineChart-*.js`, `DepthAreaChart-*.js`. Netzwerknachweis: `?ansicht=zahl` lädt kein Diagrammmodul, `?ansicht=ring` nur `Depth3dDonutChart`.
+
+**Startbundle:** `npx size-limit` 175,44 kB (Basis `92180d3`: 175,42 kB). Der Unterschied stammt nur aus geänderten Chunk-Dateinamen: `index-*.js` ist nach Entfernen der Hashes inhaltsgleich zur Basis. Kein Import der neuen Module aus `src/app` oder `src/features/overview` (Diff leer).
+
+**Screenshot-Matrix:** [docs/screenshots/auftrag-073/README.md](screenshots/auftrag-073/README.md): Vorher/Nachher-Paare auf 1440/768/375 px verschieden, 0 px Seitenüberlauf, axe serious/critical 0, Fokus füllt die Ablesezeile je Diagrammart, Netzwerknachweis grün. Bilder lokal geprüft (u. a. negative Säulen/Balken, Ring auf 375 px scrollbar innerhalb der Kachel wie freigegeben).
+
+**Nacharbeit Codex-Review zum Auftragstext, Runde 2 (Head 07d008b, Review 5406814115):**
+
+| Befund | Behebung |
+|---|---|
+| 4178188843 (P1) Gates auch für die Auftragsänderung | Gates laufen auf dem gemeinsamen Stand (unten), Doku-Ausnahme gestrichen. |
+| 4178188848 (P2) `offline` widerspricht Vertrag 071 | `offline` ohne Wert („noch kein Wert empfangen“), Werterhalt nur bei `veraltet`; Test und Galerie angepasst. |
+| 4178188851 (P2) Einheitenformatierung in den Diagrammen | `formatValue` für Ablesezeile und Kurzfassung, Ringmitte mit Einheit; UI-Tests „3,0x“, „EUR gesamt“, „Summe 100 EUR“. |
+| 4178188855 (P2) Fehler ohne `message` | Fallback „Die Daten konnten nicht geladen werden.“; Test mit Live-Aktivität ohne `message`. |
+| 4178188858 (P2) Accessibility-Nachweis | axe serious/critical je Breite im Skript und in der Matrix, Exit ungleich 0 bei Verstoß. |
+| 4178188864 (P2) `previewSampleData.ts` fehlt in Ziel-Dateien | Ergänzt (nur Importpfad). |
+| 4178188867 (P2) unveränderte Screenshot-Paare | Paarvergleich je Breite, fehlendes oder identisches Paar → Exit ungleich 0. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1960 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0, `node scripts/captureAuftrag073Screenshots.mjs` 0.
+
+**Schutzbereichs-Diff** gegen `92180d3` (`src/simulation src/types src/context src/services/data src/features/resources`): leer.
+
+**Ergebnis & Freigabestatus:** Builder fertig. Offen: PR-CI, Codex-Prüfung des Umsetzungsstands, Sichtprüfung der Galerie durch Marc (CI-Artefakt `dashboard-preview`), Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 1 (Head 0a5be33, Review 5406900105):**
+
+| Befund | Behebung |
+|---|---|
+| 4178276505 (P2) Legendenhöhe ohne geladene Daten | `ChartLayoutReserve` zeigt ohne Labels einen unsichtbaren Platzhalter-Chip, die Legendenzeile ist damit beim Laden und in blockierenden Zuständen reserviert; UI-Test für `laden`/`fehler` bei Säulen, Balken, Ring. |
+| 4178276513 (P2) Balkenauswahl nur über den Index | Neuer Hook `useActiveDatum` (`ChartReadout.tsx`) speichert das Label statt des Index; genutzt von Säulen/Balken, Kreis/Ring und Linie/Fläche. Nach Umsortierung bleibt dieselbe Kategorie gewählt, fällt sie weg, ist nichts gewählt; UI-Test mit `rerender`. |
+| 4178276515 (P2) Ungültige Übersichtsansicht nur als „Keine Daten“ | Der Kompatibilitätshinweis wird vor dem Übersichts-Sonderfall ausgewertet; UI-Test `baseline.arr` mit `uebersicht` zeigt „passt nicht“. |
+| 4178276509 (P2) Negativer Wert überlagert die Kategorie | `negativeLabelY`: Wert unter dem Säulenende nur mit Abstand zur Kategoriezeile, sonst innerhalb der Säule; Unit-Test für Säule bis zum unteren Rand. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1966 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,44 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Matrix aktualisiert, 0 px Überlauf, axe 0, Netzwerknachweis grün).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 2 (Head f344574, Review 5406971378):**
+
+| Befund | Behebung |
+|---|---|
+| 4178319844 (P2) gewählter eigener Zeitraum unsichtbar | Zeitbezug nennt bei `eigener_zeitraum` ohne wirksamen Zeitraum „gewählt: <tile.period>“; Galerie wie der produktive Resolver (`effectiveFilter.period: null`); UI-Test. |
+| 4178319850 (P2) mehrzeilige Legende springt | `LEGEND_RESERVE_CLASS` (Mindesthöhe für zwei Chipzeilen) für Platzhalter und fertige Legende der Dashboard-Diagramme (`stableLegend`); Testkachel unverändert. Mehr als zwei Zeilen entstehen erst bei vielen Kategorien auf schmalen Kacheln. Zusätzlich reserviert der Platzhalter die Zeile „Werte als Tabelle“: Das Prüfskript fand dort einen Sprung von 28 px, jetzt gleiche Inhaltshöhe auf 1440/768/375 px (430/461/430 px). |
+| 4178319856 (P2) Tabellenplatzhalter zu klein | Tabelle und Übersicht mit fester Höhe 240 px in allen Zuständen, fertiger Inhalt als fokussierbarer Scrollbereich; UI-Test. |
+| 4178319859 (P2) keine Live-Region für Zustandswechsel | Dauerhafte `role="status"`-Region je Kachel meldet blockierende Zustände („Fehler: …“); UI-Test Laden → Fehler mit derselben Region. |
+| 4178319860 (P2) kein echter Hover im Screenshot-Gate | Skript fährt je Diagrammart mit der Maus auf ein gezeichnetes Datum und prüft Hervorhebung (`data-active`) und Ablesezeile getrennt vom Fokuspfad; Exit ungleich 0 bei Fehlschlag; Matrix um Hover-Tabelle ergänzt. |
+| 4178319864 (P2) Fokus geht beim Datenempfang verloren | Fokusstatus des Ladeplatzhalters liegt in der Kachel; nach dem Wechsel aus `laden` übernimmt der Inhaltsbereich (`tabIndex=-1`) den Fokus; UI-Test. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1971 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,44 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (0 px Überlauf, axe 0, Hover und Fokus je Diagrammart, Höhe Laden = fertig, Netzwerknachweis grün).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 3 (Head 244f8a2, Review 5407074372):**
+
+| Befund | Behebung |
+|---|---|
+| 4178372241 (P2) Wert-Fallbacks einer Diagrammkachel schrumpfen | „Keine Daten“ und Hinweise samt Tabelle stehen bei Diagrammansichten in `ChartFrame`: unsichtbares Diagrammgerüst plus Zeile „Werte als Tabelle“, Inhalt darüber (bei Hinweisen fokussierbarer Scrollbereich). Prüfskript misst zusätzlich Linie „mittel“ leer gegen mit Daten: gleich hoch auf allen Breiten (385/416/385 px). UI-Tests. |
+| 4178372243 (P2) verschwundene Auswahl lebt wieder auf | `useActiveDatum` löscht das gespeicherte Label, sobald die Kategorie fehlt; kehrt sie zurück, ist nichts gewählt. UI-Test mit zweifachem `rerender`. |
+| 4178372244 (P2) Wechsel auf `veraltet` nicht angesagt | Live-Region meldet „Wert veraltet. Stand …“; UI-Test bereit → veraltet mit derselben Region. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1974 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0.
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 4 (Head c43a148, Review 5407132288):**
+
+| Befund | Behebung |
+|---|---|
+| Review 5407132288 (P2) Ringlegende: langer Paketname läuft in die Prozentangabe | `shortenLabel` kürzt das sichtbare Label der Ringlegende auf 16 Zeichen; der Volltext steht im `<title>` des Labels, die Legendenschaltflächen darunter nennen ihn ebenfalls. UI-Test mit „Pro (Individuell / Ref. 80€)“. |
+| 4178415246 (P2) Balkenansicht: lange CRM-Stufennamen ragen aus dem linken Rand | Sichtbares Label der Balkenansicht auf 14 Zeichen gekürzt, Volltext im `<title>`; derselbe UI-Test. Säulenansicht unverändert (Kategorien stehen dort unter den Säulen, nicht im festen Rand). |
+| 4178415254 (P2) verschlechterte Datenqualität nicht angesagt | Live-Region meldet bei `quality: 'degradiert'` „Datenqualität eingeschränkt.“ (nicht blockierende Zustände behalten Vorrang). UI-Test mit Wechsel von normal zu degradiert. |
+| 4178415251 (P2) Legende bricht bei vielen oder langen CRM-Stufen auf mehr als zwei Zeilen | `LEGEND_RESERVE_CLASS` ist jetzt eine feste Höhe (`h-[62px]`, `overflow-y-auto`) für Platzhalter und fertige Legende: weitere Zeilen scrollen innerhalb der Legende, die Schaltflächen bleiben per Tastatur erreichbar. Die Restgrenze „mehr als zwei Legendenzeilen“ entfällt damit. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1976 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (173,38 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig: 430/461/430 px, Linie leer = voll: 385/416/385 px; Matrix aktualisiert).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 5 (Head 5f98560, Review 5407192915):**
+
+| Befund | Behebung |
+|---|---|
+| Review 5407192915 (P2) Ablesezeile wächst bei langer Zeitangabe | Dashboard-Kacheln (`stableLegend`): Ablesezeile und Platzhalter haben eine feste Höhe von 60 px (drei Zeilen), Überlauf scrollt, fokussierbar. Testkachel unverändert. Prüfskript: Höhe Laden = fertig weiterhin gleich (450/481/450 px, Linie 405/436/405 px). UI-Test mit langer Zeitangabe. |
+| 4178467767 (P2) degradierte Live-Ereignisse ohne Kennzeichnung | `TileOverview` zeigt je Ereignis mit `qualityStatus: 'degraded'` das Badge „Eingeschränkt“; UI-Test positiv und negativ. |
+| 4178467756 (P2) nur sechs von bis zu zehn Ereignissen | Begrenzung auf sechs Zeilen entfernt (auch Team und Roadmap); der feste 240-px-Rahmen scrollt. UI-Tests mit zehn Ereignissen und allen Releases. |
+| 4178467774 (P2) Team-Übersicht ohne Struktur und Engpässe | Neben den Kennzahlen zeigt die Kachel jetzt Teamstruktur (Wurzel, Einheiten, Summe) und Engpässe samt Maßnahmen; UI-Test. |
+| 4178467763 (P2) Zeichenfläche bei vielen CRM-Stufen | Säulen zeigen höchstens 10, Balken höchstens 12 Kategorien lesbar; die Ablesezeile nennt „N von M Kategorien dargestellt, alle Werte stehen in der Tabelle“, Zeile „Werte als Tabelle“ und Kurzfassung enthalten alle. Senkrechte Kategorienamen werden nach Spaltenbreite gekürzt (Volltext im `<title>`). UI-Tests mit 25 Stufen. |
+| 4178467776 (P2) Anteil des Ringsegments fehlt | Ablesezeile von Ring und Kreis nennt den Anteil („40 % Anteil“); nur dort, nicht in Säulen, Balken oder Linien. UI-Test. |
+| 4178467770 (P2) interne Einheit `count` sichtbar | `formatTileValue` gibt `count` als einheitenlose Anzahl aus; UI-Test. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1984 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0.
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 6 (Head de842d0, Review 5407275632):**
+
+| Befund | Behebung |
+|---|---|
+| 4178550700 (P2) interne Resolvermeldungen im Fehlerzustand | Der Fehlerzustand zeigt immer „Die Daten konnten nicht geladen werden.“; Meldungen mit internen Exporten und Feldern erscheinen nicht in der Kachel (auch nicht in der Live-Region). UI-Tests angepasst, Meldung mit „Export …“ darf nicht erscheinen. |
+| 4178550697 (P2) Roadmap ohne Beschreibung | Jeder Release zeigt `desc` unter dem Titel; UI-Test über alle Releases. |
+| 4178550693 (P2) Hinweis der inkompatiblen Zahlansicht verschiebt Höhe | Der Hinweis samt Tabelle steht bei `zahl` in einem fokussierbaren Scrollbereich mit höchstens 96 px (Ladehöhe); UI-Test mit achtzeiliger Reihe. |
+| 4178550690 (P2) Balkenwerte ragen über den rechten Rand | `hValueLabel`: Passt der Wert nicht in die Zeichenfläche, steht er rechtsbündig innerhalb des Balkens (positiv am rechten Rand, rein negativ an der Nullachse). Unit-Test der Grenzfälle. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1986 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,44 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig: 450/481/450 px, Linie leer = voll: 405/436/405 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 7 (Head 639152a, Review 5407939040):**
+
+| Befund | Behebung |
+|---|---|
+| 4179129185 (P2) übernommener Fokus unsichtbar | Der Inhaltsbereich (`tile-body`) hat `focus-visible:ring-2` und zeigt den Fokus nach dem Ladeabschluss. UI-Test. |
+| 4179129174 (P2) Live-Hinweise verschieben die Kachel | Der Hinweisbereich bei Live-Kacheln (`tile-notice-slot`) reserviert zwei Zeilen (36 px) in allen Zuständen. Das Prüfskript misst ihn an allen Live-Kacheln der Galerie: gleich hoch (36 px) auf 1440/768/375 px; Ergebnismatrix ergänzt. |
+| 4179129179 (P2) abgeleiteter Leerzustand nicht angesagt | Ein bereiter Zustand, der als „Keine Daten“ erscheint (leere Reihe, fehlende Übersicht), wird in der Live-Region angesagt (`isDerivedEmpty` über dieselbe Eignungsprüfung wie die Darstellung). UI-Test Laden → leere Reihe. |
+| 4179129190 (P2) Kürzung nach Quellreihenfolge statt nach Messgröße | Mehr als 10 (Säulen) bzw. 12 (Balken) Kategorien: Es erscheinen die größten nach dem dargestellten Wert; der Hinweis lautet „Die N größten von M Kategorien dargestellt“. UI-Test mit 25 Kategorien in aufsteigender Quellreihenfolge. |
+| 4179129191 (P2) abgelehnte zentrale Pipeline unsichtbar | `DashboardTile` nimmt optional `dashboardFilters` und zeigt im Zeitbezug „Pipeline gewählt: …“ (Kachelwahl vor zentraler Wahl), wenn der Resolver die Pipeline nicht anwendet. `model/**` bleibt unverändert (Auftrag: nur lesen). UI-Test. |
+| 4179129195 (P2) lange Pipeline-Namen verbreitern die Kachel | Zeitbezug-Absätze brechen innerhalb langer Namen um (`overflow-wrap:anywhere`); Überlauf bleibt 0 px. UI-Test. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1990 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 36 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 8 (Head e45b8bc, Review 5408006405):**
+
+| Befund | Behebung |
+|---|---|
+| 4179186538 (P2) abgelehnter Dashboard-Zeitraum unsichtbar | Im Modus `dashboard` nennt der Zeitbezug „gewählt: <dashboardFilters.period>“, wenn der Resolver keinen Zeitraum anwendet (wie bei der Pipeline). UI-Test. |
+| 4179186549 (P2) lange Kategorien sprengen die Datentabelle | Zeilenköpfe der Tabelle brechen innerhalb langer Namen um (`overflow-wrap:anywhere`). UI-Test mit 115 Zeichen ohne Leerzeichen. |
+| 4179186553 (P2) Rückkehr zu aktuellen Daten nicht angesagt | Die Live-Region meldet nach „veraltet“ oder „eingeschränkt“ beim Wechsel zu normalen Daten „Wert wieder aktuell.“; ein erneuter Warnzustand oder ein blockierender Zustand setzt die Meldung zurück. UI-Test. |
+| 4179186543 (P2) unpassende Übersicht als „Keine Daten“ angesagt (Fehler aus Runde 7) | `isDerivedEmpty` wertet zuerst `checkTileValues` aus: Bei einem Kompatibilitätshinweis bleibt die Live-Region still, nur ein echter Leerzustand wird angesagt. UI-Test mit `baseline.arr` + `uebersicht`. |
+| 4179186544 (P2) kombinierter Live-Zustand sprengt den Hinweisplatz | Hinweisplatz fest `h-[56px]` mit `overflow-y-auto` (Raum für drei Zeilen), bei Warnzustand als Bereich „Hinweise zur Datenqualität“ per Tastatur scrollbar. Prüfskript: alle Live-Kacheln der Galerie 56 px auf 1440/768/375 px. UI-Test für `veraltet` + `degradiert`. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1995 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 56 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 9 (Head e2f8977, Review 5408098734):**
+
+| Befund | Behebung |
+|---|---|
+| Review 5408098734, Depth3dBarChart L162–169 (P2) Achsenwerte sehr großer Beträge ragen aus dem Rand | `formatAxis` kürzt Achsenwerte kompakt („10 Mrd.“, „2,5 Mio.“); nur bei Dashboard-Kacheln (`formatValue` gesetzt), auch in der Linienansicht. Die Testkachel bleibt unverändert; exakte Werte stehen in Ablesezeile, Kurzfassung und Tabelle. Unit- und UI-Test. |
+| Review 5408098734, Depth3dBarChart L206–213 (P2) Tiefenfläche negativer Balken ragt über die Nullachse | Bei negativen Balken sind Ober- und Seitenfläche nach links gespiegelt (Tiefe am linken Balkenende); keine Fläche rechts der Nullachse. UI-Test prüft die x-Koordinaten. |
+| 4179238248 (P2) kombinierte Live-Warnungen nur zur Hälfte angesagt | Die Live-Region nennt bei `veraltet` plus `degradiert` beide Meldungen in einem Text. UI-Test. |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (1999 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 56 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+**Nacharbeit Codex-Review zur Umsetzung, Runde 10 (Head 51428c0, Review 5408187577):**
+
+| Befund | Behebung |
+|---|---|
+| Review 5408187577, Depth3dBarChart L334 (P2) Werte über schmalen Säulen ausgeschrieben | Auch die Werte über den Säulen sind bei Dashboard-Kacheln kompakt („10 Mrd.“); exakte Werte stehen in Ablesezeile, Kurzfassung und Tabelle. UI-Test: kein ausgeschriebener Milliardenbetrag im Diagramm. |
+| 4179294259 (P2) Screenshot-Skript über der Dateigrenze | Das Skript hat 397 Zeilen (vorher 404; `CHART_TESTIDS` wird aus `HOVER_MARKS` abgeleitet). Alle Dateien dieses Stands liegen unter 400 Zeilen; `DashboardTile.tsx` blieb dabei unter 400, indem `TimeReference` nach `TileStatus.tsx` verschoben wurde (Zieldatei des Auftrags). Hinweis: ESLint `max-lines` zählt ohne Leerzeilen und Kommentare und erfasst `.mjs` unter `scripts/` nicht; die Prüfung der physischen Zeilen erfolgte per `wc -l` über alle geänderten Dateien. |
+| 4179294253 (P2) Kopfhöhe springt beim Live-Zeitstempel | Live-Kacheln ohne `asOf` hängen im Kopf einen unsichtbaren, für Screenreader ausgeblendeten Platzhalter „· Stand 00.00.0000, 00:00“ an die Metazeile, damit der Umbruch dem Endzustand entspricht. UI-Test (Laden, mit Stand, Stammdaten). |
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2000 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,43 kB), `node scripts/captureAuftrag073Screenshots.mjs` 0 (Höhe Laden = fertig 450/481/450 px, Linie leer = voll 405/436/405 px, Hinweisplatz Live 56 px).
+
+**Schutzbereichs-Diff** gegen `92180d3`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

@@ -2,12 +2,21 @@
 // Stil nach Referenz Marc (02.10.2026): Türkis-Abstufung, dunkle Fugen zwischen den Segmenten,
 // Wölbung durch Verlauf (innen dunkler, Außenkante heller), Licht von oben wie bei den Säulen,
 // dezentes Leuchten. Keine Neigung und keine Verschiebung: Die Winkel bleiben exakte Anteile.
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
-import { ChartReadout, ChartSummary, LegendButtons, ScrollableChart } from './ChartReadout';
+import {
+  ChartReadout,
+  ChartSummary,
+  LegendButtons,
+  ScrollableChart,
+  useActiveDatum,
+} from './ChartReadout';
 import { CHART_VIEWBOX, shareColors, shadeHex } from './chartTypes';
 import type { DepthChartProps } from './chartTypes';
-import { donutSegments, formatDe, summarizeSeries } from './depthGeometry';
+import { donutSegments, formatDe, shortenLabel, summarizeSeries } from './depthGeometry';
+
+/** Legendenspalte neben dem Ring: Platz für etwa 16 Zeichen vor der Prozentangabe. */
+const LEGEND_LABEL_MAX = 16;
 
 const RING_GEOMETRY = { cx: 180, cy: 136, outer: 104, inner: 66 };
 // Kreis: gleiche Lage, nur ohne Aussparung.
@@ -34,10 +43,12 @@ export function Depth3dDonutChart({
   period,
   title,
   reducedMotion,
+  formatValue,
+  stableLegend = false,
   solid = false,
 }: DepthChartProps) {
   const GEOMETRY = solid ? PIE_GEOMETRY : RING_GEOMETRY;
-  const [active, setActive] = useState<number | null>(null);
+  const [active, setActive] = useActiveDatum(data);
   const segments = useMemo(() => donutSegments(data, GEOMETRY), [data, GEOMETRY]);
   const colors = useMemo(() => shareColors(data.map((entry) => entry.value)), [data]);
   const colorOf = (index: number) => colors[index] ?? '#1E7F7C';
@@ -46,7 +57,10 @@ export function Depth3dDonutChart({
   const sheen = `${idPrefix}-ring-sheen`;
   const hole = `${idPrefix}-ring-hole`;
   const summaryId = `${idPrefix}-summary`;
-  const summary = useMemo(() => summarizeSeries(data, unit, period, 'share'), [data, unit, period]);
+  const summary = useMemo(
+    () => summarizeSeries(data, unit, period, 'share', formatValue),
+    [data, unit, period, formatValue],
+  );
   const transition = reducedMotion ? '' : 'transition-opacity duration-150';
 
   return (
@@ -161,7 +175,7 @@ export function Depth3dDonutChart({
                 fontSize="10.5"
                 fill={MANAGEMENT_CHART_THEME.colors.neutral}
               >
-                gesamt
+                {unit && unit !== '%' ? `${unit} gesamt` : 'gesamt'}
               </text>
             </>
           )}
@@ -170,7 +184,8 @@ export function Depth3dDonutChart({
               <g key={segment.label} transform={`translate(0 ${segment.index * 30})`}>
                 <rect width="10" height="10" y="-9" rx="2" fill={colorOf(segment.index)} />
                 <text x="18" fontSize="12" fill="#e6f3f1">
-                  {segment.label}
+                  <title>{segment.label}</title>
+                  {shortenLabel(segment.label, LEGEND_LABEL_MAX)}
                 </text>
                 <text
                   x="180"
@@ -190,9 +205,17 @@ export function Depth3dDonutChart({
       <ChartReadout
         entry={active === null ? null : (data[active] ?? null)}
         unit={unit}
+        formatValue={formatValue}
         period={period}
+        stableHeight={stableLegend}
+        extra={
+          active === null || !segments[active]
+            ? undefined
+            : `${formatDe(Math.round(segments[active].share * 1000) / 10)} % Anteil`
+        }
       />
       <LegendButtons
+        stableHeight={stableLegend}
         data={data}
         activeIndex={active}
         onSelect={setActive}
