@@ -15104,3 +15104,20 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `fbb7244`: leer.
 
 **Ergebnis & Freigabestatus:** Umsetzung fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Aufträge 074/075 – Nacharbeit Codex-Prüfung (PR #58, Head ad55a2d, Prüfung 08:58 UTC), Builder Claude Code, 05.10.2026
+
+**Ergebnis der Prüfung:** Die Umsetzung von Auftrag 075 ist ohne Beanstandung (CI für den Head grün; Teständerung geprüft, Tests dort nicht lokal ausgeführt). Im Auftragstext 074 nannte die Prüfung zwei Widersprüche vor der Umsetzung; sie sind im Auftragstext behoben. Keine Merge-Freigabe durch Codex; Merge bleibt bei Marc.
+
+| Befund | Behebung im Auftrag 074 |
+|---|---|
+| Erhalt ungültiger Kachelkonfigurationen widerspricht dem Lade- und Speichervertrag (`interpretStoredConfig` ersetzt eine abgelehnte Konfiguration durch die Standardansicht, `save` lehnt Ungültiges ab; beide Module nur lesbar) | Der garantierte Erhalt gilt nur für Kacheln mit unbekannter oder inaktiver KPI in einer strukturell gültigen Konfiguration (`kind: 'gespeichert'`, Liste `unavailable`). Eine insgesamt abgelehnte Konfiguration (z. B. unzulässige Darstellungs-/Größenkombination) fällt auf `kind: 'ungueltig'` mit Standardansicht und Hinweis; ein erweiterter Lade-/Speichervertrag ist ausdrücklich nicht Teil des Auftrags. Tests, Abnahme und Beschreibung von `UnavailableTileSlot` angepasst. |
+| Sofortige Aktivierung der ersten drei Kacheln widerspricht dem Sichtbarkeitsnachweis (auf 375 px können sie außerhalb von Bereich und Vorlauf liegen) | Die Sonderregel entfällt (Plan §5 verlangt nur „Startkacheln im sichtbaren Bereich sofort aktivieren“). Aktiviert wird ausschließlich über den Beobachter; Kacheln im Startbereich aktivieren sich beim ersten Beobachterereignis ohne Verzögerung. `initiallyActive` entfällt. Test- und Netzwerknachweis (nur sichtbare Kacheln und Vorlauf) sind damit widerspruchsfrei. |
+
+**Geänderte Dateien:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md`, `docs/BUILD_LOG.md`. Kein Code.
+
+**Automatisierte Verifikation (Exit-Codes, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Schutzbereichs-Diff gegen `fbb7244` leer.
+
+**Ergebnis & Freigabestatus:** Auftragstext 074 überarbeitet. Offen: erneute Codex-Prüfung des PR, Marcs Merge; Auftrag 074 wird erst danach gebaut.
