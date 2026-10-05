@@ -8,7 +8,7 @@
 
 **Builder:** Claude Code (Zyklus 1). **Prüfer:** Codex. **Merge:** nur Marc.
 
-**Freigabe:** ausstehend. Die Entscheidungen E1–E3 unten legt Marc fest, bevor gebaut wird.
+**Freigabe:** Marc hat die Entscheidungen E1–E3 am 05.10.2026 im Chat getroffen, jeweils gemäß Vorschlag (E1: „ich glaube 1.“ nach Erklärung bestätigt; E2 und E3: „e2 und e3 passen“). Gebaut wird nach dem Merge von PR #60.
 
 **Branch:** `claude/auftrag-077-dashboard-details`, PR gegen `main`.
 
@@ -23,9 +23,9 @@ Die neue persönliche Ansicht wird unter `/dashboard` angebunden, aber nur hinte
 
 Darunter führt „Zur Fachübersicht“ zur Fachseite aus dem Katalog. Filter der Sitzung bleiben beim Hin- und Rückweg erhalten. Nach einem Browser-Reload gilt der gespeicherte Kontext.
 
-## Zu entscheiden durch Marc (vor dem Bau)
+## Entscheidungen Marc (05.10.2026, jeweils Vorschlag gewählt)
 
-| Nr. | Frage                                                    | Vorschlag (Empfehlung)                                                                                                                                                                                                                                        | Alternative                                                                                                                         |
+| Nr. | Frage                                                    | Entscheidung                                                                                                                                                                                                                                                  | Verworfen                                                                                                                           |
 | --- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | E1  | Form des Rollout-Schalters                               | Build-Schalter `VITE_EXECUTIVE_DASHBOARD_V2` (Standard aus). Ist er aus, ist `/dashboard` unverändert, und die Detailroute ist nicht registriert (404 wie heute). Ist er an, zeigt `/dashboard` die neue Ansicht. Eintrag in `.env.example` ohne Wert `true`. | Zur Laufzeit je Benutzer umschaltbar (z. B. Schalter in der alten Ansicht). Braucht gespeicherten Zustand und erweitert den Umfang. |
 | E2  | Zugang zur alten Ansicht bei aktivem Schalter            | Kein Umschalter in der Oberfläche. Die alte Ansicht bleibt im Code und kehrt beim Zurückschalten des Schalters zurück (Plan Teilauftrag 8: „alte Ansicht verfügbar“).                                                                                         | Zusätzlicher Link „Bisherige Ansicht“ auf eine eigene Route                                                                         |
@@ -109,7 +109,7 @@ Darunter führt „Zur Fachübersicht“ zur Fachseite aus dem Katalog. Filter d
 
 ## Aufgaben (Tests zuerst)
 
-- [ ] Marcs Entscheidungen E1–E3 in diesem Auftrag festhalten (Datum, Wortlaut).
+- [x] Marcs Entscheidungen E1–E3 in diesem Auftrag festhalten (Datum, Wortlaut).
 - [ ] Branch nach dem Merge von PR #60 auf `main` neu aufsetzen und die Baseline-Commit-ID hier eintragen.
 - [ ] Tests zuerst für Schalter und Einstieg: Schalter aus → alte Seite, kein Import der neuen Seite, Detail-URL ergibt 404. Schalter an → neue Seite, Detailroute aktiv, `routeForPathname` liefert „Kachel-Details“.
 - [ ] Tests zuerst für die Detailseite, jeweils mit Daten aus `useDashboardData`:
