@@ -2,7 +2,10 @@
 // ohne Anmeldung. Feste Beispiel- bzw. Testdaten; keine Produktivdaten, keine Speicherung.
 // `?ansicht=<Darstellung>` zeigt nur Galeriekacheln dieser Darstellung und blendet die Testkachel
 // aus (sie startet mit Säulen und würde sonst immer das Säulenmodul laden): Netzwerknachweis.
+// Der Arbeitsbereich (Auftrag 074) steht unter der Galerie; `?bereich=editor` zeigt nur ihn, und
+// `?ansicht=` blendet ihn aus, damit der Netzwerknachweis der Galerie unverändert bleibt.
 import { DashboardDesignPreview } from './DashboardDesignPreview';
+import { DashboardEditorPreview } from './DashboardEditorPreview';
 import { TileGalleryPreview } from './TileGalleryPreview';
 import type { DashboardView } from '../model/dashboardCatalog';
 
@@ -23,17 +26,23 @@ export function readViewFilter(search: string): DashboardView | undefined {
   return VIEWS.find((view) => view === value);
 }
 
+export function readEditorOnly(search: string): boolean {
+  return new URLSearchParams(search).get('bereich') === 'editor';
+}
+
 export function DashboardPreviewPage({
   search = typeof window === 'undefined' ? '' : window.location.search,
 }: {
   search?: string;
 }) {
   const onlyView = readViewFilter(search);
+  const editorOnly = readEditorOnly(search);
   return (
     <main className="min-h-screen bg-[var(--color-background,#051413)] px-4 py-8 text-[var(--color-text-primary,#e6f3f1)] sm:px-8">
       <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6">
         {onlyView ? <h1 className="sr-only">Kachelgalerie: {onlyView}</h1> : null}
-        {onlyView ? null : (
+        {editorOnly ? <h1 className="sr-only">Dashboard-Arbeitsbereich</h1> : null}
+        {onlyView || editorOnly ? null : (
           <>
             <header className="flex flex-col gap-2">
               <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
@@ -49,7 +58,8 @@ export function DashboardPreviewPage({
             <DashboardDesignPreview />
           </>
         )}
-        <TileGalleryPreview onlyView={onlyView} />
+        {editorOnly ? null : <TileGalleryPreview onlyView={onlyView} />}
+        {onlyView ? null : <DashboardEditorPreview />}
       </div>
     </main>
   );
