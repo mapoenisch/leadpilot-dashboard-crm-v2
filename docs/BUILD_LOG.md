@@ -15141,3 +15141,22 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `fbb7244`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Aufträge 074/075 – Nacharbeit Codex-Review, Runde 3 (PR #58, Head 3237490, Review 5412856321), Builder Claude Code, 05.10.2026
+
+**Anlass:** Marc: „Kann nichts mergen, ist nach wie vor geblockt.“ Ursache wieder die Regel `required_review_thread_resolution`: Codex hat den neuen Head automatisch geprüft und vier neue Threads geöffnet; alle Pflicht-Checks waren grün, `main` unverändert (`fbb7244`), kein Konflikt. Jeder Push löst eine neue Codex-Prüfung aus; offene Threads blockieren den Merge, bis sie beantwortet und aufgelöst sind.
+
+| Befund | Behebung im Auftrag 074 |
+|---|---|
+| 4182800560 (P2) keine Ziel-Datei für die Filtertests | `src/features/dashboard/__tests__/DashboardFilters.ui.vitest.tsx` in die Ziel-Dateien aufgenommen. |
+| 4182800564 (P2) nicht alle Speicherfehler des bestehenden Vertrags abgedeckt | Alle neun Arten (`konflikt`, `ungueltig`, `keine_mitgliedschaft`, `sitzung_abgelaufen`, `nicht_konfiguriert`, `technisch`, `keine_sitzung`, `gesperrt`, `sitzung_gewechselt`) mit eigenem verständlichem Text; tabellengesteuerter Test, Entwurf bleibt erhalten. |
+| 4182800567 (P2) Raster-Reserve beim Laden nicht erfüllbar (`state` ist bis zum Ende `null`) | Stabile Mindestfläche aus den Kacheln der Standardansicht; weicht das gespeicherte Layout ab, ändert sich die Höhe genau einmal beim Wechsel `laden` → `bereit`; Restgrenze im BUILD_LOG der Umsetzung festzuhalten; Abnahmemessung entsprechend präzisiert. |
+| 4182800574 (P2) Verhalten der Details-Schaltfläche bis Teilauftrag 7 offen | `onShowDetails` optional; ohne ihn erscheint sichtbar und angesagt „Die Detailansicht folgt mit Teilauftrag 7“, Fokus bleibt auf der Schaltfläche; Test für beide Wege, auch per Tastatur. |
+
+**Geänderte Dateien:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md`, `docs/BUILD_LOG.md`. Kein Code.
+
+**Automatisierte Verifikation (Exit-Codes, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Schutzbereichs-Diff gegen `fbb7244` leer.
+
+**Ergebnis & Freigabestatus:** Auftragstext überarbeitet. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
