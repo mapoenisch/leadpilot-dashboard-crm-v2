@@ -15273,3 +15273,23 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2115 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0 (0 px Überlauf, axe 0, CLS 0, Höhen gleich, Drag ja/ja/kein Griff); Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
 
 **Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 4 (PR #59, Head `fedadef`, Review 5417016320), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 3 geprüft: ein P1 und vier P2. Alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| P1 4185819125 Konfliktfreigabe bleibt bei weiterer Revision (`useDashboardEditor`) | Die Freigabe durch „Serveransicht laden“ gilt nur für die dabei geladene Revision (`loadedRev`). Eine weitere Revision hebt sie auf und führt erneut in den Konfliktablauf; überschrieben wird nie ohne erneutes Laden und Bestätigen. |
+| 4185819134 Überschreiben schlägt fehl, kein Speicherweg mehr | Ein Nicht-Konflikt-Fehler nach geladener Serverfassung behält den Überschreiben-Ablauf („Trotzdem speichern“ bleibt). |
+| 4185819152 Escape schließt zwei Dialoge (`DashboardWorkspace`) | Die Hülle des Konfigurators ruht (Escape, Kreuz, Hintergrund), solange die Rückfrage darüber offen ist. |
+| 4185819158 Abfrage je Buchstabe in der Vorschau (`TileConfigurator`) | Die Vorschau bekommt die Pipeline verzögert (400 ms); Tippen startet keine Abfragen je Buchstabe. |
+| 4185819141 Neuladefehler ersetzt den Editor (`DashboardWorkspace`) | Bei `status: 'fehler'` mit vorhandener Fassung bleibt der Editor samt Entwurf sichtbar; nur ein Ladefehler ohne Fassung zeigt die allgemeine Fehleranzeige. |
+
+**Weitere Änderungen (Dateigrenze 400 Zeilen):** Navigationsschutz in `hooks/useLeaveGuard.ts`, Bausteine des Konfigurators in `components/ConfiguratorFields.tsx`.
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2120 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
