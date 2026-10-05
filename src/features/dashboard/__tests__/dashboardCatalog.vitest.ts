@@ -157,6 +157,8 @@ describe('Dashboard-Katalog', () => {
       'baseline.ebitda',
       'crm.pipeline_stufen_volumen',
       'crm.pipeline_stufen_anzahl',
+      // Auftrag 076: die EBITDA-Marge erbt das Vorzeichen des EBITDA.
+      'kombination.ebitda_marge',
     ]);
     for (const entry of guarded) expect(entry.views.some((v) => PIE_VIEWS.includes(v))).toBe(false);
   });

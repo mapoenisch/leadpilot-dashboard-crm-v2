@@ -236,3 +236,26 @@ Wertquelle `liveKpiStreamStore` (Messwert und Zeitstempel); `LIVE_KPI_DEFINITION
 - **CRM:** `closeDate` ist in `imported_funnel_deals` zwar vorhanden, aber fachlich nicht als Zeitfilter belegt. Der Zeitraumfilter greift daher nicht und wird mit der Begründung _„Quelle hat kein belegtes Datumsfeld“_ abgewiesen.
 - **Live:** Live-Stream (`timeMode: 'live'`) ohne historische Filterbarkeit; Begründung: _„Quelle ist ein Live-Feed ohne historischen Zeitraum“_.
 - Der effektive Filter meldet diesen Umstand pro Kachel transparent über `periodReason`, statt den Filter stillschweigend zu ignorieren.
+
+## Kombinationen (Auftrag 076)
+
+Geführte Kombinationen zweier Stammdaten-Werte. Positivliste in `src/features/dashboard/model/catalog/combinationRules.ts`, Strukturprüfung und Rechnung in `model/dashboardCombinations.ts`, Katalogeinträge (`source.layer = 'kombination'`) in `model/catalog/combinationEntries.ts`. Fachliche Freigabe der Liste: Marc im Chat am 05.10.2026 (Antwort „2.“: Liste freigegeben, Auftrag sofort bauen). Kein freier Formeleditor; gleiche Einheit allein macht Kennzahlen nicht kombinierbar.
+
+| Regel-ID | Erste Kennzahl | Zweite Kennzahl | Berechnung | Anzeige | Darstellungen | Zeitbasis | Begründung |
+|---|---|---|---|---|---|---|---|
+| `kombination.ebitda_marge` | `baseline.ebitda` | `baseline.umsatz` | Verhältnis `A ÷ B` | Prozent (× 100) | Zahl, Tabelle | Geschäftsjahr 2025 | Beide EUR, gleiches Geschäftsjahr, gleiche GuV-Quelle; EBITDA darf negativ sein (Marge dann negativ, nie Kreis/Ring). |
+| `kombination.cac_aufschlag` | `baseline.fully_loaded_cac` | `baseline.marketing_cac` | Verhältnis `A ÷ B` | Faktor „x“ | Zahl, Tabelle | Geschäftsjahr 2025 | Gleiche Einheit, gleiche Neukundenbasis (47), gleiches Geschäftsjahr. |
+| `kombination.mrr_anteil_starter`, `_growth`, `_pro` | `baseline.mrr_paketmix` (Paket) | Summe `baseline.mrr_paketmix` (Gesamt-MRR) | Anteil `Teil ÷ Gesamt × 100` | Prozent | Zahl, Tabelle, Ring (Teil und „Übrige Pakete“) | Stand 31.12.2025 | Belegte Teilmenge: Die Summe der Pakete ergibt den Gesamt-MRR (Katalogdefinition). |
+
+Werte mit den Stammdaten: EBITDA-Marge −309.000 ÷ 336.000 × 100 = −92,0 %; CAC-Aufschlag 4.447 ÷ 862 = 5,2x; MRR-Anteile Starter 29,3 %, Growth 57,1 %, Pro 13,7 % (Summe 100 %).
+
+**Gesperrt (mit erklärtem Grund, getestet in `dashboardCombinations.vitest.ts`):**
+
+- Umsatz (Geschäftsjahr) mit ARR oder Headcount (Stand): unterschiedliche Zeitbasis.
+- Jede Paarung aus Stammdaten und Live: Historie und Live werden nicht verrechnet.
+- Live-Funnel-Bestände (Leads, MQL, SQL, Angebote) als „Conversion“: keine gemeinsame Kohorte im gleichen Zeitraum belegt.
+- Zwei Live-Werte: kein gemeinsamer Messzeitpunkt belegt.
+- Stammdaten mit CRM: unterschiedliche Stände.
+- Eine Kennzahl mit sich selbst; jede Paarung außerhalb der Liste („nicht freigegeben“, neue Regeln werden gezielt ergänzt).
+
+Nicht berechenbar (Zustand `nicht_berechenbar`, Badge „Nicht berechenbar“, Grund statt Wert): fehlender Operand, Nenner 0, nicht positive Gesamtheit oder Teil außerhalb der Gesamtheit beim Anteil, unterschiedliche Zeitbasis, nicht endliches Ergebnis. ARPA und andere bereits berechnete Katalogwerte werden nicht doppelt als Kombination angeboten.

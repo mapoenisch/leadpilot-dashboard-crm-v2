@@ -15326,3 +15326,57 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2128 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
 
 **Ergebnis & Freigabestatus:** Befunde behoben. Marc hat angewiesen, nach grüner CI sofort zu mergen (05.10.2026); das Merge-Protokoll folgt im Nachtrag.
+
+---
+
+## Auftrag 074 – Nachtrag: Prüfnachweis und Merge (PR #59), Builder Claude Code, 05.10.2026
+
+**Prüfnachweis (Codex):** Prüfung in sieben Runden am 05.10.2026 (Heads `0baf23f`, `ea332b6`, `fedadef`, `c1ba894`, `560446a`; jeweils auf Marcs `@codex review`). Befunde: 12 P2 (Runde 1), 1 P1 und 6 P2 (Runde 2), 1 P1 und 7 P2 (Runde 3), 1 P1 und 4 P2 (Runde 4), 3 P2 (Runde 5), 4 P2 (Runde 6, auf `560446a`). Alle wurden mit Tests behoben, beantwortet und aufgelöst (BUILD_LOG-Einträge „Nacharbeit Codex-Review, Runde 1 bis 6“ oben). **Der finale Stand `ed034d0` wurde von Codex nicht erneut geprüft;** Marc hat nach grüner CI und aufgelösten Threads gemergt.
+
+**CI:** auf `ed034d0` alle sieben Pflicht-Checks grün (`lint`, `typecheck`, `test`, `build`, `size-limit`, `livekpi-verifiers`, `e2e`). **Merge:** 05.10.2026 17:00 UTC (Merge-Commit `4088ee3` auf `main`, `merged_by` mapoenisch).
+
+**Offene Punkte aus der Prüfung (nicht Teil des PR):** (1) `src/components/ui/Modal.tsx` stoppt `keydown` im Dialog, sodass Escape bei Fokus im Dialog nie den Fenster-Listener erreicht (Umgehung `useEscapeToClose` in den Dashboard-Dialogen); gehört in einen eigenen Auftrag, betrifft alle Dialoge. (2) `useDashboardPreferences.reloadServerVersion` wirft jetzt bei Fehlschlag (`throwOnError: true`); der Vertrag aus Auftrag 072 ist damit enger, Teilauftrag 7 muss das bei der Einbindung beachten. (3) Auf 768 px liegt die dritte Kachel einer Zeilenfolge unterhalb des Viewports: Ziehen über größere Strecken stützt sich auf das native Auto-Scrollen des Browsers.
+
+**Ergebnis & Freigabestatus:** Auftrag 074 abgeschlossen und gemergt. Teilauftrag 6 folgt mit Auftrag 076 (Auftragstext in dieser Änderung, `docs/auftraege/ANTIGRAVITY_AUFTRAG_076_DASHBOARD_KOMBINATIONEN.md`).
+
+---
+
+## Auftrag 076 – Auftragstext Dashboard Teilauftrag 6 (Kombinationen), Autor Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Detailauftrag für Teilauftrag 6 laut Plan, geschrieben nach `CLAUDE.md` §3 (Claude Code darf bis `v2.3.0`/Dashboard-Abschnitt fehlende Detailaufträge schreiben). Kein Code in dieser Änderung.
+
+**Inhalt:** Kombinationsregeln als Positivliste (kein freier Formeleditor), vorgeschlagene Beziehungsmatrix mit Begründung und gesperrten Gegenbeispielen, Entwurf für Modell, Katalog, Datenauflösung, Kachelzustand `nicht_berechenbar` und Konfigurator, Ziel-Dateien, acht Abnahmekriterien aus den Lehren der PRs #57 und #59, Aufgaben mit Tests zuerst, Screenshot-Gate mit Höhen-, Interaktions- und 24-Kachel-Prüfung.
+
+**Entscheidungen für Marc (mit dem Merge dieses Texts):** die Beziehungsmatrix (EBITDA ÷ Umsatzerlöse, Fully-Loaded CAC ÷ Marketing-CAC, MRR-Paketanteile), Prozentanzeige der EBITDA-Marge als Verhältnis, keine Doppelung bereits berechneter Katalogwerte.
+
+**Automatisierte Verifikation (reine Dokumentänderung):** keine Codeänderung; `docs/`-Dateien außerhalb von `src/` unterliegen nicht dem Formatcheck.
+
+**Ergebnis & Freigabestatus:** Auftragstext liegt vor. Offen: PR, CI, Codex-Prüfung des Texts, Merge durch Marc; Bau von Auftrag 076 erst nach Marcs Auftrag.
+
+---
+
+## Auftrag 076 – Umsetzung Dashboard Teilauftrag 6 (geführte KPI-Kombinationen), Builder Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Teilauftrag 6 laut Plan und `docs/auftraege/ANTIGRAVITY_AUFTRAG_076_DASHBOARD_KOMBINATIONEN.md`. Marc hat die Beziehungsmatrix am 05.10.2026 im Chat freigegeben (Antwort „2.“: Liste freigeben, sofort bauen, Auftragstext und Code in einem PR). Basis `main` `4088ee3`.
+
+**Umsetzung:**
+- Positivliste `model/catalog/combinationRules.ts` (5 Regeln: `kombination.ebitda_marge`, `kombination.cac_aufschlag`, `kombination.mrr_anteil_starter|growth|pro`), Katalogeinträge `model/catalog/combinationEntries.ts` (Ebene `kombination`, `timeMode: 'fest'`, Zeitbasis der Operanden, Einheit `%` bzw. `x`, Datenform `verhaeltnis` bzw. neu `anteil` mit Zahl/Tabelle/Ring).
+- `model/dashboardCombinations.ts`: `checkRuleStructure` (zweite Sicherung: nur Stammdaten, gleiche Zeitbasis und Einheit, keine Funnel-Stufen, Anteil nur aus derselben Anteilsreihe), `partnersFor`, `blockedPartnersFor` (gleiche Einheit und Ebene ohne Regel, mit Grund), `explainIncompatible`, `computeCombination` (Nenner 0, fehlender Operand, nicht positive Gesamtheit, Teil außerhalb der Gesamtheit, unterschiedliche Zeitbasis, nicht endliches Ergebnis → `nicht_berechenbar` mit Grund).
+- Daten: `data/resolveCombination.ts` (Operanden über `resolveBaseline`, keine neuen Abfragen), Zweig in `useDashboardData`, Zustand `nicht_berechenbar`, Feld `combination { formula, operands }` für Teilauftrag 7.
+- Kachel: Formelzeile aus der Regel in jedem Zustand (Laden, bereit, nicht berechenbar gleich hoch); Badge „Nicht berechenbar“ im Inhaltsbereich statt im Kopf, weil er im Kopf auf 375/768 px umbrach (Screenshot-Gate fand +30 px, behoben); Ansage „Nicht berechenbar: Grund“.
+- Konfigurator: Kombinationen stehen nicht in der Kennzahl-Liste; nach der ersten Kennzahl `CombinationPicker` („Mit zweiter Kennzahl kombinieren (optional)“) mit Formel und Einordnung je Partner und gesperrten Partnern samt Grund; Wahl ersetzt die Kennzahl und übernimmt Darstellung, Größe und Zeitbezug der Regel; Wechsel der ersten Kennzahl verwirft die Kombination mit Ansage; dauerhafte Live-Region. Bearbeiten zeigt Kennzahl und Formel fest.
+- Vorschau: Testdaten für Kombinationen über `computeCombination` (CAC-Aufschlag absichtlich mit Nenner 0); `&kacheln=24` enthält drei Kombinationskacheln.
+
+**Abweichungen von der Ziel-Dateien-Tabelle (im Auftragstext nachgetragen):** Regeln in eigener Datei `combinationRules.ts` (kein Importzyklus Katalog ↔ Logik); `model/dashboardFilters.ts` und `getScopeForLayer` behandeln die neue Ebene wie Stammdaten; `preview/DashboardEditorPreview.tsx` für die Kombinationskacheln der Höchstbelegung; Konfigurator-Tests in `CombinationPicker.ui.vitest.tsx` statt in `TileConfigurator.ui.vitest.tsx`; `scripts/lib/dashboardShotHelpers.mjs` exportiert `measure`; `tileFormat.vitest.ts` kennt das neue Quellenlabel; `resolveCombination` als `.ui.vitest.tsx` (Hook-Test braucht jsdom).
+
+**Geänderte Dateien:** `src/features/dashboard/` – neu: `model/dashboardCombinations.ts`, `model/catalog/combinationRules.ts`, `model/catalog/combinationEntries.ts`, `data/resolveCombination.ts`, `components/CombinationPicker.tsx`, Tests `dashboardCombinations.vitest.ts`, `resolveCombination.ui.vitest.tsx`, `CombinationPicker.ui.vitest.tsx`; geändert: `model/dashboardCatalog.ts`, `model/dashboardValidation.ts`, `model/dashboardFilters.ts`, `data/dashboardData.ts`, `hooks/useDashboardData.ts`, `components/DashboardTile.tsx`, `components/TileStatus.tsx`, `components/tileFormat.ts`, `components/TileConfigurator.tsx`, `components/ConfiguratorFields.tsx`, `preview/editorPreviewData.ts`, `preview/DashboardEditorPreview.tsx`, Tests `DashboardTileStates.ui.vitest.tsx`, `dashboardCatalog.vitest.ts`, `tileFormat.vitest.ts`. Außerdem `scripts/captureAuftrag076Screenshots.mjs`, `scripts/lib/combinationShotHelpers.mjs`, `scripts/lib/dashboardShotHelpers.mjs`, `docs/screenshots/auftrag-076/README.md`, `docs/dashboard/KPI_CATALOG.md` (Abschnitt „Kombinationen“), Auftragstext 076 (IDs `kombination.*`, Freigabe, Checkboxen).
+
+**Funktionale Prüfungen (Tests):** 25 von 100 = 25 %; Nenner 0, fehlender Operand, `NaN`/`Infinity`, negative/widersprüchliche Gesamtheit, unterschiedliche Zeitbasis → `nicht_berechenbar`; EBITDA-Marge mit Katalogwerten −92,0 % samt Formel und Operanden; CAC-Aufschlag 5,2x; Paketanteile summieren sich auf 100 %; jede Regel besteht die Strukturprüfung; gesperrte Beispiele (Umsatz/ARR bzw. Headcount, Stammdaten/Live, Live-Funnel, zwei Live-Werte, Stammdaten/CRM, mit sich selbst, nicht freigegeben) mit Grund; `validateCatalog` leer; Ring bei Verhältnis abgelehnt, beim Anteil zulässig; entfernte Regel bleibt als unbekannte Kachel erhalten; Kachel: Formelzeile in allen Zuständen, Badge, Grund, kein Wert, Ansage; Konfigurator: Partner nur nach Matrix, gesperrte mit Grund, Übernahme der Regelwerte, Verwerfen mit Ansage, Tastatur (Pfeiltaste, Fokus bleibt auf dem Partner), Bearbeiten mit Formel, Escape ruht unter einer Rückfrage.
+
+**Schutzbereichs-Prüfung:** `git diff 4088ee3 -- src/simulation src/types src/context src/services/data src/features/resources` leer. Kein Import der Kombinationslogik aus `src/app/**` oder `src/features/overview/**` (grep leer). `Modal.tsx` unverändert.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (307 Dateien, 2165 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0 (keine neuen Unterdrückungen), `npx size-limit` 0 (größter Chunk 86,4 kB gzip). `wc -l`: größte geänderte Dateien `TileConfigurator.tsx` 388, `DashboardTile.tsx` 369, `dashboardCatalog.vitest.ts` 323; alle Code-, Test- und Skriptdateien < 400.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-076/README.md`, Skript Exit 0: Vorher (Basis `4088ee3`) und Nachher je Breite 1440/768/375 verschieden; 0 px Seitenüberlauf; axe serious/critical 0 in Ansicht (24 Kacheln), Bearbeiten, gesperrter Partner, Konfigurator mit Kombination, nicht berechenbar, Ansicht nach Speichern; Tastaturablauf (Kennzahl, Partner, Verwerfen, Hinzufügen, Escape, Speichern) auf allen Breiten; Höhe aller 24 Kacheln Laden → bereit/nicht berechenbar ohne Abweichung, Raster gleich hoch; Lazy: 10/6/2 beim Start, 24 nach dem Scrollen.
+
+**Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR mit Auftragstext und Code gegen `main`, CI, Codex-Prüfung, Merge durch Marc.

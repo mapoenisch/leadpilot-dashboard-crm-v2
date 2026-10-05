@@ -18,6 +18,7 @@ import {
 } from '../data/dashboardData';
 import { dashboardQueryKeys } from '../data/dashboardQueryKeys';
 import { resolveBaseline } from '../data/resolveBaseline';
+import { resolveCombination } from '../data/resolveCombination';
 import { FilteredFunnelDealSource, resolveCrmFromOverview } from '../data/resolveCrm';
 import { resolveLive } from '../data/resolveLive';
 
@@ -169,6 +170,11 @@ export function useDashboardData(
   // 3. Stammdaten (synchron)
   if (catalogEntry.source.layer === 'baseline') {
     return resolveBaseline(catalogEntry, effectiveFilter);
+  }
+
+  // 3a. Kombinationen aus Stammdaten (synchron, Auftrag 076)
+  if (catalogEntry.source.layer === 'kombination') {
+    return resolveCombination(catalogEntry, effectiveFilter);
   }
 
   // 4. CRM

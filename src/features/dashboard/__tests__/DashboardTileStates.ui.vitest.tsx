@@ -5,6 +5,7 @@ import { DashboardTile } from '../components/DashboardTile';
 import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
 import type { ResolvedTileData } from '../data/dashboardData';
+import { resolveCombination } from '../data/resolveCombination';
 
 function active(id: string): ActiveCatalogEntry {
   const entry = getCatalogEntry(id);
@@ -205,5 +206,63 @@ describe('DashboardTile Zustände', () => {
     withStand.unmount();
     show(resolved());
     expect(screen.queryByTestId('tile-stand-reserve')).toBeNull();
+  });
+});
+
+describe('Kombinationskachel (Auftrag 076)', () => {
+  const MARGE = active('kombination.ebitda_marge');
+  const SHARE = active('kombination.mrr_anteil_growth');
+  const tile = (catalogId: string, view: DashboardTileConfig['view'] = 'zahl') => ({
+    ...TILE,
+    catalogId,
+    view,
+    size: view === 'zahl' ? ('klein' as const) : ('mittel' as const),
+  });
+  const filter = { mode: 'fester_stand' as const, period: null, pipeline: null };
+
+  it('zeigt Formel, Quelle und Wert in deutscher Schreibweise', () => {
+    show(resolveCombination(MARGE, filter), tile(MARGE.id), MARGE);
+    expect(screen.getByTestId('tile-formula').textContent).toBe(
+      'Formel: EBITDA ÷ Umsatzerlöse × 100',
+    );
+    expect(screen.getByTestId('tile-meta').textContent).toContain('Kombination aus Stammdaten');
+    expect(screen.getByTestId('tile-number').textContent).toContain('-92,0 %');
+  });
+
+  it('nicht berechenbar: Badge, Grund, kein Wert, Ansage; Formelzeile in jedem Zustand', () => {
+    const base = resolveCombination(MARGE, filter);
+    const states: ResolvedTileData[] = [
+      { ...base, state: 'laden', value: null },
+      base,
+      {
+        ...base,
+        state: 'nicht_berechenbar',
+        value: null,
+        message: 'Für „Umsatzerlöse“ fehlt ein Wert.',
+      },
+    ];
+    for (const data of states) {
+      const { unmount } = show(data, tile(MARGE.id), MARGE);
+      expect(screen.getByTestId('tile-formula')).toBeTruthy();
+      unmount();
+    }
+    show(states[2] as ResolvedTileData, tile(MARGE.id), MARGE);
+    expect(screen.getByTestId('tile-state-badge').textContent).toBe('Nicht berechenbar');
+    expect(screen.getByTestId('tile-blocked').textContent).toBe(
+      'Für „Umsatzerlöse“ fehlt ein Wert.',
+    );
+    expect(screen.getByTestId('tile-blocked').parentElement?.className).toContain('min-h-[96px]');
+    expect(screen.queryByTestId('tile-number')).toBeNull();
+    expect(screen.getByTestId('tile-live-status').textContent).toBe(
+      'Nicht berechenbar: Für „Umsatzerlöse“ fehlt ein Wert.',
+    );
+  });
+
+  it('Anteil als Tabelle mit Teil und Rest in Prozent', () => {
+    show(resolveCombination(SHARE, filter), tile(SHARE.id, 'tabelle'), SHARE);
+    const cells = screen.getAllByRole('cell').map((cell) => cell.textContent);
+    expect(cells).toEqual(['57,1 %', '42,9 %']);
+    expect(screen.getByRole('rowheader', { name: 'MRR Growth' })).toBeTruthy();
+    expect(screen.getByRole('rowheader', { name: 'Übrige Pakete' })).toBeTruthy();
   });
 });

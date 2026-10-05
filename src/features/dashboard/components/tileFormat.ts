@@ -68,6 +68,7 @@ export const SOURCE_LABEL: Record<SourceLayer, string> = {
   baseline: 'Stammdaten',
   crm: 'CRM',
   live: 'Live',
+  kombination: 'Kombination aus Stammdaten',
 };
 
 const FILTER_MODE_LABEL: Record<TileFilterMode, string> = {

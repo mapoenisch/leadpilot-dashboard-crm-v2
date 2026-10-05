@@ -1,6 +1,7 @@
 // Executive Dashboard, Teilauftrag 5 (Auftrag 074): Konfigurationsfenster für eine Kachel. Wird
 // per React.lazy erst beim Öffnen geladen (Default-Export). Native Auswahlfelder, jede Option mit
 // Grund, wenn sie gesperrt ist; die Vorschau ist nur zum Ansehen und nicht bedienbar.
+// Auftrag 076: nach der ersten Kennzahl optional eine freigegebene zweite (Kombination).
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -14,13 +15,12 @@ import {
   type ActiveCatalogEntry,
   type DashboardCategory,
   type DashboardView,
-  type TileSize,
 } from '../model/dashboardCatalog';
+import { combinationFormula, type CombinationRule } from '../model/dashboardCombinations';
 import {
   MAX_TITLE_LENGTH,
   type DashboardFilters,
   type DashboardTileConfig,
-  type TileFilterMode,
 } from '../model/dashboardConfig';
 import {
   SIZE_LABEL,
@@ -31,17 +31,21 @@ import {
   type EditResult,
   type NewTileInput,
 } from '../hooks/dashboardEditorReducer';
-import { Group, Option, useDebounced } from './ConfiguratorFields';
+import { CombinationPicker, offerText } from './CombinationPicker';
+import {
+  CategorySelect,
+  defaultsFor,
+  Group,
+  MODE_LABEL,
+  Option,
+  Preview,
+  useDebounced,
+  type Choice,
+} from './ConfiguratorFields';
 import type { ChartLoaders } from './charts/chartLoaders';
-import { DashboardTile } from './DashboardTile';
+import { CombinationFormula } from './TileStatus';
 import { useEscapeToClose } from './UnsavedChangesDialog';
 import type { TileDataHook } from './LazyDashboardTile';
-
-const MODE_LABEL: Record<TileFilterMode, string> = {
-  dashboard: 'Zentraler Dashboard-Filter',
-  eigener_zeitraum: 'Eigener Zeitraum',
-  fester_stand: 'Fester Stand (wie angegeben)',
-};
 
 export interface TileConfiguratorProps {
   open: boolean;
@@ -59,68 +63,30 @@ export interface TileConfiguratorProps {
   escapeActive?: boolean;
 }
 
-interface Choice {
-  catalogId: string;
-  view: DashboardView;
-  size: TileSize;
-  title: string;
-  filterMode: TileFilterMode;
-  pipeline: string;
-}
-
-function defaultsFor(entry: ActiveCatalogEntry): Choice {
-  const first = allowedFilterModes(entry).find((option) => option.allowed);
-  return {
-    catalogId: entry.id,
-    view: entry.defaultView,
-    size: minSizeFor(entry, entry.defaultView),
-    title: '',
-    filterMode: first?.mode ?? 'dashboard',
-    pipeline: '',
-  };
-}
-
-function Preview(
-  props: Pick<
-    TileConfiguratorProps,
-    'useData' | 'filters' | 'onRetryChartLoad' | 'chartLoaders'
-  > & {
-    tile: DashboardTileConfig;
-    entry: ActiveCatalogEntry;
-  },
-) {
-  const data = props.useData(props.tile, props.filters, { enabled: true });
-  return (
-    <DashboardTile
-      tile={props.tile}
-      entry={props.entry}
-      data={data}
-      dashboardFilters={props.filters}
-      onShowDetails={() => undefined}
-      onRetryChartLoad={props.onRetryChartLoad}
-      chartLoaders={props.chartLoaders}
-    />
-  );
-}
-
 export default function TileConfigurator(props: TileConfiguratorProps) {
   const { open, tile, onClose } = props;
   const uid = useId();
   const editing = tile !== undefined;
   const entries = useMemo(() => getActiveEntries(), []);
+  // Kombinationen entstehen nur über die zweite Kennzahl, nie direkt aus der Liste.
+  const selectable = useMemo(
+    () => entries.filter((item) => item.source.layer !== 'kombination'),
+    [entries],
+  );
   // Nur Kategorien, die aktive Einträge haben: sonst wäre die Trefferliste garantiert leer.
   const usedCategories = useMemo(
     () =>
       (Object.keys(DASHBOARD_CATEGORIES) as DashboardCategory[]).filter((key) =>
-        entries.some((item) => item.category === key),
+        selectable.some((item) => item.category === key),
       ),
-    [entries],
+    [selectable],
   );
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<DashboardCategory | ''>('');
   const [choice, setChoice] = useState<Choice | null>(null);
   const [error, setError] = useState('');
   const [sizeNote, setSizeNote] = useState('');
+  const [comboNote, setComboNote] = useState('');
   const previewRef = useRef<HTMLDivElement | null>(null);
   const escapeActive = props.escapeActive ?? true;
   useEscapeToClose(open && escapeActive, onClose);
@@ -129,10 +95,12 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
     if (!open) return;
     setError('');
     setSizeNote('');
+    setComboNote('');
     setQuery('');
     setCategory('');
     if (tile && activeEntryOf(tile)) {
       setChoice({
+        firstId: tile.catalogId,
         catalogId: tile.catalogId,
         view: tile.view,
         size: tile.size,
@@ -150,7 +118,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
   });
 
   const entry = choice ? entries.find((item) => item.id === choice.catalogId) : undefined;
-  const matches = entries.filter((item) => {
+  const matches = selectable.filter((item) => {
     if (category && item.category !== category) return false;
     const text = query.trim().toLowerCase();
     return (
@@ -198,6 +166,41 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
     if (raised) setSizeNote(`Größe automatisch auf ${SIZE_LABEL[minimum]} angehoben.`);
   };
 
+  const selectFirst = (item: ActiveCatalogEntry) => {
+    setError('');
+    setSizeNote('');
+    // Eine gewählte Kombination gehört zur alten ersten Kennzahl: ausdrücklich verwerfen.
+    const dropped =
+      choice && choice.catalogId !== choice.firstId
+        ? entries.find((other) => other.id === choice.catalogId)
+        : undefined;
+    setChoice(defaultsFor(item));
+    setComboNote(
+      [
+        dropped
+          ? `Kombination „${dropped.name}“ verworfen, weil die erste Kennzahl wechselte.`
+          : '',
+        offerText(item.id),
+      ]
+        .filter(Boolean)
+        .join(' '),
+    );
+  };
+
+  const pickCombination = (rule: CombinationRule | null) => {
+    if (!choice) return;
+    const target = entries.find((item) => item.id === (rule ? rule.id : choice.firstId));
+    if (!target) return;
+    setError('');
+    setSizeNote('');
+    setChoice({ ...defaultsFor(target, choice.firstId), title: choice.title });
+    setComboNote(
+      rule
+        ? `Kombination „${rule.name}“ gewählt: ${combinationFormula(rule)}.`
+        : 'Kombination entfernt; die erste Kennzahl gilt allein.',
+    );
+  };
+
   const submit = () => {
     if (!candidate || !valid) return;
     const { tileId: _id, ...values } = candidate;
@@ -227,10 +230,13 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
       <div className="grid min-w-0 gap-4 md:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
           {editing ? (
-            <p className="m-0 text-sm [overflow-wrap:anywhere]">
-              <span className="text-[var(--color-text-muted)]">Kennzahl: </span>
-              {entry?.name}
-            </p>
+            <div>
+              <p className="m-0 text-sm [overflow-wrap:anywhere]">
+                <span className="text-[var(--color-text-muted)]">Kennzahl: </span>
+                {entry?.name}
+              </p>
+              <CombinationFormula entry={entry} />
+            </div>
           ) : (
             <>
               <Input
@@ -238,21 +244,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
-              <label className="flex flex-col gap-1 text-[13px] text-[var(--color-text-muted)]">
-                Kategorie
-                <select
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value as DashboardCategory | '')}
-                  className="rounded-md border border-solid border-border bg-surface p-2 text-sm text-[var(--color-text)]"
-                >
-                  <option value="">Alle Kategorien</option>
-                  {usedCategories.map((key) => (
-                    <option key={key} value={key}>
-                      {DASHBOARD_CATEGORIES[key]}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <CategorySelect value={category} categories={usedCategories} onChange={setCategory} />
               <p role="status" className="m-0 text-[12px] text-[var(--color-text-muted)]">
                 {matches.length === 1 ? '1 Treffer' : `${matches.length} Treffer`}
               </p>
@@ -262,17 +254,30 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
                     <Option
                       key={item.id}
                       name={`${uid}-kennzahl`}
-                      checked={choice?.catalogId === item.id}
+                      checked={choice?.firstId === item.id}
                       label={item.name}
                       hint={`${DASHBOARD_CATEGORIES[item.category]} · ${item.timeBasis}`}
-                      onSelect={() => {
-                        setError('');
-                        setChoice(defaultsFor(item));
-                      }}
+                      onSelect={() => selectFirst(item)}
                     />
                   ))}
                 </Group>
               </div>
+              {choice ? (
+                <CombinationPicker
+                  name={`${uid}-kombination`}
+                  firstId={choice.firstId}
+                  selectedId={choice.catalogId}
+                  onPick={pickCombination}
+                />
+              ) : null}
+              {/* Dauerhafte Live-Region: angeboten, gewählt, entfernt, verworfen. */}
+              <p
+                role="status"
+                data-testid="combination-status"
+                className="m-0 min-h-[18px] text-[12px] text-[var(--color-text-muted)] [overflow-wrap:anywhere]"
+              >
+                {comboNote}
+              </p>
             </>
           )}
           {choice && entry ? (

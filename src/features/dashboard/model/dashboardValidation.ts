@@ -29,7 +29,7 @@ export interface ValidationIssue {
   message: string;
 }
 
-const ID_PATTERN = /^(baseline|crm|live|uebersicht)\.[a-z0-9_]+$/;
+const ID_PATTERN = /^(baseline|crm|live|uebersicht|kombination)\.[a-z0-9_]+$/;
 const TILE_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 const MIN_REASON_LENGTH = 15;
 
@@ -46,7 +46,9 @@ function checkActiveEntry(entry: ActiveCatalogEntry, issues: ValidationIssue[]):
   if ((entry.kind === 'uebersicht') !== (entry.shape === 'uebersicht'))
     add('uebersicht', 'Übersichtskacheln und Datenform „uebersicht“ gehören zusammen.');
   if (!TILE_SIZES.includes(entry.minSize)) add('groesse', 'Unbekannte Mindestgröße.');
-  const expectedMode = { baseline: 'fest', crm: 'aktuell', live: 'live' }[entry.source.layer];
+  const expectedMode = { baseline: 'fest', crm: 'aktuell', live: 'live', kombination: 'fest' }[
+    entry.source.layer
+  ];
   if (entry.timeMode !== expectedMode)
     add('zeitmodus', `Ebene ${entry.source.layer} verlangt ${expectedMode}.`);
   if (entry.source.layer === 'live' && entry.kind === 'kpi' && !entry.source.liveKpiId)

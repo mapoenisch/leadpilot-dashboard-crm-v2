@@ -52,7 +52,12 @@ describe('Zeitbezug und Quelle', () => {
   });
 
   it('benennt Quelle und Filtermodus in Worten', () => {
-    expect(SOURCE_LABEL).toEqual({ baseline: 'Stammdaten', crm: 'CRM', live: 'Live' });
+    expect(SOURCE_LABEL).toEqual({
+      baseline: 'Stammdaten',
+      crm: 'CRM',
+      live: 'Live',
+      kombination: 'Kombination aus Stammdaten',
+    });
     expect(filterModeLabel('dashboard')).toBe('Dashboard-Filter');
     expect(filterModeLabel('eigener_zeitraum')).toBe('Eigener Zeitraum');
     expect(filterModeLabel('fester_stand')).toBe('Fester historischer Stand');
