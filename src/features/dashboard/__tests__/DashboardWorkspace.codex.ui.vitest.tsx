@@ -150,7 +150,7 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 2', () => {
     setup(prefs());
     const click = () => fireEvent.click(screen.getAllByRole('button', { name: /Details/ })[0]!);
     const text = () =>
-      screen.getAllByRole('status').find((el) => /Detailansicht folgt/.test(el.textContent ?? ''))
+      screen.getAllByRole('status').find((el) => /keine Detailansicht/.test(el.textContent ?? ''))
         ?.textContent;
     click();
     const first = text();

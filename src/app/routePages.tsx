@@ -1,13 +1,16 @@
 import React from 'react';
 import { logger } from '@/services/logger';
 import { APP_ROUTES, AppRouteId } from './routes';
+import {
+  executiveDashboardLoader,
+  loadTileDetailPage,
+} from '@/features/dashboard/pages/executiveDashboardEntry';
 
 // 1. Übersicht
-const ExecutiveDashboardPage = React.lazy(() =>
-  import('@/features/overview/pages/ExecutiveDashboardPage').then((m) => ({
-    default: m.ExecutiveDashboardPage,
-  })),
-);
+// Auftrag 077: Rollout-Schalter wählt bisherige oder persönliche Ansicht (beide lazy).
+const ExecutiveDashboardPage = React.lazy(executiveDashboardLoader());
+/** Auftrag 077: Kachel-Details, nur bei eingeschaltetem Rollout-Schalter registriert (App.tsx). */
+export const TileDetailPage = React.lazy(loadTileDetailPage);
 const CompanyProfilePage = React.lazy(() =>
   import('@/features/overview/pages/CompanyProfilePage').then((m) => ({
     default: m.CompanyProfilePage,

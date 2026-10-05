@@ -34,6 +34,8 @@ export interface DashboardTileProps {
   entry?: ActiveCatalogEntry;
   data: TileData;
   onShowDetails: (tileId: string) => void;
+  /** Entscheidung Marc E3 (Auftrag 077): im Bearbeitungsmodus gesperrt, mit sichtbarem Grund. */
+  detailsBlocked?: boolean;
   /**
    * „Wiederholen“ nach einem fehlgeschlagenen Modulabruf. Standard: Seite neu laden, weil der
    * Browser den fehlgeschlagenen Abruf festhält (wie in der Testkachel). Teilauftrag 5 sichert
@@ -60,6 +62,7 @@ const SCROLLING_VIEWS: readonly DashboardView[] = ['tabelle', 'uebersicht'];
 
 /** Live-Kacheln: feste Höhe für bis zu drei Hinweiszeilen; mehr scrollt. */
 const NOTICE_SLOT_CLASS = 'h-[56px] overflow-y-auto';
+export const DETAILS_BLOCKED_HINT = 'Erst speichern, dann Details öffnen.';
 const SCOPE_NOTICE =
   'Live-Feed, nicht nach Organisation getrennt: Die Werte gelten für alle Organisationen.';
 
@@ -89,6 +92,7 @@ export function DashboardTile({
   entry,
   data,
   onShowDetails,
+  detailsBlocked = false,
   onRetryChartLoad = () => window.location.reload(),
   chartLoaders,
   dashboardFilters,
@@ -224,12 +228,24 @@ export function DashboardTile({
           />
         </div>
 
-        <footer className="flex justify-end border-0 border-t border-solid border-border pt-[10px]">
+        <footer className="flex flex-wrap items-center justify-end gap-[8px] border-0 border-t border-solid border-border pt-[10px]">
+          {detailsBlocked ? (
+            <p id={`${idPrefix}-details-hint`} className={cn(MUTED, 'mr-auto')}>
+              {DETAILS_BLOCKED_HINT}
+            </p>
+          ) : null}
+          {/* Fokussierbar auch gesperrt (aria-disabled), damit der Hinweis erreichbar bleibt. */}
           <Button
             variant="secondary"
             size="sm"
+            data-action="details"
             aria-label={`Details zu ${title}`}
-            onClick={() => onShowDetails(tile.tileId)}
+            aria-disabled={detailsBlocked || undefined}
+            aria-describedby={detailsBlocked ? `${idPrefix}-details-hint` : undefined}
+            className={detailsBlocked ? 'cursor-not-allowed opacity-60' : undefined}
+            onClick={() => {
+              if (!detailsBlocked) onShowDetails(tile.tileId);
+            }}
           >
             Details
           </Button>

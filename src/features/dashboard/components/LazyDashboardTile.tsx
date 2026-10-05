@@ -20,6 +20,7 @@ export interface LazyDashboardTileProps {
   filters?: DashboardFilters;
   useData: TileDataHook;
   onShowDetails: (tileId: string) => void;
+  detailsBlocked?: boolean;
   onActivated?: (tileId: string) => void;
   /** Hält alle Abfragen an (z. B. während der Arbeitsbereich noch lädt). */
   suspended?: boolean;
@@ -32,6 +33,7 @@ export function LazyDashboardTile({
   filters,
   useData,
   onShowDetails,
+  detailsBlocked,
   onActivated,
   suspended = false,
   onRetryChartLoad,
@@ -66,6 +68,7 @@ export function LazyDashboardTile({
         entry={activeEntryOf(tile)}
         data={data}
         onShowDetails={onShowDetails}
+        detailsBlocked={detailsBlocked}
         onRetryChartLoad={onRetryChartLoad}
         chartLoaders={chartLoaders}
         dashboardFilters={filters}

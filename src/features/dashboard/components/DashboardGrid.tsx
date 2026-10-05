@@ -10,7 +10,7 @@ import type { ChartLoaders } from './charts/chartLoaders';
 import { LazyDashboardTile, type TileDataHook } from './LazyDashboardTile';
 import { UnavailableTileSlot } from './UnavailableTileSlot';
 
-export type FocusAction = 'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel';
+export type FocusAction = 'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details';
 
 /** Fokusziel nach dem Entfernen der letzten Kachel: die Schaltfläche im Leerzustand. */
 export const EMPTY_FOCUS = '__leer__';
@@ -39,6 +39,8 @@ export interface DashboardGridProps {
   chartLoaders?: ChartLoaders;
   suspended?: boolean;
   focusRequest?: FocusRequest | null;
+  /** Entscheidung Marc E3 (Auftrag 077): im Bearbeitungsmodus ist „Details“ gesperrt. */
+  detailsBlocked?: boolean;
   onShowDetails: (tileId: string) => void;
   onRetryChartLoad?: () => void;
   onTileActivated?: (tileId: string) => void;
@@ -213,6 +215,7 @@ export function DashboardGrid(props: DashboardGridProps) {
                 chartLoaders={props.chartLoaders}
                 suspended={props.suspended}
                 onShowDetails={props.onShowDetails}
+                detailsBlocked={props.detailsBlocked}
                 onRetryChartLoad={props.onRetryChartLoad}
                 onActivated={props.onTileActivated}
               />

@@ -4,7 +4,11 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { queryClient } from '@/app/queryClient';
 import { APP_ROUTES } from '@/app/routes';
-import { ROUTE_PAGES } from '@/app/routePages';
+import { ROUTE_PAGES, TileDetailPage } from '@/app/routePages';
+import {
+  isPersonalDashboardEnabled,
+  TILE_DETAIL_ROUTE,
+} from '@/features/dashboard/model/dashboardRollout';
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
 import { AuthProvider } from '@/auth/AuthContext';
@@ -43,6 +47,18 @@ function WorkspaceHydrator() {
       });
   }, [session]);
   return null;
+}
+
+function RouteFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
+    >
+      Ansicht wird geladen …
+    </div>
+  );
 }
 
 export function App() {
@@ -91,17 +107,7 @@ export function App() {
                           path={route.path}
                           element={
                             <RouteErrorBoundary resetKey={route.id}>
-                              <React.Suspense
-                                fallback={
-                                  <div
-                                    role="status"
-                                    aria-live="polite"
-                                    className="p-[2rem] text-[14px] text-[var(--color-text-muted,#94a3b8)]"
-                                  >
-                                    Ansicht wird geladen …
-                                  </div>
-                                }
-                              >
+                              <React.Suspense fallback={<RouteFallback />}>
                                 <PageComponent />
                               </React.Suspense>
                             </RouteErrorBoundary>
@@ -109,6 +115,20 @@ export function App() {
                         />
                       );
                     })}
+
+                    {/* Auftrag 077: Kachel-Details nur mit eingeschaltetem Rollout-Schalter. */}
+                    {isPersonalDashboardEnabled() && (
+                      <Route
+                        path={TILE_DETAIL_ROUTE}
+                        element={
+                          <RouteErrorBoundary resetKey="s-exec-detail">
+                            <React.Suspense fallback={<RouteFallback />}>
+                              <TileDetailPage />
+                            </React.Suspense>
+                          </RouteErrorBoundary>
+                        }
+                      />
+                    )}
 
                     {/* Explizite 404-Fallback-Route für unbekannte Pfade */}
                     <Route
