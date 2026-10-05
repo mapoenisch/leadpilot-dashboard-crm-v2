@@ -15051,3 +15051,112 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 073 – Nachtrag: Prüfnachweis und Merge (Builder Claude Code, 05.10.2026)
+
+**Ziel & Kontext:** Nachweis der Prüfung und des Merges von PR #57 (Aufträge 072-Nachweis und 073), wie von Marc am 05.10.2026 für den Start von Teilauftrag 5 vorgesehen.
+
+**Prüfnachweis (Codex):** Auftragstext in 2 Runden, Umsetzung in 10 Runden geprüft; alle Befunde sind in den Runden-Einträgen oben behoben, beantwortet und aufgelöst. Letzter Lauf: Marc stieß am 05.10.2026 um 05:24 UTC mit `@codex review` einen Lauf auf Head `a4e10a0` an; Codex antwortete um 05:28 UTC im PR: „Didn't find any major issues“ (Reviewed commit `a4e10a061c`). Der Kommentar ist keine formelle Approve-Review; Marc hat auf dieser Grundlage gemergt.
+
+**CI auf `a4e10a0`:** vollständig grün (test, e2e, build, lint, typecheck, size-limit, livekpi-verifiers). `test` schlug einmal in `src/features/admin/pages/__tests__/AuditPage.ui.vitest.tsx:77` fehl, ein Zeitrennen im Test ohne Bezug zum PR (kein Diff unter `src/features/admin`; lokal 5 Läufe der Datei und 2000 Tests grün); PR-Kommentar 5984468757, einmaliger Neustart des Jobs, danach grün. Folgeauftrag: Auftrag 075.
+
+**Merge:** Marc, 05.10.2026 05:57 UTC, Merge-Commit `fbb7244` auf `main`.
+
+**Ergebnis & Freigabestatus:** Teilauftrag 4 abgeschlossen und gemergt.
+
+---
+
+## Aufträge 074 und 075 geschrieben: Dashboard Teilauftrag 5 und AuditPage-Testhärtung (Claude Code, 05.10.2026)
+
+**Ziel & Kontext:** Marc am 05.10.2026 nach dem Merge von PR #57: „starte Teilauftrag 5“ sowie ein kleiner Auftrag für den wackeligen Audit-Test. Basis `main` `fbb7244`.
+
+- [Auftrag 074](auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md): Dashboard Teilauftrag 5, Raster, Editor und Konfigurationsfenster, mit sichtbarkeitsgesteuertem Laden. Der Auftrag nimmt die Befundklassen aus den zehn Codex-Runden zu PR #57 als Abnahmekriterien auf (keine Layoutsprünge, lange Texte, Ansagen, Fokus, keine technischen Texte, echte Datenpfade, gesperrte Aktionen, physische Dateigrenze unter 400 Zeilen). Ziel-Dateien ausdrücklich gelistet; Einbindung unter `/dashboard`, Rollout-Schalter und Router-Anbindung bleiben Teilauftrag 7. Begründete Ergänzung gegenüber der Dateiliste des Plans: ein Arbeitsbereich `DashboardWorkspace` (damit Teilauftrag 7 nur Daten, Speicherung und Router anbinden muss), eine Werkzeugleiste, ein Dialog für ungespeicherte Änderungen, ein Platzhalter für nicht darstellbare Kacheln und eine Vorschau mit Speicher-Ersatz.
+- [Auftrag 075](auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md): Härtung des Tests „rendert Audit-Log-Tabelle fuer Admin (leere Liste)“. Ursache belegt (Test wartet auf die Tabelle, die sofort da ist, und prüft den Text, der erst nach dem Laden erscheint). Nur Testdatei; Produktivcode unverändert, ein möglicher kleiner Produktfehler (kurzer Leerhinweis vor dem Laden) wird nur festgehalten.
+
+**Geänderte Dateien:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md` (neu), `docs/auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md` (neu), `docs/BUILD_LOG.md`. Kein Code.
+
+**Automatisierte Verifikation (Exit-Codes, Stand dieses Eintrags, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2000 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0.
+
+**Schutzbereichs-Diff** gegen `fbb7244`: leer.
+
+**Reihenfolge:** `CLAUDE.md` §3 verlangt, immer nur einen Auftrag zu bearbeiten. Vorschlag: zuerst Auftrag 075 (klein, entfernt eine CI-Instabilität), dann 074; die Entscheidung liegt bei Marc.
+
+**Ergebnis & Freigabestatus:** Zwei Auftragstexte, noch nicht gebaut. Offen: Codex-Prüfung der Auftragstexte, Marcs Reihenfolge.
+
+---
+
+## Auftrag 075 – Umsetzung: AuditPage-Test gegen Zeitrennen härten (Builder: Claude Code, 05.10.2026)
+
+**Ziel & Kontext:** Marc am 05.10.2026: „zuerst 075“, ein PR für die Auftragstexte. [Auftrag 075](auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md), Basis `main` `fbb7244`. Gebaut auf dem Session-Branch `claude/inspiring-pascal-hvjcog` im selben PR wie die Auftragstexte 074 und 075 (kein zweiter Branch, siehe Auftragstext).
+
+**Geänderte Dateien:** `src/features/admin/pages/__tests__/AuditPage.ui.vitest.tsx` (Test angepasst, Regressionstest ergänzt, 213 Zeilen), `docs/auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md` (Reproduktion ergänzt, Checkboxen abgehakt), `docs/BUILD_LOG.md`. Produktivcode unverändert.
+
+**Reproduktion des Fehlerbilds (vor der Änderung):** Mit der alten Prüfreihenfolge (`waitFor` auf die Tabelle, danach synchron `getByText(/Keine Einträge vorhanden/i)`) und einem Dienst, der erst nach 1500 ms mit `[]` antwortet, schlägt der Test deterministisch fehl: `TestingLibraryElementError: Unable to find an element with the text: /Keine Einträge vorhanden/i`. Direkt nach dem Render zeigte die Seite „Lädt…“ und ein leeres `<tbody>`, wie im CI-Fehlerbild von Job 111532822617. Mit 50 ms Verzögerung bestand der alte Test noch (die erste `getByRole`-Abfrage braucht in jsdom diese Zeit); die Reproduktion brauchte deshalb 1500 ms. Die temporäre Reproduktionsdatei ist wieder entfernt.
+
+**Änderung:** Der Test „rendert Audit-Log-Tabelle fuer Admin (leere Liste)“ wartet mit `await screen.findByText(...)` auf den Leertext und prüft danach die Tabelle. Neuer Regressionstest „zeigt den Leertext erst nach dem Laden, auch wenn der Dienst langsam antwortet“ (1500 ms): Während des Ladens sind Tabelle da und Leertext nicht; danach erscheint er. Kein Test entfernt, deaktiviert oder abgeschwächt. Die übrigen Tests der Datei wurden geprüft und blieben unverändert (Zeilen und Text erscheinen jeweils im selben Render).
+
+**Wiederholungsnachweis:** 20 Läufe der Datei hintereinander: 20 grün, 0 rot.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. `wc -l` der geänderten Code-Datei: 213 Zeilen (unter 400).
+
+**Schutzbereichs-Diff** gegen `fbb7244`: leer.
+
+**Ergebnis & Freigabestatus:** Umsetzung fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Aufträge 074/075 – Nacharbeit Codex-Prüfung (PR #58, Head ad55a2d, Prüfung 08:58 UTC), Builder Claude Code, 05.10.2026
+
+**Ergebnis der Prüfung:** Die Umsetzung von Auftrag 075 ist ohne Beanstandung (CI für den Head grün; Teständerung geprüft, Tests dort nicht lokal ausgeführt). Im Auftragstext 074 nannte die Prüfung zwei Widersprüche vor der Umsetzung; sie sind im Auftragstext behoben. Keine Merge-Freigabe durch Codex; Merge bleibt bei Marc.
+
+| Befund | Behebung im Auftrag 074 |
+|---|---|
+| Erhalt ungültiger Kachelkonfigurationen widerspricht dem Lade- und Speichervertrag (`interpretStoredConfig` ersetzt eine abgelehnte Konfiguration durch die Standardansicht, `save` lehnt Ungültiges ab; beide Module nur lesbar) | Der garantierte Erhalt gilt nur für Kacheln mit unbekannter oder inaktiver KPI in einer strukturell gültigen Konfiguration (`kind: 'gespeichert'`, Liste `unavailable`). Eine insgesamt abgelehnte Konfiguration (z. B. unzulässige Darstellungs-/Größenkombination) fällt auf `kind: 'ungueltig'` mit Standardansicht und Hinweis; ein erweiterter Lade-/Speichervertrag ist ausdrücklich nicht Teil des Auftrags. Tests, Abnahme und Beschreibung von `UnavailableTileSlot` angepasst. |
+| Sofortige Aktivierung der ersten drei Kacheln widerspricht dem Sichtbarkeitsnachweis (auf 375 px können sie außerhalb von Bereich und Vorlauf liegen) | Die Sonderregel entfällt (Plan §5 verlangt nur „Startkacheln im sichtbaren Bereich sofort aktivieren“). Aktiviert wird ausschließlich über den Beobachter; Kacheln im Startbereich aktivieren sich beim ersten Beobachterereignis ohne Verzögerung. `initiallyActive` entfällt. Test- und Netzwerknachweis (nur sichtbare Kacheln und Vorlauf) sind damit widerspruchsfrei. |
+
+**Geänderte Dateien:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md`, `docs/BUILD_LOG.md`. Kein Code.
+
+**Automatisierte Verifikation (Exit-Codes, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Schutzbereichs-Diff gegen `fbb7244` leer.
+
+**Ergebnis & Freigabestatus:** Auftragstext 074 überarbeitet. Offen: erneute Codex-Prüfung des PR, Marcs Merge; Auftrag 074 wird erst danach gebaut.
+
+---
+
+## Aufträge 074/075 – Nacharbeit Codex-Review, Runde 2 (PR #58, Head c8d4312, Review 5412330068), Builder Claude Code, 05.10.2026
+
+**Anlass:** Marc meldete „Merge ist nicht möglich“. Ursache: Das Regelwerk für `main` (`main-protection`) verlangt aufgelöste Review-Threads (`required_review_thread_resolution`); auf `c8d4312` standen drei offene Codex-Threads. CI war grün, kein Konflikt, `main` unverändert.
+
+| Befund | Behebung |
+|---|---|
+| 4182405077 (P2) Regressionstest 075 hängt an einem Echtzeit-Timer (1,5 s gegen 4 s Limit, verlängert jeden Lauf) | Der Test steuert die Antwort über eine manuell auflösbare Promise und löst sie nach den Prüfungen des Ladezustands aus (`act`); kein `setTimeout`. Auftragstext 075 entsprechend angepasst. 20 Läufe der Datei hintereinander: 20 grün, 0 rot. |
+| 4182405084 (P2) Erhaltstest in 074 „bei allen Aktionen“ widerspricht „Entfernen“ und „Zurücksetzen“ | Der Erhalt gilt für gewöhnliche, nicht ausdrücklich löschende Bearbeitungen und das anschließende Speichern; ausdrücklich löschend sind nur „Entfernen“ dieser Kachel und „Auf Standard zurücksetzen“. Test- und Rasterabschnitt angepasst. |
+| 4182405090 (P2) Pipeline-Filter: freie Eingabe ohne Übernahme oder Debouncing löst Abfragen je Zwischenstand aus | Zeitraum und Pipeline sind Entwurfsfelder und wirken erst über „Filter anwenden“ (auch Eingabetaste); neue Testpunkte für `DashboardFilters` (Tippen ändert weder Filter noch Datenaufrufe, Anwenden genau einmal, ungültige Eingabe, Zurücksetzen). |
+
+**Geänderte Dateien:** `src/features/admin/pages/__tests__/AuditPage.ui.vitest.tsx` (220 Zeilen), `docs/auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md`, `docs/auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md`, `docs/BUILD_LOG.md`.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0.
+
+**Schutzbereichs-Diff** gegen `fbb7244`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Aufträge 074/075 – Nacharbeit Codex-Review, Runde 3 (PR #58, Head 3237490, Review 5412856321), Builder Claude Code, 05.10.2026
+
+**Anlass:** Marc: „Kann nichts mergen, ist nach wie vor geblockt.“ Ursache wieder die Regel `required_review_thread_resolution`: Codex hat den neuen Head automatisch geprüft und vier neue Threads geöffnet; alle Pflicht-Checks waren grün, `main` unverändert (`fbb7244`), kein Konflikt. Jeder Push löst eine neue Codex-Prüfung aus; offene Threads blockieren den Merge, bis sie beantwortet und aufgelöst sind.
+
+| Befund | Behebung im Auftrag 074 |
+|---|---|
+| 4182800560 (P2) keine Ziel-Datei für die Filtertests | `src/features/dashboard/__tests__/DashboardFilters.ui.vitest.tsx` in die Ziel-Dateien aufgenommen. |
+| 4182800564 (P2) nicht alle Speicherfehler des bestehenden Vertrags abgedeckt | Alle neun Arten (`konflikt`, `ungueltig`, `keine_mitgliedschaft`, `sitzung_abgelaufen`, `nicht_konfiguriert`, `technisch`, `keine_sitzung`, `gesperrt`, `sitzung_gewechselt`) mit eigenem verständlichem Text; tabellengesteuerter Test, Entwurf bleibt erhalten. |
+| 4182800567 (P2) Raster-Reserve beim Laden nicht erfüllbar (`state` ist bis zum Ende `null`) | Stabile Mindestfläche aus den Kacheln der Standardansicht; weicht das gespeicherte Layout ab, ändert sich die Höhe genau einmal beim Wechsel `laden` → `bereit`; Restgrenze im BUILD_LOG der Umsetzung festzuhalten; Abnahmemessung entsprechend präzisiert. |
+| 4182800574 (P2) Verhalten der Details-Schaltfläche bis Teilauftrag 7 offen | `onShowDetails` optional; ohne ihn erscheint sichtbar und angesagt „Die Detailansicht folgt mit Teilauftrag 7“, Fokus bleibt auf der Schaltfläche; Test für beide Wege, auch per Tastatur. |
+
+**Geänderte Dateien:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md`, `docs/BUILD_LOG.md`. Kein Code.
+
+**Automatisierte Verifikation (Exit-Codes, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Schutzbereichs-Diff gegen `fbb7244` leer.
+
+**Ergebnis & Freigabestatus:** Auftragstext überarbeitet. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

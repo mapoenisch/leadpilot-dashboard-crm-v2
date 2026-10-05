@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // G62 (Auftrag 067P): UI-Tests fuer AuditPage.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { AuditPage } from '../AuditPage';
 
 // ---------------------------------------------------------------- Mocks
@@ -71,10 +71,33 @@ describe('AuditPage', () => {
 
     render(<AuditPage />);
 
-    await waitFor(() => {
-      expect(screen.getByRole('table', { name: /Audit-Log Einträge/i })).toBeInTheDocument();
+    // Auf das Ergebnis warten, nicht auf die Tabelle: Sie steht sofort da, der Leertext erst nach dem Laden.
+    expect(await screen.findByText(/Keine Einträge vorhanden/i)).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: /Audit-Log Einträge/i })).toBeInTheDocument();
+  });
+
+  it('zeigt den Leertext erst nach dem Laden, auch wenn der Dienst langsam antwortet', async () => {
+    vi.mocked(useOrganization).mockReturnValue(makeAdminSession());
+    // Manuell auflösbare Promise statt Echtzeit-Timer: Vorher- und Nachher-Zustand sind deterministisch.
+    let resolveLogs: (entries: []) => void = () => undefined;
+    vi.mocked(auditService.listAuditLogs).mockImplementation(
+      () =>
+        new Promise<[]>((resolve) => {
+          resolveLogs = resolve;
+        }),
+    );
+
+    render(<AuditPage />);
+
+    // Während des Ladens: Tabelle da, kein Leertext.
+    expect(screen.getByRole('table', { name: /Audit-Log Einträge/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Keine Einträge vorhanden/i)).toBeNull();
+
+    // Dienst antwortet: erst jetzt erscheint der Leertext.
+    await act(async () => {
+      resolveLogs([]);
     });
-    expect(screen.getByText(/Keine Einträge vorhanden/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Keine Einträge vorhanden/i)).toBeInTheDocument();
   });
 
   it('rendert Audit-Eintraege in der Tabelle', async () => {
