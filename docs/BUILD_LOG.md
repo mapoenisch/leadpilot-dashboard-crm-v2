@@ -15160,3 +15160,169 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Schutzbereichs-Diff gegen `fbb7244` leer.
 
 **Ergebnis & Freigabestatus:** Auftragstext überarbeitet. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Aufträge 074/075 – Nachtrag: Prüfnachweis und Merge (PR #58), Builder Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Nachweis zu PR #58 (Auftragstexte 074 und 075 samt Umsetzung 075), wie bei PR #57.
+
+**Prüfnachweis (Codex):** Prüfung am 05.10.2026 in 3 Runden (Heads `ad55a2d`, `c8d4312`, `3237490`). Runde 1: Umsetzung 075 ohne Beanstandung, zwei Widersprüche im Auftragstext 074 (behoben, siehe Nacharbeit-Eintrag). Runde 2 (3 Befunde: Test ohne Timer, Erhaltstest, Filterübernahme) und Runde 3 (4 Befunde: Filtertest-Datei, Speicherfehler, Ladefläche, Details-Verhalten) sind im BUILD_LOG oben behoben und aufgelöst. Auf dem letzten Head `72f22b2` gab es keine ausdrückliche „keine Befunde“-Meldung von Codex; alle Threads waren aufgelöst und die CI grün.
+
+**Merge-Hinweis:** Das Regelwerk `main-protection` verlangt aufgelöste Review-Threads (`required_review_thread_resolution`) und die sieben Pflicht-Checks auf dem aktuellen Head. Jeder Push löst eine neue Codex-Prüfung aus; offene Threads blockierten den Merge zweimal (siehe Runden 2 und 3).
+
+**CI:** auf `72f22b2` grün. **Merge:** Marc, 05.10.2026 12:10 UTC, Merge-Commit `6484368` auf `main`.
+
+**Ergebnis & Freigabestatus:** Auftrag 075 abgeschlossen und gemergt; Auftragstext 074 gemergt. Auftrag 074 wird ab hier gebaut (Marc: „ja, bau Auftrag 074“, 05.10.2026).
+
+---
+
+## Auftrag 074 – Dashboard Teilauftrag 5: Raster, Editor und Konfigurationsfenster – Umsetzung, Builder Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Bedienbares persönliches Dashboard als eigenständiges Modul (Raster, Arbeitskopie mit Bearbeitungsmodus, Konfigurationsfenster, zentrale Filter, Speichern/Verwerfen/Zurücksetzen, Navigationsschutz, sichtbarkeitsgesteuertes Laden), noch nicht in die produktive Seite eingebunden. Basis `6484368`.
+
+**Geänderte Dateien (alle unter `src/features/dashboard/`):** `hooks/dashboardEditorReducer.ts`, `hooks/useDashboardEditor.ts`, `hooks/useTileActivation.ts`, `components/{LazyDashboardTile,UnavailableTileSlot,DashboardGrid,DashboardFilters,EditorToolbar,UnsavedChangesDialog,TileConfigurator,DashboardWorkspace}.tsx`, `preview/{DashboardEditorPreview.tsx,editorPreviewData.ts,DashboardPreviewPage.tsx}`; Tests `dashboardEditorReducer.vitest.ts`, `useDashboardEditor.ui.vitest.tsx`, `useTileActivation.ui.vitest.tsx`, `DashboardGrid.ui.vitest.tsx`, `DashboardFilters.ui.vitest.tsx`, `TileConfigurator.ui.vitest.tsx`, `DashboardWorkspace.ui.vitest.tsx`, `DashboardTile.ui.vitest.tsx` (Galerie-Test auf die Galerie-Region eingegrenzt, neuer Test für `?bereich=editor`); `scripts/captureAuftrag074Screenshots.mjs`, `docs/screenshots/auftrag-074/README.md`, Checkboxen im Auftrag.
+
+**Abweichungen von der Ziel-Dateien-Liste (begründet):**
+1. `components/TileStatus.tsx`: Das Badge „Lädt“ entfällt (eine Zeile). Es ließ in schmalen Kacheln den Kopf umbrechen; gemessen 331 px (bereit) gegen 361 px (laden), also ein Sprung beim Wechsel Laden → bereit. Der Platzhalter im Inhalt und die Ansage nennen den Zustand weiterhin. Abnahmekriterium „Keine Layoutsprünge, ganze Kachel“. Danach laden und bereit gleich hoch, CLS beim Scrollen 0.
+2. Kein Zeitraumfeld in `DashboardFilters`: Es gibt kein belegtes Datumsfeld (bestehender Vertrag); die Filter nennen das sichtbar.
+
+**Befund an gemeinsamer Komponente (nicht geändert, Schutz/Umfang):** `src/components/ui/Modal.tsx` stoppt `keydown` im Dialog (`onKeyDown={e => e.stopPropagation()}`); React reicht das als natives Stoppen an die Wurzel weiter, der Fenster-Listener für Escape sieht die Taste bei Fokus im Dialog nie (im Browser reproduziert, in jsdom nicht). Umgehung in den eigenen Dialogen: `useEscapeToClose` (Aufnahmephase). Empfehlung: Modal separat korrigieren (betrifft alle Dialoge der App).
+
+**Funktionale Prüfungen:** 352 Dashboard-Tests (Reducer 21, Editor-Hook 14, Aktivierung/Lazy-Kachel 11, Raster 9, Filter 7, Konfigurator 9, Arbeitsbereich 15 u. a.). Lazy: Konfigurator-Modul erst beim Öffnen (Netzwerk: 0 Anfragen vorher, 1 danach, Wiederholen bei Nachladefehler getestet); Kacheln aktiv erst bei Annäherung (300 px), beim Start 10/6/2 von 17 aktiv (1440/768/375), nach dem Scrollen alle; Filterwechsel außerhalb des Bereichs startet keine Abfrage. Alle neun Speicherfehler mit eigenem Text; Konflikt mit drei Wegen; Navigationsschutz über `requestLeave` (Wiederholen nach Modulfehler fragt bei offenen Änderungen zurück). Details ohne Handler zeigen „Die Detailansicht folgt mit Teilauftrag 7.“. Unbekannte/inaktive Kacheln bleiben erhalten und erscheinen als Platzhalter.
+
+**Restgrenze:** Beim Laden zeigt der Arbeitsbereich ein Skelett der Standardansicht; weicht die gespeicherte Konfiguration davon ab, gibt es beim Wechsel einen einmaligen Höhensprung (die gespeicherte Konfiguration ist vorher unbekannt).
+
+**Schutzbereichs-Prüfung:** `git diff 6484368 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Dateigrößen (`wc -l`):** alle Quell-, Test- und Skriptdateien < 400 Zeilen (größte: `scripts/captureAuftrag074Screenshots.mjs` 394, `TileConfigurator.tsx` 380, `useDashboardEditor.ts` 353).
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (302 Dateien, 2088 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0 (keine neuen Suppressions), `npx size-limit` 0.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-074/README.md`. Vorher (Basis) gegen Nachher auf 1440/768/375 mit unterschiedlichen Hashes; Zustände Ansicht, Bearbeiten, Konfigurator, Langtexte (Titel 80, Pipeline 64 Zeichen ohne Leerzeichen), Speicherfehler, Konflikt, Dialog: 0 px Seitenüberlauf, axe serious/critical 0; Tastaturablauf (Verschieben mit Fokus und Ansage, Escape gibt Fokus zurück), Hinzufügen, Fehler, Konflikt, Erfolg.
+
+**Ergebnis & Freigabestatus:** Auftrag 074 umgesetzt, Gates lokal grün. Offen: PR gegen `main` (Marc fragen), CI, Codex-Prüfung; Freigabe nie vom Builder, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 1 (PR #59, Head `0baf23f`, Review 5415528758), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat auf Marcs `@codex review` zwölf P2-Befunde gemeldet. Alle zwölf sind berechtigt und behoben, je mit Regressionstest.
+
+| Befund (Datei) | Behebung |
+|---|---|
+| 4184737238 Sitzungsfilter folgt dem Entwurf (`DashboardWorkspace`) | Der Start-Sitzungsfilter kommt aus der gespeicherten Fassung (`state.config.filters`), nie aus `draft`; Entfernen des Startfilters oder Zurücksetzen auf Standard ändert Abfragen erst nach „Speichern“. |
+| 4184737276 Suche nur im Namen (`TileConfigurator`) | Suche über Name und Definition. |
+| 4184737256 Zurücksetzen leert Entwurf nicht (`DashboardFilters`) | „Filter zurücksetzen“ leert auch eine nicht angewendete Eingabe. |
+| 4184737297 technische ID als Kacheltitel (`useDashboardEditor`) | `tileTitle`: Katalogname, sonst „Nicht verfügbare Kachel“; nie die ID. |
+| 4184737292 Fokus nach letzter Kachel (`DashboardWorkspace`) | Fokus auf „Kachel hinzufügen“ im Leerzustand (`EMPTY_FOCUS`). |
+| 4184737266 Enter wendet nicht an (`DashboardFilters`) | Filter ist ein Formular; Enter wendet an, solange „Filter anwenden“ möglich ist. |
+| 4184737325 Schließwege beim Speichern (`UnsavedChangesDialog`) | Escape, Kreuz, Hintergrund und Schaltfläche wirken bei `locked` nicht; zusätzlich ignoriert `leaveStay` im Hook den gesperrten Zustand. |
+| 4184737334 stille Größenanhebung (`TileConfigurator`) | Sichtbare Statuszeile in Live-Region: „Größe automatisch auf … angehoben.“ |
+| 4184737308 erneuter Konflikt sperrt Laden (`useDashboardEditor`) | Ein neuer Konflikt setzt `serverLoaded` zurück. |
+| 4184737317 Pipelinefehler nicht verknüpft (`DashboardFilters`) | Fehlertext mit `role="alert"`, `aria-invalid` und `aria-describedby`. |
+| 4184737371 Zähler der Vorschau (`DashboardEditorPreview`) | Neues optionales `onShownTilesChange` des Arbeitsbereichs; gezählt werden die angezeigten Kacheln (auch im Entwurf). |
+| 4184737353 leere Kategorien (`TileConfigurator`) | Nur Kategorien mit aktiven Einträgen. |
+
+**Weitere Änderung:** Der Test der Seiten-Einbindung wanderte von `DashboardTile.ui.vitest.tsx` nach `DashboardWorkspace.ui.vitest.tsx` (Dateigröße < 400 Zeilen).
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen (`TileConfigurator.tsx` 397).
+
+**Ergebnis & Freigabestatus:** Befunde behoben, Antworten in den Threads; Screenshot-Matrix erneut erzeugt. Offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 2 (PR #59, Head `ea332b6`, Review 5416002101), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 1 geprüft: ein P1 und sechs P2. Alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| P1 4185056353 normaler „Speichern“-Weg nach Konfliktladen (`EditorToolbar`) | Nach „Aktuelle Serveransicht laden“ ist „Speichern“ gesperrt; überschrieben wird nur über „Trotzdem speichern (ersetzt die neuere Fassung)“. |
+| 4185056276 Leerzustand ohne Zurücksetzen (`DashboardGrid`) | „Auf Standard zurücksetzen“ neben „Kachel hinzufügen“. |
+| 4185056293 Höhen nicht im Screenshot-Gate (`captureAuftrag074Screenshots.mjs`) | Neue Messung ganzer Kacheln und des Rasters: Laden → bereit (Beobachter angehalten) und Skelett (`?status=laden`) → bereit; Abweichungen führen zu Exit 1. Ergebnis: 17 Kacheln, 0 Abweichungen, Raster 2954/768: 5271/375: 7404 px in allen drei Zuständen. Hilfen in `scripts/lib/dashboardShotHelpers.mjs` (Dateigrenze). |
+| 4185056306 geleerte Felder nicht übergeben (`TileConfigurator`/Arbeitsbereich) | Beim Bearbeiten gehen Titel und Pipeline ausdrücklich als `undefined` in den Patch; Titel lässt sich löschen. |
+| 4185056319 verwaister Startfilter (`DashboardFilters`) | „Startfilter entfernen“ bleibt im Bearbeiten sichtbar, auch ohne Pipeline-fähige Kachel. |
+| 4185056336 wiederholte Detail-Ansage (`DashboardWorkspace`) | Klickzähler wechselt die Ansage bei jedem Klick. |
+| 4185056367 Editor bei neuerer Serverversion (`useDashboardEditor`) | Übernimmt „Serverfassung übernehmen“ eine nicht speicherbare Fassung, endet der Bearbeitungsmodus mit Ansage. |
+
+**Vorschau:** `?status=laden` zeigt den Arbeitsbereich im Ladezustand (für die Höhenmessung).
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0, `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0 (0 px Überlauf, axe 0, CLS 0, Höhen gleich); Schutzbereichs-Diff leer; Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 3 (PR #59, Head `ec0e308`, Review 5416477630), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 2 geprüft: ein P1 und sieben P2. Alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| P1 4185404702 Entwurf nicht an Startrevision gebunden (`useDashboardEditor`) | Der Hook hält Konfiguration und Revision vom Start der Bearbeitung fest. Ändert sich die Serverfassung darunter (z. B. Fokus-Neuladen), beginnt sofort der Konfliktablauf; `save` speichert nicht, bis die Serverfassung bewusst geladen wurde. `dirty` vergleicht gegen den Startstand. |
+| 4185404719 Verwerfen nach fehlgeschlagenem Neuladen | `reloadServerVersion` wirft bei Fehlschlag (`throwOnError: true`, eine Option in `useDashboardPreferences.ts`, Datei nicht in der Ziel-Liste); der Editor meldet „konnte nicht geladen werden“, behält den Entwurf und übernimmt nichts. |
+| 4185404717 Zeitraum nicht bearbeitbar, geht beim Anwenden verloren (`DashboardFilters`) | Felder „Von“/„Bis“ mit Prüfung (beide Grenzen, Reihenfolge); Entwurf, Änderungs- und Startfiltervergleich aus Pipeline und Zeitraum. Der Zeitraum wirkt weiter nicht (kein belegtes Datumsfeld), der Hinweis steht da. |
+| 4185404747 Ziehgriff nicht im Gate (Skript) | Echter Drag über den Griff auf 1440 und 768 px (`dragCheck`), neue DOM-Reihenfolge Teil der Bedingung; auf 375 px gibt es keinen Griff. Nebenbefund der Messung: Auf 768 px liegt die dritte Kachel unterhalb des Viewports, daher Ziel „zweite Position“. |
+| 4185404729 Arbeitsbereich beim Chunk-Laden nicht gesperrt (`DashboardWorkspace`) | Lade- und Fehlerzustand des Konfigurators sind ein modales Fenster; der Fokus kehrt zum Auslöser zurück, auch wenn die Hülle das Fenster wechselt. |
+| 4185404759 „Erneut versuchen“ wiederholt denselben Abruf | Der Fehlerzustand bietet „Seite neu laden“ (über `requestLeave` mit Rückfrage bei Entwurf), wie der Diagramm-Retry. |
+| 4185404769 Vorschau-Remount bei jeder Texteingabe (`TileConfigurator`) | Schlüssel nur noch die Katalog-ID; Titel und Pipeline aktualisieren nur die Props. Test zählt die Einhängungen. |
+
+**Weitere Änderungen:** `tileTitle` wanderte in `dashboardEditorReducer.ts` (Dateigröße des Hooks); neue Testdateien `useDashboardEditor.codex.ui.vitest.tsx` und `DashboardWorkspace.codex.ui.vitest.tsx` für die Regressionstests der Runden 1 bis 3 (Dateigrenze 400 Zeilen).
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2115 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0 (0 px Überlauf, axe 0, CLS 0, Höhen gleich, Drag ja/ja/kein Griff); Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 4 (PR #59, Head `fedadef`, Review 5417016320), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 3 geprüft: ein P1 und vier P2. Alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| P1 4185819125 Konfliktfreigabe bleibt bei weiterer Revision (`useDashboardEditor`) | Die Freigabe durch „Serveransicht laden“ gilt nur für die dabei geladene Revision (`loadedRev`). Eine weitere Revision hebt sie auf und führt erneut in den Konfliktablauf; überschrieben wird nie ohne erneutes Laden und Bestätigen. |
+| 4185819134 Überschreiben schlägt fehl, kein Speicherweg mehr | Ein Nicht-Konflikt-Fehler nach geladener Serverfassung behält den Überschreiben-Ablauf („Trotzdem speichern“ bleibt). |
+| 4185819152 Escape schließt zwei Dialoge (`DashboardWorkspace`) | Die Hülle des Konfigurators ruht (Escape, Kreuz, Hintergrund), solange die Rückfrage darüber offen ist. |
+| 4185819158 Abfrage je Buchstabe in der Vorschau (`TileConfigurator`) | Die Vorschau bekommt die Pipeline verzögert (400 ms); Tippen startet keine Abfragen je Buchstabe. |
+| 4185819141 Neuladefehler ersetzt den Editor (`DashboardWorkspace`) | Bei `status: 'fehler'` mit vorhandener Fassung bleibt der Editor samt Entwurf sichtbar; nur ein Ladefehler ohne Fassung zeigt die allgemeine Fehleranzeige. |
+
+**Weitere Änderungen (Dateigrenze 400 Zeilen):** Navigationsschutz in `hooks/useLeaveGuard.ts`, Bausteine des Konfigurators in `components/ConfiguratorFields.tsx`.
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2120 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 5 (PR #59, Head `c1ba894`, Review 5417392295), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 4 geprüft: drei P2, alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| 4186102669 „Details“ während des Speicherns (`DashboardWorkspace`) | Der Details-Handler ist bei `editor.locked` wirkungslos; kein Verlassen mitten im Speichern, sobald Teilauftrag 7 den Callback zur Navigation nutzt. |
+| 4186102664 Lazy-Gate ohne 24 Kacheln (Skript) | Neue Vorschau-Option `?kacheln=24` (Standardansicht, aufgefüllt mit Kopien); eigener Ablauf `fullLazyRows`: 24 Kacheln, beim Start 10/6/2 aktiv (1440/768/375), nach dem Scrollen alle 24; Teil der Bedingung `ok`. |
+| 4186102655 Diagramm-Retry der Konfiguratorvorschau (`TileConfigurator`) | Der Arbeitsbereich reicht den über `requestLeave` geschützten Reload an die Vorschau durch (Rückfrage bei Entwurf); zusätzlich ruht dort Escape, solange eine Rückfrage darüber liegt (`escapeActive`). |
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2123 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 6 (PR #59, Head `560446a`, Review 5417761865), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 5 geprüft: vier P2, alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| 4186396630 verzögerte Pipeline startet leer (`TileConfigurator`) | `useDebounced` gilt bei Kachel- oder Kennzahlwechsel sofort; nur nachfolgende Eingaben sind verzögert. Kein falscher Erstabruf beim Öffnen. |
+| 4186396635 ausgeblendeter Pipeline-Entwurf wirkt weiter (`DashboardFilters`) | Ohne pipeline-fähige Kachel zählt das Feld weder für Prüfung noch für „Filter anwenden“. |
+| 4186396650 Fokus nach „Auf Standard zurücksetzen“ (`DashboardGrid`/Arbeitsbereich) | Fokus auf die erste Kachel der Standardansicht. |
+| 4186396632 parallele Konfliktaktionen (`useDashboardEditor`) | Der Neuladevorgang sperrt sofort (`reloadingRef`, `locked`); „Serverfassung übernehmen“ und „Serveransicht laden“ laufen nicht parallel. |
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2128 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben. Marc hat angewiesen, nach grüner CI sofort zu mergen (05.10.2026); das Merge-Protokoll folgt im Nachtrag.

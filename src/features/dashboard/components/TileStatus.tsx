@@ -13,7 +13,9 @@ const BREAK = '[overflow-wrap:anywhere]';
 
 const BADGE: Record<TileData['state'], { text: string; variant: BadgeVariant } | null> = {
   bereit: null,
-  laden: { text: 'Lädt', variant: 'neutral' },
+  // Kein Badge beim Laden: Der Platzhalter im Inhalt und die Ansage nennen den Zustand, und ein
+  // Badge ließe den Kachelkopf beim Wechsel zu „bereit“ umbrechen (Auftrag 074, Layoutsprung).
+  laden: null,
   keine_daten: { text: NO_DATA, variant: 'neutral' },
   fehler: { text: 'Fehler', variant: 'red' },
   offline: { text: 'Offline', variant: 'orange' },

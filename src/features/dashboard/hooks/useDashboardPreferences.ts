@@ -147,7 +147,11 @@ export function useDashboardPreferences(): UseDashboardPreferencesResult {
 
   const reloadServerVersion = useCallback(async () => {
     if (!organizationId || !userId) return;
-    await queryClient.refetchQueries({ queryKey: dashboardPreferencesKey(organizationId, userId) });
+    // `throwOnError`: Ein fehlgeschlagenes Neuladen darf nicht wie ein Erfolg aussehen (Auftrag 074).
+    await queryClient.refetchQueries(
+      { queryKey: dashboardPreferencesKey(organizationId, userId) },
+      { throwOnError: true },
+    );
   }, [organizationId, userId, queryClient]);
 
   let status: UseDashboardPreferencesResult['status'];
