@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // G62 (Auftrag 067P): UI-Tests fuer AuditPage.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { AuditPage } from '../AuditPage';
 
 // ---------------------------------------------------------------- Mocks
@@ -78,19 +78,26 @@ describe('AuditPage', () => {
 
   it('zeigt den Leertext erst nach dem Laden, auch wenn der Dienst langsam antwortet', async () => {
     vi.mocked(useOrganization).mockReturnValue(makeAdminSession());
+    // Manuell auflösbare Promise statt Echtzeit-Timer: Vorher- und Nachher-Zustand sind deterministisch.
+    let resolveLogs: (entries: []) => void = () => undefined;
     vi.mocked(auditService.listAuditLogs).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve([]), 1500)),
+      () =>
+        new Promise<[]>((resolve) => {
+          resolveLogs = resolve;
+        }),
     );
 
     render(<AuditPage />);
 
-    // Während des Ladens: Tabelle und Ladeschaltfläche da, kein Leertext.
+    // Während des Ladens: Tabelle da, kein Leertext.
     expect(screen.getByRole('table', { name: /Audit-Log Einträge/i })).toBeInTheDocument();
     expect(screen.queryByText(/Keine Einträge vorhanden/i)).toBeNull();
-    // Danach erscheint der Leertext.
-    expect(
-      await screen.findByText(/Keine Einträge vorhanden/i, {}, { timeout: 4000 }),
-    ).toBeInTheDocument();
+
+    // Dienst antwortet: erst jetzt erscheint der Leertext.
+    await act(async () => {
+      resolveLogs([]);
+    });
+    expect(await screen.findByText(/Keine Einträge vorhanden/i)).toBeInTheDocument();
   });
 
   it('rendert Audit-Eintraege in der Tabelle', async () => {

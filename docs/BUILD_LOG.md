@@ -15121,3 +15121,23 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Schutzbereichs-Diff gegen `fbb7244` leer.
 
 **Ergebnis & Freigabestatus:** Auftragstext 074 überarbeitet. Offen: erneute Codex-Prüfung des PR, Marcs Merge; Auftrag 074 wird erst danach gebaut.
+
+---
+
+## Aufträge 074/075 – Nacharbeit Codex-Review, Runde 2 (PR #58, Head c8d4312, Review 5412330068), Builder Claude Code, 05.10.2026
+
+**Anlass:** Marc meldete „Merge ist nicht möglich“. Ursache: Das Regelwerk für `main` (`main-protection`) verlangt aufgelöste Review-Threads (`required_review_thread_resolution`); auf `c8d4312` standen drei offene Codex-Threads. CI war grün, kein Konflikt, `main` unverändert.
+
+| Befund | Behebung |
+|---|---|
+| 4182405077 (P2) Regressionstest 075 hängt an einem Echtzeit-Timer (1,5 s gegen 4 s Limit, verlängert jeden Lauf) | Der Test steuert die Antwort über eine manuell auflösbare Promise und löst sie nach den Prüfungen des Ladezustands aus (`act`); kein `setTimeout`. Auftragstext 075 entsprechend angepasst. 20 Läufe der Datei hintereinander: 20 grün, 0 rot. |
+| 4182405084 (P2) Erhaltstest in 074 „bei allen Aktionen“ widerspricht „Entfernen“ und „Zurücksetzen“ | Der Erhalt gilt für gewöhnliche, nicht ausdrücklich löschende Bearbeitungen und das anschließende Speichern; ausdrücklich löschend sind nur „Entfernen“ dieser Kachel und „Auf Standard zurücksetzen“. Test- und Rasterabschnitt angepasst. |
+| 4182405090 (P2) Pipeline-Filter: freie Eingabe ohne Übernahme oder Debouncing löst Abfragen je Zwischenstand aus | Zeitraum und Pipeline sind Entwurfsfelder und wirken erst über „Filter anwenden“ (auch Eingabetaste); neue Testpunkte für `DashboardFilters` (Tippen ändert weder Filter noch Datenaufrufe, Anwenden genau einmal, ungültige Eingabe, Zurücksetzen). |
+
+**Geänderte Dateien:** `src/features/admin/pages/__tests__/AuditPage.ui.vitest.tsx` (220 Zeilen), `docs/auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md`, `docs/auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md`, `docs/BUILD_LOG.md`.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0.
+
+**Schutzbereichs-Diff** gegen `fbb7244`: leer.
+
+**Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, erneute Codex-Prüfung, Merge nur durch Marc.
