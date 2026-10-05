@@ -15174,3 +15174,31 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **CI:** auf `72f22b2` grün. **Merge:** Marc, 05.10.2026 12:10 UTC, Merge-Commit `6484368` auf `main`.
 
 **Ergebnis & Freigabestatus:** Auftrag 075 abgeschlossen und gemergt; Auftragstext 074 gemergt. Auftrag 074 wird ab hier gebaut (Marc: „ja, bau Auftrag 074“, 05.10.2026).
+
+---
+
+## Auftrag 074 – Dashboard Teilauftrag 5: Raster, Editor und Konfigurationsfenster – Umsetzung, Builder Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Bedienbares persönliches Dashboard als eigenständiges Modul (Raster, Arbeitskopie mit Bearbeitungsmodus, Konfigurationsfenster, zentrale Filter, Speichern/Verwerfen/Zurücksetzen, Navigationsschutz, sichtbarkeitsgesteuertes Laden), noch nicht in die produktive Seite eingebunden. Basis `6484368`.
+
+**Geänderte Dateien (alle unter `src/features/dashboard/`):** `hooks/dashboardEditorReducer.ts`, `hooks/useDashboardEditor.ts`, `hooks/useTileActivation.ts`, `components/{LazyDashboardTile,UnavailableTileSlot,DashboardGrid,DashboardFilters,EditorToolbar,UnsavedChangesDialog,TileConfigurator,DashboardWorkspace}.tsx`, `preview/{DashboardEditorPreview.tsx,editorPreviewData.ts,DashboardPreviewPage.tsx}`; Tests `dashboardEditorReducer.vitest.ts`, `useDashboardEditor.ui.vitest.tsx`, `useTileActivation.ui.vitest.tsx`, `DashboardGrid.ui.vitest.tsx`, `DashboardFilters.ui.vitest.tsx`, `TileConfigurator.ui.vitest.tsx`, `DashboardWorkspace.ui.vitest.tsx`, `DashboardTile.ui.vitest.tsx` (Galerie-Test auf die Galerie-Region eingegrenzt, neuer Test für `?bereich=editor`); `scripts/captureAuftrag074Screenshots.mjs`, `docs/screenshots/auftrag-074/README.md`, Checkboxen im Auftrag.
+
+**Abweichungen von der Ziel-Dateien-Liste (begründet):**
+1. `components/TileStatus.tsx`: Das Badge „Lädt“ entfällt (eine Zeile). Es ließ in schmalen Kacheln den Kopf umbrechen; gemessen 331 px (bereit) gegen 361 px (laden), also ein Sprung beim Wechsel Laden → bereit. Der Platzhalter im Inhalt und die Ansage nennen den Zustand weiterhin. Abnahmekriterium „Keine Layoutsprünge, ganze Kachel“. Danach laden und bereit gleich hoch, CLS beim Scrollen 0.
+2. Kein Zeitraumfeld in `DashboardFilters`: Es gibt kein belegtes Datumsfeld (bestehender Vertrag); die Filter nennen das sichtbar.
+
+**Befund an gemeinsamer Komponente (nicht geändert, Schutz/Umfang):** `src/components/ui/Modal.tsx` stoppt `keydown` im Dialog (`onKeyDown={e => e.stopPropagation()}`); React reicht das als natives Stoppen an die Wurzel weiter, der Fenster-Listener für Escape sieht die Taste bei Fokus im Dialog nie (im Browser reproduziert, in jsdom nicht). Umgehung in den eigenen Dialogen: `useEscapeToClose` (Aufnahmephase). Empfehlung: Modal separat korrigieren (betrifft alle Dialoge der App).
+
+**Funktionale Prüfungen:** 352 Dashboard-Tests (Reducer 21, Editor-Hook 14, Aktivierung/Lazy-Kachel 11, Raster 9, Filter 7, Konfigurator 9, Arbeitsbereich 15 u. a.). Lazy: Konfigurator-Modul erst beim Öffnen (Netzwerk: 0 Anfragen vorher, 1 danach, Wiederholen bei Nachladefehler getestet); Kacheln aktiv erst bei Annäherung (300 px), beim Start 10/6/2 von 17 aktiv (1440/768/375), nach dem Scrollen alle; Filterwechsel außerhalb des Bereichs startet keine Abfrage. Alle neun Speicherfehler mit eigenem Text; Konflikt mit drei Wegen; Navigationsschutz über `requestLeave` (Wiederholen nach Modulfehler fragt bei offenen Änderungen zurück). Details ohne Handler zeigen „Die Detailansicht folgt mit Teilauftrag 7.“. Unbekannte/inaktive Kacheln bleiben erhalten und erscheinen als Platzhalter.
+
+**Restgrenze:** Beim Laden zeigt der Arbeitsbereich ein Skelett der Standardansicht; weicht die gespeicherte Konfiguration davon ab, gibt es beim Wechsel einen einmaligen Höhensprung (die gespeicherte Konfiguration ist vorher unbekannt).
+
+**Schutzbereichs-Prüfung:** `git diff 6484368 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Dateigrößen (`wc -l`):** alle Quell-, Test- und Skriptdateien < 400 Zeilen (größte: `scripts/captureAuftrag074Screenshots.mjs` 394, `TileConfigurator.tsx` 380, `useDashboardEditor.ts` 353).
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (302 Dateien, 2088 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0 (keine neuen Suppressions), `npx size-limit` 0.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-074/README.md`. Vorher (Basis) gegen Nachher auf 1440/768/375 mit unterschiedlichen Hashes; Zustände Ansicht, Bearbeiten, Konfigurator, Langtexte (Titel 80, Pipeline 64 Zeichen ohne Leerzeichen), Speicherfehler, Konflikt, Dialog: 0 px Seitenüberlauf, axe serious/critical 0; Tastaturablauf (Verschieben mit Fokus und Ansage, Escape gibt Fokus zurück), Hinzufügen, Fehler, Konflikt, Erfolg.
+
+**Ergebnis & Freigabestatus:** Auftrag 074 umgesetzt, Gates lokal grün. Offen: PR gegen `main` (Marc fragen), CI, Codex-Prüfung; Freigabe nie vom Builder, Merge nur durch Marc.
