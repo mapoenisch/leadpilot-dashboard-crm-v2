@@ -1,6 +1,77 @@
-// Auftrag 074: kleine Bausteine des Konfigurationsfensters (Auswahlgruppe, Option, Verzögerung),
-// ausgelagert wegen der Dateigrenze von 400 Zeilen.
+// Auftrag 074: kleine Bausteine des Konfigurationsfensters (Auswahlgruppe, Option, Verzögerung,
+// Auswahlstand, Vorschau), ausgelagert wegen der Dateigrenze von 400 Zeilen (Auftrag 076).
 import { useEffect, useState, type ReactNode } from 'react';
+import { allowedFilterModes } from '../hooks/dashboardEditorReducer';
+import {
+  DASHBOARD_CATEGORIES,
+  minSizeFor,
+  type ActiveCatalogEntry,
+  type DashboardCategory,
+  type DashboardView,
+  type TileSize,
+} from '../model/dashboardCatalog';
+import type {
+  DashboardFilters,
+  DashboardTileConfig,
+  TileFilterMode,
+} from '../model/dashboardConfig';
+import type { ChartLoaders } from './charts/chartLoaders';
+import { DashboardTile } from './DashboardTile';
+import type { TileDataHook } from './LazyDashboardTile';
+
+export const MODE_LABEL: Record<TileFilterMode, string> = {
+  dashboard: 'Zentraler Dashboard-Filter',
+  eigener_zeitraum: 'Eigener Zeitraum',
+  fester_stand: 'Fester Stand (wie angegeben)',
+};
+
+export interface Choice {
+  /** Erste Kennzahl aus der Liste (Auftrag 076); bei einer Kombination deren Ausgang. */
+  firstId: string;
+  /** Gespeicherte Kennzahl: die erste Kennzahl selbst oder die gewählte Kombinationsregel. */
+  catalogId: string;
+  view: DashboardView;
+  size: TileSize;
+  title: string;
+  filterMode: TileFilterMode;
+  pipeline: string;
+}
+
+/** Voreinstellungen eines Eintrags; Darstellung, Größe und Zeitbezug kommen aus dem Katalog. */
+export function defaultsFor(entry: ActiveCatalogEntry, firstId = entry.id): Choice {
+  const first = allowedFilterModes(entry).find((option) => option.allowed);
+  return {
+    firstId,
+    catalogId: entry.id,
+    view: entry.defaultView,
+    size: minSizeFor(entry, entry.defaultView),
+    title: '',
+    filterMode: first?.mode ?? 'dashboard',
+    pipeline: '',
+  };
+}
+
+export function Preview(props: {
+  tile: DashboardTileConfig;
+  entry: ActiveCatalogEntry;
+  useData: TileDataHook;
+  filters?: DashboardFilters;
+  onRetryChartLoad?: () => void;
+  chartLoaders?: ChartLoaders;
+}) {
+  const data = props.useData(props.tile, props.filters, { enabled: true });
+  return (
+    <DashboardTile
+      tile={props.tile}
+      entry={props.entry}
+      data={data}
+      dashboardFilters={props.filters}
+      onShowDetails={() => undefined}
+      onRetryChartLoad={props.onRetryChartLoad}
+      chartLoaders={props.chartLoaders}
+    />
+  );
+}
 
 export function Group({ legend, children }: { legend: string; children: ReactNode }) {
   return (
@@ -58,4 +129,28 @@ export function useDebounced<T>(value: T, ms: number, resetKey: string): T {
     return () => clearTimeout(timer);
   }, [value, ms, resetKey, state]);
   return current;
+}
+
+export function CategorySelect(props: {
+  value: DashboardCategory | '';
+  categories: readonly DashboardCategory[];
+  onChange: (value: DashboardCategory | '') => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-[13px] text-[var(--color-text-muted)]">
+      Kategorie
+      <select
+        value={props.value}
+        onChange={(event) => props.onChange(event.target.value as DashboardCategory | '')}
+        className="rounded-md border border-solid border-border bg-surface p-2 text-sm text-[var(--color-text)]"
+      >
+        <option value="">Alle Kategorien</option>
+        {props.categories.map((key) => (
+          <option key={key} value={key}>
+            {DASHBOARD_CATEGORIES[key]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
 }

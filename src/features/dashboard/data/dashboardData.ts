@@ -13,7 +13,9 @@ export type TileDataState =
   | 'offline'
   | 'veraltet'
   | 'nicht_konfiguriert'
-  | 'nicht_verfuegbar';
+  | 'nicht_verfuegbar'
+  /** Kombination (Auftrag 076): Operanden vorhanden, Rechnung fachlich unzulässig; `message` nennt den Grund. */
+  | 'nicht_berechenbar';
 
 export type TileOverview =
   | { kind: 'team_hr'; data: ReturnType<typeof getTeamHrSnapshot> }
@@ -42,6 +44,13 @@ export interface ResolvedTileData {
   effectiveFilter: EffectiveTileFilter;
   quality?: 'degradiert'; // Live-Snapshot mit qualityStatus 'degraded'
   message?: string; // verständlicher Hinweis, keine technische Fehlermeldung
+  /** Nur Kombinationen (Auftrag 076): Formel in Worten und beide Operanden mit Zeitbasis. */
+  combination?: TileCombination;
+}
+
+export interface TileCombination {
+  formula: string;
+  operands: readonly { label: string; value: number | null; unit: string; timeBasis: string }[];
 }
 
 export type TileData = ResolvedTileData | UnavailableTileData;
@@ -71,6 +80,7 @@ export function getScopeForLayer(
 ): 'stammdaten' | 'organisation' | 'organisationsuebergreifend' {
   switch (layer) {
     case 'baseline':
+    case 'kombination':
       return 'stammdaten';
     case 'crm':
       return 'organisation';

@@ -2,6 +2,8 @@
 // Verständliche Texte statt technischer Meldungen; „Keine Daten“ statt 0.
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
+import type { ActiveCatalogEntry } from '../model/dashboardCatalog';
+import { combinationFormula, getCombinationRule } from '../model/dashboardCombinations';
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
 import type { ResolvedTileData, TileData } from '../data/dashboardData';
 import { filterModeLabel, formatAsOf, formatPeriod, NO_DATA } from './tileFormat';
@@ -22,7 +24,24 @@ const BADGE: Record<TileData['state'], { text: string; variant: BadgeVariant } |
   veraltet: { text: 'Veraltet', variant: 'orange' },
   nicht_konfiguriert: { text: 'Nicht eingerichtet', variant: 'neutral' },
   nicht_verfuegbar: { text: 'Nicht verfügbar', variant: 'neutral' },
+  // Steht im Inhalt statt im Kopf (InlineStateBadge): Der Kopf bleibt so hoch wie beim Laden.
+  nicht_berechenbar: null,
 };
+
+/**
+ * Badge im Inhaltsbereich (Auftrag 076): „Nicht berechenbar“ steht über dem Grund in der
+ * reservierten Inhaltshöhe; im Kopf würde er auf schmalen Kacheln umbrechen (Layoutsprung).
+ */
+export function InlineStateBadge({ data }: { data: TileData }) {
+  if (data.state !== 'nicht_berechenbar') return null;
+  return (
+    <span data-testid="tile-state-badge">
+      <Badge variant="neutral" size="sm">
+        Nicht berechenbar
+      </Badge>
+    </span>
+  );
+}
 
 export function TileStateBadge({ data }: { data: TileData }) {
   const badge = BADGE[data.state];
@@ -51,6 +70,7 @@ export const BLOCKING_STATES: ReadonlySet<TileData['state']> = new Set([
   'fehler',
   'nicht_konfiguriert',
   'nicht_verfuegbar',
+  'nicht_berechenbar',
 ]);
 
 /** Text für blockierende Zustände. */
@@ -68,6 +88,9 @@ export function blockingText(data: TileData): string {
       return 'Datenquelle nicht eingerichtet.';
     case 'nicht_verfuegbar':
       return data.message;
+    case 'nicht_berechenbar':
+      // Der Grund stammt aus der Kombinationsprüfung und ist für Menschen formuliert.
+      return data.message ?? 'Die Kombination ist nicht berechenbar.';
     default:
       return '';
   }
@@ -132,5 +155,20 @@ export function TimeReference({
         </p>
       ))}
     </div>
+  );
+}
+
+/**
+ * Formelzeile einer Kombinationskachel (Auftrag 076). Sie stammt aus der Regel, nicht aus den
+ * Daten, und steht deshalb in jedem Zustand gleich da: Laden, bereit und nicht berechenbar
+ * haben denselben Kopf.
+ */
+export function CombinationFormula({ entry }: { entry?: ActiveCatalogEntry }) {
+  const rule = entry?.source.layer === 'kombination' ? getCombinationRule(entry.id) : undefined;
+  if (!rule) return null;
+  return (
+    <p className={cn(MUTED, BREAK, 'mt-[4px]')} data-testid="tile-formula">
+      Formel: {combinationFormula(rule)}
+    </p>
   );
 }

@@ -19,6 +19,8 @@ import { checkTileValues, DashboardChart, reserveFor, TableToggleReserve } from 
 import {
   BLOCKING_STATES,
   blockingText,
+  CombinationFormula,
+  InlineStateBadge,
   MUTED,
   TileNotices,
   TileStateBadge,
@@ -60,6 +62,12 @@ const SCROLLING_VIEWS: readonly DashboardView[] = ['tabelle', 'uebersicht'];
 const NOTICE_SLOT_CLASS = 'h-[56px] overflow-y-auto';
 const SCOPE_NOTICE =
   'Live-Feed, nicht nach Organisation getrennt: Die Werte gelten für alle Organisationen.';
+
+/** Vorsilbe der Ansage, wenn der Text allein den Zustand nicht nennt. */
+const STATE_PREFIX: Partial<Record<TileData['state'], string>> = {
+  fehler: 'Fehler: ',
+  nicht_berechenbar: 'Nicht berechenbar: ',
+};
 
 /** Bereite Daten, die als „Keine Daten“ erscheinen (z. B. leere Reihe): ansagen wie einen Zustand. */
 function isDerivedEmpty(
@@ -118,7 +126,7 @@ export function DashboardTile({
     }
   }, [warned, data.state]);
   const liveText = BLOCKING_STATES.has(data.state)
-    ? `${data.state === 'fehler' ? 'Fehler: ' : ''}${blockingText(data)}`
+    ? `${STATE_PREFIX[data.state] ?? ''}${blockingText(data)}`
     : warned
       ? // Beide Warnungen zusammen (veraltet und eingeschränkt) in einer Meldung.
         [
@@ -166,6 +174,7 @@ export function DashboardTile({
                 · Quelle: {SOURCE_LABEL[resolved.origin.layer]}
               </p>
             ) : null}
+            <CombinationFormula entry={entry} />
             <TimeReference tile={tile} data={resolved} dashboardFilters={dashboardFilters} />
           </div>
           <TileStateBadge data={data} />
@@ -297,25 +306,24 @@ function TileBody({
         <div className="relative">
           <ChartLayoutReserve {...reserveFor(chartView, [])} />
           <TableToggleReserve />
-          <p
-            data-testid={testId}
-            className={cn(OVERLAY, 'm-0 text-[13px] text-[var(--color-text-muted)]')}
-          >
-            {text}
-          </p>
+          <div className={cn(OVERLAY, 'items-start')}>
+            <InlineStateBadge data={data} />
+            <p data-testid={testId} className="m-0 text-[13px] text-[var(--color-text-muted)]">
+              {text}
+            </p>
+          </div>
         </div>
       );
     }
     return (
-      <p
-        data-testid={testId}
-        className={cn(
-          'm-0 flex items-center text-[13px] text-[var(--color-text-muted)]',
-          MIN_HEIGHT[tile.view],
-        )}
+      <div
+        className={cn('flex flex-col items-start justify-center gap-[6px]', MIN_HEIGHT[tile.view])}
       >
-        {text}
-      </p>
+        <InlineStateBadge data={data} />
+        <p data-testid={testId} className="m-0 text-[13px] text-[var(--color-text-muted)]">
+          {text}
+        </p>
+      </div>
     );
   }
 

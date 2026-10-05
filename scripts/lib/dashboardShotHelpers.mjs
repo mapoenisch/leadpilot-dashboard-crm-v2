@@ -50,7 +50,7 @@ export async function dialogRows(browser, ctx) {
 }
 
 /** Höhe jeder ganzen Kachel (Listeneintrag) und des Rasters in einem Zustand. */
-async function measure(ctx, browser, viewport, { stubObserver, query, scroll }) {
+export async function measure(ctx, browser, viewport, { stubObserver, query, scroll }) {
   const { BASE_URL, PAGE } = ctx;
   const context = await browser.newContext({ viewport });
   const page = await context.newPage();

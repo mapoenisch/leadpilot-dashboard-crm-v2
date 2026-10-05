@@ -18,6 +18,7 @@ export const SUPPORTED_DATE_FIELDS: Record<SourceLayer, readonly string[]> = {
   baseline: [],
   crm: [],
   live: [],
+  kombination: [],
 };
 
 export interface EffectiveTileFilter {
@@ -48,7 +49,7 @@ function resolvePeriodFilter(
   if (tile.filterMode === 'eigener_zeitraum') {
     let reason: string | undefined;
     if (requestedPeriod) {
-      if (layer === 'baseline') {
+      if (layer === 'baseline' || layer === 'kombination') {
         reason = 'Quelle hat kein belegtes Datumsfeld; historischer Stand ist fest';
       } else if (layer === 'live') {
         reason = 'Quelle ist ein Live-Feed ohne historischen Zeitraum';
@@ -66,7 +67,7 @@ function resolvePeriodFilter(
   // mode === 'dashboard'
   let reason: string | undefined;
   if (requestedPeriod) {
-    if (layer === 'baseline') {
+    if (layer === 'baseline' || layer === 'kombination') {
       reason = 'Quelle hat kein belegtes Datumsfeld; historischer Stand ist fest';
     } else if (layer === 'live') {
       reason = 'Quelle ist ein Live-Feed ohne historischen Zeitraum';

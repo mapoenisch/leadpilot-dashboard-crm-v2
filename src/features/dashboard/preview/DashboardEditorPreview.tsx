@@ -19,12 +19,38 @@ const NEXT_SAVE_LABEL: Record<NextSave, string> = {
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/** Auftrag 076: Kombinationskacheln für die Höchstbelegung (bereit, Anteil, nicht berechenbar). */
+const COMBINATION_TILES: DashboardConfig['tiles'] = [
+  {
+    tileId: 'kombi_marge',
+    catalogId: 'kombination.ebitda_marge',
+    view: 'zahl',
+    size: 'klein',
+    filterMode: 'fester_stand',
+  },
+  {
+    tileId: 'kombi_cac',
+    catalogId: 'kombination.cac_aufschlag',
+    view: 'zahl',
+    size: 'klein',
+    filterMode: 'fester_stand',
+  },
+  {
+    tileId: 'kombi_growth',
+    catalogId: 'kombination.mrr_anteil_growth',
+    view: 'ring',
+    size: 'mittel',
+    filterMode: 'fester_stand',
+  },
+];
+
 function paddedConfig(count: number): DashboardConfig {
   const base = DEFAULT_DASHBOARD_CONFIG.tiles;
-  const extra = Array.from({ length: Math.max(0, count - base.length) }, (_, i) => ({
-    ...base[i % base.length]!,
-    tileId: `zusatz_${i + 1}`,
-  }));
+  const extra = Array.from({ length: Math.max(0, count - base.length) }, (_, i) =>
+    i < COMBINATION_TILES.length
+      ? COMBINATION_TILES[i]!
+      : { ...base[i % base.length]!, tileId: `zusatz_${i + 1}` },
+  );
   return { ...DEFAULT_DASHBOARD_CONFIG, tiles: [...base, ...extra].slice(0, count) };
 }
 

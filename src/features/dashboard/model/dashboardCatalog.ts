@@ -2,6 +2,7 @@
 // Nur Metadaten: Quelle, Zeitbasis, Einheit, Darstellungen und Größen. Kennzahlenwerte stehen
 // ausschließlich in den Quellmodulen; das Inventar mit Rohwerten liegt in docs/dashboard/KPI_CATALOG.md.
 import { ACTIVE_CATALOG_ENTRIES } from './catalog/activeEntries';
+import { COMBINATION_ENTRIES } from './catalog/combinationEntries';
 import { PREPARE_CATALOG_ENTRIES } from './catalog/inventoryEntries';
 import { UNSUITABLE_CATALOG_ENTRIES } from './catalog/unsuitableEntries';
 
@@ -22,12 +23,22 @@ export type DashboardCategory = keyof typeof DASHBOARD_CATEGORIES;
 
 export type CatalogStatus = 'aktiv' | 'aufbereiten' | 'nicht_geeignet';
 
-/** Herkunftsebene: historische Stammdaten (Ebene A), CRM-Datenbank oder Live-Feed (Ebene C). */
-export type SourceLayer = 'baseline' | 'crm' | 'live';
+/**
+ * Herkunftsebene: historische Stammdaten (Ebene A), CRM-Datenbank, Live-Feed (Ebene C) oder eine
+ * freigegebene Kombination zweier Stammdaten-Werte (Auftrag 076).
+ */
+export type SourceLayer = 'baseline' | 'crm' | 'live' | 'kombination';
 
 /** Datenform laut Plan §4; bestimmt die zulässigen Darstellungen. */
 export type DataShape =
-  'einzelwert' | 'verhaeltnis' | 'kategorien' | 'anteile' | 'zeitreihe' | 'uebersicht';
+  | 'einzelwert'
+  | 'verhaeltnis'
+  | 'kategorien'
+  | 'anteile'
+  | 'zeitreihe'
+  | 'uebersicht'
+  /** Ein belegter Anteil an einer Gesamtheit (Kombination): Zahl, Tabelle oder Teil und Rest. */
+  | 'anteil';
 
 /** Bestandswerte (z. B. ARR) werden nie über die Zeit aufsummiert, Flusswerte gelten je Zeitraum. */
 export type Aggregation = 'bestand' | 'fluss' | 'verhaeltnis' | 'keine';
@@ -127,6 +138,7 @@ export const VIEWS_BY_SHAPE: Record<DataShape, readonly DashboardView[]> = {
   anteile: ['tabelle', 'saeulen', 'balken', 'kreis', 'ring'],
   zeitreihe: ['tabelle', 'linie', 'flaeche', 'saeulen'],
   uebersicht: ['uebersicht'],
+  anteil: ['zahl', 'tabelle', 'ring', 'kreis'],
 };
 
 /** Mindestgröße je Darstellung; ein Eintrag darf sie anheben, nie senken. */
@@ -156,6 +168,7 @@ export function minSizeFor(entry: ActiveCatalogEntry, view: DashboardView): Tile
 
 export const DASHBOARD_CATALOG: readonly CatalogEntry[] = [
   ...ACTIVE_CATALOG_ENTRIES,
+  ...COMBINATION_ENTRIES,
   ...PREPARE_CATALOG_ENTRIES,
   ...UNSUITABLE_CATALOG_ENTRIES,
 ];
