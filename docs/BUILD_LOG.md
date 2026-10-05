@@ -15293,3 +15293,19 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2120 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
 
 **Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 5 (PR #59, Head `c1ba894`, Review 5417392295), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 4 geprüft: drei P2, alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| 4186102669 „Details“ während des Speicherns (`DashboardWorkspace`) | Der Details-Handler ist bei `editor.locked` wirkungslos; kein Verlassen mitten im Speichern, sobald Teilauftrag 7 den Callback zur Navigation nutzt. |
+| 4186102664 Lazy-Gate ohne 24 Kacheln (Skript) | Neue Vorschau-Option `?kacheln=24` (Standardansicht, aufgefüllt mit Kopien); eigener Ablauf `fullLazyRows`: 24 Kacheln, beim Start 10/6/2 aktiv (1440/768/375), nach dem Scrollen alle 24; Teil der Bedingung `ok`. |
+| 4186102655 Diagramm-Retry der Konfiguratorvorschau (`TileConfigurator`) | Der Arbeitsbereich reicht den über `requestLeave` geschützten Reload an die Vorschau durch (Rückfrage bei Entwurf); zusätzlich ruht dort Escape, solange eine Rückfrage darüber liegt (`escapeActive`). |
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2123 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.

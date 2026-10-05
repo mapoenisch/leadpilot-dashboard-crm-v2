@@ -2,7 +2,7 @@
 
 Erzeugt mit `scripts/captureAuftrag074Screenshots.mjs` gegen zwei Vorschau-Builds (`VITE_DASHBOARD_PREVIEW=true`, `vite preview`): Vorher = Basis `6484368` (Testkachel und Galerie), Nachher = dieser Stand (`?bereich=editor`, nur Arbeitsbereich). Testdaten, Speicher-Ersatz im Arbeitsspeicher, `prefers-reduced-motion: reduce`. Bilder bleiben lokal (`.gitignore`, `CLAUDE.md` §7).
 
-- Aufnahme: 2026-10-05T15:46:36.038Z
+- Aufnahme: 2026-10-05T16:10:46.335Z
 - Vorher/Nachher-Paare verschieden: ja
 - Größter horizontaler Seitenüberlauf: 0 px
 - axe-Verstöße serious/critical: 0
@@ -17,6 +17,8 @@ Erzeugt mit `scripts/captureAuftrag074Screenshots.mjs` gegen zwei Vorschau-Build
 - Konflikt: drei Wege sichtbar, danach „Gespeichert.“ und Rückkehr in die Ansicht: ja
 
 - Höhe ganzer Kacheln und des Rasters, Laden → bereit und Skelett → bereit (Abweichungen je Breite): 1440: 17 Kacheln, laden 0, Skelett 0, Raster 2954/2954/2954 px; 768: 17 Kacheln, laden 0, Skelett 0, Raster 5271/5271/5271 px; 375: 17 Kacheln, laden 0, Skelett 0, Raster 7404/7404/7404 px
+
+- Höchstbelegung 24 Kacheln, aktiv beim Start / nach dem Scrollen: 1440: 10/24 von 24, 768: 6/24 von 24, 375: 2/24 von 24
 
 ## Vorher/Nachher (ganze Seite)
 
@@ -49,5 +51,5 @@ Erzeugt mit `scripts/captureAuftrag074Screenshots.mjs` gegen zwei Vorschau-Build
 | 375 | speicherfehler | 0 px | keine | `a81ff5aa8655cc3e` |
 | 375 | konflikt | 0 px | keine | `89c5e6f468f07780` |
 | 1440 | dialog | 0 px | keine | `51ddcbab0f0a837c` |
-| 768 | dialog | 0 px | keine | `7850e2e046bbaa12` |
+| 768 | dialog | 0 px | keine | `17766f6c44513143` |
 | 375 | dialog | 0 px | keine | `98549130cd1028d2` |
