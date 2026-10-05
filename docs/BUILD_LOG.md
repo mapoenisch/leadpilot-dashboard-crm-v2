@@ -15160,3 +15160,17 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. Schutzbereichs-Diff gegen `fbb7244` leer.
 
 **Ergebnis & Freigabestatus:** Auftragstext überarbeitet. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Aufträge 074/075 – Nachtrag: Prüfnachweis und Merge (PR #58), Builder Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Nachweis zu PR #58 (Auftragstexte 074 und 075 samt Umsetzung 075), wie bei PR #57.
+
+**Prüfnachweis (Codex):** Prüfung am 05.10.2026 in 3 Runden (Heads `ad55a2d`, `c8d4312`, `3237490`). Runde 1: Umsetzung 075 ohne Beanstandung, zwei Widersprüche im Auftragstext 074 (behoben, siehe Nacharbeit-Eintrag). Runde 2 (3 Befunde: Test ohne Timer, Erhaltstest, Filterübernahme) und Runde 3 (4 Befunde: Filtertest-Datei, Speicherfehler, Ladefläche, Details-Verhalten) sind im BUILD_LOG oben behoben und aufgelöst. Auf dem letzten Head `72f22b2` gab es keine ausdrückliche „keine Befunde“-Meldung von Codex; alle Threads waren aufgelöst und die CI grün.
+
+**Merge-Hinweis:** Das Regelwerk `main-protection` verlangt aufgelöste Review-Threads (`required_review_thread_resolution`) und die sieben Pflicht-Checks auf dem aktuellen Head. Jeder Push löst eine neue Codex-Prüfung aus; offene Threads blockierten den Merge zweimal (siehe Runden 2 und 3).
+
+**CI:** auf `72f22b2` grün. **Merge:** Marc, 05.10.2026 12:10 UTC, Merge-Commit `6484368` auf `main`.
+
+**Ergebnis & Freigabestatus:** Auftrag 075 abgeschlossen und gemergt; Auftragstext 074 gemergt. Auftrag 074 wird ab hier gebaut (Marc: „ja, bau Auftrag 074“, 05.10.2026).
