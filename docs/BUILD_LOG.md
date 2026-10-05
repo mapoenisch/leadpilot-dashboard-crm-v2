@@ -15207,7 +15207,7 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 
 ## Auftrag 074 – Nacharbeit Codex-Review, Runde 1 (PR #59, Head `0baf23f`, Review 5415528758), Builder Claude Code, 05.10.2026
 
-**Anlass:** Codex hat auf Marcs `@codex review` elf P2-Befunde gemeldet. Alle elf sind berechtigt und behoben, je mit Regressionstest.
+**Anlass:** Codex hat auf Marcs `@codex review` zwölf P2-Befunde gemeldet. Alle zwölf sind berechtigt und behoben, je mit Regressionstest.
 
 | Befund (Datei) | Behebung |
 |---|---|
