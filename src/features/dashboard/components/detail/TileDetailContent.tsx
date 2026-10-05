@@ -8,8 +8,7 @@ import { cn } from '@/lib/utils';
 import { DASHBOARD_CATEGORIES, type ActiveCatalogEntry } from '../../model/dashboardCatalog';
 import type { DashboardTileConfig } from '../../model/dashboardConfig';
 import type { ResolvedTileData, TileData, TileDataState } from '../../data/dashboardData';
-import { isChartView } from '../charts/chartLoaders';
-import type { ChartLoaders } from '../charts/chartLoaders';
+import { isChartView, type ChartLoaders, type ChartView } from '../charts/chartLoaders';
 import { DashboardChart, NoData } from '../DashboardChart';
 import { TileOverview } from '../TileOverview';
 import { TileTable } from '../TileValue';
@@ -59,6 +58,27 @@ function period(data: ResolvedTileData): string {
   return filter ? `${base} · Filter ${formatPeriod(filter)}` : base;
 }
 
+/**
+ * Diagramm der Detailseite: die Darstellung der Kachel, wenn sie ein Diagramm ist, sonst die
+ * Standard- bzw. erste erlaubte Diagrammdarstellung des Eintrags. Auch eine als Tabelle gespeicherte
+ * Reihe zeigt in den Details ihren Verlauf bzw. ihre Aufteilung (Codex PR #61).
+ */
+export function detailChartView(
+  tile: DashboardTileConfig,
+  entry?: ActiveCatalogEntry,
+): ChartView | null {
+  if (isChartView(tile.view)) return tile.view;
+  if (!entry) return null;
+  if (isChartView(entry.defaultView)) return entry.defaultView;
+  return entry.views.find(isChartView) ?? null;
+}
+
+function filterText(data: ResolvedTileData): string {
+  const { pipeline, pipelineReason } = data.effectiveFilter;
+  if (pipeline) return `Pipeline ${pipeline}`;
+  return pipelineReason ?? 'Kein Filter';
+}
+
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
@@ -86,8 +106,8 @@ export function TileDetailContent({
   const blocking = BLOCKING_STATES.has(data.state);
   const rows =
     resolved?.series ?? (resolved?.value != null ? [{ label: title, value: resolved.value }] : []);
-  const showChart =
-    resolved?.state === 'bereit' && isChartView(tile.view) && (resolved.series?.length ?? 0) > 0;
+  const chartView = detailChartView(tile, entry);
+  const showChart = resolved?.state === 'bereit' && chartView && (resolved.series?.length ?? 0) > 0;
   const periodText = resolved ? period(resolved) : '';
 
   return (
@@ -136,6 +156,7 @@ export function TileDetailContent({
               </Fact>
             )}
             <Fact label="Zeitraum">{periodText}</Fact>
+            <Fact label="Filter">{filterText(resolved)}</Fact>
             <Fact label="Quelle">
               {SOURCE_LABEL[resolved.origin.layer]} · {SCOPE_LABEL[resolved.scope]}
             </Fact>
@@ -172,14 +193,14 @@ export function TileDetailContent({
           </section>
         ) : null}
 
-        {showChart && resolved ? (
+        {showChart && chartView && resolved ? (
           <section aria-labelledby="detail-chart" className="min-w-0">
             <h3 id="detail-chart" className={DETAIL_SECTION_TITLE}>
               {entry?.shape === 'zeitreihe' ? 'Verlauf' : 'Aufteilung'}
             </h3>
             <div className="mt-[8px]">
               <DashboardChart
-                view={tile.view}
+                view={chartView}
                 entry={entry}
                 data={resolved}
                 title={title}

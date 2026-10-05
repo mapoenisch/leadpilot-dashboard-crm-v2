@@ -15,7 +15,8 @@
  * 3. Schalter aus: /dashboard hat dieselben Überschriften wie vorher, Detailroute ist 404.
  * 4. Tastaturablauf: Details per Enter, Fokus auf Überschrift, zurück, Fokus auf „Details“.
  * Bilder bleiben lokal (.gitignore); das Skript schreibt docs/screenshots/auftrag-077/README.md.
- * Die Testkonfiguration des Benutzers wird am Ende wiederhergestellt.
+ * Die Testkonfiguration des Benutzers wird am Ende wiederhergestellt; hatte er anfangs keine,
+ * wird sie mit E2E_CLEANUP_KEY (lokaler Aufräumschlüssel) wieder entfernt.
  *
  * Aufruf: BASE_URL=… OFF_URL=… BEFORE_URL=… SUPABASE_URL=… SUPABASE_ANON_KEY=… \
  *         E2E_AUTH_EMAIL=… E2E_AUTH_PASSWORD=… node scripts/captureAuftrag077Screenshots.mjs
@@ -27,12 +28,14 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import {
   axeSevere,
+  deletePreferences,
   login,
   mainHeadings,
   overflowOf,
   readPreferences,
   savePreferences,
   scrollThrough,
+  sessionUserId,
   shiftOf,
   shotConfig,
   startShiftObserver,
@@ -49,6 +52,8 @@ const OFF_URL = env('OFF_URL');
 const BEFORE_URL = env('BEFORE_URL');
 const SUPABASE = { url: env('SUPABASE_URL'), anonKey: env('SUPABASE_ANON_KEY') };
 const CREDENTIALS = { email: env('E2E_AUTH_EMAIL'), password: env('E2E_AUTH_PASSWORD') };
+/** Nur nötig, wenn der Benutzer anfangs keine Präferenzzeile hat (sie wird danach wieder entfernt). */
+const CLEANUP_KEY = process.env.E2E_CLEANUP_KEY ?? null;
 const OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-077');
 const WIDTHS = [
   { width: 1440, height: 1000 },
@@ -106,7 +111,13 @@ async function afterRows(browser, state) {
     rows.push({ ...(await shoot(view.page, viewport, 'Bearbeiten', 'nachher')), blocked });
     await view.context.close();
     for (const detail of DETAILS) {
-      const { context, page } = await open(browser, BASE_URL, state, viewport, detailPath(detail.tileId));
+      const { context, page } = await open(
+        browser,
+        BASE_URL,
+        state,
+        viewport,
+        detailPath(detail.tileId),
+      );
       await page.locator(READY).first().waitFor();
       await page.waitForLoadState('networkidle');
       rows.push(await shoot(page, viewport, detail.name, 'nachher'));
@@ -168,9 +179,11 @@ async function keyboardFlow(browser, state) {
   await page.getByRole('button', { name: 'Zurück zum Dashboard' }).focus();
   await page.keyboard.press('Enter');
   await page.getByTestId('dashboard-heading').waitFor();
-  await page.waitForFunction(() => document.activeElement?.getAttribute('data-action') === 'details');
-  const focusBack = await page.evaluate(
-    () => document.activeElement?.closest('[data-tile-id]')?.getAttribute('data-tile-id'),
+  await page.waitForFunction(
+    () => document.activeElement?.getAttribute('data-action') === 'details',
+  );
+  const focusBack = await page.evaluate(() =>
+    document.activeElement?.closest('[data-tile-id]')?.getAttribute('data-tile-id'),
   );
   await context.close();
   return { focusOnHeading, focusBack };
@@ -189,8 +202,14 @@ function writeReadme(m) {
     `- Größter Seitenüberlauf: ${m.maxOverflowPx} px`,
     `- axe serious/critical gesamt: ${m.axeSevereTotal}`,
     `- Größte Layoutverschiebung (CLS): ${m.maxShift}`,
-    `- Ansicht: ${m.rows.filter((r) => r.tiles !== undefined).map((r) => `${r.width} px ${r.tiles} Kacheln`).join(', ')}`,
-    `- Bearbeiten, gesperrte „Details“: ${m.rows.filter((r) => r.blocked !== undefined).map((r) => `${r.width} px ${r.blocked}`).join(', ')}`,
+    `- Ansicht: ${m.rows
+      .filter((r) => r.tiles !== undefined)
+      .map((r) => `${r.width} px ${r.tiles} Kacheln`)
+      .join(', ')}`,
+    `- Bearbeiten, gesperrte „Details“: ${m.rows
+      .filter((r) => r.blocked !== undefined)
+      .map((r) => `${r.width} px ${r.blocked}`)
+      .join(', ')}`,
     `- Schalter aus: Überschriften wie vorher ${m.off.headingsEqual ? 'ja' : 'NEIN'}, keine persönliche Ansicht ${m.off.personalViewOff === 0 ? 'ja' : 'NEIN'}, Detailroute 404 ${m.off.detailOff ? 'ja' : 'NEIN'}`,
     `- Tastatur: Fokus auf Überschrift ${m.keyboard.focusOnHeading ? 'ja' : 'NEIN'}, Rückkehr auf „Details“ von \`${m.keyboard.focusBack}\``,
     '',
@@ -229,8 +248,19 @@ async function main() {
     // Testkonfiguration (24 Kacheln) setzen; die bisherige Fassung wird am Ende zurückgeschrieben.
     const setup = await open(browser, BASE_URL, afterState, WIDTHS[0], '/dashboard');
     const original = await readPreferences(setup.page, SUPABASE);
+    const userId = await sessionUserId(setup.page);
+    // Ohne Ausgangszeile muss sie danach wieder fehlen: vorher prüfen, dass das möglich ist.
+    if (!original.config && !CLEANUP_KEY) {
+      throw new Error('Keine Ausgangskonfiguration: E2E_CLEANUP_KEY zum Wiederherstellen setzen.');
+    }
     const saved = await savePreferences(setup.page, SUPABASE, shotConfig(ROOT), original.revision);
-    restore = { page: setup.page, context: setup.context, original, revision: saved.revision };
+    restore = {
+      page: setup.page,
+      context: setup.context,
+      original,
+      userId,
+      revision: saved.revision,
+    };
 
     const rows = await afterRows(browser, afterState);
     const pairs = await beforeAfterPairs(browser, beforeState, afterState);
@@ -251,6 +281,8 @@ async function main() {
   } finally {
     if (restore?.original.config) {
       await savePreferences(restore.page, SUPABASE, restore.original.config, restore.revision);
+    } else if (restore) {
+      await deletePreferences(SUPABASE, CLEANUP_KEY, restore.userId);
     }
     await restore?.context.close();
     await browser.close();

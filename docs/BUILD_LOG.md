@@ -15444,3 +15444,27 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 - Die Testkonfiguration des Benutzers wird am Ende zurückgeschrieben.
 
 **Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen sind CI auf PR #61, die Codex-Prüfung des Codes und der Merge durch Marc. Der Schalter bleibt bis zur Gesamtabnahme (Teilauftrag 8) aus.
+
+## Auftrag 077 – Nacharbeit Codex-Review zum Code (PR #61, Head `8265bc6`), Builder Claude Code, 05.10.2026
+
+**Befunde (6 × P2, alle berechtigt) und Umsetzung:**
+1. **Ersatzseite bei Nachladefehler verliert Filter:** „Zurück zum Dashboard“ geht jetzt zum vorhandenen Eintrag der Ansicht (`navigate(-1)`, bei Direktaufruf nach `/dashboard`). Test mit Verlauf aus Ansicht und Detailseite.
+2. **Kein Diagramm bei als Tabelle gespeicherten Reihen:** `detailChartView` nimmt die Darstellung der Kachel, sonst die Standard- bzw. erste Diagrammdarstellung des Katalogeintrags. Tests: Tabelle des MRR-Paketmix zeigt „Aufteilung“; Kennzahl ohne Diagrammdarstellung bleibt ohne Diagramm.
+3. **Skip-Link öffnet die Rückfrage:** Reine Anker und Ziele mit gleichem Pfad samt Suche bleiben vom Linkschutz ausgenommen. Test mit `#main-content`.
+4. **Fachübersicht der Live-KPIs (= Dashboard) verliert Kontext:** Ist das Ziel `/dashboard`, nimmt der Link denselben Rückweg wie „Zurück zum Dashboard“ (Filter und Fokusziel). Test mit `live.arr`.
+5. **Screenshot-Skript stellt eine fehlende Ausgangszeile nicht wieder her:** Fehlt sie, löscht das Skript sie danach mit `E2E_CLEANUP_KEY` wieder; ohne Schlüssel bricht es vorher ab. Nachgewiesen: vorher 0 Zeilen, nachher 0.
+6. **E2E deckt nicht alle Detailarten und keinen echten Filter ab:** Die Spec setzt jetzt eine feste Konfiguration (Kennzahl, Kombination, Übersicht, CRM) über die Speicher-RPC (`e2e/helpers/dashboardPreferences.ts`) und stellt danach den Ausgangszustand wieder her.
+   - Neu geprüft: Kombination mit Formel, vier Tabellenzeilen und demselben Wert wie die Kachel; Übersicht ohne Definition und Wert, Fachseite Roadmap; CRM mit angewendetem Pipeline-Filter, der hin und zurück reist, über „Zurück“ und über Browser-Zurück, mit Fokus.
+   - Die Detailseite zeigt dafür neu die Angabe „Filter“.
+   - Die Spec läuft seriell (`--workers=1` in CI und Orchestrator), weil sie die Präferenz des gemeinsamen Testbenutzers schreibt.
+
+**Verifikation:**
+- `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0
+- `npm test` 0 (312 Dateien, 2214 Tests), `npm run verify` 0, `npm run build` 0
+- `npm run verify:quality-budget` 0, `npx size-limit` 0
+- Skripttests 150 grün
+- E2E mit Schalter: 27/27 (9 Abläufe × 3 Breiten), Stabilität `--repeat-each=3` 81/81, Lauf ohne Ausgangszeile 27/27 mit 0 Zeilen danach
+- Screenshot-Gate Exit 0 (0 px Überlauf, axe 0, CLS max. 0,019, Schalter aus wie vorher)
+- Schutzbereichs-Diff gegen `7a60dd8` leer; alle Dateien < 400 Zeilen
+
+**Freigabestatus:** Nacharbeit fertig. Offen sind die erneute Codex-Prüfung, CI und der Merge durch Marc.

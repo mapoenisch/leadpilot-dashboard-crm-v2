@@ -2,14 +2,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { useOrganization } from '@/auth/organizationContext';
 import { routeForViewId } from '@/app/routes';
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
 import { buildDashboardNavState, readDashboardNavState } from '../hooks/useDashboardNavigation';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { DashboardTile } from '../components/DashboardTile';
-import { TileDetailContent } from '../components/detail/TileDetailContent';
+import { detailChartView, TileDetailContent } from '../components/detail/TileDetailContent';
 import { MISSING_TILE_TEXT } from '../components/detail/DetailNotices';
 import { NO_DETAIL_PAGE_TEXT } from '../pages/DashboardTileDetailPage';
 import { DETAIL_CHUNK_ERROR_TEXT, DetailChunkError } from '../pages/DetailChunkError';
@@ -218,9 +218,94 @@ describe('Detailseite: Nachladefehler', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(DETAIL_CHUNK_ERROR_TEXT);
     fireEvent.click(screen.getByRole('button', { name: 'Erneut laden' }));
     expect(onReload).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('link', { name: 'Zurück zum Dashboard' })).toHaveAttribute(
-      'href',
-      '/dashboard',
+    expect(screen.getByRole('button', { name: 'Zurück zum Dashboard' })).toBeInTheDocument();
+  });
+});
+
+describe('Detailseite: Nacharbeit Codex PR #61', () => {
+  it('zeigt bei einer als Tabelle gespeicherten Reihe trotzdem die Aufteilung', () => {
+    const tile = {
+      tileId: 'mix',
+      catalogId: 'baseline.mrr_paketmix',
+      view: 'tabelle',
+      size: 'mittel',
+      filterMode: 'fester_stand',
+    } as const;
+    expect(detailChartView(tile, activeEntryOf(tile))).not.toBeNull();
+    mockedPrefs.mockReturnValue(preferencesFor({ version: 1, tiles: [tile] }));
+    renderRoutes({ pathname: '/dashboard/tiles/mix' });
+    expect(screen.getByRole('heading', { name: 'Aufteilung' })).toBeInTheDocument();
+    expect(within(screen.getByTestId('tile-detail-table')).getByRole('table')).toBeInTheDocument();
+  });
+
+  it('wählt ohne Diagrammdarstellung im Katalog kein Diagramm', () => {
+    const tile = tileOf('umsatz');
+    expect(detailChartView(tile, activeEntryOf(tile))).toBeNull();
+  });
+
+  it('nennt den angewendeten Pipeline-Filter', () => {
+    const tile = {
+      tileId: 'stufen',
+      catalogId: 'crm.pipeline_stufen_volumen',
+      view: 'balken',
+      size: 'mittel',
+      filterMode: 'dashboard',
+    } as const;
+    mockedPrefs.mockReturnValue(preferencesFor({ version: 1, tiles: [tile] }));
+    renderRoutes({
+      pathname: '/dashboard/tiles/stufen',
+      state: buildDashboardNavState(IDENTITY, { value: { pipeline: 'p-1' } }),
+    });
+    const facts = within(screen.getByTestId('tile-detail-facts'));
+    expect(facts.getByText('Filter').nextSibling).toHaveTextContent('Pipeline p-1');
+  });
+
+  it('führt bei einer Live-Kennzahl über „Zur Fachübersicht“ mit Filtern und Fokus zurück', async () => {
+    const tile = {
+      tileId: 'live',
+      catalogId: 'live.arr',
+      view: 'zahl',
+      size: 'klein',
+      filterMode: 'dashboard',
+    } as const;
+    mockedPrefs.mockReturnValue(preferencesFor({ version: 1, tiles: [tile] }));
+    const session = { value: { pipeline: 'p-1' } };
+    renderRoutes({
+      pathname: '/dashboard/tiles/live',
+      state: buildDashboardNavState(IDENTITY, session),
+    });
+    const link = screen.getByTestId('tile-detail-domain-link');
+    expect(link).toHaveAttribute('href', '/dashboard');
+    fireEvent.click(link);
+    await waitFor(() => expect(lastSeen().pathname).toBe('/dashboard'));
+    expect(readDashboardNavState(lastSeen().state, IDENTITY)).toEqual({
+      session,
+      returnFocus: 'live',
+    });
+  });
+
+  it('führt beim Nachladefehler zum Eintrag der Ansicht zurück, der Filter und Fokus trägt', async () => {
+    const state = buildDashboardNavState(IDENTITY, { value: { pipeline: 'p-1' } }, 'umsatz');
+    let current: { pathname: string; state: unknown } | null = null;
+    function Probe() {
+      const location = useLocation();
+      current = { pathname: location.pathname, state: location.state };
+      return null;
+    }
+    render(
+      <MemoryRouter
+        initialEntries={[
+          { pathname: '/dashboard', state },
+          { pathname: '/dashboard/tiles/umsatz' },
+        ]}
+        initialIndex={1}
+      >
+        <Probe />
+        <DetailChunkError onReload={() => {}} />
+      </MemoryRouter>,
     );
+    fireEvent.click(screen.getByRole('button', { name: 'Zurück zum Dashboard' }));
+    await waitFor(() => expect(current?.pathname).toBe('/dashboard'));
+    expect(readDashboardNavState(current!.state, IDENTITY)?.returnFocus).toBe('umsatz');
   });
 });

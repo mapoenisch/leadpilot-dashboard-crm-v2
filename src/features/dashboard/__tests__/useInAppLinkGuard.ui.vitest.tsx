@@ -72,6 +72,19 @@ function Harness(props: { active: boolean; onLeave: (to: string) => void; onClic
   );
 }
 
+describe('internalLinkTarget: Anker auf derselben Seite', () => {
+  it('lässt „Zum Hauptinhalt springen“ ungefragt durch, aber nicht eine andere Suche', () => {
+    const here = '/dashboard';
+    expect(internalLinkTarget(clickOn(anchor({ href: '#main-content' })), ORIGIN, here)).toBeNull();
+    expect(
+      internalLinkTarget(clickOn(anchor({ href: '/dashboard#main-content' })), ORIGIN, here),
+    ).toBeNull();
+    expect(internalLinkTarget(clickOn(anchor({ href: '/dashboard?x=1' })), ORIGIN, here)).toBe(
+      '/dashboard?x=1',
+    );
+  });
+});
+
 describe('useInAppLinkGuard', () => {
   it('fängt bei offenen Änderungen den Klick ab, bevor der Router ihn ausführt', () => {
     const onLeave = vi.fn();

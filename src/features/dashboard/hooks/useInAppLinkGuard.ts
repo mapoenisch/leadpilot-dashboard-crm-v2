@@ -4,7 +4,11 @@
 // `requestLeave` nach (speichern, verwerfen, bleiben). Der Router selbst bleibt unverändert.
 import { useEffect, useRef } from 'react';
 
-/** Internes Ziel eines Linkklicks oder `null` (neues Fenster, Download, extern, gleiche Seite). */
+/**
+ * Internes Ziel eines Linkklicks oder `null` (neues Fenster, Download, extern, gleiche Seite).
+ * `current` ist Pfad samt Suche; ein reiner Anker auf derselben Seite (z. B. „Zum Hauptinhalt
+ * springen“) verlässt den Editor nicht und bleibt ungefragt.
+ */
 export function internalLinkTarget(
   event: MouseEvent,
   origin: string,
@@ -16,6 +20,8 @@ export function internalLinkTarget(
   if (!(anchor instanceof HTMLAnchorElement)) return null;
   if (anchor.target && anchor.target !== '_self') return null;
   if (anchor.hasAttribute('download')) return null;
+  // Reiner Anker (`#…`): bleibt immer auf derselben Seite.
+  if ((anchor.getAttribute('href') ?? '').startsWith('#')) return null;
   let url: URL;
   try {
     url = new URL(anchor.href, origin);
@@ -24,7 +30,7 @@ export function internalLinkTarget(
   }
   if (url.origin !== origin) return null;
   const to = `${url.pathname}${url.search}${url.hash}`;
-  return url.pathname === current && !url.search && !url.hash ? null : to;
+  return `${url.pathname}${url.search}` === current ? null : to;
 }
 
 export function useInAppLinkGuard(active: boolean, onLeave: (to: string) => void) {
@@ -33,7 +39,8 @@ export function useInAppLinkGuard(active: boolean, onLeave: (to: string) => void
   useEffect(() => {
     if (!active) return;
     const onClick = (event: MouseEvent) => {
-      const to = internalLinkTarget(event, window.location.origin, window.location.pathname);
+      const here = `${window.location.pathname}${window.location.search}`;
+      const to = internalLinkTarget(event, window.location.origin, here);
       if (!to) return;
       // Vor React Router (Erfassungsphase am Dokument): weder Router noch Browser navigieren.
       event.preventDefault();

@@ -218,7 +218,7 @@ jobs:
         env:
           VITE_EXECUTIVE_DASHBOARD_V2: 'true'
       - name: Playwright persönliches Dashboard (Rollout-Schalter an)
-        run: npx playwright test e2e/personal-dashboard.spec.ts
+        run: npx playwright test e2e/personal-dashboard.spec.ts --workers=1
         env:
           E2E_DASHBOARD_V2: 'true'
       - name: Regulären Build für Lighthouse wiederherstellen

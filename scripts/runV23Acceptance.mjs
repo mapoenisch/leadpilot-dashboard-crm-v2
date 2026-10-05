@@ -74,7 +74,15 @@ export const GATES = [
       ['npx', 'playwright', 'test', ...E2E_PARALLEL],
       ['npx', 'playwright', 'test', ...E2E_SEQUENTIAL, '--workers=1'],
       ['env', 'VITE_EXECUTIVE_DASHBOARD_V2=true', 'npx', 'vite', 'build'],
-      ['env', 'E2E_DASHBOARD_V2=true', 'npx', 'playwright', 'test', ...E2E_DASHBOARD_V2],
+      [
+        'env',
+        'E2E_DASHBOARD_V2=true',
+        'npx',
+        'playwright',
+        'test',
+        ...E2E_DASHBOARD_V2,
+        '--workers=1',
+      ],
       // Regulären Build wiederherstellen: Befunde und Lighthouse messen die Standardauslieferung.
       ['npx', 'vite', 'build'],
     ],

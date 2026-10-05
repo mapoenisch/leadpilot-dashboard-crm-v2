@@ -53,7 +53,11 @@ async function rest(page, supabase, pathAndQuery, init = {}) {
 }
 
 export async function readPreferences(page, supabase) {
-  const result = await rest(page, supabase, 'executive_dashboard_preferences?select=revision,config');
+  const result = await rest(
+    page,
+    supabase,
+    'executive_dashboard_preferences?select=revision,config',
+  );
   const row = Array.isArray(result.body) ? result.body[0] : null;
   return row ? { revision: row.revision, config: row.config } : { revision: 0, config: null };
 }
@@ -65,6 +69,30 @@ export async function savePreferences(page, supabase, config, expectedRevision) 
   });
   if (result.status >= 300) throw new Error(`Speichern fehlgeschlagen: ${JSON.stringify(result)}`);
   return readPreferences(page, supabase);
+}
+
+/** Benutzer-ID der angemeldeten Sitzung (aus dem Supabase-Token im localStorage). */
+export const sessionUserId = (page) =>
+  page.evaluate(() => {
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('sb-') && key.endsWith('-auth-token')) {
+        return JSON.parse(localStorage.getItem(key) ?? '{}').user?.id ?? null;
+      }
+    }
+    return null;
+  });
+
+/**
+ * Entfernt die Präferenzzeile eines Benutzers. Benutzer dürfen das nicht selbst (RLS); nur der
+ * lokale Aufräumschlüssel (`E2E_CLEANUP_KEY`, wie in den E2E-Specs) darf es.
+ */
+export async function deletePreferences(supabase, cleanupKey, userId) {
+  const response = await fetch(
+    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(userId)}`,
+    { method: 'DELETE', headers: { apikey: cleanupKey, Authorization: `Bearer ${cleanupKey}` } },
+  );
+  if (!response.ok) throw new Error(`Löschen fehlgeschlagen: ${response.status}`);
 }
 
 /** Summe der Layoutverschiebungen ohne Nutzereingabe (Cumulative Layout Shift). */
@@ -79,7 +107,8 @@ export async function startShiftObserver(context) {
   });
 }
 
-export const shiftOf = (page) => page.evaluate(() => Math.round((window.__shift ?? 0) * 1000) / 1000);
+export const shiftOf = (page) =>
+  page.evaluate(() => Math.round((window.__shift ?? 0) * 1000) / 1000);
 
 export const overflowOf = (page) =>
   page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

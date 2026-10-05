@@ -1,16 +1,55 @@
 import { test, expect, type Page } from '@playwright/test';
+import { applyDashboardConfig } from './helpers/dashboardPreferences';
 
 // Auftrag 077 (Dashboard Teilauftrag 7): Ansicht → Details → Fachübersicht → zurück, Reload und
 // unbekannte Kachel im echten App-Ablauf. Die persönliche Ansicht existiert nur in einem Build mit
 // VITE_EXECUTIVE_DASHBOARD_V2=true (Entscheidung Marc E1, Standard aus); der reguläre CI-Build hat
 // den Schalter aus. Lokal: Build mit Schalter, dann E2E_DASHBOARD_V2=true npx playwright test
-// e2e/personal-dashboard.spec.ts (Nachweis im BUILD_LOG).
+// e2e/personal-dashboard.spec.ts --workers=1 (Nachweis im BUILD_LOG). Braucht E2E_SUPABASE_URL,
+// E2E_SUPABASE_ANON_KEY und E2E_CLEANUP_KEY wie die übrigen Specs mit Datenbankzugriff.
 test.skip(
   process.env.E2E_DASHBOARD_V2 !== 'true',
   'Nur mit Build VITE_EXECUTIVE_DASHBOARD_V2=true (Auftrag 077).',
 );
 
 const TILE = '[data-testid="lazy-tile"]';
+
+// Feste Konfiguration: Kennzahl, Kombination, Übersicht und CRM-Kachel mit Pipeline-Filter. Die
+// Abläufe schreiben die Präferenz des gemeinsamen Testbenutzers, deshalb läuft die Datei seriell
+// (`--workers=1` in CI und Orchestrator); danach wird der Ausgangszustand wiederhergestellt.
+const tile = (
+  tileId: string,
+  catalogId: string,
+  view: string,
+  size: string,
+  filterMode: string,
+) => ({
+  tileId,
+  catalogId,
+  view,
+  size,
+  filterMode,
+});
+const CONFIG = {
+  version: 1,
+  tiles: [
+    tile('e2e_umsatz', 'baseline.umsatz', 'zahl', 'klein', 'fester_stand'),
+    tile('e2e_marge', 'kombination.ebitda_marge', 'zahl', 'klein', 'fester_stand'),
+    tile('e2e_roadmap', 'uebersicht.roadmap', 'uebersicht', 'mittel', 'fester_stand'),
+    tile('e2e_stufen', 'crm.pipeline_stufen_volumen', 'balken', 'mittel', 'dashboard'),
+  ],
+};
+
+let restore: (() => Promise<void>) | null = null;
+test.beforeAll(async () => {
+  restore = await applyDashboardConfig(CONFIG);
+});
+test.afterAll(async () => {
+  await restore?.();
+});
+
+const detailsOf = (page: Page, tileId: string) =>
+  page.locator(`${TILE}[data-tile-id="${tileId}"]`).getByRole('button', { name: /^Details zu / });
 
 async function openDashboard(page: Page) {
   await page.goto('/dashboard', { waitUntil: 'networkidle' });
@@ -112,4 +151,59 @@ test('Zurück-Taste im Editor fragt bei offenen Änderungen nach', async ({ page
   await page.goBack();
   await page.getByRole('dialog').getByRole('button', { name: 'Verwerfen und weiter' }).click();
   await expect(page).toHaveURL(/\/finance\/p-and-l$/);
+});
+
+test('Kombination: Formel, Operanden und derselbe Wert wie in der Kachel', async ({ page }) => {
+  await openDashboard(page);
+  // Lazy Loading: die Kachel erst in den Sichtbereich holen (auf 375 px liegt sie darunter).
+  await page.locator(`${TILE}[data-tile-id="e2e_marge"]`).scrollIntoViewIfNeeded();
+  const number = page.locator(
+    `${TILE}[data-tile-id="e2e_marge"] [data-testid="tile-number"] .sr-only`,
+  );
+  await expect(number).toHaveText(/%/);
+  const tileValue = await number.textContent();
+  await detailsOf(page, 'e2e_marge').click();
+  await expect(page.getByTestId('detail-combination')).toContainText('Formel:');
+  await expect(page.getByTestId('detail-operands').getByRole('row')).toHaveCount(4);
+  await expect(page.getByTestId('detail-combination-result')).toHaveText(tileValue!.trim());
+  await expect(page.getByTestId('tile-detail-domain-link')).toBeVisible();
+});
+
+test('Übersicht: Übersichtsdetails statt Definition und Wert', async ({ page }) => {
+  await openDashboard(page);
+  await detailsOf(page, 'e2e_roadmap').click();
+  await expect(page.getByTestId('tile-overview')).toBeVisible();
+  await expect(page.getByTestId('tile-detail-definition')).toHaveCount(0);
+  await expect(page.getByTestId('tile-detail-value')).toHaveCount(0);
+  await expect(page.getByTestId('tile-detail-domain-link')).toHaveAttribute(
+    'href',
+    '/product/roadmap',
+  );
+});
+
+test('CRM: angewendeter Pipeline-Filter reist hin und zurück, auch über Browser-Zurück', async ({
+  page,
+}) => {
+  await openDashboard(page);
+  const pipeline = page.getByTestId('dashboard-filters').getByLabel('Pipeline', { exact: true });
+  await pipeline.fill('e2e-pipeline');
+  await page.getByRole('button', { name: 'Filter anwenden' }).click();
+  await detailsOf(page, 'e2e_stufen').click();
+  const filterFact = page.getByTestId('tile-detail-facts').locator('dt', { hasText: 'Filter' });
+  await expect(filterFact.locator('xpath=following-sibling::dd')).toHaveText(
+    'Pipeline e2e-pipeline',
+  );
+  await page.getByRole('button', { name: 'Zurück zum Dashboard' }).click();
+  await expect(detailsOf(page, 'e2e_stufen')).toBeFocused();
+  await expect(
+    page.getByTestId('dashboard-filters').getByLabel('Pipeline', { exact: true }),
+  ).toHaveValue('e2e-pipeline');
+
+  await detailsOf(page, 'e2e_stufen').click();
+  await expect(page.getByTestId('tile-detail-heading')).toBeFocused();
+  await page.goBack();
+  await expect(detailsOf(page, 'e2e_stufen')).toBeFocused();
+  await expect(
+    page.getByTestId('dashboard-filters').getByLabel('Pipeline', { exact: true }),
+  ).toHaveValue('e2e-pipeline');
 });

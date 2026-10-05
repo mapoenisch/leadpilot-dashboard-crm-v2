@@ -11,6 +11,7 @@ import { useDashboardNavigation, type SessionFilters } from '../hooks/useDashboa
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
 import type { DashboardConfig, DashboardTileConfig } from '../model/dashboardConfig';
 import { TileDetailContent } from '../components/detail/TileDetailContent';
+import { DASHBOARD_PATH } from '../model/dashboardRollout';
 import { DetailMissingTile, DetailStatus } from '../components/detail/DetailNotices';
 
 export const NO_DETAIL_PAGE_TEXT =
@@ -27,6 +28,12 @@ function DetailFooter(props: { tile: DashboardTileConfig; onBack: () => void }) 
       {target ? (
         <Link
           to={target.path}
+          onClick={(event) => {
+            // Live-KPIs haben das Dashboard selbst als Fachseite: Rückweg mit Filtern und Fokus.
+            if (target.path !== DASHBOARD_PATH) return;
+            event.preventDefault();
+            props.onBack();
+          }}
           data-testid="tile-detail-domain-link"
           className="text-[14px] font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
         >
