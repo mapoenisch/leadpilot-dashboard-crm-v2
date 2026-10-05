@@ -15051,3 +15051,36 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Schutzbereichs-Diff** gegen `92180d3`: leer.
 
 **Ergebnis & Freigabestatus:** Nacharbeit fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 073 – Nachtrag: Prüfnachweis und Merge (Builder Claude Code, 05.10.2026)
+
+**Ziel & Kontext:** Nachweis der Prüfung und des Merges von PR #57 (Aufträge 072-Nachweis und 073), wie von Marc am 05.10.2026 für den Start von Teilauftrag 5 vorgesehen.
+
+**Prüfnachweis (Codex):** Auftragstext in 2 Runden, Umsetzung in 10 Runden geprüft; alle Befunde sind in den Runden-Einträgen oben behoben, beantwortet und aufgelöst. Letzter Lauf: Marc stieß am 05.10.2026 um 05:24 UTC mit `@codex review` einen Lauf auf Head `a4e10a0` an; Codex antwortete um 05:28 UTC im PR: „Didn't find any major issues“ (Reviewed commit `a4e10a061c`). Der Kommentar ist keine formelle Approve-Review; Marc hat auf dieser Grundlage gemergt.
+
+**CI auf `a4e10a0`:** vollständig grün (test, e2e, build, lint, typecheck, size-limit, livekpi-verifiers). `test` schlug einmal in `src/features/admin/pages/__tests__/AuditPage.ui.vitest.tsx:77` fehl, ein Zeitrennen im Test ohne Bezug zum PR (kein Diff unter `src/features/admin`; lokal 5 Läufe der Datei und 2000 Tests grün); PR-Kommentar 5984468757, einmaliger Neustart des Jobs, danach grün. Folgeauftrag: Auftrag 075.
+
+**Merge:** Marc, 05.10.2026 05:57 UTC, Merge-Commit `fbb7244` auf `main`.
+
+**Ergebnis & Freigabestatus:** Teilauftrag 4 abgeschlossen und gemergt.
+
+---
+
+## Aufträge 074 und 075 geschrieben: Dashboard Teilauftrag 5 und AuditPage-Testhärtung (Claude Code, 05.10.2026)
+
+**Ziel & Kontext:** Marc am 05.10.2026 nach dem Merge von PR #57: „starte Teilauftrag 5“ sowie ein kleiner Auftrag für den wackeligen Audit-Test. Basis `main` `fbb7244`.
+
+- [Auftrag 074](auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md): Dashboard Teilauftrag 5, Raster, Editor und Konfigurationsfenster, mit sichtbarkeitsgesteuertem Laden. Der Auftrag nimmt die Befundklassen aus den zehn Codex-Runden zu PR #57 als Abnahmekriterien auf (keine Layoutsprünge, lange Texte, Ansagen, Fokus, keine technischen Texte, echte Datenpfade, gesperrte Aktionen, physische Dateigrenze unter 400 Zeilen). Ziel-Dateien ausdrücklich gelistet; Einbindung unter `/dashboard`, Rollout-Schalter und Router-Anbindung bleiben Teilauftrag 7. Begründete Ergänzung gegenüber der Dateiliste des Plans: ein Arbeitsbereich `DashboardWorkspace` (damit Teilauftrag 7 nur Daten, Speicherung und Router anbinden muss), eine Werkzeugleiste, ein Dialog für ungespeicherte Änderungen, ein Platzhalter für nicht darstellbare Kacheln und eine Vorschau mit Speicher-Ersatz.
+- [Auftrag 075](auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md): Härtung des Tests „rendert Audit-Log-Tabelle fuer Admin (leere Liste)“. Ursache belegt (Test wartet auf die Tabelle, die sofort da ist, und prüft den Text, der erst nach dem Laden erscheint). Nur Testdatei; Produktivcode unverändert, ein möglicher kleiner Produktfehler (kurzer Leerhinweis vor dem Laden) wird nur festgehalten.
+
+**Geänderte Dateien:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_074_DASHBOARD_RASTER_EDITOR.md` (neu), `docs/auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md` (neu), `docs/BUILD_LOG.md`. Kein Code.
+
+**Automatisierte Verifikation (Exit-Codes, Stand dieses Eintrags, reine Dokumentänderung):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2000 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0.
+
+**Schutzbereichs-Diff** gegen `fbb7244`: leer.
+
+**Reihenfolge:** `CLAUDE.md` §3 verlangt, immer nur einen Auftrag zu bearbeiten. Vorschlag: zuerst Auftrag 075 (klein, entfernt eine CI-Instabilität), dann 074; die Entscheidung liegt bei Marc.
+
+**Ergebnis & Freigabestatus:** Zwei Auftragstexte, noch nicht gebaut. Offen: Codex-Prüfung der Auftragstexte, Marcs Reihenfolge.
