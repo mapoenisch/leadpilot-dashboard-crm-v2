@@ -80,42 +80,47 @@ export function DashboardFilters({
           Keine Kachel dieser Ansicht unterstützt zurzeit einen Filter.
         </p>
       )}
-      {pipelineSupported ? (
+      {pipelineSupported || (editing && startFilters) ? (
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" type="submit" disabled={!canApply}>
-            Filter anwenden
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={locked || (!value && !pipeline)}
-            onClick={() => {
-              // Auch eine noch nicht angewendete Eingabe leeren (der Prop bleibt dann unverändert).
-              setPipeline('');
-              onApply(undefined);
-            }}
-          >
-            Filter zurücksetzen
-          </Button>
-          {editing ? (
+          {pipelineSupported ? (
             <>
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={locked || !value || !differsFromStart}
-                onClick={() => onStartFilters(value)}
-              >
-                Als Startfilter übernehmen
+              <Button size="sm" type="submit" disabled={!canApply}>
+                Filter anwenden
               </Button>
               <Button
                 size="sm"
                 variant="secondary"
-                disabled={locked || !startFilters}
-                onClick={() => onStartFilters(undefined)}
+                disabled={locked || (!value && !pipeline)}
+                onClick={() => {
+                  // Auch eine noch nicht angewendete Eingabe leeren (der Prop bleibt dann unverändert).
+                  setPipeline('');
+                  onApply(undefined);
+                }}
               >
-                Startfilter entfernen
+                Filter zurücksetzen
               </Button>
+              {editing ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={locked || !value || !differsFromStart}
+                  onClick={() => onStartFilters(value)}
+                >
+                  Als Startfilter übernehmen
+                </Button>
+              ) : null}
             </>
+          ) : null}
+          {/* Ein verwaister Startfilter (keine passende Kachel mehr) bleibt entfernbar. */}
+          {editing ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={locked || !startFilters}
+              onClick={() => onStartFilters(undefined)}
+            >
+              Startfilter entfernen
+            </Button>
           ) : null}
         </div>
       ) : null}

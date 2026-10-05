@@ -48,6 +48,7 @@ export interface DashboardGridProps {
   onEdit: (tileId: string) => void;
   onRemove: (tileId: string) => void;
   onAdd?: () => void;
+  onReset?: () => void;
 }
 
 export function DashboardGrid(props: DashboardGridProps) {
@@ -86,9 +87,16 @@ export function DashboardGrid(props: DashboardGridProps) {
       >
         <p className="m-0">Dein Dashboard enthält noch keine Kacheln.</p>
         {editing && props.onAdd ? (
-          <Button className="mt-3" size="sm" disabled={locked} onClick={props.onAdd}>
-            Kachel hinzufügen
-          </Button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button size="sm" disabled={locked} onClick={props.onAdd}>
+              Kachel hinzufügen
+            </Button>
+            {props.onReset ? (
+              <Button size="sm" variant="secondary" disabled={locked} onClick={props.onReset}>
+                Auf Standard zurücksetzen
+              </Button>
+            ) : null}
+          </div>
         ) : null}
       </div>
     );

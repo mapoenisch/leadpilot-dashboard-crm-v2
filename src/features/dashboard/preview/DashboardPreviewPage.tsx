@@ -30,6 +30,10 @@ export function readEditorOnly(search: string): boolean {
   return new URLSearchParams(search).get('bereich') === 'editor';
 }
 
+export function readLoading(search: string): boolean {
+  return new URLSearchParams(search).get('status') === 'laden';
+}
+
 export function DashboardPreviewPage({
   search = typeof window === 'undefined' ? '' : window.location.search,
 }: {
@@ -59,7 +63,7 @@ export function DashboardPreviewPage({
           </>
         )}
         {editorOnly ? null : <TileGalleryPreview onlyView={onlyView} />}
-        {onlyView ? null : <DashboardEditorPreview />}
+        {onlyView ? null : <DashboardEditorPreview loading={readLoading(search)} />}
       </div>
     </main>
   );

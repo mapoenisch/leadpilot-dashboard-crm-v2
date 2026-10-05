@@ -106,3 +106,16 @@ describe('DashboardFilters: Codex-Befunde PR #59', () => {
     expect(input.getAttribute('aria-describedby')).toContain(alert.id);
   });
 });
+
+describe('DashboardFilters: verwaister Startfilter', () => {
+  it('lässt einen Startfilter entfernen, auch ohne Pipeline-fähige Kachel', () => {
+    const { props } = setup({
+      pipelineSupported: false,
+      editing: true,
+      startFilters: { pipeline: 'Alt' },
+    });
+    expect(screen.queryByLabelText('Pipeline')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Startfilter entfernen' }));
+    expect(props.onStartFilters).toHaveBeenCalledWith(undefined);
+  });
+});

@@ -202,6 +202,8 @@ describe('DashboardWorkspace – Bearbeiten', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Aktuelle Serveransicht laden' }));
     });
     expect(preferences.reloadServerVersion).toHaveBeenCalled();
+    // Nach dem Laden gibt es nur noch den bestätigten Weg, den gewöhnlichen Speichern-Knopf nicht.
+    expect(screen.getByRole('button', { name: 'Speichern' })).toBeDisabled();
     expect(
       screen.getByRole('button', { name: 'Trotzdem speichern (ersetzt die neuere Fassung)' }),
     ).toBeInTheDocument();
@@ -339,6 +341,35 @@ describe('DashboardWorkspace: Codex-Befunde PR #59', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Dialog schließen' }));
     fireEvent.click(screen.getByTestId('modal-overlay'));
     expect(onStay).not.toHaveBeenCalled();
+  });
+});
+
+describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 2', () => {
+  it('sagt jeden Klick auf „Details“ erneut an', () => {
+    setup(prefs());
+    const click = () => fireEvent.click(screen.getAllByRole('button', { name: /Details/ })[0]!);
+    const text = () =>
+      screen.getAllByRole('status').find((el) => /Detailansicht folgt/.test(el.textContent ?? ''))
+        ?.textContent;
+    click();
+    const first = text();
+    click();
+    expect(text()).not.toBe(first);
+  });
+
+  it('kann beim Bearbeiten einen gesetzten Titel wieder löschen', async () => {
+    const config: DashboardConfig = {
+      version: 1,
+      tiles: [{ ...CONFIG.tiles[0]!, title: 'Mein Titel' }],
+    };
+    setup(prefs({ state: stored(config) }));
+    startEditing();
+    expect(screen.getByText('Mein Titel')).toBeInTheDocument();
+    fireEvent.click(within(items()[0]!).getByRole('button', { name: /Bearbeiten/ }));
+    const field = await screen.findByLabelText('Eigener Titel (optional)');
+    fireEvent.change(field, { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Übernehmen' }));
+    await waitFor(() => expect(screen.queryByText('Mein Titel')).toBeNull());
   });
 });
 

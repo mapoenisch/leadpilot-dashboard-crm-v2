@@ -15229,3 +15229,25 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen (`TileConfigurator.tsx` 397).
 
 **Ergebnis & Freigabestatus:** Befunde behoben, Antworten in den Threads; Screenshot-Matrix erneut erzeugt. Offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 2 (PR #59, Head `ea332b6`, Review 5416002101), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 1 geprüft: ein P1 und sechs P2. Alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| P1 4185056353 normaler „Speichern“-Weg nach Konfliktladen (`EditorToolbar`) | Nach „Aktuelle Serveransicht laden“ ist „Speichern“ gesperrt; überschrieben wird nur über „Trotzdem speichern (ersetzt die neuere Fassung)“. |
+| 4185056276 Leerzustand ohne Zurücksetzen (`DashboardGrid`) | „Auf Standard zurücksetzen“ neben „Kachel hinzufügen“. |
+| 4185056293 Höhen nicht im Screenshot-Gate (`captureAuftrag074Screenshots.mjs`) | Neue Messung ganzer Kacheln und des Rasters: Laden → bereit (Beobachter angehalten) und Skelett (`?status=laden`) → bereit; Abweichungen führen zu Exit 1. Ergebnis: 17 Kacheln, 0 Abweichungen, Raster 2954/768: 5271/375: 7404 px in allen drei Zuständen. Hilfen in `scripts/lib/dashboardShotHelpers.mjs` (Dateigrenze). |
+| 4185056306 geleerte Felder nicht übergeben (`TileConfigurator`/Arbeitsbereich) | Beim Bearbeiten gehen Titel und Pipeline ausdrücklich als `undefined` in den Patch; Titel lässt sich löschen. |
+| 4185056319 verwaister Startfilter (`DashboardFilters`) | „Startfilter entfernen“ bleibt im Bearbeiten sichtbar, auch ohne Pipeline-fähige Kachel. |
+| 4185056336 wiederholte Detail-Ansage (`DashboardWorkspace`) | Klickzähler wechselt die Ansage bei jedem Klick. |
+| 4185056367 Editor bei neuerer Serverversion (`useDashboardEditor`) | Übernimmt „Serverfassung übernehmen“ eine nicht speicherbare Fassung, endet der Bearbeitungsmodus mit Ansage. |
+
+**Vorschau:** `?status=laden` zeigt den Arbeitsbereich im Ladezustand (für die Höhenmessung).
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0, `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0 (0 px Überlauf, axe 0, CLS 0, Höhen gleich); Schutzbereichs-Diff leer; Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.

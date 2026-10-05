@@ -91,7 +91,8 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   const [session, setSession] = useState<{ value: FilterValues | undefined } | null>(null);
   const [target, setTarget] = useState<Target>(null);
   const [attempt, setAttempt] = useState(0);
-  const [detailsNotice, setDetailsNotice] = useState(false);
+  // Zähler statt Flag: jeder Klick wechselt die Ansage, auch ohne sichtbare Änderung.
+  const [detailsClicks, setDetailsClicks] = useState(0);
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const focusSeq = useRef(0);
   const loader = props.configuratorLoader ?? loadConfigurator;
@@ -140,9 +141,14 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   const submit: TileConfiguratorProps['onSubmit'] = (values) => {
     const tile = target?.tile;
     if (tile) {
-      const { catalogId: _catalog, ...patch } = values;
-      void _catalog;
-      return editor.updateTile(tile.tileId, patch);
+      // Geleerte Felder ausdrücklich als `undefined`, sonst bliebe der alte Titel oder die Pipeline.
+      return editor.updateTile(tile.tileId, {
+        view: values.view,
+        size: values.size,
+        filterMode: values.filterMode,
+        title: values.title,
+        pipeline: values.pipeline,
+      });
     }
     const result = editor.addTile(values);
     if (result.ok && result.tileId) focus(result.tileId, 'kachel');
@@ -216,9 +222,10 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
             nicht verfügbar und bleiben gespeichert.
           </p>
         ) : null}
-        {detailsNotice ? (
+        {detailsClicks > 0 ? (
           <p role="status" className="m-0">
             Die Detailansicht folgt mit Teilauftrag 7.
+            {detailsClicks % 2 ? '' : '\u200B'}
           </p>
         ) : null}
       </div>
@@ -243,7 +250,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           chartLoaders={props.chartLoaders}
           suspended={!ready}
           focusRequest={focusRequest}
-          onShowDetails={props.onShowDetails ?? (() => setDetailsNotice(true))}
+          onShowDetails={props.onShowDetails ?? (() => setDetailsClicks((n) => n + 1))}
           onRetryChartLoad={() => editor.requestLeave(reload)}
           onTileActivated={props.onTileActivated}
           onMove={move}
@@ -251,6 +258,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           onEdit={(tileId) => setTarget({ tile: tiles.find((tile) => tile.tileId === tileId) })}
           onRemove={remove}
           onAdd={() => setTarget({})}
+          onReset={editor.resetToDefault}
         />
       </div>
       {target ? (

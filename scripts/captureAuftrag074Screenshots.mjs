@@ -24,6 +24,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { dialogRows, heightRows } from './lib/dashboardShotHelpers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4173';
@@ -245,51 +246,6 @@ async function flows(browser) {
   return { rows, lazy };
 }
 
-/** Navigationsschutz: ein fehlgeschlagener Modulabruf führt über „Wiederholen“ zur Rückfrage. */
-async function dialogRows(browser) {
-  const rows = [];
-  for (const viewport of WIDTHS) {
-    const context = await browser.newContext({ viewport });
-    await context.route(/Depth(3dBar|3dDonut|Line|Area)Chart/, (route) => route.abort());
-    const page = await context.newPage();
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto(`${BASE_URL}${EDITOR}`, { waitUntil: 'networkidle' });
-    await page.getByRole('button', { name: 'Dashboard bearbeiten' }).click();
-    await page
-      .getByRole('button', { name: /Nach unten, Position 1 von/ })
-      .first()
-      .click();
-    // Die Diagrammkacheln werden erst beim Heranscrollen aktiv und laden dann ihr Modul.
-    for (let i = 0; i < 12; i += 1) {
-      if (await page.getByRole('button', { name: 'Wiederholen' }).count()) break;
-      await page.mouse.wheel(0, viewport.height * 0.8);
-      await page.waitForTimeout(250);
-    }
-    await page.getByRole('button', { name: 'Wiederholen' }).first().scrollIntoViewIfNeeded();
-    await page.getByRole('button', { name: 'Wiederholen' }).first().click();
-    await page.getByRole('dialog').waitFor();
-    await page.waitForTimeout(400);
-    const file = `${viewport.width}-dialog.png`;
-    const image = await page.screenshot({ path: path.join(OUT_DIR, file), fullPage: true });
-    const axe = await new AxeBuilder({ page }).include(WORKSPACE).analyze();
-    rows.push({
-      width: viewport.width,
-      name: 'dialog',
-      overflowPx: await overflowOf(page),
-      axeSevere: axe.violations
-        .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-        .map((v) => v.id),
-      file,
-      sha256: sha256(image),
-    });
-    // „Hier bleiben“ lässt Entwurf und Seite unverändert.
-    await page.getByRole('button', { name: 'Hier bleiben' }).click();
-    await page.getByRole('dialog').waitFor({ state: 'detached' });
-    await context.close();
-  }
-  return rows;
-}
-
 const short = (hash) => `\`${hash.slice(0, 16)}\``;
 
 function writeReadme(m) {
@@ -310,6 +266,8 @@ function writeReadme(m) {
     `- Hinzufügen: Kacheln ${m.lazy.map((l) => `${l.width}: ${l.tilesBefore}→${l.tilesAfter}`).join(', ')}`,
     `- Speicherfehler: Text „${m.lazy[0]?.errorText}“, Entwurf bleibt: ${m.lazy.every((l) => l.draftKept) ? 'ja' : 'nein'}`,
     `- Konflikt: drei Wege sichtbar, danach „Gespeichert.“ und Rückkehr in die Ansicht: ${m.lazy.every((l) => l.takeVisible && l.savedBack) ? 'ja' : 'nein'}`,
+    '',
+    `- Höhe ganzer Kacheln und des Rasters, Laden → bereit und Skelett → bereit (Abweichungen je Breite): ${m.heights.map((h) => `${h.width}: ${h.tileCount} Kacheln, laden ${h.loadingDiff.length}, Skelett ${h.skeletonDiff.length}, Raster ${h.gridLoading}/${h.gridSkeleton}/${h.gridReady} px`).join('; ')}`,
     '',
     '## Vorher/Nachher (ganze Seite)',
     '',
@@ -332,6 +290,8 @@ function writeReadme(m) {
   fs.writeFileSync(path.join(OUT_DIR, 'README.md'), `${out.join('\n')}\n`);
 }
 
+const CTX = { BASE_URL, PAGE, EDITOR, WIDTHS, OUT_DIR, WORKSPACE, sha256, overflowOf };
+
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const browser = await chromium.launch(
@@ -341,7 +301,8 @@ async function main() {
   try {
     const pairs = await beforeAfter(browser);
     const { rows: flowRows, lazy } = await flows(browser);
-    const rows = [...flowRows, ...(await dialogRows(browser))];
+    const rows = [...flowRows, ...(await dialogRows(browser, CTX))];
+    const heights = await heightRows(browser, CTX);
     result = {
       baseUrl: BASE_URL,
       beforeUrl: BEFORE_URL,
@@ -355,6 +316,7 @@ async function main() {
       pairs,
       rows,
       lazy,
+      heights,
     };
   } finally {
     await browser.close();
@@ -382,6 +344,16 @@ async function main() {
         l.takeVisible &&
         l.savedBack &&
         l.cls < 0.01,
+    ) &&
+    result.heights.every(
+      (h) =>
+        h.readyAll &&
+        h.loadingAll &&
+        h.skeletonAll &&
+        h.loadingDiff.length === 0 &&
+        h.skeletonDiff.length === 0 &&
+        h.gridReady === h.gridLoading &&
+        h.gridReady === h.gridSkeleton,
     ) &&
     small !== undefined &&
     small.initialActive < small.total;

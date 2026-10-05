@@ -246,6 +246,25 @@ describe('useDashboardEditor: Konflikt', () => {
     expect(result.current.conflict).toBe(false);
   });
 
+  it('beendet den Editor, wenn die übernommene Serverfassung nicht speicherbar ist', async () => {
+    const { result, rerender, prefs, reload } = setup();
+    const future: PreferencesState = {
+      kind: 'zukuenftige_version',
+      schemaVersion: 9,
+      config: SERVER,
+      revision: 8,
+      canSave: false,
+    };
+    reload.mockImplementation(async () => {
+      rerender({ ...prefs, state: future });
+    });
+    act(() => result.current.startEditing());
+    act(() => void result.current.removeTile('a'));
+    await act(async () => void (await result.current.takeServerVersion()));
+    expect(result.current.mode).toBe('ansicht');
+    expect(result.current.draft).toBeNull();
+  });
+
   it('übernimmt auf Wunsch die Serverfassung und verwirft den Entwurf', async () => {
     const { result, rerender, prefs, reload } = setup();
     // Das Neuladen liefert eine neuere Serverfassung (wie die Abfrage der Einstellungen).

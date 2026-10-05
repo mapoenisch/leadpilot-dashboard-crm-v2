@@ -276,11 +276,20 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   // Nach dem Laden der Serverfassung ersetzt sie die Arbeitskopie (Entwurf wird bewusst verworfen).
   useEffect(() => {
     if (!takeServer || !state) return;
-    commit(state.config);
     setTakeServer(false);
     setConflict(false);
     setServerLoaded(false);
     setSaveStatus({ kind: 'idle' });
+    if (!state.canSave) {
+      // Neuere Formatversion: nicht speicherbar, also zurück in die (sichere) Ansicht.
+      commit(null);
+      setMode('ansicht');
+      announce(
+        'Serverfassung übernommen. Sie stammt aus einer neueren Version und ist nur lesbar.',
+      );
+      return;
+    }
+    commit(state.config);
     announce('Serverfassung übernommen. Dein Entwurf wurde verworfen.');
   }, [takeServer, state, commit, announce]);
 

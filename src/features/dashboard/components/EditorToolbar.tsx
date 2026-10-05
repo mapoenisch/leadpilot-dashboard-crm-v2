@@ -51,7 +51,11 @@ export function EditorToolbar(props: EditorToolbarProps) {
       <div className="flex flex-wrap items-center gap-2">
         {editing ? (
           <>
-            <Button size="sm" disabled={locked || !props.dirty} onClick={props.onSave}>
+            <Button
+              size="sm"
+              disabled={locked || !props.dirty || serverLoaded}
+              onClick={props.onSave}
+            >
               Speichern
             </Button>
             <Button size="sm" variant="secondary" disabled={locked} onClick={props.onCancel}>

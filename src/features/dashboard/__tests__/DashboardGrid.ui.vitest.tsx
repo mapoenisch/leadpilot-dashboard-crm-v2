@@ -150,4 +150,11 @@ describe('DashboardGrid', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Kachel hinzufügen' }));
     expect(onAdd).toHaveBeenCalled();
   });
+
+  it('bietet im Leerzustand auch „Auf Standard zurücksetzen“ an', () => {
+    const onReset = vi.fn();
+    setup({ tiles: [], editing: true, onAdd: vi.fn(), onReset });
+    fireEvent.click(screen.getByRole('button', { name: 'Auf Standard zurücksetzen' }));
+    expect(onReset).toHaveBeenCalled();
+  });
 });

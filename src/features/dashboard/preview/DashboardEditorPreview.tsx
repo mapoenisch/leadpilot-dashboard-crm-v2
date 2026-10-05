@@ -19,7 +19,8 @@ const NEXT_SAVE_LABEL: Record<NextSave, string> = {
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export function DashboardEditorPreview() {
+/** `loading` hält den Arbeitsbereich im Ladezustand (Skelett), z. B. für die Höhenmessung. */
+export function DashboardEditorPreview({ loading = false }: { loading?: boolean }) {
   const [stored, setStored] = useState<{ config: DashboardConfig; revision: number } | null>(null);
   const [server, setServer] = useState<{ config: DashboardConfig; revision: number } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -74,8 +75,11 @@ export function DashboardEditorPreview() {
           canSave: true,
         }
       : { kind: 'standard', config: DEFAULT_DASHBOARD_CONFIG, revision: 0, canSave: true };
+    if (loading) {
+      return { status: 'laden' as const, state: null, isSaving: saving, save, reloadServerVersion };
+    }
     return { status: 'bereit' as const, state, isSaving: saving, save, reloadServerVersion };
-  }, [stored, saving, save, reloadServerVersion]);
+  }, [stored, saving, save, reloadServerVersion, loading]);
   // Gezählt wird, was der Arbeitsbereich gerade zeigt (auch der Entwurf); entfernte IDs zählen nicht.
   const activeShown = shownIds.filter((id) => activated.has(id)).length;
 
