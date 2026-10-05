@@ -15251,3 +15251,25 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0, `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0 (0 px Überlauf, axe 0, CLS 0, Höhen gleich); Schutzbereichs-Diff leer; Dateien < 400 Zeilen.
 
 **Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.
+
+---
+
+## Auftrag 074 – Nacharbeit Codex-Review, Runde 3 (PR #59, Head `ec0e308`, Review 5416477630), Builder Claude Code, 05.10.2026
+
+**Anlass:** Codex hat den Head der Runde 2 geprüft: ein P1 und sieben P2. Alle berechtigt, behoben, je mit Test.
+
+| Befund | Behebung |
+|---|---|
+| P1 4185404702 Entwurf nicht an Startrevision gebunden (`useDashboardEditor`) | Der Hook hält Konfiguration und Revision vom Start der Bearbeitung fest. Ändert sich die Serverfassung darunter (z. B. Fokus-Neuladen), beginnt sofort der Konfliktablauf; `save` speichert nicht, bis die Serverfassung bewusst geladen wurde. `dirty` vergleicht gegen den Startstand. |
+| 4185404719 Verwerfen nach fehlgeschlagenem Neuladen | `reloadServerVersion` wirft bei Fehlschlag (`throwOnError: true`, eine Option in `useDashboardPreferences.ts`, Datei nicht in der Ziel-Liste); der Editor meldet „konnte nicht geladen werden“, behält den Entwurf und übernimmt nichts. |
+| 4185404717 Zeitraum nicht bearbeitbar, geht beim Anwenden verloren (`DashboardFilters`) | Felder „Von“/„Bis“ mit Prüfung (beide Grenzen, Reihenfolge); Entwurf, Änderungs- und Startfiltervergleich aus Pipeline und Zeitraum. Der Zeitraum wirkt weiter nicht (kein belegtes Datumsfeld), der Hinweis steht da. |
+| 4185404747 Ziehgriff nicht im Gate (Skript) | Echter Drag über den Griff auf 1440 und 768 px (`dragCheck`), neue DOM-Reihenfolge Teil der Bedingung; auf 375 px gibt es keinen Griff. Nebenbefund der Messung: Auf 768 px liegt die dritte Kachel unterhalb des Viewports, daher Ziel „zweite Position“. |
+| 4185404729 Arbeitsbereich beim Chunk-Laden nicht gesperrt (`DashboardWorkspace`) | Lade- und Fehlerzustand des Konfigurators sind ein modales Fenster; der Fokus kehrt zum Auslöser zurück, auch wenn die Hülle das Fenster wechselt. |
+| 4185404759 „Erneut versuchen“ wiederholt denselben Abruf | Der Fehlerzustand bietet „Seite neu laden“ (über `requestLeave` mit Rückfrage bei Entwurf), wie der Diagramm-Retry. |
+| 4185404769 Vorschau-Remount bei jeder Texteingabe (`TileConfigurator`) | Schlüssel nur noch die Katalog-ID; Titel und Pipeline aktualisieren nur die Props. Test zählt die Einhängungen. |
+
+**Weitere Änderungen:** `tileTitle` wanderte in `dashboardEditorReducer.ts` (Dateigröße des Hooks); neue Testdateien `useDashboardEditor.codex.ui.vitest.tsx` und `DashboardWorkspace.codex.ui.vitest.tsx` für die Regressionstests der Runden 1 bis 3 (Dateigrenze 400 Zeilen).
+
+**Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2115 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0 (0 px Überlauf, axe 0, CLS 0, Höhen gleich, Drag ja/ja/kein Griff); Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
+
+**Ergebnis & Freigabestatus:** Befunde behoben; offen: CI, erneute Codex-Prüfung, Merge nur durch Marc.

@@ -129,8 +129,8 @@ export async function heightRows(browser, ctx) {
 }
 
 /**
- * Echter Drag über den sichtbaren Griff (nur ab 768 px sichtbar): die erste Kachel auf die dritte
- * Position ziehen und die neue DOM-Reihenfolge prüfen. Auf 375 px gibt es keinen Griff (`null`).
+ * Echter Drag über den sichtbaren Griff (nur ab 768 px sichtbar): die erste Kachel auf die zweite
+ * Position ziehen (auf 768 px liegt die dritte unterhalb des sichtbaren Bereichs) und die neue DOM-Reihenfolge prüfen. Auf 375 px gibt es keinen Griff (`null`).
  */
 export async function dragCheck(page, width) {
   if (width < 768) return null;
@@ -141,9 +141,9 @@ export async function dragCheck(page, width) {
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(100);
   const before = await ids();
-  await items.nth(0).getByTestId('drag-handle').dragTo(items.nth(2));
+  await items.nth(0).getByTestId('drag-handle').dragTo(items.nth(1));
   await page.waitForTimeout(150);
   const after = await ids();
-  const expected = [...before.slice(1, 3), before[0], ...before.slice(3)];
+  const expected = [before[1], before[0], ...before.slice(2)];
   return JSON.stringify(after) === JSON.stringify(expected);
 }
