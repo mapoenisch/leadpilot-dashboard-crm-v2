@@ -15084,3 +15084,23 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Reihenfolge:** `CLAUDE.md` §3 verlangt, immer nur einen Auftrag zu bearbeiten. Vorschlag: zuerst Auftrag 075 (klein, entfernt eine CI-Instabilität), dann 074; die Entscheidung liegt bei Marc.
 
 **Ergebnis & Freigabestatus:** Zwei Auftragstexte, noch nicht gebaut. Offen: Codex-Prüfung der Auftragstexte, Marcs Reihenfolge.
+
+---
+
+## Auftrag 075 – Umsetzung: AuditPage-Test gegen Zeitrennen härten (Builder: Claude Code, 05.10.2026)
+
+**Ziel & Kontext:** Marc am 05.10.2026: „zuerst 075“, ein PR für die Auftragstexte. [Auftrag 075](auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md), Basis `main` `fbb7244`. Gebaut auf dem Session-Branch `claude/inspiring-pascal-hvjcog` im selben PR wie die Auftragstexte 074 und 075 (kein zweiter Branch, siehe Auftragstext).
+
+**Geänderte Dateien:** `src/features/admin/pages/__tests__/AuditPage.ui.vitest.tsx` (Test angepasst, Regressionstest ergänzt, 213 Zeilen), `docs/auftraege/ANTIGRAVITY_AUFTRAG_075_AUDITPAGE_TEST_HAERTUNG.md` (Reproduktion ergänzt, Checkboxen abgehakt), `docs/BUILD_LOG.md`. Produktivcode unverändert.
+
+**Reproduktion des Fehlerbilds (vor der Änderung):** Mit der alten Prüfreihenfolge (`waitFor` auf die Tabelle, danach synchron `getByText(/Keine Einträge vorhanden/i)`) und einem Dienst, der erst nach 1500 ms mit `[]` antwortet, schlägt der Test deterministisch fehl: `TestingLibraryElementError: Unable to find an element with the text: /Keine Einträge vorhanden/i`. Direkt nach dem Render zeigte die Seite „Lädt…“ und ein leeres `<tbody>`, wie im CI-Fehlerbild von Job 111532822617. Mit 50 ms Verzögerung bestand der alte Test noch (die erste `getByRole`-Abfrage braucht in jsdom diese Zeit); die Reproduktion brauchte deshalb 1500 ms. Die temporäre Reproduktionsdatei ist wieder entfernt.
+
+**Änderung:** Der Test „rendert Audit-Log-Tabelle fuer Admin (leere Liste)“ wartet mit `await screen.findByText(...)` auf den Leertext und prüft danach die Tabelle. Neuer Regressionstest „zeigt den Leertext erst nach dem Laden, auch wenn der Dienst langsam antwortet“ (1500 ms): Während des Ladens sind Tabelle da und Leertext nicht; danach erscheint er. Kein Test entfernt, deaktiviert oder abgeschwächt. Die übrigen Tests der Datei wurden geprüft und blieben unverändert (Zeilen und Text erscheinen jeweils im selben Render).
+
+**Wiederholungsnachweis:** 20 Läufe der Datei hintereinander: 20 grün, 0 rot.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0, `npm test` 0 (2001 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:quality-budget` 0. `wc -l` der geänderten Code-Datei: 213 Zeilen (unter 400).
+
+**Schutzbereichs-Diff** gegen `fbb7244`: leer.
+
+**Ergebnis & Freigabestatus:** Umsetzung fertig. Offen: PR-CI, Codex-Prüfung, Merge nur durch Marc.

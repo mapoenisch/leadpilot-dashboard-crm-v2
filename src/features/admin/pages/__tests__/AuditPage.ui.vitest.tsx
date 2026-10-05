@@ -71,10 +71,26 @@ describe('AuditPage', () => {
 
     render(<AuditPage />);
 
-    await waitFor(() => {
-      expect(screen.getByRole('table', { name: /Audit-Log Einträge/i })).toBeInTheDocument();
-    });
-    expect(screen.getByText(/Keine Einträge vorhanden/i)).toBeInTheDocument();
+    // Auf das Ergebnis warten, nicht auf die Tabelle: Sie steht sofort da, der Leertext erst nach dem Laden.
+    expect(await screen.findByText(/Keine Einträge vorhanden/i)).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: /Audit-Log Einträge/i })).toBeInTheDocument();
+  });
+
+  it('zeigt den Leertext erst nach dem Laden, auch wenn der Dienst langsam antwortet', async () => {
+    vi.mocked(useOrganization).mockReturnValue(makeAdminSession());
+    vi.mocked(auditService.listAuditLogs).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve([]), 1500)),
+    );
+
+    render(<AuditPage />);
+
+    // Während des Ladens: Tabelle und Ladeschaltfläche da, kein Leertext.
+    expect(screen.getByRole('table', { name: /Audit-Log Einträge/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Keine Einträge vorhanden/i)).toBeNull();
+    // Danach erscheint der Leertext.
+    expect(
+      await screen.findByText(/Keine Einträge vorhanden/i, {}, { timeout: 4000 }),
+    ).toBeInTheDocument();
   });
 
   it('rendert Audit-Eintraege in der Tabelle', async () => {
