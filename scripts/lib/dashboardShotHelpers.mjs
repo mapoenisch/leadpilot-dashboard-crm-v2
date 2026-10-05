@@ -147,3 +147,41 @@ export async function dragCheck(page, width) {
   const expected = [before[1], before[0], ...before.slice(2)];
   return JSON.stringify(after) === JSON.stringify(expected);
 }
+
+/** Höchstbelegung: 24 Kacheln, beim Start nicht alle aktiv, nach dem Scrollen alle (Lazy-Gate). */
+export async function fullLazyRows(browser, ctx) {
+  const { BASE_URL, PAGE, WIDTHS } = ctx;
+  const rows = [];
+  for (const viewport of WIDTHS) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(`${BASE_URL}${PAGE}?bereich=editor&kacheln=24`, { waitUntil: 'networkidle' });
+    await page.locator('li[data-tile-id]').first().waitFor();
+    const read = async () => {
+      const text = (await page.getByTestId('aktivierte-kacheln').textContent()) ?? '';
+      const [, active, total] = /(\d+) von (\d+)/.exec(text) ?? [];
+      return { active: Number(active), total: Number(total) };
+    };
+    const initial = await read();
+    const steps = Math.ceil(
+      (await page.evaluate(() => document.body.scrollHeight)) / viewport.height,
+    );
+    for (let i = 0; i < steps + 1; i += 1) {
+      await page.mouse.wheel(0, viewport.height * 0.9);
+      await page.waitForTimeout(150);
+    }
+    await page.waitForLoadState('networkidle');
+    const scrolled = await read();
+    const tiles = await page.locator('ul[aria-label="Dashboard-Kacheln"] > li').count();
+    rows.push({
+      width: viewport.width,
+      tiles,
+      initial: initial.active,
+      scrolled: scrolled.active,
+      total: scrolled.total,
+    });
+    await context.close();
+  }
+  return rows;
+}

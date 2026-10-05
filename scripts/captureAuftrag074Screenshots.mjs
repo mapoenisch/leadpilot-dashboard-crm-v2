@@ -24,7 +24,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { dialogRows, dragCheck, heightRows } from './lib/dashboardShotHelpers.mjs';
+import { dialogRows, dragCheck, fullLazyRows, heightRows } from './lib/dashboardShotHelpers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4173';
@@ -273,6 +273,8 @@ function writeReadme(m) {
     '',
     `- Höhe ganzer Kacheln und des Rasters, Laden → bereit und Skelett → bereit (Abweichungen je Breite): ${m.heights.map((h) => `${h.width}: ${h.tileCount} Kacheln, laden ${h.loadingDiff.length}, Skelett ${h.skeletonDiff.length}, Raster ${h.gridLoading}/${h.gridSkeleton}/${h.gridReady} px`).join('; ')}`,
     '',
+    `- Höchstbelegung 24 Kacheln, aktiv beim Start / nach dem Scrollen: ${m.full.map((f) => `${f.width}: ${f.initial}/${f.scrolled} von ${f.total}`).join(', ')}`,
+    '',
     '## Vorher/Nachher (ganze Seite)',
     '',
     '| Breite | Vorher | Nachher | Überlauf nachher |',
@@ -307,6 +309,7 @@ async function main() {
     const { rows: flowRows, lazy } = await flows(browser);
     const rows = [...flowRows, ...(await dialogRows(browser, CTX))];
     const heights = await heightRows(browser, CTX);
+    const full = await fullLazyRows(browser, CTX);
     result = {
       baseUrl: BASE_URL,
       beforeUrl: BEFORE_URL,
@@ -321,6 +324,7 @@ async function main() {
       rows,
       lazy,
       heights,
+      full,
     };
   } finally {
     await browser.close();
@@ -360,6 +364,9 @@ async function main() {
         h.skeletonDiff.length === 0 &&
         h.gridReady === h.gridLoading &&
         h.gridReady === h.gridSkeleton,
+    ) &&
+    result.full.every(
+      (f) => f.tiles === 24 && f.total === 24 && f.scrolled === 24 && f.initial < 24,
     ) &&
     small !== undefined &&
     small.initialActive < small.total;

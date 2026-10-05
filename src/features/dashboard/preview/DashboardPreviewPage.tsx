@@ -30,6 +30,11 @@ export function readEditorOnly(search: string): boolean {
   return new URLSearchParams(search).get('bereich') === 'editor';
 }
 
+export function readTileCount(search: string): number | undefined {
+  const count = Number(new URLSearchParams(search).get('kacheln'));
+  return Number.isInteger(count) && count > 0 && count <= 24 ? count : undefined;
+}
+
 export function readLoading(search: string): boolean {
   return new URLSearchParams(search).get('status') === 'laden';
 }
@@ -63,7 +68,9 @@ export function DashboardPreviewPage({
           </>
         )}
         {editorOnly ? null : <TileGalleryPreview onlyView={onlyView} />}
-        {onlyView ? null : <DashboardEditorPreview loading={readLoading(search)} />}
+        {onlyView ? null : (
+          <DashboardEditorPreview loading={readLoading(search)} tileCount={readTileCount(search)} />
+        )}
       </div>
     </main>
   );

@@ -32,6 +32,7 @@ import {
   type NewTileInput,
 } from '../hooks/dashboardEditorReducer';
 import { Group, Option, useDebounced } from './ConfiguratorFields';
+import type { ChartLoaders } from './charts/chartLoaders';
 import { DashboardTile } from './DashboardTile';
 import { useEscapeToClose } from './UnsavedChangesDialog';
 import type { TileDataHook } from './LazyDashboardTile';
@@ -50,6 +51,12 @@ export interface TileConfiguratorProps {
   filters?: DashboardFilters;
   onSubmit: (values: NewTileInput) => EditResult;
   onClose: () => void;
+  /** „Wiederholen“ der Diagrammvorschau; der Arbeitsbereich schützt den Reload (Rückfrage). */
+  onRetryChartLoad?: () => void;
+  /** Nur für Tests: Nachladefunktionen der Diagrammvorschau ersetzen. */
+  chartLoaders?: ChartLoaders;
+  /** `false`, solange eine Rückfrage darüber liegt: dann ruht Escape (nur der oberste Dialog). */
+  escapeActive?: boolean;
 }
 
 interface Choice {
@@ -74,7 +81,10 @@ function defaultsFor(entry: ActiveCatalogEntry): Choice {
 }
 
 function Preview(
-  props: Pick<TileConfiguratorProps, 'useData' | 'filters'> & {
+  props: Pick<
+    TileConfiguratorProps,
+    'useData' | 'filters' | 'onRetryChartLoad' | 'chartLoaders'
+  > & {
     tile: DashboardTileConfig;
     entry: ActiveCatalogEntry;
   },
@@ -87,6 +97,8 @@ function Preview(
       data={data}
       dashboardFilters={props.filters}
       onShowDetails={() => undefined}
+      onRetryChartLoad={props.onRetryChartLoad}
+      chartLoaders={props.chartLoaders}
     />
   );
 }
@@ -110,7 +122,8 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
   const [error, setError] = useState('');
   const [sizeNote, setSizeNote] = useState('');
   const previewRef = useRef<HTMLDivElement | null>(null);
-  useEscapeToClose(open, onClose);
+  const escapeActive = props.escapeActive ?? true;
+  useEscapeToClose(open && escapeActive, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -193,7 +206,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={() => escapeActive && onClose()}
       title={editing ? 'Kachel bearbeiten' : 'Kachel hinzufügen'}
       maxWidth="960px"
       footer={
@@ -350,6 +363,8 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
                 entry={entry}
                 useData={props.useData}
                 filters={props.filters}
+                onRetryChartLoad={props.onRetryChartLoad}
+                chartLoaders={props.chartLoaders}
               />
             </div>
           ) : (

@@ -19,9 +19,27 @@ const NEXT_SAVE_LABEL: Record<NextSave, string> = {
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+function paddedConfig(count: number): DashboardConfig {
+  const base = DEFAULT_DASHBOARD_CONFIG.tiles;
+  const extra = Array.from({ length: Math.max(0, count - base.length) }, (_, i) => ({
+    ...base[i % base.length]!,
+    tileId: `zusatz_${i + 1}`,
+  }));
+  return { ...DEFAULT_DASHBOARD_CONFIG, tiles: [...base, ...extra].slice(0, count) };
+}
+
 /** `loading` hält den Arbeitsbereich im Ladezustand (Skelett), z. B. für die Höhenmessung. */
-export function DashboardEditorPreview({ loading = false }: { loading?: boolean }) {
-  const [stored, setStored] = useState<{ config: DashboardConfig; revision: number } | null>(null);
+export function DashboardEditorPreview({
+  loading = false,
+  tileCount,
+}: {
+  loading?: boolean;
+  /** Startet mit dieser Kachelzahl (aufgefüllt mit Kopien der Standardkacheln), z. B. 24 für die Lazy-Prüfung. */
+  tileCount?: number;
+}) {
+  const [stored, setStored] = useState<{ config: DashboardConfig; revision: number } | null>(() =>
+    tileCount ? { config: paddedConfig(tileCount), revision: 1 } : null,
+  );
   const [server, setServer] = useState<{ config: DashboardConfig; revision: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [nextSave, setNextSave] = useState<NextSave>('erfolg');

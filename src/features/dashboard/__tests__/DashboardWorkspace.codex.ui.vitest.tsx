@@ -7,6 +7,8 @@ import {
   type DashboardWorkspaceProps,
   type WorkspacePreferences,
 } from '../components/DashboardWorkspace';
+import type { ChartLoaders } from '../components/charts/chartLoaders';
+import { getCatalogEntry } from '../model/dashboardCatalog';
 import type { TileDataHook } from '../components/LazyDashboardTile';
 import { UnsavedChangesDialog } from '../components/UnsavedChangesDialog';
 import { DashboardPreviewPage } from '../preview/DashboardPreviewPage';
@@ -241,6 +243,43 @@ describe('DashboardWorkspace: Neuladefehler mit vorhandener Fassung', () => {
     expect(items()).toHaveLength(3);
     fireEvent.click(screen.getByRole('button', { name: 'Dashboard bearbeiten' }));
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeInTheDocument();
+  });
+});
+
+describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 5', () => {
+  it('sperrt „Details“ während des Speicherns', async () => {
+    const onShowDetails = vi.fn();
+    const save = vi.fn(() => new Promise<SaveResult>(() => undefined));
+    setup(prefs({ save }), { onShowDetails });
+    startEditing();
+    fireEvent.click(within(items()[0]!).getByRole('button', { name: /Nach unten/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+    fireEvent.click(screen.getAllByRole('button', { name: /^Details zu/ })[0]!);
+    expect(onShowDetails).not.toHaveBeenCalled();
+  });
+
+  it('schützt den Diagramm-Retry der Konfiguratorvorschau mit der Rückfrage', async () => {
+    const failing: ChartLoaders = {
+      balken: () => Promise.reject(new Error('x')),
+      ring: () => Promise.reject(new Error('x')),
+      linie: () => Promise.reject(new Error('x')),
+      flaeche: () => Promise.reject(new Error('x')),
+    };
+    const { props } = setup(prefs(), { chartLoaders: failing });
+    startEditing();
+    fireEvent.click(within(items()[0]!).getByRole('button', { name: /Nach unten/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kachel hinzufügen' }));
+    const name = getCatalogEntry('baseline.arr_verlauf')!.name;
+    fireEvent.click((await screen.findAllByRole('radio', { name: new RegExp(name) }))[0]!);
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(await within(dialog).findByRole('button', { name: 'Wiederholen' }));
+    expect(props.onReload).not.toHaveBeenCalled();
+    expect(await screen.findByRole('button', { name: 'Hier bleiben' })).toBeInTheDocument();
+  });
+
+  it('startet die Vorschau mit 24 Kacheln, wenn `kacheln=24` gesetzt ist', () => {
+    render(<DashboardPreviewPage search="?bereich=editor&kacheln=24" />);
+    expect(screen.getByTestId('aktivierte-kacheln')).toHaveTextContent(/von 24/);
   });
 });
 

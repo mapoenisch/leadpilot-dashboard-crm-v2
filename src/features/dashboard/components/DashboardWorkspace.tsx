@@ -277,7 +277,12 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           chartLoaders={props.chartLoaders}
           suspended={!ready}
           focusRequest={focusRequest}
-          onShowDetails={props.onShowDetails ?? (() => setDetailsClicks((n) => n + 1))}
+          onShowDetails={(tileId) => {
+            // Während des Speicherns ist auch „Details“ wirkungslos (kein Verlassen mittendrin).
+            if (editor.locked) return;
+            if (props.onShowDetails) props.onShowDetails(tileId);
+            else setDetailsClicks((n) => n + 1);
+          }}
           onRetryChartLoad={() => editor.requestLeave(reload)}
           onTileActivated={props.onTileActivated}
           onMove={move}
@@ -313,6 +318,9 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
               filters={filters}
               onSubmit={submit}
               onClose={() => setTarget(null)}
+              chartLoaders={props.chartLoaders}
+              onRetryChartLoad={() => editor.requestLeave(reload)}
+              escapeActive={editor.leaveRequest === null}
             />
           </Suspense>
         </ConfiguratorBoundary>
