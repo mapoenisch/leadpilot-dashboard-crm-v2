@@ -149,3 +149,26 @@ describe('useDashboardEditor: Codex-Befunde PR #59, Runde 4', () => {
     expect(result.current.serverLoaded).toBe(true);
   });
 });
+
+describe('useDashboardEditor: parallele Konfliktaktionen', () => {
+  it('lässt während des Neuladens nur eine Aktion zu', async () => {
+    const { result, reload } = setup();
+    let finish: () => void = () => undefined;
+    reload.mockImplementation(
+      () => new Promise<undefined>((resolve) => (finish = () => resolve(undefined))),
+    );
+    act(() => result.current.startEditing());
+    let first: Promise<void> = Promise.resolve();
+    act(() => {
+      first = result.current.takeServerVersion();
+    });
+    await act(async () => void (await result.current.loadServerVersion()));
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(result.current.locked).toBe(true);
+    await act(async () => {
+      finish();
+      await first;
+    });
+    expect(result.current.locked).toBe(false);
+  });
+});

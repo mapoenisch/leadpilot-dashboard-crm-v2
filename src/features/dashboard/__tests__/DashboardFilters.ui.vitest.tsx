@@ -157,3 +157,19 @@ describe('DashboardFilters: Zeitraum', () => {
     expect(screen.getByRole('button', { name: 'Als Startfilter übernehmen' })).toBeDisabled();
   });
 });
+
+describe('DashboardFilters: ausgeblendetes Pipeline-Feld', () => {
+  it('ignoriert einen Pipeline-Entwurf, sobald keine Kachel sie mehr unterstützt', () => {
+    const { rerender, props } = setup();
+    fireEvent.change(screen.getByLabelText('Pipeline'), { target: { value: 'Direkt' } });
+    rerender(<DashboardFilters {...props} pipelineSupported={false} />);
+    expect(screen.getByRole('button', { name: 'Filter anwenden' })).toBeDisabled();
+  });
+
+  it('zeigt für ein ausgeblendetes Feld keinen Fehler', () => {
+    const { rerender, props } = setup();
+    fireEvent.change(screen.getByLabelText('Pipeline'), { target: { value: 'x'.repeat(65) } });
+    rerender(<DashboardFilters {...props} pipelineSupported={false} />);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+});

@@ -283,6 +283,42 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 5', () => {
   });
 });
 
+describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 6', () => {
+  it('bindet die Vorschau einer vorhandenen CRM-Kachel sofort an deren Pipeline', async () => {
+    const crm: DashboardTileConfig = {
+      tileId: 'crm',
+      catalogId: 'crm.pipeline_deals',
+      view: 'zahl',
+      size: 'klein',
+      filterMode: 'dashboard',
+      pipeline: 'Direkt',
+    };
+    const seen = new Set<string | undefined>();
+    const useSpy: TileDataHook = (tile, filters, options) => {
+      seen.add(tile.pipeline);
+      return useData(tile, filters, options);
+    };
+    setup(prefs({ state: stored({ version: 1, tiles: [crm] }) }), { useData: useSpy });
+    startEditing();
+    seen.clear();
+    fireEvent.click(within(items()[0]!).getByRole('button', { name: /Bearbeiten/ }));
+    await screen.findByTestId('configurator-preview');
+    expect([...seen]).toEqual(['Direkt']);
+  });
+
+  it('setzt nach „Auf Standard zurücksetzen“ im Leerzustand den Fokus auf die erste Kachel', () => {
+    setup(prefs({ state: stored({ version: 1, tiles: [CONFIG.tiles[0]!] }) }));
+    startEditing();
+    fireEvent.click(within(items()[0]!).getByRole('button', { name: /Entfernen/ }));
+    fireEvent.click(
+      within(screen.getByTestId('dashboard-empty')).getByRole('button', {
+        name: 'Auf Standard zurücksetzen',
+      }),
+    );
+    expect(items()[0]).toHaveFocus();
+  });
+});
+
 describe('DashboardPreviewPage: Arbeitsbereich', () => {
   it('zeigt den Arbeitsbereich unter der Galerie; ?bereich=editor nur ihn; ?ansicht= nicht', () => {
     const { unmount } = render(<DashboardPreviewPage search="" />);

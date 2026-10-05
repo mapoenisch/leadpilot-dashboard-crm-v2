@@ -60,13 +60,15 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     null,
   );
   const [saving, setSaving] = useState(false);
+  const [reloading, setReloading] = useState(false);
   const [announcement, setAnnouncement] = useState<Announcement>({ text: '', seq: 0 });
 
   const draftRef = useRef<DashboardConfig | null>(null);
   const savingRef = useRef(false);
+  const reloadingRef = useRef(false);
   const lockedRef = useRef(false);
   const mountedRef = useRef(true);
-  lockedRef.current = preferences.isSaving || savingRef.current;
+  lockedRef.current = preferences.isSaving || savingRef.current || reloadingRef.current;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -87,7 +89,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const base = snapshot?.config ?? null;
   const editing = mode === 'bearbeiten';
   const dirty = editing && draft !== null && base !== null && !isSameConfig(draft, base);
-  const locked = preferences.isSaving || saving;
+  const locked = preferences.isSaving || saving || reloading;
   const canStart = state !== null && state.canSave;
 
   const startEditing = useCallback(() => {
@@ -292,6 +294,10 @@ export function useDashboardEditor(preferences: EditorPreferences) {
 
   /** Neuladen der Serverfassung; bei Fehlschlag bleibt alles wie es war und der Grund wird genannt. */
   const reloadOrReport = useCallback(async (): Promise<boolean> => {
+    // Sofort sperren: Zwei Konfliktwege dürfen nicht parallel laufen.
+    reloadingRef.current = true;
+    lockedRef.current = true;
+    setReloading(true);
     try {
       await preferences.reloadServerVersion();
       // Einen Takt warten: Die Abfrage meldet die neue Serverfassung erst danach an die Ansicht.
@@ -305,6 +311,9 @@ export function useDashboardEditor(preferences: EditorPreferences) {
       setSaveStatus({ kind: 'fehler', message, error });
       announce(message);
       return false;
+    } finally {
+      reloadingRef.current = false;
+      if (mountedRef.current) setReloading(false);
     }
   }, [preferences, announce]);
 

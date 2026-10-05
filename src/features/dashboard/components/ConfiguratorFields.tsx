@@ -41,12 +41,21 @@ export function Option(props: {
   );
 }
 
-/** Verzögerter Wert: Tippen löst in der Vorschau keine Abfrage je Buchstabe aus. */
-export function useDebounced<T>(value: T, ms: number): T {
-  const [settled, setSettled] = useState(value);
+/**
+ * Verzögerter Wert: Tippen löst keine Abfrage je Buchstabe aus. Ändert sich `resetKey` (andere Kachel
+ * oder Kennzahl), gilt der neue Wert sofort, ohne verzögerten Erstabruf mit dem alten.
+ */
+export function useDebounced<T>(value: T, ms: number, resetKey: string): T {
+  const [state, setState] = useState({ settled: value, key: resetKey });
+  const current = state.key === resetKey ? state.settled : value;
   useEffect(() => {
-    const timer = setTimeout(() => setSettled(value), ms);
+    if (state.key !== resetKey) {
+      setState({ settled: value, key: resetKey });
+      return undefined;
+    }
+    if (state.settled === value) return undefined;
+    const timer = setTimeout(() => setState({ settled: value, key: resetKey }), ms);
     return () => clearTimeout(timer);
-  }, [value, ms]);
-  return settled;
+  }, [value, ms, resetKey, state]);
+  return current;
 }

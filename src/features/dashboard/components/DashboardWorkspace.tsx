@@ -165,6 +165,12 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
     editor.removeTile(tileId);
     focus(next ? next.tileId : EMPTY_FOCUS, 'kachel');
   };
+  // Nach dem Zurücksetzen verschwindet die gerade fokussierte Schaltfläche: Fokus auf die erste Kachel.
+  const reset = () => {
+    editor.resetToDefault();
+    const first = DEFAULT_DASHBOARD_CONFIG.tiles[0];
+    if (first) focus(first.tileId, 'kachel');
+  };
   const submit: TileConfiguratorProps['onSubmit'] = (values) => {
     const tile = target?.tile;
     if (tile) {
@@ -227,7 +233,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         onCancel={editor.cancel}
         onSave={() => void editor.save()}
         onAdd={() => setTarget({})}
-        onReset={editor.resetToDefault}
+        onReset={reset}
         onLoadServer={() => void editor.loadServerVersion()}
         onTakeServer={() => void editor.takeServerVersion()}
       />
@@ -290,7 +296,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           onEdit={(tileId) => setTarget({ tile: tiles.find((tile) => tile.tileId === tileId) })}
           onRemove={remove}
           onAdd={() => setTarget({})}
-          onReset={editor.resetToDefault}
+          onReset={reset}
         />
       </div>
       {target ? (

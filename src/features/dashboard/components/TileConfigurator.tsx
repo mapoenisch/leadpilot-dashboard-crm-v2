@@ -172,7 +172,11 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
           ...(choice.pipeline.trim() ? { pipeline: choice.pipeline.trim() } : {}),
         }
       : null;
-  const settledPipeline = useDebounced(choice?.pipeline.trim() ?? '', 400);
+  const settledPipeline = useDebounced(
+    choice?.pipeline.trim() ?? '',
+    400,
+    `${tile?.tileId ?? ''}|${choice?.catalogId ?? ''}`,
+  );
   const previewTile: DashboardTileConfig | null = candidate && {
     ...candidate,
     pipeline: settledPipeline || undefined,

@@ -70,9 +70,12 @@ export function DashboardFilters({
   useEffect(() => setFields(fieldsOf(value)), [value]);
   const set = (patch: Partial<Fields>) => setFields((current) => ({ ...current, ...patch }));
 
-  const problem = problemOf(fields);
-  const draft = valuesOf(fields);
-  const canApply = !locked && !problem && keyOf(fields) !== keyOf(fieldsOf(value));
+  // Ein ausgeblendetes Pipeline-Feld (keine passende Kachel) zählt nicht mehr: weder für Prüfung noch Anwenden.
+  const mask = (f: Fields): Fields => (pipelineSupported ? f : { ...f, pipeline: '' });
+  const effective = mask(fields);
+  const problem = problemOf(effective);
+  const draft = valuesOf(effective);
+  const canApply = !locked && !problem && keyOf(effective) !== keyOf(mask(fieldsOf(value)));
   const differsFromStart = keyOf(fieldsOf(startFilters)) !== keyOf(fieldsOf(value));
   const describedBy = problem ? `${errorId} ${noteId}` : noteId;
 
