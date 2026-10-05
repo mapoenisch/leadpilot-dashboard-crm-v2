@@ -378,7 +378,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
           {valid && candidate && entry ? (
             <div ref={previewRef} data-testid="configurator-preview">
               <Preview
-                key={JSON.stringify(candidate)}
+                key={candidate.catalogId}
                 tile={candidate}
                 entry={entry}
                 useData={props.useData}

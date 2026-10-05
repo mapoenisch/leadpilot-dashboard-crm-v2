@@ -24,7 +24,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { dialogRows, heightRows } from './lib/dashboardShotHelpers.mjs';
+import { dialogRows, dragCheck, heightRows } from './lib/dashboardShotHelpers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4173';
@@ -155,6 +155,8 @@ async function flows(browser) {
     const live =
       (await page.locator('[role="status"][aria-live="polite"]').first().textContent()) ?? '';
 
+    const dragOk = await dragCheck(page, viewport.width);
+
     // Konfigurator: erst beim Öffnen geladen; Escape gibt den Fokus zurück.
     const trigger = page.getByRole('button', { name: 'Kachel hinzufügen' }).first();
     await trigger.focus();
@@ -238,6 +240,7 @@ async function flows(browser) {
       tilesAfter,
       errorText: errorText.trim(),
       draftKept,
+      dragOk,
       takeVisible,
       savedBack,
     });
@@ -263,6 +266,7 @@ function writeReadme(m) {
     `- Layoutverschiebung (CLS) beim Scrollen: ${m.lazy.map((l) => `${l.width}: ${l.cls}`).join(', ')}`,
     `- Fokus nach „Nach unten“ bleibt auf der Schaltfläche: ${m.lazy.every((l) => /Nach unten/.test(l.focusedAfterMove)) ? 'ja' : 'nein'}; Ansage: ${m.lazy[0]?.announcement}`,
     `- Escape im Konfigurator gibt den Fokus zurück an: ${[...new Set(m.lazy.map((l) => l.returnedFocus))].join(' / ')}`,
+    `- Ziehen über den Griff ordnet neu (DOM-Reihenfolge): ${m.lazy.map((l) => `${l.width}: ${l.dragOk === null ? 'kein Griff' : l.dragOk ? 'ja' : 'nein'}`).join(', ')}`,
     `- Hinzufügen: Kacheln ${m.lazy.map((l) => `${l.width}: ${l.tilesBefore}→${l.tilesAfter}`).join(', ')}`,
     `- Speicherfehler: Text „${m.lazy[0]?.errorText}“, Entwurf bleibt: ${m.lazy.every((l) => l.draftKept) ? 'ja' : 'nein'}`,
     `- Konflikt: drei Wege sichtbar, danach „Gespeichert.“ und Rückkehr in die Ansicht: ${m.lazy.every((l) => l.takeVisible && l.savedBack) ? 'ja' : 'nein'}`,
@@ -341,6 +345,8 @@ async function main() {
         /Position 2/.test(l.announcement) &&
         l.tilesAfter === l.tilesBefore + 1 &&
         l.draftKept &&
+        l.dragOk !== false &&
+        (l.width < 768 || l.dragOk === true) &&
         l.takeVisible &&
         l.savedBack &&
         l.cls < 0.01,

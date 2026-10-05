@@ -196,6 +196,12 @@ export function activeEntryOf(tile: DashboardTileConfig): ActiveCatalogEntry | u
   return entry && isActiveEntry(entry) ? entry : undefined;
 }
 
+/** Titel einer Kachel; nie die technische ID (unbekannt: Katalogname oder allgemeiner Hinweis). */
+export function tileTitle(tile: DashboardTileConfig): string {
+  // Nie die technische ID: ein bekannter, aber nicht freigegebener Eintrag nennt seinen Namen.
+  return tile.title ?? getCatalogEntry(tile.catalogId)?.name ?? 'Nicht verfügbare Kachel';
+}
+
 type SaveError = Extract<SaveResult, { ok: false }>['error'];
 
 /** Verständlicher Text je Fehlerart; keine Feld-, Export- oder Resolvernamen. */

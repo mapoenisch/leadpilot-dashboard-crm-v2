@@ -1,6 +1,7 @@
 // Executive Dashboard, Teilauftrag 5 (Auftrag 074): zentrale Filter. Eingaben sind ein Entwurf und
 // wirken erst mit „Filter anwenden“; Sitzungsfilter gelten nur für diese Sitzung, Startfilter werden
-// nur im Bearbeitungsmodus in die Arbeitskopie übernommen und mit „Speichern“ dauerhaft.
+// nur im Bearbeitungsmodus in die Arbeitskopie übernommen und mit „Speichern“ dauerhaft. Der
+// Zeitraum wird gespeichert und angezeigt, wirkt aber noch nicht (kein belegtes Datumsfeld).
 import { useEffect, useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -21,8 +22,37 @@ export interface DashboardFiltersProps {
   onStartFilters: (filters: FilterValues | undefined) => void;
 }
 
-function pipelineOf(filters: FilterValues | undefined): string {
-  return filters?.pipeline ?? '';
+interface Fields {
+  pipeline: string;
+  from: string;
+  to: string;
+}
+
+const fieldsOf = (filters: FilterValues | undefined): Fields => ({
+  pipeline: filters?.pipeline ?? '',
+  from: filters?.period?.from ?? '',
+  to: filters?.period?.to ?? '',
+});
+const keyOf = (fields: Fields) => `${fields.pipeline.trim()}|${fields.from}|${fields.to}`;
+
+/** Filterwerte aus den Feldern; `undefined`, wenn nichts gesetzt ist. */
+function valuesOf(fields: Fields): FilterValues | undefined {
+  const pipeline = fields.pipeline.trim();
+  const filters: FilterValues = {
+    ...(pipeline ? { pipeline } : {}),
+    ...(fields.from && fields.to ? { period: { from: fields.from, to: fields.to } } : {}),
+  };
+  return Object.keys(filters).length > 0 ? filters : undefined;
+}
+
+function problemOf(fields: Fields): string {
+  if (fields.pipeline.trim().length > MAX_PIPELINE_LENGTH) {
+    return `Pipeline: höchstens ${MAX_PIPELINE_LENGTH} Zeichen.`;
+  }
+  if (Boolean(fields.from) !== Boolean(fields.to))
+    return 'Zeitraum: „Von“ und „Bis“ zusammen angeben.';
+  if (fields.from > fields.to && fields.to) return 'Zeitraum: „Von“ darf nicht nach „Bis“ liegen.';
+  return '';
 }
 
 export function DashboardFilters({
@@ -36,15 +66,15 @@ export function DashboardFilters({
 }: DashboardFiltersProps) {
   const noteId = useId();
   const errorId = useId();
-  const [pipeline, setPipeline] = useState(pipelineOf(value));
-  useEffect(() => setPipeline(pipelineOf(value)), [value]);
+  const [fields, setFields] = useState(fieldsOf(value));
+  useEffect(() => setFields(fieldsOf(value)), [value]);
+  const set = (patch: Partial<Fields>) => setFields((current) => ({ ...current, ...patch }));
 
-  const trimmed = pipeline.trim();
-  const tooLong = trimmed.length > MAX_PIPELINE_LENGTH;
-  const draft: FilterValues | undefined = trimmed ? { pipeline: trimmed } : undefined;
-  const changed = trimmed !== pipelineOf(value);
-  const differsFromStart = pipelineOf(startFilters) !== pipelineOf(value);
-  const canApply = !locked && !tooLong && changed;
+  const problem = problemOf(fields);
+  const draft = valuesOf(fields);
+  const canApply = !locked && !problem && keyOf(fields) !== keyOf(fieldsOf(value));
+  const differsFromStart = keyOf(fieldsOf(startFilters)) !== keyOf(fieldsOf(value));
+  const describedBy = problem ? `${errorId} ${noteId}` : noteId;
 
   return (
     <form
@@ -61,58 +91,69 @@ export function DashboardFilters({
         <div className="min-w-[200px] max-w-full flex-1">
           <Input
             label="Pipeline"
-            value={pipeline}
+            value={fields.pipeline}
             maxLength={MAX_PIPELINE_LENGTH + 20}
-            error={tooLong}
+            error={fields.pipeline.trim().length > MAX_PIPELINE_LENGTH}
             disabled={locked}
-            onChange={(event) => setPipeline(event.target.value)}
-            aria-invalid={tooLong || undefined}
-            aria-describedby={tooLong ? `${errorId} ${noteId}` : noteId}
+            onChange={(event) => set({ pipeline: event.target.value })}
+            aria-invalid={problem.startsWith('Pipeline') || undefined}
+            aria-describedby={describedBy}
           />
-          {tooLong ? (
-            <p id={errorId} role="alert" className="m-0 mt-1 text-[12px] text-error">
-              Höchstens {MAX_PIPELINE_LENGTH} Zeichen.
-            </p>
-          ) : null}
         </div>
       ) : (
         <p className="m-0 text-sm text-[var(--color-text-muted)]">
-          Keine Kachel dieser Ansicht unterstützt zurzeit einen Filter.
+          Keine Kachel dieser Ansicht unterstützt einen Pipeline-Filter.
         </p>
       )}
-      {pipelineSupported || (editing && startFilters) ? (
-        <div className="flex flex-wrap gap-2">
-          {pipelineSupported ? (
-            <>
-              <Button size="sm" type="submit" disabled={!canApply}>
-                Filter anwenden
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={locked || (!value && !pipeline)}
-                onClick={() => {
-                  // Auch eine noch nicht angewendete Eingabe leeren (der Prop bleibt dann unverändert).
-                  setPipeline('');
-                  onApply(undefined);
-                }}
-              >
-                Filter zurücksetzen
-              </Button>
-              {editing ? (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  disabled={locked || !value || !differsFromStart}
-                  onClick={() => onStartFilters(value)}
-                >
-                  Als Startfilter übernehmen
-                </Button>
-              ) : null}
-            </>
-          ) : null}
-          {/* Ein verwaister Startfilter (keine passende Kachel mehr) bleibt entfernbar. */}
-          {editing ? (
+      <div className="w-[150px] max-w-full">
+        <Input
+          label="Von"
+          type="date"
+          value={fields.from}
+          disabled={locked}
+          onChange={(event) => set({ from: event.target.value })}
+          aria-invalid={problem.startsWith('Zeitraum') || undefined}
+          aria-describedby={describedBy}
+        />
+      </div>
+      <div className="w-[150px] max-w-full">
+        <Input
+          label="Bis"
+          type="date"
+          value={fields.to}
+          disabled={locked}
+          onChange={(event) => set({ to: event.target.value })}
+          aria-invalid={problem.startsWith('Zeitraum') || undefined}
+          aria-describedby={describedBy}
+        />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" type="submit" disabled={!canApply}>
+          Filter anwenden
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={locked || (!value && keyOf(fields) === '||')}
+          onClick={() => {
+            // Auch eine noch nicht angewendete Eingabe leeren (der Prop bleibt dann unverändert).
+            setFields(fieldsOf(undefined));
+            onApply(undefined);
+          }}
+        >
+          Filter zurücksetzen
+        </Button>
+        {editing ? (
+          <>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={locked || !value || !differsFromStart}
+              onClick={() => onStartFilters(value)}
+            >
+              Als Startfilter übernehmen
+            </Button>
+            {/* Ein verwaister Startfilter (keine passende Kachel mehr) bleibt entfernbar. */}
             <Button
               size="sm"
               variant="secondary"
@@ -121,12 +162,18 @@ export function DashboardFilters({
             >
               Startfilter entfernen
             </Button>
-          ) : null}
-        </div>
+          </>
+        ) : null}
+      </div>
+      {problem ? (
+        <p id={errorId} role="alert" className="m-0 basis-full text-[12px] text-error">
+          {problem}
+        </p>
       ) : null}
       <p id={noteId} className="m-0 basis-full text-[12px] text-[var(--color-text-muted)]">
-        Ein Zeitraumfilter ist noch nicht verfügbar: Dafür gibt es kein belegtes Datumsfeld. Filter
-        gelten für diese Sitzung{editing ? '; Startfilter erst nach „Speichern“' : ''}.
+        Der Zeitraum wird gespeichert, wirkt aber noch nicht: Dafür gibt es kein belegtes
+        Datumsfeld. Filter gelten für diese Sitzung
+        {editing ? '; Startfilter erst nach „Speichern“' : ''}.
       </p>
     </form>
   );

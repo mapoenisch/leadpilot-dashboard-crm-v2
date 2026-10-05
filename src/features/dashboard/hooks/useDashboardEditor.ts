@@ -1,15 +1,8 @@
 // Executive Dashboard, Teilauftrag 5 (Auftrag 074): Bearbeitungsmodus mit Arbeitskopie. Kennt
 // Supabase nicht: Die Speicherfunktion kommt von außen (Form von `useDashboardPreferences`).
-// Kein Autosave. „Gespeichert“ erst nach Bestätigung, bei jedem Fehler bleibt der Entwurf, ein
-// Konflikt überschreibt nichts still, und während des Speicherns sind alle Aktionen gesperrt.
+// Kein Autosave; Fehler und Konflikt behalten den Entwurf; beim Speichern sind Aktionen gesperrt.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getCatalogEntry } from '../model/dashboardCatalog';
-import {
-  MAX_TILES,
-  type DashboardConfig,
-  type DashboardFilters,
-  type DashboardTileConfig,
-} from '../model/dashboardConfig';
+import { MAX_TILES, type DashboardConfig, type DashboardFilters } from '../model/dashboardConfig';
 import { validateDashboardConfig } from '../model/dashboardValidation';
 import type { PreferencesState } from '../model/defaultDashboard';
 import {
@@ -20,6 +13,7 @@ import {
   removeTile as removeTileFrom,
   resetToDefault as defaultConfig,
   saveErrorMessage,
+  tileTitle,
   setStartFilters as setFiltersOn,
   updateTile as updateTileIn,
   type EditResult,
@@ -50,11 +44,6 @@ export interface Announcement {
 
 const BUSY: EditResult = { ok: false, reason: 'Gerade nicht möglich.' };
 
-export function tileTitle(tile: DashboardTileConfig): string {
-  // Nie die technische ID: ein bekannter, aber nicht freigegebener Eintrag nennt seinen Namen.
-  return tile.title ?? getCatalogEntry(tile.catalogId)?.name ?? 'Nicht verfügbare Kachel';
-}
-
 export function useDashboardEditor(preferences: EditorPreferences) {
   const { state } = preferences;
   const [mode, setMode] = useState<'ansicht' | 'bearbeiten'>('ansicht');
@@ -63,6 +52,10 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const [conflict, setConflict] = useState(false);
   const [serverLoaded, setServerLoaded] = useState(false);
   const [takeServer, setTakeServer] = useState(false);
+  // Stand der Serverfassung beim Start der Bearbeitung: der Entwurf gehört zu dieser Revision.
+  const [snapshot, setSnapshot] = useState<{ config: DashboardConfig; revision: number } | null>(
+    null,
+  );
   const [saving, setSaving] = useState(false);
   const [announcement, setAnnouncement] = useState<Announcement>({ text: '', seq: 0 });
   const [leaveRequest, setLeaveRequest] = useState<{ proceed: () => void } | null>(null);
@@ -89,7 +82,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     setDraft(next);
   }, []);
 
-  const base = state?.config ?? null;
+  const base = snapshot?.config ?? null;
   const editing = mode === 'bearbeiten';
   const dirty = editing && draft !== null && base !== null && !isSameConfig(draft, base);
   const locked = preferences.isSaving || saving;
@@ -98,6 +91,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const startEditing = useCallback(() => {
     if (!state || !state.canSave || lockedRef.current) return;
     commit(state.config);
+    setSnapshot({ config: state.config, revision: state.revision });
     setMode('bearbeiten');
     setSaveStatus({ kind: 'idle' });
     setConflict(false);
@@ -122,6 +116,21 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   }, [leaveEditing, announce]);
 
   /** Wendet eine Änderung auf die Arbeitskopie an, sofern bearbeitet wird und nichts speichert. */
+  // Ändert sich die Serverfassung unter dem offenen Entwurf (z. B. Fokus-Neuladen), beginnt sofort
+  // der Konfliktablauf: Der Entwurf wird nie stillschweigend auf die neue Revision gespeichert.
+  const foreign =
+    editing && snapshot !== null && state !== null && state.revision !== snapshot.revision;
+  const reportConflict = useCallback(() => {
+    const error: SaveError = { kind: 'konflikt' };
+    const message = saveErrorMessage(error);
+    setConflict(true);
+    setSaveStatus({ kind: 'fehler', message, error });
+    announce(message);
+  }, [announce]);
+  useEffect(() => {
+    if (foreign && !saving && !serverLoaded && !takeServer && !conflict) reportConflict();
+  }, [foreign, saving, serverLoaded, takeServer, conflict, reportConflict]);
+
   const edit = useCallback(
     (
       change: (current: DashboardConfig) => EditResult,
@@ -223,6 +232,11 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const save = useCallback(async (): Promise<boolean> => {
     const current = draftRef.current;
     if (!current || lockedRef.current) return false;
+    if (foreign && !serverLoaded) {
+      // Die Serverfassung ist neuer als die Grundlage des Entwurfs: erst bewusst laden.
+      reportConflict();
+      return false;
+    }
     const check = validateDashboardConfig(current);
     if (!check.ok) {
       const error: SaveError = { kind: 'ungueltig', detail: '' };
@@ -255,28 +269,44 @@ export function useDashboardEditor(preferences: EditorPreferences) {
       savingRef.current = false;
       if (mountedRef.current) setSaving(false);
     }
-  }, [preferences, leaveEditing, announce]);
+  }, [preferences, leaveEditing, announce, foreign, serverLoaded, reportConflict]);
+
+  /** Neuladen der Serverfassung; bei Fehlschlag bleibt alles wie es war und der Grund wird genannt. */
+  const reloadOrReport = useCallback(async (): Promise<boolean> => {
+    try {
+      await preferences.reloadServerVersion();
+      return mountedRef.current;
+    } catch {
+      if (!mountedRef.current) return false;
+      const error: SaveError = { kind: 'technisch' };
+      const message =
+        'Die aktuelle Serveransicht konnte nicht geladen werden. Dein Entwurf bleibt erhalten.';
+      setSaveStatus({ kind: 'fehler', message, error });
+      announce(message);
+      return false;
+    }
+  }, [preferences, announce]);
 
   const loadServerVersion = useCallback(async (): Promise<void> => {
     if (lockedRef.current) return;
-    await preferences.reloadServerVersion();
-    if (!mountedRef.current) return;
+    if (!(await reloadOrReport())) return;
     setServerLoaded(true);
     announce('Aktuelle Serveransicht geladen. Dein Entwurf bleibt erhalten.');
-  }, [preferences, announce]);
+  }, [reloadOrReport, announce]);
 
   const takeServerVersion = useCallback(async (): Promise<void> => {
     if (lockedRef.current) return;
-    await preferences.reloadServerVersion();
+    if (!(await reloadOrReport())) return;
     // Einen Takt warten: Die Abfrage meldet die neue Serverfassung erst danach an die Ansicht.
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     if (mountedRef.current) setTakeServer(true);
-  }, [preferences]);
+  }, [reloadOrReport]);
 
   // Nach dem Laden der Serverfassung ersetzt sie die Arbeitskopie (Entwurf wird bewusst verworfen).
   useEffect(() => {
     if (!takeServer || !state) return;
     setTakeServer(false);
+    setSnapshot({ config: state.config, revision: state.revision });
     setConflict(false);
     setServerLoaded(false);
     setSaveStatus({ kind: 'idle' });

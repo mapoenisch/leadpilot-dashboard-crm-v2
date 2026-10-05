@@ -127,3 +127,23 @@ export async function heightRows(browser, ctx) {
   }
   return rows;
 }
+
+/**
+ * Echter Drag über den sichtbaren Griff (nur ab 768 px sichtbar): die erste Kachel auf die dritte
+ * Position ziehen und die neue DOM-Reihenfolge prüfen. Auf 375 px gibt es keinen Griff (`null`).
+ */
+export async function dragCheck(page, width) {
+  if (width < 768) return null;
+  const items = page.locator('ul[aria-label="Dashboard-Kacheln"] > li');
+  const ids = () =>
+    items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-tile-id')));
+  // Quelle und Ziel müssen im sichtbaren Bereich liegen, sonst trifft der Drop eine andere Stelle.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(100);
+  const before = await ids();
+  await items.nth(0).getByTestId('drag-handle').dragTo(items.nth(2));
+  await page.waitForTimeout(150);
+  const after = await ids();
+  const expected = [...before.slice(1, 3), before[0], ...before.slice(3)];
+  return JSON.stringify(after) === JSON.stringify(expected);
+}

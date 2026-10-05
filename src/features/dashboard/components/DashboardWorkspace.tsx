@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import type {
   DashboardFilters as FilterValues,
   DashboardTileConfig,
@@ -26,7 +27,7 @@ import { DashboardGrid, EMPTY_FOCUS, type FocusRequest } from './DashboardGrid';
 import { EditorToolbar } from './EditorToolbar';
 import type { TileDataHook } from './LazyDashboardTile';
 import type { TileConfiguratorProps } from './TileConfigurator';
-import { UnsavedChangesDialog } from './UnsavedChangesDialog';
+import { UnsavedChangesDialog, useEscapeToClose } from './UnsavedChangesDialog';
 
 export interface WorkspacePreferences extends EditorPreferences {
   status: 'keine_sitzung' | 'laden' | 'bereit' | 'fehler';
@@ -51,6 +52,16 @@ export interface DashboardWorkspaceProps {
 
 const loadConfigurator = () => import('./TileConfigurator');
 
+/** Modale Hülle für Lade- und Fehlerzustand: Der übrige Arbeitsbereich ist währenddessen gesperrt. */
+function ConfiguratorShell({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  useEscapeToClose(true, onClose);
+  return (
+    <Modal open onClose={onClose} title="Kachel konfigurieren" maxWidth="600px">
+      {children}
+    </Modal>
+  );
+}
+
 class ConfiguratorBoundary extends Component<
   { onRetry: () => void; onClose: () => void; children: ReactNode },
   { failed: boolean }
@@ -62,21 +73,18 @@ class ConfiguratorBoundary extends Component<
   render() {
     if (!this.state.failed) return this.props.children;
     return (
-      <div role="alert" className="flex flex-wrap items-center gap-2 text-sm">
-        <span>Das Konfigurationsfenster konnte nicht geladen werden.</span>
-        <Button
-          size="sm"
-          onClick={() => {
-            this.setState({ failed: false });
-            this.props.onRetry();
-          }}
-        >
-          Erneut versuchen
-        </Button>
-        <Button size="sm" variant="secondary" onClick={this.props.onClose}>
-          Schließen
-        </Button>
-      </div>
+      <ConfiguratorShell onClose={this.props.onClose}>
+        <div role="alert" className="flex flex-wrap items-center gap-2 text-sm">
+          <span>Das Konfigurationsfenster konnte nicht geladen werden.</span>
+          {/* Der Browser hält den fehlgeschlagenen Abruf fest: neu laden (mit Rückfrage bei Entwurf). */}
+          <Button size="sm" onClick={this.props.onRetry}>
+            Seite neu laden
+          </Button>
+          <Button size="sm" variant="secondary" onClick={this.props.onClose}>
+            Schließen
+          </Button>
+        </div>
+      </ConfiguratorShell>
     );
   }
 }
@@ -90,17 +98,27 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   const reload = props.onReload ?? (() => window.location.reload());
   const [session, setSession] = useState<{ value: FilterValues | undefined } | null>(null);
   const [target, setTarget] = useState<Target>(null);
-  const [attempt, setAttempt] = useState(0);
   // Zähler statt Flag: jeder Klick wechselt die Ansage, auch ohne sichtbare Änderung.
   const [detailsClicks, setDetailsClicks] = useState(0);
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const focusSeq = useRef(0);
+  // Auslöser des Konfigurationsfensters: Bei langsamem Nachladen wechselt die Hülle ihr Fenster, der
+  // Fokus muss danach trotzdem zum Auslöser zurück (außer eine Aktion setzt ein eigenes Fokusziel).
+  const opener = useRef<{ element: Element | null; seq: number } | null>(null);
+  const isOpen = target !== null;
+  useEffect(() => {
+    if (isOpen) {
+      opener.current = { element: document.activeElement, seq: focusSeq.current };
+      return;
+    }
+    const last = opener.current;
+    opener.current = null;
+    if (last && last.seq === focusSeq.current && last.element instanceof HTMLElement) {
+      if (last.element.isConnected) last.element.focus();
+    }
+  }, [isOpen]);
   const loader = props.configuratorLoader ?? loadConfigurator;
-  const Configurator = useMemo(() => {
-    // Jeder neue Versuch braucht eine frische lazy-Komponente: React merkt sich einen Fehlschlag.
-    void attempt;
-    return lazy(loader);
-  }, [loader, attempt]);
+  const Configurator = useMemo(() => lazy(loader), [loader]);
 
   const editing = editor.mode === 'bearbeiten';
   const shown = editing ? editor.draft : (state?.config ?? null);
@@ -263,14 +281,16 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
       </div>
       {target ? (
         <ConfiguratorBoundary
-          onRetry={() => setAttempt((n) => n + 1)}
+          onRetry={() => editor.requestLeave(reload)}
           onClose={() => setTarget(null)}
         >
           <Suspense
             fallback={
-              <p role="status" className="m-0 text-sm">
-                Konfigurationsfenster wird geladen …
-              </p>
+              <ConfiguratorShell onClose={() => setTarget(null)}>
+                <p role="status" className="m-0 text-sm">
+                  Konfigurationsfenster wird geladen …
+                </p>
+              </ConfiguratorShell>
             }
           >
             <Configurator

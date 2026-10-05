@@ -40,7 +40,7 @@ describe('DashboardFilters', () => {
     setup();
     fireEvent.change(screen.getByLabelText('Pipeline'), { target: { value: 'x'.repeat(65) } });
     expect(screen.getByRole('button', { name: 'Filter anwenden' })).toBeDisabled();
-    expect(screen.getByText(/Höchstens 64 Zeichen/)).toBeInTheDocument();
+    expect(screen.getByText(/höchstens 64 Zeichen/)).toBeInTheDocument();
   });
 
   it('setzt zurück', () => {
@@ -117,5 +117,43 @@ describe('DashboardFilters: verwaister Startfilter', () => {
     expect(screen.queryByLabelText('Pipeline')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Startfilter entfernen' }));
     expect(props.onStartFilters).toHaveBeenCalledWith(undefined);
+  });
+});
+
+describe('DashboardFilters: Zeitraum', () => {
+  const PERIOD = { from: '2026-01-01', to: '2026-03-31' };
+
+  it('behält den Zeitraum, wenn nur die Pipeline angewendet wird', () => {
+    const { props } = setup({ value: { period: PERIOD } });
+    expect(screen.getByLabelText('Von')).toHaveValue(PERIOD.from);
+    expect(screen.getByLabelText('Bis')).toHaveValue(PERIOD.to);
+    fireEvent.change(screen.getByLabelText('Pipeline'), { target: { value: 'Direkt' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Filter anwenden' }));
+    expect(props.onApply).toHaveBeenCalledWith({ pipeline: 'Direkt', period: PERIOD });
+  });
+
+  it('wendet einen vollständigen Zeitraum an', () => {
+    const { props } = setup();
+    fireEvent.change(screen.getByLabelText('Von'), { target: { value: PERIOD.from } });
+    fireEvent.change(screen.getByLabelText('Bis'), { target: { value: PERIOD.to } });
+    fireEvent.click(screen.getByRole('button', { name: 'Filter anwenden' }));
+    expect(props.onApply).toHaveBeenCalledWith({ period: PERIOD });
+  });
+
+  it('verlangt beide Grenzen und die richtige Reihenfolge', () => {
+    setup();
+    fireEvent.change(screen.getByLabelText('Von'), { target: { value: PERIOD.from } });
+    expect(screen.getByRole('alert')).toHaveTextContent(/zusammen angeben/);
+    expect(screen.getByRole('button', { name: 'Filter anwenden' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Bis'), { target: { value: '2025-12-31' } });
+    expect(screen.getByRole('alert')).toHaveTextContent(/nicht nach „Bis“/);
+    expect(screen.getByLabelText('Von').getAttribute('aria-describedby')).toContain(
+      screen.getByRole('alert').id,
+    );
+  });
+
+  it('vergleicht Startfilter über beide Filterarten', () => {
+    setup({ editing: true, value: { period: PERIOD }, startFilters: { period: PERIOD } });
+    expect(screen.getByRole('button', { name: 'Als Startfilter übernehmen' })).toBeDisabled();
   });
 });
