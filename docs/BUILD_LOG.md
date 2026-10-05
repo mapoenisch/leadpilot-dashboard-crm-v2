@@ -15326,3 +15326,29 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Automatisierte Verifikation (Exit-Codes):** `tsc` 0, `lint` 0, `format:check` 0, `npm test` 0 (304 Dateien, 2128 Tests), `verify` 0, `build` 0, `verify:quality-budget` 0, `size-limit` 0; Screenshot-Skript Exit 0; Schutzbereichs-Diff leer; alle Dateien < 400 Zeilen.
 
 **Ergebnis & Freigabestatus:** Befunde behoben. Marc hat angewiesen, nach grüner CI sofort zu mergen (05.10.2026); das Merge-Protokoll folgt im Nachtrag.
+
+---
+
+## Auftrag 074 – Nachtrag: Prüfnachweis und Merge (PR #59), Builder Claude Code, 05.10.2026
+
+**Prüfnachweis (Codex):** Prüfung in sieben Runden am 05.10.2026 (Heads `0baf23f`, `ea332b6`, `fedadef`, `c1ba894`, `560446a`; jeweils auf Marcs `@codex review`). Befunde: 12 P2 (Runde 1), 1 P1 und 6 P2 (Runde 2), 1 P1 und 7 P2 (Runde 3), 1 P1 und 4 P2 (Runde 4), 3 P2 (Runde 5), 4 P2 (Runde 6, auf `560446a`). Alle wurden mit Tests behoben, beantwortet und aufgelöst (BUILD_LOG-Einträge „Nacharbeit Codex-Review, Runde 1 bis 6“ oben). **Der finale Stand `ed034d0` wurde von Codex nicht erneut geprüft;** Marc hat nach grüner CI und aufgelösten Threads gemergt.
+
+**CI:** auf `ed034d0` alle sieben Pflicht-Checks grün (`lint`, `typecheck`, `test`, `build`, `size-limit`, `livekpi-verifiers`, `e2e`). **Merge:** 05.10.2026 17:00 UTC (Merge-Commit `4088ee3` auf `main`, `merged_by` mapoenisch).
+
+**Offene Punkte aus der Prüfung (nicht Teil des PR):** (1) `src/components/ui/Modal.tsx` stoppt `keydown` im Dialog, sodass Escape bei Fokus im Dialog nie den Fenster-Listener erreicht (Umgehung `useEscapeToClose` in den Dashboard-Dialogen); gehört in einen eigenen Auftrag, betrifft alle Dialoge. (2) `useDashboardPreferences.reloadServerVersion` wirft jetzt bei Fehlschlag (`throwOnError: true`); der Vertrag aus Auftrag 072 ist damit enger, Teilauftrag 7 muss das bei der Einbindung beachten. (3) Auf 768 px liegt die dritte Kachel einer Zeilenfolge unterhalb des Viewports: Ziehen über größere Strecken stützt sich auf das native Auto-Scrollen des Browsers.
+
+**Ergebnis & Freigabestatus:** Auftrag 074 abgeschlossen und gemergt. Teilauftrag 6 folgt mit Auftrag 076 (Auftragstext in dieser Änderung, `docs/auftraege/ANTIGRAVITY_AUFTRAG_076_DASHBOARD_KOMBINATIONEN.md`).
+
+---
+
+## Auftrag 076 – Auftragstext Dashboard Teilauftrag 6 (Kombinationen), Autor Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Detailauftrag für Teilauftrag 6 laut Plan, geschrieben nach `CLAUDE.md` §3 (Claude Code darf bis `v2.3.0`/Dashboard-Abschnitt fehlende Detailaufträge schreiben). Kein Code in dieser Änderung.
+
+**Inhalt:** Kombinationsregeln als Positivliste (kein freier Formeleditor), vorgeschlagene Beziehungsmatrix mit Begründung und gesperrten Gegenbeispielen, Entwurf für Modell, Katalog, Datenauflösung, Kachelzustand `nicht_berechenbar` und Konfigurator, Ziel-Dateien, acht Abnahmekriterien aus den Lehren der PRs #57 und #59, Aufgaben mit Tests zuerst, Screenshot-Gate mit Höhen-, Interaktions- und 24-Kachel-Prüfung.
+
+**Entscheidungen für Marc (mit dem Merge dieses Texts):** die Beziehungsmatrix (EBITDA ÷ Umsatzerlöse, Fully-Loaded CAC ÷ Marketing-CAC, MRR-Paketanteile), Prozentanzeige der EBITDA-Marge als Verhältnis, keine Doppelung bereits berechneter Katalogwerte.
+
+**Automatisierte Verifikation (reine Dokumentänderung):** keine Codeänderung; `docs/`-Dateien außerhalb von `src/` unterliegen nicht dem Formatcheck.
+
+**Ergebnis & Freigabestatus:** Auftragstext liegt vor. Offen: PR, CI, Codex-Prüfung des Texts, Merge durch Marc; Bau von Auftrag 076 erst nach Marcs Auftrag.
