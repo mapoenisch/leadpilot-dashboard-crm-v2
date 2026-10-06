@@ -12,6 +12,8 @@
 
 **Status:** Inhaltlich festgelegt durch Marc am 01.10.2026, einschließlich dieser Revision. Keine Implementierung begonnen, keine Gates ausgeführt, kein Commit oder Deployment. Der Review-Zyklus (Codex-Review, automatische Nacharbeit, Marc-Hinweis) ist eingerichtet (PR #42, PR #44); offen sind nur die Abgleich- und Nachweisschritte in Abschnitt 11. Verbindliches Versionsziel: v2.4.0 (Entscheidung Marc, 01.10.2026). Technische Dateinamen werden vor dem jeweiligen Detailauftrag gegen den aktuellen Repo-Stand abgeglichen.
 
+**Stand 06.10.2026:** Teilaufträge 0–8 umgesetzt und gemergt (Aufträge 070–079, zuletzt PR #64/#65); Rollout aktiv. Release-Kandidat `v2.4.0` in Auftrag 080 (Version in `package.json`/Lockfile gesetzt, Release Notes `docs/releases/V2.4.0.md`); Tag nach Codex-Befund, grüner CI und Merge. Der Status-Absatz oben beschreibt den Stand der Planfreigabe vom 01.10.2026.
+
 ## 1. Globale Grenzen
 
 - Ein persönliches Dashboard je Benutzer; Speicherschlüssel Organisation + Benutzer.
@@ -428,7 +430,7 @@ Die Dokumentänderung richtet keine periodische Codex-App-Automation ein und sta
 - Falls Vorabversionen veröffentlicht werden: `v2.4.0-alpha.1` während Aufbau, `v2.4.0-beta.1` für Funktionsprüfung und `v2.4.0-rc.1` zur abschließenden Abnahme.
 - Finale Veröffentlichung: `v2.4.0` erst nach vollständig grünen Gates und Release-Freigabe.
 - Spätere kompatible Fehlerkorrekturen: `v2.4.1`, `v2.4.2`.
-- `package.json`, Lockfile, Release-Dokument und Tag werden erst im ausdrücklich benannten Release-Auftrag konsistent aktualisiert; in dieser Planrevision bleibt die App-Version unverändert.
-- **Stand 06.10.2026:** Release-Auftrag ist Auftrag 080 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_080_RELEASE_V2_4_0.md`), Release-Freigabe Marc am 06.10.2026. Keine Vorabversionen veröffentlicht.
+- `package.json`, Lockfile, Release-Dokument und Tag werden erst im ausdrücklich benannten Release-Auftrag konsistent aktualisiert.
+- **Umgesetzt (06.10.2026):** Release-Auftrag ist Auftrag 080 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_080_RELEASE_V2_4_0.md`), Release-Freigabe Marc am 06.10.2026. `package.json` und Lockfile stehen auf `2.4.0`, Release Notes `docs/releases/V2.4.0.md`; der Tag `v2.4.0` folgt nach dem Merge. Keine Vorabversionen veröffentlicht.
 
 Quellen: [SemVer](https://semver.org/lang/de/), [GitHub-Workflow-Ereignisse](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows), [React.lazy](https://react.dev/reference/react/lazy), [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API). Repo-Befunde beruhen auf dem lokal gelesenen Code, nicht auf einer Prüfung aktueller GitHub-App-Einstellungen.
