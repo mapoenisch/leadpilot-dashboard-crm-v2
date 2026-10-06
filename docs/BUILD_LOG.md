@@ -15640,3 +15640,21 @@ Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind 
 **Ergebnis & Freigabestatus:** Release-Kandidat bereit. Release Notes und `BUILD_PLAN.md` nennen bereits den Status „veröffentlicht“, damit der getaggte Stand ihn enthält. Offen: CI, Codex-Befund, Merge durch Marc; danach Tag `v2.4.0` auf genau diesem Merge-Commit und GitHub-Release (T6), ohne Nachtrags-Commit.
 
 **Nachtrag Codex-Befunde (06.10.2026):** Screenshot-Gate Login nachgeholt (P1); Release Notes nennen den wirkungslosen Zeitraumfilter als bekannte Grenze und beschränken „Werte als Tabelle“ auf Kennzahlkacheln (P2); Status vor dem Tag im Ziel-Commit (P2). Plan- und Entwurfsdatei Frontend-Qualität waren kurz in diesem PR und sind wieder entfernt, sie kommen mit Auftrag 081.
+
+---
+
+## Auftrag 081 – Frontend-Qualität, Arbeitspaket 0 (Bestandsaufnahme), Builder Claude Code, 06.10.2026
+
+**Ziel & Kontext:** Überprüfbare Ausgangslage vor jeder Änderung (Plan `docs/superpowers/plans/2026-10-06-frontend-qualitaet-plan.md`, Abschnitt 5). Plan und Entwurf am 06.10.2026 von Marc freigegeben; Builder Claude Code, Prüfer Codex (Entscheidung Marc, `CLAUDE.md` §4). Kein Produktcode.
+
+**Geänderte Dateien:** `CLAUDE.md` (Rollenentscheidung), Plan und Entwurf Frontend-Qualität (neu, Freigabevermerk, Paket 0 abgehakt), `docs/auftraege/ANTIGRAVITY_AUFTRAG_081_FRONTEND_BESTANDSAUFNAHME.md` (neu), `docs/reviews/2026-10-06-frontend-befundregister.md` (neu), `docs/reviews/2026-10-06-frontend-inventar.json` (neu, 256 Aufnahmen), `docs/screenshots/auftrag-081/README.md` (neu), `scripts/captureAuftrag081Inventory.mjs` (neu), `BUILD_PLAN.md`, dieser Eintrag.
+
+**Funktionale Prüfungen:** Produktionsbuild gegen lokales Supabase, Testbenutzer `admin-a`. 42 Ansichten (Dashboard, Bearbeiten, Details, Datenbasis, Standort, Live-Simulation, vier CRM-Listen, 32 Bildseiten) bei 1440/768/375 px, Dashboard und Funnel zusätzlich 320 px, je dunkel und hell; 256 Aufnahmen, keine fehlgeschlagen. Einstufung: F01–F07, F09–F13 bestätigt, F14 begrenzt bestätigt, F08 noch zu prüfen (Paket B). Neu F15: heller Modus großflächig unlesbar, Token `--color-text-primary` nicht definiert (18 Verwendungen). F12 lokal reproduziert: CRM-Liste im Fehlerzustand zeigt „0“ und blockiert die Navigation (Adresse wechselt, Inhalt bleibt); Gegenprobe vom Funnel aus unauffällig; „Maximum update depth exceeded“ im Produktionsbuild nicht beobachtet. Lokal läuft `crm-query-export` nicht, daher stehen die CRM-Listen ohne Eingriff im Fehlerzustand.
+
+**Schutzbereichs-Prüfung:** `git diff 5c0deba -- src/simulation src/types src/context src/services/data src/features/resources` leer; keine Datei unter `src/` geändert.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0 (316 Dateien, 2257 Tests), `npm run verify` 0, `npm run build` 0, `npm run format:check` 0; neue Dateien `prettier --check` 0, `eslint` Harness 0.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-081/README.md` (Ausgangslage, keine Vorher/Nachher-Paare, da Paket 0 nichts ändert). Bilder nur lokal.
+
+**Ergebnis & Freigabestatus:** Bestandsaufnahme abgeschlossen. Offen: CI, Codex-Befund, Merge durch Marc.
