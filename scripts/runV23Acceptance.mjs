@@ -38,8 +38,11 @@ export const E2E_PARALLEL = [
   'e2e/tenant-isolation.spec.ts',
   'e2e/visual.spec.ts',
 ];
-/** Auftrag 077: nur mit Build `VITE_EXECUTIVE_DASHBOARD_V2=true` (Rollout-Schalter, Standard aus). */
-export const E2E_DASHBOARD_V2 = ['e2e/personal-dashboard.spec.ts'];
+/** Aufträge 077/079: nur mit Build `VITE_EXECUTIVE_DASHBOARD_V2=true` (Rollout-Schalter, Standard aus). */
+export const E2E_DASHBOARD_V2 = [
+  'e2e/personal-dashboard.spec.ts',
+  'e2e/personal-dashboard-acceptance.spec.ts',
+];
 export const E2E_SEQUENTIAL = [
   'e2e/persistence-multisession.spec.ts',
   'e2e/worker-responsiveness.spec.ts',

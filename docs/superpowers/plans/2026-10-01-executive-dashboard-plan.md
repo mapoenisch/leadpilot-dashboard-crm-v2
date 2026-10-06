@@ -317,14 +317,14 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 
 **Dateien:** neue Dashboard-Seiten; ausdrücklich benannte Änderungen an Executive-Einstieg und Router; zugehörige Seiten-/Routingtests. **Voraussetzung:** integrierte Teilaufträge 5/6. Detailmodell kann vorher unabhängig gebaut werden, sofern gemeinsame Dateien nicht kollidieren.
 
-- [ ] Vorgeschlagene Detailroute `/dashboard/tiles/:tileId` in den bestehenden Router integrieren; dynamische Pfade nicht als 404-Metadaten behandeln.
-- [ ] Titel, Definition, Wert, tatsächlichen Zeitraum, Quelle, Aktualität, Aufteilung/Verlauf und verfügbare Detailtabelle darstellen.
-- [ ] Kombinationen mit beiden Operanden und Formel erklären; Übersichtskacheln mit passenden Übersichtdetails versehen.
-- [ ] Fachseitenlink aus dem Katalog verwenden. Fehlende fachliche Unterseite wird durch eine aussagekräftige Detailseite abgedeckt, nicht durch einen toten Link.
-- [ ] Sitzungsfilter bei Navigation übernehmen; nach Browser-Reload auf gespeicherten Kontext zurückfallen. Gelöschte/unbekannte Kachel erhält eine verständliche Rückkehr zur Übersicht.
-- [ ] Rückkehr stellt Filterkontext und Fokus wieder her. Unsaved Editor-Vorschau navigiert nicht versehentlich aus dem Editor.
-- [ ] Neue Ansicht hinter einem ausdrücklich definierten Rollout-Schalter anbinden; alte Ansicht bis zur Gesamtabnahme behalten.
-- [ ] Detailseite als separate Lazy-Route laden; Chunkfehler und direkte Navigation nach Reload testen.
+- [x] Vorgeschlagene Detailroute `/dashboard/tiles/:tileId` in den bestehenden Router integrieren; dynamische Pfade nicht als 404-Metadaten behandeln.
+- [x] Titel, Definition, Wert, tatsächlichen Zeitraum, Quelle, Aktualität, Aufteilung/Verlauf und verfügbare Detailtabelle darstellen.
+- [x] Kombinationen mit beiden Operanden und Formel erklären; Übersichtskacheln mit passenden Übersichtdetails versehen.
+- [x] Fachseitenlink aus dem Katalog verwenden. Fehlende fachliche Unterseite wird durch eine aussagekräftige Detailseite abgedeckt, nicht durch einen toten Link.
+- [x] Sitzungsfilter bei Navigation übernehmen; nach Browser-Reload auf gespeicherten Kontext zurückfallen. Gelöschte/unbekannte Kachel erhält eine verständliche Rückkehr zur Übersicht.
+- [x] Rückkehr stellt Filterkontext und Fokus wieder her. Unsaved Editor-Vorschau navigiert nicht versehentlich aus dem Editor.
+- [x] Neue Ansicht hinter einem ausdrücklich definierten Rollout-Schalter anbinden; alte Ansicht bis zur Gesamtabnahme behalten.
+- [x] Detailseite als separate Lazy-Route laden; Chunkfehler und direkte Navigation nach Reload testen.
 
 **Abnahme:** Jede KPI- und Übersichtskachel führt zu richtigen Details; Fachseitenziele bestehen. Bei Kombinationen stimmen Kachel und Details bei gleichem Datenstand überein.
 
@@ -332,13 +332,13 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 
 **Dateien:** geprüfte weitere Katalogeinträge und Datenadapter; E2E-Suite; Screenshot-Harness; ausschließlich textuelle Screenshot-Matrix; `docs/BUILD_LOG.md`.
 
-- [ ] Weitere belegte KPIs aus Produkt (u. a. `CHART_PRODUKT`, `CHART_CHURN`), Finanzen, Vertrieb/Marketing, Kunden, Organisation, Markt, Strategie, Unternehmen (Meilensteine) und Recht (Gesellschafteranteile) aufnehmen, soweit geeignet; jede Auslassung mit Grund im Inventar; Annahmen/Planwerte klar kennzeichnen und nicht als Istwerte anbieten.
-- [ ] Kennzahlen ohne brauchbare Datenquelle nicht freischalten; Inventar dokumentiert den konkreten Grund und die nötige spätere Datenaufbereitung.
-- [ ] Zwei Browser-/Gerätesitzungen und Benutzerwechsel testen; Speicherung, Revisionen und Filterkontext nachweisen.
-- [ ] Alle acht Darstellungen, Übersichtskacheln, Kombinationen und alle Kachelgrößen prüfen.
-- [ ] Realtime-Updates während Ansicht/Bearbeitung testen; keine zusätzlichen Channels, keine Neuordnung durch Datenupdates.
-- [ ] Lazy Loading durch Request-/Chunk-/Rendernachweise prüfen: Startbereich sofort, weitere Kacheln erst nahe Sichtbereich, Platzhalter ohne sichtbare Layoutsprünge, keine doppelte Abfrage für gleiche Quelle/Filter, gleiche Werte nach Scrollen/Filterwechsel.
-- [ ] Keyboard, Touch, Screenreader, Kontrast und reduzierte Bewegung prüfen; zugängliche Datentabelle anbieten.
+- [x] Weitere belegte KPIs aus Produkt (u. a. `CHART_PRODUKT`, `CHART_CHURN`), Finanzen, Vertrieb/Marketing, Kunden, Organisation, Markt, Strategie, Unternehmen (Meilensteine) und Recht (Gesellschafteranteile) aufnehmen, soweit geeignet; jede Auslassung mit Grund im Inventar; Annahmen/Planwerte klar kennzeichnen und nicht als Istwerte anbieten.
+- [x] Kennzahlen ohne brauchbare Datenquelle nicht freischalten; Inventar dokumentiert den konkreten Grund und die nötige spätere Datenaufbereitung.
+- [x] Zwei Browser-/Gerätesitzungen und Benutzerwechsel testen; Speicherung, Revisionen und Filterkontext nachweisen.
+- [x] Alle acht Darstellungen, Übersichtskacheln, Kombinationen und alle Kachelgrößen prüfen.
+- [x] Realtime-Updates während Ansicht/Bearbeitung testen; keine zusätzlichen Channels, keine Neuordnung durch Datenupdates.
+- [x] Lazy Loading durch Request-/Chunk-/Rendernachweise prüfen: Startbereich sofort, weitere Kacheln erst nahe Sichtbereich, Platzhalter ohne sichtbare Layoutsprünge, keine doppelte Abfrage für gleiche Quelle/Filter, gleiche Werte nach Scrollen/Filterwechsel.
+- [x] Keyboard, Touch, Screenreader, Kontrast und reduzierte Bewegung prüfen; zugängliche Datentabelle anbieten.
 - [ ] Vorher/Nachher bei 1440/768/375 px, 0 px horizontaler Überlauf, Hash-/Diff-Nachweise sowie unabhängige Sichtprüfung durch Marc.
 - [ ] Pflichtgates und relevante CI-Prüfungen ausführen; unabhängigen Befund ins Ledger aufnehmen.
 - [ ] Erst nach Abnahme Rollout-Schalter aktivieren. Bei Rückschaltung bleiben persönliche Konfigurationen gespeichert und alte Ansicht verfügbar.

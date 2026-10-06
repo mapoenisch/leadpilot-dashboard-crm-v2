@@ -173,3 +173,20 @@ describe('DashboardFilters: ausgeblendetes Pipeline-Feld', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 });
+
+describe('DashboardFilters: Gesamtabnahme Auftrag 079', () => {
+  // Während des Ladens baut die Ansicht den Filterbereich aus der Standardansicht (mit
+  // Pipeline-Feld). Hat die gespeicherte Ansicht keine CRM-Kachel, ersetzt der Hinweis das Feld.
+  // Belegt er einen anderen Platz, bricht die Zeile bei 768 px um und das Raster springt
+  // (gemessen CLS 0,28). Feld und Hinweis teilen deshalb denselben Platz in der Zeile.
+  it('Hinweis ohne Pipeline belegt denselben Platz wie das Pipeline-Feld', () => {
+    const slotOf = (supported: boolean) => {
+      const { container, unmount } = setup({ pipelineSupported: supported });
+      const slot = container.querySelector('form')?.firstElementChild;
+      const classes = slot?.className ?? '';
+      unmount();
+      return classes;
+    };
+    expect(slotOf(false)).toBe(slotOf(true));
+  });
+});
