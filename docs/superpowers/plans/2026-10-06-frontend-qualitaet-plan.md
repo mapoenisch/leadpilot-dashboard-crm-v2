@@ -44,6 +44,7 @@ Wir ändern zunächst Fehler und irreführende Zustände, anschließend die Gest
 | F10 Editorüberladung | F | Weniger sichtbare Aktionen, alle Funktionen erreichbar |
 | F11 Glanz/3D/ähnliche Farben | D, E, G | Ruhige Diagramme mit unterscheidbaren Datenreihen |
 | F13/F14 Abmelden / Navigation | H | Sichtbare Kontoaktionen und eindeutiger Standort |
+| F15 Heller Modus unlesbar (neu aus Paket 0) | D, Abnahme in E | Alle Texte in hell und dunkel lesbar; axe über die ganze Seite ohne `color-contrast` |
 
 ## 4. Reihenfolge und Abhängigkeiten
 
@@ -84,7 +85,7 @@ Vorläufige Größenordnung: 0 klein, A mittel bis zur Diagnose, B mittel, C kle
 - [x] Abstände, Kartenhöhen, Inhaltshöhe, sichtbare Kennzahlen, Überlauf und Fokusverhalten messen. Temporäre Bilder aus dem Review nicht als langfristige Baselines behandeln.
 - [x] F01–F14 jeweils als bestätigt, begrenzt bestätigt oder noch zu prüfen klassifizieren. Produktionsbetroffenheit der Pipeline ausdrücklich offenlassen, bis geprüft.
 
-**Erledigt mit Auftrag 081** (Register `docs/reviews/2026-10-06-frontend-befundregister.md`); Abnahme durch Codex-Befund offen.
+**Erledigt mit Auftrag 081** (Register `docs/reviews/2026-10-06-frontend-befundregister.md`); Abnahme durch Codex-Befund offen. Paket 0 hat zusätzlich F15 (heller Modus unlesbar) gefunden; F15 ist in Abschnitt 3, Paket D und der Gesamtabnahme (§15) aufgenommen (Codex PR #67).
 
 **Abnahme:** Befundregister deckt alle 32 Bildseiten plus die interaktiven Abläufe ab; Befunde enthalten reproduzierbare Schritte und Prüfbedingungen. Frühere Freigaben von Auftrag 069 und Dashboard 079 bleiben dokumentiert.
 
@@ -136,6 +137,7 @@ Vorläufige Größenordnung: 0 klein, A mittel bis zur Diagnose, B mittel, C kle
 **Zweck:** Marc prüft konkrete Bilder, bevor die früher freigegebene Gestaltung verändert wird.
 **Dateien:** vorhandene Vorschau unter `src/features/dashboard/preview/`; gemeinsam genutzte Bausteine in `src/components/pageKit/`, `src/components/ui/`, `src/styles/global.css`; Fachseitenmuster auf Basis `FunnelPage.tsx`. Im Detailauftrag isolierte Vorschau-/Testpfade nennen, noch keinen globalen Produkt-Schalter ändern.
 
+- [ ] Zuerst F15 beheben (eigener kleiner Detailauftrag vor den Mustern, Register §7): fehlendes Token `--color-text-primary` für hell und dunkel definieren oder die Verwendungen auf vorhandene Tokens umstellen. Nachweis: Kopfzeile, Sidebar, Dashboard-Überschrift und Kachel-Details im hellen Modus lesbar; axe über die ganze Seite (nicht nur `<main>`) ohne `color-contrast` auf allen 42 in Paket 0 aufgenommenen Ansichten. Ohne diesen Schritt sind Musterabnahmen im hellen Modus nicht bewertbar.
 - [ ] Drei Richtungen knapp gegenüberstellen: minimale Verdichtung, ruhige Weiterentwicklung der LeadPilot-Marke, weitgehendes Redesign. Empfehlung ist die ruhige Weiterentwicklung.
 - [ ] Fünf zusammenpassende Muster erstellen: kompakte Zahlkachel, Verlauf/Verteilung ohne dekorative 3D-Tiefe, mobile Dashboardstartseite, echte Funnel-Fachseite, vereinfachter Editor.
 - [ ] Bestehende Farben/Schriften verwenden. Konkrete Typografie, Abstände, Fokuszustände, Warnzustände und Touchflächen aus dem Entwurf in der Vorschau anwenden.
@@ -260,7 +262,7 @@ Zusätzlich:
 - [ ] Rückweg je geänderter Darstellungsgruppe dokumentieren und testen: persönliche Konfigurationen bleiben erhalten; keine Datenbankänderung für rein optischen Rollback. Kein `git reset --hard` als lokale Anleitung.
 - [ ] Marc entscheidet Merge und Veröffentlichung. Nach Auslieferung einmalige Funktionsprüfung durchführen; zusätzliche Überwachung nur auf gesonderten Auftrag.
 
-**Gesamtergebnis gilt erst als abgenommen, wenn:** F01–F14 jeweils erledigt oder als ausdrücklich genehmigte Ausnahme mit Begründung geführt sind; alle 32 Seiten geprüft sind; alte persönliche Einstellungen weiter funktionieren; aktuelle Gates und Sichtabnahmen vorliegen. Ein Plan oder neue Screenshots allein erfüllen diese Bedingungen nicht.
+**Gesamtergebnis gilt erst als abgenommen, wenn:** F01–F15 jeweils erledigt oder als ausdrücklich genehmigte Ausnahme mit Begründung geführt sind; alle 32 Seiten geprüft sind; alte persönliche Einstellungen weiter funktionieren; aktuelle Gates und Sichtabnahmen vorliegen. Ein Plan oder neue Screenshots allein erfüllen diese Bedingungen nicht.
 
 ## 16. Konkrete Übergabe an den Builder
 

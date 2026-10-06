@@ -7,11 +7,13 @@
  *    alle 32 Bildseiten) bei 1440/768/375 px, dunkel und hell; Dashboard und Funnel zusätzlich 320 px.
  *    Lazy-Inhalte werden vorher durch Scrollen von <main> aktiviert. Je Aufnahme: Bild des ersten
  *    Bildschirms und des ganzen Inhalts, SHA-256, Inhaltshöhe, Überlauf (Dokument, <main>), axe
- *    serious/critical, erster Tab-Fokus sichtbar, Dashboard: Kachelhöhen und Kennzahlwerte im ersten
+ *    serious/critical getrennt für <main> und die ganze Seite (Kopfzeile, Sidebar, Kontoaktionen),
+ *    erster Tab-Fokus ab Dokumentanfang, Dashboard: Kachelhöhen und Kennzahlwerte im ersten
  *    Bildschirm, Bildseiten: Darstellungsmaßstab des Bildes.
  * 2. Fehlerfall Pipeline: crm-query-export antwortet kontrolliert mit 500, danach Navigation zu
  *    Unternehmenssteckbrief und Funnel. Erfasst Adresse, Überschrift, Anzeige und Konsolenfehler.
  * Bilder bleiben lokal (.gitignore). Messwerte: docs/reviews/2026-10-06-frontend-inventar.json.
+ * Fehlt eine erwartete Aufnahme oder schlägt eine fehl, endet der Lauf mit Exit-Code 1.
  *
  * Nur Matrix aus vorhandenem JSON neu schreiben: README_ONLY=1 node scripts/captureAuftrag081Inventory.mjs
  * Aufruf: BASE_URL=… E2E_AUTH_EMAIL=… E2E_AUTH_PASSWORD=… node scripts/captureAuftrag081Inventory.mjs
@@ -21,6 +23,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { axeSevere, login, scrollThrough } from './lib/detailShotHelpers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -167,12 +170,22 @@ async function measure(page, viewport) {
   }, viewport);
 }
 
-/** Erster Tab-Druck: wohin geht der Fokus, ist er sichtbar und hat er einen Fokusrahmen? */
+/**
+ * Erster Tab-Druck ab Dokumentanfang: wohin geht der Fokus, ist er sichtbar, hat er einen Rahmen?
+ * `blur()` allein setzt den Startpunkt der Tab-Reihenfolge nicht zurück (Editor und Details wurden
+ * per Klick geöffnet, Codex PR #67). Deshalb wird ein Hilfselement an den Anfang von <body> gesetzt,
+ * fokussiert und nach dem Tab wieder entfernt.
+ */
 async function firstFocus(page) {
-  await page.evaluate(
-    () => document.activeElement instanceof HTMLElement && document.activeElement.blur(),
-  );
+  await page.evaluate(() => {
+    const anchor = document.createElement('span');
+    anchor.tabIndex = -1;
+    anchor.id = 'auftrag-081-focus-start';
+    document.body.prepend(anchor);
+    anchor.focus();
+  });
   await page.keyboard.press('Tab');
+  await page.evaluate(() => document.getElementById('auftrag-081-focus-start')?.remove());
   return page.evaluate(() => {
     const el = document.activeElement;
     if (!el || el === document.body) return { target: null };
@@ -185,6 +198,14 @@ async function firstFocus(page) {
       ring: s.boxShadow !== 'none',
     };
   });
+}
+
+/** axe serious/critical auf der ganzen Seite, einschließlich Kopfzeile, Sidebar und Kontoaktionen. */
+async function axeSeverePage(page) {
+  const axe = await new AxeBuilder({ page }).analyze();
+  return axe.violations
+    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+    .map((v) => v.id);
 }
 
 async function capture(page, viewport, name) {
@@ -263,10 +284,15 @@ async function pipelineErrorCase(browser, state) {
 
 /** Ergebnismatrix aus den Messwerten; Bilder bleiben lokal. */
 function writeReadme(data) {
+  const list = (ids) => (ids.length ? ids.join(', ') : '0');
+  const focusCell = (f) =>
+    f.target
+      ? `${f.target}${f.visible && (f.outline || f.ring) ? '' : ' (ohne sichtbaren Rahmen)'}`
+      : '–';
   const rows = data.shots.map((s) =>
     s.failed
-      ? `| ${s.id} | ${s.width} | ${s.theme} | – | – | – | – | Fehler: ${s.failed} |`
-      : `| ${s.id} | ${s.width} | ${s.theme} | ${s.mainScrollHeight} | \`${s.hashes.first}\` / \`${s.hashes.full}\` | ${s.overflowDocument} / ${s.overflowMain} | ${s.axe.length ? s.axe.join(', ') : '0'} | ${s.image ? `Bild ${s.image.scale}` : `Werte im 1. Bildschirm: ${s.numbersInFirstScreen}`} |`,
+      ? `| ${s.id} | ${s.width} | ${s.theme} | – | – | – | – | – | – | Fehler: ${s.failed} |`
+      : `| ${s.id} | ${s.width} | ${s.theme} | ${s.mainScrollHeight} | \`${s.hashes.first}\` / \`${s.hashes.full}\` | ${s.overflowDocument} / ${s.overflowMain} | ${list(s.axe)} | ${list(s.axePage)} | ${focusCell(s.focus)} | ${s.image ? `Bild ${s.image.scale}` : `Werte im 1. Bildschirm: ${s.numbersInFirstScreen}`} |`,
   );
   const readme = [
     '# Auftrag 081 – Ausgangslage Frontend (Arbeitspaket 0)',
@@ -276,8 +302,12 @@ function writeReadme(data) {
     'diese Aufnahmen sind die Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im',
     '[Befundregister](../../reviews/2026-10-06-frontend-befundregister.md).',
     '',
-    '| Ansicht | Breite | Theme | Höhe `<main>` | SHA-256 erster Bildschirm / ganz (16) | Überlauf Dokument / `<main>` px | axe serious/critical | Messung |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- |',
+    `Aufnahmen: ${data.summary.ok} von ${data.summary.expected} erwartet, fehlgeschlagen: ${data.summary.failed}.`,
+    'axe (serious/critical) läuft zweimal: nur `<main>` und die ganze Seite mit Kopfzeile, Sidebar',
+    'und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.',
+    '',
+    '| Ansicht | Breite | Theme | Höhe `<main>` | SHA-256 erster Bildschirm / ganz (16) | Überlauf Dokument / `<main>` px | axe `<main>` | axe ganze Seite | erster Tab-Fokus | Messung |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows,
     '',
   ].join('\n');
@@ -292,7 +322,10 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const browser = await chromium.launch();
   const state = await login(browser, BASE_URL, CREDENTIALS);
-  const targets = [...INTERACTIVE, ...imagePageRoutes()].filter((t) => !ONLY || ONLY.has(t.id));
+  const images = imagePageRoutes();
+  if (images.length !== 32) throw new Error(`32 Bildseiten erwartet, gefunden: ${images.length}`);
+  const targets = [...INTERACTIVE, ...images].filter((t) => !ONLY || ONLY.has(t.id));
+  const expected = targets.reduce((n, t) => n + (t.narrow ? 4 : 3) * THEMES.length, 0);
   const shots = [];
   for (const target of targets) {
     const viewports = target.narrow ? [...WIDTHS, NARROW] : WIDTHS;
@@ -305,7 +338,8 @@ async function main() {
           context = opened.context;
           const { page, consoleErrors } = opened;
           const metrics = await measure(page, viewport);
-          const axe = await axeSevere(page).catch((e) => [`axe-fehler: ${e.message.slice(0, 60)}`]);
+          const axe = await axeSevere(page);
+          const axePage = await axeSeverePage(page);
           const hashes = await capture(page, viewport, name);
           const focus = await firstFocus(page);
           shots.push({
@@ -315,12 +349,13 @@ async function main() {
             theme,
             ...metrics,
             axe,
+            axePage,
             focus,
             consoleErrors: consoleErrors.length,
             hashes,
           });
           console.log(
-            `${name}: h=${metrics.mainScrollHeight} overflow=${metrics.overflowDocument}/${metrics.overflowMain} axe=${axe.length}`,
+            `${name}: h=${metrics.mainScrollHeight} overflow=${metrics.overflowDocument}/${metrics.overflowMain} axe=${axe.length}/${axePage.length}`,
           );
         } catch (error) {
           const failed = error.message.split('\n')[0];
@@ -338,12 +373,22 @@ async function main() {
     .execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
     .toString()
     .trim();
+  const failed = shots.filter((s) => s.failed).length;
+  const summary = { expected, ok: shots.length - failed, failed };
   fs.writeFileSync(
     JSON_OUT,
-    `${JSON.stringify({ commit, baseUrl: BASE_URL, capturedAt: new Date().toISOString(), shots, pipelineError }, null, 1)}\n`,
+    `${JSON.stringify({ commit, baseUrl: BASE_URL, capturedAt: new Date().toISOString(), summary, shots, pipelineError }, null, 1)}\n`,
   );
   writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
-  console.log(`\n${shots.length} Aufnahmen, JSON: ${path.relative(ROOT, JSON_OUT)}`);
+  console.log(
+    `\n${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,
+  );
+  if (failed > 0 || summary.ok !== expected) {
+    console.error(
+      'Inventur unvollständig: mindestens eine erwartete Aufnahme fehlt oder schlug fehl.',
+    );
+    process.exitCode = 1;
+  }
 }
 
 main().catch((error) => {
