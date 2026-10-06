@@ -23,6 +23,7 @@ die Dashboard-Abnahme aus Auftrag 079 gelten weiter, bis ein freigegebener Folge
 | Benutzer            | CI-Testbenutzer `admin-a` (Organisation A); keine Zugangsdaten protokolliert                                                                                                                  |
 | Lazy Loading        | `<main>` wird vor jeder Aufnahme einmal durchgescrollt, danach `networkidle`                                                                                                                  |
 | Lokale Besonderheit | Edge Function `crm-query-export` läuft lokal nicht: CRM-Listen (Leads, Accounts, Pipeline) stehen ohne Eingriff im Fehlerzustand `SERVER_ERROR`. Die CRM-Kacheln im Dashboard laden über einen anderen Weg und zeigen Daten. |
+| Dashboard-Konf.     | Definierte Standardansicht (17 Kacheln, `DEFAULT_DASHBOARD_CONFIG`); Präferenzen im Harness gesichert und wiederhergestellt |
 
 Reproduktion: `BASE_URL=… E2E_AUTH_EMAIL=… E2E_AUTH_PASSWORD=… node scripts/captureAuftrag081Inventory.mjs`.
 Der Lauf endet mit Exit-Code 1, sobald eine erwartete Aufnahme fehlt oder fehlschlägt.
@@ -139,24 +140,31 @@ Offen für Paket A: Ursache (Plan §6 nennt `useUrlSyncedState`, `useCrmListQuer
 `RouteErrorBoundary` als Diagnosekandidaten), Verhalten bei erfolgreicher und leerer Antwort
 (braucht lokal laufende Edge Function), Betroffenheit der Produktion.
 
-## 6. Interaktive Abläufe
+## 6. Inventar der 10 interaktiven Ansichten
 
-| Ansicht                | Route                  | Höhe 1440 / 768 / 375 px  | Messung                                                                             |
-| ---------------------- | ---------------------- | ------------------------- | ----------------------------------------------------------------------------------- |
-| Dashboard (Standard)   | `/dashboard`           | 3423 / 5781 / 7997        | 17 Kacheln; Werte im ersten Bildschirm 4 / 2 / 0; 320 px: 8126 px, 0 Werte          |
-| Dashboard bearbeiten   | `/dashboard`           | 4177 / 6513 / 9593        | erster Wert bei 833 / 829 / 1168 px                                                 |
-| Kachel-Details (ARR)   | `/dashboard/tiles/…`   | Viewport                  | im hellen Modus Werte unlesbar (F15); Beschreibung mit `baseline.arr_verlauf` (F09) |
-| Datenbasis             | `/company/data-basis`  | Viewport / Viewport / 721 | axe `color-contrast` hell                                                           |
-| Standort               | `/company/location`    | 1765 / 1931 / 2575        | axe `color-contrast` hell bei 768                                                   |
-| Live-Simulation        | `/crm/live-simulation` | 1261 / 1565 / 2651        | 184 px Überlauf in `<main>` bei 375; axe `color-contrast` hell                      |
-| Leads & Kontakte       | `/crm/leads`           | Viewport / 1135 / 1839    | Fehlerzustand (lokal); 14 px Überlauf in `<main>` bei 375; axe hell                 |
-| Unternehmen (Accounts) | `/crm/companies`       | Viewport / 1029 / 1786    | Fehlerzustand (lokal); axe hell                                                     |
-| Deal Pipeline          | `/crm/deals`           | Viewport / 1029 / 1751    | Fehlerzustand (lokal), F12; axe hell                                                |
-| Aktivitäten            | `/crm/activities`      | Viewport / Viewport / 626 | axe hell                                                                            |
+Auftrag 081 T2 verlangt für alle Ansichten die vollständigen Metadaten zu Route, Komponente,
+Datenquelle, Diagrammen/Tabellen, Schutzbereich und Umfang (Zeilen: klein < 70, mittel 70–119,
+groß ≥ 120). „Schutzbereich“ kennzeichnet, ob die Ansicht oder ihre angebundenen Module unter
+`src/simulation/`, `src/types/`, `src/context/`, `src/services/data/` oder `src/features/resources/`
+liegen.
+
+| Nr. | Bereich | Ansicht | Route | Komponente (`src/features/`) | Datenquelle (`src/domain/` / Services) | Diagramme / Tabellen / Kacheln | Umfang (Zeilen) | Schutzbereich | Höhe 1440 / 768 / 375 px | Messung und Baseline-Befunde |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| I01 | Übersicht | Dashboard (Standard) | `/dashboard` | `dashboard/pages/PersonalExecutiveDashboard.tsx` (187), `dashboard/components/DashboardWorkspace.tsx` (388) | `execData.ts`, `baselineData.ts`, `resolveTileData.ts`, Supabase `executive_dashboard_preferences` | Line (`DepthLineChart`), Donut (`Depth3dDonutChart`), Bar (`Depth3dBarChart`), Übersichtskarten Team/Roadmap, Zahlenkacheln | groß | nein | 3423 / 5781 / 7997 | 17 Kacheln; Werte im 1. Bildschirm: 4 (1440), 2 (768), 0 (375); 320 px: 8126 px, 0 Werte (F01, F06) |
+| I02 | Übersicht | Dashboard bearbeiten | `/dashboard` | `dashboard/components/DashboardWorkspace.tsx` (388), `TileConfigurator.tsx` (388), `EditorToolbar.tsx` (133) | `useDashboardEditor.ts`, `dashboardCatalog.ts`, Supabase RPC `save_dashboard_preferences` | Kachel-Vorschau, Werkzeugleiste, Konfigurationsformulare | groß | nein | 4177 / 6513 / 9593 | Erster Wert bei 833 / 829 / 1168 px; 4 Aktionen je Kachel, 4 in Toolbar (F10) |
+| I03 | Übersicht | Kachel-Details (ARR) | `/dashboard/tiles/:tileId` (`std_baseline_arr`) | `dashboard/pages/DashboardTileDetailPage.tsx` (116) | `execData.ts`, `baselineData.ts`, `tileDetailFacts.ts`, `resolveTileData.ts` | Faktenblatt-Tabelle, Line (`DepthLineChart`), Ablesezeile | mittel | nein | Viewport | Heller Modus Werte unlesbar (F15); Kennzahl-Kürzel `baseline.arr_verlauf` (F09) |
+| I04 | Übersicht | Datenbasis | `/company/data-basis` | `overview/pages/DataBasisPage.tsx` (186) | `execData.ts`, `src/services/data/dataSourceRegistry.ts` | Datenquellen-Tabelle, Audit-Status, Frische-Badges | groß | nein (Lesezugriff auf Registry) | Viewport / Viewport / 721 | axe `color-contrast` im hellen Modus |
+| I05 | Unternehmen | Standort | `/company/location` | `unternehmen/pages/LocationPage.tsx` (260) | `unternehmenData.ts` | Standort-Karten, Kennzahlen-Karten, Tabelle | groß | nein | 1765 / 1931 / 2575 | axe `color-contrast` im hellen Modus bei 768 px |
+| I06 | CRM & Pipeline | Live-Simulation | `/crm/live-simulation` | `simulation/pages/LiveSimulationPage.tsx` (53) | `src/simulation/` (Engine, Service, Worker), `simulationStore.ts` | KPI-Karten, Tick-Verlauf, Queue-Projektionen | klein | **Ja** (Seite liegt in `simulation/`, bindet geschützten Kern `src/simulation/` an) | 1261 / 1565 / 2651 | 184 px horizontaler Überlauf in `<main>` bei 375 px; axe `color-contrast` hell |
+| I07 | CRM & Pipeline | Leads & Kontakte | `/crm/leads` | `crm/pages/LeadsPage.tsx` (398), `CrmResponsiveList.tsx` (207) | `useCrmListQuery.ts` (Edge Function `crm-query-export`) | Filterleiste, Status-Badges, Responsive Liste/Tabelle | groß | nein | Viewport / 1135 / 1839 | Lokaler Fehlerzustand `SERVER_ERROR`; 14 px Überlauf in `<main>` bei 375 px; axe hell |
+| I08 | CRM & Pipeline | Unternehmen (Accounts) | `/crm/companies` | `crm/pages/CompaniesPage.tsx` (398), `CrmResponsiveList.tsx` (207) | `useCrmListQuery.ts` (Edge Function `crm-query-export`) | Filterleiste, Status-Badges, Responsive Liste/Tabelle | groß | nein | Viewport / 1029 / 1786 | Lokaler Fehlerzustand `SERVER_ERROR`; axe hell |
+| I09 | CRM & Pipeline | Deal Pipeline | `/crm/deals` | `crm/pages/DealsPage.tsx` (378), `CrmResponsiveList.tsx` (207) | `useCrmListQuery.ts` (Edge Function `crm-query-export`) | Funnel-Deal-Karten nach Stufen, Responsive Tabelle | groß | nein | Viewport / 1029 / 1751 | Lokaler Fehlerzustand `SERVER_ERROR`, F12; axe hell |
+| I10 | CRM & Pipeline | Aktivitäten | `/crm/activities` | `crm/pages/ActivitiesPage.tsx` (14), `crm/components/ActivitiesView.tsx` (355) | `useCrmListQuery.ts` (Edge Function `crm-query-export`) | Aktivitäten-Timeline, Filterleiste | groß | nein | Viewport / Viewport / 626 | axe `color-contrast` im hellen Modus |
 
 „Viewport“ = Inhalt passt in den ersten Bildschirm. axe-Angaben in der Tabelle beziehen sich auf
-`<main>`; über die ganze Seite kommt im hellen Modus überall `color-contrast` hinzu (F15). Administration (`/admin/*`) und Internal
-Resources (Schutzbereich) sind nicht Teil des Plans und wurden nicht aufgenommen.
+`<main>`; über die ganze Seite kommt im hellen Modus überall `color-contrast` hinzu (F15).
+Administration (`/admin/*`) und Internal Resources (Schutzbereich `src/features/resources/`) sind
+nicht Teil des Frontend-Qualitätsplans und wurden nicht aufgenommen.
 
 ## 7. Übergabe
 

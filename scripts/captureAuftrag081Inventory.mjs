@@ -24,7 +24,16 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { axeSevere, login, scrollThrough } from './lib/detailShotHelpers.mjs';
+import {
+  axeSevere,
+  defaultDashboardConfig,
+  deletePreferences,
+  login,
+  readPreferences,
+  savePreferences,
+  scrollThrough,
+  sessionUserId,
+} from './lib/detailShotHelpers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const env = (name) => {
@@ -37,6 +46,14 @@ const BASE_URL = README_ONLY ? null : env('BASE_URL');
 const CREDENTIALS = README_ONLY
   ? null
   : { email: env('E2E_AUTH_EMAIL'), password: env('E2E_AUTH_PASSWORD') };
+const SUPABASE = {
+  url: process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? 'http://127.0.0.1:54321',
+  anonKey:
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
+};
+const CLEANUP_KEY = process.env.E2E_CLEANUP_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? null;
 const OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-081');
 const JSON_OUT = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar.json');
 const ONLY = process.env.ONLY ? new Set(process.env.ONLY.split(',')) : null;
@@ -305,15 +322,38 @@ async function pipelineErrorCase(browser, state) {
   await page.goto('/crm/deals', { waitUntil: 'networkidle' });
   await snap('Pipeline mit 500');
   fs.writeFileSync(path.join(OUT_DIR, 'fehler-pipeline-500.png'), await page.screenshot());
-  for (const [label, name] of [
-    ['danach Unternehmenssteckbrief', /unternehmenssteckbrief/i],
-    ['danach Sales Funnel', /sales funnel/i],
+
+  // Validierung: mindestens ein POST zu crm-query-export muss abgefangen worden sein
+  if (interceptedPostCount < 1) {
+    await context.close();
+    throw new Error(
+      `Fehlerfall-Prüfung fehlgeschlagen: Kein POST zu crm-query-export abgefangen (interceptedPostCount=${interceptedPostCount}).`,
+    );
+  }
+
+  for (const { label, name, expectedPath } of [
+    {
+      label: 'danach Unternehmenssteckbrief',
+      name: /unternehmenssteckbrief/i,
+      expectedPath: '/company/profile',
+    },
+    {
+      label: 'danach Sales Funnel',
+      name: /sales funnel/i,
+      expectedPath: '/sales/funnel',
+    },
   ]) {
-    await page
-      .getByRole('link', { name })
-      .first()
-      .click({ timeout: 5000 })
-      .catch(() => null);
+    const link = page.getByRole('link', { name }).first();
+    await link.waitFor({ state: 'visible', timeout: 5000 });
+    await link.click({ timeout: 5000 });
+    await page.waitForURL(`**${expectedPath}`, { timeout: 5000 });
+    const currentPath = new URL(page.url()).pathname;
+    if (currentPath !== expectedPath) {
+      await context.close();
+      throw new Error(
+        `Fehlerfall-Navigation fehlgeschlagen: Erwartete URL ${expectedPath}, erhalten ${currentPath}.`,
+      );
+    }
     await snap(label);
   }
   fs.writeFileSync(
@@ -347,6 +387,7 @@ function writeReadme(data) {
     '',
     `Produkt-Baseline: \`${data.baselineCommit ?? data.commit}\` (Release v2.4.0), aufgenommen ${data.capturedAt.slice(0, 10)} mit`,
     `\`${data.harness?.script ?? 'scripts/captureAuftrag081Inventory.mjs'}\` (Harness SHA-256: \`${data.harness?.sha256 ? data.harness.sha256.slice(0, 16) : '–'}\`).`,
+    `Dashboard-Konfiguration: Standardansicht (${data.dashboardConfig?.tileCount ?? 17} Kacheln, Quelle: \`${data.dashboardConfig?.source ?? 'standard'}\`).`,
     'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
     'Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im',
     '[Befundregister](../../reviews/2026-10-06-frontend-befundregister.md).',
@@ -369,96 +410,172 @@ async function main() {
     return;
   }
   fs.mkdirSync(OUT_DIR, { recursive: true });
-  const browser = await chromium.launch();
-  const state = await login(browser, BASE_URL, CREDENTIALS);
-  const images = imagePageRoutes();
-  if (images.length !== 32) throw new Error(`32 Bildseiten erwartet, gefunden: ${images.length}`);
-  const targets = [...INTERACTIVE, ...images].filter((t) => !ONLY || ONLY.has(t.id));
-  const expected = targets.reduce((n, t) => n + (t.narrow ? 4 : 3) * THEMES.length, 0);
-  const shots = [];
-  for (const target of targets) {
-    const viewports = target.narrow ? [...WIDTHS, NARROW] : WIDTHS;
-    for (const viewport of viewports) {
-      for (const theme of THEMES) {
-        const name = `${target.id}-${viewport.width}-${theme}`;
-        let context = null;
-        try {
-          const opened = await openRoute(browser, state, viewport, theme, target);
-          context = opened.context;
-          const { page, consoleErrors } = opened;
-          const metrics = await measure(page, viewport);
-          const axe = await axeSevere(page);
-          const axePage = await axeSeverePage(page);
-          const hashes = await capture(page, viewport, name);
-          const focus = await firstFocus(page);
-          shots.push({
-            id: target.id,
-            imageKey: target.imageKey ?? null,
-            width: viewport.width,
-            theme,
-            ...metrics,
-            axe,
-            axePage,
-            focus,
-            consoleErrors: consoleErrors.length,
-            hashes,
-          });
-          console.log(
-            `${name}: h=${metrics.mainScrollHeight} overflow=${metrics.overflowDocument}/${metrics.overflowMain} axe=${axe.length}/${axePage.length}`,
-          );
-        } catch (error) {
-          const failed = error.message.split('\n')[0];
-          shots.push({ id: target.id, width: viewport.width, theme, failed });
-          console.log(`${name}: FEHLER ${failed}`);
-        } finally {
-          await context?.close();
+
+  const defaultConfig = defaultDashboardConfig(ROOT);
+  let browser = null;
+  let restore = null;
+  let setupContext = null;
+  let dashboardConfigInfo = null;
+
+  try {
+    browser = await chromium.launch();
+    const state = await login(browser, BASE_URL, CREDENTIALS);
+
+    // Dashboard-Konfiguration für die Baseline fixieren (Befund PR #67 Runde 4)
+    setupContext = await browser.newContext({ baseURL: BASE_URL, storageState: state });
+    const setupPage = await setupContext.newPage();
+    await setupPage.goto('/dashboard', { waitUntil: 'networkidle' });
+    const originalPrefs = await readPreferences(setupPage, SUPABASE);
+    const userId = await sessionUserId(setupPage);
+
+    if (originalPrefs.config) {
+      const saved = await savePreferences(
+        setupPage,
+        SUPABASE,
+        defaultConfig,
+        originalPrefs.revision,
+      );
+      restore = {
+        type: 'restore',
+        config: originalPrefs.config,
+        revision: saved.revision,
+        page: setupPage,
+        userId,
+      };
+      dashboardConfigInfo = {
+        source: 'installed_standard',
+        version: defaultConfig.version,
+        tileCount: defaultConfig.tiles.length,
+        tileIds: defaultConfig.tiles.map((t) => t.tileId),
+        revision: saved.revision,
+        restoredAfterRun: true,
+      };
+    } else {
+      restore = {
+        type: 'delete_if_created',
+        userId,
+        page: setupPage,
+      };
+      dashboardConfigInfo = {
+        source: 'default_unpersisted',
+        version: defaultConfig.version,
+        tileCount: defaultConfig.tiles.length,
+        tileIds: defaultConfig.tiles.map((t) => t.tileId),
+        revision: 0,
+        restoredAfterRun: false,
+      };
+    }
+
+    const images = imagePageRoutes();
+    if (images.length !== 32) throw new Error(`32 Bildseiten erwartet, gefunden: ${images.length}`);
+    const targets = [...INTERACTIVE, ...images].filter((t) => !ONLY || ONLY.has(t.id));
+    const expected = targets.reduce((n, t) => n + (t.narrow ? 4 : 3) * THEMES.length, 0);
+    const shots = [];
+    for (const target of targets) {
+      const viewports = target.narrow ? [...WIDTHS, NARROW] : WIDTHS;
+      for (const viewport of viewports) {
+        for (const theme of THEMES) {
+          const name = `${target.id}-${viewport.width}-${theme}`;
+          let context = null;
+          try {
+            const opened = await openRoute(browser, state, viewport, theme, target);
+            context = opened.context;
+            const { page, consoleErrors } = opened;
+            const metrics = await measure(page, viewport);
+            const axe = await axeSevere(page);
+            const axePage = await axeSeverePage(page);
+            const hashes = await capture(page, viewport, name);
+            const focus = await firstFocus(page);
+            shots.push({
+              id: target.id,
+              imageKey: target.imageKey ?? null,
+              width: viewport.width,
+              theme,
+              ...metrics,
+              axe,
+              axePage,
+              focus,
+              consoleErrors: consoleErrors.length,
+              hashes,
+            });
+            console.log(
+              `${name}: h=${metrics.mainScrollHeight} overflow=${metrics.overflowDocument}/${metrics.overflowMain} axe=${axe.length}/${axePage.length}`,
+            );
+          } catch (error) {
+            const failed = error.message.split('\n')[0];
+            shots.push({ id: target.id, width: viewport.width, theme, failed });
+            console.log(`${name}: FEHLER ${failed}`);
+          } finally {
+            await context?.close();
+          }
         }
       }
     }
-  }
-  const pipelineError = ONLY ? null : await pipelineErrorCase(browser, state);
-  await browser.close();
-  const scriptContent = fs.readFileSync(path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'));
-  const harnessSha256 = sha256(scriptContent);
-  const baselineCommit = '7fd6e33';
-  const productVersion = '2.4.0';
-  const headCommit = (await import('node:child_process'))
-    .execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
-    .toString()
-    .trim();
-  const failed = shots.filter((s) => s.failed).length;
-  const summary = { expected, ok: shots.length - failed, failed };
-  fs.writeFileSync(
-    JSON_OUT,
-    `${JSON.stringify(
-      {
-        baselineCommit,
-        productVersion,
-        harness: {
-          script: 'scripts/captureAuftrag081Inventory.mjs',
-          sha256: harnessSha256,
-          headAtExecution: headCommit,
+    const pipelineError = ONLY ? null : await pipelineErrorCase(browser, state);
+
+    const scriptContent = fs.readFileSync(path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'));
+    const harnessSha256 = sha256(scriptContent);
+    const baselineCommit = '7fd6e33';
+    const productVersion = '2.4.0';
+    const headCommit = (await import('node:child_process'))
+      .execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
+      .toString()
+      .trim();
+    const failed = shots.filter((s) => s.failed).length;
+    const summary = { expected, ok: shots.length - failed, failed };
+    fs.writeFileSync(
+      JSON_OUT,
+      `${JSON.stringify(
+        {
+          baselineCommit,
+          productVersion,
+          harness: {
+            script: 'scripts/captureAuftrag081Inventory.mjs',
+            sha256: harnessSha256,
+            headAtExecution: headCommit,
+          },
+          dashboardConfig: dashboardConfigInfo,
+          commit: baselineCommit,
+          baseUrl: BASE_URL,
+          capturedAt: new Date().toISOString(),
+          summary,
+          shots,
+          pipelineError,
         },
-        commit: baselineCommit,
-        baseUrl: BASE_URL,
-        capturedAt: new Date().toISOString(),
-        summary,
-        shots,
-        pipelineError,
-      },
-      null,
-      1,
-    )}\n`,
-  );
-  writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
-  console.log(
-    `\n${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,
-  );
-  if (failed > 0 || summary.ok !== expected) {
-    console.error(
-      'Inventur unvollständig: mindestens eine erwartete Aufnahme fehlt oder schlug fehl.',
+        null,
+        1,
+      )}\n`,
     );
-    process.exitCode = 1;
+    writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
+    console.log(
+      `\n${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,
+    );
+    if (failed > 0 || summary.ok !== expected) {
+      console.error(
+        'Inventur unvollständig: mindestens eine erwartete Aufnahme fehlt oder schlug fehl.',
+      );
+      process.exitCode = 1;
+    }
+  } finally {
+    if (restore?.type === 'restore') {
+      try {
+        const current = await readPreferences(restore.page, SUPABASE);
+        await savePreferences(restore.page, SUPABASE, restore.config, current.revision);
+      } catch (err) {
+        console.error('Fehler beim Wiederherstellen der Dashboard-Präferenzen:', err);
+      }
+    } else if (restore?.type === 'delete_if_created' && CLEANUP_KEY && restore.userId) {
+      try {
+        const current = await readPreferences(restore.page, SUPABASE);
+        if (current.config) {
+          await deletePreferences(SUPABASE, CLEANUP_KEY, restore.userId);
+        }
+      } catch (err) {
+        console.error('Fehler beim Aufräumen der Dashboard-Präferenzen:', err);
+      }
+    }
+    await setupContext?.close().catch(() => null);
+    await browser?.close().catch(() => null);
   }
 }
 

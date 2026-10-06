@@ -15681,3 +15681,14 @@ Beide Codex-Befunde (P2) behoben:
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` vollständig leer; keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
 
+**Nacharbeit Codex-Review PR #67 Runde 4 (06.10.2026, Head `639aa13`):**
+Alle 4 Codex-Befunde (P2) behoben:
+1. **Fehlerfall-Prüfung & Navigation strikt validieren (P2, ID 4200691068):** In `pipelineErrorCase` in `scripts/captureAuftrag081Inventory.mjs` wird nun validiert, dass `interceptedPostCount >= 1` ist. Bei den Navigationsschritten zu `/company/profile` und `/sales/funnel` wird der Klick nicht mehr mit `.catch(() => null)` verschluckt; stattdessen wird auf Sichtbarkeit gewartet, geklickt und die Ziel-URL explizit validiert (`waitForURL` + Prüfung von `pathname`). Jede Abweichung wirft einen Fehler und bricht den Lauf mit Exit-Code 1 ab.
+2. **Vollständige Metadaten der 10 interaktiven Ansichten (P2, ID 4200691084):** Abschnitt 6 in `docs/reviews/2026-10-06-frontend-befundregister.md` wurde um dieselben geforderten Metadaten wie bei den Bildseiten erweitert: Komponente (`src/features/`), Datenquelle (`src/domain/` / Services), Diagramme/Tabellen, Schutzbereich (mit expliziter Kennzeichnung von Live-Simulation und Anbindung an `src/simulation/`) und Umfang (Zeilen).
+3. **Browser auf allen Pfaden schließen (P2, ID 4200691095):** In `main()` von `scripts/captureAuftrag081Inventory.mjs` ist die gesamte Ausführung (inklusive `login`, Bildseiten-Check und `pipelineErrorCase`) in einem `try ... finally`-Block gekapselt, der `browser?.close()` in jedem Fall sicherstellt.
+4. **Dashboard-Konfiguration fixieren (P2, ID 4200691103):** Der Harness liest und sichert vor der Messung die Präferenzen von `admin-a` via Supabase REST (`readPreferences`), stellt die definierte Standardansicht (17 Kacheln, `DEFAULT_DASHBOARD_CONFIG`) sicher und stellt im `finally`-Block den ursprünglichen Zustand mit der aktuellen Revision wieder her (`savePreferences` bzw. `deletePreferences` bei zuvor ungespeicherter Konfiguration). Das Inventar-JSON (`docs/reviews/2026-10-06-frontend-inventar.json`), die README und das Register protokollieren die verwendete Konfiguration (Kachelanzahl, IDs, Revision, Quelle).
+- **Volllauf neu:** 256 von 256 Aufnahmen erfolgreich (Exit 0), JSON und README aktualisiert.
+- **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` vollständig leer; keine Datei unter `src/` geändert.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
+

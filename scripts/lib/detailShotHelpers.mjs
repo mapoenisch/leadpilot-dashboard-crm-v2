@@ -12,6 +12,20 @@ export function shotConfig(root) {
   return JSON.parse(out.toString());
 }
 
+/** Standard-Dashboard-Konfiguration (17 Kacheln) aus der App-Logik. */
+export function defaultDashboardConfig(root) {
+  const out = execFileSync(
+    'npx',
+    [
+      'tsx',
+      '-e',
+      "import { DEFAULT_DASHBOARD_CONFIG } from './src/features/dashboard/model/defaultDashboard.ts'; console.log(JSON.stringify(DEFAULT_DASHBOARD_CONFIG));",
+    ],
+    { cwd: root },
+  );
+  return JSON.parse(out.toString());
+}
+
 /** Anmelden und den Sitzungszustand für weitere Kontexte desselben Servers zurückgeben. */
 export async function login(browser, baseUrl, credentials, options = {}) {
   const context = await browser.newContext({

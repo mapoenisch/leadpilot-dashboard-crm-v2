@@ -3,12 +3,38 @@
  "productVersion": "2.4.0",
  "harness": {
   "script": "scripts/captureAuftrag081Inventory.mjs",
-  "sha256": "51bc6e23df62743fc98792408d8db09a777b5375488f6b95b5a74a1db81b56f1",
-  "headAtExecution": "ff49347"
+  "sha256": "00da9bb24b02813afa3b089a83e93636c45d73053c2ecd637d6980d87fb48c52",
+  "headAtExecution": "639aa13"
+ },
+ "dashboardConfig": {
+  "source": "default_unpersisted",
+  "version": 1,
+  "tileCount": 17,
+  "tileIds": [
+   "std_baseline_arr",
+   "std_baseline_umsatz",
+   "std_baseline_ebitda",
+   "std_baseline_kunden_aktiv",
+   "std_baseline_arpa",
+   "std_baseline_marketing_cac",
+   "std_baseline_fully_loaded_cac",
+   "std_baseline_headcount",
+   "std_baseline_arr_verlauf",
+   "std_baseline_mrr_paketmix",
+   "std_crm_pipeline_deals",
+   "std_crm_pipeline_volumen",
+   "std_crm_pipeline_gewonnen",
+   "std_crm_pipeline_offen",
+   "std_crm_pipeline_stufen_volumen",
+   "std_uebersicht_team_hr",
+   "std_uebersicht_roadmap"
+  ],
+  "revision": 0,
+  "restoredAfterRun": false
  },
  "commit": "7fd6e33",
  "baseUrl": "http://localhost:4181",
- "capturedAt": "2026-10-06T21:31:15.321Z",
+ "capturedAt": "2026-10-06T22:03:43.301Z",
  "summary": {
   "expected": 256,
   "ok": 256,
@@ -395,7 +421,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "811de4277e9ff389",
+    "first": "34d6bc85a17b7a2a",
     "full": "bfbe09801dcfc753"
    }
   },
@@ -683,7 +709,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "644f34cbb2158cf9",
+    "first": "46d8c2332afbd672",
     "full": "0465f61c25cabbc6"
    }
   },
@@ -743,7 +769,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "484e386082ccde02",
+    "first": "5337a3a3997e0f14",
     "full": "5337a3a3997e0f14"
    }
   },
@@ -803,7 +829,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "9dde39fdf658edc6",
+    "first": "42cc405bef23a744",
     "full": "9dde39fdf658edc6"
    }
   },
@@ -863,7 +889,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "7b096dd4e16e8cf4",
+    "first": "75b218af7b17b353",
     "full": "75b218af7b17b353"
    }
   },
@@ -925,7 +951,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "66c1c4addfc58f6a",
+    "first": "a4269066680ceb85",
     "full": "a4269066680ceb85"
    }
   },
@@ -1049,7 +1075,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "6288f0f68eb28187",
+    "first": "0dd775ae180c0b39",
     "full": "15ea4f9666080bba"
    }
   },
@@ -1078,7 +1104,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "c5c9a91b5783cc48",
+    "first": "9606868078e1a887",
     "full": "071071918dc39d50"
    }
   },
@@ -1231,7 +1257,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "8998506ec32cac64",
+    "first": "8e4a27459bdb9862",
     "full": "617f2f48afc1fc6a"
    }
   },
@@ -1541,7 +1567,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "b64759f19181945b",
+    "first": "0a72b15b6cc82653",
     "full": "c006854a87a0786c"
    }
   },
@@ -1570,7 +1596,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "62aad412414c8537",
+    "first": "0e2d6e98d5ff8fff",
     "full": "8630993cdeaeca35"
    }
   },
@@ -1665,7 +1691,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "11f1196373ce1489",
+    "first": "d6397d903cec8457",
     "full": "d6397d903cec8457"
    }
   },
@@ -1727,7 +1753,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "dc6885f16bfc74d3",
+    "first": "ea39fd08213a6553",
     "full": "4b0ce9e96e515d50"
    }
   },
@@ -1789,7 +1815,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "1fb8fad5b3c18921",
+    "first": "91032d456ddd276c",
     "full": "59cec44a1bf3d13e"
    }
   },
@@ -1818,7 +1844,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "1aac4696aa9f6a61",
+    "first": "40a258cc0269fc9a",
     "full": "1aac4696aa9f6a61"
    }
   },
@@ -1851,7 +1877,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "e6f4cc27a3968b96",
+    "first": "e0d6a34e0809a959",
     "full": "e0d6a34e0809a959"
    }
   },
@@ -1880,7 +1906,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "5dbc2e4e238a0ab5",
+    "first": "1d25ed486c2a5d04",
     "full": "0770ebc4f12c9120"
    }
   },
@@ -1913,7 +1939,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "d6c53ababf334eb1",
+    "first": "0957e8fdd9c7299c",
     "full": "7472e3b651cb3f8c"
    }
   },
@@ -2037,7 +2063,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "4a4080a87d464a91",
+    "first": "1fe2130e4c0cce3f",
     "full": "2446025912c1677e"
    }
   },
@@ -2099,7 +2125,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "952a1f4980b3eb91",
+    "first": "5d2685f24012c601",
     "full": "5d2685f24012c601"
    }
   },
@@ -2737,7 +2763,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "d7920575c244fbbd",
+    "first": "29bb6fbc88a88717",
     "full": "29bb6fbc88a88717"
    }
   },
@@ -2881,7 +2907,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "3aa98cc23c434584",
+    "first": "3e6c504a8bbc566d",
     "full": "3e6c504a8bbc566d"
    }
   },
@@ -3097,7 +3123,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "463709cd8b4854cf",
+    "first": "3abb9e7c58daef19",
     "full": "3abb9e7c58daef19"
    }
   },
@@ -3313,7 +3339,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "f991eb47e242e1d4",
+    "first": "49a47c887f81e3b8",
     "full": "49a47c887f81e3b8"
    }
   },
@@ -3385,7 +3411,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "8d5ae7c79d6c4e7a",
+    "first": "25b61695c202bdf3",
     "full": "8d5ae7c79d6c4e7a"
    }
   },
@@ -3529,7 +3555,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "82288cb5e8c8e69f",
+    "first": "9c046631178e5897",
     "full": "9c046631178e5897"
    }
   },
@@ -3889,7 +3915,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "50104550e749a967",
+    "first": "a8e6b8e259f9ca2d",
     "full": "50104550e749a967"
    }
   },
@@ -3961,7 +3987,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "ee9814cdf02d6286",
+    "first": "fb73dfc2787797de",
     "full": "fb73dfc2787797de"
    }
   },
@@ -4609,7 +4635,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "8e87463ee858df07",
+    "first": "0aeb73d5d7048748",
     "full": "0aeb73d5d7048748"
    }
   },
@@ -5473,7 +5499,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "e33b1ea8197d29f5",
+    "first": "4205cc327774537d",
     "full": "4205cc327774537d"
    }
   },
@@ -5689,7 +5715,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "eb2a41db707d595d",
+    "first": "039f283571195c4f",
     "full": "039f283571195c4f"
    }
   },
@@ -5761,7 +5787,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "43df77e42a49c813",
+    "first": "eabc5030174c821e",
     "full": "eabc5030174c821e"
    }
   },
@@ -5905,7 +5931,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "a311c14aeef01a96",
+    "first": "25ca4ca385a99a7b",
     "full": "25ca4ca385a99a7b"
    }
   },
@@ -5977,7 +6003,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "a4e5885ca8c8b534",
+    "first": "f4c85fdad3b2cc8d",
     "full": "f4c85fdad3b2cc8d"
    }
   },
@@ -6049,7 +6075,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "d4899ed9cc4cb3a8",
+    "first": "16e45b52f8ed4c24",
     "full": "16e45b52f8ed4c24"
    }
   },
@@ -6121,7 +6147,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "f4698eb5b848036a",
+    "first": "502c11020c40eb2c",
     "full": "502c11020c40eb2c"
    }
   },
@@ -6265,7 +6291,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "5205288d6963ba78",
+    "first": "771bb2854eefc0c7",
     "full": "771bb2854eefc0c7"
    }
   },
@@ -8209,7 +8235,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "4802ba368d285cd6",
+    "first": "883c5362ecea34d6",
     "full": "883c5362ecea34d6"
    }
   },
@@ -9001,7 +9027,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "23edb99a557745b6",
+    "first": "11f1da2ba332b576",
     "full": "11f1da2ba332b576"
    }
   },
