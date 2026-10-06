@@ -13,8 +13,11 @@ export function shotConfig(root) {
 }
 
 /** Anmelden und den Sitzungszustand für weitere Kontexte desselben Servers zurückgeben. */
-export async function login(browser, baseUrl, credentials) {
-  const context = await browser.newContext({ baseURL: baseUrl });
+export async function login(browser, baseUrl, credentials, options = {}) {
+  const context = await browser.newContext({
+    baseURL: baseUrl,
+    locale: options.locale ?? 'de-DE',
+  });
   const page = await context.newPage();
   await page.goto('/login', { waitUntil: 'networkidle' });
   await page.fill('#login-email', credentials.email);

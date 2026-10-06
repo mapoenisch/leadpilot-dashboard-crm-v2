@@ -1,13 +1,14 @@
 # Auftrag 081 – Ausgangslage Frontend (Arbeitspaket 0)
 
-Code-Stand `00aa383`, aufgenommen 2026-10-06 mit
-`scripts/captureAuftrag081Inventory.mjs`. Keine Vorher/Nachher-Paare: Paket 0 ändert nichts,
-diese Aufnahmen sind die Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im
+Produkt-Baseline: `7fd6e33` (Release v2.4.0), aufgenommen 2026-10-06 mit
+`scripts/captureAuftrag081Inventory.mjs` (Harness SHA-256: `51bc6e23df62743f`).
+Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die
+Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im
 [Befundregister](../../reviews/2026-10-06-frontend-befundregister.md).
 
 Aufnahmen: 256 von 256 erwartet, fehlgeschlagen: 0.
 axe (serious/critical) läuft zweimal: nur `<main>` und die ganze Seite mit Kopfzeile, Sidebar
-und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
+und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-Locale: `de-DE`).
 
 | Ansicht | Breite | Theme | Höhe `<main>` | SHA-256 erster Bildschirm / ganz (16) | Überlauf Dokument / `<main>` px | axe `<main>` | axe ganze Seite | erster Tab-Fokus | Messung |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -16,65 +17,65 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | dashboard | 768 | dark | 5781 | `37bdf735973c4bac` / `c84cc3bc71770cbd` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
 | dashboard | 768 | light | 5781 | `7027cf6a7e2c690f` / `a4ea7487824a217f` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
 | dashboard | 375 | dark | 7997 | `8f1381967eed7cf9` / `49af2e9ad0ef912b` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard | 375 | light | 7997 | `1ed3a8a4a72099f6` / `799e459c53a7f091` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard | 375 | light | 7997 | `30e37d8eb58ff636` / `799e459c53a7f091` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard | 320 | dark | 8126 | `486fd423cc983375` / `4b9381103f0ac5f4` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard | 320 | light | 8126 | `811de4277e9ff389` / `bfbe09801dcfc753` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-edit | 1440 | dark | 4177 | `df42f3ef5af8cd3c` / `2b3fbfd523ce4b22` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
-| dashboard-edit | 1440 | light | 4177 | `ecace4b752d3dc0a` / `257abe0feb542336` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
+| dashboard-edit | 1440 | light | 4177 | `639ece683a15c14f` / `257abe0feb542336` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
 | dashboard-edit | 768 | dark | 6513 | `f35e509f1044e1be` / `b21b055b6bd14478` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
-| dashboard-edit | 768 | light | 6513 | `dab9456979dc8917` / `bb9fdf75f82d0405` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
+| dashboard-edit | 768 | light | 6513 | `e06ba0ae67a10afc` / `bb9fdf75f82d0405` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
 | dashboard-edit | 375 | dark | 9593 | `c96c1c43876d31d6` / `e8e38cf8d0b65228` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard-edit | 375 | light | 9593 | `46d8c2332afbd672` / `0465f61c25cabbc6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard-edit | 375 | light | 9593 | `644f34cbb2158cf9` / `0465f61c25cabbc6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-detail | 1440 | dark | 893 | `e1e44db6d4bf165a` / `e1e44db6d4bf165a` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard-detail | 1440 | light | 893 | `5337a3a3997e0f14` / `5337a3a3997e0f14` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard-detail | 1440 | light | 893 | `484e386082ccde02` / `5337a3a3997e0f14` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-detail | 768 | dark | 885 | `6bad96d2bc2595ea` / `6bad96d2bc2595ea` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard-detail | 768 | light | 885 | `42cc405bef23a744` / `9dde39fdf658edc6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard-detail | 768 | light | 885 | `9dde39fdf658edc6` / `9dde39fdf658edc6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-detail | 375 | dark | 788 | `af6702b4bb3e81ae` / `af6702b4bb3e81ae` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard-detail | 375 | light | 788 | `75b218af7b17b353` / `75b218af7b17b353` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard-detail | 375 | light | 788 | `7b096dd4e16e8cf4` / `75b218af7b17b353` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 1440 | dark | 893 | `d566f8ba8d86b006` / `d566f8ba8d86b006` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 1440 | light | 893 | `66c1c4addfc58f6a` / `a4269066680ceb85` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 768 | dark | 885 | `c77242c63c7cb724` / `c77242c63c7cb724` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 768 | light | 885 | `77e100c957e68b0b` / `77e100c957e68b0b` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 375 | dark | 721 | `1b8486d04706a467` / `57a98700f058ee79` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-daten | 375 | light | 721 | `0dd775ae180c0b39` / `15ea4f9666080bba` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-standort | 1440 | dark | 1765 | `9606868078e1a887` / `071071918dc39d50` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-standort | 1440 | light | 1765 | `e82e8fcbb36dc081` / `b35ce575a5378d9a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-daten | 375 | light | 721 | `6288f0f68eb28187` / `15ea4f9666080bba` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-standort | 1440 | dark | 1765 | `c5c9a91b5783cc48` / `071071918dc39d50` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-standort | 1440 | light | 1765 | `523693734aa750cd` / `b35ce575a5378d9a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 768 | dark | 1931 | `df83921baaef4d67` / `170a92072ee33e11` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 768 | light | 1931 | `a34be994d18ec741` / `907da2bd61c87f50` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 375 | dark | 2575 | `84e9d1c70086392c` / `5e2e5212e168a779` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-standort | 375 | light | 2575 | `8e4a27459bdb9862` / `617f2f48afc1fc6a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-standort | 375 | light | 2575 | `8998506ec32cac64` / `617f2f48afc1fc6a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 1440 | dark | 1261 | `d286ce597ec57703` / `5080c74eedbb31e8` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-live-simulation | 1440 | light | 1261 | `cceb1f354d9a4c34` / `4debd55fe453a0c8` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-live-simulation | 1440 | light | 1261 | `0b3c72ff4f0a7ccb` / `4debd55fe453a0c8` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 768 | dark | 1565 | `82254c51dd98d5c5` / `4708ab102a52e223` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-live-simulation | 768 | light | 1565 | `0aa7ba66a1e25d91` / `543f648d0d20a8c4` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-live-simulation | 768 | light | 1565 | `123116b3f7fa23ad` / `543f648d0d20a8c4` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 375 | dark | 2651 | `32cf47125d645b94` / `c736618cfafd271e` | 0 / 184 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 375 | light | 2651 | `6c4a03b3905d175e` / `b82f00539a5603ac` | 0 / 184 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 1440 | dark | 893 | `5f511b85b20b2ed7` / `37d4bd58ca72f1be` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 1440 | light | 893 | `90c4293fb7cddb43` / `5558db3349dbe4c7` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 1440 | dark | 893 | `37d4bd58ca72f1be` / `37d4bd58ca72f1be` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 1440 | light | 893 | `5558db3349dbe4c7` / `5558db3349dbe4c7` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-leads | 768 | dark | 1135 | `9defca0e6d51e509` / `cbe9b921362e7d1d` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 768 | light | 1135 | `60e87497b1d5010d` / `c006854a87a0786c` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 375 | dark | 1839 | `0e2d6e98d5ff8fff` / `8630993cdeaeca35` | 0 / 14 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 768 | light | 1135 | `b64759f19181945b` / `c006854a87a0786c` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 375 | dark | 1839 | `62aad412414c8537` / `8630993cdeaeca35` | 0 / 14 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-leads | 375 | light | 1839 | `c2d8cc6e5d1d90f5` / `24cd9a69d3cd21c5` | 0 / 14 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-companies | 1440 | dark | 893 | `a56db4b5842c3988` / `a56db4b5842c3988` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-companies | 1440 | dark | 893 | `0910bae604f8ef50` / `a56db4b5842c3988` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-companies | 1440 | light | 893 | `11f1196373ce1489` / `d6397d903cec8457` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-companies | 768 | dark | 1029 | `963f4a31e2951714` / `701b9fca21c3fbb2` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-companies | 768 | light | 1029 | `61f9fa390147331b` / `4b0ce9e96e515d50` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-companies | 768 | dark | 1029 | `5c2bd43a984f431a` / `701b9fca21c3fbb2` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-companies | 768 | light | 1029 | `dc6885f16bfc74d3` / `4b0ce9e96e515d50` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-companies | 375 | dark | 1786 | `7cd642baefe67173` / `5c7726db9be4d6d9` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-companies | 375 | light | 1786 | `1fb8fad5b3c18921` / `59cec44a1bf3d13e` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 1440 | dark | 893 | `1aac4696aa9f6a61` / `1aac4696aa9f6a61` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 1440 | light | 893 | `e6f4cc27a3968b96` / `e0d6a34e0809a959` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-deals | 768 | dark | 1029 | `1d25ed486c2a5d04` / `0770ebc4f12c9120` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-deals | 768 | dark | 1029 | `5dbc2e4e238a0ab5` / `0770ebc4f12c9120` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 768 | light | 1029 | `d6c53ababf334eb1` / `7472e3b651cb3f8c` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-deals | 375 | dark | 1751 | `27cb35c0116979f9` / `2d8a48c5a91b7d31` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-deals | 375 | light | 1751 | `196e06ef9d83ef44` / `0f9902f66a4f398d` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-deals | 375 | dark | 1751 | `1194a49f8084d677` / `2d8a48c5a91b7d31` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-deals | 375 | light | 1751 | `175cf7b446111c3c` / `0f9902f66a4f398d` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 1440 | dark | 893 | `d21c8c408f5e17b1` / `d6729047fee6db11` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 1440 | light | 893 | `4a4080a87d464a91` / `2446025912c1677e` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 768 | dark | 885 | `8374900df576254c` / `8374900df576254c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-activities | 768 | light | 885 | `5d2685f24012c601` / `5d2685f24012c601` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-activities | 768 | light | 885 | `952a1f4980b3eb91` / `5d2685f24012c601` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 375 | dark | 626 | `3dded44e9d56f457` / `3693907e3f17d88e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-activities | 375 | light | 626 | `85a784dc02a71384` / `85a784dc02a71384` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-activities | 375 | light | 626 | `5debd240de37f619` / `85a784dc02a71384` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-profil | 1440 | dark | 893 | `f765543eeeb1b6c0` / `f765543eeeb1b6c0` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.65 |
-| s-profil | 1440 | light | 893 | `c409d0b46b31f5e3` / `f8a457b51d8d2e01` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
+| s-profil | 1440 | light | 893 | `f8a457b51d8d2e01` / `f8a457b51d8d2e01` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-profil | 768 | dark | 885 | `63dbca92e54c0216` / `63dbca92e54c0216` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-profil | 768 | light | 885 | `cdc86b3227848ea0` / `cdc86b3227848ea0` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-profil | 375 | dark | 626 | `0c326e41b1b402e0` / `0c326e41b1b402e0` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
@@ -86,7 +87,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | s-highlights | 375 | dark | 626 | `d79a9cf82d995ef1` / `d79a9cf82d995ef1` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-highlights | 375 | light | 626 | `6cefa0f29b10be5d` / `6cefa0f29b10be5d` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-idee | 1440 | dark | 893 | `c673c57ce784a562` / `c673c57ce784a562` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.626 |
-| s-idee | 1440 | light | 893 | `391a0b388f8c4de0` / `ca29b9732c0f58ec` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.626 |
+| s-idee | 1440 | light | 893 | `ca29b9732c0f58ec` / `ca29b9732c0f58ec` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.626 |
 | s-idee | 768 | dark | 885 | `0b955cea2813fbbe` / `0b955cea2813fbbe` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.413 |
 | s-idee | 768 | light | 885 | `d7920575c244fbbd` / `29bb6fbc88a88717` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.413 |
 | s-idee | 375 | dark | 626 | `ebd08398a9e98640` / `ebd08398a9e98640` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.192 |
@@ -106,13 +107,13 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | s-funktion | 1440 | dark | 893 | `6e8d9b6b54b5c20c` / `6e8d9b6b54b5c20c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.586 |
 | s-funktion | 1440 | light | 893 | `f991eb47e242e1d4` / `49a47c887f81e3b8` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.586 |
 | s-funktion | 768 | dark | 885 | `78cc98635e7faea4` / `78cc98635e7faea4` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.386 |
-| s-funktion | 768 | light | 885 | `25b61695c202bdf3` / `8d5ae7c79d6c4e7a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.386 |
+| s-funktion | 768 | light | 885 | `8d5ae7c79d6c4e7a` / `8d5ae7c79d6c4e7a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.386 |
 | s-funktion | 375 | dark | 626 | `f1dbbaa8bd78c2d5` / `f1dbbaa8bd78c2d5` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.18 |
 | s-funktion | 375 | light | 626 | `fe453eb71bfc9480` / `fe453eb71bfc9480` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.18 |
 | s-pricing | 1440 | dark | 893 | `0597cc277dc8a869` / `0597cc277dc8a869` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.595 |
-| s-pricing | 1440 | light | 893 | `9c046631178e5897` / `9c046631178e5897` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.595 |
+| s-pricing | 1440 | light | 893 | `82288cb5e8c8e69f` / `9c046631178e5897` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.595 |
 | s-pricing | 768 | dark | 885 | `c222e927de14e1ce` / `c222e927de14e1ce` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.392 |
-| s-pricing | 768 | light | 885 | `1d2f592c5c58b751` / `6e3ea6f54424d928` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.392 |
+| s-pricing | 768 | light | 885 | `6e3ea6f54424d928` / `6e3ea6f54424d928` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.392 |
 | s-pricing | 375 | dark | 626 | `004bd7813ad60b63` / `004bd7813ad60b63` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.183 |
 | s-pricing | 375 | light | 626 | `eb2eb1908a506c23` / `eb2eb1908a506c23` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.183 |
 | s-perf | 1440 | dark | 893 | `6c6476e8b15730b8` / `6c6476e8b15730b8` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.578 |
@@ -122,9 +123,9 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | s-perf | 375 | dark | 626 | `990fc8074ced8525` / `990fc8074ced8525` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.178 |
 | s-perf | 375 | light | 626 | `50104550e749a967` / `50104550e749a967` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.178 |
 | s-roadmap | 1440 | dark | 893 | `e406484744ca23cd` / `e406484744ca23cd` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.701 |
-| s-roadmap | 1440 | light | 893 | `fb73dfc2787797de` / `fb73dfc2787797de` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.701 |
-| s-roadmap | 768 | dark | 885 | `8fb56c93b790e2c5` / `8fb56c93b790e2c5` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.463 |
-| s-roadmap | 768 | light | 885 | `2028f07e46dc9e09` / `522f8e9309442a5b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.463 |
+| s-roadmap | 1440 | light | 893 | `ee9814cdf02d6286` / `fb73dfc2787797de` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.701 |
+| s-roadmap | 768 | dark | 885 | `e908f20b8c033dad` / `e908f20b8c033dad` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.463 |
+| s-roadmap | 768 | light | 885 | `522f8e9309442a5b` / `522f8e9309442a5b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.463 |
 | s-roadmap | 375 | dark | 626 | `15410d519b3f2d6c` / `15410d519b3f2d6c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.216 |
 | s-roadmap | 375 | light | 626 | `32dfbdb9ca884c6b` / `32dfbdb9ca884c6b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.216 |
 | s-markt | 1440 | dark | 893 | `faa49057546edbd3` / `faa49057546edbd3` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.65 |
@@ -140,23 +141,23 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | s-wettbewerb | 375 | dark | 626 | `b5e3662e9c254179` / `b5e3662e9c254179` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-wettbewerb | 375 | light | 626 | `5eb9783bc2504ecc` / `5eb9783bc2504ecc` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-swot | 1440 | dark | 893 | `6058de09097e05c9` / `6058de09097e05c9` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.65 |
-| s-swot | 1440 | light | 893 | `0aeb73d5d7048748` / `0aeb73d5d7048748` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
+| s-swot | 1440 | light | 893 | `8e87463ee858df07` / `0aeb73d5d7048748` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-swot | 768 | dark | 885 | `8db2e8f8072cfdd6` / `8db2e8f8072cfdd6` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.429 |
-| s-swot | 768 | light | 885 | `fcd752706ee5d38f` / `262b3315c8f7d7ee` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.429 |
+| s-swot | 768 | light | 885 | `262b3315c8f7d7ee` / `262b3315c8f7d7ee` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.429 |
 | s-swot | 375 | dark | 626 | `6be01de34a65f240` / `6be01de34a65f240` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
-| s-swot | 375 | light | 626 | `f3b06d2fb72bcb7e` / `f96bb04dbd4fc6ae` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
+| s-swot | 375 | light | 626 | `f96bb04dbd4fc6ae` / `f96bb04dbd4fc6ae` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-icp | 1440 | dark | 893 | `241fe472eae0b2c9` / `241fe472eae0b2c9` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.633 |
 | s-icp | 1440 | light | 893 | `e9e1e7d9d2c94866` / `e9e1e7d9d2c94866` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.633 |
 | s-icp | 768 | dark | 885 | `6e160f1975ade553` / `6e160f1975ade553` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.417 |
 | s-icp | 768 | light | 885 | `d94d7907b6056297` / `d94d7907b6056297` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.417 |
 | s-icp | 375 | dark | 626 | `9e67bc47b6aac32b` / `9e67bc47b6aac32b` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.194 |
-| s-icp | 375 | light | 626 | `499be79f333a4478` / `dd0e77f2c363967b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.194 |
+| s-icp | 375 | light | 626 | `dd0e77f2c363967b` / `dd0e77f2c363967b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.194 |
 | s-persona | 1440 | dark | 893 | `f435030874ef7f67` / `f435030874ef7f67` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.628 |
 | s-persona | 1440 | light | 893 | `1f7b322dc60bea4a` / `1f7b322dc60bea4a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.628 |
 | s-persona | 768 | dark | 885 | `64549761d8a997df` / `64549761d8a997df` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.414 |
 | s-persona | 768 | light | 885 | `9fa810925f6703d4` / `9fa810925f6703d4` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.414 |
 | s-persona | 375 | dark | 626 | `5f42de6af3de288b` / `5f42de6af3de288b` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.193 |
-| s-persona | 375 | light | 626 | `0c32af3eeebb6a49` / `409b19a7357699ed` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.193 |
+| s-persona | 375 | light | 626 | `409b19a7357699ed` / `409b19a7357699ed` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.193 |
 | s-segmente | 1440 | dark | 893 | `45978b74d7792ef8` / `45978b74d7792ef8` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.627 |
 | s-segmente | 1440 | light | 893 | `d6dfed0eb61c0146` / `d6dfed0eb61c0146` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.627 |
 | s-segmente | 768 | dark | 885 | `ec019540fccdf792` / `ec019540fccdf792` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.413 |
@@ -164,7 +165,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | s-segmente | 375 | dark | 626 | `4acfa7fa5d80c1e1` / `4acfa7fa5d80c1e1` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.193 |
 | s-segmente | 375 | light | 626 | `151eb32feac3c384` / `151eb32feac3c384` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.193 |
 | s-top10 | 1440 | dark | 893 | `a8270a245b2165f9` / `a8270a245b2165f9` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.627 |
-| s-top10 | 1440 | light | 893 | `4205cc327774537d` / `4205cc327774537d` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.627 |
+| s-top10 | 1440 | light | 893 | `e33b1ea8197d29f5` / `4205cc327774537d` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.627 |
 | s-top10 | 768 | dark | 885 | `293686375218b917` / `293686375218b917` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.413 |
 | s-top10 | 768 | light | 885 | `86e38c2a10e9bc70` / `86e38c2a10e9bc70` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.413 |
 | s-top10 | 375 | dark | 626 | `384d41b24ad6ca50` / `384d41b24ad6ca50` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.193 |
@@ -172,21 +173,21 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | s-funnel | 1440 | dark | 893 | `3e22388b756ea0ef` / `3e22388b756ea0ef` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.662 |
 | s-funnel | 1440 | light | 893 | `eb2a41db707d595d` / `039f283571195c4f` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.662 |
 | s-funnel | 768 | dark | 885 | `c0149d300d830740` / `c0149d300d830740` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.437 |
-| s-funnel | 768 | light | 885 | `eabc5030174c821e` / `eabc5030174c821e` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.437 |
+| s-funnel | 768 | light | 885 | `43df77e42a49c813` / `eabc5030174c821e` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.437 |
 | s-funnel | 375 | dark | 626 | `a2dfd660a9149d05` / `a2dfd660a9149d05` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.203 |
 | s-funnel | 375 | light | 626 | `8876f1ee1f577a12` / `8876f1ee1f577a12` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.203 |
 | s-funnel | 320 | dark | 454 | `3aa805a2b9df5843` / `3aa805a2b9df5843` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.171 |
-| s-funnel | 320 | light | 454 | `25ca4ca385a99a7b` / `25ca4ca385a99a7b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.171 |
+| s-funnel | 320 | light | 454 | `a311c14aeef01a96` / `25ca4ca385a99a7b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.171 |
 | s-sla | 1440 | dark | 893 | `26692e6271bb51ad` / `26692e6271bb51ad` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.648 |
 | s-sla | 1440 | light | 893 | `a4e5885ca8c8b534` / `f4c85fdad3b2cc8d` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.648 |
 | s-sla | 768 | dark | 885 | `e4418259a0e985b1` / `e4418259a0e985b1` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-sla | 768 | light | 885 | `d4899ed9cc4cb3a8` / `16e45b52f8ed4c24` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-sla | 375 | dark | 626 | `ea2a5104dc92a192` / `ea2a5104dc92a192` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.199 |
-| s-sla | 375 | light | 626 | `502c11020c40eb2c` / `502c11020c40eb2c` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.199 |
+| s-sla | 375 | light | 626 | `f4698eb5b848036a` / `502c11020c40eb2c` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.199 |
 | s-kanaele | 1440 | dark | 893 | `806f82d6dd8193d7` / `806f82d6dd8193d7` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.648 |
 | s-kanaele | 1440 | light | 893 | `86cf8d5140152b02` / `86cf8d5140152b02` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.648 |
 | s-kanaele | 768 | dark | 885 | `7be37b8948876166` / `7be37b8948876166` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.428 |
-| s-kanaele | 768 | light | 885 | `771bb2854eefc0c7` / `771bb2854eefc0c7` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
+| s-kanaele | 768 | light | 885 | `5205288d6963ba78` / `771bb2854eefc0c7` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-kanaele | 375 | dark | 626 | `0289fdf6da878d59` / `0289fdf6da878d59` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.199 |
 | s-kanaele | 375 | light | 626 | `7413551dc1f3fb17` / `7413551dc1f3fb17` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.199 |
 | s-planung | 1440 | dark | 893 | `060e809f32d32ff3` / `060e809f32d32ff3` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.65 |
@@ -238,7 +239,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | s-okr | 375 | dark | 626 | `222cf797c3cab5e8` / `222cf797c3cab5e8` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-okr | 375 | light | 626 | `78993cceb70ac5f4` / `78993cceb70ac5f4` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-bsc | 1440 | dark | 893 | `5dbe5eb8516bf169` / `5dbe5eb8516bf169` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
-| s-bsc | 1440 | light | 893 | `36fe738ea4748f9e` / `371ca4e1b819769c` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
+| s-bsc | 1440 | light | 893 | `371ca4e1b819769c` / `371ca4e1b819769c` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-bsc | 768 | dark | 885 | `a92fbe41ef459ed9` / `a92fbe41ef459ed9` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.419 |
 | s-bsc | 768 | light | 885 | `4802ba368d285cd6` / `883c5362ecea34d6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.419 |
 | s-bsc | 375 | dark | 626 | `f787e1785cfa0da3` / `f787e1785cfa0da3` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
@@ -250,15 +251,15 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.
 | s-treiber | 375 | dark | 626 | `d3191557e80bf484` / `d3191557e80bf484` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-treiber | 375 | light | 626 | `328d1178b968b033` / `328d1178b968b033` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-satzung | 1440 | dark | 893 | `2e3a16a454190b2e` / `2e3a16a454190b2e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
-| s-satzung | 1440 | light | 893 | `890f285757c1176b` / `8e57aa57d0ea2456` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
+| s-satzung | 1440 | light | 893 | `8e57aa57d0ea2456` / `8e57aa57d0ea2456` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-satzung | 768 | dark | 885 | `e2e6a1787b8b2010` / `e2e6a1787b8b2010` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.419 |
-| s-satzung | 768 | light | 885 | `7d63b97f57a3b3cf` / `ea969340e10e4985` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.419 |
+| s-satzung | 768 | light | 885 | `ea969340e10e4985` / `ea969340e10e4985` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.419 |
 | s-satzung | 375 | dark | 626 | `60e627b9f713fd94` / `60e627b9f713fd94` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-satzung | 375 | light | 626 | `7e33a84303249f45` / `7e33a84303249f45` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-gesellschafter | 1440 | dark | 893 | `d426abcc8cdcac7e` / `d426abcc8cdcac7e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
-| s-gesellschafter | 1440 | light | 893 | `d977ac81b4f687d7` / `7258fbaac38c1c15` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
+| s-gesellschafter | 1440 | light | 893 | `7258fbaac38c1c15` / `7258fbaac38c1c15` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-gesellschafter | 768 | dark | 885 | `e315ad2107994bc8` / `e315ad2107994bc8` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.419 |
-| s-gesellschafter | 768 | light | 885 | `5dcc2865dcf6bda6` / `4ffd1e16dfc6f693` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.419 |
+| s-gesellschafter | 768 | light | 885 | `4ffd1e16dfc6f693` / `4ffd1e16dfc6f693` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.419 |
 | s-gesellschafter | 375 | dark | 626 | `376c1a14543b634d` / `376c1a14543b634d` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-gesellschafter | 375 | light | 626 | `4cd00acbf7fe7d77` / `4cd00acbf7fe7d77` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-handelsregister | 1440 | dark | 893 | `dd147c9b3cf904dc` / `dd147c9b3cf904dc` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |

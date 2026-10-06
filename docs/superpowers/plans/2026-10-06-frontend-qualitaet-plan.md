@@ -123,7 +123,7 @@ Vorläufige Größenordnung: 0 klein, A mittel bis zur Diagnose, B mittel, C kle
 
 **Dateien:** `src/features/dashboard/components/DashboardFilters.tsx`, `DashboardWorkspace.tsx`, `ConfiguratorFields.tsx`, `src/features/dashboard/model/dashboardFilters.ts`, `src/features/dashboard/data/resolveCrm.ts`; bestehende Filter-/Workspace-Tests und `e2e/personal-dashboard.spec.ts`.
 
-- [ ] Aktive Von-/Bis-Felder aus der normalen Ansicht entfernen, solange keine belegte Zeitfilterung existiert. Kurzer Hinweis bei relevanten Kacheln: „Zeitraumfilter für diese Daten derzeit nicht verfügbar.“
+- [ ] Aktive Von-/Bis-Felder aus der normalen Ansicht entfernen, solange keine belegte Zeitfilterung existiert. Kurzer Hinweis bei relevanten Kacheln: „Zeitraumfilter für diese Daten derzeit nicht verfügbar.“ (Hinweis: Das Datumsanzeigeformat der nativen Datumsfelder richtet sich nach der Browser-Locale und ist unter deutscher Locale korrekt als `tt.mm.jjjj`; es liegt kein Produkt-Formatierungsfehler vor, behoben wird die fehlende funktionale Filterwirkung).
 - [ ] Bereits gespeicherte Zeitraumwerte und Startfilter verlustfrei erhalten. Keine Konfigurationsversion ändern und keine alten Werte beim Öffnen/Speichern still entfernen. Entfernen gespeicherter Einstellungen bleibt eine bewusste Nutzeraktion.
 - [ ] Pipeline-Fähigkeit pro Kachel berücksichtigen. Historische und Live-Kacheln werden nicht als gefiltert dargestellt, wenn sie den Filter nicht unterstützen.
 - [ ] Herkunft einer vollständigen organisationsbezogenen Pipeline-Liste prüfen. Nur bei nachgewiesener vollständiger Quelle eine Auswahl einsetzen; Laden, Ausfall, unbekannter gespeicherter Wert und „Alle Pipelines“ berücksichtigen.

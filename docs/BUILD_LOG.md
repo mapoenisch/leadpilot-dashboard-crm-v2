@@ -15672,3 +15672,12 @@ Alle 6 Codex-Befunde (P2) behoben:
 - **Volllauf neu:** 256 von 256 Aufnahmen erfolgreich (Exit 0), JSON und README aktualisiert.
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer; keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
+**Nacharbeit Codex-Review PR #67 Runde 3 (06.10.2026, Head `ff49347`):**
+Beide Codex-Befunde (P2) behoben:
+1. **Deutsche Browser-Locale für Datumsformat (P2, ID 4200509874):** In `scripts/captureAuftrag081Inventory.mjs` und `scripts/lib/detailShotHelpers.mjs` wird der Browser-Kontext nun explizit mit `locale: 'de-DE'` initialisiert. Das zuvor gemeldete US-Datumsformat `mm/dd/yyyy` war ein Artefakt der Playwright-Standardeinstellung (`en-US`). Mit `locale: 'de-DE'` formatieren die nativen `<input type="date">`-Felder im Browser korrekt nach `tt.mm.jjjj` (kein Produktfehler beim Datumsformat). Im Befundregister (`docs/reviews/2026-10-06-frontend-befundregister.md` §1, §2 F04) und im Plan (`docs/superpowers/plans/2026-10-06-frontend-qualitaet-plan.md` §8) klargestellt: Bestätigt bleibt die fehlende funktionale Filterwirkung des Datumsfilters; ein Format-Bug im Produkt liegt nicht vor.
+2. **Trennung Produkt-Baseline und Harness-Stand (P2, ID 4200509889):** In `scripts/captureAuftrag081Inventory.mjs` und `docs/reviews/2026-10-06-frontend-inventar.json` werden Produkt-Baseline (`baselineCommit: '7fd6e33'`, `productVersion: '2.4.0'`) und der reproduzierbare Harness-Stand (`harness: { script: 'scripts/captureAuftrag081Inventory.mjs', sha256: '...', headAtExecution: '...' }`) getrennt erfasst und ausgewiesen, anstatt den Parent-Git-SHA fälschlich als „Code-Stand“ der Anwendung auszugeben. README (`docs/screenshots/auftrag-081/README.md`) und Befundregister entsprechend auf die Trennung von Produkt-Baseline und Test-Harness angepasst.
+- **Volllauf neu:** 256 von 256 Aufnahmen erfolgreich (Exit 0), JSON und README aktualisiert.
+- **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` vollständig leer; keine Datei unter `src/` geändert.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+

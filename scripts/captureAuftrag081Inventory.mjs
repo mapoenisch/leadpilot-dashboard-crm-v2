@@ -95,6 +95,7 @@ async function openRoute(browser, state, viewport, theme, target) {
     storageState: state,
     viewport,
     reducedMotion: 'reduce',
+    locale: 'de-DE',
   });
   await context.addInitScript((mode) => {
     try {
@@ -226,7 +227,13 @@ async function capture(page, viewport, name) {
 
 async function pipelineErrorCase(browser, state) {
   const viewport = WIDTHS[0];
-  const context = await browser.newContext({ baseURL: BASE_URL, storageState: state, viewport });
+  const context = await browser.newContext({
+    baseURL: BASE_URL,
+    storageState: state,
+    viewport,
+    reducedMotion: 'reduce',
+    locale: 'de-DE',
+  });
   let interceptedPostCount = 0;
   // OPTIONS-Preflight mit gültigen CORS-Headern passieren lassen, nur den POST kontrolliert
   // mit 500 beantworten, damit der echte Serverfehler-Pfad statt CORS-Fehler getestet wird (Codex PR #67).
@@ -338,14 +345,15 @@ function writeReadme(data) {
   const readme = [
     '# Auftrag 081 – Ausgangslage Frontend (Arbeitspaket 0)',
     '',
-    `Code-Stand \`${data.commit}\`, aufgenommen ${data.capturedAt.slice(0, 10)} mit`,
-    '`scripts/captureAuftrag081Inventory.mjs`. Keine Vorher/Nachher-Paare: Paket 0 ändert nichts,',
-    'diese Aufnahmen sind die Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im',
+    `Produkt-Baseline: \`${data.baselineCommit ?? data.commit}\` (Release v2.4.0), aufgenommen ${data.capturedAt.slice(0, 10)} mit`,
+    `\`${data.harness?.script ?? 'scripts/captureAuftrag081Inventory.mjs'}\` (Harness SHA-256: \`${data.harness?.sha256 ? data.harness.sha256.slice(0, 16) : '–'}\`).`,
+    'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
+    'Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im',
     '[Befundregister](../../reviews/2026-10-06-frontend-befundregister.md).',
     '',
     `Aufnahmen: ${data.summary.ok} von ${data.summary.expected} erwartet, fehlgeschlagen: ${data.summary.failed}.`,
     'axe (serious/critical) läuft zweimal: nur `<main>` und die ganze Seite mit Kopfzeile, Sidebar',
-    'und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen.',
+    'und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-Locale: `de-DE`).',
     '',
     '| Ansicht | Breite | Theme | Höhe `<main>` | SHA-256 erster Bildschirm / ganz (16) | Überlauf Dokument / `<main>` px | axe `<main>` | axe ganze Seite | erster Tab-Fokus | Messung |',
     '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
@@ -410,7 +418,11 @@ async function main() {
   }
   const pipelineError = ONLY ? null : await pipelineErrorCase(browser, state);
   await browser.close();
-  const commit = (await import('node:child_process'))
+  const scriptContent = fs.readFileSync(path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'));
+  const harnessSha256 = sha256(scriptContent);
+  const baselineCommit = '7fd6e33';
+  const productVersion = '2.4.0';
+  const headCommit = (await import('node:child_process'))
     .execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
     .toString()
     .trim();
@@ -418,7 +430,25 @@ async function main() {
   const summary = { expected, ok: shots.length - failed, failed };
   fs.writeFileSync(
     JSON_OUT,
-    `${JSON.stringify({ commit, baseUrl: BASE_URL, capturedAt: new Date().toISOString(), summary, shots, pipelineError }, null, 1)}\n`,
+    `${JSON.stringify(
+      {
+        baselineCommit,
+        productVersion,
+        harness: {
+          script: 'scripts/captureAuftrag081Inventory.mjs',
+          sha256: harnessSha256,
+          headAtExecution: headCommit,
+        },
+        commit: baselineCommit,
+        baseUrl: BASE_URL,
+        capturedAt: new Date().toISOString(),
+        summary,
+        shots,
+        pipelineError,
+      },
+      null,
+      1,
+    )}\n`,
   );
   writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
   console.log(
