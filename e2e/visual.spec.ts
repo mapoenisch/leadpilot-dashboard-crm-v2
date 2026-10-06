@@ -4,7 +4,13 @@ import { test, expect } from '@playwright/test';
 // captureAuftrag0XX-Harnesses durch toHaveScreenshot mit expliziter Toleranz
 // (maxDiffPixelRatio 0.02, siehe playwright.config.ts). Volle Seite, weil der
 // alte Harness ebenfalls Full-Height capturte.
-const ROUTES = ['/dashboard', '/crm/leads', '/finance/p-and-l', '/market/overview', '/resources/materials'];
+const ROUTES = [
+  '/dashboard',
+  '/crm/leads',
+  '/finance/p-and-l',
+  '/market/overview',
+  '/resources/materials',
+];
 
 // G66-Review (PR #34): Der Seiteninhalt scrollt in #main-content, nicht im
 // Dokument; `fullPage` erfasste deshalb nur den Viewport. Vor der Aufnahme
@@ -33,6 +39,26 @@ for (const routePath of ROUTES) {
     ).toHaveCount(0);
     await page.addStyleTag({ content: FULL_CONTENT_CSS });
     await page.waitForTimeout(300);
+    if (routePath === '/dashboard') {
+      // Auftrag 079 (Rollout): Die persönliche Ansicht lädt Kacheln erst nahe dem Sichtbereich.
+      // Ohne Durchlauf zeigte die Referenz unterhalb der ersten Reihen nur Ladeplatzhalter. Einmal
+      // durch die Seite scrollen, bis jede Kachel aktiv und geladen ist, dann zurück nach oben.
+      const height = await page.evaluate(() => document.documentElement.scrollHeight);
+      for (let y = 0; y <= height; y += 600) {
+        await page.evaluate((top) => window.scrollTo(0, top), y);
+        await page.waitForTimeout(100);
+      }
+      await expect(page.locator('[data-testid="lazy-tile"][data-active="false"]')).toHaveCount(0);
+      await expect(page.locator('[data-testid="dashboard-tile"][data-state="laden"]')).toHaveCount(
+        0,
+      );
+      await expect(page.getByTestId('dashboard-workspace').getByText(/wird geladen/)).toHaveCount(
+        0,
+      );
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(500);
+    }
     if (routePath === '/crm/leads') {
       // 067P-N6-Abschluss (fail-closed Seed-Prüfung, dauerhaft): Vor Telemetrie
       // und Screenshot muss der CRM-Seed-Zustand belegt sein. Schlägt einer dieser
@@ -51,10 +77,7 @@ for (const routePath of ROUTES) {
       const standLocator = page
         .locator('[aria-label="Status der Datenquelle"]')
         .getByText(/^Stand:/);
-      await expect(
-        standLocator,
-        'CRM-Zeitstempel (Stand:) wird nicht gerendert.',
-      ).toBeVisible();
+      await expect(standLocator, 'CRM-Zeitstempel (Stand:) wird nicht gerendert.').toBeVisible();
       await expect(page).toHaveScreenshot({
         fullPage: true,
         mask: [standLocator],

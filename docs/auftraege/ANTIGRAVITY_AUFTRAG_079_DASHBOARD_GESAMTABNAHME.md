@@ -71,6 +71,12 @@ Neu ist in 079 der Nachweis **im echten App-Ablauf über den vollständigen Kata
 
 Die Bildmatrix maß bei 768 px CLS 0,28–0,30 (Grenze 0,1). Ursache: Solange die gespeicherte Ansicht lädt, baut die Seite den Filterbereich aus der Standardansicht auf, mit Pipeline-Feld. Hat die gespeicherte Ansicht keine CRM-Kachel, ersetzt ein Hinweis das Feld. Der Hinweis hatte keine feste Breite, die Filterzeile brach um, und das Raster rutschte rund 41 px nach unten. Fix in `DashboardFilters.tsx`: Feld und Hinweis teilen denselben Platz. Test vor dem Fix rot, danach grün; Nachmessung CLS höchstens 0,014.
 
+### Zweiter Befund beim Bau (Rollout): spät abonnierte Live-Kennzahlen hingen auf „laden“
+
+Beim Neuerzeugen der Referenzbilder für `visual /dashboard` blieben Live-Kacheln unterhalb des Startbereichs dauerhaft auf „wird geladen“. Ursache in `src/services/liveKpi/liveKpiStreamStore.ts` (kein Schutzbereich): Den Wechsel auf „live“ samt Nachladen des letzten Werts gab es nur beim Verbinden des Kanals, für die zu diesem Zeitpunkt abonnierten Kennzahlen. Durch das Lazy Loading abonnieren Kacheln weiter unten erst später. Ohne Werte der letzten 30 Minuten blieben sie auf „loading“, ein älterer letzter Wert wurde nie geladen. Die bisherige Ansicht abonniert alles auf einmal und war nicht betroffen. Fix: Ein spätes Abonnement bei verbundenem Kanal lädt den letzten Wert einmal nach; die Antwort zählt nur, solange der Kanal noch verbunden ist. Test `liveKpiStreamStoreLateAcquire.vitest.ts`: zwei Fälle vor dem Fix rot, Kontrollfall (vor dem Verbinden bleibt „loading“) grün; `useLiveKpi.ui.vitest.ts` („Feed offline …“) deckte beim Bau ein Rennen auf, das der Fix berücksichtigt.
+
+Außerdem: `e2e/visual.spec.ts` scrollt `/dashboard` vor der Aufnahme einmal durch und wartet, bis jede Kachel geladen ist. Die erste neu erzeugte Referenz zeigte unterhalb der ersten Reihen nur Ladeplatzhalter.
+
 ## Entscheidungen Marc (06.10.2026)
 
 | ID  | Frage                                                            | Entscheidung                                                                                              |

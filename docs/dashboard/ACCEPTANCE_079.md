@@ -26,3 +26,7 @@ Plan: `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, Teilauftr
 **Ursache:** Solange die gespeicherte Ansicht lädt, baut die Seite den Filterbereich aus der Standardansicht auf, und die enthält eine CRM-Kachel, also ein Pipeline-Feld. Hat die gespeicherte Ansicht keine CRM-Kachel, ersetzt ein Hinweistext das Feld. Der Hinweis hatte keine feste Breite. Bei 768 px brach die Filterzeile deshalb um, und das Raster rutschte rund 41 px nach unten. Das betraf jeden Benutzer ohne CRM-Kachel bei jedem Laden auf Tablet-Breite.
 
 **Fix:** In `DashboardFilters.tsx` teilen Feld und Hinweis jetzt denselben Platz in der Zeile. Test `DashboardFilters.ui.vitest.tsx` („Hinweis ohne Pipeline belegt denselben Platz …“): vor dem Fix rot, danach grün. Nachmessung: CLS 0,001–0,014.
+
+## Befund beim Rollout: spät abonnierte Live-Kennzahlen
+
+Live-Kacheln unterhalb des Startbereichs blieben dauerhaft auf „wird geladen“, wenn der Realtime-Kanal beim späten Abonnieren (Lazy Loading) schon verbunden war und es keinen Wert der letzten 30 Minuten gab; ein älterer letzter Wert wurde nie geladen. Fix in `liveKpiStreamStore.ts`: spätes Abonnement lädt den letzten Wert einmal nach. Test vorher rot, danach grün.
