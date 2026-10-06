@@ -211,28 +211,56 @@ async function axeSeverePage(page) {
 async function capture(page, viewport, name) {
   const first = await page.screenshot();
   fs.writeFileSync(path.join(OUT_DIR, `${name}-first.png`), first);
-  const height = await page.evaluate(() => document.querySelector('main')?.scrollHeight ?? 0);
-  await page.setViewportSize({
-    width: viewport.width,
-    height: Math.min(Math.max(height + 120, viewport.height), 16000),
+  // Auftrag 079-Muster: Höhen- und Overflow-Begrenzung für fullPage temporär aufheben,
+  // damit der gesamte scrollende Hauptinhalt ohne Viewport-Verzerrung aufgenommen wird (Codex PR #67).
+  const style = await page.addStyleTag({
+    content:
+      'html,body,#root,#root>*{height:auto!important;overflow:visible!important}' +
+      'main{height:auto!important;overflow:visible!important}',
   });
-  await page.waitForTimeout(300);
-  const full = await page.screenshot();
+  const full = await page.screenshot({ fullPage: true });
+  await style.evaluate((node) => node.remove());
   fs.writeFileSync(path.join(OUT_DIR, `${name}-full.png`), full);
-  await page.setViewportSize(viewport);
   return { first: sha256(first).slice(0, 16), full: sha256(full).slice(0, 16) };
 }
 
 async function pipelineErrorCase(browser, state) {
   const viewport = WIDTHS[0];
   const context = await browser.newContext({ baseURL: BASE_URL, storageState: state, viewport });
-  await context.route('**/functions/v1/crm-query-export**', (route) =>
-    route.fulfill({
-      status: 500,
-      contentType: 'application/json',
-      body: '{"error":"SERVER_ERROR"}',
-    }),
-  );
+  let interceptedPostCount = 0;
+  // OPTIONS-Preflight mit gültigen CORS-Headern passieren lassen, nur den POST kontrolliert
+  // mit 500 beantworten, damit der echte Serverfehler-Pfad statt CORS-Fehler getestet wird (Codex PR #67).
+  await context.route('**/functions/v1/crm-query-export**', async (route) => {
+    const request = route.request();
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey',
+          'Access-Control-Max-Age': '86400',
+        },
+      });
+      return;
+    }
+    if (request.method() === 'POST') {
+      interceptedPostCount++;
+      await route.fulfill({
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: 'SERVER_ERROR',
+          error: 'Ein interner Serverfehler ist aufgetreten.',
+        }),
+      });
+      return;
+    }
+    await route.continue();
+  });
   const page = await context.newPage();
   const consoleErrors = [];
   page.on(
@@ -242,14 +270,22 @@ async function pipelineErrorCase(browser, state) {
   const steps = [];
   const snap = async (label) => {
     await page.waitForTimeout(1500);
+    const headerTitle = await page
+      .locator('header h1, .app-header h1')
+      .first()
+      .textContent({ timeout: 2000 })
+      .catch(() => null);
+    const mainTitle = await page
+      .locator('main h1')
+      .first()
+      .textContent({ timeout: 2000 })
+      .catch(() => null);
     steps.push({
       label,
       url: new URL(page.url()).pathname,
-      h1: await page
-        .locator('main h1')
-        .first()
-        .textContent({ timeout: 2000 })
-        .catch(() => null),
+      headerH1: headerTitle?.trim() ?? null,
+      mainH1: mainTitle?.trim() ?? null,
+      h1: headerTitle?.trim() ?? mainTitle?.trim() ?? null,
       mainText: (
         await page
           .locator('main')
@@ -279,7 +315,12 @@ async function pipelineErrorCase(browser, state) {
   );
   const maxDepth = consoleErrors.filter((e) => /Maximum update depth/i.test(e)).length;
   await context.close();
-  return { steps, consoleErrors: consoleErrors.slice(0, 10), maxUpdateDepthErrors: maxDepth };
+  return {
+    steps,
+    interceptedPostCount,
+    consoleErrors: consoleErrors.slice(0, 10),
+    maxUpdateDepthErrors: maxDepth,
+  };
 }
 
 /** Ergebnismatrix aus den Messwerten; Bilder bleiben lokal. */

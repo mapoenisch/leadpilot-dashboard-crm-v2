@@ -16,8 +16,8 @@ Das Register deckt alle 32 Bildseiten und die interaktiven Abläufe ab.
 
 ## Baseline
 
-- Branch `claude/frontend-paket-0` von `main` `5c0deba` (Merge PR #65).
-- Schutzbereichs-Baseline: `5c0deba`.
+- Branch `claude/frontend-paket-0` von `main` `7fd6e33` (Merge PR #66, Release v2.4.0).
+- Schutzbereichs-Baseline: `7fd6e33`.
 - Messumgebung: Produktionsbuild (`vite build`) gegen lokales Supabase, CI-Testbenutzer
   `admin-a`, `vite preview`, Chromium über Playwright, reduzierte Bewegung, Browserzoom 100 %.
 
@@ -61,5 +61,5 @@ Das Register deckt alle 32 Bildseiten und die interaktiven Abläufe ab.
 | P0-1 | Register nennt alle 32 Bildseiten und die interaktiven Abläufe                                                 |
 | P0-2 | Jeder Befund F01–F14 hat Einstufung, Beleg und reproduzierbaren Schritt                                        |
 | P0-3 | `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run verify`, `npm run build`, `npm run format:check` grün |
-| P0-4 | Schutzbereichs-Diff gegen `5c0deba` leer; keine Datei unter `src/` geändert                                    |
+| P0-4 | Schutzbereichs-Diff gegen `7fd6e33` leer; keine Datei unter `src/` geändert                                    |
 | P0-5 | Codex-Befund ohne Blocker; Merge durch Marc                                                                    |
