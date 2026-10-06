@@ -15380,3 +15380,21 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-076/README.md`, Skript Exit 0: Vorher (Basis `4088ee3`) und Nachher je Breite 1440/768/375 verschieden; 0 px Seitenüberlauf; axe serious/critical 0 in Ansicht (24 Kacheln), Bearbeiten, gesperrter Partner, Konfigurator mit Kombination, nicht berechenbar, Ansicht nach Speichern; Tastaturablauf (Kennzahl, Partner, Verwerfen, Hinzufügen, Escape, Speichern) auf allen Breiten; Höhe aller 24 Kacheln Laden → bereit/nicht berechenbar ohne Abweichung, Raster gleich hoch; Lazy: 10/6/2 beim Start, 24 nach dem Scrollen.
 
 **Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR mit Auftragstext und Code gegen `main`, CI, Codex-Prüfung, Merge durch Marc.
+
+---
+
+## CI-Auftrag Audit postcss/source-map-js/proxy-addr, Builder Claude Code, 06.10.2026
+
+**Ziel & Kontext:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_AUDIT_POSTCSS.md`. CI-Job `test` seit 05.10.2026 auf `main` und PR #61 rot, nur wegen neuer Advisories im Audit-Schritt (GHSA-rj75-hqrm-r3gf, GHSA-68fv-2mgg-jv7q, GHSA-jqcg-44mw-7w3h). Marc hat am 06.10.2026 Weg 1 gewählt (Pakete aktualisieren statt Ausnahme). Basis `main` `7a60dd8`.
+
+**Geänderte Dateien:** `package.json` (`overrides`: `postcss-selector-parser` `^7.1.6`, `source-map-js` `^1.2.2`), `package-lock.json` (zusätzlich `proxy-addr` 2.0.8), Auftragstext, dieser Eintrag. Keine neuen Abhängigkeiten, `scripts/auditAllowlist.mjs` unverändert.
+
+**Funktionale Prüfungen:** `node scripts/auditAllowlist.mjs --omit=dev` und `--audit-level=high` Exit 0 (nur noch die bestehende, befristete `braces`-Ausnahme greift). Produktions-Build auf `7a60dd8` und mit Override: `index-DTqJiAWb.css` und `ImagePage-Ddb2utT7.css` Byte für Byte identisch (`cmp`), Tailwind-Ausgabe also unverändert.
+
+**Schutzbereichs-Prüfung:** `git diff 7a60dd8 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run lint` 0, `npx vitest run` 0 (307 Dateien, 2165 Tests), `npm run verify` 0, `npm run build` 0, `npm run verify:licenses` 0 (184 Produktionspakete), `npm run verify:quality-budget` 0, `npx size-limit` 0.
+
+**Screenshot-Matrix:** entfällt, keine UI-Änderung (CSS-Ausgabe identisch).
+
+**Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR gegen `main`, CI, Codex-Prüfung, Merge durch Marc; danach PR #61 auf `main` aktualisieren.
