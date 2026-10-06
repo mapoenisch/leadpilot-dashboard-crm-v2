@@ -429,5 +429,6 @@ Die Dokumentänderung richtet keine periodische Codex-App-Automation ein und sta
 - Finale Veröffentlichung: `v2.4.0` erst nach vollständig grünen Gates und Release-Freigabe.
 - Spätere kompatible Fehlerkorrekturen: `v2.4.1`, `v2.4.2`.
 - `package.json`, Lockfile, Release-Dokument und Tag werden erst im ausdrücklich benannten Release-Auftrag konsistent aktualisiert; in dieser Planrevision bleibt die App-Version unverändert.
+- **Stand 06.10.2026:** Release-Auftrag ist Auftrag 080 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_080_RELEASE_V2_4_0.md`), Release-Freigabe Marc am 06.10.2026. Keine Vorabversionen veröffentlicht.
 
 Quellen: [SemVer](https://semver.org/lang/de/), [GitHub-Workflow-Ereignisse](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows), [React.lazy](https://react.dev/reference/react/lazy), [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API). Repo-Befunde beruhen auf dem lokal gelesenen Code, nicht auf einer Prüfung aktueller GitHub-App-Einstellungen.

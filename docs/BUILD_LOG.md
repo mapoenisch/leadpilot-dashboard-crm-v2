@@ -15622,3 +15622,19 @@ Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind 
 **Nachtrag 06.10.2026 – neue Linux-Referenzen übernommen:** Zweiter Lauf `update-visual-baselines.yml` (Run 37474338604, Branch `visual-baselines/079-rollout`, Head `e61f72e`) grün, einschließlich dreifacher Verifikation. Geändert wieder genau die drei `visual-dashboard-1-*-linux.png` (1440: 3530 px, 768: 5975 px, 375: 8183 px Höhe), alle übrigen bytegleich. Sichtprüfung: alle Kacheln geladen, keine Ladeplatzhalter. Übernommen in Commit `57530bb`; danach CI auf PR #64 vollständig grün (vorher nur `visual /dashboard` in drei Breiten rot, 627 von 630 E2E-Tests grün). Schutzbereiche unberührt (nur Bilddateien). **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. PR #64 von Marc gemergt (`55c4aa7`, Head `57530bb`).
 
 **Nachtrag 06.10.2026 – CI auf `main` nach Merge rot (wackeliger Test):** Lauf 37482692019 scheiterte im Job `test` an `DashboardWorkspace.codex.ui.vitest.tsx` › „hängt die Vorschau bei Texteingaben nicht aus und wieder ein“ (`Unable to find a label … Eigener Titel (optional)`). Ursache: Der Test suchte das Titelfeld des asynchron gerenderten Konfigurators sofort mit `getByLabelText`; auf dem PR-Runner war es zufällig schon da. Fix: `await findByLabelText`, Zählerstand erst danach erfassen (wie im Nachbartest Zeile 170). Kein Produktcode, Schutzbereiche unberührt.
+
+---
+
+## Auftrag 080 – Release v2.4.0, Builder Claude Code, 06.10.2026
+
+**Ziel & Kontext:** Die neue persönliche Ansicht unter `/dashboard` (Aufträge 070–079) als `v2.4.0` veröffentlichen (Plan Abschnitt 12). Release-Freigabe Marc im Chat am 06.10.2026. Kein Funktionsbau.
+
+**Geänderte Dateien:** `package.json`, `package-lock.json` (2.4.0), `src/features/auth/pages/LoginPage.tsx` (Anzeige `V2.4.0`), `docs/releases/V2.4.0.md` (neu), `docs/auftraege/ANTIGRAVITY_AUFTRAG_080_RELEASE_V2_4_0.md` (neu), `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, `BUILD_PLAN.md`, dieser Eintrag.
+
+**Schutzbereichs-Prüfung:** `git diff 5c0deba -- src/simulation src/types src/context src/services/data src/features/resources` leer. Keine Migration, keine neue Abhängigkeit, ältere Tags unverändert.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run verify` 0, `npm run build` 0, `npm run lint` 0, `npm run format:check` 0, `npx vitest run` 0 (316 Dateien, 2257 Tests). `verify:migrations` und `verify:backup` laufen in der CI.
+
+**Screenshot-Matrix:** entfällt (einzige UI-Änderung ist die Versionszeile auf der Login-Seite; keine Visual-Baseline enthält sie).
+
+**Ergebnis & Freigabestatus:** Release-Kandidat bereit. Offen: CI, Codex-Befund, Merge durch Marc; danach Tag `v2.4.0` auf dem Merge-Commit und GitHub-Release (T6).
