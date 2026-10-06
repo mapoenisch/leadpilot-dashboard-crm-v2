@@ -25,6 +25,7 @@ ist die letzte 3er-Version und verlangt `postcss-selector-parser@^6.1.2`.
 |---|---|
 | `package.json` | `overrides`: `postcss-selector-parser` `^7.1.6`, `source-map-js` `^1.2.2`. |
 | `package-lock.json` | Neu aufgelöst; `proxy-addr` 2.0.7 → 2.0.8 (Patch innerhalb des Bereichs von `express`). |
+| `supabase/functions/deno.lock` | Root-`overrides` gespiegelt (wie bei `basic-ftp`, Commit `500fb92`), sonst scheitert `deno check --frozen-lockfile`. |
 | `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_AUDIT_POSTCSS.md` | Diese Auftragsdatei. |
 | `docs/BUILD_LOG.md` | Builder-Nachweis. |
 
