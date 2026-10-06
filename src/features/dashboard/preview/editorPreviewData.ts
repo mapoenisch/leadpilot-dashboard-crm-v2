@@ -1,10 +1,11 @@
 // Auftrag 074 (Dashboard Teilauftrag 5): feste Testdaten je Katalogeintrag als `TileData` für die
 // Vorschau des Arbeitsbereichs. Alle Werte sind erfunden und stammen aus keiner Datenquelle; sie
 // dürfen nicht als Kennzahlen des Unternehmens gelesen werden. Übersichten nutzen die vorhandenen
-// statischen Stammdaten (Roadmap, Team/HR). Passt als `useData` für `LazyDashboardTile`.
+// statischen Stammdaten (Roadmap, Team/HR, seit Auftrag 078 Meilensteine). Passt als `useData` für `LazyDashboardTile`.
 // Auftrag 076: Kombinationen rechnen mit erfundenen Operanden über `computeCombination`, also
 // denselben Rechenweg wie die echte Kachel; der CAC-Aufschlag zeigt absichtlich „Nenner 0“.
 import { getRoadmapSnapshot, getTeamHrSnapshot } from '@/domain/executiveCockpitData';
+import { HISTORIE } from '@/domain/unternehmenData';
 import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import {
   computeCombination,
@@ -28,6 +29,8 @@ function overviewFor(entry: ActiveCatalogEntry): TileOverview | null {
   if (entry.id === 'uebersicht.roadmap') return { kind: 'roadmap', data: getRoadmapSnapshot() };
   if (entry.id === 'uebersicht.team_hr') return { kind: 'team_hr', data: getTeamHrSnapshot() };
   if (entry.id === 'uebersicht.live_aktivitaet') return { kind: 'live_aktivitaet', data: [] };
+  if (entry.id === 'uebersicht.meilensteine')
+    return { kind: 'meilensteine', data: HISTORIE.events };
   return null;
 }
 

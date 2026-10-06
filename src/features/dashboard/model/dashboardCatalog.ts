@@ -3,6 +3,7 @@
 // ausschließlich in den Quellmodulen; das Inventar mit Rohwerten liegt in docs/dashboard/KPI_CATALOG.md.
 import { ACTIVE_CATALOG_ENTRIES } from './catalog/activeEntries';
 import { COMBINATION_ENTRIES } from './catalog/combinationEntries';
+import { EXTENDED_ENTRIES } from './catalog/extendedEntries';
 import { PREPARE_CATALOG_ENTRIES } from './catalog/inventoryEntries';
 import { UNSUITABLE_CATALOG_ENTRIES } from './catalog/unsuitableEntries';
 
@@ -76,6 +77,16 @@ export interface CatalogSource {
   processing?: { module: string; exportName: string };
   /** Bei Listen (z. B. Pipeline-Stufen): das Feld je Element, das der Eintrag darstellt. */
   measure?: string;
+  /**
+   * Nur Stammdaten (Auftrag 078): `path` zeigt auf eine Zeilentabelle. Je Zeile liefert das Feld
+   * bzw. die Spalte `label` die Beschriftung und `value` den Wert; `excludeLabels` nennt
+   * Summenzeilen, die nicht zur Aufteilung gehören.
+   */
+  table?: {
+    label: string | number;
+    value: string | number;
+    excludeLabels?: readonly string[];
+  };
 }
 
 interface CatalogEntryBase {
@@ -168,6 +179,7 @@ export function minSizeFor(entry: ActiveCatalogEntry, view: DashboardView): Tile
 
 export const DASHBOARD_CATALOG: readonly CatalogEntry[] = [
   ...ACTIVE_CATALOG_ENTRIES,
+  ...EXTENDED_ENTRIES,
   ...COMBINATION_ENTRIES,
   ...PREPARE_CATALOG_ENTRIES,
   ...UNSUITABLE_CATALOG_ENTRIES,

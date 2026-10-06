@@ -57,7 +57,7 @@ describe('dashboardData', () => {
     });
 
     it('gibt UnavailableTileData für inaktive IDs aus dem Inventar zurück', () => {
-      const entry = getCatalogEntry('baseline.erloesmix');
+      const entry = getCatalogEntry('baseline.kuendigungsgruende');
       expect(entry).toBeDefined();
       const res = resolveUnavailableTile(entry!.id, entry);
       expect(res.state).toBe('nicht_verfuegbar');
