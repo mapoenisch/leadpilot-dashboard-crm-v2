@@ -47,7 +47,18 @@ describe('Persönliche Ansicht: Details öffnen und zurückkehren', () => {
     expect(readDashboardNavState(lastSeen().state, IDENTITY)).toEqual({
       session,
       returnFocus: 'umsatz',
+      fromDashboard: false,
     });
+  });
+
+  it('kehrt per Verlauf zurück, ohne ein zweites Dashboard anzulegen (Codex PR #61)', async () => {
+    renderRoutes([{ pathname: '/finance/p-and-l' }, { pathname: '/dashboard' }]);
+    fireEvent.click(detailsButton(/Details zu Umsatz/));
+    await screen.findByTestId('tile-detail-heading');
+    fireEvent.click(screen.getByRole('button', { name: 'Zurück zum Dashboard' }));
+    await waitFor(() => expect(detailsButton(/Details zu Umsatz/)).toHaveFocus());
+    fireEvent.click(screen.getByRole('button', { name: 'Browser zurück' }));
+    await waitFor(() => expect(lastSeen().pathname).toBe('/finance/p-and-l'));
   });
 
   it('gibt bei „Zurück zum Dashboard“ den Fokus an „Details“ der Kachel zurück', async () => {
@@ -150,6 +161,17 @@ describe('Persönliche Ansicht: Zurück-Taste des Browsers im Editor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Browser zurück' }));
     const dialog = await screen.findByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: /Verwerfen/ }));
+    await waitFor(() => expect(lastSeen().pathname).toBe('/finance/p-and-l'));
+  });
+
+  it('nimmt den Schutzeintrag nach dem Speichern wieder aus dem Verlauf (Codex PR #61)', async () => {
+    renderRoutes([{ pathname: '/finance/p-and-l' }, { pathname: '/dashboard' }]);
+    editAndChange();
+    await waitFor(() => expect(lastSeen().state).toMatchObject({ editorGuard: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+    await waitFor(() => expect(lastSeen().state).not.toMatchObject({ editorGuard: true }));
+    expect(lastSeen().pathname).toBe('/dashboard');
+    fireEvent.click(screen.getByRole('button', { name: 'Browser zurück' }));
     await waitFor(() => expect(lastSeen().pathname).toBe('/finance/p-and-l'));
   });
 

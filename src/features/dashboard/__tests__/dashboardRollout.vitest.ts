@@ -9,10 +9,10 @@ import {
 import {
   executiveDashboardLoader,
   loadLegacyExecutiveDashboard,
-  loadPersonalExecutiveDashboard,
+  loadPersonalWithFallback,
   withChunkFallback,
 } from '../pages/executiveDashboardEntry';
-import { DetailChunkError } from '../pages/DetailChunkError';
+import { DashboardChunkError, DetailChunkError } from '../pages/DetailChunkError';
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -35,7 +35,7 @@ describe('Rollout-Schalter (Entscheidung E1)', () => {
 
   it('wählt ohne Schalter die bisherige, mit Schalter die persönliche Ansicht', () => {
     expect(executiveDashboardLoader(false)).toBe(loadLegacyExecutiveDashboard);
-    expect(executiveDashboardLoader(true)).toBe(loadPersonalExecutiveDashboard);
+    expect(executiveDashboardLoader(true)).toBe(loadPersonalWithFallback);
     vi.stubEnv('VITE_EXECUTIVE_DASHBOARD_V2', '');
     expect(executiveDashboardLoader()).toBe(loadLegacyExecutiveDashboard);
   });
@@ -82,6 +82,14 @@ describe('Nachladefehler der Detailseite', () => {
     const failing = withChunkFallback(() => Promise.reject(new Error('Chunk fehlt')));
     const module = await failing();
     expect(module.default).toBe(DetailChunkError);
+  });
+
+  it('sichert auch die persönliche Ansicht ab, mit eigener Ersatzseite (Codex PR #61)', async () => {
+    const failing = withChunkFallback(
+      () => Promise.reject(new Error('Chunk fehlt')),
+      DashboardChunkError,
+    );
+    expect((await failing()).default).toBe(DashboardChunkError);
   });
 
   it('lässt ein erfolgreiches Nachladen unverändert durch', async () => {

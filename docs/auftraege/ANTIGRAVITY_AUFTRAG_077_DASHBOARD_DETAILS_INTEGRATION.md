@@ -107,6 +107,14 @@ Der Entwurf ist während des Baus an den Codex-Befunden zum Auftragstext geschä
 | `scripts/captureAuftrag077Screenshots.mjs`, `scripts/lib/detailShotHelpers.mjs`, `scripts/lib/detailShotConfig.ts`, `docs/screenshots/auftrag-077/README.md` | Screenshot- und Ablaufnachweis                                                                                                                                                                                        |
 | `docs/BUILD_LOG.md`, dieser Auftrag                                                                                                                          | Berichte, Checkboxen                                                                                                                                                                                                  |
 
+Nach dem zweiten und dritten Codex-Review zum Code (PR #61) zusätzlich, je nur so weit wie für den Befund nötig:
+
+| Datei                                                                    | Änderung                                                                             |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `src/components/layout/Layout.tsx`                                       | Nur: Attribut `data-leave-guard` am Abmelde-Knopf (Rückfrage bei offenen Änderungen) |
+| `src/features/dashboard/hooks/useLeaveGuard.ts`, `useDashboardEditor.ts` | Nur: Zustand `leaving` (Verlassen bestätigt) durchreichen                            |
+| `src/features/dashboard/__tests__/tileDetailFacts.vitest.ts`             | Neu: Angaben „Filter“ und „Aktualität“                                               |
+
 `src/components/layout/Sidebar.tsx` und `ExecutiveDashboardPage.tsx` bleiben unverändert.
 
 ## Codex-Befunde zum Auftragstext (PR #61, 05.10.2026)

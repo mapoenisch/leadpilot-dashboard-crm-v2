@@ -66,6 +66,7 @@ function ResolvedDetail(props: {
         entry={activeEntryOf(props.tile)}
         data={data}
         title={tileTitle(props.tile)}
+        filters={filters}
       />
       <DetailFooter tile={props.tile} onBack={props.onBack} />
     </>

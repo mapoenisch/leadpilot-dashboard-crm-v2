@@ -6,7 +6,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { DASHBOARD_CATEGORIES, type ActiveCatalogEntry } from '../../model/dashboardCatalog';
-import type { DashboardTileConfig } from '../../model/dashboardConfig';
+import type { DashboardFilters, DashboardTileConfig } from '../../model/dashboardConfig';
 import type { ResolvedTileData, TileData, TileDataState } from '../../data/dashboardData';
 import { isChartView, type ChartLoaders, type ChartView } from '../charts/chartLoaders';
 import { DashboardChart, NoData } from '../DashboardChart';
@@ -43,12 +43,16 @@ export interface TileDetailContentProps {
   entry?: ActiveCatalogEntry;
   data: TileData;
   title: string;
+  /** Wirksame Ansichtsfilter (Sitzung oder gespeichert), für die gewählte Auswahl in „Filter“. */
+  filters?: DashboardFilters;
   chartLoaders?: ChartLoaders;
 }
 
-function freshness(data: ResolvedTileData): string {
+export function freshness(data: ResolvedTileData): string {
   if (data.asOf) return formatAsOf(data.asOf) ?? 'Zeitpunkt unbekannt';
   if (data.origin.layer === 'live') return 'Noch kein Messzeitpunkt empfangen';
+  // CRM-Werte werden bei jedem Aufruf aus den importierten Deals abgefragt, kein fester Stand.
+  if (data.origin.layer === 'crm') return 'Bei jedem Aufruf aus den importierten CRM-Daten';
   return `Fester Stand der Quelle (${data.timeBasis})`;
 }
 
@@ -73,10 +77,30 @@ export function detailChartView(
   return entry.views.find(isChartView) ?? null;
 }
 
-function filterText(data: ResolvedTileData): string {
-  const { pipeline, pipelineReason } = data.effectiveFilter;
-  if (pipeline) return `Pipeline ${pipeline}`;
-  return pipelineReason ?? 'Kein Filter';
+/**
+ * Wirksame Filter samt gewählter, aber nicht angewendeter Auswahl und ihrem Grund, wie die Kachel
+ * selbst (Codex PR #61): ein abgelehnter Zeitraum wird nicht als „Kein Filter“ verschwiegen.
+ */
+export function filterText(
+  tile: DashboardTileConfig,
+  data: ResolvedTileData,
+  filters?: DashboardFilters,
+): string {
+  const { mode, period, periodReason, pipeline, pipelineReason } = data.effectiveFilter;
+  const parts: string[] = [];
+  const chosenPeriod =
+    mode === 'eigener_zeitraum' ? tile.period : mode === 'dashboard' ? filters?.period : undefined;
+  if (!period && chosenPeriod && periodReason) {
+    parts.push(`Zeitraum ${formatPeriod(chosenPeriod)} gewählt, nicht angewendet: ${periodReason}`);
+  }
+  if (pipeline) parts.push(`Pipeline ${pipeline}`);
+  else if (pipelineReason) {
+    const chosen = tile.pipeline ?? filters?.pipeline;
+    parts.push(
+      chosen ? `Pipeline ${chosen} gewählt, nicht angewendet: ${pipelineReason}` : pipelineReason,
+    );
+  }
+  return parts.length > 0 ? parts.join(' · ') : 'Kein Filter';
 }
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
@@ -95,6 +119,7 @@ export function TileDetailContent({
   entry,
   data,
   title,
+  filters,
   chartLoaders,
 }: TileDetailContentProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -156,7 +181,7 @@ export function TileDetailContent({
               </Fact>
             )}
             <Fact label="Zeitraum">{periodText}</Fact>
-            <Fact label="Filter">{filterText(resolved)}</Fact>
+            <Fact label="Filter">{filterText(tile, resolved, filters)}</Fact>
             <Fact label="Quelle">
               {SOURCE_LABEL[resolved.origin.layer]} · {SCOPE_LABEL[resolved.scope]}
             </Fact>

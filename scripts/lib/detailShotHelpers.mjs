@@ -137,16 +137,23 @@ export async function axeSevere(page) {
     .map((v) => v.id);
 }
 
-/** Alle Kacheln einmal in den Sichtbereich holen (Lazy Loading) und zurück an den Anfang. */
+/**
+ * Alle Kacheln einmal in den Sichtbereich holen (Lazy Loading) und zurück an den Anfang. Das Layout
+ * hält `body` auf Viewport-Höhe; gescrollt wird `<main>`, nicht das Fenster (Codex PR #61).
+ */
 export async function scrollThrough(page, viewport) {
-  const height = await page.evaluate(() => document.body.scrollHeight);
+  const height = await page.evaluate(() => document.querySelector('main')?.scrollHeight ?? 0);
   for (let y = 0; y <= height; y += Math.floor(viewport.height * 0.8)) {
-    await page.evaluate((top) => window.scrollTo(0, top), y);
+    await page.evaluate((top) => document.querySelector('main')?.scrollTo(0, top), y);
     await page.waitForTimeout(80);
   }
   await page.waitForLoadState('networkidle');
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => document.querySelector('main')?.scrollTo(0, 0));
 }
+
+/** Anzahl der Kacheln, die aktiviert sind (Daten angefordert, kein Lazy-Platzhalter mehr). */
+export const activeTileCount = (page) =>
+  page.locator('[data-testid="lazy-tile"][data-active="true"]').count();
 
 /** Überschriften des Hauptbereichs: Vergleich „Schalter aus“ gegen Vorher ohne Live-Zeitstempel. */
 export const mainHeadings = (page) =>

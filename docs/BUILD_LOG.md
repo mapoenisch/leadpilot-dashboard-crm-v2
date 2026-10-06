@@ -15468,3 +15468,27 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 - Schutzbereichs-Diff gegen `7a60dd8` leer; alle Dateien < 400 Zeilen
 
 **Freigabestatus:** Nacharbeit fertig. Offen sind die erneute Codex-Prüfung, CI und der Merge durch Marc.
+
+## Auftrag 077 – Nacharbeit zweites und drittes Codex-Review zum Code (PR #61, Heads `8265bc6` und `75a85d8`), Builder Claude Code, 06.10.2026
+
+**Befunde (8 × P2, alle berechtigt) und Umsetzung:**
+1. **Schutzeintrag bleibt nach Speichern/Verwerfen im Verlauf** (`useBrowserBackGuard.ts`): Wird der Entwurf ohne Verlassen sauber, geht der Schutzeintrag einen Schritt zurück. Während einer offenen Rückfrage oder eines bestätigten Verlassens (neuer Zustand `leaving` in `useLeaveGuard`) wird nicht aufgeräumt, weil die Router-Navigation erst nach dem Verwerfen gerendert wird. Test: nach „Speichern“ führt Browser-Zurück zur vorherigen Seite.
+2. **Kein Reload-Fallback für die persönliche Ansicht** (`executiveDashboardEntry.ts`): Der Loader der Ansicht läuft jetzt ebenfalls über `withChunkFallback`, mit eigener Ersatzseite `DashboardChunkError` (nur „Erneut laden“). Test.
+3. **Screenshot-Harness scrollt das Fenster statt `<main>`** (`detailShotHelpers.mjs`): `scrollThrough` scrollt `<main>`. Das Gate zählt zusätzlich die aktivierten Kacheln (`data-active="true"`) und verlangt 24 von 24.
+4. **CRM-Aktualität als „Fester Stand der Quelle“** (`TileDetailContent.tsx`): Für CRM steht „Bei jedem Aufruf aus den importierten CRM-Daten“. Test.
+5. **Standard-Build nach rotem E2E-Schritt nicht wiederhergestellt** (`runV23Acceptance.mjs`): Gates kennen `finally`-Schritte, die immer laufen, sobald das Gate gestartet ist. Ihr Fehler macht das Gate rot. Das E2E-Gate stellt so den regulären Build auch nach einem Fehler wieder her. In der CI bricht der Job beim Fehler ab, Lighthouse läuft dann nicht gegen den Schalter-Build. Test.
+6. **Rückweg legt ein zweites Dashboard an** (`useDashboardNavigation.ts`): Der aus der Ansicht geöffnete Detaileintrag trägt `fromDashboard`. „Zurück zum Dashboard“ geht dann per `navigate(-1)` zum vorbereiteten Eintrag. Nur Direktaufruf oder Reload legen ein neues Ziel an. Test: danach führt Browser-Zurück zur Seite vor dem Dashboard.
+7. **Abgelehnter Zeitraumfilter fehlt in den Details** (`TileDetailContent.tsx`): „Filter“ nennt gewählten Zeitraum oder gewählte Pipeline samt Grund, wenn sie nicht angewendet werden. Die Detailseite reicht dafür die wirksamen Ansichtsfilter herein. Tests.
+8. **Abmelden ohne Rückfrage** (`useInAppLinkGuard.ts`, `Layout.tsx`): Schaltflächen mit `data-leave-guard` laufen über `requestLeave`. Nach „Verwerfen“ oder „Speichern“ löst derselbe Klick die Aktion ohne neue Rückfrage aus. Der Abmelde-Knopf trägt das Attribut. Test.
+
+Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind auf GitHub mit Verweis auf die Commits beantwortet und aufgelöst.
+
+**Verifikation:**
+- `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0
+- `npm test` 0 (313 Dateien, 2224 Tests), `npm run verify` 0, `npm run build` 0
+- `npm run verify:quality-budget` 0, `npx size-limit` 0
+- E2E mit Schalter `--repeat-each=2`: 54/54, schließt die Härtung des Aufräumschlüssels aus `75a85d8` ein
+- Screenshot-Gate Exit 0: 0 px Überlauf, axe 0, CLS max. 0,019, an allen Breiten 24 von 24 Kacheln aktiv, Schalter aus wie vorher
+- Schutzbereichs-Diff gegen `7a60dd8` leer; alle Dateien < 400 Zeilen (`DashboardWorkspace.tsx` 388, `useDashboardEditor.ts` 390)
+
+**Freigabestatus:** Nacharbeit fertig. Offen sind die erneute Codex-Prüfung, CI und der Merge durch Marc.

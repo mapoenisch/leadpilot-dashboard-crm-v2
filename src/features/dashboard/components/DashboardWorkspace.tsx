@@ -50,7 +50,11 @@ export interface DashboardWorkspaceProps {
   /** Auftrag 077: interne Navigation; mit offenen Änderungen erst nach Rückfrage. */
   navigate?: (to: string) => void;
   /** Auftrag 077: Schutz der Zurück-Taste (Hook der Seite); ohne Router wirkungslos. */
-  useBackGuard?: (dirty: boolean, requestLeave: (proceed: () => void) => void) => boolean;
+  useBackGuard?: (
+    dirty: boolean,
+    requestLeave: (proceed: () => void) => void,
+    leavePending: boolean,
+  ) => boolean;
   /** Seite neu laden; Standard `window.location.reload()`. */
   onReload?: () => void;
   onTileActivated?: (tileId: string) => void;
@@ -175,12 +179,18 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
     onReturnFocus?.(found);
   });
   const { navigate } = props;
-  useInAppLinkGuard(Boolean(navigate) && editor.dirty, (to) =>
-    editor.requestLeave(() => navigate?.(to)),
+  useInAppLinkGuard(
+    Boolean(navigate) && editor.dirty,
+    (to) => editor.requestLeave(() => navigate?.(to)),
+    editor.requestLeave,
   );
   // Fester Hook je Arbeitsbereich: die Seite reicht ihn einmal herein (wie `useData`).
   const useBackGuard = props.useBackGuard ?? noBrowserBackGuard;
-  const backGuarded = useBackGuard(editor.dirty, editor.requestLeave);
+  const backGuarded = useBackGuard(
+    editor.dirty,
+    editor.requestLeave,
+    editor.leaveRequest !== null || editor.leaving,
+  );
 
   const move = (tileId: string, direction: 'hoch' | 'runter') => {
     editor.moveTile(tileId, direction);

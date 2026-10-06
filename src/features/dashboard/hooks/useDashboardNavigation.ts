@@ -22,12 +22,15 @@ interface StoredNavState {
     session: SessionFilters;
     /** Kachel, deren „Details“-Knopf bei der Rückkehr den Fokus erhält. */
     returnFocus?: string;
+    /** Detaileintrag direkt über dem vorbereiteten Dashboard-Eintrag (aus der Ansicht geöffnet). */
+    fromDashboard?: true;
   };
 }
 
 export interface DashboardNavContext {
   session: SessionFilters;
   returnFocus: string | null;
+  fromDashboard: boolean;
 }
 
 /** Liest den mitgereisten Kontext; alles Unbekannte, Veraltete oder Fremde ergibt `null`. */
@@ -44,6 +47,7 @@ export function readDashboardNavState(
   return {
     session,
     returnFocus: typeof nav.returnFocus === 'string' ? nav.returnFocus : null,
+    fromDashboard: nav.fromDashboard === true,
   };
 }
 
@@ -52,8 +56,17 @@ export function buildDashboardNavState(
   session: SessionFilters,
   returnFocus?: string,
   load: string = PAGE_LOAD,
+  fromDashboard = false,
 ): StoredNavState {
-  return { dashboardNav: { load, identity, session, ...(returnFocus ? { returnFocus } : {}) } };
+  return {
+    dashboardNav: {
+      load,
+      identity,
+      session,
+      ...(returnFocus ? { returnFocus } : {}),
+      ...(fromDashboard ? { fromDashboard: true as const } : {}),
+    },
+  };
 }
 
 export function useDashboardNavigation() {
@@ -77,19 +90,30 @@ export function useDashboardNavigation() {
         replace: true,
         state: buildDashboardNavState(identity, filters, tileId),
       });
-      navigate(tileDetailPath(tileId), { state: buildDashboardNavState(identity, filters) });
+      navigate(tileDetailPath(tileId), {
+        state: buildDashboardNavState(identity, filters, undefined, PAGE_LOAD, true),
+      });
     },
     [identity, location.pathname, navigate],
   );
 
-  /** Von den Details zurück zur Ansicht, mit Filtern und Fokusziel. */
+  /**
+   * Von den Details zurück zur Ansicht, mit Filtern und Fokusziel. Aus der Ansicht geöffnet: zurück
+   * zum vorbereiteten Eintrag, damit kein zweites Dashboard im Verlauf landet (Codex PR #61). Nur ein
+   * Direktaufruf oder Reload legt ein neues Dashboard-Ziel an.
+   */
+  const fromDashboard = incoming?.fromDashboard === true;
   const backToDashboard = useCallback(
     (tileId: string | null, filters: SessionFilters) => {
+      if (fromDashboard) {
+        navigate(-1);
+        return;
+      }
       navigate(DASHBOARD_PATH, {
         state: identity ? buildDashboardNavState(identity, filters, tileId ?? undefined) : null,
       });
     },
-    [identity, navigate],
+    [fromDashboard, identity, navigate],
   );
 
   const goTo = useCallback((to: string) => navigate(to), [navigate]);

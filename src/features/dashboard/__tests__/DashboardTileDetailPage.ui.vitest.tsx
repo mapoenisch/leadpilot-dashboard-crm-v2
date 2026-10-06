@@ -203,6 +203,7 @@ describe('Detailseite: Sonderfälle', () => {
     expect(readDashboardNavState(lastSeen().state, IDENTITY)).toEqual({
       session,
       returnFocus: 'umsatz',
+      fromDashboard: false,
     });
   });
 });
@@ -281,6 +282,7 @@ describe('Detailseite: Nacharbeit Codex PR #61', () => {
     expect(readDashboardNavState(lastSeen().state, IDENTITY)).toEqual({
       session,
       returnFocus: 'live',
+      fromDashboard: false,
     });
   });
 

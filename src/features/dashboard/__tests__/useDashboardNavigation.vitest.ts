@@ -11,7 +11,13 @@ describe('readDashboardNavState', () => {
     expect(readDashboardNavState(state, ID, 'aufruf-1')).toEqual({
       session: FILTERS,
       returnFocus: 'kachel-1',
+      fromDashboard: false,
     });
+  });
+
+  it('markiert den aus der Ansicht geöffneten Detaileintrag (Rückweg per History)', () => {
+    const state = buildDashboardNavState(ID, FILTERS, undefined, 'aufruf-1', true);
+    expect(readDashboardNavState(state, ID, 'aufruf-1')?.fromDashboard).toBe(true);
   });
 
   it('übernimmt einen ausdrücklich geleerten Sitzungsfilter', () => {
@@ -19,6 +25,7 @@ describe('readDashboardNavState', () => {
     expect(readDashboardNavState(state, ID, 'aufruf-1')).toEqual({
       session: { value: undefined },
       returnFocus: null,
+      fromDashboard: false,
     });
   });
 
@@ -39,7 +46,11 @@ describe('readDashboardNavState', () => {
     expect(readDashboardNavState('text', ID)).toBeNull();
     expect(readDashboardNavState({ andere: 1 }, ID)).toBeNull();
     const broken = { dashboardNav: { load: 'a', identity: ID, session: 'kaputt', returnFocus: 3 } };
-    expect(readDashboardNavState(broken, ID, 'a')).toEqual({ session: null, returnFocus: null });
+    expect(readDashboardNavState(broken, ID, 'a')).toEqual({
+      session: null,
+      returnFocus: null,
+      fromDashboard: false,
+    });
   });
 
   it('nutzt ohne Angabe das Ladezeichen dieses Seitenaufrufs', () => {

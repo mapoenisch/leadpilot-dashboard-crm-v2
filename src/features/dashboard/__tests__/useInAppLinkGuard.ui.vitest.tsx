@@ -1,6 +1,6 @@
 // Auftrag 077: Navigationsschutz für interne Links bei ungespeicherten Änderungen.
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { internalLinkTarget, useInAppLinkGuard } from '../hooks/useInAppLinkGuard';
 
 const ORIGIN = window.location.origin;
@@ -104,5 +104,27 @@ describe('useInAppLinkGuard', () => {
     fireEvent.click(screen.getByText('Leads'));
     expect(onLeave).not.toHaveBeenCalled();
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+function LogoutHarness(props: { onAction: (proceed: () => void) => void; onLogout: () => void }) {
+  useInAppLinkGuard(true, () => {}, props.onAction);
+  return (
+    <button type="button" data-leave-guard="" onClick={props.onLogout}>
+      Abmelden
+    </button>
+  );
+}
+
+describe('useInAppLinkGuard: Abmelden (Codex PR #61)', () => {
+  it('fragt vor dem Abmelden nach und meldet erst nach der Bestätigung ab', () => {
+    const onLogout = vi.fn();
+    let proceed: (() => void) | null = null;
+    render(<LogoutHarness onAction={(next) => (proceed = next)} onLogout={onLogout} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Abmelden' }));
+    expect(onLogout).not.toHaveBeenCalled();
+    expect(proceed).not.toBeNull();
+    act(() => proceed?.());
+    expect(onLogout).toHaveBeenCalledTimes(1);
   });
 });

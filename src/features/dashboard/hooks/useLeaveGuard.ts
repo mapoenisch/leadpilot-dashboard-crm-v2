@@ -13,6 +13,8 @@ interface LeaveGuardOptions {
 
 export function useLeaveGuard({ dirty, lockedRef, save, discard }: LeaveGuardOptions) {
   const [leaveRequest, setLeaveRequest] = useState<{ proceed: () => void } | null>(null);
+  // Bestätigtes Verlassen: der Entwurf wird dabei sauber, ohne dass die Seite bleibt (Auftrag 077).
+  const [leaving, setLeaving] = useState(false);
 
   const requestLeave = useCallback(
     (proceed: () => void): void => {
@@ -33,6 +35,7 @@ export function useLeaveGuard({ dirty, lockedRef, save, discard }: LeaveGuardOpt
     if (lockedRef.current || !leaveRequest) return;
     const { proceed } = leaveRequest;
     setLeaveRequest(null);
+    setLeaving(true);
     discard();
     proceed();
   }, [leaveRequest, lockedRef, discard]);
@@ -42,6 +45,7 @@ export function useLeaveGuard({ dirty, lockedRef, save, discard }: LeaveGuardOpt
     const { proceed } = leaveRequest;
     if (await save()) {
       setLeaveRequest(null);
+      setLeaving(true);
       proceed();
     }
   }, [leaveRequest, save]);
@@ -57,5 +61,5 @@ export function useLeaveGuard({ dirty, lockedRef, save, discard }: LeaveGuardOpt
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  return { leaveRequest, requestLeave, leaveStay, leaveDiscard, leaveSave };
+  return { leaveRequest, leaving, requestLeave, leaveStay, leaveDiscard, leaveSave };
 }

@@ -369,6 +369,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     serverLoaded,
     announcement,
     leaveRequest: guard.leaveRequest,
+    leaving: guard.leaving,
     startEditing,
     cancel,
     addTile,

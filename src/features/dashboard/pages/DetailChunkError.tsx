@@ -1,11 +1,12 @@
-// Executive Dashboard, Teilauftrag 7 (Auftrag 077): Ersatz, wenn der Code der Detailseite nicht
-// nachgeladen werden kann (z. B. nach einem Deployment). React hält einen fehlgeschlagenen Lazy-
+// Executive Dashboard, Teilauftrag 7 (Auftrag 077): Ersatz, wenn der Code der Detailseite oder der
+// persönlichen Ansicht nicht nachgeladen werden kann (z. B. nach einem Deployment). React hält einen fehlgeschlagenen Lazy-
 // Import fest; nur ein Neuladen der Seite holt ihn erneut. Die gespeicherte Ansicht bleibt erhalten.
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 export const DETAIL_CHUNK_ERROR_TEXT = 'Die Detailseite konnte nicht geladen werden.';
+export const DASHBOARD_CHUNK_ERROR_TEXT = 'Das Dashboard konnte nicht geladen werden.';
 
 export function DetailChunkError({ onReload = () => window.location.reload() }) {
   const navigate = useNavigate();
@@ -21,6 +22,20 @@ export function DetailChunkError({ onReload = () => window.location.reload() }) 
         </Button>
         <Button size="sm" variant="secondary" onClick={back}>
           Zurück zum Dashboard
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+/** Die persönliche Ansicht selbst: nur „Erneut laden“, ein Rückweg zu ihr wäre dieselbe Seite. */
+export function DashboardChunkError({ onReload = () => window.location.reload() }) {
+  return (
+    <Card variant="glass" data-testid="dashboard-chunk-error">
+      <div role="alert" className="flex flex-wrap items-center gap-[10px] text-[14px]">
+        <span>{DASHBOARD_CHUNK_ERROR_TEXT}</span>
+        <Button size="sm" onClick={onReload}>
+          Erneut laden
         </Button>
       </div>
     </Card>

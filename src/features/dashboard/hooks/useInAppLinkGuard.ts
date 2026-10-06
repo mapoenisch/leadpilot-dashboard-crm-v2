@@ -2,7 +2,19 @@
 // Solange der Entwurf ungespeicherte Änderungen hat, fängt der Arbeitsbereich Klicks auf interne
 // Links (Seitenleiste, Fachseiten, Kopfzeile) ab, bevor React Router sie ausführt, und fragt über
 // `requestLeave` nach (speichern, verwerfen, bleiben). Der Router selbst bleibt unverändert.
+// Schaltflächen, die die Seite ohne Link verlassen (Abmelden), tragen `data-leave-guard` und
+// laufen ebenso über die Rückfrage (Codex PR #61).
 import { useEffect, useRef } from 'react';
+
+export const LEAVE_GUARD_ATTRIBUTE = 'data-leave-guard';
+
+/** Schaltfläche mit `data-leave-guard`, deren Klick die Seite verlässt, oder `null`. */
+export function leavingControl(event: MouseEvent): HTMLElement | null {
+  if (event.defaultPrevented || event.button !== 0) return null;
+  const control =
+    event.target instanceof Element ? event.target.closest(`[${LEAVE_GUARD_ATTRIBUTE}]`) : null;
+  return control instanceof HTMLElement ? control : null;
+}
 
 /**
  * Internes Ziel eines Linkklicks oder `null` (neues Fenster, Download, extern, gleiche Seite).
@@ -33,12 +45,35 @@ export function internalLinkTarget(
   return `${url.pathname}${url.search}` === current ? null : to;
 }
 
-export function useInAppLinkGuard(active: boolean, onLeave: (to: string) => void) {
+export function useInAppLinkGuard(
+  active: boolean,
+  onLeave: (to: string) => void,
+  onLeaveAction?: (proceed: () => void) => void,
+) {
   const leave = useRef(onLeave);
   leave.current = onLeave;
+  const leaveAction = useRef(onLeaveAction);
+  leaveAction.current = onLeaveAction;
   useEffect(() => {
     if (!active) return;
+    // Nach „Verwerfen“ oder „Speichern“ löst derselbe Klick die Aktion ohne erneute Rückfrage aus.
+    let passThrough = false;
     const onClick = (event: MouseEvent) => {
+      if (passThrough) return;
+      const control = leaveAction.current ? leavingControl(event) : null;
+      if (control) {
+        event.preventDefault();
+        event.stopPropagation();
+        leaveAction.current?.(() => {
+          passThrough = true;
+          try {
+            control.click();
+          } finally {
+            passThrough = false;
+          }
+        });
+        return;
+      }
       const here = `${window.location.pathname}${window.location.search}`;
       const to = internalLinkTarget(event, window.location.origin, here);
       if (!to) return;

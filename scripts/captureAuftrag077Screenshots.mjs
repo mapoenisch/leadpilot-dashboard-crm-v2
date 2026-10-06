@@ -35,6 +35,7 @@ import {
   readPreferences,
   savePreferences,
   scrollThrough,
+  activeTileCount,
   sessionUserId,
   shiftOf,
   shotConfig,
@@ -103,7 +104,13 @@ async function afterRows(browser, state) {
     await view.page.getByTestId('dashboard-heading').waitFor();
     const tiles = await view.page.locator('[data-testid="lazy-tile"]').count();
     await scrollThrough(view.page, viewport);
-    rows.push({ ...(await shoot(view.page, viewport, 'Ansicht 24 Kacheln', 'nachher')), tiles });
+    // Nach dem Durchscrollen von `<main>` müssen alle Kacheln aktiv sein, nicht nur im DOM stehen.
+    const active = await activeTileCount(view.page);
+    rows.push({
+      ...(await shoot(view.page, viewport, 'Ansicht 24 Kacheln', 'nachher')),
+      tiles,
+      active,
+    });
     await view.page.getByRole('button', { name: 'Dashboard bearbeiten' }).click();
     const blocked = await view.page
       .locator('[data-action="details"][aria-disabled="true"]')
@@ -204,7 +211,7 @@ function writeReadme(m) {
     `- Größte Layoutverschiebung (CLS): ${m.maxShift}`,
     `- Ansicht: ${m.rows
       .filter((r) => r.tiles !== undefined)
-      .map((r) => `${r.width} px ${r.tiles} Kacheln`)
+      .map((r) => `${r.width} px ${r.tiles} Kacheln, ${r.active} aktiv`)
       .join(', ')}`,
     `- Bearbeiten, gesperrte „Details“: ${m.rows
       .filter((r) => r.blocked !== undefined)
@@ -295,7 +302,9 @@ async function main() {
     result.maxOverflowPx === 0 &&
     result.axeSevereTotal === 0 &&
     result.maxShift < 0.1 &&
-    result.rows.filter((r) => r.tiles !== undefined).every((r) => r.tiles === 24) &&
+    result.rows
+      .filter((r) => r.tiles !== undefined)
+      .every((r) => r.tiles === 24 && r.active === 24) &&
     result.rows.filter((r) => r.blocked !== undefined).every((r) => r.blocked === 24) &&
     result.off.headingsEqual &&
     result.off.personalViewOff === 0 &&
