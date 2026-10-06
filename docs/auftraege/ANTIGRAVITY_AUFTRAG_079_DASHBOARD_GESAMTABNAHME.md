@@ -65,18 +65,20 @@ Neu ist in 079 der Nachweis **im echten App-Ablauf über den vollständigen Kata
 - [x] **T6 Zugänglichkeit** (Punkt 7): Tastaturdurchlauf Ansicht → Bearbeiten → Kachel verschieben → Konfigurator öffnen und mit Escape schließen (Fokus zurück) → Speichern; Touch-Emulation (Legende, „Details“, zurück); Kontrast AA aus axe; reduzierte Bewegung (`prefers-reduced-motion`) ohne Übergänge; jede Diagrammkachel bietet die zugängliche Datentabelle. (Konfigurator über „Bearbeiten“ einer Kachel, weil der Durchgang 24 Kacheln hat und „Kachel hinzufügen“ dort zu Recht gesperrt ist.)
 - [x] **T7 Vorher/Nachher** (Punkt 8): Schalter aus (= Vorher, bisherige Ansicht) gegen Schalter an je Breite; Hash je Paar verschieden; Schalter aus zeigt weiterhin die bisherigen Überschriften und keine Detailroute.
 - [ ] **T8 Pflichtgates und Protokoll** (Punkt 9): Gates unten, Schutzbereichs-Diff, `ACCEPTANCE_079.md`, BUILD_LOG-Eintrag. Danach **Sichtprüfung durch Marc** (Bilder lokal oder CI-Artefakt `dashboard-preview`) und Codex-Befund. Stand: Gates, Diff, Protokoll und BUILD_LOG erledigt; offen sind Sichtprüfung Marc und Codex-Befund.
-- [ ] **T9 Rollout** (Punkt 10) – **erst nach ausdrücklicher Freigabe von Marc im Chat**: Schalter aktivieren. Vorschlag zur Entscheidung (E2): Standard an, `VITE_EXECUTIVE_DASHBOARD_V2=false` schaltet zurück auf die alte Ansicht. Nachweis: Rückschaltung lässt gespeicherte Konfigurationen unberührt und zeigt die alte Ansicht; erneutes Einschalten zeigt die gespeicherte persönliche Ansicht.
+- [ ] **T9 Rollout** (Punkt 10) – **erst nach ausdrücklicher Freigabe von Marc im Chat**: Schalter aktivieren. Umsetzung nach Entscheidung E2: Standard an, `VITE_EXECUTIVE_DASHBOARD_V2=false` schaltet zurück auf die alte Ansicht. Nachweis: Rückschaltung lässt gespeicherte Konfigurationen unberührt und zeigt die alte Ansicht; erneutes Einschalten zeigt die gespeicherte persönliche Ansicht.
 
 ## Befund beim Bau
 
 Die Bildmatrix maß bei 768 px CLS 0,28–0,30 (Grenze 0,1). Ursache: Solange die gespeicherte Ansicht lädt, baut die Seite den Filterbereich aus der Standardansicht auf, mit Pipeline-Feld. Hat die gespeicherte Ansicht keine CRM-Kachel, ersetzt ein Hinweis das Feld. Der Hinweis hatte keine feste Breite, die Filterzeile brach um, und das Raster rutschte rund 41 px nach unten. Fix in `DashboardFilters.tsx`: Feld und Hinweis teilen denselben Platz. Test vor dem Fix rot, danach grün; Nachmessung CLS höchstens 0,014.
 
-## Offene Entscheidungen für Marc
+## Entscheidungen Marc (06.10.2026)
 
-| ID  | Frage                                                            | Vorschlag                                                      |
-| --- | ---------------------------------------------------------------- | -------------------------------------------------------------- |
-| E2  | Wie wird „aktivieren“ umgesetzt?                                 | Standard an im Code, Rückschaltung per `=false` (siehe T9).    |
-| E3  | Bleibt die alte Ansicht nach dem Rollout im Code, und wie lange? | Bis zum Release `v2.4.0` behalten, Entfernung eigener Auftrag. |
+| ID  | Frage                                                            | Entscheidung                                                                                              |
+| --- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| E2  | Wie wird „aktivieren“ umgesetzt?                                 | Standard an im Code; `VITE_EXECUTIVE_DASHBOARD_V2=false` schaltet zurück auf die alte Ansicht (siehe T9). |
+| E3  | Bleibt die alte Ansicht nach dem Rollout im Code, und wie lange? | Bis zum Release `v2.4.0` behalten; die Entfernung bekommt einen eigenen Auftrag.                          |
+
+E2 und E3 legen nur fest, _wie_ ausgerollt wird. T9 selbst beginnt erst nach der Sichtprüfung und Freigabe durch Marc.
 
 ## Gates
 
