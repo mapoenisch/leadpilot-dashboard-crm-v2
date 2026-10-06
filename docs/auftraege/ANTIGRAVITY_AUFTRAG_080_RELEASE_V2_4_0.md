@@ -31,6 +31,8 @@ Die neue persönliche Ansicht unter `/dashboard` (Teilaufträge 0–8, Aufträge
 | `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md` | Status, Abschnitt 12                |
 | `BUILD_PLAN.md`                                                 | aktueller Release, nächster Auftrag |
 | `docs/BUILD_LOG.md`                                             | Builder-Eintrag                     |
+| `scripts/captureAuftrag080LoginScreenshots.mjs`                 | neu: Vorher/Nachher Login-Seite     |
+| `docs/screenshots/auftrag-080/README.md`                        | neu: Screenshot-Matrix              |
 
 ## Tasks
 
@@ -40,15 +42,19 @@ Die neue persönliche Ansicht unter `/dashboard` (Teilaufträge 0–8, Aufträge
 - [x] T3 Plan und `BUILD_PLAN.md` auf den Release-Stand bringen.
 - [x] T4 Pflichtgates lokal (`tsc`, `verify`, `build`, `lint`, `format:check`), Schutzbereichs-Diff.
 - [x] T5 BUILD_LOG-Eintrag, PR.
+- [x] T5a Screenshot-Gate Login-Seite (`CLAUDE.md` §7): Vorher/Nachher bei 1440/768/375 px.
+- [x] T5b Status „veröffentlicht“ schon in diesem PR, damit der getaggte Stand ihn enthält
+      (Lehre aus v2.3.2, dort nennt der Tag noch „Release-Kandidat“).
 - [ ] T6 Nach Codex-Befund, grüner CI und Merge durch Marc: annotierter Tag `v2.4.0` auf dem
-      Merge-Commit, GitHub-Release „LeadPilot v2.4.0“ mit den Release Notes, Status in
-      `docs/releases/V2.4.0.md` und `BUILD_PLAN.md` auf „veröffentlicht“.
+      Merge-Commit, GitHub-Release „LeadPilot v2.4.0“ mit den Release Notes. Kein
+      Nachtrags-Commit für den Status.
 
 ## Gates
 
 | Gate | Prüfung                                                                    |
 | ---- | -------------------------------------------------------------------------- |
 | R1   | `npx tsc --noEmit`, `npm run verify`, `npm run build` grün                 |
+| R1a  | Login-Seite vorher/nachher je Breite verschieden, 0 px Überlauf            |
 | R2   | CI auf dem PR grün, einschließlich `verify:migrations` und `verify:backup` |
 | R3   | Schutzbereichs-Diff gegen `5c0deba` leer                                   |
 | R4   | Codex-Befund ohne Blocker                                                  |

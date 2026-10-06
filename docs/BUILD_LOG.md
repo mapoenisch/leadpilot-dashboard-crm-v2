@@ -15629,12 +15629,14 @@ Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind 
 
 **Ziel & Kontext:** Die neue persönliche Ansicht unter `/dashboard` (Aufträge 070–079) als `v2.4.0` veröffentlichen (Plan Abschnitt 12). Release-Freigabe Marc im Chat am 06.10.2026. Kein Funktionsbau.
 
-**Geänderte Dateien:** `package.json`, `package-lock.json` (2.4.0), `src/features/auth/pages/LoginPage.tsx` (Anzeige `V2.4.0`), `docs/releases/V2.4.0.md` (neu), `docs/auftraege/ANTIGRAVITY_AUFTRAG_080_RELEASE_V2_4_0.md` (neu), `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, `BUILD_PLAN.md`, dieser Eintrag.
+**Geänderte Dateien:** `package.json`, `package-lock.json` (2.4.0), `src/features/auth/pages/LoginPage.tsx` (Anzeige `V2.4.0`), `docs/releases/V2.4.0.md` (neu), `docs/auftraege/ANTIGRAVITY_AUFTRAG_080_RELEASE_V2_4_0.md` (neu), `docs/superpowers/plans/2026-10-01-executive-dashboard-plan.md`, `BUILD_PLAN.md`, `scripts/captureAuftrag080LoginScreenshots.mjs` (neu), `docs/screenshots/auftrag-080/README.md` (neu), dieser Eintrag.
 
 **Schutzbereichs-Prüfung:** `git diff 5c0deba -- src/simulation src/types src/context src/services/data src/features/resources` leer. Keine Migration, keine neue Abhängigkeit, ältere Tags unverändert.
 
 **Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run verify` 0, `npm run build` 0, `npm run lint` 0, `npm run format:check` 0, `npx vitest run` 0 (316 Dateien, 2257 Tests). `verify:migrations` und `verify:backup` laufen in der CI.
 
-**Screenshot-Matrix:** entfällt (einzige UI-Änderung ist die Versionszeile auf der Login-Seite; keine Visual-Baseline enthält sie).
+**Screenshot-Matrix:** `docs/screenshots/auftrag-080/README.md`. Login-Seite vorher (Build `main` `5c0deba`, V2.3.2) und nachher (Release-Stand, V2.4.0) bei 1440/768/375 px: Hashes je Breite verschieden, 0 px Überlauf, Versionszeile sichtbar. Harness Exit 0.
 
-**Ergebnis & Freigabestatus:** Release-Kandidat bereit. Offen: CI, Codex-Befund, Merge durch Marc; danach Tag `v2.4.0` auf dem Merge-Commit und GitHub-Release (T6).
+**Ergebnis & Freigabestatus:** Release-Kandidat bereit. Release Notes und `BUILD_PLAN.md` nennen bereits den Status „veröffentlicht“, damit der getaggte Stand ihn enthält. Offen: CI, Codex-Befund, Merge durch Marc; danach Tag `v2.4.0` auf genau diesem Merge-Commit und GitHub-Release (T6), ohne Nachtrags-Commit.
+
+**Nachtrag Codex-Befunde (06.10.2026):** Screenshot-Gate Login nachgeholt (P1); Release Notes nennen den wirkungslosen Zeitraumfilter als bekannte Grenze und beschränken „Werte als Tabelle“ auf Kennzahlkacheln (P2); Status vor dem Tag im Ziel-Commit (P2). Plan- und Entwurfsdatei Frontend-Qualität waren kurz in diesem PR und sind wieder entfernt, sie kommen mit Auftrag 081.
