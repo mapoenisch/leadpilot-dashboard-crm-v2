@@ -15552,3 +15552,17 @@ Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind 
 **Screenshot-Matrix:** entfällt in 078 (keine neue Darstellung, keine Layoutänderung); die Bildnachweise aller Darstellungen über den ausgebauten Katalog folgen mit Auftrag 079.
 
 **Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR gegen `main`, CI, Codex-Prüfung, Merge durch Marc.
+
+---
+
+## Auftrag 078 – Nacharbeit Codex-Review (PR #63, Head `45f2859`), Builder Claude Code, 06.10.2026
+
+**Befund (P2, `extendedEntries.ts`):** Die Editor-Vorschau (`useEditorPreviewData`) kannte die neue Übersicht „Meilensteine“ nicht und lieferte `bereit` ohne Übersicht, die Kachel zeigte „Keine Daten“. Berechtigt.
+
+**Behebung:** `preview/editorPreviewData.ts` liefert für `uebersicht.meilensteine` die statischen Ereignisse aus `HISTORIE` wie die echte Auflösung. Neuer Test in `dashboardCatalogExtended.ui.vitest.tsx`: jede aktive Übersicht erhält in der Editor-Vorschau Daten (schützt auch künftige Übersichten). Auftrag um die Zieldatei ergänzt.
+
+**Schutzbereichs-Prüfung:** `git diff 90e530d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npx eslint src/features/dashboard` 0, `npx vitest run src/features/dashboard` 0 (36 Dateien, 513 Tests), `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
+**Ergebnis & Freigabestatus:** Befund behoben. Offen: CI und erneute Codex-Prüfung des neuen Heads, Merge durch Marc.

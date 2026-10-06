@@ -1,13 +1,15 @@
 // Auftrag 078 (Dashboard Teilauftrag 8a): Jede neue Kachel rendert über die echte Kachel mit den
 // aufgelösten Stammdaten. Diagramme laden lazy; die Tabelle ist die zugängliche Gegenprobe.
 import { describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, renderHook, screen, within } from '@testing-library/react';
 import { DashboardTile } from '../components/DashboardTile';
 import { formatTileValue } from '../components/tileFormat';
 import { resolveBaseline } from '../data/resolveBaseline';
 import { EXTENDED_ENTRIES } from '../model/catalog/extendedEntries';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 import { resolveEffectiveFilter } from '../model/dashboardFilters';
+import { getActiveEntries } from '../model/dashboardCatalog';
+import { useEditorPreviewData } from '../preview/editorPreviewData';
 
 const noop = () => {};
 
@@ -37,4 +39,23 @@ describe('Katalogausbau in der Kachel (Auftrag 078)', () => {
       expect(rows[0]).toHaveTextContent(formatTileValue(series[0]!.value, entry.unit, 'exakt'));
     });
   }
+});
+
+describe('Editor-Vorschau (Codex-Befund PR #63)', () => {
+  it('liefert für jede aktive Übersicht Testdaten statt „Keine Daten“', () => {
+    const overviews = getActiveEntries().filter((entry) => entry.kind === 'uebersicht');
+    expect(overviews.map((entry) => entry.id)).toContain('uebersicht.meilensteine');
+    for (const entry of overviews) {
+      const tile: DashboardTileConfig = {
+        tileId: 'p',
+        catalogId: entry.id,
+        view: 'uebersicht',
+        size: 'mittel',
+        filterMode: 'fester_stand',
+      };
+      const { result } = renderHook(() => useEditorPreviewData(tile, undefined, { enabled: true }));
+      expect(result.current.state, entry.id).toBe('bereit');
+      expect('overview' in result.current && result.current.overview, entry.id).toBeTruthy();
+    }
+  });
 });
