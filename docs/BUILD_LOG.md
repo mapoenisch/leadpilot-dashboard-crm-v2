@@ -15523,3 +15523,32 @@ Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind 
 **Automatisierte Verifikation (Exit-Codes):** nach dem Merge `npm ci` 0, `npx tsc --noEmit` 0, `node scripts/auditAllowlist.mjs --omit=dev` 0, `npx vitest run` 0 (313 Dateien, 2224 Tests), `npm run verify` 0, `npm run build` 0. Mit Rollout-Build (`VITE_EXECUTIVE_DASHBOARD_V2=true`): `e2e/personal-dashboard.spec.ts` ohne Retries 27/27, der betroffene Test mit `--repeat-each=10` auf allen drei Breiten 30/30; Prettier und ESLint für die Spec 0.
 
 **Ergebnis & Freigabestatus:** Nachtrag fertig. Codex pausiert; Marc hat am 06.10.2026 entschieden, ohne erneute Codex-Prüfung zu mergen, weil die letzte Codex-Runde keine Befunde mehr hatte. Merge durch Marc nach grüner CI.
+
+---
+
+## Auftrag 078 – Umsetzung Dashboard Teilauftrag 8a (Katalogausbau), Builder Claude Code, 06.10.2026
+
+**Ziel & Kontext:** Teilauftrag 8 ist in zwei Aufträge geteilt: 078 schaltet die belegten, in `src/domain/` bereits strukturiert vorliegenden Kennzahlen frei; 079 folgt mit der Gesamtabnahme (Mehrsitzung, Realtime, Lazy Loading, Accessibility, Screenshots, Sichtprüfung Marc, Rollout). Basis `main` `90e530d` (Merge PR #61). Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_078_DASHBOARD_KATALOGAUSBAU.md`.
+
+**Ergebnis fachlich:** 12 neue aktive Einträge (43 statt 31): Erlösmix, ARR nach Segment, Kunden nach Region, Neukunden nach Kanal, Marketing-CAC nach Kanal, Leads und Neukunden je Quartal, Headcount-Verlauf, Aktivierungsrate, Nutzung KI-Scoring, Gesellschafter, Übersicht Meilensteine. Summen geprüft gegen die bereits aktiven Einzelwerte (Erlösmix = Umsatz, Segmente = ARR, Regionen = aktive Kunden, Kanalmix und Gesellschafter = 100 %, Quartalsreihen = FY-Spalte, letzter Headcount-Punkt = Headcount). Nicht freigeschaltet, jeweils mit Grund im Inventar: Gesamtfunnel (vier Reihen), Kündigungsgründe (Zeitraum fehlt), Marktanteile (Obergrenze statt Istwert), alle Textquellen (eigener Auftrag für strukturierte Quellwerte), nicht geroutete Fachseiten, Live-Zusammenstellungen, Plan-/Strategiewerte. `src/domain/` unverändert.
+
+**Geänderte Dateien:**
+
+- neu: `model/catalog/extendedEntries.ts`, `data/baselineSources.ts` (Modulregister, Datensätze mit Präfix, Zeilentabellen, Prozentwerte), `__tests__/dashboardCatalogExtended.vitest.ts`, `__tests__/dashboardCatalogExtended.ui.vitest.tsx`
+- geändert: `data/resolveBaseline.ts` (nutzt `baselineSources`, Übersicht `meilensteine`; Export-Suche jetzt je Quellmodul statt nur `execData`/`executiveCockpitData`), `data/dashboardData.ts` (`TileOverview` `meilensteine`), `components/TileOverview.tsx`, `model/dashboardCatalog.ts` (`CatalogSource.table`, `EXTENDED_ENTRIES`), `model/dashboardValidation.ts` (`table` nur Stammdaten), `model/dashboardCombinations.ts`, `model/catalog/inventoryEntries.ts`, Tests `dashboardCatalog`, `dashboardData`, `TileOverview.ui`; `docs/dashboard/KPI_CATALOG.md`, Auftrag, `BUILD_PLAN.md`, dieser Eintrag (alle Pfade unter `src/features/dashboard/`, soweit nicht anders genannt)
+
+**Befund beim Bau:** `blockedPartnersFor` zeigte jede aktive Kennzahl gleicher Einheit und Ebene als gesperrten Kombinationspartner, auch Reihen (schon vorher den ARR-Verlauf bei den Umsatzerlösen; mit dem Ausbau u. a. „Headcount-Verlauf“ bei Headcount mit dem irreführenden Grund „Unterschiedliche Zeitbasis“). Kombinationen rechnen nur mit Einzelwerten, deshalb berücksichtigt die Funktion nur noch Einzelwerte und Verhältnisse. Die Positivliste aus Auftrag 076 ist unverändert.
+
+**Funktionale Prüfungen:** jede neue Kachel löst über `resolveBaseline` mit Zustand `bereit` auf und rendert über `DashboardTile` vollständig als Tabelle bzw. Übersicht (12 UI-Tests); Kreis/Ring nur bei Anteilen; Quoten und Verhältnisse als nicht aufsummierbar gekennzeichnet; Fehlerfälle der Leser (ungleiche Längen, fehlende Beschriftung, keine endliche Zahl, leere Tabelle, nur Summenzeile, unbekanntes Modul) ergeben `fehler` mit Grund. Die Screenshot-Konfiguration aus Auftrag 077 (`scripts/lib/detailShotConfig.ts`) bleibt gültig (24 Kacheln, nimmt jetzt den Erlösmix auf).
+
+**Schutzbereichs-Prüfung:** `git diff 90e530d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Zeilenprüfung (`wc -l`):** größte geänderte Dateien `dashboardData.vitest.ts` 389, `dashboardCatalog.vitest.ts` 336, `inventoryEntries.ts` 294, `dashboardValidation.ts` 277, `extendedEntries.ts` 268; alle unter 400.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run verify` 0 (Suiten 001–025), `npx vitest run` 0 (315 Dateien, 2250 Tests), `npm run build` 0, `npm run lint` 0, `npm run format:check` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0. Startbundle 175,96 kB gzip gegenüber 175,87 kB auf `90e530d` (+0,09 kB): gleicher Vendor-Anteil, kein Katalog- oder zusätzlicher Domain-Code in `index-*.js`; gewachsen sind nur die Vorladelisten der Lazy-Importe, weil die Dashboard-Chunks jetzt weitere Domain-Chunks laden.
+
+**Hinweis Test:** „per Tastatur bedienbar …“ in `CombinationPicker.ui.vitest.tsx` scheitert lokal, wenn die Datei allein läuft, auch auf unverändertem `90e530d`; im Gesamtlauf grün. Vorbestehend, nicht Teil dieses Auftrags.
+
+**Screenshot-Matrix:** entfällt in 078 (keine neue Darstellung, keine Layoutänderung); die Bildnachweise aller Darstellungen über den ausgebauten Katalog folgen mit Auftrag 079.
+
+**Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR gegen `main`, CI, Codex-Prüfung, Merge durch Marc.

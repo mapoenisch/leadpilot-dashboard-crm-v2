@@ -1,4 +1,4 @@
-// Executive Dashboard, Teilauftrag 4 (Auftrag 073): Übersichtskacheln (Team/HR, Roadmap,
+// Executive Dashboard, Teilauftrag 4 (Auftrag 073): Übersichtskacheln (Team/HR, Roadmap, Meilensteine,
 // Live-Aktivität). Zeigt vorhandene Felder der Quelle vollständig; der feste Rahmen der Kachel
 // scrollt. Keine neuen Kennzahlen.
 import { Badge } from '@/components/ui/Badge';
@@ -68,6 +68,21 @@ export function TileOverview({ overview }: { overview: TileOverviewData }) {
           </li>
         ))}
       </ul>
+    );
+  }
+  if (overview.kind === 'meilensteine') {
+    return (
+      <ol data-testid="tile-overview" className={LIST}>
+        {overview.data.map((event) => (
+          <li key={`${event.date}-${event.title}`} className={ROW}>
+            <span className="min-w-0">
+              <span className="text-[var(--color-text-primary,#e6f3f1)]">{event.title}</span>
+              <span className="block text-[12px] text-[var(--color-text-muted)]">{event.desc}</span>
+            </span>
+            <span className="shrink-0 font-mono text-[12px] text-primary">{event.date}</span>
+          </li>
+        ))}
+      </ol>
     );
   }
   return (

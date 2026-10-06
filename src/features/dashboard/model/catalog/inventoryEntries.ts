@@ -7,7 +7,8 @@ import { BASELINE_ACCESS } from './activeEntries';
 import { LIVE_ACCESS, LIVE_METADATA, LIVE_SOURCE } from './liveEntries';
 
 const D = (file: string) => `src/domain/${file}.ts`;
-const TA8 = 'Teilauftrag 8';
+/** Auftrag 078: verbleibende Kandidaten brauchen strukturierte Werte in `src/domain/` (eigener Auftrag). */
+const TA8 = 'Eigener Auftrag nach Teilauftrag 8: strukturierte Werte in den Quellmodulen';
 
 /** Messwertquelle der Live-Kombinationen: der Store; Definitionen liefern nur Metadaten. */
 const LIVE_STORE = { ...LIVE_SOURCE, metadata: LIVE_METADATA };
@@ -47,15 +48,6 @@ export const base = (
 
 /** Kandidaten „aufbereiten“ ohne Metadaten; ergänzt unten aus PREPARE_META. */
 const PREPARE_BASE: InventoryCatalogEntry[] = [
-  entry(
-    'baseline.erloesmix',
-    'Erlösmix 2025',
-    'finanzen',
-    base('finanzenData', 'CHART_ERLOESE', ['datasets', 0, 'data']),
-    'aufbereiten',
-    'Geeignete Aufteilung: Summe 336.000 € entspricht den Umsatzerlösen 2025. Fachseite s-guv.',
-    TA8,
-  ),
   entry(
     'baseline.kostenstruktur',
     'Kostenstruktur 2025',
@@ -102,24 +94,6 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
     TA8,
   ),
   entry(
-    'baseline.arr_nach_segment',
-    'ARR nach Segment',
-    'kunden',
-    base('kundenData', 'CHART_SEGMENT', ['datasets', 0, 'data']),
-    'aufbereiten',
-    'Geeignete Aufteilung: Summe 411.840 € entspricht dem ARR. Fachseite s-segmente.',
-    TA8,
-  ),
-  entry(
-    'baseline.kunden_nach_region',
-    'Kunden nach Region',
-    'kunden',
-    base('kundenData', 'REGIONEN', ['distribution']),
-    'aufbereiten',
-    'Geeignete Aufteilung: 61 + 3 + 2 = 66 Kunden. Fachseite s-segmente.',
-    TA8,
-  ),
-  entry(
     'baseline.kunden_nach_branche',
     'Kunden nach Branche',
     'kunden',
@@ -151,35 +125,15 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
     'vertrieb_crm',
     base('vertriebData', 'FUNNEL', ['chart']),
     'aufbereiten',
-    'Leads, MQL, SQL und Neukunden je Quartal 2025, Summen stimmen mit der FY-Spalte überein; Funnel-Stufen, daher nie Kreis. Fachseite s-funnel.',
-    TA8,
+    'Vier Reihen (Leads, MQL, SQL, Neukunden) in einer Quelle; das Kachelmodell zeigt genau eine Reihe. Leads und Neukunden je Quartal sind einzeln aktiv (Auftrag 078); der Funnel über alle Stufen braucht eine Mehrreihen-Darstellung. Funnel-Stufen, daher nie Kreis. Fachseite s-funnel.',
   ),
   entry(
-    'baseline.neukunden_quartal',
+    'baseline.quartal_neukunden_kosten',
     'Neukunden und Vertriebskosten je Quartal',
     'vertrieb_crm',
     base('execData', 'CHART_QUARTAL'),
     'aufbereiten',
-    'Zwei Einheiten (Anzahl und T€) in einem Datensatz, auf keiner Fachseite verwendet; Neukunden je Quartal stehen gleichwertig in FUNNEL.',
-    TA8,
-  ),
-  entry(
-    'baseline.kanal_mix',
-    'Neukunden nach Kanal',
-    'marketing',
-    base('vertriebData', 'KANAELE', ['chartKanal']),
-    'aufbereiten',
-    'Anteile je Kanal ergeben 100 % (gerundet aus 47 Neukunden). Fachseite s-kanaele.',
-    TA8,
-  ),
-  entry(
-    'baseline.kanal_cac',
-    'Marketing-CAC nach Kanal',
-    'marketing',
-    base('vertriebData', 'KANAELE', ['chartRoi']),
-    'aufbereiten',
-    'Verhältnis je Kategorie (Spend ÷ Neukunden je Kanal); Darstellung als Kategorienvergleich. Fachseite s-kanaele.',
-    TA8,
+    'Zwei Einheiten (Anzahl und T€) in einem Datensatz, auf keiner Fachseite verwendet. Neukunden je Quartal sind über baseline.neukunden_quartal (FUNNEL) aktiv (Auftrag 078); die Vertriebskosten bräuchten eine eigene Reihe mit Fachseite.',
   ),
   entry(
     'baseline.marketing_budget',
@@ -198,15 +152,6 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
     'Website-Besucher, LinkedIn-Follower und Newsletter je Quartal in drei Einheiten; die Seite Brand ist nicht geroutet, ein Fachseitenziel fehlt.',
   ),
   entry(
-    'baseline.headcount_verlauf',
-    'Headcount-Verlauf',
-    'organisation',
-    base('organisationData', 'HEADCOUNT', ['chart', 'datasets', 0, 'data']),
-    'aufbereiten',
-    'Geeignete Zeitreihe: FTE je Quartal 2024 bis 2025. Fachseite s-headcount.',
-    TA8,
-  ),
-  entry(
     'baseline.hr_kennzahlen',
     'HR-Kennzahlen',
     'organisation',
@@ -216,22 +161,12 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
     TA8,
   ),
   entry(
-    'baseline.produkt_nutzung',
-    'Aktivierung und KI-Scoring-Nutzung',
-    'produkt',
-    base('produktData', 'CHART_PRODUKT'),
-    'aufbereiten',
-    'Zwei Prozent-Zeitreihen je Quartal 2025, im Plan für Teilauftrag 8 vorgemerkt. Fachseite s-perf.',
-    TA8,
-  ),
-  entry(
     'baseline.kuendigungsgruende',
     'Kündigungsgründe',
     'produkt',
     base('produktData', 'CHART_CHURN', ['datasets', 0, 'data']),
     'aufbereiten',
-    'Aufteilung 8 + 5 + 2 + 2 = 17 Accounts; der Zeitraum der Zählung steht nicht in der Quelle und muss vor der Aufnahme belegt werden. Fachseite s-perf.',
-    TA8,
+    'Aufteilung 8 + 5 + 2 + 2 = 17 Accounts; der Zeitraum der Zählung steht nicht in der Quelle und muss vor der Aufnahme belegt werden (Auftrag 078 nicht freigeschaltet). Fachseite s-perf.',
   ),
   entry(
     'baseline.produkt_qualitaet',
@@ -248,26 +183,7 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
     'markt',
     base('marktData', 'CHART_WETTBEWERB', ['datasets', 0, 'data']),
     'aufbereiten',
-    'Anteile ergeben 74,4 % (keine Gesamtheit, daher nie Kreis); LeadPilot „< 0,1 %“ ist als 0,1 gespeichert und damit eine Obergrenze. Fachseite s-wettbewerb.',
-    TA8,
-  ),
-  entry(
-    'baseline.gesellschafter',
-    'Gesellschafter',
-    'recht',
-    base('rechtData', 'GESELLSCHAFTER', ['rows']),
-    'aufbereiten',
-    'Stimmrechtsanteile; die Summenzeile „Gesamt“ wird ausgeschlossen, die fünf Anteile ergeben exakt 100 % (Test). Fachseite s-gesellschafter.',
-    TA8,
-  ),
-  entry(
-    'uebersicht.meilensteine',
-    'Meilensteine',
-    'unternehmen',
-    base('unternehmenData', 'HISTORIE', ['events']),
-    'aufbereiten',
-    'Meilensteinübersicht von der Gründung bis zum GJ 2025; als Übersichtskachel geeignet. Fachseite s-historie.',
-    TA8,
+    'Anteile ergeben 74,4 % (keine Gesamtheit, daher nie Kreis); LeadPilot „< 0,1 %“ ist als 0,1 gespeichert und damit eine Obergrenze, kein belegter Istwert (Auftrag 078 nicht freigeschaltet). Fachseite s-wettbewerb.',
   ),
   entry(
     'live.arr_mix',
@@ -308,7 +224,6 @@ const Q25 = 'Quartale 2025';
 
 /** Belegte Angaben je Kandidat; fehlende Zeitbasis oder Fachseite begründet `reason`. */
 const PREPARE_META: Record<string, PrepareMeta> = {
-  'baseline.erloesmix': { unit: 'EUR', timeBasis: FY, detailRouteId: 's-guv' },
   'baseline.kostenstruktur': { unit: 'EUR', timeBasis: FY, detailRouteId: 's-unit' },
   'baseline.guv': {
     unit: 'EUR',
@@ -326,16 +241,6 @@ const PREPARE_META: Record<string, PrepareMeta> = {
     detailRouteId: 's-unit',
   },
   'baseline.bilanz': { unit: 'EUR', detailRouteId: 's-bilanz' },
-  'baseline.arr_nach_segment': {
-    unit: 'EUR',
-    timeBasis: 'Stand 31.12.2025 (Summe = ARR zum Stichtag)',
-    detailRouteId: 's-segmente',
-  },
-  'baseline.kunden_nach_region': {
-    unit: 'Kunden',
-    timeBasis: 'Stand 31.12.2025',
-    detailRouteId: 's-segmente',
-  },
   'baseline.kunden_nach_branche': {
     unit: 'Kunden',
     timeBasis: 'Stand 31.12.2025',
@@ -344,25 +249,17 @@ const PREPARE_META: Record<string, PrepareMeta> = {
   'baseline.top_kunden': { unit: 'EUR (ARR je Kunde)', detailRouteId: 's-top10' },
   'baseline.customer_success': { unit: 'gemischt (Prozent, Punkte, Tage)', timeBasis: FY },
   'baseline.funnel_2025': { unit: 'Anzahl', timeBasis: Q25, detailRouteId: 's-funnel' },
-  'baseline.neukunden_quartal': { unit: 'Anzahl und T€', timeBasis: Q25 },
-  'baseline.kanal_mix': { unit: 'Prozent', timeBasis: FY, detailRouteId: 's-kanaele' },
-  'baseline.kanal_cac': { unit: 'EUR je Neukunde', timeBasis: FY, detailRouteId: 's-kanaele' },
+  'baseline.quartal_neukunden_kosten': { unit: 'Anzahl und T€', timeBasis: Q25 },
   'baseline.marketing_budget': { unit: 'EUR', timeBasis: FY },
   'baseline.reichweite': {
     unit: 'gemischt (Besucher je Monat, Follower, Abonnenten)',
     timeBasis: Q25,
-  },
-  'baseline.headcount_verlauf': {
-    unit: 'FTE',
-    timeBasis: 'Quartalsende Q1 2024 bis Q4 2025',
-    detailRouteId: 's-headcount',
   },
   'baseline.hr_kennzahlen': {
     unit: 'gemischt (Prozent, EUR, FTE)',
     timeBasis: FY,
     detailRouteId: 's-hr',
   },
-  'baseline.produkt_nutzung': { unit: 'Prozent', timeBasis: Q25, detailRouteId: 's-perf' },
   'baseline.kuendigungsgruende': { unit: 'Accounts', detailRouteId: 's-perf' },
   'baseline.produkt_qualitaet': {
     unit: 'gemischt (Prozent, Minuten, Tickets)',
@@ -370,16 +267,6 @@ const PREPARE_META: Record<string, PrepareMeta> = {
     detailRouteId: 's-perf',
   },
   'baseline.marktanteile': { unit: 'Prozent', detailRouteId: 's-wettbewerb' },
-  'baseline.gesellschafter': {
-    unit: 'Prozent',
-    timeBasis: 'Stand nach Kapitalerhöhung Q1 2024',
-    detailRouteId: 's-gesellschafter',
-  },
-  'uebersicht.meilensteine': {
-    unit: 'Ereignisse',
-    timeBasis: '21.07.2022 bis Dez 2025',
-    detailRouteId: 's-historie',
-  },
   'live.arr_mix': {
     unit: 'EUR',
     timeBasis: 'Live, Werte mit eigenem Zeitstempel',

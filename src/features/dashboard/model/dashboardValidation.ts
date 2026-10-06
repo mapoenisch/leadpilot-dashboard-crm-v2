@@ -53,6 +53,8 @@ function checkActiveEntry(entry: ActiveCatalogEntry, issues: ValidationIssue[]):
     add('zeitmodus', `Ebene ${entry.source.layer} verlangt ${expectedMode}.`);
   if (entry.source.layer === 'live' && entry.kind === 'kpi' && !entry.source.liveKpiId)
     add('live_id', 'Live-KPI ohne Live-ID.');
+  if (entry.source.table && entry.source.layer !== 'baseline')
+    add('tabelle', 'Zeilentabellen nur für Stammdaten.');
   if (entry.filters.includes('pipeline') && entry.source.layer !== 'crm')
     add('filter', 'Pipeline-Filter nur für CRM-Quellen.');
   for (const [field, value] of [

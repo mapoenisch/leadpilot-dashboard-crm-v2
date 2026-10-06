@@ -134,16 +134,21 @@ export function explainIncompatible(
 /**
  * Naheliegende, aber gesperrte Partner: aktive Kennzahlen derselben Ebene mit gleicher Einheit
  * ohne Regel. Sie erscheinen im Konfigurator deaktiviert mit Grund, statt still zu fehlen.
- * Andere Ebenen (Live, CRM) bietet der Konfigurator gar nicht erst an.
+ * Andere Ebenen (Live, CRM) bietet der Konfigurator gar nicht erst an. Kombinationen rechnen
+ * mit zwei Einzelwerten; Reihen (Zeitreihe, Anteile, Kategorien) sind deshalb nie naheliegend
+ * (Auftrag 078).
  */
+const isScalar = (entry: ActiveCatalogEntry) =>
+  entry.kind === 'kpi' && (entry.shape === 'einzelwert' || entry.shape === 'verhaeltnis');
+
 export function blockedPartnersFor(
   catalogId: string,
   catalog: readonly CatalogEntry[] = DASHBOARD_CATALOG,
 ): { entry: ActiveCatalogEntry; reason: string }[] {
   const first = activeEntry(catalogId, catalog);
-  if (!first) return [];
+  if (!first || !isScalar(first)) return [];
   return catalog.filter(isActiveEntry).flatMap((entry) => {
-    if (entry.id === first.id || entry.unit !== first.unit || entry.kind !== 'kpi') return [];
+    if (entry.id === first.id || entry.unit !== first.unit || !isScalar(entry)) return [];
     if (entry.source.layer !== first.source.layer) return [];
     const reason = explainIncompatible(first.id, entry.id, catalog);
     return reason ? [{ entry, reason }] : [];

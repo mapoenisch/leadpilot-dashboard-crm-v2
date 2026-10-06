@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { getRoadmapSnapshot, getTeamHrSnapshot } from '@/domain/executiveCockpitData';
+import { HISTORIE } from '@/domain/unternehmenData';
 import { TileOverview } from '../components/TileOverview';
 
 describe('TileOverview', () => {
@@ -65,5 +66,17 @@ describe('TileOverview', () => {
     expect(within(screen.getByTestId('tile-overview')).getAllByRole('listitem')).toHaveLength(
       data.releases.length,
     );
+  });
+
+  it('zeigt alle Meilensteine als geordnete Liste mit Datum und Beschreibung (Auftrag 078)', () => {
+    render(<TileOverview overview={{ kind: 'meilensteine', data: HISTORIE.events }} />);
+    const list = screen.getByTestId('tile-overview');
+    expect(list.tagName).toBe('OL');
+    const rows = within(list).getAllByRole('listitem');
+    expect(rows).toHaveLength(HISTORIE.events.length);
+    expect(rows[0]).toHaveTextContent(HISTORIE.events[0]!.title);
+    expect(rows[0]).toHaveTextContent(HISTORIE.events[0]!.date);
+    const last = HISTORIE.events.length - 1;
+    expect(rows[last]).toHaveTextContent(HISTORIE.events[last]!.desc);
   });
 });

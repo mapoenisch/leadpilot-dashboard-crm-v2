@@ -74,6 +74,16 @@ const EXPECTED_RAW: Record<string, number | readonly number[]> = {
   'baseline.headcount': 10,
   'baseline.arr_verlauf': [120000, 145000, 170000, 207792, 248472, 294588, 348840, 411840],
   'baseline.mrr_paketmix': [10045, 19580, 4695],
+  // Auftrag 078: Datensätze; Zeilentabellen prüft dashboardCatalogExtended.vitest.ts.
+  'baseline.erloesmix': [307600, 23000, 5400],
+  'baseline.arr_nach_segment': [178560, 112320, 78960, 42000],
+  'baseline.kanal_mix': [38, 22, 18, 12, 10],
+  'baseline.kanal_cac': [492, 656, 820, 984, 1476],
+  'baseline.leads_quartal': [384, 432, 456, 504],
+  'baseline.neukunden_quartal': [10, 11, 12, 14],
+  'baseline.headcount_verlauf': [4, 5, 6, 8, 8.5, 9, 9.5, 10],
+  'baseline.aktivierungsrate': [49, 53, 56, 58],
+  'baseline.ki_scoring_nutzung': [38, 41, 44, 47],
 };
 
 const active = getActiveEntries();
@@ -91,15 +101,16 @@ describe('Dashboard-Katalog', () => {
     expect(byId('live.arr').source.layer).toBe('live');
   });
 
-  it('aktiviert genau die erste Auswahl des Plans', () => {
+  it('aktiviert die erste Auswahl des Plans und den Katalogausbau (Auftrag 078)', () => {
     const count = (prefix: string) => active.filter((e) => e.id.startsWith(prefix)).length;
-    expect(count('baseline.')).toBe(10);
+    expect(count('baseline.')).toBe(21);
     expect(count('crm.')).toBe(6);
     expect(count('live.')).toBe(12);
     expect(active.filter((e) => e.kind === 'uebersicht').map((e) => e.id)).toEqual([
       'uebersicht.team_hr',
       'uebersicht.roadmap',
       'uebersicht.live_aktivitaet',
+      'uebersicht.meilensteine',
     ]);
   });
 
@@ -176,7 +187,9 @@ describe('Dashboard-Katalog', () => {
   });
 
   it('löst jeden aktiven Baseline-Wert aus der Quelle mit dem dokumentierten Rohwert auf', () => {
-    const values = active.filter((e) => e.source.layer === 'baseline' && e.kind === 'kpi');
+    const values = active.filter(
+      (e) => e.source.layer === 'baseline' && e.kind === 'kpi' && !e.source.table,
+    );
     expect(values.map((e) => e.id).sort()).toEqual(Object.keys(EXPECTED_RAW).sort());
     for (const entry of values) {
       const module = DOMAIN_MODULES[entry.source.module];
@@ -242,7 +255,7 @@ describe('Dashboard-Katalog', () => {
   it('führt für aufzubereitende Kandidaten die belegten Metadaten', () => {
     const routeIds = new Set(APP_ROUTES.map((route) => route.id));
     const prepare = DASHBOARD_CATALOG.filter((e) => e.status === 'aufbereiten');
-    expect(prepare).toHaveLength(28);
+    expect(prepare).toHaveLength(19);
     for (const entry of prepare) {
       if (entry.status === 'aktiv') continue;
       expect(entry.unit, entry.id).toBeTruthy();
@@ -299,7 +312,7 @@ describe('validateCatalog', () => {
   });
 
   it('verlangt Einheit und Berechtigung für aufzubereitende Einträge', () => {
-    const prepare = DASHBOARD_CATALOG.find((e) => e.id === 'baseline.erloesmix');
+    const prepare = DASHBOARD_CATALOG.find((e) => e.id === 'baseline.kuendigungsgruende');
     if (!prepare || prepare.status === 'aktiv') throw new Error('Eintrag fehlt');
     const codes = validateCatalog([{ ...prepare, unit: undefined }]).map((issue) => issue.code);
     expect(codes).toEqual(['metadaten']);

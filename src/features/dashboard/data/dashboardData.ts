@@ -1,6 +1,7 @@
 // Executive Dashboard, Teilauftrag 2 (Auftrag 071): Leseschicht und Datentypen.
 // Einheitliche Typen für den Datenzustand jeder Kachel. Keine Oberfläche, keine Speicherung.
 import type { getRoadmapSnapshot, getTeamHrSnapshot } from '@/domain/executiveCockpitData';
+import type { HISTORIE } from '@/domain/unternehmenData';
 import type { LiveKpiActivityItem } from '@/hooks/useLiveKpiActivity';
 import type { CatalogEntry, SourceLayer } from '../model/dashboardCatalog';
 import type { EffectiveTileFilter } from '../model/dashboardFilters';
@@ -20,7 +21,9 @@ export type TileDataState =
 export type TileOverview =
   | { kind: 'team_hr'; data: ReturnType<typeof getTeamHrSnapshot> }
   | { kind: 'roadmap'; data: ReturnType<typeof getRoadmapSnapshot> }
-  | { kind: 'live_aktivitaet'; data: readonly LiveKpiActivityItem[] };
+  | { kind: 'live_aktivitaet'; data: readonly LiveKpiActivityItem[] }
+  /** Auftrag 078: Meilensteine in Quellreihenfolge. */
+  | { kind: 'meilensteine'; data: (typeof HISTORIE)['events'] };
 
 /** Kachel ohne aktiven Katalogeintrag: keine Metadaten erfinden. */
 export interface UnavailableTileData {
