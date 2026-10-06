@@ -90,8 +90,10 @@ export function DashboardFilters({
       }}
       className="flex flex-wrap items-end gap-3 rounded-xl border border-solid border-border bg-surface p-3"
     >
-      {pipelineSupported ? (
-        <div className="min-w-[200px] max-w-full flex-1">
+      {/* Feld und Hinweis teilen denselben Platz: Wechselt die Unterstützung (Laden der gespeicherten
+          Ansicht, CRM-Kachel hinzugefügt/entfernt), bleibt die Zeile gleich (Auftrag 079, CLS). */}
+      <div className="min-w-[200px] max-w-full flex-1">
+        {pipelineSupported ? (
           <Input
             label="Pipeline"
             value={fields.pipeline}
@@ -102,12 +104,12 @@ export function DashboardFilters({
             aria-invalid={problem.startsWith('Pipeline') || undefined}
             aria-describedby={describedBy}
           />
-        </div>
-      ) : (
-        <p className="m-0 text-sm text-[var(--color-text-muted)]">
-          Keine Kachel dieser Ansicht unterstützt einen Pipeline-Filter.
-        </p>
-      )}
+        ) : (
+          <p className="m-0 text-sm text-[var(--color-text-muted)]">
+            Keine Kachel dieser Ansicht unterstützt einen Pipeline-Filter.
+          </p>
+        )}
+      </div>
       <div className="w-[150px] max-w-full">
         <Input
           label="Von"

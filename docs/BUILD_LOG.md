@@ -15566,3 +15566,55 @@ Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind 
 **Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npx eslint src/features/dashboard` 0, `npx vitest run src/features/dashboard` 0 (36 Dateien, 513 Tests), `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
 
 **Ergebnis & Freigabestatus:** Befund behoben. Offen: CI und erneute Codex-Prüfung des neuen Heads, Merge durch Marc.
+
+---
+
+## Auftrag 079 – Umsetzung Dashboard Teilauftrag 8b (Gesamtabnahme), Builder Claude Code, 06.10.2026
+
+**Ziel & Kontext:** Gesamtabnahme der neuen Ansicht unter `/dashboard` über den vollständigen Katalog aus Auftrag 078, im echten App-Ablauf (Plan Teilauftrag 8, Punkte 3–10). Basis `main` `bb5aaff` (Merge PR #63). Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_079_DASHBOARD_GESAMTABNAHME.md`, Protokoll: `docs/dashboard/ACCEPTANCE_079.md`. Keine neue Funktion; ein Befund beim Bau im Produktcode behoben (siehe unten). Rollout (T9) bewusst nicht ausgeführt: erst nach Sichtprüfung und Freigabe durch Marc.
+
+**Geänderte Dateien:**
+
+- neu: `e2e/personal-dashboard-acceptance.spec.ts` (T1–T4), `scripts/captureAuftrag079Screenshots.mjs`, `scripts/lib/acceptanceShotConfigs.ts`, `docs/dashboard/ACCEPTANCE_079.md`, `docs/screenshots/auftrag-079/README.md`
+- geändert: `e2e/helpers/dashboardPreferences.ts` (Passwort-Sitzung für zweiten Benutzer, Revision lesen, Live-Feed-Eintrag nur lokal mit Aufräumen, Wiederherstellen mit frischer Sitzung), `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` (neue Spec in beiden festen E2E-Listen), `src/features/dashboard/components/DashboardFilters.tsx` und `__tests__/DashboardFilters.ui.vitest.tsx` (Befund), Plan-Haken Teilauftrag 7 und 8, `BUILD_PLAN.md`, Auftrag, dieser Eintrag
+
+**Funktionale Prüfungen (E2E, Build mit Schalter, 1440/768/375):**
+
+- T1 zwei Sitzungen: Revision steigt genau um 1; B auf alter Revision erhält Konflikt mit „Aktuelle Serveransicht laden“, keine neue Revision, Entwurf bleibt; „Serverfassung übernehmen“ und Reload zeigen die Kacheln von A.
+- T2 Benutzerwechsel: B mit Pipeline-Filter meldet sich ab, A meldet sich im selben Browser an: nur Kacheln von A, Pipeline-Feld leer, Detailseite einer Kachel von B → „Kachel nicht gefunden“. Richtung bewusst B → A: Abmelden widerruft alle Tokens des Benutzers (`auth.spec.ts`, Fall 4), der gespeicherte Anmeldezustand von A bleibt für die übrigen Specs gültig.
+- T3 Realtime: Eintrag im Live-Feed erscheint ohne Reload in Ansicht und Bearbeitung; Reihenfolge und Entwurf unverändert; genau ein Realtime-Channel (`phx_join`) bei zwei Live-Kacheln samt Bearbeiten/Verwerfen.
+- T4 Lazy Loading: CRM-Kacheln unterhalb erst beim Anfahren aktiv, vorher keine Abfrage von `imported_funnel_deals`; zwei Kacheln gleicher Quelle → eine Abfrage; Filterwechsel → eine weitere; nach Zurücksetzen derselbe Wert.
+
+**Bildmatrix (`scripts/captureAuftrag079Screenshots.mjs`, zwei Builds desselben Codes: Schalter an/aus):** 48 aktive Katalogeinträge in Standarddarstellung (2 Durchgänge à 24) und alle neun Darstellungen in jeder zulässigen Größe (22 + 6 Kacheln), je 1440/768/375. Ergebnis: alle Kacheln vorhanden und aktiv, Überlauf 0 px (Dokument und `<main>`), axe serious/critical 0 (einschließlich Kontrast), CLS höchstens 0,014, jede Diagrammkachel mit „Werte als Tabelle“, reduzierte Bewegung längster Übergang 0,01 ms, Vorher/Nachher-Hashes je Breite verschieden, Schalter aus ohne neue Ansicht und mit 404 auf der Detailroute, Tastaturablauf (Bearbeiten, Verschieben, Konfigurator öffnen/Escape mit Fokusrückgabe, Speichern) und Touch-Ablauf (Legende, „Details“, zurück) bestanden. Matrix: `docs/screenshots/auftrag-079/README.md`; Bilder lokal.
+
+**Befund beim Bau (Produktcode):** CLS 0,28–0,30 bei 768 px. Während des Ladens baut die Seite den Filterbereich aus der Standardansicht (mit Pipeline-Feld); hat die gespeicherte Ansicht keine CRM-Kachel, ersetzt ein Hinweis ohne feste Breite das Feld, die Filterzeile bricht um, das Raster rutscht rund 41 px. Fix: Feld und Hinweis teilen in `DashboardFilters.tsx` denselben Platz. Test „Hinweis ohne Pipeline belegt denselben Platz …“ vor dem Fix rot, danach grün; Nachmessung CLS höchstens 0,014.
+
+**Schutzbereichs-Prüfung:** `git diff bb5aaff -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Zeilenprüfung (`wc -l`):** `captureAuftrag079Screenshots.mjs` 391, `personal-dashboard-acceptance.spec.ts` 313, `DashboardFilters.ui.vitest.tsx` 192, `DashboardFilters.tsx` 185, `acceptanceShotConfigs.ts` 101; alle unter 400.
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run verify` 0 (Suiten 001–025), `npx vitest run` 0 (315 Dateien, 2253 Tests), `npm run build` 0, `npm run lint` 0, `npm run format:check` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (Startbundle 175,96 kB gzip, unverändert gegenüber 078). `npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts --workers=1` mit Build `VITE_EXECUTIVE_DASHBOARD_V2=true` zweimal hintereinander 39/39 grün; Harness Exit 0.
+
+**Ergebnis & Freigabestatus:** Nachweise T1–T8 grün. Offen: Sichtprüfung durch Marc (Bilder lokal unter `docs/screenshots/auftrag-079/`), CI und Codex-Befund zum PR, danach Entscheidung E2/E3 und Rollout T9 nur nach ausdrücklicher Freigabe durch Marc. Merge nur durch Marc.
+
+**Nachtrag 06.10.2026 – Entscheidungen Marc:** E2 (Standard an im Code, Rückschaltung per `VITE_EXECUTIVE_DASHBOARD_V2=false`) und E3 (alte Ansicht bis `v2.4.0` im Code, Entfernung als eigener Auftrag) wie vorgeschlagen bestätigt. Rollout T9 weiterhin erst nach Sichtprüfung und Freigabe durch Marc.
+
+---
+
+## Auftrag 079 – Rollout (T9) nach Sichtprüfung, Builder Claude Code, 06.10.2026
+
+**Freigaben Marc (Chat, 06.10.2026):** Entscheidungen E2/E3 bestätigt; Sichtprüfung der Bildmatrix erteilt („ist abgenommen“); Umstellen des Rollout-Schalters ausdrücklich freigegeben. Empfehlung zum Testumbau (CI prüft die ausgelieferte Ansicht, die alte nur noch per Rückschalt-Nachweis) von Marc angenommen.
+
+**Geänderte Dateien:** `src/features/dashboard/model/dashboardRollout.ts` (an, außer genau `false`), `__tests__/dashboardRollout.vitest.ts` (vorher rot: 4 Fälle), `.env.example`, `e2e/dashboard-rollback.spec.ts` (neu), `e2e/helpers/dashboardPreferences.ts` (`readPreferencesRow`), `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` (Dashboard-Specs gegen den regulären Build, Rückschalt-Build mit eigenem Nachweis, danach regulärer Build für Lighthouse), `scripts/__tests__/runV23Acceptance.vitest.ts`, Kommentare in `personal-dashboard*.spec.ts` und `captureAuftrag079Screenshots.mjs`, Auftrag, Protokoll, Plan, `BUILD_PLAN.md`
+
+**Nachweis Rückschaltung (`e2e/dashboard-rollback.spec.ts`, Build `=false`, 3 Breiten):** bisherige Ansicht unter `/dashboard` (keine Kachel, keine persönliche Überschrift), `/dashboard/tiles/…` → „Seite nicht gefunden“, gespeicherte Zeile vorher und nachher gleich (Revision und Konfiguration). Gegenprobe gegen den Standard-Build schlägt fehl, wie erwartet.
+
+**Auswirkung auf die übrigen E2E (lokal, je Build alle zehn Dateien der regulären Liste × 3 Breiten = 630 Tests):** Standard-Build und Rückschalt-Build ergeben dieselben 584 grün / 46 rot; die 46 sind lokale Umgebungsabweichungen (Testdaten, Linux-Referenzbilder) und hängen nicht am Schalter. Der Barrierefreiheits-Scan von `/dashboard` ist mit neuer Ansicht grün. **Offen:** `visual /dashboard` vergleicht in der CI gegen Linux-Referenzbilder der alten Ansicht und braucht neue Bilder über `update-visual-baselines.yml` (Branch `visual-baselines/**`).
+
+**Lighthouse lokal gegen die neue Standardansicht** (`npx lhci autorun`, Konfiguration wie CI): Performance 0,99, Barrierefreiheit 1,0 (Schwellen 0,9 / 0,95).
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run verify` 0, `npx vitest run` 0 (315 Dateien, 2254 Tests), `npm run build` 0, `npm run lint` 0, `npm run format:check` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,96 kB gzip, unverändert). Dashboard-E2E gegen den Standard-Build zweimal 39/39, Rückschaltung 3/3. Schutzbereichs-Diff gegen `bb5aaff` leer.
+
+**Ergebnis & Freigabestatus:** Rollout umgesetzt. Offen: neue Referenzbilder `visual /dashboard`, CI grün, Codex-Befund, Merge durch Marc.
+
+**Nachtrag 06.10.2026 – Referenzbilder und zweiter Befund:** Der erste Lauf von `update-visual-baselines.yml` (Run 37472856642, Branch `visual-baselines/079-rollout`) erzeugte stabile Bilder; geändert waren genau die drei `visual-dashboard-1-*-linux.png`, alle zwölf übrigen bytegleich. Die Bilder zeigten unterhalb der ersten Reihen aber nur Ladeplatzhalter (Lazy Loading ohne Scrollen), deshalb nicht übernommen. `e2e/visual.spec.ts` scrollt `/dashboard` jetzt einmal durch und wartet, bis keine Kachel mehr aktiv lädt. Dabei zweiter Befund: In `src/services/liveKpi/liveKpiStreamStore.ts` blieben spät abonnierte Live-Kennzahlen bei bereits verbundenem Kanal ohne Werte der letzten 30 Minuten dauerhaft auf „loading“, ein älterer letzter Wert kam nie an (die bisherige Ansicht abonniert alles auf einmal und war nicht betroffen). Fix: einmaliges Nachladen beim späten Abonnement, nur wirksam solange der Kanal verbunden ist. Test `liveKpiStreamStoreLateAcquire.vitest.ts` vorher 2 rot, danach 3/3 grün; `npx vitest run` 316 Dateien, 2257 Tests grün; `tsc` 0, `eslint src/services/liveKpi` 0. `liveKpiStreamStore.ts` hatte vor dem Auftrag 482 Zeilen (über der 400er-Grenze, vorbestehend), jetzt 500. Lokal `visual /dashboard` mit neuer Referenz drei Breiten × dreimal stabil, alle Kacheln geladen. Neue Linux-Referenzen folgen aus einem zweiten Workflow-Lauf. Lokale Präferenzzeile von admin-a (Rest eines abgebrochenen Harness-Laufs) mit dem lokalen Aufräumschlüssel entfernt.

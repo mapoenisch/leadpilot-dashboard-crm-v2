@@ -401,6 +401,24 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
 
           // 2. Realtime läuft über den zentralen Feed (ensureFeed oben);
           // Events/Status kommen via routeEvent/propagateStatus.
+
+          // 3. Auftrag 079: Ist der Feed schon verbunden (spätes Abonnement, z. B. Lazy Loading
+          // im Dashboard), kommt kein Statuswechsel mehr. Wie in propagateStatus beim Verbinden
+          // den letzten Wert einmal nachladen; das setzt den Status auf „live“. Ist der Feed bis zur
+          // Antwort nicht mehr verbunden, gilt dessen Status (beim Wiederverbinden lädt
+          // propagateStatus erneut nach).
+          const stillLive = () =>
+            entries.get(kpiId) === entry && entry.refCount > 0 && feedConnectionState === 'live';
+          if (feedConnectionState === 'live') {
+            adapter
+              .fetchLatestLiveKpi(kpiId)
+              .then((latest) => {
+                if (stillLive()) mergeFetchedLatest(entry, latest, commit);
+              })
+              .catch((err) => {
+                if (stillLive()) commitFetchError(entry, err, commit);
+              });
+          }
         }
       }
 

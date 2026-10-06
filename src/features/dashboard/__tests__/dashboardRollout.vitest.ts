@@ -1,4 +1,4 @@
-// Auftrag 077: Rollout-Schalter, Adressen der Detailroute und Seitenmetadaten.
+// Aufträge 077/079: Rollout-Schalter, Adressen der Detailroute und Seitenmetadaten.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { routeForPathname } from '@/app/routes';
 import {
@@ -18,25 +18,25 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe('Rollout-Schalter (Entscheidung E1)', () => {
-  it('ist nur mit genau „true“ eingeschaltet', () => {
-    expect(isPersonalDashboardEnabled({})).toBe(false);
-    expect(isPersonalDashboardEnabled({ VITE_EXECUTIVE_DASHBOARD_V2: '' })).toBe(false);
-    expect(isPersonalDashboardEnabled({ VITE_EXECUTIVE_DASHBOARD_V2: 'false' })).toBe(false);
-    expect(isPersonalDashboardEnabled({ VITE_EXECUTIVE_DASHBOARD_V2: '1' })).toBe(false);
-    expect(isPersonalDashboardEnabled({ VITE_EXECUTIVE_DASHBOARD_V2: 'TRUE' })).toBe(false);
+describe('Rollout-Schalter (Entscheidung E2, Auftrag 079)', () => {
+  it('ist standardmäßig an; nur genau „false“ schaltet zurück auf die bisherige Ansicht', () => {
+    expect(isPersonalDashboardEnabled({})).toBe(true);
+    expect(isPersonalDashboardEnabled({ VITE_EXECUTIVE_DASHBOARD_V2: '' })).toBe(true);
     expect(isPersonalDashboardEnabled({ VITE_EXECUTIVE_DASHBOARD_V2: 'true' })).toBe(true);
+    expect(isPersonalDashboardEnabled({ VITE_EXECUTIVE_DASHBOARD_V2: 'false' })).toBe(false);
   });
 
-  it('ist ohne Eintrag in der Umgebung aus (Standard)', () => {
+  it('ist ohne Eintrag in der Umgebung an (Standard nach dem Rollout)', () => {
     vi.stubEnv('VITE_EXECUTIVE_DASHBOARD_V2', '');
-    expect(isPersonalDashboardEnabled()).toBe(false);
+    expect(isPersonalDashboardEnabled()).toBe(true);
   });
 
-  it('wählt ohne Schalter die bisherige, mit Schalter die persönliche Ansicht', () => {
+  it('wählt mit Rückschaltung die bisherige, sonst die persönliche Ansicht', () => {
     expect(executiveDashboardLoader(false)).toBe(loadLegacyExecutiveDashboard);
     expect(executiveDashboardLoader(true)).toBe(loadPersonalWithFallback);
     vi.stubEnv('VITE_EXECUTIVE_DASHBOARD_V2', '');
+    expect(executiveDashboardLoader()).toBe(loadPersonalWithFallback);
+    vi.stubEnv('VITE_EXECUTIVE_DASHBOARD_V2', 'false');
     expect(executiveDashboardLoader()).toBe(loadLegacyExecutiveDashboard);
   });
 });
@@ -58,14 +58,14 @@ describe('Adressen der Detailroute', () => {
 });
 
 describe('Seitenmetadaten der Detailroute', () => {
-  it('bleibt ohne Schalter eine unbekannte Seite (404)', () => {
-    vi.stubEnv('VITE_EXECUTIVE_DASHBOARD_V2', '');
+  it('bleibt bei Rückschaltung eine unbekannte Seite (404)', () => {
+    vi.stubEnv('VITE_EXECUTIVE_DASHBOARD_V2', 'false');
     expect(routeForPathname('/dashboard/tiles/a').id).toBe('not-found');
     expect(routeForPathname('/dashboard').title).toBe('Executive Dashboard');
   });
 
-  it('gehört mit Schalter zum Executive Dashboard und heißt „Kachel-Details“', () => {
-    vi.stubEnv('VITE_EXECUTIVE_DASHBOARD_V2', 'true');
+  it('gehört standardmäßig zum Executive Dashboard und heißt „Kachel-Details“', () => {
+    vi.stubEnv('VITE_EXECUTIVE_DASHBOARD_V2', '');
     const meta = routeForPathname('/dashboard/tiles/a');
     expect(meta).toMatchObject({
       id: 's-exec',

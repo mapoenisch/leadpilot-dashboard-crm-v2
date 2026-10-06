@@ -2,14 +2,15 @@ import { test, expect, type Page } from '@playwright/test';
 import { applyDashboardConfig } from './helpers/dashboardPreferences';
 
 // Auftrag 077 (Dashboard Teilauftrag 7): Ansicht → Details → Fachübersicht → zurück, Reload und
-// unbekannte Kachel im echten App-Ablauf. Die persönliche Ansicht existiert nur in einem Build mit
-// VITE_EXECUTIVE_DASHBOARD_V2=true (Entscheidung Marc E1, Standard aus); der reguläre CI-Build hat
-// den Schalter aus. Lokal: Build mit Schalter, dann E2E_DASHBOARD_V2=true npx playwright test
+// unbekannte Kachel im echten App-Ablauf. Seit dem Rollout (Auftrag 079, Entscheidung Marc E2) ist
+// die persönliche Ansicht Standard; nur ein Build mit VITE_EXECUTIVE_DASHBOARD_V2=false hat sie
+// nicht. E2E_DASHBOARD_V2=true markiert den passenden Lauf (CI-Schritt bzw. Orchestrator), weil die
+// Datei seriell laufen muss: E2E_DASHBOARD_V2=true npx playwright test
 // e2e/personal-dashboard.spec.ts --workers=1 (Nachweis im BUILD_LOG). Braucht E2E_SUPABASE_URL,
 // E2E_SUPABASE_ANON_KEY und E2E_CLEANUP_KEY wie die übrigen Specs mit Datenbankzugriff.
 test.skip(
   process.env.E2E_DASHBOARD_V2 !== 'true',
-  'Nur mit Build VITE_EXECUTIVE_DASHBOARD_V2=true (Auftrag 077).',
+  'Nur im seriellen Dashboard-Lauf mit persönlicher Ansicht (Aufträge 077/079).',
 );
 
 const TILE = '[data-testid="lazy-tile"]';
