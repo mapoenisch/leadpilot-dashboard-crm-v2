@@ -15509,3 +15509,17 @@ Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind 
 **Screenshot-Matrix:** entfällt, keine UI-Änderung (CSS-Ausgabe identisch).
 
 **Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR gegen `main`, CI, Codex-Prüfung, Merge durch Marc; danach PR #61 auf `main` aktualisieren.
+
+---
+
+## Auftrag 077 – Nachtrag CI-e2e nach Merge von `main`, Builder Claude Code, 06.10.2026
+
+**Ziel & Kontext:** Nach dem Merge von `main` (PR #62, Audit-Korrektur) in PR #61 (Merge-Commit `5df526d`) war der CI-Job `e2e` rot (Lauf 37428981698): Der Test „CRM: angewendeter Pipeline-Filter …“ scheiterte auf `mobile-375` in beiden Versuchen. Der Seiten-Snapshot zeigte das Dashboard statt der Detailseite: Der Klick auf „Details“ fiel unmittelbar nach „Filter anwenden“, während die Kacheln darüber eine Zeile mehr bekamen und die noch nicht sichtbare Kachel lazy nachlud. Der Klick verfehlte deshalb den verrutschenden Button. Kein Produktfehler.
+
+**Geänderte Dateien:** `e2e/personal-dashboard.spec.ts` (vor dem Klick: „Filter anwenden“ deaktiviert, Kachel ins Bild scrollen, Zeitbezug „Pipeline: e2e-pipeline“ abwarten, Workspace nicht beschäftigt; nach dem Klick Detailüberschrift sichtbar), dieser Eintrag.
+
+**Schutzbereichs-Prüfung:** `git diff 1c1a5db -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation (Exit-Codes):** nach dem Merge `npm ci` 0, `npx tsc --noEmit` 0, `node scripts/auditAllowlist.mjs --omit=dev` 0, `npx vitest run` 0 (313 Dateien, 2224 Tests), `npm run verify` 0, `npm run build` 0. Mit Rollout-Build (`VITE_EXECUTIVE_DASHBOARD_V2=true`): `e2e/personal-dashboard.spec.ts` ohne Retries 27/27, der betroffene Test mit `--repeat-each=10` auf allen drei Breiten 30/30; Prettier und ESLint für die Spec 0.
+
+**Ergebnis & Freigabestatus:** Nachtrag fertig. Codex pausiert; Marc hat am 06.10.2026 entschieden, ohne erneute Codex-Prüfung zu mergen, weil die letzte Codex-Runde keine Befunde mehr hatte. Merge durch Marc nach grüner CI.

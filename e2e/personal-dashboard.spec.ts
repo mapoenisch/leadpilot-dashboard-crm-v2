@@ -188,7 +188,17 @@ test('CRM: angewendeter Pipeline-Filter reist hin und zurück, auch über Browse
   const pipeline = page.getByTestId('dashboard-filters').getByLabel('Pipeline', { exact: true });
   await pipeline.fill('e2e-pipeline');
   await page.getByRole('button', { name: 'Filter anwenden' }).click();
+  // Nach dem Anwenden bekommen die Kacheln darüber eine Zeile mehr; auf 375 px verrutscht der
+  // Button sonst zwischen Stabilitätsprüfung und Klick (CI-Lauf 37428981698).
+  await expect(page.getByRole('button', { name: 'Filter anwenden' })).toBeDisabled();
+  // Die Kachel lädt erst sichtbar (Lazy Loading); erst danach steht die Pipeline im Zeitbezug.
+  await detailsOf(page, 'e2e_stufen').scrollIntoViewIfNeeded();
+  await expect(page.locator(`${TILE}[data-tile-id="e2e_stufen"]`)).toContainText(
+    'Pipeline: e2e-pipeline',
+  );
+  await expect(page.getByTestId('dashboard-workspace')).toHaveAttribute('aria-busy', 'false');
   await detailsOf(page, 'e2e_stufen').click();
+  await expect(page.getByTestId('tile-detail-heading')).toBeVisible();
   const filterFact = page.getByTestId('tile-detail-facts').locator('dt', { hasText: 'Filter' });
   await expect(filterFact.locator('xpath=following-sibling::dd')).toHaveText(
     'Pipeline e2e-pipeline',
