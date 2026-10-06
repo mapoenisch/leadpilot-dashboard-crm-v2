@@ -15381,6 +15381,117 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 
 **Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR mit Auftragstext und Code gegen `main`, CI, Codex-Prüfung, Merge durch Marc.
 
+## Auftrag 077 – Umsetzung Dashboard Teilauftrag 7 (Details und Integration unter /dashboard), Builder Claude Code, 05.10.2026
+
+**Ziel & Kontext:** Umsetzung von Teilauftrag 7 laut Plan und `docs/auftraege/ANTIGRAVITY_AUFTRAG_077_DASHBOARD_DETAILS_INTEGRATION.md`, Basis `main` `7a60dd8` (Merge von PR #60).
+- Marcs Entscheidungen vom 05.10.2026:
+  - E1: Build-Schalter `VITE_EXECUTIVE_DASHBOARD_V2`, Standard aus
+  - E2: kein Link zur alten Ansicht
+  - E3: „Details“ im Editor gesperrt mit Hinweis
+- Auftragstext und Code liegen in einem PR (#61), wie bei 076 (Marc: „ja wie bei 076“).
+- Die sechs Codex-Befunde zum Auftragstext (P1 Reload-Zustand, P2 Präfix, P1 Rückkehrzustand im Eintrag der Ansicht, P1 Lazy-Retry, P1 E2E nicht in CI, P1 Leave-Guard ohne Router) sind eingearbeitet. Die Tabelle steht im Auftrag.
+
+**Umsetzung:**
+- **Schalter und Routen:** Schalter in `model/dashboardRollout.ts` (einzige Lesestelle). Loader-Auswahl `pages/executiveDashboardEntry.ts` (alte und neue Ansicht je eigener Chunk). Detailroute `/dashboard/tiles/:tileId` nur mit Schalter (`App.tsx`). Seitenmetadaten „Kachel-Details“ mit ID `s-exec` nur für genau ein Segment (`routes.tsx`). `Sidebar.tsx` und die alte `ExecutiveDashboardPage` sind unverändert.
+- **Detailseite:** Kopf, Kennzahlen (Wert, Zeitraum, Quelle mit Geltungsbereich, Aktualität, Zustand), Diagramm, Tabelle, Kombination mit Formel, Operanden und Ergebnis, Übersichtsdetails, Fachübersicht aus dem Katalog oder Grund statt Link, unbekannte/gelöschte Kachel, Lade- und Fehlerzustände. Ersatzseite bei Nachladefehler mit echtem Reload (`withChunkFallback`).
+- **Navigation:** Sitzungsfilter und Fokusziel reisen in `location.state` mit. Der Eintrag der Ansicht wird vor dem Öffnen ersetzt (Browser-Zurück). Ladezeichen je Seitenaufruf und Identität verwerfen den Zustand nach Reload oder Benutzerwechsel. Die Fokus-Rückgabe geht auf „Details“; ist die Kachel weg, auf die Überschrift, jeweils mit Ansage.
+- **Editor-Schutz:** „Details“ `aria-disabled` mit Hinweis (E3). Linkschutz `useInAppLinkGuard` (Erfassungsphase vor React Router). Schutz der Zurück-Taste `useBrowserBackGuard` (Schutzeintrag mit gleichem Pfad, Rückfrage, „Verwerfen/Speichern und weiter“ zur tatsächlich vorherigen Seite).
+- **Im Gate gefunden und behoben:** Die Filterleiste erschien erst nach dem Laden und schob das Raster nach unten (Layoutverschiebung 0,124 auf 768 px und 0,187 auf 375 px). Sie steht jetzt gesperrt im Ladeplatz. Danach liegt die Layoutverschiebung der Ansicht bei 0 und das Maximum aller Zustände bei 0,014.
+- **CI:** Der E2E-Job baut zusätzlich mit Schalter, führt `e2e/personal-dashboard.spec.ts` aus und stellt danach den regulären Build für Lighthouse wieder her. Der Orchestrator `runV23Acceptance.mjs` führt dieselbe Gruppe aus.
+
+**Geänderte Dateien:** siehe Tabelle „Ziel-Dateien (gebaut)“ im Auftrag. Abweichungen vom Entwurf sind dort ebenfalls nachgetragen:
+- Statt einer Einstiegskomponente gibt es einen Loader.
+- Neu sind `DetailChunkError`, `useInAppLinkGuard`, `useBrowserBackGuard`, `vite-env.d.ts`, CI und Orchestrator.
+- Die Workspace-Props heißen `initialSession` und `onReturnFocus`.
+- Zwei bestehende Workspace-Tests prüfen den neuen Vorschau-Hinweistext.
+
+**Funktionale Prüfungen:**
+- **Unit- und UI-Tests:**
+  - Schalter nur bei genau `true`; Loader-Wahl; Pfadhelfer mit Kodierung und ohne tiefere Pfade; Metadaten mit und ohne Schalter.
+  - Kontext: Reload, Benutzerwechsel und kaputter Zustand werden verworfen.
+  - Linkschutz: interne, externe, `_blank`, Download, Zusatztasten.
+  - Detailseite:
+    - Kennzahl mit allen Angaben und Fokus.
+    - Fachübersicht navigiert.
+    - Kombination mit Formel, zwei Operanden und gleichem Wert wie die Kachel.
+    - Nicht berechenbar mit Grund und ohne Wert.
+    - Übersicht ohne Definition.
+    - Unbekannte und nicht verfügbare Kachel ohne technische ID.
+    - Laden, keine Sitzung, Fehler.
+    - Kontext beim Zurück, Nachladefehler.
+  - Ansicht:
+    - Details öffnen; Eintrag der Ansicht ersetzt.
+    - Fokus-Rückgabe bei „Zurück“ und Browser-Zurück; fehlende Kachel mit Überschrift und Ansage; fremder Zustand ignoriert.
+    - Editor: Sperre mit Beschreibung, Linkschutz mit Rückfrage.
+    - Zurück-Taste: Rückfrage, „Hier bleiben“ und „Verwerfen und weiter“; ohne Änderungen kein Schutzeintrag.
+- **E2E** `e2e/personal-dashboard.spec.ts` gegen einen lokalen Build mit Schalter und lokales Supabase (Testbenutzer `admin-a@e2e.local`): 6 Abläufe × 3 Breiten = 18 grün, dreimal mit `--repeat-each=3` = 162 von 162 grün. Ein früher wackelnder Lauf der Zurück-Taste ist behoben: Der Test wartet jetzt auf das gerenderte `data-back-guard`. Ein Mensch drückt nie innerhalb einer Renderzeit nach der Änderung.
+
+**Schutzbereichs-Prüfung:** `git diff 7a60dd8 -- src/simulation src/types src/context src/services/data src/features/resources` ist leer. Keine Migration, keine Änderung an `supabase/` und an `Modal.tsx`.
+
+**Automatisierte Verifikation (Exit-Codes):**
+- `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0
+- `npm test` 0 (312 Dateien, 2208 Tests), `npm run verify` 0, `npm run build` 0
+- `npm run verify:quality-budget` 0, `npx size-limit` 0 (Startbundle 175,88 kB gzip, größter Chunk 86,16 kB)
+- Startbundle gegenüber der Baseline: 171,40 → 172,15 KB gzip (+0,75 KB, also unter 1 KB). Mit und ohne Schalter ist es gleich groß.
+- `wc -l`: größte geänderte Dateien `DashboardTile.tsx` 385, `DashboardWorkspace.tsx` 378, `routePages.tsx` 356. Alle Code-, Test- und Skriptdateien haben unter 400 Zeilen.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-077/README.md`. Das Skript `scripts/captureAuftrag077Screenshots.mjs` endete mit Exit 0, gegen drei Builds mit lokalem Supabase (Schalter an, Schalter aus, Baseline `7a60dd8`):
+- Vorher/Nachher für `/dashboard` und die Detailseite auf 1440/768/375 sind verschieden.
+- 0 px Seitenüberlauf; axe serious/critical 0 in Ansicht (24 Kacheln), Bearbeiten (24 gesperrte „Details“) und Details zu Kennzahl, Diagramm, Kombination, CRM, Übersicht und unbekannter Kachel.
+- Größte Layoutverschiebung 0,014.
+- Schalter aus: dieselben Überschriften wie vorher, keine persönliche Ansicht, Detailroute 404.
+- Tastatur: Fokus auf der Überschrift, Rückkehr auf „Details“ der Ausgangskachel.
+- Die Testkonfiguration des Benutzers wird am Ende zurückgeschrieben.
+
+**Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen sind CI auf PR #61, die Codex-Prüfung des Codes und der Merge durch Marc. Der Schalter bleibt bis zur Gesamtabnahme (Teilauftrag 8) aus.
+
+## Auftrag 077 – Nacharbeit Codex-Review zum Code (PR #61, Head `8265bc6`), Builder Claude Code, 05.10.2026
+
+**Befunde (6 × P2, alle berechtigt) und Umsetzung:**
+1. **Ersatzseite bei Nachladefehler verliert Filter:** „Zurück zum Dashboard“ geht jetzt zum vorhandenen Eintrag der Ansicht (`navigate(-1)`, bei Direktaufruf nach `/dashboard`). Test mit Verlauf aus Ansicht und Detailseite.
+2. **Kein Diagramm bei als Tabelle gespeicherten Reihen:** `detailChartView` nimmt die Darstellung der Kachel, sonst die Standard- bzw. erste Diagrammdarstellung des Katalogeintrags. Tests: Tabelle des MRR-Paketmix zeigt „Aufteilung“; Kennzahl ohne Diagrammdarstellung bleibt ohne Diagramm.
+3. **Skip-Link öffnet die Rückfrage:** Reine Anker und Ziele mit gleichem Pfad samt Suche bleiben vom Linkschutz ausgenommen. Test mit `#main-content`.
+4. **Fachübersicht der Live-KPIs (= Dashboard) verliert Kontext:** Ist das Ziel `/dashboard`, nimmt der Link denselben Rückweg wie „Zurück zum Dashboard“ (Filter und Fokusziel). Test mit `live.arr`.
+5. **Screenshot-Skript stellt eine fehlende Ausgangszeile nicht wieder her:** Fehlt sie, löscht das Skript sie danach mit `E2E_CLEANUP_KEY` wieder; ohne Schlüssel bricht es vorher ab. Nachgewiesen: vorher 0 Zeilen, nachher 0.
+6. **E2E deckt nicht alle Detailarten und keinen echten Filter ab:** Die Spec setzt jetzt eine feste Konfiguration (Kennzahl, Kombination, Übersicht, CRM) über die Speicher-RPC (`e2e/helpers/dashboardPreferences.ts`) und stellt danach den Ausgangszustand wieder her.
+   - Neu geprüft: Kombination mit Formel, vier Tabellenzeilen und demselben Wert wie die Kachel; Übersicht ohne Definition und Wert, Fachseite Roadmap; CRM mit angewendetem Pipeline-Filter, der hin und zurück reist, über „Zurück“ und über Browser-Zurück, mit Fokus.
+   - Die Detailseite zeigt dafür neu die Angabe „Filter“.
+   - Die Spec läuft seriell (`--workers=1` in CI und Orchestrator), weil sie die Präferenz des gemeinsamen Testbenutzers schreibt.
+
+**Verifikation:**
+- `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0
+- `npm test` 0 (312 Dateien, 2214 Tests), `npm run verify` 0, `npm run build` 0
+- `npm run verify:quality-budget` 0, `npx size-limit` 0
+- Skripttests 150 grün
+- E2E mit Schalter: 27/27 (9 Abläufe × 3 Breiten), Stabilität `--repeat-each=3` 81/81, Lauf ohne Ausgangszeile 27/27 mit 0 Zeilen danach
+- Screenshot-Gate Exit 0 (0 px Überlauf, axe 0, CLS max. 0,019, Schalter aus wie vorher)
+- Schutzbereichs-Diff gegen `7a60dd8` leer; alle Dateien < 400 Zeilen
+
+**Freigabestatus:** Nacharbeit fertig. Offen sind die erneute Codex-Prüfung, CI und der Merge durch Marc.
+
+## Auftrag 077 – Nacharbeit zweites und drittes Codex-Review zum Code (PR #61, Heads `8265bc6` und `75a85d8`), Builder Claude Code, 06.10.2026
+
+**Befunde (8 × P2, alle berechtigt) und Umsetzung:**
+1. **Schutzeintrag bleibt nach Speichern/Verwerfen im Verlauf** (`useBrowserBackGuard.ts`): Wird der Entwurf ohne Verlassen sauber, geht der Schutzeintrag einen Schritt zurück. Während einer offenen Rückfrage oder eines bestätigten Verlassens (neuer Zustand `leaving` in `useLeaveGuard`) wird nicht aufgeräumt, weil die Router-Navigation erst nach dem Verwerfen gerendert wird. Test: nach „Speichern“ führt Browser-Zurück zur vorherigen Seite.
+2. **Kein Reload-Fallback für die persönliche Ansicht** (`executiveDashboardEntry.ts`): Der Loader der Ansicht läuft jetzt ebenfalls über `withChunkFallback`, mit eigener Ersatzseite `DashboardChunkError` (nur „Erneut laden“). Test.
+3. **Screenshot-Harness scrollt das Fenster statt `<main>`** (`detailShotHelpers.mjs`): `scrollThrough` scrollt `<main>`. Das Gate zählt zusätzlich die aktivierten Kacheln (`data-active="true"`) und verlangt 24 von 24.
+4. **CRM-Aktualität als „Fester Stand der Quelle“** (`TileDetailContent.tsx`): Für CRM steht „Bei jedem Aufruf aus den importierten CRM-Daten“. Test.
+5. **Standard-Build nach rotem E2E-Schritt nicht wiederhergestellt** (`runV23Acceptance.mjs`): Gates kennen `finally`-Schritte, die immer laufen, sobald das Gate gestartet ist. Ihr Fehler macht das Gate rot. Das E2E-Gate stellt so den regulären Build auch nach einem Fehler wieder her. In der CI bricht der Job beim Fehler ab, Lighthouse läuft dann nicht gegen den Schalter-Build. Test.
+6. **Rückweg legt ein zweites Dashboard an** (`useDashboardNavigation.ts`): Der aus der Ansicht geöffnete Detaileintrag trägt `fromDashboard`. „Zurück zum Dashboard“ geht dann per `navigate(-1)` zum vorbereiteten Eintrag. Nur Direktaufruf oder Reload legen ein neues Ziel an. Test: danach führt Browser-Zurück zur Seite vor dem Dashboard.
+7. **Abgelehnter Zeitraumfilter fehlt in den Details** (`TileDetailContent.tsx`): „Filter“ nennt gewählten Zeitraum oder gewählte Pipeline samt Grund, wenn sie nicht angewendet werden. Die Detailseite reicht dafür die wirksamen Ansichtsfilter herein. Tests.
+8. **Abmelden ohne Rückfrage** (`useInAppLinkGuard.ts`, `Layout.tsx`): Schaltflächen mit `data-leave-guard` laufen über `requestLeave`. Nach „Verwerfen“ oder „Speichern“ löst derselbe Klick die Aktion ohne neue Rückfrage aus. Der Abmelde-Knopf trägt das Attribut. Test.
+
+Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind auf GitHub mit Verweis auf die Commits beantwortet und aufgelöst.
+
+**Verifikation:**
+- `npx tsc --noEmit` 0, `npm run lint` 0, `npm run format:check` 0
+- `npm test` 0 (313 Dateien, 2224 Tests), `npm run verify` 0, `npm run build` 0
+- `npm run verify:quality-budget` 0, `npx size-limit` 0
+- E2E mit Schalter `--repeat-each=2`: 54/54, schließt die Härtung des Aufräumschlüssels aus `75a85d8` ein
+- Screenshot-Gate Exit 0: 0 px Überlauf, axe 0, CLS max. 0,019, an allen Breiten 24 von 24 Kacheln aktiv, Schalter aus wie vorher
+- Schutzbereichs-Diff gegen `7a60dd8` leer; alle Dateien < 400 Zeilen (`DashboardWorkspace.tsx` 388, `useDashboardEditor.ts` 390)
+
+**Freigabestatus:** Nacharbeit fertig. Offen sind die erneute Codex-Prüfung, CI und der Merge durch Marc.
 ---
 
 ## CI-Auftrag Audit postcss/source-map-js/proxy-addr, Builder Claude Code, 06.10.2026
@@ -15398,3 +15509,17 @@ Damit sind alle für Auftrag 072 offenen lokalen Nachweise erbracht. Ein erster 
 **Screenshot-Matrix:** entfällt, keine UI-Änderung (CSS-Ausgabe identisch).
 
 **Ergebnis & Freigabestatus:** Umsetzung fertig, alle Builder-Gates grün. Offen: PR gegen `main`, CI, Codex-Prüfung, Merge durch Marc; danach PR #61 auf `main` aktualisieren.
+
+---
+
+## Auftrag 077 – Nachtrag CI-e2e nach Merge von `main`, Builder Claude Code, 06.10.2026
+
+**Ziel & Kontext:** Nach dem Merge von `main` (PR #62, Audit-Korrektur) in PR #61 (Merge-Commit `5df526d`) war der CI-Job `e2e` rot (Lauf 37428981698): Der Test „CRM: angewendeter Pipeline-Filter …“ scheiterte auf `mobile-375` in beiden Versuchen. Der Seiten-Snapshot zeigte das Dashboard statt der Detailseite: Der Klick auf „Details“ fiel unmittelbar nach „Filter anwenden“, während die Kacheln darüber eine Zeile mehr bekamen und die noch nicht sichtbare Kachel lazy nachlud. Der Klick verfehlte deshalb den verrutschenden Button. Kein Produktfehler.
+
+**Geänderte Dateien:** `e2e/personal-dashboard.spec.ts` (vor dem Klick: „Filter anwenden“ deaktiviert, Kachel ins Bild scrollen, Zeitbezug „Pipeline: e2e-pipeline“ abwarten, Workspace nicht beschäftigt; nach dem Klick Detailüberschrift sichtbar), dieser Eintrag.
+
+**Schutzbereichs-Prüfung:** `git diff 1c1a5db -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation (Exit-Codes):** nach dem Merge `npm ci` 0, `npx tsc --noEmit` 0, `node scripts/auditAllowlist.mjs --omit=dev` 0, `npx vitest run` 0 (313 Dateien, 2224 Tests), `npm run verify` 0, `npm run build` 0. Mit Rollout-Build (`VITE_EXECUTIVE_DASHBOARD_V2=true`): `e2e/personal-dashboard.spec.ts` ohne Retries 27/27, der betroffene Test mit `--repeat-each=10` auf allen drei Breiten 30/30; Prettier und ESLint für die Spec 0.
+
+**Ergebnis & Freigabestatus:** Nachtrag fertig. Codex pausiert; Marc hat am 06.10.2026 entschieden, ohne erneute Codex-Prüfung zu mergen, weil die letzte Codex-Runde keine Befunde mehr hatte. Merge durch Marc nach grüner CI.

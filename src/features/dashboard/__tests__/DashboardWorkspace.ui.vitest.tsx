@@ -130,7 +130,7 @@ describe('DashboardWorkspace – Zustände', () => {
   it('nennt ohne Detailansicht einen sichtbaren Hinweis statt nichts zu tun', () => {
     setup(prefs());
     fireEvent.click(screen.getAllByRole('button', { name: /Details/ })[0]!);
-    expect(screen.getByText('Die Detailansicht folgt mit Teilauftrag 7.')).toBeInTheDocument();
+    expect(screen.getByText('In dieser Vorschau gibt es keine Detailansicht.')).toBeInTheDocument();
   });
 });
 

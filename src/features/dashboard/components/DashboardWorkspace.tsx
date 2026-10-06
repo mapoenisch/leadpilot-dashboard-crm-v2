@@ -1,6 +1,6 @@
 // Executive Dashboard, Teilauftrag 5 (Auftrag 074): Arbeitsbereich. Verbindet Speicherzustand,
 // Bearbeitungsmodus, Filter, Raster und Konfigurationsfenster. Kennt weder Supabase noch den
-// Router: Verlassen läuft über `requestLeave`, die Router-Anbindung folgt mit Teilauftrag 7.
+// Router: Verlassen läuft über `requestLeave`; die Seite (Auftrag 077) reicht `navigate` herein.
 import {
   Component,
   Suspense,
@@ -14,10 +14,7 @@ import {
 } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import type {
-  DashboardFilters as FilterValues,
-  DashboardTileConfig,
-} from '../model/dashboardConfig';
+import type { DashboardTileConfig } from '../model/dashboardConfig';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
 import { activeEntryOf } from '../hooks/dashboardEditorReducer';
 import { useDashboardEditor, type EditorPreferences } from '../hooks/useDashboardEditor';
@@ -28,6 +25,9 @@ import { EditorToolbar } from './EditorToolbar';
 import type { TileDataHook } from './LazyDashboardTile';
 import type { TileConfiguratorProps } from './TileConfigurator';
 import { UnsavedChangesDialog, useEscapeToClose } from './UnsavedChangesDialog';
+import { useInAppLinkGuard } from '../hooks/useInAppLinkGuard';
+import { noBrowserBackGuard } from '../hooks/useBrowserBackGuard';
+import type { SessionFilters } from '../hooks/useDashboardNavigation';
 
 export interface WorkspacePreferences extends EditorPreferences {
   status: 'keine_sitzung' | 'laden' | 'bereit' | 'fehler';
@@ -39,8 +39,22 @@ export interface DashboardWorkspaceProps {
   preferences: WorkspacePreferences;
   useData: TileDataHook;
   chartLoaders?: ChartLoaders;
-  /** Fehlt sie, erscheint ein Hinweis, dass die Detailansicht mit Teilauftrag 7 folgt. */
-  onShowDetails?: (tileId: string) => void;
+  /** Fehlt sie, erscheint ein Hinweis, dass es hier keine Detailansicht gibt (Vorschau). */
+  onShowDetails?: (tileId: string, session: SessionFilters) => void;
+  /** Auftrag 077: Sitzungsfilter beim Öffnen (Rückkehr aus den Details); nur beim ersten Rendern. */
+  initialSession?: SessionFilters;
+  /** Auftrag 077: Kachel, deren „Details“-Knopf nach dem Laden den Fokus erhält (nur einmal). */
+  returnFocusTileId?: string | null;
+  /** Rückkehr erledigt: `found` = Fokus liegt auf „Details“; sonst setzt die Seite den Fokus selbst. */
+  onReturnFocus?: (found: boolean) => void;
+  /** Auftrag 077: interne Navigation; mit offenen Änderungen erst nach Rückfrage. */
+  navigate?: (to: string) => void;
+  /** Auftrag 077: Schutz der Zurück-Taste (Hook der Seite); ohne Router wirkungslos. */
+  useBackGuard?: (
+    dirty: boolean,
+    requestLeave: (proceed: () => void) => void,
+    leavePending: boolean,
+  ) => boolean;
   /** Seite neu laden; Standard `window.location.reload()`. */
   onReload?: () => void;
   onTileActivated?: (tileId: string) => void;
@@ -102,7 +116,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   const editor = useDashboardEditor(preferences);
   const state = preferences.state;
   const reload = props.onReload ?? (() => window.location.reload());
-  const [session, setSession] = useState<{ value: FilterValues | undefined } | null>(null);
+  const [session, setSession] = useState<SessionFilters>(props.initialSession ?? null);
   const [target, setTarget] = useState<Target>(null);
   // Zähler statt Flag: jeder Klick wechselt die Ansage, auch ohne sichtbare Änderung.
   const [detailsClicks, setDetailsClicks] = useState(0);
@@ -153,6 +167,30 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
     focusSeq.current += 1;
     setFocusRequest({ id: focusSeq.current, tileId, action });
   };
+  // Rückkehr aus den Details: einmal nach dem Laden auf „Details“ der Ausgangskachel.
+  const returnFocus = useRef(props.returnFocusTileId ?? null);
+  const { onReturnFocus } = props;
+  useEffect(() => {
+    const tileId = returnFocus.current;
+    if (!ready || !tileId) return;
+    returnFocus.current = null;
+    const found = tiles.some((tile) => tile.tileId === tileId);
+    if (found) focus(tileId, 'details');
+    onReturnFocus?.(found);
+  });
+  const { navigate } = props;
+  useInAppLinkGuard(
+    Boolean(navigate) && editor.dirty,
+    (to) => editor.requestLeave(() => navigate?.(to)),
+    editor.requestLeave,
+  );
+  // Fester Hook je Arbeitsbereich: die Seite reicht ihn einmal herein (wie `useData`).
+  const useBackGuard = props.useBackGuard ?? noBrowserBackGuard;
+  const backGuarded = useBackGuard(
+    editor.dirty,
+    editor.requestLeave,
+    editor.leaveRequest !== null || editor.leaving,
+  );
 
   const move = (tileId: string, direction: 'hoch' | 'runter') => {
     editor.moveTile(tileId, direction);
@@ -217,7 +255,12 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   }
 
   return (
-    <div data-testid="dashboard-workspace" aria-busy={!ready} className="flex flex-col gap-4">
+    <div
+      data-testid="dashboard-workspace"
+      data-back-guard={backGuarded || undefined}
+      aria-busy={!ready}
+      className="flex flex-col gap-4"
+    >
       <EditorToolbar
         editing={editing}
         canStart={editor.canStart}
@@ -257,23 +300,22 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         ) : null}
         {detailsClicks > 0 ? (
           <p role="status" className="m-0">
-            Die Detailansicht folgt mit Teilauftrag 7.
+            In dieser Vorschau gibt es keine Detailansicht.
             {detailsClicks % 2 ? '' : '\u200B'}
           </p>
         ) : null}
       </div>
-      {ready ? (
+      {/* Auftrag 077: Filterleiste schon beim Laden (gesperrt) — sonst schiebt sie danach das Raster. */}
+      <div ref={skeletonRef} aria-hidden={!ready || undefined} className="flex flex-col gap-4">
         <DashboardFilters
           value={filters}
           startFilters={shown?.filters}
           editing={editing}
-          locked={editor.locked}
+          locked={editor.locked || !ready}
           pipelineSupported={pipelineSupported}
           onApply={(value) => setSession({ value })}
           onStartFilters={(value) => void editor.setStartFilters(value)}
         />
-      ) : null}
-      <div ref={skeletonRef} aria-hidden={!ready || undefined}>
         <DashboardGrid
           tiles={tiles}
           filters={filters}
@@ -283,10 +325,12 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           chartLoaders={props.chartLoaders}
           suspended={!ready}
           focusRequest={focusRequest}
+          detailsBlocked={editing}
           onShowDetails={(tileId) => {
-            // Während des Speicherns ist auch „Details“ wirkungslos (kein Verlassen mittendrin).
-            if (editor.locked) return;
-            if (props.onShowDetails) props.onShowDetails(tileId);
+            // Entscheidung Marc E3: im Bearbeitungsmodus nie aus dem Editor heraus (auch nicht beim
+            // Speichern); „Details“ ist dort gesperrt und erklärt.
+            if (editor.locked || editing) return;
+            if (props.onShowDetails) props.onShowDetails(tileId, session);
             else setDetailsClicks((n) => n + 1);
           }}
           onRetryChartLoad={() => editor.requestLeave(reload)}

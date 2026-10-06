@@ -38,6 +38,8 @@ export const E2E_PARALLEL = [
   'e2e/tenant-isolation.spec.ts',
   'e2e/visual.spec.ts',
 ];
+/** Auftrag 077: nur mit Build `VITE_EXECUTIVE_DASHBOARD_V2=true` (Rollout-Schalter, Standard aus). */
+export const E2E_DASHBOARD_V2 = ['e2e/personal-dashboard.spec.ts'];
 export const E2E_SEQUENTIAL = [
   'e2e/persistence-multisession.spec.ts',
   'e2e/worker-responsiveness.spec.ts',
@@ -71,7 +73,20 @@ export const GATES = [
     steps: [
       ['npx', 'playwright', 'test', ...E2E_PARALLEL],
       ['npx', 'playwright', 'test', ...E2E_SEQUENTIAL, '--workers=1'],
+      ['env', 'VITE_EXECUTIVE_DASHBOARD_V2=true', 'npx', 'vite', 'build'],
+      [
+        'env',
+        'E2E_DASHBOARD_V2=true',
+        'npx',
+        'playwright',
+        'test',
+        ...E2E_DASHBOARD_V2,
+        '--workers=1',
+      ],
     ],
+    // Regulären Build wiederherstellen, auch wenn ein Schritt rot war: Befunde und Lighthouse
+    // messen die Standardauslieferung, nie den Build mit Rollout-Schalter (Codex PR #61).
+    finally: [['npx', 'vite', 'build']],
   },
   { id: 'findings', code: 22, needs: ['build'], steps: [['npm', 'run', 'verify:v23:baseline']] },
   { id: 'lighthouse', code: 23, needs: ['build'], steps: [['npx', 'lhci', 'autorun']] },
@@ -190,6 +205,12 @@ export function runGates(gates, options, runStep) {
         exitCode = outcome.exitCode;
         break;
       }
+    }
+    // `finally`-Schritte laufen immer, sobald das Gate gestartet ist; ihr Fehler macht es rot.
+    for (const step of gate.finally ?? []) {
+      const outcome = runStep(gate, step);
+      output += `$ ${step.join(' ')}\n${outcome.output}\n[exit ${outcome.exitCode}]\n`;
+      if (outcome.exitCode !== 0 && exitCode === 0) exitCode = outcome.exitCode;
     }
     const status = exitCode === 0 ? 'passed' : 'failed';
     results.push({

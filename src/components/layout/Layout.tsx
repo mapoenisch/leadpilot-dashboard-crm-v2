@@ -124,6 +124,8 @@ export function Layout() {
         onClick={handleLogout}
         aria-label="Abmelden"
         data-testid="logout-button"
+        // Auftrag 077: ungespeicherte Dashboard-Änderungen fragen vor dem Abmelden nach.
+        data-leave-guard=""
         title={user?.email ? `Angemeldet als ${user.email} — Abmelden` : 'Abmelden'}
         className="fixed bottom-3 right-3 z-40 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-white bg-[#0B211F] border border-[#2A4A43] rounded-md shadow-md backdrop-blur-sm transition-opacity opacity-0 hover:opacity-100 focus:opacity-100 cursor-pointer"
       >
