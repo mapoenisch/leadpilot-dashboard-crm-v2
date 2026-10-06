@@ -4,8 +4,8 @@
  * vollständigen Katalog im echten App-Ablauf (lokales Supabase, Testbenutzer).
  *
  * Zwei Builds desselben Codes und Datenstands:
- *   BASE_URL  Build mit VITE_EXECUTIVE_DASHBOARD_V2=true (Nachher, neue Ansicht)
- *   OFF_URL   Build ohne Schalter (Vorher, bisherige Ansicht; bleibt bis zum Rollout Standard)
+ *   BASE_URL  Build mit persönlicher Ansicht (Nachher; seit dem Rollout der Standard-Build)
+ *   OFF_URL   Build mit VITE_EXECUTIVE_DASHBOARD_V2=false (Vorher, bisherige Ansicht)
  * 1. Durchgänge aus scripts/lib/acceptanceShotConfigs.ts (vollständiger Katalog in
  *    Standarddarstellung, jede Darstellung in jeder zulässigen Größe) je Breite 1440/768/375:
  *    Bild, SHA-256, Überlauf (Dokument und <main>, 0 px), axe serious/critical inkl. Kontrast (0),

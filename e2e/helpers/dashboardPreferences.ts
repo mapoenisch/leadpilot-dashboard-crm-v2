@@ -63,6 +63,13 @@ export async function passwordSession(email: string, password: string): Promise<
   return { url, anonKey, token: body.access_token, userId: body.user.id };
 }
 
+/** Gespeicherte Zeile des Benutzers (Revision und Konfiguration); null ohne Zeile. */
+export async function readPreferencesRow(
+  s: Session = session(),
+): Promise<{ revision: number; config: unknown } | null> {
+  return readRow(s);
+}
+
 /** Gespeicherte Revision des Benutzers; 0 ohne Zeile. */
 export async function readRevision(s: Session = session()): Promise<number> {
   return (await readRow(s))?.revision ?? 0;

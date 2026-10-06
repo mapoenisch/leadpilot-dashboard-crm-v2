@@ -211,16 +211,21 @@ jobs:
         run: npx playwright test e2e/a11y.spec.ts e2e/audit-health.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts e2e/element-clipping.acceptance.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
       - name: Playwright Simulation & Worker Tests (sequentiell)
         run: npx playwright test e2e/persistence-multisession.spec.ts e2e/worker-responsiveness.spec.ts e2e/run-control.spec.ts e2e/member-management.spec.ts --workers=1
-      # Auftrag 077: Die persönliche Ansicht existiert nur mit Rollout-Schalter (Standard aus). Eigener
-      # Build mit Schalter für ihre Spec, danach wieder der reguläre Build für Lighthouse.
-      - name: Build mit Rollout-Schalter (Auftrag 077)
-        run: npx vite build
-        env:
-          VITE_EXECUTIVE_DASHBOARD_V2: 'true'
-      - name: Playwright persönliches Dashboard und Gesamtabnahme (Rollout-Schalter an, Aufträge 077/079)
+      # Auftrag 079 (Rollout, Entscheidung Marc E2): Die persönliche Ansicht ist Standard, ihre Specs
+      # laufen gegen den regulären Build. Die Rückschaltung (=false) bekommt einen eigenen Build und
+      # Nachweis; danach wieder der reguläre Build für Lighthouse.
+      - name: Playwright persönliches Dashboard und Gesamtabnahme (Standardansicht, Aufträge 077/079)
         run: npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts --workers=1
         env:
           E2E_DASHBOARD_V2: 'true'
+      - name: Build mit Rückschaltung auf die bisherige Ansicht (Auftrag 079)
+        run: npx vite build
+        env:
+          VITE_EXECUTIVE_DASHBOARD_V2: 'false'
+      - name: Playwright Rückschaltung (bisherige Ansicht, Konfiguration unberührt)
+        run: npx playwright test e2e/dashboard-rollback.spec.ts --workers=1
+        env:
+          E2E_DASHBOARD_ROLLBACK: 'true'
       - name: Regulären Build für Lighthouse wiederherstellen
         run: npx vite build
       - name: Playwright-Chrome für Lighthouse bereitstellen

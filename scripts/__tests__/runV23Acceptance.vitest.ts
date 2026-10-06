@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  E2E_DASHBOARD_ROLLBACK,
   E2E_DASHBOARD_V2,
   E2E_PARALLEL,
   E2E_SEQUENTIAL,
@@ -106,18 +107,21 @@ describe('runV23Acceptance', () => {
     expect(results[0]).toMatchObject({ status: 'failed', exitCode: 1 });
   });
 
-  it('stellt den regulären Build auch nach einem roten E2E-Schritt wieder her (Auftrag 077)', () => {
+  it('stellt den regulären Build auch nach einem roten Rückschalt-Schritt wieder her (Aufträge 077/079)', () => {
     const steps: string[] = [];
     const results = runGates(
       GATES.filter((g) => g.id === 'e2e'),
       { only: null, skip: [], failFast: false },
       (_gate: Gate, step: string[]) => {
         steps.push(step.join(' '));
-        return { exitCode: step.includes('E2E_DASHBOARD_V2=true') ? 1 : 0, output: '' };
+        return { exitCode: step.includes('E2E_DASHBOARD_ROLLBACK=true') ? 1 : 0, output: '' };
       },
     );
     expect(steps.at(-1)).toBe('npx vite build');
-    expect(steps.at(-2)).toContain('E2E_DASHBOARD_V2=true');
+    expect(steps.at(-2)).toContain('E2E_DASHBOARD_ROLLBACK=true');
+    expect(steps.at(-3)).toBe('env VITE_EXECUTIVE_DASHBOARD_V2=false npx vite build');
+    // Die persönliche Ansicht läuft gegen den regulären Build, ohne eigenen Schalter-Build.
+    expect(steps.some((step) => step.includes('VITE_EXECUTIVE_DASHBOARD_V2=true'))).toBe(false);
     expect(results[0]).toMatchObject({ status: 'failed', exitCode: 1 });
   });
 
@@ -153,7 +157,12 @@ describe('runV23Acceptance', () => {
       .filter((name) => /\.(spec|acceptance)\.ts$/.test(name))
       .map((name) => `e2e/${name}`)
       .sort();
-    const orchestrated = [...E2E_PARALLEL, ...E2E_SEQUENTIAL, ...E2E_DASHBOARD_V2].sort();
+    const orchestrated = [
+      ...E2E_PARALLEL,
+      ...E2E_SEQUENTIAL,
+      ...E2E_DASHBOARD_V2,
+      ...E2E_DASHBOARD_ROLLBACK,
+    ].sort();
     expect(orchestrated).toEqual(specs);
     const ci = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf-8');
     const ciRuns = ci

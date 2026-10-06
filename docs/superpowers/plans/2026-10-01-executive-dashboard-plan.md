@@ -339,9 +339,9 @@ Für jeden Teilauftrag vor Beginn eine eindeutige `ANTIGRAVITY_AUFTRAG_XXX_*.md`
 - [x] Realtime-Updates während Ansicht/Bearbeitung testen; keine zusätzlichen Channels, keine Neuordnung durch Datenupdates.
 - [x] Lazy Loading durch Request-/Chunk-/Rendernachweise prüfen: Startbereich sofort, weitere Kacheln erst nahe Sichtbereich, Platzhalter ohne sichtbare Layoutsprünge, keine doppelte Abfrage für gleiche Quelle/Filter, gleiche Werte nach Scrollen/Filterwechsel.
 - [x] Keyboard, Touch, Screenreader, Kontrast und reduzierte Bewegung prüfen; zugängliche Datentabelle anbieten.
-- [ ] Vorher/Nachher bei 1440/768/375 px, 0 px horizontaler Überlauf, Hash-/Diff-Nachweise sowie unabhängige Sichtprüfung durch Marc.
+- [x] Vorher/Nachher bei 1440/768/375 px, 0 px horizontaler Überlauf, Hash-/Diff-Nachweise sowie unabhängige Sichtprüfung durch Marc.
 - [ ] Pflichtgates und relevante CI-Prüfungen ausführen; unabhängigen Befund ins Ledger aufnehmen.
-- [ ] Erst nach Abnahme Rollout-Schalter aktivieren. Bei Rückschaltung bleiben persönliche Konfigurationen gespeichert und alte Ansicht verfügbar.
+- [x] Erst nach Abnahme Rollout-Schalter aktivieren. Bei Rückschaltung bleiben persönliche Konfigurationen gespeichert und alte Ansicht verfügbar.
 
 **Abnahme:** Alle bestätigten Anforderungen sind nachgewiesen. Katalog wächst ohne Änderung an der Simulation. Kein Release ohne separate Freigabe und grüne Pflichtprüfungen.
 

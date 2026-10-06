@@ -15598,3 +15598,21 @@ Die zwölf Threads der ersten Runden (Auftragstext und erstes Code-Review) sind 
 **Ergebnis & Freigabestatus:** Nachweise T1–T8 grün. Offen: Sichtprüfung durch Marc (Bilder lokal unter `docs/screenshots/auftrag-079/`), CI und Codex-Befund zum PR, danach Entscheidung E2/E3 und Rollout T9 nur nach ausdrücklicher Freigabe durch Marc. Merge nur durch Marc.
 
 **Nachtrag 06.10.2026 – Entscheidungen Marc:** E2 (Standard an im Code, Rückschaltung per `VITE_EXECUTIVE_DASHBOARD_V2=false`) und E3 (alte Ansicht bis `v2.4.0` im Code, Entfernung als eigener Auftrag) wie vorgeschlagen bestätigt. Rollout T9 weiterhin erst nach Sichtprüfung und Freigabe durch Marc.
+
+---
+
+## Auftrag 079 – Rollout (T9) nach Sichtprüfung, Builder Claude Code, 06.10.2026
+
+**Freigaben Marc (Chat, 06.10.2026):** Entscheidungen E2/E3 bestätigt; Sichtprüfung der Bildmatrix erteilt („ist abgenommen“); Umstellen des Rollout-Schalters ausdrücklich freigegeben. Empfehlung zum Testumbau (CI prüft die ausgelieferte Ansicht, die alte nur noch per Rückschalt-Nachweis) von Marc angenommen.
+
+**Geänderte Dateien:** `src/features/dashboard/model/dashboardRollout.ts` (an, außer genau `false`), `__tests__/dashboardRollout.vitest.ts` (vorher rot: 4 Fälle), `.env.example`, `e2e/dashboard-rollback.spec.ts` (neu), `e2e/helpers/dashboardPreferences.ts` (`readPreferencesRow`), `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` (Dashboard-Specs gegen den regulären Build, Rückschalt-Build mit eigenem Nachweis, danach regulärer Build für Lighthouse), `scripts/__tests__/runV23Acceptance.vitest.ts`, Kommentare in `personal-dashboard*.spec.ts` und `captureAuftrag079Screenshots.mjs`, Auftrag, Protokoll, Plan, `BUILD_PLAN.md`
+
+**Nachweis Rückschaltung (`e2e/dashboard-rollback.spec.ts`, Build `=false`, 3 Breiten):** bisherige Ansicht unter `/dashboard` (keine Kachel, keine persönliche Überschrift), `/dashboard/tiles/…` → „Seite nicht gefunden“, gespeicherte Zeile vorher und nachher gleich (Revision und Konfiguration). Gegenprobe gegen den Standard-Build schlägt fehl, wie erwartet.
+
+**Auswirkung auf die übrigen E2E (lokal, je Build alle zehn Dateien der regulären Liste × 3 Breiten = 630 Tests):** Standard-Build und Rückschalt-Build ergeben dieselben 584 grün / 46 rot; die 46 sind lokale Umgebungsabweichungen (Testdaten, Linux-Referenzbilder) und hängen nicht am Schalter. Der Barrierefreiheits-Scan von `/dashboard` ist mit neuer Ansicht grün. **Offen:** `visual /dashboard` vergleicht in der CI gegen Linux-Referenzbilder der alten Ansicht und braucht neue Bilder über `update-visual-baselines.yml` (Branch `visual-baselines/**`).
+
+**Lighthouse lokal gegen die neue Standardansicht** (`npx lhci autorun`, Konfiguration wie CI): Performance 0,99, Barrierefreiheit 1,0 (Schwellen 0,9 / 0,95).
+
+**Automatisierte Verifikation (Exit-Codes):** `npx tsc --noEmit` 0, `npm run verify` 0, `npx vitest run` 0 (315 Dateien, 2254 Tests), `npm run build` 0, `npm run lint` 0, `npm run format:check` 0, `npm run verify:quality-budget` 0, `npx size-limit` 0 (175,96 kB gzip, unverändert). Dashboard-E2E gegen den Standard-Build zweimal 39/39, Rückschaltung 3/3. Schutzbereichs-Diff gegen `bb5aaff` leer.
+
+**Ergebnis & Freigabestatus:** Rollout umgesetzt. Offen: neue Referenzbilder `visual /dashboard`, CI grün, Codex-Befund, Merge durch Marc.

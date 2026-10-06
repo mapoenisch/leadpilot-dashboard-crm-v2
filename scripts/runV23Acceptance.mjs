@@ -38,11 +38,13 @@ export const E2E_PARALLEL = [
   'e2e/tenant-isolation.spec.ts',
   'e2e/visual.spec.ts',
 ];
-/** Aufträge 077/079: nur mit Build `VITE_EXECUTIVE_DASHBOARD_V2=true` (Rollout-Schalter, Standard aus). */
+/** Aufträge 077/079: persönliche Ansicht, seit dem Rollout Standard (regulärer Build). */
 export const E2E_DASHBOARD_V2 = [
   'e2e/personal-dashboard.spec.ts',
   'e2e/personal-dashboard-acceptance.spec.ts',
 ];
+/** Auftrag 079: nur mit Build `VITE_EXECUTIVE_DASHBOARD_V2=false` (Rückschaltung). */
+export const E2E_DASHBOARD_ROLLBACK = ['e2e/dashboard-rollback.spec.ts'];
 export const E2E_SEQUENTIAL = [
   'e2e/persistence-multisession.spec.ts',
   'e2e/worker-responsiveness.spec.ts',
@@ -76,7 +78,6 @@ export const GATES = [
     steps: [
       ['npx', 'playwright', 'test', ...E2E_PARALLEL],
       ['npx', 'playwright', 'test', ...E2E_SEQUENTIAL, '--workers=1'],
-      ['env', 'VITE_EXECUTIVE_DASHBOARD_V2=true', 'npx', 'vite', 'build'],
       [
         'env',
         'E2E_DASHBOARD_V2=true',
@@ -86,9 +87,19 @@ export const GATES = [
         ...E2E_DASHBOARD_V2,
         '--workers=1',
       ],
+      ['env', 'VITE_EXECUTIVE_DASHBOARD_V2=false', 'npx', 'vite', 'build'],
+      [
+        'env',
+        'E2E_DASHBOARD_ROLLBACK=true',
+        'npx',
+        'playwright',
+        'test',
+        ...E2E_DASHBOARD_ROLLBACK,
+        '--workers=1',
+      ],
     ],
     // Regulären Build wiederherstellen, auch wenn ein Schritt rot war: Befunde und Lighthouse
-    // messen die Standardauslieferung, nie den Build mit Rollout-Schalter (Codex PR #61).
+    // messen die Standardauslieferung, nie den Rückschalt-Build (Codex PR #61, Auftrag 079).
     finally: [['npx', 'vite', 'build']],
   },
   { id: 'findings', code: 22, needs: ['build'], steps: [['npm', 'run', 'verify:v23:baseline']] },

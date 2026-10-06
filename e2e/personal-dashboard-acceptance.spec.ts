@@ -9,12 +9,12 @@ import {
 // Auftrag 079 (Dashboard Teilauftrag 8b, Gesamtabnahme): Nachweise im echten App-Ablauf, die bisher
 // nur als Unit-Test vorlagen. T1 zwei Sitzungen desselben Benutzers, T2 Benutzerwechsel im selben
 // Browser, T3 Realtime während Ansicht und Bearbeitung, T4 Lazy Loading per Netzwerk. Wie
-// personal-dashboard.spec.ts nur mit Build VITE_EXECUTIVE_DASHBOARD_V2=true und seriell
-// (`--workers=1`), weil die Abläufe die Präferenz der Testbenutzer schreiben; danach wird der
+// personal-dashboard.spec.ts nur im Build mit persönlicher Ansicht (seit dem Rollout Standard) und
+// seriell (`--workers=1`), weil die Abläufe die Präferenz der Testbenutzer schreiben; danach wird der
 // Ausgangszustand wiederhergestellt. Live-Feed-Einträge nur gegen ein lokales Supabase.
 test.skip(
   process.env.E2E_DASHBOARD_V2 !== 'true',
-  'Nur mit Build VITE_EXECUTIVE_DASHBOARD_V2=true (Auftrag 079).',
+  'Nur im seriellen Dashboard-Lauf mit persönlicher Ansicht (Auftrag 079).',
 );
 
 const AUTH_FILE = 'playwright/.auth/user.json';
