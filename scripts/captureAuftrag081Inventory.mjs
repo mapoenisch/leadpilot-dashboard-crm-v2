@@ -27,7 +27,6 @@ import AxeBuilder from '@axe-core/playwright';
 import { execFileSync } from 'node:child_process';
 import {
   axeSevere,
-  deletePreferences,
   savePreferences,
   scrollThrough,
   sessionUserId,
@@ -84,6 +83,24 @@ function assertScopedCleanup(url, userId) {
   }
   if (typeof userId !== 'string' || !UUID.test(userId)) {
     throw new Error('Ungültige Benutzer-ID für das Aufräumen.');
+  }
+}
+
+/** Löscht nur die Präferenzzeile der geprüften Organisation (Befund PR #67 Runde 14). */
+async function deletePreferencesRow(supabase, cleanupKey, userId, organizationId) {
+  assertScopedCleanup(supabase.url, userId);
+  if (typeof organizationId !== 'string' || !UUID.test(organizationId)) {
+    throw new Error('Ungültige Organisations-ID für das Aufräumen.');
+  }
+  const response = await fetch(
+    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(userId)}&organization_id=eq.${encodeURIComponent(organizationId)}`,
+    {
+      method: 'DELETE',
+      headers: { apikey: cleanupKey, Authorization: `Bearer ${cleanupKey}` },
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`Löschen der Präferenzzeile fehlgeschlagen (HTTP ${response.status}).`);
   }
 }
 
@@ -681,13 +698,24 @@ const INTERACTIVE = [
   { id: 'dashboard', route: '/dashboard', narrow: true },
   { id: 'dashboard-edit', route: '/dashboard', edit: true },
   { id: 'dashboard-detail', route: '/dashboard', detail: true },
-  { id: 's-daten', route: '/company/data-basis' },
+  // Befund PR #67 Runde 14: Datenbasis und Aktivitäten stehen auf dem Baseline-Stand im Fehlerzustand,
+  // weil crmReadModelService.ts die aktive synthetische Quelle für Organisation A ablehnt. Der Zustand
+  // wird ausdrücklich geprüft; ändert er sich, schlägt die Aufnahme fehl statt still zu bestehen.
+  {
+    id: 's-daten',
+    route: '/company/data-basis',
+    expectedState: { name: 'fehler', marker: 'DATA_SOURCE_UNAVAILABLE' },
+  },
   { id: 's-standort', route: '/company/location' },
   { id: 's-live-simulation', route: '/crm/live-simulation' },
   { id: 's-leads', route: '/crm/leads' },
   { id: 's-companies', route: '/crm/companies' },
   { id: 's-deals', route: '/crm/deals' },
-  { id: 's-activities', route: '/crm/activities' },
+  {
+    id: 's-activities',
+    route: '/crm/activities',
+    expectedState: { name: 'fehler', marker: 'SYNTHETIC_NOT_ALLOWED' },
+  },
 ];
 
 function imagePageRoutes() {
@@ -1016,6 +1044,15 @@ async function openRoute(browser, state, viewport, theme, target) {
       await page.locator('main h2:has-text("Aktivitäten")').waitFor({ timeout: 10000 });
     }
 
+    if (target.expectedState) {
+      const mainText = await page.locator('main').first().innerText();
+      if (!mainText.includes(target.expectedState.marker)) {
+        throw new Error(
+          `Erwarteter Datenzustand „${target.expectedState.name}“ (${target.expectedState.marker}) auf ${target.id} nicht gefunden; Baseline neu bewerten.`,
+        );
+      }
+    }
+
     if (['s-leads', 's-companies', 's-deals'].includes(target.id)) {
       const errorState = await page
         .locator('[data-testid="management-chart-error"]')
@@ -1299,6 +1336,13 @@ function writeReadme(data) {
 
 async function main() {
   if (README_ONLY) {
+    // Befund PR #67 Runde 14: auch hier keine ungesicherten Änderungen überschreiben.
+    const dirty = execFileSync('git', ['status', '--porcelain'], { cwd: ROOT }).toString().trim();
+    if (dirty.length > 0) {
+      throw new Error(
+        `Arbeitsbaum enthält ungesicherte Änderungen (${dirty.split('\n').length} Einträge). README_ONLY abgebrochen.`,
+      );
+    }
     writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
     return;
   }
@@ -1368,6 +1412,7 @@ async function main() {
       restore = {
         type: 'delete_if_created',
         userId,
+        organizationId: testIdentity.organizationId,
         page: setupPage,
       };
       dashboardConfigInfo = {
@@ -1441,6 +1486,9 @@ async function main() {
               focus,
               consoleErrors: consoleErrors.length,
               pageErrors: pageErrors.length,
+              dataState: target.expectedState
+                ? `${target.expectedState.name} (${target.expectedState.marker})`
+                : null,
               hashes,
             });
             console.log(
@@ -1591,7 +1639,7 @@ async function main() {
       try {
         const current = await readPreferences(restore.page, SUPABASE);
         if (current.config) {
-          await deletePreferences(SUPABASE, CLEANUP_KEY, restore.userId);
+          await deletePreferencesRow(SUPABASE, CLEANUP_KEY, restore.userId, restore.organizationId);
         }
         if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
         if (pendingCanonicalPayload?.dashboardConfig) {
