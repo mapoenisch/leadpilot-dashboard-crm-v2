@@ -91,7 +91,7 @@ function assertScopedCleanup(url, userId) {
 async function restorePreferencesRow(supabase, cleanupKey, originalRow) {
   assertScopedCleanup(supabase.url, originalRow.user_id);
   const response = await fetch(
-    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(originalRow.user_id)}`,
+    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(originalRow.user_id)}&organization_id=eq.${encodeURIComponent(originalRow.organization_id)}`,
     {
       method: 'PATCH',
       headers: {
@@ -149,9 +149,9 @@ async function verifyIdentity(page, supabase, email, userId) {
   return actual;
 }
 
-/** Sammelt alle sichtbaren statischen Assets unter public/assets/ (Befund PR #67 Runde 11). */
-function collectPublicAssets(
-  dir = path.join(ROOT, 'public/assets'),
+/** Sammelt alle sichtbaren statischen Assets und Fonts unter public/ (Befund PR #67 Runde 11/12). */
+function collectPublicFiles(
+  dir = path.join(ROOT, 'public'),
   baseDir = path.join(ROOT, 'public'),
 ) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -159,9 +159,14 @@ function collectPublicAssets(
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      results.push(...collectPublicAssets(fullPath, baseDir));
+      results.push(...collectPublicFiles(fullPath, baseDir));
     } else if (entry.isFile()) {
-      if (entry.name.startsWith('.') || entry.name.endsWith('.md')) continue;
+      if (
+        entry.name.startsWith('.') ||
+        entry.name.endsWith('.md') ||
+        entry.name.startsWith('_')
+      )
+        continue;
       const relPath = '/' + path.relative(baseDir, fullPath).split(path.sep).join('/');
       results.push(relPath);
     }
@@ -344,29 +349,34 @@ async function verifyBuildArtifact(baseUrl) {
     }
   }
 
-  // Befund 3 PR #67 Runde 11: Alle sichtbaren statischen Assets aus public/assets/ verifizieren
-  const publicAssets = collectPublicAssets();
-  if (publicAssets.length !== 38) {
-    throw new Error(
-      `Erwartet wurden 38 statische Assets in public/assets/, gefunden: ${publicAssets.length}.`,
-    );
-  }
-  for (const assetPath of publicAssets) {
-    const localAssetFile = path.join(ROOT, 'dist', assetPath);
-    if (!fs.existsSync(localAssetFile)) {
-      throw new Error(`Lokales Asset dist${assetPath} existiert nicht.`);
+  // Befund 3 PR #67 Runde 11 / Befund 2 PR #67 Runde 12: Alle sichtbaren statischen Assets und Fonts verifizieren
+  const expectedFonts = [
+    '/fonts/inter-latin.woff2',
+    '/fonts/jetbrains-mono-latin.woff2',
+    '/fonts/space-grotesk-latin.woff2',
+  ];
+  const publicFiles = collectPublicFiles();
+  for (const fontPath of expectedFonts) {
+    if (!publicFiles.includes(fontPath)) {
+      throw new Error(`Erwartete Schriftdatei ${fontPath} fehlt in public/.`);
     }
-    const localAssetSha256 = sha256(fs.readFileSync(localAssetFile));
-    const servedAssetRes = await fetch(`${baseUrl}${assetPath}`);
-    if (!servedAssetRes.ok) {
+  }
+  for (const filePath of publicFiles) {
+    const localFile = path.join(ROOT, 'dist', filePath);
+    if (!fs.existsSync(localFile)) {
+      throw new Error(`Lokale Datei dist${filePath} existiert nicht.`);
+    }
+    const localSha = sha256(fs.readFileSync(localFile));
+    const servedRes = await fetch(`${baseUrl}${filePath}`);
+    if (!servedRes.ok) {
       throw new Error(
-        `Asset ${assetPath} konnte von ${baseUrl} nicht geladen werden (HTTP ${servedAssetRes.status}).`,
+        `Datei ${filePath} konnte von ${baseUrl} nicht geladen werden (HTTP ${servedRes.status}).`,
       );
     }
-    const servedAssetSha256 = sha256(Buffer.from(await servedAssetRes.arrayBuffer()));
-    if (servedAssetSha256 !== localAssetSha256) {
+    const servedSha = sha256(Buffer.from(await servedRes.arrayBuffer()));
+    if (servedSha !== localSha) {
       throw new Error(
-        `Das unter ${baseUrl} ausgelieferte Asset ${assetPath} (SHA-256 ${servedAssetSha256.slice(0, 16)}...) weicht vom lokalen Build (${localAssetSha256.slice(0, 16)}...) ab.`,
+        `Die unter ${baseUrl} ausgelieferte Datei ${filePath} (SHA-256 ${servedSha.slice(0, 16)}...) weicht vom lokalen Build (${localSha.slice(0, 16)}...) ab.`,
       );
     }
   }
@@ -377,7 +387,8 @@ async function verifyBuildArtifact(baseUrl) {
     indexHtmlSha256: localHtmlSha256,
     stylesheets: stylesheetPaths,
     verifiedImagesCount: imagePaths.length,
-    verifiedAssetsCount: publicAssets.length,
+    verifiedAssetsCount: publicFiles.length,
+    verifiedFontsCount: expectedFonts.length,
     verifiedServedUrl: baseUrl,
   };
 }
@@ -437,17 +448,71 @@ if (!README_ONLY && !CLEANUP_KEY) {
   );
 }
 
-/** Erwartete CRM-Seed-Daten für Organisation A aus supabase/seed.sql (Befund PR #67 Runde 11). */
+/** Erwartete normalisierte CRM-Seed-Daten für Organisation A aus supabase/seed.sql (Befund PR #67 Runde 11/12). */
 const EXPECTED_CRM_SEED = {
   organizationId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-  companiesCount: 3,
-  contactsCount: 1,
-  dealsCount: 2,
+  companies: [
+    {
+      id: 'c0000000-0000-0000-0000-000000000001',
+      name: 'Firma A1',
+      domain: 'a1.test',
+      industry: 'IT',
+      city: 'Berlin',
+      postal_code: '10115',
+      employee_count: 50,
+    },
+    {
+      id: 'c0000000-0000-0000-0000-000000000003',
+      name: ' =1+1 Formel-Firma',
+      domain: 'calc.test',
+      industry: 'IT',
+      city: 'Berlin',
+      postal_code: '10115',
+      employee_count: 10,
+    },
+    {
+      id: 'c0000000-0000-0000-0000-000000000004',
+      name: 'Firma A2',
+      domain: 'a2.test',
+      industry: 'Finanzen',
+      city: 'München',
+      postal_code: '80331',
+      employee_count: 80,
+    },
+  ],
+  contacts: [
+    {
+      id: 'd0000000-0000-0000-0000-000000000001',
+      company_id: 'c0000000-0000-0000-0000-000000000001',
+      email: 'anna.schmidt@a1.test',
+      first_name: 'Anna',
+      last_name: 'Schmidt',
+      job_title: 'CEO',
+    },
+  ],
+  deals: [
+    {
+      id: 'e0000000-0000-0000-0000-000000000001',
+      deal_name: 'Enterprise Paket A1',
+      stage: 'PROPOSAL',
+      amount: 45000,
+      close_date: '2026-11-30',
+      pipeline: 'default',
+    },
+    {
+      id: 'e0000000-0000-0000-0000-000000000003',
+      deal_name: ' =2+2 Formel Deal',
+      stage: 'LEAD',
+      amount: 5000,
+      close_date: '2026-12-31',
+      pipeline: 'default',
+    },
+  ],
 };
 
 /**
- * Verifiziert die CRM-Seed-Daten für Organisation A vor den Aufnahmen reproduzierbar (Befund PR #67 Runde 11).
- * Bricht fail-closed ab, wenn CRM-Daten verändert wurden oder fehlen.
+ * Verifiziert die CRM-Seed-Daten für Organisation A vor den Aufnahmen feldweise und normalisiert (Befund PR #67 Runde 11/12).
+ * Bricht fail-closed ab, wenn CRM-Daten in Werten, Typen, Beziehungen oder Anzahl abweichen.
  */
 async function verifyCrmSeedData(supabase, cleanupKey, organizationId) {
   const headers = {
@@ -461,12 +526,7 @@ async function verifyCrmSeedData(supabase, cleanupKey, organizationId) {
   if (!compRes.ok) {
     throw new Error(`CRM-Seed-Prüfung companies fehlgeschlagen (HTTP ${compRes.status}).`);
   }
-  const companies = await compRes.json();
-  if (companies.length !== EXPECTED_CRM_SEED.companiesCount) {
-    throw new Error(
-      `CRM-Seed-Prüfung: Erwartet ${EXPECTED_CRM_SEED.companiesCount} Companies für Organisation ${organizationId}, gefunden: ${companies.length}.`,
-    );
-  }
+  const actualCompanies = await compRes.json();
 
   const contRes = await fetch(
     `${supabase.url}/rest/v1/contacts?organization_id=eq.${organizationId}&select=id,company_id,email,first_name,last_name,job_title&order=id.asc`,
@@ -475,12 +535,7 @@ async function verifyCrmSeedData(supabase, cleanupKey, organizationId) {
   if (!contRes.ok) {
     throw new Error(`CRM-Seed-Prüfung contacts fehlgeschlagen (HTTP ${contRes.status}).`);
   }
-  const contacts = await contRes.json();
-  if (contacts.length !== EXPECTED_CRM_SEED.contactsCount) {
-    throw new Error(
-      `CRM-Seed-Prüfung: Erwartet ${EXPECTED_CRM_SEED.contactsCount} Contacts für Organisation ${organizationId}, gefunden: ${contacts.length}.`,
-    );
-  }
+  const actualContacts = await contRes.json();
 
   const dealRes = await fetch(
     `${supabase.url}/rest/v1/imported_funnel_deals?organization_id=eq.${organizationId}&select=id,deal_name,stage,amount,close_date,pipeline&order=id.asc`,
@@ -489,21 +544,39 @@ async function verifyCrmSeedData(supabase, cleanupKey, organizationId) {
   if (!dealRes.ok) {
     throw new Error(`CRM-Seed-Prüfung deals fehlgeschlagen (HTTP ${dealRes.status}).`);
   }
-  const deals = await dealRes.json();
-  if (deals.length !== EXPECTED_CRM_SEED.dealsCount) {
-    throw new Error(
-      `CRM-Seed-Prüfung: Erwartet ${EXPECTED_CRM_SEED.dealsCount} Deals für Organisation ${organizationId}, gefunden: ${deals.length}.`,
-    );
-  }
+  const actualDeals = await dealRes.json();
+
+  const compareRows = (entityName, actual, expected) => {
+    if (actual.length !== expected.length) {
+      throw new Error(
+        `CRM-Seed-Prüfung: Erwartet ${expected.length} ${entityName} für Organisation ${organizationId}, gefunden: ${actual.length}.`,
+      );
+    }
+    for (let i = 0; i < expected.length; i++) {
+      const exp = expected[i];
+      const act = actual[i];
+      for (const [key, val] of Object.entries(exp)) {
+        if (act[key] !== val) {
+          throw new Error(
+            `CRM-Seed-Abweichung bei ${entityName}[${i}] (ID ${exp.id}): Feld "${key}" ist ${JSON.stringify(act[key])}, erwartet: ${JSON.stringify(val)}.`,
+          );
+        }
+      }
+    }
+  };
+
+  compareRows('companies', actualCompanies, EXPECTED_CRM_SEED.companies);
+  compareRows('contacts', actualContacts, EXPECTED_CRM_SEED.contacts);
+  compareRows('deals', actualDeals, EXPECTED_CRM_SEED.deals);
 
   return {
     organizationId,
-    companiesCount: companies.length,
-    contactsCount: contacts.length,
-    dealsCount: deals.length,
-    companyIds: companies.map((c) => c.id),
-    contactIds: contacts.map((c) => c.id),
-    dealIds: deals.map((d) => d.id),
+    companiesCount: actualCompanies.length,
+    contactsCount: actualContacts.length,
+    dealsCount: actualDeals.length,
+    companyIds: actualCompanies.map((c) => c.id),
+    contactIds: actualContacts.map((c) => c.id),
+    dealIds: actualDeals.map((d) => d.id),
     verifiedAt: new Date().toISOString(),
   };
 }
@@ -581,7 +654,14 @@ const CONTROLLED_CRM_DATA = {
 };
 const OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-081');
 const JSON_OUT = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar.json');
-const ONLY = process.env.ONLY ? new Set(process.env.ONLY.split(',')) : null;
+const ONLY =
+  process.env.ONLY !== undefined
+    ? new Set(
+        process.env.ONLY.split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
+    : null;
 const WIDTHS = [
   { width: 1440, height: 1000 },
   { width: 768, height: 1024 },
@@ -1295,7 +1375,26 @@ async function main() {
 
     const images = imagePageRoutes();
     if (images.length !== 32) throw new Error(`32 Bildseiten erwartet, gefunden: ${images.length}`);
-    const targets = [...INTERACTIVE, ...images].filter((t) => !ONLY || ONLY.has(t.id));
+    const allTargets = [...INTERACTIVE, ...images];
+    if (ONLY) {
+      if (ONLY.size === 0) {
+        throw new Error('Der ONLY-Filter ist leer. Lauf abgebrochen.');
+      }
+      const validIds = new Set(allTargets.map((t) => t.id));
+      for (const requestedId of ONLY) {
+        if (!validIds.has(requestedId)) {
+          throw new Error(
+            `Unbekannte Ziel-ID im ONLY-Filter: "${requestedId}". Gültige IDs: ${[...validIds].join(', ')}`,
+          );
+        }
+      }
+    }
+    const targets = allTargets.filter((t) => !ONLY || ONLY.has(t.id));
+    if (targets.length === 0) {
+      throw new Error(
+        'Der ONLY-Filter wählt keine gültigen Ziele aus (0 Ziele gefunden). Lauf abgebrochen.',
+      );
+    }
     const expected = targets.reduce((n, t) => n + (t.narrow ? 4 : 3) * THEMES.length, 0);
     const shots = [];
     for (const target of targets) {
