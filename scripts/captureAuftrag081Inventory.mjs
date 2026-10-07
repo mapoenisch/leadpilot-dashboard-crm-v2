@@ -124,11 +124,52 @@ function assertScopedCleanup(url, userId) {
   }
 }
 
-/** Stellt die exakte Präferenzzeile (inkl. ursprünglicher Revision und Zeitstempel) wieder her (Befund PR #67 Runde 9). */
-async function restorePreferencesRow(supabase, cleanupKey, originalRow, harnessRevisions) {
+/** Stellt die exakte Präferenzzeile (inkl. ursprünglicher Revision und Zeitstempel) wieder her (Befund PR #67 Runde 9/19). */
+async function restorePreferencesRow(
+  supabase,
+  cleanupKey,
+  originalRow,
+  harnessRevisions,
+  expectedInstalledConfig,
+) {
   assertScopedCleanup(supabase.url, originalRow.user_id);
+  // Befund PR #67 Runde 19: Vor dem PATCH verifizieren, dass die Zeile tatsächlich existiert,
+  // ihre Revision in harnessRevisions liegt und ihr Inhalt exakt der installierten Konfiguration entspricht.
+  const getRes = await fetch(
+    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(originalRow.user_id)}&organization_id=eq.${encodeURIComponent(originalRow.organization_id)}&select=revision,config`,
+    {
+      headers: {
+        apikey: cleanupKey,
+        Authorization: `Bearer ${cleanupKey}`,
+      },
+    },
+  );
+  if (!getRes.ok) {
+    throw new Error(
+      `Lesen der aktuellen Präferenzzeile vor Restore fehlgeschlagen (HTTP ${getRes.status}): ${await getRes.text()}`,
+    );
+  }
+  const currentRows = await getRes.json();
+  const currentRow = Array.isArray(currentRows) && currentRows.length === 1 ? currentRows[0] : null;
+  if (!currentRow) {
+    throw new Error('Präferenzzeile existiert nicht mehr; Wiederherstellung abgebrochen.');
+  }
+  if (!harnessRevisions.includes(currentRow.revision)) {
+    throw new Error(
+      `Präferenzzeile wurde während des Laufs parallel geändert (Revision ${currentRow.revision} nicht in ${harnessRevisions.join('/')}); Wiederherstellung abgebrochen, fremde Änderung bleibt erhalten.`,
+    );
+  }
+  if (
+    expectedInstalledConfig &&
+    JSON.stringify(currentRow.config) !== JSON.stringify(expectedInstalledConfig)
+  ) {
+    throw new Error(
+      'Aktuelle Konfiguration in der Datenbank weicht von der vom Harness installierten Konfiguration ab; fremde Änderung bleibt erhalten.',
+    );
+  }
+
   // Nur zurückschreiben, solange die Zeile noch auf einer vom Harness erzeugten bzw. der Ausgangsrevision
-  // steht; eine parallel gespeicherte neuere Revision wird nie verworfen (Codex PR #67 Runde 17).
+  // steht; eine parallel gespeicherte neuere Revision wird nie verworfen (Codex PR #67 Runde 17/19).
   const revisionFilter = `revision=in.(${harnessRevisions.map(Number).join(',')})`;
   const response = await fetch(
     `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(originalRow.user_id)}&organization_id=eq.${encodeURIComponent(originalRow.organization_id)}&${revisionFilter}`,
@@ -213,6 +254,26 @@ function collectPublicFiles(
         entry.name.startsWith('_')
       )
         continue;
+      const relPath = '/' + path.relative(baseDir, fullPath).split(path.sep).join('/');
+      results.push(relPath);
+    }
+  }
+  return results.sort();
+}
+
+/** Sammelt alle ausgelieferten Build-Dateien unter dist/ inkl. Lazy-Chunks (Befund PR #67 Runde 19). */
+function collectDistFiles(
+  dir = path.join(ROOT, 'dist'),
+  baseDir = path.join(ROOT, 'dist'),
+) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  let results = [];
+  for (const entry of entries) {
+    if (entry.name.startsWith('.')) continue;
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectDistFiles(fullPath, baseDir));
+    } else if (entry.isFile()) {
       const relPath = '/' + path.relative(baseDir, fullPath).split(path.sep).join('/');
       results.push(relPath);
     }
@@ -415,6 +476,29 @@ async function verifyBuildArtifact(baseUrl) {
     }
   }
 
+  // Befund PR #67 Runde 19: Alle Dateien des frisch erzeugten dist/ (inkl. aller Lazy-Chunks,
+  // CSS, Web-Worker und Assets) mit den unter denselben Pfaden ausgelieferten Dateien abgleichen.
+  const distFiles = collectDistFiles();
+  if (distFiles.length === 0) {
+    throw new Error('Keine Dateien in dist/ zum Verifizieren gefunden.');
+  }
+  for (const filePath of distFiles) {
+    const localFile = path.join(ROOT, 'dist', filePath);
+    const localSha = sha256(fs.readFileSync(localFile));
+    const servedRes = await fetch(`${baseUrl}${filePath}`);
+    if (!servedRes.ok) {
+      throw new Error(
+        `Datei ${filePath} konnte von ${baseUrl} nicht geladen werden (HTTP ${servedRes.status}).`,
+      );
+    }
+    const servedSha = sha256(Buffer.from(await servedRes.arrayBuffer()));
+    if (servedSha !== localSha) {
+      throw new Error(
+        `Die unter ${baseUrl} ausgelieferte Datei ${filePath} (SHA-256 ${servedSha.slice(0, 16)}...) weicht vom lokalen Build (${localSha.slice(0, 16)}...) ab.`,
+      );
+    }
+  }
+
   return {
     entryScript: entryScriptPath,
     entrySha256: localScriptSha256,
@@ -423,6 +507,7 @@ async function verifyBuildArtifact(baseUrl) {
     verifiedImagesCount: imagePaths.length,
     verifiedAssetsCount: publicFiles.length,
     verifiedFontsCount: expectedFonts.length,
+    verifiedDistFilesCount: distFiles.length,
     verifiedServedUrl: baseUrl,
   };
 }
@@ -645,12 +730,19 @@ const SIMULATION_TABLES = [
   'simulation_run_pauses',
 ];
 
+const EXPECTED_SCHEMA_STATE = {
+  policiesSha256: '4293dbf2a9eb6063c2e2e5bbb94a2a023bd637a157d695703abed2e6daf46250',
+  saveDashboardPreferencesSha256: 'e0cf51ebfedfef564a353638b7f8567f5c536803da9236a6d74399a3570a77f7',
+  rlsStatusSha256: '6c7cc3fee4aa1d6c575e0b3cde58dba4f32702e7c2c74ccb7f25cbe03e8cc0f6',
+};
+
 /**
- * Prüft den Schemastand der lokalen Supabase-Instanz gegen die Baseline (Codex PR #67 Runde 18):
+ * Prüft den Schemastand der lokalen Supabase-Instanz gegen die Baseline (Codex PR #67 Runde 18/19):
  * Jede angewandte Migration muss inhaltlich der versionierten Datei entsprechen (Basisschema =
- * `supabase/schema.sql`, wie in CI kopiert), und jede Datei muss angewandt sein. Zusätzlich wird ein
- * Fingerabdruck der tatsächlich aktiven RLS-Policies und der Funktion `save_dashboard_preferences`
- * protokolliert. `supabase/` selbst ist Teil von `PRODUCT_PATHS` und damit gegen `7fd6e33` geprüft.
+ * `supabase/schema.sql`, wie in CI kopiert), und jede Datei muss angewandt sein. Zusätzlich wird der
+ * aktive Katalog (RLS-Policies, save_dashboard_preferences und RLS-Aktivierungsstatus aller public-Tabellen)
+ * gegen die kanonische Baseline-Erwartung geprüft (Befund PR #67 Runde 19).
+ * `supabase/` selbst ist Teil von `PRODUCT_PATHS` und damit gegen `7fd6e33` geprüft.
  */
 function verifySchemaState() {
   const projectId = fs
@@ -694,11 +786,45 @@ function verifySchemaState() {
   const rpc = psql(
     "select pg_get_functiondef('public.save_dashboard_preferences(jsonb, integer)'::regprocedure)",
   );
+  const rls = psql(
+    "select coalesce(string_agg(concat_ws('|', schemaname, tablename, rowsecurity), E'\\n' order by schemaname, tablename), '') from pg_tables where schemaname = 'public'",
+  );
+
+  const policiesSha = sha256(Buffer.from(policies));
+  const rpcSha = sha256(Buffer.from(rpc));
+  const rlsSha = sha256(Buffer.from(rls));
+
+  if (policiesSha !== EXPECTED_SCHEMA_STATE.policiesSha256) {
+    throw new Error(
+      `RLS-Policies weichen von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.policiesSha256}, aktuell: ${policiesSha}).`,
+    );
+  }
+  if (rpcSha !== EXPECTED_SCHEMA_STATE.saveDashboardPreferencesSha256) {
+    throw new Error(
+      `Funktion save_dashboard_preferences weicht von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.saveDashboardPreferencesSha256}, aktuell: ${rpcSha}).`,
+    );
+  }
+  if (rlsSha !== EXPECTED_SCHEMA_STATE.rlsStatusSha256) {
+    throw new Error(
+      `RLS-Aktivierungsstatus weicht von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.rlsStatusSha256}, aktuell: ${rlsSha}).`,
+    );
+  }
+  const disabledRls = rls
+    .split('\n')
+    .filter((line) => line.endsWith('|f'))
+    .map((line) => line.split('|')[1]);
+  if (disabledRls.length > 0) {
+    throw new Error(
+      `RLS ist auf folgenden Tabellen deaktiviert: ${disabledRls.join(', ')}. Baseline-Lauf abgebrochen.`,
+    );
+  }
+
   return {
     migrationsApplied: applied.length,
     lastMigration: applied.at(-1)?.version ?? null,
-    policiesSha256: sha256(Buffer.from(policies)),
-    saveDashboardPreferencesSha256: sha256(Buffer.from(rpc)),
+    policiesSha256: policiesSha,
+    saveDashboardPreferencesSha256: rpcSha,
+    rlsStatusSha256: rlsSha,
   };
 }
 
@@ -1480,10 +1606,10 @@ function writeReadme(data) {
     '',
     `Produkt-Baseline: \`${data.baselineCommit ?? data.commit}\` (Release v2.4.0), aufgenommen ${data.capturedAt.slice(0, 10)} mit`,
     `\`${data.harness?.script ?? 'scripts/captureAuftrag081Inventory.mjs'}\` (Harness SHA-256: \`${data.harness?.sha256 ? data.harness.sha256.slice(0, 16) : '–'}\`).`,
-    `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`, ${data.buildArtifact?.verifiedAssetsCount ?? 38} statische Assets verifiziert), verifiziert gegen lokale Baseline \`${data.baselineCommit ?? data.commit}\`.`,
+    `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`, ${data.buildArtifact?.verifiedDistFilesCount ?? data.buildArtifact?.verifiedAssetsCount ?? 38} ausgelieferte Build-Dateien verifiziert), verifiziert gegen lokale Baseline \`${data.baselineCommit ?? data.commit}\`.`,
     `Testbenutzer: \`${data.testUser?.email}\` (Rolle ${data.testUser?.role}, Organisation \`${data.testUser?.organizationId}\`), Identität vor dem Lauf gegen die Seed-Daten geprüft.`,
     `CRM-Seed-Daten: Organisation \`${data.crmSeed?.organizationId ?? data.testUser?.organizationId}\` verifiziert (${data.crmSeed?.companiesCount ?? 3} Unternehmen, ${data.crmSeed?.contactsCount ?? 1} Kontakt, ${data.crmSeed?.dealsCount ?? 2} Deals).`,
-    `Supabase-Schema: ${data.schemaState ? `${data.schemaState.migrationsApplied} Migrationen bis \`${data.schemaState.lastMigration}\` inhaltsgleich mit \`supabase/\` der Baseline; RLS-Policies SHA-256 \`${data.schemaState.policiesSha256.slice(0, 16)}\`, \`save_dashboard_preferences\` \`${data.schemaState.saveDashboardPreferencesSha256.slice(0, 16)}\`` : '–'}.`,
+    `Supabase-Schema: ${data.schemaState ? `${data.schemaState.migrationsApplied} Migrationen bis \`${data.schemaState.lastMigration}\` inhaltsgleich mit \`supabase/\` der Baseline; RLS-Policies SHA-256 \`${data.schemaState.policiesSha256.slice(0, 16)}\`, RLS-Aktivierungsstatus \`${data.schemaState.rlsStatusSha256 ? data.schemaState.rlsStatusSha256.slice(0, 16) : '–'}\`, \`save_dashboard_preferences\` \`${data.schemaState.saveDashboardPreferencesSha256.slice(0, 16)}\`` : '–'}.`,
     `Simulations-Workspace: Organisation \`${data.simulationWorkspace?.organizationId ?? data.testUser?.organizationId}\` vor dem Lauf leer (${data.simulationWorkspace ? Object.keys(data.simulationWorkspace.counts).length : 7} Tabellen geprüft).`,
     `Dashboard-Konfiguration: Standardansicht (${data.dashboardConfig?.tileCount ?? 17} Kacheln, Quelle: \`${data.dashboardConfig?.source ?? 'standard'}\`).`,
     'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
@@ -1534,7 +1660,8 @@ async function main() {
   let simulationWorkspaceInfo = null;
   let schemaStateInfo = null;
   let buildArtifact = null;
-  let pendingCanonicalPayload = null;
+  let runPayload = null;
+  let isCompleteRun = false;
   let runSuccess = false;
   let runHadError = false;
 
@@ -1563,16 +1690,9 @@ async function main() {
     const originalPrefs = await readPreferences(setupPage, SUPABASE);
 
     if (originalPrefs.config) {
-      // Befund PR #67 Runde 13: Restore-Ziel vor dem Schreiben vormerken, damit ein Fehler beim
-      // Nachlesen in savePreferences die geänderte Präferenz nicht zurücklässt.
-      restore = {
-        type: 'restore_exact_row',
-        originalRow: originalPrefs,
-        page: setupPage,
-        userId,
-        // Bis zum Nachlesen ist offen, ob der Harness schon geschrieben hat: Ausgangs- oder Folgerevision
-        harnessRevisions: [originalPrefs.revision, originalPrefs.revision + 1],
-      };
+      // Befund PR #67 Runde 19: Vor dem RPC kein spekulatives restore vormerken.
+      // Wenn der RPC mit einem Konflikt scheitert, darf kein Restore eine fremde Revision überschreiben.
+      restore = null;
       const saved = await savePreferences(
         setupPage,
         SUPABASE,
@@ -1580,18 +1700,25 @@ async function main() {
         originalPrefs.revision,
       );
       // Restore-Token ist die Revision aus der RPC-Antwort, nicht aus dem anschließenden Nachlesen,
-      // das bereits eine parallel gespeicherte fremde Revision liefern könnte (Codex PR #67 Runde 18).
+      // das bereits eine parallel gespeicherte fremde Revision liefern könnte (Codex PR #67 Runde 18/19).
       if (!Number.isInteger(saved.rpcRevision)) {
         throw new Error(`Speicher-RPC lieferte keine Revision: ${JSON.stringify(saved.rpcRevision)}`);
       }
-      restore.harnessRevisions = [saved.rpcRevision];
+      restore = {
+        type: 'restore_exact_row',
+        originalRow: originalPrefs,
+        page: setupPage,
+        userId,
+        harnessRevisions: [saved.rpcRevision],
+        installedConfig: defaultConfig,
+      };
       dashboardConfigInfo = {
         source: 'installed_standard',
         version: defaultConfig.version,
         tileCount: defaultConfig.tiles.length,
         tileIds: defaultConfig.tiles.map((t) => t.tileId),
         revision: saved.revision,
-        restoredAfterRun: false, // Erst nach erfolgreichem Cleanup auf true setzen (Befund PR #67 Runde 8)
+        restoredAfterRun: false, // Erst nach erfolgreichem Cleanup auf true setzen (Befund PR #67 Runde 8/19)
       };
     } else {
       restore = {
@@ -1736,7 +1863,7 @@ async function main() {
 
     const failed = shots.filter((s) => s.failed).length;
     const summary = { expected, ok: shots.length - failed, failed };
-    const payload = {
+    runPayload = {
       baselineCommit,
       productVersion,
       harness: {
@@ -1759,34 +1886,15 @@ async function main() {
       pipelineError,
     };
 
-    // Teilläufe und fehlerhafte Läufe nie in die kanonische Baseline schreiben (Befund PR #67):
-    // Diagnoseausgabe landet in test-results/ (nicht versioniert).
-    const complete = !ONLY && failed === 0 && summary.ok === expected;
-    const diagDir = path.join(ROOT, 'test-results/auftrag-081');
-    fs.mkdirSync(diagDir, { recursive: true });
-
-    if (!complete) {
-      // Befund PR #67 Runde 15: laufbezogene Namen, frühere Diagnosen bleiben erhalten.
-      const diagOut = path.join(
-        diagDir,
-        ONLY ? `inventar.teillauf-${runTimestamp}.json` : `inventar.fehlerlauf-${runTimestamp}.json`,
-      );
-      fs.writeFileSync(diagOut, `${JSON.stringify(payload, null, 1)}\n`);
-      console.log(
-        `\n${ONLY ? `Teillauf (ONLY=${[...ONLY].join(',')})` : 'Unvollständiger Lauf'}: ${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}. Kanonische Baseline unverändert. Diagnose: ${path.relative(ROOT, diagOut)}`,
-      );
-      if (failed > 0 || summary.ok !== expected) {
-        runHadError = true;
-        process.exitCode = 1;
-      }
-      return;
+    isCompleteRun = !ONLY && failed === 0 && summary.ok === expected;
+    if (failed > 0 || summary.ok !== expected) {
+      runHadError = true;
     }
-
-    // Vollständiger Lauf: zunächst temporär stagen, kanonische Dateien noch NICHT überschreiben (Befund PR #67 Runde 8)
-    const stageJsonOut = path.join(diagDir, `inventar.stage-${runTimestamp}.json`);
-    fs.writeFileSync(stageJsonOut, `${JSON.stringify(payload, null, 1)}\n`);
-    pendingCanonicalPayload = payload;
-    runSuccess = true;
+    if (isCompleteRun) {
+      runSuccess = true;
+    }
+    // Befund PR #67 Runde 19: Weder Diagnose-JSON noch kanonische Dateien hier vor dem Cleanup schreiben!
+    // Die Serialisierung erfolgt erst nach erfolgreichem Restore im finally-Block.
   } finally {
     let restoreError = null;
     if (restore?.type === 'restore_exact_row') {
@@ -1799,6 +1907,7 @@ async function main() {
           CLEANUP_KEY,
           restore.originalRow,
           restore.harnessRevisions,
+          restore.installedConfig,
         );
         const verified = await readPreferences(restore.page, SUPABASE);
         if (verified.revision !== restore.originalRow.revision) {
@@ -1807,48 +1916,69 @@ async function main() {
           );
         }
         if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
-        if (pendingCanonicalPayload?.dashboardConfig) {
-          pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
+        if (runPayload?.dashboardConfig) {
+          runPayload.dashboardConfig.restoredAfterRun = true;
         }
       } catch (err) {
         console.error('Fehler beim Wiederherstellen der ursprünglichen Präferenzzeile:', err);
         restoreError = err;
+        if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = false;
+        if (runPayload?.dashboardConfig) {
+          runPayload.dashboardConfig.restoredAfterRun = false;
+        }
       }
     } else if (restore?.type === 'restore') {
       try {
         const current = await readPreferences(restore.page, SUPABASE);
         await savePreferences(restore.page, SUPABASE, restore.config, current.revision);
         if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
-        if (pendingCanonicalPayload?.dashboardConfig) {
-          pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
+        if (runPayload?.dashboardConfig) {
+          runPayload.dashboardConfig.restoredAfterRun = true;
         }
       } catch (err) {
         console.error('Fehler beim Wiederherstellen der Dashboard-Präferenzen:', err);
         restoreError = err;
+        if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = false;
+        if (runPayload?.dashboardConfig) {
+          runPayload.dashboardConfig.restoredAfterRun = false;
+        }
       }
     } else if (restore?.type === 'leave_unchanged') {
       // Befund PR #67 Runde 15: Ohne Ausgangszeile schreibt der Harness keine Präferenz. Eine während
       // des Laufs erscheinende Zeile stammt aus einer anderen Sitzung und bleibt unangetastet.
       if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
-      if (pendingCanonicalPayload?.dashboardConfig) {
-        pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
+      if (runPayload?.dashboardConfig) {
+        runPayload.dashboardConfig.restoredAfterRun = true;
       }
     }
     await setupContext?.close().catch(() => null);
     await browser?.close().catch(() => null);
 
     const diagDir = path.join(ROOT, 'test-results/auftrag-081');
-    const stageJsonOut = path.join(diagDir, `inventar.stage-${runTimestamp}.json`);
+    fs.mkdirSync(diagDir, { recursive: true });
 
     const hadRunFailure = ONLY ? runHadError : !runSuccess;
 
-    if (restoreError || hadRunFailure) {
-      if (fs.existsSync(stageJsonOut)) {
-        fs.renameSync(stageJsonOut, path.join(diagDir, `inventar.fehlerlauf-${runTimestamp}.json`));
-      }
+    if (restoreError || hadRunFailure || !isCompleteRun) {
       process.exitCode = 1;
+      // Befund PR #67 Runde 19: Diagnose-JSON erst nach dem Cleanup / Restore schreiben,
+      // damit restoredAfterRun den tatsächlichen Nach-Restore-Zustand widerspiegelt.
+      if (runPayload) {
+        if (restoreError) {
+          runPayload.restoreError = restoreError.message;
+        }
+        const diagFilename =
+          ONLY && !restoreError && !runHadError
+            ? `inventar.teillauf-${runTimestamp}.json`
+            : `inventar.fehlerlauf-${runTimestamp}.json`;
+        const diagOut = path.join(diagDir, diagFilename);
+        fs.writeFileSync(diagOut, `${JSON.stringify(runPayload, null, 1)}\n`);
+        console.log(
+          `\n${ONLY ? `Teillauf (ONLY=${[...ONLY].join(',')})` : 'Unvollständiger oder fehlerhafter Lauf'}: ${runPayload.summary.ok} von ${runPayload.summary.expected} Aufnahmen, fehlgeschlagen ${runPayload.summary.failed}. Kanonische Baseline unverändert. Diagnose: ${path.relative(ROOT, diagOut)} (restoredAfterRun=${runPayload.dashboardConfig?.restoredAfterRun}).`,
+        );
+      }
       if (restoreError) throw restoreError;
-    } else if (pendingCanonicalPayload) {
+    } else if (runPayload && isCompleteRun && !restoreError) {
       // Befund 4 PR #67 Runde 10 / Befund 1 PR #67 Runde 11:
       // Nach erfolgreichem Gesamtlauf und fehlerfreiem Cleanup nach OUT_DIR kopieren; Staging-Artefakte für Diagnose erhalten
       fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -1857,11 +1987,10 @@ async function main() {
         fs.copyFileSync(path.join(shotsStageDir, file), path.join(OUT_DIR, file));
       }
 
-      fs.writeFileSync(JSON_OUT, `${JSON.stringify(pendingCanonicalPayload, null, 1)}\n`);
-      writeReadme(pendingCanonicalPayload);
-      if (fs.existsSync(stageJsonOut)) fs.unlinkSync(stageJsonOut);
+      fs.writeFileSync(JSON_OUT, `${JSON.stringify(runPayload, null, 1)}\n`);
+      writeReadme(runPayload);
       console.log(
-        `\n${pendingCanonicalPayload.summary.ok} von ${pendingCanonicalPayload.summary.expected} Aufnahmen, fehlgeschlagen ${pendingCanonicalPayload.summary.failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,
+        `\n${runPayload.summary.ok} von ${runPayload.summary.expected} Aufnahmen, fehlgeschlagen ${runPayload.summary.failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,
       );
     }
   }
