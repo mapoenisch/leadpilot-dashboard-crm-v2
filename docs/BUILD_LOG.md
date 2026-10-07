@@ -15833,10 +15833,18 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer (0 Byte); keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
 
-**Nacharbeit Codex-Review PR #67 Runde 19 (07.10.2026, Head `cb781bf`):**
-Befund behoben:
+**Nacharbeit Codex-Review PR #67 Runde 19 (07.10.2026, Head `cb781bf`):** Alle 6 Befunde behoben.
+
 1. **Beschränke die Änderung auf die Ziel-Dateien (P1):** `scripts/lib/detailShotHelpers.mjs` ist keine Ziel-Datei von Auftrag 081 und wird gemeinsam von den Harnesses 077 und 079 verwendet. Die Datei wurde vollständig auf ihren Baseline-Stand von `7fd6e33` zurückgesetzt (`git diff 7fd6e33 -- scripts/lib/detailShotHelpers.mjs` = 0 Byte). Die RPC-Auswertung für das Speichern der Dashboard-Präferenzen inklusive Auslesen von `rpcRevision` wurde als lokale Funktion `savePreferences` direkt in `scripts/captureAuftrag081Inventory.mjs` gekapselt. Auftrag 081 bleibt unverändert auf seine Ziel-Dateien beschränkt.
+2. **Aktualisiere Diagnose-JSON erst nach dem Cleanup (P2):** Das Schreiben von Teillauf- oder Fehlerlauf-Diagnose-Dateien (`inventar.teillauf-${runTimestamp}.json` / `inventar.fehlerlauf-${runTimestamp}.json`) sowie das Erzeugen der kanonischen Dateien (`JSON_OUT` und `README.md`) erfolgt ausschließlich im `finally`-Block NACH dem Restore-Cleanup. Dadurch spiegelt `dashboardConfig.restoredAfterRun` in der Diagnosedatei exakt den verifizierten Endzustand wider (`true` bei erfolgreichem Restore, `false` bei fehlgeschlagenem Restore).
+3. **Verwerfe keine fremde Revision nach einem RPC-Konflikt (P2):** Vor dem RPC wird kein spekulatives `restore` mehr vorgemerkt (`restore = null`). Erst nach nachweislich erfolgreichem RPC (`savePreferences`) wird `restore.harnessRevisions = [saved.rpcRevision]` gesetzt. Vor dem Service-Role-PATCH in `restorePreferencesRow` wird die Zeile per GET gelesen und zusätzlich geprüft, dass `currentRow.config` exakt der vom Harness installierten Standardkonfiguration entspricht (`expectedInstalledConfig`), bevor fremde Änderungen überschrieben werden können.
+4. **Vergleiche die Live-Schema-Hashes mit der Baseline (P2):** `verifySchemaState` vergleicht `policiesSha256` (`4293dbf2...`), `saveDashboardPreferencesSha256` (`e0cf51eb...`) und den RLS-Aktivierungsstatus aller Tabellen in `public` (`rlsStatusSha256` = `6c7cc3fe...`, alle 19 Tabellen mit `rowsecurity = t`) gegen feste kanonische Baseline-Erwartungen (`EXPECTED_SCHEMA_STATE`) und bricht den Lauf fail-closed ab, falls Abweichungen auftreten oder RLS auf einer Tabelle deaktiviert ist.
+5. **Verifiziere auch die ausgelieferten Lazy-Chunks (P2):** `verifyBuildArtifact` sammelt über `collectDistFiles` rekursiv alle Dateien unter `dist/` (194 Build-Artefakte inkl. aller Vite Code-Splitting Chunks in `dist/assets/*.js`, CSS, Web-Worker und Assets), berechnet deren lokalen SHA-256 und gleicht jede einzelne Datei per HTTP GET gegen den laufenden Webserver (`BASE_URL`) ab. Das Ergebnis wird als `verifiedDistFilesCount` im Inventar-JSON und in der README-Matrix ausgewiesen.
+6. **Erzeuge das Inventar mit dem finalen Harness neu (P2):** Nach Commit des finalen Harnesses (`ce60cc6`) wurde der Volllauf mit allen 256 Aufnahmen neu ausgeführt. Das Inventar weist nun den finalen Harness-SHA (`24bf1665aa113189146e937178d9b028cbb471a13232a06c01acf7162da0f16f`) und den Ausführungsstand `ce60cc6` aus; 256 von 256 Aufnahmen erfolgreich (0 fehlgeschlagen).
+
+- **Volllauf neu:** 256 von 256 Aufnahmen, 0 fehlgeschlagen, Exit 0.
 - **Schutzbereichs- und Ziel-Dateien-Prüfung:** `git diff 7fd6e33 -- src/ scripts/lib/detailShotHelpers.mjs` = 0 Byte.
-- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0 (316 Testdateien / 2257 Tests), `npm run verify` 0 (Suites 001-025), `npm run build` 0, `npm run format:check` 0.
+
 
 
