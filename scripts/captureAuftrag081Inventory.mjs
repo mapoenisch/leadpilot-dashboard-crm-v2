@@ -108,6 +108,100 @@ async function verifyIdentity(page, supabase, email, userId) {
   return actual;
 }
 
+/**
+ * Verifiziert, dass der lokale Produkt- und Build-Code exakt der Baseline 7fd6e33 entspricht UND
+ * dass der unter baseUrl bediente Produktionsbuild exakt aus diesem Stand stammt (Befund PR #67 Runde 8).
+ */
+async function verifyBuildArtifact(baseUrl) {
+  const baselineCommit = '7fd6e33';
+  const productPaths = [
+    'src/',
+    'public/',
+    'index.html',
+    'vite.config.ts',
+    'package.json',
+    'package-lock.json',
+    'tsconfig.json',
+    'tsconfig.node.json',
+    'tailwind.config.ts',
+    'postcss.config.js',
+  ];
+  const productDiff = execFileSync(
+    'git',
+    ['diff', baselineCommit, '--', ...productPaths],
+    { cwd: ROOT },
+  )
+    .toString()
+    .trim();
+  if (productDiff.length > 0) {
+    throw new Error(
+      `Produktcode oder Build-Konfiguration weicht von Baseline ${baselineCommit} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
+    );
+  }
+
+  const distHtmlPath = path.join(ROOT, 'dist/index.html');
+  if (!fs.existsSync(distHtmlPath)) {
+    throw new Error(
+      'Lokaler Produktionsbuild (dist/index.html) fehlt. Bitte vorab "npm run build" ausführen.',
+    );
+  }
+  const localDistHtml = fs.readFileSync(distHtmlPath, 'utf8');
+  const localEntryMatch = localDistHtml.match(
+    /<script type="module" crossorigin src="(\/assets\/[^"]+)"><\/script>/,
+  );
+  if (!localEntryMatch) {
+    throw new Error('Einstiegsskript in dist/index.html konnte nicht ermittelt werden.');
+  }
+  const entryScriptPath = localEntryMatch[1];
+  const localScriptFile = path.join(ROOT, 'dist', entryScriptPath);
+  if (!fs.existsSync(localScriptFile)) {
+    throw new Error(`Lokale Einstiegsdatei dist${entryScriptPath} existiert nicht.`);
+  }
+  const localScriptContent = fs.readFileSync(localScriptFile);
+  const localScriptSha256 = sha256(localScriptContent);
+  const localHtmlSha256 = sha256(Buffer.from(localDistHtml));
+
+  const serverResponse = await fetch(`${baseUrl}/`).catch((err) => {
+    throw new Error(`BASE_URL ${baseUrl} nicht erreichbar: ${err.message}`);
+  });
+  if (!serverResponse.ok) {
+    throw new Error(`BASE_URL ${baseUrl} antwortet mit HTTP ${serverResponse.status}.`);
+  }
+  const servedHtml = await serverResponse.text();
+  const servedEntryMatch = servedHtml.match(
+    /<script type="module" crossorigin src="(\/assets\/[^"]+)"><\/script>/,
+  );
+  if (!servedEntryMatch) {
+    throw new Error(`Unter ${baseUrl} wurde kein Vite-Einstiegsskript im HTML gefunden.`);
+  }
+  if (servedEntryMatch[1] !== entryScriptPath) {
+    throw new Error(
+      `Unter ${baseUrl} wird Einstiegsskript ${servedEntryMatch[1]} bedient, erwartet wird ${entryScriptPath} aus dem lokalen Build der Baseline ${baselineCommit}.`,
+    );
+  }
+
+  const servedScriptRes = await fetch(`${baseUrl}${entryScriptPath}`);
+  if (!servedScriptRes.ok) {
+    throw new Error(
+      `Einstiegsskript ${entryScriptPath} konnte von ${baseUrl} nicht geladen werden (HTTP ${servedScriptRes.status}).`,
+    );
+  }
+  const servedScriptBuffer = Buffer.from(await servedScriptRes.arrayBuffer());
+  const servedScriptSha256 = sha256(servedScriptBuffer);
+  if (servedScriptSha256 !== localScriptSha256) {
+    throw new Error(
+      `Das unter ${baseUrl} ausgelieferte Bundle ${entryScriptPath} hat SHA-256 ${servedScriptSha256.slice(0, 16)}..., weicht aber vom verifizierten Build (${localScriptSha256.slice(0, 16)}...) ab.`,
+    );
+  }
+
+  return {
+    entryScript: entryScriptPath,
+    entrySha256: localScriptSha256,
+    indexHtmlSha256: localHtmlSha256,
+    verifiedServedUrl: baseUrl,
+  };
+}
+
 /** Anmelden mit expliziter deutscher Browser-Locale für konsistente Datumsformatierung. */
 async function loginWithLocale(browser, baseUrl, credentials, locale = 'de-DE') {
   const context = await browser.newContext({ baseURL: baseUrl, locale });
@@ -248,6 +342,78 @@ async function openRoute(browser, state, viewport, theme, target) {
       await page.getByTestId('tile-detail-page').waitFor({ timeout: 10000 });
       await page.waitForLoadState('networkidle');
     }
+
+    // 1. URL-Validierung (Befund PR #67 Runde 8): Pfad muss exakt übereinstimmen
+    const expectedPath = target.detail ? '/dashboard/tiles/std_baseline_arr' : target.route;
+    const currentPath = new URL(page.url()).pathname;
+    if (currentPath === '/login') {
+      throw new Error(
+        `Sitzung abgelaufen: Weiterleitung nach /login auf Ziel ${target.id} (${target.route}).`,
+      );
+    }
+    if (currentPath === '/not-found') {
+      throw new Error(
+        `Route nicht gefunden: Weiterleitung nach /not-found auf Ziel ${target.id} (${target.route}).`,
+      );
+    }
+    if (currentPath !== expectedPath) {
+      throw new Error(
+        `Unerwarteter Pfad auf Ziel ${target.id}: erwartet ${expectedPath}, erhalten ${currentPath}.`,
+      );
+    }
+
+    // 2. Abwesenheit von Fehlern (RouteErrorBoundary)
+    const hasRouteError = await page.evaluate(() => {
+      const errorHeading = document.querySelector('main h2');
+      return (
+        document.querySelector('[data-testid="not-found-home-link"]') !== null ||
+        (errorHeading?.textContent?.includes('Fehler beim Laden der Seite') ?? false)
+      );
+    });
+    if (hasRouteError) {
+      throw new Error(
+        `RouteErrorBoundary oder 404 gerendert auf Ziel ${target.id} (${expectedPath}).`,
+      );
+    }
+
+    // 3. Zielspezifischer Seiteninhalt & Bildnachweis
+    if (target.imageKey) {
+      await page.locator('[data-testid="image-page"]').waitFor({ timeout: 10000 });
+      const imageLoaded = await page
+        .waitForFunction(
+          () => {
+            const img = document.querySelector('img.image-page__img');
+            return img && img.complete && img.naturalWidth > 0;
+          },
+          { timeout: 15000 },
+        )
+        .catch(() => false);
+      if (!imageLoaded) {
+        throw new Error(
+          `Bild nicht vollständig geladen auf Bildseite ${target.id} (${target.imageKey}).`,
+        );
+      }
+    } else if (target.id === 'dashboard' || target.id === 'dashboard-edit') {
+      await page
+        .locator('[data-testid="dashboard-heading"], [data-testid="dashboard-workspace"]')
+        .first()
+        .waitFor({ timeout: 10000 });
+    } else if (target.id === 's-daten') {
+      await page.locator('[data-testid="data-basis-page"]').waitFor({ timeout: 10000 });
+    } else if (target.id === 's-standort') {
+      await page.locator('[data-testid="location-headquarters"]').waitFor({ timeout: 10000 });
+    } else if (target.id === 's-live-simulation') {
+      await page.locator('main button[role="tab"]:has-text("Management-Ebene")').waitFor({ timeout: 10000 });
+    } else if (target.id === 's-leads') {
+      await page.locator('main h2:has-text("Leads")').waitFor({ timeout: 10000 });
+    } else if (target.id === 's-companies') {
+      await page.locator('main h2:has-text("Unternehmen")').waitFor({ timeout: 10000 });
+    } else if (target.id === 's-deals') {
+      await page.locator('main h2:has-text("Deal Pipeline")').waitFor({ timeout: 10000 });
+    } else if (target.id === 's-activities') {
+      await page.locator('main h2:has-text("Aktivitäten")').waitFor({ timeout: 10000 });
+    }
+
     await page.waitForTimeout(400);
     return { context, page, consoleErrors };
   } catch (err) {
@@ -493,6 +659,7 @@ function writeReadme(data) {
     '',
     `Produkt-Baseline: \`${data.baselineCommit ?? data.commit}\` (Release v2.4.0), aufgenommen ${data.capturedAt.slice(0, 10)} mit`,
     `\`${data.harness?.script ?? 'scripts/captureAuftrag081Inventory.mjs'}\` (Harness SHA-256: \`${data.harness?.sha256 ? data.harness.sha256.slice(0, 16) : '–'}\`).`,
+    `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`), verifiziert gegen lokale Baseline \`${data.baselineCommit ?? data.commit}\`.`,
     `Testbenutzer: \`${data.testUser?.email}\` (Rolle ${data.testUser?.role}, Organisation \`${data.testUser?.organizationId}\`), Identität vor dem Lauf gegen die Seed-Daten geprüft.`,
     `Dashboard-Konfiguration: Standardansicht (${data.dashboardConfig?.tileCount ?? 17} Kacheln, Quelle: \`${data.dashboardConfig?.source ?? 'standard'}\`).`,
     'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
@@ -524,8 +691,15 @@ async function main() {
   let setupContext = null;
   let dashboardConfigInfo = null;
   let testIdentity = null;
+  let buildArtifact = null;
+  let pendingCanonicalPayload = null;
+  let runSuccess = false;
+  let runHadError = false;
 
   try {
+    // 1. Verifiziere Baseline-Code und den ausgelieferten Build (Befund PR #67 Runde 8)
+    buildArtifact = await verifyBuildArtifact(BASE_URL);
+
     browser = await chromium.launch();
     const state = await loginWithLocale(browser, BASE_URL, CREDENTIALS);
 
@@ -558,7 +732,7 @@ async function main() {
         tileCount: defaultConfig.tiles.length,
         tileIds: defaultConfig.tiles.map((t) => t.tileId),
         revision: saved.revision,
-        restoredAfterRun: true,
+        restoredAfterRun: false, // Erst nach erfolgreichem Cleanup auf true setzen (Befund PR #67 Runde 8)
       };
     } else {
       restore = {
@@ -592,6 +766,17 @@ async function main() {
             context = opened.context;
             const { page, consoleErrors } = opened;
             const metrics = await measure(page, viewport);
+            const expectedPath = target.detail ? '/dashboard/tiles/std_baseline_arr' : target.route;
+            if (metrics.url !== expectedPath) {
+              throw new Error(
+                `Gemessene URL ${metrics.url} weicht von erwarteter Route ${expectedPath} ab.`,
+              );
+            }
+            if (target.imageKey && (!metrics.image || metrics.image.naturalWidth <= 0)) {
+              throw new Error(
+                `Bildmaße auf Bildseite ${target.id} ungültig: ${JSON.stringify(metrics.image)}`,
+              );
+            }
             const axe = await axeSevere(page);
             const axePage = await axeSeverePage(page);
             const hashes = await capture(page, viewport, name);
@@ -633,13 +818,25 @@ async function main() {
       .toString()
       .trim();
 
-    // Verifiziere, dass der aktuelle Produktcode exakt der Baseline entspricht (Befund PR #67 Runde 6)
-    const productDiff = execFileSync('git', ['diff', baselineCommit, '--', 'src/'], { cwd: ROOT })
+    // Verifiziere, dass der aktuelle Produktcode exakt der Baseline entspricht (Befund PR #67 Runde 6/8)
+    const productPaths = [
+      'src/',
+      'public/',
+      'index.html',
+      'vite.config.ts',
+      'package.json',
+      'package-lock.json',
+      'tsconfig.json',
+      'tsconfig.node.json',
+      'tailwind.config.ts',
+      'postcss.config.js',
+    ];
+    const productDiff = execFileSync('git', ['diff', baselineCommit, '--', ...productPaths], { cwd: ROOT })
       .toString()
       .trim();
     if (productDiff.length > 0) {
       throw new Error(
-        `Produktstand unter src/ weicht von der behaupteten Baseline ${baselineCommit} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
+        `Produktstand weicht von der behaupteten Baseline ${baselineCommit} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
       );
     }
 
@@ -653,6 +850,7 @@ async function main() {
         sha256: harnessSha256,
         headAtExecution: headCommit,
       },
+      buildArtifact,
       testUser: testIdentity,
       dashboardConfig: dashboardConfigInfo,
       commit: baselineCommit,
@@ -666,9 +864,10 @@ async function main() {
     // Teilläufe und fehlerhafte Läufe nie in die kanonische Baseline schreiben (Befund PR #67):
     // Diagnoseausgabe landet in test-results/ (nicht versioniert).
     const complete = !ONLY && failed === 0 && summary.ok === expected;
+    const diagDir = path.join(ROOT, 'test-results/auftrag-081');
+    fs.mkdirSync(diagDir, { recursive: true });
+
     if (!complete) {
-      const diagDir = path.join(ROOT, 'test-results/auftrag-081');
-      fs.mkdirSync(diagDir, { recursive: true });
       const diagOut = path.join(
         diagDir,
         ONLY ? 'inventar.teillauf.json' : 'inventar.fehlerlauf.json',
@@ -677,21 +876,28 @@ async function main() {
       console.log(
         `\n${ONLY ? `Teillauf (ONLY=${[...ONLY].join(',')})` : 'Unvollständiger Lauf'}: ${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}. Kanonische Baseline unverändert. Diagnose: ${path.relative(ROOT, diagOut)}`,
       );
-      if (failed > 0 || summary.ok !== expected) process.exitCode = 1;
+      if (failed > 0 || summary.ok !== expected) {
+        runHadError = true;
+        process.exitCode = 1;
+      }
       return;
     }
 
-    fs.writeFileSync(JSON_OUT, `${JSON.stringify(payload, null, 1)}\n`);
-    writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
-    console.log(
-      `\n${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,
-    );
+    // Vollständiger Lauf: zunächst temporär stagen, kanonische Dateien noch NICHT überschreiben (Befund PR #67 Runde 8)
+    const stageJsonOut = path.join(diagDir, 'inventar.stage.json');
+    fs.writeFileSync(stageJsonOut, `${JSON.stringify(payload, null, 1)}\n`);
+    pendingCanonicalPayload = payload;
+    runSuccess = true;
   } finally {
     let restoreError = null;
     if (restore?.type === 'restore') {
       try {
         const current = await readPreferences(restore.page, SUPABASE);
         await savePreferences(restore.page, SUPABASE, restore.config, current.revision);
+        if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
+        if (pendingCanonicalPayload?.dashboardConfig) {
+          pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
+        }
       } catch (err) {
         console.error('Fehler beim Wiederherstellen der Dashboard-Präferenzen:', err);
         restoreError = err;
@@ -702,16 +908,41 @@ async function main() {
         if (current.config) {
           await deletePreferences(SUPABASE, CLEANUP_KEY, restore.userId);
         }
+        if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
+        if (pendingCanonicalPayload?.dashboardConfig) {
+          pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
+        }
       } catch (err) {
         console.error('Fehler beim Aufräumen der Dashboard-Präferenzen:', err);
         restoreError = err;
       }
+    } else if (restore?.type === 'delete_if_created') {
+      if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
+      if (pendingCanonicalPayload?.dashboardConfig) {
+        pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
+      }
     }
     await setupContext?.close().catch(() => null);
     await browser?.close().catch(() => null);
-    if (restoreError) {
+
+    const diagDir = path.join(ROOT, 'test-results/auftrag-081');
+    const stageJsonOut = path.join(diagDir, 'inventar.stage.json');
+
+    const hadRunFailure = ONLY ? runHadError : !runSuccess;
+
+    if (restoreError || hadRunFailure) {
+      if (fs.existsSync(stageJsonOut)) {
+        fs.renameSync(stageJsonOut, path.join(diagDir, 'inventar.fehlerlauf.json'));
+      }
       process.exitCode = 1;
-      throw restoreError;
+      if (restoreError) throw restoreError;
+    } else if (pendingCanonicalPayload) {
+      fs.writeFileSync(JSON_OUT, `${JSON.stringify(pendingCanonicalPayload, null, 1)}\n`);
+      writeReadme(pendingCanonicalPayload);
+      if (fs.existsSync(stageJsonOut)) fs.unlinkSync(stageJsonOut);
+      console.log(
+        `\n${pendingCanonicalPayload.summary.ok} von ${pendingCanonicalPayload.summary.expected} Aufnahmen, fehlgeschlagen ${pendingCanonicalPayload.summary.failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,
+      );
     }
   }
 }
