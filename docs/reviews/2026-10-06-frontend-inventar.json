@@ -3,8 +3,14 @@
  "productVersion": "2.4.0",
  "harness": {
   "script": "scripts/captureAuftrag081Inventory.mjs",
-  "sha256": "ef1dbb68ae006b941a3f89d39a13f745482699c6df6509bdff79d7c4894c5dcc",
-  "headAtExecution": "ff96036"
+  "sha256": "946cbf6a52a026ab36697e8c80367a307c539155991e98159b0fabdbe73eb6a0",
+  "headAtExecution": "ccd8607"
+ },
+ "testUser": {
+  "email": "admin-a@e2e.local",
+  "userId": "11111111-1111-1111-1111-111111111111",
+  "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "role": "admin"
  },
  "dashboardConfig": {
   "source": "default_unpersisted",
@@ -34,7 +40,7 @@
  },
  "commit": "7fd6e33",
  "baseUrl": "http://localhost:4181",
- "capturedAt": "2026-10-07T07:08:45.607Z",
+ "capturedAt": "2026-10-07T07:35:59.330Z",
  "summary": {
   "expected": 256,
   "ok": 256,
@@ -133,7 +139,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "69fbdd6885013a6a",
+    "first": "5268120431189ebb",
     "full": "93b05f063375cfac"
    }
   },
@@ -517,7 +523,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "639ece683a15c14f",
+    "first": "ecace4b752d3dc0a",
     "full": "257abe0feb542336"
    }
   },
@@ -613,7 +619,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "dab9456979dc8917",
+    "first": "e06ba0ae67a10afc",
     "full": "bb9fdf75f82d0405"
    }
   },
@@ -709,7 +715,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "644f34cbb2158cf9",
+    "first": "46d8c2332afbd672",
     "full": "0465f61c25cabbc6"
    }
   },
@@ -769,7 +775,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "5337a3a3997e0f14",
+    "first": "484e386082ccde02",
     "full": "5337a3a3997e0f14"
    }
   },
@@ -889,7 +895,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "75b218af7b17b353",
+    "first": "7b096dd4e16e8cf4",
     "full": "75b218af7b17b353"
    }
   },
@@ -1104,7 +1110,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "1687628bd361aea3",
+    "first": "9606868078e1a887",
     "full": "071071918dc39d50"
    }
   },
@@ -1135,7 +1141,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "e82e8fcbb36dc081",
+    "first": "4d2afc85ec42d649",
     "full": "b35ce575a5378d9a"
    }
   },
@@ -1197,7 +1203,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "a34be994d18ec741",
+    "first": "883420ab529e795d",
     "full": "907da2bd61c87f50"
    }
   },
@@ -1226,7 +1232,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "84e9d1c70086392c",
+    "first": "c7ae1f7e6b383ef0",
     "full": "5e2e5212e168a779"
    }
   },
@@ -1257,7 +1263,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "a4c35ec1f9523177",
+    "first": "8998506ec32cac64",
     "full": "617f2f48afc1fc6a"
    }
   },
@@ -1319,7 +1325,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "0b3c72ff4f0a7ccb",
+    "first": "cceb1f354d9a4c34",
     "full": "4debd55fe453a0c8"
    }
   },
@@ -1381,7 +1387,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "123116b3f7fa23ad",
+    "first": "0aa7ba66a1e25d91",
     "full": "543f648d0d20a8c4"
    }
   },
@@ -1472,7 +1478,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "37d4bd58ca72f1be",
+    "first": "5f511b85b20b2ed7",
     "full": "37d4bd58ca72f1be"
    }
   },
@@ -1505,7 +1511,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "1944213bf3bcad29",
+    "first": "6abe1494efcee833",
     "full": "5558db3349dbe4c7"
    }
   },
@@ -1534,7 +1540,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "9defca0e6d51e509",
+    "first": "8db773676b686194",
     "full": "cbe9b921362e7d1d"
    }
   },
@@ -1567,7 +1573,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "3d5c0921d520e203",
+    "first": "0a72b15b6cc82653",
     "full": "c006854a87a0786c"
    }
   },
@@ -1629,7 +1635,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "1103263c3ea8e957",
+    "first": "c2d8cc6e5d1d90f5",
     "full": "24cd9a69d3cd21c5"
    }
   },
@@ -1691,7 +1697,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "d6397d903cec8457",
+    "first": "1e2481a98a2fd2a5",
     "full": "d6397d903cec8457"
    }
   },
@@ -1753,7 +1759,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "ea39fd08213a6553",
+    "first": "61f9fa390147331b",
     "full": "4b0ce9e96e515d50"
    }
   },
@@ -1844,7 +1850,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "40a258cc0269fc9a",
+    "first": "1aac4696aa9f6a61",
     "full": "1aac4696aa9f6a61"
    }
   },
@@ -1877,7 +1883,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "8ca216e95692eec4",
+    "first": "e6f4cc27a3968b96",
     "full": "e0d6a34e0809a959"
    }
   },
@@ -1906,7 +1912,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "c7086bda258bd7b3",
+    "first": "1d25ed486c2a5d04",
     "full": "0770ebc4f12c9120"
    }
   },
@@ -1939,7 +1945,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "6ac1abb27a5131cd",
+    "first": "0957e8fdd9c7299c",
     "full": "7472e3b651cb3f8c"
    }
   },
@@ -2001,7 +2007,7 @@
    },
    "consoleErrors": 2,
    "hashes": {
-    "first": "175cf7b446111c3c",
+    "first": "5154c73342700076",
     "full": "0f9902f66a4f398d"
    }
   },
@@ -2125,7 +2131,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "ba9d812e83fbbed1",
+    "first": "952a1f4980b3eb91",
     "full": "5d2685f24012c601"
    }
   },
@@ -2187,7 +2193,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "da697fbc49a627c3",
+    "first": "5debd240de37f619",
     "full": "85a784dc02a71384"
    }
   },
@@ -2259,7 +2265,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "c409d0b46b31f5e3",
+    "first": "f8a457b51d8d2e01",
     "full": "f8a457b51d8d2e01"
    }
   },
@@ -2331,7 +2337,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "4f44fce9a396efcd",
+    "first": "cdc86b3227848ea0",
     "full": "cdc86b3227848ea0"
    }
   },
@@ -2547,7 +2553,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "a52915eafd91f7d3",
+    "first": "05964865c37329e0",
     "full": "05964865c37329e0"
    }
   },
@@ -2619,7 +2625,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "eaa561d66c968be9",
+    "first": "6cefa0f29b10be5d",
     "full": "6cefa0f29b10be5d"
    }
   },
@@ -3051,7 +3057,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "72a056fe9c2bfb24",
+    "first": "abcd00154f24b65e",
     "full": "abcd00154f24b65e"
    }
   },
@@ -3195,7 +3201,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "abd302ad42ff996f",
+    "first": "fbde75b4f86385a5",
     "full": "abd302ad42ff996f"
    }
   },
@@ -3483,7 +3489,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "14a0c4e556eef0d6",
+    "first": "fe453eb71bfc9480",
     "full": "fe453eb71bfc9480"
    }
   },
@@ -3555,7 +3561,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "9c046631178e5897",
+    "first": "82288cb5e8c8e69f",
     "full": "9c046631178e5897"
    }
   },
@@ -3699,7 +3705,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "eb2eb1908a506c23",
+    "first": "5a0c9c5e6d266b3c",
     "full": "eb2eb1908a506c23"
    }
   },
@@ -3771,7 +3777,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "082626cc2f6cbf07",
+    "first": "a69aa692df6fedee",
     "full": "082626cc2f6cbf07"
    }
   },
@@ -4203,7 +4209,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "86abfbcb8b5657e9",
+    "first": "33daf08f168f710c",
     "full": "86abfbcb8b5657e9"
    }
   },
@@ -4275,7 +4281,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "675b6d7cf54007c4",
+    "first": "97dacd5169a52e9f",
     "full": "675b6d7cf54007c4"
    }
   },
@@ -4419,7 +4425,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "0ac7bea03780acc2",
+    "first": "76051f39d280cd41",
     "full": "0ac7bea03780acc2"
    }
   },
@@ -4563,7 +4569,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "5eb9783bc2504ecc",
+    "first": "dd3fcd7ac286994e",
     "full": "5eb9783bc2504ecc"
    }
   },
@@ -4707,7 +4713,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "262b3315c8f7d7ee",
+    "first": "fcd752706ee5d38f",
     "full": "262b3315c8f7d7ee"
    }
   },
@@ -5067,7 +5073,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "1f7b322dc60bea4a",
+    "first": "7cbe8e3d251a8a52",
     "full": "1f7b322dc60bea4a"
    }
   },
@@ -5427,7 +5433,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "151eb32feac3c384",
+    "first": "3d532fda9063d717",
     "full": "151eb32feac3c384"
    }
   },
@@ -5499,7 +5505,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "4205cc327774537d",
+    "first": "e33b1ea8197d29f5",
     "full": "4205cc327774537d"
    }
   },
@@ -5715,7 +5721,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "039f283571195c4f",
+    "first": "eb2a41db707d595d",
     "full": "039f283571195c4f"
    }
   },
@@ -5787,7 +5793,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "eabc5030174c821e",
+    "first": "43df77e42a49c813",
     "full": "eabc5030174c821e"
    }
   },
@@ -5931,7 +5937,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "25ca4ca385a99a7b",
+    "first": "a311c14aeef01a96",
     "full": "25ca4ca385a99a7b"
    }
   },
@@ -6003,7 +6009,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "f4c85fdad3b2cc8d",
+    "first": "a4e5885ca8c8b534",
     "full": "f4c85fdad3b2cc8d"
    }
   },
@@ -6075,7 +6081,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "16e45b52f8ed4c24",
+    "first": "d4899ed9cc4cb3a8",
     "full": "16e45b52f8ed4c24"
    }
   },
@@ -6147,7 +6153,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "502c11020c40eb2c",
+    "first": "f4698eb5b848036a",
     "full": "502c11020c40eb2c"
    }
   },
@@ -6219,7 +6225,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "86cf8d5140152b02",
+    "first": "4d0536c266ad1d47",
     "full": "86cf8d5140152b02"
    }
   },
@@ -6291,7 +6297,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "771bb2854eefc0c7",
+    "first": "5205288d6963ba78",
     "full": "771bb2854eefc0c7"
    }
   },
@@ -6435,7 +6441,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "3cf255847cc0fb2a",
+    "first": "f49b25c97f055c32",
     "full": "3cf255847cc0fb2a"
    }
   },
@@ -6507,7 +6513,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "447d9f804c8d5904",
+    "first": "7306ba8b0648b38f",
     "full": "447d9f804c8d5904"
    }
   },
@@ -6651,7 +6657,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "faaef91ead290fcf",
+    "first": "eba995fb28eec4e6",
     "full": "faaef91ead290fcf"
    }
   },
@@ -6723,7 +6729,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "7797afbb131a6551",
+    "first": "a4435f2f82a55f1c",
     "full": "7797afbb131a6551"
    }
   },
@@ -6867,7 +6873,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "e88e425ad14a1723",
+    "first": "16e796772acb4739",
     "full": "e88e425ad14a1723"
    }
   },
@@ -6939,7 +6945,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "79474185d660959f",
+    "first": "e02019c463eedaac",
     "full": "79474185d660959f"
    }
   },
@@ -7227,7 +7233,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "4e7b55e8a24f6c1f",
+    "first": "076604b4253893dd",
     "full": "076604b4253893dd"
    }
   },
@@ -7299,7 +7305,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "845b7212d26c8e68",
+    "first": "0ac69a8e2e6e55df",
     "full": "845b7212d26c8e68"
    }
   },
@@ -7371,7 +7377,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "7bb9a320d43c69a3",
+    "first": "e84c3b2d6560933c",
     "full": "e84c3b2d6560933c"
    }
   },
@@ -7515,7 +7521,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "3c59007e8b6d569b",
+    "first": "b9db3f44892b04f7",
     "full": "3c59007e8b6d569b"
    }
   },
@@ -7659,7 +7665,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "43f2f24538ba3104",
+    "first": "165a2699f89b5458",
     "full": "165a2699f89b5458"
    }
   },
@@ -7875,7 +7881,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "0a480d18136d301c",
+    "first": "21bf137fe42ff517",
     "full": "0a480d18136d301c"
    }
   },
@@ -7947,7 +7953,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "e74f3bb68149e040",
+    "first": "0d8a23a5c77abef9",
     "full": "e74f3bb68149e040"
    }
   },
@@ -8019,7 +8025,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "13cc2227ffeff376",
+    "first": "511573318e66255f",
     "full": "13cc2227ffeff376"
    }
   },
@@ -8163,7 +8169,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "371ca4e1b819769c",
+    "first": "36fe738ea4748f9e",
     "full": "371ca4e1b819769c"
    }
   },
@@ -8235,7 +8241,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "883c5362ecea34d6",
+    "first": "4802ba368d285cd6",
     "full": "883c5362ecea34d6"
    }
   },
@@ -8379,7 +8385,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "2ce46239d7aaab24",
+    "first": "b4649e92a323c185",
     "full": "2ce46239d7aaab24"
    }
   },
@@ -8595,7 +8601,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "8e57aa57d0ea2456",
+    "first": "890f285757c1176b",
     "full": "8e57aa57d0ea2456"
    }
   },
@@ -8667,7 +8673,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "ea969340e10e4985",
+    "first": "7d63b97f57a3b3cf",
     "full": "ea969340e10e4985"
    }
   },
@@ -8811,7 +8817,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "7258fbaac38c1c15",
+    "first": "d977ac81b4f687d7",
     "full": "7258fbaac38c1c15"
    }
   },
@@ -8883,7 +8889,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "4ffd1e16dfc6f693",
+    "first": "5dcc2865dcf6bda6",
     "full": "4ffd1e16dfc6f693"
    }
   },
@@ -9099,7 +9105,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "fd993df2c818f1a4",
+    "first": "d94254be6fd89500",
     "full": "d94254be6fd89500"
    }
   },
@@ -9171,7 +9177,7 @@
    },
    "consoleErrors": 0,
    "hashes": {
-    "first": "13bceb3ecb857a93",
+    "first": "dffa92c3eba05973",
     "full": "13bceb3ecb857a93"
    }
   }

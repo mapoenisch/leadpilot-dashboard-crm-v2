@@ -33,10 +33,10 @@ import {
   sessionUserId,
 } from './lib/detailShotHelpers.mjs';
 
-/** Liest die Dashboard-Präferenzen über die Supabase-REST-API und validiert den HTTP-Status (Befund PR #67). */
-async function readPreferences(page, supabase) {
+/** GET gegen die Supabase-REST-API mit dem Token der Sitzung; wirft bei jedem Status >= 300 (Befund PR #67). */
+async function restGet(page, supabase, pathAndQuery, what) {
   const result = await page.evaluate(
-    async ({ url, anonKey, pathAndQuery }) => {
+    async ({ url, anonKey, pathAndQuery: pq }) => {
       let token = null;
       for (let i = 0; i < localStorage.length; i += 1) {
         const key = localStorage.key(i);
@@ -44,7 +44,7 @@ async function readPreferences(page, supabase) {
           token = JSON.parse(localStorage.getItem(key) ?? '{}').access_token ?? null;
         }
       }
-      const response = await fetch(`${url}/rest/v1/${pathAndQuery}`, {
+      const response = await fetch(`${url}/rest/v1/${pq}`, {
         headers: {
           apikey: anonKey,
           Authorization: `Bearer ${token}`,
@@ -53,19 +53,59 @@ async function readPreferences(page, supabase) {
       });
       return { status: response.status, body: await response.json().catch(() => null) };
     },
-    {
-      url: supabase.url,
-      anonKey: supabase.anonKey,
-      pathAndQuery: 'executive_dashboard_preferences?select=revision,config',
-    },
+    { url: supabase.url, anonKey: supabase.anonKey, pathAndQuery },
   );
   if (result.status >= 300) {
     throw new Error(
-      `Präferenzen lesen fehlgeschlagen (HTTP ${result.status}): ${JSON.stringify(result.body)}`,
+      `${what} fehlgeschlagen (HTTP ${result.status}): ${JSON.stringify(result.body)}`,
     );
   }
-  const row = Array.isArray(result.body) ? result.body[0] : null;
+  return result.body;
+}
+
+/** Liest die Dashboard-Präferenzen; ein Fehlerstatus gilt nie als „keine Zeile“. */
+async function readPreferences(page, supabase) {
+  const body = await restGet(
+    page,
+    supabase,
+    'executive_dashboard_preferences?select=revision,config',
+    'Präferenzen lesen',
+  );
+  const row = Array.isArray(body) ? body[0] : null;
   return row ? { revision: row.revision, config: row.config } : { revision: 0, config: null };
+}
+
+/** Inventarisierter Testbenutzer: admin-a aus supabase/seed.sql (Organisation A). */
+const EXPECTED_IDENTITY = {
+  email: 'admin-a@e2e.local',
+  userId: '11111111-1111-1111-1111-111111111111',
+  organizationId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  role: 'admin',
+};
+
+/** Bricht ab, wenn die Sitzung nicht der inventarisierten Identität entspricht (Befund PR #67). */
+async function verifyIdentity(page, supabase, email, userId) {
+  const members = await restGet(
+    page,
+    supabase,
+    `organization_members?select=organization_id,role&user_id=eq.${encodeURIComponent(userId ?? '')}`,
+    'Mitgliedschaft lesen',
+  );
+  const membership = Array.isArray(members) && members.length === 1 ? members[0] : null;
+  const actual = {
+    email,
+    userId,
+    organizationId: membership?.organization_id ?? null,
+    role: membership?.role ?? null,
+  };
+  for (const key of Object.keys(EXPECTED_IDENTITY)) {
+    if (actual[key] !== EXPECTED_IDENTITY[key]) {
+      throw new Error(
+        `Testbenutzer weicht von der inventarisierten Identität ab (${key}: erwartet ${EXPECTED_IDENTITY[key]}, gefunden ${actual[key]}). Lauf abgebrochen.`,
+      );
+    }
+  }
+  return actual;
 }
 
 /** Anmelden mit expliziter deutscher Browser-Locale für konsistente Datumsformatierung. */
@@ -453,6 +493,7 @@ function writeReadme(data) {
     '',
     `Produkt-Baseline: \`${data.baselineCommit ?? data.commit}\` (Release v2.4.0), aufgenommen ${data.capturedAt.slice(0, 10)} mit`,
     `\`${data.harness?.script ?? 'scripts/captureAuftrag081Inventory.mjs'}\` (Harness SHA-256: \`${data.harness?.sha256 ? data.harness.sha256.slice(0, 16) : '–'}\`).`,
+    `Testbenutzer: \`${data.testUser?.email}\` (Rolle ${data.testUser?.role}, Organisation \`${data.testUser?.organizationId}\`), Identität vor dem Lauf gegen die Seed-Daten geprüft.`,
     `Dashboard-Konfiguration: Standardansicht (${data.dashboardConfig?.tileCount ?? 17} Kacheln, Quelle: \`${data.dashboardConfig?.source ?? 'standard'}\`).`,
     'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
     'Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im',
@@ -482,6 +523,7 @@ async function main() {
   let restore = null;
   let setupContext = null;
   let dashboardConfigInfo = null;
+  let testIdentity = null;
 
   try {
     browser = await chromium.launch();
@@ -491,8 +533,10 @@ async function main() {
     setupContext = await browser.newContext({ baseURL: BASE_URL, storageState: state });
     const setupPage = await setupContext.newPage();
     await setupPage.goto('/dashboard', { waitUntil: 'networkidle' });
-    const originalPrefs = await readPreferences(setupPage, SUPABASE);
     const userId = await sessionUserId(setupPage);
+    // Identität vor jeder Änderung prüfen (Befund PR #67 Runde 7)
+    testIdentity = await verifyIdentity(setupPage, SUPABASE, CREDENTIALS.email, userId);
+    const originalPrefs = await readPreferences(setupPage, SUPABASE);
 
     if (originalPrefs.config) {
       const saved = await savePreferences(
@@ -579,7 +623,9 @@ async function main() {
     }
     const pipelineError = ONLY ? null : await pipelineErrorCase(browser, state);
 
-    const scriptContent = fs.readFileSync(path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'));
+    const scriptContent = fs.readFileSync(
+      path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'),
+    );
     const harnessSha256 = sha256(scriptContent);
     const baselineCommit = '7fd6e33';
     const productVersion = '2.4.0';
@@ -607,6 +653,7 @@ async function main() {
         sha256: harnessSha256,
         headAtExecution: headCommit,
       },
+      testUser: testIdentity,
       dashboardConfig: dashboardConfigInfo,
       commit: baselineCommit,
       baseUrl: BASE_URL,
@@ -616,15 +663,21 @@ async function main() {
       pipelineError,
     };
 
-    if (ONLY) {
-      const filteredOut = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar.filtered.json');
-      fs.writeFileSync(filteredOut, `${JSON.stringify(payload, null, 1)}\n`);
-      console.log(
-        `\nTeillauf (ONLY=${[...ONLY].join(',')}): ${summary.ok} von ${expected} Aufnahmen. Kanonische Baseline-Dateien werden nicht überschrieben. Teilergebnis: ${path.relative(ROOT, filteredOut)}`,
+    // Teilläufe und fehlerhafte Läufe nie in die kanonische Baseline schreiben (Befund PR #67):
+    // Diagnoseausgabe landet in test-results/ (nicht versioniert).
+    const complete = !ONLY && failed === 0 && summary.ok === expected;
+    if (!complete) {
+      const diagDir = path.join(ROOT, 'test-results/auftrag-081');
+      fs.mkdirSync(diagDir, { recursive: true });
+      const diagOut = path.join(
+        diagDir,
+        ONLY ? 'inventar.teillauf.json' : 'inventar.fehlerlauf.json',
       );
-      if (failed > 0 || summary.ok !== expected) {
-        process.exitCode = 1;
-      }
+      fs.writeFileSync(diagOut, `${JSON.stringify(payload, null, 1)}\n`);
+      console.log(
+        `\n${ONLY ? `Teillauf (ONLY=${[...ONLY].join(',')})` : 'Unvollständiger Lauf'}: ${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}. Kanonische Baseline unverändert. Diagnose: ${path.relative(ROOT, diagOut)}`,
+      );
+      if (failed > 0 || summary.ok !== expected) process.exitCode = 1;
       return;
     }
 
@@ -633,12 +686,6 @@ async function main() {
     console.log(
       `\n${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,
     );
-    if (failed > 0 || summary.ok !== expected) {
-      console.error(
-        'Inventur unvollständig: mindestens eine erwartete Aufnahme fehlt oder schlug fehl.',
-      );
-      process.exitCode = 1;
-    }
   } finally {
     let restoreError = null;
     if (restore?.type === 'restore') {
