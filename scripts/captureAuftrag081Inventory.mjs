@@ -86,24 +86,6 @@ function assertScopedCleanup(url, userId) {
   }
 }
 
-/** Löscht nur die Präferenzzeile der geprüften Organisation (Befund PR #67 Runde 14). */
-async function deletePreferencesRow(supabase, cleanupKey, userId, organizationId) {
-  assertScopedCleanup(supabase.url, userId);
-  if (typeof organizationId !== 'string' || !UUID.test(organizationId)) {
-    throw new Error('Ungültige Organisations-ID für das Aufräumen.');
-  }
-  const response = await fetch(
-    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(userId)}&organization_id=eq.${encodeURIComponent(organizationId)}`,
-    {
-      method: 'DELETE',
-      headers: { apikey: cleanupKey, Authorization: `Bearer ${cleanupKey}` },
-    },
-  );
-  if (!response.ok) {
-    throw new Error(`Löschen der Präferenzzeile fehlgeschlagen (HTTP ${response.status}).`);
-  }
-}
-
 /** Stellt die exakte Präferenzzeile (inkl. ursprünglicher Revision und Zeitstempel) wieder her (Befund PR #67 Runde 9). */
 async function restorePreferencesRow(supabase, cleanupKey, originalRow) {
   assertScopedCleanup(supabase.url, originalRow.user_id);
@@ -601,6 +583,52 @@ async function verifyCrmSeedData(supabase, cleanupKey, organizationId) {
     dealIds: actualDeals.map((d) => d.id),
     verifiedAt: new Date().toISOString(),
   };
+}
+
+/**
+ * Befund PR #67 Runde 15: WorkspaceHydrator und die Live-Simulation lesen diese Tabellen. supabase/seed.sql
+ * legt für Organisation A keine Simulationsdaten an; jede vorhandene Zeile würde Inhalt und Höhe von
+ * s-live-simulation vom lokalen Vorzustand abhängig machen. Erwartet: alle Tabellen leer.
+ */
+const SIMULATION_TABLES = [
+  'simulation_scenarios',
+  'simulation_scenario_versions',
+  'simulation_runs',
+  'simulation_timeseries',
+  'simulation_events',
+  'simulation_snapshots',
+  'simulation_run_pauses',
+];
+
+async function verifySimulationWorkspace(supabase, cleanupKey, organizationId) {
+  const counts = {};
+  for (const table of SIMULATION_TABLES) {
+    const response = await fetch(
+      `${supabase.url}/rest/v1/${table}?organization_id=eq.${encodeURIComponent(organizationId)}&select=organization_id&limit=1`,
+      {
+        headers: {
+          apikey: cleanupKey,
+          Authorization: `Bearer ${cleanupKey}`,
+          Prefer: 'count=exact',
+        },
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`Simulations-Workspace-Prüfung ${table} fehlgeschlagen (HTTP ${response.status}).`);
+    }
+    const total = Number(response.headers.get('content-range')?.split('/')[1]);
+    if (!Number.isInteger(total)) {
+      throw new Error(`Simulations-Workspace-Prüfung ${table}: keine Zeilenzahl erhalten.`);
+    }
+    counts[table] = total;
+  }
+  const nonEmpty = Object.entries(counts).filter(([, n]) => n > 0);
+  if (nonEmpty.length > 0) {
+    throw new Error(
+      `Simulations-Workspace von Organisation ${organizationId} ist nicht leer (${nonEmpty.map(([t, n]) => `${t}: ${n}`).join(', ')}). Lokales Supabase zurücksetzen (npx supabase db reset).`,
+    );
+  }
+  return { organizationId, counts, verifiedAt: new Date().toISOString() };
 }
 
 /**
@@ -1317,6 +1345,7 @@ function writeReadme(data) {
     `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`, ${data.buildArtifact?.verifiedAssetsCount ?? 38} statische Assets verifiziert), verifiziert gegen lokale Baseline \`${data.baselineCommit ?? data.commit}\`.`,
     `Testbenutzer: \`${data.testUser?.email}\` (Rolle ${data.testUser?.role}, Organisation \`${data.testUser?.organizationId}\`), Identität vor dem Lauf gegen die Seed-Daten geprüft.`,
     `CRM-Seed-Daten: Organisation \`${data.crmSeed?.organizationId ?? data.testUser?.organizationId}\` verifiziert (${data.crmSeed?.companiesCount ?? 3} Unternehmen, ${data.crmSeed?.contactsCount ?? 1} Kontakt, ${data.crmSeed?.dealsCount ?? 2} Deals).`,
+    `Simulations-Workspace: Organisation \`${data.simulationWorkspace?.organizationId ?? data.testUser?.organizationId}\` vor dem Lauf leer (${data.simulationWorkspace ? Object.keys(data.simulationWorkspace.counts).length : 7} Tabellen geprüft).`,
     `Dashboard-Konfiguration: Standardansicht (${data.dashboardConfig?.tileCount ?? 17} Kacheln, Quelle: \`${data.dashboardConfig?.source ?? 'standard'}\`).`,
     'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
     'Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im',
@@ -1362,6 +1391,7 @@ async function main() {
   let dashboardConfigInfo = null;
   let testIdentity = null;
   let crmSeedInfo = null;
+  let simulationWorkspaceInfo = null;
   let buildArtifact = null;
   let pendingCanonicalPayload = null;
   let runSuccess = false;
@@ -1383,6 +1413,11 @@ async function main() {
     testIdentity = await verifyIdentity(setupPage, SUPABASE, CREDENTIALS.email, userId);
     // Befund 5 PR #67 Runde 11: CRM-Seed-Daten vor den Aufnahmen reproduzierbar verifizieren
     crmSeedInfo = await verifyCrmSeedData(SUPABASE, CLEANUP_KEY, testIdentity.organizationId);
+    simulationWorkspaceInfo = await verifySimulationWorkspace(
+      SUPABASE,
+      CLEANUP_KEY,
+      testIdentity.organizationId,
+    );
     const originalPrefs = await readPreferences(setupPage, SUPABASE);
 
     if (originalPrefs.config) {
@@ -1410,10 +1445,7 @@ async function main() {
       };
     } else {
       restore = {
-        type: 'delete_if_created',
-        userId,
-        organizationId: testIdentity.organizationId,
-        page: setupPage,
+        type: 'leave_unchanged',
       };
       dashboardConfigInfo = {
         source: 'default_unpersisted',
@@ -1565,6 +1597,7 @@ async function main() {
       buildArtifact,
       testUser: testIdentity,
       crmSeed: crmSeedInfo,
+      simulationWorkspace: simulationWorkspaceInfo,
       dashboardConfig: dashboardConfigInfo,
       commit: baselineCommit,
       baseUrl: BASE_URL,
@@ -1581,9 +1614,10 @@ async function main() {
     fs.mkdirSync(diagDir, { recursive: true });
 
     if (!complete) {
+      // Befund PR #67 Runde 15: laufbezogene Namen, frühere Diagnosen bleiben erhalten.
       const diagOut = path.join(
         diagDir,
-        ONLY ? 'inventar.teillauf.json' : 'inventar.fehlerlauf.json',
+        ONLY ? `inventar.teillauf-${runTimestamp}.json` : `inventar.fehlerlauf-${runTimestamp}.json`,
       );
       fs.writeFileSync(diagOut, `${JSON.stringify(payload, null, 1)}\n`);
       console.log(
@@ -1597,7 +1631,7 @@ async function main() {
     }
 
     // Vollständiger Lauf: zunächst temporär stagen, kanonische Dateien noch NICHT überschreiben (Befund PR #67 Runde 8)
-    const stageJsonOut = path.join(diagDir, 'inventar.stage.json');
+    const stageJsonOut = path.join(diagDir, `inventar.stage-${runTimestamp}.json`);
     fs.writeFileSync(stageJsonOut, `${JSON.stringify(payload, null, 1)}\n`);
     pendingCanonicalPayload = payload;
     runSuccess = true;
@@ -1635,21 +1669,9 @@ async function main() {
         console.error('Fehler beim Wiederherstellen der Dashboard-Präferenzen:', err);
         restoreError = err;
       }
-    } else if (restore?.type === 'delete_if_created' && CLEANUP_KEY && restore.userId) {
-      try {
-        const current = await readPreferences(restore.page, SUPABASE);
-        if (current.config) {
-          await deletePreferencesRow(SUPABASE, CLEANUP_KEY, restore.userId, restore.organizationId);
-        }
-        if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
-        if (pendingCanonicalPayload?.dashboardConfig) {
-          pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
-        }
-      } catch (err) {
-        console.error('Fehler beim Aufräumen der Dashboard-Präferenzen:', err);
-        restoreError = err;
-      }
-    } else if (restore?.type === 'delete_if_created') {
+    } else if (restore?.type === 'leave_unchanged') {
+      // Befund PR #67 Runde 15: Ohne Ausgangszeile schreibt der Harness keine Präferenz. Eine während
+      // des Laufs erscheinende Zeile stammt aus einer anderen Sitzung und bleibt unangetastet.
       if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
       if (pendingCanonicalPayload?.dashboardConfig) {
         pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
@@ -1659,13 +1681,13 @@ async function main() {
     await browser?.close().catch(() => null);
 
     const diagDir = path.join(ROOT, 'test-results/auftrag-081');
-    const stageJsonOut = path.join(diagDir, 'inventar.stage.json');
+    const stageJsonOut = path.join(diagDir, `inventar.stage-${runTimestamp}.json`);
 
     const hadRunFailure = ONLY ? runHadError : !runSuccess;
 
     if (restoreError || hadRunFailure) {
       if (fs.existsSync(stageJsonOut)) {
-        fs.renameSync(stageJsonOut, path.join(diagDir, 'inventar.fehlerlauf.json'));
+        fs.renameSync(stageJsonOut, path.join(diagDir, `inventar.fehlerlauf-${runTimestamp}.json`));
       }
       process.exitCode = 1;
       if (restoreError) throw restoreError;
