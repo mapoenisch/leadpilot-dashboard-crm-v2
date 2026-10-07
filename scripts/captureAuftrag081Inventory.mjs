@@ -608,6 +608,63 @@ const SIMULATION_TABLES = [
   'simulation_run_pauses',
 ];
 
+/**
+ * Prüft den Schemastand der lokalen Supabase-Instanz gegen die Baseline (Codex PR #67 Runde 18):
+ * Jede angewandte Migration muss inhaltlich der versionierten Datei entsprechen (Basisschema =
+ * `supabase/schema.sql`, wie in CI kopiert), und jede Datei muss angewandt sein. Zusätzlich wird ein
+ * Fingerabdruck der tatsächlich aktiven RLS-Policies und der Funktion `save_dashboard_preferences`
+ * protokolliert. `supabase/` selbst ist Teil von `PRODUCT_PATHS` und damit gegen `7fd6e33` geprüft.
+ */
+function verifySchemaState() {
+  const projectId = fs
+    .readFileSync(path.join(ROOT, 'supabase/config.toml'), 'utf8')
+    .match(/^project_id\s*=\s*"([^"]+)"/m)?.[1];
+  if (!projectId) throw new Error('project_id in supabase/config.toml nicht gefunden.');
+  const psql = (sql) =>
+    execFileSync('docker', ['exec', `supabase_db_${projectId}`, 'psql', '-U', 'postgres', '-At', '-c', sql])
+      .toString()
+      .trim();
+  const applied = JSON.parse(
+    psql(
+      "select coalesce(json_agg(json_build_object('version', version, 'name', name, 'sql', array_to_string(statements, '')) order by version), '[]') from supabase_migrations.schema_migrations",
+    ),
+  );
+  const normalize = (sql) => sql.replace(/--[^\n]*/g, '').replace(/[\s;]/g, '');
+  const migrationDir = path.join(ROOT, 'supabase/migrations');
+  const expected = new Map(
+    fs
+      .readdirSync(migrationDir)
+      .filter((f) => f.endsWith('.sql') && !f.startsWith('20260101000000_'))
+      .map((f) => [f.split('_')[0], path.join(migrationDir, f)]),
+  );
+  expected.set('20260101000000', path.join(ROOT, 'supabase/schema.sql'));
+  const mismatches = [];
+  for (const row of applied) {
+    const file = expected.get(row.version);
+    if (!file) mismatches.push(`${row.version} angewandt, aber ohne Datei`);
+    else if (normalize(fs.readFileSync(file, 'utf8')) !== normalize(row.sql))
+      mismatches.push(`${row.version} weicht inhaltlich von ${path.relative(ROOT, file)} ab`);
+  }
+  for (const version of expected.keys()) {
+    if (!applied.some((row) => row.version === version)) mismatches.push(`${version} nicht angewandt`);
+  }
+  if (mismatches.length > 0) {
+    throw new Error(`Supabase-Schemastand weicht von der Baseline ab: ${mismatches.join('; ')}.`);
+  }
+  const policies = psql(
+    "select coalesce(string_agg(concat_ws('|', schemaname, tablename, policyname, permissive, roles::text, cmd, qual, with_check), E'\\n' order by schemaname, tablename, policyname), '') from pg_policies where schemaname = 'public'",
+  );
+  const rpc = psql(
+    "select pg_get_functiondef('public.save_dashboard_preferences(jsonb, integer)'::regprocedure)",
+  );
+  return {
+    migrationsApplied: applied.length,
+    lastMigration: applied.at(-1)?.version ?? null,
+    policiesSha256: sha256(Buffer.from(policies)),
+    saveDashboardPreferencesSha256: sha256(Buffer.from(rpc)),
+  };
+}
+
 async function verifySimulationWorkspace(supabase, cleanupKey, organizationId) {
   const counts = {};
   for (const table of SIMULATION_TABLES) {
@@ -735,6 +792,7 @@ const PRODUCT_PATHS = [
   'src/',
   'public/',
   'assets/',
+  'supabase/',
   'index.html',
   'vite.config.ts',
   'package.json',
@@ -1388,6 +1446,7 @@ function writeReadme(data) {
     `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`, ${data.buildArtifact?.verifiedAssetsCount ?? 38} statische Assets verifiziert), verifiziert gegen lokale Baseline \`${data.baselineCommit ?? data.commit}\`.`,
     `Testbenutzer: \`${data.testUser?.email}\` (Rolle ${data.testUser?.role}, Organisation \`${data.testUser?.organizationId}\`), Identität vor dem Lauf gegen die Seed-Daten geprüft.`,
     `CRM-Seed-Daten: Organisation \`${data.crmSeed?.organizationId ?? data.testUser?.organizationId}\` verifiziert (${data.crmSeed?.companiesCount ?? 3} Unternehmen, ${data.crmSeed?.contactsCount ?? 1} Kontakt, ${data.crmSeed?.dealsCount ?? 2} Deals).`,
+    `Supabase-Schema: ${data.schemaState ? `${data.schemaState.migrationsApplied} Migrationen bis \`${data.schemaState.lastMigration}\` inhaltsgleich mit \`supabase/\` der Baseline; RLS-Policies SHA-256 \`${data.schemaState.policiesSha256.slice(0, 16)}\`, \`save_dashboard_preferences\` \`${data.schemaState.saveDashboardPreferencesSha256.slice(0, 16)}\`` : '–'}.`,
     `Simulations-Workspace: Organisation \`${data.simulationWorkspace?.organizationId ?? data.testUser?.organizationId}\` vor dem Lauf leer (${data.simulationWorkspace ? Object.keys(data.simulationWorkspace.counts).length : 7} Tabellen geprüft).`,
     `Dashboard-Konfiguration: Standardansicht (${data.dashboardConfig?.tileCount ?? 17} Kacheln, Quelle: \`${data.dashboardConfig?.source ?? 'standard'}\`).`,
     'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
@@ -1436,6 +1495,7 @@ async function main() {
   let testIdentity = null;
   let crmSeedInfo = null;
   let simulationWorkspaceInfo = null;
+  let schemaStateInfo = null;
   let buildArtifact = null;
   let pendingCanonicalPayload = null;
   let runSuccess = false;
@@ -1457,6 +1517,7 @@ async function main() {
     testIdentity = await verifyIdentity(setupPage, SUPABASE, CREDENTIALS.email, userId);
     // Befund 5 PR #67 Runde 11: CRM-Seed-Daten vor den Aufnahmen reproduzierbar verifizieren
     crmSeedInfo = await verifyCrmSeedData(SUPABASE, CLEANUP_KEY, testIdentity.organizationId);
+    schemaStateInfo = verifySchemaState();
     simulationWorkspaceInfo = await verifySimulationWorkspace(
       SUPABASE,
       CLEANUP_KEY,
@@ -1481,7 +1542,12 @@ async function main() {
         defaultConfig,
         originalPrefs.revision,
       );
-      restore.harnessRevisions = [saved.revision];
+      // Restore-Token ist die Revision aus der RPC-Antwort, nicht aus dem anschließenden Nachlesen,
+      // das bereits eine parallel gespeicherte fremde Revision liefern könnte (Codex PR #67 Runde 18).
+      if (!Number.isInteger(saved.rpcRevision)) {
+        throw new Error(`Speicher-RPC lieferte keine Revision: ${JSON.stringify(saved.rpcRevision)}`);
+      }
+      restore.harnessRevisions = [saved.rpcRevision];
       dashboardConfigInfo = {
         source: 'installed_standard',
         version: defaultConfig.version,
@@ -1645,6 +1711,7 @@ async function main() {
       testUser: testIdentity,
       crmSeed: crmSeedInfo,
       simulationWorkspace: simulationWorkspaceInfo,
+      schemaState: schemaStateInfo,
       browser: { fixedTime: FIXED_BROWSER_TIME, devicePixelRatio: 1, visualViewportScale: 1 },
       dashboardConfig: dashboardConfigInfo,
       commit: baselineCommit,
