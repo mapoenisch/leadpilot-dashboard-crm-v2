@@ -62,6 +62,7 @@ Diese fünf Randbedingungen sind in den jeweiligen Arbeitspaketen ausdrücklich 
 
 ```text
 0 Bestandsaufnahme
+  → Korrekturauftrag F15 (Shell-Kontraste & Token --color-text-primary)
   → A Zuverlässigkeit → B Datenabgleich → C Filter
   → D Designmuster und Sichtabnahme
   → E Dashboard und mobile Hülle → F Editor
@@ -71,7 +72,7 @@ Diese fünf Randbedingungen sind in den jeweiligen Arbeitspaketen ausdrücklich 
 
 Die Reihenfolge ist absichtlich seriell. Ein Paket startet nach Abnahme seines Vorgängers. G kann je Seitenwelle einen eigenen PR bekommen. Das vermindert Konflikte an gemeinsam genutzten Stilen und Komponenten.
 
-Vorläufige Größenordnung: 0 klein, A mittel bis zur Diagnose, B mittel, C klein–mittel, D mittel, E/F mittel–groß, G groß, H mittel, I mittel. Eine belastbare Dauer wird nach 0 und der ersten Fachseitenwelle geschätzt; die Zahl 32 allein sagt wenig über die inhaltliche Komplexität aus.
+Vorläufige Größenordnung: 0 klein, F15 klein, A mittel bis zur Diagnose, B mittel, C klein–mittel, D mittel, E/F mittel–groß, G groß, H mittel, I mittel. Eine belastbare Dauer wird nach 0 und der ersten Fachseitenwelle geschätzt; die Zahl 32 allein sagt wenig über die inhaltliche Komplexität aus.
 
 ## 5. Arbeitspaket 0 – Bestand und überprüfbare Ausgangslage
 
@@ -86,9 +87,20 @@ Vorläufige Größenordnung: 0 klein, A mittel bis zur Diagnose, B mittel, C kle
 - [x] Abstände, Kartenhöhen, Inhaltshöhe, sichtbare Kennzahlen, Überlauf und Fokusverhalten messen. Temporäre Bilder aus dem Review nicht als langfristige Baselines behandeln.
 - [x] F01–F14 jeweils als bestätigt, begrenzt bestätigt oder noch zu prüfen klassifizieren. Produktionsbetroffenheit der Pipeline ausdrücklich offenlassen, bis geprüft.
 
-**Erledigt mit Auftrag 081** (Register `docs/reviews/2026-10-06-frontend-befundregister.md`); Abnahme durch Codex-Befund offen. Paket 0 hat zusätzlich F15 (heller Modus unlesbar, Token- und Shell-Kontraste) gefunden; F15 ist in Abschnitt 3, Paket D und der Gesamtabnahme (§15) aufgenommen (Codex PR #67). Der systematische Zahlenabgleich aller 32 Seiten bleibt gemäß Abschnitt 7 die Kernaufgabe von Paket B.
+**Erledigt mit Auftrag 081** (Register `docs/reviews/2026-10-06-frontend-befundregister.md`); Abnahme durch Codex-Befund offen. Paket 0 hat zusätzlich F15 (heller Modus unlesbar, Token- und Shell-Kontraste) gefunden; F15 ist als eigener kleiner Korrekturauftrag direkt vor Paket A vorgezogen (Codex PR #67), damit nachfolgende Umsetzungspakete ihr verpflichtendes Ganzseiten-axe-Gate (§14) fehlerfrei bestehen können. Der systematische Zahlenabgleich aller 32 Seiten bleibt gemäß Abschnitt 7 die Kernaufgabe von Paket B.
 
 **Abnahme:** Befundregister deckt alle 32 Bildseiten plus die interaktiven Abläufe ab; Befunde enthalten reproduzierbare Schritte und Prüfbedingungen. Frühere Freigaben von Auftrag 069 und Dashboard 079 bleiben dokumentiert.
+
+## 5a. Korrekturauftrag F15 – Helle Theme-Kontraste & Token (vor Paket A vorgezogen)
+
+**Zweck:** F15 ist ein technischer Kontrast- und Tokenfehler, keine Gestaltungsfrage. Da §14 für jedes Umsetzungspaket einen Scan ohne serious/critical Befunde über die ganze Seite verlangt, muss F15 vor Beginn der Umsetzungspakete A–C behoben sein, damit deren Ganzseiten-axe-Gate erfüllbar ist (Codex PR #67).
+**Dateien:** `src/components/layout/Header.tsx`, `Sidebar.tsx`, `SimulationBar.tsx`, `src/features/dashboard/`, `src/styles/` (bzw. Theme-/Token-Definitionen).
+
+- [ ] Fehlendes Token `--color-text-primary` in Dashboard-Dateien und globalen Stilen definieren/korrigieren (18 Verwendungen).
+- [ ] Shell-Kontraste der Layout-Komponenten `Header.tsx` (`bg-[rgba(6,22,19,0.85)]`), `Sidebar.tsx` und `SimulationBar.tsx` (`bg-[rgba(18,51,48,0.75)]`) für das helle Theme korrigieren: themenabhängige Hintergründe für die Shell oder feste helle Kontrasttokens für die dunkle Shell definieren.
+- [ ] Nachweis: Kopfzeile, Sidebar, Simulationsleiste, Dashboard-Überschrift und Kachel-Details im hellen Modus lesbar; automatisierter axe-Scan über die gesamte Seite meldet 0 `color-contrast`-Verstöße auf allen 42 Ansichten aus der Bestandsaufnahme.
+
+**Abnahme:** Ganzseiten-axe-Scan meldet auf allen 42 Ansichten im hellen Modus keine serious/critical `color-contrast`-Fehler mehr.
 
 ## 6. Arbeitspaket A – Pipelinefehler, Zustände und Navigation
 
@@ -138,7 +150,7 @@ Vorläufige Größenordnung: 0 klein, A mittel bis zur Diagnose, B mittel, C kle
 **Zweck:** Marc prüft konkrete Bilder, bevor die früher freigegebene Gestaltung verändert wird.
 **Dateien:** vorhandene Vorschau unter `src/features/dashboard/preview/`; gemeinsam genutzte Bausteine in `src/components/pageKit/`, `src/components/ui/`, `src/styles/global.css`; Fachseitenmuster auf Basis `FunnelPage.tsx`. Im Detailauftrag isolierte Vorschau-/Testpfade nennen, noch keinen globalen Produkt-Schalter ändern.
 
-- [ ] Zuerst F15 beheben (eigener kleiner Detailauftrag vor den Mustern, Register §7): Schließt sowohl das fehlende Token `--color-text-primary` (18 Verwendungen in Dashboard-Dateien) als auch die Shell-Kontraste in den Layout-Komponenten `Header.tsx`, `Sidebar.tsx` und `SimulationBar.tsx` ein (Codex PR #67). Diese Komponenten nutzen feste dunkle Hintergründe (`bg-[rgba(6,22,19,0.85)]`, `bg-[rgba(18,51,48,0.75)]`), während `text-text` und `--color-text-muted` im hellen Theme abgedunkelt werden und so auf allen 42 Ansichten Kontrastverstöße erzeugen. Behebung: themenabhängige Hintergründe für die Shell oder feste helle Kontrasttokens für die dunkle Shell definieren. Nachweis: Kopfzeile, Sidebar, Simulationsleiste, Dashboard-Überschrift und Kachel-Details im hellen Modus lesbar; axe über die ganze Seite (nicht nur `<main>`) ohne `color-contrast` auf allen 42 in Paket 0 aufgenommenen Ansichten. Ohne diesen Schritt sind Musterabnahmen im hellen Modus nicht bewertbar.
+- [ ] F15 (Shell-Kontraste und Token `--color-text-primary`) wurde als eigener kleiner Korrekturauftrag bereits vor Paket A vorgezogen (siehe §5a). In Paket D werden die fünf Gestaltungsmuster auf dieser sauberen Theme-Basis erstellt und im hellen sowie dunklen Modus ohne Kontrastartefakte bewertet.
 - [ ] Drei Richtungen knapp gegenüberstellen: minimale Verdichtung, ruhige Weiterentwicklung der LeadPilot-Marke, weitgehendes Redesign. Empfehlung ist die ruhige Weiterentwicklung.
 - [ ] Fünf zusammenpassende Muster erstellen: kompakte Zahlkachel, Verlauf/Verteilung ohne dekorative 3D-Tiefe, mobile Dashboardstartseite, echte Funnel-Fachseite, vereinfachter Editor.
 - [ ] Bestehende Farben/Schriften verwenden. Konkrete Typografie, Abstände, Fokuszustände, Warnzustände und Touchflächen aus dem Entwurf in der Vorschau anwenden.
@@ -242,7 +254,7 @@ Zusätzlich:
 - [ ] Gezielte E2E für betroffene Abläufe mit reproduzierbaren Testdaten fahren. Bei Serverfehlern kontrollierte Antworten nutzen, erfolgreiche reale Integration separat prüfen.
 - [ ] Screenshot-Paare vorher/nachher bei 1440/768/375 px, beiden Themes und vollständig geladenen Inhalten. SHA-256-Unterschiede belegen Veränderung, nicht Schönheit. Jede Änderung manuell prüfen.
 - [ ] 320 px, 200-%-Textvergrößerung, reduzierte Bewegung, Tastatur, Touch, lange Texte, leere Daten und Fehler testen. Für Reflow zusätzlich 320 CSS-px/400-%-Zoom prüfen; Tabellen-Ausnahmen lokal behandeln.
-- [ ] Automatisierter Accessibility-Scan ohne serious/critical Befunde; ergänzend Kontrast und Fokus manuell prüfen. Keine pauschale WCAG-Zertifizierung aus einem Scan behaupten.
+- [ ] Automatisierter Accessibility-Scan ohne serious/critical Befunde; ergänzend Kontrast und Fokus manuell prüfen. Keine pauschale WCAG-Zertifizierung aus einem Scan behaupten. Bis zur Fertigstellung des vorgezogenen Korrekturauftrags F15 bezieht sich die Kontrastprüfung auf den jeweils bearbeiteten Bereich (`<main>`); ab Abschluss von F15 gilt der Scan verbindlich für die gesamte Seite inklusive Shell.
 - [ ] 0 px globaler horizontaler Überlauf; keine verdeckten Bedienelemente. Lade-/Warnzustände dürfen die Höhe nicht unkontrolliert verändern.
 - [ ] Vorhandene Qualitäts-/Bundlebudgets weiter erfüllen; Lighthouse-Schwellen aus der bestehenden CI beibehalten. Kein zweites Bibliothekensystem für die neue Gestaltung.
 - [ ] Schutzbereichs-Diff gegen den im Detailauftrag genannten Ausgangscommit leer prüfen: `git diff <baseline> -- src/simulation src/types src/context src/services/data src/features/resources`.
@@ -267,6 +279,6 @@ Zusätzlich:
 
 ## 16. Konkrete Übergabe an den Builder
 
-Zunächst nur Arbeitspaket 0 und daraus den Diagnoseauftrag A ausarbeiten. Keine flächendeckende Stiländerung und kein globales Umstellen von `PAGE_PRESENTATION` zu Beginn. Danach B/C, anschließend die fünf Designmuster D zur Sichtabnahme vorbereiten. Jeder Detailauftrag nennt exakt seine Dateien, Regressionen, Schutzbereich und Ausgangscommit.
+Zunächst nur Arbeitspaket 0 abschließen. Daran schließt sich unmittelbar der vorgezogene Korrekturauftrag F15 (Shell-Kontraste und Token `--color-text-primary`) an, damit die nachfolgenden Gates für die gesamte Seite grün werden können. Danach startet Diagnoseauftrag A. Keine flächendeckende Stiländerung und kein globales Umstellen von `PAGE_PRESENTATION` zu Beginn. Danach B/C, anschließend die fünf Designmuster D zur Sichtabnahme vorbereiten. Jeder Detailauftrag nennt exakt seine Dateien, Regressionen, Schutzbereich und Ausgangscommit.
 
 Der Plan ist bewusst ein Masterplan mit prüfbaren Ergebnissen. Die exakten Reparaturstellen des Pipelinefehlers, die vollständige Pipeline-Auswahlquelle und die endgültige Dateiliste jeder Seitenwelle werden aus den vorgesehenen Untersuchungen abgeleitet. Sie werden nicht als bereits feststehend erfunden. Neue öffentliche Schnittstellen sind hier nicht vorgegeben; bestehende Props, Datenverträge und Konfigurationswerte bleiben der Ausgangspunkt.

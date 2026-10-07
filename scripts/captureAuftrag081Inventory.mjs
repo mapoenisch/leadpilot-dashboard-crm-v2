@@ -28,11 +28,45 @@ import { execFileSync } from 'node:child_process';
 import {
   axeSevere,
   deletePreferences,
-  readPreferences,
   savePreferences,
   scrollThrough,
   sessionUserId,
 } from './lib/detailShotHelpers.mjs';
+
+/** Liest die Dashboard-Präferenzen über die Supabase-REST-API und validiert den HTTP-Status (Befund PR #67). */
+async function readPreferences(page, supabase) {
+  const result = await page.evaluate(
+    async ({ url, anonKey, pathAndQuery }) => {
+      let token = null;
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('sb-') && key.endsWith('-auth-token')) {
+          token = JSON.parse(localStorage.getItem(key) ?? '{}').access_token ?? null;
+        }
+      }
+      const response = await fetch(`${url}/rest/v1/${pathAndQuery}`, {
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      return { status: response.status, body: await response.json().catch(() => null) };
+    },
+    {
+      url: supabase.url,
+      anonKey: supabase.anonKey,
+      pathAndQuery: 'executive_dashboard_preferences?select=revision,config',
+    },
+  );
+  if (result.status >= 300) {
+    throw new Error(
+      `Präferenzen lesen fehlgeschlagen (HTTP ${result.status}): ${JSON.stringify(result.body)}`,
+    );
+  }
+  const row = Array.isArray(result.body) ? result.body[0] : null;
+  return row ? { revision: row.revision, config: row.config } : { revision: 0, config: null };
+}
 
 /** Anmelden mit expliziter deutscher Browser-Locale für konsistente Datumsformatierung. */
 async function loginWithLocale(browser, baseUrl, credentials, locale = 'de-DE') {
@@ -141,40 +175,45 @@ async function openRoute(browser, state, viewport, theme, target) {
     reducedMotion: 'reduce',
     locale: 'de-DE',
   });
-  await context.addInitScript((mode) => {
-    try {
-      window.localStorage.setItem('leadpilot-theme', mode);
-    } catch {
-      /* Storage nicht verfügbar */
+  try {
+    await context.addInitScript((mode) => {
+      try {
+        window.localStorage.setItem('leadpilot-theme', mode);
+      } catch {
+        /* Storage nicht verfügbar */
+      }
+    }, theme);
+    const page = await context.newPage();
+    const consoleErrors = [];
+    page.on(
+      'console',
+      (msg) => msg.type() === 'error' && consoleErrors.push(msg.text().slice(0, 160)),
+    );
+    await page.goto(target.route, { waitUntil: 'networkidle' });
+    await page.locator('main').first().waitFor({ timeout: 15000 });
+    await page.waitForTimeout(600);
+    await scrollThrough(page, viewport);
+    if (target.edit) {
+      await page
+        .getByRole('button', { name: /bearbeiten/i })
+        .first()
+        .click();
+      await page.getByTestId('editor-toolbar').waitFor({ timeout: 10000 });
     }
-  }, theme);
-  const page = await context.newPage();
-  const consoleErrors = [];
-  page.on(
-    'console',
-    (msg) => msg.type() === 'error' && consoleErrors.push(msg.text().slice(0, 160)),
-  );
-  await page.goto(target.route, { waitUntil: 'networkidle' });
-  await page.locator('main').first().waitFor({ timeout: 15000 });
-  await page.waitForTimeout(600);
-  await scrollThrough(page, viewport);
-  if (target.edit) {
-    await page
-      .getByRole('button', { name: /bearbeiten/i })
-      .first()
-      .click();
-    await page.getByTestId('editor-toolbar').waitFor({ timeout: 10000 });
+    if (target.detail) {
+      await page
+        .getByRole('button', { name: /^details zu/i })
+        .first()
+        .click();
+      await page.getByTestId('tile-detail-page').waitFor({ timeout: 10000 });
+      await page.waitForLoadState('networkidle');
+    }
+    await page.waitForTimeout(400);
+    return { context, page, consoleErrors };
+  } catch (err) {
+    await context.close().catch(() => null);
+    throw err;
   }
-  if (target.detail) {
-    await page
-      .getByRole('button', { name: /^details zu/i })
-      .first()
-      .click();
-    await page.getByTestId('tile-detail-page').waitFor({ timeout: 10000 });
-    await page.waitForLoadState('networkidle');
-  }
-  await page.waitForTimeout(400);
-  return { context, page, consoleErrors };
 }
 
 /** Messwerte, die nicht vom Bild abhängen. */
@@ -544,35 +583,52 @@ async function main() {
     const harnessSha256 = sha256(scriptContent);
     const baselineCommit = '7fd6e33';
     const productVersion = '2.4.0';
-    const headCommit = (await import('node:child_process'))
-      .execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
+    const headCommit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
       .toString()
       .trim();
+
+    // Verifiziere, dass der aktuelle Produktcode exakt der Baseline entspricht (Befund PR #67 Runde 6)
+    const productDiff = execFileSync('git', ['diff', baselineCommit, '--', 'src/'], { cwd: ROOT })
+      .toString()
+      .trim();
+    if (productDiff.length > 0) {
+      throw new Error(
+        `Produktstand unter src/ weicht von der behaupteten Baseline ${baselineCommit} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
+      );
+    }
+
     const failed = shots.filter((s) => s.failed).length;
     const summary = { expected, ok: shots.length - failed, failed };
-    fs.writeFileSync(
-      JSON_OUT,
-      `${JSON.stringify(
-        {
-          baselineCommit,
-          productVersion,
-          harness: {
-            script: 'scripts/captureAuftrag081Inventory.mjs',
-            sha256: harnessSha256,
-            headAtExecution: headCommit,
-          },
-          dashboardConfig: dashboardConfigInfo,
-          commit: baselineCommit,
-          baseUrl: BASE_URL,
-          capturedAt: new Date().toISOString(),
-          summary,
-          shots,
-          pipelineError,
-        },
-        null,
-        1,
-      )}\n`,
-    );
+    const payload = {
+      baselineCommit,
+      productVersion,
+      harness: {
+        script: 'scripts/captureAuftrag081Inventory.mjs',
+        sha256: harnessSha256,
+        headAtExecution: headCommit,
+      },
+      dashboardConfig: dashboardConfigInfo,
+      commit: baselineCommit,
+      baseUrl: BASE_URL,
+      capturedAt: new Date().toISOString(),
+      summary,
+      shots,
+      pipelineError,
+    };
+
+    if (ONLY) {
+      const filteredOut = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar.filtered.json');
+      fs.writeFileSync(filteredOut, `${JSON.stringify(payload, null, 1)}\n`);
+      console.log(
+        `\nTeillauf (ONLY=${[...ONLY].join(',')}): ${summary.ok} von ${expected} Aufnahmen. Kanonische Baseline-Dateien werden nicht überschrieben. Teilergebnis: ${path.relative(ROOT, filteredOut)}`,
+      );
+      if (failed > 0 || summary.ok !== expected) {
+        process.exitCode = 1;
+      }
+      return;
+    }
+
+    fs.writeFileSync(JSON_OUT, `${JSON.stringify(payload, null, 1)}\n`);
     writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
     console.log(
       `\n${summary.ok} von ${expected} Aufnahmen, fehlgeschlagen ${failed}, JSON: ${path.relative(ROOT, JSON_OUT)}`,

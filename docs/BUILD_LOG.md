@@ -15701,5 +15701,19 @@ Alle 4 Codex-Befunde (1 P1, 3 P2) behoben:
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/` vollständig leer (0 Byte Differenz); keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
 
+**Nacharbeit Codex-Review PR #67 Runde 6 (07.10.2026, Head `ff96036`):**
+Alle 7 Codex-Befunde (1 P1, 6 P2) behoben:
+1. **Behebe F15 vor den Paketen mit verpflichtendem axe-Gate (P1, ID 4203544576):** Im Plan (`docs/superpowers/plans/2026-10-06-frontend-qualitaet-plan.md`) wurde F15 (Shell-Kontraste und Token `--color-text-primary`) als eigener Korrekturauftrag (§5a) direkt vor Paket A vorgezogen. In §14 wurde das verpflichtende Accessibility-Gate präzisiert (vor F15 bezogen auf den geänderten Inhaltsbereich `<main>`, ab Abschluss von F15 ganzseitig frei von serious/critical `color-contrast`). Entsprechend in `BUILD_PLAN.md` und Befundregister §7 dokumentiert.
+2. **Korrigiere die Komponenten-Umfänge (P2, ID 4203544582):** In `docs/reviews/2026-10-06-frontend-befundregister.md` wurden die Zeilenzahlen aller 32 Bildseiten (Tabelle 4) und der interaktiven Ansichten (Tabelle 6) exakt auf den `wc -l`-Stand von Baseline `7fd6e33` korrigiert: `PersonalExecutiveDashboard.tsx` hat 61 Zeilen (statt 187), `CrmResponsiveList.tsx` 137 Zeilen (statt 207). Bei den Bildseiten entfällt die durch Zeilen-Splits hinzugezählte Leerzeile; PersonaPage (69 Zeilen) und GrowthDriversPage (69 Zeilen) sind nun korrekt als `klein (< 70)` klassifiziert.
+3. **Markiere auch die drei CRM-Listen als schutzbereichsabhängig (P2, ID 4203544556):** In Tabelle 6 des Befundregisters sind die drei CRM-Listen I07 (`/crm/leads`), I08 (`/crm/companies`) und I09 (`/crm/deals`) nun als Schutzbereich `**Ja**` markiert, da sie zur Laufzeit über `useCrmProvenance` das geschützte Modul `src/services/data/sourceFreshness.ts` sowie (bei Companies und Deals) Typmodelle aus `src/types/` anbinden.
+4. **Schließe fehlgeschlagene Aufnahme-Kontexte (P2, ID 4203544535):** In `openRoute` in `scripts/captureAuftrag081Inventory.mjs` ist die gesamte Navigation, Lade- und Klicklogik in `try ... catch` gekapselt. Tritt während `page.goto`, Warten auf `<main>` oder Klicks auf Editor/Details ein Fehler auf, wird der erzeugte Browserkontext sofort via `await context.close().catch(() => null)` freigegeben, bevor der Fehler rethrown wird.
+5. **Verifiziere den Produktstand vor dem Schreiben der Baseline (P2, ID 4203544543):** In `scripts/captureAuftrag081Inventory.mjs` wird vor dem Erzeugen des Baseline-JSONs via `git diff 7fd6e33 -- src/` geprüft, ob der aktuelle Produktcode exakt der deklarierten Baseline entspricht. Weicht `src/` ab, bricht der Harness mit einer Fehlermeldung ab.
+6. **Überschreibe das Inventar nicht mit gefilterten Läufen (P2, ID 4203544547):** Bei Ausführung mit `ONLY` schreibt `scripts/captureAuftrag081Inventory.mjs` Teilergebnisse isoliert nach `docs/reviews/2026-10-06-frontend-inventar.filtered.json`. Die kanonischen Dateien `docs/reviews/2026-10-06-frontend-inventar.json` und `docs/screenshots/auftrag-081/README.md` bleiben unangetastet.
+7. **Behandle Fehler beim Lesen der Präferenzen nicht als fehlende Zeile (P2, ID 4203544568):** `readPreferences` ist in `scripts/captureAuftrag081Inventory.mjs` lokal implementiert und validiert den HTTP-Status der Supabase-REST-Antwort (`status >= 300` wirft einen Fehler). Status- oder Netzwerkfehler werden nicht mehr fälschlich als `default_unpersisted` interpretiert.
+- **Volllauf neu:** 256 von 256 Aufnahmen erfolgreich (Exit 0), JSON und README aktualisiert.
+- **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/` vollständig leer (0 Byte Differenz); keine Datei unter `src/` geändert.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
+
 
 
