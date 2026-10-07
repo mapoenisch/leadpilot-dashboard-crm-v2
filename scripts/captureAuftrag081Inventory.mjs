@@ -68,11 +68,52 @@ async function readPreferences(page, supabase) {
   const body = await restGet(
     page,
     supabase,
-    'executive_dashboard_preferences?select=revision,config',
+    'executive_dashboard_preferences?select=organization_id,user_id,revision,config,schema_version,created_at,updated_at',
     'Präferenzen lesen',
   );
   const row = Array.isArray(body) ? body[0] : null;
-  return row ? { revision: row.revision, config: row.config } : { revision: 0, config: null };
+  return row ? { ...row } : { revision: 0, config: null };
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
+
+function assertScopedCleanup(url, userId) {
+  if (!LOCAL_HOSTS.has(new URL(url).hostname)) {
+    throw new Error(`Aufräumschlüssel nur für lokales Supabase, nicht für ${new URL(url).host}.`);
+  }
+  if (typeof userId !== 'string' || !UUID.test(userId)) {
+    throw new Error('Ungültige Benutzer-ID für das Aufräumen.');
+  }
+}
+
+/** Stellt die exakte Präferenzzeile (inkl. ursprünglicher Revision und Zeitstempel) wieder her (Befund PR #67 Runde 9). */
+async function restorePreferencesRow(supabase, cleanupKey, originalRow) {
+  assertScopedCleanup(supabase.url, originalRow.user_id);
+  const response = await fetch(
+    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(originalRow.user_id)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: cleanupKey,
+        Authorization: `Bearer ${cleanupKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({
+        config: originalRow.config,
+        schema_version: originalRow.schema_version,
+        revision: originalRow.revision,
+        created_at: originalRow.created_at,
+        updated_at: originalRow.updated_at,
+      }),
+    },
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Wiederherstellen der ursprünglichen Präferenzzeile fehlgeschlagen (HTTP ${response.status}): ${await response.text()}`,
+    );
+  }
 }
 
 /** Inventarisierter Testbenutzer: admin-a aus supabase/seed.sql (Organisation A). */
@@ -139,10 +180,13 @@ async function verifyBuildArtifact(baseUrl) {
     );
   }
 
+  // Befund 1 PR #67 Runde 9: Quellstand frisch bauen, bevor dist/ und BASE_URL verglichen werden
+  execFileSync('npm', ['run', 'build'], { cwd: ROOT, stdio: 'pipe' });
+
   const distHtmlPath = path.join(ROOT, 'dist/index.html');
   if (!fs.existsSync(distHtmlPath)) {
     throw new Error(
-      'Lokaler Produktionsbuild (dist/index.html) fehlt. Bitte vorab "npm run build" ausführen.',
+      'Lokaler Produktionsbuild (dist/index.html) fehlt auch nach frischem Build.',
     );
   }
   const localDistHtml = fs.readFileSync(distHtmlPath, 'utf8');
@@ -248,7 +292,115 @@ const SUPABASE = {
     process.env.VITE_SUPABASE_ANON_KEY ??
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
 };
-const CLEANUP_KEY = process.env.E2E_CLEANUP_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? null;
+function resolveCleanupKey(url) {
+  if (process.env.E2E_CLEANUP_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return process.env.E2E_CLEANUP_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
+  try {
+    const u = new URL(url);
+    if (LOCAL_HOSTS.has(u.hostname)) {
+      const b64url = (obj) =>
+        Buffer.from(JSON.stringify(obj))
+          .toString('base64')
+          .replace(/=/g, '')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_');
+      const header = b64url({ alg: 'HS256', typ: 'JWT' });
+      const payload = b64url({
+        role: 'service_role',
+        iss: 'supabase',
+        iat: Math.floor(Date.now() / 1000) - 60,
+        exp: Math.floor(Date.now() / 1000) + 3600 * 24 * 365,
+      });
+      const unsigned = `${header}.${payload}`;
+      const secret = 'super-secret-jwt-token-with-at-least-32-characters-long';
+      const sig = crypto
+        .createHmac('sha256', secret)
+        .update(unsigned)
+        .digest('base64')
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+      return `${unsigned}.${sig}`;
+    }
+  } catch {
+    /* Ungültige URL oder nicht lokal */
+  }
+  return null;
+}
+const CLEANUP_KEY = resolveCleanupKey(SUPABASE.url);
+
+/**
+ * Kontrollierte CRM-Daten für Organisation A (admin-a) gemäß supabase/seed.sql (Befund PR #67 Runde 9).
+ * Dient der Edge-Function-Interception in openRoute, damit reguläre CRM-Aufnahmen (s-leads, s-companies,
+ * s-deals) im Erfolgszustand (Tabelle/Karten, Kennzahlen, Paginierung) statt im SERVER_ERROR-Zustand
+ * aufgenommen werden.
+ */
+const CONTROLLED_CRM_DATA = {
+  companies: [
+    {
+      id: 'c0000000-0000-0000-0000-000000000001',
+      name: 'Firma A1',
+      domain: 'a1.test',
+      industry: 'IT',
+      city: 'Berlin',
+      postalCode: '10115',
+      employeeCount: 50,
+      createdAt: '2026-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'c0000000-0000-0000-0000-000000000003',
+      name: ' =1+1 Formel-Firma',
+      domain: 'calc.test',
+      industry: 'IT',
+      city: 'Berlin',
+      postalCode: '10115',
+      employeeCount: 10,
+      createdAt: '2026-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'c0000000-0000-0000-0000-000000000004',
+      name: 'Firma A2',
+      domain: 'a2.test',
+      industry: 'Finanzen',
+      city: 'München',
+      postalCode: '80331',
+      employeeCount: 80,
+      createdAt: '2026-01-01T00:00:00.000Z',
+    },
+  ],
+  contacts: [
+    {
+      id: 'd0000000-0000-0000-0000-000000000001',
+      companyId: 'c0000000-0000-0000-0000-000000000001',
+      email: 'anna.schmidt@a1.test',
+      firstName: 'Anna',
+      lastName: 'Schmidt',
+      jobTitle: 'CEO',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    },
+  ],
+  deals: [
+    {
+      id: 'e0000000-0000-0000-0000-000000000001',
+      dealName: 'Enterprise Paket A1',
+      stage: 'PROPOSAL',
+      amount: 45000,
+      closeDate: '2026-11-30',
+      pipeline: 'default',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'e0000000-0000-0000-0000-000000000003',
+      dealName: ' =2+2 Formel Deal',
+      stage: 'LEAD',
+      amount: 5000,
+      closeDate: '2026-12-31',
+      pipeline: 'default',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    },
+  ],
+};
 const OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-081');
 const JSON_OUT = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar.json');
 const ONLY = process.env.ONLY ? new Set(process.env.ONLY.split(',')) : null;
@@ -310,6 +462,56 @@ async function openRoute(browser, state, viewport, theme, target) {
     locale: 'de-DE',
   });
   try {
+    // Interception für crm-query-export: Bedient reguläre CRM-Aufnahmen kontrolliert im Erfolgszustand (Befund PR #67 Runde 9)
+    await context.route('**/functions/v1/crm-query-export**', async (route) => {
+      const request = route.request();
+      if (request.method() === 'OPTIONS') {
+        await route.fulfill({
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey',
+            'Access-Control-Max-Age': '86400',
+          },
+        });
+        return;
+      }
+      if (request.method() === 'POST') {
+        let postData = {};
+        try {
+          postData = JSON.parse(request.postData() ?? '{}');
+        } catch {
+          postData = {};
+        }
+        const resource = postData.resource ?? 'companies';
+        const page = Number(postData.page) || 1;
+        const pageSize = Number(postData.pageSize) || 20;
+
+        const dataForResource = CONTROLLED_CRM_DATA[resource] ?? [];
+        const total = dataForResource.length;
+        const from = (page - 1) * pageSize;
+        const items = dataForResource.slice(from, from + pageSize);
+
+        await route.fulfill({
+          status: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            items,
+            total,
+            page,
+            pageSize,
+            resource,
+          }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+
     await context.addInitScript((mode) => {
       try {
         window.localStorage.setItem('leadpilot-theme', mode);
@@ -406,12 +608,28 @@ async function openRoute(browser, state, viewport, theme, target) {
       await page.locator('main button[role="tab"]:has-text("Management-Ebene")').waitFor({ timeout: 10000 });
     } else if (target.id === 's-leads') {
       await page.locator('main h2:has-text("Leads")').waitFor({ timeout: 10000 });
+      await page.locator('main table, main .crm-v2-mobile-card').first().waitFor({ timeout: 10000 });
     } else if (target.id === 's-companies') {
       await page.locator('main h2:has-text("Unternehmen")').waitFor({ timeout: 10000 });
+      await page.locator('main table, main .crm-v2-mobile-card').first().waitFor({ timeout: 10000 });
     } else if (target.id === 's-deals') {
       await page.locator('main h2:has-text("Deal Pipeline")').waitFor({ timeout: 10000 });
+      await page.locator('main table, main .crm-v2-mobile-card').first().waitFor({ timeout: 10000 });
     } else if (target.id === 's-activities') {
       await page.locator('main h2:has-text("Aktivitäten")').waitFor({ timeout: 10000 });
+    }
+
+    if (['s-leads', 's-companies', 's-deals'].includes(target.id)) {
+      const errorState = await page
+        .locator('[data-testid="management-chart-error"]')
+        .first()
+        .isVisible()
+        .catch(() => false);
+      if (errorState) {
+        throw new Error(
+          `Fehlerzustand (management-chart-error) auf CRM-Seite ${target.id} gerendert.`,
+        );
+      }
     }
 
     await page.waitForTimeout(400);
@@ -720,9 +938,8 @@ async function main() {
         originalPrefs.revision,
       );
       restore = {
-        type: 'restore',
-        config: originalPrefs.config,
-        revision: saved.revision,
+        type: 'restore_exact_row',
+        originalRow: originalPrefs,
         page: setupPage,
         userId,
       };
@@ -890,7 +1107,27 @@ async function main() {
     runSuccess = true;
   } finally {
     let restoreError = null;
-    if (restore?.type === 'restore') {
+    if (restore?.type === 'restore_exact_row') {
+      try {
+        if (!CLEANUP_KEY) {
+          throw new Error('Kein Cleanup-Key für revisionsgetreue Wiederherstellung verfügbar.');
+        }
+        await restorePreferencesRow(SUPABASE, CLEANUP_KEY, restore.originalRow);
+        const verified = await readPreferences(restore.page, SUPABASE);
+        if (verified.revision !== restore.originalRow.revision) {
+          throw new Error(
+            `Wiederhergestellte Revision ${verified.revision} stimmt nicht mit Original ${restore.originalRow.revision} überein.`,
+          );
+        }
+        if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
+        if (pendingCanonicalPayload?.dashboardConfig) {
+          pendingCanonicalPayload.dashboardConfig.restoredAfterRun = true;
+        }
+      } catch (err) {
+        console.error('Fehler beim Wiederherstellen der ursprünglichen Präferenzzeile:', err);
+        restoreError = err;
+      }
+    } else if (restore?.type === 'restore') {
       try {
         const current = await readPreferences(restore.page, SUPABASE);
         await savePreferences(restore.page, SUPABASE, restore.config, current.revision);
