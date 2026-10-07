@@ -15778,3 +15778,5 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 
 
 
+
+**Nachtrag Codex-Befunde PR #67 Runde 13 (07.10.2026, Claude Code nach Antigravity-Runden 2–12):** Von 15 Befunden waren 10 bereits im Stand von Antigravity umgesetzt (laufbezogenes Staging, kein JWT-Schlüssel im Code, Prüfung aller `public/`-Assets und Schriften, feldweiser Seed-Vergleich, `pageerror`, Organisationsfilter beim Restore, `ONLY`-Validierung, `E2E_CLEANUP_KEY` im Aufruf). Neu umgesetzt: `git status --porcelain` über den ganzen Arbeitsbaum vor dem Build und vor dem Schreiben (P1); entfernte Supabase-URL wird beim Start abgelehnt (P2); Restore-Ziel wird vor dem Speichern der Standardkonfiguration vorgemerkt (P2); Klartextpasswort aus dem Reproduktionsaufruf im Register entfernt (P2). Volllauf neu auf sauberem Arbeitsbaum: 256 von 256 Aufnahmen, Exit 0; alle Messwerte (Höhen, Überlauf, Kennzahlen, axe, Fehlerablauf) identisch mit dem vorigen Lauf, nur Zeitstempel und Harness-SHA neu. Plan und `BUILD_PLAN.md`: Abschluss mit Vorher-Nachher-Vergleich für Marc und Release v2.5.0 (Vorgabe Marc, 07.10.2026). Kein Code unter `src/` geändert.

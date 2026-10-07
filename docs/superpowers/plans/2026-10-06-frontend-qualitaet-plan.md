@@ -270,8 +270,9 @@ Zusätzlich:
 - [ ] Alle Fachseiten gegen das Inventar abgleichen, inklusive sichtbarer und vorgelesener Daten. Offene Fachfragen blockieren nur ihre betroffenen Teile; sie verschwinden nicht aus dem Register.
 - [ ] Marc führt fünf praktische Aufgaben aus: wichtigste Zahl finden; Kennzahl verstehen; Pipeline filtern; Kachel ändern und speichern; mobil Funnel lesen und abmelden. Klickwege, Missverständnisse und notwendiges Zoomen protokollieren. Das ist ein kleiner Nutzertest, keine repräsentative Nutzerstudie.
 - [ ] Vorher/Nachher vergleichen: erster sichtbarer Kennzahlwert, Inhaltshöhe der unveränderten Vergleichskonfiguration, Lesbarkeit, Fehlerklarheit und Erreichbarkeit zentraler Aktionen. Kürzere Seite allein ist kein Erfolg, wenn Daten verloren gehen.
+- [ ] Vorher-Nachher-Vergleich für Marc (Vorgabe Marc, 07.10.2026): dieselben 42 Ansichten, Breiten und Themes wie in der Baseline aus Auftrag 081 (`docs/reviews/2026-10-06-frontend-inventar.json`) mit demselben Harness neu aufnehmen und Marc als ansehbare Vergleichsseite vorlegen, Bild neben Bild mit den Messwerten, nicht nur als README-Matrix.
 - [ ] Codex prüft finalen Head unabhängig; Marc nimmt die Gestaltung ab. Neue Referenzbilder erst danach übernehmen, alle erforderlichen CI-Prüfungen auf genau diesem Stand grün.
-- [ ] Release-Ziel mit laufendem v2.4.0-Plan abstimmen. Alte Dashboardansicht nicht vorzeitig entfernen; deren Entfernung bleibt ein eigener ausdrücklich beauftragter Schritt.
+- [ ] Release als **v2.5.0** (Vorgabe Marc, 07.10.2026); v2.4.0 ist veröffentlicht. Alte Dashboardansicht nicht vorzeitig entfernen; deren Entfernung bleibt ein eigener ausdrücklich beauftragter Schritt.
 - [ ] Rückweg je geänderter Darstellungsgruppe dokumentieren und testen: persönliche Konfigurationen bleiben erhalten; keine Datenbankänderung für rein optischen Rollback. Kein `git reset --hard` als lokale Anleitung.
 - [ ] Marc entscheidet Merge und Veröffentlichung. Nach Auslieferung einmalige Funktionsprüfung durchführen; zusätzliche Überwachung nur auf gesonderten Auftrag.
 
