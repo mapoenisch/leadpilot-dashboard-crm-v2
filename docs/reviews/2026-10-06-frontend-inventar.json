@@ -3,13 +3,13 @@
  "productVersion": "2.4.0",
  "harness": {
   "script": "scripts/captureAuftrag081Inventory.mjs",
-  "sha256": "39ff691dc92c4172c8dc1a351492a6dbe6234b684cba870a9f08d7d0b1fb1488",
-  "headAtExecution": "a18035b"
+  "sha256": "eedb7800202f9bac9dfcc721fcdfbf1817e60ca1c4995c9a2f29aacd4f15a853",
+  "headAtExecution": "01e4f9b"
  },
  "buildArtifact": {
-  "entryScript": "/assets/index-CWHASUp2.js",
-  "entrySha256": "a1aa634e44d0e21eadab35902bfefa129a2247062e7ed443898b10840b9fb3b1",
-  "indexHtmlSha256": "0da7025e41744f591bb02c30b088b6c9667bc22ad258972b7afe5861a6f65f22",
+  "entryScript": "/assets/index-DVoHVuue.js",
+  "entrySha256": "c0b2348f3bfc4dd95ecbae0cfefc2decb5a1aa22a9bc7d68240ffdc7b31f0078",
+  "indexHtmlSha256": "270f510b5b390d5c293273e54ca21634bf01fba8ea8598db83530249e3e8c84c",
   "stylesheets": [
    "/assets/index-DXyeJz7h.css"
   ],
@@ -41,7 +41,7 @@
    "e0000000-0000-0000-0000-000000000001",
    "e0000000-0000-0000-0000-000000000003"
   ],
-  "verifiedAt": "2026-10-07T18:06:34.232Z"
+  "verifiedAt": "2026-10-07T18:36:59.453Z"
  },
  "simulationWorkspace": {
   "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -54,7 +54,12 @@
    "simulation_snapshots": 0,
    "simulation_run_pauses": 0
   },
-  "verifiedAt": "2026-10-07T18:06:34.268Z"
+  "verifiedAt": "2026-10-07T18:36:59.524Z"
+ },
+ "browser": {
+  "fixedTime": "2026-10-07T12:00:00.000Z",
+  "devicePixelRatio": 1,
+  "visualViewportScale": 1
  },
  "dashboardConfig": {
   "source": "default_unpersisted",
@@ -84,7 +89,7 @@
  },
  "commit": "7fd6e33",
  "baseUrl": "http://localhost:4181",
- "capturedAt": "2026-10-07T18:17:44.176Z",
+ "capturedAt": "2026-10-07T18:51:56.887Z",
  "summary": {
   "expected": 256,
   "ok": 256,
@@ -95,8 +100,17 @@
    "id": "dashboard",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 3423,
    "overflowDocument": 0,
@@ -144,8 +158,17 @@
    "id": "dashboard",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 3423,
    "overflowDocument": 0,
@@ -195,8 +218,17 @@
    "id": "dashboard",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 5781,
    "overflowDocument": 0,
@@ -244,8 +276,17 @@
    "id": "dashboard",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 5781,
    "overflowDocument": 0,
@@ -295,8 +336,17 @@
    "id": "dashboard",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 7997,
    "overflowDocument": 0,
@@ -344,8 +394,17 @@
    "id": "dashboard",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 7997,
    "overflowDocument": 0,
@@ -387,7 +446,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "30e37d8eb58ff636",
+    "first": "1ed3a8a4a72099f6",
     "full": "799e459c53a7f091"
    }
   },
@@ -395,8 +454,17 @@
    "id": "dashboard",
    "imageKey": null,
    "width": 320,
+   "height": 640,
    "theme": "dark",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 320,
+    "requestedHeight": 640,
+    "innerWidth": 320,
+    "innerHeight": 640,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 8126,
    "overflowDocument": 0,
@@ -444,8 +512,17 @@
    "id": "dashboard",
    "imageKey": null,
    "width": 320,
+   "height": 640,
    "theme": "light",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 320,
+    "requestedHeight": 640,
+    "innerWidth": 320,
+    "innerHeight": 640,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 8126,
    "overflowDocument": 0,
@@ -495,8 +572,17 @@
    "id": "dashboard-edit",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 4177,
    "overflowDocument": 0,
@@ -544,8 +630,17 @@
    "id": "dashboard-edit",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 4177,
    "overflowDocument": 0,
@@ -595,8 +690,17 @@
    "id": "dashboard-edit",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 6513,
    "overflowDocument": 0,
@@ -644,8 +748,17 @@
    "id": "dashboard-edit",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 6513,
    "overflowDocument": 0,
@@ -695,8 +808,17 @@
    "id": "dashboard-edit",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 9593,
    "overflowDocument": 0,
@@ -744,8 +866,17 @@
    "id": "dashboard-edit",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/dashboard",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 9593,
    "overflowDocument": 0,
@@ -795,8 +926,17 @@
    "id": "dashboard-detail",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/dashboard/tiles/std_baseline_arr",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -826,8 +966,17 @@
    "id": "dashboard-detail",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/dashboard/tiles/std_baseline_arr",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -851,7 +1000,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "484e386082ccde02",
+    "first": "5337a3a3997e0f14",
     "full": "5337a3a3997e0f14"
    }
   },
@@ -859,8 +1008,17 @@
    "id": "dashboard-detail",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/dashboard/tiles/std_baseline_arr",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -890,8 +1048,17 @@
    "id": "dashboard-detail",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/dashboard/tiles/std_baseline_arr",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -915,7 +1082,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "9dde39fdf658edc6",
+    "first": "42cc405bef23a744",
     "full": "9dde39fdf658edc6"
    }
   },
@@ -923,8 +1090,17 @@
    "id": "dashboard-detail",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/dashboard/tiles/std_baseline_arr",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 788,
    "overflowDocument": 0,
@@ -954,8 +1130,17 @@
    "id": "dashboard-detail",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/dashboard/tiles/std_baseline_arr",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 788,
    "overflowDocument": 0,
@@ -979,7 +1164,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "75b218af7b17b353",
+    "first": "7b096dd4e16e8cf4",
     "full": "75b218af7b17b353"
    }
   },
@@ -987,8 +1172,17 @@
    "id": "s-daten",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/company/data-basis",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Datenbasis",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1018,8 +1212,17 @@
    "id": "s-daten",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/company/data-basis",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Datenbasis",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1053,8 +1256,17 @@
    "id": "s-daten",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/company/data-basis",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Datenbasis",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -1084,8 +1296,17 @@
    "id": "s-daten",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/company/data-basis",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Datenbasis",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -1111,7 +1332,7 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "77e100c957e68b0b",
+    "first": "03329e4a416ddd74",
     "full": "77e100c957e68b0b"
    }
   },
@@ -1119,8 +1340,17 @@
    "id": "s-daten",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/company/data-basis",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Datenbasis",
    "mainScrollHeight": 721,
    "overflowDocument": 0,
@@ -1150,8 +1380,17 @@
    "id": "s-daten",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/company/data-basis",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Datenbasis",
    "mainScrollHeight": 721,
    "overflowDocument": 0,
@@ -1177,7 +1416,7 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "6288f0f68eb28187",
+    "first": "0dd775ae180c0b39",
     "full": "15ea4f9666080bba"
    }
   },
@@ -1185,8 +1424,17 @@
    "id": "s-standort",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/company/location",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1765,
    "overflowDocument": 0,
@@ -1216,8 +1464,17 @@
    "id": "s-standort",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/company/location",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1765,
    "overflowDocument": 0,
@@ -1241,7 +1498,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "436c975213b2a25a",
+    "first": "e1058b6566a3eb19",
     "full": "b35ce575a5378d9a"
    }
   },
@@ -1249,8 +1506,17 @@
    "id": "s-standort",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/company/location",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1931,
    "overflowDocument": 0,
@@ -1272,7 +1538,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d2ae9754214c48c5",
+    "first": "f1310097fcdbe020",
     "full": "170a92072ee33e11"
    }
   },
@@ -1280,8 +1546,17 @@
    "id": "s-standort",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/company/location",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1931,
    "overflowDocument": 0,
@@ -1307,7 +1582,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a34be994d18ec741",
+    "first": "aced2beb2235b117",
     "full": "907da2bd61c87f50"
    }
   },
@@ -1315,8 +1590,17 @@
    "id": "s-standort",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/company/location",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 2575,
    "overflowDocument": 0,
@@ -1338,7 +1622,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "db8a99dec00a68cd",
+    "first": "c7ae1f7e6b383ef0",
     "full": "5e2e5212e168a779"
    }
   },
@@ -1346,8 +1630,17 @@
    "id": "s-standort",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/company/location",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 2575,
    "overflowDocument": 0,
@@ -1371,7 +1664,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8998506ec32cac64",
+    "first": "8e4a27459bdb9862",
     "full": "617f2f48afc1fc6a"
    }
   },
@@ -1379,8 +1672,17 @@
    "id": "s-live-simulation",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/crm/live-simulation",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1261,
    "overflowDocument": 0,
@@ -1410,8 +1712,17 @@
    "id": "s-live-simulation",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/crm/live-simulation",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1261,
    "overflowDocument": 0,
@@ -1445,8 +1756,17 @@
    "id": "s-live-simulation",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/crm/live-simulation",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1565,
    "overflowDocument": 0,
@@ -1476,8 +1796,17 @@
    "id": "s-live-simulation",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/crm/live-simulation",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1565,
    "overflowDocument": 0,
@@ -1503,7 +1832,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "123116b3f7fa23ad",
+    "first": "0aa7ba66a1e25d91",
     "full": "543f648d0d20a8c4"
    }
   },
@@ -1511,8 +1840,17 @@
    "id": "s-live-simulation",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/crm/live-simulation",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 2651,
    "overflowDocument": 0,
@@ -1542,8 +1880,17 @@
    "id": "s-live-simulation",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/crm/live-simulation",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 2651,
    "overflowDocument": 0,
@@ -1577,8 +1924,17 @@
    "id": "s-leads",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/crm/leads",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1600,16 +1956,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a4e358ed0b97292f",
-    "full": "a4e358ed0b97292f"
+    "first": "4ff2ca6062bdddaf",
+    "full": "4ff2ca6062bdddaf"
    }
   },
   {
    "id": "s-leads",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/crm/leads",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1635,16 +2000,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4b8d67289bb16fe2",
-    "full": "4b8d67289bb16fe2"
+    "first": "d519c8674252e6ae",
+    "full": "d519c8674252e6ae"
    }
   },
   {
    "id": "s-leads",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/crm/leads",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1046,
    "overflowDocument": 0,
@@ -1666,16 +2040,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "42cfe038d7ce8378",
-    "full": "e4b9e0f72bae4d21"
+    "first": "82e6fe4d13e16bb0",
+    "full": "cafd8aaade46fe32"
    }
   },
   {
    "id": "s-leads",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/crm/leads",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1046,
    "overflowDocument": 0,
@@ -1701,16 +2084,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "93b06a9b299dcde8",
-    "full": "0db775878dce5989"
+    "first": "07e39328b4859881",
+    "full": "fc10e08a86dae8fe"
    }
   },
   {
    "id": "s-leads",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/crm/leads",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1850,
    "overflowDocument": 0,
@@ -1732,16 +2124,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "ed672c6b769c76c7",
-    "full": "83ab4acc20d4300e"
+    "first": "67f51aaff51ad77d",
+    "full": "7d6cc5df27aa84db"
    }
   },
   {
    "id": "s-leads",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/crm/leads",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1850,
    "overflowDocument": 0,
@@ -1767,16 +2168,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "1a4f0502573f7449",
-    "full": "97e868b5dbfd22c5"
+    "first": "393a20494b3dc747",
+    "full": "398031cf96aece24"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/crm/companies",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1798,16 +2208,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4d16a2755d582c8f",
-    "full": "78f8805e797c9c22"
+    "first": "98767a04c730a2a2",
+    "full": "2a4581e71b686957"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/crm/companies",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1833,16 +2252,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "bffcfbb62eadd338",
-    "full": "4e3bb1c11ca45cf2"
+    "first": "56bfb15c0ede006c",
+    "full": "7539969788fa3aa5"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/crm/companies",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1043,
    "overflowDocument": 0,
@@ -1864,16 +2292,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7658a36bed1a2387",
-    "full": "af69e2dee873470c"
+    "first": "f73c3f24a6b1ec79",
+    "full": "3b5e8a67b5f642d2"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/crm/companies",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1043,
    "overflowDocument": 0,
@@ -1899,16 +2336,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "5d800f1d677ce310",
-    "full": "e7bd25c07cb43b59"
+    "first": "b356b33f142bc5d3",
+    "full": "856b59a59037f298"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/crm/companies",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 2122,
    "overflowDocument": 0,
@@ -1930,16 +2376,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a9102d31fd183ed2",
-    "full": "1e99f112980fdb00"
+    "first": "510c17e5c707eaed",
+    "full": "f2786048bf87a053"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/crm/companies",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 2122,
    "overflowDocument": 0,
@@ -1965,16 +2420,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "6a360b88ce281f39",
-    "full": "0eb48d9fe31807f8"
+    "first": "7ad6fb1d0cc366d4",
+    "full": "2ea6460564a6c702"
    }
   },
   {
    "id": "s-deals",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/crm/deals",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1996,16 +2460,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3fc762419a21bc02",
-    "full": "3fc762419a21bc02"
+    "first": "b61dc34065929841",
+    "full": "b61dc34065929841"
    }
   },
   {
    "id": "s-deals",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/crm/deals",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2031,16 +2504,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b91e392d2a0dbb39",
-    "full": "b91e392d2a0dbb39"
+    "first": "d77ca0e957114dfe",
+    "full": "d77ca0e957114dfe"
    }
   },
   {
    "id": "s-deals",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/crm/deals",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 991,
    "overflowDocument": 0,
@@ -2062,16 +2544,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7e4d8eced7469385",
-    "full": "e93c1768b7239234"
+    "first": "4302ee1340649635",
+    "full": "0826acdfe4315032"
    }
   },
   {
    "id": "s-deals",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/crm/deals",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 991,
    "overflowDocument": 0,
@@ -2097,16 +2588,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "9be29a779c23792f",
-    "full": "4c33bc56b5bc9b7d"
+    "first": "3ffc1e5e8e997ed7",
+    "full": "28910605baacc6d6"
    }
   },
   {
    "id": "s-deals",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/crm/deals",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1919,
    "overflowDocument": 0,
@@ -2128,16 +2628,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3eb58c934e966fd0",
-    "full": "0c4729860ebf5ec5"
+    "first": "3690f2725fc15006",
+    "full": "0616c75306e465fb"
    }
   },
   {
    "id": "s-deals",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/crm/deals",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 1919,
    "overflowDocument": 0,
@@ -2163,16 +2672,25 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "394eb3bf4ab09651",
-    "full": "cbb875cc2e71f998"
+    "first": "b9cb9ab8ffe632ae",
+    "full": "2ab6e74d8583a365"
    }
   },
   {
    "id": "s-activities",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/crm/activities",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2202,8 +2720,17 @@
    "id": "s-activities",
    "imageKey": null,
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/crm/activities",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2229,7 +2756,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "4a4080a87d464a91",
+    "first": "1fe2130e4c0cce3f",
     "full": "2446025912c1677e"
    }
   },
@@ -2237,8 +2764,17 @@
    "id": "s-activities",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/crm/activities",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2268,8 +2804,17 @@
    "id": "s-activities",
    "imageKey": null,
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/crm/activities",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2303,8 +2848,17 @@
    "id": "s-activities",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/crm/activities",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -2326,7 +2880,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "3dded44e9d56f457",
+    "first": "3693907e3f17d88e",
     "full": "3693907e3f17d88e"
    }
   },
@@ -2334,8 +2888,17 @@
    "id": "s-activities",
    "imageKey": null,
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/crm/activities",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": null,
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -2361,7 +2924,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "da697fbc49a627c3",
+    "first": "85a784dc02a71384",
     "full": "85a784dc02a71384"
    }
   },
@@ -2369,8 +2932,17 @@
    "id": "s-profil",
    "imageKey": "overview-profile",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/company/profile",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2406,8 +2978,17 @@
    "id": "s-profil",
    "imageKey": "overview-profile",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/company/profile",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2445,8 +3026,17 @@
    "id": "s-profil",
    "imageKey": "overview-profile",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/company/profile",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2482,8 +3072,17 @@
    "id": "s-profil",
    "imageKey": "overview-profile",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/company/profile",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2521,8 +3120,17 @@
    "id": "s-profil",
    "imageKey": "overview-profile",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/company/profile",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -2558,8 +3166,17 @@
    "id": "s-profil",
    "imageKey": "overview-profile",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/company/profile",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -2597,8 +3214,17 @@
    "id": "s-highlights",
    "imageKey": "overview-highlights",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/company/highlights",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2634,8 +3260,17 @@
    "id": "s-highlights",
    "imageKey": "overview-highlights",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/company/highlights",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2665,7 +3300,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "c8c88ffa6d64600a",
+    "first": "a7c47876af129c52",
     "full": "c8c88ffa6d64600a"
    }
   },
@@ -2673,8 +3308,17 @@
    "id": "s-highlights",
    "imageKey": "overview-highlights",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/company/highlights",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2710,8 +3354,17 @@
    "id": "s-highlights",
    "imageKey": "overview-highlights",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/company/highlights",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2741,7 +3394,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a52915eafd91f7d3",
+    "first": "05964865c37329e0",
     "full": "05964865c37329e0"
    }
   },
@@ -2749,8 +3402,17 @@
    "id": "s-highlights",
    "imageKey": "overview-highlights",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/company/highlights",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -2786,8 +3448,17 @@
    "id": "s-highlights",
    "imageKey": "overview-highlights",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/company/highlights",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -2825,8 +3496,17 @@
    "id": "s-idee",
    "imageKey": "company-idea",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/company/idea",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2862,8 +3542,17 @@
    "id": "s-idee",
    "imageKey": "company-idea",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/company/idea",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2901,8 +3590,17 @@
    "id": "s-idee",
    "imageKey": "company-idea",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/company/idea",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2938,8 +3636,17 @@
    "id": "s-idee",
    "imageKey": "company-idea",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/company/idea",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2977,8 +3684,17 @@
    "id": "s-idee",
    "imageKey": "company-idea",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/company/idea",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3014,8 +3730,17 @@
    "id": "s-idee",
    "imageKey": "company-idea",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/company/idea",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3045,7 +3770,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0c6b6943fa13e5fb",
+    "first": "21a58a3ee2826fb4",
     "full": "21a58a3ee2826fb4"
    }
   },
@@ -3053,8 +3778,17 @@
    "id": "s-value",
    "imageKey": "company-value-proposition",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/company/value-proposition",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3090,8 +3824,17 @@
    "id": "s-value",
    "imageKey": "company-value-proposition",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/company/value-proposition",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3129,8 +3872,17 @@
    "id": "s-value",
    "imageKey": "company-value-proposition",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/company/value-proposition",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3166,8 +3918,17 @@
    "id": "s-value",
    "imageKey": "company-value-proposition",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/company/value-proposition",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3205,8 +3966,17 @@
    "id": "s-value",
    "imageKey": "company-value-proposition",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/company/value-proposition",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3242,8 +4012,17 @@
    "id": "s-value",
    "imageKey": "company-value-proposition",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/company/value-proposition",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3273,7 +4052,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "72a056fe9c2bfb24",
+    "first": "abcd00154f24b65e",
     "full": "abcd00154f24b65e"
    }
   },
@@ -3281,8 +4060,17 @@
    "id": "s-historie",
    "imageKey": "company-history",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/company/history",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3318,8 +4106,17 @@
    "id": "s-historie",
    "imageKey": "company-history",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/company/history",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3357,8 +4154,17 @@
    "id": "s-historie",
    "imageKey": "company-history",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/company/history",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3394,8 +4200,17 @@
    "id": "s-historie",
    "imageKey": "company-history",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/company/history",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3425,7 +4240,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "abd302ad42ff996f",
+    "first": "fbde75b4f86385a5",
     "full": "abd302ad42ff996f"
    }
   },
@@ -3433,8 +4248,17 @@
    "id": "s-historie",
    "imageKey": "company-history",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/company/history",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3470,8 +4294,17 @@
    "id": "s-historie",
    "imageKey": "company-history",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/company/history",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3501,7 +4334,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "30ef27de1069923c",
+    "first": "cd8e6d2a6dbe2350",
     "full": "30ef27de1069923c"
    }
   },
@@ -3509,8 +4342,17 @@
    "id": "s-funktion",
    "imageKey": "product-features",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/product/features",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3546,8 +4388,17 @@
    "id": "s-funktion",
    "imageKey": "product-features",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/product/features",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3577,7 +4428,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "49a47c887f81e3b8",
+    "first": "f991eb47e242e1d4",
     "full": "49a47c887f81e3b8"
    }
   },
@@ -3585,8 +4436,17 @@
    "id": "s-funktion",
    "imageKey": "product-features",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/product/features",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3622,8 +4482,17 @@
    "id": "s-funktion",
    "imageKey": "product-features",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/product/features",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3653,7 +4522,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "25b61695c202bdf3",
+    "first": "8d5ae7c79d6c4e7a",
     "full": "8d5ae7c79d6c4e7a"
    }
   },
@@ -3661,8 +4530,17 @@
    "id": "s-funktion",
    "imageKey": "product-features",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/product/features",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3698,8 +4576,17 @@
    "id": "s-funktion",
    "imageKey": "product-features",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/product/features",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3737,8 +4624,17 @@
    "id": "s-pricing",
    "imageKey": "product-pricing",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/product/pricing",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3774,8 +4670,17 @@
    "id": "s-pricing",
    "imageKey": "product-pricing",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/product/pricing",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3813,8 +4718,17 @@
    "id": "s-pricing",
    "imageKey": "product-pricing",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/product/pricing",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3850,8 +4764,17 @@
    "id": "s-pricing",
    "imageKey": "product-pricing",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/product/pricing",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3881,7 +4804,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "6e3ea6f54424d928",
+    "first": "1d2f592c5c58b751",
     "full": "6e3ea6f54424d928"
    }
   },
@@ -3889,8 +4812,17 @@
    "id": "s-pricing",
    "imageKey": "product-pricing",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/product/pricing",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3926,8 +4858,17 @@
    "id": "s-pricing",
    "imageKey": "product-pricing",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/product/pricing",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3965,8 +4906,17 @@
    "id": "s-perf",
    "imageKey": "product-performance",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/product/performance",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4002,8 +4952,17 @@
    "id": "s-perf",
    "imageKey": "product-performance",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/product/performance",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4041,8 +5000,17 @@
    "id": "s-perf",
    "imageKey": "product-performance",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/product/performance",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4078,8 +5046,17 @@
    "id": "s-perf",
    "imageKey": "product-performance",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/product/performance",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4109,7 +5086,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d35d9afd66c5438c",
+    "first": "0c7418682b2ae1a0",
     "full": "0c7418682b2ae1a0"
    }
   },
@@ -4117,8 +5094,17 @@
    "id": "s-perf",
    "imageKey": "product-performance",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/product/performance",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4154,8 +5140,17 @@
    "id": "s-perf",
    "imageKey": "product-performance",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/product/performance",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4185,7 +5180,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a8e6b8e259f9ca2d",
+    "first": "50104550e749a967",
     "full": "50104550e749a967"
    }
   },
@@ -4193,8 +5188,17 @@
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/product/roadmap",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4230,8 +5234,17 @@
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/product/roadmap",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4269,8 +5282,17 @@
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/product/roadmap",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4306,8 +5328,17 @@
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/product/roadmap",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4345,8 +5376,17 @@
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/product/roadmap",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4382,8 +5422,17 @@
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/product/roadmap",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4421,8 +5470,17 @@
    "id": "s-markt",
    "imageKey": "market-dach",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/market/overview",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4458,8 +5516,17 @@
    "id": "s-markt",
    "imageKey": "market-dach",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/market/overview",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4497,8 +5564,17 @@
    "id": "s-markt",
    "imageKey": "market-dach",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/market/overview",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4534,8 +5610,17 @@
    "id": "s-markt",
    "imageKey": "market-dach",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/market/overview",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4573,8 +5658,17 @@
    "id": "s-markt",
    "imageKey": "market-dach",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/market/overview",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4610,8 +5704,17 @@
    "id": "s-markt",
    "imageKey": "market-dach",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/market/overview",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4649,8 +5752,17 @@
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/market/competition",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4686,8 +5798,17 @@
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/market/competition",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4725,8 +5846,17 @@
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/market/competition",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4762,8 +5892,17 @@
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/market/competition",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4793,7 +5932,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "9faafb5aeaa338f1",
+    "first": "2fef9a8a5fd7d71d",
     "full": "9faafb5aeaa338f1"
    }
   },
@@ -4801,8 +5940,17 @@
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/market/competition",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4838,8 +5986,17 @@
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/market/competition",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4877,8 +6034,17 @@
    "id": "s-swot",
    "imageKey": "market-swot",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/market/swot",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4914,8 +6080,17 @@
    "id": "s-swot",
    "imageKey": "market-swot",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/market/swot",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4945,7 +6120,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0aeb73d5d7048748",
+    "first": "8e87463ee858df07",
     "full": "0aeb73d5d7048748"
    }
   },
@@ -4953,8 +6128,17 @@
    "id": "s-swot",
    "imageKey": "market-swot",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/market/swot",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4990,8 +6174,17 @@
    "id": "s-swot",
    "imageKey": "market-swot",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/market/swot",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5029,8 +6222,17 @@
    "id": "s-swot",
    "imageKey": "market-swot",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/market/swot",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5066,8 +6268,17 @@
    "id": "s-swot",
    "imageKey": "market-swot",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/market/swot",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5105,8 +6316,17 @@
    "id": "s-icp",
    "imageKey": "customers-icp",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/customers/icp",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5142,8 +6362,17 @@
    "id": "s-icp",
    "imageKey": "customers-icp",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/customers/icp",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5181,8 +6410,17 @@
    "id": "s-icp",
    "imageKey": "customers-icp",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/customers/icp",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5218,8 +6456,17 @@
    "id": "s-icp",
    "imageKey": "customers-icp",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/customers/icp",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5249,7 +6496,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0465d50cf540ac21",
+    "first": "d94d7907b6056297",
     "full": "d94d7907b6056297"
    }
   },
@@ -5257,8 +6504,17 @@
    "id": "s-icp",
    "imageKey": "customers-icp",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/customers/icp",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5294,8 +6550,17 @@
    "id": "s-icp",
    "imageKey": "customers-icp",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/customers/icp",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5333,8 +6598,17 @@
    "id": "s-persona",
    "imageKey": "customers-persona",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/customers/persona",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5370,8 +6644,17 @@
    "id": "s-persona",
    "imageKey": "customers-persona",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/customers/persona",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5409,8 +6692,17 @@
    "id": "s-persona",
    "imageKey": "customers-persona",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/customers/persona",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5446,8 +6738,17 @@
    "id": "s-persona",
    "imageKey": "customers-persona",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/customers/persona",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5485,8 +6786,17 @@
    "id": "s-persona",
    "imageKey": "customers-persona",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/customers/persona",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5522,8 +6832,17 @@
    "id": "s-persona",
    "imageKey": "customers-persona",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/customers/persona",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5561,8 +6880,17 @@
    "id": "s-segmente",
    "imageKey": "customers-segments",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/customers/segments",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5598,8 +6926,17 @@
    "id": "s-segmente",
    "imageKey": "customers-segments",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/customers/segments",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5637,8 +6974,17 @@
    "id": "s-segmente",
    "imageKey": "customers-segments",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/customers/segments",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5674,8 +7020,17 @@
    "id": "s-segmente",
    "imageKey": "customers-segments",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/customers/segments",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5705,7 +7060,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b1c5561e1b0dcc80",
+    "first": "6b45d4461587ac88",
     "full": "6b45d4461587ac88"
    }
   },
@@ -5713,8 +7068,17 @@
    "id": "s-segmente",
    "imageKey": "customers-segments",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/customers/segments",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5750,8 +7114,17 @@
    "id": "s-segmente",
    "imageKey": "customers-segments",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/customers/segments",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5781,7 +7154,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "151eb32feac3c384",
+    "first": "3d532fda9063d717",
     "full": "151eb32feac3c384"
    }
   },
@@ -5789,8 +7162,17 @@
    "id": "s-top10",
    "imageKey": "customers-top10",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/customers/top-customers",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5826,8 +7208,17 @@
    "id": "s-top10",
    "imageKey": "customers-top10",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/customers/top-customers",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5865,8 +7256,17 @@
    "id": "s-top10",
    "imageKey": "customers-top10",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/customers/top-customers",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5902,8 +7302,17 @@
    "id": "s-top10",
    "imageKey": "customers-top10",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/customers/top-customers",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5941,8 +7350,17 @@
    "id": "s-top10",
    "imageKey": "customers-top10",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/customers/top-customers",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5978,8 +7396,17 @@
    "id": "s-top10",
    "imageKey": "customers-top10",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/customers/top-customers",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6017,8 +7444,17 @@
    "id": "s-funnel",
    "imageKey": "sales-funnel",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/sales/funnel",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6054,8 +7490,17 @@
    "id": "s-funnel",
    "imageKey": "sales-funnel",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/sales/funnel",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6093,8 +7538,17 @@
    "id": "s-funnel",
    "imageKey": "sales-funnel",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/sales/funnel",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6130,8 +7584,17 @@
    "id": "s-funnel",
    "imageKey": "sales-funnel",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/sales/funnel",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6169,8 +7632,17 @@
    "id": "s-funnel",
    "imageKey": "sales-funnel",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/sales/funnel",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6206,8 +7678,17 @@
    "id": "s-funnel",
    "imageKey": "sales-funnel",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/sales/funnel",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6237,7 +7718,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "e97980ee9dea3d19",
+    "first": "8876f1ee1f577a12",
     "full": "8876f1ee1f577a12"
    }
   },
@@ -6245,8 +7726,17 @@
    "id": "s-funnel",
    "imageKey": "sales-funnel",
    "width": 320,
+   "height": 640,
    "theme": "dark",
    "url": "/sales/funnel",
+   "viewport": {
+    "requestedWidth": 320,
+    "requestedHeight": 640,
+    "innerWidth": 320,
+    "innerHeight": 640,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 454,
    "overflowDocument": 0,
@@ -6282,8 +7772,17 @@
    "id": "s-funnel",
    "imageKey": "sales-funnel",
    "width": 320,
+   "height": 640,
    "theme": "light",
    "url": "/sales/funnel",
+   "viewport": {
+    "requestedWidth": 320,
+    "requestedHeight": 640,
+    "innerWidth": 320,
+    "innerHeight": 640,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 454,
    "overflowDocument": 0,
@@ -6313,7 +7812,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "25ca4ca385a99a7b",
+    "first": "a311c14aeef01a96",
     "full": "25ca4ca385a99a7b"
    }
   },
@@ -6321,8 +7820,17 @@
    "id": "s-sla",
    "imageKey": "sales-sla",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/sales/sla",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6358,8 +7866,17 @@
    "id": "s-sla",
    "imageKey": "sales-sla",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/sales/sla",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6389,7 +7906,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a4e5885ca8c8b534",
+    "first": "f4c85fdad3b2cc8d",
     "full": "f4c85fdad3b2cc8d"
    }
   },
@@ -6397,8 +7914,17 @@
    "id": "s-sla",
    "imageKey": "sales-sla",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/sales/sla",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6434,8 +7960,17 @@
    "id": "s-sla",
    "imageKey": "sales-sla",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/sales/sla",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6473,8 +8008,17 @@
    "id": "s-sla",
    "imageKey": "sales-sla",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/sales/sla",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6510,8 +8054,17 @@
    "id": "s-sla",
    "imageKey": "sales-sla",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/sales/sla",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6549,8 +8102,17 @@
    "id": "s-kanaele",
    "imageKey": "sales-channels",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/sales/channels",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6586,8 +8148,17 @@
    "id": "s-kanaele",
    "imageKey": "sales-channels",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/sales/channels",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6625,8 +8196,17 @@
    "id": "s-kanaele",
    "imageKey": "sales-channels",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/sales/channels",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6662,8 +8242,17 @@
    "id": "s-kanaele",
    "imageKey": "sales-channels",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/sales/channels",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6701,8 +8290,17 @@
    "id": "s-kanaele",
    "imageKey": "sales-channels",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/sales/channels",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6738,8 +8336,17 @@
    "id": "s-kanaele",
    "imageKey": "sales-channels",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/sales/channels",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6769,7 +8376,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "2aa6b87a87a896eb",
+    "first": "7413551dc1f3fb17",
     "full": "7413551dc1f3fb17"
    }
   },
@@ -6777,8 +8384,17 @@
    "id": "s-planung",
    "imageKey": "sales-planning",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/sales/planning",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6814,8 +8430,17 @@
    "id": "s-planung",
    "imageKey": "sales-planning",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/sales/planning",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6845,7 +8470,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f49b25c97f055c32",
+    "first": "3cf255847cc0fb2a",
     "full": "3cf255847cc0fb2a"
    }
   },
@@ -6853,8 +8478,17 @@
    "id": "s-planung",
    "imageKey": "sales-planning",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/sales/planning",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6890,8 +8524,17 @@
    "id": "s-planung",
    "imageKey": "sales-planning",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/sales/planning",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6921,7 +8564,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7306ba8b0648b38f",
+    "first": "447d9f804c8d5904",
     "full": "447d9f804c8d5904"
    }
   },
@@ -6929,8 +8572,17 @@
    "id": "s-planung",
    "imageKey": "sales-planning",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/sales/planning",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6966,8 +8618,17 @@
    "id": "s-planung",
    "imageKey": "sales-planning",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/sales/planning",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7005,8 +8666,17 @@
    "id": "s-guv",
    "imageKey": "finance-pnl",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/finance/p-and-l",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7042,8 +8712,17 @@
    "id": "s-guv",
    "imageKey": "finance-pnl",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/finance/p-and-l",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7081,8 +8760,17 @@
    "id": "s-guv",
    "imageKey": "finance-pnl",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/finance/p-and-l",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7118,8 +8806,17 @@
    "id": "s-guv",
    "imageKey": "finance-pnl",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/finance/p-and-l",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7157,8 +8854,17 @@
    "id": "s-guv",
    "imageKey": "finance-pnl",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/finance/p-and-l",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 603,
    "overflowDocument": 0,
@@ -7194,8 +8900,17 @@
    "id": "s-guv",
    "imageKey": "finance-pnl",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/finance/p-and-l",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 603,
    "overflowDocument": 0,
@@ -7225,7 +8940,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "93e9ee3ea3905064",
+    "first": "a1f8b584265baafb",
     "full": "a1f8b584265baafb"
    }
   },
@@ -7233,8 +8948,17 @@
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/finance/balance-sheet",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7270,8 +8994,17 @@
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/finance/balance-sheet",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7309,8 +9042,17 @@
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/finance/balance-sheet",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7346,8 +9088,17 @@
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/finance/balance-sheet",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7385,8 +9136,17 @@
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/finance/balance-sheet",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7422,8 +9182,17 @@
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/finance/balance-sheet",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7461,8 +9230,17 @@
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/finance/unit-economics",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7498,8 +9276,17 @@
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/finance/unit-economics",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7529,7 +9316,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "897b73c61e1f0984",
+    "first": "05309a5dd946f054",
     "full": "897b73c61e1f0984"
    }
   },
@@ -7537,8 +9324,17 @@
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/finance/unit-economics",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7574,8 +9370,17 @@
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/finance/unit-economics",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7605,7 +9410,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "eedb90fa2212bb8d",
+    "first": "09584d5b5a16d060",
     "full": "eedb90fa2212bb8d"
    }
   },
@@ -7613,8 +9418,17 @@
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/finance/unit-economics",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7650,8 +9464,17 @@
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/finance/unit-economics",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7689,8 +9512,17 @@
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/organisation/headcount",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7726,8 +9558,17 @@
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/organisation/headcount",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7765,8 +9606,17 @@
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/organisation/headcount",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7802,8 +9652,17 @@
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/organisation/headcount",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7841,8 +9700,17 @@
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/organisation/headcount",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7878,8 +9746,17 @@
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/organisation/headcount",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7909,7 +9786,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "428a7c3a58f650a4",
+    "first": "3a58ce9a58d16ef0",
     "full": "428a7c3a58f650a4"
    }
   },
@@ -7917,8 +9794,17 @@
    "id": "s-hr",
    "imageKey": "organisation-hr",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/organisation/hr",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7954,8 +9840,17 @@
    "id": "s-hr",
    "imageKey": "organisation-hr",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/organisation/hr",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7985,7 +9880,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3c59007e8b6d569b",
+    "first": "b9db3f44892b04f7",
     "full": "3c59007e8b6d569b"
    }
   },
@@ -7993,8 +9888,17 @@
    "id": "s-hr",
    "imageKey": "organisation-hr",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/organisation/hr",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8030,8 +9934,17 @@
    "id": "s-hr",
    "imageKey": "organisation-hr",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/organisation/hr",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8069,8 +9982,17 @@
    "id": "s-hr",
    "imageKey": "organisation-hr",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/organisation/hr",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8106,8 +10028,17 @@
    "id": "s-hr",
    "imageKey": "organisation-hr",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/organisation/hr",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8137,7 +10068,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "165a2699f89b5458",
+    "first": "43f2f24538ba3104",
     "full": "165a2699f89b5458"
    }
   },
@@ -8145,8 +10076,17 @@
    "id": "s-team",
    "imageKey": "organisation-team",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/organisation/team",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Teamstruktur",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8182,8 +10122,17 @@
    "id": "s-team",
    "imageKey": "organisation-team",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/organisation/team",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Teamstruktur",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8213,7 +10162,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "5811df7e92393866",
+    "first": "590175e84a7bb729",
     "full": "5811df7e92393866"
    }
   },
@@ -8221,8 +10170,17 @@
    "id": "s-team",
    "imageKey": "organisation-team",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/organisation/team",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Teamstruktur",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8258,8 +10216,17 @@
    "id": "s-team",
    "imageKey": "organisation-team",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/organisation/team",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Teamstruktur",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8297,8 +10264,17 @@
    "id": "s-team",
    "imageKey": "organisation-team",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/organisation/team",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Teamstruktur",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8334,8 +10310,17 @@
    "id": "s-team",
    "imageKey": "organisation-team",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/organisation/team",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Teamstruktur",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8373,8 +10358,17 @@
    "id": "s-okr",
    "imageKey": "strategy-okrs",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/strategy/okrs",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8410,8 +10404,17 @@
    "id": "s-okr",
    "imageKey": "strategy-okrs",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/strategy/okrs",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8441,7 +10444,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "e74f3bb68149e040",
+    "first": "0d8a23a5c77abef9",
     "full": "e74f3bb68149e040"
    }
   },
@@ -8449,8 +10452,17 @@
    "id": "s-okr",
    "imageKey": "strategy-okrs",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/strategy/okrs",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8486,8 +10498,17 @@
    "id": "s-okr",
    "imageKey": "strategy-okrs",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/strategy/okrs",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8525,8 +10546,17 @@
    "id": "s-okr",
    "imageKey": "strategy-okrs",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/strategy/okrs",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8562,8 +10592,17 @@
    "id": "s-okr",
    "imageKey": "strategy-okrs",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/strategy/okrs",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8593,7 +10632,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3ec00e3a7f264674",
+    "first": "78993cceb70ac5f4",
     "full": "78993cceb70ac5f4"
    }
   },
@@ -8601,8 +10640,17 @@
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/strategy/balanced-scorecard",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8638,8 +10686,17 @@
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/strategy/balanced-scorecard",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8677,8 +10734,17 @@
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/strategy/balanced-scorecard",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8714,8 +10780,17 @@
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/strategy/balanced-scorecard",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8745,7 +10820,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4802ba368d285cd6",
+    "first": "883c5362ecea34d6",
     "full": "883c5362ecea34d6"
    }
   },
@@ -8753,8 +10828,17 @@
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/strategy/balanced-scorecard",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8790,8 +10874,17 @@
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/strategy/balanced-scorecard",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8829,8 +10922,17 @@
    "id": "s-treiber",
    "imageKey": "strategy-growth",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/strategy/growth-drivers",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8866,8 +10968,17 @@
    "id": "s-treiber",
    "imageKey": "strategy-growth",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/strategy/growth-drivers",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8905,8 +11016,17 @@
    "id": "s-treiber",
    "imageKey": "strategy-growth",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/strategy/growth-drivers",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8942,8 +11062,17 @@
    "id": "s-treiber",
    "imageKey": "strategy-growth",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/strategy/growth-drivers",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8973,7 +11102,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b7ae8f68bbe705e9",
+    "first": "95d008e7dfddec95",
     "full": "b7ae8f68bbe705e9"
    }
   },
@@ -8981,8 +11110,17 @@
    "id": "s-treiber",
    "imageKey": "strategy-growth",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/strategy/growth-drivers",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9018,8 +11156,17 @@
    "id": "s-treiber",
    "imageKey": "strategy-growth",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/strategy/growth-drivers",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9057,8 +11204,17 @@
    "id": "s-satzung",
    "imageKey": "legal-articles",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/legal/articles",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9094,8 +11250,17 @@
    "id": "s-satzung",
    "imageKey": "legal-articles",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/legal/articles",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9125,7 +11290,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "890f285757c1176b",
+    "first": "8e57aa57d0ea2456",
     "full": "8e57aa57d0ea2456"
    }
   },
@@ -9133,8 +11298,17 @@
    "id": "s-satzung",
    "imageKey": "legal-articles",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/legal/articles",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9170,8 +11344,17 @@
    "id": "s-satzung",
    "imageKey": "legal-articles",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/legal/articles",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9201,7 +11384,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "ea969340e10e4985",
+    "first": "7d63b97f57a3b3cf",
     "full": "ea969340e10e4985"
    }
   },
@@ -9209,8 +11392,17 @@
    "id": "s-satzung",
    "imageKey": "legal-articles",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/legal/articles",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9246,8 +11438,17 @@
    "id": "s-satzung",
    "imageKey": "legal-articles",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/legal/articles",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9285,8 +11486,17 @@
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/legal/shareholders",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9322,8 +11532,17 @@
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/legal/shareholders",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9353,7 +11572,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7258fbaac38c1c15",
+    "first": "d977ac81b4f687d7",
     "full": "7258fbaac38c1c15"
    }
   },
@@ -9361,8 +11580,17 @@
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/legal/shareholders",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9398,8 +11626,17 @@
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/legal/shareholders",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9437,8 +11674,17 @@
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/legal/shareholders",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9474,8 +11720,17 @@
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/legal/shareholders",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9505,7 +11760,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "24633c5a960c42a3",
+    "first": "4cd00acbf7fe7d77",
     "full": "4cd00acbf7fe7d77"
    }
   },
@@ -9513,8 +11768,17 @@
    "id": "s-handelsregister",
    "imageKey": "legal-register",
    "width": 1440,
+   "height": 1000,
    "theme": "dark",
    "url": "/legal/commercial-register",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9550,8 +11814,17 @@
    "id": "s-handelsregister",
    "imageKey": "legal-register",
    "width": 1440,
+   "height": 1000,
    "theme": "light",
    "url": "/legal/commercial-register",
+   "viewport": {
+    "requestedWidth": 1440,
+    "requestedHeight": 1000,
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9581,7 +11854,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "23edb99a557745b6",
+    "first": "11f1da2ba332b576",
     "full": "11f1da2ba332b576"
    }
   },
@@ -9589,8 +11862,17 @@
    "id": "s-handelsregister",
    "imageKey": "legal-register",
    "width": 768,
+   "height": 1024,
    "theme": "dark",
    "url": "/legal/commercial-register",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9626,8 +11908,17 @@
    "id": "s-handelsregister",
    "imageKey": "legal-register",
    "width": 768,
+   "height": 1024,
    "theme": "light",
    "url": "/legal/commercial-register",
+   "viewport": {
+    "requestedWidth": 768,
+    "requestedHeight": 1024,
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9665,8 +11956,17 @@
    "id": "s-handelsregister",
    "imageKey": "legal-register",
    "width": 375,
+   "height": 812,
    "theme": "dark",
    "url": "/legal/commercial-register",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9702,8 +12002,17 @@
    "id": "s-handelsregister",
    "imageKey": "legal-register",
    "width": 375,
+   "height": 812,
    "theme": "light",
    "url": "/legal/commercial-register",
+   "viewport": {
+    "requestedWidth": 375,
+    "requestedHeight": 812,
+    "innerWidth": 375,
+    "innerHeight": 812,
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+   },
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9733,7 +12042,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "dffa92c3eba05973",
+    "first": "13bceb3ecb857a93",
     "full": "13bceb3ecb857a93"
    }
   }
