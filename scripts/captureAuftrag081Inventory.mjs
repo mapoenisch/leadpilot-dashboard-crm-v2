@@ -208,14 +208,14 @@ async function verifyBuildArtifact(baseUrl) {
   // Befund 2 PR #67 Runde 11: Auch unversionierte/ungestagte Dateien unter Produktpfaden verbieten
   const uncommittedOrUntracked = execFileSync(
     'git',
-    ['status', '--porcelain', '--', ...productPaths],
+    ['status', '--porcelain'],
     { cwd: ROOT },
   )
     .toString()
     .trim();
   if (uncommittedOrUntracked.length > 0) {
     throw new Error(
-      `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen unter Produktpfaden (${uncommittedOrUntracked.split('\n').length} Einträge). Baseline-Schreiben abgebrochen.`,
+      `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen im ganzen Arbeitsbaum (${uncommittedOrUntracked.split('\n').length} Einträge). Baseline-Schreiben abgebrochen.`,
     );
   }
 
@@ -439,6 +439,11 @@ const SUPABASE = {
     process.env.VITE_SUPABASE_ANON_KEY ??
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
 };
+// Befund PR #67 Runde 13: Entfernte Supabase-Instanzen vor Anmeldung, Service-Role-Abfragen und
+// Präferenzänderungen ablehnen, nicht erst beim Restore.
+if (!README_ONLY && !LOCAL_HOSTS.has(new URL(SUPABASE.url).hostname)) {
+  throw new Error(`Inventur nur gegen lokales Supabase, nicht gegen ${new URL(SUPABASE.url).host}.`);
+}
 // Befund 4 PR #67 Runde 11: Kein fest codierter JWT-Schlüssel; CLEANUP_KEY strikt aus Umgebungsvariablen beziehen
 const CLEANUP_KEY =
   process.env.E2E_CLEANUP_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? null;
@@ -1337,18 +1342,20 @@ async function main() {
     const originalPrefs = await readPreferences(setupPage, SUPABASE);
 
     if (originalPrefs.config) {
-      const saved = await savePreferences(
-        setupPage,
-        SUPABASE,
-        defaultConfig,
-        originalPrefs.revision,
-      );
+      // Befund PR #67 Runde 13: Restore-Ziel vor dem Schreiben vormerken, damit ein Fehler beim
+      // Nachlesen in savePreferences die geänderte Präferenz nicht zurücklässt.
       restore = {
         type: 'restore_exact_row',
         originalRow: originalPrefs,
         page: setupPage,
         userId,
       };
+      const saved = await savePreferences(
+        setupPage,
+        SUPABASE,
+        defaultConfig,
+        originalPrefs.revision,
+      );
       dashboardConfigInfo = {
         source: 'installed_standard',
         version: defaultConfig.version,
@@ -1486,14 +1493,14 @@ async function main() {
     // Befund 2 PR #67 Runde 11: Auch vor dem finalen Schreiben der Baseline unversionierte/ungestagte Dateien prüfen
     const uncommittedOrUntrackedFinal = execFileSync(
       'git',
-      ['status', '--porcelain', '--', ...productPaths],
+      ['status', '--porcelain'],
       { cwd: ROOT },
     )
       .toString()
       .trim();
     if (uncommittedOrUntrackedFinal.length > 0) {
       throw new Error(
-        `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen unter Produktpfaden (${uncommittedOrUntrackedFinal.split('\n').length} Einträge). Baseline-Schreiben abgebrochen.`,
+        `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen im ganzen Arbeitsbaum (${uncommittedOrUntrackedFinal.split('\n').length} Einträge). Baseline-Schreiben abgebrochen.`,
       );
     }
 
