@@ -15803,3 +15803,14 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - **Volllauf neu** auf sauberem Arbeitsbaum: 256 von 256 Aufnahmen, 0 fehlgeschlagen, Exit 0. `simulationWorkspace.counts` alle 0, Präferenz `default_unpersisted` unverändert. Alle Messwerte und der Pipeline-Fehlerfall identisch mit Runde 14; 77 Bild-Hashes abweichend, per Pixelvergleich geprüft: „Stand“-Zeitstempel der CRM-Listen und Kantenpixel an abgerundeten Ecken.
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer; keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
+**Nacharbeit Codex-Review PR #67 Runde 16 (07.10.2026, Head `25d4aea`, Claude Code):** Alle 3 Befunde behoben (Commit `01e4f9b`).
+
+1. **Root-Assets in der Baselineprüfung (P2, ID 4210515234):** Die Produktpfade stehen jetzt in einer Konstante `PRODUCT_PATHS` und umfassen `assets/`; Baseline-Diff vor dem Build und vor dem Schreiben nutzen dieselbe Liste. Geprüft: Außer `assets/` und `package.json` importiert `src/` nichts von außerhalb.
+2. **Feste Browserzeit (P2, ID 4210515241):** Jede Aufnahme-Kontext (auch der Pipeline-Fehlerfall) setzt `context.clock.setFixedTime('2026-10-07T12:00:00.000Z')`; `Date.now` und damit `dataUpdatedAt`/„Stand“ sind fest, Timer laufen normal. Im JSON als `browser.fixedTime`.
+3. **Tatsächlicher CSS-Viewport und Zoom (P2, ID 4210515252):** `measure` liest je Aufnahme `innerWidth`, `innerHeight`, `devicePixelRatio` und `visualViewport.scale`; weicht ein Wert vom angeforderten Viewport, DPR 1 oder Zoom 1 ab, schlägt die Aufnahme fehl. Jede Aufnahme enthält zusätzlich die konfigurierte Höhe. Befundregister §1 und README-Matrix nennen die Prüfung.
+
+- **Volllauf neu** auf sauberem Arbeitsbaum: 256 von 256 Aufnahmen, 0 fehlgeschlagen, alle 256 Viewport-Prüfungen bestanden. Messwerte und Pipeline-Fehlerfall identisch mit Runde 15 (Commit `c75615b`).
+- **Wiederholungslauf** mit identischem Stand: Messwerte identisch; Bilddateien 434 von 514 bitgleich, 76 mit maximal 4 Farbstufen Abweichung (Kantenglättung), 4 Standort-Aufnahmen mit schmalen Streifen an Bildkanten. Keine Zeitstempel-Abweichung mehr.
+- **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer; keine Datei unter `src/` geändert.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run build` 0, `npm run format:check` 0.
