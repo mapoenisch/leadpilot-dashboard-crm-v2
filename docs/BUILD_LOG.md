@@ -15823,3 +15823,13 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - **Volllauf neu** auf sauberem Arbeitsbaum: 256 von 256 Aufnahmen, 0 fehlgeschlagen; Messwerte identisch mit Runde 16, 63 Bild-Hashes mit Rendering-Rauschen wie in Runde 16 beschrieben.
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer; keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run build` 0, `npm run format:check` 0.
+
+**Nacharbeit Codex-Review PR #67 Runde 18 (07.10.2026, Head `f3605ee`, Claude Code):** Beide Befunde behoben (Commit `3bdb808`).
+
+1. **Restore-Token aus RPC-Antwort (P2):** `savePreferences` in `scripts/lib/detailShotHelpers.mjs` gibt zusätzlich die Revision `rpcRevision` aus der RPC-Antwort zurück (`rpcRow?.revision`). In `scripts/captureAuftrag081Inventory.mjs` wird `restore.harnessRevisions = [saved.rpcRevision]` gesetzt und validiert (`Number.isInteger(saved.rpcRevision)`), statt sich auf das asynchrone Nachlesen zu verlassen, das bereits eine zwischenzeitlich parallel geänderte Revision liefern könnte.
+2. **Supabase-Schemastand gegen Baseline geprüft (P2):** Die Hilfsfunktion `verifySchemaState` prüft den Schemastand der lokalen Supabase-Instanz gegen die versionierten Migrationsdateien (`supabase/migrations/*.sql` und `supabase/schema.sql`). Jede angewandte Migration muss inhaltlich der versionierten Datei entsprechen und alle erwarteten Dateien müssen angewandt sein. Zusätzlich werden Fingerabdrücke der aktiven RLS-Policies und der Funktion `save_dashboard_preferences` berechnet und im Inventar-JSON als `schemaState` und in der README-Matrix ausgewiesen. `supabase/` wurde zu `PRODUCT_PATHS` hinzugefügt und ist gegen `7fd6e33` geprüft.
+
+- **Volllauf neu:** 256 von 256 Aufnahmen, 0 fehlgeschlagen, Exit 0. `schemaState` (16 Migrationen bis `20260930000001`, RLS-Policies SHA-256 `68b6d80bb01ffbb1...`, `save_dashboard_preferences` SHA-256 `58a9e63f97fb34b6...`) im JSON und in der README-Matrix festgehalten (Commit `e22da8e`).
+- **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer (0 Byte); keine Datei unter `src/` geändert.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
