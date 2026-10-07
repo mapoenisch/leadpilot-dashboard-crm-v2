@@ -15814,3 +15814,12 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - **Wiederholungslauf** mit identischem Stand: Messwerte identisch; Bilddateien 434 von 514 bitgleich, 76 mit maximal 4 Farbstufen Abweichung (Kantenglättung), 4 Standort-Aufnahmen mit schmalen Streifen an Bildkanten. Keine Zeitstempel-Abweichung mehr.
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer; keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run build` 0, `npm run format:check` 0.
+
+**Nacharbeit Codex-Review PR #67 Runde 17 (07.10.2026, Head `243fd4d`, Claude Code):** Beide Befunde behoben (Commit `36c5349`).
+
+1. **Keine parallelen Präferenzänderungen überschreiben (P2, ID 4211241896):** `restorePreferencesRow` filtert den Service-Role-PATCH zusätzlich auf `revision=in.(…)` – vor dem Nachlesen Ausgangs- oder Folgerevision, danach exakt `saved.revision` – und verlangt genau eine geänderte Zeile. Steht die Zeile auf einer fremden Revision, bricht der Restore mit Konfliktmeldung ab und lässt die fremde Änderung stehen. Lokal nicht durchlaufen, weil `admin-a` im Seed keine Präferenzzeile hat (`default_unpersisted`).
+2. **Dieselbe Supabase-Instanz für Build und Harness (P2, ID 4211241908):** Vor jedem Lauf liest der Harness die effektiven Vite-Variablen per `loadEnv('production', ROOT, 'VITE_')` (Umgebung und `.env`-Dateien) und bricht ab, wenn `VITE_SUPABASE_URL` oder `VITE_SUPABASE_ANON_KEY` von `SUPABASE.url`/`SUPABASE.anonKey` abweichen. Negativtest mit abweichender URL: Abbruch vor dem Build.
+
+- **Volllauf neu** auf sauberem Arbeitsbaum: 256 von 256 Aufnahmen, 0 fehlgeschlagen; Messwerte identisch mit Runde 16, 63 Bild-Hashes mit Rendering-Rauschen wie in Runde 16 beschrieben.
+- **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer; keine Datei unter `src/` geändert.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run build` 0, `npm run format:check` 0.
