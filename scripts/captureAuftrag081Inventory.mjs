@@ -179,21 +179,9 @@ function collectPublicFiles(
  */
 async function verifyBuildArtifact(baseUrl) {
   const baselineCommit = '7fd6e33';
-  const productPaths = [
-    'src/',
-    'public/',
-    'index.html',
-    'vite.config.ts',
-    'package.json',
-    'package-lock.json',
-    'tsconfig.json',
-    'tsconfig.node.json',
-    'tailwind.config.js',
-    'postcss.config.js',
-  ];
   const productDiff = execFileSync(
     'git',
-    ['diff', baselineCommit, '--', ...productPaths],
+    ['diff', baselineCommit, '--', ...PRODUCT_PATHS],
     { cwd: ROOT },
   )
     .toString()
@@ -718,6 +706,30 @@ const WIDTHS = [
   { width: 375, height: 812 },
 ];
 const NARROW = { width: 320, height: 640 };
+/**
+ * Versionierte Vite-Eingaben, die gegen die Baseline geprüft werden. `assets/` gehört dazu, weil
+ * Produktdateien Root-Assets importieren (z. B. LocationPage: Logo und Unternehmensbilder) und diese
+ * sonst weder vom Diff noch vom `public/`-Hashvergleich erfasst würden (Codex PR #67 Runde 16).
+ */
+const PRODUCT_PATHS = [
+  'src/',
+  'public/',
+  'assets/',
+  'index.html',
+  'vite.config.ts',
+  'package.json',
+  'package-lock.json',
+  'tsconfig.json',
+  'tsconfig.node.json',
+  'tailwind.config.js',
+  'postcss.config.js',
+];
+/**
+ * Feste Browserzeit für alle Aufnahmen: TanStack Query setzt `dataUpdatedAt` aus `Date.now()`, und
+ * `DataSourceStatus` rendert diesen Wert sekundengenau als „Stand“. Ohne feste Uhr ändern sich die
+ * Bild-Hashes bei jedem identischen Wiederholungslauf (Codex PR #67 Runde 16). Timer laufen normal weiter.
+ */
+const FIXED_BROWSER_TIME = '2026-10-07T12:00:00.000Z';
 const THEMES = ['dark', 'light'];
 const sha256 = (buffer) => crypto.createHash('sha256').update(buffer).digest('hex');
 
@@ -908,6 +920,7 @@ async function openRoute(browser, state, viewport, theme, target) {
     locale: 'de-DE',
   });
   try {
+    await context.clock.setFixedTime(FIXED_BROWSER_TIME);
     // Interception für crm-query-export: Bedient reguläre CRM-Aufnahmen kontrolliert im Erfolgszustand (Befund PR #67 Runde 9/10)
     await context.route('**/functions/v1/crm-query-export**', async (route) => {
       const request = route.request();
@@ -1117,6 +1130,15 @@ async function measure(page, viewport) {
     const hint = document.querySelector('[data-testid="image-page-hint"]');
     return {
       url: location.pathname,
+      // Tatsächliche Browserumgebung je Aufnahme statt nur der angeforderten Optionen (Codex PR #67 Runde 16)
+      viewport: {
+        requestedWidth: vp.width,
+        requestedHeight: vp.height,
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        devicePixelRatio: window.devicePixelRatio,
+        visualViewportScale: window.visualViewport?.scale ?? null,
+      },
       h1: document.querySelector('main h1')?.textContent?.trim() ?? null,
       mainScrollHeight: main?.scrollHeight ?? null,
       overflowDocument: Math.max(0, doc.scrollWidth - doc.clientWidth),
@@ -1203,6 +1225,7 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
     reducedMotion: 'reduce',
     locale: 'de-DE',
   });
+  await context.clock.setFixedTime(FIXED_BROWSER_TIME);
   let interceptedPostCount = 0;
   // OPTIONS-Preflight mit gültigen CORS-Headern passieren lassen, nur den POST kontrolliert
   // mit 500 beantworten, damit der echte Serverfehler-Pfad statt CORS-Fehler getestet wird (Codex PR #67).
@@ -1354,6 +1377,7 @@ function writeReadme(data) {
     `Aufnahmen: ${data.summary.ok} von ${data.summary.expected} erwartet, fehlgeschlagen: ${data.summary.failed}.`,
     'axe (serious/critical) läuft zweimal: nur `<main>` und die ganze Seite mit Kopfzeile, Sidebar',
     'und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-Locale: `de-DE`).',
+    `Browserumgebung je Aufnahme gemessen und geprüft: \`innerWidth\`/\`innerHeight\` = angeforderter CSS-Viewport, \`devicePixelRatio\` 1, \`visualViewport.scale\` 1; feste Browserzeit \`${data.browser?.fixedTime ?? FIXED_BROWSER_TIME}\` (\`Date.now\`, Timer laufen normal).`,
     '',
     '| Ansicht | Breite | Theme | Höhe `<main>` | SHA-256 erster Bildschirm / ganz (16) | Überlauf Dokument / `<main>` px | axe `<main>` | axe ganze Seite | erster Tab-Fokus | Messung |',
     '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
@@ -1492,6 +1516,17 @@ async function main() {
             context = opened.context;
             const { page, consoleErrors, pageErrors } = opened;
             const metrics = await measure(page, viewport);
+            const vpActual = metrics.viewport;
+            if (
+              vpActual.innerWidth !== viewport.width ||
+              vpActual.innerHeight !== viewport.height ||
+              vpActual.devicePixelRatio !== 1 ||
+              vpActual.visualViewportScale !== 1
+            ) {
+              throw new Error(
+                `Browserumgebung weicht von der Vorgabe ab (CSS-Viewport ${viewport.width}×${viewport.height}, DPR 1, Zoom 100 %): ${JSON.stringify(vpActual)}`,
+              );
+            }
             const expectedPath = target.detail ? '/dashboard/tiles/std_baseline_arr' : target.route;
             if (metrics.url !== expectedPath) {
               throw new Error(
@@ -1511,6 +1546,7 @@ async function main() {
               id: target.id,
               imageKey: target.imageKey ?? null,
               width: viewport.width,
+              height: viewport.height,
               theme,
               ...metrics,
               axe,
@@ -1549,19 +1585,7 @@ async function main() {
       .trim();
 
     // Verifiziere, dass der aktuelle Produktcode exakt der Baseline entspricht (Befund PR #67 Runde 6/8)
-    const productPaths = [
-      'src/',
-      'public/',
-      'index.html',
-      'vite.config.ts',
-      'package.json',
-      'package-lock.json',
-      'tsconfig.json',
-      'tsconfig.node.json',
-      'tailwind.config.js',
-      'postcss.config.js',
-    ];
-    const productDiff = execFileSync('git', ['diff', baselineCommit, '--', ...productPaths], { cwd: ROOT })
+    const productDiff = execFileSync('git', ['diff', baselineCommit, '--', ...PRODUCT_PATHS], { cwd: ROOT })
       .toString()
       .trim();
     if (productDiff.length > 0) {
@@ -1598,6 +1622,7 @@ async function main() {
       testUser: testIdentity,
       crmSeed: crmSeedInfo,
       simulationWorkspace: simulationWorkspaceInfo,
+      browser: { fixedTime: FIXED_BROWSER_TIME, devicePixelRatio: 1, visualViewportScale: 1 },
       dashboardConfig: dashboardConfigInfo,
       commit: baselineCommit,
       baseUrl: BASE_URL,
