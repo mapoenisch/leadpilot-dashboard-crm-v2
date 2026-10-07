@@ -24,16 +24,43 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { execFileSync } from 'node:child_process';
 import {
   axeSevere,
-  defaultDashboardConfig,
   deletePreferences,
-  login,
   readPreferences,
   savePreferences,
   scrollThrough,
   sessionUserId,
 } from './lib/detailShotHelpers.mjs';
+
+/** Anmelden mit expliziter deutscher Browser-Locale für konsistente Datumsformatierung. */
+async function loginWithLocale(browser, baseUrl, credentials, locale = 'de-DE') {
+  const context = await browser.newContext({ baseURL: baseUrl, locale });
+  const page = await context.newPage();
+  await page.goto('/login', { waitUntil: 'networkidle' });
+  await page.fill('#login-email', credentials.email);
+  await page.fill('#login-password', credentials.password);
+  await page.click('button[type="submit"]');
+  await page.waitForURL('**/dashboard');
+  const state = await context.storageState();
+  await context.close();
+  return state;
+}
+
+/** Standard-Dashboard-Konfiguration (17 Kacheln) lokal aus der App-Logik geladen. */
+function defaultDashboardConfig(root) {
+  const out = execFileSync(
+    'npx',
+    [
+      'tsx',
+      '-e',
+      "import { DEFAULT_DASHBOARD_CONFIG } from './src/features/dashboard/model/defaultDashboard.ts'; console.log(JSON.stringify(DEFAULT_DASHBOARD_CONFIG));",
+    ],
+    { cwd: root },
+  );
+  return JSON.parse(out.toString());
+}
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const env = (name) => {
@@ -419,7 +446,7 @@ async function main() {
 
   try {
     browser = await chromium.launch();
-    const state = await login(browser, BASE_URL, CREDENTIALS);
+    const state = await loginWithLocale(browser, BASE_URL, CREDENTIALS);
 
     // Dashboard-Konfiguration für die Baseline fixieren (Befund PR #67 Runde 4)
     setupContext = await browser.newContext({ baseURL: BASE_URL, storageState: state });
@@ -557,12 +584,14 @@ async function main() {
       process.exitCode = 1;
     }
   } finally {
+    let restoreError = null;
     if (restore?.type === 'restore') {
       try {
         const current = await readPreferences(restore.page, SUPABASE);
         await savePreferences(restore.page, SUPABASE, restore.config, current.revision);
       } catch (err) {
         console.error('Fehler beim Wiederherstellen der Dashboard-Präferenzen:', err);
+        restoreError = err;
       }
     } else if (restore?.type === 'delete_if_created' && CLEANUP_KEY && restore.userId) {
       try {
@@ -572,10 +601,15 @@ async function main() {
         }
       } catch (err) {
         console.error('Fehler beim Aufräumen der Dashboard-Präferenzen:', err);
+        restoreError = err;
       }
     }
     await setupContext?.close().catch(() => null);
     await browser?.close().catch(() => null);
+    if (restoreError) {
+      process.exitCode = 1;
+      throw restoreError;
+    }
   }
 }
 

@@ -1,7 +1,7 @@
 # Auftrag 081 – Ausgangslage Frontend (Arbeitspaket 0)
 
-Produkt-Baseline: `7fd6e33` (Release v2.4.0), aufgenommen 2026-10-06 mit
-`scripts/captureAuftrag081Inventory.mjs` (Harness SHA-256: `00da9bb24b02813a`).
+Produkt-Baseline: `7fd6e33` (Release v2.4.0), aufgenommen 2026-10-07 mit
+`scripts/captureAuftrag081Inventory.mjs` (Harness SHA-256: `88f384c8dde66a63`).
 Dashboard-Konfiguration: Standardansicht (17 Kacheln, Quelle: `default_unpersisted`).
 Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die
 Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im
@@ -14,37 +14,37 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | Ansicht | Breite | Theme | Höhe `<main>` | SHA-256 erster Bildschirm / ganz (16) | Überlauf Dokument / `<main>` px | axe `<main>` | axe ganze Seite | erster Tab-Fokus | Messung |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | dashboard | 1440 | dark | 3423 | `678b8e69658dc607` / `e9c993d9305ada9e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
-| dashboard | 1440 | light | 3423 | `69fbdd6885013a6a` / `93b05f063375cfac` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
+| dashboard | 1440 | light | 3423 | `5268120431189ebb` / `93b05f063375cfac` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
 | dashboard | 768 | dark | 5781 | `37bdf735973c4bac` / `c84cc3bc71770cbd` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
-| dashboard | 768 | light | 5781 | `7027cf6a7e2c690f` / `a4ea7487824a217f` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
+| dashboard | 768 | light | 5781 | `754207de306f52b6` / `a4ea7487824a217f` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
 | dashboard | 375 | dark | 7997 | `8f1381967eed7cf9` / `49af2e9ad0ef912b` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard | 375 | light | 7997 | `30e37d8eb58ff636` / `799e459c53a7f091` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard | 320 | dark | 8126 | `486fd423cc983375` / `4b9381103f0ac5f4` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard | 320 | light | 8126 | `34d6bc85a17b7a2a` / `bfbe09801dcfc753` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard | 320 | light | 8126 | `811de4277e9ff389` / `bfbe09801dcfc753` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-edit | 1440 | dark | 4177 | `df42f3ef5af8cd3c` / `2b3fbfd523ce4b22` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
-| dashboard-edit | 1440 | light | 4177 | `639ece683a15c14f` / `257abe0feb542336` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
+| dashboard-edit | 1440 | light | 4177 | `ecace4b752d3dc0a` / `257abe0feb542336` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
 | dashboard-edit | 768 | dark | 6513 | `f35e509f1044e1be` / `b21b055b6bd14478` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
 | dashboard-edit | 768 | light | 6513 | `e06ba0ae67a10afc` / `bb9fdf75f82d0405` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
 | dashboard-edit | 375 | dark | 9593 | `c96c1c43876d31d6` / `e8e38cf8d0b65228` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-edit | 375 | light | 9593 | `46d8c2332afbd672` / `0465f61c25cabbc6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-detail | 1440 | dark | 893 | `e1e44db6d4bf165a` / `e1e44db6d4bf165a` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard-detail | 1440 | light | 893 | `5337a3a3997e0f14` / `5337a3a3997e0f14` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard-detail | 1440 | light | 893 | `484e386082ccde02` / `5337a3a3997e0f14` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-detail | 768 | dark | 885 | `6bad96d2bc2595ea` / `6bad96d2bc2595ea` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard-detail | 768 | light | 885 | `42cc405bef23a744` / `9dde39fdf658edc6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard-detail | 768 | light | 885 | `9dde39fdf658edc6` / `9dde39fdf658edc6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-detail | 375 | dark | 788 | `af6702b4bb3e81ae` / `af6702b4bb3e81ae` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard-detail | 375 | light | 788 | `75b218af7b17b353` / `75b218af7b17b353` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard-detail | 375 | light | 788 | `7b096dd4e16e8cf4` / `75b218af7b17b353` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 1440 | dark | 893 | `d566f8ba8d86b006` / `d566f8ba8d86b006` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 1440 | light | 893 | `a4269066680ceb85` / `a4269066680ceb85` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 768 | dark | 885 | `c77242c63c7cb724` / `c77242c63c7cb724` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 768 | light | 885 | `77e100c957e68b0b` / `77e100c957e68b0b` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 375 | dark | 721 | `1b8486d04706a467` / `57a98700f058ee79` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-daten | 375 | light | 721 | `0dd775ae180c0b39` / `15ea4f9666080bba` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-daten | 375 | light | 721 | `6288f0f68eb28187` / `15ea4f9666080bba` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 1440 | dark | 1765 | `9606868078e1a887` / `071071918dc39d50` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-standort | 1440 | light | 1765 | `523693734aa750cd` / `b35ce575a5378d9a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-standort | 1440 | light | 1765 | `a1b03b6e081b5c77` / `b35ce575a5378d9a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 768 | dark | 1931 | `df83921baaef4d67` / `170a92072ee33e11` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 768 | light | 1931 | `a34be994d18ec741` / `907da2bd61c87f50` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 375 | dark | 2575 | `84e9d1c70086392c` / `5e2e5212e168a779` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-standort | 375 | light | 2575 | `8e4a27459bdb9862` / `617f2f48afc1fc6a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-standort | 375 | light | 2575 | `a4c35ec1f9523177` / `617f2f48afc1fc6a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 1440 | dark | 1261 | `d286ce597ec57703` / `5080c74eedbb31e8` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 1440 | light | 1261 | `0b3c72ff4f0a7ccb` / `4debd55fe453a0c8` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 768 | dark | 1565 | `82254c51dd98d5c5` / `4708ab102a52e223` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
@@ -54,7 +54,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-leads | 1440 | dark | 893 | `37d4bd58ca72f1be` / `37d4bd58ca72f1be` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-leads | 1440 | light | 893 | `5558db3349dbe4c7` / `5558db3349dbe4c7` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-leads | 768 | dark | 1135 | `9defca0e6d51e509` / `cbe9b921362e7d1d` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 768 | light | 1135 | `0a72b15b6cc82653` / `c006854a87a0786c` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 768 | light | 1135 | `b64759f19181945b` / `c006854a87a0786c` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-leads | 375 | dark | 1839 | `0e2d6e98d5ff8fff` / `8630993cdeaeca35` | 0 / 14 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-leads | 375 | light | 1839 | `c2d8cc6e5d1d90f5` / `24cd9a69d3cd21c5` | 0 / 14 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-companies | 1440 | dark | 893 | `0910bae604f8ef50` / `a56db4b5842c3988` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
@@ -64,17 +64,17 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-companies | 375 | dark | 1786 | `7cd642baefe67173` / `5c7726db9be4d6d9` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-companies | 375 | light | 1786 | `91032d456ddd276c` / `59cec44a1bf3d13e` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 1440 | dark | 893 | `40a258cc0269fc9a` / `1aac4696aa9f6a61` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-deals | 1440 | light | 893 | `e0d6a34e0809a959` / `e0d6a34e0809a959` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-deals | 1440 | light | 893 | `8d58b2b24b1c5ab3` / `e0d6a34e0809a959` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 768 | dark | 1029 | `1d25ed486c2a5d04` / `0770ebc4f12c9120` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 768 | light | 1029 | `0957e8fdd9c7299c` / `7472e3b651cb3f8c` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 375 | dark | 1751 | `1194a49f8084d677` / `2d8a48c5a91b7d31` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 375 | light | 1751 | `175cf7b446111c3c` / `0f9902f66a4f398d` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 1440 | dark | 893 | `d21c8c408f5e17b1` / `d6729047fee6db11` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 1440 | light | 893 | `1fe2130e4c0cce3f` / `2446025912c1677e` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-activities | 768 | dark | 885 | `8374900df576254c` / `8374900df576254c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-activities | 768 | dark | 885 | `2382b01d589ddb0c` / `8374900df576254c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 768 | light | 885 | `5d2685f24012c601` / `5d2685f24012c601` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 375 | dark | 626 | `3dded44e9d56f457` / `3693907e3f17d88e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-activities | 375 | light | 626 | `5debd240de37f619` / `85a784dc02a71384` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-activities | 375 | light | 626 | `85a784dc02a71384` / `85a784dc02a71384` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-profil | 1440 | dark | 893 | `f765543eeeb1b6c0` / `f765543eeeb1b6c0` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-profil | 1440 | light | 893 | `f8a457b51d8d2e01` / `f8a457b51d8d2e01` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-profil | 768 | dark | 885 | `63dbca92e54c0216` / `63dbca92e54c0216` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.428 |
@@ -100,7 +100,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-value | 375 | dark | 626 | `2a56541135c8f9dd` / `2a56541135c8f9dd` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.18 |
 | s-value | 375 | light | 626 | `abcd00154f24b65e` / `abcd00154f24b65e` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.18 |
 | s-historie | 1440 | dark | 893 | `0a5e5d5163df4d75` / `0a5e5d5163df4d75` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.59 |
-| s-historie | 1440 | light | 893 | `3abb9e7c58daef19` / `3abb9e7c58daef19` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.59 |
+| s-historie | 1440 | light | 893 | `463709cd8b4854cf` / `3abb9e7c58daef19` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.59 |
 | s-historie | 768 | dark | 885 | `0227a96171779cda` / `0227a96171779cda` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.389 |
 | s-historie | 768 | light | 885 | `abd302ad42ff996f` / `abd302ad42ff996f` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.389 |
 | s-historie | 375 | dark | 626 | `44c8bcd28ab02a9b` / `44c8bcd28ab02a9b` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.181 |
@@ -108,7 +108,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-funktion | 1440 | dark | 893 | `6e8d9b6b54b5c20c` / `6e8d9b6b54b5c20c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.586 |
 | s-funktion | 1440 | light | 893 | `49a47c887f81e3b8` / `49a47c887f81e3b8` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.586 |
 | s-funktion | 768 | dark | 885 | `78cc98635e7faea4` / `78cc98635e7faea4` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.386 |
-| s-funktion | 768 | light | 885 | `25b61695c202bdf3` / `8d5ae7c79d6c4e7a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.386 |
+| s-funktion | 768 | light | 885 | `8d5ae7c79d6c4e7a` / `8d5ae7c79d6c4e7a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.386 |
 | s-funktion | 375 | dark | 626 | `f1dbbaa8bd78c2d5` / `f1dbbaa8bd78c2d5` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.18 |
 | s-funktion | 375 | light | 626 | `fe453eb71bfc9480` / `fe453eb71bfc9480` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.18 |
 | s-pricing | 1440 | dark | 893 | `0597cc277dc8a869` / `0597cc277dc8a869` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.595 |
@@ -122,7 +122,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-perf | 768 | dark | 885 | `b4e45425db67f414` / `b4e45425db67f414` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.381 |
 | s-perf | 768 | light | 885 | `0c7418682b2ae1a0` / `0c7418682b2ae1a0` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.381 |
 | s-perf | 375 | dark | 626 | `990fc8074ced8525` / `990fc8074ced8525` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.178 |
-| s-perf | 375 | light | 626 | `a8e6b8e259f9ca2d` / `50104550e749a967` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.178 |
+| s-perf | 375 | light | 626 | `50104550e749a967` / `50104550e749a967` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.178 |
 | s-roadmap | 1440 | dark | 893 | `e406484744ca23cd` / `e406484744ca23cd` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.701 |
 | s-roadmap | 1440 | light | 893 | `fb73dfc2787797de` / `fb73dfc2787797de` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.701 |
 | s-roadmap | 768 | dark | 885 | `e908f20b8c033dad` / `e908f20b8c033dad` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.463 |
@@ -204,7 +204,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-guv | 375 | dark | 603 | `d7e76b20e8739fad` / `d7e76b20e8739fad` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-guv | 375 | light | 603 | `a1f8b584265baafb` / `a1f8b584265baafb` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-bilanz | 1440 | dark | 893 | `b0a5f240ec00f8b3` / `b0a5f240ec00f8b3` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.659 |
-| s-bilanz | 1440 | light | 893 | `e88e425ad14a1723` / `e88e425ad14a1723` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.659 |
+| s-bilanz | 1440 | light | 893 | `16e796772acb4739` / `e88e425ad14a1723` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.659 |
 | s-bilanz | 768 | dark | 885 | `47e93e268fb9fa9c` / `47e93e268fb9fa9c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.435 |
 | s-bilanz | 768 | light | 885 | `79474185d660959f` / `79474185d660959f` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.435 |
 | s-bilanz | 375 | dark | 626 | `eca9246eb9a15339` / `eca9246eb9a15339` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.203 |
@@ -222,9 +222,9 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-headcount | 375 | dark | 626 | `28cda9e0471b581f` / `28cda9e0471b581f` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-headcount | 375 | light | 626 | `428a7c3a58f650a4` / `428a7c3a58f650a4` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-hr | 1440 | dark | 893 | `1f1461d7031b3cc5` / `1f1461d7031b3cc5` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
-| s-hr | 1440 | light | 893 | `3c59007e8b6d569b` / `3c59007e8b6d569b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
+| s-hr | 1440 | light | 893 | `b9db3f44892b04f7` / `3c59007e8b6d569b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-hr | 768 | dark | 885 | `eda46649aeec9fd1` / `eda46649aeec9fd1` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.42 |
-| s-hr | 768 | light | 885 | `b1bfc9b662358872` / `b1bfc9b662358872` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.42 |
+| s-hr | 768 | light | 885 | `57704b9ed130b306` / `b1bfc9b662358872` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.42 |
 | s-hr | 375 | dark | 626 | `5a76f8fcd7b6539c` / `5a76f8fcd7b6539c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.196 |
 | s-hr | 375 | light | 626 | `165a2699f89b5458` / `165a2699f89b5458` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.196 |
 | s-team | 1440 | dark | 893 | `a35b54d2d778c54b` / `a35b54d2d778c54b` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.633 |
@@ -254,7 +254,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-satzung | 1440 | dark | 893 | `2e3a16a454190b2e` / `2e3a16a454190b2e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-satzung | 1440 | light | 893 | `8e57aa57d0ea2456` / `8e57aa57d0ea2456` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-satzung | 768 | dark | 885 | `e2e6a1787b8b2010` / `e2e6a1787b8b2010` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.419 |
-| s-satzung | 768 | light | 885 | `ea969340e10e4985` / `ea969340e10e4985` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.419 |
+| s-satzung | 768 | light | 885 | `7d63b97f57a3b3cf` / `ea969340e10e4985` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.419 |
 | s-satzung | 375 | dark | 626 | `60e627b9f713fd94` / `60e627b9f713fd94` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-satzung | 375 | light | 626 | `7e33a84303249f45` / `7e33a84303249f45` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-gesellschafter | 1440 | dark | 893 | `d426abcc8cdcac7e` / `d426abcc8cdcac7e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
@@ -264,7 +264,7 @@ und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-
 | s-gesellschafter | 375 | dark | 626 | `376c1a14543b634d` / `376c1a14543b634d` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-gesellschafter | 375 | light | 626 | `4cd00acbf7fe7d77` / `4cd00acbf7fe7d77` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-handelsregister | 1440 | dark | 893 | `dd147c9b3cf904dc` / `dd147c9b3cf904dc` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
-| s-handelsregister | 1440 | light | 893 | `11f1da2ba332b576` / `11f1da2ba332b576` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
+| s-handelsregister | 1440 | light | 893 | `23edb99a557745b6` / `11f1da2ba332b576` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-handelsregister | 768 | dark | 885 | `2d4913424bb57b2d` / `2d4913424bb57b2d` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.42 |
 | s-handelsregister | 768 | light | 885 | `d94254be6fd89500` / `d94254be6fd89500` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.42 |
 | s-handelsregister | 375 | dark | 626 | `8557c148cf8fe227` / `8557c148cf8fe227` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.196 |

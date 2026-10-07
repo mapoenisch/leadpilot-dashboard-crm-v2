@@ -15691,4 +15691,15 @@ Alle 4 Codex-Befunde (P2) behoben:
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` vollständig leer; keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
 
+**Nacharbeit Codex-Review PR #67 Runde 5 (07.10.2026, Head `e571db8`):**
+Alle 4 Codex-Befunde (1 P1, 3 P2) behoben:
+1. **Begrenze die Helper-Änderung auf den Auftragsumfang (P1, ID 4200927854):** `scripts/lib/detailShotHelpers.mjs` vollständig auf Stand `7fd6e33` zurückgesetzt (Diff gegen Baseline ist 0). Die für Auftrag 081 spezifische Logik (`loginWithLocale`, `defaultDashboardConfig`) ist rein lokal in `scripts/captureAuftrag081Inventory.mjs` gekapselt, wodurch keine Seiteneffekte auf Alt-Harnesses (077/079) entstehen und die Ziel-Dateien-Tabelle von Auftrag 081 strikt eingehalten wird.
+2. **Markiere die Datenbasis als Schutzbereichs-abhängig (P2, ID 4200927863):** In `docs/reviews/2026-10-06-frontend-befundregister.md` Tabelle 6 ist die Datenbasis-Ansicht (I04, `/company/data-basis`) nun mit Schutzbereich `**Ja** (greift auf geschütztes Modul src/services/data/dataSourceRegistry.ts zu, lesend)` gekennzeichnet, da `src/services/data/` gemäß Tabellendefinition geschützt ist.
+3. **Lass eine fehlgeschlagene Wiederherstellung den Lauf fehlschlagen (P2, ID 4200927872):** Im `finally`-Block von `scripts/captureAuftrag081Inventory.mjs` werden Fehler beim Wiederherstellen oder Aufräumen der Dashboard-Präferenzen (`savePreferences` / `deletePreferences`) nicht mehr still abgefangen. Ressourcen (`setupContext`, `browser`) werden ordnungsgemäß geschlossen, aufgetretene Wiederherstellungsfehler werden propagiert und `process.exitCode = 1` gesetzt.
+4. **Dokumentiere die echte Datenquelle der Aktivitäten (P2, ID 4200927879):** In `docs/reviews/2026-10-06-frontend-befundregister.md` Tabelle 6 ist für Ansicht I10 (`/crm/activities`) die tatsächliche Datenquelle `src/hooks/queries/useCrmQueries.ts (useCrmReadModelEnvelope)` und `src/services/data/crmReadModelService.ts` dokumentiert; Schutzbereich entsprechend als `**Ja** (greift über loadCrmReadModel auf geschütztes Modul src/services/data/crmReadModelService.ts zu)` korrigiert.
+- **Volllauf neu:** 256 von 256 Aufnahmen erfolgreich (Exit 0), JSON und README aktualisiert.
+- **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/` vollständig leer (0 Byte Differenz); keine Datei unter `src/` geändert.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
+
 
