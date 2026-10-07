@@ -25,6 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { execFileSync } from 'node:child_process';
+import { loadEnv } from 'vite';
 import {
   axeSevere,
   savePreferences,
@@ -87,10 +88,13 @@ function assertScopedCleanup(url, userId) {
 }
 
 /** Stellt die exakte Präferenzzeile (inkl. ursprünglicher Revision und Zeitstempel) wieder her (Befund PR #67 Runde 9). */
-async function restorePreferencesRow(supabase, cleanupKey, originalRow) {
+async function restorePreferencesRow(supabase, cleanupKey, originalRow, harnessRevisions) {
   assertScopedCleanup(supabase.url, originalRow.user_id);
+  // Nur zurückschreiben, solange die Zeile noch auf einer vom Harness erzeugten bzw. der Ausgangsrevision
+  // steht; eine parallel gespeicherte neuere Revision wird nie verworfen (Codex PR #67 Runde 17).
+  const revisionFilter = `revision=in.(${harnessRevisions.map(Number).join(',')})`;
   const response = await fetch(
-    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(originalRow.user_id)}&organization_id=eq.${encodeURIComponent(originalRow.organization_id)}`,
+    `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(originalRow.user_id)}&organization_id=eq.${encodeURIComponent(originalRow.organization_id)}&${revisionFilter}`,
     {
       method: 'PATCH',
       headers: {
@@ -111,6 +115,12 @@ async function restorePreferencesRow(supabase, cleanupKey, originalRow) {
   if (!response.ok) {
     throw new Error(
       `Wiederherstellen der ursprünglichen Präferenzzeile fehlgeschlagen (HTTP ${response.status}): ${await response.text()}`,
+    );
+  }
+  const rows = await response.json();
+  if (!Array.isArray(rows) || rows.length !== 1) {
+    throw new Error(
+      `Präferenzzeile wurde während des Laufs parallel geändert (Revision nicht mehr in ${harnessRevisions.join('/')}); Wiederherstellung abgebrochen, fremde Änderung bleibt erhalten.`,
     );
   }
 }
@@ -430,6 +440,16 @@ const SUPABASE = {
 // Präferenzänderungen ablehnen, nicht erst beim Restore.
 if (!README_ONLY && !LOCAL_HOSTS.has(new URL(SUPABASE.url).hostname)) {
   throw new Error(`Inventur nur gegen lokales Supabase, nicht gegen ${new URL(SUPABASE.url).host}.`);
+}
+// Codex PR #67 Runde 17: Der frische Build (Vite-Variablen inkl. .env-Dateien) muss dieselbe
+// Supabase-Instanz verwenden wie Seed-, Identitäts- und Präferenzprüfung des Harness.
+if (!README_ONLY) {
+  const viteEnv = loadEnv('production', ROOT, 'VITE_');
+  if (viteEnv.VITE_SUPABASE_URL !== SUPABASE.url || viteEnv.VITE_SUPABASE_ANON_KEY !== SUPABASE.anonKey) {
+    throw new Error(
+      `Build und Harness zeigen auf unterschiedliche Supabase-Instanzen (VITE_SUPABASE_URL ${viteEnv.VITE_SUPABASE_URL ?? '–'} vs. ${SUPABASE.url}, Anon-Key ${viteEnv.VITE_SUPABASE_ANON_KEY === SUPABASE.anonKey ? 'gleich' : 'abweichend'}).`,
+    );
+  }
 }
 // Befund 4 PR #67 Runde 11: Kein fest codierter JWT-Schlüssel; CLEANUP_KEY strikt aus Umgebungsvariablen beziehen
 const CLEANUP_KEY =
@@ -1452,6 +1472,8 @@ async function main() {
         originalRow: originalPrefs,
         page: setupPage,
         userId,
+        // Bis zum Nachlesen ist offen, ob der Harness schon geschrieben hat: Ausgangs- oder Folgerevision
+        harnessRevisions: [originalPrefs.revision, originalPrefs.revision + 1],
       };
       const saved = await savePreferences(
         setupPage,
@@ -1459,6 +1481,7 @@ async function main() {
         defaultConfig,
         originalPrefs.revision,
       );
+      restore.harnessRevisions = [saved.revision];
       dashboardConfigInfo = {
         source: 'installed_standard',
         version: defaultConfig.version,
@@ -1667,7 +1690,12 @@ async function main() {
         if (!CLEANUP_KEY) {
           throw new Error('Kein Cleanup-Key für revisionsgetreue Wiederherstellung verfügbar.');
         }
-        await restorePreferencesRow(SUPABASE, CLEANUP_KEY, restore.originalRow);
+        await restorePreferencesRow(
+          SUPABASE,
+          CLEANUP_KEY,
+          restore.originalRow,
+          restore.harnessRevisions,
+        );
         const verified = await readPreferences(restore.page, SUPABASE);
         if (verified.revision !== restore.originalRow.revision) {
           throw new Error(
