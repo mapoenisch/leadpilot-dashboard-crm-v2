@@ -149,9 +149,29 @@ async function verifyIdentity(page, supabase, email, userId) {
   return actual;
 }
 
+/** Sammelt alle sichtbaren statischen Assets unter public/assets/ (Befund PR #67 Runde 11). */
+function collectPublicAssets(
+  dir = path.join(ROOT, 'public/assets'),
+  baseDir = path.join(ROOT, 'public'),
+) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  let results = [];
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectPublicAssets(fullPath, baseDir));
+    } else if (entry.isFile()) {
+      if (entry.name.startsWith('.') || entry.name.endsWith('.md')) continue;
+      const relPath = '/' + path.relative(baseDir, fullPath).split(path.sep).join('/');
+      results.push(relPath);
+    }
+  }
+  return results.sort();
+}
+
 /**
  * Verifiziert, dass der lokale Produkt- und Build-Code exakt der Baseline 7fd6e33 entspricht UND
- * dass der unter baseUrl bediente Produktionsbuild exakt aus diesem Stand stammt (Befund PR #67 Runde 8–10).
+ * dass der unter baseUrl bediente Produktionsbuild exakt aus diesem Stand stammt (Befund PR #67 Runde 8–11).
  */
 async function verifyBuildArtifact(baseUrl) {
   const baselineCommit = '7fd6e33';
@@ -177,6 +197,20 @@ async function verifyBuildArtifact(baseUrl) {
   if (productDiff.length > 0) {
     throw new Error(
       `Produktcode oder Build-Konfiguration weicht von Baseline ${baselineCommit} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
+    );
+  }
+
+  // Befund 2 PR #67 Runde 11: Auch unversionierte/ungestagte Dateien unter Produktpfaden verbieten
+  const uncommittedOrUntracked = execFileSync(
+    'git',
+    ['status', '--porcelain', '--', ...productPaths],
+    { cwd: ROOT },
+  )
+    .toString()
+    .trim();
+  if (uncommittedOrUntracked.length > 0) {
+    throw new Error(
+      `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen unter Produktpfaden (${uncommittedOrUntracked.split('\n').length} Einträge). Baseline-Schreiben abgebrochen.`,
     );
   }
 
@@ -310,12 +344,40 @@ async function verifyBuildArtifact(baseUrl) {
     }
   }
 
+  // Befund 3 PR #67 Runde 11: Alle sichtbaren statischen Assets aus public/assets/ verifizieren
+  const publicAssets = collectPublicAssets();
+  if (publicAssets.length !== 38) {
+    throw new Error(
+      `Erwartet wurden 38 statische Assets in public/assets/, gefunden: ${publicAssets.length}.`,
+    );
+  }
+  for (const assetPath of publicAssets) {
+    const localAssetFile = path.join(ROOT, 'dist', assetPath);
+    if (!fs.existsSync(localAssetFile)) {
+      throw new Error(`Lokales Asset dist${assetPath} existiert nicht.`);
+    }
+    const localAssetSha256 = sha256(fs.readFileSync(localAssetFile));
+    const servedAssetRes = await fetch(`${baseUrl}${assetPath}`);
+    if (!servedAssetRes.ok) {
+      throw new Error(
+        `Asset ${assetPath} konnte von ${baseUrl} nicht geladen werden (HTTP ${servedAssetRes.status}).`,
+      );
+    }
+    const servedAssetSha256 = sha256(Buffer.from(await servedAssetRes.arrayBuffer()));
+    if (servedAssetSha256 !== localAssetSha256) {
+      throw new Error(
+        `Das unter ${baseUrl} ausgelieferte Asset ${assetPath} (SHA-256 ${servedAssetSha256.slice(0, 16)}...) weicht vom lokalen Build (${localAssetSha256.slice(0, 16)}...) ab.`,
+      );
+    }
+  }
+
   return {
     entryScript: entryScriptPath,
     entrySha256: localScriptSha256,
     indexHtmlSha256: localHtmlSha256,
     stylesheets: stylesheetPaths,
     verifiedImagesCount: imagePaths.length,
+    verifiedAssetsCount: publicAssets.length,
     verifiedServedUrl: baseUrl,
   };
 }
@@ -366,43 +428,85 @@ const SUPABASE = {
     process.env.VITE_SUPABASE_ANON_KEY ??
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
 };
-function resolveCleanupKey(url) {
-  if (process.env.E2E_CLEANUP_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return process.env.E2E_CLEANUP_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  }
-  try {
-    const u = new URL(url);
-    if (LOCAL_HOSTS.has(u.hostname)) {
-      const b64url = (obj) =>
-        Buffer.from(JSON.stringify(obj))
-          .toString('base64')
-          .replace(/=/g, '')
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_');
-      const header = b64url({ alg: 'HS256', typ: 'JWT' });
-      const payload = b64url({
-        role: 'service_role',
-        iss: 'supabase',
-        iat: Math.floor(Date.now() / 1000) - 60,
-        exp: Math.floor(Date.now() / 1000) + 3600 * 24 * 365,
-      });
-      const unsigned = `${header}.${payload}`;
-      const secret = 'super-secret-jwt-token-with-at-least-32-characters-long';
-      const sig = crypto
-        .createHmac('sha256', secret)
-        .update(unsigned)
-        .digest('base64')
-        .replace(/=/g, '')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_');
-      return `${unsigned}.${sig}`;
-    }
-  } catch {
-    /* Ungültige URL oder nicht lokal */
-  }
-  return null;
+// Befund 4 PR #67 Runde 11: Kein fest codierter JWT-Schlüssel; CLEANUP_KEY strikt aus Umgebungsvariablen beziehen
+const CLEANUP_KEY =
+  process.env.E2E_CLEANUP_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? null;
+if (!README_ONLY && !CLEANUP_KEY) {
+  throw new Error(
+    'E2E_CLEANUP_KEY oder SUPABASE_SERVICE_ROLE_KEY muss gesetzt sein, um Testdaten und Präferenzen revisionsgetreu verifizieren und aufräumen zu können.',
+  );
 }
-const CLEANUP_KEY = resolveCleanupKey(SUPABASE.url);
+
+/** Erwartete CRM-Seed-Daten für Organisation A aus supabase/seed.sql (Befund PR #67 Runde 11). */
+const EXPECTED_CRM_SEED = {
+  organizationId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  companiesCount: 3,
+  contactsCount: 1,
+  dealsCount: 2,
+};
+
+/**
+ * Verifiziert die CRM-Seed-Daten für Organisation A vor den Aufnahmen reproduzierbar (Befund PR #67 Runde 11).
+ * Bricht fail-closed ab, wenn CRM-Daten verändert wurden oder fehlen.
+ */
+async function verifyCrmSeedData(supabase, cleanupKey, organizationId) {
+  const headers = {
+    apikey: cleanupKey,
+    Authorization: `Bearer ${cleanupKey}`,
+  };
+  const compRes = await fetch(
+    `${supabase.url}/rest/v1/companies?organization_id=eq.${organizationId}&select=id,name,domain,industry,city,postal_code,employee_count&order=id.asc`,
+    { headers },
+  );
+  if (!compRes.ok) {
+    throw new Error(`CRM-Seed-Prüfung companies fehlgeschlagen (HTTP ${compRes.status}).`);
+  }
+  const companies = await compRes.json();
+  if (companies.length !== EXPECTED_CRM_SEED.companiesCount) {
+    throw new Error(
+      `CRM-Seed-Prüfung: Erwartet ${EXPECTED_CRM_SEED.companiesCount} Companies für Organisation ${organizationId}, gefunden: ${companies.length}.`,
+    );
+  }
+
+  const contRes = await fetch(
+    `${supabase.url}/rest/v1/contacts?organization_id=eq.${organizationId}&select=id,company_id,email,first_name,last_name,job_title&order=id.asc`,
+    { headers },
+  );
+  if (!contRes.ok) {
+    throw new Error(`CRM-Seed-Prüfung contacts fehlgeschlagen (HTTP ${contRes.status}).`);
+  }
+  const contacts = await contRes.json();
+  if (contacts.length !== EXPECTED_CRM_SEED.contactsCount) {
+    throw new Error(
+      `CRM-Seed-Prüfung: Erwartet ${EXPECTED_CRM_SEED.contactsCount} Contacts für Organisation ${organizationId}, gefunden: ${contacts.length}.`,
+    );
+  }
+
+  const dealRes = await fetch(
+    `${supabase.url}/rest/v1/imported_funnel_deals?organization_id=eq.${organizationId}&select=id,deal_name,stage,amount,close_date,pipeline&order=id.asc`,
+    { headers },
+  );
+  if (!dealRes.ok) {
+    throw new Error(`CRM-Seed-Prüfung deals fehlgeschlagen (HTTP ${dealRes.status}).`);
+  }
+  const deals = await dealRes.json();
+  if (deals.length !== EXPECTED_CRM_SEED.dealsCount) {
+    throw new Error(
+      `CRM-Seed-Prüfung: Erwartet ${EXPECTED_CRM_SEED.dealsCount} Deals für Organisation ${organizationId}, gefunden: ${deals.length}.`,
+    );
+  }
+
+  return {
+    organizationId,
+    companiesCount: companies.length,
+    contactsCount: contacts.length,
+    dealsCount: deals.length,
+    companyIds: companies.map((c) => c.id),
+    contactIds: contacts.map((c) => c.id),
+    dealIds: deals.map((d) => d.id),
+    verifiedAt: new Date().toISOString(),
+  };
+}
 
 /**
  * Kontrollierte CRM-Daten für Organisation A (admin-a) gemäß supabase/seed.sql (Befund PR #67 Runde 9).
@@ -727,10 +831,12 @@ async function openRoute(browser, state, viewport, theme, target) {
     }, theme);
     const page = await context.newPage();
     const consoleErrors = [];
+    const pageErrors = [];
     page.on(
       'console',
       (msg) => msg.type() === 'error' && consoleErrors.push(msg.text().slice(0, 160)),
     );
+    page.on('pageerror', (err) => pageErrors.push(String(err?.message ?? err).slice(0, 160)));
     await page.goto(target.route, { waitUntil: 'networkidle' });
     await page.locator('main').first().waitFor({ timeout: 15000 });
     await page.waitForTimeout(600);
@@ -839,7 +945,7 @@ async function openRoute(browser, state, viewport, theme, target) {
     }
 
     await page.waitForTimeout(400);
-    return { context, page, consoleErrors };
+    return { context, page, consoleErrors, pageErrors };
   } catch (err) {
     await context.close().catch(() => null);
     throw err;
@@ -983,10 +1089,12 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
   });
   const page = await context.newPage();
   const consoleErrors = [];
+  const pageErrors = [];
   page.on(
     'console',
     (msg) => msg.type() === 'error' && consoleErrors.push(msg.text().slice(0, 200)),
   );
+  page.on('pageerror', (err) => pageErrors.push(String(err?.message ?? err).slice(0, 200)));
   const steps = [];
   const snap = async (label) => {
     await page.waitForTimeout(1500);
@@ -1062,6 +1170,7 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
     steps,
     interceptedPostCount,
     consoleErrors: consoleErrors.slice(0, 10),
+    pageErrors,
     maxUpdateDepthErrors: maxDepth,
   };
 }
@@ -1083,8 +1192,9 @@ function writeReadme(data) {
     '',
     `Produkt-Baseline: \`${data.baselineCommit ?? data.commit}\` (Release v2.4.0), aufgenommen ${data.capturedAt.slice(0, 10)} mit`,
     `\`${data.harness?.script ?? 'scripts/captureAuftrag081Inventory.mjs'}\` (Harness SHA-256: \`${data.harness?.sha256 ? data.harness.sha256.slice(0, 16) : '–'}\`).`,
-    `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`), verifiziert gegen lokale Baseline \`${data.baselineCommit ?? data.commit}\`.`,
+    `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`, ${data.buildArtifact?.verifiedAssetsCount ?? 38} statische Assets verifiziert), verifiziert gegen lokale Baseline \`${data.baselineCommit ?? data.commit}\`.`,
     `Testbenutzer: \`${data.testUser?.email}\` (Rolle ${data.testUser?.role}, Organisation \`${data.testUser?.organizationId}\`), Identität vor dem Lauf gegen die Seed-Daten geprüft.`,
+    `CRM-Seed-Daten: Organisation \`${data.crmSeed?.organizationId ?? data.testUser?.organizationId}\` verifiziert (${data.crmSeed?.companiesCount ?? 3} Unternehmen, ${data.crmSeed?.contactsCount ?? 1} Kontakt, ${data.crmSeed?.dealsCount ?? 2} Deals).`,
     `Dashboard-Konfiguration: Standardansicht (${data.dashboardConfig?.tileCount ?? 17} Kacheln, Quelle: \`${data.dashboardConfig?.source ?? 'standard'}\`).`,
     'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
     'Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im',
@@ -1107,15 +1217,13 @@ async function main() {
     writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
     return;
   }
-  // Befund 4 PR #67 Runde 10: Screenshots während des Laufs in test-results/ stagen
+  // Befund 1 PR #67 Runde 11: Staging-Verzeichnis laufbezogen mit Zeitstempel anlegen, bestehende Artefakte erhalten
   const diagDir = path.join(ROOT, 'test-results/auftrag-081');
+  const runTimestamp = Date.now();
   const shotsStageDir = path.join(
     diagDir,
-    ONLY ? 'screenshots-teillauf' : 'screenshots-stage',
+    ONLY ? `screenshots-teillauf-${runTimestamp}` : `screenshots-stage-${runTimestamp}`,
   );
-  if (fs.existsSync(shotsStageDir)) {
-    fs.rmSync(shotsStageDir, { recursive: true, force: true });
-  }
   fs.mkdirSync(shotsStageDir, { recursive: true });
 
   const defaultConfig = defaultDashboardConfig(ROOT);
@@ -1124,6 +1232,7 @@ async function main() {
   let setupContext = null;
   let dashboardConfigInfo = null;
   let testIdentity = null;
+  let crmSeedInfo = null;
   let buildArtifact = null;
   let pendingCanonicalPayload = null;
   let runSuccess = false;
@@ -1143,6 +1252,8 @@ async function main() {
     const userId = await sessionUserId(setupPage);
     // Identität vor jeder Änderung prüfen (Befund PR #67 Runde 7)
     testIdentity = await verifyIdentity(setupPage, SUPABASE, CREDENTIALS.email, userId);
+    // Befund 5 PR #67 Runde 11: CRM-Seed-Daten vor den Aufnahmen reproduzierbar verifizieren
+    crmSeedInfo = await verifyCrmSeedData(SUPABASE, CLEANUP_KEY, testIdentity.organizationId);
     const originalPrefs = await readPreferences(setupPage, SUPABASE);
 
     if (originalPrefs.config) {
@@ -1196,7 +1307,7 @@ async function main() {
           try {
             const opened = await openRoute(browser, state, viewport, theme, target);
             context = opened.context;
-            const { page, consoleErrors } = opened;
+            const { page, consoleErrors, pageErrors } = opened;
             const metrics = await measure(page, viewport);
             const expectedPath = target.detail ? '/dashboard/tiles/std_baseline_arr' : target.route;
             if (metrics.url !== expectedPath) {
@@ -1223,6 +1334,7 @@ async function main() {
               axePage,
               focus,
               consoleErrors: consoleErrors.length,
+              pageErrors: pageErrors.length,
               hashes,
             });
             console.log(
@@ -1272,6 +1384,20 @@ async function main() {
       );
     }
 
+    // Befund 2 PR #67 Runde 11: Auch vor dem finalen Schreiben der Baseline unversionierte/ungestagte Dateien prüfen
+    const uncommittedOrUntrackedFinal = execFileSync(
+      'git',
+      ['status', '--porcelain', '--', ...productPaths],
+      { cwd: ROOT },
+    )
+      .toString()
+      .trim();
+    if (uncommittedOrUntrackedFinal.length > 0) {
+      throw new Error(
+        `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen unter Produktpfaden (${uncommittedOrUntrackedFinal.split('\n').length} Einträge). Baseline-Schreiben abgebrochen.`,
+      );
+    }
+
     const failed = shots.filter((s) => s.failed).length;
     const summary = { expected, ok: shots.length - failed, failed };
     const payload = {
@@ -1284,6 +1410,7 @@ async function main() {
       },
       buildArtifact,
       testUser: testIdentity,
+      crmSeed: crmSeedInfo,
       dashboardConfig: dashboardConfigInfo,
       commit: baselineCommit,
       baseUrl: BASE_URL,
@@ -1389,13 +1516,13 @@ async function main() {
       process.exitCode = 1;
       if (restoreError) throw restoreError;
     } else if (pendingCanonicalPayload) {
-      // Befund 4 PR #67 Runde 10: Erst nach erfolgreichem Gesamtlauf und fehlerfreiem Cleanup nach OUT_DIR befördern
+      // Befund 4 PR #67 Runde 10 / Befund 1 PR #67 Runde 11:
+      // Nach erfolgreichem Gesamtlauf und fehlerfreiem Cleanup nach OUT_DIR kopieren; Staging-Artefakte für Diagnose erhalten
       fs.mkdirSync(OUT_DIR, { recursive: true });
       const stagedFiles = fs.readdirSync(shotsStageDir);
       for (const file of stagedFiles) {
         fs.copyFileSync(path.join(shotsStageDir, file), path.join(OUT_DIR, file));
       }
-      fs.rmSync(shotsStageDir, { recursive: true, force: true });
 
       fs.writeFileSync(JSON_OUT, `${JSON.stringify(pendingCanonicalPayload, null, 1)}\n`);
       writeReadme(pendingCanonicalPayload);

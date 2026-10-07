@@ -134,7 +134,7 @@ Reproduktion (Teil der Harness, zusätzlich mit 6 s Wartezeit gegengeprüft):
    der Hauptinhalt stehen bleibt während die Shell aktualisiert, sondern das Routing bzw. der
    komplette Re-Render der Shell vollständig blockiert ist.
 4. Gleiches Verhalten von `/crm/leads` aus. Gegenprobe `/sales/funnel` → Steckbrief: Wechsel klappt.
-5. Konsole: genau die beiden abgefangenen 500-POST-Antworten (`interceptedPostCount: 2`), keine Seitenfehler, kein „Maximum update depth exceeded“.
+5. Konsole und Page-Errors: genau die beiden abgefangenen 500-POST-Antworten (`interceptedPostCount: 2`), keine Seitenfehler (`pageErrors: []`), kein „Maximum update depth exceeded“.
 
 Offen für Paket A: Ursache (Plan §6 nennt `useUrlSyncedState`, `useCrmListQuery`, `DataSourceStatus`,
 `RouteErrorBoundary` als Diagnosekandidaten), Verhalten bei erfolgreicher und leerer Antwort
