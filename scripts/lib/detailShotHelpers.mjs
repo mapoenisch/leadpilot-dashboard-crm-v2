@@ -68,10 +68,7 @@ export async function savePreferences(page, supabase, config, expectedRevision) 
     body: JSON.stringify({ p_config: config, p_expected_revision: expectedRevision }),
   });
   if (result.status >= 300) throw new Error(`Speichern fehlgeschlagen: ${JSON.stringify(result)}`);
-  // Revision aus der RPC-Antwort zusätzlich zurückgeben; das Nachlesen kann bereits eine parallel
-  // gespeicherte Revision zeigen.
-  const rpcRow = Array.isArray(result.body) ? result.body[0] : result.body;
-  return { ...(await readPreferences(page, supabase)), rpcRevision: rpcRow?.revision ?? null };
+  return readPreferences(page, supabase);
 }
 
 /** Benutzer-ID der angemeldeten Sitzung (aus dem Supabase-Token im localStorage). */

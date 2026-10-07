@@ -28,7 +28,6 @@ import { execFileSync } from 'node:child_process';
 import { loadEnv } from 'vite';
 import {
   axeSevere,
-  savePreferences,
   scrollThrough,
   sessionUserId,
 } from './lib/detailShotHelpers.mjs';
@@ -73,6 +72,44 @@ async function readPreferences(page, supabase) {
   );
   const row = Array.isArray(body) ? body[0] : null;
   return row ? { ...row } : { revision: 0, config: null };
+}
+
+/**
+ * Speichert Dashboard-Präferenzen über den RPC-Endpunkt mit der aktiven Benutzersitzung.
+ * Hält die RPC-Auswertung lokal im 081-Harness, um detailShotHelpers.mjs unberührt zu lassen (Codex PR #67 Runde 18/19).
+ * Gibt neben den nachgelesenen Präferenzen auch die direkte rpcRevision aus der RPC-Rückgabe zurück.
+ */
+async function savePreferences(page, supabase, config, expectedRevision) {
+  const result = await page.evaluate(
+    async ({ url, anonKey, config: pConfig, expectedRevision: pExpRev }) => {
+      let token = null;
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('sb-') && key.endsWith('-auth-token')) {
+          token = JSON.parse(localStorage.getItem(key) ?? '{}').access_token ?? null;
+        }
+      }
+      const response = await fetch(`${url}/rest/v1/rpc/save_dashboard_preferences`, {
+        method: 'POST',
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ p_config: pConfig, p_expected_revision: pExpRev }),
+      });
+      return { status: response.status, body: await response.json().catch(() => null) };
+    },
+    { url: supabase.url, anonKey: supabase.anonKey, config, expectedRevision },
+  );
+  if (result.status >= 300) {
+    throw new Error(
+      `Speichern fehlgeschlagen (HTTP ${result.status}): ${JSON.stringify(result.body)}`,
+    );
+  }
+  const rpcRow = Array.isArray(result.body) ? result.body[0] : result.body;
+  const read = await readPreferences(page, supabase);
+  return { ...read, rpcRevision: rpcRow?.revision ?? null };
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

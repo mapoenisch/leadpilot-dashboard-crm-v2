@@ -15833,3 +15833,10 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - **Schutzbereichs-Prüfung:** `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` leer (0 Byte); keine Datei unter `src/` geändert.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
 
+**Nacharbeit Codex-Review PR #67 Runde 19 (07.10.2026, Head `cb781bf`):**
+Befund behoben:
+1. **Beschränke die Änderung auf die Ziel-Dateien (P1):** `scripts/lib/detailShotHelpers.mjs` ist keine Ziel-Datei von Auftrag 081 und wird gemeinsam von den Harnesses 077 und 079 verwendet. Die Datei wurde vollständig auf ihren Baseline-Stand von `7fd6e33` zurückgesetzt (`git diff 7fd6e33 -- scripts/lib/detailShotHelpers.mjs` = 0 Byte). Die RPC-Auswertung für das Speichern der Dashboard-Präferenzen inklusive Auslesen von `rpcRevision` wurde als lokale Funktion `savePreferences` direkt in `scripts/captureAuftrag081Inventory.mjs` gekapselt. Auftrag 081 bleibt unverändert auf seine Ziel-Dateien beschränkt.
+- **Schutzbereichs- und Ziel-Dateien-Prüfung:** `git diff 7fd6e33 -- src/ scripts/lib/detailShotHelpers.mjs` = 0 Byte.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
+
