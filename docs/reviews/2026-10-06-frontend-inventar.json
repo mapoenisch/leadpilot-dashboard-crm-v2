@@ -3,8 +3,8 @@
  "productVersion": "2.4.0",
  "harness": {
   "script": "scripts/captureAuftrag081Inventory.mjs",
-  "sha256": "a55b0df57e56f64beeacb218da48ad4dc37ee41169dc71d978033d514af1e8ac",
-  "headAtExecution": "67c5377"
+  "sha256": "39ff691dc92c4172c8dc1a351492a6dbe6234b684cba870a9f08d7d0b1fb1488",
+  "headAtExecution": "a18035b"
  },
  "buildArtifact": {
   "entryScript": "/assets/index-CWHASUp2.js",
@@ -41,7 +41,20 @@
    "e0000000-0000-0000-0000-000000000001",
    "e0000000-0000-0000-0000-000000000003"
   ],
-  "verifiedAt": "2026-10-07T17:39:26.390Z"
+  "verifiedAt": "2026-10-07T18:06:34.232Z"
+ },
+ "simulationWorkspace": {
+  "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "counts": {
+   "simulation_scenarios": 0,
+   "simulation_scenario_versions": 0,
+   "simulation_runs": 0,
+   "simulation_timeseries": 0,
+   "simulation_events": 0,
+   "simulation_snapshots": 0,
+   "simulation_run_pauses": 0
+  },
+  "verifiedAt": "2026-10-07T18:06:34.268Z"
  },
  "dashboardConfig": {
   "source": "default_unpersisted",
@@ -71,7 +84,7 @@
  },
  "commit": "7fd6e33",
  "baseUrl": "http://localhost:4181",
- "capturedAt": "2026-10-07T17:50:28.645Z",
+ "capturedAt": "2026-10-07T18:17:44.176Z",
  "summary": {
   "expected": 256,
   "ok": 256,
@@ -174,7 +187,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "69fbdd6885013a6a",
+    "first": "5268120431189ebb",
     "full": "93b05f063375cfac"
    }
   },
@@ -374,7 +387,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "1ed3a8a4a72099f6",
+    "first": "30e37d8eb58ff636",
     "full": "799e459c53a7f091"
    }
   },
@@ -574,7 +587,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "ecace4b752d3dc0a",
+    "first": "639ece683a15c14f",
     "full": "257abe0feb542336"
    }
   },
@@ -674,7 +687,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "e06ba0ae67a10afc",
+    "first": "dab9456979dc8917",
     "full": "bb9fdf75f82d0405"
    }
   },
@@ -902,7 +915,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "42cc405bef23a744",
+    "first": "9dde39fdf658edc6",
     "full": "9dde39fdf658edc6"
    }
   },
@@ -966,7 +979,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7b096dd4e16e8cf4",
+    "first": "75b218af7b17b353",
     "full": "75b218af7b17b353"
    }
   },
@@ -1032,7 +1045,7 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "66c1c4addfc58f6a",
+    "first": "a4269066680ceb85",
     "full": "a4269066680ceb85"
    }
   },
@@ -1098,7 +1111,7 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "03329e4a416ddd74",
+    "first": "77e100c957e68b0b",
     "full": "77e100c957e68b0b"
    }
   },
@@ -1164,7 +1177,7 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "0dd775ae180c0b39",
+    "first": "6288f0f68eb28187",
     "full": "15ea4f9666080bba"
    }
   },
@@ -1195,7 +1208,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "9606868078e1a887",
+    "first": "c5c9a91b5783cc48",
     "full": "071071918dc39d50"
    }
   },
@@ -1228,7 +1241,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "e1058b6566a3eb19",
+    "first": "436c975213b2a25a",
     "full": "b35ce575a5378d9a"
    }
   },
@@ -1259,7 +1272,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "df83921baaef4d67",
+    "first": "d2ae9754214c48c5",
     "full": "170a92072ee33e11"
    }
   },
@@ -1325,7 +1338,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "84e9d1c70086392c",
+    "first": "db8a99dec00a68cd",
     "full": "5e2e5212e168a779"
    }
   },
@@ -1424,7 +1437,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "cceb1f354d9a4c34",
+    "first": "0b3c72ff4f0a7ccb",
     "full": "4debd55fe453a0c8"
    }
   },
@@ -1587,8 +1600,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d81a8c9441fa8879",
-    "full": "d81a8c9441fa8879"
+    "first": "a4e358ed0b97292f",
+    "full": "a4e358ed0b97292f"
    }
   },
   {
@@ -1622,8 +1635,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "e258339ae262ea59",
-    "full": "3e4fa8deffe7684a"
+    "first": "4b8d67289bb16fe2",
+    "full": "4b8d67289bb16fe2"
    }
   },
   {
@@ -1653,8 +1666,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "6101e231ab544504",
-    "full": "1034ace7d7e51cf2"
+    "first": "42cfe038d7ce8378",
+    "full": "e4b9e0f72bae4d21"
    }
   },
   {
@@ -1688,8 +1701,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "5ae54df3e4f0c73e",
-    "full": "e24822105ca70324"
+    "first": "93b06a9b299dcde8",
+    "full": "0db775878dce5989"
    }
   },
   {
@@ -1719,8 +1732,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "cd73e1212d66ddbe",
-    "full": "2ebafd7c34aff627"
+    "first": "ed672c6b769c76c7",
+    "full": "83ab4acc20d4300e"
    }
   },
   {
@@ -1754,8 +1767,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "bbc921ddd723a0eb",
-    "full": "8765711ef7a1f618"
+    "first": "1a4f0502573f7449",
+    "full": "97e868b5dbfd22c5"
    }
   },
   {
@@ -1785,8 +1798,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3a20f6fa3f3c0932",
-    "full": "8fbed2ce68ff5c22"
+    "first": "4d16a2755d582c8f",
+    "full": "78f8805e797c9c22"
    }
   },
   {
@@ -1820,8 +1833,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "44bfab54712736c6",
-    "full": "09c3cf04a95c8f24"
+    "first": "bffcfbb62eadd338",
+    "full": "4e3bb1c11ca45cf2"
    }
   },
   {
@@ -1851,8 +1864,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8c78ca4b9c535a9e",
-    "full": "6ea94cce132c0fd6"
+    "first": "7658a36bed1a2387",
+    "full": "af69e2dee873470c"
    }
   },
   {
@@ -1886,8 +1899,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "1cc0bb7beb0c91d2",
-    "full": "762d849e5a379d04"
+    "first": "5d800f1d677ce310",
+    "full": "e7bd25c07cb43b59"
    }
   },
   {
@@ -1917,8 +1930,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "6ecd12a9d72e8e3a",
-    "full": "b9bbce8a298cd65c"
+    "first": "a9102d31fd183ed2",
+    "full": "1e99f112980fdb00"
    }
   },
   {
@@ -1952,8 +1965,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a2c72df2f6d86420",
-    "full": "b96a82da76b498ba"
+    "first": "6a360b88ce281f39",
+    "full": "0eb48d9fe31807f8"
    }
   },
   {
@@ -1983,8 +1996,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "6f0d1b863cbf19b4",
-    "full": "6f0d1b863cbf19b4"
+    "first": "3fc762419a21bc02",
+    "full": "3fc762419a21bc02"
    }
   },
   {
@@ -2018,8 +2031,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d95ff7d840046f81",
-    "full": "d95ff7d840046f81"
+    "first": "b91e392d2a0dbb39",
+    "full": "b91e392d2a0dbb39"
    }
   },
   {
@@ -2049,8 +2062,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d63b448feca2226e",
-    "full": "a3fee4227b04ea38"
+    "first": "7e4d8eced7469385",
+    "full": "e93c1768b7239234"
    }
   },
   {
@@ -2084,8 +2097,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3f71c2f223ee740e",
-    "full": "cbfb8b1b8a4df429"
+    "first": "9be29a779c23792f",
+    "full": "4c33bc56b5bc9b7d"
    }
   },
   {
@@ -2115,8 +2128,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "304d1ac9555bd4cd",
-    "full": "f270d7608d0b8efd"
+    "first": "3eb58c934e966fd0",
+    "full": "0c4729860ebf5ec5"
    }
   },
   {
@@ -2150,8 +2163,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "aba1e64d44506a94",
-    "full": "73cb0b2fa8d2ea40"
+    "first": "394eb3bf4ab09651",
+    "full": "cbb875cc2e71f998"
    }
   },
   {
@@ -2247,7 +2260,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "2382b01d589ddb0c",
+    "first": "8374900df576254c",
     "full": "8374900df576254c"
    }
   },
@@ -2282,7 +2295,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "952a1f4980b3eb91",
+    "first": "5d2685f24012c601",
     "full": "5d2685f24012c601"
    }
   },
@@ -2313,7 +2326,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "3693907e3f17d88e",
+    "first": "3dded44e9d56f457",
     "full": "3693907e3f17d88e"
    }
   },
@@ -2348,7 +2361,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "5debd240de37f619",
+    "first": "da697fbc49a627c3",
     "full": "85a784dc02a71384"
    }
   },
@@ -2576,7 +2589,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "57e77dc9d73baaca",
+    "first": "2d730e0a82c58a97",
     "full": "57e77dc9d73baaca"
    }
   },
@@ -2728,7 +2741,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "05964865c37329e0",
+    "first": "a52915eafd91f7d3",
     "full": "05964865c37329e0"
    }
   },
@@ -2956,7 +2969,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "29bb6fbc88a88717",
+    "first": "d7920575c244fbbd",
     "full": "29bb6fbc88a88717"
    }
   },
@@ -3184,7 +3197,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "1c615be5047e3508",
+    "first": "4c365796bd611c10",
     "full": "1c615be5047e3508"
    }
   },
@@ -3260,7 +3273,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "abcd00154f24b65e",
+    "first": "72a056fe9c2bfb24",
     "full": "abcd00154f24b65e"
    }
   },
@@ -3336,7 +3349,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3abb9e7c58daef19",
+    "first": "463709cd8b4854cf",
     "full": "3abb9e7c58daef19"
    }
   },
@@ -3564,7 +3577,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f991eb47e242e1d4",
+    "first": "49a47c887f81e3b8",
     "full": "49a47c887f81e3b8"
    }
   },
@@ -3640,7 +3653,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8d5ae7c79d6c4e7a",
+    "first": "25b61695c202bdf3",
     "full": "8d5ae7c79d6c4e7a"
    }
   },
@@ -3792,7 +3805,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "9c046631178e5897",
+    "first": "82288cb5e8c8e69f",
     "full": "9c046631178e5897"
    }
   },
@@ -3868,7 +3881,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "1d2f592c5c58b751",
+    "first": "6e3ea6f54424d928",
     "full": "6e3ea6f54424d928"
    }
   },
@@ -4096,7 +4109,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0c7418682b2ae1a0",
+    "first": "d35d9afd66c5438c",
     "full": "0c7418682b2ae1a0"
    }
   },
@@ -4172,7 +4185,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "50104550e749a967",
+    "first": "a8e6b8e259f9ca2d",
     "full": "50104550e749a967"
    }
   },
@@ -4248,7 +4261,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "fb73dfc2787797de",
+    "first": "ee9814cdf02d6286",
     "full": "fb73dfc2787797de"
    }
   },
@@ -4324,7 +4337,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "522f8e9309442a5b",
+    "first": "2028f07e46dc9e09",
     "full": "522f8e9309442a5b"
    }
   },
@@ -5084,7 +5097,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f96bb04dbd4fc6ae",
+    "first": "f3b06d2fb72bcb7e",
     "full": "f96bb04dbd4fc6ae"
    }
   },
@@ -5236,7 +5249,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d94d7907b6056297",
+    "first": "0465d50cf540ac21",
     "full": "d94d7907b6056297"
    }
   },
@@ -5312,7 +5325,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "dd0e77f2c363967b",
+    "first": "499be79f333a4478",
     "full": "dd0e77f2c363967b"
    }
   },
@@ -5616,7 +5629,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "61525d126b03cd9c",
+    "first": "d6dfed0eb61c0146",
     "full": "d6dfed0eb61c0146"
    }
   },
@@ -5692,7 +5705,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "6b45d4461587ac88",
+    "first": "b1c5561e1b0dcc80",
     "full": "6b45d4461587ac88"
    }
   },
@@ -6148,7 +6161,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "eabc5030174c821e",
+    "first": "43df77e42a49c813",
     "full": "eabc5030174c821e"
    }
   },
@@ -6452,7 +6465,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d4899ed9cc4cb3a8",
+    "first": "16e45b52f8ed4c24",
     "full": "16e45b52f8ed4c24"
    }
   },
@@ -6756,7 +6769,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7413551dc1f3fb17",
+    "first": "2aa6b87a87a896eb",
     "full": "7413551dc1f3fb17"
    }
   },
@@ -6832,7 +6845,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3cf255847cc0fb2a",
+    "first": "f49b25c97f055c32",
     "full": "3cf255847cc0fb2a"
    }
   },
@@ -6908,7 +6921,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "447d9f804c8d5904",
+    "first": "7306ba8b0648b38f",
     "full": "447d9f804c8d5904"
    }
   },
@@ -6984,7 +6997,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b6b34f00eb70bfe6",
+    "first": "72591c4d98084f9e",
     "full": "72591c4d98084f9e"
    }
   },
@@ -7060,7 +7073,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "eba995fb28eec4e6",
+    "first": "faaef91ead290fcf",
     "full": "faaef91ead290fcf"
    }
   },
@@ -7212,7 +7225,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a1f8b584265baafb",
+    "first": "93e9ee3ea3905064",
     "full": "a1f8b584265baafb"
    }
   },
@@ -7288,7 +7301,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "16e796772acb4739",
+    "first": "e88e425ad14a1723",
     "full": "e88e425ad14a1723"
    }
   },
@@ -7440,7 +7453,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b83ee383c02c1d0a",
+    "first": "dcecdf8e1bd4323a",
     "full": "dcecdf8e1bd4323a"
    }
   },
@@ -7668,7 +7681,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "076604b4253893dd",
+    "first": "4e7b55e8a24f6c1f",
     "full": "076604b4253893dd"
    }
   },
@@ -8048,7 +8061,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b1bfc9b662358872",
+    "first": "57704b9ed130b306",
     "full": "b1bfc9b662358872"
    }
   },
@@ -8428,7 +8441,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0d8a23a5c77abef9",
+    "first": "e74f3bb68149e040",
     "full": "e74f3bb68149e040"
    }
   },
@@ -8580,7 +8593,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "78993cceb70ac5f4",
+    "first": "3ec00e3a7f264674",
     "full": "78993cceb70ac5f4"
    }
   },
@@ -8732,7 +8745,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "883c5362ecea34d6",
+    "first": "4802ba368d285cd6",
     "full": "883c5362ecea34d6"
    }
   },
@@ -9112,7 +9125,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8e57aa57d0ea2456",
+    "first": "890f285757c1176b",
     "full": "8e57aa57d0ea2456"
    }
   },
@@ -9188,7 +9201,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7d63b97f57a3b3cf",
+    "first": "ea969340e10e4985",
     "full": "ea969340e10e4985"
    }
   },
@@ -9340,7 +9353,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d977ac81b4f687d7",
+    "first": "7258fbaac38c1c15",
     "full": "7258fbaac38c1c15"
    }
   },
@@ -9492,7 +9505,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4cd00acbf7fe7d77",
+    "first": "24633c5a960c42a3",
     "full": "4cd00acbf7fe7d77"
    }
   },
@@ -9568,7 +9581,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "11f1da2ba332b576",
+    "first": "23edb99a557745b6",
     "full": "11f1da2ba332b576"
    }
   },
@@ -9644,7 +9657,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d94254be6fd89500",
+    "first": "fd993df2c818f1a4",
     "full": "d94254be6fd89500"
    }
   },
@@ -9720,7 +9733,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "13bceb3ecb857a93",
+    "first": "dffa92c3eba05973",
     "full": "13bceb3ecb857a93"
    }
   }
