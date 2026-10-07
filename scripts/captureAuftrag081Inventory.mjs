@@ -151,7 +151,7 @@ async function verifyIdentity(page, supabase, email, userId) {
 
 /**
  * Verifiziert, dass der lokale Produkt- und Build-Code exakt der Baseline 7fd6e33 entspricht UND
- * dass der unter baseUrl bediente Produktionsbuild exakt aus diesem Stand stammt (Befund PR #67 Runde 8).
+ * dass der unter baseUrl bediente Produktionsbuild exakt aus diesem Stand stammt (Befund PR #67 Runde 8–10).
  */
 async function verifyBuildArtifact(baseUrl) {
   const baselineCommit = '7fd6e33';
@@ -164,7 +164,7 @@ async function verifyBuildArtifact(baseUrl) {
     'package-lock.json',
     'tsconfig.json',
     'tsconfig.node.json',
-    'tailwind.config.ts',
+    'tailwind.config.js',
     'postcss.config.js',
   ];
   const productDiff = execFileSync(
@@ -212,6 +212,13 @@ async function verifyBuildArtifact(baseUrl) {
     throw new Error(`BASE_URL ${baseUrl} antwortet mit HTTP ${serverResponse.status}.`);
   }
   const servedHtml = await serverResponse.text();
+  const servedHtmlSha256 = sha256(Buffer.from(servedHtml));
+  if (servedHtmlSha256 !== localHtmlSha256) {
+    throw new Error(
+      `Das unter ${baseUrl} ausgelieferte HTML (SHA-256 ${servedHtmlSha256.slice(0, 16)}...) weicht vom lokalen Build (${localHtmlSha256.slice(0, 16)}...) ab.`,
+    );
+  }
+
   const servedEntryMatch = servedHtml.match(
     /<script type="module" crossorigin src="(\/assets\/[^"]+)"><\/script>/,
   );
@@ -238,10 +245,77 @@ async function verifyBuildArtifact(baseUrl) {
     );
   }
 
+  // Befund 2 PR #67 Runde 10: Alle referenzierten Stylesheets verifizieren
+  const stylesheetMatches = [
+    ...localDistHtml.matchAll(
+      /<link[^>]+rel=["']stylesheet["'][^>]*href=["']([^"']+)["']|<link[^>]+href=["']([^"']+)["'][^>]*rel=["']stylesheet["']/g,
+    ),
+  ];
+  const stylesheetPaths = stylesheetMatches.map((m) => m[1] || m[2]);
+  if (stylesheetPaths.length === 0) {
+    throw new Error('Keine Stylesheets in dist/index.html gefunden.');
+  }
+  for (const cssPath of stylesheetPaths) {
+    const localCssFile = path.join(ROOT, 'dist', cssPath);
+    if (!fs.existsSync(localCssFile)) {
+      throw new Error(`Lokale Stylesheet-Datei dist${cssPath} existiert nicht.`);
+    }
+    const localCssSha256 = sha256(fs.readFileSync(localCssFile));
+    const servedCssRes = await fetch(`${baseUrl}${cssPath}`);
+    if (!servedCssRes.ok) {
+      throw new Error(
+        `Stylesheet ${cssPath} konnte von ${baseUrl} nicht geladen werden (HTTP ${servedCssRes.status}).`,
+      );
+    }
+    const servedCssSha256 = sha256(Buffer.from(await servedCssRes.arrayBuffer()));
+    if (servedCssSha256 !== localCssSha256) {
+      throw new Error(
+        `Das unter ${baseUrl} ausgelieferte Stylesheet ${cssPath} (SHA-256 ${servedCssSha256.slice(0, 16)}...) weicht vom lokalen Build (${localCssSha256.slice(0, 16)}...) ab.`,
+      );
+    }
+  }
+
+  // Befund 2 PR #67 Runde 10: Alle 32 öffentlichen WebP-Bilder aus imagePages.ts verifizieren
+  const imagePagesContent = fs.readFileSync(
+    path.join(ROOT, 'src/components/imagePage/imagePages.ts'),
+    'utf8',
+  );
+  const imagePaths = [
+    ...new Set(
+      [...imagePagesContent.matchAll(/src:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
+    ),
+  ];
+  if (imagePaths.length !== 32) {
+    throw new Error(
+      `Erwartet wurden 32 öffentliche WebP-Bilder in imagePages.ts, gefunden: ${imagePaths.length}.`,
+    );
+  }
+  for (const imgPath of imagePaths) {
+    const localImgFile = path.join(ROOT, 'dist', imgPath);
+    if (!fs.existsSync(localImgFile)) {
+      throw new Error(`Lokale Bilddatei dist${imgPath} existiert nicht.`);
+    }
+    const localImgSha256 = sha256(fs.readFileSync(localImgFile));
+    const servedImgRes = await fetch(`${baseUrl}${imgPath}`);
+    if (!servedImgRes.ok) {
+      throw new Error(
+        `Bild ${imgPath} konnte von ${baseUrl} nicht geladen werden (HTTP ${servedImgRes.status}).`,
+      );
+    }
+    const servedImgSha256 = sha256(Buffer.from(await servedImgRes.arrayBuffer()));
+    if (servedImgSha256 !== localImgSha256) {
+      throw new Error(
+        `Das unter ${baseUrl} ausgelieferte Bild ${imgPath} (SHA-256 ${servedImgSha256.slice(0, 16)}...) weicht vom lokalen Build (${localImgSha256.slice(0, 16)}...) ab.`,
+      );
+    }
+  }
+
   return {
     entryScript: entryScriptPath,
     entrySha256: localScriptSha256,
     indexHtmlSha256: localHtmlSha256,
+    stylesheets: stylesheetPaths,
+    verifiedImagesCount: imagePaths.length,
     verifiedServedUrl: baseUrl,
   };
 }
@@ -453,6 +527,133 @@ function imagePageRoutes() {
   return result;
 }
 
+const CRM_RESOURCE_CONFIG = {
+  companies: {
+    defaultSort: 'name',
+    defaultOrder: 'asc',
+    searchFields: ['name', 'domain', 'city'],
+    fieldMap: {
+      name: 'name',
+      domain: 'domain',
+      industry: 'industry',
+      city: 'city',
+      postal_code: 'postalCode',
+      postalCode: 'postalCode',
+      employee_count: 'employeeCount',
+      employeeCount: 'employeeCount',
+      created_at: 'createdAt',
+      createdAt: 'createdAt',
+      id: 'id',
+    },
+  },
+  contacts: {
+    defaultSort: 'lastName',
+    defaultOrder: 'asc',
+    searchFields: ['firstName', 'lastName', 'email', 'jobTitle'],
+    fieldMap: {
+      first_name: 'firstName',
+      firstName: 'firstName',
+      last_name: 'lastName',
+      lastName: 'lastName',
+      email: 'email',
+      job_title: 'jobTitle',
+      jobTitle: 'jobTitle',
+      company_id: 'companyId',
+      companyId: 'companyId',
+      created_at: 'createdAt',
+      createdAt: 'createdAt',
+      id: 'id',
+    },
+  },
+  deals: {
+    defaultSort: 'closeDate',
+    defaultOrder: 'desc',
+    searchFields: ['dealName', 'stage', 'pipeline'],
+    fieldMap: {
+      deal_name: 'dealName',
+      dealName: 'dealName',
+      stage: 'stage',
+      amount: 'amount',
+      close_date: 'closeDate',
+      closeDate: 'closeDate',
+      pipeline: 'pipeline',
+      created_at: 'createdAt',
+      createdAt: 'createdAt',
+      id: 'id',
+    },
+  },
+};
+
+/**
+ * Filtert, durchsucht, sortiert und paginiert kontrollierte CRM-Daten wie die kanonische Edge Function
+ * supabase/functions/crm-query-export/index.ts (Befund PR #67 Runde 10).
+ */
+function processControlledCrmQuery(resource, params = {}) {
+  const cfg = CRM_RESOURCE_CONFIG[resource] || {
+    defaultSort: 'id',
+    defaultOrder: 'asc',
+    searchFields: [],
+    fieldMap: {},
+  };
+  let items = [...(CONTROLLED_CRM_DATA[resource] || [])];
+
+  // 1. Suche q
+  const q = typeof params.q === 'string' ? params.q.trim().toLowerCase() : '';
+  if (q) {
+    items = items.filter((item) =>
+      cfg.searchFields.some((field) => {
+        const val = item[field];
+        return val != null && String(val).toLowerCase().includes(q);
+      }),
+    );
+  }
+
+  // 2. Filter
+  if (params.filters && typeof params.filters === 'object') {
+    for (const [k, v] of Object.entries(params.filters)) {
+      if (typeof v !== 'string' || !v || v === 'ALL') continue;
+      const mappedKey = cfg.fieldMap[k] || k;
+      items = items.filter((item) => String(item[mappedKey] ?? '') === v);
+    }
+  }
+
+  // 3. Sortierung (sortBy, sortOrder, Tie-Breaker id asc)
+  const rawSortBy = params.sortBy;
+  const mappedSortBy = (rawSortBy && cfg.fieldMap[rawSortBy]) || cfg.defaultSort;
+  const rawSortOrder = String(params.sortOrder || cfg.defaultOrder).toLowerCase();
+  const sortOrder = rawSortOrder === 'desc' ? 'desc' : 'asc';
+
+  items.sort((a, b) => {
+    const valA = a[mappedSortBy];
+    const valB = b[mappedSortBy];
+    let cmp = 0;
+    if (typeof valA === 'number' && typeof valB === 'number') {
+      cmp = valA - valB;
+    } else {
+      cmp = String(valA ?? '').localeCompare(String(valB ?? ''));
+    }
+    if (cmp !== 0) {
+      return sortOrder === 'desc' ? -cmp : cmp;
+    }
+    return String(a.id ?? '').localeCompare(String(b.id ?? ''));
+  });
+
+  // 4. Paginierung
+  const total = items.length;
+  const page = Number(params.page) || 1;
+  const pageSize = Number(params.pageSize) || 20;
+  const from = (page - 1) * pageSize;
+  const paginatedItems = items.slice(from, from + pageSize);
+
+  return {
+    items: paginatedItems,
+    total,
+    page,
+    pageSize,
+    resource,
+  };
+}
+
 async function openRoute(browser, state, viewport, theme, target) {
   const context = await browser.newContext({
     baseURL: BASE_URL,
@@ -462,7 +663,7 @@ async function openRoute(browser, state, viewport, theme, target) {
     locale: 'de-DE',
   });
   try {
-    // Interception für crm-query-export: Bedient reguläre CRM-Aufnahmen kontrolliert im Erfolgszustand (Befund PR #67 Runde 9)
+    // Interception für crm-query-export: Bedient reguläre CRM-Aufnahmen kontrolliert im Erfolgszustand (Befund PR #67 Runde 9/10)
     await context.route('**/functions/v1/crm-query-export**', async (route) => {
       const request = route.request();
       if (request.method() === 'OPTIONS') {
@@ -477,39 +678,44 @@ async function openRoute(browser, state, viewport, theme, target) {
         });
         return;
       }
+      let params = {};
       if (request.method() === 'POST') {
-        let postData = {};
         try {
-          postData = JSON.parse(request.postData() ?? '{}');
+          params = JSON.parse(request.postData() ?? '{}');
         } catch {
-          postData = {};
+          params = {};
         }
-        const resource = postData.resource ?? 'companies';
-        const page = Number(postData.page) || 1;
-        const pageSize = Number(postData.pageSize) || 20;
-
-        const dataForResource = CONTROLLED_CRM_DATA[resource] ?? [];
-        const total = dataForResource.length;
-        const from = (page - 1) * pageSize;
-        const items = dataForResource.slice(from, from + pageSize);
-
-        await route.fulfill({
-          status: 200,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            items,
-            total,
-            page,
-            pageSize,
-            resource,
-          }),
-        });
+      } else if (request.method() === 'GET') {
+        const url = new URL(request.url());
+        params.resource = url.searchParams.get('resource') || undefined;
+        params.q = url.searchParams.get('q') || undefined;
+        params.sortBy = url.searchParams.get('sortBy') || undefined;
+        params.sortOrder = url.searchParams.get('sortOrder') || undefined;
+        params.page = url.searchParams.get('page') ? Number(url.searchParams.get('page')) : undefined;
+        params.pageSize = url.searchParams.get('pageSize')
+          ? Number(url.searchParams.get('pageSize'))
+          : undefined;
+        const filters = {};
+        for (const [k, v] of url.searchParams.entries()) {
+          if (k.startsWith('filter_')) filters[k.replace('filter_', '')] = v;
+        }
+        if (Object.keys(filters).length > 0) params.filters = filters;
+      } else {
+        await route.continue();
         return;
       }
-      await route.continue();
+
+      const resource = params.resource ?? 'companies';
+      const result = processControlledCrmQuery(resource, params);
+
+      await route.fulfill({
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(result),
+      });
     });
 
     await context.addInitScript((mode) => {
@@ -716,9 +922,9 @@ async function axeSeverePage(page) {
     .map((v) => v.id);
 }
 
-async function capture(page, viewport, name) {
+async function capture(page, viewport, name, targetDir = OUT_DIR) {
   const first = await page.screenshot();
-  fs.writeFileSync(path.join(OUT_DIR, `${name}-first.png`), first);
+  fs.writeFileSync(path.join(targetDir, `${name}-first.png`), first);
   // Auftrag 079-Muster: Höhen- und Overflow-Begrenzung für fullPage temporär aufheben,
   // damit der gesamte scrollende Hauptinhalt ohne Viewport-Verzerrung aufgenommen wird (Codex PR #67).
   const style = await page.addStyleTag({
@@ -728,11 +934,11 @@ async function capture(page, viewport, name) {
   });
   const full = await page.screenshot({ fullPage: true });
   await style.evaluate((node) => node.remove());
-  fs.writeFileSync(path.join(OUT_DIR, `${name}-full.png`), full);
+  fs.writeFileSync(path.join(targetDir, `${name}-full.png`), full);
   return { first: sha256(first).slice(0, 16), full: sha256(full).slice(0, 16) };
 }
 
-async function pipelineErrorCase(browser, state) {
+async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
   const viewport = WIDTHS[0];
   const context = await browser.newContext({
     baseURL: BASE_URL,
@@ -811,7 +1017,7 @@ async function pipelineErrorCase(browser, state) {
   };
   await page.goto('/crm/deals', { waitUntil: 'networkidle' });
   await snap('Pipeline mit 500');
-  fs.writeFileSync(path.join(OUT_DIR, 'fehler-pipeline-500.png'), await page.screenshot());
+  fs.writeFileSync(path.join(targetDir, 'fehler-pipeline-500.png'), await page.screenshot());
 
   // Validierung: mindestens ein POST zu crm-query-export muss abgefangen worden sein
   if (interceptedPostCount < 1) {
@@ -847,7 +1053,7 @@ async function pipelineErrorCase(browser, state) {
     await snap(label);
   }
   fs.writeFileSync(
-    path.join(OUT_DIR, 'fehler-pipeline-nach-navigation.png'),
+    path.join(targetDir, 'fehler-pipeline-nach-navigation.png'),
     await page.screenshot(),
   );
   const maxDepth = consoleErrors.filter((e) => /Maximum update depth/i.test(e)).length;
@@ -901,7 +1107,16 @@ async function main() {
     writeReadme(JSON.parse(fs.readFileSync(JSON_OUT, 'utf8')));
     return;
   }
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+  // Befund 4 PR #67 Runde 10: Screenshots während des Laufs in test-results/ stagen
+  const diagDir = path.join(ROOT, 'test-results/auftrag-081');
+  const shotsStageDir = path.join(
+    diagDir,
+    ONLY ? 'screenshots-teillauf' : 'screenshots-stage',
+  );
+  if (fs.existsSync(shotsStageDir)) {
+    fs.rmSync(shotsStageDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(shotsStageDir, { recursive: true });
 
   const defaultConfig = defaultDashboardConfig(ROOT);
   let browser = null;
@@ -996,7 +1211,7 @@ async function main() {
             }
             const axe = await axeSevere(page);
             const axePage = await axeSeverePage(page);
-            const hashes = await capture(page, viewport, name);
+            const hashes = await capture(page, viewport, name, shotsStageDir);
             const focus = await firstFocus(page);
             shots.push({
               id: target.id,
@@ -1023,7 +1238,7 @@ async function main() {
         }
       }
     }
-    const pipelineError = ONLY ? null : await pipelineErrorCase(browser, state);
+    const pipelineError = ONLY ? null : await pipelineErrorCase(browser, state, shotsStageDir);
 
     const scriptContent = fs.readFileSync(
       path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'),
@@ -1045,7 +1260,7 @@ async function main() {
       'package-lock.json',
       'tsconfig.json',
       'tsconfig.node.json',
-      'tailwind.config.ts',
+      'tailwind.config.js',
       'postcss.config.js',
     ];
     const productDiff = execFileSync('git', ['diff', baselineCommit, '--', ...productPaths], { cwd: ROOT })
@@ -1174,6 +1389,14 @@ async function main() {
       process.exitCode = 1;
       if (restoreError) throw restoreError;
     } else if (pendingCanonicalPayload) {
+      // Befund 4 PR #67 Runde 10: Erst nach erfolgreichem Gesamtlauf und fehlerfreiem Cleanup nach OUT_DIR befördern
+      fs.mkdirSync(OUT_DIR, { recursive: true });
+      const stagedFiles = fs.readdirSync(shotsStageDir);
+      for (const file of stagedFiles) {
+        fs.copyFileSync(path.join(shotsStageDir, file), path.join(OUT_DIR, file));
+      }
+      fs.rmSync(shotsStageDir, { recursive: true, force: true });
+
       fs.writeFileSync(JSON_OUT, `${JSON.stringify(pendingCanonicalPayload, null, 1)}\n`);
       writeReadme(pendingCanonicalPayload);
       if (fs.existsSync(stageJsonOut)) fs.unlinkSync(stageJsonOut);
