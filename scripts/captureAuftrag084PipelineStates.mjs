@@ -31,9 +31,27 @@ const VIEWPORTS = [
 ];
 const THEMES = ['dark', 'light'];
 const PAGES = [
-  { id: 'deals', route: '/crm/deals', title: 'Deal Pipeline', badge: /Funnel Deals$/ },
-  { id: 'companies', route: '/crm/companies', title: 'Unternehmen', badge: /B2B Accounts$/ },
-  { id: 'leads', route: '/crm/leads', title: 'Leads & Kontakte', badge: /Einträge$/ },
+  {
+    id: 'deals',
+    route: '/crm/deals',
+    title: 'Deal Pipeline',
+    badge: /Funnel Deals$/,
+    errorBadge: 'Nicht verfügbar Funnel Deals',
+  },
+  {
+    id: 'companies',
+    route: '/crm/companies',
+    title: 'Unternehmen',
+    badge: /B2B Accounts$/,
+    errorBadge: 'Nicht verfügbar B2B Accounts',
+  },
+  {
+    id: 'leads',
+    route: '/crm/leads',
+    title: 'Leads & Kontakte',
+    badge: /Einträge$/,
+    errorBadge: 'Nicht verfügbar Einträge',
+  },
 ];
 
 const env = (name) => {
@@ -182,14 +200,16 @@ function compare() {
   for (const shot of after.shots) {
     const prev = byName.get(shot.name);
     const changed = prev && prev.sha256 !== shot.sha256;
+    // Codex PR #69: Fehlertext exakt je Seite, Überlauf an Dokument und <main> ausnahmslos 0 px.
+    const expectedBadge = PAGES.find((p) => shot.name.startsWith(`${p.id}-`))?.errorBadge;
     const ok =
       changed &&
-      !/^0 /.test(shot.badge ?? '') &&
+      shot.badge === expectedBadge &&
       shot.exportDisabled &&
       shot.retryVisible &&
       shot.severe.length === 0 &&
       shot.overflow.document === 0 &&
-      shot.overflow.main <= (prev?.overflow.main ?? 0);
+      shot.overflow.main === 0;
     if (!ok) failures += 1;
     rows.push(
       `| ${shot.name} | ${prev?.badge ?? '–'} | ${shot.badge} | ${prev?.exportDisabled ? 'gesperrt' : 'aktiv'} → ${shot.exportDisabled ? 'gesperrt' : 'aktiv'} | ${shot.retryVisible ? 'ja' : 'nein'} | ${shot.severe.length ? shot.severe.join(', ') : '0'} | ${shot.overflow.document}/${shot.overflow.main} px | ${prev?.sha256.slice(0, 12) ?? '–'} | ${shot.sha256.slice(0, 12)} | ${ok ? '✅' : '❌'} |`,

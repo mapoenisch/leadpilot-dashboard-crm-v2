@@ -30,28 +30,28 @@
 :root {
   /* Colors Base */
   --black: #061613;
-  --charcoal: #0B211F;
+  --charcoal: #0b211f;
   --surface: #123330;
-  --border-gray: #2A4A43;
-  --white: #FFFFFF;
-  --gray-muted: #A7B0BA;
-  --cyan: #00D9C6;
-  --cyan-light: #7CEFE6;
+  --border-gray: #2a4a43;
+  --white: #ffffff;
+  --gray-muted: #a7b0ba;
+  --cyan: #00d9c6;
+  --cyan-light: #7cefe6;
   --cyan-a12: rgba(0, 217, 198, 0.12);
-  --orange: #FF7A3D;
-  --orange-light: #FF9A66;
+  --orange: #ff7a3d;
+  --orange-light: #ff9a66;
   --orange-a14: rgba(255, 122, 61, 0.14);
-  --orange-soft: #FFD1B8;
-  --coral-red: #FF5A5F;
+  --orange-soft: #ffd1b8;
+  --coral-red: #ff5a5f;
   --coral-red-a14: rgba(255, 90, 95, 0.14);
-  --mint-green: #3DDC97;
+  --mint-green: #3ddc97;
   --mint-green-a14: rgba(61, 220, 151, 0.14);
 
   /* Semantic Colors */
   --color-bg: var(--charcoal);
   --color-bg-deep: var(--black);
   --color-surface: var(--surface);
-  --color-surface-raised: #1A3F38;
+  --color-surface-raised: #1a3f38;
   --color-surface-glass: rgba(18, 51, 48, 0.65);
   --color-border: var(--border-gray);
   --color-border-soft: rgba(42, 74, 67, 0.5);
@@ -66,7 +66,7 @@
   --color-text-primary: var(--color-text);
   /* Auftrag 083 / F15: zweiter, bisher ebenfalls nur per Fallback gesetzter Dashboard-Textton
      (#e6f3f1, Werte/Tabellen der Kachel-Details); dunkel exakt beibehalten. */
-  --color-text-soft: #E6F3F1;
+  --color-text-soft: #e6f3f1;
 
   /* Auftrag 083 / F15: Shell-Hintergründe (Kopfzeile, Sidebar, Simulationsleiste),
      bisher fest dunkel verdrahtet; dunkle Werte unverändert übernommen. */
@@ -113,11 +113,11 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-card: 0 8px 24px rgba(0, 0, 0, .35);
-  --shadow-modal: 0 24px 64px rgba(0, 0, 0, .5);
-  --shadow-glow-cyan: 0 0 24px rgba(0, 217, 198, .35);
-  --shadow-glow-cyan-strong: 0 0 40px rgba(0, 217, 198, .45);
-  --shadow-glow-orange: 0 0 20px rgba(255, 122, 61, .3);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.5);
+  --shadow-glow-cyan: 0 0 24px rgba(0, 217, 198, 0.35);
+  --shadow-glow-cyan-strong: 0 0 40px rgba(0, 217, 198, 0.45);
+  --shadow-glow-orange: 0 0 20px rgba(255, 122, 61, 0.3);
   --focus-ring: 0 0 0 3px var(--cyan-a12);
 }
 
@@ -132,14 +132,14 @@
    auf <html>, Default dunkel (kein Attribut nötig), Persistenz localStorage.
    Vollständige Kontrasttabelle im BUILD_LOG (Gate G39 Welle 1). */
 [data-theme='light'] {
-  --black: #E9F9F6;
-  --charcoal: #DEF4F2;
-  --surface: #CCEDEA;
-  --color-surface-raised: #C0E5DE;
+  --black: #e9f9f6;
+  --charcoal: #def4f2;
+  --surface: #ccedea;
+  --color-surface-raised: #c0e5de;
   --color-surface-glass: rgba(204, 237, 234, 0.65);
-  --border-gray: #B5D5CE;
-  --white: #FFFFFF;
-  --gray-muted: #454E58;
+  --border-gray: #b5d5ce;
+  --white: #ffffff;
+  --gray-muted: #454e58;
   /* Auftrag 083 / F15: cyan/orange/coral-red/mint-green gegenüber Welle 1
      (#007369/#C23D00/#D40006/#15754B) bei gleichem Farbton abgedunkelt.
      Die alten Werte erreichten 4.5:1 nur auf --color-bg, auf den getönten
@@ -149,38 +149,38 @@
      (-a12/-a14) darüber; rgba-Ableitungen folgen mit Original-Alpha.
      Weiß (--color-text-inverse) auf diesen Akzenten wird dadurch kontrastreicher. */
   --cyan: #006057;
-  --cyan-light: #12978C;
+  --cyan-light: #12978c;
   --cyan-a12: rgba(0, 96, 87, 0.12);
-  --orange: #942E00;
-  --orange-light: #EB5000;
+  --orange: #942e00;
+  --orange-light: #eb5000;
   --orange-a14: rgba(148, 46, 0, 0.14);
-  --orange-soft: #FFD1B8;
-  --coral-red: #A40005;
+  --orange-soft: #ffd1b8;
+  --coral-red: #a40005;
   --coral-red-a14: rgba(164, 0, 5, 0.14);
-  --mint-green: #11603D;
+  --mint-green: #11603d;
   --mint-green-a14: rgba(17, 96, 61, 0.14);
   --color-border-soft: rgba(181, 213, 206, 0.5);
   --color-border-glass: rgba(181, 213, 206, 0.6);
   /* text: Ausnahme — Vererbung von --white wäre Weiß auf Hell (1.15:1);
      dunkles Petrol, Kontrast 14.91:1. Kein reines Schwarz. */
-  --color-text: #0C1F1D;
+  --color-text: #0c1f1d;
   /* inverse: Weiß gewinnt gegen alle Akzent-BGs (Min. 5.32:1). */
-  --color-text-inverse: #FFFFFF;
+  --color-text-inverse: #ffffff;
   /* Auftrag 083 / F15: im hellen Theme wie der Haupttext. */
   --color-text-soft: var(--color-text);
   /* bg-deep: mechanischer Spiegel wäre heller als bg (Semantik verdreht);
      bewusst eine Stufe tiefer als bg gesetzt. */
-  --color-bg-deep: #CBE9E4;
+  --color-bg-deep: #cbe9e4;
   /* Auftrag 083 / F15: helle Shell aus --black (#E9F9F6) bzw. --surface
      (#CCEDEA) mit den Original-Alphas; Text bleibt --color-text. */
   --color-shell-header: rgba(233, 249, 246, 0.85);
   --color-shell-sidebar: rgba(233, 249, 246, 0.95);
   --color-shell-strip: rgba(204, 237, 234, 0.75);
-  --shadow-card: 0 8px 24px rgba(0, 0, 0, .12);
-  --shadow-modal: 0 24px 64px rgba(0, 0, 0, .18);
-  --shadow-glow-cyan: 0 0 24px rgba(0, 217, 198, .25);
-  --shadow-glow-cyan-strong: 0 0 40px rgba(0, 217, 198, .30);
-  --shadow-glow-orange: 0 0 20px rgba(255, 122, 61, .22);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.18);
+  --shadow-glow-cyan: 0 0 24px rgba(0, 217, 198, 0.25);
+  --shadow-glow-cyan-strong: 0 0 40px rgba(0, 217, 198, 0.3);
+  --shadow-glow-orange: 0 0 20px rgba(255, 122, 61, 0.22);
 }
 
 * {
@@ -302,12 +302,12 @@ a:hover {
 }
 
 /* Number Stepper spinner removal */
-input[type="number"].no-spinner::-webkit-inner-spin-button,
-input[type="number"].no-spinner::-webkit-outer-spin-button {
+input[type='number'].no-spinner::-webkit-inner-spin-button,
+input[type='number'].no-spinner::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-input[type="number"].no-spinner {
+input[type='number'].no-spinner {
   -moz-appearance: textfield;
   appearance: textfield;
 }
@@ -409,21 +409,23 @@ input[type="number"].no-spinner {
    CRM V2 Responsive Listen & Komponenten (Gate G16)
    ========================================================================== */
 
+/* Auftrag 084: minmax(0, 1fr) statt 1fr – sonst setzt ein nowrap-Kennzahltext (truncate) seine
+   volle Breite als Spaltenminimum durch (Leads 375 px: 14 px Überlauf in <main>, Befund I07). */
 .crm-v2-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-4);
 }
 
 @media (max-width: 900px) {
   .crm-v2-kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
   .crm-v2-kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -554,7 +556,7 @@ input[type="number"].no-spinner {
   word-break: break-word;
 }
 
-.crm-v2-tabs-wrapper [role="tablist"] {
+.crm-v2-tabs-wrapper [role='tablist'] {
   flex-wrap: wrap !important;
   overflow-x: visible !important;
 }
@@ -570,18 +572,18 @@ input[type="number"].no-spinner {
 }
 
 @media (max-width: 640px) {
-  .fachbereiche-v2-funnel-chart-responsive [style*="display: flex"][style*="gap: 12px"] {
+  .fachbereiche-v2-funnel-chart-responsive [style*='display: flex'][style*='gap: 12px'] {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: var(--space-2) !important;
   }
-  .fachbereiche-v2-funnel-chart-responsive [style*="width: 120px"] {
+  .fachbereiche-v2-funnel-chart-responsive [style*='width: 120px'] {
     width: 100% !important;
   }
-  .fachbereiche-v2-funnel-chart-responsive [style*="padding-left: 130px"] {
+  .fachbereiche-v2-funnel-chart-responsive [style*='padding-left: 130px'] {
     padding-left: 0 !important;
   }
-  .fachbereiche-v2-funnel-chart-responsive [style*="gap: 10px"] {
+  .fachbereiche-v2-funnel-chart-responsive [style*='gap: 10px'] {
     width: 100% !important;
     flex-wrap: wrap !important;
   }
@@ -1294,11 +1296,15 @@ input[type="number"].no-spinner {
 @keyframes live-kpi-pulse-anim {
   0% {
     opacity: 0.85;
-    box-shadow: inset 0 0 0 1px #00f2fe, 0 0 20px rgba(0, 242, 254, 0.45);
+    box-shadow:
+      inset 0 0 0 1px #00f2fe,
+      0 0 20px rgba(0, 242, 254, 0.45);
   }
   100% {
     opacity: 0;
-    box-shadow: inset 0 0 0 1px rgba(0, 242, 254, 0), 0 0 0 rgba(0, 242, 254, 0);
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 242, 254, 0),
+      0 0 0 rgba(0, 242, 254, 0);
   }
 }
 
@@ -1324,7 +1330,10 @@ input[type="number"].no-spinner {
     radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.08) 0%, transparent 60%),
     radial-gradient(rgba(0, 217, 198, 0.12) 1px, transparent 1px),
     linear-gradient(180deg, #061613 0%, #081d1a 50%, #061613 100%);
-  background-size: 100% 100%, 24px 24px, 100% 100%;
+  background-size:
+    100% 100%,
+    24px 24px,
+    100% 100%;
   border: 1px solid rgba(0, 242, 254, 0.35);
   border-radius: var(--radius-xl, 16px);
   box-shadow:
@@ -1339,7 +1348,10 @@ input[type="number"].no-spinner {
 @media (max-width: 767px) {
   .live-performance-stage {
     padding: var(--space-4, 16px);
-    background-size: 100% 100%, 36px 36px, 100% 100%;
+    background-size:
+      100% 100%,
+      36px 36px,
+      100% 100%;
   }
 }
 
@@ -1353,7 +1365,9 @@ input[type="number"].no-spinner {
     0 8px 24px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(0, 242, 254, 0.22),
     0 0 15px rgba(0, 242, 254, 0.04);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .live-performance-panel:hover {
