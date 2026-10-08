@@ -185,6 +185,46 @@ function assertScopedCleanup(url, userId) {
 }
 
 /** Stellt die exakte Präferenzzeile (inkl. ursprünglicher Revision und Zeitstempel) wieder her (Befund PR #67 Runde 9/19/20). */
+/**
+ * Befund PR #67 Runde 24: Entfernt die vom Harness angelegte Präferenzzeile, aber nur, wenn
+ * Revision und Konfiguration noch exakt dem Harness-Stand entsprechen (konfliktfest).
+ */
+async function deleteHarnessPreferencesRow(supabase, cleanupKey, restore) {
+  assertScopedCleanup(supabase.url, restore.userId);
+  const scope = `user_id=eq.${encodeURIComponent(restore.userId)}&organization_id=eq.${encodeURIComponent(restore.organizationId)}`;
+  const headers = { apikey: cleanupKey, Authorization: `Bearer ${cleanupKey}` };
+  const getRes = await fetch(
+    `${supabase.url}/rest/v1/executive_dashboard_preferences?${scope}&select=revision,config`,
+    { headers },
+  );
+  if (!getRes.ok) {
+    throw new Error(`Lesen vor dem Entfernen fehlgeschlagen (HTTP ${getRes.status}).`);
+  }
+  const rows = await getRes.json();
+  const row = Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
+  if (!row) throw new Error('Harness-Präferenzzeile nicht mehr vorhanden; nichts entfernt.');
+  if (!restore.harnessRevisions.includes(row.revision)) {
+    throw new Error(
+      `Präferenzzeile parallel geändert (Revision ${row.revision}); fremde Änderung bleibt erhalten.`,
+    );
+  }
+  if (!isJsonStructurallyEqual(row.config, restore.installedConfig)) {
+    throw new Error('Konfiguration weicht vom Harness-Stand ab; fremde Änderung bleibt erhalten.');
+  }
+  const revisionFilter = `revision=in.(${restore.harnessRevisions.map(Number).join(',')})`;
+  const delRes = await fetch(
+    `${supabase.url}/rest/v1/executive_dashboard_preferences?${scope}&${revisionFilter}`,
+    { method: 'DELETE', headers: { ...headers, Prefer: 'return=representation' } },
+  );
+  if (!delRes.ok) {
+    throw new Error(`Entfernen der Harness-Zeile fehlgeschlagen (HTTP ${delRes.status}).`);
+  }
+  const deleted = await delRes.json();
+  if (!Array.isArray(deleted) || deleted.length !== 1) {
+    throw new Error(`Entfernen der Harness-Zeile betraf ${deleted?.length ?? 0} statt 1 Zeile.`);
+  }
+}
+
 async function restorePreferencesRow(
   supabase,
   cleanupKey,
@@ -2015,15 +2055,39 @@ async function main() {
         restoredAfterRun: false, // Erst nach erfolgreichem Cleanup auf true setzen (Befund PR #67 Runde 8/19)
       };
     } else {
+      // Befund PR #67 Runde 24: Auch ohne Ausgangszeile die Baseline-Konfiguration isoliert installieren,
+      // damit der Nachher-Build nicht seine (ggf. geänderte) DEFAULT_DASHBOARD_CONFIG verwendet.
+      // Cleanup löscht nur die vom Harness erzeugte Zeile (Revision + Inhalt geprüft).
+      const organizationId = testIdentity.organizationId;
+      let rpcRevision;
+      try {
+        ({ rpcRevision } = await savePreferencesRpc(setupPage, SUPABASE, defaultConfig, 0));
+      } catch (rpcErr) {
+        const after = await readPreferences(setupPage, SUPABASE).catch(() => null);
+        if (after && after.revision === 1 && isJsonStructurallyEqual(after.config, defaultConfig)) {
+          restore = {
+            type: 'delete_harness_row',
+            userId,
+            organizationId,
+            harnessRevisions: [after.revision],
+            installedConfig: defaultConfig,
+          };
+        }
+        throw rpcErr;
+      }
       restore = {
-        type: 'leave_unchanged',
+        type: 'delete_harness_row',
+        userId,
+        organizationId,
+        harnessRevisions: [rpcRevision],
+        installedConfig: defaultConfig,
       };
       dashboardConfigInfo = {
-        source: 'default_unpersisted',
+        source: 'installed_standard_no_prior_row',
         version: defaultConfig.version,
         tileCount: defaultConfig.tiles.length,
         tileIds: defaultConfig.tiles.map((t) => t.tileId),
-        revision: 0,
+        revision: rpcRevision,
         restoredAfterRun: false,
       };
     }
@@ -2266,6 +2330,18 @@ async function main() {
         if (runPayload?.dashboardConfig) {
           runPayload.dashboardConfig.restoredAfterRun = false;
         }
+      }
+    } else if (restore?.type === 'delete_harness_row') {
+      try {
+        if (!CLEANUP_KEY) throw new Error('Kein Cleanup-Key für das Entfernen der Harness-Zeile.');
+        await deleteHarnessPreferencesRow(SUPABASE, CLEANUP_KEY, restore);
+        if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
+        if (runPayload?.dashboardConfig) runPayload.dashboardConfig.restoredAfterRun = true;
+      } catch (err) {
+        console.error('Fehler beim Entfernen der vom Harness angelegten Präferenzzeile:', err);
+        restoreError = err;
+        if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = false;
+        if (runPayload?.dashboardConfig) runPayload.dashboardConfig.restoredAfterRun = false;
       }
     } else if (restore?.type === 'leave_unchanged') {
       // Befund PR #67 Runde 15: Ohne Ausgangszeile schreibt der Harness keine Präferenz. Eine während
