@@ -15925,3 +15925,13 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - P1: Nicht leere `pageErrors` lassen die jeweilige Aufnahme fehlschlagen.
 - Teillauf Dashboard/Editor 14/14, Volllauf mit finalem Harness (`9c87809`) 256/256, 0 fehlgeschlagen; JSON und README erneuert.
 - Verifikation: `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
+
+### Auftrag 081 – Codex Review Runde 26 (PR #67, Head `1822a7e`)
+
+- P1: Pipeline-Fehlerfall (Nachher) prüft KPI-Werte elementweise: kein Blatt-Element in `main` darf „0“, „0 €“, „0 %“ o. Ä. zeigen.
+- P1: Browser-Ausnahmen oder „Maximum update depth“ im Pipeline-Sonderlauf brechen den Nachher-Lauf ab.
+- P1: Im Nachher-Modus lassen serious/critical Axe-Befunde und globaler Überlauf > 0 px die Aufnahme fehlschlagen (Plan §14); der Baseline-Modus inventarisiert weiterhin nur.
+- P2: `pageErrors`-Prüfung direkt vor die Übernahme der Aufnahme verschoben (nach Axe, Screenshot, Fokus).
+- P2: Aktueller ImagePage-Schlüssel muss dem Baseline-Schlüssel der Route entsprechen.
+- P2: Ein gesetztes `TARGET_COMMIT` aktiviert automatisch den Nachher-Modus.
+- Volllauf mit finalem Harness (`2dd8b53`): 256/256, 0 fehlgeschlagen; JSON und README erneuert. `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
