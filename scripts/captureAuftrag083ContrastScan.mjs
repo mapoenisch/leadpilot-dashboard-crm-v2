@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Auftrag 083 (Korrekturauftrag F15): axe serious/critical über die ganze Seite (Kopfzeile, Sidebar,
- * Simulationsleiste, <main>) in allen 42 Ansichten des 081-Inventars, dunkel und hell, 1440/768/375 px.
+ * Simulationsleiste, <main>) in allen 42 Ansichten des 081-Inventars plus der Anmeldeseite, dunkel und hell, 1440/768/375 px.
  * Je Verstoß werden Regel, Selektor, Vorder-/Hintergrundfarbe und Kontrastwert protokolliert, damit
  * die Ursache im Code auffindbar ist. Horizontaler Überlauf von Dokument oder <main> über dem Ausgangsstand des
  * 081-Inventars zählt ebenfalls als Verstoß. Optional zusätzlich Bilder für den Vorher/Nachher-Vergleich.
@@ -84,6 +84,16 @@ function missingTitle(id) {
   throw new Error(`Kein Routentitel für ${id} in src/app/routes.tsx.`);
 }
 if (VIEWS.length !== 42) throw new Error(`Erwartet 42 Ansichten, gefunden ${VIEWS.length}.`);
+// Codex PR #68: Die Anmeldeseite liegt vor allen 42 Ansichten und erbt das gespeicherte Theme
+// (Abmelden, abgelaufene Sitzung). Sie wird deshalb ohne Sitzung zusätzlich gescannt.
+VIEWS.push({
+  id: 'login',
+  route: '/login',
+  expectedPath: '/login',
+  expectedH1: null,
+  expectedTitle: null,
+  login: true,
+});
 // Codex PR #68: ein Tippfehler in ONLY darf keinen leeren, scheinbar grünen Lauf ergeben.
 if (ONLY) {
   const unknown = [...ONLY].filter((id) => !VIEWS.some((v) => v.id === id));
@@ -94,7 +104,7 @@ if (ONLY) {
 async function open(browser, state, viewport, theme, view) {
   const context = await browser.newContext({
     baseURL: BASE_URL,
-    storageState: state,
+    storageState: view.login ? undefined : state,
     viewport,
     reducedMotion: 'reduce',
   });
@@ -107,7 +117,17 @@ async function open(browser, state, viewport, theme, view) {
     }, theme);
     const page = await context.newPage();
     await page.goto(view.route, { waitUntil: 'networkidle' });
-    await page.locator('main').first().waitFor({ timeout: 15000 });
+    await page
+      .locator(view.login ? '#login-email' : 'main')
+      .first()
+      .waitFor({ timeout: 15000 });
+    if (view.login && theme === 'light') {
+      // Ein frischer Aufruf von /login setzt kein Theme; nach dem Abmelden innerhalb der App bleibt
+      // data-theme am <html> aber erhalten (Codex PR #68). Diesen Zustand hier nachstellen.
+      await page.evaluate(() => {
+        document.documentElement.dataset.theme = 'light';
+      });
+    }
     if (view.edit) {
       await page
         .getByRole('button', { name: /bearbeiten/i })

@@ -33,6 +33,21 @@ Ansichtsprüfung je Aufnahme: Pfad, `<main>`-`h1` (081-Inventar) bzw. Kopfzeilen
 - s-leads 375 dark: <main> 14 px (081: 14 px)
 - s-leads 375 light: <main> 14 px (081: 14 px)
 
+Anmeldeseite (Codex PR #68): zusätzlich ohne Sitzung gescannt, hell mit nachgestelltem `data-theme="light"`
+(bleibt nach dem Abmelden innerhalb der App erhalten). 6/6 ohne Verstoß. Der „Anmelden“-Button nutzt
+`text-black` = `var(--black)` (Tailwind-Konfiguration), im hellen Theme `#E9F9F6`: 5.29:1 vorher auf `#007369`,
+6.88:1 nachher auf `#006057`. Nur der Hover-Ton (`--cyan-light` `#12978C`, von 083 unverändert) liegt hell bei
+3.32:1 und ist als Hinweis für Paket D notiert.
+
+| Ansicht | Breite | Theme | axe | SHA-256 (16) |
+| --- | --- | --- | --- | --- |
+| login | 1440 | dark | 0 | `614df0baa5d0d026` |
+| login | 1440 | light | 0 | `7bb5d1f75ea6e18b` |
+| login | 768 | dark | 0 | `a398384c6198f3ff` |
+| login | 768 | light | 0 | `a45c1ae29aefb5d6` |
+| login | 375 | dark | 0 | `ec6fa3c881942d5a` |
+| login | 375 | light | 0 | `4f8db27734d5e194` |
+
 Spalte „Max. Δ“ ist die größte Abweichung eines Farbkanals zwischen Vorher- und Nachher-Bild (0–255).
 
 | Ansicht | Breite | Theme | axe vorher | axe nachher | SHA-256 vorher (16) | SHA-256 nachher (16) | Max. Δ | Überlauf px Dok. / `<main>` (081) |

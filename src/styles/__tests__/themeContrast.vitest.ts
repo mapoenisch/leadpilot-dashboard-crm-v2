@@ -103,6 +103,19 @@ describe('Auftrag 083 / F15 – Theme-Tokens', () => {
     }
   });
 
+  it('feste dunkle Schrift auf bg-primary hat eine helle Variante für das helle Theme', () => {
+    // Codex PR #68: bg-primary wird hell zu #006057; fest dunkle Schrift läge dort bei 2.5:1.
+    const source = fs.readFileSync(
+      path.join(ROOT, 'src/features/vertrieb/components/SlaSwimlane.tsx'),
+      'utf8',
+    );
+    const matches = [...source.matchAll(/bg-primary text-\[#0[0-9a-fA-F]{5}\][^"]*/g)];
+    expect(matches.length).toBeGreaterThan(0);
+    for (const [className] of matches) {
+      expect(className).toContain('[[data-theme=light]_&]:text-white');
+    }
+  });
+
   it('helle Markentöne erreichen auf neutralen Flächen und ihrer Soft-Fläche mindestens 4.5:1', () => {
     const neutral = {
       bg: light('--charcoal'),

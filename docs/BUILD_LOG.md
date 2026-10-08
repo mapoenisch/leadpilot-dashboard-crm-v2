@@ -16042,3 +16042,12 @@ Beide P2-Befunde zu `scripts/captureAuftrag083ContrastScan.mjs` behoben (kein Pr
   - `open()` schließt den Browser-Kontext auch dann, wenn Navigation oder eine Prüfung fehlschlägt. Fehlerserien sammeln dadurch keine offenen Kontexte mehr an.
   - `ONLY` wird gegen die 42 Ansichten geprüft. Unbekannte IDs oder eine leere Auswahl brechen mit einem Fehler ab, statt einen leeren grünen Lauf zu melden.
   - Geprüft mit Tippfehler und leerer Auswahl (beide brechen ab) sowie einem Probelauf über Dashboard, Kachel-Details, Leads und Live-Simulation: 24/24 grün. Der Erfolgsweg ist unverändert, der Volllauf 252/252 von oben bleibt gültig.
+
+### Builder-Nacharbeit PR #68 — Codex Runde 2 (08.10.2026, Claude Code)
+
+P2 „Kontrast des Login-Buttons im hellen Theme“ (`src/styles/global.css`) geprüft, Ergebnis: **nicht zutreffend**. Der Button verwendet `text-black`, das in `tailwind.config` auf `var(--black)` zeigt, nicht auf `#000`. Im hellen Theme ergibt das `#E9F9F6`. Gemessen im Browser ohne Änderung an `LoginPage.tsx` bei nachgestelltem `data-theme="light"`: Schrift `rgb(233,249,246)` auf `rgb(0,96,87)`. Kontrast vorher 5.29:1, nachher 6.88:1, durch 083 also verbessert. `LoginPage.tsx` bleibt unverändert.
+
+- **Hinweis für Paket D (bestand schon vorher):** Der Hover-Ton `--cyan-light` `#12978C` liegt hell bei 3.32:1 mit `#E9F9F6`. 083 hat diesen Ton nicht verändert, und Hover-Zustände gehören nicht zum axe-Gate.
+- **Beim Nachsehen gefunden und behoben:** In `SlaSwimlane.tsx` hatte das Badge „ÜBERGABEPUNKT“ fest dunkle Schrift `#061312` auf `bg-primary`, hell nur 2.53:1. Es bekommt hell jetzt weiße Schrift (7.47:1), dunkel bleibt es unverändert. Die SLA-Seite wird derzeit noch als Bild dargestellt, deshalb war das im Scan nicht sichtbar. Regressionstest ergänzt.
+- **Scan erweitert:** Die Anmeldeseite wird zusätzlich ohne Sitzung in beiden Themes gescannt (hell mit nachgestelltem `data-theme`).
+- **Volllauf:** 258/258 ohne Verstoß oder Fehler (42 Ansichten plus Login, × 3 Breiten × 2 Themes). README-Matrix ergänzt, Schutzbereichs-Diff leer.
