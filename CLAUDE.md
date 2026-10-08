@@ -29,6 +29,8 @@ Echtzeit-Dashboard für das fiktive Unternehmen LeadPilot. React 18 + TypeScript
 
 **Aufteilung der Prüfwege, Entscheidung Marc vom 03.10.2026:** Die automatische Nacharbeit auf GitHub (`codex-review-request.yml`, `codex-status.yml`, `codex-rework.yml`, `claude.yml`) ist pausiert. Codex prüft weiter über die Codex-App auf GitHub; Befunde arbeitet der Builder selbst ab. Baut Claude Code lokal bei Marc, kann vorab das Plugin `codex-review` (`/codex-review:code`, `/codex-review:plan`) laufen; dessen Ergebnis gehört als Prüfnachweis in den BUILD_LOG. Die Gate-Freigabe kommt weiterhin von Codex, nie vom Builder. `ci.yml`, `update-visual-baselines.yml` und `claude-review.yml` (Zyklus 2) bleiben aktiv. Details: `docs/dashboard/REVIEW_WORKFLOW.md`, Abschnitt „Aufteilung ab 03.10.2026“.
 
+**Frontend-Qualität, Entscheidung Marc vom 06.10.2026:** Für den Plan `docs/superpowers/plans/2026-10-06-frontend-qualitaet-plan.md` (Arbeitspakete 0, A–I) baut Claude Code und schreibt die Detailaufträge; Codex prüft unabhängig, Merge durch Marc. Die Pakete laufen seriell; Designmuster (Paket D) und Bildseitenwellen (Paket G) brauchen jeweils Marcs Sichtfreigabe. Schutzbereiche und Pflichtgates bleiben erhalten.
+
 **Rollenwechsel ab 24.09.2026 bis zum Release `v2.3.0` (Entscheidung Marc Poenisch):**
 
 1. **Claude Code baut** — schreibt bei Bedarf den Detailauftrag, implementiert ihn und ist der schreibende Builder. Ziel: offene Fehler und Qualitätsschulden raus aus dem Code, Masterplan 067Q–067S abschließen.
