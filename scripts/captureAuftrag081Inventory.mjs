@@ -914,6 +914,7 @@ const SIMULATION_TABLES = [
   'simulation_run_pauses',
 ];
 
+const TARGET_SCHEMA_STATE_FILE = 'docs/reviews/2026-10-06-frontend-zielschema.json';
 const EXPECTED_SCHEMA_STATE = {
   policiesSha256: '4293dbf2a9eb6063c2e2e5bbb94a2a023bd637a157d695703abed2e6daf46250',
   saveDashboardPreferencesSha256:
@@ -967,7 +968,7 @@ async function verifySchemaState(supabase = SUPABASE, cleanupKey = CLEANUP_KEY) 
 
   const applied = JSON.parse(
     psql(
-      "select coalesce(json_agg(json_build_object('version', version, 'name', name, 'sql', array_to_string(statements, '')) order by version), '[]') from supabase_migrations.schema_migrations",
+      "select coalesce(json_agg(json_build_object('version', version, 'name', name, 'sql', array_to_string(statements, E';\n')) order by version), '[]') from supabase_migrations.schema_migrations",
     ),
   );
   // Befund PR #67 Runde 28: Kommentare, Whitespace und Semikolons nur außerhalb von Literalen
@@ -998,8 +999,14 @@ async function verifySchemaState(supabase = SUPABASE, cleanupKey = CLEANUP_KEY) 
         const stop = end === -1 ? sql.length : end + tag.length;
         out += sql.slice(i, stop);
         i = stop;
+      } else if (/[\s;]/.test(ch)) {
+        // Befund PR #67 Runde 29: Trenner zwischen zwei Wort-Tokens erhalten (`foo bar` ≠ `foobar`).
+        let j = i;
+        while (j < sql.length && /[\s;]/.test(sql[j])) j += 1;
+        if (/\w$/.test(out) && /^\w/.test(sql.slice(j, j + 1))) out += ' ';
+        i = j;
       } else {
-        if (!/[\s;]/.test(ch)) out += ch;
+        out += ch;
         i += 1;
       }
     }
@@ -1052,21 +1059,35 @@ async function verifySchemaState(supabase = SUPABASE, cleanupKey = CLEANUP_KEY) 
     })
       .toString()
       .trim().length > 0;
-  const schemaExpectation = supabaseChanged ? 'target_commit_migrations' : 'baseline_fingerprints';
+  const schemaExpectation = supabaseChanged
+    ? 'target_catalog_fingerprints'
+    : 'baseline_fingerprints';
+  // Befund PR #67 Runde 29: Bei geändertem `supabase/` den Live-Katalog gegen versionierte
+  // Ziel-Fingerabdrücke prüfen (Datei im Zielcommit), nicht nur gegen die Migrationshistorie.
+  let expectedState = EXPECTED_SCHEMA_STATE;
+  if (supabaseChanged) {
+    const targetFile = path.join(ROOT, TARGET_SCHEMA_STATE_FILE);
+    if (!fs.existsSync(targetFile)) {
+      throw new Error(
+        `supabase/ weicht von ${BASELINE_COMMIT} ab, aber ${TARGET_SCHEMA_STATE_FILE} mit Ziel-Fingerabdrücken fehlt. Nachher-Lauf abgebrochen.`,
+      );
+    }
+    expectedState = JSON.parse(fs.readFileSync(targetFile, 'utf8'));
+  }
 
-  if (!supabaseChanged && policiesSha !== EXPECTED_SCHEMA_STATE.policiesSha256) {
+  if (policiesSha !== expectedState.policiesSha256) {
     throw new Error(
-      `RLS-Policies weichen von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.policiesSha256}, aktuell: ${policiesSha}).`,
+      `RLS-Policies weichen von der Baseline ab (erwartet: ${expectedState.policiesSha256}, aktuell: ${policiesSha}).`,
     );
   }
-  if (!supabaseChanged && rpcSha !== EXPECTED_SCHEMA_STATE.saveDashboardPreferencesSha256) {
+  if (rpcSha !== expectedState.saveDashboardPreferencesSha256) {
     throw new Error(
-      `Funktion save_dashboard_preferences weicht von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.saveDashboardPreferencesSha256}, aktuell: ${rpcSha}).`,
+      `Funktion save_dashboard_preferences weicht von der Baseline ab (erwartet: ${expectedState.saveDashboardPreferencesSha256}, aktuell: ${rpcSha}).`,
     );
   }
-  if (!supabaseChanged && rlsSha !== EXPECTED_SCHEMA_STATE.rlsStatusSha256) {
+  if (rlsSha !== expectedState.rlsStatusSha256) {
     throw new Error(
-      `RLS-Aktivierungsstatus weicht von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.rlsStatusSha256}, aktuell: ${rlsSha}).`,
+      `RLS-Aktivierungsstatus weicht von der Baseline ab (erwartet: ${expectedState.rlsStatusSha256}, aktuell: ${rlsSha}).`,
     );
   }
   const disabledRls = rls
@@ -1455,6 +1476,8 @@ async function openRoute(browser, state, viewport, theme, target) {
   try {
     await context.clock.setFixedTime(FIXED_BROWSER_TIME);
     // Interception für crm-query-export: Bedient reguläre CRM-Aufnahmen kontrolliert im Erfolgszustand (Befund PR #67 Runde 9/10)
+    // Befund PR #67 Runde 29: angefragte Ressourcen protokollieren, unbekannte ablehnen.
+    const crmRequests = [];
     await context.route('**/functions/v1/crm-query-export**', async (route) => {
       const request = route.request();
       if (request.method() === 'OPTIONS') {
@@ -1498,7 +1521,16 @@ async function openRoute(browser, state, viewport, theme, target) {
         return;
       }
 
-      const resource = params.resource ?? 'companies';
+      const resource = params.resource;
+      crmRequests.push(resource ?? null);
+      if (!resource || !CONTROLLED_CRM_DATA[resource]) {
+        await route.fulfill({
+          status: 400,
+          headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: 'UNKNOWN_RESOURCE', resource: resource ?? null }),
+        });
+        return;
+      }
       const result = processControlledCrmQuery(resource, params);
 
       await route.fulfill({
@@ -1681,6 +1713,24 @@ async function openRoute(browser, state, viewport, theme, target) {
       }
     }
 
+    const CRM_EXPECT = {
+      's-leads': { resource: 'contacts', seed: /Schmidt/ },
+      's-companies': { resource: 'companies', seed: /Firma A1/ },
+      's-deals': { resource: 'deals', seed: /Enterprise Paket A1/ },
+    };
+    if (CRM_EXPECT[target.id]) {
+      const exp = CRM_EXPECT[target.id];
+      const unknown = crmRequests.filter((r) => !r || !CONTROLLED_CRM_DATA[r]);
+      if (unknown.length > 0 || !crmRequests.includes(exp.resource)) {
+        throw new Error(
+          `CRM-Seite ${target.id}: Ressourcen ${JSON.stringify(crmRequests)}, erwartet ${exp.resource}, unbekannt ${JSON.stringify(unknown)}.`,
+        );
+      }
+      const crmText = await page.locator('main').first().innerText();
+      if (!exp.seed.test(crmText)) {
+        throw new Error(`CRM-Seite ${target.id}: Seed-Datensatz ${exp.seed} nicht sichtbar.`);
+      }
+    }
     if (['s-leads', 's-companies', 's-deals'].includes(target.id)) {
       const errorState = await page
         .locator('[data-testid="management-chart-error"]')
@@ -2095,6 +2145,11 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
       expectedPath: '/sales/funnel',
     },
   ]) {
+    // Befund PR #67 Runde 29: jeder Wechsel im 500-Ablauf startet frisch auf der Pipeline.
+    if (new URL(page.url()).pathname !== '/crm/deals') {
+      await page.goto('/crm/deals', { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1500);
+    }
     const link = page.getByRole('link', { name }).first();
     await link.waitFor({ state: 'visible', timeout: 5000 });
     await link.click({ timeout: 5000 });
@@ -2554,6 +2609,15 @@ async function main() {
       path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'),
     );
     const harnessSha256 = sha256(scriptContent);
+    // Befund PR #67 Runde 29: importierte Helfer in den Fingerabdruck einbeziehen.
+    const helperFiles = ['scripts/lib/detailShotHelpers.mjs'];
+    const helpers = helperFiles.map((file) => ({
+      file,
+      sha256: sha256(fs.readFileSync(path.join(ROOT, file))),
+    }));
+    const harnessBundleSha256 = sha256(
+      Buffer.from([harnessSha256, ...helpers.map((h) => h.sha256)].join('\n')),
+    );
     // Codex PR #67 Runde 21: Version aus dem (gegen Baseline bzw. Zielcommit geprüften) package.json.
     const productVersion = JSON.parse(
       fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
@@ -2609,6 +2673,8 @@ async function main() {
       harness: {
         script: 'scripts/captureAuftrag081Inventory.mjs',
         sha256: harnessSha256,
+        helpers,
+        bundleSha256: harnessBundleSha256,
         headAtExecution: headCommit,
       },
       buildArtifact,
