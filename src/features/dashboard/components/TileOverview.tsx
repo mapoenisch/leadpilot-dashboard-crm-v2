@@ -32,7 +32,7 @@ export function TileOverview({ overview }: { overview: TileOverviewData }) {
           {units.map((unit) => (
             <li key={`${unit.role}-${unit.fte}`} className={ROW}>
               <span className="min-w-0">
-                <span className="text-[var(--color-text-primary,#e6f3f1)]">{unit.role}</span>{' '}
+                <span className="text-[var(--color-text-soft,#e6f3f1)]">{unit.role}</span>{' '}
                 <span className="text-[12px] text-[var(--color-text-muted)]">{unit.staffing}</span>
               </span>
               <span className="shrink-0 text-right font-mono text-primary">{unit.fte}</span>
@@ -57,7 +57,7 @@ export function TileOverview({ overview }: { overview: TileOverviewData }) {
           <li key={`${release.quarter}-${release.title}`} className={ROW}>
             <span className="min-w-0">
               <span className="font-mono text-[12px] text-primary">{release.quarter}</span>{' '}
-              <span className="text-[var(--color-text-primary,#e6f3f1)]">{release.title}</span>
+              <span className="text-[var(--color-text-soft,#e6f3f1)]">{release.title}</span>
               <span className="block text-[12px] text-[var(--color-text-muted)]">
                 {release.desc}
               </span>
@@ -76,7 +76,7 @@ export function TileOverview({ overview }: { overview: TileOverviewData }) {
         {overview.data.map((event) => (
           <li key={`${event.date}-${event.title}`} className={ROW}>
             <span className="min-w-0">
-              <span className="text-[var(--color-text-primary,#e6f3f1)]">{event.title}</span>
+              <span className="text-[var(--color-text-soft,#e6f3f1)]">{event.title}</span>
               <span className="block text-[12px] text-[var(--color-text-muted)]">{event.desc}</span>
             </span>
             <span className="shrink-0 font-mono text-[12px] text-primary">{event.date}</span>
@@ -90,9 +90,7 @@ export function TileOverview({ overview }: { overview: TileOverviewData }) {
       {overview.data.map((item) => (
         <li key={`${item.kpiId}-${item.occurredAt}`} className={ROW}>
           <span className="min-w-0">
-            <span className="text-[var(--color-text-primary,#e6f3f1)]">
-              {liveLabel(item.kpiId)}
-            </span>{' '}
+            <span className="text-[var(--color-text-soft,#e6f3f1)]">{liveLabel(item.kpiId)}</span>{' '}
             <span className="text-[12px] text-[var(--color-text-muted)]">
               {formatAsOf(item.occurredAt) ?? ''}
             </span>

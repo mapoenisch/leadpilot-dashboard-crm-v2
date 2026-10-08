@@ -47,7 +47,7 @@ export function DashboardPreviewPage({
   const onlyView = readViewFilter(search);
   const editorOnly = readEditorOnly(search);
   return (
-    <main className="min-h-screen bg-[var(--color-background,#051413)] px-4 py-8 text-[var(--color-text-primary,#e6f3f1)] sm:px-8">
+    <main className="min-h-screen bg-[var(--color-bg-deep,#051413)] px-4 py-8 text-[var(--color-text-soft,#e6f3f1)] sm:px-8">
       <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6">
         {onlyView ? <h1 className="sr-only">Kachelgalerie: {onlyView}</h1> : null}
         {editorOnly ? <h1 className="sr-only">Dashboard-Arbeitsbereich</h1> : null}

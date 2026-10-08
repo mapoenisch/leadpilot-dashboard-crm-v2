@@ -96,11 +96,13 @@ Vorläufige Größenordnung: 0 klein, F15 klein, A mittel bis zur Diagnose, B mi
 **Zweck:** F15 ist ein technischer Kontrast- und Tokenfehler, keine Gestaltungsfrage. Da §14 für jedes Umsetzungspaket einen Scan ohne serious/critical Befunde über die ganze Seite verlangt, muss F15 vor Beginn der Umsetzungspakete A–C behoben sein, damit deren Ganzseiten-axe-Gate erfüllbar ist (Codex PR #67).
 **Dateien:** `src/components/layout/Header.tsx`, `Sidebar.tsx`, `SimulationBar.tsx`, `src/features/dashboard/`, `src/styles/` (bzw. Theme-/Token-Definitionen).
 
-- [ ] Fehlendes Token `--color-text-primary` in Dashboard-Dateien und globalen Stilen definieren/korrigieren (18 Verwendungen).
-- [ ] Shell-Kontraste der Layout-Komponenten `Header.tsx` (`bg-[rgba(6,22,19,0.85)]`), `Sidebar.tsx` und `SimulationBar.tsx` (`bg-[rgba(18,51,48,0.75)]`) für das helle Theme korrigieren: themenabhängige Hintergründe für die Shell oder feste helle Kontrasttokens für die dunkle Shell definieren.
-- [ ] Nachweis: Kopfzeile, Sidebar, Simulationsleiste, Dashboard-Überschrift und Kachel-Details im hellen Modus lesbar; automatisierter axe-Scan über die gesamte Seite meldet 0 `color-contrast`-Verstöße auf allen 42 Ansichten aus der Bestandsaufnahme.
+- [x] Fehlendes Token `--color-text-primary` in Dashboard-Dateien und globalen Stilen definieren/korrigieren (18 Verwendungen).
+- [x] Shell-Kontraste der Layout-Komponenten `Header.tsx` (`bg-[rgba(6,22,19,0.85)]`), `Sidebar.tsx` und `SimulationBar.tsx` (`bg-[rgba(18,51,48,0.75)]`) für das helle Theme korrigieren: themenabhängige Hintergründe für die Shell oder feste helle Kontrasttokens für die dunkle Shell definieren.
+- [x] Nachweis: Kopfzeile, Sidebar, Simulationsleiste, Dashboard-Überschrift und Kachel-Details im hellen Modus lesbar; automatisierter axe-Scan über die gesamte Seite meldet 0 `color-contrast`-Verstöße auf allen 42 Ansichten aus der Bestandsaufnahme.
 
 **Abnahme:** Ganzseiten-axe-Scan meldet auf allen 42 Ansichten im hellen Modus keine serious/critical `color-contrast`-Fehler mehr.
+
+**Umgesetzt mit Auftrag 083** (`docs/auftraege/ANTIGRAVITY_AUFTRAG_083_F15_HELLE_KONTRASTE.md`, Nachweis `docs/screenshots/auftrag-083/README.md`): 0 serious/critical-Verstöße auf 252 Aufnahmen (42 Ansichten × 3 Breiten × dunkel/hell), zusätzlich zu knappe helle Markentöne und ein Label auf der Standortseite korrigiert; Abnahme durch Codex offen.
 
 ## 6. Arbeitspaket A – Pipelinefehler, Zustände und Navigation
 

@@ -15984,3 +15984,42 @@ Runde-29-Befunde in `c117662` behoben (`scripts/captureAuftrag081Inventory.mjs`)
 **Ergebnis:** Kein merge-blockierender Befund. Das kanonische Inventar weist 256/256 erfolgreiche Aufnahmen und 0 Fehler aus; der gespeicherte Harness-SHA-256 `2f312786843a58aa1a9ad0692d9709446558a38301f186a339d370bd72e1b34c` entspricht der eingecheckten Skriptdatei. Der finale F12-Nachweis stimmt mit dem Inventar überein (`interceptedPostCount: 4`, Erfolgs- und Leerablauf reproduziert). P0-5 ist aus Codex-Sicht bestanden; Merge bleibt bei Marc.
 
 **Live-Gates:** `npx tsc --noEmit`, `npm run lint`, `npm test` (316 Dateien / 2257 Tests), `npm run verify` (Suiten 001–025), `npm run build` und `npm run format:check` jeweils Exit 0. `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` sowie `git diff 7fd6e33 -- src` leer. Kein erneuter Screenshot-Volllauf; geprüft wurden der eingecheckte finale Mess-Payload, sein Harness-Fingerabdruck und die Dokumentkonsistenz.
+
+### Auftrag 083 — Korrekturauftrag F15: Kontraste im hellen Modus & Token (Builder Claude Code, 08.10.2026)
+
+**Ziel & Kontext:** Plan Frontend-Qualität §5a, Befund F15 aus Auftrag 081, vor Paket A gezogen. Ab hier gilt das Ganzseiten-axe-Gate (§14). Auftrag 082 bleibt bis zum Nachher-Lauf zurückgestellt (Entscheidung Marc im Chat, 08.10.2026). Branch `claude/auftrag-083-f15-kontraste` von `main` `abc0191`.
+
+**Ursachen und Korrekturen:**
+
+1. `--color-text-primary` war undefiniert und fiel auf `#fff` zurück. Neu in `:root` als `var(--color-text)`, gilt damit auch hell.
+2. Die Shell (`Header.tsx`, `Sidebar.tsx`, `SimulationBar.tsx`) hatte fest dunkle Hintergründe. Neu sind die Tokens `--color-shell-header|sidebar|strip`: dunkel mit den bisherigen Werten, hell aus `--black`/`--surface` mit Original-Alpha.
+3. Die hellen Markentöne aus G39 Welle 1 lagen auf getönten Flächen bei 3.5–4.46:1 (Avatar, Tempo-Auswahl, Status-Chips). Sie sind jetzt hell bei gleichem Farbton abgedunkelt: `--cyan #006057`, `--orange #942E00`, `--coral-red #A40005`, `--mint-green #11603D` sowie die rgba-Ableitungen. Das ergibt mindestens 4.6:1 auf bg, bg-deep, surface, surface-raised und der eigenen Soft-Fläche. Der dunkle Modus ist davon nicht betroffen.
+4. `LocationPage.tsx`: Das Label „FIKTIV“ auf der immer dunklen Karte nutzt jetzt den festen Wert `#A7B0BA` (wertgleich zum dunklen Muted-Ton).
+5. Zweiter Fallback-Textton `#e6f3f1` (10 Verwendungen) mit eigenem Token `--color-text-soft`: dunkel `#E6F3F1`, hell `var(--color-text)`. Ohne diese Trennung wären die Kachel-Details im dunklen Modus weiß geworden (gemessen 25/255).
+6. `DashboardPreviewPage.tsx`: Das undefinierte `--color-background` ist durch `--color-bg-deep` ersetzt.
+
+**Geänderte Dateien:** `src/styles/global.css`, `src/components/layout/{Header,Sidebar,SimulationBar}.tsx`, `src/features/unternehmen/pages/LocationPage.tsx`, 7 Dateien unter `src/features/dashboard/` (Token-Umstellung, `TileOverview.tsx` zusätzlich Prettier), neu `src/styles/__tests__/themeContrast.vitest.ts`, neu `scripts/captureAuftrag083ContrastScan.mjs`, neu `docs/screenshots/auftrag-083/README.md`, Auftrag 083, Befundregister (F15 behoben), Plan §5a, `BUILD_PLAN.md`.
+
+**Funktionale Prüfung (Ganzseiten-axe, `scripts/captureAuftrag083ContrastScan.mjs`):** 42 Ansichten aus dem 081-Inventar × 1440/768/375 × dunkel/hell = 252 Aufnahmen, Produktionsbuild gegen lokales Supabase, `admin-a@e2e.local`, feste Browserzeit.
+
+- Vorher (`abc0191`): 126 Aufnahmen mit Verstoß, alle hell (`color-contrast`).
+- Nachher: 0 Verstöße und 0 px horizontaler Überlauf.
+- Dunkel: Die Bilder sind gleich bis auf Render-Rauschen (≤ 1/255). Bei `s-standort` 1440/768 gab es eine Abweichung in 4 bzw. 18 Fotopixeln, die ein vorheriger Lauf mit identischem Build nicht zeigte.
+- Hell: Alle 126 Hashes haben sich verändert.
+
+Matrix: `docs/screenshots/auftrag-083/README.md`.
+
+**Regressionstest:** `themeContrast.vitest.ts` (8 Tests) prüft:
+- Tokens `--color-text-primary`/`--color-text-soft` definiert, dunkel/hell
+- Shell-Tokens in beiden Themes
+- keine fest dunklen Shell-Hintergründe
+- nur definierte `--color-text*`-Tokens im Dashboard
+- WCAG-Kontrast der hellen Markentöne ≥ 4.5:1 auf neutralen und eigenen Soft-Flächen
+
+**Schutzbereichs-Prüfung:** `git diff abc0191 -- src/simulation src/types src/context src/services/data src/features/resources` = leer.
+
+**Automatisierte Verifikation (Endstand):** `npx tsc --noEmit` 0 Fehler, `npm test` 317 Dateien / 2265 Tests grün, `npm run verify` grün, `npm run build` grün, `npm run lint` 0 Warnungen, `npm run format:check` grün.
+
+**Hinweis für Marc:** Das helle Theme ist laut `global.css` noch „vorläufig, visuelle Freigabe ausstehend“ (G39). Durch diesen Auftrag sind die Markentöne im hellen Modus etwas dunkler geworden. Das ist eine Kontrastkorrektur, keine Neugestaltung.
+
+**Ergebnis & Freigabestatus:** Builder fertig, Gate-Freigabe durch Codex offen, Merge durch Marc.

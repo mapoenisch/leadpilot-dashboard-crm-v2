@@ -62,6 +62,17 @@
   --color-text: var(--white);
   --color-text-muted: var(--gray-muted);
   --color-text-inverse: var(--charcoal);
+  /* Auftrag 083 / F15: von Dashboard-Komponenten genutzt, war undefiniert (Fallback Weiß). */
+  --color-text-primary: var(--color-text);
+  /* Auftrag 083 / F15: zweiter, bisher ebenfalls nur per Fallback gesetzter Dashboard-Textton
+     (#e6f3f1, Werte/Tabellen der Kachel-Details); dunkel exakt beibehalten. */
+  --color-text-soft: #E6F3F1;
+
+  /* Auftrag 083 / F15: Shell-Hintergründe (Kopfzeile, Sidebar, Simulationsleiste),
+     bisher fest dunkel verdrahtet; dunkle Werte unverändert übernommen. */
+  --color-shell-header: rgba(6, 22, 19, 0.85);
+  --color-shell-sidebar: rgba(6, 22, 19, 0.95);
+  --color-shell-strip: rgba(18, 51, 48, 0.75);
 
   --color-primary: var(--cyan);
   --color-primary-hover: var(--cyan-light);
@@ -129,17 +140,25 @@
   --border-gray: #B5D5CE;
   --white: #FFFFFF;
   --gray-muted: #454E58;
-  --cyan: #007369;
+  /* Auftrag 083 / F15: cyan/orange/coral-red/mint-green gegenüber Welle 1
+     (#007369/#C23D00/#D40006/#15754B) bei gleichem Farbton abgedunkelt.
+     Die alten Werte erreichten 4.5:1 nur auf --color-bg, auf den getönten
+     Flächen (bg-deep #CBE9E4, surface-raised #C0E5DE, primary-soft über
+     surface ≈ #B3DBD5) nur 3.5–4.46:1 (axe color-contrast). Neu ≥ 4.6:1 auf
+     bg, bg-deep, surface, surface-raised und der eigenen Soft-Fläche
+     (-a12/-a14) darüber; rgba-Ableitungen folgen mit Original-Alpha.
+     Weiß (--color-text-inverse) auf diesen Akzenten wird dadurch kontrastreicher. */
+  --cyan: #006057;
   --cyan-light: #12978C;
-  --cyan-a12: rgba(0, 115, 105, 0.12);
-  --orange: #C23D00;
+  --cyan-a12: rgba(0, 96, 87, 0.12);
+  --orange: #942E00;
   --orange-light: #EB5000;
-  --orange-a14: rgba(194, 61, 0, 0.14);
+  --orange-a14: rgba(148, 46, 0, 0.14);
   --orange-soft: #FFD1B8;
-  --coral-red: #D40006;
-  --coral-red-a14: rgba(212, 0, 6, 0.14);
-  --mint-green: #15754B;
-  --mint-green-a14: rgba(21, 117, 75, 0.14);
+  --coral-red: #A40005;
+  --coral-red-a14: rgba(164, 0, 5, 0.14);
+  --mint-green: #11603D;
+  --mint-green-a14: rgba(17, 96, 61, 0.14);
   --color-border-soft: rgba(181, 213, 206, 0.5);
   --color-border-glass: rgba(181, 213, 206, 0.6);
   /* text: Ausnahme — Vererbung von --white wäre Weiß auf Hell (1.15:1);
@@ -147,9 +166,16 @@
   --color-text: #0C1F1D;
   /* inverse: Weiß gewinnt gegen alle Akzent-BGs (Min. 5.32:1). */
   --color-text-inverse: #FFFFFF;
+  /* Auftrag 083 / F15: im hellen Theme wie der Haupttext. */
+  --color-text-soft: var(--color-text);
   /* bg-deep: mechanischer Spiegel wäre heller als bg (Semantik verdreht);
      bewusst eine Stufe tiefer als bg gesetzt. */
   --color-bg-deep: #CBE9E4;
+  /* Auftrag 083 / F15: helle Shell aus --black (#E9F9F6) bzw. --surface
+     (#CCEDEA) mit den Original-Alphas; Text bleibt --color-text. */
+  --color-shell-header: rgba(233, 249, 246, 0.85);
+  --color-shell-sidebar: rgba(233, 249, 246, 0.95);
+  --color-shell-strip: rgba(204, 237, 234, 0.75);
   --shadow-card: 0 8px 24px rgba(0, 0, 0, .12);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, .18);
   --shadow-glow-cyan: 0 0 24px rgba(0, 217, 198, .25);
