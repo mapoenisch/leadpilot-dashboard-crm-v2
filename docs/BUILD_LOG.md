@@ -15948,3 +15948,12 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 **Verifikation:** Lokaler Head entspricht dem live geprüften PR-Head. Alle ausgeführten GitHub-CI-Checks einschließlich E2E, TypeScript, Lint, Tests, Build und CodeQL erfolgreich; Review/Gate/Publish übersprungen. Lokal `node --check` Exit 0, Produkt-/Schutzbereichs-Diff sowie gemeinsamer Helper gegen `7fd6e33` unverändert. Keine erneute lokale Volltest- oder Screenshot-Ausführung in dieser Nachprüfung; keine Sichtprüfung aller Aufnahmen.
 
 **Ergebnis:** Nacharbeit erforderlich, P0-5 bleibt offen. Nur Prüfeintrag lokal ergänzt; kein Commit, Push oder Merge.
+
+### Builder-Nacharbeit PR #67 — Codex Runde 27 (08.10.2026, Claude Code)
+
+Alle 4 Inline-Befunde behoben in `f3f198d` (`scripts/captureAuftrag081Inventory.mjs`, kein Produktcode):
+- P1: Bild- oder HTML-Darstellung wird nach dem Laden am gerenderten DOM erkannt (`image-page` vs. `data-page-key`), unabhängig vom ImagePage-Wrapper im Quelltext; Bildmaße nur bei tatsächlich gerendertem Bild.
+- P1: `savePreferencesRpc` kennzeichnet bestätigte HTTP-Ablehnungen (`confirmedHttpStatus`); danach wird weder Restore noch Löschen aktiviert. Nachlesen nur bei mehrdeutigen Antwortfehlern.
+- P1: Pipeline-Fehlerfall prüft im Nachher-Modus „Erneut versuchen“: Handler liefert danach kontrollierte Erfolgsdaten; erneuter Abruf, gleiche URL und aufgehobener Fehlerzustand sind Pflicht.
+- P1: Neue Abläufe `pipelineNavigationCase` (Erfolg und Leer) mit Seitenwechsel zu `/company/profile` und `/sales/funnel`, Prüfung von URL und (Nachher) Zielüberschrift, Browser-Ausnahmen und Aktualisierungsschleifen.
+- Volllauf mit finalem Harness: 256/256, 0 fehlgeschlagen; Erfolgs- und Leerablauf bestanden; JSON und README erneuert. `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.

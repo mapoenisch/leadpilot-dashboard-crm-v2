@@ -5,8 +5,8 @@
  "productVersion": "2.4.0",
  "harness": {
   "script": "scripts/captureAuftrag081Inventory.mjs",
-  "sha256": "15342cde458b7f76b62958bb731fc93e895cd860b042a884e99a9901a6456c40",
-  "headAtExecution": "2dd8b53"
+  "sha256": "f4a14628dc4bc456e9f24797fef503bfb2048c595415324a204aba906b3d602f",
+  "headAtExecution": "f3f198d"
  },
  "buildArtifact": {
   "entryScript": "/assets/index-CWHASUp2.js",
@@ -44,7 +44,7 @@
    "e0000000-0000-0000-0000-000000000001",
    "e0000000-0000-0000-0000-000000000003"
   ],
-  "verifiedAt": "2026-10-08T02:34:35.228Z"
+  "verifiedAt": "2026-10-08T07:03:50.779Z"
  },
  "simulationWorkspace": {
   "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -57,7 +57,7 @@
    "simulation_snapshots": 0,
    "simulation_run_pauses": 0
   },
-  "verifiedAt": "2026-10-08T02:34:35.521Z"
+  "verifiedAt": "2026-10-08T07:03:51.463Z"
  },
  "schemaState": {
   "projectId": "LeadPilot_Dashboard-CRM",
@@ -105,7 +105,7 @@
  },
  "commit": "7fd6e33",
  "baseUrl": "http://localhost:4181",
- "capturedAt": "2026-10-08T02:49:41.336Z",
+ "capturedAt": "2026-10-08T07:19:28.249Z",
  "summary": {
   "expected": 256,
   "ok": 256,
@@ -115,6 +115,7 @@
   {
    "id": "dashboard",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -193,6 +194,7 @@
   {
    "id": "dashboard",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -266,13 +268,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "69fbdd6885013a6a",
+    "first": "5268120431189ebb",
     "full": "93b05f063375cfac"
    }
   },
   {
    "id": "dashboard",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -351,6 +354,7 @@
   {
    "id": "dashboard",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -431,6 +435,7 @@
   {
    "id": "dashboard",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -509,6 +514,7 @@
   {
    "id": "dashboard",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -582,13 +588,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "1ed3a8a4a72099f6",
+    "first": "30e37d8eb58ff636",
     "full": "799e459c53a7f091"
    }
   },
   {
    "id": "dashboard",
    "imageKey": null,
+   "renderedKind": null,
    "width": 320,
    "height": 640,
    "theme": "dark",
@@ -667,6 +674,7 @@
   {
    "id": "dashboard",
    "imageKey": null,
+   "renderedKind": null,
    "width": 320,
    "height": 640,
    "theme": "light",
@@ -747,6 +755,7 @@
   {
    "id": "dashboard-edit",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -825,6 +834,7 @@
   {
    "id": "dashboard-edit",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -905,6 +915,7 @@
   {
    "id": "dashboard-edit",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -983,6 +994,7 @@
   {
    "id": "dashboard-edit",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -1056,13 +1068,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "dab9456979dc8917",
+    "first": "e06ba0ae67a10afc",
     "full": "bb9fdf75f82d0405"
    }
   },
   {
    "id": "dashboard-edit",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -1141,6 +1154,7 @@
   {
    "id": "dashboard-edit",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -1221,6 +1235,7 @@
   {
    "id": "dashboard-detail",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -1263,6 +1278,7 @@
   {
    "id": "dashboard-detail",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -1300,13 +1316,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "484e386082ccde02",
+    "first": "5337a3a3997e0f14",
     "full": "5337a3a3997e0f14"
    }
   },
   {
    "id": "dashboard-detail",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -1349,6 +1366,7 @@
   {
    "id": "dashboard-detail",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -1386,13 +1404,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "42cc405bef23a744",
+    "first": "9dde39fdf658edc6",
     "full": "9dde39fdf658edc6"
    }
   },
   {
    "id": "dashboard-detail",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -1435,6 +1454,7 @@
   {
    "id": "dashboard-detail",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -1479,6 +1499,7 @@
   {
    "id": "s-daten",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -1521,6 +1542,7 @@
   {
    "id": "s-daten",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -1560,13 +1582,14 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "66c1c4addfc58f6a",
+    "first": "a4269066680ceb85",
     "full": "a4269066680ceb85"
    }
   },
   {
    "id": "s-daten",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -1609,6 +1632,7 @@
   {
    "id": "s-daten",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -1648,13 +1672,14 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "03329e4a416ddd74",
+    "first": "77e100c957e68b0b",
     "full": "77e100c957e68b0b"
    }
   },
   {
    "id": "s-daten",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -1697,6 +1722,7 @@
   {
    "id": "s-daten",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -1743,6 +1769,7 @@
   {
    "id": "s-standort",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -1785,6 +1812,7 @@
   {
    "id": "s-standort",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -1822,13 +1850,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "436c975213b2a25a",
+    "first": "060b2b9e55015c77",
     "full": "b35ce575a5378d9a"
    }
   },
   {
    "id": "s-standort",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -1864,13 +1893,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "df83921baaef4d67",
+    "first": "f1310097fcdbe020",
     "full": "170a92072ee33e11"
    }
   },
   {
    "id": "s-standort",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -1910,13 +1940,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a34be994d18ec741",
+    "first": "883420ab529e795d",
     "full": "907da2bd61c87f50"
    }
   },
   {
    "id": "s-standort",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -1952,13 +1983,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "db8a99dec00a68cd",
+    "first": "c7ae1f7e6b383ef0",
     "full": "5e2e5212e168a779"
    }
   },
   {
    "id": "s-standort",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -1996,13 +2028,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8e4a27459bdb9862",
+    "first": "a4c35ec1f9523177",
     "full": "617f2f48afc1fc6a"
    }
   },
   {
    "id": "s-live-simulation",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -2045,6 +2078,7 @@
   {
    "id": "s-live-simulation",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -2084,13 +2118,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "cceb1f354d9a4c34",
+    "first": "0b3c72ff4f0a7ccb",
     "full": "4debd55fe453a0c8"
    }
   },
   {
    "id": "s-live-simulation",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -2133,6 +2168,7 @@
   {
    "id": "s-live-simulation",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -2172,13 +2208,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0aa7ba66a1e25d91",
+    "first": "123116b3f7fa23ad",
     "full": "543f648d0d20a8c4"
    }
   },
   {
    "id": "s-live-simulation",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -2221,6 +2258,7 @@
   {
    "id": "s-live-simulation",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -2267,6 +2305,7 @@
   {
    "id": "s-leads",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -2309,6 +2348,7 @@
   {
    "id": "s-leads",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -2355,6 +2395,7 @@
   {
    "id": "s-leads",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -2397,6 +2438,7 @@
   {
    "id": "s-leads",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -2436,13 +2478,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "cb050405f313917b",
-    "full": "fc10e08a86dae8fe"
+    "first": "ceb8dd6a4f2e9882",
+    "full": "dbdede0216099d30"
    }
   },
   {
    "id": "s-leads",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -2485,6 +2528,7 @@
   {
    "id": "s-leads",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -2531,6 +2575,7 @@
   {
    "id": "s-companies",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -2573,6 +2618,7 @@
   {
    "id": "s-companies",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -2619,6 +2665,7 @@
   {
    "id": "s-companies",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -2654,13 +2701,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f73c3f24a6b1ec79",
-    "full": "3b5e8a67b5f642d2"
+    "first": "c08e3d8be6556d56",
+    "full": "cfdab06bde06474e"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -2700,13 +2748,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "294a744a2db195e0",
-    "full": "856b59a59037f298"
+    "first": "7cd4dba82aa90b26",
+    "full": "87c3a6a75bd373e1"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -2742,13 +2791,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "510c17e5c707eaed",
+    "first": "002d3d2ea6e3e5e8",
     "full": "f2786048bf87a053"
    }
   },
   {
    "id": "s-companies",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -2788,13 +2838,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7ad6fb1d0cc366d4",
+    "first": "0fd642df64a5776d",
     "full": "2ea6460564a6c702"
    }
   },
   {
    "id": "s-deals",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -2837,6 +2888,7 @@
   {
    "id": "s-deals",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -2883,6 +2935,7 @@
   {
    "id": "s-deals",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -2925,6 +2978,7 @@
   {
    "id": "s-deals",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -2971,6 +3025,7 @@
   {
    "id": "s-deals",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -3013,6 +3068,7 @@
   {
    "id": "s-deals",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -3052,13 +3108,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d4daad522f72b403",
+    "first": "fb956df8af48dcce",
     "full": "2ab6e74d8583a365"
    }
   },
   {
    "id": "s-activities",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -3094,13 +3151,14 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "d6729047fee6db11",
+    "first": "d21c8c408f5e17b1",
     "full": "d6729047fee6db11"
    }
   },
   {
    "id": "s-activities",
    "imageKey": null,
+   "renderedKind": null,
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -3140,13 +3198,14 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "1fe2130e4c0cce3f",
+    "first": "4a4080a87d464a91",
     "full": "2446025912c1677e"
    }
   },
   {
    "id": "s-activities",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -3182,13 +3241,14 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "8374900df576254c",
+    "first": "2382b01d589ddb0c",
     "full": "8374900df576254c"
    }
   },
   {
    "id": "s-activities",
    "imageKey": null,
+   "renderedKind": null,
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -3228,13 +3288,14 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "5d2685f24012c601",
+    "first": "12abcbe6fc2eec75",
     "full": "5d2685f24012c601"
    }
   },
   {
    "id": "s-activities",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -3270,13 +3331,14 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "3dded44e9d56f457",
+    "first": "3693907e3f17d88e",
     "full": "3693907e3f17d88e"
    }
   },
   {
    "id": "s-activities",
    "imageKey": null,
+   "renderedKind": null,
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -3316,13 +3378,14 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "d518402fa859ad32",
+    "first": "85a784dc02a71384",
     "full": "85a784dc02a71384"
    }
   },
   {
    "id": "s-profil",
    "imageKey": "overview-profile",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -3371,6 +3434,7 @@
   {
    "id": "s-profil",
    "imageKey": "overview-profile",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -3421,6 +3485,7 @@
   {
    "id": "s-profil",
    "imageKey": "overview-profile",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -3469,6 +3534,7 @@
   {
    "id": "s-profil",
    "imageKey": "overview-profile",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -3512,13 +3578,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4f44fce9a396efcd",
+    "first": "cdc86b3227848ea0",
     "full": "cdc86b3227848ea0"
    }
   },
   {
    "id": "s-profil",
    "imageKey": "overview-profile",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -3567,6 +3634,7 @@
   {
    "id": "s-profil",
    "imageKey": "overview-profile",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -3617,6 +3685,7 @@
   {
    "id": "s-highlights",
    "imageKey": "overview-highlights",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -3665,6 +3734,7 @@
   {
    "id": "s-highlights",
    "imageKey": "overview-highlights",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -3708,13 +3778,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a7c47876af129c52",
+    "first": "c8c88ffa6d64600a",
     "full": "c8c88ffa6d64600a"
    }
   },
   {
    "id": "s-highlights",
    "imageKey": "overview-highlights",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -3763,6 +3834,7 @@
   {
    "id": "s-highlights",
    "imageKey": "overview-highlights",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -3813,6 +3885,7 @@
   {
    "id": "s-highlights",
    "imageKey": "overview-highlights",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -3861,6 +3934,7 @@
   {
    "id": "s-highlights",
    "imageKey": "overview-highlights",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -3911,6 +3985,7 @@
   {
    "id": "s-idee",
    "imageKey": "company-idea",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -3959,6 +4034,7 @@
   {
    "id": "s-idee",
    "imageKey": "company-idea",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -4002,13 +4078,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "391a0b388f8c4de0",
+    "first": "ca29b9732c0f58ec",
     "full": "ca29b9732c0f58ec"
    }
   },
   {
    "id": "s-idee",
    "imageKey": "company-idea",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -4057,6 +4134,7 @@
   {
    "id": "s-idee",
    "imageKey": "company-idea",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -4100,13 +4178,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d7920575c244fbbd",
+    "first": "29bb6fbc88a88717",
     "full": "29bb6fbc88a88717"
    }
   },
   {
    "id": "s-idee",
    "imageKey": "company-idea",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -4155,6 +4234,7 @@
   {
    "id": "s-idee",
    "imageKey": "company-idea",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -4205,6 +4285,7 @@
   {
    "id": "s-value",
    "imageKey": "company-value-proposition",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -4253,6 +4334,7 @@
   {
    "id": "s-value",
    "imageKey": "company-value-proposition",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -4296,13 +4378,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3aa98cc23c434584",
+    "first": "3e6c504a8bbc566d",
     "full": "3e6c504a8bbc566d"
    }
   },
   {
    "id": "s-value",
    "imageKey": "company-value-proposition",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -4351,6 +4434,7 @@
   {
    "id": "s-value",
    "imageKey": "company-value-proposition",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -4394,13 +4478,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4c365796bd611c10",
+    "first": "1c615be5047e3508",
     "full": "1c615be5047e3508"
    }
   },
   {
    "id": "s-value",
    "imageKey": "company-value-proposition",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -4449,6 +4534,7 @@
   {
    "id": "s-value",
    "imageKey": "company-value-proposition",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -4499,6 +4585,7 @@
   {
    "id": "s-historie",
    "imageKey": "company-history",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -4547,6 +4634,7 @@
   {
    "id": "s-historie",
    "imageKey": "company-history",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -4597,6 +4685,7 @@
   {
    "id": "s-historie",
    "imageKey": "company-history",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -4645,6 +4734,7 @@
   {
    "id": "s-historie",
    "imageKey": "company-history",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -4688,13 +4778,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "fbde75b4f86385a5",
+    "first": "abd302ad42ff996f",
     "full": "abd302ad42ff996f"
    }
   },
   {
    "id": "s-historie",
    "imageKey": "company-history",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -4743,6 +4834,7 @@
   {
    "id": "s-historie",
    "imageKey": "company-history",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -4786,13 +4878,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "30ef27de1069923c",
+    "first": "cd8e6d2a6dbe2350",
     "full": "30ef27de1069923c"
    }
   },
   {
    "id": "s-funktion",
    "imageKey": "product-features",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -4841,6 +4934,7 @@
   {
    "id": "s-funktion",
    "imageKey": "product-features",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -4884,13 +4978,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f991eb47e242e1d4",
+    "first": "49a47c887f81e3b8",
     "full": "49a47c887f81e3b8"
    }
   },
   {
    "id": "s-funktion",
    "imageKey": "product-features",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -4939,6 +5034,7 @@
   {
    "id": "s-funktion",
    "imageKey": "product-features",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -4989,6 +5085,7 @@
   {
    "id": "s-funktion",
    "imageKey": "product-features",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -5037,6 +5134,7 @@
   {
    "id": "s-funktion",
    "imageKey": "product-features",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -5087,6 +5185,7 @@
   {
    "id": "s-pricing",
    "imageKey": "product-pricing",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -5135,6 +5234,7 @@
   {
    "id": "s-pricing",
    "imageKey": "product-pricing",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -5178,13 +5278,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "82288cb5e8c8e69f",
+    "first": "9c046631178e5897",
     "full": "9c046631178e5897"
    }
   },
   {
    "id": "s-pricing",
    "imageKey": "product-pricing",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -5233,6 +5334,7 @@
   {
    "id": "s-pricing",
    "imageKey": "product-pricing",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -5283,6 +5385,7 @@
   {
    "id": "s-pricing",
    "imageKey": "product-pricing",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -5331,6 +5434,7 @@
   {
    "id": "s-pricing",
    "imageKey": "product-pricing",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -5381,6 +5485,7 @@
   {
    "id": "s-perf",
    "imageKey": "product-performance",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -5429,6 +5534,7 @@
   {
    "id": "s-perf",
    "imageKey": "product-performance",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -5479,6 +5585,7 @@
   {
    "id": "s-perf",
    "imageKey": "product-performance",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -5527,6 +5634,7 @@
   {
    "id": "s-perf",
    "imageKey": "product-performance",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -5570,13 +5678,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d35d9afd66c5438c",
+    "first": "0c7418682b2ae1a0",
     "full": "0c7418682b2ae1a0"
    }
   },
   {
    "id": "s-perf",
    "imageKey": "product-performance",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -5625,6 +5734,7 @@
   {
    "id": "s-perf",
    "imageKey": "product-performance",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -5675,6 +5785,7 @@
   {
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -5723,6 +5834,7 @@
   {
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -5773,6 +5885,7 @@
   {
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -5821,6 +5934,7 @@
   {
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -5864,13 +5978,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "2028f07e46dc9e09",
+    "first": "522f8e9309442a5b",
     "full": "522f8e9309442a5b"
    }
   },
   {
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -5919,6 +6034,7 @@
   {
    "id": "s-roadmap",
    "imageKey": "product-roadmap",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -5969,6 +6085,7 @@
   {
    "id": "s-markt",
    "imageKey": "market-dach",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -6017,6 +6134,7 @@
   {
    "id": "s-markt",
    "imageKey": "market-dach",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -6067,6 +6185,7 @@
   {
    "id": "s-markt",
    "imageKey": "market-dach",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -6115,6 +6234,7 @@
   {
    "id": "s-markt",
    "imageKey": "market-dach",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -6158,13 +6278,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "97dacd5169a52e9f",
+    "first": "675b6d7cf54007c4",
     "full": "675b6d7cf54007c4"
    }
   },
   {
    "id": "s-markt",
    "imageKey": "market-dach",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -6213,6 +6334,7 @@
   {
    "id": "s-markt",
    "imageKey": "market-dach",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -6263,6 +6385,7 @@
   {
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -6311,6 +6434,7 @@
   {
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -6354,13 +6478,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "76051f39d280cd41",
+    "first": "0ac7bea03780acc2",
     "full": "0ac7bea03780acc2"
    }
   },
   {
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -6409,6 +6534,7 @@
   {
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -6452,13 +6578,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "2fef9a8a5fd7d71d",
+    "first": "9faafb5aeaa338f1",
     "full": "9faafb5aeaa338f1"
    }
   },
   {
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -6507,6 +6634,7 @@
   {
    "id": "s-wettbewerb",
    "imageKey": "market-competition",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -6557,6 +6685,7 @@
   {
    "id": "s-swot",
    "imageKey": "market-swot",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -6605,6 +6734,7 @@
   {
    "id": "s-swot",
    "imageKey": "market-swot",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -6648,13 +6778,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8e87463ee858df07",
+    "first": "0aeb73d5d7048748",
     "full": "0aeb73d5d7048748"
    }
   },
   {
    "id": "s-swot",
    "imageKey": "market-swot",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -6703,6 +6834,7 @@
   {
    "id": "s-swot",
    "imageKey": "market-swot",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -6746,13 +6878,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "fcd752706ee5d38f",
+    "first": "262b3315c8f7d7ee",
     "full": "262b3315c8f7d7ee"
    }
   },
   {
    "id": "s-swot",
    "imageKey": "market-swot",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -6801,6 +6934,7 @@
   {
    "id": "s-swot",
    "imageKey": "market-swot",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -6844,13 +6978,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f3b06d2fb72bcb7e",
+    "first": "f96bb04dbd4fc6ae",
     "full": "f96bb04dbd4fc6ae"
    }
   },
   {
    "id": "s-icp",
    "imageKey": "customers-icp",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -6899,6 +7034,7 @@
   {
    "id": "s-icp",
    "imageKey": "customers-icp",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -6949,6 +7085,7 @@
   {
    "id": "s-icp",
    "imageKey": "customers-icp",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -6997,6 +7134,7 @@
   {
    "id": "s-icp",
    "imageKey": "customers-icp",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -7040,13 +7178,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0465d50cf540ac21",
+    "first": "d94d7907b6056297",
     "full": "d94d7907b6056297"
    }
   },
   {
    "id": "s-icp",
    "imageKey": "customers-icp",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -7095,6 +7234,7 @@
   {
    "id": "s-icp",
    "imageKey": "customers-icp",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -7138,13 +7278,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "499be79f333a4478",
+    "first": "dd0e77f2c363967b",
     "full": "dd0e77f2c363967b"
    }
   },
   {
    "id": "s-persona",
    "imageKey": "customers-persona",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -7193,6 +7334,7 @@
   {
    "id": "s-persona",
    "imageKey": "customers-persona",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -7236,13 +7378,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7cbe8e3d251a8a52",
+    "first": "1f7b322dc60bea4a",
     "full": "1f7b322dc60bea4a"
    }
   },
   {
    "id": "s-persona",
    "imageKey": "customers-persona",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -7291,6 +7434,7 @@
   {
    "id": "s-persona",
    "imageKey": "customers-persona",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -7341,6 +7485,7 @@
   {
    "id": "s-persona",
    "imageKey": "customers-persona",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -7389,6 +7534,7 @@
   {
    "id": "s-persona",
    "imageKey": "customers-persona",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -7439,6 +7585,7 @@
   {
    "id": "s-segmente",
    "imageKey": "customers-segments",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -7487,6 +7634,7 @@
   {
    "id": "s-segmente",
    "imageKey": "customers-segments",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -7530,13 +7678,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "61525d126b03cd9c",
+    "first": "d6dfed0eb61c0146",
     "full": "d6dfed0eb61c0146"
    }
   },
   {
    "id": "s-segmente",
    "imageKey": "customers-segments",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -7585,6 +7734,7 @@
   {
    "id": "s-segmente",
    "imageKey": "customers-segments",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -7628,13 +7778,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b1c5561e1b0dcc80",
+    "first": "6b45d4461587ac88",
     "full": "6b45d4461587ac88"
    }
   },
   {
    "id": "s-segmente",
    "imageKey": "customers-segments",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -7683,6 +7834,7 @@
   {
    "id": "s-segmente",
    "imageKey": "customers-segments",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -7733,6 +7885,7 @@
   {
    "id": "s-top10",
    "imageKey": "customers-top10",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -7781,6 +7934,7 @@
   {
    "id": "s-top10",
    "imageKey": "customers-top10",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -7831,6 +7985,7 @@
   {
    "id": "s-top10",
    "imageKey": "customers-top10",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -7879,6 +8034,7 @@
   {
    "id": "s-top10",
    "imageKey": "customers-top10",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -7929,6 +8085,7 @@
   {
    "id": "s-top10",
    "imageKey": "customers-top10",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -7977,6 +8134,7 @@
   {
    "id": "s-top10",
    "imageKey": "customers-top10",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -8020,13 +8178,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "9f0484a3c308aa7c",
+    "first": "6851d6248b7e2fd5",
     "full": "9f0484a3c308aa7c"
    }
   },
   {
    "id": "s-funnel",
    "imageKey": "sales-funnel",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -8075,6 +8234,7 @@
   {
    "id": "s-funnel",
    "imageKey": "sales-funnel",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -8118,13 +8278,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "eb2a41db707d595d",
+    "first": "039f283571195c4f",
     "full": "039f283571195c4f"
    }
   },
   {
    "id": "s-funnel",
    "imageKey": "sales-funnel",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -8173,6 +8334,7 @@
   {
    "id": "s-funnel",
    "imageKey": "sales-funnel",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -8223,6 +8385,7 @@
   {
    "id": "s-funnel",
    "imageKey": "sales-funnel",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -8271,6 +8434,7 @@
   {
    "id": "s-funnel",
    "imageKey": "sales-funnel",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -8321,6 +8485,7 @@
   {
    "id": "s-funnel",
    "imageKey": "sales-funnel",
+   "renderedKind": "image",
    "width": 320,
    "height": 640,
    "theme": "dark",
@@ -8369,6 +8534,7 @@
   {
    "id": "s-funnel",
    "imageKey": "sales-funnel",
+   "renderedKind": "image",
    "width": 320,
    "height": 640,
    "theme": "light",
@@ -8419,6 +8585,7 @@
   {
    "id": "s-sla",
    "imageKey": "sales-sla",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -8467,6 +8634,7 @@
   {
    "id": "s-sla",
    "imageKey": "sales-sla",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -8517,6 +8685,7 @@
   {
    "id": "s-sla",
    "imageKey": "sales-sla",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -8565,6 +8734,7 @@
   {
    "id": "s-sla",
    "imageKey": "sales-sla",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -8615,6 +8785,7 @@
   {
    "id": "s-sla",
    "imageKey": "sales-sla",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -8663,6 +8834,7 @@
   {
    "id": "s-sla",
    "imageKey": "sales-sla",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -8706,13 +8878,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "502c11020c40eb2c",
+    "first": "f4698eb5b848036a",
     "full": "502c11020c40eb2c"
    }
   },
   {
    "id": "s-kanaele",
    "imageKey": "sales-channels",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -8761,6 +8934,7 @@
   {
    "id": "s-kanaele",
    "imageKey": "sales-channels",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -8804,13 +8978,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4d0536c266ad1d47",
+    "first": "86cf8d5140152b02",
     "full": "86cf8d5140152b02"
    }
   },
   {
    "id": "s-kanaele",
    "imageKey": "sales-channels",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -8859,6 +9034,7 @@
   {
    "id": "s-kanaele",
    "imageKey": "sales-channels",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -8909,6 +9085,7 @@
   {
    "id": "s-kanaele",
    "imageKey": "sales-channels",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -8957,6 +9134,7 @@
   {
    "id": "s-kanaele",
    "imageKey": "sales-channels",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -9000,13 +9178,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7413551dc1f3fb17",
+    "first": "2aa6b87a87a896eb",
     "full": "7413551dc1f3fb17"
    }
   },
   {
    "id": "s-planung",
    "imageKey": "sales-planning",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -9055,6 +9234,7 @@
   {
    "id": "s-planung",
    "imageKey": "sales-planning",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -9105,6 +9285,7 @@
   {
    "id": "s-planung",
    "imageKey": "sales-planning",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -9153,6 +9334,7 @@
   {
    "id": "s-planung",
    "imageKey": "sales-planning",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -9196,13 +9378,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7306ba8b0648b38f",
+    "first": "447d9f804c8d5904",
     "full": "447d9f804c8d5904"
    }
   },
   {
    "id": "s-planung",
    "imageKey": "sales-planning",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -9251,6 +9434,7 @@
   {
    "id": "s-planung",
    "imageKey": "sales-planning",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -9301,6 +9485,7 @@
   {
    "id": "s-guv",
    "imageKey": "finance-pnl",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -9349,6 +9534,7 @@
   {
    "id": "s-guv",
    "imageKey": "finance-pnl",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -9392,13 +9578,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "eba995fb28eec4e6",
+    "first": "faaef91ead290fcf",
     "full": "faaef91ead290fcf"
    }
   },
   {
    "id": "s-guv",
    "imageKey": "finance-pnl",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -9447,6 +9634,7 @@
   {
    "id": "s-guv",
    "imageKey": "finance-pnl",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -9490,13 +9678,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a4435f2f82a55f1c",
+    "first": "7797afbb131a6551",
     "full": "7797afbb131a6551"
    }
   },
   {
    "id": "s-guv",
    "imageKey": "finance-pnl",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -9545,6 +9734,7 @@
   {
    "id": "s-guv",
    "imageKey": "finance-pnl",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -9588,13 +9778,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "93e9ee3ea3905064",
+    "first": "a1f8b584265baafb",
     "full": "a1f8b584265baafb"
    }
   },
   {
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -9643,6 +9834,7 @@
   {
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -9693,6 +9885,7 @@
   {
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -9741,6 +9934,7 @@
   {
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -9784,13 +9978,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "e02019c463eedaac",
+    "first": "79474185d660959f",
     "full": "79474185d660959f"
    }
   },
   {
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -9839,6 +10034,7 @@
   {
    "id": "s-bilanz",
    "imageKey": "finance-balance-sheet",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -9889,6 +10085,7 @@
   {
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -9937,6 +10134,7 @@
   {
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -9980,13 +10178,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "05309a5dd946f054",
+    "first": "897b73c61e1f0984",
     "full": "897b73c61e1f0984"
    }
   },
   {
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -10035,6 +10234,7 @@
   {
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -10085,6 +10285,7 @@
   {
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -10133,6 +10334,7 @@
   {
    "id": "s-unit",
    "imageKey": "finance-unit-economics",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -10176,13 +10378,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4e7b55e8a24f6c1f",
+    "first": "076604b4253893dd",
     "full": "076604b4253893dd"
    }
   },
   {
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -10231,6 +10434,7 @@
   {
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -10281,6 +10485,7 @@
   {
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -10329,6 +10534,7 @@
   {
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -10379,6 +10585,7 @@
   {
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -10427,6 +10634,7 @@
   {
    "id": "s-headcount",
    "imageKey": "organisation-headcount",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -10477,6 +10685,7 @@
   {
    "id": "s-hr",
    "imageKey": "organisation-hr",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -10525,6 +10734,7 @@
   {
    "id": "s-hr",
    "imageKey": "organisation-hr",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -10568,13 +10778,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b9db3f44892b04f7",
+    "first": "3c59007e8b6d569b",
     "full": "3c59007e8b6d569b"
    }
   },
   {
    "id": "s-hr",
    "imageKey": "organisation-hr",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -10623,6 +10834,7 @@
   {
    "id": "s-hr",
    "imageKey": "organisation-hr",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -10673,6 +10885,7 @@
   {
    "id": "s-hr",
    "imageKey": "organisation-hr",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -10721,6 +10934,7 @@
   {
    "id": "s-hr",
    "imageKey": "organisation-hr",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -10764,13 +10978,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "165a2699f89b5458",
+    "first": "43f2f24538ba3104",
     "full": "165a2699f89b5458"
    }
   },
   {
    "id": "s-team",
    "imageKey": "organisation-team",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -10819,6 +11034,7 @@
   {
    "id": "s-team",
    "imageKey": "organisation-team",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -10869,6 +11085,7 @@
   {
    "id": "s-team",
    "imageKey": "organisation-team",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -10917,6 +11134,7 @@
   {
    "id": "s-team",
    "imageKey": "organisation-team",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -10967,6 +11185,7 @@
   {
    "id": "s-team",
    "imageKey": "organisation-team",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -11015,6 +11234,7 @@
   {
    "id": "s-team",
    "imageKey": "organisation-team",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -11058,13 +11278,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0a480d18136d301c",
+    "first": "21bf137fe42ff517",
     "full": "0a480d18136d301c"
    }
   },
   {
    "id": "s-okr",
    "imageKey": "strategy-okrs",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -11113,6 +11334,7 @@
   {
    "id": "s-okr",
    "imageKey": "strategy-okrs",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -11156,13 +11378,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0d8a23a5c77abef9",
+    "first": "e74f3bb68149e040",
     "full": "e74f3bb68149e040"
    }
   },
   {
    "id": "s-okr",
    "imageKey": "strategy-okrs",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -11211,6 +11434,7 @@
   {
    "id": "s-okr",
    "imageKey": "strategy-okrs",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -11261,6 +11485,7 @@
   {
    "id": "s-okr",
    "imageKey": "strategy-okrs",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -11309,6 +11534,7 @@
   {
    "id": "s-okr",
    "imageKey": "strategy-okrs",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -11352,13 +11578,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3ec00e3a7f264674",
+    "first": "78993cceb70ac5f4",
     "full": "78993cceb70ac5f4"
    }
   },
   {
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -11407,6 +11634,7 @@
   {
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -11450,13 +11678,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "36fe738ea4748f9e",
+    "first": "371ca4e1b819769c",
     "full": "371ca4e1b819769c"
    }
   },
   {
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -11505,6 +11734,7 @@
   {
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -11548,13 +11778,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4802ba368d285cd6",
+    "first": "883c5362ecea34d6",
     "full": "883c5362ecea34d6"
    }
   },
   {
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -11603,6 +11834,7 @@
   {
    "id": "s-bsc",
    "imageKey": "strategy-bsc",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -11653,6 +11885,7 @@
   {
    "id": "s-treiber",
    "imageKey": "strategy-growth",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -11701,6 +11934,7 @@
   {
    "id": "s-treiber",
    "imageKey": "strategy-growth",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -11751,6 +11985,7 @@
   {
    "id": "s-treiber",
    "imageKey": "strategy-growth",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -11799,6 +12034,7 @@
   {
    "id": "s-treiber",
    "imageKey": "strategy-growth",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -11849,6 +12085,7 @@
   {
    "id": "s-treiber",
    "imageKey": "strategy-growth",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -11897,6 +12134,7 @@
   {
    "id": "s-treiber",
    "imageKey": "strategy-growth",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -11947,6 +12185,7 @@
   {
    "id": "s-satzung",
    "imageKey": "legal-articles",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -11995,6 +12234,7 @@
   {
    "id": "s-satzung",
    "imageKey": "legal-articles",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -12045,6 +12285,7 @@
   {
    "id": "s-satzung",
    "imageKey": "legal-articles",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -12093,6 +12334,7 @@
   {
    "id": "s-satzung",
    "imageKey": "legal-articles",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -12136,13 +12378,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "ea969340e10e4985",
+    "first": "7d63b97f57a3b3cf",
     "full": "ea969340e10e4985"
    }
   },
   {
    "id": "s-satzung",
    "imageKey": "legal-articles",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -12191,6 +12434,7 @@
   {
    "id": "s-satzung",
    "imageKey": "legal-articles",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -12234,13 +12478,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7e33a84303249f45",
+    "first": "35bcdfced583db4e",
     "full": "7e33a84303249f45"
    }
   },
   {
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -12289,6 +12534,7 @@
   {
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -12332,13 +12578,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d977ac81b4f687d7",
+    "first": "7258fbaac38c1c15",
     "full": "7258fbaac38c1c15"
    }
   },
   {
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -12387,6 +12634,7 @@
   {
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -12430,13 +12678,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "5dcc2865dcf6bda6",
+    "first": "4ffd1e16dfc6f693",
     "full": "4ffd1e16dfc6f693"
    }
   },
   {
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -12485,6 +12734,7 @@
   {
    "id": "s-gesellschafter",
    "imageKey": "legal-shareholders",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -12528,13 +12778,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4cd00acbf7fe7d77",
+    "first": "24633c5a960c42a3",
     "full": "4cd00acbf7fe7d77"
    }
   },
   {
    "id": "s-handelsregister",
    "imageKey": "legal-register",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "dark",
@@ -12583,6 +12834,7 @@
   {
    "id": "s-handelsregister",
    "imageKey": "legal-register",
+   "renderedKind": "image",
    "width": 1440,
    "height": 1000,
    "theme": "light",
@@ -12633,6 +12885,7 @@
   {
    "id": "s-handelsregister",
    "imageKey": "legal-register",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "dark",
@@ -12681,6 +12934,7 @@
   {
    "id": "s-handelsregister",
    "imageKey": "legal-register",
+   "renderedKind": "image",
    "width": 768,
    "height": 1024,
    "theme": "light",
@@ -12724,13 +12978,14 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "fd993df2c818f1a4",
+    "first": "d94254be6fd89500",
     "full": "d94254be6fd89500"
    }
   },
   {
    "id": "s-handelsregister",
    "imageKey": "legal-register",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "dark",
@@ -12779,6 +13034,7 @@
   {
    "id": "s-handelsregister",
    "imageKey": "legal-register",
+   "renderedKind": "image",
    "width": 375,
    "height": 812,
    "theme": "light",
@@ -12854,6 +13110,7 @@
     "mainText": "CRM & PIPELINE\nDeal Pipeline\n\nMandantenspezifische Übersicht der Pipeline-Deals mit serverseitiger Paginierung und CSV-Export.\n\nEBENE A PIPELINE\nSUPABASE CRM\nREAL\nSTATUS: NICHT VERFÜGBAR\nFRISCHE: KEINE DATEN (SERVER_ERROR)\nStand: Nicht verfügbar\n0 FUNNEL DEALS\nCSV Export\nFunnel Deals Gesamt\n0\nMandan"
    }
   ],
+  "retry": null,
   "interceptedPostCount": 2,
   "consoleErrors": [
    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
@@ -12861,5 +13118,47 @@
   ],
   "pageErrors": [],
   "maxUpdateDepthErrors": 0
- }
+ },
+ "pipelineNavigation": [
+  {
+   "variant": "erfolg",
+   "posts": 1,
+   "steps": [
+    {
+     "url": "/company/profile",
+     "headings": [
+      "Deal Pipeline"
+     ]
+    },
+    {
+     "url": "/sales/funnel",
+     "headings": [
+      "Deal Pipeline"
+     ]
+    }
+   ],
+   "pageErrors": [],
+   "maxUpdateDepthErrors": 0
+  },
+  {
+   "variant": "leer",
+   "posts": 1,
+   "steps": [
+    {
+     "url": "/company/profile",
+     "headings": [
+      "Deal Pipeline"
+     ]
+    },
+    {
+     "url": "/sales/funnel",
+     "headings": [
+      "Deal Pipeline"
+     ]
+    }
+   ],
+   "pageErrors": [],
+   "maxUpdateDepthErrors": 0
+  }
+ ]
 }
