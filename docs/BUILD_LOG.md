@@ -15910,3 +15910,10 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - P2: Auf HTML migrierte Bildseiten werden im Nachher-Modus über den stabilen Seitenmarker `data-page-key="<Baseline-ImagePage-Schlüssel>"` (mit Inhalt, innerhalb `main`) geprüft; fehlt weder ImagePage noch Marker, bricht der Lauf mit „Unbekannter Seitentyp“ ab. Vertrag für Paket G: migrierte Seiten müssen diesen Marker setzen.
 - P2: Inventar-JSON und Screenshot-README mit dem finalen Harness (Commit `f247fb3`, SHA-256 `d3d39b32…`) neu erzeugt: 256/256 Aufnahmen, 0 fehlgeschlagen.
 - Verifikation: `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
+
+### Auftrag 081 – Codex Review Runde 24 (PR #67, Head `622a9f0`)
+
+- P1: Auch ohne Ausgangs-Präferenzzeile installiert der Harness jetzt die Baseline-Konfiguration per RPC (Quelle `installed_standard_no_prior_row`); im Cleanup entfernt `deleteHarnessPreferencesRow` nur die vom Harness erzeugte Zeile, nachdem Revision und Inhalt geprüft wurden (konfliktfest, auch bei verlorener RPC-Antwort).
+- P1: Der in Runde 11 entfernte lokale JWT-Signierschlüssel ist im BUILD_LOG jetzt geschwärzt (im Repo sonst nirgends vorhanden).
+- Volllauf mit dem finalen Harness (`5ee0383`): 256/256 Aufnahmen, 0 fehlgeschlagen, Präferenzzeile nach dem Lauf entfernt; JSON und README erneuert.
+- Verifikation: `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
