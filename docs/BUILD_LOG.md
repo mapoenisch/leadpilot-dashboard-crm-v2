@@ -16023,3 +16023,18 @@ Matrix: `docs/screenshots/auftrag-083/README.md`.
 **Hinweis für Marc:** Das helle Theme ist laut `global.css` noch „vorläufig, visuelle Freigabe ausstehend“ (G39). Durch diesen Auftrag sind die Markentöne im hellen Modus etwas dunkler geworden. Das ist eine Kontrastkorrektur, keine Neugestaltung. **Sichtfreigabe Marc im Chat am 08.10.2026:** Die Vergleichsbilder Dashboard und Kachel-Details (hell, 1440 px, vorher/nachher) sind freigegeben („ja die passen“).
 
 **Ergebnis & Freigabestatus:** Builder fertig, Gate-Freigabe durch Codex offen, Merge durch Marc.
+
+### Builder-Nacharbeit PR #68 — Codex Runde 1 (08.10.2026, Claude Code)
+
+Beide P2-Befunde zu `scripts/captureAuftrag083ContrastScan.mjs` behoben (kein Produktcode):
+
+- **Überlauf am Scroll-Container:** Gemessen wird jetzt am Dokument und an `<main>`. Dadurch werden die bekannten `<main>`-Überläufe sichtbar (Live-Simulation 184 px, Leads 14 px, jeweils 375 px, beide Themes). Sie sind wertgleich mit dem 081-Inventar und im Befundregister unter I06/I07 geführt; die Live-Simulation liegt im Schutzbereich `src/simulation/`. Als Verstoß zählt deshalb ein Überlauf **über** dem Ausgangsstand der gleichen Aufnahme laut 081-Inventar.
+- **Zielansicht vor dem Scan bestätigt:** Für jede Aufnahme werden geprüft:
+  - Pfad gleich Inventar-URL
+  - `<main>`-`h1` gleich Inventar, sofern dort erfasst
+  - Kopfzeilen-Titel gleich `src/app/routes.tsx`
+  - Dashboard/Bearbeiten mit Kacheln, Kachel-Details über `tile-detail-page`
+
+  Login-, 404- und Fehlerseiten fallen damit durch.
+- Zusätzlich: Nach einem Browserabsturz startet das Skript den Browser neu und meldet sich neu an, damit ein einzelner Timeout keine Folgefehler auslöst.
+- Volllauf: 252/252 ohne Verstoß oder Fehler, dunkel max. 1/255 Abweichung. README-Matrix erneuert. Schutzbereichs-Diff leer.
