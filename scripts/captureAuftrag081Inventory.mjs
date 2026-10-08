@@ -516,7 +516,9 @@ async function verifyBuildArtifact(baseUrl, targetCommit = TARGET_COMMIT, isNach
   const imagePaths = [
     ...new Set([...imagePagesContent.matchAll(/src:\s*['"]([^'"]+)['"]/g)].map((m) => m[1])),
   ];
-  if (imagePaths.length !== 32) {
+  // Befund PR #67 Runde 28: exakt 32 Bildquellen nur im Baseline-Modus verlangen. Im Nachher-Modus
+  // dürfen migrierte Einträge entfallen; tatsächlich als Bild gerenderte Seiten prüft openRoute.
+  if (!isNachher && imagePaths.length !== 32) {
     throw new Error(
       `Erwartet wurden 32 öffentliche WebP-Bilder in imagePages.ts, gefunden: ${imagePaths.length}.`,
     );
@@ -968,7 +970,41 @@ async function verifySchemaState(supabase = SUPABASE, cleanupKey = CLEANUP_KEY) 
       "select coalesce(json_agg(json_build_object('version', version, 'name', name, 'sql', array_to_string(statements, '')) order by version), '[]') from supabase_migrations.schema_migrations",
     ),
   );
-  const normalize = (sql) => sql.replace(/--[^\n]*/g, '').replace(/[\s;]/g, '');
+  // Befund PR #67 Runde 28: Kommentare, Whitespace und Semikolons nur außerhalb von Literalen
+  // entfernen; String-Literale, Dollar-Quoting und Bezeichner in Anführungszeichen bleiben exakt.
+  const normalize = (sql) => {
+    let out = '';
+    let i = 0;
+    while (i < sql.length) {
+      const ch = sql[i];
+      if (ch === '-' && sql[i + 1] === '-') {
+        const end = sql.indexOf('\n', i);
+        i = end === -1 ? sql.length : end;
+      } else if (ch === '/' && sql[i + 1] === '*') {
+        const end = sql.indexOf('*/', i + 2);
+        i = end === -1 ? sql.length : end + 2;
+      } else if (ch === "'" || ch === '"') {
+        let j = i + 1;
+        while (j < sql.length) {
+          if (sql[j] === ch && sql[j + 1] === ch) j += 2;
+          else if (sql[j] === ch) break;
+          else j += 1;
+        }
+        out += sql.slice(i, j + 1);
+        i = j + 1;
+      } else if (ch === '$' && /^\$[A-Za-z_]*\$/.test(sql.slice(i))) {
+        const tag = sql.slice(i).match(/^\$[A-Za-z_]*\$/)[0];
+        const end = sql.indexOf(tag, i + tag.length);
+        const stop = end === -1 ? sql.length : end + tag.length;
+        out += sql.slice(i, stop);
+        i = stop;
+      } else {
+        if (!/[\s;]/.test(ch)) out += ch;
+        i += 1;
+      }
+    }
+    return out;
+  };
   const migrationDir = path.join(ROOT, 'supabase/migrations');
   const expected = new Map(
     fs
@@ -1005,17 +1041,30 @@ async function verifySchemaState(supabase = SUPABASE, cleanupKey = CLEANUP_KEY) 
   const rpcSha = sha256(Buffer.from(rpc));
   const rlsSha = sha256(Buffer.from(rls));
 
-  if (policiesSha !== EXPECTED_SCHEMA_STATE.policiesSha256) {
+  // Befund PR #67 Runde 28: Im Nachher-Modus gelten die festen Baseline-Fingerabdrücke nur, solange
+  // `supabase/` zwischen Baseline und Zielcommit unverändert ist. Ändert der Zielstand Migrationen,
+  // ist der Live-Stand bereits oben gegen die Migrationsdateien des Zielcommits geprüft; die
+  // gemessenen Fingerabdrücke werden dann als Zielstand protokolliert.
+  const supabaseChanged =
+    IS_NACHHER &&
+    execFileSync('git', ['diff', '--name-only', BASELINE_COMMIT, 'HEAD', '--', 'supabase'], {
+      cwd: ROOT,
+    })
+      .toString()
+      .trim().length > 0;
+  const schemaExpectation = supabaseChanged ? 'target_commit_migrations' : 'baseline_fingerprints';
+
+  if (!supabaseChanged && policiesSha !== EXPECTED_SCHEMA_STATE.policiesSha256) {
     throw new Error(
       `RLS-Policies weichen von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.policiesSha256}, aktuell: ${policiesSha}).`,
     );
   }
-  if (rpcSha !== EXPECTED_SCHEMA_STATE.saveDashboardPreferencesSha256) {
+  if (!supabaseChanged && rpcSha !== EXPECTED_SCHEMA_STATE.saveDashboardPreferencesSha256) {
     throw new Error(
       `Funktion save_dashboard_preferences weicht von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.saveDashboardPreferencesSha256}, aktuell: ${rpcSha}).`,
     );
   }
-  if (rlsSha !== EXPECTED_SCHEMA_STATE.rlsStatusSha256) {
+  if (!supabaseChanged && rlsSha !== EXPECTED_SCHEMA_STATE.rlsStatusSha256) {
     throw new Error(
       `RLS-Aktivierungsstatus weicht von der Baseline ab (erwartet: ${EXPECTED_SCHEMA_STATE.rlsStatusSha256}, aktuell: ${rlsSha}).`,
     );
@@ -1031,6 +1080,7 @@ async function verifySchemaState(supabase = SUPABASE, cleanupKey = CLEANUP_KEY) 
   }
 
   return {
+    schemaExpectation,
     projectId,
     apiPort,
     dbPort,
@@ -1839,6 +1889,11 @@ async function pipelineNavigationCase(browser, state, variant) {
       { name: /unternehmenssteckbrief/i, expectedPath: '/company/profile' },
       { name: /sales funnel/i, expectedPath: '/sales/funnel' },
     ]) {
+      // Befund PR #67 Runde 28: jeder Wechsel startet frisch auf der Pipeline.
+      if (new URL(page.url()).pathname !== '/crm/deals') {
+        await page.goto('/crm/deals', { waitUntil: 'networkidle' });
+        await page.waitForTimeout(1500);
+      }
       const link = page.getByRole('link', { name }).first();
       await link.waitFor({ state: 'visible', timeout: 5000 });
       await link.click({ timeout: 5000 });
@@ -1899,6 +1954,16 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
   // Befund PR #67 Runde 27: nach der Wiederholungsaktion liefert der Handler kontrollierte Erfolgsdaten.
   let failRequests = true;
   let postsAfterRetry = 0;
+  // Befund PR #67 Runde 28: Ressourcen der fehlgeschlagenen und der wiederholten Abfragen protokollieren.
+  const failedResources = new Set();
+  const retriedResources = [];
+  const resourceOf = (request) => {
+    try {
+      return JSON.parse(request.postData() ?? '{}').resource ?? 'companies';
+    } catch {
+      return null;
+    }
+  };
   // OPTIONS-Preflight mit gültigen CORS-Headern passieren lassen, nur den POST kontrolliert
   // mit 500 beantworten, damit der echte Serverfehler-Pfad statt CORS-Fehler getestet wird (Codex PR #67).
   await context.route('**/functions/v1/crm-query-export**', async (route) => {
@@ -1917,11 +1982,13 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
     }
     if (request.method() === 'POST' && !failRequests) {
       postsAfterRetry++;
+      retriedResources.push(resourceOf(request));
       await fulfillControlledCrm(route, request);
       return;
     }
     if (request.method() === 'POST') {
       interceptedPostCount++;
+      failedResources.add(resourceOf(request));
       await route.fulfill({
         status: 500,
         headers: {
@@ -2077,12 +2144,16 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
     await page.waitForTimeout(1500);
     const restoredText = await page.locator('main').first().innerText();
     const stillRetry = await page.getByRole('button', { name: /erneut versuchen/i }).count();
+    const unexpected = retriedResources.filter((r) => !failedResources.has(r));
     retry = {
       postsAfterRetry,
+      failedResources: [...failedResources],
+      retriedResources,
+      unexpectedResources: unexpected,
       sameUrl: page.url() === urlBefore,
       stillError: /nicht verfügbar/i.test(restoredText) || stillRetry > 0,
     };
-    if (postsAfterRetry < 1 || !retry.sameUrl || retry.stillError) {
+    if (postsAfterRetry < 1 || unexpected.length > 0 || !retry.sameUrl || retry.stillError) {
       await context.close();
       throw new Error(
         `Fehlerfall Pipeline: Wiederholungsabruf stellt die Anzeige nicht wieder her: ${JSON.stringify(retry)}.`,
