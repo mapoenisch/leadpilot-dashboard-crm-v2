@@ -15957,3 +15957,14 @@ Alle 4 Inline-Befunde behoben in `f3f198d` (`scripts/captureAuftrag081Inventory.
 - P1: Pipeline-Fehlerfall prüft im Nachher-Modus „Erneut versuchen“: Handler liefert danach kontrollierte Erfolgsdaten; erneuter Abruf, gleiche URL und aufgehobener Fehlerzustand sind Pflicht.
 - P1: Neue Abläufe `pipelineNavigationCase` (Erfolg und Leer) mit Seitenwechsel zu `/company/profile` und `/sales/funnel`, Prüfung von URL und (Nachher) Zielüberschrift, Browser-Ausnahmen und Aktualisierungsschleifen.
 - Volllauf mit finalem Harness: 256/256, 0 fehlgeschlagen; Erfolgs- und Leerablauf bestanden; JSON und README erneuert. `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
+
+### Builder-Nacharbeit PR #67 — Codex Runde 28 (08.10.2026, Claude Code)
+
+Alle 6 Inline-Befunde behoben in `d120532` (Harness + Befundregister, kein Produktcode):
+- P1: Exakt 32 WebP-Quellen nur im Baseline-Modus; im Nachher-Modus prüft `openRoute` nur tatsächlich als Bild gerenderte Seiten.
+- P1: Retry protokolliert `failedResources`/`retriedResources`; zusätzliche, nicht fehlgeschlagene Ressourcen brechen ab.
+- P1: Nachher-Schema: feste Fingerabdrücke nur, solange `supabase/` zwischen `7fd6e33` und Zielstand unverändert ist; sonst Abgleich gegen die Migrationen des Zielcommits (`schemaExpectation` protokolliert).
+- P2: SQL-Normalisierung lässt String-Literale, Dollar-Quoting und Bezeichner unverändert.
+- P1: Erfolgs-/Leer-Navigation startet vor jedem Wechsel frisch auf `/crm/deals`.
+- P2: F12 im Befundregister um Erfolgs- und Leerzustand erweitert (Überschrift bleibt „Deal Pipeline“).
+- Volllauf mit finalem Harness: 256/256, 0 fehlgeschlagen; `schemaExpectation: baseline_fingerprints`; JSON und README erneuert. Schutzbereichs-Diff leer.
