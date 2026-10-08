@@ -26,11 +26,7 @@ import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { execFileSync } from 'node:child_process';
 import { loadEnv } from 'vite';
-import {
-  axeSevere,
-  scrollThrough,
-  sessionUserId,
-} from './lib/detailShotHelpers.mjs';
+import { axeSevere, scrollThrough, sessionUserId } from './lib/detailShotHelpers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASELINE_COMMIT = '7fd6e33';
@@ -126,7 +122,9 @@ function canonicalJsonString(data) {
     return '[' + data.map(canonicalJsonString).join(',') + ']';
   }
   const keys = Object.keys(data).sort();
-  return '{' + keys.map((k) => JSON.stringify(k) + ':' + canonicalJsonString(data[k])).join(',') + '}';
+  return (
+    '{' + keys.map((k) => JSON.stringify(k) + ':' + canonicalJsonString(data[k])).join(',') + '}'
+  );
 }
 
 function isJsonStructurallyEqual(a, b) {
@@ -299,10 +297,7 @@ async function verifyIdentity(page, supabase, email, userId) {
 }
 
 /** Sammelt alle sichtbaren statischen Assets und Fonts unter public/ (Befund PR #67 Runde 11/12). */
-function collectPublicFiles(
-  dir = path.join(ROOT, 'public'),
-  baseDir = path.join(ROOT, 'public'),
-) {
+function collectPublicFiles(dir = path.join(ROOT, 'public'), baseDir = path.join(ROOT, 'public')) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   let results = [];
   for (const entry of entries) {
@@ -310,11 +305,7 @@ function collectPublicFiles(
     if (entry.isDirectory()) {
       results.push(...collectPublicFiles(fullPath, baseDir));
     } else if (entry.isFile()) {
-      if (
-        entry.name.startsWith('.') ||
-        entry.name.endsWith('.md') ||
-        entry.name.startsWith('_')
-      )
+      if (entry.name.startsWith('.') || entry.name.endsWith('.md') || entry.name.startsWith('_'))
         continue;
       const relPath = '/' + path.relative(baseDir, fullPath).split(path.sep).join('/');
       results.push(relPath);
@@ -324,10 +315,7 @@ function collectPublicFiles(
 }
 
 /** Sammelt alle ausgelieferten Build-Dateien unter dist/ inkl. Lazy-Chunks (Befund PR #67 Runde 19). */
-function collectDistFiles(
-  dir = path.join(ROOT, 'dist'),
-  baseDir = path.join(ROOT, 'dist'),
-) {
+function collectDistFiles(dir = path.join(ROOT, 'dist'), baseDir = path.join(ROOT, 'dist')) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   let results = [];
   for (const entry of entries) {
@@ -349,11 +337,9 @@ function collectDistFiles(
  */
 async function verifyBuildArtifact(baseUrl, targetCommit = TARGET_COMMIT, isNachher = IS_NACHHER) {
   if (!isNachher) {
-    const productDiff = execFileSync(
-      'git',
-      ['diff', BASELINE_COMMIT, '--', ...PRODUCT_PATHS],
-      { cwd: ROOT },
-    )
+    const productDiff = execFileSync('git', ['diff', BASELINE_COMMIT, '--', ...PRODUCT_PATHS], {
+      cwd: ROOT,
+    })
       .toString()
       .trim();
     if (productDiff.length > 0) {
@@ -362,11 +348,9 @@ async function verifyBuildArtifact(baseUrl, targetCommit = TARGET_COMMIT, isNach
       );
     }
   } else if (process.env.TARGET_COMMIT) {
-    const productDiff = execFileSync(
-      'git',
-      ['diff', targetCommit, '--', ...PRODUCT_PATHS],
-      { cwd: ROOT },
-    )
+    const productDiff = execFileSync('git', ['diff', targetCommit, '--', ...PRODUCT_PATHS], {
+      cwd: ROOT,
+    })
       .toString()
       .trim();
     if (productDiff.length > 0) {
@@ -377,11 +361,7 @@ async function verifyBuildArtifact(baseUrl, targetCommit = TARGET_COMMIT, isNach
   }
 
   // Befund 2 PR #67 Runde 11: Auch unversionierte/ungestagte Dateien unter Produktpfaden verbieten
-  const uncommittedOrUntracked = execFileSync(
-    'git',
-    ['status', '--porcelain'],
-    { cwd: ROOT },
-  )
+  const uncommittedOrUntracked = execFileSync('git', ['status', '--porcelain'], { cwd: ROOT })
     .toString()
     .trim();
   if (uncommittedOrUntracked.length > 0) {
@@ -395,9 +375,7 @@ async function verifyBuildArtifact(baseUrl, targetCommit = TARGET_COMMIT, isNach
 
   const distHtmlPath = path.join(ROOT, 'dist/index.html');
   if (!fs.existsSync(distHtmlPath)) {
-    throw new Error(
-      'Lokaler Produktionsbuild (dist/index.html) fehlt auch nach frischem Build.',
-    );
+    throw new Error('Lokaler Produktionsbuild (dist/index.html) fehlt auch nach frischem Build.');
   }
   const localDistHtml = fs.readFileSync(distHtmlPath, 'utf8');
   const localEntryMatch = localDistHtml.match(
@@ -491,9 +469,7 @@ async function verifyBuildArtifact(baseUrl, targetCommit = TARGET_COMMIT, isNach
     'utf8',
   );
   const imagePaths = [
-    ...new Set(
-      [...imagePagesContent.matchAll(/src:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
-    ),
+    ...new Set([...imagePagesContent.matchAll(/src:\s*['"]([^'"]+)['"]/g)].map((m) => m[1])),
   ];
   if (imagePaths.length !== 32) {
     throw new Error(
@@ -608,18 +584,33 @@ async function loginWithLocale(
   return state;
 }
 
-/** Standard-Dashboard-Konfiguration (17 Kacheln) lokal aus der App-Logik geladen. */
+/**
+ * Standard-Dashboard-Konfiguration (17 Kacheln) aus der App-Logik der Baseline geladen.
+ * Befund PR #67 Runde 22: Auch im Nachher-Modus immer den Stand aus BASELINE_COMMIT verwenden,
+ * damit Änderungen an defaultDashboard.ts (Paket E) die Vergleichskonfiguration nicht verschieben.
+ */
 function defaultDashboardConfig(root) {
-  const out = execFileSync(
-    'npx',
-    [
-      'tsx',
-      '-e',
-      "import { DEFAULT_DASHBOARD_CONFIG } from './src/features/dashboard/model/defaultDashboard.ts'; console.log(JSON.stringify(DEFAULT_DASHBOARD_CONFIG));",
-    ],
-    { cwd: root },
-  );
-  return JSON.parse(out.toString());
+  const tmpDir = path.join(root, 'test-results/auftrag-081', `baseline-src-${Date.now()}`);
+  fs.mkdirSync(tmpDir, { recursive: true });
+  try {
+    const archive = execFileSync('git', ['archive', BASELINE_COMMIT, 'src'], {
+      cwd: root,
+      maxBuffer: 256 * 1024 * 1024,
+    });
+    execFileSync('tar', ['-x', '-C', tmpDir], { input: archive });
+    const out = execFileSync(
+      'npx',
+      [
+        'tsx',
+        '-e',
+        "import { DEFAULT_DASHBOARD_CONFIG } from './src/features/dashboard/model/defaultDashboard.ts'; console.log(JSON.stringify(DEFAULT_DASHBOARD_CONFIG));",
+      ],
+      { cwd: tmpDir },
+    );
+    return JSON.parse(out.toString());
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
 }
 
 /** Liest Projekt-ID und Ports aus supabase/config.toml (Codex PR #67 Runde 18/20). */
@@ -641,11 +632,11 @@ function validateSupabaseInstance(supabaseUrlStr) {
   if (!LOCAL_HOSTS.has(parsed.hostname)) {
     throw new Error(`Inventur nur gegen lokales Supabase, nicht gegen ${parsed.host}.`);
   }
-  const urlPort = parsed.port ? Number(parsed.port) : (parsed.protocol === 'https:' ? 443 : 80);
+  const urlPort = parsed.port ? Number(parsed.port) : parsed.protocol === 'https:' ? 443 : 80;
   if (urlPort !== apiPort) {
     throw new Error(
       `SUPABASE.url Port (${urlPort}) weicht vom in supabase/config.toml konfigurierten API-Port (${apiPort}) ab. ` +
-      `Katalogprüfung würde eine andere Instanz prüfen (Codex PR #67 Runde 20).`,
+        `Katalogprüfung würde eine andere Instanz prüfen (Codex PR #67 Runde 20).`,
     );
   }
 
@@ -658,13 +649,13 @@ function validateSupabaseInstance(supabaseUrlStr) {
   } catch (err) {
     throw new Error(
       `Docker-Container ${kongContainer} für Projekt ${projectId} ist nicht erreichbar (${err.message}). ` +
-      `Supabase-Instanz läuft möglicherweise nicht (npx supabase start).`,
+        `Supabase-Instanz läuft möglicherweise nicht (npx supabase start).`,
     );
   }
   if (!kongPorts.includes(`:${apiPort}`)) {
     throw new Error(
       `Container ${kongContainer} ist nicht an Port ${apiPort} gebunden (${kongPorts}). ` +
-      `SUPABASE.url zeigt nicht auf den konfigurierten Projekt-Container.`,
+        `SUPABASE.url zeigt nicht auf den konfigurierten Projekt-Container.`,
     );
   }
 
@@ -711,15 +702,17 @@ if (!README_ONLY) {
 // Supabase-Instanz verwenden wie Seed-, Identitäts- und Präferenzprüfung des Harness.
 if (!README_ONLY) {
   const viteEnv = loadEnv('production', ROOT, 'VITE_');
-  if (viteEnv.VITE_SUPABASE_URL !== SUPABASE.url || viteEnv.VITE_SUPABASE_ANON_KEY !== SUPABASE.anonKey) {
+  if (
+    viteEnv.VITE_SUPABASE_URL !== SUPABASE.url ||
+    viteEnv.VITE_SUPABASE_ANON_KEY !== SUPABASE.anonKey
+  ) {
     throw new Error(
       `Build und Harness zeigen auf unterschiedliche Supabase-Instanzen (VITE_SUPABASE_URL ${viteEnv.VITE_SUPABASE_URL ?? '–'} vs. ${SUPABASE.url}, Anon-Key ${viteEnv.VITE_SUPABASE_ANON_KEY === SUPABASE.anonKey ? 'gleich' : 'abweichend'}).`,
     );
   }
 }
 // Befund 4 PR #67 Runde 11: Kein fest codierter JWT-Schlüssel; CLEANUP_KEY strikt aus Umgebungsvariablen beziehen
-const CLEANUP_KEY =
-  process.env.E2E_CLEANUP_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? null;
+const CLEANUP_KEY = process.env.E2E_CLEANUP_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? null;
 if (!README_ONLY && !CLEANUP_KEY) {
   throw new Error(
     'E2E_CLEANUP_KEY oder SUPABASE_SERVICE_ROLE_KEY muss gesetzt sein, um Testdaten und Präferenzen revisionsgetreu verifizieren und aufräumen zu können.',
@@ -876,7 +869,8 @@ const SIMULATION_TABLES = [
 
 const EXPECTED_SCHEMA_STATE = {
   policiesSha256: '4293dbf2a9eb6063c2e2e5bbb94a2a023bd637a157d695703abed2e6daf46250',
-  saveDashboardPreferencesSha256: 'e0cf51ebfedfef564a353638b7f8567f5c536803da9236a6d74399a3570a77f7',
+  saveDashboardPreferencesSha256:
+    'e0cf51ebfedfef564a353638b7f8567f5c536803da9236a6d74399a3570a77f7',
   rlsStatusSha256: '6c7cc3fee4aa1d6c575e0b3cde58dba4f32702e7c2c74ccb7f25cbe03e8cc0f6',
 };
 
@@ -946,7 +940,8 @@ async function verifySchemaState(supabase = SUPABASE, cleanupKey = CLEANUP_KEY) 
       mismatches.push(`${row.version} weicht inhaltlich von ${path.relative(ROOT, file)} ab`);
   }
   for (const version of expected.keys()) {
-    if (!applied.some((row) => row.version === version)) mismatches.push(`${version} nicht angewandt`);
+    if (!applied.some((row) => row.version === version))
+      mismatches.push(`${version} nicht angewandt`);
   }
   if (mismatches.length > 0) {
     throw new Error(`Supabase-Schemastand weicht von der Baseline ab: ${mismatches.join('; ')}.`);
@@ -1017,7 +1012,9 @@ async function verifySimulationWorkspace(supabase, cleanupKey, organizationId) {
       },
     );
     if (!response.ok) {
-      throw new Error(`Simulations-Workspace-Prüfung ${table} fehlgeschlagen (HTTP ${response.status}).`);
+      throw new Error(
+        `Simulations-Workspace-Prüfung ${table} fehlgeschlagen (HTTP ${response.status}).`,
+      );
     }
     const total = Number(response.headers.get('content-range')?.split('/')[1]);
     if (!Number.isInteger(total)) {
@@ -1106,16 +1103,23 @@ const CONTROLLED_CRM_DATA = {
   ],
 };
 const DEFAULT_JSON_OUT = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar.json');
-const DEFAULT_NACHHER_JSON_OUT = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar-nachher.json');
+const DEFAULT_NACHHER_JSON_OUT = path.join(
+  ROOT,
+  'docs/reviews/2026-10-06-frontend-inventar-nachher.json',
+);
 const JSON_OUT = process.env.JSON_OUT
   ? path.resolve(ROOT, process.env.JSON_OUT)
-  : (IS_NACHHER ? DEFAULT_NACHHER_JSON_OUT : DEFAULT_JSON_OUT);
+  : IS_NACHHER
+    ? DEFAULT_NACHHER_JSON_OUT
+    : DEFAULT_JSON_OUT;
 
 const DEFAULT_OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-081');
 const DEFAULT_NACHHER_OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-081-nachher');
 const OUT_DIR = process.env.OUT_DIR
   ? path.resolve(ROOT, process.env.OUT_DIR)
-  : (IS_NACHHER ? DEFAULT_NACHHER_OUT_DIR : DEFAULT_OUT_DIR);
+  : IS_NACHHER
+    ? DEFAULT_NACHHER_OUT_DIR
+    : DEFAULT_OUT_DIR;
 
 const ONLY =
   process.env.ONLY !== undefined
@@ -1380,7 +1384,9 @@ async function openRoute(browser, state, viewport, theme, target) {
         params.q = url.searchParams.get('q') || undefined;
         params.sortBy = url.searchParams.get('sortBy') || undefined;
         params.sortOrder = url.searchParams.get('sortOrder') || undefined;
-        params.page = url.searchParams.get('page') ? Number(url.searchParams.get('page')) : undefined;
+        params.page = url.searchParams.get('page')
+          ? Number(url.searchParams.get('page'))
+          : undefined;
         params.pageSize = url.searchParams.get('pageSize')
           ? Number(url.searchParams.get('pageSize'))
           : undefined;
@@ -1502,16 +1508,27 @@ async function openRoute(browser, state, viewport, theme, target) {
     } else if (target.id === 's-standort') {
       await page.locator('[data-testid="location-headquarters"]').waitFor({ timeout: 10000 });
     } else if (target.id === 's-live-simulation') {
-      await page.locator('main button[role="tab"]:has-text("Management-Ebene")').waitFor({ timeout: 10000 });
+      await page
+        .locator('main button[role="tab"]:has-text("Management-Ebene")')
+        .waitFor({ timeout: 10000 });
     } else if (target.id === 's-leads') {
       await page.locator('main h2:has-text("Leads")').waitFor({ timeout: 10000 });
-      await page.locator('main table, main .crm-v2-mobile-card').first().waitFor({ timeout: 10000 });
+      await page
+        .locator('main table, main .crm-v2-mobile-card')
+        .first()
+        .waitFor({ timeout: 10000 });
     } else if (target.id === 's-companies') {
       await page.locator('main h2:has-text("Unternehmen")').waitFor({ timeout: 10000 });
-      await page.locator('main table, main .crm-v2-mobile-card').first().waitFor({ timeout: 10000 });
+      await page
+        .locator('main table, main .crm-v2-mobile-card')
+        .first()
+        .waitFor({ timeout: 10000 });
     } else if (target.id === 's-deals') {
       await page.locator('main h2:has-text("Deal Pipeline")').waitFor({ timeout: 10000 });
-      await page.locator('main table, main .crm-v2-mobile-card').first().waitFor({ timeout: 10000 });
+      await page
+        .locator('main table, main .crm-v2-mobile-card')
+        .first()
+        .waitFor({ timeout: 10000 });
     } else if (target.id === 's-activities') {
       await page.locator('main h2:has-text("Aktivitäten")').waitFor({ timeout: 10000 });
     }
@@ -1776,6 +1793,17 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
       );
     }
     await snap(label);
+    // Befund PR #67 Runde 22: Im Nachher-Modus muss auch der Zielinhalt stimmen, nicht nur die URL.
+    if (IS_NACHHER) {
+      const last = steps[steps.length - 1];
+      const headings = [last.headerH1, last.mainH1].filter(Boolean);
+      if (!headings.some((h) => name.test(h))) {
+        await context.close();
+        throw new Error(
+          `Fehlerfall-Navigation zu ${expectedPath}: Zielinhalt nicht geladen (Überschriften: ${JSON.stringify(headings)}).`,
+        );
+      }
+    }
   }
   fs.writeFileSync(
     path.join(targetDir, 'fehler-pipeline-nach-navigation.png'),
@@ -1911,12 +1939,35 @@ async function main() {
       // Befund PR #67 Runde 19: Vor dem RPC kein spekulatives restore vormerken.
       // Wenn der RPC mit einem Konflikt scheitert, darf kein Restore eine fremde Revision überschreiben.
       restore = null;
-      const { rpcRevision } = await savePreferencesRpc(
-        setupPage,
-        SUPABASE,
-        defaultConfig,
-        originalPrefs.revision,
-      );
+      let rpcRevision;
+      try {
+        ({ rpcRevision } = await savePreferencesRpc(
+          setupPage,
+          SUPABASE,
+          defaultConfig,
+          originalPrefs.revision,
+        ));
+      } catch (rpcErr) {
+        // Befund PR #67 Runde 22: Antwort verloren/unlesbar, Mutation evtl. trotzdem committet.
+        // Zeile nachlesen und Restore nur aktivieren, wenn Revision und Konfiguration die
+        // Harness-Mutation eindeutig belegen.
+        const after = await readPreferences(setupPage, SUPABASE).catch(() => null);
+        if (
+          after &&
+          after.revision === originalPrefs.revision + 1 &&
+          isJsonStructurallyEqual(after.config, defaultConfig)
+        ) {
+          restore = {
+            type: 'restore_exact_row',
+            originalRow: originalPrefs,
+            page: setupPage,
+            userId,
+            harnessRevisions: [after.revision],
+            installedConfig: defaultConfig,
+          };
+        }
+        throw rpcErr;
+      }
       // Befund PR #67 Runde 20: Restore-Token UNMITTELBAR nach erfolgreichem RPC registrieren,
       // BEVOR ein nachgelagertes Lesen ausgeführt wird. Schlägt das anschließende GET fehl,
       // ist der Cleanup-Restore bereits aktiv und hinterlässt keine Standardkonfiguration.
@@ -1933,7 +1984,10 @@ async function main() {
       try {
         read = await readPreferences(setupPage, SUPABASE);
       } catch (err) {
-        console.warn('Nachgelagertes Lesen der Präferenzen fehlgeschlagen, verwende RPC-Revision:', err.message);
+        console.warn(
+          'Nachgelagertes Lesen der Präferenzen fehlgeschlagen, verwende RPC-Revision:',
+          err.message,
+        );
       }
       dashboardConfigInfo = {
         source: 'installed_standard',
@@ -2062,14 +2116,18 @@ async function main() {
     );
     const harnessSha256 = sha256(scriptContent);
     // Codex PR #67 Runde 21: Version aus dem (gegen Baseline bzw. Zielcommit geprüften) package.json.
-    const productVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
+    const productVersion = JSON.parse(
+      fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
+    ).version;
     const headCommit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
       .toString()
       .trim();
 
     // Verifiziere, dass der aktuelle Produktcode exakt der Baseline (oder im Nachher-Modus dem Zielcommit) entspricht (Befund PR #67 Runde 6/8/20)
     if (!IS_NACHHER) {
-      const productDiff = execFileSync('git', ['diff', BASELINE_COMMIT, '--', ...PRODUCT_PATHS], { cwd: ROOT })
+      const productDiff = execFileSync('git', ['diff', BASELINE_COMMIT, '--', ...PRODUCT_PATHS], {
+        cwd: ROOT,
+      })
         .toString()
         .trim();
       if (productDiff.length > 0) {
@@ -2078,7 +2136,9 @@ async function main() {
         );
       }
     } else if (process.env.TARGET_COMMIT) {
-      const productDiff = execFileSync('git', ['diff', TARGET_COMMIT, '--', ...PRODUCT_PATHS], { cwd: ROOT })
+      const productDiff = execFileSync('git', ['diff', TARGET_COMMIT, '--', ...PRODUCT_PATHS], {
+        cwd: ROOT,
+      })
         .toString()
         .trim();
       if (productDiff.length > 0) {
@@ -2089,11 +2149,9 @@ async function main() {
     }
 
     // Befund 2 PR #67 Runde 11: Auch vor dem finalen Schreiben der Artefakte unversionierte/ungestagte Dateien prüfen
-    const uncommittedOrUntrackedFinal = execFileSync(
-      'git',
-      ['status', '--porcelain'],
-      { cwd: ROOT },
-    )
+    const uncommittedOrUntrackedFinal = execFileSync('git', ['status', '--porcelain'], {
+      cwd: ROOT,
+    })
       .toString()
       .trim();
     if (uncommittedOrUntrackedFinal.length > 0) {

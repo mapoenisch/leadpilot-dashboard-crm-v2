@@ -15884,3 +15884,23 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 
 - **Schutzbereichs- und Ziel-Dateien-Prüfung:** `git diff 7fd6e33 -- src/ scripts/lib/detailShotHelpers.mjs` = 0 Byte.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.
+
+
+### Codex-Review PR #67 — 08.10.2026, Head `2913ac0` (Runde 21)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_081_FRONTEND_BESTANDSAUFNAHME.md`. Unabhängige Prüfung der Nacharbeit, keine Implementierung.
+
+**Befund P2 — Seiteninhalt nach HTML-Migration weiterhin verbindlich prüfen.** `scripts/captureAuftrag081Inventory.mjs:1205–1210` setzt bei weggefallenem ImagePage-Verweis `imageKey: null`. Für diese 32 Vergleichsziele enthält `openRoute` anschließend keinen HTML-Inhaltsnachweis (1479–1517); beispielsweise `s-funnel` fällt durch alle Zweige. Dadurch können leere oder noch nicht geladene HTML-Seiten als erfolgreiche Nachher-Aufnahmen in den finalen Vergleich eingehen. Mit isolierter Ausführung der unveränderten Funktion reproduziert: Eine im Speicher ersetzte Funnel-Komponente `export const FunnelPage = () => null;` bleibt als Ziel `/sales/funnel` mit `imageKey: null` erhalten. Keine Produktdatei geändert. Die Routenliste muss stabil bleiben, zusätzlich muss für migrierte Ziele ein expliziter erwarteter HTML-Seitenmarker samt geladenem Inhalt geprüft werden; unbekannte Seitentypen müssen abbrechen. Die aktuelle Komponenten-Zuordnung ist aus dem aktuellen Routing zu bestimmen, statt ausschließlich die Baseline-Datei auf ImagePage zu durchsuchen.
+
+**Erneuerter Nachweis:** Inventar-Harness-Hash entspricht exakt der aktuellen Datei (`dc7bf2e31aa70c532fce1de0113539492b45c557f369b02d8c26fa7f307c0441`); JSON nennt Ausführungshead `5d6b2c8`, Baseline-Modus, Zielcommit, Zeitzone und 256/256 erfolgreiche Aufnahmen. Der bisherige Befund zum veralteten Nachweis ist damit erledigt. Kein erneuter Screenshot-Volllauf und keine Sichtprüfung aller Aufnahmen in diesem Review.
+
+**Live-Gates:** TypeScript, Lint, Formatprüfung und Produktionsbuild Exit 0. Vitest 316 Dateien / 2257 Tests bestanden. Integrity-Prüfung zunächst Sandbox-IPC-Fehler, anschließend genehmigt außerhalb der Sandbox Exit 0 (Suiten 001–025). Schutzbereichs-Diff und gesamter `src/`-Diff gegen `7fd6e33` leer, gemeinsamer Helper unverändert.
+
+**Ergebnis:** Nacharbeit erforderlich, P0-5 bleibt offen. Nur diesen Prüfeintrag lokal ergänzt; kein Commit, Push, GitHub-Kommentar oder Merge.
+
+### Auftrag 081 – Codex Review Runde 22 (PR #67, Head `2913ac0`)
+
+- P1: Vergleichskonfiguration wird jetzt immer aus `BASELINE_COMMIT` geladen (`git archive` in temporäres Verzeichnis), auch im Nachher-Modus.
+- P2: Verlorene/unlesbare RPC-Antwort: Zeile wird nachgelesen; Restore nur aktiv, wenn Revision = Original+1 und Konfiguration = Standard.
+- P1: Nachher-Modus prüft bei der Fehlerfall-Navigation zusätzlich die Zielüberschrift (Header-/Main-`h1`), nicht nur die URL.
+- Verifikation: `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer. Kein Inventar-Neulauf nötig (Baseline-Modus unverändert: Baseline-Konfiguration identisch, Zusatzprüfung nur im Nachher-Modus).
