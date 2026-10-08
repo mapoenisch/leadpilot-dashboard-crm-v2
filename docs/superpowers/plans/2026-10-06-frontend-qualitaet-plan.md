@@ -110,13 +110,13 @@ Vorläufige Größenordnung: 0 klein, F15 klein, A mittel bis zur Diagnose, B mi
 **Betroffene Dateien für die Diagnose:** `src/features/crm/pages/DealsPage.tsx`, `src/features/crm/hooks/useCrmProvenance.ts`, `src/hooks/useUrlSyncedState.ts`, `src/hooks/queries/useCrmListQuery.ts`, `src/features/crm/components/`, `src/components/data/DataSourceStatus.tsx`, `src/components/ui/RouteErrorBoundary.tsx`.
 **Tests:** vorhandene CRM-/Hook-Tests ergänzen; `e2e/crm-query-export.spec.ts` um Fehler-/Navigationsfälle erweitern. Endgültige Änderungsdateien erst aus der Ursachenanalyse ableiten.
 
-- [ ] SERVER_ERROR im lokalen Test reproduzieren: Pipeline öffnen, Antwort kontrolliert fehlschlagen lassen, anschließend Unternehmenssteckbrief und Funnel anklicken. Adresse, Überschrift, Hauptinhalt und Konsole vergleichen.
-- [ ] Separat prüfen, ob Navigation auch bei erfolgreicher oder leerer CRM-Antwort hängen bleibt. QueryCache-Benachrichtigungen, Hook-Zustandsänderungen und URL-Synchronisation nachverfolgen; nicht allein aus dem Stacktrace einen Hook als Ursache erklären.
-- [ ] Einen minimalen Regressionstest schreiben, der das tatsächlich identifizierte Schleifen-/Navigationsproblem vor dem Fix nachweislich auslöst. Kein blindes Erhöhen von Wiederholungszahlen oder Abschalten der Warnung.
-- [ ] Ursache mit kleinstem gezielten Eingriff beseitigen. Datenbank-/Edge-Function-Ausfälle getrennt untersuchen, wenn sie weiterhin bestehen; ein UI-Fix beweist keinen reparierten Server.
-- [ ] Lade-, Leer-, Fehler- und Erfolgszustände trennen. Bei Fehler stehen Anzahl und Volumen auf „Nicht verfügbar“, nicht 0. Bestätigte leere Ergebnisse zeigen weiterhin 0.
-- [ ] „Erneut versuchen“ anbieten; nur fehlgeschlagene passende Abfragen wiederholen. Export bei nicht verfügbarer Datenbasis eindeutig sperren, statt ein scheinbar vollständiges Ergebnis anzubieten.
-- [ ] Navigation, Zurück/Vorwärts, Wiederholen und Benutzerwechsel unter Fehlerbedingungen testen; keine Daten eines vorherigen Benutzers sichtbar lassen.
+- [x] SERVER_ERROR im lokalen Test reproduzieren: Pipeline öffnen, Antwort kontrolliert fehlschlagen lassen, anschließend Unternehmenssteckbrief und Funnel anklicken. Adresse, Überschrift, Hauptinhalt und Konsole vergleichen.
+- [x] Separat prüfen, ob Navigation auch bei erfolgreicher oder leerer CRM-Antwort hängen bleibt. QueryCache-Benachrichtigungen, Hook-Zustandsänderungen und URL-Synchronisation nachverfolgen; nicht allein aus dem Stacktrace einen Hook als Ursache erklären.
+- [x] Einen minimalen Regressionstest schreiben, der das tatsächlich identifizierte Schleifen-/Navigationsproblem vor dem Fix nachweislich auslöst. Kein blindes Erhöhen von Wiederholungszahlen oder Abschalten der Warnung.
+- [x] Ursache mit kleinstem gezielten Eingriff beseitigen. Datenbank-/Edge-Function-Ausfälle getrennt untersuchen, wenn sie weiterhin bestehen; ein UI-Fix beweist keinen reparierten Server.
+- [x] Lade-, Leer-, Fehler- und Erfolgszustände trennen. Bei Fehler stehen Anzahl und Volumen auf „Nicht verfügbar“, nicht 0. Bestätigte leere Ergebnisse zeigen weiterhin 0.
+- [x] „Erneut versuchen“ anbieten; nur fehlgeschlagene passende Abfragen wiederholen. Export bei nicht verfügbarer Datenbasis eindeutig sperren, statt ein scheinbar vollständiges Ergebnis anzubieten.
+- [x] Navigation, Zurück/Vorwärts, Wiederholen und Benutzerwechsel unter Fehlerbedingungen testen; keine Daten eines vorherigen Benutzers sichtbar lassen. Umgesetzt mit Auftrag 084 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_084_PIPELINE_FEHLER_NAVIGATION.md`).
 
 **Abnahme:** Nach erfolgreicher, leerer und fehlgeschlagener Antwort funktioniert die Navigation ohne Neuladen. Keine reproduzierbare Aktualisierungsschleife. Fehler werden nicht als geschäftliche Nullwerte dargestellt; erfolgreicher Wiederholungsabruf stellt die Anzeige wieder her.
 

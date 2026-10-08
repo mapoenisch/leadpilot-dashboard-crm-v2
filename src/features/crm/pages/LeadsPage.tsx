@@ -153,7 +153,7 @@ export function LeadsPage() {
   );
 
   // P1-1: Ausschließlich serverseitige TanStack-Query für alle CRM-Ressourcen
-  const { data, isLoading, isError, error } = useCrmListQuery<R>(
+  const { data, isLoading, isError, error, refetch } = useCrmListQuery<R>(
     {
       resource: conf.resource,
       q: searchTerm.trim() || undefined,
@@ -168,6 +168,11 @@ export function LeadsPage() {
 
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? 0;
+
+  // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
+  const hasData = data !== undefined;
+  const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
+  const exportBlocked = isError || !hasData;
 
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
@@ -222,18 +227,20 @@ export function LeadsPage() {
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A CRM</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
-          <Badge variant="neutral">{total} Einträge</Badge>
+          <Badge variant="neutral">{countText} Einträge</Badge>
           {activeTab !== 'audit' && (
             <Button
               variant="secondary"
               size="sm"
               iconLeft={<Download size={14} />}
               onClick={handleExport}
-              disabled={isViewer || isExporting}
+              disabled={isViewer || isExporting || exportBlocked}
               title={
                 isViewer
                   ? 'Viewer besitzen keine Exportberechtigung'
-                  : 'Aktuelle Liste als CSV exportieren'
+                  : exportBlocked
+                    ? 'Export gesperrt: Datenbasis nicht verfügbar'
+                    : 'Aktuelle Liste als CSV exportieren'
               }
               aria-label="CSV Export"
             >
@@ -257,14 +264,14 @@ export function LeadsPage() {
         {[
           {
             t: 'Gefundene Datensätze',
-            v: total,
+            v: countText,
             n: 'Mandanten-geprüft',
             c: 'text-primary font-bold',
             f: true,
           },
           {
             t: 'Aktuelle Seite',
-            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            v: isError || !hasData ? '–' : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
             n: `${pageSize} pro Seite`,
             c: 'text-text font-semibold',
           },
@@ -374,6 +381,7 @@ export function LeadsPage() {
           message={stateInfo.msg}
           sourceLabel="Ebene A CRM"
           height={220}
+          onRetry={stateInfo.type === 'error' ? () => void refetch() : undefined}
         />
       ) : (
         <Card variant="glass" padding="0">

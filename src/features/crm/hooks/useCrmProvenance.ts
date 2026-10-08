@@ -31,6 +31,18 @@ export interface CrmProvenanceResult {
   isLoading: boolean;
 }
 
+// ProvenanceState enthält nur primitive Felder; ein flacher Vergleich genügt.
+function isSameResult(a: CrmProvenanceResult, b: CrmProvenanceResult): boolean {
+  if (a.isLoading !== b.isLoading) return false;
+  const keys = new Set([...Object.keys(a.provenance), ...Object.keys(b.provenance)]);
+  for (const key of keys) {
+    if (a.provenance[key as keyof ProvenanceState] !== b.provenance[key as keyof ProvenanceState]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Gate G61 / Auftrag 067O (Nacharbeit 2):
  * Reaktiver Hook für CRM-Quellenprovenienz & Datenfrische.
@@ -79,13 +91,22 @@ export function useCrmProvenance(activeSubView: string = 's-leads'): CrmProvenan
   const [state, setState] = React.useState<CrmProvenanceResult>(deriveCurrentState);
 
   React.useEffect(() => {
+    // Auftrag 084 / F12: nur bei inhaltlicher Änderung neu setzen. Jeder Render
+    // der Seite löst über useQuery ein 'observerOptionsUpdated'-Ereignis aus;
+    // ein stets neues State-Objekt ergab eine Render-Schleife, die die
+    // Router-Navigation (Transition) dauerhaft verdrängte.
+    const update = () => {
+      const next = deriveCurrentState();
+      setState((prev) => (isSameResult(prev, next) ? prev : next));
+    };
+
     // Bei Wechsel der aktiven Unterseite sofort neu auswerten
-    setState(deriveCurrentState());
+    update();
 
     // Reaktive TanStack Query Cache Subscription
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
       if (event?.query?.queryKey?.[0] === 'crm') {
-        setState(deriveCurrentState());
+        update();
       }
     });
 

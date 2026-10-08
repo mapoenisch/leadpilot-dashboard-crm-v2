@@ -12,6 +12,7 @@ import {
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
 import { AuthProvider } from '@/auth/AuthContext';
+import { QueryCacheUserReset } from '@/auth/QueryCacheUserReset';
 import { OrganizationProvider, useOrganization } from '@/auth/organizationContext';
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { useSimulationStore } from '@/store/simulationStore';
@@ -66,6 +67,7 @@ export function App() {
     <RouteErrorBoundary resetKey="app-root">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <QueryCacheUserReset />
           <OrganizationProvider>
             <WorkspaceHydrator />
             <BrowserRouter>

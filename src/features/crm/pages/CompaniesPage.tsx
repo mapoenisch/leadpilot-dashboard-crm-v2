@@ -127,7 +127,7 @@ export function CompaniesPage() {
   ]);
 
   // Serverseitige TanStack-Query
-  const { data, isLoading, isError, error } = useCrmListQuery<Company>({
+  const { data, isLoading, isError, error, refetch } = useCrmListQuery<Company>({
     resource: 'companies',
     q: searchTerm.trim() || undefined,
     filters: industryFilter !== 'ALL' ? { industry: industryFilter } : undefined,
@@ -167,6 +167,11 @@ export function CompaniesPage() {
 
   const companies = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? 0;
+
+  // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
+  const hasData = data !== undefined;
+  const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
+  const exportBlocked = isError || !hasData;
 
   const industryOptions = useMemo(() => {
     const knownValues = new Set(BASE_INDUSTRY_OPTIONS.map((o) => o.value));
@@ -217,17 +222,19 @@ export function CompaniesPage() {
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A Import</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
-          <Badge variant="neutral">{total} B2B Accounts</Badge>
+          <Badge variant="neutral">{countText} B2B Accounts</Badge>
           <Button
             variant="secondary"
             size="sm"
             iconLeft={<Download size={14} />}
             onClick={handleExport}
-            disabled={isViewer || isExporting}
+            disabled={isViewer || isExporting || exportBlocked}
             title={
               isViewer
                 ? 'Viewer besitzen keine Exportberechtigung'
-                : 'Gefilterte Unternehmensliste als CSV exportieren'
+                : exportBlocked
+                  ? 'Export gesperrt: Datenbasis nicht verfügbar'
+                  : 'Gefilterte Unternehmensliste als CSV exportieren'
             }
             aria-label="CSV Export"
           >
@@ -251,14 +258,14 @@ export function CompaniesPage() {
         {[
           {
             t: 'Unternehmen Gesamt',
-            v: total,
+            v: countText,
             n: 'Mandanten-geprüft',
             c: 'text-primary font-bold',
             f: true,
           },
           {
             t: 'Aktuelle Seite',
-            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            v: isError || !hasData ? '–' : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
             n: `${pageSize} Accounts pro Seite`,
             c: 'text-text font-semibold',
           },
@@ -329,7 +336,7 @@ export function CompaniesPage() {
             />
           </div>
           <div className="crm-v2-result-count" aria-live="polite">
-            {total} {total === 1 ? 'Unternehmen' : 'Unternehmen'} gefunden
+            {isError || !hasData ? 'Ergebnis nicht verfügbar' : `${total} Unternehmen gefunden`}
           </div>
         </div>
       </div>
@@ -348,6 +355,7 @@ export function CompaniesPage() {
           message={`Integritätsfehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der Unternehmen'}`}
           sourceLabel="Ebene A CRM Accounts"
           height={220}
+          onRetry={() => void refetch()}
         />
       ) : (
         <Card variant="glass" padding="0">

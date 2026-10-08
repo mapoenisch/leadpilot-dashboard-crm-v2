@@ -1,11 +1,14 @@
 import React from 'react';
 import { AlertTriangle, Database } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 export interface ManagementChartStateProps {
   type: 'empty' | 'error' | 'loading';
   message?: string;
   sourceLabel?: string;
   height?: number;
+  /** Auftrag 084: bietet im Fehlerzustand „Erneut versuchen“ an. */
+  onRetry?: () => void;
 }
 
 export const ManagementChartState: React.FC<ManagementChartStateProps> = ({
@@ -13,6 +16,7 @@ export const ManagementChartState: React.FC<ManagementChartStateProps> = ({
   message,
   sourceLabel = 'Ebene A Baseline',
   height = 240,
+  onRetry,
 }) => {
   const isError = type === 'error';
   const defaultMessage = isError
@@ -45,6 +49,12 @@ export const ManagementChartState: React.FC<ManagementChartStateProps> = ({
       <div className="text-[11px] text-[rgba(143,163,161,0.8)]">
         Ehrlicher Systemzustand ({sourceLabel}) — keine synthetischen Ersatzwerte
       </div>
+
+      {isError && onRetry && (
+        <Button variant="secondary" size="sm" className="mt-[12px]" onClick={onRetry}>
+          Erneut versuchen
+        </Button>
+      )}
     </div>
   );
 };

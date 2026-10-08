@@ -1,0 +1,238 @@
+{
+  "label": "nachher",
+  "shots": [
+    {
+      "name": "deals-1440-dark",
+      "badge": "Nicht verfügbar Funnel Deals",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "6abf03b4fa7e77be709aeafa4b2530080ab5e8f966be5db8bd27b677d5189276"
+    },
+    {
+      "name": "companies-1440-dark",
+      "badge": "Nicht verfügbar B2B Accounts",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "e7e0879e640d16cc7d88ca0231352164934ad313727a6000d2d6b7abcabb2011"
+    },
+    {
+      "name": "leads-1440-dark",
+      "badge": "Nicht verfügbar Einträge",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "0a600e13ad7dd678f2a3530fba3da5a7e2d35b60dd167ec012f7d51bb236a2b4"
+    },
+    {
+      "name": "deals-1440-light",
+      "badge": "Nicht verfügbar Funnel Deals",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "1bc3d539ba7df4ed6040c2fe85c2066464339dcc654b7f37af662fe258ec36f2"
+    },
+    {
+      "name": "companies-1440-light",
+      "badge": "Nicht verfügbar B2B Accounts",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "166dc39d7c0db12e47342b96eba65336efd3030753e3bd27dd6f0d91d8cca019"
+    },
+    {
+      "name": "leads-1440-light",
+      "badge": "Nicht verfügbar Einträge",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "cd125da99b5e2c9f6c2ce9aa0fa1562580bcc14aca7186ae22ca0a80d4082654"
+    },
+    {
+      "name": "deals-768-dark",
+      "badge": "Nicht verfügbar Funnel Deals",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "8c598f44e8b4272764ba2d31076abe12064b987a56c984f10a4eb0bcac0a3396"
+    },
+    {
+      "name": "companies-768-dark",
+      "badge": "Nicht verfügbar B2B Accounts",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "022ea9daf703e21f713b914ad7f4e4c39e7bfb1895bca6c0cd37824af7a50165"
+    },
+    {
+      "name": "leads-768-dark",
+      "badge": "Nicht verfügbar Einträge",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "9b7e2c0a960146b1a4ccd8144edf0fa69228dbe78700acc852b0130cd2e7aabf"
+    },
+    {
+      "name": "deals-768-light",
+      "badge": "Nicht verfügbar Funnel Deals",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "22f7cd8aa21388488416a3614079c10a62fc27a80c29f665c5eabb0ba26cfd77"
+    },
+    {
+      "name": "companies-768-light",
+      "badge": "Nicht verfügbar B2B Accounts",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "a5e45c33eca54c0b0c9e6946dcd9ea6664bd31edf749c3c44219a2e2158398a0"
+    },
+    {
+      "name": "leads-768-light",
+      "badge": "Nicht verfügbar Einträge",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "19cfdc9375fbf6f3d9b19b2a875ad7db5780741602ac577ef8c5e9ee406c2758"
+    },
+    {
+      "name": "deals-375-dark",
+      "badge": "Nicht verfügbar Funnel Deals",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "530c435de14ec17021c5c5422e412053e3369b390c6bcbcebfd29b439847132d"
+    },
+    {
+      "name": "companies-375-dark",
+      "badge": "Nicht verfügbar B2B Accounts",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "9856eb9712bc1ca8b29cde06198347f6cb8b492666f716c33ef7b5e8b2eeb31b"
+    },
+    {
+      "name": "leads-375-dark",
+      "badge": "Nicht verfügbar Einträge",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 14
+      },
+      "sha256": "863f8fcf3475f52847150ea201024752449115e8fe4fd4e7520f018b39551b03"
+    },
+    {
+      "name": "deals-375-light",
+      "badge": "Nicht verfügbar Funnel Deals",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "d96fb5f662224f41af589fa55cd05d085248efda328f1f28de6b6dd478c1c737"
+    },
+    {
+      "name": "companies-375-light",
+      "badge": "Nicht verfügbar B2B Accounts",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 0
+      },
+      "sha256": "fadca94e8f66ca0056ec570ac032b2431dcc2ec0d41647eb29083d22fa146657"
+    },
+    {
+      "name": "leads-375-light",
+      "badge": "Nicht verfügbar Einträge",
+      "exportDisabled": true,
+      "retryVisible": true,
+      "severe": [],
+      "overflow": {
+        "document": 0,
+        "main": 14
+      },
+      "sha256": "2c19fd8b031096046c22f06009bb885a1fc95ba80f245f3a0efcd09c1d953c97"
+    }
+  ],
+  "navigation": [
+    {
+      "width": 1440,
+      "path": "/company/profile",
+      "headerH1": "Unternehmenssteckbrief"
+    },
+    {
+      "width": 768,
+      "path": "/company/profile",
+      "headerH1": "Unternehmenssteckbrief"
+    },
+    {
+      "width": 375,
+      "path": "/company/profile",
+      "headerH1": "Unternehmenssteckbrief"
+    }
+  ]
+}

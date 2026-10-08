@@ -16051,3 +16051,32 @@ P2 „Kontrast des Login-Buttons im hellen Theme“ (`src/styles/global.css`) ge
 - **Beim Nachsehen gefunden und behoben:** In `SlaSwimlane.tsx` hatte das Badge „ÜBERGABEPUNKT“ fest dunkle Schrift `#061312` auf `bg-primary`, hell nur 2.53:1. Es bekommt hell jetzt weiße Schrift (7.47:1), dunkel bleibt es unverändert. Die SLA-Seite wird derzeit noch als Bild dargestellt, deshalb war das im Scan nicht sichtbar. Regressionstest ergänzt.
 - **Scan erweitert:** Die Anmeldeseite wird zusätzlich ohne Sitzung in beiden Themes gescannt (hell mit nachgestelltem `data-theme`).
 - **Volllauf:** 258/258 ohne Verstoß oder Fehler (42 Ansichten plus Login, × 3 Breiten × 2 Themes). README-Matrix ergänzt, Schutzbereichs-Diff leer.
+
+### Nachtrag Auftrag 083 – Codex-Review nach Merge (PR #68, Commit `564e05a`), Builder Claude Code, 08.10.2026
+
+- **P2 Fehleransichten ohne Inventar-H1:** `scripts/captureAuftrag083ContrastScan.mjs` erkennt jetzt die Fehlerkarte der `RouteErrorBoundary` („Fehler beim Laden der Seite“ in `main [role="alert"]`) direkt und bricht die Aufnahme ab. Bisher entfiel die Prüfung bei Ansichten ohne Inventar-H1, und Pfad sowie Kopfzeile bleiben bei einem Absturz gleich.
+- Geprüft in beide Richtungen: Probelauf `ONLY=s-deals,s-leads` 12/12 grün; Gegenprobe mit abgebrochenem `DealsPage`-Chunk erkennt die Fehlerkarte (`routeError: true`). Nur Skript, kein Produktcode. Commit `0995497` auf dem Branch von Auftrag 084.
+
+## Auftrag 084 – Frontend-Qualität, Paket A (Pipelinefehler F12), Builder Claude Code, 08.10.2026
+
+**Ziel & Kontext:** Plan Frontend-Qualität §6, Befund F12. Navigation nach Erfolg, leer und Fehler ohne Neuladen; Fehler nicht als 0; „Erneut versuchen“; Exportsperre; kein Cache eines vorherigen Benutzers. Branch `claude/auftrag-084-pipeline-fehler` von `main` `564e05a`. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_084_PIPELINE_FEHLER_NAVIGATION.md`.
+
+**Ursache:** Render-Schleife zwischen `useCrmProvenance` (bei jedem `crm`-Cache-Ereignis ein neues State-Objekt) und `useCrmListQuery` (neue Optionen je Render → `observerOptionsUpdated`). React Router 7 navigiert als Transition; die Dauer-Updates verdrängen sie, deshalb wechselt die Adresse, der Inhalt aber nicht. Unabhängig vom Antwortzustand, Produktion betroffen. Keiner der Diagnosekandidaten aus dem Plan (`useUrlSyncedState`, `DataSourceStatus`, `RouteErrorBoundary`) war ursächlich.
+
+**Nebenbefund:** CRM-Query-Keys ohne Benutzer/Organisation, `staleTime` 60 s, kein Cache-Reset bei Ab-/Ummeldung. Behoben durch `QueryCacheUserReset`.
+
+**Geänderte Dateien:** `src/features/crm/hooks/useCrmProvenance.ts`, neu `src/auth/QueryCacheUserReset.tsx`, `src/app/App.tsx`, `src/components/ui/charts/ManagementChartState.tsx` (optionales `onRetry`), `src/features/crm/pages/{Deals,Companies,Leads}Page.tsx`; Tests neu `useCrmProvenance.renderLoop.ui.vitest.tsx`, `queryCacheUserReset.ui.vitest.tsx`, `crmPages.states.ui.vitest.tsx`, erweitert `e2e/crm-query-export.spec.ts`; neu `scripts/captureAuftrag084PipelineStates.mjs`, `docs/screenshots/auftrag-084/README.md`; Auftrag 084, Befundregister (F12 behoben), Plan §6, `BUILD_PLAN.md`.
+
+**Funktionale Prüfungen:**
+- Regressionstest Schleife: ohne Fix Speicherüberlauf des Vitest-Workers, mit Render-Obergrenze 3/3 rot (Erfolg, leer, Fehler); mit Fix 3/3 grün.
+- E2E (`crm-query-export.spec.ts`, Auftrag 084) gegen Produktionsbuild und lokales Supabase, `crm-query-export` kontrolliert: 12/12 grün auf 1440/768/375 (Wechsel Pipeline → Steckbrief → Zurück → Vorwärts → Funnel je Zustand, kein Neuladen, keine Seitenfehler; Retry stellt Anzeige her mit genau einem POST). Gegenprobe ohne Fix: 3/3 rot, Kopfzeile bleibt „Deal Pipeline“.
+- Seitentests Zustände: 15/15 (3 Seiten × Fehler/Retry/Laden/leer/Erfolg). Benutzerwechsel: 4/4.
+- Offen außerhalb dieses Auftrags: echte Edge-Function-/Datenbankausfälle (UI-Fix beweist keinen reparierten Server); „Datenbank Status: Supabase Verbunden“ auf Leads auch im Fehlerfall (Paket C/E, F09).
+
+**Schutzbereichs-Prüfung:** `git diff 564e05a -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler · `npm run verify` grün · `npm test` 320 Dateien / 2288 Tests grün · `npm run build` grün · `npm run lint` grün · `npm run format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-084/README.md` – Fehlerzustand Deals/Unternehmen/Leads × 1440/768/375 × dunkel/hell: 18/18 mit geänderter SHA-256, „Nicht verfügbar“ statt 0, Export gesperrt, Retry sichtbar, axe serious/critical über die ganze Seite 0, Dokument-Überlauf 0 px (Leads 375 `<main>` 14 px wie vorher, I07). Navigation im Fehlerzustand 3/3 (vorher Kopfzeile „Deal Pipeline“, nachher „Unternehmenssteckbrief“).
+
+**Ergebnis & Freigabestatus:** Builder-Seite fertig. Gate-Freigabe durch Codex offen, Merge durch Marc.
