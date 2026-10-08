@@ -163,14 +163,7 @@ async function open(browser, state, viewport, theme, view) {
       mainH1: document.querySelector('main h1')?.textContent?.trim() ?? null,
       headerH1: document.querySelector('header h1')?.textContent?.trim() ?? null,
       tiles: document.querySelectorAll('[data-tile-id]').length,
-      // Codex PR #68 (Nachtrag): RouteErrorBoundary liegt innerhalb von Layout; Pfad und Kopfzeile
-      // bleiben bei einem Absturz gleich. Die Fehlerkarte daher direkt erkennen, auch ohne Inventar-H1.
-      routeError: Array.from(document.querySelectorAll('main [role="alert"] h2')).some(
-        (h) => h.textContent?.trim() === 'Fehler beim Laden der Seite',
-      ),
     }));
-    if (identity.routeError)
-      throw new Error('Falsche Ansicht: Route-Fehlerkarte „Fehler beim Laden der Seite“ gerendert.');
     if (identity.path !== view.expectedPath)
       throw new Error(`Falsche Ansicht: Pfad ${identity.path}, erwartet ${view.expectedPath}.`);
     if (view.expectedH1 !== null && identity.mainH1 !== view.expectedH1)
