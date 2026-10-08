@@ -15904,3 +15904,9 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - P2: Verlorene/unlesbare RPC-Antwort: Zeile wird nachgelesen; Restore nur aktiv, wenn Revision = Original+1 und Konfiguration = Standard.
 - P1: Nachher-Modus prüft bei der Fehlerfall-Navigation zusätzlich die Zielüberschrift (Header-/Main-`h1`), nicht nur die URL.
 - Verifikation: `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer. Kein Inventar-Neulauf nötig (Baseline-Modus unverändert: Baseline-Konfiguration identisch, Zusatzprüfung nur im Nachher-Modus).
+
+### Auftrag 081 – Codex Review Runde 23 (PR #67, Head `ad5e882`)
+
+- P2: Auf HTML migrierte Bildseiten werden im Nachher-Modus über den stabilen Seitenmarker `data-page-key="<Baseline-ImagePage-Schlüssel>"` (mit Inhalt, innerhalb `main`) geprüft; fehlt weder ImagePage noch Marker, bricht der Lauf mit „Unbekannter Seitentyp“ ab. Vertrag für Paket G: migrierte Seiten müssen diesen Marker setzen.
+- P2: Inventar-JSON und Screenshot-README mit dem finalen Harness (Commit `f247fb3`, SHA-256 `d3d39b32…`) neu erzeugt: 256/256 Aufnahmen, 0 fehlgeschlagen.
+- Verifikation: `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
