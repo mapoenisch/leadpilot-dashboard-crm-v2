@@ -700,7 +700,8 @@ const SUPABASE = {
   anonKey:
     process.env.SUPABASE_ANON_KEY ??
     process.env.VITE_SUPABASE_ANON_KEY ??
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
+    // Codex PR #67 Runde 21: kein Schlüssel im Repo (CLAUDE.md §9), nur aus der Umgebung.
+    (README_ONLY ? null : env('SUPABASE_ANON_KEY')),
 };
 // Befund PR #67 Runde 13 / Codex PR #67 Runde 20: Lokale Instanz und Containerzuordnung validieren
 if (!README_ONLY) {
@@ -1164,13 +1165,21 @@ const INTERACTIVE = [
   },
 ];
 
+/**
+ * Codex PR #67 Runde 21: Die 32 Vergleichsrouten stammen stabil aus dem Baseline-Commit, damit der
+ * Nachher-Lauf nach Paket G (Bildseiten durch echte Inhalte ersetzt) dieselben Ansichten aufnimmt.
+ * `imageKey` (und damit die Bildmaßprüfung) bleibt nur gesetzt, solange die Seite noch ein ImagePage ist.
+ */
+const readAtBaseline = (file) =>
+  execFileSync('git', ['show', `${BASELINE_COMMIT}:${file}`], { cwd: ROOT }).toString();
+const readCurrent = (file) =>
+  fs.existsSync(path.join(ROOT, file)) ? fs.readFileSync(path.join(ROOT, file), 'utf8') : '';
+const IMAGE_PAGE_PATTERN = /<ImagePage page="([^"]+)"/;
+
 function imagePageRoutes() {
-  const routes = fs
-    .readFileSync(path.join(ROOT, 'src/app/routes.tsx'), 'utf8')
-    .replace(/\s+/g, ' ');
-  const pages = fs
-    .readFileSync(path.join(ROOT, 'src/app/routePages.tsx'), 'utf8')
-    .replace(/\s+/g, ' ');
+  const routes = readAtBaseline('src/app/routes.tsx').replace(/\s+/g, ' ');
+  const pages = readAtBaseline('src/app/routePages.tsx').replace(/\s+/g, ' ');
+  const currentRoutes = readCurrent('src/app/routes.tsx').replace(/\s+/g, ' ');
   const files = Object.fromEntries(
     [...pages.matchAll(/const (\w+) = React\.lazy\(\(\) => import\('@\/([^']+)'\)/g)].map((m) => [
       m[1],
@@ -1180,12 +1189,27 @@ function imagePageRoutes() {
   const paths = Object.fromEntries(
     [...routes.matchAll(/id: '([^']+)', path: '([^']+)'/g)].map((m) => [m[1], m[2]]),
   );
+  const currentPaths = Object.fromEntries(
+    [...currentRoutes.matchAll(/id: '([^']+)', path: '([^']+)'/g)].map((m) => [m[1], m[2]]),
+  );
   const result = [];
   for (const [, id, component] of pages.matchAll(/\{ id: '([^']+)', component: (\w+) \}/g)) {
     const file = files[component];
-    if (!file || !fs.existsSync(path.join(ROOT, file))) continue;
-    const key = fs.readFileSync(path.join(ROOT, file), 'utf8').match(/<ImagePage page="([^"]+)"/);
-    if (key) result.push({ id, route: paths[id], imageKey: key[1], narrow: id === 's-funnel' });
+    if (!file) continue;
+    let baselineSource;
+    try {
+      baselineSource = readAtBaseline(file);
+    } catch {
+      continue;
+    }
+    if (!IMAGE_PAGE_PATTERN.test(baselineSource)) continue;
+    const currentKey = readCurrent(file).match(IMAGE_PAGE_PATTERN);
+    result.push({
+      id,
+      route: currentPaths[id] ?? paths[id],
+      imageKey: currentKey ? currentKey[1] : null,
+      narrow: id === 's-funnel',
+    });
   }
   return result;
 }
@@ -1492,7 +1516,18 @@ async function openRoute(browser, state, viewport, theme, target) {
       await page.locator('main h2:has-text("Aktivitäten")').waitFor({ timeout: 10000 });
     }
 
-    if (target.expectedState) {
+    // Codex PR #67 Runde 21: Die Baseline-Fehlercodes gelten nur im Baseline-Modus. Im Nachher-Modus
+    // (Pakete A/H) darf kein Entwicklercode mehr sichtbar sein; Nutzdaten- oder Fehlerzustand wird erfasst.
+    if (target.expectedState && IS_NACHHER) {
+      const mainText = await page.locator('main').first().innerText();
+      if (mainText.includes(target.expectedState.marker)) {
+        throw new Error(
+          `Entwicklercode ${target.expectedState.marker} im Nachher-Stand auf ${target.id} weiterhin sichtbar.`,
+        );
+      }
+      const hasAlert = (await page.locator('main [role="alert"]').count()) > 0;
+      target.observedState = hasAlert ? 'fehler (ohne Entwicklercode)' : 'nutzdaten';
+    } else if (target.expectedState) {
       const mainText = await page.locator('main').first().innerText();
       if (!mainText.includes(target.expectedState.marker)) {
         throw new Error(
@@ -2001,7 +2036,9 @@ async function main() {
               consoleErrors: consoleErrors.length,
               pageErrors: pageErrors.length,
               dataState: target.expectedState
-                ? `${target.expectedState.name} (${target.expectedState.marker})`
+                ? IS_NACHHER
+                  ? (target.observedState ?? null)
+                  : `${target.expectedState.name} (${target.expectedState.marker})`
                 : null,
               hashes,
             });
@@ -2024,7 +2061,8 @@ async function main() {
       path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'),
     );
     const harnessSha256 = sha256(scriptContent);
-    const productVersion = '2.4.0';
+    // Codex PR #67 Runde 21: Version aus dem (gegen Baseline bzw. Zielcommit geprüften) package.json.
+    const productVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
     const headCommit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
       .toString()
       .trim();

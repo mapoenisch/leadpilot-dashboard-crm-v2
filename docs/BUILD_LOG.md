@@ -15857,3 +15857,19 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 
 - **Schutzbereichs- und Ziel-Dateien-Prüfung:** `git diff 7fd6e33 -- src/ scripts/lib/detailShotHelpers.mjs` = 0 Byte.
 - **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm test` 0 (316 Testdateien / 2257 Tests), `npm run verify` 0 (Suites 001-025), `npm run build` 0, `npm run format:check` 0.
+
+
+### Codex-Review PR #67 — 08.10.2026, Head `e5fe4fb`
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_081_FRONTEND_BESTANDSAUFNAHME.md`. Unabhängiges Review der Ziel-Dateien und Nacharbeit Runde 20; keine Implementierung.
+
+**Befunde (Gate P0-5 noch offen):**
+
+1. **P1 — Nachher-Aufnahmen müssen migrierte HTML-Seiten zulassen.** `scripts/captureAuftrag081Inventory.mjs:1455–1468` verlangt auch im Nachher-Modus auf jeder inventarisierten Bildroute `image-page` und `img.image-page__img`. Nach der in Plan §11 vorgesehenen HTML-Freigabe des Funnels fehlen diese Elemente; der Lauf scheitert. Entfernt der Builder stattdessen den ImagePage-Verweis aus der Komponente, fehlen Einträge in `imagePageRoutes()` und die feste Prüfung auf 32 Bildseiten scheitert. Die Vergleichsrouten müssen aus dem Baseline-Inventar erhalten bleiben; der Nachher-Modus muss den jeweils freigegebenen Seitentyp prüfen und Bildmaße nur für tatsächlich vorhandene Ganzseitenbilder verlangen.
+2. **P2 — Messnachweis mit dem finalen Harness erneuern.** `docs/reviews/2026-10-06-frontend-inventar.json:4–7` weist weiterhin Harness `ce60cc6` / SHA-256 `24bf1665aa113189146e937178d9b028cbb471a13232a06c01acf7162da0f16f` aus. Der geprüfte Harness hat SHA-256 `4d1e2110442136510584b59c634b17f3acfeef9f82d01172cf7ce89f59e1dca7`. Das JSON enthält weder die neue gemessene Zeitzone noch die neuen Modus-/Zielcommit-Felder. Die 256 erfolgreichen Aufnahmen belegen daher den vorherigen Stand. Nach Abschluss der Harness-Korrektur vollständigen Lauf ausführen und JSON, Matrix und Nachweis aktualisieren.
+
+**Live-Verifikation:** TypeScript, Lint, Formatprüfung, Produktionsbuild und Integrity-Suiten 001–025 jeweils Exit 0; `npm test` Exit 0 (316 Dateien / 2257 Tests). `verify` scheiterte zunächst an der Sandbox-IPC-Pipe und bestand mit genehmigter Ausführung außerhalb der Sandbox. Schutzbereichs-Diff und gesamter `src/`-Diff gegen `7fd6e33` leer; gemeinsamer Helper unverändert. GitHub-CI für den geprüften Head inklusive E2E erfolgreich; Review-/Gate-/Publish-Jobs übersprungen.
+
+**Grenze:** Kein neuer Screenshot-Volllauf und keine Sichtprüfung aller 256 Aufnahmen in diesem Review; die Befunde beruhen auf Kontrollfluss und dem überprüften Artefakt-Hash. Nur dieser Prüfeintrag lokal ergänzt, kein Commit, Push, GitHub-Kommentar oder Merge.
+
+**Ergebnis:** Nacharbeit erforderlich; P0-5 nicht bestanden. Merge bleibt bei Marc.
