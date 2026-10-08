@@ -15873,3 +15873,14 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 **Grenze:** Kein neuer Screenshot-Volllauf und keine Sichtprüfung aller 256 Aufnahmen in diesem Review; die Befunde beruhen auf Kontrollfluss und dem überprüften Artefakt-Hash. Nur dieser Prüfeintrag lokal ergänzt, kein Commit, Push, GitHub-Kommentar oder Merge.
 
 **Ergebnis:** Nacharbeit erforderlich; P0-5 nicht bestanden. Merge bleibt bei Marc.
+
+**Nacharbeit Codex-Review PR #67 Runde 21 (08.10.2026, Head `e5fe4fb` → `5d6b2c8`, Claude Code):** Alle 5 Befunde behoben; deckt zugleich die beiden Punkte des lokalen Codex-Prüfeintrags oben ab.
+
+1. **Fest codierten Supabase-Schlüssel entfernen (P1):** Der Anon-Key-Fallback ist gelöscht; der Harness verlangt `SUPABASE_ANON_KEY` bzw. `VITE_SUPABASE_ANON_KEY` aus der Umgebung (CLAUDE.md §9).
+2. **Vergleichsrouten von ImagePage entkoppeln (P1):** `imagePageRoutes()` liest Routen und ImagePage-Zuordnung per `git show` aus `BASELINE_COMMIT`; die 32 Routen bleiben nach Paket G stabil. `imageKey` (Bildmaßprüfung) wird nur gesetzt, solange die aktuelle Komponente noch `<ImagePage>` rendert.
+3. **Baseline-Fehlercodes nur im Baseline-Modus (P1):** `DATA_SOURCE_UNAVAILABLE`/`SYNTHETIC_NOT_ALLOWED` werden nur im Baseline-Modus verlangt. Im Nachher-Modus schlägt die Aufnahme fehl, wenn der Entwicklercode noch sichtbar ist; der beobachtete Zustand (`nutzdaten` bzw. `fehler (ohne Entwicklercode)`) wird als `dataState` protokolliert.
+4. **Produktversion dynamisch (P2):** `productVersion` wird aus dem gegen Baseline/Zielcommit geprüften `package.json` gelesen.
+5. **Inventar mit finalem Harness erneuert (P2):** Volllauf auf Head `5d6b2c8`: 256/256 Aufnahmen, 0 fehlgeschlagen. JSON weist Harness-SHA-256 `dc7bf2e31aa70c53…` (= eingecheckte Datei), `mode`, `targetCommit`, `browser.timezoneId`/`locale` aus; README-Matrix aktualisiert.
+
+- **Schutzbereichs- und Ziel-Dateien-Prüfung:** `git diff 7fd6e33 -- src/ scripts/lib/detailShotHelpers.mjs` = 0 Byte.
+- **Gates:** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run verify` 0, `npm run build` 0, `npm run format:check` 0.

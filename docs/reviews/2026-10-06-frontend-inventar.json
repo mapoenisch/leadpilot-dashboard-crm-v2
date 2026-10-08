@@ -1,15 +1,17 @@
 {
+ "mode": "baseline",
  "baselineCommit": "7fd6e33",
+ "targetCommit": "7fd6e33",
  "productVersion": "2.4.0",
  "harness": {
   "script": "scripts/captureAuftrag081Inventory.mjs",
-  "sha256": "24bf1665aa113189146e937178d9b028cbb471a13232a06c01acf7162da0f16f",
-  "headAtExecution": "ce60cc6"
+  "sha256": "dc7bf2e31aa70c532fce1de0113539492b45c557f369b02d8c26fa7f307c0441",
+  "headAtExecution": "5d6b2c8"
  },
  "buildArtifact": {
-  "entryScript": "/assets/index-CWHASUp2.js",
-  "entrySha256": "a1aa634e44d0e21eadab35902bfefa129a2247062e7ed443898b10840b9fb3b1",
-  "indexHtmlSha256": "0da7025e41744f591bb02c30b088b6c9667bc22ad258972b7afe5861a6f65f22",
+  "entryScript": "/assets/index-DVoHVuue.js",
+  "entrySha256": "c0b2348f3bfc4dd95ecbae0cfefc2decb5a1aa22a9bc7d68240ffdc7b31f0078",
+  "indexHtmlSha256": "270f510b5b390d5c293273e54ca21634bf01fba8ea8598db83530249e3e8c84c",
   "stylesheets": [
    "/assets/index-DXyeJz7h.css"
   ],
@@ -42,7 +44,7 @@
    "e0000000-0000-0000-0000-000000000001",
    "e0000000-0000-0000-0000-000000000003"
   ],
-  "verifiedAt": "2026-10-07T22:26:14.542Z"
+  "verifiedAt": "2026-10-08T00:37:15.279Z"
  },
  "simulationWorkspace": {
   "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -55,9 +57,13 @@
    "simulation_snapshots": 0,
    "simulation_run_pauses": 0
   },
-  "verifiedAt": "2026-10-07T22:26:14.731Z"
+  "verifiedAt": "2026-10-08T00:37:15.611Z"
  },
  "schemaState": {
+  "projectId": "LeadPilot_Dashboard-CRM",
+  "apiPort": 54321,
+  "dbPort": 54322,
+  "container": "supabase_db_LeadPilot_Dashboard-CRM",
   "migrationsApplied": 23,
   "lastMigration": "20261004",
   "policiesSha256": "4293dbf2a9eb6063c2e2e5bbb94a2a023bd637a157d695703abed2e6daf46250",
@@ -66,6 +72,8 @@
  },
  "browser": {
   "fixedTime": "2026-10-07T12:00:00.000Z",
+  "timezoneId": "Europe/Berlin",
+  "locale": "de-DE",
   "devicePixelRatio": 1,
   "visualViewportScale": 1
  },
@@ -97,7 +105,7 @@
  },
  "commit": "7fd6e33",
  "baseUrl": "http://localhost:4181",
- "capturedAt": "2026-10-07T22:41:11.580Z",
+ "capturedAt": "2026-10-08T00:52:15.561Z",
  "summary": {
   "expected": 256,
   "ok": 256,
@@ -119,6 +127,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 3423,
    "overflowDocument": 0,
@@ -177,6 +186,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 3423,
    "overflowDocument": 0,
@@ -218,7 +228,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "69fbdd6885013a6a",
+    "first": "5268120431189ebb",
     "full": "93b05f063375cfac"
    }
   },
@@ -237,6 +247,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 5781,
    "overflowDocument": 0,
@@ -295,6 +306,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 5781,
    "overflowDocument": 0,
@@ -355,6 +367,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 7997,
    "overflowDocument": 0,
@@ -413,6 +426,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 7997,
    "overflowDocument": 0,
@@ -454,7 +468,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "1ed3a8a4a72099f6",
+    "first": "30e37d8eb58ff636",
     "full": "799e459c53a7f091"
    }
   },
@@ -473,6 +487,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 8126,
    "overflowDocument": 0,
@@ -531,6 +546,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 8126,
    "overflowDocument": 0,
@@ -572,7 +588,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "811de4277e9ff389",
+    "first": "34d6bc85a17b7a2a",
     "full": "bfbe09801dcfc753"
    }
   },
@@ -591,6 +607,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 4177,
    "overflowDocument": 0,
@@ -649,6 +666,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 4177,
    "overflowDocument": 0,
@@ -690,7 +708,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "ecace4b752d3dc0a",
+    "first": "639ece683a15c14f",
     "full": "257abe0feb542336"
    }
   },
@@ -709,6 +727,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 6513,
    "overflowDocument": 0,
@@ -767,6 +786,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 6513,
    "overflowDocument": 0,
@@ -808,7 +828,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "dab9456979dc8917",
+    "first": "e06ba0ae67a10afc",
     "full": "bb9fdf75f82d0405"
    }
   },
@@ -827,6 +847,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 9593,
    "overflowDocument": 0,
@@ -885,6 +906,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 9593,
    "overflowDocument": 0,
@@ -945,6 +967,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -985,6 +1008,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1008,7 +1032,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "484e386082ccde02",
+    "first": "5337a3a3997e0f14",
     "full": "5337a3a3997e0f14"
    }
   },
@@ -1027,6 +1051,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -1067,6 +1092,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -1109,6 +1135,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 788,
    "overflowDocument": 0,
@@ -1149,6 +1176,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 788,
    "overflowDocument": 0,
@@ -1172,7 +1200,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7b096dd4e16e8cf4",
+    "first": "75b218af7b17b353",
     "full": "75b218af7b17b353"
    }
   },
@@ -1191,6 +1219,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Datenbasis",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1231,6 +1260,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Datenbasis",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1256,7 +1286,7 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "66c1c4addfc58f6a",
+    "first": "a4269066680ceb85",
     "full": "a4269066680ceb85"
    }
   },
@@ -1275,6 +1305,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Datenbasis",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -1315,6 +1346,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Datenbasis",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -1340,7 +1372,7 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "03329e4a416ddd74",
+    "first": "77e100c957e68b0b",
     "full": "77e100c957e68b0b"
    }
   },
@@ -1359,6 +1391,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Datenbasis",
    "mainScrollHeight": 721,
    "overflowDocument": 0,
@@ -1399,6 +1432,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Datenbasis",
    "mainScrollHeight": 721,
    "overflowDocument": 0,
@@ -1443,6 +1477,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1765,
    "overflowDocument": 0,
@@ -1483,6 +1518,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1765,
    "overflowDocument": 0,
@@ -1506,7 +1542,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7667ac3ed5b1bf37",
+    "first": "436c975213b2a25a",
     "full": "b35ce575a5378d9a"
    }
   },
@@ -1525,6 +1561,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1931,
    "overflowDocument": 0,
@@ -1546,7 +1583,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "df83921baaef4d67",
+    "first": "d6459039b2c047b9",
     "full": "170a92072ee33e11"
    }
   },
@@ -1565,6 +1602,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1931,
    "overflowDocument": 0,
@@ -1590,7 +1628,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "aced2beb2235b117",
+    "first": "883420ab529e795d",
     "full": "907da2bd61c87f50"
    }
   },
@@ -1609,6 +1647,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 2575,
    "overflowDocument": 0,
@@ -1630,7 +1669,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "84e9d1c70086392c",
+    "first": "c7ae1f7e6b383ef0",
     "full": "5e2e5212e168a779"
    }
   },
@@ -1649,6 +1688,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 2575,
    "overflowDocument": 0,
@@ -1672,7 +1712,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8e4a27459bdb9862",
+    "first": "8998506ec32cac64",
     "full": "617f2f48afc1fc6a"
    }
   },
@@ -1691,6 +1731,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1261,
    "overflowDocument": 0,
@@ -1731,6 +1772,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1261,
    "overflowDocument": 0,
@@ -1775,6 +1817,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1565,
    "overflowDocument": 0,
@@ -1815,6 +1858,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1565,
    "overflowDocument": 0,
@@ -1840,7 +1884,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0aa7ba66a1e25d91",
+    "first": "123116b3f7fa23ad",
     "full": "543f648d0d20a8c4"
    }
   },
@@ -1859,6 +1903,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 2651,
    "overflowDocument": 0,
@@ -1899,6 +1944,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 2651,
    "overflowDocument": 0,
@@ -1943,6 +1989,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -1983,6 +2030,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2027,6 +2075,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1046,
    "overflowDocument": 0,
@@ -2048,7 +2097,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "82e6fe4d13e16bb0",
+    "first": "a7d70b7c7a3f1269",
     "full": "cafd8aaade46fe32"
    }
   },
@@ -2067,6 +2116,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1046,
    "overflowDocument": 0,
@@ -2092,8 +2142,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "07e39328b4859881",
-    "full": "fc10e08a86dae8fe"
+    "first": "ceb8dd6a4f2e9882",
+    "full": "dbdede0216099d30"
    }
   },
   {
@@ -2111,6 +2161,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1850,
    "overflowDocument": 0,
@@ -2132,7 +2183,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "67f51aaff51ad77d",
+    "first": "37d4edb80de157a6",
     "full": "7d6cc5df27aa84db"
    }
   },
@@ -2151,6 +2202,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1850,
    "overflowDocument": 0,
@@ -2176,7 +2228,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "891a8ef6abb2f09a",
+    "first": "393a20494b3dc747",
     "full": "398031cf96aece24"
    }
   },
@@ -2195,6 +2247,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2235,6 +2288,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2260,7 +2314,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "91d6a40584e03f0f",
+    "first": "56bfb15c0ede006c",
     "full": "7539969788fa3aa5"
    }
   },
@@ -2279,6 +2333,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1043,
    "overflowDocument": 0,
@@ -2319,6 +2374,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1043,
    "overflowDocument": 0,
@@ -2344,8 +2400,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "294a744a2db195e0",
-    "full": "856b59a59037f298"
+    "first": "cf385bf9a712b2bf",
+    "full": "87c3a6a75bd373e1"
    }
   },
   {
@@ -2363,6 +2419,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 2122,
    "overflowDocument": 0,
@@ -2384,7 +2441,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "510c17e5c707eaed",
+    "first": "af1a78c2b14aa3ab",
     "full": "f2786048bf87a053"
    }
   },
@@ -2403,6 +2460,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 2122,
    "overflowDocument": 0,
@@ -2428,7 +2486,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0fd642df64a5776d",
+    "first": "7ad6fb1d0cc366d4",
     "full": "2ea6460564a6c702"
    }
   },
@@ -2447,6 +2505,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2487,6 +2546,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2531,6 +2591,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 991,
    "overflowDocument": 0,
@@ -2571,6 +2632,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 991,
    "overflowDocument": 0,
@@ -2596,7 +2658,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "60c3a1f0c002dd44",
+    "first": "3ffc1e5e8e997ed7",
     "full": "28910605baacc6d6"
    }
   },
@@ -2615,6 +2677,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1919,
    "overflowDocument": 0,
@@ -2636,7 +2699,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3690f2725fc15006",
+    "first": "cdca5a77053028aa",
     "full": "0616c75306e465fb"
    }
   },
@@ -2655,6 +2718,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 1919,
    "overflowDocument": 0,
@@ -2680,7 +2744,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b9cb9ab8ffe632ae",
+    "first": "fb956df8af48dcce",
     "full": "2ab6e74d8583a365"
    }
   },
@@ -2699,6 +2763,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2720,7 +2785,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "d6729047fee6db11",
+    "first": "d21c8c408f5e17b1",
     "full": "d6729047fee6db11"
    }
   },
@@ -2739,6 +2804,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2764,7 +2830,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "1fe2130e4c0cce3f",
+    "first": "4a4080a87d464a91",
     "full": "2446025912c1677e"
    }
   },
@@ -2783,6 +2849,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2823,6 +2890,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -2867,6 +2935,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -2907,6 +2976,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": null,
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -2932,7 +3002,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "da697fbc49a627c3",
+    "first": "85a784dc02a71384",
     "full": "85a784dc02a71384"
    }
   },
@@ -2951,6 +3021,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -2997,6 +3068,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3026,7 +3098,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "c409d0b46b31f5e3",
+    "first": "f8a457b51d8d2e01",
     "full": "f8a457b51d8d2e01"
    }
   },
@@ -3045,6 +3117,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3091,6 +3164,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3139,6 +3213,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3185,6 +3260,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unternehmenssteckbrief",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3233,6 +3309,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3279,6 +3356,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3327,6 +3405,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3373,6 +3452,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3402,7 +3482,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "05964865c37329e0",
+    "first": "a52915eafd91f7d3",
     "full": "05964865c37329e0"
    }
   },
@@ -3421,6 +3501,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3467,6 +3548,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Jahres-Highlights 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3515,6 +3597,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3561,6 +3644,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3590,7 +3674,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "ca29b9732c0f58ec",
+    "first": "391a0b388f8c4de0",
     "full": "ca29b9732c0f58ec"
    }
   },
@@ -3609,6 +3693,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3655,6 +3740,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3703,6 +3789,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3749,6 +3836,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Die LeadPilot Geschäftsidee",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -3797,6 +3885,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3843,6 +3932,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -3891,6 +3981,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3937,6 +4028,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -3985,6 +4077,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4031,6 +4124,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Value Proposition & Positionierung",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4060,7 +4154,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "72a056fe9c2bfb24",
+    "first": "abcd00154f24b65e",
     "full": "abcd00154f24b65e"
    }
   },
@@ -4079,6 +4173,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4125,6 +4220,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4173,6 +4269,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4219,6 +4316,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4248,7 +4346,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "fbde75b4f86385a5",
+    "first": "abd302ad42ff996f",
     "full": "abd302ad42ff996f"
    }
   },
@@ -4267,6 +4365,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4313,6 +4412,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gründung & Finanzierungshistorie",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4342,7 +4442,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "30ef27de1069923c",
+    "first": "cd8e6d2a6dbe2350",
     "full": "30ef27de1069923c"
    }
   },
@@ -4361,6 +4461,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4407,6 +4508,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4455,6 +4557,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4501,6 +4604,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4530,7 +4634,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "25b61695c202bdf3",
+    "first": "8d5ae7c79d6c4e7a",
     "full": "8d5ae7c79d6c4e7a"
    }
   },
@@ -4549,6 +4653,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4595,6 +4700,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt & Funktionsweise",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4624,7 +4730,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "14a0c4e556eef0d6",
+    "first": "fe453eb71bfc9480",
     "full": "fe453eb71bfc9480"
    }
   },
@@ -4643,6 +4749,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4689,6 +4796,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4737,6 +4845,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4783,6 +4892,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -4812,7 +4922,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "1d2f592c5c58b751",
+    "first": "6e3ea6f54424d928",
     "full": "6e3ea6f54424d928"
    }
   },
@@ -4831,6 +4941,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4877,6 +4988,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Preismodell (Verbindliche Nutzerbasierte Abrechnung)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -4925,6 +5037,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -4971,6 +5084,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5000,7 +5114,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a69aa692df6fedee",
+    "first": "082626cc2f6cbf07",
     "full": "082626cc2f6cbf07"
    }
   },
@@ -5019,6 +5133,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5065,6 +5180,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5113,6 +5229,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5159,6 +5276,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Produkt-Performance & Qualitätsmetriken GJ 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5207,6 +5325,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5253,6 +5372,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5301,6 +5421,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5347,6 +5468,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5395,6 +5517,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5441,6 +5564,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Release-Historie & Roadmap 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5470,7 +5594,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f034c35176b31657",
+    "first": "32dfbdb9ca884c6b",
     "full": "32dfbdb9ca884c6b"
    }
   },
@@ -5489,6 +5613,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5535,6 +5660,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5564,7 +5690,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "86abfbcb8b5657e9",
+    "first": "33daf08f168f710c",
     "full": "86abfbcb8b5657e9"
    }
   },
@@ -5583,6 +5709,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5629,6 +5756,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5677,6 +5805,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5723,6 +5852,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marktlage & Cloud-CRM DACH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -5771,6 +5901,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5817,6 +5948,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -5865,6 +5997,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5911,6 +6044,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -5959,6 +6093,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6005,6 +6140,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wettbewerbslandschaft & Marktanteile Europa/DACH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6053,6 +6189,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6099,6 +6236,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6128,7 +6266,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8e87463ee858df07",
+    "first": "0aeb73d5d7048748",
     "full": "0aeb73d5d7048748"
    }
   },
@@ -6147,6 +6285,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6193,6 +6332,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6241,6 +6381,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6287,6 +6428,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SWOT-Analyse der LeadPilot GmbH (GJ 2025)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6316,7 +6458,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f3b06d2fb72bcb7e",
+    "first": "f96bb04dbd4fc6ae",
     "full": "f96bb04dbd4fc6ae"
    }
   },
@@ -6335,6 +6477,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6381,6 +6524,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6429,6 +6573,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6475,6 +6620,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6523,6 +6669,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6569,6 +6716,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ideal Customer Profile (ICP) - LeadPilot GmbH",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6617,6 +6765,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6663,6 +6812,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6711,6 +6861,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6757,6 +6908,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -6786,7 +6938,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "15eddaf2138cd62f",
+    "first": "9fa810925f6703d4",
     "full": "9fa810925f6703d4"
    }
   },
@@ -6805,6 +6957,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6851,6 +7004,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Buyer Persona „Vertriebsleiter Volker“",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -6899,6 +7053,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6945,6 +7100,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -6974,7 +7130,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "61525d126b03cd9c",
+    "first": "d6dfed0eb61c0146",
     "full": "d6dfed0eb61c0146"
    }
   },
@@ -6993,6 +7149,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7039,6 +7196,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7087,6 +7245,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7133,6 +7292,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kundensegmente (66 Kunden zum 31.12.2025)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7162,7 +7322,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "3d532fda9063d717",
+    "first": "151eb32feac3c384",
     "full": "151eb32feac3c384"
    }
   },
@@ -7181,6 +7341,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7227,6 +7388,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7275,6 +7437,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7321,6 +7484,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7369,6 +7533,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7415,6 +7580,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Top B2B Referenzkunden (ICP-konform, < 200 MA)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7463,6 +7629,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7509,6 +7676,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7557,6 +7725,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7603,6 +7772,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7651,6 +7821,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7697,6 +7868,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -7726,7 +7898,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8876f1ee1f577a12",
+    "first": "e97980ee9dea3d19",
     "full": "8876f1ee1f577a12"
    }
   },
@@ -7745,6 +7917,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 454,
    "overflowDocument": 0,
@@ -7791,6 +7964,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Sales Funnel 2025",
    "mainScrollHeight": 454,
    "overflowDocument": 0,
@@ -7820,7 +7994,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "25ca4ca385a99a7b",
+    "first": "a311c14aeef01a96",
     "full": "25ca4ca385a99a7b"
    }
   },
@@ -7839,6 +8013,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7885,6 +8060,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -7933,6 +8109,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -7979,6 +8156,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8008,7 +8186,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "16e45b52f8ed4c24",
+    "first": "d4899ed9cc4cb3a8",
     "full": "16e45b52f8ed4c24"
    }
   },
@@ -8027,6 +8205,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8073,6 +8252,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "SLA Marketing & Sales",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8121,6 +8301,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8167,6 +8348,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8196,7 +8378,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4d0536c266ad1d47",
+    "first": "86cf8d5140152b02",
     "full": "86cf8d5140152b02"
    }
   },
@@ -8215,6 +8397,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8261,6 +8444,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8290,7 +8474,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "771bb2854eefc0c7",
+    "first": "5205288d6963ba78",
     "full": "771bb2854eefc0c7"
    }
   },
@@ -8309,6 +8493,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8355,6 +8540,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Kanalperformance & CAC-Index",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8403,6 +8589,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8449,6 +8636,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8497,6 +8685,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8543,6 +8732,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8572,7 +8762,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7306ba8b0648b38f",
+    "first": "447d9f804c8d5904",
     "full": "447d9f804c8d5904"
    }
   },
@@ -8591,6 +8781,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8637,6 +8828,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Marketingplanung H2 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -8666,7 +8858,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b6b34f00eb70bfe6",
+    "first": "72591c4d98084f9e",
     "full": "72591c4d98084f9e"
    }
   },
@@ -8685,6 +8877,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8731,6 +8924,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -8760,7 +8954,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "eba995fb28eec4e6",
+    "first": "faaef91ead290fcf",
     "full": "faaef91ead290fcf"
    }
   },
@@ -8779,6 +8973,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8825,6 +9020,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -8854,7 +9050,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7797afbb131a6551",
+    "first": "a4435f2f82a55f1c",
     "full": "7797afbb131a6551"
    }
   },
@@ -8873,6 +9069,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 603,
    "overflowDocument": 0,
@@ -8919,6 +9116,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gewinn- und Verlustrechnung",
    "mainScrollHeight": 603,
    "overflowDocument": 0,
@@ -8948,7 +9146,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a1f8b584265baafb",
+    "first": "93e9ee3ea3905064",
     "full": "a1f8b584265baafb"
    }
   },
@@ -8967,6 +9165,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9013,6 +9212,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9061,6 +9261,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9107,6 +9308,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9155,6 +9357,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9201,6 +9404,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Bilanz & SaaS KPIs",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9249,6 +9453,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9295,6 +9500,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9343,6 +9549,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9389,6 +9596,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9418,7 +9626,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "09584d5b5a16d060",
+    "first": "eedb90fa2212bb8d",
     "full": "eedb90fa2212bb8d"
    }
   },
@@ -9437,6 +9645,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9483,6 +9692,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Unit Economics 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9531,6 +9741,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9577,6 +9788,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9606,7 +9818,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0ac69a8e2e6e55df",
+    "first": "845b7212d26c8e68",
     "full": "845b7212d26c8e68"
    }
   },
@@ -9625,6 +9837,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9671,6 +9884,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9719,6 +9933,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9765,6 +9980,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Headcount-Entwicklung",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -9794,7 +10010,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "428a7c3a58f650a4",
+    "first": "3a58ce9a58d16ef0",
     "full": "428a7c3a58f650a4"
    }
   },
@@ -9813,6 +10029,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9859,6 +10076,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -9907,6 +10125,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9953,6 +10172,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -9982,7 +10202,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "b1bfc9b662358872",
+    "first": "57704b9ed130b306",
     "full": "b1bfc9b662358872"
    }
   },
@@ -10001,6 +10221,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -10047,6 +10268,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "HR-Kennzahlen",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -10095,6 +10317,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Teamstruktur",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -10141,6 +10364,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Teamstruktur",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -10189,6 +10413,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Teamstruktur",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -10235,6 +10460,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Teamstruktur",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -10283,6 +10509,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Teamstruktur",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -10329,6 +10556,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Teamstruktur",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -10358,7 +10586,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "21bf137fe42ff517",
+    "first": "0a480d18136d301c",
     "full": "0a480d18136d301c"
    }
   },
@@ -10377,6 +10605,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -10423,6 +10652,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -10471,6 +10701,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -10517,6 +10748,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -10565,6 +10797,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -10611,6 +10844,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Ziele & Strategische OKRs 2026",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -10659,6 +10893,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -10705,6 +10940,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -10753,6 +10989,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -10799,6 +11036,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -10828,7 +11066,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "883c5362ecea34d6",
+    "first": "4802ba368d285cd6",
     "full": "883c5362ecea34d6"
    }
   },
@@ -10847,6 +11085,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -10893,6 +11132,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Balanced Scorecard (BSC) GJ 2025",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -10922,7 +11162,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "63018f5497699292",
+    "first": "42f3c95f6844d3c5",
     "full": "63018f5497699292"
    }
   },
@@ -10941,6 +11181,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -10987,6 +11228,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -11035,6 +11277,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -11081,6 +11324,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -11129,6 +11373,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -11175,6 +11420,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Wachstumstreiber 2026+",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -11223,6 +11469,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -11269,6 +11516,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -11317,6 +11565,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -11363,6 +11612,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -11392,7 +11642,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7d63b97f57a3b3cf",
+    "first": "ea969340e10e4985",
     "full": "ea969340e10e4985"
    }
   },
@@ -11411,6 +11661,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -11457,6 +11708,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Satzung der LeadPilot GmbH (Auszug)",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -11505,6 +11757,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -11551,6 +11804,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -11580,7 +11834,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7258fbaac38c1c15",
+    "first": "d977ac81b4f687d7",
     "full": "7258fbaac38c1c15"
    }
   },
@@ -11599,6 +11853,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -11645,6 +11900,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -11674,7 +11930,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "5dcc2865dcf6bda6",
+    "first": "4ffd1e16dfc6f693",
     "full": "4ffd1e16dfc6f693"
    }
   },
@@ -11693,6 +11949,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -11739,6 +11996,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Gesellschafterliste",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -11768,7 +12026,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "4cd00acbf7fe7d77",
+    "first": "24633c5a960c42a3",
     "full": "4cd00acbf7fe7d77"
    }
   },
@@ -11787,6 +12045,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -11833,6 +12092,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 893,
    "overflowDocument": 0,
@@ -11862,7 +12122,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "23edb99a557745b6",
+    "first": "11f1da2ba332b576",
     "full": "11f1da2ba332b576"
    }
   },
@@ -11881,6 +12141,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -11927,6 +12188,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 885,
    "overflowDocument": 0,
@@ -11956,7 +12218,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "fd993df2c818f1a4",
+    "first": "d94254be6fd89500",
     "full": "d94254be6fd89500"
    }
   },
@@ -11975,6 +12237,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
@@ -12021,6 +12284,7 @@
     "devicePixelRatio": 1,
     "visualViewportScale": 1
    },
+   "timezoneId": "Europe/Berlin",
    "h1": "Handelsregisterdaten",
    "mainScrollHeight": 626,
    "overflowDocument": 0,
