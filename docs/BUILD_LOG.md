@@ -15935,3 +15935,16 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - P2: Aktueller ImagePage-Schlüssel muss dem Baseline-Schlüssel der Route entsprechen.
 - P2: Ein gesetztes `TARGET_COMMIT` aktiviert automatisch den Nachher-Modus.
 - Volllauf mit finalem Harness (`2dd8b53`): 256/256, 0 fehlgeschlagen; JSON und README erneuert. `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
+
+
+### Codex-Nachprüfung PR #67 — 08.10.2026, Head `04cdd90`
+
+**Umfang:** Nacharbeit seit `e5fe4fb`, insbesondere die zwei zuvor offenen Befunde. Kein Produktcode geändert.
+
+**Erledigt:** Das Inventar passt zum aktuellen Harness-SHA-256 (`15342cde458b7f76b62958bb731fc93e895cd860b042a884e99a9901a6456c40`), dokumentiert 256/256 erfolgreiche Aufnahmen, gemessene Zeitzone `Europe/Berlin` in allen Aufnahmen und erfolgreiches Cleanup. Die Vergleichsrouten bleiben aus der Baseline erhalten; HTML-Seiten ohne ImagePage-Verweis werden über einen Inhaltsmarker geprüft.
+
+**P1 weiterhin offen — gerenderten Seitentyp statt ImagePage-Verweis erkennen.** `scripts/captureAuftrag081Inventory.mjs:1253–1257` setzt `imageKey` allein anhand des aktuellen Quelltextverweises auf `<ImagePage>`. Die vorhandene Komponente `src/components/imagePage/ImagePage.tsx` gibt aber bei `PAGE_PRESENTATION === 'html'` ausschließlich ihre Kinder aus; der Verweis in `FunnelPage.tsx` bleibt dabei unverändert. Somit bleibt `imageKey` im HTML-Modus gesetzt und `openRoute` wartet weiterhin auf `image-page` und ein geladenes Ganzseitenbild. Das verhindert den Nachher-Vergleich beim bestehenden Darstellungsschalter bzw. dessen im Plan vorgesehenem Ausbau zur Seitenfreigabe. Der Harness muss die tatsächlich aktive Darstellung berücksichtigen und dann den passenden Bild- oder HTML-Inhaltsnachweis verlangen, unabhängig davon, ob der Wrapper im Quelltext erhalten bleibt.
+
+**Verifikation:** Lokaler Head entspricht dem live geprüften PR-Head. Alle ausgeführten GitHub-CI-Checks einschließlich E2E, TypeScript, Lint, Tests, Build und CodeQL erfolgreich; Review/Gate/Publish übersprungen. Lokal `node --check` Exit 0, Produkt-/Schutzbereichs-Diff sowie gemeinsamer Helper gegen `7fd6e33` unverändert. Keine erneute lokale Volltest- oder Screenshot-Ausführung in dieser Nachprüfung; keine Sichtprüfung aller Aufnahmen.
+
+**Ergebnis:** Nacharbeit erforderlich, P0-5 bleibt offen. Nur Prüfeintrag lokal ergänzt; kein Commit, Push oder Merge.

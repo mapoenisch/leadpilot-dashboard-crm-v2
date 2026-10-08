@@ -161,9 +161,13 @@ async function savePreferencesRpc(page, supabase, config, expectedRevision) {
     { url: supabase.url, anonKey: supabase.anonKey, config, expectedRevision },
   );
   if (result.status >= 300) {
-    throw new Error(
+    // Befund PR #67 Runde 27: bestätigte Ablehnung (z. B. Revisionskonflikt) kennzeichnen.
+    // Danach darf kein Restore aktiviert werden, die Zeile gehört nicht dem Harness.
+    const err = new Error(
       `Speichern fehlgeschlagen (HTTP ${result.status}): ${JSON.stringify(result.body)}`,
     );
+    err.confirmedHttpStatus = result.status;
+    throw err;
   }
   const rpcRow = Array.isArray(result.body) ? result.body[0] : result.body;
   const rpcRevision = rpcRow?.revision ?? null;
@@ -1526,38 +1530,48 @@ async function openRoute(browser, state, viewport, theme, target) {
     }
 
     // 3. Zielspezifischer Seiteninhalt & Bildnachweis
-    if (target.imageKey) {
-      // Befund PR #67 Runde 26: aktueller ImagePage-Schlüssel muss dem Baseline-Schlüssel entsprechen.
-      if (target.pageKey && target.imageKey !== target.pageKey) {
-        throw new Error(
-          `Bildseite ${target.id} zeigt Schlüssel ${target.imageKey}, erwartet ${target.pageKey}.`,
-        );
-      }
-      await page.locator('[data-testid="image-page"]').waitFor({ timeout: 10000 });
-      const imageLoaded = await page
+    let renderedKind = null;
+    if (target.pageKey) {
+      // Befund PR #67 Runde 27: Bild- oder HTML-Modus nach dem Laden am gerenderten DOM erkennen,
+      // unabhängig davon, ob der Quelltext noch den ImagePage-Wrapper enthält.
+      const markerSelector = `main [data-page-key="${target.pageKey}"]`;
+      renderedKind = await page
         .waitForFunction(
-          () => {
-            const img = document.querySelector('img.image-page__img');
-            return img && img.complete && img.naturalWidth > 0;
+          (sel) => {
+            if (document.querySelector('[data-testid="image-page"]')) return 'image';
+            const marker = document.querySelector(sel);
+            if (marker && (marker.textContent ?? '').trim().length > 0) return 'html';
+            return null;
           },
-          { timeout: 15000 },
+          markerSelector,
+          { timeout: 10000 },
         )
-        .catch(() => false);
-      if (!imageLoaded) {
-        throw new Error(
-          `Bild nicht vollständig geladen auf Bildseite ${target.id} (${target.imageKey}).`,
+        .then(
+          (h) => h.jsonValue(),
+          () => null,
         );
-      }
-    } else if (target.pageKey) {
-      // Befund PR #67 Runde 23: Auf HTML migrierte Bildseite (Paket G) muss den stabilen
-      // Seitenmarker `data-page-key="<Baseline-Schlüssel>"` mit Inhalt rendern, sonst Abbruch.
-      const marker = page.locator(`main [data-page-key="${target.pageKey}"]`).first();
-      const found = await marker.waitFor({ timeout: 10000 }).then(
-        () => true,
-        () => false,
-      );
-      const text = found ? ((await marker.innerText().catch(() => '')) ?? '').trim() : '';
-      if (!found || text.length === 0) {
+      if (renderedKind === 'image') {
+        // Befund PR #67 Runde 26: aktueller ImagePage-Schlüssel muss dem Baseline-Schlüssel entsprechen.
+        if (target.imageKey !== target.pageKey) {
+          throw new Error(
+            `Bildseite ${target.id} zeigt Schlüssel ${target.imageKey}, erwartet ${target.pageKey}.`,
+          );
+        }
+        const imageLoaded = await page
+          .waitForFunction(
+            () => {
+              const img = document.querySelector('img.image-page__img');
+              return img && img.complete && img.naturalWidth > 0;
+            },
+            { timeout: 15000 },
+          )
+          .catch(() => false);
+        if (!imageLoaded) {
+          throw new Error(
+            `Bild nicht vollständig geladen auf Bildseite ${target.id} (${target.pageKey}).`,
+          );
+        }
+      } else if (renderedKind !== 'html') {
         throw new Error(
           `Unbekannter Seitentyp auf ${target.id}: weder ImagePage noch Seitenmarker data-page-key="${target.pageKey}" mit Inhalt.`,
         );
@@ -1631,7 +1645,7 @@ async function openRoute(browser, state, viewport, theme, target) {
     }
 
     await page.waitForTimeout(400);
-    return { context, page, consoleErrors, pageErrors };
+    return { context, page, consoleErrors, pageErrors, renderedKind };
   } catch (err) {
     await context.close().catch(() => null);
     throw err;
@@ -1742,6 +1756,134 @@ async function capture(page, viewport, name, targetDir = OUT_DIR) {
   return { first: sha256(first).slice(0, 16), full: sha256(full).slice(0, 16) };
 }
 
+/** Beantwortet einen crm-query-export-POST kontrolliert im Erfolgs- oder Leerzustand. */
+async function fulfillControlledCrm(route, request, { empty = false } = {}) {
+  let params = {};
+  try {
+    params = JSON.parse(request.postData() ?? '{}');
+  } catch {
+    params = {};
+  }
+  const resource = params.resource ?? 'companies';
+  const result = empty
+    ? {
+        items: [],
+        total: 0,
+        page: 1,
+        pageSize: Number(params.pageSize) || 20,
+        resource,
+      }
+    : processControlledCrmQuery(resource, params);
+  await route.fulfill({
+    status: 200,
+    headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+    body: JSON.stringify(result),
+  });
+}
+
+/**
+ * Befund PR #67 Runde 27: Navigationsabnahme auch nach Erfolgs- und Leerantwort.
+ * Öffnet die Pipeline mit kontrollierter Antwort und wechselt dann per Link die Seite.
+ */
+async function pipelineNavigationCase(browser, state, variant) {
+  const context = await browser.newContext({
+    baseURL: BASE_URL,
+    storageState: state,
+    viewport: WIDTHS[0],
+    reducedMotion: 'reduce',
+    locale: RECORDING_LOCALE,
+    timezoneId: RECORDING_TIMEZONE,
+  });
+  try {
+    await context.clock.setFixedTime(FIXED_BROWSER_TIME);
+    let posts = 0;
+    await context.route('**/functions/v1/crm-query-export**', async (route) => {
+      const request = route.request();
+      if (request.method() === 'OPTIONS') {
+        await route.fulfill({
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey',
+          },
+        });
+        return;
+      }
+      if (request.method() === 'POST') {
+        posts++;
+        await fulfillControlledCrm(route, request, { empty: variant === 'leer' });
+        return;
+      }
+      await route.continue();
+    });
+    const page = await context.newPage();
+    const consoleErrors = [];
+    const pageErrors = [];
+    page.on(
+      'console',
+      (msg) => msg.type() === 'error' && consoleErrors.push(msg.text().slice(0, 200)),
+    );
+    page.on('pageerror', (err) => pageErrors.push(String(err?.message ?? err).slice(0, 200)));
+    await page.goto('/crm/deals', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1500);
+    if (posts < 1) {
+      throw new Error(`Pipeline-${variant}: kein POST zu crm-query-export abgefangen.`);
+    }
+    const startText = await page.locator('main').first().innerText();
+    if (IS_NACHHER && /nicht verfügbar/i.test(startText)) {
+      throw new Error(`Pipeline-${variant}: Fehlerzustand statt ${variant}szustand angezeigt.`);
+    }
+    const steps = [];
+    for (const { name, expectedPath } of [
+      { name: /unternehmenssteckbrief/i, expectedPath: '/company/profile' },
+      { name: /sales funnel/i, expectedPath: '/sales/funnel' },
+    ]) {
+      const link = page.getByRole('link', { name }).first();
+      await link.waitFor({ state: 'visible', timeout: 5000 });
+      await link.click({ timeout: 5000 });
+      await page.waitForURL(`**${expectedPath}`, { timeout: 5000 });
+      await page.waitForTimeout(1500);
+      const currentPath = new URL(page.url()).pathname;
+      const headings = (
+        await Promise.all(
+          ['header h1, .app-header h1', 'main h1'].map((sel) =>
+            page
+              .locator(sel)
+              .first()
+              .textContent({ timeout: 2000 })
+              .catch(() => null),
+          ),
+        )
+      )
+        .filter(Boolean)
+        .map((h) => h.trim());
+      steps.push({ url: currentPath, headings });
+      if (currentPath !== expectedPath) {
+        throw new Error(
+          `Pipeline-${variant}: Navigation erwartete ${expectedPath}, erhalten ${currentPath}.`,
+        );
+      }
+      if (IS_NACHHER && !headings.some((h) => name.test(h))) {
+        throw new Error(
+          `Pipeline-${variant}: Zielinhalt ${expectedPath} nicht geladen (Überschriften: ${JSON.stringify(headings)}).`,
+        );
+      }
+    }
+    const maxUpdateDepthErrors = consoleErrors.filter((e) =>
+      /Maximum update depth/i.test(e),
+    ).length;
+    if (IS_NACHHER && (pageErrors.length > 0 || maxUpdateDepthErrors > 0)) {
+      throw new Error(
+        `Pipeline-${variant}: ${pageErrors.length} Browser-Ausnahmen, ${maxUpdateDepthErrors} × Maximum update depth.`,
+      );
+    }
+    return { variant, posts, steps, pageErrors, maxUpdateDepthErrors };
+  } finally {
+    await context.close().catch(() => null);
+  }
+}
+
 async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
   const viewport = WIDTHS[0];
   const context = await browser.newContext({
@@ -1754,6 +1896,9 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
   });
   await context.clock.setFixedTime(FIXED_BROWSER_TIME);
   let interceptedPostCount = 0;
+  // Befund PR #67 Runde 27: nach der Wiederholungsaktion liefert der Handler kontrollierte Erfolgsdaten.
+  let failRequests = true;
+  let postsAfterRetry = 0;
   // OPTIONS-Preflight mit gültigen CORS-Headern passieren lassen, nur den POST kontrolliert
   // mit 500 beantworten, damit der echte Serverfehler-Pfad statt CORS-Fehler getestet wird (Codex PR #67).
   await context.route('**/functions/v1/crm-query-export**', async (route) => {
@@ -1768,6 +1913,11 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
           'Access-Control-Max-Age': '86400',
         },
       });
+      return;
+    }
+    if (request.method() === 'POST' && !failRequests) {
+      postsAfterRetry++;
+      await fulfillControlledCrm(route, request);
       return;
     }
     if (request.method() === 'POST') {
@@ -1906,10 +2056,48 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
     path.join(targetDir, 'fehler-pipeline-nach-navigation.png'),
     await page.screenshot(),
   );
+  // Befund PR #67 Runde 27: Nachher-Lauf prüft „Erneut versuchen“ – nur die fehlgeschlagene
+  // Abfrage wird wiederholt, ein erfolgreicher Wiederholungsabruf stellt die Anzeige wieder her.
+  let retry = null;
+  if (IS_NACHHER) {
+    await page.goto('/crm/deals', { waitUntil: 'networkidle' });
+    const retryButton = page.getByRole('button', { name: /erneut versuchen/i }).first();
+    const hasRetry = await retryButton.waitFor({ state: 'visible', timeout: 5000 }).then(
+      () => true,
+      () => false,
+    );
+    if (!hasRetry) {
+      await context.close();
+      throw new Error('Fehlerfall Pipeline: Aktion „Erneut versuchen“ fehlt.');
+    }
+    const urlBefore = page.url();
+    failRequests = false;
+    await retryButton.click({ timeout: 5000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+    const restoredText = await page.locator('main').first().innerText();
+    const stillRetry = await page.getByRole('button', { name: /erneut versuchen/i }).count();
+    retry = {
+      postsAfterRetry,
+      sameUrl: page.url() === urlBefore,
+      stillError: /nicht verfügbar/i.test(restoredText) || stillRetry > 0,
+    };
+    if (postsAfterRetry < 1 || !retry.sameUrl || retry.stillError) {
+      await context.close();
+      throw new Error(
+        `Fehlerfall Pipeline: Wiederholungsabruf stellt die Anzeige nicht wieder her: ${JSON.stringify(retry)}.`,
+      );
+    }
+    fs.writeFileSync(
+      path.join(targetDir, 'fehler-pipeline-nach-wiederholung.png'),
+      await page.screenshot(),
+    );
+  }
   const maxDepth = consoleErrors.filter((e) => /Maximum update depth/i.test(e)).length;
   await context.close();
   return {
     steps,
+    retry,
     interceptedPostCount,
     consoleErrors: consoleErrors.slice(0, 10),
     pageErrors,
@@ -2048,7 +2236,9 @@ async function main() {
         // Befund PR #67 Runde 22: Antwort verloren/unlesbar, Mutation evtl. trotzdem committet.
         // Zeile nachlesen und Restore nur aktivieren, wenn Revision und Konfiguration die
         // Harness-Mutation eindeutig belegen.
-        const after = await readPreferences(setupPage, SUPABASE).catch(() => null);
+        const after = rpcErr?.confirmedHttpStatus
+          ? null
+          : await readPreferences(setupPage, SUPABASE).catch(() => null);
         if (
           after &&
           after.revision === originalPrefs.revision + 1 &&
@@ -2103,7 +2293,10 @@ async function main() {
       try {
         ({ rpcRevision } = await savePreferencesRpc(setupPage, SUPABASE, defaultConfig, 0));
       } catch (rpcErr) {
-        const after = await readPreferences(setupPage, SUPABASE).catch(() => null);
+        // Befund PR #67 Runde 27: nach bestätigtem Konflikt nie eine fremde Zeile löschen.
+        const after = rpcErr?.confirmedHttpStatus
+          ? null
+          : await readPreferences(setupPage, SUPABASE).catch(() => null);
         if (after && after.revision === 1 && isJsonStructurallyEqual(after.config, defaultConfig)) {
           restore = {
             type: 'delete_harness_row',
@@ -2165,7 +2358,7 @@ async function main() {
           try {
             const opened = await openRoute(browser, state, viewport, theme, target);
             context = opened.context;
-            const { page, consoleErrors, pageErrors } = opened;
+            const { page, consoleErrors, pageErrors, renderedKind } = opened;
             const metrics = await measure(page, viewport);
             const vpActual = metrics.viewport;
             if (
@@ -2189,7 +2382,7 @@ async function main() {
                 `Gemessene URL ${metrics.url} weicht von erwarteter Route ${expectedPath} ab.`,
               );
             }
-            if (target.imageKey && (!metrics.image || metrics.image.naturalWidth <= 0)) {
+            if (renderedKind === 'image' && (!metrics.image || metrics.image.naturalWidth <= 0)) {
               throw new Error(
                 `Bildmaße auf Bildseite ${target.id} ungültig: ${JSON.stringify(metrics.image)}`,
               );
@@ -2236,7 +2429,8 @@ async function main() {
             }
             shots.push({
               id: target.id,
-              imageKey: target.imageKey ?? null,
+              imageKey: renderedKind === 'image' ? target.pageKey : null,
+              renderedKind,
               width: viewport.width,
               height: viewport.height,
               theme,
@@ -2267,6 +2461,12 @@ async function main() {
       }
     }
     const pipelineError = ONLY ? null : await pipelineErrorCase(browser, state, shotsStageDir);
+    const pipelineNavigation = ONLY
+      ? null
+      : [
+          await pipelineNavigationCase(browser, state, 'erfolg'),
+          await pipelineNavigationCase(browser, state, 'leer'),
+        ];
     // Befund PR #67 Runde 26: Im Nachher-Modus brechen Browser-Ausnahmen oder eine
     // Aktualisierungsschleife im Pipeline-Sonderlauf den Gate-Lauf ab.
     if (
@@ -2359,6 +2559,7 @@ async function main() {
       summary,
       shots,
       pipelineError,
+      pipelineNavigation,
     };
 
     isCompleteRun = !ONLY && failed === 0 && summary.ok === expected;
