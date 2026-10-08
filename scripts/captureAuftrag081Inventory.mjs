@@ -33,7 +33,8 @@ const BASELINE_COMMIT = '7fd6e33';
 const MODE = (
   process.env.MODE ??
   process.env.INVENTORY_MODE ??
-  (process.env.NACHHER === '1' ? 'nachher' : 'baseline')
+  // Befund PR #67 Runde 26: Ein gesetztes TARGET_COMMIT aktiviert den Nachher-Modus.
+  (process.env.NACHHER === '1' || process.env.TARGET_COMMIT ? 'nachher' : 'baseline')
 ).toLowerCase();
 const IS_NACHHER = MODE === 'nachher';
 if (MODE !== 'baseline' && MODE !== 'nachher') {
@@ -1526,6 +1527,12 @@ async function openRoute(browser, state, viewport, theme, target) {
 
     // 3. Zielspezifischer Seiteninhalt & Bildnachweis
     if (target.imageKey) {
+      // Befund PR #67 Runde 26: aktueller ImagePage-Schlüssel muss dem Baseline-Schlüssel entsprechen.
+      if (target.pageKey && target.imageKey !== target.pageKey) {
+        throw new Error(
+          `Bildseite ${target.id} zeigt Schlüssel ${target.imageKey}, erwartet ${target.pageKey}.`,
+        );
+      }
       await page.locator('[data-testid="image-page"]').waitFor({ timeout: 10000 });
       const imageLoaded = await page
         .waitForFunction(
@@ -1823,6 +1830,22 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
   if (IS_NACHHER) {
     const mainText = await page.locator('main').first().innerText();
     const zeroCounts = mainText.match(/(^|\n)\s*0\s+(funnel\s+)?deals\b|\b0 deals gefunden\b/gi);
+    // Befund PR #67 Runde 26: KPI-Werte elementweise prüfen, unabhängig von der Textreihenfolge.
+    const zeroKpis = await page
+      .locator('main')
+      .first()
+      .evaluate((main) =>
+        Array.from(main.querySelectorAll('*'))
+          .filter((el) => el.children.length === 0)
+          .map((el) => (el.textContent ?? '').trim())
+          .filter((t) => /^0([.,]0+)?(\s?(€|%|k€|deals?))?$/i.test(t)),
+      );
+    if (zeroKpis.length > 0) {
+      await context.close();
+      throw new Error(
+        `Fehlerzustand Pipeline zeigt Nullwerte statt „Nicht verfügbar“: ${JSON.stringify(zeroKpis)}.`,
+      );
+    }
     const exportButton = page.getByRole('button', { name: /csv export/i }).first();
     const exportEnabled =
       (await exportButton.count()) > 0 && (await exportButton.isEnabled().catch(() => false));
@@ -2171,12 +2194,6 @@ async function main() {
                 `Bildmaße auf Bildseite ${target.id} ungültig: ${JSON.stringify(metrics.image)}`,
               );
             }
-            // Befund PR #67 Runde 25: Browser-Ausnahmen lassen die Aufnahme fehlschlagen.
-            if (pageErrors.length > 0) {
-              throw new Error(
-                `Unbehandelte Browser-Ausnahme auf ${target.id}: ${pageErrors.slice(0, 3).join(' | ')}`,
-              );
-            }
             // Befund PR #67 Runde 25: Dashboard und Editor müssen die installierte
             // Vergleichskonfiguration vollständig rendern (Anzahl und IDs).
             if (target.id === 'dashboard' || target.id === 'dashboard-edit') {
@@ -2196,6 +2213,27 @@ async function main() {
             const axePage = await axeSeverePage(page);
             const hashes = await capture(page, viewport, name, shotsStageDir);
             const focus = await firstFocus(page);
+            // Befund PR #67 Runde 25/26: Browser-Ausnahmen (auch während Axe, Screenshot und Fokus)
+            // lassen die Aufnahme fehlschlagen; Prüfung direkt vor dem Übernehmen.
+            if (pageErrors.length > 0) {
+              throw new Error(
+                `Unbehandelte Browser-Ausnahme auf ${target.id}: ${pageErrors.slice(0, 3).join(' | ')}`,
+              );
+            }
+            // Befund PR #67 Runde 26: Im Nachher-Modus gelten die Pflichtgates aus Plan §14
+            // (0 px globaler Überlauf, keine serious/critical Axe-Befunde); Baseline inventarisiert nur.
+            if (IS_NACHHER) {
+              if (metrics.overflowDocument > 0) {
+                throw new Error(
+                  `Globaler Überlauf ${metrics.overflowDocument}px auf ${target.id}.`,
+                );
+              }
+              if (axe.length > 0 || axePage.length > 0) {
+                throw new Error(
+                  `Axe-Verstöße auf ${target.id}: ${[...axe, ...axePage].map((v) => v.id ?? v).join(', ')}`,
+                );
+              }
+            }
             shots.push({
               id: target.id,
               imageKey: target.imageKey ?? null,
@@ -2229,6 +2267,17 @@ async function main() {
       }
     }
     const pipelineError = ONLY ? null : await pipelineErrorCase(browser, state, shotsStageDir);
+    // Befund PR #67 Runde 26: Im Nachher-Modus brechen Browser-Ausnahmen oder eine
+    // Aktualisierungsschleife im Pipeline-Sonderlauf den Gate-Lauf ab.
+    if (
+      IS_NACHHER &&
+      pipelineError &&
+      (pipelineError.pageErrors.length > 0 || pipelineError.maxUpdateDepthErrors > 0)
+    ) {
+      throw new Error(
+        `Pipeline-Fehlerfall: ${pipelineError.pageErrors.length} Browser-Ausnahmen, ${pipelineError.maxUpdateDepthErrors} × Maximum update depth.`,
+      );
+    }
 
     const scriptContent = fs.readFileSync(
       path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'),
