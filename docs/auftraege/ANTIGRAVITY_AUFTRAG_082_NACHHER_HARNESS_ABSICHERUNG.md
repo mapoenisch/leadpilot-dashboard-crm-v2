@@ -18,10 +18,14 @@ Ein Teil wurde bereits in `c117662` (Runde 29) umgesetzt. Hier ist zu prüfen, o
 - [ ] CRM-Aufnahmen gelten nur als Erfolgszustand mit erwarteten Seed-IDs bzw. Anzahl; unbekannte `resource` wird abgelehnt.
 - [ ] Nachher-Schema: Erwartung aus dem Zielcommit ableiten und den Live-Katalog (Policies, RPC) prüfen, nicht nur `schema_migrations`.
 - [ ] 32-Bild-Prüfung nur in der Baseline; im Nachher-Modus nur tatsächlich als Bild gerenderte Seiten.
+- [ ] Dashboard-Kacheln: `data-state` je Kachel erfassen; `laden`, Fehler- oder blockierte Zustände ablehnen (Codex Runde 31, P1; Baseline-Inventar weist geladene Werte aus).
+- [ ] Navigationsfälle: unerwartete/fehlende `resource` ablehnen; vor der Navigation im Erfolgsfall stabilen Deal, im Leerfall bestätigten Leerzustand prüfen (Runde 31).
+- [ ] Zielschema-Fingerabdrücke an `TARGET_COMMIT` binden: `supabase/` gegen `TARGET_COMMIT` vergleichen, Fingerabdruckdatei per `git show` aus genau diesem Commit lesen (Runde 31).
 
 ## Backlog (P2, nur bei konkretem Anlass)
 
 - [ ] SQL-Normalisierung: Literale und Token-Grenzen erhalten (`'7 days'`/`'7days'`, `foo bar`/`foobar`).
+- [ ] SQL-Normalisierung: entfernte Kommentare wie Whitespace behandeln (`foo/**/bar` vs. `foobar`, Runde 31).
 - [ ] Importierte Helfer (`scripts/lib/detailShotHelpers.mjs`) im Harness-Fingerabdruck.
 
 ## Verifikation

@@ -15976,3 +15976,11 @@ Runde-29-Befunde in `c117662` behoben (`scripts/captureAuftrag081Inventory.mjs`)
 - Volllauf mit finalem Harness: 256/256, 0 fehlgeschlagen; JSON und README erneuert. Schutzbereichs-Diff gegen `7fd6e33`: 0 Byte.
 
 **Abgrenzung (Entscheidung Marc vom 08.10.2026):** Nach 29 Runden gilt Auftrag 081 mit dem Baseline-Inventar als inhaltlich abgeschlossen. Merge-blockierend sind ab jetzt nur Befunde, die das **aktuelle** Baseline-Inventar nachweislich falsch machen. Befunde, die lediglich einen späteren Nachher-Lauf gegen hypothetische Regressionen absichern, sowie P2-Randfälle (SQL-Kanonisierung, Hash-Abdeckung) werden in `docs/auftraege/ANTIGRAVITY_AUFTRAG_082_NACHHER_HARNESS_ABSICHERUNG.md` gesammelt und mit dem Paket bearbeitet, das den Nachher-Lauf fährt. Gate-Freigabe weiterhin durch Codex, Merge durch Marc.
+
+### Codex-Abschlussprüfung PR #67 — 08.10.2026, Head `bd52c97`
+
+**Prüfgrenze:** Gemäß Marcs Abgrenzung vom 08.10.2026 wurden nur Befunde als merge-blockierend bewertet, die das aktuelle Baseline-Inventar nachweislich falsch machen. Absicherungen eines späteren Nachher-Laufs und hypothetische Regressionen gehören zu Auftrag 082.
+
+**Ergebnis:** Kein merge-blockierender Befund. Das kanonische Inventar weist 256/256 erfolgreiche Aufnahmen und 0 Fehler aus; der gespeicherte Harness-SHA-256 `2f312786843a58aa1a9ad0692d9709446558a38301f186a339d370bd72e1b34c` entspricht der eingecheckten Skriptdatei. Der finale F12-Nachweis stimmt mit dem Inventar überein (`interceptedPostCount: 4`, Erfolgs- und Leerablauf reproduziert). P0-5 ist aus Codex-Sicht bestanden; Merge bleibt bei Marc.
+
+**Live-Gates:** `npx tsc --noEmit`, `npm run lint`, `npm test` (316 Dateien / 2257 Tests), `npm run verify` (Suiten 001–025), `npm run build` und `npm run format:check` jeweils Exit 0. `git diff 7fd6e33 -- src/simulation src/types src/context src/services/data src/features/resources` sowie `git diff 7fd6e33 -- src` leer. Kein erneuter Screenshot-Volllauf; geprüft wurden der eingecheckte finale Mess-Payload, sein Harness-Fingerabdruck und die Dokumentkonsistenz.
