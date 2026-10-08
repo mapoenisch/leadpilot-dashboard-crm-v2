@@ -32,6 +32,45 @@ import {
   sessionUserId,
 } from './lib/detailShotHelpers.mjs';
 
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const BASELINE_COMMIT = '7fd6e33';
+const MODE = (
+  process.env.MODE ??
+  process.env.INVENTORY_MODE ??
+  (process.env.NACHHER === '1' ? 'nachher' : 'baseline')
+).toLowerCase();
+const IS_NACHHER = MODE === 'nachher';
+if (MODE !== 'baseline' && MODE !== 'nachher') {
+  throw new Error(`Ungültiger Modus '${MODE}'. Erlaubt sind 'baseline' und 'nachher'.`);
+}
+const TARGET_COMMIT =
+  process.env.TARGET_COMMIT ??
+  (IS_NACHHER
+    ? execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT }).toString().trim()
+    : BASELINE_COMMIT);
+
+const RECORDING_LOCALE = 'de-DE';
+const RECORDING_TIMEZONE = 'Europe/Berlin';
+
+/**
+ * Versionierte Vite-Eingaben, die gegen die Baseline (oder im Nachher-Modus gegen den Zielcommit)
+ * geprüft werden. assets/ gehört dazu, weil Produktdateien Root-Assets importieren (Codex PR #67 Runde 16/20).
+ */
+const PRODUCT_PATHS = [
+  'src/',
+  'public/',
+  'assets/',
+  'supabase/',
+  'index.html',
+  'vite.config.ts',
+  'package.json',
+  'package-lock.json',
+  'tsconfig.json',
+  'tsconfig.node.json',
+  'tailwind.config.js',
+  'postcss.config.js',
+];
+
 /** GET gegen die Supabase-REST-API mit dem Token der Sitzung; wirft bei jedem Status >= 300 (Befund PR #67). */
 async function restGet(page, supabase, pathAndQuery, what) {
   const result = await page.evaluate(
@@ -75,11 +114,31 @@ async function readPreferences(page, supabase) {
 }
 
 /**
- * Speichert Dashboard-Präferenzen über den RPC-Endpunkt mit der aktiven Benutzersitzung.
- * Hält die RPC-Auswertung lokal im 081-Harness, um detailShotHelpers.mjs unberührt zu lassen (Codex PR #67 Runde 18/19).
- * Gibt neben den nachgelesenen Präferenzen auch die direkte rpcRevision aus der RPC-Rückgabe zurück.
+ * Kanonisiert beliebige JSON-Datenstrukturen für strukturellen Vergleich:
+ * Sortiert Objektschlüssel rekursiv, erhält Array-Reihenfolge.
+ * Verhindert Fehlalarme durch PostgreSQL jsonb Key-Reordering (Codex PR #67 Runde 20).
  */
-async function savePreferences(page, supabase, config, expectedRevision) {
+function canonicalJsonString(data) {
+  if (data === null || typeof data !== 'object') {
+    return JSON.stringify(data);
+  }
+  if (Array.isArray(data)) {
+    return '[' + data.map(canonicalJsonString).join(',') + ']';
+  }
+  const keys = Object.keys(data).sort();
+  return '{' + keys.map((k) => JSON.stringify(k) + ':' + canonicalJsonString(data[k])).join(',') + '}';
+}
+
+function isJsonStructurallyEqual(a, b) {
+  return canonicalJsonString(a) === canonicalJsonString(b);
+}
+
+/**
+ * Speichert Dashboard-Präferenzen über den RPC-Endpunkt mit der aktiven Benutzersitzung.
+ * Führt den RPC-Aufruf save_dashboard_preferences aus und gibt unmittelbar die zurückgegebene Revision zurück.
+ * Liest NICHT nach, um den Restore-Token vor jeglichem nachgelagerten Lesezugriff zu sichern (Codex PR #67 Runde 18/20).
+ */
+async function savePreferencesRpc(page, supabase, config, expectedRevision) {
   const result = await page.evaluate(
     async ({ url, anonKey, config: pConfig, expectedRevision: pExpRev }) => {
       let token = null;
@@ -108,8 +167,11 @@ async function savePreferences(page, supabase, config, expectedRevision) {
     );
   }
   const rpcRow = Array.isArray(result.body) ? result.body[0] : result.body;
-  const read = await readPreferences(page, supabase);
-  return { ...read, rpcRevision: rpcRow?.revision ?? null };
+  const rpcRevision = rpcRow?.revision ?? null;
+  if (!Number.isInteger(rpcRevision)) {
+    throw new Error(`Speicher-RPC lieferte keine Revision: ${JSON.stringify(rpcRevision)}`);
+  }
+  return { rpcRevision };
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -124,7 +186,7 @@ function assertScopedCleanup(url, userId) {
   }
 }
 
-/** Stellt die exakte Präferenzzeile (inkl. ursprünglicher Revision und Zeitstempel) wieder her (Befund PR #67 Runde 9/19). */
+/** Stellt die exakte Präferenzzeile (inkl. ursprünglicher Revision und Zeitstempel) wieder her (Befund PR #67 Runde 9/19/20). */
 async function restorePreferencesRow(
   supabase,
   cleanupKey,
@@ -133,8 +195,8 @@ async function restorePreferencesRow(
   expectedInstalledConfig,
 ) {
   assertScopedCleanup(supabase.url, originalRow.user_id);
-  // Befund PR #67 Runde 19: Vor dem PATCH verifizieren, dass die Zeile tatsächlich existiert,
-  // ihre Revision in harnessRevisions liegt und ihr Inhalt exakt der installierten Konfiguration entspricht.
+  // Befund PR #67 Runde 19/20: Vor dem PATCH verifizieren, dass die Zeile tatsächlich existiert,
+  // ihre Revision in harnessRevisions liegt und ihr Inhalt strukturell exakt der installierten Konfiguration entspricht.
   const getRes = await fetch(
     `${supabase.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(originalRow.user_id)}&organization_id=eq.${encodeURIComponent(originalRow.organization_id)}&select=revision,config`,
     {
@@ -161,7 +223,7 @@ async function restorePreferencesRow(
   }
   if (
     expectedInstalledConfig &&
-    JSON.stringify(currentRow.config) !== JSON.stringify(expectedInstalledConfig)
+    !isJsonStructurallyEqual(currentRow.config, expectedInstalledConfig)
   ) {
     throw new Error(
       'Aktuelle Konfiguration in der Datenbank weicht von der vom Harness installierten Konfiguration ab; fremde Änderung bleibt erhalten.',
@@ -282,22 +344,36 @@ function collectDistFiles(
 }
 
 /**
- * Verifiziert, dass der lokale Produkt- und Build-Code exakt der Baseline 7fd6e33 entspricht UND
- * dass der unter baseUrl bediente Produktionsbuild exakt aus diesem Stand stammt (Befund PR #67 Runde 8–11).
+ * Verifiziert, dass der lokale Produkt- und Build-Code der Baseline (oder im Nachher-Modus dem Zielcommit)
+ * entspricht UND dass der unter baseUrl bediente Produktionsbuild exakt aus diesem Stand stammt (Befund PR #67 Runde 8–11/20).
  */
-async function verifyBuildArtifact(baseUrl) {
-  const baselineCommit = '7fd6e33';
-  const productDiff = execFileSync(
-    'git',
-    ['diff', baselineCommit, '--', ...PRODUCT_PATHS],
-    { cwd: ROOT },
-  )
-    .toString()
-    .trim();
-  if (productDiff.length > 0) {
-    throw new Error(
-      `Produktcode oder Build-Konfiguration weicht von Baseline ${baselineCommit} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
-    );
+async function verifyBuildArtifact(baseUrl, targetCommit = TARGET_COMMIT, isNachher = IS_NACHHER) {
+  if (!isNachher) {
+    const productDiff = execFileSync(
+      'git',
+      ['diff', BASELINE_COMMIT, '--', ...PRODUCT_PATHS],
+      { cwd: ROOT },
+    )
+      .toString()
+      .trim();
+    if (productDiff.length > 0) {
+      throw new Error(
+        `Produktcode oder Build-Konfiguration weicht von Baseline ${BASELINE_COMMIT} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
+      );
+    }
+  } else if (process.env.TARGET_COMMIT) {
+    const productDiff = execFileSync(
+      'git',
+      ['diff', targetCommit, '--', ...PRODUCT_PATHS],
+      { cwd: ROOT },
+    )
+      .toString()
+      .trim();
+    if (productDiff.length > 0) {
+      throw new Error(
+        `Produktcode oder Build-Konfiguration weicht vom Zielcommit ${targetCommit} ab (${productDiff.split('\n').length} Diff-Zeilen). Nachher-Schreiben abgebrochen.`,
+      );
+    }
   }
 
   // Befund 2 PR #67 Runde 11: Auch unversionierte/ungestagte Dateien unter Produktpfaden verbieten
@@ -310,7 +386,7 @@ async function verifyBuildArtifact(baseUrl) {
     .trim();
   if (uncommittedOrUntracked.length > 0) {
     throw new Error(
-      `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen im ganzen Arbeitsbaum (${uncommittedOrUntracked.split('\n').length} Einträge). Baseline-Schreiben abgebrochen.`,
+      `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen im ganzen Arbeitsbaum (${uncommittedOrUntracked.split('\n').length} Einträge). ${isNachher ? 'Nachher' : 'Baseline'}-Schreiben abgebrochen.`,
     );
   }
 
@@ -361,7 +437,7 @@ async function verifyBuildArtifact(baseUrl) {
   }
   if (servedEntryMatch[1] !== entryScriptPath) {
     throw new Error(
-      `Unter ${baseUrl} wird Einstiegsskript ${servedEntryMatch[1]} bedient, erwartet wird ${entryScriptPath} aus dem lokalen Build der Baseline ${baselineCommit}.`,
+      `Unter ${baseUrl} wird Einstiegsskript ${servedEntryMatch[1]} bedient, erwartet wird ${entryScriptPath} aus dem lokalen Build ${isNachher ? `des Zielcommits ${targetCommit}` : `der Baseline ${BASELINE_COMMIT}`}.`,
     );
   }
 
@@ -512,9 +588,15 @@ async function verifyBuildArtifact(baseUrl) {
   };
 }
 
-/** Anmelden mit expliziter deutscher Browser-Locale für konsistente Datumsformatierung. */
-async function loginWithLocale(browser, baseUrl, credentials, locale = 'de-DE') {
-  const context = await browser.newContext({ baseURL: baseUrl, locale });
+/** Anmelden mit expliziter deutscher Browser-Locale und Zeitzone für konsistente Datumsformatierung (Codex PR #67 Runde 20). */
+async function loginWithLocale(
+  browser,
+  baseUrl,
+  credentials,
+  locale = RECORDING_LOCALE,
+  timezoneId = RECORDING_TIMEZONE,
+) {
+  const context = await browser.newContext({ baseURL: baseUrl, locale, timezoneId });
   const page = await context.newPage();
   await page.goto('/login', { waitUntil: 'networkidle' });
   await page.fill('#login-email', credentials.email);
@@ -540,7 +622,69 @@ function defaultDashboardConfig(root) {
   return JSON.parse(out.toString());
 }
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+/** Liest Projekt-ID und Ports aus supabase/config.toml (Codex PR #67 Runde 18/20). */
+function getSupabaseConfig() {
+  const configContent = fs.readFileSync(path.join(ROOT, 'supabase/config.toml'), 'utf8');
+  const projectId = configContent.match(/^project_id\s*=\s*"([^"]+)"/m)?.[1];
+  if (!projectId) throw new Error('project_id in supabase/config.toml nicht gefunden.');
+  const apiPortMatch = configContent.match(/^\[api\][^\[]*?port\s*=\s*(\d+)/ms);
+  const apiPort = apiPortMatch ? Number(apiPortMatch[1]) : 54321;
+  const dbPortMatch = configContent.match(/^\[db\][^\[]*?port\s*=\s*(\d+)/ms);
+  const dbPort = dbPortMatch ? Number(dbPortMatch[1]) : 54322;
+  return { projectId, apiPort, dbPort };
+}
+
+/** Validiert, dass SUPABASE.url exakt an den Docker-Container der konfigurierten Instanz gebunden ist (Codex PR #67 Runde 20). */
+function validateSupabaseInstance(supabaseUrlStr) {
+  const { projectId, apiPort, dbPort } = getSupabaseConfig();
+  const parsed = new URL(supabaseUrlStr);
+  if (!LOCAL_HOSTS.has(parsed.hostname)) {
+    throw new Error(`Inventur nur gegen lokales Supabase, nicht gegen ${parsed.host}.`);
+  }
+  const urlPort = parsed.port ? Number(parsed.port) : (parsed.protocol === 'https:' ? 443 : 80);
+  if (urlPort !== apiPort) {
+    throw new Error(
+      `SUPABASE.url Port (${urlPort}) weicht vom in supabase/config.toml konfigurierten API-Port (${apiPort}) ab. ` +
+      `Katalogprüfung würde eine andere Instanz prüfen (Codex PR #67 Runde 20).`,
+    );
+  }
+
+  const kongContainer = `supabase_kong_${projectId}`;
+  const dbContainer = `supabase_db_${projectId}`;
+
+  let kongPorts = '';
+  try {
+    kongPorts = execFileSync('docker', ['port', kongContainer], { cwd: ROOT }).toString().trim();
+  } catch (err) {
+    throw new Error(
+      `Docker-Container ${kongContainer} für Projekt ${projectId} ist nicht erreichbar (${err.message}). ` +
+      `Supabase-Instanz läuft möglicherweise nicht (npx supabase start).`,
+    );
+  }
+  if (!kongPorts.includes(`:${apiPort}`)) {
+    throw new Error(
+      `Container ${kongContainer} ist nicht an Port ${apiPort} gebunden (${kongPorts}). ` +
+      `SUPABASE.url zeigt nicht auf den konfigurierten Projekt-Container.`,
+    );
+  }
+
+  let dbPorts = '';
+  try {
+    dbPorts = execFileSync('docker', ['port', dbContainer], { cwd: ROOT }).toString().trim();
+  } catch (err) {
+    throw new Error(
+      `Docker-Container ${dbContainer} für Projekt ${projectId} ist nicht erreichbar (${err.message}).`,
+    );
+  }
+  if (!dbPorts.includes(`:${dbPort}`)) {
+    throw new Error(
+      `Container ${dbContainer} ist nicht an DB-Port ${dbPort} gebunden (${dbPorts}).`,
+    );
+  }
+
+  return { projectId, apiPort, dbPort, kongContainer, dbContainer };
+}
+
 const env = (name) => {
   const value = process.env[name];
   if (!value) throw new Error(`${name} fehlt.`);
@@ -558,10 +702,9 @@ const SUPABASE = {
     process.env.VITE_SUPABASE_ANON_KEY ??
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
 };
-// Befund PR #67 Runde 13: Entfernte Supabase-Instanzen vor Anmeldung, Service-Role-Abfragen und
-// Präferenzänderungen ablehnen, nicht erst beim Restore.
-if (!README_ONLY && !LOCAL_HOSTS.has(new URL(SUPABASE.url).hostname)) {
-  throw new Error(`Inventur nur gegen lokales Supabase, nicht gegen ${new URL(SUPABASE.url).host}.`);
+// Befund PR #67 Runde 13 / Codex PR #67 Runde 20: Lokale Instanz und Containerzuordnung validieren
+if (!README_ONLY) {
+  validateSupabaseInstance(SUPABASE.url);
 }
 // Codex PR #67 Runde 17: Der frische Build (Vite-Variablen inkl. .env-Dateien) muss dieselbe
 // Supabase-Instanz verwenden wie Seed-, Identitäts- und Präferenzprüfung des Harness.
@@ -737,22 +880,49 @@ const EXPECTED_SCHEMA_STATE = {
 };
 
 /**
- * Prüft den Schemastand der lokalen Supabase-Instanz gegen die Baseline (Codex PR #67 Runde 18/19):
+ * Prüft den Schemastand der lokalen Supabase-Instanz gegen die Baseline (Codex PR #67 Runde 18/19/20):
+ * Bindet die Katalogabfrage an die Instanz hinter SUPABASE.url und validiert Port und Containerzuordnung.
  * Jede angewandte Migration muss inhaltlich der versionierten Datei entsprechen (Basisschema =
  * `supabase/schema.sql`, wie in CI kopiert), und jede Datei muss angewandt sein. Zusätzlich wird der
  * aktive Katalog (RLS-Policies, save_dashboard_preferences und RLS-Aktivierungsstatus aller public-Tabellen)
- * gegen die kanonische Baseline-Erwartung geprüft (Befund PR #67 Runde 19).
- * `supabase/` selbst ist Teil von `PRODUCT_PATHS` und damit gegen `7fd6e33` geprüft.
+ * gegen die kanonische Baseline-Erwartung geprüft (Befund PR #67 Runde 19/20).
+ * `supabase/` selbst ist Teil von `PRODUCT_PATHS` und damit gegen die Baseline bzw. den Zielcommit geprüft.
  */
-function verifySchemaState() {
-  const projectId = fs
-    .readFileSync(path.join(ROOT, 'supabase/config.toml'), 'utf8')
-    .match(/^project_id\s*=\s*"([^"]+)"/m)?.[1];
-  if (!projectId) throw new Error('project_id in supabase/config.toml nicht gefunden.');
+async function verifySchemaState(supabase = SUPABASE, cleanupKey = CLEANUP_KEY) {
+  const { projectId, apiPort, dbPort, dbContainer } = validateSupabaseInstance(supabase.url);
   const psql = (sql) =>
-    execFileSync('docker', ['exec', `supabase_db_${projectId}`, 'psql', '-U', 'postgres', '-At', '-c', sql])
+    execFileSync('docker', ['exec', dbContainer, 'psql', '-U', 'postgres', '-At', '-c', sql])
       .toString()
       .trim();
+
+  // Binde die Katalogabfrage an die Instanz hinter SUPABASE.url (Codex PR #67 Runde 20):
+  // Verifiziere per REST-Endpunkt, dass die über SUPABASE.url erreichbare Datenbank exakt dem
+  // befragten Docker-Container dbContainer entspricht.
+  if (cleanupKey) {
+    const restRes = await fetch(
+      `${supabase.url}/rest/v1/organization_members?select=organization_id&limit=1`,
+      {
+        headers: {
+          apikey: cleanupKey,
+          Authorization: `Bearer ${cleanupKey}`,
+          Prefer: 'count=exact',
+        },
+      },
+    );
+    if (!restRes.ok) {
+      throw new Error(
+        `Katalogabfrage über REST-Instanz ${supabase.url} fehlgeschlagen (HTTP ${restRes.status}).`,
+      );
+    }
+    const restCount = Number(restRes.headers.get('content-range')?.split('/')[1]);
+    const psqlCount = Number(psql('select count(*) from organization_members'));
+    if (restCount !== psqlCount) {
+      throw new Error(
+        `Datenbank hinter ${supabase.url} (REST-Zeilen: ${restCount}) weicht von Container ${dbContainer} (psql-Zeilen: ${psqlCount}) ab.`,
+      );
+    }
+  }
+
   const applied = JSON.parse(
     psql(
       "select coalesce(json_agg(json_build_object('version', version, 'name', name, 'sql', array_to_string(statements, '')) order by version), '[]') from supabase_migrations.schema_migrations",
@@ -820,6 +990,10 @@ function verifySchemaState() {
   }
 
   return {
+    projectId,
+    apiPort,
+    dbPort,
+    container: dbContainer,
     migrationsApplied: applied.length,
     lastMigration: applied.at(-1)?.version ?? null,
     policiesSha256: policiesSha,
@@ -930,8 +1104,18 @@ const CONTROLLED_CRM_DATA = {
     },
   ],
 };
-const OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-081');
-const JSON_OUT = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar.json');
+const DEFAULT_JSON_OUT = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar.json');
+const DEFAULT_NACHHER_JSON_OUT = path.join(ROOT, 'docs/reviews/2026-10-06-frontend-inventar-nachher.json');
+const JSON_OUT = process.env.JSON_OUT
+  ? path.resolve(ROOT, process.env.JSON_OUT)
+  : (IS_NACHHER ? DEFAULT_NACHHER_JSON_OUT : DEFAULT_JSON_OUT);
+
+const DEFAULT_OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-081');
+const DEFAULT_NACHHER_OUT_DIR = path.join(ROOT, 'docs/screenshots/auftrag-081-nachher');
+const OUT_DIR = process.env.OUT_DIR
+  ? path.resolve(ROOT, process.env.OUT_DIR)
+  : (IS_NACHHER ? DEFAULT_NACHHER_OUT_DIR : DEFAULT_OUT_DIR);
+
 const ONLY =
   process.env.ONLY !== undefined
     ? new Set(
@@ -946,25 +1130,6 @@ const WIDTHS = [
   { width: 375, height: 812 },
 ];
 const NARROW = { width: 320, height: 640 };
-/**
- * Versionierte Vite-Eingaben, die gegen die Baseline geprüft werden. `assets/` gehört dazu, weil
- * Produktdateien Root-Assets importieren (z. B. LocationPage: Logo und Unternehmensbilder) und diese
- * sonst weder vom Diff noch vom `public/`-Hashvergleich erfasst würden (Codex PR #67 Runde 16).
- */
-const PRODUCT_PATHS = [
-  'src/',
-  'public/',
-  'assets/',
-  'supabase/',
-  'index.html',
-  'vite.config.ts',
-  'package.json',
-  'package-lock.json',
-  'tsconfig.json',
-  'tsconfig.node.json',
-  'tailwind.config.js',
-  'postcss.config.js',
-];
 /**
  * Feste Browserzeit für alle Aufnahmen: TanStack Query setzt `dataUpdatedAt` aus `Date.now()`, und
  * `DataSourceStatus` rendert diesen Wert sekundengenau als „Stand“. Ohne feste Uhr ändern sich die
@@ -1158,7 +1323,8 @@ async function openRoute(browser, state, viewport, theme, target) {
     storageState: state,
     viewport,
     reducedMotion: 'reduce',
-    locale: 'de-DE',
+    locale: RECORDING_LOCALE,
+    timezoneId: RECORDING_TIMEZONE,
   });
   try {
     await context.clock.setFixedTime(FIXED_BROWSER_TIME);
@@ -1380,6 +1546,7 @@ async function measure(page, viewport) {
         devicePixelRatio: window.devicePixelRatio,
         visualViewportScale: window.visualViewport?.scale ?? null,
       },
+      timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
       h1: document.querySelector('main h1')?.textContent?.trim() ?? null,
       mainScrollHeight: main?.scrollHeight ?? null,
       overflowDocument: Math.max(0, doc.scrollWidth - doc.clientWidth),
@@ -1464,7 +1631,8 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
     storageState: state,
     viewport,
     reducedMotion: 'reduce',
-    locale: 'de-DE',
+    locale: RECORDING_LOCALE,
+    timezoneId: RECORDING_TIMEZONE,
   });
   await context.clock.setFixedTime(FIXED_BROWSER_TIME);
   let interceptedPostCount = 0;
@@ -1591,6 +1759,7 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
 
 /** Ergebnismatrix aus den Messwerten; Bilder bleiben lokal. */
 function writeReadme(data) {
+  const isNachher = data.mode === 'nachher';
   const list = (ids) => (ids.length ? ids.join(', ') : '0');
   const focusCell = (f) =>
     f.target
@@ -1601,25 +1770,34 @@ function writeReadme(data) {
       ? `| ${s.id} | ${s.width} | ${s.theme} | – | – | – | – | – | – | Fehler: ${s.failed} |`
       : `| ${s.id} | ${s.width} | ${s.theme} | ${s.mainScrollHeight} | \`${s.hashes.first}\` / \`${s.hashes.full}\` | ${s.overflowDocument} / ${s.overflowMain} | ${list(s.axe)} | ${list(s.axePage)} | ${focusCell(s.focus)} | ${s.image ? `Bild ${s.image.scale}` : `Werte im 1. Bildschirm: ${s.numbersInFirstScreen}`} |`,
   );
+  const title = isNachher
+    ? '# Auftrag 081 – Ausgangslage Frontend (Nachher-Stand)'
+    : '# Auftrag 081 – Ausgangslage Frontend (Arbeitspaket 0)';
+  const commitLine = isNachher
+    ? `Produkt-Stand: \`${data.targetCommit ?? data.commit}\` (Modus: Nachher-Vergleich gegen Baseline \`${data.baselineCommit ?? BASELINE_COMMIT}\`), aufgenommen ${data.capturedAt.slice(0, 10)} mit`
+    : `Produkt-Baseline: \`${data.baselineCommit ?? data.commit}\` (Release v2.4.0), aufgenommen ${data.capturedAt.slice(0, 10)} mit`;
+
+  const comparisonNote = isNachher
+    ? 'Nachher-Aufnahmen für den Vorher/Nachher-Vergleich (Plan Punkt 273). Bilder nur lokal; Bewertung im\n[Befundregister](../../reviews/2026-10-06-frontend-befundregister.md).'
+    : 'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die\nVorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im\n[Befundregister](../../reviews/2026-10-06-frontend-befundregister.md).';
+
   const readme = [
-    '# Auftrag 081 – Ausgangslage Frontend (Arbeitspaket 0)',
+    title,
     '',
-    `Produkt-Baseline: \`${data.baselineCommit ?? data.commit}\` (Release v2.4.0), aufgenommen ${data.capturedAt.slice(0, 10)} mit`,
+    commitLine,
     `\`${data.harness?.script ?? 'scripts/captureAuftrag081Inventory.mjs'}\` (Harness SHA-256: \`${data.harness?.sha256 ? data.harness.sha256.slice(0, 16) : '–'}\`).`,
-    `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`, ${data.buildArtifact?.verifiedDistFilesCount ?? data.buildArtifact?.verifiedAssetsCount ?? 38} ausgelieferte Build-Dateien verifiziert), verifiziert gegen lokale Baseline \`${data.baselineCommit ?? data.commit}\`.`,
+    `Ausgelieferter Build: \`${data.buildArtifact?.entryScript ?? '–'}\` (SHA-256: \`${data.buildArtifact?.entrySha256 ? data.buildArtifact.entrySha256.slice(0, 16) : '–'}\`, ${data.buildArtifact?.verifiedDistFilesCount ?? data.buildArtifact?.verifiedAssetsCount ?? 38} ausgelieferte Build-Dateien verifiziert), verifiziert gegen lokale ${isNachher ? 'Ziel-Revision' : 'Baseline'} \`${isNachher ? (data.targetCommit ?? data.commit) : (data.baselineCommit ?? data.commit)}\`.`,
     `Testbenutzer: \`${data.testUser?.email}\` (Rolle ${data.testUser?.role}, Organisation \`${data.testUser?.organizationId}\`), Identität vor dem Lauf gegen die Seed-Daten geprüft.`,
     `CRM-Seed-Daten: Organisation \`${data.crmSeed?.organizationId ?? data.testUser?.organizationId}\` verifiziert (${data.crmSeed?.companiesCount ?? 3} Unternehmen, ${data.crmSeed?.contactsCount ?? 1} Kontakt, ${data.crmSeed?.dealsCount ?? 2} Deals).`,
     `Supabase-Schema: ${data.schemaState ? `${data.schemaState.migrationsApplied} Migrationen bis \`${data.schemaState.lastMigration}\` inhaltsgleich mit \`supabase/\` der Baseline; RLS-Policies SHA-256 \`${data.schemaState.policiesSha256.slice(0, 16)}\`, RLS-Aktivierungsstatus \`${data.schemaState.rlsStatusSha256 ? data.schemaState.rlsStatusSha256.slice(0, 16) : '–'}\`, \`save_dashboard_preferences\` \`${data.schemaState.saveDashboardPreferencesSha256.slice(0, 16)}\`` : '–'}.`,
     `Simulations-Workspace: Organisation \`${data.simulationWorkspace?.organizationId ?? data.testUser?.organizationId}\` vor dem Lauf leer (${data.simulationWorkspace ? Object.keys(data.simulationWorkspace.counts).length : 7} Tabellen geprüft).`,
     `Dashboard-Konfiguration: Standardansicht (${data.dashboardConfig?.tileCount ?? 17} Kacheln, Quelle: \`${data.dashboardConfig?.source ?? 'standard'}\`).`,
-    'Keine Vorher/Nachher-Paare: Paket 0 ändert keinen Produktcode, diese Aufnahmen sind die',
-    'Vorher-Seite für die folgenden Pakete. Bilder nur lokal; Bewertung im',
-    '[Befundregister](../../reviews/2026-10-06-frontend-befundregister.md).',
+    comparisonNote,
     '',
     `Aufnahmen: ${data.summary.ok} von ${data.summary.expected} erwartet, fehlgeschlagen: ${data.summary.failed}.`,
     'axe (serious/critical) läuft zweimal: nur `<main>` und die ganze Seite mit Kopfzeile, Sidebar',
-    'und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-Locale: `de-DE`).',
-    `Browserumgebung je Aufnahme gemessen und geprüft: \`innerWidth\`/\`innerHeight\` = angeforderter CSS-Viewport, \`devicePixelRatio\` 1, \`visualViewport.scale\` 1; feste Browserzeit \`${data.browser?.fixedTime ?? FIXED_BROWSER_TIME}\` (\`Date.now\`, Timer laufen normal).`,
+    `und Kontoaktionen. Der erste Tab-Fokus wird ab Dokumentanfang gemessen (Browser-Locale: \`${data.browser?.locale ?? RECORDING_LOCALE}\`, Zeitzone: \`${data.browser?.timezoneId ?? RECORDING_TIMEZONE}\`).`,
+    `Browserumgebung je Aufnahme gemessen und geprüft: \`innerWidth\`/\`innerHeight\` = angeforderter CSS-Viewport, \`devicePixelRatio\` 1, \`visualViewport.scale\` 1; feste Browserzeit \`${data.browser?.fixedTime ?? FIXED_BROWSER_TIME}\` (\`Date.now\`, Timer laufen normal), Zeitzone: \`${data.browser?.timezoneId ?? RECORDING_TIMEZONE}\`, Locale: \`${data.browser?.locale ?? RECORDING_LOCALE}\`.`,
     '',
     '| Ansicht | Breite | Theme | Höhe `<main>` | SHA-256 erster Bildschirm / ganz (16) | Überlauf Dokument / `<main>` px | axe `<main>` | axe ganze Seite | erster Tab-Fokus | Messung |',
     '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
@@ -1666,14 +1844,19 @@ async function main() {
   let runHadError = false;
 
   try {
-    // 1. Verifiziere Baseline-Code und den ausgelieferten Build (Befund PR #67 Runde 8)
-    buildArtifact = await verifyBuildArtifact(BASE_URL);
+    // 1. Verifiziere Baseline-Code (oder Zielcommit im Nachher-Modus) und den ausgelieferten Build (Befund PR #67 Runde 8/20)
+    buildArtifact = await verifyBuildArtifact(BASE_URL, TARGET_COMMIT, IS_NACHHER);
 
     browser = await chromium.launch();
     const state = await loginWithLocale(browser, BASE_URL, CREDENTIALS);
 
-    // Dashboard-Konfiguration für die Baseline fixieren (Befund PR #67 Runde 4)
-    setupContext = await browser.newContext({ baseURL: BASE_URL, storageState: state });
+    // Dashboard-Konfiguration fixieren (Befund PR #67 Runde 4/20)
+    setupContext = await browser.newContext({
+      baseURL: BASE_URL,
+      storageState: state,
+      locale: RECORDING_LOCALE,
+      timezoneId: RECORDING_TIMEZONE,
+    });
     const setupPage = await setupContext.newPage();
     await setupPage.goto('/dashboard', { waitUntil: 'networkidle' });
     const userId = await sessionUserId(setupPage);
@@ -1681,7 +1864,7 @@ async function main() {
     testIdentity = await verifyIdentity(setupPage, SUPABASE, CREDENTIALS.email, userId);
     // Befund 5 PR #67 Runde 11: CRM-Seed-Daten vor den Aufnahmen reproduzierbar verifizieren
     crmSeedInfo = await verifyCrmSeedData(SUPABASE, CLEANUP_KEY, testIdentity.organizationId);
-    schemaStateInfo = verifySchemaState();
+    schemaStateInfo = await verifySchemaState(SUPABASE, CLEANUP_KEY);
     simulationWorkspaceInfo = await verifySimulationWorkspace(
       SUPABASE,
       CLEANUP_KEY,
@@ -1693,31 +1876,36 @@ async function main() {
       // Befund PR #67 Runde 19: Vor dem RPC kein spekulatives restore vormerken.
       // Wenn der RPC mit einem Konflikt scheitert, darf kein Restore eine fremde Revision überschreiben.
       restore = null;
-      const saved = await savePreferences(
+      const { rpcRevision } = await savePreferencesRpc(
         setupPage,
         SUPABASE,
         defaultConfig,
         originalPrefs.revision,
       );
-      // Restore-Token ist die Revision aus der RPC-Antwort, nicht aus dem anschließenden Nachlesen,
-      // das bereits eine parallel gespeicherte fremde Revision liefern könnte (Codex PR #67 Runde 18/19).
-      if (!Number.isInteger(saved.rpcRevision)) {
-        throw new Error(`Speicher-RPC lieferte keine Revision: ${JSON.stringify(saved.rpcRevision)}`);
-      }
+      // Befund PR #67 Runde 20: Restore-Token UNMITTELBAR nach erfolgreichem RPC registrieren,
+      // BEVOR ein nachgelagertes Lesen ausgeführt wird. Schlägt das anschließende GET fehl,
+      // ist der Cleanup-Restore bereits aktiv und hinterlässt keine Standardkonfiguration.
       restore = {
         type: 'restore_exact_row',
         originalRow: originalPrefs,
         page: setupPage,
         userId,
-        harnessRevisions: [saved.rpcRevision],
+        harnessRevisions: [rpcRevision],
         installedConfig: defaultConfig,
       };
+
+      let read = null;
+      try {
+        read = await readPreferences(setupPage, SUPABASE);
+      } catch (err) {
+        console.warn('Nachgelagertes Lesen der Präferenzen fehlgeschlagen, verwende RPC-Revision:', err.message);
+      }
       dashboardConfigInfo = {
         source: 'installed_standard',
         version: defaultConfig.version,
         tileCount: defaultConfig.tiles.length,
         tileIds: defaultConfig.tiles.map((t) => t.tileId),
-        revision: saved.revision,
+        revision: read?.revision ?? rpcRevision,
         restoredAfterRun: false, // Erst nach erfolgreichem Cleanup auf true setzen (Befund PR #67 Runde 8/19)
       };
     } else {
@@ -1780,6 +1968,11 @@ async function main() {
                 `Browserumgebung weicht von der Vorgabe ab (CSS-Viewport ${viewport.width}×${viewport.height}, DPR 1, Zoom 100 %): ${JSON.stringify(vpActual)}`,
               );
             }
+            if (metrics.timezoneId !== RECORDING_TIMEZONE) {
+              throw new Error(
+                `Zeitzone in Browserkontext weicht ab: erwartet ${RECORDING_TIMEZONE}, ermittelt ${metrics.timezoneId}.`,
+              );
+            }
             const expectedPath = target.detail ? '/dashboard/tiles/std_baseline_arr' : target.route;
             if (metrics.url !== expectedPath) {
               throw new Error(
@@ -1831,23 +2024,33 @@ async function main() {
       path.join(ROOT, 'scripts/captureAuftrag081Inventory.mjs'),
     );
     const harnessSha256 = sha256(scriptContent);
-    const baselineCommit = '7fd6e33';
     const productVersion = '2.4.0';
     const headCommit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT })
       .toString()
       .trim();
 
-    // Verifiziere, dass der aktuelle Produktcode exakt der Baseline entspricht (Befund PR #67 Runde 6/8)
-    const productDiff = execFileSync('git', ['diff', baselineCommit, '--', ...PRODUCT_PATHS], { cwd: ROOT })
-      .toString()
-      .trim();
-    if (productDiff.length > 0) {
-      throw new Error(
-        `Produktstand weicht von der behaupteten Baseline ${baselineCommit} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
-      );
+    // Verifiziere, dass der aktuelle Produktcode exakt der Baseline (oder im Nachher-Modus dem Zielcommit) entspricht (Befund PR #67 Runde 6/8/20)
+    if (!IS_NACHHER) {
+      const productDiff = execFileSync('git', ['diff', BASELINE_COMMIT, '--', ...PRODUCT_PATHS], { cwd: ROOT })
+        .toString()
+        .trim();
+      if (productDiff.length > 0) {
+        throw new Error(
+          `Produktstand weicht von der behaupteten Baseline ${BASELINE_COMMIT} ab (${productDiff.split('\n').length} Diff-Zeilen). Baseline-Schreiben abgebrochen.`,
+        );
+      }
+    } else if (process.env.TARGET_COMMIT) {
+      const productDiff = execFileSync('git', ['diff', TARGET_COMMIT, '--', ...PRODUCT_PATHS], { cwd: ROOT })
+        .toString()
+        .trim();
+      if (productDiff.length > 0) {
+        throw new Error(
+          `Produktstand weicht vom Zielcommit ${TARGET_COMMIT} ab (${productDiff.split('\n').length} Diff-Zeilen). Nachher-Schreiben abgebrochen.`,
+        );
+      }
     }
 
-    // Befund 2 PR #67 Runde 11: Auch vor dem finalen Schreiben der Baseline unversionierte/ungestagte Dateien prüfen
+    // Befund 2 PR #67 Runde 11: Auch vor dem finalen Schreiben der Artefakte unversionierte/ungestagte Dateien prüfen
     const uncommittedOrUntrackedFinal = execFileSync(
       'git',
       ['status', '--porcelain'],
@@ -1857,14 +2060,16 @@ async function main() {
       .trim();
     if (uncommittedOrUntrackedFinal.length > 0) {
       throw new Error(
-        `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen im ganzen Arbeitsbaum (${uncommittedOrUntrackedFinal.split('\n').length} Einträge). Baseline-Schreiben abgebrochen.`,
+        `Arbeitsbaum enthält unversionierte oder ungesicherte Änderungen im ganzen Arbeitsbaum (${uncommittedOrUntrackedFinal.split('\n').length} Einträge). ${IS_NACHHER ? 'Nachher' : 'Baseline'}-Schreiben abgebrochen.`,
       );
     }
 
     const failed = shots.filter((s) => s.failed).length;
     const summary = { expected, ok: shots.length - failed, failed };
     runPayload = {
-      baselineCommit,
+      mode: MODE,
+      baselineCommit: BASELINE_COMMIT,
+      targetCommit: TARGET_COMMIT,
       productVersion,
       harness: {
         script: 'scripts/captureAuftrag081Inventory.mjs',
@@ -1876,9 +2081,15 @@ async function main() {
       crmSeed: crmSeedInfo,
       simulationWorkspace: simulationWorkspaceInfo,
       schemaState: schemaStateInfo,
-      browser: { fixedTime: FIXED_BROWSER_TIME, devicePixelRatio: 1, visualViewportScale: 1 },
+      browser: {
+        fixedTime: FIXED_BROWSER_TIME,
+        timezoneId: RECORDING_TIMEZONE,
+        locale: RECORDING_LOCALE,
+        devicePixelRatio: 1,
+        visualViewportScale: 1,
+      },
       dashboardConfig: dashboardConfigInfo,
-      commit: baselineCommit,
+      commit: IS_NACHHER ? TARGET_COMMIT : BASELINE_COMMIT,
       baseUrl: BASE_URL,
       capturedAt: new Date().toISOString(),
       summary,
@@ -1930,7 +2141,7 @@ async function main() {
     } else if (restore?.type === 'restore') {
       try {
         const current = await readPreferences(restore.page, SUPABASE);
-        await savePreferences(restore.page, SUPABASE, restore.config, current.revision);
+        await savePreferencesRpc(restore.page, SUPABASE, restore.config, current.revision);
         if (dashboardConfigInfo) dashboardConfigInfo.restoredAfterRun = true;
         if (runPayload?.dashboardConfig) {
           runPayload.dashboardConfig.restoredAfterRun = true;
