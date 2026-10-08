@@ -15968,3 +15968,11 @@ Alle 6 Inline-Befunde behoben in `d120532` (Harness + Befundregister, kein Produ
 - P1: Erfolgs-/Leer-Navigation startet vor jedem Wechsel frisch auf `/crm/deals`.
 - P2: F12 im Befundregister um Erfolgs- und Leerzustand erweitert (Überschrift bleibt „Deal Pipeline“).
 - Volllauf mit finalem Harness: 256/256, 0 fehlgeschlagen; `schemaExpectation: baseline_fingerprints`; JSON und README erneuert. Schutzbereichs-Diff leer.
+
+### Auftrag 081 — Codex-Runde 29 behoben und Abgrenzung (Builder Claude Code, 08.10.2026)
+
+Runde-29-Befunde in `c117662` behoben (`scripts/captureAuftrag081Inventory.mjs`): Pipeline-Start je Navigationsziel auch im 500-Fall, Zielkatalog-Fingerabdrücke, SQL-Token-Grenzen, CRM-Seed-Prüfung, Helfer im Harness-Hash.
+
+- Volllauf mit finalem Harness: 256/256, 0 fehlgeschlagen; JSON und README erneuert. Schutzbereichs-Diff gegen `7fd6e33`: 0 Byte.
+
+**Abgrenzung (Entscheidung Marc vom 08.10.2026):** Nach 29 Runden gilt Auftrag 081 mit dem Baseline-Inventar als inhaltlich abgeschlossen. Merge-blockierend sind ab jetzt nur Befunde, die das **aktuelle** Baseline-Inventar nachweislich falsch machen. Befunde, die lediglich einen späteren Nachher-Lauf gegen hypothetische Regressionen absichern, sowie P2-Randfälle (SQL-Kanonisierung, Hash-Abdeckung) werden in `docs/auftraege/ANTIGRAVITY_AUFTRAG_082_NACHHER_HARNESS_ABSICHERUNG.md` gesammelt und mit dem Paket bearbeitet, das den Nachher-Lauf fährt. Gate-Freigabe weiterhin durch Codex, Merge durch Marc.

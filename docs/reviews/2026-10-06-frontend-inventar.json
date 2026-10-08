@@ -5,8 +5,15 @@
  "productVersion": "2.4.0",
  "harness": {
   "script": "scripts/captureAuftrag081Inventory.mjs",
-  "sha256": "43052b00a1a58341f19b231225b7afba763d2d863566438b7362588be0b6eca8",
-  "headAtExecution": "d120532"
+  "sha256": "2f312786843a58aa1a9ad0692d9709446558a38301f186a339d370bd72e1b34c",
+  "helpers": [
+   {
+    "file": "scripts/lib/detailShotHelpers.mjs",
+    "sha256": "2525760ae1bb390742c452dd7ce646363240af61de1694274df1b9b50b4998b5"
+   }
+  ],
+  "bundleSha256": "1d83ea606efea223cc061fd7cc514407094d1d94afbc1029017aaeb8caf7b639",
+  "headAtExecution": "c117662"
  },
  "buildArtifact": {
   "entryScript": "/assets/index-CWHASUp2.js",
@@ -44,7 +51,7 @@
    "e0000000-0000-0000-0000-000000000001",
    "e0000000-0000-0000-0000-000000000003"
   ],
-  "verifiedAt": "2026-10-08T07:33:57.463Z"
+  "verifiedAt": "2026-10-08T08:26:55.855Z"
  },
  "simulationWorkspace": {
   "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -57,7 +64,7 @@
    "simulation_snapshots": 0,
    "simulation_run_pauses": 0
   },
-  "verifiedAt": "2026-10-08T07:33:57.824Z"
+  "verifiedAt": "2026-10-08T08:26:56.579Z"
  },
  "schemaState": {
   "schemaExpectation": "baseline_fingerprints",
@@ -106,7 +113,7 @@
  },
  "commit": "7fd6e33",
  "baseUrl": "http://localhost:4181",
- "capturedAt": "2026-10-08T07:51:23.298Z",
+ "capturedAt": "2026-10-08T08:43:33.985Z",
  "summary": {
   "expected": 256,
   "ok": 256,
@@ -749,7 +756,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "811de4277e9ff389",
+    "first": "34d6bc85a17b7a2a",
     "full": "bfbe09801dcfc753"
    }
   },
@@ -1763,7 +1770,7 @@
    "pageErrors": 0,
    "dataState": "fehler (DATA_SOURCE_UNAVAILABLE)",
    "hashes": {
-    "first": "0dd775ae180c0b39",
+    "first": "6288f0f68eb28187",
     "full": "15ea4f9666080bba"
    }
   },
@@ -1806,7 +1813,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7d7c435aefb09ba4",
+    "first": "58063a01570e1f2a",
     "full": "071071918dc39d50"
    }
   },
@@ -1851,7 +1858,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "aba51d6002db4ba6",
+    "first": "7667ac3ed5b1bf37",
     "full": "b35ce575a5378d9a"
    }
   },
@@ -1894,7 +1901,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8f2b697894436a51",
+    "first": "f1310097fcdbe020",
     "full": "170a92072ee33e11"
    }
   },
@@ -2299,7 +2306,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "e7b411c60514402d",
+    "first": "6c4a03b3905d175e",
     "full": "b82f00539a5603ac"
    }
   },
@@ -2342,8 +2349,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "91d7d37b7b0b9674",
-    "full": "91d7d37b7b0b9674"
+    "first": "4ff2ca6062bdddaf",
+    "full": "4ff2ca6062bdddaf"
    }
   },
   {
@@ -2432,8 +2439,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a6392dcfc24b04ae",
-    "full": "81e5c0315671a1fc"
+    "first": "82e6fe4d13e16bb0",
+    "full": "cafd8aaade46fe32"
    }
   },
   {
@@ -2479,7 +2486,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "fa3715e07d471462",
+    "first": "ceb8dd6a4f2e9882",
     "full": "dbdede0216099d30"
    }
   },
@@ -2522,7 +2529,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "37d4edb80de157a6",
+    "first": "67f51aaff51ad77d",
     "full": "7d6cc5df27aa84db"
    }
   },
@@ -2659,8 +2666,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "eb35ddcf15add041",
-    "full": "438dc1f97d846c1a"
+    "first": "56bfb15c0ede006c",
+    "full": "7539969788fa3aa5"
    }
   },
   {
@@ -2750,7 +2757,7 @@
    "dataState": null,
    "hashes": {
     "first": "7cd4dba82aa90b26",
-    "full": "87c3a6a75bd373e1"
+    "full": "544d4a89a5d2d7af"
    }
   },
   {
@@ -2792,7 +2799,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "510c17e5c707eaed",
+    "first": "af1a78c2b14aa3ab",
     "full": "f2786048bf87a053"
    }
   },
@@ -2839,7 +2846,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "7ad6fb1d0cc366d4",
+    "first": "6ff9ddaf4ea57282",
     "full": "2ea6460564a6c702"
    }
   },
@@ -2972,7 +2979,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "15d48d6d07e73d57",
+    "first": "fcc8f19665b32260",
     "full": "0826acdfe4315032"
    }
   },
@@ -3019,7 +3026,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "54891f4d78c0aa46",
+    "first": "50609a414bf3f347",
     "full": "16c76f9042e4b1fb"
    }
   },
@@ -3062,7 +3069,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "cdca5a77053028aa",
+    "first": "53a4b877014aa438",
     "full": "0616c75306e465fb"
    }
   },
@@ -3109,8 +3116,8 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "495026bde0a1a5be",
-    "full": "9227d605a44d7fe8"
+    "first": "792d5ce8d438fc0d",
+    "full": "2ab6e74d8583a365"
    }
   },
   {
@@ -3199,7 +3206,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "e7a5f2a4446e6017",
+    "first": "2446025912c1677e",
     "full": "2446025912c1677e"
    }
   },
@@ -3242,7 +3249,7 @@
    "pageErrors": 0,
    "dataState": "fehler (SYNTHETIC_NOT_ALLOWED)",
    "hashes": {
-    "first": "8374900df576254c",
+    "first": "2382b01d589ddb0c",
     "full": "8374900df576254c"
    }
   },
@@ -3879,7 +3886,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "a52915eafd91f7d3",
+    "first": "05964865c37329e0",
     "full": "05964865c37329e0"
    }
   },
@@ -6479,7 +6486,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "76051f39d280cd41",
+    "first": "0ac7bea03780acc2",
     "full": "0ac7bea03780acc2"
    }
   },
@@ -8479,7 +8486,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "8876f1ee1f577a12",
+    "first": "e97980ee9dea3d19",
     "full": "8876f1ee1f577a12"
    }
   },
@@ -8679,7 +8686,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "f4c85fdad3b2cc8d",
+    "first": "a4e5885ca8c8b534",
     "full": "f4c85fdad3b2cc8d"
    }
   },
@@ -8779,7 +8786,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "16e45b52f8ed4c24",
+    "first": "d4899ed9cc4cb3a8",
     "full": "16e45b52f8ed4c24"
    }
   },
@@ -8979,7 +8986,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "86cf8d5140152b02",
+    "first": "4d0536c266ad1d47",
     "full": "86cf8d5140152b02"
    }
   },
@@ -9479,7 +9486,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "72591c4d98084f9e",
+    "first": "b6b34f00eb70bfe6",
     "full": "72591c4d98084f9e"
    }
   },
@@ -9979,7 +9986,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "79474185d660959f",
+    "first": "e02019c463eedaac",
     "full": "79474185d660959f"
    }
   },
@@ -10079,7 +10086,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "dcecdf8e1bd4323a",
+    "first": "b83ee383c02c1d0a",
     "full": "dcecdf8e1bd4323a"
    }
   },
@@ -10179,7 +10186,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "897b73c61e1f0984",
+    "first": "05309a5dd946f054",
     "full": "897b73c61e1f0984"
    }
   },
@@ -10379,7 +10386,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "076604b4253893dd",
+    "first": "4e7b55e8a24f6c1f",
     "full": "076604b4253893dd"
    }
   },
@@ -10679,7 +10686,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "428a7c3a58f650a4",
+    "first": "3a58ce9a58d16ef0",
     "full": "428a7c3a58f650a4"
    }
   },
@@ -11279,7 +11286,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "0a480d18136d301c",
+    "first": "21bf137fe42ff517",
     "full": "0a480d18136d301c"
    }
   },
@@ -11879,7 +11886,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "63018f5497699292",
+    "first": "42f3c95f6844d3c5",
     "full": "63018f5497699292"
    }
   },
@@ -12979,7 +12986,7 @@
    "pageErrors": 0,
    "dataState": null,
    "hashes": {
-    "first": "d94254be6fd89500",
+    "first": "fd993df2c818f1a4",
     "full": "d94254be6fd89500"
    }
   },
@@ -13112,8 +13119,10 @@
    }
   ],
   "retry": null,
-  "interceptedPostCount": 2,
+  "interceptedPostCount": 4,
   "consoleErrors": [
+   "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+   "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
   ],

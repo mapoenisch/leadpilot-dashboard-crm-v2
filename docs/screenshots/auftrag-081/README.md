@@ -1,7 +1,7 @@
 # Auftrag 081 – Ausgangslage Frontend (Arbeitspaket 0)
 
 Produkt-Baseline: `7fd6e33` (Release v2.4.0), aufgenommen 2026-10-08 mit
-`scripts/captureAuftrag081Inventory.mjs` (Harness SHA-256: `43052b00a1a58341`).
+`scripts/captureAuftrag081Inventory.mjs` (Harness SHA-256: `2f312786843a58aa`).
 Ausgelieferter Build: `/assets/index-CWHASUp2.js` (SHA-256: `a1aa634e44d0e21e`, 194 ausgelieferte Build-Dateien verifiziert), verifiziert gegen lokale Baseline `7fd6e33`.
 Testbenutzer: `admin-a@e2e.local` (Rolle admin, Organisation `aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`), Identität vor dem Lauf gegen die Seed-Daten geprüft.
 CRM-Seed-Daten: Organisation `aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa` verifiziert (3 Unternehmen, 1 Kontakt, 2 Deals).
@@ -26,7 +26,7 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | dashboard | 375 | dark | 7997 | `8f1381967eed7cf9` / `49af2e9ad0ef912b` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard | 375 | light | 7997 | `30e37d8eb58ff636` / `799e459c53a7f091` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard | 320 | dark | 8126 | `486fd423cc983375` / `4b9381103f0ac5f4` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| dashboard | 320 | light | 8126 | `811de4277e9ff389` / `bfbe09801dcfc753` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| dashboard | 320 | light | 8126 | `34d6bc85a17b7a2a` / `bfbe09801dcfc753` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | dashboard-edit | 1440 | dark | 4177 | `df42f3ef5af8cd3c` / `2b3fbfd523ce4b22` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
 | dashboard-edit | 1440 | light | 4177 | `639ece683a15c14f` / `257abe0feb542336` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 4 |
 | dashboard-edit | 768 | dark | 6513 | `f35e509f1044e1be` / `b21b055b6bd14478` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 2 |
@@ -44,10 +44,10 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-daten | 768 | dark | 885 | `c77242c63c7cb724` / `c77242c63c7cb724` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 768 | light | 885 | `77e100c957e68b0b` / `77e100c957e68b0b` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-daten | 375 | dark | 721 | `1b8486d04706a467` / `57a98700f058ee79` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-daten | 375 | light | 721 | `0dd775ae180c0b39` / `15ea4f9666080bba` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-standort | 1440 | dark | 1765 | `7d7c435aefb09ba4` / `071071918dc39d50` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-standort | 1440 | light | 1765 | `aba51d6002db4ba6` / `b35ce575a5378d9a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-standort | 768 | dark | 1931 | `8f2b697894436a51` / `170a92072ee33e11` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-daten | 375 | light | 721 | `6288f0f68eb28187` / `15ea4f9666080bba` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-standort | 1440 | dark | 1765 | `58063a01570e1f2a` / `071071918dc39d50` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-standort | 1440 | light | 1765 | `7667ac3ed5b1bf37` / `b35ce575a5378d9a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-standort | 768 | dark | 1931 | `f1310097fcdbe020` / `170a92072ee33e11` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 768 | light | 1931 | `883420ab529e795d` / `907da2bd61c87f50` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 375 | dark | 2575 | `c7ae1f7e6b383ef0` / `5e2e5212e168a779` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-standort | 375 | light | 2575 | `a4c35ec1f9523177` / `617f2f48afc1fc6a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
@@ -56,28 +56,28 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-live-simulation | 768 | dark | 1565 | `82254c51dd98d5c5` / `4708ab102a52e223` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 768 | light | 1565 | `123116b3f7fa23ad` / `543f648d0d20a8c4` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-live-simulation | 375 | dark | 2651 | `32cf47125d645b94` / `c736618cfafd271e` | 0 / 184 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-live-simulation | 375 | light | 2651 | `e7b411c60514402d` / `b82f00539a5603ac` | 0 / 184 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 1440 | dark | 893 | `91d7d37b7b0b9674` / `91d7d37b7b0b9674` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-live-simulation | 375 | light | 2651 | `6c4a03b3905d175e` / `b82f00539a5603ac` | 0 / 184 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 1440 | dark | 893 | `4ff2ca6062bdddaf` / `4ff2ca6062bdddaf` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-leads | 1440 | light | 893 | `d519c8674252e6ae` / `d519c8674252e6ae` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 768 | dark | 1046 | `a6392dcfc24b04ae` / `81e5c0315671a1fc` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 768 | light | 1046 | `fa3715e07d471462` / `dbdede0216099d30` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-leads | 375 | dark | 1850 | `37d4edb80de157a6` / `7d6cc5df27aa84db` | 0 / 14 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 768 | dark | 1046 | `82e6fe4d13e16bb0` / `cafd8aaade46fe32` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 768 | light | 1046 | `ceb8dd6a4f2e9882` / `dbdede0216099d30` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-leads | 375 | dark | 1850 | `67f51aaff51ad77d` / `7d6cc5df27aa84db` | 0 / 14 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-leads | 375 | light | 1850 | `891a8ef6abb2f09a` / `398031cf96aece24` | 0 / 14 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-companies | 1440 | dark | 893 | `98767a04c730a2a2` / `2a4581e71b686957` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-companies | 1440 | light | 893 | `eb35ddcf15add041` / `438dc1f97d846c1a` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-companies | 1440 | light | 893 | `56bfb15c0ede006c` / `7539969788fa3aa5` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-companies | 768 | dark | 1043 | `c08e3d8be6556d56` / `cfdab06bde06474e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-companies | 768 | light | 1043 | `7cd4dba82aa90b26` / `87c3a6a75bd373e1` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-companies | 375 | dark | 2122 | `510c17e5c707eaed` / `f2786048bf87a053` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-companies | 375 | light | 2122 | `7ad6fb1d0cc366d4` / `2ea6460564a6c702` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-companies | 768 | light | 1043 | `7cd4dba82aa90b26` / `544d4a89a5d2d7af` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-companies | 375 | dark | 2122 | `af1a78c2b14aa3ab` / `f2786048bf87a053` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-companies | 375 | light | 2122 | `6ff9ddaf4ea57282` / `2ea6460564a6c702` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 1440 | dark | 893 | `b61dc34065929841` / `b61dc34065929841` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-deals | 1440 | light | 893 | `d77ca0e957114dfe` / `d77ca0e957114dfe` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-deals | 768 | dark | 991 | `15d48d6d07e73d57` / `0826acdfe4315032` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-deals | 768 | light | 991 | `54891f4d78c0aa46` / `16c76f9042e4b1fb` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-deals | 375 | dark | 1919 | `cdca5a77053028aa` / `0616c75306e465fb` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-deals | 375 | light | 1919 | `495026bde0a1a5be` / `9227d605a44d7fe8` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-deals | 768 | dark | 991 | `fcc8f19665b32260` / `0826acdfe4315032` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-deals | 768 | light | 991 | `50609a414bf3f347` / `16c76f9042e4b1fb` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-deals | 375 | dark | 1919 | `53a4b877014aa438` / `0616c75306e465fb` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-deals | 375 | light | 1919 | `792d5ce8d438fc0d` / `2ab6e74d8583a365` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 1440 | dark | 893 | `d6729047fee6db11` / `d6729047fee6db11` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-activities | 1440 | light | 893 | `e7a5f2a4446e6017` / `2446025912c1677e` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
-| s-activities | 768 | dark | 885 | `8374900df576254c` / `8374900df576254c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-activities | 1440 | light | 893 | `2446025912c1677e` / `2446025912c1677e` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
+| s-activities | 768 | dark | 885 | `2382b01d589ddb0c` / `8374900df576254c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 768 | light | 885 | `5d2685f24012c601` / `5d2685f24012c601` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 375 | dark | 626 | `3693907e3f17d88e` / `3693907e3f17d88e` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
 | s-activities | 375 | light | 626 | `85a784dc02a71384` / `85a784dc02a71384` | 0 / 0 | color-contrast | color-contrast | a Zum Hauptinhalt springen | Werte im 1. Bildschirm: 0 |
@@ -90,7 +90,7 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-highlights | 1440 | dark | 893 | `2a5289fadba95d1f` / `2a5289fadba95d1f` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.651 |
 | s-highlights | 1440 | light | 893 | `c8c88ffa6d64600a` / `c8c88ffa6d64600a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.651 |
 | s-highlights | 768 | dark | 885 | `5738091a1e46f9a7` / `5738091a1e46f9a7` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.43 |
-| s-highlights | 768 | light | 885 | `a52915eafd91f7d3` / `05964865c37329e0` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.43 |
+| s-highlights | 768 | light | 885 | `05964865c37329e0` / `05964865c37329e0` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.43 |
 | s-highlights | 375 | dark | 626 | `d79a9cf82d995ef1` / `d79a9cf82d995ef1` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-highlights | 375 | light | 626 | `6cefa0f29b10be5d` / `6cefa0f29b10be5d` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-idee | 1440 | dark | 893 | `c673c57ce784a562` / `c673c57ce784a562` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.626 |
@@ -142,7 +142,7 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-markt | 375 | dark | 626 | `91e71fcd55ed52dc` / `91e71fcd55ed52dc` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-markt | 375 | light | 626 | `8e5d0a877a06ba4e` / `8e5d0a877a06ba4e` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-wettbewerb | 1440 | dark | 893 | `bbca3a26ff3a3bf9` / `bbca3a26ff3a3bf9` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.65 |
-| s-wettbewerb | 1440 | light | 893 | `76051f39d280cd41` / `0ac7bea03780acc2` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
+| s-wettbewerb | 1440 | light | 893 | `0ac7bea03780acc2` / `0ac7bea03780acc2` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-wettbewerb | 768 | dark | 885 | `4586548ef85833de` / `4586548ef85833de` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.429 |
 | s-wettbewerb | 768 | light | 885 | `9faafb5aeaa338f1` / `9faafb5aeaa338f1` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.429 |
 | s-wettbewerb | 375 | dark | 626 | `b5e3662e9c254179` / `b5e3662e9c254179` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
@@ -182,17 +182,17 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-funnel | 768 | dark | 885 | `c0149d300d830740` / `c0149d300d830740` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.437 |
 | s-funnel | 768 | light | 885 | `eabc5030174c821e` / `eabc5030174c821e` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.437 |
 | s-funnel | 375 | dark | 626 | `a2dfd660a9149d05` / `a2dfd660a9149d05` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.203 |
-| s-funnel | 375 | light | 626 | `8876f1ee1f577a12` / `8876f1ee1f577a12` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.203 |
+| s-funnel | 375 | light | 626 | `e97980ee9dea3d19` / `8876f1ee1f577a12` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.203 |
 | s-funnel | 320 | dark | 454 | `3aa805a2b9df5843` / `3aa805a2b9df5843` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.171 |
 | s-funnel | 320 | light | 454 | `25ca4ca385a99a7b` / `25ca4ca385a99a7b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.171 |
 | s-sla | 1440 | dark | 893 | `26692e6271bb51ad` / `26692e6271bb51ad` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.648 |
-| s-sla | 1440 | light | 893 | `f4c85fdad3b2cc8d` / `f4c85fdad3b2cc8d` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.648 |
+| s-sla | 1440 | light | 893 | `a4e5885ca8c8b534` / `f4c85fdad3b2cc8d` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.648 |
 | s-sla | 768 | dark | 885 | `e4418259a0e985b1` / `e4418259a0e985b1` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.428 |
-| s-sla | 768 | light | 885 | `16e45b52f8ed4c24` / `16e45b52f8ed4c24` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
+| s-sla | 768 | light | 885 | `d4899ed9cc4cb3a8` / `16e45b52f8ed4c24` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-sla | 375 | dark | 626 | `ea2a5104dc92a192` / `ea2a5104dc92a192` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.199 |
 | s-sla | 375 | light | 626 | `502c11020c40eb2c` / `502c11020c40eb2c` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.199 |
 | s-kanaele | 1440 | dark | 893 | `806f82d6dd8193d7` / `806f82d6dd8193d7` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.648 |
-| s-kanaele | 1440 | light | 893 | `86cf8d5140152b02` / `86cf8d5140152b02` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.648 |
+| s-kanaele | 1440 | light | 893 | `4d0536c266ad1d47` / `86cf8d5140152b02` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.648 |
 | s-kanaele | 768 | dark | 885 | `7be37b8948876166` / `7be37b8948876166` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-kanaele | 768 | light | 885 | `771bb2854eefc0c7` / `771bb2854eefc0c7` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-kanaele | 375 | dark | 626 | `0289fdf6da878d59` / `0289fdf6da878d59` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.199 |
@@ -202,7 +202,7 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-planung | 768 | dark | 885 | `96f1fb9bdc07d249` / `96f1fb9bdc07d249` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-planung | 768 | light | 885 | `447d9f804c8d5904` / `447d9f804c8d5904` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-planung | 375 | dark | 626 | `b1f19f2c40c9a562` / `b1f19f2c40c9a562` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
-| s-planung | 375 | light | 626 | `72591c4d98084f9e` / `72591c4d98084f9e` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
+| s-planung | 375 | light | 626 | `b6b34f00eb70bfe6` / `72591c4d98084f9e` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-guv | 1440 | dark | 893 | `7bbfadd934d09543` / `7bbfadd934d09543` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-guv | 1440 | light | 893 | `faaef91ead290fcf` / `faaef91ead290fcf` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-guv | 768 | dark | 885 | `121428ea5f0ebb37` / `121428ea5f0ebb37` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.429 |
@@ -212,21 +212,21 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-bilanz | 1440 | dark | 893 | `b0a5f240ec00f8b3` / `b0a5f240ec00f8b3` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.659 |
 | s-bilanz | 1440 | light | 893 | `e88e425ad14a1723` / `e88e425ad14a1723` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.659 |
 | s-bilanz | 768 | dark | 885 | `47e93e268fb9fa9c` / `47e93e268fb9fa9c` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.435 |
-| s-bilanz | 768 | light | 885 | `79474185d660959f` / `79474185d660959f` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.435 |
+| s-bilanz | 768 | light | 885 | `e02019c463eedaac` / `79474185d660959f` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.435 |
 | s-bilanz | 375 | dark | 626 | `eca9246eb9a15339` / `eca9246eb9a15339` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.203 |
-| s-bilanz | 375 | light | 626 | `dcecdf8e1bd4323a` / `dcecdf8e1bd4323a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.203 |
+| s-bilanz | 375 | light | 626 | `b83ee383c02c1d0a` / `dcecdf8e1bd4323a` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.203 |
 | s-unit | 1440 | dark | 893 | `51e88a744d95b468` / `51e88a744d95b468` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.658 |
-| s-unit | 1440 | light | 893 | `897b73c61e1f0984` / `897b73c61e1f0984` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.658 |
+| s-unit | 1440 | light | 893 | `05309a5dd946f054` / `897b73c61e1f0984` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.658 |
 | s-unit | 768 | dark | 885 | `6a79ccfc7c49636a` / `6a79ccfc7c49636a` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.434 |
 | s-unit | 768 | light | 885 | `eedb90fa2212bb8d` / `eedb90fa2212bb8d` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.434 |
 | s-unit | 375 | dark | 626 | `b3945f815033e44d` / `b3945f815033e44d` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.202 |
-| s-unit | 375 | light | 626 | `076604b4253893dd` / `076604b4253893dd` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.202 |
+| s-unit | 375 | light | 626 | `4e7b55e8a24f6c1f` / `076604b4253893dd` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.202 |
 | s-headcount | 1440 | dark | 893 | `d8041473fd1cdba7` / `d8041473fd1cdba7` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-headcount | 1440 | light | 893 | `845b7212d26c8e68` / `845b7212d26c8e68` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.65 |
 | s-headcount | 768 | dark | 885 | `48e22ea09b5315d3` / `48e22ea09b5315d3` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-headcount | 768 | light | 885 | `e84c3b2d6560933c` / `e84c3b2d6560933c` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.428 |
 | s-headcount | 375 | dark | 626 | `28cda9e0471b581f` / `28cda9e0471b581f` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.2 |
-| s-headcount | 375 | light | 626 | `428a7c3a58f650a4` / `428a7c3a58f650a4` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
+| s-headcount | 375 | light | 626 | `3a58ce9a58d16ef0` / `428a7c3a58f650a4` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.2 |
 | s-hr | 1440 | dark | 893 | `1f1461d7031b3cc5` / `1f1461d7031b3cc5` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-hr | 1440 | light | 893 | `3c59007e8b6d569b` / `3c59007e8b6d569b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-hr | 768 | dark | 885 | `eda46649aeec9fd1` / `eda46649aeec9fd1` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.42 |
@@ -238,7 +238,7 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-team | 768 | dark | 885 | `88139da700a3bb1a` / `88139da700a3bb1a` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.418 |
 | s-team | 768 | light | 885 | `6eeb129117b36a2b` / `6eeb129117b36a2b` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.418 |
 | s-team | 375 | dark | 626 | `c61103098e0ffba2` / `c61103098e0ffba2` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
-| s-team | 375 | light | 626 | `0a480d18136d301c` / `0a480d18136d301c` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
+| s-team | 375 | light | 626 | `21bf137fe42ff517` / `0a480d18136d301c` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-okr | 1440 | dark | 893 | `298119426aae26db` / `298119426aae26db` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.634 |
 | s-okr | 1440 | light | 893 | `e74f3bb68149e040` / `e74f3bb68149e040` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.634 |
 | s-okr | 768 | dark | 885 | `d783addc822324d2` / `d783addc822324d2` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.418 |
@@ -250,7 +250,7 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-bsc | 768 | dark | 885 | `a92fbe41ef459ed9` / `a92fbe41ef459ed9` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.419 |
 | s-bsc | 768 | light | 885 | `883c5362ecea34d6` / `883c5362ecea34d6` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.419 |
 | s-bsc | 375 | dark | 626 | `f787e1785cfa0da3` / `f787e1785cfa0da3` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.195 |
-| s-bsc | 375 | light | 626 | `63018f5497699292` / `63018f5497699292` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
+| s-bsc | 375 | light | 626 | `42f3c95f6844d3c5` / `63018f5497699292` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.195 |
 | s-treiber | 1440 | dark | 893 | `d71ef79f4f910b84` / `d71ef79f4f910b84` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-treiber | 1440 | light | 893 | `2ce46239d7aaab24` / `2ce46239d7aaab24` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-treiber | 768 | dark | 885 | `5de909a580ca3a40` / `5de909a580ca3a40` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.419 |
@@ -272,6 +272,6 @@ Browserumgebung je Aufnahme gemessen und geprüft: `innerWidth`/`innerHeight` = 
 | s-handelsregister | 1440 | dark | 893 | `dd147c9b3cf904dc` / `dd147c9b3cf904dc` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-handelsregister | 1440 | light | 893 | `11f1da2ba332b576` / `11f1da2ba332b576` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.636 |
 | s-handelsregister | 768 | dark | 885 | `2d4913424bb57b2d` / `2d4913424bb57b2d` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.42 |
-| s-handelsregister | 768 | light | 885 | `d94254be6fd89500` / `d94254be6fd89500` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.42 |
+| s-handelsregister | 768 | light | 885 | `fd993df2c818f1a4` / `d94254be6fd89500` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.42 |
 | s-handelsregister | 375 | dark | 626 | `8557c148cf8fe227` / `8557c148cf8fe227` | 0 / 0 | 0 | 0 | a Zum Hauptinhalt springen | Bild 0.196 |
 | s-handelsregister | 375 | light | 626 | `13bceb3ecb857a93` / `13bceb3ecb857a93` | 0 / 0 | 0 | color-contrast | a Zum Hauptinhalt springen | Bild 0.196 |
