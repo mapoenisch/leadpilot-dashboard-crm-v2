@@ -1206,12 +1206,15 @@ function imagePageRoutes() {
     } catch {
       continue;
     }
-    if (!IMAGE_PAGE_PATTERN.test(baselineSource)) continue;
+    const baselineMatch = baselineSource.match(IMAGE_PAGE_PATTERN);
+    if (!baselineMatch) continue;
     const currentKey = readCurrent(file).match(IMAGE_PAGE_PATTERN);
     result.push({
       id,
       route: currentPaths[id] ?? paths[id],
       imageKey: currentKey ? currentKey[1] : null,
+      // Befund PR #67 Runde 23: stabiler Seitenschlüssel aus der Baseline, auch nach HTML-Migration.
+      pageKey: baselineMatch[1],
       narrow: id === 's-funnel',
     });
   }
@@ -1496,6 +1499,20 @@ async function openRoute(browser, state, viewport, theme, target) {
       if (!imageLoaded) {
         throw new Error(
           `Bild nicht vollständig geladen auf Bildseite ${target.id} (${target.imageKey}).`,
+        );
+      }
+    } else if (target.pageKey) {
+      // Befund PR #67 Runde 23: Auf HTML migrierte Bildseite (Paket G) muss den stabilen
+      // Seitenmarker `data-page-key="<Baseline-Schlüssel>"` mit Inhalt rendern, sonst Abbruch.
+      const marker = page.locator(`main [data-page-key="${target.pageKey}"]`).first();
+      const found = await marker.waitFor({ timeout: 10000 }).then(
+        () => true,
+        () => false,
+      );
+      const text = found ? ((await marker.innerText().catch(() => '')) ?? '').trim() : '';
+      if (!found || text.length === 0) {
+        throw new Error(
+          `Unbekannter Seitentyp auf ${target.id}: weder ImagePage noch Seitenmarker data-page-key="${target.pageKey}" mit Inhalt.`,
         );
       }
     } else if (target.id === 'dashboard' || target.id === 'dashboard-edit') {
