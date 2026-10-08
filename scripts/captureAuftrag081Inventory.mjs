@@ -1662,9 +1662,7 @@ async function measure(page, viewport) {
       overflowMain: main ? Math.max(0, main.scrollWidth - main.clientWidth) : null,
       tiles: tiles.length,
       // Befund PR #67 Runde 25: gerenderte Kachel-IDs für den Abgleich mit der Vergleichskonfiguration
-      tileIds: Array.from(document.querySelectorAll('[data-tile-id]')).map((t) =>
-        t.getAttribute('data-tile-id'),
-      ),
+      tileIds: tiles.map((t) => t.closest('[data-tile-id]')?.getAttribute('data-tile-id') ?? null),
       tileHeights: tiles.map((t) => Math.round(t.getBoundingClientRect().height)),
       numbersInFirstScreen: numbers.filter(inFirstScreen).length,
       firstNumberTop: numbers.length ? Math.round(numbers[0].getBoundingClientRect().top) : null,
