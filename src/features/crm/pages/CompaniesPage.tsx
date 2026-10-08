@@ -1,5 +1,5 @@
 // G60 (Auftrag 067N, Step 4): URL-synchrone serverseitige Companies-Ansicht mit Pagination und Export
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useId } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -172,6 +172,7 @@ export function CompaniesPage() {
   const hasData = data !== undefined;
   const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
   const exportBlocked = isError || !hasData;
+  const exportHintId = useId();
 
   const industryOptions = useMemo(() => {
     const knownValues = new Set(BASE_INDUSTRY_OPTIONS.map((o) => o.value));
@@ -232,14 +233,20 @@ export function CompaniesPage() {
             title={
               isViewer
                 ? 'Viewer besitzen keine Exportberechtigung'
-                : exportBlocked
-                  ? 'Export gesperrt: Datenbasis nicht verfügbar'
-                  : 'Gefilterte Unternehmensliste als CSV exportieren'
+                : 'Gefilterte Unternehmensliste als CSV exportieren'
             }
             aria-label="CSV Export"
+            aria-describedby={exportBlocked && !isViewer ? exportHintId : undefined}
           >
             {isExporting ? 'Exportiere...' : 'CSV Export'}
           </Button>
+          {exportBlocked && !isViewer && (
+            <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
+              {isError
+                ? 'Export gesperrt: Datenbasis nicht verfügbar'
+                : 'Export nach dem Laden verfügbar'}
+            </span>
+          )}
         </div>
       </div>
 

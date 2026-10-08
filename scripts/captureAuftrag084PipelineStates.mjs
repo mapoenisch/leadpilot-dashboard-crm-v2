@@ -7,7 +7,7 @@
  * Anzahl-Badge, Exportsperre, „Erneut versuchen“, axe serious/critical über die ganze Seite,
  * horizontaler Überlauf an Dokument und <main>. Zusätzlich je Breite der Navigationsfall
  * Pipeline → Unternehmenssteckbrief (Kopfzeilen-Überschrift nach dem Wechsel).
- * Bilder bleiben lokal (.gitignore), committet wird nur docs/screenshots/auftrag-084/README.md.
+ * Bilder und result.json bleiben lokal unter artifacts/auftrag-084/, committet wird nur die README.
  *
  * Aufnahme: LABEL=vorher|nachher BASE_URL=… E2E_AUTH_EMAIL=… E2E_AUTH_PASSWORD=… node scripts/captureAuftrag084PipelineStates.mjs
  * Matrix:   COMPARE=1 node scripts/captureAuftrag084PipelineStates.mjs
@@ -22,6 +22,8 @@ import { login } from './lib/detailShotHelpers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'docs/screenshots/auftrag-084');
+// Bilder und Messdaten bleiben lokal (artifacts/ ist ignoriert, wird anders als test-results/ nicht von Playwright geleert); committet wird nur die README.
+const RAW = path.join(ROOT, 'artifacts/auftrag-084');
 const VIEWPORTS = [
   { width: 1440, height: 900 },
   { width: 768, height: 1024 },
@@ -91,7 +93,7 @@ async function capture() {
   const label = env('LABEL');
   if (!['vorher', 'nachher'].includes(label)) throw new Error(`LABEL '${label}' ungültig.`);
   const credentials = { email: env('E2E_AUTH_EMAIL'), password: env('E2E_AUTH_PASSWORD') };
-  const dir = path.join(OUT, label);
+  const dir = path.join(RAW, label);
   fs.mkdirSync(dir, { recursive: true });
   const browser = await chromium.launch();
   const state = await login(browser, env('BASE_URL'), credentials);
@@ -171,7 +173,7 @@ async function capture() {
 }
 
 function compare() {
-  const read = (label) => JSON.parse(fs.readFileSync(path.join(OUT, label, 'result.json'), 'utf8'));
+  const read = (label) => JSON.parse(fs.readFileSync(path.join(RAW, label, 'result.json'), 'utf8'));
   const before = read('vorher');
   const after = read('nachher');
   const byName = new Map(before.shots.map((s) => [s.name, s]));

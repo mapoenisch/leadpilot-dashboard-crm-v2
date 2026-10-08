@@ -9,24 +9,24 @@ Bilder bleiben lokal (`.gitignore`). axe: serious/critical über die **ganze Sei
 
 | Aufnahme | Anzahl vorher | Anzahl nachher | Export | Erneut versuchen | axe | Überlauf | SHA vorher | SHA nachher | OK |
 |---|---|---|---|---|---|---|---|---|---|
-| deals-1440-dark | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | d276ed350e54 | 6abf03b4fa7e | ✅ |
-| companies-1440-dark | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 3fcc9ddffff4 | e7e0879e640d | ✅ |
-| leads-1440-dark | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/0 px | 755360a90341 | 0a600e13ad7d | ✅ |
-| deals-1440-light | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 26043997c959 | 1bc3d539ba7d | ✅ |
-| companies-1440-light | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 7e6f1385fbfd | 166dc39d7c0d | ✅ |
-| leads-1440-light | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/0 px | 40d3dc894aeb | cd125da99b5e | ✅ |
-| deals-768-dark | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 1d25ed486c2a | 8c598f44e8b4 | ✅ |
-| companies-768-dark | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 5c2bd43a984f | 022ea9daf703 | ✅ |
-| leads-768-dark | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/0 px | 9defca0e6d51 | 9b7e2c0a9601 | ✅ |
-| deals-768-light | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 3b07a16e2614 | 22f7cd8aa213 | ✅ |
-| companies-768-light | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 5f5df798c59e | a5e45c33eca5 | ✅ |
-| leads-768-light | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/0 px | c7e212a47fea | 19cfdc9375fb | ✅ |
-| deals-375-dark | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 7ab8e7ce14d1 | 530c435de14e | ✅ |
-| companies-375-dark | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 5c6073d042cf | 9856eb9712bc | ✅ |
-| leads-375-dark | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/14 px | a86fa47041a7 | 863f8fcf3475 | ✅ |
-| deals-375-light | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 15c42ee80205 | d96fb5f66222 | ✅ |
-| companies-375-light | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | e3f88075164b | fadca94e8f66 | ✅ |
-| leads-375-light | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/14 px | af0e3b419507 | 2c19fd8b0310 | ✅ |
+| deals-1440-dark | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | d276ed350e54 | 765ef385826d | ✅ |
+| companies-1440-dark | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 3fcc9ddffff4 | 8c339d057436 | ✅ |
+| leads-1440-dark | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/0 px | 755360a90341 | d4b5eb9fdc13 | ✅ |
+| deals-1440-light | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 26043997c959 | d8cd39a56678 | ✅ |
+| companies-1440-light | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 7e6f1385fbfd | 95e89bbf3133 | ✅ |
+| leads-1440-light | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/0 px | 40d3dc894aeb | dd2080417b29 | ✅ |
+| deals-768-dark | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 1d25ed486c2a | 550b838b68bf | ✅ |
+| companies-768-dark | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 5c2bd43a984f | 60b6fee94998 | ✅ |
+| leads-768-dark | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/0 px | 9defca0e6d51 | 31ab8d4bcd9f | ✅ |
+| deals-768-light | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 3b07a16e2614 | 04531f77111d | ✅ |
+| companies-768-light | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 5f5df798c59e | 50b86bd66a16 | ✅ |
+| leads-768-light | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/0 px | c7e212a47fea | 7b38db6fb25f | ✅ |
+| deals-375-dark | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 7ab8e7ce14d1 | 7f69404c521d | ✅ |
+| companies-375-dark | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | 5c6073d042cf | 4cbb609d33b8 | ✅ |
+| leads-375-dark | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/14 px | a86fa47041a7 | 1810c1c34aec | ✅ |
+| deals-375-light | 0 Funnel Deals | Nicht verfügbar Funnel Deals | aktiv → gesperrt | ja | 0 | 0/0 px | 15c42ee80205 | dfdbf57a5da3 | ✅ |
+| companies-375-light | 0 B2B Accounts | Nicht verfügbar B2B Accounts | aktiv → gesperrt | ja | 0 | 0/0 px | e3f88075164b | 77f7c0af3ac6 | ✅ |
+| leads-375-light | 0 Einträge | Nicht verfügbar Einträge | aktiv → gesperrt | ja | 0 | 0/14 px | af0e3b419507 | e1ec4baefc25 | ✅ |
 
 ## Navigation im Fehlerzustand: Pipeline → Unternehmenssteckbrief
 

@@ -1,5 +1,5 @@
 // G60 (Auftrag 067N, Step 4): URL-synchrone serverseitige Deals-Ansicht mit Pagination und Export
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useId } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -119,6 +119,7 @@ export function DealsPage() {
   const hasData = data !== undefined;
   const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
   const exportBlocked = isError || !hasData;
+  const exportHintId = useId();
 
   const stageOptions = useMemo(() => {
     const knownValues = new Set(BASE_STAGE_OPTIONS.map((o) => o.value));
@@ -196,14 +197,20 @@ export function DealsPage() {
             title={
               isViewer
                 ? 'Viewer besitzen keine Exportberechtigung'
-                : exportBlocked
-                  ? 'Export gesperrt: Datenbasis nicht verfügbar'
-                  : 'Gefilterte Deals als CSV exportieren'
+                : 'Gefilterte Deals als CSV exportieren'
             }
             aria-label="CSV Export"
+            aria-describedby={exportBlocked && !isViewer ? exportHintId : undefined}
           >
             {isExporting ? 'Exportiere...' : 'CSV Export'}
           </Button>
+          {exportBlocked && !isViewer && (
+            <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
+              {isError
+                ? 'Export gesperrt: Datenbasis nicht verfügbar'
+                : 'Export nach dem Laden verfügbar'}
+            </span>
+          )}
         </div>
       </div>
 

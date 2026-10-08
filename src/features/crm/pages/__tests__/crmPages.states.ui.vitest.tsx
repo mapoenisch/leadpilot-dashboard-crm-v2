@@ -71,7 +71,11 @@ describe.each(PAGES)('%s – Zustände (Auftrag 084)', (_name, Page, path) => {
     expect(screen.queryByText('0')).toBeNull();
     const exportBtn = screen.getByRole('button', { name: 'CSV Export' });
     expect(exportBtn).toBeDisabled();
-    expect(exportBtn).toHaveAttribute('title', 'Export gesperrt: Datenbasis nicht verfügbar');
+    // Sperrgrund sichtbar und dem deaktivierten Button zugeordnet (nicht nur als title).
+    const hint = screen.getByText('Export gesperrt: Datenbasis nicht verfügbar');
+    expect(hint).toBeVisible();
+    expect(exportBtn).toHaveAttribute('aria-describedby', hint.id);
+    expect(exportBtn).toHaveAccessibleDescription('Export gesperrt: Datenbasis nicht verfügbar');
   });
 
   it('„Erneut versuchen“ ruft refetch der betroffenen Abfrage auf', () => {

@@ -1,5 +1,5 @@
 // G60 (Auftrag 067N, Step 4): Serverseitige, paginierte Leads- & Kontaktansicht mit URL-Sync und Export
-import React, { useMemo, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -173,6 +173,7 @@ export function LeadsPage() {
   const hasData = data !== undefined;
   const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
   const exportBlocked = isError || !hasData;
+  const exportHintId = useId();
 
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
@@ -229,23 +230,31 @@ export function LeadsPage() {
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{countText} Einträge</Badge>
           {activeTab !== 'audit' && (
-            <Button
-              variant="secondary"
-              size="sm"
-              iconLeft={<Download size={14} />}
-              onClick={handleExport}
-              disabled={isViewer || isExporting || exportBlocked}
-              title={
-                isViewer
-                  ? 'Viewer besitzen keine Exportberechtigung'
-                  : exportBlocked
-                    ? 'Export gesperrt: Datenbasis nicht verfügbar'
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                iconLeft={<Download size={14} />}
+                onClick={handleExport}
+                disabled={isViewer || isExporting || exportBlocked}
+                title={
+                  isViewer
+                    ? 'Viewer besitzen keine Exportberechtigung'
                     : 'Aktuelle Liste als CSV exportieren'
-              }
-              aria-label="CSV Export"
-            >
-              {isExporting ? 'Exportiere...' : 'CSV Export'}
-            </Button>
+                }
+                aria-label="CSV Export"
+                aria-describedby={exportBlocked && !isViewer ? exportHintId : undefined}
+              >
+                {isExporting ? 'Exportiere...' : 'CSV Export'}
+              </Button>
+              {exportBlocked && !isViewer && (
+                <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
+                  {isError
+                    ? 'Export gesperrt: Datenbasis nicht verfügbar'
+                    : 'Export nach dem Laden verfügbar'}
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>

@@ -52,14 +52,14 @@ angemeldeter Benutzer hätte im selben Tab bis zu 60 s die Liste des vorherigen 
 | Datei | Änderung |
 |---|---|
 | `src/features/crm/hooks/useCrmProvenance.ts` | State nur bei inhaltlicher Änderung setzen |
-| `src/auth/QueryCacheUserReset.tsx` (neu), `src/app/App.tsx` | Query-Cache bei Abmeldung/Benutzerwechsel leeren |
+| `src/auth/AuthContext.tsx`, `src/app/App.tsx` | Queries bei Abmeldung/Benutzerwechsel vor dem Rendern zurücksetzen (`onUserChange` → `resetQueries`) |
 | `src/components/ui/charts/ManagementChartState.tsx` | optionales `onRetry` → „Erneut versuchen“ |
-| `src/features/crm/pages/{Deals,Companies,Leads}Page.tsx` | „Nicht verfügbar“/„…“ statt 0, Exportsperre, Retry |
+| `src/features/crm/pages/{Deals,Companies,Leads}Page.tsx` | „Nicht verfügbar“/„…“ statt 0, Exportsperre mit sichtbarem Grund, Retry |
 | `src/features/crm/hooks/__tests__/useCrmProvenance.renderLoop.ui.vitest.tsx` (neu) | Regressionstest Schleife |
 | `src/auth/__tests__/queryCacheUserReset.ui.vitest.tsx` (neu) | Benutzerwechsel |
 | `src/features/crm/pages/__tests__/crmPages.states.ui.vitest.tsx` (neu) | Zustände je Seite |
 | `e2e/crm-query-export.spec.ts` | Navigation/Zurück/Vorwärts je Zustand, Retry |
-| `scripts/captureAuftrag084PipelineStates.mjs` (neu), `docs/screenshots/auftrag-084/README.md` (neu) | Vorher/Nachher-Nachweis |
+| `scripts/captureAuftrag084PipelineStates.mjs` (neu), `docs/screenshots/auftrag-084/README.md` (neu) | Vorher/Nachher-Nachweis (Rohdaten lokal unter `artifacts/`) |
 | Befundregister, Plan §6, `BUILD_PLAN.md`, `docs/BUILD_LOG.md` | Dokumentation |
 
 ## Tasks

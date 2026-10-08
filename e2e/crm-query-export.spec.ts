@@ -459,10 +459,15 @@ test.describe('CRM Pipeline: Zustände und Navigation (Auftrag 084, F12)', () =>
         await expect(exportBtn).toBeEnabled();
       }
 
-      // Wechsel per Sidebar, ohne Neuladen.
-      const navigationId = await page.evaluate(
-        () => performance.getEntriesByType('navigation').length,
-      );
+      // Wechsel per Sidebar, ohne Neuladen: Ein Laufzeit-Marker im window überlebt nur
+      // Client-Navigation; jede echte Dokument-Neuladung würde ihn löschen (Codex PR #69).
+      await page.evaluate(() => {
+        (window as unknown as { __auftrag084?: string }).__auftrag084 = 'ohne-neuladen';
+      });
+      const documentRequests: string[] = [];
+      page.on('request', (r) => {
+        if (r.resourceType() === 'document') documentRequests.push(r.url());
+      });
       await clickNav(page, /unternehmenssteckbrief/i);
       await expect(page).toHaveURL(/\/company\/profile$/);
       await expectHeading(page, /Unternehmenssteckbrief/);
@@ -480,10 +485,11 @@ test.describe('CRM Pipeline: Zustände und Navigation (Auftrag 084, F12)', () =>
       await expect(page).toHaveURL(/\/sales\/funnel$/);
       await expectHeading(page, /Sales Funnel/);
 
-      // Kein Neuladen der Seite (eine einzige Dokumentnavigation) und keine Seitenfehler.
-      expect(await page.evaluate(() => performance.getEntriesByType('navigation').length)).toBe(
-        navigationId,
-      );
+      // Kein Neuladen: Marker noch vorhanden, keine Dokument-Requests; keine Seitenfehler.
+      expect(
+        await page.evaluate(() => (window as unknown as { __auftrag084?: string }).__auftrag084),
+      ).toBe('ohne-neuladen');
+      expect(documentRequests).toEqual([]);
       expect(pageErrors).toEqual([]);
     });
   }

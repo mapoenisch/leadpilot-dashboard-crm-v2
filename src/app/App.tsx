@@ -12,7 +12,6 @@ import {
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
 import { AuthProvider } from '@/auth/AuthContext';
-import { QueryCacheUserReset } from '@/auth/QueryCacheUserReset';
 import { OrganizationProvider, useOrganization } from '@/auth/organizationContext';
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { useSimulationStore } from '@/store/simulationStore';
@@ -62,12 +61,18 @@ function RouteFallback() {
   );
 }
 
+// Auftrag 084: Query-Keys enthalten weder Benutzer noch Organisation (staleTime 60 s). Bei Abmeldung
+// oder Benutzerwechsel alle Queries zurücksetzen, bevor der neue Benutzer rendert: Aktive Observer
+// verlieren ihr altes Ergebnis und laden mit der neuen Sitzung neu, inaktive Daten werden verworfen.
+function resetUserQueries() {
+  void queryClient.resetQueries();
+}
+
 export function App() {
   return (
     <RouteErrorBoundary resetKey="app-root">
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <QueryCacheUserReset />
+        <AuthProvider onUserChange={resetUserQueries}>
           <OrganizationProvider>
             <WorkspaceHydrator />
             <BrowserRouter>

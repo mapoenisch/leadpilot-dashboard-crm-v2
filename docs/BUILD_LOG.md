@@ -16052,11 +16052,6 @@ P2 „Kontrast des Login-Buttons im hellen Theme“ (`src/styles/global.css`) ge
 - **Scan erweitert:** Die Anmeldeseite wird zusätzlich ohne Sitzung in beiden Themes gescannt (hell mit nachgestelltem `data-theme`).
 - **Volllauf:** 258/258 ohne Verstoß oder Fehler (42 Ansichten plus Login, × 3 Breiten × 2 Themes). README-Matrix ergänzt, Schutzbereichs-Diff leer.
 
-### Nachtrag Auftrag 083 – Codex-Review nach Merge (PR #68, Commit `564e05a`), Builder Claude Code, 08.10.2026
-
-- **P2 Fehleransichten ohne Inventar-H1:** `scripts/captureAuftrag083ContrastScan.mjs` erkennt jetzt die Fehlerkarte der `RouteErrorBoundary` („Fehler beim Laden der Seite“ in `main [role="alert"]`) direkt und bricht die Aufnahme ab. Bisher entfiel die Prüfung bei Ansichten ohne Inventar-H1, und Pfad sowie Kopfzeile bleiben bei einem Absturz gleich.
-- Geprüft in beide Richtungen: Probelauf `ONLY=s-deals,s-leads` 12/12 grün; Gegenprobe mit abgebrochenem `DealsPage`-Chunk erkennt die Fehlerkarte (`routeError: true`). Nur Skript, kein Produktcode. Commit `0995497` auf dem Branch von Auftrag 084.
-
 ## Auftrag 084 – Frontend-Qualität, Paket A (Pipelinefehler F12), Builder Claude Code, 08.10.2026
 
 **Ziel & Kontext:** Plan Frontend-Qualität §6, Befund F12. Navigation nach Erfolg, leer und Fehler ohne Neuladen; Fehler nicht als 0; „Erneut versuchen“; Exportsperre; kein Cache eines vorherigen Benutzers. Branch `claude/auftrag-084-pipeline-fehler` von `main` `564e05a`. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_084_PIPELINE_FEHLER_NAVIGATION.md`.
@@ -16080,3 +16075,15 @@ P2 „Kontrast des Login-Buttons im hellen Theme“ (`src/styles/global.css`) ge
 **Screenshot-Matrix:** `docs/screenshots/auftrag-084/README.md` – Fehlerzustand Deals/Unternehmen/Leads × 1440/768/375 × dunkel/hell: 18/18 mit geänderter SHA-256, „Nicht verfügbar“ statt 0, Export gesperrt, Retry sichtbar, axe serious/critical über die ganze Seite 0, Dokument-Überlauf 0 px (Leads 375 `<main>` 14 px wie vorher, I07). Navigation im Fehlerzustand 3/3 (vorher Kopfzeile „Deal Pipeline“, nachher „Unternehmenssteckbrief“).
 
 **Ergebnis & Freigabestatus:** Builder-Seite fertig. Gate-Freigabe durch Codex offen, Merge durch Marc.
+
+### Auftrag 084 – Nacharbeit Codex PR #69 Runde 1, Builder Claude Code, 08.10.2026
+
+Fünf Befunde (3× P1, 2× P2), gebündelt behoben:
+
+- **P1 Benutzerwechsel bei gemounteter Seite:** `queryClient.clear()` im Effekt ließ aktive Observer auf dem alten Ergebnis stehen (über `placeholderData: previousData` sogar nach Entfernen der Query). Jetzt meldet `AuthProvider` über das neue `onUserChange` Abmeldung/Wechsel **vor** dem Setzen des neuen Benutzers; `App` ruft `queryClient.resetQueries()` (aktive Queries laden mit der neuen Sitzung neu, alle Daten verworfen). `QueryCacheUserReset.tsx` entfällt. Test auf das Codex-Szenario umgestellt (Seite mit aktivem Observer, Wechsel A → B und Abmeldung): mit `resetQueries` 3/3 grün; Gegenprobe mit `clear()` 2/3 rot.
+- **P1 Rohdaten unter `docs/screenshots/`:** `vorher/`/`nachher/result.json` aus Git entfernt. Das Skript legt Bilder und Messdaten jetzt unter `artifacts/auftrag-084/` ab (ignoriert, anders als `test-results/` nicht von Playwright geleert); committet wird nur die README.
+- **P1 083-Nachtrag gebündelt:** Commit `0995497` per Revert (`7d5df91`) aus diesem Branch genommen, kein Force-Push. Eigener PR #70 (`claude/auftrag-083-nachtrag-fehlerkarte`), Nachtrag in Auftrag 083 und BUILD_LOG dort.
+- **P2 Sperrgrund nicht erreichbar:** Neben dem gesperrten Export steht sichtbar „Export gesperrt: Datenbasis nicht verfügbar“ (beim Laden „Export nach dem Laden verfügbar“), per `aria-describedby` dem Button zugeordnet. Seitentest prüft sichtbaren Text und zugängliche Beschreibung.
+- **P2 Neuladen nicht erkannt:** Der Navigationstest setzt einen Laufzeit-Marker im `window` und protokolliert Dokument-Requests. Gegenprobe mit eingeschobenem `page.reload()`: rot (`Received: undefined`).
+
+**Verifikation:** E2E Auftrag 084 12/12 (1440/768/375). Nachher-Aufnahmen erneuert: 18/18, axe ganze Seite 0, Navigation 3/3 (`docs/screenshots/auftrag-084/README.md`). `tsc` 0 · `verify` grün · `npm test` 320 Dateien / 2287 Tests · `build` · `lint` · `format:check` grün. Schutzbereichs-Diff gegen `564e05a` leer.
