@@ -101,3 +101,9 @@ Ganzseiten-axe-Scan meldet auf allen 42 Ansichten im hellen Modus keine serious/
 `color-contrast` mehr. Der dunkle Modus ist unverändert. `npx tsc --noEmit`, `npm run verify` und
 `npm run build` sind grün. Schutzbereichs-Diff gegen `abc0191` leer. BUILD_LOG-Eintrag steht.
 Gate-Freigabe durch Codex, Merge durch Marc.
+
+## Nachtrag 08.10.2026 – Codex-Review nach Merge (PR #68)
+
+Befund P2: Der Scan erkannte Route-Fehlerkarten nur indirekt über ein Inventar-H1. Ziel-Datei des
+Nachtrags: `scripts/captureAuftrag083ContrastScan.mjs` (erkennt „Fehler beim Laden der Seite“ in
+`main [role="alert"]` und bricht ab). Kein Produktcode. Nachweis im BUILD_LOG.
