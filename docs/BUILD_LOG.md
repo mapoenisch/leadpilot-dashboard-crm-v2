@@ -16020,6 +16020,6 @@ Matrix: `docs/screenshots/auftrag-083/README.md`.
 
 **Automatisierte Verifikation (Endstand):** `npx tsc --noEmit` 0 Fehler, `npm test` 317 Dateien / 2265 Tests grün, `npm run verify` grün, `npm run build` grün, `npm run lint` 0 Warnungen, `npm run format:check` grün.
 
-**Hinweis für Marc:** Das helle Theme ist laut `global.css` noch „vorläufig, visuelle Freigabe ausstehend“ (G39). Durch diesen Auftrag sind die Markentöne im hellen Modus etwas dunkler geworden. Das ist eine Kontrastkorrektur, keine Neugestaltung.
+**Hinweis für Marc:** Das helle Theme ist laut `global.css` noch „vorläufig, visuelle Freigabe ausstehend“ (G39). Durch diesen Auftrag sind die Markentöne im hellen Modus etwas dunkler geworden. Das ist eine Kontrastkorrektur, keine Neugestaltung. **Sichtfreigabe Marc im Chat am 08.10.2026:** Die Vergleichsbilder Dashboard und Kachel-Details (hell, 1440 px, vorher/nachher) sind freigegeben („ja die passen“).
 
 **Ergebnis & Freigabestatus:** Builder fertig, Gate-Freigabe durch Codex offen, Merge durch Marc.
