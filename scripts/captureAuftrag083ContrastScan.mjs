@@ -26,7 +26,13 @@ const env = (name) => {
 };
 const BASE_URL = env('BASE_URL');
 const CREDENTIALS = { email: env('E2E_AUTH_EMAIL'), password: env('E2E_AUTH_PASSWORD') };
-const ONLY = process.env.ONLY ? new Set(process.env.ONLY.split(',')) : null;
+const ONLY = process.env.ONLY
+  ? new Set(
+      process.env.ONLY.split(',')
+        .map((id) => id.trim())
+        .filter(Boolean),
+    )
+  : null;
 const SHOTS_DIR = process.env.SHOTS_DIR ?? null;
 const JSON_OUT = process.env.JSON_OUT ?? null;
 const VIEWPORTS = [
@@ -78,6 +84,12 @@ function missingTitle(id) {
   throw new Error(`Kein Routentitel für ${id} in src/app/routes.tsx.`);
 }
 if (VIEWS.length !== 42) throw new Error(`Erwartet 42 Ansichten, gefunden ${VIEWS.length}.`);
+// Codex PR #68: ein Tippfehler in ONLY darf keinen leeren, scheinbar grünen Lauf ergeben.
+if (ONLY) {
+  const unknown = [...ONLY].filter((id) => !VIEWS.some((v) => v.id === id));
+  if (unknown.length > 0) throw new Error(`Unbekannte Ansichten in ONLY: ${unknown.join(', ')}.`);
+  if (ONLY.size === 0) throw new Error('ONLY ist gesetzt, enthält aber keine Ansicht.');
+}
 
 async function open(browser, state, viewport, theme, view) {
   const context = await browser.newContext({
@@ -86,69 +98,75 @@ async function open(browser, state, viewport, theme, view) {
     viewport,
     reducedMotion: 'reduce',
   });
-  // Feste Browserzeit wie im 081-Harness, damit „Stand“-Zeitstempel die Bild-Hashes nicht verändern.
-  await context.clock.setFixedTime('2026-10-07T12:00:00.000Z');
-  await context.addInitScript((mode) => {
-    window.localStorage.setItem('leadpilot-theme', mode);
-  }, theme);
-  const page = await context.newPage();
-  await page.goto(view.route, { waitUntil: 'networkidle' });
-  await page.locator('main').first().waitFor({ timeout: 15000 });
-  if (view.edit) {
-    await page
-      .getByRole('button', { name: /bearbeiten/i })
-      .first()
-      .click();
-    await page.getByTestId('editor-toolbar').waitFor({ timeout: 10000 });
-  }
-  if (view.detail) {
-    await page
-      .getByRole('button', { name: /^details zu/i })
-      .first()
-      .click();
-    await page.getByTestId('tile-detail-page').waitFor({ timeout: 10000 });
-  }
-  await page.waitForLoadState('networkidle');
-  await page.evaluate(() => document.fonts.ready);
-  // Lazy-Inhalte aktivieren: <main> einmal vollständig durchscrollen, dann zurück nach oben.
-  await page.evaluate(async () => {
-    const main = document.querySelector('main');
-    const scroller =
-      main && main.scrollHeight > main.clientHeight ? main : document.scrollingElement;
-    for (let y = 0; y <= scroller.scrollHeight; y += 400) {
-      scroller.scrollTo(0, y);
-      await new Promise((r) => setTimeout(r, 60));
+  // Codex PR #68: Kontext auch dann schließen, wenn Navigation oder eine Prüfung fehlschlägt.
+  try {
+    // Feste Browserzeit wie im 081-Harness, damit „Stand“-Zeitstempel die Bild-Hashes nicht verändern.
+    await context.clock.setFixedTime('2026-10-07T12:00:00.000Z');
+    await context.addInitScript((mode) => {
+      window.localStorage.setItem('leadpilot-theme', mode);
+    }, theme);
+    const page = await context.newPage();
+    await page.goto(view.route, { waitUntil: 'networkidle' });
+    await page.locator('main').first().waitFor({ timeout: 15000 });
+    if (view.edit) {
+      await page
+        .getByRole('button', { name: /bearbeiten/i })
+        .first()
+        .click();
+      await page.getByTestId('editor-toolbar').waitFor({ timeout: 10000 });
     }
-    scroller.scrollTo(0, 0);
-  });
-  await page.waitForTimeout(500);
-  // Codex PR #68: Zielansicht bestätigen, damit eine Login-, 404- oder Fehlerseite (alle mit <main>)
-  // nicht als bestandener Scan zählt. Erwartung aus dem 081-Inventar: Pfad und Überschrift in <main>.
-  const identity = await page.evaluate(() => ({
-    path: window.location.pathname,
-    mainH1: document.querySelector('main h1')?.textContent?.trim() ?? null,
-    headerH1: document.querySelector('header h1')?.textContent?.trim() ?? null,
-    tiles: document.querySelectorAll('[data-tile-id]').length,
-  }));
-  if (identity.path !== view.expectedPath)
-    throw new Error(`Falsche Ansicht: Pfad ${identity.path}, erwartet ${view.expectedPath}.`);
-  if (view.expectedH1 !== null && identity.mainH1 !== view.expectedH1)
-    throw new Error(
-      `Falsche Ansicht: <main> h1 „${identity.mainH1}“, erwartet „${view.expectedH1}“.`,
+    if (view.detail) {
+      await page
+        .getByRole('button', { name: /^details zu/i })
+        .first()
+        .click();
+      await page.getByTestId('tile-detail-page').waitFor({ timeout: 10000 });
+    }
+    await page.waitForLoadState('networkidle');
+    await page.evaluate(() => document.fonts.ready);
+    // Lazy-Inhalte aktivieren: <main> einmal vollständig durchscrollen, dann zurück nach oben.
+    await page.evaluate(async () => {
+      const main = document.querySelector('main');
+      const scroller =
+        main && main.scrollHeight > main.clientHeight ? main : document.scrollingElement;
+      for (let y = 0; y <= scroller.scrollHeight; y += 400) {
+        scroller.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 60));
+      }
+      scroller.scrollTo(0, 0);
+    });
+    await page.waitForTimeout(500);
+    // Codex PR #68: Zielansicht bestätigen, damit eine Login-, 404- oder Fehlerseite (alle mit <main>)
+    // nicht als bestandener Scan zählt. Erwartung aus dem 081-Inventar: Pfad und Überschrift in <main>.
+    const identity = await page.evaluate(() => ({
+      path: window.location.pathname,
+      mainH1: document.querySelector('main h1')?.textContent?.trim() ?? null,
+      headerH1: document.querySelector('header h1')?.textContent?.trim() ?? null,
+      tiles: document.querySelectorAll('[data-tile-id]').length,
+    }));
+    if (identity.path !== view.expectedPath)
+      throw new Error(`Falsche Ansicht: Pfad ${identity.path}, erwartet ${view.expectedPath}.`);
+    if (view.expectedH1 !== null && identity.mainH1 !== view.expectedH1)
+      throw new Error(
+        `Falsche Ansicht: <main> h1 „${identity.mainH1}“, erwartet „${view.expectedH1}“.`,
+      );
+    // Kopfzeilen-Titel aus der Routenkonfiguration; die Kachel-Details prüft bereits `tile-detail-page`.
+    if (view.expectedTitle !== null && identity.headerH1 !== view.expectedTitle)
+      throw new Error(
+        `Falsche Ansicht: Kopfzeile „${identity.headerH1}“, erwartet „${view.expectedTitle}“.`,
+      );
+    if ((view.id === 'dashboard' || view.edit) && identity.tiles === 0)
+      throw new Error('Falsche Ansicht: Dashboard ohne Kacheln.');
+    const actualTheme = await page.evaluate(
+      () => document.documentElement.getAttribute('data-theme') ?? 'dark',
     );
-  // Kopfzeilen-Titel aus der Routenkonfiguration; die Kachel-Details prüft bereits `tile-detail-page`.
-  if (view.expectedTitle !== null && identity.headerH1 !== view.expectedTitle)
-    throw new Error(
-      `Falsche Ansicht: Kopfzeile „${identity.headerH1}“, erwartet „${view.expectedTitle}“.`,
-    );
-  if ((view.id === 'dashboard' || view.edit) && identity.tiles === 0)
-    throw new Error('Falsche Ansicht: Dashboard ohne Kacheln.');
-  const actualTheme = await page.evaluate(
-    () => document.documentElement.getAttribute('data-theme') ?? 'dark',
-  );
-  if (actualTheme !== theme)
-    throw new Error(`Theme ${theme} nicht aktiv (gefunden ${actualTheme}).`);
-  return { context, page };
+    if (actualTheme !== theme)
+      throw new Error(`Theme ${theme} nicht aktiv (gefunden ${actualTheme}).`);
+    return { context, page };
+  } catch (error) {
+    await context.close().catch(() => {});
+    throw error;
+  }
 }
 
 const results = [];

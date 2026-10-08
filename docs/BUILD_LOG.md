@@ -16038,3 +16038,7 @@ Beide P2-Befunde zu `scripts/captureAuftrag083ContrastScan.mjs` behoben (kein Pr
   Login-, 404- und Fehlerseiten fallen damit durch.
 - Zusätzlich: Nach einem Browserabsturz startet das Skript den Browser neu und meldet sich neu an, damit ein einzelner Timeout keine Folgefehler auslöst.
 - Volllauf: 252/252 ohne Verstoß oder Fehler, dunkel max. 1/255 Abweichung. README-Matrix erneuert. Schutzbereichs-Diff leer.
+- Nachtrag Runde 1 (zwei weitere P2-Befunde zum Stand `345f41b`):
+  - `open()` schließt den Browser-Kontext auch dann, wenn Navigation oder eine Prüfung fehlschlägt. Fehlerserien sammeln dadurch keine offenen Kontexte mehr an.
+  - `ONLY` wird gegen die 42 Ansichten geprüft. Unbekannte IDs oder eine leere Auswahl brechen mit einem Fehler ab, statt einen leeren grünen Lauf zu melden.
+  - Geprüft mit Tippfehler und leerer Auswahl (beide brechen ab) sowie einem Probelauf über Dashboard, Kachel-Details, Leads und Live-Simulation: 24/24 grün. Der Erfolgsweg ist unverändert, der Volllauf 252/252 von oben bleibt gültig.
