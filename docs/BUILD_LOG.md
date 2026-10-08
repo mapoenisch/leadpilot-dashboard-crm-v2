@@ -15917,3 +15917,11 @@ Alle 5 Codex-Befunde (Runde 12, Review `PRR_kwDOUS1mRc8AAAABRIA7Ew`) behoben:
 - P1: Der in Runde 11 entfernte lokale JWT-Signierschlüssel ist im BUILD_LOG jetzt geschwärzt (im Repo sonst nirgends vorhanden).
 - Volllauf mit dem finalen Harness (`5ee0383`): 256/256 Aufnahmen, 0 fehlgeschlagen, Präferenzzeile nach dem Lauf entfernt; JSON und README erneuert.
 - Verifikation: `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
+
+### Auftrag 081 – Codex Review Runde 25 (PR #67, Head `bfeb8ad`)
+
+- P1: Nachher-Modus prüft vor der Navigation den ehrlichen Pipeline-Fehlerzustand: „Nicht verfügbar“ sichtbar, keine „0 (Funnel) Deals“/„0 Deals gefunden“, CSV-Export gesperrt oder nicht vorhanden.
+- P1: Dashboard und Editor müssen die installierte Vergleichskonfiguration vollständig rendern (17 Kacheln, `data-tile-id` in Reihenfolge = `defaultConfig.tiles`); Kachel-IDs stehen im Inventar.
+- P1: Nicht leere `pageErrors` lassen die jeweilige Aufnahme fehlschlagen.
+- Teillauf Dashboard/Editor 14/14, Volllauf mit finalem Harness (`9c87809`) 256/256, 0 fehlgeschlagen; JSON und README erneuert.
+- Verifikation: `tsc --noEmit` 0 Fehler, `npm run verify` grün, Schutzbereichs-Diff leer.
