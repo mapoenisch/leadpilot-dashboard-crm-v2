@@ -1661,6 +1661,10 @@ async function measure(page, viewport) {
       overflowDocument: Math.max(0, doc.scrollWidth - doc.clientWidth),
       overflowMain: main ? Math.max(0, main.scrollWidth - main.clientWidth) : null,
       tiles: tiles.length,
+      // Befund PR #67 Runde 25: gerenderte Kachel-IDs für den Abgleich mit der Vergleichskonfiguration
+      tileIds: Array.from(document.querySelectorAll('[data-tile-id]')).map((t) =>
+        t.getAttribute('data-tile-id'),
+      ),
       tileHeights: tiles.map((t) => Math.round(t.getBoundingClientRect().height)),
       numbersInFirstScreen: numbers.filter(inFirstScreen).length,
       firstNumberTop: numbers.length ? Math.round(numbers[0].getBoundingClientRect().top) : null,
@@ -1816,6 +1820,21 @@ async function pipelineErrorCase(browser, state, targetDir = OUT_DIR) {
   };
   await page.goto('/crm/deals', { waitUntil: 'networkidle' });
   await snap('Pipeline mit 500');
+  // Befund PR #67 Runde 25: Im Nachher-Modus vor dem Seitenwechsel den ehrlichen Fehlerzustand
+  // prüfen (Paket A): keine Nullwerte statt „Nicht verfügbar“, CSV-Export gesperrt.
+  if (IS_NACHHER) {
+    const mainText = await page.locator('main').first().innerText();
+    const zeroCounts = mainText.match(/(^|\n)\s*0\s+(funnel\s+)?deals\b|\b0 deals gefunden\b/gi);
+    const exportButton = page.getByRole('button', { name: /csv export/i }).first();
+    const exportEnabled =
+      (await exportButton.count()) > 0 && (await exportButton.isEnabled().catch(() => false));
+    if (!/nicht verfügbar/i.test(mainText) || zeroCounts || exportEnabled) {
+      await context.close();
+      throw new Error(
+        `Fehlerzustand Pipeline nicht ehrlich: nichtVerfügbar=${/nicht verfügbar/i.test(mainText)}, Nullwerte=${JSON.stringify(zeroCounts)}, ExportAktiv=${exportEnabled}.`,
+      );
+    }
+  }
   fs.writeFileSync(path.join(targetDir, 'fehler-pipeline-500.png'), await page.screenshot());
 
   // Validierung: mindestens ein POST zu crm-query-export muss abgefangen worden sein
@@ -2153,6 +2172,27 @@ async function main() {
               throw new Error(
                 `Bildmaße auf Bildseite ${target.id} ungültig: ${JSON.stringify(metrics.image)}`,
               );
+            }
+            // Befund PR #67 Runde 25: Browser-Ausnahmen lassen die Aufnahme fehlschlagen.
+            if (pageErrors.length > 0) {
+              throw new Error(
+                `Unbehandelte Browser-Ausnahme auf ${target.id}: ${pageErrors.slice(0, 3).join(' | ')}`,
+              );
+            }
+            // Befund PR #67 Runde 25: Dashboard und Editor müssen die installierte
+            // Vergleichskonfiguration vollständig rendern (Anzahl und IDs).
+            if (target.id === 'dashboard' || target.id === 'dashboard-edit') {
+              const expectedIds = defaultConfig.tiles.map((t) => t.tileId);
+              const renderedIds = metrics.tileIds ?? [];
+              if (
+                metrics.tiles !== expectedIds.length ||
+                renderedIds.length !== expectedIds.length ||
+                renderedIds.some((id, i) => id !== expectedIds[i])
+              ) {
+                throw new Error(
+                  `Gerenderte Kacheln auf ${target.id} weichen von der Vergleichskonfiguration ab: ${metrics.tiles} Kacheln, IDs ${JSON.stringify(renderedIds)}.`,
+                );
+              }
             }
             const axe = await axeSevere(page);
             const axePage = await axeSeverePage(page);
