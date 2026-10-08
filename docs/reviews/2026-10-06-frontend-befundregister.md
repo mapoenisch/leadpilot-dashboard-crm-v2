@@ -146,11 +146,11 @@ Reproduktion (Teil der Harness, zusätzlich mit 6 s Wartezeit gegengeprüft):
    der Hauptinhalt stehen bleibt während die Shell aktualisiert, sondern das Routing bzw. der
    komplette Re-Render der Shell vollständig blockiert ist.
 4. Gleiches Verhalten von `/crm/leads` aus. Gegenprobe `/sales/funnel` → Steckbrief: Wechsel klappt.
-5. Konsole und Page-Errors: genau die beiden abgefangenen 500-POST-Antworten (`interceptedPostCount: 2`), keine Seitenfehler (`pageErrors: []`), kein „Maximum update depth exceeded“.
+5. Konsole und Page-Errors: vier abgefangene 500-POST-Antworten (`interceptedPostCount: 4`, je Navigationsziel ein frischer Pipeline-Start), keine Seitenfehler (`pageErrors: []`), kein „Maximum update depth exceeded“.
+6. Erfolgs- und Leerantwort (`pipelineNavigation`, Varianten `erfolg` und `leer`, je 2 POSTs): Beide Wechsel (`/company/profile`, `/sales/funnel`) ändern die Adresse, die Überschrift bleibt jeweils „Deal Pipeline“; keine Seitenfehler. Die Blockade ist also nicht an den Fehlerzustand gebunden.
 
 Offen für Paket A: Ursache (Plan §6 nennt `useUrlSyncedState`, `useCrmListQuery`, `DataSourceStatus`,
-`RouteErrorBoundary` als Diagnosekandidaten), Verhalten bei erfolgreicher und leerer Antwort
-(braucht lokal laufende Edge Function), Betroffenheit der Produktion.
+`RouteErrorBoundary` als Diagnosekandidaten) und Betroffenheit der Produktion.
 
 ## 6. Inventar der 10 interaktiven Ansichten
 
