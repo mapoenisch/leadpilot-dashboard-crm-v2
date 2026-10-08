@@ -146,7 +146,7 @@ function ValueTable({ dataset, caption }: { dataset: Dataset; caption: string })
           >
             <th
               scope="row"
-              className="py-[8px] text-left font-normal text-[var(--color-text-primary,#e6f3f1)]"
+              className="py-[8px] text-left font-normal text-[var(--color-text-soft,#e6f3f1)]"
             >
               {entry.label}
             </th>

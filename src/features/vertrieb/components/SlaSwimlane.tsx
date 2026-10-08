@@ -60,7 +60,7 @@ export const SlaSwimlane: React.FC = () => {
       <div className="handoff-banner px-[16px] py-[14px] rounded-[var(--radius-md,8px)] border border-solid border-[rgba(0,217,198,0.35)] bg-[rgba(0,217,198,0.05)] min-w-0">
         <div className="flex flex-col gap-[4px] min-w-0">
           <div className="flex items-center gap-[8px] flex-wrap">
-            <span className="text-[10px] font-bold uppercase px-[6px] py-[1px] rounded-[4px] bg-primary text-[#061312]">
+            <span className="text-[10px] font-bold uppercase px-[6px] py-[1px] rounded-[4px] bg-primary text-[#061312] [[data-theme=light]_&]:text-white">
               ÜBERGABEPUNKT
             </span>
             <strong className="text-[14px] text-text">{SLA.handoff.title}</strong>

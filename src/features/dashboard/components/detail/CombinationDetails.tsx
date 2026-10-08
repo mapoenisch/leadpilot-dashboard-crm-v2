@@ -15,7 +15,7 @@ export function CombinationDetails({ data, title }: { data: ResolvedTileData; ti
       <h3 id="detail-combination" className={DETAIL_SECTION_TITLE}>
         Berechnung
       </h3>
-      <p className="m-0 mt-[6px] text-[14px] text-[var(--color-text-primary,#e6f3f1)] [overflow-wrap:anywhere]">
+      <p className="m-0 mt-[6px] text-[14px] text-[var(--color-text-soft,#e6f3f1)] [overflow-wrap:anywhere]">
         Formel: {combination.formula}
       </p>
       <table className={DETAIL_TABLE} data-testid="detail-operands">
@@ -41,7 +41,7 @@ export function CombinationDetails({ data, title }: { data: ResolvedTileData; ti
             >
               <th
                 scope="row"
-                className="py-[8px] text-left font-normal text-[var(--color-text-primary,#e6f3f1)] [overflow-wrap:anywhere]"
+                className="py-[8px] text-left font-normal text-[var(--color-text-soft,#e6f3f1)] [overflow-wrap:anywhere]"
               >
                 {operand.label}
               </th>

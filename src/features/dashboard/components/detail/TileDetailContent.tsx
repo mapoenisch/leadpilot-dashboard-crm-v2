@@ -107,7 +107,7 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
       <dt className={MUTED}>{label}</dt>
-      <dd className="m-0 mt-[2px] text-[14px] text-[var(--color-text-primary,#e6f3f1)] [overflow-wrap:anywhere]">
+      <dd className="m-0 mt-[2px] text-[14px] text-[var(--color-text-soft,#e6f3f1)] [overflow-wrap:anywhere]">
         {children}
       </dd>
     </div>

@@ -283,7 +283,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="border-0 flex flex-col h-screen overflow-hidden shrink-0 w-[260px] border-r border-solid border-border bg-[rgba(6,22,19,0.95)] backdrop-blur">
+    <aside className="border-0 flex flex-col h-screen overflow-hidden shrink-0 w-[260px] border-r border-solid border-border bg-[var(--color-shell-sidebar)] backdrop-blur">
       {content}
     </aside>
   );

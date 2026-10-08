@@ -149,7 +149,8 @@ export function LocationPage() {
               <h4 className="m-0 text-[13.5px] font-semibold text-[#FFFFFF] font-display">
                 {station.title}
               </h4>
-              <span className="text-[10px] font-mono text-[var(--color-text-muted)]">FIKTIV</span>
+              {/* Auftrag 083 / F15: Karte ist in beiden Themes dunkel, daher fester heller Grauton. */}
+              <span className="text-[10px] font-mono text-[#A7B0BA]">FIKTIV</span>
             </div>
           </div>
         ))}
