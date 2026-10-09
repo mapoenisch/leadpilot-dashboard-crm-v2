@@ -90,6 +90,17 @@ describe('DashboardWorkspace: Codex-Befunde PR #59', () => {
     filterMode: 'dashboard',
   };
 
+  it('zählt CRM-Kacheln mit eigener Pipeline nicht als zentral gefiltert (Codex PR #72)', () => {
+    const config: DashboardConfig = {
+      version: 1,
+      filters: { pipeline: 'Direkt' },
+      tiles: [{ ...CRM, pipeline: 'Eigen' }],
+    };
+    setup(prefs({ state: stored(config) }));
+    expect(screen.queryByLabelText('Pipeline')).toBeNull();
+    expect(screen.getByTestId('dashboard-filters-toggle')).toHaveTextContent(/^Filter$/);
+  });
+
   it('hält den Sitzungsfilter unabhängig von Änderungen am Entwurf', () => {
     const seen: (string | undefined)[] = [];
     const useSpy: TileDataHook = (tile, filters, options) => {

@@ -52,6 +52,12 @@ test.afterAll(async () => {
 const detailsOf = (page: Page, tileId: string) =>
   page.locator(`${TILE}[data-tile-id="${tileId}"]`).getByRole('button', { name: /^Details zu / });
 
+/** Auftrag 086: Mobil ist der Filterbereich zunächst zu; auf breiten Ansichten ist der Knopf ausgeblendet. */
+async function openFilters(page: Page) {
+  const toggle = page.getByTestId('dashboard-filters-toggle');
+  if (await toggle.isVisible()) await toggle.click();
+}
+
 async function openDashboard(page: Page) {
   await page.goto('/dashboard', { waitUntil: 'networkidle' });
   await expect(page.getByTestId('dashboard-heading')).toBeVisible();
@@ -186,6 +192,7 @@ test('CRM: angewendeter Pipeline-Filter reist hin und zurück, auch über Browse
   page,
 }) => {
   await openDashboard(page);
+  await openFilters(page);
   const pipeline = page.getByTestId('dashboard-filters').getByLabel('Pipeline', { exact: true });
   await pipeline.fill('e2e-pipeline');
   await page.getByRole('button', { name: 'Filter anwenden' }).click();
@@ -206,6 +213,8 @@ test('CRM: angewendeter Pipeline-Filter reist hin und zurück, auch über Browse
   );
   await page.getByRole('button', { name: 'Zurück zum Dashboard' }).click();
   await expect(detailsOf(page, 'e2e_stufen')).toBeFocused();
+  const toggle = page.getByTestId('dashboard-filters-toggle');
+  if (await toggle.isVisible()) await expect(toggle).toHaveText('Filter: 1 aktiv');
   await expect(
     page.getByTestId('dashboard-filters').getByLabel('Pipeline', { exact: true }),
   ).toHaveValue('e2e-pipeline');

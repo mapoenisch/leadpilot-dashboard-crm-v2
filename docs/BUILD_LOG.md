@@ -16145,3 +16145,34 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - **P2 Verbotsliste:** „29 % der Leads“ ergänzt. Soll-/Verbotswerte werden jetzt im Vergleich aus dem gespeicherten Text der Textschicht ausgewertet.
 - **Gegenprobe:** manipulierter Inhalts-Hash bzw. zusätzlich „29 % der Leads“ in der Textschicht → 4/6, Exit-Code 1; unverändert → Exit-Code 0.
 - **Nachweis:** Vorher (Worktree `b65a5f8`) und Nachher neu aufgenommen, README-Matrix erneuert, 6/6. Nur Skript und Dokumentation geändert; `tsc`, `format:check` grün, Schutzbereichs-Diff gegen `b65a5f8` leer.
+
+
+### Auftrag 086 – Paket C: Ehrliche und einfache Filter, Builder Claude Code, 09.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 8. Von-/Bis-Felder hatten nie Wirkung (`SUPPORTED_DATE_FIELDS` leer), Pipeline-Verhalten war nicht erklärt, mobil stand der Filterbereich immer offen. Baseline `main` `0fe9db5`.
+
+**Geänderte Dateien:**
+- `src/features/dashboard/components/DashboardFilters.tsx`: Von/Bis entfernt, Hinweis „Zeitraumfilter für diese Daten derzeit nicht verfügbar.“, gespeicherter Zeitraum bleibt erhalten und wird genannt, Erklärung des exakten Pipeline-Abgleichs, mobiler Knopf „Filter“ / „Filter: 1 aktiv“ (Bereich < 768 px zunächst zu).
+- `src/features/dashboard/__tests__/DashboardFilters.ui.vitest.tsx`: Zeitraum- und Mobil-Tests.
+- `e2e/personal-dashboard.spec.ts`, `e2e/personal-dashboard-acceptance.spec.ts`: Filter mobil aufklappen; Knopfzustand nach Rückkehr aus Details.
+- `scripts/captureAuftrag086Filters.mjs` (neu), `docs/screenshots/auftrag-086/README.md`.
+- Auftragsdatei, Plan Abschnitt 8 abgehakt.
+
+**Funktionale Prüfungen:** Pipeline-Liste: keine vollständige Quelle im Code/Schema → Textfeld bleibt. Gespeicherter Zeitraum fährt beim Anwenden der Pipeline unverändert mit (`{ pipeline, period }`), Konfigurationsversion unverändert. Zähler nur für wirksame Filter. Auf-/Zuklappen lässt Entwurf und Filter unberührt.
+
+**Schutzbereichs-Prüfung:** `git diff 0fe9db5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` · `npm test` 321 / 2302 · `build` · `lint` · `format:check` grün. E2E lokal nicht lauffähig (keine `E2E_AUTH_*` in der Shell für Playwright-Global-Setup) → läuft in der CI.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-086/README.md`, Produktionsbuild gegen lokales Supabase, Vorher aus Worktree `main` `0fe9db5`. 6/6 (1440/768/375 × dunkel/hell): SHA-256 verschieden, Datumsfelder 2 → 0, 375 px Knopf sichtbar und Bereich zu → aufgeklappt offen, 1440/768 ohne Knopf; Überlauf Dokument/`<main>` 0/0 px; axe serious/critical 0.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 086 – Nacharbeit Codex PR #72 Runde 1, Builder Claude Code, 09.10.2026
+
+- **P2 Zähler nur für zentral gefilterte Kacheln:** `pipelineSupported` in `DashboardWorkspace.tsx` zählt nur Kacheln ohne eigene `tile.pipeline`. Haben alle CRM-Kacheln eine eigene Pipeline, entfällt das Feld; Knopf „Filter“ ohne Zähler. Test im Workspace; Gegenprobe ohne Fix rot (1/17).
+- **P2 Vorrang kacheleigener Pipelines erklärt:** Hinweis „Kacheln mit eigener Pipeline behalten diese“; Ersatztext ohne Feld: „Keine Kachel dieser Ansicht folgt einem zentralen Pipeline-Filter.“
+- **P2 Startzeitraum beim Übernehmen bewahrt:** „Als Startfilter übernehmen“ ergänzt einen ausgeblendeten Startzeitraum, wenn die Sitzung keinen hat. Test ergänzt.
+- **P2 Harness:** Gate vergleicht den Hash der Filterleiste (mobil im aufgeklappten Zustand); der Ganzseiten-Hash wird nur berichtet. Nachher neu aufgenommen: 6/6, Überlauf 0/0 px, axe 0.
+- **Visual-Baselines:** `/dashboard` (1440/768/375) wegen geänderten Hinweistexts erneut über `update-visual-baselines.yml` erzeugt.
+- **Gates:** `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün; Schutzbereichs-Diff gegen `0fe9db5` leer.
