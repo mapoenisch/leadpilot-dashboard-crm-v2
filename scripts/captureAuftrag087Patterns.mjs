@@ -35,6 +35,18 @@ const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4310';
 const BASE_URL_VORHER = process.env.BASE_URL_VORHER;
 if (!BASE_URL_VORHER) throw new Error('BASE_URL_VORHER (Elternstand) fehlt.');
 const URL_PATH = '/dashboard-vorschau.html?bereich=muster';
+// Theme und Zoom identisch auf Vorher- und Nachher-Seite anwenden (Codex PR #73, Runde 3).
+async function prepare(page, theme, zoom) {
+  await page.evaluate(
+    ([t, z]) => {
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.style.zoom = String(z);
+    },
+    [theme, zoom],
+  );
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(400);
+}
 const sha = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
 fs.mkdirSync(RAW, { recursive: true });
@@ -49,6 +61,7 @@ for (const { width, zoom } of CASES) {
       // Vorher: dieselbe URL gegen den Elternstand.
       const before = await context.newPage();
       await before.goto(`${BASE_URL_VORHER}${URL_PATH}`, { waitUntil: 'networkidle' });
+      await prepare(before, theme, zoom);
       const beforeFile = path.join(RAW, `${name}-vorher.png`);
       await before.screenshot({ path: beforeFile, fullPage: true });
       const beforeSha = sha(beforeFile);
@@ -57,15 +70,8 @@ for (const { width, zoom } of CASES) {
       const page = await context.newPage();
       await page.goto(`${BASE_URL}${URL_PATH}`, { waitUntil: 'networkidle' });
       await page.getByTestId('muster-editor').waitFor({ timeout: 15000 });
-      if (zoom !== 1) {
-        await page.evaluate((z) => {
-          document.documentElement.style.zoom = String(z);
-        }, zoom);
-      }
       if (theme === 'light') await page.getByRole('button', { name: 'Hell' }).click();
-      // Hover-Zustand des Umschalters nicht mitmessen.
-      await page.mouse.move(0, 0);
-      await page.waitForTimeout(400);
+      await prepare(page, theme, zoom);
       const { overflow, titlePx } = await page.evaluate(() => {
         const title = document.querySelector('#zahl-normal-titel');
         const z = Number(document.documentElement.style.zoom || 1);
@@ -102,7 +108,7 @@ const failed = new Set(problems.map((p) => p.split(':')[0])).size;
 const readme = `# Auftrag 087 – Screenshot-Matrix Designmuster
 
 Erzeugt mit \`scripts/captureAuftrag087Patterns.mjs\` gegen \`dashboard-vorschau.html?bereich=muster\`.
-Vorher = dieselbe URL im Elternstand \`e007ff0\` (bisherige Vorschauseite), Nachher = Branch
+Vorher = dieselbe URL im Elternstand \`e007ff0\` (bisherige Vorschauseite) mit identisch gesetztem Theme und Zoom, Nachher = Branch
 \`claude/auftrag-087-designmuster\`. Vergrößerung über Browser-Zoom (CSS \`zoom\`): Schrift des
 Mustertitels gemessen. Bilder bleiben lokal unter \`artifacts/auftrag-087/\`. Sichtabnahme durch Marc am 09.10.2026.
 
