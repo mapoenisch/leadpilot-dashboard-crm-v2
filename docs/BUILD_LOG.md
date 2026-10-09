@@ -16176,3 +16176,21 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - **P2 Harness:** Gate vergleicht den Hash der Filterleiste (mobil im aufgeklappten Zustand); der Ganzseiten-Hash wird nur berichtet. Nachher neu aufgenommen: 6/6, Überlauf 0/0 px, axe 0.
 - **Visual-Baselines:** `/dashboard` (1440/768/375) wegen geänderten Hinweistexts erneut über `update-visual-baselines.yml` erzeugt.
 - **Gates:** `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün; Schutzbereichs-Diff gegen `0fe9db5` leer.
+
+### Auftrag 087 – Paket D: Designmuster zur Sichtabnahme, Builder Claude Code, 09.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 9. Fünf Gestaltungsmuster in der isolierten Vorschau (`dashboard-vorschau.html?bereich=muster`), Freigabe durch Marc vor jedem Produktumbau. Baseline `main` `e007ff0`.
+
+**Entscheidungen Marc (09.10.2026):** Richtung ruhige Weiterentwicklung; im A/B-Vergleich 3D-Tiefe behalten (Plan revidiert); keine Bildvorlage; alle fünf Muster freigegeben.
+
+**Geänderte Dateien:** `preview/DesignPatternPreview.tsx`, `preview/designPatternTiles.tsx`, `preview/designPatternScreens.tsx` (neu), `preview/DashboardPreviewPage.tsx` (`?bereich=muster`); Auftrag, Plan Abschnitt 9, `docs/screenshots/auftrag-087/README.md`. Keine Produktkomponente geändert (eine zwischenzeitlich gebaute Flach-Option am Säulendiagramm wurde nach Marcs Entscheidung zurückgenommen).
+
+**Funktionale Prüfungen:** Muster mit Faktenblatt-Werten (47 Neukunden, Win Rate 43,5 %, Quoten über `formatQuote`), langem Titel, Fehler („Nicht verfügbar“, nie 0), keine Daten. Befunde für das Produkt: Säulenwerte fest weiß (im hellen Modus unlesbar), Fehlerrot dunkel 4,46:1 – in den Mustern korrigiert, Übernahme in E–G.
+
+**Schutzbereichs-Prüfung:** `git diff e007ff0 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-087/README.md`: 1440/768/375/320/250 px × dunkel/hell, 10/10 Überlauf 0 px, axe serious/critical 0. Neue Seite, daher kein Vorher-Paar. Gestalterische Freigabe durch Marc, nicht durch Tests.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün.
+
+**Ergebnis & Freigabestatus:** Sichtabnahme Marc erteilt; Builder-seitig fertig, Abnahme durch Codex offen.
