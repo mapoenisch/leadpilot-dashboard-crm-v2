@@ -13,7 +13,7 @@ type Theme = 'dark' | 'light';
 function PatternSection(props: { id: string; title: string; hint: string; children: ReactNode }) {
   return (
     <section aria-labelledby={props.id} className="flex flex-col gap-3">
-      <h2 id={props.id} className="m-0 text-[18px] font-semibold">
+      <h2 id={props.id} className="m-0 text-[18px] font-semibold [overflow-wrap:anywhere]">
         {props.title}
       </h2>
       <p className="m-0 max-w-[720px] text-[13px] text-[var(--color-text-muted)]">{props.hint}</p>
@@ -28,16 +28,18 @@ export function DesignPatternPreview() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
   return (
-    <div className="flex flex-col gap-8">
+    <div data-muster-seite className="flex flex-col gap-8">
       {/* Werte über den Säulen sind im Diagramm fest weiß – im hellen Modus unlesbar. Im Muster folgt
           die Farbe dem Textton. Das Fehlerrot (#ff5a5f) erreicht auf dunkler Fläche nur 4,46:1 und wird im
           Muster aufgehellt. Die Produktdarstellung ändert sich erst nach Marcs Freigabe. */}
-      <style>{`[data-muster] svg text[font-weight="700"] { fill: var(--color-text-primary); } [data-theme="dark"] [data-muster] .text-error { color: #ff7a7e; }`}</style>
+      <style>{`[data-muster] svg text[font-weight="700"] { fill: var(--color-text-primary); } [data-muster] svg text:not([font-weight="700"]) { fill: var(--color-text-muted); } [data-muster-seite] button { white-space: normal; text-align: left; flex-shrink: 1; min-width: 0; max-width: 100%; } [data-theme="dark"] [data-muster] .text-error { color: #ff7a7e; }`}</style>
       <header className="flex flex-col gap-2">
         <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
           Paket D · Designmuster zur Sichtabnahme
         </p>
-        <h1 className="m-0 text-[24px] font-semibold">Ruhige Weiterentwicklung mit 3D-Tiefe</h1>
+        <h1 className="m-0 text-[24px] font-semibold [overflow-wrap:anywhere]">
+          Ruhige Weiterentwicklung mit 3D-Tiefe
+        </h1>
         <p className="m-0 max-w-[720px] text-[13px] text-[var(--color-text-muted)]">
           Bestehende Farben, Schriften und 3D-Diagramme. Jedes Muster zeigt Normalfall, langen
           Titel, Fehler und fehlende Daten. Werte aus dem Faktenblatt v1.1.

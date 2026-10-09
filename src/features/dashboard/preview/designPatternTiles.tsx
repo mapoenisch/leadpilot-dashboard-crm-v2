@@ -53,7 +53,7 @@ export function Frame(props: { id: string; title: string; meta: string; children
   );
 }
 
-function StateBody({ state, children }: { state: State; children: ReactNode }) {
+export function StateBody({ state, children }: { state: State; children: ReactNode }) {
   if (state === 'fehler') {
     return (
       <div role="alert" className="flex flex-col items-start gap-2">

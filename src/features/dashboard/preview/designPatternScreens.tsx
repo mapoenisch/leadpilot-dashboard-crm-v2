@@ -7,7 +7,15 @@ import { formatAnzahl, formatQuote } from '@/domain/funnelQuote';
 import { FUNNEL_QUARTALE } from '@/domain/vertriebData';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { Depth3dBarChart } from '../components/charts/Depth3dBarChart';
-import { ChartTile, Frame, NumberTile, QUELLE, sum } from './designPatternTiles';
+import {
+  ChartTile,
+  Frame,
+  LANGER_TITEL,
+  NumberTile,
+  QUELLE,
+  StateBody,
+  sum,
+} from './designPatternTiles';
 
 const FY = {
   leads: sum(FUNNEL_QUARTALE.leads),
@@ -49,8 +57,8 @@ export function MobileHomePattern() {
       data-muster
       className="mx-auto flex w-full max-w-[375px] flex-col gap-3 rounded-2xl border border-solid border-border bg-[var(--color-bg)] p-4"
     >
-      <header className="flex items-center justify-between gap-2">
-        <h3 className="m-0 text-[18px] font-semibold text-[var(--color-text-primary)]">
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="m-0 text-[18px] font-semibold text-[var(--color-text-primary)] [overflow-wrap:anywhere]">
           Executive Dashboard
         </h3>
         <Button size="sm" variant="secondary" className="min-h-[44px]">
@@ -58,7 +66,7 @@ export function MobileHomePattern() {
         </Button>
       </header>
       <p className="m-0 text-[12px] text-[var(--color-text-muted)]">{QUELLE}</p>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 min-[300px]:grid-cols-2">
         <MiniKpi label="Leads" value={formatAnzahl(FY.leads)} />
         <MiniKpi label="SQL" value={formatAnzahl(FY.sql)} />
         <MiniKpi label="Angebote" value={formatAnzahl(FY.angebote)} />
@@ -66,6 +74,9 @@ export function MobileHomePattern() {
       </div>
       <NumberTile id="mobil-zahl" title="Neukunden 2025" state="bereit" />
       <ChartTile id="mobil-verlauf" title="Neukunden je Quartal 2025" state="bereit" />
+      {/* Codex PR #73: Zustände auch im mobilen Muster. */}
+      <NumberTile id="mobil-lang-fehler" title={LANGER_TITEL} state="fehler" />
+      <ChartTile id="mobil-leer" title="Neukunden je Quartal 2025" state="leer" />
     </div>
   );
 }
@@ -99,24 +110,40 @@ export function FunnelPattern() {
           />
         </Frame>
         <Frame id="funnel-tabelle" title="Conversion je Stufe" meta="Quote = Stufe / Vorstufe">
-          <table className="w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="text-left text-[12px] text-[var(--color-text-muted)]">
-                <th className="py-2 font-medium">Stufe</th>
-                <th className="py-2 text-right font-medium">FY 2025</th>
-                <th className="py-2 text-right font-medium">Conversion</th>
-              </tr>
-            </thead>
-            <tbody>
-              {STUFEN.map((stufe) => (
-                <tr key={stufe.label} className="border-0 border-t border-solid border-border">
-                  <td className="py-2 text-[var(--color-text-primary)]">{stufe.label}</td>
-                  <td className="py-2 text-right font-mono">{formatAnzahl(stufe.value)}</td>
-                  <td className="py-2 text-right">{stufe.quote}</td>
+          {/* Codex PR #73: Bei großer Schrift scrollt nur die Tabelle, nicht die Seite. */}
+          <div
+            role="region"
+            aria-label="Conversion-Tabelle"
+            tabIndex={0}
+            className="max-w-full overflow-x-auto"
+          >
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr className="text-left text-[12px] text-[var(--color-text-muted)]">
+                  <th className="py-2 font-medium">Stufe</th>
+                  <th className="py-2 text-right font-medium">FY 2025</th>
+                  <th className="py-2 text-right font-medium">Conversion</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {STUFEN.map((stufe) => (
+                  <tr key={stufe.label} className="border-0 border-t border-solid border-border">
+                    <td className="py-2 text-[var(--color-text-primary)]">{stufe.label}</td>
+                    <td className="py-2 text-right font-mono">{formatAnzahl(stufe.value)}</td>
+                    <td className="py-2 text-right">{stufe.quote}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Frame>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Frame id="funnel-fehler" title={LANGER_TITEL} meta={QUELLE}>
+          <StateBody state="fehler">{null}</StateBody>
+        </Frame>
+        <Frame id="funnel-leer" title="Stufen im Geschäftsjahr" meta={QUELLE}>
+          <StateBody state="leer">{null}</StateBody>
         </Frame>
       </div>
     </div>
@@ -151,14 +178,12 @@ export function EditorPattern() {
         {menu ? (
           <ul
             id="muster-editor-menue"
-            role="menu"
-            className="m-0 grid list-none grid-cols-2 gap-1 rounded-lg border border-solid border-border bg-surface p-1"
+            className="m-0 grid list-none grid-cols-1 gap-1 min-[300px]:grid-cols-2 rounded-lg border border-solid border-border bg-surface p-1"
           >
             {['Nach oben', 'Nach unten', 'Bearbeiten', 'Entfernen'].map((label) => (
-              <li key={label} role="none">
+              <li key={label}>
                 <button
                   type="button"
-                  role="menuitem"
                   className={`min-h-[44px] w-full rounded-md border-0 bg-transparent px-3 text-left text-[13px] hover:bg-[var(--color-bg)] ${label === 'Entfernen' ? 'text-error' : 'text-[var(--color-text)]'}`}
                 >
                   {label}
@@ -168,6 +193,8 @@ export function EditorPattern() {
           </ul>
         ) : null}
         <NumberTile id="editor-kachel" title="Neukunden 2025" state="bereit" />
+        <NumberTile id="editor-lang-fehler" title={LANGER_TITEL} state="fehler" />
+        <NumberTile id="editor-leer" title="Neukunden 2025" state="leer" />
       </div>
       <section
         aria-label="Kachel bearbeiten"
@@ -176,13 +203,12 @@ export function EditorPattern() {
         <h3 className="m-0 text-[15px] font-semibold text-[var(--color-text-primary)]">
           Kachel bearbeiten
         </h3>
-        <div role="tablist" aria-label="Bereiche" className="flex flex-wrap gap-1">
+        <div role="group" aria-label="Bereiche" className="flex flex-wrap gap-1">
           {TABS.map((name) => (
             <Button
               key={name}
               size="sm"
-              role="tab"
-              aria-selected={tab === name}
+              aria-pressed={tab === name}
               variant={tab === name ? 'primary' : 'secondary'}
               className="min-h-[44px]"
               onClick={() => setTab(name)}
@@ -191,7 +217,10 @@ export function EditorPattern() {
             </Button>
           ))}
         </div>
-        <div role="tabpanel" className="min-h-[120px] text-[13px] text-[var(--color-text-muted)]">
+        <div
+          aria-live="polite"
+          className="min-h-[120px] text-[13px] text-[var(--color-text-muted)]"
+        >
           {tab === 'Kennzahl' ? 'Kennzahl suchen und wählen, z. B. „Neukunden“.' : null}
           {tab === 'Darstellung' ? 'Zahl, Säulen, Balken, Ring … und Größe der Kachel.' : null}
           {tab === 'Vorschau' ? 'Live-Vorschau der Kachel mit echten Daten.' : null}
@@ -203,7 +232,7 @@ export function EditorPattern() {
           <span className="text-[12px] text-[var(--color-text-muted)]">
             Änderungen liegen in der Arbeitskopie, gespeichert wird erst mit „Speichern“.
           </span>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="secondary" className="min-h-[44px]">
               Verwerfen
             </Button>

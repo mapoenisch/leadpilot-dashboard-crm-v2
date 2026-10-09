@@ -16194,3 +16194,13 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Automatisierte Verifikation:** `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün.
 
 **Ergebnis & Freigabestatus:** Sichtabnahme Marc erteilt; Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 087 – Nacharbeit Codex PR #73 Runde 1, Builder Claude Code, 09.10.2026
+
+- **P2 Lazy:** `DesignPatternPreview` wird per `React.lazy` nur unter `?bereich=muster` geladen.
+- **P2 Achsen-/Kategorienlabels:** im Muster `var(--color-text-muted)` (hell lesbar).
+- **P2 Zustände Muster 3–5:** mobil langer Titel + Fehler und Leerzustand; Funnel Fehler (langer Titel) und Leer; Editor langer Titel + Fehler und Leer.
+- **P2 Tabellenüberlauf:** Conversion-Tabelle in eigenem, per Tastatur erreichbarem Scrollbereich.
+- **P2 Menü-/Tab-Tastatur:** ARIA-Widgetrollen entfernt: Aktionsliste als Disclosure (`aria-expanded`/`aria-controls`, normale Knöpfe), Bereiche als Knopfgruppe mit `aria-pressed` – Tab-Reihenfolge und Enter/Leertaste reichen, keine unvollständige Pfeiltasten-Semantik.
+- **P2 Harness:** `scripts/captureAuftrag087Patterns.mjs` eingecheckt; erzeugt die README. Zusätzlich 188 px (200 % Zoom auf 375 px): zuerst 51 px Überlauf (Überschrift, Kennzahlraster, Menü, Speicherknöpfe), behoben – jetzt 12/12 ohne Überlauf, axe 0.
+- Gates: `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün; Schutzbereich unverändert.

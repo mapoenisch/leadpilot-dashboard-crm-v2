@@ -5,11 +5,16 @@
 // Der Arbeitsbereich (Auftrag 074) steht unter der Galerie; `?bereich=editor` zeigt nur ihn, und
 // `?ansicht=` blendet ihn aus, damit der Netzwerknachweis der Galerie unverändert bleibt.
 // Auftrag 087: `?bereich=muster` zeigt nur die Designmuster zur Sichtabnahme.
+import { lazy, Suspense } from 'react';
 import { DashboardDesignPreview } from './DashboardDesignPreview';
 import { DashboardEditorPreview } from './DashboardEditorPreview';
-import { DesignPatternPreview } from './DesignPatternPreview';
 import { TileGalleryPreview } from './TileGalleryPreview';
 import type { DashboardView } from '../model/dashboardCatalog';
+
+// Codex PR #73: Die Muster (mit Diagrammmodulen) laden nur unter `?bereich=muster`.
+const DesignPatternPreview = lazy(() =>
+  import('./DesignPatternPreview').then((module) => ({ default: module.DesignPatternPreview })),
+);
 
 const VIEWS: readonly DashboardView[] = [
   'zahl',
@@ -56,7 +61,9 @@ export function DashboardPreviewPage({
     return (
       <main className="min-h-screen bg-[var(--color-bg)] px-4 py-8 text-[var(--color-text)] sm:px-8">
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6">
-          <DesignPatternPreview />
+          <Suspense fallback={<p className="m-0 text-[13px]">Muster werden geladen …</p>}>
+            <DesignPatternPreview />
+          </Suspense>
         </div>
       </main>
     );
