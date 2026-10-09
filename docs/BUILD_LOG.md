@@ -16204,3 +16204,19 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 ### Auftrag 088 – Nacharbeit Codex PR #74 Runde 2, Builder Claude Code, 09.10.2026
 
 - **P1 Harness-Metrik:** `captureAuftrag088Tiles.mjs` zählt nur noch fest weiße Außenbeschriftungen von Säulen/Balken; Ringsumme und innenliegende Werte (`fill-white`) sind absichtlich weiß. Vorher (Worktree `e007ff0`) und Nachher neu aufgenommen: 8/8, fest weiße Außenwerte 2 → 0, Hinweise 12 → 0, Zahlkachel 349 → 286 px, Überlauf 0/0, axe 0. Nur Skript und README geändert.
+
+### Auftrag 089 – Paket E Teil 2: Seitenkopf und mobile Hülle, Builder Claude Code, 09.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 10, Fortsetzung von 088 (Branch vom 088-Stand).
+
+**Geänderte Dateien:** `pages/PersonalExecutiveDashboard.tsx` (Kopf eine Zeile, 18 px, Fokusring), `components/layout/SimulationBar.tsx` (mobil „Details“-Aufklapper), Test `SimulationBar.mobile.ui` (neu), Harness `captureAuftrag089Shell.mjs` + README, Auftrag, Plan.
+
+**Funktionale Prüfungen:** Start/Pause und Tempo mobil immer sichtbar, Aufklappen startet nichts; Standardpriorität bereits umgesetzt (keine Änderung). 375 × 812: erste Zahl unten 684 → 573 px (sichtbar); Simulationsleiste mobil 131 → 93 px.
+
+**Schutzbereichs-Prüfung:** `git diff e007ff0 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` · `npm test` 323 / 2312 · `build` · `lint` · `format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-089/README.md`: 1440/768/375/320 × dunkel/hell, Vorher = Stand 088, 8/8, Hash verschieden, Überlauf 0/0, axe 0.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen. Abhängig von PR #74.

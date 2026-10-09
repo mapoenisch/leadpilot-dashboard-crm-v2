@@ -8,6 +8,10 @@ import { StatusChip } from '../ui/StatusChip';
 export function SimulationBar() {
   const [simState, setSimState] = React.useState<SimulationState>(simulationService.getState());
   const [lastEvent, setLastEvent] = React.useState<SimulationEvent | null>(null);
+  // Auftrag 089 (Paket E): mobil sind Ereignis und Kennzahlen zunächst zugeklappt; Start/Pause und
+  // Tempo bleiben immer sichtbar. Nur Darstellung – Engine und Tick-Verhalten unberührt.
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
+  const detailsId = React.useId();
 
   React.useEffect(() => {
     const unsubscribe = simulationService.subscribe((event, newState) => {
@@ -82,34 +86,51 @@ export function SimulationBar() {
             </button>
           ))}
         </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="md:hidden"
+          aria-expanded={detailsOpen}
+          aria-controls={detailsId}
+          onClick={() => setDetailsOpen((open) => !open)}
+        >
+          {detailsOpen ? 'Weniger' : 'Details'}
+        </Button>
       </div>
 
-      {/* 2. Middle Event Info Stream (hidden on very small viewports if necessary or truncated) */}
-      <div className="flex items-center gap-[var(--space-2)] flex-[1_1_auto] overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-[var(--color-text-muted)] min-w-0">
-        <span className="text-[11px] font-bold text-primary bg-primary-soft rounded px-[6px] py-[2px] shrink-0">
-          Tick #{simState.tickCount}
-        </span>
-        {lastEvent ? (
-          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-            <strong className="text-text">{lastEvent.title}:</strong> {lastEvent.details}
+      <div
+        id={detailsId}
+        data-testid="simulation-details"
+        className={`${detailsOpen ? 'flex' : 'hidden'} min-w-0 flex-[1_1_auto] flex-wrap items-center justify-between gap-[var(--space-3)] md:flex`}
+      >
+        {/* 2. Middle Event Info Stream (hidden on very small viewports if necessary or truncated) */}
+        <div className="flex items-center gap-[var(--space-2)] flex-[1_1_auto] overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-[var(--color-text-muted)] min-w-0">
+          <span className="text-[11px] font-bold text-primary bg-primary-soft rounded px-[6px] py-[2px] shrink-0">
+            Tick #{simState.tickCount}
           </span>
-        ) : (
-          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-            Unternehmenssimulation bereit (Ebene B).
-          </span>
-        )}
-      </div>
+          {lastEvent ? (
+            <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+              <strong className="text-text">{lastEvent.title}:</strong> {lastEvent.details}
+            </span>
+          ) : (
+            <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+              Unternehmenssimulation bereit (Ebene B).
+            </span>
+          )}
+        </div>
 
-      {/* 3. Live Metrics Summary */}
-      <div className="simulation-bar-metrics flex items-center gap-[var(--space-3)] flex-wrap text-[12px] text-[var(--color-text-muted)] shrink-0 min-w-0">
-        <div>
-          Leads: <strong className="text-text">{metrics.liveLeads}</strong>
-        </div>
-        <div>
-          Won: <strong className="text-primary">{metrics.liveWonDeals}</strong>
-        </div>
-        <div>
-          ARR: <strong className="text-accent">{metrics.liveARR.toLocaleString('de-DE')} €</strong>
+        {/* 3. Live Metrics Summary */}
+        <div className="simulation-bar-metrics flex items-center gap-[var(--space-3)] flex-wrap text-[12px] text-[var(--color-text-muted)] shrink-0 min-w-0">
+          <div>
+            Leads: <strong className="text-text">{metrics.liveLeads}</strong>
+          </div>
+          <div>
+            Won: <strong className="text-primary">{metrics.liveWonDeals}</strong>
+          </div>
+          <div>
+            ARR:{' '}
+            <strong className="text-accent">{metrics.liveARR.toLocaleString('de-DE')} €</strong>
+          </div>
         </div>
       </div>
 
