@@ -90,7 +90,11 @@ async function capture() {
               .map((t) => Math.round(t.getBoundingClientRect().height)),
             redundantHints: (document.body.innerText.match(/Historischer Stand ist fest/g) ?? [])
               .length,
-            whiteChartValues: document.querySelectorAll('svg text[fill="#ffffff"]').length,
+            // Codex PR #74: nur Außenbeschriftungen von Säulen/Balken zählen. Die Ringsumme (dunkle
+            // Aussparung) und Werte innerhalb einer Säule (Klasse fill-white) sind absichtlich weiß.
+            whiteChartValues: document.querySelectorAll(
+              ':is([data-testid="depth-bar-chart"], [data-testid="depth-hbar-chart"]) svg text[font-weight="700"][fill="#ffffff"]:not(.fill-white)',
+            ).length,
           };
         });
         const axe = await new AxeBuilder({ page }).analyze();
@@ -158,7 +162,7 @@ Produktionsbuild gegen lokales Supabase (Testnutzer aus \`supabase/seed.sql\`), 
 Durchscrollen (Lazy Loading). Vorher = \`main\` vor Auftrag 088, Nachher = Branch
 \`claude/auftrag-088-kompakte-kacheln\`. Bilder bleiben lokal unter \`artifacts/auftrag-088/\`.
 
-| Breite | Theme | SHA-256 vorher | SHA-256 nachher | Zahlkachel (Median) | „Historischer Stand ist fest“ | weiße Diagrammwerte | Überlauf Dok./main | axe |
+| Breite | Theme | SHA-256 vorher | SHA-256 nachher | Zahlkachel (Median) | „Historischer Stand ist fest“ | fest weiße Außenwerte (Säulen/Balken) | Überlauf Dok./main | axe |
 |---|---|---|---|---|---|---|---|---|
 ${rows.join('\n')}
 

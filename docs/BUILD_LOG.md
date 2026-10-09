@@ -16200,3 +16200,7 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - **P2 Danger-Buttons:** Fläche `bg-[var(--coral-red)]` statt `bg-error`; das aufgehellte `--color-error` gilt nur für Text. Stand der Fläche wie vor 088.
 - **CI `test`:** 6 Zeitüberschreitungen (5000 ms) in Konfigurator-/Workspace-Tests, die 088 nicht berührt; lokal grün, neuer Lauf mit diesem Commit.
 - Test `chartValueColor.ui` auf 4 Fälle erweitert. `tsc`, betroffene Tests grün; Schutzbereich unverändert.
+
+### Auftrag 088 – Nacharbeit Codex PR #74 Runde 2, Builder Claude Code, 09.10.2026
+
+- **P1 Harness-Metrik:** `captureAuftrag088Tiles.mjs` zählt nur noch fest weiße Außenbeschriftungen von Säulen/Balken; Ringsumme und innenliegende Werte (`fill-white`) sind absichtlich weiß. Vorher (Worktree `e007ff0`) und Nachher neu aufgenommen: 8/8, fest weiße Außenwerte 2 → 0, Hinweise 12 → 0, Zahlkachel 349 → 286 px, Überlauf 0/0, axe 0. Nur Skript und README geändert.
