@@ -144,7 +144,10 @@ function compare() {
       const mobile = viewport.width < 768;
       const open = after.get(`${name}-offen`);
       const ok = {
-        hash: a.sha256 !== b.sha256,
+        // Codex PR #72: Gate auf die Filterleiste; der Ganzseiten-Hash wird nur berichtet.
+        hash: mobile
+          ? Boolean(open?.filterSha256) && open.filterSha256 !== b.filterSha256
+          : Boolean(a.filterSha256) && a.filterSha256 !== b.filterSha256,
         dates: a.dateFields === 0 && (!open || open.dateFields === 0),
         mobile: mobile
           ? a.toggleVisible && !a.formVisible && Boolean(open?.formVisible)
@@ -156,7 +159,7 @@ function compare() {
       };
       for (const [key, value] of Object.entries(ok)) if (!value) problems.push(`${name}: ${key}`);
       rows.push(
-        `| ${viewport.width} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.dateFields} → ${a.dateFields} | ${mobile ? `Knopf „${a.toggleText}“, zu → offen: ${open?.formVisible ? 'ja' : 'nein'}` : 'offen, kein Knopf'} | ${a.overflow.document}/${a.overflow.main} px | ${a.severe.length} |`,
+        `| ${viewport.width} | ${theme} | \`${b.filterSha256?.slice(0, 12)}\` | \`${(mobile ? open?.filterSha256 : a.filterSha256)?.slice(0, 12)}\` | ${b.dateFields} → ${a.dateFields} | ${mobile ? `Knopf „${a.toggleText}“, zu → offen: ${open?.formVisible ? 'ja' : 'nein'}` : 'offen, kein Knopf'} | ${a.overflow.document}/${a.overflow.main} px | ${a.severe.length} |`,
       );
     }
   }
@@ -167,7 +170,7 @@ Produktionsbuild gegen lokales Supabase (Testnutzer aus \`supabase/seed.sql\`). 
 vor Auftrag 086, Nachher = Branch \`claude/auftrag-086-ehrliche-filter\`. Bilder bleiben lokal
 unter \`artifacts/auftrag-086/\`.
 
-| Breite | Theme | SHA-256 vorher | SHA-256 nachher | Datumsfelder | Mobil | Überlauf Dok./main | axe |
+| Breite | Theme | SHA-256 Filterleiste vorher | SHA-256 Filterleiste nachher | Datumsfelder | Mobil | Überlauf Dok./main | axe |
 |---|---|---|---|---|---|---|---|
 ${rows.join('\n')}
 

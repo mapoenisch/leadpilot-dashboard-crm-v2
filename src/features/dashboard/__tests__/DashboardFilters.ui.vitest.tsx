@@ -64,7 +64,9 @@ describe('DashboardFilters', () => {
   it('blendet die Pipeline aus, wenn keine Kachel sie unterstützt, und nennt den Zeitraum-Grund', () => {
     setup({ pipelineSupported: false });
     expect(screen.queryByLabelText('Pipeline')).toBeNull();
-    expect(screen.getByText(/Keine Kachel dieser Ansicht unterstützt/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Keine Kachel dieser Ansicht folgt einem zentralen Pipeline-Filter/),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/Zeitraumfilter für diese Daten derzeit nicht verfügbar/),
     ).toBeInTheDocument();
@@ -145,6 +147,21 @@ describe('DashboardFilters: Zeitraum (Auftrag 086, ohne Wirkung ausgeblendet)', 
     setup({ editing: true, startFilters: { period: PERIOD } });
     expect(screen.getByText(/Gespeicherter Zeitraum/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Startfilter entfernen' })).toBeEnabled();
+  });
+
+  it('bewahrt einen ausgeblendeten Startzeitraum beim Übernehmen (Codex PR #72)', () => {
+    const { props } = setup({
+      editing: true,
+      value: { pipeline: 'Direkt' },
+      startFilters: { period: PERIOD },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Als Startfilter übernehmen' }));
+    expect(props.onStartFilters).toHaveBeenCalledWith({ pipeline: 'Direkt', period: PERIOD });
+  });
+
+  it('erklärt den Vorrang kacheleigener Pipelines (Codex PR #72)', () => {
+    setup();
+    expect(screen.getByText(/Kacheln mit eigener Pipeline behalten diese/)).toBeInTheDocument();
   });
 
   it('vergleicht Startfilter über beide Filterarten', () => {

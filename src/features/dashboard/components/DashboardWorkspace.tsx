@@ -150,7 +150,10 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   // Der Start-Sitzungsfilter kommt aus der gespeicherten Fassung, nie aus dem Entwurf: Änderungen
   // am Entwurf (Startfilter entfernen, Standard) wirken erst nach „Speichern“.
   const filters = session ? session.value : state?.config.filters;
-  const pipelineSupported = tiles.some((tile) => activeEntryOf(tile)?.filters.includes('pipeline'));
+  // Codex PR #72: Nur Kacheln ohne eigene Pipeline folgen dem zentralen Filter (`tile.pipeline` hat Vorrang).
+  const pipelineSupported = tiles.some(
+    (tile) => !tile.pipeline && activeEntryOf(tile)?.filters.includes('pipeline'),
+  );
   const unavailable = state?.kind === 'gespeichert' ? state.unavailable.length : 0;
   const skeletonRef = useRef<HTMLDivElement | null>(null);
   const { onShownTilesChange } = props;

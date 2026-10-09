@@ -16167,3 +16167,12 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-086/README.md`, Produktionsbuild gegen lokales Supabase, Vorher aus Worktree `main` `0fe9db5`. 6/6 (1440/768/375 × dunkel/hell): SHA-256 verschieden, Datumsfelder 2 → 0, 375 px Knopf sichtbar und Bereich zu → aufgeklappt offen, 1440/768 ohne Knopf; Überlauf Dokument/`<main>` 0/0 px; axe serious/critical 0.
 
 **Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 086 – Nacharbeit Codex PR #72 Runde 1, Builder Claude Code, 09.10.2026
+
+- **P2 Zähler nur für zentral gefilterte Kacheln:** `pipelineSupported` in `DashboardWorkspace.tsx` zählt nur Kacheln ohne eigene `tile.pipeline`. Haben alle CRM-Kacheln eine eigene Pipeline, entfällt das Feld; Knopf „Filter“ ohne Zähler. Test im Workspace; Gegenprobe ohne Fix rot (1/17).
+- **P2 Vorrang kacheleigener Pipelines erklärt:** Hinweis „Kacheln mit eigener Pipeline behalten diese“; Ersatztext ohne Feld: „Keine Kachel dieser Ansicht folgt einem zentralen Pipeline-Filter.“
+- **P2 Startzeitraum beim Übernehmen bewahrt:** „Als Startfilter übernehmen“ ergänzt einen ausgeblendeten Startzeitraum, wenn die Sitzung keinen hat. Test ergänzt.
+- **P2 Harness:** Gate vergleicht den Hash der Filterleiste (mobil im aufgeklappten Zustand); der Ganzseiten-Hash wird nur berichtet. Nachher neu aufgenommen: 6/6, Überlauf 0/0 px, axe 0.
+- **Visual-Baselines:** `/dashboard` (1440/768/375) wegen geänderten Hinweistexts erneut über `update-visual-baselines.yml` erzeugt.
+- **Gates:** `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün; Schutzbereichs-Diff gegen `0fe9db5` leer.

@@ -20,7 +20,7 @@ export interface DashboardFiltersProps {
   startFilters: FilterValues | undefined;
   editing: boolean;
   locked: boolean;
-  /** Mindestens eine Kachel unterstützt den Pipeline-Filter. */
+  /** Mindestens eine Kachel ohne eigene Pipeline unterstützt den zentralen Pipeline-Filter. */
   pipelineSupported: boolean;
   onApply: (filters: FilterValues | undefined) => void;
   onStartFilters: (filters: FilterValues | undefined) => void;
@@ -125,7 +125,7 @@ export function DashboardFilters({
             />
           ) : (
             <p className="m-0 text-sm text-[var(--color-text-muted)]">
-              Keine Kachel dieser Ansicht unterstützt einen Pipeline-Filter.
+              Keine Kachel dieser Ansicht folgt einem zentralen Pipeline-Filter.
             </p>
           )}
         </div>
@@ -151,7 +151,14 @@ export function DashboardFilters({
                 size="sm"
                 variant="secondary"
                 disabled={locked || !value || !differsFromStart}
-                onClick={() => onStartFilters(value)}
+                onClick={() =>
+                  // Codex PR #72: ein ausgeblendeter Startzeitraum geht beim Übernehmen nicht verloren.
+                  onStartFilters(
+                    value && !value.period && startFilters?.period
+                      ? { ...value, period: startFilters.period }
+                      : value,
+                  )
+                }
               >
                 Als Startfilter übernehmen
               </Button>
@@ -174,7 +181,7 @@ export function DashboardFilters({
         ) : null}
         <p id={noteId} className="m-0 basis-full text-[12px] text-[var(--color-text-muted)]">
           {pipelineSupported
-            ? 'Pipeline: CRM-Kacheln zeigen nur Deals, deren Pipeline genau so heißt (Groß-/Kleinschreibung zählt); andere Kacheln bleiben ungefiltert. '
+            ? 'Pipeline: CRM-Kacheln zeigen nur Deals, deren Pipeline genau so heißt (Groß-/Kleinschreibung zählt); Kacheln mit eigener Pipeline behalten diese; andere Kacheln bleiben ungefiltert. '
             : ''}
           Zeitraumfilter für diese Daten derzeit nicht verfügbar.
           {savedPeriod
