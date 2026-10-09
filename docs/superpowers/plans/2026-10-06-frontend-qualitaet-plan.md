@@ -30,20 +30,20 @@ Wir ändern zunächst Fehler und irreführende Zustände, anschließend die Gest
 
 ## 3. Abdeckung aller Mängel
 
-| Befund aus dem Entwurf | Bearbeitung | Ergebnis |
-|---|---|---|
-| F12 Pipeline hängt / Fehler als Null | Arbeitspaket A | Fehler blockiert weder Navigation noch ehrliche Anzeige |
-| F08 Funnel-Widerspruch | B, G | Gemeinsame geprüfte Werte und Berechnungen |
-| F04 Unwirksamer Datumsfilter | C | Keine aktive Einstellung ohne Wirkung |
-| F05 Freies Pipeline-Feld | C | Nachvollziehbare Auswahl oder ehrlich begrenzte Suche |
-| F01/F02 Große Kacheln / Textwiederholung | D, E | Kompakte Kacheln, kurze Metadaten |
-| F03 Fehlende Einordnung | E | Verständliche Namen und belegte Vergleiche |
-| F06 Mobile Überlänge | D, E, G | Kennzahl im ersten Bildschirm, lesbare Fachseiten |
-| F07 Ganzseitenbilder | D, G | Abgenommene HTML-Seiten ohne Verlust von Inhalt/Marke |
-| F09 Entwicklersprache | C, E, F, H | Durchgehende verständliche deutsche Beschriftungen |
-| F10 Editorüberladung | F | Weniger sichtbare Aktionen, alle Funktionen erreichbar |
-| F11 Glanz/3D/ähnliche Farben | D, E, G | Ruhige Diagramme mit unterscheidbaren Datenreihen |
-| F13/F14 Abmelden / Navigation | H | Sichtbare Kontoaktionen und eindeutiger Standort |
+| Befund aus dem Entwurf                      | Bearbeitung     | Ergebnis                                                                             |
+| ------------------------------------------- | --------------- | ------------------------------------------------------------------------------------ |
+| F12 Pipeline hängt / Fehler als Null        | Arbeitspaket A  | Fehler blockiert weder Navigation noch ehrliche Anzeige                              |
+| F08 Funnel-Widerspruch                      | B, G            | Gemeinsame geprüfte Werte und Berechnungen                                           |
+| F04 Unwirksamer Datumsfilter                | C               | Keine aktive Einstellung ohne Wirkung                                                |
+| F05 Freies Pipeline-Feld                    | C               | Nachvollziehbare Auswahl oder ehrlich begrenzte Suche                                |
+| F01/F02 Große Kacheln / Textwiederholung    | D, E            | Kompakte Kacheln, kurze Metadaten                                                    |
+| F03 Fehlende Einordnung                     | E               | Verständliche Namen und belegte Vergleiche                                           |
+| F06 Mobile Überlänge                        | D, E, G         | Kennzahl im ersten Bildschirm, lesbare Fachseiten                                    |
+| F07 Ganzseitenbilder                        | D, G            | Abgenommene HTML-Seiten ohne Verlust von Inhalt/Marke                                |
+| F09 Entwicklersprache                       | C, E, F, H      | Durchgehende verständliche deutsche Beschriftungen                                   |
+| F10 Editorüberladung                        | F               | Weniger sichtbare Aktionen, alle Funktionen erreichbar                               |
+| F11 Glanz/3D/ähnliche Farben                | D, E, G         | Ruhige Diagramme mit unterscheidbaren Datenreihen                                    |
+| F13/F14 Abmelden / Navigation               | H               | Sichtbare Kontoaktionen und eindeutiger Standort                                     |
 | F15 Heller Modus unlesbar (neu aus Paket 0) | D, Abnahme in E | Alle Texte in hell und dunkel lesbar; axe über die ganze Seite ohne `color-contrast` |
 
 ## 4. Reihenfolge und Abhängigkeiten
@@ -52,13 +52,13 @@ Wir ändern zunächst Fehler und irreführende Zustände, anschließend die Gest
 
 Diese fünf Randbedingungen sind in den jeweiligen Arbeitspaketen ausdrücklich als Testfälle enthalten:
 
-| Bedingung | Erwartung | Zuständiges Paket |
-|---|---|---|
-| CRM-Abfrage fällt aus, danach Seitenwechsel | Neue Route und neuer Inhalt erscheinen; keine falschen Nullwerte | A |
-| Alte Präferenz enthält heute nicht wirksamen Zeitraum oder unbekannte Pipeline | Kein stiller Datenverlust, ehrliche Einschränkung | C |
-| Lange Beschriftung, 320 px oder vergrößerte Schrift | Inhalt bleibt vollständig lesbar und bedienbar | D/E/G |
-| Zwei Sitzungen speichern dieselbe Dashboardrevision | Konflikt sichtbar, Entwurf bleibt erhalten, keine fremden Benutzerdaten | F/I |
-| Vergleichswert fehlt oder Berechnungsnenner ist 0 | Keine erfundene Entwicklung, kein NaN/Unendlich, verständlicher Datenzustand | B/E |
+| Bedingung                                                                      | Erwartung                                                                    | Zuständiges Paket |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ----------------- |
+| CRM-Abfrage fällt aus, danach Seitenwechsel                                    | Neue Route und neuer Inhalt erscheinen; keine falschen Nullwerte             | A                 |
+| Alte Präferenz enthält heute nicht wirksamen Zeitraum oder unbekannte Pipeline | Kein stiller Datenverlust, ehrliche Einschränkung                            | C                 |
+| Lange Beschriftung, 320 px oder vergrößerte Schrift                            | Inhalt bleibt vollständig lesbar und bedienbar                               | D/E/G             |
+| Zwei Sitzungen speichern dieselbe Dashboardrevision                            | Konflikt sichtbar, Entwurf bleibt erhalten, keine fremden Benutzerdaten      | F/I               |
+| Vergleichswert fehlt oder Berechnungsnenner ist 0                              | Keine erfundene Entwicklung, kein NaN/Unendlich, verständlicher Datenzustand | B/E               |
 
 ```text
 0 Bestandsaufnahme
@@ -124,12 +124,12 @@ Vorläufige Größenordnung: 0 klein, F15 klein, A mittel bis zur Diagnose, B mi
 
 **Dateien:** `src/features/vertrieb/pages/FunnelPage.tsx`, `src/domain/vertriebData.ts`, `src/components/imagePage/ImagePage.tsx` nur lesen; vorhandene Funnel-Tests ergänzen; Abgleichprotokoll im Befundregister. Originalbilder bleiben Referenzmaterial und werden nicht gelöscht.
 
-- [ ] Bild, HTML-/Textfassung und Domänendaten vergleichen: alle Trichterstufen, Perioden, Quartalswerte, Prozentwerte und Hinweisrechnungen.
-- [ ] Verbindliche Definition festhalten: Welcher Zähler und Nenner gelten bei „Angebote“? 108/192 ist rechnerisch rund 56,3 %, aber die fachliche Definition muss aus Quellen nachgewiesen werden.
-- [ ] Bei Quellenwiderspruch die konkrete fachliche Frage Marc vorlegen. Bis zur Klärung die betroffene Rate nicht als bestätigte richtige Zahl ausgeben.
-- [ ] Nach Klärung Zähler/Nenner und eine einheitliche Rundung verwenden. Zahlen, Diagramme, Tabellen und lesbare Zusammenfassung müssen aus derselben belegten Quelle kommen.
-- [ ] Relevante Regressionen: kein Nenner → „Nicht berechenbar“; Nenner 0 → keine Unendlich-/NaN-Anzeige; 108/192 → festgelegtes gerundetes Ergebnis; Summen der Quartale entsprechen dem Jahreswert.
-- [ ] Übrige Bildseiten im Register auf doppelt gepflegte bzw. abweichende Zahlen markieren. Jede Abweichung bekommt Entscheidung, Quelle und zuständige Migrationswelle.
+- [x] Bild, HTML-/Textfassung und Domänendaten vergleichen: alle Trichterstufen, Perioden, Quartalswerte, Prozentwerte und Hinweisrechnungen.
+- [x] Verbindliche Definition festhalten: Welcher Zähler und Nenner gelten bei „Angebote“? 108/192 ist rechnerisch rund 56,3 %, aber die fachliche Definition muss aus Quellen nachgewiesen werden.
+- [x] Bei Quellenwiderspruch die konkrete fachliche Frage Marc vorlegen. Bis zur Klärung die betroffene Rate nicht als bestätigte richtige Zahl ausgeben.
+- [x] Nach Klärung Zähler/Nenner und eine einheitliche Rundung verwenden. Zahlen, Diagramme, Tabellen und lesbare Zusammenfassung müssen aus derselben belegten Quelle kommen.
+- [x] Relevante Regressionen: kein Nenner → „Nicht berechenbar“; Nenner 0 → keine Unendlich-/NaN-Anzeige; 108/192 → festgelegtes gerundetes Ergebnis; Summen der Quartale entsprechen dem Jahreswert.
+- [x] Übrige Bildseiten im Register auf doppelt gepflegte bzw. abweichende Zahlen markieren. Jede Abweichung bekommt Entscheidung, Quelle und zuständige Migrationswelle. Umgesetzt mit Auftrag 085 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_085_FUNNEL_FACHLICHE_WAHRHEIT.md`); Entscheidung Marc 09.10.2026: Zähler/Nenner aus dem Faktenblatt, eine Nachkommastelle. Register Abschnitt 8 (Z1–Z12); offen für Marc: Z8 (H2-Budget 30.000 € vs. 19.375 €) und Z9 (Trial-Ziel 24 % ohne Beleg), beide vor der jeweiligen G2-Welle.
 
 **Abnahme:** Die Funnel-Werte sind fachlich geklärt und in der später ausgelieferten sichtbaren Seite, Tabelle und Screenreaderfassung identisch. Kein Bild allein gilt als Datenquelle für künftige Berechnungen.
 

@@ -1,22 +1,69 @@
+import { formatAnzahl, formatQuote } from './funnelQuote';
+
+// Auftrag 085 / F08: Quartalswerte (Faktenblatt v1.1, Abschnitt 8) sind die einzige
+// Quelle. Jahreswert, Monatsschnitt und Conversion werden daraus berechnet, damit
+// Trichter, Tabelle und Textfassung nicht auseinanderlaufen. Conversion je Stufe =
+// Jahreswert der Stufe / Jahreswert der Vorstufe (Angebote: Zähler Angebote, Nenner SQL).
+type FunnelStufe = 'leads' | 'mql' | 'sql' | 'testversionen' | 'angebote' | 'neukunden';
+export const FUNNEL_QUARTALE: Readonly<Record<FunnelStufe, readonly number[]>> = {
+  leads: [384, 432, 456, 504],
+  mql: [108, 126, 132, 150],
+  sql: [40, 47, 50, 55],
+  testversionen: [57, 64, 68, 75],
+  angebote: [23, 26, 28, 31],
+  neukunden: [10, 11, 12, 14],
+};
+
+const jahr = (werte: readonly number[]) => werte.reduce((summe, wert) => summe + wert, 0);
+const FY = {
+  leads: jahr(FUNNEL_QUARTALE.leads),
+  mql: jahr(FUNNEL_QUARTALE.mql),
+  sql: jahr(FUNNEL_QUARTALE.sql),
+  testversionen: jahr(FUNNEL_QUARTALE.testversionen),
+  angebote: jahr(FUNNEL_QUARTALE.angebote),
+  neukunden: jahr(FUNNEL_QUARTALE.neukunden),
+};
+
+function funnelZeile(stufe: string, werte: readonly number[], conversion: string): string[] {
+  const fy = jahr(werte);
+  return [stufe, ...werte.map(formatAnzahl), formatAnzahl(fy), formatAnzahl(fy / 12), conversion];
+}
+
 export const FUNNEL = {
   chart: {
     type: 'bar',
     labels: ['Q1', 'Q2', 'Q3', 'Q4'],
     datasets: [
-      { label: 'Leads', data: [384, 432, 456, 504], color: '#A7B0BA' },
-      { label: 'MQLs', data: [108, 126, 132, 150], color: '#7CEFE6' },
-      { label: 'SQLs', data: [40, 47, 50, 55], color: '#00D9C6' },
-      { label: 'Neukunden', data: [10, 11, 12, 14], color: '#FF7A3D' },
+      { label: 'Leads', data: [...FUNNEL_QUARTALE.leads], color: '#A7B0BA' },
+      { label: 'MQLs', data: [...FUNNEL_QUARTALE.mql], color: '#7CEFE6' },
+      { label: 'SQLs', data: [...FUNNEL_QUARTALE.sql], color: '#00D9C6' },
+      { label: 'Neukunden', data: [...FUNNEL_QUARTALE.neukunden], color: '#FF7A3D' },
     ],
   },
   headers: ['Stufe', 'Q1', 'Q2', 'Q3', 'Q4', 'FY 2025', 'Ø/Mon.', 'Conversion'],
   rows: [
-    ['Leads gesamt', '384', '432', '456', '504', '1.776', '148', '—'],
-    ['Marketing Qualified Leads (MQL)', '108', '126', '132', '150', '516', '43', '29 % der Leads'],
-    ['Sales Qualified Leads (SQL)', '40', '47', '50', '55', '192', '16', '38 % der MQL'],
-    ['Testversionen gestartet', '57', '64', '68', '75', '264', '22', 'inkl. Self-Service'],
-    ['Angebote', '23', '26', '28', '31', '108', '9', '56 % der SQL'],
-    ['Neukunden', '10', '11', '12', '14', '47', '3,9', 'Win Rate 43 %'],
+    funnelZeile('Leads gesamt', FUNNEL_QUARTALE.leads, '—'),
+    funnelZeile(
+      'Marketing Qualified Leads (MQL)',
+      FUNNEL_QUARTALE.mql,
+      `${formatQuote(FY.mql, FY.leads)} der Leads`,
+    ),
+    funnelZeile(
+      'Sales Qualified Leads (SQL)',
+      FUNNEL_QUARTALE.sql,
+      `${formatQuote(FY.sql, FY.mql)} der MQL`,
+    ),
+    funnelZeile('Testversionen gestartet', FUNNEL_QUARTALE.testversionen, 'inkl. Self-Service'),
+    funnelZeile(
+      'Angebote',
+      FUNNEL_QUARTALE.angebote,
+      `${formatQuote(FY.angebote, FY.sql)} der SQL`,
+    ),
+    funnelZeile(
+      'Neukunden',
+      FUNNEL_QUARTALE.neukunden,
+      `Win Rate ${formatQuote(FY.neukunden, FY.angebote)}`,
+    ),
   ],
   note: {
     title: 'Trial-to-Paid Potenzial (+90.000 € ARR)',

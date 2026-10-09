@@ -73,3 +73,22 @@ describe('FunnelPage (branch3)', () => {
     expect(ths).toEqual(['Stufe', 'Q1', 'Q2', 'Q3', 'Q4', 'FY', 'Schnitt', 'Conversion']);
   });
 });
+
+// Auftrag 085 / F08: Trichter, Tabelle und Textfassung zeigen dieselben belegten Werte.
+describe('FunnelPage – fachliche Wahrheit (Auftrag 085)', () => {
+  it('Angebote 56,3 % der SQL in Trichter und Tabelle, nirgends 65 %', () => {
+    const { container } = render(<FunnelPage />);
+    expect(screen.getAllByText(/56,3 % der SQL/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/37,2 % der MQL/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/Win Rate 43,5 %/).length).toBeGreaterThanOrEqual(2);
+    expect(container.textContent).not.toMatch(/65(,3)? ?%/);
+    expect(container.textContent).not.toMatch(/38 % der MQL/);
+  });
+
+  it('jede Trichterstufe trägt ihre eigene Einheit', () => {
+    render(<FunnelPage />);
+    expect(screen.getByText('108 Angebote')).toBeInTheDocument();
+    expect(screen.getByText('47 Neukunden')).toBeInTheDocument();
+    expect(screen.queryByText('108 Leads')).toBeNull();
+  });
+});
