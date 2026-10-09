@@ -1,8 +1,9 @@
-// Auftrag 088 (Regel aus Paket D): Werte in den 3D-Diagrammen folgen dem Textton statt fest Weiß,
-// damit sie im hellen Modus lesbar sind.
+// Auftrag 088 (Regel aus Paket D): Werte neben den 3D-Säulen folgen dem Textton statt fest Weiß,
+// damit sie im hellen Modus lesbar sind. Codex PR #74: Werte innerhalb einer Säule und die Summe in
+// der (immer dunklen) Ringaussparung bleiben weiß.
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
-import { Depth3dBarChart } from '../components/charts/Depth3dBarChart';
+import { Depth3dBarChart, valueLabelClass } from '../components/charts/Depth3dBarChart';
 import { Depth3dDonutChart } from '../components/charts/Depth3dDonutChart';
 
 const DATA = [
@@ -17,22 +18,41 @@ const PROPS = {
   title: 'T',
   reducedMotion: true,
 };
+const TEXT_TONE = 'fill-[var(--color-text-primary';
 
 const boldTexts = (container: HTMLElement) =>
   [...container.querySelectorAll('svg text[font-weight="700"]')] as SVGTextElement[];
 
-describe('Diagrammwerte folgen dem Textton', () => {
-  it.each([
-    ['Säulen', <Depth3dBarChart key="s" {...PROPS} />],
-    ['Balken', <Depth3dBarChart key="b" {...PROPS} orientation="horizontal" />],
-    ['Ring', <Depth3dDonutChart key="r" {...PROPS} />],
-  ])('%s', (_name, element) => {
-    const { container } = render(element);
+describe('Diagrammwerte: Textton außen, Weiß innen', () => {
+  it('Säulen: Werte über der Säule im Textton', () => {
+    const { container } = render(<Depth3dBarChart {...PROPS} />);
     const texts = boldTexts(container);
-    expect(texts.length).toBeGreaterThan(0);
-    for (const text of texts) {
-      expect(text.getAttribute('fill')).not.toBe('#ffffff');
-      expect(text.getAttribute('class')).toContain('fill-[var(--color-text-primary');
-    }
+    expect(texts).toHaveLength(2);
+    for (const text of texts) expect(text.getAttribute('class')).toContain(TEXT_TONE);
+  });
+
+  it('Säulen: Wert innerhalb einer bis zum Rand reichenden negativen Säule bleibt weiß', () => {
+    const { container } = render(
+      <Depth3dBarChart
+        {...PROPS}
+        data={[
+          { label: 'A', value: 5 },
+          { label: 'B', value: -100 },
+        ]}
+      />,
+    );
+    const negative = boldTexts(container).find((text) => text.textContent?.includes('100'));
+    expect(negative?.getAttribute('class')).toBe('fill-white');
+  });
+
+  it('Balken: innen rechtsbündige Werte bleiben weiß', () => {
+    expect(valueLabelClass(true)).toBe('fill-white');
+    expect(valueLabelClass(false)).toContain(TEXT_TONE);
+  });
+
+  it('Ring: Summe in der dunklen Aussparung bleibt weiß', () => {
+    const { container } = render(<Depth3dDonutChart {...PROPS} />);
+    const sum = boldTexts(container)[0];
+    expect(sum?.getAttribute('fill')).toBe('#ffffff');
   });
 });

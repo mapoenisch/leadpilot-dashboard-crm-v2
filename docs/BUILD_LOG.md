@@ -16192,3 +16192,11 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-088/README.md`: 1440/768/375/320 × dunkel/hell, 8/8, Hash verschieden, Überlauf 0/0 px, axe 0.
 
 **Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen. Visual-Baseline `/dashboard` wird über `update-visual-baselines.yml` erneuert.
+
+### Auftrag 088 – Nacharbeit Codex PR #74 Runde 1, Builder Claude Code, 09.10.2026
+
+- **P2 Ringsumme:** Die Aussparung ist in beiden Themes dunkel → Summe wieder fest `#ffffff` (vorher im hellen Modus ~1,1:1).
+- **P2 innenliegende Säulenwerte:** `valueLabelClass` – Werte innerhalb der Säule (negative Säule bis zum Rand, rechtsbündige Balkenwerte) bleiben weiß, außen Textton.
+- **P2 Danger-Buttons:** Fläche `bg-[var(--coral-red)]` statt `bg-error`; das aufgehellte `--color-error` gilt nur für Text. Stand der Fläche wie vor 088.
+- **CI `test`:** 6 Zeitüberschreitungen (5000 ms) in Konfigurator-/Workspace-Tests, die 088 nicht berührt; lokal grün, neuer Lauf mit diesem Commit.
+- Test `chartValueColor.ui` auf 4 Fälle erweitert. `tsc`, betroffene Tests grün; Schutzbereich unverändert.
