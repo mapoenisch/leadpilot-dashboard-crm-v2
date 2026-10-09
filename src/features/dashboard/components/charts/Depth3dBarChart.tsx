@@ -46,6 +46,13 @@ export function negativeLabelY(bottom: number, baseline: number): number {
 }
 
 /**
+ * Auftrag 088 / Codex PR #74: Werte neben der Säule folgen dem Textton (heller Modus lesbar); Werte
+ * innerhalb der Säule liegen auf dem festen Türkisverlauf und bleiben deshalb weiß.
+ */
+export const valueLabelClass = (inside: boolean) =>
+  inside ? 'fill-white' : 'fill-[var(--color-text-primary,#fff)]';
+
+/**
  * Wert am Balkenende: rechts daneben, solange er in die Zeichenfläche passt; sonst rechtsbündig
  * innerhalb des Balkens (positive Werte am rechten Rand, rein negative Reihen an der Nullachse).
  */
@@ -253,7 +260,7 @@ export function Depth3dBarChart({
                       textAnchor={valueLabel.anchor}
                       fontSize="11.5"
                       fontWeight="700"
-                      fill="#ffffff"
+                      className={valueLabelClass(valueLabel.anchor === 'end')}
                       fontFamily="var(--font-mono, monospace)"
                     >
                       {formatDe(bar.value)}
@@ -328,7 +335,10 @@ export function Depth3dBarChart({
                       textAnchor="middle"
                       fontSize="11.5"
                       fontWeight="700"
-                      fill="#ffffff"
+                      className={valueLabelClass(
+                        bar.negative &&
+                          negativeLabelY(bar.y + bar.height, baseline) < bar.y + bar.height,
+                      )}
                       fontFamily="var(--font-mono, monospace)"
                     >
                       {axisLabel(bar.value)}

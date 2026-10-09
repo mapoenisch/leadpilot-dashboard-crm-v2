@@ -385,3 +385,33 @@ describe('Kachelgalerie (Vorschau)', () => {
     expect(readViewFilter('')).toBeUndefined();
   });
 });
+
+describe('DashboardTile: Muster-Regeln (Auftrag 088)', () => {
+  const FIXED = { mode: 'fester_stand' as const, period: null, pipeline: null };
+
+  it('wiederholt beim festen Stand ohne gewählten Zeitraum keinen Hinweis', () => {
+    renderTile(
+      resolved({ effectiveFilter: { ...FIXED, periodReason: 'Historischer Stand ist fest' } }),
+    );
+    expect(screen.getByTestId('tile-time-reference')).not.toHaveTextContent(
+      'Historischer Stand ist fest',
+    );
+  });
+
+  it('nennt den Grund weiter, wenn ein Zeitraum gewählt wurde', () => {
+    render(
+      <DashboardTile
+        tile={TILE}
+        entry={ARR}
+        data={resolved({
+          effectiveFilter: { ...FIXED, periodReason: 'Historischer Stand ist fest' },
+        })}
+        dashboardFilters={{ period: { from: '2026-01-01', to: '2026-03-31' } }}
+        onShowDetails={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('tile-time-reference')).toHaveTextContent(
+      'Historischer Stand ist fest',
+    );
+  });
+});

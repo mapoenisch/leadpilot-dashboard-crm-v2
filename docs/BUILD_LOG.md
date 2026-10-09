@@ -16176,3 +16176,31 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - **P2 Harness:** Gate vergleicht den Hash der Filterleiste (mobil im aufgeklappten Zustand); der Ganzseiten-Hash wird nur berichtet. Nachher neu aufgenommen: 6/6, Überlauf 0/0 px, axe 0.
 - **Visual-Baselines:** `/dashboard` (1440/768/375) wegen geänderten Hinweistexts erneut über `update-visual-baselines.yml` erzeugt.
 - **Gates:** `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün; Schutzbereichs-Diff gegen `0fe9db5` leer.
+
+### Auftrag 088 – Paket E Teil 1: Kompakte Kacheln nach den Mustern, Builder Claude Code, 09.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 10, Regeln aus Auftrag 087 (von Marc freigegeben). Paket E in 088/089 geteilt. Plan-Punkt „Charts flach gestalten“ nach Entscheidung Marc revidiert (3D-Tiefe bleibt). Baseline `main` `e007ff0`.
+
+**Geänderte Dateien:** `DashboardTile.tsx` (Titel 15 px, Stand/Quelle in der Zeitbezug-Zeile, Mindesthöhe Zahl 56 px), `TileStatus.tsx` (`leading`, Festwert-Hinweis nur bei gewähltem Zeitraum), `TileValue.tsx` (32 px, 56 px), `charts/Depth3dBarChart.tsx` + `Depth3dDonutChart.tsx` (Werte `fill-[var(--color-text-primary)]` statt `#ffffff`), `src/styles/global.css` (`--color-error` dunkel `#FF7A7E`, hell `#FF5A5F`); Tests `DashboardTile.ui` (2 neu), `DashboardTileStates.ui` (Höhe), `chartValueColor.ui` (neu, 3); Harness + README; Auftrag, Plan.
+
+**Funktionale Prüfungen:** Gegenprobe ohne Komponentenänderungen: 4 der neuen Tests rot. Zahlkachel Median 349 → 286 px (1440) bzw. 331 → 268 px (768/375/320); Richtwert 160–220 px folgt in 089 (kürzere Bezeichnungen). „Historischer Stand ist fest“ 12 → 0, fest weiße Diagrammwerte 3 → 0.
+
+**Schutzbereichs-Prüfung:** `git diff e007ff0 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` · `npm test` 322 / 2310 · `build` · `lint` · `format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-088/README.md`: 1440/768/375/320 × dunkel/hell, 8/8, Hash verschieden, Überlauf 0/0 px, axe 0.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen. Visual-Baseline `/dashboard` wird über `update-visual-baselines.yml` erneuert.
+
+### Auftrag 088 – Nacharbeit Codex PR #74 Runde 1, Builder Claude Code, 09.10.2026
+
+- **P2 Ringsumme:** Die Aussparung ist in beiden Themes dunkel → Summe wieder fest `#ffffff` (vorher im hellen Modus ~1,1:1).
+- **P2 innenliegende Säulenwerte:** `valueLabelClass` – Werte innerhalb der Säule (negative Säule bis zum Rand, rechtsbündige Balkenwerte) bleiben weiß, außen Textton.
+- **P2 Danger-Buttons:** Fläche `bg-[var(--coral-red)]` statt `bg-error`; das aufgehellte `--color-error` gilt nur für Text. Stand der Fläche wie vor 088.
+- **CI `test`:** 6 Zeitüberschreitungen (5000 ms) in Konfigurator-/Workspace-Tests, die 088 nicht berührt; lokal grün, neuer Lauf mit diesem Commit.
+- Test `chartValueColor.ui` auf 4 Fälle erweitert. `tsc`, betroffene Tests grün; Schutzbereich unverändert.
+
+### Auftrag 088 – Nacharbeit Codex PR #74 Runde 2, Builder Claude Code, 09.10.2026
+
+- **P1 Harness-Metrik:** `captureAuftrag088Tiles.mjs` zählt nur noch fest weiße Außenbeschriftungen von Säulen/Balken; Ringsumme und innenliegende Werte (`fill-white`) sind absichtlich weiß. Vorher (Worktree `e007ff0`) und Nachher neu aufgenommen: 8/8, fest weiße Außenwerte 2 → 0, Hinweise 12 → 0, Zahlkachel 349 → 286 px, Überlauf 0/0, axe 0. Nur Skript und README geändert.

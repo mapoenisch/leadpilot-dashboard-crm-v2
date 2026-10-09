@@ -1,5 +1,6 @@
 // Executive Dashboard, Teilauftrag 4 (Auftrag 073): Datenzustand je Kachel (Plan §4).
 // Verständliche Texte statt technischer Meldungen; „Keine Daten“ statt 0.
+import type { ReactNode } from 'react';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import type { ActiveCatalogEntry } from '../model/dashboardCatalog';
@@ -122,10 +123,13 @@ export function TimeReference({
   tile,
   data,
   dashboardFilters,
+  leading,
 }: {
   tile: DashboardTileConfig;
   data: ResolvedTileData | null;
   dashboardFilters?: DashboardFilters;
+  /** Auftrag 088: Stand und Quelle laufen in derselben Zeile wie der Zeitbezug (Muster Paket D). */
+  leading?: ReactNode;
 }) {
   const filter = data?.effectiveFilter;
   const parts = [`Zeitbezug: ${filterModeLabel(filter?.mode ?? tile.filterMode)}`];
@@ -143,12 +147,23 @@ export function TimeReference({
     const requested = tile.pipeline ?? dashboardFilters?.pipeline;
     if (requested) parts.push(`Pipeline gewählt: ${requested}`);
   }
-  const reasons = [filter?.periodReason, filter?.pipelineReason].filter(
-    (reason): reason is string => Boolean(reason),
+  // Auftrag 088: „Historischer Stand ist fest“ wiederholt nur den Zeitbezug – ohne gewählten
+  // Zeitraum entfällt der Satz. Gründe für tatsächlich gewählte, aber unwirksame Filter bleiben.
+  const periodRequested = Boolean(tile.period ?? dashboardFilters?.period);
+  const periodReason =
+    (filter?.mode ?? tile.filterMode) === 'fester_stand' && !periodRequested
+      ? undefined
+      : filter?.periodReason;
+  const reasons = [periodReason, filter?.pipelineReason].filter((reason): reason is string =>
+    Boolean(reason),
   );
   return (
     <div data-testid="tile-time-reference">
-      <p className={cn(MUTED, BREAK)}>{parts.join(' · ')}</p>
+      <p className={cn(MUTED, BREAK)}>
+        {leading}
+        {leading ? ' · ' : null}
+        {parts.join(' · ')}
+      </p>
       {reasons.map((reason) => (
         <p key={reason} className={cn(MUTED, BREAK, 'italic')}>
           {reason}
