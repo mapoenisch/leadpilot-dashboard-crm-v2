@@ -162,7 +162,7 @@ export function Depth3dDonutChart({
                 textAnchor="middle"
                 fontSize="24"
                 fontWeight="700"
-                fill="#ffffff"
+                className="fill-[var(--color-text-primary,#fff)]"
                 fontFamily="var(--font-mono, monospace)"
               >
                 {formatDe(total)}

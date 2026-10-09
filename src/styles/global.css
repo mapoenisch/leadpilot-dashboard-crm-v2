@@ -84,7 +84,8 @@
 
   --color-success: var(--mint-green);
   --color-success-soft: var(--mint-green-a14);
-  --color-error: var(--coral-red);
+  /* Auftrag 088 (Regel aus Paket D): #FF5A5F erreicht auf der dunklen Kachelfläche nur 4,46:1. */
+  --color-error: #FF7A7E;
   --color-error-soft: var(--coral-red-a14);
   --color-warning: var(--orange);
   --color-warning-soft: var(--orange-a14);
@@ -132,6 +133,7 @@
    auf <html>, Default dunkel (kein Attribut nötig), Persistenz localStorage.
    Vollständige Kontrasttabelle im BUILD_LOG (Gate G39 Welle 1). */
 [data-theme='light'] {
+  --color-error: var(--coral-red);
   --black: #E9F9F6;
   --charcoal: #DEF4F2;
   --surface: #CCEDEA;

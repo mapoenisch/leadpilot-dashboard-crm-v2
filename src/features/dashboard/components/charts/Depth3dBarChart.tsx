@@ -253,7 +253,7 @@ export function Depth3dBarChart({
                       textAnchor={valueLabel.anchor}
                       fontSize="11.5"
                       fontWeight="700"
-                      fill="#ffffff"
+                      className="fill-[var(--color-text-primary,#fff)]"
                       fontFamily="var(--font-mono, monospace)"
                     >
                       {formatDe(bar.value)}
@@ -328,7 +328,7 @@ export function Depth3dBarChart({
                       textAnchor="middle"
                       fontSize="11.5"
                       fontWeight="700"
-                      fill="#ffffff"
+                      className="fill-[var(--color-text-primary,#fff)]"
                       fontFamily="var(--font-mono, monospace)"
                     >
                       {axisLabel(bar.value)}
