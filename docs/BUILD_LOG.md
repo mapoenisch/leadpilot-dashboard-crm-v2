@@ -16052,6 +16052,11 @@ P2 „Kontrast des Login-Buttons im hellen Theme“ (`src/styles/global.css`) ge
 - **Scan erweitert:** Die Anmeldeseite wird zusätzlich ohne Sitzung in beiden Themes gescannt (hell mit nachgestelltem `data-theme`).
 - **Volllauf:** 258/258 ohne Verstoß oder Fehler (42 Ansichten plus Login, × 3 Breiten × 2 Themes). README-Matrix ergänzt, Schutzbereichs-Diff leer.
 
+### Nachtrag Auftrag 083 – Codex-Review nach Merge (PR #68, Commit `564e05a`), Builder Claude Code, 08.10.2026
+
+- **P2 Fehleransichten ohne Inventar-H1:** `scripts/captureAuftrag083ContrastScan.mjs` erkennt jetzt die Fehlerkarte der `RouteErrorBoundary` („Fehler beim Laden der Seite“ in `main [role="alert"]`) direkt und bricht die Aufnahme ab. Bisher entfiel die Prüfung bei Ansichten ohne Inventar-H1, und Pfad sowie Kopfzeile bleiben bei einem Absturz gleich.
+- Geprüft in beide Richtungen: Probelauf `ONLY=s-deals,s-leads` 12/12 grün; Gegenprobe mit abgebrochenem `DealsPage`-Chunk erkennt die Fehlerkarte (`routeError: true`). Nur Skript, kein Produktcode. Eigener Branch `claude/auftrag-083-nachtrag-fehlerkarte` (Codex PR #69: nicht mit Auftrag 084 bündeln).
+
 ## Auftrag 084 – Frontend-Qualität, Paket A (Pipelinefehler F12), Builder Claude Code, 08.10.2026
 
 **Ziel & Kontext:** Plan Frontend-Qualität §6, Befund F12. Navigation nach Erfolg, leer und Fehler ohne Neuladen; Fehler nicht als 0; „Erneut versuchen“; Exportsperre; kein Cache eines vorherigen Benutzers. Branch `claude/auftrag-084-pipeline-fehler` von `main` `564e05a`. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_084_PIPELINE_FEHLER_NAVIGATION.md`.
