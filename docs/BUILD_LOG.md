@@ -16110,3 +16110,38 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - **P2 Vollständiger Screenshot-Satz:** `COMPARE=1` prüft gegen den festen Sollsatz (3 Breiten × 2 Themes × 3 Seiten = 18, Navigation 3). Fehlende Einträge in Vorher oder Nachher zählen als Fehler; das Ergebnis nennt feste Sollzahlen. Gegenprobe: eine Aufnahme aus `nachher/result.json` entfernt → „17/18 … fehlgeschlagen“, Exit-Code 1; vollständig → Exit-Code 0.
 - **Regressionstests:** `crmPages.states.ui.vitest.tsx` um Platzhalterfall (je Seite) und Audit-Tab ergänzt, 19/19 grün. Gegenprobe mit dem Seitencode von `691eb5b`: 4 Tests rot.
 - **Nachweis Endstand:** Nachher-Aufnahmen neu mit Produktionsbuild gegen lokales Supabase: 18/18 Aufnahmen (Dokument/`<main>` überall 0/0 px, axe 0), Navigation 3/3; README-Matrix erneuert. Gates: `tsc` 0 · `verify` · `npm test` 320 / 2291 · `build` · `lint` · `format:check` grün; Schutzbereichs-Diff gegen `564e05a` leer.
+
+## Auftrag 085 – Frontend-Qualität, Paket B (Funnel und fachliche Wahrheit, F08), Builder Claude Code, 09.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 7. Funnel-Quoten fachlich klären und aus einer belegten Quelle speisen; Zahlenabgleich Bild ↔ Textfassung für alle 32 Bildseiten. Branch `claude/auftrag-085-funnel-wahrheit` von `main` `b65a5f8` (Merge PR #69). Auftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_085_FUNNEL_FACHLICHE_WAHRHEIT.md`.
+
+**Fachliche Klärung (Marc, 09.10.2026):** Zähler/Nenner aus dem Faktenblatt §8 gelten, Quoten werden berechnet und einheitlich auf eine Nachkommastelle gerundet: 29,1 % der Leads · 37,2 % der MQL (Faktenblatt-Text „38 %“ rechnerisch nicht haltbar) · 56,3 % der SQL (Bild „65,3 %“ = Zahlendreher) · Win Rate 43,5 %.
+
+**Geänderte Dateien:**
+- `src/domain/funnelQuote.ts` (neu): `berechneQuote`/`formatQuote`, ohne gültigen Nenner „Nicht berechenbar“.
+- `src/domain/vertriebData.ts`: `FUNNEL_QUARTALE` als einzige Quelle; Jahreswert, Ø/Monat und Conversion berechnet. Zeilenformat (`string[]`) unverändert, die nicht eingebundenen Komponenten `FunnelLeakageWaterfall`/`BudgetTargetLadder` übernehmen die Werte automatisch.
+- `src/features/vertrieb/pages/FunnelPage.tsx`: Einheit je Trichterstufe (vorher überall „Leads“).
+- Tests: `src/domain/__tests__/funnelQuote.vitest.ts` (neu), `FunnelPage.branch3.ui.vitest.tsx` ergänzt.
+- `scripts/captureAuftrag085FunnelText.mjs` (neu), `docs/screenshots/auftrag-085/README.md`.
+- `docs/reviews/2026-10-06-frontend-befundregister.md`: F08, Spalte „Zahlenabgleich“ für 32 Seiten, Abschnitt 8 (Z1–Z12).
+- Plan Abschnitt 7 abgehakt, `BUILD_PLAN.md`, Auftragsdatei.
+
+**Funktionale Prüfungen:**
+- Regressionen: kein Nenner → „Nicht berechenbar“; Nenner 0, NaN, ∞ → keine Unendlich-/NaN-Anzeige; 108/192 → 56,3 %; Quartalssummen = Jahreswert; Diagrammreihen = Tabellenzeilen; Seite zeigt 56,3 %/37,2 %/43,5 % in Trichter und Tabelle, nirgends 65 % oder 38 %; „108 Angebote“, „47 Neukunden“. Gegenprobe mit `vertriebData.ts`/`FunnelPage.tsx` von `b65a5f8`: 4 von 14 Tests rot.
+- Zahlenabgleich 32 Seiten: macOS-Texterkennung (Vision) je Bild gegen die im Test gerenderte Textfassung, beide Richtungen, danach jedes Bild einzeln gesichtet. 19 Seiten gleich, Funnel geklärt, Abweichungen im Bild auf 7 Seiten (Top-10-Kunden, Gesellschafterliste, Produkt-Performance, Unit Economics, GuV-Diagramm, Wachstumstreiber, Funnel), Widerspruch in Bild und Text auf 1 Seite (Marketingplanung: Initiativen 30.000 € vs. Monatsbudget 19.375 €). Wo das Faktenblatt den Wert nennt, stimmt die Textfassung. Offen für Marc: Z8 (H2-Budget), Z9 (Trial-Ziel 24 %).
+
+**Schutzbereichs-Prüfung:** `git diff b65a5f8 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` · `npm test` 321 / 2299 · `build` · `lint` · `format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-085/README.md`, Produktionsbuild gegen lokales Supabase, Vorher aus Worktree `main` `b65a5f8`. 6/6 (1440/768/375 × dunkel/hell): sichtbar ist weiterhin das Original-Bild (`PAGE_PRESENTATION = 'bild'`), daher **gleicher** SHA-256 erwartet und bestätigt; Textschicht nachher 6/6 Sollwerte, 0 alte Werte (vorher 5 alte Werte je Aufnahme); Überlauf Dokument/`<main>` 0/0 px; axe serious/critical 0. Abweichung von der Regel „Hashes müssen sich unterscheiden“ begründet: keine sichtbare Änderung bis Welle G1.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 085 – Nacharbeit Codex PR #71 Runde 1 und Entscheidungen Marc, Builder Claude Code, 09.10.2026
+
+- **Entscheidungen Marc (09.10.2026):** Z8 Marketingplanung H2 2026: Budget 30.000 € (Summe der Initiativen); die Monatsreihe (19.375 €) wird in G2 Vertrieb abgestimmt oder als Teilplan gekennzeichnet. Z9: kein Widerspruch – 24 % ist Monatsziel Jan 2027, ≥ 26 % Jahresziel 2026. Register, Auftrag und Plan nachgetragen; für Paket B ist nichts mehr offen.
+- **P2 Hash-Gleichheit im Gate:** `captureAuftrag085FunnelText.mjs` verlangt jetzt gleichen Hash des sichtbaren Funnel-Inhalts (Screenshot des Bildelements `sales-funnel-webp`). Befund dabei: Der Ganzseiten-Hash schwankt von Lauf zu Lauf auch bei unverändertem Stand (Kantenglättung der Shell-Schrift in Seiten- und Simulationsleiste, gemessen 0–85 Pixel mit 1–41/255). Er wird deshalb nur berichtet; Übergänge/Animationen werden vor der Aufnahme abgeschaltet. Zwei Läufe hintereinander: Inhalts-Hash 6/6 gleich.
+- **P2 Verbotsliste:** „29 % der Leads“ ergänzt. Soll-/Verbotswerte werden jetzt im Vergleich aus dem gespeicherten Text der Textschicht ausgewertet.
+- **Gegenprobe:** manipulierter Inhalts-Hash bzw. zusätzlich „29 % der Leads“ in der Textschicht → 4/6, Exit-Code 1; unverändert → Exit-Code 0.
+- **Nachweis:** Vorher (Worktree `b65a5f8`) und Nachher neu aufgenommen, README-Matrix erneuert, 6/6. Nur Skript und Dokumentation geändert; `tsc`, `format:check` grün, Schutzbereichs-Diff gegen `b65a5f8` leer.

@@ -20,6 +20,8 @@ import { ImagePage } from '@/components/imagePage';
 const zahl = (text: string | undefined): number =>
   Number((text ?? '0').replace(/\./g, '').replace(',', '.'));
 const reihenTon: Tone[] = ['neutral', 'cyan', 'mint', 'orange'];
+// Auftrag 085: Jede Trichterstufe in ihrer eigenen Einheit (vorher überall „Leads“).
+const stufenEinheit = ['Leads', 'MQL', 'SQL', 'Angebote', 'Neukunden'];
 
 function FunnelPageHtml() {
   const rows = FUNNEL.rows.map((row) => ({
@@ -63,7 +65,7 @@ function FunnelPageHtml() {
               items={stufen.map((row, index) => ({
                 label: `Stufe ${index + 1}: ${row[0] ?? ''}`,
                 value: zahl(row[5]),
-                display: `${row[5] ?? ''} Leads`,
+                display: `${row[5] ?? ''} ${stufenEinheit[index] ?? ''}`.trim(),
                 note: row[7] && row[7] !== '—' ? `(${row[7]})` : undefined,
                 tone: index === 2 ? 'orange' : 'cyan',
               }))}
