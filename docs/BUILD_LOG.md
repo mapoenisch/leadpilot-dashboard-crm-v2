@@ -16137,3 +16137,11 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-085/README.md`, Produktionsbuild gegen lokales Supabase, Vorher aus Worktree `main` `b65a5f8`. 6/6 (1440/768/375 × dunkel/hell): sichtbar ist weiterhin das Original-Bild (`PAGE_PRESENTATION = 'bild'`), daher **gleicher** SHA-256 erwartet und bestätigt; Textschicht nachher 6/6 Sollwerte, 0 alte Werte (vorher 5 alte Werte je Aufnahme); Überlauf Dokument/`<main>` 0/0 px; axe serious/critical 0. Abweichung von der Regel „Hashes müssen sich unterscheiden“ begründet: keine sichtbare Änderung bis Welle G1.
 
 **Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 085 – Nacharbeit Codex PR #71 Runde 1 und Entscheidungen Marc, Builder Claude Code, 09.10.2026
+
+- **Entscheidungen Marc (09.10.2026):** Z8 Marketingplanung H2 2026: Budget 30.000 € (Summe der Initiativen); die Monatsreihe (19.375 €) wird in G2 Vertrieb abgestimmt oder als Teilplan gekennzeichnet. Z9: kein Widerspruch – 24 % ist Monatsziel Jan 2027, ≥ 26 % Jahresziel 2026. Register, Auftrag und Plan nachgetragen; für Paket B ist nichts mehr offen.
+- **P2 Hash-Gleichheit im Gate:** `captureAuftrag085FunnelText.mjs` verlangt jetzt gleichen Hash des sichtbaren Funnel-Inhalts (Screenshot des Bildelements `sales-funnel-webp`). Befund dabei: Der Ganzseiten-Hash schwankt von Lauf zu Lauf auch bei unverändertem Stand (Kantenglättung der Shell-Schrift in Seiten- und Simulationsleiste, gemessen 0–85 Pixel mit 1–41/255). Er wird deshalb nur berichtet; Übergänge/Animationen werden vor der Aufnahme abgeschaltet. Zwei Läufe hintereinander: Inhalts-Hash 6/6 gleich.
+- **P2 Verbotsliste:** „29 % der Leads“ ergänzt. Soll-/Verbotswerte werden jetzt im Vergleich aus dem gespeicherten Text der Textschicht ausgewertet.
+- **Gegenprobe:** manipulierter Inhalts-Hash bzw. zusätzlich „29 % der Leads“ in der Textschicht → 4/6, Exit-Code 1; unverändert → Exit-Code 0.
+- **Nachweis:** Vorher (Worktree `b65a5f8`) und Nachher neu aufgenommen, README-Matrix erneuert, 6/6. Nur Skript und Dokumentation geändert; `tsc`, `format:check` grün, Schutzbereichs-Diff gegen `b65a5f8` leer.

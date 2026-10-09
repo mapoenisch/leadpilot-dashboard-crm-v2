@@ -74,7 +74,7 @@ und auf acht weiteren Seiten; rechnerisch 47 / 264 = 17,8 %. Seitenübergreifend
 - [x] Nachweis Funnel 1440/768/375 × dunkel/hell: sichtbar unverändert, Textschicht mit allen Sollwerten, 0 px Überlauf, axe 0.
 - [x] Pflichtgates, Schutzbereichs-Diff, BUILD_LOG.
 
-## Offene Fragen an Marc (nicht Funnel, vor der jeweiligen G2-Welle)
+## Weitere Entscheidungen Marc (09.10.2026, nicht Funnel)
 
-- **Z8 Marketingplanung H2 2026:** Initiativen summieren 30.000 €, Monatsbudget Aug 26–Jan 27 summiert 19.375 €. Welcher Betrag gilt?
-- **Z9 Trial-to-Paid 24 %:** Die Planung nennt 24 % als Ziel Jan 2027; das Faktenblatt kennt 25 % (Ziel 2025) und ≥ 26 % (Ziel 2026). Gilt 24 % oder ≥ 26 %?
+- **Z8 Marketingplanung H2 2026:** Initiativen summieren 30.000 €, Monatsbudget Aug 26–Jan 27 summiert 19.375 €. **Es gilt 30.000 €.** Die Monatsreihe wird bei der Migration (G2 Vertrieb) abgestimmt oder als Teilplan gekennzeichnet.
+- **Z9 Trial-to-Paid 24 %:** Die Planung nennt 24 % als Ziel Jan 2027; das Faktenblatt kennt 25 % (Ziel 2025) und ≥ 26 % (Ziel 2026). **Kein Widerspruch:** 24 % ist das Monatsziel Jan 2027, ≥ 26 % das Jahresziel 2026; je Seite den Zeitraum nennen.

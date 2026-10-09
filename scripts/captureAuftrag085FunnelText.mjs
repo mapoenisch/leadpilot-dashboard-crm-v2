@@ -38,7 +38,15 @@ const SOLL = [
   '108 Angebote',
   '47 Neukunden',
 ];
-const VERBOTEN = ['38 % der MQL', '56 % der SQL', 'Win Rate 43 %', '108 Leads', '47 Leads'];
+// Codex PR #71: auch die alte Lead-Quote „29 % der Leads“ ist verboten.
+const VERBOTEN = [
+  '29 % der Leads',
+  '38 % der MQL',
+  '56 % der SQL',
+  'Win Rate 43 %',
+  '108 Leads',
+  '47 Leads',
+];
 
 const env = (name) => {
   const value = process.env[name];
@@ -83,8 +91,25 @@ async function capture() {
         );
         if (actualTheme !== theme) throw new Error(`${name}: Theme ${actualTheme} statt ${theme}`);
         const file = path.join(dir, `${name}.png`);
-        await page.screenshot({ path: file, fullPage: true });
+        // Übergänge/Animationen vor der Aufnahme abschalten (Theme-Farbwechsel der Shell).
+        await page.addStyleTag({
+          content:
+            '*, *::before, *::after { transition: none !important; animation: none !important; caret-color: transparent !important; }',
+        });
+        await page.waitForTimeout(200);
+        await page.screenshot({ path: file, fullPage: true, animations: 'disabled' });
         const sha256 = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+        // Codex PR #71: Gate auf den sichtbaren Funnel-Inhalt (Bildelement). Der Ganzseiten-Hash
+        // schwankt lauf-zu-lauf durch Kantenglättung der Shell-Schrift (gemessen ≤ 41/255 an
+        // einzelnen Pixeln der Seitenleiste) und wird nur berichtet.
+        const contentFile = path.join(dir, `${name}-inhalt.png`);
+        await page
+          .getByTestId('sales-funnel-webp')
+          .screenshot({ path: contentFile, animations: 'disabled' });
+        const contentSha256 = crypto
+          .createHash('sha256')
+          .update(fs.readFileSync(contentFile))
+          .digest('hex');
         const text = await page.getByTestId('image-page-text').textContent();
         const overflow = await page.evaluate(() => {
           const main = document.querySelector('main');
@@ -100,13 +125,13 @@ async function capture() {
         shots.push({
           name,
           sha256,
+          contentSha256,
           overflow,
           severe,
-          soll: SOLL.filter((s) => text?.includes(s)),
-          verboten: VERBOTEN.filter((s) => text?.includes(s)),
+          text: text ?? '',
         });
         console.log(
-          `${name}: ${sha256.slice(0, 12)} · Soll ${shots.at(-1).soll.length}/${SOLL.length} · axe ${severe.length}`,
+          `${name}: ${sha256.slice(0, 12)} · Soll ${SOLL.filter((w) => text?.includes(w)).length}/${SOLL.length} · axe ${severe.length}`,
         );
       } finally {
         await context.close();
@@ -129,21 +154,26 @@ function compare() {
     const shot = after.shots.find((s) => s.name === name);
     if (!prev || !shot) {
       rows.push(
-        `| ${name} | ${prev ? '' : 'vorher fehlt'} ${shot ? '' : 'nachher fehlt'} | – | – | – | – | ❌ |`,
+        `| ${name} | ${prev ? '' : 'vorher fehlt'} ${shot ? '' : 'nachher fehlt'} | – | – | – | – | – | ❌ |`,
       );
       continue;
     }
-    // Textschicht: vorher alte Werte, nachher vollständig Soll und nichts Verbotenes.
-    const textOk =
-      shot.soll.length === SOLL.length && shot.verboten.length === 0 && prev.verboten.length > 0;
+    // Textschicht im Vergleich auswerten: vorher alte Werte, nachher vollständig Soll, nichts Verbotenes.
+    const soll = SOLL.filter((w) => shot.text.includes(w));
+    const verboten = VERBOTEN.filter((w) => shot.text.includes(w));
+    const vorherAlt = VERBOTEN.filter((w) => prev.text.includes(w));
+    const textOk = soll.length === SOLL.length && verboten.length === 0 && vorherAlt.length > 0;
+    // Codex PR #71: Sichtbar bleibt das Bild bis Welle G1 – gleicher Inhalts-Hash ist Teil des Gates.
+    const hashGleich = prev.contentSha256 === shot.contentSha256;
     const ok =
       textOk &&
+      hashGleich &&
       shot.severe.length === 0 &&
       shot.overflow.document === 0 &&
       shot.overflow.main === 0;
     if (ok) passed += 1;
     rows.push(
-      `| ${name} | ${prev.verboten.join(', ') || '–'} | ${shot.soll.length}/${SOLL.length}, verboten ${shot.verboten.length} | ${prev.sha256 === shot.sha256 ? 'gleich' : 'verschieden'} (${shot.sha256.slice(0, 12)}) | ${shot.overflow.document}/${shot.overflow.main} px | ${shot.severe.length} | ${ok ? '✅' : '❌'} |`,
+      `| ${name} | ${vorherAlt.join(', ') || '–'} | ${soll.length}/${SOLL.length}, verboten ${verboten.length} | ${hashGleich ? 'gleich' : 'verschieden'} (${shot.contentSha256.slice(0, 12)}) | ${prev.sha256 === shot.sha256 ? 'gleich' : 'verschieden'} | ${shot.overflow.document}/${shot.overflow.main} px | ${shot.severe.length} | ${ok ? '✅' : '❌'} |`,
     );
   }
   const md = `# Auftrag 085 – Funnel-Werte (F08), Vorher/Nachher
@@ -153,11 +183,13 @@ Erzeugt mit \`scripts/captureAuftrag085FunnelText.mjs\` gegen den Produktionsbui
 Bilder bleiben lokal (\`.gitignore\`).
 
 Sichtbar ist weiterhin das Original-Bild (\`PAGE_PRESENTATION = 'bild'\`); die sichtbare Seite ändert sich
-erst mit Welle G1. Deshalb ist **gleicher** Screenshot-Hash hier das erwartete Ergebnis. Geprüft wird die
+erst mit Welle G1. Deshalb ist ein **gleicher** Hash des sichtbaren Funnel-Inhalts (Bildelement) Teil des
+Gates. Der Ganzseiten-Hash wird nur berichtet: Er schwankt von Lauf zu Lauf durch Kantenglättung der
+Shell-Schrift (Seitenleiste, Simulationsleiste) auch bei unverändertem Stand. Geprüft wird außerdem die
 Textschicht für Screenreader: nachher alle Sollwerte (${SOLL.join(' · ')}), keiner der alten Werte.
 
-| Aufnahme | Alte Werte vorher | Textschicht nachher | Screenshot | Überlauf Dokument/\`<main>\` | axe | OK |
-|---|---|---|---|---|---|---|
+| Aufnahme | Alte Werte vorher | Textschicht nachher | Funnel-Inhalt (Gate) | Ganze Seite (Info) | Überlauf Dokument/\`<main>\` | axe | OK |
+|---|---|---|---|---|---|---|---|
 ${rows.join('\n')}
 
 **Ergebnis:** ${passed}/${expected.length} Aufnahmen bestanden.
