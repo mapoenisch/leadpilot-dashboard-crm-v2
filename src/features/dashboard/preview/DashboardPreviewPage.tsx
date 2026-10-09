@@ -4,8 +4,10 @@
 // aus (sie startet mit Säulen und würde sonst immer das Säulenmodul laden): Netzwerknachweis.
 // Der Arbeitsbereich (Auftrag 074) steht unter der Galerie; `?bereich=editor` zeigt nur ihn, und
 // `?ansicht=` blendet ihn aus, damit der Netzwerknachweis der Galerie unverändert bleibt.
+// Auftrag 087: `?bereich=muster` zeigt nur die Designmuster zur Sichtabnahme.
 import { DashboardDesignPreview } from './DashboardDesignPreview';
 import { DashboardEditorPreview } from './DashboardEditorPreview';
+import { DesignPatternPreview } from './DesignPatternPreview';
 import { TileGalleryPreview } from './TileGalleryPreview';
 import type { DashboardView } from '../model/dashboardCatalog';
 
@@ -30,6 +32,10 @@ export function readEditorOnly(search: string): boolean {
   return new URLSearchParams(search).get('bereich') === 'editor';
 }
 
+export function readPatternsOnly(search: string): boolean {
+  return new URLSearchParams(search).get('bereich') === 'muster';
+}
+
 export function readTileCount(search: string): number | undefined {
   const count = Number(new URLSearchParams(search).get('kacheln'));
   return Number.isInteger(count) && count > 0 && count <= 24 ? count : undefined;
@@ -46,6 +52,15 @@ export function DashboardPreviewPage({
 }) {
   const onlyView = readViewFilter(search);
   const editorOnly = readEditorOnly(search);
+  if (readPatternsOnly(search)) {
+    return (
+      <main className="min-h-screen bg-[var(--color-bg)] px-4 py-8 text-[var(--color-text)] sm:px-8">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6">
+          <DesignPatternPreview />
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="min-h-screen bg-[var(--color-bg-deep,#051413)] px-4 py-8 text-[var(--color-text-soft,#e6f3f1)] sm:px-8">
       <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6">
