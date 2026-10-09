@@ -16204,3 +16204,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - **P2 Menü-/Tab-Tastatur:** ARIA-Widgetrollen entfernt: Aktionsliste als Disclosure (`aria-expanded`/`aria-controls`, normale Knöpfe), Bereiche als Knopfgruppe mit `aria-pressed` – Tab-Reihenfolge und Enter/Leertaste reichen, keine unvollständige Pfeiltasten-Semantik.
 - **P2 Harness:** `scripts/captureAuftrag087Patterns.mjs` eingecheckt; erzeugt die README. Zusätzlich 188 px (200 % Zoom auf 375 px): zuerst 51 px Überlauf (Überschrift, Kennzahlraster, Menü, Speicherknöpfe), behoben – jetzt 12/12 ohne Überlauf, axe 0.
 - Gates: `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün; Schutzbereich unverändert.
+
+### Auftrag 087 – Nacharbeit Codex PR #73 Runde 2, Builder Claude Code, 09.10.2026
+
+- **P2 echte Schriftvergrößerung:** Harness vergrößert jetzt per Browser-Zoom (CSS `zoom`) auf 375 px um 150 % und 200 % und misst die wirksame Titelgröße (15 → 22,5 / 30 px) statt nur den Viewport zu verkleinern.
+- **P2 Vorher-Nachher:** Vorher = dieselbe URL im Elternstand `e007ff0` (bisherige Vorschauseite); Gate verlangt verschiedene Hashes. 12/12 verschieden.
+- **P2 Legendenknöpfe:** Musterregel setzt für alle Knöpfe `min-width`/`min-height` 44 px (auch Q1–Q4).
+- **Ergebnis:** 12/12 (1440/768/375/320 bei 100 %, 375 bei 150 %/200 %, dunkel/hell) ohne Überlauf, axe 0, Schrift vergrößert.

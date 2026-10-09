@@ -32,7 +32,7 @@ export function DesignPatternPreview() {
       {/* Werte über den Säulen sind im Diagramm fest weiß – im hellen Modus unlesbar. Im Muster folgt
           die Farbe dem Textton. Das Fehlerrot (#ff5a5f) erreicht auf dunkler Fläche nur 4,46:1 und wird im
           Muster aufgehellt. Die Produktdarstellung ändert sich erst nach Marcs Freigabe. */}
-      <style>{`[data-muster] svg text[font-weight="700"] { fill: var(--color-text-primary); } [data-muster] svg text:not([font-weight="700"]) { fill: var(--color-text-muted); } [data-muster-seite] button { white-space: normal; text-align: left; flex-shrink: 1; min-width: 0; max-width: 100%; } [data-theme="dark"] [data-muster] .text-error { color: #ff7a7e; }`}</style>
+      <style>{`[data-muster] svg text[font-weight="700"] { fill: var(--color-text-primary); } [data-muster] svg text:not([font-weight="700"]) { fill: var(--color-text-muted); } [data-muster-seite] button { white-space: normal; text-align: left; flex-shrink: 1; min-width: 44px; min-height: 44px; max-width: 100%; } [data-theme="dark"] [data-muster] .text-error { color: #ff7a7e; }`}</style>
       <header className="flex flex-col gap-2">
         <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
           Paket D · Designmuster zur Sichtabnahme

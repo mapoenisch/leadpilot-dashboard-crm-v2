@@ -1,23 +1,23 @@
 # Auftrag 087 – Screenshot-Matrix Designmuster
 
-Erzeugt mit `scripts/captureAuftrag087Patterns.mjs` gegen `dashboard-vorschau.html?bereich=muster`
-(Vite-Dev-Server), Branch `claude/auftrag-087-designmuster`. Neue Vorschauseite, daher kein
-Vorher-Bild. 250 px = 150 %, 188 px = 200 % Zoom auf einem 375-px-Gerät. Bilder bleiben lokal unter
-`artifacts/auftrag-087/`. Sichtabnahme durch Marc am 09.10.2026.
+Erzeugt mit `scripts/captureAuftrag087Patterns.mjs` gegen `dashboard-vorschau.html?bereich=muster`.
+Vorher = dieselbe URL im Elternstand `e007ff0` (bisherige Vorschauseite), Nachher = Branch
+`claude/auftrag-087-designmuster`. Vergrößerung über Browser-Zoom (CSS `zoom`): Schrift des
+Mustertitels gemessen. Bilder bleiben lokal unter `artifacts/auftrag-087/`. Sichtabnahme durch Marc am 09.10.2026.
 
-| Breite | Theme | SHA-256 | Überlauf | axe serious/critical |
-| ------ | ----- | ------- | -------- | -------------------- |
-| 1440 | dark | `aee3767460d6` | 0 px | 0 |
-| 1440 | light | `d1e6d1ebab20` | 0 px | 0 |
-| 768 | dark | `c4c3299594d3` | 0 px | 0 |
-| 768 | light | `03a8de4b6a92` | 0 px | 0 |
-| 375 | dark | `70e8a64326cf` | 0 px | 0 |
-| 375 | light | `acb6d6c7d003` | 0 px | 0 |
-| 320 | dark | `ddaf294a88f0` | 0 px | 0 |
-| 320 | light | `f1abc1c7d996` | 0 px | 0 |
-| 250 | dark | `a8ad3b0d6945` | 0 px | 0 |
-| 250 | light | `303f3ceea2d7` | 0 px | 0 |
-| 188 | dark | `461ffd2b5f90` | 0 px | 0 |
-| 188 | light | `d99b5c38f413` | 0 px | 0 |
+| Breite | Zoom | Theme | SHA-256 vorher | SHA-256 nachher | Titel wirksam | Überlauf | axe |
+| ------ | ---- | ----- | -------------- | --------------- | ------------- | -------- | --- |
+| 1440 | 100 % | dark | `95e921c2049b` | `6401212e1594` | 15 px | 0 px | 0 |
+| 1440 | 100 % | light | `95e921c2049b` | `f2941780993e` | 15 px | 0 px | 0 |
+| 768 | 100 % | dark | `104a0393d66f` | `d67e47b50c81` | 15 px | 0 px | 0 |
+| 768 | 100 % | light | `104a0393d66f` | `eb98ae97593b` | 15 px | 0 px | 0 |
+| 375 | 100 % | dark | `d308140914c1` | `41d0c5d57732` | 15 px | 0 px | 0 |
+| 375 | 100 % | light | `d308140914c1` | `247acc170d17` | 15 px | 0 px | 0 |
+| 320 | 100 % | dark | `da05d0909942` | `7ad6e95c09f1` | 15 px | 0 px | 0 |
+| 320 | 100 % | light | `da05d0909942` | `d0e43ab66a75` | 15 px | 0 px | 0 |
+| 375 | 150 % | dark | `d308140914c1` | `2545a9c47a70` | 22.5 px | 0 px | 0 |
+| 375 | 150 % | light | `d308140914c1` | `6f8c7ec7fe83` | 22.5 px | 0 px | 0 |
+| 375 | 200 % | dark | `d308140914c1` | `ed72f9d3abd6` | 30 px | 0 px | 0 |
+| 375 | 200 % | light | `d308140914c1` | `5479d16199a9` | 30 px | 0 px | 0 |
 
 **Ergebnis:** 12/12 ohne Überlauf und ohne axe-Verstöße. Gestalterische Freigabe durch Marc, nicht durch die Messung.
