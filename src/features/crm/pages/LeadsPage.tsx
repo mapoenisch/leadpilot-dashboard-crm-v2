@@ -1,5 +1,5 @@
 // G60 (Auftrag 067N, Step 4): Serverseitige, paginierte Leads- & Kontaktansicht mit URL-Sync und Export
-import React, { useMemo, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -153,7 +153,7 @@ export function LeadsPage() {
   );
 
   // P1-1: Ausschließlich serverseitige TanStack-Query für alle CRM-Ressourcen
-  const { data, isLoading, isError, error } = useCrmListQuery<R>(
+  const { data, isLoading, isError, isPlaceholderData, error, refetch } = useCrmListQuery<R>(
     {
       resource: conf.resource,
       q: searchTerm.trim() || undefined,
@@ -168,6 +168,14 @@ export function LeadsPage() {
 
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? 0;
+
+  // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
+  // Platzhalterdaten (vorherige Abfrage) gelten als Laden; der Audit-Tab fragt keine Liste ab.
+  const isAudit = activeTab === 'audit';
+  const hasData = data !== undefined && !isPlaceholderData;
+  const countText = isAudit ? '–' : isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
+  const exportBlocked = isError || !hasData;
+  const exportHintId = useId();
 
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
@@ -222,23 +230,33 @@ export function LeadsPage() {
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A CRM</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
-          <Badge variant="neutral">{total} Einträge</Badge>
-          {activeTab !== 'audit' && (
-            <Button
-              variant="secondary"
-              size="sm"
-              iconLeft={<Download size={14} />}
-              onClick={handleExport}
-              disabled={isViewer || isExporting}
-              title={
-                isViewer
-                  ? 'Viewer besitzen keine Exportberechtigung'
-                  : 'Aktuelle Liste als CSV exportieren'
-              }
-              aria-label="CSV Export"
-            >
-              {isExporting ? 'Exportiere...' : 'CSV Export'}
-            </Button>
+          {!isAudit && (
+            <>
+              <Badge variant="neutral">{countText} Einträge</Badge>
+              <Button
+                variant="secondary"
+                size="sm"
+                iconLeft={<Download size={14} />}
+                onClick={handleExport}
+                disabled={isViewer || isExporting || exportBlocked}
+                title={
+                  isViewer
+                    ? 'Viewer besitzen keine Exportberechtigung'
+                    : 'Aktuelle Liste als CSV exportieren'
+                }
+                aria-label="CSV Export"
+                aria-describedby={exportBlocked && !isViewer ? exportHintId : undefined}
+              >
+                {isExporting ? 'Exportiere...' : 'CSV Export'}
+              </Button>
+              {exportBlocked && !isViewer && (
+                <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
+                  {isError
+                    ? 'Export gesperrt: Datenbasis nicht verfügbar'
+                    : 'Export nach dem Laden verfügbar'}
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -257,20 +275,23 @@ export function LeadsPage() {
         {[
           {
             t: 'Gefundene Datensätze',
-            v: total,
-            n: 'Mandanten-geprüft',
+            v: countText,
+            n: isAudit ? 'Im Audit-Tab keine Listenabfrage' : 'Mandanten-geprüft',
             c: 'text-primary font-bold',
             f: true,
           },
           {
             t: 'Aktuelle Seite',
-            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            v:
+              isAudit || isError || !hasData
+                ? '–'
+                : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
             n: `${pageSize} pro Seite`,
             c: 'text-text font-semibold',
           },
           {
             t: 'Aktiver Tab',
-            v: activeTab === 'audit' ? 'Audit' : conf.label,
+            v: isAudit ? 'Audit' : conf.label,
             n: 'Serverseitig abgefragt',
             c: 'text-text font-semibold text-[20px]',
           },
@@ -374,6 +395,7 @@ export function LeadsPage() {
           message={stateInfo.msg}
           sourceLabel="Ebene A CRM"
           height={220}
+          onRetry={stateInfo.type === 'error' ? () => void refetch() : undefined}
         />
       ) : (
         <Card variant="glass" padding="0">

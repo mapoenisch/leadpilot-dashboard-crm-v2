@@ -61,11 +61,18 @@ function RouteFallback() {
   );
 }
 
+// Auftrag 084: Query-Keys enthalten weder Benutzer noch Organisation (staleTime 60 s). Bei Abmeldung
+// oder Benutzerwechsel alle Queries zurücksetzen, bevor der neue Benutzer rendert: Aktive Observer
+// verlieren ihr altes Ergebnis und laden mit der neuen Sitzung neu, inaktive Daten werden verworfen.
+function resetUserQueries() {
+  void queryClient.resetQueries();
+}
+
 export function App() {
   return (
     <RouteErrorBoundary resetKey="app-root">
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+        <AuthProvider onUserChange={resetUserQueries}>
           <OrganizationProvider>
             <WorkspaceHydrator />
             <BrowserRouter>

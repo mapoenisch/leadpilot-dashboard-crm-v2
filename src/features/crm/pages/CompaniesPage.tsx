@@ -1,5 +1,5 @@
 // G60 (Auftrag 067N, Step 4): URL-synchrone serverseitige Companies-Ansicht mit Pagination und Export
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useId } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -127,7 +127,7 @@ export function CompaniesPage() {
   ]);
 
   // Serverseitige TanStack-Query
-  const { data, isLoading, isError, error } = useCrmListQuery<Company>({
+  const { data, isLoading, isError, isPlaceholderData, error, refetch } = useCrmListQuery<Company>({
     resource: 'companies',
     q: searchTerm.trim() || undefined,
     filters: industryFilter !== 'ALL' ? { industry: industryFilter } : undefined,
@@ -167,6 +167,13 @@ export function CompaniesPage() {
 
   const companies = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? 0;
+
+  // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
+  // Platzhalterdaten der vorherigen Abfrage gelten bis zur neuen Antwort als Laden.
+  const hasData = data !== undefined && !isPlaceholderData;
+  const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
+  const exportBlocked = isError || !hasData;
+  const exportHintId = useId();
 
   const industryOptions = useMemo(() => {
     const knownValues = new Set(BASE_INDUSTRY_OPTIONS.map((o) => o.value));
@@ -217,22 +224,30 @@ export function CompaniesPage() {
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A Import</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
-          <Badge variant="neutral">{total} B2B Accounts</Badge>
+          <Badge variant="neutral">{countText} B2B Accounts</Badge>
           <Button
             variant="secondary"
             size="sm"
             iconLeft={<Download size={14} />}
             onClick={handleExport}
-            disabled={isViewer || isExporting}
+            disabled={isViewer || isExporting || exportBlocked}
             title={
               isViewer
                 ? 'Viewer besitzen keine Exportberechtigung'
                 : 'Gefilterte Unternehmensliste als CSV exportieren'
             }
             aria-label="CSV Export"
+            aria-describedby={exportBlocked && !isViewer ? exportHintId : undefined}
           >
             {isExporting ? 'Exportiere...' : 'CSV Export'}
           </Button>
+          {exportBlocked && !isViewer && (
+            <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
+              {isError
+                ? 'Export gesperrt: Datenbasis nicht verfügbar'
+                : 'Export nach dem Laden verfügbar'}
+            </span>
+          )}
         </div>
       </div>
 
@@ -251,14 +266,14 @@ export function CompaniesPage() {
         {[
           {
             t: 'Unternehmen Gesamt',
-            v: total,
+            v: countText,
             n: 'Mandanten-geprüft',
             c: 'text-primary font-bold',
             f: true,
           },
           {
             t: 'Aktuelle Seite',
-            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            v: isError || !hasData ? '–' : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
             n: `${pageSize} Accounts pro Seite`,
             c: 'text-text font-semibold',
           },
@@ -329,7 +344,11 @@ export function CompaniesPage() {
             />
           </div>
           <div className="crm-v2-result-count" aria-live="polite">
-            {total} {total === 1 ? 'Unternehmen' : 'Unternehmen'} gefunden
+            {isError
+              ? 'Ergebnis nicht verfügbar'
+              : !hasData
+                ? 'Ergebnis wird geladen …'
+                : `${total} Unternehmen gefunden`}
           </div>
         </div>
       </div>
@@ -348,6 +367,7 @@ export function CompaniesPage() {
           message={`Integritätsfehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der Unternehmen'}`}
           sourceLabel="Ebene A CRM Accounts"
           height={220}
+          onRetry={() => void refetch()}
         />
       ) : (
         <Card variant="glass" padding="0">

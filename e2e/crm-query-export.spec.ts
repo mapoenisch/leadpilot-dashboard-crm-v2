@@ -358,3 +358,159 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     expect(viewerBody.code).toBe('FORBIDDEN');
   });
 });
+
+// Auftrag 084 / Paket A (F12): Navigation nach erfolgreicher, leerer und fehlgeschlagener
+// CRM-Antwort ohne Neuladen; Fehler nicht als 0; „Erneut versuchen“ stellt die Anzeige her.
+type CrmMode = 'erfolg' | 'leer' | 'fehler';
+
+const CONTROLLED_DEALS = [
+  {
+    id: 'deal-084-1',
+    dealName: 'Kontrollierter Deal 084',
+    stage: 'Verhandlung',
+    amount: 12000,
+    closeDate: '2026-11-30',
+    pipeline: 'Neukunden',
+  },
+];
+
+/** Antwortet crm-query-export kontrolliert; OPTIONS-Preflights passieren mit CORS-Headern. */
+async function controlCrm(page: Page, mode: () => CrmMode): Promise<{ posts: () => number }> {
+  let posts = 0;
+  const cors = { 'Access-Control-Allow-Origin': '*' };
+  await page.route('**/functions/v1/crm-query-export**', async (route) => {
+    const request = route.request();
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          ...cors,
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info',
+        },
+      });
+      return;
+    }
+    posts += 1;
+    const params = JSON.parse(request.postData() ?? '{}') as { resource?: string };
+    const current = mode();
+    if (current === 'fehler') {
+      await route.fulfill({
+        status: 500,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: 'SERVER_ERROR' }),
+      });
+      return;
+    }
+    const items = current === 'leer' || params.resource !== 'deals' ? [] : CONTROLLED_DEALS;
+    await route.fulfill({
+      status: 200,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items,
+        total: items.length,
+        page: 1,
+        pageSize: 20,
+        resource: params.resource ?? 'deals',
+      }),
+    });
+  });
+  return { posts: () => posts };
+}
+
+/** Sidebar-Link anklicken; auf schmalen Breiten vorher das Hauptmenü öffnen. */
+async function clickNav(page: Page, name: RegExp): Promise<void> {
+  const link = page.getByRole('link', { name }).first();
+  if (!(await link.isVisible())) {
+    await page.getByRole('button', { name: 'Hauptmenü umschalten' }).click();
+  }
+  await link.click();
+}
+
+async function expectHeading(page: Page, title: RegExp): Promise<void> {
+  await expect(page.locator('header h1').first()).toHaveText(title, { timeout: 5000 });
+}
+
+test.describe('CRM Pipeline: Zustände und Navigation (Auftrag 084, F12)', () => {
+  for (const mode of ['erfolg', 'leer', 'fehler'] as const) {
+    test(`Navigation nach ${mode}: Wechsel, Zurück und Vorwärts ohne Neuladen`, async ({
+      page,
+    }) => {
+      const pageErrors: string[] = [];
+      page.on('pageerror', (e) => pageErrors.push(e.message));
+      await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
+      const crm = await controlCrm(page, () => mode);
+      await page.goto('/crm/deals');
+      await expectHeading(page, /Deal Pipeline/);
+      await expect.poll(crm.posts).toBeGreaterThan(0);
+
+      // Zustand: Fehler nie als 0, leer als bestätigte 0, Erfolg mit Anzahl.
+      const main = page.locator('main');
+      const exportBtn = page.getByRole('button', { name: 'CSV Export' });
+      if (mode === 'fehler') {
+        await expect(main.getByText('Nicht verfügbar Funnel Deals')).toBeVisible();
+        await expect(main.getByText('Ergebnis nicht verfügbar')).toBeVisible();
+        await expect(main.getByText(/^0 Funnel Deals$/)).toHaveCount(0);
+        await expect(exportBtn).toBeDisabled();
+        await expect(main.getByRole('button', { name: 'Erneut versuchen' })).toBeVisible();
+      } else {
+        const expected = mode === 'leer' ? 0 : CONTROLLED_DEALS.length;
+        await expect(main.getByText(`${expected} Funnel Deals`)).toBeVisible();
+        await expect(exportBtn).toBeEnabled();
+      }
+
+      // Wechsel per Sidebar, ohne Neuladen: Ein Laufzeit-Marker im window überlebt nur
+      // Client-Navigation; jede echte Dokument-Neuladung würde ihn löschen (Codex PR #69).
+      await page.evaluate(() => {
+        (window as unknown as { __auftrag084?: string }).__auftrag084 = 'ohne-neuladen';
+      });
+      const documentRequests: string[] = [];
+      page.on('request', (r) => {
+        if (r.resourceType() === 'document') documentRequests.push(r.url());
+      });
+      await clickNav(page, /unternehmenssteckbrief/i);
+      await expect(page).toHaveURL(/\/company\/profile$/);
+      await expectHeading(page, /Unternehmenssteckbrief/);
+
+      await page.goBack();
+      await expect(page).toHaveURL(/\/crm\/deals/);
+      await expectHeading(page, /Deal Pipeline/);
+
+      await page.goForward();
+      await expect(page).toHaveURL(/\/company\/profile$/);
+      await expectHeading(page, /Unternehmenssteckbrief/);
+
+      await page.goBack();
+      await clickNav(page, /sales funnel/i);
+      await expect(page).toHaveURL(/\/sales\/funnel$/);
+      await expectHeading(page, /Sales Funnel/);
+
+      // Kein Neuladen: Marker noch vorhanden, keine Dokument-Requests; keine Seitenfehler.
+      expect(
+        await page.evaluate(() => (window as unknown as { __auftrag084?: string }).__auftrag084),
+      ).toBe('ohne-neuladen');
+      expect(documentRequests).toEqual([]);
+      expect(pageErrors).toEqual([]);
+    });
+  }
+
+  test('„Erneut versuchen“ stellt nach Serverfehler die Anzeige wieder her', async ({ page }) => {
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
+    let mode: CrmMode = 'fehler';
+    const crm = await controlCrm(page, () => mode);
+    await page.goto('/crm/deals');
+    const main = page.locator('main');
+    const retry = main.getByRole('button', { name: 'Erneut versuchen' });
+    await expect(retry).toBeVisible();
+    const postsBefore = crm.posts();
+
+    mode = 'erfolg';
+    await retry.click();
+    await expect(main.getByText(`${CONTROLLED_DEALS.length} Funnel Deals`)).toBeVisible();
+    await expect(main.getByText('Kontrollierter Deal 084').first()).toBeVisible();
+    await expect(retry).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'CSV Export' })).toBeEnabled();
+    // Nur die fehlgeschlagene Abfrage wird wiederholt.
+    expect(crm.posts() - postsBefore).toBe(1);
+  });
+});

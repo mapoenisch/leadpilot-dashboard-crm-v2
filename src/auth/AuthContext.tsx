@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import type { User, AuthAdapter } from './authAdapter';
 import { defaultAuthAdapter } from './supabaseAuthAdapter';
 
@@ -13,12 +21,34 @@ export interface AuthContextValue {
 export interface AuthProviderProps {
   children: React.ReactNode;
   adapter?: AuthAdapter;
+  /**
+   * Auftrag 084: wird bei Abmeldung oder Wechsel auf einen anderen Benutzer aufgerufen, bevor der
+   * neue Zustand gerendert wird (z. B. zum Zurücksetzen benutzerbezogener Query-Daten).
+   */
+  onUserChange?: (previous: User, next: User | null) => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children, adapter = defaultAuthAdapter }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(() => adapter.getSession());
+export function AuthProvider({
+  children,
+  adapter = defaultAuthAdapter,
+  onUserChange,
+}: AuthProviderProps) {
+  const [user, setUserState] = useState<User | null>(() => adapter.getSession());
+  const currentUser = useRef(user);
+  const onUserChangeRef = useRef(onUserChange);
+  onUserChangeRef.current = onUserChange;
+
+  // Benutzerwechsel vor dem Setzen melden, damit kein Render des neuen Benutzers alte Daten zeigt.
+  const setUser = useCallback((next: User | null) => {
+    const previous = currentUser.current;
+    if (previous !== null && previous.id !== next?.id) {
+      onUserChangeRef.current?.(previous, next);
+    }
+    currentUser.current = next;
+    setUserState(next);
+  }, []);
   // G45-Nacharbeit: Hydration-Flag — der Route-Guard wartet die asynchrone
   // Sitzungsherstellung ab, statt vor getSession() umzuleiten.
   const [isHydrated, setIsHydrated] = useState(() => adapter.initialize === undefined);
@@ -35,7 +65,7 @@ export function AuthProvider({ children, adapter = defaultAuthAdapter }: AuthPro
       setUser(next);
       setIsHydrated(true);
     });
-  }, [adapter]);
+  }, [adapter, setUser]);
 
   const login = useCallback(
     async (email: string, pass: string) => {
@@ -43,13 +73,13 @@ export function AuthProvider({ children, adapter = defaultAuthAdapter }: AuthPro
       setUser(loggedInUser);
       return loggedInUser;
     },
-    [adapter],
+    [adapter, setUser],
   );
 
   const logout = useCallback(async () => {
     await adapter.logout();
     setUser(null);
-  }, [adapter]);
+  }, [adapter, setUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

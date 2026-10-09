@@ -421,9 +421,12 @@ input[type="number"].no-spinner {
   }
 }
 
+/* Auftrag 084: einspaltig minmax(0, 1fr) statt 1fr – sonst setzt ein nowrap-Kennzahltext (truncate)
+   seine volle Breite als Spaltenminimum durch (Leads 375 px: 14 px Überlauf in <main>, Befund I07).
+   Mehrspaltig bleibt 1fr, damit breite Werte wie „Supabase Verbunden“ ihre Spalte vergrößern dürfen. */
 @media (max-width: 640px) {
   .crm-v2-kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

@@ -1,5 +1,5 @@
 // G60 (Auftrag 067N, Step 4): URL-synchrone serverseitige Deals-Ansicht mit Pagination und Export
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useId } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
@@ -67,15 +67,16 @@ export function DealsPage() {
   };
 
   // Serverseitige TanStack-Query
-  const { data, isLoading, isError, error } = useCrmListQuery<ImportedFunnelDeal>({
-    resource: 'deals',
-    q: searchTerm.trim() || undefined,
-    filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
-    sortBy: sortField,
-    sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-    page,
-    pageSize,
-  });
+  const { data, isLoading, isError, isPlaceholderData, error, refetch } =
+    useCrmListQuery<ImportedFunnelDeal>({
+      resource: 'deals',
+      q: searchTerm.trim() || undefined,
+      filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
+      sortBy: sortField,
+      sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+      page,
+      pageSize,
+    });
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -114,6 +115,13 @@ export function DealsPage() {
 
   const deals = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? 0;
+
+  // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
+  // Platzhalterdaten der vorherigen Abfrage gelten bis zur neuen Antwort als Laden.
+  const hasData = data !== undefined && !isPlaceholderData;
+  const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
+  const exportBlocked = isError || !hasData;
+  const exportHintId = useId();
 
   const stageOptions = useMemo(() => {
     const knownValues = new Set(BASE_STAGE_OPTIONS.map((o) => o.value));
@@ -181,22 +189,30 @@ export function DealsPage() {
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">Ebene A Pipeline</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
-          <Badge variant="neutral">{total} Funnel Deals</Badge>
+          <Badge variant="neutral">{countText} Funnel Deals</Badge>
           <Button
             variant="secondary"
             size="sm"
             iconLeft={<Download size={14} />}
             onClick={handleExport}
-            disabled={isViewer || isExporting}
+            disabled={isViewer || isExporting || exportBlocked}
             title={
               isViewer
                 ? 'Viewer besitzen keine Exportberechtigung'
                 : 'Gefilterte Deals als CSV exportieren'
             }
             aria-label="CSV Export"
+            aria-describedby={exportBlocked && !isViewer ? exportHintId : undefined}
           >
             {isExporting ? 'Exportiere...' : 'CSV Export'}
           </Button>
+          {exportBlocked && !isViewer && (
+            <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
+              {isError
+                ? 'Export gesperrt: Datenbasis nicht verfügbar'
+                : 'Export nach dem Laden verfügbar'}
+            </span>
+          )}
         </div>
       </div>
 
@@ -215,14 +231,14 @@ export function DealsPage() {
         {[
           {
             t: 'Funnel Deals Gesamt',
-            v: total,
+            v: countText,
             n: 'Mandanten-geprüft',
             c: 'text-primary font-bold',
             f: true,
           },
           {
             t: 'Aktuelle Seite',
-            v: `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
+            v: isError || !hasData ? '–' : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
             n: `${pageSize} Deals pro Seite`,
             c: 'text-text font-semibold',
           },
@@ -293,7 +309,11 @@ export function DealsPage() {
             />
           </div>
           <div className="crm-v2-result-count" aria-live="polite">
-            {total} {total === 1 ? 'Deal' : 'Deals'} gefunden
+            {isError
+              ? 'Ergebnis nicht verfügbar'
+              : !hasData
+                ? 'Ergebnis wird geladen …'
+                : `${total} ${total === 1 ? 'Deal' : 'Deals'} gefunden`}
           </div>
         </div>
       </div>
@@ -312,6 +332,7 @@ export function DealsPage() {
           message={`Integritätsfehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der CRM-Deals'}`}
           sourceLabel="Ebene A CRM Funnel Deals"
           height={220}
+          onRetry={() => void refetch()}
         />
       ) : (
         <Card variant="glass" padding="0">

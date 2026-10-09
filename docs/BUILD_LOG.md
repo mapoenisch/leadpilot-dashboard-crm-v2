@@ -16056,3 +16056,57 @@ P2 „Kontrast des Login-Buttons im hellen Theme“ (`src/styles/global.css`) ge
 
 - **P2 Fehleransichten ohne Inventar-H1:** `scripts/captureAuftrag083ContrastScan.mjs` erkennt jetzt die Fehlerkarte der `RouteErrorBoundary` („Fehler beim Laden der Seite“ in `main [role="alert"]`) direkt und bricht die Aufnahme ab. Bisher entfiel die Prüfung bei Ansichten ohne Inventar-H1, und Pfad sowie Kopfzeile bleiben bei einem Absturz gleich.
 - Geprüft in beide Richtungen: Probelauf `ONLY=s-deals,s-leads` 12/12 grün; Gegenprobe mit abgebrochenem `DealsPage`-Chunk erkennt die Fehlerkarte (`routeError: true`). Nur Skript, kein Produktcode. Eigener Branch `claude/auftrag-083-nachtrag-fehlerkarte` (Codex PR #69: nicht mit Auftrag 084 bündeln).
+
+## Auftrag 084 – Frontend-Qualität, Paket A (Pipelinefehler F12), Builder Claude Code, 08.10.2026
+
+**Ziel & Kontext:** Plan Frontend-Qualität §6, Befund F12. Navigation nach Erfolg, leer und Fehler ohne Neuladen; Fehler nicht als 0; „Erneut versuchen“; Exportsperre; kein Cache eines vorherigen Benutzers. Branch `claude/auftrag-084-pipeline-fehler` von `main` `564e05a`. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_084_PIPELINE_FEHLER_NAVIGATION.md`.
+
+**Ursache:** Render-Schleife zwischen `useCrmProvenance` (bei jedem `crm`-Cache-Ereignis ein neues State-Objekt) und `useCrmListQuery` (neue Optionen je Render → `observerOptionsUpdated`). React Router 7 navigiert als Transition; die Dauer-Updates verdrängen sie, deshalb wechselt die Adresse, der Inhalt aber nicht. Unabhängig vom Antwortzustand, Produktion betroffen. Keiner der Diagnosekandidaten aus dem Plan (`useUrlSyncedState`, `DataSourceStatus`, `RouteErrorBoundary`) war ursächlich.
+
+**Nebenbefund:** CRM-Query-Keys ohne Benutzer/Organisation, `staleTime` 60 s, kein Cache-Reset bei Ab-/Ummeldung. Behoben durch `QueryCacheUserReset`.
+
+**Geänderte Dateien:** `src/features/crm/hooks/useCrmProvenance.ts`, neu `src/auth/QueryCacheUserReset.tsx`, `src/app/App.tsx`, `src/components/ui/charts/ManagementChartState.tsx` (optionales `onRetry`), `src/features/crm/pages/{Deals,Companies,Leads}Page.tsx`; Tests neu `useCrmProvenance.renderLoop.ui.vitest.tsx`, `queryCacheUserReset.ui.vitest.tsx`, `crmPages.states.ui.vitest.tsx`, erweitert `e2e/crm-query-export.spec.ts`; neu `scripts/captureAuftrag084PipelineStates.mjs`, `docs/screenshots/auftrag-084/README.md`; Auftrag 084, Befundregister (F12 behoben), Plan §6, `BUILD_PLAN.md`.
+
+**Funktionale Prüfungen:**
+- Regressionstest Schleife: ohne Fix Speicherüberlauf des Vitest-Workers, mit Render-Obergrenze 3/3 rot (Erfolg, leer, Fehler); mit Fix 3/3 grün.
+- E2E (`crm-query-export.spec.ts`, Auftrag 084) gegen Produktionsbuild und lokales Supabase, `crm-query-export` kontrolliert: 12/12 grün auf 1440/768/375 (Wechsel Pipeline → Steckbrief → Zurück → Vorwärts → Funnel je Zustand, kein Neuladen, keine Seitenfehler; Retry stellt Anzeige her mit genau einem POST). Gegenprobe ohne Fix: 3/3 rot, Kopfzeile bleibt „Deal Pipeline“.
+- Seitentests Zustände: 15/15 (3 Seiten × Fehler/Retry/Laden/leer/Erfolg). Benutzerwechsel: 4/4.
+- Offen außerhalb dieses Auftrags: echte Edge-Function-/Datenbankausfälle (UI-Fix beweist keinen reparierten Server); „Datenbank Status: Supabase Verbunden“ auf Leads auch im Fehlerfall (Paket C/E, F09).
+
+**Schutzbereichs-Prüfung:** `git diff 564e05a -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler · `npm run verify` grün · `npm test` 320 Dateien / 2288 Tests grün · `npm run build` grün · `npm run lint` grün · `npm run format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-084/README.md` – Fehlerzustand Deals/Unternehmen/Leads × 1440/768/375 × dunkel/hell: 18/18 mit geänderter SHA-256, „Nicht verfügbar“ statt 0, Export gesperrt, Retry sichtbar, axe serious/critical über die ganze Seite 0, Dokument-Überlauf 0 px (Leads 375 `<main>` 14 px wie vorher, I07). Navigation im Fehlerzustand 3/3 (vorher Kopfzeile „Deal Pipeline“, nachher „Unternehmenssteckbrief“).
+
+**Ergebnis & Freigabestatus:** Builder-Seite fertig. Gate-Freigabe durch Codex offen, Merge durch Marc.
+
+### Auftrag 084 – Nacharbeit Codex PR #69 Runde 1, Builder Claude Code, 08.10.2026
+
+Fünf Befunde (3× P1, 2× P2), gebündelt behoben:
+
+- **P1 Benutzerwechsel bei gemounteter Seite:** `queryClient.clear()` im Effekt ließ aktive Observer auf dem alten Ergebnis stehen (über `placeholderData: previousData` sogar nach Entfernen der Query). Jetzt meldet `AuthProvider` über das neue `onUserChange` Abmeldung/Wechsel **vor** dem Setzen des neuen Benutzers; `App` ruft `queryClient.resetQueries()` (aktive Queries laden mit der neuen Sitzung neu, alle Daten verworfen). `QueryCacheUserReset.tsx` entfällt. Test auf das Codex-Szenario umgestellt (Seite mit aktivem Observer, Wechsel A → B und Abmeldung): mit `resetQueries` 3/3 grün; Gegenprobe mit `clear()` 2/3 rot.
+- **P1 Rohdaten unter `docs/screenshots/`:** `vorher/`/`nachher/result.json` aus Git entfernt. Das Skript legt Bilder und Messdaten jetzt unter `artifacts/auftrag-084/` ab (ignoriert, anders als `test-results/` nicht von Playwright geleert); committet wird nur die README.
+- **P1 083-Nachtrag gebündelt:** Commit `0995497` per Revert (`7d5df91`) aus diesem Branch genommen, kein Force-Push. Eigener PR #70 (`claude/auftrag-083-nachtrag-fehlerkarte`), Nachtrag in Auftrag 083 und BUILD_LOG dort.
+- **P2 Sperrgrund nicht erreichbar:** Neben dem gesperrten Export steht sichtbar „Export gesperrt: Datenbasis nicht verfügbar“ (beim Laden „Export nach dem Laden verfügbar“), per `aria-describedby` dem Button zugeordnet. Seitentest prüft sichtbaren Text und zugängliche Beschreibung.
+- **P2 Neuladen nicht erkannt:** Der Navigationstest setzt einen Laufzeit-Marker im `window` und protokolliert Dokument-Requests. Gegenprobe mit eingeschobenem `page.reload()`: rot (`Received: undefined`).
+
+**Verifikation:** E2E Auftrag 084 12/12 (1440/768/375). Nachher-Aufnahmen erneuert: 18/18, axe ganze Seite 0, Navigation 3/3 (`docs/screenshots/auftrag-084/README.md`). `tsc` 0 · `verify` grün · `npm test` 320 Dateien / 2287 Tests · `build` · `lint` · `format:check` grün. Schutzbereichs-Diff gegen `564e05a` leer.
+
+### Auftrag 084 – Nacharbeit Codex PR #69 Runde 2, Builder Claude Code, 08.10.2026
+
+- **P1 `<main>`-Überlauf Leads 375 px (14 px):** Nicht nur die Prüfung verschärft, sondern behoben. Ursache: `.crm-v2-kpi-grid` einspaltig mit `1fr` (= `minmax(auto, 1fr)`); der `nowrap`-Kennzahltext „⚡ Supabase Verbunden“ setzte seine volle Breite als Spaltenminimum durch (Spalte 372,78 px bei 343 px Container). Einspaltig jetzt `minmax(0, 1fr)`. Ein erster Ansatz mit `minmax(0, 1fr)` auch für 2/4 Spalten hätte bei 1440 px „Supabase V…“ abgeschnitten (im erzeugten Linux-Baseline-Bild gesehen) und wurde verworfen. Ebenfalls zurückgenommen: eine versehentliche Prettier-Umformatierung von `global.css` aus Commit `c949d6d`; Diff gegen `main` ist nur die eine Regel.
+- **P2 Fehlertext exakt:** `captureAuftrag084PipelineStates.mjs` verlangt je Seite den erwarteten Badge („Nicht verfügbar Funnel Deals“ usw.) und `overflow.main === 0` ohne Ausnahme. Gegenprobe: Mit den alten Nachher-Daten (14 px) endet der Vergleich mit Exit-Code 1.
+- **Visuelle Baselines:** Workflow `update-visual-baselines.yml` auf Hilfs-Branch `visual-baselines/084-leads` (Lauf `37830881159`): alle Linux-Baselines byte-gleich, keine Aktualisierung nötig. Hinweis: Der Hilfs-Branch wurde einmal per Force-Push aktualisiert (nicht `main`, nicht PR-Branch) und danach gelöscht; künftig je Lauf ein neuer Hilfs-Branch.
+- **Nachweis:** README-Matrix erneuert, 18/18 mit Dokument/`<main>` 0/0 px, Navigation 3/3. Gates: `tsc` 0 · `verify` · `npm test` 320 / 2287 · `build` · `lint` · `format:check` grün; Schutzbereichs-Diff gegen `564e05a` leer.
+
+### Auftrag 084 – Nacharbeit Codex PR #69 Runde 3, Builder Claude Code, 09.10.2026
+
+Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG-Konflikt mit dem 083-Nachtrag aus PR #70; 083-Nachtrag vor diesen Abschnitt gestellt).
+
+- **P1 Nachweis Runde 2:** Der Runde-2-Abschnitt oben enthält Gates, Matrix und Schutzbereichs-Diff. Für den jetzt eingereichten Endstand sind alle Nachweise unten frisch gefahren, der 14-px-Wert aus Runde 1 ist damit abgelöst (Endstand Leads 375 px: Dokument/`<main>` 0/0 px).
+- **P2 Platzhalterdaten als Laden:** `DealsPage`, `CompaniesPage`, `LeadsPage` werten `isPlaceholderData` aus (`placeholderData: previousData` in `useCrmListQuery`). Nach Wechsel von Suche, Filter, Sortierung oder Seite zeigen Anzahl und Seiten-KPI „…“/„–“, der Export ist bis zur neuen Antwort gesperrt („Export nach dem Laden verfügbar“). Die Ergebniszeile in Deals/Unternehmen zeigt dabei „Ergebnis wird geladen …“ statt „Ergebnis nicht verfügbar“ (der Fehlertext bleibt dem Fehlerfall vorbehalten). Die Tabelle zeigt die vorherigen Zeilen samt Paginierung bis zur Antwort weiter (bewusstes `placeholderData`-Verhalten).
+- **P2 Audit-Tab:** `/crm/leads?tab=audit` zeigt keinen Ladezustand mehr: Anzahl-Badge ausgeblendet (wie der Export), „Gefundene Datensätze“ und „Aktuelle Seite“ „–“ mit Hinweis „Im Audit-Tab keine Listenabfrage“.
+- **P2 Vollständiger Screenshot-Satz:** `COMPARE=1` prüft gegen den festen Sollsatz (3 Breiten × 2 Themes × 3 Seiten = 18, Navigation 3). Fehlende Einträge in Vorher oder Nachher zählen als Fehler; das Ergebnis nennt feste Sollzahlen. Gegenprobe: eine Aufnahme aus `nachher/result.json` entfernt → „17/18 … fehlgeschlagen“, Exit-Code 1; vollständig → Exit-Code 0.
+- **Regressionstests:** `crmPages.states.ui.vitest.tsx` um Platzhalterfall (je Seite) und Audit-Tab ergänzt, 19/19 grün. Gegenprobe mit dem Seitencode von `691eb5b`: 4 Tests rot.
+- **Nachweis Endstand:** Nachher-Aufnahmen neu mit Produktionsbuild gegen lokales Supabase: 18/18 Aufnahmen (Dokument/`<main>` überall 0/0 px, axe 0), Navigation 3/3; README-Matrix erneuert. Gates: `tsc` 0 · `verify` · `npm test` 320 / 2291 · `build` · `lint` · `format:check` grün; Schutzbereichs-Diff gegen `564e05a` leer.
