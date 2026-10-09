@@ -68,6 +68,12 @@ const LAZY_CONFIG = {
 
 const tileOf = (page: Page, tileId: string) => page.locator(`${TILE}[data-tile-id="${tileId}"]`);
 
+/** Auftrag 086: Mobil ist der Filterbereich zunächst zu; auf breiten Ansichten ist der Knopf ausgeblendet. */
+async function openFilters(page: Page) {
+  const toggle = page.getByTestId('dashboard-filters-toggle');
+  if (await toggle.isVisible()) await toggle.click();
+}
+
 async function openDashboard(page: Page) {
   await page.goto('/dashboard', { waitUntil: 'networkidle' });
   await expect(page.getByTestId('dashboard-heading')).toBeVisible();
@@ -182,6 +188,7 @@ test.describe('Gesamtabnahme mit fester Konfiguration', () => {
       await page.waitForURL('**/dashboard');
       await expect(page.getByTestId('dashboard-workspace')).toHaveAttribute('aria-busy', 'false');
       await expect.poll(() => tileOrder(page)).toEqual(['acc_b_headcount', 'acc_b_crm']);
+      await openFilters(page);
       const pipeline = page
         .getByTestId('dashboard-filters')
         .getByLabel('Pipeline', { exact: true });
@@ -293,6 +300,7 @@ test.describe('Lazy Loading', () => {
     expect(crmRequests).toHaveLength(1);
     const before = await tileOf(page, 'acc_crm_deals').innerText();
 
+    await openFilters(page);
     const filters = page.getByTestId('dashboard-filters');
     await filters.getByLabel('Pipeline', { exact: true }).fill('e2e-pipeline');
     await page.getByRole('button', { name: 'Filter anwenden' }).click();

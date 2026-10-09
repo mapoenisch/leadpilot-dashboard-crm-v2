@@ -65,7 +65,9 @@ describe('DashboardFilters', () => {
     setup({ pipelineSupported: false });
     expect(screen.queryByLabelText('Pipeline')).toBeNull();
     expect(screen.getByText(/Keine Kachel dieser Ansicht unterstützt/)).toBeInTheDocument();
-    expect(screen.getByText(/kein belegtes Datumsfeld/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Zeitraumfilter für diese Daten derzeit nicht verfügbar/),
+    ).toBeInTheDocument();
   });
 
   it('sperrt alles beim Speichern', () => {
@@ -120,41 +122,70 @@ describe('DashboardFilters: verwaister Startfilter', () => {
   });
 });
 
-describe('DashboardFilters: Zeitraum', () => {
+describe('DashboardFilters: Zeitraum (Auftrag 086, ohne Wirkung ausgeblendet)', () => {
   const PERIOD = { from: '2026-01-01', to: '2026-03-31' };
 
-  it('behält den Zeitraum, wenn nur die Pipeline angewendet wird', () => {
+  it('zeigt keine Von-/Bis-Felder', () => {
+    setup();
+    expect(screen.queryByLabelText('Von')).toBeNull();
+    expect(screen.queryByLabelText('Bis')).toBeNull();
+  });
+
+  it('behält einen gespeicherten Zeitraum verlustfrei, wenn nur die Pipeline angewendet wird', () => {
     const { props } = setup({ value: { period: PERIOD } });
-    expect(screen.getByLabelText('Von')).toHaveValue(PERIOD.from);
-    expect(screen.getByLabelText('Bis')).toHaveValue(PERIOD.to);
+    expect(
+      screen.getByText(/Gespeicherter Zeitraum .* bleibt erhalten, wirkt aber nicht/),
+    ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Pipeline'), { target: { value: 'Direkt' } });
     fireEvent.click(screen.getByRole('button', { name: 'Filter anwenden' }));
     expect(props.onApply).toHaveBeenCalledWith({ pipeline: 'Direkt', period: PERIOD });
   });
 
-  it('wendet einen vollständigen Zeitraum an', () => {
-    const { props } = setup();
-    fireEvent.change(screen.getByLabelText('Von'), { target: { value: PERIOD.from } });
-    fireEvent.change(screen.getByLabelText('Bis'), { target: { value: PERIOD.to } });
-    fireEvent.click(screen.getByRole('button', { name: 'Filter anwenden' }));
-    expect(props.onApply).toHaveBeenCalledWith({ period: PERIOD });
-  });
-
-  it('verlangt beide Grenzen und die richtige Reihenfolge', () => {
-    setup();
-    fireEvent.change(screen.getByLabelText('Von'), { target: { value: PERIOD.from } });
-    expect(screen.getByRole('alert')).toHaveTextContent(/zusammen angeben/);
-    expect(screen.getByRole('button', { name: 'Filter anwenden' })).toBeDisabled();
-    fireEvent.change(screen.getByLabelText('Bis'), { target: { value: '2025-12-31' } });
-    expect(screen.getByRole('alert')).toHaveTextContent(/nicht nach „Bis“/);
-    expect(screen.getByLabelText('Von').getAttribute('aria-describedby')).toContain(
-      screen.getByRole('alert').id,
-    );
+  it('nennt einen gespeicherten Startzeitraum auch ohne Sitzungsfilter', () => {
+    setup({ editing: true, startFilters: { period: PERIOD } });
+    expect(screen.getByText(/Gespeicherter Zeitraum/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Startfilter entfernen' })).toBeEnabled();
   });
 
   it('vergleicht Startfilter über beide Filterarten', () => {
     setup({ editing: true, value: { period: PERIOD }, startFilters: { period: PERIOD } });
     expect(screen.getByRole('button', { name: 'Als Startfilter übernehmen' })).toBeDisabled();
+  });
+});
+
+describe('DashboardFilters: mobiler Filterknopf (Auftrag 086)', () => {
+  it('ist zunächst zu und klappt ohne Anwenden auf und zu', () => {
+    const { props } = setup();
+    const toggle = screen.getByTestId('dashboard-filters-toggle');
+    const form = screen.getByTestId('dashboard-filters');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(form.className).toMatch(/(^| )hidden( |$)/);
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(form.className).not.toMatch(/(^| )hidden( |$)/);
+    fireEvent.change(screen.getByLabelText('Pipeline'), { target: { value: 'Entwurf' } });
+    fireEvent.click(toggle);
+    fireEvent.click(toggle);
+    expect(screen.getByLabelText('Pipeline')).toHaveValue('Entwurf');
+    expect(props.onApply).not.toHaveBeenCalled();
+  });
+
+  it('nennt nur angewendete, wirksame Filter', () => {
+    const { rerender, props } = setup({ value: { pipeline: 'Direkt' } });
+    expect(screen.getByTestId('dashboard-filters-toggle')).toHaveTextContent('Filter: 1 aktiv');
+    rerender(
+      <DashboardFilters {...props} value={{ period: { from: '2026-01-01', to: '2026-02-01' } }} />,
+    );
+    expect(screen.getByTestId('dashboard-filters-toggle')).toHaveTextContent(/^Filter$/);
+    rerender(
+      <DashboardFilters {...props} value={{ pipeline: 'Direkt' }} pipelineSupported={false} />,
+    );
+    expect(screen.getByTestId('dashboard-filters-toggle')).toHaveTextContent(/^Filter$/);
+  });
+
+  it('erklärt das exakte Pipeline-Verhalten', () => {
+    setup();
+    expect(screen.getByText(/genau so heißt/)).toBeInTheDocument();
   });
 });
 
