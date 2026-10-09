@@ -194,11 +194,26 @@ function compare() {
   const read = (label) => JSON.parse(fs.readFileSync(path.join(RAW, label, 'result.json'), 'utf8'));
   const before = read('vorher');
   const after = read('nachher');
-  const byName = new Map(before.shots.map((s) => [s.name, s]));
+  // Codex PR #69 Runde 3: Sollsatz fest vorgeben, fehlende Aufnahmen zählen als Fehler.
+  const expectedShots = VIEWPORTS.flatMap((v) =>
+    THEMES.flatMap((t) => PAGES.map((p) => `${p.id}-${v.width}-${t}`)),
+  );
+  const expectedNav = VIEWPORTS.map((v) => v.width);
+  const beforeByName = new Map(before.shots.map((s) => [s.name, s]));
+  const afterByName = new Map(after.shots.map((s) => [s.name, s]));
   const rows = [];
   let failures = 0;
-  for (const shot of after.shots) {
-    const prev = byName.get(shot.name);
+  let passedShots = 0;
+  for (const name of expectedShots) {
+    const prev = beforeByName.get(name);
+    const shot = afterByName.get(name);
+    if (!prev || !shot) {
+      failures += 1;
+      rows.push(
+        `| ${name} | ${prev ? prev.badge : 'fehlt'} | ${shot ? shot.badge : 'fehlt'} | – | – | – | – | – | – | ❌ |`,
+      );
+      continue;
+    }
     const changed = prev && prev.sha256 !== shot.sha256;
     // Codex PR #69: Fehlertext exakt je Seite, Überlauf an Dokument und <main> ausnahmslos 0 px.
     const expectedBadge = PAGES.find((p) => shot.name.startsWith(`${p.id}-`))?.errorBadge;
@@ -210,16 +225,20 @@ function compare() {
       shot.severe.length === 0 &&
       shot.overflow.document === 0 &&
       shot.overflow.main === 0;
-    if (!ok) failures += 1;
+    if (ok) passedShots += 1;
+    else failures += 1;
     rows.push(
       `| ${shot.name} | ${prev?.badge ?? '–'} | ${shot.badge} | ${prev?.exportDisabled ? 'gesperrt' : 'aktiv'} → ${shot.exportDisabled ? 'gesperrt' : 'aktiv'} | ${shot.retryVisible ? 'ja' : 'nein'} | ${shot.severe.length ? shot.severe.join(', ') : '0'} | ${shot.overflow.document}/${shot.overflow.main} px | ${prev?.sha256.slice(0, 12) ?? '–'} | ${shot.sha256.slice(0, 12)} | ${ok ? '✅' : '❌'} |`,
     );
   }
-  const navRows = after.navigation.map((n) => {
-    const prev = before.navigation.find((p) => p.width === n.width);
-    const ok = n.headerH1 === 'Unternehmenssteckbrief';
-    if (!ok) failures += 1;
-    return `| ${n.width} | ${prev?.headerH1 ?? '–'} | ${n.headerH1} | ${ok ? '✅' : '❌'} |`;
+  let passedNav = 0;
+  const navRows = expectedNav.map((width) => {
+    const prev = before.navigation.find((p) => p.width === width);
+    const n = after.navigation.find((p) => p.width === width);
+    const ok = Boolean(prev) && n?.headerH1 === 'Unternehmenssteckbrief';
+    if (ok) passedNav += 1;
+    else failures += 1;
+    return `| ${width} | ${prev?.headerH1 ?? 'fehlt'} | ${n?.headerH1 ?? 'fehlt'} | ${ok ? '✅' : '❌'} |`;
   });
   const md = `# Auftrag 084 – Pipeline-Fehlerzustand (F12), Vorher/Nachher
 
@@ -242,7 +261,7 @@ Kopfzeilen-Überschrift 3 s nach dem Wechsel (Adresse wechselt in beiden Stände
 |---|---|---|---|
 ${navRows.join('\n')}
 
-**Ergebnis:** ${failures === 0 ? `${after.shots.length}/${after.shots.length} Aufnahmen und ${navRows.length}/${navRows.length} Navigationsfälle bestanden.` : `${failures} Prüfungen fehlgeschlagen.`}
+**Ergebnis:** ${passedShots}/${expectedShots.length} Aufnahmen und ${passedNav}/${expectedNav.length} Navigationsfälle bestanden${failures === 0 ? '.' : ` – ${failures} Prüfungen fehlgeschlagen.`}
 `;
   fs.writeFileSync(path.join(OUT, 'README.md'), md);
   console.log(md);

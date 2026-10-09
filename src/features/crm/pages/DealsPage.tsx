@@ -67,15 +67,16 @@ export function DealsPage() {
   };
 
   // Serverseitige TanStack-Query
-  const { data, isLoading, isError, error, refetch } = useCrmListQuery<ImportedFunnelDeal>({
-    resource: 'deals',
-    q: searchTerm.trim() || undefined,
-    filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
-    sortBy: sortField,
-    sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-    page,
-    pageSize,
-  });
+  const { data, isLoading, isError, isPlaceholderData, error, refetch } =
+    useCrmListQuery<ImportedFunnelDeal>({
+      resource: 'deals',
+      q: searchTerm.trim() || undefined,
+      filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
+      sortBy: sortField,
+      sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+      page,
+      pageSize,
+    });
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -116,7 +117,8 @@ export function DealsPage() {
   const total = data?.total ?? 0;
 
   // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
-  const hasData = data !== undefined;
+  // Platzhalterdaten der vorherigen Abfrage gelten bis zur neuen Antwort als Laden.
+  const hasData = data !== undefined && !isPlaceholderData;
   const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
   const exportBlocked = isError || !hasData;
   const exportHintId = useId();
@@ -307,9 +309,11 @@ export function DealsPage() {
             />
           </div>
           <div className="crm-v2-result-count" aria-live="polite">
-            {isError || !hasData
+            {isError
               ? 'Ergebnis nicht verfügbar'
-              : `${total} ${total === 1 ? 'Deal' : 'Deals'} gefunden`}
+              : !hasData
+                ? 'Ergebnis wird geladen …'
+                : `${total} ${total === 1 ? 'Deal' : 'Deals'} gefunden`}
           </div>
         </div>
       </div>

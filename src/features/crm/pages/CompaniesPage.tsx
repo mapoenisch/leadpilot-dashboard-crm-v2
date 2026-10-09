@@ -127,7 +127,7 @@ export function CompaniesPage() {
   ]);
 
   // Serverseitige TanStack-Query
-  const { data, isLoading, isError, error, refetch } = useCrmListQuery<Company>({
+  const { data, isLoading, isError, isPlaceholderData, error, refetch } = useCrmListQuery<Company>({
     resource: 'companies',
     q: searchTerm.trim() || undefined,
     filters: industryFilter !== 'ALL' ? { industry: industryFilter } : undefined,
@@ -169,7 +169,8 @@ export function CompaniesPage() {
   const total = data?.total ?? 0;
 
   // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
-  const hasData = data !== undefined;
+  // Platzhalterdaten der vorherigen Abfrage gelten bis zur neuen Antwort als Laden.
+  const hasData = data !== undefined && !isPlaceholderData;
   const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
   const exportBlocked = isError || !hasData;
   const exportHintId = useId();
@@ -343,7 +344,11 @@ export function CompaniesPage() {
             />
           </div>
           <div className="crm-v2-result-count" aria-live="polite">
-            {isError || !hasData ? 'Ergebnis nicht verfügbar' : `${total} Unternehmen gefunden`}
+            {isError
+              ? 'Ergebnis nicht verfügbar'
+              : !hasData
+                ? 'Ergebnis wird geladen …'
+                : `${total} Unternehmen gefunden`}
           </div>
         </div>
       </div>

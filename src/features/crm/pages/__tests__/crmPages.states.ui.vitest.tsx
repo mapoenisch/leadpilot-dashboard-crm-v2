@@ -18,10 +18,17 @@ vi.mock('@/hooks/queries/useCrmListQuery', () => ({ useCrmListQuery: vi.fn() }))
 const mockedOrg = vi.mocked(useOrganization);
 const mockedQuery = vi.mocked(useCrmListQuery);
 
-type QueryState = 'error' | 'loading' | 'empty' | 'success';
+type QueryState = 'error' | 'loading' | 'empty' | 'success' | 'placeholder';
 
 function mockQuery(state: QueryState, refetch = vi.fn()) {
-  const base = { refetch, isLoading: false, isError: false, error: null, data: undefined };
+  const base = {
+    refetch,
+    isLoading: false,
+    isError: false,
+    isPlaceholderData: false,
+    error: null,
+    data: undefined,
+  };
   const byState = {
     error: {
       ...base,
@@ -31,6 +38,8 @@ function mockQuery(state: QueryState, refetch = vi.fn()) {
     loading: { ...base, isLoading: true },
     empty: { ...base, data: { items: [], total: 0 } },
     success: { ...base, data: { items: [], total: 7 } },
+    // Parameterwechsel: vorherige Antwort als Platzhalter, neue Abfrage läuft noch.
+    placeholder: { ...base, isPlaceholderData: true, data: { items: [], total: 7 } },
   } as const;
   mockedQuery.mockReturnValue(byState[state] as never);
   return refetch;
@@ -105,5 +114,46 @@ describe.each(PAGES)('%s – Zustände (Auftrag 084)', (_name, Page, path) => {
     renderPage(Page);
     expect(screen.getAllByText('7').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'CSV Export' })).toBeEnabled();
+  });
+
+  it('wertet Platzhalterdaten nach Parameterwechsel als Laden (keine alte Anzahl, Export gesperrt)', () => {
+    mockQuery('placeholder');
+    renderPage(Page);
+    // Anzahl und Export gelten erst nach der neuen Antwort; die Tabelle darf die
+    // vorherigen Zeilen bis dahin weiter zeigen.
+    expect(screen.getAllByText('…').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^7 .*gefunden$/)).toBeNull();
+    const exportBtn = screen.getByRole('button', { name: 'CSV Export' });
+    expect(exportBtn).toBeDisabled();
+    expect(exportBtn).toHaveAccessibleDescription('Export nach dem Laden verfügbar');
+  });
+});
+
+describe('LeadsPage – Audit-Tab (Auftrag 084)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.history.replaceState(null, '', '/crm/leads?tab=audit');
+    mockedOrg.mockReturnValue({
+      session: { role: 'admin', userId: 'usr-1', organizationId: 'org-1' },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useOrganization>);
+  });
+
+  it('zeigt bei deaktivierter Listenabfrage keinen Ladezustand und keine Listenanzahl', () => {
+    // Abfrage im Audit-Tab deaktiviert: keine Daten, kein Laden, kein Fehler.
+    mockedQuery.mockReturnValue({
+      refetch: vi.fn(),
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: false,
+      error: null,
+      data: undefined,
+    } as never);
+    renderPage(LeadsPage);
+    expect(screen.queryByText('…')).toBeNull();
+    expect(screen.queryByText(/Einträge/)).toBeNull();
+    expect(screen.getAllByText('–').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Im Audit-Tab keine Listenabfrage')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'CSV Export' })).toBeNull();
   });
 });
