@@ -16333,3 +16333,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-091/README.md`: 8/8 – gewöhnliche Zahlkacheln bei 1440 px ≤ 218 px (Median aller Zahlkacheln 286 → 240 px), Klartext 8, Vorjahr 3, Überlauf 0/0, axe 0, Hash verschieden.
 
 **Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 091 – Nacharbeit Codex PR #77, Runde 1 (10.10.2026, Claude Code)
+
+- P3 Leerzeichen in der Vorjahreszeile (`TileValue.tsx`, `ComparisonLine`): Gegenprobe im Test (jsdom, `textContent`) – das gerenderte Ergebnis war bereits korrekt (`Vorjahr (FY 2024): 164.000 EUR · Veränderung +36.000 EUR` bzw. `… -21.000 EUR`): Der JSX-Transform entfernt den zeilenweisen Whitespace zwischen `{sign}` und `{formatTileValue(...)}` vollständig, ein Leerzeichen entstand nicht. Der Vorwurf ist damit sachlich nicht zutreffend; die Ausgabe hing aber implizit von der JSX-Whitespace-Regel ab. Die Zeile wird jetzt aus einem Template-String gebaut (`.join(' · ')`), das Ergebnis ist unabhängig von Formatierung/Umbruch. Test ergänzt: exakter Text für positives und negatives Vorzeichen.
+- P2 Visual-Baselines: Die `e2e`-Prüfung scheiterte an den drei Dashboard-Linux-Baselines. Neu erzeugt in derselben ubuntu-latest-Umgebung wie die CI-Prüfung (Workflow-Run `update-visual-baselines` auf `visual-baselines/auftrag-091`, Run 38062680678, grün inkl. `--repeat-each=3`), Artefakt `visual-baselines` heruntergeladen und sichtgeprüft: nur `visual-dashboard-1-{desktop-1440,mobile-375,tablet-768}-linux.png` geändert, alle anderen 27 Snapshots identisch. Sichtkontrolle bestätigt Klartext unter dem Kürzel, Vergleichszeile mit korrekt gesetztem Vorzeichen, volle Breite der Roadmap.
+- Schutzbereich: `git diff f6810b5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+- Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `npm test` 326 / 2330 · `verify` (001–025) · `build` grün.

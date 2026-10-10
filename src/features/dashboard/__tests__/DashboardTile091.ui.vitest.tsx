@@ -67,6 +67,26 @@ describe('DashboardTile (Auftrag 091)', () => {
     expect(line.className).not.toMatch(/text-(error|success|warning)/);
   });
 
+  it('setzt das Vorzeichen direkt an den Wert, ohne Leerzeichen (Auftrag 091)', () => {
+    renderTile(
+      resolved({ catalogId: 'baseline.umsatz', value: 200_000 }),
+      { ...TILE, catalogId: 'baseline.umsatz' },
+      active('baseline.umsatz'),
+    );
+    expect(screen.getByTestId('tile-comparison').textContent).toBe(
+      'Vorjahr (FY 2024): 164.000 EUR · Veränderung +36.000 EUR',
+    );
+    cleanup();
+    renderTile(
+      resolved({ catalogId: 'baseline.ebitda', value: -309_000 }),
+      { ...TILE, catalogId: 'baseline.ebitda' },
+      active('baseline.ebitda'),
+    );
+    expect(screen.getByTestId('tile-comparison').textContent).toBe(
+      'Vorjahr (FY 2024): -288.000 EUR · Veränderung -21.000 EUR',
+    );
+  });
+
   it('nennt den festen Stand nicht doppelt neben „Stand …“, wohl aber bei gewähltem Zeitraum (Auftrag 091)', () => {
     const fixed = resolved({
       effectiveFilter: { mode: 'fester_stand', period: null, pipeline: null },

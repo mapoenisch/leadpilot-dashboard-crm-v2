@@ -23,11 +23,13 @@ function ComparisonLine({
 }) {
   const delta = value - comparison.value;
   const sign = delta > 0 ? '+' : '';
+  const comparisonText = [
+    `Vorjahr (${comparison.label}): ${formatTileValue(comparison.value, unit, 'kompakt')}`,
+    `Veränderung ${sign}${formatTileValue(delta, unit, 'kompakt')}`,
+  ].join(' · ');
   return (
     <p data-testid="tile-comparison" className="m-0 text-[12px] text-[var(--color-text-muted)]">
-      Vorjahr ({comparison.label}): {formatTileValue(comparison.value, unit, 'kompakt')} ·
-      Veränderung {sign}
-      {formatTileValue(delta, unit, 'kompakt')}
+      {comparisonText}
     </p>
   );
 }
