@@ -16294,3 +16294,26 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 ### Auftrag 089 – Nacharbeit Codex PR #75, Runde 4 (10.10.2026, Claude Code)
 
 - P1 Freigabe fehlt: **Entscheidung Marc 10.10.2026:** Die Auftragserweiterungen sind freigegeben – Auftrag 088 um `src/components/ui/Button.tsx` (Gefahrenfläche fest Korallenrot) und Auftrag 089 um den Fokus-Test und die sieben Visual-Baselines. In beiden Auftragsdateien als Freigabe mit Datum eingetragen.
+
+### Auftrag 090 – Paket F Teil 1: Kachelaktionen und Bearbeitungsleiste, Builder Claude Code, 10.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 11, Gestaltung nach dem freigegebenen Muster 5 (Auftrag 087). Paket F geteilt: 090 Kachelaktionen/Leiste, 091 Konfigurator. Baseline `main` `6e3854a`. Gestartet nach Freigabe Marc („selbstständig mergen und weiter machen“, 10.10.2026).
+
+**Geänderte Dateien:** `DashboardGrid.tsx` (Leiste je Kachel: gestrichelter Rahmen, „⠿ Ziehen zum Verschieben“ ab 768 px, Position, „Kachel-Aktionen“ mit `aria-expanded`/`aria-controls`; Aktionen im Fluss, 44 px; Menü bleibt beim Verschieben offen; Fokus-Ausweichziel „Kachel-Aktionen“), `EditorToolbar.tsx` (Speichern/Verwerfen/Status haften oben; Hinzufügen, Zurücksetzen, Arbeitskopie-Hinweis im Fluss); Tests `DashboardGrid.ui`, `DashboardWorkspace.ui`, `DashboardWorkspace.codex.ui`, `PersonalExecutiveDashboard.ui`; e2e `personal-dashboard.spec.ts`, `personal-dashboard-acceptance.spec.ts`; Harness `scripts/captureAuftrag090Editor.mjs`.
+
+**Funktionale Prüfungen:** Drei neue Tests (Aufklappen im Fluss, Fokus auf „Kachel-Aktionen“ bei geschlossenem Menü, haftende Leiste mit Hinweis). Editor-Logik, Speichern, Konflikt- und Verlassen-Schutz unverändert; alle vorhandenen Konflikt-/Verlassen-Tests grün. Dashboard-e2e lokal gegen Supabase (`E2E_DASHBOARD_V2=true`, 3 Projekte): 39/39.
+
+**Schutzbereichs-Prüfung:** `git diff 6e3854a -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` (001–025) · `npm test` 324 / 2320 · `build` · `lint` · `format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-090/README.md`: 1440/768/375/320 × dunkel/hell, 8/8 – Hash verschieden, Bearbeitungsknöpfe 34 → 44 px, „Speichern“ nach Scrollen sichtbar (vorher nein), Überlauf 0/0, axe 0.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 090 – Nacharbeit Codex PR #76, Runde 1 (10.10.2026, Claude Code)
+
+- P2 Fehler haftet mit: `save-error` samt Konfliktwegen liegt jetzt außerhalb der haftenden Leiste; es haften nur Speichern, Verwerfen und Status. Test: Leiste enthält den Fehlerblock nicht.
+- P2 Menüs bleiben offen: `DashboardGrid` leert die offenen Menüs beim Verlassen des Bearbeitungsmodus. Test: nach erneutem Bearbeiten alle eingeklappt.
+- P2 mobile Leiste bricht um: Zeile im Bearbeitungsmodus ohne Umbruch, Status kürzt; unter 768 px Kurzform („Ungespeichert“, „Unverändert“), die Langform bleibt für Screenreader. Harness misst die Leiste nach einer Änderung: 51 px in allen 8 Fällen (≤ 64 px); Matrix 8/8.
+- Reihenfolge (Entscheidung Marc 10.10.2026): Rest von Paket E als Auftrag 091 vor dem Konfigurator (Auftrag 092).

@@ -27,6 +27,12 @@ const useData: TileDataHook = (t) => ({
   effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
 });
 
+// Auftrag 090: Kachelaktionen liegen hinter „Kachel-Aktionen“ – für diese Tests alle aufklappen.
+const openActions = () => {
+  for (const toggle of screen.queryAllByRole('button', { name: /Kachel-Aktionen/ }))
+    if (toggle.getAttribute('aria-expanded') === 'false') fireEvent.click(toggle);
+};
+
 function setup(extra: Partial<DashboardGridProps> = {}) {
   const props: DashboardGridProps = {
     tiles: [tile('a', 'klein'), tile('b', 'mittel'), tile('c', 'gross'), tile('d', 'voll')],
@@ -41,6 +47,7 @@ function setup(extra: Partial<DashboardGridProps> = {}) {
     ...extra,
   };
   const view = render(<DashboardGrid {...props} />);
+  if (props.editing) openActions();
   return { props, ...view };
 }
 
@@ -141,6 +148,34 @@ describe('DashboardGrid', () => {
     expect(within(items()[0]!).getByRole('button', { name: /Nach unten/ })).toHaveFocus();
     rerender(<DashboardGrid {...props} focusRequest={{ id: 3, tileId: 'c', action: 'kachel' }} />);
     expect(items()[2]).toHaveFocus();
+  });
+
+  it('legt die Aktionen hinter „Kachel-Aktionen“ und klappt sie im Fluss auf (Auftrag 090)', () => {
+    setup({ editing: true });
+    const item = items()[1]!;
+    const toggle = within(item).getByRole('button', { name: /Kachel-Aktionen, Position 2 von 4/ });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle).toHaveAttribute('aria-controls', within(item).getByTestId('tile-actions').id);
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(within(item).queryByTestId('tile-actions')).toBeNull();
+    expect(within(item).queryByRole('button', { name: /Nach oben/ })).toBeNull();
+    expect(within(item).getByTestId('tile-edit-bar')).toHaveTextContent('Position 2 von 4');
+  });
+
+  it('beginnt nach erneutem Bearbeiten wieder eingeklappt (Codex PR #76)', () => {
+    const { rerender, props } = setup({ editing: true });
+    rerender(<DashboardGrid {...props} editing={false} />);
+    rerender(<DashboardGrid {...props} editing />);
+    for (const toggle of screen.getAllByRole('button', { name: /Kachel-Aktionen/ }))
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('fokussiert „Kachel-Aktionen“, wenn das Menü der Zielkachel zu ist (Auftrag 090)', () => {
+    const { rerender, props } = setup({ editing: true });
+    fireEvent.click(within(items()[1]!).getByRole('button', { name: /Kachel-Aktionen/ }));
+    rerender(<DashboardGrid {...props} focusRequest={{ id: 9, tileId: 'b', action: 'hoch' }} />);
+    expect(within(items()[1]!).getByRole('button', { name: /Kachel-Aktionen/ })).toHaveFocus();
   });
 
   it('zeigt bei leerer Liste einen Hinweis; im Bearbeiten mit „Kachel hinzufügen“', () => {

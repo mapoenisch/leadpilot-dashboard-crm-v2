@@ -73,8 +73,15 @@ function setup(preferences: WorkspacePreferences, extra: Partial<DashboardWorksp
 }
 
 const items = () => screen.getAllByRole('listitem', { hidden: true });
-const startEditing = () =>
+// Auftrag 090: Kachelaktionen liegen hinter „Kachel-Aktionen“ – für diese Tests alle aufklappen.
+const openActions = () => {
+  for (const toggle of screen.queryAllByRole('button', { name: /Kachel-Aktionen/ }))
+    if (toggle.getAttribute('aria-expanded') === 'false') fireEvent.click(toggle);
+};
+const startEditing = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Dashboard bearbeiten' }));
+  openActions();
+};
 
 describe('DashboardWorkspace – Zustände', () => {
   it('zeigt beim Laden ein Skelett der Standardansicht ohne jede Abfrage', () => {
@@ -145,6 +152,21 @@ describe('DashboardWorkspace – Bearbeiten', () => {
     expect(items()[1]!.getAttribute('data-tile-id')).toBe('a');
     expect(within(items()[1]!).getByRole('button', { name: /Nach unten/ })).toHaveFocus();
     expect(screen.getByText('Ungespeicherte Änderungen.')).toBeInTheDocument();
+    // Codex PR #76: mobil Kurzform, damit die haftende Leiste einzeilig bleibt.
+    expect(screen.getByText('Ungespeichert')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('Ungespeichert')).toHaveClass('md:hidden');
+  });
+
+  it('hält die Werkzeugleiste beim Bearbeiten oben und erklärt die Arbeitskopie (Auftrag 090)', () => {
+    setup(prefs());
+    const toolbar = screen.getByTestId('editor-toolbar');
+    expect(toolbar).not.toHaveClass('sticky');
+    expect(screen.queryByTestId('editor-draft-hint')).toBeNull();
+    startEditing();
+    expect(toolbar).toHaveClass('sticky', 'top-0');
+    expect(screen.getByTestId('editor-draft-hint')).toHaveTextContent(
+      'gespeichert wird erst mit „Speichern“',
+    );
   });
 
   it('speichert die Arbeitskopie erst auf Wunsch und kehrt danach in die Ansicht zurück', async () => {
@@ -175,6 +197,10 @@ describe('DashboardWorkspace – Bearbeiten', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
     });
     expect(screen.getByTestId('save-error')).toHaveTextContent(/nicht gespeichert werden/);
+    // Codex PR #76: Fehler/Konfliktwege liegen außerhalb der haftenden Leiste.
+    expect(screen.getByTestId('editor-toolbar')).not.toContainElement(
+      screen.getByTestId('save-error'),
+    );
     expect(items()[1]!.getAttribute('data-tile-id')).toBe('a');
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeEnabled();
   });

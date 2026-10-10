@@ -78,8 +78,15 @@ function setup(preferences: WorkspacePreferences, extra: Partial<DashboardWorksp
 }
 
 const items = () => screen.getAllByRole('listitem', { hidden: true });
-const startEditing = () =>
+// Auftrag 090: Kachelaktionen liegen hinter „Kachel-Aktionen“ – für diese Tests alle aufklappen.
+const openActions = () => {
+  for (const toggle of screen.queryAllByRole('button', { name: /Kachel-Aktionen/ }))
+    if (toggle.getAttribute('aria-expanded') === 'false') fireEvent.click(toggle);
+};
+const startEditing = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Dashboard bearbeiten' }));
+  openActions();
+};
 
 describe('DashboardWorkspace: Codex-Befunde PR #59', () => {
   const CRM: DashboardTileConfig = {
@@ -137,7 +144,7 @@ describe('DashboardWorkspace: Codex-Befunde PR #59', () => {
       return { active: Number(active), total: Number(total) };
     };
     const before = count();
-    fireEvent.click(screen.getByRole('button', { name: 'Dashboard bearbeiten' }));
+    startEditing();
     fireEvent.click(within(items()[0]!).getByRole('button', { name: /Entfernen/ }));
     const after = count();
     expect(after.total).toBe(before.total - 1);
