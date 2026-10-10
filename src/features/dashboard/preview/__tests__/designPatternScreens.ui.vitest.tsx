@@ -18,6 +18,13 @@ describe('FunnelPattern', () => {
       expect(funnel.textContent).toContain(stufe);
     }
     expect(funnel.textContent).toContain('264');
-    expect(funnel.textContent).toContain('inkl. Self-Service');
+    expect(funnel.textContent).toContain('Self-Service-Pfad, parallel');
+  });
+
+  it('hält Testversionen aus der Stufenkette des Diagramms (Codex PR #73, Runde 5)', () => {
+    render(<FunnelPattern />);
+    const chart = screen.getByTestId('muster-funnel-stufen');
+    expect(chart.textContent).not.toContain('Testversionen');
+    expect(chart.textContent).toContain('Angebote');
   });
 });

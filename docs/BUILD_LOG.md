@@ -16250,3 +16250,8 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 - P2 Funnel-Muster ohne Testversionen: `designPatternScreens.tsx` führt die Stufe „Testversionen gestartet“ (264, „inkl. Self-Service“) wie die Funneltabelle in `src/domain/vertriebData.ts`; Angebote bleiben auf SQL bezogen. Neuer Test `designPatternScreens.ui.vitest.tsx` prüft alle sechs Stufen.
 - Merge von `main` (PR #74): Konflikte nur in BUILD_LOG (beide Einträge behalten) und Plan Z. 177 (Revisionstext aus `main` übernommen).
+
+### Auftrag 087 – Nacharbeit Codex PR #73, Runde 5 (10.10.2026, Claude Code)
+
+- P2 (2×) Testversionen nicht seriell: „Testversionen gestartet“ ist wie in `FunnelPage.tsx` und `BudgetTargetLadder.tsx` ein paralleler Self-Service-Pfad. Das Stufendiagramm zeigt nur Leads → MQL → SQL → Angebote → Neukunden; die Tabelle führt Testversionen eingerückt als Nebenkennzahl („Self-Service-Pfad, parallel“). Test ergänzt (Diagramm ohne Testversionen).
+- P2 Matrix veraltet: Harness gegen den finalen Baum (inkl. Merge von `main`) neu gefahren: 12/12 ohne Überlauf, axe 0, Hashes verschieden; README aktualisiert.

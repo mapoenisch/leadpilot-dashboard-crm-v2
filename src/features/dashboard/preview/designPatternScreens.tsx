@@ -29,8 +29,14 @@ const STUFEN = [
   { label: 'Leads', value: FY.leads, quote: '—' },
   { label: 'MQL', value: FY.mql, quote: `${formatQuote(FY.mql, FY.leads)} der Leads` },
   { label: 'SQL', value: FY.sql, quote: `${formatQuote(FY.sql, FY.mql)} der MQL` },
-  // Wie die Funneltabelle in src/domain/vertriebData.ts (Codex PR #73, Runde 4).
-  { label: 'Testversionen gestartet', value: FY.testversionen, quote: 'inkl. Self-Service' },
+  // Testversionen gestartet: paralleler Self-Service-Pfad, keine Stufe der Kette (wie FunnelPage);
+  // nur in der Tabelle als Nebenkennzahl (Codex PR #73, Runde 4/5).
+  {
+    label: 'Testversionen gestartet',
+    value: FY.testversionen,
+    quote: 'Self-Service-Pfad, parallel',
+    nebenpfad: true,
+  },
   { label: 'Angebote', value: FY.angebote, quote: `${formatQuote(FY.angebote, FY.sql)} der SQL` },
   {
     label: 'Neukunden',
@@ -102,7 +108,10 @@ export function FunnelPattern() {
         <Frame id="funnel-stufen" title="Stufen im Geschäftsjahr" meta="Anzahl je Stufe, FY 2025">
           <Depth3dBarChart
             idPrefix="muster-funnel"
-            data={STUFEN.map(({ label, value }) => ({ label, value }))}
+            data={STUFEN.filter((stufe) => !('nebenpfad' in stufe)).map(({ label, value }) => ({
+              label,
+              value,
+            }))}
             unit="Anzahl"
             period="FY 2025"
             title="Sales Funnel 2025"
@@ -131,7 +140,15 @@ export function FunnelPattern() {
               <tbody>
                 {STUFEN.map((stufe) => (
                   <tr key={stufe.label} className="border-0 border-t border-solid border-border">
-                    <td className="py-2 text-[var(--color-text-primary)]">{stufe.label}</td>
+                    <td
+                      className={
+                        'nebenpfad' in stufe
+                          ? 'py-2 pl-3 italic text-[var(--color-text-muted)]'
+                          : 'py-2 text-[var(--color-text-primary)]'
+                      }
+                    >
+                      {stufe.label}
+                    </td>
                     <td className="py-2 text-right font-mono">{formatAnzahl(stufe.value)}</td>
                     <td className="py-2 text-right">{stufe.quote}</td>
                   </tr>
