@@ -6,7 +6,9 @@
  * Je Breite (1440/768/375/320) × dunkel/hell: Aufnahme des ersten Bildschirms von /dashboard,
  * SHA-256, Unterkante der ersten Zahl (`tile-number`) relativ zur Fensterhöhe (Plan: bei 375 × 812
  * ein vollständiger Wert ohne Scrollen), Höhe der Simulationsleiste, Überlauf Dokument/<main>,
- * axe serious/critical. Bilder und result.json bleiben lokal unter artifacts/auftrag-089/.
+ * axe serious/critical. Zusätzlich (Codex PR #75) bei 375 × 812 kontrollierter Lade- und Fehlerzustand
+ * (Abfrage der Dashboard-Einstellungen hängt bzw. antwortet 500): Begrenzungsrahmen der Statusmeldung
+ * muss vollständig im Fenster liegen. Bilder und result.json bleiben lokal unter artifacts/auftrag-089/.
  *
  * Aufnahme: LABEL=vorher|nachher BASE_URL=… E2E_AUTH_EMAIL=… E2E_AUTH_PASSWORD=… node scripts/captureAuftrag089Shell.mjs
  * Matrix:   COMPARE=1 node scripts/captureAuftrag089Shell.mjs
@@ -102,8 +104,64 @@ async function capture() {
       }
     }
   }
+  const states = label === 'nachher' ? await captureStates(browser, state, dir) : [];
   await browser.close();
   fs.writeFileSync(path.join(dir, 'result.json'), JSON.stringify(shots, null, 2));
+  fs.writeFileSync(path.join(dir, 'states.json'), JSON.stringify(states, null, 2));
+}
+
+// Lade- und Fehlerzustand bei 375 × 812 (Plan §10): Meldung sofort im ersten Bildschirm sichtbar.
+const STATES = [
+  { kind: 'laden', target: (page) => page.getByText('Dein Dashboard wird geladen …') },
+  { kind: 'fehler', target: (page) => page.getByTestId('dashboard-error') },
+];
+async function captureStates(browser, storageState, dir) {
+  const results = [];
+  for (const theme of THEMES) {
+    for (const { kind, target } of STATES) {
+      const name = `zustand-${kind}-375-${theme}`;
+      const context = await browser.newContext({
+        baseURL: env('BASE_URL'),
+        storageState,
+        viewport: { width: 375, height: 812 },
+      });
+      try {
+        await context.addInitScript(
+          (mode) => window.localStorage.setItem('leadpilot-theme', mode),
+          theme,
+        );
+        await context.route('**/rest/v1/executive_dashboard_preferences**', async (route) => {
+          if (kind === 'laden') return; // Antwort bleibt aus: Ladezustand hält an.
+          await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: '{"message":"kontrollierter Fehler"}',
+          });
+        });
+        const page = await context.newPage();
+        await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+        const element = target(page);
+        await element.waitFor({ timeout: 15000 });
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(400);
+        await page.screenshot({ path: path.join(dir, `${name}.png`), animations: 'disabled' });
+        const box = await element.boundingBox();
+        const visible = !!box && box.y >= 0 && box.y + box.height <= 812;
+        results.push({
+          name,
+          top: box && Math.round(box.y),
+          bottom: box && Math.round(box.y + box.height),
+          visible,
+        });
+        console.log(
+          `${name}: Meldung ${box && Math.round(box.y)}–${box && Math.round(box.y + box.height)} / 812 px ${visible ? '✓' : '✗'}`,
+        );
+      } finally {
+        await context.close();
+      }
+    }
+  }
+  return results;
 }
 
 function compare() {
@@ -141,7 +199,13 @@ function compare() {
       );
     }
   }
-  const total = VIEWPORTS.length * THEMES.length;
+  const states = JSON.parse(fs.readFileSync(path.join(RAW, 'nachher', 'states.json'), 'utf8'));
+  if (states.length !== THEMES.length * STATES.length) problems.push('zustand: Aufnahme fehlt');
+  for (const st of states) if (!st.visible) problems.push(`${st.name}: nicht im ersten Bildschirm`);
+  const stateRows = states.map(
+    (st) => `| ${st.name} | ${st.top}–${st.bottom} / 812 px | ${st.visible ? '✓' : '✗'} |`,
+  );
+  const total = VIEWPORTS.length * THEMES.length + states.length;
   const failed = new Set(problems.map((p) => p.split(':')[0])).size;
   const readme = `# Auftrag 089 – Screenshot-Matrix Seitenkopf und mobile Hülle
 
@@ -152,6 +216,12 @@ Bilder bleiben lokal unter \`artifacts/auftrag-089/\`. ✓ = erste Zahl vollstä
 | Breite | Theme | SHA-256 vorher | SHA-256 nachher | Unterkante erste Zahl | Simulationsleiste | Überlauf Dok./main | axe |
 |---|---|---|---|---|---|---|---|
 ${rows.join('\n')}
+
+Lade- und Fehlerzustand bei 375 × 812 (Abfrage der Dashboard-Einstellungen hängt bzw. antwortet 500):
+
+| Zustand | Meldung oben–unten | Sofort sichtbar |
+|---|---|---|
+${stateRows.join('\n')}
 
 **Ergebnis:** ${total - failed}/${total} Aufnahmen bestanden${problems.length ? ` – offen: ${problems.join('; ')}` : ''}.
 `;

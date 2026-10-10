@@ -29,6 +29,8 @@
 | Tests: `DashboardTile.ui`, `DashboardTileStates.ui`, `chartValueColor.ui` (neu)         | Regeln abgesichert                                                              |
 | `scripts/captureAuftrag088Tiles.mjs`, `docs/screenshots/auftrag-088/README.md`          | Nachweis                                                                        |
 
+**Auftragserweiterung (nachträglich dokumentiert, Codex PR #75):** `src/components/ui/Button.tsx` – Variante `danger` nutzt als Fläche fest `var(--coral-red)` statt `bg-error`. Grund: Die Zieldatei `global.css` hellt `--color-error` im dunklen Theme auf `#FF7A7E` auf (Fehlertext kontrastfest); ohne diese Entkopplung hätte weiße Schrift auf allen Gefahren-Schaltflächen der App (u. a. Admin- und Simulationsaktionen) den Kontrast verloren (Codex PR #74, Runde 1). Wirkung: Die Fläche bleibt exakt so korallenrot wie vor Auftrag 088, also keine sichtbare Änderung außerhalb des Dashboards; nur die Bindung an das Token ändert sich. Bleibt im Auftrag, weil ein Herausnehmen den Kontrastfehler zurückbringt.
+
 ## Tasks
 
 - [x] Titel 15 px, Zahl 32 px (Muster 1).

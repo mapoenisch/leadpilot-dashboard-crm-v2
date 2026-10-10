@@ -16220,3 +16220,9 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-089/README.md`: 1440/768/375/320 × dunkel/hell, Vorher = Stand 088, 8/8, Hash verschieden, Überlauf 0/0, axe 0.
 
 **Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen. Abhängig von PR #74.
+
+### Auftrag 089 – Nacharbeit Codex PR #75, Runde 1 (10.10.2026, Claude Code)
+
+- P1 Button-Komponente nicht autorisiert: Änderung an `src/components/ui/Button.tsx` (aus Auftrag 088, bereits über PR #74 auf `main`) als Auftragserweiterung in `ANTIGRAVITY_AUFTRAG_088_KOMPAKTE_KACHELN.md` nachträglich mit Begründung dokumentiert: Gefahrenfläche fest Korallenrot, damit das im Dunkeln aufgehellte `--color-error` die weiße Schrift nicht entwertet; sichtbar unverändert gegenüber dem Stand vor 088.
+- P1 Lade-/Fehlerzustand mobil ungeprüft: `scripts/captureAuftrag089Shell.mjs` nimmt bei 375 × 812 (dunkel/hell) zusätzlich einen kontrollierten Ladezustand (Abfrage `executive_dashboard_preferences` bleibt unbeantwortet) und Fehlerzustand (Antwort 500) auf und prüft den Begrenzungsrahmen der Meldung gegen das Fenster. Ergebnis: Laden 301–321 px, Fehler 251–313 px von 812 – sofort sichtbar; Matrix gesamt 12/12.
+- Nur Harness und Doku geändert; Schutzbereichs-Diff leer.
