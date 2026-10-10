@@ -16,9 +16,9 @@ export function TileNumber({ value, unit }: { value: number; unit: string }) {
   const exact = formatTileValue(value, unit, 'exakt');
   const parts = splitUnit(compact);
   return (
-    <div data-testid="tile-number" className="flex min-h-[96px] flex-col justify-center">
+    <div data-testid="tile-number" className="flex min-h-[56px] flex-col justify-center">
       <p className="m-0 flex flex-wrap items-baseline gap-x-[8px] text-[var(--color-text-primary,#fff)]">
-        <span aria-hidden="true" className="font-mono text-[34px] font-bold leading-none">
+        <span aria-hidden="true" className="font-mono text-[32px] font-bold leading-none">
           {parts.number}
         </span>{' '}
         {parts.unit ? (

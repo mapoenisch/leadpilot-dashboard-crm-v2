@@ -54,7 +54,7 @@ export interface DashboardTileProps {
  * Übersicht haben eine feste Höhe und scrollen innerhalb der Kachel (Codex-Befund PR #57).
  */
 const MIN_HEIGHT: Partial<Record<DashboardView, string>> = {
-  zahl: 'min-h-[96px]',
+  zahl: 'min-h-[56px]',
   tabelle: 'h-[240px]',
   uebersicht: 'h-[240px]',
 };
@@ -163,23 +163,35 @@ export function DashboardTile({
                 {DASHBOARD_CATEGORIES[entry.category]}
               </p>
             ) : null}
-            <h3 className="m-0 mt-[4px] break-words text-[17px] font-semibold text-[var(--color-text-primary,#fff)]">
+            <h3 className="m-0 mt-[4px] break-words text-[15px] font-semibold leading-snug text-[var(--color-text-primary,#fff)]">
               {title}
             </h3>
-            {resolved ? (
-              <p className={cn(MUTED, 'mt-[4px]')} data-testid="tile-meta">
-                {period}
-                {resolved.origin.layer === 'live' && !resolved.asOf ? (
-                  // Reserviert den Umbruch des späteren „Stand …“, damit der Kopf nicht springt.
-                  <span aria-hidden="true" className="invisible" data-testid="tile-stand-reserve">
-                    {' · Stand 00.00.0000, 00:00'}
-                  </span>
-                ) : null}{' '}
-                · Quelle: {SOURCE_LABEL[resolved.origin.layer]}
-              </p>
-            ) : null}
+            <div className="mt-[4px]">
+              <TimeReference
+                tile={tile}
+                data={resolved}
+                dashboardFilters={dashboardFilters}
+                leading={
+                  resolved ? (
+                    <span data-testid="tile-meta">
+                      {period}
+                      {resolved.origin.layer === 'live' && !resolved.asOf ? (
+                        // Reserviert den Umbruch des späteren „Stand …“, damit der Kopf nicht springt.
+                        <span
+                          aria-hidden="true"
+                          className="invisible"
+                          data-testid="tile-stand-reserve"
+                        >
+                          {' · Stand 00.00.0000, 00:00'}
+                        </span>
+                      ) : null}{' '}
+                      · Quelle: {SOURCE_LABEL[resolved.origin.layer]}
+                    </span>
+                  ) : null
+                }
+              />
+            </div>
             <CombinationFormula entry={entry} />
-            <TimeReference tile={tile} data={resolved} dashboardFilters={dashboardFilters} />
           </div>
           <TileStateBadge data={data} />
         </header>

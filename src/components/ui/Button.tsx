@@ -23,7 +23,8 @@ const buttonVariants = cva(
         secondary: 'bg-transparent text-primary border-[1.5px] border-solid border-primary',
         accent:
           'bg-accent text-[var(--color-text-inverse)] border-[1.5px] border-solid border-transparent',
-        danger: 'bg-error text-white border-[1.5px] border-solid border-transparent',
+        // Auftrag 088 / Codex PR #74: Fläche bleibt Korallenrot; das aufgehellte --color-error gilt nur für Text.
+        danger: 'bg-[var(--coral-red)] text-white border-[1.5px] border-solid border-transparent',
       },
       size: {
         sm: 'px-[16px] py-[8px] text-[13px] gap-[6px]',

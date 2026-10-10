@@ -162,6 +162,7 @@ export function Depth3dDonutChart({
                 textAnchor="middle"
                 fontSize="24"
                 fontWeight="700"
+                // Codex PR #74: Die Aussparung ist in beiden Themes dunkel – die Summe bleibt hell.
                 fill="#ffffff"
                 fontFamily="var(--font-mono, monospace)"
               >
