@@ -171,7 +171,9 @@ export function DashboardChart(props: DashboardChartProps) {
     );
   }
   if (view === 'zahl' && check.rows[0]) {
-    return <TileNumber value={check.rows[0].value} unit={data.unit} />;
+    return (
+      <TileNumber value={check.rows[0].value} unit={data.unit} comparison={entry?.comparison} />
+    );
   }
   if (!isChartView(view)) {
     return <TileTable rows={check.rows} unit={data.unit} caption={caption} />;

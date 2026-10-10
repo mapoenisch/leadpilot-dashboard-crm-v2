@@ -111,3 +111,16 @@ describe('interpretStoredConfig', () => {
     expect(state.issues.length).toBeGreaterThan(0);
   });
 });
+
+describe('Standardansicht: keine leeren Rasterflächen (Auftrag 091)', () => {
+  it('füllt auf großen Bildschirmen (12 Spalten) jede Zeile vollständig', () => {
+    const span = { klein: 3, mittel: 6, gross: 9, voll: 12 } as const;
+    const rows: number[] = [0];
+    for (const tile of DEFAULT_DASHBOARD_CONFIG.tiles) {
+      const width = span[tile.size];
+      if (rows[rows.length - 1]! + width > 12) rows.push(0);
+      rows[rows.length - 1]! += width;
+    }
+    expect(rows.every((used) => used === 12)).toBe(true);
+  });
+});

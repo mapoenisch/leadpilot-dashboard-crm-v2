@@ -132,7 +132,17 @@ export function TimeReference({
   leading?: ReactNode;
 }) {
   const filter = data?.effectiveFilter;
-  const parts = [`Zeitbezug: ${filterModeLabel(filter?.mode ?? tile.filterMode)}`];
+  const mode = filter?.mode ?? tile.filterMode;
+  const periodRequested = Boolean(tile.period ?? dashboardFilters?.period);
+  // Auftrag 091 (Muster 1): „Stand …“ nennt den festen Stand schon – ohne gewählten Zeitraum kein
+  // Zusatz (wie der Grund in Auftrag 088). Mit gewähltem Zeitraum oder ohne Standzeile (unbekannter
+  // Katalogeintrag) bleibt „fester Stand“ sichtbar.
+  const parts =
+    mode === 'fester_stand'
+      ? periodRequested || !leading
+        ? ['fester Stand']
+        : []
+      : [`Zeitbezug: ${filterModeLabel(mode)}`];
   if (filter?.period) parts.push(formatPeriod(filter.period));
   // Der Resolver setzt einen nicht wirksamen eigenen Zeitraum auf null; die Wahl bleibt sichtbar.
   else if ((filter?.mode ?? tile.filterMode) === 'eigener_zeitraum' && tile.period) {
@@ -149,7 +159,6 @@ export function TimeReference({
   }
   // Auftrag 088: „Historischer Stand ist fest“ wiederholt nur den Zeitbezug – ohne gewählten
   // Zeitraum entfällt der Satz. Gründe für tatsächlich gewählte, aber unwirksame Filter bleiben.
-  const periodRequested = Boolean(tile.period ?? dashboardFilters?.period);
   const periodReason =
     (filter?.mode ?? tile.filterMode) === 'fester_stand' && !periodRequested
       ? undefined
@@ -161,7 +170,7 @@ export function TimeReference({
     <div data-testid="tile-time-reference">
       <p className={cn(MUTED, BREAK)}>
         {leading}
-        {leading ? ' · ' : null}
+        {leading && parts.length ? ' · ' : null}
         {parts.join(' · ')}
       </p>
       {reasons.map((reason) => (

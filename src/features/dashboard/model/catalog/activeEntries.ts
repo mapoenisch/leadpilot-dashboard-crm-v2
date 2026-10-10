@@ -48,7 +48,7 @@ const BASELINE_ENTRIES: ActiveCatalogEntry[] = [
     name: 'ARR',
     category: 'finanzen',
     definition:
-      'Annual Recurring Revenue aus Software-Subskriptionen: MRR × 12. Einzelwert ohne Zeitreihe; den Verlauf liefert baseline.arr_verlauf.',
+      'Annual Recurring Revenue aus Software-Subskriptionen: MRR × 12. Einzelwert ohne Zeitreihe; den Verlauf zeigt die Kennzahl „ARR-Verlauf“.',
     unit: 'EUR',
     source: { module: EXEC, exportName: 'EXEC_KPIS_1', path: [0, 'value'] },
     aggregation: 'bestand',
@@ -350,8 +350,34 @@ const OVERVIEW_ENTRIES: ActiveCatalogEntry[] = [
   }),
 ];
 
+// Auftrag 091 (Entscheidung Marc 10.10.2026): Kürzel bleibt Titel, der Klartext steht darunter.
+const PLAIN_NAMES: Readonly<Record<string, string>> = {
+  'baseline.arr': 'Jährlich wiederkehrender Umsatz',
+  'baseline.ebitda': 'Ergebnis vor Zinsen, Steuern, Abschreibungen',
+  'baseline.arpa': 'Ø monatlicher Umsatz je Kunde',
+  'baseline.marketing_cac': 'Werbekosten je Neukunde',
+  'baseline.fully_loaded_cac': 'Vertriebs- und Marketingkosten je Neukunde',
+  'baseline.headcount': 'Mitarbeitende in Vollzeitstellen',
+  'baseline.arr_verlauf': 'Jährlich wiederkehrender Umsatz je Quartal',
+  'baseline.mrr_paketmix': 'Monatlich wiederkehrender Umsatz je Paket',
+};
+
+// Auftrag 091: Vorjahr nur, wo belegt und vergleichbar (GuV FY 2024, Organisation 31.12.2024).
+// `catalogComparison.vitest.ts` gleicht die Werte mit src/domain ab.
+const COMPARISONS: Readonly<Record<string, NonNullable<ActiveCatalogEntry['comparison']>>> = {
+  'baseline.umsatz': { label: 'FY 2024', value: 164_000 },
+  'baseline.ebitda': { label: 'FY 2024', value: -288_000 },
+  'baseline.headcount': { label: '31.12.2024', value: 8 },
+};
+
+const withPlainText = (entry: ActiveCatalogEntry): ActiveCatalogEntry => ({
+  ...entry,
+  ...(PLAIN_NAMES[entry.id] ? { plainName: PLAIN_NAMES[entry.id] } : {}),
+  ...(COMPARISONS[entry.id] ? { comparison: COMPARISONS[entry.id] } : {}),
+});
+
 export const ACTIVE_CATALOG_ENTRIES: readonly ActiveCatalogEntry[] = [
-  ...BASELINE_ENTRIES,
+  ...BASELINE_ENTRIES.map(withPlainText),
   ...CRM_ENTRIES,
   ...LIVE_ENTRIES,
   ...OVERVIEW_ENTRIES,

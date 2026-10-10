@@ -121,6 +121,13 @@ export interface ActiveCatalogEntry extends CatalogEntryBase {
   funnelStages?: true;
   /** Werte können negativ sein: nie Kreis oder Ring. */
   mayBeNegative?: true;
+  /** Auftrag 091 (Entscheidung Marc): Klartext unter dem Kürzel, z. B. „Jährlich wiederkehrender Umsatz“. */
+  plainName?: string;
+  /**
+   * Auftrag 091: belegter Vorperiodenwert gleicher Art und Einheit (z. B. FY 2024 zu FY 2025).
+   * Fehlt er, zeigt die Kachel keinen Vergleich – nie Pfeil oder Bewertung.
+   */
+  comparison?: { label: string; value: number };
 }
 
 export interface InventoryCatalogEntry extends CatalogEntryBase {

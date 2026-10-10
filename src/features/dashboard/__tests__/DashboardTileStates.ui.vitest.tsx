@@ -251,7 +251,7 @@ describe('Kombinationskachel (Auftrag 076)', () => {
     expect(screen.getByTestId('tile-blocked').textContent).toBe(
       'Für „Umsatzerlöse“ fehlt ein Wert.',
     );
-    expect(screen.getByTestId('tile-blocked').parentElement?.className).toContain('min-h-[56px]');
+    expect(screen.getByTestId('tile-blocked').parentElement?.className).toContain('min-h-[48px]');
     expect(screen.queryByTestId('tile-number')).toBeNull();
     expect(screen.getByTestId('tile-live-status').textContent).toBe(
       'Nicht berechenbar: Für „Umsatzerlöse“ fehlt ein Wert.',

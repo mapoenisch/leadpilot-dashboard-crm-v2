@@ -60,9 +60,7 @@ describe('DashboardTile', () => {
     renderTile(resolved());
     expect(screen.getByRole('heading', { name: ARR.name })).toBeInTheDocument();
     expect(screen.getByText('Finanzen')).toBeInTheDocument();
-    expect(screen.getByTestId('tile-meta')).toHaveTextContent(
-      'Stand 31.12.2025 · Quelle: Stammdaten',
-    );
+    expect(screen.getByTestId('tile-meta')).toHaveTextContent('Stand 31.12.2025 · Stammdaten');
     expect(screen.getByTestId('tile-number')).toHaveTextContent('2,35 Mio. EUR');
     expect(screen.queryByTestId('tile-state-badge')).toBeNull();
   });
@@ -70,6 +68,8 @@ describe('DashboardTile', () => {
   it('bevorzugt den eigenen Titel', () => {
     renderTile(resolved(), { ...TILE, title: 'Mein ARR' });
     expect(screen.getByRole('heading', { name: 'Mein ARR' })).toBeInTheDocument();
+    // Auftrag 091: Ein eigener Titel ersetzt Kürzel und Klartext.
+    expect(screen.queryByTestId('tile-plain-name')).toBeNull();
   });
 
   it('nennt bei Live den Messzeitpunkt und die Quelle Live', () => {
@@ -81,15 +81,14 @@ describe('DashboardTile', () => {
         asOf: '2026-10-04T12:05:00Z',
       }),
     );
-    expect(screen.getByTestId('tile-meta')).toHaveTextContent(
-      'Live · Stand 04.10.2026, 14:05 · Quelle: Live',
-    );
+    expect(screen.getByTestId('tile-meta')).toHaveTextContent('Live · Stand 04.10.2026, 14:05');
+    // Auftrag 091: „Live“ nicht doppelt nennen.
+    expect(screen.getByTestId('tile-meta').textContent?.match(/Live/g)).toHaveLength(1);
   });
 
   it.each([
     ['dashboard', 'Zeitbezug: Dashboard-Filter'],
     ['eigener_zeitraum', 'Zeitbezug: Eigener Zeitraum'],
-    ['fester_stand', 'Zeitbezug: Fester historischer Stand'],
   ] as const)('zeigt den Zeitbezug %s', (mode, text) => {
     renderTile(resolved({ effectiveFilter: { mode, period: null, pipeline: null } }));
     expect(screen.getByTestId('tile-time-reference')).toHaveTextContent(text);
@@ -340,9 +339,7 @@ describe('DashboardTile', () => {
     expect(screen.queryByTestId('tile-meta')).toBeNull();
     expect(screen.queryByText('Finanzen')).toBeNull();
     expect(screen.getByTestId('tile-blocked')).toHaveTextContent('ist unbekannt');
-    expect(screen.getByTestId('tile-time-reference')).toHaveTextContent(
-      'Fester historischer Stand',
-    );
+    expect(screen.getByTestId('tile-time-reference')).toHaveTextContent('fester Stand');
   });
 
   it.each([
