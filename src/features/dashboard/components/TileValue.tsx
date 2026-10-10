@@ -11,12 +11,41 @@ function splitUnit(text: string): { number: string; unit: string } {
     : { number: text, unit: '' };
 }
 
-export function TileNumber({ value, unit }: { value: number; unit: string }) {
+/** Auftrag 091: Vorperiode neutral als Text – kein Pfeil, keine Farbe, keine Bewertung. */
+function ComparisonLine({
+  value,
+  unit,
+  comparison,
+}: {
+  value: number;
+  unit: string;
+  comparison: { label: string; value: number };
+}) {
+  const delta = value - comparison.value;
+  const sign = delta > 0 ? '+' : '';
+  return (
+    <p data-testid="tile-comparison" className="m-0 text-[12px] text-[var(--color-text-muted)]">
+      Vorjahr ({comparison.label}): {formatTileValue(comparison.value, unit, 'kompakt')} ·
+      Veränderung {sign}
+      {formatTileValue(delta, unit, 'kompakt')}
+    </p>
+  );
+}
+
+export function TileNumber({
+  value,
+  unit,
+  comparison,
+}: {
+  value: number;
+  unit: string;
+  comparison?: { label: string; value: number };
+}) {
   const compact = formatTileValue(value, unit, 'kompakt');
   const exact = formatTileValue(value, unit, 'exakt');
   const parts = splitUnit(compact);
   return (
-    <div data-testid="tile-number" className="flex min-h-[56px] flex-col justify-center">
+    <div data-testid="tile-number" className="flex min-h-[48px] flex-col justify-center">
       <p className="m-0 flex flex-wrap items-baseline gap-x-[8px] text-[var(--color-text-primary,#fff)]">
         <span aria-hidden="true" className="font-mono text-[32px] font-bold leading-none">
           {parts.number}
@@ -31,6 +60,7 @@ export function TileNumber({ value, unit }: { value: number; unit: string }) {
         ) : null}
         <span className="sr-only">{exact}</span>
       </p>
+      {comparison ? <ComparisonLine value={value} unit={unit} comparison={comparison} /> : null}
     </div>
   );
 }

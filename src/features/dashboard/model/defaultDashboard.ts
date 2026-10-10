@@ -82,7 +82,9 @@ export const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
       tileId: 'std_uebersicht_roadmap',
       catalogId: 'uebersicht.roadmap',
       view: 'uebersicht',
-      size: 'mittel',
+      // Auftrag 091: letzte Kachel volle Breite, sonst bleibt die halbe Zeile leer. Nur Standard;
+      // gespeicherte persönliche Ansichten bleiben unverändert.
+      size: 'voll',
       filterMode: 'fester_stand',
     },
   ],

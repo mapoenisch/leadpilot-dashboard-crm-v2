@@ -16317,3 +16317,19 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Menüs bleiben offen: `DashboardGrid` leert die offenen Menüs beim Verlassen des Bearbeitungsmodus. Test: nach erneutem Bearbeiten alle eingeklappt.
 - P2 mobile Leiste bricht um: Zeile im Bearbeitungsmodus ohne Umbruch, Status kürzt; unter 768 px Kurzform („Ungespeichert“, „Unverändert“), die Langform bleibt für Screenreader. Harness misst die Leiste nach einer Änderung: 51 px in allen 8 Fällen (≤ 64 px); Matrix 8/8.
 - Reihenfolge (Entscheidung Marc 10.10.2026): Rest von Paket E als Auftrag 091 vor dem Konfigurator (Auftrag 092).
+
+### Auftrag 091 – Paket E Teil 3: Kennzahlnamen, Vorjahr, kompakte Zahlkachel, Builder Claude Code, 10.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 10, offene Punkte nach 088/089; Reihenfolge laut Marc vor Paket F Teil 2. **Entscheidung Marc 10.10.2026:** Kürzel bleibt Titel, Klartext klein darunter. Baseline `main` `f6810b5`.
+
+**Geänderte Dateien:** `dashboardCatalog.ts` (`plainName`, `comparison`), `catalog/activeEntries.ts` (8 Klartexte, Vorjahr Umsatz/EBITDA/Headcount, ID aus ARR-Definition entfernt), `DashboardTile.tsx` (Klartext, Metazeile ohne „Quelle:“, „Live“ nicht doppelt, 16 px Innenabstand, 8 px Abstände, leerer Hinweisbereich ohne Abstand), `TileStatus.tsx` („fester Stand“ nur bei gewähltem Zeitraum oder ohne Standzeile), `TileValue.tsx`/`DashboardChart.tsx` (neutrale Vorjahreszeile, Zahlhöhe 48 px), `defaultDashboard.ts` (Roadmap volle Breite); Tests `DashboardTile.ui`, `DashboardTileStates.ui`, `defaultDashboard.vitest`, neu `DashboardTile091.ui`, `catalogComparison.vitest`; Harness `scripts/captureAuftrag091Tiles.mjs`.
+
+**Funktionale Prüfungen:** Vorjahreswerte gegen `GUV` (FY 2024) und `HR` (2024: 8 FTE) abgeglichen; Vergleich nur bei festem Einzelwert, ohne Pfeil/Farbe. Keine Katalog-ID in Definitionen. Eigener Titel ersetzt Kürzel und Klartext. Standardansicht füllt bei 12 Spalten jede Zeile. Gespeicherte Ansichten, IDs und Reihenfolgen unverändert. Dashboard-e2e lokal 39/39.
+
+**Schutzbereichs-Prüfung:** `git diff f6810b5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` (001–025) · `npm test` 325 / 2329 · `build` · `lint` · `format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-091/README.md`: 8/8 – gewöhnliche Zahlkacheln bei 1440 px ≤ 218 px (Median aller Zahlkacheln 286 → 240 px), Klartext 8, Vorjahr 3, Überlauf 0/0, axe 0, Hash verschieden.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen.

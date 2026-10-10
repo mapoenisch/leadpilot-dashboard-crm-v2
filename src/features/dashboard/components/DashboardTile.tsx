@@ -54,7 +54,8 @@ export interface DashboardTileProps {
  * Übersicht haben eine feste Höhe und scrollen innerhalb der Kachel (Codex-Befund PR #57).
  */
 const MIN_HEIGHT: Partial<Record<DashboardView, string>> = {
-  zahl: 'min-h-[56px]',
+  // Auftrag 091: 48 px (Zahl 32 px) – Laden, Fehler und fertige Zahl bleiben gleich hoch.
+  zahl: 'min-h-[48px]',
   tabelle: 'h-[240px]',
   uebersicht: 'h-[240px]',
 };
@@ -148,6 +149,8 @@ export function DashboardTile({
   return (
     <Card
       variant="glass"
+      // Auftrag 091 (Muster 1): 16 px Innenabstand für die kompakte Kachel.
+      padding="var(--space-4)"
       aria-label={`Kachel: ${title}`}
       data-testid="dashboard-tile"
       data-size={tile.size}
@@ -155,7 +158,8 @@ export function DashboardTile({
       data-state={data.state}
       className={cn('w-full min-w-0 motion-reduce:transition-none', className)}
     >
-      <div className="flex flex-col gap-[12px]">
+      {/* Auftrag 091 (Muster 1): 8 px Abstand statt 12 px. */}
+      <div className="flex flex-col gap-[8px]">
         <header className="flex flex-wrap items-start justify-between gap-[10px]">
           <div className="min-w-0">
             {entry ? (
@@ -163,10 +167,19 @@ export function DashboardTile({
                 {DASHBOARD_CATEGORIES[entry.category]}
               </p>
             ) : null}
-            <h3 className="m-0 mt-[4px] break-words text-[15px] font-semibold leading-snug text-[var(--color-text-primary,#fff)]">
+            <h3 className="m-0 mt-[2px] break-words text-[15px] font-semibold leading-snug text-[var(--color-text-primary,#fff)]">
               {title}
             </h3>
-            <div className="mt-[4px]">
+            {/* Auftrag 091 (Entscheidung Marc): Klartext unter dem Kürzel; ein eigener Titel ersetzt beides. */}
+            {!tile.title && entry?.plainName ? (
+              <p
+                data-testid="tile-plain-name"
+                className="m-0 break-words text-[12px] text-[var(--color-text-muted)]"
+              >
+                {entry.plainName}
+              </p>
+            ) : null}
+            <div className="mt-[2px]">
               <TimeReference
                 tile={tile}
                 data={resolved}
@@ -184,8 +197,11 @@ export function DashboardTile({
                         >
                           {' · Stand 00.00.0000, 00:00'}
                         </span>
-                      ) : null}{' '}
-                      · Quelle: {SOURCE_LABEL[resolved.origin.layer]}
+                      ) : null}
+                      {/* Auftrag 091: Quelle ohne Vorsilbe; nicht doppelt, wenn der Stand sie schon nennt (Live). */}
+                      {period.startsWith(SOURCE_LABEL[resolved.origin.layer])
+                        ? null
+                        : ` · ${SOURCE_LABEL[resolved.origin.layer]}`}
                     </span>
                   ) : null
                 }
@@ -212,7 +228,8 @@ export function DashboardTile({
                   ? { role: 'region', tabIndex: 0, 'aria-label': 'Hinweise zur Datenqualität' }
                   : {}),
               }
-            : {})}
+            : // Auftrag 091: ohne Inhalt kein leerer Flex-Eintrag (sonst 8 px Abstand zu viel).
+              { className: 'empty:hidden' })}
         >
           <TileNotices data={data} />
         </div>
@@ -240,7 +257,7 @@ export function DashboardTile({
           />
         </div>
 
-        <footer className="flex flex-wrap items-center justify-end gap-[8px] border-0 border-t border-solid border-border pt-[10px]">
+        <footer className="flex flex-wrap items-center justify-end gap-[8px] border-0 border-t border-solid border-border pt-[8px]">
           {detailsBlocked ? (
             <p id={`${idPrefix}-details-hint`} className={cn(MUTED, 'mr-auto')}>
               {DETAILS_BLOCKED_HINT}
