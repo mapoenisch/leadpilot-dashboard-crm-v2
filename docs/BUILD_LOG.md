@@ -16234,3 +16234,7 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 ### Auftrag 089 – Nacharbeit Codex PR #75, Runde 3 (10.10.2026, Claude Code)
 
 - P1 nicht freigegebene Dateien: Ziel-Dateien von Auftrag 089 ausdrücklich erweitert um den Fokus-Test in `PersonalExecutiveDashboard.ui.vitest.tsx` und die sieben CI-erzeugten Visual-Baselines (Dashboard 3 Breiten; vier weitere mobile Seiten wegen der Simulationsleiste im gemeinsamen Layout), jeweils mit Begründung. Kein Code geändert.
+
+### Auftrag 089 – Nacharbeit Codex PR #75, Runde 4 (10.10.2026, Claude Code)
+
+- P1 Freigabe fehlt: **Entscheidung Marc 10.10.2026:** Die Auftragserweiterungen sind freigegeben – Auftrag 088 um `src/components/ui/Button.tsx` (Gefahrenfläche fest Korallenrot) und Auftrag 089 um den Fokus-Test und die sieben Visual-Baselines. In beiden Auftragsdateien als Freigabe mit Datum eingetragen.
