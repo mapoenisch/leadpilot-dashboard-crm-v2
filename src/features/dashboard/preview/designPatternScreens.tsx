@@ -21,6 +21,7 @@ const FY = {
   leads: sum(FUNNEL_QUARTALE.leads),
   mql: sum(FUNNEL_QUARTALE.mql),
   sql: sum(FUNNEL_QUARTALE.sql),
+  testversionen: sum(FUNNEL_QUARTALE.testversionen),
   angebote: sum(FUNNEL_QUARTALE.angebote),
   neukunden: sum(FUNNEL_QUARTALE.neukunden),
 };
@@ -28,6 +29,8 @@ const STUFEN = [
   { label: 'Leads', value: FY.leads, quote: '—' },
   { label: 'MQL', value: FY.mql, quote: `${formatQuote(FY.mql, FY.leads)} der Leads` },
   { label: 'SQL', value: FY.sql, quote: `${formatQuote(FY.sql, FY.mql)} der MQL` },
+  // Wie die Funneltabelle in src/domain/vertriebData.ts (Codex PR #73, Runde 4).
+  { label: 'Testversionen gestartet', value: FY.testversionen, quote: 'inkl. Self-Service' },
   { label: 'Angebote', value: FY.angebote, quote: `${formatQuote(FY.angebote, FY.sql)} der SQL` },
   {
     label: 'Neukunden',
