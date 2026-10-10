@@ -168,16 +168,18 @@ Vorläufige Größenordnung: 0 klein, F15 klein, A mittel bis zur Diagnose, B mi
 
 **Dateien:** `src/features/dashboard/pages/PersonalExecutiveDashboard.tsx`, `components/DashboardTile.tsx`, `TileValue.tsx`, `DashboardGrid.tsx`, `DashboardChart.tsx`, `components/charts/`, `model/defaultDashboard.ts`, `model/catalog/`, `components/detail/`; `src/components/layout/Header.tsx`, `SimulationBar.tsx`, `Layout.tsx`. Tests: bestehende Kachel-/Raster-/Layout-Tests, Dashboard-E2E und Screenshot-Harness.
 
-- [ ] Header/Einleitung vereinfachen, Aktionen auf eine kompakte Zeile bringen. Keine zweite große Überschrift ohne inhaltlichen Nutzen.
+- [x] Header/Einleitung vereinfachen, Aktionen auf eine kompakte Zeile bringen. Keine zweite große Überschrift ohne inhaltlichen Nutzen.
 - [ ] Zahlenkacheln nach dem Muster verdichten. Richtwert 160–220 px bei gewöhnlichen Inhalten; lange Titel, Warnungen und große Schrift vollständig lesbar lassen. Ladezustände reservieren passende Höhe, damit das Raster nicht springt.
 - [x] Quelle/Stand zu einer kurzen Zeile zusammenführen (Auftrag 088). Redundante historische Hinweise entfernen; nötige Warnungen zu organisationsübergreifenden Live-Werten oder eingeschränkter Qualität sichtbar erhalten.
 - [ ] Verständliche Kennzahlnamen einsetzen. Fachabkürzungen optional ergänzen, Definitionen direkt erreichbar machen. Technische Katalog-IDs aus normalen Detailtexten entfernen.
-- [ ] Vorgeschlagene Standardpriorität umsetzen: ARR, Umsatz, EBITDA, aktive Kunden zuerst; weitere Kennzahlen und Diagramme geordnet danach. Gespeicherte persönliche Reihenfolgen, IDs und Kacheln bleiben unangetastet.
+- [x] Vorgeschlagene Standardpriorität umsetzen: ARR, Umsatz, EBITDA, aktive Kunden zuerst; weitere Kennzahlen und Diagramme geordnet danach. Gespeicherte persönliche Reihenfolgen, IDs und Kacheln bleiben unangetastet.
 - [ ] Vorjahres-/Zielvergleich nur für nachgewiesene kompatible Perioden/Einheiten ergänzen. Fehlende Vergleichsdaten → neutrale Anzeige ohne Pfeil/Bewertung. Historischer Stand → kein „heute“-Label. Negative Werte allein begründen keine automatische Zielwarnung.
 - [ ] ~~Vorhandene Chart-Komponenten flach gestalten~~ **Revidiert (Marc 09.10.2026): 3D-Tiefe bleibt; nur Lesbarkeit verbessern (Werte im Textton, Auftrag 088).** Ursprünglich: Vorhandene Chart-Komponenten flach gestalten, ohne Konfigurationstypen und gespeicherte Darstellungswerte umzubenennen. Reihen zusätzlich durch Labels, Muster oder Linien unterscheiden; Tooltip, Touchauswahl und „Werte als Tabelle“ erhalten.
 - [ ] Leere Rasterflächen und verschachtelte Scrollbereiche überprüfen. Keine automatische Auffüllung, die die persönliche Reihenfolge verändert. Übersichtskacheln zeigen Zusammenfassung und klaren Weg zu den vollständigen Inhalten.
-- [ ] Simulationsleiste mobil kompakt darstellen; Details aufklappbar. Start/Pause und gewählte Geschwindigkeit bleiben erreichbar und erkennbar. Nur UI-Dateien ändern; Engine und Tick-Verhalten unberührt.
-- [ ] Bei 375 × 812 CSS-Pixeln muss in der normalen Standardansicht ein vollständiger Kennzahlwert ohne Scrollen sichtbar sein. Bei Lade-/Fehlerzustand ist der entsprechende Zustand sofort sichtbar. Keine Zusage für beliebige persönliche Reihenfolgen oder offene Editoransichten.
+- [x] Simulationsleiste mobil kompakt darstellen; Details aufklappbar. Start/Pause und gewählte Geschwindigkeit bleiben erreichbar und erkennbar. Nur UI-Dateien ändern; Engine und Tick-Verhalten unberührt.
+- [x] Bei 375 × 812 CSS-Pixeln muss in der normalen Standardansicht ein vollständiger Kennzahlwert ohne Scrollen sichtbar sein. Bei Lade-/Fehlerzustand ist der entsprechende Zustand sofort sichtbar. Keine Zusage für beliebige persönliche Reihenfolgen oder offene Editoransichten.
+
+Teilumsetzung: Aufträge 088 und 089.
 
 **Abnahme:** Schneller Überblick, kurze Metadaten, keine unberechtigte Datenbewertung; 0 px globaler horizontaler Überlauf bei 1440/768/375/320. Layoutverschiebung als Ziel höchstens 0,1 unter kontrollierter Messung. Gespeicherte Präferenzen und Lazy Loading funktionieren weiterhin.
 

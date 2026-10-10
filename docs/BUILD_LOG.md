@@ -16260,3 +16260,37 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 - P2 langer Titel und Fehler zusammengelegt: Muster 3–5 zeigen jetzt vier getrennte Fälle – Normalfall, langer Titel im Normalfall (mobil: Verlauf mit Diagramm; Funnel: Kennzahlzeile; Editor: Zahlkachel), Fehler mit normalem Titel, leer. Test prüft je Muster: Langtitel ohne Fehlermeldung, Fehler ohne Langtitel.
 - Harness gegen den finalen Baum neu gefahren: 12/12 ohne Überlauf, axe 0, Hashes verschieden; README aktualisiert.
+
+### Auftrag 089 – Paket E Teil 2: Seitenkopf und mobile Hülle, Builder Claude Code, 09.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 10, Fortsetzung von 088 (Branch vom 088-Stand).
+
+**Geänderte Dateien:** `pages/PersonalExecutiveDashboard.tsx` (Kopf eine Zeile, 18 px, Fokusring), `components/layout/SimulationBar.tsx` (mobil „Details“-Aufklapper), Test `SimulationBar.mobile.ui` (neu), Harness `captureAuftrag089Shell.mjs` + README, Auftrag, Plan.
+
+**Funktionale Prüfungen:** Start/Pause und Tempo mobil immer sichtbar, Aufklappen startet nichts; Standardpriorität bereits umgesetzt (keine Änderung). 375 × 812: erste Zahl unten 684 → 573 px (sichtbar); Simulationsleiste mobil 131 → 93 px.
+
+**Schutzbereichs-Prüfung:** `git diff e007ff0 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` · `npm test` 323 / 2312 · `build` · `lint` · `format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-089/README.md`: 1440/768/375/320 × dunkel/hell, Vorher = Stand 088, 8/8, Hash verschieden, Überlauf 0/0, axe 0.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen. Abhängig von PR #74.
+
+### Auftrag 089 – Nacharbeit Codex PR #75, Runde 1 (10.10.2026, Claude Code)
+
+- P1 Button-Komponente nicht autorisiert: Änderung an `src/components/ui/Button.tsx` (aus Auftrag 088, bereits über PR #74 auf `main`) als Auftragserweiterung in `ANTIGRAVITY_AUFTRAG_088_KOMPAKTE_KACHELN.md` nachträglich mit Begründung dokumentiert: Gefahrenfläche fest Korallenrot, damit das im Dunkeln aufgehellte `--color-error` die weiße Schrift nicht entwertet; sichtbar unverändert gegenüber dem Stand vor 088.
+- P1 Lade-/Fehlerzustand mobil ungeprüft: `scripts/captureAuftrag089Shell.mjs` nimmt bei 375 × 812 (dunkel/hell) zusätzlich einen kontrollierten Ladezustand (Abfrage `executive_dashboard_preferences` bleibt unbeantwortet) und Fehlerzustand (Antwort 500) auf und prüft den Begrenzungsrahmen der Meldung gegen das Fenster. Ergebnis: Laden 301–321 px, Fehler 251–313 px von 812 – sofort sichtbar; Matrix gesamt 12/12.
+- Nur Harness und Doku geändert; Schutzbereichs-Diff leer.
+
+### Auftrag 089 – Nacharbeit Codex PR #75, Runde 2 (10.10.2026, Claude Code)
+
+- P2 Fokusring nach Mausnavigation: Die Überschrift (`tabIndex=-1`, nur programmatisch fokussiert, wenn die Kachel nach der Detail-Rückkehr fehlt) nutzt `focus:ring-2` statt `focus-visible:ring-2`, damit der Ring auch nach einem Mausklick sichtbar ist. Test ergänzt.
+
+### Auftrag 089 – Nacharbeit Codex PR #75, Runde 3 (10.10.2026, Claude Code)
+
+- P1 nicht freigegebene Dateien: Ziel-Dateien von Auftrag 089 ausdrücklich erweitert um den Fokus-Test in `PersonalExecutiveDashboard.ui.vitest.tsx` und die sieben CI-erzeugten Visual-Baselines (Dashboard 3 Breiten; vier weitere mobile Seiten wegen der Simulationsleiste im gemeinsamen Layout), jeweils mit Begründung. Kein Code geändert.
+
+### Auftrag 089 – Nacharbeit Codex PR #75, Runde 4 (10.10.2026, Claude Code)
+
+- P1 Freigabe fehlt: **Entscheidung Marc 10.10.2026:** Die Auftragserweiterungen sind freigegeben – Auftrag 088 um `src/components/ui/Button.tsx` (Gefahrenfläche fest Korallenrot) und Auftrag 089 um den Fokus-Test und die sieben Visual-Baselines. In beiden Auftragsdateien als Freigabe mit Datum eingetragen.

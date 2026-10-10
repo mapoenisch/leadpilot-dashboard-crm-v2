@@ -22,22 +22,20 @@ export function PersonalExecutiveDashboard() {
   const [announcement, setAnnouncement] = useState('');
 
   return (
-    <div className="flex w-full flex-col gap-[var(--space-6,24px)]">
-      <header className="flex flex-col gap-[6px]">
-        <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-          Übersicht
-        </p>
+    <div className="flex w-full flex-col gap-[var(--space-4,16px)]">
+      {/* Auftrag 089 (Paket E): Die Kopfzeile nennt Bereich und Seite bereits – hier nur noch eine
+          kompakte Zeile statt Bereichszeile, großer Überschrift und Einleitung. */}
+      <header className="flex flex-wrap items-baseline gap-x-[12px] gap-y-[4px]">
         <h2
           ref={headingRef}
           tabIndex={-1}
           data-testid="dashboard-heading"
-          className="m-0 text-[24px] font-semibold text-[var(--color-text-primary,#fff)] outline-none"
+          className="m-0 text-[18px] font-semibold text-[var(--color-text-primary,#fff)] outline-none focus:ring-2 focus:ring-primary"
         >
           Executive Dashboard
         </h2>
-        <p className="m-0 text-[14px] text-[var(--color-text-muted)]">
-          Deine persönliche Auswahl an Kennzahlen und Übersichten. „Details“ zeigt Herkunft,
-          Zeitraum und Werte jeder Kachel.
+        <p className="m-0 text-[13px] text-[var(--color-text-muted)]">
+          „Details“ zeigt Herkunft, Zeitraum und Werte jeder Kachel.
         </p>
       </header>
       <p role="status" className="sr-only" data-testid="dashboard-nav-status">
