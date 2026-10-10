@@ -85,6 +85,8 @@ describe('Persönliche Ansicht: Details öffnen und zurückkehren', () => {
       state: buildDashboardNavState(IDENTITY, null, 'entfernt'),
     });
     await waitFor(() => expect(screen.getByTestId('dashboard-heading')).toHaveFocus());
+    // Codex PR #75: Ring auch nach Mausnavigation (programmatischer Fokus erfüllt :focus-visible nicht).
+    expect(screen.getByTestId('dashboard-heading')).toHaveClass('focus:ring-2');
     expect(screen.getByTestId('dashboard-nav-status')).toHaveTextContent(
       RETURN_MISSING_ANNOUNCEMENT,
     );

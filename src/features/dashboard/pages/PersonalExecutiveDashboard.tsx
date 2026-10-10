@@ -30,7 +30,7 @@ export function PersonalExecutiveDashboard() {
           ref={headingRef}
           tabIndex={-1}
           data-testid="dashboard-heading"
-          className="m-0 text-[18px] font-semibold text-[var(--color-text-primary,#fff)] outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="m-0 text-[18px] font-semibold text-[var(--color-text-primary,#fff)] outline-none focus:ring-2 focus:ring-primary"
         >
           Executive Dashboard
         </h2>
