@@ -1,6 +1,7 @@
 // Executive Dashboard, Teilauftrag 5 (Auftrag 074): Raster der Kacheln. 1/6/12 Spalten, Spannen je
 // Größe, kein automatisches Auffüllen. Im Bearbeitungsmodus trägt jede Kachel Schaltflächen zum
 // Verschieben, Bearbeiten und Entfernen; Ziehen ist nur eine Ergänzung für große Bildschirme.
+// Auftrag 090 (Paket F, Muster 5): ruhige Leiste je Kachel, Aktionen hinter „Kachel-Aktionen“.
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,8 @@ import { LazyDashboardTile, type TileDataHook } from './LazyDashboardTile';
 import { UnavailableTileSlot } from './UnavailableTileSlot';
 
 export type FocusAction = 'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details';
+
+const ACTION_BUTTON = 'min-h-[44px] w-full justify-start';
 
 /** Fokusziel nach dem Entfernen der letzten Kachel: die Schaltfläche im Leerzustand. */
 export const EMPTY_FOCUS = '__leer__';
@@ -57,6 +60,15 @@ export function DashboardGrid(props: DashboardGridProps) {
   const listRef = useRef<HTMLUListElement | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  // Offene Aktionsmenüs je Kachel: bleiben beim Verschieben offen, damit der Fokus folgen kann.
+  const [openMenus, setOpenMenus] = useState<ReadonlySet<string>>(() => new Set());
+  const toggleMenu = (tileId: string) =>
+    setOpenMenus((current) => {
+      const next = new Set(current);
+      if (next.has(tileId)) next.delete(tileId);
+      else next.add(tileId);
+      return next;
+    });
 
   useEffect(() => {
     if (!focusRequest) return;
@@ -68,14 +80,18 @@ export function DashboardGrid(props: DashboardGridProps) {
       (child) => child.getAttribute('data-tile-id') === focusRequest.tileId,
     ) as HTMLElement | undefined;
     if (!item) return;
-    const button = (action?: FocusAction) =>
+    const button = (action?: FocusAction | 'aktionen') =>
       action
         ? item.querySelector<HTMLButtonElement>(`button[data-action="${action}"]:not(:disabled)`)
         : null;
     const target =
       focusRequest.action === 'kachel'
         ? item
-        : (button(focusRequest.action) ?? button(OPPOSITE[focusRequest.action]) ?? item);
+        : (button(focusRequest.action) ??
+          button(OPPOSITE[focusRequest.action]) ??
+          // Menü zu: Fokus auf „Kachel-Aktionen“ statt ins Leere (Auftrag 090).
+          button('aktionen') ??
+          item);
     target.focus();
     // Jede Anforderung ist ein neues Objekt: nur sie löst den Fokus aus, nicht jede Neudarstellung.
   }, [focusRequest]);
@@ -144,67 +160,96 @@ export function DashboardGrid(props: DashboardGridProps) {
             )}
           >
             {editing ? (
-              <div
-                data-testid="tile-edit-bar"
-                className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--color-text-muted)]"
-              >
-                <span
-                  draggable={!locked}
-                  aria-hidden="true"
-                  data-testid="drag-handle"
-                  onDragStart={(event) => {
-                    const item = event.currentTarget.closest('li');
-                    if (item) event.dataTransfer?.setDragImage?.(item, 0, 0);
-                    event.dataTransfer?.setData?.('text/plain', tile.tileId);
-                    setDragId(tile.tileId);
-                  }}
-                  onDragEnd={endDrag}
-                  className="hidden cursor-grab select-none md:inline-flex"
+              <div className="flex flex-col gap-1">
+                <div
+                  data-testid="tile-edit-bar"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-primary px-3 py-1 text-[12px] text-[var(--color-text-muted)]"
                 >
-                  ⠿
-                </span>
-                <span className="mr-auto">{position}</span>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  data-action="hoch"
-                  aria-label={label('Nach oben')}
-                  disabled={locked || index === 0}
-                  onClick={() => props.onMove(tile.tileId, 'hoch')}
-                >
-                  Nach oben
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  data-action="runter"
-                  aria-label={label('Nach unten')}
-                  disabled={locked || index === tiles.length - 1}
-                  onClick={() => props.onMove(tile.tileId, 'runter')}
-                >
-                  Nach unten
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  data-action="bearbeiten"
-                  aria-label={label('Bearbeiten')}
-                  disabled={locked || !activeEntryOf(tile)}
-                  onClick={() => props.onEdit(tile.tileId)}
-                >
-                  Bearbeiten
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="border-error text-error"
-                  data-action="entfernen"
-                  aria-label={label('Entfernen')}
-                  disabled={locked}
-                  onClick={() => props.onRemove(tile.tileId)}
-                >
-                  Entfernen
-                </Button>
+                  <span className="flex min-w-0 items-center gap-1 [overflow-wrap:anywhere]">
+                    <span
+                      draggable={!locked}
+                      aria-hidden="true"
+                      data-testid="drag-handle"
+                      onDragStart={(event) => {
+                        const item = event.currentTarget.closest('li');
+                        if (item) event.dataTransfer?.setDragImage?.(item, 0, 0);
+                        event.dataTransfer?.setData?.('text/plain', tile.tileId);
+                        setDragId(tile.tileId);
+                      }}
+                      onDragEnd={endDrag}
+                      className="hidden cursor-grab select-none md:inline"
+                    >
+                      ⠿ Ziehen zum Verschieben ·{' '}
+                    </span>
+                    {position}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="min-h-[44px]"
+                    data-action="aktionen"
+                    aria-expanded={openMenus.has(tile.tileId)}
+                    aria-controls={`kachel-aktionen-${tile.tileId}`}
+                    aria-label={label('Kachel-Aktionen')}
+                    onClick={() => toggleMenu(tile.tileId)}
+                  >
+                    Kachel-Aktionen{' '}
+                    <span aria-hidden="true">{openMenus.has(tile.tileId) ? '▴' : '▾'}</span>
+                  </Button>
+                </div>
+                {/* Im Fluss statt schwebend: überdeckt weder Kachel noch ragt es auf 320 px hinaus. */}
+                {openMenus.has(tile.tileId) ? (
+                  <div
+                    id={`kachel-aktionen-${tile.tileId}`}
+                    data-testid="tile-actions"
+                    className="grid grid-cols-1 gap-1 rounded-lg border border-solid border-border bg-surface p-1 min-[300px]:grid-cols-2"
+                  >
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className={ACTION_BUTTON}
+                      data-action="hoch"
+                      aria-label={label('Nach oben')}
+                      disabled={locked || index === 0}
+                      onClick={() => props.onMove(tile.tileId, 'hoch')}
+                    >
+                      Nach oben
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className={ACTION_BUTTON}
+                      data-action="runter"
+                      aria-label={label('Nach unten')}
+                      disabled={locked || index === tiles.length - 1}
+                      onClick={() => props.onMove(tile.tileId, 'runter')}
+                    >
+                      Nach unten
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className={ACTION_BUTTON}
+                      data-action="bearbeiten"
+                      aria-label={label('Bearbeiten')}
+                      disabled={locked || !activeEntryOf(tile)}
+                      onClick={() => props.onEdit(tile.tileId)}
+                    >
+                      Bearbeiten
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className={cn(ACTION_BUTTON, 'border-error text-error')}
+                      data-action="entfernen"
+                      aria-label={label('Entfernen')}
+                      disabled={locked}
+                      onClick={() => props.onRemove(tile.tileId)}
+                    >
+                      Entfernen
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {activeEntryOf(tile) ? (

@@ -119,6 +119,11 @@ test.describe('Gesamtabnahme mit fester Konfiguration', () => {
 
       // B beginnt auf dem alten Stand zu bearbeiten.
       await b.page.getByRole('button', { name: 'Dashboard bearbeiten' }).click();
+      // Auftrag 090: Aktionen liegen hinter „Kachel-Aktionen“.
+      await b.page
+        .getByRole('button', { name: /Kachel-Aktionen/ })
+        .first()
+        .click();
       await b.page
         .getByRole('button', { name: /: Nach unten, / })
         .first()
@@ -126,6 +131,11 @@ test.describe('Gesamtabnahme mit fester Konfiguration', () => {
 
       // A entfernt eine Kachel und speichert: genau eine neue Revision.
       await a.page.getByRole('button', { name: 'Dashboard bearbeiten' }).click();
+      // Auftrag 090: Aktionen liegen hinter „Kachel-Aktionen“.
+      await a.page
+        .getByRole('button', { name: /Kachel-Aktionen/ })
+        .last()
+        .click();
       await a.page
         .getByRole('button', { name: /: Entfernen, / })
         .last()
@@ -245,6 +255,11 @@ test.describe('Gesamtabnahme mit fester Konfiguration', () => {
 
       // Bearbeitung mit offenem Entwurf: Wert aktualisiert, Entwurf und Reihenfolge bleiben.
       await page.getByRole('button', { name: 'Dashboard bearbeiten' }).click();
+      // Auftrag 090: Aktionen liegen hinter „Kachel-Aktionen“.
+      await page
+        .getByRole('button', { name: /Kachel-Aktionen/ })
+        .first()
+        .click();
       await page
         .getByRole('button', { name: /: Nach unten, / })
         .first()

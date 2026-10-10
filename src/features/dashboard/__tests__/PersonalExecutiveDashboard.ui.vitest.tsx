@@ -121,6 +121,7 @@ describe('Persönliche Ansicht: Bearbeitungsmodus (Entscheidung E3)', () => {
     renderRoutes({ pathname: '/dashboard' });
     startEditing();
     const item = screen.getAllByRole('listitem').find((li) => li.textContent?.includes('Umsatz'))!;
+    fireEvent.click(within(item).getByRole('button', { name: /Kachel-Aktionen/ }));
     fireEvent.click(within(item).getByRole('button', { name: /Entfernen/ }));
     const link = document.createElement('a');
     link.href = '/finance/p-and-l';
@@ -141,6 +142,7 @@ describe('Persönliche Ansicht: Zurück-Taste des Browsers im Editor', () => {
   const editAndChange = () => {
     fireEvent.click(screen.getByRole('button', { name: 'Dashboard bearbeiten' }));
     const item = screen.getAllByRole('listitem').find((li) => li.textContent?.includes('Umsatz'))!;
+    fireEvent.click(within(item).getByRole('button', { name: /Kachel-Aktionen/ }));
     fireEvent.click(within(item).getByRole('button', { name: /Entfernen/ }));
   };
 

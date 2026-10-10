@@ -143,6 +143,11 @@ test('Zurück-Taste im Editor fragt bei offenen Änderungen nach', async ({ page
   await page.goto('/finance/p-and-l', { waitUntil: 'networkidle' });
   await openDashboard(page);
   await page.getByRole('button', { name: 'Dashboard bearbeiten' }).click();
+  // Auftrag 090: Aktionen liegen hinter „Kachel-Aktionen“.
+  await page
+    .getByRole('button', { name: /Kachel-Aktionen/ })
+    .first()
+    .click();
   await page
     .getByRole('button', { name: /Entfernen/ })
     .first()
