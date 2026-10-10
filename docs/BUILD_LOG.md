@@ -16230,3 +16230,7 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 ### Auftrag 089 – Nacharbeit Codex PR #75, Runde 2 (10.10.2026, Claude Code)
 
 - P2 Fokusring nach Mausnavigation: Die Überschrift (`tabIndex=-1`, nur programmatisch fokussiert, wenn die Kachel nach der Detail-Rückkehr fehlt) nutzt `focus:ring-2` statt `focus-visible:ring-2`, damit der Ring auch nach einem Mausklick sichtbar ist. Test ergänzt.
+
+### Auftrag 089 – Nacharbeit Codex PR #75, Runde 3 (10.10.2026, Claude Code)
+
+- P1 nicht freigegebene Dateien: Ziel-Dateien von Auftrag 089 ausdrücklich erweitert um den Fokus-Test in `PersonalExecutiveDashboard.ui.vitest.tsx` und die sieben CI-erzeugten Visual-Baselines (Dashboard 3 Breiten; vier weitere mobile Seiten wegen der Simulationsleiste im gemeinsamen Layout), jeweils mit Begründung. Kein Code geändert.

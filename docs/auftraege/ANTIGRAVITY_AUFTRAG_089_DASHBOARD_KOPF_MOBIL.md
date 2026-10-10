@@ -20,6 +20,12 @@
 | `src/components/layout/__tests__/SimulationBar.mobile.ui.vitest.tsx` (neu)     | Test                                                                             |
 | `scripts/captureAuftrag089Shell.mjs`, `docs/screenshots/auftrag-089/README.md` | Nachweis                                                                         |
 
+**Auftragserweiterung (Codex PR #75, Runde 3):**
+
+- `src/features/dashboard/__tests__/PersonalExecutiveDashboard.ui.vitest.tsx` – Test, dass die per Programm fokussierte Überschrift den Fokusring auch nach Mausnavigation zeigt (Nacharbeit Codex PR #75, Runde 2).
+- `e2e/visual.spec.ts-snapshots/visual-dashboard-1-{desktop-1440,tablet-768,mobile-375}-linux.png` sowie `visual-{crm-leads,finance-p-and-l,market-overview,resources-materials}-1-mobile-375-linux.png` – von `update-visual-baselines.yml` erzeugte Baselines. Grund: Der kompakte Kopf ändert `/dashboard`; die mobile Simulationsleiste liegt im gemeinsamen Layout und ist auf allen mobilen Seiten sichtbar, deshalb ändern sich die vier weiteren mobilen Aufnahmen. Keine Änderung an diesen Seiten selbst.
+- Doku: `docs/BUILD_LOG.md`, Plan, `ANTIGRAVITY_AUFTRAG_088_KOMPAKTE_KACHELN.md` (Begründung `Button.tsx`, Codex PR #75, Runde 1).
+
 ## Tasks
 
 - [x] Seitenkopf: Bereichszeile entfällt (steht in der Kopfzeile), Überschrift 18 px mit einem Satz daneben; Fokusziel für die Rückkehr bleibt (`dashboard-heading`, jetzt mit sichtbarem Fokusring).
