@@ -163,6 +163,14 @@ describe('DashboardGrid', () => {
     expect(within(item).getByTestId('tile-edit-bar')).toHaveTextContent('Position 2 von 4');
   });
 
+  it('beginnt nach erneutem Bearbeiten wieder eingeklappt (Codex PR #76)', () => {
+    const { rerender, props } = setup({ editing: true });
+    rerender(<DashboardGrid {...props} editing={false} />);
+    rerender(<DashboardGrid {...props} editing />);
+    for (const toggle of screen.getAllByRole('button', { name: /Kachel-Aktionen/ }))
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('fokussiert „Kachel-Aktionen“, wenn das Menü der Zielkachel zu ist (Auftrag 090)', () => {
     const { rerender, props } = setup({ editing: true });
     fireEvent.click(within(items()[1]!).getByRole('button', { name: /Kachel-Aktionen/ }));

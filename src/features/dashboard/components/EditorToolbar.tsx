@@ -38,6 +38,13 @@ function statusText(props: EditorToolbarProps): string {
   return dirty ? 'Ungespeicherte Änderungen.' : 'Keine Änderungen.';
 }
 
+/** Kurzform für schmale Ansichten, damit die haftende Leiste einzeilig bleibt (Codex PR #76). */
+const SHORT_STATUS: Record<string, string> = {
+  'Ungespeicherte Änderungen.': 'Ungespeichert',
+  'Keine Änderungen.': 'Unverändert',
+  'Nicht gespeichert.': 'Nicht gespeichert',
+};
+
 export function EditorToolbar(props: EditorToolbarProps) {
   const { editing, locked, saveStatus, conflict, serverLoaded, announcement } = props;
   const status = statusText(props);
@@ -57,7 +64,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
           {live}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={cn('flex items-center gap-2', editing ? 'flex-nowrap' : 'flex-wrap')}>
           {editing ? (
             <>
               <Button
@@ -76,54 +83,66 @@ export function EditorToolbar(props: EditorToolbarProps) {
               Dashboard bearbeiten
             </Button>
           )}
-          <span className="min-h-[20px] text-[13px] text-[var(--color-text-muted)]">{status}</span>
+          <span className="min-h-[20px] min-w-0 truncate text-[13px] text-[var(--color-text-muted)]">
+            {editing && SHORT_STATUS[status] ? (
+              <>
+                <span aria-hidden="true" className="md:hidden">
+                  {SHORT_STATUS[status]}
+                </span>
+                <span className="max-md:sr-only">{status}</span>
+              </>
+            ) : (
+              status
+            )}
+          </span>
         </div>
         {!editing && !props.canStart && props.startBlockedReason ? (
           <p className="m-0 text-[13px] text-[var(--color-text-muted)]">
             {props.startBlockedReason}
           </p>
         ) : null}
-        {saveStatus.kind === 'fehler' ? (
-          <div
-            data-testid="save-error"
-            className="flex flex-wrap items-center gap-2 rounded-lg border border-solid border-error p-3 text-sm [overflow-wrap:anywhere]"
-          >
-            <p className="m-0 basis-full">{saveStatus.message}</p>
-            {conflict ? (
-              <>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  disabled={locked || serverLoaded}
-                  onClick={props.onLoadServer}
-                >
-                  Aktuelle Serveransicht laden
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="max-w-full shrink whitespace-normal text-left"
-                  disabled={locked}
-                  onClick={props.onTakeServer}
-                >
-                  Entwurf verwerfen und Serverfassung übernehmen
-                </Button>
-                {serverLoaded ? (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="max-w-full shrink whitespace-normal border-error text-left text-error"
-                    disabled={locked}
-                    onClick={props.onSave}
-                  >
-                    Trotzdem speichern (ersetzt die neuere Fassung)
-                  </Button>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-        ) : null}
       </section>
+      {/* Nicht haftend (Codex PR #76): Fehler und Konfliktwege verdecken beim Scrollen keinen Inhalt. */}
+      {saveStatus.kind === 'fehler' ? (
+        <div
+          data-testid="save-error"
+          className="flex flex-wrap items-center gap-2 rounded-lg border border-solid border-error p-3 text-sm [overflow-wrap:anywhere]"
+        >
+          <p className="m-0 basis-full">{saveStatus.message}</p>
+          {conflict ? (
+            <>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={locked || serverLoaded}
+                onClick={props.onLoadServer}
+              >
+                Aktuelle Serveransicht laden
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="max-w-full shrink whitespace-normal text-left"
+                disabled={locked}
+                onClick={props.onTakeServer}
+              >
+                Entwurf verwerfen und Serverfassung übernehmen
+              </Button>
+              {serverLoaded ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="max-w-full shrink whitespace-normal border-error text-left text-error"
+                  disabled={locked}
+                  onClick={props.onSave}
+                >
+                  Trotzdem speichern (ersetzt die neuere Fassung)
+                </Button>
+              ) : null}
+            </>
+          ) : null}
+        </div>
+      ) : null}
       {editing ? (
         // Nicht haftend: seltene Aktionen und Hinweise, damit die haftende Leiste mobil schmal bleibt.
         <div data-testid="editor-extras" className="flex flex-col gap-2">

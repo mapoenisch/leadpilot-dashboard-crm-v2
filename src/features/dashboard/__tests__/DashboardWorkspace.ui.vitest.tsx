@@ -152,6 +152,9 @@ describe('DashboardWorkspace – Bearbeiten', () => {
     expect(items()[1]!.getAttribute('data-tile-id')).toBe('a');
     expect(within(items()[1]!).getByRole('button', { name: /Nach unten/ })).toHaveFocus();
     expect(screen.getByText('Ungespeicherte Änderungen.')).toBeInTheDocument();
+    // Codex PR #76: mobil Kurzform, damit die haftende Leiste einzeilig bleibt.
+    expect(screen.getByText('Ungespeichert')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('Ungespeichert')).toHaveClass('md:hidden');
   });
 
   it('hält die Werkzeugleiste beim Bearbeiten oben und erklärt die Arbeitskopie (Auftrag 090)', () => {
@@ -194,6 +197,10 @@ describe('DashboardWorkspace – Bearbeiten', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
     });
     expect(screen.getByTestId('save-error')).toHaveTextContent(/nicht gespeichert werden/);
+    // Codex PR #76: Fehler/Konfliktwege liegen außerhalb der haftenden Leiste.
+    expect(screen.getByTestId('editor-toolbar')).not.toContainElement(
+      screen.getByTestId('save-error'),
+    );
     expect(items()[1]!.getAttribute('data-tile-id')).toBe('a');
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeEnabled();
   });

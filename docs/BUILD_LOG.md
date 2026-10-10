@@ -16310,3 +16310,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-090/README.md`: 1440/768/375/320 × dunkel/hell, 8/8 – Hash verschieden, Bearbeitungsknöpfe 34 → 44 px, „Speichern“ nach Scrollen sichtbar (vorher nein), Überlauf 0/0, axe 0.
 
 **Ergebnis & Freigabestatus:** Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 090 – Nacharbeit Codex PR #76, Runde 1 (10.10.2026, Claude Code)
+
+- P2 Fehler haftet mit: `save-error` samt Konfliktwegen liegt jetzt außerhalb der haftenden Leiste; es haften nur Speichern, Verwerfen und Status. Test: Leiste enthält den Fehlerblock nicht.
+- P2 Menüs bleiben offen: `DashboardGrid` leert die offenen Menüs beim Verlassen des Bearbeitungsmodus. Test: nach erneutem Bearbeiten alle eingeklappt.
+- P2 mobile Leiste bricht um: Zeile im Bearbeitungsmodus ohne Umbruch, Status kürzt; unter 768 px Kurzform („Ungespeichert“, „Unverändert“), die Langform bleibt für Screenreader. Harness misst die Leiste nach einer Änderung: 51 px in allen 8 Fällen (≤ 64 px); Matrix 8/8.
+- Reihenfolge (Entscheidung Marc 10.10.2026): Rest von Paket E als Auftrag 091 vor dem Konfigurator (Auftrag 092).

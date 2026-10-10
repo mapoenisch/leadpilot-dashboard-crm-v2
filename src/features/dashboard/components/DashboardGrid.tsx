@@ -62,6 +62,10 @@ export function DashboardGrid(props: DashboardGridProps) {
   const [overId, setOverId] = useState<string | null>(null);
   // Offene Aktionsmenüs je Kachel: bleiben beim Verschieben offen, damit der Fokus folgen kann.
   const [openMenus, setOpenMenus] = useState<ReadonlySet<string>>(() => new Set());
+  // Beim Verlassen des Bearbeitungsmodus wieder eingeklappt beginnen (Codex PR #76).
+  useEffect(() => {
+    if (!editing) setOpenMenus(new Set());
+  }, [editing]);
   const toggleMenu = (tileId: string) =>
     setOpenMenus((current) => {
       const next = new Set(current);

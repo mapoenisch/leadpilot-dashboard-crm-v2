@@ -5,7 +5,7 @@
  * Je Breite (1440/768/375/320) × dunkel/hell: /dashboard im Bearbeitungsmodus, Aktionen der ersten
  * Kachel geöffnet (nachher über „Kachel-Aktionen“). Aufnahme des ersten Bildschirms, SHA-256,
  * kleinste Höhe der Bearbeitungsknöpfe (Leiste und Aktionen, ohne „Details“ der Kachel), Überlauf Dokument/<main>, axe serious/critical. Danach wird
- * <main> ans Ende gescrollt und geprüft, ob „Speichern“ sichtbar im Fenster bleibt (haftende Leiste).
+ * nach einer Änderung die Höhe der haftenden Leiste gemessen (≤ 64 px, einzeilig), <main> ans Ende gescrollt und geprüft, ob „Speichern“ sichtbar im Fenster bleibt (haftende Leiste).
  * Bilder und result.json bleiben lokal unter artifacts/auftrag-090/.
  *
  * Aufnahme: LABEL=vorher|nachher BASE_URL=… E2E_AUTH_EMAIL=… E2E_AUTH_PASSWORD=… node scripts/captureAuftrag090Editor.mjs
@@ -100,6 +100,16 @@ async function capture() {
         const severe = (await new AxeBuilder({ page }).analyze()).violations
           .filter((v) => v.impact === 'serious' || v.impact === 'critical')
           .map((v) => `${v.id}(${v.nodes.length})`);
+        // Codex PR #76: Nach einer Änderung bleibt die haftende Leiste einzeilig (≤ 64 px).
+        await page
+          .getByRole('button', { name: /: Nach unten, / })
+          .first()
+          .click();
+        await page.waitForTimeout(200);
+        const stickyHeight = await page.evaluate(() => {
+          const bar = document.querySelector('[data-testid="editor-toolbar"]');
+          return bar ? Math.round(bar.getBoundingClientRect().height) : null;
+        });
         // Haftende Leiste: nach dem Scrollen ans Ende muss „Speichern“ im Fenster liegen.
         await page.evaluate(() => {
           const main = document.querySelector('main');
@@ -112,7 +122,7 @@ async function capture() {
         const saveVisibleAfterScroll =
           !!save && save.y >= 0 && save.y + save.height <= viewport.height;
         const sha256 = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
-        shots.push({ name, sha256, ...metrics, saveVisibleAfterScroll, severe });
+        shots.push({ name, sha256, ...metrics, saveVisibleAfterScroll, stickyHeight, severe });
         console.log(
           `${name}: Aktionen min ${metrics.minActionHeight} px · Speichern nach Scrollen ${saveVisibleAfterScroll ? 'sichtbar' : 'weg'} · Überlauf ${metrics.overflow.document}/${metrics.overflow.main} · axe ${severe.join(',') || 0}`,
         );
@@ -150,12 +160,13 @@ function compare() {
         hash: a.sha256 !== b.sha256,
         touch: a.minActionHeight !== null && a.minActionHeight >= 44,
         sticky: a.saveVisibleAfterScroll,
+        einzeilig: a.stickyHeight !== null && a.stickyHeight <= 64,
         overflow: a.overflow.document <= 0 && a.overflow.main <= 0,
         axe: a.severe.length === 0,
       };
       for (const [key, ok] of Object.entries(checks)) if (!ok) problems.push(`${name}: ${key}`);
       rows.push(
-        `| ${viewport.width} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.minActionHeight} → ${a.minActionHeight} px | ${b.saveVisibleAfterScroll ? 'ja' : 'nein'} → ${a.saveVisibleAfterScroll ? 'ja' : 'nein'} | ${a.overflow.document}/${a.overflow.main} px | ${a.severe.join(', ') || 0} |`,
+        `| ${viewport.width} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.minActionHeight} → ${a.minActionHeight} px | ${b.saveVisibleAfterScroll ? 'ja' : 'nein'} → ${a.saveVisibleAfterScroll ? 'ja' : 'nein'} | ${a.stickyHeight} px | ${a.overflow.document}/${a.overflow.main} px | ${a.severe.join(', ') || 0} |`,
       );
     }
   }
@@ -167,8 +178,8 @@ Produktionsbuild gegen lokales Supabase (Testnutzer aus \`supabase/seed.sql\`), 
 Bearbeitungsmodus mit geöffneten Aktionen der ersten Kachel. Vorher = \`main\` nach Auftrag 089,
 Nachher = Branch \`claude/auftrag-090-editor-vereinfachen\`. Bilder bleiben lokal unter \`artifacts/auftrag-090/\`.
 
-| Breite | Theme | SHA-256 vorher | SHA-256 nachher | kleinste Aktionshöhe | „Speichern“ nach Scrollen sichtbar | Überlauf Dok./main | axe |
-|---|---|---|---|---|---|---|---|
+| Breite | Theme | SHA-256 vorher | SHA-256 nachher | kleinste Aktionshöhe | „Speichern“ nach Scrollen sichtbar | Leiste nach Änderung | Überlauf Dok./main | axe |
+|---|---|---|---|---|---|---|---|---|
 ${rows.join('\n')}
 
 **Ergebnis:** ${total - failed}/${total} Aufnahmen bestanden${problems.length ? ` – offen: ${problems.join('; ')}` : ''}.

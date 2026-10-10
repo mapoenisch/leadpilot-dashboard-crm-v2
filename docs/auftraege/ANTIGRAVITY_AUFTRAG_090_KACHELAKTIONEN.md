@@ -40,6 +40,10 @@
 - [x] Tests anpassen und ergänzen; vorhandene Konflikt-/Verlassen-Tests bleiben grün.
 - [x] Nachweis 1440/768/375/320 × dunkel/hell im Bearbeitungsmodus, Vorher/Nachher, Überlauf 0, axe 0, Leiste haftet nach Scrollen.
 
-## Offen für Auftrag 091
+## Reihenfolge (Entscheidung Marc 10.10.2026)
+
+Vor Paket F Teil 2 kommt der offene Rest von Paket E (kürzere Kennzahlnamen/Definitionen, Vorjahres-/Zielvergleich, Übersichtskacheln, Zahlkachel 160–220 px) als Auftrag 091; der Konfigurator wird Auftrag 092.
+
+## Offen für Auftrag 092
 
 - Konfigurator in „Kennzahl“, „Darstellung“, „Vorschau“, „Erweitert“ gliedern; Kombinationen und besondere Filter unter „Erweitert“; Begründung bei gescheiterter Auswahl direkt an der Auswahl; „Hinzufügen“ als Hinzufügen zur Arbeitskopie kennzeichnen.
