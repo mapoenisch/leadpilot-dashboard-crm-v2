@@ -7,17 +7,17 @@ Mustertitels gemessen. Bilder bleiben lokal unter `artifacts/auftrag-087/`. Sich
 
 | Breite | Zoom | Theme | SHA-256 vorher | SHA-256 nachher | Titel wirksam | Überlauf | axe |
 | ------ | ---- | ----- | -------------- | --------------- | ------------- | -------- | --- |
-| 1440 | 100 % | dark | `614df0baa5d0` | `1973b298d249` | 15 px | 0 px | 0 |
-| 1440 | 100 % | light | `7bb5d1f75ea6` | `1cbfedf36ffa` | 15 px | 0 px | 0 |
-| 768 | 100 % | dark | `28ab923fb0f7` | `8fe2a9fef7e5` | 15 px | 0 px | 0 |
-| 768 | 100 % | light | `6f15dafc282f` | `9b8635a7f9a0` | 15 px | 0 px | 0 |
-| 375 | 100 % | dark | `4940346be05c` | `81910ea2904d` | 15 px | 0 px | 0 |
-| 375 | 100 % | light | `7e6a967a14e6` | `46e795320a13` | 15 px | 0 px | 0 |
-| 320 | 100 % | dark | `a8010ebac538` | `25d7635a7a93` | 15 px | 0 px | 0 |
-| 320 | 100 % | light | `99c8f4bfc660` | `a209e38f5600` | 15 px | 0 px | 0 |
-| 375 | 150 % | dark | `4ce5b3f75263` | `c1dd3725a32f` | 22.5 px | 0 px | 0 |
-| 375 | 150 % | light | `688b5ef87bfc` | `ce3ec855098e` | 22.5 px | 0 px | 0 |
-| 375 | 200 % | dark | `93db97b232af` | `dc5ae11713d8` | 30 px | 0 px | 0 |
-| 375 | 200 % | light | `bc1cbda63266` | `fb831a8b8fce` | 30 px | 0 px | 0 |
+| 1440 | 100 % | dark | `614df0baa5d0` | `303234e8f7aa` | 15 px | 0 px | 0 |
+| 1440 | 100 % | light | `7bb5d1f75ea6` | `606bff0d78be` | 15 px | 0 px | 0 |
+| 768 | 100 % | dark | `28ab923fb0f7` | `f1a1fdf24252` | 15 px | 0 px | 0 |
+| 768 | 100 % | light | `6f15dafc282f` | `c16766278cbf` | 15 px | 0 px | 0 |
+| 375 | 100 % | dark | `4940346be05c` | `00386fe71e23` | 15 px | 0 px | 0 |
+| 375 | 100 % | light | `7e6a967a14e6` | `fdf3c53c28cd` | 15 px | 0 px | 0 |
+| 320 | 100 % | dark | `a8010ebac538` | `b1d1be123b4c` | 15 px | 0 px | 0 |
+| 320 | 100 % | light | `99c8f4bfc660` | `201f01519d8c` | 15 px | 0 px | 0 |
+| 375 | 150 % | dark | `4ce5b3f75263` | `39db3dffd2da` | 22.5 px | 0 px | 0 |
+| 375 | 150 % | light | `688b5ef87bfc` | `8324e44ccc3b` | 22.5 px | 0 px | 0 |
+| 375 | 200 % | dark | `93db97b232af` | `2802bcc122ae` | 30 px | 0 px | 0 |
+| 375 | 200 % | light | `bc1cbda63266` | `c059218eec02` | 30 px | 0 px | 0 |
 
 **Ergebnis:** 12/12 ohne Überlauf und ohne axe-Verstöße. Gestalterische Freigabe durch Marc, nicht durch die Messung.

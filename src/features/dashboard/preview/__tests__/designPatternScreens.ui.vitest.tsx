@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { FunnelPattern } from '../designPatternScreens';
+import { EditorPattern, FunnelPattern, MobileHomePattern } from '../designPatternScreens';
+import { LANGER_TITEL } from '../designPatternTiles';
 
 describe('FunnelPattern', () => {
   it('führt alle belegten Funnelstufen inklusive Testversionen (Codex PR #73, Runde 4)', () => {
@@ -27,4 +28,21 @@ describe('FunnelPattern', () => {
     expect(chart.textContent).not.toContain('Testversionen');
     expect(chart.textContent).toContain('Angebote');
   });
+
+  it.each([
+    ['mobil', MobileHomePattern],
+    ['funnel', FunnelPattern],
+    ['editor', EditorPattern],
+  ])(
+    'zeigt im Muster %s den langen Titel im Normalfall, getrennt vom Fehler (Runde 6)',
+    (id, Pattern) => {
+      render(<Pattern />);
+      const lang = screen.getByTestId(`muster-${id}-lang`);
+      expect(lang.textContent).toContain(LANGER_TITEL);
+      expect(lang.querySelector('[role="alert"]')).toBeNull();
+      const fehler = screen.getByTestId(`muster-${id}-fehler`);
+      expect(fehler.textContent).not.toContain(LANGER_TITEL);
+      expect(fehler.querySelector('[role="alert"]')).not.toBeNull();
+    },
+  );
 });

@@ -83,8 +83,9 @@ export function MobileHomePattern() {
       </div>
       <NumberTile id="mobil-zahl" title="Neukunden 2025" state="bereit" />
       <ChartTile id="mobil-verlauf" title="Neukunden je Quartal 2025" state="bereit" />
-      {/* Codex PR #73: Zustände auch im mobilen Muster. */}
-      <NumberTile id="mobil-lang-fehler" title={LANGER_TITEL} state="fehler" />
+      {/* Codex PR #73: Zustände auch im mobilen Muster – langer Titel und Fehler getrennt (Runde 6). */}
+      <ChartTile id="mobil-lang" title={LANGER_TITEL} state="bereit" />
+      <NumberTile id="mobil-fehler" title="Neukunden 2025" state="fehler" />
       <ChartTile id="mobil-leer" title="Neukunden je Quartal 2025" state="leer" />
     </div>
   );
@@ -159,7 +160,13 @@ export function FunnelPattern() {
         </Frame>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Frame id="funnel-fehler" title={LANGER_TITEL} meta={QUELLE}>
+        <Frame id="funnel-lang" title={LANGER_TITEL} meta={QUELLE}>
+          <p className="m-0 text-[13px] text-[var(--color-text-primary)]">
+            {formatAnzahl(FY.neukunden)} Neukunden aus {formatAnzahl(FY.angebote)} Angeboten · Win
+            Rate {formatQuote(FY.neukunden, FY.angebote)}
+          </p>
+        </Frame>
+        <Frame id="funnel-fehler" title="Stufen im Geschäftsjahr" meta={QUELLE}>
           <StateBody state="fehler">{null}</StateBody>
         </Frame>
         <Frame id="funnel-leer" title="Stufen im Geschäftsjahr" meta={QUELLE}>
@@ -213,7 +220,8 @@ export function EditorPattern() {
           </ul>
         ) : null}
         <NumberTile id="editor-kachel" title="Neukunden 2025" state="bereit" />
-        <NumberTile id="editor-lang-fehler" title={LANGER_TITEL} state="fehler" />
+        <NumberTile id="editor-lang" title={LANGER_TITEL} state="bereit" />
+        <NumberTile id="editor-fehler" title="Neukunden 2025" state="fehler" />
         <NumberTile id="editor-leer" title="Neukunden 2025" state="leer" />
       </div>
       <section
