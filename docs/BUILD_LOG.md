@@ -16177,6 +16177,47 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - **Visual-Baselines:** `/dashboard` (1440/768/375) wegen geänderten Hinweistexts erneut über `update-visual-baselines.yml` erzeugt.
 - **Gates:** `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün; Schutzbereichs-Diff gegen `0fe9db5` leer.
 
+### Auftrag 087 – Paket D: Designmuster zur Sichtabnahme, Builder Claude Code, 09.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 9. Fünf Gestaltungsmuster in der isolierten Vorschau (`dashboard-vorschau.html?bereich=muster`), Freigabe durch Marc vor jedem Produktumbau. Baseline `main` `e007ff0`.
+
+**Entscheidungen Marc (09.10.2026):** Richtung ruhige Weiterentwicklung; im A/B-Vergleich 3D-Tiefe behalten (Plan revidiert); keine Bildvorlage; alle fünf Muster freigegeben.
+
+**Geänderte Dateien:** `preview/DesignPatternPreview.tsx`, `preview/designPatternTiles.tsx`, `preview/designPatternScreens.tsx` (neu), `preview/DashboardPreviewPage.tsx` (`?bereich=muster`); Auftrag, Plan Abschnitt 9, `docs/screenshots/auftrag-087/README.md`. Keine Produktkomponente geändert (eine zwischenzeitlich gebaute Flach-Option am Säulendiagramm wurde nach Marcs Entscheidung zurückgenommen).
+
+**Funktionale Prüfungen:** Muster mit Faktenblatt-Werten (47 Neukunden, Win Rate 43,5 %, Quoten über `formatQuote`), langem Titel, Fehler („Nicht verfügbar“, nie 0), keine Daten. Befunde für das Produkt: Säulenwerte fest weiß (im hellen Modus unlesbar), Fehlerrot dunkel 4,46:1 – in den Mustern korrigiert, Übernahme in E–G.
+
+**Schutzbereichs-Prüfung:** `git diff e007ff0 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-087/README.md`: 1440/768/375/320/250 px × dunkel/hell, 10/10 Überlauf 0 px, axe serious/critical 0. Neue Seite, daher kein Vorher-Paar. Gestalterische Freigabe durch Marc, nicht durch Tests.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün.
+
+**Ergebnis & Freigabestatus:** Sichtabnahme Marc erteilt; Builder-seitig fertig, Abnahme durch Codex offen.
+
+### Auftrag 087 – Nacharbeit Codex PR #73 Runde 1, Builder Claude Code, 09.10.2026
+
+- **P2 Lazy:** `DesignPatternPreview` wird per `React.lazy` nur unter `?bereich=muster` geladen.
+- **P2 Achsen-/Kategorienlabels:** im Muster `var(--color-text-muted)` (hell lesbar).
+- **P2 Zustände Muster 3–5:** mobil langer Titel + Fehler und Leerzustand; Funnel Fehler (langer Titel) und Leer; Editor langer Titel + Fehler und Leer.
+- **P2 Tabellenüberlauf:** Conversion-Tabelle in eigenem, per Tastatur erreichbarem Scrollbereich.
+- **P2 Menü-/Tab-Tastatur:** ARIA-Widgetrollen entfernt: Aktionsliste als Disclosure (`aria-expanded`/`aria-controls`, normale Knöpfe), Bereiche als Knopfgruppe mit `aria-pressed` – Tab-Reihenfolge und Enter/Leertaste reichen, keine unvollständige Pfeiltasten-Semantik.
+- **P2 Harness:** `scripts/captureAuftrag087Patterns.mjs` eingecheckt; erzeugt die README. Zusätzlich 188 px (200 % Zoom auf 375 px): zuerst 51 px Überlauf (Überschrift, Kennzahlraster, Menü, Speicherknöpfe), behoben – jetzt 12/12 ohne Überlauf, axe 0.
+- Gates: `tsc` 0 · `verify` · `npm test` 321 / 2305 · `build` · `lint` · `format:check` grün; Schutzbereich unverändert.
+
+### Auftrag 087 – Nacharbeit Codex PR #73 Runde 2, Builder Claude Code, 09.10.2026
+
+- **P2 echte Schriftvergrößerung:** Harness vergrößert jetzt per Browser-Zoom (CSS `zoom`) auf 375 px um 150 % und 200 % und misst die wirksame Titelgröße (15 → 22,5 / 30 px) statt nur den Viewport zu verkleinern.
+- **P2 Vorher-Nachher:** Vorher = dieselbe URL im Elternstand `e007ff0` (bisherige Vorschauseite); Gate verlangt verschiedene Hashes. 12/12 verschieden.
+- **P2 Legendenknöpfe:** Musterregel setzt für alle Knöpfe `min-width`/`min-height` 44 px (auch Q1–Q4).
+- **Ergebnis:** 12/12 (1440/768/375/320 bei 100 %, 375 bei 150 %/200 %, dunkel/hell) ohne Überlauf, axe 0, Schrift vergrößert.
+
+### Auftrag 087 – Nacharbeit Codex PR #73, Runde 3 (09.10.2026, Claude Code)
+
+- P2 Baseline ohne Theme/Zoom: `scripts/captureAuftrag087Patterns.mjs` setzt über `prepare()` Theme (`data-theme`) und Zoom identisch auf Vorher- und Nachher-Seite. Neu-Lauf gegen Elternstand `e007ff0`: 12/12 ohne Überlauf, axe 0, Titel 15 → 22,5 / 30 px, alle Vorher-/Nachher-Hashes verschieden (Matrix aktualisiert).
+- P2 widersprüchliche Vorgabe Paket E: Plan Z. 177 „flach gestalten“ ersetzt durch „nach den freigegebenen Mustern, 3D-Tiefe bleibt (Entscheidung Marc 09.10.2026)“.
+- Nur Harness und Doku geändert; Schutzbereichs-Diff leer.
+
 ### Auftrag 088 – Paket E Teil 1: Kompakte Kacheln nach den Mustern, Builder Claude Code, 09.10.2026
 
 **Ziel & Kontext:** Plan Abschnitt 10, Regeln aus Auftrag 087 (von Marc freigegeben). Paket E in 088/089 geteilt. Plan-Punkt „Charts flach gestalten“ nach Entscheidung Marc revidiert (3D-Tiefe bleibt). Baseline `main` `e007ff0`.
@@ -16204,3 +16245,18 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 ### Auftrag 088 – Nacharbeit Codex PR #74 Runde 2, Builder Claude Code, 09.10.2026
 
 - **P1 Harness-Metrik:** `captureAuftrag088Tiles.mjs` zählt nur noch fest weiße Außenbeschriftungen von Säulen/Balken; Ringsumme und innenliegende Werte (`fill-white`) sind absichtlich weiß. Vorher (Worktree `e007ff0`) und Nachher neu aufgenommen: 8/8, fest weiße Außenwerte 2 → 0, Hinweise 12 → 0, Zahlkachel 349 → 286 px, Überlauf 0/0, axe 0. Nur Skript und README geändert.
+
+### Auftrag 087 – Nacharbeit Codex PR #73, Runde 4 (10.10.2026, Claude Code)
+
+- P2 Funnel-Muster ohne Testversionen: `designPatternScreens.tsx` führt die Stufe „Testversionen gestartet“ (264, „inkl. Self-Service“) wie die Funneltabelle in `src/domain/vertriebData.ts`; Angebote bleiben auf SQL bezogen. Neuer Test `designPatternScreens.ui.vitest.tsx` prüft alle sechs Stufen.
+- Merge von `main` (PR #74): Konflikte nur in BUILD_LOG (beide Einträge behalten) und Plan Z. 177 (Revisionstext aus `main` übernommen).
+
+### Auftrag 087 – Nacharbeit Codex PR #73, Runde 5 (10.10.2026, Claude Code)
+
+- P2 (2×) Testversionen nicht seriell: „Testversionen gestartet“ ist wie in `FunnelPage.tsx` und `BudgetTargetLadder.tsx` ein paralleler Self-Service-Pfad. Das Stufendiagramm zeigt nur Leads → MQL → SQL → Angebote → Neukunden; die Tabelle führt Testversionen eingerückt als Nebenkennzahl („Self-Service-Pfad, parallel“). Test ergänzt (Diagramm ohne Testversionen).
+- P2 Matrix veraltet: Harness gegen den finalen Baum (inkl. Merge von `main`) neu gefahren: 12/12 ohne Überlauf, axe 0, Hashes verschieden; README aktualisiert.
+
+### Auftrag 087 – Nacharbeit Codex PR #73, Runde 6 (10.10.2026, Claude Code)
+
+- P2 langer Titel und Fehler zusammengelegt: Muster 3–5 zeigen jetzt vier getrennte Fälle – Normalfall, langer Titel im Normalfall (mobil: Verlauf mit Diagramm; Funnel: Kennzahlzeile; Editor: Zahlkachel), Fehler mit normalem Titel, leer. Test prüft je Muster: Langtitel ohne Fehlermeldung, Fehler ohne Langtitel.
+- Harness gegen den finalen Baum neu gefahren: 12/12 ohne Überlauf, axe 0, Hashes verschieden; README aktualisiert.

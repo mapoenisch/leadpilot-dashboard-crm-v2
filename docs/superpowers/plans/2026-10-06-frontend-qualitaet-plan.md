@@ -152,13 +152,15 @@ Vorläufige Größenordnung: 0 klein, F15 klein, A mittel bis zur Diagnose, B mi
 **Zweck:** Marc prüft konkrete Bilder, bevor die früher freigegebene Gestaltung verändert wird.
 **Dateien:** vorhandene Vorschau unter `src/features/dashboard/preview/`; gemeinsam genutzte Bausteine in `src/components/pageKit/`, `src/components/ui/`, `src/styles/global.css`; Fachseitenmuster auf Basis `FunnelPage.tsx`. Im Detailauftrag isolierte Vorschau-/Testpfade nennen, noch keinen globalen Produkt-Schalter ändern.
 
-- [ ] F15 (Shell-Kontraste und Token `--color-text-primary`) wurde als eigener kleiner Korrekturauftrag bereits vor Paket A vorgezogen (siehe §5a). In Paket D werden die fünf Gestaltungsmuster auf dieser sauberen Theme-Basis erstellt und im hellen sowie dunklen Modus ohne Kontrastartefakte bewertet.
-- [ ] Drei Richtungen knapp gegenüberstellen: minimale Verdichtung, ruhige Weiterentwicklung der LeadPilot-Marke, weitgehendes Redesign. Empfehlung ist die ruhige Weiterentwicklung.
-- [ ] Fünf zusammenpassende Muster erstellen: kompakte Zahlkachel, Verlauf/Verteilung ohne dekorative 3D-Tiefe, mobile Dashboardstartseite, echte Funnel-Fachseite, vereinfachter Editor.
-- [ ] Bestehende Farben/Schriften verwenden. Konkrete Typografie, Abstände, Fokuszustände, Warnzustände und Touchflächen aus dem Entwurf in der Vorschau anwenden.
-- [ ] Je Muster reale/bereits belegte Inhalte, lange Titel, Fehler, leere Daten und reduzierte Bewegung zeigen. Keine Fantasiezahlen als scheinbare Produktionsdaten.
-- [ ] Vorher/Nachher bei 1440/768/375 px im dunklen und hellen Modus nebeneinander prüfen; auch 320 px und vergrößerte Schrift testen.
-- [ ] Marc die Muster zur Sichtabnahme vorlegen. Erst danach das neue Design und die Revision der Bildseitenentscheidung dokumentieren. Ohne diese Freigabe bleibt die bisherige Produktdarstellung bestehen.
+- [x] F15 (Shell-Kontraste und Token `--color-text-primary`) wurde als eigener kleiner Korrekturauftrag bereits vor Paket A vorgezogen (siehe §5a). In Paket D werden die fünf Gestaltungsmuster auf dieser sauberen Theme-Basis erstellt und im hellen sowie dunklen Modus ohne Kontrastartefakte bewertet.
+- [x] Drei Richtungen knapp gegenüberstellen: minimale Verdichtung, ruhige Weiterentwicklung der LeadPilot-Marke, weitgehendes Redesign. Empfehlung ist die ruhige Weiterentwicklung.
+- [x] Fünf zusammenpassende Muster erstellen: kompakte Zahlkachel, Verlauf/Verteilung ohne dekorative 3D-Tiefe, mobile Dashboardstartseite, echte Funnel-Fachseite, vereinfachter Editor.
+- [x] Bestehende Farben/Schriften verwenden. Konkrete Typografie, Abstände, Fokuszustände, Warnzustände und Touchflächen aus dem Entwurf in der Vorschau anwenden.
+- [x] Je Muster reale/bereits belegte Inhalte, lange Titel, Fehler, leere Daten und reduzierte Bewegung zeigen. Keine Fantasiezahlen als scheinbare Produktionsdaten.
+- [x] Vorher/Nachher bei 1440/768/375 px im dunklen und hellen Modus nebeneinander prüfen; auch 320 px und vergrößerte Schrift testen.
+- [x] Marc die Muster zur Sichtabnahme vorlegen. Erst danach das neue Design und die Revision der Bildseitenentscheidung dokumentieren. Ohne diese Freigabe bleibt die bisherige Produktdarstellung bestehen.
+
+**Umsetzung:** Auftrag 087 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_087_DESIGNMUSTER.md`). **Revision (Entscheidung Marc 09.10.2026):** Die 3D-Tiefe der Diagramme bleibt; „ohne dekorative 3D-Tiefe“ gilt nicht mehr. Alle fünf Muster freigegeben.
 
 **Abnahme:** Freigegebene Muster und feste Gestaltungsregeln liegen vor. Das Ergebnis wird nicht durch bloß grüne Screenshot-Tests als gestalterisch genehmigt ausgegeben.
 
