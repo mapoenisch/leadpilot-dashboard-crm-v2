@@ -34,4 +34,4 @@
 - [x] Titel, Größe, Kombination weiter bearbeitbar. Knöpfe „Zur Arbeitskopie hinzufügen“ / „In Arbeitskopie übernehmen“ mit Fußtext „Gespeichert wird erst mit „Speichern“ im Editor.“
 - [x] Vorschau bleibt ohne Neuaufbau bei Texteingabe (Test `DashboardWorkspace.codex`, Runde 4, bleibt grün).
 - [x] Tests anpassen und ergänzen.
-- [ ] Nachweis 1440/768/375/320 × dunkel/hell (Docker/Supabase lokal nötig; sonst über CI).
+- [x] Nachweis 1440/768/375/320 × dunkel/hell: 8/8 (`docs/screenshots/auftrag-092/README.md`).

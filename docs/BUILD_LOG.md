@@ -16968,3 +16968,5 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Knopf bei 320/375 px und 200 % Text: Der Primärknopf bricht um (`whitespace-normal`, `shrink`, `h-auto`, mind. 44 px). Test ergänzt.
 - P1 Screenshot-Nachweis: weiter offen, weil Docker Desktop pausiert ist (kein lokales Supabase). Wird nachgeliefert, bevor gemergt wird.
 - Gates: `tsc` 0 · Dashboard-Suite 550 grün.
+
+- P1 Screenshot-Nachweis nachgeliefert: Produktionsbuilds `main` (vorher) und Branch (nachher) gegen lokales Supabase, `docs/screenshots/auftrag-092/README.md` 8/8 – Abschnitte vorhanden, Erweitertes eingeklappt, Fußknopf im Fenster auf 1440/768/375/320, Überlauf Dialog 0 px, axe 0, Hashes verschieden.
