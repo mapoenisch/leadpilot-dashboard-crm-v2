@@ -1,27 +1,30 @@
 import { TrendingUp } from 'lucide-react';
 import { FUNNEL } from '@/domain/vertriebData';
 import { DataState } from '@/components/ui/DataState';
-import {
-  BarList,
-  Callout,
-  ChartFigure,
-  Chip,
-  ColumnChart,
-  KitTable,
-  PageHero,
-  Panel,
-  type Tone,
-} from '@/components/pageKit';
+import { Callout, ChartFigure, Chip, KitTable, PageHero, Panel } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import { FunnelStufenChart } from '../components/FunnelStufenChart';
+import { GroupedDepthColumns } from '../components/GroupedDepthColumns';
 
 // 067I / G53: Echte Funnel-Seite statt WebP — genau eine h1,
 // Trichterstufen als Tabelle, Quartalsreihen strukturiert, Hinweis aus Domäne.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (01-sales-funnel-2025).
+// Auftrag 093 (Paket G1): als erste Seite sichtbar ausgeliefert (HTML_PAGES). Vorlage ist das
+// Original-WebP: Trichter mit Stufen, Conversion-Chips und orangem Hebel, Quartalsverlauf als
+// 3D-Säulen in den vier Reihenfarben, Tabelle mit Pills, Hinweis. „Ruhig“ (data-ruhig) dämpft
+// Leuchten und Raster, entfernt sie aber nicht.
 const zahl = (text: string | undefined): number =>
   Number((text ?? '0').replace(/\./g, '').replace(',', '.'));
-const reihenTon: Tone[] = ['neutral', 'cyan', 'mint', 'orange'];
 // Auftrag 085: Jede Trichterstufe in ihrer eigenen Einheit (vorher überall „Leads“).
 const stufenEinheit = ['Leads', 'MQL', 'SQL', 'Angebote', 'Neukunden'];
+// Kurzname im Trichter wie im Original; Hebel an der SQL-Stufe wie im Original.
+const stufenName = ['Leads gesamt', 'MQL', 'SQL', 'Angebote', 'Neukunden (Won)'];
+const HEBEL_STUFE = 2;
+// Herkunft und Stand der Zahlen (Codex PR #79): sichtbar im Seitenkopf.
+const QUELLE = 'Faktenblatt v1.2 · Stand FY 2025 · fester Stand';
+// Reihenfarben wie im Original-WebP: Leads silbern, MQL kräftiges Cyan, SQL helles Cyan,
+// Neukunden orange (Reihenfolge wie FUNNEL.chart.datasets).
+const QUARTAL_FARBEN = ['var(--funnel-silber)', '#00D9C6', '#62EDE2', '#FF7A3D'];
 
 function FunnelPageHtml() {
   const rows = FUNNEL.rows.map((row) => ({
@@ -44,11 +47,16 @@ function FunnelPageHtml() {
     `Aus ${leadsFy} Leads werden ${mqlFy} MQLs und ${sqlFy} SQLs ` +
     `bis zu ${kundenFy} Neukunden im Geschäftsjahr.`;
   return (
-    <div className="pk-page">
+    <div className="pk-page funnel-seite" data-ruhig="true" data-page-key="sales-funnel">
       <PageHero
         eyebrow="Vertrieb & Marketing"
         title="Sales Funnel 2025"
-        subtitle="Conversion-Raten über alle Trichterstufen."
+        subtitle={
+          <>
+            Conversion-Raten über alle Trichterstufen.
+            <span className="funnel-quelle">{QUELLE}</span>
+          </>
+        }
         pills={['CRM Funnel 2025', 'Trichterstufen']}
       />
       <DataState
@@ -58,16 +66,15 @@ function FunnelPageHtml() {
         <Panel
           title="Sales Pipeline Funnel Stufen (FY 2025)"
           badge="CRM Funnel 2025"
-          subtitle="Durchlaufende Leads und Stufen-Conversion"
+          subtitle="Durchlaufende Leads, Stufen-Conversion und Engpass-Erkennung"
         >
           <ChartFigure title="Trichterstufen" summary={summary}>
-            <BarList
-              items={stufen.map((row, index) => ({
-                label: `Stufe ${index + 1}: ${row[0] ?? ''}`,
-                value: zahl(row[5]),
-                display: `${row[5] ?? ''} ${stufenEinheit[index] ?? ''}`.trim(),
-                note: row[7] && row[7] !== '—' ? `(${row[7]})` : undefined,
-                tone: index === 2 ? 'orange' : 'cyan',
+            <FunnelStufenChart
+              stufen={stufen.map((row, index) => ({
+                name: stufenName[index] ?? row[0] ?? '',
+                count: zahl(row[5]),
+                einheit: stufenEinheit[index] ?? '',
+                hebel: index === HEBEL_STUFE ? 'Trial-Conversion Hebel' : undefined,
               }))}
             />
           </ChartFigure>
@@ -81,12 +88,13 @@ function FunnelPageHtml() {
             title="Quartalsverlauf je Stufe"
             summary={`Leads steigen von ${FUNNEL.rows[0]?.[1] ?? ''} in Q1 auf ${FUNNEL.rows[0]?.[4] ?? ''} in Q4, Neukunden von ${FUNNEL.rows[5]?.[1] ?? ''} auf ${FUNNEL.rows[5]?.[4] ?? ''}.`}
           >
-            <ColumnChart
+            <GroupedDepthColumns
+              idPrefix="funnel-quartale"
               labels={FUNNEL.chart.labels}
               series={FUNNEL.chart.datasets.map((dataset, index) => ({
                 name: dataset.label,
                 values: dataset.data,
-                tone: reihenTon[index] ?? 'cyan',
+                color: QUARTAL_FARBEN[index] ?? dataset.color,
               }))}
             />
           </ChartFigure>
