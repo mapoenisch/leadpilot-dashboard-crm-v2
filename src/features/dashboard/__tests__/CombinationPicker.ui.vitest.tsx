@@ -82,12 +82,13 @@ describe('TileConfigurator mit Kombination', () => {
   it('Wahl ersetzt die Kennzahl, übernimmt Darstellung, Größe und Zeitbezug aus der Regel', () => {
     const props = setup();
     fireEvent.click(firstRadio('EBITDA')!);
+    fireEvent.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
     expect(comboStatus()).toBe('1 Kombination mit einer zweiten Kennzahl möglich.');
     fireEvent.click(screen.getByRole('radio', { name: /^EBITDA-Marge/ }));
     expect(comboStatus()).toBe('Kombination „EBITDA-Marge“ gewählt: EBITDA ÷ Umsatzerlöse × 100.');
     expect(screen.queryByRole('radio', { name: /^Ring/ })).toBeNull();
     expect(screen.getByTestId('configurator-preview').textContent).toContain('-92,0 %');
-    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Zur Arbeitskopie hinzufügen$/ }));
     expect(props.onSubmit).toHaveBeenCalledWith({
       catalogId: 'kombination.ebitda_marge',
       view: 'zahl',
@@ -99,6 +100,7 @@ describe('TileConfigurator mit Kombination', () => {
   it('Anteil bietet Ring an; Entfernen stellt die erste Kennzahl wieder her', () => {
     setup();
     fireEvent.click(firstRadio('MRR nach Paket')!);
+    fireEvent.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
     expect(comboStatus()).toBe('3 Kombinationen mit einer zweiten Kennzahl möglich.');
     fireEvent.click(screen.getByRole('radio', { name: /^MRR-Anteil Pro/ }));
     expect(screen.getByRole('radio', { name: /^Ring/ })).toBeEnabled();
@@ -110,6 +112,7 @@ describe('TileConfigurator mit Kombination', () => {
   it('Wechsel der ersten Kennzahl verwirft die Kombination mit Ansage, nichts bleibt hängen', () => {
     const props = setup();
     fireEvent.click(firstRadio('EBITDA')!);
+    fireEvent.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
     fireEvent.click(screen.getByRole('radio', { name: /^EBITDA-Marge/ }));
     fireEvent.click(firstRadio('Headcount')!);
     expect(comboStatus()).toBe(
@@ -117,7 +120,7 @@ describe('TileConfigurator mit Kombination', () => {
     );
     expect(screen.queryByTestId('combination-picker')).toBeNull();
     expect(screen.getByTestId('configurator-preview').textContent).not.toContain('Formel');
-    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Zur Arbeitskopie hinzufügen$/ }));
     expect(props.onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ catalogId: 'baseline.headcount' }),
     );
@@ -127,6 +130,7 @@ describe('TileConfigurator mit Kombination', () => {
     const user = userEvent.setup();
     const props = setup();
     await user.click(firstRadio('Fully-Loaded CAC')!);
+    await user.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
     const none = screen.getByRole('radio', { name: /^Ohne Kombination/ });
     none.focus();
     await user.keyboard('{ArrowDown}');
@@ -134,7 +138,7 @@ describe('TileConfigurator mit Kombination', () => {
     expect(partner).toBeChecked();
     expect(document.activeElement).toBe(partner);
     expect(screen.getByTestId('configurator-preview').textContent).toContain('5,2x');
-    await user.click(screen.getByRole('button', { name: 'Hinzufügen' }));
+    await user.click(screen.getByRole('button', { name: /^Zur Arbeitskopie hinzufügen$/ }));
     expect(props.onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ catalogId: 'kombination.cac_aufschlag' }),
     );
@@ -159,6 +163,7 @@ describe('TileConfigurator mit Kombination', () => {
   it('Escape schließt nur, solange keine Rückfrage darüber liegt', () => {
     const props = setup({ escapeActive: false });
     fireEvent.click(firstRadio('EBITDA')!);
+    fireEvent.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(props.onClose).not.toHaveBeenCalled();
   });

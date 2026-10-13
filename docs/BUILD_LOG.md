@@ -16340,3 +16340,33 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Visual-Baselines: Die `e2e`-Prüfung scheiterte an den drei Dashboard-Linux-Baselines. Neu erzeugt in derselben ubuntu-latest-Umgebung wie die CI-Prüfung (Workflow-Run `update-visual-baselines` auf `visual-baselines/auftrag-091`, Run 38062680678, grün inkl. `--repeat-each=3`), Artefakt `visual-baselines` heruntergeladen und sichtgeprüft: nur `visual-dashboard-1-{desktop-1440,mobile-375,tablet-768}-linux.png` geändert, alle anderen 27 Snapshots identisch. Sichtkontrolle bestätigt Klartext unter dem Kürzel, Vergleichszeile mit korrekt gesetztem Vorzeichen, volle Breite der Roadmap.
 - Schutzbereich: `git diff f6810b5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 - Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `npm test` 326 / 2330 · `verify` (001–025) · `build` grün.
+
+### Auftrag 092 – Paket F Teil 2: Konfigurator gliedern, Builder Claude Code, 13.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 11, Rest nach Auftrag 090; Reihenfolge laut Marc (091 zuerst). Baseline `main` `8d64019` (nach PR #77).
+
+**Geänderte Dateien:** `TileConfigurator.tsx` (Abschnitte „1 · Kennzahl“, „2 · Darstellung“, „3 · Vorschau“, „Erweiterte Einstellungen“; Knöpfe „Zur Arbeitskopie hinzufügen“/„In Arbeitskopie übernehmen“ mit Fußtext), neu `ConfiguratorAdvanced.tsx` (einklappbarer Bereich, Zeitbezug/Pipeline, Abweichungs-Kurzhinweis), `CombinationPicker.tsx` (gesperrte Partner eingeklappt unter „Nicht kombinierbar (n)“); Tests `TileConfigurator.ui`, `CombinationPicker.ui`, `DashboardWorkspace.codex.ui` angepasst, neu `TileConfiguratorSteps.ui`; Harness `scripts/captureAuftrag092Konfigurator.mjs`.
+
+**Funktionale Prüfungen:** Validierung, Positivliste, Editor-Logik und Konflikt-/Verlassen-Schutz unverändert; vorhandene Tests dazu grün. Erweitertes ist eingeklappt und öffnet sich bei bearbeiteter Kachel mit eigener Pipeline/abweichendem Zeitbezug von selbst. Gesperrte Größen/Zeitbezüge behalten ihren Grund an der Auswahl. Vorschau baut bei Texteingabe nicht neu (Test Runde 4 grün).
+
+**Schutzbereichs-Prüfung:** `git diff 8d64019 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `verify` (001–025) · `npm test` 327 / 2334 · `build` · `lint` · `format:check` grün.
+
+**Screenshot-Matrix / E2E:** lokal **nicht gelaufen** – Docker Desktop war pausiert, daher kein lokales Supabase. Harness steht bereit (`LABEL=vorher|nachher`, dann `COMPARE=1`); Dashboard-E2E läuft in der CI. Die Matrix `docs/screenshots/auftrag-092/README.md` ist noch nachzureichen.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig bis auf Screenshot-Nachweis; Abnahme durch Codex offen.
+
+### Auftrag 092 – Nacharbeit Codex PR #78, Runde 1 (13.10.2026, Claude Code)
+
+- P2 Kombinationsansage: Die Live-Region `combination-status` liegt jetzt dauerhaft außerhalb des Klappbereichs. Test: Ansage erscheint bei eingeklapptem Bereich.
+- P2 Knopf bei 320/375 px und 200 % Text: Der Primärknopf bricht um (`whitespace-normal`, `shrink`, `h-auto`, mind. 44 px). Test ergänzt.
+- P1 Screenshot-Nachweis: weiter offen, weil Docker Desktop pausiert ist (kein lokales Supabase). Wird nachgeliefert, bevor gemergt wird.
+- Gates: `tsc` 0 · Dashboard-Suite 550 grün.
+
+- P1 Screenshot-Nachweis nachgeliefert: Produktionsbuilds `main` (vorher) und Branch (nachher) gegen lokales Supabase, `docs/screenshots/auftrag-092/README.md` 8/8 – Abschnitte vorhanden, Erweitertes eingeklappt, Fußknopf im Fenster auf 1440/768/375/320, Überlauf Dialog 0 px, axe 0, Hashes verschieden.
+
+### Auftrag 092 – Nacharbeit Codex PR #78, Runde 2 (13.10.2026, Claude Code)
+
+- P2 Ledger-Churn: Ein Prettier-Lauf hatte den historischen BUILD_LOG umformatiert. Datei auf den Stand von `main` zurückgesetzt, nur die 092-Abschnitte angehängt (`git diff main -- docs/BUILD_LOG.md`: ausschließlich Ergänzungen).
+- P1 Screenshot-Nachweis: bereits mit `47309cb` erledigt (`docs/screenshots/auftrag-092/README.md`, 8/8); der Befund hängt am alten Absatz.

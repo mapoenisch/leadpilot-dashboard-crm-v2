@@ -43,18 +43,27 @@ export function CombinationPicker({ name, firstId, selectedId, onPick }: Combina
             onSelect={() => onPick(rule)}
           />
         ))}
-        {blocked.map(({ entry, reason }) => (
-          <Option
-            key={entry.id}
-            name={name}
-            checked={false}
-            disabled
-            label={entry.name}
-            hint={`Nicht kombinierbar: ${reason}`}
-            onSelect={() => undefined}
-          />
-        ))}
       </Group>
+      {blocked.length > 0 ? (
+        <details data-testid="combination-blocked" className="mt-2 text-[12px]">
+          <summary className="min-h-[44px] cursor-pointer text-[var(--color-text-muted)]">
+            Nicht kombinierbar ({blocked.length})
+          </summary>
+          <div className="flex flex-col gap-1">
+            {blocked.map(({ entry, reason }) => (
+              <Option
+                key={entry.id}
+                name={name}
+                checked={false}
+                disabled
+                label={entry.name}
+                hint={`Nicht kombinierbar: ${reason}`}
+                onSelect={() => undefined}
+              />
+            ))}
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

@@ -53,7 +53,7 @@ describe('TileConfigurator', () => {
       .getAllByRole('radio')
       .find((r) => r.getAttribute('name')?.endsWith('kennzahl'));
     fireEvent.click(first!);
-    const add = screen.getByRole('button', { name: 'Hinzufügen' });
+    const add = screen.getByRole('button', { name: /^Zur Arbeitskopie hinzufügen$/ });
     expect(add).toBeEnabled();
     expect(screen.getByTestId('configurator-preview')).toHaveAttribute('inert');
     fireEvent.click(add);
@@ -63,7 +63,7 @@ describe('TileConfigurator', () => {
 
   it('sperrt Hinzufügen ohne Auswahl und zeigt keine Vorschau', () => {
     setup();
-    expect(screen.getByRole('button', { name: 'Hinzufügen' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Zur Arbeitskopie hinzufügen$/ })).toBeDisabled();
     expect(screen.getByText(/Vorschau erscheint, sobald/)).toBeInTheDocument();
   });
 
@@ -73,6 +73,7 @@ describe('TileConfigurator', () => {
     fireEvent.click(
       screen.getAllByRole('radio').find((r) => r.getAttribute('name')?.endsWith('kennzahl'))!,
     );
+    fireEvent.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
     const own = screen.getByRole('radio', { name: /Eigener Zeitraum/ });
     expect(own).toBeDisabled();
     expect(own.closest('label')?.textContent?.length).toBeGreaterThan(
@@ -100,7 +101,7 @@ describe('TileConfigurator', () => {
     fireEvent.click(
       screen.getAllByRole('radio').find((r) => r.getAttribute('name')?.endsWith('kennzahl'))!,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Zur Arbeitskopie hinzufügen$/ }));
     expect(screen.getByRole('alert')).toHaveTextContent('Höchstens 24 Kacheln.');
     expect(props.onClose).not.toHaveBeenCalled();
   });
@@ -113,7 +114,7 @@ describe('TileConfigurator', () => {
     fireEvent.change(screen.getByLabelText('Eigener Titel (optional)'), {
       target: { value: 'x'.repeat(81) },
     });
-    expect(screen.getByRole('button', { name: 'Hinzufügen' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Zur Arbeitskopie hinzufügen$/ })).toBeDisabled();
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
@@ -130,7 +131,7 @@ describe('TileConfigurator', () => {
     expect(screen.getByText(/Kennzahl:/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Kennzahl suchen')).toBeNull();
     expect(screen.getByLabelText('Eigener Titel (optional)')).toHaveValue('Mein ARR');
-    fireEvent.click(screen.getByRole('button', { name: 'Übernehmen' }));
+    fireEvent.click(screen.getByRole('button', { name: /^In Arbeitskopie übernehmen$/ }));
     expect(props.onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ catalogId: 'baseline.arr', title: 'Mein ARR' }),
     );

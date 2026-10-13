@@ -26,17 +26,16 @@ import {
   SIZE_LABEL,
   VIEW_LABEL,
   activeEntryOf,
-  allowedFilterModes,
   validateTileCandidate,
   type EditResult,
   type NewTileInput,
 } from '../hooks/dashboardEditorReducer';
 import { CombinationPicker, offerText } from './CombinationPicker';
+import { AdvancedSettings, Step, TimeAndPipeline, advancedSummaryOf } from './ConfiguratorAdvanced';
 import {
   CategorySelect,
   defaultsFor,
   Group,
-  MODE_LABEL,
   Option,
   Preview,
   useDebounced,
@@ -87,6 +86,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
   const [error, setError] = useState('');
   const [sizeNote, setSizeNote] = useState('');
   const [comboNote, setComboNote] = useState('');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const escapeActive = props.escapeActive ?? true;
   useEscapeToClose(open && escapeActive, onClose);
@@ -98,6 +98,11 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
     setComboNote('');
     setQuery('');
     setCategory('');
+    const base = tile ? activeEntryOf(tile) : undefined;
+    // Weicht eine bestehende Kachel vom Standard ab, bleibt das nicht hinter dem Einklappen verborgen.
+    setAdvancedOpen(
+      Boolean(tile && base && (tile.pipeline || tile.filterMode !== defaultsFor(base).filterMode)),
+    );
     if (tile && activeEntryOf(tile)) {
       setChoice({
         firstId: tile.catalogId,
@@ -149,6 +154,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
     ...candidate,
     pipeline: settledPipeline || undefined,
   };
+  const advancedSummary = advancedSummaryOf(choice, entry);
   const issues = candidate ? validateTileCandidate(candidate) : [];
   const valid = candidate !== null && issues.length === 0;
 
@@ -217,138 +223,143 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
       title={editing ? 'Kachel bearbeiten' : 'Kachel hinzufügen'}
       maxWidth="960px"
       footer={
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>
-            Abbrechen
-          </Button>
-          <Button disabled={!valid} onClick={submit}>
-            {editing ? 'Übernehmen' : 'Hinzufügen'}
-          </Button>
+        <div className="flex flex-col gap-2">
+          <p className="m-0 text-[12px] text-[var(--color-text-muted)]">
+            {editing ? 'Die Änderung' : 'Die Kachel'} landet zunächst in der Arbeitskopie.
+            Gespeichert wird erst mit „Speichern“ im Editor.
+          </p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="secondary" onClick={onClose}>
+              Abbrechen
+            </Button>
+            <Button
+              disabled={!valid}
+              onClick={submit}
+              className="h-auto min-h-[44px] shrink whitespace-normal text-center"
+            >
+              {editing ? 'In Arbeitskopie übernehmen' : 'Zur Arbeitskopie hinzufügen'}
+            </Button>
+          </div>
         </div>
       }
     >
       <div className="grid min-w-0 gap-4 md:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
-          {editing ? (
-            <div>
-              <p className="m-0 text-sm [overflow-wrap:anywhere]">
-                <span className="text-[var(--color-text-muted)]">Kennzahl: </span>
-                {entry?.name}
-              </p>
-              <CombinationFormula entry={entry} />
-            </div>
-          ) : (
+          <Step title="1 · Kennzahl">
+            {editing ? (
+              <div>
+                <p className="m-0 text-sm [overflow-wrap:anywhere]">
+                  <span className="text-[var(--color-text-muted)]">Kennzahl: </span>
+                  {entry?.name}
+                </p>
+                <CombinationFormula entry={entry} />
+              </div>
+            ) : (
+              <>
+                <Input
+                  label="Kennzahl suchen"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                />
+                <CategorySelect
+                  value={category}
+                  categories={usedCategories}
+                  onChange={setCategory}
+                />
+                <p role="status" className="m-0 text-[12px] text-[var(--color-text-muted)]">
+                  {matches.length === 1 ? '1 Treffer' : `${matches.length} Treffer`}
+                </p>
+                <div className="max-h-[240px] overflow-y-auto">
+                  <Group legend="Kennzahl">
+                    {matches.map((item) => (
+                      <Option
+                        key={item.id}
+                        name={`${uid}-kennzahl`}
+                        checked={choice?.firstId === item.id}
+                        label={item.name}
+                        hint={`${DASHBOARD_CATEGORIES[item.category]} · ${item.timeBasis}`}
+                        onSelect={() => selectFirst(item)}
+                      />
+                    ))}
+                  </Group>
+                </div>
+              </>
+            )}
+          </Step>
+          {choice && entry ? (
             <>
-              <Input
-                label="Kennzahl suchen"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
-              <CategorySelect value={category} categories={usedCategories} onChange={setCategory} />
-              <p role="status" className="m-0 text-[12px] text-[var(--color-text-muted)]">
-                {matches.length === 1 ? '1 Treffer' : `${matches.length} Treffer`}
-              </p>
-              <div className="max-h-[240px] overflow-y-auto">
-                <Group legend="Kennzahl">
-                  {matches.map((item) => (
+              <Step title="2 · Darstellung">
+                <Group legend="Darstellung">
+                  {entry.views.map((view) => (
                     <Option
-                      key={item.id}
-                      name={`${uid}-kennzahl`}
-                      checked={choice?.firstId === item.id}
-                      label={item.name}
-                      hint={`${DASHBOARD_CATEGORIES[item.category]} · ${item.timeBasis}`}
-                      onSelect={() => selectFirst(item)}
+                      key={view}
+                      name={`${uid}-darstellung`}
+                      checked={choice.view === view}
+                      label={VIEW_LABEL[view]}
+                      onSelect={() => pickView(view)}
                     />
                   ))}
                 </Group>
-              </div>
-              {choice ? (
-                <CombinationPicker
-                  name={`${uid}-kombination`}
-                  firstId={choice.firstId}
-                  selectedId={choice.catalogId}
-                  onPick={pickCombination}
-                />
-              ) : null}
-              {/* Dauerhafte Live-Region: angeboten, gewählt, entfernt, verworfen. */}
-              <p
-                role="status"
-                data-testid="combination-status"
-                className="m-0 min-h-[18px] text-[12px] text-[var(--color-text-muted)] [overflow-wrap:anywhere]"
-              >
-                {comboNote}
-              </p>
-            </>
-          )}
-          {choice && entry ? (
-            <>
-              <Group legend="Darstellung">
-                {entry.views.map((view) => (
-                  <Option
-                    key={view}
-                    name={`${uid}-darstellung`}
-                    checked={choice.view === view}
-                    label={VIEW_LABEL[view]}
-                    onSelect={() => pickView(view)}
-                  />
-                ))}
-              </Group>
-              <p
-                role="status"
-                className="m-0 min-h-[18px] text-[12px] text-[var(--color-text-muted)]"
-              >
-                {sizeNote}
-              </p>
-              <Group legend="Größe">
-                {TILE_SIZES.map((size) => {
-                  const minimum = minSizeFor(entry, choice.view);
-                  const tooSmall = sizeRank(size) < sizeRank(minimum);
-                  return (
-                    <Option
-                      key={size}
-                      name={`${uid}-groesse`}
-                      checked={choice.size === size}
-                      disabled={tooSmall}
-                      label={SIZE_LABEL[size]}
-                      hint={
-                        tooSmall
-                          ? `Diese Darstellung braucht mindestens ${SIZE_LABEL[minimum]}.`
-                          : undefined
-                      }
-                      onSelect={() => update({ size })}
-                    />
-                  );
-                })}
-              </Group>
-              <Group legend="Zeitbezug">
-                {allowedFilterModes(entry).map((option) => (
-                  <Option
-                    key={option.mode}
-                    name={`${uid}-zeitbezug`}
-                    checked={choice.filterMode === option.mode}
-                    disabled={!option.allowed}
-                    label={MODE_LABEL[option.mode]}
-                    hint={option.allowed ? undefined : option.reason}
-                    onSelect={() => update({ filterMode: option.mode })}
-                  />
-                ))}
-              </Group>
-              {entry.filters.includes('pipeline') ? (
+                <p
+                  role="status"
+                  className="m-0 min-h-[18px] text-[12px] text-[var(--color-text-muted)]"
+                >
+                  {sizeNote}
+                </p>
+                <Group legend="Größe">
+                  {TILE_SIZES.map((size) => {
+                    const minimum = minSizeFor(entry, choice.view);
+                    const tooSmall = sizeRank(size) < sizeRank(minimum);
+                    return (
+                      <Option
+                        key={size}
+                        name={`${uid}-groesse`}
+                        checked={choice.size === size}
+                        disabled={tooSmall}
+                        label={SIZE_LABEL[size]}
+                        hint={
+                          tooSmall
+                            ? `Diese Darstellung braucht mindestens ${SIZE_LABEL[minimum]}.`
+                            : undefined
+                        }
+                        onSelect={() => update({ size })}
+                      />
+                    );
+                  })}
+                </Group>
                 <Input
-                  label="Eigene Pipeline (optional, ersetzt den zentralen Filter)"
-                  value={choice.pipeline}
-                  onChange={(event) => update({ pipeline: event.target.value })}
+                  label="Eigener Titel (optional)"
+                  value={choice.title}
+                  maxLength={MAX_TITLE_LENGTH + 20}
+                  helperText={`Höchstens ${MAX_TITLE_LENGTH} Zeichen.`}
+                  onChange={(event) => update({ title: event.target.value })}
                 />
-              ) : null}
-              <Input
-                label="Eigener Titel (optional)"
-                value={choice.title}
-                maxLength={MAX_TITLE_LENGTH + 20}
-                helperText={`Höchstens ${MAX_TITLE_LENGTH} Zeichen.`}
-                onChange={(event) => update({ title: event.target.value })}
-              />
+              </Step>
+              <AdvancedSettings
+                open={advancedOpen}
+                onToggle={() => setAdvancedOpen((current) => !current)}
+                summary={advancedSummary}
+              >
+                {!editing ? (
+                  <CombinationPicker
+                    name={`${uid}-kombination`}
+                    firstId={choice.firstId}
+                    selectedId={choice.catalogId}
+                    onPick={pickCombination}
+                  />
+                ) : null}
+                <TimeAndPipeline uid={uid} entry={entry} choice={choice} onChange={update} />
+              </AdvancedSettings>
             </>
           ) : null}
+          {/* Dauerhafte Live-Region (außerhalb des Klappbereichs): angeboten, gewählt, entfernt, verworfen. */}
+          <p
+            role="status"
+            data-testid="combination-status"
+            className="m-0 min-h-[18px] text-[12px] text-[var(--color-text-muted)] [overflow-wrap:anywhere]"
+          >
+            {comboNote}
+          </p>
           {issues.length > 0 ? (
             <p role="alert" className="m-0 text-sm text-error [overflow-wrap:anywhere]">
               {issues[0]?.message}
@@ -361,9 +372,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
           ) : null}
         </div>
         <div className="min-h-[260px] min-w-0">
-          <p className="m-0 mb-1 text-[13px] font-medium text-[var(--color-text-muted)]">
-            Vorschau
-          </p>
+          <h3 className="m-0 mb-1 text-[13px] font-medium">3 · Vorschau</h3>
           {valid && candidate && entry ? (
             <div ref={previewRef} data-testid="configurator-preview">
               <Preview
