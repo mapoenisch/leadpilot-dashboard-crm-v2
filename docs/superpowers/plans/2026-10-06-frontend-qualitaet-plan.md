@@ -191,13 +191,13 @@ Teilumsetzung: Aufträge 088 und 089.
 
 - [x] Kachelaktionen in eine ruhige Aktionsleiste integrieren. Bereits vorhandenes Desktop-Ziehen deutlicher kennzeichnen; nicht als neue Funktion neu entwickeln.
 - [x] Verschieben bleibt ohne Ziehen möglich: Tastatur und Touch erhalten eindeutig beschriftete erreichbare Aktionen. Nach Verschieben/Entfernen Fokus sinnvoll fortsetzen und die neue Position ansagen.
-- [ ] Konfigurator in „Kennzahl“, „Darstellung“, „Vorschau“ und „Erweiterte Einstellungen“ gliedern. Letzteres enthält Kombinationen und zulässige besondere Filter; normale Auswahl kommt ohne diese Details aus.
-- [ ] Nicht erlaubte Kombinationen nicht prominent auflisten. Wenn eine Auswahl relevant scheitert, eine kurze fachliche Begründung direkt an der Auswahl zeigen; Validierung bleibt unverändert streng.
-- [ ] Eigener Titel, Größe und Kombinationen weiterhin bearbeiten können. Unterschied zwischen Kachel-Hinzufügen zur Arbeitskopie und endgültigem Speichern deutlich machen.
+- [x] Konfigurator in „Kennzahl“, „Darstellung“, „Vorschau“ und „Erweiterte Einstellungen“ gliedern. Letzteres enthält Kombinationen und zulässige besondere Filter; normale Auswahl kommt ohne diese Details aus.
+- [x] Nicht erlaubte Kombinationen nicht prominent auflisten. Wenn eine Auswahl relevant scheitert, eine kurze fachliche Begründung direkt an der Auswahl zeigen; Validierung bleibt unverändert streng.
+- [x] Eigener Titel, Größe und Kombinationen weiterhin bearbeiten können. Unterschied zwischen Kachel-Hinzufügen zur Arbeitskopie und endgültigem Speichern deutlich machen.
 - [x] Speichern/Verwerfen bleiben beim Scrollen erreichbar, ohne Inhalte oder Bildschirmtastatur zu verdecken. Kein Auto-Save einführen.
 - [ ] Sicherungen aus Auftrag 079 erhalten: Konflikte zwischen Sitzungen, Entwurf bleibt nach Konflikt bestehen, Schutz beim Verlassen, Benutzertrennung, Realtime ohne Umordnung und kein Remount der Vorschau bei jeder Texteingabe.
 
-**Umsetzung:** Auftrag 090 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_090_KACHELAKTIONEN.md`) – Kachelaktionen, Verschieben, haftende Leiste; Konfigurator folgt in Auftrag 091.
+**Umsetzung:** Auftrag 090 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_090_KACHELAKTIONEN.md`) – Kachelaktionen, Verschieben, haftende Leiste; Konfigurator folgt in Auftrag 092 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_092_KONFIGURATOR.md`).
 
 **Abnahme:** Kachel finden, Vorschau prüfen, bearbeiten, verschieben und speichern gelingt auf Desktop/Tastatur/Handy. Kein Funktionsverlust durch versteckte Optionen; vorhandene Konflikt- und Verlassen-Tests bleiben grün.
 

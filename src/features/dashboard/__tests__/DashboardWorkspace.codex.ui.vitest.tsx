@@ -187,7 +187,7 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 2', () => {
     fireEvent.click(within(items()[0]!).getByRole('button', { name: /Bearbeiten/ }));
     const field = await screen.findByLabelText('Eigener Titel (optional)');
     fireEvent.change(field, { target: { value: '' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Übernehmen' }));
+    fireEvent.click(screen.getByRole('button', { name: /^In Arbeitskopie übernehmen$/ }));
     await waitFor(() => expect(screen.queryByText('Mein Titel')).toBeNull());
   });
 });
@@ -244,6 +244,7 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 4', () => {
       });
       fireEvent.click(screen.getAllByRole('radio', { name: /Pipeline/ })[0]!);
       seen.clear();
+      fireEvent.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
       const field = await screen.findByLabelText(/Eigene Pipeline/);
       for (const text of ['D', 'Di', 'Dir']) fireEvent.change(field, { target: { value: text } });
       act(() => void vi.advanceTimersByTime(500));
