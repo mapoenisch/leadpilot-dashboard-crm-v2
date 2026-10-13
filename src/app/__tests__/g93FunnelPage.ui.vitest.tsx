@@ -42,7 +42,7 @@ describe('G93 Sales Funnel als HTML-Seite', () => {
     expect(wurzel).not.toBeNull();
     expect(wurzel?.querySelector('h1')).not.toBeNull();
     expect(screen.getByTestId('page-hero').textContent).toContain(
-      'Faktenblatt v1.1 · Stand FY 2025 · fester Stand',
+      'Faktenblatt v1.2 · Stand FY 2025 · fester Stand',
     );
   });
 

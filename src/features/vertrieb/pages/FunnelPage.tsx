@@ -21,7 +21,7 @@ const stufenEinheit = ['Leads', 'MQL', 'SQL', 'Angebote', 'Neukunden'];
 const stufenName = ['Leads gesamt', 'MQL', 'SQL', 'Angebote', 'Neukunden (Won)'];
 const HEBEL_STUFE = 2;
 // Herkunft und Stand der Zahlen (Codex PR #79): sichtbar im Seitenkopf.
-const QUELLE = 'Faktenblatt v1.1 · Stand FY 2025 · fester Stand';
+const QUELLE = 'Faktenblatt v1.2 · Stand FY 2025 · fester Stand';
 // Reihenfarben wie im Original-WebP: Leads silbern, MQL kräftiges Cyan, SQL helles Cyan,
 // Neukunden orange (Reihenfolge wie FUNNEL.chart.datasets).
 const QUARTAL_FARBEN = ['var(--funnel-silber)', '#00D9C6', '#62EDE2', '#FF7A3D'];

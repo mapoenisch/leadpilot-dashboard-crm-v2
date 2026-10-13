@@ -16412,3 +16412,4 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Einheit im Diagramm-Formatter: betraf die erste Fassung mit `Depth3dBarChart`/`formatAnzahl`; diese Stelle existiert seit der Revision nicht mehr – erledigt.
 - CodeQL „Incomplete string escaping“: bereits mit `774a2ed` behoben.
 - Schutzbereich-Diff leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` · `verify` · `vitest` 329 / 2346 · `build` grün.
+- Nachtrag (Marc 13.10.2026): Quellenzeile auf „Faktenblatt v1.2 · Stand FY 2025 · fester Stand“ gestellt – v1.2 ist die gültige Fassung; Funnel-Werte der Seite entsprechen v1.2 Abschnitt 8 (1.776 / 516 / 192 / 264 / 108 / 47; 29,1 % · 37,2 % · 56,3 % · Win Rate 43,5 %).
