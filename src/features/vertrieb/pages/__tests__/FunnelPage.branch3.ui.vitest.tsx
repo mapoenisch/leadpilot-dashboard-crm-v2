@@ -25,13 +25,13 @@ describe('FunnelPage (branch3)', () => {
       screen.getByRole('heading', { level: 1, name: 'Sales Funnel 2025' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Keine Funnel-Daten erfasst.')).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Conversion-Tabelle' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Trichtertabelle' })).not.toBeInTheDocument();
   });
 
   it('kurze Zeilen rendern, Summary nutzt leere FY-Fallbacks', () => {
     FUNNEL.rows.splice(0, FUNNEL.rows.length, ['Ministufe', '1', '2'] as unknown as string[]);
     render(<FunnelPage />);
-    expect(screen.getAllByText('Ministufe').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Ministufe')).toBeInTheDocument();
     expect(screen.getByText(/Aus.*Leads werden.*MQLs/)).toBeInTheDocument();
   });
 
@@ -58,9 +58,9 @@ describe('FunnelPage (branch3)', () => {
     );
     const { container } = render(<FunnelPage />);
     const quartale = screen.getByRole('figure', { name: 'Quartalsverlauf je Stufe' });
-    // Eine Säule je Quartal, fehlende Werte als Nullhöhe (Mindesthöhe 2 px).
-    expect(quartale.querySelectorAll('rect.pk-fill')).toHaveLength(FUNNEL.chart.labels.length);
-    expect(container.querySelectorAll('.pk-legend li')).toHaveLength(0);
+    // Eine 3D-Säule je Quartal, fehlende Werte als Nullhöhe (Auftrag 093: GroupedDepthColumns).
+    expect(quartale.querySelectorAll('rect[data-saeule]')).toHaveLength(FUNNEL.chart.labels.length);
+    expect(container.querySelectorAll('[data-testid="grouped-depth-columns"] li')).toHaveLength(0);
   });
 
   it('fehlende Header nutzen Spalten-Fallbacks', () => {
@@ -78,20 +78,22 @@ describe('FunnelPage (branch3)', () => {
 describe('FunnelPage – fachliche Wahrheit (Auftrag 085)', () => {
   it('Angebote 56,3 % der SQL in Trichter und Tabelle, nirgends 65 %', () => {
     const { container } = render(<FunnelPage />);
-    expect(screen.getAllByText(/56,3 % der SQL/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByText(/37,2 % der MQL/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByText(/Win Rate 43,5 %/).length).toBeGreaterThanOrEqual(2);
+    // Tabelle trägt die Quote mit Bezug, der Trichter (Auftrag 093) die Quote am Übergang.
+    expect(screen.getAllByText(/56,3 % der SQL/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/37,2 % der MQL/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Win Rate 43,5 %/).length).toBeGreaterThanOrEqual(1);
+    const trichter = screen.getByTestId('funnel-stufen-chart');
+    for (const quote of ['29,1 %', '37,2 %', '56,3 %', '43,5 %']) {
+      expect(trichter.textContent).toContain(`Conversion: ${quote}`);
+    }
     expect(container.textContent).not.toMatch(/65(,3)? ?%/);
     expect(container.textContent).not.toMatch(/38 % der MQL/);
   });
 
   it('jede Trichterstufe trägt ihre eigene Einheit', () => {
     render(<FunnelPage />);
-    // Auftrag 093: 3D-Balken tragen die Stufe als eigene Einheit (Leads, MQL, SQL, Angebote, Neukunden).
-    const stufen = screen.getByTestId('funnel-stufen');
-    for (const einheit of ['Leads', 'MQL', 'SQL', 'Angebote', 'Neukunden']) {
-      expect(stufen.textContent).toContain(einheit);
-    }
-    expect(stufen.textContent).not.toContain('108 Leads');
+    expect(screen.getByText('108 Angebote')).toBeInTheDocument();
+    expect(screen.getByText('47 Neukunden')).toBeInTheDocument();
+    expect(screen.queryByText('108 Leads')).toBeNull();
   });
 });

@@ -1101,3 +1101,129 @@ dl.pk-grid {
   letter-spacing: 0;
   border-radius: var(--radius-md);
 }
+
+/* ── Auftrag 093 (Paket G1): ruhige Fassung ──────────────────
+   Gleiche Elemente wie im Original-WebP; Leuchten, Raster, Glanz, Spiegelung und Transparenz
+   nur etwa halbiert – nichts davon entfällt (Marc 13.10.2026). Seiten schalten per data-ruhig um. */
+.pk-page[data-ruhig='true'] .pk-hero::before {
+  opacity: 0.3;
+}
+.pk-page[data-ruhig='true'] .pk-panel {
+  border-color: color-mix(in srgb, var(--pk-tone) 50%, transparent);
+  box-shadow:
+    0 0 9px color-mix(in srgb, var(--pk-tone) 12%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--pk-tone) 4%, transparent);
+}
+.pk-page[data-ruhig='true'] .pk-callout {
+  box-shadow: 0 0 9px color-mix(in srgb, var(--pk-tone) 10%, transparent);
+}
+.pk-page[data-ruhig='true'] .pk-badge::before {
+  box-shadow: 0 0 3px var(--cyan);
+}
+.pk-page[data-ruhig='true'] .pk-chip[data-strong='true'],
+.pk-page[data-ruhig='true'] .pk-hero .pk-chip {
+  box-shadow: 0 0 5px color-mix(in srgb, var(--cyan) 16%, transparent);
+}
+.pk-page[data-ruhig='true'] .funnel-stufe {
+  box-shadow: 0 0 6px color-mix(in srgb, var(--stufe) 20%, transparent);
+}
+.pk-page[data-ruhig='true'] .funnel-hebel {
+  box-shadow: 0 0 5px color-mix(in srgb, var(--color-warning) 18%, transparent);
+}
+.pk-page[data-ruhig='true'].funnel-seite .pk-table .pk-chip {
+  box-shadow: 0 0 4px color-mix(in srgb, var(--cyan) 18%, transparent);
+}
+.pk-page[data-ruhig='true'] .gdc-boden {
+  opacity: 0.5;
+}
+.pk-page[data-ruhig='true'] .gdc-spiegel,
+.pk-page[data-ruhig='true'] .gdc-glanz {
+  opacity: 0.55;
+}
+
+/* Quartalsverlauf: Silber der Leads-Reihe je Modus (im hellen Modus dunkler, sonst unsichtbar). */
+.funnel-seite {
+  --funnel-silber: #d5dee8;
+}
+[data-theme='light'] .funnel-seite {
+  --funnel-silber: #8e9aa8;
+}
+
+/* Trichterstufen (FunnelStufenChart) – gleiche Bauform wie die Quartalssäulen (Marc 13.10.2026):
+   rechteckiger Quader mit harten Kanten, helle Oberseite und dunkle Stirnseite in leichter
+   Schrägsicht, Vorderseite mit Licht von oben und Glanz von links. Farben und Längen wie gehabt. */
+.funnel-stufe {
+  --stufe: var(--cyan);
+  --tiefe: 7px;
+  position: relative;
+  margin: var(--tiefe) var(--tiefe) 0 0;
+  border: 0;
+  border-radius: 0;
+  transition: width 300ms ease;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0.07) 35%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--stufe) 65%, white 35%) 0%,
+      var(--stufe) 45%,
+      color-mix(in srgb, var(--stufe) 78%, black 22%) 100%
+    );
+  box-shadow: 0 0 12px color-mix(in srgb, var(--stufe) 40%, transparent);
+}
+/* Oberseite: Parallelogramm nach rechts oben */
+.funnel-stufe::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: var(--tiefe);
+  background: color-mix(in srgb, var(--stufe) 55%, white 45%);
+  transform: skewX(-45deg);
+  transform-origin: bottom left;
+}
+/* Stirnseite rechts */
+.funnel-stufe::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: var(--tiefe);
+  background: color-mix(in srgb, var(--stufe) 62%, black 38%);
+  transform: skewY(-45deg);
+  transform-origin: top left;
+}
+.funnel-stufe--ziel {
+  --stufe: color-mix(in srgb, var(--cyan) 85%, white 15%);
+}
+.funnel-stufe--hebel {
+  --stufe: var(--color-warning);
+}
+.funnel-hebel {
+  border-width: 1.5px;
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-bg-deep));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-warning) 35%, transparent);
+}
+.funnel-quote {
+  color: var(--color-warning);
+}
+/* Tabellen-Pills wie im Original: kräftiger Rand, dunkle Füllung, Leuchten. */
+.funnel-seite .pk-table .pk-chip {
+  border-width: 1.5px;
+  border-color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 6%, var(--color-bg-deep));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--cyan) 35%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .funnel-stufe {
+    transition: none;
+  }
+}

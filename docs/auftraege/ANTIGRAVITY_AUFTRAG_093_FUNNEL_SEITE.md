@@ -35,4 +35,25 @@
 - [x] Ganzseitenbild, Zoom-Hinweis und abgebildete Simulationsleiste auf der Funnel-Seite entfernt.
 - [x] Tests: Freigabe nur Funnel, andere Seiten bleiben Bild, gleiche Quelle für Diagramm und Tabelle, Aufbau nach Muster.
 - [x] Nachweis 1440/768/375/320/250 px × dunkel/hell: Überlauf 0, axe 0, Hash verschieden.
-- [ ] Sichtabnahme der Funnel-Seite durch Marc.
+- [x] Sichtabnahme der Funnel-Seite durch Marc (13.10.2026, nach Revision).
+
+## Revision 13.10.2026 – Original-WebP ist Vorlage (Entscheidung Marc)
+
+Die erste Fassung folgte dem reduzierten Muster 4 und ließ den größten Teil des Inhalts weg. Marc legt fest:
+kein Inhalt geht verloren, wesentliche Designelemente bleiben (Farbcodierung, orange Hebelstufe mit orange
+umrandetem Hinweis, vierfarbige Reihen, farbige/umrandete Hervorhebungen), „ruhiger“ heißt Effekte dämpfen,
+nicht entfernen.
+
+- [x] Inhaltsinventar des WebP: Kopf mit Pills und Raster, Trichter-Panel (5 Stufen, „Stufe n“, Conversion-Chips,
+      SQL-Stufe orange mit „Trial-Conversion Hebel“), Quartals-Panel (gruppierte 3D-Säulen in vier Farben, Legende),
+      Tabelle mit Pills, Hinweis mit oranger Randleiste – alles als Test (`g93FunnelPage.ui`).
+- [x] Elementweiser Vergleich Original ↔ Nachbau, von Marc freigegeben.
+- [x] Trichterbalken exakt proportional zum Wert (keine Mindestbreite), Wert bei kurzen Balken daneben.
+- [x] Trichterbalken in derselben Quaderform wie die Quartalssäulen (harte Kanten, Ober- und Stirnseite in Schrägsicht).
+- [x] „Ruhig“ (`data-ruhig`): Leuchten, Raster, Glanz, Spiegelung etwa halbiert; von Marc freigegeben.
+- [x] Werte bleiben die in Auftrag 085 geklärten (z. B. 56,3 % statt 65,3 %, eigene Einheit je Stufe).
+
+Neue/zusätzliche Ziel-Dateien: `src/features/vertrieb/components/FunnelStufenChart.tsx` (neu),
+`src/features/vertrieb/components/GroupedDepthColumns.tsx` (neu), `src/components/pageKit/pageKit.css`
+(Ruhig-Fassung, Trichter- und Pill-Stile, Silberton je Modus). `g66DesignRestore.ui`, `FunnelPage.branch3.ui`
+und `VertriebPages.branch2.ui` gelten wieder in der Fassung von `main` (nur zwei Erwartungen an die neuen Diagramme angepasst).

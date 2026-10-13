@@ -5,17 +5,17 @@ ganze Seite. Vorher = `main` nach Auftrag 092 (Ganzseitenbild), Nachher = Branch
 `claude/auftrag-093-funnel-seite` (Seitenfreigabe `HTML_PAGES`). 250 px steht für 150 % Schrift bei
 375 px. Bilder bleiben lokal unter `artifacts/auftrag-093/`.
 
-| Breite | Theme | SHA-256 vorher | SHA-256 nachher | WebP vorher → nachher | Zoom-Hinweis | h1 | Überschriften sichtbar | Überlauf | axe |
-|---|---|---|---|---|---|---|---|---|---|
-| 1440 | dark | `e1836c2c5ddb` | `ac0b2dcf1e3d` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 1440 | light | `6c2825257d54` | `cec179d01f60` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 768 | dark | `b7d9e7aaa330` | `7407deb08572` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 768 | light | `51c703b494d7` | `2e51c59cf233` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 375 | dark | `d0f3e3aed8fc` | `b81e8c82e94a` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 375 | light | `970414518300` | `020d521a790c` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 320 | dark | `eb0dffbfdfcb` | `7c5e2a21288a` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 320 | light | `5a91b153626d` | `bcf2908a8569` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 250 | dark | `f841f74c4c30` | `5cacab82921e` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
-| 250 | light | `cbf2b6241041` | `ba9ec0671f02` | 1 → 0 | nein | 1 | 4/4 | 0 px | 0 |
+| Breite | Theme | SHA-256 vorher | SHA-256 nachher | WebP vorher → nachher | Zoom-Hinweis | h1 | Überschriften sichtbar | Hebel-Chip | Überlauf | axe |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1440 | dark | `09d79a08f752` | `c5d3a0ad7278` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 1440 | light | `37b50aef0748` | `b60e7f79ac28` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 768 | dark | `cecfa89fda4d` | `7133132f9cec` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 768 | light | `7eae12592fcd` | `73dcf133405a` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 375 | dark | `4211a0f68da8` | `bc6284a1bbb4` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 375 | light | `ea0261f3b4c3` | `1892ac5f21cf` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 320 | dark | `0c4810356623` | `048749587ac1` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 320 | light | `fc937de968d8` | `a16ff3494b66` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 250 | dark | `6903baffbb7f` | `93e1733e6723` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
+| 250 | light | `cc897b6a6017` | `9f59756ce6ae` | 1 → 0 | nein | 1 | 5/5 | ja | 0 px | 0 |
 
 **Ergebnis:** 10/10 Aufnahmen bestanden.

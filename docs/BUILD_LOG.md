@@ -16386,3 +16386,14 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-093/README.md`: 10/10 (1440/768/375/320/250 × dunkel/hell) – WebP 1 → 0, kein Zoom-Hinweis, h1 1, vier Kartenüberschriften sichtbar, Überlauf 0 px, axe 0, Hash verschieden.
 
 **Ergebnis & Freigabestatus:** Builder-seitig fertig; Sichtabnahme durch Marc und Abnahme durch Codex offen.
+
+### Auftrag 093 – Revision nach Sichtprüfung Marc (13.10.2026, Claude Code)
+
+- Befund Marc: erste Fassung (Muster 4) ließ den größten Teil des Original-Inhalts weg und wirkte wie das alte flache Design. Neue Vorgabe: Original-WebP ist Vorlage für Inhalt und Gestaltung; „ruhiger“ heißt dämpfen, nicht entfernen.
+- Umgesetzt: Page-Kit-Aufbau des Originals wiederhergestellt (Hero mit Pills und Raster, Panels mit Badges, Tabelle mit Pills, Hinweis); neu `FunnelStufenChart.tsx` (5 Stufen, Conversion-Chips, SQL-Stufe orange mit „Trial-Conversion Hebel“, 3D-Quader, exakt proportionale Längen) und `GroupedDepthColumns.tsx` (gruppierte 3D-Säulen in vier Reihenfarben, Bodenlicht, Spiegelung, Legende); Ruhig-Fassung per `data-ruhig` in `pageKit.css` (Effekte etwa halbiert); Silberton der Leads-Reihe im hellen Modus dunkler.
+- Sichtabnahme: elementweise Vergleiche Original ↔ Nachbau und voll ↔ ruhig; von Marc freigegeben.
+- Qualitätsbudget: Stufenbreite per `ref` statt `style`-Prop, `react/forbid-dom-props` bleibt bei 50.
+- Schutzbereich: `git diff ce506b5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+- Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `vitest` 328 / 2342 · `build` grün.
+- Screenshot-Matrix `docs/screenshots/auftrag-093/README.md`: 10/10 – WebP 1 → 0, h1 1, fünf Original-Überschriften sichtbar, Hebel-Chip sichtbar, Überlauf 0 px, axe 0, Hash verschieden.
+- Freigabestatus: Sichtabnahme Marc erteilt; Abnahme durch Codex offen.

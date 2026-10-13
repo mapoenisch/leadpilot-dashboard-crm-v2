@@ -70,6 +70,17 @@ async function capture() {
           content:
             '*, *::before, *::after { transition: none !important; animation: none !important; caret-color: transparent !important; }',
         });
+        // Der Hauptbereich scrollt intern: Fenster auf die volle Inhaltshöhe ziehen, damit die
+        // Aufnahme die ganze Seite zeigt (Breite bleibt die Prüfbreite).
+        const fullHeight = await page.evaluate(() =>
+          Math.max(
+            ...Array.from(document.querySelectorAll('main, main *, body'))
+              .filter((el) => el.scrollHeight > el.clientHeight + 1)
+              .map((el) => el.scrollHeight - el.clientHeight + window.innerHeight),
+            window.innerHeight,
+          ),
+        );
+        await page.setViewportSize({ width: viewport.width, height: Math.min(fullHeight, 6000) });
         await page.waitForTimeout(500);
         const file = path.join(dir, `${name}.png`);
         await page.screenshot({ path: file, fullPage: true, animations: 'disabled' });
@@ -87,6 +98,7 @@ async function capture() {
             headings: Array.from(main.querySelectorAll('h1, h2'))
               .filter(visible)
               .map((h) => (h.textContent ?? '').trim()),
+            hebel: Array.from(main.querySelectorAll('.funnel-hebel')).some(visible),
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           };
         });
@@ -121,10 +133,12 @@ function compare() {
   const problems = [];
   const WANT = [
     'Sales Funnel 2025',
-    'Stufen im Geschäftsjahr',
-    'Conversion je Stufe',
-    'Quartalsverlauf je Stufe',
+    'Sales Pipeline Funnel Stufen (FY 2025)',
+    'Quartalsverlauf Funnel-Stufen 2025',
+    'Trichtertabelle',
+    'Trial-to-Paid Potenzial',
   ];
+  const has = (a, w) => a.headings.some((h) => h.startsWith(w));
   for (const viewport of VIEWPORTS) {
     for (const theme of THEMES) {
       const name = `funnel-${viewport.width}-${theme}`;
@@ -139,13 +153,14 @@ function compare() {
         vorherBild: b.webp === 1,
         keinBild: a.webp === 0 && !a.zoomHint,
         h1: a.h1 === 1,
-        sichtbar: WANT.every((w) => a.headings.includes(w)),
+        sichtbar: WANT.every((w) => has(a, w)),
+        hebel: a.hebel,
         overflow: a.overflow <= 0,
         axe: a.severe.length === 0,
       };
       for (const [key, ok] of Object.entries(checks)) if (!ok) problems.push(`${name}: ${key}`);
       rows.push(
-        `| ${viewport.width} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.webp} → ${a.webp} | ${a.zoomHint ? 'ja' : 'nein'} | ${a.h1} | ${WANT.filter((w) => a.headings.includes(w)).length}/${WANT.length} | ${a.overflow} px | ${a.severe.join(', ') || 0} |`,
+        `| ${viewport.width} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.webp} → ${a.webp} | ${a.zoomHint ? 'ja' : 'nein'} | ${a.h1} | ${WANT.filter((w) => has(a, w)).length}/${WANT.length} | ${a.hebel ? 'ja' : 'nein'} | ${a.overflow} px | ${a.severe.join(', ') || 0} |`,
       );
     }
   }
@@ -158,8 +173,8 @@ ganze Seite. Vorher = \`main\` nach Auftrag 092 (Ganzseitenbild), Nachher = Bran
 \`claude/auftrag-093-funnel-seite\` (Seitenfreigabe \`HTML_PAGES\`). 250 px steht für 150 % Schrift bei
 375 px. Bilder bleiben lokal unter \`artifacts/auftrag-093/\`.
 
-| Breite | Theme | SHA-256 vorher | SHA-256 nachher | WebP vorher → nachher | Zoom-Hinweis | h1 | Überschriften sichtbar | Überlauf | axe |
-|---|---|---|---|---|---|---|---|---|---|
+| Breite | Theme | SHA-256 vorher | SHA-256 nachher | WebP vorher → nachher | Zoom-Hinweis | h1 | Überschriften sichtbar | Hebel-Chip | Überlauf | axe |
+|---|---|---|---|---|---|---|---|---|---|---|
 ${rows.join('\n')}
 
 **Ergebnis:** ${total - failed}/${total} Aufnahmen bestanden${problems.length ? ` – offen: ${problems.join('; ')}` : ''}.

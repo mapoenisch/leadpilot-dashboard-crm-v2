@@ -37,33 +37,65 @@ describe('G93 Sales Funnel als HTML-Seite', () => {
     expect(screen.getByTestId(IMAGE_PAGES['sales-sla'].testId)).toBeInTheDocument();
   });
 
-  it('Diagramm und Conversion-Tabelle aus derselben Quelle (FUNNEL.rows)', () => {
-    render(<FunnelPage />);
-    const tabelle = within(screen.getByRole('region', { name: 'Conversion-Tabelle' }));
-    for (const row of FUNNEL.rows) {
-      const zeile = tabelle.getByRole('rowheader', { name: row[0] ?? '' }).closest('tr');
-      expect(zeile?.textContent).toContain(row[5] ?? '');
-      expect(zeile?.textContent).toContain(row[7] ?? '');
-    }
-    // Testversionen bleiben Nebenpfad: in der Tabelle, aber nicht als Balken der Kette.
-    const stufen = screen.getByTestId('funnel-stufen');
-    expect(stufen.textContent).not.toContain('Testversionen');
-    for (const row of FUNNEL.rows.filter((r) => !r[0]?.startsWith('Testversionen'))) {
-      expect(stufen.textContent).toContain(row[5] ?? '');
-    }
-  });
-
-  it('Muster-Aufbau: Eyebrow, Quelle, Karten mit h2 und Hinweis', () => {
-    render(<FunnelPage />);
-    expect(screen.getByText('Vertrieb · Funnel')).toBeInTheDocument();
-    expect(screen.getByText(/Faktenblatt v1\.1 · Stand FY 2025/)).toBeInTheDocument();
+  // Inhaltsinventar des Original-WebP (01-sales-funnel-2025): nichts darf fehlen.
+  it('alle Inhalte des Originals: Kopf, Trichter mit Hebel, Quartale, Tabelle, Hinweis', () => {
+    const { container } = render(<FunnelPage />);
+    expect(screen.getByText('Conversion-Raten über alle Trichterstufen.')).toBeInTheDocument();
     for (const titel of [
-      'Stufen im Geschäftsjahr',
-      'Conversion je Stufe',
-      'Quartalsverlauf je Stufe',
+      'Sales Pipeline Funnel Stufen (FY 2025)',
+      'Quartalsverlauf Funnel-Stufen 2025',
+      'Trichtertabelle',
       FUNNEL.note.title,
     ]) {
-      expect(screen.getByRole('heading', { level: 2, name: titel })).toBeInTheDocument();
+      expect(
+        screen.getAllByRole('heading', { name: new RegExp(titel.replace(/[()+]/g, '\\$&')) })
+          .length,
+      ).toBeGreaterThanOrEqual(1);
     }
+    expect(
+      screen.getByText('Durchlaufende Leads, Stufen-Conversion und Engpass-Erkennung'),
+    ).toBeInTheDocument();
+    // Trichter: fünf Stufen mit „Stufe n“, vier Conversion-Übergänge, SQL-Stufe als Hebel.
+    const trichter = screen.getByTestId('funnel-stufen-chart');
+    for (let n = 1; n <= 5; n += 1) expect(trichter.textContent).toContain(`Stufe ${n}`);
+    expect(trichter.textContent?.match(/Conversion:/g)).toHaveLength(4);
+    const hebel = trichter.querySelector('.funnel-stufe--hebel');
+    expect(hebel?.closest('li')?.textContent).toContain('SQL');
+    expect(within(trichter).getByText('Trial-Conversion Hebel')).toBeInTheDocument();
+    // Quartale: 4 Quartale × 4 Reihen als 3D-Säulen, Legende in den vier Reihenfarben.
+    const quartale = screen.getByTestId('grouped-depth-columns');
+    expect(quartale.querySelectorAll('rect[data-saeule]')).toHaveLength(16);
+    const farben = new Set(
+      Array.from(quartale.querySelectorAll('li rect')).map((r) => r.getAttribute('fill')),
+    );
+    expect(farben).toEqual(new Set(['var(--funnel-silber)', '#00D9C6', '#62EDE2', '#FF7A3D']));
+    // Tabelle: alle Stufen, Ø/Monat und Conversion als Pills.
+    for (const row of FUNNEL.rows) {
+      expect(screen.getAllByText(row[0] ?? '').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(row[7] ?? '').length).toBeGreaterThanOrEqual(1);
+    }
+    expect(container.querySelectorAll('.pk-table .pk-chip').length).toBe(FUNNEL.rows.length * 2);
+  });
+
+  // Marc 13.10.2026: Trichterbalken müssen ihre Werte proportional zeigen (keine Mindestbreite).
+  it('Trichterbalken sind exakt proportional zum Wert', () => {
+    render(<FunnelPage />);
+    const balken = Array.from(
+      screen.getByTestId('funnel-stufen-chart').querySelectorAll<HTMLElement>('.funnel-stufe'),
+    ).map((el) => Number.parseFloat(el.style.width));
+    const werte = FUNNEL.rows
+      .filter((r) => !r[0]?.startsWith('Testversionen'))
+      .map((r) => Number((r[5] ?? '0').replace(/\./g, '')));
+    const max = Math.max(...werte);
+    werte.forEach((wert, i) => expect(balken[i]).toBeCloseTo((wert / max) * 100, 1));
+    expect(new Set(balken).size).toBe(werte.length);
+  });
+
+  it('Original-Gestaltung: Hero-Raster, leuchtende Panels und Hinweis bleiben', () => {
+    const { container } = render(<FunnelPage />);
+    expect(container.querySelector('.pk-page.funnel-seite')).not.toBeNull();
+    expect(container.querySelector('.pk-hero')).not.toBeNull();
+    expect(container.querySelectorAll('.pk-panel').length).toBeGreaterThanOrEqual(3);
+    expect(container.querySelector('.pk-callout')).not.toBeNull();
   });
 });
