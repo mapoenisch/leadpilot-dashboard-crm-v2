@@ -16401,3 +16401,14 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 ### Auftrag 093 – Nacharbeit CodeQL PR #79 (13.10.2026, Claude Code)
 
 - High „Incomplete string escaping“ in `g93FunnelPage.ui.vitest.tsx`: Überschriftenvergleich ohne `RegExp` (Filter per `startsWith`), damit entfällt das Escaping vollständig. Test 6/6 grün, `tsc` 0, `lint` 0/0, `format:check` grün.
+
+### Auftrag 093 – Nacharbeit Codex PR #79, Runde 1 (13.10.2026, Claude Code)
+
+- P1 E2E-Modus (`e2e/semantic-routes.spec.ts`): Modus je Route statt global; Seiten aus `HTML_PAGES` gelten als HTML (Zuordnung Seitenschlüssel → Route, fehlende Zuordnung bricht ab). CI-Lauf vorher: 12 Fehler, ausschließlich `/sales/funnel` in dieser Suite. Lokal `-g "/sales/(funnel|sla)"`: 24/24 grün (Funnel HTML, SLA weiter Bild).
+- P2 Seitenmarker: `data-page-key="sales-funnel"` an der Seitenwurzel für `captureAuftrag081Inventory.mjs`; Test ergänzt.
+- P2 Quellenzeile: „Faktenblatt v1.1 · Stand FY 2025 · fester Stand“ wieder sichtbar im Seitenkopf; Test ergänzt.
+- P2 Mindestbreite: entfernt; Wert 0 zeichnet keinen Quader (`data-leer`), Werte unter 1 % exakt. Test ergänzt.
+- P2 Skala ohne Werte: `GroupedDepthColumns` nutzt bei leeren/Null-Reihen eine feste Skala 0–3, keine NaN-Geometrie, keine React-Warnung. Test ergänzt.
+- P2 Einheit im Diagramm-Formatter: betraf die erste Fassung mit `Depth3dBarChart`/`formatAnzahl`; diese Stelle existiert seit der Revision nicht mehr – erledigt.
+- CodeQL „Incomplete string escaping“: bereits mit `774a2ed` behoben.
+- Schutzbereich-Diff leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` · `verify` · `vitest` 329 / 2346 · `build` grün.

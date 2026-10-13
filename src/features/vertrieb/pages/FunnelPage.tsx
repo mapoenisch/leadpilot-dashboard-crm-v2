@@ -20,6 +20,8 @@ const stufenEinheit = ['Leads', 'MQL', 'SQL', 'Angebote', 'Neukunden'];
 // Kurzname im Trichter wie im Original; Hebel an der SQL-Stufe wie im Original.
 const stufenName = ['Leads gesamt', 'MQL', 'SQL', 'Angebote', 'Neukunden (Won)'];
 const HEBEL_STUFE = 2;
+// Herkunft und Stand der Zahlen (Codex PR #79): sichtbar im Seitenkopf.
+const QUELLE = 'Faktenblatt v1.1 · Stand FY 2025 · fester Stand';
 // Reihenfarben wie im Original-WebP: Leads silbern, MQL kräftiges Cyan, SQL helles Cyan,
 // Neukunden orange (Reihenfolge wie FUNNEL.chart.datasets).
 const QUARTAL_FARBEN = ['var(--funnel-silber)', '#00D9C6', '#62EDE2', '#FF7A3D'];
@@ -45,11 +47,16 @@ function FunnelPageHtml() {
     `Aus ${leadsFy} Leads werden ${mqlFy} MQLs und ${sqlFy} SQLs ` +
     `bis zu ${kundenFy} Neukunden im Geschäftsjahr.`;
   return (
-    <div className="pk-page funnel-seite" data-ruhig="true">
+    <div className="pk-page funnel-seite" data-ruhig="true" data-page-key="sales-funnel">
       <PageHero
         eyebrow="Vertrieb & Marketing"
         title="Sales Funnel 2025"
-        subtitle="Conversion-Raten über alle Trichterstufen."
+        subtitle={
+          <>
+            Conversion-Raten über alle Trichterstufen.
+            <span className="funnel-quelle">{QUELLE}</span>
+          </>
+        }
         pills={['CRM Funnel 2025', 'Trichterstufen']}
       />
       <DataState

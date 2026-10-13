@@ -1227,3 +1227,20 @@ dl.pk-grid {
     transition: none;
   }
 }
+
+/* Auftrag 093 (Codex PR #79): Quellenzeile im Funnel-Kopf */
+.funnel-quelle {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+/* Wert 0: kein Quader, auch keine Ober- und Stirnseite (exakt proportional, Codex PR #79). */
+.funnel-stufe[data-leer='true'] {
+  box-shadow: none;
+  background: none;
+}
+.funnel-stufe[data-leer='true']::before,
+.funnel-stufe[data-leer='true']::after {
+  display: none;
+}

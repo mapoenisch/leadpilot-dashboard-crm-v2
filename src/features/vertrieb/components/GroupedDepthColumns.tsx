@@ -25,6 +25,8 @@ function niceMax(value: number): { max: number; step: number } {
   const raw = Math.max(value, 1) / 3;
   const pow = 10 ** Math.floor(Math.log10(raw));
   const step = [1, 2, 2.5, 5, 10].map((f) => f * pow).find((s) => s >= raw) ?? raw;
+  // Ohne positive Werte (leer/nur Nullen) feste Skala 0–3, sonst Division durch null.
+  if (!(value > 0)) return { max: 3, step: 1 };
   return { max: Math.ceil(value / step) * step, step };
 }
 

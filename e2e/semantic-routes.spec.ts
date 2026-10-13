@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { PAGE_PRESENTATION } from '../src/config/pagePresentation';
+import { HTML_PAGES, PAGE_PRESENTATION } from '../src/config/pagePresentation';
 
 // 067I / G52–G55: Route-Tests für Welle G52 (Finanzen, Recht, Strategie),
 // Welle G53 (Markt, Kunden, Vertrieb), Welle G54 (Unternehmen, Übersicht,
@@ -14,7 +14,15 @@ import { PAGE_PRESENTATION } from '../src/config/pagePresentation';
 // Textschicht. Mit PAGE_PRESENTATION = 'html' (Rückweg zu v2.3.1) gelten die
 // ursprünglichen G52–G55-Assertions. Die Suite folgt dem Schalter, damit beide
 // Stellungen durch die CI kommen.
-const BILD = PAGE_PRESENTATION === 'bild';
+// Auftrag 093 (Codex PR #79, P1): Seiten aus HTML_PAGES sind auch im Modus 'bild' echte
+// HTML-Seiten. Zuordnung Seitenschlüssel → Route; fehlt ein Schlüssel, bricht die Suite ab.
+const HTML_PAGE_ROUTES: Record<string, string> = { 'sales-funnel': '/sales/funnel' };
+const htmlRoutes = HTML_PAGES.map((key) => {
+  const route = HTML_PAGE_ROUTES[key];
+  if (!route) throw new Error(`Route für freigegebene Seite ${key} fehlt in HTML_PAGE_ROUTES.`);
+  return route;
+});
+const istBild = (route: string) => PAGE_PRESENTATION === 'bild' && !htmlRoutes.includes(route);
 
 const G52_ROUTES = [
   '/finance/p-and-l',
@@ -80,7 +88,7 @@ const ALL_SEMANTIC_ROUTES: Array<[string, string]> = [
 ];
 
 /** Wartet auf den geladenen Seiteninhalt: Bild (Modus 'bild') oder sichtbare h1. */
-async function waitForContent(page: Page) {
+async function waitForContent(page: Page, BILD: boolean) {
   const content = page.getByRole('main', { name: 'Hauptinhalt' });
   if (BILD) {
     const img = content.locator('[data-testid="image-page"] img[src$=".webp"]');
@@ -98,14 +106,15 @@ async function waitForContent(page: Page) {
 
 for (const [welle, route] of ALL_SEMANTIC_ROUTES) {
   test.describe(`${welle} semantische Route ${route}`, () => {
+    const BILD = istBild(route);
     test(BILD ? 'genau ein Original-WebP (G67)' : 'kein Ganzseiten-WebP', async ({ page }) => {
       await gotoAuthenticatedRoute(page, route);
-      await waitForContent(page);
+      await waitForContent(page, BILD);
       await expect(page.locator('main img[src$=".webp"]')).toHaveCount(BILD ? 1 : 0);
     });
     test('genau eine h1 im Content (Header-h1 ist App-Chrome)', async ({ page }) => {
       await gotoAuthenticatedRoute(page, route);
-      await waitForContent(page);
+      await waitForContent(page, BILD);
       await expect(page.locator('main h1')).toHaveCount(1);
     });
 
@@ -113,7 +122,7 @@ for (const [welle, route] of ALL_SEMANTIC_ROUTES) {
       BILD ? 'Textschicht mit Text und Struktur' : 'Text auswählbar (Tabelle/Liste vorhanden)',
       async ({ page }) => {
         await gotoAuthenticatedRoute(page, route);
-        const content = await waitForContent(page);
+        const content = await waitForContent(page, BILD);
         // Modus 'bild': Inhalt liegt optisch verborgen in der Textschicht,
         // innerText liefert dort nichts Sichtbares — daher textContent.
         const scope = BILD ? content.getByTestId('image-page-text') : content;
@@ -130,7 +139,7 @@ for (const [welle, route] of ALL_SEMANTIC_ROUTES) {
     test('kein horizontaler Overflow bei 375px', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 812 });
       await gotoAuthenticatedRoute(page, route);
-      await waitForContent(page);
+      await waitForContent(page, BILD);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - 375);
       expect(overflow, '0px horizontaler Overflow').toBeLessThanOrEqual(0);
     });

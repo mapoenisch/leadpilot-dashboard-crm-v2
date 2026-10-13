@@ -31,6 +31,21 @@ describe('G93 Sales Funnel als HTML-Seite', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Sales Funnel 2025' })).toBeVisible();
   });
 
+  // Codex PR #79: Seitenmarker für den Inventar-Vergleich und Quellenzeile im sichtbaren Kopf.
+  it('Seitenmarker data-page-key und Quellenzeile im Kopf', () => {
+    const { container } = render(
+      <main>
+        <FunnelPage />
+      </main>,
+    );
+    const wurzel = container.querySelector('main [data-page-key="sales-funnel"]');
+    expect(wurzel).not.toBeNull();
+    expect(wurzel?.querySelector('h1')).not.toBeNull();
+    expect(screen.getByTestId('page-hero').textContent).toContain(
+      'Faktenblatt v1.1 · Stand FY 2025 · fester Stand',
+    );
+  });
+
   it('andere Seiten bleiben Bild', () => {
     render(<SlaPage />);
     expect(screen.getByTestId('image-page')).toBeInTheDocument();

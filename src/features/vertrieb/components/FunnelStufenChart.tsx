@@ -24,7 +24,7 @@ export function FunnelStufenChart({ stufen }: { stufen: FunnelStufe[] }) {
         const letzte = index === stufen.length - 1;
         // Breite exakt proportional zum Wert (keine Mindestbreite, die Stufen gleich lang wirken
         // ließe). Passt der Wert nicht in den Balken, steht er direkt rechts daneben.
-        const breite = Math.max(1, (stufe.count / max) * 100);
+        const breite = Math.max(0, (stufe.count / max) * 100);
         const innen = breite >= 22;
         const wert = (
           <span
@@ -51,6 +51,7 @@ export function FunnelStufenChart({ stufen }: { stufen: FunnelStufe[] }) {
               </div>
               <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
                 <div
+                  data-leer={breite === 0 ? 'true' : undefined}
                   className={cn(
                     'funnel-stufe box-border flex h-[22px] shrink-0 items-center',
                     innen ? 'px-3' : 'px-0',
