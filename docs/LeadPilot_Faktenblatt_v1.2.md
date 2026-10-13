@@ -556,6 +556,8 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 5. **Kostenbudget 2026:** 830.000 € Gesamt gegenüber Plan-GuV 2026 (Umsatzkosten + Betriebskosten = 812.000 €, zzgl. Abschreibungen 22.000 €); Kategorien nicht deckungsgleich.
 6. **Marktdaten:** Die Anwendung beschriftet die Marktanteile als „Europa/DACH" und den Markt als „Cloud-CRM DACH"; die Zahlen gelten für Europa.
 7. **Repo-Kopie:** `docs/LeadPilot_Faktenblatt_v1.1.md` im Dashboard-Repo enthält in der Roadmap „planned" statt „geplant".
+8. **Negative-Fit und Churn-Befund** (Codex PR #80): Abschnitt 13 nennt nach dem Abgleich nur noch drei Negative-Fit-Kriterien, Kleinstkunden bzw. Ein-Personen-Vertriebe gehören nicht mehr ausdrücklich dazu. Der Kernbefund in Abschnitt 4 sagt aber, die gekündigten Kleinstkunden mit 2–3 Nutzern seien „genau“ die Negative-Fit-Kunden.
+9. **Zeitraum „Marketingplanung H2 2026“** (Codex PR #80): Die Monatsreihe in Abschnitt 15 reicht von August 2026 bis Januar 2027, ohne Juli 2026. Die Bezeichnung „H2 2026“ deckt sich nicht mit dem Zeitraum.
 
 ---
 

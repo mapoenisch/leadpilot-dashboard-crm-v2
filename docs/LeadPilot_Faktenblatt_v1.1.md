@@ -10,7 +10,7 @@
 | **Berichtsjahr** | GJ 2025 (01.01.–31.12.2025) |
 | **Stand** | Juli 2026 · Version 1.1 |
 | **Autor** | Marc Pönisch |
-| **Status** | Single Source of Truth — bei Widersprüchen in anderen Dokumenten gilt dieses Blatt |
+| **Status** | Abgelöst/historisch — verbindlich ist [Faktenblatt v1.2](LeadPilot_Faktenblatt_v1.2.md) |
 
 > **Änderung gegenüber v1.0:** Die Erlös- und Kostenpositionen wurden aus der monatlichen MRR-Reihe rückgerechnet und sind jetzt vollständig formelkonsistent. Umsatz, Umsatzkosten und OPEX verschieben sich leicht; Jahresfehlbetrag, Bilanz und alle SaaS-Kernmetriken bleiben unverändert.
 >

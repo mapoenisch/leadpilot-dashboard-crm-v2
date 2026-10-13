@@ -16377,3 +16377,11 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - `docs/LeadPilot_Faktenblatt_v1.1.md`: nur Hinweis „abgelöst durch v1.2“ ergänzt, Inhalt unverändert als Historie.
 - Bewusst unverändert: die Kennung `Faktenblatt_v1.1` in `src/simulation/**` (Schutzbereich; Ausgangswerte laut v1.2 Abschnitt 17 B unverändert) sowie Verweise in abgeschlossenen Aufträgen und Registern.
 - Kein Code geändert; Schutzbereich-Diff leer.
+- Gates (Codex PR #80, P1): `npx tsc --noEmit` 0 Fehler · `npm run verify` grün · `npm run build` grün.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 1 (13.10.2026, Claude Code)
+
+- P1 Gate-Nachweis: oben ergänzt (`tsc` 0 · `verify` · `build` grün).
+- P2 Status v1.1: Metadaten-Status auf „Abgelöst/historisch“ mit Verweis auf v1.2 (vorher weiter „Single Source of Truth“).
+- P2 Negative-Fit ↔ Churn-Befund und P2 Zeitraum „Marketingplanung H2 2026“: inhaltliche Widersprüche im Faktenblatt, nicht vom Builder entschieden; als Punkte 8 und 9 in Abschnitt 17 D („Offene Widersprüche“, Klärung durch Marc) aufgenommen. Die Repo-Kopie v1.2 weicht damit nur um diese zwei Listenpunkte von Marcs Originaldatei ab.
+- Schutzbereich-Diff leer.
