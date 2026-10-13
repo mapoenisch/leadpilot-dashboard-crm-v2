@@ -16385,3 +16385,9 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Status v1.1: Metadaten-Status auf „Abgelöst/historisch“ mit Verweis auf v1.2 (vorher weiter „Single Source of Truth“).
 - P2 Negative-Fit ↔ Churn-Befund und P2 Zeitraum „Marketingplanung H2 2026“: inhaltliche Widersprüche im Faktenblatt, nicht vom Builder entschieden; als Punkte 8 und 9 in Abschnitt 17 D („Offene Widersprüche“, Klärung durch Marc) aufgenommen. Die Repo-Kopie v1.2 weicht damit nur um diese zwei Listenpunkte von Marcs Originaldatei ab.
 - Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Entscheidungen Marc zu Nr. 8 und 9 (13.10.2026, Claude Code)
+
+- Nr. 8: Negative-Fit in Abschnitt 13 um „Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern“ ergänzt; damit stimmt der Churn-Befund in Abschnitt 4 wieder. Anwendung: Strategie-, Markt- und Executive-Texte nennen Kleinstkunden bereits Negative-Fit; die ICP-Seite (drei Kriterien) wird bei ihrer Migration in Paket G2 angeglichen.
+- Nr. 9 (geringerer Aufwand): Reihe im Faktenblatt heißt „Aug 2026 – Jan 2027“ mit Verweis auf den App-Titel „Marketingplanung H2 2026“; Anwendung und Werte unverändert.
+- Abschnitt 17 A und D entsprechend nachgeführt. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.

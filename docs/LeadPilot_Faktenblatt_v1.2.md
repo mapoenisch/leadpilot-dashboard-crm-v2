@@ -399,7 +399,7 @@
 | CRM-Reifegrad | kein CRM oder Excel-/Google-Listen |
 | Budget | 49–89 €/Nutzer/Monat |
 | Entscheidung | Vertriebsleitung allein oder mit Geschäftsführung, kurze Wege |
-| **Negative-Fit** | Großkonzerne > 200 Mitarbeitende mit komplexer Enterprise-IT · reine B2C-Unternehmen ohne mehrstufigen Vertrieb · Unternehmen ohne laufendes Software-Budget |
+| **Negative-Fit** | Großkonzerne > 200 Mitarbeitende mit komplexer Enterprise-IT · reine B2C-Unternehmen ohne mehrstufigen Vertrieb · Unternehmen ohne laufendes Software-Budget · Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern |
 
 **Buyer Persona:** Vertriebsleiter-Volker, 47, Head of Sales bei einem Maschinenbau-Zulieferer mit 85 Mitarbeitenden im Raum Stuttgart, 7-köpfiges Vertriebsteam.
 → Volker ist als **Growth-Kunde mit 7 Nutzern = 623 €/Monat** einzuordnen und liegt damit über der ARPA von 520 € — ein Zielkunde im oberen Drittel.
@@ -493,7 +493,7 @@
 
 ## 15. Ergänzungen aus der Anwendung: Marketing H2 2026, Strategie, Risiken
 
-**Marketingplanung H2 2026**
+**Marketingplanung Aug 2026 – Jan 2027** (in der Anwendung „Marketingplanung H2 2026“)
 
 | Aug 26 | Sep 26 | Okt 26 | Nov 26 | Dez 26 | Jan 27 |
 | --: | --: | --: | --: | --: | --: |
@@ -540,7 +540,7 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 | Win Rate | 43 % | 43,5 % |
 | Aktivierungsrate, WAU/MAU | „knapp verfehlt" | „verfehlt" |
 | Roadmap v2.0 / v2.1 | nur „geplant" | v2.0 in Entwicklung, v2.1 geplant |
-| Negative-Fit im ICP | sechs Kriterien | drei Kriterien laut Anwendung |
+| Negative-Fit im ICP | sechs Kriterien | drei Kriterien laut Anwendung, plus Kleinstkunden (Entscheidung Marc 13.10.2026, passend zum Churn-Befund in Abschnitt 4) |
 | Handelsregister | nicht genannt | HRB 40912, Amtsgericht Leipzig |
 
 **B. Ohne Abweichung geprüft:** Unternehmensprofil, Preismodell, Kundenzahlen und Paketverteilung, Branchen und Regionen, alle SaaS-Kernmetriken, MRR-Brücke und -Reihe, GuV 2025 und 2024, Kostenstruktur, Bilanz 2025, Finanzierung und Gesellschafterliste, Funnel-Absolutwerte, Kanalanteile, Unit Economics, Personal, Markt und Wettbewerb, Ziele 2026, Buyer Persona (623 €).
@@ -556,8 +556,8 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 5. **Kostenbudget 2026:** 830.000 € Gesamt gegenüber Plan-GuV 2026 (Umsatzkosten + Betriebskosten = 812.000 €, zzgl. Abschreibungen 22.000 €); Kategorien nicht deckungsgleich.
 6. **Marktdaten:** Die Anwendung beschriftet die Marktanteile als „Europa/DACH" und den Markt als „Cloud-CRM DACH"; die Zahlen gelten für Europa.
 7. **Repo-Kopie:** `docs/LeadPilot_Faktenblatt_v1.1.md` im Dashboard-Repo enthält in der Roadmap „planned" statt „geplant".
-8. **Negative-Fit und Churn-Befund** (Codex PR #80): Abschnitt 13 nennt nach dem Abgleich nur noch drei Negative-Fit-Kriterien, Kleinstkunden bzw. Ein-Personen-Vertriebe gehören nicht mehr ausdrücklich dazu. Der Kernbefund in Abschnitt 4 sagt aber, die gekündigten Kleinstkunden mit 2–3 Nutzern seien „genau“ die Negative-Fit-Kunden.
-9. **Zeitraum „Marketingplanung H2 2026“** (Codex PR #80): Die Monatsreihe in Abschnitt 15 reicht von August 2026 bis Januar 2027, ohne Juli 2026. Die Bezeichnung „H2 2026“ deckt sich nicht mit dem Zeitraum.
+8. ~~**Negative-Fit und Churn-Befund**~~ — **entschieden (Marc, 13.10.2026):** Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern stehen wieder im Negative-Fit (Abschnitt 13). Die ICP-Seite der Anwendung nennt bisher drei Kriterien und wird bei ihrer Migration (Paket G2) angeglichen.
+9. ~~**Zeitraum „Marketingplanung H2 2026“**~~ — **entschieden (Marc, 13.10.2026):** Im Faktenblatt heißt die Reihe „Aug 2026 – Jan 2027“; die Anwendung behält ihren Titel, Werte unverändert.
 
 ---
 
