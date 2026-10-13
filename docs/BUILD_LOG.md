@@ -16397,3 +16397,7 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `vitest` 328 / 2342 · `build` grün.
 - Screenshot-Matrix `docs/screenshots/auftrag-093/README.md`: 10/10 – WebP 1 → 0, h1 1, fünf Original-Überschriften sichtbar, Hebel-Chip sichtbar, Überlauf 0 px, axe 0, Hash verschieden.
 - Freigabestatus: Sichtabnahme Marc erteilt; Abnahme durch Codex offen.
+
+### Auftrag 093 – Nacharbeit CodeQL PR #79 (13.10.2026, Claude Code)
+
+- High „Incomplete string escaping“ in `g93FunnelPage.ui.vitest.tsx`: Überschriftenvergleich ohne `RegExp` (Filter per `startsWith`), damit entfällt das Escaping vollständig. Test 6/6 grün, `tsc` 0, `lint` 0/0, `format:check` grün.

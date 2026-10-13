@@ -47,10 +47,11 @@ describe('G93 Sales Funnel als HTML-Seite', () => {
       'Trichtertabelle',
       FUNNEL.note.title,
     ]) {
-      expect(
-        screen.getAllByRole('heading', { name: new RegExp(titel.replace(/[()+]/g, '\\$&')) })
-          .length,
-      ).toBeGreaterThanOrEqual(1);
+      // Vergleich per startsWith statt RegExp: Titel enthalten Sonderzeichen wie ( ) +.
+      const treffer = screen
+        .getAllByRole('heading')
+        .filter((h) => (h.textContent ?? '').trim().startsWith(titel));
+      expect(treffer.length).toBeGreaterThanOrEqual(1);
     }
     expect(
       screen.getByText('Durchlaufende Leads, Stufen-Conversion und Engpass-Erkennung'),
