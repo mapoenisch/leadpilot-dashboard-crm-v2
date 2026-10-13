@@ -207,11 +207,13 @@ Teilumsetzung: Aufträge 088 und 089.
 
 ### G1 – Erste ausgelieferte Seite
 
-- [ ] Nach Musterfreigabe Sales Funnel als echte Seite ausliefern. Bestehende HTML-Fassung verwenden, ergänzen und neu gestalten; keine zweite neue Anwendung daneben bauen.
-- [ ] Geklärte Werte aus B nutzen. Diagramm, Tabelle, Zusammenfassung und Bildschirmlesefassung aus derselben Quelle speisen.
-- [ ] Ganzseitenbild, Zoom-Behelf und abgebildete Simulationsleiste aus der sichtbaren Funnel-Seite entfernen. Logo und Referenzbilder erhalten.
-- [ ] Bestehenden globalen Schalter um eine klar begrenzte Seitenfreigabe erweitern: freigegebene Seite HTML, restliche Seiten unverändert Bild. Rückschaltung pro migrierter Gruppe nachvollziehbar ermöglichen.
+- [x] Nach Musterfreigabe Sales Funnel als echte Seite ausliefern. Bestehende HTML-Fassung verwenden, ergänzen und neu gestalten; keine zweite neue Anwendung daneben bauen.
+- [x] Geklärte Werte aus B nutzen. Diagramm, Tabelle, Zusammenfassung und Bildschirmlesefassung aus derselben Quelle speisen.
+- [x] Ganzseitenbild, Zoom-Behelf und abgebildete Simulationsleiste aus der sichtbaren Funnel-Seite entfernen. Logo und Referenzbilder erhalten.
+- [x] Bestehenden globalen Schalter um eine klar begrenzte Seitenfreigabe erweitern: freigegebene Seite HTML, restliche Seiten unverändert Bild. Rückschaltung pro migrierter Gruppe nachvollziehbar ermöglichen.
 - [ ] Funnel auf allen Zielbreiten und in beiden Themes abnehmen, inklusive Textvergrößerung und Tastatur. Keine pauschale globale Rückkehr zu v2.3.1.
+
+**Umsetzung G1:** Auftrag 093 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_093_FUNNEL_SEITE.md`, Nachweis `docs/screenshots/auftrag-093/README.md`); Sichtabnahme durch Marc offen.
 
 ### G2 – Weitere Wellen
 

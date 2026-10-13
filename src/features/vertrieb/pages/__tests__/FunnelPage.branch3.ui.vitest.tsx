@@ -25,13 +25,13 @@ describe('FunnelPage (branch3)', () => {
       screen.getByRole('heading', { level: 1, name: 'Sales Funnel 2025' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Keine Funnel-Daten erfasst.')).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Trichtertabelle' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Conversion-Tabelle' })).not.toBeInTheDocument();
   });
 
   it('kurze Zeilen rendern, Summary nutzt leere FY-Fallbacks', () => {
     FUNNEL.rows.splice(0, FUNNEL.rows.length, ['Ministufe', '1', '2'] as unknown as string[]);
     render(<FunnelPage />);
-    expect(screen.getByText('Ministufe')).toBeInTheDocument();
+    expect(screen.getAllByText('Ministufe').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Aus.*Leads werden.*MQLs/)).toBeInTheDocument();
   });
 
@@ -87,8 +87,11 @@ describe('FunnelPage – fachliche Wahrheit (Auftrag 085)', () => {
 
   it('jede Trichterstufe trägt ihre eigene Einheit', () => {
     render(<FunnelPage />);
-    expect(screen.getByText('108 Angebote')).toBeInTheDocument();
-    expect(screen.getByText('47 Neukunden')).toBeInTheDocument();
-    expect(screen.queryByText('108 Leads')).toBeNull();
+    // Auftrag 093: 3D-Balken tragen die Stufe als eigene Einheit (Leads, MQL, SQL, Angebote, Neukunden).
+    const stufen = screen.getByTestId('funnel-stufen');
+    for (const einheit of ['Leads', 'MQL', 'SQL', 'Angebote', 'Neukunden']) {
+      expect(stufen.textContent).toContain(einheit);
+    }
+    expect(stufen.textContent).not.toContain('108 Leads');
   });
 });

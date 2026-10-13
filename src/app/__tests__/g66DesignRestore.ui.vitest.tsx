@@ -85,7 +85,9 @@ describe('G66 Design-Wiederherstellung', () => {
     expect(pages).toHaveLength(32);
   });
 
-  for (const [name, Page] of pages) {
+  // Auftrag 093: Der Funnel folgt dem neuen freigegebenen Muster 4 (Auftrag 087) statt dem
+  // v2.3.1-Seitenkopf; seine Gestaltung prüft g93FunnelPage.ui.vitest.tsx.
+  for (const [name, Page] of pages.filter(([name]) => name !== 'Funnel')) {
     it(`${name}: Seitenkopf mit Eyebrow und gestaltete Flächen`, () => {
       const { container } = render(<Page />);
       const seite = container.querySelector('.pk-page');

@@ -16370,3 +16370,19 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 - P2 Ledger-Churn: Ein Prettier-Lauf hatte den historischen BUILD_LOG umformatiert. Datei auf den Stand von `main` zurückgesetzt, nur die 092-Abschnitte angehängt (`git diff main -- docs/BUILD_LOG.md`: ausschließlich Ergänzungen).
 - P1 Screenshot-Nachweis: bereits mit `47309cb` erledigt (`docs/screenshots/auftrag-092/README.md`, 8/8); der Befund hängt am alten Absatz.
+
+### Auftrag 093 – Paket G1: Sales Funnel als erste echte Seite, Builder Claude Code, 13.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 12 (G1) nach freigegebenem Muster 4 (Auftrag 087). Baseline `main` `ce506b5` (nach PR #78).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts` (neue Seitenfreigabe `HTML_PAGES = ['sales-funnel']`, globaler Schalter bleibt `'bild'`), `src/components/imagePage/ImagePage.tsx` (freigegebene Seiten ohne Bild/Textschicht), `src/features/vertrieb/pages/FunnelPage.tsx` (Muster 4: Kopf mit Quelle, 3D-Balken je Stufe, Conversion-Tabelle aus derselben Quelle, Quartalsverlauf, Hinweis); Tests `g67ImagePages.ui` (Bildweg aller 32 Seiten bleibt als Rückschaltung geprüft), `g53SemanticPages.ui`, `g66DesignRestore.ui` (Funnel ausgenommen, eigener Test), `FunnelPage.branch3.ui`, `VertriebPages.branch2.ui`, neu `g93FunnelPage.ui`; Harness `scripts/captureAuftrag093Funnel.mjs`.
+
+**Funktionale Prüfungen:** Funnel ohne WebP und Zoom-Hinweis, genau eine Seiten-h1; übrige 31 Seiten weiterhin Bild; Diagramm- und Tabellenwerte aus `FUNNEL.rows` identisch (Test); Testversionen nur als Nebenpfad. Rückschaltung: Eintrag aus `HTML_PAGES` entfernen. Hinweis: Das 3D-Diagramm behält seine Mindestbreite und scrollt bei ≤ 375 px lokal (gemeinsame Komponente, wie im Muster); alle Werte stehen zusätzlich in der Conversion-Tabelle. Die zweite h1 im Header-Layout besteht unverändert (Paket H).
+
+**Schutzbereichs-Prüfung:** `git diff ce506b5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `lint` 0/0 · `verify` grün · `vitest` 328 / 2340 · `build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-093/README.md`: 10/10 (1440/768/375/320/250 × dunkel/hell) – WebP 1 → 0, kein Zoom-Hinweis, h1 1, vier Kartenüberschriften sichtbar, Überlauf 0 px, axe 0, Hash verschieden.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig; Sichtabnahme durch Marc und Abnahme durch Codex offen.

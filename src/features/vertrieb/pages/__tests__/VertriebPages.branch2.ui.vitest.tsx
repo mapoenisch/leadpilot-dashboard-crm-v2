@@ -27,7 +27,7 @@ describe('Vertriebs-Pages (branch2)', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Sales Funnel 2025' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Trichtertabelle' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Conversion-Tabelle' })).toBeInTheDocument();
     for (const row of FUNNEL.rows) {
       expect(screen.getAllByText(row[0] ?? '').length).toBeGreaterThanOrEqual(1);
     }

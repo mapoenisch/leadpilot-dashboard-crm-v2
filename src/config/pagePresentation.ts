@@ -9,3 +9,11 @@
 export type PagePresentation = 'bild' | 'html';
 
 export const PAGE_PRESENTATION: PagePresentation = 'bild';
+
+// Auftrag 093 (Paket G1): Seitenfreigabe je migrierter Gruppe. Hier genannte
+// Seiten (Schlüssel aus imagePages.ts) erscheinen als HTML, alle übrigen
+// bleiben beim globalen Schalter. Rückschaltung einer Gruppe: Eintrag entfernen.
+export const HTML_PAGES: readonly string[] = [
+  // Welle G1 – Sales Funnel (Auftrag 093)
+  'sales-funnel',
+];
