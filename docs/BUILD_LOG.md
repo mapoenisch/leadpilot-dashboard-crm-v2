@@ -16370,3 +16370,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 - P2 Ledger-Churn: Ein Prettier-Lauf hatte den historischen BUILD_LOG umformatiert. Datei auf den Stand von `main` zurückgesetzt, nur die 092-Abschnitte angehängt (`git diff main -- docs/BUILD_LOG.md`: ausschließlich Ergänzungen).
 - P1 Screenshot-Nachweis: bereits mit `47309cb` erledigt (`docs/screenshots/auftrag-092/README.md`, 8/8); der Befund hängt am alten Absatz.
+
+### Faktenblatt v1.2 im Repo (13.10.2026, Claude Code, Entscheidung Marc)
+
+- Neu: `docs/LeadPilot_Faktenblatt_v1.2.md`, bytegleiche Kopie der von Marc bereitgestellten Fassung v1.2 (Oktober 2026, Abgleich mit der Anwendung, Abschnitt 17 mit Abgleichsprotokoll und sieben offenen Widersprüchen).
+- `docs/LeadPilot_Faktenblatt_v1.1.md`: nur Hinweis „abgelöst durch v1.2“ ergänzt, Inhalt unverändert als Historie.
+- Bewusst unverändert: die Kennung `Faktenblatt_v1.1` in `src/simulation/**` (Schutzbereich; Ausgangswerte laut v1.2 Abschnitt 17 B unverändert) sowie Verweise in abgeschlossenen Aufträgen und Registern.
+- Kein Code geändert; Schutzbereich-Diff leer.

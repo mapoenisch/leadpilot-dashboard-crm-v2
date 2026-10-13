@@ -1,5 +1,7 @@
 # LeadPilot GmbH — Faktenblatt v1.1
 
+> **Abgelöst durch [Faktenblatt v1.2](LeadPilot_Faktenblatt_v1.2.md) (Oktober 2026).** Diese Fassung bleibt als Historie erhalten. Die Kennung `Faktenblatt_v1.1` in der Simulation (Ausgangswerte) bleibt gültig, weil alle Finanz-, Kunden- und SaaS-Kennzahlen in v1.2 unverändert sind.
+
 **Verbindliche Stammdaten für alle Aufgaben im Rahmen der Weiterbildung Digital Sales Manager (DBA)**
 
 | | |
