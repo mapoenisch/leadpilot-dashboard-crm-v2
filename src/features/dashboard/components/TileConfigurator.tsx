@@ -232,7 +232,11 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
             <Button variant="secondary" onClick={onClose}>
               Abbrechen
             </Button>
-            <Button disabled={!valid} onClick={submit}>
+            <Button
+              disabled={!valid}
+              onClick={submit}
+              className="h-auto min-h-[44px] shrink whitespace-normal text-center"
+            >
               {editing ? 'In Arbeitskopie übernehmen' : 'Zur Arbeitskopie hinzufügen'}
             </Button>
           </div>
@@ -344,18 +348,18 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
                     onPick={pickCombination}
                   />
                 ) : null}
-                {/* Dauerhafte Live-Region: angeboten, gewählt, entfernt, verworfen. */}
-                <p
-                  role="status"
-                  data-testid="combination-status"
-                  className="m-0 min-h-[18px] text-[12px] text-[var(--color-text-muted)] [overflow-wrap:anywhere]"
-                >
-                  {comboNote}
-                </p>
                 <TimeAndPipeline uid={uid} entry={entry} choice={choice} onChange={update} />
               </AdvancedSettings>
             </>
           ) : null}
+          {/* Dauerhafte Live-Region (außerhalb des Klappbereichs): angeboten, gewählt, entfernt, verworfen. */}
+          <p
+            role="status"
+            data-testid="combination-status"
+            className="m-0 min-h-[18px] text-[12px] text-[var(--color-text-muted)] [overflow-wrap:anywhere]"
+          >
+            {comboNote}
+          </p>
           {issues.length > 0 ? (
             <p role="alert" className="m-0 text-sm text-error [overflow-wrap:anywhere]">
               {issues[0]?.message}

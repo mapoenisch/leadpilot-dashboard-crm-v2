@@ -16961,3 +16961,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix / E2E:** lokal **nicht gelaufen** – Docker Desktop war pausiert, daher kein lokales Supabase. Harness steht bereit (`LABEL=vorher|nachher`, dann `COMPARE=1`); Dashboard-E2E läuft in der CI. Die Matrix `docs/screenshots/auftrag-092/README.md` ist noch nachzureichen.
 
 **Ergebnis & Freigabestatus:** Builder-seitig fertig bis auf Screenshot-Nachweis; Abnahme durch Codex offen.
+
+### Auftrag 092 – Nacharbeit Codex PR #78, Runde 1 (13.10.2026, Claude Code)
+
+- P2 Kombinationsansage: Die Live-Region `combination-status` liegt jetzt dauerhaft außerhalb des Klappbereichs. Test: Ansage erscheint bei eingeklapptem Bereich.
+- P2 Knopf bei 320/375 px und 200 % Text: Der Primärknopf bricht um (`whitespace-normal`, `shrink`, `h-auto`, mind. 44 px). Test ergänzt.
+- P1 Screenshot-Nachweis: weiter offen, weil Docker Desktop pausiert ist (kein lokales Supabase). Wird nachgeliefert, bevor gemergt wird.
+- Gates: `tsc` 0 · Dashboard-Suite 550 grün.

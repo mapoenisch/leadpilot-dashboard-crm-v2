@@ -83,4 +83,18 @@ describe('TileConfigurator: Abschnitte', () => {
     expect(screen.getByText(/landet zunächst in der Arbeitskopie/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Zur Arbeitskopie hinzufügen' })).toBeDisabled();
   });
+
+  it('sagt mögliche Kombinationen auch bei eingeklapptem Bereich an (Codex PR #78)', () => {
+    setup();
+    pickFirst('EBITDA');
+    expect(advancedButton()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByTestId('combination-status').textContent).toMatch(/Kombination/);
+  });
+
+  it('lässt den langen Arbeitskopie-Knopf umbrechen (Codex PR #78)', () => {
+    setup();
+    const button = screen.getByRole('button', { name: 'Zur Arbeitskopie hinzufügen' });
+    expect(button.className).toMatch(/whitespace-normal/);
+    expect(button.className).not.toMatch(/whitespace-nowrap/);
+  });
 });
