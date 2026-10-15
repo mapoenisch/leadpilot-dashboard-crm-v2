@@ -14,7 +14,7 @@ const QUARTALE = FUNNEL_QUARTALE.neukunden.map((value, index) => ({
   label: `Q${index + 1}`,
   value,
 }));
-export const QUELLE = 'Faktenblatt v1.1 · Stand FY 2025 · fester Stand';
+export const QUELLE = 'Faktenblatt v1.2 · Stand FY 2025 · fester Stand';
 export const LANGER_TITEL =
   'Neukunden aus qualifizierten Angeboten im Geschäftsjahr 2025 nach Quartal und Vertriebskanal';
 

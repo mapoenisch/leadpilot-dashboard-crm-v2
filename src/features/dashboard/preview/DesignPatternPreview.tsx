@@ -42,7 +42,7 @@ export function DesignPatternPreview() {
         </h1>
         <p className="m-0 max-w-[720px] text-[13px] text-[var(--color-text-muted)]">
           Bestehende Farben, Schriften und 3D-Diagramme. Jedes Muster zeigt Normalfall, langen
-          Titel, Fehler und fehlende Daten. Werte aus dem Faktenblatt v1.1.
+          Titel, Fehler und fehlende Daten. Werte aus dem Faktenblatt v1.2.
         </p>
         <div role="group" aria-label="Farbmodus" className="flex gap-2">
           {(['dark', 'light'] as const).map((mode) => (

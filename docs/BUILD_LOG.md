@@ -16434,3 +16434,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - Nr. 8: Negative-Fit in Abschnitt 13 um „Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern“ ergänzt; damit stimmt der Churn-Befund in Abschnitt 4 wieder. Anwendung: Strategie-, Markt- und Executive-Texte nennen Kleinstkunden bereits Negative-Fit; die ICP-Seite (drei Kriterien) wird bei ihrer Migration in Paket G2 angeglichen.
 - Nr. 9 (geringerer Aufwand): Reihe im Faktenblatt heißt „Aug 2026 – Jan 2027“ mit Verweis auf den App-Titel „Marketingplanung H2 2026“; Anwendung und Werte unverändert.
 - Abschnitt 17 A und D entsprechend nachgeführt. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 2 (15.10.2026, Claude Code)
+
+- Konflikt mit `main` (nach Merge PR #79) im BUILD_LOG gelöst: beide Seiten nur angehängt, 093-Abschnitte vor den Faktenblatt-Abschnitten, keine Zeile aus `main` entfernt.
+- P2 Quellenverweise: sichtbare Angaben auf v1.2 umgestellt – `src/domain/projektkontextData.ts` (Projektkontext und Referenzmaterial), `src/domain/execData.ts` (Hero, Datenbrücken, Quellen, Methodik-Hinweis), `designPatternTiles.tsx`, `DesignPatternPreview.tsx`, `catalog/activeEntries.ts`. Bewusst unverändert: Kennung `Faktenblatt_v1.1` in `src/simulation/**` (Schutzbereich, Ausgangswerte unverändert) und Hinweis „Ebene A … v1.1“ in `LiveDashboardView.tsx`, der diese Ausgangsbasis beschreibt.
+- P2 Churn-Ziel ↔ Plan-Churn, P2 ARR-Ziel ↔ Abo-Umsatz 2026, P2 Kampagnen-KPIs als Ergebnis: inhaltliche Widersprüche, nicht vom Builder entschieden; als Nr. 10–12 in Abschnitt 17 D eingetragen, Klärung durch Marc.
+- Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `verify` grün · `vitest` 329 / 2346 · `build` grün.

@@ -558,6 +558,9 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 7. **Repo-Kopie:** `docs/LeadPilot_Faktenblatt_v1.1.md` im Dashboard-Repo enthält in der Roadmap „planned" statt „geplant".
 8. ~~**Negative-Fit und Churn-Befund**~~ — **entschieden (Marc, 13.10.2026):** Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern stehen wieder im Negative-Fit (Abschnitt 13). Die ICP-Seite der Anwendung nennt bisher drei Kriterien und wird bei ihrer Migration (Paket G2) angeglichen.
 9. ~~**Zeitraum „Marketingplanung H2 2026“**~~ — **entschieden (Marc, 13.10.2026):** Im Faktenblatt heißt die Reihe „Aug 2026 – Jan 2027“; die Anwendung behält ihren Titel, Werte unverändert.
+10. **Churn-Ziel und Plan-Churn:** OKR (Abschnitt 12) verlangt Account-Churn < 1,8 % pro Monat; der Plan-Churn 2026 erreicht in Q4 genau 1,8 %, die Plan-KPIs Jan 2027 nennen 2,2 %.
+11. **ARR-Ziel und Abo-Umsatz 2026:** Die Plan-GuV 2026 setzt 620.000 € Abo-Umsatz an, also den ARR-Zielwert zum Jahresende. 2025 ist der Abo-Umsatz die Summe der Monats-MRR; mit der ansteigenden Plan-MRR 2026 (34.320 € bis 51.667 €) läge diese Summe deutlich darunter.
+12. **Kampagne „LeadPilot Connect":** Erreichte Entscheider, Demo-Anfragen und Deals stehen als „Ergebnis“; die Anwendung führt die Kampagne als Planung, das Dateninventar vermerkt fehlenden Zeitraum und Istnachweis.
 
 ---
 
