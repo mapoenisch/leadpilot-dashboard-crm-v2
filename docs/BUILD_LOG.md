@@ -16482,3 +16482,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Light-Screenshots: Das Harness wählt Hell über den Farbmodus-Schalter der Vorschau, weil diese `leadpilot-theme` ignoriert. Neue Matrix `docs/screenshots/faktenblatt-v1-2/README.md` mit 6/6, dunkel und hell jetzt mit verschiedenen Hashes, „v1.1“ 23 → 0, „v1.2“ 0 → 23, 0 px Überlauf.
 - P2 ICP-Budget ↔ Pro-Referenzkunden (≈ 104 €/Nutzer): Entscheidung Marc: Pro ist eine Ausnahme vom ICP-Budget 49–89 € (Abschnitt 13), als Nr. 14 in 17 D eingetragen.
 - Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `build` grün.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 5 (15.10.2026, Claude Code)
+
+- P2 Begründung zur Simulationskennung (`Faktenblatt_v1.1.md`, Kopf): eingegrenzt auf die unveränderten Ausgangswerte (66 Kunden, MRR 34.320 €, ARR 411.840 €). Die abweichende Pro-Annahme der Simulation (14 Nutzer × 80 €, `src/simulation/eventLeadRules.ts`) ist genannt und zusätzlich in v1.2 Abschnitt 16 vermerkt. Der Code bleibt unverändert (Schutzbereich), eine Angleichung nur mit eigenem Auftrag.
+- P2 Vorrangregel in der Fußzeile von v1.1: jetzt „Historische Fassung, abgelöst durch Faktenblatt v1.2 – bei Widersprüchen gilt v1.2“.
+- Nebenbei: Verweise auf die Paketverteilung in v1.2 von „Abschnitt 4“ auf „Abschnitt 3“ korrigiert.
+- Nur Dokumentation, kein Code; Schutzbereich-Diff gegen `main` leer.

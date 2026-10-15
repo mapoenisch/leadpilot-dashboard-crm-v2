@@ -421,7 +421,7 @@
 | Großhandel | 78.960 € | 19,17 % | 21 % |
 | Agenturen | 42.000 € | 10,20 % | 15 % |
 
-**Top-10-Referenzkunden (ICP-konform, < 200 MA)** — ARR = Nutzer × Paketpreis × 12; Pro: individuelles Angebot, MRR der drei Pro-Kunden zusammen 4.695 € wie in der Paketverteilung (Abschnitt 4)
+**Top-10-Referenzkunden (ICP-konform, < 200 MA)** — ARR = Nutzer × Paketpreis × 12; Pro: individuelles Angebot, MRR der drei Pro-Kunden zusammen 4.695 € wie in der Paketverteilung (Abschnitt 3)
 
 | Kunde | Branche | MA | Paket | Nutzer | ARR |
 | :-- | :-- | --: | :-- | --: | --: |
@@ -532,6 +532,7 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 - **Positionierung:** Einrichtung in unter 30 Minuten ohne eigene IT-Abteilung; Hosting in Frankfurt am Main.
 - **CRM-Datenbasis der Anwendung:** 20 Accounts, 100 Kontakte, 40 Funnel-Deals (Demo-Datenbestand, nicht identisch mit den 66 Kunden).
 - **Simulations-Ausgangswerte (Dezember 2025):** 66 Kunden · MRR 34.320 € · ARR 411.840 €. Standardparameter: Trial-to-Paid 18 % · Churn 2,8 % pro Monat · Sales Cycle 38 Tage · Sales-Kapazität 2 FTE · Customer Success 2 FTE · Marketing-Budget 65.000 € jährlich (Modellannahme der Simulation, nicht das Plan-Budget; verbindlich sind 55.000 €, Abschnitt 14) · Rabattquote 0 %.
+- **Paketannahmen der Simulation:** Pro mit 14 Nutzern × 80 € (1.120 € MRR je Kunde). Das ist eine Modellannahme (Schutzbereich), verbindlich ist die Paketverteilung in Abschnitt 3 (Ø 15 Nutzer, Ø 1.565 € MRR). Angleichung nur mit eigenem Auftrag.
 
 ---
 

@@ -1,6 +1,6 @@
 # LeadPilot GmbH — Faktenblatt v1.1
 
-> **Abgelöst durch [Faktenblatt v1.2](LeadPilot_Faktenblatt_v1.2.md) (Oktober 2026).** Diese Fassung bleibt als Historie erhalten. Die Kennung `Faktenblatt_v1.1` in der Simulation (Ausgangswerte) bleibt gültig, weil alle Finanz-, Kunden- und SaaS-Kennzahlen in v1.2 unverändert sind.
+> **Abgelöst durch [Faktenblatt v1.2](LeadPilot_Faktenblatt_v1.2.md) (Oktober 2026).** Diese Fassung bleibt als Historie erhalten. Die Kennung `Faktenblatt_v1.1` in der Simulation bezeichnet deren Ausgangsbasis (Schutzbereich). Die Ausgangswerte (66 Kunden, MRR 34.320 €, ARR 411.840 €) sind in v1.2 unverändert. Einzelne Annahmen der Simulation weichen von v1.2 ab, etwa das Pro-Paket mit 14 Nutzern × 80 € (v1.2: Ø 15 Nutzer, Ø 1.565 € MRR); sie werden nur mit eigenem Auftrag angeglichen.
 
 **Verbindliche Stammdaten für alle Aufgaben im Rahmen der Weiterbildung Digital Sales Manager (DBA)**
 
@@ -402,4 +402,4 @@
 
 ---
 
-*Version 1.1 · Juli 2026 · Bei Widersprüchen in anderen Projektdokumenten gilt dieses Faktenblatt.*
+*Version 1.1 · Juli 2026 · Historische Fassung, abgelöst durch Faktenblatt v1.2 – bei Widersprüchen gilt v1.2.*
