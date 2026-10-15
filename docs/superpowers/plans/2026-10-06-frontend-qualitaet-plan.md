@@ -218,7 +218,7 @@ Teilumsetzung: Aufträge 088 und 089.
 ### G2 – Weitere Wellen
 
 - [x] Welle mit 3–5 einfachen Seiten aus Unternehmensübersicht/Produkt wählen; tatsächliche Pfade und Freigaben im Detailauftrag festlegen.
-      **Welle 1:** Auftrag 094 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_094_G2_WELLE_1_UNTERNEHMEN.md`, Nachweis `docs/screenshots/auftrag-094/README.md`): Geschäftsidee, Value Proposition, Historie; Sichtabnahme durch Marc offen.
+      **Welle 1:** Auftrag 094 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_094_G2_WELLE_1_UNTERNEHMEN.md`, Nachweis `docs/screenshots/auftrag-094/README.md`): Geschäftsidee, Value Proposition, Historie; Sichtabnahme durch Marc am 15.10.2026 erteilt.
 - [ ] Anschließend Vertriebs-/Marketingseiten, Finanzen, Kunden/Markt, Organisation/Strategie und Recht nach Abhängigkeiten abarbeiten. Jede Gruppe erneut in 3–5 prüfbare Seiten teilen; keine Welle über den geschützten Resources-Bereich erweitern.
 - [ ] Pro Seite Inhaltscheckliste abgleichen: sämtliche Werte, Zeiträume, Quellen, Textabschnitte, Hinweise und Tabellen übernommen oder eine fachlich genehmigte Änderung dokumentiert.
 - [ ] Diagramme liefern klare Labels, Einheit, Zeitraum, Tabellenalternative und bei Bedarf Interaktion. Texte umbrechen; lange Tabellen scrollen lokal statt die ganze Seite zu verbreitern.

@@ -53,4 +53,4 @@ Drei einfache Seiten der Gruppe Unternehmen (Plan: „3–5 einfache Seiten aus 
 - [x] Drei Seiten nach Original-WebP gebaut, „ruhig“ (`data-ruhig`), hell und dunkel.
 - [x] Tests: Freigabe genau Funnel + Welle 1, andere Seiten bleiben Bild, voller Inhalt, Reihenfolge und Töne der Zeitleiste, dekorative Teile ausgeblendet.
 - [x] Nachweis 3 Seiten × 1440/768/375/320/250 px × dunkel/hell: 30/30, Überlauf 0, axe 0, Hash verschieden.
-- [ ] Sichtabnahme der drei Seiten durch Marc.
+- [x] Sichtabnahme der drei Seiten durch Marc (15.10.2026).
