@@ -69,7 +69,7 @@
 | Neukunden im Jahr | 24 | **47** |
 | Gekündigte Accounts | 9 | **17** |
 | Ø MRR je Kunde (ARPA) | 481 € | **520 €** |
-| Ø Nutzer je Account | 5,4 | **6,0** |
+| Ø Nutzer je Account | 5,4 | **7,1** |
 
 **Quartalsverlauf 2025**
 
@@ -87,7 +87,7 @@
 | Starter | 41 | 5 | 245 € | 10.045 € | 29 % |
 | Growth | 22 | 10 | 890 € | 19.580 € | 57 % |
 | Pro | 3 | 15 | 1.565 € | 4.695 € | 14 % |
-| **Gesamt** | **66** | **6,0** | **520 €** | **34.320 €** | **100 %** |
+| **Gesamt** | **66** | **7,1** | **520 €** | **34.320 €** | **100 %** |
 
 **Branchen (ICP-konform, kein Kunde über 200 Mitarbeitende)**
 
@@ -554,7 +554,7 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 
 **C. Aus v1.1 weiter gültig, aber ohne Gegenstück in der Anwendung:** Quartals-GuV, Vorjahresspalte der Bilanz, Eigenkapitalquote 71,8 %, ACV 4.300 €, Kanal-Skalierbarkeit, Sales Cycle nach Paket, Onboarding-Abschlussquote 74 %, Support-Lösungszeit 31 h, CSAT 4,0, abgeleitete Planung mit ARPA 544 €.
 
-**D. Widersprüche innerhalb der Anwendung** (Nr. 1–12 entschieden durch Marc, 13. und 15.10.2026; die Anwendung wird bei der Migration der jeweiligen Seite in Paket G2 angeglichen. Nr. 13 offen.)
+**D. Widersprüche innerhalb der Anwendung** (alle entschieden durch Marc, 13. und 15.10.2026; die Anwendung wird bei der Migration der jeweiligen Seite in Paket G2 angeglichen)
 
 1. ~~**Trial-to-Paid-Ziel**~~ — **entschieden (Marc, 15.10.2026):** Ziel 2026 ist ≥ 26 % (OKR, Plan Q4, Wachstumstreiber). Die 25 %-Angaben in SWOT, SWOT-Kompass, Roadmap v2.0 und „Guided Onboarding Campaign“ werden bei der Migration der jeweiligen Seite (Paket G2) angeglichen.
 2. ~~**Marketing-Budget 2026**~~ — **entschieden (Marc, 15.10.2026):** Verbindlich sind 55.000 € („Marketing & Ads“), die 30.000 € der H2-Initiativen sind ein Teil davon. Die 65.000 € sind eine Modellannahme der Simulation (Schutzbereich, bleibt) und in Abschnitt 16 so gekennzeichnet.
@@ -568,7 +568,7 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 10. ~~**Churn-Ziel und Plan-Churn**~~ — **entschieden (Marc, 15.10.2026):** OKR heißt „≤ 1,8 %“, der Plan-Churn Q4 2026 erfüllt das Ziel. Die 2,2 % für Jan 2027 sind ein eigenes, vorsichtigeres Ziel der Marketingplanung und als solches gekennzeichnet. Die Anwendung („< 1,8 %“ auf der Strategieseite) wird bei der Migration der Seite (Paket G2) angeglichen.
 11. ~~**ARR-Ziel und Abo-Umsatz 2026**~~ — **entschieden (Marc, 15.10.2026):** Zahlen bleiben; die Zeile der Plan-GuV ist als „Ziel-ARR, vereinfacht“ gekennzeichnet, mit Hinweis unter der Tabelle. Die Anwendung wird bei der Migration der Finanzseite (Paket G2) gleich gekennzeichnet.
 12. ~~**Kampagne „LeadPilot Connect“**~~ — **entschieden (Marc, 15.10.2026):** Entscheider, Demo-Anfragen und Deals sind Ziele, keine Ergebnisse; im Faktenblatt so bezeichnet. Die Anwendung wird bei der Migration der Seite „Kampagnenplanung“ (Paket G2) angeglichen.
-13. **Ø Nutzer je Account:** Kennzahl 6,0 (Abschnitt 4), die Paketverteilung ergibt (41 × 5 + 22 × 10 + 3 × 15) / 66 = 7,1. Klärung durch Marc nötig.
+13. ~~**Ø Nutzer je Account**~~ — **entschieden (Marc, 15.10.2026):** 7,1 Nutzer je Account, gerechnet aus der Paketverteilung ((41 × 5 + 22 × 10 + 3 × 15) / 66); Kennzahl in Abschnitt 3 und Gesamtzeile der Paketverteilung angeglichen (vorher 6,0). Die Anwendung wird bei der Migration der Kundenseite (Paket G2) angeglichen.
 
 ---
 

@@ -16470,3 +16470,8 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Pro-Nutzerschnitt: Paketverteilung Pro Ø 15 Nutzer (14/15/16 der drei Pro-Kunden). Dabei aufgefallen: Ø Nutzer je Account 6,0 passt nicht zur Paketverteilung (7,1) → neu als Nr. 13 offen in 17 D, Entscheidung Marc.
 - P2 Screenshot-Nachweis: `scripts/captureFaktenblattV12Quellen.mjs`, Matrix `docs/screenshots/faktenblatt-v1-2/README.md`: 6/6 – einzige sichtbare Stelle ist die Designmuster-Vorschau (Build `VITE_DASHBOARD_PREVIEW=true`), „Faktenblatt v1.1“ 23 → 0, „v1.2“ 0 → 23, Hashes verschieden, 0 px Überlauf. `/dashboard` rendert den geänderten Hero-Untertitel nicht; Projektkontext- und Quellenseite sind in keiner Route eingebunden; `BASELINE_ACCESS` wird nicht gerendert.
 - Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `vitest` 329 / 2346 · `build` grün.
+
+### Faktenblatt v1.2 – Entscheidung Marc zu Nr. 13 (15.10.2026, Claude Code)
+
+- Ø Nutzer je Account 31.12.2025 = 7,1 (aus der Paketverteilung gerechnet, vorher 6,0): Kennzahl Abschnitt 3 und Gesamtzeile der Paketverteilung angeglichen, 17 D Nr. 13 als entschieden markiert; damit sind alle 13 Punkte entschieden.
+- Anwendung (`src/domain/geschaeftsmodellData.ts`, „Ø 6,0 Nutzer/Account“) wird bei der Migration der Seite in Paket G2 angeglichen. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
