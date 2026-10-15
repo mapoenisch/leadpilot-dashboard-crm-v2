@@ -16448,3 +16448,14 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - Nr. 11: Plan-GuV-Zeile „Abo-Umsatz (Plan 2026: Ziel-ARR, vereinfacht)“ plus Hinweis unter der Tabelle; Zahlen unverändert.
 - Nr. 12: Kampagne „LeadPilot Connect“: „Ergebnis“ → „Ziele“.
 - Abschnitt 17 D nachgeführt. Die Anwendung (Strategie-, Finanz- und Kampagnenseite) wird bei der jeweiligen Migration in Paket G2 angeglichen. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Entscheidungen Marc zu Nr. 1–7 (15.10.2026, Claude Code)
+
+- Nr. 1: Trial-to-Paid-Ziel 2026 = ≥ 26 %; 25 %-Stellen der Anwendung werden in G2 angeglichen.
+- Nr. 2: Marketing-Budget 2026 = 55.000 € (darin 30.000 € H2-Initiativen); 65.000 € in Abschnitt 16 als Modellannahme der Simulation gekennzeichnet (Schutzbereich unverändert).
+- Nr. 3: Paketverteilung gilt (Pro 4.695 € MRR); Top-10-Pro-Kunden angeglichen: Delta Labs 17.520 €, Kestrel Components 18.780 €, Siegfried Precision 20.040 € ARR (MRR 1.460 / 1.565 / 1.670 €).
+- Nr. 4: Vertretung = jeweils einzelvertretungsberechtigt (neue Zeile in Abschnitt 1).
+- Nr. 5: Kostenbudget 830.000 € als Budgetrahmen, Plan-GuV als Ergebnisrechnung; Erklärung in Abschnitt 14.
+- Nr. 6: Marktzahlen als „Europa“ beschriften, „DACH“ nur für das Zielgebiet (Hinweis in Abschnitt 11).
+- Nr. 7: erledigt durch v1.2, v1.1 bleibt als Historie.
+- Abschnitt 17 D: alle zwölf Punkte entschieden. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.

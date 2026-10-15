@@ -29,6 +29,7 @@
 | Gegründet | 21. Juli 2022 (Beurkundung Gesellschaftsvertrag) |
 | Produkt-Launch (GA) | Q1 2024 → **GJ 2025 = zweites volles Marktjahr** |
 | Handelsregister | Amtsgericht Leipzig, HRB 40912 |
+| Vertretung | Beide Geschäftsführer jeweils einzelvertretungsberechtigt |
 | Sitz | Augustusplatz 9, 04109 Leipzig, Sachsen (**angemietete Büroflächen**, Gewerberaummietvertrag v. 15.08.2022, Laufzeit bis 31.08.2027) |
 | Gründer & Geschäftsführer | Marc Pönisch (CEO), Tobias Heine (CTO) |
 | Stammkapital | 31.250 € (ursprünglich 25.000 €, Kapitalerhöhung Q1 2024) |
@@ -350,6 +351,8 @@
 
 ## 11. Markt & Wettbewerb (recherchierte Realdaten)
 
+> Markt- und Anteilszahlen gelten für **Europa** und sind so zu beschriften. „DACH“ bezeichnet nur das Zielgebiet von LeadPilot (Entscheidung Marc, 15.10.2026).
+
 - **Europa, Cloud-CRM-Markt:** 14,23 Mrd. USD (2026), CAGR 5,23 %, Prognose 18,36 Mrd. USD bis 2031
 - **Europa, CRM-SaaS gesamt:** CAGR 14,5 % (2025–2033), KI-getrieben
 - **Deutschland:** größter CRM-Einzelmarkt Europas, Anteil 24,4 % (2025)
@@ -418,20 +421,20 @@
 | Großhandel | 78.960 € | 19,17 % | 21 % |
 | Agenturen | 42.000 € | 10,20 % | 15 % |
 
-**Top-10-Referenzkunden (ICP-konform, < 200 MA)** — ARR = Nutzer × Paketpreis × 12 (Pro: Referenz 80 €)
+**Top-10-Referenzkunden (ICP-konform, < 200 MA)** — ARR = Nutzer × Paketpreis × 12; Pro: individuelles Angebot, MRR der drei Pro-Kunden zusammen 4.695 € wie in der Paketverteilung (Abschnitt 4)
 
 | Kunde | Branche | MA | Paket | Nutzer | ARR |
 | :-- | :-- | --: | :-- | --: | --: |
 | Northwind GmbH | Maschinenbau | 85 | Growth | 10 | 10.680 € |
 | Fenwick Co. | IT & Software | 42 | Growth | 8 | 8.544 € |
-| Delta Labs | Großhandel | 110 | Pro | 14 | 13.440 € |
+| Delta Labs | Großhandel | 110 | Pro | 14 | 17.520 € |
 | Ocular Systems | Agenturen | 28 | Starter | 5 | 2.940 € |
 | Brightline Solutions | IT & Software | 65 | Growth | 10 | 10.680 € |
-| Kestrel Components | Maschinenbau | 140 | Pro | 15 | 14.400 € |
+| Kestrel Components | Maschinenbau | 140 | Pro | 15 | 18.780 € |
 | Vektor Dynamics | Maschinenbau | 95 | Growth | 12 | 12.816 € |
 | Hansa Automation | IT & Software | 50 | Growth | 10 | 10.680 € |
 | Konzett Systems | Großhandel | 78 | Growth | 9 | 9.612 € |
-| Siegfried Precision | Maschinenbau | 115 | Pro | 16 | 15.360 € |
+| Siegfried Precision | Maschinenbau | 115 | Pro | 16 | 20.040 € |
 
 **Gründe der 17 Kündigungen:** zu klein / kein Vertrieb 8 · Onboarding nie abgeschlossen 5 · Preis 2 · Wechsel zum Wettbewerber 2
 
@@ -487,7 +490,9 @@
 
 **Plan-MRR 2026:** Jan 34.320 € · Mär 38.000 € · Jun 42.500 € · Sep 47.000 € · Dez 51.667 € (× 12 ≈ 620.000 € ARR).
 **Plan-Churn 2026:** Q1 2,6 % · Q2 2,3 % · Q3 2,0 % · Q4 1,8 %. **Plan-Trial-to-Paid 2026:** Q1 20 % · Q2 22 % · Q3 24 % · Q4 26 %.
-**Plan-Kostenbudget 2026 (Gesamt 830.000 €):** Personal 600.000 € · Cloud & KI-API 60.000 € · Marketing & Ads 55.000 € · Strategische Initiativen 44.000 € · Tools & Lizenzen 28.000 € · Büro & Verwaltung 25.000 € · Recht & Security 18.000 €.
+**Plan-Kostenbudget 2026 (Budgetrahmen, Gesamt 830.000 €):** Personal 600.000 € · Cloud & KI-API 60.000 € · Marketing & Ads 55.000 € (verbindliches Marketing-Budget 2026; darin die 30.000 € der H2-Initiativen) · Strategische Initiativen 44.000 € · Tools & Lizenzen 28.000 € · Büro & Verwaltung 25.000 € · Recht & Security 18.000 €.
+
+*Zwei Sichten: Das Kostenbudget ist der Ausgabenrahmen nach Budgetkategorien (inkl. Strategische Initiativen als Reserve). Die Plan-GuV 2026 ist die Ergebnisrechnung nach GuV-Positionen (Umsatz- und Betriebskosten 812.000 € zzgl. Abschreibungen 22.000 €). Die Kategorien sind nicht deckungsgleich, die Summen weichen daher ab (Entscheidung Marc, 15.10.2026).*
 
 **Wachstumstreiber 2026 (ARR-Effekt, Summe 208.000 € ≈ Lücke 411.840 € → 620.000 €):** Trial-to-Paid 18 → 26 % 72.000 € · Churn 2,8 → 1,8 % 58.000 € · Partnerprogramm 34.000 € · ICP-Schärfung (ARPA) 26.000 € · Upsell Starter → Growth 18.000 €.
 
@@ -501,7 +506,7 @@
 | --: | --: | --: | --: | --: | --: |
 | 2.500 € | 3.375 € | 3.375 € | 3.375 € | 2.500 € | 4.250 € |
 
-Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 beträgt laut Initiativen **30.000 €**:
+Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 beträgt laut Initiativen **30.000 €** (Teil des Marketing-Budgets 2026 von 55.000 €):
 
 | Initiative | Budget | Ziel |
 | :-- | --: | :-- |
@@ -526,7 +531,7 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 - **Produktmodule:** Smart Lead Capture · KI-Lead-Scoring v1.5 (Bewertung 0–100) · Nurturing-Sequenzen · Pipeline-Cockpit (Status: New, MQL, SQL, Hot, Won, Lost).
 - **Positionierung:** Einrichtung in unter 30 Minuten ohne eigene IT-Abteilung; Hosting in Frankfurt am Main.
 - **CRM-Datenbasis der Anwendung:** 20 Accounts, 100 Kontakte, 40 Funnel-Deals (Demo-Datenbestand, nicht identisch mit den 66 Kunden).
-- **Simulations-Ausgangswerte (Dezember 2025):** 66 Kunden · MRR 34.320 € · ARR 411.840 €. Standardparameter: Trial-to-Paid 18 % · Churn 2,8 % pro Monat · Sales Cycle 38 Tage · Sales-Kapazität 2 FTE · Customer Success 2 FTE · Marketing-Budget 65.000 € jährlich · Rabattquote 0 %.
+- **Simulations-Ausgangswerte (Dezember 2025):** 66 Kunden · MRR 34.320 € · ARR 411.840 €. Standardparameter: Trial-to-Paid 18 % · Churn 2,8 % pro Monat · Sales Cycle 38 Tage · Sales-Kapazität 2 FTE · Customer Success 2 FTE · Marketing-Budget 65.000 € jährlich (Modellannahme der Simulation, nicht das Plan-Budget; verbindlich sind 55.000 €, Abschnitt 14) · Rabattquote 0 %.
 
 ---
 
@@ -549,15 +554,15 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 
 **C. Aus v1.1 weiter gültig, aber ohne Gegenstück in der Anwendung:** Quartals-GuV, Vorjahresspalte der Bilanz, Eigenkapitalquote 71,8 %, ACV 4.300 €, Kanal-Skalierbarkeit, Sales Cycle nach Paket, Onboarding-Abschlussquote 74 %, Support-Lösungszeit 31 h, CSAT 4,0, abgeleitete Planung mit ARPA 544 €.
 
-**D. Offene Widersprüche innerhalb der Anwendung** (nicht entschieden, Klärung durch Marc nötig)
+**D. Widersprüche innerhalb der Anwendung** (alle entschieden durch Marc, 13. und 15.10.2026; die Anwendung wird bei der Migration der jeweiligen Seite in Paket G2 angeglichen)
 
-1. **Trial-to-Paid-Ziel:** OKR und Plan-Charts nennen ≥ 26 % für 2026. SWOT, SWOT-Kompass, Roadmap v2.0 und die Initiative „Guided Onboarding Campaign" nennen 25 %.
-2. **Marketing-Budget 2026:** Simulation 65.000 € jährlich, Kostenbudget 2026 „Marketing & Ads" 55.000 €, H2-Initiativen 30.000 €.
-3. **Top-10-Kunden und Pro-Paket:** Die drei Pro-Kunden der Top 10 ergeben 3.600 € MRR, die Paketverteilung nennt 4.695 € für Pro (Ø 14 Nutzer × 80 € = 1.120 € statt 1.565 € je Kunde). Auch in v1.1 selbst nicht schlüssig.
-4. **Vertretung:** Handelsregister: zwei Geschäftsführer gemeinsam. Geschäftsführervertrag: jeweils einzelvertretungsberechtigt.
-5. **Kostenbudget 2026:** 830.000 € Gesamt gegenüber Plan-GuV 2026 (Umsatzkosten + Betriebskosten = 812.000 €, zzgl. Abschreibungen 22.000 €); Kategorien nicht deckungsgleich.
-6. **Marktdaten:** Die Anwendung beschriftet die Marktanteile als „Europa/DACH" und den Markt als „Cloud-CRM DACH"; die Zahlen gelten für Europa.
-7. **Repo-Kopie:** `docs/LeadPilot_Faktenblatt_v1.1.md` im Dashboard-Repo enthält in der Roadmap „planned" statt „geplant".
+1. ~~**Trial-to-Paid-Ziel**~~ — **entschieden (Marc, 15.10.2026):** Ziel 2026 ist ≥ 26 % (OKR, Plan Q4, Wachstumstreiber). Die 25 %-Angaben in SWOT, SWOT-Kompass, Roadmap v2.0 und „Guided Onboarding Campaign“ werden bei der Migration der jeweiligen Seite (Paket G2) angeglichen.
+2. ~~**Marketing-Budget 2026**~~ — **entschieden (Marc, 15.10.2026):** Verbindlich sind 55.000 € („Marketing & Ads“), die 30.000 € der H2-Initiativen sind ein Teil davon. Die 65.000 € sind eine Modellannahme der Simulation (Schutzbereich, bleibt) und in Abschnitt 16 so gekennzeichnet.
+3. ~~**Top-10-Kunden und Pro-Paket**~~ — **entschieden (Marc, 15.10.2026):** Die Paketverteilung gilt (Pro 4.695 € MRR, Ø 1.565 € je Kunde). Die drei Pro-Kunden der Top 10 sind angeglichen: Delta Labs 1.460 €, Kestrel Components 1.565 €, Siegfried Precision 1.670 € MRR (ARR 17.520 €, 18.780 €, 20.040 €). Pro ist ein individuelles Angebot; die 80 € bleiben nur Referenz. Anwendung wird bei der Migration der Kundenseite (Paket G2) angeglichen.
+4. ~~**Vertretung**~~ — **entschieden (Marc, 15.10.2026):** Beide Geschäftsführer sind jeweils einzelvertretungsberechtigt (Abschnitt 1). Die Handelsregister-Angabe „gemeinsam“ in der Anwendung wird bei der Migration der Unternehmensseite (Paket G2) angeglichen.
+5. ~~**Kostenbudget 2026**~~ — **entschieden (Marc, 15.10.2026):** Zwei Sichten, Zahlen bleiben: 830.000 € Budgetrahmen nach Kategorien, Plan-GuV als Ergebnisrechnung; Erklärung unter dem Kostenbudget in Abschnitt 14.
+6. ~~**Marktdaten**~~ — **entschieden (Marc, 15.10.2026):** Zahlen gelten für Europa und werden so beschriftet; „DACH“ nur für das Zielgebiet (Hinweis in Abschnitt 11). Anwendung wird bei der Migration der Marktseite (Paket G2) angeglichen.
+7. ~~**Repo-Kopie**~~ — **erledigt (Marc, 15.10.2026):** v1.1 bleibt als Historie unverändert; v1.2 nennt „geplant“.
 8. ~~**Negative-Fit und Churn-Befund**~~ — **entschieden (Marc, 13.10.2026):** Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern stehen wieder im Negative-Fit (Abschnitt 13). Die ICP-Seite der Anwendung nennt bisher drei Kriterien und wird bei ihrer Migration (Paket G2) angeglichen.
 9. ~~**Zeitraum „Marketingplanung H2 2026“**~~ — **entschieden (Marc, 13.10.2026):** Im Faktenblatt heißt die Reihe „Aug 2026 – Jan 2027“; die Anwendung behält ihren Titel, Werte unverändert.
 10. ~~**Churn-Ziel und Plan-Churn**~~ — **entschieden (Marc, 15.10.2026):** OKR heißt „≤ 1,8 %“, der Plan-Churn Q4 2026 erfüllt das Ziel. Die 2,2 % für Jan 2027 sind ein eigenes, vorsichtigeres Ziel der Marketingplanung und als solches gekennzeichnet. Die Anwendung („< 1,8 %“ auf der Strategieseite) wird bei der Migration der Seite (Paket G2) angeglichen.
