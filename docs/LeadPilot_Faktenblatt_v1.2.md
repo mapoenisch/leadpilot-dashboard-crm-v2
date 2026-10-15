@@ -375,7 +375,7 @@
 | :-- | :-- | --: | --: | :-- |
 | Finanzen | ARR | 620.000 € | 411.840 € | CEO |
 | Finanzen | Burn Rate pro Monat | < 23.000 € | 25.750 € | CEO/Ops |
-| Kunden | Account-Churn pro Monat | < 1,8 % | 2,8 % | CS Lead |
+| Kunden | Account-Churn pro Monat | ≤ 1,8 % | 2,8 % | CS Lead |
 | Kunden | Time-to-Value | < 7 Tage | 11 Tage | CS Lead |
 | Kunden | Aktive Kunden | 95 | 66 | CEO |
 | Vertrieb | Trial-to-Paid | ≥ 26 % | 18 % | Head of Sales |
@@ -466,7 +466,7 @@
 
 | Position | 2025 | Plan 2026 |
 | :-- | --: | --: |
-| Abo-Umsatz | 307.600 | 620.000 |
+| Abo-Umsatz (Plan 2026: Ziel-ARR, vereinfacht) | 307.600 | 620.000 |
 | Onboarding & Setup | 23.000 | 35.000 |
 | Sonstige Erlöse | 5.400 | 8.000 |
 | **Umsatzerlöse** | **336.000** | **663.000** |
@@ -482,6 +482,8 @@
 | **Ergebnis vor Steuern** | **−332.500** | **−176.000** |
 | Sonstige Steuern | −1.500 | −2.000 |
 | **Jahresfehlbetrag** | **−334.000** | **−178.000** |
+
+*Vereinfachung: Die Plan-GuV 2026 setzt als Abo-Umsatz den Ziel-ARR zum Jahresende an, nicht die Summe der Plan-MRR (wie 2025). Umsatz, EBITDA und Ergebnis 2026 fallen dadurch günstiger aus als bei monatsgenauer Abgrenzung (Entscheidung Marc, 15.10.2026).*
 
 **Plan-MRR 2026:** Jan 34.320 € · Mär 38.000 € · Jun 42.500 € · Sep 47.000 € · Dez 51.667 € (× 12 ≈ 620.000 € ARR).
 **Plan-Churn 2026:** Q1 2,6 % · Q2 2,3 % · Q3 2,0 % · Q4 1,8 %. **Plan-Trial-to-Paid 2026:** Q1 20 % · Q2 22 % · Q3 24 % · Q4 26 %.
@@ -507,9 +509,9 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 | SEO Content Expansion | 10.000 € | Verdopplung des organischen Traffics |
 | Guided Onboarding Campaign | 8.000 € | Trial-to-Paid steigern |
 
-**Plan-KPIs Jan 2027 (gegenüber Basis 2025):** Neukunden/Monat 8 (4) · Marketing-CAC 720 € (862 €) · Trial-to-Paid 24 % (18 %) · Churn/Monat 2,2 % (2,8 %) · KI-Scoring-Nutzung 65 % (47 %).
+**Plan-KPIs Jan 2027 (Ziele der Marketingplanung, gegenüber Basis 2025):** Neukunden/Monat 8 (4) · Marketing-CAC 720 € (862 €) · Trial-to-Paid 24 % (18 %) · Churn/Monat 2,2 % (2,8 %) · KI-Scoring-Nutzung 65 % (47 %).
 
-**Kampagne „LeadPilot Connect"** (Multichannel-Outbound für Nurturing-Sequenzen): Budget 2.500 € (Paid Social 1.000 €, Content 875 €, Freelance 375 €, Kontingenz 250 €); Ergebnis: 1.250 erreichte Entscheider, 48 Demo-Anfragen, 12 abgeschlossene Deals.
+**Kampagne „LeadPilot Connect"** (Multichannel-Outbound für Nurturing-Sequenzen): Budget 2.500 € (Paid Social 1.000 €, Content 875 €, Freelance 375 €, Kontingenz 250 €); Ziele: 1.250 erreichte Entscheider, 48 Demo-Anfragen, 12 abgeschlossene Deals.
 
 **Maßnahmenportfolio 2026:** Guided Trial Onboarding Flow v2.0 (P1 kritisch, CTO) · Partner- und Empfehlungskanal Relaunch (P1 hoch, CEO) · ICP-Qualifizierung im Inbound (P1 hoch, Sales & Marketing) · Zapier-/Make-Connector v2.1 (P2 mittel, Engineering).
 
@@ -558,9 +560,9 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 7. **Repo-Kopie:** `docs/LeadPilot_Faktenblatt_v1.1.md` im Dashboard-Repo enthält in der Roadmap „planned" statt „geplant".
 8. ~~**Negative-Fit und Churn-Befund**~~ — **entschieden (Marc, 13.10.2026):** Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern stehen wieder im Negative-Fit (Abschnitt 13). Die ICP-Seite der Anwendung nennt bisher drei Kriterien und wird bei ihrer Migration (Paket G2) angeglichen.
 9. ~~**Zeitraum „Marketingplanung H2 2026“**~~ — **entschieden (Marc, 13.10.2026):** Im Faktenblatt heißt die Reihe „Aug 2026 – Jan 2027“; die Anwendung behält ihren Titel, Werte unverändert.
-10. **Churn-Ziel und Plan-Churn:** OKR (Abschnitt 12) verlangt Account-Churn < 1,8 % pro Monat; der Plan-Churn 2026 erreicht in Q4 genau 1,8 %, die Plan-KPIs Jan 2027 nennen 2,2 %.
-11. **ARR-Ziel und Abo-Umsatz 2026:** Die Plan-GuV 2026 setzt 620.000 € Abo-Umsatz an, also den ARR-Zielwert zum Jahresende. 2025 ist der Abo-Umsatz die Summe der Monats-MRR; mit der ansteigenden Plan-MRR 2026 (34.320 € bis 51.667 €) läge diese Summe deutlich darunter.
-12. **Kampagne „LeadPilot Connect":** Erreichte Entscheider, Demo-Anfragen und Deals stehen als „Ergebnis“; die Anwendung führt die Kampagne als Planung, das Dateninventar vermerkt fehlenden Zeitraum und Istnachweis.
+10. ~~**Churn-Ziel und Plan-Churn**~~ — **entschieden (Marc, 15.10.2026):** OKR heißt „≤ 1,8 %“, der Plan-Churn Q4 2026 erfüllt das Ziel. Die 2,2 % für Jan 2027 sind ein eigenes, vorsichtigeres Ziel der Marketingplanung und als solches gekennzeichnet. Die Anwendung („< 1,8 %“ auf der Strategieseite) wird bei der Migration der Seite (Paket G2) angeglichen.
+11. ~~**ARR-Ziel und Abo-Umsatz 2026**~~ — **entschieden (Marc, 15.10.2026):** Zahlen bleiben; die Zeile der Plan-GuV ist als „Ziel-ARR, vereinfacht“ gekennzeichnet, mit Hinweis unter der Tabelle. Die Anwendung wird bei der Migration der Finanzseite (Paket G2) gleich gekennzeichnet.
+12. ~~**Kampagne „LeadPilot Connect“**~~ — **entschieden (Marc, 15.10.2026):** Entscheider, Demo-Anfragen und Deals sind Ziele, keine Ergebnisse; im Faktenblatt so bezeichnet. Die Anwendung wird bei der Migration der Seite „Kampagnenplanung“ (Paket G2) angeglichen.
 
 ---
 

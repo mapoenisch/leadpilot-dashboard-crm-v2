@@ -16441,3 +16441,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Quellenverweise: sichtbare Angaben auf v1.2 umgestellt – `src/domain/projektkontextData.ts` (Projektkontext und Referenzmaterial), `src/domain/execData.ts` (Hero, Datenbrücken, Quellen, Methodik-Hinweis), `designPatternTiles.tsx`, `DesignPatternPreview.tsx`, `catalog/activeEntries.ts`. Bewusst unverändert: Kennung `Faktenblatt_v1.1` in `src/simulation/**` (Schutzbereich, Ausgangswerte unverändert) und Hinweis „Ebene A … v1.1“ in `LiveDashboardView.tsx`, der diese Ausgangsbasis beschreibt.
 - P2 Churn-Ziel ↔ Plan-Churn, P2 ARR-Ziel ↔ Abo-Umsatz 2026, P2 Kampagnen-KPIs als Ergebnis: inhaltliche Widersprüche, nicht vom Builder entschieden; als Nr. 10–12 in Abschnitt 17 D eingetragen, Klärung durch Marc.
 - Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `verify` grün · `vitest` 329 / 2346 · `build` grün.
+
+### Faktenblatt v1.2 – Entscheidungen Marc zu Nr. 10–12 (15.10.2026, Claude Code)
+
+- Nr. 10: OKR Account-Churn auf „≤ 1,8 %“ (Abschnitt 12); Plan-KPIs Jan 2027 als Ziele der Marketingplanung gekennzeichnet.
+- Nr. 11: Plan-GuV-Zeile „Abo-Umsatz (Plan 2026: Ziel-ARR, vereinfacht)“ plus Hinweis unter der Tabelle; Zahlen unverändert.
+- Nr. 12: Kampagne „LeadPilot Connect“: „Ergebnis“ → „Ziele“.
+- Abschnitt 17 D nachgeführt. Die Anwendung (Strategie-, Finanz- und Kampagnenseite) wird bei der jeweiligen Migration in Paket G2 angeglichen. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
