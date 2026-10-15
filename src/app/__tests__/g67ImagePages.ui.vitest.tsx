@@ -46,6 +46,9 @@ vi.mock('@/config/pagePresentation', () => ({
   get PAGE_PRESENTATION() {
     return mode.value;
   },
+  // Auftrag 093: Seitenfreigabe hier leer, damit der Bildweg aller 32 Seiten
+  // weiter als Rückschaltung geprüft bleibt (echte Freigabe: g93-Test).
+  HTML_PAGES: [],
 }));
 
 const pages: Array<[ImagePageKey, () => JSX.Element]> = [

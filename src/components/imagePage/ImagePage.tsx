@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Smartphone } from 'lucide-react';
-import { PAGE_PRESENTATION } from '@/config/pagePresentation';
+import { HTML_PAGES, PAGE_PRESENTATION } from '@/config/pagePresentation';
 import { IMAGE_PAGES, type ImagePageKey } from './imagePages';
 
 interface ImagePageProps {
@@ -38,7 +38,8 @@ export function ImagePage({ page, children }: ImagePageProps) {
     return () => observer.disconnect();
   }, []);
 
-  if (PAGE_PRESENTATION === 'html') return <>{children}</>;
+  // Auftrag 093: freigegebene Seiten (HTML_PAGES) zeigen den Inhalt sichtbar.
+  if (PAGE_PRESENTATION === 'html' || HTML_PAGES.includes(page)) return <>{children}</>;
 
   const { src, alt, testId } = IMAGE_PAGES[page];
   return (

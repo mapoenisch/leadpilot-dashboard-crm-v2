@@ -58,9 +58,9 @@ describe('FunnelPage (branch3)', () => {
     );
     const { container } = render(<FunnelPage />);
     const quartale = screen.getByRole('figure', { name: 'Quartalsverlauf je Stufe' });
-    // Eine Säule je Quartal, fehlende Werte als Nullhöhe (Mindesthöhe 2 px).
-    expect(quartale.querySelectorAll('rect.pk-fill')).toHaveLength(FUNNEL.chart.labels.length);
-    expect(container.querySelectorAll('.pk-legend li')).toHaveLength(0);
+    // Eine 3D-Säule je Quartal, fehlende Werte als Nullhöhe (Auftrag 093: GroupedDepthColumns).
+    expect(quartale.querySelectorAll('rect[data-saeule]')).toHaveLength(FUNNEL.chart.labels.length);
+    expect(container.querySelectorAll('[data-testid="grouped-depth-columns"] li')).toHaveLength(0);
   });
 
   it('fehlende Header nutzen Spalten-Fallbacks', () => {
@@ -78,9 +78,14 @@ describe('FunnelPage (branch3)', () => {
 describe('FunnelPage – fachliche Wahrheit (Auftrag 085)', () => {
   it('Angebote 56,3 % der SQL in Trichter und Tabelle, nirgends 65 %', () => {
     const { container } = render(<FunnelPage />);
-    expect(screen.getAllByText(/56,3 % der SQL/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByText(/37,2 % der MQL/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByText(/Win Rate 43,5 %/).length).toBeGreaterThanOrEqual(2);
+    // Tabelle trägt die Quote mit Bezug, der Trichter (Auftrag 093) die Quote am Übergang.
+    expect(screen.getAllByText(/56,3 % der SQL/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/37,2 % der MQL/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Win Rate 43,5 %/).length).toBeGreaterThanOrEqual(1);
+    const trichter = screen.getByTestId('funnel-stufen-chart');
+    for (const quote of ['29,1 %', '37,2 %', '56,3 %', '43,5 %']) {
+      expect(trichter.textContent).toContain(`Conversion: ${quote}`);
+    }
     expect(container.textContent).not.toMatch(/65(,3)? ?%/);
     expect(container.textContent).not.toMatch(/38 % der MQL/);
   });

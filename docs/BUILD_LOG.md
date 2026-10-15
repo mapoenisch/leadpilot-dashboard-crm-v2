@@ -16371,6 +16371,49 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - P2 Ledger-Churn: Ein Prettier-Lauf hatte den historischen BUILD_LOG umformatiert. Datei auf den Stand von `main` zurückgesetzt, nur die 092-Abschnitte angehängt (`git diff main -- docs/BUILD_LOG.md`: ausschließlich Ergänzungen).
 - P1 Screenshot-Nachweis: bereits mit `47309cb` erledigt (`docs/screenshots/auftrag-092/README.md`, 8/8); der Befund hängt am alten Absatz.
 
+### Auftrag 093 – Paket G1: Sales Funnel als erste echte Seite, Builder Claude Code, 13.10.2026
+
+**Ziel & Kontext:** Plan Abschnitt 12 (G1) nach freigegebenem Muster 4 (Auftrag 087). Baseline `main` `ce506b5` (nach PR #78).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts` (neue Seitenfreigabe `HTML_PAGES = ['sales-funnel']`, globaler Schalter bleibt `'bild'`), `src/components/imagePage/ImagePage.tsx` (freigegebene Seiten ohne Bild/Textschicht), `src/features/vertrieb/pages/FunnelPage.tsx` (Muster 4: Kopf mit Quelle, 3D-Balken je Stufe, Conversion-Tabelle aus derselben Quelle, Quartalsverlauf, Hinweis); Tests `g67ImagePages.ui` (Bildweg aller 32 Seiten bleibt als Rückschaltung geprüft), `g53SemanticPages.ui`, `g66DesignRestore.ui` (Funnel ausgenommen, eigener Test), `FunnelPage.branch3.ui`, `VertriebPages.branch2.ui`, neu `g93FunnelPage.ui`; Harness `scripts/captureAuftrag093Funnel.mjs`.
+
+**Funktionale Prüfungen:** Funnel ohne WebP und Zoom-Hinweis, genau eine Seiten-h1; übrige 31 Seiten weiterhin Bild; Diagramm- und Tabellenwerte aus `FUNNEL.rows` identisch (Test); Testversionen nur als Nebenpfad. Rückschaltung: Eintrag aus `HTML_PAGES` entfernen. Hinweis: Das 3D-Diagramm behält seine Mindestbreite und scrollt bei ≤ 375 px lokal (gemeinsame Komponente, wie im Muster); alle Werte stehen zusätzlich in der Conversion-Tabelle. Die zweite h1 im Header-Layout besteht unverändert (Paket H).
+
+**Schutzbereichs-Prüfung:** `git diff ce506b5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `tsc` 0 · `lint` 0/0 · `verify` grün · `vitest` 328 / 2340 · `build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-093/README.md`: 10/10 (1440/768/375/320/250 × dunkel/hell) – WebP 1 → 0, kein Zoom-Hinweis, h1 1, vier Kartenüberschriften sichtbar, Überlauf 0 px, axe 0, Hash verschieden.
+
+**Ergebnis & Freigabestatus:** Builder-seitig fertig; Sichtabnahme durch Marc und Abnahme durch Codex offen.
+
+### Auftrag 093 – Revision nach Sichtprüfung Marc (13.10.2026, Claude Code)
+
+- Befund Marc: erste Fassung (Muster 4) ließ den größten Teil des Original-Inhalts weg und wirkte wie das alte flache Design. Neue Vorgabe: Original-WebP ist Vorlage für Inhalt und Gestaltung; „ruhiger“ heißt dämpfen, nicht entfernen.
+- Umgesetzt: Page-Kit-Aufbau des Originals wiederhergestellt (Hero mit Pills und Raster, Panels mit Badges, Tabelle mit Pills, Hinweis); neu `FunnelStufenChart.tsx` (5 Stufen, Conversion-Chips, SQL-Stufe orange mit „Trial-Conversion Hebel“, 3D-Quader, exakt proportionale Längen) und `GroupedDepthColumns.tsx` (gruppierte 3D-Säulen in vier Reihenfarben, Bodenlicht, Spiegelung, Legende); Ruhig-Fassung per `data-ruhig` in `pageKit.css` (Effekte etwa halbiert); Silberton der Leads-Reihe im hellen Modus dunkler.
+- Sichtabnahme: elementweise Vergleiche Original ↔ Nachbau und voll ↔ ruhig; von Marc freigegeben.
+- Qualitätsbudget: Stufenbreite per `ref` statt `style`-Prop, `react/forbid-dom-props` bleibt bei 50.
+- Schutzbereich: `git diff ce506b5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+- Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `vitest` 328 / 2342 · `build` grün.
+- Screenshot-Matrix `docs/screenshots/auftrag-093/README.md`: 10/10 – WebP 1 → 0, h1 1, fünf Original-Überschriften sichtbar, Hebel-Chip sichtbar, Überlauf 0 px, axe 0, Hash verschieden.
+- Freigabestatus: Sichtabnahme Marc erteilt; Abnahme durch Codex offen.
+
+### Auftrag 093 – Nacharbeit CodeQL PR #79 (13.10.2026, Claude Code)
+
+- High „Incomplete string escaping“ in `g93FunnelPage.ui.vitest.tsx`: Überschriftenvergleich ohne `RegExp` (Filter per `startsWith`), damit entfällt das Escaping vollständig. Test 6/6 grün, `tsc` 0, `lint` 0/0, `format:check` grün.
+
+### Auftrag 093 – Nacharbeit Codex PR #79, Runde 1 (13.10.2026, Claude Code)
+
+- P1 E2E-Modus (`e2e/semantic-routes.spec.ts`): Modus je Route statt global; Seiten aus `HTML_PAGES` gelten als HTML (Zuordnung Seitenschlüssel → Route, fehlende Zuordnung bricht ab). CI-Lauf vorher: 12 Fehler, ausschließlich `/sales/funnel` in dieser Suite. Lokal `-g "/sales/(funnel|sla)"`: 24/24 grün (Funnel HTML, SLA weiter Bild).
+- P2 Seitenmarker: `data-page-key="sales-funnel"` an der Seitenwurzel für `captureAuftrag081Inventory.mjs`; Test ergänzt.
+- P2 Quellenzeile: „Faktenblatt v1.1 · Stand FY 2025 · fester Stand“ wieder sichtbar im Seitenkopf; Test ergänzt.
+- P2 Mindestbreite: entfernt; Wert 0 zeichnet keinen Quader (`data-leer`), Werte unter 1 % exakt. Test ergänzt.
+- P2 Skala ohne Werte: `GroupedDepthColumns` nutzt bei leeren/Null-Reihen eine feste Skala 0–3, keine NaN-Geometrie, keine React-Warnung. Test ergänzt.
+- P2 Einheit im Diagramm-Formatter: betraf die erste Fassung mit `Depth3dBarChart`/`formatAnzahl`; diese Stelle existiert seit der Revision nicht mehr – erledigt.
+- CodeQL „Incomplete string escaping“: bereits mit `774a2ed` behoben.
+- Schutzbereich-Diff leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` · `verify` · `vitest` 329 / 2346 · `build` grün.
+- Nachtrag (Marc 13.10.2026): Quellenzeile auf „Faktenblatt v1.2 · Stand FY 2025 · fester Stand“ gestellt – v1.2 ist die gültige Fassung; Funnel-Werte der Seite entsprechen v1.2 Abschnitt 8 (1.776 / 516 / 192 / 264 / 108 / 47; 29,1 % · 37,2 % · 56,3 % · Win Rate 43,5 %).
+
 ### Faktenblatt v1.2 im Repo (13.10.2026, Claude Code, Entscheidung Marc)
 
 - Neu: `docs/LeadPilot_Faktenblatt_v1.2.md`, bytegleiche Kopie der von Marc bereitgestellten Fassung v1.2 (Oktober 2026, Abgleich mit der Anwendung, Abschnitt 17 mit Abgleichsprotokoll und sieben offenen Widersprüchen).
