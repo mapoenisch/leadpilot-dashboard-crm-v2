@@ -31,7 +31,7 @@ Dieses Dokument ist das Inventar zum maschinenlesbaren Katalog in `src/features/
 
 | Ebene    | Quelle                                                     | Wer liest                                                                                                                    |
 | -------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Baseline | Statische Stammdaten (Faktenblatt v1.1) in `src/domain/`   | Im App-Bundle. Sichtbar für jedes angemeldete aktive Organisationsmitglied hinter `ProtectedRoute`, organisationsunabhängig. |
+| Baseline | Statische Stammdaten (Faktenblatt v1.2) in `src/domain/`   | Im App-Bundle. Sichtbar für jedes angemeldete aktive Organisationsmitglied hinter `ProtectedRoute`, organisationsunabhängig. |
 | CRM      | Tabelle `imported_funnel_deals` über `getPipelineOverview` | RLS `tenant_select_deals`: nur aktive Mitglieder der aktuellen Organisation, alle Rollen einschließlich Viewer.              |
 | Live     | Projektion `live_kpi_public_feed`                          | `SELECT` für `anon` und `authenticated`, **ohne Organisationsspalte**.                                                       |
 

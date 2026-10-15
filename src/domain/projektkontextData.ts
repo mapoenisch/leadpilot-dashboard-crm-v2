@@ -3,10 +3,10 @@ export const PROJEKT = {
   summary: 'Übersicht der operativen Meilensteine und Dokumente der LeadPilot GmbH.',
   tasks: [
     {
-      id: 'SOT-1.1',
-      title: 'LeadPilot Faktenblatt v1.1 (Single Source of Truth)',
+      id: 'SOT-1.2',
+      title: 'LeadPilot Faktenblatt v1.2 (Single Source of Truth)',
       status: 'Verbindlich',
-      date: 'Juli 2026',
+      date: 'Oktober 2026',
     },
     {
       id: 'TS-1.1',
@@ -39,8 +39,8 @@ export const QUELLEN = {
   title: 'Verbindliches Referenzmaterial',
   sources: [
     {
-      name: 'docs/LeadPilot_Faktenblatt_v1.1.md',
-      desc: 'Verbindliches Faktenblatt v1.1 (Single Source of Truth)',
+      name: 'docs/LeadPilot_Faktenblatt_v1.2.md',
+      desc: 'Verbindliches Faktenblatt v1.2 (Single Source of Truth)',
     },
     { name: 'Jahresabschluss 2025', desc: 'Geprüfter Jahresabschluss 2025 (GuV & Bilanz)' },
     {

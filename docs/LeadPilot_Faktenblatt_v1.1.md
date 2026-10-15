@@ -1,5 +1,7 @@
 # LeadPilot GmbH — Faktenblatt v1.1
 
+> **Abgelöst durch [Faktenblatt v1.2](LeadPilot_Faktenblatt_v1.2.md) (Oktober 2026).** Diese Fassung bleibt als Historie erhalten. Die Kennung `Faktenblatt_v1.1` in der Simulation bezeichnet deren Ausgangsbasis (Schutzbereich). Die Ausgangswerte (66 Kunden, MRR 34.320 €, ARR 411.840 €) sind in v1.2 unverändert. Einzelne Annahmen der Simulation weichen von v1.2 ab, etwa das Pro-Paket mit 14 Nutzern × 80 € (v1.2: Ø 15 Nutzer, Ø 1.565 € MRR); sie werden nur mit eigenem Auftrag angeglichen.
+
 **Verbindliche Stammdaten für alle Aufgaben im Rahmen der Weiterbildung Digital Sales Manager (DBA)**
 
 | | |
@@ -8,7 +10,7 @@
 | **Berichtsjahr** | GJ 2025 (01.01.–31.12.2025) |
 | **Stand** | Juli 2026 · Version 1.1 |
 | **Autor** | Marc Pönisch |
-| **Status** | Single Source of Truth — bei Widersprüchen in anderen Dokumenten gilt dieses Blatt |
+| **Status** | Abgelöst/historisch — verbindlich ist [Faktenblatt v1.2](LeadPilot_Faktenblatt_v1.2.md) |
 
 > **Änderung gegenüber v1.0:** Die Erlös- und Kostenpositionen wurden aus der monatlichen MRR-Reihe rückgerechnet und sind jetzt vollständig formelkonsistent. Umsatz, Umsatzkosten und OPEX verschieben sich leicht; Jahresfehlbetrag, Bilanz und alle SaaS-Kernmetriken bleiben unverändert.
 >
@@ -400,4 +402,4 @@
 
 ---
 
-*Version 1.1 · Juli 2026 · Bei Widersprüchen in anderen Projektdokumenten gilt dieses Faktenblatt.*
+*Version 1.1 · Juli 2026 · Historische Fassung, abgelöst durch Faktenblatt v1.2 – bei Widersprüchen gilt v1.2.*

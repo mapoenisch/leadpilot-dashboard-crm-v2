@@ -16413,3 +16413,79 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - CodeQL „Incomplete string escaping“: bereits mit `774a2ed` behoben.
 - Schutzbereich-Diff leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` · `verify` · `vitest` 329 / 2346 · `build` grün.
 - Nachtrag (Marc 13.10.2026): Quellenzeile auf „Faktenblatt v1.2 · Stand FY 2025 · fester Stand“ gestellt – v1.2 ist die gültige Fassung; Funnel-Werte der Seite entsprechen v1.2 Abschnitt 8 (1.776 / 516 / 192 / 264 / 108 / 47; 29,1 % · 37,2 % · 56,3 % · Win Rate 43,5 %).
+
+### Faktenblatt v1.2 im Repo (13.10.2026, Claude Code, Entscheidung Marc)
+
+- Neu: `docs/LeadPilot_Faktenblatt_v1.2.md`, bytegleiche Kopie der von Marc bereitgestellten Fassung v1.2 (Oktober 2026, Abgleich mit der Anwendung, Abschnitt 17 mit Abgleichsprotokoll und sieben offenen Widersprüchen).
+- `docs/LeadPilot_Faktenblatt_v1.1.md`: nur Hinweis „abgelöst durch v1.2“ ergänzt, Inhalt unverändert als Historie.
+- Bewusst unverändert: die Kennung `Faktenblatt_v1.1` in `src/simulation/**` (Schutzbereich; Ausgangswerte laut v1.2 Abschnitt 17 B unverändert) sowie Verweise in abgeschlossenen Aufträgen und Registern.
+- Kein Code geändert; Schutzbereich-Diff leer.
+- Gates (Codex PR #80, P1): `npx tsc --noEmit` 0 Fehler · `npm run verify` grün · `npm run build` grün.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 1 (13.10.2026, Claude Code)
+
+- P1 Gate-Nachweis: oben ergänzt (`tsc` 0 · `verify` · `build` grün).
+- P2 Status v1.1: Metadaten-Status auf „Abgelöst/historisch“ mit Verweis auf v1.2 (vorher weiter „Single Source of Truth“).
+- P2 Negative-Fit ↔ Churn-Befund und P2 Zeitraum „Marketingplanung H2 2026“: inhaltliche Widersprüche im Faktenblatt, nicht vom Builder entschieden; als Punkte 8 und 9 in Abschnitt 17 D („Offene Widersprüche“, Klärung durch Marc) aufgenommen. Die Repo-Kopie v1.2 weicht damit nur um diese zwei Listenpunkte von Marcs Originaldatei ab.
+- Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Entscheidungen Marc zu Nr. 8 und 9 (13.10.2026, Claude Code)
+
+- Nr. 8: Negative-Fit in Abschnitt 13 um „Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern“ ergänzt; damit stimmt der Churn-Befund in Abschnitt 4 wieder. Anwendung: Strategie-, Markt- und Executive-Texte nennen Kleinstkunden bereits Negative-Fit; die ICP-Seite (drei Kriterien) wird bei ihrer Migration in Paket G2 angeglichen.
+- Nr. 9 (geringerer Aufwand): Reihe im Faktenblatt heißt „Aug 2026 – Jan 2027“ mit Verweis auf den App-Titel „Marketingplanung H2 2026“; Anwendung und Werte unverändert.
+- Abschnitt 17 A und D entsprechend nachgeführt. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 2 (15.10.2026, Claude Code)
+
+- Konflikt mit `main` (nach Merge PR #79) im BUILD_LOG gelöst: beide Seiten nur angehängt, 093-Abschnitte vor den Faktenblatt-Abschnitten, keine Zeile aus `main` entfernt.
+- P2 Quellenverweise: sichtbare Angaben auf v1.2 umgestellt – `src/domain/projektkontextData.ts` (Projektkontext und Referenzmaterial), `src/domain/execData.ts` (Hero, Datenbrücken, Quellen, Methodik-Hinweis), `designPatternTiles.tsx`, `DesignPatternPreview.tsx`, `catalog/activeEntries.ts`. Bewusst unverändert: Kennung `Faktenblatt_v1.1` in `src/simulation/**` (Schutzbereich, Ausgangswerte unverändert) und Hinweis „Ebene A … v1.1“ in `LiveDashboardView.tsx`, der diese Ausgangsbasis beschreibt.
+- P2 Churn-Ziel ↔ Plan-Churn, P2 ARR-Ziel ↔ Abo-Umsatz 2026, P2 Kampagnen-KPIs als Ergebnis: inhaltliche Widersprüche, nicht vom Builder entschieden; als Nr. 10–12 in Abschnitt 17 D eingetragen, Klärung durch Marc.
+- Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `verify` grün · `vitest` 329 / 2346 · `build` grün.
+
+### Faktenblatt v1.2 – Entscheidungen Marc zu Nr. 10–12 (15.10.2026, Claude Code)
+
+- Nr. 10: OKR Account-Churn auf „≤ 1,8 %“ (Abschnitt 12); Plan-KPIs Jan 2027 als Ziele der Marketingplanung gekennzeichnet.
+- Nr. 11: Plan-GuV-Zeile „Abo-Umsatz (Plan 2026: Ziel-ARR, vereinfacht)“ plus Hinweis unter der Tabelle; Zahlen unverändert.
+- Nr. 12: Kampagne „LeadPilot Connect“: „Ergebnis“ → „Ziele“.
+- Abschnitt 17 D nachgeführt. Die Anwendung (Strategie-, Finanz- und Kampagnenseite) wird bei der jeweiligen Migration in Paket G2 angeglichen. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Entscheidungen Marc zu Nr. 1–7 (15.10.2026, Claude Code)
+
+- Nr. 1: Trial-to-Paid-Ziel 2026 = ≥ 26 %; 25 %-Stellen der Anwendung werden in G2 angeglichen.
+- Nr. 2: Marketing-Budget 2026 = 55.000 € (darin 30.000 € H2-Initiativen); 65.000 € in Abschnitt 16 als Modellannahme der Simulation gekennzeichnet (Schutzbereich unverändert).
+- Nr. 3: Paketverteilung gilt (Pro 4.695 € MRR); Top-10-Pro-Kunden angeglichen: Delta Labs 17.520 €, Kestrel Components 18.780 €, Siegfried Precision 20.040 € ARR (MRR 1.460 / 1.565 / 1.670 €).
+- Nr. 4: Vertretung = jeweils einzelvertretungsberechtigt (neue Zeile in Abschnitt 1).
+- Nr. 5: Kostenbudget 830.000 € als Budgetrahmen, Plan-GuV als Ergebnisrechnung; Erklärung in Abschnitt 14.
+- Nr. 6: Marktzahlen als „Europa“ beschriften, „DACH“ nur für das Zielgebiet (Hinweis in Abschnitt 11).
+- Nr. 7: erledigt durch v1.2, v1.1 bleibt als Historie.
+- Abschnitt 17 D: alle zwölf Punkte entschieden. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 3 (15.10.2026, Claude Code)
+
+- P2 Vollkonsistenz-Aussage (`execData.ts`): ersetzt durch „basieren auf dem verbindlichen Faktenblatt v1.2; noch nicht angeglichene Abweichungen stehen im Abgleichsprotokoll (Abschnitt 17)“.
+- P2 SOT-Kennung (`projektkontextData.ts`): `SOT-1.1` → `SOT-1.2`.
+- P2 „Ziele 2026 ohne Abweichung“ (17 B): Ziele 2026, Paketverteilung/Top-10 und Marktbeschriftung aus B herausgenommen und als Abweichung nach D markiert.
+- P2 KPI-Katalog: `docs/dashboard/KPI_CATALOG.md` Baseline-Quelle auf Faktenblatt v1.2, synchron zu `BASELINE_ACCESS`.
+- P2 Vorrangregel (Abschnitt-Kopf und Fußzeile): v1.2 ist nach den Entscheidungen in 17 D verbindlich, auch gegenüber der Anwendung.
+- P2 Pro-Nutzerschnitt: Paketverteilung Pro Ø 15 Nutzer (14/15/16 der drei Pro-Kunden). Dabei aufgefallen: Ø Nutzer je Account 6,0 passt nicht zur Paketverteilung (7,1) → neu als Nr. 13 offen in 17 D, Entscheidung Marc.
+- P2 Screenshot-Nachweis: `scripts/captureFaktenblattV12Quellen.mjs`, Matrix `docs/screenshots/faktenblatt-v1-2/README.md`: 6/6 – einzige sichtbare Stelle ist die Designmuster-Vorschau (Build `VITE_DASHBOARD_PREVIEW=true`), „Faktenblatt v1.1“ 23 → 0, „v1.2“ 0 → 23, Hashes verschieden, 0 px Überlauf. `/dashboard` rendert den geänderten Hero-Untertitel nicht; Projektkontext- und Quellenseite sind in keiner Route eingebunden; `BASELINE_ACCESS` wird nicht gerendert.
+- Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `vitest` 329 / 2346 · `build` grün.
+
+### Faktenblatt v1.2 – Entscheidung Marc zu Nr. 13 (15.10.2026, Claude Code)
+
+- Ø Nutzer je Account 31.12.2025 = 7,1 (aus der Paketverteilung gerechnet, vorher 6,0): Kennzahl Abschnitt 3 und Gesamtzeile der Paketverteilung angeglichen, 17 D Nr. 13 als entschieden markiert; damit sind alle 13 Punkte entschieden.
+- Anwendung (`src/domain/geschaeftsmodellData.ts`, „Ø 6,0 Nutzer/Account“) wird bei der Migration der Seite in Paket G2 angeglichen. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 4 (15.10.2026, Claude Code)
+
+- P2 Änderungshinweis (Kopf): Die Aussage „alle Kennzahlen aus v1.1 unverändert“ ist eingegrenzt. Die durch 17 D geänderten Werte und Kennzeichnungen sind genannt, die App-Abweichung bis zur Angleichung ist vermerkt.
+- P2 Light-Screenshots: Das Harness wählt Hell über den Farbmodus-Schalter der Vorschau, weil diese `leadpilot-theme` ignoriert. Neue Matrix `docs/screenshots/faktenblatt-v1-2/README.md` mit 6/6, dunkel und hell jetzt mit verschiedenen Hashes, „v1.1“ 23 → 0, „v1.2“ 0 → 23, 0 px Überlauf.
+- P2 ICP-Budget ↔ Pro-Referenzkunden (≈ 104 €/Nutzer): Entscheidung Marc: Pro ist eine Ausnahme vom ICP-Budget 49–89 € (Abschnitt 13), als Nr. 14 in 17 D eingetragen.
+- Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `build` grün.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 5 (15.10.2026, Claude Code)
+
+- P2 Begründung zur Simulationskennung (`Faktenblatt_v1.1.md`, Kopf): eingegrenzt auf die unveränderten Ausgangswerte (66 Kunden, MRR 34.320 €, ARR 411.840 €). Die abweichende Pro-Annahme der Simulation (14 Nutzer × 80 €, `src/simulation/eventLeadRules.ts`) ist genannt und zusätzlich in v1.2 Abschnitt 16 vermerkt. Der Code bleibt unverändert (Schutzbereich), eine Angleichung nur mit eigenem Auftrag.
+- P2 Vorrangregel in der Fußzeile von v1.1: jetzt „Historische Fassung, abgelöst durch Faktenblatt v1.2 – bei Widersprüchen gilt v1.2“.
+- Nebenbei: Verweise auf die Paketverteilung in v1.2 von „Abschnitt 4“ auf „Abschnitt 3“ korrigiert.
+- Nur Dokumentation, kein Code; Schutzbereich-Diff gegen `main` leer.

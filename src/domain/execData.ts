@@ -2,7 +2,7 @@ export const HERO = {
   eyebrow: 'Executive Dashboard — LeadPilot GmbH',
   title: 'LeadPilot auf einen Blick',
   subtitle:
-    'Konsolidierte Übersicht der operativen, finanziellen und strategischen Entwicklung für das Geschäftsjahr 2025/2026 (Faktenblatt v1.1).',
+    'Konsolidierte Übersicht der operativen, finanziellen und strategischen Entwicklung für das Geschäftsjahr 2025/2026 (Faktenblatt v1.2).',
 };
 
 export const EXEC_KPIS_1 = [
@@ -147,12 +147,12 @@ export const NOTE_HIGHLIGHTS = {
 
 export const BRIDGES_ROWS = [
   ['Datenbank / CRM', 'PostgreSQL Data Repository (20 Accounts, 100 Kontakte, 40 Funnel Deals)'],
-  ['Finanzbuchhaltung', 'GuV und Bilanz aus Faktenblatt v1.1 (Single Source of Truth)'],
+  ['Finanzbuchhaltung', 'GuV und Bilanz aus Faktenblatt v1.2 (Single Source of Truth)'],
   ['Analytics', 'Aggregierte Nutzungsdaten aus der LeadPilot SaaS-Plattform'],
 ];
 
 export const SOURCES_ROWS = [
-  ['Faktenblatt v1.1', 'Verbindliche Stammdaten (Single Source of Truth)'],
+  ['Faktenblatt v1.2', 'Verbindliche Stammdaten (Single Source of Truth)'],
   ['Jahresabschluss 2025', 'Finanzkennzahlen, GuV & Bilanzdaten'],
   ['CRM-Export FY25', 'Pipeline-, Lead- & Kanalperformance-Daten'],
 ];
@@ -161,6 +161,6 @@ export const NOTE_DATEN = {
   title: 'Datenkonsistenz & Methodik',
   variant: 'info',
   paragraphs: [
-    'Alle Daten im LeadPilot Dashboard sind über die Fachmodule hinweg voll konsistent und basieren auf dem verbindlichen Faktenblatt v1.1.',
+    'Alle Daten im LeadPilot Dashboard basieren auf dem verbindlichen Faktenblatt v1.2. Noch nicht angeglichene Abweichungen stehen im Abgleichsprotokoll (Abschnitt 17).',
   ],
 };

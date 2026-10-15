@@ -5,7 +5,7 @@ import type { ActiveCatalogEntry, CatalogSource, DashboardCategory } from '../da
 import { LIVE_ACCESS, LIVE_ENTRIES, LIVE_SOURCE } from './liveEntries';
 
 export const BASELINE_ACCESS =
-  'Statische Stammdaten (Faktenblatt v1.1) im App-Bundle; sichtbar für jedes angemeldete aktive Organisationsmitglied hinter ProtectedRoute, organisationsunabhängig.';
+  'Statische Stammdaten (Faktenblatt v1.2) im App-Bundle; sichtbar für jedes angemeldete aktive Organisationsmitglied hinter ProtectedRoute, organisationsunabhängig.';
 const CRM_ACCESS =
   'Tabelle imported_funnel_deals, RLS tenant_select_deals: nur aktive Mitglieder der aktuellen Organisation, alle Rollen einschließlich Viewer.';
 const EXEC = 'src/domain/execData.ts';
