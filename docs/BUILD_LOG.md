@@ -16459,3 +16459,14 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - Nr. 6: Marktzahlen als „Europa“ beschriften, „DACH“ nur für das Zielgebiet (Hinweis in Abschnitt 11).
 - Nr. 7: erledigt durch v1.2, v1.1 bleibt als Historie.
 - Abschnitt 17 D: alle zwölf Punkte entschieden. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 3 (15.10.2026, Claude Code)
+
+- P2 Vollkonsistenz-Aussage (`execData.ts`): ersetzt durch „basieren auf dem verbindlichen Faktenblatt v1.2; noch nicht angeglichene Abweichungen stehen im Abgleichsprotokoll (Abschnitt 17)“.
+- P2 SOT-Kennung (`projektkontextData.ts`): `SOT-1.1` → `SOT-1.2`.
+- P2 „Ziele 2026 ohne Abweichung“ (17 B): Ziele 2026, Paketverteilung/Top-10 und Marktbeschriftung aus B herausgenommen und als Abweichung nach D markiert.
+- P2 KPI-Katalog: `docs/dashboard/KPI_CATALOG.md` Baseline-Quelle auf Faktenblatt v1.2, synchron zu `BASELINE_ACCESS`.
+- P2 Vorrangregel (Abschnitt-Kopf und Fußzeile): v1.2 ist nach den Entscheidungen in 17 D verbindlich, auch gegenüber der Anwendung.
+- P2 Pro-Nutzerschnitt: Paketverteilung Pro Ø 15 Nutzer (14/15/16 der drei Pro-Kunden). Dabei aufgefallen: Ø Nutzer je Account 6,0 passt nicht zur Paketverteilung (7,1) → neu als Nr. 13 offen in 17 D, Entscheidung Marc.
+- P2 Screenshot-Nachweis: `scripts/captureFaktenblattV12Quellen.mjs`, Matrix `docs/screenshots/faktenblatt-v1-2/README.md`: 6/6 – einzige sichtbare Stelle ist die Designmuster-Vorschau (Build `VITE_DASHBOARD_PREVIEW=true`), „Faktenblatt v1.1“ 23 → 0, „v1.2“ 0 → 23, Hashes verschieden, 0 px Überlauf. `/dashboard` rendert den geänderten Hero-Untertitel nicht; Projektkontext- und Quellenseite sind in keiner Route eingebunden; `BASELINE_ACCESS` wird nicht gerendert.
+- Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `vitest` 329 / 2346 · `build` grün.

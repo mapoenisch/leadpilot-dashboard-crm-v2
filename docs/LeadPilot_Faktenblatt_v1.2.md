@@ -10,7 +10,7 @@
 | **Autor** | Marc Pönisch |
 | **Status** | Single Source of Truth — bei Widersprüchen in anderen Dokumenten gilt dieses Blatt |
 
-> **Änderung gegenüber v1.1 (Oktober 2026):** Abgleich mit dem LeadPilot Dashboard-CRM. Die Anwendung ist bindend; wo sie vom Faktenblatt v1.1 abwich, wurde das Faktenblatt angepasst. Betroffen sind Funnel-Quoten (Abschnitt 8), Produktbewertungen und Roadmap-Status (Abschnitt 9), Negative-Fit im ICP (Abschnitt 13) und das Handelsregister (Abschnitt 1). Neu aufgenommen wurden Anwendungs-Inhalte, die v1.1 nicht enthielt (Abschnitte 14–16). Alle Finanz-, Kunden- und SaaS-Kennzahlen aus v1.1 stimmen mit der Anwendung überein und bleiben unverändert. Einzelheiten und noch offene Widersprüche innerhalb der Anwendung stehen in Abschnitt 17.
+> **Änderung gegenüber v1.1 (Oktober 2026):** Abgleich mit dem LeadPilot Dashboard-CRM. Beim Abgleich war die Anwendung maßgeblich; wo sie vom Faktenblatt v1.1 abwich, wurde das Faktenblatt angepasst. Seit den Entscheidungen in Abschnitt 17 D (13. und 15.10.2026) ist dieses Faktenblatt verbindlich: Wo die Anwendung noch abweicht, gilt v1.2, und die Anwendung wird angeglichen. Betroffen sind Funnel-Quoten (Abschnitt 8), Produktbewertungen und Roadmap-Status (Abschnitt 9), Negative-Fit im ICP (Abschnitt 13) und das Handelsregister (Abschnitt 1). Neu aufgenommen wurden Anwendungs-Inhalte, die v1.1 nicht enthielt (Abschnitte 14–16). Alle Finanz-, Kunden- und SaaS-Kennzahlen aus v1.1 stimmen mit der Anwendung überein und bleiben unverändert. Einzelheiten, Entscheidungen und noch ausstehende Angleichungen der Anwendung stehen in Abschnitt 17.
 >
 > **Änderung gegenüber v1.0:** Die Erlös- und Kostenpositionen wurden aus der monatlichen MRR-Reihe rückgerechnet und sind jetzt vollständig formelkonsistent. Umsatz, Umsatzkosten und OPEX verschieben sich leicht; Jahresfehlbetrag, Bilanz und alle SaaS-Kernmetriken bleiben unverändert.
 >
@@ -86,7 +86,7 @@
 | :-- | --: | --: | --: | --: | --: |
 | Starter | 41 | 5 | 245 € | 10.045 € | 29 % |
 | Growth | 22 | 10 | 890 € | 19.580 € | 57 % |
-| Pro | 3 | 14 | 1.565 € | 4.695 € | 14 % |
+| Pro | 3 | 15 | 1.565 € | 4.695 € | 14 % |
 | **Gesamt** | **66** | **6,0** | **520 €** | **34.320 €** | **100 %** |
 
 **Branchen (ICP-konform, kein Kunde über 200 Mitarbeitende)**
@@ -550,11 +550,11 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 | Negative-Fit im ICP | sechs Kriterien | drei Kriterien laut Anwendung, plus Kleinstkunden (Entscheidung Marc 13.10.2026, passend zum Churn-Befund in Abschnitt 4) |
 | Handelsregister | nicht genannt | HRB 40912, Amtsgericht Leipzig |
 
-**B. Ohne Abweichung geprüft:** Unternehmensprofil, Preismodell, Kundenzahlen und Paketverteilung, Branchen und Regionen, alle SaaS-Kernmetriken, MRR-Brücke und -Reihe, GuV 2025 und 2024, Kostenstruktur, Bilanz 2025, Finanzierung und Gesellschafterliste, Funnel-Absolutwerte, Kanalanteile, Unit Economics, Personal, Markt und Wettbewerb, Ziele 2026, Buyer Persona (623 €).
+**B. Ohne Abweichung geprüft:** Unternehmensprofil, Preismodell, Kundenzahlen, Branchen und Regionen, alle SaaS-Kernmetriken, MRR-Brücke und -Reihe, GuV 2025 und 2024, Kostenstruktur, Bilanz 2025, Finanzierung und Gesellschafterliste, Funnel-Absolutwerte, Kanalanteile, Unit Economics, Personal, Wettbewerb, Buyer Persona (623 €). Paketverteilung und Top-10-Kunden, Marktbeschriftung und Ziele 2026 weichen nach den Entscheidungen in D von der Anwendung ab und werden dort angeglichen.
 
 **C. Aus v1.1 weiter gültig, aber ohne Gegenstück in der Anwendung:** Quartals-GuV, Vorjahresspalte der Bilanz, Eigenkapitalquote 71,8 %, ACV 4.300 €, Kanal-Skalierbarkeit, Sales Cycle nach Paket, Onboarding-Abschlussquote 74 %, Support-Lösungszeit 31 h, CSAT 4,0, abgeleitete Planung mit ARPA 544 €.
 
-**D. Widersprüche innerhalb der Anwendung** (alle entschieden durch Marc, 13. und 15.10.2026; die Anwendung wird bei der Migration der jeweiligen Seite in Paket G2 angeglichen)
+**D. Widersprüche innerhalb der Anwendung** (Nr. 1–12 entschieden durch Marc, 13. und 15.10.2026; die Anwendung wird bei der Migration der jeweiligen Seite in Paket G2 angeglichen. Nr. 13 offen.)
 
 1. ~~**Trial-to-Paid-Ziel**~~ — **entschieden (Marc, 15.10.2026):** Ziel 2026 ist ≥ 26 % (OKR, Plan Q4, Wachstumstreiber). Die 25 %-Angaben in SWOT, SWOT-Kompass, Roadmap v2.0 und „Guided Onboarding Campaign“ werden bei der Migration der jeweiligen Seite (Paket G2) angeglichen.
 2. ~~**Marketing-Budget 2026**~~ — **entschieden (Marc, 15.10.2026):** Verbindlich sind 55.000 € („Marketing & Ads“), die 30.000 € der H2-Initiativen sind ein Teil davon. Die 65.000 € sind eine Modellannahme der Simulation (Schutzbereich, bleibt) und in Abschnitt 16 so gekennzeichnet.
@@ -568,7 +568,8 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 10. ~~**Churn-Ziel und Plan-Churn**~~ — **entschieden (Marc, 15.10.2026):** OKR heißt „≤ 1,8 %“, der Plan-Churn Q4 2026 erfüllt das Ziel. Die 2,2 % für Jan 2027 sind ein eigenes, vorsichtigeres Ziel der Marketingplanung und als solches gekennzeichnet. Die Anwendung („< 1,8 %“ auf der Strategieseite) wird bei der Migration der Seite (Paket G2) angeglichen.
 11. ~~**ARR-Ziel und Abo-Umsatz 2026**~~ — **entschieden (Marc, 15.10.2026):** Zahlen bleiben; die Zeile der Plan-GuV ist als „Ziel-ARR, vereinfacht“ gekennzeichnet, mit Hinweis unter der Tabelle. Die Anwendung wird bei der Migration der Finanzseite (Paket G2) gleich gekennzeichnet.
 12. ~~**Kampagne „LeadPilot Connect“**~~ — **entschieden (Marc, 15.10.2026):** Entscheider, Demo-Anfragen und Deals sind Ziele, keine Ergebnisse; im Faktenblatt so bezeichnet. Die Anwendung wird bei der Migration der Seite „Kampagnenplanung“ (Paket G2) angeglichen.
+13. **Ø Nutzer je Account:** Kennzahl 6,0 (Abschnitt 4), die Paketverteilung ergibt (41 × 5 + 22 × 10 + 3 × 15) / 66 = 7,1. Klärung durch Marc nötig.
 
 ---
 
-*Version 1.2 · Oktober 2026 · Bei Widersprüchen in anderen Projektdokumenten gilt dieses Faktenblatt; Grundlage ist der Abgleich mit der Anwendung (Single Source of Truth).*
+*Version 1.2 · Oktober 2026 · Bei Widersprüchen mit anderen Projektdokumenten oder der Anwendung gilt dieses Faktenblatt (Single Source of Truth).*

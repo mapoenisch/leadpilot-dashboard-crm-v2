@@ -3,7 +3,7 @@ export const PROJEKT = {
   summary: 'Übersicht der operativen Meilensteine und Dokumente der LeadPilot GmbH.',
   tasks: [
     {
-      id: 'SOT-1.1',
+      id: 'SOT-1.2',
       title: 'LeadPilot Faktenblatt v1.2 (Single Source of Truth)',
       status: 'Verbindlich',
       date: 'Oktober 2026',

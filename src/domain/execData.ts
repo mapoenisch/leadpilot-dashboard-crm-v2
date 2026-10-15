@@ -161,6 +161,6 @@ export const NOTE_DATEN = {
   title: 'Datenkonsistenz & Methodik',
   variant: 'info',
   paragraphs: [
-    'Alle Daten im LeadPilot Dashboard sind über die Fachmodule hinweg voll konsistent und basieren auf dem verbindlichen Faktenblatt v1.2.',
+    'Alle Daten im LeadPilot Dashboard basieren auf dem verbindlichen Faktenblatt v1.2. Noch nicht angeglichene Abweichungen stehen im Abgleichsprotokoll (Abschnitt 17).',
   ],
 };
