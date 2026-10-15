@@ -11,6 +11,13 @@ export const IDEE = {
     'Automatisierte Nurturing-Sequenzen auf Autopilot',
     '100 % DSGVO-konform mit Serverstandort Deutschland (Frankfurt/Main)',
   ],
+  // Auftrag 094: Kacheln der 3D-Illustration neben den USPs (Original-WebP 04-geschaeftsidee).
+  uspKacheln: [
+    'DSGVO Konform',
+    'KI-Scoring',
+    'Schnell einsatzbereit',
+    'Serverstandort Deutschland',
+  ],
 };
 
 export const VALUE = {
@@ -39,6 +46,7 @@ export const HISTORIE = {
     {
       date: '21.07.2022',
       title: 'Gründung der LeadPilot GmbH',
+      hervorgehoben: true,
       desc: 'Beurkundung des Gesellschaftsvertrags in Leipzig durch Marc Pönisch (CEO) & Tobias Heine (CTO) mit 25.000 € Stammkapital.',
     },
     {
@@ -54,6 +62,7 @@ export const HISTORIE = {
     {
       date: 'Q1 2024',
       title: 'Produkt-Launch (GA)',
+      hervorgehoben: true,
       desc: 'Offizieller Marktstart der SaaS-Plattform mit den Paketen Starter (49€) und Growth (89€).',
     },
     {

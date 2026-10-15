@@ -16,4 +16,8 @@ export const PAGE_PRESENTATION: PagePresentation = 'bild';
 export const HTML_PAGES: readonly string[] = [
   // Welle G1 – Sales Funnel (Auftrag 093)
   'sales-funnel',
+  // Welle G2-1 – Unternehmen (Auftrag 094)
+  'company-idea',
+  'company-value-proposition',
+  'company-history',
 ];

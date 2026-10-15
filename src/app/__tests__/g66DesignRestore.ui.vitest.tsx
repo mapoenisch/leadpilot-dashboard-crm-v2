@@ -77,7 +77,9 @@ const pages: Array<[string, () => JSX.Element]> = [
   ['Teamstruktur', TeamStructurePage],
 ];
 
-const GESTALTET = '.pk-panel, .pk-stat, .pk-unit, .pk-row, .pk-feature, .pk-callout, .pk-quote';
+// Auftrag 094: Unternehmensseiten nach Original-WebP mit eigenen Karten (.us-karte, .us-zitat).
+const GESTALTET =
+  '.pk-panel, .pk-stat, .pk-unit, .pk-row, .pk-feature, .pk-callout, .pk-quote, .us-karte, .us-zitat';
 const root = path.resolve(__dirname, '../../..');
 
 describe('G66 Design-Wiederherstellung', () => {

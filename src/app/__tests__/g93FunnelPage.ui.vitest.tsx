@@ -11,9 +11,10 @@ import { SlaPage } from '@/features/vertrieb/pages/SlaPage';
 afterEach(cleanup);
 
 describe('G93 Sales Funnel als HTML-Seite', () => {
-  it('Seitenfreigabe nennt nur den Funnel, globaler Schalter bleibt Bild', () => {
+  it('Seitenfreigabe nennt den Funnel, globaler Schalter bleibt Bild', () => {
     expect(PAGE_PRESENTATION).toBe('bild');
-    expect(HTML_PAGES).toEqual(['sales-funnel']);
+    // Auftrag 094: weitere Wellen ergänzen die Liste; der Funnel bleibt freigegeben.
+    expect(HTML_PAGES).toContain('sales-funnel');
     for (const key of HTML_PAGES) expect(Object.keys(IMAGE_PAGES)).toContain(key);
   });
 
