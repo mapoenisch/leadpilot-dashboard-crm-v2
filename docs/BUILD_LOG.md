@@ -16475,3 +16475,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 - Ø Nutzer je Account 31.12.2025 = 7,1 (aus der Paketverteilung gerechnet, vorher 6,0): Kennzahl Abschnitt 3 und Gesamtzeile der Paketverteilung angeglichen, 17 D Nr. 13 als entschieden markiert; damit sind alle 13 Punkte entschieden.
 - Anwendung (`src/domain/geschaeftsmodellData.ts`, „Ø 6,0 Nutzer/Account“) wird bei der Migration der Seite in Paket G2 angeglichen. Nur Dokumentation, kein Code; Schutzbereich-Diff leer.
+
+### Faktenblatt v1.2 – Nacharbeit Codex PR #80, Runde 4 (15.10.2026, Claude Code)
+
+- P2 Änderungshinweis (Kopf): Die Aussage „alle Kennzahlen aus v1.1 unverändert“ ist eingegrenzt. Die durch 17 D geänderten Werte und Kennzeichnungen sind genannt, die App-Abweichung bis zur Angleichung ist vermerkt.
+- P2 Light-Screenshots: Das Harness wählt Hell über den Farbmodus-Schalter der Vorschau, weil diese `leadpilot-theme` ignoriert. Neue Matrix `docs/screenshots/faktenblatt-v1-2/README.md` mit 6/6, dunkel und hell jetzt mit verschiedenen Hashes, „v1.1“ 23 → 0, „v1.2“ 0 → 23, 0 px Überlauf.
+- P2 ICP-Budget ↔ Pro-Referenzkunden (≈ 104 €/Nutzer): Entscheidung Marc: Pro ist eine Ausnahme vom ICP-Budget 49–89 € (Abschnitt 13), als Nr. 14 in 17 D eingetragen.
+- Schutzbereich-Diff gegen `main` leer. Gates: `tsc` 0 · `lint` 0/0 · `format:check` grün · `verify` grün · `build` grün.

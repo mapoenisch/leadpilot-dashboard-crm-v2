@@ -66,6 +66,17 @@ async function capture() {
           const page = await context.newPage();
           await page.goto(target.url, { waitUntil: 'networkidle' });
           await page.locator(target.ready).first().waitFor({ state: 'attached', timeout: 15000 });
+          // Die Vorschau führt den Farbmodus als eigenen State (Start „Dunkel“) und überschreibt
+          // data-theme beim Mounten; Hell daher über den Schalter der Seite wählen.
+          if (theme === 'light') {
+            await page
+              .getByRole('group', { name: 'Farbmodus' })
+              .getByRole('button', { name: 'Hell' })
+              .click();
+            await page.waitForFunction(
+              () => document.documentElement.getAttribute('data-theme') === 'light',
+            );
+          }
           await page.addStyleTag({
             content:
               '*, *::before, *::after { transition: none !important; animation: none !important; caret-color: transparent !important; }',
@@ -151,7 +162,7 @@ Builds mit \`VITE_DASHBOARD_PREVIEW=true\` (CI-Artefakt \`dashboard-preview\`) g
 \`claude/faktenblatt-v1-2\`. Gezählt werden sichtbare Nennungen im Seitentext. Einzige sichtbare Stelle
 ist die Designmuster-Vorschau: \`/dashboard\` rendert den Hero-Untertitel aus \`execData.ts\` nicht, Projektkontext- und
 Quellenseite (\`projektkontextData.ts\`, Quellenfluss in \`execData.ts\`) sind in keiner Route eingebunden,
-\`BASELINE_ACCESS\` wird nicht gerendert. Die Vorschau hat keinen eigenen Theme-Schalter, dunkel und hell sind daher bildgleich. Bilder bleiben
+\`BASELINE_ACCESS\` wird nicht gerendert. Hell wird über den Farbmodus-Schalter der Vorschau gewählt. Bilder bleiben
 lokal unter \`artifacts/faktenblatt-v1-2/\`.
 
 | Seite | Breite | Theme | SHA-256 vorher | SHA-256 nachher | „v1.1“ vorher → nachher | „v1.2“ vorher → nachher | Überlauf |

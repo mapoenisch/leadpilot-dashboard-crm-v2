@@ -10,7 +10,7 @@
 | **Autor** | Marc Pönisch |
 | **Status** | Single Source of Truth — bei Widersprüchen in anderen Dokumenten gilt dieses Blatt |
 
-> **Änderung gegenüber v1.1 (Oktober 2026):** Abgleich mit dem LeadPilot Dashboard-CRM. Beim Abgleich war die Anwendung maßgeblich; wo sie vom Faktenblatt v1.1 abwich, wurde das Faktenblatt angepasst. Seit den Entscheidungen in Abschnitt 17 D (13. und 15.10.2026) ist dieses Faktenblatt verbindlich: Wo die Anwendung noch abweicht, gilt v1.2, und die Anwendung wird angeglichen. Betroffen sind Funnel-Quoten (Abschnitt 8), Produktbewertungen und Roadmap-Status (Abschnitt 9), Negative-Fit im ICP (Abschnitt 13) und das Handelsregister (Abschnitt 1). Neu aufgenommen wurden Anwendungs-Inhalte, die v1.1 nicht enthielt (Abschnitte 14–16). Alle Finanz-, Kunden- und SaaS-Kennzahlen aus v1.1 stimmen mit der Anwendung überein und bleiben unverändert. Einzelheiten, Entscheidungen und noch ausstehende Angleichungen der Anwendung stehen in Abschnitt 17.
+> **Änderung gegenüber v1.1 (Oktober 2026):** Abgleich mit dem LeadPilot Dashboard-CRM. Beim Abgleich war die Anwendung maßgeblich; wo sie vom Faktenblatt v1.1 abwich, wurde das Faktenblatt angepasst. Seit den Entscheidungen in Abschnitt 17 D (13. und 15.10.2026) ist dieses Faktenblatt verbindlich: Wo die Anwendung noch abweicht, gilt v1.2, und die Anwendung wird angeglichen. Betroffen sind Funnel-Quoten (Abschnitt 8), Produktbewertungen und Roadmap-Status (Abschnitt 9), Negative-Fit im ICP (Abschnitt 13) und das Handelsregister (Abschnitt 1). Neu aufgenommen wurden Anwendungs-Inhalte, die v1.1 nicht enthielt (Abschnitte 14–16). Durch die Entscheidungen in Abschnitt 17 D geändert sind: Ø Nutzer je Account (6,0 → 7,1), Ø Nutzer im Pro-Paket (14 → 15), ARR der drei Pro-Referenzkunden, Churn-Ziel (< 1,8 % → ≤ 1,8 %) und die Vertretung; dazu Kennzeichnungen bei Plan-GuV, Kostenbudget, Kampagne und Marktbeschriftung. Hier weicht die Anwendung noch ab, bis sie angeglichen ist. Die übrigen Finanz-, Kunden- und SaaS-Kennzahlen aus v1.1 bleiben unverändert. Einzelheiten, Entscheidungen und noch ausstehende Angleichungen der Anwendung stehen in Abschnitt 17.
 >
 > **Änderung gegenüber v1.0:** Die Erlös- und Kostenpositionen wurden aus der monatlichen MRR-Reihe rückgerechnet und sind jetzt vollständig formelkonsistent. Umsatz, Umsatzkosten und OPEX verschieben sich leicht; Jahresfehlbetrag, Bilanz und alle SaaS-Kernmetriken bleiben unverändert.
 >
@@ -400,7 +400,7 @@
 | Vertriebsteam | 2–20 Personen |
 | Region | DACH, Schwerpunkt Deutschland |
 | CRM-Reifegrad | kein CRM oder Excel-/Google-Listen |
-| Budget | 49–89 €/Nutzer/Monat |
+| Budget | 49–89 €/Nutzer/Monat (Starter/Growth); Ausnahme Pro: individuelles Angebot mit SLA und dediziertem Support, rund 104 €/Nutzer/Monat (Entscheidung Marc, 15.10.2026) |
 | Entscheidung | Vertriebsleitung allein oder mit Geschäftsführung, kurze Wege |
 | **Negative-Fit** | Großkonzerne > 200 Mitarbeitende mit komplexer Enterprise-IT · reine B2C-Unternehmen ohne mehrstufigen Vertrieb · Unternehmen ohne laufendes Software-Budget · Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern |
 
@@ -569,6 +569,7 @@ Die Monatswerte (Summe 19.375 €) sind der Teilplan. Das Gesamtbudget H2 2026 b
 11. ~~**ARR-Ziel und Abo-Umsatz 2026**~~ — **entschieden (Marc, 15.10.2026):** Zahlen bleiben; die Zeile der Plan-GuV ist als „Ziel-ARR, vereinfacht“ gekennzeichnet, mit Hinweis unter der Tabelle. Die Anwendung wird bei der Migration der Finanzseite (Paket G2) gleich gekennzeichnet.
 12. ~~**Kampagne „LeadPilot Connect“**~~ — **entschieden (Marc, 15.10.2026):** Entscheider, Demo-Anfragen und Deals sind Ziele, keine Ergebnisse; im Faktenblatt so bezeichnet. Die Anwendung wird bei der Migration der Seite „Kampagnenplanung“ (Paket G2) angeglichen.
 13. ~~**Ø Nutzer je Account**~~ — **entschieden (Marc, 15.10.2026):** 7,1 Nutzer je Account, gerechnet aus der Paketverteilung ((41 × 5 + 22 × 10 + 3 × 15) / 66); Kennzahl in Abschnitt 3 und Gesamtzeile der Paketverteilung angeglichen (vorher 6,0). Die Anwendung wird bei der Migration der Kundenseite (Paket G2) angeglichen.
+14. ~~**ICP-Budget und Pro-Referenzkunden**~~ — **entschieden (Marc, 15.10.2026):** Die Pro-Kunden liegen bei rund 104 €/Nutzer/Monat und damit über dem ICP-Budget 49–89 €. Das Budget gilt für Starter/Growth; Pro ist eine ausdrückliche Ausnahme im ICP (Abschnitt 13). Die drei Pro-Referenzkunden bleiben ICP-konform.
 
 ---
 
