@@ -1,0 +1,393 @@
+/* Auftrag 095 (Paket G2, Welle 2): Produkt-Funktionsweise und Roadmap nach den Original-WebPs
+   (public/assets/auftrag-037g/07 und 10). Marken-Tokens und --pk-tone aus dem Page-Kit.
+   „Ruhig“ (data-ruhig) dämpft Leuchten etwa um die Hälfte, entfernt nichts. */
+
+/* ── Funktionsweise: Modulkarten ──────────────────────────── */
+.pd-modul {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 46%);
+  gap: var(--space-4);
+  align-items: stretch;
+  min-width: 0;
+  padding: var(--space-5) var(--space-5) var(--space-5) var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid color-mix(in srgb, var(--cyan) 70%, transparent);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--cyan) 7%, transparent) 0%, transparent 55%),
+    color-mix(in srgb, var(--color-bg-deep) 72%, transparent);
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--cyan) 22%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--cyan) 6%, transparent);
+}
+.pd-modul__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.pd-modul__text p {
+  margin: 0;
+}
+.pd-modul__titel {
+  margin: 0;
+  color: var(--cyan);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.pd-mehr {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  color: var(--cyan);
+  font-weight: 600;
+  text-decoration: none;
+}
+.pd-mehr__kreis {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1.5px solid var(--cyan);
+}
+.pd-mehr:hover .pd-mehr__kreis,
+.pd-mehr:focus-visible .pd-mehr__kreis {
+  background: color-mix(in srgb, var(--cyan) 18%, transparent);
+}
+.pd-hinweis {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ── 3D-Illustrationen der Module (dekorativ) ─────────────── */
+.pd-bild {
+  position: relative;
+  min-height: 190px;
+  perspective: 900px;
+  pointer-events: none;
+}
+.pd-bild > * {
+  position: absolute;
+}
+.pd-bild__sockel {
+  left: 6%;
+  right: 4%;
+  bottom: 6px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid color-mix(in srgb, var(--cyan) 55%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--cyan) 18%, var(--color-bg-deep)),
+    color-mix(in srgb, var(--cyan) 5%, var(--color-bg-deep))
+  );
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--cyan) 26%, transparent),
+    5px 8px 0 color-mix(in srgb, var(--cyan) 12%, var(--color-bg-deep));
+  transform: rotateY(-22deg) rotateX(18deg) rotateZ(-3deg);
+}
+.pd-kachel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--cyan) 55%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--cyan) 20%, var(--color-bg-deep)),
+    color-mix(in srgb, var(--cyan) 6%, var(--color-bg-deep))
+  );
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--cyan) 22%, transparent),
+    4px 5px 0 color-mix(in srgb, var(--cyan) 12%, var(--color-bg-deep));
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: rotateY(-14deg) rotateZ(3deg);
+}
+.pd-kachel svg {
+  flex: none;
+  color: var(--cyan);
+}
+.pd-bild__block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid color-mix(in srgb, var(--cyan) 65%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--cyan) 26%, var(--color-bg-deep)),
+    color-mix(in srgb, var(--cyan) 8%, var(--color-bg-deep))
+  );
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--cyan) 30%, transparent),
+    6px 9px 0 color-mix(in srgb, var(--cyan) 14%, var(--color-bg-deep));
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  transform: rotateY(-22deg) rotateX(10deg) rotateZ(-3deg);
+}
+.pd-bild__kreis {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  border: 2px solid var(--cyan);
+  color: var(--cyan);
+}
+.pd-bild__liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Smart Lead Capture */
+.pd-bild[data-art='capture'] .pd-bild__quellen {
+  left: 2%;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pd-bild[data-art='capture'] .pd-kachel {
+  padding: 8px;
+}
+.pd-bild[data-art='capture'] .pd-bild__block {
+  right: 8%;
+  top: 14px;
+  width: 44%;
+  height: 118px;
+}
+
+/* KI Lead Scoring */
+.pd-bild[data-art='scoring'] .pd-bild__block--hinten {
+  left: 22%;
+  top: 4px;
+  width: 38%;
+  height: 120px;
+  opacity: 0.55;
+}
+.pd-bild[data-art='scoring'] .pd-bild__score {
+  left: 4%;
+  top: 36px;
+  width: 44%;
+  height: 100px;
+  font-size: 13px;
+}
+.pd-bild__score strong {
+  color: var(--cyan);
+  font-size: 34px;
+  line-height: 1;
+}
+.pd-bild__balken {
+  width: 70%;
+  height: 7px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--cyan) 0 87%,
+    color-mix(in srgb, var(--cyan) 20%, transparent) 87% 100%
+  );
+}
+.pd-bild[data-art='scoring'] .pd-bild__liste {
+  right: 0;
+  top: 8px;
+}
+
+/* Nurturing Sequenzen */
+.pd-bild[data-art='nurturing'] .pd-bild__mail {
+  left: 4%;
+  top: 56px;
+  width: 30%;
+  height: 78px;
+  color: var(--cyan);
+}
+.pd-bild[data-art='nurturing'] .pd-bild__liste {
+  right: 0;
+  top: 14px;
+}
+
+/* Pipeline Cockpit */
+.pd-bild__spalten {
+  left: 2%;
+  right: 0;
+  top: 8px;
+  display: flex;
+  gap: 5px;
+  transform: rotateY(-20deg) rotateX(8deg) rotateZ(-2deg);
+}
+.pd-spalte {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  height: 128px;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--cyan) 55%, transparent);
+  background: color-mix(in srgb, var(--cyan) 8%, var(--color-bg-deep));
+  box-shadow: 3px 5px 0 color-mix(in srgb, var(--cyan) 12%, var(--color-bg-deep));
+  --spalte: var(--cyan);
+}
+.pd-spalte[data-farbe='blau'] {
+  --spalte: #3b82f6;
+}
+.pd-spalte[data-farbe='orange'] {
+  --spalte: var(--orange);
+}
+.pd-spalte[data-farbe='gruen'] {
+  --spalte: #22c55e;
+}
+.pd-spalte[data-farbe='grau'] {
+  --spalte: #94a3b8;
+}
+.pd-spalte__kopf {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.pd-spalte__kopf strong {
+  font-size: 12px;
+}
+.pd-spalte__balken {
+  height: 7px;
+  border-radius: 2px;
+  background: var(--spalte);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--spalte) 60%, transparent);
+}
+
+/* ── Roadmap ─────────────────────────────────────────────── */
+.pd-roadmap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: stretch;
+}
+.pd-roadmap .pk-timeline {
+  min-width: 0;
+}
+.pd-version {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.25;
+  text-align: left;
+  white-space: normal;
+}
+.pd-version span {
+  font-size: 0.92em;
+  font-weight: 500;
+}
+.pd-berg {
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 78% 82% at 50% 46%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 78% 82% at 50% 46%, #000 55%, transparent 100%);
+}
+.pd-berg__pfad {
+  stroke: var(--cyan);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.pd-berg__glow {
+  stroke: var(--cyan);
+  stroke-width: 8;
+  opacity: 0.7;
+}
+.pd-berg__pin {
+  fill: var(--cyan);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--cyan) 80%, transparent));
+}
+.pd-berg__pinpunkt {
+  fill: var(--color-bg-deep);
+}
+.pd-berg__mast {
+  stroke: var(--orange);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.pd-berg__flagge {
+  fill: var(--orange);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--orange) 70%, transparent));
+}
+
+/* ── Ruhige Fassung: Leuchten etwa halbiert ──────────────── */
+.pk-page[data-ruhig='true'][data-page-key='product-features'] .pd-modul {
+  box-shadow:
+    0 0 9px color-mix(in srgb, var(--cyan) 11%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--cyan) 3%, transparent);
+}
+.pk-page[data-ruhig='true'] .pd-bild__sockel,
+.pk-page[data-ruhig='true'] .pd-bild__block,
+.pk-page[data-ruhig='true'] .pd-kachel {
+  box-shadow:
+    0 0 7px color-mix(in srgb, var(--cyan) 13%, transparent),
+    4px 6px 0 color-mix(in srgb, var(--cyan) 10%, var(--color-bg-deep));
+}
+.pk-page[data-ruhig='true'] .pd-berg__glow {
+  opacity: 0.35;
+}
+.pk-page[data-ruhig='true'] .pd-berg__pin,
+.pk-page[data-ruhig='true'] .pd-berg__flagge {
+  filter: drop-shadow(0 0 2.5px color-mix(in srgb, var(--cyan) 40%, transparent));
+}
+.pk-page[data-ruhig='true'][data-page-key='product-roadmap'] .pk-milestone {
+  box-shadow: 0 0 7px color-mix(in srgb, var(--pk-tone) 9%, transparent);
+}
+
+/* ── Schmale Breiten ─────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .pd-modul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pd-bild {
+    width: min(100%, 340px);
+    justify-self: center;
+  }
+}
+@media (max-width: 900px) {
+  .pd-roadmap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pd-berg {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .pd-modul {
+    padding: var(--space-4);
+  }
+  .pd-bild {
+    min-height: 170px;
+  }
+  .pd-kachel {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}

@@ -17110,3 +17110,15 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-094/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 bestanden (Hash verschieden, vorher WebP, nachher kein WebP/Zoom-Hinweis, eine h1, alle Überschriften sichtbar, 3D-Illustrationen sichtbar, Überlauf 0 px, axe serious/critical 0). Anmeldung über gespeicherten Playwright-Login, da lokales Supabase nicht lief.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 15.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+### Auftrag 095 – Paket G2, Welle 2: Unternehmensübersicht und Produkt (16.10.2026, Claude Code)
+
+**Ziel & Kontext:** Zweite G2-Welle nach dem Vorgehen von 093/094 (Original-WebP ist Vorlage): Unternehmenssteckbrief, Jahres-Highlights 2025, Produkt & Funktionsweise und Release-Roadmap erscheinen als echte HTML-Seiten (`HTML_PAGES`), übrige Bildseiten bleiben Bild. Branch `claude/auftrag-095-g2-welle-2` von `main` `6116b69`.
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/overview/pages/CompanyProfilePage.tsx`, `YearHighlightsPage.tsx`, neu `overviewSeiten.css`; `src/features/produkt/pages/FeaturesPage.tsx`, `RoadmapPage.tsx`, neu `components/ModulBild.tsx`, `components/RoadmapBerg.tsx`, `produktSeiten.css`; `src/components/pageKit/PageHero.tsx` (additive Option `asideActive`); Tests `g54`, `g66`, `g67`, `g94` (MemoryRouter, Freigabeliste), neu `g95UebersichtProdukt.ui`; `scripts/captureAuftrag095Unternehmen.mjs`; `docs/screenshots/auftrag-095/README.md`; Auftrag 095; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 abgeglichen, keine Zahlenänderung. Nachgebaut: Status-Chips, Kapitalerhöhungs-Chip, vollständige Registertabelle, vier 3D-Modulillustrationen, Berg mit Pfad und Flagge, zweizeilige Planversionen. Abweichungen: „Mehr erfahren“ ist ein echter Link auf die passende CRM-Seite statt eines Bild-Buttons; Hinweis „Illustrationen zeigen beispielhafte Werte, keine Kennzahlen“; Berg entfällt unter 900 px.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-095/README.md` – 4 Seiten × 5 Breiten × dunkel/hell: 40/40 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, Illustrationen sichtbar, 0 px Überlauf, axe 0). Anmeldung über gespeicherten Playwright-Login.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Sichtabnahme durch Marc, danach Codex-Review.

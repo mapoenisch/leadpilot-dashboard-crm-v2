@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { CompanyProfilePage } from '@/features/overview/pages/CompanyProfilePage';
@@ -31,9 +32,11 @@ describe('G54 semantische Seiten (jsdom-Spiegel)', () => {
     it(`${name}: Textschicht mit genau einer h1, Text und Struktur`, () => {
       // Das Layout stellt <main> (vgl. E2E-Scope auf Hauptinhalt).
       const { container } = render(
-        <main>
-          <Page />
-        </main>,
+        <MemoryRouter>
+          <main>
+            <Page />
+          </main>
+        </MemoryRouter>,
       );
       // Auftrag 094: freigegebene HTML-Seiten (Unternehmen) tragen die h1 sichtbar statt in der Textschicht.
       expect(

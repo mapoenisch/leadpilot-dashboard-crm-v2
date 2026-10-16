@@ -1,0 +1,25 @@
+/* Auftrag 095 (Paket G2, Welle 2): Steckbrief und Jahres-Highlights nach den Original-WebPs
+   (public/assets/auftrag-037g/01–02). Nutzt die Bausteine des Page-Kit unverändert; hier nur
+   Ergänzungen der Seiten. „Ruhig“ (data-ruhig) dämpft Leuchten etwa um die Hälfte. */
+
+.ov-kapital {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.ov-kapital strong {
+  font-size: 20px;
+}
+
+.pk-page[data-ruhig='true'][data-page-key='overview-profile'] .pk-panel,
+.pk-page[data-ruhig='true'][data-page-key='overview-highlights'] .pk-panel {
+  box-shadow:
+    0 0 9px color-mix(in srgb, var(--pk-tone) 11%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--pk-tone) 3%, transparent);
+}
+.pk-page[data-ruhig='true'][data-page-key='overview-profile'] .pk-icon,
+.pk-page[data-ruhig='true'][data-page-key='overview-highlights'] .pk-icon {
+  filter: none;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--pk-tone) 10%, transparent);
+}

@@ -1,42 +1,53 @@
-import { Database, FileText, Target } from 'lucide-react';
+import { Database, FileText, Table, Target } from 'lucide-react';
 import { PROFILE_ROWS, NOTE_PROFIL } from '@/domain/execData';
 import { DataState } from '@/components/ui/DataState';
 import type { ReactNode } from 'react';
-import { Callout, Grid, KeyValueList, PageHero, Panel, splitValueHint } from '@/components/pageKit';
+import {
+  Callout,
+  Chip,
+  Grid,
+  KeyValueList,
+  PageHero,
+  Panel,
+  splitValueHint,
+} from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import '../overviewSeiten.css';
 
 // 067I / G54: Echte Steckbrief-Seite statt WebP — genau eine h1,
 // Stammdaten als Definitionsliste, Strukturnotiz aus Domäne.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (01-unternehmenssteckbrief).
-const STAMMDATEN = new Set([
-  'Firmenname',
-  'Rechtsform',
-  'Sitz & Adresse',
-  'Handelsregister',
-  'Gründungsdatum',
-]);
-
+// Auftrag 095 (Paket G2, Welle 2): sichtbar ausgeliefert (HTML_PAGES). Vorlage ist das
+// Original-WebP: zwei Panels mit Status-Chip („Erreicht“ / „Fokus 2026“), Kapitalerhöhung als
+// Chip am Stammkapital, darunter die vollständige Register- und Stammdatentabelle und die
+// Fokus-Karte. Alle Werte kommen aus PROFILE_ROWS (Faktenblatt v1.2).
 function CompanyProfilePageHtml() {
-  const register = PROFILE_ROWS.find((row) => row[0] === 'Handelsregister')?.[1];
-  const stammdaten = PROFILE_ROWS.filter((row) => STAMMDATEN.has(row[0] ?? ''));
-  const kapital = PROFILE_ROWS.filter((row) => !STAMMDATEN.has(row[0] ?? ''));
-  const zeile = (row: string[]): [string, ReactNode] => {
-    if (row[0] !== 'Stammkapital') return [row[0] ?? '', row[1] ?? ''];
-    const [wert, hinweis] = splitValueHint(row[1] ?? '');
-    return [
-      row[0],
-      <>
-        <strong className="pk-strong-tone">{wert}</strong>
-        {hinweis ? <span className="pk-muted"> ({hinweis})</span> : null}
-      </>,
-    ];
-  };
+  const wert = (name: string) => PROFILE_ROWS.find((row) => row[0] === name)?.[1] ?? '';
+  const register = wert('Handelsregister');
+  const [kapitalWert, kapitalHinweis] = splitValueHint(wert('Stammkapital'));
+  const kapitalChip = kapitalHinweis?.split(', ').pop();
+  const stammdaten: Array<[ReactNode, ReactNode]> = [
+    ['Firma & Rechtsform', `${wert('Firmenname')} · ${wert('Rechtsform')}`],
+    ['Sitz & Betriebsstätte', wert('Sitz & Adresse')],
+    ['Gründungsdatum', wert('Gründungsdatum')],
+  ];
+  const kapital: Array<[ReactNode, ReactNode]> = [
+    [
+      'Stammkapital',
+      <span className="ov-kapital" key="kapital">
+        <strong className="pk-strong-tone">{kapitalWert}</strong>
+        {kapitalChip ? <Chip tone="orange">{kapitalChip}</Chip> : null}
+      </span>,
+    ],
+    ['Geschäftsführung', wert('Geschäftsführung')],
+    ['Gesellschafterkreis', wert('Gesellschafter')],
+  ];
   return (
-    <div className="pk-page">
+    <div className="pk-page" data-ruhig="true" data-page-key="overview-profile">
       <PageHero
         eyebrow="Unternehmen"
         title="Unternehmenssteckbrief"
-        subtitle="LeadPilot GmbH im Überblick: Rechtsform, Sitz, Register und Gesellschafter aus dem verbindlichen Faktenblatt."
+        subtitle="Stammdaten & Rechtliche Eckdaten der LeadPilot GmbH."
         asidePills={register ? [register, 'GmbH Leipzig'] : []}
       />
       <DataState
@@ -44,13 +55,20 @@ function CompanyProfilePageHtml() {
         emptyText="Kein Unternehmenssteckbrief erfasst."
       >
         <Grid cols="2">
-          <Panel title="Rechtliche Stammdaten" icon={FileText}>
-            <KeyValueList rows={stammdaten.map(zeile)} />
+          <Panel title="Rechtliche Stammdaten" icon={FileText} chip="Erreicht">
+            <KeyValueList rows={stammdaten} />
           </Panel>
-          <Panel title="Kapital & Organe" icon={Database} tone="orange">
-            <KeyValueList rows={kapital.map(zeile)} />
+          <Panel title="Kapital & Organe" icon={Database} tone="orange" chip="Fokus 2026">
+            <KeyValueList rows={kapital} />
           </Panel>
         </Grid>
+        <Panel title="Vollständige Register- und Stammdaten" icon={Table}>
+          <div data-testid="profil-register">
+            <KeyValueList
+              rows={PROFILE_ROWS.map((row): [ReactNode, ReactNode] => [row[0], row[1]])}
+            />
+          </div>
+        </Panel>
         <Callout
           title={NOTE_PROFIL.title}
           icon={Target}

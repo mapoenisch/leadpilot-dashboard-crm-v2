@@ -9,6 +9,8 @@ export interface PageHeroProps {
   pills?: string[];
   /** Pills rechts neben dem Titel (z. B. Registerangaben). */
   asidePills?: string[];
+  /** Welche aside-Pill leuchtet: Standard die letzte; Auftrag 095: „first“ für die Jahres-Highlights. */
+  asideActive?: 'first' | 'last';
 }
 
 export function Pill({ children, active = false }: { children: ReactNode; active?: boolean }) {
@@ -19,7 +21,14 @@ export function Pill({ children, active = false }: { children: ReactNode; active
   );
 }
 
-export function PageHero({ eyebrow, title, subtitle, pills = [], asidePills = [] }: PageHeroProps) {
+export function PageHero({
+  eyebrow,
+  title,
+  subtitle,
+  pills = [],
+  asidePills = [],
+  asideActive = 'last',
+}: PageHeroProps) {
   return (
     <header className="pk-hero" data-testid="page-hero">
       <div className="pk-hero__text">
@@ -39,7 +48,10 @@ export function PageHero({ eyebrow, title, subtitle, pills = [], asidePills = []
       {asidePills.length > 0 ? (
         <div className="pk-pills">
           {asidePills.map((pill, index) => (
-            <Pill key={pill} active={index === asidePills.length - 1}>
+            <Pill
+              key={pill}
+              active={index === (asideActive === 'first' ? 0 : asidePills.length - 1)}
+            >
               {pill}
             </Pill>
           ))}

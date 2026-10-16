@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { HTML_PAGES } from '@/config/pagePresentation';
@@ -6,7 +7,7 @@ import { HISTORIE, IDEE, VALUE } from '@/domain/unternehmenData';
 import { IdeaPage } from '@/features/unternehmen/pages/IdeaPage';
 import { ValuePropositionPage } from '@/features/unternehmen/pages/ValuePropositionPage';
 import { HistoryPage } from '@/features/unternehmen/pages/HistoryPage';
-import { FeaturesPage } from '@/features/produkt/pages/FeaturesPage';
+import { PricingPage } from '@/features/produkt/pages/PricingPage';
 
 // Auftrag 094 (Paket G2, Welle 1): Geschäftsidee, Value Proposition und Historie als echte
 // Seiten nach dem Original-WebP; alle übrigen Bildseiten bleiben beim globalen Schalter.
@@ -16,14 +17,16 @@ const WELLE = ['company-idea', 'company-value-proposition', 'company-history'] a
 
 const renderMain = (Page: () => JSX.Element) =>
   render(
-    <main>
-      <Page />
-    </main>,
+    <MemoryRouter>
+      <main>
+        <Page />
+      </main>
+    </MemoryRouter>,
   );
 
 describe('G94 Unternehmensseiten als HTML-Seiten', () => {
-  it('Seitenfreigabe enthält genau Funnel und Welle 1', () => {
-    expect([...HTML_PAGES].sort()).toEqual(['sales-funnel', ...WELLE].sort());
+  it('Seitenfreigabe enthält Funnel und Welle 1 (ab Auftrag 095 zusätzlich Welle 2)', () => {
+    expect([...HTML_PAGES]).toEqual(expect.arrayContaining(['sales-funnel', ...WELLE]));
     for (const key of WELLE) expect(Object.keys(IMAGE_PAGES)).toContain(key);
   });
 
@@ -41,7 +44,7 @@ describe('G94 Unternehmensseiten als HTML-Seiten', () => {
   });
 
   it('Andere Seiten bleiben Bild', () => {
-    const { container } = renderMain(FeaturesPage);
+    const { container } = renderMain(PricingPage);
     expect(container.querySelector('[data-testid="image-page"]')).not.toBeNull();
   });
 

@@ -20,4 +20,9 @@ export const HTML_PAGES: readonly string[] = [
   'company-idea',
   'company-value-proposition',
   'company-history',
+  // Welle G2-2 – Unternehmensübersicht und Produkt (Auftrag 095)
+  'overview-profile',
+  'overview-highlights',
+  'product-features',
+  'product-roadmap',
 ];
