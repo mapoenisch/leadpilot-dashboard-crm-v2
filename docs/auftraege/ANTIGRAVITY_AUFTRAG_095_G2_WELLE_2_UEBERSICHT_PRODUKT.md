@@ -23,15 +23,16 @@ Vier Seiten aus Unternehmensübersicht und Produkt. Preismodell und Produkt-Perf
 
 ## Ziel-Dateien
 
-| Datei                                                                                                                                               | Änderung                                                                      |
-| --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `src/config/pagePresentation.ts`                                                                                                                    | `HTML_PAGES` um die vier Schlüssel ergänzt                                    |
-| `src/features/overview/pages/CompanyProfilePage.tsx`, `YearHighlightsPage.tsx`, neu `overviewSeiten.css`                                            | Gestaltung nach Original-WebP                                                 |
-| `src/features/produkt/pages/FeaturesPage.tsx`, `RoadmapPage.tsx`, neu `components/ModulBild.tsx`, `components/RoadmapBerg.tsx`, `produktSeiten.css` | Gestaltung nach Original-WebP, 3D-Illustrationen                              |
-| `src/components/pageKit/PageHero.tsx`                                                                                                               | additive Option `asideActive` (Standard `last`, andere Seiten unverändert)    |
-| Tests `g54`, `g66`, `g67`, `g94`                                                                                                                    | `MemoryRouter` (Link auf Funktionsseite), Freigabeliste, Gestaltungs-Selektor |
-| neu `g95UebersichtProdukt.ui.vitest.tsx`, `scripts/captureAuftrag095Unternehmen.mjs`, `docs/screenshots/auftrag-095/README.md`                      | Tests und Nachweis                                                            |
-| Doku: `docs/BUILD_LOG.md`, Plan Abschnitt 12, dieser Auftrag                                                                                        | Nachweis                                                                      |
+| Datei                                                                                                                                               | Änderung                                                                            |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `src/config/pagePresentation.ts`                                                                                                                    | `HTML_PAGES` um die vier Schlüssel ergänzt                                          |
+| `src/features/overview/pages/CompanyProfilePage.tsx`, `YearHighlightsPage.tsx`, neu `overviewSeiten.css`                                            | Gestaltung nach Original-WebP                                                       |
+| `src/features/produkt/pages/FeaturesPage.tsx`, `RoadmapPage.tsx`, neu `components/ModulBild.tsx`, `components/RoadmapBerg.tsx`, `produktSeiten.css` | Gestaltung nach Original-WebP, 3D-Illustrationen                                    |
+| `src/components/pageKit/PageHero.tsx`                                                                                                               | additive Option `asideActive` (Standard `last`, andere Seiten unverändert)          |
+| Tests `g54`, `g66`, `g67`, `g94`                                                                                                                    | `MemoryRouter` (Link auf Funktionsseite), Freigabeliste, Gestaltungs-Selektor       |
+| `e2e/semantic-routes.spec.ts`                                                                                                                       | `HTML_PAGE_ROUTES` um die vier Welle-2-Routen ergänzt (Prüfung auf HTML statt Bild) |
+| neu `g95UebersichtProdukt.ui.vitest.tsx`, `scripts/captureAuftrag095Unternehmen.mjs`, `docs/screenshots/auftrag-095/README.md`                      | Tests und Nachweis                                                                  |
+| Doku: `docs/BUILD_LOG.md`, Plan Abschnitt 12, dieser Auftrag                                                                                        | Nachweis                                                                            |
 
 ## Globale Grenzen
 
