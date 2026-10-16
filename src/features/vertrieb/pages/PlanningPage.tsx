@@ -67,6 +67,7 @@ function PlanningPageHtml() {
                 series={[{ name: 'Monatsbudget', values: budget, color: CYAN }]}
                 formatTick={(wert) => `${formatPlanWert(wert)} €`}
                 valueLabel={(wert) => `${formatPlanWert(wert)} €`}
+                datenTabelle={(wert) => `${formatPlanWert(wert)} €`}
               />
             </ChartFigure>
           </Panel>
@@ -93,6 +94,7 @@ function PlanningPageHtml() {
                 colorAt={(si, li) => (si === 1 && li === 1 ? ORANGE : undefined)}
                 formatTick={formatPlanWert}
                 valueLabel={formatPlanWert}
+                datenTabelle={formatPlanWert}
               />
             </ChartFigure>
           </Panel>

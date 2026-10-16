@@ -84,4 +84,18 @@ describe('G96 Vertrieb & Marketing als HTML-Seiten', () => {
     expect(text).toContain('Trial-to-Paid auf ≥ 26 % steigern');
     expect(text).not.toContain('25%');
   });
+
+  it('Diagramme: Werte für Screenreader als versteckte Tabelle (Codex P2)', () => {
+    const { container } = renderMain(PlanningPage);
+    const tabellen = container.querySelectorAll('.sr-only table');
+    expect(tabellen).toHaveLength(2);
+    const budget = tabellen[0]?.textContent ?? '';
+    PLANUNG.chartPlanbudget.labels.forEach((label) => expect(budget).toContain(label));
+    expect(budget).toContain('3.375 €');
+    const kpi = tabellen[1]?.textContent ?? '';
+    for (const wert of ['86,2', '72', '2,8', '2,2', '47', '65']) expect(kpi).toContain(wert);
+    cleanup();
+    const kanal = renderMain(ChannelsPage).container.querySelector('.sr-only table');
+    expect(kanal?.textContent).toContain('1.476 €');
+  });
 });

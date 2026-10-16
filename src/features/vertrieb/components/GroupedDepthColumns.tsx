@@ -60,6 +60,7 @@ export function GroupedDepthColumns({
   viewWidth = W_STANDARD,
   plotLeft = 48,
   schmal = false,
+  datenTabelle,
 }: {
   labels: readonly string[];
   series: readonly DepthSeries[];
@@ -76,6 +77,9 @@ export function GroupedDepthColumns({
   /** Für halbe Panels: Mindestbreite 420 statt 560 px (darunter scrollt nur die Grafik),
    *  kleinere, bei Bedarf zweizeilige Beschriftung. */
   schmal?: boolean;
+  /** Versteckte Datentabelle für Screenreader (SVG ist aria-hidden); Wert formatiert je Reihe.
+   *  Für Seiten ohne sichtbare Wertetabelle; die Funnel-Seite hat ihre Trichtertabelle. */
+  datenTabelle?: (value: number, seriesIndex: number) => string;
 }) {
   const H = height;
   const W = viewWidth;
@@ -265,6 +269,34 @@ export function GroupedDepthColumns({
             </li>
           ))}
         </ul>
+      ) : null}
+      {datenTabelle ? (
+        // Tabellen ignorieren width: 1px; der sr-only-Container hält sie aus dem Layout.
+        <div className="sr-only">
+          <table>
+            <caption>Datenwerte des Diagramms</caption>
+            <thead>
+              <tr>
+                <th scope="col">Kategorie</th>
+                {series.map((s) => (
+                  <th scope="col" key={s.name}>
+                    {s.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {labels.map((label, li) => (
+                <tr key={label}>
+                  <th scope="row">{label}</th>
+                  {series.map((s, si) => (
+                    <td key={s.name}>{datenTabelle(s.values[li] ?? 0, si)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

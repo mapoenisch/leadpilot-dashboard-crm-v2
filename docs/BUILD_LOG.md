@@ -17149,4 +17149,6 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-096/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/5/16, 0 px Überlauf, axe 0). Anmeldung über gespeicherten Playwright-Login.
 
+**Nacharbeit Codex-Befund (16.10.2026):** P2 Screenreader – `GroupedDepthColumns` erhält die Option `datenTabelle` (versteckte Datentabelle wie `ChartDataTable`); Kanal- und Planungsdiagramme nutzen sie, alle Monats-, CAC-, Churn- und KI-Scoring-Werte sind zugänglich. Test in `g96VertriebSeiten.ui` ergänzt. tsc, verify, build erneut grün, Schutzbereichs-Diff leer.
+
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 16.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).

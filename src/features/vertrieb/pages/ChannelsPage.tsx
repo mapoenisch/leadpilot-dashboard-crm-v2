@@ -126,6 +126,7 @@ function ChannelsPageHtml() {
                 colorAt={(_, li) => (li === cacLabels.length - 1 ? ORANGE : undefined)}
                 formatTick={(wert) => `${wert.toLocaleString('de-DE')} €`}
                 valueLabel={(wert) => `${wert.toLocaleString('de-DE')} €`}
+                datenTabelle={(wert) => `${wert.toLocaleString('de-DE')} €`}
               />
             </ChartFigure>
           </Panel>
