@@ -17121,4 +17121,4 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-095/README.md` – 4 Seiten × 5 Breiten × dunkel/hell: 40/40 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, Illustrationen sichtbar, 0 px Überlauf, axe 0). Anmeldung über gespeicherten Playwright-Login.
 
-**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Sichtabnahme durch Marc, danach Codex-Review.
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 16.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).

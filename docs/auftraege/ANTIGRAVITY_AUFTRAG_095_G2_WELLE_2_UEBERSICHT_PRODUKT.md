@@ -52,4 +52,4 @@ Vier Seiten aus Unternehmensübersicht und Produkt. Preismodell und Produkt-Perf
 - [x] Vier Seiten nach Original-WebP gebaut, „ruhig“ (`data-ruhig`), hell und dunkel.
 - [x] Tests angepasst und ergänzt.
 - [x] Nachweis 4 Seiten × 1440/768/375/320/250 px × dunkel/hell: 40/40.
-- [ ] Sichtabnahme der vier Seiten durch Marc.
+- [x] Sichtabnahme der vier Seiten durch Marc (16.10.2026).
