@@ -25,4 +25,8 @@ export const HTML_PAGES: readonly string[] = [
   'overview-highlights',
   'product-features',
   'product-roadmap',
+  // Welle G2-3 – Vertrieb & Marketing (Auftrag 096)
+  'sales-sla',
+  'sales-channels',
+  'sales-planning',
 ];
