@@ -53,4 +53,4 @@ Drei Seiten aus Vertrieb & Marketing. Preismodell und Produkt-Performance bleibe
 - [x] Drei Seiten nach Original-WebP gebaut, 3D-Säulen, „ruhig“ (`data-ruhig`), hell und dunkel.
 - [x] Tests angepasst und ergänzt, e2e-Routen ergänzt.
 - [x] Nachweis 3 Seiten × 1440/768/375/320/250 px × dunkel/hell: 30/30.
-- [ ] Sichtabnahme der drei Seiten durch Marc.
+- [x] Sichtabnahme der drei Seiten durch Marc (16.10.2026).
