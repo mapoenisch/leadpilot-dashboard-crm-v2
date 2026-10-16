@@ -2,10 +2,13 @@ import { BILANZ } from '@/domain/finanzenData';
 import { DataState } from '@/components/ui/DataState';
 import { Grid, KitTable, PageHero, Panel } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import '../finanzenSeiten.css';
 
 // 067I / G52: Echte Bilanz-Seite statt WebP — genau eine h1, Aktiva und
 // Passiva als semantische Tabellen mit übereinstimmender Bilanzsumme.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (06-bilanz-saas).
+// Auftrag 097 (Paket G2, Welle 4): sichtbar ausgeliefert (HTML_PAGES); Titel und Untertitel
+// wie im Original-WebP.
 const spalten = [
   { key: 'position', label: 'Position' },
   { key: 'betrag', label: 'Betrag', align: 'right' as const },
@@ -14,14 +17,13 @@ const spalten = [
 function BalanceSheetPageHtml() {
   const aktiva = BILANZ.aktiva.map((row) => ({ position: row[0] ?? '', betrag: row[1] ?? '' }));
   const passiva = BILANZ.passiva.map((row) => ({ position: row[0] ?? '', betrag: row[1] ?? '' }));
-  const bilanzSumme = BILANZ.aktiva[BILANZ.aktiva.length - 1]?.[1] ?? '';
   const ready = aktiva.length > 0 && passiva.length > 0;
   return (
-    <div className="pk-page">
+    <div className="pk-page finanz-seite" data-ruhig="true" data-page-key="finance-balance-sheet">
       <PageHero
         eyebrow="Finanzen"
-        title="Bilanz & SaaS KPIs"
-        subtitle={`Bilanz der LeadPilot GmbH zum Geschäftsjahresende: Aktiva und Passiva mit Bilanzsumme ${bilanzSumme}.`}
+        title="Bilanz 2025"
+        subtitle="Aktiva und Passiva der LeadPilot GmbH."
         pills={['Bilanz 31.12.2025', 'HGB-Jahresabschluss']}
       />
       <DataState status={ready ? 'ready' : 'empty'} emptyText="Keine Bilanzpositionen erfasst.">

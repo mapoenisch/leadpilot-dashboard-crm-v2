@@ -29,4 +29,8 @@ export const HTML_PAGES: readonly string[] = [
   'sales-sla',
   'sales-channels',
   'sales-planning',
+  // Welle G2-4 – Finanzen (Auftrag 097)
+  'finance-pnl',
+  'finance-balance-sheet',
+  'finance-unit-economics',
 ];

@@ -3,7 +3,6 @@ import { DataState } from '@/components/ui/DataState';
 import {
   BarList,
   ChartFigure,
-  ColumnChart,
   Donut,
   Grid,
   KitTable,
@@ -12,17 +11,27 @@ import {
   type Tone,
 } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import { GroupedDepthColumns } from '@/features/vertrieb/components/GroupedDepthColumns';
+import '../finanzenSeiten.css';
 
 // 067I / G52: Echte GuV-Seite statt WebP — genau eine h1, semantische Tabelle,
 // auswählbarer Text, Chartzusammenfassung zur Erlösaufteilung.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (05-gewinn-verlustrechnung).
+// Auftrag 097 (Paket G2, Welle 4): sichtbar ausgeliefert (HTML_PAGES). Kostenstruktur als
+// 3D-Säulen wie im Original-WebP; EBITDA als Verlust unter der Nulllinie (Original: kleine
+// positive Säule). Tabelle ohne eigene Kopfzeile. Plan-Abo-Umsatz als „Ziel-ARR, vereinfacht“
+// gekennzeichnet (Faktenblatt v1.2, Abschnitt 17 D11).
+const CYAN_HELL = 'color-mix(in srgb, var(--color-primary) 45%, white)';
+const CYAN = 'var(--color-primary)';
+const ABO_ZEILE = 'Abo-Umsatz (wiederkehrend)';
 const erloesTone = (index: number): Tone =>
   index === 1 ? 'orange' : index === 2 ? 'mint' : 'cyan';
 const KERNZEILEN = ['Umsatzerlöse (Gesamtumsatz)', 'EBITDA'];
 
 function PnLPageHtml() {
   const rows = GUV.rows.map((row) => ({
-    position: row[0] ?? '',
+    position:
+      row[0] === ABO_ZEILE ? `${ABO_ZEILE} – Plan 2026: Ziel-ARR, vereinfacht¹` : (row[0] ?? ''),
     fy2024: row[1] ?? '',
     fy2025: row[2] ?? '',
     plan2026: row[3] ?? '',
@@ -52,11 +61,11 @@ function PnLPageHtml() {
     `${kostenLabel(5)} liegt bei ${kosten24?.data[5] ?? 0} bzw. ${kosten25?.data[5] ?? 0} k€.`;
 
   return (
-    <div className="pk-page">
+    <div className="pk-page finanz-seite" data-ruhig="true" data-page-key="finance-pnl">
       <PageHero
         eyebrow="Finanzen"
-        title="Gewinn- und Verlustrechnung"
-        subtitle="GuV der LeadPilot GmbH: FY 2024 und FY 2025 sind Ist-Werte, Plan 2026 ist die verabschiedete Planung. Alle Beträge in Euro."
+        title="Gewinn- und Verlustrechnung (GuV)"
+        subtitle="Finanzergebnisse 2024 – 2026: Ist-Werte FY 2024 und FY 2025, Plan 2026."
         pills={['GuV 2024–2026', 'Finanzcontrolling']}
       />
       <DataState
@@ -100,25 +109,34 @@ function PnLPageHtml() {
             subtitle="Umsatz, operative Kostenarten und EBITDA im Jahresvergleich"
           >
             <ChartFigure title="Kostenstruktur FY 2024 vs. FY 2025" summary={kostenSummary}>
-              <ColumnChart
+              <GroupedDepthColumns
+                idPrefix="guv-kosten"
+                height={260}
+                viewWidth={560}
+                plotLeft={50}
+                schmal
+                maxBarWidth={26}
+                regionLabel="Kostenstruktur FY 2024 vs. FY 2025, waagerecht scrollbar"
                 labels={CHART_KOSTEN.labels}
                 series={[
                   {
-                    name: kosten24?.label ?? 'FY 2024',
+                    name: kosten24?.label ?? 'FY 2024 (k€)',
                     values: kosten24?.data ?? [],
-                    tone: 'mint',
+                    color: CYAN_HELL,
                   },
                   {
-                    name: kosten25?.label ?? 'FY 2025',
+                    name: kosten25?.label ?? 'FY 2025 (k€)',
                     values: kosten25?.data ?? [],
-                    tone: 'cyan',
+                    color: CYAN,
                   },
                 ]}
+                formatTick={(wert) => wert.toLocaleString('de-DE')}
+                datenTabelle={(wert) => `${wert.toLocaleString('de-DE')} k€`}
               />
             </ChartFigure>
           </Panel>
         </Grid>
-        <Panel title="GuV-Tabelle" flush>
+        <section className="pk-panel" data-tone="cyan" data-flush="true" aria-label="GuV-Tabelle">
           <KitTable
             caption="GuV-Positionen FY 2024, FY 2025 und Plan 2026"
             highlightRows={kernzeilen}
@@ -135,7 +153,12 @@ function PnLPageHtml() {
             ]}
             rows={rows}
           />
-        </Panel>
+        </section>
+        <p className="pk-muted finanz-hinweis">
+          ¹ Vereinfachung: Plan 2026 setzt als Abo-Umsatz den Ziel-ARR zum Jahresende an, nicht die
+          Summe der Plan-MRR. Umsatz, EBITDA und Ergebnis 2026 fallen dadurch günstiger aus als bei
+          monatsgenauer Abgrenzung.
+        </p>
       </DataState>
     </div>
   );

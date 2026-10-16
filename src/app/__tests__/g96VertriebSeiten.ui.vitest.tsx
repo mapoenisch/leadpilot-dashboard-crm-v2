@@ -6,7 +6,7 @@ import { KANAELE, PLANUNG, SLA } from '@/domain/vertriebData';
 import { SlaPage } from '@/features/vertrieb/pages/SlaPage';
 import { ChannelsPage } from '@/features/vertrieb/pages/ChannelsPage';
 import { PlanningPage } from '@/features/vertrieb/pages/PlanningPage';
-import { PnLPage } from '@/features/finanzen/pages/PnLPage';
+import { ArticlesPage } from '@/features/recht/pages/ArticlesPage';
 
 // Auftrag 096 (Paket G2, Welle 3): SLA, Kanalperformance und Marketingplanung als echte Seiten
 // nach dem Original-WebP; Diagramme mit 3D-Tiefe, Werte nach Faktenblatt v1.2.
@@ -40,8 +40,9 @@ describe('G96 Vertrieb & Marketing als HTML-Seiten', () => {
     ).toBe('true');
   });
 
-  it('Finanzseiten bleiben beim Schalter', () => {
-    const { container } = renderMain(PnLPage);
+  // Auftrag 097: Finanzseiten sind inzwischen freigegeben; Gegenprobe mit der Satzung.
+  it('Rechtsseiten bleiben beim Schalter', () => {
+    const { container } = renderMain(ArticlesPage);
     expect(container.querySelector('[data-testid="image-page"]')).not.toBeNull();
   });
 

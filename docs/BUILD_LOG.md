@@ -17152,3 +17152,21 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Nacharbeit Codex-Befund (16.10.2026):** P2 Screenreader – `GroupedDepthColumns` erhält die Option `datenTabelle` (versteckte Datentabelle wie `ChartDataTable`); Kanal- und Planungsdiagramme nutzen sie, alle Monats-, CAC-, Churn- und KI-Scoring-Werte sind zugänglich. Test in `g96VertriebSeiten.ui` ergänzt. tsc, verify, build erneut grün, Schutzbereichs-Diff leer.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 16.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+---
+
+## Auftrag 097 – Paket G2, Welle 4: Finanzen als echte Seiten (Builder: Claude Code, 16.10.2026)
+
+**Ziel & Kontext:** Vierte G2-Welle nach dem Vorgehen von 093–096 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur): Gewinn- und Verlustrechnung, Bilanz 2025 und Unit Economics erscheinen als echte HTML-Seiten (`HTML_PAGES`), übrige Bildseiten bleiben Bild. Branch `claude/auftrag-097-g2-welle-4` von `main` `b87ec6a` (nach Merge PR #83).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/finanzen/pages/PnLPage.tsx`, `BalanceSheetPage.tsx`, `UnitEconomicsPage.tsx`, neu `finanzenSeiten.css`, neu `components/DepthFlaechen.tsx`; `src/features/vertrieb/components/GroupedDepthColumns.tsx` (additiv: negative Werte); Tests `g52SemanticPages.ui`, `g96VertriebSeiten.ui` (Gegenprobe Satzung), neu `g97FinanzSeiten.ui`; `e2e/semantic-routes.spec.ts` (`HTML_PAGE_ROUTES`); `scripts/captureAuftrag097Finanzen.mjs`; `docs/screenshots/auftrag-097/README.md`; Auftrag 097; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 abgeglichen, keine Datenänderung. Nachgebaut: Titel wie Original, Kostenstruktur als 3D-Säulen, GuV-Tabelle ohne Panel-Kopf, MRR- und Churn-/Trial-Verlauf als 3D-Flächen mit Rückwand und Boden. Abweichungen vom Bild: EBITDA als Verlust unter der Nulllinie; GuV-Untertitel ohne „geprüft“ für den Plan; Plan-Abo-Umsatz als „Ziel-ARR, vereinfacht“ mit Hinweis (Faktenblatt D11); Plan-MRR nach Faktenblatt statt Illustrationswerten. Navigation nennt noch die alten Titel (Paket H).
+
+**Schutzbereichs-Prüfung:** `git diff b87ec6a -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (333 Dateien, 2382 Tests); `npm run build` grün; ESLint/Prettier für geänderte Dateien sauber.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-097/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 12/0/0, 0 px Überlauf, axe 0). Anmeldung über gespeicherten Playwright-Login.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Sichtabnahme durch Marc, Codex-Review (Gate-Freigabe).

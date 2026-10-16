@@ -29,6 +29,9 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'sales-sla': '/sales/sla',
   'sales-channels': '/sales/channels',
   'sales-planning': '/sales/planning',
+  'finance-pnl': '/finance/p-and-l',
+  'finance-balance-sheet': '/finance/balance-sheet',
+  'finance-unit-economics': '/finance/unit-economics',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

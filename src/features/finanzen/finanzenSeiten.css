@@ -1,0 +1,15 @@
+/* Auftrag 097 (Paket G2, Welle 4): Finanzseiten GuV, Bilanz, Unit Economics als echte Seiten.
+   Ruhige Fassung wie Auftrag 093: Leuchten und Flächen der 3D-Diagramme nur gedämpft. */
+.finanz-hinweis {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.pk-page[data-ruhig='true'] .dfl-glow {
+  opacity: 0.55;
+}
+.pk-page[data-ruhig='true'] .dfl-boden,
+.pk-page[data-ruhig='true'] .dfl-wand {
+  opacity: 0.6;
+}
