@@ -13,7 +13,8 @@ import {
 
 // Auftrag 095 (Paket G2, Welle 2): dekorative 3D-Illustrationen der vier Produktmodule
 // (Original-WebP 07-produkt-funktionsweise). Reine Zierde: aria-hidden, nicht fokussierbar.
-// Zahlen und Beschriftungen in den Bildern sind Beispielwerte, keine Kennzahlen.
+// Ohne Zahlen: die Bildzahlen des Originals sind nicht belegt und werden nicht übernommen
+// (Befundregister 2026-10-06, G2 „Keine Daten, keine Übernahme“).
 export type ModulBildArt = 'capture' | 'scoring' | 'nurturing' | 'pipeline';
 
 function Kachel({ icon: Icon, children }: { icon?: LucideIcon; children?: string }) {
@@ -25,13 +26,13 @@ function Kachel({ icon: Icon, children }: { icon?: LucideIcon; children?: string
   );
 }
 
-const SPALTEN: Array<[string, number, string]> = [
-  ['New', 12, 'cyan'],
-  ['MQL', 8, 'blau'],
-  ['SQL', 6, 'orange'],
-  ['Hot', 4, 'orange'],
-  ['Won', 10, 'gruen'],
-  ['Lost', 3, 'grau'],
+const SPALTEN: Array<[string, string]> = [
+  ['New', 'cyan'],
+  ['MQL', 'blau'],
+  ['SQL', 'orange'],
+  ['Hot', 'orange'],
+  ['Won', 'gruen'],
+  ['Lost', 'grau'],
 ];
 
 export function ModulBild({ art }: { art: ModulBildArt }) {
@@ -59,7 +60,6 @@ export function ModulBild({ art }: { art: ModulBildArt }) {
           <span className="pd-bild__block pd-bild__block--hinten" />
           <span className="pd-bild__block pd-bild__score">
             Lead Score
-            <strong>87</strong>
             <span className="pd-bild__balken" />
           </span>
           <span className="pd-bild__liste">
@@ -86,12 +86,9 @@ export function ModulBild({ art }: { art: ModulBildArt }) {
         <>
           <span className="pd-bild__sockel" />
           <span className="pd-bild__spalten">
-            {SPALTEN.map(([name, anzahl, farbe]) => (
+            {SPALTEN.map(([name, farbe]) => (
               <span key={name} className="pd-spalte" data-farbe={farbe}>
-                <span className="pd-spalte__kopf">
-                  {name}
-                  <strong>{anzahl}</strong>
-                </span>
+                <span className="pd-spalte__kopf">{name}</span>
                 <span className="pd-spalte__balken" />
                 <span className="pd-spalte__balken" />
                 <span className="pd-spalte__balken" />

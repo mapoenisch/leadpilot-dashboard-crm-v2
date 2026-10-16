@@ -31,6 +31,7 @@ Vier Seiten aus Unternehmensübersicht und Produkt. Preismodell und Produkt-Perf
 | `src/components/pageKit/PageHero.tsx`                                                                                                               | additive Option `asideActive` (Standard `last`, andere Seiten unverändert)          |
 | Tests `g54`, `g66`, `g67`, `g94`                                                                                                                    | `MemoryRouter` (Link auf Funktionsseite), Freigabeliste, Gestaltungs-Selektor       |
 | `e2e/semantic-routes.spec.ts`                                                                                                                       | `HTML_PAGE_ROUTES` um die vier Welle-2-Routen ergänzt (Prüfung auf HTML statt Bild) |
+| `src/domain/produktData.ts`, `src/review/acceptance/frontend.acceptance.ts`                                                                         | Codex-Nacharbeit: Roadmap-Ziel ≥ 26 %, Router im Abnahmetest PR-SEMANTIC-11         |
 | neu `g95UebersichtProdukt.ui.vitest.tsx`, `scripts/captureAuftrag095Unternehmen.mjs`, `docs/screenshots/auftrag-095/README.md`                      | Tests und Nachweis                                                                  |
 | Doku: `docs/BUILD_LOG.md`, Plan Abschnitt 12, dieser Auftrag                                                                                        | Nachweis                                                                            |
 

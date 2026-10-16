@@ -65,7 +65,7 @@ function FeaturesPageHtml() {
           })}
         </Grid>
         <p className="pk-muted pd-hinweis">
-          Die Illustrationen zeigen beispielhafte Werte, keine Kennzahlen.
+          Die Illustrationen sind schematisch und zeigen keine Kennzahlen.
         </p>
       </DataState>
     </div>

@@ -7,6 +7,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement, type ComponentType } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { FULL_PAGE_WEBP_ROUTES } from '../fixtures/fullPageWebpRoutes';
@@ -31,7 +32,8 @@ async function renderPage(relativePath: string): Promise<string> {
     createElement(
       QueryClientProvider,
       { client: new QueryClient() },
-      createElement(module[name] as ComponentType),
+      // Funktionsseite (Auftrag 095) verlinkt per <Link> ins CRM und braucht einen Router.
+      createElement(MemoryRouter, null, createElement(module[name] as ComponentType)),
     ),
   );
 }

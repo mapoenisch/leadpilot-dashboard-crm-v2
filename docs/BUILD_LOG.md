@@ -17121,4 +17121,14 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-095/README.md` – 4 Seiten × 5 Breiten × dunkel/hell: 40/40 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, Illustrationen sichtbar, 0 px Überlauf, axe 0). Anmeldung über gespeicherten Playwright-Login.
 
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (Exit 0); `npm run build` grün. **Schutzbereichs-Prüfung:** `git diff 6116b69 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Nacharbeit Codex-Befund (16.10.2026):**
+
+- P1 Ziel-Dateien: `e2e/semantic-routes.spec.ts` in Auftrag und Nachweis aufgenommen.
+- P1 Pflichtgates: Ergebnisse oben nachgetragen.
+- P2 Roadmap: v2.0-Beschreibung in `src/domain/produktData.ts` auf „Trial-to-Paid Rate auf ≥ 26 %“ angeglichen (Faktenblatt v1.2).
+- P2 Illustrationszahlen: Pipeline-Zähler und Lead Score 87 aus `ModulBild.tsx` entfernt (Befundregister: keine Übernahme); Hinweis auf „schematisch, keine Kennzahlen“ geändert.
+- CI e2e (PR-SEMANTIC-11): `src/review/acceptance/frontend.acceptance.ts` rendert Seiten in `MemoryRouter`, da die Funktionsseite per `<Link>` ins CRM verweist.
+
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 16.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
