@@ -141,7 +141,7 @@ export const ROADMAP: {
       quarter: 'v2.0 (geplant Q1 2026)',
       title: 'Geführter Trial-Flow',
       status: 'In Entwicklung',
-      desc: 'Guided Trial-Flow zur Erhöhung der Trial-to-Paid Rate auf 25 %.',
+      desc: 'Guided Trial-Flow zur Erhöhung der Trial-to-Paid Rate auf ≥ 26 %.',
     },
     {
       quarter: 'v2.1 (geplant Q2 2026)',

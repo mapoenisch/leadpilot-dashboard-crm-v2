@@ -16,12 +16,16 @@ import { HTML_PAGES, PAGE_PRESENTATION } from '../src/config/pagePresentation';
 // Stellungen durch die CI kommen.
 // Auftrag 093 (Codex PR #79, P1): Seiten aus HTML_PAGES sind auch im Modus 'bild' echte
 // HTML-Seiten. Zuordnung Seitenschlüssel → Route; fehlt ein Schlüssel, bricht die Suite ab.
-// Auftrag 094: Welle G2-1 (Unternehmen).
+// Auftrag 094: Welle G2-1 (Unternehmen); Auftrag 095: Welle G2-2 (Übersicht, Produkt).
 const HTML_PAGE_ROUTES: Record<string, string> = {
   'sales-funnel': '/sales/funnel',
   'company-idea': '/company/idea',
   'company-value-proposition': '/company/value-proposition',
   'company-history': '/company/history',
+  'overview-profile': '/company/profile',
+  'overview-highlights': '/company/highlights',
+  'product-features': '/product/features',
+  'product-roadmap': '/product/roadmap',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

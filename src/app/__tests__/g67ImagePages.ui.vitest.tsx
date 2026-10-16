@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -115,9 +116,11 @@ describe('G67 Bildseiten wie v2.2.0', () => {
     it(`${key}: Original-WebP, Hochformat-Hinweis und unsichtbare Textschicht`, () => {
       const { src, testId } = IMAGE_PAGES[key];
       const { container } = render(
-        <main>
-          <Page />
-        </main>,
+        <MemoryRouter>
+          <main>
+            <Page />
+          </main>
+        </MemoryRouter>,
       );
       const img = screen.getByTestId(testId);
       expect(img.getAttribute('src')).toBe(src);
@@ -142,7 +145,11 @@ describe('G67 Bildseiten wie v2.2.0', () => {
   for (const [key, Page] of pages) {
     it(`${key}: Schalter 'html' stellt v2.3.1 wieder her`, () => {
       mode.value = 'html';
-      const { container } = render(<Page />);
+      const { container } = render(
+        <MemoryRouter>
+          <Page />
+        </MemoryRouter>,
+      );
       expect(container.querySelector('[data-testid="image-page"]')).toBeNull();
       expect(container.querySelectorAll('img[src$=".webp"]')).toHaveLength(0);
       expect(container.querySelector('.pk-page')).not.toBeNull();
@@ -161,7 +168,11 @@ describe('G67 Bildseiten wie v2.2.0', () => {
   // per Tab erreichbar sein (KitTable setzt tabIndex=0 auf den Scrollbereich).
   for (const [key, Page] of pages) {
     it(`${key}: Textschicht nicht per Tab erreichbar`, () => {
-      render(<Page />);
+      render(
+        <MemoryRouter>
+          <Page />
+        </MemoryRouter>,
+      );
       const layer = screen.getByTestId('image-page-text');
       const reachable = [...layer.querySelectorAll<HTMLElement>('*')].filter(
         (node) => node.tabIndex >= 0 && node.getAttribute('tabindex') !== null,

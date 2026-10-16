@@ -79,7 +79,7 @@ const pages: Array<[string, () => JSX.Element]> = [
 
 // Auftrag 094: Unternehmensseiten nach Original-WebP mit eigenen Karten (.us-karte, .us-zitat).
 const GESTALTET =
-  '.pk-panel, .pk-stat, .pk-unit, .pk-row, .pk-feature, .pk-callout, .pk-quote, .us-karte, .us-zitat';
+  '.pk-panel, .pk-stat, .pk-unit, .pk-row, .pk-feature, .pk-callout, .pk-quote, .us-karte, .us-zitat, .pd-modul';
 const root = path.resolve(__dirname, '../../..');
 
 describe('G66 Design-Wiederherstellung', () => {
@@ -89,7 +89,11 @@ describe('G66 Design-Wiederherstellung', () => {
 
   for (const [name, Page] of pages) {
     it(`${name}: Seitenkopf mit Eyebrow und gestaltete Flächen`, () => {
-      const { container } = render(<Page />);
+      const { container } = render(
+        <MemoryRouter>
+          <Page />
+        </MemoryRouter>,
+      );
       const seite = container.querySelector('.pk-page');
       expect(seite).not.toBeNull();
       const kopf = container.querySelector('[data-testid="page-hero"]');
