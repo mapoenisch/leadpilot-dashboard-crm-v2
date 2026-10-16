@@ -35,7 +35,10 @@ describe('G54 semantische Seiten (jsdom-Spiegel)', () => {
           <Page />
         </main>,
       );
-      expect(container.querySelector('[data-testid="image-page-text"] h1')).not.toBeNull();
+      // Auftrag 094: freigegebene HTML-Seiten (Unternehmen) tragen die h1 sichtbar statt in der Textschicht.
+      expect(
+        container.querySelector('[data-testid="image-page-text"] h1, main > .pk-page h1'),
+      ).not.toBeNull();
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
       const main = container.querySelector('main');
       expect(main).not.toBeNull();
