@@ -21,16 +21,17 @@
 
 ## Ziel-Dateien
 
-| Datei                                                                                                                                      | Änderung                                                                     |
-| ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `src/config/pagePresentation.ts`                                                                                                           | `HTML_PAGES` um die drei Schlüssel ergänzt                                   |
-| `src/features/finanzen/pages/PnLPage.tsx`, `BalanceSheetPage.tsx`, `UnitEconomicsPage.tsx`, neu `src/features/finanzen/finanzenSeiten.css` | Gestaltung nach Original-WebP, `data-ruhig`                                  |
-| neu `src/features/finanzen/components/DepthFlaechen.tsx`                                                                                   | Linien/Flächen mit 3D-Tiefe (Rückwand, Boden), versteckte Datentabelle       |
-| `src/features/vertrieb/components/GroupedDepthColumns.tsx`                                                                                 | additiv: negative Werte unter der Nulllinie; ohne negative Werte unverändert |
-| Tests `g52SemanticPages.ui`, `g96VertriebSeiten.ui`                                                                                        | h1-Prüfung für freigegebene Seiten; Gegenprobe „bleibt Bild“ auf Satzung     |
-| `e2e/semantic-routes.spec.ts`                                                                                                              | `HTML_PAGE_ROUTES` um die drei Routen ergänzt                                |
-| neu `src/app/__tests__/g97FinanzSeiten.ui.vitest.tsx`, `scripts/captureAuftrag097Finanzen.mjs`, `docs/screenshots/auftrag-097/README.md`   | Tests und Nachweis                                                           |
-| Doku: `docs/BUILD_LOG.md`, Plan Abschnitt 12, dieser Auftrag                                                                               | Nachweis                                                                     |
+| Datei                                                                                                                                      | Änderung                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `src/config/pagePresentation.ts`                                                                                                           | `HTML_PAGES` um die drei Schlüssel ergänzt                                                       |
+| `src/features/finanzen/pages/PnLPage.tsx`, `BalanceSheetPage.tsx`, `UnitEconomicsPage.tsx`, neu `src/features/finanzen/finanzenSeiten.css` | Gestaltung nach Original-WebP, `data-ruhig`                                                      |
+| neu `src/features/finanzen/components/DepthFlaechen.tsx`                                                                                   | Linien/Flächen mit 3D-Tiefe (Rückwand, Boden), versteckte Datentabelle                           |
+| `src/features/vertrieb/components/GroupedDepthColumns.tsx`                                                                                 | additiv: negative Werte unter der Nulllinie; ohne negative Werte unverändert                     |
+| Tests `g52SemanticPages.ui`, `g96VertriebSeiten.ui`                                                                                        | h1-Prüfung für freigegebene Seiten; Gegenprobe „bleibt Bild“ auf Satzung                         |
+| `e2e/visual.spec.ts-snapshots/visual-finance-p-and-l-1-*-linux.png`                                                                        | Visual-Baselines GuV neu (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/097`) |
+| `e2e/semantic-routes.spec.ts`                                                                                                              | `HTML_PAGE_ROUTES` um die drei Routen ergänzt                                                    |
+| neu `src/app/__tests__/g97FinanzSeiten.ui.vitest.tsx`, `scripts/captureAuftrag097Finanzen.mjs`, `docs/screenshots/auftrag-097/README.md`   | Tests und Nachweis                                                                               |
+| Doku: `docs/BUILD_LOG.md`, Plan Abschnitt 12, dieser Auftrag                                                                               | Nachweis                                                                                         |
 
 ## Globale Grenzen
 
