@@ -32,6 +32,9 @@ Drei einfache Seiten der Gruppe Unternehmen (Plan: „3–5 einfache Seiten aus 
 | `scripts/captureAuftrag094Unternehmen.mjs`, `docs/screenshots/auftrag-094/README.md`                  | Nachweis                                                                                  |
 | Doku: `docs/BUILD_LOG.md`, Plan Abschnitt 12, dieser Auftrag                                          | Nachweis                                                                                  |
 
+Nachtrag CI (16.10.2026): `e2e/semantic-routes.spec.ts` – Zuordnung `HTML_PAGE_ROUTES` um die drei
+Seiten ergänzt (die Suite bricht bewusst ab, wenn eine freigegebene Seite keine Route hat).
+
 ## Globale Grenzen
 
 - Schutzbereiche (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) unverändert.
