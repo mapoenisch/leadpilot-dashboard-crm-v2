@@ -90,7 +90,7 @@ export const SLA = {
   marketing: [
     'Lead-Zielmenge: ~43 qualifizierte MQLs pro Monat',
     'Qualitätskriterien: ICP-Fit UND Scoring-Status "heiß" (Score ≥ 80)',
-    'Nurturing: Warme Leads bleiben im automatisieren Content-Plan',
+    'Nurturing: Warme Leads bleiben im automatisierten Content-Plan',
   ],
   sales: [
     'Reaktionszeit: Erstkontakt innerhalb von 24 Stunden (werktags)',
@@ -266,7 +266,7 @@ export const PLANUNG = {
     {
       name: 'Guided Onboarding Campaign',
       budget: '8.000 €',
-      target: 'Trial-to-Paid auf 25% steigern',
+      target: 'Trial-to-Paid auf ≥ 26 % steigern (Ziel 2026)',
     },
     {
       name: 'SEO Content Expansion',

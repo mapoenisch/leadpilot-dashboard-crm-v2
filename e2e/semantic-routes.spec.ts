@@ -26,6 +26,9 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'overview-highlights': '/company/highlights',
   'product-features': '/product/features',
   'product-roadmap': '/product/roadmap',
+  'sales-sla': '/sales/sla',
+  'sales-channels': '/sales/channels',
+  'sales-planning': '/sales/planning',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

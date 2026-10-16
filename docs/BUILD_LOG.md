@@ -17132,3 +17132,21 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - CI e2e (PR-SEMANTIC-11): `src/review/acceptance/frontend.acceptance.ts` rendert Seiten in `MemoryRouter`, da die Funktionsseite per `<Link>` ins CRM verweist.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 16.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+---
+
+## Auftrag 096 – Paket G2, Welle 3: Vertrieb & Marketing als echte Seiten (Builder: Claude Code, 16.10.2026)
+
+**Ziel & Kontext:** Dritte G2-Welle nach dem Vorgehen von 093–095 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur): SLA Marketing & Sales, Kanalperformance & CAC-Index und Marketingplanung H2 2026 erscheinen als echte HTML-Seiten (`HTML_PAGES`), übrige Bildseiten bleiben Bild. Branch `claude/auftrag-096-g2-welle-3` von `main` `f1e8871` (nach Merge PR #82).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/vertrieb/pages/SlaPage.tsx`, `ChannelsPage.tsx`, `PlanningPage.tsx`, neu `vertriebSeiten.css`; `src/features/vertrieb/components/GroupedDepthColumns.tsx` (additive Optionen, Funnel unverändert); `src/domain/vertriebData.ts` (Tippfehler „automatisierten“, Initiative ≥ 26 %); Test `g93FunnelPage.ui` (Gegenprobe Marktübersicht), neu `g96VertriebSeiten.ui`; `e2e/semantic-routes.spec.ts` (`HTML_PAGE_ROUTES`); `scripts/captureAuftrag096Vertrieb.mjs`; `docs/screenshots/auftrag-096/README.md`; Auftrag 096; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 abgeglichen. Nachgebaut: Übergabetabelle ohne Panel-Kopf, Pflichten-Karten mit runder 3D-Kugel, CAC je Kanal und beide Planungsdiagramme als 3D-Säulen (teuerster Kanal und Ziel-CAC orange). Abweichungen vom Bild, jeweils nach Faktenblatt: Donut-Mitte „Neukunden 47“ statt „Webinare 12“, Balkenwerte als Neukunden je Kanal; Monatsreihe als „Teilplan 19.375 € von 30.000 € H2-Budget“ (Register Z8); Guided Onboarding „≥ 26 % (Ziel 2026)“ statt 25 % (D1). Säulen tragen Wertebeschriftungen, weil die Monatsreihe keine Tabelle hat.
+
+**Schutzbereichs-Prüfung:** `git diff f1e8871 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (Exit 0); `npm run build` grün; ESLint/Prettier für geänderte Dateien sauber; `verify:v23:baseline` lokal ohne Vitest-Fehler (Playwright-Teil braucht Zugangsdaten, läuft in der CI).
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-096/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/5/16, 0 px Überlauf, axe 0). Anmeldung über gespeicherten Playwright-Login.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Sichtabnahme durch Marc, Codex-Review (Gate-Freigabe).

@@ -4,7 +4,7 @@ import { HTML_PAGES, PAGE_PRESENTATION } from '@/config/pagePresentation';
 import { IMAGE_PAGES } from '@/components/imagePage/imagePages';
 import { FUNNEL } from '@/domain/vertriebData';
 import { FunnelPage } from '@/features/vertrieb/pages/FunnelPage';
-import { SlaPage } from '@/features/vertrieb/pages/SlaPage';
+import { MarketOverviewPage } from '@/features/markt/pages/MarketOverviewPage';
 
 // Auftrag 093 (Paket G1): Sales Funnel als erste echte Seite per Seitenfreigabe,
 // alle übrigen Seiten bleiben beim globalen Bildschalter.
@@ -48,9 +48,10 @@ describe('G93 Sales Funnel als HTML-Seite', () => {
   });
 
   it('andere Seiten bleiben Bild', () => {
-    render(<SlaPage />);
+    // Seit Auftrag 096 ist die SLA-Seite freigegeben; Marktübersicht bleibt Bild.
+    render(<MarketOverviewPage />);
     expect(screen.getByTestId('image-page')).toBeInTheDocument();
-    expect(screen.getByTestId(IMAGE_PAGES['sales-sla'].testId)).toBeInTheDocument();
+    expect(screen.getByTestId(IMAGE_PAGES['market-dach'].testId)).toBeInTheDocument();
   });
 
   // Inhaltsinventar des Original-WebP (01-sales-funnel-2025): nichts darf fehlen.

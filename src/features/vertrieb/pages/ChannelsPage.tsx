@@ -4,7 +4,6 @@ import {
   BarList,
   ChartFigure,
   Chip,
-  ColumnChart,
   Donut,
   Grid,
   KitTable,
@@ -13,10 +12,17 @@ import {
   type Tone,
 } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import { GroupedDepthColumns } from '../components/GroupedDepthColumns';
+import '../vertriebSeiten.css';
 
 // 067I / G53: Echte Kanalseite statt WebP — genau eine h1, Tabelle, Charts mit Summary.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (03-kanalperformance-cac).
+// Auftrag 096 (Paket G2, Welle 3): sichtbar ausgeliefert (HTML_PAGES). CAC je Kanal als
+// 3D-Säulen wie im Original-WebP, teuerster Kanal orange. Donut-Mitte zeigt die 47 Neukunden
+// (Original: „Webinare 12“ ohne Bezug), Balkenwerte sind Neukunden je Kanal (Faktenblatt §5).
 const kanalTone = (index: number): Tone => (index >= 3 ? 'orange' : 'cyan');
+const ORANGE = 'var(--orange)';
+const CYAN = 'var(--color-primary)';
 
 function ChannelsPageHtml() {
   const rows = KANAELE.rows.map((row, index) => {
@@ -58,7 +64,7 @@ function ChannelsPageHtml() {
   } mit ${anteile[anteile.length - 1] ?? 0} %.`;
 
   return (
-    <div className="pk-page">
+    <div className="pk-page" data-ruhig="true" data-page-key="sales-channels">
       <PageHero
         eyebrow="Vertrieb & Marketing"
         title="Kanalperformance & CAC-Index"
@@ -107,11 +113,19 @@ function ChannelsPageHtml() {
               title={KANAELE.chartRoi.datasets[0]?.label ?? 'Marketing-CAC'}
               summary={cacSummary}
             >
-              <ColumnChart
+              <GroupedDepthColumns
+                idPrefix="kanal-cac"
+                height={300}
+                viewWidth={520}
+                plotLeft={66}
+                schmal
+                maxBarWidth={44}
+                regionLabel="CAC nach Kanal, waagerecht scrollbar"
                 labels={cacLabels}
-                series={[{ name: 'Marketing-CAC', values: cac }]}
-                valueSuffix=" €"
-                highlightLast
+                series={[{ name: 'Marketing-CAC', values: cac, color: CYAN }]}
+                colorAt={(_, li) => (li === cacLabels.length - 1 ? ORANGE : undefined)}
+                formatTick={(wert) => `${wert.toLocaleString('de-DE')} €`}
+                valueLabel={(wert) => `${wert.toLocaleString('de-DE')} €`}
               />
             </ChartFigure>
           </Panel>
