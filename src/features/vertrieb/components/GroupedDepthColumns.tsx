@@ -91,14 +91,20 @@ export function GroupedDepthColumns({
   );
   const all = series.flatMap((s) => s.values);
   const { max, step } = niceMax(Math.max(...all, 0));
+  // Auftrag 097 (Welle 4): negative Werte (z. B. EBITDA) reichen unter die Nulllinie; die Skala
+  // wird um ganze Schritte nach unten verlängert. Ohne negative Werte bleibt min = 0.
+  const min = -Math.ceil(Math.max(0, -Math.min(...all, 0)) / step) * step;
   const innerW = W - plot.left - PLOT.right;
   const top0 = PLOT.top + (valueLabel ? LABEL_TOP : 0);
-  const innerH = H - top0 - PLOT.bottom;
-  const y = (v: number) => top0 + innerH - (v / max) * innerH;
+  const innerH = H - top0 - PLOT.bottom - (min < 0 && valueLabel ? LABEL_TOP : 0);
+  const y = (v: number) => top0 + innerH - ((v - min) / (max - min)) * innerH;
   const group = innerW / Math.max(labels.length, 1);
   const barW = Math.min(maxBarWidth, (group * 0.55) / Math.max(series.length, 1));
   const gap = barW * 0.18;
-  const ticks = Array.from({ length: Math.round(max / step) + 1 }, (_, i) => i * step);
+  const ticks = Array.from(
+    { length: Math.round((max - min) / step) + 1 },
+    (_, i) => min + i * step,
+  );
   return (
     <div className="flex flex-col gap-2" data-testid="grouped-depth-columns">
       {/* Auf schmalen Breiten scrollt nur die Grafik; per Tastatur erreichbar. */}
@@ -187,8 +193,9 @@ export function GroupedDepthColumns({
                   const v = s.values[li] ?? 0;
                   const color = farbe(si, li);
                   const x = start + si * (barW + gap);
-                  const top = y(v);
-                  const h = Math.max(1, y(0) - top);
+                  const negativ = v < 0;
+                  const top = negativ ? y(0) : y(v);
+                  const h = Math.max(1, negativ ? y(v) - y(0) : y(0) - top);
                   return (
                     <g key={s.name}>
                       {/* Spiegelung auf dem Boden */}
@@ -228,7 +235,7 @@ export function GroupedDepthColumns({
                       {valueLabel ? (
                         <text
                           x={x + (barW + DEPTH) / 2}
-                          y={top - DEPTH * 0.6 - 7}
+                          y={negativ ? top + h + 17 : top - DEPTH * 0.6 - 7}
                           textAnchor="middle"
                           fontSize="13"
                           fontWeight="600"

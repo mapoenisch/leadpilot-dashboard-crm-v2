@@ -16,7 +16,6 @@ import {
   BarList,
   ChartFigure,
   Grid,
-  LineChart,
   PageHero,
   Panel,
   StatTile,
@@ -24,10 +23,16 @@ import {
   type Tone,
 } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import { DepthFlaechen } from '../components/DepthFlaechen';
+import '../finanzenSeiten.css';
 
 // 067I / G52: Echte Unit-Economics-Seite statt WebP — genau eine h1,
 // Kennzahlen als Liste, Kostenstruktur als Balken mit Summary.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (07-unit-economics-2026).
+// Auftrag 097 (Paket G2, Welle 4): sichtbar ausgeliefert (HTML_PAGES). Titel wie im Original,
+// MRR- und Churn-Verlauf als 3D-Flächen (Rückwand, Boden). Werte nach Faktenblatt v1.2 §14
+// (Plan-MRR 34.320–51.667 €, das Original zeigt Illustrationswerte bis 200.000 €).
+// Kostenstruktur GJ 2025 bleibt als zusätzlicher Inhalt der bisherigen Seite erhalten.
 const ICONS: LucideIcon[] = [
   Megaphone,
   Coins,
@@ -39,8 +44,12 @@ const ICONS: LucideIcon[] = [
   Users,
   ShieldCheck,
 ];
-const tones: Record<string, Tone> = { '#FF7A3D': 'orange', '#7CEFE6': 'mint' };
-const toneOf = (color: string | undefined): Tone => (color ? (tones[color] ?? 'cyan') : 'cyan');
+const FARBEN: Record<string, string> = {
+  '#FF7A3D': 'var(--orange)',
+  '#7CEFE6': 'color-mix(in srgb, var(--color-primary) 45%, white)',
+};
+const farbeVon = (color: string | undefined): string =>
+  (color ? FARBEN[color] : undefined) ?? 'var(--color-primary)';
 
 function euroToNumber(text: string): number {
   const cleaned = text.replace(/[^0-9]/g, '');
@@ -82,11 +91,11 @@ function UnitEconomicsPageHtml() {
     `(${CHART_CHURN26.labels[0]} bis ${CHART_CHURN26.labels[letztes]}).`;
 
   return (
-    <div className="pk-page">
+    <div className="pk-page finanz-seite" data-ruhig="true" data-page-key="finance-unit-economics">
       <PageHero
         eyebrow="Finanzen"
-        title="Unit Economics 2026"
-        subtitle={`${UNIT.title}: SaaS-Kernmetriken und Kostenstruktur der LeadPilot GmbH.`}
+        title="Unit Economics & SaaS-Kernmetriken 2025"
+        subtitle="SaaS-Wirtschaftlichkeitskennzahlen und Projektionen."
         pills={['SaaS Unit Economics', 'Projektion 2026']}
       />
       <DataState status={ready ? 'ready' : 'empty'} emptyText="Keine Unit-Economics erfasst.">
@@ -115,14 +124,17 @@ function UnitEconomicsPageHtml() {
             subtitle="Monatliche MRR-Entwicklung für 2026"
           >
             <ChartFigure title="MRR-Projektion 2026" summary={mrrSummary}>
-              <LineChart
+              <DepthFlaechen
+                idPrefix="ue-mrr"
+                regionLabel="MRR-Projektion 2026, waagerecht scrollbar"
                 labels={CHART_MRR26.labels}
                 series={mrr.map((set) => ({
                   name: set.label,
                   values: set.data,
-                  tone: toneOf(set.color),
+                  color: farbeVon(set.color),
                   area: 'fill' in set && set.fill === true,
                 }))}
+                datenTabelle={(wert) => `${wert.toLocaleString('de-DE')} €`}
               />
             </ChartFigure>
           </Panel>
@@ -132,14 +144,17 @@ function UnitEconomicsPageHtml() {
             subtitle="Entwicklung der Abwanderungs- und Testraten"
           >
             <ChartFigure title="Churn- und Trial-Entwicklung 2026" summary={churnSummary}>
-              <LineChart
+              <DepthFlaechen
+                idPrefix="ue-churn"
+                regionLabel="Churn- und Trial-Entwicklung 2026, waagerecht scrollbar"
                 labels={CHART_CHURN26.labels}
                 series={churn.map((set) => ({
                   name: set.label,
                   values: set.data,
-                  tone: toneOf(set.color),
+                  color: farbeVon(set.color),
                   area: 'fill' in set && set.fill === true,
                 }))}
+                datenTabelle={(wert) => prozent(wert)}
               />
             </ChartFigure>
           </Panel>
