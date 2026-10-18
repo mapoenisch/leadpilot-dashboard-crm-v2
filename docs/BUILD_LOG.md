@@ -17187,6 +17187,6 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-098/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/6/0, 0 px Überlauf, axe 0). Anmeldung mit der Seed-Nutzerin der lokalen Supabase.
 
-**Hinweis Visual-Baselines:** `e2e/visual.spec.ts` prüft `/market/overview`; die Linux-Baselines werden nach dem ersten CI-Lauf über `update-visual-baselines.yml` erneuert.
+**Nacharbeit CI e2e (18.10.2026):** `visual /market/overview` schlug erwartungsgemäß fehl (Bild → HTML). Die Baselines wurden in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/098`, Lauf 39163459523), per Sichtprüfung kontrolliert und nur die drei Linux-Bilder der Marktübersicht übernommen; alle übrigen Snapshots identisch.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).

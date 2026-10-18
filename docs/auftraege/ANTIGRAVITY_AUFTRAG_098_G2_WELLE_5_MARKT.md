@@ -56,3 +56,4 @@ Die Kundenseiten (ICP, Persona, Segmente, Top 10) folgen als eigene Welle.
 - [x] Tests angepasst und ergänzt, e2e-Routen ergänzt.
 - [x] Nachweis 3 Seiten × 1440/768/375/320/250 px × dunkel/hell: 30/30.
 - [x] Sichtabnahme der drei Seiten durch Marc (18.10.2026).
+- [x] Visual-Baselines Marktübersicht in der CI-Umgebung erneuert (Lauf 39163459523).
