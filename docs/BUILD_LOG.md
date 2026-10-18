@@ -17211,4 +17211,4 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-099/README.md` – 4 Seiten × 5 Breiten × dunkel/hell: 40/40 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/0/4/0, 0 px Überlauf, 0 px abgeschnitten, axe 0). Der Harness erfasst jetzt h1–h3, weil die Persona-Unterpanels h3 sind.
 
-**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Sichtabnahme durch Marc, danach Codex-Review (Gate-Freigabe).
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
