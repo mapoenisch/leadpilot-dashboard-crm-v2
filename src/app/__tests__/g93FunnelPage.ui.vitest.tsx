@@ -4,7 +4,7 @@ import { HTML_PAGES, PAGE_PRESENTATION } from '@/config/pagePresentation';
 import { IMAGE_PAGES } from '@/components/imagePage/imagePages';
 import { FUNNEL } from '@/domain/vertriebData';
 import { FunnelPage } from '@/features/vertrieb/pages/FunnelPage';
-import { HeadcountPage } from '@/features/organisation/pages/HeadcountPage';
+import { OkrsPage } from '@/features/strategie/pages/OkrsPage';
 
 // Auftrag 093 (Paket G1): Sales Funnel als erste echte Seite per Seitenfreigabe,
 // alle übrigen Seiten bleiben beim globalen Bildschalter.
@@ -48,10 +48,10 @@ describe('G93 Sales Funnel als HTML-Seite', () => {
   });
 
   it('andere Seiten bleiben Bild', () => {
-    // Seit Auftrag 099 sind die Kundenseiten freigegeben; die Headcount-Seite bleibt Bild.
-    render(<HeadcountPage />);
+    // Seit Auftrag 100 sind die Organisationsseiten freigegeben; die OKR-Seite bleibt Bild.
+    render(<OkrsPage />);
     expect(screen.getByTestId('image-page')).toBeInTheDocument();
-    expect(screen.getByTestId(IMAGE_PAGES['organisation-headcount'].testId)).toBeInTheDocument();
+    expect(screen.getByTestId(IMAGE_PAGES['strategy-okrs'].testId)).toBeInTheDocument();
   });
 
   // Inhaltsinventar des Original-WebP (01-sales-funnel-2025): nichts darf fehlen.

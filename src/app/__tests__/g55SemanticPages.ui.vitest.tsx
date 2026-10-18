@@ -8,6 +8,7 @@ import { TeamStructurePage } from '@/features/organisation/pages/TeamStructurePa
 // genau eine h1, Text und semantische Struktur.
 // Auftrag 069 / G67: Regel „kein Ganzseiten-WebP“ zurückgenommen — die Seite zeigt
 // wieder das Original-WebP aus v2.2.0, die Semantik liegt in der Textschicht.
+// Auftrag 100 (Paket G2, Welle 7): die drei Seiten sind freigegeben und ohne Ganzseitenbild sichtbar.
 const pages: Array<[string, () => JSX.Element, string]> = [
   ['Headcount', HeadcountPage, '10,0 FTE'],
   ['HR', HrPage, '54.400 €'],
@@ -16,14 +17,14 @@ const pages: Array<[string, () => JSX.Element, string]> = [
 
 describe('G55 semantische Seiten (jsdom-Spiegel)', () => {
   for (const [name, Page, probe] of pages) {
-    it(`${name}: Textschicht mit genau einer h1, Text und Struktur`, () => {
+    it(`${name}: sichtbare Seite mit genau einer h1, Text und Struktur`, () => {
       // Das Layout stellt <main> (vgl. E2E-Scope auf Hauptinhalt).
       const { container } = render(
         <main>
           <Page />
         </main>,
       );
-      expect(container.querySelector('[data-testid="image-page-text"] h1')).not.toBeNull();
+      expect(container.querySelector('[data-testid="image-page"]')).toBeNull();
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
       const main = container.querySelector('main');
       expect(main).not.toBeNull();

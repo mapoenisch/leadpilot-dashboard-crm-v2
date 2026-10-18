@@ -17219,3 +17219,19 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - Portfolio-Achse (Codex P2): `CustomerPortfolio.tsx` leitet die Y-Ticks (alle 4.000 €) aus dem Achsenmaximum ab, dadurch ist der Bereich bis 20.000 € beschriftet (Folge der D3-Werte). Datei außerhalb der ursprünglichen Ziel-Liste, im Auftrag nachgetragen.
 - 200-%-Textvergrößerung (Devin, Hinweis): Nicht seitenspezifisch lösbar. Die Seitenbibliothek (`pageKit.css`) setzt Schriftgrößen in festen px (50 Stellen), daher wirkt eine Browser-Schriftgröße kaum. Eine Wurzelschrift-Messung wäre kein echter Nachweis und wurde bewusst nicht als bestanden eingetragen. Abgedeckt sind 320 px Reflow sowie 400 % Zoom (≈ 360 CSS-px, durch 375/320 px belegt). Offener Punkt für den Gesamtabschluss (Plan Abschnitt „Zusätzlich“): px → rem in der Seitenbibliothek.
 - Verifikation erneut: `tsc` 0, `verify` grün, Vitest 335/2399 grün, Build grün, ESLint 0, Schutzbereich-Diff leer, Matrix 40/40.
+
+## Auftrag 100 – Paket G2, Welle 7: Organisationsseiten als echte Seiten (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Siebte G2-Welle nach dem Vorgehen von 093–099 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur), ohne Sichtfreigabe (Ergänzung Marc vom 19.10.2026): Headcount-Entwicklung, HR-Kennzahlen und Teamstruktur & Engpässe erscheinen als echte HTML-Seiten (`HTML_PAGES`). Damit 24 von 32 Seiten freigegeben. Branch `claude/auftrag-100-g2-welle-7` von `main` `838e9fc` (nach Merge PR #86).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/organisation/pages/HeadcountPage.tsx`, `HrPage.tsx`, `TeamStructurePage.tsx`, neu `src/features/organisation/organisationSeiten.css`; Tests `g55SemanticPages.ui`, `g93FunnelPage.ui`, `g98MarktSeiten.ui` (Gegenprobe OKR-Seite), neu `g100OrganisationSeiten.ui`; `e2e/semantic-routes.spec.ts`; `scripts/captureAuftrag100Organisation.mjs`; `docs/screenshots/auftrag-100/README.md`; Auftrag 100; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 §10 abgeglichen – keine Abweichung, Domäne unverändert. Nachgebaut: FTE-Verlauf als 3D-Fläche (`DepthFlaechen`), Kapazitätszeilen mit „Kapazitätsfokus“ (Engineering, Sales, Customer Success wie im Original), Gesamtbestand mit Ziel und „Geplant: +2,0 FTE“; HR-Kacheln mit vollständigen Werten, „Benchmark-Fokus“ und „Kostenblock“; Organigramm mit Panel-Eyebrow, Stand-Chip und Feldmarkierungen. Begründete Abweichungen im Auftrag (Y-Achse ergänzt, fünf HR-Kacheln je Reihe erst ab 1600 px).
+
+**Schutzbereichs-Prüfung:** `git diff 838e9fc -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün, Vitest gesamt 2407 Tests grün; `npm run build` grün; ESLint 0 Warnungen; size-limit 176,74 kB von 180 kB bzw. 86,16 kB von 250 kB.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-100/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D 1/0/0, 0 px Überlauf, 0 px abgeschnitten, axe 0).
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
