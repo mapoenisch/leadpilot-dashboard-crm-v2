@@ -17244,6 +17244,6 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 **Nacharbeit Codex-Befund 2 (19.10.2026):**
 
-- Diagrammbeschriftung skaliert (Codex P2, `HeadcountPage.tsx`): `src/features/finanzen/components/DepthFlaechen.tsx` setzt Achsenbeschriftungen und Legende in rem (0,75 rem = bisher 12 px) statt fester px; wirkt auch auf Unit Economics, dort bei Standardschrift pixelgleich. Datei im Auftrag nachgetragen.
+- Diagrammbeschriftung skaliert (Codex P2, `HeadcountPage.tsx`): `src/features/finanzen/components/DepthFlaechen.tsx` setzt Achsenbeschriftungen und Legende per Klasse in rem (0,75 rem = bisher 12 px) statt fester px, ohne Inline-Style (Qualitätsbudget `inlineStyles:src/` bleibt 0); wirkt auch auf Unit Economics, dort bei Standardschrift pixelgleich. Datei im Auftrag nachgetragen.
 - Harness prüft jetzt die kleinste berechnete Schriftgröße sichtbarer Texte im Hauptinhalt (inkl. SVG-Text): bei 150 %/200 % muss sie um den Faktor gegenüber 375 px wachsen. Ergebnis 11 → 16,5 → 22 px auf allen drei Seiten; Matrix 42/42.
 - Verifikation erneut: `tsc` 0, Vitest 2407 grün, Build grün, ESLint 0, Schutzbereich-Diff leer.

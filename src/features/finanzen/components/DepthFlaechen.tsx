@@ -124,7 +124,7 @@ export function DepthFlaechen({
                 x={x0 - 8}
                 y={by(t) - TIEFE.y + 4}
                 textAnchor="end"
-                style={{ fontSize: '0.75rem' }}
+                className="text-[0.75rem]"
                 fill="var(--color-text-muted)"
               >
                 {formatTick(t)}
@@ -154,7 +154,7 @@ export function DepthFlaechen({
                 x={bx(li) - TIEFE.x}
                 y={H - 12}
                 textAnchor="middle"
-                style={{ fontSize: '0.75rem' }}
+                className="text-[0.75rem]"
                 fill="var(--color-text-muted)"
               >
                 {label}
