@@ -33,4 +33,8 @@ export const HTML_PAGES: readonly string[] = [
   'finance-pnl',
   'finance-balance-sheet',
   'finance-unit-economics',
+  // Welle G2-5 – Markt & Wettbewerb (Auftrag 098)
+  'market-dach',
+  'market-competition',
+  'market-swot',
 ];

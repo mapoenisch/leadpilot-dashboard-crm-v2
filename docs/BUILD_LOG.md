@@ -17172,3 +17172,27 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Nacharbeit CI e2e (16.10.2026):** `visual /finance/p-and-l` schlug erwartungsgemäß fehl (Bild → HTML). Die Baselines wurden in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Lauf 38936413699), per Sichtprüfung kontrolliert und nur die drei Linux-Bilder der GuV übernommen.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 16.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+## Auftrag 098 – Paket G2, Welle 5: Markt & Wettbewerb als echte Seiten (Builder: Claude Code, 18.10.2026)
+
+**Ziel & Kontext:** Fünfte G2-Welle nach dem Vorgehen von 093–097 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur): Marktlage, Wettbewerbslandschaft und SWOT-Analyse erscheinen als echte HTML-Seiten (`HTML_PAGES`), übrige Bildseiten bleiben Bild. Erster Teil der Gruppe Kunden/Markt; die vier Kundenseiten folgen als eigene Welle. Branch `claude/auftrag-098-g2-welle-5` von `main` `1373259` (nach Merge PR #84).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/markt/pages/MarketOverviewPage.tsx`, `CompetitionPage.tsx`, `SwotPage.tsx`, neu `src/features/markt/marktSeiten.css`; `src/domain/marktData.ts`; `src/features/markt/components/SwotCompass.tsx`; `src/features/dashboard/model/catalog/inventoryEntries.ts`; Test `g93FunnelPage.ui` (Gegenprobe ICP-Seite), neu `g98MarktSeiten.ui`; `e2e/semantic-routes.spec.ts` (`HTML_PAGE_ROUTES`); `scripts/captureAuftrag098Markt.mjs`; `docs/screenshots/auftrag-098/README.md`; Auftrag 098; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 §11 und Abschnitt D abgeglichen. Angeglichen: D1 – Trial-to-Paid-Ziel „18 % → 26 %“ statt 25 % in SWOT-Seite und SWOT-Kompass (Handlungstext und Screenreader-Text); D6 – Marktanteile als „Europa“ statt „Europa/DACH“ (Seitentitel, Diagrammtitel und -untertitel, Datensatzlabel, Katalogtitel). Nachgebaut: Marktlage-Tabelle ohne Panel-Kopf mit oranger LeadPilot-Zeile, Marktanteile als 3D-Säulen (LeadPilot orange, „< 0,1 %“), Anbietertabelle mit Chips wie im Original (nur Marktführer cyan), vier SWOT-Quadranten mit allen 15 Punkten. Abweichungen vom Bild: LeadPilot-Säule maßstabsgetreu flach; Stärken-Symbol Hantel statt Bizeps (kein passendes Symbol in der vorhandenen lucide-Version). Navigation nennt noch die alten Kurztitel (Paket H).
+
+**Schutzbereichs-Prüfung:** `git diff 1373259 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün; Vitest gesamt 334 Dateien, 2390 Tests grün; `npm run build` grün; ESLint/Prettier für geänderte Dateien sauber.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-098/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/6/0, 0 px Überlauf, axe 0). Anmeldung mit der Seed-Nutzerin der lokalen Supabase.
+
+**Nacharbeit CI e2e (18.10.2026):** `visual /market/overview` schlug erwartungsgemäß fehl (Bild → HTML). Die Baselines wurden in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/098`, Lauf 39163459523), per Sichtprüfung kontrolliert und nur die drei Linux-Bilder der Marktübersicht übernommen; alle übrigen Snapshots identisch.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+**Nacharbeit Codex-Befund (18.10.2026):**
+
+- Freigabestatus widersprüchlich: PR-Beschreibung an Auftrag und BUILD_LOG angeglichen (Sichtabnahme Marc 18.10.2026 erteilt, offen nur Codex-Review).
+- Screenshot-Vollständigkeit: Der Harness misst jetzt je Aufnahme „abgeschnitten“ – verdeckter Rest aller senkrecht scrollenden Container im Hauptbereich und Abstand des Seitenendes zur Fensterunterkante – und verlangt 0 px. Neuer Nachher-Lauf: 30/30, überall 0 px abgeschnitten; Sichtkontrolle des Seitenendes (SWOT 250 px, letzter Risiko-Punkt sichtbar). Matrix um die Spalte ergänzt.
+- Visual-Gate: Bereits mit Commit `6623bbe` erledigt (drei Linux-Baselines der Marktübersicht aus Lauf 39163459523).

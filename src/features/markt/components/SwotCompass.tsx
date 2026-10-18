@@ -61,7 +61,7 @@ export const SwotCompass: React.FC = () => {
         'Großen Nachholbedarf bei der B2B-Vertriebsdigitalisierung im Mittelstand adressieren',
         'Steigende Nachfrage nach DSGVO-konformer Software ohne US-Direct-Access bedienen',
         'Partner- und Empfehlungskanal mit günstigstem CAC (492 €) gezielt skalieren',
-        'Guided Trial Onboarding Flow zur Erhöhung der Trial-to-Paid Rate (18 % → 25 %) einführen',
+        'Guided Trial Onboarding Flow zur Erhöhung der Trial-to-Paid Rate (18 % → 26 %) einführen',
       ],
       borderCol: 'var(--cyan-light, #7CEFE6)',
       bgCol: 'rgba(124, 239, 230, 0.05)',
@@ -153,7 +153,7 @@ export const SwotCompass: React.FC = () => {
         DACH-Mittelstand, DSGVO Frankfurt-Hosting, ARPA 520 Euro. Schwächen (intern/schützen): Churn
         2,8 %, Burn Rate 25.750 Euro, Markenbekanntheit unter 0,1 %, CTO Single Point of Failure.
         Chancen (extern/stärken): B2B Digitalisierungsnachholbedarf, DSGVO-Nachfrage ohne
-        US-Direct-Access, Partnerkanal CAC 492 Euro, Trial Flow 18 % auf 25 %. Risiken
+        US-Direct-Access, Partnerkanal CAC 492 Euro, Trial Flow 18 % auf 26 %. Risiken
         (extern/schützen): US-Wettbewerb, Preiskampf Einstiegssegment,
         Maschinenbau-Gesamtwirtschaftslage.
       </div>
