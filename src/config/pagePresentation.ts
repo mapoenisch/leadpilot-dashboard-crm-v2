@@ -42,4 +42,8 @@ export const HTML_PAGES: readonly string[] = [
   'customers-persona',
   'customers-segments',
   'customers-top10',
+  // Welle G2-7 – Organisation (Auftrag 100)
+  'organisation-headcount',
+  'organisation-hr',
+  'organisation-team',
 ];

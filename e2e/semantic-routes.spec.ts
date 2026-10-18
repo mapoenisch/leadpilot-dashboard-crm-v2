@@ -39,6 +39,9 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'customers-persona': '/customers/persona',
   'customers-segments': '/customers/segments',
   'customers-top10': '/customers/top-customers',
+  'organisation-headcount': '/organisation/headcount',
+  'organisation-hr': '/organisation/hr',
+  'organisation-team': '/organisation/team',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

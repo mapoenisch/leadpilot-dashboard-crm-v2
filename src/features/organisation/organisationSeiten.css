@@ -1,0 +1,133 @@
+/* Auftrag 100 (Paket G2, Welle 7): Organisationsseiten wie im Original-WebP. */
+
+/* Headcount: „Stand 31.12.2025“ rechts neben der Abschnittsüberschrift. */
+.org-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* Headcount: Gesamtbestand als leuchtende Zeile – Titel und FTE links, Ziel cyan, Plan rechts. */
+.org-total {
+  display: grid;
+  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: 14px var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--cyan) 70%, transparent);
+  background: color-mix(in srgb, var(--cyan) 7%, var(--color-bg-deep));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--cyan) 22%, transparent);
+}
+.org-total__head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.org-total__head .pk-row__title {
+  margin: 0;
+}
+.org-total__ziel {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--cyan);
+}
+@media (max-width: 767px) {
+  .org-total {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+}
+
+/* HR: fünf Kacheln je Reihe, Markierung unter der Beschriftung. */
+.org-hr-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+}
+@media (min-width: 1600px) {
+  .org-hr-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+.pk-page[data-page-key='organisation-hr'] .pk-stat__label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+}
+.pk-page[data-page-key='organisation-hr'] .pk-stat[data-tone='orange'] .pk-stat__value {
+  color: var(--color-text);
+}
+.org-hr__marke {
+  text-transform: none;
+}
+
+/* Teamstruktur: Panel-Eyebrow „Organigramm · Ebene A“ über dem Titel. */
+.org-organigramm .pk-panel__subtitle {
+  order: -1;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+/* HR: wie im Original Symbol und Beschriftung nebeneinander, Wert über die volle Kachelbreite. */
+.pk-page[data-page-key='organisation-hr'] .pk-stat[data-with-icon='true'] {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  align-content: start;
+  gap: var(--space-3) var(--space-3);
+  height: 100%;
+}
+.pk-page[data-page-key='organisation-hr'] .pk-stat__body {
+  display: contents;
+}
+.pk-page[data-page-key='organisation-hr'] .pk-stat__label {
+  align-self: center;
+}
+.pk-page[data-page-key='organisation-hr'] .pk-stat__value {
+  grid-column: 1 / -1;
+  font-size: clamp(1.125rem, 1.5vw, 1.375rem);
+  overflow-wrap: break-word;
+}
+.org-hr-grid > li {
+  min-width: 0;
+}
+
+/* Headcount: 3D-Verlauf mittig und in der Größe des Originals statt über die volle Breite. */
+.pk-page[data-page-key='organisation-headcount'] [data-testid='depth-flaechen'] {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+/* Teamstruktur: Gesamtbestand in einer Zeile (Symbol, Titel, FTE), Ziel rechts. */
+.org-organigramm .pk-org > .pk-row {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+@media (max-width: 767px) {
+  .org-organigramm .pk-org > .pk-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Codex-Befund PR #87: bei Textvergrößerung bleiben Beschriftung und Markierung in der Kachel. */
+.pk-page[data-page-key='organisation-hr'] .pk-stat__label,
+.org-hr__marke {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+.org-hr__marke .pk-chip {
+  max-width: 100%;
+  white-space: normal;
+}

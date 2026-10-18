@@ -1,25 +1,35 @@
-import { HEADCOUNT, TEAM } from '@/domain/organisationData';
+import { HEADCOUNT } from '@/domain/organisationData';
 import { DataState } from '@/components/ui/DataState';
-import { ChartFigure, Chip, LineChart, PageHero, Panel, RowList } from '@/components/pageKit';
+import { ChartFigure, Chip, PageHero, Panel, RowList } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import { DepthFlaechen } from '@/features/finanzen/components/DepthFlaechen';
+import '../organisationSeiten.css';
 
 // 067I / G55: Echte Headcount-Seite statt WebP — genau eine h1,
 // Kapazitätsliste plus FTE-Verlauf mit Summary, alles aus Domäne.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (01-headcount-entwicklung).
+// Auftrag 100 (Paket G2, Welle 7): sichtbar ausgeliefert (HTML_PAGES), „ruhig“, FTE-Verlauf mit
+// 3D-Tiefe, Markierung „Kapazitätsfokus“ und Gesamtbestand mit Ziel wie im Original-WebP.
+
 /**
- * Engpass-Markierung je Bereich, abgeleitet aus den dokumentierten Engpässen
- * („Engpass N: <Bereich> — …“) — keine eigene Wertung. Auch von der
- * Teamstruktur genutzt.
+ * Bereiche mit Markierung „Kapazitätsfokus“ – wie im Original-WebP (Engineering, Sales,
+ * Customer Success; Faktenblatt v1.2 §10, Spalte Engpass). Auch von der Teamstruktur genutzt.
  */
+const KAPAZITAETSFOKUS = ['Engineering', 'Sales', 'Customer Success'];
+
 export function hatEngpass(bereich: string): boolean {
-  return TEAM.bottlenecks.some((text) => {
-    const betroffen = /^Engpass \d+: (.+?) —/.exec(text)?.[1];
-    return betroffen !== undefined && bereich.startsWith(betroffen);
-  });
+  return KAPAZITAETSFOKUS.some((name) => bereich.startsWith(name));
 }
 
 function formatFte(value: number): string {
-  return `${value.toLocaleString('de-DE')} FTE`;
+  return `${value.toLocaleString('de-DE', { minimumFractionDigits: 1 })} FTE`;
+}
+
+/** „Ziel 2026: 12,0 FTE“ → geplanter Zuwachs gegenüber dem Gesamtbestand („+2,0 FTE“). */
+function geplanterZuwachs(bestand: string, ziel: string): string | undefined {
+  const zahl = (text: string) => Number(/(\d+(?:,\d+)?) FTE/.exec(text)?.[1]?.replace(',', '.'));
+  const differenz = zahl(ziel) - zahl(bestand);
+  return Number.isFinite(differenz) ? `+${formatFte(differenz)}` : undefined;
 }
 
 function HeadcountPageHtml() {
@@ -29,16 +39,17 @@ function HeadcountPageHtml() {
   const reihe = HEADCOUNT.chart.datasets[0];
   const start = formatFte(reihe?.data[0] ?? 0);
   const stand = formatFte(reihe?.data[labels.length - 1] ?? 0);
-  const ziel = gesamt?.[1] ?? '';
+  const ziel = gesamt?.[2] ?? '';
   const summary =
     `${reihe?.label} wächst von ${start} (${labels[0]}) ` +
-    `auf ${stand} (${labels[labels.length - 1]}), Ziel ${ziel}.`;
+    `auf ${stand} (${labels[labels.length - 1]}), ${ziel}.`;
+  const zuwachs = gesamt ? geplanterZuwachs(gesamt[1] ?? '', ziel) : undefined;
   return (
-    <div className="pk-page">
+    <div className="pk-page" data-ruhig="true" data-page-key="organisation-headcount">
       <PageHero
         eyebrow="Organisation"
         title="Headcount-Entwicklung"
-        subtitle="Mitarbeiterkapazität je Bereich mit FTE-Verlauf seit Q1 2024."
+        subtitle="Entwicklung der Mitarbeiterkapazität und Teamstärke (Stand: 31.12.2025)."
         pills={['Personalbestand 2025', 'Ebene A Baseline']}
       />
       <DataState
@@ -50,35 +61,51 @@ function HeadcountPageHtml() {
           badge="Personalbestand 2025"
           subtitle={`Entwicklung des gesamten Personalbestands von ${labels[0] ?? ''} bis ${
             labels[labels.length - 1] ?? ''
-          }`}
+          }`.replace(/(Q\d) (\d\d)/g, '$1 20$2')}
         >
           <ChartFigure title={reihe?.label ?? 'FTE-Verlauf'} summary={summary}>
-            <LineChart
+            <DepthFlaechen
+              idPrefix="hc-fte"
+              regionLabel="Headcount-Verlauf, waagerecht scrollbar"
               labels={labels}
-              series={[{ name: reihe?.label ?? 'FTE', values: reihe?.data ?? [], area: true }]}
+              series={[
+                {
+                  name: reihe?.label ?? 'FTE',
+                  values: reihe?.data ?? [],
+                  color: reihe?.color ?? '#00D9C6',
+                  area: true,
+                },
+              ]}
+              datenTabelle={(wert) => formatFte(wert)}
             />
           </ChartFigure>
         </Panel>
         <section className="pk-stack" aria-label="Kapazität je Bereich">
-          <h2 className="pk-section-title">Kapazitätsübersicht &amp; Rollenverteilung</h2>
+          <div className="org-section-head">
+            <h2 className="pk-section-title">Kapazitätsübersicht &amp; Rollenverteilung</h2>
+            <span className="pk-muted">Stand 31.12.2025</span>
+          </div>
           <RowList
             label="Bereiche mit Kapazität und Besetzung"
             items={bereiche.map((row) => ({
               key: row[0] ?? '',
               title: row[0] ?? '',
-              chip: <Chip strong>{row[1] ?? ''}</Chip>,
+              chip: <Chip>{row[1] ?? ''}</Chip>,
               text: row[2] ?? '',
               aside: hatEngpass(row[0] ?? '') ? (
-                <Chip tone="orange" strong>
-                  Engpass
-                </Chip>
+                <Chip tone="orange">Kapazitätsfokus</Chip>
               ) : undefined,
             }))}
           />
           {gesamt ? (
-            <Panel title={gesamt[0] ?? ''} chip={gesamt[2] ?? ''} headingLevel={3}>
-              <p className="pk-stat__value">{gesamt[1] ?? ''}</p>
-            </Panel>
+            <div className="org-total" data-testid="headcount-gesamt">
+              <div className="org-total__head">
+                <h3 className="pk-row__title">{gesamt[0] ?? ''}</h3>
+                <Chip>{gesamt[1] ?? ''}</Chip>
+              </div>
+              <p className="org-total__ziel">{ziel}</p>
+              {zuwachs ? <Chip tone="neutral">{`Geplant: ${zuwachs}`}</Chip> : null}
+            </div>
           ) : null}
         </section>
       </DataState>
