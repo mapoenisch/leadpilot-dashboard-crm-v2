@@ -42,6 +42,9 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'organisation-headcount': '/organisation/headcount',
   'organisation-hr': '/organisation/hr',
   'organisation-team': '/organisation/team',
+  'strategy-okrs': '/strategy/okrs',
+  'strategy-bsc': '/strategy/balanced-scorecard',
+  'strategy-growth': '/strategy/growth-drivers',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

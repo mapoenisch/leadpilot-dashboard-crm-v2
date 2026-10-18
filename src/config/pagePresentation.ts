@@ -46,4 +46,8 @@ export const HTML_PAGES: readonly string[] = [
   'organisation-headcount',
   'organisation-hr',
   'organisation-team',
+  // Welle G2-8 – Strategie (Auftrag 101)
+  'strategy-okrs',
+  'strategy-bsc',
+  'strategy-growth',
 ];

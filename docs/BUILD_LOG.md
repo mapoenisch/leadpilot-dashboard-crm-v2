@@ -17247,3 +17247,19 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - Diagrammbeschriftung skaliert (Codex P2, `HeadcountPage.tsx`): `src/features/finanzen/components/DepthFlaechen.tsx` setzt Achsenbeschriftungen und Legende per Klasse in rem (0,75 rem = bisher 12 px) statt fester px, ohne Inline-Style (Qualitätsbudget `inlineStyles:src/` bleibt 0); wirkt auch auf Unit Economics, dort bei Standardschrift pixelgleich. Datei im Auftrag nachgetragen.
 - Harness prüft jetzt die kleinste berechnete Schriftgröße sichtbarer Texte im Hauptinhalt (inkl. SVG-Text): bei 150 %/200 % muss sie um den Faktor gegenüber 375 px wachsen. Ergebnis 11 → 16,5 → 22 px auf allen drei Seiten; Matrix 42/42.
 - Verifikation erneut: `tsc` 0, Vitest 2407 grün, Build grün, ESLint 0, Schutzbereich-Diff leer.
+
+## Auftrag 101 – Paket G2, Welle 8: Strategieseiten als echte Seiten (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Achte G2-Welle nach dem Vorgehen von 093–100 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur), ohne Sichtfreigabe (Ergänzung Marc vom 19.10.2026): Ziele & OKRs, Balanced Scorecard und Wachstumstreiber erscheinen als echte HTML-Seiten (`HTML_PAGES`). Damit 27 von 32 Seiten freigegeben. Branch `claude/auftrag-101-g2-welle-8` von `main` `41149bc` (nach Merge PR #87).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/strategie/pages/OkrsPage.tsx`, `BalancedScorecardPage.tsx`, `GrowthDriversPage.tsx`, neu `src/features/strategie/strategieSeiten.css`; `src/domain/strategieData.ts`; `src/features/vertrieb/components/GroupedDepthColumns.tsx`; Tests `g93FunnelPage.ui`, `g98MarktSeiten.ui` (Gegenprobe jetzt Satzung), neu `g101StrategieSeiten.ui`; `e2e/semantic-routes.spec.ts`; `scripts/captureAuftrag101Strategie.mjs`; `docs/screenshots/auftrag-101/README.md`; Auftrag 101; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 abgeglichen. Angeglichen: OKR „≤ 1,8 %“ (§12, §17 Nr. 10), „Upsell Starter → Growth“ statt „Professional“ (§2, §14), Tippfehler „Kundensegment“. Nachgebaut: acht 3D-Säulenpaare Basis/Ziel ohne Achsenwerte mit Legende, Objectives mit Kante; BSC-Karten mit „Steuerung“; Hebelzeilen mit Hinweis, Leuchtbalken, „Basis: 411.840 €“ und Effekt, orange Kernhebel-Box. `GroupedDepthColumns` setzt SVG-Schrift per Klasse in rem (bei 16 px pixelgleich, wirkt auch auf Funnel, Kanäle, Planung, GuV, Wettbewerb, Segmente). Begründete Abweichungen im Auftrag.
+
+**Schutzbereichs-Prüfung:** `git diff 41149bc -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün; Vitest gesamt 2414 Tests grün; `npm run build` grün; ESLint 0 Warnungen; size-limit 86,16 kB von 250 kB.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-101/README.md` – 3 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 42/42 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D 16/0/0, 0 px Überlauf, 0 px abgeschnitten, kleinste Schrift 11 → 16,5 → 22 px, axe 0).
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).

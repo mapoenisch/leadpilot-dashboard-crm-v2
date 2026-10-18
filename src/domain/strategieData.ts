@@ -10,9 +10,9 @@ export const OKR = {
       ],
     },
     {
-      title: 'O2: Effizienzsteigerung & Churn-Reduktion im Kundensegmet',
+      title: 'O2: Effizienzsteigerung & Churn-Reduktion im Kundensegment',
       krs: [
-        'KR 1: Senkung des monatlichen Account-Churns von 2,8 % auf < 1,8 %',
+        'KR 1: Senkung des monatlichen Account-Churns von 2,8 % auf ≤ 1,8 %',
         'KR 2: Verringerung der Time-to-Value von 11 Tagen auf < 7 Tage',
         'KR 3: Verbesserung des LTV:CAC Ratios von 2,7 : 1 auf ≥ 3,5 : 1',
         'KR 4: Reduzierung der monatlichen Burn Rate von 25.750 € auf < 23.000 €',

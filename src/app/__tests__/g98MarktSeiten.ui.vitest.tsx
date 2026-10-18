@@ -6,7 +6,7 @@ import { CHART_WETTBEWERB, MARKT, SWOT, WETTBEWERB } from '@/domain/marktData';
 import { MarketOverviewPage } from '@/features/markt/pages/MarketOverviewPage';
 import { CompetitionPage } from '@/features/markt/pages/CompetitionPage';
 import { SwotPage } from '@/features/markt/pages/SwotPage';
-import { OkrsPage } from '@/features/strategie/pages/OkrsPage';
+import { ArticlesPage } from '@/features/recht/pages/ArticlesPage';
 
 // Auftrag 098 (Paket G2, Welle 5): Marktlage, Wettbewerb und SWOT als echte Seiten nach dem
 // Original-WebP; Marktanteile als 3D-Säulen, Werte nach Faktenblatt v1.2 (D1, D6).
@@ -47,8 +47,8 @@ describe('G98 Markt & Wettbewerb als HTML-Seiten', () => {
     ).toBe('true');
   });
 
-  it('nicht freigegebene Seiten bleiben beim Schalter (seit Auftrag 100: OKRs)', () => {
-    const { container } = renderMain(OkrsPage);
+  it('nicht freigegebene Seiten bleiben beim Schalter (seit Auftrag 101: Satzung)', () => {
+    const { container } = renderMain(ArticlesPage);
     expect(container.querySelector('[data-testid="image-page"]')).not.toBeNull();
   });
 

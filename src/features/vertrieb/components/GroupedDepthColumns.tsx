@@ -159,7 +159,7 @@ export function GroupedDepthColumns({
                 x={plot.left - 8}
                 y={y(t) + 4}
                 textAnchor="end"
-                fontSize="12"
+                className="text-[0.75rem]"
                 fill="var(--color-text-muted)"
               >
                 {formatTick(t)}
@@ -237,7 +237,7 @@ export function GroupedDepthColumns({
                           x={x + (barW + DEPTH) / 2}
                           y={negativ ? top + h + 17 : top - DEPTH * 0.6 - 7}
                           textAnchor="middle"
-                          fontSize="13"
+                          className="text-[0.8125rem]"
                           fontWeight="600"
                           fill="var(--color-text)"
                         >
@@ -251,7 +251,7 @@ export function GroupedDepthColumns({
                   x={start + width / 2}
                   y={schmal ? H - 24 : H - 10}
                   textAnchor="middle"
-                  fontSize={schmal ? 12 : 13}
+                  className={schmal ? 'text-[0.75rem]' : 'text-[0.8125rem]'}
                   fill="var(--color-text-muted)"
                 >
                   {zeilen(label, schmal).map((zeile, zi) => (
@@ -266,7 +266,7 @@ export function GroupedDepthColumns({
         </svg>
       </div>
       {series.length > 1 ? (
-        <ul className="m-0 flex list-none flex-wrap justify-center gap-x-4 gap-y-1 p-0 text-[12px] text-[var(--color-text-muted)]">
+        <ul className="m-0 flex list-none flex-wrap justify-center gap-x-4 gap-y-1 p-0 text-[0.75rem] text-[var(--color-text-muted)]">
           {series.map((s) => (
             <li key={s.name} className="inline-flex items-center gap-1.5">
               <svg width="10" height="10" aria-hidden="true">
