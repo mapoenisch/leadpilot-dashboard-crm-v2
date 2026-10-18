@@ -3,7 +3,7 @@
 Produktionsbuild (`vite preview`), Anmeldung über gespeicherten Playwright-Login. Seiten
 `/organisation/headcount`, `/organisation/hr`, `/organisation/team` als ganze Seite.
 Vorher = `main` nach PR #86 (Ganzseitenbild), Nachher = Branch `claude/auftrag-100-g2-welle-7`
-(Seitenfreigabe `HTML_PAGES`). 250 px steht für 150 % Schrift bei 375 px. Bilder bleiben lokal
+(Seitenfreigabe `HTML_PAGES`). 375t150/375t200 = echte Textvergrößerung (Wurzelschrift 150 %/200 %, wie die Browser-Schriftgröße) bei 375 px; 250 px zusätzlich als Reflow-Probe. Bilder bleiben lokal
 unter `artifacts/auftrag-100/` (nicht committet).
 
 Prüfungen je Aufnahme: Hash verschieden, vorher genau ein WebP, nachher kein WebP und kein
@@ -13,35 +13,47 @@ verdeckt Inhalt, Seitenende liegt in der Aufnahme), axe serious/critical 0.
 
 | Seite | Breite | Modus | Hash vorher | Hash nachher | WebP | h1 | Überschriften | 3D | Überlauf | abgeschnitten | axe |
 | ----- | -----: | ----- | ----------- | ------------ | ---- | -: | ------------- | -: | -------: | ------------: | --- |
-| headcount | 1440 | dark | `624f19219107` | `c661047c6040` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 1440 | light | `f5139908726b` | `aa620bc9d91b` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 768 | dark | `f50eb7d8626e` | `363757634040` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 768 | light | `1871d43da0bc` | `3c7d4bd1050b` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 375 | dark | `70eb33d2e804` | `c32bd84a27b5` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 375 | light | `36e56c117739` | `fe52714766fd` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 320 | dark | `959cd7015726` | `33bacb6040d9` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 320 | light | `239d3c6189fb` | `82bab11bb8ed` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 250 | dark | `69009b8543d2` | `08d3badc25c8` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| headcount | 250 | light | `a598998e095b` | `ef6781d7306c` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
-| hr | 1440 | dark | `38079a4fadad` | `b2339c412be4` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 1440 | light | `fb371ee690c2` | `6b24eeff850f` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 768 | dark | `14a20465d13d` | `5777caa8b665` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 768 | light | `790744ad364b` | `a4935e7f4d0c` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 375 | dark | `78709c533a30` | `e57b7ba62fdf` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 375 | light | `58773fb0faa4` | `67c09e5f217b` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 320 | dark | `bc264dd00a1d` | `ab40b707fd4a` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 320 | light | `8b71712e0789` | `27dff0779b3c` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 250 | dark | `995ad3b73a08` | `99ac9b6fddd9` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| hr | 250 | light | `337ab14648d3` | `d5b101fc78db` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
-| team | 1440 | dark | `0770ea8bfb4f` | `ca5d33ec0f80` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 1440 | light | `9a000c415130` | `112f916c4869` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 768 | dark | `a83350670db9` | `2b9cd42cc43f` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 768 | light | `88d35ee172cf` | `03ecd3c20b89` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 375 | dark | `fd21357ece85` | `f14eb007b1db` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 375 | light | `b7846cb0aff6` | `a12e5d9143a6` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 320 | dark | `667f7c768dd4` | `1824da899d68` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 320 | light | `1e8d4a66510b` | `b3c87218953b` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 250 | dark | `4f0d4ab8193b` | `696601a4d9db` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
-| team | 250 | light | `e06f062f02de` | `538e466dcdff` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| headcount | 1440 | dark | `9e6197bd3c04` | `c661047c6040` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 1440 | light | `467be72ad79f` | `d7a824c36571` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 768 | dark | `9de016e0c8ad` | `79e7e757b1d3` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 768 | light | `d089ab94dc7c` | `c7f222eb6d7d` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 375 | dark | `20c13c81b110` | `c32bd84a27b5` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 375 | light | `6484d4be4364` | `fe52714766fd` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 320 | dark | `de14af21e3ba` | `33bacb6040d9` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 320 | light | `d4fe5d3c5498` | `6380f511dd1c` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 250 | dark | `4593317b93f7` | `b0b78b0cd522` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 250 | light | `707198602bf6` | `cc5400c103c3` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 375t150 | dark | `c857c1db8c5c` | `d7e5ce37cc07` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 375t150 | light | `4f31dbbd92f1` | `31077296c989` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 375t200 | dark | `9f6f810c1da6` | `1450cb4a4ae4` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| headcount | 375t200 | light | `02be6945bbcd` | `b8db6d40546d` | 1 → 0 | 1 | 4/4 | 1 | 0 px | 0 px | 0 |
+| hr | 1440 | dark | `90e70dfe21ba` | `b2339c412be4` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 1440 | light | `208fca3c54c1` | `d87aae83cce1` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 768 | dark | `4f30a18c0c1e` | `226801521e80` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 768 | light | `375f5c61984e` | `d35c8521631e` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 375 | dark | `295287500f4f` | `e57b7ba62fdf` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 375 | light | `0c7a91f4ca91` | `a8a0f999d16b` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 320 | dark | `e6de4890dd05` | `525560477344` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 320 | light | `85103ee05925` | `f1fee1deb5e7` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 250 | dark | `c08749204b43` | `99ac9b6fddd9` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 250 | light | `15089041a3ca` | `d5b101fc78db` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 375t150 | dark | `0fab5894adc1` | `dd1695e2a5ed` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 375t150 | light | `354d50823ca8` | `f1d4628b2c1d` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 375t200 | dark | `ea44aa16b250` | `ab3b8045473c` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| hr | 375t200 | light | `d51c48dd55f7` | `547d5cd1f681` | 1 → 0 | 1 | 1/1 | 0 | 0 px | 0 px | 0 |
+| team | 1440 | dark | `3126194347a4` | `ca5d33ec0f80` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 1440 | light | `6f571147287e` | `5df757a01473` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 768 | dark | `dd28799ef0c0` | `965e62243279` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 768 | light | `47eb21c99478` | `03ecd3c20b89` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 375 | dark | `6a9bf544905e` | `f14eb007b1db` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 375 | light | `20ed760f4887` | `69f062ea8012` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 320 | dark | `2493ce47d63e` | `6cf2c849bef7` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 320 | light | `a325516268c9` | `28da9a8c1ce3` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 250 | dark | `3354c7f3175a` | `c2075c9bce7a` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 250 | light | `1f85418deacb` | `a59c5f4430ab` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 375t150 | dark | `32b5e93caa86` | `ed8bc2042c85` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 375t150 | light | `29bc9f6b2cb2` | `2ef2aff8f6da` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 375t200 | dark | `9d3a453a5081` | `8fc4a9bc9b31` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
+| team | 375t200 | light | `b45665d097dd` | `fe5b01d7d2e0` | 1 → 0 | 1 | 3/3 | 0 | 0 px | 0 px | 0 |
 
-**Ergebnis:** 30/30 Aufnahmen bestanden.
+**Ergebnis:** 42/42 Aufnahmen bestanden.

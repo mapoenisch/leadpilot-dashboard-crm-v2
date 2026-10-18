@@ -3,7 +3,7 @@
  * Auftrag 100 (Paket G2, Welle 7): Vorher-/Nachher-Nachweis Headcount, HR-Kennzahlen und Teamstruktur
  * als echte HTML-Seiten (Vorlage: captureAuftrag098Markt.mjs).
  *
- * Je Seite × Breite (1440/768/375/320, dazu 250 px als Ersatz für 150 % Schrift bei 375 px) × dunkel/hell
+ * Je Seite × Breite (1440/768/375/320/250 sowie 375 px mit echter Textvergrößerung 150 %/200 %) × dunkel/hell
  * als ganze Seite. Gemessen: SHA-256, Ganzseitenbild (WebP) vorhanden, Zoom-Hinweis,
  * Zahl der h1, sichtbare Überschriften, globaler horizontaler Überlauf, axe serious/critical.
  * Bilder und result.json bleiben unter artifacts/auftrag-100/.
@@ -29,7 +29,13 @@ const VIEWPORTS = [
   { width: 375, height: 812 },
   { width: 320, height: 720 },
   { width: 250, height: 720 },
+  // Codex-Befund PR #87: echte Textvergrößerung (Browser-Schriftgröße 150 % / 200 %) bei 375 px –
+  // die Seitenbibliothek setzt Schriftgrößen in rem, daher wächst der Text mit der Wurzelschrift.
+  { width: 375, height: 812, text: 150 },
+  { width: 375, height: 812, text: 200 },
 ];
+const vpName = (viewport) =>
+  viewport.text ? `${viewport.width}t${viewport.text}` : `${viewport.width}`;
 const THEMES = ['dark', 'light'];
 const PAGES = [
   {
@@ -86,7 +92,7 @@ async function capture() {
   for (const seite of PAGES) {
     for (const viewport of VIEWPORTS) {
       for (const theme of THEMES) {
-        const name = `${seite.key}-${viewport.width}-${theme}`;
+        const name = `${seite.key}-${vpName(viewport)}-${theme}`;
         const context = await browser.newContext({
           baseURL: env('BASE_URL'),
           storageState: state,
@@ -105,6 +111,11 @@ async function capture() {
             state: 'attached',
             timeout: 15000,
           });
+          if (viewport.text) {
+            await page.addStyleTag({
+              content: `html { font-size: ${viewport.text}% !important; }`,
+            });
+          }
           await page.addStyleTag({
             content:
               '*, *::before, *::after { transition: none !important; animation: none !important; caret-color: transparent !important; }',
@@ -193,7 +204,7 @@ function compare() {
   for (const seite of PAGES) {
     for (const viewport of VIEWPORTS) {
       for (const theme of THEMES) {
-        const name = `${seite.key}-${viewport.width}-${theme}`;
+        const name = `${seite.key}-${vpName(viewport)}-${theme}`;
         const b = before.get(name);
         const a = after.get(name);
         if (!b || !a) {
@@ -213,7 +224,7 @@ function compare() {
         };
         for (const [key, ok] of Object.entries(checks)) if (!ok) problems.push(`${name}: ${key}`);
         rows.push(
-          `| ${seite.key} | ${viewport.width} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.webp} → ${a.webp} | ${a.h1} | ${seite.want.filter((w) => has(a, w)).length}/${seite.want.length} | ${a.saeulen} | ${a.overflow} px | ${a.abgeschnitten} px | ${a.severe.join(', ') || 0} |`,
+          `| ${seite.key} | ${vpName(viewport)} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.webp} → ${a.webp} | ${a.h1} | ${seite.want.filter((w) => has(a, w)).length}/${seite.want.length} | ${a.saeulen} | ${a.overflow} px | ${a.abgeschnitten} px | ${a.severe.join(', ') || 0} |`,
         );
       }
     }
@@ -225,7 +236,7 @@ function compare() {
 Produktionsbuild (\`vite preview\`), Anmeldung über gespeicherten Playwright-Login. Seiten
 \`/organisation/headcount\`, \`/organisation/hr\`, \`/organisation/team\` als ganze Seite.
 Vorher = \`main\` nach PR #86 (Ganzseitenbild), Nachher = Branch \`claude/auftrag-100-g2-welle-7\`
-(Seitenfreigabe \`HTML_PAGES\`). 250 px steht für 150 % Schrift bei 375 px. Bilder bleiben lokal
+(Seitenfreigabe \`HTML_PAGES\`). 375t150/375t200 = echte Textvergrößerung (Wurzelschrift 150 %/200 %, wie die Browser-Schriftgröße) bei 375 px; 250 px zusätzlich als Reflow-Probe. Bilder bleiben lokal
 unter \`artifacts/auftrag-100/\` (nicht committet).
 
 Prüfungen je Aufnahme: Hash verschieden, vorher genau ein WebP, nachher kein WebP und kein

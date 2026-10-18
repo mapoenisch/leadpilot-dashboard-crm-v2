@@ -17235,3 +17235,9 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-100/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D 1/0/0, 0 px Überlauf, 0 px abgeschnitten, axe 0).
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+**Nacharbeit Codex-Befund (19.10.2026):**
+
+- Echte Textvergrößerung (Codex P2, `captureAuftrag100Organisation.mjs`): Ursache behoben statt angenähert – alle Schriftgrößen der Seitenbibliothek (`src/components/pageKit/pageKit.css`) und der Seiten-Stylesheets (`src/features/*/*Seiten.css`) von px auf rem umgestellt (÷ 16, bei Standardschrift pixelgleich). Damit folgt der Text der Browser-Schriftgröße; zugleich erledigt das den offenen Punkt „px → rem“ aus der Nacharbeit zu Auftrag 099. HR-Kacheln brechen Beschriftung und Markierung bei Vergrößerung um. Dateien außerhalb der ursprünglichen Ziel-Liste, im Auftrag nachgetragen.
+- Harness ergänzt um 375 px mit Wurzelschrift 150 % und 200 % (entspricht der Browser-Schriftgröße); 250 px bleibt als Reflow-Probe. Matrix 3 Seiten × 7 Varianten × dunkel/hell: 42/42 (0 px Überlauf, 0 px abgeschnitten, axe 0). Vorher-Aufnahmen gegen die Seitenfreigabe von `main`.
+- Verifikation erneut: `tsc` 0, Vitest 2407 grün, Build grün, ESLint 0, size-limit 176,74/86,16 kB, Schutzbereich-Diff leer.

@@ -47,7 +47,7 @@
 .vs-pflicht__titel {
   margin: 0;
   color: var(--pk-tone);
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 .vs-punkte {
@@ -57,7 +57,7 @@
   flex-direction: column;
   gap: var(--space-2);
   color: var(--color-text);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 .vs-punkte li::marker {

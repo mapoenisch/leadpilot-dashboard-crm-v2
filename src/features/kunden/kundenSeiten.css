@@ -14,13 +14,13 @@
   grid-template-columns: minmax(140px, auto) minmax(0, 1fr);
 }
 .pk-page[data-page-key='customers-icp'] .pk-kv dt {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .pk-page[data-page-key='customers-icp'] .pk-kv dt::after {
   content: ':';
 }
 .pk-page[data-page-key='customers-icp'] .pk-kv dd {
-  font-size: 15px;
+  font-size: 0.9375rem;
   text-align: right;
 }
 @media (max-width: 639px) {

@@ -33,7 +33,7 @@
 .org-total__ziel {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--cyan);
 }
@@ -60,7 +60,7 @@
   gap: var(--space-2);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .pk-page[data-page-key='organisation-hr'] .pk-stat[data-tone='orange'] .pk-stat__value {
   color: var(--color-text);
@@ -73,7 +73,7 @@
 .org-organigramm .pk-panel__subtitle {
   order: -1;
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -97,7 +97,7 @@
 }
 .pk-page[data-page-key='organisation-hr'] .pk-stat__value {
   grid-column: 1 / -1;
-  font-size: clamp(18px, 1.5vw, 22px);
+  font-size: clamp(1.125rem, 1.5vw, 1.375rem);
   overflow-wrap: break-word;
 }
 .org-hr-grid > li {
@@ -118,4 +118,16 @@
   .org-organigramm .pk-org > .pk-row {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Codex-Befund PR #87: bei Textvergrößerung bleiben Beschriftung und Markierung in der Kachel. */
+.pk-page[data-page-key='organisation-hr'] .pk-stat__label,
+.org-hr__marke {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+.org-hr__marke .pk-chip {
+  max-width: 100%;
+  white-space: normal;
 }

@@ -32,6 +32,8 @@ Damit sind 24 von 32 Bildseiten freigegeben. Es bleiben Produkt (Preise, Perform
 | neu `src/app/__tests__/g100OrganisationSeiten.ui.vitest.tsx`, `scripts/captureAuftrag100Organisation.mjs`, `docs/screenshots/auftrag-100/README.md` | Tests und Nachweis                                                                                  |
 | Doku: `docs/BUILD_LOG.md`, Plan Abschnitt 12, dieser Auftrag                                                                                        | Nachweis                                                                                            |
 
+| Nacharbeit Codex: `src/components/pageKit/pageKit.css`, `src/features/*/*Seiten.css` | Schriftgrößen px → rem (pixelgleich bei 16 px), damit Browser-Textvergrößerung wirkt |
+
 ## Globale Grenzen
 
 - Schutzbereiche unverändert. Zahlen gegen Faktenblatt v1.2 §10 (Personal & Organisation) geprüft –
@@ -64,4 +66,4 @@ Damit sind 24 von 32 Bildseiten freigegeben. Es bleiben Produkt (Preise, Perform
 - [x] Seitenfreigabe um die drei Seiten erweitert; Rückschaltung = Einträge entfernen.
 - [x] Drei Seiten nach Original-WebP gebaut, 3D-Fläche, „ruhig“, hell und dunkel.
 - [x] Tests angepasst und ergänzt, e2e-Routen ergänzt.
-- [x] Nachweis 3 Seiten × 1440/768/375/320/250 px × dunkel/hell: 30/30.
+- [x] Nachweis 3 Seiten × 1440/768/375/320/250 px × dunkel/hell: 42/42 (inkl. 375 px mit 150 %/200 % Textgröße).
