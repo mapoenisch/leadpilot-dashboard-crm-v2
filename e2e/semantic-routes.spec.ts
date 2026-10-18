@@ -35,6 +35,10 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'market-dach': '/market/overview',
   'market-competition': '/market/competition',
   'market-swot': '/market/swot',
+  'customers-icp': '/customers/icp',
+  'customers-persona': '/customers/persona',
+  'customers-segments': '/customers/segments',
+  'customers-top10': '/customers/top-customers',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

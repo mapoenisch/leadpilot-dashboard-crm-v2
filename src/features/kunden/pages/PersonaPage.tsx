@@ -3,13 +3,16 @@ import { PERSONA } from '@/domain/kundenData';
 import { DataState } from '@/components/ui/DataState';
 import { Grid, KeyValueList, PageHero, Panel, Quote, ToneList } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import '../kundenSeiten.css';
 
 // 067I / G53: Echte Persona-Seite statt WebP — genau eine h1,
 // Stammdaten als Definitionsliste, Ziele und Hürden als Listen.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (05-buyer-persona-volker).
+// Auftrag 099 (Paket G2, Welle 6): sichtbar ausgeliefert (HTML_PAGES), „ruhig“. Stammdaten und
+// Kanäle stehen nicht im Original-WebP, aber im Faktenblatt v1.2 (§13, §15) – bleiben darunter.
 function PersonaPageHtml() {
   return (
-    <div className="pk-page">
+    <div className="pk-page" data-ruhig="true" data-page-key="customers-persona">
       <PageHero
         eyebrow="Kunden"
         title={`Buyer Persona „${PERSONA.name}“`}
@@ -20,16 +23,16 @@ function PersonaPageHtml() {
         <Panel
           title={PERSONA.name}
           toneTitle
-          chip={`${String(PERSONA.age)} Jahre – ${PERSONA.role}`}
+          chip={`${String(PERSONA.age)} Jahre - ${PERSONA.role}`}
           chipTone="neutral"
         >
           <Quote>{PERSONA.quote}</Quote>
           <Grid cols="2">
-            <Panel title="Ziele" icon={Target} toneTitle headingLevel={3}>
+            <Panel title="Ziele:" icon={Target} toneTitle headingLevel={3}>
               <ToneList items={PERSONA.goals} />
             </Panel>
             <Panel
-              title="Schmerzpunkte (Pain Points)"
+              title="Schmerzpunkte (Pain Points):"
               tone="red"
               icon={Zap}
               toneTitle

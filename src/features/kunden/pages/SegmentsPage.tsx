@@ -1,11 +1,26 @@
 import { SEGMENTE, REGIONEN, CHART_SEGMENT } from '@/domain/kundenData';
 import { DataState } from '@/components/ui/DataState';
-import { ChartFigure, Chip, ColumnChart, KitTable, PageHero, Panel } from '@/components/pageKit';
+import { ChartFigure, Chip, KitTable, PageHero, Panel } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import { GroupedDepthColumns } from '@/features/vertrieb/components/GroupedDepthColumns';
+import '../kundenSeiten.css';
 
 // 067I / G53: Echte Segmentseite statt WebP — genau eine h1,
 // Branchen und Regionen als Tabellen, ARR-Verteilung mit Summary.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (06-kundensegmente).
+// Auftrag 099 (Paket G2, Welle 6): sichtbar ausgeliefert (HTML_PAGES), „ruhig“. ARR je Segment
+// als 3D-Säulen wie im Original-WebP: Industrie cyan/hellcyan, Handel und Agenturen orange.
+const FARBEN = [
+  'var(--color-primary)',
+  'color-mix(in srgb, var(--color-primary) 55%, white)',
+  'var(--orange)',
+  'color-mix(in srgb, var(--orange) 70%, white)',
+];
+
+function formatEuro(value: number): string {
+  return `${value.toLocaleString('de-DE')} €`;
+}
+
 function SegmentsPageHtml() {
   const segmente = SEGMENTE.rows.map((row) => ({
     branche: <strong>{row.branche}</strong>,
@@ -19,13 +34,13 @@ function SegmentsPageHtml() {
     status: <Chip strong>{row.status}</Chip>,
   }));
   const daten = CHART_SEGMENT.datasets[0]?.data ?? [];
-  const betrag = (index: number): string => `${(daten[index] ?? 0).toLocaleString('de-DE')} Euro`;
+  const betrag = (index: number): string => formatEuro(daten[index] ?? 0);
   const summary =
     `${CHART_SEGMENT.labels[0]} trägt mit ${betrag(0)} den größten ARR-Anteil, ` +
     `gefolgt von ${CHART_SEGMENT.labels[1]} mit ${betrag(1)} und ` +
-    `${CHART_SEGMENT.labels[2]} mit ${betrag(2)}.`;
+    `${CHART_SEGMENT.labels[2]} mit ${betrag(2)} und ${CHART_SEGMENT.labels[3]} mit ${betrag(3)}.`;
   return (
-    <div className="pk-page">
+    <div className="pk-page" data-ruhig="true" data-page-key="customers-segments">
       <PageHero
         eyebrow="Kunden"
         title={SEGMENTE.title}
@@ -46,10 +61,18 @@ function SegmentsPageHtml() {
             title={CHART_SEGMENT.datasets[0]?.label ?? 'ARR-Verteilung'}
             summary={summary}
           >
-            <ColumnChart
+            <GroupedDepthColumns
+              idPrefix="segment-arr"
+              height={260}
+              maxBarWidth={70}
+              plotLeft={96}
+              regionLabel="ARR je Kundensegment, waagerecht scrollbar"
               labels={CHART_SEGMENT.labels}
-              series={[{ name: 'ARR', values: daten }]}
-              valueSuffix=" €"
+              series={[{ name: 'ARR', values: daten, color: FARBEN[0] ?? 'var(--color-primary)' }]}
+              colorAt={(_, li) => FARBEN[li]}
+              formatTick={(wert) => formatEuro(wert)}
+              valueLabel={(wert) => formatEuro(wert)}
+              datenTabelle={(wert) => formatEuro(wert)}
             />
           </ChartFigure>
         </Panel>

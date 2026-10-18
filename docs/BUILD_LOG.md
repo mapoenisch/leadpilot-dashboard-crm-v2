@@ -17196,3 +17196,26 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 - Freigabestatus widersprüchlich: PR-Beschreibung an Auftrag und BUILD_LOG angeglichen (Sichtabnahme Marc 18.10.2026 erteilt, offen nur Codex-Review).
 - Screenshot-Vollständigkeit: Der Harness misst jetzt je Aufnahme „abgeschnitten“ – verdeckter Rest aller senkrecht scrollenden Container im Hauptbereich und Abstand des Seitenendes zur Fensterunterkante – und verlangt 0 px. Neuer Nachher-Lauf: 30/30, überall 0 px abgeschnitten; Sichtkontrolle des Seitenendes (SWOT 250 px, letzter Risiko-Punkt sichtbar). Matrix um die Spalte ergänzt.
 - Visual-Gate: Bereits mit Commit `6623bbe` erledigt (drei Linux-Baselines der Marktübersicht aus Lauf 39163459523).
+
+## Auftrag 099 – Paket G2, Welle 6: Kundenseiten als echte Seiten (Builder: Claude Code, 18.10.2026)
+
+**Ziel & Kontext:** Sechste G2-Welle nach dem Vorgehen von 093–098 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur): Ideal Customer Profile, Buyer Persona, Kundensegmente und Top-10-Referenzkunden erscheinen als echte HTML-Seiten (`HTML_PAGES`), übrige Bildseiten bleiben Bild. Zweiter Teil der Gruppe Kunden/Markt; damit 21 von 32 Seiten freigegeben. Branch `claude/auftrag-099-g2-welle-6` von `main` `c9b649b` (nach Merge PR #85).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/kunden/pages/IcpPage.tsx`, `PersonaPage.tsx`, `SegmentsPage.tsx`, `TopCustomersPage.tsx`, neu `src/features/kunden/kundenSeiten.css`; `src/components/pageKit/PageHero.tsx` (additiv `pillIcons`); `src/domain/icpData.ts`, `kundenData.ts`, `personaData.ts`; Tests `g93FunnelPage.ui`, `g98MarktSeiten.ui` (Gegenprobe Headcount-Seite), neu `g99KundenSeiten.ui`; `e2e/semantic-routes.spec.ts` (`HTML_PAGE_ROUTES`); `scripts/captureAuftrag099Kunden.mjs`; `docs/screenshots/auftrag-099/README.md`; Auftrag 099; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 §3, §13, §14, §15 und Abschnitt D abgeglichen. Angeglichen: D3 – ARR der Pro-Kunden Delta Labs 17.520 €, Kestrel Components 18.780 €, Siegfried Precision 20.040 € (Pro-MRR zusammen 4.695 €, wirkt auch auf das Kundenportfolio im Dashboard); D8 – Negative-Fit um „Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern“ ergänzt. Nachgebaut: ICP-Firmografie mit rechtsbündigen Ausprägungen und Punktlisten, Persona mit Zitat, Zielen und Schmerzpunkten, ARR je Segment als 3D-Säulen in vier Farben mit Branchen- und Regionentabelle, Top-10-Tabelle ohne Panel-Kopf mit Pill-Symbolen. Abweichungen vom Bild (im Auftrag einzeln begründet): Top-10-Namen und -Zahlen nach Faktenblatt statt WebP, ARR-Spalte gefüllt (im WebP leer); Persona behält Stammdaten und Kanäle unter dem Original-Inhalt; Säulen mit Wertbeschriftung; Linien-Symbole statt Emoji bzw. gefüllter Symbole.
+
+**Schutzbereichs-Prüfung:** `git diff c9b649b -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (Suiten 001–025); Vitest gesamt 335 Dateien, 2399 Tests grün; `npm run build` grün; ESLint 0 Warnungen; size-limit 86,16 kB von 250 kB. Keine Visual-Baselines für Kundenrouten vorhanden, daher kein Baseline-Lauf nötig.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-099/README.md` – 4 Seiten × 5 Breiten × dunkel/hell: 40/40 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/0/4/0, 0 px Überlauf, 0 px abgeschnitten, axe 0). Der Harness erfasst jetzt h1–h3, weil die Persona-Unterpanels h3 sind.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+**Nacharbeit Codex-/Devin-Befunde (19.10.2026):**
+
+- Segment-Werte für Bildschirmleser (Codex P2, Devin): `GroupedDepthColumns` erhält `datenTabelle`, die Zusammenfassung nennt alle vier Segmente inklusive „Agenturen mit 42.000 €“; Test `g99KundenSeiten.ui` prüft die Werte außerhalb des ausgeblendeten SVG.
+- Portfolio-Achse (Codex P2): `CustomerPortfolio.tsx` leitet die Y-Ticks (alle 4.000 €) aus dem Achsenmaximum ab, dadurch ist der Bereich bis 20.000 € beschriftet (Folge der D3-Werte). Datei außerhalb der ursprünglichen Ziel-Liste, im Auftrag nachgetragen.
+- 200-%-Textvergrößerung (Devin, Hinweis): Nicht seitenspezifisch lösbar. Die Seitenbibliothek (`pageKit.css`) setzt Schriftgrößen in festen px (50 Stellen), daher wirkt eine Browser-Schriftgröße kaum. Eine Wurzelschrift-Messung wäre kein echter Nachweis und wurde bewusst nicht als bestanden eingetragen. Abgedeckt sind 320 px Reflow sowie 400 % Zoom (≈ 360 CSS-px, durch 375/320 px belegt). Offener Punkt für den Gesamtabschluss (Plan Abschnitt „Zusätzlich“): px → rem in der Seitenbibliothek.
+- Verifikation erneut: `tsc` 0, `verify` grün, Vitest 335/2399 grün, Build grün, ESLint 0, Schutzbereich-Diff leer, Matrix 40/40.
