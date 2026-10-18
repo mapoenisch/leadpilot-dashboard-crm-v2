@@ -17189,4 +17189,4 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 
 **Hinweis Visual-Baselines:** `e2e/visual.spec.ts` prüft `/market/overview`; die Linux-Baselines werden nach dem ersten CI-Lauf über `update-visual-baselines.yml` erneuert.
 
-**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Sichtabnahme durch Marc, Codex-Review (Gate-Freigabe).
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
