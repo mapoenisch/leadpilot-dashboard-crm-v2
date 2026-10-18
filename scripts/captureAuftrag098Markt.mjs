@@ -137,6 +137,22 @@ async function capture() {
               // 3D-Säulen (GroupedDepthColumns); in scrollbaren Diagrammen auch außerhalb des Bildausschnitts.
               saeulen: main.querySelectorAll('[data-saeule]').length,
               overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+              // Codex-Befund: Der Hauptbereich scrollt intern. Nach dem Aufziehen darf kein
+              // senkrecht scrollender Container Inhalt verdecken, und der letzte Inhalt der Seite
+              // muss innerhalb des Fensters (= der Aufnahme) enden.
+              abgeschnitten: Math.max(
+                0,
+                ...Array.from(document.querySelectorAll('main, main *'))
+                  .filter((el) => {
+                    const oy = getComputedStyle(el).overflowY;
+                    return oy === 'auto' || oy === 'scroll';
+                  })
+                  .map((el) => el.scrollHeight - el.clientHeight),
+                Math.ceil(
+                  (document.querySelector('main .pk-page')?.getBoundingClientRect().bottom ?? 0) -
+                    window.innerHeight,
+                ),
+              ),
             };
           });
           const severe = (await new AxeBuilder({ page }).analyze()).violations
@@ -145,7 +161,7 @@ async function capture() {
           const sha256 = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
           shots.push({ name, sha256, ...metrics, severe });
           console.log(
-            `${name}: Bild ${metrics.webp} · Hinweis ${metrics.zoomHint} · h1 ${metrics.h1} · sichtbar ${metrics.headings.length} · Überlauf ${metrics.overflow} · axe ${severe.join(',') || 0}`,
+            `${name}: Bild ${metrics.webp} · Hinweis ${metrics.zoomHint} · h1 ${metrics.h1} · sichtbar ${metrics.headings.length} · Überlauf ${metrics.overflow} · abgeschnitten ${metrics.abgeschnitten} · axe ${severe.join(',') || 0}`,
           );
         } finally {
           await context.close();
@@ -188,11 +204,12 @@ function compare() {
           sichtbar: seite.want.every((w) => has(a, w)),
           saeulen: a.saeulen === seite.saeulen,
           overflow: a.overflow <= 0,
+          vollstaendig: a.abgeschnitten === 0,
           axe: a.severe.length === 0,
         };
         for (const [key, ok] of Object.entries(checks)) if (!ok) problems.push(`${name}: ${key}`);
         rows.push(
-          `| ${seite.key} | ${viewport.width} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.webp} → ${a.webp} | ${a.h1} | ${seite.want.filter((w) => has(a, w)).length}/${seite.want.length} | ${a.saeulen} | ${a.overflow} px | ${a.severe.join(', ') || 0} |`,
+          `| ${seite.key} | ${viewport.width} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.webp} → ${a.webp} | ${a.h1} | ${seite.want.filter((w) => has(a, w)).length}/${seite.want.length} | ${a.saeulen} | ${a.overflow} px | ${a.abgeschnitten} px | ${a.severe.join(', ') || 0} |`,
         );
       }
     }
@@ -209,10 +226,11 @@ unter \`artifacts/auftrag-098/\` (nicht committet).
 
 Prüfungen je Aufnahme: Hash verschieden, vorher genau ein WebP, nachher kein WebP und kein
 Zoom-Hinweis, genau eine h1 im Hauptinhalt, alle Überschriften des Originals sichtbar, Zahl der
-3D-Säulen (Marktlage 0, Wettbewerb 6, SWOT 0), 0 px horizontaler Überlauf, axe serious/critical 0.
+3D-Säulen (Marktlage 0, Wettbewerb 6, SWOT 0), 0 px horizontaler Überlauf, 0 px abgeschnitten (kein intern scrollender Container
+verdeckt Inhalt, Seitenende liegt in der Aufnahme), axe serious/critical 0.
 
-| Seite | Breite | Modus | Hash vorher | Hash nachher | WebP | h1 | Überschriften | 3D | Überlauf | axe |
-| ----- | -----: | ----- | ----------- | ------------ | ---- | -: | ------------- | -: | -------: | --- |
+| Seite | Breite | Modus | Hash vorher | Hash nachher | WebP | h1 | Überschriften | 3D | Überlauf | abgeschnitten | axe |
+| ----- | -----: | ----- | ----------- | ------------ | ---- | -: | ------------- | -: | -------: | ------------: | --- |
 ${rows.join('\n')}
 
 **Ergebnis:** ${total - failed}/${total} Aufnahmen bestanden.${problems.length ? `\n\nAuffällig: ${problems.join('; ')}` : ''}

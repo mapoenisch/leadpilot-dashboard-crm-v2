@@ -17190,3 +17190,9 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Nacharbeit CI e2e (18.10.2026):** `visual /market/overview` schlug erwartungsgemäß fehl (Bild → HTML). Die Baselines wurden in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/098`, Lauf 39163459523), per Sichtprüfung kontrolliert und nur die drei Linux-Bilder der Marktübersicht übernommen; alle übrigen Snapshots identisch.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+**Nacharbeit Codex-Befund (18.10.2026):**
+
+- Freigabestatus widersprüchlich: PR-Beschreibung an Auftrag und BUILD_LOG angeglichen (Sichtabnahme Marc 18.10.2026 erteilt, offen nur Codex-Review).
+- Screenshot-Vollständigkeit: Der Harness misst jetzt je Aufnahme „abgeschnitten“ – verdeckter Rest aller senkrecht scrollenden Container im Hauptbereich und Abstand des Seitenendes zur Fensterunterkante – und verlangt 0 px. Neuer Nachher-Lauf: 30/30, überall 0 px abgeschnitten; Sichtkontrolle des Seitenendes (SWOT 250 px, letzter Risiko-Punkt sichtbar). Matrix um die Spalte ergänzt.
+- Visual-Gate: Bereits mit Commit `6623bbe` erledigt (drei Linux-Baselines der Marktübersicht aus Lauf 39163459523).
