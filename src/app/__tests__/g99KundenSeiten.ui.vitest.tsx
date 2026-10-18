@@ -82,6 +82,13 @@ describe('G99 Kundenseiten als HTML-Seiten', () => {
     for (const wert of CHART_SEGMENT.datasets[0]?.data ?? []) {
       expect(text).toContain(`${wert.toLocaleString('de-DE')} €`);
     }
+    // Codex-Befund PR #86: alle vier Werte auch außerhalb des ausgeblendeten SVG (Tabelle + Summary).
+    const zugaenglich = Array.from(container.querySelectorAll('table, figcaption, p'))
+      .filter((el) => !el.closest('[aria-hidden="true"]'))
+      .map((el) => el.textContent ?? '')
+      .join(' ');
+    expect(zugaenglich).toContain('Agenturen');
+    expect(zugaenglich).toContain('42.000 €');
     for (const row of SEGMENTE.rows) {
       expect(text).toContain(row.branche);
       expect(text).toContain(row.anteil);

@@ -17212,3 +17212,10 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-099/README.md` – 4 Seiten × 5 Breiten × dunkel/hell: 40/40 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/0/4/0, 0 px Überlauf, 0 px abgeschnitten, axe 0). Der Harness erfasst jetzt h1–h3, weil die Persona-Unterpanels h3 sind.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+**Nacharbeit Codex-/Devin-Befunde (19.10.2026):**
+
+- Segment-Werte für Bildschirmleser (Codex P2, Devin): `GroupedDepthColumns` erhält `datenTabelle`, die Zusammenfassung nennt alle vier Segmente inklusive „Agenturen mit 42.000 €“; Test `g99KundenSeiten.ui` prüft die Werte außerhalb des ausgeblendeten SVG.
+- Portfolio-Achse (Codex P2): `CustomerPortfolio.tsx` leitet die Y-Ticks (alle 4.000 €) aus dem Achsenmaximum ab, dadurch ist der Bereich bis 20.000 € beschriftet (Folge der D3-Werte). Datei außerhalb der ursprünglichen Ziel-Liste, im Auftrag nachgetragen.
+- 200-%-Textvergrößerung (Devin, Hinweis): Nicht seitenspezifisch lösbar. Die Seitenbibliothek (`pageKit.css`) setzt Schriftgrößen in festen px (50 Stellen), daher wirkt eine Browser-Schriftgröße kaum. Eine Wurzelschrift-Messung wäre kein echter Nachweis und wurde bewusst nicht als bestanden eingetragen. Abgedeckt sind 320 px Reflow sowie 400 % Zoom (≈ 360 CSS-px, durch 375/320 px belegt). Offener Punkt für den Gesamtabschluss (Plan Abschnitt „Zusätzlich“): px → rem in der Seitenbibliothek.
+- Verifikation erneut: `tsc` 0, `verify` grün, Vitest 335/2399 grün, Build grün, ESLint 0, Schutzbereich-Diff leer, Matrix 40/40.

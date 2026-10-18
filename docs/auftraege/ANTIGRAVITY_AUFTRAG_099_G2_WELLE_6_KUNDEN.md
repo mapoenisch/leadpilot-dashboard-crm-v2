@@ -63,7 +63,9 @@ Strategie und Recht.
   Mitarbeiter- und Nutzerzahlen der Anwendung statt der abweichenden Angaben im WebP (z. B. „Northwind
   GmbH“ statt „Nordstahl GmbH“, „Großhandel“ statt „Elektrotechnik“); ARR-Spalte gefüllt (im WebP leer),
   Pro-Kunden nach D3. Pill „Branchenzusammensetzung“ ausgeschrieben (im WebP abgeschnitten).
-- Die ARR-Änderung der drei Pro-Kunden wirkt auch auf das Kundenportfolio im Dashboard (liest `TOP10`).
+- Die ARR-Änderung der drei Pro-Kunden wirkt auch auf das Kundenportfolio im Dashboard (liest `TOP10`);
+  Nacharbeit Codex-Befund: `src/features/kunden/components/CustomerPortfolio.tsx` leitet die Y-Ticks aus dem
+  Achsenmaximum ab.
 
 ## Tasks
 

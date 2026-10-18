@@ -38,7 +38,7 @@ function SegmentsPageHtml() {
   const summary =
     `${CHART_SEGMENT.labels[0]} trägt mit ${betrag(0)} den größten ARR-Anteil, ` +
     `gefolgt von ${CHART_SEGMENT.labels[1]} mit ${betrag(1)} und ` +
-    `${CHART_SEGMENT.labels[2]} mit ${betrag(2)}.`;
+    `${CHART_SEGMENT.labels[2]} mit ${betrag(2)} und ${CHART_SEGMENT.labels[3]} mit ${betrag(3)}.`;
   return (
     <div className="pk-page" data-ruhig="true" data-page-key="customers-segments">
       <PageHero
@@ -72,6 +72,7 @@ function SegmentsPageHtml() {
               colorAt={(_, li) => FARBEN[li]}
               formatTick={(wert) => formatEuro(wert)}
               valueLabel={(wert) => formatEuro(wert)}
+              datenTabelle={(wert) => formatEuro(wert)}
             />
           </ChartFigure>
         </Panel>
