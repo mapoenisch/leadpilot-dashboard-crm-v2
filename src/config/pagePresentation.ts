@@ -37,4 +37,9 @@ export const HTML_PAGES: readonly string[] = [
   'market-dach',
   'market-competition',
   'market-swot',
+  // Welle G2-6 – Kunden (Auftrag 099)
+  'customers-icp',
+  'customers-persona',
+  'customers-segments',
+  'customers-top10',
 ];

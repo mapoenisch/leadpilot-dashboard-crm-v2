@@ -83,20 +83,22 @@ export const CHART_SEGMENT = {
   ],
 };
 
+// Auftrag 099 (Paket G2, Welle 6): Pro-Kunden nach Faktenblatt v1.2 D3 (Pro als individuelles
+// Angebot, MRR zusammen 4.695 €): Delta Labs 17.520 €, Kestrel 18.780 €, Siegfried 20.040 € ARR.
 export const TOP10 = {
   title: 'Top B2B Referenzkunden (ICP-konform, < 200 MA)',
   headers: ['Kunde', 'Branche', 'Mitarbeiter', 'Paket', 'Nutzer', 'ARR (€)'],
   rows: [
     ['Northwind GmbH', 'Maschinenbau', '85', 'Growth', '10', '10.680 €'],
     ['Fenwick Co.', 'IT & Software', '42', 'Growth', '8', '8.544 €'],
-    ['Delta Labs', 'Großhandel', '110', 'Pro', '14', '13.440 €'],
+    ['Delta Labs', 'Großhandel', '110', 'Pro', '14', '17.520 €'],
     ['Ocular Systems', 'Agenturen', '28', 'Starter', '5', '2.940 €'],
     ['Brightline Solutions', 'IT & Software', '65', 'Growth', '10', '10.680 €'],
-    ['Kestrel Components', 'Maschinenbau', '140', 'Pro', '15', '14.400 €'],
+    ['Kestrel Components', 'Maschinenbau', '140', 'Pro', '15', '18.780 €'],
     ['Vektor Dynamics', 'Maschinenbau', '95', 'Growth', '12', '12.816 €'],
     ['Hansa Automation', 'IT & Software', '50', 'Growth', '10', '10.680 €'],
     ['Konzett Systems', 'Großhandel', '78', 'Growth', '9', '9.612 €'],
-    ['Siegfried Precision', 'Maschinenbau', '115', 'Pro', '16', '15.360 €'],
+    ['Siegfried Precision', 'Maschinenbau', '115', 'Pro', '16', '20.040 €'],
   ],
 };
 

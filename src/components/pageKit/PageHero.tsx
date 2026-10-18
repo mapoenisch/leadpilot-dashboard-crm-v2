@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
 
 // Auftrag 068 / G66: Seitenkopf der Inhaltsseiten nach v2.2.0-Vorlage —
 // Eyebrow (Bereich), genau eine h1, Untertitel, Pills (erste aktiv leuchtend).
@@ -7,6 +8,8 @@ export interface PageHeroProps {
   title: string;
   subtitle?: ReactNode;
   pills?: string[];
+  /** Auftrag 099: Symbole vor den Pills (gleiche Reihenfolge wie `pills`), wie im Original-WebP. */
+  pillIcons?: LucideIcon[];
   /** Pills rechts neben dem Titel (z. B. Registerangaben). */
   asidePills?: string[];
   /** Welche aside-Pill leuchtet: Standard die letzte; Auftrag 095: „first“ für die Jahres-Highlights. */
@@ -26,6 +29,7 @@ export function PageHero({
   title,
   subtitle,
   pills = [],
+  pillIcons = [],
   asidePills = [],
   asideActive = 'last',
 }: PageHeroProps) {
@@ -37,11 +41,15 @@ export function PageHero({
         {subtitle ? <p className="pk-subtitle">{subtitle}</p> : null}
         {pills.length > 0 ? (
           <div className="pk-pills">
-            {pills.map((pill, index) => (
-              <Pill key={pill} active={index === 0}>
-                {pill}
-              </Pill>
-            ))}
+            {pills.map((pill, index) => {
+              const Icon = pillIcons[index];
+              return (
+                <Pill key={pill} active={index === 0}>
+                  {Icon ? <Icon size={16} aria-hidden="true" /> : null}
+                  {pill}
+                </Pill>
+              );
+            })}
           </div>
         ) : null}
       </div>

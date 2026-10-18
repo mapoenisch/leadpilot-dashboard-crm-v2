@@ -4,7 +4,7 @@ import { HTML_PAGES, PAGE_PRESENTATION } from '@/config/pagePresentation';
 import { IMAGE_PAGES } from '@/components/imagePage/imagePages';
 import { FUNNEL } from '@/domain/vertriebData';
 import { FunnelPage } from '@/features/vertrieb/pages/FunnelPage';
-import { IcpPage } from '@/features/kunden/pages/IcpPage';
+import { HeadcountPage } from '@/features/organisation/pages/HeadcountPage';
 
 // Auftrag 093 (Paket G1): Sales Funnel als erste echte Seite per Seitenfreigabe,
 // alle übrigen Seiten bleiben beim globalen Bildschalter.
@@ -48,10 +48,10 @@ describe('G93 Sales Funnel als HTML-Seite', () => {
   });
 
   it('andere Seiten bleiben Bild', () => {
-    // Seit Auftrag 098 ist die Marktübersicht freigegeben; die ICP-Seite bleibt Bild.
-    render(<IcpPage />);
+    // Seit Auftrag 099 sind die Kundenseiten freigegeben; die Headcount-Seite bleibt Bild.
+    render(<HeadcountPage />);
     expect(screen.getByTestId('image-page')).toBeInTheDocument();
-    expect(screen.getByTestId(IMAGE_PAGES['customers-icp'].testId)).toBeInTheDocument();
+    expect(screen.getByTestId(IMAGE_PAGES['organisation-headcount'].testId)).toBeInTheDocument();
   });
 
   // Inhaltsinventar des Original-WebP (01-sales-funnel-2025): nichts darf fehlen.

@@ -3,14 +3,17 @@ import { ICP } from '@/domain/kundenData';
 import { DataState } from '@/components/ui/DataState';
 import { Grid, KeyValueList, PageHero, Panel, ToneList } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import '../kundenSeiten.css';
 
 // 067I / G53: Echte ICP-Seite statt WebP — genau eine h1,
 // Firmografie als Definitionsliste, Trigger und Ausschlüsse als Listen.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (04-ideal-customer-profile).
+// Auftrag 099 (Paket G2, Welle 6): sichtbar ausgeliefert (HTML_PAGES), „ruhig“. Negative-Fit um
+// Kleinstkunden ergänzt (Faktenblatt v1.2 §13, Entscheidung D8).
 function IcpPageHtml() {
   const ready = ICP.firmografie.length > 0;
   return (
-    <div className="pk-page">
+    <div className="pk-page" data-ruhig="true" data-page-key="customers-icp">
       <PageHero
         eyebrow="Kunden"
         title={ICP.title}

@@ -1,0 +1,33 @@
+/* Auftrag 099 (Paket G2, Welle 6): Kundenseiten wie im Original-WebP – Listen mit runden
+   Leuchtpunkten statt Balken, ICP-Symbole in umrandeter Kachel. */
+.pk-page[data-page-key^='customers-'] .pk-list > li::before {
+  top: 0.4em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.pk-page[data-page-key^='customers-'] .pk-list > li {
+  padding-left: 26px;
+}
+/* ICP: Firmografie wie im Original – Merkmal mit Doppelpunkt links, Ausprägung rechtsbündig. */
+.pk-page[data-page-key='customers-icp'] .pk-kv__row {
+  grid-template-columns: minmax(140px, auto) minmax(0, 1fr);
+}
+.pk-page[data-page-key='customers-icp'] .pk-kv dt {
+  font-size: 15px;
+}
+.pk-page[data-page-key='customers-icp'] .pk-kv dt::after {
+  content: ':';
+}
+.pk-page[data-page-key='customers-icp'] .pk-kv dd {
+  font-size: 15px;
+  text-align: right;
+}
+@media (max-width: 639px) {
+  .pk-page[data-page-key='customers-icp'] .pk-kv__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pk-page[data-page-key='customers-icp'] .pk-kv dd {
+    text-align: left;
+  }
+}
