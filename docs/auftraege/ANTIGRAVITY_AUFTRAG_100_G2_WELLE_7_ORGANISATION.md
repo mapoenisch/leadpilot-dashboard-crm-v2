@@ -32,7 +32,7 @@ Damit sind 24 von 32 Bildseiten freigegeben. Es bleiben Produkt (Preise, Perform
 | neu `src/app/__tests__/g100OrganisationSeiten.ui.vitest.tsx`, `scripts/captureAuftrag100Organisation.mjs`, `docs/screenshots/auftrag-100/README.md` | Tests und Nachweis                                                                                  |
 | Doku: `docs/BUILD_LOG.md`, Plan Abschnitt 12, dieser Auftrag                                                                                        | Nachweis                                                                                            |
 
-| Nacharbeit Codex: `src/components/pageKit/pageKit.css`, `src/features/*/*Seiten.css` | Schriftgrößen px → rem (pixelgleich bei 16 px), damit Browser-Textvergrößerung wirkt |
+| Nacharbeit Codex: `src/components/pageKit/pageKit.css`, `src/features/*/*Seiten.css`, `src/features/finanzen/components/DepthFlaechen.tsx` | Schriftgrößen px → rem (pixelgleich bei 16 px), damit Browser-Textvergrößerung wirkt |
 
 ## Globale Grenzen
 

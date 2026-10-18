@@ -140,7 +140,18 @@ async function capture() {
               const r = el.getBoundingClientRect();
               return r.width > 1 && r.height > 1 && !el.closest('.sr-only');
             };
+            // Kleinste berechnete Schriftgröße sichtbarer Texte im Hauptinhalt (inkl. SVG-Text).
+            const groessen = Array.from(main.querySelectorAll('*'))
+              .filter(
+                (el) =>
+                  visible(el) &&
+                  Array.from(el.childNodes).some(
+                    (n) => n.nodeType === 3 && n.textContent.trim().length > 0,
+                  ),
+              )
+              .map((el) => parseFloat(getComputedStyle(el).fontSize));
             return {
+              minSchrift: groessen.length ? Math.min(...groessen) : 0,
               webp: main.querySelectorAll('img[src$=".webp"]').length,
               zoomHint: !!main.querySelector('[data-testid="image-page-hint"]'),
               // Header-h1 (Layout) zählt nicht; Seiten-h1 nur im Hauptinhalt.
@@ -221,10 +232,17 @@ function compare() {
           overflow: a.overflow <= 0,
           vollstaendig: a.abgeschnitten === 0,
           axe: a.severe.length === 0,
+          // Textvergrößerung wirkt überall: kleinste Schrift wächst mit dem Faktor gegenüber 375 px.
+          schrift: viewport.text
+            ? a.minSchrift >=
+              (after.get(`${seite.key}-375-${theme}`)?.minSchrift ?? Infinity) *
+                (viewport.text / 100) *
+                0.98
+            : true,
         };
         for (const [key, ok] of Object.entries(checks)) if (!ok) problems.push(`${name}: ${key}`);
         rows.push(
-          `| ${seite.key} | ${vpName(viewport)} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.webp} → ${a.webp} | ${a.h1} | ${seite.want.filter((w) => has(a, w)).length}/${seite.want.length} | ${a.saeulen} | ${a.overflow} px | ${a.abgeschnitten} px | ${a.severe.join(', ') || 0} |`,
+          `| ${seite.key} | ${vpName(viewport)} | ${theme} | \`${b.sha256.slice(0, 12)}\` | \`${a.sha256.slice(0, 12)}\` | ${b.webp} → ${a.webp} | ${a.h1} | ${seite.want.filter((w) => has(a, w)).length}/${seite.want.length} | ${a.saeulen} | ${a.overflow} px | ${a.abgeschnitten} px | ${a.minSchrift} px | ${a.severe.join(', ') || 0} |`,
         );
       }
     }
@@ -242,10 +260,10 @@ unter \`artifacts/auftrag-100/\` (nicht committet).
 Prüfungen je Aufnahme: Hash verschieden, vorher genau ein WebP, nachher kein WebP und kein
 Zoom-Hinweis, genau eine h1 im Hauptinhalt, alle Überschriften des Originals sichtbar, Zahl der
 3D-Diagramme (Headcount 1, HR 0, Team 0), 0 px horizontaler Überlauf, 0 px abgeschnitten (kein intern scrollender Container
-verdeckt Inhalt, Seitenende liegt in der Aufnahme), axe serious/critical 0.
+verdeckt Inhalt, Seitenende liegt in der Aufnahme), axe serious/critical 0; bei 150 %/200 % Textgröße wächst die kleinste berechnete Schrift im Hauptinhalt (inkl. Diagrammbeschriftung) mindestens um den Faktor gegenüber 375 px.
 
-| Seite | Breite | Modus | Hash vorher | Hash nachher | WebP | h1 | Überschriften | 3D | Überlauf | abgeschnitten | axe |
-| ----- | -----: | ----- | ----------- | ------------ | ---- | -: | ------------- | -: | -------: | ------------: | --- |
+| Seite | Breite | Modus | Hash vorher | Hash nachher | WebP | h1 | Überschriften | 3D | Überlauf | abgeschnitten | kleinste Schrift | axe |
+| ----- | -----: | ----- | ----------- | ------------ | ---- | -: | ------------- | -: | -------: | ------------: | ---------------: | --- |
 ${rows.join('\n')}
 
 **Ergebnis:** ${total - failed}/${total} Aufnahmen bestanden.${problems.length ? `\n\nAuffällig: ${problems.join('; ')}` : ''}

@@ -1,4 +1,5 @@
 // Auftrag 097 (Paket G2, Welle 4): Linien-/Flächendiagramm mit 3D-Tiefe wie im Original-WebP
+// Codex-Befund PR #87: Beschriftungen in rem, damit sie der Browser-Schriftgröße folgen.
 // (07-unit-economics-2026): Rückwand mit Hilfslinien, schräger Boden, Reihen auf der Rückwand,
 // Fläche unter der Hauptreihe, leuchtende Punkte mit Fallinien. Die Grafik ist für Screenreader
 // ausgeblendet; Zusammenfassung liefert ChartFigure, die Werte eine versteckte Datentabelle.
@@ -123,7 +124,7 @@ export function DepthFlaechen({
                 x={x0 - 8}
                 y={by(t) - TIEFE.y + 4}
                 textAnchor="end"
-                fontSize="12"
+                style={{ fontSize: '0.75rem' }}
                 fill="var(--color-text-muted)"
               >
                 {formatTick(t)}
@@ -153,7 +154,7 @@ export function DepthFlaechen({
                 x={bx(li) - TIEFE.x}
                 y={H - 12}
                 textAnchor="middle"
-                fontSize="12"
+                style={{ fontSize: '0.75rem' }}
                 fill="var(--color-text-muted)"
               >
                 {label}
@@ -217,7 +218,7 @@ export function DepthFlaechen({
           })}
         </svg>
       </div>
-      <ul className="m-0 flex list-none flex-wrap justify-center gap-x-5 gap-y-1 p-0 text-[12px] text-[var(--color-text-muted)]">
+      <ul className="m-0 flex list-none flex-wrap justify-center gap-x-5 gap-y-1 p-0 text-[0.75rem] text-[var(--color-text-muted)]">
         {series.map((s) => (
           <li key={s.name} className="inline-flex items-center gap-1.5">
             <svg width="18" height="8" aria-hidden="true">
