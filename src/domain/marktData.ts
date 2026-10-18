@@ -15,7 +15,7 @@ export const MARKT = {
 };
 
 export const WETTBEWERB = {
-  title: 'Wettbewerbslandschaft & Marktanteile Europa/DACH',
+  title: 'Wettbewerbslandschaft & Marktanteile Europa',
   headers: [
     'Anbieter',
     'Marktanteil',
@@ -74,7 +74,7 @@ export const CHART_WETTBEWERB = {
   labels: ['Brevo', 'Zendesk', 'HubSpot', 'Salesforce', 'Pipedrive', 'LeadPilot'],
   datasets: [
     {
-      label: 'Marktanteil Europa/DACH (%)',
+      label: 'Marktanteil Europa (%)',
       data: [29.4, 23.5, 11.3, 8.5, 1.6, 0.1],
       colors: ['#A7B0BA', '#A7B0BA', '#A7B0BA', '#A7B0BA', '#7CEFE6', '#00D9C6'],
     },
@@ -99,7 +99,7 @@ export const SWOT = {
     'Großer Nachholbedarf bei der B2B-Vertriebsdigitalisierung im Mittelstand',
     'Steigende Nachfrage nach DSGVO-konformer Software ohne US-Direct-Access',
     'Skalierung des Partner- und Empfehlungskanals (günstigster CAC mit 492 €)',
-    'Einführung des Guided Trial Onboarding Flows zur Erhöhung der Trial-to-Paid Rate (18 % → 25 %)',
+    'Einführung des Guided Trial Onboarding Flows zur Erhöhung der Trial-to-Paid Rate (18 % → 26 %)',
   ],
   threats: [
     'Eintritt US-amerikanischer Anbieter mit großem Marketingbudget',

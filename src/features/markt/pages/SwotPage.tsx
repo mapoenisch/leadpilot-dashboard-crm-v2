@@ -7,6 +7,8 @@ import { ImagePage } from '@/components/imagePage';
 
 // 067I / G53: Echte SWOT-Seite statt WebP — genau eine h1, vier Quadranten.
 // Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (03-swot-analyse).
+// Auftrag 098 (Paket G2, Welle 5): sichtbar ausgeliefert (HTML_PAGES). Trial-to-Paid-Ziel
+// 18 % → 26 % statt 25 % (Faktenblatt v1.2, Entscheidung D1).
 const quadranten: Array<[string, string[], Tone, LucideIcon]> = [
   ['Stärken (Strengths)', SWOT.strengths, 'cyan', Dumbbell],
   ['Schwächen (Weaknesses)', SWOT.weaknesses, 'red', AlertTriangle],
@@ -17,7 +19,7 @@ const quadranten: Array<[string, string[], Tone, LucideIcon]> = [
 function SwotPageHtml() {
   const ready = quadranten.some(([, items]) => items.length > 0);
   return (
-    <div className="pk-page">
+    <div className="pk-page" data-ruhig="true" data-page-key="market-swot">
       <PageHero
         eyebrow="Markt & Wettbewerb"
         title={SWOT.title}

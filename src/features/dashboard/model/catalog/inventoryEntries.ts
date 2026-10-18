@@ -179,7 +179,7 @@ const PREPARE_BASE: InventoryCatalogEntry[] = [
   ),
   entry(
     'baseline.marktanteile',
-    'Marktanteile Europa/DACH',
+    'Marktanteile Europa',
     'markt',
     base('marktData', 'CHART_WETTBEWERB', ['datasets', 0, 'data']),
     'aufbereiten',

@@ -32,6 +32,9 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'finance-pnl': '/finance/p-and-l',
   'finance-balance-sheet': '/finance/balance-sheet',
   'finance-unit-economics': '/finance/unit-economics',
+  'market-dach': '/market/overview',
+  'market-competition': '/market/competition',
+  'market-swot': '/market/swot',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];
