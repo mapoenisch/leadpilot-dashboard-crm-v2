@@ -20,6 +20,7 @@ Reviews von Antigravity, OpenCode und Devin hinterlassen einen sichtbaren „Rev
 - **Das Lösen einer Konversation löst keinen Workflow aus** (`pull_request_review_thread` ist kein Actions-Ereignis). Nach dem Lösen: Actions → Review Gate → Run workflow mit PR-Nummer. Marc hat am 19.10.2026 entschieden, dass manuelles Auslösen reicht.
 - **Fork-PRs:** Review- und Kommentar-Ereignisse erhalten dort nur ein schreibgeschütztes Token; der Status wird per manuellem Lauf gesetzt. Das Repo nutzt keine Forks, ein privilegierter Folgelauf entfällt bewusst.
 - Merge-Blockade entsteht erst durch Branch-Schutz auf `main` (Pflicht-Checks `agent-review`, `review-conversations`, Konversationen lösen). Er wird erst nach dem Merge dieses Auftrags und einem ersten Lauf auf `main` gesetzt.
+- Der PR-Autor zählt nie als Prüfer (kein Selbst-Review). Kommentar-Reviews prüfen nur Autorschaft und Zeit, nicht den Inhalt (OpenCode setzt keinen Marker); ein Fortschritts-Kommentar kann daher als Review zählen, bekannte Einschränkung.
 - `marcs-pr-reviewer` steht bei OpenCode und Antigravity (Eintrag von Marc); ein Review dieses Kontos zählt für beide.
 
 ## Schutzbereiche
