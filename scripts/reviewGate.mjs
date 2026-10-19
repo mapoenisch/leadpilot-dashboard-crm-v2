@@ -88,9 +88,11 @@ function main() {
 
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
-  const commitLogins = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`]))
-    .flat()
-    .flatMap((c) => [c.author?.login, c.committer?.login]);
+  if (!pull.user?.login) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
+  const commits = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`])).flat();
+  // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber ohne Status abbrechen.
+  if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig: Gate bleibt ohne Status');
+  const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
   const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
   const post = (context, { state, description }) =>
     gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`]);
