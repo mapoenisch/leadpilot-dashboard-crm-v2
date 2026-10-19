@@ -228,7 +228,7 @@ Teilumsetzung: Aufträge 088 und 089.
       **Welle 8:** Auftrag 101 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_101_G2_WELLE_8_STRATEGIE.md`, Nachweis `docs/screenshots/auftrag-101/README.md`): Ziele & OKRs, Balanced Scorecard, Wachstumstreiber; ohne Sichtfreigabe (Ergänzung Marc 19.10.2026).
       **Welle 9:** Auftrag 102 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_102_G2_WELLE_9_RECHT.md`, Nachweis `docs/screenshots/auftrag-102/README.md`): Satzung, Gesellschafterliste, Handelsregister; ohne Sichtfreigabe (Ergänzung Marc 19.10.2026).
       **Welle 10:** Auftrag 103 (`docs/auftraege/ANTIGRAVITY_AUFTRAG_103_G2_WELLE_10_PRODUKT.md`, Nachweis `docs/screenshots/auftrag-103/README.md`): Preismodell, Produkt-Performance; ohne Sichtfreigabe (Ergänzung Marc 19.10.2026). Damit alle 32 Bildseiten als echte Seiten freigegeben.
-- [ ] Anschließend Vertriebs-/Marketingseiten, Finanzen, Kunden/Markt, Organisation/Strategie und Recht nach Abhängigkeiten abarbeiten. Jede Gruppe erneut in 3–5 prüfbare Seiten teilen; keine Welle über den geschützten Resources-Bereich erweitern.
+- [x] Anschließend Vertriebs-/Marketingseiten, Finanzen, Kunden/Markt, Organisation/Strategie und Recht nach Abhängigkeiten abarbeiten. Jede Gruppe erneut in 3–5 prüfbare Seiten teilen; keine Welle über den geschützten Resources-Bereich erweitern.
 - [ ] Pro Seite Inhaltscheckliste abgleichen: sämtliche Werte, Zeiträume, Quellen, Textabschnitte, Hinweise und Tabellen übernommen oder eine fachlich genehmigte Änderung dokumentiert.
 - [ ] Diagramme liefern klare Labels, Einheit, Zeitraum, Tabellenalternative und bei Bedarf Interaktion. Texte umbrechen; lange Tabellen scrollen lokal statt die ganze Seite zu verbreitern.
 - [ ] Vergleichstests der Datenquellen/Ansichten ergänzen: identische Werte und Rundung in sichtbarem Text, Tabelle und Diagrammbeschriftung; fehlende/ungültige Daten ehrlich anzeigen.
@@ -236,9 +236,11 @@ Teilumsetzung: Aufträge 088 und 089.
 
 ### G3 – Abschluss
 
-- [ ] Inventar zählt 32 von 32 ursprünglich betroffenen Seiten mit dokumentiertem Ergebnis; keine ausgelassene Route still als erledigt markieren.
-- [ ] Nicht mehr benötigte doppelte versteckte Inhaltsfassung aus der aktiven Darstellung entfernen. Kein Löschen geschützter Referenzdateien oder automatisches Bereinigen von Assets.
-- [ ] Architekturentscheidung als Revision ergänzen, neue Darstellungsregel und Rollback dokumentieren. Bestehende Release-Historie nicht überschreiben.
+- [x] Inventar zählt 32 von 32 ursprünglich betroffenen Seiten mit dokumentiertem Ergebnis; keine ausgelassene Route still als erledigt markieren.
+- [x] Nicht mehr benötigte doppelte versteckte Inhaltsfassung aus der aktiven Darstellung entfernen. Kein Löschen geschützter Referenzdateien oder automatisches Bereinigen von Assets.
+- [x] Architekturentscheidung als Revision ergänzen, neue Darstellungsregel und Rollback dokumentieren. Bestehende Release-Historie nicht überschreiben.
+
+**Umgesetzt mit Auftrag 104** (`docs/auftraege/ANTIGRAVITY_AUFTRAG_104_G3_BILDSEITEN_ABSCHLUSS.md`): `PAGE_PRESENTATION = 'html'`, Inventar 32/32 im Befundregister Abschnitt 4a, Revision zu B18 in `ARCHITECTURE_DECISIONS.md`; WebPs und Bildweg bleiben als Rückweg. Abnahme durch Codex offen; die Sichtprüfung aller 32 Seiten folgt in Paket I.
 
 **Abnahme:** Alle 32 Seiten sind lesbar, inhaltlich vollständig und nach der neuen Entscheidung freigegeben. Keine nicht bedienbaren abgebildeten Buttons; Bildschirmleser erhalten denselben Inhalt wie sehende Nutzer. Kein Ganzseitenbild ersetzt die eigentliche Text-/Tabellendarstellung.
 

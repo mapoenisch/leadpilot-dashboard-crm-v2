@@ -10,8 +10,8 @@ import { FunnelPage } from '@/features/vertrieb/pages/FunnelPage';
 afterEach(cleanup);
 
 describe('G93 Sales Funnel als HTML-Seite', () => {
-  it('Seitenfreigabe nennt den Funnel, globaler Schalter bleibt Bild', () => {
-    expect(PAGE_PRESENTATION).toBe('bild');
+  it('Seitenfreigabe nennt den Funnel, globaler Schalter steht auf HTML (Auftrag 104)', () => {
+    expect(PAGE_PRESENTATION).toBe('html');
     // Auftrag 094: weitere Wellen ergänzen die Liste; der Funnel bleibt freigegeben.
     expect(HTML_PAGES).toContain('sales-funnel');
     for (const key of HTML_PAGES) expect(Object.keys(IMAGE_PAGES)).toContain(key);

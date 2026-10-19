@@ -17295,3 +17295,19 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-103/README.md` – 2 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 28/28 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Kerninhalte sichtbar, 3D-Fläche Performance 1, 0 px Überlauf, 0 px abgeschnitten, axe 0; kleinste Schrift Preismodell 11 → 16,5 → 22 px, Performance 9 → 13,5 → 18 px – Achsenbeschriftung der 3D-Fläche wie in Welle 4/7). Anmeldung der Aufnahme mit dem lokalen Seed-Testnutzer (gespeicherter Login war abgelaufen).
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+## Auftrag 104 – Paket G3: Abschluss der Bildseiten-Migration (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 12, Teil G3, nach Abschluss aller G2-Wellen (PR #90). Inventar 32/32 mit Ergebnis je Seite, doppelte versteckte Inhaltsfassung aus der aktiven Darstellung entfernen, Architekturrevision mit neuer Darstellungsregel und Rückweg. Branch `claude/auftrag-104-g3-abschluss` von `main` `a4fb52d`.
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts` (Schalter `'html'`), `src/components/imagePage/ImagePage.tsx` (nur Kommentar), Test `g93FunnelPage.ui` (Erwartung `'html'`), neu `g104BildseitenAbschluss.ui`; `e2e/semantic-routes.spec.ts` (nur Kommentar); `docs/reviews/2026-10-06-frontend-befundregister.md` (Abschnitt 4a); `ARCHITECTURE_DECISIONS.md` (Revision zu B18, D4); Plan Abschnitt 12; Auftrag 104.
+
+**Funktionale Prüfungen:** Neuer Test ohne Mock rendert alle 32 Seiten: kein `image-page`, keine Textschicht, kein Zoom-Hinweis, kein WebP, genau eine `h1`, Seitenschlüssel decken `IMAGE_PAGES` vollständig ab. Bildweg (Rückweg) weiter durch `g67ImagePages.ui` geprüft. WebPs und `ImagePage` unverändert erhalten.
+
+**Schutzbereichs-Prüfung:** `git diff a4fb52d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Vitest 340 Dateien / 2455 Tests grün; `npm run verify` grün (Integritätssuiten 001–025); `npm run build` grün; Prettier sauber. E2E und size-limit laufen in der CI.
+
+**Screenshot-Matrix:** entfällt begründet – keine sichtbare Änderung, da alle 32 Seiten bereits über `HTML_PAGES` als echte Seiten ausgeliefert waren; Vorher/Nachher wären bitgleich. Ganzseitenvergleich gegen die Baseline aus Auftrag 081 folgt in Paket I.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).

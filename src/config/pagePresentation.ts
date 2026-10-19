@@ -1,18 +1,21 @@
 // Auftrag 069 / G67: Darstellung der 32 statischen Inhaltsseiten.
 //
-// 'bild' — Original-WebPs aus v2.2.0 (Standard ab v2.3.2), Seiteninhalt als
-//          unsichtbare Textschicht für Screenreader und Suche.
-// 'html' — Aussehen von v2.3.1 (Page-Kit-Nachbau aus Auftrag 068).
+// 'bild' — Original-WebPs aus v2.2.0, Seiteninhalt als unsichtbare Textschicht
+//          für Screenreader und Suche. Nur noch Rückweg, keine aktive Darstellung.
+// 'html' — echte Seiten (Page-Kit). Standard ab Auftrag 104 (Paket G3): alle 32
+//          Seiten sind mit den Wellen G1/G2 (Aufträge 093–103) freigegeben.
 //
-// Rückweg zu v2.3.1: diesen Wert auf 'html' setzen. Alternativ Tag `v2.3.1`
-// ausliefern (Commit 1bbe32da01d8b4b1b00b3a85e7d3c8108ce338e2).
+// Rückweg einzelner Seiten: Wert auf 'bild' setzen und den Schlüssel unten aus
+// HTML_PAGES entfernen — nur diese Seiten zeigen dann wieder das WebP.
+// Rückweg aller Seiten: 'bild' und HTML_PAGES leeren, oder Tag `v2.4.0` ausliefern.
 export type PagePresentation = 'bild' | 'html';
 
-export const PAGE_PRESENTATION: PagePresentation = 'bild';
+export const PAGE_PRESENTATION: PagePresentation = 'html';
 
 // Auftrag 093 (Paket G1): Seitenfreigabe je migrierter Gruppe. Hier genannte
-// Seiten (Schlüssel aus imagePages.ts) erscheinen als HTML, alle übrigen
-// bleiben beim globalen Schalter. Rückschaltung einer Gruppe: Eintrag entfernen.
+// Seiten (Schlüssel aus imagePages.ts) erscheinen auch im Modus 'bild' als HTML.
+// Auftrag 104: Die Liste ist vollständig (32 von 32) und bleibt als Freigabenachweis
+// und Grundlage für den Rückweg einzelner Seiten stehen.
 export const HTML_PAGES: readonly string[] = [
   // Welle G1 – Sales Funnel (Auftrag 093)
   'sales-funnel',

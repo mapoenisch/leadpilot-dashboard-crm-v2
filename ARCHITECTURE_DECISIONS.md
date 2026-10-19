@@ -41,14 +41,15 @@ des LeadPilot Dashboard-CRM.
 
 ### Aufbau
 
-| Teil | Inhalt |
-|---|---|
-| **Teil A** | Entscheidungs-Historie — streng monoton nach Nummer, Lücken explizit |
+| Teil       | Inhalt                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------- |
+| **Teil A** | Entscheidungs-Historie — streng monoton nach Nummer, Lücken explizit                        |
 | **Teil B** | Verbindliche Ziel-Architektur — thematisch, das „Soll“, entkoppelt von der Nummern-Historie |
-| **Teil C** | Implementierungsstand & Audit — inklusive offenem Widerspruch zwischen den Audits |
-| **Teil D** | Quellen, Änderungsprotokoll, Masterstatus |
+| **Teil C** | Implementierungsstand & Audit — inklusive offenem Widerspruch zwischen den Audits           |
+| **Teil D** | Quellen, Änderungsprotokoll, Masterstatus                                                   |
 
 ---
+
 ---
 
 # TEIL A — ENTSCHEIDUNGS-HISTORIE
@@ -100,11 +101,13 @@ Einzelnummern:
 ## A3. Entscheidungen 109–298 — Churn, Umsatz, Kanäle, Unit Economics, Customer Success, Persistenz, Szenario-Lifecycle
 
 ### 109–118
+
 Laut Projektprotokoll mit „alle“ übernommen. Die vollständigen Einzeltexte liegen
 im konsolidierten Quellenbestand nicht vor.
 **Status:** BESCHLOSSEN — Einzeltexte nicht vollständig rekonstruiert.
 
 ### 119–128 — Churn & Setup-Umsatz
+
 - Churn schwankt zufallsbedingt um die Baseline; 2,8 % als monatliche Rate.
 - Churn wird auf individueller Kundenebene simuliert; Zeitpunkte zufällig, aber seed-reproduzierbar.
 - Neukunden erhalten eine Mindestdauer vor möglichem Churn.
@@ -113,12 +116,14 @@ im konsolidierten Quellenbestand nicht vor.
 - Historischer Setup-Umsatz 2025 wird nicht rückwirkend auf simulierte Deals verteilt.
 
 ### 129–138 — Setup, Paketpreise & Expansion
+
 - Setup-Umsatz entsteht nur bei Won und verändert weder MRR/ARR noch Pipeline Value.
 - Paketpreisänderungen wirken nur auf neue Deals.
 - Expansion/Contraction und Paketwechsel bestehender Kunden sind architektonisch vorbereitet, in V1 nicht aktiv.
 - Die historischen 66 Kunden bleiben historische Basis und werden nicht zu individuellen Simulationsteilnehmern.
 
 ### 139–148 — Simulierte Kunden & Datenherkunft
+
 - Neue simulierte Kunden sind individuelle Ebene-B-Datensätze; die historischen 66 Kunden bleiben aggregierte Basis.
 - Neue Kunden erhalten Branche und Kanal; historische Branchenverteilung ist Baseline, Kanalverteilung eigene Simulationsannahme.
 - Branchenverteilung ist zunächst kein Nutzerhebel; Kanalstrategie/Kanalbudget ist Nutzerhebel.
@@ -126,6 +131,7 @@ im konsolidierten Quellenbestand nicht vor.
 - Nicht belegte Kanalwerte sind ausdrücklich Simulationsannahmen.
 
 ### 149–158 — Marketing & Kanäle
+
 - Marketingbudget hat abnehmenden Grenznutzen; Kanäle mit Budget 0 sind deaktiviert.
 - Kanalbudget kann innerhalb eines festen Gesamtbudgets verschoben werden; Gesamtbudget ist zusätzlich eigener Hebel.
 - Budgetänderungen wirken nur ab Änderungszeitpunkt auf neue Lead Generation.
@@ -133,75 +139,88 @@ im konsolidierten Quellenbestand nicht vor.
 - Partner ist ein eigener Kanal mit eigener Kapazität und eigenem Ramp-up; Ramp-up ist ein separater Parameter.
 
 ### 159–168 — Kanalregeln
+
 - Paid und Organic sind getrennte Kanäle; Organic erzeugt auch ohne Budget Leads (eigener Baseline-/Momentum-Faktor).
 - Outbound verbraucht vorhandene Sales-Kapazität; alle relevanten Kanäle erzeugen Sales-Workload.
 - Kanal darf den Sales Cycle beeinflussen (neutral 1,0× ohne belastbare Daten); verändert nicht automatisch den Deal Value; darf die Paketwahl beeinflussen.
 - Paket wird beim Deal als Vorgangsparameter eingefroren; der ursprüngliche Akquisitionskanal bleibt erhalten.
 
 ### 169–178 — Budget & Unit Economics
+
 - Kanalbudgets müssen zusammen dem Gesamtbudget entsprechen; keine stille Normalisierung.
 - Historische 40.500 € Media-Spend bleiben READ ONLY; Marketingbudget kann beliebig steigen oder auf 0 € sinken.
 - Historischer CAC 862 € bleibt unverändert; Ebene B erhält einen eigenen Simulations-CAC (später auch Fully-Loaded CAC).
 - CAC wird in den Szenariovergleich aufgenommen.
 
 ### 179–188 — CAC / LTV / Unit Economics
+
 - CAC nur für Neukunden, kumulativ; bei 0 Neukunden „n/a“, nicht 0 €. Setup-Umsatz beeinflusst CAC nicht.
 - Eigener Simulations-LTV auf Basis tatsächlicher simulierter Churn-/Lebensdauerentwicklung; eigene LTV:CAC-Ratio; simulierte Payback Period.
 - Unit Economics können Plausibilitätswarnungen auslösen und werden in den Szenariovergleich aufgenommen.
 
 ### 189–198 — Kosten, Personal & Profitabilität
+
 - Personalkosten werden in Ebene B simuliert; FTE-Kosten zunächst linear und konfigurierbar; Sales mit eigenem Kostensatz.
 - Neue Sales-FTE haben einen Ramp-up (eigener Parameter), der die tatsächliche Kapazität beeinflusst.
 - Personalkosten fließen in Fully-Loaded CAC ein, verändern ARR/MRR nicht direkt, beeinflussen EBITDA.
 - Ebene B erhält einen eigenen simulierten EBITDA-Verlauf; historischer EBITDA −309.000 € bleibt vollständig getrennt.
 
 ### 199–208 — Umsatz, Kosten & Bruttomarge
+
 - Marketingbudget ist Live-Kostenposition; höheres Budget belastet EBITDA; Marketingkosten werden zeitlich verteilt.
 - Neukunden erzeugen keinen rückwirkenden Jahresumsatz; MRR beginnt ab tatsächlichem Vertrags-/Kundenstart; ARR = MRR × 12.
 - Setup-Umsatz wird separat erfasst; Ebene B erhält eigenen simulierten Gesamtumsatz, COGS und Bruttomarge.
 - Historische Werte bleiben davon vollständig getrennt.
 
 ### 209–218 — Cash / Burn / Runway
+
 - Ebene B erhält eigenen simulierten Cash-Bestand; 363.000 € als definierter Startwert möglich.
 - Einnahmen erhöhen Cash, Kosten reduzieren Cash; Cash ≠ EBITDA.
 - Burn Rate wird simuliert (Netto-Cash-Abfluss); Runway aus Cash und Burn.
 - Kritische Liquidität erzeugt Warnungen; Warnungen verändern die Simulation nicht automatisch.
 
 ### 219–228 — Cashflow & Customer Success
+
 - Cashflow wird täglich simuliert; V1 setzt Zahlungseingang = Umsatzzeitpunkt; kein separates Forderungsmodell in V1.
 - Variable COGS können mit Kunden/Nutzern skalieren; fixe und variable Kosten getrennt.
 - CS erhält eigene Kapazitätslogik; CS-Headcount ist in V1 kein Nutzerhebel.
 - CS-Überlastung kann Churn erhöhen; CS beeinflusst MRR/ARR nur indirekt über Churn.
 
 ### 229–238 — Customer Success / Customer Health
+
 - CS-Workload variiert nach Paket und Nutzerzahl; CS-Kapazität mit abnehmendem Grenznutzen.
 - Überlastete Vorgänge gehen in eine Warteschlange; Überlastung erhöht Reaktionszeiten und Churn-Risiko.
 - Interner Customer Health Score wird vorbereitet (kein Nutzerhebel), darf Churn-Risiko beeinflussen.
 - Expansion/Contraction bleibt für V1 deaktiviert.
 
 ### 239–248 — Customer Health
+
 - Health Score wird täglich aktualisiert; Änderungen wirken nur auf zukünftiges Churn-Risiko; am Kunden gespeichert.
 - Darstellung Healthy / At Risk / Critical; kein prominenter Dashboard-KPI in V1.
 - Churn-Warnungen erklären ihre Ursachen.
 - Szenariovergleich berücksichtigt Churn, EBITDA sowie Cash/Burn/Runway; kein künstlicher Gesamt-Score in V1.
 
 ### 249–258 — Persistenz, Zeitreihen & Wiederherstellung
+
 - Relevante KPI-Werte werden je Simulationstag gespeichert; jeder Tick erzeugt einen KPI-Snapshot.
 - Der vollständige notwendige Simulationszustand ist speicherbar; gespeicherte Läufe können nach Reload fortgesetzt werden; Neustarts verändern die Simulation nicht.
 - Live-State wird automatisch gespeichert; Ebene A wird nicht in den Live-State kopiert.
 - Baseline-/Reference-Version wird im Lauf gespeichert; alte Läufe bleiben gegen spätere Baseline-Änderungen geschützt.
 
 ### 259–278
+
 Laut Projektprotokoll mit „alle“ bestätigt; Einzeltexte nicht separat enthalten.
 **Status:** BESCHLOSSEN — Einzeltexte nicht vollständig rekonstruiert.
 
 ### 279–288 — Laufduplizierung & Szenarioerzeugung
+
 - Gespeicherte Läufe können dupliziert werden (reproduzierbarer Zustand inkl. Seed); Duplizieren startet nicht automatisch eine neue Simulation.
 - Aus einem Lauf kann direkt ein neues Szenario erstellt werden; Szenarien speichern Parameter, nicht den kompletten Live-State.
 - Ein neu gespeichertes Szenario wird anschließend aktiv; Szenario-Laden startet keinen neuen Lauf, informiert aber bei laufender Simulation über Auswirkungen.
 - Aktive Parameter und temporäre Overrides bleiben jederzeit transparent.
 
 ### 289–298 — Szenario-Lifecycle & Overrides
+
 - Aktives Szenario / Konfigurationsstatus ist jederzeit eindeutig sichtbar.
 - Geladene Szenarien dürfen manuell verändert werden; Änderungen werden als ungespeichert gekennzeichnet; Szenarien können bewusst überschrieben werden.
 - Nicht jede Kleinigkeit erzeugt automatisch eine neue Version.
@@ -213,33 +232,43 @@ Laut Projektprotokoll mit „alle“ bestätigt; Einzeltexte nicht separat entha
 **Status: ALLE EMPFEHLUNGEN ÜBERNOMMEN**
 
 ### 299 — Szenarien nach Kategorien filtern
+
 **Entscheidung:** JA — Die Szenarioliste ist nach den definierten Kategorien filterbar.
 
 ### 300 — Szenarien sortieren
+
 **Entscheidung:** JA — Sortierung mindestens nach Name, Erstellungsdatum, Änderungsdatum, zuletzt verwendet.
 
 ### 301 — Zuletzt verwendetes Szenario markieren
+
 **Entscheidung:** JA — Das zuletzt verwendete Szenario wird eindeutig erkennbar markiert.
 
 ### 302 — Favoriten für Szenarien
+
 **Entscheidung:** NEIN — In V1 keine zusätzliche Favoritenfunktion (bei max. 10 eigenen Szenarien nicht erforderlich).
 
 ### 303 — Szenario-Suche
+
 **Entscheidung:** JA — Einfache Suche nach Name und Beschreibung.
 
 ### 304 — Szenario-Beschreibung verpflichtend
+
 **Entscheidung:** NEIN — Der Szenarioname ist verpflichtend, eine Beschreibung bleibt optional.
 
 ### 305 — Szenario-Metadaten automatisch ergänzen
+
 **Entscheidung:** JA — erstellt am, geändert am, zuletzt verwendet, Version, Anzahl der Läufe, ggf. letzter Ergebnis-Snapshot.
 
 ### 306 — Szenario-Limit von 10 erzwingen
+
 **Entscheidung:** JA — Technisch erzwungen; ein elftes Szenario wird nicht stillschweigend angelegt, der Nutzer wird informiert.
 
 ### 307 — Basis 2026 in der normalen Szenarioliste anzeigen
+
 **Entscheidung:** JA — sichtbar, aber eindeutig als geschützte System-Baseline gekennzeichnet.
 
 ### 308 — Basis 2026 duplizieren
+
 **Entscheidung:** JA — als Ausgangspunkt für ein eigenes Szenario; die geschützte Baseline selbst wird nicht verändert.
 
 **Architekturkonsequenz:** Die Szenarioverwaltung benötigt neben Szenario-ID und
@@ -265,82 +294,102 @@ Verwendung sowie Filter-, Such- und Sortierfähigkeit.
 ## A8. Entscheidungen 359–523 — Management-Hinweise, Engpass, Ursache-Wirkung, Monte Carlo, Performance, Maßnahmen, Lead Quality, Sales-Priorisierung
 
 ### 359–368 — Finanzierungsbedarf & Management-Hinweise
+
 - Finanzierungsbedarf ist eigene KPI; Höhe und Zeitpunkt werden ausgewiesen; Finanzierungslücken im Cash-Chart markiert; fließt in den Szenariovergleich ein.
 - Wachstum wird nicht automatisch als positiv bewertet; Liquidität und Wachstum gleichwertig.
 - Regelbasierte Management-Hinweise werden erzeugt; V1 gibt keine automatischen Handlungsempfehlungen; Hinweise mit konkreten Ursachen verknüpft und nach Relevanz priorisiert.
 
 ### 369–378 — Engpassanalyse
+
 - Automatische Erkennung von Engpässen in Sales, CS, Marketing und Liquidität; Kapazität gegen tatsächliche Workload.
 - Warnungen verändern die Simulation nicht; Ursachen und Auswirkungen werden erklärt; Engpässe als Zeitreihe nachvollziehbar; zukünftige Engpässe prognostizierbar.
 - Kein künstlicher Gesamt-Score; Engpässe erhalten Schweregrad nach Intensität und Dauer; werden im Szenariovergleich berücksichtigt.
 
 ### 379–388 — Ursache-Wirkungs-Analyse
+
 - Szenarien werden automatisch auf relevante KPI-Abweichungen untersucht; Monte-Carlo-Unsicherheit wird berücksichtigt; absolute und relative Abweichungen angezeigt.
 - Ursache-Wirkungs-Ketten werden dargestellt, nur aus der Simulation ableitbare Zusammenhänge; mehrere Ursachen gleichzeitig, sortiert nach Einflussstärke, möglichst mit KPI-Effekten quantifiziert.
 - Basis-Erklärungslogik bleibt in V1 deterministisch/regelbasiert; freie KI-Erklärung nicht in der Kernlogik.
 
 ### 389–398 — Monte Carlo
+
 - Anzahl der Runs technisch konfigurierbar, kein normaler Nutzerhebel; strategische Parameter innerhalb eines Szenarios gleich; jeder Run eigener Seed.
 - Median ist primärer Prognosewert; Standardkorridor P10–P90; P50 in der UI als Median bezeichnet; Min/Max keine Hauptprognose.
 - Einzelne Runs untersuchbar und reproduzierbar; Ausreißer werden nicht automatisch entfernt.
 
 ### 399–408 — Monte-Carlo-Ausführung
+
 - Qualität hängt von Run-Anzahl ab; es gibt eine technische Mindestanzahl; Runs möglichst parallel; UI bleibt responsiv; Fortschritt wird angezeigt.
 - Laufende Berechnung kann abgebrochen werden; abgebrochene Läufe „unvollständig“; bereits berechnete Runs nach Möglichkeit weiterverwenden.
 - Teilresultate sind keine finale Prognose; vorläufige Statistik nur eindeutig als „nicht final“ gekennzeichnet.
 
 ### 409–418 — Performance & Simulationsausführung
+
 - V1 unterscheidet Schnellsimulation und Detail-/Monte-Carlo-Simulation; Schnellmodus mit weniger Runs.
 - Vollständige Detailberechnung startet nicht bei jedem Slider-Move; Slider per Debouncing; eine gewisse Live-Reaktion bleibt.
 - Detailberechnungen laufen möglichst im Hintergrund; Web Worker für rechenintensive Simulation vorgesehen.
 - Ergebnisse werden gecacht; Cache verwendet eine vollständige Simulationssignatur.
 
 ### 419–428 — Managementmaßnahmen
+
 **Status:** IMPLEMENTIERT (AUFTRAG 017 — `Measure`, `EffectiveParameterResolver`, `RunManifest.measures`, `MeasureManagerModal`).
+
 - Maßnahmen sind eigene Objekte mit Startzeitpunkt; dauerhaft oder zeitlich begrenzt; temporäre Maßnahmen werden automatisch zurückgesetzt.
 - Maßnahmen verändern niemals Ebene A; noch nicht ausgeführte können bearbeitet werden; ausgeführte nicht rückwirkend; Maßnahmenhistorie wird gespeichert.
 - Maßnahmen können in Ursache-Wirkungs-Erklärungen auftauchen; V1 enthält keinen automatischen Strategieoptimierer.
 
 ### 429–438 — Maßnahmenlogik
+
 **Status:** IMPLEMENTIERT (AUFTRAG 017 — Multi-Parameter-Änderungen, `MeasureConflict`-Detektion).
+
 - Eine Maßnahme kann mehrere Parameter gleichzeitig verändern; zusammengehörige Änderungen = eine Maßnahme.
 - Maßnahmen haben Namen und Beschreibung; erwarteter Effekt wird von der Simulation berechnet; Maßnahmen können Prioritäten besitzen.
 - Widersprüchliche Maßnahmen überschreiben sich nicht stillschweigend; Konflikte erzeugen Warnungen; Abhängigkeiten architektonisch vorbereitet; keine automatischen Maßnahmen aus Warnungen in V1.
 
 ### 439–448 — Maßnahmen-Zeit & Lifecycle
+
 **Status:** IMPLEMENTIERT (AUFTRAG 017 — `startTick`, `durationTicks`, `revert`).
+
 - Maßnahmen können sofort oder geplant starten; wiederkehrende Maßnahmen architektonisch vorbereitet; feste Laufzeit oder dauerhaft möglich.
 - Neue Maßnahmen können während eines laufenden Laufs hinzugefügt werden; keine rückwirkenden Änderungen der Simulation.
 - Geplante Maßnahmen können vor Ausführung geändert/gelöscht werden; ausgeführte bleiben Teil der Historie; Gegenmaßnahmen möglich, ohne die Vergangenheit zu überschreiben.
 
 ### 449–458 — V1-Maßnahmenkatalog
+
 **Status:** IMPLEMENTIERT (AUFTRAG 017 — V1-Kataloghebel in Engine verdrahtet: `marketingBudgetYearly`, `channelMix`, `trialToPaidConversion`, `salesRepCount`, `salesCycleDays`, `discountPercent`).
+
 - Aktiv: Marketing-Gesamtbudget, einzelne Kanalbudgets, Sales-FTE, Trial-to-Paid, globaler Sales Cycle, Paketpreise.
 - Bewusst außerhalb der direkten V1-Steuerung: Churn-Baseline, künstlicher CS-Qualitätsregler, direkte Paketwechsel bestehender Kunden.
 
 ### 459–468 — Maßnahmenwirkung & Timing
+
 **Status:** IMPLEMENTIERT (AUFTRAG 017 — `rampUpTicks`, lineare Interpolation).
+
 - Maßnahmen können zeitlich gestaffelt werden und einen Wirkungsverzug besitzen; Marketing und Sales-FTE erhalten je eigenen Ramp-up.
 - Trial-to-Paid wirkt für neu startende Trials unmittelbar; Sales-Cycle-Änderungen wirken sofort auf die verbleibende Zeit laufender Vorgänge; Paketpreisänderungen für neue Deals.
 - Marketing-Ramp-up konfigurierbar; unterschiedliche Kanäle mit unterschiedlichen Ramp-ups; die UI zeigt Start → Ramp-up → volle Wirkung → Ende.
 
 ### 469–478 — Marketing-Response & Lead Expiration
+
 - Marketingbudget wirkt über eine nichtlineare Response-Kurve; je Kanal eigene Kurve möglich; komplexe Kurvenkonfiguration nicht als V1-UI.
 - Marketingeffizienz darf sich mit Unternehmensgröße verändern; Sales-Kapazität begrenzt die Verarbeitung, nicht die Lead-Erzeugung.
 - Nicht rechtzeitig bearbeitete Leads können verfallen; Lead-Expiration ist eigener Parameter, ggf. kanalabhängig; Lead Expired ≠ Customer Churn; fließt in die Ursachenanalyse ein.
 
 ### 479–488 — Lead Expiration & Bottleneck-Logik
+
 - `LEAD_EXPIRED` ist eigenes Event; Expired Leads konvertieren nicht mehr über den normalen Funnel; keine automatische Reaktivierung in V1; Expiration kann von der Funnel-Stufe abhängen.
 - Sales-Überlastung verlängert nicht künstlich die Toleranzzeit; Kapazität beeinflusst Expiration indirekt über die Warteschlange; Marketing erzeugt weiter Leads bei überlastetem Sales.
 - Bottlenecks können zwischen Marketing, Sales, CS und Liquidität wandern; werden nicht automatisch behoben; der Bottleneck-Verlauf ist zwischen Szenarien vergleichbar.
 
 ### 489–498 — Lead Quality
+
 - Jeder Lead erhält einen internen Lead Quality Score (intern numerisch, z. B. 0–100), nicht prominent im Hauptdashboard.
 - Höhere Qualität darf Conversion-Wahrscheinlichkeit erhöhen, kürzeren Sales Cycle ermöglichen und beeinflusst den Sales-Kapazitätsverbrauch.
 - Initialer Score bei Lead-Erzeugung; beobachtete Qualität kann sich durch neue Informationen ändern; kein direkter Nutzerhebel; keine V1-Maßnahme „Lead Quality +20 %“.
 - Qualität entsteht aus definierten Simulationsmechanismen, Strategie- und Kanalentscheidungen.
 
 ### 499–523 — Sales-Priorisierung & Workload
+
 - Lead Quality Score darf die Priorisierung innerhalb der Sales-Warteschlange beeinflussen, aber nicht allein bestimmen.
 - Mehrere Faktoren kombiniert: Quality, Deal Value, Alter, Kanal etc.; Priorisierungslogik ist eigener interner Parameter-/Regelblock, in V1 kein frei konfigurierbarer Nutzerhebel.
 - Höherer Deal Value darf Priorität erhöhen, nicht allein bestimmen; alte wartende Leads erhalten Alterungs-/Dringlichkeitsfaktor; keine absolute FIFO-Warteschlange.
@@ -358,6 +407,7 @@ Quellenbereich siehe A2.
 Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt.
 
 ### 774–798 — Dashboard & Nutzerführung
+
 - **774:** Historische Unternehmensdaten und Simulationsergebnisse werden klar getrennt.
 - **775:** Eigener Bereich „Historische Daten / 2025“.
 - **776:** Eigener Bereich „Simulation / Prognose“.
@@ -385,6 +435,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 - **798:** Nutzerführung: **Was passiert? → Warum passiert es?**
 
 ### 799–823 — Dashboard-Struktur & Analysebereiche
+
 - **799:** Dashboard in klare Bereiche/Karten gliedern.
 - **800:** Eigene Simulation Control Area.
 - **801:** Simulation Control Area oben im Dashboard.
@@ -414,6 +465,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 **Hauptnavigation:** `Dashboard → Funnel Analysis → Customer Analysis → Unit Economics → Financial Analysis → Scenario Comparison` plus übergreifende **Simulation Control Area**.
 
 ### 824–848 — Szenario-/Run-Lifecycle
+
 - **824:** Dashboard ist zentrale Startseite.
 - **825:** Zuletzt verwendetes Szenario wird wiederhergestellt.
 - **826:** Keine automatische erneute Detailsimulation beim Öffnen.
@@ -441,6 +493,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 - **848:** Szenario-/Versionshistorie wird visualisiert.
 
 ### 849–873 — Szenariovergleich [IMPLEMENTIERT (AUFTRAG 019)]
+
 - **849:** Direkter Vergleich zweier Szenarien.
 - **850:** Vergleich von drei oder mehr Szenarien möglich.
 - **851:** V1 maximal vier Szenarien gleichzeitig.
@@ -468,6 +521,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 - **873:** Anwendung entscheidet nicht automatisch, welches Szenario gewählt werden soll.
 
 ### 874–898 — Ziele & Zielerreichung
+
 - **874:** Jedes Ziel besitzt einen eindeutigen Namen.
 - **875:** Jedes Ziel ist einer KPI zugeordnet.
 - **876:** Jedes Ziel besitzt einen numerischen Zielwert.
@@ -495,6 +549,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 - **898:** Anwendung bestimmt nicht automatisch das wichtigste Ziel.
 
 ### 899–923 — Zielstatus & Zielkonflikte
+
 - **899:** Ziele besitzen Status.
 - **900:** Zielstatus wird automatisch berechnet.
 - **901:** „Erreicht“ kann vor dem Zieltermin möglich sein.
@@ -522,6 +577,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 - **923:** Fokusziel blendet andere Ziele nicht aus.
 
 ### 924–948 — Events & Auditierbarkeit
+
 - **924:** Relevante Simulationsereignisse werden als eigene Events gespeichert.
 - **925:** Jedes Event besitzt `eventId`.
 - **926:** Jedes Event besitzt einen Event-Typ.
@@ -551,6 +607,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 **Audit-Kette:** `Szenario → Version → Run → Event → Entität → Berechnung → KPI → Erklärung`
 
 ### 949–973 — Datenmodell, Konfiguration, State & Snapshots
+
 - **949:** Zentrale Simulationskonfiguration.
 - **950:** Konfiguration und Ergebnis getrennt.
 - **951:** Konfiguration versioniert.
@@ -578,6 +635,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 - **973:** Snapshot-Frequenz ist technisch konfigurierbar.
 
 ### 974–998 — Simulationslauf & Persistenz
+
 - **974:** Lauf wird während Berechnung temporär gespeichert.
 - **975:** Unvollständiger Lauf wird als `INCOMPLETE` markiert.
 - **976:** Erfolgreicher Lauf erhält `COMPLETED`.
@@ -607,6 +665,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 **Run-Lifecycle:** `CREATED → RUNNING → COMPLETED / CANCELLED / FAILED / INCOMPLETE`
 
 ### 999–1023 — Export & Reporting
+
 - **999:** Simulationsergebnis ist exportierbar.
 - **1000:** PDF-Managementexport.
 - **1001:** Excel-/Tabellenexport.
@@ -634,6 +693,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 - **1023:** Export bleibt bis zum ursprünglichen Ergebnis rückverfolgbar.
 
 ### 1024–1048 — Benutzer, Rechte & Datenschutz
+
 - **1024:** Benutzer- und Systemdaten werden getrennt.
 - **1025:** Szenarien können einem Benutzer gehören.
 - **1026:** V1 bleibt Single User; Mehrbenutzerfähigkeit wird vorbereitet.
@@ -661,6 +721,7 @@ Alle folgenden Entscheidungen wurden im Entscheidungsprozess explizit bestätigt
 - **1048:** Simulation funktioniert ohne reale Kundendaten.
 
 ### 1049–1073 — Technische Grundarchitektur
+
 - **1049:** Web-App.
 - **1050:** Frontend und Simulationskern logisch getrennt.
 - **1051:** Simulationskern unabhängig vom Dashboard testbar.
@@ -692,6 +753,7 @@ Parallel: `State / Events → Analytics → Dashboard / Reports`
 Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cloud`
 
 ### 1074–1098 — Frontend-Stack & Projektstruktur
+
 - **1074:** Single-Page-Web-App.
 - **1075:** Komponentenbasiertes Frontend-Framework.
 - **1076:** React.
@@ -719,6 +781,7 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 - **1098:** Unit-, Integration- und E2E-Tests sind vorgesehen.
 
 ### 1099–1123 — Teststrategie & Qualitätssicherung
+
 - **1099:** Zentrale Simulationsfunktionen erhalten Unit-Tests.
 - **1100:** Gleicher Input + gleicher Seed → gleiches Ergebnis.
 - **1101:** Reproduzierbarkeit wird automatisch getestet.
@@ -748,6 +811,7 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 **Qualitätsebenen:** `Unit → Integration → Simulation Regression → Invarianten → E2E`
 
 ### 1124–1148 — Fehlerbehandlung & Nutzerkommunikation
+
 - **1124:** Fachliche und technische Fehler werden getrennt.
 - **1125:** Fachliche Validierungsfehler erscheinen am betroffenen Feld.
 - **1126:** Zusätzlich zusammenfassende Fehlerübersicht.
@@ -775,6 +839,7 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 - **1148:** Kritische technische Fehler können weitere Simulation blockieren.
 
 ### 1149–1173 — Performance & Monte-Carlo-Ausführung
+
 - **1149:** Run-Anzahl hängt vom Simulationsmodus ab.
 - **1150:** Schnell-Simulation verwendet deutlich weniger Runs.
 - **1151:** Detail-Simulation verwendet deutlich mehr Runs.
@@ -802,6 +867,7 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 - **1173:** Performanceoptimierung darf Genauigkeit/Reproduzierbarkeit nicht stillschweigend reduzieren.
 
 ### 1174–1198 — UI/UX
+
 - **1174:** Einheitliches LeadPilot-Designsystem.
 - **1175:** Das vorhandene LeadPilot-Designsystem ist zentrale Design-/UI-Referenz; kein paralleles neues Designsystem.
 - **1176:** Designsystem und fachliche semantische Datenfarben werden getrennt gedacht.
@@ -829,7 +895,9 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 - **1198:** Animation nur dort, wo sie Verständnis oder Statuskommunikation verbessert.
 
 ### 1199–1223 — Bestehendes LeadPilot-Designsystem
+
 **Grundsatz:** Das vorhandene Designsystem wird verwendet, nicht ersetzt.
+
 - **1199:** Designsystem ist für die gesamte Webapp verbindlich.
 - **1200:** Vor Implementierung werden vorhandene Tokens/Komponenten geprüft.
 - **1201:** Vorhandene Komponenten werden direkt wiederverwendet, sofern technisch möglich.
@@ -859,78 +927,103 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 ## A11. Entscheidungen 1224–1248 — Dashboard-KPI- und Simulations-UI
 
 ### 1224 — KPI-Karten
+
 **Entscheidung:** D — KPI-Karten zeigen aktuellen Wert, Veränderung gegenüber der Ausgangsbasis, Zielwert und P10–P90-Unsicherheitsbereich. Historische und simulierte Werte bleiben klar getrennt.
 
 ### 1225 — Darstellung der Unsicherheit
+
 **Entscheidung:** D — Kompakte Range-/Whisker-Anzeige; detaillierte Verteilungen bei Hover/Klick.
 
 ### 1226 — KPI-Priorisierung
+
 **Entscheidung:** D — Feste Kern-KPIs plus dynamischer Bereich für aktuell relevante KPIs und Risiken.
 
 ### 1227 — Stabile Kern-KPI-Reihenfolge
+
 **Entscheidung:** JA — Die oberste KPI-Reihe bleibt über Ansichten und Szenarien möglichst stabil.
 
 ### 1228 — Hervorhebung kritischer KPIs
+
 **Entscheidung:** JA — Subtile Hervorhebung ohne kompletten Kartenumbau.
 
 ### 1229 — KPI-Drill-down
+
 **Entscheidung:** JA — KPI-Karten sind anklickbar und führen zur Detailanalyse.
 
 ### 1230 — Historie und Simulation im Drill-down
+
 **Entscheidung:** JA, klar getrennt — gemeinsame Analyse erlaubt, eindeutig getrennte Darstellung.
 
 ### 1231 — Herkunft simulierter KPIs
+
 **Entscheidung:** JA — Szenario und Run müssen in der Detailansicht nachvollziehbar sein.
 
 ### 1232 — Technische IDs auf KPI-Karten
+
 **Entscheidung:** NEIN — `runId` etc. gehören in Detail-/Auditansichten.
 
 ### 1233 — Aktives Szenario
+
 **Entscheidung:** JA — global sichtbar.
 
 ### 1234 — Globaler Simulationsstatus
+
 **Entscheidung:** JA — laufend, pausiert und abgeschlossen eindeutig dargestellt.
 
 ### 1235 — Zentrale Simulation Control Area
+
 **Entscheidung:** JA — unabhängig vom geöffneten Analysebereich erreichbar.
 
 ### 1236 — Kompakte Steuerungsfläche
+
 **Entscheidung:** JA — im Normalzustand kompakt, bei Bedarf erweiterbar.
 
 ### 1237 — Simulationstempo
+
 **Entscheidung:** JA — 1× / 2× / 5× / 10× über die zentrale Control Area steuerbar.
 
 ### 1238 — Start/Pause/Reset
+
 **Entscheidung:** JA — klar voneinander getrennt.
 
 ### 1239 — Bestätigung beim Simulations-Reset
+
 **Entscheidung:** JA — Zurücksetzen des Simulationszustands verlangt deutliche Bestätigung.
 
 ### 1240 — Parameter-Reset
+
 **Entscheidung:** JA — funktional und visuell getrennt von „Simulation zurücksetzen“.
 
 ### 1241 — Szenarioänderungen
+
 **Entscheidung:** JA — aktives Szenario zeigt gespeichert / ungespeichert an.
 
 ### 1242 — Historisch + simuliert
+
 **Entscheidung:** JA, bei eindeutiger Trennung — keine verschmolzene gemeinsame Zahl.
 
 ### 1243 — Historie als Referenz, Simulation als Prognose
+
 **Entscheidung:** JA — Simulationsergebnisse werden als Prognose gekennzeichnet.
 
 ### 1244 — Ebenenumschaltung
+
 **Entscheidung:** JA — Wechsel zwischen Historisch, Simulation und Ziel, wo fachlich sinnvoll.
 
 ### 1245 — Empty States
+
 **Entscheidung:** JA — erklärender Empty State statt leerem Diagramm.
 
 ### 1246 — Anzeige während laufender Simulation
+
 **Entscheidung:** JA — primär Fortschritt; vorläufige KPI-Ergebnisse nicht als final.
 
 ### 1247 — Ergebnis nach erfolgreichem Lauf
+
 **Entscheidung:** JA — Ergebnisansicht wird automatisch aktualisiert.
 
 ### 1248 — Fehlerhafter Lauf
+
 **Entscheidung:** JA — letztes gültiges Ergebnis bleibt sichtbar; Fehler separat.
 
 **Übergeordnete UI-Regel:** Informationshierarchie **Management → Analyse → Technik**. Historische Realität, Simulation und Ziele werden visuell und semantisch unterscheidbar dargestellt.
@@ -938,78 +1031,103 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 ## A12. Entscheidungen 1249–1273 — KPI-Architektur und Management-Erklärungen
 
 ### 1249 — Feste Anzahl zentraler KPI-Karten
+
 **Entscheidung:** JA
 
 ### 1250 — Anzahl der Kern-KPIs
+
 **Entscheidung:** A – 4
 
 ### 1251 — Kern-KPIs
+
 **Entscheidung:** A – ARR, MRR, Kunden, Cash
 
 ### 1252 — EBITDA
+
 **Entscheidung:** JA — prominent verfügbar, aber im dynamischen KPI-/Financial-Bereich.
 
 ### 1253 — Pipeline Value
+
 **Entscheidung:** JA — wichtig für Funnel- und Sales-Analysen.
 
 ### 1254 — Churn
+
 **Entscheidung:** JA — eigener wichtiger KPI, prominent.
 
 ### 1255 — Burn und Runway
+
 **Entscheidung:** JA — gemeinsam als Liquiditätsinformationen.
 
 ### 1256 — KPI-Einheit
+
 **Entscheidung:** JA — jede KPI-Karte zeigt ihre Einheit eindeutig.
 
 ### 1257 — Veränderung gegenüber Startbasis
+
 **Entscheidung:** JA — absolut und relativ verfügbar; Details im Drill-down.
 
 ### 1258 — Zielabstand
+
 **Entscheidung:** JA — KPI-Karten zeigen den Abstand zum Ziel.
 
 ### 1259 — Zielerreichungswahrscheinlichkeit
+
 **Entscheidung:** JA, aber kompakt — Details im Drill-down.
 
 ### 1260 — P10/P90
+
 **Entscheidung:** JA — unabhängig von der Höhe der Zielerreichungswahrscheinlichkeit.
 
 ### 1261 — Semantik einer Veränderung
+
 **Entscheidung:** JA — KPI-spezifisch positiv/negativ.
 
 ### 1262 — Semantische Farben
+
 **Entscheidung:** JA — bestehende LeadPilot-Semantik verwenden.
 
 ### 1263 — Farbe nicht als einziges Signal
+
 **Entscheidung:** JA — zusätzlich Icon, Label oder Text.
 
 ### 1264 — Sortierung dynamischer KPIs
+
 **Entscheidung:** JA — transparente Management-Relevanzregeln.
 
 ### 1265 — Relevanzfaktoren
+
 **Entscheidung:** JA — Zielabweichung, Veränderung, Risiko, Unsicherheit, Einfluss auf andere KPIs.
 
 ### 1266 — Erklärbarkeit der Priorisierung
+
 **Entscheidung:** JA — Hervorhebungen müssen begründbar sein.
 
 ### 1267 — KPI-Treiber
+
 **Entscheidung:** JA — Drill-down zeigt die wichtigsten Treiber.
 
 ### 1268 — Hierarchische Treiber
+
 **Entscheidung:** JA — Ursache-Wirkungs-Ketten.
 
 ### 1269 — Top-3-Treiber
+
 **Entscheidung:** JA — Managementansicht zeigt zunächst drei Treiber.
 
 ### 1270 — Vollständige Treiberliste
+
 **Entscheidung:** JA — weitere Treiber aufklappbar.
 
 ### 1271 — Treiber → Events
+
 **Entscheidung:** JA — Treiber bis zu den Simulation Events zurückverfolgbar.
 
 ### 1272 — Treibervergleich zwischen Szenarien
+
 **Entscheidung:** JA — Szenariovergleich erklärt Ergebnis- und Treiberunterschiede.
 
 ### 1273 — Automatische Management-Erklärung
+
 **Entscheidung:** JA — regelbasiert, datenbasiert, auf die tatsächlichen Simulationsergebnisse zurückführbar.
 
 **Übergeordnete Kette:** `KPI → Ziel → Unsicherheit → Treiber → Ursache-Wirkung → Event → Management-Erklärung`
@@ -1017,78 +1135,103 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 ## A13. Entscheidungen 1274–1298 — KPI-Detailanalyse, Zeitreihen und Monte-Carlo-Analyse [IMPLEMENTIERT (AUFTRAG 018)]
 
 ### 1274 — Eigene KPI-Detailseite
+
 **Entscheidung:** JA — vollständige Analyse-Seite, nicht nur aufgeklapptes Dashboard-Element.
 
 ### 1275 — KPI-Zusammenfassung im Drill-down
+
 **Entscheidung:** JA — Detailseite zeigt oben weiterhin die wichtigste Zusammenfassung.
 
 ### 1276 — Standard-Zeitraum
+
 **Entscheidung:** JA — Zeitreihe zeigt standardmäßig den gesamten Simulationszeitraum.
 
 ### 1277 — Zeitraum einschränken
+
 **Entscheidung:** JA — Nutzer kann den betrachteten Zeitraum einschränken.
 
 ### 1278 — Historie und Simulation im Zeitreihen-Chart
+
 **Entscheidung:** JA, klar getrennt.
 
 ### 1279 — Ende historischer Daten
+
 **Entscheidung:** JA — historische Linie reicht nur bis zum tatsächlichen Ende, keine künstliche Verlängerung.
 
 ### 1280 — Übergang Historie → Simulation
+
 **Entscheidung:** JA — Simulation darf sichtbar anschließen.
 
 ### 1281 — Simulations-Baseline
+
 **Entscheidung:** JA — Startpunkt/Baseline wird im Chart explizit markiert.
 
 ### 1282 — Zielwert im Chart
+
 **Entscheidung:** JA — als eigene Linie oder Zielmarke.
 
 ### 1283 — Zielpfad
+
 **Entscheidung:** JA — zeitabhängige Ziele als Zielpfad statt nur horizontaler Ziellinie.
 
 ### 1284 — P10/P90 im Zeitreihen-Chart
+
 **Entscheidung:** JA — als Unsicherheitsband.
 
 ### 1285 — Visuelle Gewichtung des Unsicherheitsbands
+
 **Entscheidung:** JA — dezent, damit Medianlinie und Zielpfad klar bleiben.
 
 ### 1286 — Umschalten statistischer Hauptkennzahlen
+
 **Entscheidung:** NEIN — Median bleibt verbindlicher Management-Hauptwert.
 
 ### 1287 — Mittelwert in der Detailanalyse
+
 **Entscheidung:** JA — in der analytischen Detailansicht verfügbar.
 
 ### 1288 — Monte-Carlo-Verteilung
+
 **Entscheidung:** JA — Detailansicht zeigt neben Zeitreihe auch die Verteilung.
 
 ### 1289 — Histogramm
+
 **Entscheidung:** JA — Standarddarstellung der Monte-Carlo-Verteilung.
 
 ### 1290 — P10/Median/P90 in der Verteilung
+
 **Entscheidung:** JA — direkt in der Verteilung markiert.
 
 ### 1291 — Einzelne Runs untersuchen
+
 **Entscheidung:** JA.
 
 ### 1292 — Run-Detailansicht
+
 **Entscheidung:** JA — ein einzelner Run kann in seiner Entwicklung analysiert werden.
 
 ### 1293 — Szenario-/Versionsinformationen eines Runs
+
 **Entscheidung:** JA — in der technischen Detailansicht.
 
 ### 1294 — Run-Liste im Management-Dashboard
+
 **Entscheidung:** NEIN — gehört in die Analyse-/Audit-Ebene.
 
 ### 1295 — „Warum?“ / Treiber
+
 **Entscheidung:** JA — klarer Bereich für Ursachen und Treiber.
 
 ### 1296 — Top-3-Treiber
+
 **Entscheidung:** JA.
 
 ### 1297 — Quantifizierung der Treiber
+
 **Entscheidung:** JA — sofern die Wirkung messbar ist.
 
 ### 1298 — Navigation von Treibern zu Ursachen/Events
+
 **Entscheidung:** JA.
 
 **Übergeordnete Kette:** `KPI-Zusammenfassung → Zeitreihe → Ziel → Unsicherheit → Monte-Carlo-Verteilung → Treiber → Faktoren/Events` — bei durchgehender Trennung **Ebene A ≠ Ebene B**.
@@ -1096,78 +1239,103 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 ## A14. Entscheidungen 1299–1323 — KPI-Zeitreihen, Zielsemantik und statistische Aussagekraft [IMPLEMENTIERT (AUFTRAG 018)]
 
 ### 1299 — Standarddarstellung der KPI-Zeitreihe
+
 **Entscheidung:** JA — Median sowie P10–P90, nicht die einzelnen Runs.
 
 ### 1300 — Einzelne Runs einblenden
+
 **Entscheidung:** JA — optional in der Analyseansicht.
 
 ### 1301 — Begrenzung sichtbarer Einzel-Runs
+
 **Entscheidung:** JA — zunächst maximal 5.
 
 ### 1302 — Run-Auswahl
+
 **Entscheidung:** JA — über Run-Selektor bzw. Run-ID.
 
 ### 1303 — Kennzeichnung einzelner Runs
+
 **Entscheidung:** JA — eindeutig von Median und P10–P90 getrennt.
 
 ### 1304 — Absolute Werte vs. Baseline-Veränderung
+
 **Entscheidung:** JA — umschaltbar in der Analyseansicht.
 
 ### 1305 — Prozentuale Veränderung
+
 **Entscheidung:** JA — zusätzlich verfügbar.
 
 ### 1306 — Darstellungsumschaltung
+
 **Entscheidung:** JA — verändert nur die Darstellung, nicht die Daten.
 
 ### 1307 — Baseline-Kennzeichnung
+
 **Entscheidung:** JA — auch in Veränderungsdarstellungen eindeutig erkennbar.
 
 ### 1308 — Monats-/Jahresdarstellung
+
 **Entscheidung:** JA — bei Finanz-KPIs, sofern fachlich sinnvoll.
 
 ### 1309 — ARR-Berechnung
+
 **Entscheidung:** JA — ARR weiterhin ausschließlich aus MRR × 12.
 
 ### 1310 — KPI-Zielrichtung
+
 **Entscheidung:** JA — UI berücksichtigt automatisch die fachliche Zielrichtung (z. B. Churn: niedriger ist besser).
 
 ### 1311 — Zentrale KPI-Semantik
+
 **Entscheidung:** JA — Zielrichtung und Semantik zentral im KPI-Modell, nicht in UI-Komponenten dupliziert.
 
 ### 1312 — KPI ohne Ziel
+
 **Entscheidung:** JA — kann normal dargestellt werden.
 
 ### 1313 — Keine künstliche Zielwahrscheinlichkeit
+
 **Entscheidung:** JA — KPI ohne Ziel erhält keine künstliche Zielerreichungswahrscheinlichkeit.
 
 ### 1314 — Zeitabhängige Zielerreichung
+
 **Entscheidung:** JA.
 
 ### 1315 — Aktuell erreicht vs. am Zieltermin erreicht
+
 **Entscheidung:** JA — beide werden unterschieden.
 
 ### 1316 — Dynamischer Zielstatus
+
 **Entscheidung:** JA — ein erreichtes Ziel kann später wieder als gefährdet gelten.
 
 ### 1317 — Schwellenwerte für Zielstatus
+
 **Entscheidung:** JA — feste, dokumentierte Schwellen.
 
 ### 1318 — Zentrale Schwellenwerte
+
 **Entscheidung:** JA — zentral definiert.
 
 ### 1319 — Nutzerkonfiguration der Schwellen
+
 **Entscheidung:** NEIN — in V1 keine frei konfigurierbaren Nutzerparameter.
 
 ### 1320 — Erklärung des Zielstatus
+
 **Entscheidung:** JA — Detailansicht zeigt, welche Schwelle zum Zielstatus geführt hat.
 
 ### 1321 — Aggregierte Zielbewertung
+
 **Entscheidung:** JA — aus der aggregierten statistischen Betrachtung, nicht aus einem einzelnen Run.
 
 ### 1322 — Statistische Aussagekraft
+
 **Entscheidung:** JA — bei geringer Run-Anzahl transparent gekennzeichnet.
 
 ### 1323 — Ergebnisse trotz eingeschränkter Aussagekraft
+
 **Entscheidung:** JA — werden angezeigt, aber mit deutlichem Hinweis.
 
 **Übergeordnete Regel:** `Darstellung → Statistik → Zielsemantik → Zielstatus`. Median bleibt Management-Hauptwert.
@@ -1175,83 +1343,109 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 ## A15. Entscheidungen 1324–1348 — Versionierung, Reproduzierbarkeit und Simulation Clock
 
 ### 1324 — Schema-Version
+
 **Entscheidung:** JA — jede Simulation speichert Modell- **und** Schema-Version.
 
 ### 1325 — Schema-Kompatibilitätsprüfung
+
 **Entscheidung:** JA — Run wird beim Laden gegen seine Schema-Version geprüft.
 
 ### 1326 — Alte Runs
+
 **Entscheidung:** JA, Read-only — dürfen weiterhin angezeigt werden.
 
 ### 1327 — Migration vor erneuter Berechnung
+
 **Entscheidung:** JA — veralteter Run muss vor Neuberechnung migriert werden.
 
 ### 1328 — Migration protokollieren
+
 **Entscheidung:** JA — vollständig protokolliert.
 
 ### 1329 — Originaldaten erhalten
+
 **Entscheidung:** JA — Migration erzeugt eine neue Version, überschreibt nicht.
 
 ### 1330 — Original vs. migriert
+
 **Entscheidung:** JA — eindeutig unterschieden.
 
 ### 1331 — Rückverweis auf Original
+
 **Entscheidung:** JA — migrierter Run verweist auf ursprünglichen Seed und ursprüngliche Parameter.
 
 ### 1332 — Nicht reproduzierbare Runs
+
 **Entscheidung:** JA — ausdrücklich als „nicht reproduzierbar“ gekennzeichnet.
 
 ### 1333 — Historische Nutzung
+
 **Entscheidung:** JA, aber nicht als aktuelle Prognose.
 
 ### 1334 — Run-Typ
+
 **Entscheidung:** JA — z. B. `BASELINE`, `SCENARIO`, `REPRODUCTION`, `MIGRATION`.
 
 ### 1335 — Reproduktion als eigener Run
+
 **Entscheidung:** JA — ersetzt den Original-Run nicht.
 
 ### 1336 — Simulation Run vs. Analyse Run
+
 **Entscheidung:** JA, konzeptionell vorbereiten.
 
 ### 1337 — Determinismus und Zufall
+
 **Entscheidung:** JA — deterministische Berechnungen und Zufallsprozesse strikt getrennt.
 
 ### 1338 — Pure Simulationsfunktionen
+
 **Entscheidung:** JA — möglichst pure / side-effect-free.
 
 ### 1339 — State nicht direkt aus UI
+
 **Entscheidung:** JA.
 
 ### 1340 — State-Änderungen über Commands/Services
+
 **Entscheidung:** JA.
 
 ### 1341 — Read-only Snapshot während Run
+
 **Entscheidung:** JA.
 
 ### 1342 — Interne Zeiteinheit
+
 **Entscheidung:** JA — Monat als zentrale Zeiteinheit; UI kann Quartal/Jahr aggregieren.
 
 ### 1343 — Tagesgenauigkeit
+
 **Entscheidung:** JA — zeitabhängige Prozesse unterstützen Tagesgenauigkeit.
 
 ### 1344 — Simulation Clock
+
 **Entscheidung:** JA — zentrale Clock für den aktuellen simulierten Tag/Monat.
 
 ### 1345 — UI-Zugriff auf Clock
+
 **Entscheidung:** NEIN — nicht direkt von UI-Komponenten veränderbar.
 
 ### 1346 — Explizites Startdatum
+
 **Entscheidung:** JA — jeder Run beginnt mit exakt definiertem Startdatum.
 
 ### 1347 — Baseline-Zeitraum 2026
+
 **Entscheidung:** JA — Basisjahr 2026 als eigener Baseline-Zeitraum mit Start-/Enddatum.
 
 ### 1348 — Mehrjährige Simulation
+
 **Entscheidung:** JA — Zeitarchitektur von Beginn an mehrjahresfähig.
 
 ## A16. Entscheidungen 1349–1398 — Tick/Event, Sales Queue und Customer Success
 
 ### 1349–1373 — Simulation Tick und Sales
+
 - **1349:** Simulation Clock besitzt Tick-Nummer.
 - **1350:** Tick ist deterministisch aus vorherigem State, Parametern und RNG-State ableitbar.
 - **1351:** Ein Tick kann mehrere Events erzeugen.
@@ -1279,6 +1473,7 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 - **1373:** Diese Unterscheidung wird in der Managementansicht als Ursache eines Sales-Cycle-Problems dargestellt.
 
 ### 1374–1398 — Customer Success
+
 - **1374:** Customer Success erhält ein eigenes Workload-/Queue-Modell.
 - **1375:** CS-Workload kann abhängig von Kundentyp, Paket, Nutzerzahl und Health variieren.
 - **1376:** Customer Success besitzt eine priorisierte Warteschlange.
@@ -1349,6 +1544,7 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 > nummerngenaue Einzelauflistung.
 
 ### Snapshots
+
 - Jeder abgeschlossene Tick besitzt einen unveränderlichen Snapshot-Zeitpunkt.
 - Snapshot ist eindeutig `runId` + `tickId` zugeordnet und speichert `simulationDay`.
 - Snapshot enthält den vollständigen Simulations-State; zusätzlich existieren optimierte KPI-/Analytics-Projektionen.
@@ -1359,6 +1555,7 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 - Snapshot kann aus der Event-Historie reproduziert werden; Abweichungen zwischen gespeichertem und rekonstruiertem Snapshot sind Integritätsfehler.
 
 ### Decision Support / Maßnahmen
+
 - Ablauf: `Snapshot → Identität → Event/Audit → Treiber → Szenariovergleich → Maßnahme → Simulation`.
 - `Parameter → Wirkung → KPI` kann dargestellt werden; eine Maßnahme kann mehrere Parameter ändern.
 - Jede Maßnahme besitzt Startzeitpunkt; Enddatum und Ramp-up sind optional; Wirksamkeit beginnt erst ab Startzeitpunkt.
@@ -1372,39 +1569,47 @@ Storage: `Storage Abstraction → IndexedDB V1 → später optional Backend / Cl
 > Konsolidierte Zusammenfassung; keine nummerngenaue Einzelauflistung.
 
 ### 1574–1584 — Command/Application Layer
+
 - Klarer Command Layer zwischen UI und Simulation Engine; Commands werden validiert und besitzen eindeutige IDs, optional Correlation IDs.
 - Technische Command-Ausführung kann protokolliert werden; Command-Log und fachliche Event-Historie bleiben getrennt.
 - Ein zentraler Application Service koordiniert Szenario, Parameter, Run und Engine.
 
 ### 1585–1600 — Schichten- und Modelltrennung
+
 - Simulation Engine bleibt unabhängig von UI, React und Browser-APIs.
 - Persistence erfolgt über Repository-/Storage-Interfaces.
 - Domain Model, Persistence Model und View Model bleiben getrennt; Transformationen erfolgen explizit über Mapper/Adapter.
 
 ### 1601–1616 — CRM-Baseline
+
 - CRM-Daten werden über Repository gekapselt und explizit als Baseline-Input in einen Run übernommen.
 - Jeder Run erhält Input Snapshot bzw. Baseline-Version; CRM-Änderungen verändern bestehende Runs nicht.
 - Neue Ausgangsdaten erzeugen eine neue Baseline-Version; die Baseline ist Bestandteil der Reproduzierbarkeit und wird beim Run-Start angezeigt.
 
 ### 1617–1625 — Run Manifest / Parameter
+
 - Run speichert die verwendete Parameter-Version; ein unveränderliches Run Manifest enthält Reproduzierbarkeitsinformationen.
 - Parameter werden während eines laufenden Runs nicht verändert; Änderungen erfolgen über Entwürfe und werden explizit als neuer Szenariostand angewendet.
 
 ### 1626–1636 — Szenario-Lifecycle
+
 - Szenarioentwürfe besitzen Draft-Status; Szenarien können gespeichert und archiviert werden; historische Runs bleiben erhalten.
 - Physisches Löschen von Szenarien wird in V1 vermieden.
 - Szenario, Szenarioversion und Run sind eigenständige Objekte; jeder Run referenziert exakt eine Szenarioversion.
 
 ### 1637–1648 — Szenarioversionen / Diff [IMPLEMENTIERT (AUFTRAG 019)]
+
 - Szenarioversionen können verglichen werden; Parameteränderungen werden als Diff dargestellt; der Diff kann zu betroffenen KPIs und Treibern führen.
 - Versionen sind nach Run-Start unveränderlich; Änderungen erzeugen neue Versionen; frühere Versionen können als Ausgangspunkt kopiert werden.
 
 ### 1649–1660 — Version History / Audit
+
 - Szenarien besitzen eine chronologische Version History; Versionen können einen technischen Actor referenzieren.
 - Eine zentrale Audit Timeline unterscheidet Benutzeraktionen, Systemaktionen und Simulation Events.
 - Auditdaten bleiben von der fachlichen immutable Event-Historie getrennt und unveränderlich.
 
 ### 1661–1673 — Archivierung / Integrität
+
 - Wichtige Datenobjekte verwenden grundsätzlich Soft Delete bzw. Archivierung; physisches Löschen bleibt auf eindeutig technische, nicht revisionsrelevante Daten beschränkt.
 - Referenzielle Integrität wird zwischen Companies, Contacts, Deals, Customers, Runs und Events sichergestellt.
 - Fachlich atomare Operationen müssen auch persistenzseitig konsistent abgeschlossen werden; inkonsistente oder nur teilweise gespeicherte Ergebnisse dürfen nicht als erfolgreich gemeldet werden.
@@ -1422,6 +1627,7 @@ bereitgestellten Bestand vorliegt. Bis ein belastbarer Quelltext auftaucht, gilt
 **1673** als letzte belastbare Nummer und **1674** als nächste freie Nummer.
 
 ---
+
 ---
 
 # TEIL B — VERBINDLICHE ZIEL-ARCHITEKTUR
@@ -1433,11 +1639,13 @@ Zielarchitektur.
 ## B1. Datenebenen A / B
 
 **Ebene A – historische Unternehmensdaten**
+
 - historische Referenz, READ ONLY
 - niemals durch die Simulation verändern
 - Datenquellen u. a. Geschäftsbericht 2025, Jahrescheckup 2025
 
 **Ebene B – Simulation**
+
 - eigene dynamische Daten, zukünftige Entwicklung
 - durch Szenarien und Maßnahmen veränderbar
 - überschreibt Ebene A niemals
@@ -1542,6 +1750,7 @@ UI → Commands → Application Services → Domain / Simulation Engine → Repo
 ```
 
 Verbindliche Prinzipien:
+
 - UI verändert Simulation State nicht direkt; State-Änderungen erfolgen über Commands/Services.
 - Simulation ist möglichst pure / side-effect-free.
 - deterministischer RNG statt `Math.random()`.
@@ -1627,6 +1836,19 @@ Simulation Progress, Goal Status, Event Timeline.
   (`src/config/pagePresentation.ts`) stellt mit `'html'` das Aussehen von v2.3.1 wieder her; Tag
   `v2.3.1` bleibt unverändert. Interaktive Seiten und die Datenbasis-Seite (G47) sind nicht betroffen.
   Die früheren Festlegungen bleiben als Historie in `docs/BUILD_LOG.md` stehen.
+
+- **Revision 19.10.2026 (Plan Frontend-Qualität, Paket G3 / Auftrag 104; Grundlage: Entscheidungen
+  Marc vom 06.10. und 19.10.2026):** Die Revision vom 26.09.2026 ist für die aktive Darstellung abgelöst.
+  Alle 32 statischen Inhaltsseiten sind mit den Aufträgen 093–103 als echte Seiten (Page-Kit, Inhalte aus
+  `src/domain/*`) freigegeben; Gestaltungsmaßstab bleibt das Original-WebP aus v2.2.0 als Vorlage
+  (Bildvergleich je Welle, begründete Abweichungen im jeweiligen Auftrag). **Neue Darstellungsregel:**
+  `PAGE_PRESENTATION = 'html'`; Inhalt ist sichtbarer, auswählbarer Text mit genau einer `h1`, kein
+  Ganzseiten-WebP und keine unsichtbare zweite Inhaltsfassung in der aktiven Darstellung. `HTML_PAGES`
+  bleibt als vollständige Freigabeliste (32 von 32). **Rückweg:** einzelne Seiten – Schalter auf `'bild'`
+  und deren Schlüssel aus `HTML_PAGES` entfernen (nur diese Seiten zeigen wieder WebP mit Textschicht);
+  alle Seiten – `'bild'` mit leerer `HTML_PAGES` oder Tag `v2.4.0` ausliefern. Keine Datenbankänderung.
+  Die WebPs unter `public/assets/auftrag-037d`–`037g` und `ImagePage` bleiben dafür unverändert erhalten;
+  `g67ImagePages.ui` prüft den Bildweg weiter. Die Revision vom 26.09.2026 bleibt als Historie stehen.
 
 ## B19. Verbindliche technische Kernarchitektur — Kurzliste
 
@@ -1800,6 +2022,7 @@ Drei State-Schichten laufen parallel, jede mit eigenem Mechanismus und klarer Gr
 **`SimulationContext` (In-Memory-Simulationszustand).** `RunActionModal` und `AuditTierView` rufen `scenService.runVersion/reRun/reproduce` über `SimulationContext` auf — Domänenaktionen der geschützten `src/simulation/`-Zone, kein HTTP-Server-State. Bleibt unverändert.
 
 ---
+
 ---
 
 # TEIL C — IMPLEMENTIERUNGSSTAND & AUDIT
@@ -1821,12 +2044,12 @@ klassifiziert. Dafür ist ein Code-Audit erforderlich.
 
 **CRM-Routing & Views — als abgenommen berichtet:**
 
-| Route | Ergebnis |
-|---|---|
-| `s-companies` | Unternehmen (Accounts), 20 Tabellenzeilen — dedizierte `CompaniesView` |
-| `s-deals` | Deal Pipeline, 40 Tabellenzeilen — dedizierte `DealsView` (Pipeline 1.000.000 €, 8 gewonnen / 172.000 €, 20 offen / 559.000 €) |
-| `s-activities` | Aktivitäten-Historie, 10 Tabellenzeilen — dedizierte `ActivitiesView` |
-| `s-leads` / `s-crm` | Leads & Kontakte, 100 Kontakte / 20 Unternehmen / 40 Funnel Deals + Supabase-/Import-Audit |
+| Route               | Ergebnis                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `s-companies`       | Unternehmen (Accounts), 20 Tabellenzeilen — dedizierte `CompaniesView`                                                         |
+| `s-deals`           | Deal Pipeline, 40 Tabellenzeilen — dedizierte `DealsView` (Pipeline 1.000.000 €, 8 gewonnen / 172.000 €, 20 offen / 559.000 €) |
+| `s-activities`      | Aktivitäten-Historie, 10 Tabellenzeilen — dedizierte `ActivitiesView`                                                          |
+| `s-leads` / `s-crm` | Leads & Kontakte, 100 Kontakte / 20 Unternehmen / 40 Funnel Deals + Supabase-/Import-Audit                                     |
 
 Routing-Weiche in `CRMView.tsx`; `App.tsx` übergibt `activeSubView={activeView}`.
 Neue/angepasste Dateien: `src/features/crm/components/CompaniesView.tsx`,
@@ -1834,6 +2057,7 @@ Neue/angepasste Dateien: `src/features/crm/components/CompaniesView.tsx`,
 `src/app/App.tsx`, `src/services/db/supabaseClient.ts`.
 
 **Berichteter Build-/Regression-Status:**
+
 - `npm run build` → Exit Code 0
 - `npx tsc --noEmit` → erfolgreich
 - `npx tsx scripts/verifyIntegrity.ts` → 17/17 Suiten (Linie A) bzw. Suiten 001–018-A (Linie C)
@@ -1856,6 +2080,7 @@ Codeprüfung sowie TypeScript- und Produktions-Build. Ergebnis:
 > Carlo, Snapshots, IndexedDB oder UI-Audit.
 
 **Konkrete Codebefunde:**
+
 - `src/simulation/eventRules.ts:65` nutzt `Math.random()`; Event-IDs via `Date.now()` (`:99`).
 - `src/simulation/engine.ts:58,71,94,114–125` nutzt `Date.now()`, `window.setTimeout()` und mehrfach `Math.random()`.
 - `src/simulation/simulationService.ts:35–36,139–140,149–151` nutzt lokale Browserzeit und `window.setTimeout()` statt fachlicher Simulationszeit.
@@ -1867,25 +2092,25 @@ Codeprüfung sowie TypeScript- und Produktions-Build. Ergebnis:
 
 **Audit-Matrix (verdichtet):**
 
-| Architekturblock | Status | Prio |
-|---|---|---:|
-| Bestehende In-Memory-Simulation + React-Anbindung | TEILWEISE IMPLEMENTIERT | P2 |
-| Deterministische Engine, PRNG, reproduzierbare IDs | ECHTES OFFENES GAP | P0 |
-| SimulationClock, `dayIndex`, fachliche Zeit | ECHTES OFFENES GAP | P0 |
-| Deterministische Event-Pipeline + vollständige Historie | ECHTES OFFENES GAP | P0 |
-| Scenario → Version → Run → RunManifest; Baseline-Versionierung | ECHTES OFFENES GAP | P0 |
-| ParameterRegistry + Preflight | ECHTES OFFENES GAP | P0 |
-| Worker-Isolation und Lifecycle | ECHTES OFFENES GAP | P0 |
-| Monte-Carlo-Aggregation, P10/P50/P90 | ECHTES OFFENES GAP | P1 |
-| Immutable Snapshots, Analytics Projection, IndexedDB hinter Repository | ECHTES OFFENES GAP | P1 |
-| Command Layer / UI → Application-Service-Grenze | ECHTES OFFENES GAP | P1 |
-| UI-Integration Management → Detail → Technik/Audit | ECHTES OFFENES GAP | P2 |
-| CRM-Baseline als unveränderlicher Run-Input | TEILWEISE IMPLEMENTIERT | P0 |
-| KPI-Zeitreihen, Baseline-Kennzeichnung, Zielsemantik (1299–1323) | NUR BESCHLOSSEN | P2 |
-| Sales-/CS-Queues, Workload/Wartezeit/Health | NUR BESCHLOSSEN | P2 |
-| Maßnahmen, Wirkungsvorschau, Szenariovergleich | NUR BESCHLOSSEN | P2 |
-| Audit-/Version-History, Correlation IDs, Persistenzintegrität | NUR BESCHLOSSEN | P2 |
-| Automatische Retention/Löschung von Snapshots | BEWUSST FÜR SPÄTER | P3 |
+| Architekturblock                                                       | Status                  | Prio |
+| ---------------------------------------------------------------------- | ----------------------- | ---: |
+| Bestehende In-Memory-Simulation + React-Anbindung                      | TEILWEISE IMPLEMENTIERT |   P2 |
+| Deterministische Engine, PRNG, reproduzierbare IDs                     | ECHTES OFFENES GAP      |   P0 |
+| SimulationClock, `dayIndex`, fachliche Zeit                            | ECHTES OFFENES GAP      |   P0 |
+| Deterministische Event-Pipeline + vollständige Historie                | ECHTES OFFENES GAP      |   P0 |
+| Scenario → Version → Run → RunManifest; Baseline-Versionierung         | ECHTES OFFENES GAP      |   P0 |
+| ParameterRegistry + Preflight                                          | ECHTES OFFENES GAP      |   P0 |
+| Worker-Isolation und Lifecycle                                         | ECHTES OFFENES GAP      |   P0 |
+| Monte-Carlo-Aggregation, P10/P50/P90                                   | ECHTES OFFENES GAP      |   P1 |
+| Immutable Snapshots, Analytics Projection, IndexedDB hinter Repository | ECHTES OFFENES GAP      |   P1 |
+| Command Layer / UI → Application-Service-Grenze                        | ECHTES OFFENES GAP      |   P1 |
+| UI-Integration Management → Detail → Technik/Audit                     | ECHTES OFFENES GAP      |   P2 |
+| CRM-Baseline als unveränderlicher Run-Input                            | TEILWEISE IMPLEMENTIERT |   P0 |
+| KPI-Zeitreihen, Baseline-Kennzeichnung, Zielsemantik (1299–1323)       | NUR BESCHLOSSEN         |   P2 |
+| Sales-/CS-Queues, Workload/Wartezeit/Health                            | NUR BESCHLOSSEN         |   P2 |
+| Maßnahmen, Wirkungsvorschau, Szenariovergleich                         | NUR BESCHLOSSEN         |   P2 |
+| Audit-/Version-History, Correlation IDs, Persistenzintegrität          | NUR BESCHLOSSEN         |   P2 |
+| Automatische Retention/Löschung von Snapshots                          | BEWUSST FÜR SPÄTER      |   P3 |
 
 ## C4. Widerspruch aufgelöst — Eigenprüfung des Live-Codes (31.08.2026)
 
@@ -1898,18 +2123,18 @@ korrekt, C3 ist überholt.**
 
 ### Gegenüberstellung: C3-„P0 GAP" vs. Live-Code
 
-| C3-Befund | Live-Code (31.08.) |
-|---|---|
-| Kein deterministischer PRNG | `src/simulation/prng.ts` — `DeterministicRNG` (Mulberry32), seed + `getState()`; genutzt in Engine + beiden Services |
-| Keine SimulationClock / fachliche Zeit | `SimulationClock` in `eventRules.ts` (`getDayIndex`, `formatSimulatedDate`, `TICKS_PER_DAY`); Engine leitet `dayIndex`/`simulatedDate` daraus ab |
-| Event-Historie nach 50 Einträgen abgeschnitten | `simulationService.executeTick`: „Record new events into full store without truncating" — kein Cap mehr |
-| Keine `ScenarioVersion`/`SimulationRun`/`RunManifest` | `src/types/scenario.ts` — alle drei vorhanden, `RunManifest` vollständig `readonly` (seed, initialRngState, model-/schema-/baselineVersion) |
-| Keine `ParameterRegistry` / `Preflight` | `parameterRegistry.ts` (295 Z.) + `preflightValidator.ts` (100 Z., „NEVER alters RNG state, executes ticks … or touches historical CRM data") |
-| Kein Worker | `src/simulation/worker/simulation.worker.ts` + `workerAdapter.ts` (`new Worker(new URL(...), {type:'module'})`), typisiertes `WorkerMessageCommand` (START/PAUSE/RESUME/CANCEL); `workerIntegrity.test.ts` prüft Null-React/DOM |
-| Keine Monte-Carlo-Aggregation | `monteCarloAggregator.ts` (231 Z.) + `monteCarloIntegrity.test.ts` |
-| Keine Snapshots / IndexedDB | `types/snapshot.ts`, `services/db/indexedDbSnapshotRepository.ts` (332 Z.), `snapshotMapper`, `snapshotIntegrityService`, `snapshotPruningManager` |
-| Keine State Machines / Invarianten | `tickInvariantValidator.ts`, `stateMachineEvaluator.ts`, `types/stateMachine.ts`; Engine-Schritt 7 ruft `verifyTickInvariants` und stempelt `hasInvariantViolation` |
-| Keine Management/Detail/Audit-UI | `ManagementTierView.tsx`, `DetailTierView.tsx`, `AuditTierView.tsx` (RunManifest- + Snapshot-Integritäts-Tabs) |
+| C3-Befund                                             | Live-Code (31.08.)                                                                                                                                                                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kein deterministischer PRNG                           | `src/simulation/prng.ts` — `DeterministicRNG` (Mulberry32), seed + `getState()`; genutzt in Engine + beiden Services                                                                                                            |
+| Keine SimulationClock / fachliche Zeit                | `SimulationClock` in `eventRules.ts` (`getDayIndex`, `formatSimulatedDate`, `TICKS_PER_DAY`); Engine leitet `dayIndex`/`simulatedDate` daraus ab                                                                                |
+| Event-Historie nach 50 Einträgen abgeschnitten        | `simulationService.executeTick`: „Record new events into full store without truncating" — kein Cap mehr                                                                                                                         |
+| Keine `ScenarioVersion`/`SimulationRun`/`RunManifest` | `src/types/scenario.ts` — alle drei vorhanden, `RunManifest` vollständig `readonly` (seed, initialRngState, model-/schema-/baselineVersion)                                                                                     |
+| Keine `ParameterRegistry` / `Preflight`               | `parameterRegistry.ts` (295 Z.) + `preflightValidator.ts` (100 Z., „NEVER alters RNG state, executes ticks … or touches historical CRM data")                                                                                   |
+| Kein Worker                                           | `src/simulation/worker/simulation.worker.ts` + `workerAdapter.ts` (`new Worker(new URL(...), {type:'module'})`), typisiertes `WorkerMessageCommand` (START/PAUSE/RESUME/CANCEL); `workerIntegrity.test.ts` prüft Null-React/DOM |
+| Keine Monte-Carlo-Aggregation                         | `monteCarloAggregator.ts` (231 Z.) + `monteCarloIntegrity.test.ts`                                                                                                                                                              |
+| Keine Snapshots / IndexedDB                           | `types/snapshot.ts`, `services/db/indexedDbSnapshotRepository.ts` (332 Z.), `snapshotMapper`, `snapshotIntegrityService`, `snapshotPruningManager`                                                                              |
+| Keine State Machines / Invarianten                    | `tickInvariantValidator.ts`, `stateMachineEvaluator.ts`, `types/stateMachine.ts`; Engine-Schritt 7 ruft `verifyTickInvariants` und stempelt `hasInvariantViolation`                                                             |
+| Keine Management/Detail/Audit-UI                      | `ManagementTierView.tsx`, `DetailTierView.tsx`, `AuditTierView.tsx` (RunManifest- + Snapshot-Integritäts-Tabs)                                                                                                                  |
 
 `engine.ts` ist tatsächlich pure/headless (Header + Imports: kein React/window/Timer);
 Tick-Ablauf: Rules → Queues → Churn → Metrics → State bauen → **Invariantenprüfung →
@@ -1918,15 +2143,15 @@ abgeschlossen.
 
 ### Verbleibende echte Befunde (Eigenreview, nicht C3) — mit Beschluss vom 31.08.
 
-| # | Befund | Beschluss & Umsetzung | Prio |
-|---|---|---|---:|
-| C4-1 | **CRM-Schreibpfad noch Stub.** `crmRepository.ts`: `getLeads()/getDeals()/getActivities()` → `[]`, `updateLeadStatus()` → `null`. Lesepfad ist echt. | **Erledigt (AUFTRAG 016 / Gate G2):** `DataSource`-Abstraktion (`CrmReadModel`, `DataSource`, `DataSourceRegistry`), `BaselineSnapshotService` zur konsistenten Snapshot-Erfassung & FK-Integritätsprüfung, n8n-Offline-Fabrik für deterministische Baseline-Datensätze, Schreib-Stubs in `crmRepository.ts` werfen informative Fehler. Test-Suite 016 grün. Siehe **B22**. | P2 |
-| C4-2 | **Kein dedizierter Command Layer / Correlation IDs** (1574–1584). | **Teilweise erledigt (AUFTRAG 015):** `correlationId` (String) in `RunManifest`, `SimulationRun` + jedem `SimulationEvent`, ausgehend von der UI-Aktion. Kein `CommandBus`. Voller Command Layer = Ausbaustufe (B21). | P2 |
-| C4-3 | **Run-*Erzeugung* nicht deterministisch/injizierbar.** `Math.random()` (Z. 87/192/205/357) und `new Date()` (Z. 90/146/206/313) in `scenarioService.ts`; `simulationStartDate` aus `new Date()` widerspricht 1346. | **Erledigt (AUFTRAG 015):** neues Modul `systemContext.ts` (test-überschreibbar) + `RunOptions`-Parameter; `simulationStartDate` aus `BASELINE_PERIOD_START`. Golden-Run-Test als Abnahme bestanden. | P2 |
-| C4-4 | **`simulationService` Live-Loop nutzt `window.setTimeout`**. | **Dokumentiert (B20):** bewusste Architektur (Live ≠ reproduzierbar). Live-Service schreibt nie in Snapshot-/Run-Store. | P3 |
-| C4-5 | **`Date.now()` für `errorId`** im Worker (4×). | **Erledigt (AUFTRAG 015):** `errorId = err-${runId}-t${tick}-${seq}` deterministisch injiziert. | P3 |
-| C4-6 | **Queue-Projektionen `entries.slice(-20)`** (`salesQueueManager.ts:261`, `csQueueManager.ts:269`). | **Verifiziert (kein Bug):** Die volle Liste wird separat als `updatedEntries` zurückgegeben (`salesQueueManager.ts:206`, `csQueueManager.ts:214`); `slice(-20)` betrifft nur das Projektions-View-Objekt (konform zu B14). Absicherung via `runQueueHistoryTest` (015a) bestanden. | — |
-| C4-7 | **`ScenarioParameters` hat nur 10 Felder.** Entscheidungen 149–478 beschreiben deutlich mehr (Kanalbudgets einzeln, Ramp-ups, Lead-Expiration, Setup-Fees, Paketpreise …). | **V1-Ausschnitt erweitert & umgesetzt:** Maßnahmen-Schicht (419–468) in AUFTRAG 017 implementiert; KPI-Zeitreihen, Zielsemantik & Monte-Carlo-Detailanalyse (1274–1323) in AUFTRAG 018 implementiert (**B24**). Verbleibende Parameterbereiche 149–418 gelten als **NUR BESCHLOSSEN** (Erweiterung = eigener Auftrag). | P2 |
+| #    | Befund                                                                                                                                                                                                             | Beschluss & Umsetzung                                                                                                                                                                                                                                                                                                                                                       | Prio |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---: |
+| C4-1 | **CRM-Schreibpfad noch Stub.** `crmRepository.ts`: `getLeads()/getDeals()/getActivities()` → `[]`, `updateLeadStatus()` → `null`. Lesepfad ist echt.                                                               | **Erledigt (AUFTRAG 016 / Gate G2):** `DataSource`-Abstraktion (`CrmReadModel`, `DataSource`, `DataSourceRegistry`), `BaselineSnapshotService` zur konsistenten Snapshot-Erfassung & FK-Integritätsprüfung, n8n-Offline-Fabrik für deterministische Baseline-Datensätze, Schreib-Stubs in `crmRepository.ts` werfen informative Fehler. Test-Suite 016 grün. Siehe **B22**. |   P2 |
+| C4-2 | **Kein dedizierter Command Layer / Correlation IDs** (1574–1584).                                                                                                                                                  | **Teilweise erledigt (AUFTRAG 015):** `correlationId` (String) in `RunManifest`, `SimulationRun` + jedem `SimulationEvent`, ausgehend von der UI-Aktion. Kein `CommandBus`. Voller Command Layer = Ausbaustufe (B21).                                                                                                                                                       |   P2 |
+| C4-3 | **Run-_Erzeugung_ nicht deterministisch/injizierbar.** `Math.random()` (Z. 87/192/205/357) und `new Date()` (Z. 90/146/206/313) in `scenarioService.ts`; `simulationStartDate` aus `new Date()` widerspricht 1346. | **Erledigt (AUFTRAG 015):** neues Modul `systemContext.ts` (test-überschreibbar) + `RunOptions`-Parameter; `simulationStartDate` aus `BASELINE_PERIOD_START`. Golden-Run-Test als Abnahme bestanden.                                                                                                                                                                        |   P2 |
+| C4-4 | **`simulationService` Live-Loop nutzt `window.setTimeout`**.                                                                                                                                                       | **Dokumentiert (B20):** bewusste Architektur (Live ≠ reproduzierbar). Live-Service schreibt nie in Snapshot-/Run-Store.                                                                                                                                                                                                                                                     |   P3 |
+| C4-5 | **`Date.now()` für `errorId`** im Worker (4×).                                                                                                                                                                     | **Erledigt (AUFTRAG 015):** `errorId = err-${runId}-t${tick}-${seq}` deterministisch injiziert.                                                                                                                                                                                                                                                                             |   P3 |
+| C4-6 | **Queue-Projektionen `entries.slice(-20)`** (`salesQueueManager.ts:261`, `csQueueManager.ts:269`).                                                                                                                 | **Verifiziert (kein Bug):** Die volle Liste wird separat als `updatedEntries` zurückgegeben (`salesQueueManager.ts:206`, `csQueueManager.ts:214`); `slice(-20)` betrifft nur das Projektions-View-Objekt (konform zu B14). Absicherung via `runQueueHistoryTest` (015a) bestanden.                                                                                          |    — |
+| C4-7 | **`ScenarioParameters` hat nur 10 Felder.** Entscheidungen 149–478 beschreiben deutlich mehr (Kanalbudgets einzeln, Ramp-ups, Lead-Expiration, Setup-Fees, Paketpreise …).                                         | **V1-Ausschnitt erweitert & umgesetzt:** Maßnahmen-Schicht (419–468) in AUFTRAG 017 implementiert; KPI-Zeitreihen, Zielsemantik & Monte-Carlo-Detailanalyse (1274–1323) in AUFTRAG 018 implementiert (**B24**). Verbleibende Parameterbereiche 149–418 gelten als **NUR BESCHLOSSEN** (Erweiterung = eigener Auftrag).                                                      |   P2 |
 
 **Fazit:** Der Live-Code setzt Teil B zu grob **80–85 %** um, mit echten Tests. Kein
 Big-Bang. Umsetzungsreihenfolge: Phase 0 (Doku/Freeze) → **AUFTRAG 015** (C4-2/3/4/5/6)
@@ -1935,28 +2160,28 @@ Big-Bang. Umsetzungsreihenfolge: Phase 0 (Doku/Freeze) → **AUFTRAG 015** (C4-2
 
 ## C5. Priorisierte GAP-Liste (aus `LEADPILOT_GAP_ANALYSIS.md`, 30.08.2026)
 
-| ID | Bereich | Bewertung | Prio |
-|---|---|---|---:|
-| GAP-001 | Simulation Engine — pure/deterministisch, UI-getrennt | Codeprüfung erforderlich | P0 |
-| GAP-002 | Simulation Clock + `dayIndex` | Codeprüfung erforderlich | P0 |
-| GAP-003 | Event Pipeline — Lifecycle + deterministische Reihenfolge | Codeprüfung erforderlich | P0 |
-| GAP-004 | State Machines — explizit, validiert, atomar | Codeprüfung erforderlich | P0 |
-| GAP-005 | Run Manifest — Versionen/Baseline/Parameter/Seed unveränderlich | Ergänzung erforderlich | P0 |
-| GAP-006 | Snapshots — unveränderlich + Rekonstruktion aus Events | prüfen/ergänzen | P0 |
-| GAP-007 | Command Layer — UI → Commands → Application Services → Domain | neu/Erweiterung | P0 |
-| GAP-008 | Application State — UI-State vs. fachlicher Simulation-State | prüfen | P1 |
-| GAP-009 | Parameter Registry | Ergänzung wahrscheinlich | P0 |
-| GAP-010 | Preflight Validation | Ergänzung wahrscheinlich | P1 |
-| GAP-011 | Baseline Versioning — CRM-Snapshot als unveränderlicher Run-Input | prüfen | P0 |
-| GAP-012 | Szenarioversionen — Szenario ≠ Version ≠ Run | prüfen | P0 |
-| GAP-013 | Audit Timeline — Benutzer/System/Simulation getrennt | Ergänzung wahrscheinlich | P1 |
-| GAP-014 | Analytics — read-only auf konsistenten Snapshots | prüfen | P0 |
-| GAP-015 | KPI-Projektionen statt Voll-State im Dashboard | prüfen | P1 |
-| GAP-016 | Worker Protocol — Progress/Cancel/Fehler | prüfen | P0 |
-| GAP-017 | Persistenz — Repository/Storage-Adapter, atomar | prüfen | P0 |
-| GAP-018 | Testing — Unit + Integration + E2E + Determinismus/Regression | prüfen/erweitern | P0 |
-| GAP-019 | Designsystem — neue UI nur auf bestehender Foundation | Konformität prüfen | P1 |
-| GAP-020 | Management UI — Management → Analyse → Technik, A/B getrennt | UI-Code prüfen | P1 |
+| ID      | Bereich                                                           | Bewertung                | Prio |
+| ------- | ----------------------------------------------------------------- | ------------------------ | ---: |
+| GAP-001 | Simulation Engine — pure/deterministisch, UI-getrennt             | Codeprüfung erforderlich |   P0 |
+| GAP-002 | Simulation Clock + `dayIndex`                                     | Codeprüfung erforderlich |   P0 |
+| GAP-003 | Event Pipeline — Lifecycle + deterministische Reihenfolge         | Codeprüfung erforderlich |   P0 |
+| GAP-004 | State Machines — explizit, validiert, atomar                      | Codeprüfung erforderlich |   P0 |
+| GAP-005 | Run Manifest — Versionen/Baseline/Parameter/Seed unveränderlich   | Ergänzung erforderlich   |   P0 |
+| GAP-006 | Snapshots — unveränderlich + Rekonstruktion aus Events            | prüfen/ergänzen          |   P0 |
+| GAP-007 | Command Layer — UI → Commands → Application Services → Domain     | neu/Erweiterung          |   P0 |
+| GAP-008 | Application State — UI-State vs. fachlicher Simulation-State      | prüfen                   |   P1 |
+| GAP-009 | Parameter Registry                                                | Ergänzung wahrscheinlich |   P0 |
+| GAP-010 | Preflight Validation                                              | Ergänzung wahrscheinlich |   P1 |
+| GAP-011 | Baseline Versioning — CRM-Snapshot als unveränderlicher Run-Input | prüfen                   |   P0 |
+| GAP-012 | Szenarioversionen — Szenario ≠ Version ≠ Run                      | prüfen                   |   P0 |
+| GAP-013 | Audit Timeline — Benutzer/System/Simulation getrennt              | Ergänzung wahrscheinlich |   P1 |
+| GAP-014 | Analytics — read-only auf konsistenten Snapshots                  | prüfen                   |   P0 |
+| GAP-015 | KPI-Projektionen statt Voll-State im Dashboard                    | prüfen                   |   P1 |
+| GAP-016 | Worker Protocol — Progress/Cancel/Fehler                          | prüfen                   |   P0 |
+| GAP-017 | Persistenz — Repository/Storage-Adapter, atomar                   | prüfen                   |   P0 |
+| GAP-018 | Testing — Unit + Integration + E2E + Determinismus/Regression     | prüfen/erweitern         |   P0 |
+| GAP-019 | Designsystem — neue UI nur auf bestehender Foundation             | Konformität prüfen       |   P1 |
+| GAP-020 | Management UI — Management → Analyse → Technik, A/B getrennt      | UI-Code prüfen           |   P1 |
 
 **Arbeitsregel:** kein Big-Bang-Rewrite. Pro GAP: bestehenden Code lesen →
 Architekturregel zuordnen → kleinste sinnvolle Änderung → implementieren → Tests →
@@ -1983,21 +2208,22 @@ Abschlussnachweis ist laut C3/C4 **strittig** und Teil des ausstehenden
 Artefakt-/Versionsabgleichs.
 
 ---
+
 ---
 
 # TEIL D — QUELLEN, ÄNDERUNGSPROTOKOLL, MASTERSTATUS
 
 ## D1. Konsolidierte Quellen
 
-| Kürzel | Datei | Rolle in diesem Entwurf |
-|---|---|---|
-| Linie A | `~/.Trash/ARCHITECTURE_DECISIONS.md` (≈710 Zeilen, 31.08.) | schlanke Konsolidierung; Basis für Kopf, Teil B, Teil C, Teil D |
-| Linie C | `ARCHITECTURE_DECISIONS2.md` (Projekt, 1.795 Zeilen, 31.08., untracked) | jüngste Projektfassung; Quelle für 109–523, 299–308, Architektur-Grundsätze |
-| Linie D | `~/Downloads/ARCHITECTURE_DECISIONS.md` (2.902 Zeilen, „Stand 29.08.“) | Voll-Historie; Quelle für 774–1473 im Volltext, Designsystem-Audit |
-| — | `docs/archiv/LEADPILOT_GAP_ANALYSIS.md` (Projekt, 30.08.) | GAP-Liste C5 |
-| — | `CODE_VS_ARCHITECTURE_AUDIT.md` (Codex-Projekt, 30.08.) | externer Audit C3 |
-| — | `ARCHITECTURE_DECISIONS1.md` (Projekt, untracked) | inhaltlich = Linie C minus Block 299–308; nicht separat benötigt |
-| — | `archive/architecture-decisions/ARCHITECTURE_DECISIONS(20260830-113118).md` (git-tracked) | ≈ Linie D; bleibt als historische Voll-Fassung im Archiv |
+| Kürzel  | Datei                                                                                     | Rolle in diesem Entwurf                                                     |
+| ------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Linie A | `~/.Trash/ARCHITECTURE_DECISIONS.md` (≈710 Zeilen, 31.08.)                                | schlanke Konsolidierung; Basis für Kopf, Teil B, Teil C, Teil D             |
+| Linie C | `ARCHITECTURE_DECISIONS2.md` (Projekt, 1.795 Zeilen, 31.08., untracked)                   | jüngste Projektfassung; Quelle für 109–523, 299–308, Architektur-Grundsätze |
+| Linie D | `~/Downloads/ARCHITECTURE_DECISIONS.md` (2.902 Zeilen, „Stand 29.08.“)                    | Voll-Historie; Quelle für 774–1473 im Volltext, Designsystem-Audit          |
+| —       | `docs/archiv/LEADPILOT_GAP_ANALYSIS.md` (Projekt, 30.08.)                                 | GAP-Liste C5                                                                |
+| —       | `CODE_VS_ARCHITECTURE_AUDIT.md` (Codex-Projekt, 30.08.)                                   | externer Audit C3                                                           |
+| —       | `ARCHITECTURE_DECISIONS1.md` (Projekt, untracked)                                         | inhaltlich = Linie C minus Block 299–308; nicht separat benötigt            |
+| —       | `archive/architecture-decisions/ARCHITECTURE_DECISIONS(20260830-113118).md` (git-tracked) | ≈ Linie D; bleibt als historische Voll-Fassung im Archiv                    |
 
 Weitere identische bzw. veraltete Kopien liegen in `~/Library/Mobile Documents/.Trash/`,
 `~/.Trash/LeadPilot_workspace_after_gap_2026-08-31/`, `~/.codex/.chatgpt-projects/…`,
@@ -2033,41 +2259,42 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 
 ## D4. Änderungsprotokoll
 
-| Datum | Änderung |
-|---|---|
-| 2026-08-29 | Zentrale Architektur-Dokumentation angelegt; Entscheidungen 774–1223 konsolidiert; historische Eckpunkte 1–773 aufgenommen (ohne Erfindung); LeadPilot-Designsystem als Foundation. |
-| 2026-08-29/30 | KPI-, Simulation-, Queue-, State-Machine-, Snapshot-, Decision-Support- und Persistenzentscheidungen ergänzt (bis Bereich 1473 im Volltext, konsolidiert bis 1673). |
-| 2026-08-30 | Gap-Analyse-Prozess formalisiert; externer Code-vs.-Architecture-Audit erstellt. |
-| 2026-08-31 | CRM-Routing und CRM-Subviews implementiert und per Browser validiert; Build/TypeScript/Integrity als grün berichtet. |
-| 2026-08-31 | Historische Entscheidungsblöcke 109–523 sowie 299–308 aus dem Projektprotokoll konsolidiert. |
-| 2026-08-31 | Linien A, C und D in eine Struktur zusammengeführt (Teil A Historie / Teil B Ziel-Architektur / Teil C Audit / Teil D Meta); Nummern- und Audit-Widersprüche explizit markiert. Altdateien unverändert. |
-| 2026-08-31 | Aufräumen: Entwurf zu `ARCHITECTURE_DECISIONS.md` promotet; `…1.md`/`…2.md`, Downloads-Kopie und `.codex/.chatgpt-projects Kopie/` in den Papierkorb. |
-| 2026-08-31 | Eigenprüfung des Live-Codes (`~/Projekte/LeadPilot Dashboard-CRM/`, V1.0/`v1.0.0`): C3-Audit als überholt markiert, C4 aufgelöst, 7 verbleibende Befunde (C4-1…7) aufgenommen. |
-| 2026-08-31 | AUFTRAG 015 — Reproduzierbarkeit gehärtet (systemContext, correlationId, RunOptions, deterministische Worker errorIds, Golden Run Test, Queue History Test). Gate G1 erfüllt. |
-| 2026-08-31 | AUFTRAG 016 — Datenquellen-Abstraktion & n8n-Offline-Fabrik (CrmReadModel, DataSource, DataSourceRegistry, BaselineSnapshotService, n8n Generator Workflow, Test-Suite 016). Gate G2 erfüllt. |
-| 2026-09-01 | AUFTRAG 017 — Maßnahmen-Schicht, EffectiveParameterResolver, V1-Kataloghebel-Verdrahtung in Engine (D8 Option A), side-effect-free Wirkungsvorschau (`previewMeasures`), Test-Suite 022 (`measureIntegrity.test.ts`). Gate G3 erfüllt. |
-| 2026-09-01 | AUFTRAG 018 — KPI-Zeitreihen-Detailseite, Unsicherheitsbänder (P10/P90), Zielpfad & Zielerreichung, Monte-Carlo-Histogramm, Einzel-Run-Overlay (max. 5), Test-Suite 023 (`kpiTimeSeriesIntegrity.test.ts`). Gate G3b erfüllt. |
-| 2026-09-01 | AUFTRAG 019 — Multi-Szenario-Vergleich (2–4 Versionen), 5-Dimensionen-Trade-Offs (ohne Composite Score), automatische Treiber-Diff-Ursachenerkennung (`INDETERMINATE`-Transparenz), Konfigurationsübernahme (`adoptConfiguration`), Test-Suite 024 (`multiScenarioComparisonIntegrity.test.ts`). Gate G3c erfüllt. |
-| 2026-09-01 | **Release `v1.1.0`** (Phase 3 = Aufträge 015–019) getaggt & auf GitHub veröffentlicht; Fresh-Clone-Test 24/24 grün. Release-Doku `docs/releases/V1.1.md`. |
-| 2026-09-01 | Doku-Hygiene: Release-Meldungen → `docs/releases/`, Detail-Auftragsdateien → `docs/auftraege/`, `LEADPILOT_GAP_ANALYSIS.md` + `chat_protokoll_auftrag_016_gate_g2.md` → `docs/archiv/`, `CONTENT_VISUAL_REINTEGRATION_PLAN.md` → `docs/`. `Archiv.zip` (326 MB, gitignore) in den Papierkorb. |
-| 2026-09-01 | AUFTRAG 020 — HubSpot als erste reale Datenquelle (offline über n8n eingefroren, `HubSpotBaselineSource` mit `kind: 'external'`, Stage-Map `tools/n8n/hubspot-stage-map.json`, Workflow `generate-baseline-hubspot.workflow.json`, Test-Suite 025). Gate G4 erfüllt. |
-| 2026-09-25 | Revision zu B17 (Nachtrag zu G49/G63): Viewer strikt lesend bei Simulationsläufen; `persist_completed_run` nur für Admin/Manager ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)). |
-| 2026-09-25 | G65 (067S): Upgrade von v2.2.0 abgesichert (`20260100000000_v2_2_upgrade_prep.sql`), Neuaufbau und Upgrade auf identisches Schema gebracht (`20261003_tenant_schema_convergence.sql`: kein stiller Demo-Default mehr auf `organization_id`, Ergänzung zu B17), Lizenz `All Rights Reserved`, Runbook und getesteter Rollback (Frontend zurück, Schema bleibt). |
-| 2026-09-25 | **Release `v2.3.0`** von Marc Pönisch freigegeben (Masterauftrag 067, Gates G44–G65; Release Notes `docs/releases/V2.3.0.md`). |
-| 2026-09-26 | Revision zu B18 (Auftrag 069 / G67): 32 statische Inhaltsseiten wieder als Original-WebP aus v2.2.0 mit unsichtbarer Textschicht; Regeln „kein Ganzseiten-WebP“ (G52–G55) und G66-Design-Gate zurückgenommen; Rückweg zu v2.3.1 per Schalter `PAGE_PRESENTATION` und unverändertem Tag ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md)). |
+| Datum         | Änderung                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-29    | Zentrale Architektur-Dokumentation angelegt; Entscheidungen 774–1223 konsolidiert; historische Eckpunkte 1–773 aufgenommen (ohne Erfindung); LeadPilot-Designsystem als Foundation.                                                                                                                                                                                                |
+| 2026-08-29/30 | KPI-, Simulation-, Queue-, State-Machine-, Snapshot-, Decision-Support- und Persistenzentscheidungen ergänzt (bis Bereich 1473 im Volltext, konsolidiert bis 1673).                                                                                                                                                                                                                |
+| 2026-08-30    | Gap-Analyse-Prozess formalisiert; externer Code-vs.-Architecture-Audit erstellt.                                                                                                                                                                                                                                                                                                   |
+| 2026-08-31    | CRM-Routing und CRM-Subviews implementiert und per Browser validiert; Build/TypeScript/Integrity als grün berichtet.                                                                                                                                                                                                                                                               |
+| 2026-08-31    | Historische Entscheidungsblöcke 109–523 sowie 299–308 aus dem Projektprotokoll konsolidiert.                                                                                                                                                                                                                                                                                       |
+| 2026-08-31    | Linien A, C und D in eine Struktur zusammengeführt (Teil A Historie / Teil B Ziel-Architektur / Teil C Audit / Teil D Meta); Nummern- und Audit-Widersprüche explizit markiert. Altdateien unverändert.                                                                                                                                                                            |
+| 2026-08-31    | Aufräumen: Entwurf zu `ARCHITECTURE_DECISIONS.md` promotet; `…1.md`/`…2.md`, Downloads-Kopie und `.codex/.chatgpt-projects Kopie/` in den Papierkorb.                                                                                                                                                                                                                              |
+| 2026-08-31    | Eigenprüfung des Live-Codes (`~/Projekte/LeadPilot Dashboard-CRM/`, V1.0/`v1.0.0`): C3-Audit als überholt markiert, C4 aufgelöst, 7 verbleibende Befunde (C4-1…7) aufgenommen.                                                                                                                                                                                                     |
+| 2026-08-31    | AUFTRAG 015 — Reproduzierbarkeit gehärtet (systemContext, correlationId, RunOptions, deterministische Worker errorIds, Golden Run Test, Queue History Test). Gate G1 erfüllt.                                                                                                                                                                                                      |
+| 2026-08-31    | AUFTRAG 016 — Datenquellen-Abstraktion & n8n-Offline-Fabrik (CrmReadModel, DataSource, DataSourceRegistry, BaselineSnapshotService, n8n Generator Workflow, Test-Suite 016). Gate G2 erfüllt.                                                                                                                                                                                      |
+| 2026-09-01    | AUFTRAG 017 — Maßnahmen-Schicht, EffectiveParameterResolver, V1-Kataloghebel-Verdrahtung in Engine (D8 Option A), side-effect-free Wirkungsvorschau (`previewMeasures`), Test-Suite 022 (`measureIntegrity.test.ts`). Gate G3 erfüllt.                                                                                                                                             |
+| 2026-09-01    | AUFTRAG 018 — KPI-Zeitreihen-Detailseite, Unsicherheitsbänder (P10/P90), Zielpfad & Zielerreichung, Monte-Carlo-Histogramm, Einzel-Run-Overlay (max. 5), Test-Suite 023 (`kpiTimeSeriesIntegrity.test.ts`). Gate G3b erfüllt.                                                                                                                                                      |
+| 2026-09-01    | AUFTRAG 019 — Multi-Szenario-Vergleich (2–4 Versionen), 5-Dimensionen-Trade-Offs (ohne Composite Score), automatische Treiber-Diff-Ursachenerkennung (`INDETERMINATE`-Transparenz), Konfigurationsübernahme (`adoptConfiguration`), Test-Suite 024 (`multiScenarioComparisonIntegrity.test.ts`). Gate G3c erfüllt.                                                                 |
+| 2026-09-01    | **Release `v1.1.0`** (Phase 3 = Aufträge 015–019) getaggt & auf GitHub veröffentlicht; Fresh-Clone-Test 24/24 grün. Release-Doku `docs/releases/V1.1.md`.                                                                                                                                                                                                                          |
+| 2026-09-01    | Doku-Hygiene: Release-Meldungen → `docs/releases/`, Detail-Auftragsdateien → `docs/auftraege/`, `LEADPILOT_GAP_ANALYSIS.md` + `chat_protokoll_auftrag_016_gate_g2.md` → `docs/archiv/`, `CONTENT_VISUAL_REINTEGRATION_PLAN.md` → `docs/`. `Archiv.zip` (326 MB, gitignore) in den Papierkorb.                                                                                      |
+| 2026-09-01    | AUFTRAG 020 — HubSpot als erste reale Datenquelle (offline über n8n eingefroren, `HubSpotBaselineSource` mit `kind: 'external'`, Stage-Map `tools/n8n/hubspot-stage-map.json`, Workflow `generate-baseline-hubspot.workflow.json`, Test-Suite 025). Gate G4 erfüllt.                                                                                                               |
+| 2026-09-25    | Revision zu B17 (Nachtrag zu G49/G63): Viewer strikt lesend bei Simulationsläufen; `persist_completed_run` nur für Admin/Manager ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_VIEWER_READ_ONLY_RUNS.md)).                                                                                                                                                                         |
+| 2026-09-25    | G65 (067S): Upgrade von v2.2.0 abgesichert (`20260100000000_v2_2_upgrade_prep.sql`), Neuaufbau und Upgrade auf identisches Schema gebracht (`20261003_tenant_schema_convergence.sql`: kein stiller Demo-Default mehr auf `organization_id`, Ergänzung zu B17), Lizenz `All Rights Reserved`, Runbook und getesteter Rollback (Frontend zurück, Schema bleibt).                     |
+| 2026-09-25    | **Release `v2.3.0`** von Marc Pönisch freigegeben (Masterauftrag 067, Gates G44–G65; Release Notes `docs/releases/V2.3.0.md`).                                                                                                                                                                                                                                                     |
+| 2026-09-26    | Revision zu B18 (Auftrag 069 / G67): 32 statische Inhaltsseiten wieder als Original-WebP aus v2.2.0 mit unsichtbarer Textschicht; Regeln „kein Ganzseiten-WebP“ (G52–G55) und G66-Design-Gate zurückgenommen; Rückweg zu v2.3.1 per Schalter `PAGE_PRESENTATION` und unverändertem Tag ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md)). |
+| 2026-10-19    | Revision zu B18 (Paket G3 / Auftrag 104): alle 32 Inhaltsseiten als echte Seiten, `PAGE_PRESENTATION = 'html'`, keine unsichtbare Zweitfassung mehr aktiv; Rückweg je Seite über `'bild'` + `HTML_PAGES` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_104_G3_BILDSEITEN_ABSCHLUSS.md)).                                                                                           |
 
 ## D5. MASTERSTATUS
 
 **Datei:** `ARCHITECTURE_DECISIONS.md` (aus `…_KANON.md` promotet; committet, Stand `v1.1.0` + AUFTRAG 020)
 
-| Feld | Wert |
-|---|---|
-| Letzte belastbare Entscheidung | **1673** |
-| Nächste Entscheidung | **1674** |
-| Volltext-Einzelentscheidungen vorhanden | 109–298, 299–308, 329–338, 359–523, 774–1398, 1449–1473 |
-| Konsolidiert (ohne Einzelnummern) | 774–1223-Eckpunkte, 1474–1573, 1574–1673 |
-| Quellenlücken (nicht rekonstruiert) | 1–108, 309–328, 339–358, 524–773, 1399–1448, 1674–1873 |
-| CRM-Routing | ABGENOMMEN (Linie A/C); dedizierte CompaniesView/DealsView/ActivitiesView im Live-Code bestätigt |
-| Build / Regression | GRÜN; `tsc` EXIT 0, `build` EXIT 0, **25/25** Integrity-Suiten (001 bis 025). `main` = `origin/main`. |
-| Audit-Status | **C4 aufgelöst & C4-1 vollständig belegt**: Gate G1, G2, G3, G3b, G3c + G4 abgenommen (`docs/BUILD_LOG.md`). |
-| Nächster Schritt | Phase 4 Folge-Aufträge (Composite Data Sources / Multi-Source Merge oder erweiterte Feld-Extraktionen). |
+| Feld                                    | Wert                                                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Letzte belastbare Entscheidung          | **1673**                                                                                                     |
+| Nächste Entscheidung                    | **1674**                                                                                                     |
+| Volltext-Einzelentscheidungen vorhanden | 109–298, 299–308, 329–338, 359–523, 774–1398, 1449–1473                                                      |
+| Konsolidiert (ohne Einzelnummern)       | 774–1223-Eckpunkte, 1474–1573, 1574–1673                                                                     |
+| Quellenlücken (nicht rekonstruiert)     | 1–108, 309–328, 339–358, 524–773, 1399–1448, 1674–1873                                                       |
+| CRM-Routing                             | ABGENOMMEN (Linie A/C); dedizierte CompaniesView/DealsView/ActivitiesView im Live-Code bestätigt             |
+| Build / Regression                      | GRÜN; `tsc` EXIT 0, `build` EXIT 0, **25/25** Integrity-Suiten (001 bis 025). `main` = `origin/main`.        |
+| Audit-Status                            | **C4 aufgelöst & C4-1 vollständig belegt**: Gate G1, G2, G3, G3b, G3c + G4 abgenommen (`docs/BUILD_LOG.md`). |
+| Nächster Schritt                        | Phase 4 Folge-Aufträge (Composite Data Sources / Multi-Source Merge oder erweiterte Feld-Extraktionen).      |
