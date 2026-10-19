@@ -1,0 +1,541 @@
+<mxfile host="Electron">
+  <diagram name="Seite-1" id="Xdt0WEII3OmAHFGWQprt">
+    <mxGraphModel dx="2620" dy="1647" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" value="⓪ Titel &amp;amp; Legende" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=20;align=left;verticalAlign=middle;whiteSpace=wrap;" value="&lt;b&gt;LeadPilot Dashboard-CRM v2.4.0 – Anwendungsarchitektur &amp;amp; Workflow&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Stand 17.10.2026 · Datenquellen → n8n (offline) → Supabase → React-Frontend (Ebenen A/B/C, Dashboard-Editor) · CI/Betrieb · Ebenen einzeln ein-/ausblendbar (Ansicht → Ebenen)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="1700" x="-70" y="-90" as="geometry" />
+        </mxCell>
+        <mxCell id="szKR8GZTCxieXIBk4e1t-1" connectable="0" parent="1" style="group;groupPadding=0;collapsible=1;" value="" vertex="1">
+          <mxGeometry height="60" width="2226" x="-50" y="1240" as="geometry">
+            <mxRectangle height="97" width="50" x="157" y="1257" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lg1" parent="szKR8GZTCxieXIBk4e1t-1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="Ist-Zustand (gebaut, genutzt)" vertex="1">
+          <mxGeometry height="31.836734693877553" width="193.0057803468208" x="84.06473988439306" y="20.908163265306122" as="geometry" />
+        </mxCell>
+        <mxCell id="lg2" parent="szKR8GZTCxieXIBk4e1t-1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Erprobt / nachgewiesen&amp;nbsp;&lt;div&gt;(einmalig, offline oder opt-in)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="31.836734693877553" width="193.0057803468208" x="307.95144508670523" y="20.908163265306122" as="geometry" />
+        </mxCell>
+        <mxCell id="lg3" parent="szKR8GZTCxieXIBk4e1t-1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="HYPOTHETISCH /&amp;nbsp;&lt;div&gt;Zukunft (nicht gebaut)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="31.836734693877553" width="193.0057803468208" x="530.9803468208092" y="20.908163265306122" as="geometry" />
+        </mxCell>
+        <mxCell id="lg4" parent="szKR8GZTCxieXIBk4e1t-1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="Infrastruktur / Prozess / Regel" vertex="1">
+          <mxGeometry height="31.836734693877553" width="193.0057803468208" x="754.824161849711" y="20.908163265306122" as="geometry" />
+        </mxCell>
+        <mxCell id="lg5" parent="szKR8GZTCxieXIBk4e1t-1" style="text;html=1;fontSize=11;align=left;whiteSpace=wrap;" value="Pfeile: durchgezogen blau = Laufzeit · gestrichelt grau = offline / Artefakt / Build-Zeit · gestrichelt orange = hypothetisch. Container-Farben: Ebene A blaugrau · Ebene B grün · Ebene C violett." vertex="1">
+          <mxGeometry height="39.09183673469388" width="1260.1132947976878" x="965.8867052023121" y="20.908163265306122" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_t" parent="szKR8GZTCxieXIBk4e1t-1" style="text;html=1;fontSize=13;align=left;" value="&lt;b&gt;Legende&lt;/b&gt;" vertex="1">
+          <mxGeometry height="31.84" width="63" x="15" y="13" as="geometry" />
+        </mxCell>
+        <mxCell id="L_src" parent="0" value="① Quellen &amp;amp; n8n (Docker, offline)" />
+        <mxCell id="c1" parent="L_src" style="swimlane;startSize=28;fontStyle=1;fontSize=13;html=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;groupPadding=0;" value="① Datenquellen &amp;amp; Integration (n8n in Docker, nur offline)" vertex="1">
+          <mxGeometry height="960" width="440" x="-67" as="geometry">
+            <mxRectangle height="28" width="385" x="-67" y="61" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n_hs" parent="c1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;HubSpot (real)&lt;/b&gt;&lt;br&gt;Pull 44 Firmen / 55 Deals&lt;br&gt;einmalig, offline erprobt" vertex="1">
+          <mxGeometry height="65" width="190" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="n_sim" parent="c1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Simuliertes CRM (Ist)&lt;/b&gt;&lt;br&gt;20 Firmen · 100 Kontakte · 40 Deals&lt;br&gt;+ ~200 Aktivitäten" vertex="1">
+          <mxGeometry height="65" width="190" x="230" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="n8n" parent="c1" style="swimlane;startSize=26;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#e8f5e9;strokeColor=#82b366;" value="n8n (Docker, localhost:5678) – App ruft n8n nie zur Laufzeit auf" vertex="1">
+          <mxGeometry height="330" width="400" x="20" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="fix" parent="n8n" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Replay-Fixture (synthetisch) · lokaler E2E-Runner runLiveKpiE2e (ohne Env: SKIPPED_NOT_CONFIGURED)" vertex="1">
+          <mxGeometry height="50" width="370" x="16" y="259" as="geometry" />
+        </mxCell>
+        <mxCell id="w3" parent="n8n" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;WF live-kpi-ingest&lt;/b&gt;&lt;br&gt;Webhook, HMAC-/Nonce-Prüfung, Rolle n8n_ingest, 201/200/422" vertex="1">
+          <mxGeometry height="80" width="175" x="20" y="138" as="geometry" />
+        </mxCell>
+        <mxCell id="cred" parent="n8n" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;n8n-Credentials&lt;/b&gt;&lt;br&gt;HubSpot-Key, Postgres n8n_ingest, HMAC-Secret – nie im Repo" vertex="1">
+          <mxGeometry height="80" width="180" x="210" y="138" as="geometry" />
+        </mxCell>
+        <mxCell id="szKR8GZTCxieXIBk4e1t-4" connectable="0" parent="n8n" style="group" value="" vertex="1">
+          <mxGeometry height="70" width="370" x="20" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="w1" parent="szKR8GZTCxieXIBk4e1t-4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;WF generate-baseline&lt;/b&gt;&lt;br&gt;Mulberry32-Seed (kein eigener Validierungsschritt)" vertex="1">
+          <mxGeometry height="70" width="175" as="geometry" />
+        </mxCell>
+        <mxCell id="w2" parent="szKR8GZTCxieXIBk4e1t-4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;WF generate-baseline-hubspot&lt;/b&gt;&lt;br&gt;Pagination, 429-Backoff, Stage-Map, Quarantäne, contentHash" vertex="1">
+          <mxGeometry height="70" width="180" x="190" as="geometry" />
+        </mxCell>
+        <mxCell id="n_base" parent="c1" style="shape=document;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;boundedLbl=1;" value="&lt;b&gt;Versionierte Baseline-JSONs (Git)&lt;/b&gt;&lt;br&gt;baseline-2026-08-31-v1 · baseline-2026-09-15-v2&lt;br&gt;baseline-hubspot-2026-09-01 (gepinnt, contentHash)" vertex="1">
+          <mxGeometry height="85" width="400" x="18" y="498" as="geometry" />
+        </mxCell>
+        <mxCell id="x1" edge="1" parent="c1" source="n_hs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;strokeColor=#6c8ebf;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;entryX=0.2375;entryY=0;" target="n8n" value="Bearer-Token, API-Pull">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x2" edge="1" parent="c1" source="n_sim" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;strokeColor=#666666;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;entryX=0.7625;entryY=0;" target="n8n" value="Seed">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x3" edge="1" parent="c1" source="n8n" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;strokeColor=#666666;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;spacingLeft=0;spacingRight=0;" target="n_base" value="&amp;nbsp;JSON-Artefakt, per Hand übernommen&amp;nbsp;">
+          <mxGeometry relative="1" x="0.0423" as="geometry">
+            <Array as="points">
+              <mxPoint x="-28.6" y="274.5" />
+              <mxPoint x="-28.6" y="541" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="h_c" parent="c1" style="swimlane;startSize=26;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#fff4e6;strokeColor=#d79b00;dashed=1;" value="HYPOTHETISCH – Zukunft (nicht gebaut)" vertex="1">
+          <mxGeometry height="323" width="400" x="18" y="617" as="geometry" />
+        </mxCell>
+        <mxCell id="h1" parent="h_c" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="Salesforce" vertex="1">
+          <mxGeometry height="45" width="115" x="15" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="h2" parent="h_c" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="Postgres / DWH" vertex="1">
+          <mxGeometry height="45" width="115" x="143" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="h3" parent="h_c" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="Generische REST-API" vertex="1">
+          <mxGeometry height="45" width="115" x="271" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="h5" parent="h_c" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="CompositeDataSource – Merge mehrerer Quellen (eigener Auftrag)" vertex="1">
+          <mxGeometry height="45" width="370" x="14" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="h6" parent="h_c" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="Echter LiveFeed (Quell-Events → n8n → Ingest) statt synthetischer Ereignisse" vertex="1">
+          <mxGeometry height="50" width="370" x="14" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="h7" parent="h_c" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="Neue n8n-Workflows je Quelle (Feldmapping + Stage-Map, Offline-Pull → neue Baseline-Version)" vertex="1">
+          <mxGeometry height="45" width="370" x="14" y="264" as="geometry" />
+        </mxCell>
+        <mxCell id="x25" edge="1" parent="h_c" source="h1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#d79b00;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;entryX=0.1554054054054054;entryY=0;" target="h5" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="73" y="102" />
+              <mxPoint x="72" y="102" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x26" edge="1" parent="h_c" source="h2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#d79b00;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;entryX=0.5013513513513513;entryY=0;" target="h5" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="201" y="102" />
+              <mxPoint x="200" y="102" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x27" edge="1" parent="h_c" source="h3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#d79b00;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;exitX=0.4956521739130435;exitY=1;entryX=0.845945945945946;entryY=0;" target="h5" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="328" y="102" />
+              <mxPoint x="327" y="102" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x29" edge="1" parent="c1" source="h6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#d79b00;strokeWidth=2;orthogonalLoop=1;jettySize=auto;" target="w3" value="">
+          <mxGeometry relative="1" x="0.0416" as="geometry">
+            <Array as="points">
+              <mxPoint x="-10" y="832" />
+              <mxPoint x="-10" y="298.8" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L_sb" parent="0" value="② Supabase-Backend" />
+        <mxCell id="c2" parent="L_sb" style="swimlane;startSize=28;fontStyle=1;fontSize=13;html=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;align=left;" value="&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;② Supabase-Backend (Postgres · Auth · Edge Functions)&lt;/blockquote&gt;" vertex="1">
+          <mxGeometry height="960" width="560" x="413" y="-1" as="geometry">
+            <mxRectangle height="28" width="388" x="500" y="60" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_auth" parent="c2" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Supabase Auth&lt;/b&gt;&lt;br&gt;E-Mail-Login, Einladung durch Admin; Public-Sign-up in Produktion manuell sperren (lokal config.toml: enable_signup = true)" vertex="1">
+          <mxGeometry height="65" width="250" x="26" y="63" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rls" parent="c2" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Mandanten-RLS&lt;/b&gt;&lt;br&gt;organizations · organization_members · Rollen admin / manager / viewer" vertex="1">
+          <mxGeometry height="65" width="250" x="296" y="63" as="geometry" />
+        </mxCell>
+        <mxCell id="efc" parent="c2" style="swimlane;startSize=24;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#e8f5e9;strokeColor=#82b366;" value="Edge Functions (Deno)" vertex="1">
+          <mxGeometry height="141" width="520" x="27" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="ef1" parent="efc" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;live-kpi-ingest&lt;/b&gt;&lt;br&gt;HMAC, Nonce, Rate-Limit" vertex="1">
+          <mxGeometry height="90" width="155" x="16" y="47" as="geometry" />
+        </mxCell>
+        <mxCell id="ef2" parent="efc" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;manage-members&lt;/b&gt;&lt;br&gt;Einladungen, Rollen" vertex="1">
+          <mxGeometry height="90" width="155" x="183" y="47" as="geometry" />
+        </mxCell>
+        <mxCell id="ef3" parent="efc" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;crm-query-export&lt;/b&gt;&lt;br&gt;Server-Query + Export (nicht für Viewer)" vertex="1">
+          <mxGeometry height="90" width="155" x="351" y="47" as="geometry" />
+        </mxCell>
+        <mxCell id="dbc" parent="c2" style="swimlane;startSize=26;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#e8f5e9;strokeColor=#82b366;" value="PostgreSQL (Migrationen 20260906–20261004, RLS auf allen Mandantentabellen)" vertex="1">
+          <mxGeometry height="441" width="520" x="24" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="t7" parent="dbc" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="audit_log · organization_invitations · seed.sql (2 Orgs, 5 Testrollen)" vertex="1">
+          <mxGeometry height="35" width="490" x="12" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="x8" edge="1" parent="dbc" source="t3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="t5" value="Trigger">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="138" y="246" />
+              <mxPoint x="137" y="246" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="t5" parent="dbc" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;live_kpi_public_feed&lt;/b&gt;&lt;br&gt;Trigger-Projektion + Realtime (Achtung: nicht mandantengetrennt)" vertex="1">
+          <mxGeometry height="70" width="240" x="17" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="t6" parent="dbc" style="shape=cylinder3;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;boundedLbl=1;" value="&lt;b&gt;executive_dashboard_preferences&lt;/b&gt;&lt;br&gt;Revision, RPC save_dashboard_preferences" vertex="1">
+          <mxGeometry height="70" width="235" x="272" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="t4" parent="dbc" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;RPC ingest_live_kpi_event&lt;/b&gt;&lt;br&gt;SECURITY DEFINER · claim_ingress_nonce · Idempotenz sourceSystem:eventId" vertex="1">
+          <mxGeometry height="70" width="235" x="273" y="155" as="geometry" />
+        </mxCell>
+        <mxCell id="t3" parent="dbc" style="shape=cylinder3;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;boundedLbl=1;" value="live_kpi_events · live_kpi_rejections · ingress_nonces" vertex="1">
+          <mxGeometry height="70" width="240" x="18" y="155" as="geometry" />
+        </mxCell>
+        <mxCell id="x7" edge="1" parent="dbc" source="t4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;" target="t3" value="schreibt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t1" parent="dbc" style="shape=cylinder3;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;boundedLbl=1;" value="&lt;b&gt;CRM-Tabellen&lt;/b&gt;&lt;br&gt;imported_funnel_deals u. a. (Seed per seedDatabase)" vertex="1">
+          <mxGeometry height="75" width="240" x="15" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="t2" parent="dbc" style="shape=cylinder3;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;boundedLbl=1;" value="&lt;b&gt;Simulations-Persistenz&lt;/b&gt;&lt;br&gt;scenarios · versions · runs · snapshots · events · timeseries · run_pauses" vertex="1">
+          <mxGeometry height="75" width="235" x="270" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="x6" edge="1" parent="c2" source="ef1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=2;" target="t4" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120.5" y="294.2" />
+              <mxPoint x="285.9" y="294.2" />
+              <mxPoint x="285.9" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b3" parent="c2" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="Supabase Pro (Backups, keine Pause) · mandantengetrennter Live-Feed · Produktiv-Hosting mit echten Daten – nicht Teil von v2.4.0" vertex="1">
+          <mxGeometry height="55" width="520" x="23" y="885" as="geometry" />
+        </mxCell>
+        <mxCell id="b1" parent="c2" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Lokal: supabase start&lt;/b&gt; (Docker; db, auth, rest, kong, edge-runtime) – Dev &amp;amp; CI-E2E, flüchtig, ohne Secrets" vertex="1">
+          <mxGeometry height="75" width="250" x="25" y="772" as="geometry" />
+        </mxCell>
+        <mxCell id="b2" parent="c2" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;Cloud: Supabase Free-Tier&lt;/b&gt; – Runbook v2.3.0 (Pause nach Inaktivität, kein Auto-Backup, manueller Dump vor Migration)" vertex="1">
+          <mxGeometry height="75" width="250" x="295" y="772" as="geometry" />
+        </mxCell>
+        <mxCell id="x5" edge="1" parent="L_sb" source="w3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;exitX=0.448;exitY=1.004;exitDx=0;exitDy=0;exitPerimeter=0;labelBorderColor=default;labelPadding=1;" target="t4" value="&amp;nbsp;SQL über Rolle n8n_ingest&amp;nbsp;">
+          <mxGeometry relative="1" x="-0.2577" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="51.4" y="351" />
+              <mxPoint x="907.5" y="351" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x10" edge="1" parent="L_sb" source="f2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="s_auth" value="Login / JWT">
+          <mxGeometry relative="1" x="0.0927" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1592" y="38" />
+              <mxPoint x="581" y="38" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x11" edge="1" parent="L_sb" source="st3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="dbc" value="REST (RLS)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1742" y="753" />
+              <mxPoint x="1742" y="532" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x12" edge="1" parent="L_sb" source="st5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" value="HTTPS">
+          <mxGeometry relative="1" x="0.0001" as="geometry">
+            <Array as="points">
+              <mxPoint x="985" y="845.5" />
+              <mxPoint x="985" y="299" />
+              <mxPoint x="749.2" y="299" />
+            </Array>
+            <mxPoint x="749.18" y="282.42" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x13" edge="1" parent="L_sb" source="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="t6" value="RPC">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1030" y="903" />
+              <mxPoint x="1030" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L_fe" parent="0" value="③ Frontend-Shell &amp;amp; State" />
+        <mxCell id="c3" parent="L_fe" style="swimlane;startSize=28;fontStyle=1;fontSize=13;html=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;" value="③ Frontend – React 18 + TypeScript + Vite (statisches Bundle dist/, kein Server)" vertex="1">
+          <mxGeometry height="960" width="1309" x="1070" as="geometry">
+            <mxRectangle height="28" width="527" x="1100" y="60" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f1" parent="c3" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;App-Shell&lt;/b&gt;&lt;br&gt;React Router 7 · Lazy Loading · Navigation (navData)" vertex="1">
+          <mxGeometry height="60" width="300" x="21" y="43" as="geometry" />
+        </mxCell>
+        <mxCell id="f2" parent="c3" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Auth &amp;amp; Rechte&lt;/b&gt;&lt;br&gt;AuthContext · ProtectedRoute · permissions · Org-Kontext" vertex="1">
+          <mxGeometry height="60" width="340" x="352" y="43" as="geometry" />
+        </mxCell>
+        <mxCell id="f3" parent="c3" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;UI-Basis&lt;/b&gt;&lt;br&gt;Tailwind-Tokens · Radix · Framer Motion · Recharts" vertex="1">
+          <mxGeometry height="60" width="290" x="722" y="43" as="geometry" />
+        </mxCell>
+        <mxCell id="f4" parent="c3" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Demo-Modus&lt;/b&gt;&lt;br&gt;ohne Supabase-Env: localAuthAdapter" vertex="1">
+          <mxGeometry height="60" width="250" x="1042" y="43" as="geometry" />
+        </mxCell>
+        <mxCell id="ea" parent="L_A" style="swimlane;startSize=26;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#e3ebf5;strokeColor=#5b7fa6;strokeWidth=2;" value="EBENE A – Statische Ebene: Historie, read-only" vertex="1">
+          <mxGeometry height="385" width="300" x="1091" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" parent="ea" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;32 Inhaltsseiten&lt;/b&gt;&lt;br&gt;Original-WebP + Textschicht (PAGE_PRESENTATION = bild); 13 Seiten bereits als echtes HTML (HTML_PAGES, Wellen G1–G2-4)" vertex="1">
+          <mxGeometry height="95" width="270" x="15" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" parent="ea" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;src/domain/*Data.ts&lt;/b&gt;&lt;br&gt;Faktenblatt v1.2: ARR 411.840 €, GuV, Unit Economics, Segmente, Organisation …" vertex="1">
+          <mxGeometry height="85" width="270" x="15" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" parent="ea" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="Baseline-Kacheln (10 Katalog-Einträge) lesen diese Werte – Bundle-intern, ohne Netz" vertex="1">
+          <mxGeometry height="55" width="270" x="15" y="252" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" parent="ea" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontStyle=2;fillColor=#f5f5f5;strokeColor=#666666;" value="Regel B1: Ebene A wird nie von Simulation oder Live überschrieben" vertex="1">
+          <mxGeometry height="45" width="270" x="15" y="322" as="geometry" />
+        </mxCell>
+        <mxCell id="eb" parent="L_B" style="swimlane;startSize=26;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#e8f5e9;strokeColor=#82b366;strokeWidth=2;align=left;" value="EBENE B – Simulation: deterministisch &amp;amp; reproduzierbar" vertex="1">
+          <mxGeometry height="385" width="487" x="1420" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="sb1" parent="eb" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;DataSourceRegistry&lt;/b&gt;&lt;br&gt;SimulatedCrmSource · BaselineFileSource · HubSpotBaselineSource (external, offline)" vertex="1">
+          <mxGeometry height="80" width="220" x="15" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="sb2" parent="eb" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;BaselineSnapshotService.capture&lt;/b&gt;&lt;br&gt;friert Quelle als BaselineDataset ein → RunManifest.baselineVersion" vertex="1">
+          <mxGeometry height="80" width="215" x="257" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="sb3" parent="eb" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;ScenarioService + RunCoordinator&lt;/b&gt;&lt;br&gt;ParameterRegistry · Maßnahmen · EffectiveParameterResolver · systemContext (Clock/IDs)" vertex="1">
+          <mxGeometry height="90" width="220" x="15" y="147" as="geometry" />
+        </mxCell>
+        <mxCell id="sb4" parent="eb" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Engine im Web Worker&lt;/b&gt;&lt;br&gt;Tick/Event-Rules · State-Machines · KPI-Registry · Finanzmodell · Seed-PRNG · Monte-Carlo (P10/P90)" vertex="1">
+          <mxGeometry height="90" width="215" x="257" y="147" as="geometry" />
+        </mxCell>
+        <mxCell id="sb5" parent="eb" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Ergebnisse (einzige entscheidungsrelevante Zahlen):&lt;/b&gt; Zeitreihen · KPI-Detail mit Zielpfad · Szenariovergleich (2–4) · Trade-offs · Run-Reproduktion byte-gleich" vertex="1">
+          <mxGeometry height="55" width="456" x="16" y="264" as="geometry" />
+        </mxCell>
+        <mxCell id="sb6" parent="eb" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="Live-Playground: SimulationService (setTimeout-Takt) – nicht reproduzierbar, schreibt nie in Run-Store" vertex="1">
+          <mxGeometry height="45" width="457" x="15" y="331" as="geometry" />
+        </mxCell>
+        <mxCell id="x14" edge="1" parent="eb" source="sb1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c8ebf;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;" target="sb2" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x15" edge="1" parent="eb" source="sb2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=2;" target="sb3" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="357.5" y="128.5" />
+              <mxPoint x="126" y="128.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x16" edge="1" parent="eb" source="sb3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;labelBorderColor=default;labelPadding=1;" target="sb4" value="postMessage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="x17" edge="1" parent="eb" source="sb4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c8ebf;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;entryX=0.7611111111111111;entryY=0;" target="sb5" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="365" y="251" />
+              <mxPoint x="363" y="251" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="es" parent="c3" style="swimlane;startSize=26;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#e8f5e9;strokeColor=#82b366;" value="Datenzugriff &amp;amp; State-Schichten (B26)" vertex="1">
+          <mxGeometry height="370" width="593" x="698" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="st1" parent="es" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;TanStack Query&lt;/b&gt; (staleTime 60 s): CRMRepository, crmListService, crmExportService&lt;br&gt;auditService/memberService: direkt, lokaler React-State" vertex="1">
+          <mxGeometry height="85" width="270" x="14" y="39" as="geometry" />
+        </mxCell>
+        <mxCell id="st2" parent="es" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Zustand-Store (simulationStore)&lt;/b&gt;&lt;br&gt;run-, scenario-, simulation-Slices; Run-Steuerung (Pause/Resume)" vertex="1">
+          <mxGeometry height="85" width="285" x="299" y="39" as="geometry" />
+        </mxCell>
+        <mxCell id="st3" parent="es" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;supabaseClient&lt;/b&gt; (nur anon-Key, RLS) · runPersistenceService / runRepository" vertex="1">
+          <mxGeometry height="70" width="270" x="14" y="151" as="geometry" />
+        </mxCell>
+        <mxCell id="st4" parent="es" style="shape=cylinder3;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;boundedLbl=1;" value="&lt;b&gt;IndexedDbSnapshotRepository&lt;/b&gt;&amp;nbsp;&lt;div&gt;(lokale Snapshots) – nie direkt aus UI oder Worker&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="285" x="299" y="151" as="geometry" />
+        </mxCell>
+        <mxCell id="st5" parent="es" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="Admin &amp;amp; Betrieb: Mitgliederverwaltung · Audit-Log · systemHealthService · CRM-Query/Export · Quellen-Audit (runSourceAudit)" vertex="1">
+          <mxGeometry height="55" width="570" x="14" y="243" as="geometry" />
+        </mxCell>
+        <mxCell id="st6" parent="es" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="CRM-Seiten: Leads · Unternehmen · Deals · Aktivitäten · Live-Simulation · Internal Resources (eingefroren)" vertex="1">
+          <mxGeometry height="45" width="570" x="14" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="x18" edge="1" parent="c3" source="eb" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="st2" value="Run-Persistenz">
+          <mxGeometry relative="1" x="0.0008" as="geometry">
+            <Array as="points">
+              <mxPoint x="853" y="327.5" />
+              <mxPoint x="853" y="558.1" />
+              <mxPoint x="1141" y="558.1" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ed" parent="c3" style="swimlane;startSize=26;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#e8f5e9;strokeColor=#82b366;" value="Dashboard-Editor (persönliches Executive Dashboard)" vertex="1">
+          <mxGeometry height="370" width="620" x="26" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" parent="ed" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Katalog&lt;/b&gt; (43 aktive Kacheln: Baseline · CRM · Live) + geführte Kombinationen; Regeln je Datenform maschinenprüfbar" vertex="1">
+          <mxGeometry height="75" width="285" x="15" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" parent="ed" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;TileConfigurator + CombinationPicker&lt;/b&gt;&lt;br&gt;Zahl · Tabelle · Säule · Balken · Linie · Fläche · Kreis · Ring" vertex="1">
+          <mxGeometry height="75" width="290" x="315" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" parent="ed" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Workspace&lt;/b&gt;: DashboardGrid · EditorToolbar · useDashboardEditor (Reducer) · Leave-Guard / Ungespeichert-Dialog" vertex="1">
+          <mxGeometry height="75" width="285" x="15" y="144" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" parent="ed" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="Filter (Pipeline) · LazyDashboardTile · Kachel-Detailseite · Rollback VITE_EXECUTIVE_DASHBOARD_V2=false" vertex="1">
+          <mxGeometry height="75" width="290" x="317" y="144" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" parent="ed" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;dashboardData / useDashboardData&lt;/b&gt;&lt;br&gt;resolveBaseline · resolveCrm · resolveLive · resolveCombination" vertex="1">
+          <mxGeometry height="65" width="285" x="15" y="243" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" parent="ed" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="Konfig Format 1: ≤ 24 Kacheln, Titel ≤ 80 Zeichen, unbekannte Felder abgelehnt (dashboardValidation)" vertex="1">
+          <mxGeometry height="65" width="290" x="315" y="243" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" parent="ed" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Persistenz&lt;/b&gt;: dashboardPreferencesRepository → save_dashboard_preferences (erwartete Revision, Konflikterkennung, RLS)" vertex="1">
+          <mxGeometry height="40" width="590" x="15" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="x22" edge="1" parent="ed" source="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c8ebf;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;" target="e2" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x23" edge="1" parent="ed" source="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;" target="e3" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460" y="126.2" />
+              <mxPoint x="158" y="126.2" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x24" edge="1" parent="ed" source="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;libavoidRouting=1;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="e7" value="Speichern">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-1" y="182" />
+              <mxPoint x="-1" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x19" edge="1" parent="c3" source="a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="e5" value="resolveBaseline">
+          <mxGeometry relative="1" x="-0.0008" as="geometry">
+            <Array as="points">
+              <mxPoint x="-71" y="414.5" />
+              <mxPoint x="-71" y="836" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x21" edge="1" parent="c3" source="st1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="e5" value="resolveCrm">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="848" y="556.7" />
+              <mxPoint x="25" y="556.7" />
+              <mxPoint x="25" y="836" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L_A" parent="0" value="Ebene A – Statische Ebene (Historie)" />
+        <mxCell id="L_B" parent="0" value="Ebene B – Simulation" />
+        <mxCell id="x4" edge="1" parent="L_B" source="n_base" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;strokeColor=#666666;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="sb1" value="Build-Zeit gepinnt (Git)">
+          <mxGeometry relative="1" x="-0.0002" as="geometry">
+            <Array as="points">
+              <mxPoint x="391" y="540.5" />
+              <mxPoint x="391" y="976" />
+              <mxPoint x="1019.2" y="976" />
+              <mxPoint x="1019.2" y="548" />
+              <mxPoint x="1400.2" y="548" />
+              <mxPoint x="1400.2" y="213" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L_C" parent="0" value="Ebene C – Live-KPI-Dashboard" />
+        <mxCell id="ec" parent="L_C" style="swimlane;startSize=26;fontStyle=1;fontSize=12;html=1;whiteSpace=wrap;fillColor=#f1e6f7;strokeColor=#9673a6;strokeWidth=2;" value="EBENE C – Live-KPI-Dashboard (Live-Ist)" vertex="1">
+          <mxGeometry height="385" width="420" x="1940" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="lc1" parent="ec" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;useLiveKpi · useLiveKpiHistory · useLiveKpiActivity&lt;/b&gt;&lt;br&gt;eigener Store (useSyncExternalStore), ein Realtime-Kanal, Backoff, Snapshot-Reload" vertex="1">
+          <mxGeometry height="75" width="390" x="14" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="lc2" parent="ec" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="LiveKpiCard · StreamingAreaChart · LiveFunnelBarChart · LiveArrMixDonut · LiveActivityFeed" vertex="1">
+          <mxGeometry height="55" width="390" x="14" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="lc3" parent="ec" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="Executive Cockpit /dashboard: Live-Performance-Fläche, Frische-Anzeige (sourceFreshness)" vertex="1">
+          <mxGeometry height="55" width="390" x="14" y="227" as="geometry" />
+        </mxCell>
+        <mxCell id="lc4" parent="ec" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Erprobt: n8n → Supabase → WebSocket → DOM mit synthetischen Replay-Events (E2E-Runner, opt-in). Kein realer Produktiv-Feed." vertex="1">
+          <mxGeometry height="60" width="390" x="14" y="312" as="geometry" />
+        </mxCell>
+        <mxCell id="x9" edge="1" parent="L_C" source="t5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="lc1" value="Realtime-WebSocket + Snapshot">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="438" y="615" />
+              <mxPoint x="438" y="863" />
+              <mxPoint x="1046.6" y="863" />
+              <mxPoint x="1046.6" y="545.4" />
+              <mxPoint x="1933" y="545.4" />
+              <mxPoint x="1933" y="211" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x20" edge="1" parent="L_C" source="lc3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;strokeColor=#6c8ebf;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;" target="e5" value="resolveLive">
+          <mxGeometry relative="1" x="-0.0284" as="geometry">
+            <Array as="points">
+              <mxPoint x="1915" y="389.5" />
+              <mxPoint x="1915" y="563.8" />
+              <mxPoint x="1061" y="563.8" />
+              <mxPoint x="1061" y="836" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L_ed" parent="0" style="locked=0;" value="Dashboard-Editor" />
+        <mxCell id="L_ci" parent="0" value="④ Qualität, CI &amp;amp; Betrieb" />
+        <mxCell id="c4" parent="L_ci" style="swimlane;startSize=28;fontStyle=1;fontSize=13;html=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;" value="④ Qualität, CI &amp;amp; Betrieb (GitHub Actions)" vertex="1">
+          <mxGeometry height="176" width="2445" x="-65" y="1035" as="geometry">
+            <mxRectangle height="28" width="288" x="20" y="1035" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="q1" parent="c4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;CI-Pflichtjobs (7)&lt;/b&gt;&lt;br&gt;lint · typecheck · test (Vitest) · build · livekpi-verifiers · size-limit · e2e; fail-closed, SHA-gepinnt" vertex="1">
+          <mxGeometry height="80" width="320" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="q2" parent="c4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;E2E-Backend&lt;/b&gt;&lt;br&gt;Supabase CLI in Docker, Schema + Migrationen + Seed, Playwright, axe, Lighthouse; Teardown per if: always()" vertex="1">
+          <mxGeometry height="80" width="330" x="363" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="q3" parent="c4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Visual-Baselines&lt;/b&gt;&lt;br&gt;nur per Workflow auf Linux-Runner (Branch visual-baselines/**), nie lokal" vertex="1">
+          <mxGeometry height="80" width="300" x="720" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="q4" parent="c4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Gates je Auftrag&lt;/b&gt;&lt;br&gt;tsc 0 Fehler · npm run verify · build · Schutzbereich-Diff leer (simulation, types, context, services/data, features/resources) · BUILD_LOG" vertex="1">
+          <mxGeometry height="80" width="340" x="1048" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="q5" parent="c4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Rollen&lt;/b&gt;&lt;br&gt;Claude Code baut · Codex prüft · Marc gibt frei und mergt (Ausweich-Zyklus 2: Antigravity baut, Claude prüft)" vertex="1">
+          <mxGeometry height="80" width="330" x="1416" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="q6" parent="c4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Release&lt;/b&gt; v2.4.0 (06.10.2026) · nächster Plan: Frontend-Qualität (Pakete 0, A–I) → v2.5.0" vertex="1">
+          <mxGeometry height="80" width="320" x="1773" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="q8" parent="c4" style="text;html=1;fontSize=11;fontStyle=2;align=left;whiteSpace=wrap;" value="Hinweis: automatische Codex-Nacharbeit auf GitHub ist seit 03.10.2026 pausiert; ci.yml, update-visual-baselines.yml und claude-review.yml bleiben aktiv." vertex="1">
+          <mxGeometry height="40" width="1500" x="15" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="q7" parent="c4" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="Deploy-Provider / produktives Hosting (Repo liefert nur statisches dist/)" vertex="1">
+          <mxGeometry height="80" width="300" x="2121" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="x30" edge="1" parent="L_ci" source="q2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;strokeColor=#666666;strokeWidth=2;orthogonalLoop=1;jettySize=auto;labelBorderColor=default;labelPadding=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="b1" value="startet">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="534" y="1023.1" />
+              <mxPoint x="403.8" y="1023.1" />
+              <mxPoint x="403.8" y="809" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L_hyp" parent="0" value="HYPOTHETISCH / Zukunft" />
+        <mxCell id="szKR8GZTCxieXIBk4e1t-10" edge="1" parent="L_hyp" source="h_c" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;strokeColor=#d79b00;strokeWidth=2;orthogonalLoop=1;jettySize=auto;" target="ed" value="">
+          <mxGeometry relative="1" x="-0.0008" as="geometry">
+            <Array as="points">
+              <mxPoint x="426" y="779.5" />
+              <mxPoint x="426" y="998.4" />
+              <mxPoint x="1038.9" y="998.4" />
+              <mxPoint x="1038.9" y="570" />
+              <mxPoint x="1406" y="570" />
+            </Array>
+            <mxPoint x="351" y="780" as="sourcePoint" />
+            <mxPoint x="1438" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
