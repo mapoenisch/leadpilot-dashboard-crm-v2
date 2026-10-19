@@ -14,6 +14,10 @@ Reviews von Antigravity, OpenCode und Devin hinterlassen einen sichtbaren „Rev
 | `scripts/reviewGate.mjs` | Setzt `agent-review` (success = Review auf dem Head oder PR-Kommentar nach Eintreffen des Heads (Serverzeit des frühesten Status, nicht das manipulierbare Commit-Datum) von einem gelisteten Prüfer) und `review-conversations` (failure, solange Konversationen offen sind). |
 | `.github/review-agents.json` | Prüferliste (Name → GitHub-Logins). |
 
+## Regel (Marc 19.10.2026)
+
+Ein Codex-Review ist nicht zwingend. Das Gate akzeptiert jeden Prüfer aus der Liste; Freigabe = `agent-review` grün und `review-conversations` grün. Verankert in `AGENTS.md` und `CLAUDE.md`.
+
 ## Grenzen und bekannte Einschränkungen
 
 - Skript und Prüferliste kommen immer vom Default-Branch, PR-Code wird nie ausgeführt; der Job schreibt nur Status.

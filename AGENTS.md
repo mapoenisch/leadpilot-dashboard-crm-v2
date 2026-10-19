@@ -28,6 +28,10 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
 - **Reviewer-Rolle Antigravity (Entscheidung Marc vom 19.10.2026):** Antigravity führt hauptsächlich
   PR-Reviews durch. Das Abgeben von PR-Reviews und Inline-Kommentaren über den Bot `marcs-PR-reviewer`
   ist offiziell erlaubt; Merges und finale Freigaben bleiben exklusiv bei Marc.
+- **Codex-Review nicht zwingend (Entscheidung Marc vom 19.10.2026):** Ein PR darf auch mit dem Review
+  einer anderen App (Antigravity, OpenCode, Devin) gemergt werden. Maßgeblich ist das Review-Gate
+  (`review-gate.yml`): Status `agent-review` (Reviewed) und alle Review-Konversationen gelöst
+  (`review-conversations`). Codex bleibt möglich, ist aber keine Voraussetzung.
 - **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Claude Code ist der schreibende Builder;
   Codex trägt seinen Befund ein und gibt ihn zurück.
 - **Maßgebliche Dokumente**: `ARCHITECTURE_DECISIONS.md`, `BUILD_PLAN.md`, `docs/BUILD_LOG.md`.
