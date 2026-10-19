@@ -54,4 +54,7 @@ export const HTML_PAGES: readonly string[] = [
   'legal-articles',
   'legal-shareholders',
   'legal-register',
+  // Welle G2-10 – Produkt (Auftrag 103)
+  'product-pricing',
+  'product-performance',
 ];

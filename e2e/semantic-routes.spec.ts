@@ -48,6 +48,8 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'legal-articles': '/legal/articles',
   'legal-shareholders': '/legal/shareholders',
   'legal-register': '/legal/commercial-register',
+  'product-pricing': '/product/pricing',
+  'product-performance': '/product/performance',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

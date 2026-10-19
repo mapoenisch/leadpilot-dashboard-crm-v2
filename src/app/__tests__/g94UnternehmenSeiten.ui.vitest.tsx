@@ -7,7 +7,6 @@ import { HISTORIE, IDEE, VALUE } from '@/domain/unternehmenData';
 import { IdeaPage } from '@/features/unternehmen/pages/IdeaPage';
 import { ValuePropositionPage } from '@/features/unternehmen/pages/ValuePropositionPage';
 import { HistoryPage } from '@/features/unternehmen/pages/HistoryPage';
-import { PricingPage } from '@/features/produkt/pages/PricingPage';
 
 // Auftrag 094 (Paket G2, Welle 1): Geschäftsidee, Value Proposition und Historie als echte
 // Seiten nach dem Original-WebP; alle übrigen Bildseiten bleiben beim globalen Schalter.
@@ -41,11 +40,6 @@ describe('G94 Unternehmensseiten als HTML-Seiten', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     const seite = container.querySelector(`.pk-page[data-page-key="${key}"]`);
     expect(seite?.getAttribute('data-ruhig')).toBe('true');
-  });
-
-  it('Andere Seiten bleiben Bild', () => {
-    const { container } = renderMain(PricingPage);
-    expect(container.querySelector('[data-testid="image-page"]')).not.toBeNull();
   });
 
   it('Geschäftsidee: voller Inhalt des Originals', () => {
