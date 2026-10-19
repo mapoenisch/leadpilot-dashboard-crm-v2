@@ -18,7 +18,8 @@ import { HTML_PAGES, PAGE_PRESENTATION } from '../src/config/pagePresentation';
 // HTML-Seiten. Zuordnung Seitenschlüssel → Route; fehlt ein Schlüssel, bricht die Suite ab.
 // Auftrag 094: Welle G2-1 (Unternehmen); Auftrag 095: Welle G2-2 (Übersicht, Produkt).
 // Auftrag 104 (Paket G3): Schalter steht auf 'html' – alle Routen laufen die HTML-Assertions;
-// der Bildzweig bleibt für den dokumentierten Rückweg (Schalter 'bild') erhalten.
+// der Bildzweig greift nur beim dokumentierten Rückweg (Schalter 'bild' und Schlüssel aus
+// HTML_PAGES entfernt) – das Kippen des Schalters allein ändert bei voller Liste nichts.
 const HTML_PAGE_ROUTES: Record<string, string> = {
   'sales-funnel': '/sales/funnel',
   'company-idea': '/company/idea',

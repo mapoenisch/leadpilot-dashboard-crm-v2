@@ -17332,3 +17332,17 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Geprüft (grün):** `npx tsc --noEmit` 0 Fehler; ESLint; Prettier; Vitest 340 Dateien / 2455 Tests; `npm run verify` (001–025); `npm run build`; Schutzbereichs-Diff gegen `a4fb52d` leer; CI PR #91 (typecheck, test, lint, build, e2e, size-limit, CodeQL, livekpi-verifiers) pass. Inventar 4a programmatisch geprüft: 32/32 Zeilen, Route/Schlüssel/Titel/Welle/Auftrag korrekt, alle Links existieren. Rückweg Tag `v2.4.0` verifiziert (`PAGE_PRESENTATION = 'bild'`, kein `HTML_PAGES`). Bildweg weiter durch `g67ImagePages.ui` geprüft.
 
 **Ergebnis & Freigabestatus:** Freigabeempfehlung zugunsten des Builders, mit den P2-Nacharbeiten. Schutzbereiche unberührt.
+
+### Auftrag 104 – Nacharbeit zu Codex-Review PR #91 (Builder: Claude Code, 19.10.2026)
+
+**P1 (Inline-Kommentar, Runde 1):** Prettier hatte `ARCHITECTURE_DECISIONS.md` neu formatiert. Mit `7bbb2c8` auf den `main`-Stand zurückgesetzt, nur Revision zu B18 und D4-Zeile ergänzt (+14/−0). Thread beantwortet und aufgelöst.
+
+**P2-1 – Ledger:** mit diesem Eintrag nachgetragen.
+
+**P2-2 – Rückweg und Tests:** `g104BildseitenAbschluss.ui` und `g93FunnelPage.ui` folgen jetzt dem Schalter (gültiger Wert statt fest `'html'`; je Seite Bild erwartet, wenn `'bild'` und nicht in `HTML_PAGES`). Revision B18, `pagePresentation.ts` und Auftrag 104 nennen zusätzlich: Freigabetests der zurückgenommenen Seiten in der jeweiligen Wellen-Suite (g93…g103) gehören zum Rückweg. Probe: Schalter `'bild'`, `product-pricing` entfernt → nur die zwei Freigabetests in `g103ProduktSeiten.ui` rot, g93/g104 und alle übrigen grün; danach Konfiguration zurückgesetzt.
+
+**P3:** `g104` bindet Schlüssel und Seite über `data-page-key` und prüft nur noch das Ganzseitenbild (`img.image-page__img`) statt jedes WebP; E2E-Kommentar zum Bildzweig präzisiert; Befundregister Zeile „Darstellung“ mit Verweis auf Abschnitt 4a. `BUILD_PLAN.md` bleibt für Paket I.
+
+**Schutzbereichs-Prüfung:** `git diff a4fb52d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Prettier sauber; Vitest 340 Dateien / 2455 Tests grün; `npm run verify` grün (001–025); `npm run build` grün. Offen: Codex-Bestätigung der Nacharbeit.

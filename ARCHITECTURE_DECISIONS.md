@@ -1638,6 +1638,10 @@ Simulation Progress, Goal Status, Event Timeline.
   bleibt als vollständige Freigabeliste (32 von 32). **Rückweg:** einzelne Seiten – Schalter auf `'bild'`
   und deren Schlüssel aus `HTML_PAGES` entfernen (nur diese Seiten zeigen wieder WebP mit Textschicht);
   alle Seiten – `'bild'` mit leerer `HTML_PAGES` oder Tag `v2.4.0` ausliefern. Keine Datenbankänderung.
+  Zum Rückweg gehört, die Freigabetests der zurückgenommenen Seiten anzupassen: Die Wellen-Suiten
+  `g93FunnelPage.ui` bis `g103ProduktSeiten.ui` sichern die Freigabe ihrer Seiten bewusst ab (Eintrag in
+  `HTML_PAGES`, „kein Ganzseitenbild“) und schlagen für eine zurückgenommene Seite fehl; diese Assertions
+  entfallen mit der Rücknahme. `g104BildseitenAbschluss.ui` und die E2E-Suite folgen dem Schalter.
   Die WebPs unter `public/assets/auftrag-037d`–`037g` und `ImagePage` bleiben dafür unverändert erhalten;
   `g67ImagePages.ui` prüft den Bildweg weiter. Die Revision vom 26.09.2026 bleibt als Historie stehen.
 

@@ -40,7 +40,11 @@ import { TeamStructurePage } from '@/features/organisation/pages/TeamStructurePa
 // auf 'html', die Seitenfreigabe nennt alle 32 Seiten. Ohne Mock: Keine Seite rendert noch
 // Ganzseiten-WebP, Zoom-Hinweis oder unsichtbare Textschicht (doppelte Inhaltsfassung).
 // Den Rückweg auf den Bildweg prüft weiterhin g67ImagePages (Schalter dort gemockt).
+// Codex PR #91 (P2): Die Erwartung folgt dem Schalter, damit der dokumentierte Rückweg
+// (Schalter 'bild', Schlüssel aus HTML_PAGES entfernt) diese Suite nicht bricht.
 afterEach(cleanup);
+
+const alsBild = (key: ImagePageKey) => PAGE_PRESENTATION === 'bild' && !HTML_PAGES.includes(key);
 
 const pages: Array<[ImagePageKey, () => JSX.Element]> = [
   ['market-dach', MarketOverviewPage],
@@ -78,17 +82,17 @@ const pages: Array<[ImagePageKey, () => JSX.Element]> = [
 ];
 
 describe('G104 Abschluss: alle 32 Inhaltsseiten sind echte Seiten', () => {
-  it('Schalter auf html, Inventar 32 von 32 ohne Lücke oder Doppelung', () => {
-    expect(PAGE_PRESENTATION).toBe('html');
+  it('Inventar 32 von 32 ohne Lücke oder Doppelung, Freigaben nur bekannte Seiten', () => {
+    expect(['bild', 'html']).toContain(PAGE_PRESENTATION);
     expect(pages).toHaveLength(32);
     expect(pages.map(([key]) => key).sort()).toEqual(Object.keys(IMAGE_PAGES).sort());
-    expect([...HTML_PAGES].sort()).toEqual(Object.keys(IMAGE_PAGES).sort());
-    expect(new Set(HTML_PAGES).size).toBe(32);
+    for (const key of HTML_PAGES) expect(Object.keys(IMAGE_PAGES)).toContain(key);
+    expect(new Set(HTML_PAGES).size).toBe(HTML_PAGES.length);
   });
 
   it.each(pages)(
-    '%s: keine Bildansicht, keine versteckte Zweitfassung, genau eine h1',
-    (_key, Page) => {
+    '%s: Darstellung folgt dem Schalter, ohne Rückweg keine versteckte Zweitfassung',
+    (key, Page) => {
       const { container } = render(
         <MemoryRouter>
           <main>
@@ -96,11 +100,17 @@ describe('G104 Abschluss: alle 32 Inhaltsseiten sind echte Seiten', () => {
           </main>
         </MemoryRouter>,
       );
+      if (alsBild(key)) {
+        expect(container.querySelector('[data-testid="image-page"]')).not.toBeNull();
+        expect(container.querySelectorAll('img.image-page__img')).toHaveLength(1);
+        return;
+      }
       expect(container.querySelector('[data-testid="image-page"]')).toBeNull();
       expect(container.querySelector('[data-testid="image-page-text"]')).toBeNull();
       expect(container.querySelector('[data-testid="image-page-hint"]')).toBeNull();
-      expect(container.querySelectorAll('img[src$=".webp"]')).toHaveLength(0);
-      expect(container.querySelector('main > .pk-page')).not.toBeNull();
+      expect(container.querySelectorAll('img.image-page__img')).toHaveLength(0);
+      // Codex PR #91 (P3): Schlüssel und Seite gebunden – eine vertauschte Zuordnung fällt auf.
+      expect(container.querySelector(`main > .pk-page[data-page-key="${key}"]`)).not.toBeNull();
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     },
   );

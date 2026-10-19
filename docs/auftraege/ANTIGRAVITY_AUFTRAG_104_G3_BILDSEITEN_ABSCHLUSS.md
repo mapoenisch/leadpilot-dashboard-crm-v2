@@ -53,6 +53,10 @@ aus Auftrag 081) folgt in Paket I.
 
 - Einzelne Seiten: `PAGE_PRESENTATION = 'bild'` und deren Schlüssel aus `HTML_PAGES` entfernen.
 - Alle Seiten: `'bild'` mit leerer `HTML_PAGES`, oder Tag `v2.4.0` ausliefern.
+- Freigabetests der zurückgenommenen Seiten in der jeweiligen Wellen-Suite (`g93FunnelPage.ui` bis
+  `g103ProduktSeiten.ui`) entfernen; sie sichern die Freigabe bewusst ab. `g104BildseitenAbschluss.ui` und
+  `e2e/semantic-routes.spec.ts` folgen dem Schalter (Codex PR #91, P2). Probe am 19.10.2026: Schalter `'bild'`,
+  `product-pricing` entfernt → nur die zwei Freigabetests in `g103ProduktSeiten.ui` rot, alle übrigen grün.
 - Keine Datenbankänderung nötig.
 
 ## Abnahme

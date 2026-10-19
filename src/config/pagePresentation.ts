@@ -8,6 +8,8 @@
 // Rückweg einzelner Seiten: Wert auf 'bild' setzen und den Schlüssel unten aus
 // HTML_PAGES entfernen — nur diese Seiten zeigen dann wieder das WebP.
 // Rückweg aller Seiten: 'bild' und HTML_PAGES leeren, oder Tag `v2.4.0` ausliefern.
+// Zum Rückweg gehört: Freigabetests der betroffenen Welle (g93…g103) für diese Seiten
+// entfernen; g104BildseitenAbschluss und die E2E-Suite folgen dem Schalter.
 export type PagePresentation = 'bild' | 'html';
 
 export const PAGE_PRESENTATION: PagePresentation = 'html';
