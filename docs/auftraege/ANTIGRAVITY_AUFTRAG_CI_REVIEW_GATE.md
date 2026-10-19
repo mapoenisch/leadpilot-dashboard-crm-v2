@@ -11,7 +11,7 @@ Reviews von Antigravity, OpenCode und Devin hinterlassen einen sichtbaren „Rev
 | Datei | Zweck |
 |---|---|
 | `.github/workflows/review-gate.yml` | Setzt Status bei PR-Öffnung/Push, Review, Review-Kommentar, PR-Kommentar; manuell per `workflow_dispatch` (PR-Nummer). |
-| `scripts/reviewGate.mjs` | Setzt `agent-review` (success = Review auf dem Head oder PR-Kommentar nach dem Head-Commit von einem gelisteten Prüfer) und `review-conversations` (failure, solange Konversationen offen sind). |
+| `scripts/reviewGate.mjs` | Setzt `agent-review` (success = Review auf dem Head oder PR-Kommentar nach Eintreffen des Heads (Serverzeit des frühesten Status, nicht das manipulierbare Commit-Datum) von einem gelisteten Prüfer) und `review-conversations` (failure, solange Konversationen offen sind). |
 | `.github/review-agents.json` | Prüferliste (Name → GitHub-Logins). |
 
 ## Grenzen und bekannte Einschränkungen

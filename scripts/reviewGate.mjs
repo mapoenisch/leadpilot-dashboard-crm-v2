@@ -2,7 +2,7 @@
 // Review-Gate für alle PRs im Repo (Antigravity, OpenCode, Devin, weitere Prüfer aus
 // .github/review-agents.json). Setzt für den Head-SHA zwei Commit-Status:
 //  - `agent-review`: success, sobald ein Prüfer aus der Liste den aktuellen Head geprüft hat
-//    ("Reviewed", als Review auf dem Head oder als PR-Kommentar nach dem Head-Commit); pending, solange keiner den aktuellen Stand geprüft hat.
+//    ("Reviewed", als Review auf dem Head oder als PR-Kommentar nach Eintreffen des Heads); pending, solange keiner den aktuellen Stand geprüft hat.
 //  - `review-conversations`: failure, solange Review-Konversationen offen sind; success, wenn alle
 //    gelöst sind. Die Konversationen entstehen durch die Inline-Befunde der Prüfer.
 // Als Pflicht-Check im Branch-Schutz (oder "Require conversation resolution") blockiert das den Merge.
@@ -23,7 +23,7 @@ const agentsOf = (login, agents) =>
 /**
  * Ein Prüfer hat den Head geprüft, wenn sein Review auf genau diesen Commit zeigt. Prüfer wie OpenCode
  * veröffentlichen ihr Ergebnis als normalen PR-Kommentar ohne Commit-Bezug; er zählt, wenn er nach
- * dem Head-Commit (`headDate`) erstellt oder aktualisiert wurde.
+ * dem Eintreffen des Heads auf GitHub (`headDate`, Serverzeit des frühesten Status) erstellt oder aktualisiert wurde.
  */
 export function reviewedBy(reviews, headSha, agents, comments = [], headDate = null) {
   const names = new Set();
@@ -83,7 +83,13 @@ function main() {
   const agents = JSON.parse(readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8')).agents;
 
   const head = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`])).head.sha;
-  const headDate = JSON.parse(gh(['api', `repos/${repoFull}/commits/${head}`])).commit.committer.date;
+  // Serverzeit statt Commit-Datum: `committer.date` setzt der PR-Autor selbst. Der früheste Status am
+  // Head (u. a. der Pending-Status dieses Gates) entsteht erst, wenn der Head auf GitHub angekommen ist.
+  const earliest = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/commits/${head}/statuses`]))
+    .flat()
+    .map((s) => s.created_at)
+    .sort()[0];
+  const headDate = earliest ?? null;
   const comments = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/issues/${pr}/comments`])).flat();
   const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
   const post = (context, { state, description }) =>

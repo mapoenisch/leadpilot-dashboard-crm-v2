@@ -25,6 +25,9 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
   automatisch jeden Push (`claude-review.yml`), Antigravity arbeitet nach. Ist Codex wieder
   verfügbar, gilt wieder der Ablauf oben. Details:
   `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`, Abschnitt „Handoff-Protokoll“ unten.
+- **Reviewer-Rolle Antigravity (Entscheidung Marc vom 19.10.2026):** Antigravity führt hauptsächlich
+  PR-Reviews durch. Das Abgeben von PR-Reviews und Inline-Kommentaren über den Bot `marcs-PR-reviewer`
+  ist offiziell erlaubt; Merges und finale Freigaben bleiben exklusiv bei Marc.
 - **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Claude Code ist der schreibende Builder;
   Codex trägt seinen Befund ein und gibt ihn zurück.
 - **Maßgebliche Dokumente**: `ARCHITECTURE_DECISIONS.md`, `BUILD_PLAN.md`, `docs/BUILD_LOG.md`.
@@ -84,7 +87,9 @@ Gilt nur für Antigravity auf Branches `antigravity/*`. Wenn du mit „weiter“
 6. Beim ersten Push eines Auftrags den PR nach `main` öffnen (MCP erlaubt), Titel mit Auftragsnummer,
    Text nennt die Auftragsdatei unter `docs/auftraege/`.
 
-**Erlaubt über den GitHub-MCP:** PRs und deren Kommentare lesen, CI-Status lesen, den eigenen PR
-öffnen. **Verboten über den GitHub-MCP:** mergen, Reviews abgeben oder freigeben, Kommentare
-schreiben, Labels, Branches, Rulesets oder Workflows ändern, Dateien direkt über die API ändern
-(Code nur per Commit und Push).
+**Erlaubt über den GitHub-MCP / marcs-PR-reviewer (Entscheidung Marc vom 19.10.2026):** PRs und deren
+Kommentare lesen, CI-Status lesen, den eigenen PR öffnen sowie PR-Reviews und Inline-Kommentare über
+`marcs-PR-reviewer` abgeben. **Verboten:** Mergen, finale Freigaben (APPROVED) erteilen (Freigabe und
+Merge bleiben exklusiv bei Marc), Labels, Branches, Rulesets oder Workflows ändern, Dateien direkt über
+die API ändern (Code nur per Commit und Push).
+
