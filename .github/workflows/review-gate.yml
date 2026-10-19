@@ -11,8 +11,8 @@ on:
     types: [submitted, dismissed]
   pull_request_review_comment:
     types: [created, deleted]
-  pull_request_review_thread:
-    types: [resolved, unresolved]
+  # Das Lösen einer Konversation löst keinen Workflow aus (`pull_request_review_thread` ist kein
+  # Actions-Ereignis). Nach dem Lösen den Status manuell aktualisieren: Actions > Review Gate > Run workflow.
   workflow_dispatch:
     inputs:
       pr:
@@ -28,9 +28,6 @@ concurrency:
 
 jobs:
   gate:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
