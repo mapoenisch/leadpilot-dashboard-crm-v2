@@ -391,3 +391,182 @@
     padding: 6px 8px;
   }
 }
+
+/* ── Auftrag 103 (Welle 10): Preismodell nach 08-preismodell ── */
+.pd-tarif {
+  position: relative;
+  gap: var(--space-5);
+}
+/* Bestseller-Chip oben rechts in der Karte wie im Original. */
+.pd-tarif__chip {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1;
+}
+.pd-tarif__kopf {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 38%);
+  gap: var(--space-3);
+  align-items: start;
+}
+.pd-tarif__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.pd-tarif .pk-panel__head {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.pd-tarifbild {
+  min-height: 140px;
+}
+.pd-tarifbild .pd-bild__sockel {
+  left: 8%;
+  right: 6%;
+  height: 26px;
+}
+.pd-tarif[data-featured='true'] .pd-tarifbild {
+  margin-top: var(--space-6);
+}
+.pd-tarifbild .pd-bild__block {
+  left: 16%;
+  right: 14%;
+  bottom: 22px;
+  height: 84px;
+  color: var(--cyan);
+}
+.pd-tarifbild[data-art='growth'] .pd-bild__block {
+  flex-direction: row;
+  align-items: flex-end;
+  padding-bottom: 14px;
+}
+.pd-tarifbild__pfeil {
+  position: absolute;
+  top: -18px;
+  right: -10px;
+  color: var(--cyan);
+}
+.pd-tarifbild[data-art='pro'] .pd-bild__block svg {
+  color: var(--cyan);
+}
+.pd-tarif__wahl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: auto;
+  min-height: 48px;
+  padding: 10px var(--space-5);
+  border-radius: 999px;
+  border: 1.5px solid var(--cyan);
+  color: var(--cyan);
+  font-weight: 700;
+  text-decoration: none;
+}
+.pd-tarif__wahl[data-featured='true'] {
+  background: var(--cyan);
+  color: var(--color-bg-deep);
+}
+.pd-tarif__wahl:hover,
+.pd-tarif__wahl:focus-visible {
+  background: color-mix(in srgb, var(--cyan) 18%, transparent);
+}
+.pd-tarif__wahl[data-featured='true']:hover,
+.pd-tarif__wahl[data-featured='true']:focus-visible {
+  background: color-mix(in srgb, var(--cyan) 82%, white);
+}
+
+/* ── Auftrag 103 (Welle 10): Produkt-Performance nach 09-produkt-performance-2025 ── */
+.pd-perf__kachel {
+  position: relative;
+  min-width: 0;
+}
+.pd-perf__kachel .pk-stat {
+  height: 100%;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) calc(var(--space-4) + 28px) var(--space-4) var(--space-4);
+}
+.pd-perf__kachel .pk-icon {
+  width: 40px;
+  height: 40px;
+}
+.pd-perf__icon {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  color: var(--cyan);
+}
+.pd-perf__icon[data-status='verfehlt'] {
+  color: var(--orange);
+}
+.pd-perf__status {
+  color: var(--cyan);
+  font-weight: 700;
+}
+.pd-perf__status[data-status='verfehlt'] {
+  color: var(--orange);
+}
+.pd-perf__stand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: baseline;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-bg-deep) 70%, transparent);
+  font-size: 0.8125rem;
+  color: var(--color-text);
+}
+.pd-perf__stand-q {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.pd-perf__stand-wert::before {
+  content: '';
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+.pd-perf__stand-wert[data-reihe='1']::before {
+  background: var(--orange);
+}
+.pd-perf__ring .pk-donut {
+  width: 190px;
+  height: 190px;
+}
+.pd-perf__ring .pk-callout {
+  margin-top: var(--space-4);
+  font-size: 0.8125rem;
+}
+/* Ring mit Tiefe wie im Original: versetzte Kante unter den Segmenten. */
+.pd-perf__ring .pk-donut {
+  filter: drop-shadow(0 7px 0 color-mix(in srgb, var(--orange) 34%, var(--color-bg-deep)))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--orange) 22%, transparent));
+}
+
+/* ── Ruhige Fassung (Welle 10) ───────────────────────────── */
+.pk-page[data-ruhig='true'][data-page-key='product-pricing'] .pk-tier[data-featured='true'] {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--cyan) 19%, transparent);
+}
+.pk-page[data-ruhig='true'][data-page-key='product-performance'] .pd-perf__ring .pk-donut {
+  filter: drop-shadow(0 7px 0 color-mix(in srgb, var(--orange) 26%, var(--color-bg-deep)))
+    drop-shadow(0 0 5px color-mix(in srgb, var(--orange) 11%, transparent));
+}
+
+@media (max-width: 640px) {
+  .pd-tarif__kopf {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pd-tarifbild {
+    display: none;
+  }
+}

@@ -6,7 +6,6 @@ import { BILANZ, CHART_KOSTEN, CHART_MRR26, GUV } from '@/domain/finanzenData';
 import { PnLPage } from '@/features/finanzen/pages/PnLPage';
 import { BalanceSheetPage } from '@/features/finanzen/pages/BalanceSheetPage';
 import { UnitEconomicsPage } from '@/features/finanzen/pages/UnitEconomicsPage';
-import { PricingPage } from '@/features/produkt/pages/PricingPage';
 
 // Auftrag 097 (Paket G2, Welle 4): GuV, Bilanz und Unit Economics als echte Seiten nach dem
 // Original-WebP; Diagramme mit 3D-Tiefe, Werte nach Faktenblatt v1.2.
@@ -45,11 +44,6 @@ describe('G97 Finanzen als HTML-Seiten', () => {
     expect(
       container.querySelector(`.pk-page[data-page-key="${key}"]`)?.getAttribute('data-ruhig'),
     ).toBe('true');
-  });
-
-  it('nicht freigegebene Seiten bleiben beim Schalter (seit Auftrag 102: Preismodell)', () => {
-    const { container } = renderMain(PricingPage);
-    expect(container.querySelector('[data-testid="image-page"]')).not.toBeNull();
   });
 
   it('GuV: Kostenstruktur als 3D-Säulen, EBITDA als Verlust, alle Positionen in der Tabelle', () => {

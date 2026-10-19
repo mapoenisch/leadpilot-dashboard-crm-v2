@@ -17279,3 +17279,19 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-102/README.md` – 3 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 42/42 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Kerninhalte sichtbar, 0 px Überlauf, 0 px abgeschnitten, kleinste Schrift 11 → 16,5 → 22 px, axe 0).
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+## Auftrag 103 – Paket G2, Welle 10: Preismodell und Produkt-Performance als echte Seiten (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Zehnte und letzte G2-Welle nach dem Vorgehen von 093–102 (Original-WebP ist Vorlage, „ruhig“ dämpft nur), ohne Sichtfreigabe (Ergänzung Marc vom 19.10.2026): Preismodell und Produkt-Performance erscheinen als echte HTML-Seiten (`HTML_PAGES`). Damit sind alle 32 Bildseiten freigegeben; der Bildweg bleibt als Rückschaltung erhalten. Branch `claude/auftrag-103-g2-welle-10` von `main` `1d63bb6` (nach Merge PR #89).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/produkt/pages/PricingPage.tsx`, `PerformancePage.tsx`, `src/features/produkt/produktSeiten.css`; Tests `g93FunnelPage.ui`, `g94UnternehmenSeiten.ui`, `g95UebersichtProdukt.ui`, `g96VertriebSeiten.ui`, `g97FinanzSeiten.ui`, `g98MarktSeiten.ui` (Gegenprobe „Preismodell bleibt Bild“ entfernt), neu `g103ProduktSeiten.ui`; `e2e/semantic-routes.spec.ts`; `scripts/captureAuftrag103Produkt.mjs`; `docs/screenshots/auftrag-103/README.md`; Auftrag 103; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 §2, §4, §9 abgeglichen, keine Datenänderung nötig. Nachgebaut: Tarifkarten mit 3D-Illustration, Bestseller-Chip und gefüllter Schaltfläche bei Growth; sechs Kacheln mit farbigem Zielstatus und Statussymbol, Quartalsverlauf als 3D-Fläche (`DepthFlaechen`), Ring mit Tiefenkante, Balkenliste und Hinweis. Begründete Abweichungen im Auftrag: „Paket wählen“ als Link zur Deal Pipeline; Pille „6 Kernmetriken“; Stand Q4 58 % statt 72 % (Faktenblatt §9); keine Mini-Verläufe ohne Daten; statische Chips statt funktionsloser Auswahlfelder; Hinweis nach ICP-Befund (§4/§13) statt „Enterprise-Go-to-Market“. Neuer Test sichert: `HTML_PAGES` enthält genau alle 32 Bildseiten; der Bildweg bleibt über `g67ImagePages.ui` geprüft.
+
+**Schutzbereichs-Prüfung:** `git diff 1d63bb6 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (Integritätssuiten 001–025); Vitest gesamt 2422 Tests grün; `npm run build` grün; ESLint 0 Warnungen; Prettier sauber. E2E und size-limit laufen in der CI.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-103/README.md` – 2 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 28/28 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Kerninhalte sichtbar, 3D-Fläche Performance 1, 0 px Überlauf, 0 px abgeschnitten, axe 0; kleinste Schrift Preismodell 11 → 16,5 → 22 px, Performance 9 → 13,5 → 18 px – Achsenbeschriftung der 3D-Fläche wie in Welle 4/7). Anmeldung der Aufnahme mit dem lokalen Seed-Testnutzer (gespeicherter Login war abgelaufen).
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
