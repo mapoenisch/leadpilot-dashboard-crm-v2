@@ -2,7 +2,7 @@
   "_hinweis": "Prüfer, deren Review den Status `agent-review` auf success setzt. Logins ohne `[bot]`-Suffix, ohne Groß-/Kleinschreibung. Antigravity: GitHub-Login des Kontos eintragen, unter dem Antigravity Reviews postet.",
   "agents": [
     { "name": "Devin", "logins": ["devin-ai-integration"] },
-    { "name": "OpenCode", "logins": ["opencode-agent"] },
-    { "name": "Antigravity", "logins": [] }
+    { "name": "OpenCode", "logins": ["opencode-agent", "marcs-pr-reviewer"] },
+    { "name": "Antigravity", "logins": ["marcs-pr-reviewer"] }
   ]
 }

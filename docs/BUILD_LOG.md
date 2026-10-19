@@ -17346,3 +17346,17 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Schutzbereichs-Prüfung:** `git diff a4fb52d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 
 **Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Prettier sauber; Vitest 340 Dateien / 2455 Tests grün; `npm run verify` grün (001–025); `npm run build` grün. Offen: Codex-Bestätigung der Nacharbeit.
+
+### Auftrag CI-Review-Gate – Builder-Eintrag (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Repoweites Review-Gate: Commit-Status `agent-review` („Reviewed“ durch Antigravity/OpenCode/Devin) und `review-conversations` (failure bei offenen Konversationen). Grundlage: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `scripts/reviewGate.mjs`, `.github/review-agents.json`, Auftrag, dieser Eintrag.
+
+**Nacharbeit Codex PR #93:** Ungültigen Trigger `pull_request_review_thread` entfernt (Lösen per manuellem Lauf); Fork-Bedingung entfernt (Fork-Reviews nur manuell, dokumentiert); OpenCode-PR-Kommentare nach dem Head-Commit zählen als Review (Trigger `issue_comment`); Antigravity-Login eingetragen.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer (0 Zeilen).
+
+**Automatisierte Verifikation:** YAML parst; Logik von `reviewedBy`/`threadsStatus` per Node-Aufruf geprüft (Review auf Head, Kommentar vor/nach Head-Commit, mehrere Agenten mit gleichem Login). Kein App-Code berührt, daher kein tsc/Vitest-Bedarf. Der Workflow läuft erst nach dem Merge vollständig (Skript liegt vorher nicht auf `main`).
+
+**Ergebnis & Freigabestatus:** Offen bis zur Codex-Bestätigung; Branch-Schutz folgt nach Merge.

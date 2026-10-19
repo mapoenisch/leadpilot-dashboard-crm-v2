@@ -2,7 +2,7 @@
 // Review-Gate für alle PRs im Repo (Antigravity, OpenCode, Devin, weitere Prüfer aus
 // .github/review-agents.json). Setzt für den Head-SHA zwei Commit-Status:
 //  - `agent-review`: success, sobald ein Prüfer aus der Liste den aktuellen Head geprüft hat
-//    ("Reviewed"); pending, solange keiner den aktuellen Stand geprüft hat.
+//    ("Reviewed", als Review auf dem Head oder als PR-Kommentar nach dem Head-Commit); pending, solange keiner den aktuellen Stand geprüft hat.
 //  - `review-conversations`: failure, solange Review-Konversationen offen sind; success, wenn alle
 //    gelöst sind. Die Konversationen entstehen durch die Inline-Befunde der Prüfer.
 // Als Pflicht-Check im Branch-Schutz (oder "Require conversation resolution") blockiert das den Merge.
@@ -17,20 +17,26 @@ export const STATUS_THREADS = 'review-conversations';
 /** Login-Vergleich ohne Groß-/Kleinschreibung und ohne das Bot-Suffix `[bot]`. */
 const normalize = (login) => (login ?? '').toLowerCase().replace(/\[bot\]$/, '');
 
-export function isListedReviewer(login, agents) {
-  const name = normalize(login);
-  return agents.some((agent) => agent.logins.some((l) => normalize(l) === name));
-}
+const agentsOf = (login, agents) =>
+  agents.filter((a) => a.logins.some((l) => normalize(l) === normalize(login)));
 
-/** Ein Prüfer hat den Head geprüft, wenn sein Review auf genau diesen Commit zeigt. */
-export function reviewedBy(reviews, headSha, agents) {
+/**
+ * Ein Prüfer hat den Head geprüft, wenn sein Review auf genau diesen Commit zeigt. Prüfer wie OpenCode
+ * veröffentlichen ihr Ergebnis als normalen PR-Kommentar ohne Commit-Bezug; er zählt, wenn er nach
+ * dem Head-Commit (`headDate`) erstellt oder aktualisiert wurde.
+ */
+export function reviewedBy(reviews, headSha, agents, comments = [], headDate = null) {
   const names = new Set();
   for (const review of reviews) {
     if (review.commit_id !== headSha) continue;
     if (!['APPROVED', 'COMMENTED', 'CHANGES_REQUESTED'].includes(review.state)) continue;
-    if (!isListedReviewer(review.user?.login, agents)) continue;
-    const agent = agents.find((a) => a.logins.some((l) => normalize(l) === normalize(review.user.login)));
-    names.add(agent.name);
+    for (const agent of agentsOf(review.user?.login, agents)) names.add(agent.name);
+  }
+  if (headDate) {
+    for (const comment of comments) {
+      if (new Date(comment.updated_at ?? comment.created_at) < new Date(headDate)) continue;
+      for (const agent of agentsOf(comment.user?.login, agents)) names.add(agent.name);
+    }
   }
   return [...names];
 }
@@ -77,11 +83,13 @@ function main() {
   const agents = JSON.parse(readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8')).agents;
 
   const head = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`])).head.sha;
+  const headDate = JSON.parse(gh(['api', `repos/${repoFull}/commits/${head}`])).commit.committer.date;
+  const comments = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/issues/${pr}/comments`])).flat();
   const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
   const post = (context, { state, description }) =>
     gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`]);
 
-  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents));
+  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, comments, headDate));
   const threads = threadsStatus(fetchThreads(owner, repo, pr));
   post(STATUS_REVIEWED, reviewed);
   post(STATUS_THREADS, threads);
