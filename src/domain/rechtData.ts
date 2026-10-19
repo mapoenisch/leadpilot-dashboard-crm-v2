@@ -36,7 +36,8 @@ export const HANDELSREGISTER = {
     ['Erst-Eintragung / Gründung', '21. Juli 2022 (Beurkundung Gesellschaftsvertrag)'],
     [
       'Vertretung',
-      'Ist nur ein Geschäftsführer bestellt, so vertritt er die Gesellschaft allein. Sind mehrere Geschäftsführer bestellt, so wird die Gesellschaft durch zwei Geschäftsführer gemeinsam vertreten.',
+      // Auftrag 102: Faktenblatt v1.2 §17 D4 – beide Geschäftsführer einzelvertretungsberechtigt.
+      'Ist nur ein Geschäftsführer bestellt, so vertritt er die Gesellschaft allein. Sind mehrere Geschäftsführer bestellt, so vertritt jeder von ihnen die Gesellschaft einzeln (einzelvertretungsberechtigt).',
     ],
   ],
 };
