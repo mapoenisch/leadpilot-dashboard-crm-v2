@@ -2,7 +2,8 @@
 // Review-Gate für alle PRs im Repo (Antigravity, OpenCode, Devin, weitere Prüfer aus
 // .github/review-agents.json). Setzt für den Head-SHA zwei Commit-Status:
 //  - `agent-review`: success, sobald ein Prüfer aus der Liste den aktuellen Head geprüft hat
-//    ("Reviewed", als Review auf dem Head oder als PR-Kommentar nach Eintreffen des Heads); pending, solange keiner den aktuellen Stand geprüft hat.
+//    ("Reviewed"; nur formale PR-Reviews zählen, die auf genau den Head-Commit zeigen); pending, solange
+//    keiner den aktuellen Stand geprüft hat.
 //  - `review-conversations`: failure, solange Review-Konversationen offen sind; success, wenn alle
 //    gelöst sind. Die Konversationen entstehen durch die Inline-Befunde der Prüfer.
 // Als Pflicht-Check im Branch-Schutz (oder "Require conversation resolution") blockiert das den Merge.
@@ -21,11 +22,10 @@ const agentsOf = (login, agents) =>
   agents.filter((a) => a.logins.some((l) => normalize(l) === normalize(login)));
 
 /**
- * Ein Prüfer hat den Head geprüft, wenn sein Review auf genau diesen Commit zeigt. Prüfer wie OpenCode
- * veröffentlichen ihr Ergebnis als normalen PR-Kommentar ohne Commit-Bezug; er zählt, wenn er nach
- * dem Eintreffen des Heads auf GitHub (`headDate`, Serverzeit des frühesten Status) erstellt oder aktualisiert wurde.
+ * Ein Prüfer hat den Head geprüft, wenn sein formales PR-Review auf genau diesen Commit zeigt.
+ * Kommentare zählen nicht (kein Commit-Bezug, nachträglich änderbar).
  */
-export function reviewedBy(reviews, headSha, agents, comments = [], headDate = null, prAuthors = []) {
+export function reviewedBy(reviews, headSha, agents, prAuthors = []) {
   // prAuthors: PR-Öffner plus Autoren/Committer der PR-Commits.
   const authors = [prAuthors].flat().filter(Boolean);
   if (authors.length === 0) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
@@ -41,13 +41,6 @@ export function reviewedBy(reviews, headSha, agents, comments = [], headDate = n
     if (review.commit_id !== headSha) continue;
     if (!['APPROVED', 'COMMENTED', 'CHANGES_REQUESTED'].includes(review.state)) continue;
     for (const agent of agentsOf(review.user?.login, agents)) names.add(agent.name);
-  }
-  if (headDate) {
-    for (const comment of comments) {
-      if (own(comment.user)) continue;
-      if (new Date(comment.updated_at ?? comment.created_at) < new Date(headDate)) continue;
-      for (const agent of agentsOf(comment.user?.login, agents)) names.add(agent.name);
-    }
   }
   return [...names];
 }
@@ -98,19 +91,11 @@ function main() {
   const commitLogins = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`]))
     .flat()
     .flatMap((c) => [c.author?.login, c.committer?.login]);
-  // Serverzeit statt Commit-Datum: `committer.date` setzt der PR-Autor selbst. Der früheste Status am
-  // Head (u. a. der Pending-Status dieses Gates) entsteht erst, wenn der Head auf GitHub angekommen ist.
-  const earliest = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/commits/${head}/statuses`]))
-    .flat()
-    .map((s) => s.created_at)
-    .sort()[0];
-  const headDate = earliest ?? null;
-  const comments = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/issues/${pr}/comments`])).flat();
   const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
   const post = (context, { state, description }) =>
     gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`]);
 
-  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, comments, headDate, [pull.user?.login, ...commitLogins]));
+  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, [pull.user?.login, ...commitLogins]));
   const threads = threadsStatus(fetchThreads(owner, repo, pr));
   post(STATUS_REVIEWED, reviewed);
   post(STATUS_THREADS, threads);

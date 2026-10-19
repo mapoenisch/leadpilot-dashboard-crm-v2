@@ -10,8 +10,8 @@ Reviews von Antigravity, OpenCode und Devin hinterlassen einen sichtbaren „Rev
 
 | Datei | Zweck |
 |---|---|
-| `.github/workflows/review-gate.yml` | Setzt Status bei PR-Öffnung/Push, Review, Review-Kommentar, PR-Kommentar; manuell per `workflow_dispatch` (PR-Nummer). |
-| `scripts/reviewGate.mjs` | Setzt `agent-review` (success = Review auf dem Head oder PR-Kommentar nach Eintreffen des Heads (Serverzeit des frühesten Status, nicht das manipulierbare Commit-Datum) von einem gelisteten Prüfer) und `review-conversations` (failure, solange Konversationen offen sind). |
+| `.github/workflows/review-gate.yml` | Setzt Status bei PR-Öffnung/Push, Review, Review-Kommentar; manuell per `workflow_dispatch` (PR-Nummer). |
+| `scripts/reviewGate.mjs` | Setzt `agent-review` (success = formales PR-Review eines gelisteten Prüfers auf genau dem Head-Commit) und `review-conversations` (failure, solange Konversationen offen sind). |
 | `.github/review-agents.json` | Prüferliste (Name → GitHub-Logins). |
 
 ## Regel (Marc 19.10.2026)
@@ -20,12 +20,12 @@ Ein Codex-Review ist nicht zwingend. Das Gate akzeptiert jeden Prüfer aus der L
 
 ## Grenzen und bekannte Einschränkungen
 
+- **Nur formale PR-Reviews zählen** (Marc 19.10.2026), keine PR-Kommentare: Sie sind an den Head-Commit gebunden und nicht nachträglich manipulierbar. OpenCode muss deshalb so konfiguriert sein, dass es ein echtes PR-Review (mit Inline-Kommentaren) einreicht, nicht nur einen Kommentar.
+- Der PR-Öffner sowie Autoren und Committer der PR-Commits zählen nie als Prüfer, ebenso kein Agent, zu dem deren Login gehört (kein Selbst-Review).
 - Skript und Prüferliste kommen immer vom Default-Branch, PR-Code wird nie ausgeführt; der Job schreibt nur Status.
 - **Das Lösen einer Konversation löst keinen Workflow aus** (`pull_request_review_thread` ist kein Actions-Ereignis). Nach dem Lösen: Actions → Review Gate → Run workflow mit PR-Nummer. Marc hat am 19.10.2026 entschieden, dass manuelles Auslösen reicht.
 - **Fork-PRs:** Review- und Kommentar-Ereignisse erhalten dort nur ein schreibgeschütztes Token; der Status wird per manuellem Lauf gesetzt. Das Repo nutzt keine Forks, ein privilegierter Folgelauf entfällt bewusst.
 - Merge-Blockade entsteht erst durch Branch-Schutz auf `main` (Pflicht-Checks `agent-review`, `review-conversations`, Konversationen lösen). Er wird erst nach dem Merge dieses Auftrags und einem ersten Lauf auf `main` gesetzt.
-- Kommentar-Reviews hängen an der Serverzeit des frühesten Status am Head-SHA. Wer Schreibrechte hat und bewusst einen alten Commit mit früheren Status als neuen Head pusht, könnte einen älteren Prüfer-Kommentar auf diesem PR wiederverwenden. Formale Reviews sind davon nicht betroffen (sie sind an den Head-SHA gebunden). Akzeptiertes Restrisiko, solange nur Marc und seine Agenten Schreibrechte haben; der Branch-Schutz mit gelösten Konversationen begrenzt es zusätzlich.
-- Der PR-Autor zählt nie als Prüfer (kein Selbst-Review). Kommentar-Reviews prüfen nur Autorschaft und Zeit, nicht den Inhalt (OpenCode setzt keinen Marker); ein Fortschritts-Kommentar kann daher als Review zählen, bekannte Einschränkung.
 - `marcs-pr-reviewer` steht bei OpenCode und Antigravity (Eintrag von Marc); ein Review dieses Kontos zählt für beide.
 
 ## Schutzbereiche

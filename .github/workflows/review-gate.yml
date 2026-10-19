@@ -11,8 +11,6 @@ on:
     types: [submitted, dismissed]
   pull_request_review_comment:
     types: [created, deleted]
-  issue_comment:
-    types: [created, edited]
   # Das Lösen einer Konversation löst keinen Workflow aus (`pull_request_review_thread` ist kein
   # Actions-Ereignis). Nach dem Lösen den Status manuell aktualisieren: Actions > Review Gate > Run workflow.
   workflow_dispatch:
@@ -25,12 +23,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: review-gate-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr }}
+  group: review-gate-${{ github.event.pull_request.number || github.event.inputs.pr }}
   cancel-in-progress: true
 
 jobs:
   gate:
-    if: github.event_name != 'issue_comment' || github.event.issue.pull_request
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -53,7 +50,7 @@ jobs:
       - name: Status setzen
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr }}
+          PR: ${{ github.event.pull_request.number || github.event.inputs.pr }}
         run: |
           case "$PR" in ''|*[!0-9]*) echo "PR-Nummer fehlt oder ist nicht numerisch"; exit 1 ;; esac
           node scripts/reviewGate.mjs --pr="$PR"
