@@ -17311,3 +17311,24 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** entfällt begründet – keine sichtbare Änderung, da alle 32 Seiten bereits über `HTML_PAGES` als echte Seiten ausgeliefert waren; Vorher/Nachher wären bitgleich. Ganzseitenvergleich gegen die Baseline aus Auftrag 081 folgt in Paket I.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+### Auftrag 104 – Review PR #91, Runde 1 (19.10.2026, Codex)
+
+**Prüfgegenstand:** Branch `claude/auftrag-104-g3-abschluss`, HEAD `7bbb2c8`, PR #91 gegen `main` (`a4fb52d`). 10 Dateien, +264/−14.
+
+**Befund:** Kein P1. Die Änderung ist sichtbar wirkungslos (`HTML_PAGES` war auf Baseline bereits vollständig; `ImagePage.tsx:44` liefert in beiden Schalterstellungen identische Ausgabe), korrekt begründet und vollständig grün. Zwei Nacharbeiten (P2) sowie Beobachtungen (P3).
+
+**P2-1 – Ledger unvollständig:** Der Nacharbeits-Commit `7bbb2c8` (Rücknahme der Prettier-Neuformatierung von `ARCHITECTURE_DECISIONS.md`, „Codex PR #91 P1“) ist nicht dokumentiert; der Builder-Eintrag endet mit „Offen: Codex-Review“. Nachtrag erforderlich (`CLAUDE.md` §5).
+
+**P2-2 – Dokumentierter Rückweg bricht die Testsuite:** Die Revision (`ARCHITECTURE_DECISIONS.md:1631-1642`) beschreibt den Rückweg als reinen Schalterschritt (`'bild'` + Schlüssel aus `HTML_PAGES` entfernen), die Tests pinnen aber hart: `g104BildseitenAbschluss.ui.vitest.tsx:82,85,86` und `g93FunnelPage.ui.vitest.tsx:14`. Entweder Revisionstext präzisieren (Rückweg erfordert Anpassung von g93/g104) oder die Assertions an den Schalter koppeln (wie `e2e/semantic-routes.spec.ts`, das dem Schalter folgt).
+
+**P3 (nicht blockierend):**
+- `g104BildseitenAbschluss.ui.vitest.tsx:91-104`: `_key` ungenutzt, keine Bindung über `data-page-key`; eine vertauschte Seite↔Schlüssel-Zuordnung bliebe unbemerkt (`g99`/`g102` prüfen `data-page-key`, hier nicht).
+- `g104BildseitenAbschluss.ui.vitest.tsx:102`: `img[src$=".webp"]` verbietet jedes WebP, breiter als „kein Ganzseiten-WebP“.
+- `e2e/semantic-routes.spec.ts:21-22`: Kommentar „Bildzweig bleibt für den Rückweg (Schalter `'bild'`)“ – das Kippen des Schalters allein bewirkt wegen der vollen `HTML_PAGES`-Liste nichts.
+- `docs/reviews/2026-10-06-frontend-befundregister.md:19` nennt weiter `PAGE_PRESENTATION = 'bild'` (Baseline-Snapshot 06.10., ohne Querverweis auf 4a).
+- `BUILD_PLAN.md` (Stand 08.10.2026) veraltet; nicht Teil der 104-Zieldateien, Hinweis für Paket I.
+
+**Geprüft (grün):** `npx tsc --noEmit` 0 Fehler; ESLint; Prettier; Vitest 340 Dateien / 2455 Tests; `npm run verify` (001–025); `npm run build`; Schutzbereichs-Diff gegen `a4fb52d` leer; CI PR #91 (typecheck, test, lint, build, e2e, size-limit, CodeQL, livekpi-verifiers) pass. Inventar 4a programmatisch geprüft: 32/32 Zeilen, Route/Schlüssel/Titel/Welle/Auftrag korrekt, alle Links existieren. Rückweg Tag `v2.4.0` verifiziert (`PAGE_PRESENTATION = 'bild'`, kein `HTML_PAGES`). Bildweg weiter durch `g67ImagePages.ui` geprüft.
+
+**Ergebnis & Freigabestatus:** Freigabeempfehlung zugunsten des Builders, mit den P2-Nacharbeiten. Schutzbereiche unberührt.
