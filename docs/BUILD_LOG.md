@@ -17386,3 +17386,17 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 **Automatisierte Verifikation:** YAML parst; Logik von `reviewedBy`/`threadsStatus` per Node-Aufruf geprüft (Review auf Head, Kommentar vor/nach Head-Commit, mehrere Agenten mit gleichem Login). Kein App-Code berührt, daher kein tsc/Vitest-Bedarf. Der Workflow läuft erst nach dem Merge vollständig (Skript liegt vorher nicht auf `main`).
 
 **Ergebnis & Freigabestatus:** Offen bis zur Codex-Bestätigung; Branch-Schutz folgt nach Merge.
+
+### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93 (Builder: Claude Code, 20.10.2026)
+
+**Befunde:** P1 Codex fehlt in der Prüferliste · P1 Selbst-Review, wenn Antigravity unter Marcs Identität baut · P1 Status per `GITHUB_TOKEN` fälschbar · P2 kein Neubewerten nach Änderung der Prüferliste; dazu Hinweise aus dem Sicherheitscheck (Umgehung über Branch-Namen, veralteter Status nach Fehlern).
+
+**Umsetzung:** Codex in `review-agents.json`; Builder-Bindung per Branch-Präfix (`builderBranches`), ohne Präfix kein Erfolg; Status nur über eigene GitHub-App (JWT mit Node-Bordmitteln, keine neue Abhängigkeit), Secrets in Umgebung `review-gate` (nur `main`); Review-Ereignisse über neuen rechtelosen `review-gate-trigger.yml` und `workflow_run`; `push` auf `main` (Skript/Prüferliste) bewertet alle offenen PRs neu; Fehler setzen `pending` (fail-closed). Entscheidung GitHub-App: Marc 20.10.2026.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `.github/workflows/review-gate-trigger.yml` (neu), `scripts/reviewGate.mjs`, `.github/review-agents.json`, Auftrag `ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`, dieser Eintrag. Drawio-Diagramm per Revert in eigenen PR #94 verschoben.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `node --check`; Logik per Node geprüft (Codex-Review auf `claude/`-Branch zählt; Codex auf `codex/`-Branch und `marcs-pr-reviewer` auf `antigravity/`-Branch zählen nicht; Branch ohne Präfix → kein Builder; Fehlerstatus `pending`); RS256-Signatur gegen erzeugten Testschlüssel verifiziert; ohne Secrets bricht das Skript mit klarer Meldung ab; YAML beider Workflows parst; `npx tsc --noEmit` 0 Fehler. Ein echter Lauf mit App steht aus, bis Marc App und Umgebung eingerichtet hat.
+
+**Ergebnis & Freigabestatus:** Offen bis zum unabhängigen Review; Einrichtung der App durch Marc (Auftrag, Abschnitt „Einrichtung“).

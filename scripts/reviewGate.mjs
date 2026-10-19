@@ -8,6 +8,10 @@
 //    gelöst sind. Die Konversationen entstehen durch die Inline-Befunde der Prüfer.
 // Als Pflicht-Check im Branch-Schutz (oder "Require conversation resolution") blockiert das den Merge.
 // Das Skript läuft mit dem Stand vom Default-Branch, PR-Code wird nie ausgeführt.
+// Status setzt ausschließlich die eigene GitHub-App (Secrets `REVIEW_GATE_APP_ID`/`_KEY` in der Umgebung
+// `review-gate`, nur vom Default-Branch nutzbar). Ein PR kann sie mit `GITHUB_TOKEN` daher nicht fälschen,
+// wenn der Branch-Schutz die Pflicht-Checks an diese App heftet. Fehler setzen `pending`, nie Erfolg.
+import { createSign } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -67,8 +71,26 @@ export function threadsStatus(threads) {
     : { state: 'success', description: 'Alle Review-Konversationen gelöst' };
 }
 
-function gh(args, input) {
-  return execFileSync('gh', args, { encoding: 'utf8', input, maxBuffer: 64 * 1024 * 1024 });
+function gh(args, input, token = process.env.GH_TOKEN) {
+  return execFileSync('gh', args, {
+    encoding: 'utf8',
+    input,
+    maxBuffer: 64 * 1024 * 1024,
+    env: { ...process.env, GH_TOKEN: token },
+  });
+}
+
+/** Installations-Token der Review-Gate-App: JWT (RS256) mit Node-Bordmitteln, ohne Abhängigkeit. */
+function appToken(repoFull) {
+  const appId = process.env.REVIEW_GATE_APP_ID;
+  const key = process.env.REVIEW_GATE_APP_KEY;
+  if (!appId || !key) throw new Error('REVIEW_GATE_APP_ID/_KEY fehlen: Gate bleibt ohne Status');
+  const b64 = (v) => Buffer.from(JSON.stringify(v)).toString('base64url');
+  const now = Math.floor(Date.now() / 1000);
+  const body = `${b64({ alg: 'RS256', typ: 'JWT' })}.${b64({ iat: now - 60, exp: now + 540, iss: appId })}`;
+  const jwt = `${body}.${createSign('RSA-SHA256').update(body).sign(key, 'base64url')}`;
+  const installation = JSON.parse(gh(['api', `repos/${repoFull}/installation`], undefined, jwt));
+  return JSON.parse(gh(['api', '-X', 'POST', `app/installations/${installation.id}/access_tokens`], undefined, jwt)).token;
 }
 
 const THREADS_QUERY = `query($owner:String!,$repo:String!,$pr:Int!,$after:String){
@@ -89,32 +111,43 @@ function fetchThreads(owner, repo, pr) {
   }
 }
 
-function gatePr(pr, repoFull, { agents, builderBranches }) {
-  const [owner, repo] = repoFull.split('/');
+export const errorStatus = (err) => ({ state: 'pending', description: `Gate-Fehler: ${err.message}`.slice(0, 140) });
 
+function gatePr(pr, repoFull, { agents, builderBranches }, statusToken) {
+  const [owner, repo] = repoFull.split('/');
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
-  if (!pull.user?.login) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
-  const commits = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`])).flat();
-  // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber ohne Status abbrechen.
-  if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig: Gate bleibt ohne Status');
-  const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
-  const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
   const post = (context, { state, description }) =>
-    gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`]);
-
-  const builders = builderOf(pull.head.ref, builderBranches);
-  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, [pull.user?.login, ...commitLogins], builders));
-  const threads = threadsStatus(fetchThreads(owner, repo, pr));
-  post(STATUS_REVIEWED, reviewed);
-  post(STATUS_THREADS, threads);
-  console.log(`PR ${pr} @ ${head.slice(0, 7)}: ${STATUS_REVIEWED}=${reviewed.state}, ${STATUS_THREADS}=${threads.state}`);
+    gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`], undefined, statusToken);
+  try {
+    if (!pull.user?.login) throw new Error('PR-Autor unbekannt');
+    const commits = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`])).flat();
+    // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber kein Erfolg.
+    if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig');
+    const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
+    // Ohne bekanntes Branch-Präfix ist der Builder unbekannt: kein Erfolg, sonst ließe sich die
+    // Selbst-Review-Sperre durch einen anders benannten Branch umgehen.
+    const builders = builderOf(pull.head.ref, builderBranches);
+    if (builders.length === 0) throw new Error('Builder unbekannt (Branch-Präfix fehlt)');
+    const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
+    const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, [pull.user.login, ...commitLogins], builders));
+    const threads = threadsStatus(fetchThreads(owner, repo, pr));
+    post(STATUS_REVIEWED, reviewed);
+    post(STATUS_THREADS, threads);
+    console.log(`PR ${pr} @ ${head.slice(0, 7)}: ${STATUS_REVIEWED}=${reviewed.state}, ${STATUS_THREADS}=${threads.state}`);
+  } catch (err) {
+    // Fail-closed: ein früherer Erfolg darf nach einem Fehler nicht stehen bleiben.
+    post(STATUS_REVIEWED, errorStatus(err));
+    post(STATUS_THREADS, errorStatus(err));
+    throw err;
+  }
 }
 
 function main() {
   const arg = (process.argv.find((a) => a.startsWith('--pr=')) ?? '').slice(5);
   const repoFull = process.env.GITHUB_REPOSITORY;
   const config = JSON.parse(readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8'));
+  const statusToken = appToken(repoFull);
   // --pr=all: alle offenen PRs neu bewerten (nach Änderung von Skript oder Prüferliste auf dem Default-Branch).
   const prs =
     arg === 'all'
@@ -122,10 +155,17 @@ function main() {
           .flat()
           .map((p) => p.number)
       : [Number(arg)];
+  let failed = 0;
   for (const pr of prs) {
-    if (!Number.isInteger(pr) || pr <= 0) throw new Error('--pr=<Nummer|all> fehlt');
-    gatePr(pr, repoFull, config);
+    try {
+      if (!Number.isInteger(pr) || pr <= 0) throw new Error('--pr=<Nummer|all> fehlt');
+      gatePr(pr, repoFull, config, statusToken);
+    } catch (err) {
+      failed += 1;
+      console.error(`PR ${pr}: ${err.message}`);
+    }
   }
+  if (failed > 0) process.exit(1);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

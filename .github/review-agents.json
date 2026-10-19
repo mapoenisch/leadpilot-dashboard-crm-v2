@@ -1,5 +1,5 @@
 {
-  "_hinweis": "Prüfer, deren Review den Status `agent-review` auf success setzt. Logins ohne `[bot]`-Suffix, ohne Groß-/Kleinschreibung. Antigravity: GitHub-Login des Kontos eintragen, unter dem Antigravity Reviews postet. `builderBranches` bindet die Builder-Rolle an das Branch-Präfix: der dort genannte Agent kann den PR nicht selbst prüfen, auch wenn er unter Marcs Identität baut.",
+  "_hinweis": "Prüfer, deren Review den Status `agent-review` auf success setzt. Logins ohne `[bot]`-Suffix, ohne Groß-/Kleinschreibung. Antigravity: GitHub-Login des Kontos eintragen, unter dem Antigravity Reviews postet. `builderBranches` bindet die Builder-Rolle an das Branch-Präfix: der dort genannte Agent kann den PR nicht selbst prüfen, auch wenn er unter Marcs Identität baut. PRs ohne bekanntes Präfix erhalten kein `agent-review=success`.",
   "agents": [
     { "name": "Codex", "logins": ["chatgpt-codex-connector"] },
     { "name": "Devin", "logins": ["devin-ai-integration"] },
@@ -8,6 +8,7 @@
   ],
   "builderBranches": {
     "antigravity/": "Antigravity",
+    "claude/": "Claude",
     "codex/": "Codex",
     "devin/": "Devin",
     "opencode/": "OpenCode"

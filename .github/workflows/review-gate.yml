@@ -1,18 +1,20 @@
 # Review-Gate für das gesamte Repo (alle PRs): setzt die Commit-Status `agent-review` ("Reviewed" durch
-# Antigravity/OpenCode/Devin, siehe .github/review-agents.json) und `review-conversations`
+# Codex/Antigravity/OpenCode/Devin, siehe .github/review-agents.json) und `review-conversations`
 # (failure, solange Review-Konversationen offen sind). Skript und Prüferliste kommen immer vom
-# Default-Branch; PR-Code wird nie ausgecheckt. Der Job darf nur Status schreiben.
+# Default-Branch; PR-Code wird nie ausgecheckt.
+#
+# Fälschungsschutz: Die Status setzt die eigene GitHub-App (Secrets nur in der Umgebung `review-gate`,
+# Deployment-Branch-Regel: nur Default-Branch). Alle Auslöser hier laufen im Kontext des Default-Branches.
+# Review-Ereignisse (Workflow-Stand aus dem PR) gehen deshalb über `review-gate-trigger.yml` und
+# `workflow_run`. Im Branch-Schutz die Pflicht-Checks an die Review-Gate-App heften.
 name: Review Gate
 
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-  pull_request_review:
-    types: [submitted, dismissed]
-  pull_request_review_comment:
-    types: [created, deleted]
-  # Das Lösen einer Konversation löst keinen Workflow aus (`pull_request_review_thread` ist kein
-  # Actions-Ereignis). Nach dem Lösen den Status manuell aktualisieren: Actions > Review Gate > Run workflow.
+  workflow_run:
+    workflows: [Review Gate Trigger]
+    types: [completed]
   # Ändern sich Skript oder Prüferliste auf dem Default-Branch, werden alle offenen PRs neu bewertet,
   # damit kein veralteter `agent-review=success` stehen bleibt.
   push:
@@ -20,6 +22,7 @@ on:
     paths:
       - scripts/reviewGate.mjs
       - .github/review-agents.json
+  # Das Lösen einer Konversation löst keinen Workflow aus. Danach manuell: Actions > Review Gate > Run workflow.
   workflow_dispatch:
     inputs:
       pr:
@@ -30,17 +33,17 @@ permissions:
   contents: read
 
 concurrency:
-  group: review-gate-${{ github.event.pull_request.number || github.event.inputs.pr || 'all' }}
+  group: review-gate-${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number || github.event.inputs.pr || 'all' }}
   cancel-in-progress: true
 
 jobs:
   gate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment: review-gate
     permissions:
       contents: read
       pull-requests: read
-      statuses: write
     steps:
       - name: Skript vom Default-Branch laden
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -57,7 +60,10 @@ jobs:
       - name: Status setzen
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number || github.event.inputs.pr || 'all' }}
+          REVIEW_GATE_APP_ID: ${{ secrets.REVIEW_GATE_APP_ID }}
+          REVIEW_GATE_APP_KEY: ${{ secrets.REVIEW_GATE_APP_KEY }}
+          # Ohne PR-Bezug (z. B. workflow_run eines Fork-PRs) werden alle offenen PRs neu bewertet.
+          PR: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number || github.event.inputs.pr || 'all' }}
         run: |
           case "$PR" in all) ;; ''|*[!0-9]*) echo "PR-Nummer fehlt oder ist nicht numerisch"; exit 1 ;; esac
           node scripts/reviewGate.mjs --pr="$PR"
