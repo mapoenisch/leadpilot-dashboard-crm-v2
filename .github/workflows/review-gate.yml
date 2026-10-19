@@ -13,17 +13,24 @@ on:
     types: [created, deleted]
   # Das Lösen einer Konversation löst keinen Workflow aus (`pull_request_review_thread` ist kein
   # Actions-Ereignis). Nach dem Lösen den Status manuell aktualisieren: Actions > Review Gate > Run workflow.
+  # Ändern sich Skript oder Prüferliste auf dem Default-Branch, werden alle offenen PRs neu bewertet,
+  # damit kein veralteter `agent-review=success` stehen bleibt.
+  push:
+    branches: [main]
+    paths:
+      - scripts/reviewGate.mjs
+      - .github/review-agents.json
   workflow_dispatch:
     inputs:
       pr:
-        description: 'PR-Nummer'
+        description: 'PR-Nummer oder all'
         required: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: review-gate-${{ github.event.pull_request.number || github.event.inputs.pr }}
+  group: review-gate-${{ github.event.pull_request.number || github.event.inputs.pr || 'all' }}
   cancel-in-progress: true
 
 jobs:
@@ -50,7 +57,7 @@ jobs:
       - name: Status setzen
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number || github.event.inputs.pr }}
+          PR: ${{ github.event.pull_request.number || github.event.inputs.pr || 'all' }}
         run: |
-          case "$PR" in ''|*[!0-9]*) echo "PR-Nummer fehlt oder ist nicht numerisch"; exit 1 ;; esac
+          case "$PR" in all) ;; ''|*[!0-9]*) echo "PR-Nummer fehlt oder ist nicht numerisch"; exit 1 ;; esac
           node scripts/reviewGate.mjs --pr="$PR"

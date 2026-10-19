@@ -25,14 +25,18 @@ const agentsOf = (login, agents) =>
  * Ein Prüfer hat den Head geprüft, wenn sein formales PR-Review auf genau diesen Commit zeigt.
  * Kommentare zählen nicht (kein Commit-Bezug, nachträglich änderbar).
  */
-export function reviewedBy(reviews, headSha, agents, prAuthors = []) {
+export function reviewedBy(reviews, headSha, agents, prAuthors = [], builderAgents = []) {
   // prAuthors: PR-Öffner plus Autoren/Committer der PR-Commits.
+  // builderAgents: per Branch-Präfix gebundene Builder-Rolle (baut z. B. unter Marcs Identität).
   const authors = [prAuthors].flat().filter(Boolean);
   if (authors.length === 0) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
   const names = new Set();
-  // Der PR-Autor und jeder Agent, dem sein Login gehört, kann sich nicht selbst prüfen.
+  // Der PR-Autor, jeder Agent mit seinem Login und der gebundene Builder können sich nicht selbst prüfen.
   const authorLogins = new Set(authors.map(normalize));
-  const authorAgents = new Set(authors.flatMap((a) => agentsOf(a, agents).map((x) => x.name)));
+  const authorAgents = new Set([
+    ...authors.flatMap((a) => agentsOf(a, agents).map((x) => x.name)),
+    ...builderAgents,
+  ]);
   const own = (user) =>
     authorLogins.has(normalize(user?.login)) ||
     agentsOf(user?.login, agents).some((a) => authorAgents.has(a.name));
@@ -44,6 +48,12 @@ export function reviewedBy(reviews, headSha, agents, prAuthors = []) {
   }
   return [...names];
 }
+
+/** Builder-Agent laut Branch-Präfix (`builderBranches` in review-agents.json). */
+export const builderOf = (branch, builderBranches = {}) =>
+  Object.entries(builderBranches)
+    .filter(([prefix]) => (branch ?? '').startsWith(prefix))
+    .map(([, name]) => name);
 
 export const reviewedStatus = (names) =>
   names.length > 0
@@ -79,12 +89,8 @@ function fetchThreads(owner, repo, pr) {
   }
 }
 
-function main() {
-  const pr = Number((process.argv.find((a) => a.startsWith('--pr=')) ?? '').slice(5));
-  if (!Number.isInteger(pr) || pr <= 0) throw new Error('--pr=<Nummer> fehlt');
-  const repoFull = process.env.GITHUB_REPOSITORY;
+function gatePr(pr, repoFull, { agents, builderBranches }) {
   const [owner, repo] = repoFull.split('/');
-  const agents = JSON.parse(readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8')).agents;
 
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
@@ -97,11 +103,29 @@ function main() {
   const post = (context, { state, description }) =>
     gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`]);
 
-  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, [pull.user?.login, ...commitLogins]));
+  const builders = builderOf(pull.head.ref, builderBranches);
+  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, [pull.user?.login, ...commitLogins], builders));
   const threads = threadsStatus(fetchThreads(owner, repo, pr));
   post(STATUS_REVIEWED, reviewed);
   post(STATUS_THREADS, threads);
   console.log(`PR ${pr} @ ${head.slice(0, 7)}: ${STATUS_REVIEWED}=${reviewed.state}, ${STATUS_THREADS}=${threads.state}`);
+}
+
+function main() {
+  const arg = (process.argv.find((a) => a.startsWith('--pr=')) ?? '').slice(5);
+  const repoFull = process.env.GITHUB_REPOSITORY;
+  const config = JSON.parse(readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8'));
+  // --pr=all: alle offenen PRs neu bewerten (nach Änderung von Skript oder Prüferliste auf dem Default-Branch).
+  const prs =
+    arg === 'all'
+      ? JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls?state=open&per_page=100`]))
+          .flat()
+          .map((p) => p.number)
+      : [Number(arg)];
+  for (const pr of prs) {
+    if (!Number.isInteger(pr) || pr <= 0) throw new Error('--pr=<Nummer|all> fehlt');
+    gatePr(pr, repoFull, config);
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
