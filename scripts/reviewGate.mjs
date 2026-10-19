@@ -25,13 +25,16 @@ const agentsOf = (login, agents) =>
  * veröffentlichen ihr Ergebnis als normalen PR-Kommentar ohne Commit-Bezug; er zählt, wenn er nach
  * dem Eintreffen des Heads auf GitHub (`headDate`, Serverzeit des frühesten Status) erstellt oder aktualisiert wurde.
  */
-export function reviewedBy(reviews, headSha, agents, comments = [], headDate = null, prAuthor) {
-  if (!prAuthor) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
+export function reviewedBy(reviews, headSha, agents, comments = [], headDate = null, prAuthors = []) {
+  // prAuthors: PR-Öffner plus Autoren/Committer der PR-Commits.
+  const authors = [prAuthors].flat().filter(Boolean);
+  if (authors.length === 0) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
   const names = new Set();
   // Der PR-Autor und jeder Agent, dem sein Login gehört, kann sich nicht selbst prüfen.
-  const authorAgents = new Set(agentsOf(prAuthor, agents).map((a) => a.name));
+  const authorLogins = new Set(authors.map(normalize));
+  const authorAgents = new Set(authors.flatMap((a) => agentsOf(a, agents).map((x) => x.name)));
   const own = (user) =>
-    normalize(user?.login) === normalize(prAuthor) ||
+    authorLogins.has(normalize(user?.login)) ||
     agentsOf(user?.login, agents).some((a) => authorAgents.has(a.name));
   for (const review of reviews) {
     if (own(review.user)) continue;
@@ -92,6 +95,9 @@ function main() {
 
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
+  const commitLogins = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`]))
+    .flat()
+    .flatMap((c) => [c.author?.login, c.committer?.login]);
   // Serverzeit statt Commit-Datum: `committer.date` setzt der PR-Autor selbst. Der früheste Status am
   // Head (u. a. der Pending-Status dieses Gates) entsteht erst, wenn der Head auf GitHub angekommen ist.
   const earliest = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/commits/${head}/statuses`]))
@@ -104,7 +110,7 @@ function main() {
   const post = (context, { state, description }) =>
     gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`]);
 
-  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, comments, headDate, pull.user?.login));
+  const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, comments, headDate, [pull.user?.login, ...commitLogins]));
   const threads = threadsStatus(fetchThreads(owner, repo, pr));
   post(STATUS_REVIEWED, reviewed);
   post(STATUS_THREADS, threads);
