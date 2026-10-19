@@ -50,4 +50,8 @@ export const HTML_PAGES: readonly string[] = [
   'strategy-okrs',
   'strategy-bsc',
   'strategy-growth',
+  // Welle G2-9 – Recht (Auftrag 102)
+  'legal-articles',
+  'legal-shareholders',
+  'legal-register',
 ];

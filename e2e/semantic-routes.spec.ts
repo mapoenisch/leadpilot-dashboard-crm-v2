@@ -45,6 +45,9 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'strategy-okrs': '/strategy/okrs',
   'strategy-bsc': '/strategy/balanced-scorecard',
   'strategy-growth': '/strategy/growth-drivers',
+  'legal-articles': '/legal/articles',
+  'legal-shareholders': '/legal/shareholders',
+  'legal-register': '/legal/commercial-register',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

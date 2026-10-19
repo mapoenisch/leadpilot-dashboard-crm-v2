@@ -17263,3 +17263,19 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Screenshot-Matrix:** `docs/screenshots/auftrag-101/README.md` – 3 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 42/42 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D 16/0/0, 0 px Überlauf, 0 px abgeschnitten, kleinste Schrift 11 → 16,5 → 22 px, axe 0).
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+## Auftrag 102 – Paket G2, Welle 9: Rechtsseiten als echte Seiten (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Neunte G2-Welle nach dem Vorgehen von 093–101 (Original-WebP ist Vorlage, „ruhig“ dämpft nur), ohne Sichtfreigabe (Ergänzung Marc vom 19.10.2026): Satzung, Gesellschafterliste und Handelsregister erscheinen als echte HTML-Seiten (`HTML_PAGES`). Damit 30 von 32 Seiten freigegeben; offen bleiben Preismodell und Produkt-Performance. Branch `claude/auftrag-102-g2-welle-9` von `main` `36de335` (nach Merge PR #88).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/recht/pages/ArticlesPage.tsx`, `ShareholdersPage.tsx`, `CommercialRegisterPage.tsx`, neu `src/features/recht/rechtSeiten.css`; `src/domain/rechtData.ts`; Tests `g93FunnelPage.ui`, `g96VertriebSeiten.ui`, `g97FinanzSeiten.ui`, `g98MarktSeiten.ui` (Gegenprobe jetzt Preismodell), neu `g102RechtSeiten.ui`; `e2e/semantic-routes.spec.ts`; `scripts/captureAuftrag102Recht.mjs`; `docs/screenshots/auftrag-102/README.md`; Auftrag 102; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 abgeglichen. Angeglichen: Vertretung „jeweils einzelvertretungsberechtigt“ (§1, §17 D4); Pille Stammkapital 31.250,00 € statt 25.000 € im WebP (§1, §7). Nachgebaut: Untertitel des Originals, Leucht-Tabellen ohne Panel-Überschrift, Handelsregister als Tabelle „Merkmal / Details“, Nennbeträge in Festbreitenschrift. Begründete Abweichungen im Auftrag. Das Capture-Skript prüft neben Überschriften auch Kerninhalte (Untertitel, Pillen, Tabellenzellen), da die Rechtsseiten keine Zwischenüberschriften haben.
+
+**Schutzbereichs-Prüfung:** `git diff 36de335 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (Integritätssuiten 001–025); Vitest gesamt 2421 Tests grün; `npm run build` grün; ESLint 0 Warnungen; Prettier sauber. E2E und size-limit laufen in der CI.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-102/README.md` – 3 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 42/42 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Kerninhalte sichtbar, 0 px Überlauf, 0 px abgeschnitten, kleinste Schrift 11 → 16,5 → 22 px, axe 0).
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
