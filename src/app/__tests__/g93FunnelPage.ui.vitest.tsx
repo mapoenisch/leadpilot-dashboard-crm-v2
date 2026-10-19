@@ -10,8 +10,9 @@ import { FunnelPage } from '@/features/vertrieb/pages/FunnelPage';
 afterEach(cleanup);
 
 describe('G93 Sales Funnel als HTML-Seite', () => {
-  it('Seitenfreigabe nennt den Funnel, globaler Schalter bleibt Bild', () => {
-    expect(PAGE_PRESENTATION).toBe('bild');
+  // Auftrag 104 / Codex PR #91: Schalter steht auf 'html'; die Prüfung erlaubt den Rückweg 'bild'.
+  it('Seitenfreigabe nennt den Funnel, globaler Schalter hat einen gültigen Wert', () => {
+    expect(['bild', 'html']).toContain(PAGE_PRESENTATION);
     // Auftrag 094: weitere Wellen ergänzen die Liste; der Funnel bleibt freigegeben.
     expect(HTML_PAGES).toContain('sales-funnel');
     for (const key of HTML_PAGES) expect(Object.keys(IMAGE_PAGES)).toContain(key);

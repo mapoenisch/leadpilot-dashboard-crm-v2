@@ -1628,6 +1628,23 @@ Simulation Progress, Goal Status, Event Timeline.
   `v2.3.1` bleibt unverändert. Interaktive Seiten und die Datenbasis-Seite (G47) sind nicht betroffen.
   Die früheren Festlegungen bleiben als Historie in `docs/BUILD_LOG.md` stehen.
 
+- **Revision 19.10.2026 (Plan Frontend-Qualität, Paket G3 / Auftrag 104; Grundlage: Entscheidungen
+  Marc vom 06.10. und 19.10.2026):** Die Revision vom 26.09.2026 ist für die aktive Darstellung abgelöst.
+  Alle 32 statischen Inhaltsseiten sind mit den Aufträgen 093–103 als echte Seiten (Page-Kit, Inhalte aus
+  `src/domain/*`) freigegeben; Gestaltungsmaßstab bleibt das Original-WebP aus v2.2.0 als Vorlage
+  (Bildvergleich je Welle, begründete Abweichungen im jeweiligen Auftrag). **Neue Darstellungsregel:**
+  `PAGE_PRESENTATION = 'html'`; Inhalt ist sichtbarer, auswählbarer Text mit genau einer `h1`, kein
+  Ganzseiten-WebP und keine unsichtbare zweite Inhaltsfassung in der aktiven Darstellung. `HTML_PAGES`
+  bleibt als vollständige Freigabeliste (32 von 32). **Rückweg:** einzelne Seiten – Schalter auf `'bild'`
+  und deren Schlüssel aus `HTML_PAGES` entfernen (nur diese Seiten zeigen wieder WebP mit Textschicht);
+  alle Seiten – `'bild'` mit leerer `HTML_PAGES` oder Tag `v2.4.0` ausliefern. Keine Datenbankänderung.
+  Zum Rückweg gehört, die Freigabetests der zurückgenommenen Seiten anzupassen: Die Wellen-Suiten
+  `g93FunnelPage.ui` bis `g103ProduktSeiten.ui` sichern die Freigabe ihrer Seiten bewusst ab (Eintrag in
+  `HTML_PAGES`, „kein Ganzseitenbild“) und schlagen für eine zurückgenommene Seite fehl; diese Assertions
+  entfallen mit der Rücknahme. `g104BildseitenAbschluss.ui` und die E2E-Suite folgen dem Schalter.
+  Die WebPs unter `public/assets/auftrag-037d`–`037g` und `ImagePage` bleiben dafür unverändert erhalten;
+  `g67ImagePages.ui` prüft den Bildweg weiter. Die Revision vom 26.09.2026 bleibt als Historie stehen.
+
 ## B19. Verbindliche technische Kernarchitektur — Kurzliste
 
 - Ebene A = historisch / read-only; Ebene B = Simulation
@@ -2055,6 +2072,7 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 | 2026-09-25 | G65 (067S): Upgrade von v2.2.0 abgesichert (`20260100000000_v2_2_upgrade_prep.sql`), Neuaufbau und Upgrade auf identisches Schema gebracht (`20261003_tenant_schema_convergence.sql`: kein stiller Demo-Default mehr auf `organization_id`, Ergänzung zu B17), Lizenz `All Rights Reserved`, Runbook und getesteter Rollback (Frontend zurück, Schema bleibt). |
 | 2026-09-25 | **Release `v2.3.0`** von Marc Pönisch freigegeben (Masterauftrag 067, Gates G44–G65; Release Notes `docs/releases/V2.3.0.md`). |
 | 2026-09-26 | Revision zu B18 (Auftrag 069 / G67): 32 statische Inhaltsseiten wieder als Original-WebP aus v2.2.0 mit unsichtbarer Textschicht; Regeln „kein Ganzseiten-WebP“ (G52–G55) und G66-Design-Gate zurückgenommen; Rückweg zu v2.3.1 per Schalter `PAGE_PRESENTATION` und unverändertem Tag ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md)). |
+| 2026-10-19 | Revision zu B18 (Paket G3 / Auftrag 104): alle 32 Inhaltsseiten als echte Seiten, `PAGE_PRESENTATION = 'html'`, keine unsichtbare Zweitfassung mehr aktiv; Rückweg je Seite über `'bild'` + `HTML_PAGES` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_104_G3_BILDSEITEN_ABSCHLUSS.md)). |
 
 ## D5. MASTERSTATUS
 
