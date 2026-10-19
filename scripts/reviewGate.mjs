@@ -25,10 +25,14 @@ const agentsOf = (login, agents) =>
  * veröffentlichen ihr Ergebnis als normalen PR-Kommentar ohne Commit-Bezug; er zählt, wenn er nach
  * dem Eintreffen des Heads auf GitHub (`headDate`, Serverzeit des frühesten Status) erstellt oder aktualisiert wurde.
  */
-export function reviewedBy(reviews, headSha, agents, comments = [], headDate = null, prAuthor = null) {
+export function reviewedBy(reviews, headSha, agents, comments = [], headDate = null, prAuthor) {
+  if (!prAuthor) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
   const names = new Set();
-  // Der PR-Autor kann sich nicht selbst prüfen.
-  const own = (user) => Boolean(prAuthor) && normalize(user?.login) === normalize(prAuthor);
+  // Der PR-Autor und jeder Agent, dem sein Login gehört, kann sich nicht selbst prüfen.
+  const authorAgents = new Set(agentsOf(prAuthor, agents).map((a) => a.name));
+  const own = (user) =>
+    normalize(user?.login) === normalize(prAuthor) ||
+    agentsOf(user?.login, agents).some((a) => authorAgents.has(a.name));
   for (const review of reviews) {
     if (own(review.user)) continue;
     if (review.commit_id !== headSha) continue;
