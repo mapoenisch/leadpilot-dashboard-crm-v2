@@ -87,6 +87,10 @@ describe('G104 Abschluss: alle 32 Inhaltsseiten sind echte Seiten', () => {
     expect(pages).toHaveLength(32);
     expect(pages.map(([key]) => key).sort()).toEqual(Object.keys(IMAGE_PAGES).sort());
     for (const key of HTML_PAGES) expect(Object.keys(IMAGE_PAGES)).toContain(key);
+    // Codex-Prüfung Runde 2 (P3): Vollständigkeit hier selbsttragend, solange kein Rückweg aktiv ist.
+    if (PAGE_PRESENTATION === 'html') {
+      expect([...HTML_PAGES].sort()).toEqual(Object.keys(IMAGE_PAGES).sort());
+    }
     expect(new Set(HTML_PAGES).size).toBe(HTML_PAGES.length);
   });
 

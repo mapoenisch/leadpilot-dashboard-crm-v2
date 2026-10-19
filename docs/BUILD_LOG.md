@@ -17323,6 +17323,7 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **P2-2 – Dokumentierter Rückweg bricht die Testsuite:** Die Revision (`ARCHITECTURE_DECISIONS.md:1631-1642`) beschreibt den Rückweg als reinen Schalterschritt (`'bild'` + Schlüssel aus `HTML_PAGES` entfernen), die Tests pinnen aber hart: `g104BildseitenAbschluss.ui.vitest.tsx:82,85,86` und `g93FunnelPage.ui.vitest.tsx:14`. Entweder Revisionstext präzisieren (Rückweg erfordert Anpassung von g93/g104) oder die Assertions an den Schalter koppeln (wie `e2e/semantic-routes.spec.ts`, das dem Schalter folgt).
 
 **P3 (nicht blockierend):**
+
 - `g104BildseitenAbschluss.ui.vitest.tsx:91-104`: `_key` ungenutzt, keine Bindung über `data-page-key`; eine vertauschte Seite↔Schlüssel-Zuordnung bliebe unbemerkt (`g99`/`g102` prüfen `data-page-key`, hier nicht).
 - `g104BildseitenAbschluss.ui.vitest.tsx:102`: `img[src$=".webp"]` verbietet jedes WebP, breiter als „kein Ganzseiten-WebP“.
 - `e2e/semantic-routes.spec.ts:21-22`: Kommentar „Bildzweig bleibt für den Rückweg (Schalter `'bild'`)“ – das Kippen des Schalters allein bewirkt wegen der vollen `HTML_PAGES`-Liste nichts.
@@ -17346,6 +17347,31 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Schutzbereichs-Prüfung:** `git diff a4fb52d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 
 **Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Prettier sauber; Vitest 340 Dateien / 2455 Tests grün; `npm run verify` grün (001–025); `npm run build` grün. Offen: Codex-Bestätigung der Nacharbeit.
+
+### Auftrag 104 – Review PR #91, Runde 2 (19.10.2026, Prüfer)
+
+**Prüfgegenstand:** Branch `claude/auftrag-104-g3-abschluss`, HEAD `e5671f1` (Nacharbeits-Commit nach Runde 1), PR #91 gegen `main` (`a4fb52d`). Das GitHub-Codex-Review zu #91 reicht nur bis `57c8620`; diese Runde prüft den aktuellen Kopf unabhängig nach.
+
+**Befund:** Kein P1, kein P2. Die Nacharbeit zu Runde 1 ist vollständig und korrekt; die Änderung bleibt sichtbar wirkungslos (auf Baseline `a4fb52d` war `HTML_PAGES` bereits vollständig). Eine Freigabeempfehlung; vier Beobachtungen (P3, nicht blockierend).
+
+**P2-2/Runde 1 – nachgeprüft:** `g104BildseitenAbschluss.ui` (Z. 47, 103) und `g93FunnelPage.ui` (Z. 13–14) folgen jetzt dem Schalter; `e2e/semantic-routes.spec.ts:62` ebenfalls. Rückweg-Probe eigenständig reproduziert: Schalter `'bild'`, `product-pricing` aus `HTML_PAGES` → genau 2 rote Tests, beide in `g103ProduktSeiten.ui.vitest.tsx` (Z. 28/29 + Seitencheck), `g93`/`g104` und alle übrigen 20 UI-Suiten grün; Konfiguration danach zurückgesetzt, Arbeitsbaum sauber. Deckt die Zusage in `ARCHITECTURE_DECISIONS.md:1631-1642`. Rückweg Tag `v2.4.0` erneut verifiziert (`PAGE_PRESENTATION = 'bild'`, kein `HTML_PAGES`).
+
+**P1/Runde 1 – nachgeprüft:** `ARCHITECTURE_DECISIONS.md` gegen `main` +18/−0, nur Revision B18 und D4-Zeile; Teil A unverändert.
+
+**P3 (nicht blockierend):**
+
+- `g104BildseitenAbschluss.ui.vitest.tsx:85-91` prüft nur `HTML_PAGES ⊆ IMAGE_PAGES`; die Vollständigkeit 32/32 stützt sich allein auf `g103ProduktSeiten.ui:29` – genau die Suite, die der dokumentierte Rückweg anpasst/entfernt. Ein `expect([...HTML_PAGES].sort()).toEqual(Object.keys(IMAGE_PAGES).sort())` machte die Abschluss-Suite selbsttragend.
+- `g104…vitest.tsx:86` und `g93FunnelPage.ui:14`: `expect(['bild','html']).toContain(PAGE_PRESENTATION)` ist zur Laufzeit tautologisch (der Typ erzwingt den Wertebereich).
+- Ledger-Treue (Runde 1): Der Eintrag „Review PR #91, Runde 1 (Codex)“ nennt P2-1 und mehrere P3-Punkte, die im GitHub-Codex-Review zu #91 nicht vorkommen (dort nur P1 „Historie“ und P2 „Rückweg-Tests“). Quelle der übrigen Punkte benennen (lokaler `codex-review`-Lauf) oder auf den PR-Kommentar beschränken.
+- Der Bildzweig in `g104`/E2E läuft im CI nie (Schalter `'html'`); gewollte Folge der Schalter-Kopplung, nur als Hinweis.
+
+**Geprüft (grün):** `npx tsc --noEmit` 0 Fehler; ESLint (`--max-warnings 0`); Prettier (`format:check`); Vitest 340 Dateien / 2455 Tests; `npm run verify` (001–025); `npm run build`; Schutzbereichs-Diff gegen `a4fb52d` leer; CI auf `e5671f1` (typecheck, test, lint, build, e2e, size-limit, CodeQL, livekpi-verifiers) pass; Änderungsumfang vollständig innerhalb der Auftrags-Zieldateien; Inventar 4a routen- und linkdeckungsgleich.
+
+**Ergebnis & Freigabestatus:** Gate bestanden, Freigabeempfehlung zugunsten des Builders. P3-Punkte ohne Blockierwirkung; Punkt 1 und 3 wären für Paket I bzw. den Runde-1-Eintrag nachzuziehen. Schutzbereiche unberührt.
+
+### Auftrag 104 – Nachtrag nach Merge PR #91 (Builder: Claude Code, 19.10.2026)
+
+PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2 (oben) mit diesem Nachtrag in `main` übernommen. P3-1 umgesetzt: `g104BildseitenAbschluss.ui` prüft bei Schalter `'html'` selbst die Vollständigkeit `HTML_PAGES` = 32 von 32. Zu P3-3: Die über den GitHub-Kommentar hinausgehenden Punkte der Runde 1 (P2-1, P3) stammen aus dem lokalen Prüflauf, der den Eintrag geschrieben hat. P3-2 und P3-4 bewusst unverändert (Typ-Absicherung bzw. gewollte Folge der Kopplung). Prüfung: `tsc` 0 Fehler, Prettier sauber, `g104` 33/33 grün.
 
 ### Auftrag CI-Review-Gate – Builder-Eintrag (Builder: Claude Code, 19.10.2026)
 
