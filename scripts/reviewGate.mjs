@@ -345,34 +345,40 @@ async function main() {
   ).flat();
   // Commit-Status hängen am SHA: Teilen sich PRs einen Head, blockieren beide (sonst überschreibt einer den anderen).
   const shared = sharedHeads(open);
+  let failed = 0;
   for (const [sha, numbers] of shared) {
     const blocked = {
       state: 'pending',
       description: `Mehrdeutiger Head: PRs ${numbers.join(', ')} teilen diesen Commit`,
     };
-    for (const context of [STATUS_REVIEWED, STATUS_THREADS]) {
-      gh(
-        [
-          'api',
-          '-X',
-          'POST',
-          `repos/${repoFull}/statuses/${sha}`,
-          '-f',
-          `state=${blocked.state}`,
-          '-f',
-          `context=${context}`,
-          '-f',
-          `description=${blocked.description}`,
-        ],
-        undefined,
-        statusToken,
-      );
+    try {
+      for (const context of [STATUS_REVIEWED, STATUS_THREADS]) {
+        gh(
+          [
+            'api',
+            '-X',
+            'POST',
+            `repos/${repoFull}/statuses/${sha}`,
+            '-f',
+            `state=${blocked.state}`,
+            '-f',
+            `context=${context}`,
+            '-f',
+            `description=${blocked.description}`,
+          ],
+          undefined,
+          statusToken,
+        );
+      }
+    } catch (err) {
+      failed += 1;
+      console.error(`Head ${sha.slice(0, 7)}: ${err.message}`);
+      continue;
     }
     console.log(`Head ${sha.slice(0, 7)}: PRs ${numbers.join(', ')} – mehrdeutig, blockiert`);
   }
   // --pr=all: alle offenen PRs neu bewerten (Standard im Workflow, damit kein Lauf einen anderen überholt).
   const prs = arg === 'all' ? open.map((p) => p.number) : [Number(arg)];
-  let failed = 0;
   for (const pr of prs) {
     try {
       if (!Number.isInteger(pr) || pr <= 0) throw new Error('--pr=<Nummer|all> fehlt');
