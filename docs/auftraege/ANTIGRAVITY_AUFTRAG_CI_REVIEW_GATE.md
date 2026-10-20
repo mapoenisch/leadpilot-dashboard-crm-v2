@@ -33,7 +33,7 @@ Ein Codex-Review ist nicht zwingend. Das Gate akzeptiert jeden Prüfer aus der L
 - **Härtung Öffner/Forks (Sicherheitscheck 20.10.):** Erfolg nur für PRs aus diesem Repo, die ein verifiziertes Konto aus `trustedOpeners` geöffnet hat (derzeit nur `mapoenisch`, ID und Typ in `accounts`). Das verkleinert das Präfix-Restrisiko auf Agenten, die unter Marcs Konto arbeiten.
 - **Konto-IDs (Befund P2 Codex, 20.10.):** Prüferkonten sind über `accounts` an ihre unveränderliche numerische GitHub-ID und den Typ gebunden. Ein umbenanntes und neu vergebenes Login zählt nicht. Ohne Eintrag zählt ein Review nie.
 - **Keine Agenten-Freigaben (Befund P2 Codex):** `approve: false` (gesetzt für `marcs-pr-reviewer`, AGENTS.md) verwirft dessen `APPROVED`, das hebt auch keine eigene Änderungsanforderung auf.
-- **Zielbranch-Wechsel (Befund P1 Codex):** `pull_request_target` reagiert auch auf `edited`. Reviews vor dem letzten `base_ref_changed` zählen nicht mehr, es braucht ein neues Review.
+- **Zielbranch-Wechsel (Befund P1 Codex):** `pull_request_target` reagiert auch auf `edited`. Reviews vor dem letzten `base_ref_changed` zählen nicht mehr, weder als Nachweis noch als Änderungsanforderung; es braucht ein neues Review.
 - **Periodische Neubewertung (Befund P1 Codex):** `review-gate-trigger.yml` läuft mit dem Workflow-Stand aus dem PR und kann dort entschärft werden. Ein geplanter Lauf alle 15 Minuten vom Default-Branch korrigiert jeden Status, auch wenn ein Ereignis ausbleibt.
 - **Fail-closed:** Vor den Abfragen gehen beide Status auf `pending`; ein Fehler lässt `agent-review` auf `pending` (Gate-Fehler), ein früheres `success` bleibt nie stehen. `review-conversations` wird unabhängig bewertet. Fehler bei einem PR brechen die übrigen nicht ab. Ausnahme: Fehlen die App-Secrets ganz, kann kein Status gesetzt werden; der Lauf schlägt dann sichtbar fehl.
 - **Fälschungsschutz (Marc 20.10.2026):** Status nur über die eigene GitHub-App. Ein PR könnte mit geändertem Workflow und `GITHUB_TOKEN` Status gleichen Namens posten; der Branch-Schutz akzeptiert aber nur die an die App gehefteten Checks. Die App-Secrets liegen in der Umgebung `review-gate`, die nur vom Default-Branch genutzt werden darf; Review-Ereignisse (Workflow-Stand aus dem PR) erreichen sie deshalb nie.
@@ -48,7 +48,7 @@ Unberührt (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `
 Codex prüft weiter automatisch. Ist das Codex-Limit erreicht, stößt Marc ein Review eines anderen Prüfers von Hand an; das Gate zählt es wie ein Codex-Review.
 
 - **OpenCode:** lokal in OpenCode `/review-pr <PR-Nummer>` (`.opencode/command/review-pr.md`). Reicht ein formales Review mit Inline-Kommentaren über `marcs-pr-reviewer` ein.
-- **Antigravity:** Antigravity mit demselben Auftrag starten („Prüfe PR <Nummer> und reiche ein formales Review über marcs-pr-reviewer ein“); Token per `node scripts/getReviewerToken.mjs`.
+- **Antigravity:** Antigravity mit demselben Auftrag starten („Prüfe PR <Nummer> und reiche ein formales Review über marcs-pr-reviewer ein“); Token per `export GH_TOKEN=$(node scripts/getReviewerToken.mjs)` (Schlüssel unter `.secrets/marcs-pr-reviewer.private-key.pem` oder `--key=<pfad>`; `*.pem` und `.secrets/` sind per `.gitignore` ausgeschlossen).
 - **Devin:** im PR kommentieren `@devin review` (setzt Devin-Guthaben voraus).
 
 Danach setzt das Gate den Status automatisch (Review-Ereignis, spätestens beim 15-Minuten-Lauf).

@@ -238,13 +238,14 @@ export function evaluateReviewed({
   const builders = builderOf(pull.head.ref, builderBranches);
   if (builders.length === 0) throw new Error('Builder unbekannt (Branch-Präfix fehlt)');
   const usable = usableReviews(reviews, accounts);
-  const blockers = changesRequestedBy(usable, agents);
+  // Nach einem Zielbranch-Wechsel zählen nur Reviews, die danach abgegeben wurden, für Nachweis und
+  // Änderungsanforderungen gleichermaßen (alte Anforderungen beziehen sich auf einen anderen Diff).
+  const since = lastBaseChange(events);
+  const current = since ? usable.filter((r) => (r.submitted_at ?? '') > since) : usable;
+  const blockers = changesRequestedBy(current, agents);
   if (blockers.length > 0)
     return { state: 'failure', description: `Änderungen angefordert von ${blockers.join(', ')}` };
   const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
-  // Nach einem Zielbranch-Wechsel zählen nur Reviews, die danach abgegeben wurden.
-  const since = lastBaseChange(events);
-  const current = since ? usable.filter((r) => (r.submitted_at ?? '') > since) : usable;
   return reviewedStatus(
     reviewedBy(current, pull.head.sha, agents, [pull.user.login, ...commitLogins], builders),
   );

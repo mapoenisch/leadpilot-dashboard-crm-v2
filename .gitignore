@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .env
+*.pem
+.secrets/
 .DS_Store
 **/.DS_Store
 playwright-report/

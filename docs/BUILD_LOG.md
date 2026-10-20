@@ -17398,6 +17398,7 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 - Es zählen nur formale PR-Reviews (`APPROVED`/`COMMENTED`/`CHANGES_REQUESTED`) auf genau dem Head-Commit, keine Kommentare.
 - Änderungen angefordert blockieren (Befund P1 Codex, 20.10.): Pro Prüfer zählt sein wirksamer Zustand, also das letzte `APPROVED`/`CHANGES_REQUESTED`/`DISMISSED` über alle Commits. Steht er auf `CHANGES_REQUESTED`, wird `agent-review` zu `failure`, bis derselbe Prüfer freigibt oder das Review verworfen wird.
 - Kein Selbst-Review: Der PR-Öffner, Autoren und Committer der PR-Commits und jeder Agent mit deren Login sind als Prüfer ausgeschlossen, ebenso der per Branch-Präfix gebundene Builder (`builderBranches`). Ohne bekanntes Präfix gibt es nie `agent-review=success`. Eigene Builder-Konten verwirft Marc am 20.10.2026; das frei wählbare Präfix (Befund P2 Codex) bleibt als dokumentiertes Restrisiko, Marc prüft beim Merge, wer gebaut hat.
+- Nacharbeit Codex auf `1ea8558`: Der Zielbranch-Filter gilt jetzt auch für Änderungsanforderungen (2 Tests). Der Token-Helfer `scripts/getReviewerToken.mjs` ist committet (Standard-Repo `-v2`), `.gitignore` schließt `*.pem` und `.secrets/` aus.
 - Härtung Öffner/Forks (Sicherheitscheck 20.10.): Fork-PRs und PRs von Öffnern außerhalb von `trustedOpeners` (nur `mapoenisch`, per ID verifiziert) erhalten nie `agent-review=success`. 3 Tests.
 - Konto-IDs, Freigaben, Zielbranch, Zeitplan (Befunde Codex auf `a998cdc`): Prüferkonten sind über `accounts` an numerische ID und Typ gebunden. `APPROVED` von `marcs-pr-reviewer` wird ignoriert (`approve: false`). Reviews vor einem `base_ref_changed` zählen nicht, `edited` stößt die Bewertung an. Ein geplanter Lauf alle 15 Minuten schließt die Lücke durch den vom PR änderbaren Trigger.
 - Hat ein PR mehr Commits, als die API liefert (Grenze 250), gibt es keinen Erfolg.
@@ -17409,7 +17410,7 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 
 **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
 
-**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 29 Tests ist grün, darunter 4 zur Blockade bei angeforderten Änderungen. Abgedeckt sind:
+**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 31 Tests ist grün, darunter 4 zur Blockade bei angeforderten Änderungen. Abgedeckt sind:
 
 - Review auf dem Head zählt, Review auf einem älteren Commit nicht.
 - Ungelistete Prüfer und ausstehende Reviews zählen nicht.

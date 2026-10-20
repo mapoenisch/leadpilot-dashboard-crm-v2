@@ -395,3 +395,20 @@ describe('Härtung Öffner und Forks', () => {
     expect(config.accounts.mapoenisch).toEqual({ id: 55349298, type: 'User' });
   });
 });
+
+describe('Zielbranch-Wechsel und Änderungsanforderungen', () => {
+  const events = [{ event: 'base_ref_changed', created_at: '2026-10-20T11:00:00Z' }];
+  it('alte Änderungsanforderung vor dem Wechsel blockiert nicht mehr', () => {
+    const reviews = [
+      review('marcs-pr-reviewer', 'alt', 'CHANGES_REQUESTED', '2026-10-20T10:00:00Z'),
+      review('chatgpt-codex-connector', HEAD, 'COMMENTED', '2026-10-20T11:30:00Z'),
+    ];
+    expect(evaluate('claude/x', reviews, { events }).state).toBe('success');
+  });
+  it('neue Änderungsanforderung nach dem Wechsel blockiert', () => {
+    const reviews = [
+      review('chatgpt-codex-connector', HEAD, 'CHANGES_REQUESTED', '2026-10-20T11:30:00Z'),
+    ];
+    expect(evaluate('claude/x', reviews, { events }).state).toBe('failure');
+  });
+});
