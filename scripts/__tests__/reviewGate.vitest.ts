@@ -30,7 +30,10 @@ const IDS: Record<string, number> = {
 const accounts = {
   ...Object.fromEntries(Object.entries(IDS).map(([login, id]) => [login, { id, type: 'Bot' }])),
   'marcs-pr-reviewer': { id: 4, type: 'Bot', approve: false },
+  mapoenisch: { id: 55349298, type: 'User' },
 };
+const REPO = 'mapoenisch/leadpilot-dashboard-crm-v2';
+const trust = { trustedOpeners: ['mapoenisch'], repoFull: REPO };
 const userOf = (login: string) => ({
   login,
   id: IDS[login.replace(/\[bot\]$/, '')] ?? 999,
@@ -49,7 +52,7 @@ const review = (
 });
 // Agenten bauen unter Marcs Konto; der Builder ergibt sich aus dem Branch-Präfix.
 const pullOn = (ref: string, extra = {}) => ({
-  head: { sha: HEAD, ref },
+  head: { sha: HEAD, ref, repo: { full_name: REPO } },
   user: { login: 'mapoenisch', id: 55349298, type: 'User' },
   commits: 1,
   ...extra,
@@ -63,6 +66,7 @@ const evaluate = (ref: string, reviews: ReturnType<typeof review>[], extra = {})
     agents,
     builderBranches,
     accounts,
+    ...trust,
     ...extra,
   });
 const builders = (branch: string) => builderOf(branch, builderBranches);
@@ -331,7 +335,15 @@ describe('Konto-IDs, verbotene Freigaben, Zielbranch-Wechsel', () => {
       { event: 'base_ref_changed', created_at: '2026-10-20T11:00:00Z' },
     ];
     expect(lastBaseChange(events)).toBe('2026-10-20T11:00:00Z');
-    const args = { pull: pullOn('claude/x'), commits, agents, builderBranches, accounts, events };
+    const args = {
+      pull: pullOn('claude/x'),
+      commits,
+      agents,
+      builderBranches,
+      accounts,
+      events,
+      ...trust,
+    };
     expect(
       evaluateReviewed({
         ...args,
@@ -362,5 +374,24 @@ describe('Konto-IDs, verbotene Freigaben, Zielbranch-Wechsel', () => {
     const gate = fs.readFileSync(path.join(root, '.github/workflows/review-gate.yml'), 'utf8');
     expect(gate).toMatch(/schedule:\n\s+- cron:/);
     expect(gate).toMatch(/types: \[[^\]]*edited[^\]]*\]/);
+  });
+});
+
+describe('Härtung Öffner und Forks', () => {
+  const ok = [review('chatgpt-codex-connector')];
+  it('lehnt Fork-PRs ab', () => {
+    const fork = pullOn('claude/x', {
+      head: { sha: HEAD, ref: 'claude/x', repo: { full_name: 'fremd/fork' } },
+    });
+    expect(() => evaluate('claude/x', ok, { pull: fork })).toThrow('Fork-PR');
+  });
+  it('lehnt nicht verifizierte oder nicht vertrauenswürdige Öffner ab', () => {
+    const fake = pullOn('claude/x', { user: { login: 'mapoenisch', id: 1, type: 'User' } });
+    expect(() => evaluate('claude/x', ok, { pull: fake })).toThrow('nicht verifiziert');
+    expect(() => evaluate('claude/x', ok, { trustedOpeners: [] })).toThrow('nicht verifiziert');
+  });
+  it('echte Konfiguration vertraut nur Marcs verifiziertem Konto', () => {
+    expect(config.trustedOpeners).toEqual(['mapoenisch']);
+    expect(config.accounts.mapoenisch).toEqual({ id: 55349298, type: 'User' });
   });
 });

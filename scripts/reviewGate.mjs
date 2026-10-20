@@ -222,10 +222,18 @@ export function evaluateReviewed({
   builderBranches,
   accounts = {},
   events = [],
+  trustedOpeners = [],
+  repoFull,
 }) {
   if (!pull.user?.login) throw new Error('PR-Autor unbekannt');
   // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber kein Erfolg.
   if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig');
+  // Härtung zum frei wählbaren Präfix: nur PRs aus diesem Repo und nur von einem verifizierten,
+  // vertrauenswürdigen Öffner-Konto (Marc) zählen.
+  if (repoFull && pull.head.repo?.full_name !== repoFull)
+    throw new Error('Fork-PR: Gate nur für PRs aus diesem Repo');
+  if (!verifiedAccount(pull.user, accounts) || !has(trustedOpeners, pull.user.login))
+    throw new Error(`PR-Öffner ${pull.user.login} nicht verifiziert`);
   // Ohne bekanntes Branch-Präfix ist der Builder unbekannt: kein Erfolg.
   const builders = builderOf(pull.head.ref, builderBranches);
   if (builders.length === 0) throw new Error('Builder unbekannt (Branch-Präfix fehlt)');
@@ -242,7 +250,7 @@ export function evaluateReviewed({
   );
 }
 
-function gatePr(pr, repoFull, { agents, builderBranches, accounts }, statusToken) {
+function gatePr(pr, repoFull, { agents, builderBranches, accounts, trustedOpeners }, statusToken) {
   const [owner, repo] = repoFull.split('/');
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
@@ -286,6 +294,8 @@ function gatePr(pr, repoFull, { agents, builderBranches, accounts }, statusToken
       builderBranches,
       accounts,
       events,
+      trustedOpeners,
+      repoFull,
     });
   } catch (err) {
     errors.push(err);

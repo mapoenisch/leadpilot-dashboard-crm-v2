@@ -1,6 +1,7 @@
 {
   "_hinweis": "Agenten des Review-Gates. `logins`: Konten, deren formales PR-Review `agent-review` auf success setzen kann. `builderBranches` bindet die Builder-Rolle an das Branch-Präfix (Marc 20.10.2026: Agenten bauen unter Marcs Konto): Der dort genannte Agent kann den PR nicht selbst prüfen. PRs ohne bekanntes Präfix erhalten kein `agent-review=success`. Logins ohne `[bot]`-Suffix, ohne Groß-/Kleinschreibung.",
   "_hinweisAccounts": "Jedes Prüferkonto braucht hier seine unveränderliche numerische GitHub-ID und den Typ (`gh api users/<login>`, Bots mit `%5Bbot%5D`). Ohne passenden Eintrag zählt ein Review nicht (Logins werden nach Umbenennung wieder frei). `approve: false`: APPROVED dieses Kontos wird ignoriert (AGENTS.md: keine Freigaben durch marcs-PR-reviewer).",
+  "_hinweisOpeners": "`trustedOpeners`: Nur PRs, die eines dieser verifizierten Konten (ID/Typ in `accounts`) geöffnet hat, können `agent-review=success` erhalten. Fork-PRs nie.",
   "agents": [
     {
       "name": "Codex",
@@ -26,6 +27,7 @@
     "devin/": "Devin",
     "opencode/": "OpenCode"
   },
+  "trustedOpeners": ["mapoenisch"],
   "accounts": {
     "chatgpt-codex-connector": {
       "id": 199175422,
@@ -43,6 +45,10 @@
       "id": 344960928,
       "type": "Bot",
       "approve": false
+    },
+    "mapoenisch": {
+      "id": 55349298,
+      "type": "User"
     }
   }
 }
