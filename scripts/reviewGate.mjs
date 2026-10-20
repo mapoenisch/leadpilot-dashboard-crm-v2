@@ -11,7 +11,7 @@
 // Status setzt ausschließlich die eigene GitHub-App (Secrets `REVIEW_GATE_APP_ID`/`_KEY` in der Umgebung
 // `review-gate`, nur vom Default-Branch nutzbar). Ein PR kann sie mit `GITHUB_TOKEN` daher nicht fälschen,
 // wenn der Branch-Schutz die Pflicht-Checks an diese App heftet. Fehler setzen `pending`, nie Erfolg.
-// Prüfer und Builder sind an unveränderliche Konto-IDs gebunden (`accounts`); ein Zielbranch-Wechsel macht
+// Prüfer sind an unveränderliche Konto-IDs gebunden (`accounts`); ein Zielbranch-Wechsel macht
 // frühere Reviews ungültig. Ein geplanter Lauf bewertet regelmäßig neu, falls ein Ereignis ausbleibt.
 import { createSign } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -29,15 +29,14 @@ const has = (list, login) => (list ?? []).some((l) => normalize(l) === normalize
 /** Agenten, deren Prüfer-Konto (`logins`) dieser Login ist. */
 const agentsOf = (login, agents) => agents.filter((a) => has(a.logins, login));
 
-/** Agenten, denen dieser Login gehört, als Prüfer- oder Builder-Konto (`logins`, `builderLogins`). */
-const ownersOf = (login, agents) => agents.filter((a) => has(a.logins, login) || has(a.builderLogins, login));
-
 /**
  * Ein Konto ist verifiziert, wenn numerische ID und Typ zum Eintrag in `accounts` passen. Logins sind
  * nach einer Umbenennung wieder frei und dürfen allein nichts freigeben; ohne Eintrag zählt nichts.
  */
 export function verifiedAccount(user, accounts = {}) {
-  const entry = Object.entries(accounts).find(([login]) => normalize(login) === normalize(user?.login))?.[1];
+  const entry = Object.entries(accounts).find(
+    ([login]) => normalize(login) === normalize(user?.login),
+  )?.[1];
   return Boolean(entry && user && entry.id === user.id && entry.type === user.type);
 }
 
@@ -48,7 +47,9 @@ export function verifiedAccount(user, accounts = {}) {
 export function usableReviews(reviews, accounts = {}) {
   return reviews.filter((review) => {
     if (!verifiedAccount(review.user, accounts)) return false;
-    const entry = Object.entries(accounts).find(([login]) => normalize(login) === normalize(review.user.login))[1];
+    const entry = Object.entries(accounts).find(
+      ([login]) => normalize(login) === normalize(review.user.login),
+    )[1];
     return !(review.state === 'APPROVED' && entry.approve === false);
   });
 }
@@ -68,14 +69,18 @@ export const lastBaseChange = (events) =>
  * Ein Prüfer hat den Head geprüft, wenn sein formales PR-Review auf genau diesen Commit zeigt.
  * Kommentare zählen nicht (kein Commit-Bezug, nachträglich änderbar).
  */
-export function reviewedBy(reviews, headSha, agents, prAuthors = []) {
+export function reviewedBy(reviews, headSha, agents, prAuthors = [], builderAgents = []) {
   // prAuthors: PR-Öffner plus Autoren/Committer der PR-Commits.
+  // builderAgents: per Branch-Präfix gebundene Builder-Rolle (baut unter Marcs Konto).
   const authors = [prAuthors].flat().filter(Boolean);
   if (authors.length === 0) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
   const names = new Set();
-  // Kein Selbst-Review: weder diese Konten noch ein Agent, dem eines davon gehört (Prüfer- oder Builder-Konto).
+  // Kein Selbst-Review: weder diese Konten noch ein Agent mit einem dieser Logins noch der gebundene Builder.
   const authorLogins = new Set(authors.map(normalize));
-  const authorAgents = new Set(authors.flatMap((a) => ownersOf(a, agents).map((x) => x.name)));
+  const authorAgents = new Set([
+    ...authors.flatMap((a) => agentsOf(a, agents).map((x) => x.name)),
+    ...builderAgents,
+  ]);
   const own = (user) =>
     authorLogins.has(normalize(user?.login)) ||
     agentsOf(user?.login, agents).some((a) => authorAgents.has(a.name));
@@ -108,11 +113,14 @@ export function changesRequestedBy(reviews, agents) {
 }
 
 /**
- * Builder laut PR-Öffner (Marc 20.10.2026: jeder Agent baut unter eigenem Konto). Der Öffner ist von
- * GitHub verbürgt, anders als Branch-Namen oder Git-Metadaten.
+ * Builder laut Branch-Präfix (`builderBranches`; Marc 20.10.2026: Agenten bauen unter Marcs Konto, keine
+ * eigenen Builder-Konten). Restrisiko: Das Präfix ist frei wählbar; ein Agent könnte unter einem fremden
+ * Präfix bauen und sich selbst prüfen. Marc prüft beim Merge, wer gebaut hat.
  */
-export const builderOf = (opener, agents) =>
-  agents.filter((a) => has(a.builderLogins, opener)).map((a) => a.name);
+export const builderOf = (branch, builderBranches = {}) =>
+  Object.entries(builderBranches)
+    .filter(([prefix]) => (branch ?? '').startsWith(prefix))
+    .map(([, name]) => name);
 
 export const reviewedStatus = (names) =>
   names.length > 0
@@ -122,7 +130,10 @@ export const reviewedStatus = (names) =>
 export function threadsStatus(threads) {
   const open = threads.filter((t) => !t.isResolved).length;
   return open > 0
-    ? { state: 'failure', description: `${open} offene Konversation${open === 1 ? '' : 'en'} — erst lösen` }
+    ? {
+        state: 'failure',
+        description: `${open} offene Konversation${open === 1 ? '' : 'en'} — erst lösen`,
+      }
     : { state: 'success', description: 'Alle Review-Konversationen gelöst' };
 }
 
@@ -173,7 +184,18 @@ function fetchThreads(owner, repo, pr) {
   const nodes = [];
   let after = null;
   for (;;) {
-    const args = ['api', 'graphql', '-f', `query=${THREADS_QUERY}`, '-F', `owner=${owner}`, '-F', `repo=${repo}`, '-F', `pr=${pr}`];
+    const args = [
+      'api',
+      'graphql',
+      '-f',
+      `query=${THREADS_QUERY}`,
+      '-F',
+      `owner=${owner}`,
+      '-F',
+      `repo=${repo}`,
+      '-F',
+      `pr=${pr}`,
+    ];
     if (after) args.push('-F', `after=${after}`);
     const page = JSON.parse(gh(args)).data.repository.pullRequest.reviewThreads;
     nodes.push(...page.nodes);
@@ -182,47 +204,89 @@ function fetchThreads(owner, repo, pr) {
   }
 }
 
-export const errorStatus = (err) => ({ state: 'pending', description: `Gate-Fehler: ${err.message}`.slice(0, 140) });
+export const errorStatus = (err) => ({
+  state: 'pending',
+  description: `Gate-Fehler: ${err.message}`.slice(0, 140),
+});
 export const CHECKING = { state: 'pending', description: 'Wird geprüft …' };
 
 /**
  * Bewertet `agent-review` für einen PR. Wirft bei unvollständigen Daten oder unbekanntem Builder;
  * der Aufrufer setzt dann `pending` (kein Erfolg ohne vollständige Prüfung).
  */
-export function evaluateReviewed({ pull, commits, reviews, agents, accounts = {}, events = [] }) {
+export function evaluateReviewed({
+  pull,
+  commits,
+  reviews,
+  agents,
+  builderBranches,
+  accounts = {},
+  events = [],
+}) {
   if (!pull.user?.login) throw new Error('PR-Autor unbekannt');
   // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber kein Erfolg.
   if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig');
-  // Ist der PR-Öffner kein Builder-Konto eines Agenten, ist der Builder unbekannt: kein Erfolg, sonst
-  // könnte ein Agent unter einem fremden Konto bauen und sich selbst prüfen.
-  const builders = verifiedAccount(pull.user, accounts) ? builderOf(pull.user.login, agents) : [];
-  if (builders.length === 0) throw new Error(`Builder unbekannt (PR-Öffner ${pull.user.login} ist kein verifiziertes Agent-Builder-Konto)`);
+  // Ohne bekanntes Branch-Präfix ist der Builder unbekannt: kein Erfolg.
+  const builders = builderOf(pull.head.ref, builderBranches);
+  if (builders.length === 0) throw new Error('Builder unbekannt (Branch-Präfix fehlt)');
   const usable = usableReviews(reviews, accounts);
   const blockers = changesRequestedBy(usable, agents);
-  if (blockers.length > 0) return { state: 'failure', description: `Änderungen angefordert von ${blockers.join(', ')}` };
+  if (blockers.length > 0)
+    return { state: 'failure', description: `Änderungen angefordert von ${blockers.join(', ')}` };
   const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
   // Nach einem Zielbranch-Wechsel zählen nur Reviews, die danach abgegeben wurden.
   const since = lastBaseChange(events);
   const current = since ? usable.filter((r) => (r.submitted_at ?? '') > since) : usable;
-  return reviewedStatus(reviewedBy(current, pull.head.sha, agents, [pull.user.login, ...commitLogins]));
+  return reviewedStatus(
+    reviewedBy(current, pull.head.sha, agents, [pull.user.login, ...commitLogins], builders),
+  );
 }
 
-function gatePr(pr, repoFull, { agents, accounts }, statusToken) {
+function gatePr(pr, repoFull, { agents, builderBranches, accounts }, statusToken) {
   const [owner, repo] = repoFull.split('/');
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
   const post = (context, { state, description }) =>
-    gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`], undefined, statusToken);
+    gh(
+      [
+        'api',
+        '-X',
+        'POST',
+        `repos/${repoFull}/statuses/${head}`,
+        '-f',
+        `state=${state}`,
+        '-f',
+        `context=${context}`,
+        '-f',
+        `description=${description}`,
+      ],
+      undefined,
+      statusToken,
+    );
   // Fail-closed: zuerst frühere Erfolge widerrufen, erst danach die fehlbaren Abfragen.
   post(STATUS_REVIEWED, CHECKING);
   post(STATUS_THREADS, CHECKING);
   const errors = [];
   let reviewed;
   try {
-    const commits = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`])).flat();
-    const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
-    const events = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/issues/${pr}/events`])).flat();
-    reviewed = evaluateReviewed({ pull, commits, reviews, agents, accounts, events });
+    const commits = JSON.parse(
+      gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`]),
+    ).flat();
+    const reviews = JSON.parse(
+      gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`]),
+    ).flat();
+    const events = JSON.parse(
+      gh(['api', '--paginate', '--slurp', `repos/${repoFull}/issues/${pr}/events`]),
+    ).flat();
+    reviewed = evaluateReviewed({
+      pull,
+      commits,
+      reviews,
+      agents,
+      builderBranches,
+      accounts,
+      events,
+    });
   } catch (err) {
     errors.push(err);
     reviewed = errorStatus(err);
@@ -237,19 +301,25 @@ function gatePr(pr, repoFull, { agents, accounts }, statusToken) {
   }
   post(STATUS_REVIEWED, reviewed);
   post(STATUS_THREADS, threads);
-  console.log(`PR ${pr} @ ${head.slice(0, 7)}: ${STATUS_REVIEWED}=${reviewed.state}, ${STATUS_THREADS}=${threads.state}`);
+  console.log(
+    `PR ${pr} @ ${head.slice(0, 7)}: ${STATUS_REVIEWED}=${reviewed.state}, ${STATUS_THREADS}=${threads.state}`,
+  );
   if (errors.length > 0) throw errors[0];
 }
 
 async function main() {
   const arg = (process.argv.find((a) => a.startsWith('--pr=')) ?? '').slice(5);
   const repoFull = process.env.GITHUB_REPOSITORY;
-  const config = JSON.parse(readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8'));
+  const config = JSON.parse(
+    readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8'),
+  );
   const statusToken = await appToken(repoFull);
   // --pr=all: alle offenen PRs neu bewerten (Standard im Workflow, damit kein Lauf einen anderen überholt).
   const prs =
     arg === 'all'
-      ? JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls?state=open&per_page=100`]))
+      ? JSON.parse(
+          gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls?state=open&per_page=100`]),
+        )
           .flat()
           .map((p) => p.number)
       : [Number(arg)];

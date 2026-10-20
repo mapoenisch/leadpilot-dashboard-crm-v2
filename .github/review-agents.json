@@ -1,17 +1,48 @@
 {
-  "_hinweis": "Agenten des Review-Gates (Marc 20.10.2026: jeder Agent baut unter eigenem GitHub-Konto). `logins`: Konten, deren formales PR-Review `agent-review` auf success setzen kann. `builderLogins`: Konten, unter denen der Agent PRs öffnet und committet. Der Builder wird nur am PR-Öffner und an den Commit-Konten erkannt; ein PR, dessen Öffner kein verifiziertes `builderLogins`-Konto ist, erhält nie `agent-review=success`. Logins ohne `[bot]`-Suffix, ohne Groß-/Kleinschreibung. Leere Listen füllt Marc, sobald die Konten angelegt sind.",
-  "_hinweisAccounts": "Jedes Prüfer- und Builder-Konto braucht hier seine unveränderliche numerische GitHub-ID und den Typ (`gh api users/<login>`, Bots mit `%5Bbot%5D`). Ohne passenden Eintrag zählt ein Konto nicht (Logins werden nach Umbenennung wieder frei). `approve: false`: APPROVED dieses Kontos wird ignoriert (AGENTS.md: keine Freigaben durch marcs-PR-reviewer).",
+  "_hinweis": "Agenten des Review-Gates. `logins`: Konten, deren formales PR-Review `agent-review` auf success setzen kann. `builderBranches` bindet die Builder-Rolle an das Branch-Präfix (Marc 20.10.2026: Agenten bauen unter Marcs Konto): Der dort genannte Agent kann den PR nicht selbst prüfen. PRs ohne bekanntes Präfix erhalten kein `agent-review=success`. Logins ohne `[bot]`-Suffix, ohne Groß-/Kleinschreibung.",
+  "_hinweisAccounts": "Jedes Prüferkonto braucht hier seine unveränderliche numerische GitHub-ID und den Typ (`gh api users/<login>`, Bots mit `%5Bbot%5D`). Ohne passenden Eintrag zählt ein Review nicht (Logins werden nach Umbenennung wieder frei). `approve: false`: APPROVED dieses Kontos wird ignoriert (AGENTS.md: keine Freigaben durch marcs-PR-reviewer).",
   "agents": [
-    { "name": "Claude", "logins": [], "builderLogins": [] },
-    { "name": "Codex", "logins": ["chatgpt-codex-connector"], "builderLogins": [] },
-    { "name": "Devin", "logins": ["devin-ai-integration"], "builderLogins": [] },
-    { "name": "OpenCode", "logins": ["opencode-agent", "marcs-pr-reviewer"], "builderLogins": [] },
-    { "name": "Antigravity", "logins": ["marcs-pr-reviewer"], "builderLogins": [] }
+    {
+      "name": "Codex",
+      "logins": ["chatgpt-codex-connector"]
+    },
+    {
+      "name": "Devin",
+      "logins": ["devin-ai-integration"]
+    },
+    {
+      "name": "OpenCode",
+      "logins": ["opencode-agent", "marcs-pr-reviewer"]
+    },
+    {
+      "name": "Antigravity",
+      "logins": ["marcs-pr-reviewer"]
+    }
   ],
+  "builderBranches": {
+    "antigravity/": "Antigravity",
+    "claude/": "Claude",
+    "codex/": "Codex",
+    "devin/": "Devin",
+    "opencode/": "OpenCode"
+  },
   "accounts": {
-    "chatgpt-codex-connector": { "id": 199175422, "type": "Bot" },
-    "devin-ai-integration": { "id": 158243242, "type": "Bot" },
-    "opencode-agent": { "id": 219766164, "type": "Bot" },
-    "marcs-pr-reviewer": { "id": 344960928, "type": "Bot", "approve": false }
+    "chatgpt-codex-connector": {
+      "id": 199175422,
+      "type": "Bot"
+    },
+    "devin-ai-integration": {
+      "id": 158243242,
+      "type": "Bot"
+    },
+    "opencode-agent": {
+      "id": 219766164,
+      "type": "Bot"
+    },
+    "marcs-pr-reviewer": {
+      "id": 344960928,
+      "type": "Bot",
+      "approve": false
+    }
   }
 }
