@@ -80,17 +80,33 @@ function gh(args, input, token = process.env.GH_TOKEN) {
   });
 }
 
-/** Installations-Token der Review-Gate-App: JWT (RS256) mit Node-Bordmitteln, ohne Abhängigkeit. */
-function appToken(repoFull) {
+/** JWT (RS256) der Review-Gate-App, mit Node-Bordmitteln ohne Abhängigkeit. */
+export function appJwt(appId, key, now = Math.floor(Date.now() / 1000)) {
+  const b64 = (v) => Buffer.from(JSON.stringify(v)).toString('base64url');
+  const body = `${b64({ alg: 'RS256', typ: 'JWT' })}.${b64({ iat: now - 60, exp: now + 540, iss: String(appId) })}`;
+  return `${body}.${createSign('RSA-SHA256').update(body).sign(key, 'base64url')}`;
+}
+
+/**
+ * Installations-Token der Review-Gate-App. Die JWT-Aufrufe laufen per fetch mit `Bearer`:
+ * `gh api` sendet ein Token als OAuth-Token, das GitHub für JWTs mit 401 ablehnt.
+ */
+async function appToken(repoFull) {
   const appId = process.env.REVIEW_GATE_APP_ID;
   const key = process.env.REVIEW_GATE_APP_KEY;
   if (!appId || !key) throw new Error('REVIEW_GATE_APP_ID/_KEY fehlen: Gate bleibt ohne Status');
-  const b64 = (v) => Buffer.from(JSON.stringify(v)).toString('base64url');
-  const now = Math.floor(Date.now() / 1000);
-  const body = `${b64({ alg: 'RS256', typ: 'JWT' })}.${b64({ iat: now - 60, exp: now + 540, iss: appId })}`;
-  const jwt = `${body}.${createSign('RSA-SHA256').update(body).sign(key, 'base64url')}`;
-  const installation = JSON.parse(gh(['api', `repos/${repoFull}/installation`], undefined, jwt));
-  return JSON.parse(gh(['api', '-X', 'POST', `app/installations/${installation.id}/access_tokens`], undefined, jwt)).token;
+  const headers = {
+    Authorization: `Bearer ${appJwt(appId, key)}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  const call = async (method, path) => {
+    const res = await fetch(`https://api.github.com/${path}`, { method, headers });
+    if (!res.ok) throw new Error(`App-Token: ${method} ${path} → ${res.status}`);
+    return res.json();
+  };
+  const installation = await call('GET', `repos/${repoFull}/installation`);
+  return (await call('POST', `app/installations/${installation.id}/access_tokens`)).token;
 }
 
 const THREADS_QUERY = `query($owner:String!,$repo:String!,$pr:Int!,$after:String){
@@ -112,6 +128,23 @@ function fetchThreads(owner, repo, pr) {
 }
 
 export const errorStatus = (err) => ({ state: 'pending', description: `Gate-Fehler: ${err.message}`.slice(0, 140) });
+export const CHECKING = { state: 'pending', description: 'Wird geprüft …' };
+
+/**
+ * Bewertet `agent-review` für einen PR. Wirft bei unvollständigen Daten oder unbekanntem Builder;
+ * der Aufrufer setzt dann `pending` (kein Erfolg ohne vollständige Prüfung).
+ */
+export function evaluateReviewed({ pull, commits, reviews, agents, builderBranches }) {
+  if (!pull.user?.login) throw new Error('PR-Autor unbekannt');
+  // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber kein Erfolg.
+  if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig');
+  // Ohne bekanntes Branch-Präfix ist der Builder unbekannt: kein Erfolg, sonst ließe sich die
+  // Selbst-Review-Sperre durch einen anders benannten Branch umgehen.
+  const builders = builderOf(pull.head.ref, builderBranches);
+  if (builders.length === 0) throw new Error('Builder unbekannt (Branch-Präfix fehlt)');
+  const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
+  return reviewedStatus(reviewedBy(reviews, pull.head.sha, agents, [pull.user.login, ...commitLogins], builders));
+}
 
 function gatePr(pr, repoFull, { agents, builderBranches }, statusToken) {
   const [owner, repo] = repoFull.split('/');
@@ -119,36 +152,39 @@ function gatePr(pr, repoFull, { agents, builderBranches }, statusToken) {
   const head = pull.head.sha;
   const post = (context, { state, description }) =>
     gh(['api', '-X', 'POST', `repos/${repoFull}/statuses/${head}`, '-f', `state=${state}`, '-f', `context=${context}`, '-f', `description=${description}`], undefined, statusToken);
+  // Fail-closed: zuerst frühere Erfolge widerrufen, erst danach die fehlbaren Abfragen.
+  post(STATUS_REVIEWED, CHECKING);
+  post(STATUS_THREADS, CHECKING);
+  const errors = [];
+  let reviewed;
   try {
-    if (!pull.user?.login) throw new Error('PR-Autor unbekannt');
     const commits = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`])).flat();
-    // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber kein Erfolg.
-    if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig');
-    const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
-    // Ohne bekanntes Branch-Präfix ist der Builder unbekannt: kein Erfolg, sonst ließe sich die
-    // Selbst-Review-Sperre durch einen anders benannten Branch umgehen.
-    const builders = builderOf(pull.head.ref, builderBranches);
-    if (builders.length === 0) throw new Error('Builder unbekannt (Branch-Präfix fehlt)');
     const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
-    const reviewed = reviewedStatus(reviewedBy(reviews, head, agents, [pull.user.login, ...commitLogins], builders));
-    const threads = threadsStatus(fetchThreads(owner, repo, pr));
-    post(STATUS_REVIEWED, reviewed);
-    post(STATUS_THREADS, threads);
-    console.log(`PR ${pr} @ ${head.slice(0, 7)}: ${STATUS_REVIEWED}=${reviewed.state}, ${STATUS_THREADS}=${threads.state}`);
+    reviewed = evaluateReviewed({ pull, commits, reviews, agents, builderBranches });
   } catch (err) {
-    // Fail-closed: ein früherer Erfolg darf nach einem Fehler nicht stehen bleiben.
-    post(STATUS_REVIEWED, errorStatus(err));
-    post(STATUS_THREADS, errorStatus(err));
-    throw err;
+    errors.push(err);
+    reviewed = errorStatus(err);
   }
+  // Konversationen werden unabhängig bewertet: ein unbekannter Builder macht sie nicht rot.
+  let threads;
+  try {
+    threads = threadsStatus(fetchThreads(owner, repo, pr));
+  } catch (err) {
+    errors.push(err);
+    threads = errorStatus(err);
+  }
+  post(STATUS_REVIEWED, reviewed);
+  post(STATUS_THREADS, threads);
+  console.log(`PR ${pr} @ ${head.slice(0, 7)}: ${STATUS_REVIEWED}=${reviewed.state}, ${STATUS_THREADS}=${threads.state}`);
+  if (errors.length > 0) throw errors[0];
 }
 
-function main() {
+async function main() {
   const arg = (process.argv.find((a) => a.startsWith('--pr=')) ?? '').slice(5);
   const repoFull = process.env.GITHUB_REPOSITORY;
   const config = JSON.parse(readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8'));
-  const statusToken = appToken(repoFull);
-  // --pr=all: alle offenen PRs neu bewerten (nach Änderung von Skript oder Prüferliste auf dem Default-Branch).
+  const statusToken = await appToken(repoFull);
+  // --pr=all: alle offenen PRs neu bewerten (Standard im Workflow, damit kein Lauf einen anderen überholt).
   const prs =
     arg === 'all'
       ? JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls?state=open&per_page=100`]))
@@ -168,4 +204,4 @@ function main() {
   if (failed > 0) process.exit(1);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

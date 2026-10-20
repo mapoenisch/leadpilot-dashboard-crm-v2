@@ -24,16 +24,14 @@ on:
       - .github/review-agents.json
   # Das Lösen einer Konversation löst keinen Workflow aus. Danach manuell: Actions > Review Gate > Run workflow.
   workflow_dispatch:
-    inputs:
-      pr:
-        description: 'PR-Nummer oder all'
-        required: true
 
 permissions:
   contents: read
 
+# Eine Gruppe für das ganze Repo, und jeder Lauf bewertet alle offenen PRs mit frischen Daten: Der
+# zuletzt gestartete Lauf schreibt damit immer den aktuellen Stand, kein älterer Snapshot überholt ihn.
 concurrency:
-  group: review-gate-${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number || github.event.inputs.pr || 'all' }}
+  group: review-gate
   cancel-in-progress: true
 
 jobs:
@@ -62,8 +60,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REVIEW_GATE_APP_ID: ${{ secrets.REVIEW_GATE_APP_ID }}
           REVIEW_GATE_APP_KEY: ${{ secrets.REVIEW_GATE_APP_KEY }}
-          # Ohne PR-Bezug (z. B. workflow_run eines Fork-PRs) werden alle offenen PRs neu bewertet.
-          PR: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number || github.event.inputs.pr || 'all' }}
-        run: |
-          case "$PR" in all) ;; ''|*[!0-9]*) echo "PR-Nummer fehlt oder ist nicht numerisch"; exit 1 ;; esac
-          node scripts/reviewGate.mjs --pr="$PR"
+        run: node scripts/reviewGate.mjs --pr=all

@@ -17375,6 +17375,8 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 
 ### Auftrag CI-Review-Gate – Builder-Eintrag (Builder: Claude Code, 19.10.2026)
 
+> **Revision 20.10.2026:** Dieser Eintrag beschreibt den Stand vom 19.10. und ist überholt (u. a. zählen PR-Kommentare nicht mehr). Maßgeblich ist der Abschlussbericht „Nacharbeit Codex-Befunde PR #93“ weiter unten.
+
 **Ziel & Kontext:** Repoweites Review-Gate: Commit-Status `agent-review` („Reviewed“ durch Antigravity/OpenCode/Devin) und `review-conversations` (failure bei offenen Konversationen). Grundlage: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
 
 **Geänderte Dateien:** `.github/workflows/review-gate.yml`, `scripts/reviewGate.mjs`, `.github/review-agents.json`, Auftrag, dieser Eintrag.
@@ -17387,16 +17389,35 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 
 **Ergebnis & Freigabestatus:** Offen bis zur Codex-Bestätigung; Branch-Schutz folgt nach Merge.
 
-### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93 (Builder: Claude Code, 20.10.2026)
+### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93, Abschlussbericht (Builder: Claude Code, 20.10.2026)
 
-**Befunde:** P1 Codex fehlt in der Prüferliste · P1 Selbst-Review, wenn Antigravity unter Marcs Identität baut · P1 Status per `GITHUB_TOKEN` fälschbar · P2 kein Neubewerten nach Änderung der Prüferliste; dazu Hinweise aus dem Sicherheitscheck (Umgehung über Branch-Namen, veralteter Status nach Fehlern).
+**Ziel & Kontext:** Repoweites Review-Gate mit den Commit-Status `agent-review` und `review-conversations`. Die Gate-Freigabe kommt von einem unabhängigen Prüfer aus `.github/review-agents.json` (Codex, Devin, OpenCode, Antigravity), nie vom Builder. Die Entscheidung für die eigene GitHub-App hat Marc am 20.10.2026 getroffen.
 
-**Umsetzung:** Codex in `review-agents.json`; Builder-Bindung per Branch-Präfix (`builderBranches`), ohne Präfix kein Erfolg; Status nur über eigene GitHub-App (JWT mit Node-Bordmitteln, keine neue Abhängigkeit), Secrets in Umgebung `review-gate` (nur `main`); Review-Ereignisse über neuen rechtelosen `review-gate-trigger.yml` und `workflow_run`; `push` auf `main` (Skript/Prüferliste) bewertet alle offenen PRs neu; Fehler setzen `pending` (fail-closed). Entscheidung GitHub-App: Marc 20.10.2026.
+**Ausgelieferte Logik (finaler Stand):**
 
-**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `.github/workflows/review-gate-trigger.yml` (neu), `scripts/reviewGate.mjs`, `.github/review-agents.json`, Auftrag `ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`, dieser Eintrag. Drawio-Diagramm per Revert in eigenen PR #94 verschoben.
+- Es zählen nur formale PR-Reviews (`APPROVED`/`COMMENTED`/`CHANGES_REQUESTED`) auf genau dem Head-Commit, keine Kommentare.
+- Kein Selbst-Review: Der PR-Öffner, Autoren und Committer der PR-Commits und jeder Agent mit deren Login sind als Prüfer ausgeschlossen, ebenso der per Branch-Präfix gebundene Builder (`builderBranches`). Ohne bekanntes Präfix gibt es nie `agent-review=success`.
+- Hat ein PR mehr Commits, als die API liefert (Grenze 250), gibt es keinen Erfolg.
+- Fail-closed: Nach Ermittlung des Heads gehen zuerst beide Status auf `pending` („Wird geprüft“), erst dann folgen die fehlbaren Abfragen. Bei Fehlern bleibt `pending` stehen. `review-conversations` wird unabhängig bewertet (Hinweis P3 von `marcs-pr-reviewer`).
+- Fälschungsschutz: Status setzt nur die eigene GitHub-App. Die JWT-Aufrufe laufen per `fetch` mit `Bearer`, weil `gh api` JWTs mit 401 ablehnt (Befund P1 `marcs-pr-reviewer`). Die Secrets liegen in der Umgebung `review-gate`, die nur `main` nutzen darf. Review-Ereignisse laufen über den rechtelosen `review-gate-trigger.yml` und `workflow_run`.
+- Serialisierung: Es gibt eine Concurrency-Gruppe `review-gate` für das ganze Repo, und jeder Lauf bewertet alle offenen PRs mit frischen Daten. Ein älterer Snapshot kann keinen neueren überschreiben (Befund P2). Ein Fehler bei einem PR bricht die übrigen nicht ab (Befund P2). Ein Push auf `main`, der Skript oder Prüferliste ändert, löst eine Neubewertung aus.
 
-**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `.github/workflows/review-gate-trigger.yml` (neu), `scripts/reviewGate.mjs`, `scripts/__tests__/reviewGate.vitest.ts` (neu), `.github/review-agents.json`, Auftrag `ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`, dieser Eintrag. Das Drawio-Diagramm ist per Revert in den eigenen PR #94 verschoben.
 
-**Automatisierte Verifikation:** `node --check`; Logik per Node geprüft (Codex-Review auf `claude/`-Branch zählt; Codex auf `codex/`-Branch und `marcs-pr-reviewer` auf `antigravity/`-Branch zählen nicht; Branch ohne Präfix → kein Builder; Fehlerstatus `pending`); RS256-Signatur gegen erzeugten Testschlüssel verifiziert; ohne Secrets bricht das Skript mit klarer Meldung ab; YAML beider Workflows parst; `npx tsc --noEmit` 0 Fehler. Ein echter Lauf mit App steht aus, bis Marc App und Umgebung eingerichtet hat.
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
 
-**Ergebnis & Freigabestatus:** Offen bis zum unabhängigen Review; Einrichtung der App durch Marc (Auftrag, Abschnitt „Einrichtung“).
+**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 14 Tests ist grün. Abgedeckt sind:
+
+- Review auf dem Head zählt, Review auf einem älteren Commit nicht.
+- Ungelistete Prüfer und ausstehende Reviews zählen nicht.
+- PR-Autor und Commit-Autor zählen nicht.
+- Der Builder zählt nicht: Codex auf `codex/` sowie `marcs-pr-reviewer` auf `antigravity/` und `opencode/`.
+- `builderOf` für bekannte und unbekannte Präfixe.
+- `evaluateReviewed` wirft bei unbekanntem Builder, unvollständigen Commits und fehlendem Autor.
+- Status-Texte.
+- RS256-JWT gegen einen Testschlüssel verifiziert.
+- Workflow-Verträge: Umgebung, Concurrency-Gruppe, `--pr=all`, Trigger ohne Rechte und Secrets.
+
+Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run build`. Ein echter Lauf mit der App steht aus, bis Marc App und Umgebung eingerichtet hat.
+
+**Ergebnis & Freigabestatus:** Offen bis zum unabhängigen Review. Die Einrichtung der App übernimmt Marc (siehe Auftrag, Abschnitt „Einrichtung“).
