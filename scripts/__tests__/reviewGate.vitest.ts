@@ -6,6 +6,7 @@ import { createVerify, generateKeyPairSync } from 'node:crypto';
 import {
   appJwt,
   builderOf,
+  changesRequestedBy,
   errorStatus,
   evaluateReviewed,
   reviewedBy,
@@ -196,5 +197,55 @@ describe('Workflow-Verträge', () => {
   it('Trigger hat keine Rechte und keine Secrets', () => {
     expect(trigger).toContain('permissions: {}');
     expect(trigger).not.toContain('secrets.');
+  });
+});
+
+describe('changesRequestedBy (Änderungen angefordert blockieren)', () => {
+  const pull = { head: { sha: HEAD, ref: 'claude/x' }, user: { login: 'mapoenisch' }, commits: 1 };
+  const commits = [{ author: { login: 'mapoenisch' }, committer: { login: 'web-flow' } }];
+  const evaluate = (reviews: ReturnType<typeof review>[]) =>
+    evaluateReviewed({ pull, commits, reviews, agents, builderBranches });
+
+  it('blockiert ein CHANGES_REQUESTED auf dem Head ohne Inline-Thread', () => {
+    const status = evaluate([review('chatgpt-codex-connector[bot]', HEAD, 'CHANGES_REQUESTED')]);
+    expect(status.state).toBe('failure');
+    expect(status.description).toBe('Änderungen angefordert von Codex');
+  });
+
+  it('blockiert weiter nach späterem COMMENTED und nach Anforderung auf älterem Commit', () => {
+    expect(
+      evaluate([
+        review('chatgpt-codex-connector', HEAD),
+        review('chatgpt-codex-connector', HEAD, 'CHANGES_REQUESTED'),
+      ]).state,
+    ).toBe('failure');
+    expect(
+      evaluate([
+        review('chatgpt-codex-connector', 'alt', 'CHANGES_REQUESTED'),
+        review('chatgpt-codex-connector', HEAD),
+      ]).state,
+    ).toBe('failure');
+  });
+
+  it('hebt die Blockade durch Freigabe oder Verwerfen desselben Prüfers auf', () => {
+    expect(
+      evaluate([
+        review('chatgpt-codex-connector', 'alt', 'CHANGES_REQUESTED'),
+        review('chatgpt-codex-connector', HEAD, 'APPROVED'),
+      ]).state,
+    ).toBe('success');
+    expect(
+      changesRequestedBy(
+        [
+          review('devin-ai-integration', HEAD, 'CHANGES_REQUESTED'),
+          review('devin-ai-integration', HEAD, 'DISMISSED'),
+        ],
+        agents,
+      ),
+    ).toEqual([]);
+  });
+
+  it('ignoriert Anforderungen ungelisteter Logins', () => {
+    expect(changesRequestedBy([review('fremd', HEAD, 'CHANGES_REQUESTED')], agents)).toEqual([]);
   });
 });

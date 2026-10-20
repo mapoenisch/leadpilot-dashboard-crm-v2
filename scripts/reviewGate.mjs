@@ -53,6 +53,25 @@ export function reviewedBy(reviews, headSha, agents, prAuthors = [], builderAgen
   return [...names];
 }
 
+/**
+ * Prüfer, deren wirksamer Review-Zustand „Änderungen angefordert“ ist. Wie bei GitHub zählt je Login das
+ * letzte APPROVED/CHANGES_REQUESTED/DISMISSED-Review über alle Commits; COMMENTED ändert ihn nicht.
+ * Eine Anforderung blockiert also, bis derselbe Prüfer freigibt oder das Review verworfen wird.
+ */
+export function changesRequestedBy(reviews, agents) {
+  const effective = new Map();
+  for (const review of reviews) {
+    if (!['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(review.state)) continue;
+    effective.set(normalize(review.user?.login), review.state);
+  }
+  const names = new Set();
+  for (const [login, state] of effective) {
+    if (state !== 'CHANGES_REQUESTED') continue;
+    for (const agent of agentsOf(login, agents)) names.add(agent.name);
+  }
+  return [...names];
+}
+
 /** Builder-Agent laut Branch-Präfix (`builderBranches` in review-agents.json). */
 export const builderOf = (branch, builderBranches = {}) =>
   Object.entries(builderBranches)
@@ -142,6 +161,8 @@ export function evaluateReviewed({ pull, commits, reviews, agents, builderBranch
   // Selbst-Review-Sperre durch einen anders benannten Branch umgehen.
   const builders = builderOf(pull.head.ref, builderBranches);
   if (builders.length === 0) throw new Error('Builder unbekannt (Branch-Präfix fehlt)');
+  const blockers = changesRequestedBy(reviews, agents);
+  if (blockers.length > 0) return { state: 'failure', description: `Änderungen angefordert von ${blockers.join(', ')}` };
   const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
   return reviewedStatus(reviewedBy(reviews, pull.head.sha, agents, [pull.user.login, ...commitLogins], builders));
 }

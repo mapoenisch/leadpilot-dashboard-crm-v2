@@ -17396,6 +17396,7 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 **Ausgelieferte Logik (finaler Stand):**
 
 - Es zählen nur formale PR-Reviews (`APPROVED`/`COMMENTED`/`CHANGES_REQUESTED`) auf genau dem Head-Commit, keine Kommentare.
+- Änderungen angefordert blockieren (Befund P1 Codex, 20.10.): Pro Prüfer zählt sein wirksamer Zustand, also das letzte `APPROVED`/`CHANGES_REQUESTED`/`DISMISSED` über alle Commits. Steht er auf `CHANGES_REQUESTED`, wird `agent-review` zu `failure`, bis derselbe Prüfer freigibt oder das Review verworfen wird.
 - Kein Selbst-Review: Der PR-Öffner, Autoren und Committer der PR-Commits und jeder Agent mit deren Login sind als Prüfer ausgeschlossen, ebenso der per Branch-Präfix gebundene Builder (`builderBranches`). Ohne bekanntes Präfix gibt es nie `agent-review=success`.
 - Hat ein PR mehr Commits, als die API liefert (Grenze 250), gibt es keinen Erfolg.
 - Fail-closed: Nach Ermittlung des Heads gehen zuerst beide Status auf `pending` („Wird geprüft“), erst dann folgen die fehlbaren Abfragen. Bei Fehlern bleibt `pending` stehen. `review-conversations` wird unabhängig bewertet (Hinweis P3 von `marcs-pr-reviewer`).
@@ -17406,7 +17407,7 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 
 **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
 
-**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 14 Tests ist grün. Abgedeckt sind:
+**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 18 Tests ist grün, darunter 4 zur Blockade bei angeforderten Änderungen. Abgedeckt sind:
 
 - Review auf dem Head zählt, Review auf einem älteren Commit nicht.
 - Ungelistete Prüfer und ausstehende Reviews zählen nicht.
