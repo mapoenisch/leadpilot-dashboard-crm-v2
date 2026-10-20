@@ -43,3 +43,4 @@ handoff/
 /tokens/
 /.playwright-mcp/
 /SKILL.md
+.opencode/node_modules/
