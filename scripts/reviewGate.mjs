@@ -204,6 +204,13 @@ function fetchThreads(owner, repo, pr) {
   }
 }
 
+/** Head-SHAs, die mehrere offene PRs teilen (SHA → PR-Nummern). */
+export function sharedHeads(pulls) {
+  const bySha = new Map();
+  for (const p of pulls) bySha.set(p.head.sha, [...(bySha.get(p.head.sha) ?? []), p.number]);
+  return new Map([...bySha].filter(([, numbers]) => numbers.length > 1));
+}
+
 export const errorStatus = (err) => ({
   state: 'pending',
   description: `Gate-Fehler: ${err.message}`.slice(0, 140),
@@ -251,10 +258,18 @@ export function evaluateReviewed({
   );
 }
 
-function gatePr(pr, repoFull, { agents, builderBranches, accounts, trustedOpeners }, statusToken) {
+function gatePr(
+  pr,
+  repoFull,
+  { agents, builderBranches, accounts, trustedOpeners },
+  statusToken,
+  shared = new Map(),
+) {
   const [owner, repo] = repoFull.split('/');
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
+  // Geteilter Head: bereits in main blockiert, hier nichts überschreiben.
+  if (shared.has(head)) return;
   const post = (context, { state, description }) =>
     gh(
       [
@@ -325,20 +340,43 @@ async function main() {
     readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8'),
   );
   const statusToken = await appToken(repoFull);
+  const open = JSON.parse(
+    gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls?state=open&per_page=100`]),
+  ).flat();
+  // Commit-Status hängen am SHA: Teilen sich PRs einen Head, blockieren beide (sonst überschreibt einer den anderen).
+  const shared = sharedHeads(open);
+  for (const [sha, numbers] of shared) {
+    const blocked = {
+      state: 'pending',
+      description: `Mehrdeutiger Head: PRs ${numbers.join(', ')} teilen diesen Commit`,
+    };
+    for (const context of [STATUS_REVIEWED, STATUS_THREADS]) {
+      gh(
+        [
+          'api',
+          '-X',
+          'POST',
+          `repos/${repoFull}/statuses/${sha}`,
+          '-f',
+          `state=${blocked.state}`,
+          '-f',
+          `context=${context}`,
+          '-f',
+          `description=${blocked.description}`,
+        ],
+        undefined,
+        statusToken,
+      );
+    }
+    console.log(`Head ${sha.slice(0, 7)}: PRs ${numbers.join(', ')} – mehrdeutig, blockiert`);
+  }
   // --pr=all: alle offenen PRs neu bewerten (Standard im Workflow, damit kein Lauf einen anderen überholt).
-  const prs =
-    arg === 'all'
-      ? JSON.parse(
-          gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls?state=open&per_page=100`]),
-        )
-          .flat()
-          .map((p) => p.number)
-      : [Number(arg)];
+  const prs = arg === 'all' ? open.map((p) => p.number) : [Number(arg)];
   let failed = 0;
   for (const pr of prs) {
     try {
       if (!Number.isInteger(pr) || pr <= 0) throw new Error('--pr=<Nummer|all> fehlt');
-      gatePr(pr, repoFull, config, statusToken);
+      gatePr(pr, repoFull, config, statusToken, shared);
     } catch (err) {
       failed += 1;
       console.error(`PR ${pr}: ${err.message}`);

@@ -14,6 +14,7 @@ import {
   verifiedAccount,
   reviewedBy,
   reviewedStatus,
+  sharedHeads,
   threadsStatus,
 } from '../reviewGate.mjs';
 
@@ -410,5 +411,17 @@ describe('Zielbranch-Wechsel und Änderungsanforderungen', () => {
       review('chatgpt-codex-connector', HEAD, 'CHANGES_REQUESTED', '2026-10-20T11:30:00Z'),
     ];
     expect(evaluate('claude/x', reviews, { events }).state).toBe('failure');
+  });
+});
+
+describe('sharedHeads (Status pro PR isoliert)', () => {
+  it('meldet Heads, die mehrere offene PRs teilen', () => {
+    const pulls = [
+      { number: 1, head: { sha: 'a' } },
+      { number: 2, head: { sha: 'b' } },
+      { number: 3, head: { sha: 'a' } },
+    ];
+    expect([...sharedHeads(pulls)]).toEqual([['a', [1, 3]]]);
+    expect(sharedHeads([{ number: 1, head: { sha: 'a' } }]).size).toBe(0);
   });
 });
