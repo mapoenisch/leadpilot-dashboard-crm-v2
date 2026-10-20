@@ -21,6 +21,18 @@ import { pathToFileURL } from 'node:url';
 export const STATUS_REVIEWED = 'agent-review';
 export const STATUS_THREADS = 'review-conversations';
 
+const baseFromDescription = (description = '') =>
+  description.match(/\[b:([^\]\s]+)\]/)?.[1] ??
+  description.match(/\[base:([^\]\s]+)\]/)?.[1] ??
+  null;
+const reviewRequiredFromDescription = (description = '') => {
+  const compact = description.match(/\[r:(\d{13})\]/)?.[1];
+  if (compact) return new Date(Number(compact)).toISOString();
+  return description.match(/\[review-required-after:([^\]]+)\]/)?.[1] ?? null;
+};
+const metadataSuffix = (baseSha, since) =>
+  `${since ? ` [r:${Date.parse(since)}]` : ''}${baseSha ? ` [b:${baseSha}]` : ''}`;
+
 /** Login-Vergleich ohne Groß-/Kleinschreibung und ohne das Bot-Suffix `[bot]`. */
 const normalize = (login) => (login ?? '').toLowerCase().replace(/\[bot\]$/, '');
 
@@ -127,6 +139,53 @@ export const reviewedStatus = (names) =>
     ? { state: 'success', description: `Reviewed von ${names.join(', ')}` }
     : { state: 'pending', description: 'Noch kein Agent-Review für diesen Commit' };
 
+const withBase = (status, baseSha) => {
+  const marker = metadataSuffix(baseSha, null);
+  const description = status.description.slice(0, Math.max(0, 140 - marker.length));
+  return { ...status, description: `${description}${marker}` };
+};
+
+const reviewRequiredStatus = (baseSha, since) =>
+  withReviewRequirement(
+    { state: 'pending', description: 'Neues Review erforderlich' },
+    baseSha,
+    since,
+  );
+
+const withReviewRequirement = (status, baseSha, since) => {
+  const marker = metadataSuffix(baseSha, since);
+  const description = status.description.slice(0, Math.max(0, 140 - marker.length));
+  return { ...status, description: `${description}${marker}` };
+};
+
+/**
+ * Bindet die Freigabe an den zuletzt geprüften Base-SHA. Ein erfolgreicher Status ohne Base-Marker
+ * stammt aus einer älteren Skriptversion und wird konservativ invalidiert. Nach einem Wechsel wird
+ * der Zeitpunkt des Pending-Markers gespeichert, sodass erst ein danach eingereichtes Review zählt.
+ */
+export function reviewBaseRequirement(statuses, baseSha) {
+  if (!baseSha) return { required: false, since: null };
+  const relevant = statuses
+    .filter((status) => status.context === STATUS_REVIEWED)
+    .sort((a, b) => Date.parse(a.created_at ?? '') - Date.parse(b.created_at ?? ''));
+  const latest = relevant
+    .filter((status) => baseFromDescription(status.description) || status.state === 'success')
+    .at(-1);
+  if (!latest) return { required: false, since: null };
+
+  const latestBase = baseFromDescription(latest.description);
+  const since = reviewRequiredFromDescription(latest.description);
+  if (since && latestBase === baseSha) return { required: true, since };
+  if (latestBase !== baseSha) return { required: true, since: null };
+  return { required: false, since: null };
+}
+
+/** Closed PRs no longer own their SHA status if an open PR still uses that head. */
+export function closedHeadToInvalidate(closedPull, openPulls) {
+  const headSha = closedPull?.head?.sha;
+  return headSha && !openPulls.some((pull) => pull.head?.sha === headSha) ? headSha : null;
+}
+
 export function threadsStatus(threads) {
   const open = threads.filter((t) => !t.isResolved).length;
   return open > 0
@@ -144,6 +203,25 @@ function gh(args, input, token = process.env.GH_TOKEN) {
     maxBuffer: 64 * 1024 * 1024,
     env: { ...process.env, GH_TOKEN: token },
   });
+}
+
+function postStatus(repoFull, head, context, { state, description }, token) {
+  return gh(
+    [
+      'api',
+      '-X',
+      'POST',
+      `repos/${repoFull}/statuses/${head}`,
+      '-f',
+      `state=${state}`,
+      '-f',
+      `context=${context}`,
+      '-f',
+      `description=${description}`,
+    ],
+    undefined,
+    token,
+  );
 }
 
 /** JWT (RS256) der Review-Gate-App, mit Node-Bordmitteln ohne Abhängigkeit. */
@@ -231,6 +309,7 @@ export function evaluateReviewed({
   events = [],
   trustedOpeners = [],
   repoFull,
+  reviewRequiredSince = null,
 }) {
   if (!pull.user?.login) throw new Error('PR-Autor unbekannt');
   // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber kein Erfolg.
@@ -248,14 +327,25 @@ export function evaluateReviewed({
   // Nach einem Zielbranch-Wechsel zählen nur Reviews, die danach abgegeben wurden, für Nachweis und
   // Änderungsanforderungen gleichermaßen (alte Anforderungen beziehen sich auf einen anderen Diff).
   const since = lastBaseChange(events);
-  const current = since ? usable.filter((r) => (r.submitted_at ?? '') > since) : usable;
+  const cutoff = [since, reviewRequiredSince].filter(Boolean).sort().at(-1) ?? null;
+  const current = cutoff ? usable.filter((r) => (r.submitted_at ?? '') > cutoff) : usable;
   const blockers = changesRequestedBy(current, agents);
-  if (blockers.length > 0)
-    return { state: 'failure', description: `Änderungen angefordert von ${blockers.join(', ')}` };
+  if (blockers.length > 0) {
+    const blocked = {
+      state: 'failure',
+      description: `Änderungen angefordert von ${blockers.join(', ')}`,
+    };
+    return reviewRequiredSince
+      ? withReviewRequirement(blocked, pull.base?.sha, reviewRequiredSince)
+      : withBase(blocked, pull.base?.sha);
+  }
   const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
-  return reviewedStatus(
+  const status = reviewedStatus(
     reviewedBy(current, pull.head.sha, agents, [pull.user.login, ...commitLogins], builders),
   );
+  if (reviewRequiredSince && status.state !== 'success')
+    return reviewRequiredStatus(pull.base?.sha, reviewRequiredSince);
+  return withBase(status, pull.base?.sha);
 }
 
 function gatePr(
@@ -270,29 +360,39 @@ function gatePr(
   const head = pull.head.sha;
   // Geteilter Head: bereits in main blockiert, hier nichts überschreiben.
   if (shared.has(head)) return;
-  const post = (context, { state, description }) =>
-    gh(
-      [
-        'api',
-        '-X',
-        'POST',
-        `repos/${repoFull}/statuses/${head}`,
-        '-f',
-        `state=${state}`,
-        '-f',
-        `context=${context}`,
-        '-f',
-        `description=${description}`,
-      ],
-      undefined,
-      statusToken,
-    );
-  // Fail-closed: zuerst frühere Erfolge widerrufen, erst danach die fehlbaren Abfragen.
-  post(STATUS_REVIEWED, CHECKING);
-  post(STATUS_THREADS, CHECKING);
   const errors = [];
+  let previousStatuses = [];
+  let statusHistoryError = null;
+  try {
+    previousStatuses = JSON.parse(
+      gh(
+        ['api', `repos/${repoFull}/commits/${head}/statuses?per_page=100`],
+        undefined,
+        statusToken,
+      ),
+    );
+  } catch (err) {
+    statusHistoryError = err;
+  }
+  const baseSha = pull.base?.sha;
+  const baseRequirement = reviewBaseRequirement(previousStatuses, baseSha);
+  let reviewRequiredSince = baseRequirement.since;
+  const post = (context, status) => postStatus(repoFull, head, context, status, statusToken);
+  // Fail-closed: alte Erfolge widerrufen, bevor die fehlbaren PR-Abfragen starten.
+  if (reviewRequiredSince) {
+    post(STATUS_REVIEWED, reviewRequiredStatus(baseSha, reviewRequiredSince));
+  } else if (baseRequirement.required || statusHistoryError) {
+    const provisional = new Date().toISOString();
+    const created = JSON.parse(post(STATUS_REVIEWED, reviewRequiredStatus(baseSha, provisional)));
+    reviewRequiredSince = created.created_at ?? provisional;
+    post(STATUS_REVIEWED, reviewRequiredStatus(baseSha, reviewRequiredSince));
+  } else {
+    post(STATUS_REVIEWED, withBase(CHECKING, baseSha));
+  }
+  post(STATUS_THREADS, CHECKING);
   let reviewed;
   try {
+    if (statusHistoryError) throw statusHistoryError;
     const commits = JSON.parse(
       gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`]),
     ).flat();
@@ -312,10 +412,14 @@ function gatePr(
       events,
       trustedOpeners,
       repoFull,
+      reviewRequiredSince,
     });
   } catch (err) {
     errors.push(err);
-    reviewed = errorStatus(err);
+    const failedStatus = errorStatus(err);
+    reviewed = reviewRequiredSince
+      ? withReviewRequirement(failedStatus, baseSha, reviewRequiredSince)
+      : withBase(failedStatus, baseSha);
   }
   // Konversationen werden unabhängig bewertet: ein unbekannter Builder macht sie nicht rot.
   let threads;
@@ -339,6 +443,9 @@ async function main() {
   const config = JSON.parse(
     readFileSync(new URL('../.github/review-agents.json', import.meta.url), 'utf8'),
   );
+  const event = process.env.GITHUB_EVENT_PATH
+    ? JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'))
+    : null;
   const statusToken = await appToken(repoFull);
   const open = JSON.parse(
     gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls?state=open&per_page=100`]),
@@ -386,6 +493,25 @@ async function main() {
     } catch (err) {
       failed += 1;
       console.error(`PR ${pr}: ${err.message}`);
+    }
+  }
+  if (process.env.GITHUB_EVENT_NAME === 'pull_request_target' && event?.action === 'closed') {
+    const closedPull = event.pull_request;
+    const head = closedHeadToInvalidate(closedPull, open);
+    if (head) {
+      const description =
+        `PR #${closedPull.number} geschlossen; Status zurückgesetzt [base:${closedPull.base?.sha ?? 'unbekannt'}]`.slice(
+          0,
+          140,
+        );
+      for (const context of [STATUS_REVIEWED, STATUS_THREADS]) {
+        try {
+          postStatus(repoFull, head, context, { state: 'pending', description }, statusToken);
+        } catch (err) {
+          failed += 1;
+          console.error(`Geschlossener PR ${closedPull.number}, ${context}: ${err.message}`);
+        }
+      }
     }
   }
   if (failed > 0) process.exit(1);

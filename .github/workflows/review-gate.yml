@@ -10,9 +10,9 @@
 name: Review Gate
 
 on:
-  # `edited` erfasst einen Zielbranch-Wechsel (frühere Reviews verlieren dann ihre Gültigkeit).
+  # `edited` erfasst Zielbranch-Wechsel; `closed` invalidiert Statuswerte für später wiederverwendete Heads.
   pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review, edited]
+    types: [opened, synchronize, reopened, ready_for_review, edited, closed]
   # Geschützte periodische Neubewertung: `review-gate-trigger.yml` läuft mit dem Workflow-Stand aus dem
   # PR und kann dort entschärft werden (z. B. `dismissed` entfernt). Spätestens dieser Lauf korrigiert es.
   schedule:
@@ -20,13 +20,9 @@ on:
   workflow_run:
     workflows: [Review Gate Trigger]
     types: [completed]
-  # Ändern sich Skript oder Prüferliste auf dem Default-Branch, werden alle offenen PRs neu bewertet,
-  # damit kein veralteter `agent-review=success` stehen bleibt.
+  # Jeder Push auf main kann die Review-Basis offener PRs verändern, deshalb alle neu bewerten.
   push:
     branches: [main]
-    paths:
-      - scripts/reviewGate.mjs
-      - .github/review-agents.json
   # Das Lösen einer Konversation löst keinen Workflow aus. Danach manuell: Actions > Review Gate > Run workflow.
   workflow_dispatch:
 

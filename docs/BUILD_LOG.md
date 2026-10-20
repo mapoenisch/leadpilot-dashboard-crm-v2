@@ -17428,3 +17428,21 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run build`. Ein echter Lauf mit der App steht aus, bis Marc App und Umgebung eingerichtet hat.
 
 **Ergebnis & Freigabestatus:** Offen bis zum unabhängigen Review. Die Einrichtung der App übernimmt Marc (siehe Auftrag, Abschnitt „Einrichtung“).
+
+### Nacharbeit Codex-Befunde PR #93 – Base-SHA und geschlossene Heads (Builder: Claude Code, 20.10.2026)
+
+**Ziel & Kontext:** Die zwei neuen Befunde auf Head `419872a` beheben: ein Review darf bei Fortschritt des Zielbranches nicht für einen geänderten Diff gültig bleiben; Statuswerte eines geschlossenen PRs dürfen nicht auf einen später wiederverwendeten Head übertragen werden.
+
+**Umsetzung:** `agent-review` speichert jetzt den geprüften Base-SHA. Bei Abweichung setzt das Gate einen dauerhaften Pending-Marker und wertet nur Reviews nach dessen Zeitstempel. Ein vorhandener Cutoff bleibt bei Folgeauswertungen unverändert, statt mit jedem Status-POST nach vorne zu wandern (P1 der Nachprüfung). Kompakte Marker (`[b:<SHA>]`, `[r:<Unix-ms>]`) erhalten die lesbare Statusmeldung innerhalb des 140-Zeichen-Limits. Jeder Push auf `main` stößt eine Neubewertung offener PRs an. Bei `pull_request_target: closed` werden beide Statuskontexte des Heads auf `pending` gesetzt, sofern kein anderer offener PR denselben Head nutzt; dieser offene PR wird stattdessen regulär neu bewertet.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `scripts/reviewGate.mjs`, `scripts/__tests__/reviewGate.vitest.ts`, dieser BUILD_LOG-Eintrag.
+
+**Funktionale Prüfungen:** 37/37 fokussierte Review-Gate-Tests bestanden. Die Regressionstests decken Base-SHA-Wechsel, einen über Folgeauswertungen stabilen Review-Cutoff, lesbare Statusbeschreibungen mit vollem 40-stelligem Base-SHA und maximal 140 Zeichen, unveränderte Base-SHAs sowie geschlossene und weiterhin genutzte Heads ab.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` bestanden; `npm run verify` bestanden (Integrity-Suiten 001–025); `npm run lint` bestanden; `npm run build` bestanden; Prettier-Prüfung und `git diff --check` bestanden. `NODE_ENV=development npm test`: 341/341 Testdateien, 2.492/2.492 Tests bestanden. Der zusätzliche Lauf mit dem in dieser Umgebung global gesetzten `NODE_ENV=production` scheiterte in UI-Tests an Reacts Fehlermeldung „act(...) is not supported in production builds of React“; eine isolierte UI-Suite reproduzierte den Umgebungsfehler, der Entwicklungsmodus-Lauf bestand vollständig.
+
+**Screenshot-Matrix:** Nicht anwendbar, es wurden keine UI-Seiten oder visuellen Komponenten geändert.
+
+**Ergebnis & Freigabestatus:** Beide aktuellen Review-Befunde lokal behoben. Unabhängige Nachprüfung des neuen Heads bleibt erforderlich. Es wurde kein Commit erstellt; `.proto/` und `.vscode/` blieben unangetastet und uncommittet.

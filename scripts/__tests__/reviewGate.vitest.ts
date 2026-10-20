@@ -7,6 +7,7 @@ import {
   appJwt,
   builderOf,
   changesRequestedBy,
+  closedHeadToInvalidate,
   errorStatus,
   evaluateReviewed,
   lastBaseChange,
@@ -14,6 +15,7 @@ import {
   verifiedAccount,
   reviewedBy,
   reviewedStatus,
+  reviewBaseRequirement,
   sharedHeads,
   threadsStatus,
 } from '../reviewGate.mjs';
@@ -371,10 +373,11 @@ describe('Konto-IDs, verbotene Freigaben, Zielbranch-Wechsel', () => {
     expect(config.accounts['marcs-pr-reviewer'].approve).toBe(false);
   });
 
-  it('Gate läuft periodisch und bei Zielbranch-Wechsel', () => {
+  it('Gate läuft periodisch, bei Zielbranch-Wechsel und beim Schließen', () => {
     const gate = fs.readFileSync(path.join(root, '.github/workflows/review-gate.yml'), 'utf8');
     expect(gate).toMatch(/schedule:\n\s+- cron:/);
-    expect(gate).toMatch(/types: \[[^\]]*edited[^\]]*\]/);
+    expect(gate).toMatch(/types: \[[^\]]*edited[^\]]*closed[^\]]*\]/);
+    expect(gate).toMatch(/push:\n\s+branches: \[main\]/);
   });
 });
 
@@ -411,6 +414,88 @@ describe('Zielbranch-Wechsel und Änderungsanforderungen', () => {
       review('chatgpt-codex-connector', HEAD, 'CHANGES_REQUESTED', '2026-10-20T11:30:00Z'),
     ];
     expect(evaluate('claude/x', reviews, { events }).state).toBe('failure');
+  });
+});
+
+describe('Base-SHA-Bindung für Review-Status', () => {
+  const base = 'b'.repeat(40);
+  const cutoff = '2026-10-20T10:30:00Z';
+
+  it('fordert nach einem Fortschritt des Zielbranches ein neues Review', () => {
+    const previous = {
+      context: 'agent-review',
+      state: 'success',
+      description: `Reviewed von Codex [b:${'a'.repeat(40)}]`,
+      created_at: '2026-10-20T10:00:00Z',
+    };
+    expect(reviewBaseRequirement([previous], base)).toEqual({ required: true, since: null });
+  });
+
+  it('behält den Review-Cutoff und zählt nur danach eingereichte Reviews', () => {
+    const marker = {
+      context: 'agent-review',
+      state: 'pending',
+      description: `Neues Review erforderlich [r:${Date.parse(cutoff)}] [b:${base}]`,
+      created_at: '2026-10-20T10:31:00Z',
+    };
+    const laterMarker = { ...marker, created_at: '2026-10-20T10:45:00Z' };
+    expect(reviewBaseRequirement([marker, laterMarker], base)).toEqual({
+      required: true,
+      since: new Date(cutoff).toISOString(),
+    });
+
+    const pull = pullOn('claude/x', { base: { sha: base } });
+    expect(
+      evaluate(
+        'claude/x',
+        [review('chatgpt-codex-connector', HEAD, 'COMMENTED', '2026-10-20T10:20:00Z')],
+        {
+          pull,
+          reviewRequiredSince: cutoff,
+        },
+      ).state,
+    ).toBe('pending');
+    const fresh = evaluate(
+      'claude/x',
+      [review('chatgpt-codex-connector', HEAD, 'COMMENTED', '2026-10-20T10:40:00Z')],
+      {
+        pull,
+        reviewRequiredSince: cutoff,
+      },
+    );
+    expect(fresh.state).toBe('success');
+    expect(fresh.description).toContain(`[b:${base}]`);
+    expect(fresh.description.length).toBeLessThanOrEqual(140);
+
+    const blocked = evaluate(
+      'claude/x',
+      [review('chatgpt-codex-connector', HEAD, 'CHANGES_REQUESTED', '2026-10-20T10:40:00Z')],
+      { pull, reviewRequiredSince: cutoff },
+    );
+    expect(blocked.state).toBe('failure');
+    expect(blocked.description).toContain('Änderungen angefordert von Codex');
+    expect(blocked.description.length).toBeLessThanOrEqual(140);
+  });
+
+  it('verlangt keine erneute Prüfung bei unveränderter Basis', () => {
+    const previous = {
+      context: 'agent-review',
+      state: 'success',
+      description: `Reviewed von Codex [b:${base}]`,
+      created_at: '2026-10-20T10:00:00Z',
+    };
+    expect(reviewBaseRequirement([previous], base)).toEqual({ required: false, since: null });
+  });
+});
+
+describe('Geschlossene PRs und wiederverwendete Heads', () => {
+  it('invalidiert einen Head nach Schließen des letzten PRs', () => {
+    expect(closedHeadToInvalidate({ head: { sha: HEAD } }, [])).toBe(HEAD);
+  });
+
+  it('lässt einen Head bestehen, solange ein anderer PR ihn verwendet', () => {
+    expect(closedHeadToInvalidate({ head: { sha: HEAD } }, [{ head: { sha: HEAD } }])).toBeNull();
+    expect(closedHeadToInvalidate({}, [])).toBeNull();
   });
 });
 
