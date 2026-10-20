@@ -9,6 +9,9 @@ import {
   changesRequestedBy,
   errorStatus,
   evaluateReviewed,
+  lastBaseChange,
+  usableReviews,
+  verifiedAccount,
   reviewedBy,
   reviewedStatus,
   threadsStatus,
@@ -29,14 +32,39 @@ const agents = [
   { name: 'Antigravity', logins: ['marcs-pr-reviewer'], builderLogins: ['antigravity-builder'] },
 ];
 const HEAD = 'head-sha';
-const review = (login: string, commit_id = HEAD, state = 'COMMENTED') => ({
-  user: { login },
+const IDS: Record<string, number> = {
+  'chatgpt-codex-connector': 1,
+  'devin-ai-integration': 2,
+  'opencode-agent': 3,
+  'marcs-pr-reviewer': 4,
+  'claude-builder': 11,
+  'codex-builder': 12,
+  'opencode-builder': 13,
+  'antigravity-builder': 14,
+};
+const accounts = {
+  ...Object.fromEntries(Object.entries(IDS).map(([login, id]) => [login, { id, type: 'Bot' }])),
+  'marcs-pr-reviewer': { id: 4, type: 'Bot', approve: false },
+};
+const userOf = (login: string) => ({
+  login,
+  id: IDS[login.replace(/\[bot\]$/, '')] ?? 999,
+  type: 'Bot',
+});
+const review = (
+  login: string,
+  commit_id = HEAD,
+  state = 'COMMENTED',
+  submitted_at = '2026-10-20T10:00:00Z',
+) => ({
+  user: userOf(login),
   commit_id,
   state,
+  submitted_at,
 });
 const pullBy = (opener: string, extra = {}) => ({
   head: { sha: HEAD, ref: 'beliebiger/branch' },
-  user: { login: opener },
+  user: userOf(opener),
   commits: 1,
   ...extra,
 });
@@ -45,7 +73,7 @@ const evaluate = (
   opener: string,
   reviews: ReturnType<typeof review>[],
   commits = commitsBy(opener),
-) => evaluateReviewed({ pull: pullBy(opener), commits, reviews, agents });
+) => evaluateReviewed({ pull: pullBy(opener), commits, reviews, agents, accounts });
 
 describe('Konfiguration', () => {
   it('jeder Agent hat logins und builderLogins, kein Branch-Präfix mehr', () => {
@@ -121,6 +149,7 @@ describe('evaluateReviewed (fail-closed)', () => {
       commits: commitsBy('antigravity-builder'),
       reviews: [review('marcs-pr-reviewer')],
       agents,
+      accounts,
     });
     expect(status.state).toBe('pending');
   });
@@ -239,5 +268,107 @@ describe('changesRequestedBy (Änderungen angefordert blockieren)', () => {
 
   it('ignoriert Anforderungen ungelisteter Logins', () => {
     expect(changesRequestedBy([review('fremd', HEAD, 'CHANGES_REQUESTED')], agents)).toEqual([]);
+  });
+});
+
+describe('Konto-IDs, verbotene Freigaben, Zielbranch-Wechsel', () => {
+  it('verifiziert Konten nur mit passender ID und passendem Typ', () => {
+    expect(
+      verifiedAccount({ login: 'chatgpt-codex-connector[bot]', id: 1, type: 'Bot' }, accounts),
+    ).toBe(true);
+    expect(
+      verifiedAccount({ login: 'chatgpt-codex-connector', id: 77, type: 'Bot' }, accounts),
+    ).toBe(false);
+    expect(
+      verifiedAccount({ login: 'chatgpt-codex-connector', id: 1, type: 'User' }, accounts),
+    ).toBe(false);
+    expect(verifiedAccount({ login: 'unbekannt', id: 1, type: 'Bot' }, accounts)).toBe(false);
+  });
+
+  it('übernommener Login (andere ID) zählt nicht als Prüfer', () => {
+    const fake = {
+      ...review('chatgpt-codex-connector'),
+      user: { login: 'chatgpt-codex-connector', id: 4242, type: 'User' },
+    };
+    expect(evaluate('claude-builder', [fake]).state).toBe('pending');
+  });
+
+  it('PR-Öffner mit übernommenem Builder-Login ist kein Builder', () => {
+    const pull = {
+      ...pullBy('claude-builder'),
+      user: { login: 'claude-builder', id: 4242, type: 'User' },
+    };
+    expect(() =>
+      evaluateReviewed({
+        pull,
+        commits: commitsBy('claude-builder'),
+        reviews: [review('chatgpt-codex-connector')],
+        agents,
+        accounts,
+      }),
+    ).toThrow('Builder unbekannt');
+  });
+
+  it('ignoriert APPROVED von marcs-pr-reviewer (approve: false)', () => {
+    expect(usableReviews([review('marcs-pr-reviewer', HEAD, 'APPROVED')], accounts)).toEqual([]);
+    expect(evaluate('claude-builder', [review('marcs-pr-reviewer', HEAD, 'APPROVED')]).state).toBe(
+      'pending',
+    );
+    expect(evaluate('claude-builder', [review('marcs-pr-reviewer', HEAD, 'COMMENTED')]).state).toBe(
+      'success',
+    );
+  });
+
+  it('verbotenes APPROVED hebt eine eigene Änderungsanforderung nicht auf', () => {
+    const status = evaluate('claude-builder', [
+      review('marcs-pr-reviewer', HEAD, 'CHANGES_REQUESTED'),
+      review('marcs-pr-reviewer', HEAD, 'APPROVED'),
+    ]);
+    expect(status.state).toBe('failure');
+  });
+
+  it('Reviews vor einem Zielbranch-Wechsel zählen nicht mehr', () => {
+    const events = [
+      { event: 'labeled', created_at: '2026-10-20T12:00:00Z' },
+      { event: 'base_ref_changed', created_at: '2026-10-20T11:00:00Z' },
+    ];
+    expect(lastBaseChange(events)).toBe('2026-10-20T11:00:00Z');
+    const args = {
+      pull: pullBy('claude-builder'),
+      commits: commitsBy('claude-builder'),
+      agents,
+      accounts,
+      events,
+    };
+    expect(
+      evaluateReviewed({
+        ...args,
+        reviews: [review('chatgpt-codex-connector', HEAD, 'COMMENTED', '2026-10-20T10:00:00Z')],
+      }).state,
+    ).toBe('pending');
+    expect(
+      evaluateReviewed({
+        ...args,
+        reviews: [review('chatgpt-codex-connector', HEAD, 'COMMENTED', '2026-10-20T11:30:00Z')],
+      }).state,
+    ).toBe('success');
+  });
+
+  it('echte Konfiguration bindet jedes Prüferkonto an ID und Typ', () => {
+    for (const agent of config.agents) {
+      for (const login of [...agent.logins, ...agent.builderLogins]) {
+        expect(config.accounts[login], login).toMatchObject({
+          id: expect.any(Number),
+          type: expect.any(String),
+        });
+      }
+    }
+    expect(config.accounts['marcs-pr-reviewer'].approve).toBe(false);
+  });
+
+  it('Gate läuft periodisch und bei Zielbranch-Wechsel', () => {
+    const gate = fs.readFileSync(path.join(root, '.github/workflows/review-gate.yml'), 'utf8');
+    expect(gate).toMatch(/schedule:\n\s+- cron:/);
+    expect(gate).toMatch(/types: \[[^\]]*edited[^\]]*\]/);
   });
 });

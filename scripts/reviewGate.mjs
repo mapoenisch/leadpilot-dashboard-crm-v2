@@ -11,6 +11,8 @@
 // Status setzt ausschließlich die eigene GitHub-App (Secrets `REVIEW_GATE_APP_ID`/`_KEY` in der Umgebung
 // `review-gate`, nur vom Default-Branch nutzbar). Ein PR kann sie mit `GITHUB_TOKEN` daher nicht fälschen,
 // wenn der Branch-Schutz die Pflicht-Checks an diese App heftet. Fehler setzen `pending`, nie Erfolg.
+// Prüfer und Builder sind an unveränderliche Konto-IDs gebunden (`accounts`); ein Zielbranch-Wechsel macht
+// frühere Reviews ungültig. Ein geplanter Lauf bewertet regelmäßig neu, falls ein Ereignis ausbleibt.
 import { createSign } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -29,6 +31,38 @@ const agentsOf = (login, agents) => agents.filter((a) => has(a.logins, login));
 
 /** Agenten, denen dieser Login gehört, als Prüfer- oder Builder-Konto (`logins`, `builderLogins`). */
 const ownersOf = (login, agents) => agents.filter((a) => has(a.logins, login) || has(a.builderLogins, login));
+
+/**
+ * Ein Konto ist verifiziert, wenn numerische ID und Typ zum Eintrag in `accounts` passen. Logins sind
+ * nach einer Umbenennung wieder frei und dürfen allein nichts freigeben; ohne Eintrag zählt nichts.
+ */
+export function verifiedAccount(user, accounts = {}) {
+  const entry = Object.entries(accounts).find(([login]) => normalize(login) === normalize(user?.login))?.[1];
+  return Boolean(entry && user && entry.id === user.id && entry.type === user.type);
+}
+
+/**
+ * Nur auswertbare Reviews: von einem verifizierten Konto und mit einem für dieses Konto erlaubten
+ * Zustand. `approve: false` (z. B. `marcs-pr-reviewer`, AGENTS.md: keine Freigaben) verwirft APPROVED.
+ */
+export function usableReviews(reviews, accounts = {}) {
+  return reviews.filter((review) => {
+    if (!verifiedAccount(review.user, accounts)) return false;
+    const entry = Object.entries(accounts).find(([login]) => normalize(login) === normalize(review.user.login))[1];
+    return !(review.state === 'APPROVED' && entry.approve === false);
+  });
+}
+
+/**
+ * Zeitpunkt des letzten Zielbranch-Wechsels (`base_ref_changed`). Reviews davor beziehen sich auf einen
+ * anderen Diff und zählen danach nicht mehr als Prüfnachweis.
+ */
+export const lastBaseChange = (events) =>
+  events
+    .filter((e) => e.event === 'base_ref_changed')
+    .map((e) => e.created_at)
+    .sort()
+    .at(-1) ?? null;
 
 /**
  * Ein Prüfer hat den Head geprüft, wenn sein formales PR-Review auf genau diesen Commit zeigt.
@@ -155,21 +189,25 @@ export const CHECKING = { state: 'pending', description: 'Wird geprüft …' };
  * Bewertet `agent-review` für einen PR. Wirft bei unvollständigen Daten oder unbekanntem Builder;
  * der Aufrufer setzt dann `pending` (kein Erfolg ohne vollständige Prüfung).
  */
-export function evaluateReviewed({ pull, commits, reviews, agents }) {
+export function evaluateReviewed({ pull, commits, reviews, agents, accounts = {}, events = [] }) {
   if (!pull.user?.login) throw new Error('PR-Autor unbekannt');
   // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber kein Erfolg.
   if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig');
   // Ist der PR-Öffner kein Builder-Konto eines Agenten, ist der Builder unbekannt: kein Erfolg, sonst
   // könnte ein Agent unter einem fremden Konto bauen und sich selbst prüfen.
-  const builders = builderOf(pull.user.login, agents);
-  if (builders.length === 0) throw new Error(`Builder unbekannt (PR-Öffner ${pull.user.login} ist kein Agent-Builder-Konto)`);
-  const blockers = changesRequestedBy(reviews, agents);
+  const builders = verifiedAccount(pull.user, accounts) ? builderOf(pull.user.login, agents) : [];
+  if (builders.length === 0) throw new Error(`Builder unbekannt (PR-Öffner ${pull.user.login} ist kein verifiziertes Agent-Builder-Konto)`);
+  const usable = usableReviews(reviews, accounts);
+  const blockers = changesRequestedBy(usable, agents);
   if (blockers.length > 0) return { state: 'failure', description: `Änderungen angefordert von ${blockers.join(', ')}` };
   const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
-  return reviewedStatus(reviewedBy(reviews, pull.head.sha, agents, [pull.user.login, ...commitLogins]));
+  // Nach einem Zielbranch-Wechsel zählen nur Reviews, die danach abgegeben wurden.
+  const since = lastBaseChange(events);
+  const current = since ? usable.filter((r) => (r.submitted_at ?? '') > since) : usable;
+  return reviewedStatus(reviewedBy(current, pull.head.sha, agents, [pull.user.login, ...commitLogins]));
 }
 
-function gatePr(pr, repoFull, { agents }, statusToken) {
+function gatePr(pr, repoFull, { agents, accounts }, statusToken) {
   const [owner, repo] = repoFull.split('/');
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
@@ -183,7 +221,8 @@ function gatePr(pr, repoFull, { agents }, statusToken) {
   try {
     const commits = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`])).flat();
     const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
-    reviewed = evaluateReviewed({ pull, commits, reviews, agents });
+    const events = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/issues/${pr}/events`])).flat();
+    reviewed = evaluateReviewed({ pull, commits, reviews, agents, accounts, events });
   } catch (err) {
     errors.push(err);
     reviewed = errorStatus(err);

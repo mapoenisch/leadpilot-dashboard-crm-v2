@@ -10,8 +10,13 @@
 name: Review Gate
 
 on:
+  # `edited` erfasst einen Zielbranch-Wechsel (frühere Reviews verlieren dann ihre Gültigkeit).
   pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  # Geschützte periodische Neubewertung: `review-gate-trigger.yml` läuft mit dem Workflow-Stand aus dem
+  # PR und kann dort entschärft werden (z. B. `dismissed` entfernt). Spätestens dieser Lauf korrigiert es.
+  schedule:
+    - cron: '*/15 * * * *'
   workflow_run:
     workflows: [Review Gate Trigger]
     types: [completed]
