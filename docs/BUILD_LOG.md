@@ -17397,7 +17397,7 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 
 - Es zählen nur formale PR-Reviews (`APPROVED`/`COMMENTED`/`CHANGES_REQUESTED`) auf genau dem Head-Commit, keine Kommentare.
 - Änderungen angefordert blockieren (Befund P1 Codex, 20.10.): Pro Prüfer zählt sein wirksamer Zustand, also das letzte `APPROVED`/`CHANGES_REQUESTED`/`DISMISSED` über alle Commits. Steht er auf `CHANGES_REQUESTED`, wird `agent-review` zu `failure`, bis derselbe Prüfer freigibt oder das Review verworfen wird.
-- Kein Selbst-Review: Der PR-Öffner, Autoren und Committer der PR-Commits und jeder Agent mit deren Login sind als Prüfer ausgeschlossen, ebenso der per Branch-Präfix gebundene Builder (`builderBranches`). Ohne bekanntes Präfix gibt es nie `agent-review=success`.
+- Kein Selbst-Review (Marc 20.10.2026, Befund P2 Codex): Jeder Agent baut unter einem eigenen Konto (`builderLogins`). Der Builder wird nur am PR-Öffner und an den Commit-Konten erkannt, Branch-Namen spielen keine Rolle mehr. Ist der Öffner kein Agent-Builder-Konto, gibt es nie `agent-review=success`. Ausgeschlossen als Prüfer sind diese Konten und jeder Agent, dem eines davon gehört.
 - Hat ein PR mehr Commits, als die API liefert (Grenze 250), gibt es keinen Erfolg.
 - Fail-closed: Nach Ermittlung des Heads gehen zuerst beide Status auf `pending` („Wird geprüft“), erst dann folgen die fehlbaren Abfragen. Bei Fehlern bleibt `pending` stehen. `review-conversations` wird unabhängig bewertet (Hinweis P3 von `marcs-pr-reviewer`).
 - Fälschungsschutz: Status setzt nur die eigene GitHub-App. Die JWT-Aufrufe laufen per `fetch` mit `Bearer`, weil `gh api` JWTs mit 401 ablehnt (Befund P1 `marcs-pr-reviewer`). Die Secrets liegen in der Umgebung `review-gate`, die nur `main` nutzen darf. Review-Ereignisse laufen über den rechtelosen `review-gate-trigger.yml` und `workflow_run`.
@@ -17407,13 +17407,13 @@ PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2
 
 **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
 
-**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 18 Tests ist grün, darunter 4 zur Blockade bei angeforderten Änderungen. Abgedeckt sind:
+**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 19 Tests ist grün, darunter 4 zur Blockade bei angeforderten Änderungen. Abgedeckt sind:
 
 - Review auf dem Head zählt, Review auf einem älteren Commit nicht.
 - Ungelistete Prüfer und ausstehende Reviews zählen nicht.
 - PR-Autor und Commit-Autor zählen nicht.
-- Der Builder zählt nicht: Codex auf `codex/` sowie `marcs-pr-reviewer` auf `antigravity/` und `opencode/`.
-- `builderOf` für bekannte und unbekannte Präfixe.
+- Der Builder zählt nicht: kein Review des Agenten, dem PR-Öffner oder ein Commit-Konto gehört.
+- `builderOf` erkennt den Builder nur am PR-Öffner; ein Antigravity-Konto auf einem `opencode/`-Branch prüft sich nicht selbst; ein PR-Öffner ohne Builder-Konto bekommt keinen Erfolg.
 - `evaluateReviewed` wirft bei unbekanntem Builder, unvollständigen Commits und fehlendem Autor.
 - Status-Texte.
 - RS256-JWT gegen einen Testschlüssel verifiziert.

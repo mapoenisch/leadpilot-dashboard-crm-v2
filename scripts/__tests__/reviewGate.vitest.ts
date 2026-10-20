@@ -16,138 +16,130 @@ import {
 
 const root = path.resolve(__dirname, '../..');
 const config = JSON.parse(fs.readFileSync(path.join(root, '.github/review-agents.json'), 'utf8'));
-const { agents, builderBranches } = config;
+// Test-Agenten mit eigenen Builder-Konten (die echte Konfiguration füllt Marc, sobald die Konten existieren).
+const agents = [
+  { name: 'Claude', logins: [], builderLogins: ['claude-builder'] },
+  { name: 'Codex', logins: ['chatgpt-codex-connector'], builderLogins: ['codex-builder'] },
+  { name: 'Devin', logins: ['devin-ai-integration'], builderLogins: [] },
+  {
+    name: 'OpenCode',
+    logins: ['opencode-agent', 'marcs-pr-reviewer'],
+    builderLogins: ['opencode-builder'],
+  },
+  { name: 'Antigravity', logins: ['marcs-pr-reviewer'], builderLogins: ['antigravity-builder'] },
+];
 const HEAD = 'head-sha';
 const review = (login: string, commit_id = HEAD, state = 'COMMENTED') => ({
   user: { login },
   commit_id,
   state,
 });
-const builders = (branch: string) => builderOf(branch, builderBranches);
+const pullBy = (opener: string, extra = {}) => ({
+  head: { sha: HEAD, ref: 'beliebiger/branch' },
+  user: { login: opener },
+  commits: 1,
+  ...extra,
+});
+const commitsBy = (login: string) => [{ author: { login }, committer: { login: 'web-flow' } }];
+const evaluate = (
+  opener: string,
+  reviews: ReturnType<typeof review>[],
+  commits = commitsBy(opener),
+) => evaluateReviewed({ pull: pullBy(opener), commits, reviews, agents });
+
+describe('Konfiguration', () => {
+  it('jeder Agent hat logins und builderLogins, kein Branch-Präfix mehr', () => {
+    for (const agent of config.agents) {
+      expect(Array.isArray(agent.logins)).toBe(true);
+      expect(Array.isArray(agent.builderLogins)).toBe(true);
+    }
+    expect(config.builderBranches).toBeUndefined();
+  });
+});
 
 describe('reviewedBy', () => {
   it('zählt ein formales Review eines gelisteten Prüfers auf dem Head', () => {
     expect(
-      reviewedBy(
-        [review('chatgpt-codex-connector[bot]')],
-        HEAD,
-        agents,
-        ['mapoenisch'],
-        builders('claude/x'),
-      ),
+      reviewedBy([review('chatgpt-codex-connector[bot]')], HEAD, agents, ['claude-builder']),
     ).toEqual(['Codex']);
   });
 
   it('zählt kein Review auf einem älteren Commit', () => {
     expect(
-      reviewedBy(
-        [review('chatgpt-codex-connector[bot]', 'alt')],
-        HEAD,
-        agents,
-        ['mapoenisch'],
-        builders('claude/x'),
-      ),
+      reviewedBy([review('chatgpt-codex-connector', 'alt')], HEAD, agents, ['claude-builder']),
     ).toEqual([]);
   });
 
   it('zählt keine ungelisteten Logins und keine ausstehenden Reviews', () => {
     expect(
-      reviewedBy(
-        [review('fremd'), review('devin-ai-integration', HEAD, 'PENDING')],
-        HEAD,
-        agents,
-        ['mapoenisch'],
-        [],
-      ),
+      reviewedBy([review('fremd'), review('devin-ai-integration', HEAD, 'PENDING')], HEAD, agents, [
+        'claude-builder',
+      ]),
     ).toEqual([]);
   });
 
-  it('zählt kein Review des PR-Autors oder eines Commit-Autors', () => {
+  it('zählt kein Review des Agenten, dem PR-Öffner oder Commit-Konto gehört', () => {
     expect(
-      reviewedBy([review('devin-ai-integration')], HEAD, agents, ['devin-ai-integration'], []),
+      reviewedBy([review('chatgpt-codex-connector')], HEAD, agents, ['codex-builder']),
     ).toEqual([]);
     expect(
-      reviewedBy(
-        [review('devin-ai-integration')],
-        HEAD,
-        agents,
-        ['mapoenisch', 'devin-ai-integration[bot]'],
-        [],
-      ),
-    ).toEqual([]);
-  });
-
-  it('zählt kein Review des per Branch-Präfix gebundenen Builders', () => {
-    expect(
-      reviewedBy(
-        [review('chatgpt-codex-connector[bot]')],
-        HEAD,
-        agents,
-        ['mapoenisch'],
-        builders('codex/x'),
-      ),
+      reviewedBy([review('marcs-pr-reviewer')], HEAD, agents, ['antigravity-builder']),
     ).toEqual([]);
     expect(
-      reviewedBy(
-        [review('marcs-pr-reviewer')],
-        HEAD,
-        agents,
-        ['mapoenisch'],
-        builders('antigravity/x'),
-      ),
+      reviewedBy([review('marcs-pr-reviewer')], HEAD, agents, [
+        'claude-builder',
+        'opencode-builder',
+      ]),
     ).toEqual([]);
     expect(
-      reviewedBy(
-        [review('marcs-pr-reviewer')],
-        HEAD,
-        agents,
-        ['mapoenisch'],
-        builders('opencode/x'),
-      ),
+      reviewedBy([review('devin-ai-integration')], HEAD, agents, ['devin-ai-integration[bot]']),
     ).toEqual([]);
   });
 
   it('bricht ohne PR-Autor ab', () => {
-    expect(() => reviewedBy([], HEAD, agents, [], [])).toThrow('PR-Autor unbekannt');
+    expect(() => reviewedBy([], HEAD, agents, [])).toThrow('PR-Autor unbekannt');
   });
 });
 
 describe('builderOf', () => {
-  it('erkennt bekannte Präfixe und liefert für unbekannte nichts', () => {
-    expect(builders('antigravity/auftrag-1')).toEqual(['Antigravity']);
-    expect(builders('claude/review-gate')).toEqual(['Claude']);
-    expect(builders('feature/x')).toEqual([]);
-    expect(builders('')).toEqual([]);
+  it('erkennt den Builder nur am PR-Öffner', () => {
+    expect(builderOf('antigravity-builder', agents)).toEqual(['Antigravity']);
+    expect(builderOf('Claude-Builder[bot]', agents)).toEqual(['Claude']);
+    expect(builderOf('mapoenisch', agents)).toEqual([]);
+    expect(builderOf('marcs-pr-reviewer', agents)).toEqual([]);
   });
 });
 
 describe('evaluateReviewed (fail-closed)', () => {
-  const base = { head: { sha: HEAD, ref: 'claude/x' }, user: { login: 'mapoenisch' }, commits: 1 };
-  const commits = [{ author: { login: 'mapoenisch' }, committer: { login: 'web-flow' } }];
-
-  it('meldet Erfolg bei gültigem Prüfer', () => {
-    expect(
-      evaluateReviewed({
-        pull: base,
-        commits,
-        reviews: [review('chatgpt-codex-connector')],
-        agents,
-        builderBranches,
-      }).state,
-    ).toBe('success');
+  it('meldet Erfolg bei gültigem Prüfer unabhängig vom Branch-Namen', () => {
+    expect(evaluate('claude-builder', [review('chatgpt-codex-connector')]).state).toBe('success');
   });
 
-  it('wirft bei unbekanntem Builder, unvollständigen Commits oder fehlendem Autor', () => {
-    const args = { commits, reviews: [review('chatgpt-codex-connector')], agents, builderBranches };
+  it('Branch-Name täuscht keine Rolle vor: Antigravity-Konto auf opencode/-Branch prüft sich nicht selbst', () => {
+    const status = evaluateReviewed({
+      pull: pullBy('antigravity-builder', { head: { sha: HEAD, ref: 'opencode/x' } }),
+      commits: commitsBy('antigravity-builder'),
+      reviews: [review('marcs-pr-reviewer')],
+      agents,
+    });
+    expect(status.state).toBe('pending');
+  });
+
+  it('wirft bei PR-Öffner ohne Agent-Builder-Konto, unvollständigen Commits oder fehlendem Autor', () => {
+    const args = {
+      commits: commitsBy('mapoenisch'),
+      reviews: [review('chatgpt-codex-connector')],
+      agents,
+    };
+    expect(() => evaluateReviewed({ ...args, pull: pullBy('mapoenisch') })).toThrow(
+      'Builder unbekannt',
+    );
     expect(() =>
-      evaluateReviewed({ ...args, pull: { ...base, head: { sha: HEAD, ref: 'feature/x' } } }),
-    ).toThrow('Builder unbekannt');
-    expect(() => evaluateReviewed({ ...args, pull: { ...base, commits: 300 } })).toThrow(
-      'unvollständig',
-    );
-    expect(() => evaluateReviewed({ ...args, pull: { ...base, user: null } })).toThrow(
-      'PR-Autor unbekannt',
-    );
+      evaluateReviewed({ ...args, pull: pullBy('claude-builder', { commits: 300 }) }),
+    ).toThrow('unvollständig');
+    expect(() =>
+      evaluateReviewed({ ...args, pull: pullBy('claude-builder', { user: null }) }),
+    ).toThrow('PR-Autor unbekannt');
   });
 
   it('setzt im Fehlerfall nie Erfolg', () => {
@@ -201,26 +193,26 @@ describe('Workflow-Verträge', () => {
 });
 
 describe('changesRequestedBy (Änderungen angefordert blockieren)', () => {
-  const pull = { head: { sha: HEAD, ref: 'claude/x' }, user: { login: 'mapoenisch' }, commits: 1 };
-  const commits = [{ author: { login: 'mapoenisch' }, committer: { login: 'web-flow' } }];
-  const evaluate = (reviews: ReturnType<typeof review>[]) =>
-    evaluateReviewed({ pull, commits, reviews, agents, builderBranches });
+  const evaluateClaude = (reviews: ReturnType<typeof review>[]) =>
+    evaluate('claude-builder', reviews);
 
   it('blockiert ein CHANGES_REQUESTED auf dem Head ohne Inline-Thread', () => {
-    const status = evaluate([review('chatgpt-codex-connector[bot]', HEAD, 'CHANGES_REQUESTED')]);
+    const status = evaluateClaude([
+      review('chatgpt-codex-connector[bot]', HEAD, 'CHANGES_REQUESTED'),
+    ]);
     expect(status.state).toBe('failure');
     expect(status.description).toBe('Änderungen angefordert von Codex');
   });
 
   it('blockiert weiter nach späterem COMMENTED und nach Anforderung auf älterem Commit', () => {
     expect(
-      evaluate([
+      evaluateClaude([
         review('chatgpt-codex-connector', HEAD),
         review('chatgpt-codex-connector', HEAD, 'CHANGES_REQUESTED'),
       ]).state,
     ).toBe('failure');
     expect(
-      evaluate([
+      evaluateClaude([
         review('chatgpt-codex-connector', 'alt', 'CHANGES_REQUESTED'),
         review('chatgpt-codex-connector', HEAD),
       ]).state,
@@ -229,7 +221,7 @@ describe('changesRequestedBy (Änderungen angefordert blockieren)', () => {
 
   it('hebt die Blockade durch Freigabe oder Verwerfen desselben Prüfers auf', () => {
     expect(
-      evaluate([
+      evaluateClaude([
         review('chatgpt-codex-connector', 'alt', 'CHANGES_REQUESTED'),
         review('chatgpt-codex-connector', HEAD, 'APPROVED'),
       ]).state,

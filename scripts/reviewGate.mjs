@@ -22,25 +22,26 @@ export const STATUS_THREADS = 'review-conversations';
 /** Login-Vergleich ohne Groß-/Kleinschreibung und ohne das Bot-Suffix `[bot]`. */
 const normalize = (login) => (login ?? '').toLowerCase().replace(/\[bot\]$/, '');
 
-const agentsOf = (login, agents) =>
-  agents.filter((a) => a.logins.some((l) => normalize(l) === normalize(login)));
+const has = (list, login) => (list ?? []).some((l) => normalize(l) === normalize(login));
+
+/** Agenten, deren Prüfer-Konto (`logins`) dieser Login ist. */
+const agentsOf = (login, agents) => agents.filter((a) => has(a.logins, login));
+
+/** Agenten, denen dieser Login gehört, als Prüfer- oder Builder-Konto (`logins`, `builderLogins`). */
+const ownersOf = (login, agents) => agents.filter((a) => has(a.logins, login) || has(a.builderLogins, login));
 
 /**
  * Ein Prüfer hat den Head geprüft, wenn sein formales PR-Review auf genau diesen Commit zeigt.
  * Kommentare zählen nicht (kein Commit-Bezug, nachträglich änderbar).
  */
-export function reviewedBy(reviews, headSha, agents, prAuthors = [], builderAgents = []) {
+export function reviewedBy(reviews, headSha, agents, prAuthors = []) {
   // prAuthors: PR-Öffner plus Autoren/Committer der PR-Commits.
-  // builderAgents: per Branch-Präfix gebundene Builder-Rolle (baut z. B. unter Marcs Identität).
   const authors = [prAuthors].flat().filter(Boolean);
   if (authors.length === 0) throw new Error('PR-Autor unbekannt: Gate bleibt ohne Status');
   const names = new Set();
-  // Der PR-Autor, jeder Agent mit seinem Login und der gebundene Builder können sich nicht selbst prüfen.
+  // Kein Selbst-Review: weder diese Konten noch ein Agent, dem eines davon gehört (Prüfer- oder Builder-Konto).
   const authorLogins = new Set(authors.map(normalize));
-  const authorAgents = new Set([
-    ...authors.flatMap((a) => agentsOf(a, agents).map((x) => x.name)),
-    ...builderAgents,
-  ]);
+  const authorAgents = new Set(authors.flatMap((a) => ownersOf(a, agents).map((x) => x.name)));
   const own = (user) =>
     authorLogins.has(normalize(user?.login)) ||
     agentsOf(user?.login, agents).some((a) => authorAgents.has(a.name));
@@ -72,11 +73,12 @@ export function changesRequestedBy(reviews, agents) {
   return [...names];
 }
 
-/** Builder-Agent laut Branch-Präfix (`builderBranches` in review-agents.json). */
-export const builderOf = (branch, builderBranches = {}) =>
-  Object.entries(builderBranches)
-    .filter(([prefix]) => (branch ?? '').startsWith(prefix))
-    .map(([, name]) => name);
+/**
+ * Builder laut PR-Öffner (Marc 20.10.2026: jeder Agent baut unter eigenem Konto). Der Öffner ist von
+ * GitHub verbürgt, anders als Branch-Namen oder Git-Metadaten.
+ */
+export const builderOf = (opener, agents) =>
+  agents.filter((a) => has(a.builderLogins, opener)).map((a) => a.name);
 
 export const reviewedStatus = (names) =>
   names.length > 0
@@ -153,21 +155,21 @@ export const CHECKING = { state: 'pending', description: 'Wird geprüft …' };
  * Bewertet `agent-review` für einen PR. Wirft bei unvollständigen Daten oder unbekanntem Builder;
  * der Aufrufer setzt dann `pending` (kein Erfolg ohne vollständige Prüfung).
  */
-export function evaluateReviewed({ pull, commits, reviews, agents, builderBranches }) {
+export function evaluateReviewed({ pull, commits, reviews, agents }) {
   if (!pull.user?.login) throw new Error('PR-Autor unbekannt');
   // Die Commit-Liste der API ist auf 250 Einträge begrenzt: bei Abweichung lieber kein Erfolg.
   if (pull.commits > commits.length) throw new Error('PR-Commits unvollständig');
-  // Ohne bekanntes Branch-Präfix ist der Builder unbekannt: kein Erfolg, sonst ließe sich die
-  // Selbst-Review-Sperre durch einen anders benannten Branch umgehen.
-  const builders = builderOf(pull.head.ref, builderBranches);
-  if (builders.length === 0) throw new Error('Builder unbekannt (Branch-Präfix fehlt)');
+  // Ist der PR-Öffner kein Builder-Konto eines Agenten, ist der Builder unbekannt: kein Erfolg, sonst
+  // könnte ein Agent unter einem fremden Konto bauen und sich selbst prüfen.
+  const builders = builderOf(pull.user.login, agents);
+  if (builders.length === 0) throw new Error(`Builder unbekannt (PR-Öffner ${pull.user.login} ist kein Agent-Builder-Konto)`);
   const blockers = changesRequestedBy(reviews, agents);
   if (blockers.length > 0) return { state: 'failure', description: `Änderungen angefordert von ${blockers.join(', ')}` };
   const commitLogins = commits.flatMap((c) => [c.author?.login, c.committer?.login]);
-  return reviewedStatus(reviewedBy(reviews, pull.head.sha, agents, [pull.user.login, ...commitLogins], builders));
+  return reviewedStatus(reviewedBy(reviews, pull.head.sha, agents, [pull.user.login, ...commitLogins]));
 }
 
-function gatePr(pr, repoFull, { agents, builderBranches }, statusToken) {
+function gatePr(pr, repoFull, { agents }, statusToken) {
   const [owner, repo] = repoFull.split('/');
   const pull = JSON.parse(gh(['api', `repos/${repoFull}/pulls/${pr}`]));
   const head = pull.head.sha;
@@ -181,7 +183,7 @@ function gatePr(pr, repoFull, { agents, builderBranches }, statusToken) {
   try {
     const commits = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/commits`])).flat();
     const reviews = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repoFull}/pulls/${pr}/reviews`])).flat();
-    reviewed = evaluateReviewed({ pull, commits, reviews, agents, builderBranches });
+    reviewed = evaluateReviewed({ pull, commits, reviews, agents });
   } catch (err) {
     errors.push(err);
     reviewed = errorStatus(err);

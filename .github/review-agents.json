@@ -1,16 +1,10 @@
 {
-  "_hinweis": "Prüfer, deren Review den Status `agent-review` auf success setzt. Logins ohne `[bot]`-Suffix, ohne Groß-/Kleinschreibung. Antigravity: GitHub-Login des Kontos eintragen, unter dem Antigravity Reviews postet. `builderBranches` bindet die Builder-Rolle an das Branch-Präfix: der dort genannte Agent kann den PR nicht selbst prüfen, auch wenn er unter Marcs Identität baut. PRs ohne bekanntes Präfix erhalten kein `agent-review=success`.",
+  "_hinweis": "Agenten des Review-Gates (Marc 20.10.2026: jeder Agent baut unter eigenem GitHub-Konto). `logins`: Konten, deren formales PR-Review `agent-review` auf success setzen kann. `builderLogins`: Konten, unter denen der Agent PRs öffnet und committet. Der Builder wird nur am PR-Öffner und an den Commit-Konten erkannt; ein PR, dessen Öffner kein `builderLogins`-Konto ist, erhält nie `agent-review=success`. Logins ohne `[bot]`-Suffix, ohne Groß-/Kleinschreibung. Leere Listen füllt Marc, sobald die Konten angelegt sind.",
   "agents": [
-    { "name": "Codex", "logins": ["chatgpt-codex-connector"] },
-    { "name": "Devin", "logins": ["devin-ai-integration"] },
-    { "name": "OpenCode", "logins": ["opencode-agent", "marcs-pr-reviewer"] },
-    { "name": "Antigravity", "logins": ["marcs-pr-reviewer"] }
-  ],
-  "builderBranches": {
-    "antigravity/": "Antigravity",
-    "claude/": "Claude",
-    "codex/": "Codex",
-    "devin/": "Devin",
-    "opencode/": "OpenCode"
-  }
+    { "name": "Claude", "logins": [], "builderLogins": [] },
+    { "name": "Codex", "logins": ["chatgpt-codex-connector"], "builderLogins": [] },
+    { "name": "Devin", "logins": ["devin-ai-integration"], "builderLogins": [] },
+    { "name": "OpenCode", "logins": ["opencode-agent", "marcs-pr-reviewer"], "builderLogins": [] },
+    { "name": "Antigravity", "logins": ["marcs-pr-reviewer"], "builderLogins": [] }
+  ]
 }
