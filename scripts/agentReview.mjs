@@ -27,6 +27,10 @@ export function parseCommand(body) {
   return match ? match[1].toLowerCase() : null;
 }
 
+export function isSameRepo(pr, repo) {
+  return pr?.head?.repo?.full_name?.toLowerCase() === repo.toLowerCase();
+}
+
 export function mayCommand(login) {
   return TRUSTED_COMMANDERS.includes(String(login ?? '').toLowerCase());
 }
@@ -210,12 +214,25 @@ async function runDevin(prompt) {
   throw new Error(`Devin-Session ${id}: Zeitlimit erreicht`);
 }
 
+export const OPENCODE_READ_ONLY = { permission: { edit: 'deny', bash: 'deny', webfetch: 'deny' } };
+
 function runOpencode(promptFile) {
   return execFileSync(
     'opencode',
     ['run', '--model', process.env.OPENCODE_MODEL || 'anthropic/claude-sonnet-5-5',
       `Lies ${promptFile} und befolge die Anweisungen darin. Ändere keine Dateien.`],
-    { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 30 * 60 * 1000 },
+    {
+      encoding: 'utf8',
+      maxBuffer: 32 * 1024 * 1024,
+      timeout: 30 * 60 * 1000,
+      // Diff-Inhalte können Prompt-Injection enthalten: nur lesen, kein Shell/Web, keine fremden Secrets.
+      env: {
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+        OPENCODE_CONFIG_CONTENT: JSON.stringify(OPENCODE_READ_ONLY),
+      },
+    },
   );
 }
 
@@ -252,7 +269,10 @@ async function main() {
     const agent = agentArg(a.agent);
     if (AGENTS[agent].mode !== 'ci') throw new Error(`${AGENTS[agent].name} läuft lokal: \`npm run agent-review -- prompt --agent ${agent} --pr ${number}\``);
     const { pr, diff } = await loadPr(repo, number, token);
+    if (!isSameRepo(pr, repo)) throw new Error('Fork-PRs werden nicht im CI geprüft');
     const prompt = reviewPrompt({ agent, pr, diff });
+    // Ab hier sieht kein Agent mehr den Posting-Token.
+    delete process.env.MARCREVIEW_TOKEN;
     let answer;
     if (agent === 'perplexity') answer = await runPerplexity(prompt);
     else if (agent === 'devin') answer = await runDevin(prompt);

@@ -23,8 +23,9 @@ jobs:
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # MARCREVIEW_TOKEN nur in den Schritten, die posten – nicht bei der OpenCode-Installation.
+    # Das Skript reicht ihn an keinen Agenten weiter (OpenCode: minimale Umgebung, nur Leserechte).
     env:
-      MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
       PR: ${{ github.event.issue.number }}
       COMMENT_BODY: ${{ github.event.comment.body }}
     steps:
@@ -49,6 +50,8 @@ jobs:
 
       - name: Bestätigen
         if: steps.cmd.outputs.agent != ''
+        env:
+          MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
         run: node scripts/agentReview.mjs ack --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR" --comment "${{ github.event.comment.id }}"
 
       - name: OpenCode installieren
@@ -58,6 +61,7 @@ jobs:
       - name: Review ausführen
         if: steps.cmd.outputs.mode == 'ci'
         env:
+          MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.OPENCODE_ANTHROPIC_API_KEY }}

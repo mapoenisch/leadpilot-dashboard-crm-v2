@@ -6,7 +6,9 @@ import {
   AGENTS,
   buildReview,
   commentableLines,
+  isSameRepo,
   mayCommand,
+  OPENCODE_READ_ONLY,
   parseCommand,
   parseFindings,
 } from '../agentReview.mjs';
@@ -37,6 +39,17 @@ describe('mayCommand', () => {
     expect(mayCommand('mapoenisch')).toBe(true);
     expect(mayCommand('MarcReview')).toBe(false);
     expect(mayCommand(undefined)).toBe(false);
+  });
+});
+
+describe('Absicherung', () => {
+  it('lehnt Fork-PRs ab', () => {
+    expect(isSameRepo({ head: { repo: { full_name: 'a/b' } } }, 'A/B')).toBe(true);
+    expect(isSameRepo({ head: { repo: { full_name: 'x/b' } } }, 'a/b')).toBe(false);
+    expect(isSameRepo({ head: { repo: null } }, 'a/b')).toBe(false);
+  });
+  it('OpenCode läuft ohne Schreib-, Shell- und Webrechte', () => {
+    expect(OPENCODE_READ_ONLY.permission).toEqual({ edit: 'deny', bash: 'deny', webfetch: 'deny' });
   });
 });
 
