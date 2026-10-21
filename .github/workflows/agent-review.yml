@@ -30,6 +30,7 @@ jobs:
     outputs:
       agent: ${{ steps.cmd.outputs.agent }}
       mode: ${{ steps.cmd.outputs.mode }}
+      sha: ${{ steps.cmd.outputs.sha }}
     env:
       PR: ${{ github.event.issue.number }}
       COMMENT_BODY: ${{ github.event.comment.body }}
@@ -46,6 +47,8 @@ jobs:
       - name: Befehl erkennen
         id: cmd
         run: |
+          # Alle Jobs laufen auf genau diesem main-Commit, auch wenn main sich währenddessen bewegt.
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           agent=$(node -e "import('./scripts/agentReview.mjs').then(m => process.stdout.write(m.parseCommand(process.env.COMMENT_BODY) ?? ''))")
           echo "agent=$agent" >> "$GITHUB_OUTPUT"
           if [ -n "$agent" ]; then
@@ -70,7 +73,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ needs.ack.outputs.sha }}
           persist-credentials: false
 
       - uses: actions/setup-node@v4
@@ -79,7 +82,7 @@ jobs:
 
       - name: OpenCode installieren
         if: env.AGENT == 'opencode'
-        run: npm install -g "opencode-ai@${{ vars.OPENCODE_VERSION || 'latest' }}"
+        run: npm install -g "opencode-ai@1.19.3"
 
       - name: Review ausführen
         env:
@@ -106,7 +109,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ needs.ack.outputs.sha }}
           persist-credentials: false
 
       - uses: actions/setup-node@v4

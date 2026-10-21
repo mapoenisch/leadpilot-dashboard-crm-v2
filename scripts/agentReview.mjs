@@ -21,6 +21,7 @@ export const TRUSTED_COMMANDERS = ['mapoenisch'];
 
 const API = 'https://api.github.com';
 const MARKER = '<!-- agent-review -->';
+export const STATUS_CONTEXT = 'agent-review';
 
 export function parseCommand(body) {
   const match = /^\s*\/(antigravity|opencode|devin|proto|perplexity)\s+review\b/im.exec(body ?? '');
@@ -47,7 +48,8 @@ export function commentableLines(files) {
         line = Number(hunk[1]);
         continue;
       }
-      if (row.startsWith('-') || row.startsWith('\\')) continue;
+      // Ohne Hunk-Header (kein Patch) gibt es keine kommentierbare Zeile.
+      if (!line || row.startsWith('-') || row.startsWith('\\')) continue;
       set.add(line);
       line += 1;
     }
@@ -89,13 +91,14 @@ export function parseFindings(text) {
 
 // Unvollständige Diffs (GitHub-Grenzen: 300 Dateien, 3000 Dateien-API, große Patches ohne `patch`).
 export function truncation(pr, files) {
-  const missing = files.filter((f) => !f.patch && f.status !== 'removed' && (f.changes ?? 1) > 0).map((f) => f.filename);
+  // Auch Löschungen zählen; nur inhaltslose Änderungen (Binärdateien, reine Umbenennung: changes 0) nicht.
+  const missing = files.filter((f) => !f.patch && (f.changes ?? 1) > 0).map((f) => f.filename);
   if (files.length < (pr.changed_files ?? 0)) missing.push(`${pr.changed_files - files.length} weitere Datei(en)`);
   return missing;
 }
 
-// Jeder Befund wird eine lösbare Konversation – auch außerhalb des Diffs (als Datei-Kommentar oder am
-// ersten Diff-Abschnitt). Event ist immer COMMENT: Alle Agenten posten unter MarcReview, eine Freigabe
+// Jeder Befund wird eine lösbare Konversation – auch außerhalb des Diffs (an der ersten Diff-Zeile der
+// Datei oder des PRs). Nicht verankerbare Befunde stehen im Review-Text und verhindern den Status. Event ist immer COMMENT: Alle Agenten posten unter MarcReview, eine Freigabe
 // eines Agenten würde sonst Änderungsanforderungen eines anderen aufheben. Merge-Sperre = offene
 // Konversationen (Branch-Schutz „Require conversation resolution“).
 export function buildReview({ agent, headSha, result, files, missing = [] }) {
@@ -113,15 +116,17 @@ export function buildReview({ agent, headSha, result, files, missing = [] }) {
     });
   }
   const comments = [];
+  const unanchored = [];
   for (const f of findings) {
     const where = f.line ? `\`${f.path}:${f.line}\`` : `\`${f.path}\``;
     const text = `**[${f.severity}] ${f.title}**\n\n${f.body}\n\n_— ${name}_`;
-    if (lines.get(f.path)?.has(f.line)) comments.push({ path: f.path, line: f.line, side: 'RIGHT', body: text });
-    else if (lines.has(f.path)) comments.push({ path: f.path, subject_type: 'file', body: `${where}\n\n${text}` });
+    const own = lines.get(f.path);
+    if (own?.has(f.line)) comments.push({ path: f.path, line: f.line, side: 'RIGHT', body: text });
+    else if (own?.size) comments.push({ path: f.path, line: [...own][0], side: 'RIGHT', body: `Betrifft ${where}.\n\n${text}` });
     else if (anchor) {
       const line = [...lines.get(anchor.filename)][0];
       comments.push({ path: anchor.filename, line, side: 'RIGHT', body: `Betrifft ${where} (nicht im Diff).\n\n${text}` });
-    }
+    } else unanchored.push(`- ${where} ${text}`);
   }
   const verdict = findings.length
     ? `${findings.length} Befund(e) als Konversationen. Vor dem Merge jede lösen; danach erneut \`/${agent} review\`.`
@@ -129,8 +134,11 @@ export function buildReview({ agent, headSha, result, files, missing = [] }) {
   return {
     commit_id: headSha,
     event: 'COMMENT',
-    body: [MARKER, `## ${name}-Review`, `Geprüfter Head: \`${headSha}\``, result.summary, verdict].filter(Boolean).join('\n\n'),
+    body: [MARKER, `## ${name}-Review`, `Geprüfter Head: \`${headSha}\``, result.summary, verdict,
+      unanchored.length ? `**Nicht als Konversation verankerbar – Merge-Status bleibt offen:**\n${unanchored.join('\n')}` : '',
+    ].filter(Boolean).join('\n\n'),
     comments,
+    unanchored: unanchored.length,
   };
 }
 
@@ -192,9 +200,18 @@ async function postReview(repo, number, token, agent, result, headSha) {
   if (pr.head.sha !== headSha) {
     throw new Error(`PR-Head hat sich geändert (${headSha.slice(0, 7)} → ${pr.head.sha.slice(0, 7)}); erneut \`/${agent} review\``);
   }
-  const review = buildReview({ agent, headSha, result, files, missing: truncation(pr, files) });
+  const { unanchored, ...review } = buildReview({ agent, headSha, result, files, missing: truncation(pr, files) });
   await gh('POST', `/repos/${repo}/pulls/${number}/reviews`, token, review);
   console.log(`${AGENTS[agent].name}-Review gepostet: ${review.comments.length} Konversation(en)`);
+  // Pflicht-Status: Ohne mindestens einen unabhängigen Lauf auf diesem Head ist der PR nicht mergefähig.
+  // Befunde blockieren zusätzlich über offene Konversationen.
+  await gh('POST', `/repos/${repo}/statuses/${headSha}`, token, {
+    context: STATUS_CONTEXT,
+    state: unanchored ? 'failure' : 'success',
+    description: unanchored
+      ? `${AGENTS[agent].name}: ${unanchored} Befund(e) ohne Konversation`
+      : `${AGENTS[agent].name} hat geprüft`,
+  });
 }
 
 // ---------- Agenten im CI ----------
@@ -314,6 +331,8 @@ async function main() {
     // Desktop-Agent (Antigravity, Proto): Prompt-Datei erzeugen, Agent schreibt das JSON daneben.
     const agent = agentArg(a.agent);
     const { pr, diff } = await loadPr(repo, number, token);
+    // Fork-Inhalte nicht an einen lokalen Agenten mit Zugriff auf Marcs Umgebung geben.
+    if (!isSameRepo(pr, repo)) throw new Error('Fork-PRs werden nicht geprüft');
     const base = path.join('handoff', `review-${number}-${agent}`);
     fs.mkdirSync('handoff', { recursive: true });
     fs.writeFileSync(`${base}.md`, `${reviewPrompt({ agent, pr, diff })}\nSchreibe das JSON nach ${base}.json und führe dann aus:\nnpm run agent-review -- post --agent ${agent} --pr ${number} --sha ${pr.head.sha} --file ${base}.json\n`);

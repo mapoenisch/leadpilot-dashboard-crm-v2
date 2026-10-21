@@ -17482,3 +17482,26 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **CI-Hinweis:** Job `test` scheitert unabhängig von diesem PR an `npm audit` (neue `vite`-Schwachstelle GHSA-698v-4r3x-3vcv u. a.); Behebung braucht ein Versions-Update, eigener Schritt.
 
 **Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.
+
+### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93 auf `69109be` (Builder: Claude Code, 21.10.2026)
+
+**Behoben:**
+- P1 Kein Pflicht-Review → `post` setzt nach jedem geposteten Lauf den Commit-Status `agent-review` auf dem geprüften Head (Pflicht-Check im Branch-Schutz, Einrichtung Schritt 4; PAT braucht *Commit statuses*).
+- P1 `subject_type: "file"` im Reviews-Endpunkt ungültig → Befunde außerhalb kommentierbarer Zeilen hängen an der ersten Diff-Zeile der Datei bzw. des PRs; gar nicht verankerbare stehen im Review-Text und setzen den Status auf `failure`.
+- P1 Zeile 0 bei Dateien ohne Patch → `commentableLines` zählt erst ab einem Hunk-Header.
+- P1 Fork-PRs im lokalen `prompt`-Pfad → gleiche `isSameRepo`-Prüfung wie im CI.
+- P2 Ausgelassene Lösch-Patches → zählen als unvollständig; nur inhaltslose Änderungen (`changes: 0`) nicht.
+- P2 OpenCode `latest` → fest `opencode-ai@1.19.3`.
+- P2 Bewegliches `main` zwischen Jobs → `ack` ermittelt den SHA, `review` und `post` checken genau diesen aus.
+
+**Veraltet (bereits in `69109be` erledigt):** Reviewzustände unter einem Konto (Event immer `COMMENT`), gekürzte Diffs (`truncation()`), zwei Ledger-Befunde (Gate-Nachweis steht im Abschnitt zu `7cb90f9`).
+
+**Automatisierte Verifikation (lokal, 21.10.2026):** `npx tsc --noEmit` 0 Fehler · `npm run verify` alle Suiten 001–025 grün · `npm run build` grün · `agentReview.vitest.ts` 22/22.
+
+**Schutzbereiche:** `git diff main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Screenshot-Matrix:** entfällt (keine UI-Änderung).
+
+**Hinweis Marc:** Branch-Schutz um Pflicht-Check `agent-review` ergänzen, MarcReview-PAT um *Commit statuses* Read & Write erweitern.
+
+**Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.

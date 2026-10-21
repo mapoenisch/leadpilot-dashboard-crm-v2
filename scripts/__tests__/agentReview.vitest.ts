@@ -58,6 +58,9 @@ describe('commentableLines', () => {
   it('liefert Kontext- und neue Zeilen der rechten Seite', () => {
     expect([...commentableLines(FILES).get('src/x.ts')!]).toEqual([1, 2, 3, 4]);
   });
+  it('Dateien ohne Patch haben keine Zeile (auch nicht 0)', () => {
+    expect(commentableLines([{ filename: 'big.bin' }]).get('big.bin')!.size).toBe(0);
+  });
 });
 
 describe('parseFindings', () => {
@@ -84,7 +87,9 @@ describe('buildReview', () => {
     expect(r.commit_id).toBe('sha');
     expect(r.comments).toHaveLength(3);
     expect(r.comments[0]).toMatchObject({ path: 'src/x.ts', line: 3, side: 'RIGHT' });
-    expect(r.comments[1]).toMatchObject({ path: 'src/x.ts', subject_type: 'file' });
+    expect(r.comments[1]).toMatchObject({ path: 'src/x.ts', line: 1, side: 'RIGHT' });
+    expect(r.comments[1]).not.toHaveProperty('subject_type');
+    expect(r.comments[1].body).toContain('src/x.ts:99');
     expect(r.comments[2]).toMatchObject({ path: 'src/x.ts', line: 1 });
     expect(r.comments[2].body).toContain('README.md:5');
   });
@@ -92,6 +97,14 @@ describe('buildReview', () => {
     const r = build([], ['big.json']);
     expect(r.comments).toHaveLength(1);
     expect(r.comments[0].body).toContain('Diff unvollständig');
+    expect(r.comments[0].line).toBeGreaterThan(0);
+  });
+  it('ohne kommentierbare Zeile landet der Befund im Text und zählt als unverankert', () => {
+    const r = buildReview({ agent: 'devin', headSha: 'sha', result: { summary: 's', findings: [] },
+      files: [{ filename: 'big.json', status: 'modified', changes: 5 }], missing: ['big.json'] });
+    expect(r.comments).toHaveLength(0);
+    expect(r.unanchored).toBe(1);
+    expect(r.body).toContain('Nicht als Konversation verankerbar');
   });
 });
 
@@ -102,6 +115,12 @@ describe('truncation', () => {
       'big.json',
       '1 weitere Datei(en)',
     ]);
+  });
+  it('fehlende Lösch-Patches zählen, inhaltslose Änderungen nicht', () => {
+    expect(truncation({ changed_files: 2 }, [
+      { filename: 'old.sql', status: 'removed', changes: 900 },
+      { filename: 'logo.png', status: 'modified', changes: 0 },
+    ])).toEqual(['old.sql']);
   });
 });
 
@@ -122,8 +141,13 @@ describe('Workflow-Vertrag', () => {
     expect(job).not.toContain('MARCREVIEW_TOKEN');
     expect(wf.slice(wf.indexOf('\n  post:'))).toContain('needs: [ack, review]');
   });
-  it('checkt main aus, nicht den PR-Head', () => {
+  it('checkt main aus, nicht den PR-Head – alle Jobs auf demselben Commit', () => {
     expect(wf).toContain('ref: ${{ github.event.repository.default_branch }}');
+    expect(wf.match(/ref: \$\{\{ needs\.ack\.outputs\.sha \}\}/g)).toHaveLength(2);
+  });
+  it('OpenCode-Version ist fest gepinnt', () => {
+    expect(wf).toMatch(/opencode-ai@\d+\.\d+\.\d+"/);
+    expect(wf).not.toContain('opencode-ai@${{');
   });
   it('CI-Agenten und lokale Agenten sind getrennt', () => {
     expect(Object.entries(AGENTS).filter(([, a]) => a.mode === 'local').map(([k]) => k)).toEqual(['antigravity', 'proto']);

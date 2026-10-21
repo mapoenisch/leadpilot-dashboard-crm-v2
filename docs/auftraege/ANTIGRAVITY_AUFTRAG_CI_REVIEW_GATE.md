@@ -26,14 +26,14 @@ Ergebnis: immer ein `COMMENT`-Review; **jeder Befund ist eine lösbare Konversat
 | `scripts/agentReview.mjs` | Befehlserkennung, Prompt, Agenten-Aufrufe, Befund-JSON, Review mit Inline-Kommentaren nur auf Diff-Zeilen; CLI `run`, `prompt`, `post`, `ack`. |
 | `scripts/__tests__/agentReview.vitest.ts` | Tests für Befehlserkennung, Diff-Zeilen, JSON-Parsing, Review-Aufbau, Workflow-Vertrag. |
 
-Entfernt: `review-gate.yml`, `review-gate-trigger.yml`, `reviewGate.mjs`, `review-agents.json`, `getReviewerToken.mjs`, `.opencode/`-Befehle. Die Merge-Sperre übernimmt GitHubs Branch-Schutz statt eines eigenen Status-Gates.
+Entfernt: `review-gate.yml`, `review-gate-trigger.yml`, `reviewGate.mjs`, `review-agents.json`, `getReviewerToken.mjs`, `.opencode/`-Befehle. Merge-Sperre: Pflicht-Status `agent-review` (setzt erst ein geposteter unabhängiger Lauf auf dem aktuellen Head; `failure`, wenn ein Befund nicht als Konversation verankert werden konnte) plus „Require conversation resolution“ für die Befunde.
 
 ## Einrichtung durch Marc (einmalig)
 
 1. **MarcReview** als Collaborator (Rolle Triage oder Write) einladen und annehmen.
-2. Mit MarcReview einen Fine-grained PAT nur für dieses Repo anlegen: *Pull requests* Read & Write, *Issues* Read & Write, *Contents* Read. Als Secret `MARCREVIEW_TOKEN` speichern; lokal als Umgebungsvariable `MARCREVIEW_TOKEN` (nicht ins Repo).
-3. Secrets: `PERPLEXITY_API_KEY`, `DEVIN_API_KEY`, `OPENCODE_ANTHROPIC_API_KEY`. Optional Variablen `OPENCODE_MODEL`, `OPENCODE_VERSION` (Version pinnen empfohlen).
-4. Branch-Schutz für `main`: *Require a pull request* (0 Freigaben), *Require conversation resolution before merging*, Status-Check `ci`. Alte Pflicht-Checks `agent-review`/`review-conversations` entfernen.
+2. Mit MarcReview einen Fine-grained PAT nur für dieses Repo anlegen: *Pull requests* Read & Write, *Issues* Read & Write, *Commit statuses* Read & Write, *Contents* Read. Als Secret `MARCREVIEW_TOKEN` speichern; lokal als Umgebungsvariable `MARCREVIEW_TOKEN` (nicht ins Repo).
+3. Secrets: `PERPLEXITY_API_KEY`, `DEVIN_API_KEY`, `OPENCODE_ANTHROPIC_API_KEY`. Optional Variable `OPENCODE_MODEL`. Die OpenCode-Version ist im Workflow fest gepinnt; ein Update läuft als normaler PR.
+4. Branch-Schutz für `main`: *Require a pull request* (0 Freigaben), *Require conversation resolution before merging*, Pflicht-Status-Checks `ci` und `agent-review`. Alten Pflicht-Check `review-conversations` entfernen.
 5. **Automatische Reviews abschalten:** In den Codex-Einstellungen (chatgpt.com/codex → Settings → Code review) „Automatic reviews“ für dieses Repo aus – dann reagiert Codex nur noch auf `@codex review`. Antigravity/OpenCode lokal nicht mehr mit Marcs `gh`-Login posten lassen (dessen Reviews sind reine Textkommentare ohne Konversation).
 
 ## Restrisiken
