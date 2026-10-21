@@ -87,32 +87,49 @@ export function parseFindings(text) {
   throw new Error('Agenten-Antwort enthält kein gültiges Befund-JSON');
 }
 
-export function buildReview({ agent, headSha, result, files }) {
+// Unvollständige Diffs (GitHub-Grenzen: 300 Dateien, 3000 Dateien-API, große Patches ohne `patch`).
+export function truncation(pr, files) {
+  const missing = files.filter((f) => !f.patch && f.status !== 'removed' && (f.changes ?? 1) > 0).map((f) => f.filename);
+  if (files.length < (pr.changed_files ?? 0)) missing.push(`${pr.changed_files - files.length} weitere Datei(en)`);
+  return missing;
+}
+
+// Jeder Befund wird eine lösbare Konversation – auch außerhalb des Diffs (als Datei-Kommentar oder am
+// ersten Diff-Abschnitt). Event ist immer COMMENT: Alle Agenten posten unter MarcReview, eine Freigabe
+// eines Agenten würde sonst Änderungsanforderungen eines anderen aufheben. Merge-Sperre = offene
+// Konversationen (Branch-Schutz „Require conversation resolution“).
+export function buildReview({ agent, headSha, result, files, missing = [] }) {
   const name = AGENTS[agent].name;
   const lines = commentableLines(files);
+  const anchor = files.find((f) => lines.get(f.filename)?.size);
+  const findings = [...result.findings];
+  if (missing.length) {
+    findings.push({
+      path: anchor?.filename ?? '',
+      line: 0,
+      severity: 'P1',
+      title: 'Diff unvollständig geprüft',
+      body: `GitHub hat nicht den ganzen Diff geliefert; ungeprüft: ${missing.join(', ')}. Manuell prüfen oder PR aufteilen.`,
+    });
+  }
   const comments = [];
-  const outside = [];
-  for (const f of result.findings) {
+  for (const f of findings) {
+    const where = f.line ? `\`${f.path}:${f.line}\`` : `\`${f.path}\``;
     const text = `**[${f.severity}] ${f.title}**\n\n${f.body}\n\n_— ${name}_`;
     if (lines.get(f.path)?.has(f.line)) comments.push({ path: f.path, line: f.line, side: 'RIGHT', body: text });
-    else outside.push(`- \`${f.path}${f.line ? `:${f.line}` : ''}\` **[${f.severity}] ${f.title}** – ${f.body}`);
+    else if (lines.has(f.path)) comments.push({ path: f.path, subject_type: 'file', body: `${where}\n\n${text}` });
+    else if (anchor) {
+      const line = [...lines.get(anchor.filename)][0];
+      comments.push({ path: anchor.filename, line, side: 'RIGHT', body: `Betrifft ${where} (nicht im Diff).\n\n${text}` });
+    }
   }
-  const verdict = result.findings.length
-    ? `${result.findings.length} Befund(e). Jeder Inline-Kommentar muss vor dem Merge gelöst werden; danach erneut \`/${agent} review\`.`
-    : 'Keine Befunde – freigegeben.';
-  const body = [
-    MARKER,
-    `## ${name}-Review`,
-    result.summary,
-    verdict,
-    outside.length ? `### Befunde außerhalb des Diffs\n${outside.join('\n')}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+  const verdict = findings.length
+    ? `${findings.length} Befund(e) als Konversationen. Vor dem Merge jede lösen; danach erneut \`/${agent} review\`.`
+    : 'Keine Befunde.';
   return {
     commit_id: headSha,
-    event: result.findings.length ? 'REQUEST_CHANGES' : 'APPROVE',
-    body,
+    event: 'COMMENT',
+    body: [MARKER, `## ${name}-Review`, `Geprüfter Head: \`${headSha}\``, result.summary, verdict].filter(Boolean).join('\n\n'),
     comments,
   };
 }
@@ -144,7 +161,12 @@ ${diff}
 async function gh(method, url, token, body, accept = 'application/vnd.github+json') {
   const res = await fetch(url.startsWith('http') ? url : `${API}${url}`, {
     method,
-    headers: { Authorization: `Bearer ${token}`, Accept: accept, 'X-GitHub-Api-Version': '2022-11-28' },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: accept,
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'leadpilot-agent-review',
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error(`GitHub ${method} ${url}: ${res.status} ${await res.text()}`);
@@ -163,11 +185,16 @@ async function loadPr(repo, number, token) {
   return { pr, diff, files };
 }
 
-async function postReview(repo, number, token, agent, result) {
+// Postet nur auf genau den geprüften Head; ist inzwischen neu gepusht, wird abgebrochen.
+async function postReview(repo, number, token, agent, result, headSha) {
   const { pr, files } = await loadPr(repo, number, token);
-  const review = buildReview({ agent, headSha: pr.head.sha, result, files });
+  if (!headSha) throw new Error('Geprüfter Head-SHA fehlt');
+  if (pr.head.sha !== headSha) {
+    throw new Error(`PR-Head hat sich geändert (${headSha.slice(0, 7)} → ${pr.head.sha.slice(0, 7)}); erneut \`/${agent} review\``);
+  }
+  const review = buildReview({ agent, headSha, result, files, missing: truncation(pr, files) });
   await gh('POST', `/repos/${repo}/pulls/${number}/reviews`, token, review);
-  console.log(`${AGENTS[agent].name}-Review gepostet: ${review.event}, ${review.comments.length} Inline-Kommentar(e)`);
+  console.log(`${AGENTS[agent].name}-Review gepostet: ${review.comments.length} Konversation(en)`);
 }
 
 // ---------- Agenten im CI ----------
@@ -201,7 +228,7 @@ async function runDevin(prompt) {
   const deadline = Date.now() + 45 * 60 * 1000;
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 30_000));
-    const res = await fetch(`https://api.devin.ai/v1/session/${id}`, { headers });
+    const res = await fetch(`https://api.devin.ai/v1/sessions/${id}`, { headers });
     if (!res.ok) continue;
     const session = await res.json();
     if (session.structured_output?.findings) return JSON.stringify(session.structured_output);
@@ -280,20 +307,28 @@ async function main() {
       fs.writeFileSync('.agent-review/prompt.md', prompt);
       answer = runOpencode('.agent-review/prompt.md');
     }
-    const result = parseFindings(answer);
+    const result = { ...parseFindings(answer), headSha: pr.head.sha };
     if (a.out) fs.writeFileSync(a.out, JSON.stringify(result));
-    else await postReview(repo, number, token, agent, result);
+    else await postReview(repo, number, token, agent, result, pr.head.sha);
   } else if (command === 'prompt') {
     // Desktop-Agent (Antigravity, Proto): Prompt-Datei erzeugen, Agent schreibt das JSON daneben.
     const agent = agentArg(a.agent);
     const { pr, diff } = await loadPr(repo, number, token);
     const base = path.join('handoff', `review-${number}-${agent}`);
     fs.mkdirSync('handoff', { recursive: true });
-    fs.writeFileSync(`${base}.md`, `${reviewPrompt({ agent, pr, diff })}\nSchreibe das JSON nach ${base}.json und führe dann aus:\nnpm run agent-review -- post --agent ${agent} --pr ${number} --file ${base}.json\n`);
+    fs.writeFileSync(`${base}.md`, `${reviewPrompt({ agent, pr, diff })}\nSchreibe das JSON nach ${base}.json und führe dann aus:\nnpm run agent-review -- post --agent ${agent} --pr ${number} --sha ${pr.head.sha} --file ${base}.json\n`);
     console.log(`Prompt für ${AGENTS[agent].name}: ${base}.md`);
   } else if (command === 'post') {
     const agent = agentArg(a.agent);
-    await postReview(repo, number, token, agent, parseFindings(fs.readFileSync(a.file, 'utf8')));
+    const text = fs.readFileSync(a.file, 'utf8');
+    const result = parseFindings(text);
+    let sha = a.sha;
+    try {
+      sha ??= JSON.parse(text).headSha;
+    } catch {
+      // Kein reines JSON: SHA muss per --sha kommen
+    }
+    await postReview(repo, number, token, agent, result, sha);
   } else if (command === 'ack') {
     // Bestätigung im PR (wie 👀 bei Codex); bei Desktop-Agenten mit Anleitung für den lokalen Lauf.
     const agent = agentArg(a.agent);

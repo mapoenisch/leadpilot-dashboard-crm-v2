@@ -27,9 +27,9 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
   `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`, Abschnitt „Handoff-Protokoll“ unten.
 - **Agenten-Reviews über MarcReview (Entscheidung Marc vom 21.10.2026):** Antigravity, OpenCode, Devin,
   Proto und Perplexity prüfen PRs nur auf Marcs Kommentar `/<agent> review` (`agent-review.yml`) und
-  posten über das Prüferkonto `MarcReview` ein formales Review mit Inline-Kommentaren. Befunde →
-  `REQUEST_CHANGES`, keine Befunde → `APPROVE`. Merge erst mit Freigabe und allen Konversationen
-  gelöst (Branch-Schutz). Codex (`@codex review`) bleibt möglich, ist aber keine Voraussetzung.
+  posten über das Prüferkonto `MarcReview` ein formales Review mit Inline-Kommentaren. Jeder Befund
+  ist eine lösbare Konversation (Event immer `COMMENT`). Merge erst, wenn alle Konversationen gelöst
+  sind (Branch-Schutz). Nie mit Marcs eigenem `gh`-Login reviewen. Codex (`@codex review`) bleibt möglich, ist aber keine Voraussetzung.
   Details: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
 - **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Claude Code ist der schreibende Builder;
   Codex trägt seinen Befund ein und gibt ihn zurück.

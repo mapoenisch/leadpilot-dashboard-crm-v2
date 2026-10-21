@@ -17460,3 +17460,25 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Offen (Marc):** MarcReview als Collaborator, PAT als `MARCREVIEW_TOKEN`, Agenten-Keys als Secrets, Branch-Schutz umstellen. Live-Lauf je Agent danach.
 
 **Ergebnis:** Builder-Eintrag; Freigabe durch unabhängigen Prüfer ausstehend.
+
+### Auftrag CI-Review-Gate – Nacharbeit Review-Befunde PR #93 auf `7cb90f9` (Builder: Claude Code, 21.10.2026)
+
+**Befunde (Codex inline, Antigravity per Review-Text) und Behebung:**
+- P1 Devin-Polling auf `/v1/session/{id}` → `/v1/sessions/{id}`.
+- P1 Ergebnis nicht an geprüften Head gebunden → `run` speichert `headSha`, `post` bricht ab, wenn der PR-Head sich geändert hat (lokal: `--sha`).
+- P1 Reviewzustände der Agenten unter einem Konto überschreiben sich → Event immer `COMMENT`, jeder Befund wird eine lösbare Konversation (Zeile, Datei-Kommentar oder Verweis am ersten Diff-Abschnitt); Merge-Sperre allein über „Require conversation resolution“.
+- P1 Gekürzte Diffs → `truncation()` erkennt fehlende Patches/Dateien und meldet eine P1-Konversation.
+- P1 `User-Agent`-Header in GitHub-Aufrufen ergänzt.
+- P1 fehlender Gate-Nachweis → dieser Abschnitt.
+
+**Marcs Rückmeldung „reviewt ohne Auslöser, kein Resolve-Button“:** `agent-review.yml` ist noch nicht auf `main`, lief also nie. Die automatischen Reviews kamen von Codex (automatische Reviews in den Codex-Einstellungen aktiv) und von lokal laufenden Agenten über Marcs eigenen `gh`-Login als reiner Review-Text ohne Inline-Kommentare – daher keine Konversation. Abhilfe in der Auftragsdatei, Einrichtung Schritt 5.
+
+**Automatisierte Verifikation (lokal, 21.10.2026):** `npx tsc --noEmit` 0 Fehler · `npm run verify` alle Suiten 001–025 grün · `npm run build` grün · `npx vitest run` 341 Dateien / 2473 Tests grün, davon `agentReview.vitest.ts` 18/18.
+
+**Schutzbereiche:** `git diff main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Screenshot-Matrix:** entfällt (keine UI-Änderung).
+
+**CI-Hinweis:** Job `test` scheitert unabhängig von diesem PR an `npm audit` (neue `vite`-Schwachstelle GHSA-698v-4r3x-3vcv u. a.); Behebung braucht ein Versions-Update, eigener Schritt.
+
+**Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.

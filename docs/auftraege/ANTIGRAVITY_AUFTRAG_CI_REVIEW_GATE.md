@@ -16,7 +16,7 @@ Antigravity, OpenCode, Devin, Proto und Perplexity prüfen PRs **nur auf Marcs Z
 | `/antigravity review` | Desktop-Agent: Workflow bestätigt und postet die Anleitung; lokal `npm run agent-review -- prompt --agent antigravity --pr <n>`, Antigravity arbeitet `handoff/review-<n>-antigravity.md` ab und postet mit `npm run agent-review -- post …` |
 | `/proto review` | wie Antigravity, mit `--agent proto` (Proto/ERP.AI hat keinen CI-Betrieb) |
 
-Ergebnis: Befunde → `REQUEST_CHANGES` mit Inline-Kommentaren (Befunde außerhalb des Diffs im Review-Text). Keine Befunde → `APPROVE`. Nach der Nacharbeit erneut `/<agent> review`.
+Ergebnis: immer ein `COMMENT`-Review; **jeder Befund ist eine lösbare Konversation** (Zeilenkommentar, Datei-Kommentar oder – bei Dateien außerhalb des Diffs – am ersten Diff-Abschnitt mit Verweis). Kein `APPROVE`/`REQUEST_CHANGES`: alle Agenten posten unter MarcReview, eine Freigabe würde sonst die Änderungsanforderung eines anderen Agenten aufheben. Gepostet wird nur auf den geprüften Head; wurde inzwischen gepusht, bricht der Lauf ab. Ein unvollständig gelieferter Diff wird als P1-Konversation gemeldet. Nach der Nacharbeit erneut `/<agent> review`.
 
 ## Umsetzung
 
@@ -30,10 +30,11 @@ Entfernt: `review-gate.yml`, `review-gate-trigger.yml`, `reviewGate.mjs`, `revie
 
 ## Einrichtung durch Marc (einmalig)
 
-1. **MarcReview** als Collaborator mit Schreibrecht einladen und annehmen (nur dann zählt die Freigabe).
+1. **MarcReview** als Collaborator (Rolle Triage oder Write) einladen und annehmen.
 2. Mit MarcReview einen Fine-grained PAT nur für dieses Repo anlegen: *Pull requests* Read & Write, *Issues* Read & Write, *Contents* Read. Als Secret `MARCREVIEW_TOKEN` speichern; lokal als Umgebungsvariable `MARCREVIEW_TOKEN` (nicht ins Repo).
 3. Secrets: `PERPLEXITY_API_KEY`, `DEVIN_API_KEY`, `OPENCODE_ANTHROPIC_API_KEY`. Optional Variablen `OPENCODE_MODEL`, `OPENCODE_VERSION` (Version pinnen empfohlen).
-4. Branch-Schutz für `main`: *Require a pull request* mit 1 Freigabe, *Dismiss stale approvals when new commits are pushed*, *Require conversation resolution before merging*, Status-Check `ci`. Alte Pflicht-Checks `agent-review`/`review-conversations` entfernen.
+4. Branch-Schutz für `main`: *Require a pull request* (0 Freigaben), *Require conversation resolution before merging*, Status-Check `ci`. Alte Pflicht-Checks `agent-review`/`review-conversations` entfernen.
+5. **Automatische Reviews abschalten:** In den Codex-Einstellungen (chatgpt.com/codex → Settings → Code review) „Automatic reviews“ für dieses Repo aus – dann reagiert Codex nur noch auf `@codex review`. Antigravity/OpenCode lokal nicht mehr mit Marcs `gh`-Login posten lassen (dessen Reviews sind reine Textkommentare ohne Konversation).
 
 ## Restrisiken
 

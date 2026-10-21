@@ -11,6 +11,7 @@ import {
   OPENCODE_READ_ONLY,
   parseCommand,
   parseFindings,
+  truncation,
 } from '../agentReview.mjs';
 
 const root = path.resolve(__dirname, '../..');
@@ -70,24 +71,37 @@ describe('parseFindings', () => {
 });
 
 describe('buildReview', () => {
-  const finding = (line: number) => ({ path: 'src/x.ts', line, severity: 'P1', title: 'T', body: 'B' });
-  it('Befunde → REQUEST_CHANGES, inline nur auf Diff-Zeilen', () => {
-    const r = buildReview({
-      agent: 'devin',
-      headSha: 'sha',
-      result: { summary: 's', findings: [finding(3), finding(99)] },
-      files: FILES,
-    });
-    expect(r.event).toBe('REQUEST_CHANGES');
-    expect(r.commit_id).toBe('sha');
-    expect(r.comments).toEqual([expect.objectContaining({ path: 'src/x.ts', line: 3, side: 'RIGHT' })]);
-    expect(r.body).toContain('src/x.ts:99');
-    expect(r.body).toContain('Devin-Review');
+  const finding = (path: string, line: number) => ({ path, line, severity: 'P1', title: 'T', body: 'B' });
+  const build = (findings: ReturnType<typeof finding>[], missing: string[] = []) =>
+    buildReview({ agent: 'devin', headSha: 'sha', result: { summary: 's', findings }, files: FILES, missing });
+
+  it('postet immer COMMENT, nie APPROVE oder REQUEST_CHANGES', () => {
+    expect(build([]).event).toBe('COMMENT');
+    expect(build([finding('src/x.ts', 3)]).event).toBe('COMMENT');
   });
-  it('keine Befunde → APPROVE', () => {
-    const r = buildReview({ agent: 'proto', headSha: 'sha', result: { summary: '', findings: [] }, files: FILES });
-    expect(r.event).toBe('APPROVE');
-    expect(r.comments).toEqual([]);
+  it('jeder Befund wird eine Konversation', () => {
+    const r = build([finding('src/x.ts', 3), finding('src/x.ts', 99), finding('README.md', 5)]);
+    expect(r.commit_id).toBe('sha');
+    expect(r.comments).toHaveLength(3);
+    expect(r.comments[0]).toMatchObject({ path: 'src/x.ts', line: 3, side: 'RIGHT' });
+    expect(r.comments[1]).toMatchObject({ path: 'src/x.ts', subject_type: 'file' });
+    expect(r.comments[2]).toMatchObject({ path: 'src/x.ts', line: 1 });
+    expect(r.comments[2].body).toContain('README.md:5');
+  });
+  it('unvollständiger Diff erzeugt eine blockierende Konversation', () => {
+    const r = build([], ['big.json']);
+    expect(r.comments).toHaveLength(1);
+    expect(r.comments[0].body).toContain('Diff unvollständig');
+  });
+});
+
+describe('truncation', () => {
+  it('erkennt fehlende Patches und fehlende Dateien', () => {
+    expect(truncation({ changed_files: 1 }, FILES)).toEqual([]);
+    expect(truncation({ changed_files: 3 }, [...FILES, { filename: 'big.json', status: 'modified', changes: 5 }])).toEqual([
+      'big.json',
+      '1 weitere Datei(en)',
+    ]);
   });
 });
 
