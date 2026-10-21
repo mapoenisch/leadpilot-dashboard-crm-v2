@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "verify": "npx tsx scripts/verifyIntegrity.ts",
     "antigravity:inbox": "node scripts/claudeReviewCycle.mjs inbox",
+    "agent-review": "node scripts/agentReview.mjs",
     "verify:licenses": "node scripts/checkThirdPartyLicenses.mjs",
     "verify:migrations": "node scripts/verifyMigrationUpgrade.mjs",
     "verify:backup": "node scripts/verifyBackupRestore.mjs",

@@ -17446,3 +17446,17 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** Nicht anwendbar, es wurden keine UI-Seiten oder visuellen Komponenten geändert.
 
 **Ergebnis & Freigabestatus:** Beide aktuellen Review-Befunde lokal behoben. Unabhängige Nachprüfung des neuen Heads bleibt erforderlich. Es wurde kein Commit erstellt; `.proto/` und `.vscode/` blieben unangetastet und uncommittet.
+
+### Auftrag CI-Review-Gate – Umbau auf manuelle Agenten-Reviews über MarcReview (Builder: Claude Code, 21.10.2026)
+
+**Ziel & Kontext:** Entscheidung Marc vom 21.10.2026: Antigravity, OpenCode, Devin, Proto und Perplexity prüfen nur auf Zuruf (`/<agent> review`, analog `@codex review`) und posten über das Konto `MarcReview`. Der bisherige Status-Gate (`review-gate.yml`, GitHub-App, Konten-/Builder-Logik) entfällt; die Merge-Sperre übernimmt GitHubs Branch-Schutz (1 Freigabe, veraltete Freigaben verwerfen, Konversationen gelöst). Die Einträge vom 19./20.10.2026 oben sind damit überholt.
+
+**Geänderte Dateien:** neu `.github/workflows/agent-review.yml`, `scripts/agentReview.mjs`, `scripts/__tests__/agentReview.vitest.ts`; entfernt `review-gate.yml`, `review-gate-trigger.yml`, `reviewGate.mjs`, `reviewGate.vitest.ts`, `review-agents.json`, `getReviewerToken.mjs`, `.opencode/agent/pr-reviewer.md`, `.opencode/command/review-pr.md`; angepasst `AGENTS.md`, `CLAUDE.md`, `package.json` (`agent-review`), Auftrag `ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
+
+**Funktional:** Antigravity und Proto (ERP.AI) sind Desktop-Agenten ohne CI-Betrieb; der Workflow bestätigt und hinterlegt die Anleitung für den lokalen Lauf (`npm run agent-review -- prompt|post`). OpenCode, Devin, Perplexity laufen im CI.
+
+**Schutzbereiche:** keine Änderung an `src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`.
+
+**Offen (Marc):** MarcReview als Collaborator, PAT als `MARCREVIEW_TOKEN`, Agenten-Keys als Secrets, Branch-Schutz umstellen. Live-Lauf je Agent danach.
+
+**Ergebnis:** Builder-Eintrag; Freigabe durch unabhängigen Prüfer ausstehend.

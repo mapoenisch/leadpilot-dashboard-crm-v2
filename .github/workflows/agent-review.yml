@@ -1,0 +1,65 @@
+# Manuell ausgelöste Agenten-Reviews über das Prüferkonto MarcReview.
+# Auslöser: PR-Kommentar von Marc mit `/opencode review`, `/devin review`, `/perplexity review`,
+# `/antigravity review` oder `/proto review`. Antigravity und Proto sind Desktop-Agenten ohne CI-Betrieb:
+# Der Lauf bestätigt nur und hinterlegt die Anleitung für den lokalen Review.
+# Läuft mit dem Workflow-Stand von main; der PR-Code wird nicht ausgeführt.
+name: Agent Review
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-review-${{ github.event.issue.number }}-${{ github.event.comment.id }}
+
+jobs:
+  review:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == 'mapoenisch' &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
+      PR: ${{ github.event.issue.number }}
+      COMMENT_BODY: ${{ github.event.comment.body }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Befehl erkennen
+        id: cmd
+        run: |
+          agent=$(node -e "import('./scripts/agentReview.mjs').then(m => process.stdout.write(m.parseCommand(process.env.COMMENT_BODY) ?? ''))")
+          echo "agent=$agent" >> "$GITHUB_OUTPUT"
+          if [ -n "$agent" ]; then
+            mode=$(node -e "import('./scripts/agentReview.mjs').then(m => process.stdout.write(m.AGENTS['$agent'].mode))")
+            echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bestätigen
+        if: steps.cmd.outputs.agent != ''
+        run: node scripts/agentReview.mjs ack --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR" --comment "${{ github.event.comment.id }}"
+
+      - name: OpenCode installieren
+        if: steps.cmd.outputs.agent == 'opencode'
+        run: npm install -g "opencode-ai@${{ vars.OPENCODE_VERSION || 'latest' }}"
+
+      - name: Review ausführen
+        if: steps.cmd.outputs.mode == 'ci'
+        env:
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.OPENCODE_ANTHROPIC_API_KEY }}
+          OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL }}
+        run: node scripts/agentReview.mjs run --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR"
