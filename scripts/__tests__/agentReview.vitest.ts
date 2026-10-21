@@ -103,9 +103,10 @@ describe('Workflow-Vertrag', () => {
     expect(runs.join('\n')).not.toContain('github.event.comment.body');
   });
   it('Agenten-Schritt bekommt den Posting-Token nicht', () => {
-    const step = wf.slice(wf.indexOf('name: Review ausführen'), wf.indexOf('name: Review posten'));
-    expect(step).not.toContain('MARCREVIEW_TOKEN');
-    expect(wf).not.toMatch(/^ {4}env:[\s\S]*?MARCREVIEW_TOKEN[\s\S]*?steps:/m);
+    const job = wf.slice(wf.indexOf('\n  review:'), wf.indexOf('\n  post:'));
+    expect(job).toContain('Review ausführen');
+    expect(job).not.toContain('MARCREVIEW_TOKEN');
+    expect(wf.slice(wf.indexOf('\n  post:'))).toContain('needs: [ack, review]');
   });
   it('checkt main aus, nicht den PR-Head', () => {
     expect(wf).toContain('ref: ${{ github.event.repository.default_branch }}');

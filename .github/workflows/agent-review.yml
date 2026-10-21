@@ -12,20 +12,24 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  actions: read
 
 concurrency:
   group: agent-review-${{ github.event.issue.number }}-${{ github.event.comment.id }}
 
 jobs:
-  review:
+  # Drei Jobs auf getrennten Runnern: Der Agent (review) sieht nie den MarcReview-Token und kann weder
+  # Code noch Umgebung der Jobs verändern, die ihn haben (ack, post). Übergabe nur als Befund-JSON.
+  ack:
     if: >-
       github.event.issue.pull_request &&
       github.event.comment.user.login == 'mapoenisch' &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    # MARCREVIEW_TOKEN nur in den Schritten, die posten – nicht bei der OpenCode-Installation.
-    # Das Skript reicht ihn an keinen Agenten weiter (OpenCode: minimale Umgebung, nur Leserechte).
+    timeout-minutes: 5
+    outputs:
+      agent: ${{ steps.cmd.outputs.agent }}
+      mode: ${{ steps.cmd.outputs.mode }}
     env:
       PR: ${{ github.event.issue.number }}
       COMMENT_BODY: ${{ github.event.comment.body }}
@@ -55,22 +59,66 @@ jobs:
           MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
         run: node scripts/agentReview.mjs ack --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR" --comment "${{ github.event.comment.id }}"
 
+  review:
+    needs: ack
+    if: needs.ack.outputs.mode == 'ci'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PR: ${{ github.event.issue.number }}
+      AGENT: ${{ needs.ack.outputs.agent }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: OpenCode installieren
-        if: steps.cmd.outputs.agent == 'opencode'
+        if: env.AGENT == 'opencode'
         run: npm install -g "opencode-ai@${{ vars.OPENCODE_VERSION || 'latest' }}"
 
       - name: Review ausführen
-        if: steps.cmd.outputs.mode == 'ci'
         env:
           GITHUB_READ_TOKEN: ${{ github.token }}
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.OPENCODE_ANTHROPIC_API_KEY }}
           OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL }}
-        run: node scripts/agentReview.mjs run --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR" --out "$RUNNER_TEMP/findings.json"
+        run: node scripts/agentReview.mjs run --agent "$AGENT" --pr "$PR" --out "$RUNNER_TEMP/findings.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: findings
+          path: ${{ runner.temp }}/findings.json
+          retention-days: 1
+
+  post:
+    needs: [ack, review]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PR: ${{ github.event.issue.number }}
+      AGENT: ${{ needs.ack.outputs.agent }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: findings
+          path: ${{ runner.temp }}/findings
 
       - name: Review posten
-        if: steps.cmd.outputs.mode == 'ci'
         env:
           MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
-        run: node scripts/agentReview.mjs post --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR" --file "$RUNNER_TEMP/findings.json"
+        run: node scripts/agentReview.mjs post --agent "$AGENT" --pr "$PR" --file "$RUNNER_TEMP/findings/findings.json"
