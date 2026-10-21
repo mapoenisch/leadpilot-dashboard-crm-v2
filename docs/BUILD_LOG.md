@@ -17370,3 +17370,15 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 ### Auftrag 104 – Nachtrag nach Merge PR #91 (Builder: Claude Code, 19.10.2026)
 
 PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2 (oben) mit diesem Nachtrag in `main` übernommen. P3-1 umgesetzt: `g104BildseitenAbschluss.ui` prüft bei Schalter `'html'` selbst die Vollständigkeit `HTML_PAGES` = 32 von 32. Zu P3-3: Die über den GitHub-Kommentar hinausgehenden Punkte der Runde 1 (P2-1, P3) stammen aus dem lokalen Prüflauf, der den Eintrag geschrieben hat. P3-2 und P3-4 bewusst unverändert (Typ-Absicherung bzw. gewollte Folge der Kopplung). Prüfung: `tsc` 0 Fehler, Prettier sauber, `g104` 33/33 grün.
+
+### Wartung – vite 6.4.3 → 6.4.4 (Sicherheits-Patch, Builder: Claude Code, 21.10.2026)
+
+**Ziel & Kontext:** Der CI-Job `test` scheitert auf allen PRs an `npm audit --audit-level=high`: `vite` ≤ 6.4.3 betroffen von GHSA-698v-4r3x-3vcv, GHSA-r825-w8mm-5pxw, GHSA-587h-7wmj-h5pm. Freigabe des Updates durch Marc am 21.10.2026. Patch-Update innerhalb von 6.4, keine neue Abhängigkeit; 6.4.4 (06.10.2026) statt der am selben Tag erschienenen 6.4.5.
+
+**Geänderte Dateien:** `package.json` (`vite` `^6.4.3` → `^6.4.4`), `package-lock.json` (vite 6.4.4), dieser Eintrag.
+
+**Automatisierte Verifikation (lokal):** `auditAllowlist.mjs --omit=dev` und `--audit-level=high` ohne Schwachstelle · `npx tsc --noEmit` 0 Fehler · `npm run verify` Suiten 001–025 grün · `npm run build` grün · `npx vitest run` 340 Dateien / 2455 Tests grün.
+
+**Schutzbereiche:** keine Änderung an `src/`. **Screenshot-Matrix:** entfällt (Patch des Build-Werkzeugs, keine UI-Änderung).
+
+**Ergebnis:** Builder-Eintrag; Freigabe durch unabhängigen Prüfer ausstehend.
