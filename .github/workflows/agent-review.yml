@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: agent-review-${{ github.event.issue.number }}-${{ github.event.comment.id }}
@@ -61,9 +62,15 @@ jobs:
       - name: Review ausführen
         if: steps.cmd.outputs.mode == 'ci'
         env:
-          MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
+          GITHUB_READ_TOKEN: ${{ github.token }}
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.OPENCODE_ANTHROPIC_API_KEY }}
           OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL }}
-        run: node scripts/agentReview.mjs run --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR"
+        run: node scripts/agentReview.mjs run --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR" --out "$RUNNER_TEMP/findings.json"
+
+      - name: Review posten
+        if: steps.cmd.outputs.mode == 'ci'
+        env:
+          MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
+        run: node scripts/agentReview.mjs post --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR" --file "$RUNNER_TEMP/findings.json"

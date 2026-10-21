@@ -102,6 +102,11 @@ describe('Workflow-Vertrag', () => {
     const runs = wf.split('\n').filter((l) => /run:/.test(l) || /^\s{10,}\S/.test(l));
     expect(runs.join('\n')).not.toContain('github.event.comment.body');
   });
+  it('Agenten-Schritt bekommt den Posting-Token nicht', () => {
+    const step = wf.slice(wf.indexOf('name: Review ausführen'), wf.indexOf('name: Review posten'));
+    expect(step).not.toContain('MARCREVIEW_TOKEN');
+    expect(wf).not.toMatch(/^ {4}env:[\s\S]*?MARCREVIEW_TOKEN[\s\S]*?steps:/m);
+  });
   it('checkt main aus, nicht den PR-Head', () => {
     expect(wf).toContain('ref: ${{ github.event.repository.default_branch }}');
   });

@@ -261,18 +261,17 @@ function agentArg(value) {
 async function main() {
   const a = args(process.argv.slice(2));
   const repo = process.env.GITHUB_REPOSITORY || 'mapoenisch/leadpilot-dashboard-crm-v2';
-  const token = env('MARCREVIEW_TOKEN');
+  const token = process.env.MARCREVIEW_TOKEN || env('GITHUB_READ_TOKEN');
   const number = Number(a.pr);
   const command = a._[0];
 
   if (command === 'run') {
     const agent = agentArg(a.agent);
     if (AGENTS[agent].mode !== 'ci') throw new Error(`${AGENTS[agent].name} läuft lokal: \`npm run agent-review -- prompt --agent ${agent} --pr ${number}\``);
+    // Läuft ohne MARCREVIEW_TOKEN (nur Lese-Token); gepostet wird in einem eigenen Schritt per `post`.
     const { pr, diff } = await loadPr(repo, number, token);
     if (!isSameRepo(pr, repo)) throw new Error('Fork-PRs werden nicht im CI geprüft');
     const prompt = reviewPrompt({ agent, pr, diff });
-    // Ab hier sieht kein Agent mehr den Posting-Token.
-    delete process.env.MARCREVIEW_TOKEN;
     let answer;
     if (agent === 'perplexity') answer = await runPerplexity(prompt);
     else if (agent === 'devin') answer = await runDevin(prompt);
@@ -281,7 +280,9 @@ async function main() {
       fs.writeFileSync('.agent-review/prompt.md', prompt);
       answer = runOpencode('.agent-review/prompt.md');
     }
-    await postReview(repo, number, token, agent, parseFindings(answer));
+    const result = parseFindings(answer);
+    if (a.out) fs.writeFileSync(a.out, JSON.stringify(result));
+    else await postReview(repo, number, token, agent, result);
   } else if (command === 'prompt') {
     // Desktop-Agent (Antigravity, Proto): Prompt-Datei erzeugen, Agent schreibt das JSON daneben.
     const agent = agentArg(a.agent);
