@@ -73,8 +73,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.ack.outputs.sha }}
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
+
+      - name: Auf main-Commit des Bestätigungsjobs prüfen
+        env:
+          EXPECTED_SHA: ${{ needs.ack.outputs.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA" || { echo "main hat sich seit dem Bestätigen bewegt; Kommando erneut absetzen."; exit 1; }
 
       - uses: actions/setup-node@v4
         with:
@@ -108,8 +113,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.ack.outputs.sha }}
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
+
+      - name: Auf main-Commit des Bestätigungsjobs prüfen
+        env:
+          EXPECTED_SHA: ${{ needs.ack.outputs.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA" || { echo "main hat sich seit dem Bestätigen bewegt; Kommando erneut absetzen."; exit 1; }
 
       - uses: actions/setup-node@v4
         with:

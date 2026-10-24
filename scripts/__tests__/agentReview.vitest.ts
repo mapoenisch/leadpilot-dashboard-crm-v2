@@ -143,7 +143,8 @@ describe('Workflow-Vertrag', () => {
   });
   it('checkt main aus, nicht den PR-Head – alle Jobs auf demselben Commit', () => {
     expect(wf).toContain('ref: ${{ github.event.repository.default_branch }}');
-    expect(wf.match(/ref: \$\{\{ needs\.ack\.outputs\.sha \}\}/g)).toHaveLength(2);
+    expect(wf).not.toMatch(/ref: \$\{\{ needs\.ack\.outputs\.sha \}\}/);
+    expect(wf.match(/EXPECTED_SHA: \$\{\{ needs\.ack\.outputs\.sha \}\}/g)).toHaveLength(2);
   });
   it('OpenCode-Version ist fest gepinnt', () => {
     expect(wf).toMatch(/opencode-ai@\d+\.\d+\.\d+"/);
