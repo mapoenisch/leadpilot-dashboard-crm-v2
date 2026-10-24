@@ -1,0 +1,136 @@
+# Manuell ausgelöste Agenten-Reviews über das Prüferkonto MarcReview.
+# Auslöser: PR-Kommentar von Marc mit `/opencode review`, `/devin review`, `/perplexity review`,
+# `/antigravity review` oder `/proto review`. Antigravity und Proto sind Desktop-Agenten ohne CI-Betrieb:
+# Der Lauf bestätigt nur und hinterlegt die Anleitung für den lokalen Review.
+# Läuft mit dem Workflow-Stand von main; der PR-Code wird nicht ausgeführt.
+name: Agent Review
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: agent-review-${{ github.event.issue.number }}-${{ github.event.comment.id }}
+
+jobs:
+  # Drei Jobs auf getrennten Runnern: Der Agent (review) sieht nie den MarcReview-Token und kann weder
+  # Code noch Umgebung der Jobs verändern, die ihn haben (ack, post). Übergabe nur als Befund-JSON.
+  ack:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == 'mapoenisch' &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      agent: ${{ steps.cmd.outputs.agent }}
+      mode: ${{ steps.cmd.outputs.mode }}
+      sha: ${{ steps.cmd.outputs.sha }}
+    env:
+      PR: ${{ github.event.issue.number }}
+      COMMENT_BODY: ${{ github.event.comment.body }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Befehl erkennen
+        id: cmd
+        run: |
+          # Alle Jobs laufen auf genau diesem main-Commit, auch wenn main sich währenddessen bewegt.
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          agent=$(node -e "import('./scripts/agentReview.mjs').then(m => process.stdout.write(m.parseCommand(process.env.COMMENT_BODY) ?? ''))")
+          echo "agent=$agent" >> "$GITHUB_OUTPUT"
+          if [ -n "$agent" ]; then
+            mode=$(node -e "import('./scripts/agentReview.mjs').then(m => process.stdout.write(m.AGENTS['$agent'].mode))")
+            echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bestätigen
+        if: steps.cmd.outputs.agent != ''
+        env:
+          MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
+        run: node scripts/agentReview.mjs ack --agent "${{ steps.cmd.outputs.agent }}" --pr "$PR" --comment "${{ github.event.comment.id }}"
+
+  review:
+    needs: ack
+    if: needs.ack.outputs.mode == 'ci'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PR: ${{ github.event.issue.number }}
+      AGENT: ${{ needs.ack.outputs.agent }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Auf main-Commit des Bestätigungsjobs prüfen
+        env:
+          EXPECTED_SHA: ${{ needs.ack.outputs.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA" || { echo "main hat sich seit dem Bestätigen bewegt; Kommando erneut absetzen."; exit 1; }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: OpenCode installieren
+        if: env.AGENT == 'opencode'
+        run: npm install -g "opencode-ai@1.19.3"
+
+      - name: Review ausführen
+        env:
+          GITHUB_READ_TOKEN: ${{ github.token }}
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL }}
+        run: node scripts/agentReview.mjs run --agent "$AGENT" --pr "$PR" --out "$RUNNER_TEMP/findings.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: findings
+          path: ${{ runner.temp }}/findings.json
+          retention-days: 1
+
+  post:
+    needs: [ack, review]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PR: ${{ github.event.issue.number }}
+      AGENT: ${{ needs.ack.outputs.agent }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Auf main-Commit des Bestätigungsjobs prüfen
+        env:
+          EXPECTED_SHA: ${{ needs.ack.outputs.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA" || { echo "main hat sich seit dem Bestätigen bewegt; Kommando erneut absetzen."; exit 1; }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: findings
+          path: ${{ runner.temp }}/findings
+
+      - name: Review posten
+        env:
+          MARCREVIEW_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
+        run: node scripts/agentReview.mjs post --agent "$AGENT" --pr "$PR" --file "$RUNNER_TEMP/findings/findings.json"
