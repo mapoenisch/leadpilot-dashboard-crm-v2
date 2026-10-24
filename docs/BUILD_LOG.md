@@ -17323,6 +17323,7 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **P2-2 – Dokumentierter Rückweg bricht die Testsuite:** Die Revision (`ARCHITECTURE_DECISIONS.md:1631-1642`) beschreibt den Rückweg als reinen Schalterschritt (`'bild'` + Schlüssel aus `HTML_PAGES` entfernen), die Tests pinnen aber hart: `g104BildseitenAbschluss.ui.vitest.tsx:82,85,86` und `g93FunnelPage.ui.vitest.tsx:14`. Entweder Revisionstext präzisieren (Rückweg erfordert Anpassung von g93/g104) oder die Assertions an den Schalter koppeln (wie `e2e/semantic-routes.spec.ts`, das dem Schalter folgt).
 
 **P3 (nicht blockierend):**
+
 - `g104BildseitenAbschluss.ui.vitest.tsx:91-104`: `_key` ungenutzt, keine Bindung über `data-page-key`; eine vertauschte Seite↔Schlüssel-Zuordnung bliebe unbemerkt (`g99`/`g102` prüfen `data-page-key`, hier nicht).
 - `g104BildseitenAbschluss.ui.vitest.tsx:102`: `img[src$=".webp"]` verbietet jedes WebP, breiter als „kein Ganzseiten-WebP“.
 - `e2e/semantic-routes.spec.ts:21-22`: Kommentar „Bildzweig bleibt für den Rückweg (Schalter `'bild'`)“ – das Kippen des Schalters allein bewirkt wegen der vollen `HTML_PAGES`-Liste nichts.
@@ -17358,6 +17359,7 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **P1/Runde 1 – nachgeprüft:** `ARCHITECTURE_DECISIONS.md` gegen `main` +18/−0, nur Revision B18 und D4-Zeile; Teil A unverändert.
 
 **P3 (nicht blockierend):**
+
 - `g104BildseitenAbschluss.ui.vitest.tsx:85-91` prüft nur `HTML_PAGES ⊆ IMAGE_PAGES`; die Vollständigkeit 32/32 stützt sich allein auf `g103ProduktSeiten.ui:29` – genau die Suite, die der dokumentierte Rückweg anpasst/entfernt. Ein `expect([...HTML_PAGES].sort()).toEqual(Object.keys(IMAGE_PAGES).sort())` machte die Abschluss-Suite selbsttragend.
 - `g104…vitest.tsx:86` und `g93FunnelPage.ui:14`: `expect(['bild','html']).toContain(PAGE_PRESENTATION)` ist zur Laufzeit tautologisch (der Typ erzwingt den Wertebereich).
 - Ledger-Treue (Runde 1): Der Eintrag „Review PR #91, Runde 1 (Codex)“ nennt P2-1 und mehrere P3-Punkte, die im GitHub-Codex-Review zu #91 nicht vorkommen (dort nur P1 „Historie“ und P2 „Rückweg-Tests“). Quelle der übrigen Punkte benennen (lokaler `codex-review`-Lauf) oder auf den PR-Kommentar beschränken.
@@ -17370,3 +17372,136 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 ### Auftrag 104 – Nachtrag nach Merge PR #91 (Builder: Claude Code, 19.10.2026)
 
 PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2 (oben) mit diesem Nachtrag in `main` übernommen. P3-1 umgesetzt: `g104BildseitenAbschluss.ui` prüft bei Schalter `'html'` selbst die Vollständigkeit `HTML_PAGES` = 32 von 32. Zu P3-3: Die über den GitHub-Kommentar hinausgehenden Punkte der Runde 1 (P2-1, P3) stammen aus dem lokalen Prüflauf, der den Eintrag geschrieben hat. P3-2 und P3-4 bewusst unverändert (Typ-Absicherung bzw. gewollte Folge der Kopplung). Prüfung: `tsc` 0 Fehler, Prettier sauber, `g104` 33/33 grün.
+
+### Auftrag CI-Review-Gate – Builder-Eintrag (Builder: Claude Code, 19.10.2026)
+
+> **Revision 20.10.2026:** Dieser Eintrag beschreibt den Stand vom 19.10. und ist überholt (u. a. zählen PR-Kommentare nicht mehr). Maßgeblich ist der Abschlussbericht „Nacharbeit Codex-Befunde PR #93“ weiter unten.
+
+**Ziel & Kontext:** Repoweites Review-Gate: Commit-Status `agent-review` („Reviewed“ durch Antigravity/OpenCode/Devin) und `review-conversations` (failure bei offenen Konversationen). Grundlage: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `scripts/reviewGate.mjs`, `.github/review-agents.json`, Auftrag, dieser Eintrag.
+
+**Nacharbeit Codex PR #93:** Ungültigen Trigger `pull_request_review_thread` entfernt (Lösen per manuellem Lauf); Fork-Bedingung entfernt (Fork-Reviews nur manuell, dokumentiert); OpenCode-PR-Kommentare nach dem Head-Commit zählen als Review (Trigger `issue_comment`); Antigravity-Login eingetragen.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer (0 Zeilen).
+
+**Automatisierte Verifikation:** YAML parst; Logik von `reviewedBy`/`threadsStatus` per Node-Aufruf geprüft (Review auf Head, Kommentar vor/nach Head-Commit, mehrere Agenten mit gleichem Login). Kein App-Code berührt, daher kein tsc/Vitest-Bedarf. Der Workflow läuft erst nach dem Merge vollständig (Skript liegt vorher nicht auf `main`).
+
+**Ergebnis & Freigabestatus:** Offen bis zur Codex-Bestätigung; Branch-Schutz folgt nach Merge.
+
+### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93, Abschlussbericht (Builder: Claude Code, 20.10.2026)
+
+**Ziel & Kontext:** Repoweites Review-Gate mit den Commit-Status `agent-review` und `review-conversations`. Die Gate-Freigabe kommt von einem unabhängigen Prüfer aus `.github/review-agents.json` (Codex, Devin, OpenCode, Antigravity), nie vom Builder. Die Entscheidung für die eigene GitHub-App hat Marc am 20.10.2026 getroffen.
+
+**Ausgelieferte Logik (finaler Stand):**
+
+- Es zählen nur formale PR-Reviews (`APPROVED`/`COMMENTED`/`CHANGES_REQUESTED`) auf genau dem Head-Commit, keine Kommentare.
+- Änderungen angefordert blockieren (Befund P1 Codex, 20.10.): Pro Prüfer zählt sein wirksamer Zustand, also das letzte `APPROVED`/`CHANGES_REQUESTED`/`DISMISSED` über alle Commits. Steht er auf `CHANGES_REQUESTED`, wird `agent-review` zu `failure`, bis derselbe Prüfer freigibt oder das Review verworfen wird.
+- Kein Selbst-Review: Der PR-Öffner, Autoren und Committer der PR-Commits und jeder Agent mit deren Login sind als Prüfer ausgeschlossen, ebenso der per Branch-Präfix gebundene Builder (`builderBranches`). Ohne bekanntes Präfix gibt es nie `agent-review=success`. Eigene Builder-Konten verwirft Marc am 20.10.2026; das frei wählbare Präfix (Befund P2 Codex) bleibt als dokumentiertes Restrisiko, Marc prüft beim Merge, wer gebaut hat.
+- Nacharbeit Codex auf `1ea8558`: Der Zielbranch-Filter gilt jetzt auch für Änderungsanforderungen (2 Tests). Der Token-Helfer `scripts/getReviewerToken.mjs` ist committet (Standard-Repo `-v2`), `.gitignore` schließt `*.pem` und `.secrets/` aus.
+- Nacharbeit Codex auf `9e08c7a`: OpenCode-Befehl `.opencode/command/review-pr.md` und Agent `.opencode/agent/pr-reviewer.md` (Marc) committet. Der Agent reicht nie `APPROVE` ein (AGENTS.md) und holt das Token über `getReviewerToken.mjs`. `.opencode/node_modules/` ist ignoriert.
+- Nacharbeit Codex auf `ddf0b21`: Teilen sich offene PRs einen Head, bleiben beide auf `pending` („Mehrdeutiger Head“). Kein PR überschreibt mehr den Status eines anderen (1 Test). Fehler beim Blockieren eines geteilten Heads brechen die übrigen PRs nicht ab (Codex auf `f8f317a`).
+- Härtung Öffner/Forks (Sicherheitscheck 20.10.): Fork-PRs und PRs von Öffnern außerhalb von `trustedOpeners` (nur `mapoenisch`, per ID verifiziert) erhalten nie `agent-review=success`. 3 Tests.
+- Konto-IDs, Freigaben, Zielbranch, Zeitplan (Befunde Codex auf `a998cdc`): Prüferkonten sind über `accounts` an numerische ID und Typ gebunden. `APPROVED` von `marcs-pr-reviewer` wird ignoriert (`approve: false`). Reviews vor einem `base_ref_changed` zählen nicht, `edited` stößt die Bewertung an. Ein geplanter Lauf alle 15 Minuten schließt die Lücke durch den vom PR änderbaren Trigger.
+- Hat ein PR mehr Commits, als die API liefert (Grenze 250), gibt es keinen Erfolg.
+- Fail-closed: Nach Ermittlung des Heads gehen zuerst beide Status auf `pending` („Wird geprüft“), erst dann folgen die fehlbaren Abfragen. Bei Fehlern bleibt `pending` stehen. `review-conversations` wird unabhängig bewertet (Hinweis P3 von `marcs-pr-reviewer`).
+- Fälschungsschutz: Status setzt nur die eigene GitHub-App. Die JWT-Aufrufe laufen per `fetch` mit `Bearer`, weil `gh api` JWTs mit 401 ablehnt (Befund P1 `marcs-pr-reviewer`). Die Secrets liegen in der Umgebung `review-gate`, die nur `main` nutzen darf. Review-Ereignisse laufen über den rechtelosen `review-gate-trigger.yml` und `workflow_run`.
+- Serialisierung: Es gibt eine Concurrency-Gruppe `review-gate` für das ganze Repo, und jeder Lauf bewertet alle offenen PRs mit frischen Daten. Ein älterer Snapshot kann keinen neueren überschreiben (Befund P2). Ein Fehler bei einem PR bricht die übrigen nicht ab (Befund P2). Ein Push auf `main`, der Skript oder Prüferliste ändert, löst eine Neubewertung aus.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `.github/workflows/review-gate-trigger.yml` (neu), `scripts/reviewGate.mjs`, `scripts/__tests__/reviewGate.vitest.ts` (neu), `.github/review-agents.json`, Auftrag `ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`, dieser Eintrag. Das Drawio-Diagramm ist per Revert in den eigenen PR #94 verschoben.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
+
+**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 32 Tests ist grün, darunter 4 zur Blockade bei angeforderten Änderungen. Abgedeckt sind:
+
+- Review auf dem Head zählt, Review auf einem älteren Commit nicht.
+- Ungelistete Prüfer und ausstehende Reviews zählen nicht.
+- PR-Autor und Commit-Autor zählen nicht.
+- Der Builder zählt nicht: kein Review des Agenten, dem PR-Öffner oder ein Commit-Konto gehört.
+- `builderOf` für bekannte und unbekannte Präfixe; Builder auf `codex/`, `antigravity/` und `opencode/` prüft sich nicht selbst.
+- `evaluateReviewed` wirft bei unbekanntem Builder, unvollständigen Commits und fehlendem Autor.
+- Status-Texte.
+- Konto-Verifikation per ID und Typ, übernommene Prüfer-Logins, ignoriertes `APPROVED` von `marcs-pr-reviewer`, Zielbranch-Wechsel, Prüferkonten der echten Konfiguration, Zeitplan und `edited` im Workflow.
+- RS256-JWT gegen einen Testschlüssel verifiziert.
+- Workflow-Verträge: Umgebung, Concurrency-Gruppe, `--pr=all`, Trigger ohne Rechte und Secrets.
+
+Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run build`. Ein echter Lauf mit der App steht aus, bis Marc App und Umgebung eingerichtet hat.
+
+**Ergebnis & Freigabestatus:** Offen bis zum unabhängigen Review. Die Einrichtung der App übernimmt Marc (siehe Auftrag, Abschnitt „Einrichtung“).
+
+### Nacharbeit Codex-Befunde PR #93 – Base-SHA und geschlossene Heads (Builder: Claude Code, 20.10.2026)
+
+**Ziel & Kontext:** Die zwei neuen Befunde auf Head `419872a` beheben: ein Review darf bei Fortschritt des Zielbranches nicht für einen geänderten Diff gültig bleiben; Statuswerte eines geschlossenen PRs dürfen nicht auf einen später wiederverwendeten Head übertragen werden.
+
+**Umsetzung:** `agent-review` speichert jetzt den geprüften Base-SHA. Bei Abweichung setzt das Gate einen dauerhaften Pending-Marker und wertet nur Reviews nach dessen Zeitstempel. Ein vorhandener Cutoff bleibt bei Folgeauswertungen unverändert, statt mit jedem Status-POST nach vorne zu wandern (P1 der Nachprüfung). Kompakte Marker (`[b:<SHA>]`, `[r:<Unix-ms>]`) erhalten die lesbare Statusmeldung innerhalb des 140-Zeichen-Limits. Jeder Push auf `main` stößt eine Neubewertung offener PRs an. Bei `pull_request_target: closed` werden beide Statuskontexte des Heads auf `pending` gesetzt, sofern kein anderer offener PR denselben Head nutzt; dieser offene PR wird stattdessen regulär neu bewertet.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `scripts/reviewGate.mjs`, `scripts/__tests__/reviewGate.vitest.ts`, dieser BUILD_LOG-Eintrag.
+
+**Funktionale Prüfungen:** 37/37 fokussierte Review-Gate-Tests bestanden. Die Regressionstests decken Base-SHA-Wechsel, einen über Folgeauswertungen stabilen Review-Cutoff, lesbare Statusbeschreibungen mit vollem 40-stelligem Base-SHA und maximal 140 Zeichen, unveränderte Base-SHAs sowie geschlossene und weiterhin genutzte Heads ab.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` bestanden; `npm run verify` bestanden (Integrity-Suiten 001–025); `npm run lint` bestanden; `npm run build` bestanden; Prettier-Prüfung und `git diff --check` bestanden. `NODE_ENV=development npm test`: 341/341 Testdateien, 2.492/2.492 Tests bestanden. Der zusätzliche Lauf mit dem in dieser Umgebung global gesetzten `NODE_ENV=production` scheiterte in UI-Tests an Reacts Fehlermeldung „act(...) is not supported in production builds of React“; eine isolierte UI-Suite reproduzierte den Umgebungsfehler, der Entwicklungsmodus-Lauf bestand vollständig.
+
+**Screenshot-Matrix:** Nicht anwendbar, es wurden keine UI-Seiten oder visuellen Komponenten geändert.
+
+**Ergebnis & Freigabestatus:** Beide aktuellen Review-Befunde lokal behoben. Unabhängige Nachprüfung des neuen Heads bleibt erforderlich. Es wurde kein Commit erstellt; `.proto/` und `.vscode/` blieben unangetastet und uncommittet.
+
+### Auftrag CI-Review-Gate – Umbau auf manuelle Agenten-Reviews über MarcReview (Builder: Claude Code, 21.10.2026)
+
+**Ziel & Kontext:** Entscheidung Marc vom 21.10.2026: Antigravity, OpenCode, Devin, Proto und Perplexity prüfen nur auf Zuruf (`/<agent> review`, analog `@codex review`) und posten über das Konto `MarcReview`. Der bisherige Status-Gate (`review-gate.yml`, GitHub-App, Konten-/Builder-Logik) entfällt; die Merge-Sperre übernimmt GitHubs Branch-Schutz (1 Freigabe, veraltete Freigaben verwerfen, Konversationen gelöst). Die Einträge vom 19./20.10.2026 oben sind damit überholt.
+
+**Geänderte Dateien:** neu `.github/workflows/agent-review.yml`, `scripts/agentReview.mjs`, `scripts/__tests__/agentReview.vitest.ts`; entfernt `review-gate.yml`, `review-gate-trigger.yml`, `reviewGate.mjs`, `reviewGate.vitest.ts`, `review-agents.json`, `getReviewerToken.mjs`, `.opencode/agent/pr-reviewer.md`, `.opencode/command/review-pr.md`; angepasst `AGENTS.md`, `CLAUDE.md`, `package.json` (`agent-review`), Auftrag `ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
+
+**Funktional:** Antigravity und Proto (ERP.AI) sind Desktop-Agenten ohne CI-Betrieb; der Workflow bestätigt und hinterlegt die Anleitung für den lokalen Lauf (`npm run agent-review -- prompt|post`). OpenCode, Devin, Perplexity laufen im CI.
+
+**Schutzbereiche:** keine Änderung an `src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`.
+
+**Offen (Marc):** MarcReview als Collaborator, PAT als `MARCREVIEW_TOKEN`, Agenten-Keys als Secrets, Branch-Schutz umstellen. Live-Lauf je Agent danach.
+
+**Ergebnis:** Builder-Eintrag; Freigabe durch unabhängigen Prüfer ausstehend.
+
+### Auftrag CI-Review-Gate – Nacharbeit Review-Befunde PR #93 auf `7cb90f9` (Builder: Claude Code, 21.10.2026)
+
+**Befunde (Codex inline, Antigravity per Review-Text) und Behebung:**
+- P1 Devin-Polling auf `/v1/session/{id}` → `/v1/sessions/{id}`.
+- P1 Ergebnis nicht an geprüften Head gebunden → `run` speichert `headSha`, `post` bricht ab, wenn der PR-Head sich geändert hat (lokal: `--sha`).
+- P1 Reviewzustände der Agenten unter einem Konto überschreiben sich → Event immer `COMMENT`, jeder Befund wird eine lösbare Konversation (Zeile, Datei-Kommentar oder Verweis am ersten Diff-Abschnitt); Merge-Sperre allein über „Require conversation resolution“.
+- P1 Gekürzte Diffs → `truncation()` erkennt fehlende Patches/Dateien und meldet eine P1-Konversation.
+- P1 `User-Agent`-Header in GitHub-Aufrufen ergänzt.
+- P1 fehlender Gate-Nachweis → dieser Abschnitt.
+
+**Marcs Rückmeldung „reviewt ohne Auslöser, kein Resolve-Button“:** `agent-review.yml` ist noch nicht auf `main`, lief also nie. Die automatischen Reviews kamen von Codex (automatische Reviews in den Codex-Einstellungen aktiv) und von lokal laufenden Agenten über Marcs eigenen `gh`-Login als reiner Review-Text ohne Inline-Kommentare – daher keine Konversation. Abhilfe in der Auftragsdatei, Einrichtung Schritt 5.
+
+**Automatisierte Verifikation (lokal, 21.10.2026):** `npx tsc --noEmit` 0 Fehler · `npm run verify` alle Suiten 001–025 grün · `npm run build` grün · `npx vitest run` 341 Dateien / 2473 Tests grün, davon `agentReview.vitest.ts` 18/18.
+
+**Schutzbereiche:** `git diff main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Screenshot-Matrix:** entfällt (keine UI-Änderung).
+
+**CI-Hinweis:** Job `test` scheitert unabhängig von diesem PR an `npm audit` (neue `vite`-Schwachstelle GHSA-698v-4r3x-3vcv u. a.); Behebung braucht ein Versions-Update, eigener Schritt.
+
+**Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.
+
+### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93 auf `69109be` (Builder: Claude Code, 21.10.2026)
+
+**Behoben:**
+- P1 Kein Pflicht-Review → `post` setzt nach jedem geposteten Lauf den Commit-Status `agent-review` auf dem geprüften Head (Pflicht-Check im Branch-Schutz, Einrichtung Schritt 4; PAT braucht *Commit statuses*).
+- P1 `subject_type: "file"` im Reviews-Endpunkt ungültig → Befunde außerhalb kommentierbarer Zeilen hängen an der ersten Diff-Zeile der Datei bzw. des PRs; gar nicht verankerbare stehen im Review-Text und setzen den Status auf `failure`.
+- P1 Zeile 0 bei Dateien ohne Patch → `commentableLines` zählt erst ab einem Hunk-Header.
+- P1 Fork-PRs im lokalen `prompt`-Pfad → gleiche `isSameRepo`-Prüfung wie im CI.
+- P2 Ausgelassene Lösch-Patches → zählen als unvollständig; nur inhaltslose Änderungen (`changes: 0`) nicht.
+- P2 OpenCode `latest` → fest `opencode-ai@1.19.3`.
+- P2 Bewegliches `main` zwischen Jobs → `ack` ermittelt den SHA, `review` und `post` checken genau diesen aus.
+
+**Veraltet (bereits in `69109be` erledigt):** Reviewzustände unter einem Konto (Event immer `COMMENT`), gekürzte Diffs (`truncation()`), zwei Ledger-Befunde (Gate-Nachweis steht im Abschnitt zu `7cb90f9`).
+
+**Automatisierte Verifikation (lokal, 21.10.2026):** `npx tsc --noEmit` 0 Fehler · `npm run verify` alle Suiten 001–025 grün · `npm run build` grün · `agentReview.vitest.ts` 22/22.
+
+**Schutzbereiche:** `git diff main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Screenshot-Matrix:** entfällt (keine UI-Änderung).
+
+**Hinweis Marc:** Branch-Schutz um Pflicht-Check `agent-review` ergänzen, MarcReview-PAT um *Commit statuses* Read & Write erweitern.
+
+**Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.
