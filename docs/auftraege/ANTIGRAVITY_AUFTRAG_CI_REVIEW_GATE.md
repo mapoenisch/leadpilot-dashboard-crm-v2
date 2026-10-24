@@ -32,7 +32,7 @@ Entfernt: `review-gate.yml`, `review-gate-trigger.yml`, `reviewGate.mjs`, `revie
 
 1. **MarcReview** als Collaborator (Rolle Triage oder Write) einladen und annehmen.
 2. Mit MarcReview einen Fine-grained PAT nur für dieses Repo anlegen: *Pull requests* Read & Write, *Issues* Read & Write, *Commit statuses* Read & Write, *Contents* Read. Als Secret `MARCREVIEW_TOKEN` speichern; lokal als Umgebungsvariable `MARCREVIEW_TOKEN` (nicht ins Repo).
-3. Secrets: `PERPLEXITY_API_KEY`, `DEVIN_API_KEY`, `OPENCODE_ANTHROPIC_API_KEY`. Optional Variable `OPENCODE_MODEL`. Die OpenCode-Version ist im Workflow fest gepinnt; ein Update läuft als normaler PR.
+3. Secrets: `PERPLEXITY_API_KEY`, `DEVIN_API_KEY`. OpenCode braucht keinen Key und läuft mit seinem eigenen Standardmodell; optional setzt die Variable `OPENCODE_MODEL` ein anderes Modell. Die OpenCode-Version ist im Workflow fest gepinnt; ein Update läuft als normaler PR.
 4. Branch-Schutz für `main`: *Require a pull request* (0 Freigaben), *Require conversation resolution before merging*, Pflicht-Status-Checks `ci` und `agent-review`. Alten Pflicht-Check `review-conversations` entfernen.
 5. **Automatische Reviews abschalten:** In den Codex-Einstellungen (chatgpt.com/codex → Settings → Code review) „Automatic reviews“ für dieses Repo aus – dann reagiert Codex nur noch auf `@codex review`. Antigravity/OpenCode lokal nicht mehr mit Marcs `gh`-Login posten lassen (dessen Reviews sind reine Textkommentare ohne Konversation).
 

@@ -263,7 +263,7 @@ export const OPENCODE_READ_ONLY = { permission: { edit: 'deny', bash: 'deny', we
 function runOpencode(promptFile) {
   return execFileSync(
     'opencode',
-    ['run', '--model', process.env.OPENCODE_MODEL || 'anthropic/claude-sonnet-5-5',
+    ['run', ...(process.env.OPENCODE_MODEL ? ['--model', process.env.OPENCODE_MODEL] : []),
       `Lies ${promptFile} und befolge die Anweisungen darin. Ändere keine Dateien.`],
     {
       encoding: 'utf8',
@@ -273,7 +273,6 @@ function runOpencode(promptFile) {
       env: {
         PATH: process.env.PATH,
         HOME: process.env.HOME,
-        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
         OPENCODE_CONFIG_CONTENT: JSON.stringify(OPENCODE_READ_ONLY),
       },
     },

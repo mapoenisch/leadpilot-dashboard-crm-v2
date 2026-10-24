@@ -89,7 +89,6 @@ jobs:
           GITHUB_READ_TOKEN: ${{ github.token }}
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.OPENCODE_ANTHROPIC_API_KEY }}
           OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL }}
         run: node scripts/agentReview.mjs run --agent "$AGENT" --pr "$PR" --out "$RUNNER_TEMP/findings.json"
 
