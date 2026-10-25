@@ -108,7 +108,9 @@ const TAB_CONFIG = {
     order: 'desc',
     fKey: 'stage',
     fLabel: 'Vertriebsphase:',
-    sorts: mkOpts('close_date:Abschlussdatum,amount:Betrag,deal_name:Deal Name,stage:Vertriebsphase'),
+    sorts: mkOpts(
+      'close_date:Abschlussdatum,amount:Betrag,deal_name:Deal Name,stage:Vertriebsphase',
+    ),
     filters: mkOpts(
       'ALL:Alle Vertriebsphasen,Lead eingegangen,Erstgespräch geführt,Bedarfsanalyse,Angebot erstellt,Verhandlung,Deal gewonnen,Deal verloren',
     ),
