@@ -17523,3 +17523,7 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-105/README.md` (Nachtrag nach Codex PR #96, P1): 12 Paare (Kopfzeile und Menü, 1440/768/375, dunkel und hell), alle SHA-256 verschieden, 0 px Überlauf; Bilder manuell geprüft. Aufnahme mit Mock-Supabase (`scripts/captureAuftrag105Screenshots.mjs`). Visuelle E2E-Referenzen laufen in der CI.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: unabhängiger Review, Sichtprüfung Marc, Teil 2 von Paket H.
+
+### Auftrag 105 – Nacharbeit CI e2e (25.10.2026, Claude Code)
+
+`visual /crm/leads`, `/market/overview`, `/resources/materials` schlugen bei 768 px fehl (erwartet: neue Kopfzeile mit Profil und Abmelden). Linux-Baselines in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/auftrag-105`, Lauf `40177871605`, inklusive dreifacher Verifikation); nur diese drei `tablet-768-linux`-Bilder weichen ab, alle übrigen byte-gleich. Bilder gesichtet (Kopfzeile mit E-Mail, Rolle, Abmelden, kein Überlauf).
