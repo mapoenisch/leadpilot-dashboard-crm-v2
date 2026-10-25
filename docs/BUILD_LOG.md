@@ -17539,3 +17539,48 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 ### Auftrag 105 – Nacharbeit CI e2e (25.10.2026, Claude Code)
 
 `visual /crm/leads`, `/market/overview`, `/resources/materials` schlugen bei 768 px fehl (erwartet: neue Kopfzeile mit Profil und Abmelden). Linux-Baselines in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/auftrag-105`, Lauf `40177871605`, inklusive dreifacher Verifikation); nur diese drei `tablet-768-linux`-Bilder weichen ab, alle übrigen byte-gleich. Bilder gesichtet (Kopfzeile mit E-Mail, Rolle, Abmelden, kein Überlauf).
+
+## Auftrag 107 – Paket H Teil 3: Datenquellen-Namen und Gesamtkosten pro Neukunde (Builder: Claude Code, 25.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste und fachliche Ebenen verständlich benennen. Branch `claude/auftrag-107-paket-h-teil3`, Baseline `081e131`.
+
+**Geänderte Dateien:** 31 Komponenten/Seiten unter `src/features`, `src/components`, `src/app/routes.tsx`, `src/domain/navData.ts` (nur Menülabel), 15 Tests (neue Beschriftungen erwartet), `scripts/captureAuftrag107Screenshots.mjs`, Auftrag 107, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Ebene A/B/C“ → Unternehmensdaten 2025 / CRM-Daten / Simulation / Live-Daten; „Fully-Loaded CAC“ → „Gesamtkosten pro Neukunde“ (Katalog-ID unverändert); „Headcount-Entwicklung“ → „Entwicklung der Teamgröße“. Restfunde bewusst offen (Teil 4): Kennzahldaten in `src/domain/*Data.ts`, Herkunftslabel in `src/services/data/sourceFreshness.ts` (Schutzbereich).
+
+**Schutzbereichs-Prüfung:** `git diff 081e131 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Prettier grün; Vitest 2478/2478; `npm run verify` alle Integritätssuiten grün; `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-107/README.md` — 18 Paare (6 Ansichten × 1440/768/375), 16 verschieden; 2 Gleichstände bei 375 px begründet (Änderung außerhalb des ersten Bildschirms). Überlauf 375 px auf Headcount (86 px) und Live-Simulation (184 px) unverändert vorbestehend.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Nachtrag CI e2e (PR #98):** `visual /crm/leads @1440` wich wegen des neuen Badges „CRM-Daten“ ab (4735 px). Linux-Referenz über `update-visual-baselines.yml` (Run 40201131009, Branch `visual-baselines/auftrag-107`) neu erzeugt; von 30 Bildern ändert sich nur `visual-crm-leads-1-desktop-1440-linux.png`, Sichtprüfung ok.
+
+### Auftrag 107 – Review PR #98 (25.10.2026, Prüfer: Antigravity)
+
+**Prüfgegenstand:** Branch `claude/auftrag-107-paket-h-teil3`, HEAD `23d4fbb`, PR #98 gegen `main` (`081e131`).
+
+**Befund:** Kein P0, kein P1, kein P2. Alle Vorgaben aus `docs/auftraege/ANTIGRAVITY_AUFTRAG_107_PAKET_H_TEIL3.md` (Sprachliste, fachliche Ebenen, Gesamtkosten pro Neukunde, Entwicklung der Teamgröße, Menülabel Live-Simulation ohne Ebene B) sind vollständig und regressionsfrei umgesetzt.
+
+**Nacharbeiten zu vorangegangenen Codex-Befunden (PR #98):**
+- Namensabhängiger Screenshot-Selektor in `scripts/lib/combinationShotHelpers.mjs:102` auf „Gesamtkosten pro Neukunde“ umgestellt (Commit `349c552`).
+- Headcount-Screenshot-Selektor und Textabgleich in `scripts/captureAuftrag100Organisation.mjs` und `scripts/auditV21LiveAccessibility.mjs` auf „Entwicklung der Teamgröße“ bzw. „Live-Daten“ angeglichen (Commit `e9c2e9c`).
+- CI-E2E-Linux-Referenz für CRM Leads 1440 px über `update-visual-baselines.yml` aktualisiert (`visual-crm-leads-1-desktop-1440-linux.png`, Commit `23d4fbb`).
+
+**Schutzbereichs-Prüfung:**
+- `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`: Vollständig leer (0 Zeilen).
+
+**Automatisierte Verifikation (eigenständig gefahren auf `23d4fbb`):**
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler / 0 Warnungen
+- `npm run verify`: Alle Integritätssuiten (001–025) bestanden
+- `npm run build`: Erfolgreich durchgelaufen (3,27 s)
+- `npm test`: 341 Testdateien / 2.478 Tests bestanden
+
+**Screenshot-Matrix:**
+- Dokumentiert in `docs/screenshots/auftrag-107/README.md` (16/18 verschieden, 2 Gleichstände bei 375 px sachlich begründet; Überlauf 375 px auf Headcount und Live-Simulation vorbestehend und unverändert).
+
+**Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #98 ist aus Sicht der Qualitätssicherung und Architekturvorgaben bereit für den Merge durch Marc.
+

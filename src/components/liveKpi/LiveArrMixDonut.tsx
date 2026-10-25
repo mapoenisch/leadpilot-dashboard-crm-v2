@@ -120,7 +120,7 @@ export const LiveArrMixDonut = React.memo(function LiveArrMixDonut({
                 ARR-Mix nach Akquisitionsquelle
               </h3>
               <span className="text-[11px] text-[var(--color-text-dim)]">
-                4 Quellen · Streaming-Ebene C
+                4 Quellen · Live-Daten
               </span>
             </div>
             <Badge variant={isComplete ? 'mint' : 'neutral'} className="text-[9.5px]">

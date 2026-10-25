@@ -78,7 +78,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
           <CockpitPanel
             title="Finanzentwicklung & ARR-Trend"
             subtitle="Historischer Verlauf des Annual Recurring Revenue (2024–2025)"
-            sourceLabel="Ebene A Baseline"
+            sourceLabel="Unternehmensdaten 2025"
           >
             <ManagementChart
               data={arrTrendData}
@@ -93,7 +93,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
                   unit: '€',
                 },
               ]}
-              sourceLabel="Ebene A Baseline"
+              sourceLabel="Unternehmensdaten 2025"
               tooltipValueFormatter={(val) => `${val.toLocaleString('de-DE')} €`}
             />
           </CockpitPanel>
@@ -131,7 +131,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
           <CockpitPanel
             title="Teamstruktur & HR-Snapshot"
             subtitle="10,0 FTE Bestand & identifizierte Engpässe"
-            sourceLabel="Ebene A Baseline"
+            sourceLabel="Unternehmensdaten 2025"
           >
             <TeamHrSnapshot />
           </CockpitPanel>
@@ -151,7 +151,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
           <CockpitPanel
             title="Live-KPI Telemetrie"
             subtitle="Isolierte Echtzeit-Projektion aus externem Feed"
-            sourceLabel="Ebene C Live-Feed"
+            sourceLabel="Live-Daten"
           >
             <div className="flex flex-col gap-[12px] h-full">
               {liveKpiCard || (
@@ -163,7 +163,7 @@ export const ExecutiveCockpit: React.FC<ExecutiveCockpitProps> = ({ liveKpiCard 
                 />
               )}
               <div className="text-[11px] leading-[1.4] border border-solid border-[rgba(0,217,198,0.1)] rounded-[6px] bg-[rgba(5,18,17,0.5)] mt-auto px-[12px] py-[10px] text-[var(--color-text-muted)]">
-                <strong>Hinweis Ebene C:</strong> Echtzeit-Telemetrie wird über die sichere
+                <strong>Hinweis Live-Daten:</strong> Echtzeit-Telemetrie wird über die sichere
                 Projektionstabelle empfangen. Bei unkonfigurierter Testumgebung zeigt der Hook einen
                 ehrlichen Offline-Status ohne Mock-Interpolation.
               </div>

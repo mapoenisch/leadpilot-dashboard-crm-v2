@@ -72,7 +72,7 @@ function runVerification() {
   const sectionSrc = fs.readFileSync(sectionFile, 'utf8');
   assert(sectionSrc.includes('data-testid="live-performance-section"'), 'LivePerformanceSection has data-testid="live-performance-section"');
   assert(sectionSrc.includes('Live Performance'), 'Section title "Live Performance" rendered');
-  assert(sectionSrc.includes('Ebene C'), 'Ebene C badge / label rendered in section');
+  assert(sectionSrc.includes('Live-Daten'), 'Live-Daten badge / label rendered in section');
 
   // Abschnitt 11: Technische Bühne mit Eyebrow und Raster/Lichtsaum
   assert(

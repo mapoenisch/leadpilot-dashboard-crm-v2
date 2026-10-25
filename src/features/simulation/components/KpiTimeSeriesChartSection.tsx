@@ -167,8 +167,8 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
             Zeitreihen-Verlauf & Unsicherheitsband (P10 · P50 Median · P90)
           </h4>
           <span className="text-[12px] text-[var(--color-text-muted)]">
-            Visualisiert die zeitliche Entwicklung über alle Ticks. Ebene A (31.12.2025) ist als
-            unveränderlicher Startpunkt bei Tick 0 fixiert.
+            Visualisiert die zeitliche Entwicklung über alle Ticks. Der Stand der Unternehmensdaten
+            (31.12.2025) ist als unveränderlicher Startpunkt bei Tick 0 fixiert.
           </span>
         </div>
         <div className="flex gap-[12px] text-[12px] items-center flex-wrap">
@@ -318,7 +318,7 @@ export const KpiTimeSeriesChartSection: React.FC<KpiTimeSeriesChartSectionProps>
                     fontSize="10"
                     fontWeight="bold"
                   >
-                    Ebene A (01.01.26)
+                    Unternehmensdaten (01.01.26)
                   </text>
 
                   {/* Data Points on Median */}

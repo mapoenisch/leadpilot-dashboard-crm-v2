@@ -31,7 +31,7 @@ export function OrganisationStructure() {
         <div className="border-0 border-b border-solid border-[rgba(255,255,255,0.07)] w-full flex items-center justify-between flex-wrap gap-[var(--space-2)] pb-[var(--space-3)]">
           <div>
             <span className="text-[11px] font-semibold tracking-[0.08em] uppercase text-primary">
-              Organigramm · Ebene A
+              Organigramm · Unternehmensdaten
             </span>
             <h2 className="font-display text-[17px] font-semibold text-text mt-[2px] mb-0 mr-0 ml-0">
               Funktionale Organisation & Führungsspanne

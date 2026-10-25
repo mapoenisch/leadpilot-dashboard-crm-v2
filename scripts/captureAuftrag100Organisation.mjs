@@ -41,10 +41,10 @@ const PAGES = [
   {
     key: 'headcount',
     route: '/organisation/headcount',
-    h1: 'Headcount-Entwicklung',
+    h1: 'Entwicklung der Teamgröße',
     saeulen: 1,
     want: [
-      'Headcount-Entwicklung',
+      'Entwicklung der Teamgröße',
       'Headcount-Verlauf (Gesamt-FTE)',
       'Kapazitätsübersicht & Rollenverteilung',
       'Gesamtbestand 31.12.2025',

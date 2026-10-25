@@ -41,7 +41,7 @@ function YearHighlightsPageHtml() {
         eyebrow="Performance"
         title="Jahres-Highlights 2025"
         subtitle="Gewinne und operative Herausforderungen im Jahresrückblick."
-        asidePills={['FY 2025', 'Ebene A Review']}
+        asidePills={['FY 2025', 'Unternehmensdaten 2025']}
         asideActive="first"
       />
       <DataState status={ready ? 'ready' : 'empty'} emptyText="Keine Jahres-Highlights erfasst.">

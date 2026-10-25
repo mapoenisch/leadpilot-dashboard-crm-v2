@@ -76,10 +76,10 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Unternehmen (Accounts)"
-          description="Vollständige Übersicht aller 20 importierten B2B-Unternehmen (Accounts) aus Ebene A mit Firmografie und Mitarbeiterzahlen."
+          description="Vollständige Übersicht aller 20 importierten B2B-Unternehmen (Accounts) aus den CRM-Daten mit Firmografie und Mitarbeiterzahlen."
         />
         <div className="flex gap-[var(--space-2)] flex-wrap">
-          <Badge variant="cyan">Ebene A Import</Badge>
+          <Badge variant="cyan">CRM-Daten</Badge>
           <Badge variant="neutral">20 B2B Accounts</Badge>
         </div>
       </div>
@@ -117,7 +117,7 @@ export function CompaniesView({ companies, loading }: CompaniesViewProps) {
         <Card variant="glass">
           <div className="text-[13px] text-[var(--color-text-muted)]">Daten-Herkunft</div>
           <div className="font-display text-[18px] font-bold mt-[8px] mb-[4px] text-accent">
-            Ebene A Import
+            CRM-Daten
           </div>
           <div className="text-[12px] text-[var(--color-text-muted)]">
             PostgreSQL / CRM-Repository

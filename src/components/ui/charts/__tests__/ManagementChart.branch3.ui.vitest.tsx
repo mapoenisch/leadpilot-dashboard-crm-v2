@@ -77,7 +77,7 @@ describe('ManagementChart (branch3)', () => {
         xKey="period"
         showLegend
         height={300}
-        sourceLabel="Ebene A"
+        sourceLabel="Unternehmensdaten"
         tooltipValueFormatter={(v) => `${v} Einheiten`}
         series={[
           { key: 'arr', name: 'ARR Fläche', color: '#00D9C6' },

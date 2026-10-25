@@ -14,7 +14,7 @@ export interface ManagementChartStateProps {
 export const ManagementChartState: React.FC<ManagementChartStateProps> = ({
   type,
   message,
-  sourceLabel = 'Ebene A Baseline',
+  sourceLabel = 'Unternehmensdaten 2025',
   height = 240,
   onRetry,
 }) => {

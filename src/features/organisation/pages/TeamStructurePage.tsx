@@ -71,7 +71,7 @@ function TeamStructurePageHtml() {
         eyebrow="Organisation"
         title={TEAM.title}
         subtitle="Funktionale Struktur, Führungsspanne und operative Engpassanalyse (Stand: 31.12.2025)."
-        pills={['Stand: 31.12.2025', 'Ebene A Baseline']}
+        pills={['Stand: 31.12.2025', 'Unternehmensdaten 2025']}
       />
       <DataState
         status={einheiten.length > 0 ? 'ready' : 'empty'}
@@ -80,7 +80,7 @@ function TeamStructurePageHtml() {
         <Panel
           className="org-organigramm"
           title="Funktionale Organisation & Führungsspanne"
-          subtitle="Organigramm · Ebene A"
+          subtitle="Organigramm · Unternehmensdaten"
           chip="Stand: 31.12.2025"
         >
           <div className="pk-org">

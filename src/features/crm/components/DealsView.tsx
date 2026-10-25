@@ -121,10 +121,10 @@ export function DealsView({ deals, loading }: DealsViewProps) {
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Deal Pipeline"
-          description="Pipeline-Übersicht aller 40 historisch importierten Funnel Deals aus Ebene A mit Volumen, Stage und Abschlussdatum."
+          description="Pipeline-Übersicht aller 40 historisch importierten Funnel Deals aus den CRM-Daten mit Volumen, Stage und Abschlussdatum."
         />
         <div className="flex gap-[var(--space-2)] flex-wrap">
-          <Badge variant="cyan">Ebene A Pipeline</Badge>
+          <Badge variant="cyan">CRM-Daten</Badge>
           <Badge variant="neutral">40 Funnel Deals</Badge>
         </div>
       </div>

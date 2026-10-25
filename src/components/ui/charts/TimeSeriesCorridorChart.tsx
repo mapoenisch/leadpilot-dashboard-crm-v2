@@ -319,7 +319,13 @@ export function TimeSeriesCorridorChart({
               ]
             : []),
           ...(baselineValue !== undefined
-            ? [{ label: 'Ebene A Basis', color: 'var(--color-primary)', shape: 'circle' as const }]
+            ? [
+                {
+                  label: 'Unternehmensdaten 2025',
+                  color: 'var(--color-primary)',
+                  shape: 'circle' as const,
+                },
+              ]
             : []),
         ]}
       />

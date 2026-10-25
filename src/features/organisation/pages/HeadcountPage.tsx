@@ -48,9 +48,9 @@ function HeadcountPageHtml() {
     <div className="pk-page" data-ruhig="true" data-page-key="organisation-headcount">
       <PageHero
         eyebrow="Organisation"
-        title="Headcount-Entwicklung"
+        title="Entwicklung der Teamgröße"
         subtitle="Entwicklung der Mitarbeiterkapazität und Teamstärke (Stand: 31.12.2025)."
-        pills={['Personalbestand 2025', 'Ebene A Baseline']}
+        pills={['Personalbestand 2025', 'Unternehmensdaten 2025']}
       />
       <DataState
         status={HEADCOUNT.rows.length > 0 ? 'ready' : 'empty'}

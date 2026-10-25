@@ -187,7 +187,7 @@ export function DealsPage() {
           description="Mandantenspezifische Übersicht der Pipeline-Deals mit serverseitiger Paginierung und CSV-Export."
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
-          <Badge variant="cyan">Ebene A Pipeline</Badge>
+          <Badge variant="cyan">CRM-Daten</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{countText} Funnel Deals</Badge>
           <Button
@@ -323,14 +323,14 @@ export function DealsPage() {
         <ManagementChartState
           type="loading"
           message="Lade Deal-Pipeline aus CRM..."
-          sourceLabel="Ebene A CRM Funnel Deals"
+          sourceLabel="CRM-Daten"
           height={220}
         />
       ) : isError ? (
         <ManagementChartState
           type="error"
           message={`Integritätsfehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der CRM-Deals'}`}
-          sourceLabel="Ebene A CRM Funnel Deals"
+          sourceLabel="CRM-Daten"
           height={220}
           onRetry={() => void refetch()}
         />

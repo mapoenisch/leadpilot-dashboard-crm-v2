@@ -8,7 +8,7 @@ import { OrganisationUnitCard } from '../OrganisationUnitCard';
 describe('OrganisationScaffold (characterization)', () => {
   it('rendert Gerüst-Überschrift, Badge und Zeitreihen-Diagramm', () => {
     const { container } = render(<OrganisationScaffold />);
-    expect(screen.getByText('Headcount-Entwicklung & Organisationsgerüst')).toBeInTheDocument();
+    expect(screen.getByText('Entwicklung der Teamgröße & Organisationsgerüst')).toBeInTheDocument();
     expect(screen.getByText('ORGANISATIONSGERÜST')).toBeInTheDocument();
     expect(
       container.querySelector('svg[aria-label="Diagramm: Quartalsweise FTE-Entwicklung"]'),
@@ -60,7 +60,7 @@ describe('OrganisationStructure (characterization)', () => {
     expect(screen.getByLabelText('Organisationsstruktur LeadPilot')).toBeInTheDocument();
     expect(screen.getByText('Funktionale Organisation & Führungsspanne')).toBeInTheDocument();
     expect(screen.getByText('Stand: 31.12.2025')).toBeInTheDocument();
-    expect(screen.getByText('Organigramm · Ebene A')).toBeInTheDocument();
+    expect(screen.getByText('Organigramm · Unternehmensdaten')).toBeInTheDocument();
   });
 
   it('zeigt Funktionsbereiche und Gesamtbestand', () => {

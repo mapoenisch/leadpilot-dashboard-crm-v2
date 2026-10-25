@@ -27,7 +27,7 @@ describe('G100 Organisationsseiten als HTML-Seiten', () => {
   });
 
   it.each([
-    ['Headcount', HeadcountPage, 'organisation-headcount', 'Headcount-Entwicklung'],
+    ['Headcount', HeadcountPage, 'organisation-headcount', 'Entwicklung der Teamgröße'],
     ['HR', HrPage, 'organisation-hr', 'HR-Kennzahlen'],
     ['Team', TeamStructurePage, 'organisation-team', 'Teamstruktur & Engpässe (31.12.2025)'],
   ] as const)('%s: kein Ganzseitenbild, Titel, ruhig', (_n, Page, key, titel) => {

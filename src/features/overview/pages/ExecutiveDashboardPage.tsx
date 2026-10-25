@@ -21,9 +21,9 @@ export function ExecutiveDashboardPage() {
         actions={
           <div className="flex items-center gap-[var(--space-2,8px)] flex-wrap">
             <DataSourceStatus variant="compact" provenance={provenance} />
-            <Badge variant="cyan">Ebene A Baseline</Badge>
+            <Badge variant="cyan">Unternehmensdaten 2025</Badge>
             <Badge variant="neutral">Stand: 31.12.2025</Badge>
-            <Badge variant="orange">Ebene C Realtime</Badge>
+            <Badge variant="orange">Live-Daten</Badge>
           </div>
         }
       />

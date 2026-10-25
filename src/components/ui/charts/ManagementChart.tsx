@@ -45,7 +45,7 @@ export const ManagementChart: React.FC<ManagementChartProps> = ({
   series,
   type = 'area',
   height = 240,
-  sourceLabel = 'Ebene A Baseline',
+  sourceLabel = 'Unternehmensdaten 2025',
   yAxisFormatter = (val) => formatManagementMetric(val),
   tooltipValueFormatter,
   emptyMessage,
