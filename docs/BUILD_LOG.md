@@ -17555,3 +17555,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-107/README.md` — 18 Paare (6 Ansichten × 1440/768/375), 16 verschieden; 2 Gleichstände bei 375 px begründet (Änderung außerhalb des ersten Bildschirms). Überlauf 375 px auf Headcount (86 px) und Live-Simulation (184 px) unverändert vorbestehend.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Nachtrag CI e2e (PR #98):** `visual /crm/leads @1440` wich wegen des neuen Badges „CRM-Daten“ ab (4735 px). Linux-Referenz über `update-visual-baselines.yml` (Run 40201131009, Branch `visual-baselines/auftrag-107`) neu erzeugt; von 30 Bildern ändert sich nur `visual-crm-leads-1-desktop-1440-linux.png`, Sichtprüfung ok.
