@@ -173,7 +173,7 @@ function runSelfTests() {
     ['echter Betrag "120,00 €" bleibt negativ', () => containsFakeEuroZero('120,00 €') === false],
     ['bestätigter Snapshot: "Live Realtime" + "Aktualisiert:" zählt', () => isConfirmedSnapshotText('ARR live · Live Realtime · Quelle: n8n · Aktualisiert: vor 3s') === true],
     ['kein bestätigter Snapshot ohne Frischeangabe', () => isConfirmedSnapshotText('ARR live · Live Realtime · Stand: Ausstehend') === false],
-    ['kein bestätigter Snapshot im Wartezustand', () => isConfirmedSnapshotText('Warte auf Feed · Warte auf Live-Events (Ebene C)...') === false],
+    ['kein bestätigter Snapshot im Wartezustand', () => isConfirmedSnapshotText('Warte auf Feed · Warte auf Live-Events (Live-Daten)...') === false],
     ['Fake-Zero: Empty-State ohne bestätigten Snapshot + "0 €" → wird geflaggt', () =>
       evaluateFakeEuroZero({ sectionText: 'Supabase nicht konfiguriert. Aktueller ARR: 0 €', cardTexts: ['Warte auf Feed · Stand: Ausstehend'] }).hasFakeZero === true],
     ['Fake-Zero: bestätigter Snapshot OHNE Pulse + "0 €" → NICHT geflaggt', () =>
