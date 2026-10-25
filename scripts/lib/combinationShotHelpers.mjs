@@ -99,7 +99,7 @@ export async function combinationFlow(page, step) {
   await pressOn(page, trigger, 'Enter');
   await dialog.waitFor();
   await page.waitForTimeout(300);
-  await pressOn(page, first('Fully-Loaded CAC'), 'Space');
+  await pressOn(page, first('Gesamtkosten pro Neukunde'), 'Space');
   await pressOn(page, none(), 'ArrowDown');
   const blockedText = page.getByTestId('configurator-preview').getByTestId('tile-blocked');
   await blockedText.waitFor();
