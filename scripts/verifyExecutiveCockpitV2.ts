@@ -186,8 +186,8 @@ assert(
   'ExecutiveCockpit embeds LiveKpiCard with pipeline_coverage'
 );
 assert(
-  execCockpitContent.includes('Ebene C Live-Feed'),
-  'ExecutiveCockpit explicitly tags LiveKpiCard with Ebene C Live-Feed'
+  execCockpitContent.includes('sourceLabel="Live-Daten"'),
+  'ExecutiveCockpit explicitly tags LiveKpiCard with Live-Daten'
 );
 
 // 10. Differentieller Secret-Audit
