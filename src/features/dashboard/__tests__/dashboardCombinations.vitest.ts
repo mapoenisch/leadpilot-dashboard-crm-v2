@@ -79,7 +79,10 @@ describe('computeCombination', () => {
 
   it('Fully-Loaded CAC ÷ Marketing-CAC ergibt einen Faktor', () => {
     const result = computeCombination(CAC, op(4447), op(862));
-    expect(result).toMatchObject({ state: 'bereit', formula: 'Fully-Loaded CAC ÷ Marketing-CAC' });
+    expect(result).toMatchObject({
+      state: 'bereit',
+      formula: 'Gesamtkosten pro Neukunde ÷ Marketing-CAC',
+    });
     if (result.state === 'bereit') expect(result.value).toBeCloseTo(5.159, 3);
   });
 

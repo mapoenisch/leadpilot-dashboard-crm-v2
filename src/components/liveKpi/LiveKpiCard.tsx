@@ -151,7 +151,7 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
                 {title}
               </span>
               <Badge variant="mint" size="sm">
-                Ebene C
+                Live-Daten
               </Badge>
             </div>
             <Badge variant={statusBadgeVariant} size="sm">
@@ -171,7 +171,7 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
                 Supabase nicht konfiguriert
               </div>
               <div className="text-[11px] leading-[1.4] text-[var(--color-text-dim)]">
-                Ebene C Live-Ist inaktiv. Keine synthetischen Fake-Werte erfunden.
+                Live-Ist-Daten inaktiv. Keine synthetischen Fake-Werte erfunden.
               </div>
             </div>
           ) : status === 'error' ? (
@@ -218,7 +218,7 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
               )}
               {status === 'loading'
                 ? 'Lade aktuellen Snapshot...'
-                : 'Warte auf Live-Events (Ebene C)...'}
+                : 'Warte auf Live-Events (Live-Daten)...'}
             </div>
           )}
         </div>

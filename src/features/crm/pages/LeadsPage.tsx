@@ -230,7 +230,7 @@ export function LeadsPage() {
           description="Mandantenspezifischer CRM-Datenbestand mit serverseitiger Paginierung, Whitelist-Filterung und CSV-Export."
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
-          <Badge variant="cyan">Ebene A CRM</Badge>
+          <Badge variant="cyan">CRM-Daten</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           {!isAudit && (
             <>
@@ -395,7 +395,7 @@ export function LeadsPage() {
         <ManagementChartState
           type={stateInfo.type}
           message={stateInfo.msg}
-          sourceLabel="Ebene A CRM"
+          sourceLabel="CRM-Daten"
           height={220}
           onRetry={stateInfo.type === 'error' ? () => void refetch() : undefined}
         />

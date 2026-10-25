@@ -80,7 +80,7 @@ export const IMAGE_PAGES = {
   },
   'organisation-headcount': {
     src: '/assets/auftrag-037f/01-headcount-entwicklung.webp',
-    alt: 'Headcount-Entwicklung und Mitarbeiterkapazität',
+    alt: 'Entwicklung der Teamgröße und Mitarbeiterkapazität',
     testId: 'organisation-headcount-webp',
   },
   'organisation-hr': {

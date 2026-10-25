@@ -44,14 +44,14 @@ describe('ChartFrame (characterization)', () => {
     render(
       <ChartFrame
         title="Titel"
-        sourceLabel="Ebene A"
+        sourceLabel="Unternehmensdaten"
         headerAction={<button type="button">Aktion</button>}
         insight="Steigend"
       >
         <div>Body</div>
       </ChartFrame>,
     );
-    expect(screen.getByText('Ebene A')).toBeInTheDocument();
+    expect(screen.getByText('Unternehmensdaten')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Aktion' })).toBeInTheDocument();
     expect(screen.getByText('Steigend')).toBeInTheDocument();
   });

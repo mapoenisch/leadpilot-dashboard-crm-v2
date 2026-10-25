@@ -88,7 +88,7 @@ export const LiveActivityFeed = React.memo(function LiveActivityFeed({
                 Live-Aktivitäten
               </h3>
               <span className="text-[11px] text-[var(--color-text-dim)]">
-                Letzte Updates (max. 10) · Ebene C
+                Letzte Updates (max. 10) · Live-Daten
               </span>
             </div>
             <Badge variant={status === 'live' ? 'mint' : 'neutral'} className="text-[9.5px]">

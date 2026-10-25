@@ -222,7 +222,7 @@ export function CompaniesPage() {
           description="Mandantenspezifische Übersicht der B2B-Unternehmen (Accounts) mit serverseitiger Paginierung und Export."
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
-          <Badge variant="cyan">Ebene A Import</Badge>
+          <Badge variant="cyan">CRM-Daten</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{countText} B2B Accounts</Badge>
           <Button
@@ -358,14 +358,14 @@ export function CompaniesPage() {
         <ManagementChartState
           type="loading"
           message="Lade Unternehmensdaten aus CRM..."
-          sourceLabel="Ebene A CRM Accounts"
+          sourceLabel="CRM-Daten"
           height={220}
         />
       ) : isError ? (
         <ManagementChartState
           type="error"
           message={`Integritätsfehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der Unternehmen'}`}
-          sourceLabel="Ebene A CRM Accounts"
+          sourceLabel="CRM-Daten"
           height={220}
           onRetry={() => void refetch()}
         />

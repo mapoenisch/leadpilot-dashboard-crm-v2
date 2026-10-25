@@ -31,7 +31,7 @@ describe('ManagementChart', () => {
         series={series}
         type="area"
         height={250}
-        sourceLabel="Ebene A"
+        sourceLabel="Unternehmensdaten"
       />,
     );
 

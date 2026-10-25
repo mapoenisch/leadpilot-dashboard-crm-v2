@@ -114,7 +114,7 @@ export function SimulationBar() {
             </span>
           ) : (
             <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-              Unternehmenssimulation bereit (Ebene B).
+              Unternehmenssimulation bereit.
             </span>
           )}
         </div>

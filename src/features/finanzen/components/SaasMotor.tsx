@@ -36,7 +36,7 @@ export const SaasMotor: React.FC = () => {
       primaryVal: payback,
       primarySub: 'Amortisation (Fully Loaded)',
       secondaryVal: flCac,
-      secondarySub: `Fully-Loaded CAC (Marketing: ${mktCac})`,
+      secondarySub: `Gesamtkosten pro Neukunde (Marketing: ${mktCac})`,
       color: '#7CEFE6',
     },
     {
@@ -65,7 +65,7 @@ export const SaasMotor: React.FC = () => {
     {
       from: 'ARPA & Deckungsbeitrag',
       to: 'CAC-Payback',
-      text: `Fully-Loaded CAC (${flCac}) und Deckungsbeitrag je Kunde/Monat (${dbCustomer}) werden im Payback von ${paybackDativ} zusammengeführt.`,
+      text: `Gesamtkosten pro Neukunde (${flCac}) und Deckungsbeitrag je Kunde/Monat (${dbCustomer}) werden im Payback von ${paybackDativ} zusammengeführt.`,
       isMath: true,
     },
     {

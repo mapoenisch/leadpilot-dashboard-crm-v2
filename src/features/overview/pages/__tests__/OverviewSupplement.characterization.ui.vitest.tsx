@@ -66,8 +66,8 @@ describe('ExecutiveDashboardPage (characterization)', () => {
       { wrapper: createWrapper() },
     );
     expect(screen.getByText('Executive Cockpit V2')).toBeInTheDocument();
-    expect(screen.getAllByText('Ebene A Baseline').length).toBeGreaterThan(0);
-    expect(screen.getByText('Ebene C Realtime')).toBeInTheDocument();
+    expect(screen.getAllByText('Unternehmensdaten 2025').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Live-Daten').length).toBeGreaterThan(0);
     expect(screen.getByTestId('live-performance-section')).toBeInTheDocument();
   });
 

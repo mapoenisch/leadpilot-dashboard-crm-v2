@@ -21,13 +21,13 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
           ? `${className} live-performance-stage live-performance-surface flex flex-col gap-[var(--space-5,24px)] w-full min-w-0`
           : 'live-performance-stage live-performance-surface flex flex-col gap-[var(--space-5,24px)] w-full min-w-0'
       }
-      aria-label="Live Performance Bereich (Ebene C)"
+      aria-label="Live Performance Bereich (Live-Daten)"
     >
       {/* Prominenter Abschnittskopf mit Eyebrow, Display-Titel und Referenz-Hierarchie */}
       <div className="border-0 flex items-start justify-between flex-wrap gap-[12px] border-b border-solid border-[rgba(0,242,254,0.18)] pb-[16px]">
         <div>
           <div className="flex items-center gap-[6px] font-mono text-[11px] font-bold tracking-[0.12em] uppercase mb-[6px] text-primary">
-            <span>Ebene C · Echtzeit-Steuerung</span>
+            <span>Live-Daten · Echtzeit-Steuerung</span>
           </div>
 
           <div className="flex items-center gap-[12px] flex-wrap">
@@ -36,14 +36,14 @@ export const LivePerformanceSection = React.memo(function LivePerformanceSection
               Live Performance
             </h2>
             <Badge variant="cyan" className="text-[10.5px] px-[10px] py-[3px] tracking-[0.02em]">
-              Ebene C · bestätigte Live-Ist-Daten
+              Live-Daten · bestätigte Live-Ist-Daten
             </Badge>
           </div>
 
           <p className="text-[12px] leading-[1.5] mt-[6px] mb-0 mr-0 ml-0 max-w-[680px] text-[var(--color-text-dim)]">
             Bestätigte Echtzeit-Ist-Daten aus n8n und Supabase Live-Feed (12 zertifizierte
-            Katalog-KPIs). Unveränderliche historische Baseline und Szenarien folgen als Ebene A und
-            B darunter.
+            Katalog-KPIs). Unveränderliche historische Baseline und Szenarien folgen als
+            Unternehmensdaten und Simulation darunter.
           </p>
         </div>
 

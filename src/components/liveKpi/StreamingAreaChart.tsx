@@ -107,7 +107,7 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
                 Live ARR Verlauf (30 Min)
               </h3>
               <span className="text-[11px] text-[var(--color-text-dim)]">
-                Streaming-Ebene C · maximal 30 Datenpunkte · Leuchtkurve mit Halo
+                Live-Daten · maximal 30 Datenpunkte · Leuchtkurve mit Halo
               </span>
             </div>
             <Badge variant={status === 'live' ? 'mint' : 'neutral'} className="text-[9.5px]">

@@ -19,7 +19,7 @@ describe('CockpitPanel', () => {
     render(
       <CockpitPanel
         title="Pipeline"
-        sourceLabel="Ebene A"
+        sourceLabel="Unternehmensdaten"
         badge={<span data-testid="test-badge">Neu</span>}
         actions={<button data-testid="test-action">Filter</button>}
       >
@@ -27,7 +27,7 @@ describe('CockpitPanel', () => {
       </CockpitPanel>,
     );
 
-    expect(screen.getByText('Ebene A')).toBeInTheDocument();
+    expect(screen.getByText('Unternehmensdaten')).toBeInTheDocument();
     expect(screen.getByTestId('test-badge')).toBeInTheDocument();
     expect(screen.getByTestId('test-action')).toBeInTheDocument();
   });

@@ -129,7 +129,7 @@ describe('TileConfigurator mit Kombination', () => {
   it('per Tastatur bedienbar: Partner wählen, Fokus bleibt in der Gruppe, hinzufügen', async () => {
     const user = userEvent.setup();
     const props = setup();
-    await user.click(firstRadio('Fully-Loaded CAC')!);
+    await user.click(firstRadio('Gesamtkosten pro Neukunde')!);
     await user.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
     const none = screen.getByRole('radio', { name: /^Ohne Kombination/ });
     none.focus();

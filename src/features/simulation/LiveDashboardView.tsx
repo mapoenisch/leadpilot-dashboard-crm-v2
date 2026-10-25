@@ -73,7 +73,7 @@ export function LiveDashboardView() {
               { id: 'management', label: '📊 Management-Ebene (P50 Forecast & Corridor)' },
               { id: 'detail', label: '📈 Detail-Ebene (Treiber & Verteilung)' },
               { id: 'audit', label: '⚙️ Technik & Audit (Run-Historie & Snapshots)' },
-              { id: 'operativ', label: '⚡ Operative Simulation (Ebene B Live Logs)' },
+              { id: 'operativ', label: '⚡ Operative Simulation (Simulationsprotokoll)' },
             ]}
             activeId={activeTier}
             onChange={setActiveTier}
@@ -106,7 +106,7 @@ export function LiveDashboardView() {
               { id: 'leads', label: 'Live Lead Pipeline', count: leads.length },
               { id: 'deals', label: 'Live Won Deals', count: deals.length },
               { id: 'events', label: 'Live Event Stream', count: events.length },
-              { id: 'isolation', label: 'Daten-Isolation (Ebene A vs B)' },
+              { id: 'isolation', label: 'Daten-Isolation (Unternehmensdaten vs. Simulation)' },
             ]}
             activeId={activeOperativeTab}
             onChange={setActiveOperativeTab}
@@ -117,11 +117,9 @@ export function LiveDashboardView() {
             <Card padding="var(--space-5)">
               <div className="flex items-center justify-between flex-wrap gap-[var(--space-3)] mb-[var(--space-4)]">
                 <div>
-                  <h3 className="m-0 text-[16px] text-text">
-                    Simulierte Operative Leads (Ebene B)
-                  </h3>
+                  <h3 className="m-0 text-[16px] text-text">Simulierte operative Leads</h3>
                   <p className="text-[12.5px] text-[var(--color-text-muted)] mt-[2px] mb-0 mr-0 ml-0">
-                    Alle in Ebene B generierten Leads und deren automatischer
+                    Alle in der Simulation generierten Leads und deren automatischer
                     Qualifizierungsfortschritt
                   </p>
                 </div>
@@ -276,9 +274,9 @@ export function LiveDashboardView() {
           {activeOperativeTab === 'isolation' && (
             <Card padding="var(--space-5)">
               <Alert variant="info" title="100% Technische Daten-Isolation Garantiert">
-                Die Simulation verarbeitet ausschließlich Daten in Ebene B (In-Memory Simulation
-                State). Ebene A (historische Unternehmens- und CRM-Stammdaten 2025 aus Faktenblatt
-                v1.1) bleibt unter allen Bedingungen 100% unveränderlich.
+                Die Simulation verarbeitet ausschließlich Daten der Simulation (In-Memory Simulation
+                State). Die Unternehmensdaten (historische Unternehmens- und CRM-Stammdaten 2025 aus
+                Faktenblatt v1.1) bleiben unter allen Bedingungen 100% unveränderlich.
               </Alert>
             </Card>
           )}

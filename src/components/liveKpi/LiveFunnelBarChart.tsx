@@ -202,7 +202,7 @@ export const LiveFunnelBarChart = React.memo(function LiveFunnelBarChart({
                 Live Funnel nach Stufe
               </h3>
               <span className="text-[11px] text-[var(--color-text-dim)]">
-                5 Stufen · Pseudo-3D-Balken mit Leuchtkanten · Ebene C
+                5 Stufen · Pseudo-3D-Balken mit Leuchtkanten · Live-Daten
               </span>
             </div>
             <Badge variant={confirmedCount > 0 ? 'mint' : 'neutral'} className="text-[9.5px]">

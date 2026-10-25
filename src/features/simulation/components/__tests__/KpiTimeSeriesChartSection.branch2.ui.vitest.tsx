@@ -107,7 +107,7 @@ describe('KpiTimeSeriesChartSection (branch2)', () => {
       />,
     );
     expect(screen.queryByText(/Einzel-Run Overlays/)).not.toBeInTheDocument();
-    expect(screen.getByText('Ebene A (01.01.26)')).toBeInTheDocument();
+    expect(screen.getByText('Unternehmensdaten (01.01.26)')).toBeInTheDocument();
   });
 
   it('mehr als 15 Runs: nur erste 15 als Buttons', async () => {

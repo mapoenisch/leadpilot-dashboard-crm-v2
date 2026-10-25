@@ -118,7 +118,7 @@ describe('Chart Helpers & Subcomponents', () => {
         <ManagementChartState
           type="error"
           message="Server nicht erreichbar"
-          sourceLabel="Ebene A"
+          sourceLabel="Unternehmensdaten"
         />,
       );
 
@@ -126,7 +126,11 @@ describe('Chart Helpers & Subcomponents', () => {
       expect(screen.getByText('Server nicht erreichbar')).toBeInTheDocument();
 
       rerender(
-        <ManagementChartState type="loading" message="Lade Daten..." sourceLabel="Ebene A" />,
+        <ManagementChartState
+          type="loading"
+          message="Lade Daten..."
+          sourceLabel="Unternehmensdaten"
+        />,
       );
       expect(screen.getByTestId('management-chart-loading')).toBeInTheDocument();
       expect(screen.getByText('Lade Daten...')).toBeInTheDocument();
@@ -144,13 +148,13 @@ describe('Chart Helpers & Subcomponents', () => {
         <ManagementChartTooltip
           active={true}
           label="Januar 2025"
-          sourceLabel="Ebene A Baseline"
+          sourceLabel="Unternehmensdaten 2025"
           payload={[{ name: 'ARR', value: 411840, color: '#00D9C6', dataKey: 'arr' }]}
         />,
       );
 
       expect(screen.getByText('Januar 2025')).toBeInTheDocument();
-      expect(screen.getByText('Ebene A Baseline')).toBeInTheDocument();
+      expect(screen.getByText('Unternehmensdaten 2025')).toBeInTheDocument();
       expect(screen.getByText('ARR')).toBeInTheDocument();
       expect(screen.getByText('412 k€')).toBeInTheDocument();
     });

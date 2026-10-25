@@ -65,7 +65,7 @@ export const COMBINATION_RULES: readonly CombinationRule[] = [
     category: 'vertrieb_crm',
     operation: 'verhaeltnis',
     display: 'faktor',
-    numerator: { catalogId: 'baseline.fully_loaded_cac', label: 'Fully-Loaded CAC' },
+    numerator: { catalogId: 'baseline.fully_loaded_cac', label: 'Gesamtkosten pro Neukunde' },
     denominator: { catalogId: 'baseline.marketing_cac', label: 'Marketing-CAC' },
     explanation:
       'Gesamtkosten für Vertrieb und Marketing je Neukunde im Verhältnis zum Media-Spend je Neukunde (gleiche Neukundenbasis, gleiches Geschäftsjahr).',

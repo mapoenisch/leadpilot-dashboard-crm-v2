@@ -17,7 +17,7 @@ export const PipelineSnapshot: React.FC = () => {
       <ManagementChartState
         type="loading"
         message="Lade Pipeline-Daten aus CRM-Baseline..."
-        sourceLabel="Ebene A CRM Funnel Deals"
+        sourceLabel="CRM-Daten"
         height={220}
       />
     );
@@ -28,7 +28,7 @@ export const PipelineSnapshot: React.FC = () => {
       <ManagementChartState
         type="error"
         message={`Integritätsfehler: ${errorMessage}`}
-        sourceLabel="Ebene A CRM Funnel Deals"
+        sourceLabel="CRM-Daten"
         height={220}
       />
     );
@@ -39,7 +39,7 @@ export const PipelineSnapshot: React.FC = () => {
       <ManagementChartState
         type="empty"
         message="Keine aktiven Deals in der CRM-Pipeline erfasst"
-        sourceLabel="Ebene A CRM Funnel Deals"
+        sourceLabel="CRM-Daten"
         height={220}
       />
     );
