@@ -60,7 +60,7 @@ describe('DealsView (branch3)', () => {
     const options = screen.getAllByRole('option');
     expect(options).toHaveLength(4);
     expect(options.map((o) => o.textContent)).toEqual([
-      'Alle Stages',
+      'Alle Vertriebsphasen',
       'Auftrag gewonnen',
       'Angebot verloren',
       'Qualifizierung',

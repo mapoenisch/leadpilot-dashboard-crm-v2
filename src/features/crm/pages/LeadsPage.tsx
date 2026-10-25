@@ -58,7 +58,7 @@ const COL_COMPANIES: CrmColumn<R>[] = [
 
 const COL_DEALS: CrmColumn<R>[] = [
   col('dealName', 'Deal Name', (r) => bStrong(r.dealName)),
-  col('stage', 'Stage', (r) => {
+  col('stage', 'Vertriebsphase', (r) => {
     const s = String(r.stage ?? '');
     const v = s.includes('gewonnen') ? 'cyan' : s.includes('verloren') ? 'neutral' : 'orange';
     return <Badge variant={v}>{s}</Badge>;
@@ -107,10 +107,12 @@ const TAB_CONFIG = {
     sort: 'close_date',
     order: 'desc',
     fKey: 'stage',
-    fLabel: 'Stage:',
-    sorts: mkOpts('close_date:Abschlussdatum,amount:Betrag,deal_name:Deal Name,stage:Stage'),
+    fLabel: 'Vertriebsphase:',
+    sorts: mkOpts(
+      'close_date:Abschlussdatum,amount:Betrag,deal_name:Deal Name,stage:Vertriebsphase',
+    ),
     filters: mkOpts(
-      'ALL:Alle Stages,Lead eingegangen,Erstgespräch geführt,Bedarfsanalyse,Angebot erstellt,Verhandlung,Deal gewonnen,Deal verloren',
+      'ALL:Alle Vertriebsphasen,Lead eingegangen,Erstgespräch geführt,Bedarfsanalyse,Angebot erstellt,Verhandlung,Deal gewonnen,Deal verloren',
     ),
     cols: COL_DEALS,
   },

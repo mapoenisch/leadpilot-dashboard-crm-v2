@@ -22,7 +22,7 @@ export function DealsView({ deals, loading }: DealsViewProps) {
   const stageOptions: SelectOption[] = useMemo(() => {
     const set = new Set(deals.map((d) => d.stage).filter(Boolean));
     return [
-      { value: 'ALL', label: 'Alle Stages' },
+      { value: 'ALL', label: 'Alle Vertriebsphasen' },
       ...Array.from(set).map((st) => ({ value: st, label: st })),
     ];
   }, [deals]);
@@ -68,7 +68,7 @@ export function DealsView({ deals, loading }: DealsViewProps) {
     },
     {
       key: 'stage',
-      label: 'Deal Stage',
+      label: 'Vertriebsphase',
       render: (r) => (
         <Badge
           variant={
@@ -197,7 +197,7 @@ export function DealsView({ deals, loading }: DealsViewProps) {
         <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
           <div className="min-w-[180px] w-full max-w-[240px]">
             <Select
-              label="Stage:"
+              label="Vertriebsphase:"
               options={stageOptions}
               value={stageFilter}
               onChange={setStageFilter}
