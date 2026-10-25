@@ -17539,3 +17539,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 ### Auftrag 105 – Nacharbeit CI e2e (25.10.2026, Claude Code)
 
 `visual /crm/leads`, `/market/overview`, `/resources/materials` schlugen bei 768 px fehl (erwartet: neue Kopfzeile mit Profil und Abmelden). Linux-Baselines in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/auftrag-105`, Lauf `40177871605`, inklusive dreifacher Verifikation); nur diese drei `tablet-768-linux`-Bilder weichen ab, alle übrigen byte-gleich. Bilder gesichtet (Kopfzeile mit E-Mail, Rolle, Abmelden, kein Überlauf).
+
+## Auftrag 107 – Paket H Teil 3: Datenquellen-Namen und Gesamtkosten pro Neukunde (Builder: Claude Code, 25.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste und fachliche Ebenen verständlich benennen. Branch `claude/auftrag-107-paket-h-teil3`, Baseline `081e131`.
+
+**Geänderte Dateien:** 31 Komponenten/Seiten unter `src/features`, `src/components`, `src/app/routes.tsx`, `src/domain/navData.ts` (nur Menülabel), 15 Tests (neue Beschriftungen erwartet), `scripts/captureAuftrag107Screenshots.mjs`, Auftrag 107, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Ebene A/B/C“ → Unternehmensdaten 2025 / CRM-Daten / Simulation / Live-Daten; „Fully-Loaded CAC“ → „Gesamtkosten pro Neukunde“ (Katalog-ID unverändert); „Headcount-Entwicklung“ → „Entwicklung der Teamgröße“. Restfunde bewusst offen (Teil 4): Kennzahldaten in `src/domain/*Data.ts`, Herkunftslabel in `src/services/data/sourceFreshness.ts` (Schutzbereich).
+
+**Schutzbereichs-Prüfung:** `git diff 081e131 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Prettier grün; Vitest 2478/2478; `npm run verify` alle Integritätssuiten grün; `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-107/README.md` — 18 Paare (6 Ansichten × 1440/768/375), 16 verschieden; 2 Gleichstände bei 375 px begründet (Änderung außerhalb des ersten Bildschirms). Überlauf 375 px auf Headcount (86 px) und Live-Simulation (184 px) unverändert vorbestehend.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

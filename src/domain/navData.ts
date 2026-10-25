@@ -17,7 +17,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: 'CRM & Pipeline',
     status: 'live',
     items: [
-      { id: 's-live-simulation', label: '⚡ Live-Simulation (Ebene B)' },
+      { id: 's-live-simulation', label: '⚡ Live-Simulation' },
       { id: 's-leads', label: 'Leads & Kontakte' },
       { id: 's-companies', label: 'Unternehmen (Accounts)' },
       { id: 's-deals', label: 'Deal Pipeline' },
