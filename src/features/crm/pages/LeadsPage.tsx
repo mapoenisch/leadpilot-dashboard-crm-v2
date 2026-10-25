@@ -110,7 +110,7 @@ const TAB_CONFIG = {
     fLabel: 'Stage:',
     sorts: mkOpts('close_date:Abschlussdatum,amount:Betrag,deal_name:Deal Name,stage:Stage'),
     filters: mkOpts(
-      'ALL:Alle Stages,Lead eingegangen,Erstgespräch geführt,Bedarfsanalyse,Angebot erstellt,Verhandlung,Deal gewonnen,Deal verloren',
+      'ALL:Alle Vertriebsphasen,Lead eingegangen,Erstgespräch geführt,Bedarfsanalyse,Angebot erstellt,Verhandlung,Deal gewonnen,Deal verloren',
     ),
     cols: COL_DEALS,
   },

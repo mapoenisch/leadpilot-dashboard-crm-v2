@@ -108,6 +108,6 @@ describe('ScenarioManageTab (branch2)', () => {
     render(<ScenarioManageTab {...props({ activeVersion: active })} />);
     await user.click(screen.getByRole('button', { name: /Neue Version/ }));
     expect(screen.getByLabelText('Marketing-Budget (€/Jahr)')).toHaveValue(90000);
-    expect(screen.getByLabelText('Sales Reps (Headcount)')).toHaveValue(3);
+    expect(screen.getByLabelText('Vertriebsmitarbeitende (Teamgröße)')).toHaveValue(3);
   });
 });

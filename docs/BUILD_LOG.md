@@ -17523,3 +17523,15 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-105/README.md` (Nachtrag nach Codex PR #96, P1): 12 Paare (Kopfzeile und Menü, 1440/768/375, dunkel und hell), alle SHA-256 verschieden, 0 px Überlauf; Bilder manuell geprüft. Aufnahme mit Mock-Supabase (`scripts/captureAuftrag105Screenshots.mjs`). Visuelle E2E-Referenzen laufen in der CI.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: unabhängiger Review, Sichtprüfung Marc, Teil 2 von Paket H.
+
+## Auftrag 106 – Paket H Teil 2: Sprachliste, erste Anwendung (Builder: Claude Code, 25.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprache. Branch `claude/auftrag-106-paket-h-teil2`, gestapelt auf PR #96 (Baseline `ca34439`).
+
+**Geänderte Dateien:** `DealsView.tsx`, `DealsPage.tsx`, `LeadsPage.tsx`, `ScenarioManageTab.tsx`, zwei Tests (Erwartung der neuen Beschriftung), Auftrag 106.
+
+**Schutzbereichs-Prüfung:** `git diff ca34439 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Vitest 2478 Tests (ein Lauf: `DashboardWorkspace.codex` einmal rot unter Last, einzeln 2× grün — bekannte Flanke, nicht berührt); verify/build siehe PR-CI. Screenshots entfallen: reine Beschriftung, Layout unverändert (Texte etwas länger).
+
+**Offen:** Teil 3 (siehe Auftrag), unabhängiger Review, Sichtprüfung Marc.
