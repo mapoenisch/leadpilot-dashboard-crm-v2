@@ -29,7 +29,7 @@ export const EXEC_KPIS_2 = [
   },
   { label: 'Marketing-CAC', value: '862 €', note: 'Media-Spend 40.500 € ÷ 47 Neukunden' },
   {
-    label: 'Fully-Loaded CAC',
+    label: 'Gesamtkosten pro Neukunde',
     value: '4.447 €',
     note: 'Gesamtkosten Vertrieb & Mktg. 209k € ÷ 47 Neukunden',
   },
@@ -134,7 +134,10 @@ export const HIGHLIGHTS_BAD_ROWS = [
     'Monatlicher Account-Churn von 2,8 % über Zielvorgabe von < 2,0 % (ICP-Problem bei Kleinstkunden)',
   ],
   ['Trial Conversion', 'Trial-to-Paid Quote mit 18 % unter der Zielvorgabe von 25 %'],
-  ['CAC Payback', 'Fully-Loaded CAC Payback von 13 Monaten verfehlt Zielwert von 10 Monaten'],
+  [
+    'CAC Payback',
+    'CAC-Payback auf Basis der Gesamtkosten von 13 Monaten verfehlt Zielwert von 10 Monaten',
+  ],
 ];
 
 export const NOTE_HIGHLIGHTS = {

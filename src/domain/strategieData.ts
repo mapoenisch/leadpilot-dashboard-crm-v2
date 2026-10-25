@@ -27,7 +27,7 @@ export const BSC = {
     { name: 'Finanzen', kpis: 'ARR: 411.840 €, EBITDA: −309.000 €, Bruttomarge: 64,0 %' },
     {
       name: 'Kunden',
-      kpis: 'NPS: 34, Account-Churn: 2,8 %, Mktg-CAC: 862 €, Fully-Loaded CAC: 4.447 €',
+      kpis: 'NPS: 34, Account-Churn: 2,8 %, Mktg-CAC: 862 €, Gesamtkosten pro Neukunde: 4.447 €',
     },
     {
       name: 'Interne Prozesse',

@@ -52,11 +52,11 @@ export const UNIT = {
   title: 'Unit Economics & SaaS-Kernmetriken 2025',
   metrics: [
     { label: 'Marketing-CAC', val: '862 €' },
-    { label: 'Fully-Loaded CAC', val: '4.447 €' },
+    { label: 'Gesamtkosten pro Neukunde', val: '4.447 €' },
     { label: 'Deckungsbeitrag je Kunde/Monat', val: '333 €' },
     { label: 'LTV (Lifetime Value)', val: '11.893 €' },
     { label: 'LTV / CAC Ratio', val: '2,7 : 1 (Ziel: ≥ 3,0 : 1)' },
-    { label: 'CAC-Payback (Fully Loaded)', val: '13 Monate' },
+    { label: 'CAC-Payback (Gesamtkosten)', val: '13 Monate' },
     { label: 'Bruttomarge', val: '64,0 %' },
     { label: 'Net Retention Rate (NRR)', val: '101 %' },
     { label: 'Gross Retention Rate (GRR)', val: '88 %' },
