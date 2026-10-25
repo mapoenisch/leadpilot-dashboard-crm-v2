@@ -17505,3 +17505,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Hinweis Marc:** Branch-Schutz um Pflicht-Check `agent-review` ergänzen, MarcReview-PAT um *Commit statuses* Read & Write erweitern.
 
 **Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.
+
+## Auftrag 105 – Paket H Teil 1: Abmelden sichtbar, aktive Seite, echtes Profil (Builder: Claude Code, 25.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Teil 1. Branch `claude/auftrag-105-paket-h` von `main` `c895a80`.
+
+**Geänderte Dateien:** `Header.tsx`, `Layout.tsx`, `NavItem.tsx`, `Header.ui.vitest.tsx`, `LayoutSupplement.characterization.ui.vitest.tsx`, Auftrag 105, Plan Abschnitt 13.
+
+**Funktionale Prüfungen:** Header-Test: Profil und Rolle, Abmelden-Button ohne `opacity-0`, `data-leave-guard` vorhanden, Klick ruft `onLogout`. Bestehende Layout-Tests und E2E-Selektoren (`logout-button`) bleiben gültig.
+
+**Schutzbereichs-Prüfung:** `git diff c895a80 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Vitest 341 Dateien / 2478 Tests grün; `npm run verify` grün; `npm run build` grün; Prettier sauber.
+
+**Screenshot-Matrix:** nicht erstellt — Aufnahme braucht Anmeldung mit E2E-Zugangsdaten; E2E, Sichtprüfung 1440/768/375 und axe laufen in CI beziehungsweise bei Marc. Sichtbare Änderung: Abmelden und Profil in der Kopfzeile, Akzentbalken am aktiven Menüpunkt; visuelle Referenzen können sich ändern.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: unabhängiger Review, Sichtprüfung Marc, Teil 2 von Paket H.
