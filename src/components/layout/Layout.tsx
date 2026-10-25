@@ -5,7 +5,7 @@ import { Header } from './Header';
 import { SimulationBar } from './SimulationBar';
 import { routeForPathname } from '@/app/routes';
 import { useAuth } from '@/auth/AuthContext';
-import { LogOut } from 'lucide-react';
+import { useOrganization } from '@/auth/organizationContext';
 
 export type ThemeMode = 'dark' | 'light';
 
@@ -21,6 +21,12 @@ export function getInitialTheme(): ThemeMode {
   }
   return 'dark';
 }
+
+const ROLE_LABELS = {
+  admin: 'Administrator',
+  manager: 'Manager',
+  viewer: 'Nur Lesen',
+} as const;
 
 export function Layout() {
   const location = useLocation();
@@ -61,6 +67,7 @@ export function Layout() {
   }, []);
 
   const { user, logout } = useAuth();
+  const { session } = useOrganization();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -106,6 +113,9 @@ export function Layout() {
           isMobile={isMobile}
           theme={theme}
           onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          userEmail={user?.email}
+          userRoleLabel={session ? ROLE_LABELS[session.role] : undefined}
+          onLogout={handleLogout}
         />
         <SimulationBar />
         <main
@@ -117,21 +127,6 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
-
-      {/* Gate G42: Logout-Affordance */}
-      <button
-        type="button"
-        onClick={handleLogout}
-        aria-label="Abmelden"
-        data-testid="logout-button"
-        // Auftrag 077: ungespeicherte Dashboard-Änderungen fragen vor dem Abmelden nach.
-        data-leave-guard=""
-        title={user?.email ? `Angemeldet als ${user.email} — Abmelden` : 'Abmelden'}
-        className="fixed bottom-3 right-3 z-40 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-white bg-[#0B211F] border border-[#2A4A43] rounded-md shadow-md backdrop-blur-sm transition-opacity opacity-0 hover:opacity-100 focus:opacity-100 cursor-pointer"
-      >
-        <LogOut size={12} className="text-primary" />
-        <span>Abmelden</span>
-      </button>
     </div>
   );
 }
