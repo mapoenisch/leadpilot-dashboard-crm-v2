@@ -17532,9 +17532,10 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Schutzbereichs-Prüfung:** `git diff ca34439 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 
-**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Vitest 2478 Tests (ein Lauf: `DashboardWorkspace.codex` einmal rot unter Last, einzeln 2× grün — bekannte Flanke, nicht berührt); verify/build siehe PR-CI. Screenshots entfallen: reine Beschriftung, Layout unverändert (Texte etwas länger).
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Vitest 2478 Tests (ein Lauf: `DashboardWorkspace.codex` einmal rot unter Last, einzeln 2× grün — bekannte Flanke, nicht berührt); verify/build siehe PR-CI. Screenshot-Gate (Nachtrag Codex PR #97, P1): `docs/screenshots/auftrag-106/README.md`, 9 Paare (Deals, Leads/Funnel Deals, Szenario-Dialog; 1440/768/375), alle SHA-256 verschieden, kein neuer Überlauf; vorhandener Überlauf im Szenario-Dialog bei 375 px (184 px) unverändert und als eigener Befund vermerkt. Manifest-JSON-Dateien aus der Versionierung genommen und per `.gitignore` ausgeschlossen (P1); in `LeadsPage` auch Spaltenkopf, Filterlabel und Sortieroption auf „Vertriebsphase“ (P2).
 
 **Offen:** Teil 3 (siehe Auftrag), unabhängiger Review, Sichtprüfung Marc.
+
 ### Auftrag 105 – Nacharbeit CI e2e (25.10.2026, Claude Code)
 
 `visual /crm/leads`, `/market/overview`, `/resources/materials` schlugen bei 768 px fehl (erwartet: neue Kopfzeile mit Profil und Abmelden). Linux-Baselines in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/auftrag-105`, Lauf `40177871605`, inklusive dreifacher Verifikation); nur diese drei `tablet-768-linux`-Bilder weichen ab, alle übrigen byte-gleich. Bilder gesichtet (Kopfzeile mit E-Mail, Rolle, Abmelden, kein Überlauf).
