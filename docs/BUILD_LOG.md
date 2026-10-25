@@ -17464,6 +17464,7 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 ### Auftrag CI-Review-Gate – Nacharbeit Review-Befunde PR #93 auf `7cb90f9` (Builder: Claude Code, 21.10.2026)
 
 **Befunde (Codex inline, Antigravity per Review-Text) und Behebung:**
+
 - P1 Devin-Polling auf `/v1/session/{id}` → `/v1/sessions/{id}`.
 - P1 Ergebnis nicht an geprüften Head gebunden → `run` speichert `headSha`, `post` bricht ab, wenn der PR-Head sich geändert hat (lokal: `--sha`).
 - P1 Reviewzustände der Agenten unter einem Konto überschreiben sich → Event immer `COMMENT`, jeder Befund wird eine lösbare Konversation (Zeile, Datei-Kommentar oder Verweis am ersten Diff-Abschnitt); Merge-Sperre allein über „Require conversation resolution“.
@@ -17486,7 +17487,8 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 ### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93 auf `69109be` (Builder: Claude Code, 21.10.2026)
 
 **Behoben:**
-- P1 Kein Pflicht-Review → `post` setzt nach jedem geposteten Lauf den Commit-Status `agent-review` auf dem geprüften Head (Pflicht-Check im Branch-Schutz, Einrichtung Schritt 4; PAT braucht *Commit statuses*).
+
+- P1 Kein Pflicht-Review → `post` setzt nach jedem geposteten Lauf den Commit-Status `agent-review` auf dem geprüften Head (Pflicht-Check im Branch-Schutz, Einrichtung Schritt 4; PAT braucht _Commit statuses_).
 - P1 `subject_type: "file"` im Reviews-Endpunkt ungültig → Befunde außerhalb kommentierbarer Zeilen hängen an der ersten Diff-Zeile der Datei bzw. des PRs; gar nicht verankerbare stehen im Review-Text und setzen den Status auf `failure`.
 - P1 Zeile 0 bei Dateien ohne Patch → `commentableLines` zählt erst ab einem Hunk-Header.
 - P1 Fork-PRs im lokalen `prompt`-Pfad → gleiche `isSameRepo`-Prüfung wie im CI.
@@ -17502,7 +17504,7 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Screenshot-Matrix:** entfällt (keine UI-Änderung).
 
-**Hinweis Marc:** Branch-Schutz um Pflicht-Check `agent-review` ergänzen, MarcReview-PAT um *Commit statuses* Read & Write erweitern.
+**Hinweis Marc:** Branch-Schutz um Pflicht-Check `agent-review` ergänzen, MarcReview-PAT um _Commit statuses_ Read & Write erweitern.
 
 **Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.
 
@@ -17518,6 +17520,6 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Vitest 341 Dateien / 2478 Tests grün; `npm run verify` grün; `npm run build` grün; Prettier sauber.
 
-**Screenshot-Matrix:** nicht erstellt — Aufnahme braucht Anmeldung mit E2E-Zugangsdaten; E2E, Sichtprüfung 1440/768/375 und axe laufen in CI beziehungsweise bei Marc. Sichtbare Änderung: Abmelden und Profil in der Kopfzeile, Akzentbalken am aktiven Menüpunkt; visuelle Referenzen können sich ändern.
+**Screenshot-Matrix:** `docs/screenshots/auftrag-105/README.md` (Nachtrag nach Codex PR #96, P1): 12 Paare (Kopfzeile und Menü, 1440/768/375, dunkel und hell), alle SHA-256 verschieden, 0 px Überlauf; Bilder manuell geprüft. Aufnahme mit Mock-Supabase (`scripts/captureAuftrag105Screenshots.mjs`). Visuelle E2E-Referenzen laufen in der CI.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: unabhängiger Review, Sichtprüfung Marc, Teil 2 von Paket H.
