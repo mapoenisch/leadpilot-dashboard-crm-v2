@@ -17557,3 +17557,30 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
 
 **Nachtrag CI e2e (PR #98):** `visual /crm/leads @1440` wich wegen des neuen Badges „CRM-Daten“ ab (4735 px). Linux-Referenz über `update-visual-baselines.yml` (Run 40201131009, Branch `visual-baselines/auftrag-107`) neu erzeugt; von 30 Bildern ändert sich nur `visual-crm-leads-1-desktop-1440-linux.png`, Sichtprüfung ok.
+
+### Auftrag 107 – Review PR #98 (25.10.2026, Prüfer: Antigravity)
+
+**Prüfgegenstand:** Branch `claude/auftrag-107-paket-h-teil3`, HEAD `23d4fbb`, PR #98 gegen `main` (`081e131`).
+
+**Befund:** Kein P0, kein P1, kein P2. Alle Vorgaben aus `docs/auftraege/ANTIGRAVITY_AUFTRAG_107_PAKET_H_TEIL3.md` (Sprachliste, fachliche Ebenen, Gesamtkosten pro Neukunde, Entwicklung der Teamgröße, Menülabel Live-Simulation ohne Ebene B) sind vollständig und regressionsfrei umgesetzt.
+
+**Nacharbeiten zu vorangegangenen Codex-Befunden (PR #98):**
+- Namensabhängiger Screenshot-Selektor in `scripts/lib/combinationShotHelpers.mjs:102` auf „Gesamtkosten pro Neukunde“ umgestellt (Commit `349c552`).
+- Headcount-Screenshot-Selektor und Textabgleich in `scripts/captureAuftrag100Organisation.mjs` und `scripts/auditV21LiveAccessibility.mjs` auf „Entwicklung der Teamgröße“ bzw. „Live-Daten“ angeglichen (Commit `e9c2e9c`).
+- CI-E2E-Linux-Referenz für CRM Leads 1440 px über `update-visual-baselines.yml` aktualisiert (`visual-crm-leads-1-desktop-1440-linux.png`, Commit `23d4fbb`).
+
+**Schutzbereichs-Prüfung:**
+- `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`: Vollständig leer (0 Zeilen).
+
+**Automatisierte Verifikation (eigenständig gefahren auf `23d4fbb`):**
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler / 0 Warnungen
+- `npm run verify`: Alle Integritätssuiten (001–025) bestanden
+- `npm run build`: Erfolgreich durchgelaufen (3,27 s)
+- `npm test`: 341 Testdateien / 2.478 Tests bestanden
+
+**Screenshot-Matrix:**
+- Dokumentiert in `docs/screenshots/auftrag-107/README.md` (16/18 verschieden, 2 Gleichstände bei 375 px sachlich begründet; Überlauf 375 px auf Headcount und Live-Simulation vorbestehend und unverändert).
+
+**Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #98 ist aus Sicht der Qualitätssicherung und Architekturvorgaben bereit für den Merge durch Marc.
+
