@@ -17762,7 +17762,7 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Ziel & Kontext:** Plan Abschnitt 13, offener Teil Touch. Branch `claude/auftrag-116-paket-h-teil12`, Baseline `25d223b` (main nach PR #107).
 
-**Geänderte Dateien:** `e2e/mobile-menu-touch.spec.ts` (neu), Auftrag 116, Plan (Abschnitt 13).
+**Geänderte Dateien:** `e2e/mobile-menu-touch.spec.ts` (neu), `.github/workflows/ci.yml` (Spec in den regulären Playwright-Schritt, Codex-Befund P1), Auftrag 116, Plan (Abschnitt 13).
 
 **Funktionale Prüfungen:** Im Projekt `mobile-375` mit `hasTouch`: Tap auf den Auslöser öffnet den Drawer; Tap auf den Hintergrund schließt ihn und gibt den Fokus an den Auslöser zurück; Tap auf „Menü schließen“ schließt; Tap auf einen Navigationslink navigiert und schließt.
 
