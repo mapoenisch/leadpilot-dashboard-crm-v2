@@ -1,6 +1,6 @@
 # ANTIGRAVITY_AUFTRAG_109 — Paket H Teil 5: Teamgröße statt Headcount
 
-> **Builder:** Claude Code · **Prüfer:** unabhängig (`/<agent> review`)
+> **Builder:** Claude Code · **Prüfer:** Antigravity (PR #100)
 > Plan Abschnitt 13 (Sprachliste). Baseline `34b3824` (main nach PR #99).
 
 ## Sprachliste (Fortsetzung von Auftrag 108)
