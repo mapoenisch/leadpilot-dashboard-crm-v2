@@ -17677,4 +17677,6 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Screenshot-Matrix:** `docs/screenshots/auftrag-111/README.md` – 6/6 Paare verschieden (Dashboard und GuV, 1440/768/375, unter 1024 px mit geöffnetem Drawer), 0 px Überlauf.
 
+**Visual-Baselines:** Fünf CI-Referenzbilder (1440 px: Dashboard, CRM Leads, GuV, Markt, Materialien) über `update-visual-baselines.yml` neu erzeugt (Lauf 40273014003, Branch `visual-baselines/auftrag-111`), gesichtet: Änderung nur in der Seitenleiste.
+
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
