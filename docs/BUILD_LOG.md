@@ -17791,3 +17791,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
 
 **Prüfnachweis (Auftrag 117):** Codex-Review auf GitHub für Commit `b38269d` abgeschlossen, keine Befunde (26.10.2026). Zuvor behoben: P2 (Glossar auch in Panel-Untertiteln, Test an `PnLPage`), P1 (Screenshot-Matrix lokal nicht erzeugbar, Ersatznachweis über `visual.spec` dokumentiert, Matrix als offen vermerkt). Gate-Freigabe hängt noch an grünen Pflicht-Checks und gelösten Konversationen.
+
+## Auftrag 118 – Paket H Teil 14: Datenebenen und Entwicklerbegriffe (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt „Fachliche Ebenen“. Branch `claude/auftrag-118-paket-h-teil14`, Baseline `194972a` (main nach PR #109).
+
+**Geänderte Dateien:** `DataSourceStatus.tsx`, `DataBasisPage.tsx`, `ActivitiesView.tsx`, `DataSourceStatus.ui.vitest.tsx`, Auftrag 118, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** Datenmodus heißt jetzt „Simulierte Daten“ bzw. „Echte Daten“; „(degraded)“, „Fail-Closed“ und „(G47)“ sind aus den sichtbaren Texten entfernt; der Fehlercode steht im aufklappbaren Bereich „Technische Details“. Offen (Schutzbereich `src/services/data`): Statuslabel „Eingeschränkt (degraded)“ und Quellenname „Supabase CRM“ – nur mit eigenem Auftrag änderbar.
+
+**Schutzbereichs-Prüfung:** `git diff 194972a -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, `npm test` (345 Dateien / 2492 Tests), `npm run verify`, `npm run build` grün.
+
+**Screenshot-Matrix:** lokal nicht erzeugbar (kein Docker/Anmeldung); Texte in Badges ändern die Layoutbreite minimal. Nachweis über Pflicht-Check `e2e` (`visual.spec`).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

@@ -180,7 +180,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
         <ManagementChartState
           type="loading"
           message="Aktivitäten werden aus den CRM-Daten geladen …"
-          sourceLabel="CRM-Quellenwahrheit (G47)"
+          sourceLabel="CRM-Datenbasis"
         />
       </div>
     );
@@ -202,7 +202,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
         <ManagementChartState
           type="error"
           message={`Aktivitäten nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Lade die Seite neu oder versuche es später erneut. Es werden keine Ersatzdaten angezeigt.`}
-          sourceLabel="CRM-Quellenwahrheit (G47)"
+          sourceLabel="CRM-Datenbasis"
         />
       </div>
     );

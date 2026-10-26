@@ -252,7 +252,7 @@ Teilumsetzung: Aufträge 088 und 089.
 - [x] (Auftrag 111) Navigation nach häufigen Aufgaben ordnen, Fachbereiche einklappbar belassen; keine Route oder Administration still entfernen. Zunächst klare Gruppierung, keine zusätzliche globale Suche ohne nachgewiesenen Bedarf.
 - [x] (Auftrag 105) Abmelden als sichtbare Profilaktion auf Desktop und Handy anbieten. Vorhandene Auth-Funktion nutzen; Schutz ungespeicherter Änderungen beibehalten. Unsichtbaren Hover-Button ersetzen.
 - [x] (Auftrag 117: Kürzel-Glossar in Seitenköpfen; Begriffe selbst bereits umgesetzt) Sprachliste erstellen und anwenden: „Vertriebsphase“, „Teamgröße“, „Gesamtkosten pro Neukunde“, „Daten aus dem CRM“. Fachkürzel ARR/MRR/EBITDA mit verständlicher Erklärung erhalten.
-- [ ] Fachliche Ebenen nicht verschweigen: historische Unternehmensdaten, CRM-Daten und Simulation verständlich unterscheiden. Entwicklerbegriffe in einen technischen Detailbereich verschieben.
+- [x] (Auftrag 118: Begriffe in der UI; Statuslabel aus Schutzbereich offen) Fachliche Ebenen nicht verschweigen: historische Unternehmensdaten, CRM-Daten und Simulation verständlich unterscheiden. Entwicklerbegriffe in einen technischen Detailbereich verschieben.
 - [ ] (Auftrag 113, Teil: Fehler-/Ladetexte) Leer-/Fehlertexte sagen, was fehlt und welchen nächsten Schritt es gibt. Keine falsche Erfolgsmeldung, kein unbelegter Vorschlag „Importieren“, wenn dieser Benutzer die Aktion nicht ausführen darf.
 - [x] (Auftrag 114: Drawer-Fokus; Auftrag 115: Benutzerwechsel; Auftrag 116: Touch) Fokus beim Menüöffnen/-schließen, Escape, Hintergrundsperre, Rückgabe zum Auslöser, Touch und Benutzerwechsel testen.
 
