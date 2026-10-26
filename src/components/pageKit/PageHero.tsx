@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { GlossaryText } from './GlossaryText';
 
 // Auftrag 068 / G66: Seitenkopf der Inhaltsseiten nach v2.2.0-Vorlage —
 // Eyebrow (Bereich), genau eine h1, Untertitel, Pills (erste aktiv leuchtend).
@@ -38,7 +39,11 @@ export function PageHero({
       <div className="pk-hero__text">
         <p className="pk-eyebrow">{eyebrow}</p>
         <h1 className="pk-title">{title}</h1>
-        {subtitle ? <p className="pk-subtitle">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className="pk-subtitle">
+            <GlossaryText>{subtitle}</GlossaryText>
+          </p>
+        ) : null}
         {pills.length > 0 ? (
           <div className="pk-pills">
             {pills.map((pill, index) => {
@@ -46,7 +51,7 @@ export function PageHero({
               return (
                 <Pill key={pill} active={index === 0}>
                   {Icon ? <Icon size={16} aria-hidden="true" /> : null}
-                  {pill}
+                  <GlossaryText>{pill}</GlossaryText>
                 </Pill>
               );
             })}
@@ -60,7 +65,7 @@ export function PageHero({
               key={pill}
               active={index === (asideActive === 'first' ? 0 : asidePills.length - 1)}
             >
-              {pill}
+              <GlossaryText>{pill}</GlossaryText>
             </Pill>
           ))}
         </div>
