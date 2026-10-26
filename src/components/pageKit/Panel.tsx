@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { GlossaryText } from './GlossaryText';
 
 // Auftrag 068 / G66: Leucht-Panel der Inhaltsseiten. Ton steuert Rahmen,
 // Leuchten, Icon-Kachel und (optional) Titelfarbe — wie die Vorlagen.
@@ -80,7 +81,11 @@ export function Panel({
               {title}
               {badge ? <span className="pk-badge">{badge}</span> : null}
             </Heading>
-            {subtitle ? <p className="pk-panel__subtitle">{subtitle}</p> : null}
+            {subtitle ? (
+              <p className="pk-panel__subtitle">
+                <GlossaryText>{subtitle}</GlossaryText>
+              </p>
+            ) : null}
           </div>
         </div>
         {chip ? <Chip tone={chipTone ?? tone}>{chip}</Chip> : null}

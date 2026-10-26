@@ -17780,12 +17780,12 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Geänderte Dateien:** `src/config/glossary.ts` (neu), `src/components/pageKit/GlossaryText.tsx` (neu), `PageHero.tsx`, `__tests__/PageHero.glossary.ui.vitest.tsx` (neu), Auftrag 117, Plan (Abschnitt 13).
 
-**Funktionale Prüfungen:** ARR/MRR/EBITDA/CAC/LTV/NRR in Untertitel und Pills der Seitenköpfe erscheinen als `<abbr title>` mit Erklärung. Der `<h1>` bleibt unverändert (zuerst mit Auszeichnung getestet: zugänglicher Name der Kanalseiten-Überschrift änderte sich, 3 Tests rot; deshalb ausgenommen). Erklärung nur per Tooltip, auf Touch nicht sichtbar – als Grenze im Auftrag vermerkt.
+**Funktionale Prüfungen:** ARR/MRR/EBITDA/CAC/LTV/NRR in Untertitel und Pills der Seitenköpfe sowie in Panel-Untertiteln (Codex P2: dort liegen die tatsächlichen Vorkommen, z. B. PnLPage) erscheinen als `<abbr title>` mit Erklärung. Der `<h1>` bleibt unverändert (zuerst mit Auszeichnung getestet: zugänglicher Name der Kanalseiten-Überschrift änderte sich, 3 Tests rot; deshalb ausgenommen). Erklärung nur per Tooltip, auf Touch nicht sichtbar – als Grenze im Auftrag vermerkt.
 
 **Schutzbereichs-Prüfung:** `git diff a8d3162 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 
 **Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, `npm test` (344 Dateien / 2491 Tests), `npm run verify`, `npm run build` grün.
 
-**Screenshot-Matrix:** nicht erforderlich – nur `<abbr>`-Auszeichnung, kein Layout-Eingriff.
+**Screenshot-Matrix:** lokal nicht erzeugbar (kein Docker/lokales Supabase, `E2E_AUTH_EMAIL` fehlt, Seiten brauchen Anmeldung). Ersatznachweis: `e2e/visual.spec.ts` vergleicht `/finance/p-and-l` (betroffene Seite mit EBITDA im Panel-Untertitel) im Pflicht-Check `e2e` per `toHaveScreenshot` gegen die bestehende Baseline; `<abbr>` ändert Box-Größen nicht, nur die Unterstreichung. Textuelle 1440/768/375-Matrix mit SHA-Hashes bleibt offen und wird bei Bedarf nach Anmeldung nachgeholt (Codex P1, offen markiert).
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

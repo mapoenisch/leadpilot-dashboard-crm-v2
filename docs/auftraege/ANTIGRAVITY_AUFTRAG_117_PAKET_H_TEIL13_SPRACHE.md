@@ -23,7 +23,7 @@ Die Begriffe „Vertriebsphase“, „Teamgröße“, „Gesamtkosten pro Neukun
 
 ## Grenzen
 
-Nur Untertitel und Pills der Seitenköpfe (`PageHero`); der `<h1>` bleibt unverändert, damit sein zugänglicher Name stabil ist, keine Fließtexte und Diagramm-Beschriftungen. Erklärung per `title` (Maus, Tastatur-Fokus nicht; Touch ohne Tooltip) – ein sichtbarer Begriffsblock wäre ein Layout- und Baseline-Eingriff und bleibt offen. Schutzbereiche unverändert, keine neue Abhängigkeit.
+Nur Untertitel und Pills der Seitenköpfe (`PageHero`) sowie Panel-Untertitel (`Panel`); der `<h1>` bleibt unverändert, damit sein zugänglicher Name stabil ist, keine Fließtexte und Diagramm-Beschriftungen. Erklärung per `title` (Maus, Tastatur-Fokus nicht; Touch ohne Tooltip) – ein sichtbarer Begriffsblock wäre ein Layout- und Baseline-Eingriff und bleibt offen. Schutzbereiche unverändert, keine neue Abhängigkeit.
 
 ## Rückweg
 
