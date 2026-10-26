@@ -207,7 +207,8 @@ export const DetailTierView: React.FC = () => {
       {/* Section: Financial Analysis & P&L Card (Auftrag 011) */}
       <Card padding="var(--space-5)">
         <h4 className="m-0 mb-[var(--space-4)] text-[15px] text-text">
-          Financial Analysis & P&L Model (Gross/Net Revenue, Headcount OPEX, EBITDA, Cash Flow)
+          Finanzanalyse und GuV-Modell (Brutto-/Nettoumsatz, Personal- und Betriebskosten, EBITDA,
+          Cashflow)
         </h4>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[var(--space-4)]">
           <div className="rounded bg-background-deep p-[12px]">
@@ -237,7 +238,7 @@ export const DetailTierView: React.FC = () => {
 
           <div className="rounded bg-background-deep p-[12px]">
             <div className="text-[11px] uppercase text-[var(--color-text-muted)]">
-              Headcount & Operational OPEX
+              Personal- und Betriebskosten (OPEX)
             </div>
             <div className="text-[18px] font-bold text-text">
               Total OPEX:{' '}
