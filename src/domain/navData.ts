@@ -93,7 +93,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: 'Organisation & Team',
     status: 'live',
     items: [
-      { id: 's-headcount', label: 'Headcount-Entwicklung' },
+      { id: 's-headcount', label: 'Entwicklung der Teamgröße' },
       { id: 's-hr', label: 'HR-Kennzahlen' },
       { id: 's-team', label: 'Teamstruktur & Engpässe' },
     ],

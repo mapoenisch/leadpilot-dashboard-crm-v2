@@ -17584,3 +17584,18 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #98 ist aus Sicht der Qualitätssicherung und Architekturvorgaben bereit für den Merge durch Marc.
 
+## Auftrag 108 – Paket H Teil 4: Restbegriffe in den Fachdaten (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste in den Fachdaten fortsetzen (Restfunde aus Auftrag 107). Branch `claude/auftrag-108-paket-h-teil4`, Baseline `720caf5`.
+
+**Geänderte Dateien:** `src/domain/execData.ts`, `finanzenData.ts`, `strategieData.ts`, `navData.ts` (nur Beschriftungen), `src/features/finanzen/components/SaasMotor.tsx` (Suche per exaktem Label), `src/features/overview/pages/ExecutiveDashboardPage.tsx`, `src/features/simulation/components/ManagementTierView.tsx`, `scripts/captureAuftrag108Screenshots.mjs`, Auftrag 108, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Fully-Loaded CAC“ → „Gesamtkosten pro Neukunde“, „CAC-Payback (Fully Loaded)“ → „CAC-Payback (Gesamtkosten)“, Menüeintrag `s-headcount` → „Entwicklung der Teamgröße“ (ID unverändert), Bindestrich-Restfunde „Ebene-A-Basis“/„Ebene-C-Echtzeitfeed“ ersetzt. Werte unverändert; der Dashboard-Katalog liest `EXEC_KPIS_2` per Index, nicht per Label. Offen für eigene Aufträge: `sourceFreshness.ts` (Schutzbereich), Kennzahl „Headcount“ → „Teamgröße“, Leer-/Fehlertexte, Navigationsgruppierung, Fokusprüfung Menü.
+
+**Schutzbereichs-Prüfung:** `git diff 720caf5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Prettier (`src/**/*.{ts,tsx}`) grün; Vitest 2478/2478; `npm run verify` alle Integritätssuiten grün; `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-108/README.md` — Lauf A (Standard) 15 Paare, 12 verschieden, 3 Gleichstände `/dashboard` begründet (persönliches Dashboard zeigt die Texte nicht); Lauf B (klassische Ansicht, `VITE_EXECUTIVE_DASHBOARD_V2=false`) 15/15 verschieden. Überlauf `/headcount @375` (86 px) unverändert vorbestehend.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

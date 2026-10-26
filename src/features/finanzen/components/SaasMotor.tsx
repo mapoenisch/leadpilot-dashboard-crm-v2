@@ -3,7 +3,7 @@ import { UNIT, CHART_MRR26 } from '../../../domain/finanzenData';
 
 export const SaasMotor: React.FC = () => {
   // Echte Datenbindung zur Laufzeit aus UNIT.metrics und CHART_MRR26
-  const flCac = UNIT.metrics.find((m) => m.label.includes('Fully-Loaded CAC'))?.val || '—';
+  const flCac = UNIT.metrics.find((m) => m.label === 'Gesamtkosten pro Neukunde')?.val || '—';
   const mktCac = UNIT.metrics.find((m) => m.label === 'Marketing-CAC')?.val || '—';
   const dbCustomer = UNIT.metrics.find((m) => m.label.includes('Deckungsbeitrag'))?.val || '—';
   const payback = UNIT.metrics.find((m) => m.label.includes('CAC-Payback'))?.val || '—';
@@ -34,7 +34,7 @@ export const SaasMotor: React.FC = () => {
       step: 2,
       title: 'CAC-Payback',
       primaryVal: payback,
-      primarySub: 'Amortisation (Fully Loaded)',
+      primarySub: 'Amortisation (Gesamtkosten)',
       secondaryVal: flCac,
       secondarySub: `Gesamtkosten pro Neukunde (Marketing: ${mktCac})`,
       color: '#7CEFE6',

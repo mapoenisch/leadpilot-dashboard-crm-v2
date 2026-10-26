@@ -242,7 +242,7 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
               `${mrrComp.percentChange >= 0 ? '+' : ''}${mrrComp.percentChange} %`}
           </div>
           <div className="text-[12px] text-[var(--color-text-muted)]">
-            Ebene-A-Basis-MRR: {baselineMRR.toLocaleString('de-DE')} €
+            MRR laut Unternehmensdaten 2025: {baselineMRR.toLocaleString('de-DE')} €
           </div>
           <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[8px] text-[var(--color-text-muted)]">
             P10: {mrrStats.p10.toLocaleString('de-DE')} € | P90:{' '}
@@ -263,7 +263,7 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
               `${custComp.percentChange >= 0 ? '+' : ''}${custComp.percentChange} %`}
           </div>
           <div className="text-[12px] text-[var(--color-text-muted)]">
-            Ebene-A-Basis 2025: {baselineCustomers} Kunden
+            Unternehmensdaten 2025: {baselineCustomers} Kunden
           </div>
           <div className="border-0 border-t border-solid border-border-soft text-[11px] mt-[8px] pt-[8px] text-[var(--color-text-muted)]">
             P10: {custStats.p10} | P90: {custStats.p90} Kunden
