@@ -36,7 +36,7 @@ describe('LiveKpiCard', () => {
     expect(screen.getByText('ARR')).toBeInTheDocument();
     expect(screen.getByText('Jahresumsatz')).toBeInTheDocument();
     expect(screen.getByText('Offline (Lokal)')).toBeInTheDocument();
-    expect(screen.getByText('Supabase nicht konfiguriert')).toBeInTheDocument();
+    expect(screen.getByText('Live-Verbindung nicht eingerichtet')).toBeInTheDocument();
   });
 
   it('renders offline state when status is offline', () => {

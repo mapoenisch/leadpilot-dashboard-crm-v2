@@ -17565,14 +17565,17 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Befund:** Kein P0, kein P1, kein P2. Alle Vorgaben aus `docs/auftraege/ANTIGRAVITY_AUFTRAG_107_PAKET_H_TEIL3.md` (Sprachliste, fachliche Ebenen, Gesamtkosten pro Neukunde, Entwicklung der Teamgröße, Menülabel Live-Simulation ohne Ebene B) sind vollständig und regressionsfrei umgesetzt.
 
 **Nacharbeiten zu vorangegangenen Codex-Befunden (PR #98):**
+
 - Namensabhängiger Screenshot-Selektor in `scripts/lib/combinationShotHelpers.mjs:102` auf „Gesamtkosten pro Neukunde“ umgestellt (Commit `349c552`).
 - Headcount-Screenshot-Selektor und Textabgleich in `scripts/captureAuftrag100Organisation.mjs` und `scripts/auditV21LiveAccessibility.mjs` auf „Entwicklung der Teamgröße“ bzw. „Live-Daten“ angeglichen (Commit `e9c2e9c`).
 - CI-E2E-Linux-Referenz für CRM Leads 1440 px über `update-visual-baselines.yml` aktualisiert (`visual-crm-leads-1-desktop-1440-linux.png`, Commit `23d4fbb`).
 
 **Schutzbereichs-Prüfung:**
+
 - `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`: Vollständig leer (0 Zeilen).
 
 **Automatisierte Verifikation (eigenständig gefahren auf `23d4fbb`):**
+
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler / 0 Warnungen
 - `npm run verify`: Alle Integritätssuiten (001–025) bestanden
@@ -17580,6 +17583,7 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 - `npm test`: 341 Testdateien / 2.478 Tests bestanden
 
 **Screenshot-Matrix:**
+
 - Dokumentiert in `docs/screenshots/auftrag-107/README.md` (16/18 verschieden, 2 Gleichstände bei 375 px sachlich begründet; Überlauf 375 px auf Headcount und Live-Simulation vorbestehend und unverändert).
 
 **Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #98 ist aus Sicht der Qualitätssicherung und Architekturvorgaben bereit für den Merge durch Marc.
@@ -17623,29 +17627,32 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Befund:** Kein P0, kein P1. Reiner Label-Tausch gemäß Plan Abschnitt 13 (Sprachliste: „Headcount“ → „Teamgröße“, „Headcount-Verlauf“ → „Verlauf der Teamgröße“, „Personalkosten Vertrieb / Kundenbetreuung“). Schutzbereich im Diff leer, Katalog-IDs, Routen-ID und Feldnamen unverändert, Tests konsistent angepasst.
 
 **Prüfpunkte & Anmerkungen (aus Review):**
+
 - **Persistenz & Dashboard-Katalog:** `catalogId` unverändert (`baseline.headcount` / `baseline.headcount_verlauf`). Das Rendering in `DashboardTile.tsx` nutzt Fallback-Kaskade `tile.title ?? entry?.name ?? tile.catalogId`. Da `entry.name` aktualisiert wurde, aktualisieren sich bestehende Kacheln ohne Titel-Override dynamisch und ohne Migrationsbedarf.
 - **Kombinationen:** In `combinationRules.ts` ist `baseline.headcount` nicht als Operand hinterlegt; keine Auswirkung auf Kombinationsregeln.
 - **Barrierefreiheit (a11y):** `<DepthFlaechen>` in `HeadcountPage.tsx` erhält das präzise `regionLabel="Verlauf der Teamgröße, waagerecht scrollbar"`. Saubere Semantik mit `h1`, Panel-Headings und `aria-label="Kapazität je Bereich"`.
 - **Hinweise (P2 / P3):**
-  - *P2:* In `DetailTierView.tsx` bricht die längere Kostenzeile ohne `whitespace-nowrap` bei 375 px fließend um; die Komponente ist jedoch nicht im Screenshot-Prüfpfad enthalten.
-  - *P3:* Terminologie variiert leicht zwischen Menü/Seite („Entwicklung der Teamgröße“) und Panel/Katalog („Verlauf der Teamgröße“).
-  - *P3:* `captureAuftrag109Screenshots.mjs`: Header-Kommentar aus 107/108 kopiert; die dualen `focus`-Regexe sollten künftig strikt auf „Teamgröße“ prüfen; Gleichstände sollten über Allowlist laufen.
-  - *P3:* Platzhalter `Prüfer: unabhängig (/<agent> review)` in `ANTIGRAVITY_AUFTRAG_109_PAKET_H_TEIL5.md` auf Antigravity aktualisiert.
+  - _P2:_ In `DetailTierView.tsx` bricht die längere Kostenzeile ohne `whitespace-nowrap` bei 375 px fließend um; die Komponente ist jedoch nicht im Screenshot-Prüfpfad enthalten.
+  - _P3:_ Terminologie variiert leicht zwischen Menü/Seite („Entwicklung der Teamgröße“) und Panel/Katalog („Verlauf der Teamgröße“).
+  - _P3:_ `captureAuftrag109Screenshots.mjs`: Header-Kommentar aus 107/108 kopiert; die dualen `focus`-Regexe sollten künftig strikt auf „Teamgröße“ prüfen; Gleichstände sollten über Allowlist laufen.
+  - _P3:_ Platzhalter `Prüfer: unabhängig (/<agent> review)` in `ANTIGRAVITY_AUFTRAG_109_PAKET_H_TEIL5.md` auf Antigravity aktualisiert.
 
 **Schutzbereichs-Prüfung:**
+
 - `git diff 34b3824 -- src/simulation src/types src/context src/services/data src/features/resources`: Vollständig leer (0 Zeilen).
 
 **Automatisierte Verifikation (eigenständig gefahren auf `9cff453`):**
+
 - `npx tsc --noEmit`: 0 Fehler
 - Vitest: 341 Testdateien / 2.478 Tests bestanden
 - `npm run verify`: Alle Integritätssuiten grün
 - `npm run build`: Erfolgreich durchgelaufen
 
 **Screenshot-Matrix:**
+
 - Dokumentiert in `docs/screenshots/auftrag-109/README.md` (Lauf A und Lauf B je 12/15 verschieden, 3 Gleichstände begründet; Überlauf 375 px auf `/headcount` mit 86 px vorbestehend).
 
 **Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #100 ist aus Sicht der Qualitätssicherung bereit für den Merge durch Marc.
-
 
 ## Auftrag 110 – Paket H Teil 6: Letzte Headcount-Überschriften der Simulationsdetails (Builder: Claude Code, 26.10.2026)
 
@@ -17680,3 +17687,23 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Visual-Baselines:** Fünf CI-Referenzbilder (1440 px: Dashboard, CRM Leads, GuV, Markt, Materialien) über `update-visual-baselines.yml` neu erzeugt (Lauf 40273014003, Branch `visual-baselines/auftrag-111`), gesichtet: Änderung nur in der Seitenleiste.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 112 – Paket H Teil 8: Entwicklerbegriffe „Supabase“ in Nutzertexten (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Sprachliste / Entwicklerbegriffe. Branch `claude/auftrag-112-paket-h-teil8`, Baseline `49a0b0d` (main nach PR #103).
+
+**Geänderte Dateien:** `LeadsPage.tsx`, `DealsView.tsx`, `LiveActivityFeed.tsx`, `StreamingAreaChart.tsx`, `LiveKpiCard.tsx`, Kommentar in `global.css`, vier zugehörige Tests, Auftrag 112.
+
+**Funktionale Prüfungen:** Tab „Supabase & Import Audit“ → „Datenbank- und Import-Prüfung“; „Supabase Verbunden“ → „Datenbank verbunden“; „Lokaler Fallback“ → „Lokale Beispieldaten“; „Supabase nicht konfiguriert“ → „Live-Verbindung nicht eingerichtet“ (3 Live-Kacheln); DealsView-Beschreibung ohne „Stage“. Tab-IDs, Werte, Feldnamen unverändert. Technische Texte (`systemHealthService.ts`, Auth-Fehler) bewusst offen für den technischen Detailbereich.
+
+**Schutzbereichs-Prüfung:** `git diff 49a0b0d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run verify`, `npm run build`, `npm run format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-112/README.md` – 6/6 Paare verschieden (CRM Leads, Deal Pipeline; 1440/768/375), 0 px Überlauf. Nachgeholt nach Codex-Befund.
+
+**Nacharbeit Codex-Befunde:** Prüfskripte `scripts/verifyLiveKpiReadLayer.ts`, `verifyLiveKpiE2e.ts`, `auditV21LiveAccessibility.mjs` auf den neuen Statustext angepasst; `verifyLiveKpiReadLayer` grün. `verifyLiveKpiE2e` meldet weiterhin „user-friendly, non-technical error notice“ – bestand schon vorher auf `main` (Textprüfung scheitert am Zeilenumbruch), nicht Teil dieses Auftrags.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Visual-Baselines (Auftrag 112):** Drei CI-Referenzbilder (`visual-crm-leads-1` auf 1440/768/375 px, Linux) über `update-visual-baselines.yml` neu erzeugt (Lauf 40297449040, Branch `visual-baselines/auftrag-112`), gesichtet: Änderung nur an den neuen Beschriftungen („Datenbank verbunden“, „Datenbank- und Import-Prüfung“).

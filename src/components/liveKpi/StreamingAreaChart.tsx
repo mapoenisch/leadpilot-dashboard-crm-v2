@@ -72,7 +72,7 @@ export const StreamingAreaChart = React.memo(function StreamingAreaChart({
   // Status-Text ermitteln
   let statusText = '';
   if (status === 'unconfigured') {
-    statusText = 'Supabase nicht konfiguriert – keine Live-ARR-Historie verfügbar.';
+    statusText = 'Live-Verbindung nicht eingerichtet – keine Live-ARR-Historie verfügbar.';
   } else if (status === 'loading') {
     statusText = 'Lade Live-ARR-Historie...';
   } else if (status === 'offline') {

@@ -168,7 +168,7 @@ export const LiveKpiCard = React.memo(function LiveKpiCard({
           {status === 'unconfigured' ? (
             <div className="border border-solid border-[rgba(0,242,254,0.18)] rounded-md bg-[rgba(6,22,19,0.55)] my-[8px] mx-0 p-[12px]">
               <div className="text-text text-[12px] font-medium mb-[2px]">
-                Supabase nicht konfiguriert
+                Live-Verbindung nicht eingerichtet
               </div>
               <div className="text-[11px] leading-[1.4] text-[var(--color-text-dim)]">
                 Live-Ist-Daten inaktiv. Keine synthetischen Fake-Werte erfunden.

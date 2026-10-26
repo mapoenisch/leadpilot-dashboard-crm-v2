@@ -474,7 +474,7 @@ assert(renderedHtml.includes('data-testid="live-kpi-card"'), 'Rendered card cont
 assert(renderedHtml.includes('Live Pipeline Coverage'), 'Rendered card contains title');
 assert(renderedHtml.includes('Ebene C'), 'Rendered card contains Ebene C badge');
 assert(renderedHtml.includes('Offline (Lokal)'), 'Rendered card indicates Offline (Lokal) when unconfigured');
-assert(renderedHtml.includes('Supabase nicht konfiguriert'), 'Rendered card shows honest unconfigured fallback');
+assert(renderedHtml.includes('Live-Verbindung nicht eingerichtet'), 'Rendered card shows honest unconfigured fallback');
 assert(
   renderedHtml.includes('Keine synthetischen Fake-Werte erfunden'),
   'Rendered card clearly communicates absence of synthetic numbers'

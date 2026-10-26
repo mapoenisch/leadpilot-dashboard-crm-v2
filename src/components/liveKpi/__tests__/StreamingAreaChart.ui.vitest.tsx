@@ -31,7 +31,9 @@ describe('StreamingAreaChart', () => {
 
     render(<StreamingAreaChart />);
     expect(
-      screen.getAllByText('Supabase nicht konfiguriert – keine Live-ARR-Historie verfügbar.')[0],
+      screen.getAllByText(
+        'Live-Verbindung nicht eingerichtet – keine Live-ARR-Historie verfügbar.',
+      )[0],
     ).toBeInTheDocument();
   });
 

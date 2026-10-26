@@ -92,7 +92,7 @@ function evaluateFakeEuroZero(input) {
   input = input || {};
   const sectionText = typeof input.sectionText === 'string' ? input.sectionText : '';
   const cardTexts = Array.isArray(input.cardTexts) ? input.cardTexts : [];
-  const isEmptyState = /Supabase nicht konfiguriert|Warte auf Live-Feed|Noch keine/.test(sectionText);
+  const isEmptyState = /Live-Verbindung nicht eingerichtet|Warte auf Live-Feed|Noch keine/.test(sectionText);
   const hasConfirmedSnapshot = cardTexts.some(isConfirmedSnapshotText);
   const applies = isEmptyState && !hasConfirmedSnapshot;
   return {
@@ -167,7 +167,7 @@ function runSelfTests() {
     ['"0 €" wird erkannt', () => containsFakeEuroZero('Aktueller ARR: 0 €') === true],
     ['"0,00 €" wird erkannt', () => containsFakeEuroZero('Aktueller ARR: 0,00 €') === true],
     ['"0.00 €" wird erkannt', () => containsFakeEuroZero('Aktueller ARR: 0.00 €') === true],
-    ['ehrlicher Statussatz bleibt negativ', () => containsFakeEuroZero('Supabase nicht konfiguriert – keine Live-ARR-Historie verfügbar.') === false],
+    ['ehrlicher Statussatz bleibt negativ', () => containsFakeEuroZero('Live-Verbindung nicht eingerichtet – keine Live-ARR-Historie verfügbar.') === false],
     ['echter Betrag "1.240.000,00 €" bleibt negativ', () => containsFakeEuroZero('Aktueller ARR: 1.240.000,00 €') === false],
     ['echter Betrag "10 €" bleibt negativ', () => containsFakeEuroZero('10 €') === false],
     ['echter Betrag "120,00 €" bleibt negativ', () => containsFakeEuroZero('120,00 €') === false],
@@ -175,13 +175,13 @@ function runSelfTests() {
     ['kein bestätigter Snapshot ohne Frischeangabe', () => isConfirmedSnapshotText('ARR live · Live Realtime · Stand: Ausstehend') === false],
     ['kein bestätigter Snapshot im Wartezustand', () => isConfirmedSnapshotText('Warte auf Feed · Warte auf Live-Events (Live-Daten)...') === false],
     ['Fake-Zero: Empty-State ohne bestätigten Snapshot + "0 €" → wird geflaggt', () =>
-      evaluateFakeEuroZero({ sectionText: 'Supabase nicht konfiguriert. Aktueller ARR: 0 €', cardTexts: ['Warte auf Feed · Stand: Ausstehend'] }).hasFakeZero === true],
+      evaluateFakeEuroZero({ sectionText: 'Live-Verbindung nicht eingerichtet. Aktueller ARR: 0 €', cardTexts: ['Warte auf Feed · Stand: Ausstehend'] }).hasFakeZero === true],
     ['Fake-Zero: bestätigter Snapshot OHNE Pulse + "0 €" → NICHT geflaggt', () =>
       evaluateFakeEuroZero({ sectionText: 'Noch keine ARR-Ereignisse. Aktueller ARR: 0 €', cardTexts: ['ARR · Live Realtime · Aktualisiert: vor 12s · 0 €'] }).hasFakeZero === false],
     ['Fake-Zero: kein Empty-State + "0 €" → NICHT geflaggt', () =>
       evaluateFakeEuroZero({ sectionText: 'Aktueller ARR: 0 €', cardTexts: [] }).hasFakeZero === false],
     ['Fake-Zero: Empty-State + ehrlicher Statussatz → NICHT geflaggt', () =>
-      evaluateFakeEuroZero({ sectionText: 'Supabase nicht konfiguriert – keine Live-ARR-Historie verfügbar.', cardTexts: [] }).hasFakeZero === false],
+      evaluateFakeEuroZero({ sectionText: 'Live-Verbindung nicht eingerichtet – keine Live-ARR-Historie verfügbar.', cardTexts: [] }).hasFakeZero === false],
   ];
   let failed = 0;
   console.log('\n[Selbsttests] Reine Audit-Logik (zugänglicher Name + Null-Euro-Erkennung)');
@@ -733,7 +733,7 @@ async function main() {
     '  leeres `aria-label` → kein Name. Positiv: nichtleeres `aria-label`, vollständig aufgelöstes `aria-labelledby`,',
     '  benannter Parent-Bereich.',
     '- **Null-Euro-Erkennung:** `0 €`, `0,00 €`, `0.00 €` → positiv; ehrlicher Statussatz',
-    '  (`Supabase nicht konfiguriert – keine Live-ARR-Historie verfügbar.`) sowie echte Beträge',
+    '  (`Live-Verbindung nicht eingerichtet – keine Live-ARR-Historie verfügbar.`) sowie echte Beträge',
     '  (`1.240.000,00 €`, `10 €`, `120,00 €`) → negativ. Regex bewusst enger als die frühere `\\b`-Variante.',
     '- **Bestätigter Snapshot (stabil, ohne Pulse):** Kartentext mit „Live Realtime" + „Aktualisiert:" zählt;',
     '  „Live Realtime" ohne Frischeangabe oder ein Wartezustand zählt nicht.',
