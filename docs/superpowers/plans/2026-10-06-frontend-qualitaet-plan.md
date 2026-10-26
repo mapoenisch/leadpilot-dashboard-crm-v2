@@ -253,7 +253,7 @@ Teilumsetzung: Aufträge 088 und 089.
 - [x] (Auftrag 105) Abmelden als sichtbare Profilaktion auf Desktop und Handy anbieten. Vorhandene Auth-Funktion nutzen; Schutz ungespeicherter Änderungen beibehalten. Unsichtbaren Hover-Button ersetzen.
 - [ ] Sprachliste erstellen und anwenden: „Vertriebsphase“, „Teamgröße“, „Gesamtkosten pro Neukunde“, „Daten aus dem CRM“. Fachkürzel ARR/MRR/EBITDA mit verständlicher Erklärung erhalten.
 - [ ] Fachliche Ebenen nicht verschweigen: historische Unternehmensdaten, CRM-Daten und Simulation verständlich unterscheiden. Entwicklerbegriffe in einen technischen Detailbereich verschieben.
-- [ ] Leer-/Fehlertexte sagen, was fehlt und welchen nächsten Schritt es gibt. Keine falsche Erfolgsmeldung, kein unbelegter Vorschlag „Importieren“, wenn dieser Benutzer die Aktion nicht ausführen darf.
+- [ ] (Auftrag 113, Teil: Fehler-/Ladetexte) Leer-/Fehlertexte sagen, was fehlt und welchen nächsten Schritt es gibt. Keine falsche Erfolgsmeldung, kein unbelegter Vorschlag „Importieren“, wenn dieser Benutzer die Aktion nicht ausführen darf.
 - [ ] Fokus beim Menüöffnen/-schließen, Escape, Hintergrundsperre, Rückgabe zum Auslöser, Touch und Benutzerwechsel testen.
 
 **Abnahme:** Marc findet aktuellen Standort, passende Fachseite und Abmelden ohne Suchspiel. Begriffe sind konsistent; wichtige Datenunterschiede bleiben verständlich sichtbar.

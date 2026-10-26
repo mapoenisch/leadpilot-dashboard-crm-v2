@@ -117,7 +117,7 @@ describe('ActivitiesView (branch)', () => {
       error: null,
     } as never);
     renderView();
-    expect(screen.getByText('Lade Aktivitäten aus dem CRM-Envelope…')).toBeInTheDocument();
+    expect(screen.getByText('Aktivitäten werden aus den CRM-Daten geladen …')).toBeInTheDocument();
   });
 
   it('zeigt den Fehlerzustand mit Ursache', () => {

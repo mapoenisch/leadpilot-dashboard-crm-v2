@@ -179,7 +179,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
         </div>
         <ManagementChartState
           type="loading"
-          message="Lade Aktivitäten aus dem CRM-Envelope…"
+          message="Aktivitäten werden aus den CRM-Daten geladen …"
           sourceLabel="CRM-Quellenwahrheit (G47)"
         />
       </div>
@@ -201,7 +201,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
         </div>
         <ManagementChartState
           type="error"
-          message={`Aktivitäten nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Es werden keine Ersatzdaten angezeigt.`}
+          message={`Aktivitäten nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Lade die Seite neu oder versuche es später erneut. Es werden keine Ersatzdaten angezeigt.`}
           sourceLabel="CRM-Quellenwahrheit (G47)"
         />
       </div>
@@ -241,7 +241,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
           <div className="font-display text-[28px] font-bold my-[4px] text-primary">
             {combinedActivities.length}
           </div>
-          <div className="text-[12px] text-success">Aus dem CRM-Envelope</div>
+          <div className="text-[12px] text-success">Aus den CRM-Daten</div>
         </Card>
 
         <Card variant="glass">
@@ -249,7 +249,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
           <div className="font-display text-[24px] font-semibold my-[4px] text-text">
             {topChannel}
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Aus dem CRM-Envelope</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Aus den CRM-Daten</div>
         </Card>
 
         <Card variant="glass">
@@ -257,7 +257,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
           <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {typeOptions.length - 1} Typen
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Aus dem CRM-Envelope</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Aus den CRM-Daten</div>
         </Card>
 
         <Card variant="glass">

@@ -17707,3 +17707,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
 
 **Visual-Baselines (Auftrag 112):** Drei CI-Referenzbilder (`visual-crm-leads-1` auf 1440/768/375 px, Linux) über `update-visual-baselines.yml` neu erzeugt (Lauf 40297449040, Branch `visual-baselines/auftrag-112`), gesichtet: Änderung nur an den neuen Beschriftungen („Datenbank verbunden“, „Datenbank- und Import-Prüfung“).
+
+## Auftrag 113 – Paket H Teil 9: Fehler- und Ladetexte mit nächstem Schritt (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Leer-/Fehlertexte. Branch `claude/auftrag-113-paket-h-teil9`, Baseline `22f4f1d` (main nach PR #104).
+
+**Geänderte Dateien:** `DataState.tsx`, `ActivitiesView.tsx`, `DataBasisPage.tsx`, drei zugehörige Tests, Auftrag 113.
+
+**Funktionale Prüfungen:** Fehlertexte nennen jetzt den nächsten Schritt (neu laden/erneut versuchen); „CRM-Envelope“ durch „CRM-Daten“ ersetzt. Keine Logik, keine Werte geändert.
+
+**Schutzbereichs-Prüfung:** `git diff 22f4f1d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test` (342 Dateien / 2482 Tests), `npm run verify`, `npm run build`, `npm run format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-113/README.md` – 6/6 Paare verschieden (Aktivitäten, Datenbasis; 1440/768/375), 0 px Überlauf. Nachgeholt nach Codex-Befund. Erfolgs- und Fehlerzustand mit der Attrappe nicht erreichbar, dort Komponententests.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
