@@ -105,6 +105,6 @@ describe('DataBasisPage Lücken (characterization)', () => {
     render(<DataBasisPage />, { wrapper: createWrapper() });
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Datenbasis');
-    expect(screen.getByText('Lade CRM-Envelope…')).toBeTruthy();
+    expect(screen.getByText('CRM-Daten werden geladen …')).toBeTruthy();
   });
 });

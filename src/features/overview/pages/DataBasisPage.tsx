@@ -57,7 +57,7 @@ export function DataBasisPage() {
       <DataBasisShell>
         <ManagementChartState
           type="loading"
-          message="Lade CRM-Envelope…"
+          message="CRM-Daten werden geladen …"
           sourceLabel="CRM-Quellenwahrheit (G47)"
         />
       </DataBasisShell>
@@ -84,7 +84,7 @@ export function DataBasisPage() {
 
         <ManagementChartState
           type="error"
-          message={`Datenquelle nicht verfügbar: ${provenance.statusDescription} Es werden keine Ersatzdaten angezeigt.`}
+          message={`Datenquelle nicht verfügbar: ${provenance.statusDescription} Lade die Seite neu oder prüfe die Verbindung. Es werden keine Ersatzdaten angezeigt.`}
           sourceLabel="CRM-Quellenwahrheit (G47)"
         />
       </DataBasisShell>
