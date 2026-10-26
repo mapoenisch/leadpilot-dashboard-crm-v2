@@ -17757,3 +17757,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** nicht erforderlich – keine sichtbare Änderung. Touch-Prüfung im Browser bleibt offen.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 116 – Paket H Teil 12: Mobiles Menü per Touch (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, offener Teil Touch. Branch `claude/auftrag-116-paket-h-teil12`, Baseline `25d223b` (main nach PR #107).
+
+**Geänderte Dateien:** `e2e/mobile-menu-touch.spec.ts` (neu), `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` (Spec in CI-Schritt und Abnahme-Orchestrator, Codex-Befund P1), Auftrag 116, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** Im Projekt `mobile-375` mit `hasTouch`: Tap auf den Auslöser öffnet den Drawer; Tap auf den Hintergrund schließt ihn und gibt den Fokus an den Auslöser zurück; Tap auf „Menü schließen“ schließt; Tap auf einen Navigationslink navigiert und schließt.
+
+**Schutzbereichs-Prüfung:** `git diff 25d223b -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint/Prettier auf die neue Spec, `npm run verify`, `npm run build` grün. Die neue E2E lief lokal nicht (Docker/lokales Supabase nicht gestartet, `global-setup` bricht ohne `E2E_AUTH_EMAIL` fail-closed ab); Nachweis über den Pflicht-Check `e2e` in der CI.
+
+**Screenshot-Matrix:** nicht erforderlich – keine Änderung an `src/`.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

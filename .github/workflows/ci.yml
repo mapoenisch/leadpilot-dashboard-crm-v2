@@ -208,7 +208,7 @@ jobs:
       - name: Build für E2E und Lighthouse
         run: npx vite build
       - name: Playwright E2E & Axe Accessibility Tests
-        run: npx playwright test e2e/a11y.spec.ts e2e/audit-health.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts e2e/element-clipping.acceptance.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
+        run: npx playwright test e2e/a11y.spec.ts e2e/audit-health.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts e2e/element-clipping.acceptance.ts e2e/mobile-menu-touch.spec.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
       - name: Playwright Simulation & Worker Tests (sequentiell)
         run: npx playwright test e2e/persistence-multisession.spec.ts e2e/worker-responsiveness.spec.ts e2e/run-control.spec.ts e2e/member-management.spec.ts --workers=1
       # Auftrag 079 (Rollout, Entscheidung Marc E2): Die persönliche Ansicht ist Standard, ihre Specs
