@@ -16,23 +16,16 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
 - **Arbeitsweise**: Auftrags-Specs unter `docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md`.
   Jeder Auftrag durchläuft das Gate-System : TypeScript-Check,
   Test-Suite (`npm run verify`), Screenshot-Diffs vorher/nachher, Schutzbereichs-Diff.
-- **Ablauf bis Release `v2.3.0`** (seriell, kein paralleles Arbeiten): **Claude Code baut**
-  (schreibt fehlende Detailaufträge selbst) → übergibt an **Codex** → der prüft nur
-  (Review + Gates), baut nichts, gibt den Befund zurück an Claude Code → Claude Code baut
-  nach. Wiederholung bis alle Gates bestanden sind. Antigravity baut in dieser Phase nicht.
-- **Ausweichbetrieb bei Codex-Nutzungslimit (ab 03.10.2026, Entscheidung Marc):** Ist das Limit
-  von Codex erreicht, baut **Antigravity** auf Branches `antigravity/*`, **Claude prüft**
-  automatisch jeden Push (`claude-review.yml`), Antigravity arbeitet nach. Ist Codex wieder
-  verfügbar, gilt wieder der Ablauf oben. Details:
-  `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`, Abschnitt „Handoff-Protokoll“ unten.
-- **Agenten-Reviews über MarcReview (Entscheidung Marc vom 21.10.2026):** Antigravity, OpenCode, Devin,
-  Proto und Perplexity prüfen PRs nur auf Marcs Kommentar `/<agent> review` (`agent-review.yml`) und
-  posten über das Prüferkonto `MarcReview` ein formales Review mit Inline-Kommentaren. Jeder Befund
-  ist eine lösbare Konversation (Event immer `COMMENT`). Merge erst, wenn alle Konversationen gelöst
-  sind (Branch-Schutz). Nie mit Marcs eigenem `gh`-Login reviewen. Codex (`@codex review`) bleibt möglich, ist aber keine Voraussetzung.
-  Details: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
-- **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Claude Code ist der schreibende Builder;
-  Codex trägt seinen Befund ein und gibt ihn zurück.
+- **Ablauf ab 26.10.2026 (Entscheidung Marc, Details `CLAUDE.md` Abschnitt 4.1):** **Claude Code baut**
+  (schreibt fehlende Detailaufträge selbst, ein Auftrag je PR) → **Codex prüft** über die Codex-App auf
+  GitHub (beim Öffnen, nach Nacharbeit per `@codex review`), baut nichts → Claude Code arbeitet nach.
+  Gate-Freigabe: Codex ohne offene Befunde auf dem aktuellen Head, alle Pflicht-Checks grün, alle
+  Konversationen gelöst. Merge und Release macht Marc.
+- **Ausweichweg, wenn Codex nicht verfügbar ist:** Marc fordert `/<agent> review` an (Antigravity,
+  OpenCode, Devin, Proto oder Perplexity, über `MarcReview`, `agent-review.yml`). Nie mit Marcs eigenem
+  `gh`-Login reviewen. Der frühere Antigravity-Zyklus (`claude-review.yml`) ist abgeschaltet.
+- **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Claude Code schreibt den Builder-Eintrag und trägt das
+  Codex-Ergebnis als Nachtrag ein (Protokoll, keine Freigabe).
 - **Maßgebliche Dokumente**: `ARCHITECTURE_DECISIONS.md`, `BUILD_PLAN.md`, `docs/BUILD_LOG.md`.
   `readme.md` und `SKILL.md` dokumentieren den separaten Design-Skill, nicht die App-Logik.
 
@@ -69,7 +62,7 @@ Start von Auftrag 071 ungesicherte lokale Änderungen und unversionierte Ordner 
 
 Deutsch, Du-Form. Ergebnis zuerst, knapp, keine Floskeln.
 
-## Handoff-Protokoll (Antigravity, zweite Automatisierung)
+## Handoff-Protokoll (Antigravity, zweite Automatisierung — ruht seit 26.10.2026)
 
 Gilt nur für Antigravity auf Branches `antigravity/*`. Wenn du mit „weiter“ gestartet wirst:
 
