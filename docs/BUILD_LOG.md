@@ -17807,3 +17807,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** lokal nicht erzeugbar (kein Docker/Anmeldung); Texte in Badges ändern die Layoutbreite minimal. Nachweis über Pflicht-Check `e2e` (`visual.spec`).
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Nachtrag CI e2e (PR #110, Auftrag 118):** `visual /crm/leads` wich auf 1440/768/375 px ab (Badge „Echte Daten“ statt „Real“, 28285 px). Linux-Referenzen über `update-visual-baselines.yml` (Lauf 40406395538, Branch `visual-baselines/auftrag-118`, inkl. dreifacher Verifikation) neu erzeugt; von 30 Bildern ändern sich nur die drei `visual-crm-leads-1-*-linux.png`, Sichtprüfung ok.
