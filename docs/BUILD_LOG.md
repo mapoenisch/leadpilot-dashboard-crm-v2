@@ -17789,3 +17789,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** lokal nicht erzeugbar (kein Docker/lokales Supabase, `E2E_AUTH_EMAIL` fehlt, Seiten brauchen Anmeldung). Ersatznachweis: `e2e/visual.spec.ts` vergleicht `/finance/p-and-l` (betroffene Seite mit EBITDA im Panel-Untertitel) im Pflicht-Check `e2e` per `toHaveScreenshot` gegen die bestehende Baseline; `<abbr>` ändert Box-Größen nicht, nur die Unterstreichung. Textuelle 1440/768/375-Matrix mit SHA-Hashes bleibt offen und wird bei Bedarf nach Anmeldung nachgeholt (Codex P1, offen markiert).
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Prüfnachweis (Auftrag 117):** Codex-Review auf GitHub für Commit `b38269d` abgeschlossen, keine Befunde (26.10.2026). Zuvor behoben: P2 (Glossar auch in Panel-Untertiteln, Test an `PnLPage`), P1 (Screenshot-Matrix lokal nicht erzeugbar, Ersatznachweis über `visual.spec` dokumentiert, Matrix als offen vermerkt). Gate-Freigabe hängt noch an grünen Pflicht-Checks und gelösten Konversationen.
