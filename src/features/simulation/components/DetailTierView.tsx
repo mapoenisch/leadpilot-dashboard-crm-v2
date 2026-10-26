@@ -249,9 +249,9 @@ export const DetailTierView: React.FC = () => {
               €
             </div>
             <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">
-              Sales Headcount:{' '}
+              Personalkosten Vertrieb:{' '}
               {(state.metrics?.financialMetrics?.salesHeadcountCost ?? 0).toLocaleString('de-DE')} €
-              | CS Headcount:{' '}
+              | Personalkosten Kundenbetreuung:{' '}
               {(state.metrics?.financialMetrics?.csHeadcountCost ?? 0).toLocaleString('de-DE')} €
             </div>
           </div>

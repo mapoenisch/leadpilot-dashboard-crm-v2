@@ -33,7 +33,7 @@ export const EXEC_KPIS_2 = [
     value: '4.447 €',
     note: 'Gesamtkosten Vertrieb & Mktg. 209k € ÷ 47 Neukunden',
   },
-  { label: 'Headcount', value: '10 FTE', note: 'Stand 31.12.2025 (Ziel 2026: 12 FTE)' },
+  { label: 'Teamgröße', value: '10 FTE', note: 'Stand 31.12.2025 (Ziel 2026: 12 FTE)' },
 ];
 
 export const CHART_ARR = {

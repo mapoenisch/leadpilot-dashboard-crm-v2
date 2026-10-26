@@ -17599,3 +17599,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-108/README.md` — Lauf A (Standard) 15 Paare, 12 verschieden, 3 Gleichstände `/dashboard` begründet (persönliches Dashboard zeigt die Texte nicht); Lauf B (klassische Ansicht, `VITE_EXECUTIVE_DASHBOARD_V2=false`) 15/15 verschieden. Überlauf `/headcount @375` (86 px) unverändert vorbestehend.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 109 – Paket H Teil 5: Teamgröße statt Headcount (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste – offener Punkt aus Auftrag 108 („Headcount“ → „Teamgröße“). Branch `claude/auftrag-109-paket-h-teil5`, Baseline `34b3824` (main nach PR #99).
+
+**Geänderte Dateien:** `src/domain/execData.ts`, `organisationData.ts`, `strategieData.ts` (nur Beschriftungen), `src/features/dashboard/model/catalog/activeEntries.ts`, `extendedEntries.ts` (nur `name`), `src/features/organisation/pages/HeadcountPage.tsx`, `src/features/simulation/components/DetailTierView.tsx`, `KpiTimeSeriesDetailView.tsx`, Tests `catalogComparison.vitest.ts`, `CombinationPicker.ui.vitest.tsx`, Skripte `captureAuftrag100Organisation.mjs`, `captureAuftrag109Screenshots.mjs`, Auftrag 109, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Headcount“ → „Teamgröße“ in Kennzahlen, Katalog, Balanced Scorecard und OKR-Diagramm; „Headcount-Verlauf“ → „Verlauf der Teamgröße“; Kostenzeile der Simulationsdetails → „Personalkosten Vertrieb / Kundenbetreuung“. Katalog-IDs (`baseline.headcount`, `baseline.headcount_verlauf`), Routen-ID `s-headcount` und Werte unverändert; Vorjahresvergleich 31.12.2024 = 8 FTE weiter belegt (Test angepasst).
+
+**Schutzbereichs-Prüfung:** `git diff 34b3824 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Prettier (geänderte Dateien) grün; Vitest 2478/2478; `npm run verify` alle Integritätssuiten grün; `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-109/README.md` — Lauf A (Standard) 15 Paare, 12 verschieden; Lauf B (klassische Ansicht) 15 Paare, 12 verschieden. Gleichstände begründet (Text außerhalb des sichtbaren Bereichs bzw. im waagerecht scrollenden Diagramm). Überlauf `/headcount @375` (86 px) unverändert vorbestehend.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

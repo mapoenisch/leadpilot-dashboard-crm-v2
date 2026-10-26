@@ -114,7 +114,7 @@ describe('TileConfigurator mit Kombination', () => {
     fireEvent.click(firstRadio('EBITDA')!);
     fireEvent.click(screen.getByRole('button', { name: /Erweiterte Einstellungen/ }));
     fireEvent.click(screen.getByRole('radio', { name: /^EBITDA-Marge/ }));
-    fireEvent.click(firstRadio('Headcount')!);
+    fireEvent.click(firstRadio('Teamgröße')!);
     expect(comboStatus()).toBe(
       'Kombination „EBITDA-Marge“ verworfen, weil die erste Kennzahl wechselte.',
     );

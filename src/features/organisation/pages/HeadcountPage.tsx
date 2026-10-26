@@ -54,10 +54,10 @@ function HeadcountPageHtml() {
       />
       <DataState
         status={HEADCOUNT.rows.length > 0 ? 'ready' : 'empty'}
-        emptyText="Keine Headcount-Daten erfasst."
+        emptyText="Keine Daten zur Teamgröße erfasst."
       >
         <Panel
-          title="Headcount-Verlauf (Gesamt-FTE)"
+          title="Verlauf der Teamgröße (Gesamt-FTE)"
           badge="Personalbestand 2025"
           subtitle={`Entwicklung des gesamten Personalbestands von ${labels[0] ?? ''} bis ${
             labels[labels.length - 1] ?? ''
@@ -66,7 +66,7 @@ function HeadcountPageHtml() {
           <ChartFigure title={reihe?.label ?? 'FTE-Verlauf'} summary={summary}>
             <DepthFlaechen
               idPrefix="hc-fte"
-              regionLabel="Headcount-Verlauf, waagerecht scrollbar"
+              regionLabel="Verlauf der Teamgröße, waagerecht scrollbar"
               labels={labels}
               series={[
                 {

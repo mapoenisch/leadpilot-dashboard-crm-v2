@@ -35,7 +35,7 @@ export const BSC = {
     },
     {
       name: 'Lernen & Entwicklung',
-      kpis: 'Headcount: 10 FTE (Ziel: 12 FTE), Fluktuation: 22 %, 60 % Remote',
+      kpis: 'Teamgröße: 10 FTE (Ziel: 12 FTE), Fluktuation: 22 %, 60 % Remote',
     },
   ],
 };
@@ -75,7 +75,7 @@ export const CHART_OKR = {
     'Trial-to-Paid (%)',
     'Churn (%)',
     'KI-Scoring (%)',
-    'Headcount',
+    'Teamgröße',
     'LTV:CAC (x10)',
     'Burn (T€/M)',
   ],

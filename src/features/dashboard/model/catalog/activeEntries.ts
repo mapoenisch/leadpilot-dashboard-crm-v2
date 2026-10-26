@@ -124,7 +124,7 @@ const BASELINE_ENTRIES: ActiveCatalogEntry[] = [
   }),
   baselineValue({
     id: 'baseline.headcount',
-    name: 'Headcount',
+    name: 'Teamgröße',
     category: 'organisation',
     definition: 'Personalbestand in Vollzeitäquivalenten.',
     unit: 'FTE',

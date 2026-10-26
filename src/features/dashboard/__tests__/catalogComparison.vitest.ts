@@ -26,8 +26,8 @@ describe('Katalog: Vorjahr und Klartext (Auftrag 091)', () => {
     });
   });
 
-  it('nimmt den Headcount des Vorjahres aus der Organisation (31.12.2024)', () => {
-    const metric = HR.metrics.find((row) => row.label.startsWith('Headcount'))!;
+  it('nimmt die Teamgröße des Vorjahres aus der Organisation (31.12.2024)', () => {
+    const metric = HR.metrics.find((row) => row.label.startsWith('Teamgröße'))!;
     expect(metric.val).toContain('2024: 8 FTE');
     expect(entry('baseline.headcount').comparison).toEqual({ label: '31.12.2024', value: 8 });
   });
