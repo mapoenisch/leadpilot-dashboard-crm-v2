@@ -140,15 +140,18 @@ export function DataSourceStatus({
             <div className="flex flex-col gap-1 text-[12px]">
               <div>
                 <strong>Quelle:</strong> {state.sourceLabel} (
-                {state.isSynthetic ? 'Synthetisch' : 'Real'})
-              </div>
-              <div>
-                <strong>Fehlercode:</strong> {state.errorCode ?? 'DATA_SOURCE_UNAVAILABLE'}
+                {state.isSynthetic ? 'Simulierte Daten' : 'Echte Daten'})
               </div>
               <div>{state.statusDescription}</div>
               <div className="text-[11px] text-[var(--color-text-dim)]">
-                Es werden keine Ersatzdaten oder Annahmen angezeigt (Fail-Closed).
+                Es werden keine Ersatzdaten oder Annahmen angezeigt.
               </div>
+              <details className="text-[11px] text-[var(--color-text-dim)]">
+                <summary className="cursor-pointer">Technische Details</summary>
+                <div>
+                  <strong>Fehlercode:</strong> {state.errorCode ?? 'DATA_SOURCE_UNAVAILABLE'}
+                </div>
+              </details>
             </div>
           </Alert>
         </div>
@@ -165,12 +168,12 @@ export function DataSourceStatus({
 
       return (
         <div data-testid={testId} role="alert" className={`w-full ${className}`}>
-          <Alert variant="warning" title="Eingeschränkte Datenqualität (degraded)">
+          <Alert variant="warning" title="Eingeschränkte Datenqualität">
             <div className="flex flex-col gap-1 text-[12px]">
               <div className="flex items-center gap-2 flex-wrap">
                 <span>
                   <strong>Quelle:</strong> {state.sourceLabel} (
-                  {state.isSynthetic ? 'Synthetisch' : 'Real'})
+                  {state.isSynthetic ? 'Simulierte Daten' : 'Echte Daten'})
                 </span>
                 <span>·</span>
                 <span>
@@ -204,7 +207,7 @@ export function DataSourceStatus({
               Quelle: {state.sourceLabel}
             </Badge>
             <Badge variant={state.isSynthetic ? 'orange' : 'neutral'} size="sm">
-              Modus: {state.isSynthetic ? 'Synthetisch' : 'Real'}
+              Modus: {state.isSynthetic ? 'Simulierte Daten' : 'Echte Daten'}
             </Badge>
             {renderHealthBadge(state)}
             {renderFreshnessBadge(state)}
@@ -229,7 +232,7 @@ export function DataSourceStatus({
         {state.sourceLabel}
       </Badge>
       <Badge variant={state.isSynthetic ? 'orange' : 'neutral'} size="sm">
-        {state.isSynthetic ? 'Synthetisch' : 'Real'}
+        {state.isSynthetic ? 'Simulierte Daten' : 'Echte Daten'}
       </Badge>
       {renderHealthBadge(state)}
       {renderFreshnessBadge(state)}
