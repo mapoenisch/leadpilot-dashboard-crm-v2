@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -50,19 +51,54 @@ describe('Sidebar (branch3)', () => {
     expect(document.activeElement).toBe(first);
   });
 
-  it('Escape schließt und stellt den Fokus auf den Menü-Trigger wieder her', async () => {
-    const onClose = vi.fn();
-    render(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <button id="mobile-menu-trigger" type="button">
-          Menü öffnen
-        </button>
-        <Sidebar isMobile isMobileDrawerOpen onCloseMobileDrawer={onClose} />
-      </MemoryRouter>,
-    );
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(onClose).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(document.activeElement).toBe(screen.getByText('Menü öffnen')));
+  describe('Fokusführung des mobilen Drawers', () => {
+    function Harness() {
+      const [open, setOpen] = useState(false);
+      return (
+        <MemoryRouter initialEntries={['/dashboard']}>
+          <button id="mobile-menu-trigger" type="button" onClick={() => setOpen(true)}>
+            Menü öffnen
+          </button>
+          <Sidebar isMobile isMobileDrawerOpen={open} onCloseMobileDrawer={() => setOpen(false)} />
+        </MemoryRouter>
+      );
+    }
+
+    async function openDrawer() {
+      const user = userEvent.setup();
+      render(<Harness />);
+      const trigger = screen.getByText('Menü öffnen');
+      trigger.focus();
+      await user.click(trigger);
+      const drawer = await screen.findByRole('dialog', { name: 'Hauptnavigation' });
+      return { user, trigger, drawer };
+    }
+
+    it('setzt den Fokus beim Öffnen in den Drawer', async () => {
+      const { drawer } = await openDrawer();
+      await waitFor(() => expect(document.activeElement).toBe(drawer));
+    });
+
+    it('Escape schließt und gibt den Fokus an den Auslöser zurück', async () => {
+      const { trigger } = await openDrawer();
+      fireEvent.keyDown(window, { key: 'Escape' });
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      expect(document.activeElement).toBe(trigger);
+    });
+
+    it('Schließen per X gibt den Fokus an den Auslöser zurück', async () => {
+      const { user, trigger } = await openDrawer();
+      await user.click(screen.getByRole('button', { name: 'Menü schließen' }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      expect(document.activeElement).toBe(trigger);
+    });
+
+    it('Klick auf den Hintergrund gibt den Fokus an den Auslöser zurück', async () => {
+      const { user, trigger } = await openDrawer();
+      await user.click(screen.getByRole('button', { name: 'Menü schließen (Hintergrund)' }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      expect(document.activeElement).toBe(trigger);
+    });
   });
 
   it('mobiler Drawer ohne Handler zeigt kein X und übersteht Nav-Klicks', async () => {
