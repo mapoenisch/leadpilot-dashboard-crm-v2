@@ -45,7 +45,7 @@ const PAGES = [
     saeulen: 1,
     want: [
       'Entwicklung der Teamgröße',
-      'Headcount-Verlauf (Gesamt-FTE)',
+      'Verlauf der Teamgröße (Gesamt-FTE)',
       'Kapazitätsübersicht & Rollenverteilung',
       'Gesamtbestand 31.12.2025',
     ],

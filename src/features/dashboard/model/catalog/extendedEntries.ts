@@ -175,7 +175,7 @@ export const EXTENDED_ENTRIES: readonly ActiveCatalogEntry[] = [
   }),
   series({
     id: 'baseline.headcount_verlauf',
-    name: 'Headcount-Verlauf',
+    name: 'Verlauf der Teamgröße',
     category: 'organisation',
     definition:
       'Personalbestand in Vollzeitäquivalenten jeweils zum Quartalsende. Bestandswerte, nicht aufsummierbar.',

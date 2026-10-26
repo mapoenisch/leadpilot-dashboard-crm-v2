@@ -17599,3 +17599,50 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-108/README.md` — Lauf A (Standard) 15 Paare, 12 verschieden, 3 Gleichstände `/dashboard` begründet (persönliches Dashboard zeigt die Texte nicht); Lauf B (klassische Ansicht, `VITE_EXECUTIVE_DASHBOARD_V2=false`) 15/15 verschieden. Überlauf `/headcount @375` (86 px) unverändert vorbestehend.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 109 – Paket H Teil 5: Teamgröße statt Headcount (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste – offener Punkt aus Auftrag 108 („Headcount“ → „Teamgröße“). Branch `claude/auftrag-109-paket-h-teil5`, Baseline `34b3824` (main nach PR #99).
+
+**Geänderte Dateien:** `src/domain/execData.ts`, `organisationData.ts`, `strategieData.ts` (nur Beschriftungen), `src/features/dashboard/model/catalog/activeEntries.ts`, `extendedEntries.ts` (nur `name`), `src/features/organisation/pages/HeadcountPage.tsx`, `src/features/simulation/components/DetailTierView.tsx`, `KpiTimeSeriesDetailView.tsx`, Tests `catalogComparison.vitest.ts`, `CombinationPicker.ui.vitest.tsx`, Skripte `captureAuftrag100Organisation.mjs`, `captureAuftrag109Screenshots.mjs`, Auftrag 109, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Headcount“ → „Teamgröße“ in Kennzahlen, Katalog, Balanced Scorecard und OKR-Diagramm; „Headcount-Verlauf“ → „Verlauf der Teamgröße“; Kostenzeile der Simulationsdetails → „Personalkosten Vertrieb / Kundenbetreuung“. Katalog-IDs (`baseline.headcount`, `baseline.headcount_verlauf`), Routen-ID `s-headcount` und Werte unverändert; Vorjahresvergleich 31.12.2024 = 8 FTE weiter belegt (Test angepasst).
+
+**Schutzbereichs-Prüfung:** `git diff 34b3824 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Prettier (geänderte Dateien) grün; Vitest 2478/2478; `npm run verify` alle Integritätssuiten grün; `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-109/README.md` — Lauf A (Standard) 15 Paare, 12 verschieden; Lauf B (klassische Ansicht) 15 Paare, 12 verschieden. Gleichstände begründet (Text außerhalb des sichtbaren Bereichs bzw. im waagerecht scrollenden Diagramm). Überlauf `/headcount @375` (86 px) unverändert vorbestehend.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+### Auftrag 109 – Review PR #100 (26.10.2026, Prüfer: Antigravity)
+
+**Prüfgegenstand:** Branch `claude/auftrag-109-paket-h-teil5`, HEAD `9cff453`, PR #100 gegen `main` (`34b3824`).
+
+**Befund:** Kein P0, kein P1. Reiner Label-Tausch gemäß Plan Abschnitt 13 (Sprachliste: „Headcount“ → „Teamgröße“, „Headcount-Verlauf“ → „Verlauf der Teamgröße“, „Personalkosten Vertrieb / Kundenbetreuung“). Schutzbereich im Diff leer, Katalog-IDs, Routen-ID und Feldnamen unverändert, Tests konsistent angepasst.
+
+**Prüfpunkte & Anmerkungen (aus Review):**
+- **Persistenz & Dashboard-Katalog:** `catalogId` unverändert (`baseline.headcount` / `baseline.headcount_verlauf`). Das Rendering in `DashboardTile.tsx` nutzt Fallback-Kaskade `tile.title ?? entry?.name ?? tile.catalogId`. Da `entry.name` aktualisiert wurde, aktualisieren sich bestehende Kacheln ohne Titel-Override dynamisch und ohne Migrationsbedarf.
+- **Kombinationen:** In `combinationRules.ts` ist `baseline.headcount` nicht als Operand hinterlegt; keine Auswirkung auf Kombinationsregeln.
+- **Barrierefreiheit (a11y):** `<DepthFlaechen>` in `HeadcountPage.tsx` erhält das präzise `regionLabel="Verlauf der Teamgröße, waagerecht scrollbar"`. Saubere Semantik mit `h1`, Panel-Headings und `aria-label="Kapazität je Bereich"`.
+- **Hinweise (P2 / P3):**
+  - *P2:* In `DetailTierView.tsx` bricht die längere Kostenzeile ohne `whitespace-nowrap` bei 375 px fließend um; die Komponente ist jedoch nicht im Screenshot-Prüfpfad enthalten.
+  - *P3:* Terminologie variiert leicht zwischen Menü/Seite („Entwicklung der Teamgröße“) und Panel/Katalog („Verlauf der Teamgröße“).
+  - *P3:* `captureAuftrag109Screenshots.mjs`: Header-Kommentar aus 107/108 kopiert; die dualen `focus`-Regexe sollten künftig strikt auf „Teamgröße“ prüfen; Gleichstände sollten über Allowlist laufen.
+  - *P3:* Platzhalter `Prüfer: unabhängig (/<agent> review)` in `ANTIGRAVITY_AUFTRAG_109_PAKET_H_TEIL5.md` auf Antigravity aktualisiert.
+
+**Schutzbereichs-Prüfung:**
+- `git diff 34b3824 -- src/simulation src/types src/context src/services/data src/features/resources`: Vollständig leer (0 Zeilen).
+
+**Automatisierte Verifikation (eigenständig gefahren auf `9cff453`):**
+- `npx tsc --noEmit`: 0 Fehler
+- Vitest: 341 Testdateien / 2.478 Tests bestanden
+- `npm run verify`: Alle Integritätssuiten grün
+- `npm run build`: Erfolgreich durchgelaufen
+
+**Screenshot-Matrix:**
+- Dokumentiert in `docs/screenshots/auftrag-109/README.md` (Lauf A und Lauf B je 12/15 verschieden, 3 Gleichstände begründet; Überlauf 375 px auf `/headcount` mit 86 px vorbestehend).
+
+**Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #100 ist aus Sicht der Qualitätssicherung bereit für den Merge durch Marc.
+
