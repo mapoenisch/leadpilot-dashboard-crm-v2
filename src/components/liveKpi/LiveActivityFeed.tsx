@@ -55,7 +55,7 @@ export const LiveActivityFeed = React.memo(function LiveActivityFeed({
 
   let statusText = '';
   if (status === 'unconfigured') {
-    statusText = 'Supabase nicht konfiguriert – keine Live-Aktivitäten.';
+    statusText = 'Live-Verbindung nicht eingerichtet – keine Live-Aktivitäten.';
   } else if (status === 'loading') {
     statusText = 'Lade Live-Aktivitäten...';
   } else if (status === 'offline') {

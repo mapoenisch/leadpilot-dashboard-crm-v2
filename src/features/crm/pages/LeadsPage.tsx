@@ -119,7 +119,7 @@ const TAB_CONFIG = {
 };
 
 const TAB_ITEMS = mkOpts(
-  'contacts:Kontakte,companies:Unternehmen,funnel_deals:Funnel Deals,audit:Supabase & Import Audit',
+  'contacts:Kontakte,companies:Unternehmen,funnel_deals:Funnel Deals,audit:Datenbank- und Import-Prüfung',
 ).map((o) => ({ id: o.value, label: o.label }));
 
 const AUDIT_NOTES: [string, string][] = [
@@ -299,7 +299,7 @@ export function LeadsPage() {
           },
           {
             t: 'Datenbank Status',
-            v: isSupabaseConfigured ? '⚡ Supabase Verbunden' : '📦 Lokaler Fallback',
+            v: isSupabaseConfigured ? '⚡ Datenbank verbunden' : '📦 Lokale Beispieldaten',
             n: 'Edge Function & RLS aktiv',
             c: isSupabaseConfigured ? 'text-success text-[18px]' : 'text-accent text-[18px]',
           },

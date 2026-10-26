@@ -132,7 +132,7 @@ describe('LeadsPage (branch)', () => {
   it('schaltet auf den Audit-Tab mit Persistenz-Zählern um', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('tab', { name: 'Supabase & Import Audit' }));
+    await user.click(screen.getByRole('tab', { name: 'Datenbank- und Import-Prüfung' }));
     expect(screen.getByText(/Supabase PostgreSQL Persistence/)).toBeInTheDocument();
     expect(screen.getByText(/Mandantengebundene Abfragen/)).toBeInTheDocument();
   });
