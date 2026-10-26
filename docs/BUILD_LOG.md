@@ -17720,6 +17720,6 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test` (342 Dateien / 2482 Tests), `npm run verify`, `npm run build`, `npm run format:check` grün.
 
-**Screenshot-Matrix:** nicht erstellt – geänderte Texte erscheinen nur in Fehler- bzw. kurzen Ladezuständen, die im Normalbetrieb nicht sichtbar sind; durch Komponententests abgedeckt.
+**Screenshot-Matrix:** `docs/screenshots/auftrag-113/README.md` – 6/6 Paare verschieden (Aktivitäten, Datenbasis; 1440/768/375), 0 px Überlauf. Nachgeholt nach Codex-Befund. Erfolgs- und Fehlerzustand mit der Attrappe nicht erreichbar, dort Komponententests.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
