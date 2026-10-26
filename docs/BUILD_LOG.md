@@ -17809,3 +17809,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
 
 **Nachtrag CI e2e (PR #110, Auftrag 118):** `visual /crm/leads` wich auf 1440/768/375 px ab (Badge „Echte Daten“ statt „Real“, 28285 px). Linux-Referenzen über `update-visual-baselines.yml` (Lauf 40406395538, Branch `visual-baselines/auftrag-118`, inkl. dreifacher Verifikation) neu erzeugt; von 30 Bildern ändern sich nur die drei `visual-crm-leads-1-*-linux.png`, Sichtprüfung ok.
+
+## Auftrag 119 – Paket I Teil 1: Vorher/Nachher-Vergleich (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 15, Punkte „Vorher/Nachher vergleichen“. Branch `claude/auftrag-119-paket-i-teil1`, Baseline `b27ed36` (main nach PR #110).
+
+**Geänderte Dateien:** `scripts/buildVergleichsseite.mjs` (neu), `scripts/captureAuftrag081Inventory.mjs` (Prüfung ignoriert eingeklappte „Technische Details“), `DataSourceStatus.tsx`, `ActivitiesView.tsx` samt Tests (CRMView, LeadsPage.provenance, ActivitiesView.branch), `docs/reviews/2026-10-06-frontend-zielschema.json`, `…-inventar-nachher.json`, `docs/screenshots/auftrag-081-nachher/README.md`, Befundregister, Auftrag 119.
+
+**Funktionale Prüfungen:** Nachher-Lauf 256/256, nach vier Anläufen (Docker-Ausfall; Harness-Falschmeldung bei eingeklappten Details; zwei echte Entwicklercodes in Kurzanzeige und Aktivitäten-Fehlertext, behoben). Ergebnis siehe Befundregister, Abschnitt „Vorher/Nachher“: axe 128 → 0, Dashboard 17/17 Kacheln, 1 neuer offener Befund (`s-headcount` 375 px, 86 px Überlauf).
+
+**Schutzbereichs-Prüfung:** `git diff b27ed36 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, `npm run verify`, `npm run build` grün; Tests `src/features/crm` und `src/components` 404/404.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-081-nachher/README.md` (Bilder lokal). Vergleichsseite für Marc lokal: `test-results/auftrag-119/vergleich.html`.
+
+**Ergebnis & Freigabestatus:** Builder fertig für Teil 1; offen: Befund `s-headcount`, Codex-Review, Marcs Sichtabnahme und die fünf praktischen Aufgaben (Marc).
