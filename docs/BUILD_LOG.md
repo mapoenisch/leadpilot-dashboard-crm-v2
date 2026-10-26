@@ -17705,3 +17705,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Nacharbeit Codex-Befunde:** Prüfskripte `scripts/verifyLiveKpiReadLayer.ts`, `verifyLiveKpiE2e.ts`, `auditV21LiveAccessibility.mjs` auf den neuen Statustext angepasst; `verifyLiveKpiReadLayer` grün. `verifyLiveKpiE2e` meldet weiterhin „user-friendly, non-technical error notice“ – bestand schon vorher auf `main` (Textprüfung scheitert am Zeilenumbruch), nicht Teil dieses Auftrags.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Visual-Baselines (Auftrag 112):** Drei CI-Referenzbilder (`visual-crm-leads-1` auf 1440/768/375 px, Linux) über `update-visual-baselines.yml` neu erzeugt (Lauf 40297449040, Branch `visual-baselines/auftrag-112`), gesichtet: Änderung nur an den neuen Beschriftungen („Datenbank verbunden“, „Datenbank- und Import-Prüfung“).
