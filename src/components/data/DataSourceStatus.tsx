@@ -55,7 +55,7 @@ function renderFreshnessBadge(state: ProvenanceState) {
   if (state.status === 'unavailable') {
     return (
       <Badge variant="red" size="sm" icon={<AlertCircle size={12} aria-hidden="true" />}>
-        Frische: Keine Daten ({state.errorCode ?? 'Fehler'})
+        Frische: Keine Daten
       </Badge>
     );
   }
