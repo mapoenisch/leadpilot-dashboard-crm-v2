@@ -17741,3 +17741,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
 
 **Prüfnachweis (Auftrag 114):** Codex-Review auf GitHub für Commit `333ddcd` abgeschlossen, keine Befunde (26.10.2026). Gate-Freigabe hängt noch an grünen Pflicht-Checks und gelösten Konversationen.
+
+## Auftrag 115 – Paket H Teil 11: Mobiles Menü bei Benutzerwechsel (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Benutzerwechsel. Branch `claude/auftrag-115-paket-h-teil11`, Baseline `ce28150` (main nach PR #106).
+
+**Geänderte Dateien:** `Layout.tsx`, `Layout.userSwitch.ui.vitest.tsx` (neu), Auftrag 115, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** Wechsel der Benutzer-ID schließt das offene mobile Menü; gleicher Benutzer lässt es offen. Test ohne Korrektur rot, mit Korrektur grün.
+
+**Schutzbereichs-Prüfung:** `git diff ce28150 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test` (343 Dateien / 2487 Tests), `npm run build` grün.
+
+**Screenshot-Matrix:** nicht erforderlich – keine sichtbare Änderung. Touch-Prüfung im Browser bleibt offen.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

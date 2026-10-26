@@ -70,6 +70,12 @@ export function Layout() {
   const { session } = useOrganization();
   const navigate = useNavigate();
 
+  // Benutzerwechsel oder Abmeldung: offenes Menü der vorherigen Sitzung nicht übernehmen.
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    setIsMobileDrawerOpen(false);
+  }, [userId]);
+
   const handleLogout = async () => {
     await logout();
     navigate('/login', { replace: true });
