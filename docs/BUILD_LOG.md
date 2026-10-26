@@ -17773,3 +17773,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** nicht erforderlich – keine Änderung an `src/`.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 117 – Paket H Teil 13: Sprachliste und Fachkürzel (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Sprachliste. Branch `claude/auftrag-117-paket-h-teil13`, Baseline `a8d3162` (main nach PR #108). Die Begriffe „Vertriebsphase“, „Teamgröße“, „Gesamtkosten pro Neukunde“, „Daten aus dem CRM“ waren bereits umgesetzt; offen war die Erklärung der Fachkürzel.
+
+**Geänderte Dateien:** `src/config/glossary.ts` (neu), `src/components/pageKit/GlossaryText.tsx` (neu), `PageHero.tsx`, `__tests__/PageHero.glossary.ui.vitest.tsx` (neu), Auftrag 117, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** ARR/MRR/EBITDA/CAC/LTV/NRR in Untertitel und Pills der Seitenköpfe erscheinen als `<abbr title>` mit Erklärung. Der `<h1>` bleibt unverändert (zuerst mit Auszeichnung getestet: zugänglicher Name der Kanalseiten-Überschrift änderte sich, 3 Tests rot; deshalb ausgenommen). Erklärung nur per Tooltip, auf Touch nicht sichtbar – als Grenze im Auftrag vermerkt.
+
+**Schutzbereichs-Prüfung:** `git diff a8d3162 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, `npm test` (344 Dateien / 2491 Tests), `npm run verify`, `npm run build` grün.
+
+**Screenshot-Matrix:** nicht erforderlich – nur `<abbr>`-Auszeichnung, kein Layout-Eingriff.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
