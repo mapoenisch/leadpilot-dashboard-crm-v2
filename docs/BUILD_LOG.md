@@ -17646,3 +17646,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #100 ist aus Sicht der Qualitätssicherung bereit für den Merge durch Marc.
 
+
+## Auftrag 110 – Paket H Teil 6: Letzte Headcount-Überschriften der Simulationsdetails (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste – sichtbare Reste von „Headcount“ in der Finanzkarte der Live-Simulation (Detail-Ebene). Branch `claude/auftrag-110-paket-h-teil6`, Baseline `ad0d433` (main nach PR #100).
+
+**Geänderte Dateien:** `src/features/simulation/components/DetailTierView.tsx` (zwei Überschriften), Test `DetailTierView.branch.ui.vitest.tsx`, Skript `captureAuftrag110Screenshots.mjs`, Auftrag 110, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Financial Analysis & P&L Model (Gross/Net Revenue, Headcount OPEX, EBITDA, Cash Flow)“ → „Finanzanalyse und GuV-Modell (Brutto-/Nettoumsatz, Personal- und Betriebskosten, EBITDA, Cashflow)“; „Headcount & Operational OPEX“ → „Personal- und Betriebskosten (OPEX)“. Werte und Feldnamen unverändert. Außerhalb der Schutzbereiche ist damit kein sichtbares „Headcount“ mehr übrig; offen bleibt nur das Herkunftslabel in `src/services/data/sourceFreshness.ts` (Schutzbereich).
+
+**Schutzbereichs-Prüfung:** `git diff ad0d433 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle Integrity-Suiten grün; `npm run build` grün; `npm run lint` 0 Warnungen; `DetailTierView`-Tests 8/8.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-110/README.md` – 3/3 Paare verschieden; Überlauf 375 px 181 px vorher wie nachher (bestand auf `main`).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
