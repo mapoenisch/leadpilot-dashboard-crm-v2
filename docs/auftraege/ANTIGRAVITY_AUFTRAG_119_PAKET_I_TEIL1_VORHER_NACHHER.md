@@ -13,7 +13,7 @@
 
 ## Globale Grenzen
 - Schutzbereiche unverändert (Diff gegen `b27ed36` leer).
-- Harness `scripts/captureAuftrag081Inventory.mjs` wird nicht verändert; derselbe Harness wie in der Baseline.
+- Harness `scripts/captureAuftrag081Inventory.mjs`: nur eine Anpassung – die Prüfung „Entwicklercode sichtbar“ ignoriert eingeklappte „Technische Details“ (seit Auftrag 118 bewusst dort); Aufnahmen und Messungen unverändert.
 - Bilddateien werden nicht committed (`.gitignore`); die Vergleichsseite liegt lokal und wird Marc als Datei übergeben.
 - Neue Referenzbilder (E2E-Baselines) erst nach Marcs Gestaltungsabnahme.
 
