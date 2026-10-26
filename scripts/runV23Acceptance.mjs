@@ -32,6 +32,7 @@ export const E2E_PARALLEL = [
   'e2e/auth.spec.ts',
   'e2e/crm-query-export.spec.ts',
   'e2e/element-clipping.acceptance.ts',
+  'e2e/mobile-menu-touch.spec.ts',
   'e2e/resources-viewer.spec.ts',
   'e2e/routes.spec.ts',
   'e2e/semantic-routes.spec.ts',
