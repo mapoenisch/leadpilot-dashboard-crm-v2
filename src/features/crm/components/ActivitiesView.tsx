@@ -52,6 +52,14 @@ function formatTimestamp(timestamp: string): string {
 // `envelope.data.activities` — derselben Quelle wie Companies, Contacts, Deals
 // und Audit. Der frühere statische INITIAL-Bestand und der Simulations-Mix
 // (Activities/Events aus dem Simulations-Store) sind ersatzlos entfallen:
+/** Technische Fehlercodes (z. B. SYNTHETIC_NOT_ALLOWED) gehören nicht in den Fließtext. */
+function readableError(error: unknown): string {
+  if (!(error instanceof Error)) return 'unbekannter Fehler';
+  return /^[A-Z][A-Z0-9_]+(:|$)/.test(error.message)
+    ? 'Die Datenquelle liefert gerade keine Daten'
+    : error.message;
+}
+
 export interface ActivitiesViewProps {
   extraHeader?: React.ReactNode;
 }
@@ -201,7 +209,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
         </div>
         <ManagementChartState
           type="error"
-          message={`Aktivitäten nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Lade die Seite neu oder versuche es später erneut. Es werden keine Ersatzdaten angezeigt.`}
+          message={`Aktivitäten nicht verfügbar: ${readableError(error)}. Lade die Seite neu oder versuche es später erneut. Es werden keine Ersatzdaten angezeigt.`}
           sourceLabel="CRM-Datenbasis"
         />
       </div>

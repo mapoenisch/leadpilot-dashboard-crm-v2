@@ -131,6 +131,18 @@ describe('ActivitiesView (branch)', () => {
     expect(screen.getByText(/Aktivitäten nicht verfügbar: boom/)).toBeInTheDocument();
   });
 
+  it('zeigt keinen technischen Fehlercode im Fließtext', () => {
+    mockedEnvelope.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error('SYNTHETIC_NOT_ALLOWED'),
+    } as never);
+    renderView();
+    expect(screen.queryByText(/SYNTHETIC_NOT_ALLOWED/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Die Datenquelle liefert gerade keine Daten/)).toBeInTheDocument();
+  });
+
   it('löst Kontakt-, Deal- und Fallback-Entitäten auf', () => {
     renderView();
     expect(screen.getByText('Acme GmbH')).toBeInTheDocument();

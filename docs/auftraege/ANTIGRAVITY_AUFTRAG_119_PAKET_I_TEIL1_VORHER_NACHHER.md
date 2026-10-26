@@ -6,6 +6,7 @@
 | Datei | Änderung |
 |---|---|
 | `src/components/data/DataSourceStatus.tsx` | Kurzanzeige „Frische: Keine Daten (CODE)“ ohne Entwicklercode (Nachlese zu Auftrag 118, vom Nachher-Lauf gefunden) |
+| `src/features/crm/components/ActivitiesView.tsx` + Tests | Fehlertext ohne Entwicklercode (SYNTHETIC_NOT_ALLOWED); Tests an Kurzanzeige angepasst |
 | `scripts/buildVergleichsseite.mjs` (neu) | liest Baseline-JSON und Nachher-JSON, schreibt eine lokale HTML-Vergleichsseite (Bild neben Bild, Messwerte je Ansicht) |
 | `docs/reviews/2026-10-06-frontend-inventar-nachher.json` | Messwerte der Nachher-Aufnahme (vom bestehenden Harness erzeugt) |
 | `docs/screenshots/auftrag-081-nachher/README.md` | textuelle Matrix (vom bestehenden Harness erzeugt); Bilder bleiben lokal |
