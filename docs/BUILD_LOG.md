@@ -17662,3 +17662,21 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-110/README.md` – 3/3 Paare verschieden; Überlauf 375 px 181 px vorher wie nachher (bestand auf `main`).
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 111 – Paket H Teil 7: Navigation nach häufigen Aufgaben gruppiert (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt „Navigation nach häufigen Aufgaben ordnen“. Branch `claude/auftrag-111-paket-h-teil7`, Baseline `e1f6935` (main nach PR #101).
+
+**Geänderte Dateien:** `src/domain/navData.ts` (`NAV_SECTIONS`, `groupNavCategories()`), `src/components/layout/Sidebar.tsx` (Gruppenüberschriften), Tests `src/domain/__tests__/navSections.vitest.ts` (neu) und `Sidebar.ui.vitest.tsx`, Skript `captureAuftrag111Screenshots.mjs`, Auftrag 111, Plan-Checkbox, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** Seitenleiste und Drawer zeigen drei Gruppen: „Tägliche Arbeit“ (Übersicht, CRM & Pipeline, Vertrieb & Marketing), „Zahlen & Planung“ (Finanzen, Organisation & Team, Strategie 2026+), „Unternehmenswissen“ (übrige Fachbereiche), darunter unverändert „Administration“ für Admins. Vertrieb & Marketing rückt damit direkt unter CRM. Alle 12 Bereiche bleiben einzeln einklappbar, keine Route entfernt; nicht zugeordnete Bereiche fielen in „Weitere Bereiche“ (Test). Gruppen tragen `role="group"` mit Überschrift als Namen.
+
+**Schutzbereichs-Prüfung:** `git diff e1f6935 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` Exit 0, alle Integrity-Suiten grün; `npx vitest run` 342 Dateien / 2482 Tests grün; `npm run build` grün; `npm run lint` 0 Warnungen.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-111/README.md` – 6/6 Paare verschieden (Dashboard und GuV, 1440/768/375, unter 1024 px mit geöffnetem Drawer), 0 px Überlauf.
+
+**Visual-Baselines:** Fünf CI-Referenzbilder (1440 px: Dashboard, CRM Leads, GuV, Markt, Materialien) über `update-visual-baselines.yml` neu erzeugt (Lauf 40273014003, Branch `visual-baselines/auftrag-111`), gesichtet: Änderung nur in der Seitenleiste.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { NAV_CATEGORIES } from '../../domain/navData';
+import { NAV_CATEGORIES, groupNavCategories } from '../../domain/navData';
 import { NavItem } from '../ui/NavItem';
 import { Icon } from '../ui/Icon';
 import { Badge } from '../ui/Badge';
@@ -159,60 +159,78 @@ export function Sidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto py-[var(--space-3)] px-[var(--space-2)]">
-        {NAV_CATEGORIES.map((cat) => {
-          const isOpen = !!openCategories[cat.id];
-          const iconName = CATEGORY_ICONS[cat.id] || 'layers';
-          const hasActiveChild = cat.items.some((item) => item.id === currentRoute.id);
-
-          return (
-            <div key={cat.id} className="mb-[4px]">
-              <button
-                type="button"
-                aria-expanded={isOpen}
-                aria-controls={`nav-category-items-${cat.id}`}
-                onClick={() => toggleCategory(cat.id)}
-                className={`w-full flex items-center justify-between rounded-md border-0 bg-transparent cursor-pointer px-[10px] py-[8px] font-body text-[12.5px] font-semibold uppercase tracking-[0.04em] select-none text-left transition-[background_150ms_ease,color_150ms_ease] hover:bg-surface ${hasActiveChild ? 'text-primary' : 'text-[var(--color-text-muted)]'}`}
-              >
-                <div className="flex items-center gap-[8px]">
-                  <Icon
-                    name={iconName}
-                    size={15}
-                    color={hasActiveChild ? 'var(--color-primary)' : 'var(--color-text-muted)'}
-                  />
-                  <span>{cat.label}</span>
-                </div>
-                <span className="text-[10px] opacity-70">{isOpen ? '▲' : '▼'}</span>
-              </button>
-
-              {isOpen && (
-                <div
-                  id={`nav-category-items-${cat.id}`}
-                  className="flex flex-col gap-[2px] mt-[2px] pl-[12px]"
-                >
-                  {cat.items.map((item) => {
-                    const routeMeta = routeForViewId[item.id];
-                    const targetPath = routeMeta ? routeMeta.path : '/dashboard';
-                    const isItemActive = currentRoute.id === item.id;
-
-                    return (
-                      <NavItem
-                        key={item.id}
-                        to={targetPath}
-                        dataTestId={`nav-item-${item.id}`}
-                        label={item.label}
-                        active={isItemActive}
-                        onClick={handleLinkClick}
-                        badge={
-                          item.id === 's-leads' ? <Badge variant="cyan">{leadCount}</Badge> : null
-                        }
-                      />
-                    );
-                  })}
-                </div>
-              )}
+        {groupNavCategories(NAV_CATEGORIES).map((section) => (
+          <div
+            key={section.id}
+            role="group"
+            aria-labelledby={`nav-section-${section.id}`}
+            className="mb-[var(--space-3)]"
+          >
+            <div
+              id={`nav-section-${section.id}`}
+              data-testid={`nav-section-${section.id}`}
+              className="px-[10px] pt-[6px] pb-[4px] font-body text-[11px] font-semibold uppercase tracking-[0.05em] text-[var(--color-text-muted)] opacity-80"
+            >
+              {section.label}
             </div>
-          );
-        })}
+            {section.categories.map((cat) => {
+              const isOpen = !!openCategories[cat.id];
+              const iconName = CATEGORY_ICONS[cat.id] || 'layers';
+              const hasActiveChild = cat.items.some((item) => item.id === currentRoute.id);
+
+              return (
+                <div key={cat.id} className="mb-[4px]">
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={`nav-category-items-${cat.id}`}
+                    onClick={() => toggleCategory(cat.id)}
+                    className={`w-full flex items-center justify-between rounded-md border-0 bg-transparent cursor-pointer px-[10px] py-[8px] font-body text-[12.5px] font-semibold uppercase tracking-[0.04em] select-none text-left transition-[background_150ms_ease,color_150ms_ease] hover:bg-surface ${hasActiveChild ? 'text-primary' : 'text-[var(--color-text-muted)]'}`}
+                  >
+                    <div className="flex items-center gap-[8px]">
+                      <Icon
+                        name={iconName}
+                        size={15}
+                        color={hasActiveChild ? 'var(--color-primary)' : 'var(--color-text-muted)'}
+                      />
+                      <span>{cat.label}</span>
+                    </div>
+                    <span className="text-[10px] opacity-70">{isOpen ? '▲' : '▼'}</span>
+                  </button>
+
+                  {isOpen && (
+                    <div
+                      id={`nav-category-items-${cat.id}`}
+                      className="flex flex-col gap-[2px] mt-[2px] pl-[12px]"
+                    >
+                      {cat.items.map((item) => {
+                        const routeMeta = routeForViewId[item.id];
+                        const targetPath = routeMeta ? routeMeta.path : '/dashboard';
+                        const isItemActive = currentRoute.id === item.id;
+
+                        return (
+                          <NavItem
+                            key={item.id}
+                            to={targetPath}
+                            dataTestId={`nav-item-${item.id}`}
+                            label={item.label}
+                            active={isItemActive}
+                            onClick={handleLinkClick}
+                            badge={
+                              item.id === 's-leads' ? (
+                                <Badge variant="cyan">{leadCount}</Badge>
+                              ) : null
+                            }
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
 
         {isAdmin && (
           <div className="mt-[var(--space-3)] pt-[var(--space-3)] border-0 border-t border-solid border-border-soft">

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Sidebar } from '../Sidebar';
@@ -61,5 +61,31 @@ describe('Sidebar', () => {
 
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(handleClose).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('Sidebar – Gruppierung (Auftrag 111)', () => {
+  it('zeigt die Gruppen in Aufgabenreihenfolge und behält alle Bereiche', () => {
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Sidebar isMobile={false} />
+      </MemoryRouter>,
+    );
+
+    const groups = screen.getAllByRole('group');
+    expect(groups.map((g) => g.getAttribute('aria-labelledby'))).toEqual([
+      'nav-section-arbeit',
+      'nav-section-zahlen',
+      'nav-section-wissen',
+    ]);
+    const arbeit = screen.getByRole('group', { name: 'Tägliche Arbeit' });
+    expect(
+      within(arbeit).getByRole('button', { name: /Vertrieb & Marketing/ }),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('group', { name: 'Unternehmenswissen' })).getByRole('button', {
+        name: /Recht & Gründung/,
+      }),
+    ).toHaveAttribute('aria-expanded', 'false');
   });
 });

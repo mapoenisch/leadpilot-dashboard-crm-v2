@@ -249,7 +249,7 @@ Teilumsetzung: Aufträge 088 und 089.
 **Dateien:** `src/components/layout/Sidebar.tsx`, `Header.tsx`, `Layout.tsx`, `src/components/ui/NavItem.tsx`, Routenmetadaten unter `src/app/`, betroffene Beschriftungen in CRM/Details/Page-Kit. Vorhandene Header-/Sidebar-/NavItem-Tests und `e2e/routes.spec.ts`, `auth.spec.ts`.
 
 - [x] (Auftrag 105) Aktuelle Seite deutlich markieren: aktiver Zustand muss sich von Hover und aufgeklapptem Abschnitt unterscheiden. Kategorie und Route bleiben nachvollziehbar.
-- [ ] Navigation nach häufigen Aufgaben ordnen, Fachbereiche einklappbar belassen; keine Route oder Administration still entfernen. Zunächst klare Gruppierung, keine zusätzliche globale Suche ohne nachgewiesenen Bedarf.
+- [x] (Auftrag 111) Navigation nach häufigen Aufgaben ordnen, Fachbereiche einklappbar belassen; keine Route oder Administration still entfernen. Zunächst klare Gruppierung, keine zusätzliche globale Suche ohne nachgewiesenen Bedarf.
 - [x] (Auftrag 105) Abmelden als sichtbare Profilaktion auf Desktop und Handy anbieten. Vorhandene Auth-Funktion nutzen; Schutz ungespeicherter Änderungen beibehalten. Unsichtbaren Hover-Button ersetzen.
 - [ ] Sprachliste erstellen und anwenden: „Vertriebsphase“, „Teamgröße“, „Gesamtkosten pro Neukunde“, „Daten aus dem CRM“. Fachkürzel ARR/MRR/EBITDA mit verständlicher Erklärung erhalten.
 - [ ] Fachliche Ebenen nicht verschweigen: historische Unternehmensdaten, CRM-Daten und Simulation verständlich unterscheiden. Entwicklerbegriffe in einen technischen Detailbereich verschieben.
