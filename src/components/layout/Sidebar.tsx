@@ -74,6 +74,19 @@ export function Sidebar({
     }
   };
 
+  // Fokus: beim Öffnen in den Drawer, bei jedem Schließen (Escape, X, Hintergrund,
+  // Link) zurück zum Menü-Auslöser. Dasselbe Verhalten für alle Schließwege.
+  const wasDrawerOpen = useRef(false);
+  useEffect(() => {
+    const open = isMobile && !!isMobileDrawerOpen;
+    if (open && !wasDrawerOpen.current) {
+      drawerRef.current?.focus();
+    } else if (!open && wasDrawerOpen.current) {
+      document.getElementById('mobile-menu-trigger')?.focus();
+    }
+    wasDrawerOpen.current = open;
+  }, [isMobile, isMobileDrawerOpen]);
+
   // Keyboard navigation for mobile drawer: Escape to close, Tab focus trap, and Focus return
   useEffect(() => {
     if (!isMobile) return;
@@ -83,9 +96,6 @@ export function Sidebar({
         if (e.key === 'Escape') {
           e.stopPropagation();
           onCloseMobileDrawer?.();
-          setTimeout(() => {
-            document.getElementById('mobile-menu-trigger')?.focus();
-          }, 0);
           return;
         }
 

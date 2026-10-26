@@ -17723,3 +17723,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-113/README.md` – 6/6 Paare verschieden (Aktivitäten, Datenbasis; 1440/768/375), 0 px Überlauf. Nachgeholt nach Codex-Befund. Erfolgs- und Fehlerzustand mit der Attrappe nicht erreichbar, dort Komponententests.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 114 – Paket H Teil 10: Fokusführung des mobilen Menüs (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Fokus beim Menüöffnen/-schließen. Branch `claude/auftrag-114-paket-h-teil10`, Baseline `e1e19f2` (main nach PR #105).
+
+**Geänderte Dateien:** `Sidebar.tsx`, `Sidebar.branch3.ui.vitest.tsx`, Auftrag 114, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** Fokus wandert beim Öffnen in den Drawer und kehrt bei Escape, X und Hintergrundklick zum Menü-Auslöser zurück (vorher nur bei Escape). Focus-Trap und `inert`-Hintergrund unverändert.
+
+**Schutzbereichs-Prüfung:** `git diff e1e19f2 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test` (342 Dateien / 2485 Tests), `npm run verify`, `npm run build`, `npm run format:check` grün.
+
+**Screenshot-Matrix:** nicht erforderlich – keine sichtbare Änderung, nur Fokusverhalten; durch Komponententests abgedeckt. Browserprüfung mit Touch und Benutzerwechsel bleibt offen.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
