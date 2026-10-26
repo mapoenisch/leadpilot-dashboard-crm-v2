@@ -17700,6 +17700,8 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run verify`, `npm run build`, `npm run format:check` grün.
 
-**Screenshot-Matrix:** nicht erzeugt – reine Textänderung ohne Layoutwirkung; Sichtprüfung der CRM-Leads-Seite erfolgt über die Visual-Baselines (CI), falls diese abweichen.
+**Screenshot-Matrix:** `docs/screenshots/auftrag-112/README.md` – 6/6 Paare verschieden (CRM Leads, Deal Pipeline; 1440/768/375), 0 px Überlauf. Nachgeholt nach Codex-Befund.
+
+**Nacharbeit Codex-Befunde:** Prüfskripte `scripts/verifyLiveKpiReadLayer.ts`, `verifyLiveKpiE2e.ts`, `auditV21LiveAccessibility.mjs` auf den neuen Statustext angepasst; `verifyLiveKpiReadLayer` grün. `verifyLiveKpiE2e` meldet weiterhin „user-friendly, non-technical error notice“ – bestand schon vorher auf `main` (Textprüfung scheitert am Zeilenumbruch), nicht Teil dieses Auftrags.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
