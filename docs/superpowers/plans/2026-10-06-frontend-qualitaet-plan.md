@@ -296,7 +296,7 @@ Zusätzlich:
 - [ ] Vorher/Nachher vergleichen: erster sichtbarer Kennzahlwert, Inhaltshöhe der unveränderten Vergleichskonfiguration, Lesbarkeit, Fehlerklarheit und Erreichbarkeit zentraler Aktionen. Kürzere Seite allein ist kein Erfolg, wenn Daten verloren gehen.
 - [ ] Vorher-Nachher-Vergleich für Marc (Vorgabe Marc, 07.10.2026): dieselben 42 Ansichten, Breiten und Themes wie in der Baseline aus Auftrag 081 (`docs/reviews/2026-10-06-frontend-inventar.json`) mit demselben Harness neu aufnehmen und Marc als ansehbare Vergleichsseite vorlegen, Bild neben Bild mit den Messwerten, nicht nur als README-Matrix.
 - [ ] Codex prüft finalen Head unabhängig; Marc nimmt die Gestaltung ab. Neue Referenzbilder erst danach übernehmen, alle erforderlichen CI-Prüfungen auf genau diesem Stand grün.
-- [ ] Release als **v2.5.0** (Vorgabe Marc, 07.10.2026); v2.4.0 ist veröffentlicht. Alte Dashboardansicht nicht vorzeitig entfernen; deren Entfernung bleibt ein eigener ausdrücklich beauftragter Schritt.
+- [x] Release als **v2.5.0** (Vorgabe Marc, 07.10.2026; Auftrag 123, Release Notes `docs/releases/V2.5.0.md`); v2.4.0 ist veröffentlicht. Alte Dashboardansicht nicht vorzeitig entfernen; deren Entfernung bleibt ein eigener ausdrücklich beauftragter Schritt.
 - [ ] Rückweg je geänderter Darstellungsgruppe dokumentieren und testen: persönliche Konfigurationen bleiben erhalten; keine Datenbankänderung für rein optischen Rollback. Kein `git reset --hard` als lokale Anleitung.
 - [ ] Marc entscheidet Merge und Veröffentlichung. Nach Auslieferung einmalige Funktionsprüfung durchführen; zusätzliche Überwachung nur auf gesonderten Auftrag.
 

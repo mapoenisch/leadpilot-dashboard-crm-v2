@@ -40,16 +40,16 @@ Auftrag 123 baut **keine Funktion**. Er macht Version, Release-Dokument, Plan un
 
 ## Tasks
 
-- [ ] T1 Version auf `2.5.0` (`npm version 2.5.0 --no-git-tag-version`), Login-Anzeige anpassen.
-- [ ] T2 Release Notes `docs/releases/V2.5.0.md` nach Vorbild `V2.4.0.md`: Neu/Behoben aus Paket 0 und A–I
+- [x] T1 Version auf `2.5.0` (`npm version 2.5.0 --no-git-tag-version`), Login-Anzeige anpassen.
+- [x] T2 Release Notes `docs/releases/V2.5.0.md` nach Vorbild `V2.4.0.md`: Neu/Behoben aus Paket 0 und A–I
       (u. a. F12 Pipelinefehler, F15 helle Kontraste, F08 Funnel, ehrliche Filter, kompakte Kacheln, Editor/Konfigurator,
       32 Bildseiten als echte Seiten, Navigation/Abmelden/Sprache, Überlauf-Korrekturen), Upgrade (keine Migration,
       keine Secrets), Rückweg (`PAGE_PRESENTATION`, Schalter je Gruppe, keine DB-Änderung), bekannte Grenzen.
       Inhalte aus BUILD_LOG und Abnahmematrix belegen, nichts erfinden.
-- [ ] T3 Plan (Abschnitt 15, Release-Punkt abhaken) und `BUILD_PLAN.md` (aktueller Release `v2.5.0`, nächster Auftrag) auf den Release-Stand bringen.
-- [ ] T4 Pflichtgates lokal: `npx tsc --noEmit`, `npm run verify`, `npm run build`, `npm run lint`, `npm run format:check`; Schutzbereichs-Diff gegen den `main`-Head vor 123 leer.
-- [ ] T5 Screenshot-Gate Login-Seite (`CLAUDE.md` §7): Vorher/Nachher bei 1440/768/375 px, Hashes verschieden, 0 px Überlauf; nur die README-Matrix committen.
-- [ ] T6 Status „veröffentlicht“ schon in diesem PR (Lehre aus v2.3.2), BUILD_LOG-Builder-Eintrag, PR öffnen.
+- [x] T3 Plan (Abschnitt 15, Release-Punkt abhaken) und `BUILD_PLAN.md` (aktueller Release `v2.5.0`, nächster Auftrag) auf den Release-Stand bringen.
+- [x] T4 Pflichtgates lokal: `npx tsc --noEmit`, `npm run verify`, `npm run build`, `npm run lint`, `npm run format:check`; Schutzbereichs-Diff gegen den `main`-Head vor 123 leer.
+- [x] T5 Screenshot-Gate Login-Seite (`CLAUDE.md` §7): Vorher/Nachher bei 1440/768/375 px, Hashes verschieden, 0 px Überlauf; nur die README-Matrix committen.
+- [x] T6 Status „veröffentlicht“ schon in diesem PR (Lehre aus v2.3.2), BUILD_LOG-Builder-Eintrag, PR öffnen.
 - [ ] T7 Codex-Review abarbeiten, Nachtrag im BUILD_LOG (reiner Doku-Commit).
 - [ ] T8 Nach Gate-Freigabe und Merge durch Marc: annotierter Tag `v2.5.0` auf dem Merge-Commit
       (`git tag -a v2.5.0 -m "LeadPilot v2.5.0"`, `git push origin v2.5.0`), GitHub-Release „LeadPilot v2.5.0“ mit den Release Notes.
