@@ -17857,3 +17857,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** entfällt (nur Tests, keine UI-Änderung).
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Offen für Paket I: `s-live-simulation` bei 375 px, Marcs fünf Aufgaben, Gestaltungsabnahme.
+
+**Nachtrag Codex-Review (PR #113, Auftrag 121):** Geprüfter Commit `3c0da73`, Ergebnis: Review abgeschlossen, keine Befunde (27.10.2026). Pflicht-Checks `test` und `e2e` liefen zum Zeitpunkt des Eintrags noch; die Gate-Freigabe gilt erst, wenn sie grün sind.
