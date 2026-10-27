@@ -17861,3 +17861,21 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Nachtrag Codex-Review (PR #113, Auftrag 121):** Geprüfter Commit `3c0da73`, Ergebnis: Review abgeschlossen, keine Befunde (27.10.2026). Pflicht-Checks `test` und `e2e` liefen zum Zeitpunkt des Eintrags noch; die Gate-Freigabe gilt erst, wenn sie grün sind.
 
 **Nachtrag CI (PR #113, Auftrag 121):** `test` schlug auf `d7fa1a0` fehl: `scripts/__tests__/runV23Acceptance.vitest.ts` verlangt jede E2E-Datei auch im Orchestrator `scripts/runV23Acceptance.mjs`; `e2e/dashboard-config-states.spec.ts` fehlte in `E2E_DASHBOARD_V2`. Ergänzt, Test lokal 11/11 grün.
+
+## Auftrag 122 – Überlauf Live-Simulation 375 px (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Restpunkt aus Auftrag 119/120: `s-live-simulation` bei 375 px, `<main>` 184 px zu breit (bestand schon in der Baseline). Branch `claude/auftrag-122-live-simulation-overflow`, Baseline `639ebb9` (main nach PR #112).
+
+**Geänderte Dateien:** `src/features/simulation/liveSimulationSeite.css` (neu), `src/features/simulation/LiveDashboardView.tsx` (Kennung und Import), `scripts/captureAuftrag122Gate.mjs` (neu), `docs/screenshots/auftrag-122/README.md`, Auftrag 122, Befundregister.
+
+**Funktionale Prüfungen:** Ursache: die Zeile „Vergleichsansicht zur Baseline“ (Beschriftung plus drei Knöpfe) war 518 px breit und umbrach nicht. Korrektur nur bei ≤ 480 px im Seiten-CSS; die Reiterleiste scrollt weiter lokal. Sichtprüfung des Nachher-Bilds (375 px, dunkel): Knöpfe stehen umgebrochen, nichts abgeschnitten.
+
+**Schutzbereichs-Prüfung:** `git diff 639ebb9 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, Prettier, `vitest run src/features/simulation` (197/197), `npm run verify` (Suiten 001–025), `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-122/README.md` (Vorher `639ebb9` gegen Nachher, 3 Breiten × 2 Themes, Bilder lokal): Überlauf 184 → 0 bei 375 px; 1440 und 768 px Bild-Hash identisch.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Die Abnahmematrix (PR #113) führt den Restpunkt noch als offen; nach beiden Merges auf „behoben“ setzen.
+
+**Nachtrag Codex-Review (PR #114, Auftrag 122):** Geprüfter Commit `74b4324`, Ergebnis: Review abgeschlossen, keine Befunde (27.10.2026). Pflicht-Checks außer `e2e` grün; `e2e` lief zum Zeitpunkt des Eintrags noch. Die Gate-Freigabe gilt erst, wenn `e2e` grün ist.

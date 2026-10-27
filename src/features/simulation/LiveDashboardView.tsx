@@ -20,6 +20,7 @@ import { MeasureManagerModal } from './components/MeasureManagerModal';
 import { MultiScenarioComparisonModal } from './components/MultiScenarioComparisonModal';
 import { DataSourceStatus } from '../../components/data/DataSourceStatus';
 import { deriveSimulationProvenanceState } from '../../services/data/sourceFreshness';
+import './liveSimulationSeite.css';
 
 export function LiveDashboardView() {
   const leads = useSimulationLeads();
@@ -64,7 +65,7 @@ export function LiveDashboardView() {
   };
 
   return (
-    <div className="flex flex-col gap-[var(--space-5)]">
+    <div data-page-key="live-simulation" className="flex flex-col gap-[var(--space-5)]">
       {/* Primary 3-Tier Navigation Header */}
       <Card padding="var(--space-3)">
         <div className="flex items-center justify-between flex-wrap gap-[var(--space-3)]">
