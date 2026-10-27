@@ -17857,3 +17857,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-122/README.md` (Vorher `639ebb9` gegen Nachher, 3 Breiten × 2 Themes, Bilder lokal): Überlauf 184 → 0 bei 375 px; 1440 und 768 px Bild-Hash identisch.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Die Abnahmematrix (PR #113) führt den Restpunkt noch als offen; nach beiden Merges auf „behoben“ setzen.
+
+**Nachtrag Codex-Review (PR #114, Auftrag 122):** Geprüfter Commit `74b4324`, Ergebnis: Review abgeschlossen, keine Befunde (27.10.2026). Pflicht-Checks außer `e2e` grün; `e2e` lief zum Zeitpunkt des Eintrags noch. Die Gate-Freigabe gilt erst, wenn `e2e` grün ist.
