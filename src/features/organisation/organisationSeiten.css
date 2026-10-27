@@ -109,6 +109,12 @@
   max-width: 760px;
   margin-inline: auto;
 }
+/* Schmale Spalte (Auftrag 120): nicht breiter als die Spalte; das Diagramm scrollt lokal. */
+@media (max-width: 480px) {
+  .pk-page[data-page-key='organisation-headcount'] [data-testid='depth-flaechen'] {
+    max-width: 100%;
+  }
+}
 
 /* Teamstruktur: Gesamtbestand in einer Zeile (Symbol, Titel, FTE), Ziel rechts. */
 .org-organigramm .pk-org > .pk-row {
