@@ -50,8 +50,8 @@ Auftrag 123 baut **keine Funktion**. Er macht Version, Release-Dokument, Plan un
 - [x] T4 Pflichtgates lokal: `npx tsc --noEmit`, `npm run verify`, `npm run build`, `npm run lint`, `npm run format:check`; Schutzbereichs-Diff gegen den `main`-Head vor 123 leer.
 - [x] T5 Screenshot-Gate Login-Seite (`CLAUDE.md` §7): Vorher/Nachher bei 1440/768/375 px, Hashes verschieden, 0 px Überlauf; nur die README-Matrix committen.
 - [x] T6 Status „veröffentlicht“ schon in diesem PR (Lehre aus v2.3.2), BUILD_LOG-Builder-Eintrag, PR öffnen.
-- [ ] T7 Codex-Review abarbeiten, Nachtrag im BUILD_LOG (reiner Doku-Commit).
-- [ ] T8 Nach Gate-Freigabe und Merge durch Marc: annotierter Tag `v2.5.0` auf dem Merge-Commit
+- [x] T7 Codex-Review abarbeiten, Nachtrag im BUILD_LOG (reiner Doku-Commit).
+- [x] T8 Nach Gate-Freigabe und Merge durch Marc: annotierter Tag `v2.5.0` auf dem Merge-Commit
       (`git tag -a v2.5.0 -m "LeadPilot v2.5.0"`, `git push origin v2.5.0`), GitHub-Release „LeadPilot v2.5.0“ mit den Release Notes.
       Kein Nachtrags-Commit für den Status. Einmalige Funktionsprüfung nach Auslieferung.
 
