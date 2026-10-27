@@ -17901,3 +17901,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-123/README.md` (Vorher `main` V2.4.0 gegen Nachher V2.5.0, Bilder lokal): Hashes je Breite verschieden, Überlauf 0 / 0 px bei 1440/768/375.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Offen: Codex-Review (T7), Merge durch Marc, danach Tag `v2.5.0` und GitHub-Release (T8, Marc).
+
+**Nachtrag Codex-Review (PR #117, Auftrag 123):** Erster Lauf auf `4d70418`: ein Befund (P2), Rückweg der Bildseiten in `docs/releases/V2.5.0.md` nannte nur eine der zwei Bedingungen (`PAGE_PRESENTATION` und `HTML_PAGES`, `ImagePage.tsx` zeigt HTML bei einer von beiden). Behoben in `aa7dde5`, Thread beantwortet und gelöst. Zweiter Lauf auf `aa7dde5`: keine Befunde (27.10.2026). Reiner Doku-Commit ohne Codeänderung; die Gate-Freigabe gilt erst bei grünen Pflicht-Checks. Tag `v2.5.0` und GitHub-Release folgen nach Merge durch Marc.
