@@ -17830,14 +17830,14 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Ziel & Kontext:** Befund aus Auftrag 119: `s-headcount` bei 375 px, `<main>` 86 px zu breit. Branch `claude/auftrag-120-headcount-overflow` (von `claude/auftrag-119-paket-i-teil1`, Baseline `719af0d`).
 
-**Geänderte Dateien:** `src/features/finanzen/components/DepthFlaechen.tsx`, Auftrag 120, Befundregister.
+**Geänderte Dateien:** `src/features/organisation/organisationSeiten.css`, `scripts/captureAuftrag120Gate.mjs`, `docs/screenshots/auftrag-120/README.md`, Auftrag 120, Befundregister.
 
-**Funktionale Prüfungen:** Probe auf dem Produktions-Build, 375 px, Seite `/organisation/headcount`: Container 420 → 293 px, `<main>` scrollWidth 461 → 375, keine Elemente mehr außerhalb von `<main>`; Diagramm bleibt lokal waagerecht scrollbar.
+**Funktionale Prüfungen:** Ursache: `organisationSeiten.css` setzt `max-width: 760px` und `margin-inline: auto` am Diagramm-Container; mit Auto-Rand schrumpft er auf die Mindestbreite 420 px (Spalte bei 375 px: 293 px). Korrektur nur bei ≤ 480 px. Erster Ansatz in `DepthFlaechen.tsx` (Codex P1: gemeinsame Komponente, Seiten `/finance/unit-economics` und `/product/performance` nicht abgedeckt) verworfen; er hatte zudem die Breite bei 1440/768 verändert.
 
 **Schutzbereichs-Prüfung:** `git diff 719af0d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 
 **Automatisierte Verifikation:** siehe PR (tsc, ESLint, Tests, verify, build).
 
-**Screenshot-Matrix:** Nachher-Aufnahme aller 256 Ansichten folgt im Abnahme-Lauf von Paket I; der CI-Check `e2e` (`visual.spec`) prüft betroffene Referenzen.
+**Screenshot-Matrix:** `docs/screenshots/auftrag-120/README.md` (Vorher `719af0d` gegen Nachher, 3 Seiten × 3 Breiten × 2 Themes, Bilder lokal): Unit Economics und Produkt-Performance Bild-Hash identisch, Teamgröße bei 1440/768 identisch, bei 375 px Überlauf 86 → 0 px, 0 px Überlauf in allen Nachher-Aufnahmen. Hinweis: Die Seite zeigt das Diagramm bei 1440/768 weiterhin nur 420 px breit (CSS-Kommentar nennt 760 px); das ist Bestand und nicht Teil dieses Auftrags.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.

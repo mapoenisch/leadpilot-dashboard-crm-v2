@@ -54,7 +54,7 @@ export function DepthFlaechen({
   const bodenHinten = base + TIEFE.y;
 
   return (
-    <div className="flex w-full min-w-0 max-w-full flex-col gap-2" data-testid="depth-flaechen">
+    <div className="flex flex-col gap-2" data-testid="depth-flaechen">
       <div
         role="region"
         aria-label={regionLabel}
