@@ -17885,3 +17885,21 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Nachtrag fünf praktische Aufgaben (Paket I, 27.10.2026):** Marc hat die fünf Aufgaben des Protokollbogens (wichtigste Zahl finden, Kennzahl verstehen, Pipeline filtern, Kachel ändern und speichern, mobil bei 375 px Funnel lesen und abmelden) im lokalen Dev-Server durchgeführt. Rückmeldung: „passt alles“. Bei keiner Aufgabe gab es Missverständnisse; die Klickwege waren logisch und selbsterklärend; beim Zoomen traten keine Umbrüche oder Layoutfehler auf; in der Mobilansicht (375 px) gab es keine Auffälligkeiten. Klickzahlen und Dauer wurden nicht einzeln erfasst. Das ist eine mündliche Gesamtrückmeldung, kein Messprotokoll. Offen für die Freigabe: Codex-Review des finalen Head, grüne Pflicht-Checks, Merge und Release v2.5.0 durch Marc.
 
 **Nachtrag Codex-Review (PR #115, Doku Paket I):** Geprüfter Commit `5fbf88c`, Ergebnis: Review abgeschlossen, keine Befunde (27.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
+
+## Auftrag 123 – Release v2.5.0 (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Plan Frontend-Qualität (Pakete 0, A–I, Aufträge 081–122) als `v2.5.0` konsistent machen: Version, Release Notes, Plan, BUILD_PLAN. Kein Funktionscode. Branch `claude/auftrag-123-release-v2-5-0-umsetzung`, Baseline `782eded` (main nach PR #116). Voraussetzungen: PR #115 gemergt, Abnahmematrix ohne offenes Gate bis auf Codex-Head und Merge, CI auf `main` grün; Go von Marc im Chat („so mach fertig“, 27.10.2026).
+
+**Geänderte Dateien:** `package.json`, `package-lock.json` (2.5.0), `src/features/auth/pages/LoginPage.tsx` (Anzeige V2.5.0), `docs/releases/V2.5.0.md` (neu), Plan Abschnitt 15 (Release-Punkt abgehakt), `BUILD_PLAN.md`, `scripts/captureAuftrag123LoginScreenshots.mjs` und `docs/screenshots/auftrag-123/README.md` (neu), Auftrag 123.
+
+**Funktionale Prüfungen:** Release Notes nur aus BUILD_LOG, Befundregister und Abnahmematrix belegt; bekannte Grenzen (Rückweg Paket C–H, Screenreader, Klickzahlen) offen genannt. Status „veröffentlicht“ steht bereits in den Release Notes (Lehre v2.3.2); der Tag folgt erst nach Merge durch Marc.
+
+**Schutzbereichs-Prüfung:** `git diff 782eded -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` ohne Warnungen, `npm run format:check`, `npm run verify` (Suiten 001–025), `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-123/README.md` (Vorher `main` V2.4.0 gegen Nachher V2.5.0, Bilder lokal): Hashes je Breite verschieden, Überlauf 0 / 0 px bei 1440/768/375.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Offen: Codex-Review (T7), Merge durch Marc, danach Tag `v2.5.0` und GitHub-Release (T8, Marc).
+
+**Nachtrag Codex-Review (PR #117, Auftrag 123):** Erster Lauf auf `4d70418`: ein Befund (P2), Rückweg der Bildseiten in `docs/releases/V2.5.0.md` nannte nur eine der zwei Bedingungen (`PAGE_PRESENTATION` und `HTML_PAGES`, `ImagePage.tsx` zeigt HTML bei einer von beiden). Behoben in `aa7dde5`, Thread beantwortet und gelöst. Zweiter Lauf auf `aa7dde5`: keine Befunde (27.10.2026). Reiner Doku-Commit ohne Codeänderung; die Gate-Freigabe gilt erst bei grünen Pflicht-Checks. Tag `v2.5.0` und GitHub-Release folgen nach Merge durch Marc.
