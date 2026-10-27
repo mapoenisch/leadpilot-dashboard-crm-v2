@@ -375,7 +375,11 @@ const CONTROLLED_DEALS = [
 ];
 
 /** Antwortet crm-query-export kontrolliert; OPTIONS-Preflights passieren mit CORS-Headern. */
-async function controlCrm(page: Page, mode: () => CrmMode): Promise<{ posts: () => number }> {
+async function controlCrm(
+  page: Page,
+  mode: () => CrmMode,
+  gate?: Promise<void>,
+): Promise<{ posts: () => number }> {
   let posts = 0;
   const cors = { 'Access-Control-Allow-Origin': '*' };
   await page.route('**/functions/v1/crm-query-export**', async (route) => {
@@ -393,6 +397,8 @@ async function controlCrm(page: Page, mode: () => CrmMode): Promise<{ posts: () 
     }
     posts += 1;
     const params = JSON.parse(request.postData() ?? '{}') as { resource?: string };
+    // Auftrag 121 (2d): hält die Antwort zurück, bis der Test sie freigibt (langsame Antwort).
+    if (gate) await gate;
     const current = mode();
     if (current === 'fehler') {
       await route.fulfill({
@@ -512,5 +518,45 @@ test.describe('CRM Pipeline: Zustände und Navigation (Auftrag 084, F12)', () =>
     await expect(page.getByRole('button', { name: 'CSV Export' })).toBeEnabled();
     // Nur die fehlgeschlagene Abfrage wird wiederholt.
     expect(crm.posts() - postsBefore).toBe(1);
+  });
+
+  // Auftrag 121 (Paket I, Punkt 2d): langsame Antwort. Während die Abfrage aussteht, zeigt die Seite
+  // einen Ladezustand (nicht „0“, kein Fehler), der Export ist gesperrt und die Navigation bleibt
+  // möglich; nach der Antwort erscheinen die Daten ohne erneutes Laden.
+  test('Langsame Antwort: Ladezustand, Navigation bleibt möglich, Daten erscheinen danach', async ({
+    page,
+  }) => {
+    const pageErrors: string[] = [];
+    page.on('pageerror', (e) => pageErrors.push(e.message));
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const crm = await controlCrm(page, () => 'erfolg', gate);
+    await page.goto('/crm/deals');
+    await expectHeading(page, /Deal Pipeline/);
+    await expect.poll(crm.posts).toBeGreaterThan(0);
+
+    const main = page.locator('main');
+    await expect(main.getByText('… Funnel Deals')).toBeVisible();
+    await expect(main.getByText('Export nach dem Laden verfügbar')).toBeVisible();
+    await expect(main.getByText(/^0 Funnel Deals$/)).toHaveCount(0);
+    await expect(main.getByText('Ergebnis nicht verfügbar')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'CSV Export' })).toBeDisabled();
+
+    // Navigation während der ausstehenden Abfrage, danach zurück.
+    await clickNav(page, /unternehmenssteckbrief/i);
+    await expect(page).toHaveURL(/\/company\/profile$/);
+    await expectHeading(page, /Unternehmenssteckbrief/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/crm\/deals/);
+
+    release();
+    await expect(main.getByText(`${CONTROLLED_DEALS.length} Funnel Deals`)).toBeVisible();
+    await expect(main.getByText('Kontrollierter Deal 084').first()).toBeVisible();
+    await expect(main.getByText('… Funnel Deals')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'CSV Export' })).toBeEnabled();
+    expect(pageErrors).toEqual([]);
   });
 });

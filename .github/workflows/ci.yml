@@ -215,7 +215,7 @@ jobs:
       # laufen gegen den regulären Build. Die Rückschaltung (=false) bekommt einen eigenen Build und
       # Nachweis; danach wieder der reguläre Build für Lighthouse.
       - name: Playwright persönliches Dashboard und Gesamtabnahme (Standardansicht, Aufträge 077/079)
-        run: npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts --workers=1
+        run: npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts e2e/dashboard-config-states.spec.ts --workers=1
         env:
           E2E_DASHBOARD_V2: 'true'
       - name: Build mit Rückschaltung auf die bisherige Ansicht (Auftrag 079)
