@@ -287,3 +287,5 @@ Nachher-Lauf mit demselben Harness (`MODE=nachher`, Stand `3708cb1`), 256 von 25
 **Offener Befund (neu):** `s-headcount` bei 375 px (dunkel und hell): `<main>` läuft 86 px über (Baseline 0). Das Verlaufsdiagramm „Teamgröße“ ist am rechten Rand abgeschnitten. Die zwei Überläufe von `s-live-simulation` (184 px) bestanden schon in der Baseline. Ursache und Korrektur gehören in einen eigenen Auftrag.
 
 **Vom Nachher-Lauf gefunden und behoben:** Entwicklercodes in der Frische-Kurzanzeige (`DataSourceStatus`) und im Fehlertext der Aktivitäten (`ActivitiesView`), Nachlese zu Auftrag 118.
+
+**Befund `s-headcount` geschlossen (Auftrag 120):** Der Container von `DepthFlaechen` wuchs auf die Mindestbreite des Diagramms (420 px) und schob `<main>` auf 461 px. Mit `w-full min-w-0 max-w-full` misst `<main>` bei 375 px wieder 375/375, das Diagramm scrollt lokal. Nachmessung per Probe auf dem Produktions-Build; die vollständige 256er-Aufnahme wird mit dem Abnahme-Lauf in Paket I wiederholt.

@@ -17825,3 +17825,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-081-nachher/README.md` (Bilder lokal). Vergleichsseite für Marc lokal: `test-results/auftrag-119/vergleich.html`.
 
 **Ergebnis & Freigabestatus:** Builder fertig für Teil 1; offen: Befund `s-headcount`, Codex-Review, Marcs Sichtabnahme und die fünf praktischen Aufgaben (Marc).
+
+## Auftrag 120 – Überlauf Teamgröße 375 px (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Befund aus Auftrag 119: `s-headcount` bei 375 px, `<main>` 86 px zu breit. Branch `claude/auftrag-120-headcount-overflow` (von `claude/auftrag-119-paket-i-teil1`, Baseline `719af0d`).
+
+**Geänderte Dateien:** `src/features/finanzen/components/DepthFlaechen.tsx`, Auftrag 120, Befundregister.
+
+**Funktionale Prüfungen:** Probe auf dem Produktions-Build, 375 px, Seite `/organisation/headcount`: Container 420 → 293 px, `<main>` scrollWidth 461 → 375, keine Elemente mehr außerhalb von `<main>`; Diagramm bleibt lokal waagerecht scrollbar.
+
+**Schutzbereichs-Prüfung:** `git diff 719af0d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** siehe PR (tsc, ESLint, Tests, verify, build).
+
+**Screenshot-Matrix:** Nachher-Aufnahme aller 256 Ansichten folgt im Abnahme-Lauf von Paket I; der CI-Check `e2e` (`visual.spec`) prüft betroffene Referenzen.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
