@@ -174,3 +174,35 @@ export async function applyDashboardConfig(
     if (!response.ok) throw new Error(`Löschen fehlgeschlagen: ${response.status}`);
   };
 }
+
+/**
+ * Auftrag 121 (Paket I, Punkt 1f): schreibt eine Zeile, die der Server über die RPC ablehnen würde
+ * (ungültige Konfiguration, neuere Schemaversion), direkt mit dem Aufräumschlüssel, damit die App
+ * ihren Umgang mit einer solchen gespeicherten Zeile zeigen muss. Setzt eine vorhandene Zeile des
+ * angemeldeten Testbenutzers voraus (zuvor `applyDashboardConfig`), nur lokal und nur für ihn.
+ * Die Wiederherstellung übernimmt die Funktion von `applyDashboardConfig`.
+ */
+export async function forceStoredRow(
+  config: unknown,
+  schemaVersion: number,
+  s: Session = session(),
+): Promise<void> {
+  assertScopedCleanup(s.url, s.userId);
+  const key = requireEnv('E2E_CLEANUP_KEY');
+  const response = await fetch(
+    `${s.url}/rest/v1/executive_dashboard_preferences?user_id=eq.${encodeURIComponent(s.userId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({ config, schema_version: schemaVersion }),
+    },
+  );
+  if (!response.ok) throw new Error(`Zeile schreiben fehlgeschlagen: ${response.status}`);
+  const rows = (await response.json()) as unknown[];
+  if (rows.length !== 1) throw new Error(`Erwartet genau eine Zeile, erhalten ${rows.length}.`);
+}

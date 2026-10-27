@@ -17841,3 +17841,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-120/README.md` (Vorher `719af0d` gegen Nachher, 3 Seiten × 3 Breiten × 2 Themes, Bilder lokal): Unit Economics und Produkt-Performance Bild-Hash identisch, Teamgröße bei 1440/768 identisch, bei 375 px Überlauf 86 → 0 px, 0 px Überlauf in allen Nachher-Aufnahmen. Hinweis: Die Seite zeigt das Diagramm bei 1440/768 weiterhin nur 420 px breit (CSS-Kommentar nennt 760 px); das ist Bestand und nicht Teil dieses Auftrags.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 121 – Paket I Teil 2: gespeicherte Dashboard-Zustände, langsame CRM-Antwort (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Abnahmematrix Paket I, Zeilen 1f und 2d. Branch `claude/auftrag-121-paket-i-teil2-abnahmematrix`, Baseline `639ebb9` (main nach PR #112).
+
+**Geänderte Dateien:** `e2e/dashboard-config-states.spec.ts` (neu), `e2e/helpers/dashboardPreferences.ts`, `e2e/crm-query-export.spec.ts`, `.github/workflows/ci.yml`, Auftrag 121, Abnahmematrix, BUILD_LOG. Kein Produktcode.
+
+**Funktionale Prüfungen:** Lokal gegen Supabase: `dashboard-config-states` und `personal-dashboard-acceptance` 21/21 (3 Breiten), gesamte `crm-query-export` 45/45. Der erste Entwurf des CRM-Tests erwartete einen falschen Ladetext („Lade Deal-Pipeline…“); tatsächlich zeigt die Seite „… Funnel Deals“ und „Export nach dem Laden verfügbar“ (korrigiert). Ungültige und zukünftige Zeilen lehnt der Server über die RPC ab und werden nur lokal mit dem Aufräumschlüssel geschrieben.
+
+**Schutzbereichs-Prüfung:** `git diff 639ebb9 -- src/simulation src/types src/context src/services/data src/features/resources` leer (kein `src/` geändert).
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint (`e2e`) ohne Befund; Prettier auf den geänderten Dateien. Pflicht-Checks in der CI.
+
+**Screenshot-Matrix:** entfällt (nur Tests, keine UI-Änderung).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Offen für Paket I: `s-live-simulation` bei 375 px, Marcs fünf Aufgaben, Gestaltungsabnahme.
