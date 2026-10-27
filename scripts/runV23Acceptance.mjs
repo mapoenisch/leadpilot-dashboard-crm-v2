@@ -43,6 +43,7 @@ export const E2E_PARALLEL = [
 export const E2E_DASHBOARD_V2 = [
   'e2e/personal-dashboard.spec.ts',
   'e2e/personal-dashboard-acceptance.spec.ts',
+  'e2e/dashboard-config-states.spec.ts',
 ];
 /** Auftrag 079: nur mit Build `VITE_EXECUTIVE_DASHBOARD_V2=false` (Rückschaltung). */
 export const E2E_DASHBOARD_ROLLBACK = ['e2e/dashboard-rollback.spec.ts'];
