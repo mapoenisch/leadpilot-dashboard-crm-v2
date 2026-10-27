@@ -17841,3 +17841,19 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-120/README.md` (Vorher `719af0d` gegen Nachher, 3 Seiten × 3 Breiten × 2 Themes, Bilder lokal): Unit Economics und Produkt-Performance Bild-Hash identisch, Teamgröße bei 1440/768 identisch, bei 375 px Überlauf 86 → 0 px, 0 px Überlauf in allen Nachher-Aufnahmen. Hinweis: Die Seite zeigt das Diagramm bei 1440/768 weiterhin nur 420 px breit (CSS-Kommentar nennt 760 px); das ist Bestand und nicht Teil dieses Auftrags.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 122 – Überlauf Live-Simulation 375 px (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Restpunkt aus Auftrag 119/120: `s-live-simulation` bei 375 px, `<main>` 184 px zu breit (bestand schon in der Baseline). Branch `claude/auftrag-122-live-simulation-overflow`, Baseline `639ebb9` (main nach PR #112).
+
+**Geänderte Dateien:** `src/features/simulation/liveSimulationSeite.css` (neu), `src/features/simulation/LiveDashboardView.tsx` (Kennung und Import), `scripts/captureAuftrag122Gate.mjs` (neu), `docs/screenshots/auftrag-122/README.md`, Auftrag 122, Befundregister.
+
+**Funktionale Prüfungen:** Ursache: die Zeile „Vergleichsansicht zur Baseline“ (Beschriftung plus drei Knöpfe) war 518 px breit und umbrach nicht. Korrektur nur bei ≤ 480 px im Seiten-CSS; die Reiterleiste scrollt weiter lokal. Sichtprüfung des Nachher-Bilds (375 px, dunkel): Knöpfe stehen umgebrochen, nichts abgeschnitten.
+
+**Schutzbereichs-Prüfung:** `git diff 639ebb9 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, Prettier, `vitest run src/features/simulation` (197/197), `npm run verify` (Suiten 001–025), `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-122/README.md` (Vorher `639ebb9` gegen Nachher, 3 Breiten × 2 Themes, Bilder lokal): Überlauf 184 → 0 bei 375 px; 1440 und 768 px Bild-Hash identisch.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Die Abnahmematrix (PR #113) führt den Restpunkt noch als offen; nach beiden Merges auf „behoben“ setzen.
