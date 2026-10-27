@@ -99,7 +99,8 @@ describe('LeadsPage Provenance & Tab Switch Reactive Tracking (P1-1)', () => {
 
     // 3. Negative contract: DataSourceStatus MUST dynamically track the deals resource and switch to unavailable with sanitized error code and 'Nicht verfügbar' timestamp
     expect(statusContainer).toHaveTextContent(/Status: Nicht verfügbar/i);
-    expect(statusContainer).toHaveTextContent(/FORBIDDEN/);
+    expect(statusContainer).toHaveTextContent(/Frische: Keine Daten/);
+    expect(statusContainer).not.toHaveTextContent(/FORBIDDEN/);
     expect(statusContainer).toHaveTextContent('Stand: Nicht verfügbar');
 
     // 4. Click back to "Kontakte" tab

@@ -1696,7 +1696,13 @@ async function openRoute(browser, state, viewport, theme, target) {
     // Codex PR #67 Runde 21: Die Baseline-Fehlercodes gelten nur im Baseline-Modus. Im Nachher-Modus
     // (Pakete A/H) darf kein Entwicklercode mehr sichtbar sein; Nutzdaten- oder Fehlerzustand wird erfasst.
     if (target.expectedState && IS_NACHHER) {
-      const mainText = await page.locator('main').first().innerText();
+      // Auftrag 119: Der Code steht bewusst im eingeklappten Bereich „Technische Details“ (Auftrag 118);
+      // sichtbar ist nur, was außerhalb geschlossener <details> liegt.
+      const mainText = await page.locator('main').first().evaluate((el) => {
+        const clone = el.cloneNode(true);
+        clone.querySelectorAll('details:not([open])').forEach((d) => d.remove());
+        return clone.textContent ?? '';
+      });
       if (mainText.includes(target.expectedState.marker)) {
         throw new Error(
           `Entwicklercode ${target.expectedState.marker} im Nachher-Stand auf ${target.id} weiterhin sichtbar.`,

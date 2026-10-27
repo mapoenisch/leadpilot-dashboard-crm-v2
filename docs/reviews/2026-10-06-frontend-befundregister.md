@@ -269,3 +269,21 @@ nennt, stimmt die Textfassung mit ihm überein; die Abweichungen liegen im Bild.
 lesen `FUNNEL.rows`, werden aber von keiner Seite eingebunden (nur Charakterisierungstests). Sie übernehmen
 die berechneten Quoten automatisch; der Waterfall formatiert eigene Prozentwerte mit Dezimalpunkt
 (`toFixed(1)`). Entscheidung über Weiterverwendung oder Entfernung gehört nicht zu Paket B.
+
+## Vorher/Nachher (Auftrag 119, Paket I)
+
+Nachher-Lauf mit demselben Harness (`MODE=nachher`, Stand `3708cb1`), 256 von 256 Aufnahmen, 0 Fehler. Messwerte: `docs/reviews/2026-10-06-frontend-inventar-nachher.json`; Vergleichsseite lokal per `node scripts/buildVergleichsseite.mjs` (`test-results/auftrag-119/vergleich.html`).
+
+| Messwert | Vorher (`7fd6e33`) | Nachher |
+|---|---|---|
+| axe serious/critical (Aufnahmen mit Befund) | 128 | 0 |
+| Konsolen-/Seitenfehler | – | 0 |
+| Aufnahmen mit Überlauf (Dokument/`<main>`) | 4 | 4 (davon 2 neu, 2 unverändert) |
+| Dashboard 1440 dunkel: Inhaltshöhe | 3423 px | 2856 px (17 von 17 Kacheln) |
+| Dashboard 1440 dunkel: Zahlen im ersten Bildschirm | 4 | 8 |
+| Dashboard 1440 dunkel: erste Zahl ab y | 661 px | 534 px |
+| Inhaltshöhe je Ansicht: kürzer / gleich / länger | – | 16 / 96 / 144 |
+
+**Offener Befund (neu):** `s-headcount` bei 375 px (dunkel und hell): `<main>` läuft 86 px über (Baseline 0). Das Verlaufsdiagramm „Teamgröße“ ist am rechten Rand abgeschnitten. Die zwei Überläufe von `s-live-simulation` (184 px) bestanden schon in der Baseline. Ursache und Korrektur gehören in einen eigenen Auftrag.
+
+**Vom Nachher-Lauf gefunden und behoben:** Entwicklercodes in der Frische-Kurzanzeige (`DataSourceStatus`) und im Fehlertext der Aktivitäten (`ActivitiesView`), Nachlese zu Auftrag 118.
