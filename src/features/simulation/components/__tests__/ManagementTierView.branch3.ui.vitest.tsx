@@ -143,7 +143,7 @@ describe('ManagementTierView (branch3)', () => {
     setMetrics({ financialMetrics: { ebitda: 20000, netCashFlow: 8000 } });
     render(<ManagementTierView {...baseProps()} />);
     expect(screen.getByText('200.000 €')).toBeInTheDocument();
-    expect(screen.getByText('7.5%')).toBeInTheDocument();
+    expect(screen.getByText('7,5%')).toBeInTheDocument();
     expect(screen.getByText('10.000 €').className).toContain('text-primary');
     expect(screen.getByText('5.000 €').className).toContain('text-accent');
     expect(screen.queryByText('Finanzwarung: Negatives EBITDA')).not.toBeInTheDocument();

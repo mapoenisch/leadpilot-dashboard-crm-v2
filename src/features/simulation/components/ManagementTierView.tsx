@@ -348,9 +348,10 @@ export const ManagementTierView: React.FC<ManagementTierViewProps> = ({
               Operating Margin
             </div>
             <div className="text-[18px] font-bold text-text">
-              {aggregation.metrics.financialMetrics?.operatingMargin.median ??
+              {(aggregation.metrics.financialMetrics?.operatingMargin.median ??
                 state.metrics?.financialMetrics?.operatingMargin ??
-                0}
+                0
+              ).toLocaleString('de-DE', { maximumFractionDigits: 1 })}
               %
             </div>
           </div>
