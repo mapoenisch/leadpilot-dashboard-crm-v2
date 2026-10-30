@@ -17905,3 +17905,25 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Nachtrag Codex-Review (PR #117, Auftrag 123):** Erster Lauf auf `4d70418`: ein Befund (P2), Rückweg der Bildseiten in `docs/releases/V2.5.0.md` nannte nur eine der zwei Bedingungen (`PAGE_PRESENTATION` und `HTML_PAGES`, `ImagePage.tsx` zeigt HTML bei einer von beiden). Behoben in `aa7dde5`, Thread beantwortet und gelöst. Zweiter Lauf auf `aa7dde5`: keine Befunde (27.10.2026). Reiner Doku-Commit ohne Codeänderung; die Gate-Freigabe gilt erst bei grünen Pflicht-Checks. Tag `v2.5.0` und GitHub-Release folgen nach Merge durch Marc.
 
 **Nachtrag Release (Auftrag 123, T8, 27.10.2026):** PR #117 durch Marc gemergt (Merge-Commit `7a66b7a`). Annotierter Tag `v2.5.0` auf `7a66b7a` gesetzt und gepusht, GitHub-Release „LeadPilot v2.5.0“ mit den Release Notes veröffentlicht (https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/releases/tag/v2.5.0). Gate R5 erfüllt; ältere Tags unverändert. Reiner Doku-Commit, kein neues Review nötig. Offen: einmalige Funktionsprüfung nach Auslieferung.
+
+## Auftrag 124 – Beschriftung der Simulationsleiste (Builder: Claude Code, 30.10.2026)
+
+**Ziel & Kontext:** Meldung von Marc: neuer Run auf `/crm/live-simulation` zeigt ARR +0 €, 0 Deals, Leads 0. Diagnose: Der Run (Seed 723666) rechnet korrekt (41 Leads, 0 Won Deals wegen voll ausgelasteter Sales-Queue, ARR bleibt auf Baseline 411.840 €); „Leads 0“ kommt aus der Simulationsleiste der separaten Live-Simulation (nicht gestartet). Korrektur: Leiste als Live-Simulation kennzeichnen. Branch `claude/fix-live-run-leer`, Baseline `1c890bb`.
+
+**Geänderte Dateien:** `src/components/layout/SimulationBar.tsx`, `src/components/layout/__tests__/SimulationBar.ui.vitest.tsx`, `scripts/captureAuftrag124Gate.mjs` (neu), `docs/screenshots/auftrag-124/README.md` (neu), Auftrag 124 (neu), BUILD_LOG.
+
+**Funktionale Prüfungen:** Engine-Nachrechnung per Vitest (Mandant `org-a`, 50 Ticks): Seed 723666 → 41 Leads / 0 Won / ARR 411.840 €, Seed 653819 → 35 Leads / 4 Won / ARR 431.340 €. Browser-Nachstellung lokal (manager-a@e2e.local): Run-Historie bestätigt beide Werte. Neuer UI-Test erst rot, dann grün; Sichtprüfung 1440 px: „LIVE-SIMULATION Leads: 0 Won: 0 ARR: 411.840 €“.
+
+**Schutzbereichs-Prüfung:** `git diff 1c890bb -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, ESLint ohne Befund, `vitest run src/components/layout` 54/54, `npm run verify`, `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-124/README.md` (Vorher `1c890bb` gegen Nachher, 3 Breiten × 2 Themes, Bilder lokal): 0 px Überlauf überall; 1440/768 px Hash verschieden, 375 px gleich (Kennzahlen mobil zugeklappt).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch Codex offen.
+
+**Nachtrag Codex-Review (PR #119, Auftrag 124):** Geprüfter Commit `91da6b6`, Ergebnis: Review abgeschlossen, keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
+
+**Nachtrag CI e2e (PR #119, Auftrag 124):** `visual /finance/p-and-l` wich auf 768 px ab (1592 px, neues Label „Live-Simulation“ in der Leiste; bei 768 px sind die Leistenkennzahlen sichtbar). Linux-Referenzen über `update-visual-baselines.yml` (Lauf 40987059379, Branch `visual-baselines/auftrag-124`, inkl. dreifacher Verifikation) neu erzeugt; von allen Bildern ändert sich nur `visual-finance-p-and-l-1-tablet-768-linux.png` (Abmessungen unverändert).
+
+**Nachtrag Codex-Review (PR #119, Auftrag 124, zweiter Lauf):** Geprüfter Commit `b2c8920` (inkl. neuer Visual-Baseline), Ergebnis: keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
