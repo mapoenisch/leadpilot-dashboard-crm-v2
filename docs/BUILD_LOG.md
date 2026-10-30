@@ -17923,3 +17923,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch Codex offen.
 
 **Nachtrag Codex-Review (PR #119, Auftrag 124):** Geprüfter Commit `91da6b6`, Ergebnis: Review abgeschlossen, keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
+
+**Nachtrag CI e2e (PR #119, Auftrag 124):** `visual /finance/p-and-l` wich auf 768 px ab (1592 px, neues Label „Live-Simulation“ in der Leiste; bei 768 px sind die Leistenkennzahlen sichtbar). Linux-Referenzen über `update-visual-baselines.yml` (Lauf 40987059379, Branch `visual-baselines/auftrag-124`, inkl. dreifacher Verifikation) neu erzeugt; von allen Bildern ändert sich nur `visual-finance-p-and-l-1-tablet-768-linux.png` (Abmessungen unverändert).
