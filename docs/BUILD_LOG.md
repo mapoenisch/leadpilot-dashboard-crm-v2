@@ -17921,3 +17921,5 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Screenshot-Matrix:** `docs/screenshots/auftrag-124/README.md` (Vorher `1c890bb` gegen Nachher, 3 Breiten × 2 Themes, Bilder lokal): 0 px Überlauf überall; 1440/768 px Hash verschieden, 375 px gleich (Kennzahlen mobil zugeklappt).
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch Codex offen.
+
+**Nachtrag Codex-Review (PR #119, Auftrag 124):** Geprüfter Commit `91da6b6`, Ergebnis: Review abgeschlossen, keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
