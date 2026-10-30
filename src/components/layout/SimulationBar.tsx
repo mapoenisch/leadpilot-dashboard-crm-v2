@@ -119,8 +119,14 @@ export function SimulationBar() {
           )}
         </div>
 
-        {/* 3. Live Metrics Summary */}
-        <div className="simulation-bar-metrics flex items-center gap-[var(--space-3)] flex-wrap text-[12px] text-[var(--color-text-muted)] shrink-0 min-w-0">
+        {/* 3. Live Metrics Summary — Werte der Live-Simulation, nicht eines Szenario-Runs */}
+        <div
+          role="group"
+          aria-label="Kennzahlen der Live-Simulation"
+          title="Werte der Live-Simulation (Starten/Pausieren), unabhängig von Szenario-Runs"
+          className="simulation-bar-metrics flex items-center gap-[var(--space-3)] flex-wrap text-[12px] text-[var(--color-text-muted)] shrink-0 min-w-0"
+        >
+          <span className="text-[11px] font-semibold uppercase tracking-wide">Live-Simulation</span>
           <div>
             Leads: <strong className="text-text">{metrics.liveLeads}</strong>
           </div>
