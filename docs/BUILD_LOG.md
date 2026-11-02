@@ -17927,3 +17927,15 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Nachtrag CI e2e (PR #119, Auftrag 124):** `visual /finance/p-and-l` wich auf 768 px ab (1592 px, neues Label „Live-Simulation“ in der Leiste; bei 768 px sind die Leistenkennzahlen sichtbar). Linux-Referenzen über `update-visual-baselines.yml` (Lauf 40987059379, Branch `visual-baselines/auftrag-124`, inkl. dreifacher Verifikation) neu erzeugt; von allen Bildern ändert sich nur `visual-finance-p-and-l-1-tablet-768-linux.png` (Abmessungen unverändert).
 
 **Nachtrag Codex-Review (PR #119, Auftrag 124, zweiter Lauf):** Geprüfter Commit `b2c8920` (inkl. neuer Visual-Baseline), Ergebnis: keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
+
+## Auftrag 125 – Lighthouse-Prüfung stabilisieren (Builder: Claude Code, 02.11.2026)
+
+**Ziel & Kontext:** `e2e` scheitert seit 02.11.2026 auf `main` und in allen PRs an Lighthouse-Performance (0,85 < 0,9), ohne Codeänderung; der Bericht war nie einsehbar (Punkt-Ordner `.lighthouseci/` wurde nicht hochgeladen).
+
+**Geänderte Dateien:** `.github/workflows/ci.yml` (`include-hidden-files: true`), `.lighthouserc.json` (`numberOfRuns: 3`), `docs/auftraege/ANTIGRAVITY_AUFTRAG_125_LIGHTHOUSE_STABILISIEREN.md`, `docs/BUILD_LOG.md`.
+
+**Schutzbereichs-Prüfung:** Kein Eingriff in `src/`; `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** Reine CI-Konfiguration; Nachweis ist der CI-Lauf des PR (Artefakt `lighthouse-report` vorhanden, `e2e`). Schwellenwerte unverändert.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Ursache der 0,85 noch offen (Bericht nach Merge sichten). Gate-Freigabe durch Codex offen.

@@ -266,4 +266,6 @@ jobs:
         with:
           name: lighthouse-report
           path: .lighthouseci/
+          # Auftrag 125: .lighthouseci ist ein Punkt-Ordner; ohne diese Option lädt upload-artifact v4 ihn nicht hoch.
+          include-hidden-files: true
           retention-days: 7

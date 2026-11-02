@@ -1,0 +1,24 @@
+# Auftrag 125 – Lighthouse-Prüfung stabilisieren und nachvollziehbar machen
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub) · **Merge:** Marc
+
+## Anlass
+Seit 02.11.2026 scheitert der Check `e2e` an `categories:performance` (gemessen 0,85, gefordert ≥ 0,9) – auf `main` (Lauf nach Merge PR #122, reine Doku) und in allen PRs. Am 30.10.2026 war derselbe Code grün. Die Ursache ist nicht sichtbar: Der Lighthouse-Bericht wird nie hochgeladen, weil `.lighthouseci/` ein Punkt-Ordner ist und `actions/upload-artifact` v4 versteckte Dateien standardmäßig auslässt (Warnung „No files were found").
+
+## Globale Grenzen
+Nur CI-Konfiguration. Keine Änderung an `src/`, Schutzbereichen oder Schwellenwerten (0,9 / 0,95 bleiben). Keine neuen Abhängigkeiten.
+
+## Ziel-Dateien
+| Datei | Änderung |
+| --- | --- |
+| `.github/workflows/ci.yml` | `include-hidden-files: true` beim Lighthouse-Artefakt |
+| `.lighthouserc.json` | `numberOfRuns` 1 → 3 (Lighthouse CI wertet den Median) |
+| `docs/BUILD_LOG.md` | Builder-Eintrag |
+
+## Tasks
+- [x] Artefakt-Upload repariert, damit der Bericht (Metriken, Ursache) einsehbar wird.
+- [x] Drei Läufe statt einem, damit ein einzelner Ausreißer keinen PR blockiert.
+- [ ] Nach dem Merge: Bericht eines Laufs sichten und die eigentliche Ursache der 0,85 klären (Folgeauftrag, falls Code betroffen).
+
+## Abnahme
+CI-Lauf dieses PR: Artefakt `lighthouse-report` enthält Berichte; `e2e` zeigt Median aus 3 Läufen.

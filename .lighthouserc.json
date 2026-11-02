@@ -6,7 +6,7 @@
       "url": [
         "http://localhost:4173/dashboard"
       ],
-      "numberOfRuns": 1,
+      "numberOfRuns": 3,
       "puppeteerScript": "scripts/lighthouse-auth.cjs",
       "puppeteerLaunchOptions": {
         "args": ["--no-sandbox", "--headless=new"]
