@@ -15,12 +15,14 @@ Nur CI-Konfiguration. Keine Änderung an `src/`, Schutzbereichen oder Schwellenw
 | `.lighthouserc.json` | `numberOfRuns` 1 → 3; `aggregationMethod: "median"` für beide Assertions (Standard wäre `optimistic`) |
 | `scripts/verifyV23ReleaseReadiness.ts` | `checkLighthouse` wertet den Median der neuesten 3 frischen Berichte statt nur den letzten |
 | `scripts/__tests__/verifyV23ReleaseReadiness.vitest.ts` | Test für die Median-Auswertung |
+| `index.html` | Preload der drei lokalen Webfonts (Ursache siehe unten) |
 | `docs/BUILD_LOG.md` | Builder-Eintrag |
 
 ## Tasks
 - [x] Artefakt-Upload repariert, damit der Bericht (Metriken, Ursache) einsehbar wird.
 - [x] Drei Läufe statt einem, damit ein einzelner Ausreißer keinen PR blockiert.
-- [ ] Nach dem Merge: Bericht eines Laufs sichten und die eigentliche Ursache der 0,85 klären (Folgeauftrag, falls Code betroffen).
+- [x] Bericht des CI-Laufs gesichtet: alle 3 Läufe identisch (Performance 0,85, CLS 0,266, übrige Werte gut). Ursache: Webfonts Inter/Space Grotesk werden spät geladen (`font-display: swap`) und verschieben `main#main-content` (Layout-Shift 0,257). Kein Rauschen, daher hilft der Median allein nicht.
+- [x] Fonts per `<link rel="preload">` in `index.html` vorab laden.
 
 ## Abnahme
 CI-Lauf dieses PR: Artefakt `lighthouse-report` enthält Berichte; `e2e` zeigt Median aus 3 Läufen.
