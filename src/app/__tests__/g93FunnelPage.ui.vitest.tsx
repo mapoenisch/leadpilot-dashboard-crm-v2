@@ -4,15 +4,15 @@ import { HTML_PAGES, PAGE_PRESENTATION } from '@/config/pagePresentation';
 import { IMAGE_PAGES } from '@/components/imagePage/imagePages';
 import { FUNNEL } from '@/domain/vertriebData';
 import { FunnelPage } from '@/features/vertrieb/pages/FunnelPage';
-import { MarketOverviewPage } from '@/features/markt/pages/MarketOverviewPage';
 
 // Auftrag 093 (Paket G1): Sales Funnel als erste echte Seite per Seitenfreigabe,
 // alle übrigen Seiten bleiben beim globalen Bildschalter.
 afterEach(cleanup);
 
 describe('G93 Sales Funnel als HTML-Seite', () => {
-  it('Seitenfreigabe nennt den Funnel, globaler Schalter bleibt Bild', () => {
-    expect(PAGE_PRESENTATION).toBe('bild');
+  // Auftrag 104 / Codex PR #91: Schalter steht auf 'html'; die Prüfung erlaubt den Rückweg 'bild'.
+  it('Seitenfreigabe nennt den Funnel, globaler Schalter hat einen gültigen Wert', () => {
+    expect(['bild', 'html']).toContain(PAGE_PRESENTATION);
     // Auftrag 094: weitere Wellen ergänzen die Liste; der Funnel bleibt freigegeben.
     expect(HTML_PAGES).toContain('sales-funnel');
     for (const key of HTML_PAGES) expect(Object.keys(IMAGE_PAGES)).toContain(key);
@@ -45,13 +45,6 @@ describe('G93 Sales Funnel als HTML-Seite', () => {
     expect(screen.getByTestId('page-hero').textContent).toContain(
       'Faktenblatt v1.2 · Stand FY 2025 · fester Stand',
     );
-  });
-
-  it('andere Seiten bleiben Bild', () => {
-    // Seit Auftrag 096 ist die SLA-Seite freigegeben; Marktübersicht bleibt Bild.
-    render(<MarketOverviewPage />);
-    expect(screen.getByTestId('image-page')).toBeInTheDocument();
-    expect(screen.getByTestId(IMAGE_PAGES['market-dach'].testId)).toBeInTheDocument();
   });
 
   // Inhaltsinventar des Original-WebP (01-sales-funnel-2025): nichts darf fehlen.

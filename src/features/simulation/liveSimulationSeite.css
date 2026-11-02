@@ -1,0 +1,12 @@
+/* Live-Simulation (Auftrag 122): schmale Spalte. Die Zeile „Vergleichsansicht zur Baseline" mit
+   den drei Umschaltknöpfen war 518 px breit und schob <main> über die Spalte hinaus (375 px:
+   184 px Überlauf). Auf schmalen Breiten dürfen Beschriftung und Knöpfe umbrechen. */
+@media (max-width: 480px) {
+  [data-page-key='live-simulation'] div:has(> .bg-background-deep) {
+    flex-wrap: wrap;
+  }
+  [data-page-key='live-simulation'] .bg-background-deep {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+}

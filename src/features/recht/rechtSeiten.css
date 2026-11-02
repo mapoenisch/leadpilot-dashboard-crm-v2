@@ -1,0 +1,27 @@
+/* Auftrag 102 (Paket G2, Welle 9): Rechtsseiten wie im Original-WebP. */
+
+/* Tabellen: großzügige Zeilen, Merkmal-/Paragraphenspalte schmal wie im Original. */
+.pk-page[data-page-key^='legal-'] .pk-table {
+  font-size: 0.9375rem;
+}
+.pk-page[data-page-key^='legal-'] .pk-table td {
+  padding: var(--space-4) var(--space-5);
+}
+.pk-page[data-page-key^='legal-'] .pk-table th {
+  padding: var(--space-4) var(--space-5);
+}
+.pk-page[data-page-key='legal-articles'] .pk-table td[data-lead='true'],
+.pk-page[data-page-key='legal-register'] .pk-table td[data-lead='true'] {
+  width: 26%;
+  font-weight: 700;
+}
+
+/* Gesellschafterliste: Nennbeträge in Festbreitenschrift, Summenzeile ohne Flächenfarbe. */
+.rcht-betrag {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pk-page[data-page-key='legal-shareholders'] .pk-table tr[data-highlight='true'] td {
+  background: transparent;
+}

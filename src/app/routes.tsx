@@ -38,7 +38,7 @@ export const APP_ROUTES = [
   {
     id: 's-live-simulation',
     path: '/crm/live-simulation',
-    title: '⚡ Live-Simulation (Ebene B)',
+    title: '⚡ Live-Simulation',
     categoryLabel: 'CRM & Pipeline',
   },
   { id: 's-leads', path: '/crm/leads', title: 'Leads & Kontakte', categoryLabel: 'CRM & Pipeline' },
@@ -199,7 +199,7 @@ export const APP_ROUTES = [
   {
     id: 's-headcount',
     path: '/organisation/headcount',
-    title: 'Headcount-Entwicklung',
+    title: 'Entwicklung der Teamgröße',
     categoryLabel: 'Organisation & Team',
   },
   {

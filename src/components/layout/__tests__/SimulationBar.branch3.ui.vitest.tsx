@@ -29,7 +29,7 @@ describe('SimulationBar (branch3)', () => {
     expect(screen.getByText('7')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('500.000 €')).toBeInTheDocument();
-    expect(screen.getByText('Unternehmenssimulation bereit (Ebene B).')).toBeInTheDocument();
+    expect(screen.getByText('Unternehmenssimulation bereit.')).toBeInTheDocument();
   });
 
   it('laufende Simulation zeigt Aktiv-Chip, Pause-Button mit Glow und Speed-Auswahl', async () => {
@@ -67,7 +67,7 @@ describe('SimulationBar (branch3)', () => {
       return () => {};
     }) as never);
     render(<SimulationBar />);
-    expect(screen.getByText('Unternehmenssimulation bereit (Ebene B).')).toBeInTheDocument();
+    expect(screen.getByText('Unternehmenssimulation bereit.')).toBeInTheDocument();
     act(() => {
       captured!(
         { title: 'Lead-Blitz', details: '5 neue Leads' } as SimulationEvent,

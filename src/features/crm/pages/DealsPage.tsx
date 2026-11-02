@@ -18,7 +18,7 @@ import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
 
 const BASE_STAGE_OPTIONS: SelectOption[] = [
-  { value: 'ALL', label: 'Alle Stages' },
+  { value: 'ALL', label: 'Alle Vertriebsphasen' },
   { value: 'Lead eingegangen', label: 'Lead eingegangen' },
   { value: 'Erstgespräch geführt', label: 'Erstgespräch geführt' },
   { value: 'Bedarfsanalyse', label: 'Bedarfsanalyse' },
@@ -32,7 +32,7 @@ const DEAL_SORT_OPTIONS: SelectOption[] = [
   { value: 'close_date', label: 'Abschlussdatum' },
   { value: 'amount', label: 'Betrag' },
   { value: 'deal_name', label: 'Deal Name' },
-  { value: 'stage', label: 'Stage' },
+  { value: 'stage', label: 'Vertriebsphase' },
 ];
 
 const ORDER_OPTIONS: SelectOption[] = [
@@ -143,7 +143,7 @@ export function DealsPage() {
     },
     {
       key: 'stage',
-      label: 'Stage',
+      label: 'Vertriebsphase',
       render: (r) => {
         const s = r.stage.toLowerCase();
         const v = s.includes('gewonnen') ? 'cyan' : s.includes('verloren') ? 'neutral' : 'orange';
@@ -187,7 +187,7 @@ export function DealsPage() {
           description="Mandantenspezifische Übersicht der Pipeline-Deals mit serverseitiger Paginierung und CSV-Export."
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
-          <Badge variant="cyan">Ebene A Pipeline</Badge>
+          <Badge variant="cyan">CRM-Daten</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{countText} Funnel Deals</Badge>
           <Button
@@ -243,9 +243,9 @@ export function DealsPage() {
             c: 'text-text font-semibold',
           },
           {
-            t: 'Gewählte Stage',
-            v: stageFilter === 'ALL' ? 'Alle Stages' : stageFilter,
-            n: `${stageOptions.length - 1} Stages definiert`,
+            t: 'Gewählte Vertriebsphase',
+            v: stageFilter === 'ALL' ? 'Alle Vertriebsphasen' : stageFilter,
+            n: `${stageOptions.length - 1} Vertriebsphasen definiert`,
             c: 'text-text font-semibold text-[20px]',
           },
           {
@@ -280,7 +280,7 @@ export function DealsPage() {
         <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
           <div className="min-w-[170px] w-full max-w-[210px]">
             <Select
-              label="Stage:"
+              label="Vertriebsphase:"
               options={stageOptions}
               value={stageFilter}
               onChange={handleStageChange}
@@ -323,14 +323,14 @@ export function DealsPage() {
         <ManagementChartState
           type="loading"
           message="Lade Deal-Pipeline aus CRM..."
-          sourceLabel="Ebene A CRM Funnel Deals"
+          sourceLabel="CRM-Daten"
           height={220}
         />
       ) : isError ? (
         <ManagementChartState
           type="error"
           message={`Integritätsfehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der CRM-Deals'}`}
-          sourceLabel="Ebene A CRM Funnel Deals"
+          sourceLabel="CRM-Daten"
           height={220}
           onRetry={() => void refetch()}
         />

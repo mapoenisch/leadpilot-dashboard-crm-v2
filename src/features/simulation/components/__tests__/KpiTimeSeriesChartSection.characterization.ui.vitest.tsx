@@ -111,7 +111,7 @@ describe('KpiTimeSeriesChartSection (characterization)', () => {
     );
     expect(container.querySelector('svg')).not.toBeNull();
     expect(screen.getByText('Zielpfad')).toBeInTheDocument();
-    expect(screen.getByText('Ebene A (01.01.26)')).toBeInTheDocument();
+    expect(screen.getByText('Unternehmensdaten (01.01.26)')).toBeInTheDocument();
   });
 
   it('PERCENT-Modus formatiert Y-Achse prozentual', () => {

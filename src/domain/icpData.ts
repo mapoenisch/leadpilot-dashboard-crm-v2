@@ -20,5 +20,7 @@ export const ICP_SPECS = {
     'Großkonzerne > 200 MA mit komplexer Enterprise-IT',
     'Reine B2C-Unternehmen ohne mehrstufigen Vertrieb',
     'Unternehmen ohne laufendes Software-Budget',
+    // Auftrag 099 (Paket G2, Welle 6): Faktenblatt v1.2 §13, Entscheidung D8 (Churn-Befund).
+    'Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern',
   ],
 };

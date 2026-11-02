@@ -10,9 +10,9 @@ export const OKR = {
       ],
     },
     {
-      title: 'O2: Effizienzsteigerung & Churn-Reduktion im Kundensegmet',
+      title: 'O2: Effizienzsteigerung & Churn-Reduktion im Kundensegment',
       krs: [
-        'KR 1: Senkung des monatlichen Account-Churns von 2,8 % auf < 1,8 %',
+        'KR 1: Senkung des monatlichen Account-Churns von 2,8 % auf ≤ 1,8 %',
         'KR 2: Verringerung der Time-to-Value von 11 Tagen auf < 7 Tage',
         'KR 3: Verbesserung des LTV:CAC Ratios von 2,7 : 1 auf ≥ 3,5 : 1',
         'KR 4: Reduzierung der monatlichen Burn Rate von 25.750 € auf < 23.000 €',
@@ -27,7 +27,7 @@ export const BSC = {
     { name: 'Finanzen', kpis: 'ARR: 411.840 €, EBITDA: −309.000 €, Bruttomarge: 64,0 %' },
     {
       name: 'Kunden',
-      kpis: 'NPS: 34, Account-Churn: 2,8 %, Mktg-CAC: 862 €, Fully-Loaded CAC: 4.447 €',
+      kpis: 'NPS: 34, Account-Churn: 2,8 %, Mktg-CAC: 862 €, Gesamtkosten pro Neukunde: 4.447 €',
     },
     {
       name: 'Interne Prozesse',
@@ -35,7 +35,7 @@ export const BSC = {
     },
     {
       name: 'Lernen & Entwicklung',
-      kpis: 'Headcount: 10 FTE (Ziel: 12 FTE), Fluktuation: 22 %, 60 % Remote',
+      kpis: 'Teamgröße: 10 FTE (Ziel: 12 FTE), Fluktuation: 22 %, 60 % Remote',
     },
   ],
 };
@@ -75,7 +75,7 @@ export const CHART_OKR = {
     'Trial-to-Paid (%)',
     'Churn (%)',
     'KI-Scoring (%)',
-    'Headcount',
+    'Teamgröße',
     'LTV:CAC (x10)',
     'Burn (T€/M)',
   ],

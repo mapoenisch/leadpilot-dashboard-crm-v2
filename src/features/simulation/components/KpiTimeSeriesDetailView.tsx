@@ -174,7 +174,7 @@ export const KpiTimeSeriesDetailView: React.FC = () => {
         {
           title: 'Personalkosten Vertrieb & CS',
           impact: `${p.salesRepCount * 8000 + p.csRepCount * 6500} €/Monat`,
-          description: 'Feste Headcount-Kosten für Vertrieb und Bestandskundenbetreuung.',
+          description: 'Feste Personalkosten für Vertrieb und Bestandskundenbetreuung.',
           badgeVariant: 'orange' as const,
         },
         {

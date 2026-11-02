@@ -70,7 +70,8 @@ describe('CRMView (067O Provenienz-Leiste)', () => {
 
     // Header must re-render reactively with error badge
     expect(await screen.findByText(/Status: Nicht verfügbar/)).toBeDefined();
-    expect(screen.getByText(/AUTH_REQUIRED/)).toBeDefined();
+    expect(screen.getByText(/Frische: Keine Daten/)).toBeDefined();
+    expect(screen.queryByText(/AUTH_REQUIRED/)).toBeNull();
   });
 
   it('observes subview-specific query for companies', async () => {
@@ -86,6 +87,7 @@ describe('CRMView (067O Provenienz-Leiste)', () => {
     });
 
     expect(await screen.findByText(/Status: Nicht verfügbar/)).toBeDefined();
-    expect(screen.getByText(/FORBIDDEN/)).toBeDefined();
+    expect(screen.getByText(/Frische: Keine Daten/)).toBeDefined();
+    expect(screen.queryByText(/FORBIDDEN/)).toBeNull();
   });
 });

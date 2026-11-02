@@ -149,7 +149,7 @@ assert(cardContent.includes('data-testid="live-kpi-card"'), 'LiveKpiCard defines
 assert(cardContent.includes('React.memo'), 'LiveKpiCard is wrapped in React.memo for isolated renders');
 assert(cardContent.includes('useLiveKpi'), 'LiveKpiCard uses useLiveKpi hook');
 assert(cardContent.includes('Ebene C'), 'LiveKpiCard renders Ebene C badge');
-assert(cardContent.includes('Supabase nicht konfiguriert'), 'LiveKpiCard displays honest unconfigured status');
+assert(cardContent.includes('Live-Verbindung nicht eingerichtet'), 'LiveKpiCard displays honest unconfigured status');
 
 const execPagePath = path.join(ROOT_DIR, 'src', 'features', 'overview', 'pages', 'ExecutiveDashboardPage.tsx');
 const execContent = fs.readFileSync(execPagePath, 'utf8');

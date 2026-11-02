@@ -70,8 +70,11 @@ export const CustomerPortfolio: React.FC = () => {
     return padTop + plotHeight - ((arr - axisMinArr) / (axisMaxArr - axisMinArr)) * plotHeight;
   };
 
-  // Y-Achsen Ticks (z. B. 4k, 8k, 12k, 16k)
-  const yTicks = [4000, 8000, 12000, 16000].filter((v) => v >= axisMinArr && v <= axisMaxArr);
+  // Y-Achsen Ticks alle 4k bis zum Achsenmaximum (Auftrag 099: Pro-Kunden bis 20.040 € ARR).
+  const yTicks = Array.from(
+    { length: Math.floor(axisMaxArr / 4000) },
+    (_, i) => (i + 1) * 4000,
+  ).filter((v) => v >= axisMinArr && v <= axisMaxArr);
   // X-Achsen Ticks (z. B. 6, 9, 12, 15, 18)
   const xTicks = [6, 8, 10, 12, 14, 16, 18].filter((v) => v >= axisMinNutzer && v <= axisMaxNutzer);
 

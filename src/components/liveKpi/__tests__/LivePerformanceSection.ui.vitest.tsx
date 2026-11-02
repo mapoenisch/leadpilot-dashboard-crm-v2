@@ -34,8 +34,8 @@ describe('LivePerformanceSection', () => {
 
     expect(screen.getByTestId('live-performance-section')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Live Performance/i })).toBeInTheDocument();
-    expect(screen.getByText('Ebene C · Echtzeit-Steuerung')).toBeInTheDocument();
-    expect(screen.getByText('Ebene C · bestätigte Live-Ist-Daten')).toBeInTheDocument();
+    expect(screen.getByText('Live-Daten · Echtzeit-Steuerung')).toBeInTheDocument();
+    expect(screen.getByText('Live-Daten · bestätigte Live-Ist-Daten')).toBeInTheDocument();
     expect(screen.getByText('Realtime Stream')).toBeInTheDocument();
     expect(screen.getByText('Multi-KPI Pipeline')).toBeInTheDocument();
   });

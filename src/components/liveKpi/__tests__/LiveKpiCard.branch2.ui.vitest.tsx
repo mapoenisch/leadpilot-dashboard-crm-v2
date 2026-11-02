@@ -99,6 +99,6 @@ describe('LiveKpiCard (branch2)', () => {
     expect(container.querySelector('.meine-klasse.live-performance-panel')).not.toBeNull();
     expect(screen.getByText('Quelle: n8n / Live-Feed')).toBeInTheDocument();
     expect(screen.getByText('Stand: Ausstehend')).toBeInTheDocument();
-    expect(screen.getByText('Warte auf Live-Events (Ebene C)...')).toBeInTheDocument();
+    expect(screen.getByText('Warte auf Live-Events (Live-Daten)...')).toBeInTheDocument();
   });
 });

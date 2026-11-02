@@ -17,7 +17,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: 'CRM & Pipeline',
     status: 'live',
     items: [
-      { id: 's-live-simulation', label: '⚡ Live-Simulation (Ebene B)' },
+      { id: 's-live-simulation', label: '⚡ Live-Simulation' },
       { id: 's-leads', label: 'Leads & Kontakte' },
       { id: 's-companies', label: 'Unternehmen (Accounts)' },
       { id: 's-deals', label: 'Deal Pipeline' },
@@ -93,7 +93,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: 'Organisation & Team',
     status: 'live',
     items: [
-      { id: 's-headcount', label: 'Headcount-Entwicklung' },
+      { id: 's-headcount', label: 'Entwicklung der Teamgröße' },
       { id: 's-hr', label: 'HR-Kennzahlen' },
       { id: 's-team', label: 'Teamstruktur & Engpässe' },
     ],
@@ -125,3 +125,60 @@ export const NAV_CATEGORIES: NavCategory[] = [
     ],
   },
 ];
+
+// Auftrag 111 (Paket H): Fachbereiche nach häufigen Aufgaben gruppiert. Die
+// Bereiche bleiben einzeln einklappbar; die Gruppen ordnen nur die Reihenfolge.
+export interface NavSection {
+  id: string;
+  label: string;
+  categoryIds: string[];
+}
+
+export const NAV_SECTIONS: NavSection[] = [
+  { id: 'arbeit', label: 'Tägliche Arbeit', categoryIds: ['uebersicht', 'crm', 'vertrieb'] },
+  {
+    id: 'zahlen',
+    label: 'Zahlen & Planung',
+    categoryIds: ['finanzen', 'organisation', 'strategie'],
+  },
+  {
+    id: 'wissen',
+    label: 'Unternehmenswissen',
+    categoryIds: ['unternehmen', 'produkt', 'markt', 'kunden', 'recht', 'resources'],
+  },
+];
+
+export interface GroupedNavSection {
+  id: string;
+  label: string;
+  categories: NavCategory[];
+}
+
+// Kein Bereich darf durch die Gruppierung verschwinden: nicht zugeordnete
+// Kategorien landen in „Weitere Bereiche“ am Ende.
+export function groupNavCategories(
+  categories: NavCategory[] = NAV_CATEGORIES,
+  sections: NavSection[] = NAV_SECTIONS,
+): GroupedNavSection[] {
+  const byId = new Map(categories.map((cat) => [cat.id, cat]));
+  const assigned = new Set<string>();
+  const grouped: GroupedNavSection[] = [];
+
+  for (const section of sections) {
+    const sectionCategories = section.categoryIds.flatMap((id) => {
+      const cat = byId.get(id);
+      if (!cat || assigned.has(id)) return [];
+      assigned.add(id);
+      return [cat];
+    });
+    if (sectionCategories.length > 0) {
+      grouped.push({ id: section.id, label: section.label, categories: sectionCategories });
+    }
+  }
+
+  const rest = categories.filter((cat) => !assigned.has(cat.id));
+  if (rest.length > 0) {
+    grouped.push({ id: 'weitere', label: 'Weitere Bereiche', categories: rest });
+  }
+  return grouped;
+}

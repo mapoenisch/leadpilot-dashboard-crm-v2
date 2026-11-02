@@ -26,7 +26,7 @@ export const HEADCOUNT = {
 
 export const HR = {
   metrics: [
-    { label: 'Headcount (31.12.2025)', val: '10 FTE (2024: 8 FTE)' },
+    { label: 'Teamgröße (31.12.2025)', val: '10 FTE (2024: 8 FTE)' },
     { label: 'Ø Personalbestand 2025', val: '9 FTE' },
     { label: 'Fluktuation 2025', val: '22 % (4 Zugänge, 2 Abgänge · Benchmark < 10%)' },
     { label: 'Ø AG-Gesamtkosten je FTE', val: '54.400 € / Jahr' },

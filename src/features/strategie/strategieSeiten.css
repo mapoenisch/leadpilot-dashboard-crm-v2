@@ -1,0 +1,93 @@
+/* Auftrag 101 (Paket G2, Welle 8): Strategieseiten wie im Original-WebP. */
+
+/* OKRs: Objectives mit leuchtender Kante links. */
+.pk-panel.str-objective {
+  border-left: 4px solid var(--cyan);
+}
+
+/* BSC: leuchtende Karten, Markierung „Steuerung“ rechts neben dem Titel. */
+.str-bsc-card {
+  border: 1px solid color-mix(in srgb, var(--cyan) 70%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--cyan) 22%, transparent);
+  padding: var(--space-5);
+}
+.str-bsc-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+
+/* Wachstumstreiber: Titel und Hinweis links, Balken mittig, Basis und Effekt rechts. */
+.str-hebel {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.str-hebel__zeile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'titel wert'
+    'hinweis hinweis'
+    'balken balken';
+  gap: 4px var(--space-4);
+  align-items: baseline;
+}
+.str-hebel__titel {
+  grid-area: titel;
+  font-size: 0.9375rem;
+  color: var(--color-text);
+}
+.str-hebel__wert {
+  grid-area: wert;
+  text-align: right;
+  white-space: nowrap;
+}
+.str-hebel__wert strong {
+  font-size: 1rem;
+  color: var(--cyan);
+}
+.str-hebel__basis {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+.str-hebel__hinweis {
+  grid-area: hinweis;
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+.str-hebel__balken {
+  grid-area: balken;
+  display: block;
+  overflow: visible;
+}
+.str-hebel__fill {
+  fill: var(--cyan);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--cyan) 60%, transparent));
+}
+
+@media (min-width: 64rem) {
+  .str-hebel__zeile {
+    grid-template-columns: minmax(14rem, 0.8fr) minmax(0, 1.4fr) auto;
+    grid-template-areas:
+      'titel titel wert'
+      'hinweis balken wert';
+  }
+}
+
+@media (max-width: 30rem) {
+  .str-hebel__zeile {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'titel' 'wert' 'hinweis' 'balken';
+  }
+  .str-hebel__wert {
+    text-align: left;
+    white-space: normal;
+  }
+}

@@ -9,7 +9,6 @@ import { CompanyProfilePage } from '@/features/overview/pages/CompanyProfilePage
 import { YearHighlightsPage } from '@/features/overview/pages/YearHighlightsPage';
 import { FeaturesPage } from '@/features/produkt/pages/FeaturesPage';
 import { RoadmapPage } from '@/features/produkt/pages/RoadmapPage';
-import { PricingPage } from '@/features/produkt/pages/PricingPage';
 
 // Auftrag 095 (Paket G2, Welle 2): Steckbrief, Jahres-Highlights, Produkt-Funktionsweise und
 // Roadmap als echte Seiten nach dem Original-WebP; übrige Bildseiten bleiben beim Schalter.
@@ -44,11 +43,6 @@ describe('G95 Übersicht und Produkt als HTML-Seiten', () => {
     expect(
       container.querySelector(`.pk-page[data-page-key="${key}"]`)?.getAttribute('data-ruhig'),
     ).toBe('true');
-  });
-
-  it('Preismodell bleibt Bild', () => {
-    const { container } = renderMain(PricingPage);
-    expect(container.querySelector('[data-testid="image-page"]')).not.toBeNull();
   });
 
   it('Steckbrief: Register-Tabelle vollständig, Kapitalerhöhung als Chip', () => {

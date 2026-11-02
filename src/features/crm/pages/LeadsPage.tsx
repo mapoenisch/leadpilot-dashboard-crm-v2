@@ -58,7 +58,7 @@ const COL_COMPANIES: CrmColumn<R>[] = [
 
 const COL_DEALS: CrmColumn<R>[] = [
   col('dealName', 'Deal Name', (r) => bStrong(r.dealName)),
-  col('stage', 'Stage', (r) => {
+  col('stage', 'Vertriebsphase', (r) => {
     const s = String(r.stage ?? '');
     const v = s.includes('gewonnen') ? 'cyan' : s.includes('verloren') ? 'neutral' : 'orange';
     return <Badge variant={v}>{s}</Badge>;
@@ -107,17 +107,19 @@ const TAB_CONFIG = {
     sort: 'close_date',
     order: 'desc',
     fKey: 'stage',
-    fLabel: 'Stage:',
-    sorts: mkOpts('close_date:Abschlussdatum,amount:Betrag,deal_name:Deal Name,stage:Stage'),
+    fLabel: 'Vertriebsphase:',
+    sorts: mkOpts(
+      'close_date:Abschlussdatum,amount:Betrag,deal_name:Deal Name,stage:Vertriebsphase',
+    ),
     filters: mkOpts(
-      'ALL:Alle Stages,Lead eingegangen,Erstgespräch geführt,Bedarfsanalyse,Angebot erstellt,Verhandlung,Deal gewonnen,Deal verloren',
+      'ALL:Alle Vertriebsphasen,Lead eingegangen,Erstgespräch geführt,Bedarfsanalyse,Angebot erstellt,Verhandlung,Deal gewonnen,Deal verloren',
     ),
     cols: COL_DEALS,
   },
 };
 
 const TAB_ITEMS = mkOpts(
-  'contacts:Kontakte,companies:Unternehmen,funnel_deals:Funnel Deals,audit:Supabase & Import Audit',
+  'contacts:Kontakte,companies:Unternehmen,funnel_deals:Funnel Deals,audit:Datenbank- und Import-Prüfung',
 ).map((o) => ({ id: o.value, label: o.label }));
 
 const AUDIT_NOTES: [string, string][] = [
@@ -228,7 +230,7 @@ export function LeadsPage() {
           description="Mandantenspezifischer CRM-Datenbestand mit serverseitiger Paginierung, Whitelist-Filterung und CSV-Export."
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
-          <Badge variant="cyan">Ebene A CRM</Badge>
+          <Badge variant="cyan">CRM-Daten</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           {!isAudit && (
             <>
@@ -297,7 +299,7 @@ export function LeadsPage() {
           },
           {
             t: 'Datenbank Status',
-            v: isSupabaseConfigured ? '⚡ Supabase Verbunden' : '📦 Lokaler Fallback',
+            v: isSupabaseConfigured ? '⚡ Datenbank verbunden' : '📦 Lokale Beispieldaten',
             n: 'Edge Function & RLS aktiv',
             c: isSupabaseConfigured ? 'text-success text-[18px]' : 'text-accent text-[18px]',
           },
@@ -393,7 +395,7 @@ export function LeadsPage() {
         <ManagementChartState
           type={stateInfo.type}
           message={stateInfo.msg}
-          sourceLabel="Ebene A CRM"
+          sourceLabel="CRM-Daten"
           height={220}
           onRetry={stateInfo.type === 'error' ? () => void refetch() : undefined}
         />

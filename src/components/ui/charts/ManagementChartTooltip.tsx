@@ -20,7 +20,7 @@ export const ManagementChartTooltip: React.FC<ManagementChartTooltipProps> = ({
   active,
   payload,
   label,
-  sourceLabel = 'Ebene A Baseline',
+  sourceLabel = 'Unternehmensdaten 2025',
   unit,
   valueFormatter = (val) => formatManagementMetric(val, unit),
 }) => {

@@ -113,7 +113,7 @@ const BASELINE_ENTRIES: ActiveCatalogEntry[] = [
   }),
   baselineValue({
     id: 'baseline.fully_loaded_cac',
-    name: 'Fully-Loaded CAC',
+    name: 'Gesamtkosten pro Neukunde',
     category: 'vertrieb_crm',
     definition: 'Gesamtkosten Vertrieb und Marketing ÷ Neukunden im Geschäftsjahr.',
     unit: 'EUR je Neukunde',
@@ -124,7 +124,7 @@ const BASELINE_ENTRIES: ActiveCatalogEntry[] = [
   }),
   baselineValue({
     id: 'baseline.headcount',
-    name: 'Headcount',
+    name: 'Teamgröße',
     category: 'organisation',
     definition: 'Personalbestand in Vollzeitäquivalenten.',
     unit: 'FTE',

@@ -1,4 +1,4 @@
-import { Menu, Moon, Sun } from 'lucide-react';
+import { LogOut, Menu, Moon, Sun } from 'lucide-react';
 import type { ThemeMode } from './Layout';
 
 export interface HeaderProps {
@@ -9,6 +9,10 @@ export interface HeaderProps {
   isMobile?: boolean;
   theme?: ThemeMode;
   onToggleTheme?: () => void;
+  /** Angemeldete Person (E-Mail aus der Sitzung); ohne Angabe entfällt der Profilbereich. */
+  userEmail?: string;
+  userRoleLabel?: string;
+  onLogout?: () => void;
 }
 
 export function Header({
@@ -19,6 +23,9 @@ export function Header({
   isMobile = false,
   theme = 'dark',
   onToggleTheme,
+  userEmail,
+  userRoleLabel,
+  onLogout,
 }: HeaderProps) {
   return (
     <header className="border-0 app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[var(--color-shell-header)] backdrop-blur-sm px-[var(--space-4)] z-10">
@@ -66,19 +73,44 @@ export function Header({
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         )}
-        <div className="flex items-center gap-[10px] min-w-0">
-          <div className="flex items-center justify-center shrink-0 rounded-full bg-surface-raised text-primary font-bold text-[13px] w-[32px] h-[32px]">
-            MP
-          </div>
-          <div className="header-user-details text-[12px] min-w-0">
-            <div className="text-text font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
-              Marc Pönisch
+        {userEmail && (
+          <div className="flex items-center gap-[10px] min-w-0">
+            <div
+              aria-hidden="true"
+              className="flex items-center justify-center shrink-0 rounded-full bg-surface-raised text-primary font-bold text-[13px] w-[32px] h-[32px] uppercase"
+            >
+              {userEmail.charAt(0)}
             </div>
-            <div className="header-user-role whitespace-nowrap overflow-hidden text-ellipsis text-[10.5px] text-[var(--color-text-muted)]">
-              CEO & Gründer · LeadPilot GmbH
+            <div className="header-user-details text-[12px] min-w-0">
+              <div className="text-text font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                {userEmail}
+              </div>
+              {userRoleLabel && (
+                <div className="header-user-role whitespace-nowrap overflow-hidden text-ellipsis text-[10.5px] text-[var(--color-text-muted)]">
+                  {userRoleLabel}
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
+        {/* Paket H (Auftrag 105): Abmelden ist eine dauerhaft sichtbare Profilaktion
+            (vorher: unsichtbarer Hover-Button unten rechts). Auf dem Handy bleibt das
+            Symbol sichtbar, der Name steht im zugänglichen Namen. */}
+        {onLogout && (
+          <button
+            type="button"
+            onClick={onLogout}
+            aria-label="Abmelden"
+            data-testid="logout-button"
+            // Auftrag 077: ungespeicherte Dashboard-Änderungen fragen vor dem Abmelden nach.
+            data-leave-guard=""
+            title={userEmail ? `Angemeldet als ${userEmail} — Abmelden` : 'Abmelden'}
+            className="inline-flex items-center gap-[6px] shrink-0 cursor-pointer rounded-md border border-solid border-border bg-transparent px-[10px] py-[6px] text-[12.5px] font-medium text-text transition-colors hover:bg-surface-raised"
+          >
+            <LogOut size={16} className="text-primary" aria-hidden="true" />
+            <span className="header-logout-label">Abmelden</span>
+          </button>
+        )}
       </div>
 
       <style>{`
@@ -95,7 +127,8 @@ export function Header({
              nur Avatar-Kreis bleibt (gängiges responsives Muster). Schafft
              Platz für den Theme-Toggle, ohne dass vorher einzeilige Header
              neu umbrechen. Die alte 340px-Regel ist darin aufgegangen. */
-          .header-user-details {
+          .header-user-details,
+          .header-logout-label {
             display: none !important;
           }
         }

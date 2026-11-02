@@ -275,7 +275,7 @@ export const ScenarioManageTab: React.FC<ScenarioManageTabProps> = ({
             />
 
             <NumberStepper
-              label="Sales Reps (Headcount)"
+              label="Vertriebsmitarbeitende (Teamgröße)"
               value={formParams.salesRepCount || 2}
               min={1}
               max={10}
@@ -285,7 +285,7 @@ export const ScenarioManageTab: React.FC<ScenarioManageTabProps> = ({
             />
 
             <NumberStepper
-              label="CS Reps (Headcount)"
+              label="Kundenbetreuende (Teamgröße)"
               value={formParams.csRepCount || 2}
               min={1}
               max={10}

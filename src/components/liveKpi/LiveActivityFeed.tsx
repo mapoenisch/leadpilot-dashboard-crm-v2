@@ -55,7 +55,7 @@ export const LiveActivityFeed = React.memo(function LiveActivityFeed({
 
   let statusText = '';
   if (status === 'unconfigured') {
-    statusText = 'Supabase nicht konfiguriert – keine Live-Aktivitäten.';
+    statusText = 'Live-Verbindung nicht eingerichtet – keine Live-Aktivitäten.';
   } else if (status === 'loading') {
     statusText = 'Lade Live-Aktivitäten...';
   } else if (status === 'offline') {
@@ -88,7 +88,7 @@ export const LiveActivityFeed = React.memo(function LiveActivityFeed({
                 Live-Aktivitäten
               </h3>
               <span className="text-[11px] text-[var(--color-text-dim)]">
-                Letzte Updates (max. 10) · Ebene C
+                Letzte Updates (max. 10) · Live-Daten
               </span>
             </div>
             <Badge variant={status === 'live' ? 'mint' : 'neutral'} className="text-[9.5px]">

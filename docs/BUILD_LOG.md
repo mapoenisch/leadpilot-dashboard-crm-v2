@@ -17172,3 +17172,758 @@ Stand vor Nacharbeit: `691eb5b`, dazu Merge von `main` (`6fe632e`, nur BUILD_LOG
 **Nacharbeit CI e2e (16.10.2026):** `visual /finance/p-and-l` schlug erwartungsgemäß fehl (Bild → HTML). Die Baselines wurden in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Lauf 38936413699), per Sichtprüfung kontrolliert und nur die drei Linux-Bilder der GuV übernommen.
 
 **Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 16.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+## Auftrag 098 – Paket G2, Welle 5: Markt & Wettbewerb als echte Seiten (Builder: Claude Code, 18.10.2026)
+
+**Ziel & Kontext:** Fünfte G2-Welle nach dem Vorgehen von 093–097 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur): Marktlage, Wettbewerbslandschaft und SWOT-Analyse erscheinen als echte HTML-Seiten (`HTML_PAGES`), übrige Bildseiten bleiben Bild. Erster Teil der Gruppe Kunden/Markt; die vier Kundenseiten folgen als eigene Welle. Branch `claude/auftrag-098-g2-welle-5` von `main` `1373259` (nach Merge PR #84).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/markt/pages/MarketOverviewPage.tsx`, `CompetitionPage.tsx`, `SwotPage.tsx`, neu `src/features/markt/marktSeiten.css`; `src/domain/marktData.ts`; `src/features/markt/components/SwotCompass.tsx`; `src/features/dashboard/model/catalog/inventoryEntries.ts`; Test `g93FunnelPage.ui` (Gegenprobe ICP-Seite), neu `g98MarktSeiten.ui`; `e2e/semantic-routes.spec.ts` (`HTML_PAGE_ROUTES`); `scripts/captureAuftrag098Markt.mjs`; `docs/screenshots/auftrag-098/README.md`; Auftrag 098; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 §11 und Abschnitt D abgeglichen. Angeglichen: D1 – Trial-to-Paid-Ziel „18 % → 26 %“ statt 25 % in SWOT-Seite und SWOT-Kompass (Handlungstext und Screenreader-Text); D6 – Marktanteile als „Europa“ statt „Europa/DACH“ (Seitentitel, Diagrammtitel und -untertitel, Datensatzlabel, Katalogtitel). Nachgebaut: Marktlage-Tabelle ohne Panel-Kopf mit oranger LeadPilot-Zeile, Marktanteile als 3D-Säulen (LeadPilot orange, „< 0,1 %“), Anbietertabelle mit Chips wie im Original (nur Marktführer cyan), vier SWOT-Quadranten mit allen 15 Punkten. Abweichungen vom Bild: LeadPilot-Säule maßstabsgetreu flach; Stärken-Symbol Hantel statt Bizeps (kein passendes Symbol in der vorhandenen lucide-Version). Navigation nennt noch die alten Kurztitel (Paket H).
+
+**Schutzbereichs-Prüfung:** `git diff 1373259 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün; Vitest gesamt 334 Dateien, 2390 Tests grün; `npm run build` grün; ESLint/Prettier für geänderte Dateien sauber.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-098/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/6/0, 0 px Überlauf, axe 0). Anmeldung mit der Seed-Nutzerin der lokalen Supabase.
+
+**Nacharbeit CI e2e (18.10.2026):** `visual /market/overview` schlug erwartungsgemäß fehl (Bild → HTML). Die Baselines wurden in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/098`, Lauf 39163459523), per Sichtprüfung kontrolliert und nur die drei Linux-Bilder der Marktübersicht übernommen; alle übrigen Snapshots identisch.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+**Nacharbeit Codex-Befund (18.10.2026):**
+
+- Freigabestatus widersprüchlich: PR-Beschreibung an Auftrag und BUILD_LOG angeglichen (Sichtabnahme Marc 18.10.2026 erteilt, offen nur Codex-Review).
+- Screenshot-Vollständigkeit: Der Harness misst jetzt je Aufnahme „abgeschnitten“ – verdeckter Rest aller senkrecht scrollenden Container im Hauptbereich und Abstand des Seitenendes zur Fensterunterkante – und verlangt 0 px. Neuer Nachher-Lauf: 30/30, überall 0 px abgeschnitten; Sichtkontrolle des Seitenendes (SWOT 250 px, letzter Risiko-Punkt sichtbar). Matrix um die Spalte ergänzt.
+- Visual-Gate: Bereits mit Commit `6623bbe` erledigt (drei Linux-Baselines der Marktübersicht aus Lauf 39163459523).
+
+## Auftrag 099 – Paket G2, Welle 6: Kundenseiten als echte Seiten (Builder: Claude Code, 18.10.2026)
+
+**Ziel & Kontext:** Sechste G2-Welle nach dem Vorgehen von 093–098 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur): Ideal Customer Profile, Buyer Persona, Kundensegmente und Top-10-Referenzkunden erscheinen als echte HTML-Seiten (`HTML_PAGES`), übrige Bildseiten bleiben Bild. Zweiter Teil der Gruppe Kunden/Markt; damit 21 von 32 Seiten freigegeben. Branch `claude/auftrag-099-g2-welle-6` von `main` `c9b649b` (nach Merge PR #85).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/kunden/pages/IcpPage.tsx`, `PersonaPage.tsx`, `SegmentsPage.tsx`, `TopCustomersPage.tsx`, neu `src/features/kunden/kundenSeiten.css`; `src/components/pageKit/PageHero.tsx` (additiv `pillIcons`); `src/domain/icpData.ts`, `kundenData.ts`, `personaData.ts`; Tests `g93FunnelPage.ui`, `g98MarktSeiten.ui` (Gegenprobe Headcount-Seite), neu `g99KundenSeiten.ui`; `e2e/semantic-routes.spec.ts` (`HTML_PAGE_ROUTES`); `scripts/captureAuftrag099Kunden.mjs`; `docs/screenshots/auftrag-099/README.md`; Auftrag 099; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 §3, §13, §14, §15 und Abschnitt D abgeglichen. Angeglichen: D3 – ARR der Pro-Kunden Delta Labs 17.520 €, Kestrel Components 18.780 €, Siegfried Precision 20.040 € (Pro-MRR zusammen 4.695 €, wirkt auch auf das Kundenportfolio im Dashboard); D8 – Negative-Fit um „Kleinstkunden mit Ein-Personen-Vertrieb bzw. nur 2–3 Nutzern“ ergänzt. Nachgebaut: ICP-Firmografie mit rechtsbündigen Ausprägungen und Punktlisten, Persona mit Zitat, Zielen und Schmerzpunkten, ARR je Segment als 3D-Säulen in vier Farben mit Branchen- und Regionentabelle, Top-10-Tabelle ohne Panel-Kopf mit Pill-Symbolen. Abweichungen vom Bild (im Auftrag einzeln begründet): Top-10-Namen und -Zahlen nach Faktenblatt statt WebP, ARR-Spalte gefüllt (im WebP leer); Persona behält Stammdaten und Kanäle unter dem Original-Inhalt; Säulen mit Wertbeschriftung; Linien-Symbole statt Emoji bzw. gefüllter Symbole.
+
+**Schutzbereichs-Prüfung:** `git diff c9b649b -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (Suiten 001–025); Vitest gesamt 335 Dateien, 2399 Tests grün; `npm run build` grün; ESLint 0 Warnungen; size-limit 86,16 kB von 250 kB. Keine Visual-Baselines für Kundenrouten vorhanden, daher kein Baseline-Lauf nötig.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-099/README.md` – 4 Seiten × 5 Breiten × dunkel/hell: 40/40 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D-Säulen 0/0/4/0, 0 px Überlauf, 0 px abgeschnitten, axe 0). Der Harness erfasst jetzt h1–h3, weil die Persona-Unterpanels h3 sind.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Sichtabnahme durch Marc am 18.10.2026 erteilt. Offen: Codex-Review (Gate-Freigabe).
+
+**Nacharbeit Codex-/Devin-Befunde (19.10.2026):**
+
+- Segment-Werte für Bildschirmleser (Codex P2, Devin): `GroupedDepthColumns` erhält `datenTabelle`, die Zusammenfassung nennt alle vier Segmente inklusive „Agenturen mit 42.000 €“; Test `g99KundenSeiten.ui` prüft die Werte außerhalb des ausgeblendeten SVG.
+- Portfolio-Achse (Codex P2): `CustomerPortfolio.tsx` leitet die Y-Ticks (alle 4.000 €) aus dem Achsenmaximum ab, dadurch ist der Bereich bis 20.000 € beschriftet (Folge der D3-Werte). Datei außerhalb der ursprünglichen Ziel-Liste, im Auftrag nachgetragen.
+- 200-%-Textvergrößerung (Devin, Hinweis): Nicht seitenspezifisch lösbar. Die Seitenbibliothek (`pageKit.css`) setzt Schriftgrößen in festen px (50 Stellen), daher wirkt eine Browser-Schriftgröße kaum. Eine Wurzelschrift-Messung wäre kein echter Nachweis und wurde bewusst nicht als bestanden eingetragen. Abgedeckt sind 320 px Reflow sowie 400 % Zoom (≈ 360 CSS-px, durch 375/320 px belegt). Offener Punkt für den Gesamtabschluss (Plan Abschnitt „Zusätzlich“): px → rem in der Seitenbibliothek.
+- Verifikation erneut: `tsc` 0, `verify` grün, Vitest 335/2399 grün, Build grün, ESLint 0, Schutzbereich-Diff leer, Matrix 40/40.
+
+## Auftrag 100 – Paket G2, Welle 7: Organisationsseiten als echte Seiten (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Siebte G2-Welle nach dem Vorgehen von 093–099 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur), ohne Sichtfreigabe (Ergänzung Marc vom 19.10.2026): Headcount-Entwicklung, HR-Kennzahlen und Teamstruktur & Engpässe erscheinen als echte HTML-Seiten (`HTML_PAGES`). Damit 24 von 32 Seiten freigegeben. Branch `claude/auftrag-100-g2-welle-7` von `main` `838e9fc` (nach Merge PR #86).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/organisation/pages/HeadcountPage.tsx`, `HrPage.tsx`, `TeamStructurePage.tsx`, neu `src/features/organisation/organisationSeiten.css`; Tests `g55SemanticPages.ui`, `g93FunnelPage.ui`, `g98MarktSeiten.ui` (Gegenprobe OKR-Seite), neu `g100OrganisationSeiten.ui`; `e2e/semantic-routes.spec.ts`; `scripts/captureAuftrag100Organisation.mjs`; `docs/screenshots/auftrag-100/README.md`; Auftrag 100; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 §10 abgeglichen – keine Abweichung, Domäne unverändert. Nachgebaut: FTE-Verlauf als 3D-Fläche (`DepthFlaechen`), Kapazitätszeilen mit „Kapazitätsfokus“ (Engineering, Sales, Customer Success wie im Original), Gesamtbestand mit Ziel und „Geplant: +2,0 FTE“; HR-Kacheln mit vollständigen Werten, „Benchmark-Fokus“ und „Kostenblock“; Organigramm mit Panel-Eyebrow, Stand-Chip und Feldmarkierungen. Begründete Abweichungen im Auftrag (Y-Achse ergänzt, fünf HR-Kacheln je Reihe erst ab 1600 px).
+
+**Schutzbereichs-Prüfung:** `git diff 838e9fc -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün, Vitest gesamt 2407 Tests grün; `npm run build` grün; ESLint 0 Warnungen; size-limit 176,74 kB von 180 kB bzw. 86,16 kB von 250 kB.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-100/README.md` – 3 Seiten × 5 Breiten × dunkel/hell: 30/30 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D 1/0/0, 0 px Überlauf, 0 px abgeschnitten, axe 0).
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+**Nacharbeit Codex-Befund (19.10.2026):**
+
+- Echte Textvergrößerung (Codex P2, `captureAuftrag100Organisation.mjs`): Ursache behoben statt angenähert – alle Schriftgrößen der Seitenbibliothek (`src/components/pageKit/pageKit.css`) und der Seiten-Stylesheets (`src/features/*/*Seiten.css`) von px auf rem umgestellt (÷ 16, bei Standardschrift pixelgleich). Damit folgt der Text der Browser-Schriftgröße; zugleich erledigt das den offenen Punkt „px → rem“ aus der Nacharbeit zu Auftrag 099. HR-Kacheln brechen Beschriftung und Markierung bei Vergrößerung um. Dateien außerhalb der ursprünglichen Ziel-Liste, im Auftrag nachgetragen.
+- Harness ergänzt um 375 px mit Wurzelschrift 150 % und 200 % (entspricht der Browser-Schriftgröße); 250 px bleibt als Reflow-Probe. Matrix 3 Seiten × 7 Varianten × dunkel/hell: 42/42 (0 px Überlauf, 0 px abgeschnitten, axe 0). Vorher-Aufnahmen gegen die Seitenfreigabe von `main`.
+- Verifikation erneut: `tsc` 0, Vitest 2407 grün, Build grün, ESLint 0, size-limit 176,74/86,16 kB, Schutzbereich-Diff leer.
+
+**Nacharbeit Codex-Befund 2 (19.10.2026):**
+
+- Diagrammbeschriftung skaliert (Codex P2, `HeadcountPage.tsx`): `src/features/finanzen/components/DepthFlaechen.tsx` setzt Achsenbeschriftungen und Legende per Klasse in rem (0,75 rem = bisher 12 px) statt fester px, ohne Inline-Style (Qualitätsbudget `inlineStyles:src/` bleibt 0); wirkt auch auf Unit Economics, dort bei Standardschrift pixelgleich. Datei im Auftrag nachgetragen.
+- Harness prüft jetzt die kleinste berechnete Schriftgröße sichtbarer Texte im Hauptinhalt (inkl. SVG-Text): bei 150 %/200 % muss sie um den Faktor gegenüber 375 px wachsen. Ergebnis 11 → 16,5 → 22 px auf allen drei Seiten; Matrix 42/42.
+- Verifikation erneut: `tsc` 0, Vitest 2407 grün, Build grün, ESLint 0, Schutzbereich-Diff leer.
+
+## Auftrag 101 – Paket G2, Welle 8: Strategieseiten als echte Seiten (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Achte G2-Welle nach dem Vorgehen von 093–100 (Original-WebP ist Vorlage, 3D bleibt, „ruhig“ dämpft nur), ohne Sichtfreigabe (Ergänzung Marc vom 19.10.2026): Ziele & OKRs, Balanced Scorecard und Wachstumstreiber erscheinen als echte HTML-Seiten (`HTML_PAGES`). Damit 27 von 32 Seiten freigegeben. Branch `claude/auftrag-101-g2-welle-8` von `main` `41149bc` (nach Merge PR #87).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/strategie/pages/OkrsPage.tsx`, `BalancedScorecardPage.tsx`, `GrowthDriversPage.tsx`, neu `src/features/strategie/strategieSeiten.css`; `src/domain/strategieData.ts`; `src/features/vertrieb/components/GroupedDepthColumns.tsx`; Tests `g93FunnelPage.ui`, `g98MarktSeiten.ui` (Gegenprobe jetzt Satzung), neu `g101StrategieSeiten.ui`; `e2e/semantic-routes.spec.ts`; `scripts/captureAuftrag101Strategie.mjs`; `docs/screenshots/auftrag-101/README.md`; Auftrag 101; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 abgeglichen. Angeglichen: OKR „≤ 1,8 %“ (§12, §17 Nr. 10), „Upsell Starter → Growth“ statt „Professional“ (§2, §14), Tippfehler „Kundensegment“. Nachgebaut: acht 3D-Säulenpaare Basis/Ziel ohne Achsenwerte mit Legende, Objectives mit Kante; BSC-Karten mit „Steuerung“; Hebelzeilen mit Hinweis, Leuchtbalken, „Basis: 411.840 €“ und Effekt, orange Kernhebel-Box. `GroupedDepthColumns` setzt SVG-Schrift per Klasse in rem (bei 16 px pixelgleich, wirkt auch auf Funnel, Kanäle, Planung, GuV, Wettbewerb, Segmente). Begründete Abweichungen im Auftrag.
+
+**Schutzbereichs-Prüfung:** `git diff 41149bc -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün; Vitest gesamt 2414 Tests grün; `npm run build` grün; ESLint 0 Warnungen; size-limit 86,16 kB von 250 kB.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-101/README.md` – 3 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 42/42 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Überschriften sichtbar, 3D 16/0/0, 0 px Überlauf, 0 px abgeschnitten, kleinste Schrift 11 → 16,5 → 22 px, axe 0).
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+## Auftrag 102 – Paket G2, Welle 9: Rechtsseiten als echte Seiten (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Neunte G2-Welle nach dem Vorgehen von 093–101 (Original-WebP ist Vorlage, „ruhig“ dämpft nur), ohne Sichtfreigabe (Ergänzung Marc vom 19.10.2026): Satzung, Gesellschafterliste und Handelsregister erscheinen als echte HTML-Seiten (`HTML_PAGES`). Damit 30 von 32 Seiten freigegeben; offen bleiben Preismodell und Produkt-Performance. Branch `claude/auftrag-102-g2-welle-9` von `main` `36de335` (nach Merge PR #88).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/recht/pages/ArticlesPage.tsx`, `ShareholdersPage.tsx`, `CommercialRegisterPage.tsx`, neu `src/features/recht/rechtSeiten.css`; `src/domain/rechtData.ts`; Tests `g93FunnelPage.ui`, `g96VertriebSeiten.ui`, `g97FinanzSeiten.ui`, `g98MarktSeiten.ui` (Gegenprobe jetzt Preismodell), neu `g102RechtSeiten.ui`; `e2e/semantic-routes.spec.ts`; `scripts/captureAuftrag102Recht.mjs`; `docs/screenshots/auftrag-102/README.md`; Auftrag 102; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 abgeglichen. Angeglichen: Vertretung „jeweils einzelvertretungsberechtigt“ (§1, §17 D4); Pille Stammkapital 31.250,00 € statt 25.000 € im WebP (§1, §7). Nachgebaut: Untertitel des Originals, Leucht-Tabellen ohne Panel-Überschrift, Handelsregister als Tabelle „Merkmal / Details“, Nennbeträge in Festbreitenschrift. Begründete Abweichungen im Auftrag. Das Capture-Skript prüft neben Überschriften auch Kerninhalte (Untertitel, Pillen, Tabellenzellen), da die Rechtsseiten keine Zwischenüberschriften haben.
+
+**Schutzbereichs-Prüfung:** `git diff 36de335 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (Integritätssuiten 001–025); Vitest gesamt 2421 Tests grün; `npm run build` grün; ESLint 0 Warnungen; Prettier sauber. E2E und size-limit laufen in der CI.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-102/README.md` – 3 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 42/42 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Kerninhalte sichtbar, 0 px Überlauf, 0 px abgeschnitten, kleinste Schrift 11 → 16,5 → 22 px, axe 0).
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+## Auftrag 103 – Paket G2, Welle 10: Preismodell und Produkt-Performance als echte Seiten (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Zehnte und letzte G2-Welle nach dem Vorgehen von 093–102 (Original-WebP ist Vorlage, „ruhig“ dämpft nur), ohne Sichtfreigabe (Ergänzung Marc vom 19.10.2026): Preismodell und Produkt-Performance erscheinen als echte HTML-Seiten (`HTML_PAGES`). Damit sind alle 32 Bildseiten freigegeben; der Bildweg bleibt als Rückschaltung erhalten. Branch `claude/auftrag-103-g2-welle-10` von `main` `1d63bb6` (nach Merge PR #89).
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts`; `src/features/produkt/pages/PricingPage.tsx`, `PerformancePage.tsx`, `src/features/produkt/produktSeiten.css`; Tests `g93FunnelPage.ui`, `g94UnternehmenSeiten.ui`, `g95UebersichtProdukt.ui`, `g96VertriebSeiten.ui`, `g97FinanzSeiten.ui`, `g98MarktSeiten.ui` (Gegenprobe „Preismodell bleibt Bild“ entfernt), neu `g103ProduktSeiten.ui`; `e2e/semantic-routes.spec.ts`; `scripts/captureAuftrag103Produkt.mjs`; `docs/screenshots/auftrag-103/README.md`; Auftrag 103; Plan Abschnitt 12.
+
+**Funktionale Prüfungen:** Werte gegen Faktenblatt v1.2 §2, §4, §9 abgeglichen, keine Datenänderung nötig. Nachgebaut: Tarifkarten mit 3D-Illustration, Bestseller-Chip und gefüllter Schaltfläche bei Growth; sechs Kacheln mit farbigem Zielstatus und Statussymbol, Quartalsverlauf als 3D-Fläche (`DepthFlaechen`), Ring mit Tiefenkante, Balkenliste und Hinweis. Begründete Abweichungen im Auftrag: „Paket wählen“ als Link zur Deal Pipeline; Pille „6 Kernmetriken“; Stand Q4 58 % statt 72 % (Faktenblatt §9); keine Mini-Verläufe ohne Daten; statische Chips statt funktionsloser Auswahlfelder; Hinweis nach ICP-Befund (§4/§13) statt „Enterprise-Go-to-Market“. Neuer Test sichert: `HTML_PAGES` enthält genau alle 32 Bildseiten; der Bildweg bleibt über `g67ImagePages.ui` geprüft.
+
+**Schutzbereichs-Prüfung:** `git diff 1d63bb6 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` grün (Integritätssuiten 001–025); Vitest gesamt 2422 Tests grün; `npm run build` grün; ESLint 0 Warnungen; Prettier sauber. E2E und size-limit laufen in der CI.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-103/README.md` – 2 Seiten × 7 Varianten (1440/768/375/320/250 px, 375 px mit 150 %/200 % Textgröße) × dunkel/hell: 28/28 (Hash verschieden, vorher WebP, nachher keins, eine h1, alle Kerninhalte sichtbar, 3D-Fläche Performance 1, 0 px Überlauf, 0 px abgeschnitten, axe 0; kleinste Schrift Preismodell 11 → 16,5 → 22 px, Performance 9 → 13,5 → 18 px – Achsenbeschriftung der 3D-Fläche wie in Welle 4/7). Anmeldung der Aufnahme mit dem lokalen Seed-Testnutzer (gespeicherter Login war abgelaufen).
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+## Auftrag 104 – Paket G3: Abschluss der Bildseiten-Migration (Builder: Claude Code, 19.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 12, Teil G3, nach Abschluss aller G2-Wellen (PR #90). Inventar 32/32 mit Ergebnis je Seite, doppelte versteckte Inhaltsfassung aus der aktiven Darstellung entfernen, Architekturrevision mit neuer Darstellungsregel und Rückweg. Branch `claude/auftrag-104-g3-abschluss` von `main` `a4fb52d`.
+
+**Geänderte Dateien:** `src/config/pagePresentation.ts` (Schalter `'html'`), `src/components/imagePage/ImagePage.tsx` (nur Kommentar), Test `g93FunnelPage.ui` (Erwartung `'html'`), neu `g104BildseitenAbschluss.ui`; `e2e/semantic-routes.spec.ts` (nur Kommentar); `docs/reviews/2026-10-06-frontend-befundregister.md` (Abschnitt 4a); `ARCHITECTURE_DECISIONS.md` (Revision zu B18, D4); Plan Abschnitt 12; Auftrag 104.
+
+**Funktionale Prüfungen:** Neuer Test ohne Mock rendert alle 32 Seiten: kein `image-page`, keine Textschicht, kein Zoom-Hinweis, kein WebP, genau eine `h1`, Seitenschlüssel decken `IMAGE_PAGES` vollständig ab. Bildweg (Rückweg) weiter durch `g67ImagePages.ui` geprüft. WebPs und `ImagePage` unverändert erhalten.
+
+**Schutzbereichs-Prüfung:** `git diff a4fb52d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Vitest 340 Dateien / 2455 Tests grün; `npm run verify` grün (Integritätssuiten 001–025); `npm run build` grün; Prettier sauber. E2E und size-limit laufen in der CI.
+
+**Screenshot-Matrix:** entfällt begründet – keine sichtbare Änderung, da alle 32 Seiten bereits über `HTML_PAGES` als echte Seiten ausgeliefert waren; Vorher/Nachher wären bitgleich. Ganzseitenvergleich gegen die Baseline aus Auftrag 081 folgt in Paket I.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: Codex-Review (Gate-Freigabe).
+
+### Auftrag 104 – Review PR #91, Runde 1 (19.10.2026, Codex)
+
+**Prüfgegenstand:** Branch `claude/auftrag-104-g3-abschluss`, HEAD `7bbb2c8`, PR #91 gegen `main` (`a4fb52d`). 10 Dateien, +264/−14.
+
+**Befund:** Kein P1. Die Änderung ist sichtbar wirkungslos (`HTML_PAGES` war auf Baseline bereits vollständig; `ImagePage.tsx:44` liefert in beiden Schalterstellungen identische Ausgabe), korrekt begründet und vollständig grün. Zwei Nacharbeiten (P2) sowie Beobachtungen (P3).
+
+**P2-1 – Ledger unvollständig:** Der Nacharbeits-Commit `7bbb2c8` (Rücknahme der Prettier-Neuformatierung von `ARCHITECTURE_DECISIONS.md`, „Codex PR #91 P1“) ist nicht dokumentiert; der Builder-Eintrag endet mit „Offen: Codex-Review“. Nachtrag erforderlich (`CLAUDE.md` §5).
+
+**P2-2 – Dokumentierter Rückweg bricht die Testsuite:** Die Revision (`ARCHITECTURE_DECISIONS.md:1631-1642`) beschreibt den Rückweg als reinen Schalterschritt (`'bild'` + Schlüssel aus `HTML_PAGES` entfernen), die Tests pinnen aber hart: `g104BildseitenAbschluss.ui.vitest.tsx:82,85,86` und `g93FunnelPage.ui.vitest.tsx:14`. Entweder Revisionstext präzisieren (Rückweg erfordert Anpassung von g93/g104) oder die Assertions an den Schalter koppeln (wie `e2e/semantic-routes.spec.ts`, das dem Schalter folgt).
+
+**P3 (nicht blockierend):**
+
+- `g104BildseitenAbschluss.ui.vitest.tsx:91-104`: `_key` ungenutzt, keine Bindung über `data-page-key`; eine vertauschte Seite↔Schlüssel-Zuordnung bliebe unbemerkt (`g99`/`g102` prüfen `data-page-key`, hier nicht).
+- `g104BildseitenAbschluss.ui.vitest.tsx:102`: `img[src$=".webp"]` verbietet jedes WebP, breiter als „kein Ganzseiten-WebP“.
+- `e2e/semantic-routes.spec.ts:21-22`: Kommentar „Bildzweig bleibt für den Rückweg (Schalter `'bild'`)“ – das Kippen des Schalters allein bewirkt wegen der vollen `HTML_PAGES`-Liste nichts.
+- `docs/reviews/2026-10-06-frontend-befundregister.md:19` nennt weiter `PAGE_PRESENTATION = 'bild'` (Baseline-Snapshot 06.10., ohne Querverweis auf 4a).
+- `BUILD_PLAN.md` (Stand 08.10.2026) veraltet; nicht Teil der 104-Zieldateien, Hinweis für Paket I.
+
+**Geprüft (grün):** `npx tsc --noEmit` 0 Fehler; ESLint; Prettier; Vitest 340 Dateien / 2455 Tests; `npm run verify` (001–025); `npm run build`; Schutzbereichs-Diff gegen `a4fb52d` leer; CI PR #91 (typecheck, test, lint, build, e2e, size-limit, CodeQL, livekpi-verifiers) pass. Inventar 4a programmatisch geprüft: 32/32 Zeilen, Route/Schlüssel/Titel/Welle/Auftrag korrekt, alle Links existieren. Rückweg Tag `v2.4.0` verifiziert (`PAGE_PRESENTATION = 'bild'`, kein `HTML_PAGES`). Bildweg weiter durch `g67ImagePages.ui` geprüft.
+
+**Ergebnis & Freigabestatus:** Freigabeempfehlung zugunsten des Builders, mit den P2-Nacharbeiten. Schutzbereiche unberührt.
+
+### Auftrag 104 – Nacharbeit zu Codex-Review PR #91 (Builder: Claude Code, 19.10.2026)
+
+**P1 (Inline-Kommentar, Runde 1):** Prettier hatte `ARCHITECTURE_DECISIONS.md` neu formatiert. Mit `7bbb2c8` auf den `main`-Stand zurückgesetzt, nur Revision zu B18 und D4-Zeile ergänzt (+14/−0). Thread beantwortet und aufgelöst.
+
+**P2-1 – Ledger:** mit diesem Eintrag nachgetragen.
+
+**P2-2 – Rückweg und Tests:** `g104BildseitenAbschluss.ui` und `g93FunnelPage.ui` folgen jetzt dem Schalter (gültiger Wert statt fest `'html'`; je Seite Bild erwartet, wenn `'bild'` und nicht in `HTML_PAGES`). Revision B18, `pagePresentation.ts` und Auftrag 104 nennen zusätzlich: Freigabetests der zurückgenommenen Seiten in der jeweiligen Wellen-Suite (g93…g103) gehören zum Rückweg. Probe: Schalter `'bild'`, `product-pricing` entfernt → nur die zwei Freigabetests in `g103ProduktSeiten.ui` rot, g93/g104 und alle übrigen grün; danach Konfiguration zurückgesetzt.
+
+**P3:** `g104` bindet Schlüssel und Seite über `data-page-key` und prüft nur noch das Ganzseitenbild (`img.image-page__img`) statt jedes WebP; E2E-Kommentar zum Bildzweig präzisiert; Befundregister Zeile „Darstellung“ mit Verweis auf Abschnitt 4a. `BUILD_PLAN.md` bleibt für Paket I.
+
+**Schutzbereichs-Prüfung:** `git diff a4fb52d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Prettier sauber; Vitest 340 Dateien / 2455 Tests grün; `npm run verify` grün (001–025); `npm run build` grün. Offen: Codex-Bestätigung der Nacharbeit.
+
+### Auftrag 104 – Review PR #91, Runde 2 (19.10.2026, Prüfer)
+
+**Prüfgegenstand:** Branch `claude/auftrag-104-g3-abschluss`, HEAD `e5671f1` (Nacharbeits-Commit nach Runde 1), PR #91 gegen `main` (`a4fb52d`). Das GitHub-Codex-Review zu #91 reicht nur bis `57c8620`; diese Runde prüft den aktuellen Kopf unabhängig nach.
+
+**Befund:** Kein P1, kein P2. Die Nacharbeit zu Runde 1 ist vollständig und korrekt; die Änderung bleibt sichtbar wirkungslos (auf Baseline `a4fb52d` war `HTML_PAGES` bereits vollständig). Eine Freigabeempfehlung; vier Beobachtungen (P3, nicht blockierend).
+
+**P2-2/Runde 1 – nachgeprüft:** `g104BildseitenAbschluss.ui` (Z. 47, 103) und `g93FunnelPage.ui` (Z. 13–14) folgen jetzt dem Schalter; `e2e/semantic-routes.spec.ts:62` ebenfalls. Rückweg-Probe eigenständig reproduziert: Schalter `'bild'`, `product-pricing` aus `HTML_PAGES` → genau 2 rote Tests, beide in `g103ProduktSeiten.ui.vitest.tsx` (Z. 28/29 + Seitencheck), `g93`/`g104` und alle übrigen 20 UI-Suiten grün; Konfiguration danach zurückgesetzt, Arbeitsbaum sauber. Deckt die Zusage in `ARCHITECTURE_DECISIONS.md:1631-1642`. Rückweg Tag `v2.4.0` erneut verifiziert (`PAGE_PRESENTATION = 'bild'`, kein `HTML_PAGES`).
+
+**P1/Runde 1 – nachgeprüft:** `ARCHITECTURE_DECISIONS.md` gegen `main` +18/−0, nur Revision B18 und D4-Zeile; Teil A unverändert.
+
+**P3 (nicht blockierend):**
+
+- `g104BildseitenAbschluss.ui.vitest.tsx:85-91` prüft nur `HTML_PAGES ⊆ IMAGE_PAGES`; die Vollständigkeit 32/32 stützt sich allein auf `g103ProduktSeiten.ui:29` – genau die Suite, die der dokumentierte Rückweg anpasst/entfernt. Ein `expect([...HTML_PAGES].sort()).toEqual(Object.keys(IMAGE_PAGES).sort())` machte die Abschluss-Suite selbsttragend.
+- `g104…vitest.tsx:86` und `g93FunnelPage.ui:14`: `expect(['bild','html']).toContain(PAGE_PRESENTATION)` ist zur Laufzeit tautologisch (der Typ erzwingt den Wertebereich).
+- Ledger-Treue (Runde 1): Der Eintrag „Review PR #91, Runde 1 (Codex)“ nennt P2-1 und mehrere P3-Punkte, die im GitHub-Codex-Review zu #91 nicht vorkommen (dort nur P1 „Historie“ und P2 „Rückweg-Tests“). Quelle der übrigen Punkte benennen (lokaler `codex-review`-Lauf) oder auf den PR-Kommentar beschränken.
+- Der Bildzweig in `g104`/E2E läuft im CI nie (Schalter `'html'`); gewollte Folge der Schalter-Kopplung, nur als Hinweis.
+
+**Geprüft (grün):** `npx tsc --noEmit` 0 Fehler; ESLint (`--max-warnings 0`); Prettier (`format:check`); Vitest 340 Dateien / 2455 Tests; `npm run verify` (001–025); `npm run build`; Schutzbereichs-Diff gegen `a4fb52d` leer; CI auf `e5671f1` (typecheck, test, lint, build, e2e, size-limit, CodeQL, livekpi-verifiers) pass; Änderungsumfang vollständig innerhalb der Auftrags-Zieldateien; Inventar 4a routen- und linkdeckungsgleich.
+
+**Ergebnis & Freigabestatus:** Gate bestanden, Freigabeempfehlung zugunsten des Builders. P3-Punkte ohne Blockierwirkung; Punkt 1 und 3 wären für Paket I bzw. den Runde-1-Eintrag nachzuziehen. Schutzbereiche unberührt.
+
+### Auftrag 104 – Nachtrag nach Merge PR #91 (Builder: Claude Code, 19.10.2026)
+
+PR #91 gemergt nach Codex-👍 auf `e5671f1` und grüner CI. Prüfbefund Runde 2 (oben) mit diesem Nachtrag in `main` übernommen. P3-1 umgesetzt: `g104BildseitenAbschluss.ui` prüft bei Schalter `'html'` selbst die Vollständigkeit `HTML_PAGES` = 32 von 32. Zu P3-3: Die über den GitHub-Kommentar hinausgehenden Punkte der Runde 1 (P2-1, P3) stammen aus dem lokalen Prüflauf, der den Eintrag geschrieben hat. P3-2 und P3-4 bewusst unverändert (Typ-Absicherung bzw. gewollte Folge der Kopplung). Prüfung: `tsc` 0 Fehler, Prettier sauber, `g104` 33/33 grün.
+
+### Auftrag CI-Review-Gate – Builder-Eintrag (Builder: Claude Code, 19.10.2026)
+
+> **Revision 20.10.2026:** Dieser Eintrag beschreibt den Stand vom 19.10. und ist überholt (u. a. zählen PR-Kommentare nicht mehr). Maßgeblich ist der Abschlussbericht „Nacharbeit Codex-Befunde PR #93“ weiter unten.
+
+**Ziel & Kontext:** Repoweites Review-Gate: Commit-Status `agent-review` („Reviewed“ durch Antigravity/OpenCode/Devin) und `review-conversations` (failure bei offenen Konversationen). Grundlage: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `scripts/reviewGate.mjs`, `.github/review-agents.json`, Auftrag, dieser Eintrag.
+
+**Nacharbeit Codex PR #93:** Ungültigen Trigger `pull_request_review_thread` entfernt (Lösen per manuellem Lauf); Fork-Bedingung entfernt (Fork-Reviews nur manuell, dokumentiert); OpenCode-PR-Kommentare nach dem Head-Commit zählen als Review (Trigger `issue_comment`); Antigravity-Login eingetragen.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer (0 Zeilen).
+
+**Automatisierte Verifikation:** YAML parst; Logik von `reviewedBy`/`threadsStatus` per Node-Aufruf geprüft (Review auf Head, Kommentar vor/nach Head-Commit, mehrere Agenten mit gleichem Login). Kein App-Code berührt, daher kein tsc/Vitest-Bedarf. Der Workflow läuft erst nach dem Merge vollständig (Skript liegt vorher nicht auf `main`).
+
+**Ergebnis & Freigabestatus:** Offen bis zur Codex-Bestätigung; Branch-Schutz folgt nach Merge.
+
+### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93, Abschlussbericht (Builder: Claude Code, 20.10.2026)
+
+**Ziel & Kontext:** Repoweites Review-Gate mit den Commit-Status `agent-review` und `review-conversations`. Die Gate-Freigabe kommt von einem unabhängigen Prüfer aus `.github/review-agents.json` (Codex, Devin, OpenCode, Antigravity), nie vom Builder. Die Entscheidung für die eigene GitHub-App hat Marc am 20.10.2026 getroffen.
+
+**Ausgelieferte Logik (finaler Stand):**
+
+- Es zählen nur formale PR-Reviews (`APPROVED`/`COMMENTED`/`CHANGES_REQUESTED`) auf genau dem Head-Commit, keine Kommentare.
+- Änderungen angefordert blockieren (Befund P1 Codex, 20.10.): Pro Prüfer zählt sein wirksamer Zustand, also das letzte `APPROVED`/`CHANGES_REQUESTED`/`DISMISSED` über alle Commits. Steht er auf `CHANGES_REQUESTED`, wird `agent-review` zu `failure`, bis derselbe Prüfer freigibt oder das Review verworfen wird.
+- Kein Selbst-Review: Der PR-Öffner, Autoren und Committer der PR-Commits und jeder Agent mit deren Login sind als Prüfer ausgeschlossen, ebenso der per Branch-Präfix gebundene Builder (`builderBranches`). Ohne bekanntes Präfix gibt es nie `agent-review=success`. Eigene Builder-Konten verwirft Marc am 20.10.2026; das frei wählbare Präfix (Befund P2 Codex) bleibt als dokumentiertes Restrisiko, Marc prüft beim Merge, wer gebaut hat.
+- Nacharbeit Codex auf `1ea8558`: Der Zielbranch-Filter gilt jetzt auch für Änderungsanforderungen (2 Tests). Der Token-Helfer `scripts/getReviewerToken.mjs` ist committet (Standard-Repo `-v2`), `.gitignore` schließt `*.pem` und `.secrets/` aus.
+- Nacharbeit Codex auf `9e08c7a`: OpenCode-Befehl `.opencode/command/review-pr.md` und Agent `.opencode/agent/pr-reviewer.md` (Marc) committet. Der Agent reicht nie `APPROVE` ein (AGENTS.md) und holt das Token über `getReviewerToken.mjs`. `.opencode/node_modules/` ist ignoriert.
+- Nacharbeit Codex auf `ddf0b21`: Teilen sich offene PRs einen Head, bleiben beide auf `pending` („Mehrdeutiger Head“). Kein PR überschreibt mehr den Status eines anderen (1 Test). Fehler beim Blockieren eines geteilten Heads brechen die übrigen PRs nicht ab (Codex auf `f8f317a`).
+- Härtung Öffner/Forks (Sicherheitscheck 20.10.): Fork-PRs und PRs von Öffnern außerhalb von `trustedOpeners` (nur `mapoenisch`, per ID verifiziert) erhalten nie `agent-review=success`. 3 Tests.
+- Konto-IDs, Freigaben, Zielbranch, Zeitplan (Befunde Codex auf `a998cdc`): Prüferkonten sind über `accounts` an numerische ID und Typ gebunden. `APPROVED` von `marcs-pr-reviewer` wird ignoriert (`approve: false`). Reviews vor einem `base_ref_changed` zählen nicht, `edited` stößt die Bewertung an. Ein geplanter Lauf alle 15 Minuten schließt die Lücke durch den vom PR änderbaren Trigger.
+- Hat ein PR mehr Commits, als die API liefert (Grenze 250), gibt es keinen Erfolg.
+- Fail-closed: Nach Ermittlung des Heads gehen zuerst beide Status auf `pending` („Wird geprüft“), erst dann folgen die fehlbaren Abfragen. Bei Fehlern bleibt `pending` stehen. `review-conversations` wird unabhängig bewertet (Hinweis P3 von `marcs-pr-reviewer`).
+- Fälschungsschutz: Status setzt nur die eigene GitHub-App. Die JWT-Aufrufe laufen per `fetch` mit `Bearer`, weil `gh api` JWTs mit 401 ablehnt (Befund P1 `marcs-pr-reviewer`). Die Secrets liegen in der Umgebung `review-gate`, die nur `main` nutzen darf. Review-Ereignisse laufen über den rechtelosen `review-gate-trigger.yml` und `workflow_run`.
+- Serialisierung: Es gibt eine Concurrency-Gruppe `review-gate` für das ganze Repo, und jeder Lauf bewertet alle offenen PRs mit frischen Daten. Ein älterer Snapshot kann keinen neueren überschreiben (Befund P2). Ein Fehler bei einem PR bricht die übrigen nicht ab (Befund P2). Ein Push auf `main`, der Skript oder Prüferliste ändert, löst eine Neubewertung aus.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `.github/workflows/review-gate-trigger.yml` (neu), `scripts/reviewGate.mjs`, `scripts/__tests__/reviewGate.vitest.ts` (neu), `.github/review-agents.json`, Auftrag `ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`, dieser Eintrag. Das Drawio-Diagramm ist per Revert in den eigenen PR #94 verschoben.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
+
+**Automatisierte Verifikation:** `scripts/__tests__/reviewGate.vitest.ts` mit 32 Tests ist grün, darunter 4 zur Blockade bei angeforderten Änderungen. Abgedeckt sind:
+
+- Review auf dem Head zählt, Review auf einem älteren Commit nicht.
+- Ungelistete Prüfer und ausstehende Reviews zählen nicht.
+- PR-Autor und Commit-Autor zählen nicht.
+- Der Builder zählt nicht: kein Review des Agenten, dem PR-Öffner oder ein Commit-Konto gehört.
+- `builderOf` für bekannte und unbekannte Präfixe; Builder auf `codex/`, `antigravity/` und `opencode/` prüft sich nicht selbst.
+- `evaluateReviewed` wirft bei unbekanntem Builder, unvollständigen Commits und fehlendem Autor.
+- Status-Texte.
+- Konto-Verifikation per ID und Typ, übernommene Prüfer-Logins, ignoriertes `APPROVED` von `marcs-pr-reviewer`, Zielbranch-Wechsel, Prüferkonten der echten Konfiguration, Zeitplan und `edited` im Workflow.
+- RS256-JWT gegen einen Testschlüssel verifiziert.
+- Workflow-Verträge: Umgebung, Concurrency-Gruppe, `--pr=all`, Trigger ohne Rechte und Secrets.
+
+Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run build`. Ein echter Lauf mit der App steht aus, bis Marc App und Umgebung eingerichtet hat.
+
+**Ergebnis & Freigabestatus:** Offen bis zum unabhängigen Review. Die Einrichtung der App übernimmt Marc (siehe Auftrag, Abschnitt „Einrichtung“).
+
+### Nacharbeit Codex-Befunde PR #93 – Base-SHA und geschlossene Heads (Builder: Claude Code, 20.10.2026)
+
+**Ziel & Kontext:** Die zwei neuen Befunde auf Head `419872a` beheben: ein Review darf bei Fortschritt des Zielbranches nicht für einen geänderten Diff gültig bleiben; Statuswerte eines geschlossenen PRs dürfen nicht auf einen später wiederverwendeten Head übertragen werden.
+
+**Umsetzung:** `agent-review` speichert jetzt den geprüften Base-SHA. Bei Abweichung setzt das Gate einen dauerhaften Pending-Marker und wertet nur Reviews nach dessen Zeitstempel. Ein vorhandener Cutoff bleibt bei Folgeauswertungen unverändert, statt mit jedem Status-POST nach vorne zu wandern (P1 der Nachprüfung). Kompakte Marker (`[b:<SHA>]`, `[r:<Unix-ms>]`) erhalten die lesbare Statusmeldung innerhalb des 140-Zeichen-Limits. Jeder Push auf `main` stößt eine Neubewertung offener PRs an. Bei `pull_request_target: closed` werden beide Statuskontexte des Heads auf `pending` gesetzt, sofern kein anderer offener PR denselben Head nutzt; dieser offene PR wird stattdessen regulär neu bewertet.
+
+**Geänderte Dateien:** `.github/workflows/review-gate.yml`, `scripts/reviewGate.mjs`, `scripts/__tests__/reviewGate.vitest.ts`, dieser BUILD_LOG-Eintrag.
+
+**Funktionale Prüfungen:** 37/37 fokussierte Review-Gate-Tests bestanden. Die Regressionstests decken Base-SHA-Wechsel, einen über Folgeauswertungen stabilen Review-Cutoff, lesbare Statusbeschreibungen mit vollem 40-stelligem Base-SHA und maximal 140 Zeichen, unveränderte Base-SHAs sowie geschlossene und weiterhin genutzte Heads ab.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` bestanden; `npm run verify` bestanden (Integrity-Suiten 001–025); `npm run lint` bestanden; `npm run build` bestanden; Prettier-Prüfung und `git diff --check` bestanden. `NODE_ENV=development npm test`: 341/341 Testdateien, 2.492/2.492 Tests bestanden. Der zusätzliche Lauf mit dem in dieser Umgebung global gesetzten `NODE_ENV=production` scheiterte in UI-Tests an Reacts Fehlermeldung „act(...) is not supported in production builds of React“; eine isolierte UI-Suite reproduzierte den Umgebungsfehler, der Entwicklungsmodus-Lauf bestand vollständig.
+
+**Screenshot-Matrix:** Nicht anwendbar, es wurden keine UI-Seiten oder visuellen Komponenten geändert.
+
+**Ergebnis & Freigabestatus:** Beide aktuellen Review-Befunde lokal behoben. Unabhängige Nachprüfung des neuen Heads bleibt erforderlich. Es wurde kein Commit erstellt; `.proto/` und `.vscode/` blieben unangetastet und uncommittet.
+
+### Auftrag CI-Review-Gate – Umbau auf manuelle Agenten-Reviews über MarcReview (Builder: Claude Code, 21.10.2026)
+
+**Ziel & Kontext:** Entscheidung Marc vom 21.10.2026: Antigravity, OpenCode, Devin, Proto und Perplexity prüfen nur auf Zuruf (`/<agent> review`, analog `@codex review`) und posten über das Konto `MarcReview`. Der bisherige Status-Gate (`review-gate.yml`, GitHub-App, Konten-/Builder-Logik) entfällt; die Merge-Sperre übernimmt GitHubs Branch-Schutz (1 Freigabe, veraltete Freigaben verwerfen, Konversationen gelöst). Die Einträge vom 19./20.10.2026 oben sind damit überholt.
+
+**Geänderte Dateien:** neu `.github/workflows/agent-review.yml`, `scripts/agentReview.mjs`, `scripts/__tests__/agentReview.vitest.ts`; entfernt `review-gate.yml`, `review-gate-trigger.yml`, `reviewGate.mjs`, `reviewGate.vitest.ts`, `review-agents.json`, `getReviewerToken.mjs`, `.opencode/agent/pr-reviewer.md`, `.opencode/command/review-pr.md`; angepasst `AGENTS.md`, `CLAUDE.md`, `package.json` (`agent-review`), Auftrag `ANTIGRAVITY_AUFTRAG_CI_REVIEW_GATE.md`.
+
+**Funktional:** Antigravity und Proto (ERP.AI) sind Desktop-Agenten ohne CI-Betrieb; der Workflow bestätigt und hinterlegt die Anleitung für den lokalen Lauf (`npm run agent-review -- prompt|post`). OpenCode, Devin, Perplexity laufen im CI.
+
+**Schutzbereiche:** keine Änderung an `src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`.
+
+**Offen (Marc):** MarcReview als Collaborator, PAT als `MARCREVIEW_TOKEN`, Agenten-Keys als Secrets, Branch-Schutz umstellen. Live-Lauf je Agent danach.
+
+**Ergebnis:** Builder-Eintrag; Freigabe durch unabhängigen Prüfer ausstehend.
+
+### Auftrag CI-Review-Gate – Nacharbeit Review-Befunde PR #93 auf `7cb90f9` (Builder: Claude Code, 21.10.2026)
+
+**Befunde (Codex inline, Antigravity per Review-Text) und Behebung:**
+
+- P1 Devin-Polling auf `/v1/session/{id}` → `/v1/sessions/{id}`.
+- P1 Ergebnis nicht an geprüften Head gebunden → `run` speichert `headSha`, `post` bricht ab, wenn der PR-Head sich geändert hat (lokal: `--sha`).
+- P1 Reviewzustände der Agenten unter einem Konto überschreiben sich → Event immer `COMMENT`, jeder Befund wird eine lösbare Konversation (Zeile, Datei-Kommentar oder Verweis am ersten Diff-Abschnitt); Merge-Sperre allein über „Require conversation resolution“.
+- P1 Gekürzte Diffs → `truncation()` erkennt fehlende Patches/Dateien und meldet eine P1-Konversation.
+- P1 `User-Agent`-Header in GitHub-Aufrufen ergänzt.
+- P1 fehlender Gate-Nachweis → dieser Abschnitt.
+
+**Marcs Rückmeldung „reviewt ohne Auslöser, kein Resolve-Button“:** `agent-review.yml` ist noch nicht auf `main`, lief also nie. Die automatischen Reviews kamen von Codex (automatische Reviews in den Codex-Einstellungen aktiv) und von lokal laufenden Agenten über Marcs eigenen `gh`-Login als reiner Review-Text ohne Inline-Kommentare – daher keine Konversation. Abhilfe in der Auftragsdatei, Einrichtung Schritt 5.
+
+**Automatisierte Verifikation (lokal, 21.10.2026):** `npx tsc --noEmit` 0 Fehler · `npm run verify` alle Suiten 001–025 grün · `npm run build` grün · `npx vitest run` 341 Dateien / 2473 Tests grün, davon `agentReview.vitest.ts` 18/18.
+
+**Schutzbereiche:** `git diff main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Screenshot-Matrix:** entfällt (keine UI-Änderung).
+
+**CI-Hinweis:** Job `test` scheitert unabhängig von diesem PR an `npm audit` (neue `vite`-Schwachstelle GHSA-698v-4r3x-3vcv u. a.); Behebung braucht ein Versions-Update, eigener Schritt.
+
+**Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.
+
+### Auftrag CI-Review-Gate – Nacharbeit Codex-Befunde PR #93 auf `69109be` (Builder: Claude Code, 21.10.2026)
+
+**Behoben:**
+
+- P1 Kein Pflicht-Review → `post` setzt nach jedem geposteten Lauf den Commit-Status `agent-review` auf dem geprüften Head (Pflicht-Check im Branch-Schutz, Einrichtung Schritt 4; PAT braucht _Commit statuses_).
+- P1 `subject_type: "file"` im Reviews-Endpunkt ungültig → Befunde außerhalb kommentierbarer Zeilen hängen an der ersten Diff-Zeile der Datei bzw. des PRs; gar nicht verankerbare stehen im Review-Text und setzen den Status auf `failure`.
+- P1 Zeile 0 bei Dateien ohne Patch → `commentableLines` zählt erst ab einem Hunk-Header.
+- P1 Fork-PRs im lokalen `prompt`-Pfad → gleiche `isSameRepo`-Prüfung wie im CI.
+- P2 Ausgelassene Lösch-Patches → zählen als unvollständig; nur inhaltslose Änderungen (`changes: 0`) nicht.
+- P2 OpenCode `latest` → fest `opencode-ai@1.19.3`.
+- P2 Bewegliches `main` zwischen Jobs → `ack` ermittelt den SHA, `review` und `post` checken genau diesen aus.
+
+**Veraltet (bereits in `69109be` erledigt):** Reviewzustände unter einem Konto (Event immer `COMMENT`), gekürzte Diffs (`truncation()`), zwei Ledger-Befunde (Gate-Nachweis steht im Abschnitt zu `7cb90f9`).
+
+**Automatisierte Verifikation (lokal, 21.10.2026):** `npx tsc --noEmit` 0 Fehler · `npm run verify` alle Suiten 001–025 grün · `npm run build` grün · `agentReview.vitest.ts` 22/22.
+
+**Schutzbereiche:** `git diff main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Screenshot-Matrix:** entfällt (keine UI-Änderung).
+
+**Hinweis Marc:** Branch-Schutz um Pflicht-Check `agent-review` ergänzen, MarcReview-PAT um _Commit statuses_ Read & Write erweitern.
+
+**Ergebnis:** Nacharbeit abgeschlossen; Freigabe durch unabhängigen Prüfer ausstehend.
+
+## Auftrag 105 – Paket H Teil 1: Abmelden sichtbar, aktive Seite, echtes Profil (Builder: Claude Code, 25.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Teil 1. Branch `claude/auftrag-105-paket-h` von `main` `c895a80`.
+
+**Geänderte Dateien:** `Header.tsx`, `Layout.tsx`, `NavItem.tsx`, `Header.ui.vitest.tsx`, `LayoutSupplement.characterization.ui.vitest.tsx`, Auftrag 105, Plan Abschnitt 13.
+
+**Funktionale Prüfungen:** Header-Test: Profil und Rolle, Abmelden-Button ohne `opacity-0`, `data-leave-guard` vorhanden, Klick ruft `onLogout`. Bestehende Layout-Tests und E2E-Selektoren (`logout-button`) bleiben gültig.
+
+**Schutzbereichs-Prüfung:** `git diff c895a80 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; ESLint grün; Vitest 341 Dateien / 2478 Tests grün; `npm run verify` grün; `npm run build` grün; Prettier sauber.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-105/README.md` (Nachtrag nach Codex PR #96, P1): 12 Paare (Kopfzeile und Menü, 1440/768/375, dunkel und hell), alle SHA-256 verschieden, 0 px Überlauf; Bilder manuell geprüft. Aufnahme mit Mock-Supabase (`scripts/captureAuftrag105Screenshots.mjs`). Visuelle E2E-Referenzen laufen in der CI.
+
+**Ergebnis & Freigabestatus:** Builder-Seite abgeschlossen. Offen: unabhängiger Review, Sichtprüfung Marc, Teil 2 von Paket H.
+
+## Auftrag 106 – Paket H Teil 2: Sprachliste, erste Anwendung (Builder: Claude Code, 25.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprache. Branch `claude/auftrag-106-paket-h-teil2`, gestapelt auf PR #96 (Baseline `ca34439`).
+
+**Geänderte Dateien:** `DealsView.tsx`, `DealsPage.tsx`, `LeadsPage.tsx`, `ScenarioManageTab.tsx`, zwei Tests (Erwartung der neuen Beschriftung), Auftrag 106.
+
+**Schutzbereichs-Prüfung:** `git diff ca34439 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Vitest 2478 Tests (ein Lauf: `DashboardWorkspace.codex` einmal rot unter Last, einzeln 2× grün — bekannte Flanke, nicht berührt); verify/build siehe PR-CI. Screenshot-Gate (Nachtrag Codex PR #97, P1): `docs/screenshots/auftrag-106/README.md`, 9 Paare (Deals, Leads/Funnel Deals, Szenario-Dialog; 1440/768/375), alle SHA-256 verschieden, kein neuer Überlauf; vorhandener Überlauf im Szenario-Dialog bei 375 px (184 px) unverändert und als eigener Befund vermerkt. Manifest-JSON-Dateien aus der Versionierung genommen und per `.gitignore` ausgeschlossen (P1); in `LeadsPage` auch Spaltenkopf, Filterlabel und Sortieroption auf „Vertriebsphase“ (P2).
+
+**Offen:** Teil 3 (siehe Auftrag), unabhängiger Review, Sichtprüfung Marc.
+
+### Auftrag 105 – Nacharbeit CI e2e (25.10.2026, Claude Code)
+
+`visual /crm/leads`, `/market/overview`, `/resources/materials` schlugen bei 768 px fehl (erwartet: neue Kopfzeile mit Profil und Abmelden). Linux-Baselines in der CI-Umgebung neu erzeugt (Workflow `update-visual-baselines.yml`, Branch `visual-baselines/auftrag-105`, Lauf `40177871605`, inklusive dreifacher Verifikation); nur diese drei `tablet-768-linux`-Bilder weichen ab, alle übrigen byte-gleich. Bilder gesichtet (Kopfzeile mit E-Mail, Rolle, Abmelden, kein Überlauf).
+
+## Auftrag 107 – Paket H Teil 3: Datenquellen-Namen und Gesamtkosten pro Neukunde (Builder: Claude Code, 25.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste und fachliche Ebenen verständlich benennen. Branch `claude/auftrag-107-paket-h-teil3`, Baseline `081e131`.
+
+**Geänderte Dateien:** 31 Komponenten/Seiten unter `src/features`, `src/components`, `src/app/routes.tsx`, `src/domain/navData.ts` (nur Menülabel), 15 Tests (neue Beschriftungen erwartet), `scripts/captureAuftrag107Screenshots.mjs`, Auftrag 107, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Ebene A/B/C“ → Unternehmensdaten 2025 / CRM-Daten / Simulation / Live-Daten; „Fully-Loaded CAC“ → „Gesamtkosten pro Neukunde“ (Katalog-ID unverändert); „Headcount-Entwicklung“ → „Entwicklung der Teamgröße“. Restfunde bewusst offen (Teil 4): Kennzahldaten in `src/domain/*Data.ts`, Herkunftslabel in `src/services/data/sourceFreshness.ts` (Schutzbereich).
+
+**Schutzbereichs-Prüfung:** `git diff 081e131 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Prettier grün; Vitest 2478/2478; `npm run verify` alle Integritätssuiten grün; `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-107/README.md` — 18 Paare (6 Ansichten × 1440/768/375), 16 verschieden; 2 Gleichstände bei 375 px begründet (Änderung außerhalb des ersten Bildschirms). Überlauf 375 px auf Headcount (86 px) und Live-Simulation (184 px) unverändert vorbestehend.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Nachtrag CI e2e (PR #98):** `visual /crm/leads @1440` wich wegen des neuen Badges „CRM-Daten“ ab (4735 px). Linux-Referenz über `update-visual-baselines.yml` (Run 40201131009, Branch `visual-baselines/auftrag-107`) neu erzeugt; von 30 Bildern ändert sich nur `visual-crm-leads-1-desktop-1440-linux.png`, Sichtprüfung ok.
+
+### Auftrag 107 – Review PR #98 (25.10.2026, Prüfer: Antigravity)
+
+**Prüfgegenstand:** Branch `claude/auftrag-107-paket-h-teil3`, HEAD `23d4fbb`, PR #98 gegen `main` (`081e131`).
+
+**Befund:** Kein P0, kein P1, kein P2. Alle Vorgaben aus `docs/auftraege/ANTIGRAVITY_AUFTRAG_107_PAKET_H_TEIL3.md` (Sprachliste, fachliche Ebenen, Gesamtkosten pro Neukunde, Entwicklung der Teamgröße, Menülabel Live-Simulation ohne Ebene B) sind vollständig und regressionsfrei umgesetzt.
+
+**Nacharbeiten zu vorangegangenen Codex-Befunden (PR #98):**
+
+- Namensabhängiger Screenshot-Selektor in `scripts/lib/combinationShotHelpers.mjs:102` auf „Gesamtkosten pro Neukunde“ umgestellt (Commit `349c552`).
+- Headcount-Screenshot-Selektor und Textabgleich in `scripts/captureAuftrag100Organisation.mjs` und `scripts/auditV21LiveAccessibility.mjs` auf „Entwicklung der Teamgröße“ bzw. „Live-Daten“ angeglichen (Commit `e9c2e9c`).
+- CI-E2E-Linux-Referenz für CRM Leads 1440 px über `update-visual-baselines.yml` aktualisiert (`visual-crm-leads-1-desktop-1440-linux.png`, Commit `23d4fbb`).
+
+**Schutzbereichs-Prüfung:**
+
+- `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`: Vollständig leer (0 Zeilen).
+
+**Automatisierte Verifikation (eigenständig gefahren auf `23d4fbb`):**
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler / 0 Warnungen
+- `npm run verify`: Alle Integritätssuiten (001–025) bestanden
+- `npm run build`: Erfolgreich durchgelaufen (3,27 s)
+- `npm test`: 341 Testdateien / 2.478 Tests bestanden
+
+**Screenshot-Matrix:**
+
+- Dokumentiert in `docs/screenshots/auftrag-107/README.md` (16/18 verschieden, 2 Gleichstände bei 375 px sachlich begründet; Überlauf 375 px auf Headcount und Live-Simulation vorbestehend und unverändert).
+
+**Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #98 ist aus Sicht der Qualitätssicherung und Architekturvorgaben bereit für den Merge durch Marc.
+
+## Auftrag 108 – Paket H Teil 4: Restbegriffe in den Fachdaten (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste in den Fachdaten fortsetzen (Restfunde aus Auftrag 107). Branch `claude/auftrag-108-paket-h-teil4`, Baseline `720caf5`.
+
+**Geänderte Dateien:** `src/domain/execData.ts`, `finanzenData.ts`, `strategieData.ts`, `navData.ts` (nur Beschriftungen), `src/features/finanzen/components/SaasMotor.tsx` (Suche per exaktem Label), `src/features/overview/pages/ExecutiveDashboardPage.tsx`, `src/features/simulation/components/ManagementTierView.tsx`, `scripts/captureAuftrag108Screenshots.mjs`, Auftrag 108, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Fully-Loaded CAC“ → „Gesamtkosten pro Neukunde“, „CAC-Payback (Fully Loaded)“ → „CAC-Payback (Gesamtkosten)“, Menüeintrag `s-headcount` → „Entwicklung der Teamgröße“ (ID unverändert), Bindestrich-Restfunde „Ebene-A-Basis“/„Ebene-C-Echtzeitfeed“ ersetzt. Werte unverändert; der Dashboard-Katalog liest `EXEC_KPIS_2` per Index, nicht per Label. Offen für eigene Aufträge: `sourceFreshness.ts` (Schutzbereich), Kennzahl „Headcount“ → „Teamgröße“, Leer-/Fehlertexte, Navigationsgruppierung, Fokusprüfung Menü.
+
+**Schutzbereichs-Prüfung:** `git diff 720caf5 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Prettier (`src/**/*.{ts,tsx}`) grün; Vitest 2478/2478; `npm run verify` alle Integritätssuiten grün; `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-108/README.md` — Lauf A (Standard) 15 Paare, 12 verschieden, 3 Gleichstände `/dashboard` begründet (persönliches Dashboard zeigt die Texte nicht); Lauf B (klassische Ansicht, `VITE_EXECUTIVE_DASHBOARD_V2=false`) 15/15 verschieden. Überlauf `/headcount @375` (86 px) unverändert vorbestehend.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 109 – Paket H Teil 5: Teamgröße statt Headcount (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste – offener Punkt aus Auftrag 108 („Headcount“ → „Teamgröße“). Branch `claude/auftrag-109-paket-h-teil5`, Baseline `34b3824` (main nach PR #99).
+
+**Geänderte Dateien:** `src/domain/execData.ts`, `organisationData.ts`, `strategieData.ts` (nur Beschriftungen), `src/features/dashboard/model/catalog/activeEntries.ts`, `extendedEntries.ts` (nur `name`), `src/features/organisation/pages/HeadcountPage.tsx`, `src/features/simulation/components/DetailTierView.tsx`, `KpiTimeSeriesDetailView.tsx`, Tests `catalogComparison.vitest.ts`, `CombinationPicker.ui.vitest.tsx`, Skripte `captureAuftrag100Organisation.mjs`, `captureAuftrag109Screenshots.mjs`, Auftrag 109, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Headcount“ → „Teamgröße“ in Kennzahlen, Katalog, Balanced Scorecard und OKR-Diagramm; „Headcount-Verlauf“ → „Verlauf der Teamgröße“; Kostenzeile der Simulationsdetails → „Personalkosten Vertrieb / Kundenbetreuung“. Katalog-IDs (`baseline.headcount`, `baseline.headcount_verlauf`), Routen-ID `s-headcount` und Werte unverändert; Vorjahresvergleich 31.12.2024 = 8 FTE weiter belegt (Test angepasst).
+
+**Schutzbereichs-Prüfung:** `git diff 34b3824 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** tsc 0 Fehler; ESLint grün; Prettier (geänderte Dateien) grün; Vitest 2478/2478; `npm run verify` alle Integritätssuiten grün; `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-109/README.md` — Lauf A (Standard) 15 Paare, 12 verschieden; Lauf B (klassische Ansicht) 15 Paare, 12 verschieden. Gleichstände begründet (Text außerhalb des sichtbaren Bereichs bzw. im waagerecht scrollenden Diagramm). Überlauf `/headcount @375` (86 px) unverändert vorbestehend.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+### Auftrag 109 – Review PR #100 (26.10.2026, Prüfer: Antigravity)
+
+**Prüfgegenstand:** Branch `claude/auftrag-109-paket-h-teil5`, HEAD `9cff453`, PR #100 gegen `main` (`34b3824`).
+
+**Befund:** Kein P0, kein P1. Reiner Label-Tausch gemäß Plan Abschnitt 13 (Sprachliste: „Headcount“ → „Teamgröße“, „Headcount-Verlauf“ → „Verlauf der Teamgröße“, „Personalkosten Vertrieb / Kundenbetreuung“). Schutzbereich im Diff leer, Katalog-IDs, Routen-ID und Feldnamen unverändert, Tests konsistent angepasst.
+
+**Prüfpunkte & Anmerkungen (aus Review):**
+
+- **Persistenz & Dashboard-Katalog:** `catalogId` unverändert (`baseline.headcount` / `baseline.headcount_verlauf`). Das Rendering in `DashboardTile.tsx` nutzt Fallback-Kaskade `tile.title ?? entry?.name ?? tile.catalogId`. Da `entry.name` aktualisiert wurde, aktualisieren sich bestehende Kacheln ohne Titel-Override dynamisch und ohne Migrationsbedarf.
+- **Kombinationen:** In `combinationRules.ts` ist `baseline.headcount` nicht als Operand hinterlegt; keine Auswirkung auf Kombinationsregeln.
+- **Barrierefreiheit (a11y):** `<DepthFlaechen>` in `HeadcountPage.tsx` erhält das präzise `regionLabel="Verlauf der Teamgröße, waagerecht scrollbar"`. Saubere Semantik mit `h1`, Panel-Headings und `aria-label="Kapazität je Bereich"`.
+- **Hinweise (P2 / P3):**
+  - _P2:_ In `DetailTierView.tsx` bricht die längere Kostenzeile ohne `whitespace-nowrap` bei 375 px fließend um; die Komponente ist jedoch nicht im Screenshot-Prüfpfad enthalten.
+  - _P3:_ Terminologie variiert leicht zwischen Menü/Seite („Entwicklung der Teamgröße“) und Panel/Katalog („Verlauf der Teamgröße“).
+  - _P3:_ `captureAuftrag109Screenshots.mjs`: Header-Kommentar aus 107/108 kopiert; die dualen `focus`-Regexe sollten künftig strikt auf „Teamgröße“ prüfen; Gleichstände sollten über Allowlist laufen.
+  - _P3:_ Platzhalter `Prüfer: unabhängig (/<agent> review)` in `ANTIGRAVITY_AUFTRAG_109_PAKET_H_TEIL5.md` auf Antigravity aktualisiert.
+
+**Schutzbereichs-Prüfung:**
+
+- `git diff 34b3824 -- src/simulation src/types src/context src/services/data src/features/resources`: Vollständig leer (0 Zeilen).
+
+**Automatisierte Verifikation (eigenständig gefahren auf `9cff453`):**
+
+- `npx tsc --noEmit`: 0 Fehler
+- Vitest: 341 Testdateien / 2.478 Tests bestanden
+- `npm run verify`: Alle Integritätssuiten grün
+- `npm run build`: Erfolgreich durchgelaufen
+
+**Screenshot-Matrix:**
+
+- Dokumentiert in `docs/screenshots/auftrag-109/README.md` (Lauf A und Lauf B je 12/15 verschieden, 3 Gleichstände begründet; Überlauf 375 px auf `/headcount` mit 86 px vorbestehend).
+
+**Ergebnis & Freigabestatus:** Gate bestanden, Freigabe erteilt. PR #100 ist aus Sicht der Qualitätssicherung bereit für den Merge durch Marc.
+
+## Auftrag 110 – Paket H Teil 6: Letzte Headcount-Überschriften der Simulationsdetails (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Sprachliste – sichtbare Reste von „Headcount“ in der Finanzkarte der Live-Simulation (Detail-Ebene). Branch `claude/auftrag-110-paket-h-teil6`, Baseline `ad0d433` (main nach PR #100).
+
+**Geänderte Dateien:** `src/features/simulation/components/DetailTierView.tsx` (zwei Überschriften), Test `DetailTierView.branch.ui.vitest.tsx`, Skript `captureAuftrag110Screenshots.mjs`, Auftrag 110, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** „Financial Analysis & P&L Model (Gross/Net Revenue, Headcount OPEX, EBITDA, Cash Flow)“ → „Finanzanalyse und GuV-Modell (Brutto-/Nettoumsatz, Personal- und Betriebskosten, EBITDA, Cashflow)“; „Headcount & Operational OPEX“ → „Personal- und Betriebskosten (OPEX)“. Werte und Feldnamen unverändert. Außerhalb der Schutzbereiche ist damit kein sichtbares „Headcount“ mehr übrig; offen bleibt nur das Herkunftslabel in `src/services/data/sourceFreshness.ts` (Schutzbereich).
+
+**Schutzbereichs-Prüfung:** `git diff ad0d433 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle Integrity-Suiten grün; `npm run build` grün; `npm run lint` 0 Warnungen; `DetailTierView`-Tests 8/8.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-110/README.md` – 3/3 Paare verschieden; Überlauf 375 px 181 px vorher wie nachher (bestand auf `main`).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 111 – Paket H Teil 7: Navigation nach häufigen Aufgaben gruppiert (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt „Navigation nach häufigen Aufgaben ordnen“. Branch `claude/auftrag-111-paket-h-teil7`, Baseline `e1f6935` (main nach PR #101).
+
+**Geänderte Dateien:** `src/domain/navData.ts` (`NAV_SECTIONS`, `groupNavCategories()`), `src/components/layout/Sidebar.tsx` (Gruppenüberschriften), Tests `src/domain/__tests__/navSections.vitest.ts` (neu) und `Sidebar.ui.vitest.tsx`, Skript `captureAuftrag111Screenshots.mjs`, Auftrag 111, Plan-Checkbox, Screenshot-Matrix.
+
+**Funktionale Prüfungen:** Seitenleiste und Drawer zeigen drei Gruppen: „Tägliche Arbeit“ (Übersicht, CRM & Pipeline, Vertrieb & Marketing), „Zahlen & Planung“ (Finanzen, Organisation & Team, Strategie 2026+), „Unternehmenswissen“ (übrige Fachbereiche), darunter unverändert „Administration“ für Admins. Vertrieb & Marketing rückt damit direkt unter CRM. Alle 12 Bereiche bleiben einzeln einklappbar, keine Route entfernt; nicht zugeordnete Bereiche fielen in „Weitere Bereiche“ (Test). Gruppen tragen `role="group"` mit Überschrift als Namen.
+
+**Schutzbereichs-Prüfung:** `git diff e1f6935 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` Exit 0, alle Integrity-Suiten grün; `npx vitest run` 342 Dateien / 2482 Tests grün; `npm run build` grün; `npm run lint` 0 Warnungen.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-111/README.md` – 6/6 Paare verschieden (Dashboard und GuV, 1440/768/375, unter 1024 px mit geöffnetem Drawer), 0 px Überlauf.
+
+**Visual-Baselines:** Fünf CI-Referenzbilder (1440 px: Dashboard, CRM Leads, GuV, Markt, Materialien) über `update-visual-baselines.yml` neu erzeugt (Lauf 40273014003, Branch `visual-baselines/auftrag-111`), gesichtet: Änderung nur in der Seitenleiste.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 112 – Paket H Teil 8: Entwicklerbegriffe „Supabase“ in Nutzertexten (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Sprachliste / Entwicklerbegriffe. Branch `claude/auftrag-112-paket-h-teil8`, Baseline `49a0b0d` (main nach PR #103).
+
+**Geänderte Dateien:** `LeadsPage.tsx`, `DealsView.tsx`, `LiveActivityFeed.tsx`, `StreamingAreaChart.tsx`, `LiveKpiCard.tsx`, Kommentar in `global.css`, vier zugehörige Tests, Auftrag 112.
+
+**Funktionale Prüfungen:** Tab „Supabase & Import Audit“ → „Datenbank- und Import-Prüfung“; „Supabase Verbunden“ → „Datenbank verbunden“; „Lokaler Fallback“ → „Lokale Beispieldaten“; „Supabase nicht konfiguriert“ → „Live-Verbindung nicht eingerichtet“ (3 Live-Kacheln); DealsView-Beschreibung ohne „Stage“. Tab-IDs, Werte, Feldnamen unverändert. Technische Texte (`systemHealthService.ts`, Auth-Fehler) bewusst offen für den technischen Detailbereich.
+
+**Schutzbereichs-Prüfung:** `git diff 49a0b0d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run verify`, `npm run build`, `npm run format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-112/README.md` – 6/6 Paare verschieden (CRM Leads, Deal Pipeline; 1440/768/375), 0 px Überlauf. Nachgeholt nach Codex-Befund.
+
+**Nacharbeit Codex-Befunde:** Prüfskripte `scripts/verifyLiveKpiReadLayer.ts`, `verifyLiveKpiE2e.ts`, `auditV21LiveAccessibility.mjs` auf den neuen Statustext angepasst; `verifyLiveKpiReadLayer` grün. `verifyLiveKpiE2e` meldet weiterhin „user-friendly, non-technical error notice“ – bestand schon vorher auf `main` (Textprüfung scheitert am Zeilenumbruch), nicht Teil dieses Auftrags.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Visual-Baselines (Auftrag 112):** Drei CI-Referenzbilder (`visual-crm-leads-1` auf 1440/768/375 px, Linux) über `update-visual-baselines.yml` neu erzeugt (Lauf 40297449040, Branch `visual-baselines/auftrag-112`), gesichtet: Änderung nur an den neuen Beschriftungen („Datenbank verbunden“, „Datenbank- und Import-Prüfung“).
+
+## Auftrag 113 – Paket H Teil 9: Fehler- und Ladetexte mit nächstem Schritt (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Leer-/Fehlertexte. Branch `claude/auftrag-113-paket-h-teil9`, Baseline `22f4f1d` (main nach PR #104).
+
+**Geänderte Dateien:** `DataState.tsx`, `ActivitiesView.tsx`, `DataBasisPage.tsx`, drei zugehörige Tests, Auftrag 113.
+
+**Funktionale Prüfungen:** Fehlertexte nennen jetzt den nächsten Schritt (neu laden/erneut versuchen); „CRM-Envelope“ durch „CRM-Daten“ ersetzt. Keine Logik, keine Werte geändert.
+
+**Schutzbereichs-Prüfung:** `git diff 22f4f1d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test` (342 Dateien / 2482 Tests), `npm run verify`, `npm run build`, `npm run format:check` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-113/README.md` – 6/6 Paare verschieden (Aktivitäten, Datenbasis; 1440/768/375), 0 px Überlauf. Nachgeholt nach Codex-Befund. Erfolgs- und Fehlerzustand mit der Attrappe nicht erreichbar, dort Komponententests.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 114 – Paket H Teil 10: Fokusführung des mobilen Menüs (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Fokus beim Menüöffnen/-schließen. Branch `claude/auftrag-114-paket-h-teil10`, Baseline `e1e19f2` (main nach PR #105).
+
+**Geänderte Dateien:** `Sidebar.tsx`, `Sidebar.branch3.ui.vitest.tsx`, Auftrag 114, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** Fokus wandert beim Öffnen in den Drawer und kehrt bei Escape, X und Hintergrundklick zum Menü-Auslöser zurück (vorher nur bei Escape). Focus-Trap und `inert`-Hintergrund unverändert.
+
+**Schutzbereichs-Prüfung:** `git diff e1e19f2 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test` (342 Dateien / 2485 Tests), `npm run verify`, `npm run build`, `npm run format:check` grün.
+
+**Screenshot-Matrix:** nicht erforderlich – keine sichtbare Änderung, nur Fokusverhalten; durch Komponententests abgedeckt. Browserprüfung mit Touch und Benutzerwechsel bleibt offen.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Prüfnachweis (Auftrag 114):** Codex-Review auf GitHub für Commit `333ddcd` abgeschlossen, keine Befunde (26.10.2026). Gate-Freigabe hängt noch an grünen Pflicht-Checks und gelösten Konversationen.
+
+## Auftrag 115 – Paket H Teil 11: Mobiles Menü bei Benutzerwechsel (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Benutzerwechsel. Branch `claude/auftrag-115-paket-h-teil11`, Baseline `ce28150` (main nach PR #106).
+
+**Geänderte Dateien:** `Layout.tsx`, `Layout.userSwitch.ui.vitest.tsx` (neu), Auftrag 115, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** Wechsel der Benutzer-ID schließt das offene mobile Menü; gleicher Benutzer lässt es offen. Test ohne Korrektur rot, mit Korrektur grün.
+
+**Schutzbereichs-Prüfung:** `git diff ce28150 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, `npm run lint`, `npm test` (343 Dateien / 2487 Tests), `npm run build` grün.
+
+**Screenshot-Matrix:** nicht erforderlich – keine sichtbare Änderung. Touch-Prüfung im Browser bleibt offen.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 116 – Paket H Teil 12: Mobiles Menü per Touch (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, offener Teil Touch. Branch `claude/auftrag-116-paket-h-teil12`, Baseline `25d223b` (main nach PR #107).
+
+**Geänderte Dateien:** `e2e/mobile-menu-touch.spec.ts` (neu), `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` (Spec in CI-Schritt und Abnahme-Orchestrator, Codex-Befund P1), Auftrag 116, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** Im Projekt `mobile-375` mit `hasTouch`: Tap auf den Auslöser öffnet den Drawer; Tap auf den Hintergrund schließt ihn und gibt den Fokus an den Auslöser zurück; Tap auf „Menü schließen“ schließt; Tap auf einen Navigationslink navigiert und schließt.
+
+**Schutzbereichs-Prüfung:** `git diff 25d223b -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint/Prettier auf die neue Spec, `npm run verify`, `npm run build` grün. Die neue E2E lief lokal nicht (Docker/lokales Supabase nicht gestartet, `global-setup` bricht ohne `E2E_AUTH_EMAIL` fail-closed ab); Nachweis über den Pflicht-Check `e2e` in der CI.
+
+**Screenshot-Matrix:** nicht erforderlich – keine Änderung an `src/`.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 117 – Paket H Teil 13: Sprachliste und Fachkürzel (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt Sprachliste. Branch `claude/auftrag-117-paket-h-teil13`, Baseline `a8d3162` (main nach PR #108). Die Begriffe „Vertriebsphase“, „Teamgröße“, „Gesamtkosten pro Neukunde“, „Daten aus dem CRM“ waren bereits umgesetzt; offen war die Erklärung der Fachkürzel.
+
+**Geänderte Dateien:** `src/config/glossary.ts` (neu), `src/components/pageKit/GlossaryText.tsx` (neu), `PageHero.tsx`, `__tests__/PageHero.glossary.ui.vitest.tsx` (neu), Auftrag 117, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** ARR/MRR/EBITDA/CAC/LTV/NRR in Untertitel und Pills der Seitenköpfe sowie in Panel-Untertiteln (Codex P2: dort liegen die tatsächlichen Vorkommen, z. B. PnLPage) erscheinen als `<abbr title>` mit Erklärung. Der `<h1>` bleibt unverändert (zuerst mit Auszeichnung getestet: zugänglicher Name der Kanalseiten-Überschrift änderte sich, 3 Tests rot; deshalb ausgenommen). Erklärung nur per Tooltip, auf Touch nicht sichtbar – als Grenze im Auftrag vermerkt.
+
+**Schutzbereichs-Prüfung:** `git diff a8d3162 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, `npm test` (344 Dateien / 2491 Tests), `npm run verify`, `npm run build` grün.
+
+**Screenshot-Matrix:** lokal nicht erzeugbar (kein Docker/lokales Supabase, `E2E_AUTH_EMAIL` fehlt, Seiten brauchen Anmeldung). Ersatznachweis: `e2e/visual.spec.ts` vergleicht `/finance/p-and-l` (betroffene Seite mit EBITDA im Panel-Untertitel) im Pflicht-Check `e2e` per `toHaveScreenshot` gegen die bestehende Baseline; `<abbr>` ändert Box-Größen nicht, nur die Unterstreichung. Textuelle 1440/768/375-Matrix mit SHA-Hashes bleibt offen und wird bei Bedarf nach Anmeldung nachgeholt (Codex P1, offen markiert).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Prüfnachweis (Auftrag 117):** Codex-Review auf GitHub für Commit `b38269d` abgeschlossen, keine Befunde (26.10.2026). Zuvor behoben: P2 (Glossar auch in Panel-Untertiteln, Test an `PnLPage`), P1 (Screenshot-Matrix lokal nicht erzeugbar, Ersatznachweis über `visual.spec` dokumentiert, Matrix als offen vermerkt). Gate-Freigabe hängt noch an grünen Pflicht-Checks und gelösten Konversationen.
+
+## Auftrag 118 – Paket H Teil 14: Datenebenen und Entwicklerbegriffe (Builder: Claude Code, 26.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 13, Punkt „Fachliche Ebenen“. Branch `claude/auftrag-118-paket-h-teil14`, Baseline `194972a` (main nach PR #109).
+
+**Geänderte Dateien:** `DataSourceStatus.tsx`, `DataBasisPage.tsx`, `ActivitiesView.tsx`, `DataSourceStatus.ui.vitest.tsx`, Auftrag 118, Plan (Abschnitt 13).
+
+**Funktionale Prüfungen:** Datenmodus heißt jetzt „Simulierte Daten“ bzw. „Echte Daten“; „(degraded)“, „Fail-Closed“ und „(G47)“ sind aus den sichtbaren Texten entfernt; der Fehlercode steht im aufklappbaren Bereich „Technische Details“. Offen (Schutzbereich `src/services/data`): Statuslabel „Eingeschränkt (degraded)“ und Quellenname „Supabase CRM“ – nur mit eigenem Auftrag änderbar.
+
+**Schutzbereichs-Prüfung:** `git diff 194972a -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, `npm test` (345 Dateien / 2492 Tests), `npm run verify`, `npm run build` grün.
+
+**Screenshot-Matrix:** lokal nicht erzeugbar (kein Docker/Anmeldung); Texte in Badges ändern die Layoutbreite minimal. Nachweis über Pflicht-Check `e2e` (`visual.spec`).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+**Nachtrag CI e2e (PR #110, Auftrag 118):** `visual /crm/leads` wich auf 1440/768/375 px ab (Badge „Echte Daten“ statt „Real“, 28285 px). Linux-Referenzen über `update-visual-baselines.yml` (Lauf 40406395538, Branch `visual-baselines/auftrag-118`, inkl. dreifacher Verifikation) neu erzeugt; von 30 Bildern ändern sich nur die drei `visual-crm-leads-1-*-linux.png`, Sichtprüfung ok.
+
+## Auftrag 119 – Paket I Teil 1: Vorher/Nachher-Vergleich (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Plan Abschnitt 15, Punkte „Vorher/Nachher vergleichen“. Branch `claude/auftrag-119-paket-i-teil1`, Baseline `b27ed36` (main nach PR #110).
+
+**Geänderte Dateien:** `scripts/buildVergleichsseite.mjs` (neu), `scripts/captureAuftrag081Inventory.mjs` (Prüfung ignoriert eingeklappte „Technische Details“), `DataSourceStatus.tsx`, `ActivitiesView.tsx` samt Tests (CRMView, LeadsPage.provenance, ActivitiesView.branch), `docs/reviews/2026-10-06-frontend-zielschema.json`, `…-inventar-nachher.json`, `docs/screenshots/auftrag-081-nachher/README.md`, Befundregister, Auftrag 119.
+
+**Funktionale Prüfungen:** Nachher-Lauf 256/256, nach vier Anläufen (Docker-Ausfall; Harness-Falschmeldung bei eingeklappten Details; zwei echte Entwicklercodes in Kurzanzeige und Aktivitäten-Fehlertext, behoben). Ergebnis siehe Befundregister, Abschnitt „Vorher/Nachher“: axe 128 → 0, Dashboard 17/17 Kacheln, 1 neuer offener Befund (`s-headcount` 375 px, 86 px Überlauf).
+
+**Schutzbereichs-Prüfung:** `git diff b27ed36 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, `npm run verify`, `npm run build` grün; Tests `src/features/crm` und `src/components` 404/404.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-081-nachher/README.md` (Bilder lokal). Vergleichsseite für Marc lokal: `test-results/auftrag-119/vergleich.html`.
+
+**Ergebnis & Freigabestatus:** Builder fertig für Teil 1; offen: Befund `s-headcount`, Codex-Review, Marcs Sichtabnahme und die fünf praktischen Aufgaben (Marc).
+
+## Auftrag 120 – Überlauf Teamgröße 375 px (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Befund aus Auftrag 119: `s-headcount` bei 375 px, `<main>` 86 px zu breit. Branch `claude/auftrag-120-headcount-overflow` (von `claude/auftrag-119-paket-i-teil1`, Baseline `719af0d`).
+
+**Geänderte Dateien:** `src/features/organisation/organisationSeiten.css`, `scripts/captureAuftrag120Gate.mjs`, `docs/screenshots/auftrag-120/README.md`, Auftrag 120, Befundregister.
+
+**Funktionale Prüfungen:** Ursache: `organisationSeiten.css` setzt `max-width: 760px` und `margin-inline: auto` am Diagramm-Container; mit Auto-Rand schrumpft er auf die Mindestbreite 420 px (Spalte bei 375 px: 293 px). Korrektur nur bei ≤ 480 px. Erster Ansatz in `DepthFlaechen.tsx` (Codex P1: gemeinsame Komponente, Seiten `/finance/unit-economics` und `/product/performance` nicht abgedeckt) verworfen; er hatte zudem die Breite bei 1440/768 verändert.
+
+**Schutzbereichs-Prüfung:** `git diff 719af0d -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** siehe PR (tsc, ESLint, Tests, verify, build).
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-120/README.md` (Vorher `719af0d` gegen Nachher, 3 Seiten × 3 Breiten × 2 Themes, Bilder lokal): Unit Economics und Produkt-Performance Bild-Hash identisch, Teamgröße bei 1440/768 identisch, bei 375 px Überlauf 86 → 0 px, 0 px Überlauf in allen Nachher-Aufnahmen. Hinweis: Die Seite zeigt das Diagramm bei 1440/768 weiterhin nur 420 px breit (CSS-Kommentar nennt 760 px); das ist Bestand und nicht Teil dieses Auftrags.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen.
+
+## Auftrag 121 – Paket I Teil 2: gespeicherte Dashboard-Zustände, langsame CRM-Antwort (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Abnahmematrix Paket I, Zeilen 1f und 2d. Branch `claude/auftrag-121-paket-i-teil2-abnahmematrix`, Baseline `639ebb9` (main nach PR #112).
+
+**Geänderte Dateien:** `e2e/dashboard-config-states.spec.ts` (neu), `e2e/helpers/dashboardPreferences.ts`, `e2e/crm-query-export.spec.ts`, `.github/workflows/ci.yml`, Auftrag 121, Abnahmematrix, BUILD_LOG. Kein Produktcode.
+
+**Funktionale Prüfungen:** Lokal gegen Supabase: `dashboard-config-states` und `personal-dashboard-acceptance` 21/21 (3 Breiten), gesamte `crm-query-export` 45/45. Der erste Entwurf des CRM-Tests erwartete einen falschen Ladetext („Lade Deal-Pipeline…“); tatsächlich zeigt die Seite „… Funnel Deals“ und „Export nach dem Laden verfügbar“ (korrigiert). Ungültige und zukünftige Zeilen lehnt der Server über die RPC ab und werden nur lokal mit dem Aufräumschlüssel geschrieben.
+
+**Schutzbereichs-Prüfung:** `git diff 639ebb9 -- src/simulation src/types src/context src/services/data src/features/resources` leer (kein `src/` geändert).
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint (`e2e`) ohne Befund; Prettier auf den geänderten Dateien. Pflicht-Checks in der CI.
+
+**Screenshot-Matrix:** entfällt (nur Tests, keine UI-Änderung).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Offen für Paket I: `s-live-simulation` bei 375 px, Marcs fünf Aufgaben, Gestaltungsabnahme.
+
+**Nachtrag Codex-Review (PR #113, Auftrag 121):** Geprüfter Commit `3c0da73`, Ergebnis: Review abgeschlossen, keine Befunde (27.10.2026). Pflicht-Checks `test` und `e2e` liefen zum Zeitpunkt des Eintrags noch; die Gate-Freigabe gilt erst, wenn sie grün sind.
+
+**Nachtrag CI (PR #113, Auftrag 121):** `test` schlug auf `d7fa1a0` fehl: `scripts/__tests__/runV23Acceptance.vitest.ts` verlangt jede E2E-Datei auch im Orchestrator `scripts/runV23Acceptance.mjs`; `e2e/dashboard-config-states.spec.ts` fehlte in `E2E_DASHBOARD_V2`. Ergänzt, Test lokal 11/11 grün.
+
+## Auftrag 122 – Überlauf Live-Simulation 375 px (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Restpunkt aus Auftrag 119/120: `s-live-simulation` bei 375 px, `<main>` 184 px zu breit (bestand schon in der Baseline). Branch `claude/auftrag-122-live-simulation-overflow`, Baseline `639ebb9` (main nach PR #112).
+
+**Geänderte Dateien:** `src/features/simulation/liveSimulationSeite.css` (neu), `src/features/simulation/LiveDashboardView.tsx` (Kennung und Import), `scripts/captureAuftrag122Gate.mjs` (neu), `docs/screenshots/auftrag-122/README.md`, Auftrag 122, Befundregister.
+
+**Funktionale Prüfungen:** Ursache: die Zeile „Vergleichsansicht zur Baseline“ (Beschriftung plus drei Knöpfe) war 518 px breit und umbrach nicht. Korrektur nur bei ≤ 480 px im Seiten-CSS; die Reiterleiste scrollt weiter lokal. Sichtprüfung des Nachher-Bilds (375 px, dunkel): Knöpfe stehen umgebrochen, nichts abgeschnitten.
+
+**Schutzbereichs-Prüfung:** `git diff 639ebb9 -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit`, ESLint, Prettier, `vitest run src/features/simulation` (197/197), `npm run verify` (Suiten 001–025), `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-122/README.md` (Vorher `639ebb9` gegen Nachher, 3 Breiten × 2 Themes, Bilder lokal): Überlauf 184 → 0 bei 375 px; 1440 und 768 px Bild-Hash identisch.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Die Abnahmematrix (PR #113) führt den Restpunkt noch als offen; nach beiden Merges auf „behoben“ setzen.
+
+**Nachtrag Codex-Review (PR #114, Auftrag 122):** Geprüfter Commit `74b4324`, Ergebnis: Review abgeschlossen, keine Befunde (27.10.2026). Pflicht-Checks außer `e2e` grün; `e2e` lief zum Zeitpunkt des Eintrags noch. Die Gate-Freigabe gilt erst, wenn `e2e` grün ist.
+
+**Nachtrag Sichtabnahme Vergleichsseite (Paket I, 27.10.2026):** Marc hat die Vergleichsseite (`node scripts/buildVergleichsseite.mjs`, 256 Aufnahmen, Bild neben Bild) gesichtet und die Darstellung mündlich als „sieht gut aus“ bewertet. Das ist die Sichtung der Vergleichsseite (Matrixpunkt 6), noch nicht die formale Gestaltungsabnahme: Die fünf praktischen Aufgaben und das Codex-Review des finalen Head stehen aus (Matrixpunkte 4 und 7). Neue E2E-Referenzbilder bleiben bis dahin gesperrt.
+
+**Nachtrag fünf praktische Aufgaben (Paket I, 27.10.2026):** Marc hat die fünf Aufgaben des Protokollbogens (wichtigste Zahl finden, Kennzahl verstehen, Pipeline filtern, Kachel ändern und speichern, mobil bei 375 px Funnel lesen und abmelden) im lokalen Dev-Server durchgeführt. Rückmeldung: „passt alles“. Bei keiner Aufgabe gab es Missverständnisse; die Klickwege waren logisch und selbsterklärend; beim Zoomen traten keine Umbrüche oder Layoutfehler auf; in der Mobilansicht (375 px) gab es keine Auffälligkeiten. Klickzahlen und Dauer wurden nicht einzeln erfasst. Das ist eine mündliche Gesamtrückmeldung, kein Messprotokoll. Offen für die Freigabe: Codex-Review des finalen Head, grüne Pflicht-Checks, Merge und Release v2.5.0 durch Marc.
+
+**Nachtrag Codex-Review (PR #115, Doku Paket I):** Geprüfter Commit `5fbf88c`, Ergebnis: Review abgeschlossen, keine Befunde (27.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
+
+## Auftrag 123 – Release v2.5.0 (Builder: Claude Code, 27.10.2026)
+
+**Ziel & Kontext:** Plan Frontend-Qualität (Pakete 0, A–I, Aufträge 081–122) als `v2.5.0` konsistent machen: Version, Release Notes, Plan, BUILD_PLAN. Kein Funktionscode. Branch `claude/auftrag-123-release-v2-5-0-umsetzung`, Baseline `782eded` (main nach PR #116). Voraussetzungen: PR #115 gemergt, Abnahmematrix ohne offenes Gate bis auf Codex-Head und Merge, CI auf `main` grün; Go von Marc im Chat („so mach fertig“, 27.10.2026).
+
+**Geänderte Dateien:** `package.json`, `package-lock.json` (2.5.0), `src/features/auth/pages/LoginPage.tsx` (Anzeige V2.5.0), `docs/releases/V2.5.0.md` (neu), Plan Abschnitt 15 (Release-Punkt abgehakt), `BUILD_PLAN.md`, `scripts/captureAuftrag123LoginScreenshots.mjs` und `docs/screenshots/auftrag-123/README.md` (neu), Auftrag 123.
+
+**Funktionale Prüfungen:** Release Notes nur aus BUILD_LOG, Befundregister und Abnahmematrix belegt; bekannte Grenzen (Rückweg Paket C–H, Screenreader, Klickzahlen) offen genannt. Status „veröffentlicht“ steht bereits in den Release Notes (Lehre v2.3.2); der Tag folgt erst nach Merge durch Marc.
+
+**Schutzbereichs-Prüfung:** `git diff 782eded -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` ohne Warnungen, `npm run format:check`, `npm run verify` (Suiten 001–025), `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-123/README.md` (Vorher `main` V2.4.0 gegen Nachher V2.5.0, Bilder lokal): Hashes je Breite verschieden, Überlauf 0 / 0 px bei 1440/768/375.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch unabhängigen Prüfer offen. Offen: Codex-Review (T7), Merge durch Marc, danach Tag `v2.5.0` und GitHub-Release (T8, Marc).
+
+**Nachtrag Codex-Review (PR #117, Auftrag 123):** Erster Lauf auf `4d70418`: ein Befund (P2), Rückweg der Bildseiten in `docs/releases/V2.5.0.md` nannte nur eine der zwei Bedingungen (`PAGE_PRESENTATION` und `HTML_PAGES`, `ImagePage.tsx` zeigt HTML bei einer von beiden). Behoben in `aa7dde5`, Thread beantwortet und gelöst. Zweiter Lauf auf `aa7dde5`: keine Befunde (27.10.2026). Reiner Doku-Commit ohne Codeänderung; die Gate-Freigabe gilt erst bei grünen Pflicht-Checks. Tag `v2.5.0` und GitHub-Release folgen nach Merge durch Marc.
+
+**Nachtrag Release (Auftrag 123, T8, 27.10.2026):** PR #117 durch Marc gemergt (Merge-Commit `7a66b7a`). Annotierter Tag `v2.5.0` auf `7a66b7a` gesetzt und gepusht, GitHub-Release „LeadPilot v2.5.0“ mit den Release Notes veröffentlicht (https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/releases/tag/v2.5.0). Gate R5 erfüllt; ältere Tags unverändert. Reiner Doku-Commit, kein neues Review nötig. Offen: einmalige Funktionsprüfung nach Auslieferung.
+
+## Auftrag 124 – Beschriftung der Simulationsleiste (Builder: Claude Code, 30.10.2026)
+
+**Ziel & Kontext:** Meldung von Marc: neuer Run auf `/crm/live-simulation` zeigt ARR +0 €, 0 Deals, Leads 0. Diagnose: Der Run (Seed 723666) rechnet korrekt (41 Leads, 0 Won Deals wegen voll ausgelasteter Sales-Queue, ARR bleibt auf Baseline 411.840 €); „Leads 0“ kommt aus der Simulationsleiste der separaten Live-Simulation (nicht gestartet). Korrektur: Leiste als Live-Simulation kennzeichnen. Branch `claude/fix-live-run-leer`, Baseline `1c890bb`.
+
+**Geänderte Dateien:** `src/components/layout/SimulationBar.tsx`, `src/components/layout/__tests__/SimulationBar.ui.vitest.tsx`, `scripts/captureAuftrag124Gate.mjs` (neu), `docs/screenshots/auftrag-124/README.md` (neu), Auftrag 124 (neu), BUILD_LOG.
+
+**Funktionale Prüfungen:** Engine-Nachrechnung per Vitest (Mandant `org-a`, 50 Ticks): Seed 723666 → 41 Leads / 0 Won / ARR 411.840 €, Seed 653819 → 35 Leads / 4 Won / ARR 431.340 €. Browser-Nachstellung lokal (manager-a@e2e.local): Run-Historie bestätigt beide Werte. Neuer UI-Test erst rot, dann grün; Sichtprüfung 1440 px: „LIVE-SIMULATION Leads: 0 Won: 0 ARR: 411.840 €“.
+
+**Schutzbereichs-Prüfung:** `git diff 1c890bb -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, ESLint ohne Befund, `vitest run src/components/layout` 54/54, `npm run verify`, `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-124/README.md` (Vorher `1c890bb` gegen Nachher, 3 Breiten × 2 Themes, Bilder lokal): 0 px Überlauf überall; 1440/768 px Hash verschieden, 375 px gleich (Kennzahlen mobil zugeklappt).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch Codex offen.
+
+**Nachtrag Codex-Review (PR #119, Auftrag 124):** Geprüfter Commit `91da6b6`, Ergebnis: Review abgeschlossen, keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
+
+**Nachtrag CI e2e (PR #119, Auftrag 124):** `visual /finance/p-and-l` wich auf 768 px ab (1592 px, neues Label „Live-Simulation“ in der Leiste; bei 768 px sind die Leistenkennzahlen sichtbar). Linux-Referenzen über `update-visual-baselines.yml` (Lauf 40987059379, Branch `visual-baselines/auftrag-124`, inkl. dreifacher Verifikation) neu erzeugt; von allen Bildern ändert sich nur `visual-finance-p-and-l-1-tablet-768-linux.png` (Abmessungen unverändert).
+
+**Nachtrag Codex-Review (PR #119, Auftrag 124, zweiter Lauf):** Geprüfter Commit `b2c8920` (inkl. neuer Visual-Baseline), Ergebnis: keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.

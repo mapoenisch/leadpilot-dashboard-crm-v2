@@ -18,7 +18,7 @@ const navItemVariants = cva(
   {
     variants: {
       active: {
-        true: 'bg-primary-soft text-primary font-semibold',
+        true: 'bg-primary-soft text-primary font-semibold shadow-[inset_3px_0_0_var(--color-primary)]',
         false: 'bg-transparent text-[var(--color-text-muted)] font-medium',
       },
     },

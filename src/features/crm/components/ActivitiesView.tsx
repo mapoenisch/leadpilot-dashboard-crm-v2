@@ -52,6 +52,14 @@ function formatTimestamp(timestamp: string): string {
 // `envelope.data.activities` — derselben Quelle wie Companies, Contacts, Deals
 // und Audit. Der frühere statische INITIAL-Bestand und der Simulations-Mix
 // (Activities/Events aus dem Simulations-Store) sind ersatzlos entfallen:
+/** Technische Fehlercodes (z. B. SYNTHETIC_NOT_ALLOWED) gehören nicht in den Fließtext. */
+function readableError(error: unknown): string {
+  if (!(error instanceof Error)) return 'unbekannter Fehler';
+  return /^[A-Z][A-Z0-9_]+(:|$)/.test(error.message)
+    ? 'Die Datenquelle liefert gerade keine Daten'
+    : error.message;
+}
+
 export interface ActivitiesViewProps {
   extraHeader?: React.ReactNode;
 }
@@ -179,8 +187,8 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
         </div>
         <ManagementChartState
           type="loading"
-          message="Lade Aktivitäten aus dem CRM-Envelope…"
-          sourceLabel="CRM-Quellenwahrheit (G47)"
+          message="Aktivitäten werden aus den CRM-Daten geladen …"
+          sourceLabel="CRM-Datenbasis"
         />
       </div>
     );
@@ -201,8 +209,8 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
         </div>
         <ManagementChartState
           type="error"
-          message={`Aktivitäten nicht verfügbar: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Es werden keine Ersatzdaten angezeigt.`}
-          sourceLabel="CRM-Quellenwahrheit (G47)"
+          message={`Aktivitäten nicht verfügbar: ${readableError(error)}. Lade die Seite neu oder versuche es später erneut. Es werden keine Ersatzdaten angezeigt.`}
+          sourceLabel="CRM-Datenbasis"
         />
       </div>
     );
@@ -241,7 +249,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
           <div className="font-display text-[28px] font-bold my-[4px] text-primary">
             {combinedActivities.length}
           </div>
-          <div className="text-[12px] text-success">Aus dem CRM-Envelope</div>
+          <div className="text-[12px] text-success">Aus den CRM-Daten</div>
         </Card>
 
         <Card variant="glass">
@@ -249,7 +257,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
           <div className="font-display text-[24px] font-semibold my-[4px] text-text">
             {topChannel}
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Aus dem CRM-Envelope</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Aus den CRM-Daten</div>
         </Card>
 
         <Card variant="glass">
@@ -257,7 +265,7 @@ export function ActivitiesView({ extraHeader }: ActivitiesViewProps = {}) {
           <div className="font-display text-[28px] font-semibold my-[4px] text-text">
             {typeOptions.length - 1} Typen
           </div>
-          <div className="text-[12px] text-[var(--color-text-muted)]">Aus dem CRM-Envelope</div>
+          <div className="text-[12px] text-[var(--color-text-muted)]">Aus den CRM-Daten</div>
         </Card>
 
         <Card variant="glass">

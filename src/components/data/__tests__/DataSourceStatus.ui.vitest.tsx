@@ -51,7 +51,7 @@ describe('DataSourceStatus', () => {
     );
 
     expect(screen.getByText('Supabase CRM')).toBeDefined();
-    expect(screen.getByText('Real')).toBeDefined();
+    expect(screen.getByText('Echte Daten')).toBeDefined();
     expect(screen.getByText(/Status: Gesund/)).toBeDefined();
     expect(screen.getByText(/Frische: Aktuell/)).toBeDefined();
     expect(screen.getByText(/Stand:/)).toBeDefined();
@@ -78,9 +78,9 @@ describe('DataSourceStatus', () => {
     );
 
     expect(screen.getByRole('alert')).toBeDefined();
-    expect(screen.getByText(/Eingeschränkte Datenqualität \(degraded\)/)).toBeDefined();
+    expect(screen.getByText(/Eingeschränkte Datenqualität/)).toBeDefined();
     expect(screen.getByText(/2 Fehler bei Unternehmen/)).toBeDefined();
-    expect(screen.getByText(/Synthetisch/)).toBeDefined();
+    expect(screen.getByText(/Simulierte Daten/)).toBeDefined();
   });
 
   it('renders unavailable banner with fail-closed message and no live indicator', () => {

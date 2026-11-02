@@ -9,7 +9,7 @@
   gap: var(--space-3);
 }
 .ov-kapital strong {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 .pk-page[data-ruhig='true'][data-page-key='overview-profile'] .pk-panel,

@@ -1,0 +1,13 @@
+/* Auftrag 098 (Paket G2, Welle 5): Wettbewerbstabelle wie im Original-WebP – nur der
+   Marktführer (erste Zeile) in Cyan, übrige Anbieter in Textfarbe, LeadPilot bleibt orange. */
+.pk-page[data-page-key='market-competition']
+  .pk-table
+  tbody
+  tr:not(:first-child):not([data-highlight])
+  td[data-lead='true'] {
+  color: var(--color-text);
+}
+.pk-page[data-page-key='market-competition'] .pk-table tbody tr:first-child td:last-child {
+  color: var(--color-primary);
+  font-weight: 600;
+}

@@ -32,6 +32,7 @@ export const E2E_PARALLEL = [
   'e2e/auth.spec.ts',
   'e2e/crm-query-export.spec.ts',
   'e2e/element-clipping.acceptance.ts',
+  'e2e/mobile-menu-touch.spec.ts',
   'e2e/resources-viewer.spec.ts',
   'e2e/routes.spec.ts',
   'e2e/semantic-routes.spec.ts',
@@ -42,6 +43,7 @@ export const E2E_PARALLEL = [
 export const E2E_DASHBOARD_V2 = [
   'e2e/personal-dashboard.spec.ts',
   'e2e/personal-dashboard-acceptance.spec.ts',
+  'e2e/dashboard-config-states.spec.ts',
 ];
 /** Auftrag 079: nur mit Build `VITE_EXECUTIVE_DASHBOARD_V2=false` (Rückschaltung). */
 export const E2E_DASHBOARD_ROLLBACK = ['e2e/dashboard-rollback.spec.ts'];

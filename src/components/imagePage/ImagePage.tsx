@@ -39,6 +39,8 @@ export function ImagePage({ page, children }: ImagePageProps) {
   }, []);
 
   // Auftrag 093: freigegebene Seiten (HTML_PAGES) zeigen den Inhalt sichtbar.
+  // Auftrag 104 (Paket G3): Standard ist 'html' — Bild und Textschicht unten sind nur
+  // noch der dokumentierte Rückweg (src/config/pagePresentation.ts), keine aktive Darstellung.
   if (PAGE_PRESENTATION === 'html' || HTML_PAGES.includes(page)) return <>{children}</>;
 
   const { src, alt, testId } = IMAGE_PAGES[page];

@@ -8,7 +8,27 @@ describe('Header', () => {
     render(<Header currentViewTitle="Executive Dashboard" categoryLabel="Übersicht" />);
     expect(screen.getByRole('heading', { name: 'Executive Dashboard' })).toBeInTheDocument();
     expect(screen.getByText('Übersicht /')).toBeInTheDocument();
-    expect(screen.getByText('Marc Pönisch')).toBeInTheDocument();
+    expect(screen.queryByTestId('logout-button')).not.toBeInTheDocument();
+  });
+
+  it('zeigt Profil und sichtbaren Abmelden-Button und ruft onLogout', async () => {
+    const user = userEvent.setup();
+    const handleLogout = vi.fn();
+    render(
+      <Header
+        currentViewTitle="Dashboard"
+        userEmail="anna@example.com"
+        userRoleLabel="Manager"
+        onLogout={handleLogout}
+      />,
+    );
+    expect(screen.getByText('anna@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Manager')).toBeInTheDocument();
+    const btn = screen.getByRole('button', { name: 'Abmelden' });
+    expect(btn).toHaveAttribute('data-leave-guard');
+    expect(btn.className).not.toContain('opacity-0');
+    await user.click(btn);
+    expect(handleLogout).toHaveBeenCalledTimes(1);
   });
 
   it('renders mobile menu trigger when isMobile is true and calls onToggleMobileMenu', async () => {

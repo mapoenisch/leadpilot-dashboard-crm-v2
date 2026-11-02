@@ -57,8 +57,8 @@ export function DataBasisPage() {
       <DataBasisShell>
         <ManagementChartState
           type="loading"
-          message="Lade CRM-Envelope…"
-          sourceLabel="CRM-Quellenwahrheit (G47)"
+          message="CRM-Daten werden geladen …"
+          sourceLabel="CRM-Datenbasis"
         />
       </DataBasisShell>
     );
@@ -72,7 +72,7 @@ export function DataBasisPage() {
     return (
       <DataBasisShell testId="data-basis-page">
         <SectionHeader
-          eyebrow="CRM-Quellenwahrheit (G47)"
+          eyebrow="CRM-Datenbasis"
           title="Quelle und Zustand"
           description="Herkunft und Zustand der CRM-Daten aus genau einer Quelle"
           actions={<DataSourceStatus variant="compact" provenance={provenance} />}
@@ -84,8 +84,8 @@ export function DataBasisPage() {
 
         <ManagementChartState
           type="error"
-          message={`Datenquelle nicht verfügbar: ${provenance.statusDescription} Es werden keine Ersatzdaten angezeigt.`}
-          sourceLabel="CRM-Quellenwahrheit (G47)"
+          message={`Datenquelle nicht verfügbar: ${provenance.statusDescription} Lade die Seite neu oder prüfe die Verbindung. Es werden keine Ersatzdaten angezeigt.`}
+          sourceLabel="CRM-Datenbasis"
         />
       </DataBasisShell>
     );
@@ -102,7 +102,7 @@ export function DataBasisPage() {
   return (
     <DataBasisShell testId="data-basis-page">
       <SectionHeader
-        eyebrow="CRM-Quellenwahrheit (G47)"
+        eyebrow="CRM-Datenbasis"
         title="Quelle und Zustand"
         description="Herkunft und Zustand der CRM-Daten aus genau einer Quelle"
         actions={<DataSourceStatus variant="compact" provenance={provenance} envelope={envelope} />}
@@ -174,7 +174,7 @@ export function DataBasisPage() {
       )}
       {envelope.status === 'degraded' && (
         <Card>
-          <h2>Hinweise zur Datenqualität (degraded)</h2>
+          <h2>Hinweise zur Datenqualität</h2>
           <p>
             Die Quelle meldet Importfehler — die vorhandenen Daten sind sichtbar, aber als
             eingeschränkt gekennzeichnet.

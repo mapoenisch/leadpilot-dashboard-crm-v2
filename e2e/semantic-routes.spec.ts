@@ -17,6 +17,9 @@ import { HTML_PAGES, PAGE_PRESENTATION } from '../src/config/pagePresentation';
 // Auftrag 093 (Codex PR #79, P1): Seiten aus HTML_PAGES sind auch im Modus 'bild' echte
 // HTML-Seiten. Zuordnung Seitenschlüssel → Route; fehlt ein Schlüssel, bricht die Suite ab.
 // Auftrag 094: Welle G2-1 (Unternehmen); Auftrag 095: Welle G2-2 (Übersicht, Produkt).
+// Auftrag 104 (Paket G3): Schalter steht auf 'html' – alle Routen laufen die HTML-Assertions;
+// der Bildzweig greift nur beim dokumentierten Rückweg (Schalter 'bild' und Schlüssel aus
+// HTML_PAGES entfernt) – das Kippen des Schalters allein ändert bei voller Liste nichts.
 const HTML_PAGE_ROUTES: Record<string, string> = {
   'sales-funnel': '/sales/funnel',
   'company-idea': '/company/idea',
@@ -32,6 +35,24 @@ const HTML_PAGE_ROUTES: Record<string, string> = {
   'finance-pnl': '/finance/p-and-l',
   'finance-balance-sheet': '/finance/balance-sheet',
   'finance-unit-economics': '/finance/unit-economics',
+  'market-dach': '/market/overview',
+  'market-competition': '/market/competition',
+  'market-swot': '/market/swot',
+  'customers-icp': '/customers/icp',
+  'customers-persona': '/customers/persona',
+  'customers-segments': '/customers/segments',
+  'customers-top10': '/customers/top-customers',
+  'organisation-headcount': '/organisation/headcount',
+  'organisation-hr': '/organisation/hr',
+  'organisation-team': '/organisation/team',
+  'strategy-okrs': '/strategy/okrs',
+  'strategy-bsc': '/strategy/balanced-scorecard',
+  'strategy-growth': '/strategy/growth-drivers',
+  'legal-articles': '/legal/articles',
+  'legal-shareholders': '/legal/shareholders',
+  'legal-register': '/legal/commercial-register',
+  'product-pricing': '/product/pricing',
+  'product-performance': '/product/performance',
 };
 const htmlRoutes = HTML_PAGES.map((key) => {
   const route = HTML_PAGE_ROUTES[key];

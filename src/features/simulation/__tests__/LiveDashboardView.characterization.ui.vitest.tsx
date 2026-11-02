@@ -38,7 +38,7 @@ describe('LiveDashboardView (characterization)', () => {
     const user = userEvent.setup();
     render(<LiveDashboardView />);
     await user.click(screen.getByRole('tab', { name: /Operative Simulation/ }));
-    expect(screen.getByText('Simulierte Operative Leads (Ebene B)')).toBeInTheDocument();
+    expect(screen.getByText('Simulierte operative Leads')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Alle' })).toBeInTheDocument();
     expect(screen.getByText('Unternehmen')).toBeInTheDocument();
     await user.click(screen.getByRole('tab', { name: /Live Won Deals/ }));

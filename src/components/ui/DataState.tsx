@@ -19,7 +19,7 @@ export function DataState({
   status,
   loadingText = 'Daten werden geladen …',
   emptyText = 'Keine Daten vorhanden.',
-  errorText = 'Daten konnten nicht geladen werden.',
+  errorText = 'Daten konnten nicht geladen werden. Versuche es erneut oder lade die Seite neu.',
   onRetry,
   retryLabel = 'Erneut versuchen',
   children,

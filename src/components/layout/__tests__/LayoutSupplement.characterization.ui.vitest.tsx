@@ -12,7 +12,7 @@ describe('Layout-Supplement (characterization)', () => {
     expect(screen.getByRole('heading', { name: 'Nur Titel' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Hauptmenü umschalten' })).toBeNull();
     expect(screen.queryByRole('button', { name: /hellen Design|dunklen Design/ })).toBeNull();
-    expect(screen.getByText('Marc Pönisch')).toBeInTheDocument();
+    expect(screen.queryByText('Marc Pönisch')).not.toBeInTheDocument();
   });
 
   it('Header zeigt mobilen Menü-Button im geöffneten Zustand', () => {

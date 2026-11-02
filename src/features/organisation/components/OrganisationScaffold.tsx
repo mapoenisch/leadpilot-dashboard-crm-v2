@@ -57,7 +57,7 @@ export const OrganisationScaffold: React.FC = () => {
   return (
     <section
       className="facelift-organisation-scaffold box-border w-full rounded-lg border border-solid border-border bg-surface p-[var(--space-5,20px)] flex flex-col gap-[var(--space-5,20px)] [overflow-wrap:anywhere]"
-      aria-label="Organisationsgerüst und Headcount-Entwicklung"
+      aria-label="Organisationsgerüst und Entwicklung der Teamgröße"
     >
       <style>{`
         .scaffold-functional-grid {
@@ -93,7 +93,7 @@ export const OrganisationScaffold: React.FC = () => {
           </span>
         </div>
         <h3 className="m-0 font-display font-bold text-text text-[clamp(1.1rem,4vw,1.25rem)] [overflow-wrap:anywhere]">
-          Headcount-Entwicklung & Organisationsgerüst
+          Entwicklung der Teamgröße & Organisationsgerüst
         </h3>
         <p className="m-0 text-[13px] leading-[1.5] text-[var(--color-text-muted)]">
           Personalaufbau von {firstFte} ({firstQuarter}) auf {lastFte} ({lastQuarter}) über{' '}

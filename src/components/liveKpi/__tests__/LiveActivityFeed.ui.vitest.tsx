@@ -29,7 +29,7 @@ describe('LiveActivityFeed', () => {
 
     render(<LiveActivityFeed />);
     expect(
-      screen.getByText('Supabase nicht konfiguriert – keine Live-Aktivitäten.'),
+      screen.getByText('Live-Verbindung nicht eingerichtet – keine Live-Aktivitäten.'),
     ).toBeInTheDocument();
   });
 

@@ -148,7 +148,7 @@ describe('DetailTierView (branch)', () => {
     render(<DetailTierView />);
     expect(
       screen.getByText(
-        'Financial Analysis & P&L Model (Gross/Net Revenue, Headcount OPEX, EBITDA, Cash Flow)',
+        'Finanzanalyse und GuV-Modell (Brutto-/Nettoumsatz, Personal- und Betriebskosten, EBITDA, Cashflow)',
       ),
     ).toBeInTheDocument();
   });

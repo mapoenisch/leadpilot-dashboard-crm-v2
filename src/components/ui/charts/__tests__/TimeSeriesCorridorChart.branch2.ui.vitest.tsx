@@ -48,7 +48,7 @@ describe('TimeSeriesCorridorChart (branch2)', () => {
     const { container } = render(
       <TimeSeriesCorridorChart points={PTS} baselineValue={411840} targetValue={500000} />,
     );
-    expect(screen.getByText('Ebene A Basis')).toBeInTheDocument();
+    expect(screen.getByText('Unternehmensdaten 2025')).toBeInTheDocument();
     expect(screen.getByText(/Ziel \(/)).toBeInTheDocument();
     // Baseline-Kreis am ersten Median
     const circles = container.querySelectorAll('circle');

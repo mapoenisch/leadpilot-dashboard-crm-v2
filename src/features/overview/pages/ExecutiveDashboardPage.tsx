@@ -17,13 +17,13 @@ export function ExecutiveDashboardPage() {
       <SectionHeader
         eyebrow={HERO.eyebrow}
         title="Executive Cockpit V2"
-        description={`Integrierte Unternehmenssteuerung: Finanzielle Baseline (${EXEC_KPIS_1.length + EXEC_KPIS_2.length} KPIs, ${CHART_ARR.labels.length} Quartale), operative Einheiten und Ebene-C-Echtzeitfeed.`}
+        description={`Integrierte Unternehmenssteuerung: Finanzielle Baseline (${EXEC_KPIS_1.length + EXEC_KPIS_2.length} KPIs, ${CHART_ARR.labels.length} Quartale), operative Einheiten und Live-Daten.`}
         actions={
           <div className="flex items-center gap-[var(--space-2,8px)] flex-wrap">
             <DataSourceStatus variant="compact" provenance={provenance} />
-            <Badge variant="cyan">Ebene A Baseline</Badge>
+            <Badge variant="cyan">Unternehmensdaten 2025</Badge>
             <Badge variant="neutral">Stand: 31.12.2025</Badge>
-            <Badge variant="orange">Ebene C Realtime</Badge>
+            <Badge variant="orange">Live-Daten</Badge>
           </div>
         }
       />
