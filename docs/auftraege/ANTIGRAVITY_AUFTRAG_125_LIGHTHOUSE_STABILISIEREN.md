@@ -12,7 +12,9 @@ Nur CI-Konfiguration. Keine Änderung an `src/`, Schutzbereichen oder Schwellenw
 | Datei | Änderung |
 | --- | --- |
 | `.github/workflows/ci.yml` | `include-hidden-files: true` beim Lighthouse-Artefakt |
-| `.lighthouserc.json` | `numberOfRuns` 1 → 3 (Lighthouse CI wertet den Median) |
+| `.lighthouserc.json` | `numberOfRuns` 1 → 3; `aggregationMethod: "median"` für beide Assertions (Standard wäre `optimistic`) |
+| `scripts/verifyV23ReleaseReadiness.ts` | `checkLighthouse` wertet den Median der neuesten 3 frischen Berichte statt nur den letzten |
+| `scripts/__tests__/verifyV23ReleaseReadiness.vitest.ts` | Test für die Median-Auswertung |
 | `docs/BUILD_LOG.md` | Builder-Eintrag |
 
 ## Tasks

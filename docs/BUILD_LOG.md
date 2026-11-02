@@ -17932,10 +17932,12 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Ziel & Kontext:** `e2e` scheitert seit 02.11.2026 auf `main` und in allen PRs an Lighthouse-Performance (0,85 < 0,9), ohne Codeänderung; der Bericht war nie einsehbar (Punkt-Ordner `.lighthouseci/` wurde nicht hochgeladen).
 
-**Geänderte Dateien:** `.github/workflows/ci.yml` (`include-hidden-files: true`), `.lighthouserc.json` (`numberOfRuns: 3`), `docs/auftraege/ANTIGRAVITY_AUFTRAG_125_LIGHTHOUSE_STABILISIEREN.md`, `docs/BUILD_LOG.md`.
+**Geänderte Dateien:** `.github/workflows/ci.yml` (`include-hidden-files: true`), `.lighthouserc.json` (`numberOfRuns: 3`, `aggregationMethod: median`), `scripts/verifyV23ReleaseReadiness.ts` und zugehöriger Test (Median über die 3 neuesten Berichte), `docs/auftraege/ANTIGRAVITY_AUFTRAG_125_LIGHTHOUSE_STABILISIEREN.md`, `docs/BUILD_LOG.md`.
 
 **Schutzbereichs-Prüfung:** Kein Eingriff in `src/`; `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 
 **Automatisierte Verifikation:** Reine CI-Konfiguration; Nachweis ist der CI-Lauf des PR (Artefakt `lighthouse-report` vorhanden, `e2e`). Schwellenwerte unverändert.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Ursache der 0,85 noch offen (Bericht nach Merge sichten). Gate-Freigabe durch Codex offen.
+
+**Nachtrag Codex-Review (PR #124, Auftrag 125):** Erster Lauf auf `4931252`: zwei Befunde (P2). (1) Assertions nutzen bei mehreren Läufen standardmäßig `optimistic` statt Median – behoben mit `aggregationMethod: "median"`. (2) `checkLighthouse` prüfte nur die neueste LHR-Datei – behoben, Median der neuesten 3 frischen Berichte, neuer Test (12/12 grün), `tsc` 0 Fehler.
