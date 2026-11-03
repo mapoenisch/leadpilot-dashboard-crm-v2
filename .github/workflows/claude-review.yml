@@ -111,7 +111,7 @@ jobs:
           npm ci --ignore-scripts
 
       - name: Claude prüft den Head
-        uses: anthropics/claude-code-action@12dd8d74c712f5f3669365b2369b558c495b1104 # v1
+        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1
         env:
           GH_TOKEN: ${{ github.token }}
         with:
