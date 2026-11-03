@@ -57,8 +57,8 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     // Dropdown und Pager-State prüfen
     const pageSizeSelect = page.getByRole('combobox', { name: 'Zeilen pro Seite' });
     await expect(pageSizeSelect).toHaveValue('1');
-    const prevBtn = page.getByRole('button', { name: 'Vorherige Seite' });
-    const nextBtn = page.getByRole('button', { name: 'Nächste Seite' });
+    const prevBtn = page.getByRole('button', { name: 'Zurück zur vorherigen Seite' });
+    const nextBtn = page.getByRole('button', { name: 'Weiter zur nächsten Seite' });
     await expect(prevBtn).toBeEnabled();
     await expect(nextBtn).toBeEnabled();
 
@@ -94,8 +94,8 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     await expect(page.getByText('Firma A1')).toHaveCount(0);
 
     // Paginierungs-Status & Buttons auf Seite 1 (Vorherige disabled, Nächste enabled)
-    const prevBtn = page.getByRole('button', { name: 'Vorherige Seite' });
-    const nextBtn = page.getByRole('button', { name: 'Nächste Seite' });
+    const prevBtn = page.getByRole('button', { name: 'Zurück zur vorherigen Seite' });
+    const nextBtn = page.getByRole('button', { name: 'Weiter zur nächsten Seite' });
     await expect(prevBtn).toBeDisabled();
     await expect(nextBtn).toBeEnabled();
 
