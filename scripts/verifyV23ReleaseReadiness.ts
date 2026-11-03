@@ -252,6 +252,15 @@ export function checkCoverage(options: ReadinessOptions = {}): CheckResult {
 // 2. Lighthouse Check (Fail-Closed)
 // ============================================================================
 
+/** Entspricht `numberOfRuns` in .lighthouserc.json. */
+const LIGHTHOUSE_RUNS = 3;
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
 export function checkLighthouse(options: ReadinessOptions = {}): CheckResult {
   const root = options.rootDir ?? ROOT_DIR;
   const lhciDir = options.lighthouseDir ?? path.join(root, '.lighthouseci');
@@ -347,9 +356,18 @@ export function checkLighthouse(options: ReadinessOptions = {}): CheckResult {
       return { ok: false, metrics, errors };
     }
 
-    const latestLhr = JSON.parse(fs.readFileSync(latestLhrPath, 'utf8'));
-    const perfScore = Math.round((latestLhr.categories?.performance?.score ?? 0) * 100);
-    const a11yScore = Math.round((latestLhr.categories?.accessibility?.score ?? 0) * 100);
+    // Auftrag 125: Lighthouse CI misst mehrfach (numberOfRuns) und wertet den Median; die Readiness
+    // nutzt dieselbe Aggregation über die neuesten, frischen Berichte statt nur den letzten Lauf.
+    const runFiles = lhrFiles
+      .slice(0, LIGHTHOUSE_RUNS)
+      .filter((f) => isArtifactFresh(path.join(lhciDir, f), maxAgeMs).fresh);
+    const runs = runFiles.map((f) => JSON.parse(fs.readFileSync(path.join(lhciDir, f), 'utf8')));
+    const perfScore = Math.round(
+      median(runs.map((r) => r.categories?.performance?.score ?? 0)) * 100,
+    );
+    const a11yScore = Math.round(
+      median(runs.map((r) => r.categories?.accessibility?.score ?? 0)) * 100,
+    );
 
     const perfOk = perfScore >= 90;
     const a11yOk = a11yScore >= 95;
@@ -361,7 +379,7 @@ export function checkLighthouse(options: ReadinessOptions = {}): CheckResult {
         actual: `${perfScore}`,
         target: '≥ 90',
         status: perfOk ? 'ERFÜLLT' : 'OFFEN',
-        note: `Gemessen in .lighthouseci/${lhrFiles[0]}`,
+        note: `Median aus ${runs.length} Lauf/Läufen in .lighthouseci/`,
       },
       {
         id: 20,
@@ -369,7 +387,7 @@ export function checkLighthouse(options: ReadinessOptions = {}): CheckResult {
         actual: `${a11yScore}`,
         target: '≥ 95',
         status: a11yOk ? 'ERFÜLLT' : 'OFFEN',
-        note: `Gemessen in .lighthouseci/${lhrFiles[0]}`,
+        note: `Median aus ${runs.length} Lauf/Läufen in .lighthouseci/`,
       },
     );
 

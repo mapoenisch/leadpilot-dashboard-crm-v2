@@ -3,6 +3,7 @@
 // und roten Unterprozessen strikt fehlschlägt und niemals auf Default- oder Baselinewerte zurückfällt.
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {
   checkCoverage,
@@ -161,6 +162,29 @@ describe('verifyV23ReleaseReadiness fail-closed behavior', () => {
     } finally {
       fs.rmSync(tempLhDir, { recursive: true, force: true });
     }
+  });
+
+  it('wertet Lighthouse als Median der letzten Läufe (Auftrag 125)', () => {
+    const run = (perf: number[]) => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lhci-median-'));
+      perf.forEach((score, i) => {
+        const file = path.join(dir, `lhr-${i}.json`);
+        fs.writeFileSync(
+          file,
+          JSON.stringify({ categories: { performance: { score }, accessibility: { score: 1 } } }),
+        );
+        const t = Date.now() / 1000 - (perf.length - i);
+        fs.utimesSync(file, t, t);
+      });
+      try {
+        return checkLighthouse({ lighthouseDir: dir });
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    };
+    // ein später Ausreißer kippt den Median nicht, zwei schlechte Läufe schon
+    expect(run([0.92, 0.93, 0.85]).ok).toBe(true);
+    expect(run([0.85, 0.85, 0.92]).ok).toBe(false);
   });
 
   it('weist veraltete E2E-Reports fail-closed ab (> 60m)', () => {
