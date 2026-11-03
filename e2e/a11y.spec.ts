@@ -34,7 +34,12 @@ for (const routePath of ROUTES) {
     const fresh = blocking.filter((v) => !accepted.includes(v.id));
     if (fresh.length > 0) {
       const summary = fresh
-        .map((v) => `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} Knoten)`)
+        .map((v) => {
+          const nodes = v.nodes
+            .map((n) => `    · ${n.target.join(' ')} — ${n.html.slice(0, 160)}`)
+            .join('\n');
+          return `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} Knoten)\n${nodes}`;
+        })
         .join('\n');
       expect(fresh.length, `${routePath}: NEUE Axe-Verstöße (critical/serious):\n${summary}`).toBe(0);
     }
