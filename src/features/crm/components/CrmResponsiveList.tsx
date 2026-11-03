@@ -112,7 +112,7 @@ export function CrmResponsiveList<T extends object>({
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                aria-label="Vorherige Seite"
+                aria-label="Zurück zur vorherigen Seite"
                 disabled={page <= 1}
                 onClick={() => onPageChange?.(page - 1)}
                 className="px-2.5 py-1 rounded text-xs font-medium border border-[var(--color-border)] bg-[var(--color-surface)] text-text hover:bg-[var(--color-surface-hover,rgba(255,255,255,0.06))] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -121,7 +121,7 @@ export function CrmResponsiveList<T extends object>({
               </button>
               <button
                 type="button"
-                aria-label="Nächste Seite"
+                aria-label="Weiter zur nächsten Seite"
                 disabled={page >= totalPages}
                 onClick={() => onPageChange?.(page + 1)}
                 className="px-2.5 py-1 rounded text-xs font-medium border border-[var(--color-border)] bg-[var(--color-surface)] text-text hover:bg-[var(--color-surface-hover,rgba(255,255,255,0.06))] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
