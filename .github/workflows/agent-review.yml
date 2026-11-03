@@ -125,7 +125,7 @@ jobs:
         with:
           node-version: 20
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: findings
           path: ${{ runner.temp }}/findings
