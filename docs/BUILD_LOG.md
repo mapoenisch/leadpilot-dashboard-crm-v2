@@ -17943,3 +17943,15 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Nachtrag Codex-Review (PR #124, Auftrag 125):** Erster Lauf auf `4931252`: zwei Befunde (P2). (1) Assertions nutzen bei mehreren Läufen standardmäßig `optimistic` statt Median – behoben mit `aggregationMethod: "median"`. (2) `checkLighthouse` prüfte nur die neueste LHR-Datei – behoben, Median der neuesten 3 frischen Berichte, neuer Test (12/12 grün), `tsc` 0 Fehler.
 
 **Nachtrag Ursache (PR #124, Auftrag 125):** Lighthouse-Bericht des CI-Laufs (`da92c35`) ausgewertet: 3 Läufe identisch, Performance 0,85, FCP 0,7 s, LCP 1,0 s, TBT 0 ms, **CLS 0,266**. Auslöser: spät geladene Webfonts (`inter-latin.woff2`, `space-grotesk-latin.woff2`) lösen einen Layout-Shift von 0,257 auf `main#main-content` aus. Maßnahme: Preload der drei Fonts in `index.html`. Wirkung ist durch den CI-Lauf dieses PR nachzuweisen.
+
+## Auftrag 126 – Axe-Verstöße mit betroffenen Knoten ausgeben (Builder: Claude Code, 03.11.2026)
+
+**Ziel & Kontext:** Dependabot-PR #130 (`axe-core` 4.13 → 4.14) lässt `e2e` auf `/crm/leads` (1440 px) an `label-content-name-mismatch` (serious, 2 Knoten) scheitern; die Meldung nennt die Knoten nicht, lokal nicht reproduzierbar (Login nur in der CI). Dieser Auftrag macht nur die Testausgabe aussagekräftig; der Fix folgt als eigener Auftrag.
+
+**Geänderte Dateien:** `e2e/a11y.spec.ts` (Selektor und HTML-Auszug je Knoten in der Fehlermeldung), `docs/auftraege/ANTIGRAVITY_AUFTRAG_126_A11Y_KNOTENAUSGABE.md` (neu).
+
+**Schutzbereichs-Prüfung:** Kein Eingriff in `src/`; `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` und ESLint auf `e2e/a11y.spec.ts`; Pass/Fail-Logik unverändert, Nachweis ist der CI-Lauf des PR. Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch Codex offen.
