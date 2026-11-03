@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LeadPilot — Enterprise Dashboard & CRM</title>
     <!-- 067J / G56: Fonts werden lokal aus /fonts geladen (keine externen Requests). -->
+    <!-- Auftrag 125: Preload verhindert den Layout-Sprung durch spät geladene Webfonts (Lighthouse CLS 0,266). -->
+    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>
