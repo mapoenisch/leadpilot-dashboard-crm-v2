@@ -17955,3 +17955,15 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Automatisierte Verifikation:** `npx tsc --noEmit` und ESLint auf `e2e/a11y.spec.ts`; Pass/Fail-Logik unverändert, Nachweis ist der CI-Lauf des PR. Keine UI-Änderung, daher keine Screenshot-Matrix.
 
 **Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch Codex offen.
+
+## Auftrag 127 — Paginierungs-Buttons: a11y-Label enthält sichtbaren Text (Builder: Claude Code, 03.11.2026)
+
+**Ziel & Kontext:** Dependabot-PR #130 (axe-core-Bump) meldete `label-content-name-mismatch` (serious) auf `/crm/leads` bei 1440px. Betroffen: die Paginierungs-Buttons in `CrmResponsiveList.tsx` (sichtbar „Zurück"/„Weiter", `aria-label` „Vorherige Seite"/„Nächste Seite"). Knoten stammen aus der Diagnose-Ausgabe von Auftrag 126 (PR #135).
+
+**Geänderte Dateien:** `src/features/crm/components/CrmResponsiveList.tsx` (aria-label → „Zurück zur vorherigen Seite" / „Weiter zur nächsten Seite"), `e2e/crm-query-export.spec.ts` (Selektoren angepasst).
+
+**Schutzbereiche:** nicht berührt (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources` unverändert).
+
+**Verifikation lokal:** `npx tsc --noEmit` 0 Fehler. Lint/Test/Build/E2E laufen in CI.
+
+**Status:** Codex-Review ausstehend; Merge durch Marc bzw. nach Freigabe.
