@@ -18,7 +18,7 @@ const Q_2025 = 'Quartale 2025';
 const VIEWS = {
   anteile: ['ring', 'kreis', 'balken', 'saeulen', 'tabelle'],
   kategorien: ['balken', 'saeulen', 'tabelle'],
-  zeitreihe: ['linie', 'flaeche', 'saeulen', 'tabelle'],
+  zeitreihe: ['linie', 'flaeche', 'sparkline', 'saeulen', 'tabelle'],
 } as const satisfies Record<string, readonly DashboardView[]>;
 
 interface SeriesSpec {

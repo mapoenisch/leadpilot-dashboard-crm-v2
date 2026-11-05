@@ -270,9 +270,11 @@ export const DetailTierView: React.FC = () => {
                 0
               ).toLocaleString('de-DE')}{' '}
               € (
-              {aggregation.metrics.financialMetrics?.operatingMargin.median ??
+              {(
+                aggregation.metrics.financialMetrics?.operatingMargin.median ??
                 state.metrics?.financialMetrics?.operatingMargin ??
-                0}
+                0
+              ).toLocaleString('de-DE', { maximumFractionDigits: 1 })}
               %)
             </div>
             <div className="text-[11.5px] mt-[4px] text-[var(--color-text-muted)]">

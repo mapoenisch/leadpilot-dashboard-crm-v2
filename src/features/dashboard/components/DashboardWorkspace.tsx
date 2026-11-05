@@ -13,7 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
+import { Drawer } from '@/components/ui/Drawer';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
 import { activeEntryOf } from '../hooks/dashboardEditorReducer';
@@ -66,19 +66,20 @@ export interface DashboardWorkspaceProps {
 
 const loadConfigurator = () => import('./TileConfigurator');
 
-/** Modale Hülle für Lade- und Fehlerzustand: Der übrige Arbeitsbereich ist währenddessen gesperrt. */
+/** Drawer-Hülle für Lade- und Fehlerzustand des Kachel-Konfigurators. */
 function ConfiguratorShell(props: { onClose: () => void; active: boolean; children: ReactNode }) {
   // Nur der oberste Dialog reagiert auf Escape: Liegt die Rückfrage darüber, ruht diese Hülle.
   useEscapeToClose(props.active, props.onClose);
   return (
-    <Modal
+    <Drawer
       open
       onClose={() => props.active && props.onClose()}
       title="Kachel konfigurieren"
-      maxWidth="600px"
+      width="640px"
+      escapeActive={props.active}
     >
       {props.children}
-    </Modal>
+    </Drawer>
   );
 }
 
@@ -195,6 +196,39 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
     editor.leaveRequest !== null || editor.leaving,
   );
 
+  const { locked, canUndo, canRedo, undo, redo, leaveRequest } = editor;
+
+  useEffect(() => {
+    if (!editing || locked || isOpen || leaveRequest !== null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const targetEl = e.target as HTMLElement | null;
+      const tag = targetEl?.tagName;
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        targetEl?.isContentEditable
+      ) {
+        return;
+      }
+      const isMod = e.metaKey || e.ctrlKey;
+      if (!isMod) return;
+      if (e.key === 'z' || e.key === 'Z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          if (canRedo) redo();
+        } else {
+          if (canUndo) undo();
+        }
+      } else if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        if (canRedo) redo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editing, locked, isOpen, leaveRequest, canUndo, canRedo, undo, redo]);
+
   const move = (tileId: string, direction: 'hoch' | 'runter') => {
     editor.moveTile(tileId, direction);
     focus(tileId, direction);
@@ -275,6 +309,13 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         conflict={editor.conflict}
         serverLoaded={editor.serverLoaded}
         announcement={editor.announcement}
+        canUndo={editor.canUndo}
+        canRedo={editor.canRedo}
+        onUndo={editor.undo}
+        onRedo={editor.redo}
+        onApplyPreset={(id) => {
+          editor.applyPreset(id);
+        }}
         onStart={editor.startEditing}
         onCancel={editor.cancel}
         onSave={() => void editor.save()}
@@ -340,6 +381,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           onTileActivated={props.onTileActivated}
           onMove={move}
           onMoveTo={editor.moveTileTo}
+          onResize={(tileId, size) => void editor.updateTile(tileId, { size })}
           onEdit={(tileId) => setTarget({ tile: tiles.find((tile) => tile.tileId === tileId) })}
           onRemove={remove}
           onAdd={() => setTarget({})}

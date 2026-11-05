@@ -283,6 +283,9 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 5', () => {
       ring: () => Promise.reject(new Error('x')),
       linie: () => Promise.reject(new Error('x')),
       flaeche: () => Promise.reject(new Error('x')),
+      gauge: () => Promise.reject(new Error('x')),
+      sparkline: () => Promise.reject(new Error('x')),
+      trichter: () => Promise.reject(new Error('x')),
     };
     const { props } = setup(prefs(), { chartLoaders: failing });
     startEditing();

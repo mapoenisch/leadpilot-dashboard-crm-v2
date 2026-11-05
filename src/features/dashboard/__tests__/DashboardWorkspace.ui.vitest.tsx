@@ -289,6 +289,9 @@ describe('DashboardWorkspace – Konfigurationsfenster und Verlassen', () => {
     ring: () => Promise.reject(new Error('x')),
     linie: () => Promise.reject(new Error('x')),
     flaeche: () => Promise.reject(new Error('x')),
+    gauge: () => Promise.reject(new Error('x')),
+    sparkline: () => Promise.reject(new Error('x')),
+    trichter: () => Promise.reject(new Error('x')),
   };
 
   it('fragt vor dem Neuladen nach, wenn Änderungen offen sind', async () => {
@@ -307,5 +310,22 @@ describe('DashboardWorkspace – Konfigurationsfenster und Verlassen', () => {
     const { props } = setup(prefs({ state: stored(config) }), { chartLoaders: failing });
     fireEvent.click(await screen.findByRole('button', { name: 'Wiederholen' }));
     expect(props.onReload).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignoriert Cmd+Z Undo, wenn der Konfigurator-Drawer geöffnet ist', async () => {
+    setup(prefs());
+    startEditing();
+    fireEvent.click(within(items()[0]!).getByRole('button', { name: /Nach unten/ }));
+    const undoBtn = screen.getByRole('button', { name: /Aktion rückgängig machen/ });
+    expect(undoBtn).not.toBeDisabled();
+
+    const addBtn = screen.getByRole('button', { name: 'Kachel hinzufügen' });
+    fireEvent.click(addBtn);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'z', metaKey: true });
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(undoBtn).not.toBeDisabled();
   });
 });

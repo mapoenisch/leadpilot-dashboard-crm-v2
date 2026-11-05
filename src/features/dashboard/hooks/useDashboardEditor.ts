@@ -2,24 +2,12 @@
 // Supabase nicht: Die Speicherfunktion kommt von außen (Form von `useDashboardPreferences`).
 // Kein Autosave; Fehler und Konflikt behalten den Entwurf; beim Speichern sind Aktionen gesperrt.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MAX_TILES, type DashboardConfig, type DashboardFilters } from '../model/dashboardConfig';
+import { MAX_TILES, type DashboardConfig } from '../model/dashboardConfig';
 import { validateDashboardConfig } from '../model/dashboardValidation';
 import type { PreferencesState } from '../model/defaultDashboard';
-import {
-  addTile as addTileTo,
-  isSameConfig,
-  moveTile as moveTileIn,
-  moveTileTo as moveTileToIn,
-  removeTile as removeTileFrom,
-  resetToDefault as defaultConfig,
-  saveErrorMessage,
-  tileTitle,
-  setStartFilters as setFiltersOn,
-  updateTile as updateTileIn,
-  type EditResult,
-  type NewTileInput,
-  type TilePatch,
-} from './dashboardEditorReducer';
+import { isSameConfig, saveErrorMessage } from './dashboardEditorReducer';
+import { useDashboardEditorHistory } from './useDashboardEditorHistory';
+import { useDashboardDraftActions } from './useDashboardDraftActions';
 import { useLeaveGuard } from './useLeaveGuard';
 import type { SaveResult } from './useDashboardPreferences';
 
@@ -43,8 +31,6 @@ export interface Announcement {
   seq: number;
 }
 
-const BUSY: EditResult = { ok: false, reason: 'Gerade nicht möglich.' };
-
 export function useDashboardEditor(preferences: EditorPreferences) {
   const { state } = preferences;
   const [mode, setMode] = useState<'ansicht' | 'bearbeiten'>('ansicht');
@@ -62,6 +48,8 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const [saving, setSaving] = useState(false);
   const [reloading, setReloading] = useState(false);
   const [announcement, setAnnouncement] = useState<Announcement>({ text: '', seq: 0 });
+
+  const history = useDashboardEditorHistory();
 
   const draftRef = useRef<DashboardConfig | null>(null);
   const savingRef = useRef(false);
@@ -95,6 +83,7 @@ export function useDashboardEditor(preferences: EditorPreferences) {
   const startEditing = useCallback(() => {
     if (!state || !state.canSave || lockedRef.current) return;
     commit(state.config);
+    history.initHistory(state.config);
     setSnapshot({ config: state.config, revision: state.revision });
     setMode('bearbeiten');
     setSaveStatus({ kind: 'idle' });
@@ -103,14 +92,15 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     announce(
       'Bearbeitungsmodus. Du bearbeitest eine Arbeitskopie; gespeichert wird erst mit „Speichern“.',
     );
-  }, [state, commit, announce]);
+  }, [state, commit, history, announce]);
 
   const leaveEditing = useCallback(() => {
     commit(null);
+    history.clearHistory();
     setMode('ansicht');
     setConflict(false);
     setLoadedRev(null);
-  }, [commit]);
+  }, [commit, history]);
 
   const cancel = useCallback(() => {
     if (lockedRef.current || !draftRef.current) return;
@@ -119,9 +109,6 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     announce('Änderungen verworfen. Die gespeicherte Ansicht ist wieder aktiv.');
   }, [leaveEditing, announce]);
 
-  /** Wendet eine Änderung auf die Arbeitskopie an, sofern bearbeitet wird und nichts speichert. */
-  // Ändert sich die Serverfassung unter dem offenen Entwurf (z. B. Fokus-Neuladen), beginnt sofort
-  // der Konfliktablauf: Der Entwurf wird nie stillschweigend auf die neue Revision gespeichert.
   const serverLoaded = loadedRev !== null && state?.revision === loadedRev;
   const foreign =
     editing && snapshot !== null && state !== null && state.revision !== snapshot.revision;
@@ -132,12 +119,13 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     setSaveStatus({ kind: 'fehler', message, error });
     announce(message);
   }, [announce]);
+
   useEffect(() => {
     if (loadPending && state) {
       setLoadPending(false);
       setLoadedRev(state.revision);
     } else if (loadedRev !== null && foreign && !serverLoaded && !saving) {
-      setLoadedRev(null); // noch eine Revision: erneut laden und bestätigen
+      setLoadedRev(null);
       reportConflict();
     } else if (foreign && !saving && !serverLoaded && !takeServer && !conflict) reportConflict();
   }, [
@@ -152,109 +140,37 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     reportConflict,
   ]);
 
-  const edit = useCallback(
-    (
-      change: (current: DashboardConfig) => EditResult,
-      message: (config: DashboardConfig) => string,
-    ) => {
-      const current = draftRef.current;
-      if (!current || lockedRef.current) return BUSY;
-      const result = change(current);
-      if (result.ok) {
-        commit(result.config);
-        announce(message(result.config));
-      }
-      return result;
-    },
-    [commit, announce],
-  );
+  const actions = useDashboardDraftActions({
+    draftRef,
+    lockedRef,
+    history,
+    commit,
+    announce,
+  });
 
-  const addTile = useCallback(
-    (input: NewTileInput): EditResult =>
-      edit(
-        (config) => addTileTo(config, input),
-        (config) => {
-          const added = config.tiles[config.tiles.length - 1];
-          return `${added ? tileTitle(added) : 'Kachel'} hinzugefügt. Sie steht an Position ${config.tiles.length} von ${config.tiles.length}.`;
-        },
-      ),
-    [edit],
-  );
+  const canUndo = editing && !locked && history.canUndo;
+  const canRedo = editing && !locked && history.canRedo;
 
-  const updateTile = useCallback(
-    (tileId: string, patch: TilePatch): EditResult =>
-      edit(
-        (config) => updateTileIn(config, tileId, patch),
-        (config) => {
-          const changed = config.tiles.find((tile) => tile.tileId === tileId);
-          return `${changed ? tileTitle(changed) : 'Kachel'} geändert.`;
-        },
-      ),
-    [edit],
-  );
+  const undo = useCallback((): void => {
+    if (lockedRef.current) return;
+    const target = history.undo();
+    if (!target) return;
+    commit(target);
+    announce('Aktion rückgängig gemacht.');
+  }, [history, commit, announce]);
 
-  const removeTile = useCallback(
-    (tileId: string): void => {
-      const current = draftRef.current;
-      const removed = current?.tiles.find((tile) => tile.tileId === tileId);
-      if (!removed) return;
-      edit(
-        (config) => ({ ok: true, config: removeTileFrom(config, tileId) }),
-        () => `${tileTitle(removed)} entfernt.`,
-      );
-    },
-    [edit],
-  );
-
-  const moveWith = useCallback(
-    (tileId: string, move: (config: DashboardConfig) => DashboardConfig): void => {
-      const current = draftRef.current;
-      if (!current || lockedRef.current) return;
-      const next = move(current);
-      if (next === current) return;
-      commit(next);
-      const index = next.tiles.findIndex((tile) => tile.tileId === tileId);
-      const moved = next.tiles[index];
-      if (moved)
-        announce(
-          `${tileTitle(moved)} steht jetzt an Position ${index + 1} von ${next.tiles.length}.`,
-        );
-    },
-    [commit, announce],
-  );
-
-  const moveTile = useCallback(
-    (tileId: string, direction: 'hoch' | 'runter'): void =>
-      moveWith(tileId, (config) => moveTileIn(config, tileId, direction)),
-    [moveWith],
-  );
-
-  const moveTileTo = useCallback(
-    (tileId: string, toIndex: number): void =>
-      moveWith(tileId, (config) => moveTileToIn(config, tileId, toIndex)),
-    [moveWith],
-  );
-
-  const resetToDefault = useCallback((): void => {
-    if (!draftRef.current || lockedRef.current) return;
-    commit(defaultConfig());
-    announce('Auf Standard zurückgesetzt. Die Änderung gilt erst nach „Speichern“.');
-  }, [commit, announce]);
-
-  const setStartFilters = useCallback(
-    (filters?: DashboardFilters): EditResult =>
-      edit(
-        (config) => setFiltersOn(config, filters),
-        () => (filters ? 'Startfilter übernommen.' : 'Startfilter entfernt.'),
-      ),
-    [edit],
-  );
+  const redo = useCallback((): void => {
+    if (lockedRef.current) return;
+    const target = history.redo();
+    if (!target) return;
+    commit(target);
+    announce('Aktion wiederholt.');
+  }, [history, commit, announce]);
 
   const save = useCallback(async (): Promise<boolean> => {
     const current = draftRef.current;
     if (!current || lockedRef.current) return false;
     if (foreign && !serverLoaded) {
-      // Die Serverfassung ist neuer als die Grundlage des Entwurfs: erst bewusst laden.
       reportConflict();
       return false;
     }
@@ -281,7 +197,6 @@ export function useDashboardEditor(preferences: EditorPreferences) {
       }
       const message = saveErrorMessage(result.error);
       setSaveStatus({ kind: 'fehler', message, error: result.error });
-      // Auch ein anderer Fehler nach geladener Serverfassung bleibt im Überschreiben-Ablauf.
       setConflict(result.error.kind === 'konflikt' || serverLoaded);
       if (result.error.kind === 'konflikt') setLoadedRev(null);
       announce(message);
@@ -292,15 +207,12 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     }
   }, [preferences, leaveEditing, announce, foreign, serverLoaded, reportConflict]);
 
-  /** Neuladen der Serverfassung; bei Fehlschlag bleibt alles wie es war und der Grund wird genannt. */
   const reloadOrReport = useCallback(async (): Promise<boolean> => {
-    // Sofort sperren: Zwei Konfliktwege dürfen nicht parallel laufen.
     reloadingRef.current = true;
     lockedRef.current = true;
     setReloading(true);
     try {
       await preferences.reloadServerVersion();
-      // Einen Takt warten: Die Abfrage meldet die neue Serverfassung erst danach an die Ansicht.
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
       return mountedRef.current;
     } catch {
@@ -330,7 +242,6 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     setTakeServer(true);
   }, [reloadOrReport]);
 
-  // Nach dem Laden der Serverfassung ersetzt sie die Arbeitskopie (Entwurf wird bewusst verworfen).
   useEffect(() => {
     if (!takeServer || !state) return;
     setTakeServer(false);
@@ -339,7 +250,6 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     setLoadedRev(null);
     setSaveStatus({ kind: 'idle' });
     if (!state.canSave) {
-      // Neuere Formatversion: nicht speicherbar, also zurück in die (sichere) Ansicht.
       commit(null);
       setMode('ansicht');
       announce(
@@ -348,8 +258,9 @@ export function useDashboardEditor(preferences: EditorPreferences) {
       return;
     }
     commit(state.config);
+    history.initHistory(state.config);
     announce('Serverfassung übernommen. Dein Entwurf wurde verworfen.');
-  }, [takeServer, state, commit, announce]);
+  }, [takeServer, state, commit, history, announce]);
 
   const discardDraft = useCallback(() => {
     leaveEditing();
@@ -363,6 +274,8 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     dirty,
     locked,
     canStart,
+    canUndo,
+    canRedo,
     atMax: draft !== null && draft.tiles.length >= MAX_TILES,
     saveStatus,
     conflict,
@@ -372,13 +285,16 @@ export function useDashboardEditor(preferences: EditorPreferences) {
     leaving: guard.leaving,
     startEditing,
     cancel,
-    addTile,
-    updateTile,
-    removeTile,
-    moveTile,
-    moveTileTo,
-    resetToDefault,
-    setStartFilters,
+    undo,
+    redo,
+    addTile: actions.addTile,
+    updateTile: actions.updateTile,
+    removeTile: actions.removeTile,
+    moveTile: actions.moveTile,
+    moveTileTo: actions.moveTileTo,
+    resetToDefault: actions.resetToDefault,
+    applyPreset: actions.applyPreset,
+    setStartFilters: actions.setStartFilters,
     save,
     loadServerVersion,
     takeServerVersion,

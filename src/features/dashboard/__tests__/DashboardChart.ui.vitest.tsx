@@ -123,9 +123,20 @@ describe('DashboardChart', () => {
   it.each<[DashboardView, string]>([
     ['linie', 'depth-line-chart'],
     ['flaeche', 'depth-area-chart'],
+    ['sparkline', 'depth-sparkline-chart'],
   ])('rendert %s nach dem Nachladen', async (view, testId) => {
     renderChart(view, resolved({ series: SHARES }), active('baseline.arr_verlauf'));
     expect(await screen.findByTestId(testId)).toBeInTheDocument();
+  });
+
+  it('rendert trichter für Stufen', async () => {
+    renderChart('trichter', resolved({ series: SHARES }), active('crm.pipeline_stufen_volumen'));
+    expect(await screen.findByTestId('depth-funnel-chart')).toBeInTheDocument();
+  });
+
+  it('rendert gauge für Einzelwerte', async () => {
+    renderChart('gauge', resolved({ value: 25 }), active('crm.pipeline_deals'));
+    expect(await screen.findByTestId('depth-gauge-chart')).toBeInTheDocument();
   });
 
   it('kürzt lange Stufennamen im Balkenrand und Ring, der Volltext bleibt im title', async () => {

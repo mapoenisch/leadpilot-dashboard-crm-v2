@@ -4,8 +4,8 @@
 // Auftrag 076: nach der ersten Kennzahl optional eine freigegebene zweite (Kombination).
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Drawer } from '@/components/ui/Drawer';
 import { Input } from '@/components/ui/Input';
-import { Modal } from '@/components/ui/Modal';
 import {
   DASHBOARD_CATEGORIES,
   TILE_SIZES,
@@ -217,11 +217,12 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
   };
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={() => escapeActive && onClose()}
       title={editing ? 'Kachel bearbeiten' : 'Kachel hinzufügen'}
-      maxWidth="960px"
+      width="640px"
+      escapeActive={escapeActive}
       footer={
         <div className="flex flex-col gap-2">
           <p className="m-0 text-[12px] text-[var(--color-text-muted)]">
@@ -392,6 +393,6 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
           )}
         </div>
       </div>
-    </Modal>
+    </Drawer>
   );
 }

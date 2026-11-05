@@ -351,4 +351,97 @@ describe('useDashboardEditor: Navigationsschutz', () => {
     unmount();
     expect(fire()).toBe(false);
   });
+
+  describe('Undo, Redo & Presets', () => {
+    it('unterstützt Undo und Redo über mehrere Bearbeitungsschritte', () => {
+      const { result } = setup();
+      act(() => result.current.startEditing());
+      expect(result.current.canUndo).toBe(false);
+      expect(result.current.canRedo).toBe(false);
+
+      // Schritt 1: Kachel a entfernen
+      act(() => void result.current.removeTile('a'));
+      expect(ids(result)).toEqual(['b', 'c']);
+      expect(result.current.canUndo).toBe(true);
+      expect(result.current.canRedo).toBe(false);
+
+      // Schritt 2: Kachel c nach oben schieben
+      act(() => void result.current.moveTile('c', 'hoch'));
+      expect(ids(result)).toEqual(['c', 'b']);
+      expect(result.current.canUndo).toBe(true);
+
+      // Undo Schritt 2
+      act(() => result.current.undo());
+      expect(ids(result)).toEqual(['b', 'c']);
+      expect(result.current.canUndo).toBe(true);
+      expect(result.current.canRedo).toBe(true);
+      expect(result.current.announcement.text).toBe('Aktion rückgängig gemacht.');
+
+      // Undo Schritt 1 (zurück zum Ausgangszustand)
+      act(() => result.current.undo());
+      expect(ids(result)).toEqual(['a', 'b', 'c']);
+      expect(result.current.canUndo).toBe(false);
+      expect(result.current.canRedo).toBe(true);
+      expect(result.current.dirty).toBe(false);
+
+      // Redo Schritt 1
+      act(() => result.current.redo());
+      expect(ids(result)).toEqual(['b', 'c']);
+      expect(result.current.canUndo).toBe(true);
+      expect(result.current.canRedo).toBe(true);
+      expect(result.current.dirty).toBe(true);
+      expect(result.current.announcement.text).toBe('Aktion wiederholt.');
+    });
+
+    it('wendet Presets an und integriert sie in den Undo-Stack', () => {
+      const { result } = setup();
+      act(() => result.current.startEditing());
+
+      act(() => {
+        const res = result.current.applyPreset('blank');
+        expect(res.ok).toBe(true);
+      });
+      expect(ids(result)).toEqual([]);
+      expect(result.current.canUndo).toBe(true);
+      expect(result.current.announcement.text).toContain('Leere Vorlage');
+
+      act(() => result.current.undo());
+      expect(ids(result)).toEqual(['a', 'b', 'c']);
+      expect(result.current.dirty).toBe(false);
+    });
+
+    it('pusht bei unveränderter Konfiguration (Preset, Reset) keinen redundanten Undo-Schritt', () => {
+      const { result } = setup();
+      act(() => result.current.startEditing());
+
+      // Zweimal dasselbe Preset anwenden
+      act(() => {
+        result.current.applyPreset('blank');
+      });
+      expect(result.current.canUndo).toBe(true);
+
+      act(() => {
+        result.current.applyPreset('blank');
+      });
+      // Nach einmal Undo muss man direkt wieder beim Ausgangszustand sein
+      act(() => result.current.undo());
+      expect(ids(result)).toEqual(['a', 'b', 'c']);
+      expect(result.current.canUndo).toBe(false);
+
+      // ResetToDefault auf Standard-Konfiguration
+      act(() => {
+        result.current.resetToDefault();
+      });
+      expect(ids(result)).not.toEqual(['a', 'b', 'c']);
+      expect(result.current.canUndo).toBe(true);
+
+      // Erneutes ResetToDefault ändert nichts
+      act(() => {
+        result.current.resetToDefault();
+      });
+      // Nach einmal Undo muss man beim vorherigen Zustand (vor Reset) sein
+      act(() => result.current.undo());
+      expect(ids(result)).toEqual(['a', 'b', 'c']);
+    });
+  });
 });

@@ -17967,3 +17967,65 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Verifikation lokal:** `npx tsc --noEmit` 0 Fehler. Lint/Test/Build/E2E laufen in CI.
 
 **Status:** Codex-Review ausstehend; Merge durch Marc bzw. nach Freigabe.
+
+---
+
+## 2026-11-05 — Dashboard-Editor Rework: Welle 1 (Toolbar & Presets), Welle 2 (Drawer), Welle 3 (Resizing) & Welle 4 (Neue Diagrammtypen & Filter)
+
+**Rolle:** Antigravity · **Branch:** `start_react_app` · **PR:** #137
+
+Überarbeitung des Dashboard-Editors zur Wahrung des visuellen Kontexts und Verbesserung des Bedienkomforts:
+1. **Welle 1 (Paket 1, Commit `45e40cf`):**
+   - Modernisierte `EditorToolbar` mit Bearbeitungsmodus-Badge, Lucide-Icons, Vorlagen-Dropdown und Undo/Redo-Aktionen (`useDashboardEditorHistory` mit bis zu 50 Schritten, Tastaturkürzel Cmd/Ctrl+Z, Cmd/Ctrl+Y).
+   - Rollenspezifische Dashboard-Vorlagen (`dashboardPresets.ts`: Executive, Vertrieb & Pipeline, Finanzen & Unit Economics, Leere Vorlage).
+2. **Welle 2 (Paket 2, Commit `166f5ea`):**
+   - Neuer barrierefreier `Drawer.tsx` (`role="dialog"`, `aria-modal="true"`, Fokusfalle, Escape-Handling, Backdrop-Klick).
+   - Kachelkonfiguration in `TileConfigurator.tsx` und Hülle in `DashboardWorkspace.tsx` von Modal auf seitlichen Slide-over Drawer (`width="640px"`) mit halbtransparentem, weichgezeichnetem Backdrop umgestellt, sodass das Dashboard sichtbar bleibt.
+3. **Nacharbeit Codex-Review (PR #137, Commit `846d52f`):**
+   - **Befund 1 (P2):** Katalog-ID für Pipeline-Stufen in `src/features/dashboard/model/dashboardPresets.ts`: `crm.pipeline_stufen` auf existente ID `crm.pipeline_stufen_volumen` korrigiert. Test in `dashboardEditorReducer.vitest.ts` erweitert, um sicherzustellen, dass `validateDashboardConfig(preset.config).unavailable` für alle Presets leer ist.
+   - **Befund 2 (P2):** Vorlagen-Menü Begrenzung auf schmalen Ansichten: Menü über Responsive-Tailwind-Klassen auf Mobilgeräten (`< sm`) an der übergeordneten Zeile verankert (`absolute left-0 right-0 top-full mt-1`), ab `sm:` linksbündig am Button (`sm:left-0 sm:right-auto sm:w-72 sm:max-w-[calc(100vw-32px)]`). Verhindert horizontales Überlaufen und hält Quality-Debt-Budget (50/50 ohne Inline-Styles). Eigener Komponententest `EditorToolbar.ui.vitest.tsx` hinzugefügt.
+4. **Welle 3 (Paket 3, Commit `0e8523a`, Resizing per Drag-Handle & Hilfsgitter):**
+   - Neuer `TileResizeHandle.tsx` mit Pointer-Drag und Tastaturnavigation (`role="slider"`, ARIA-Valuetext, Pfeiltasten links/rechts) an jeder Kachel im Bearbeitungsmodus.
+   - Schnell-Schaltflächen für Spaltengrößen (`3 Sp.`, `6 Sp.`, `9 Sp.`, `12 Sp.`) direkt in den Kachel-Aktionen von `DashboardGrid.tsx` mit automatischer Deaktivierung von Größen unterhalb der Mindestgröße (`minSizeFor`).
+   - Visuelles 12-Spalten-Hilfsraster (`data-testid="grid-helper-lines"`) im Hintergrund des Bearbeitungsmodus.
+   - Direkte Anbindung an den Draft-Reducer (`onResize` -> `editor.updateTile`) inklusive automatischer Undo/Redo-Erfassung und Screenreader-Ansagen.
+5. **Welle 4 (Paket 4, Neue Diagrammtypen & erweiterte Filter):**
+   - **Drei neue Diagrammmodule mit Lazy-Loading (Code-Splitting):**
+     - `DepthGaugeChart.tsx`: Tachometer / Radialskala (270°-Bogen, Skalenmarken, zentrischer Wert, Screenreader-Zusammenfassung via `summarizeGauge`). Freigegeben für Einzelwerte / Verhältnisse (`crmValue` und Ratios).
+     - `DepthSparklineChart.tsx`: Kompakter Trendverlauf mit sanftem Glow-Flächenverlauf, Min/Max-Referenzachsen, Delta-Indikator (+X%), hervorgehobenem Endpunkt mit Heiligenschein und Tastatur-Schieberegler für Zeitpunkte. Freigegeben für Zeitreihen (`baseline.arr_verlauf` und Stammdaten-Zeitreihen).
+     - `DepthFunnelChart.tsx`: Gestufter Konvertierungstrichter für Pipeline-Stufen mit dynamischen Trapezoid-Verbindern, relativer Konvertierungsrate je Stufe zur Vorstufe und Stufenauswahl via Legenden-Chips. Freigegeben für Stufenkataloge (`crm.pipeline_stufen_volumen`, `crm.pipeline_stufen_anzahl`).
+   - **Katalog- und Reducer-Erweiterung:**
+     - `DashboardView`: Erweitert um `'gauge' | 'sparkline' | 'trichter'`, `VIEWS_BY_SHAPE` und `MIN_SIZE_BY_VIEW` (`gauge`: klein, `sparkline`: klein, `trichter`: mittel).
+     - `VIEW_LABEL`: Bezeichnungen ergänzt ('Tachometer / Skala', 'Kompakter Trendverlauf', 'Trichterdiagramm').
+     - `chartLoaders.ts` und `DashboardChart.tsx`: Lazy-Loader und Werteranking/Reservierung für die neuen Module implementiert.
+   - **Erweiterte Filteroptionen im Drawer:**
+     - `ConfiguratorAdvanced.tsx` um Pipeline-Schnellauswahl-Pills (z. B. `Standard`, `Enterprise`, `Outbound` und `Zurücksetzen`) erweitert.
+   - **Umfassende UI-Tests:** `DepthGaugeChart.ui.vitest.tsx`, `DepthSparklineChart.ui.vitest.tsx`, `DepthFunnelChart.ui.vitest.tsx` und Integrationstest in `DashboardChart.ui.vitest.tsx`.
+
+6. **Nacharbeit Codex-Review (PR #137, Head `0e8523a`):**
+   - **Befund 1 (P2, `EditorToolbar.tsx`):** Toolbar-Umbruch auf schmalen Ansichten: Auf 320 px Bildschirmbreite ragten „Speichern“ und „Verwerfen“ in die Undo/Redo-Gruppe, weil der Container auf `flex-nowrap` stand. Behoben durch responsiven Umbruch (`flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5` sowie `flex flex-wrap items-center gap-1.5 min-w-0`), sodass Aktionen und Undo/Redo auch auf Mobilgeräten sauber und ohne Überlagerung umbrechen. Test in `EditorToolbar.ui.vitest.tsx` ergänzt.
+   - **Befund 2 (P2, `DashboardGrid.tsx`):** Hilfslinien-Overflow und Mindesthöhe bei schmalen Ansichten: Die 12 Hilfslinien bildeten bei `< md` (1 Spalte) 12 Zeilen à 140 px (mind. 1.856 px) und erzeugten leeren Raum unter dem Dashboard. Behoben durch `hidden md:grid` (da auf 1-Spalten-Mobilansichten keine Mehrspalten-Führungslinien benötigt werden), Entfernen der starren `min-h-[140px]` zugunsten sauberer `h-full`-Tracks und `overflow-hidden` auf dem absoluten Container.
+   - **Befund 3 (P2, `TileResizeHandle.tsx`):** Native Touch-Gesten unterbinden: Auf Touchscreens fing der Browser bei Scrollbewegungen Touch-Events ab und löste `pointercancel` aus, bevor der Resize-Schwellenwert erreicht war. Behoben durch Hinzufügen der Tailwind-Klasse `touch-none` am Handle. Test in `TileResizeHandle.ui.vitest.tsx` ergänzt.
+
+7. **Nacharbeit Codex-Review (PR #137, Head `8a3d965`):**
+   - **Befund 1 (P2, `DepthFunnelChart.tsx` & `depthGeometry.ts`):** Pipeline-Bestände nicht als Konvertierungsraten darstellen: `getPipelineOverview` in `src/domain/executiveCockpitData.ts` sammelt unabhängige Momentaufnahmen der Deals sortiert nach Volumen, keine Verlaufs-Kohorte. Fiktive Konvertierungsangaben (`convPct`, `Gesamt-Konvertierung` in `summarizeFunnel`) vollständig entfernt. Die Readout-Zeile weist stattdessen den belegten Rang („Rang N von M“) aus; das SVG zeigt Stufenname und Wert ohne irreführende Prozentmarken in der Balkenmitte.
+   - **Befund 2 (P2, `DepthGaugeChart.tsx`):** Höhenerhalt bei Einzelwert-Tachometern mit `stableLegend`: `reserveFor('gauge')` und `ChartLayoutReserve` reservieren 62 px Legendenhöhe samt 10 px Abstand. Da Einzelwerte keine Legendenbuttons benötigen, schrumpfte die Kachel nach dem Laden um 72 px. Behoben durch Rendern von `<div aria-hidden="true" className={LEGEND_RESERVE_CLASS} />` bei `stableLegend && data.length <= 1`, sodass Lade- und Endhöhe exakt übereinstimmen.
+   - **Befund 3 (P2, `DepthFunnelChart.tsx`):** Überlappende Stufen bei langen CRM-Listen (> 10 Stufen) verhindern: Bei vielen Stufen führte die feste Höhe von 220 px zu negativem `gap`. Behoben durch dynamische Zeichenflächenhöhe (`viewBoxHeight`) mit garantiert positivem Mindestabstand (`gap >= 8`, `stageH = 24`), innerem scrollbaren Container (`max-h-[300px] overflow-y-auto` bei mehr als 6 Stufen) sowie Legendenhöhenreserve bei Einzelstufen.
+   - **Tests:** `DepthFunnelChart.ui.vitest.tsx`, `DepthGaugeChart.ui.vitest.tsx` und `depthGeometry.vitest.ts` um Prüfungen für Konvertierungsfreiheit, Rangangaben, Stufen-Overflow bei 15+ Stufen und Legenden-Höhenerhalt erweitert. Alle 351 Testdateien (2.539 Tests) grün.
+
+8. **Nacharbeit Review-Befunde (PR #137, Head `4930686`):**
+   - **Befund 1 (P2, `TileResizeHandle.tsx`):** Abgebrochene Pointer-Events (`pointercancel`) durch Browser/OS verwarfen den Vorgang nicht, sondern riefen `onResize` mit der `previewSize` auf. Behoben durch dedizierte `handlePointerCancel`-Funktion, die Drag-State und Preview zurücksetzt, ohne `onResize` auszulösen. Test in `TileResizeHandle.ui.vitest.tsx` ergänzt.
+   - **Befund 2 (P2, `Drawer.tsx`):** `onKeyDown={(e) => e.stopPropagation()}` am Dialog-Container blockierte das Event-Bubbling zu `window`, wodurch der Escape- und Tab-Listener bei fokussiertem Kindelement im Standard-Browser nicht auslöste. Entfernt (`onClick` und `onKeyDown` an `div ref={drawerRef}`). Test in `Drawer.ui.vitest.tsx` um Tastaturevent auf Kindelement erweitert.
+   - **Befund 3 (P3, `DashboardWorkspace.tsx`):** Globaler Undo/Redo-Shortcut löste auch bei geöffnetem Konfigurator-Drawer oder in `isContentEditable`-Elementen Aktionen im Hintergrund aus. Behoben durch Prüfung von `isOpen` und `leaveRequest !== null` im Hook sowie Prüfung auf `isContentEditable` im Handler; Dependency-Array auf stabile Eigenschaften eingegrenzt. Test in `DashboardWorkspace.ui.vitest.tsx` ergänzt.
+   - **Befund 4 (P3, `useDashboardDraftActions.ts`):** `resetToDefault` und `applyPreset` pushten redundante Undo-Schritte bei identischem Zustand in die History. Behoben durch `if (isSameConfig(current, ...)) return`. Test in `useDashboardEditor.ui.vitest.tsx` ergänzt.
+
+9. **Visual-Baseline Aktualisierung (PR #137, Head `334c191`):**
+   - **CI e2e:** `visual /dashboard` wich auf Tablet 768 px minimal ab (3.814 px bei Schwellenwert 3.735 px / 0,001 Differenz-Ratio). Ursache: Kombination aus neuer Beschriftung „Live-Simulation“ in der Simulationsleiste (Auftrag 124 aus `main`) und Pencil-Icon/Styling des „Dashboard bearbeiten“-Buttons aus PR #137.
+   - Linux-Baseline `e2e/visual.spec.ts-snapshots/visual-dashboard-1-tablet-768-linux.png` auf die in Ubuntu-Latest erfasste Referenz aktualisiert (Abmessungen 768x4864 unverändert, Pixel-Diff ausschließlich in Leiste und Toolbar).
+
+10. **Code-Formatierung Prettier (PR #137, Head `50c09e2`):**
+    - **CI e2e:** `v2.3.0-Finding-Baseline` schlug fehl, weil `[PR-QUALITY-16]` in `qualityRelease.acceptance.ts` (`prettier --check "src/**/*.{ts,tsx}"`) 7 Dateien mit Formatabweichungen meldete (neue Chart-Module und Tests aus Welle 4).
+    - Alle 7 Dateien per `prettier --write` formatiert; `npm run format:check` und `npm run test:v23:findings` lokal vollständig grün (0 Abweichungen).
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npm run format:check` 0 Abweichungen, `npx tsx scripts/verifyQualityBudget.ts` (Budget 50/50, 0 unauthorisierte Inline-Styles), `npm run verify` (Suiten 001–025 grün), `npm test` (351 Testdateien, 2.544 Tests grün), `npm run build` erfolgreich.

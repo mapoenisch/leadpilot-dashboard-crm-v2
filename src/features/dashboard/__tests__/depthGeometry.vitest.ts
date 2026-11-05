@@ -336,3 +336,30 @@ describe('formatAxis', () => {
     expect(formatAxis(-3_000_000)).toBe('-3 Mio.');
   });
 });
+
+describe('gaugeArcPath and summaries', () => {
+  it('erzeugt SVG-Bogenpfade für Tachometer', async () => {
+    const { gaugeArcPath, summarizeGauge, summarizeFunnel } =
+      await import('../components/charts/depthGeometry');
+    const path = gaugeArcPath(280, 160, 95, 225, 135);
+    expect(path).toMatch(/^M \d+(\.\d+)? \d+(\.\d+)? A 95 95 0 1 1/);
+    expect(gaugeArcPath(280, 160, 95, 0, 0)).toBe('');
+
+    const gSummary = summarizeGauge('EBITDA-Marge', 24, '%', 'FY 2025', 0, 100);
+    expect(gSummary).toContain('Tachometer für EBITDA-Marge: 24 %');
+    expect(gSummary).toContain('Skala von 0 % bis 100 %');
+
+    const fSummary = summarizeFunnel(
+      [
+        { label: 'Leads', value: 100 },
+        { label: 'Kunden', value: 20 },
+      ],
+      'Deals',
+      'Aktuell',
+    );
+    expect(fSummary).toBe(
+      'Trichter mit 2 Stufen von Leads (100 Deals) bis Kunden (20 Deals), Aktuell.',
+    );
+    expect(summarizeFunnel([], 'Deals', 'Aktuell')).toBe('Keine Trichterstufen für Aktuell.');
+  });
+});
