@@ -45,11 +45,11 @@ Schutzbereiche (`CLAUDE.md` §6: `src/simulation/`, `src/types/`, etc.) bleiben 
 
 ## Tasks
 
-- [ ] T1 Drag & Drop überarbeiten: Dynamischer Ghost-Platzhalter (`data-testid="drag-ghost"`), `pointer-events: none` auf Kachel-Kindern, stabile Drop-Zonen.
-- [ ] T2 Kachel-Resizing & Min-Size-Sperre: Sichtbare Spalten-Buttons an jeder Kachel; automatische Deaktivierung von 3 Spalten (bzw. 3 & 6 Spalten) bei komplexen Diagrammen mit Tooltip; Eck-Anfasser respektiert `minRank`.
-- [ ] T3 Kontraste & Theme: Feste Tokens für Vorlagen-Dropdown; Vorschauseite mit Dark-Theme-Wrapper ausstatten.
-- [ ] T4 Drawer verschlanken: Breite auf 420 px anpassen, Backdrop aufhellen/minimieren, Formularfelder ergonomisch anordnen.
-- [ ] T5 Kachel-Details: `TileDetailModal.tsx` erstellen und in Workspace + Vorschau verdrahten.
-- [ ] T6 Vorschauseite bereinigen: Alte statische Testkachel entfernen, Standardansicht zeigt direkt den vollen Arbeitsbereich.
-- [ ] T7 Tests & Gates: Vitest-Tests aktualisieren, `tsc`, `lint`, `format:check`, `verify`, `test`, `build` grün fahren.
-- [ ] T8 BUILD_LOG schreiben, Commit, Push, PR öffnen für Codex-Review.
+- [x] T1 Drag & Drop überarbeiten: Dynamischer Ghost-Platzhalter (`data-testid="drag-ghost"`), `pointer-events: none` auf Kachel-Kindern, stabile Drop-Zonen.
+- [x] T2 Kachel-Resizing & Min-Size-Sperre: Sichtbare Spalten-Buttons an jeder Kachel; automatische Deaktivierung von 3 Spalten (bzw. 3 & 6 Spalten) bei komplexen Diagrammen mit Tooltip; Eck-Anfasser respektiert `minRank`.
+- [x] T3 Kontraste & Theme: Feste Tokens für Vorlagen-Dropdown; Vorschauseite mit Dark-Theme-Wrapper ausstatten.
+- [x] T4 Drawer verschlanken: Breite auf 420 px anpassen, Backdrop aufhellen/minimieren, Formularfelder ergonomisch anordnen.
+- [x] T5 Kachel-Details: `TileDetailModal.tsx` erstellen und in Workspace + Vorschau verdrahten.
+- [x] T6 Vorschauseite bereinigen: Alte statische Testkachel entfernen, Standardansicht zeigt direkt den vollen Arbeitsbereich.
+- [x] T7 Tests & Gates: Vitest-Tests aktualisieren, `tsc`, `lint`, `format:check`, `verify`, `test`, `build` grün fahren.
+- [x] T8 BUILD_LOG schreiben, Commit, Push, PR öffnen für Codex-Review.

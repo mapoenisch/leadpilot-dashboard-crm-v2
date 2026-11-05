@@ -100,12 +100,12 @@ Nicht jedes Diagramm lässt sich sinnvoll in 3 oder 6 Spalten darstellen. Folgen
 
 ## 4. Definition of Done & Verifikation
 
-- [ ] Verschieben von Kacheln funktioniert flüssig mit Live-Ghost und bleibt an der neuen Position stehen.
-- [ ] Klick auf `3 Sp.`, `6 Sp.`, `9 Sp.`, `12 Sp.` ändert sofort die Kachelbreite.
-- [ ] Bei Kacheln mit großen Diagrammen (Säulen, Linien, Trichter, etc.) ist `3 Sp.` ausgegraut und deaktiviert; Tooltip nennt die Mindestgröße.
-- [ ] Vorlagen-Dropdown hat scharfe Kontraste (weiße/helle Schrift auf dunklem Menühintergrund).
-- [ ] Drawer öffnet sich mit 420 px, Dashboard links daneben bleibt sichtbar.
-- [ ] Klick auf „Details“ zeigt die Kacheldaten im Dialog.
-- [ ] `npx tsc --noEmit` hat 0 Fehler; `npm run lint` hat 0 Warnungen; `npm run format:check` hat 0 Abweichungen; `npm run verify` und `npm run build` sind grün.
-- [ ] Schutzbereichs-Diff gegen `origin/main` (`src/simulation/`, etc.) ist vollständig leer.
-- [ ] PR auf GitHub geöffnet, sodass Codex prüfen kann.
+- [x] Verschieben von Kacheln funktioniert flüssig mit Live-Ghost und bleibt an der neuen Position stehen.
+- [x] Klick auf `3 Sp.`, `6 Sp.`, `9 Sp.`, `12 Sp.` ändert sofort die Kachelbreite.
+- [x] Bei Kacheln mit großen Diagrammen (Säulen, Linien, Trichter, etc.) ist `3 Sp.` ausgegraut und deaktiviert; Tooltip nennt die Mindestgröße.
+- [x] Vorlagen-Dropdown hat scharfe Kontraste (weiße/helle Schrift auf dunklem Menühintergrund).
+- [x] Drawer öffnet sich mit 420 px, Dashboard links daneben bleibt sichtbar.
+- [x] Klick auf „Details“ zeigt die Kacheldaten im Dialog.
+- [x] `npx tsc --noEmit` hat 0 Fehler; `npm run lint` hat 0 Warnungen; `npm run format:check` hat 0 Abweichungen; `npm run verify` und `npm run build` sind grün.
+- [x] Schutzbereichs-Diff gegen `origin/main` (`src/simulation/`, etc.) ist vollständig leer.
+- [x] PR auf GitHub geöffnet, sodass Codex prüfen kann.
