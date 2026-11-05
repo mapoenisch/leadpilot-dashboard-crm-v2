@@ -75,6 +75,7 @@ Paket 5: What-If Hebelrechner   (Interaktive Sensitivitätsanalyse ARR/Churn/Cyc
 
 ## 4. Release-Ziel
 
-- **Angepeilte Version:** `v2.6.0` (nach vollständigem Abschluss und Merge aller 5 Pakete).
-- **Release-Auftrag:** `ANTIGRAVITY_AUFTRAG_134_RELEASE_V2_6_0.md` (analog zu Auftrag 123 für `v2.5.0` mit Versionszeilen-Aktualisierung, Release Notes `docs/releases/V2.6.0.md`, Login-Screenshot-Matrix und annotiertem Git-Tag auf dem Merge-Commit durch Marc).
+- **Angepeilte Version:** `v3.0.0` (Major Release nach vollständigem Abschluss und Merge aller 5 Pakete).
+- **Begründung für v3.0.0:** Der Sprung von reiner Berichts- und Auswertungsanzeige zu einem interaktiven, operativen Vertriebs- und CRM-Steuerungssystem (Kanban-Pipeline, Lead-Scoring, Live-Funnel, Vorstandsexport, What-If-Hebel) begründet den nächsten Hauptversionsschritt.
+- **Release-Auftrag:** `ANTIGRAVITY_AUFTRAG_134_RELEASE_V3_0_0.md` (analog zu den bisherigen Major/Minor-Releases mit Versionszeilen-Aktualisierung, Release Notes `docs/releases/V3.0.0.md`, Login-Screenshot-Matrix und annotiertem Git-Tag `v3.0.0` auf dem finalen Merge-Commit durch Marc).
 
