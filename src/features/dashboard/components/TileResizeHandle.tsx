@@ -95,6 +95,7 @@ export function TileResizeHandle({
   );
 
   const displayedSize = previewSize ?? currentSize;
+  const isAtMin = displayedSize === minSize && minRank > 0;
 
   return (
     <div
@@ -111,7 +112,7 @@ export function TileResizeHandle({
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onKeyDown={handleKeyDown}
-      title={`Größe: ${SIZE_LABEL[displayedSize]} (Ziehen oder Pfeiltasten)`}
+      title={`Größe: ${SIZE_LABEL[displayedSize]}${minRank > 0 ? ` (Mindestgröße: ${SIZE_LABEL[minSize]})` : ''} (Ziehen oder Pfeiltasten)`}
       className={cn(
         'group absolute bottom-1 right-1 z-10 flex h-7 w-7 cursor-ew-resize select-none items-center justify-center rounded-br-lg rounded-tl-md bg-surface/90 text-[var(--color-text-muted)] backdrop-blur-sm transition-all hover:bg-primary/20 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-sm border border-solid border-border/80 touch-none',
         locked && 'pointer-events-none opacity-40',
@@ -124,6 +125,7 @@ export function TileResizeHandle({
       {isDragging ? (
         <span className="pointer-events-none absolute -top-8 right-0 whitespace-nowrap rounded bg-surface border border-border px-2 py-0.5 text-[11px] font-semibold text-text shadow-md">
           {SIZE_LABEL[displayedSize]}
+          {isAtMin ? ' (Mindestgröße)' : ''}
         </span>
       ) : null}
     </div>

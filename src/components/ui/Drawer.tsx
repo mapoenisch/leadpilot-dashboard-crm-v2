@@ -16,6 +16,7 @@ export interface DrawerProps {
 }
 
 const DRAWER_WIDTHS: Record<string, string> = {
+  '420px': 'max-w-[min(420px,100vw)]',
   '480px': 'max-w-[min(480px,100vw)]',
   '540px': 'max-w-[min(540px,100vw)]',
   '600px': 'max-w-[min(600px,100vw)]',
@@ -30,7 +31,7 @@ export function Drawer({
   description,
   children,
   footer,
-  width = '540px',
+  width = '420px',
   position = 'right',
   escapeActive = true,
 }: DrawerProps) {

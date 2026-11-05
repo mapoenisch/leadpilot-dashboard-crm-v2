@@ -18029,3 +18029,46 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
 **Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npm run format:check` 0 Abweichungen, `npx tsx scripts/verifyQualityBudget.ts` (Budget 50/50, 0 unauthorisierte Inline-Styles), `npm run verify` (Suiten 001–025 grün), `npm test` (351 Testdateien, 2.544 Tests grün), `npm run build` erfolgreich.
+
+## 2026-11-05 — Auftrag 128: Dashboard-Editor Reparatur (Drag&Drop, Content-Aware Resizing & Min-Size, Drawer-Verschlankung, Kontraste & Details-Modal)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-128-dashboard-editor-reparatur` · **Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_128_DASHBOARD_EDITOR_REPARATUR.md` · **Plan:** `docs/superpowers/plans/2026-11-05-dashboard-editor-reparatur-plan.md`
+
+Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Dashboard-Vorschauseite und im Dashboard-Editor:
+
+1. **Content-Aware Size Constraints (`minSizeFor`) & direkte Spaltenschnellwahl:**
+   - Kacheln mit Diagrammen oder Tabellen, deren Inhalt mindestens 6 Spalten (oder bei Übersichten 9 Spalten) benötigt, deaktivieren Größenbuttons unterhalb ihrer Mindestgröße (`disabled={true}`, `opacity-35 cursor-not-allowed border-dashed`) und zeigen erklärende Tooltips.
+   - Direkte Spalten-Buttons (`3 Sp.`, `6 Sp.`, `9 Sp.`, `12 Sp.`) direkt in der Kachel-Toolbar integriert, damit Größenanpassungen mit 1 Klick ohne Menüumweg möglich sind.
+   - Modulares `TileActionsMenu.tsx` extrahiert, um die Code-Grenzen von `DashboardGrid.tsx` unter 400 Zeilen zu halten.
+   - `TileResizeHandle.tsx` respektiert `minRank` und zeigt beim Ziehen an die Mindestgrenze einen deutlichen Badge und Tooltip `(Mindestgröße)`.
+
+2. **Drag & Drop Interaktions- und Positions-Reparatur:**
+   - Kachelinhalte erhalten während eines aktiven Zugs `pointer-events-none select-none`, damit Kindelemente (SVGs, Tabellenzeilen, Knöpfe) keine falschen DragLeave/DragOver-Events auslösen oder den Drop abbrechen.
+   - Sichtbarer Ghost-Slot (`data-testid="drag-ghost"`) signalisiert die Einfügeposition vor oder nach einer Kachel.
+   - Sichtbares `GripVertical`-Icon im Anfasser integriert.
+   - Robustes `dataTransfer`-Handling mit Fallback für Umgebungen ohne DataTransfer-Objekt (jsdom/Vitest).
+
+3. **Kontrast im Vorlagen-Dropdown:**
+   - Dropdown-Menü in `EditorToolbar.tsx` auf konsistente High-Contrast Tokens (`bg-[var(--color-surface-raised,#0f2422)]`, `text-[var(--color-text-primary,#ffffff)]`, `text-[var(--color-text-muted,#8faea9)]`, sichtbare Border & Schatten) umgestellt, damit Text auf hellem oder dunklem Hintergrund optimal lesbar ist.
+
+4. **Drawer-Verschlankung und Ein-Spalten-Layout:**
+   - Drawer-Breite in `Drawer.tsx` und `TileConfigurator.tsx` auf schlanke `420px` als Standard gesetzt (statt zuvor erdrückenden 640px).
+   - Backdrop-Blur auf dezenten Schleier (`bg-black/25 backdrop-blur-[1px]`) reduziert, sodass zwei Drittel des Dashboards sichtbar und orientierungsgebend bleiben.
+   - Formularlayout im `TileConfigurator.tsx` von gequetschtem zweispaltigen Raster auf ein aufgeräumtes vertikales Ein-Spalten-Layout mit Scrollbereich und klar abgegrenzter Diagrammvorschau umgestellt.
+
+5. **Details-Button & In-Place Detail-Modal:**
+   - In `DashboardEditorPreview.tsx` öffnet ein Klick auf „Details“ nun über `onShowDetails` ein `PreviewDetailModal`, das die vollständige `TileDetailContent`-Komponente mit Kennzahlendefinition, Zeitraum, Datenherkunft, Diagrammen und barrierefreier Wertetabelle darstellt.
+
+6. **Bereinigung und Theming der Vorschauseite:**
+   - `dashboard-vorschau.html` um `<html lang="de" class="dark">` und Hintergrund-Token ergänzt.
+   - `DashboardPreviewPage.tsx` mit einer prominenten Schnellnavigationsleiste ausgestattet, die direkt zum Dashboard-Editor scrollt oder über `?bereich=editor` den reinen Arbeitsbereich darstellt.
+   - Veraltete Viewport-Klassen (`xl:max-w-[...]`) in `DashboardDesignPreview.tsx` durch echte Maximalbreiten (`max-w-[320px]`, `max-w-[600px]`, `max-w-[900px]`, `max-w-full`) ersetzt, sodass die Größenknöpfe auf beliebigen Monitorauflösungen zuverlässig skalieren.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+**Automatisierte Verifikation:**
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/dashboard`: 46 Testdateien, 591 Tests grün
+- `npx vitest run src/components/ui/__tests__/Drawer.ui.vitest.tsx`: 7 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten (001 bis 025) bestanden
+- `npm run build`: Erfolgreich in 3.39s abgeschlossen
