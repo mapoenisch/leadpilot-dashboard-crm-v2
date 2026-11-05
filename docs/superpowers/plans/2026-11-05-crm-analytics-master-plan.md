@@ -70,3 +70,11 @@ Paket 5: What-If Hebelrechner   (Interaktive Sensitivitätsanalyse ARR/Churn/Cyc
 3. **URL-Synchronität & Persistenz:** Ansichten (z. B. Kanban vs. Tabelle) und Filter werden stets über URL-Parameter synchronisiert, sodass Links teilbar und lesbar bleiben.
 4. **Theme & Barrierefreiheit:** Vollständige Unterstützung von Dark- und Light-Theme (`[data-theme='light']`), semantisches HTML, ARIA-Attribute und Screenreader-getestete Alternativtabellen.
 5. **Testabdeckung:** Für jede Komponente wird ein UI-Test (`.ui.vitest.tsx`) und für Berechnungslogik ein isolierter Unit-Test geschrieben.
+
+---
+
+## 4. Release-Ziel
+
+- **Angepeilte Version:** `v2.6.0` (nach vollständigem Abschluss und Merge aller 5 Pakete).
+- **Release-Auftrag:** `ANTIGRAVITY_AUFTRAG_134_RELEASE_V2_6_0.md` (analog zu Auftrag 123 für `v2.5.0` mit Versionszeilen-Aktualisierung, Release Notes `docs/releases/V2.6.0.md`, Login-Screenshot-Matrix und annotiertem Git-Tag auf dem Merge-Commit durch Marc).
+
