@@ -257,7 +257,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
       {editing ? (
         // Nicht haftend: Kachel hinzufügen, Vorlagen, Zurücksetzen und Hinweise im Fluss.
         <div data-testid="editor-extras" className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               variant="secondary"
@@ -270,7 +270,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
             </Button>
 
             {/* Vorlagen-Dropdown */}
-            <div className="relative" ref={presetMenuRef}>
+            <div className="sm:relative" ref={presetMenuRef}>
               <Button
                 size="sm"
                 variant="secondary"
@@ -294,7 +294,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
                 <div
                   role="menu"
                   aria-label="Dashboard-Vorlagen"
-                  className="absolute left-0 top-full z-30 mt-1 w-72 rounded-lg border border-border bg-[var(--color-surface)] p-1.5 shadow-xl"
+                  className="absolute left-0 right-0 top-full z-30 mt-1 rounded-lg border border-border bg-[var(--color-surface)] p-1.5 shadow-xl sm:left-0 sm:right-auto sm:w-72 sm:max-w-[calc(100vw-32px)]"
                 >
                   {DASHBOARD_PRESETS.map((preset) => (
                     <button

@@ -69,7 +69,7 @@ export const DASHBOARD_PRESETS: readonly DashboardPreset[] = [
         },
         {
           tileId: 'preset_sales_pipeline_stufen',
-          catalogId: 'crm.pipeline_stufen',
+          catalogId: 'crm.pipeline_stufen_volumen',
           view: 'saeulen',
           size: 'gross',
           filterMode: 'dashboard',

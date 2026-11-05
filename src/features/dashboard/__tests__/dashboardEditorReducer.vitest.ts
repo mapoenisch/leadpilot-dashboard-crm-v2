@@ -281,6 +281,11 @@ describe('applyPreset', () => {
         expect(result.config.version).toBe(1);
         expect(result.config.tiles.length).toBe(preset.config.tiles.length);
       }
+      const validation = validateDashboardConfig(preset.config);
+      expect(validation.ok).toBe(true);
+      if (validation.ok) {
+        expect(validation.unavailable).toHaveLength(0);
+      }
     }
   });
 });
