@@ -409,5 +409,39 @@ describe('useDashboardEditor: Navigationsschutz', () => {
       expect(ids(result)).toEqual(['a', 'b', 'c']);
       expect(result.current.dirty).toBe(false);
     });
+
+    it('pusht bei unveränderter Konfiguration (Preset, Reset) keinen redundanten Undo-Schritt', () => {
+      const { result } = setup();
+      act(() => result.current.startEditing());
+
+      // Zweimal dasselbe Preset anwenden
+      act(() => {
+        result.current.applyPreset('blank');
+      });
+      expect(result.current.canUndo).toBe(true);
+
+      act(() => {
+        result.current.applyPreset('blank');
+      });
+      // Nach einmal Undo muss man direkt wieder beim Ausgangszustand sein
+      act(() => result.current.undo());
+      expect(ids(result)).toEqual(['a', 'b', 'c']);
+      expect(result.current.canUndo).toBe(false);
+
+      // ResetToDefault auf Standard-Konfiguration
+      act(() => {
+        result.current.resetToDefault();
+      });
+      expect(ids(result)).not.toEqual(['a', 'b', 'c']);
+      expect(result.current.canUndo).toBe(true);
+
+      // Erneutes ResetToDefault ändert nichts
+      act(() => {
+        result.current.resetToDefault();
+      });
+      // Nach einmal Undo muss man beim vorherigen Zustand (vor Reset) sein
+      act(() => result.current.undo());
+      expect(ids(result)).toEqual(['a', 'b', 'c']);
+    });
   });
 });

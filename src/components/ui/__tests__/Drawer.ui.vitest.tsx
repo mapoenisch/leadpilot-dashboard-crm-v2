@@ -50,11 +50,12 @@ describe('Drawer', () => {
     const handleClose = vi.fn();
     render(
       <Drawer open={true} onClose={handleClose} title="Escape Test" escapeActive={true}>
-        Inhalt
+        <input data-testid="drawer-input" />
       </Drawer>,
     );
 
-    fireEvent.keyDown(window, { key: 'Escape' });
+    // Escape auf fokussiertem Kind-Element bubbelt zu window
+    fireEvent.keyDown(screen.getByTestId('drawer-input'), { key: 'Escape' });
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 

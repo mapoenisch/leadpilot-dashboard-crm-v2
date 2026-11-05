@@ -196,28 +196,38 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
     editor.leaveRequest !== null || editor.leaving,
   );
 
+  const { locked, canUndo, canRedo, undo, redo, leaveRequest } = editor;
+
   useEffect(() => {
-    if (!editing || editor.locked) return;
+    if (!editing || locked || isOpen || leaveRequest !== null) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement | null)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const targetEl = e.target as HTMLElement | null;
+      const tag = targetEl?.tagName;
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        targetEl?.isContentEditable
+      ) {
+        return;
+      }
       const isMod = e.metaKey || e.ctrlKey;
       if (!isMod) return;
       if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
         if (e.shiftKey) {
-          if (editor.canRedo) editor.redo();
+          if (canRedo) redo();
         } else {
-          if (editor.canUndo) editor.undo();
+          if (canUndo) undo();
         }
       } else if (e.key === 'y' || e.key === 'Y') {
         e.preventDefault();
-        if (editor.canRedo) editor.redo();
+        if (canRedo) redo();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [editing, editor]);
+  }, [editing, locked, isOpen, leaveRequest, canUndo, canRedo, undo, redo]);
 
   const move = (tileId: string, direction: 'hoch' | 'runter') => {
     editor.moveTile(tileId, direction);

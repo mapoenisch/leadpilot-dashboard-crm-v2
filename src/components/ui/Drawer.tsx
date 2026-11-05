@@ -145,8 +145,6 @@ export function Drawer({
           position === 'right' ? 'right-0 border-l' : 'left-0 border-r',
           widthClass,
         )}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between shrink-0 border-b border-solid border-[var(--color-border-soft)] px-5 py-4">
           <div className="flex flex-col pr-2">

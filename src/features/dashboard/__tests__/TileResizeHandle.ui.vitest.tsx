@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import {
-  TileResizeHandle,
-  type TileResizeHandleProps,
-} from '../components/TileResizeHandle';
+import { TileResizeHandle, type TileResizeHandleProps } from '../components/TileResizeHandle';
 
 function setup(overrides: Partial<TileResizeHandleProps> = {}) {
   const onResize = vi.fn();
@@ -76,5 +73,17 @@ describe('TileResizeHandle', () => {
     setup();
     const handle = screen.getByRole('slider');
     expect(handle.className).toContain('touch-none');
+  });
+
+  it('bricht Ziehen bei pointercancel ohne onResize ab', () => {
+    const { onResize } = setup({ currentSize: 'mittel' });
+    const handle = screen.getByRole('slider');
+
+    fireEvent.pointerDown(handle, { clientX: 100, pointerId: 1, button: 0 });
+    fireEvent.pointerMove(handle, { clientX: 300, pointerId: 1 });
+    fireEvent.pointerCancel(handle, { pointerId: 1 });
+
+    expect(onResize).not.toHaveBeenCalled();
+    expect(handle).toHaveAttribute('aria-valuenow', '1');
   });
 });

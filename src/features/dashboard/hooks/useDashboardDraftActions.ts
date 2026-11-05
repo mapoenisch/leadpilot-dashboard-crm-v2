@@ -4,6 +4,7 @@ import type { DashboardConfig, DashboardFilters } from '../model/dashboardConfig
 import {
   addTile as addTileTo,
   applyPreset as applyPresetTo,
+  isSameConfig,
   moveTile as moveTileIn,
   moveTileTo as moveTileToIn,
   removeTile as removeTileFrom,
@@ -40,6 +41,7 @@ export function useDashboardDraftActions(deps: DraftActionsDeps) {
       if (!current || lockedRef.current) return BUSY;
       const result = change(current);
       if (result.ok) {
+        if (isSameConfig(current, result.config)) return result;
         history.pushHistory(result.config);
         commit(result.config);
         announce(message(result.config));
@@ -118,8 +120,10 @@ export function useDashboardDraftActions(deps: DraftActionsDeps) {
   );
 
   const resetToDefault = useCallback((): void => {
-    if (!draftRef.current || lockedRef.current) return;
+    const current = draftRef.current;
+    if (!current || lockedRef.current) return;
     const cfg = defaultConfig();
+    if (isSameConfig(current, cfg)) return;
     history.pushHistory(cfg);
     commit(cfg);
     announce('Auf Standard zurückgesetzt. Die Änderung gilt erst nach „Speichern“.');
@@ -133,6 +137,7 @@ export function useDashboardDraftActions(deps: DraftActionsDeps) {
       if (!preset) return { ok: false, reason: 'Vorlage nicht gefunden.' };
       const result = applyPresetTo(preset);
       if (result.ok) {
+        if (isSameConfig(current, result.config)) return result;
         history.pushHistory(result.config);
         commit(result.config);
         announce(`Vorlage „${preset.name}“ angewendet. Die Änderung gilt erst nach „Speichern“.`);

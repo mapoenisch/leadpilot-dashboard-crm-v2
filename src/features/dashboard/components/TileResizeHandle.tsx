@@ -68,6 +68,14 @@ export function TileResizeHandle({
     [previewSize, currentSize, onResize, tileId],
   );
 
+  const handlePointerCancel = useCallback((e: PointerEvent<HTMLDivElement>) => {
+    if (!dragStartRef.current) return;
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+    dragStartRef.current = null;
+    setIsDragging(false);
+    setPreviewSize(null);
+  }, []);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
       if (locked) return;
@@ -101,7 +109,7 @@ export function TileResizeHandle({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       onKeyDown={handleKeyDown}
       title={`Größe: ${SIZE_LABEL[displayedSize]} (Ziehen oder Pfeiltasten)`}
       className={cn(
