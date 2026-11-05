@@ -17905,3 +17905,23 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Nachtrag Codex-Review (PR #117, Auftrag 123):** Erster Lauf auf `4d70418`: ein Befund (P2), Rückweg der Bildseiten in `docs/releases/V2.5.0.md` nannte nur eine der zwei Bedingungen (`PAGE_PRESENTATION` und `HTML_PAGES`, `ImagePage.tsx` zeigt HTML bei einer von beiden). Behoben in `aa7dde5`, Thread beantwortet und gelöst. Zweiter Lauf auf `aa7dde5`: keine Befunde (27.10.2026). Reiner Doku-Commit ohne Codeänderung; die Gate-Freigabe gilt erst bei grünen Pflicht-Checks. Tag `v2.5.0` und GitHub-Release folgen nach Merge durch Marc.
 
 **Nachtrag Release (Auftrag 123, T8, 27.10.2026):** PR #117 durch Marc gemergt (Merge-Commit `7a66b7a`). Annotierter Tag `v2.5.0` auf `7a66b7a` gesetzt und gepusht, GitHub-Release „LeadPilot v2.5.0“ mit den Release Notes veröffentlicht (https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/releases/tag/v2.5.0). Gate R5 erfüllt; ältere Tags unverändert. Reiner Doku-Commit, kein neues Review nötig. Offen: einmalige Funktionsprüfung nach Auslieferung.
+
+---
+
+## 2026-11-05 — Dashboard-Editor Rework: Welle 1 (Toolbar, Undo/Redo, Presets) & Welle 2 (Slide-over Drawer)
+
+**Rolle:** Antigravity · **Branch:** `start_react_app` · **PR:** #137
+
+Überarbeitung des Dashboard-Editors zur Wahrung des visuellen Kontexts und Verbesserung des Bedienkomforts:
+1. **Welle 1 (Paket 1, Commit `45e40cf`):**
+   - Modernisierte `EditorToolbar` mit Bearbeitungsmodus-Badge, Lucide-Icons, Vorlagen-Dropdown und Undo/Redo-Aktionen (`useDashboardEditorHistory` mit bis zu 50 Schritten, Tastaturkürzel Cmd/Ctrl+Z, Cmd/Ctrl+Y).
+   - Rollenspezifische Dashboard-Vorlagen (`dashboardPresets.ts`: Executive, Vertrieb & Pipeline, Finanzen & Unit Economics, Leere Vorlage).
+2. **Welle 2 (Paket 2, Commit `166f5ea`):**
+   - Neuer barrierefreier `Drawer.tsx` (`role="dialog"`, `aria-modal="true"`, Fokusfalle, Escape-Handling, Backdrop-Klick).
+   - Kachelkonfiguration in `TileConfigurator.tsx` und Hülle in `DashboardWorkspace.tsx` von Modal auf seitlichen Slide-over Drawer (`width="640px"`) mit halbtransparentem, weichgezeichnetem Backdrop umgestellt, sodass das Dashboard sichtbar bleibt.
+3. **Nacharbeit Codex-Review (PR #137, Commit `846d52f`):**
+   - **Befund 1 (P2):** Katalog-ID für Pipeline-Stufen in `src/features/dashboard/model/dashboardPresets.ts`: `crm.pipeline_stufen` auf existente ID `crm.pipeline_stufen_volumen` korrigiert. Test in `dashboardEditorReducer.vitest.ts` erweitert, um sicherzustellen, dass `validateDashboardConfig(preset.config).unavailable` für alle Presets leer ist.
+   - **Befund 2 (P2):** Vorlagen-Menü Begrenzung auf schmalen Ansichten: Menü über Responsive-Tailwind-Klassen auf Mobilgeräten (`< sm`) an der übergeordneten Zeile verankert (`absolute left-0 right-0 top-full mt-1`), ab `sm:` linksbündig am Button (`sm:left-0 sm:right-auto sm:w-72 sm:max-w-[calc(100vw-32px)]`). Verhindert horizontales Überlaufen und hält Quality-Debt-Budget (50/50 ohne Inline-Styles). Eigener Komponententest `EditorToolbar.ui.vitest.tsx` hinzugefügt.
+
+**Schutzbereichs-Prüfung:** `git diff v2.5.0 HEAD -- src/simulation` leer.
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npm run verify` (Suiten 001–025 grün), `npm test` (347 Testdateien, 2.508 Tests grün), `npm run build` erfolgreich.
