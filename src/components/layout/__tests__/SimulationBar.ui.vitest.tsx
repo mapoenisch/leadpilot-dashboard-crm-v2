@@ -17,6 +17,19 @@ describe('SimulationBar', () => {
     expect(screen.getByText(/ARR:/i)).toBeInTheDocument();
   });
 
+  // Kennzahlen der Leiste stammen aus der Live-Simulation, nicht aus einem
+  // Szenario-Run — die Beschriftung muss das unterscheiden.
+  it('kennzeichnet die Kennzahlen als Live-Simulation, getrennt von Runs', () => {
+    render(<SimulationBar />);
+
+    const metrics = screen.getByRole('group', { name: 'Kennzahlen der Live-Simulation' });
+    expect(metrics).toHaveTextContent('Live-Simulation');
+    expect(metrics).toHaveAttribute(
+      'title',
+      expect.stringContaining('unabhängig von Szenario-Runs'),
+    );
+  });
+
   it('toggles simulation run state when button is clicked', async () => {
     const user = userEvent.setup();
     const startSpy = vi.spyOn(simulationService, 'start').mockImplementation(() => {});

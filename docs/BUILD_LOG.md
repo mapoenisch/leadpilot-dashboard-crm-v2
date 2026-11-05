@@ -17906,6 +17906,68 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 **Nachtrag Release (Auftrag 123, T8, 27.10.2026):** PR #117 durch Marc gemergt (Merge-Commit `7a66b7a`). Annotierter Tag `v2.5.0` auf `7a66b7a` gesetzt und gepusht, GitHub-Release „LeadPilot v2.5.0“ mit den Release Notes veröffentlicht (https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/releases/tag/v2.5.0). Gate R5 erfüllt; ältere Tags unverändert. Reiner Doku-Commit, kein neues Review nötig. Offen: einmalige Funktionsprüfung nach Auslieferung.
 
+## Auftrag 124 – Beschriftung der Simulationsleiste (Builder: Claude Code, 30.10.2026)
+
+**Ziel & Kontext:** Meldung von Marc: neuer Run auf `/crm/live-simulation` zeigt ARR +0 €, 0 Deals, Leads 0. Diagnose: Der Run (Seed 723666) rechnet korrekt (41 Leads, 0 Won Deals wegen voll ausgelasteter Sales-Queue, ARR bleibt auf Baseline 411.840 €); „Leads 0“ kommt aus der Simulationsleiste der separaten Live-Simulation (nicht gestartet). Korrektur: Leiste als Live-Simulation kennzeichnen. Branch `claude/fix-live-run-leer`, Baseline `1c890bb`.
+
+**Geänderte Dateien:** `src/components/layout/SimulationBar.tsx`, `src/components/layout/__tests__/SimulationBar.ui.vitest.tsx`, `scripts/captureAuftrag124Gate.mjs` (neu), `docs/screenshots/auftrag-124/README.md` (neu), Auftrag 124 (neu), BUILD_LOG.
+
+**Funktionale Prüfungen:** Engine-Nachrechnung per Vitest (Mandant `org-a`, 50 Ticks): Seed 723666 → 41 Leads / 0 Won / ARR 411.840 €, Seed 653819 → 35 Leads / 4 Won / ARR 431.340 €. Browser-Nachstellung lokal (manager-a@e2e.local): Run-Historie bestätigt beide Werte. Neuer UI-Test erst rot, dann grün; Sichtprüfung 1440 px: „LIVE-SIMULATION Leads: 0 Won: 0 ARR: 411.840 €“.
+
+**Schutzbereichs-Prüfung:** `git diff 1c890bb -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, ESLint ohne Befund, `vitest run src/components/layout` 54/54, `npm run verify`, `npm run build` grün.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-124/README.md` (Vorher `1c890bb` gegen Nachher, 3 Breiten × 2 Themes, Bilder lokal): 0 px Überlauf überall; 1440/768 px Hash verschieden, 375 px gleich (Kennzahlen mobil zugeklappt).
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch Codex offen.
+
+**Nachtrag Codex-Review (PR #119, Auftrag 124):** Geprüfter Commit `91da6b6`, Ergebnis: Review abgeschlossen, keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
+
+**Nachtrag CI e2e (PR #119, Auftrag 124):** `visual /finance/p-and-l` wich auf 768 px ab (1592 px, neues Label „Live-Simulation“ in der Leiste; bei 768 px sind die Leistenkennzahlen sichtbar). Linux-Referenzen über `update-visual-baselines.yml` (Lauf 40987059379, Branch `visual-baselines/auftrag-124`, inkl. dreifacher Verifikation) neu erzeugt; von allen Bildern ändert sich nur `visual-finance-p-and-l-1-tablet-768-linux.png` (Abmessungen unverändert).
+
+**Nachtrag Codex-Review (PR #119, Auftrag 124, zweiter Lauf):** Geprüfter Commit `b2c8920` (inkl. neuer Visual-Baseline), Ergebnis: keine Befunde (30.10.2026). Reiner Doku-Commit ohne Codeänderung. Die Gate-Freigabe gilt erst, wenn alle Pflicht-Checks grün sind.
+
+## Auftrag 125 – Lighthouse-Prüfung stabilisieren (Builder: Claude Code, 02.11.2026)
+
+**Ziel & Kontext:** `e2e` scheitert seit 02.11.2026 auf `main` und in allen PRs an Lighthouse-Performance (0,85 < 0,9), ohne Codeänderung; der Bericht war nie einsehbar (Punkt-Ordner `.lighthouseci/` wurde nicht hochgeladen).
+
+**Geänderte Dateien:** `.github/workflows/ci.yml` (`include-hidden-files: true`), `.lighthouserc.json` (`numberOfRuns: 3`, `aggregationMethod: median`), `scripts/verifyV23ReleaseReadiness.ts` und zugehöriger Test (Median über die 3 neuesten Berichte), `docs/auftraege/ANTIGRAVITY_AUFTRAG_125_LIGHTHOUSE_STABILISIEREN.md`, `docs/BUILD_LOG.md`.
+
+**Schutzbereichs-Prüfung:** Kein Eingriff in `src/`; `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** Reine CI-Konfiguration; Nachweis ist der CI-Lauf des PR (Artefakt `lighthouse-report` vorhanden, `e2e`). Schwellenwerte unverändert.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Ursache der 0,85 noch offen (Bericht nach Merge sichten). Gate-Freigabe durch Codex offen.
+
+**Nachtrag Codex-Review (PR #124, Auftrag 125):** Erster Lauf auf `4931252`: zwei Befunde (P2). (1) Assertions nutzen bei mehreren Läufen standardmäßig `optimistic` statt Median – behoben mit `aggregationMethod: "median"`. (2) `checkLighthouse` prüfte nur die neueste LHR-Datei – behoben, Median der neuesten 3 frischen Berichte, neuer Test (12/12 grün), `tsc` 0 Fehler.
+
+**Nachtrag Ursache (PR #124, Auftrag 125):** Lighthouse-Bericht des CI-Laufs (`da92c35`) ausgewertet: 3 Läufe identisch, Performance 0,85, FCP 0,7 s, LCP 1,0 s, TBT 0 ms, **CLS 0,266**. Auslöser: spät geladene Webfonts (`inter-latin.woff2`, `space-grotesk-latin.woff2`) lösen einen Layout-Shift von 0,257 auf `main#main-content` aus. Maßnahme: Preload der drei Fonts in `index.html`. Wirkung ist durch den CI-Lauf dieses PR nachzuweisen.
+
+## Auftrag 126 – Axe-Verstöße mit betroffenen Knoten ausgeben (Builder: Claude Code, 03.11.2026)
+
+**Ziel & Kontext:** Dependabot-PR #130 (`axe-core` 4.13 → 4.14) lässt `e2e` auf `/crm/leads` (1440 px) an `label-content-name-mismatch` (serious, 2 Knoten) scheitern; die Meldung nennt die Knoten nicht, lokal nicht reproduzierbar (Login nur in der CI). Dieser Auftrag macht nur die Testausgabe aussagekräftig; der Fix folgt als eigener Auftrag.
+
+**Geänderte Dateien:** `e2e/a11y.spec.ts` (Selektor und HTML-Auszug je Knoten in der Fehlermeldung), `docs/auftraege/ANTIGRAVITY_AUFTRAG_126_A11Y_KNOTENAUSGABE.md` (neu).
+
+**Schutzbereichs-Prüfung:** Kein Eingriff in `src/`; `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` und ESLint auf `e2e/a11y.spec.ts`; Pass/Fail-Logik unverändert, Nachweis ist der CI-Lauf des PR. Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Ergebnis & Freigabestatus:** Builder fertig; Gate-Freigabe durch Codex offen.
+
+## Auftrag 127 — Paginierungs-Buttons: a11y-Label enthält sichtbaren Text (Builder: Claude Code, 03.11.2026)
+
+**Ziel & Kontext:** Dependabot-PR #130 (axe-core-Bump) meldete `label-content-name-mismatch` (serious) auf `/crm/leads` bei 1440px. Betroffen: die Paginierungs-Buttons in `CrmResponsiveList.tsx` (sichtbar „Zurück"/„Weiter", `aria-label` „Vorherige Seite"/„Nächste Seite"). Knoten stammen aus der Diagnose-Ausgabe von Auftrag 126 (PR #135).
+
+**Geänderte Dateien:** `src/features/crm/components/CrmResponsiveList.tsx` (aria-label → „Zurück zur vorherigen Seite" / „Weiter zur nächsten Seite"), `e2e/crm-query-export.spec.ts` (Selektoren angepasst).
+
+**Schutzbereiche:** nicht berührt (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources` unverändert).
+
+**Verifikation lokal:** `npx tsc --noEmit` 0 Fehler. Lint/Test/Build/E2E laufen in CI.
+
+**Status:** Codex-Review ausstehend; Merge durch Marc bzw. nach Freigabe.
+
 ---
 
 ## 2026-11-05 — Dashboard-Editor Rework: Welle 1 (Toolbar & Presets), Welle 2 (Drawer), Welle 3 (Resizing) & Welle 4 (Neue Diagrammtypen & Filter)
@@ -17951,5 +18013,11 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
    - **Befund 3 (P2, `DepthFunnelChart.tsx`):** Überlappende Stufen bei langen CRM-Listen (> 10 Stufen) verhindern: Bei vielen Stufen führte die feste Höhe von 220 px zu negativem `gap`. Behoben durch dynamische Zeichenflächenhöhe (`viewBoxHeight`) mit garantiert positivem Mindestabstand (`gap >= 8`, `stageH = 24`), innerem scrollbaren Container (`max-h-[300px] overflow-y-auto` bei mehr als 6 Stufen) sowie Legendenhöhenreserve bei Einzelstufen.
    - **Tests:** `DepthFunnelChart.ui.vitest.tsx`, `DepthGaugeChart.ui.vitest.tsx` und `depthGeometry.vitest.ts` um Prüfungen für Konvertierungsfreiheit, Rangangaben, Stufen-Overflow bei 15+ Stufen und Legenden-Höhenerhalt erweitert. Alle 351 Testdateien (2.539 Tests) grün.
 
-**Schutzbereichs-Prüfung:** `git diff v2.5.0 HEAD -- src/simulation` leer.
-**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npx tsx scripts/verifyQualityBudget.ts` (Budget 50/50, 0 unauthorisierte Inline-Styles), `npm run verify` (Suiten 001–025 grün), `npm test` (351 Testdateien, 2.539 Tests grün), `npm run build` erfolgreich.
+8. **Nacharbeit Review-Befunde (PR #137, Head `4930686`):**
+   - **Befund 1 (P2, `TileResizeHandle.tsx`):** Abgebrochene Pointer-Events (`pointercancel`) durch Browser/OS verwarfen den Vorgang nicht, sondern riefen `onResize` mit der `previewSize` auf. Behoben durch dedizierte `handlePointerCancel`-Funktion, die Drag-State und Preview zurücksetzt, ohne `onResize` auszulösen. Test in `TileResizeHandle.ui.vitest.tsx` ergänzt.
+   - **Befund 2 (P2, `Drawer.tsx`):** `onKeyDown={(e) => e.stopPropagation()}` am Dialog-Container blockierte das Event-Bubbling zu `window`, wodurch der Escape- und Tab-Listener bei fokussiertem Kindelement im Standard-Browser nicht auslöste. Entfernt (`onClick` und `onKeyDown` an `div ref={drawerRef}`). Test in `Drawer.ui.vitest.tsx` um Tastaturevent auf Kindelement erweitert.
+   - **Befund 3 (P3, `DashboardWorkspace.tsx`):** Globaler Undo/Redo-Shortcut löste auch bei geöffnetem Konfigurator-Drawer oder in `isContentEditable`-Elementen Aktionen im Hintergrund aus. Behoben durch Prüfung von `isOpen` und `leaveRequest !== null` im Hook sowie Prüfung auf `isContentEditable` im Handler; Dependency-Array auf stabile Eigenschaften eingegrenzt. Test in `DashboardWorkspace.ui.vitest.tsx` ergänzt.
+   - **Befund 4 (P3, `useDashboardDraftActions.ts`):** `resetToDefault` und `applyPreset` pushten redundante Undo-Schritte bei identischem Zustand in die History. Behoben durch `if (isSameConfig(current, ...)) return`. Test in `useDashboardEditor.ui.vitest.tsx` ergänzt.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npx tsx scripts/verifyQualityBudget.ts` (Budget 50/50, 0 unauthorisierte Inline-Styles), `npm run verify` (Suiten 001–025 grün), `npm test` (351 Testdateien, 2.542 Tests grün), `npm run build` erfolgreich.

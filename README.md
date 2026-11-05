@@ -9,7 +9,7 @@ LeadPilot Dashboard-CRM ist ein React-basiertes Echtzeit-Dashboard fuer das fikt
 - React 18, TypeScript, Vite und Tailwind CSS
 - Supabase fuer Authentifizierung, Mandantentrennung und Datenzugriff
 - Vitest, Playwright, pgTAP und Deno fuer die Verifikation
-- Version 2.3.0 (Masterauftrag 067, Release Notes: [docs/releases/V2.3.0.md](docs/releases/V2.3.0.md))
+- Version 2.5.0 (Release Notes: [docs/releases/V2.5.0.md](docs/releases/V2.5.0.md); alle Releases unter [docs/releases/](docs/releases/))
 
 Die verbindliche Architektur und der aktuelle Umsetzungsstand stehen in [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md), [BUILD_PLAN.md](BUILD_PLAN.md) und [docs/BUILD_LOG.md](docs/BUILD_LOG.md).
 
@@ -61,15 +61,17 @@ UI-Aenderungen werden zusaetzlich mit Playwright und der passenden Screenshot-Ma
 1. Den konkreten Auftrag unter `docs/auftraege/` lesen.
 2. Ausschliesslich dessen Ziel-Dateien bearbeiten und Schutzbereiche pruefen.
 3. Alle relevanten Gates ausfuehren und Ergebnis im [Build-Log](docs/BUILD_LOG.md) festhalten.
-4. Feature-Branch pushen; nach gruener CI per Fast-Forward nach `main` mergen.
-5. In einem separaten Staging-Ziel smoke-testen, bevor ein Produktiv-Deploy erfolgt.
+4. Einen PR je Auftrag oeffnen. Ein unabhaengiger Pruefer (Codex auf GitHub, ersatzweise `/<agent> review`) prueft; die Freigabe braucht keine offenen Befunde, gruene Pflicht-Checks und geloeste Review-Konversationen.
+5. Merge und Release erfolgen durch den Projektinhaber.
+
+Verbindlich ist [CLAUDE.md](CLAUDE.md), Abschnitt 4. Mitwirken: siehe [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Eine Bereitstellung ist nicht Bestandteil dieses Repositories: Es ist derzeit kein Deploy-Provider und kein Staging-Ziel konfiguriert.
 
 ## Betrieb
 
 Konfiguration, Free-Tier-Grenzen, Backup, Rollout und Smoke-Test stehen im
-[Betriebs-Runbook v2.3.0](docs/operations/v2.3.0-runbook.md), der getestete Rollback in
+[Betriebs-Runbook](docs/operations/v2.3.0-runbook.md) (Stand v2.3.0, gilt weiter fuer v2.5.0, solange kein neueres Runbook existiert), der getestete Rollback in
 [docs/operations/v2.3.0-rollback.md](docs/operations/v2.3.0-rollback.md). Ein Produktivbuild
 läuft nur über `npm run build:production`; er bricht ohne gültige Supabase-Werte ab.
 
@@ -87,4 +89,5 @@ Lizenzen von Drittanbieter-Abhängigkeiten bleiben unberührt; `npm run verify:l
 - [Build-Log](docs/BUILD_LOG.md)
 - [Auftraege](docs/auftraege/)
 - [Betriebsdokumentation fuer CI und E2E](docs/operations/ci-e2e-backend.md)
-- [Betriebs-Runbook v2.3.0](docs/operations/v2.3.0-runbook.md)
+- [Betriebs-Runbook](docs/operations/v2.3.0-runbook.md)
+- [Beitragen](CONTRIBUTING.md) · [Sicherheit](SECURITY.md) · [Verhaltenskodex](CODE_OF_CONDUCT.md) · [Barrierefreiheit](ACCESSIBILITY.md)
