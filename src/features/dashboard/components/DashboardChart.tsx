@@ -44,7 +44,7 @@ export function reserveFor(view: ChartView, labels: readonly string[]): ChartRes
     labels,
     stableLegend: true,
     controls:
-      view === 'linie' || view === 'flaeche'
+      view === 'linie' || view === 'flaeche' || view === 'sparkline'
         ? 'slider'
         : view === 'kreis' || view === 'ring'
           ? 'legend-dots'
@@ -64,6 +64,9 @@ const SERIES_VIEWS: readonly DashboardView[] = [
   'ring',
   'linie',
   'flaeche',
+  'gauge',
+  'sparkline',
+  'trichter',
 ];
 
 /** Prüft die Werte für die gewählte Darstellung. */
@@ -90,6 +93,10 @@ export function checkTileValues(
     const rows = series.length > 0 ? series : valueRow(data, title);
     return rows.length > 0 ? { kind: 'ok', rows } : { kind: 'keine_daten' };
   }
+  if (view === 'gauge') {
+    const rows = series.length > 0 ? series : valueRow(data, title);
+    return rows.length > 0 ? { kind: 'ok', rows } : { kind: 'keine_daten' };
+  }
   if (!SERIES_VIEWS.includes(view)) return { kind: 'ok', rows: [] };
   if (series.length === 0) return { kind: 'keine_daten' };
   const negative = series.some((row) => row.value < 0);
@@ -103,6 +110,13 @@ export function checkTileValues(
     return {
       kind: 'hinweis',
       text: 'Verlauf mit negativen Werten wird als Tabelle gezeigt.',
+      rows: series,
+    };
+  }
+  if (view === 'trichter' && negative) {
+    return {
+      kind: 'hinweis',
+      text: 'Trichter mit negativen Werten wird als Tabelle gezeigt.',
       rows: series,
     };
   }

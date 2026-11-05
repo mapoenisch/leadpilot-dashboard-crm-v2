@@ -34,6 +34,9 @@ export const VIEW_LABEL: Record<DashboardView, string> = {
   linie: 'Linie',
   flaeche: 'Fläche',
   uebersicht: 'Übersicht',
+  gauge: 'Tachometer / Skala',
+  sparkline: 'Kompakter Trendverlauf',
+  trichter: 'Trichterdiagramm',
 };
 
 export const SIZE_LABEL: Record<TileSize, string> = {

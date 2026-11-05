@@ -91,11 +91,36 @@ export function TimeAndPipeline(props: {
         ))}
       </Group>
       {entry.filters.includes('pipeline') ? (
-        <Input
-          label="Eigene Pipeline (optional, ersetzt den zentralen Filter)"
-          value={choice.pipeline}
-          onChange={(event) => onChange({ pipeline: event.target.value })}
-        />
+        <div className="flex flex-col gap-2">
+          <Input
+            label="Eigene Pipeline (optional, ersetzt den zentralen Filter)"
+            value={choice.pipeline}
+            placeholder="z. B. Standard, Enterprise, Outbound"
+            onChange={(event) => onChange({ pipeline: event.target.value })}
+          />
+          <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--color-text-muted)]">
+            <span>Schnellauswahl:</span>
+            {['Standard', 'Enterprise', 'Outbound'].map((pName) => (
+              <button
+                key={pName}
+                type="button"
+                onClick={() => onChange({ pipeline: pName })}
+                className="rounded border border-border bg-[var(--color-surface-subtle)] px-2 py-0.5 text-[11px] text-[var(--color-text-muted)] outline-none hover:border-primary hover:text-primary focus-visible:ring-1 focus-visible:ring-primary"
+              >
+                {pName}
+              </button>
+            ))}
+            {choice.pipeline ? (
+              <button
+                type="button"
+                onClick={() => onChange({ pipeline: '' })}
+                className="rounded border border-border/60 px-1.5 py-0.5 text-[10px] text-[var(--color-text-muted)] outline-none hover:text-accent"
+              >
+                Zurücksetzen
+              </button>
+            ) : null}
+          </div>
+        </div>
       ) : null}
     </>
   );

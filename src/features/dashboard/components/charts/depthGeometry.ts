@@ -244,6 +244,21 @@ function ringPath(
   ].join(' ');
 }
 
+export function gaugeArcPath(
+  cx: number,
+  cy: number,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+): string {
+  const diff = (endAngle - startAngle + 360) % 360;
+  if (diff <= 0.001) return '';
+  const large = diff > 180 ? 1 : 0;
+  const a = polarToCartesian(cx, cy, radius, startAngle);
+  const b = polarToCartesian(cx, cy, radius, endAngle);
+  return `M ${round(a.x)} ${round(a.y)} A ${radius} ${radius} 0 ${large} 1 ${round(b.x)} ${round(b.y)}`;
+}
+
 /**
  * Ringsegmente mit exakten Winkelanteilen: die Winkel summieren sich auf genau 360°.
  * Ein einzelnes Segment mit 100 % wird knapp unter 360° gezeichnet, damit der Pfad nicht zusammenfällt.
@@ -365,4 +380,36 @@ export function summarizeSeries(
 /** Kürzt ein sichtbares SVG-Label auf `max` Zeichen; der Volltext gehört in ein `<title>`. */
 export function shortenLabel(label: string, max: number): string {
   return label.length > max ? `${label.slice(0, max - 1).trimEnd()}…` : label;
+}
+
+/** Zusammenfassung für Tachometer / Skala für Screenreader. */
+export function summarizeGauge(
+  label: string,
+  value: number,
+  unit: string,
+  period: string,
+  min: number,
+  max: number,
+  formatValue?: (value: number) => string,
+): string {
+  const withUnit = (v: number) => formatValue?.(v) ?? `${formatDe(v)} ${unit}`.trim();
+  return `Tachometer für ${label}: ${withUnit(value)}. Skala von ${withUnit(min)} bis ${withUnit(max)}, ${period}.`;
+}
+
+/** Zusammenfassung für Trichterdiagramm für Screenreader. */
+export function summarizeFunnel(
+  data: readonly DatumInput[],
+  unit: string,
+  period: string,
+  formatValue?: (value: number) => string,
+): string {
+  if (data.length === 0) return `Keine Trichterstufen für ${period}.`;
+  const withUnit = (v: number) => formatValue?.(v) ?? `${formatDe(v)} ${unit}`.trim();
+  const first = data[0];
+  const last = data[data.length - 1];
+  const conversion =
+    first && last && first.value > 0
+      ? `${formatDe(Math.round((last.value / first.value) * 1000) / 10)} %`
+      : '0 %';
+  return `Trichter mit ${data.length} Stufen von ${first?.label ?? ''} (${withUnit(first?.value ?? 0)}) bis ${last?.label ?? ''} (${withUnit(last?.value ?? 0)}), Gesamt-Konvertierung ${conversion}, ${period}.`;
 }

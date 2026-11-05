@@ -7,9 +7,24 @@ import type { DepthChartProps } from './chartTypes';
 
 export type ChartView = Extract<
   DashboardView,
-  'saeulen' | 'balken' | 'kreis' | 'ring' | 'linie' | 'flaeche'
+  | 'saeulen'
+  | 'balken'
+  | 'kreis'
+  | 'ring'
+  | 'linie'
+  | 'flaeche'
+  | 'gauge'
+  | 'sparkline'
+  | 'trichter'
 >;
-export type ChartModuleId = 'balken' | 'ring' | 'linie' | 'flaeche';
+export type ChartModuleId =
+  | 'balken'
+  | 'ring'
+  | 'linie'
+  | 'flaeche'
+  | 'gauge'
+  | 'sparkline'
+  | 'trichter';
 type ChartModule = { default: React.ComponentType<DepthChartProps> };
 export type ChartLoaders = Record<ChartModuleId, () => Promise<ChartModule>>;
 
@@ -20,6 +35,9 @@ export const CHART_VIEWS: readonly ChartView[] = [
   'ring',
   'linie',
   'flaeche',
+  'gauge',
+  'sparkline',
+  'trichter',
 ];
 
 export const MODULE_BY_VIEW: Record<ChartView, ChartModuleId> = {
@@ -29,6 +47,9 @@ export const MODULE_BY_VIEW: Record<ChartView, ChartModuleId> = {
   ring: 'ring',
   linie: 'linie',
   flaeche: 'flaeche',
+  gauge: 'gauge',
+  sparkline: 'sparkline',
+  trichter: 'trichter',
 };
 
 export const DEFAULT_CHART_LOADERS: ChartLoaders = {
@@ -36,6 +57,10 @@ export const DEFAULT_CHART_LOADERS: ChartLoaders = {
   ring: () => import('./Depth3dDonutChart').then((m) => ({ default: m.Depth3dDonutChart })),
   linie: () => import('./DepthLineChart').then((m) => ({ default: m.DepthLineChart })),
   flaeche: () => import('./DepthAreaChart').then((m) => ({ default: m.DepthAreaChart })),
+  gauge: () => import('./DepthGaugeChart').then((m) => ({ default: m.DepthGaugeChart })),
+  sparkline: () =>
+    import('./DepthSparklineChart').then((m) => ({ default: m.DepthSparklineChart })),
+  trichter: () => import('./DepthFunnelChart').then((m) => ({ default: m.DepthFunnelChart })),
 };
 
 export function isChartView(view: DashboardView): view is ChartView {

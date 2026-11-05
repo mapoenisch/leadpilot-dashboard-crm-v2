@@ -17908,7 +17908,7 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 
 ---
 
-## 2026-11-05 — Dashboard-Editor Rework: Welle 1 (Toolbar, Undo/Redo, Presets) & Welle 2 (Slide-over Drawer)
+## 2026-11-05 — Dashboard-Editor Rework: Welle 1 (Toolbar & Presets), Welle 2 (Drawer), Welle 3 (Resizing) & Welle 4 (Neue Diagrammtypen & Filter)
 
 **Rolle:** Antigravity · **Branch:** `start_react_app` · **PR:** #137
 
@@ -17922,11 +17922,23 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 3. **Nacharbeit Codex-Review (PR #137, Commit `846d52f`):**
    - **Befund 1 (P2):** Katalog-ID für Pipeline-Stufen in `src/features/dashboard/model/dashboardPresets.ts`: `crm.pipeline_stufen` auf existente ID `crm.pipeline_stufen_volumen` korrigiert. Test in `dashboardEditorReducer.vitest.ts` erweitert, um sicherzustellen, dass `validateDashboardConfig(preset.config).unavailable` für alle Presets leer ist.
    - **Befund 2 (P2):** Vorlagen-Menü Begrenzung auf schmalen Ansichten: Menü über Responsive-Tailwind-Klassen auf Mobilgeräten (`< sm`) an der übergeordneten Zeile verankert (`absolute left-0 right-0 top-full mt-1`), ab `sm:` linksbündig am Button (`sm:left-0 sm:right-auto sm:w-72 sm:max-w-[calc(100vw-32px)]`). Verhindert horizontales Überlaufen und hält Quality-Debt-Budget (50/50 ohne Inline-Styles). Eigener Komponententest `EditorToolbar.ui.vitest.tsx` hinzugefügt.
-4. **Welle 3 (Paket 3, Resizing per Drag-Handle & Hilfsgitter):**
+4. **Welle 3 (Paket 3, Commit `0e8523a`, Resizing per Drag-Handle & Hilfsgitter):**
    - Neuer `TileResizeHandle.tsx` mit Pointer-Drag und Tastaturnavigation (`role="slider"`, ARIA-Valuetext, Pfeiltasten links/rechts) an jeder Kachel im Bearbeitungsmodus.
    - Schnell-Schaltflächen für Spaltengrößen (`3 Sp.`, `6 Sp.`, `9 Sp.`, `12 Sp.`) direkt in den Kachel-Aktionen von `DashboardGrid.tsx` mit automatischer Deaktivierung von Größen unterhalb der Mindestgröße (`minSizeFor`).
    - Visuelles 12-Spalten-Hilfsraster (`data-testid="grid-helper-lines"`) im Hintergrund des Bearbeitungsmodus.
    - Direkte Anbindung an den Draft-Reducer (`onResize` -> `editor.updateTile`) inklusive automatischer Undo/Redo-Erfassung und Screenreader-Ansagen.
+5. **Welle 4 (Paket 4, Neue Diagrammtypen & erweiterte Filter):**
+   - **Drei neue Diagrammmodule mit Lazy-Loading (Code-Splitting):**
+     - `DepthGaugeChart.tsx`: Tachometer / Radialskala (270°-Bogen, Skalenmarken, zentrischer Wert, Screenreader-Zusammenfassung via `summarizeGauge`). Freigegeben für Einzelwerte / Verhältnisse (`crmValue` und Ratios).
+     - `DepthSparklineChart.tsx`: Kompakter Trendverlauf mit sanftem Glow-Flächenverlauf, Min/Max-Referenzachsen, Delta-Indikator (+X%), hervorgehobenem Endpunkt mit Heiligenschein und Tastatur-Schieberegler für Zeitpunkte. Freigegeben für Zeitreihen (`baseline.arr_verlauf` und Stammdaten-Zeitreihen).
+     - `DepthFunnelChart.tsx`: Gestufter Konvertierungstrichter für Pipeline-Stufen mit dynamischen Trapezoid-Verbindern, relativer Konvertierungsrate je Stufe zur Vorstufe und Stufenauswahl via Legenden-Chips. Freigegeben für Stufenkataloge (`crm.pipeline_stufen_volumen`, `crm.pipeline_stufen_anzahl`).
+   - **Katalog- und Reducer-Erweiterung:**
+     - `DashboardView`: Erweitert um `'gauge' | 'sparkline' | 'trichter'`, `VIEWS_BY_SHAPE` und `MIN_SIZE_BY_VIEW` (`gauge`: klein, `sparkline`: klein, `trichter`: mittel).
+     - `VIEW_LABEL`: Bezeichnungen ergänzt ('Tachometer / Skala', 'Kompakter Trendverlauf', 'Trichterdiagramm').
+     - `chartLoaders.ts` und `DashboardChart.tsx`: Lazy-Loader und Werteranking/Reservierung für die neuen Module implementiert.
+   - **Erweiterte Filteroptionen im Drawer:**
+     - `ConfiguratorAdvanced.tsx` um Pipeline-Schnellauswahl-Pills (z. B. `Standard`, `Enterprise`, `Outbound` und `Zurücksetzen`) erweitert.
+   - **Umfassende UI-Tests:** `DepthGaugeChart.ui.vitest.tsx`, `DepthSparklineChart.ui.vitest.tsx`, `DepthFunnelChart.ui.vitest.tsx` und Integrationstest in `DashboardChart.ui.vitest.tsx`.
 
 **Schutzbereichs-Prüfung:** `git diff v2.5.0 HEAD -- src/simulation` leer.
-**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npm run verify` (Suiten 001–025 grün), `npm test` (348 Testdateien, 2.517 Tests grün), `npm run build` erfolgreich.
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npx tsx scripts/verifyQualityBudget.ts` (Budget 50/50, 0 unauthorisierte Inline-Styles), `npm run verify` (Suiten 001–025 grün), `npm test` (351 Testdateien, 2.533 Tests grün), `npm run build` erfolgreich (alle 3 Diagramm-Chunks separat code-gesplittet).

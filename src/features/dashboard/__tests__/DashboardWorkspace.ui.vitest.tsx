@@ -289,6 +289,9 @@ describe('DashboardWorkspace – Konfigurationsfenster und Verlassen', () => {
     ring: () => Promise.reject(new Error('x')),
     linie: () => Promise.reject(new Error('x')),
     flaeche: () => Promise.reject(new Error('x')),
+    gauge: () => Promise.reject(new Error('x')),
+    sparkline: () => Promise.reject(new Error('x')),
+    trichter: () => Promise.reject(new Error('x')),
   };
 
   it('fragt vor dem Neuladen nach, wenn Änderungen offen sind', async () => {

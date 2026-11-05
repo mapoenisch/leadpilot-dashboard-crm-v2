@@ -45,7 +45,18 @@ export type DataShape =
 export type Aggregation = 'bestand' | 'fluss' | 'verhaeltnis' | 'keine';
 
 export type DashboardView =
-  'zahl' | 'tabelle' | 'saeulen' | 'balken' | 'kreis' | 'ring' | 'linie' | 'flaeche' | 'uebersicht';
+  | 'zahl'
+  | 'tabelle'
+  | 'saeulen'
+  | 'balken'
+  | 'kreis'
+  | 'ring'
+  | 'linie'
+  | 'flaeche'
+  | 'uebersicht'
+  | 'gauge'
+  | 'sparkline'
+  | 'trichter';
 
 export type TileSize = 'klein' | 'mittel' | 'gross' | 'voll';
 export const TILE_SIZES: readonly TileSize[] = ['klein', 'mittel', 'gross', 'voll'];
@@ -150,13 +161,13 @@ export type CatalogEntry = ActiveCatalogEntry | InventoryCatalogEntry;
 
 /** Zulässige Darstellungen je Datenform (Plan §4, Tabelle „Datenform“). */
 export const VIEWS_BY_SHAPE: Record<DataShape, readonly DashboardView[]> = {
-  einzelwert: ['zahl', 'tabelle'],
-  verhaeltnis: ['zahl', 'tabelle'],
-  kategorien: ['tabelle', 'saeulen', 'balken'],
-  anteile: ['tabelle', 'saeulen', 'balken', 'kreis', 'ring'],
-  zeitreihe: ['tabelle', 'linie', 'flaeche', 'saeulen'],
+  einzelwert: ['zahl', 'tabelle', 'gauge'],
+  verhaeltnis: ['zahl', 'tabelle', 'gauge'],
+  kategorien: ['tabelle', 'saeulen', 'balken', 'trichter'],
+  anteile: ['tabelle', 'saeulen', 'balken', 'kreis', 'ring', 'trichter'],
+  zeitreihe: ['tabelle', 'linie', 'flaeche', 'saeulen', 'sparkline'],
   uebersicht: ['uebersicht'],
-  anteil: ['zahl', 'tabelle', 'ring', 'kreis'],
+  anteil: ['zahl', 'tabelle', 'ring', 'kreis', 'gauge'],
 };
 
 /** Mindestgröße je Darstellung; ein Eintrag darf sie anheben, nie senken. */
@@ -170,6 +181,9 @@ export const MIN_SIZE_BY_VIEW: Record<DashboardView, TileSize> = {
   linie: 'mittel',
   flaeche: 'mittel',
   uebersicht: 'mittel',
+  gauge: 'klein',
+  sparkline: 'klein',
+  trichter: 'mittel',
 };
 
 export const PIE_VIEWS: readonly DashboardView[] = ['kreis', 'ring'];
