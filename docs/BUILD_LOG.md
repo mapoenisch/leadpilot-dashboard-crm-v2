@@ -18090,3 +18090,23 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün (+2 neue Tests)
 - `npm run verify`: Alle 25 Integritätssuiten bestanden
 - `npm run build`: Erfolgreich (3.42s)
+
+8. **Nacharbeit Codex-Review Runde 2 (PR #138, Head `f52c826`):**
+   - **Befund 1 (P1, `docs/BUILD_LOG.md` / Pflichtgate Screenshots):** Verpflichtenden visuellen Gate-Nachweis ergänzen:
+     - Screenshot-Harness `scripts/captureAuftrag128Gate.mjs` nach `CLAUDE.md` §7 erstellt.
+     - Vorher/Nachher-Paare gegen Baseline `413e55f` für `/dashboard-vorschau.html` (Vorschauseite), `/dashboard-vorschau.html?bereich=editor` (Bearbeitungsmodus & Spaltenwahl) sowie Konfigurator-Drawer (420 px) bei 1440, 768 und 375 px in beiden Themes (dark/light) erfasst und ausgewertet.
+     - 18/18 Aufnahmen bestanden: 0 px horizontaler Überlauf (Dokument und Container), 100 % verschiedene SHA-256-Hashes gegenüber Baseline `413e55f`.
+     - Textuelle Ergebnis-Matrix unter `docs/screenshots/auftrag-128/README.md` committed (Bilder verbleiben lokal via `.gitignore`).
+   - **Befund 2 (P2, `DashboardGrid.tsx`, `TileResizeHandle.tsx`):** Definierte Kontrastfarbe für den Drag-Hinweis verwenden:
+     - Undefinierte Tailwind-Klasse `text-primary-foreground` in `DashboardGrid.tsx` (Drag-Ghost-Badge und direkte Spaltenbuttons) sowie `TileResizeHandle.tsx` (Resize-Badge) durch die standardisierte inverse Token-Klasse `text-[var(--color-text-inverse)]` ersetzt (wie in `Button.tsx`).
+     - Stellt im dunklen Theme auf hellem Cyan-Hintergrund (`bg-primary`) einen barrierefreien, scharfen Kontrast sicher.
+
+**Automatisierte Verifikation (Nacharbeit Runde 2):**
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden
+- `npm run build`: Erfolgreich (3.38s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-128/README.md` (18/18 Paare grün, 0 px Überlauf, 100 % verschieden)
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+

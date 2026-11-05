@@ -116,7 +116,7 @@ export function TileResizeHandle({
       className={cn(
         'group absolute bottom-1 right-1 z-10 flex h-7 w-7 cursor-ew-resize select-none items-center justify-center rounded-br-lg rounded-tl-md bg-surface/90 text-[var(--color-text-muted)] backdrop-blur-sm transition-all hover:bg-primary/20 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-sm border border-solid border-border/80 touch-none',
         locked && 'pointer-events-none opacity-40',
-        isDragging && 'ring-2 ring-primary bg-primary text-primary-foreground scale-110 shadow-md',
+        isDragging && 'ring-2 ring-primary bg-primary text-[var(--color-text-inverse)] scale-110 shadow-md',
       )}
     >
       <span className="text-[12px] font-bold leading-none select-none" aria-hidden="true">

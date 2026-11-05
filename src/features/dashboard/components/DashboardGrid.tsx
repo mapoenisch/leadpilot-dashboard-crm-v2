@@ -240,7 +240,7 @@ export function DashboardGrid(props: DashboardGridProps) {
                     dropTarget.side === 'before' ? 'border-l-4' : 'border-r-4',
                   )}
                 >
-                  <span className="rounded bg-primary px-2.5 py-1 text-[11px] font-bold text-primary-foreground shadow">
+                  <span className="rounded bg-primary px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-inverse)] shadow">
                     Hier ablegen ({dropTarget.side === 'before' ? 'Davor' : 'Danach'})
                   </span>
                 </div>
@@ -309,7 +309,7 @@ export function DashboardGrid(props: DashboardGridProps) {
                               className={cn(
                                 'rounded px-2 py-0.5 text-[11px] font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[26px]',
                                 isCurrent
-                                  ? 'bg-primary text-primary-foreground font-bold shadow-sm'
+                                  ? 'bg-primary text-[var(--color-text-inverse)] font-bold shadow-sm'
                                   : isAllowed
                                     ? 'bg-surface border border-solid border-border/80 text-text hover:bg-surface-hover hover:border-primary/50'
                                     : 'opacity-35 cursor-not-allowed bg-transparent border border-dashed border-border/50 text-[var(--color-text-muted)]',
