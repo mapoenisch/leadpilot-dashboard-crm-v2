@@ -101,6 +101,15 @@ for (const [side, base] of Object.entries(SIDES)) {
         });
         await ctx.addInitScript((t) => {
           localStorage.setItem('leadpilot-theme', t);
+        }, theme);
+
+        const page = await ctx.newPage();
+        await page.goto(`${base}${scenario.url}`, { waitUntil: 'networkidle' });
+        await page.waitForTimeout(500);
+
+        // Verbindlich das Theme nach Aufbau des DOM setzen und prüfen
+        await page.evaluate((t) => {
+          localStorage.setItem('leadpilot-theme', t);
           document.documentElement.dataset.theme = t;
           document.documentElement.setAttribute('data-theme', t);
           if (t === 'dark') {
@@ -110,15 +119,13 @@ for (const [side, base] of Object.entries(SIDES)) {
           }
         }, theme);
 
-        const page = await ctx.newPage();
-        await page.goto(`${base}${scenario.url}`, { waitUntil: 'networkidle' });
-        await page.waitForTimeout(500);
-
-        try {
-          await scenario.prepare(page);
-        } catch (err) {
-          console.warn(`[${side}] prepare failed for ${scenario.id}:`, err.message);
+        const activeTheme = await page.evaluate(() => document.documentElement.dataset.theme);
+        if (activeTheme !== theme) {
+          throw new Error(`Theme mismatch: erwartet ${theme}, gefunden ${activeTheme}`);
         }
+
+        // Vorbereitung ausführen; Fehler lassen das Gate verbindlich fehlschlagen
+        await scenario.prepare(page);
 
         const m = await page.evaluate(() => {
           const main = document.querySelector('main') || document.querySelector('#root') || document.body;
@@ -164,8 +171,13 @@ for (const scenario of SCENARIOS) {
       const n = find('nachher', scenario.id, width, theme);
       if (n.overflowDocument || n.overflowMain) bad += 1;
       const isDiff = v.sha !== n.sha;
-      if (isDiff) differentCount += 1;
-      const changed = isDiff ? 'verschieden' : 'gleich';
+      if (isDiff) {
+        differentCount += 1;
+      } else {
+        // CLAUDE.md §7 & Codex-Befund: identische Bilder sind ein Gate-Fehler
+        bad += 1;
+      }
+      const changed = isDiff ? 'verschieden' : 'GLEICH (Fehler)';
       lines.push(
         `| \`${scenario.title}\` | ${width} | ${theme} | ${v.overflowDocument}/${v.overflowMain} | ${n.overflowDocument}/${n.overflowMain} | ${v.height} → ${n.height} | ${changed} (${v.sha} / ${n.sha}) |`,
       );
@@ -195,4 +207,5 @@ Verschiedene Aufnahmen: ${differentCount} von ${lines.length} Paaren (${Math.rou
 
 fs.writeFileSync(path.join(OUT, 'README.md'), readme);
 console.log(readme);
-process.exit(bad === 0 ? 0 : 1);
+const ok = bad === 0 && differentCount === lines.length;
+process.exit(ok ? 0 : 1);
