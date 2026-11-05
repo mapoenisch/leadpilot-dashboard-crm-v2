@@ -358,7 +358,7 @@ describe('gaugeArcPath and summaries', () => {
       'Deals',
       'Aktuell',
     );
-    expect(fSummary).toContain('Trichter mit 2 Stufen von Leads (100 Deals) bis Kunden (20 Deals)');
-    expect(fSummary).toContain('Gesamt-Konvertierung 20 %');
+    expect(fSummary).toBe('Trichter mit 2 Stufen von Leads (100 Deals) bis Kunden (20 Deals), Aktuell.');
+    expect(summarizeFunnel([], 'Deals', 'Aktuell')).toBe('Keine Trichterstufen für Aktuell.');
   });
 });

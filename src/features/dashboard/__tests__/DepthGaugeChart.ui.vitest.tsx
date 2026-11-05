@@ -54,4 +54,17 @@ describe('DepthGaugeChart', () => {
     );
     expect(screen.getAllByText('-15 %').length).toBeGreaterThan(0);
   });
+
+  it('erhält die reservierte Legendenhöhe bei Einzelwerten mit stableLegend', () => {
+    const { container } = render(<DepthGaugeChart {...baseProps} stableLegend />);
+    const reserve = container.querySelector('.h-\\[62px\\]');
+    expect(reserve).toBeInTheDocument();
+    expect(reserve).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('rendert keine Legendenreserve ohne stableLegend bei Einzelwerten', () => {
+    const { container } = render(<DepthGaugeChart {...baseProps} stableLegend={false} />);
+    const reserve = container.querySelector('.h-\\[62px\\]');
+    expect(reserve).not.toBeInTheDocument();
+  });
 });

@@ -407,9 +407,5 @@ export function summarizeFunnel(
   const withUnit = (v: number) => formatValue?.(v) ?? `${formatDe(v)} ${unit}`.trim();
   const first = data[0];
   const last = data[data.length - 1];
-  const conversion =
-    first && last && first.value > 0
-      ? `${formatDe(Math.round((last.value / first.value) * 1000) / 10)} %`
-      : '0 %';
-  return `Trichter mit ${data.length} Stufen von ${first?.label ?? ''} (${withUnit(first?.value ?? 0)}) bis ${last?.label ?? ''} (${withUnit(last?.value ?? 0)}), Gesamt-Konvertierung ${conversion}, ${period}.`;
+  return `Trichter mit ${data.length} Stufen von ${first?.label ?? ''} (${withUnit(first?.value ?? 0)}) bis ${last?.label ?? ''} (${withUnit(last?.value ?? 0)}), ${period}.`;
 }

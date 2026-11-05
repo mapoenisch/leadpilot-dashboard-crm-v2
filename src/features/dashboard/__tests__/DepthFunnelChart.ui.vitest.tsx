@@ -30,17 +30,13 @@ describe('DepthFunnelChart', () => {
     expect(screen.getByText('60 Deals')).toBeInTheDocument();
   });
 
-  it('zeigt relative Konvertierungsraten zwischen den Stufen', () => {
+  it('zeigt Stufen mit Werten und Bezeichnungen ohne fiktive Konvertierungsraten', () => {
     render(<DepthFunnelChart {...baseProps} />);
-    // 300 / 500 = 60 %
-    expect(screen.getByText('60 %')).toBeInTheDocument();
-    // 150 / 300 = 50 %
-    expect(screen.getByText('50 %')).toBeInTheDocument();
-    // 60 / 150 = 40 %
-    expect(screen.getByText('40 %')).toBeInTheDocument();
+    expect(screen.queryByText(/Konvertierung/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('60 %')).not.toBeInTheDocument();
   });
 
-  it('erlaubt Auswahl einer Stufe per Klick oder Tastatur-Legende', async () => {
+  it('erlaubt Auswahl einer Stufe per Klick oder Tastatur-Legende mit Rang-Angabe', async () => {
     const user = userEvent.setup();
     render(<DepthFunnelChart {...baseProps} />);
 
@@ -50,7 +46,7 @@ describe('DepthFunnelChart', () => {
     const readout = screen.getByTestId('chart-readout');
     expect(readout).toHaveTextContent('Angebot');
     expect(readout).toHaveTextContent('150 Deals');
-    expect(readout).toHaveTextContent('50 % Konvertierung zur Vorstufe');
+    expect(readout).toHaveTextContent('Rang 3 von 4');
   });
 
   it('verknüpft das SVG per aria-describedby mit der Zusammenfassung', () => {
@@ -58,7 +54,30 @@ describe('DepthFunnelChart', () => {
     const svg = screen.getByRole('img', { name: /Trichterdiagramm/i });
     expect(svg).toHaveAttribute('aria-describedby', 'test-funnel-funnel-summary');
     const summary = document.getElementById('test-funnel-funnel-summary');
-    expect(summary).toHaveTextContent(/Trichter mit 4 Stufen/);
-    expect(summary).toHaveTextContent(/Gesamt-Konvertierung 12 %/);
+    expect(summary).toHaveTextContent(/Trichter mit 4 Stufen von Leads \(500 Deals\) bis Gewonnen \(60 Deals\), Q4 2026\./);
+  });
+
+  it('verhindert Überlappungen bei langen Stufenlisten (mehr als 10 Stufen)', () => {
+    const manyStages = Array.from({ length: 15 }, (_, i) => ({
+      label: `Stufe ${i + 1}`,
+      value: 100 - i * 5,
+    }));
+    render(<DepthFunnelChart {...baseProps} data={manyStages} />);
+    const stageElements = screen.getAllByTestId('funnel-stage');
+    expect(stageElements).toHaveLength(15);
+    const svg = screen.getByRole('img', { name: /Trichterdiagramm/i });
+    const viewBox = svg.getAttribute('viewBox');
+    expect(viewBox).toBeTruthy();
+    const [, , , heightStr] = viewBox!.split(' ');
+    const height = Number(heightStr);
+    expect(height).toBeGreaterThanOrEqual(400);
+  });
+
+  it('reserviert die Legendenhöhe bei Einzelstufen mit stableLegend', () => {
+    const { container } = render(
+      <DepthFunnelChart {...baseProps} data={[{ label: 'Einzige Stufe', value: 42 }]} stableLegend />,
+    );
+    const reserve = container.querySelector('.h-\\[62px\\]');
+    expect(reserve).toBeInTheDocument();
   });
 });

@@ -6,6 +6,7 @@ import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTh
 import {
   ChartReadout,
   ChartSummary,
+  LEGEND_RESERVE_CLASS,
   LegendButtons,
   ScrollableChart,
   useActiveDatum,
@@ -249,6 +250,8 @@ export function DepthGaugeChart({
           ariaLabel={`${title}: Kennzahl wählen`}
           stableHeight={stableLegend}
         />
+      ) : stableLegend ? (
+        <div aria-hidden="true" className={LEGEND_RESERVE_CLASS} />
       ) : null}
     </div>
   );
