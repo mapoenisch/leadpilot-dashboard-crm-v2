@@ -75,7 +75,7 @@ function ConfiguratorShell(props: { onClose: () => void; active: boolean; childr
       open
       onClose={() => props.active && props.onClose()}
       title="Kachel konfigurieren"
-      width="640px"
+      width="420px"
       escapeActive={props.active}
     >
       {props.children}

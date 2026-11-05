@@ -3,10 +3,19 @@
 // das nächste Speichern ausgeht. Alle Kacheldaten sind Testdaten.
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
-import type { DashboardConfig } from '../model/dashboardConfig';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import type {
+  DashboardConfig,
+  DashboardFilters,
+  DashboardTileConfig,
+} from '../model/dashboardConfig';
 import { DEFAULT_DASHBOARD_CONFIG, type PreferencesState } from '../model/defaultDashboard';
 import type { SaveResult } from '../hooks/useDashboardPreferences';
+import type { SessionFilters } from '../hooks/useDashboardNavigation';
+import { activeEntryOf, tileTitle } from '../hooks/dashboardEditorReducer';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
+import { TileDetailContent } from '../components/detail/TileDetailContent';
 import { EDITOR_PREVIEW_NOTICE, useEditorPreviewData } from './editorPreviewData';
 
 type NextSave = 'erfolg' | 'fehler' | 'konflikt';
@@ -54,6 +63,43 @@ function paddedConfig(count: number): DashboardConfig {
   return { ...DEFAULT_DASHBOARD_CONFIG, tiles: [...base, ...extra].slice(0, count) };
 }
 
+function PreviewDetailModal({
+  tile,
+  filters,
+  onClose,
+}: {
+  tile: DashboardTileConfig;
+  filters?: DashboardFilters;
+  onClose: () => void;
+}) {
+  const data = useEditorPreviewData(tile, filters, { enabled: true });
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={`Details: ${tileTitle(tile)}`}
+      maxWidth="960px"
+      footer={
+        <div className="flex justify-end">
+          <Button variant="secondary" onClick={onClose}>
+            Schließen
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex max-h-[calc(85vh-120px)] flex-col gap-4 overflow-y-auto p-4">
+        <TileDetailContent
+          tile={tile}
+          entry={activeEntryOf(tile)}
+          data={data}
+          title={tileTitle(tile)}
+          filters={filters}
+        />
+      </div>
+    </Modal>
+  );
+}
+
 /** `loading` hält den Arbeitsbereich im Ladezustand (Skelett), z. B. für die Höhenmessung. */
 export function DashboardEditorPreview({
   loading = false,
@@ -71,6 +117,10 @@ export function DashboardEditorPreview({
   const [nextSave, setNextSave] = useState<NextSave>('erfolg');
   const [activated, setActivated] = useState<ReadonlySet<string>>(new Set());
   const [shownIds, setShownIds] = useState<readonly string[]>([]);
+  const [detailContext, setDetailContext] = useState<{
+    tileId: string;
+    session: SessionFilters;
+  } | null>(null);
   const nextSaveRef = useRef<NextSave>('erfolg');
   nextSaveRef.current = nextSave;
   const storedRef = useRef(stored);
@@ -126,6 +176,13 @@ export function DashboardEditorPreview({
   }, [stored, saving, save, reloadServerVersion, loading]);
   // Gezählt wird, was der Arbeitsbereich gerade zeigt (auch der Entwurf); entfernte IDs zählen nicht.
   const activeShown = shownIds.filter((id) => activated.has(id)).length;
+  const currentConfig = stored?.config ?? DEFAULT_DASHBOARD_CONFIG;
+  const detailTile = detailContext
+    ? currentConfig.tiles.find((t) => t.tileId === detailContext.tileId)
+    : null;
+  const effectiveDetailFilters = detailContext?.session
+    ? detailContext.session.value
+    : (currentConfig.filters ?? DEFAULT_DASHBOARD_CONFIG.filters);
 
   return (
     <section aria-labelledby="editor-vorschau" className="flex flex-col gap-4">
@@ -163,7 +220,15 @@ export function DashboardEditorPreview({
         onTileActivated={(tileId) =>
           setActivated((current) => (current.has(tileId) ? current : new Set(current).add(tileId)))
         }
+        onShowDetails={(tileId, session) => setDetailContext({ tileId, session })}
       />
+      {detailTile ? (
+        <PreviewDetailModal
+          tile={detailTile}
+          filters={effectiveDetailFilters}
+          onClose={() => setDetailContext(null)}
+        />
+      ) : null}
     </section>
   );
 }

@@ -75,7 +75,37 @@ export function DashboardPreviewPage({
         {editorOnly ? <h1 className="sr-only">Dashboard-Arbeitsbereich</h1> : null}
         {onlyView || editorOnly ? null : (
           <>
-            <header className="flex flex-col gap-2">
+            <nav
+              aria-label="Vorschau-Bereiche"
+              className="flex flex-wrap items-center gap-2 border-b border-[var(--color-border,#1b3d39)] pb-3 text-[13px]"
+            >
+              <span className="font-medium text-[var(--color-text-muted)]">Bereiche:</span>
+              <a
+                href="#editor-vorschau"
+                className="rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 font-semibold text-primary hover:bg-primary/20"
+              >
+                Zum Dashboard-Editor ↓
+              </a>
+              <a
+                href="#kachelgalerie"
+                className="rounded-md border border-[var(--color-border,#1b3d39)] px-2.5 py-1 text-[var(--color-text-muted)] hover:text-white"
+              >
+                Zur Kachelgalerie ↓
+              </a>
+              <a
+                href="#testkachel-probe"
+                className="rounded-md border border-[var(--color-border,#1b3d39)] px-2.5 py-1 text-[var(--color-text-muted)] hover:text-white"
+              >
+                Zur Testkachel (Designprobe) ↓
+              </a>
+              <a
+                href="?bereich=editor"
+                className="ml-auto text-[12px] text-primary hover:underline"
+              >
+                Nur Editor anzeigen (Vollansicht) →
+              </a>
+            </nav>
+            <header id="testkachel-probe" className="flex flex-col gap-2">
               <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
                 Executive Dashboard · Designprobe
               </p>

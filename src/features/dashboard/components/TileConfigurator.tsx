@@ -221,7 +221,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
       open={open}
       onClose={() => escapeActive && onClose()}
       title={editing ? 'Kachel bearbeiten' : 'Kachel hinzufügen'}
-      width="640px"
+      width="420px"
       escapeActive={escapeActive}
       footer={
         <div className="flex flex-col gap-2">
@@ -244,7 +244,7 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
         </div>
       }
     >
-      <div className="grid min-w-0 gap-4 md:grid-cols-2">
+      <div className="flex min-w-0 flex-col gap-5">
         <div className="flex min-w-0 flex-col gap-3">
           <Step title="1 · Kennzahl">
             {editing ? (
@@ -372,8 +372,10 @@ export default function TileConfigurator(props: TileConfiguratorProps) {
             </p>
           ) : null}
         </div>
-        <div className="min-h-[260px] min-w-0">
-          <h3 className="m-0 mb-1 text-[13px] font-medium">3 · Vorschau</h3>
+        <div className="min-h-[240px] min-w-0 border-t border-[var(--color-border,#1b3d39)] pt-4">
+          <h3 className="m-0 mb-2 text-[13px] font-medium text-[var(--color-text-primary,#ffffff)]">
+            3 · Vorschau
+          </h3>
           {valid && candidate && entry ? (
             <div ref={previewRef} data-testid="configurator-preview">
               <Preview

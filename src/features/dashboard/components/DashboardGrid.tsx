@@ -3,27 +3,21 @@
 // Verschieben, Bearbeiten und Entfernen; Ziehen ist nur eine Ergänzung für große Bildschirme.
 // Auftrag 090 (Paket F, Muster 5): ruhige Leiste je Kachel, Aktionen hinter „Kachel-Aktionen“.
 import { useEffect, useRef, useState, type DragEvent } from 'react';
+import { GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
-import { minSizeFor, sizeRank, TILE_SIZES, type TileSize } from '../model/dashboardCatalog';
-import { activeEntryOf, tileTitle, SIZE_LABEL } from '../hooks/dashboardEditorReducer';
+import { minSizeFor, type TileSize } from '../model/dashboardCatalog';
+import { activeEntryOf, tileTitle } from '../hooks/dashboardEditorReducer';
 import type { ChartLoaders } from './charts/chartLoaders';
 import { LazyDashboardTile, type TileDataHook } from './LazyDashboardTile';
+import { TileActionsMenu } from './TileActionsMenu';
+import { TileQuickSizeSelector } from './TileQuickSizeSelector';
 import { TileResizeHandle } from './TileResizeHandle';
 import { UnavailableTileSlot } from './UnavailableTileSlot';
 
 export type FocusAction =
   'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details' | 'groesse';
-
-const ACTION_BUTTON = 'min-h-[44px] w-full justify-start';
-
-const SHORT_SIZES: Record<TileSize, string> = {
-  klein: '3 Sp.',
-  mittel: '6 Sp.',
-  gross: '9 Sp.',
-  voll: '12 Sp.',
-};
 
 /** Fokusziel nach dem Entfernen der letzten Kachel: die Schaltfläche im Leerzustand. */
 export const EMPTY_FOCUS = '__leer__';
@@ -32,6 +26,18 @@ export interface FocusRequest {
   id: number;
   tileId: string;
   action: FocusAction;
+}
+
+/** Berechnet die Zielposition unter Berücksichtigung der Vor-/Nach-Seite und des Entfernens der Quelle. */
+export function calculateDropIndex(from: number, target: number, side: 'before' | 'after'): number {
+  if (from === target) return from;
+  if (from < target)
+    return side === 'before' && target === from + 1
+      ? target
+      : side === 'before'
+        ? target - 1
+        : target;
+  return side === 'after' && target === from - 1 ? target : side === 'before' ? target : target + 1;
 }
 
 const SPAN: Record<string, string> = {
@@ -70,12 +76,18 @@ export function DashboardGrid(props: DashboardGridProps) {
   const { tiles, editing, locked, focusRequest } = props;
   const listRef = useRef<HTMLUListElement | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ index: number; side: 'before' | 'after' } | null>(
+    null,
+  );
   // Offene Aktionsmenüs je Kachel: bleiben beim Verschieben offen, damit der Fokus folgen kann.
   const [openMenus, setOpenMenus] = useState<ReadonlySet<string>>(() => new Set());
   // Beim Verlassen des Bearbeitungsmodus wieder eingeklappt beginnen (Codex PR #76).
   useEffect(() => {
-    if (!editing) setOpenMenus(new Set());
+    if (!editing) {
+      setOpenMenus(new Set());
+      setDragId(null);
+      setDropTarget(null);
+    }
   }, [editing]);
   const toggleMenu = (tileId: string) =>
     setOpenMenus((current) => {
@@ -104,7 +116,6 @@ export function DashboardGrid(props: DashboardGridProps) {
         ? item
         : (button(focusRequest.action) ??
           button(OPPOSITE[focusRequest.action]) ??
-          // Menü zu: Fokus auf „Kachel-Aktionen“ statt ins Leere (Auftrag 090).
           button('aktionen') ??
           item);
     target.focus();
@@ -136,7 +147,26 @@ export function DashboardGrid(props: DashboardGridProps) {
 
   const endDrag = () => {
     setDragId(null);
-    setOverId(null);
+    setDropTarget(null);
+  };
+
+  const handleDragStart = (tileId: string, event: DragEvent<HTMLElement>) => {
+    if (locked) return event.preventDefault();
+    const target = event.target as HTMLElement | null;
+    if (
+      target?.closest(
+        'button, [role="button"], [role="slider"], [data-testid="tile-resize-handle"], [role="menu"], input, select, textarea',
+      )
+    ) {
+      return event.preventDefault();
+    }
+    const item = event.currentTarget.closest('li') ?? (event.currentTarget as HTMLElement);
+    if (event.dataTransfer) {
+      if (item && event.dataTransfer.setDragImage) event.dataTransfer.setDragImage(item, 20, 20);
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', tileId);
+    }
+    setDragId(tileId);
   };
 
   return (
@@ -158,6 +188,24 @@ export function DashboardGrid(props: DashboardGridProps) {
       <ul
         ref={listRef}
         aria-label="Dashboard-Kacheln"
+        onDragOver={(event) => {
+          if (dragId) {
+            event.preventDefault();
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+          }
+        }}
+        onDrop={(event) => {
+          if (!dragId || locked) return;
+          event.preventDefault();
+          if (dropTarget) {
+            const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
+            if (fromIndex !== -1 && fromIndex !== dropTarget.index) {
+              const toIndex = calculateDropIndex(fromIndex, dropTarget.index, dropTarget.side);
+              if (toIndex !== fromIndex) props.onMoveTo(dragId, toIndex);
+            }
+          }
+          endDrag();
+        }}
         className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-6 lg:grid-cols-12"
       >
         {tiles.map((tile, index) => {
@@ -166,175 +214,171 @@ export function DashboardGrid(props: DashboardGridProps) {
           const title = tileTitle(tile);
           const position = `Position ${index + 1} von ${tiles.length}`;
           const label = (verb: string) => `${title}: ${verb}, ${position}`;
-          const onDragOver = (event: DragEvent) => {
+          const onDragOver = (event: DragEvent<HTMLLIElement>) => {
             if (!dragId || locked) return;
             event.preventDefault();
-            setOverId(tile.tileId);
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+            const rect = event.currentTarget.getBoundingClientRect();
+            const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
+            const isAfter =
+              fromIndex !== -1 && index === fromIndex + 1
+                ? true
+                : fromIndex !== -1 && index === fromIndex - 1
+                  ? false
+                  : rect.width > 0
+                    ? event.clientX > rect.left + rect.width / 2
+                    : fromIndex !== -1 && fromIndex < index;
+            setDropTarget({ index, side: isAfter ? 'after' : 'before' });
           };
-          const onDrop = (event: DragEvent) => {
+          const onDrop = (event: DragEvent<HTMLLIElement>) => {
             if (!dragId || locked) return;
             event.preventDefault();
-            if (dragId !== tile.tileId) props.onMoveTo(dragId, index);
+            const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
+            if (fromIndex !== -1 && fromIndex !== index) {
+              const side =
+                dropTarget && dropTarget.index === index
+                  ? dropTarget.side
+                  : fromIndex < index
+                    ? 'after'
+                    : 'before';
+              const toIndex = calculateDropIndex(fromIndex, index, side);
+              if (toIndex !== fromIndex) props.onMoveTo(dragId, toIndex);
+            }
             endDrag();
           };
+          const isTarget =
+            dragId !== null &&
+            dropTarget !== null &&
+            dropTarget.index === index &&
+            dragId !== tile.tileId;
+          const isDraggingThis = dragId === tile.tileId;
+
           return (
             <li
               key={tile.tileId}
               data-tile-id={tile.tileId}
               tabIndex={-1}
+              draggable={editing && !locked}
+              onDragStart={editing ? (event) => handleDragStart(tile.tileId, event) : undefined}
+              onDragEnd={editing ? endDrag : undefined}
               onDragOver={editing ? onDragOver : undefined}
               onDrop={editing ? onDrop : undefined}
               className={cn(
-                'relative flex min-w-0 flex-col gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                'relative flex min-w-0 flex-col gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-150',
+                editing && !locked && 'cursor-grab active:cursor-grabbing',
                 SPAN[tile.size] ?? SPAN.klein,
-                overId === tile.tileId && dragId !== tile.tileId && 'ring-2 ring-primary',
-                dragId === tile.tileId && 'opacity-60',
+                isTarget && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                isDraggingThis &&
+                  'opacity-40 scale-[0.98] border-dashed border-2 border-primary/60 rounded-xl',
               )}
             >
+              {editing && isTarget ? (
+                <div
+                  data-testid="drag-ghost"
+                  aria-hidden="true"
+                  className={cn(
+                    'pointer-events-none absolute -inset-1 z-20 rounded-xl border-2 border-dashed border-primary bg-primary/10 shadow-lg flex items-center justify-center backdrop-blur-[1px]',
+                    dropTarget.side === 'before' ? 'border-l-4' : 'border-r-4',
+                  )}
+                >
+                  <span className="rounded bg-primary px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-inverse)] shadow">
+                    Hier ablegen ({dropTarget.side === 'before' ? 'Davor' : 'Danach'})
+                  </span>
+                </div>
+              ) : null}
               {editing ? (
                 <div className="flex flex-col gap-1">
                   <div
                     data-testid="tile-edit-bar"
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-primary px-3 py-1 text-[12px] text-[var(--color-text-muted)]"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-primary/60 bg-surface/90 px-3 py-1.5 text-[12px] text-[var(--color-text-muted)] shadow-sm select-none"
                   >
-                    <span className="flex min-w-0 items-center gap-1 [overflow-wrap:anywhere]">
+                    <div className="flex flex-1 min-w-0 items-center gap-1.5 [overflow-wrap:anywhere]">
                       <span
                         draggable={!locked}
                         aria-hidden="true"
                         data-testid="drag-handle"
                         onDragStart={(event) => {
-                          const item = event.currentTarget.closest('li');
-                          if (item) event.dataTransfer?.setDragImage?.(item, 0, 0);
-                          event.dataTransfer?.setData?.('text/plain', tile.tileId);
-                          setDragId(tile.tileId);
+                          event.stopPropagation();
+                          handleDragStart(tile.tileId, event);
                         }}
                         onDragEnd={endDrag}
-                        className="hidden cursor-grab select-none md:inline"
+                        className="inline-flex cursor-grab active:cursor-grabbing select-none items-center gap-1 font-medium text-text hover:text-primary"
+                        title="Kachel anpacken und im Raster verschieben"
                       >
-                        ⠿ Ziehen zum Verschieben ·{' '}
+                        <GripVertical className="h-4 w-4 text-primary shrink-0" />
+                        <span className="font-semibold text-xs">Verschieben</span>
                       </span>
-                      {position}
-                    </span>
+                      <span className="text-[11px] text-[var(--color-text-muted)] font-normal">
+                        · {position}
+                      </span>
+                    </div>
+
+                    <TileQuickSizeSelector
+                      tileId={tile.tileId}
+                      title={title}
+                      currentSize={tile.size}
+                      minSize={minSize}
+                      locked={locked}
+                      onResize={props.onResize}
+                    />
+
                     <Button
                       size="sm"
                       variant="secondary"
-                      className="min-h-[44px]"
+                      draggable={false}
+                      onDragStart={(e) => e.stopPropagation()}
+                      className="h-8 min-h-[32px] px-2.5 text-xs ml-auto"
                       data-action="aktionen"
                       aria-expanded={openMenus.has(tile.tileId)}
                       aria-controls={`kachel-aktionen-${tile.tileId}`}
                       aria-label={label('Kachel-Aktionen')}
                       onClick={() => toggleMenu(tile.tileId)}
                     >
-                      Kachel-Aktionen{' '}
-                      <span aria-hidden="true">{openMenus.has(tile.tileId) ? '▴' : '▾'}</span>
+                      Aktionen{' '}
+                      <span aria-hidden="true" className="ml-1">
+                        {openMenus.has(tile.tileId) ? '▴' : '▾'}
+                      </span>
                     </Button>
                   </div>
-                  {/* Im Fluss statt schwebend: überdeckt weder Kachel noch ragt es auf 320 px hinaus. */}
                   {openMenus.has(tile.tileId) ? (
-                    <div
-                      id={`kachel-aktionen-${tile.tileId}`}
-                      data-testid="tile-actions"
-                      className="grid grid-cols-1 gap-1 rounded-lg border border-solid border-border bg-surface p-1 min-[300px]:grid-cols-2"
-                    >
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className={ACTION_BUTTON}
-                        data-action="hoch"
-                        aria-label={label('Nach oben')}
-                        disabled={locked || index === 0}
-                        onClick={() => props.onMove(tile.tileId, 'hoch')}
-                      >
-                        Nach oben
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className={ACTION_BUTTON}
-                        data-action="runter"
-                        aria-label={label('Nach unten')}
-                        disabled={locked || index === tiles.length - 1}
-                        onClick={() => props.onMove(tile.tileId, 'runter')}
-                      >
-                        Nach unten
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className={ACTION_BUTTON}
-                        data-action="bearbeiten"
-                        aria-label={label('Bearbeiten')}
-                        disabled={locked || !activeEntryOf(tile)}
-                        onClick={() => props.onEdit(tile.tileId)}
-                      >
-                        Bearbeiten
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className={cn(ACTION_BUTTON, 'border-error text-error')}
-                        data-action="entfernen"
-                        aria-label={label('Entfernen')}
-                        disabled={locked}
-                        onClick={() => props.onRemove(tile.tileId)}
-                      >
-                        Entfernen
-                      </Button>
-
-                      {props.onResize ? (
-                        <div className="col-span-1 min-[300px]:col-span-2 flex flex-col gap-1 border-t border-solid border-border/60 pt-1.5 mt-0.5">
-                          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">
-                            Größe (Spalten):
-                          </span>
-                          <div className="grid grid-cols-4 gap-1">
-                            {TILE_SIZES.map((sz) => {
-                              const isCurrent = tile.size === sz;
-                              const isAllowed = sizeRank(sz) >= sizeRank(minSize);
-                              return (
-                                <Button
-                                  key={sz}
-                                  size="sm"
-                                  variant={isCurrent ? 'primary' : 'secondary'}
-                                  disabled={locked || !isAllowed}
-                                  onClick={() => props.onResize?.(tile.tileId, sz)}
-                                  className={cn(
-                                    'min-h-[32px] px-1 text-xs font-medium',
-                                    isCurrent && 'font-bold ring-1 ring-primary/40',
-                                  )}
-                                  data-action={`size-${sz}`}
-                                  aria-label={`${title}: Größe auf ${SIZE_LABEL[sz]} ändern`}
-                                  title={
-                                    !isAllowed
-                                      ? `Mindestgröße: ${SIZE_LABEL[minSize]}`
-                                      : SIZE_LABEL[sz]
-                                  }
-                                >
-                                  {SHORT_SIZES[sz]}
-                                </Button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
+                    <TileActionsMenu
+                      tile={tile}
+                      index={index}
+                      tilesCount={tiles.length}
+                      locked={locked}
+                      title={title}
+                      minSize={minSize}
+                      label={label}
+                      onMove={props.onMove}
+                      onEdit={props.onEdit}
+                      onRemove={props.onRemove}
+                      onResize={props.onResize}
+                    />
                   ) : null}
                 </div>
               ) : null}
-              {activeEntryOf(tile) ? (
-                <LazyDashboardTile
-                  tile={tile}
-                  filters={props.filters}
-                  useData={props.useData}
-                  chartLoaders={props.chartLoaders}
-                  suspended={props.suspended}
-                  onShowDetails={props.onShowDetails}
-                  detailsBlocked={props.detailsBlocked}
-                  onRetryChartLoad={props.onRetryChartLoad}
-                  onActivated={props.onTileActivated}
-                />
-              ) : (
-                <UnavailableTileSlot tile={tile} />
-              )}
+              <div
+                className={cn(
+                  'flex flex-col flex-1 min-w-0',
+                  dragId && 'pointer-events-none select-none',
+                )}
+              >
+                {activeEntryOf(tile) ? (
+                  <LazyDashboardTile
+                    tile={tile}
+                    filters={props.filters}
+                    useData={props.useData}
+                    chartLoaders={props.chartLoaders}
+                    suspended={props.suspended}
+                    onShowDetails={props.onShowDetails}
+                    detailsBlocked={props.detailsBlocked}
+                    onRetryChartLoad={props.onRetryChartLoad}
+                    onActivated={props.onTileActivated}
+                  />
+                ) : (
+                  <UnavailableTileSlot tile={tile} />
+                )}
+              </div>
               {editing && props.onResize ? (
                 <TileResizeHandle
                   tileId={tile.tileId}

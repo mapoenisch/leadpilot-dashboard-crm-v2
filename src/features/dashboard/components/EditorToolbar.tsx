@@ -289,21 +289,23 @@ export function EditorToolbar(props: EditorToolbarProps) {
                 <div
                   role="menu"
                   aria-label="Dashboard-Vorlagen"
-                  className="absolute left-0 right-0 top-full z-30 mt-1 rounded-lg border border-border bg-[var(--color-surface)] p-1.5 shadow-xl sm:left-0 sm:right-auto sm:w-72 sm:max-w-[calc(100vw-32px)]"
+                  className="absolute left-0 right-0 top-full z-50 mt-1.5 rounded-xl border border-solid border-[var(--color-border,#1b3d39)] bg-[var(--color-surface-raised,#0f2422)] p-2 shadow-2xl backdrop-blur-md sm:left-0 sm:right-auto sm:w-80 sm:max-w-[calc(100vw-32px)]"
                 >
                   {DASHBOARD_PRESETS.map((preset) => (
                     <button
                       key={preset.id}
                       role="menuitem"
                       type="button"
-                      className="flex w-full flex-col rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--color-surface-hover)] focus:bg-[var(--color-surface-hover)] focus:outline-none"
+                      className="flex w-full flex-col rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-[var(--color-surface-hover,#183935)] focus:bg-[var(--color-surface-hover,#183935)] focus:outline-none"
                       onClick={() => {
                         setPresetMenuOpen(false);
                         onApplyPreset?.(preset.id);
                       }}
                     >
-                      <span className="font-semibold text-text">{preset.name}</span>
-                      <span className="text-[12px] text-[var(--color-text-muted)] line-clamp-2">
+                      <span className="font-semibold text-[var(--color-text-primary,#ffffff)]">
+                        {preset.name}
+                      </span>
+                      <span className="text-[12px] text-[var(--color-text-muted,#8faea9)] line-clamp-2 mt-0.5 leading-snug">
                         {preset.description}
                       </span>
                     </button>

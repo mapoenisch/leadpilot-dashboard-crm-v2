@@ -81,9 +81,9 @@ const VIEWS: { id: PreviewView; label: string }[] = [
 // Desktop (ab 1280 px) 3/12, 6/12, 9/12, 12/12 = 300, 600, 900, 1200 px; Tablet Klein 3/6 = halbe
 // Breite, Mittel und Groß 6/6 = volle Breite; Handy immer volle Breite.
 const SIZES: { id: PreviewSize; label: string; className: string }[] = [
-  { id: 'klein', label: 'Klein', className: 'md:max-w-[50%] xl:max-w-[300px]' },
-  { id: 'mittel', label: 'Mittel', className: 'xl:max-w-[600px]' },
-  { id: 'gross', label: 'Groß', className: 'xl:max-w-[900px]' },
+  { id: 'klein', label: 'Klein', className: 'max-w-[320px]' },
+  { id: 'mittel', label: 'Mittel', className: 'max-w-[600px]' },
+  { id: 'gross', label: 'Groß', className: 'max-w-[900px]' },
   { id: 'voll', label: 'Volle Breite', className: 'max-w-full' },
 ];
 
