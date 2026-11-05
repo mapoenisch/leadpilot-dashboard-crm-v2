@@ -71,4 +71,10 @@ describe('TileResizeHandle', () => {
     fireEvent.keyDown(handle, { key: 'ArrowRight' });
     expect(onResize).not.toHaveBeenCalled();
   });
+
+  it('verhindert native Touch-Scroll-Gesten mit touch-none', () => {
+    setup();
+    const handle = screen.getByRole('slider');
+    expect(handle.className).toContain('touch-none');
+  });
 });

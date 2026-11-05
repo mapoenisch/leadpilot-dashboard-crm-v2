@@ -145,12 +145,12 @@ export function DashboardGrid(props: DashboardGridProps) {
         <div
           data-testid="grid-helper-lines"
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-12"
+          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden md:grid md:grid-cols-6 lg:grid-cols-12 gap-4"
         >
           {Array.from({ length: 12 }, (_, i) => (
             <div
               key={i}
-              className="h-full min-h-[140px] rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]"
+              className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]"
             />
           ))}
         </div>

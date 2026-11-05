@@ -113,13 +113,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
         <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
           {live}
         </div>
-        <div
-          className={cn(
-            'flex items-center gap-2 justify-between',
-            editing ? 'flex-nowrap' : 'flex-wrap',
-          )}
-        >
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
             {editing ? (
               <>
                 <Badge
@@ -140,7 +135,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
                   )}
                 >
                   <Save className="h-3.5 w-3.5" aria-hidden="true" />
-                  Speichern
+                  <span>Speichern</span>
                 </Button>
                 <Button
                   size="sm"
@@ -150,7 +145,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
                   className="flex items-center gap-1.5 shrink-0"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  Verwerfen
+                  <span>Verwerfen</span>
                 </Button>
               </>
             ) : (
@@ -179,7 +174,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
           </div>
 
           {editing ? (
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0 ml-auto">
               <Button
                 size="sm"
                 variant="secondary"

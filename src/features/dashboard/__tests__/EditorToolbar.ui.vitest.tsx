@@ -91,4 +91,13 @@ describe('EditorToolbar', () => {
     fireEvent.mouseDown(screen.getByTestId('outside'));
     expect(screen.queryByRole('menu', { name: 'Dashboard-Vorlagen' })).not.toBeInTheDocument();
   });
+
+  it('erlaubt einen flexiblen Umbruch der Toolbar-Aktionen auf schmalen Ansichten', () => {
+    const props = defaultProps({ dirty: true });
+    render(<EditorToolbar {...props} />);
+
+    const toolbar = screen.getByRole('region', { name: 'Dashboard bearbeiten' });
+    const firstRow = toolbar.firstElementChild?.nextElementSibling;
+    expect(firstRow?.className).toContain('flex-wrap');
+  });
 });
