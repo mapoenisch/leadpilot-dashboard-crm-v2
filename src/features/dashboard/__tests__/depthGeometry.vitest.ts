@@ -339,9 +339,8 @@ describe('formatAxis', () => {
 
 describe('gaugeArcPath and summaries', () => {
   it('erzeugt SVG-Bogenpfade für Tachometer', async () => {
-    const { gaugeArcPath, summarizeGauge, summarizeFunnel } = await import(
-      '../components/charts/depthGeometry'
-    );
+    const { gaugeArcPath, summarizeGauge, summarizeFunnel } =
+      await import('../components/charts/depthGeometry');
     const path = gaugeArcPath(280, 160, 95, 225, 135);
     expect(path).toMatch(/^M \d+(\.\d+)? \d+(\.\d+)? A 95 95 0 1 1/);
     expect(gaugeArcPath(280, 160, 95, 0, 0)).toBe('');
@@ -358,7 +357,9 @@ describe('gaugeArcPath and summaries', () => {
       'Deals',
       'Aktuell',
     );
-    expect(fSummary).toBe('Trichter mit 2 Stufen von Leads (100 Deals) bis Kunden (20 Deals), Aktuell.');
+    expect(fSummary).toBe(
+      'Trichter mit 2 Stufen von Leads (100 Deals) bis Kunden (20 Deals), Aktuell.',
+    );
     expect(summarizeFunnel([], 'Deals', 'Aktuell')).toBe('Keine Trichterstufen für Aktuell.');
   });
 });

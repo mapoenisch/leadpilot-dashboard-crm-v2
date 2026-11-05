@@ -18023,5 +18023,9 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
    - **CI e2e:** `visual /dashboard` wich auf Tablet 768 px minimal ab (3.814 px bei Schwellenwert 3.735 px / 0,001 Differenz-Ratio). Ursache: Kombination aus neuer Beschriftung „Live-Simulation“ in der Simulationsleiste (Auftrag 124 aus `main`) und Pencil-Icon/Styling des „Dashboard bearbeiten“-Buttons aus PR #137.
    - Linux-Baseline `e2e/visual.spec.ts-snapshots/visual-dashboard-1-tablet-768-linux.png` auf die in Ubuntu-Latest erfasste Referenz aktualisiert (Abmessungen 768x4864 unverändert, Pixel-Diff ausschließlich in Leiste und Toolbar).
 
+10. **Code-Formatierung Prettier (PR #137, Head `50c09e2`):**
+    - **CI e2e:** `v2.3.0-Finding-Baseline` schlug fehl, weil `[PR-QUALITY-16]` in `qualityRelease.acceptance.ts` (`prettier --check "src/**/*.{ts,tsx}"`) 7 Dateien mit Formatabweichungen meldete (neue Chart-Module und Tests aus Welle 4).
+    - Alle 7 Dateien per `prettier --write` formatiert; `npm run format:check` und `npm run test:v23:findings` lokal vollständig grün (0 Abweichungen).
+
 **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` leer.
-**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npx tsx scripts/verifyQualityBudget.ts` (Budget 50/50, 0 unauthorisierte Inline-Styles), `npm run verify` (Suiten 001–025 grün), `npm test` (351 Testdateien, 2.544 Tests grün), `npm run build` erfolgreich.
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npm run format:check` 0 Abweichungen, `npx tsx scripts/verifyQualityBudget.ts` (Budget 50/50, 0 unauthorisierte Inline-Styles), `npm run verify` (Suiten 001–025 grün), `npm test` (351 Testdateien, 2.544 Tests grün), `npm run build` erfolgreich.

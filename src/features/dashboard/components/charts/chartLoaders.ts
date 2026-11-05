@@ -7,24 +7,10 @@ import type { DepthChartProps } from './chartTypes';
 
 export type ChartView = Extract<
   DashboardView,
-  | 'saeulen'
-  | 'balken'
-  | 'kreis'
-  | 'ring'
-  | 'linie'
-  | 'flaeche'
-  | 'gauge'
-  | 'sparkline'
-  | 'trichter'
+  'saeulen' | 'balken' | 'kreis' | 'ring' | 'linie' | 'flaeche' | 'gauge' | 'sparkline' | 'trichter'
 >;
 export type ChartModuleId =
-  | 'balken'
-  | 'ring'
-  | 'linie'
-  | 'flaeche'
-  | 'gauge'
-  | 'sparkline'
-  | 'trichter';
+  'balken' | 'ring' | 'linie' | 'flaeche' | 'gauge' | 'sparkline' | 'trichter';
 type ChartModule = { default: React.ComponentType<DepthChartProps> };
 export type ChartLoaders = Record<ChartModuleId, () => Promise<ChartModule>>;
 

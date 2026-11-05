@@ -13,11 +13,7 @@ import {
   useActiveDatum,
 } from './ChartReadout';
 import { CHART_VIEWBOX, SERIES_COLORS, type DepthChartProps } from './chartTypes';
-import {
-  formatDe,
-  shortenLabel,
-  summarizeFunnel,
-} from './depthGeometry';
+import { formatDe, shortenLabel, summarizeFunnel } from './depthGeometry';
 
 const THEME = MANAGEMENT_CHART_THEME.colors;
 
@@ -49,9 +45,7 @@ export function DepthFunnelChart({
   // damit Stufen und Beschriftungen sich nie überlappen.
   const minGap = 8;
   const stageH =
-    count > 6
-      ? 24
-      : Math.min(34, Math.max(22, Math.floor((220 - (count - 1) * minGap) / count)));
+    count > 6 ? 24 : Math.min(34, Math.max(22, Math.floor((220 - (count - 1) * minGap) / count)));
   const gap =
     count > 1
       ? count > 6
@@ -92,9 +86,7 @@ export function DepthFunnelChart({
   const activeIndex = active ?? null;
   const activeEntry = activeIndex !== null ? (data[activeIndex] ?? null) : null;
   const activeStage = activeIndex !== null ? (stages[activeIndex] ?? null) : null;
-  const extraInfo = activeStage
-    ? `Rang ${activeStage.index + 1} von ${stages.length}`
-    : undefined;
+  const extraInfo = activeStage ? `Rang ${activeStage.index + 1} von ${stages.length}` : undefined;
 
   return (
     <div className="flex flex-col gap-[10px]" data-testid="depth-funnel-chart">
@@ -180,7 +172,9 @@ export function DepthFunnelChart({
                     fontFamily="monospace"
                     fill="#ffffff"
                   >
-                    {formatValue ? formatValue(stage.value) : `${formatDe(stage.value)} ${unit}`.trim()}
+                    {formatValue
+                      ? formatValue(stage.value)
+                      : `${formatDe(stage.value)} ${unit}`.trim()}
                   </text>
                 </g>
               );

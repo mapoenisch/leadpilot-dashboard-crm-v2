@@ -54,7 +54,9 @@ describe('DepthFunnelChart', () => {
     const svg = screen.getByRole('img', { name: /Trichterdiagramm/i });
     expect(svg).toHaveAttribute('aria-describedby', 'test-funnel-funnel-summary');
     const summary = document.getElementById('test-funnel-funnel-summary');
-    expect(summary).toHaveTextContent(/Trichter mit 4 Stufen von Leads \(500 Deals\) bis Gewonnen \(60 Deals\), Q4 2026\./);
+    expect(summary).toHaveTextContent(
+      /Trichter mit 4 Stufen von Leads \(500 Deals\) bis Gewonnen \(60 Deals\), Q4 2026\./,
+    );
   });
 
   it('verhindert Überlappungen bei langen Stufenlisten (mehr als 10 Stufen)', () => {
@@ -75,7 +77,11 @@ describe('DepthFunnelChart', () => {
 
   it('reserviert die Legendenhöhe bei Einzelstufen mit stableLegend', () => {
     const { container } = render(
-      <DepthFunnelChart {...baseProps} data={[{ label: 'Einzige Stufe', value: 42 }]} stableLegend />,
+      <DepthFunnelChart
+        {...baseProps}
+        data={[{ label: 'Einzige Stufe', value: 42 }]}
+        stableLegend
+      />,
     );
     const reserve = container.querySelector('.h-\\[62px\\]');
     expect(reserve).toBeInTheDocument();

@@ -46,12 +46,7 @@ describe('DepthGaugeChart', () => {
   });
 
   it('behandelt negative Werte sicher mit Warnfarbe', () => {
-    render(
-      <DepthGaugeChart
-        {...baseProps}
-        data={[{ label: 'EBITDA-Marge', value: -15 }]}
-      />,
-    );
+    render(<DepthGaugeChart {...baseProps} data={[{ label: 'EBITDA-Marge', value: -15 }]} />);
     expect(screen.getAllByText('-15 %').length).toBeGreaterThan(0);
   });
 

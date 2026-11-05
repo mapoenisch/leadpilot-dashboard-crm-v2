@@ -48,7 +48,15 @@ export function DepthSparklineChart({
     if (data.length === 0) return [];
     if (data.length === 1) {
       const y = AREA.top + AREA.height / 2;
-      return [{ x: AREA.left + AREA.width / 2, y, value: data[0]?.value ?? 0, label: data[0]?.label ?? '', index: 0 }];
+      return [
+        {
+          x: AREA.left + AREA.width / 2,
+          y,
+          value: data[0]?.value ?? 0,
+          label: data[0]?.label ?? '',
+          index: 0,
+        },
+      ];
     }
     const step = AREA.width / (data.length - 1);
     return data.map((d, index) => {
@@ -274,7 +282,7 @@ export function DepthSparklineChart({
 
       <ChartSummary id={summaryId} text={summary} />
       <ChartReadout
-        entry={active === null ? (lastPoint ? data[lastPoint.index] ?? null : null) : activeEntry}
+        entry={active === null ? (lastPoint ? (data[lastPoint.index] ?? null) : null) : activeEntry}
         unit={unit}
         formatValue={formatValue}
         period={period}

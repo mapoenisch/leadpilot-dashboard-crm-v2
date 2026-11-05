@@ -77,27 +77,13 @@ export function DepthGaugeChart({
 
   const tip = useMemo(
     () =>
-      polarToCartesian(
-        GAUGE_GEOMETRY.cx,
-        GAUGE_GEOMETRY.cy,
-        GAUGE_GEOMETRY.radius,
-        currentAngle,
-      ),
+      polarToCartesian(GAUGE_GEOMETRY.cx, GAUGE_GEOMETRY.cy, GAUGE_GEOMETRY.radius, currentAngle),
     [currentAngle],
   );
 
   const summaryId = `${idPrefix}-gauge-summary`;
   const summary = useMemo(
-    () =>
-      summarizeGauge(
-        activeEntry.label,
-        value,
-        unit,
-        period,
-        scale.min,
-        scale.max,
-        formatValue,
-      ),
+    () => summarizeGauge(activeEntry.label, value, unit, period, scale.min, scale.max, formatValue),
     [activeEntry.label, value, unit, period, scale.min, scale.max, formatValue],
   );
 
