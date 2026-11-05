@@ -371,6 +371,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           onTileActivated={props.onTileActivated}
           onMove={move}
           onMoveTo={editor.moveTileTo}
+          onResize={(tileId, size) => void editor.updateTile(tileId, { size })}
           onEdit={(tileId) => setTarget({ tile: tiles.find((tile) => tile.tileId === tileId) })}
           onRemove={remove}
           onAdd={() => setTarget({})}

@@ -17922,6 +17922,11 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 3. **Nacharbeit Codex-Review (PR #137, Commit `846d52f`):**
    - **Befund 1 (P2):** Katalog-ID für Pipeline-Stufen in `src/features/dashboard/model/dashboardPresets.ts`: `crm.pipeline_stufen` auf existente ID `crm.pipeline_stufen_volumen` korrigiert. Test in `dashboardEditorReducer.vitest.ts` erweitert, um sicherzustellen, dass `validateDashboardConfig(preset.config).unavailable` für alle Presets leer ist.
    - **Befund 2 (P2):** Vorlagen-Menü Begrenzung auf schmalen Ansichten: Menü über Responsive-Tailwind-Klassen auf Mobilgeräten (`< sm`) an der übergeordneten Zeile verankert (`absolute left-0 right-0 top-full mt-1`), ab `sm:` linksbündig am Button (`sm:left-0 sm:right-auto sm:w-72 sm:max-w-[calc(100vw-32px)]`). Verhindert horizontales Überlaufen und hält Quality-Debt-Budget (50/50 ohne Inline-Styles). Eigener Komponententest `EditorToolbar.ui.vitest.tsx` hinzugefügt.
+4. **Welle 3 (Paket 3, Resizing per Drag-Handle & Hilfsgitter):**
+   - Neuer `TileResizeHandle.tsx` mit Pointer-Drag und Tastaturnavigation (`role="slider"`, ARIA-Valuetext, Pfeiltasten links/rechts) an jeder Kachel im Bearbeitungsmodus.
+   - Schnell-Schaltflächen für Spaltengrößen (`3 Sp.`, `6 Sp.`, `9 Sp.`, `12 Sp.`) direkt in den Kachel-Aktionen von `DashboardGrid.tsx` mit automatischer Deaktivierung von Größen unterhalb der Mindestgröße (`minSizeFor`).
+   - Visuelles 12-Spalten-Hilfsraster (`data-testid="grid-helper-lines"`) im Hintergrund des Bearbeitungsmodus.
+   - Direkte Anbindung an den Draft-Reducer (`onResize` -> `editor.updateTile`) inklusive automatischer Undo/Redo-Erfassung und Screenreader-Ansagen.
 
 **Schutzbereichs-Prüfung:** `git diff v2.5.0 HEAD -- src/simulation` leer.
-**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npm run verify` (Suiten 001–025 grün), `npm test` (347 Testdateien, 2.508 Tests grün), `npm run build` erfolgreich.
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Warnungen, `npm run verify` (Suiten 001–025 grün), `npm test` (348 Testdateien, 2.517 Tests grün), `npm run build` erfolgreich.

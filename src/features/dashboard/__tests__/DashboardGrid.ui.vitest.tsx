@@ -192,4 +192,37 @@ describe('DashboardGrid', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Auf Standard zurücksetzen' }));
     expect(onReset).toHaveBeenCalled();
   });
+
+  it('zeigt im Bearbeitungsmodus die 12-Spalten-Hilfslinien', () => {
+    setup({ editing: true });
+    expect(screen.getByTestId('grid-helper-lines')).toBeInTheDocument();
+  });
+
+  it('erlaubt Größenanpassung über den Resize-Handle per Tastatur', () => {
+    const onResize = vi.fn();
+    setup({ editing: true, onResize });
+    const firstItem = items()[0]!;
+    const handle = within(firstItem).getByTestId('tile-resize-handle');
+    expect(handle).toBeInTheDocument();
+
+    // Pfeil nach rechts vergrößert klein -> mittel
+    fireEvent.keyDown(handle, { key: 'ArrowRight' });
+    expect(onResize).toHaveBeenCalledWith('a', 'mittel');
+
+    // Pfeil nach links verkleinert (bei a ist 'klein' schon das Minimum)
+    onResize.mockClear();
+    fireEvent.keyDown(handle, { key: 'ArrowLeft' });
+    expect(onResize).not.toHaveBeenCalled();
+  });
+
+  it('bietet Schnell-Schaltflächen für Spaltengrößen in den Kachel-Aktionen', () => {
+    const onResize = vi.fn();
+    setup({ editing: true, onResize });
+    const firstItem = items()[0]!;
+    const sizeButton = within(firstItem).getByRole('button', {
+      name: /Größe auf Mittel ändern/,
+    });
+    fireEvent.click(sizeButton);
+    expect(onResize).toHaveBeenCalledWith('a', 'mittel');
+  });
 });
