@@ -12,6 +12,7 @@ import type {
 } from '../model/dashboardConfig';
 import { DEFAULT_DASHBOARD_CONFIG, type PreferencesState } from '../model/defaultDashboard';
 import type { SaveResult } from '../hooks/useDashboardPreferences';
+import type { SessionFilters } from '../hooks/useDashboardNavigation';
 import { activeEntryOf, tileTitle } from '../hooks/dashboardEditorReducer';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
 import { TileDetailContent } from '../components/detail/TileDetailContent';
@@ -116,7 +117,10 @@ export function DashboardEditorPreview({
   const [nextSave, setNextSave] = useState<NextSave>('erfolg');
   const [activated, setActivated] = useState<ReadonlySet<string>>(new Set());
   const [shownIds, setShownIds] = useState<readonly string[]>([]);
-  const [detailTileId, setDetailTileId] = useState<string | null>(null);
+  const [detailContext, setDetailContext] = useState<{
+    tileId: string;
+    session: SessionFilters;
+  } | null>(null);
   const nextSaveRef = useRef<NextSave>('erfolg');
   nextSaveRef.current = nextSave;
   const storedRef = useRef(stored);
@@ -173,9 +177,12 @@ export function DashboardEditorPreview({
   // Gezählt wird, was der Arbeitsbereich gerade zeigt (auch der Entwurf); entfernte IDs zählen nicht.
   const activeShown = shownIds.filter((id) => activated.has(id)).length;
   const currentConfig = stored?.config ?? DEFAULT_DASHBOARD_CONFIG;
-  const detailTile = detailTileId
-    ? currentConfig.tiles.find((t) => t.tileId === detailTileId)
+  const detailTile = detailContext
+    ? currentConfig.tiles.find((t) => t.tileId === detailContext.tileId)
     : null;
+  const effectiveDetailFilters = detailContext?.session
+    ? detailContext.session.value
+    : (currentConfig.filters ?? DEFAULT_DASHBOARD_CONFIG.filters);
 
   return (
     <section aria-labelledby="editor-vorschau" className="flex flex-col gap-4">
@@ -213,13 +220,13 @@ export function DashboardEditorPreview({
         onTileActivated={(tileId) =>
           setActivated((current) => (current.has(tileId) ? current : new Set(current).add(tileId)))
         }
-        onShowDetails={(tileId) => setDetailTileId(tileId)}
+        onShowDetails={(tileId, session) => setDetailContext({ tileId, session })}
       />
       {detailTile ? (
         <PreviewDetailModal
           tile={detailTile}
-          filters={currentConfig.filters}
-          onClose={() => setDetailTileId(null)}
+          filters={effectiveDetailFilters}
+          onClose={() => setDetailContext(null)}
         />
       ) : null}
     </section>

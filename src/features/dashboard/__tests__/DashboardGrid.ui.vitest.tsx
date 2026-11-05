@@ -1,7 +1,11 @@
 // Auftrag 074 (Dashboard Teilauftrag 5): Raster, Bearbeitungsleiste, Platzhalter, Ziehen, Fokus.
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { DashboardGrid, type DashboardGridProps } from '../components/DashboardGrid';
+import {
+  DashboardGrid,
+  calculateDropIndex,
+  type DashboardGridProps,
+} from '../components/DashboardGrid';
 import type { TileDataHook } from '../components/LazyDashboardTile';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 
@@ -130,6 +134,19 @@ describe('DashboardGrid', () => {
     fireEvent.dragOver(items()[2]!);
     fireEvent.drop(items()[2]!);
     expect(props.onMoveTo).toHaveBeenCalledWith('a', 2);
+  });
+
+  it('berechnet die Zielposition beim Vor- und Rückwärtsziehen exakt', () => {
+    // Vorwärtsziehen: A(0) vor C(2) -> landet auf Index 1
+    expect(calculateDropIndex(0, 2, 'before')).toBe(1);
+    // Vorwärtsziehen: A(0) nach C(2) -> landet auf Index 2
+    expect(calculateDropIndex(0, 2, 'after')).toBe(2);
+    // Rückwärtsziehen: C(2) vor A(0) -> landet auf Index 0
+    expect(calculateDropIndex(2, 0, 'before')).toBe(0);
+    // Rückwärtsziehen: C(2) nach A(0) -> landet auf Index 1
+    expect(calculateDropIndex(2, 0, 'after')).toBe(1);
+    // Auf dieselbe Kachel
+    expect(calculateDropIndex(1, 1, 'before')).toBe(1);
   });
 
   it('ignoriert Ziehen, solange gesperrt ist', () => {

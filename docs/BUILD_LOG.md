@@ -18072,3 +18072,21 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - `npx vitest run src/components/ui/__tests__/Drawer.ui.vitest.tsx`: 7 Tests grün
 - `npm run verify`: Alle 25 Integritätssuiten (001 bis 025) bestanden
 - `npm run build`: Erfolgreich in 3.39s abgeschlossen
+
+7. **Nacharbeit Codex-Review (PR #138, Head `821fef2`):**
+   - **Befund 1 (P2, `DashboardGrid.tsx`):** Drop-Position mit Einfügeanzeige abstimmen:
+     - Beim Vorwärtsziehen (Quelle vor Ziel) führte das Entfernen der Quelle dazu, dass die Kachel bei `side === 'before'` hinter das Zielelement sprang statt davor.
+     - Funktion `calculateDropIndex(fromIndex, targetIndex, side)` eingeführt, die exakt bestimmt, ob vor oder nach dem Zielelement eingefügt wird (unter Berücksichtigung des Entfernens der Quelle).
+     - `onDragOver` bestimmt die Seite anhand der horizontalen Mausposition (`clientX` vs. Kachelmitte), mit Fallback bei 0-Breite (jsdom).
+     - Test in `DashboardGrid.ui.vitest.tsx` für Vorwärts- und Rückwärtsziehen mit beiden Seiten (`before` / `after`) ergänzt.
+   - **Befund 2 (P2, `DashboardEditorPreview.tsx`):** Sitzungsfilter in den Detaildialog übernehmen:
+     - `DashboardWorkspace` übergibt den aktuellen Sitzungsfilter als zweites Argument an `onShowDetails(tileId, session)`.
+     - `DashboardEditorPreview.tsx` speichert nun `detailContext = { tileId, session }` und übergibt die wirksamen Filter (`detailContext.session ? detailContext.session.value : currentConfig.filters`) an `PreviewDetailModal` und `TileDetailContent`.
+     - Regressionstest in `DashboardWorkspace.codex.ui.vitest.tsx` ergänzt.
+
+**Automatisierte Verifikation (Nacharbeit):**
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün (+2 neue Tests)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden
+- `npm run build`: Erfolgreich (3.42s)

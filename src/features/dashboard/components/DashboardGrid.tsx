@@ -27,6 +27,14 @@ export interface FocusRequest {
   action: FocusAction;
 }
 
+/** Berechnet die Zielposition unter Berücksichtigung der Vor-/Nach-Seite und des Entfernens der Quelle. */
+export function calculateDropIndex(from: number, target: number, side: 'before' | 'after'): number {
+  if (from === target) return from;
+  return from < target
+    ? side === 'before' ? target - 1 : target
+    : side === 'before' ? target : target + 1;
+}
+
 const SPAN: Record<string, string> = {
   klein: 'col-span-1 md:col-span-3 lg:col-span-3',
   mittel: 'col-span-1 md:col-span-6 lg:col-span-6',
@@ -175,13 +183,29 @@ export function DashboardGrid(props: DashboardGridProps) {
             if (!dragId || locked) return;
             event.preventDefault();
             if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-            setDropTarget({ index, side: 'before' });
+            const rect = event.currentTarget.getBoundingClientRect();
+            const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
+            const isAfter =
+              rect.width > 0
+                ? event.clientX > rect.left + rect.width / 2
+                : fromIndex !== -1 && fromIndex < index;
+            setDropTarget({ index, side: isAfter ? 'after' : 'before' });
           };
           const onDrop = (event: DragEvent<HTMLLIElement>) => {
             if (!dragId || locked) return;
             event.preventDefault();
-            if (dragId !== tile.tileId) {
-              props.onMoveTo(dragId, index);
+            const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
+            if (fromIndex !== -1 && fromIndex !== index) {
+              const side =
+                dropTarget && dropTarget.index === index
+                  ? dropTarget.side
+                  : fromIndex < index
+                    ? 'after'
+                    : 'before';
+              const toIndex = calculateDropIndex(fromIndex, index, side);
+              if (toIndex !== fromIndex) {
+                props.onMoveTo(dragId, toIndex);
+              }
             }
             endDrag();
           };

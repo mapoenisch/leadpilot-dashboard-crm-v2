@@ -151,6 +151,19 @@ describe('DashboardWorkspace: Codex-Befunde PR #59', () => {
     expect(after.active).toBeLessThanOrEqual(after.total);
   });
 
+  it('öffnet in der Editor-Vorschau bei Klick auf Details den Detaildialog mit Sitzungsfilter', async () => {
+    render(<DashboardEditorPreview />);
+    const detailsButtons = screen.getAllByRole('button', { name: /^Details zu / });
+    expect(detailsButtons.length).toBeGreaterThan(0);
+    fireEvent.click(detailsButtons[0]!);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Schließen' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Schließen' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+  });
+
   it('wirkt beim Speichern in keinem Dialog-Schließweg', () => {
     const onStay = vi.fn();
     render(
