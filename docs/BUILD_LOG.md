@@ -18129,4 +18129,26 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - **Screenshot-Matrix:** `docs/screenshots/auftrag-128/README.md` (18/18 Paare grün, 0 px Überlauf, 100 % verschieden, Drawer und Theme nachweislich aktiv)
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
+10. **Nacharbeit Nutzerfeedback (Drag & Drop Nachbar-Verschiebung & Griffbereich):**
+    - **Befund (Live-Browser):** Nutzer meldete: „man kann eigentlich immer noch nichts verschieben“.
+    - **Ursachenanalyse:**
+      1. *Index-Arithmetik für Nachbarn:* Beim Vorwärtsziehen (0 auf 1) ergab `calculateDropIndex(0, 1, 'before')` den Wert `0`. Da die Maus beim Hinüberziehen naturgemäß in der linken Hälfte der Zielkachel ankommt (`side = 'before'`), wurde `toIndex = 0 = fromIndex` errechnet und der Aufruf von `props.onMoveTo` als No-Op verworfen. Symmetrisch dazu beim Rückwärtsziehen (1 auf 0) mit `side = 'after'`.
+      2. *Drop in Rasterlücken:* Das Container-`<ul>` besaß zwar `onDragOver`, aber kein `onDrop`. Drops in den 16-px-Abständen (`gap-4`) zwischen Kacheln wurden geschluckt.
+      3. *Zu enger Griffbereich / Breakpoints:* Der Drag-Handle war unter 768 px durch `hidden md:inline-flex` unsichtbar und bot desktopseitig nur einen sehr schmalen Klickbereich.
+    - **Behebung:**
+      1. `calculateDropIndex` korrigiert: Bei direkten Nachbarn (`target === from + 1` bzw. `target === from - 1`) liefert ein Wurf auf die Kachel immer `target`, sodass Nachbarn stets zuverlässig die Plätze tauschen.
+      2. `onDrop` auf `<ul ...>` ergänzt: Drops in Rasterlücken führen die Bewegung anhand des aktiven `dropTarget` aus.
+      3. Handle auf allen Geräten sichtbar gemacht (`inline-flex`), `cursor-grab active:cursor-grabbing` auf Kachelebene und Bearbeitungsleiste ergänzt, interaktive Buttons mit `draggable={false}` und Stop-Propagation geschützt.
+      4. `DashboardGrid.tsx` bleibt mit 391 Zeilen strikt innerhalb der Budgetgrenze ($\le 400$ Zeilen).
+      5. Neuer Unit-Test in `DashboardGrid.ui.vitest.tsx` für Nachbar-Tausch und Ziehen über den Handle.
+
+**Automatisierte Verifikation (Nutzerfeedback Nachbar-Verschiebung):**
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test`: 351 Testdateien, 2.547 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden
+- `npm run build`: Erfolgreich in 3.44s
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
 

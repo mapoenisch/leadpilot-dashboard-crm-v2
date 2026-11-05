@@ -15,8 +15,7 @@ import { SHORT_SIZES, TileActionsMenu } from './TileActionsMenu';
 import { TileResizeHandle } from './TileResizeHandle';
 import { UnavailableTileSlot } from './UnavailableTileSlot';
 
-export type FocusAction =
-  'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details' | 'groesse';
+export type FocusAction = 'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details' | 'groesse';
 
 /** Fokusziel nach dem Entfernen der letzten Kachel: die Schaltfläche im Leerzustand. */
 export const EMPTY_FOCUS = '__leer__';
@@ -30,9 +29,8 @@ export interface FocusRequest {
 /** Berechnet die Zielposition unter Berücksichtigung der Vor-/Nach-Seite und des Entfernens der Quelle. */
 export function calculateDropIndex(from: number, target: number, side: 'before' | 'after'): number {
   if (from === target) return from;
-  return from < target
-    ? side === 'before' ? target - 1 : target
-    : side === 'before' ? target : target + 1;
+  if (from < target) return side === 'before' && target === from + 1 ? target : side === 'before' ? target - 1 : target;
+  return side === 'after' && target === from - 1 ? target : side === 'before' ? target : target + 1;
 }
 
 const SPAN: Record<string, string> = {
@@ -71,9 +69,7 @@ export function DashboardGrid(props: DashboardGridProps) {
   const { tiles, editing, locked, focusRequest } = props;
   const listRef = useRef<HTMLUListElement | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
-  const [dropTarget, setDropTarget] = useState<{ index: number; side: 'before' | 'after' } | null>(
-    null,
-  );
+  const [dropTarget, setDropTarget] = useState<{ index: number; side: 'before' | 'after' } | null>(null);
   // Offene Aktionsmenüs je Kachel: bleiben beim Verschieben offen, damit der Fokus folgen kann.
   const [openMenus, setOpenMenus] = useState<ReadonlySet<string>>(() => new Set());
   // Beim Verlassen des Bearbeitungsmodus wieder eingeklappt beginnen (Codex PR #76).
@@ -103,37 +99,24 @@ export function DashboardGrid(props: DashboardGridProps) {
     ) as HTMLElement | undefined;
     if (!item) return;
     const button = (action?: FocusAction | 'aktionen') =>
-      action
-        ? item.querySelector<HTMLButtonElement>(`button[data-action="${action}"]:not(:disabled)`)
-        : null;
+      action ? item.querySelector<HTMLButtonElement>(`button[data-action="${action}"]:not(:disabled)`) : null;
     const target =
       focusRequest.action === 'kachel'
         ? item
-        : (button(focusRequest.action) ??
-          button(OPPOSITE[focusRequest.action]) ??
-          // Menü zu: Fokus auf „Kachel-Aktionen“ statt ins Leere (Auftrag 090).
-          button('aktionen') ??
-          item);
+        : (button(focusRequest.action) ?? button(OPPOSITE[focusRequest.action]) ?? button('aktionen') ?? item);
     target.focus();
     // Jede Anforderung ist ein neues Objekt: nur sie löst den Fokus aus, nicht jede Neudarstellung.
   }, [focusRequest]);
 
   if (tiles.length === 0) {
     return (
-      <div
-        data-testid="dashboard-empty"
-        className="rounded-xl border border-dashed border-border p-6 text-sm text-[var(--color-text-muted)]"
-      >
+      <div data-testid="dashboard-empty" className="rounded-xl border border-dashed border-border p-6 text-sm text-[var(--color-text-muted)]">
         <p className="m-0">Dein Dashboard enthält noch keine Kacheln.</p>
         {editing && props.onAdd ? (
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" disabled={locked} onClick={props.onAdd}>
-              Kachel hinzufügen
-            </Button>
+            <Button size="sm" disabled={locked} onClick={props.onAdd}>Kachel hinzufügen</Button>
             {props.onReset ? (
-              <Button size="sm" variant="secondary" disabled={locked} onClick={props.onReset}>
-                Auf Standard zurücksetzen
-              </Button>
+              <Button size="sm" variant="secondary" disabled={locked} onClick={props.onReset}>Auf Standard zurücksetzen</Button>
             ) : null}
           </div>
         ) : null}
@@ -146,6 +129,21 @@ export function DashboardGrid(props: DashboardGridProps) {
     setDropTarget(null);
   };
 
+  const handleDragStart = (tileId: string, event: DragEvent<HTMLElement>) => {
+    if (locked) return event.preventDefault();
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button, [role="button"], [role="slider"], [data-testid="tile-resize-handle"], [role="menu"], input, select, textarea')) {
+      return event.preventDefault();
+    }
+    const item = event.currentTarget.closest('li') ?? (event.currentTarget as HTMLElement);
+    if (event.dataTransfer) {
+      if (item && event.dataTransfer.setDragImage) event.dataTransfer.setDragImage(item, 20, 20);
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', tileId);
+    }
+    setDragId(tileId);
+  };
+
   return (
     <div className="relative">
       {editing ? (
@@ -155,10 +153,7 @@ export function DashboardGrid(props: DashboardGridProps) {
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden md:grid md:grid-cols-6 lg:grid-cols-12 gap-4"
         >
           {Array.from({ length: 12 }, (_, i) => (
-            <div
-              key={i}
-              className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]"
-            />
+            <div key={i} className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]" />
           ))}
         </div>
       ) : null}
@@ -170,6 +165,18 @@ export function DashboardGrid(props: DashboardGridProps) {
             event.preventDefault();
             if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
           }
+        }}
+        onDrop={(event) => {
+          if (!dragId || locked) return;
+          event.preventDefault();
+          if (dropTarget) {
+            const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
+            if (fromIndex !== -1 && fromIndex !== dropTarget.index) {
+              const toIndex = calculateDropIndex(fromIndex, dropTarget.index, dropTarget.side);
+              if (toIndex !== fromIndex) props.onMoveTo(dragId, toIndex);
+            }
+          }
+          endDrag();
         }}
         className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-6 lg:grid-cols-12"
       >
@@ -186,9 +193,13 @@ export function DashboardGrid(props: DashboardGridProps) {
             const rect = event.currentTarget.getBoundingClientRect();
             const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
             const isAfter =
-              rect.width > 0
-                ? event.clientX > rect.left + rect.width / 2
-                : fromIndex !== -1 && fromIndex < index;
+              fromIndex !== -1 && index === fromIndex + 1
+                ? true
+                : fromIndex !== -1 && index === fromIndex - 1
+                  ? false
+                  : rect.width > 0
+                    ? event.clientX > rect.left + rect.width / 2
+                    : fromIndex !== -1 && fromIndex < index;
             setDropTarget({ index, side: isAfter ? 'after' : 'before' });
           };
           const onDrop = (event: DragEvent<HTMLLIElement>) => {
@@ -196,24 +207,13 @@ export function DashboardGrid(props: DashboardGridProps) {
             event.preventDefault();
             const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
             if (fromIndex !== -1 && fromIndex !== index) {
-              const side =
-                dropTarget && dropTarget.index === index
-                  ? dropTarget.side
-                  : fromIndex < index
-                    ? 'after'
-                    : 'before';
+              const side = dropTarget && dropTarget.index === index ? dropTarget.side : fromIndex < index ? 'after' : 'before';
               const toIndex = calculateDropIndex(fromIndex, index, side);
-              if (toIndex !== fromIndex) {
-                props.onMoveTo(dragId, toIndex);
-              }
+              if (toIndex !== fromIndex) props.onMoveTo(dragId, toIndex);
             }
             endDrag();
           };
-          const isTarget =
-            dragId !== null &&
-            dropTarget !== null &&
-            dropTarget.index === index &&
-            dragId !== tile.tileId;
+          const isTarget = dragId !== null && dropTarget !== null && dropTarget.index === index && dragId !== tile.tileId;
           const isDraggingThis = dragId === tile.tileId;
 
           return (
@@ -221,14 +221,17 @@ export function DashboardGrid(props: DashboardGridProps) {
               key={tile.tileId}
               data-tile-id={tile.tileId}
               tabIndex={-1}
+              draggable={editing && !locked}
+              onDragStart={editing ? (event) => handleDragStart(tile.tileId, event) : undefined}
+              onDragEnd={editing ? endDrag : undefined}
               onDragOver={editing ? onDragOver : undefined}
               onDrop={editing ? onDrop : undefined}
               className={cn(
                 'relative flex min-w-0 flex-col gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-150',
+                editing && !locked && 'cursor-grab active:cursor-grabbing',
                 SPAN[tile.size] ?? SPAN.klein,
                 isTarget && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
-                isDraggingThis &&
-                  'opacity-40 scale-[0.98] border-dashed border-2 border-primary/60 rounded-xl',
+                isDraggingThis && 'opacity-40 scale-[0.98] border-dashed border-2 border-primary/60 rounded-xl',
               )}
             >
               {editing && isTarget ? (
@@ -249,26 +252,19 @@ export function DashboardGrid(props: DashboardGridProps) {
                 <div className="flex flex-col gap-1">
                   <div
                     data-testid="tile-edit-bar"
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-primary/60 bg-surface/90 px-3 py-1.5 text-[12px] text-[var(--color-text-muted)] shadow-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-primary/60 bg-surface/90 px-3 py-1.5 text-[12px] text-[var(--color-text-muted)] shadow-sm select-none"
                   >
-                    <div className="flex min-w-0 items-center gap-1.5 [overflow-wrap:anywhere]">
+                    <div className="flex flex-1 min-w-0 items-center gap-1.5 [overflow-wrap:anywhere]">
                       <span
                         draggable={!locked}
                         aria-hidden="true"
                         data-testid="drag-handle"
                         onDragStart={(event) => {
-                          const item = event.currentTarget.closest('li');
-                          if (event.dataTransfer) {
-                            if (item && event.dataTransfer.setDragImage) {
-                              event.dataTransfer.setDragImage(item, 20, 20);
-                            }
-                            event.dataTransfer.effectAllowed = 'move';
-                            event.dataTransfer.setData('text/plain', tile.tileId);
-                          }
-                          setDragId(tile.tileId);
+                          event.stopPropagation();
+                          handleDragStart(tile.tileId, event);
                         }}
                         onDragEnd={endDrag}
-                        className="hidden cursor-grab active:cursor-grabbing select-none items-center gap-1 font-medium text-text hover:text-primary md:inline-flex"
+                        className="inline-flex cursor-grab active:cursor-grabbing select-none items-center gap-1 font-medium text-text hover:text-primary"
                         title="Kachel anpacken und im Raster verschieben"
                       >
                         <GripVertical className="h-4 w-4 text-primary shrink-0" />
@@ -300,6 +296,8 @@ export function DashboardGrid(props: DashboardGridProps) {
                             <button
                               key={sz}
                               type="button"
+                              draggable={false}
+                              onDragStart={(e) => e.stopPropagation()}
                               disabled={locked || !isAllowed}
                               onClick={() => props.onResize?.(tile.tileId, sz)}
                               data-action={`size-${sz}`}
@@ -325,6 +323,8 @@ export function DashboardGrid(props: DashboardGridProps) {
                     <Button
                       size="sm"
                       variant="secondary"
+                      draggable={false}
+                      onDragStart={(e) => e.stopPropagation()}
                       className="h-8 min-h-[32px] px-2.5 text-xs ml-auto"
                       data-action="aktionen"
                       aria-expanded={openMenus.has(tile.tileId)}
@@ -338,7 +338,6 @@ export function DashboardGrid(props: DashboardGridProps) {
                       </span>
                     </Button>
                   </div>
-                  {/* Im Fluss statt schwebend: überdeckt weder Kachel noch ragt es auf 320 px hinaus. */}
                   {openMenus.has(tile.tileId) ? (
                     <TileActionsMenu
                       tile={tile}
@@ -356,12 +355,7 @@ export function DashboardGrid(props: DashboardGridProps) {
                   ) : null}
                 </div>
               ) : null}
-              <div
-                className={cn(
-                  'flex flex-col flex-1 min-w-0',
-                  dragId && 'pointer-events-none select-none',
-                )}
-              >
+              <div className={cn('flex flex-col flex-1 min-w-0', dragId && 'pointer-events-none select-none')}>
                 {activeEntryOf(tile) ? (
                   <LazyDashboardTile
                     tile={tile}

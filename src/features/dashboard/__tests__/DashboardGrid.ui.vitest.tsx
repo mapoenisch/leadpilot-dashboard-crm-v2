@@ -141,12 +141,27 @@ describe('DashboardGrid', () => {
     expect(calculateDropIndex(0, 2, 'before')).toBe(1);
     // Vorwärtsziehen: A(0) nach C(2) -> landet auf Index 2
     expect(calculateDropIndex(0, 2, 'after')).toBe(2);
+    // Vorwärtsziehen auf direkten Nachbarn: A(0) auf B(1) -> landet immer auf Index 1 (Tausch)
+    expect(calculateDropIndex(0, 1, 'before')).toBe(1);
+    expect(calculateDropIndex(0, 1, 'after')).toBe(1);
     // Rückwärtsziehen: C(2) vor A(0) -> landet auf Index 0
     expect(calculateDropIndex(2, 0, 'before')).toBe(0);
     // Rückwärtsziehen: C(2) nach A(0) -> landet auf Index 1
     expect(calculateDropIndex(2, 0, 'after')).toBe(1);
+    // Rückwärtsziehen auf direkten Nachbarn: B(1) auf A(0) -> landet immer auf Index 0 (Tausch)
+    expect(calculateDropIndex(1, 0, 'before')).toBe(0);
+    expect(calculateDropIndex(1, 0, 'after')).toBe(0);
     // Auf dieselbe Kachel
     expect(calculateDropIndex(1, 1, 'before')).toBe(1);
+  });
+
+  it('erlaubt Ziehen auf den direkten Nachbarn und tauscht die Positionen', () => {
+    const { props } = setup({ editing: true });
+    const handle = within(items()[0]!).getByTestId('drag-handle');
+    fireEvent.dragStart(handle);
+    fireEvent.dragOver(items()[1]!);
+    fireEvent.drop(items()[1]!);
+    expect(props.onMoveTo).toHaveBeenCalledWith('a', 1);
   });
 
   it('ignoriert Ziehen, solange gesperrt ist', () => {
