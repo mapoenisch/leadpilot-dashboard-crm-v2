@@ -195,6 +195,29 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
     editor.leaveRequest !== null || editor.leaving,
   );
 
+  useEffect(() => {
+    if (!editing || editor.locked) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const isMod = e.metaKey || e.ctrlKey;
+      if (!isMod) return;
+      if (e.key === 'z' || e.key === 'Z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          if (editor.canRedo) editor.redo();
+        } else {
+          if (editor.canUndo) editor.undo();
+        }
+      } else if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        if (editor.canRedo) editor.redo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editing, editor]);
+
   const move = (tileId: string, direction: 'hoch' | 'runter') => {
     editor.moveTile(tileId, direction);
     focus(tileId, direction);
@@ -275,6 +298,13 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         conflict={editor.conflict}
         serverLoaded={editor.serverLoaded}
         announcement={editor.announcement}
+        canUndo={editor.canUndo}
+        canRedo={editor.canRedo}
+        onUndo={editor.undo}
+        onRedo={editor.redo}
+        onApplyPreset={(id) => {
+          editor.applyPreset(id);
+        }}
         onStart={editor.startEditing}
         onCancel={editor.cancel}
         onSave={() => void editor.save()}

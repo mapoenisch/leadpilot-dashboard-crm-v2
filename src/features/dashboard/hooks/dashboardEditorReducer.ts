@@ -21,6 +21,7 @@ import {
 } from '../model/dashboardConfig';
 import { validateDashboardConfig, type ValidationIssue } from '../model/dashboardValidation';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
+import type { DashboardPreset } from '../model/dashboardPresets';
 import type { SaveResult } from './useDashboardPreferences';
 
 export const VIEW_LABEL: Record<DashboardView, string> = {
@@ -155,6 +156,10 @@ export function moveTile(
 
 export function resetToDefault(): DashboardConfig {
   return DEFAULT_DASHBOARD_CONFIG;
+}
+
+export function applyPreset(preset: DashboardPreset): EditResult {
+  return checked(preset.config);
 }
 
 export function setStartFilters(config: DashboardConfig, filters?: DashboardFilters): EditResult {

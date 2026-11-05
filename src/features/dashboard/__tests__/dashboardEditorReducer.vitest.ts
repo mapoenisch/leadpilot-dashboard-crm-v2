@@ -11,6 +11,7 @@ import { validateDashboardConfig } from '../model/dashboardValidation';
 import {
   addTile,
   allowedFilterModes,
+  applyPreset,
   canonical,
   createTileId,
   isSameConfig,
@@ -22,6 +23,7 @@ import {
   setStartFilters,
   updateTile,
 } from '../hooks/dashboardEditorReducer';
+import { DASHBOARD_PRESETS } from '../model/dashboardPresets';
 
 const ZAHL: DashboardTileConfig = {
   tileId: 'a',
@@ -266,6 +268,19 @@ describe('saveErrorMessage', () => {
     for (const text of texts) {
       expect(text.length).toBeGreaterThan(10);
       expect(text).not.toMatch(/tiles\[|view:|detail/);
+    }
+  });
+});
+
+describe('applyPreset', () => {
+  it('übernimmt valide Presets fehlerfrei in eine neue Konfiguration', () => {
+    for (const preset of DASHBOARD_PRESETS) {
+      const result = applyPreset(preset);
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.config.version).toBe(1);
+        expect(result.config.tiles.length).toBe(preset.config.tiles.length);
+      }
     }
   });
 });
