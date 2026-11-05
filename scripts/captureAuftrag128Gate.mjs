@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Auftrag 128: Vorher/Nachher-Nachweis Dashboard-Editor & Vorschauseite
- * (/dashboard-vorschau.html, Editor-Ansichtsmodus, Editor-Bearbeitungsmodus)
- * bei 1440/768/375 px, beide Themes (dark/light).
+ * (/dashboard-vorschau.html, Editor-Bearbeitungsmodus, Konfigurator-Drawer 420px)
+ * bei 1440/768/375 px, beide Themes (dark/light mit data-theme).
  * Misst Überlauf (Dokument, #root/main), Inhaltshöhe, SHA-256 des Bildes; schreibt die textuelle Matrix
  * docs/screenshots/auftrag-128/README.md. Bilder bleiben lokal (.gitignore).
  * Aufruf: VORHER_URL=… NACHHER_URL=… node scripts/captureAuftrag128Gate.mjs
@@ -51,11 +51,22 @@ const SCENARIOS = [
         await editBtn.first().click();
         await page.waitForTimeout(300);
       }
-      const configureBtn = page.getByRole('button', { name: /Kachel bearbeiten|bearbeiten/i });
-      if (await configureBtn.count()) {
-        await configureBtn.first().click();
-        await page.waitForTimeout(400);
-      }
+      const actionsBtn = page.getByRole('button', { name: /Kachel-Aktionen/i }).first();
+      await actionsBtn.waitFor({ state: 'visible', timeout: 5000 });
+      await actionsBtn.click();
+      await page.waitForTimeout(300);
+
+      const configureBtn = page
+        .locator('[data-action="bearbeiten"]')
+        .or(page.getByRole('button', { name: /Bearbeiten/i }))
+        .first();
+      await configureBtn.waitFor({ state: 'visible', timeout: 5000 });
+      await configureBtn.click();
+      await page.waitForTimeout(400);
+
+      // Verbindlich prüfen, dass der Konfigurator-Drawer sichtbar geöffnet ist
+      await page.locator('[role="dialog"]').waitFor({ state: 'visible', timeout: 5000 });
+      await page.waitForTimeout(200);
     },
   },
 ];
@@ -90,6 +101,8 @@ for (const [side, base] of Object.entries(SIDES)) {
         });
         await ctx.addInitScript((t) => {
           localStorage.setItem('leadpilot-theme', t);
+          document.documentElement.dataset.theme = t;
+          document.documentElement.setAttribute('data-theme', t);
           if (t === 'dark') {
             document.documentElement.classList.add('dark');
           } else {
@@ -103,8 +116,8 @@ for (const [side, base] of Object.entries(SIDES)) {
 
         try {
           await scenario.prepare(page);
-        } catch {
-          // Fallback if element not found on baseline
+        } catch (err) {
+          console.warn(`[${side}] prepare failed for ${scenario.id}:`, err.message);
         }
 
         const m = await page.evaluate(() => {
@@ -174,8 +187,9 @@ Verschiedene Aufnahmen: ${differentCount} von ${lines.length} Paaren (${Math.rou
 Änderungen gegenüber Baseline 413e55f:
 - Direkte 1-Klick-Spaltenbuttons (\`3 Sp.\`, \`6 Sp.\`, \`9 Sp.\`, \`12 Sp.\`) an jeder Kachel im Bearbeitungsmodus
 - Inhaltsabhängige Mindestgrößensperre (\`minSizeFor\`) für Diagrammkacheln
-- Verschlankter Konfigurator-Drawer (420 px statt 640 px) mit sichtbarem Dashboard links daneben
+- Verschlankter Konfigurator-Drawer (420 px statt 640 px) mit dezenterem Backdrop und sichtbarem Dashboard
 - Kontrast-Tokens für Vorlagenmenü und Drag-Ghost (\`text-[var(--color-text-inverse)]\`)
+- Echtes Light-Theme via \`[data-theme='light']\` für valide Kontrastprüfung
 - Schnelle Navigationsleiste auf der Vorschauseite
 `;
 

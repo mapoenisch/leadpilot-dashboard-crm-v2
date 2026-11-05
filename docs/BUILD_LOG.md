@@ -18110,3 +18110,23 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - **Screenshot-Matrix:** `docs/screenshots/auftrag-128/README.md` (18/18 Paare grün, 0 px Überlauf, 100 % verschieden)
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
+9. **Nacharbeit Codex-Review Runde 3 (PR #138, Head `052b080`):**
+   - **Befund 1 (P1, `scripts/captureAuftrag128Gate.mjs`):** Drawer vor Screenshot-Prüfung verlässlich öffnen:
+     - Der Bearbeiten-Knopf wird erst nach Klick auf „Kachel-Aktionen“ in `TileActionsMenu` gerendert.
+     - Im Szenario `editor-drawer` öffnet das Harness nun explizit das Aktionsmenü (`getByRole('button', { name: /Kachel-Aktionen/i })`), klickt anschließend `Bearbeiten` (`[data-action="bearbeiten"]`) und wartet verbindlich auf die Sichtbarkeit des Konfigurator-Dialogs (`[role="dialog"]`).
+     - Die Drawer-Hashes (`24cf9d36f032`, `83dbf8b5ad29`, `54f85a4accb7`) unterscheiden sich nun nachweislich von denen des reinen Bearbeitungsmodus (`cc0cb0cf8260`, etc.) und spiegeln den tatsächlich geöffneten 420-px-Drawer wider.
+   - **Befund 2 (P2, `scripts/captureAuftrag128Gate.mjs`):** Light-Theme über Datenattribut aktivieren:
+     - In `src/styles/global.css:135` greifen die hellen Farbtokens über `[data-theme='light']`.
+     - Da `previewMain.tsx` nicht über das produktive `Layout` läuft, setzt das Harness im `addInitScript` nun explizit `document.documentElement.dataset.theme = t` sowie `document.documentElement.setAttribute('data-theme', t)`.
+     - Damit werden die echten hellen Design-Tokens aktiv und visuell geprüft.
+
+**Automatisierte Verifikation (Nacharbeit Runde 3):**
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden
+- `npm run build`: Erfolgreich
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-128/README.md` (18/18 Paare grün, 0 px Überlauf, 100 % verschieden, Drawer und Theme nachweislich aktiv)
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
