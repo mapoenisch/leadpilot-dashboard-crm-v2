@@ -7,15 +7,17 @@ import { GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
-import { minSizeFor, sizeRank, TILE_SIZES, type TileSize } from '../model/dashboardCatalog';
-import { activeEntryOf, tileTitle, SIZE_LABEL } from '../hooks/dashboardEditorReducer';
+import { minSizeFor, type TileSize } from '../model/dashboardCatalog';
+import { activeEntryOf, tileTitle } from '../hooks/dashboardEditorReducer';
 import type { ChartLoaders } from './charts/chartLoaders';
 import { LazyDashboardTile, type TileDataHook } from './LazyDashboardTile';
-import { SHORT_SIZES, TileActionsMenu } from './TileActionsMenu';
+import { TileActionsMenu } from './TileActionsMenu';
+import { TileQuickSizeSelector } from './TileQuickSizeSelector';
 import { TileResizeHandle } from './TileResizeHandle';
 import { UnavailableTileSlot } from './UnavailableTileSlot';
 
-export type FocusAction = 'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details' | 'groesse';
+export type FocusAction =
+  'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details' | 'groesse';
 
 /** Fokusziel nach dem Entfernen der letzten Kachel: die Schaltfläche im Leerzustand. */
 export const EMPTY_FOCUS = '__leer__';
@@ -29,7 +31,12 @@ export interface FocusRequest {
 /** Berechnet die Zielposition unter Berücksichtigung der Vor-/Nach-Seite und des Entfernens der Quelle. */
 export function calculateDropIndex(from: number, target: number, side: 'before' | 'after'): number {
   if (from === target) return from;
-  if (from < target) return side === 'before' && target === from + 1 ? target : side === 'before' ? target - 1 : target;
+  if (from < target)
+    return side === 'before' && target === from + 1
+      ? target
+      : side === 'before'
+        ? target - 1
+        : target;
   return side === 'after' && target === from - 1 ? target : side === 'before' ? target : target + 1;
 }
 
@@ -69,7 +76,9 @@ export function DashboardGrid(props: DashboardGridProps) {
   const { tiles, editing, locked, focusRequest } = props;
   const listRef = useRef<HTMLUListElement | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
-  const [dropTarget, setDropTarget] = useState<{ index: number; side: 'before' | 'after' } | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ index: number; side: 'before' | 'after' } | null>(
+    null,
+  );
   // Offene Aktionsmenüs je Kachel: bleiben beim Verschieben offen, damit der Fokus folgen kann.
   const [openMenus, setOpenMenus] = useState<ReadonlySet<string>>(() => new Set());
   // Beim Verlassen des Bearbeitungsmodus wieder eingeklappt beginnen (Codex PR #76).
@@ -99,24 +108,36 @@ export function DashboardGrid(props: DashboardGridProps) {
     ) as HTMLElement | undefined;
     if (!item) return;
     const button = (action?: FocusAction | 'aktionen') =>
-      action ? item.querySelector<HTMLButtonElement>(`button[data-action="${action}"]:not(:disabled)`) : null;
+      action
+        ? item.querySelector<HTMLButtonElement>(`button[data-action="${action}"]:not(:disabled)`)
+        : null;
     const target =
       focusRequest.action === 'kachel'
         ? item
-        : (button(focusRequest.action) ?? button(OPPOSITE[focusRequest.action]) ?? button('aktionen') ?? item);
+        : (button(focusRequest.action) ??
+          button(OPPOSITE[focusRequest.action]) ??
+          button('aktionen') ??
+          item);
     target.focus();
     // Jede Anforderung ist ein neues Objekt: nur sie löst den Fokus aus, nicht jede Neudarstellung.
   }, [focusRequest]);
 
   if (tiles.length === 0) {
     return (
-      <div data-testid="dashboard-empty" className="rounded-xl border border-dashed border-border p-6 text-sm text-[var(--color-text-muted)]">
+      <div
+        data-testid="dashboard-empty"
+        className="rounded-xl border border-dashed border-border p-6 text-sm text-[var(--color-text-muted)]"
+      >
         <p className="m-0">Dein Dashboard enthält noch keine Kacheln.</p>
         {editing && props.onAdd ? (
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" disabled={locked} onClick={props.onAdd}>Kachel hinzufügen</Button>
+            <Button size="sm" disabled={locked} onClick={props.onAdd}>
+              Kachel hinzufügen
+            </Button>
             {props.onReset ? (
-              <Button size="sm" variant="secondary" disabled={locked} onClick={props.onReset}>Auf Standard zurücksetzen</Button>
+              <Button size="sm" variant="secondary" disabled={locked} onClick={props.onReset}>
+                Auf Standard zurücksetzen
+              </Button>
             ) : null}
           </div>
         ) : null}
@@ -132,7 +153,11 @@ export function DashboardGrid(props: DashboardGridProps) {
   const handleDragStart = (tileId: string, event: DragEvent<HTMLElement>) => {
     if (locked) return event.preventDefault();
     const target = event.target as HTMLElement | null;
-    if (target?.closest('button, [role="button"], [role="slider"], [data-testid="tile-resize-handle"], [role="menu"], input, select, textarea')) {
+    if (
+      target?.closest(
+        'button, [role="button"], [role="slider"], [data-testid="tile-resize-handle"], [role="menu"], input, select, textarea',
+      )
+    ) {
       return event.preventDefault();
     }
     const item = event.currentTarget.closest('li') ?? (event.currentTarget as HTMLElement);
@@ -153,7 +178,10 @@ export function DashboardGrid(props: DashboardGridProps) {
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden md:grid md:grid-cols-6 lg:grid-cols-12 gap-4"
         >
           {Array.from({ length: 12 }, (_, i) => (
-            <div key={i} className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]" />
+            <div
+              key={i}
+              className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]"
+            />
           ))}
         </div>
       ) : null}
@@ -207,13 +235,22 @@ export function DashboardGrid(props: DashboardGridProps) {
             event.preventDefault();
             const fromIndex = tiles.findIndex((t) => t.tileId === dragId);
             if (fromIndex !== -1 && fromIndex !== index) {
-              const side = dropTarget && dropTarget.index === index ? dropTarget.side : fromIndex < index ? 'after' : 'before';
+              const side =
+                dropTarget && dropTarget.index === index
+                  ? dropTarget.side
+                  : fromIndex < index
+                    ? 'after'
+                    : 'before';
               const toIndex = calculateDropIndex(fromIndex, index, side);
               if (toIndex !== fromIndex) props.onMoveTo(dragId, toIndex);
             }
             endDrag();
           };
-          const isTarget = dragId !== null && dropTarget !== null && dropTarget.index === index && dragId !== tile.tileId;
+          const isTarget =
+            dragId !== null &&
+            dropTarget !== null &&
+            dropTarget.index === index &&
+            dragId !== tile.tileId;
           const isDraggingThis = dragId === tile.tileId;
 
           return (
@@ -231,7 +268,8 @@ export function DashboardGrid(props: DashboardGridProps) {
                 editing && !locked && 'cursor-grab active:cursor-grabbing',
                 SPAN[tile.size] ?? SPAN.klein,
                 isTarget && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
-                isDraggingThis && 'opacity-40 scale-[0.98] border-dashed border-2 border-primary/60 rounded-xl',
+                isDraggingThis &&
+                  'opacity-40 scale-[0.98] border-dashed border-2 border-primary/60 rounded-xl',
               )}
             >
               {editing && isTarget ? (
@@ -275,50 +313,14 @@ export function DashboardGrid(props: DashboardGridProps) {
                       </span>
                     </div>
 
-                    {props.onResize ? (
-                      <div
-                        role="group"
-                        aria-label={`${title}: Spaltenbreite wählen`}
-                        className="flex items-center gap-1"
-                      >
-                        <span className="hidden text-[11px] font-medium text-[var(--color-text-muted)] sm:inline mr-1">
-                          Größe:
-                        </span>
-                        {TILE_SIZES.map((sz) => {
-                          const isCurrent = tile.size === sz;
-                          const isAllowed = sizeRank(sz) >= sizeRank(minSize);
-                          const disReason = !isAllowed
-                            ? sizeRank(minSize) >= 2
-                              ? 'Dieses Diagramm benötigt mindestens 9 Spalten (3/4 Breite)'
-                              : 'Dieses Diagramm benötigt mindestens 6 Spalten (1/2 Breite)'
-                            : undefined;
-                          return (
-                            <button
-                              key={sz}
-                              type="button"
-                              draggable={false}
-                              onDragStart={(e) => e.stopPropagation()}
-                              disabled={locked || !isAllowed}
-                              onClick={() => props.onResize?.(tile.tileId, sz)}
-                              data-action={`size-${sz}`}
-                              aria-label={`${title}: Schnellwahl ${SHORT_SIZES[sz]}${disReason ? ` (${disReason})` : ''}`}
-                              aria-pressed={isCurrent}
-                              title={disReason ?? `${SIZE_LABEL[sz]} (${SHORT_SIZES[sz]})`}
-                              className={cn(
-                                'rounded px-2 py-0.5 text-[11px] font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[26px]',
-                                isCurrent
-                                  ? 'bg-primary text-[var(--color-text-inverse)] font-bold shadow-sm'
-                                  : isAllowed
-                                    ? 'bg-surface border border-solid border-border/80 text-text hover:bg-surface-hover hover:border-primary/50'
-                                    : 'opacity-35 cursor-not-allowed bg-transparent border border-dashed border-border/50 text-[var(--color-text-muted)]',
-                              )}
-                            >
-                              {SHORT_SIZES[sz]}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : null}
+                    <TileQuickSizeSelector
+                      tileId={tile.tileId}
+                      title={title}
+                      currentSize={tile.size}
+                      minSize={minSize}
+                      locked={locked}
+                      onResize={props.onResize}
+                    />
 
                     <Button
                       size="sm"
@@ -355,7 +357,12 @@ export function DashboardGrid(props: DashboardGridProps) {
                   ) : null}
                 </div>
               ) : null}
-              <div className={cn('flex flex-col flex-1 min-w-0', dragId && 'pointer-events-none select-none')}>
+              <div
+                className={cn(
+                  'flex flex-col flex-1 min-w-0',
+                  dragId && 'pointer-events-none select-none',
+                )}
+              >
                 {activeEntryOf(tile) ? (
                   <LazyDashboardTile
                     tile={tile}

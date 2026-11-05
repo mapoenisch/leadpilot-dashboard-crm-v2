@@ -18149,6 +18149,28 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - `npm run build`: Erfolgreich
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
+12. **Behebung CI-Fehlschlag & Prettier-Formatierung (PR-QUALITY-16 / Zeilenbudget):**
+    - **Ursachenanalyse CI-Lauf `42102951178`:**
+      - Der CI-Job `verify:v23:baseline` schlug fehl (`PR-QUALITY-16` in `src/review/acceptance/qualityRelease.acceptance.ts`), weil Prettier Formatierungsabweichungen in `src/features/dashboard/components/TileResizeHandle.tsx` und dem Dashboard-Grid meldete (`npm run format:check` meldete Style-Issues).
+      - Ein direktes Ausführen von `npx prettier --write` auf `DashboardGrid.tsx` hätte die Datei durch Attribut-Umbruch auf 433 Zeilen vergrößert und damit das harte Zeilenbudget ($\le 400$ Zeilen) verletzt.
+    - **Behebung:**
+      1. Modulare Auslagerung: `TileQuickSizeSelector.tsx` (69 Zeilen) als dedizierte Komponente für die Schnellwahl-Schaltflächen der Spaltenbreiten (1/4, 1/2, 3/4, Voll) aus `DashboardGrid.tsx` extrahiert.
+      2. `DashboardGrid.tsx` liegt dadurch nach vollständiger Prettier-Formatierung bei exakt 398 Zeilen (unterhalb des Budgets von 400 Zeilen).
+      3. Prettier auf `TileQuickSizeSelector.tsx`, `TileResizeHandle.tsx`, `DashboardGrid.tsx` und `DashboardGrid.ui.vitest.tsx` angewendet.
+      4. `npm run format:check` meldet 0 Abweichungen („All matched files use Prettier code style!“).
+
+**Automatisierte Verifikation (Behebung CI / Prettier):**
+- `npm run format:check`: Grün (0 Abweichungen)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün
+- `npm run test:v23:findings`: Exitcode 0 (`PR-QUALITY-16` grün)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden
+- `npm run build`: Erfolgreich (3.30s)
+- **Zeilenbudgets:** `DashboardGrid.tsx` 398 Zeilen ($\le 400$ Zeilen ✅)
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
 
 
 
