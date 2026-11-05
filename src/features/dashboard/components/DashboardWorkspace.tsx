@@ -13,7 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
+import { Drawer } from '@/components/ui/Drawer';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
 import { activeEntryOf } from '../hooks/dashboardEditorReducer';
@@ -66,19 +66,20 @@ export interface DashboardWorkspaceProps {
 
 const loadConfigurator = () => import('./TileConfigurator');
 
-/** Modale Hülle für Lade- und Fehlerzustand: Der übrige Arbeitsbereich ist währenddessen gesperrt. */
+/** Drawer-Hülle für Lade- und Fehlerzustand des Kachel-Konfigurators. */
 function ConfiguratorShell(props: { onClose: () => void; active: boolean; children: ReactNode }) {
   // Nur der oberste Dialog reagiert auf Escape: Liegt die Rückfrage darüber, ruht diese Hülle.
   useEscapeToClose(props.active, props.onClose);
   return (
-    <Modal
+    <Drawer
       open
       onClose={() => props.active && props.onClose()}
       title="Kachel konfigurieren"
-      maxWidth="600px"
+      width="640px"
+      escapeActive={props.active}
     >
       {props.children}
-    </Modal>
+    </Drawer>
   );
 }
 
