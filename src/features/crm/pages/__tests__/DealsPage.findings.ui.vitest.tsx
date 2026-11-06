@@ -25,6 +25,8 @@ const mockedQuery = vi.mocked(useCrmListQuery);
 const mockedExport = vi.mocked(crmExportService.fetchCrmExportBlob);
 const mockedList = vi.mocked(crmListService.fetchCrmList);
 
+const TEST_STORAGE_KEY = 'leadpilot_crm_deal_stage_overrides_org-1_usr-1';
+
 const SAMPLE_DEALS: ImportedFunnelDeal[] = [
   {
     id: 'd-1',
@@ -68,10 +70,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
 
   it('gleicht Phasenfilter mit lokalen Phasenwechseln aus sessionStorage ab (Befund 3)', () => {
     // d-1 wurde von "Lead eingegangen" nach "Verhandlung" verschoben
-    sessionStorage.setItem(
-      'leadpilot_crm_deal_stage_overrides',
-      JSON.stringify({ 'd-1': 'Verhandlung' }),
-    );
+    sessionStorage.setItem(TEST_STORAGE_KEY, JSON.stringify({ 'd-1': 'Verhandlung' }));
 
     mockedQuery.mockReturnValue({
       data: { items: SAMPLE_DEALS, total: 2 },
@@ -221,10 +220,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
   });
 
   it('exportiert mit CSV-Parser und erhält Quoting bei Deal-Namen mit Kommas (Befund 1)', async () => {
-    sessionStorage.setItem(
-      'leadpilot_crm_deal_stage_overrides',
-      JSON.stringify({ 'd-1': 'Verhandlung' }),
-    );
+    sessionStorage.setItem(TEST_STORAGE_KEY, JSON.stringify({ 'd-1': 'Verhandlung' }));
 
     mockedQuery.mockReturnValue({
       data: { items: SAMPLE_DEALS, total: 2 },
@@ -270,7 +266,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     // d-1 ("Cloud Migration Pilot", ursprünglich "Lead eingegangen") wird nach "Z-Phase" verschoben
     // d-2 ("Security Audit & Compliance", ursprünglich "Verhandlung") wird nach "A-Phase" verschoben
     sessionStorage.setItem(
-      'leadpilot_crm_deal_stage_overrides',
+      TEST_STORAGE_KEY,
       JSON.stringify({ 'd-1': 'Z-Phase', 'd-2': 'A-Phase' }),
     );
 
@@ -305,7 +301,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     // d-1 ("Cloud Migration Pilot", ursprünglich "Lead eingegangen") wurde nach "Verhandlung" verschoben
     // d-2 ("Security Audit & Compliance", ursprünglich "Verhandlung") wurde nach "Deal verloren" verschoben
     sessionStorage.setItem(
-      'leadpilot_crm_deal_stage_overrides',
+      TEST_STORAGE_KEY,
       JSON.stringify({ 'd-1': 'Verhandlung', 'd-2': 'Deal verloren' }),
     );
 
@@ -338,7 +334,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
 
   it('filtert CSV-Export nach wirksamer Phase bei aktiver Textsuche (Befund Runde 8)', async () => {
     sessionStorage.setItem(
-      'leadpilot_crm_deal_stage_overrides',
+      TEST_STORAGE_KEY,
       JSON.stringify({ 'd-1': 'Verhandlung', 'd-2': 'Deal verloren' }),
     );
 
@@ -374,6 +370,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
           q: undefined, // Server-Suche deaktiviert bei lokalen Overrides
         }),
       );
+      expect(createObjectURLMock).toHaveBeenCalled();
     });
 
     const exportedBlob = createObjectURLMock.mock.calls[0]![0] as Blob;

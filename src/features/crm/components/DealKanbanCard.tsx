@@ -4,6 +4,7 @@ import { GripVertical, MoreVertical, Calendar, AlertTriangle } from 'lucide-reac
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import type { ImportedFunnelDeal } from '@/types/crm';
+import { isWonStage, isLostStage } from '../utils/crmStageHelper';
 
 export interface DealKanbanCardProps {
   deal: ImportedFunnelDeal;
@@ -55,9 +56,8 @@ export function DealKanbanCard({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const stageLower = deal.stage.toLowerCase();
-  const isWon = stageLower.includes('gewonnen');
-  const isLost = stageLower.includes('verloren');
+  const isWon = isWonStage(deal.stage);
+  const isLost = isLostStage(deal.stage);
 
   // Überfälligkeits-Check auf Kalendertagebene für offene Deals
   const isOverdue = useMemo(

@@ -20,11 +20,19 @@ import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
 import { DealsKpiGrid } from '../components/DealsKpiGrid';
 import { DealsFilterBar, BASE_STAGE_OPTIONS } from '../components/DealsFilterBar';
 import { applyStageOverridesToCsv, readBlobAsText, dealMatchesSearch } from '../utils/crmCsvHelper';
+import {
+  getDealStageOverridesStorageKey,
+  normalizeCanonicalStageLabel,
+  readStageOverrides,
+  writeStageOverrides,
+} from '../utils/crmStageHelper';
 
 export function DealsPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
   const { provenance, isLoading: isProvLoading } = useCrmProvenance('deals');
+
+  const storageKey = getDealStageOverridesStorageKey(session?.organizationId, session?.userId);
 
   // URL-synchroner Zustand
   const [viewModeRaw, setViewModeRaw] = useUrlSyncedState('ansicht', 'tabelle');
@@ -39,15 +47,15 @@ export function DealsPage() {
   const page = Math.max(1, parseInt(pageStr, 10) || 1);
   const tablePageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
 
-  // Phasenwechsel über Ansichtswechsel hinaus erhalten (Session-Storage)
-  const [stageOverrides, setStageOverrides] = useState<Record<string, string>>(() => {
-    try {
-      const s = sessionStorage.getItem('leadpilot_crm_deal_stage_overrides');
-      return s ? JSON.parse(s) : {};
-    } catch {
-      return {};
-    }
-  });
+  // Phasenwechsel über Ansichtswechsel hinaus erhalten (benutzer- und organisationsgebunden im Session-Storage)
+  const [stageOverrides, setStageOverrides] = useState<Record<string, string>>(() =>
+    readStageOverrides(storageKey),
+  );
+
+  // Beim Wechsel von Identität/Organisation Overrides passend synchronisieren oder verwerfen
+  useEffect(() => {
+    setStageOverrides(readStageOverrides(storageKey));
+  }, [storageKey]);
 
   const hasStageOverrides = Object.keys(stageOverrides).length > 0;
   // Wenn lokale Phasenwechsel aktiv sind, ungefiltert und ohne Server-Suche vom Server laden,
@@ -66,17 +74,16 @@ export function DealsPage() {
 
   const pageSize = viewMode === 'kanban' || clientPagingActive ? 100 : tablePageSize;
 
-  const handleDealStageChange = useCallback((dealId: string, newStage: string) => {
-    setStageOverrides((prev) => {
-      const next = { ...prev, [dealId]: newStage };
-      try {
-        sessionStorage.setItem('leadpilot_crm_deal_stage_overrides', JSON.stringify(next));
-      } catch {
-        // Ignoriere Fehler, falls SessionStorage im Browser deaktiviert ist
-      }
-      return next;
-    });
-  }, []);
+  const handleDealStageChange = useCallback(
+    (dealId: string, newStage: string) => {
+      setStageOverrides((prev) => {
+        const next = { ...prev, [dealId]: newStage };
+        writeStageOverrides(storageKey, next);
+        return next;
+      });
+    },
+    [storageKey],
+  );
 
   const [extraDeals, setExtraDeals] = useState<ImportedFunnelDeal[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -98,17 +105,14 @@ export function DealsPage() {
     setSortField(val);
     setPageStr('1');
   };
-
   const handleOrderChange = (val: string) => {
     setSortOrder(val);
     setPageStr('1');
   };
-
   const handleSearchChange = (val: string) => {
     setSearchTerm(val);
     setPageStr('1');
   };
-
   const handleStageChange = (val: string) => {
     setStageFilter(val);
     setPageStr('1');
@@ -132,9 +136,12 @@ export function DealsPage() {
   );
 
   const mappedDeals = useMemo(() => {
-    if (!hasStageOverrides) return rawDeals;
-    return rawDeals.map((d) => (stageOverrides[d.id] ? { ...d, stage: stageOverrides[d.id]! } : d));
-  }, [rawDeals, stageOverrides, hasStageOverrides]);
+    return rawDeals.map((d) => {
+      const override = stageOverrides[d.id];
+      const stage = override ?? normalizeCanonicalStageLabel(d.stage);
+      return stage !== d.stage ? { ...d, stage } : d;
+    });
+  }, [rawDeals, stageOverrides]);
 
   const deals = useMemo(() => {
     let list = mappedDeals;

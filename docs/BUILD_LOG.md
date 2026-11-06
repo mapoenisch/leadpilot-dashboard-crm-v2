@@ -18578,3 +18578,60 @@ Den Codex-Befund (1 P2) aus Review-Runde 8 strukturiert behoben:
   - `DealsPage.findings.ui.vitest.tsx`: 389 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 418 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 9 (PR #139, Head `fdb7cc0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (1 P1, 2 P2) aus Review-Runde 9 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsKanbanBoard.tsx`, `DealKanbanCard.tsx`, `crmStageHelper.ts` – Berücksichtigung kanonischer CRM-Phasen):**
+   - **Befund:** Bei Deals mit der kanonischen Phase `WON` blieb „Gewonnenes Volumen“ bei null, weil ausschließlich der deutsche Text „gewonnen“ erkannt wurde. Deals landeten in zusätzlichen Spalten statt in den vorgesehenen Abschlussphasen und erhielten auf den Karten trotz abgeschlossenem Status Überfälligkeitswarnungen.
+   - **Behebung:**
+     - `src/features/crm/utils/crmStageHelper.ts` neu erstellt: Zentrale Definition von `KANBAN_STAGES`, Mapping `CANONICAL_STAGE_TO_LABEL` (u. a. `WON` $\to$ `Deal gewonnen`, `LOST` $\to$ `Deal verloren`, `LEAD` $\to$ `Lead eingegangen`), `normalizeCanonicalStageLabel`, `isWonStage`, `isLostStage`, `isClosedStage`.
+     - `DealsKanbanBoard.tsx`: Gruppierung (`dealsByStage`) und `effectiveDeals` normalisieren kanonische Phasen konsistent; `wonVolume` aggregiert basierend auf `isWonStage`.
+     - `DealKanbanCard.tsx`: Nutzt `isWonStage` und `isLostStage`; unterdrückt Überfälligkeitswarnungen für kanonisch geschlossene Deals (`isWon || isLost`).
+     - `DealsPage.tsx` & `crmCsvHelper.ts`: Berücksichtigen kanonische Phasen bei Mapping, Textsuche und CSV-Export.
+   - **Test-Absicherung:** Neue Testsuite `src/features/crm/__tests__/crmStageHelper.ui.vitest.tsx` (7 Tests, u. a. Aggregation von `WON`-Deals zu `Deal gewonnen`, keine Überfälligkeitswarnung).
+
+2. **Befund 2 (P1, `DealsPage.findings.ui.vitest.tsx` – Warte im Exporttest auf die tatsächlich erzeugte Blob-URL):**
+   - **Befund:** `waitFor` bestätigte nur den Aufruf von `mockedExport`, während `handleExport` noch asynchron den Blob las. Zugriff auf `createObjectURLMock.mock.calls[0]` schlug fehl mit `TypeError: Cannot read properties of undefined (reading '0')`.
+   - **Behebung:** `expect(createObjectURLMock).toHaveBeenCalled()` innerhalb von `waitFor` ergänzt, sodass der Test zuverlässig auf das Erzeugen der Blob-URL wartet.
+   - **Test-Absicherung:** `DealsPage.findings.ui.vitest.tsx` läuft vollständig grün durch (8 Tests).
+
+3. **Befund 3 (P2, `DealsPage.tsx`, `crmStageHelper.ts` – Begrenzung gespeicherter Phasenwechsel auf den angemeldeten Benutzer):**
+   - **Befund:** `sessionStorage` verwendete einen globalen statischen Key ohne Benutzer- oder Organisationsbindung. Bei einem Benutzerwechsel im selben Tab wurden Entwurfsänderungen eines vorherigen Nutzers als eigene Datenbasis übernommen.
+   - **Behebung:**
+     - In `crmStageHelper.ts`: `getDealStageOverridesStorageKey(organizationId, userId)` bindet den Key an `leadpilot_crm_deal_stage_overrides_${organizationId}_${userId}`; `readStageOverrides` und `writeStageOverrides` kapseln sicheres Lesen und Schreiben.
+     - In `DealsPage.tsx`: Dynamischer `storageKey` aus `session.organizationId` und `session.userId`. Bei Identitätswechsel synchronisiert ein Effect die Overrides für den neuen Benutzer bzw. leert sie bei fehlender Sitzung.
+   - **Test-Absicherung:** Neue Integrationstest-Suite `src/features/crm/pages/__tests__/DealsPage.identity.ui.vitest.tsx` (2 Tests: strikte Benutzertrennung im selben Tab, Rückfall auf Serverphasen ohne Session).
+
+### Automatisierte Verifikation (Nacharbeit Runde 9)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 19 Testdateien, 128 Tests grün (100% bestanden)
+- `npm test`: 356 Testdateien, 2.589 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.52s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `crmStageHelper.ts`: 125 Zeilen
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 167 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 395 Zeilen
+  - `crmCsvHelper.ts`: 214 Zeilen
+  - `crmStageHelper.ui.vitest.tsx`: 152 Zeilen
+  - `DealsPage.identity.ui.vitest.tsx`: 127 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 386 Zeilen
+  - `crmCsvHelper.vitest.ts`: 189 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 418 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

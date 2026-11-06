@@ -2,16 +2,9 @@ import { useState, useMemo, useCallback } from 'react';
 import type { ImportedFunnelDeal } from '@/types/crm';
 import { Button } from '@/components/ui/Button';
 import { KanbanColumn } from './KanbanColumn';
+import { KANBAN_STAGES, normalizeCanonicalStageLabel, isWonStage } from '../utils/crmStageHelper';
 
-export const KANBAN_STAGES: readonly string[] = [
-  'Lead eingegangen',
-  'Erstgespräch geführt',
-  'Bedarfsanalyse',
-  'Angebot erstellt',
-  'Verhandlung',
-  'Deal gewonnen',
-  'Deal verloren',
-];
+export { KANBAN_STAGES } from '../utils/crmStageHelper';
 
 export interface DealsKanbanBoardProps {
   deals: ImportedFunnelDeal[];
@@ -34,12 +27,14 @@ export function DealsKanbanBoard({
   const [stageOverrides, setStageOverrides] = useState<Record<string, string>>({});
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
-  // Wirksame Deals mit Überschreibungen
+  // Wirksame Deals mit Überschreibungen und kanonischer Phasen-Normalisierung
   const effectiveDeals = useMemo(() => {
     return deals.map((d) => {
       const override = stageOverrides[d.id];
-      if (override && override !== d.stage) {
-        return { ...d, stage: override };
+      const stage = override && override !== d.stage ? override : d.stage;
+      const normalizedStage = normalizeCanonicalStageLabel(stage);
+      if (normalizedStage !== d.stage) {
+        return { ...d, stage: normalizedStage };
       }
       return d;
     });
@@ -83,7 +78,7 @@ export function DealsKanbanBoard({
     for (const d of effectiveDeals) {
       count += 1;
       volume += d.amount || 0;
-      if (d.stage.toLowerCase().includes('gewonnen')) {
+      if (isWonStage(d.stage)) {
         won += d.amount || 0;
       }
     }

@@ -3,6 +3,7 @@
  * Unterstützt BOM (\uFEFF), Zellen mit Kommas, Zeilenumbrüchen (\r\n / \n)
  * sowie maskierten Anführungszeichen ("").
  */
+import { normalizeCanonicalStageLabel } from './crmStageHelper';
 
 export async function readBlobAsText(blob: Blob): Promise<string> {
   if (typeof blob.text === 'function') {
@@ -126,9 +127,9 @@ export function dealMatchesSearch(
   const term = searchTerm.trim().toLowerCase();
   if (!term) return true;
   const nameMatch = deal.dealName?.toLowerCase().includes(term);
-  const stageMatch = normalizeStageForComparison(deal.stage ?? '')
-    .toLowerCase()
-    .includes(term);
+  const rawStage = normalizeStageForComparison(deal.stage ?? '').toLowerCase();
+  const canonicalStage = normalizeCanonicalStageLabel(deal.stage ?? '').toLowerCase();
+  const stageMatch = rawStage.includes(term) || canonicalStage.includes(term);
   const pipeMatch = deal.pipeline?.toLowerCase().includes(term);
   return Boolean(nameMatch || stageMatch || pipeMatch);
 }
@@ -177,10 +178,12 @@ export function applyStageOverridesToCsv(
     if (searchLower) {
       const nameVal = row[nameIdx]?.toLowerCase() ?? '';
       const stageVal = normalizeStageForComparison(row[stageIdx] ?? '').toLowerCase();
+      const canonicalVal = normalizeCanonicalStageLabel(stageVal).toLowerCase();
       const pipeVal = row[pipelineIdx]?.toLowerCase() ?? '';
       if (
         !nameVal.includes(searchLower) &&
         !stageVal.includes(searchLower) &&
+        !canonicalVal.includes(searchLower) &&
         !pipeVal.includes(searchLower)
       ) {
         continue;
@@ -189,7 +192,8 @@ export function applyStageOverridesToCsv(
 
     if (normalizedTargetFilter && normalizedTargetFilter !== 'ALL') {
       const rowStage = normalizeStageForComparison(row[stageIdx] ?? '');
-      if (rowStage === normalizedTargetFilter) {
+      const rowCanonical = normalizeCanonicalStageLabel(rowStage);
+      if (rowStage === normalizedTargetFilter || rowCanonical === normalizedTargetFilter) {
         dataRows.push(row);
       }
     } else {
@@ -199,8 +203,8 @@ export function applyStageOverridesToCsv(
 
   if (sortField === 'stage') {
     dataRows.sort((a, b) => {
-      const stageA = normalizeStageForComparison(a[stageIdx] ?? '');
-      const stageB = normalizeStageForComparison(b[stageIdx] ?? '');
+      const stageA = normalizeCanonicalStageLabel(normalizeStageForComparison(a[stageIdx] ?? ''));
+      const stageB = normalizeCanonicalStageLabel(normalizeStageForComparison(b[stageIdx] ?? ''));
       const cmp = stageA.localeCompare(stageB, 'de');
       return sortOrder === 'desc' ? -cmp : cmp;
     });
