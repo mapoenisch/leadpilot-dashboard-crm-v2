@@ -118,6 +118,8 @@ export function applyStageOverridesToCsv(
   csvText: string,
   stageOverrides: Record<string, string>,
   targetStageFilter?: string,
+  sortField?: string,
+  sortOrder: 'asc' | 'desc' | string = 'desc',
 ): string {
   const rows = parseCsv(csvText);
   if (rows.length <= 1) return csvText;
@@ -152,6 +154,15 @@ export function applyStageOverridesToCsv(
     } else {
       dataRows.push(row);
     }
+  }
+
+  if (sortField === 'stage') {
+    dataRows.sort((a, b) => {
+      const stageA = normalizeStageForComparison(a[stageIdx] ?? '');
+      const stageB = normalizeStageForComparison(b[stageIdx] ?? '');
+      const cmp = stageA.localeCompare(stageB, 'de');
+      return sortOrder === 'desc' ? -cmp : cmp;
+    });
   }
 
   return serializeCsv([header, ...dataRows]);

@@ -212,4 +212,39 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     // d-1 Stage wurde zu "Verhandlung" in Spalte 2 aktualisiert
     expect(text).toContain('d-1,"Beratung, Implementierung",Verhandlung,25000');
   });
+
+  it('sortiert nach der wirksamen Phase statt der ursprünglichen bei aktiven stageOverrides und sortField=stage', () => {
+    // d-1 ("Cloud Migration Pilot", ursprünglich "Lead eingegangen") wird nach "Z-Phase" verschoben
+    // d-2 ("Security Audit & Compliance", ursprünglich "Verhandlung") wird nach "A-Phase" verschoben
+    sessionStorage.setItem(
+      'leadpilot_crm_deal_stage_overrides',
+      JSON.stringify({ 'd-1': 'Z-Phase', 'd-2': 'A-Phase' }),
+    );
+
+    mockedQuery.mockReturnValue({
+      data: { items: SAMPLE_DEALS, total: 2 },
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+
+    // Aufsteigend nach Phase sortieren -> d-2 (A-Phase) vor d-1 (Z-Phase)
+    const { unmount } = renderDealsPage('/crm/deals?sort=stage&order=asc');
+
+    // Beide Deals gerendert mit ihren wirksamen Phasen
+    expect(screen.getByText('A-Phase')).toBeInTheDocument();
+    expect(screen.getByText('Z-Phase')).toBeInTheDocument();
+
+    const rows = screen.getAllByRole('row');
+    // Zeile 0 ist Header, Zeile 1 muss d-2 ("Security Audit & Compliance" / A-Phase) sein
+    expect(rows[1]).toHaveTextContent('Security Audit & Compliance');
+    expect(rows[1]).toHaveTextContent('A-Phase');
+    // Zeile 2 muss d-1 ("Cloud Migration Pilot" / Z-Phase) sein
+    expect(rows[2]).toHaveTextContent('Cloud Migration Pilot');
+    expect(rows[2]).toHaveTextContent('Z-Phase');
+
+    unmount();
+  });
 });

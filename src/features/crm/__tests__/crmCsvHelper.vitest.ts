@@ -100,4 +100,39 @@ describe('crmCsvHelper', () => {
     expect(parsed[2]![0]).toBe('d-2');
     expect(parsed[2]![2]).toBe("'+Partner"); // Formelschutz auch für verschobenen Deal d-2
   });
+
+  it('sortiert nach wirksamer Phase bei sortField=stage und berücksichtigt sortOrder', () => {
+    const csv =
+      '\uFEFFID,Deal Name,Stage,Betrag,Abschlussdatum,Pipeline\r\n' +
+      'd-1,Deal 1,Z-Phase,10000,2026-12-31,Standard\r\n' +
+      'd-2,Deal 2,A-Phase,20000,2026-12-31,Standard\r\n';
+
+    // Aufsteigend nach wirksamer Phase sortieren -> d-1 (jetzt A-Phase) vor d-2 (jetzt Z-Phase)
+    const ascCsv = applyStageOverridesToCsv(
+      csv,
+      { 'd-1': 'A-Phase', 'd-2': 'Z-Phase' },
+      undefined,
+      'stage',
+      'asc',
+    );
+    const parsedAsc = parseCsv(ascCsv);
+    expect(parsedAsc[1]![0]).toBe('d-1');
+    expect(parsedAsc[1]![2]).toBe('A-Phase');
+    expect(parsedAsc[2]![0]).toBe('d-2');
+    expect(parsedAsc[2]![2]).toBe('Z-Phase');
+
+    // Absteigend nach wirksamer Phase sortieren -> d-2 (jetzt Z-Phase) vor d-1 (jetzt A-Phase)
+    const descCsv = applyStageOverridesToCsv(
+      csv,
+      { 'd-1': 'A-Phase', 'd-2': 'Z-Phase' },
+      undefined,
+      'stage',
+      'desc',
+    );
+    const parsedDesc = parseCsv(descCsv);
+    expect(parsedDesc[1]![0]).toBe('d-2');
+    expect(parsedDesc[1]![2]).toBe('Z-Phase');
+    expect(parsedDesc[2]![0]).toBe('d-1');
+    expect(parsedDesc[2]![2]).toBe('A-Phase');
+  });
 });

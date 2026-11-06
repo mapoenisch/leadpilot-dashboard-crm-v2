@@ -58,8 +58,9 @@ export function DealsPage() {
       ? stageFilter
       : undefined;
 
-  const pageSize =
-    viewMode === 'kanban' || (hasStageOverrides && stageFilter !== 'ALL') ? 100 : tablePageSize;
+  const clientPagingActive = hasStageOverrides && (stageFilter !== 'ALL' || sortField === 'stage');
+
+  const pageSize = viewMode === 'kanban' || clientPagingActive ? 100 : tablePageSize;
 
   const handleDealStageChange = useCallback((dealId: string, newStage: string) => {
     setStageOverrides((prev) => {
@@ -116,7 +117,7 @@ export function DealsPage() {
       filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
       sortBy: sortField,
       sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-      page: viewMode === 'kanban' || (hasStageOverrides && stageFilter !== 'ALL') ? 1 : page,
+      page: viewMode === 'kanban' || clientPagingActive ? 1 : page,
       pageSize,
     });
 
@@ -131,19 +132,28 @@ export function DealsPage() {
   }, [rawDeals, stageOverrides, hasStageOverrides]);
 
   const deals = useMemo(() => {
-    if (!hasStageOverrides || stageFilter === 'ALL') return mappedDeals;
-    return mappedDeals.filter((d) => d.stage === stageFilter);
-  }, [mappedDeals, stageFilter, hasStageOverrides]);
+    let list = mappedDeals;
+    if (hasStageOverrides && stageFilter !== 'ALL') {
+      list = list.filter((d) => d.stage === stageFilter);
+    }
+    if (hasStageOverrides && sortField === 'stage') {
+      list = [...list].sort((a, b) => {
+        const cmp = a.stage.localeCompare(b.stage, 'de');
+        return sortOrder === 'desc' ? -cmp : cmp;
+      });
+    }
+    return list;
+  }, [mappedDeals, stageFilter, hasStageOverrides, sortField, sortOrder]);
 
   const total = hasStageOverrides && stageFilter !== 'ALL' ? deals.length : (data?.total ?? 0);
 
   const tableDeals = useMemo(() => {
-    if (hasStageOverrides && stageFilter !== 'ALL' && viewMode === 'tabelle') {
+    if (clientPagingActive && viewMode === 'tabelle') {
       const start = (page - 1) * tablePageSize;
       return deals.slice(start, start + tablePageSize);
     }
     return deals;
-  }, [hasStageOverrides, stageFilter, viewMode, page, tablePageSize, deals]);
+  }, [clientPagingActive, viewMode, page, tablePageSize, deals]);
 
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || isPlaceholderData) return;
@@ -201,7 +211,13 @@ export function DealsPage() {
       let exportBlob = blob;
       if (hasStageOverrides) {
         const text = await readBlobAsText(blob);
-        const updatedCsv = applyStageOverridesToCsv(text, stageOverrides, stageFilter);
+        const updatedCsv = applyStageOverridesToCsv(
+          text,
+          stageOverrides,
+          stageFilter,
+          sortField,
+          sortOrder,
+        );
         exportBlob = new Blob([updatedCsv], { type: 'text/csv; charset=utf-8' });
       }
       const url = URL.createObjectURL(exportBlob);

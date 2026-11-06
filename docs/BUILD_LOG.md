@@ -18459,3 +18459,43 @@ Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
   - `crmCsvHelper.ts`: 158 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 6 (PR #139, Head `7bed0fb`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Den Codex-Befund (1 P2) aus Review-Runde 6 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx`, `crmCsvHelper.ts` – Sortierung nach wirksamer statt ursprünglicher Phase bei `sortField === 'stage'`):**
+   - **Befund:** Wurde ein Deal verschoben und anschließend „Vertriebsphase“ als Sortierung gewählt, sortierte der Server weiterhin nach der ursprünglichen Phase; erst danach überschrieb das clientseitige Mapping die angezeigten Werte. Dadurch waren Tabellenansicht und CSV-Export nicht nach den sichtbaren Phasen sortiert. Bei mehreren Ergebnisseiten standen Deals außerdem auf der falschen Seite.
+   - **Behebung:**
+     - In `src/features/crm/utils/crmCsvHelper.ts` akzeptiert `applyStageOverridesToCsv` nun optionale Parameter `sortField?: string, sortOrder: 'asc' | 'desc' | string = 'desc'`. Bei `sortField === 'stage'` werden die Datenzeilen nach der wirksamen Phase sortiert (`normalizeStageForComparison(a[stageIdx]).localeCompare(normalizeStageForComparison(b[stageIdx]), 'de')`) unter exakter Berücksichtigung von aufsteigender/absteigender Reihenfolge (`sortOrder`).
+     - In `src/features/crm/pages/DealsPage.tsx` aktiviert `clientPagingActive` die vollständige Client-Sortierung und -Paginierung, wenn `hasStageOverrides && (stageFilter !== 'ALL' || sortField === 'stage')`. Die Query fordert Seite 1 mit `pageSize = 100` an. `deals` sortiert bei `hasStageOverrides && sortField === 'stage'` clientseitig nach `d.stage.localeCompare(b.stage, 'de')`. `tableDeals` sliced synchron die aktuelle Seite aus der sortierten Gesamtliste. `handleExport` übergibt `sortField` und `sortOrder` an `applyStageOverridesToCsv`.
+   - **Test-Absicherung:**
+     - Neuer Unit-Test in `crmCsvHelper.vitest.ts` (`sortiert nach wirksamer Phase bei sortField=stage und berücksichtigt sortOrder`).
+     - Neuer Integrationstest in `DealsPage.findings.ui.vitest.tsx` (`sortiert nach der wirksamen Phase statt der ursprünglichen bei aktiven stageOverrides und sortField=stage`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 6)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 126 Tests grün
+- `npm run build`: Erfolgreich (3.44s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 377 Zeilen
+  - `crmCsvHelper.ts`: 169 Zeilen
+  - `crmCsvHelper.vitest.ts`: 138 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 242 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
