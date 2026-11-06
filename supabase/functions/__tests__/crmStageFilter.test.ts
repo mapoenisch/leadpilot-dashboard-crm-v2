@@ -223,3 +223,32 @@ Deno.test('crm-query-export: Action export mit Filter "Deal gewonnen" schließt 
   assertEquals(csv.includes('Open Proposal'), false);
   assertEquals(csv.includes('Lost Lead'), false);
 });
+
+Deno.test('crm-query-export: Textsuche findet kanonische Phasen über normalisiertes Label', () => {
+  const orCalls: string[] = [];
+  const fakeQuery: Record<string, unknown> = {
+    select: () => fakeQuery,
+    eq: () => fakeQuery,
+    in: () => fakeQuery,
+    or: (expr: string) => {
+      orCalls.push(expr);
+      return fakeQuery;
+    },
+    order: () => fakeQuery,
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fakeSupabase: any = { from: () => fakeQuery };
+
+  buildCanonicalCrmQuery(fakeSupabase, {
+    resource: 'deals',
+    organizationId: ORG_ID,
+    q: 'gewonnen',
+  });
+
+  assertEquals(orCalls.length, 1);
+  assertEquals(orCalls[0].includes('stage.ilike.%gewonnen%'), true);
+  assertEquals(orCalls[0].includes('stage.in.('), true);
+  assertEquals(orCalls[0].includes('"WON"'), true);
+  assertEquals(orCalls[0].includes('"closedwon"'), true);
+  assertEquals(orCalls[0].includes('"LOST"'), false);
+});

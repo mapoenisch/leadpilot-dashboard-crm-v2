@@ -1,6 +1,10 @@
 // G60 (Auftrag 067N): Serverseitige CRM-Abfragen und CSV-Export Edge Function
 import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2';
-import { getDealStageFilterVariants, normalizeCanonicalStage } from './stageHelper.ts';
+import {
+  getDealStageFilterVariants,
+  getDealStageSearchVariants,
+  normalizeCanonicalStage,
+} from './stageHelper.ts';
 import { FIELD_MAPPINGS, RESOURCE_CONFIG } from './resourceConfig.ts';
 
 export { getDealStageFilterVariants, normalizeCanonicalStage };
@@ -262,7 +266,15 @@ export function buildCanonicalCrmQuery(
   if (params.q) {
     const sanitized = params.q.replace(/[%_,()]/g, '');
     if (sanitized) {
-      query = query.or(config.searchFields.map((f) => `${f}.ilike.%${sanitized}%`).join(','));
+      const clauses = config.searchFields.map((f) => `${f}.ilike.%${sanitized}%`);
+      if (params.resource === 'deals') {
+        // Normalisierte Phasen-Labels (z. B. 'Deal gewonnen' für 'WON') mitsuchen.
+        const variants = getDealStageSearchVariants(sanitized);
+        if (variants.length > 0) {
+          clauses.push(`stage.in.(${variants.map((v) => `"${v}"`).join(',')})`);
+        }
+      }
+      query = query.or(clauses.join(','));
     }
   }
 

@@ -18674,3 +18674,12 @@ Der offene P2-Befund aus Review-Runde 10 wurde strukturiert und vollständig beh
   - `src/features/crm/__tests__/crmStageHelper.ui.vitest.tsx`: 168 Zeilen
   - `src/features/crm/pages/__tests__/DealsPage.identity.ui.vitest.tsx`: 170 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+### Nacharbeit Codex-Review Runde 11 (PR #139, Head `602afc5`)
+
+Offener P2-Befund: Die Serversuche in `buildCanonicalCrmQuery` prüfte nur den Rohwert der Phase (`stage ilike`). Importierte Deals mit `stage = 'WON'` werden im Frontend als „Deal gewonnen" angezeigt, wurden bei der Suche nach „gewonnen" aber nicht gefunden (Tabelle und CSV-Export).
+
+- `supabase/functions/crm-query-export/stageHelper.ts`: neuer Helfer `getDealStageSearchVariants(term)`. Er liefert alle Rohwerte der Phasengruppen, deren normalisiertes Label den Suchbegriff enthält.
+- `supabase/functions/crm-query-export/index.ts`: Für `deals` wird die Suchklausel um `stage.in.("…")` ergänzt. Die bisherige `ilike`-Suche auf dem Rohwert bleibt erhalten.
+- `supabase/functions/__tests__/crmStageFilter.test.ts`: neuer Test (Suche „gewonnen" enthält `WON`/`closedwon`, nicht `LOST`).
+- Verifikation: `deno check` und `deno test` (65 Tests) grün, `deno fmt --check` ohne Abweichung. Schutzbereiche unberührt.

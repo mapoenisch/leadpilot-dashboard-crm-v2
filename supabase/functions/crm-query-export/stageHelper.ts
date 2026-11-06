@@ -86,3 +86,18 @@ export function normalizeCanonicalStage(stage?: string): string {
   }
   return stage;
 }
+
+/**
+ * Liefert alle Rohwerte der Phasen, deren normalisiertes Label den Suchbegriff enthält.
+ * Die Serversuche (ilike auf dem Rohwert) findet kanonische Werte wie 'WON' sonst nicht,
+ * obwohl das Frontend sie als 'Deal gewonnen' anzeigt.
+ */
+export function getDealStageSearchVariants(term: string): string[] {
+  const clean = term.trim().toLowerCase();
+  if (!clean) return [];
+  const out: string[] = [];
+  for (const group of DEAL_STAGE_GROUPS) {
+    if (group[0].toLowerCase().includes(clean)) out.push(...group);
+  }
+  return out;
+}
