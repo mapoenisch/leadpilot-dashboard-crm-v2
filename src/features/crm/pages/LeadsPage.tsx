@@ -1,132 +1,35 @@
-// G60 (Auftrag 067N, Step 4): Serverseitige, paginierte Leads- & Kontaktansicht mit URL-Sync und Export
-import React, { useId, useMemo, useState } from 'react';
-import { Search, Download, AlertCircle } from 'lucide-react';
+// G60 / Auftrag 130: Serverseitige, paginierte Leads- & Kontaktansicht mit Lead-Scoring und Qualifizierungsworkflow
+import { useId, useMemo, useState } from 'react';
+import { Download, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
-import { Select } from '@/components/ui/Select';
-import { Input } from '@/components/ui/Input';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
-import { isSupabaseConfigured } from '@/services/db/supabaseClient';
 import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import { useCrmProvenance } from '../hooks/useCrmProvenance';
-import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
-
-const mkOpts = (csv: string) =>
-  csv.split(',').map((p) => {
-    const [value = '', label] = p.split(':');
-    return { value, label: label || value };
-  });
-
-const ORDER_OPTS = mkOpts('asc:Aufsteigend (A-Z),desc:Absteigend (Z-A)');
-type R = Record<string, unknown>;
-const col = (key: string, label: string, render?: (r: R) => React.ReactNode): CrmColumn<R> => ({
-  key,
-  label,
-  render,
-});
-const bStrong = (v: unknown) => <strong className="text-text">{String(v ?? '')}</strong>;
-const bSpan = (v: unknown, cls: string) => <span className={cls}>{String(v ?? '')}</span>;
-const bBadge = (v: unknown, variant: 'cyan' | 'neutral' = 'cyan') => (
-  <Badge variant={variant}>{String(v ?? '')}</Badge>
-);
-
-const COL_CONTACTS: CrmColumn<R>[] = [
-  col('name', 'Name', (r) =>
-    bStrong(`${String(r.firstName ?? '')} ${String(r.lastName ?? '')}`.trim()),
-  ),
-  col('email', 'E-Mail', (r) => bSpan(r.email, 'font-mono text-[12.5px] text-primary')),
-  col('jobTitle', 'Jobbezeichnung', (r) => bBadge(r.jobTitle)),
-  col('companyId', 'Company-ID', (r) =>
-    bSpan(r.companyId, 'font-mono text-[11px] text-[var(--color-text-muted)]'),
-  ),
-];
-
-const COL_COMPANIES: CrmColumn<R>[] = [
-  col('name', 'Unternehmensname', (r) => bStrong(r.name)),
-  col('domain', 'Domain', (r) => bSpan(r.domain, 'font-mono text-[12.5px] text-primary')),
-  col('industry', 'Branche', (r) => bBadge(r.industry)),
-  col('city', 'Stadt'),
-  col('employeeCount', 'Mitarbeiter', (r) => bBadge(`${r.employeeCount || 0} MA`, 'neutral')),
-];
-
-const COL_DEALS: CrmColumn<R>[] = [
-  col('dealName', 'Deal Name', (r) => bStrong(r.dealName)),
-  col('stage', 'Vertriebsphase', (r) => {
-    const s = String(r.stage ?? '');
-    const v = s.includes('gewonnen') ? 'cyan' : s.includes('verloren') ? 'neutral' : 'orange';
-    return <Badge variant={v}>{s}</Badge>;
-  }),
-  col('amount', 'Betrag (€)', (r) =>
-    bSpan(`${Number(r.amount ?? 0).toLocaleString('de-DE')} €`, 'font-mono text-primary font-bold'),
-  ),
-  col('closeDate', 'Abschlussdatum'),
-  col('pipeline', 'Pipeline', (r) => bBadge(r.pipeline, 'neutral')),
-];
-
-const TAB_CONFIG = {
-  contacts: {
-    resource: 'contacts' as const,
-    label: 'Kontakte',
-    sort: 'last_name',
-    order: 'asc',
-    fKey: 'job_title',
-    fLabel: 'Jobtitel:',
-    sorts: mkOpts(
-      'last_name:Nachname,first_name:Vorname,email:E-Mail,job_title:Jobtitel,created_at:Erstelldatum',
-    ),
-    filters: mkOpts(
-      'ALL:Alle Jobtitel,CEO:CEO,CTO:CTO,Head of Sales:Head of Sales,VP Marketing:VP Marketing',
-    ),
-    cols: COL_CONTACTS,
-  },
-  companies: {
-    resource: 'companies' as const,
-    label: 'Unternehmen',
-    sort: 'name',
-    order: 'asc',
-    fKey: 'industry',
-    fLabel: 'Branche:',
-    sorts: mkOpts(
-      'name:Unternehmensname,city:Stadt,employee_count:Mitarbeiter,created_at:Erstelldatum',
-    ),
-    filters: mkOpts(
-      'ALL:Alle Branchen,IT:IT,Maschinenbau:Maschinenbau,Automotive:Automotive,Finanzen:Finanzen',
-    ),
-    cols: COL_COMPANIES,
-  },
-  funnel_deals: {
-    resource: 'deals' as const,
-    label: 'Funnel Deals',
-    sort: 'close_date',
-    order: 'desc',
-    fKey: 'stage',
-    fLabel: 'Vertriebsphase:',
-    sorts: mkOpts(
-      'close_date:Abschlussdatum,amount:Betrag,deal_name:Deal Name,stage:Vertriebsphase',
-    ),
-    filters: mkOpts(
-      'ALL:Alle Vertriebsphasen,Lead eingegangen,Erstgespräch geführt,Bedarfsanalyse,Angebot erstellt,Verhandlung,Deal gewonnen,Deal verloren',
-    ),
-    cols: COL_DEALS,
-  },
-};
-
-const TAB_ITEMS = mkOpts(
-  'contacts:Kontakte,companies:Unternehmen,funnel_deals:Funnel Deals,audit:Datenbank- und Import-Prüfung',
-).map((o) => ({ id: o.value, label: o.label }));
-
-const AUDIT_NOTES: [string, string][] = [
-  ['Mandantengebundene Abfragen', 'Kontakte, Unternehmen und Deals via `crm-query-export`.'],
-  ['Paginierung', 'Serverseitig begrenzt (`pageSize: 1..100`). Keine Browser-Filterung.'],
-  ['CSV-Export', 'Identische serverseitige Query mit Formel-Injection-Neutralisierung.'],
-];
+import { CrmResponsiveList } from '../components/CrmResponsiveList';
+import { LeadsKpiGrid } from '../components/LeadsKpiGrid';
+import { LeadsFilterBar } from '../components/LeadsFilterBar';
+import { LeadQualificationDrawer } from '../components/LeadQualificationDrawer';
+import { LeadConversionModal, ConvertedDealData } from '../components/LeadConversionModal';
+import { getQualifiedLeadIds } from '../services/leadConversionService';
+import {
+  TAB_ITEMS,
+  AUDIT_NOTES,
+  buildContactColumns,
+  buildTabConfig,
+  enrichContactWithCompany,
+  filterLeadsByQuality,
+  exportFilteredContactsCsv,
+  getCrmListStateInfo,
+  type R,
+} from '../utils/leadsPageConfig';
 
 export function LeadsPage() {
   const { session } = useOrganization();
@@ -135,10 +38,26 @@ export function LeadsPage() {
   const [activeTab, setActiveTab] = useUrlSyncedState('tab', 'contacts');
   const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
   const [filterVal, setFilterVal] = useUrlSyncedState('filter', 'ALL');
+  const [qualityFilter, setQualityFilter] = useUrlSyncedState('qualitaet', 'ALL');
   const [pageStr, setPageStr] = useUrlSyncedState('seite', '1');
   const [pageSizeStr, setPageSizeStr] = useUrlSyncedState('proSeite', '20');
 
-  const conf = TAB_CONFIG[activeTab as keyof typeof TAB_CONFIG] ?? TAB_CONFIG.contacts;
+  // Qualifizierungs- & Konvertierungs-State
+  const [selectedLead, setSelectedLead] = useState<R | null>(null);
+  const [convertingLead, setConvertingLead] = useState<R | null>(null);
+  const [conversionSuccessMessage, setConversionSuccessMessage] = useState<string | null>(null);
+
+  const contactColumns = useMemo(
+    () =>
+      buildContactColumns({
+        onSelectLead: (lead) => setSelectedLead(lead),
+        onConvertLead: (lead) => setConvertingLead(lead),
+      }),
+    [],
+  );
+
+  const tabConfig = useMemo(() => buildTabConfig(contactColumns), [contactColumns]);
+  const conf = tabConfig[activeTab as keyof typeof tabConfig] ?? tabConfig.contacts;
   const { provenance, isLoading: isProvLoading } = useCrmProvenance(conf.resource);
   const [sortField, setSortField] = useUrlSyncedState('sort', conf.sort);
   const [sortOrder, setSortOrder] = useUrlSyncedState('order', conf.order);
@@ -154,7 +73,27 @@ export function LeadsPage() {
     [filterVal, conf.fKey],
   );
 
-  // P1-1: Ausschließlich serverseitige TanStack-Query für alle CRM-Ressourcen
+  // Mandantengebundene Unternehmensdaten für ICP-Enrichment abrufen
+  const { data: companiesData } = useCrmListQuery<R>(
+    { resource: 'companies', pageSize: 100 },
+    { enabled: activeTab === 'contacts' },
+  );
+
+  const companyMap = useMemo(() => {
+    const map = new Map<string, R>();
+    for (const comp of companiesData?.items ?? []) {
+      if (comp.id) map.set(String(comp.id), comp);
+    }
+    return map;
+  }, [companiesData?.items]);
+
+  const qualifiedLeadIds = useMemo(() => {
+    void conversionSuccessMessage;
+    return getQualifiedLeadIds(session?.organizationId);
+  }, [session?.organizationId, conversionSuccessMessage]);
+
+  const isClientQualityPaging = activeTab === 'contacts' && qualityFilter !== 'ALL';
+
   const { data, isLoading, isError, isPlaceholderData, error, refetch } = useCrmListQuery<R>(
     {
       resource: conf.resource,
@@ -162,17 +101,52 @@ export function LeadsPage() {
       filters: activeFilters,
       sortBy: sortField,
       sortOrder: (sortOrder as 'asc' | 'desc') || conf.order,
-      page,
-      pageSize,
+      page: isClientQualityPaging ? 1 : page,
+      pageSize: isClientQualityPaging ? 100 : pageSize,
     },
     { enabled: activeTab !== 'audit' },
   );
 
-  const items = useMemo(() => data?.items ?? [], [data?.items]);
-  const total = data?.total ?? 0;
+  const rawItems = useMemo(() => data?.items ?? [], [data?.items]);
 
-  // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
-  // Platzhalterdaten (vorherige Abfrage) gelten als Laden; der Audit-Tab fragt keine Liste ab.
+  // Angereicherte und mandantengebundene Kontakte
+  const enrichedContacts = useMemo(() => {
+    if (activeTab !== 'contacts') return [];
+    return rawItems.map((contact) =>
+      enrichContactWithCompany(
+        contact,
+        contact.companyId ? companyMap.get(String(contact.companyId)) : undefined,
+        qualifiedLeadIds.has(String(contact.id)),
+      ),
+    );
+  }, [activeTab, rawItems, companyMap, qualifiedLeadIds]);
+
+  const allFilteredContacts = useMemo(() => {
+    if (activeTab !== 'contacts') return [];
+    return filterLeadsByQuality(enrichedContacts, qualityFilter);
+  }, [activeTab, enrichedContacts, qualityFilter]);
+
+  // Clientseitige Paginierung nur beim Qualitätsfilter; sonst gilt die Serverliste
+  const { items, total } = useMemo(() => {
+    if (activeTab === 'contacts') {
+      if (qualityFilter !== 'ALL') {
+        const paged = allFilteredContacts.slice((page - 1) * pageSize, page * pageSize);
+        return { items: paged, total: allFilteredContacts.length };
+      }
+      return { items: enrichedContacts, total: data?.total ?? 0 };
+    }
+    return { items: rawItems, total: data?.total ?? 0 };
+  }, [
+    activeTab,
+    qualityFilter,
+    allFilteredContacts,
+    enrichedContacts,
+    rawItems,
+    page,
+    pageSize,
+    data?.total,
+  ]);
+
   const isAudit = activeTab === 'audit';
   const hasData = data !== undefined && !isPlaceholderData;
   const countText = isAudit ? '–' : isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
@@ -184,7 +158,8 @@ export function LeadsPage() {
     setPageStr('1');
     setSearchTerm('');
     setFilterVal('ALL');
-    const next = TAB_CONFIG[newTab as keyof typeof TAB_CONFIG];
+    setQualityFilter('ALL');
+    const next = tabConfig[newTab as keyof typeof tabConfig];
     if (next) {
       setSortField(next.sort);
       setSortOrder(next.order);
@@ -195,13 +170,17 @@ export function LeadsPage() {
     setIsExporting(true);
     setExportError(null);
     try {
-      await downloadCrmExport({
-        resource: conf.resource,
-        q: searchTerm.trim() || undefined,
-        filters: activeFilters,
-        sortBy: sortField,
-        sortOrder: (sortOrder as 'asc' | 'desc') || conf.order,
-      });
+      if (activeTab === 'contacts' && qualityFilter !== 'ALL') {
+        exportFilteredContactsCsv(allFilteredContacts, qualityFilter);
+      } else {
+        await downloadCrmExport({
+          resource: conf.resource,
+          q: searchTerm.trim() || undefined,
+          filters: activeFilters,
+          sortBy: sortField,
+          sortOrder: (sortOrder as 'asc' | 'desc') || conf.order,
+        });
+      }
     } catch (err) {
       setExportError(err instanceof CrmServiceError ? err.message : 'Fehler beim CSV-Export.');
     } finally {
@@ -209,17 +188,14 @@ export function LeadsPage() {
     }
   };
 
-  const stateInfo =
-    isLoading && items.length === 0
-      ? { type: 'loading' as const, msg: 'Lade Daten aus CRM Repository...' }
-      : isError
-        ? {
-            type: 'error' as const,
-            msg: `Fehler: ${error instanceof Error ? error.message : 'Fehler beim Laden der CRM-Daten'}`,
-          }
-        : items.length === 0
-          ? { type: 'empty' as const, msg: 'Keine CRM-Daten gefunden' }
-          : null;
+  const handleConversionSuccess = (deal: ConvertedDealData) => {
+    setConversionSuccessMessage(
+      `Deal „${deal.dealName}“ erfolgreich mit ${deal.amount.toLocaleString('de-DE')} € in Phase „${deal.stage}“ angelegt!`,
+    );
+    setTimeout(() => setConversionSuccessMessage(null), 6000);
+  };
+
+  const stateInfo = getCrmListStateInfo(isLoading, isError, error, items.length);
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
@@ -227,7 +203,7 @@ export function LeadsPage() {
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Leads & Kontakte"
-          description="Mandantenspezifischer CRM-Datenbestand mit serverseitiger Paginierung, Whitelist-Filterung und CSV-Export."
+          description="Mandantenspezifischer CRM-Datenbestand mit automatisiertem ICP-Lead-Scoring, Qualifizierungs-Workflow und CSV-Export."
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
           <Badge variant="cyan">CRM-Daten</Badge>
@@ -263,115 +239,73 @@ export function LeadsPage() {
         </div>
       </div>
 
+      {conversionSuccessMessage && (
+        <div
+          role="status"
+          className="flex items-center gap-2 p-3 rounded-md bg-success/10 border border-success/30 text-success text-[13px]"
+        >
+          <CheckCircle2 size={16} />
+          <span>{conversionSuccessMessage}</span>
+        </div>
+      )}
+
       {exportError && (
         <div
           role="alert"
-          className="flex items-center gap-[var(--space-2)] p-[var(--space-3)] rounded-md bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-error text-[13px]"
+          className="flex items-center gap-2 p-3 rounded-md bg-error/10 border border-error/30 text-error text-[13px]"
         >
           <AlertCircle size={16} />
           <span>{exportError}</span>
         </div>
       )}
 
-      <div className="crm-v2-kpi-grid">
-        {[
-          {
-            t: 'Gefundene Datensätze',
-            v: countText,
-            n: isAudit ? 'Im Audit-Tab keine Listenabfrage' : 'Mandanten-geprüft',
-            c: 'text-primary font-bold',
-            f: true,
-          },
-          {
-            t: 'Aktuelle Seite',
-            v:
-              isAudit || isError || !hasData
-                ? '–'
-                : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
-            n: `${pageSize} pro Seite`,
-            c: 'text-text font-semibold',
-          },
-          {
-            t: 'Aktiver Tab',
-            v: isAudit ? 'Audit' : conf.label,
-            n: 'Serverseitig abgefragt',
-            c: 'text-text font-semibold text-[20px]',
-          },
-          {
-            t: 'Datenbank Status',
-            v: isSupabaseConfigured ? '⚡ Datenbank verbunden' : '📦 Lokale Beispieldaten',
-            n: 'Edge Function & RLS aktiv',
-            c: isSupabaseConfigured ? 'text-success text-[18px]' : 'text-accent text-[18px]',
-          },
-        ].map((k) => (
-          <Card key={k.t} variant="glass" featured={Boolean(k.f)}>
-            <div className="text-[13px] text-[var(--color-text-muted)]">{k.t}</div>
-            <div className={`font-display text-[28px] my-[4px] truncate ${k.c}`}>{k.v}</div>
-            <div className="text-[12px] text-success">{k.n}</div>
-          </Card>
-        ))}
-      </div>
+      <LeadsKpiGrid
+        countText={countText}
+        isAudit={isAudit}
+        isError={isError}
+        hasData={hasData}
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        confLabel={conf.label}
+      />
 
       <div className="crm-v2-tabs-wrapper">
         <Tabs items={TAB_ITEMS} activeId={activeTab} onChange={handleTabChange} />
       </div>
 
       {activeTab !== 'audit' && (
-        <div className="crm-v2-filter-bar">
-          <div className="flex-[1_1_260px] max-w-full">
-            <Input
-              type="search"
-              aria-label="Suche in Liste"
-              placeholder="Suchbegriff eingeben..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPageStr('1');
-              }}
-              leadingIcon={<Search size={16} />}
-              sizeVariant="sm"
-            />
-          </div>
-          <div className="flex items-center gap-[var(--space-3)] flex-wrap flex-[0_1_auto]">
-            {[
-              {
-                l: conf.fLabel,
-                opts: conf.filters,
-                v: filterVal,
-                s: setFilterVal,
-                w: 'min-w-[150px] w-full max-w-[190px]',
-              },
-              {
-                l: 'Sortierung:',
-                opts: conf.sorts,
-                v: sortField,
-                s: setSortField,
-                w: 'min-w-[150px] w-full max-w-[190px]',
-              },
-              {
-                l: 'Reihenfolge:',
-                opts: ORDER_OPTS,
-                v: sortOrder,
-                s: setSortOrder,
-                w: 'min-w-[140px] w-full max-w-[170px]',
-              },
-            ].map((f) => (
-              <div key={f.l} className={f.w}>
-                <Select
-                  label={f.l}
-                  options={f.opts}
-                  value={f.v}
-                  onChange={(val) => {
-                    f.s(val);
-                    setPageStr('1');
-                  }}
-                  sizeVariant="sm"
-                  fullWidth
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <LeadsFilterBar
+          activeTab={activeTab}
+          searchTerm={searchTerm}
+          onSearchChange={(val) => {
+            setSearchTerm(val);
+            setPageStr('1');
+          }}
+          qualityFilter={qualityFilter}
+          onQualityFilterChange={(val) => {
+            setQualityFilter(val);
+            setPageStr('1');
+          }}
+          filterLabel={conf.fLabel}
+          filterOptions={conf.filters}
+          filterVal={filterVal}
+          onFilterChange={(val) => {
+            setFilterVal(val);
+            setPageStr('1');
+          }}
+          sortOptions={conf.sorts}
+          sortField={sortField}
+          onSortFieldChange={(val) => {
+            setSortField(val);
+            setPageStr('1');
+          }}
+          sortOrder={sortOrder}
+          onSortOrderChange={(val) => {
+            setSortOrder(val);
+            setPageStr('1');
+          }}
+        />
       )}
 
       {activeTab === 'audit' ? (
@@ -417,6 +351,27 @@ export function LeadsPage() {
           />
         </Card>
       )}
+
+      {/* Qualifizierungs-Drawer */}
+      <LeadQualificationDrawer
+        key={selectedLead ? String(selectedLead.id) : 'empty'}
+        lead={selectedLead}
+        isOpen={Boolean(selectedLead)}
+        onClose={() => setSelectedLead(null)}
+        onConvertToDeal={(l) => {
+          setSelectedLead(null);
+          setConvertingLead(l);
+        }}
+      />
+
+      {/* Konvertierungs-Modal */}
+      <LeadConversionModal
+        lead={convertingLead}
+        isOpen={Boolean(convertingLead)}
+        onClose={() => setConvertingLead(null)}
+        onSuccess={handleConversionSuccess}
+        organizationId={session?.organizationId}
+      />
     </div>
   );
 }
