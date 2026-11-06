@@ -2,6 +2,7 @@
 import { assertEquals } from '@std/assert';
 import {
   buildCanonicalCrmQuery,
+  execCrmQuery,
   type CrmExportResourceParams,
   type CrmMembership,
   type CrmQueryDb,
@@ -266,4 +267,50 @@ Deno.test('crm-query-export: sortDealsByStageLabel sortiert nach normalisiertem 
   assertEquals(asc, ['c', 'b', 'd', 'a']);
   const desc = sortDealsByStageLabel(items, 'desc').map((i) => i.id);
   assertEquals(desc, ['a', 'b', 'd', 'c']);
+});
+
+Deno.test('crm-query-export: execCrmQuery lädt beim Export (> 1.000 Deals) alle Chunks auch ohne Phasensortierung', async () => {
+  const rangeCalls: [number, number][] = [];
+  const fakeQuery: Record<string, unknown> = {
+    select: () => fakeQuery,
+    eq: () => fakeQuery,
+    order: () => fakeQuery,
+    range: (from: number, to: number) => {
+      rangeCalls.push([from, to]);
+      return fakeQuery;
+    },
+    then: (resolve: (val: unknown) => unknown) => {
+      const lastRange = rangeCalls[rangeCalls.length - 1];
+      const from = lastRange ? lastRange[0] : 0;
+      const count = from === 0 ? 1000 : 250;
+      const data = Array.from({ length: count }, (_, i) => ({
+        id: `deal-${from + i}`,
+        deal_name: `Deal ${from + i}`,
+        stage: 'PROPOSAL',
+        amount: 10000,
+        close_date: '2026-12-01',
+        pipeline: 'default',
+        created_at: '2026-01-01',
+      }));
+      return Promise.resolve(resolve({ data, error: null, count: 1250 }));
+    },
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fakeSupabase: any = { from: () => fakeQuery };
+
+  const res = await execCrmQuery(
+    fakeSupabase,
+    {
+      resource: 'deals',
+      organizationId: ORG_ID,
+      sortBy: 'expected_close_date',
+      sortOrder: 'desc',
+    },
+    true,
+  );
+
+  assertEquals(rangeCalls.length, 2);
+  assertEquals(rangeCalls[0], [0, 999]);
+  assertEquals(rangeCalls[1], [1000, 1999]);
+  assertEquals(res.items.length, 1250);
 });

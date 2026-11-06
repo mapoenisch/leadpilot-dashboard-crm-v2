@@ -186,4 +186,26 @@ describe('crmCsvHelper', () => {
     expect(dealMatchesSearch(deal, '')).toBe(true);
     expect(dealMatchesSearch(deal, undefined)).toBe(true);
   });
+
+  it('filtert CSV-Export mit > 1.000 Deals und lokalen Overrides ohne Datenverlust (Befund Runde 14)', () => {
+    const header = 'ID,Deal Name,Stage,Betrag,Abschlussdatum,Pipeline';
+    const rows = [header];
+    for (let i = 1; i <= 1250; i++) {
+      rows.push(`d-${i},Deal ${i},Lead eingegangen,10000,2026-12-01,Standard`);
+    }
+    const fullCsv = '\uFEFF' + rows.join('\r\n') + '\r\n';
+
+    const updated = applyStageOverridesToCsv(
+      fullCsv,
+      { 'd-1200': 'Deal gewonnen' },
+      'Deal gewonnen',
+      'expected_close_date',
+      'desc',
+    );
+
+    const parsed = parseCsv(updated);
+    expect(parsed).toHaveLength(2); // Header + d-1200
+    expect(parsed[1]![0]).toBe('d-1200');
+    expect(parsed[1]![2]).toBe('Deal gewonnen');
+  });
 });

@@ -300,20 +300,21 @@ function mapRowToFrontend(res: CrmResource, r: Record<string, unknown>): Record<
 
 const STAGE_SORT_CHUNK = 1000;
 
-async function execCrmQuery(
+export async function execCrmQuery(
   supabase: SupaClient,
   params: CrmQueryResourceParams | CrmExportResourceParams,
   isExport = false,
 ) {
   const paged = !isExport && 'page' in params && 'pageSize' in params;
-  // Sortierung nach Phase: Rohwerte (z. B. 'CLOSING') sortieren anders als die angezeigten Labels.
-  // Daher vollständig laden, nach normalisiertem Label sortieren und erst danach paginieren.
+  // Sortierung nach Phase oder vollständiger Export: Rohwerte sortieren anders bzw. Exporte
+  // müssen für Mandanten > 1.000 Zeilen alle Chunks laden, damit gefilterte Exporte keine Daten verlieren.
   const sortByStage = params.resource === 'deals' && params.sortBy === 'stage';
+  const fetchAllChunks = isExport || sortByStage;
   const rows: Record<string, unknown>[] = [];
   let total = 0;
   for (let from = 0;; from += STAGE_SORT_CHUNK) {
     let query = buildCanonicalCrmQuery(supabase, params, isExport ? undefined : { count: 'exact' });
-    if (sortByStage) {
+    if (fetchAllChunks) {
       query = query.range(from, from + STAGE_SORT_CHUNK - 1);
     } else if (paged) {
       const start = (params.page - 1) * params.pageSize;
@@ -327,7 +328,7 @@ async function execCrmQuery(
     const chunk = (data as unknown as Record<string, unknown>[]) || [];
     rows.push(...chunk);
     total = count ?? total;
-    if (!sortByStage || chunk.length < STAGE_SORT_CHUNK) break;
+    if (!fetchAllChunks || chunk.length < STAGE_SORT_CHUNK) break;
   }
   let items = rows.map((row) => mapRowToFrontend(params.resource, row));
   if (sortByStage) {

@@ -18731,3 +18731,32 @@ Beide offenen P2-Befunde aus Review-Runde 13 strukturiert behoben:
   - `src/features/crm/utils/dealsClientView.ts`: 112 Zeilen
   - `src/features/crm/pages/__tests__/DealsPage.fullbase.ui.vitest.tsx`: 175 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 14 (PR #139, Head `b72d5e9`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Offener P2-Befund aus Review-Runde 14 behoben:
+
+1. **Befund (P2, `crmCsvHelper.ts` / `supabase/functions/crm-query-export/index.ts` – Lade vor der lokalen CSV-Filterung die vollständige Datenbasis):**
+   - **Befund:** Bei mehr als 1.000 Deals, mindestens einem lokalen Phasenwechsel und einer Sortierung etwa nach Abschlussdatum konnte ein gefilterter CSV-Export passende Deals vollständig verlieren. Mit Overrides deaktiviert `useDealStageOverrides` die serverseitige Suche und Phasenfilterung. Der Exportpfad in `supabase/functions/crm-query-export/index.ts` lud jedoch außer bei Phasensortierung keine weiteren Seiten; bei `max_rows = 1000` aus `supabase/config.toml` enthielt dieser Blob daher höchstens die ersten 1.000 ungefilterten Deals. Die anschließende lokale Filterung fand Treffer außerhalb dieses Ausschnitts nicht.
+   - **Behebung:** In `supabase/functions/crm-query-export/index.ts` lädt `execCrmQuery` für jeden Export (`fetchAllChunks = isExport || sortByStage`) alle Chunks à 1.000 Zeilen sequenziell via `.range(from, from + STAGE_SORT_CHUNK - 1)` durch, bis `chunk.length < STAGE_SORT_CHUNK`. Dadurch enthält der vom Server generierte CSV-Blob die vollständige Datenbasis des Mandanten unabhängig von der gewählten Sortierung, sodass die anschließende lokale Phasen- und Textsuchenfilterung in `crmCsvHelper.ts` alle Datensätze verarbeitet und keine Treffer verloren gehen.
+   - **Test-Absicherung:**
+     - Neuer Deno-Test in `supabase/functions/__tests__/crmStageFilter.test.ts` (`crm-query-export: execCrmQuery lädt beim Export (> 1.000 Deals) alle Chunks auch ohne Phasensortierung`): Verifiziert, dass bei 1.250 Deals und Sortierung nach `expected_close_date` beide Chunks (0..999 und 1000..1999) abgerufen werden und alle 1.250 Zeilen im Ergebnis vorliegen.
+     - Neuer Vitest-Test in `src/features/crm/__tests__/crmCsvHelper.vitest.ts` (`filtert CSV-Export mit > 1.000 Deals und lokalen Overrides ohne Datenverlust (Befund Runde 14)`): Verifiziert, dass ein verschobener Deal jenseits Zeile 1.000 bei Phasenfilterung im CSV erhalten bleibt.
+
+### Automatisierte Verifikation (Nacharbeit Runde 14)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `deno check` & `deno test`: 67 Tests grün (100% bestanden)
+- `npm test src/features/crm`: 20 Testdateien, 135 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (4.43s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `supabase/functions/crm-query-export/index.ts`: 391 Zeilen
+  - `supabase/functions/__tests__/crmStageFilter.test.ts`: 316 Zeilen
+  - `src/features/crm/__tests__/crmCsvHelper.vitest.ts`: 211 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
