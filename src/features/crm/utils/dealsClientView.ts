@@ -2,6 +2,8 @@
 import type { ImportedFunnelDeal } from '@/types/crm';
 import type { SelectOption } from '@/components/ui/Select';
 import { dealMatchesSearch } from './crmCsvHelper';
+import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
+import type { DealsViewMode } from '../components/DealsViewToggle';
 
 export interface ClientViewOptions {
   active: boolean;
@@ -43,4 +45,68 @@ export function buildStageOptions(
     }
   }
   return [...base, ...extra];
+}
+
+export function buildDealsQueryKey(params: {
+  searchTerm: string;
+  serverSearchTerm?: string;
+  stageFilter: string;
+  serverStageFilter?: string;
+  sortField: string;
+  sortOrder: string;
+}): string {
+  const { searchTerm, serverSearchTerm, stageFilter, serverStageFilter, sortField, sortOrder } =
+    params;
+  return `${searchTerm.trim()}|${serverSearchTerm ?? 'UNSEARCHED'}|${stageFilter}|${serverStageFilter ?? 'UNFILTERED'}|${sortField}|${sortOrder}`;
+}
+
+export function sliceTableDeals(
+  deals: ImportedFunnelDeal[],
+  active: boolean,
+  viewMode: string,
+  page: number,
+  pageSize: number,
+): ImportedFunnelDeal[] {
+  if (active && viewMode === 'tabelle') {
+    const start = (page - 1) * pageSize;
+    return deals.slice(start, start + pageSize);
+  }
+  return deals;
+}
+
+export function useDealsUrlState() {
+  const [viewModeRaw, setViewModeRaw] = useUrlSyncedState('ansicht', 'tabelle');
+  const viewMode: DealsViewMode = viewModeRaw === 'kanban' ? 'kanban' : 'tabelle';
+  const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
+  const [stageFilter, setStageFilter] = useUrlSyncedState('stufe', 'ALL');
+  const [pageStr, setPageStr] = useUrlSyncedState('seite', '1');
+  const [pageSizeStr, setPageSizeStr] = useUrlSyncedState('proSeite', '20');
+  const [sortField, setSortField] = useUrlSyncedState('sort', 'close_date');
+  const [sortOrder, setSortOrder] = useUrlSyncedState('order', 'desc');
+
+  const page = Math.max(1, parseInt(pageStr, 10) || 1);
+  const tablePageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
+
+  const resetPageAnd = (fn: (v: string) => void) => (v: string) => {
+    fn(v);
+    setPageStr('1');
+  };
+
+  return {
+    viewModeRaw,
+    setViewModeRaw,
+    viewMode,
+    searchTerm,
+    stageFilter,
+    page,
+    setPageStr,
+    tablePageSize,
+    setPageSizeStr,
+    sortField,
+    sortOrder,
+    handleSortChange: resetPageAnd(setSortField),
+    handleOrderChange: resetPageAnd(setSortOrder),
+    handleSearchChange: resetPageAnd(setSearchTerm),
+    handleStageChange: resetPageAnd(setStageFilter),
+  };
 }

@@ -18698,3 +18698,36 @@ Zwei offene P2-Befunde:
    - Neuer Deno-Test für die Sortierung.
 
 Verifikation: `deno check`/`deno test` 66 Tests grün, `npm run lint` 0 Fehler, `format:check` sauber, `tsc` 0 Fehler, `vitest` 357 Dateien / 2.593 Tests grün, `npm run verify` 25 Suiten grün, `npm run build` erfolgreich. Schutzbereichs-Diff gegen `origin/main`: leer.
+
+### Nacharbeit Codex-Review Runde 13 (PR #139, Head `bfd0a89`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Beide offenen P2-Befunde aus Review-Runde 13 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Starte das automatische Nachladen erst nach dem Seitenreset):**
+   - **Befund:** Bei zuvor im Kanban geladenen Zusatzseiten und anschließendem Wechsel von Suchbegriff oder Phasenfilter konnte der automatische Nachlade-Effect noch mit den alten `extraDeals` laufen, bevor deren Reset durch den vorherigen Effect wirksam wurde. Bei z. B. 350 Deals und 200 geladenen Zeilen forderte er dadurch Seite 3 an – nach dem Reset fehlten jedoch die Zeilen von Seite 2.
+   - **Behebung:** `extraDeals` und `loadMoreFailed` werden synchron anhand des `currentQueryKey` ausgewertet (`extraDealsState.queryKey === currentQueryKey`). Bei jeder Änderung der Query-Parameter (Filter, Suche, Sortierung) evaluieren `extraDeals` und `loadMoreFailed` im selben Render synchron zu `[]` bzw. `false`. `handleLoadMore` berechnet die nächste Seite deterministisch als Seite 2, ohne dass alte Zeilen zwischen Renders weiterwirken.
+   - **Test-Absicherung:** Neuer Test in `DealsPage.fullbase.ui.vitest.tsx` (`setzt Zusatzseiten bei Parameterwechsel synchron zurück und fordert Seite 2 an`).
+
+2. **Befund 2 (P2, `DealsPage.tsx` – Behandle Nachladefehler nicht als vollständige Datenbasis):**
+   - **Befund:** Schlug beim automatischen Laden der vollständigen Datenbasis eine Folgeseite fehl, setzte der Catch-Block `loadMoreFailed`, wodurch `needsFullBase` falsch und `hasData` wahr wurde. Die Tabelle/das Board präsentierte Teildatenbasis als fertiges Gesamtergebnis ohne Fehlermeldung oder Retry-Aktion. Liegen passende Deals ausschließlich auf der fehlgeschlagenen Seite, erschien fälschlich „0 Deals gefunden“.
+   - **Behebung:** `needsFullBase` bleibt strikt an `clientPagingActive && hasMoreOnServer` gebunden (keine Entkopplung bei Fehler). `isFullBaseError = needsFullBase && loadMoreFailed` trennt den Fehlerzustand vom Vollständigkeitsstatus. Bei Nachladefehlern bleibt `hasData` falsch, der Export gesperrt, und `ManagementChartState` visualisiert einen dedizierten Fehler-Zustand inklusive `onRetry`-Aktion (`handleRetryLoadMore`), die den Fehlerstatus zurücksetzt und das Nachladen der fehlenden Seite erneut anstößt.
+   - **Test-Absicherung:** Neuer Test in `DealsPage.fullbase.ui.vitest.tsx` (`behandelt Nachladefehler nicht als vollständige Datenbasis und bietet Retry an`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 13)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/crm`: 20 Testdateien, 134 Tests grün (100% bestanden)
+- `npm test`: 357 Testdateien, 2.595 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (4.38s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/crm/pages/DealsPage.tsx`: 385 Zeilen
+  - `src/features/crm/utils/crmStageHelper.ts`: 203 Zeilen
+  - `src/features/crm/utils/crmCsvHelper.ts`: 258 Zeilen
+  - `src/features/crm/utils/dealsClientView.ts`: 112 Zeilen
+  - `src/features/crm/pages/__tests__/DealsPage.fullbase.ui.vitest.tsx`: 175 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

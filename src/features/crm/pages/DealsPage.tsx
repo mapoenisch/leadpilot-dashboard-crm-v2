@@ -6,25 +6,29 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { ImportedFunnelDeal } from '@/types/crm';
-import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
-import { fetchCrmExportBlob, CrmServiceError } from '@/services/crm/crmExportService';
+import { CrmServiceError } from '@/services/crm/crmExportService';
 import { fetchCrmList } from '@/services/crm/crmListService';
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { DealsTableCard } from '../components/DealsTableCard';
-import { DealsViewToggle, DealsViewMode } from '../components/DealsViewToggle';
+import { DealsViewToggle } from '../components/DealsViewToggle';
 import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
 import { DealsKpiGrid } from '../components/DealsKpiGrid';
 import { DealsFilterBar, BASE_STAGE_OPTIONS } from '../components/DealsFilterBar';
-import { applyStageOverridesToCsv, readBlobAsText } from '../utils/crmCsvHelper';
-import { applyClientDealView, buildStageOptions } from '../utils/dealsClientView';
+import { exportCrmDealsCsv } from '../utils/crmCsvHelper';
+import {
+  applyClientDealView,
+  buildStageOptions,
+  buildDealsQueryKey,
+  sliceTableDeals,
+  useDealsUrlState,
+} from '../utils/dealsClientView';
 import {
   getDealStageOverridesStorageKey,
   normalizeCanonicalStageLabel,
-  readStageOverrides,
-  writeStageOverrides,
+  useDealStageOverrides,
 } from '../utils/crmStageHelper';
 
 export function DealsPage() {
@@ -34,83 +38,65 @@ export function DealsPage() {
 
   const storageKey = getDealStageOverridesStorageKey(session?.organizationId, session?.userId);
 
-  // URL-synchroner Zustand
-  const [viewModeRaw, setViewModeRaw] = useUrlSyncedState('ansicht', 'tabelle');
-  const viewMode: DealsViewMode = viewModeRaw === 'kanban' ? 'kanban' : 'tabelle';
-  const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
-  const [stageFilter, setStageFilter] = useUrlSyncedState('stufe', 'ALL');
-  const [pageStr, setPageStr] = useUrlSyncedState('seite', '1');
-  const [pageSizeStr, setPageSizeStr] = useUrlSyncedState('proSeite', '20');
-  const [sortField, setSortField] = useUrlSyncedState('sort', 'close_date');
-  const [sortOrder, setSortOrder] = useUrlSyncedState('order', 'desc');
+  const {
+    setViewModeRaw,
+    viewMode,
+    searchTerm,
+    stageFilter,
+    page,
+    setPageStr,
+    tablePageSize,
+    setPageSizeStr,
+    sortField,
+    sortOrder,
+    handleSortChange,
+    handleOrderChange,
+    handleSearchChange,
+    handleStageChange,
+  } = useDealsUrlState();
 
-  const page = Math.max(1, parseInt(pageStr, 10) || 1);
-  const tablePageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
-
-  // Phasenwechsel über Ansichtswechsel hinaus erhalten (benutzer- und organisationsgebunden im Session-Storage)
-  const [stageOverrides, setStageOverrides] = useState<Record<string, string>>(() =>
-    readStageOverrides(storageKey),
-  );
-
-  // Beim Wechsel von Identität/Organisation Overrides passend synchronisieren oder verwerfen
-  useEffect(() => {
-    setStageOverrides(readStageOverrides(storageKey));
-  }, [storageKey]);
-
-  const hasStageOverrides = Object.keys(stageOverrides).length > 0;
-  // Wenn lokale Phasenwechsel aktiv sind, ungefiltert und ohne Server-Suche vom Server laden,
-  // damit verschobene Deals bei Phasenfiltern und Textsuche nicht serverseitig verloren gehen.
-  const serverStageFilter = hasStageOverrides
-    ? undefined
-    : stageFilter !== 'ALL'
-      ? stageFilter
-      : undefined;
-
-  const serverSearchTerm = hasStageOverrides ? undefined : searchTerm.trim() || undefined;
-
-  const clientPagingActive =
-    hasStageOverrides &&
-    (stageFilter !== 'ALL' || sortField === 'stage' || Boolean(searchTerm.trim()));
+  const {
+    stageOverrides,
+    hasStageOverrides,
+    serverStageFilter,
+    serverSearchTerm,
+    clientPagingActive,
+    handleDealStageChange,
+  } = useDealStageOverrides(storageKey, stageFilter, sortField, searchTerm);
 
   const pageSize = viewMode === 'kanban' || clientPagingActive ? 100 : tablePageSize;
 
-  const handleDealStageChange = useCallback(
-    (dealId: string, newStage: string) => {
-      setStageOverrides((prev) => {
-        const next = { ...prev, [dealId]: newStage };
-        writeStageOverrides(storageKey, next);
-        return next;
-      });
-    },
-    [storageKey],
-  );
-
-  const [extraDeals, setExtraDeals] = useState<ImportedFunnelDeal[]>([]);
+  const [extraDealsState, setExtraDealsState] = useState<{
+    queryKey: string;
+    items: ImportedFunnelDeal[];
+  }>({ queryKey: '', items: [] });
+  const [loadMoreErrorState, setLoadMoreErrorState] = useState<{
+    queryKey: string;
+    error: boolean;
+  }>({ queryKey: '', error: false });
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const activeLoadMoreQueryRef = useRef<string>('');
 
   const currentQueryKey = useMemo(
     () =>
-      `${searchTerm.trim()}|${serverSearchTerm ?? 'UNSEARCHED'}|${stageFilter}|${serverStageFilter ?? 'UNFILTERED'}|${sortField}|${sortOrder}`,
+      buildDealsQueryKey({
+        searchTerm,
+        serverSearchTerm,
+        stageFilter,
+        serverStageFilter,
+        sortField,
+        sortOrder,
+      }),
     [searchTerm, serverSearchTerm, stageFilter, serverStageFilter, sortField, sortOrder],
   );
 
-  useEffect(() => {
-    setExtraDeals([]);
-    activeLoadMoreQueryRef.current = '';
-    setIsLoadingMore(false);
-    setLoadMoreFailed(false);
-  }, [currentQueryKey]);
-
-  const withPageReset = (set: (val: string) => void) => (val: string) => {
-    set(val);
-    setPageStr('1');
-  };
-  const handleSortChange = withPageReset(setSortField);
-  const handleOrderChange = withPageReset(setSortOrder);
-  const handleSearchChange = withPageReset(setSearchTerm);
-  const handleStageChange = withPageReset(setStageFilter);
+  // Synchron an den aktuellen Query-Key gebunden: Sofort leer und fehlerfrei bei Filter-/Suchwechsel
+  const extraDeals = useMemo(
+    () => (extraDealsState.queryKey === currentQueryKey ? extraDealsState.items : []),
+    [extraDealsState, currentQueryKey],
+  );
+  const loadMoreFailed =
+    loadMoreErrorState.queryKey === currentQueryKey && loadMoreErrorState.error;
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, isPlaceholderData, error, refetch } =
@@ -136,7 +122,8 @@ export function DealsPage() {
   const serverTotal = data?.total ?? 0;
   const hasMoreOnServer = rawDeals.length < serverTotal;
   // Client-Filter, -Suche und -Sortierung brauchen die vollständige Datenbasis
-  const needsFullBase = clientPagingActive && hasMoreOnServer && !loadMoreFailed;
+  const needsFullBase = clientPagingActive && hasMoreOnServer;
+  const isFullBaseError = needsFullBase && loadMoreFailed;
 
   const mappedDeals = useMemo(() => {
     return rawDeals.map((d) => {
@@ -162,13 +149,10 @@ export function DealsPage() {
     hasStageOverrides && (stageFilter !== 'ALL' || Boolean(searchTerm.trim()));
   const total = isClientFiltered ? deals.length : serverTotal;
 
-  const tableDeals = useMemo(() => {
-    if (clientPagingActive && viewMode === 'tabelle') {
-      const start = (page - 1) * tablePageSize;
-      return deals.slice(start, start + tablePageSize);
-    }
-    return deals;
-  }, [clientPagingActive, viewMode, page, tablePageSize, deals]);
+  const tableDeals = useMemo(
+    () => sliceTableDeals(deals, clientPagingActive, viewMode, page, tablePageSize),
+    [clientPagingActive, viewMode, page, tablePageSize, deals],
+  );
 
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || isPlaceholderData) return;
@@ -176,7 +160,9 @@ export function DealsPage() {
     activeLoadMoreQueryRef.current = requestKey;
     setIsLoadingMore(true);
     try {
-      const currentCount = (data?.items?.length ?? 0) + extraDeals.length;
+      const currentCount =
+        (data?.items?.length ?? 0) +
+        (extraDealsState.queryKey === requestKey ? extraDealsState.items.length : 0);
       const nextPage = Math.floor(currentCount / 100) + 1;
       const res = await fetchCrmList<ImportedFunnelDeal>({
         resource: 'deals',
@@ -187,13 +173,15 @@ export function DealsPage() {
         page: nextPage,
         pageSize: 100,
       });
-      // Verwirf die Antwort, falls sich die Query-Parameter in der Zwischenzeit geändert haben
       if (activeLoadMoreQueryRef.current === requestKey) {
-        setExtraDeals((prev) => [...prev, ...res.items]);
+        setExtraDealsState((prev) => ({
+          queryKey: requestKey,
+          items: prev.queryKey === requestKey ? [...prev.items, ...res.items] : res.items,
+        }));
       }
     } catch {
       if (activeLoadMoreQueryRef.current === requestKey) {
-        setLoadMoreFailed(true);
+        setLoadMoreErrorState({ queryKey: requestKey, error: true });
       }
     } finally {
       if (activeLoadMoreQueryRef.current === requestKey) {
@@ -203,7 +191,7 @@ export function DealsPage() {
   }, [
     currentQueryKey,
     data?.items?.length,
-    extraDeals.length,
+    extraDealsState,
     isLoadingMore,
     isPlaceholderData,
     serverSearchTerm,
@@ -212,13 +200,24 @@ export function DealsPage() {
     sortOrder,
   ]);
 
+  const handleRetryLoadMore = useCallback(() => {
+    setLoadMoreErrorState({ queryKey: currentQueryKey, error: false });
+    void handleLoadMore();
+  }, [currentQueryKey, handleLoadMore]);
+
   // Bei lokalen Phasenwechseln mit Filter/Suche/Phasensortierung alle Serverseiten nachladen,
   // damit die Client-Auswertung auf der vollständigen Datenbasis läuft.
   useEffect(() => {
-    if (needsFullBase && !isLoadingMore && !isPlaceholderData && data !== undefined) {
+    if (
+      needsFullBase &&
+      !loadMoreFailed &&
+      !isLoadingMore &&
+      !isPlaceholderData &&
+      data !== undefined
+    ) {
       void handleLoadMore();
     }
-  }, [needsFullBase, isLoadingMore, isPlaceholderData, data, handleLoadMore]);
+  }, [needsFullBase, loadMoreFailed, isLoadingMore, isPlaceholderData, data, handleLoadMore]);
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -227,35 +226,15 @@ export function DealsPage() {
     setIsExporting(true);
     setExportError(null);
     try {
-      const blob = await fetchCrmExportBlob({
-        resource: 'deals',
-        q: serverSearchTerm,
-        // Wenn stageOverrides aktiv sind, ungefiltert vom Server holen und im CSV-fähigen Parser abgleichen
-        filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
-        sortBy: sortField,
-        sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+      await exportCrmDealsCsv({
+        serverSearchTerm,
+        serverStageFilter,
+        sortField,
+        sortOrder,
+        stageOverrides,
+        stageFilter,
+        searchTerm,
       });
-      let exportBlob = blob;
-      if (hasStageOverrides) {
-        const text = await readBlobAsText(blob);
-        const updatedCsv = applyStageOverridesToCsv(
-          text,
-          stageOverrides,
-          stageFilter,
-          sortField,
-          sortOrder,
-          searchTerm,
-        );
-        exportBlob = new Blob([updatedCsv], { type: 'text/csv; charset=utf-8' });
-      }
-      const url = URL.createObjectURL(exportBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'deals-export.csv';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
     } catch (err) {
       setExportError(err instanceof CrmServiceError ? err.message : 'Fehler beim CSV-Export.');
     } finally {
@@ -264,8 +243,8 @@ export function DealsPage() {
   };
 
   const hasData = data !== undefined && !isPlaceholderData && !needsFullBase;
-  const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
-  const exportBlocked = isError || !hasData;
+  const countText = isError || isFullBaseError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
+  const exportBlocked = isError || isFullBaseError || !hasData;
   const exportHintId = useId();
 
   const stageOptions = useMemo(
@@ -305,7 +284,7 @@ export function DealsPage() {
           </Button>
           {exportBlocked && !isViewer && (
             <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
-              {isError
+              {isError || isFullBaseError
                 ? 'Export gesperrt: Datenbasis nicht verfügbar'
                 : 'Export nach dem Laden verfügbar'}
             </span>
@@ -347,7 +326,7 @@ export function DealsPage() {
         sortOrder={sortOrder}
         onOrderChange={handleOrderChange}
         resultCountText={
-          isError
+          isError || isFullBaseError
             ? 'Ergebnis nicht verfügbar'
             : !hasData
               ? 'Ergebnis wird geladen …'
@@ -370,6 +349,14 @@ export function DealsPage() {
           sourceLabel="CRM-Daten"
           height={220}
           onRetry={() => void refetch()}
+        />
+      ) : isFullBaseError ? (
+        <ManagementChartState
+          type="error"
+          message="Fehler beim Nachladen der vollständigen Deal-Pipeline."
+          sourceLabel="CRM-Daten"
+          height={220}
+          onRetry={handleRetryLoadMore}
         />
       ) : viewMode === 'kanban' ? (
         <DealsKanbanBoard

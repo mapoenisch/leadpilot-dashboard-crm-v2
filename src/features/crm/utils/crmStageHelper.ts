@@ -3,6 +3,7 @@
  * Zentrale Phasen-Definitionen, kanonische Mappings und Status-Helfer
  * für das LeadPilot CRM (Auftrag 129 / Codex-Review Runde 9).
  */
+import { useState, useEffect, useCallback } from 'react';
 
 export const KANBAN_STAGES: readonly string[] = [
   'Lead eingegangen',
@@ -148,4 +149,55 @@ export function writeStageOverrides(
   } catch {
     // SessionStorage nicht verfügbar / voll
   }
+}
+
+/**
+ * Hook zur benutzer- und organisationsgebundenen Verwaltung lokaler Phasenwechsel.
+ */
+export function useDealStageOverrides(
+  storageKey: string | null,
+  stageFilter: string,
+  sortField: string,
+  searchTerm: string,
+) {
+  const [stageOverrides, setStageOverrides] = useState<Record<string, string>>(() =>
+    readStageOverrides(storageKey),
+  );
+
+  useEffect(() => {
+    setStageOverrides(readStageOverrides(storageKey));
+  }, [storageKey]);
+
+  const hasStageOverrides = Object.keys(stageOverrides).length > 0;
+  const serverStageFilter = hasStageOverrides
+    ? undefined
+    : stageFilter !== 'ALL'
+      ? stageFilter
+      : undefined;
+
+  const serverSearchTerm = hasStageOverrides ? undefined : searchTerm.trim() || undefined;
+
+  const clientPagingActive =
+    hasStageOverrides &&
+    (stageFilter !== 'ALL' || sortField === 'stage' || Boolean(searchTerm.trim()));
+
+  const handleDealStageChange = useCallback(
+    (dealId: string, newStage: string) => {
+      setStageOverrides((prev) => {
+        const next = { ...prev, [dealId]: newStage };
+        writeStageOverrides(storageKey, next);
+        return next;
+      });
+    },
+    [storageKey],
+  );
+
+  return {
+    stageOverrides,
+    hasStageOverrides,
+    serverStageFilter,
+    serverSearchTerm,
+    clientPagingActive,
+    handleDealStageChange,
+  };
 }

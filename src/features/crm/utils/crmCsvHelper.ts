@@ -4,6 +4,7 @@
  * sowie maskierten Anführungszeichen ("").
  */
 import { normalizeCanonicalStageLabel } from './crmStageHelper';
+import { fetchCrmExportBlob } from '@/services/crm/crmExportService';
 
 export async function readBlobAsText(blob: Blob): Promise<string> {
   if (typeof blob.text === 'function') {
@@ -211,4 +212,47 @@ export function applyStageOverridesToCsv(
   }
 
   return serializeCsv([header, ...dataRows]);
+}
+
+export function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export async function exportCrmDealsCsv(params: {
+  serverSearchTerm?: string;
+  serverStageFilter?: string;
+  sortField: string;
+  sortOrder: string;
+  stageOverrides: Record<string, string>;
+  stageFilter: string;
+  searchTerm: string;
+}): Promise<void> {
+  const blob = await fetchCrmExportBlob({
+    resource: 'deals',
+    q: params.serverSearchTerm,
+    filters: params.serverStageFilter ? { stage: params.serverStageFilter } : undefined,
+    sortBy: params.sortField,
+    sortOrder: (params.sortOrder as 'asc' | 'desc') || 'desc',
+  });
+  let exportBlob = blob;
+  if (Object.keys(params.stageOverrides).length > 0) {
+    const text = await readBlobAsText(blob);
+    const updatedCsv = applyStageOverridesToCsv(
+      text,
+      params.stageOverrides,
+      params.stageFilter,
+      params.sortField,
+      params.sortOrder,
+      params.searchTerm,
+    );
+    exportBlob = new Blob([updatedCsv], { type: 'text/csv; charset=utf-8' });
+  }
+  triggerBlobDownload(exportBlob, 'deals-export.csv');
 }
