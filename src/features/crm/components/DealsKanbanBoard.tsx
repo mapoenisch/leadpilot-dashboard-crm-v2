@@ -94,6 +94,8 @@ export function DealsKanbanBoard({
 
   const handleMoveStage = useCallback(
     (dealId: string, newStage: string) => {
+      // Drag-Zustand sofort zurücksetzen, da die Karte in die neue Spalte umgehängt wird
+      setActiveDragId(null);
       setStageOverrides((prev) => ({
         ...prev,
         [dealId]: newStage,

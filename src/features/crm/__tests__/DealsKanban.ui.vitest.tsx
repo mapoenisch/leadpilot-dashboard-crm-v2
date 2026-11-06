@@ -36,7 +36,7 @@ const MOCK_DEALS: ImportedFunnelDeal[] = [
     dealName: 'Overdue Project Deal',
     stage: 'Bedarfsanalyse',
     amount: 45000,
-    closeDate: '2025-01-01', // Vergangen -> Überfällig
+    closeDate: '2025-01-01',
     pipeline: 'Advisory',
   },
 ];
@@ -130,6 +130,58 @@ describe('DealKanbanCard', () => {
 
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  it('fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her', async () => {
+    vi.useFakeTimers();
+    render(
+      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+    );
+
+    const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
+    fireEvent.click(menuBtn);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // Timer für Focus ablaufen lassen
+    vi.advanceTimersByTime(20);
+
+    // Der erste wählbare Eintrag (Erstgespräch geführt) muss fokussiert sein (da Lead eingegangen deaktiviert ist)
+    const firstActiveOption = screen.getByRole('menuitem', { name: /Erstgespräch geführt/ });
+    expect(document.activeElement).toBe(firstActiveOption);
+
+    // Schließen via Escape
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    // Fokus springt zurück auf den Button
+    expect(document.activeElement).toBe(menuBtn);
+    vi.useRealTimers();
+  });
+
+  it('hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab', async () => {
+    vi.useFakeTimers();
+    render(
+      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+    );
+
+    const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
+    fireEvent.click(menuBtn);
+    vi.advanceTimersByTime(20);
+
+    const menu = screen.getByRole('menu');
+    const buttons = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not([disabled])'));
+    const first = buttons[0]!;
+    const last = buttons[buttons.length - 1]!;
+
+    // Von erstem Button mit Shift+Tab zurückgehen -> springt auf den letzten Button
+    first.focus();
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(last);
+
+    // Vom letzten Button mit Tab vorwärtsgehen -> springt auf den ersten Button
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: false });
+    expect(document.activeElement).toBe(first);
+
+    vi.useRealTimers();
   });
 
   it('schließt das Phasenmenü beim Scrollen des Fensters, aber nicht beim Scrollen innerhalb des Menüs', () => {
@@ -334,5 +386,33 @@ describe('DealsKanbanBoard', () => {
     // "Verhandlung" hat jetzt 1 Deal und 25.000 €
     expect(screen.getByTestId('column-count-Verhandlung')).toHaveTextContent('1');
     expect(screen.getByTestId('column-sum-Verhandlung')).toHaveTextContent('25.000 €');
+  });
+
+  it('setzt activeDragId beim Drop in eine andere Spalte sofort zurück (kein verbleibender Drag-Zustand)', () => {
+    render(<DealsKanbanBoard deals={MOCK_DEALS} />);
+
+    const card = screen.getByTestId('deal-card-deal-1');
+    // Simuliere Drag-Start
+    fireEvent.dragStart(card, {
+      dataTransfer: {
+        setData: vi.fn(),
+        effectAllowed: 'move',
+      },
+    });
+
+    // Die Karte ist im Drag-Zustand (opacity-40)
+    expect(card.className).toContain('opacity-40');
+
+    // Drop in Spalte "Verhandlung"
+    const columnVerhandlung = screen.getByTestId('kanban-column-Verhandlung');
+    fireEvent.drop(columnVerhandlung, {
+      dataTransfer: {
+        getData: () => 'deal-1',
+      },
+    });
+
+    // Nach dem Drop darf die neu gemountete Karte in "Verhandlung" kein opacity-40 mehr haben
+    const movedCard = screen.getByTestId('deal-card-deal-1');
+    expect(movedCard.className).not.toContain('opacity-40');
   });
 });

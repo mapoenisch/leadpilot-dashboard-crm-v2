@@ -149,6 +149,24 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     });
   });
 
+  it('sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)', () => {
+    // Wenn Query noch alte Platzhalterdaten enthält (z. B. beim Umschalten von Tabelle zu Kanban)
+    mockedQuery.mockReturnValue({
+      data: { items: [SAMPLE_DEALS[0]!], total: 200 },
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: true, // Platzhalterphase aktiv
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+
+    renderDealsPage('/crm/deals?ansicht=kanban');
+
+    // Nachlade-Button darf während der Platzhalterphase nicht aktiv / gerendert sein
+    expect(screen.queryByTestId('kanban-load-more-btn')).not.toBeInTheDocument();
+    expect(mockedList).not.toHaveBeenCalled();
+  });
+
   it('exportiert mit CSV-Parser und erhält Quoting bei Deal-Namen mit Kommas (Befund 1)', async () => {
     sessionStorage.setItem(
       'leadpilot_crm_deal_stage_overrides',

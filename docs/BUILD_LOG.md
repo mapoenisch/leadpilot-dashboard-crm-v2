@@ -18110,6 +18110,42 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - **Screenshot-Matrix:** `docs/screenshots/auftrag-128/README.md` (18/18 Paare grün, 0 px Überlauf, 100 % verschieden)
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
+
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
 10. **Nacharbeit Nutzerfeedback (Drag & Drop Nachbar-Verschiebung & Griffbereich):**
     - **Befund (Live-Browser):** Nutzer meldete: „man kann eigentlich immer noch nichts verschieben“.
     - **Ursachenanalyse:**
@@ -18131,6 +18167,42 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - `npm run build`: Erfolgreich in 3.44s
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
+
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
 11. **Nacharbeit Codex-Review Runde 4 (PR #138, Head `957c202`):**
     - **Befund 1 (P1, `scripts/captureAuftrag128Gate.mjs`):** Identische Vorher-/Nachher-Bilder als Fehler werten:
       - Bisher wurden identische Paare nicht zu `bad` gezählt; das Gate beendete sich bei 0 px Overflow fälschlicherweise mit Exitcode 0.
@@ -18147,6 +18219,42 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün
 - `npm run verify`: Alle 25 Integritätssuiten bestanden
 - `npm run build`: Erfolgreich
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
 12. **Behebung CI-Fehlschlag & Prettier-Formatierung (PR-QUALITY-16 / Zeilenbudget):**
@@ -18168,6 +18276,42 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - `npm run verify`: Alle 25 Integritätssuiten bestanden
 - `npm run build`: Erfolgreich (3.30s)
 - **Zeilenbudgets:** `DashboardGrid.tsx` 398 Zeilen ($\le 400$ Zeilen ✅)
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
 
@@ -18231,6 +18375,42 @@ Realisierung von Paket 1 des Evolution-Plans für LeadPilot CRM Deals: Bereitste
   - `DealsViewToggle.tsx`: 46 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
+
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
 ### Nacharbeit Codex-Review Runde 1 (PR #139, Head `ca0ad79`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18292,6 +18472,42 @@ Alle 6 Codex-Befunde (2 P1, 4 P2) aus Review-Runde 1 strukturiert behoben:
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
 
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
 ### Nacharbeit Codex-Review Runde 2 (PR #139, Head `d6c638e`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18342,6 +18558,42 @@ Alle 4 Codex-Befunde (4 P2) aus Review-Runde 2 strukturiert behoben:
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
 
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
 ### Nacharbeit Codex-Review Runde 3 (PR #139, Head `8469252`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18380,6 +18632,42 @@ Beide Codex-Befunde (2 P2) aus Review-Runde 3 strukturiert behoben:
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
 
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
 ### Nacharbeit Codex-Review Runde 4 (PR #139, Head `fcf16ba`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18415,27 +18703,73 @@ Den verbleibenden Codex-Befund (1 P2) aus Review-Runde 4 strukturiert behoben:
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
 
-### Nacharbeit Codex-Review Runde 4 (PR #139, Head `fcf16ba`)
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
 
-Den Codex-Befund (1 P2) aus Review-Runde 4 strukturiert behoben:
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
 
-1. **Befund 1 (P2, `crmCsvHelper.ts` – CSV-Phasenfilter mit abgesichertem Zellwert abgleichen):**
-   - **Befund:** Bei Phasen mit Formelpräfixen (z. B. `+Partner`) liefert der Server die Stage im CSV bereits formelgeschützt als `'+Partner`. Bei aktivem Phasenfilter entfernte der CSV-Export native, unveränderte Deals dieser Phase fälschlich, weil `row[stageIdx] === targetStageFilter` (`'+Partner' === '+Partner'`) nicht übereinstimmte, während lokal verschobene Zeilen gematcht wurden.
-   - **Behebung:** Einführung der Normalisierungsfunktion `normalizeStageForComparison` in `src/features/crm/utils/crmCsvHelper.ts`. Ein serverseitig vorangestelltes Apostroph zum Formelschutz (`^'\s*[=+\-@\t\r]`) wird für den Phasenfilter-Vergleich neutralisiert (`rowStage === normalizedTargetFilter`), ohne den Formelschutz im exportierten CSV-Datenbestand aufzuheben. Native geschützte Deals (`'+Partner`) und lokal nach `+Partner` verschobene Deals werden im gefilterten Export konsistent beibehalten und vollständig geschützt serialisiert.
-   - **Automatisierte Absicherung:** Neuer Unit-Test in `crmCsvHelper.vitest.ts` (`behandelt native (bereits geschützte) und lokal verschobene Deals bei Phasenfiltern konsistent`).
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
 
-### Automatisierte Verifikation (Nacharbeit Runde 4)
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
 
 - `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler, 0 Warnungen
 - `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
-- `npm test src/features/crm`: 18 Testdateien, 121 Tests grün
-- `npm test`: 354 Testdateien, 2.569 Tests grün (100% bestanden)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
 - `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
-- `npm run build`: Erfolgreich (3.48s)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle 3 Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Sperre das Nachladen während der Platzhalterphase):**
+   - **Befund:** Beim Wechsel von der Tabellenansicht (Standard 20 Einträge) ins Kanban behält `useCrmListQuery` über `placeholderData` zunächst die 20 Tabellendeals, während der Nachladebutton bereits aktiv war. Ein Klick forderte Seite 1 statt Seite 2 an, hing Deals doppelt an und verdoppelte die Pipeline-Summen.
+   - **Behebung:** Nachladen wird gesperrt, solange `isPlaceholderData` aktiv ist (`hasMore={!isPlaceholderData && deals.length < total}` und Absicherung in `handleLoadMore`: `if (isLoadingMore || isPlaceholderData) return`). Der Nachlade-Button wird erst eingeblendet, wenn die erste echte 100er-Seite des Boards vollständig geladen ist.
+   - **Test-Absicherung:** Integrationstest in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portal-Phasenmenü):**
+   - **Befund:** Wurde das Phasenmenü per Tastatur geöffnet, blieb der Fokus auf dem Kartenbutton. Tab durchlief nachfolgende Karten; bei langen Spalten scrollte der Browser zum nächsten Button, was das Menü über den Scroll-Listener sofort wieder schloss.
+   - **Behebung:** Beim Öffnen des Menüs wird der Fokus automatisch auf den ersten aktivierbaren Menüeintrag gesetzt (`triggerBtn` zur Vermeidung von Stale-Ref-Warnungen gesichert). Eine interne Focus-Trap hält den Fokus bei Tab und Shift+Tab zyklisch innerhalb des Menüs. Beim Schließen (z. B. via Escape) wird der Fokus präzise auf den auslösenden Trigger-Button der Karte zurückgestellt.
+   - **Test-Absicherung:** 2 neue Integrationstests in `DealsKanban.ui.vitest.tsx` für Fokus-Initialisierung, Escape-Rücksprung und Tab/Shift+Tab-Fokusfalle.
+
+3. **Befund 3 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Ziehen eines Deals in eine andere Spalte wird die Karte aus der Ursprungsspalte ausgehängt und in der Zielspalte neu gemountet. Das anschließende `dragend`-Ereignis erreichte die ausgehängte Karte nicht mehr; `activeDragId` blieb aktiv und die Karte dauerhaft mit `opacity-40` und gestricheltem Rahmen dargestellt.
+   - **Behebung:** `setActiveDragId(null)` wird unmittelbar beim erfolgreichen Drop beziehungsweise Phasenwechsel in `handleMoveStage` aufgerufen. Die verschobene Karte rendert in der Zielspalte sofort im normalen, voll deckenden Zustand.
+   - **Test-Absicherung:** Komponententest in `DealsKanban.ui.vitest.tsx` (`setzt activeDragId beim Drop in eine andere Spalte sofort zurück`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 125 Tests grün
+- `npm test`: 354 Testdateien, 2.573 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.44s)
 - **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
 - **Zeilenbudgets ($\le 400$ Zeilen):**
   - `DealsViewToggle.tsx`: 50 Zeilen
@@ -18443,8 +18777,44 @@ Den Codex-Befund (1 P2) aus Review-Runde 4 strukturiert behoben:
   - `DealsKpiGrid.tsx`: 63 Zeilen
   - `DealsTableCard.tsx`: 122 Zeilen
   - `KanbanColumn.tsx`: 135 Zeilen
-  - `DealsKanbanBoard.tsx`: 170 Zeilen
-  - `DealKanbanCard.tsx`: 283 Zeilen
-  - `DealsPage.tsx`: 360 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealKanbanCard.tsx`: 317 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
   - `crmCsvHelper.ts`: 158 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 112 Tests grün
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.22s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

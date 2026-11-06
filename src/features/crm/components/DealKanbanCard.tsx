@@ -102,6 +102,18 @@ export function DealKanbanCard({
 
   useEffect(() => {
     if (!menuOpen) return;
+
+    const triggerBtn = buttonRef.current;
+
+    // Fokus auf den ersten aktivierbaren Menüeintrag im Portal setzen
+    const focusTimer = setTimeout(() => {
+      if (menuRef.current) {
+        const firstActiveBtn =
+          menuRef.current.querySelector<HTMLButtonElement>('button:not([disabled])');
+        firstActiveBtn?.focus();
+      }
+    }, 10);
+
     const handleScrollOrResize = (e: Event) => {
       // Ignoriere Scroll-Ereignisse innerhalb des Menüs (z. B. lange Phasenliste)
       if (
@@ -113,16 +125,40 @@ export function DealKanbanCard({
       }
       setMenuOpen(false);
     };
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMenuOpen(false);
+      } else if (e.key === 'Tab' && menuRef.current) {
+        // Fokus-Trap innerhalb des Menüs, damit Tab nicht nachfolgende Karten durchwandert
+        const buttons = Array.from(
+          menuRef.current.querySelectorAll<HTMLButtonElement>('button:not([disabled])'),
+        );
+        if (buttons.length === 0) return;
+        const first = buttons[0]!;
+        const last = buttons[buttons.length - 1]!;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
+
     window.addEventListener('scroll', handleScrollOrResize, true);
     window.addEventListener('resize', handleScrollOrResize);
     window.addEventListener('keydown', handleKeyDown);
+
     return () => {
+      clearTimeout(focusTimer);
       window.removeEventListener('scroll', handleScrollOrResize, true);
       window.removeEventListener('resize', handleScrollOrResize);
       window.removeEventListener('keydown', handleKeyDown);
+      // Beim Schließen Fokus auf den Trigger-Button der Karte wiederherstellen
+      triggerBtn?.focus();
     };
   }, [menuOpen]);
 

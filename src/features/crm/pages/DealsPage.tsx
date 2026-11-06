@@ -146,7 +146,7 @@ export function DealsPage() {
   }, [hasStageOverrides, stageFilter, viewMode, page, tablePageSize, deals]);
 
   const handleLoadMore = useCallback(async () => {
-    if (isLoadingMore) return;
+    if (isLoadingMore || isPlaceholderData) return;
     const requestKey = currentQueryKey;
     activeLoadMoreQueryRef.current = requestKey;
     setIsLoadingMore(true);
@@ -176,6 +176,7 @@ export function DealsPage() {
     data?.items?.length,
     extraDeals.length,
     isLoadingMore,
+    isPlaceholderData,
     searchTerm,
     serverStageFilter,
     sortField,
@@ -339,7 +340,7 @@ export function DealsPage() {
           totalDeals={total}
           onDealStageChange={handleDealStageChange}
           onLoadMore={handleLoadMore}
-          hasMore={deals.length < total}
+          hasMore={!isPlaceholderData && deals.length < total}
           isLoadingMore={isLoadingMore}
         />
       ) : (
