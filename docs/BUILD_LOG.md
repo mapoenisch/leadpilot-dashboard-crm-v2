@@ -18923,3 +18923,10 @@ Alle drei P2-Befunde wurden behoben. Zusätzlich war `e2e` rot, weil die Visual-
 ### Offene Einschränkung
 
 Der Qualifizierungsstatus liegt weiter nur im Browser-Speicher, und `imported_funnel_deals` hat keine Spalte für die Kontaktreferenz. Die serverseitige Lösung braucht eine Schemaänderung und damit einen eigenen Auftrag.
+
+### Visual-Baselines `/crm/leads` (Nacharbeit Runde 2)
+
+- Erzeugt über `update-visual-baselines.yml` (Run `42241263491`, Branch `visual-baselines/auftrag-130-crm-leads`, Stand `d0d76d5`), dreifach verifiziert. Von 30 Bildern weichen nur die drei `visual-crm-leads-1-*` ab.
+- **Sichtprüfung:** ICP-Score- und Aktion-Spalte, Lead-Scoring-Kachel und Qualitätsfilter sind sichtbar, wie vom Auftrag vorgesehen.
+- **768 px:** Die Tabelle ist breiter als der Container, „Qualifizieren“ wird am Rand angeschnitten und ist per horizontalem Scrollen erreichbar.
+- **375 px:** Die Lücke unter der Suche besteht schon in der alten Baseline und stammt nicht aus diesem PR (`flex-[1_1_260px]` wirkt in der Spaltenanordnung als Höhe).
