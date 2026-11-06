@@ -151,6 +151,47 @@ describe('DealKanbanCard', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
+  it('begrenzt das Phasenmenü auf den Viewport und weicht bei Platzmangel nach oben aus', () => {
+    // Simuliere Button nahe dem unteren Bildschirmrand (z. B. y=700 bei Viewport-Höhe 768)
+    const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect;
+    HTMLElement.prototype.getBoundingClientRect = function () {
+      if (this.getAttribute('aria-label')?.includes('Phase ändern')) {
+        return {
+          top: 720,
+          bottom: 744,
+          left: 500,
+          right: 524,
+          width: 24,
+          height: 24,
+          x: 500,
+          y: 720,
+          toJSON: () => {},
+        };
+      }
+      return originalGetBoundingClientRect.call(this);
+    };
+
+    try {
+      render(
+        <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+      );
+
+      const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
+      fireEvent.click(menuBtn);
+
+      const menu = screen.getByRole('menu');
+      expect(menu).toBeInTheDocument();
+      // Bei top=720 und window.innerHeight=768 ist nach unten kein Platz (spaceBelow=16px).
+      // Das Menü muss oberhalb des Buttons positioniert werden (top < 720).
+      const topStyle = parseInt(menu.style.top, 10);
+      expect(topStyle).toBeLessThan(720);
+      expect(topStyle).toBeGreaterThanOrEqual(8);
+      expect(parseInt(menu.style.maxHeight, 10)).toBeGreaterThan(0);
+    } finally {
+      HTMLElement.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    }
+  });
+
   it('setzt bei HTML5 Drag-Start die Deal-ID', () => {
     const onDragStart = vi.fn();
     render(

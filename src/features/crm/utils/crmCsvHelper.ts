@@ -85,17 +85,21 @@ export function parseCsv(text: string): string[][] {
   return rows;
 }
 
-export function serializeCsv(rows: string[][]): string {
-  const sanitizeCell = (val: string): string => {
-    if (val === null || val === undefined) return '';
-    const str = String(val);
-    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-      return `"${str.replace(/"/g, '""')}"`;
-    }
-    return str;
-  };
+export function sanitizeCsvCell(val: unknown): string {
+  if (val === null || val === undefined) return '';
+  let str = String(val);
+  // Formelschutz gegen CSV-Injection (analog zu supabase/functions/crm-query-export)
+  if (/^\s*[=+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
+  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
 
-  return '\uFEFF' + rows.map((r) => r.map(sanitizeCell).join(',')).join('\r\n');
+export function serializeCsv(rows: string[][]): string {
+  return '\uFEFF' + rows.map((r) => r.map((c) => sanitizeCsvCell(c)).join(',')).join('\r\n');
 }
 
 export function applyStageOverridesToCsv(

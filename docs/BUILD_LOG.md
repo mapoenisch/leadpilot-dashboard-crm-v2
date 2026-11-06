@@ -18340,3 +18340,41 @@ Alle 4 Codex-Befunde (4 P2) aus Review-Runde 2 strukturiert behoben:
   - `DealsPage.tsx`: 360 Zeilen
   - `crmCsvHelper.ts`: 138 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 3 (PR #139, Head `8469252`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Beide Codex-Befunde (2 P2) aus Review-Runde 3 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealKanbanCard.tsx` – Begrenzung des Phasenmenüs auf den sichtbaren Viewport):**
+   - **Befund:** Bei Karten nahe dem unteren Fensterrand wurde das Portal-Phasenmenü starr unterhalb des Buttons platziert. Untere Zielphasen lagen dadurch außerhalb des sichtbaren Bereichs; ein Scrollversuch schloss das Menü über den globalen Scroll-Listener.
+   - **Behebung:** Dynamische Platzierungsberechnung unter Berücksichtigung von `window.innerHeight`, `window.innerWidth` und der geschätzten Menühöhe. Reicht der Platz nach unten nicht aus (`spaceBelow < estimatedHeight`), wird das Menü oberhalb des Buttons platziert (`top = rect.top - fitHeight - 4`). Zusätzlich wird `maxHeight` anhand des verfügbaren Fensterraums dynamisch begrenzt (`Math.max(120, availableSpace)`) und der innere Container scrollt bei Platzmangel flexibel (`min-h-0 overflow-y-auto`). Alle Phasen bleiben in jedem Viewport erreichbar.
+
+2. **Befund 2 (P2, `crmCsvHelper.ts` – CSV-Formelschutz für überschriebene Phasen):**
+   - **Befund:** Wurde ein Deal in eine Phase verschoben, die mit Formelpräfixen begann (z. B. `=1+1`, `+`, `-`, `@`, `\t`, `\r`), fehlte beim CSV-Export der serverseitige Formelschutz gegen CSV-Injection.
+   - **Behebung:** `sanitizeCsvCell` in `src/features/crm/utils/crmCsvHelper.ts` analog zu `supabase/functions/crm-query-export/index.ts` implementiert. Formelpräfixe (`/^\s*[=+\-@\t\r]/`) werden mit vorangestelltem Apostroph (`'`) neutralisiert, bevor der CSV-String erzeugt wird. Dedizierter Unit-Test in `crmCsvHelper.vitest.ts` ergänzt.
+
+### Automatisierte Verifikation (Nacharbeit Runde 3)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 120 Tests grün
+- `npm test`: 354 Testdateien, 2.568 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.47s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealKanbanCard.tsx`: 283 Zeilen
+  - `DealsPage.tsx`: 360 Zeilen
+  - `crmCsvHelper.ts`: 142 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

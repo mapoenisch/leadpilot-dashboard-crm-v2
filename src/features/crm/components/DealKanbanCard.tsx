@@ -47,7 +47,11 @@ export function DealKanbanCard({
   isDragging,
 }: DealKanbanCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [menuCoords, setMenuCoords] = useState<{ top: number; left: number } | null>(null);
+  const [menuCoords, setMenuCoords] = useState<{
+    top: number;
+    left: number;
+    maxHeight: number;
+  } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -69,9 +73,29 @@ export function DealKanbanCard({
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const menuWidth = 210;
-      const left = Math.max(8, rect.right - menuWidth);
-      const top = rect.bottom + 4;
-      setMenuCoords({ top, left });
+      const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+
+      const left = Math.max(8, Math.min(windowWidth - menuWidth - 8, rect.right - menuWidth));
+      // Geschätzte Menühöhe: Header (28px) + Padding/Borders (16px) + Einträge (ca. 30px je Phase, max 220px Liste)
+      const estimatedHeight = Math.min(265, 44 + allStages.length * 30);
+      const spaceBelow = windowHeight - rect.bottom - 8;
+      const spaceAbove = rect.top - 8;
+
+      let top: number;
+      let maxHeight: number;
+
+      // Bevorzuge Platzierung nach unten, außer unterhalb reicht der Platz nicht und oben ist mehr Raum
+      if (spaceBelow >= estimatedHeight || spaceBelow >= spaceAbove) {
+        top = rect.bottom + 4;
+        maxHeight = Math.max(120, spaceBelow - 4);
+      } else {
+        const fitHeight = Math.min(estimatedHeight, spaceAbove - 4);
+        top = Math.max(8, rect.top - fitHeight - 4);
+        maxHeight = Math.max(120, spaceAbove - 4);
+      }
+
+      setMenuCoords({ top, left, maxHeight });
     }
     setMenuOpen(true);
   };
@@ -170,16 +194,17 @@ export function DealKanbanCard({
                     if (el && menuCoords) {
                       el.style.top = `${menuCoords.top}px`;
                       el.style.left = `${menuCoords.left}px`;
+                      el.style.maxHeight = `${menuCoords.maxHeight}px`;
                     }
                   }}
                   role="menu"
                   aria-label={`Phase für ${deal.dealName} wählen`}
-                  className="fixed z-50 min-w-[200px] rounded-lg border border-border bg-[var(--color-surface-raised,#0f2422)] p-1.5 shadow-2xl backdrop-blur-md"
+                  className="fixed z-50 flex flex-col min-w-[200px] max-w-[calc(100vw-16px)] rounded-lg border border-border bg-[var(--color-surface-raised,#0f2422)] p-1.5 shadow-2xl backdrop-blur-md"
                 >
-                  <div className="px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)] border-b border-border/50">
+                  <div className="shrink-0 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)] border-b border-border/50">
                     In Phase verschieben:
                   </div>
-                  <div className="flex flex-col gap-0.5 mt-1 max-h-[220px] overflow-y-auto">
+                  <div className="flex flex-col gap-0.5 mt-1 overflow-y-auto min-h-0 max-h-[220px]">
                     {allStages.map((stage) => {
                       const isCurrent = stage === deal.stage;
                       return (

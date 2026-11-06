@@ -107,9 +107,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
       refetch: vi.fn(),
     } as never);
 
-    let resolveListPromise!: (
-      val: crmListService.CrmPageResult<ImportedFunnelDeal>,
-    ) => void;
+    let resolveListPromise!: (val: crmListService.CrmPageResult<ImportedFunnelDeal>) => void;
     mockedList.mockImplementation(
       () =>
         new Promise((resolve) => {

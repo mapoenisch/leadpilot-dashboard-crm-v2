@@ -61,4 +61,17 @@ describe('crmCsvHelper', () => {
     expect(parsedLead).toHaveLength(2); // Header + d-2
     expect(parsedLead[1]![0]).toBe('d-2');
   });
+
+  it('schützt überschriebene Phasen und Werte mit Formelpräfixen vor CSV-Injection', () => {
+    const csv =
+      '\uFEFFID,Deal Name,Stage,Betrag,Abschlussdatum,Pipeline\r\n' +
+      'd-1,Normaler Deal,Lead eingegangen,25000,2026-12-31,Enterprise\r\n';
+
+    // Überschreibe Phase mit potenzieller Formel (=1+1, @cmd, +diff, -calc)
+    const updated = applyStageOverridesToCsv(csv, { 'd-1': '=1+1' });
+    expect(updated).toContain("'=1+1");
+
+    const parsed = parseCsv(updated);
+    expect(parsed[1]![2]).toBe("'=1+1");
+  });
 });
