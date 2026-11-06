@@ -18760,3 +18760,74 @@ Offener P2-Befund aus Review-Runde 14 behoben:
   - `supabase/functions/__tests__/crmStageFilter.test.ts`: 316 Zeilen
   - `src/features/crm/__tests__/crmCsvHelper.vitest.ts`: 211 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+## Auftrag 130 – CRM Leads: Lead-Scoring & Qualifizierungs-Cockpit (Paket 2)
+
+**Datum:** 2026-11-06 · **Rolle:** Builder (Claude Code) · **Prüfer:** Codex (GitHub App) · **Baseline:** `c11d53f` · **Branch:** `claude/auftrag-130-crm-lead-scoring`
+
+### Anlass & Kontext
+
+Im Rahmen von Paket 2 der Plattform-Evolution (`docs/superpowers/plans/2026-11-05-paket-2-crm-lead-scoring-plan.md`) wurde die Leads- & Kontaktansicht unter `/crm/leads` um ein transparentes, regelbasiertes ICP-Fit-Scoring, einen barrierefreien Qualifizierungs-Drawer und eine 1-Klick-Deal-Konvertierung erweitert.
+
+### Durchgeführte Arbeiten (Tasks T1 bis T8)
+
+1. **T1 – Heuristische ICP-Scoring Engine (`src/features/crm/services/leadScoringService.ts`, 241 Zeilen):**
+   - Deterministischer 0–100 % Fit-Score basierend auf Faktenblatt v1.2 und `kundenData.ts`:
+     - Geografie: DACH-Raum (+30 Punkte)
+     - Unternehmensgröße: 20–250 Mitarbeiter Sweet-Spot (+30 Punkte), sonstige (+10–20 Punkte)
+     - Branche: IT / Software / Professional Services (+20 Punkte), sonstige (+10 Punkte)
+     - Rolle: C-Level / Vertrieb / Leitung (+20 Punkte), sonstige (+5–10 Punkte)
+   - Wortgrenzen-Regex-Matching (`matchesKeyword`) verhindert Substring-False-Positives (z. B. "it" in "Gesundheitswesen" oder "de" in "Maschinenbau-Norddeutschland").
+   - Klassifikation in Qualitätsstufen: Hot Leads (🔥 $\ge 80\,\%$, Prio 1), Warm Leads (🟡 $50\text{--}79\,\%$, Prio 2) und Cold Leads (❄️ $< 50\,\%$, Prio 3).
+   - Schätzung des potenziellen Deal-Werts anhand Mitarbeiterzahl und Zielbranchenfaktor.
+
+2. **T2 – Unit-Tests (`src/features/crm/__tests__/leadScoring.unit.vitest.ts`, 75 Zeilen):**
+   - 4 umfassende Test-Suiten für DACH/Software/CEO (Hot Lead), Non-ICP/Single-Person (Cold Lead), Substring-Isolierung und Schätzberechnung (100% grün).
+
+3. **T3 – Lead-Score Badge (`src/features/crm/components/LeadScoreBadge.tsx`, 81 Zeilen):**
+   - Visuelle Score-Pille mit Farbchip, Icon, Prozentwert und detailliertem Tooltip zur Aufschlüsselung der Punktkriterien.
+   - Barrierefreies Screenreader-Label mit genauer Kriterien-Nennung.
+
+4. **T4 – Qualifizierungs-Drawer (`src/features/crm/components/LeadQualificationDrawer.tsx`, 270 Zeilen):**
+   - Barrierefreier Slide-over-Drawer (`[role="dialog"]`) mit Tastaturfokus (`Escape`-Schließen, Return-Fokus).
+   - Interaktive BANT-Checkliste (Budget, Authority, Need, Timeline) mit Fortschrittsbalken und SessionStorage-Persistenz.
+   - Lead-Profil, Kriterien-Aufschlüsselung und Notizbereich.
+
+5. **T5 – Deal-Konvertierungsmodal (`src/features/crm/components/LeadConversionModal.tsx`, 199 Zeilen):**
+   - Barrierefreies Konvertierungsmodal mit Vorbefüllung von Deal-Name (`[Unternehmen] – LeadPilot Enterprise`), berechnetem Betrag, Phase (`Erstgespräch geführt`) und Pipeline-Zuordnung.
+
+6. **T6 – Modularisierung & LeadsPage-Erweiterung (`leadsPageConfig.tsx`, 195 Zeilen & `LeadsPage.tsx`, 389 Zeilen):**
+   - Auslagerung der statischen Spaltendefinitionen, Tab-Konfigurationen und Statusermittlung nach `src/features/crm/utils/leadsPageConfig.tsx` (195 Zeilen).
+   - `LeadsPage.tsx` schrumpft von vormals 422 Zeilen auf 389 Zeilen ($\le 400$ Zeilen strikt eingehalten).
+   - Einbindung der neuen `score`- und `actions`-Spalten im Kontakte-Tab, Qualitäts-Schnellfilter (`?qualitaet=hot|warm|cold|ALL`), Drawer- und Modal-Verdrahtung sowie Erfolgs-Toast.
+
+7. **T7 – Integrationstests (`src/features/crm/pages/__tests__/LeadsPage.scoring.ui.vitest.tsx`, 159 Zeilen):**
+   - 4 Tests für Badges-Rendering, Qualifizierungs-Drawer mit BANT-Fortschritt, Deal-Konvertierungsmodal und URL-gesteuerte Qualitätsfilterung.
+
+8. **T8 – Visuelles Screenshot-Gate (`scripts/captureAuftrag130Gate.mjs` & `docs/screenshots/auftrag-130/README.md`):**
+   - 18 Vorher/Nachher-Paare bei 1440 px, 768 px und 375 px (dark & light Theme) für Kontaktliste, Drawer und Konvertierungs-Modal aufgenommen.
+   - 18 / 18 Diffs nachgewiesen (100%), 0 px Überlauf auf allen Viewports.
+
+### Automatisierte Verifikation (Auftrag 130)
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npm test src/features/crm`: 22 Testdateien, 143 Tests grün (100% bestanden)
+- `npm test`: 359 Testdateien, 2.604 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.65s)
+- **Screenshot-Gate (`docs/screenshots/auftrag-130/README.md`):** 18/18 Paare bestanden, 18/18 Diffs nachweisbar, 0 px Überlauf auf 1440, 768 und 375 px (dark & light Theme)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/crm/services/leadScoringService.ts`: 241 Zeilen
+  - `src/features/crm/components/LeadScoreBadge.tsx`: 81 Zeilen
+  - `src/features/crm/components/LeadQualificationDrawer.tsx`: 270 Zeilen
+  - `src/features/crm/components/LeadConversionModal.tsx`: 199 Zeilen
+  - `src/features/crm/utils/leadsPageConfig.tsx`: 195 Zeilen
+  - `src/features/crm/pages/LeadsPage.tsx`: 389 Zeilen
+  - `src/features/crm/__tests__/leadScoring.unit.vitest.ts`: 75 Zeilen
+  - `src/features/crm/pages/__tests__/LeadsPage.scoring.ui.vitest.tsx`: 159 Zeilen
+  - `scripts/captureAuftrag130Gate.mjs`: 362 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
