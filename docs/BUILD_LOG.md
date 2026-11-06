@@ -18683,3 +18683,18 @@ Offener P2-Befund: Die Serversuche in `buildCanonicalCrmQuery` prüfte nur den R
 - `supabase/functions/crm-query-export/index.ts`: Für `deals` wird die Suchklausel um `stage.in.("…")` ergänzt. Die bisherige `ilike`-Suche auf dem Rohwert bleibt erhalten.
 - `supabase/functions/__tests__/crmStageFilter.test.ts`: neuer Test (Suche „gewonnen" enthält `WON`/`closedwon`, nicht `LOST`).
 - Verifikation: `deno check` und `deno test` (65 Tests) grün, `deno fmt --check` ohne Abweichung. Schutzbereiche unberührt.
+
+### Nacharbeit Codex-Review Runde 12 (PR #139, Head `6319e29`)
+
+Zwei offene P2-Befunde:
+
+1. **Client-Auswertung auf unvollständiger Datenbasis (`DealsPage.tsx`):** Bei lokalen Phasenwechseln mit Suche, Phasenfilter oder Phasensortierung wurde nur Serverseite 1 (100 Einträge) ausgewertet; Deals auf Seite 2+ fehlten, `hasMore` war im Kanban immer falsch.
+   - `DealsPage.tsx`: Wenn die Client-Auswertung aktiv ist, werden alle weiteren Serverseiten automatisch nachgeladen (`needsFullBase`). Bis dahin zeigt die Seite „…" statt einer Teilmenge und sperrt den Export. `hasMore` beruht auf Server-Gesamtzahl gegenüber geladenen Zeilen. Schlägt das Nachladen fehl, stoppt die Automatik (`loadMoreFailed`), statt endlos zu wiederholen.
+   - Neue Datei `src/features/crm/utils/dealsClientView.ts` (`applyClientDealView`, `buildStageOptions`), damit `DealsPage.tsx` im Zeilenbudget bleibt (398 Zeilen).
+   - Neuer Test `DealsPage.fullbase.ui.vitest.tsx` (2 Tests): Nachladen von Seite 2 findet den verschobenen Deal; ohne Client-Filter wird nichts nachgeladen.
+2. **Serversortierung nach Rohwert (`crm-query-export/index.ts`):** „Vertriebsphase" sortierte `CLOSING` vor `LEAD`, angezeigt wurden aber die Labels.
+   - `stageHelper.ts`: neuer Helfer `sortDealsByStageLabel` (normalisiertes Label, `localeCompare('de')`, ID als Tiebreaker).
+   - `index.ts`: Bei Deals mit `sortBy = stage` werden alle Treffer in 1000er-Blöcken geladen, nach Label sortiert und erst danach paginiert (gilt auch für den Export). Index.ts: 390 Zeilen.
+   - Neuer Deno-Test für die Sortierung.
+
+Verifikation: `deno check`/`deno test` 66 Tests grün, `npm run lint` 0 Fehler, `format:check` sauber, `tsc` 0 Fehler, `vitest` 357 Dateien / 2.593 Tests grün, `npm run verify` 25 Suiten grün, `npm run build` erfolgreich. Schutzbereichs-Diff gegen `origin/main`: leer.

@@ -11,6 +11,7 @@ import {
   handleCrmQueryExport,
   normalizeCanonicalStage,
 } from '../crm-query-export/index.ts';
+import { sortDealsByStageLabel } from '../crm-query-export/stageHelper.ts';
 
 const ADMIN_USER: CrmUser = { id: 'admin-1', email: 'admin@leadpilot.test' };
 const ORG_ID = 'org-1';
@@ -251,4 +252,18 @@ Deno.test('crm-query-export: Textsuche findet kanonische Phasen über normalisie
   assertEquals(orCalls[0].includes('"WON"'), true);
   assertEquals(orCalls[0].includes('"closedwon"'), true);
   assertEquals(orCalls[0].includes('"LOST"'), false);
+});
+
+Deno.test('crm-query-export: sortDealsByStageLabel sortiert nach normalisiertem Label statt Rohwert', () => {
+  const items = [
+    { id: 'a', stage: 'CLOSING' },
+    { id: 'b', stage: 'LEAD' },
+    { id: 'c', stage: 'Angebot erstellt' },
+    { id: 'd', stage: 'LEAD' },
+  ];
+  const asc = sortDealsByStageLabel(items, 'asc').map((i) => i.id);
+  // Angebot erstellt < Lead eingegangen < Verhandlung
+  assertEquals(asc, ['c', 'b', 'd', 'a']);
+  const desc = sortDealsByStageLabel(items, 'desc').map((i) => i.id);
+  assertEquals(desc, ['a', 'b', 'd', 'c']);
 });

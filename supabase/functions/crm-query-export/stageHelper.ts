@@ -101,3 +101,21 @@ export function getDealStageSearchVariants(term: string): string[] {
   }
   return out;
 }
+
+/**
+ * Sortiert Deals nach dem normalisierten Phasen-Label (wie im Frontend angezeigt).
+ * Stabil über die ID als Tiebreaker, damit Paginierung reproduzierbar bleibt.
+ */
+export function sortDealsByStageLabel<T extends { id?: unknown; stage?: unknown }>(
+  items: T[],
+  order: 'asc' | 'desc' = 'asc',
+): T[] {
+  const dir = order === 'desc' ? -1 : 1;
+  return [...items].sort((a, b) => {
+    const cmp = normalizeCanonicalStage(String(a.stage ?? '')).localeCompare(
+      normalizeCanonicalStage(String(b.stage ?? '')),
+      'de',
+    );
+    return cmp !== 0 ? dir * cmp : String(a.id ?? '').localeCompare(String(b.id ?? ''));
+  });
+}

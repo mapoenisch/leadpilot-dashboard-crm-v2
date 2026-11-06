@@ -4,6 +4,7 @@ import {
   getDealStageFilterVariants,
   getDealStageSearchVariants,
   normalizeCanonicalStage,
+  sortDealsByStageLabel,
 } from './stageHelper.ts';
 import { FIELD_MAPPINGS, RESOURCE_CONFIG } from './resourceConfig.ts';
 
@@ -297,24 +298,46 @@ function mapRowToFrontend(res: CrmResource, r: Record<string, unknown>): Record<
   return o;
 }
 
+const STAGE_SORT_CHUNK = 1000;
+
 async function execCrmQuery(
   supabase: SupaClient,
   params: CrmQueryResourceParams | CrmExportResourceParams,
   isExport = false,
 ) {
-  let query = buildCanonicalCrmQuery(supabase, params, isExport ? undefined : { count: 'exact' });
-  if (!isExport && 'page' in params && 'pageSize' in params) {
-    const from = (params.page - 1) * params.pageSize;
-    query = query.range(from, from + params.pageSize - 1);
+  const paged = !isExport && 'page' in params && 'pageSize' in params;
+  // Sortierung nach Phase: Rohwerte (z. B. 'CLOSING') sortieren anders als die angezeigten Labels.
+  // Daher vollständig laden, nach normalisiertem Label sortieren und erst danach paginieren.
+  const sortByStage = params.resource === 'deals' && params.sortBy === 'stage';
+  const rows: Record<string, unknown>[] = [];
+  let total = 0;
+  for (let from = 0;; from += STAGE_SORT_CHUNK) {
+    let query = buildCanonicalCrmQuery(supabase, params, isExport ? undefined : { count: 'exact' });
+    if (sortByStage) {
+      query = query.range(from, from + STAGE_SORT_CHUNK - 1);
+    } else if (paged) {
+      const start = (params.page - 1) * params.pageSize;
+      query = query.range(start, start + params.pageSize - 1);
+    }
+    const { data, error, count } = await query;
+    if (error) {
+      console.error('CRM DB-Abfrage fehlgeschlagen [Code: DB_QUERY_ERROR]');
+      throw new Error('Interner Fehler bei der CRM-Abfrage.');
+    }
+    const chunk = (data as unknown as Record<string, unknown>[]) || [];
+    rows.push(...chunk);
+    total = count ?? total;
+    if (!sortByStage || chunk.length < STAGE_SORT_CHUNK) break;
   }
-  const { data, error, count } = await query;
-  if (error) {
-    console.error('CRM DB-Abfrage fehlgeschlagen [Code: DB_QUERY_ERROR]');
-    throw new Error('Interner Fehler bei der CRM-Abfrage.');
+  let items = rows.map((row) => mapRowToFrontend(params.resource, row));
+  if (sortByStage) {
+    items = sortDealsByStageLabel(items, params.sortOrder || 'asc');
+    if (paged) {
+      const start = (params.page - 1) * params.pageSize;
+      items = items.slice(start, start + params.pageSize);
+    }
   }
-  const rows = (data as unknown as Record<string, unknown>[]) || [];
-  const items = rows.map((row) => mapRowToFrontend(params.resource, row));
-  return { items, total: count ?? 0 };
+  return { items, total };
 }
 
 // Live Supabase DB Implementierung mit kanonischem Query-Pfad

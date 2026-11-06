@@ -4,7 +4,6 @@ import { Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { SelectOption } from '@/components/ui/Select';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { ImportedFunnelDeal } from '@/types/crm';
 import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
@@ -19,7 +18,8 @@ import { DealsViewToggle, DealsViewMode } from '../components/DealsViewToggle';
 import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
 import { DealsKpiGrid } from '../components/DealsKpiGrid';
 import { DealsFilterBar, BASE_STAGE_OPTIONS } from '../components/DealsFilterBar';
-import { applyStageOverridesToCsv, readBlobAsText, dealMatchesSearch } from '../utils/crmCsvHelper';
+import { applyStageOverridesToCsv, readBlobAsText } from '../utils/crmCsvHelper';
+import { applyClientDealView, buildStageOptions } from '../utils/dealsClientView';
 import {
   getDealStageOverridesStorageKey,
   normalizeCanonicalStageLabel,
@@ -87,6 +87,7 @@ export function DealsPage() {
 
   const [extraDeals, setExtraDeals] = useState<ImportedFunnelDeal[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const activeLoadMoreQueryRef = useRef<string>('');
 
   const currentQueryKey = useMemo(
@@ -99,24 +100,17 @@ export function DealsPage() {
     setExtraDeals([]);
     activeLoadMoreQueryRef.current = '';
     setIsLoadingMore(false);
+    setLoadMoreFailed(false);
   }, [currentQueryKey]);
 
-  const handleSortChange = (val: string) => {
-    setSortField(val);
+  const withPageReset = (set: (val: string) => void) => (val: string) => {
+    set(val);
     setPageStr('1');
   };
-  const handleOrderChange = (val: string) => {
-    setSortOrder(val);
-    setPageStr('1');
-  };
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setPageStr('1');
-  };
-  const handleStageChange = (val: string) => {
-    setStageFilter(val);
-    setPageStr('1');
-  };
+  const handleSortChange = withPageReset(setSortField);
+  const handleOrderChange = withPageReset(setSortOrder);
+  const handleSearchChange = withPageReset(setSearchTerm);
+  const handleStageChange = withPageReset(setStageFilter);
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, isPlaceholderData, error, refetch } =
@@ -131,9 +125,18 @@ export function DealsPage() {
     });
 
   const rawDeals = useMemo(
-    () => (viewMode === 'kanban' ? [...(data?.items ?? []), ...extraDeals] : (data?.items ?? [])),
-    [viewMode, data?.items, extraDeals],
+    () =>
+      viewMode === 'kanban' || clientPagingActive
+        ? [...(data?.items ?? []), ...extraDeals]
+        : (data?.items ?? []),
+    [viewMode, clientPagingActive, data?.items, extraDeals],
   );
+
+  // Serverseitige Gesamtzahl und bereits geladene Zeilen (vor der Client-Auswertung)
+  const serverTotal = data?.total ?? 0;
+  const hasMoreOnServer = rawDeals.length < serverTotal;
+  // Client-Filter, -Suche und -Sortierung brauchen die vollständige Datenbasis
+  const needsFullBase = clientPagingActive && hasMoreOnServer && !loadMoreFailed;
 
   const mappedDeals = useMemo(() => {
     return rawDeals.map((d) => {
@@ -143,26 +146,21 @@ export function DealsPage() {
     });
   }, [rawDeals, stageOverrides]);
 
-  const deals = useMemo(() => {
-    let list = mappedDeals;
-    if (hasStageOverrides && searchTerm.trim()) {
-      list = list.filter((d) => dealMatchesSearch(d, searchTerm));
-    }
-    if (hasStageOverrides && stageFilter !== 'ALL') {
-      list = list.filter((d) => d.stage === stageFilter);
-    }
-    if (hasStageOverrides && sortField === 'stage') {
-      list = [...list].sort((a, b) => {
-        const cmp = a.stage.localeCompare(b.stage, 'de');
-        return sortOrder === 'desc' ? -cmp : cmp;
-      });
-    }
-    return list;
-  }, [mappedDeals, hasStageOverrides, searchTerm, stageFilter, sortField, sortOrder]);
+  const deals = useMemo(
+    () =>
+      applyClientDealView(mappedDeals, {
+        active: hasStageOverrides,
+        searchTerm,
+        stageFilter,
+        sortField,
+        sortOrder,
+      }),
+    [mappedDeals, hasStageOverrides, searchTerm, stageFilter, sortField, sortOrder],
+  );
 
   const isClientFiltered =
     hasStageOverrides && (stageFilter !== 'ALL' || Boolean(searchTerm.trim()));
-  const total = isClientFiltered ? deals.length : (data?.total ?? 0);
+  const total = isClientFiltered ? deals.length : serverTotal;
 
   const tableDeals = useMemo(() => {
     if (clientPagingActive && viewMode === 'tabelle') {
@@ -193,6 +191,10 @@ export function DealsPage() {
       if (activeLoadMoreQueryRef.current === requestKey) {
         setExtraDeals((prev) => [...prev, ...res.items]);
       }
+    } catch {
+      if (activeLoadMoreQueryRef.current === requestKey) {
+        setLoadMoreFailed(true);
+      }
     } finally {
       if (activeLoadMoreQueryRef.current === requestKey) {
         setIsLoadingMore(false);
@@ -209,6 +211,14 @@ export function DealsPage() {
     sortField,
     sortOrder,
   ]);
+
+  // Bei lokalen Phasenwechseln mit Filter/Suche/Phasensortierung alle Serverseiten nachladen,
+  // damit die Client-Auswertung auf der vollständigen Datenbasis läuft.
+  useEffect(() => {
+    if (needsFullBase && !isLoadingMore && !isPlaceholderData && data !== undefined) {
+      void handleLoadMore();
+    }
+  }, [needsFullBase, isLoadingMore, isPlaceholderData, data, handleLoadMore]);
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -253,22 +263,15 @@ export function DealsPage() {
     }
   };
 
-  const hasData = data !== undefined && !isPlaceholderData;
+  const hasData = data !== undefined && !isPlaceholderData && !needsFullBase;
   const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
   const exportBlocked = isError || !hasData;
   const exportHintId = useId();
 
-  const stageOptions = useMemo(() => {
-    const knownValues = new Set(BASE_STAGE_OPTIONS.map((o) => o.value));
-    const extraOptions: SelectOption[] = [];
-    for (const d of mappedDeals) {
-      if (d.stage && !knownValues.has(d.stage)) {
-        knownValues.add(d.stage);
-        extraOptions.push({ value: d.stage, label: d.stage });
-      }
-    }
-    return [...BASE_STAGE_OPTIONS, ...extraOptions];
-  }, [mappedDeals]);
+  const stageOptions = useMemo(
+    () => buildStageOptions(BASE_STAGE_OPTIONS, mappedDeals),
+    [mappedDeals],
+  );
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
@@ -374,7 +377,7 @@ export function DealsPage() {
           totalDeals={total}
           onDealStageChange={handleDealStageChange}
           onLoadMore={handleLoadMore}
-          hasMore={!isPlaceholderData && deals.length < total}
+          hasMore={!isPlaceholderData && hasMoreOnServer && !needsFullBase}
           isLoadingMore={isLoadingMore}
         />
       ) : (
