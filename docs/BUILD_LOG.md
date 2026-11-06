@@ -18635,3 +18635,42 @@ Alle drei Codex-Befunde (1 P1, 2 P2) aus Review-Runde 9 strukturiert behoben:
   - `crmCsvHelper.vitest.ts`: 189 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 418 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 10 (PR #139, Head `db66450`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Der offene P2-Befund aus Review-Runde 10 wurde strukturiert und vollständig behoben:
+
+1. **Befund 1 (P2, Discussion r4489297262 – Berücksichtigung kanonischer Phasen im Serverfilter):**
+   - **Befund:** Wenn noch keine lokalen Phasenwechsel vorliegen, wird beispielsweise ein importierter `WON`-Deal als „Deal gewonnen“ angezeigt und auch ausschließlich unter diesem normalisierten Wert in `stageOptions` angeboten. Beim Auswählen dieser Phase übergab `serverStageFilter` jedoch unverändert `Deal gewonnen` an die Edge Function, deren `buildCanonicalCrmQuery` den Datenbankwert per `eq('stage', val)` verglich. Der zuvor sichtbare `WON`-Deal verschwand deshalb aus Tabelle, Board und gefiltertem CSV-Export.
+   - **Behebung:**
+     - `supabase/functions/crm-query-export/stageHelper.ts` neu erstellt: Definiert `DEAL_STAGE_GROUPS` (alle 7 Kernphasen mit kanonischen Identifiern wie `WON`, `closedwon`, `PROPOSAL`, `LEAD`, etc.), `getDealStageFilterVariants(val)` zur Auflösung aller äquivalenten Phasenwerte und `normalizeCanonicalStage(stage)`.
+     - `supabase/functions/crm-query-export/resourceConfig.ts` neu erstellt: `RESOURCE_CONFIG` und `FIELD_MAPPINGS` modular ausgelagert, um strikt $\le 400$ Zeilen in allen Dateien einzuhalten.
+     - `supabase/functions/crm-query-export/index.ts`: In `buildCanonicalCrmQuery` werden bei `params.resource === 'deals' && col === 'stage'` alle Varianten via `query.in('stage', variants)` abgefragt; `mapRowToFrontend` normalisiert die Deal-Phase via `normalizeCanonicalStage`, sodass sowohl JSON-Listen als auch serverseitige CSV-Exporte kanonische Bezeichnungen wie `Deal gewonnen` einheitlich ausgeben.
+     - `src/features/crm/utils/crmStageHelper.ts`: `getDealStageFilterVariants` ergänzt und exportiert; `CANONICAL_STAGE_TO_LABEL` um Varianten aus der Baseline-Konfiguration erweitert.
+   - **Test-Absicherung:**
+     - Neue Deno-Testsuite `supabase/functions/__tests__/crmStageFilter.test.ts` (5 Tests): Prüfung von `getDealStageFilterVariants`, `normalizeCanonicalStage`, `buildCanonicalCrmQuery` mit Spion auf `query.in('stage', variants)` sowie End-to-End-Tests für `action: 'list'` und `action: 'export'` mit `WON`-Deals.
+     - Deno-Tests: Alle 64 Tests grün (18 crmQueryExport, 5 crmStageFilter, 6 ingressHandler, 12 liveKpiIngress, 14 manageMembers, 9 workflowIngressStructure).
+     - Frontend-Tests: `src/features/crm/__tests__/crmStageHelper.ui.vitest.tsx` (8 Tests) und `src/features/crm/pages/__tests__/DealsPage.identity.ui.vitest.tsx` (3 Tests) verifizieren Phasenfilter-Übergabe und normalisierte Deal-Anzeige im Browser.
+
+### Automatisierte Verifikation (Nacharbeit Runde 10)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `deno test`: 64 Tests grün (100% bestanden)
+- `npm test src/features/crm`: 19 Testdateien, 129 Tests grün (100% bestanden)
+- `npm test`: 356 Testdateien, 2.591 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.51s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `supabase/functions/crm-query-export/index.ts`: 355 Zeilen
+  - `supabase/functions/crm-query-export/resourceConfig.ts`: 62 Zeilen
+  - `supabase/functions/crm-query-export/stageHelper.ts`: 88 Zeilen
+  - `supabase/functions/__tests__/crmStageFilter.test.ts`: 225 Zeilen
+  - `src/features/crm/utils/crmStageHelper.ts`: 151 Zeilen
+  - `src/features/crm/__tests__/crmStageHelper.ui.vitest.tsx`: 168 Zeilen
+  - `src/features/crm/pages/__tests__/DealsPage.identity.ui.vitest.tsx`: 170 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

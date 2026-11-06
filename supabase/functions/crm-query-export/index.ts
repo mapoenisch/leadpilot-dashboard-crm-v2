@@ -1,5 +1,9 @@
 // G60 (Auftrag 067N): Serverseitige CRM-Abfragen und CSV-Export Edge Function
 import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2';
+import { getDealStageFilterVariants, normalizeCanonicalStage } from './stageHelper.ts';
+import { FIELD_MAPPINGS, RESOURCE_CONFIG } from './resourceConfig.ts';
+
+export { getDealStageFilterVariants, normalizeCanonicalStage };
 
 export type CrmResource = 'companies' | 'contacts' | 'deals';
 export type CrmQueryAction = 'list' | 'export';
@@ -48,67 +52,6 @@ export function jsonResponse(body: Record<string, unknown>, status = 200): Respo
 const bad = (message: string, code = 'INVALID_QUERY', status = 400) =>
   jsonResponse({ code, message }, status);
 
-interface ResourceCfg {
-  table: string;
-  columns: string;
-  allowedSort: string[];
-  defaultSort: string;
-  defaultOrder: 'asc' | 'desc';
-  allowedFilters: string[];
-  searchFields: string[];
-  csvColumns: [header: string, dbKey: string, itemKey: string][];
-}
-
-const parseCols = (s: string) => s.split(',').map((p) => p.split(':') as [string, string, string]);
-const splitS = (s: string) => s.split(',');
-
-const RESOURCE_CONFIG: Record<CrmResource, ResourceCfg> = {
-  companies: {
-    table: 'companies',
-    columns: 'id,organization_id,name,domain,industry,city,postal_code,employee_count,created_at',
-    allowedSort: splitS('name,domain,industry,city,postal_code,employee_count,created_at,id'),
-    defaultSort: 'name',
-    defaultOrder: 'asc',
-    allowedFilters: splitS('industry,city'),
-    searchFields: splitS('name,domain,city'),
-    csvColumns: parseCols(
-      'ID:id:id,Unternehmensname:name:name,Domain:domain:domain,Branche:industry:industry,Stadt:city:city,PLZ:postal_code:postalCode,Mitarbeiter:employee_count:employeeCount',
-    ),
-  },
-  contacts: {
-    table: 'contacts',
-    columns: 'id,organization_id,company_id,email,first_name,last_name,job_title,created_at',
-    allowedSort: splitS('first_name,last_name,email,job_title,created_at,id'),
-    defaultSort: 'last_name',
-    defaultOrder: 'asc',
-    allowedFilters: splitS('job_title,company_id'),
-    searchFields: splitS('first_name,last_name,email,job_title'),
-    csvColumns: parseCols(
-      'ID:id:id,Company ID:company_id:companyId,E-Mail:email:email,Vorname:first_name:firstName,Nachname:last_name:lastName,Jobbezeichnung:job_title:jobTitle',
-    ),
-  },
-  deals: {
-    table: 'imported_funnel_deals',
-    columns: 'id,organization_id,deal_name,stage,amount,close_date,pipeline,created_at',
-    allowedSort: splitS('deal_name,stage,amount,close_date,created_at,id'),
-    defaultSort: 'close_date',
-    defaultOrder: 'desc',
-    allowedFilters: splitS('stage,pipeline'),
-    searchFields: splitS('deal_name,stage,pipeline'),
-    csvColumns: parseCols(
-      'ID:id:id,Deal Name:deal_name:dealName,Stage:stage:stage,Betrag:amount:amount,Abschlussdatum:close_date:closeDate,Pipeline:pipeline:pipeline',
-    ),
-  },
-};
-
-const FIELD_MAPPINGS: Record<CrmResource, string> = {
-  companies:
-    'name:name,domain:domain,industry:industry,city:city,postalCode:postal_code,employeeCount:employee_count',
-  contacts:
-    'companyId:company_id,email:email,firstName:first_name,lastName:last_name,jobTitle:job_title',
-  deals: 'dealName:deal_name,stage:stage,closeDate:close_date,pipeline:pipeline',
-};
-
 export function sanitizeCsvCell(value: unknown): string {
   if (value === null || value === undefined) return '';
   let str = String(value);
@@ -123,7 +66,7 @@ export function buildCsv(resource: CrmResource, items: Record<string, unknown>[]
   const { csvColumns } = RESOURCE_CONFIG[resource];
   const headers = csvColumns.map(([h]) => sanitizeCsvCell(h)).join(',');
   const rows = items.map((item) =>
-    csvColumns.map(([, dbKey, itemKey]) => sanitizeCsvCell(item[itemKey] ?? item[dbKey])).join(','),
+    csvColumns.map(([, dbKey, itemKey]) => sanitizeCsvCell(item[itemKey] ?? item[dbKey])).join(',')
   );
   return '\uFEFF' + [headers, ...rows].join('\r\n');
 }
@@ -162,8 +105,9 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
       rawResource = typeof b.resource === 'string' ? b.resource : undefined;
       rawQ = typeof b.q === 'string' ? b.q : undefined;
       if (b.filters !== undefined && b.filters !== null) {
-        if (typeof b.filters !== 'object' || Array.isArray(b.filters))
+        if (typeof b.filters !== 'object' || Array.isArray(b.filters)) {
           return bad('Ungültiger Filter-Parameter.');
+        }
         rawFilters = b.filters as Record<string, unknown>;
       }
       rawSortBy = typeof b.sortBy === 'string' ? b.sortBy : undefined;
@@ -185,8 +129,9 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
       ? Number(url.searchParams.get('pageSize'))
       : undefined;
     const f: Record<string, unknown> = {};
-    for (const [k, v] of url.searchParams.entries())
+    for (const [k, v] of url.searchParams.entries()) {
       if (k.startsWith('filter_')) f[k.replace('filter_', '')] = v;
+    }
     if (Object.keys(f).length > 0) rawFilters = f;
   } else {
     return bad('Nur GET und POST Anfragen erlaubt.');
@@ -194,14 +139,17 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
 
   // 4. Action & Rolle
   const action: CrmQueryAction = rawAction === 'export' ? 'export' : 'list';
-  if (rawAction && rawAction !== 'list' && rawAction !== 'export')
+  if (rawAction && rawAction !== 'list' && rawAction !== 'export') {
     return bad('Ungültige Aktion. Erlaubt sind list und export.');
-  if (action === 'export' && userRole === 'viewer')
+  }
+  if (action === 'export' && userRole === 'viewer') {
     return bad('Export für Rolle viewer nicht gestattet.', 'FORBIDDEN', 403);
+  }
 
   // 5. Ressource
-  if (!rawResource || !['companies', 'contacts', 'deals'].includes(rawResource))
+  if (!rawResource || !['companies', 'contacts', 'deals'].includes(rawResource)) {
     return bad('Unbekannte Ressource.');
+  }
   const resource = rawResource as CrmResource;
   const config = RESOURCE_CONFIG[resource];
 
@@ -209,8 +157,9 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
   const page = rawPage === undefined || rawPage === null ? 1 : Number(rawPage);
   const pageSize = rawPageSize === undefined || rawPageSize === null ? 20 : Number(rawPageSize);
   if (!Number.isInteger(page) || page < 1) return bad('Ungültiger page-Parameter.');
-  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100)
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
     return bad('Ungültiger pageSize-Parameter.');
+  }
 
   // 7. Sortierung
   let sortBy = config.defaultSort;
@@ -275,10 +224,10 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
     return jsonResponse({ items: result.items, total: result.total, page, pageSize, resource });
   } catch {
     console.error('CRM-Verarbeitungsfehler aufgetreten [Code: SERVER_ERROR]');
-    return jsonResponse(
-      { code: 'SERVER_ERROR', message: 'Interner Serverfehler bei der CRM-Verarbeitung.' },
-      500,
-    );
+    return jsonResponse({
+      code: 'SERVER_ERROR',
+      message: 'Interner Serverfehler bei der CRM-Verarbeitung.',
+    }, 500);
   }
 }
 
@@ -286,7 +235,7 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
 type SupaClient = SupabaseClient<any, any, any>;
 
 // P2-2: Kanonischer Query-Pfad für List- und Export-Abfragen
-function buildCanonicalCrmQuery(
+export function buildCanonicalCrmQuery(
   supabase: SupaClient,
   params: CrmExportResourceParams,
   options?: { count?: 'exact' },
@@ -298,13 +247,23 @@ function buildCanonicalCrmQuery(
     .eq('organization_id', params.organizationId);
 
   if (params.filters) {
-    for (const [col, val] of Object.entries(params.filters)) query = query.eq(col, val);
+    for (const [col, val] of Object.entries(params.filters)) {
+      if (params.resource === 'deals' && col === 'stage') {
+        const variants = getDealStageFilterVariants(val);
+        if (variants.length > 1) {
+          query = query.in('stage', variants);
+          continue;
+        }
+      }
+      query = query.eq(col, val);
+    }
   }
 
   if (params.q) {
     const sanitized = params.q.replace(/[%_,()]/g, '');
-    if (sanitized)
+    if (sanitized) {
       query = query.or(config.searchFields.map((f) => `${f}.ilike.%${sanitized}%`).join(','));
+    }
   }
 
   const sortCol = params.sortBy || config.defaultSort;
@@ -319,6 +278,9 @@ function mapRowToFrontend(res: CrmResource, r: Record<string, unknown>): Record<
   for (const p of FIELD_MAPPINGS[res].split(',')) {
     const [to, from] = p.split(':');
     o[to] = r[from];
+  }
+  if (res === 'deals' && typeof o.stage === 'string') {
+    o.stage = normalizeCanonicalStage(o.stage);
   }
   return o;
 }

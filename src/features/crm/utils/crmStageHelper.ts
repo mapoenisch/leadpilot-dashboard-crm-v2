@@ -34,6 +34,13 @@ export const CANONICAL_STAGE_TO_LABEL: Record<string, string> = {
   CONTRACTSENT: 'Verhandlung',
   CLOSEDWON: 'Deal gewonnen',
   CLOSEDLOST: 'Deal verloren',
+  'TERMIN VEREINBART': 'Lead eingegangen',
+  'FÜR KAUF QUALIFIZIERT': 'Erstgespräch geführt',
+  'PRÄSENTATION VEREINBART': 'Bedarfsanalyse',
+  'ENTSCHEIDUNGSTRÄGER HAT ZUGESTIMMT': 'Angebot erstellt',
+  'VERTRAG GESENDET': 'Verhandlung',
+  'ABGESCHLOSSEN UND GEWONNEN': 'Deal gewonnen',
+  'ABGESCHLOSSEN UND VERLOREN': 'Deal verloren',
 };
 
 /**
@@ -46,6 +53,25 @@ export function normalizeCanonicalStageLabel(stage?: string): string {
   const trimmed = stage.trim();
   const upper = trimmed.toUpperCase();
   return CANONICAL_STAGE_TO_LABEL[upper] ?? trimmed;
+}
+
+/**
+ * Liefert alle äquivalenten Phasenwerte für eine gegebene Phase,
+ * z. B. für 'Deal gewonnen' -> ['Deal gewonnen', 'WON', 'closedwon', 'Abgeschlossen und gewonnen', ...].
+ */
+export function getDealStageFilterVariants(stage?: string): string[] {
+  if (!stage) return [];
+  const normalized = normalizeCanonicalStageLabel(stage);
+  const variants = new Set<string>();
+  variants.add(stage);
+  variants.add(normalized);
+  for (const [k, v] of Object.entries(CANONICAL_STAGE_TO_LABEL)) {
+    if (v === normalized || v === stage) {
+      variants.add(k);
+      variants.add(k.toLowerCase());
+    }
+  }
+  return Array.from(variants);
 }
 
 /**

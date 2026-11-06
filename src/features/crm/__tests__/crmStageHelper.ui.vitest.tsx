@@ -9,6 +9,7 @@ import {
   getDealStageOverridesStorageKey,
   readStageOverrides,
   writeStageOverrides,
+  getDealStageFilterVariants,
 } from '../utils/crmStageHelper';
 import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
 import { DealKanbanCard } from '../components/DealKanbanCard';
@@ -81,6 +82,21 @@ describe('crmStageHelper – Kanonische CRM-Phasen und Statusprüfungen', () => 
     writeStageOverrides(keyA, { 'd-1': 'Verhandlung' });
     expect(readStageOverrides(keyA)).toEqual({ 'd-1': 'Verhandlung' });
     expect(readStageOverrides(keyB)).toEqual({});
+  });
+
+  it('ermittelt alle Filtervarianten einer Deal-Phase für serverseitige Abfragen', () => {
+    const wonVariants = getDealStageFilterVariants('Deal gewonnen');
+    expect(wonVariants).toContain('Deal gewonnen');
+    expect(wonVariants).toContain('WON');
+    expect(wonVariants).toContain('closedwon');
+    expect(wonVariants).toContain('ABGESCHLOSSEN UND GEWONNEN');
+
+    const wonFromIdentifier = getDealStageFilterVariants('WON');
+    expect(wonFromIdentifier).toContain('Deal gewonnen');
+    expect(wonFromIdentifier).toContain('WON');
+
+    expect(getDealStageFilterVariants('Unbekannte Phase')).toEqual(['Unbekannte Phase']);
+    expect(getDealStageFilterVariants(undefined)).toEqual([]);
   });
 });
 

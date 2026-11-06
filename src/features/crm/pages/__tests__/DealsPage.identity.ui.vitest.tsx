@@ -124,4 +124,47 @@ describe('DealsPage – Benutzer- und Organisationsbindung von Phasenwechseln (B
     expect(screen.queryByText('Verhandlung')).not.toBeInTheDocument();
     unmount();
   });
+
+  it('normalisiert importierte Server-Deals mit kanonischer Phase ("WON") und übergibt Phasenfilter an den Server', () => {
+    mockedOrg.mockReturnValue({
+      session: { role: 'admin', userId: 'usr-A', organizationId: 'org-1' },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useOrganization>);
+
+    mockedQuery.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'd-won',
+            dealName: 'Acme Enterprise Expansion',
+            stage: 'WON',
+            amount: 75000,
+            closeDate: '2026-11-05',
+            pipeline: 'Enterprise SaaS',
+          },
+        ],
+        total: 1,
+      },
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+
+    const { unmount } = renderDealsPage('/crm/deals?stufe=Deal+gewonnen&ansicht=tabelle');
+
+    // Filter wurde an useCrmListQuery übergeben
+    expect(mockedQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: { stage: 'Deal gewonnen' },
+      }),
+    );
+
+    // Der Deal erscheint in der Tabelle und seine Phase ist normalisiert auf "Deal gewonnen"
+    expect(screen.getByText('Acme Enterprise Expansion')).toBeInTheDocument();
+    expect(screen.getAllByText('Deal gewonnen').length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText('WON')).not.toBeInTheDocument();
+    unmount();
+  });
 });
