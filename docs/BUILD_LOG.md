@@ -18539,11 +18539,42 @@ Den Codex-Befund (1 P2) aus Review-Runde 7 strukturiert behoben:
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
 
-### Nachtrag: Codex-Review auf Head `a79d709` (Freigabe ohne Befunde)
+### Nacharbeit Codex-Review Runde 8 (PR #139, Head `9119afb`)
 
-**Rolle:** Protokoll Claude Code (Prüfung durch Codex-App auf GitHub) · **Geprüfter Commit:** `a79d709f7b`
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
 
-- **Codex-Ergebnis:** Keine offenen oder neuen Befunde (*„Codex Review: Didn't find any major issues. Swish! — Reviewed commit: a79d709f7b“*).
-- **Status:** Alle 7 Befundrunden vollständig im Code behoben und verifiziert.
-- **CI-Status:** Alle Pflicht-Checks (`lint`, `typecheck`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e`, `CodeQL`) erfolgreich auf Head `a79d709`.
-- **Bereit für Gate-Freigabe & Merge durch Marc.**
+Den Codex-Befund (1 P2) aus Review-Runde 8 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx`, `crmCsvHelper.ts` – Berücksichtigung wirksamer Phasen auch bei der Textsuche):**
+   - **Befund:** Wurde ein Deal verschoben (z. B. nach „Verhandlung“) und anschließend nach „Verhandlung“ gesucht, fehlte er, sofern Name und Pipeline diesen Begriff nicht enthielten. Die Edge Function durchsucht ausdrücklich auch `stage`, erhielt aber weiterhin den Suchbegriff für die unveränderte Serverphase, während die Overrides erst nach der Suche angewendet wurden. Umgekehrt blieb ein Deal über seine alte Phase auffindbar. Auch der CSV-Export verwendete dieselbe serverseitige Suche.
+   - **Behebung:**
+     - In `src/features/crm/utils/crmCsvHelper.ts`: `dealMatchesSearch` exportiert; `applyStageOverridesToCsv` um Suchbegriff-Filterung (`searchTerm`) erweitert, die wirksame Phasen (inkl. Formelschutz-Normalisierung), Deal-Namen und Pipeline durchsucht.
+     - In `src/features/crm/pages/DealsPage.tsx`: Wenn `hasStageOverrides` aktiv ist, wird `serverSearchTerm = undefined` an die serverseitige Query und den CSV-Export übergeben, sodass verschobene Deals nicht serverseitig ausgefiltert werden. Die Textsuche wird bei aktiven Overrides über `dealMatchesSearch` clientseitig auf die wirksame Phase angewendet; `clientPagingActive` aktiviert Client-Paging auch bei aktiver Suche; `currentQueryKey` bezieht `serverSearchTerm` ein, um in-flight Requests bei Parameterwechsel abzufangen; `stageOptions` basiert stabil auf `mappedDeals`.
+   - **Test-Absicherung:**
+     - Neue Unit-Tests in `src/features/crm/__tests__/crmCsvHelper.vitest.ts` (`berücksichtigt wirksame Phasen bei der Textsuche im CSV-Export`, `prüft dealMatchesSearch auf wirksame Phasen, Namen und Pipeline`).
+     - Neue Integrationstests in `src/features/crm/pages/__tests__/DealsPage.findings.ui.vitest.tsx` (`berücksichtigt wirksame Phasen auch bei der Textsuche nach Phasenwechsel`, `filtert CSV-Export nach wirksamer Phase bei aktiver Textsuche`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 8)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/crm`: 17 Testdateien, 119 Tests grün
+- `npm test`: 354 Testdateien, 2.580 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.35s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 392 Zeilen
+  - `crmCsvHelper.ts`: 204 Zeilen
+  - `crmCsvHelper.vitest.ts`: 189 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 389 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 418 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

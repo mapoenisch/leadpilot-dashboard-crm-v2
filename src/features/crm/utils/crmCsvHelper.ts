@@ -114,12 +114,32 @@ export function normalizeStageForComparison(val: string): string {
   return val;
 }
 
+/**
+ * Prüft, ob ein Deal anhand seines wirksamen Namens, seiner Phase oder Pipeline
+ * einem Suchbegriff entspricht (analog zu crm-query-export searchFields: deal_name, stage, pipeline).
+ */
+export function dealMatchesSearch(
+  deal: { dealName?: string; stage?: string; pipeline?: string },
+  searchTerm?: string,
+): boolean {
+  if (!searchTerm) return true;
+  const term = searchTerm.trim().toLowerCase();
+  if (!term) return true;
+  const nameMatch = deal.dealName?.toLowerCase().includes(term);
+  const stageMatch = normalizeStageForComparison(deal.stage ?? '')
+    .toLowerCase()
+    .includes(term);
+  const pipeMatch = deal.pipeline?.toLowerCase().includes(term);
+  return Boolean(nameMatch || stageMatch || pipeMatch);
+}
+
 export function applyStageOverridesToCsv(
   csvText: string,
   stageOverrides: Record<string, string>,
   targetStageFilter?: string,
   sortField?: string,
   sortOrder: 'asc' | 'desc' | string = 'desc',
+  searchTerm?: string,
 ): string {
   const rows = parseCsv(csvText);
   if (rows.length <= 1) return csvText;
@@ -130,20 +150,41 @@ export function applyStageOverridesToCsv(
     const lower = h.trim().toLowerCase();
     return lower === 'stage' || lower === 'vertriebsphase';
   });
+  let nameIdx = header.findIndex((h) => {
+    const lower = h.trim().toLowerCase();
+    return lower === 'deal name' || lower === 'name' || lower === 'titel';
+  });
+  let pipelineIdx = header.findIndex((h) => h.trim().toLowerCase() === 'pipeline');
 
   if (idIdx === -1) idIdx = 0;
   if (stageIdx === -1) stageIdx = 2;
+  if (nameIdx === -1) nameIdx = 1;
+  if (pipelineIdx === -1) pipelineIdx = 5;
 
   const dataRows: string[][] = [];
   const normalizedTargetFilter = targetStageFilter
     ? normalizeStageForComparison(targetStageFilter)
     : undefined;
+  const searchLower = searchTerm?.trim().toLowerCase();
 
   for (let i = 1; i < rows.length; i++) {
     const row = [...rows[i]!];
     const id = row[idIdx]?.trim();
     if (id && stageOverrides[id]) {
       row[stageIdx] = stageOverrides[id]!;
+    }
+
+    if (searchLower) {
+      const nameVal = row[nameIdx]?.toLowerCase() ?? '';
+      const stageVal = normalizeStageForComparison(row[stageIdx] ?? '').toLowerCase();
+      const pipeVal = row[pipelineIdx]?.toLowerCase() ?? '';
+      if (
+        !nameVal.includes(searchLower) &&
+        !stageVal.includes(searchLower) &&
+        !pipeVal.includes(searchLower)
+      ) {
+        continue;
+      }
     }
 
     if (normalizedTargetFilter && normalizedTargetFilter !== 'ALL') {

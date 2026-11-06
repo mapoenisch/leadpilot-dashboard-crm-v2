@@ -19,7 +19,7 @@ import { DealsViewToggle, DealsViewMode } from '../components/DealsViewToggle';
 import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
 import { DealsKpiGrid } from '../components/DealsKpiGrid';
 import { DealsFilterBar, BASE_STAGE_OPTIONS } from '../components/DealsFilterBar';
-import { applyStageOverridesToCsv, readBlobAsText } from '../utils/crmCsvHelper';
+import { applyStageOverridesToCsv, readBlobAsText, dealMatchesSearch } from '../utils/crmCsvHelper';
 
 export function DealsPage() {
   const { session } = useOrganization();
@@ -50,15 +50,19 @@ export function DealsPage() {
   });
 
   const hasStageOverrides = Object.keys(stageOverrides).length > 0;
-  // Wenn lokale Phasenwechsel aktiv sind, ungefiltert vom Server laden,
-  // damit verschobene Deals bei Phasenfiltern nicht serverseitig verloren gehen.
+  // Wenn lokale Phasenwechsel aktiv sind, ungefiltert und ohne Server-Suche vom Server laden,
+  // damit verschobene Deals bei Phasenfiltern und Textsuche nicht serverseitig verloren gehen.
   const serverStageFilter = hasStageOverrides
     ? undefined
     : stageFilter !== 'ALL'
       ? stageFilter
       : undefined;
 
-  const clientPagingActive = hasStageOverrides && (stageFilter !== 'ALL' || sortField === 'stage');
+  const serverSearchTerm = hasStageOverrides ? undefined : searchTerm.trim() || undefined;
+
+  const clientPagingActive =
+    hasStageOverrides &&
+    (stageFilter !== 'ALL' || sortField === 'stage' || Boolean(searchTerm.trim()));
 
   const pageSize = viewMode === 'kanban' || clientPagingActive ? 100 : tablePageSize;
 
@@ -80,8 +84,8 @@ export function DealsPage() {
 
   const currentQueryKey = useMemo(
     () =>
-      `${searchTerm.trim()}|${stageFilter}|${serverStageFilter ?? 'UNFILTERED'}|${sortField}|${sortOrder}`,
-    [searchTerm, stageFilter, serverStageFilter, sortField, sortOrder],
+      `${searchTerm.trim()}|${serverSearchTerm ?? 'UNSEARCHED'}|${stageFilter}|${serverStageFilter ?? 'UNFILTERED'}|${sortField}|${sortOrder}`,
+    [searchTerm, serverSearchTerm, stageFilter, serverStageFilter, sortField, sortOrder],
   );
 
   useEffect(() => {
@@ -114,7 +118,7 @@ export function DealsPage() {
   const { data, isLoading, isError, isPlaceholderData, error, refetch } =
     useCrmListQuery<ImportedFunnelDeal>({
       resource: 'deals',
-      q: searchTerm.trim() || undefined,
+      q: serverSearchTerm,
       filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
       sortBy: sortField,
       sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
@@ -134,6 +138,9 @@ export function DealsPage() {
 
   const deals = useMemo(() => {
     let list = mappedDeals;
+    if (hasStageOverrides && searchTerm.trim()) {
+      list = list.filter((d) => dealMatchesSearch(d, searchTerm));
+    }
     if (hasStageOverrides && stageFilter !== 'ALL') {
       list = list.filter((d) => d.stage === stageFilter);
     }
@@ -144,9 +151,11 @@ export function DealsPage() {
       });
     }
     return list;
-  }, [mappedDeals, stageFilter, hasStageOverrides, sortField, sortOrder]);
+  }, [mappedDeals, hasStageOverrides, searchTerm, stageFilter, sortField, sortOrder]);
 
-  const total = hasStageOverrides && stageFilter !== 'ALL' ? deals.length : (data?.total ?? 0);
+  const isClientFiltered =
+    hasStageOverrides && (stageFilter !== 'ALL' || Boolean(searchTerm.trim()));
+  const total = isClientFiltered ? deals.length : (data?.total ?? 0);
 
   const tableDeals = useMemo(() => {
     if (clientPagingActive && viewMode === 'tabelle') {
@@ -166,7 +175,7 @@ export function DealsPage() {
       const nextPage = Math.floor(currentCount / 100) + 1;
       const res = await fetchCrmList<ImportedFunnelDeal>({
         resource: 'deals',
-        q: searchTerm.trim() || undefined,
+        q: serverSearchTerm,
         filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
         sortBy: sortField,
         sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
@@ -188,7 +197,7 @@ export function DealsPage() {
     extraDeals.length,
     isLoadingMore,
     isPlaceholderData,
-    searchTerm,
+    serverSearchTerm,
     serverStageFilter,
     sortField,
     sortOrder,
@@ -203,7 +212,7 @@ export function DealsPage() {
     try {
       const blob = await fetchCrmExportBlob({
         resource: 'deals',
-        q: searchTerm.trim() || undefined,
+        q: serverSearchTerm,
         // Wenn stageOverrides aktiv sind, ungefiltert vom Server holen und im CSV-fähigen Parser abgleichen
         filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
         sortBy: sortField,
@@ -218,6 +227,7 @@ export function DealsPage() {
           stageFilter,
           sortField,
           sortOrder,
+          searchTerm,
         );
         exportBlob = new Blob([updatedCsv], { type: 'text/csv; charset=utf-8' });
       }
@@ -244,14 +254,14 @@ export function DealsPage() {
   const stageOptions = useMemo(() => {
     const knownValues = new Set(BASE_STAGE_OPTIONS.map((o) => o.value));
     const extraOptions: SelectOption[] = [];
-    for (const d of deals) {
+    for (const d of mappedDeals) {
       if (d.stage && !knownValues.has(d.stage)) {
         knownValues.add(d.stage);
         extraOptions.push({ value: d.stage, label: d.stage });
       }
     }
     return [...BASE_STAGE_OPTIONS, ...extraOptions];
-  }, [deals]);
+  }, [mappedDeals]);
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">

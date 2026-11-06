@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { parseCsv, serializeCsv, applyStageOverridesToCsv } from '../utils/crmCsvHelper';
+import {
+  parseCsv,
+  serializeCsv,
+  applyStageOverridesToCsv,
+  dealMatchesSearch,
+} from '../utils/crmCsvHelper';
 
 describe('crmCsvHelper', () => {
   it('parst und serialisiert RFC 4180 CSV mit Kommas, Quotes und Zeilenumbrüchen', () => {
@@ -134,5 +139,51 @@ describe('crmCsvHelper', () => {
     expect(parsedDesc[1]![2]).toBe('Z-Phase');
     expect(parsedDesc[2]![0]).toBe('d-1');
     expect(parsedDesc[2]![2]).toBe('A-Phase');
+  });
+
+  it('berücksichtigt wirksame Phasen bei der Textsuche im CSV-Export (Befund Runde 8)', () => {
+    // d-1 war "Lead eingegangen", wurde nach "Verhandlung" verschoben
+    // d-2 war "Verhandlung", wurde nach "Deal verloren" verschoben
+    // d-3 war "Bedarfsanalyse" in Pipeline "Verhandlungspartner"
+    const csv =
+      '\uFEFFID,Deal Name,Stage,Betrag,Abschlussdatum,Pipeline\r\n' +
+      'd-1,Projekt Alpha,Lead eingegangen,25000,2026-12-31,Standard\r\n' +
+      'd-2,Projekt Beta,Verhandlung,40000,2026-12-31,Standard\r\n' +
+      'd-3,Projekt Gamma,Bedarfsanalyse,15000,2026-12-31,Verhandlungspartner\r\n';
+
+    // Suche nach "Verhandlung" mit Overrides:
+    // d-1 muss enthalten sein (wirksame Phase ist Verhandlung)
+    // d-2 darf NICHT enthalten sein (wirksame Phase ist jetzt Deal verloren, Name/Pipeline matchen nicht)
+    // d-3 muss enthalten sein (Pipeline enthält Verhandlung)
+    const resultCsv = applyStageOverridesToCsv(
+      csv,
+      { 'd-1': 'Verhandlung', 'd-2': 'Deal verloren' },
+      undefined,
+      undefined,
+      'desc',
+      'Verhandlung',
+    );
+
+    const parsed = parseCsv(resultCsv);
+    expect(parsed).toHaveLength(3); // Header + d-1 + d-3
+    const ids = parsed.slice(1).map((r) => r[0]);
+    expect(ids).toContain('d-1');
+    expect(ids).toContain('d-3');
+    expect(ids).not.toContain('d-2');
+  });
+
+  it('prüft dealMatchesSearch auf wirksame Phasen, Namen und Pipeline', () => {
+    const deal = {
+      dealName: 'Cloud Migration',
+      stage: 'Verhandlung',
+      pipeline: 'Enterprise SaaS',
+    };
+
+    expect(dealMatchesSearch(deal, 'migration')).toBe(true);
+    expect(dealMatchesSearch(deal, 'Verhandlung')).toBe(true);
+    expect(dealMatchesSearch(deal, 'SaaS')).toBe(true);
+    expect(dealMatchesSearch(deal, 'NichtVorhanden')).toBe(false);
+    expect(dealMatchesSearch(deal, '')).toBe(true);
+    expect(dealMatchesSearch(deal, undefined)).toBe(true);
   });
 });

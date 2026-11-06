@@ -300,4 +300,90 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
 
     unmount();
   });
+
+  it('berücksichtigt wirksame Phasen auch bei der Textsuche nach Phasenwechsel (Befund Runde 8)', () => {
+    // d-1 ("Cloud Migration Pilot", ursprünglich "Lead eingegangen") wurde nach "Verhandlung" verschoben
+    // d-2 ("Security Audit & Compliance", ursprünglich "Verhandlung") wurde nach "Deal verloren" verschoben
+    sessionStorage.setItem(
+      'leadpilot_crm_deal_stage_overrides',
+      JSON.stringify({ 'd-1': 'Verhandlung', 'd-2': 'Deal verloren' }),
+    );
+
+    mockedQuery.mockReturnValue({
+      data: { items: SAMPLE_DEALS, total: 2 },
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+
+    // Suche nach "Verhandlung"
+    const { unmount } = renderDealsPage('/crm/deals?suche=Verhandlung&ansicht=tabelle');
+
+    // Query wird ohne serverSearchTerm (q: undefined) aufgerufen, damit der Server d-1 nicht vorab wegfiltert
+    expect(mockedQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        q: undefined,
+      }),
+    );
+
+    // d-1 muss sichtbar sein (wirksame Phase ist "Verhandlung")
+    expect(screen.getByText('Cloud Migration Pilot')).toBeInTheDocument();
+    // d-2 darf NICHT in der Tabelle sein (wirksame Phase ist "Deal verloren", Name/Pipeline enthalten kein "Verhandlung")
+    expect(screen.queryByText('Security Audit & Compliance')).not.toBeInTheDocument();
+
+    unmount();
+  });
+
+  it('filtert CSV-Export nach wirksamer Phase bei aktiver Textsuche (Befund Runde 8)', async () => {
+    sessionStorage.setItem(
+      'leadpilot_crm_deal_stage_overrides',
+      JSON.stringify({ 'd-1': 'Verhandlung', 'd-2': 'Deal verloren' }),
+    );
+
+    mockedQuery.mockReturnValue({
+      data: { items: SAMPLE_DEALS, total: 2 },
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+
+    const rawCsv =
+      '\uFEFFID,Deal Name,Stage,Betrag,Abschlussdatum,Pipeline\r\n' +
+      'd-1,Cloud Migration Pilot,Lead eingegangen,25000,2026-12-31,Enterprise SaaS\r\n' +
+      'd-2,Security Audit & Compliance,Verhandlung,15000,2026-10-30,Compliance\r\n';
+
+    mockedExport.mockResolvedValue(new Blob([rawCsv], { type: 'text/csv' }));
+
+    const createObjectURLMock = vi.fn().mockReturnValue('blob:mock-url');
+    window.URL.createObjectURL = createObjectURLMock;
+    window.URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    const { unmount } = renderDealsPage('/crm/deals?suche=Verhandlung');
+
+    const exportBtn = screen.getByRole('button', { name: 'CSV Export' });
+    fireEvent.click(exportBtn);
+
+    await waitFor(() => {
+      expect(mockedExport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: undefined, // Server-Suche deaktiviert bei lokalen Overrides
+        }),
+      );
+    });
+
+    const exportedBlob = createObjectURLMock.mock.calls[0]![0] as Blob;
+    const text = await readBlobAsText(exportedBlob);
+
+    // d-1 muss im Export enthalten sein (wirksame Phase = Verhandlung)
+    expect(text).toContain('d-1,Cloud Migration Pilot,Verhandlung');
+    // d-2 darf NICHT enthalten sein (wirksame Phase = Deal verloren)
+    expect(text).not.toContain('d-2,Security Audit & Compliance');
+
+    unmount();
+  });
 });
