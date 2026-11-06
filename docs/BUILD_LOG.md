@@ -18499,3 +18499,41 @@ Den Codex-Befund (1 P2) aus Review-Runde 6 strukturiert behoben:
   - `DealsPage.findings.ui.vitest.tsx`: 250 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 7 (PR #139, Head `e97da1a`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Den Codex-Befund (1 P2) aus Review-Runde 7 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladeseiten an den wirksamen Serverfilter binden):**
+   - **Befund:** Wurden im phasengefilterten Kanban weitere Seiten geladen und anschließend erstmals ein Deal verschoben, wechselte `serverStageFilter` auf `undefined`, während `currentQueryKey` unverändert blieb. Die reguläre Query forderte daraufhin ungefilterte Deals an, aber `extraDeals` und laufende Nachladeanfragen gehörten weiterhin zum vorherigen gefilterten Bereich. Dadurch verschwanden bereits geladene Deals aus dem Board.
+   - **Behebung:** `currentQueryKey` bezieht `serverStageFilter` (`serverStageFilter ?? 'UNFILTERED'`) explizit in die Schlüsselbildung ein (`searchTerm|stageFilter|serverStageFilter|sortField|sortOrder`). Ändert sich der wirksame Serverfilter (z. B. beim ersten Phasenwechsel), invalidiert der Key sofort, `extraDeals` wird geleert und asynchrone in-flight Anfragen werden sauber verworfen.
+   - **Test-Absicherung:** Neuer Integrationstest in `DealsPage.findings.ui.vitest.tsx` (`verwirft geladene Nachladeseiten bei Wechsel des wirksamen Serverfilters durch Phasenwechsel`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 7)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 115 Tests grün
+- `npm test`: 354 Testdateien, 2.576 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.61s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 378 Zeilen
+  - `crmCsvHelper.ts`: 169 Zeilen
+  - `crmCsvHelper.vitest.ts`: 138 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 303 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

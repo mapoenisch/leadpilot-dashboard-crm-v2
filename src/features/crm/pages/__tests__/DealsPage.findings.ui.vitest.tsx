@@ -149,6 +149,59 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     });
   });
 
+  it('verwirft geladene Nachladeseiten bei Wechsel des wirksamen Serverfilters durch Phasenwechsel', async () => {
+    mockedQuery.mockReturnValue({
+      data: { items: [SAMPLE_DEALS[1]!], total: 200 },
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+
+    let resolveListPromise!: (val: crmListService.CrmPageResult<ImportedFunnelDeal>) => void;
+    mockedList.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveListPromise = resolve;
+        }),
+    );
+
+    renderDealsPage('/crm/deals?ansicht=kanban&stufe=Verhandlung');
+
+    // Nachladen anstoßen (Seite 2 mit Filter "Verhandlung")
+    const loadMoreBtn = screen.getByTestId('kanban-load-more-btn');
+    fireEvent.click(loadMoreBtn);
+
+    // Jetzt verschieben wir einen Deal (z. B. d-2 nach Erstgespräch geführt)
+    const cardMenuBtn = screen.getByLabelText('Security Audit & Compliance: Phase ändern');
+    fireEvent.click(cardMenuBtn);
+    const targetOption = screen.getByRole('menuitem', { name: /Erstgespräch geführt/ });
+    fireEvent.click(targetOption);
+
+    // Stale Request liefert nun sein Ergebnis aus dem vorherigen gefilterten Bereich
+    resolveListPromise({
+      items: [
+        {
+          id: 'filtered-p2-deal',
+          dealName: 'Alter gefilterter P2 Deal',
+          stage: 'Verhandlung',
+          amount: 8000,
+          closeDate: '2026-12-31',
+          pipeline: 'Old',
+        },
+      ],
+      total: 200,
+      page: 2,
+      pageSize: 100,
+      resource: 'deals',
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Alter gefilterter P2 Deal')).not.toBeInTheDocument();
+    });
+  });
+
   it('sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)', () => {
     // Wenn Query noch alte Platzhalterdaten enthält (z. B. beim Umschalten von Tabelle zu Kanban)
     mockedQuery.mockReturnValue({

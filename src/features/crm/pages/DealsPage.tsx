@@ -79,8 +79,9 @@ export function DealsPage() {
   const activeLoadMoreQueryRef = useRef<string>('');
 
   const currentQueryKey = useMemo(
-    () => `${searchTerm.trim()}|${stageFilter}|${sortField}|${sortOrder}`,
-    [searchTerm, stageFilter, sortField, sortOrder],
+    () =>
+      `${searchTerm.trim()}|${stageFilter}|${serverStageFilter ?? 'UNFILTERED'}|${sortField}|${sortOrder}`,
+    [searchTerm, stageFilter, serverStageFilter, sortField, sortOrder],
   );
 
   useEffect(() => {
