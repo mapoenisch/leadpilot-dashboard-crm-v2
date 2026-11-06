@@ -74,4 +74,30 @@ describe('crmCsvHelper', () => {
     const parsed = parseCsv(updated);
     expect(parsed[1]![2]).toBe("'=1+1");
   });
+
+  it('behandelt native (bereits geschützte) und lokal verschobene Deals bei Phasenfiltern konsistent', () => {
+    // d-1 wurde serverseitig bereits als '+Partner geschützt geliefert
+    // d-2 ist in "Lead eingegangen" und wird per Override nach "+Partner" verschoben
+    // d-3 ist in "Angebot erstellt" und bleibt dort
+    const csv =
+      '\uFEFFID,Deal Name,Stage,Betrag,Abschlussdatum,Pipeline\r\n' +
+      'd-1,Nativer Partner Deal,"\'+Partner",30000,2026-12-31,Partner\r\n' +
+      'd-2,Verschobener Deal,Lead eingegangen,20000,2026-11-30,Enterprise\r\n' +
+      'd-3,Anderer Deal,Angebot erstellt,15000,2026-10-31,Data\r\n';
+
+    const updated = applyStageOverridesToCsv(
+      csv,
+      { 'd-2': '+Partner' },
+      '+Partner', // Filter auf die Phase "+Partner"
+    );
+
+    const parsed = parseCsv(updated);
+    // Header + d-1 + d-2 = 3 Zeilen (d-3 darf nicht enthalten sein)
+    expect(parsed).toHaveLength(3);
+    expect(parsed[1]![0]).toBe('d-1');
+    expect(parsed[1]![2]).toBe("'+Partner"); // Formelschutz für d-1 erhalten
+
+    expect(parsed[2]![0]).toBe('d-2');
+    expect(parsed[2]![2]).toBe("'+Partner"); // Formelschutz auch für verschobenen Deal d-2
+  });
 });

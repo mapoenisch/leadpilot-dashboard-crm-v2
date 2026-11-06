@@ -18378,3 +18378,73 @@ Beide Codex-Befunde (2 P2) aus Review-Runde 3 strukturiert behoben:
   - `DealsPage.tsx`: 360 Zeilen
   - `crmCsvHelper.ts`: 142 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 4 (PR #139, Head `fcf16ba`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Den verbleibenden Codex-Befund (1 P2) aus Review-Runde 4 strukturiert behoben:
+
+1. **Befund 1 (P2, `crmCsvHelper.ts` – CSV-Phasenfilterabgleich mit abgesichertem Zellwert):**
+   - **Befund:** Wurde nach einer Phase mit Formelpräfixen gefiltert (z. B. `+Partner`), entfernte der CSV-Export native Deals dieser Phase fälschlich aus dem Ergebnis. Der Server liefert deren Stage mit Formelschutz als `'+Partner`, während der Filter auf den Rohwert `+Partner` prüfte. Nur lokal überschriebene Zeilen stimmten überein.
+   - **Behebung:** Einführung der Funktion `normalizeStageForComparison` in `src/features/crm/utils/crmCsvHelper.ts`. Neutralisiert eventuell serverseitig vorangestellte Schutz-Apostrophe (`/^'\s*[=+\-@\t\r]/`) ausschließlich für den Filtervergleich, ohne den Formelschutz in der exportierten Zeile aufzuheben. Beim anschließenden `serializeCsv` erhalten auch manuell verschobene Zeilen automatisch den Formelschutz. Native und verschobene Deals werden dadurch absolut konsistent behandelt.
+   - **Test-Absicherung:** Unit-Test `behandelt native (bereits geschützte) und lokal verschobene Deals bei Phasenfiltern konsistent` in `crmCsvHelper.vitest.ts` ergänzt.
+
+### Automatisierte Verifikation (Nacharbeit Runde 4)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 121 Tests grün
+- `npm test`: 354 Testdateien, 2.569 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (4.36s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealKanbanCard.tsx`: 283 Zeilen
+  - `DealsPage.tsx`: 360 Zeilen
+  - `crmCsvHelper.ts`: 158 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 4 (PR #139, Head `fcf16ba`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Den Codex-Befund (1 P2) aus Review-Runde 4 strukturiert behoben:
+
+1. **Befund 1 (P2, `crmCsvHelper.ts` – CSV-Phasenfilter mit abgesichertem Zellwert abgleichen):**
+   - **Befund:** Bei Phasen mit Formelpräfixen (z. B. `+Partner`) liefert der Server die Stage im CSV bereits formelgeschützt als `'+Partner`. Bei aktivem Phasenfilter entfernte der CSV-Export native, unveränderte Deals dieser Phase fälschlich, weil `row[stageIdx] === targetStageFilter` (`'+Partner' === '+Partner'`) nicht übereinstimmte, während lokal verschobene Zeilen gematcht wurden.
+   - **Behebung:** Einführung der Normalisierungsfunktion `normalizeStageForComparison` in `src/features/crm/utils/crmCsvHelper.ts`. Ein serverseitig vorangestelltes Apostroph zum Formelschutz (`^'\s*[=+\-@\t\r]`) wird für den Phasenfilter-Vergleich neutralisiert (`rowStage === normalizedTargetFilter`), ohne den Formelschutz im exportierten CSV-Datenbestand aufzuheben. Native geschützte Deals (`'+Partner`) und lokal nach `+Partner` verschobene Deals werden im gefilterten Export konsistent beibehalten und vollständig geschützt serialisiert.
+   - **Automatisierte Absicherung:** Neuer Unit-Test in `crmCsvHelper.vitest.ts` (`behandelt native (bereits geschützte) und lokal verschobene Deals bei Phasenfiltern konsistent`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 4)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 121 Tests grün
+- `npm test`: 354 Testdateien, 2.569 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.48s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealKanbanCard.tsx`: 283 Zeilen
+  - `DealsPage.tsx`: 360 Zeilen
+  - `crmCsvHelper.ts`: 158 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

@@ -102,6 +102,18 @@ export function serializeCsv(rows: string[][]): string {
   return '\uFEFF' + rows.map((r) => r.map((c) => sanitizeCsvCell(c)).join(',')).join('\r\n');
 }
 
+/**
+ * Normalisiert einen Phasenwert für Vergleiche, indem ein eventuell serverseitig
+ * vorangestelltes Apostroph zum Formelschutz ('=, '+, '-, '@, '\t, '\r) neutralisiert wird.
+ */
+export function normalizeStageForComparison(val: string): string {
+  if (typeof val !== 'string') return '';
+  if (/^'\s*[=+\-@\t\r]/.test(val)) {
+    return val.slice(1);
+  }
+  return val;
+}
+
 export function applyStageOverridesToCsv(
   csvText: string,
   stageOverrides: Record<string, string>,
@@ -121,6 +133,9 @@ export function applyStageOverridesToCsv(
   if (stageIdx === -1) stageIdx = 2;
 
   const dataRows: string[][] = [];
+  const normalizedTargetFilter = targetStageFilter
+    ? normalizeStageForComparison(targetStageFilter)
+    : undefined;
 
   for (let i = 1; i < rows.length; i++) {
     const row = [...rows[i]!];
@@ -129,8 +144,9 @@ export function applyStageOverridesToCsv(
       row[stageIdx] = stageOverrides[id]!;
     }
 
-    if (targetStageFilter && targetStageFilter !== 'ALL') {
-      if (row[stageIdx] === targetStageFilter) {
+    if (normalizedTargetFilter && normalizedTargetFilter !== 'ALL') {
+      const rowStage = normalizeStageForComparison(row[stageIdx] ?? '');
+      if (rowStage === normalizedTargetFilter) {
         dataRows.push(row);
       }
     } else {
