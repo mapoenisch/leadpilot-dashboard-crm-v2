@@ -125,6 +125,12 @@ describe('FunnelPage Live & Vergleich (Auftrag 131)', () => {
     expect(screen.getByText('Operative Pipeline-Tabelle (Live-CRM)')).toBeInTheDocument();
     expect(screen.getByText('CRM Bestand')).toBeInTheDocument();
     expect(screen.getByText('Pipeline-Volumen')).toBeInTheDocument();
+
+    // Chart- & Tabellen-Conversions prüfen: Zwischen MQL und SQL muss 75,0 % stehen (nicht 80,0 %)
+    expect(screen.getAllByText('80,0 %').length).toBeGreaterThan(0); // Leads -> MQL (4/5)
+    expect(screen.getAllByText('75,0 %').length).toBeGreaterThan(0); // MQL -> SQL (3/4)
+    expect(screen.getAllByText('66,7 %').length).toBeGreaterThan(0); // SQL -> Angebote (2/3)
+    expect(screen.getAllByText('50,0 %').length).toBeGreaterThan(0); // Angebote -> Won (1/2)
   });
 
   it('wechselt in den Vergleichsmodus und zeigt Delta-Pills', async () => {
@@ -147,31 +153,48 @@ describe('FunnelPage Live & Vergleich (Auftrag 131)', () => {
     expect(screen.getByText('Δ Quote')).toBeInTheDocument();
   });
 
-  it('unterstützt Tastaturnavigation zwischen den Tabs', () => {
+  it('unterstützt Tastaturnavigation zwischen den Tabs und verschiebt den Fokus', () => {
     renderWithClient(<FunnelPage />);
 
     const planTab = screen.getByRole('tab', { name: /Plan 2025/i });
     planTab.focus();
+    expect(document.activeElement).toBe(planTab);
 
-    // Pfeil nach rechts -> Live
+    // Pfeil nach rechts -> Live und Fokus verschieben
     fireEvent.keyDown(planTab, { key: 'ArrowRight' });
+    const liveTab = screen.getByRole('tab', { name: /Live-Pipeline/i });
     expect(
       screen.getByRole('heading', { level: 1, name: 'Live Sales Pipeline' }),
     ).toBeInTheDocument();
+    expect(document.activeElement).toBe(liveTab);
 
-    const liveTab = screen.getByRole('tab', { name: /Live-Pipeline/i });
-    // Pfeil nach rechts -> Vergleich
-    fireEvent.keyDown(liveTab, { key: 'ArrowRight' });
+    // Weiterer Pfeil nach rechts auf dem aktiven Element -> Vergleich
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' });
+    const vergleichTab = screen.getByRole('tab', { name: /Vergleich/i });
     expect(
       screen.getByRole('heading', { level: 1, name: 'Sales Funnel: Plan vs. Live' }),
     ).toBeInTheDocument();
+    expect(document.activeElement).toBe(vergleichTab);
 
-    const vergleichTab = screen.getByRole('tab', { name: /Vergleich/i });
     // Pfeil nach links -> zurück zu Live
-    fireEvent.keyDown(vergleichTab, { key: 'ArrowLeft' });
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowLeft' });
     expect(
       screen.getByRole('heading', { level: 1, name: 'Live Sales Pipeline' }),
     ).toBeInTheDocument();
+    expect(document.activeElement).toBe(liveTab);
+  });
+
+  it('zeigt einen Fehlerzustand an, wenn eine CRM-Abfrage fehlschlägt', async () => {
+    vi.mocked(crmListService.fetchCrmList).mockRejectedValueOnce(new Error('Verbindungsfehler'));
+
+    renderWithClient(<FunnelPage />);
+    const liveTab = screen.getByRole('tab', { name: /Live-Pipeline/i });
+    fireEvent.click(liveTab);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Live-CRM-Daten konnten nicht geladen werden/i)).toBeInTheDocument();
   });
 
   it('initialisiert den Modus aus dem URL-Parameter (?daten=vergleich)', async () => {

@@ -4,7 +4,8 @@
 **Baseline:** `b8fe084` (origin/main) auf Port 3001  
 **Nachher:** `claude/auftrag-131-vertrieb-funnel-live` auf Port 3000  
 **Datum:** 2026-11-06  
-**Ergebnis:** 18/18 Bildpaare mit beabsichtigter Änderung, maximaler Überlauf: **0 px**.
+**Ergebnis:** 18/18 Bildpaare mit beabsichtigter Änderung, maximaler Überlauf: **0 px**.  
+**Status:** **PASS**
 
 ## Screenshot-Vergleichsmatrix
 
@@ -29,9 +30,9 @@
 | `funnel-vergleich` | 768 px | light | `af6883edc7f3…` | `8827274c9d61…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 | `funnel-vergleich` | 375 px | light | `32466181423c…` | `6aad90b80645…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 
-
 ## Fazit
 
-- Alle 18 Bildpaare wurden deterministisch gerendert.
-- Überlauf über alle Viewports (1440 px Desktop, 768 px Tablet, 375 px Smartphone) und beide Themes (Dark/Light): **exakt 0 px**.
-- Nahtlose visuelle Darstellung des Segmented-Control-Umschalters, der Live-Pipeline mit Bottleneck-Warnung und der parallelen Gegenüberstellung im Vergleichsmodus mit Delta-Pills.
+- Gerenderte Bildpaare: 18/18 (Vollständig).
+- Visuelle Differenz: 18/18 Bildpaare mit beabsichtigter Änderung (100% geändert).
+- Überlauf über alle Viewports und Themes: **exakt 0 px** (kein horizontaler Überlauf).
+- Gate-Gesamtergebnis: **PASS**.

@@ -7,7 +7,7 @@ import { Callout, ChartFigure, PageHero, Panel } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
 import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
-import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
+import { useAllCrmEntitiesQuery } from '../services/funnelCrmDataService';
 import { ImportedFunnelDeal, Contact } from '@/types/crm';
 import {
   getDealStageOverridesStorageKey,
@@ -64,46 +64,58 @@ function FunnelPageHtml() {
   ) as FunnelSourceMode;
   const isLiveOrVergleich = mode === 'live' || mode === 'vergleich';
 
-  // Live-CRM Daten laden (nur wenn Live- oder Vergleichsmodus aktiv)
-  const { data: dealsResult, isLoading: isDealsLoading } = useCrmListQuery<ImportedFunnelDeal>(
-    { resource: 'deals', pageSize: 1000 },
-    { enabled: isLiveOrVergleich },
-  );
+  // Live-CRM Daten laden (Backend-konform mit pageSize <= 100 über alle Seiten paginiert)
+  const {
+    data: deals = [],
+    isLoading: isDealsLoading,
+    isError: isDealsError,
+  } = useAllCrmEntitiesQuery<ImportedFunnelDeal>('deals', session?.organizationId, {
+    enabled: isLiveOrVergleich,
+  });
 
-  const { data: contactsResult, isLoading: isContactsLoading } = useCrmListQuery<Contact>(
-    { resource: 'contacts', pageSize: 1000 },
-    { enabled: isLiveOrVergleich },
-  );
+  const {
+    data: contacts = [],
+    isLoading: isContactsLoading,
+    isError: isContactsError,
+  } = useAllCrmEntitiesQuery<Contact>('contacts', session?.organizationId, {
+    enabled: isLiveOrVergleich,
+  });
 
   const storageKey = getDealStageOverridesStorageKey(session?.organizationId, session?.userId);
   const stageOverrides = useMemo(() => readStageOverrides(storageKey), [storageKey]);
-  const qualifiedLeadIds = useMemo(() => getQualifiedLeadIds(), []);
+  const qualifiedLeadIds = useMemo(
+    () => getQualifiedLeadIds(session?.organizationId),
+    [session?.organizationId],
+  );
 
   // Funnel Analytics berechnen
   const analytics = useMemo(() => {
     return calculateFunnelAnalytics({
-      contacts: contactsResult?.items ?? [],
-      deals: dealsResult?.items ?? [],
+      contacts,
+      deals,
       stageOverrides,
       qualifiedLeadIds,
       mode,
     });
-  }, [contactsResult?.items, dealsResult?.items, stageOverrides, qualifiedLeadIds, mode]);
+  }, [contacts, deals, stageOverrides, qualifiedLeadIds, mode]);
 
   // Trichterstufen für Chart je nach Modus konfigurieren
   const chartStufen = useMemo(() => {
     if (mode === 'live') {
-      return analytics.stages.map((s, index) => ({
-        name: s.name,
-        count: s.liveCount,
-        einheit: s.einheit,
-        amountEuro: s.liveAmountEuro,
-        hebel: index === HEBEL_STUFE ? 'Trial-Conversion Hebel' : undefined,
-        conversionText:
-          s.liveConversionQuote !== null
-            ? `${s.liveConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} %`
-            : undefined,
-      }));
+      return analytics.stages.map((s, index) => {
+        const next = analytics.stages[index + 1];
+        return {
+          name: s.name,
+          count: s.liveCount,
+          einheit: s.einheit,
+          amountEuro: s.liveAmountEuro,
+          hebel: index === HEBEL_STUFE ? 'Trial-Conversion Hebel' : undefined,
+          conversionText:
+            next && next.liveConversionQuote !== null
+              ? `${next.liveConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} %`
+              : undefined,
+        };
+      });
     }
 
     if (mode === 'vergleich') {
@@ -118,8 +130,8 @@ function FunnelPageHtml() {
           deltaQuote: next ? next.deltaQuote : null,
           hebel: index === HEBEL_STUFE ? 'Trial-Conversion Hebel' : undefined,
           conversionText:
-            s.liveConversionQuote !== null && s.planConversionQuote !== null
-              ? `Live: ${s.liveConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} % (Plan: ${s.planConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} %)`
+            next && next.liveConversionQuote !== null && next.planConversionQuote !== null
+              ? `Live: ${next.liveConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} % (Plan: ${next.planConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} %)`
               : undefined,
         };
       });
@@ -200,8 +212,16 @@ function FunnelPageHtml() {
 
   const isDataLoading =
     (mode === 'live' || mode === 'vergleich') && (isDealsLoading || isContactsLoading);
+  const isDataError =
+    (mode === 'live' || mode === 'vergleich') && (isDealsError || isContactsError);
   const isPlanEmpty = mode === 'plan' && FUNNEL.rows.length === 0;
-  const dataStatus = isDataLoading ? 'loading' : isPlanEmpty ? 'empty' : 'ready';
+  const dataStatus: 'loading' | 'empty' | 'error' | 'ready' = isDataLoading
+    ? 'loading'
+    : isDataError
+      ? 'error'
+      : isPlanEmpty
+        ? 'empty'
+        : 'ready';
 
   return (
     <div
@@ -235,7 +255,11 @@ function FunnelPageHtml() {
         </div>
       )}
 
-      <DataState status={dataStatus} emptyText="Keine Funnel-Daten erfasst.">
+      <DataState
+        status={dataStatus}
+        emptyText="Keine Funnel-Daten erfasst."
+        errorText="Live-CRM-Daten konnten nicht geladen werden. Bitte versuchen Sie es später erneut oder überprüfen Sie Ihre Verbindung."
+      >
         <Panel
           title={
             mode === 'live'

@@ -94,7 +94,34 @@ export function getEffectiveDealStage(
 }
 
 /**
- * Berechnet das Alter bzw. die Liegedauer eines Deals in Tagen.
+ * Ermittelt die tatsächliche Verweildauer eines Deals in seiner aktuellen Phase (in Tagen).
+ * Gibt `null` zurück, wenn weder daysInStage noch stageEnteredAt bekannt sind,
+ * damit das Gesamtalter eines Deals (createdAt) nicht fälschlicherweise als Stagnation
+ * in einer einzelnen Phase interpretiert wird.
+ */
+export function getDealDaysInStage(
+  deal: ImportedFunnelDeal & {
+    createdAt?: string;
+    daysInStage?: number;
+    stageEnteredAt?: string;
+  },
+  referenceDate: Date = new Date(),
+): number | null {
+  if (typeof deal.daysInStage === 'number' && deal.daysInStage >= 0) {
+    return deal.daysInStage;
+  }
+  if (deal.stageEnteredAt) {
+    const entered = new Date(deal.stageEnteredAt).getTime();
+    if (!isNaN(entered)) {
+      const diffMs = referenceDate.getTime() - entered;
+      return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    }
+  }
+  return null;
+}
+
+/**
+ * Berechnet das Gesamtalter eines Deals (seit Erstellung) in Tagen.
  */
 export function calculateDealAgeInDays(
   deal: ImportedFunnelDeal & { createdAt?: string; daysInStage?: number },
@@ -110,23 +137,6 @@ export function calculateDealAgeInDays(
       return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
     }
   }
-  // Deterministische Heuristik basierend auf closeDate oder Deal-ID für konsistente Demo-Daten
-  if (deal.closeDate) {
-    const close = new Date(deal.closeDate).getTime();
-    if (!isNaN(close)) {
-      // Differenz oder Versatz berechnen (Deals näher am Closing sind älter)
-      const seed = Math.abs(deal.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0));
-      // Reife Deals in PROPOSAL und PITCH_DEMO liegen typischerweise 18 bis 35 Tage
-      const normalized = normalizeCanonicalStageLabel(deal.stage);
-      if (normalized === 'Angebot erstellt') {
-        return 26 + (seed % 9); // 26 bis 34 Tage (Engpass)
-      }
-      if (normalized === 'Bedarfsanalyse') {
-        return 16 + (seed % 14); // 16 bis 29 Tage
-      }
-      return 10 + (seed % 15);
-    }
-  }
   return 14;
 }
 
@@ -139,36 +149,44 @@ export function identifyFunnelBottlenecks(
   referenceDate?: Date,
   thresholdDays: number = BOTTLENECK_THRESHOLD_DAYS,
 ): FunnelBottleneck[] {
-  const stageGroups = new Map<string, { count: number; totalDays: number }>();
+  const stageGroups = new Map<string, { totalDays: number; knownCount: number }>();
 
   for (const deal of deals) {
     const stage = getEffectiveDealStage(deal, stageOverrides);
     // Nur aktive Verkaufsphasen vor Abschluss prüfen
     if (stage === 'Deal gewonnen' || stage === 'Deal verloren') continue;
 
-    const days = calculateDealAgeInDays(deal, referenceDate);
-    const curr = stageGroups.get(stage) ?? { count: 0, totalDays: 0 };
-    stageGroups.set(stage, { count: curr.count + 1, totalDays: curr.totalDays + days });
+    const days = getDealDaysInStage(deal, referenceDate);
+    if (days === null) {
+      // Verweildauer in dieser Phase unbekannt (z.B. nur globales createdAt vorhanden)
+      continue;
+    }
+
+    const curr = stageGroups.get(stage) ?? { totalDays: 0, knownCount: 0 };
+    stageGroups.set(stage, {
+      totalDays: curr.totalDays + days,
+      knownCount: curr.knownCount + 1,
+    });
   }
 
   const bottlenecks: FunnelBottleneck[] = [];
 
   for (const [stage, data] of stageGroups.entries()) {
-    if (data.count === 0) continue;
-    const avgDays = Math.round((data.totalDays / data.count) * 10) / 10;
+    if (data.knownCount === 0) continue;
+    const avgDays = Math.round((data.totalDays / data.knownCount) * 10) / 10;
     if (avgDays >= thresholdDays) {
       const planDays = PLAN_STAGE_DAYS[stage] ?? 14;
-      let recommendation = `Sales-Follow-up priorisieren: ${data.count} Deals verweilen durchschnittlich ${avgDays.toLocaleString('de-DE')} Tage in Phase „${stage}“ (Plan: ${planDays} Tage).`;
+      let recommendation = `Sales-Follow-up priorisieren: ${data.knownCount} Deals verweilen durchschnittlich ${avgDays.toLocaleString('de-DE')} Tage in Phase „${stage}“ (Plan: ${planDays} Tage).`;
       if (stage === 'Angebot erstellt') {
-        recommendation = `Engpass identifiziert: ${data.count} Angebote verweilen seit durchschnittlich ${avgDays.toLocaleString('de-DE')} Tagen in Phase „Angebot erstellt“ (Plan: ${planDays} Tage). Entscheidungsträger direkt kontaktieren.`;
+        recommendation = `Engpass identifiziert: ${data.knownCount} Angebote verweilen seit durchschnittlich ${avgDays.toLocaleString('de-DE')} Tagen in Phase „Angebot erstellt“ (Plan: ${planDays} Tage). Entscheidungsträger direkt kontaktieren.`;
       } else if (stage === 'Bedarfsanalyse') {
-        recommendation = `Verzögerung in Bedarfsanalyse: ${data.count} Deals benötigen im Schnitt ${avgDays.toLocaleString('de-DE')} Tage (Plan: ${planDays} Tage). Qualifizierungsschärfe prüfen.`;
+        recommendation = `Verzögerung in Bedarfsanalyse: ${data.knownCount} Deals benötigen im Schnitt ${avgDays.toLocaleString('de-DE')} Tage (Plan: ${planDays} Tage). Qualifizierungsschärfe prüfen.`;
       }
 
       bottlenecks.push({
         stageKey: stage.toLowerCase().replace(/\s+/g, '-'),
         stageName: stage,
-        dealCount: data.count,
+        dealCount: data.knownCount,
         avgDaysInStage: avgDays,
         thresholdDays,
         planDays,
@@ -205,6 +223,8 @@ export function calculateFunnelAnalytics({
   let sqlCount = 0;
   let sqlAmount = 0;
   let mqlDealsCount = 0;
+  let mqlAmount = 0;
+  let leadsAmount = 0;
 
   for (const deal of deals) {
     const stage = getEffectiveDealStage(deal, stageOverrides);
@@ -214,6 +234,13 @@ export function calculateFunnelAnalytics({
     const isAngebotsPhase = stage === 'Angebot erstellt' || stage === 'Verhandlung' || isWon;
     const isSqlPhase =
       isAngebotsPhase || stage === 'Erstgespräch geführt' || stage === 'Bedarfsanalyse';
+
+    // Jeder Deal in der Pipeline zählt zum Gesamtvolumen der Leads
+    leadsAmount += amount;
+
+    // Alle Deals in der Pipeline haben mindestens MQL-Relevanz
+    mqlDealsCount += 1;
+    mqlAmount += amount;
 
     if (isWon) {
       wonCount += 1;
@@ -227,8 +254,6 @@ export function calculateFunnelAnalytics({
       sqlCount += 1;
       sqlAmount += amount;
     }
-    // Alle Deals in der Pipeline zählen als qualifiziert (mindestens MQL-Status durchlaufen)
-    mqlDealsCount += 1;
   }
 
   // Zusätzliche qualifizierte Leads aus den Kontakten berücksichtigen
@@ -253,7 +278,7 @@ export function calculateFunnelAnalytics({
       einheit: 'Leads',
       planCount: PLAN_FUNNEL_COUNTS.leads,
       liveCount: liveLeads,
-      liveAmountEuro: sqlAmount,
+      liveAmountEuro: leadsAmount,
       planPrev: null,
       livePrev: null,
     },
@@ -263,7 +288,7 @@ export function calculateFunnelAnalytics({
       einheit: 'MQL',
       planCount: PLAN_FUNNEL_COUNTS.mql,
       liveCount: liveMql,
-      liveAmountEuro: sqlAmount,
+      liveAmountEuro: mqlAmount,
       planPrev: PLAN_FUNNEL_COUNTS.leads,
       livePrev: liveLeads,
     },

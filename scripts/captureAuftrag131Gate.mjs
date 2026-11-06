@@ -59,7 +59,12 @@ const MOCK_DEALS = [
 ];
 
 const MOCK_CONTACTS = [
-  { id: 'c-001', companyId: 'comp-001', email: 'm.mustermann@acme.de', name: 'Maximilian Mustermann' },
+  {
+    id: 'c-001',
+    companyId: 'comp-001',
+    email: 'm.mustermann@acme.de',
+    name: 'Maximilian Mustermann',
+  },
   { id: 'c-002', companyId: 'comp-002', email: 's.schmidt@beta.de', name: 'Sabine Schmidt' },
   { id: 'c-003', companyId: 'comp-003', email: 'k.weber@gamma.de', name: 'Klaus Weber' },
   { id: 'c-004', companyId: 'comp-004', email: 'l.becker@delta.de', name: 'Laura Becker' },
@@ -87,7 +92,8 @@ const SCENARIOS = [
   },
   {
     id: 'funnel-vergleich',
-    title: '/sales/funnel?daten=vergleich (Parallele Plan-vs-Live Gegenüberstellung mit Delta-Pills)',
+    title:
+      '/sales/funnel?daten=vergleich (Parallele Plan-vs-Live Gegenüberstellung mit Delta-Pills)',
     prepare: async (page, url = BASE_URL) => {
       await page.goto(`${url}/sales/funnel?daten=vergleich`);
       await page.waitForSelector('.funnel-seite', { timeout: 15000 });
@@ -308,7 +314,9 @@ for (const side of SIDES) {
           scrollHeight: metrics.scrollHeight,
         });
 
-        console.log(`[Captured] ${side} ${scen.id} ${width}px ${theme} -> overflow: ${metrics.overflowPx}px, height: ${metrics.scrollHeight}px`);
+        console.log(
+          `[Captured] ${side} ${scen.id} ${width}px ${theme} -> overflow: ${metrics.overflowPx}px, height: ${metrics.scrollHeight}px`,
+        );
       }
 
       await ctx.close();
@@ -360,6 +368,12 @@ for (const scen of SCENARIOS) {
   }
 }
 
+const EXPECTED_COMPARISONS = 18;
+const hasCountMismatch = totalCompared !== EXPECTED_COMPARISONS;
+const hasUnchangedImages = diffCount !== totalCompared;
+const hasOverflow = maxOverflow > 0;
+const isGatePassed = !hasCountMismatch && !hasUnchangedImages && !hasOverflow;
+
 const readmeContent = `# Auftrag 131: Screenshot-Gate-Nachweis
 
 **Route:** \`/vertrieb/funnel\`  
@@ -367,6 +381,7 @@ const readmeContent = `# Auftrag 131: Screenshot-Gate-Nachweis
 **Nachher:** \`claude/auftrag-131-vertrieb-funnel-live\` auf Port 3000  
 **Datum:** ${new Date().toISOString().slice(0, 10)}  
 **Ergebnis:** ${diffCount}/${totalCompared} Bildpaare mit beabsichtigter Änderung, maximaler Überlauf: **${maxOverflow} px**.
+**Status:** **${isGatePassed ? 'PASS' : 'FAIL'}**
 
 ## Screenshot-Vergleichsmatrix
 
@@ -374,10 +389,26 @@ ${tableMd}
 
 ## Fazit
 
-- Alle ${totalCompared} Bildpaare wurden deterministisch gerendert.
-- Überlauf über alle Viewports (1440 px Desktop, 768 px Tablet, 375 px Smartphone) und beide Themes (Dark/Light): **exakt 0 px**.
-- Nahtlose visuelle Darstellung des Segmented-Control-Umschalters, der Live-Pipeline mit Bottleneck-Warnung und der parallelen Gegenüberstellung im Vergleichsmodus mit Delta-Pills.
+- Gerenderte Bildpaare: ${totalCompared}/${EXPECTED_COMPARISONS} (${hasCountMismatch ? 'FEHLER: Unvollständige Bildanzahl' : 'Vollständig'}).
+- Visuelle Differenz: ${diffCount}/${totalCompared} Bildpaare mit beabsichtigter Änderung (${hasUnchangedImages ? 'FEHLER: Nicht alle Paare verändert' : '100% geändert'}).
+- Überlauf über alle Viewports und Themes: ${maxOverflow === 0 ? '**exakt 0 px** (kein horizontaler Überlauf)' : `**FEHLER: ${maxOverflow} px Überlauf gemessen**`}.
+- Gate-Gesamtergebnis: **${isGatePassed ? 'PASS' : 'FAIL'}**.
 `;
 
 fs.writeFileSync(path.join(OUT, 'README.md'), readmeContent, 'utf-8');
-console.log(`\n✅ Screenshot-Gate erfolgreich! Matrix geschrieben nach docs/screenshots/auftrag-131/README.md`);
+
+if (!isGatePassed) {
+  console.error(`\n❌ Screenshot-Gate fehlgeschlagen!`);
+  if (hasCountMismatch)
+    console.error(
+      `  - Erwartet: ${EXPECTED_COMPARISONS} Vergleiche, tatsächlich: ${totalCompared}`,
+    );
+  if (hasUnchangedImages)
+    console.error(`  - Unveränderte Bildpaare gefunden: ${totalCompared - diffCount}`);
+  if (hasOverflow) console.error(`  - Maximaler horizontaler Überlauf: ${maxOverflow} px`);
+  process.exit(1);
+}
+
+console.log(
+  `\n✅ Screenshot-Gate erfolgreich! Matrix geschrieben nach docs/screenshots/auftrag-131/README.md`,
+);

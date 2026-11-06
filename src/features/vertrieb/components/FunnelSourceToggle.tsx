@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useRef } from 'react';
 import { Calendar, Radio, GitCompare, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FunnelSourceMode } from '../services/funnelAnalyticsService';
@@ -42,6 +42,8 @@ export const FunnelSourceToggle = memo(function FunnelSourceToggle({
   onChange,
   className,
 }: FunnelSourceToggleProps) {
+  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLButtonElement>, currentKey: FunnelSourceMode) => {
       const currentIndex = OPTIONS.findIndex((opt) => opt.key === currentKey);
@@ -51,12 +53,18 @@ export const FunnelSourceToggle = memo(function FunnelSourceToggle({
         e.preventDefault();
         const nextIndex = (currentIndex + 1) % OPTIONS.length;
         const nextOpt = OPTIONS[nextIndex];
-        if (nextOpt) onChange(nextOpt.key);
+        if (nextOpt) {
+          onChange(nextOpt.key);
+          buttonRefs.current[nextOpt.key]?.focus();
+        }
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
         const prevIndex = (currentIndex - 1 + OPTIONS.length) % OPTIONS.length;
         const prevOpt = OPTIONS[prevIndex];
-        if (prevOpt) onChange(prevOpt.key);
+        if (prevOpt) {
+          onChange(prevOpt.key);
+          buttonRefs.current[prevOpt.key]?.focus();
+        }
       }
     },
     [onChange],
@@ -77,6 +85,9 @@ export const FunnelSourceToggle = memo(function FunnelSourceToggle({
         return (
           <button
             key={opt.key}
+            ref={(el) => {
+              buttonRefs.current[opt.key] = el;
+            }}
             role="tab"
             type="button"
             aria-selected={isSelected}

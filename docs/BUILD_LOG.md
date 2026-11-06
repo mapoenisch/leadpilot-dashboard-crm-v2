@@ -19030,3 +19030,51 @@ Realisierung von Paket 3 des Evolution-Plans: Erweiterung des Vertriebs-Funnels 
   - `src/features/vertrieb/components/FunnelSourceToggle.tsx`: 123 Zeilen
   - `src/features/vertrieb/components/FunnelBottleneckAlert.tsx`: 100 Zeilen
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100% leer (0 Diff)**.
+
+### Nacharbeit Codex-Review Runde 1 (PR #141)
+
+Alle 8 Befunde aus dem automatisierten Codex-Review auf GitHub wurden analysiert und vollständig behoben:
+
+1. **P1 – Zulässige Seitengröße (`FunnelPage.tsx`, `funnelCrmDataService.ts`):**
+   - **Befund:** `pageSize: 1000` wurde von Edge-Function `crm-query-export` mit `INVALID_QUERY` abgelehnt (Backend-Limit max. 100).
+   - **Lösung:** Auslagerung in `fetchAllCrmEntities` / `useAllCrmEntitiesQuery` (`funnelCrmDataService.ts`, 66 Zeilen). Arbeitet mit Backend-konformen `pageSize: 100` und paginiert alle Seiten vollständig anhand `total`.
+2. **P2 – Conversion der nächsten Stufe im Chart (`FunnelPage.tsx`):**
+   - **Befund:** Chart zeigte unter Stufe $N$ fälschlicherweise die Quote $N-1 \to N$ statt $N \to N+1$.
+   - **Lösung:** `chartStufen` liest `conversionText` aus `next.liveConversionQuote` bzw. `next.planConversionQuote`.
+3. **P2 – Deal-Alter vs. Verweildauer in einer Phase (`funnelAnalyticsService.ts`):**
+   - **Befund:** Detektor interpretierte gesamtes Deal-Alter (`createdAt`) als Phasenverweildauer und erzeugte Fehlalarme für frisch verschobene alte Deals.
+   - **Lösung:** Neue Hilfsfunktion `getDealDaysInStage`. Ohne `daysInStage` oder `stageEnteredAt` bleibt die Verweildauer `null`; keine ungerechtfertigte Stagnationswarnung.
+4. **P2 – CRM-Fehlerzustand anzeigen (`FunnelPage.tsx`):**
+   - **Befund:** Bei Netzwerk-/Auth-Fehlern zeigte der Funnel leere Stufen statt Fehlerzustand.
+   - **Lösung:** `isDataError = isDealsError || isContactsError` setzt `dataStatus = 'error'` an `DataState` mit sprechendem Fehlertext.
+5. **P2 – Qualifizierte Leads organisationsgebunden laden (`FunnelPage.tsx`):**
+   - **Befund:** `getQualifiedLeadIds()` wurde parameterlos aufgerufen, ignorierte die angemeldete Organisation und war im Cache fest verankert.
+   - **Lösung:** Aufruf von `getQualifiedLeadIds(session?.organizationId)` mit Dependency `[session?.organizationId]`.
+6. **P2 – Tastaturfokus auf neuen Tab verschieben (`FunnelSourceToggle.tsx`):**
+   - **Befund:** Pfeiltaste wechselte Modus, ließ Fokus aber auf altem Tab, wodurch zweiter Druck fehlschlug.
+   - **Lösung:** `buttonRefs` hinterlegt, Pfeiltastendruck fokussiert den neu aktivierten Tab (`buttonRefs.current[nextOpt.key]?.focus()`).
+7. **P2 – Pipeline-Volumen jeder Stufe separat summieren (`funnelAnalyticsService.ts`):**
+   - **Befund:** `leads` und `mql` übernahmen fälschlicherweise `sqlAmount`, wodurch Beträge von Deals vor SQL unterschlagen wurden.
+   - **Lösung:** Separate Summierung von `leadsAmount`, `mqlAmount`, `sqlAmount`, `angeboteAmount` und `wonAmount`.
+8. **P2 – Screenshot-Gate bei verletzten Kriterien fehlschlagen lassen (`captureAuftrag131Gate.mjs`):**
+   - **Befund:** Skript meldete auch bei Überlauf oder unveränderten Bildern Erfolg mit Code 0.
+   - **Lösung:** Strikte Validierung auf 18 Vergleiche, 100 % Bilddifferenz und 0 px Überlauf. Beendet sich bei Abweichungen mit `process.exit(1)` und leitet das Fazit aus den Messwerten ab.
+
+#### Verifikation nach Runde 1
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/vertrieb`: **10 Testdateien, 49/49 Tests grün**
+- `npm test`: **363 Testdateien, 2.638 Tests grün**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden**
+- `npm run build`: **Erfolgreich (4.00s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/vertrieb/services/funnelAnalyticsService.ts`: 378 Zeilen
+  - `src/features/vertrieb/pages/FunnelPage.tsx`: 334 Zeilen
+  - `src/features/vertrieb/components/FunnelDeltaTable.tsx`: 181 Zeilen
+  - `src/features/vertrieb/components/FunnelStufenChart.tsx`: 176 Zeilen
+  - `src/features/vertrieb/components/FunnelSourceToggle.tsx`: 134 Zeilen
+  - `src/features/vertrieb/components/FunnelBottleneckAlert.tsx`: 100 Zeilen
+  - `src/features/vertrieb/services/funnelCrmDataService.ts`: 66 Zeilen

@@ -4,6 +4,7 @@ import {
   identifyFunnelBottlenecks,
   getEffectiveDealStage,
   calculateDealAgeInDays,
+  getDealDaysInStage,
   PLAN_FUNNEL_COUNTS,
 } from '../funnelAnalyticsService';
 import { ImportedFunnelDeal, Contact } from '@/types/crm';
@@ -93,22 +94,26 @@ describe('funnelAnalyticsService', () => {
       const leadsStage = result.stages.find((s) => s.key === 'leads')!;
       expect(leadsStage.liveCount).toBe(5);
       expect(leadsStage.planCount).toBe(1776);
+      expect(leadsStage.liveAmountEuro).toBe(53000); // Alle 4 Deals: 20k + 15k + 10k + 8k
       expect(leadsStage.planConversionQuote).toBeNull();
       expect(leadsStage.liveConversionQuote).toBeNull();
 
       const mqlStage = result.stages.find((s) => s.key === 'mql')!;
       expect(mqlStage.liveCount).toBe(4);
+      expect(mqlStage.liveAmountEuro).toBe(53000); // Alle qualifizierten Pipeline-Deals
       expect(mqlStage.liveConversionQuote).toBe(80.0); // 4 / 5 * 100 = 80 %
       expect(mqlStage.planConversionQuote).toBe(29.1); // 516 / 1776 = 29.05% -> 29.1%
       expect(mqlStage.deltaQuote).toBe(50.9); // 80.0 - 29.1 = 50.9
 
       const sqlStage = result.stages.find((s) => s.key === 'sql')!;
       expect(sqlStage.liveCount).toBe(3);
+      expect(sqlStage.liveAmountEuro).toBe(45000); // WON, Angebot, Bedarfsanalyse (20k + 15k + 10k)
       expect(sqlStage.liveConversionQuote).toBe(75.0); // 3 / 4 * 100 = 75 %
       expect(sqlStage.hebel).toBe('Trial-Conversion Hebel');
 
       const angeboteStage = result.stages.find((s) => s.key === 'angebote')!;
       expect(angeboteStage.liveCount).toBe(2);
+      expect(angeboteStage.liveAmountEuro).toBe(35000); // WON, Angebot (20k + 15k)
       expect(angeboteStage.liveConversionQuote).toBe(66.7); // 2 / 3 * 100 = 66.66% -> 66.7%
 
       const wonStage = result.stages.find((s) => s.key === 'neukunden')!;
@@ -199,6 +204,75 @@ describe('funnelAnalyticsService', () => {
 
       const bottlenecks = identifyFunnelBottlenecks(fastDeals, undefined, undefined, 25);
       expect(bottlenecks).toHaveLength(0);
+    });
+
+    it('erzeugt keine Stagnationswarnung für Deals ohne bekannte Phasenverweildauer (nur globales createdAt)', () => {
+      const oldDealWithoutStageDuration = [
+        {
+          id: 'old-deal-1',
+          dealName: 'Alter Deal kürzlich verschoben',
+          stage: 'Angebot erstellt',
+          amount: 50000,
+          closeDate: '2026-06-30',
+          pipeline: 'Core Sales',
+          createdAt: '2026-01-01T00:00:00Z', // Globales Alter > 100 Tage, aber keine daysInStage
+        } as ImportedFunnelDeal & { createdAt: string },
+      ];
+
+      const bottlenecks = identifyFunnelBottlenecks(
+        oldDealWithoutStageDuration,
+        undefined,
+        new Date('2026-06-01T00:00:00Z'),
+        25,
+      );
+      expect(bottlenecks).toHaveLength(0);
+    });
+
+    it('beachtet stageEnteredAt zur Berechnung der Phasenverweildauer', () => {
+      const refDate = new Date('2026-06-30T12:00:00Z');
+      const dealWithStageDate = [
+        {
+          id: 'stage-date-deal',
+          dealName: 'Deal mit Phasenzeitstempel',
+          stage: 'Angebot erstellt',
+          amount: 20000,
+          closeDate: '2026-07-31',
+          pipeline: 'Core Sales',
+          stageEnteredAt: '2026-05-31T12:00:00Z', // 30 Tage in dieser Phase
+        } as ImportedFunnelDeal & { stageEnteredAt: string },
+      ];
+
+      const bottlenecks = identifyFunnelBottlenecks(dealWithStageDate, undefined, refDate, 25);
+      expect(bottlenecks).toHaveLength(1);
+      expect(bottlenecks[0]!.avgDaysInStage).toBe(30);
+    });
+  });
+
+  describe('getDealDaysInStage', () => {
+    it('liefert daysInStage wenn vorhanden', () => {
+      const deal = {
+        id: 'd1',
+        dealName: 'D1',
+        stage: 'PROPOSAL',
+        amount: 100,
+        closeDate: '2026-06-30',
+        pipeline: 'C',
+        daysInStage: 20,
+      };
+      expect(getDealDaysInStage(deal)).toBe(20);
+    });
+
+    it('liefert null wenn weder daysInStage noch stageEnteredAt vorhanden sind', () => {
+      const deal = {
+        id: 'd2',
+        dealName: 'D2',
+        stage: 'PROPOSAL',
+        amount: 100,
+        closeDate: '2026-06-30',
+        pipeline: 'C',
+        createdAt: '2026-01-01',
+      };
+      expect(getDealDaysInStage(deal)).toBeNull();
     });
   });
 
