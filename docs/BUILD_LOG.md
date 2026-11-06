@@ -18174,3 +18174,59 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 
 
 
+
+---
+
+## 2026-11-06 — Auftrag 129: CRM Deals Interaktive Kanban-Pipeline (Paket 1 aus Evolution-Plan)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban` · **Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_129_CRM_DEALS_KANBAN.md`
+
+Realisierung von Paket 1 des Evolution-Plans für LeadPilot CRM Deals: Bereitstellung einer interaktiven, visuellen Kanban-Pipeline als vollwertige Alternative zur tabellarischen Listenansicht.
+
+### Umsetzung
+
+1. **Ansichten-Umschalter (`DealsViewToggle.tsx`):**
+   - Barrierefreier Toggle zwischen Tabellen- und Kanban-Ansicht mit klaren visuellen Icons und `aria-pressed`-Attributen.
+   - Synchronisation mit URL-Suchparameter (`?ansicht=kanban` bzw. `?ansicht=tabelle`) für Bookmarkbarkeit und Deep-Linking.
+2. **Deals-Kanban-Board (`DealsKanbanBoard.tsx`):**
+   - 7 Kernphasen (`Lead eingegangen`, `Erstgespräch geführt`, `Bedarfsanalyse`, `Angebot erstellt`, `Verhandlung`, `Gewonnen (Closed Won)`, `Verloren (Closed Lost)`).
+   - Horizontale Scrollbarkeit bei mobilen Breakpoints mit `scroll-smooth` und touchfreundlichem Layout.
+   - Pipeline-Zusammenfassung im Header mit Gesamtzahl Deals, Gesamtwert der Pipeline und gewonnener Auftragssumme.
+   - Optimistische Phasenaktualisierung (`optimisticStages`), sodass Phasenwechsel sofort ohne UI-Flackern gerendert werden.
+3. **Phasenspalten (`KanbanColumn.tsx`):**
+   - Strukturierte Spaltenköpfe mit Phasenbezeichnung, Deal-Zählerbadge und formatierter kumulierter Phasensumme in €.
+   - Drag & Drop Dropzone mit visuellem Feedback bei Drag-Over (`border-primary bg-primary/10`).
+   - Leerer Zustand mit informativer Platzhalteranzeige.
+4. **Deal-Karten (`DealKanbanCard.tsx`):**
+   - Deal-Titel, Unternehmensname, formatierter Wert (`currencyFormatter`), Erstellungsdatum und Zielabschlussdatum.
+   - Automatische Überfälligkeitswarnung (`closeDate < heute` und Phase nicht geschlossen) mit Warn-Badge.
+   - HTML5 Drag-Start mit `text/plain`-Datentransfer der Deal-ID.
+   - Barrierefreies Tastatur-Aktionsmenü (`aria-haspopup="menu"`) zur gezielten Phasenverschiebung per Tastatur oder Klick ohne Maus-Drag.
+5. **Modulare Architektur & Zeilenbudget:**
+   - KPI-Karten in `DealsKpiGrid.tsx` (63 Zeilen) ausgelagert, wodurch `DealsPage.tsx` mit 382 Zeilen strikt innerhalb des Budgets von $\le 400$ Zeilen bleibt.
+   - Alle neu erstellten Komponenten liegen zwischen 46 und 181 Zeilen.
+6. **Automatisierte Unit- und Integrationstests (`DealsKanban.ui.vitest.tsx`):**
+   - 9 dedizierte UI-Tests für Umschalter, Karten-Rendering, Tastaturmenü, Drag & Drop-Events, Spalten-Summen und optimistische Board-Updates.
+7. **Visuelles Screenshot-Gate (`scripts/captureAuftrag129Gate.mjs`):**
+   - Playwright-Harness für 18 Screenshot-Varianten (1440 px, 768 px, 375 px; dark und light Themes; Kanban, Tabelle, Tastaturmenü).
+   - 0 px Dokument-Überlauf auf allen Viewports verifiziert.
+   - Dokumentiert in `docs/screenshots/auftrag-129/README.md`.
+
+### Automatisierte Verifikation
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/crm`: 18 Testdateien, 109 Tests grün
+- `npm test`: 352 Testdateien, 2.556 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.48s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 grün, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsPage.tsx`: 382 Zeilen
+  - `DealKanbanCard.tsx`: 181 Zeilen
+  - `DealsKanbanBoard.tsx`: 139 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsViewToggle.tsx`: 46 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

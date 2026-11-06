@@ -1,4 +1,4 @@
-// G60 (Auftrag 067N, Step 4): URL-synchrone serverseitige Deals-Ansicht mit Pagination und Export
+// G60 (Auftrag 067N, Step 4) / Auftrag 129: URL-synchrone serverseitige Deals-Ansicht mit Pagination, Export und Kanban-Board
 import { useState, useMemo, useId } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -16,6 +16,9 @@ import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportServ
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
+import { DealsViewToggle, DealsViewMode } from '../components/DealsViewToggle';
+import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
+import { DealsKpiGrid } from '../components/DealsKpiGrid';
 
 const BASE_STAGE_OPTIONS: SelectOption[] = [
   { value: 'ALL', label: 'Alle Vertriebsphasen' },
@@ -46,6 +49,8 @@ export function DealsPage() {
   const { provenance, isLoading: isProvLoading } = useCrmProvenance('deals');
 
   // URL-synchroner Zustand
+  const [viewModeRaw, setViewModeRaw] = useUrlSyncedState('ansicht', 'tabelle');
+  const viewMode: DealsViewMode = viewModeRaw === 'kanban' ? 'kanban' : 'tabelle';
   const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
   const [stageFilter, setStageFilter] = useUrlSyncedState('stufe', 'ALL');
   const [pageStr, setPageStr] = useUrlSyncedState('seite', '1');
@@ -54,7 +59,9 @@ export function DealsPage() {
   const [sortOrder, setSortOrder] = useUrlSyncedState('order', 'desc');
 
   const page = Math.max(1, parseInt(pageStr, 10) || 1);
-  const pageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
+  // Im Kanban-Modus zeigen wir die Deals ohne Paginierungsbeschränkung auf 20
+  const pageSize =
+    viewMode === 'kanban' ? 100 : Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
 
   const handleSortChange = (val: string) => {
     setSortField(val);
@@ -74,7 +81,7 @@ export function DealsPage() {
       filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
       sortBy: sortField,
       sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-      page,
+      page: viewMode === 'kanban' ? 1 : page,
       pageSize,
     });
 
@@ -116,8 +123,6 @@ export function DealsPage() {
   const deals = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? 0;
 
-  // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
-  // Platzhalterdaten der vorherigen Abfrage gelten bis zur neuen Antwort als Laden.
   const hasData = data !== undefined && !isPlaceholderData;
   const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
   const exportBlocked = isError || !hasData;
@@ -179,14 +184,15 @@ export function DealsPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
-      {/* 1. Page Header */}
+      {/* 1. Page Header mit Ansichtsumschalter */}
       <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Deal Pipeline"
-          description="Mandantenspezifische Übersicht der Pipeline-Deals mit serverseitiger Paginierung und CSV-Export."
+          description="Mandantenspezifische Übersicht der Pipeline-Deals mit interaktiver Kanban-Pipeline, Tabellenansicht und CSV-Export."
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
+          <DealsViewToggle viewMode={viewMode} onChange={setViewModeRaw} />
           <Badge variant="cyan">CRM-Daten</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{countText} Funnel Deals</Badge>
@@ -227,41 +233,16 @@ export function DealsPage() {
       )}
 
       {/* 2. KPI Cards */}
-      <div className="crm-v2-kpi-grid">
-        {[
-          {
-            t: 'Funnel Deals Gesamt',
-            v: countText,
-            n: 'Mandanten-geprüft',
-            c: 'text-primary font-bold',
-            f: true,
-          },
-          {
-            t: 'Aktuelle Seite',
-            v: isError || !hasData ? '–' : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
-            n: `${pageSize} Deals pro Seite`,
-            c: 'text-text font-semibold',
-          },
-          {
-            t: 'Gewählte Vertriebsphase',
-            v: stageFilter === 'ALL' ? 'Alle Vertriebsphasen' : stageFilter,
-            n: `${stageOptions.length - 1} Vertriebsphasen definiert`,
-            c: 'text-text font-semibold text-[20px]',
-          },
-          {
-            t: 'Daten-Herkunft',
-            v: 'Server Query',
-            n: 'Edge Function / RLS geschützt',
-            c: 'text-accent font-bold text-[18px]',
-          },
-        ].map((k) => (
-          <Card key={k.t} variant="glass" featured={Boolean(k.f)}>
-            <div className="text-[13px] text-[var(--color-text-muted)]">{k.t}</div>
-            <div className={`font-display text-[28px] my-[4px] truncate ${k.c}`}>{k.v}</div>
-            <div className="text-[12px] text-success">{k.n}</div>
-          </Card>
-        ))}
-      </div>
+      <DealsKpiGrid
+        countText={countText}
+        hasData={hasData}
+        isError={isError}
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        stageFilter={stageFilter}
+        stageCount={stageOptions.length - 1}
+      />
 
       {/* 3. Filter & Search Bar */}
       <div className="crm-v2-filter-bar">
@@ -318,7 +299,7 @@ export function DealsPage() {
         </div>
       </div>
 
-      {/* 4. Table & Cards */}
+      {/* 4. Table OR Kanban Board */}
       {isLoading && deals.length === 0 ? (
         <ManagementChartState
           type="loading"
@@ -334,6 +315,8 @@ export function DealsPage() {
           height={220}
           onRetry={() => void refetch()}
         />
+      ) : viewMode === 'kanban' ? (
+        <DealsKanbanBoard deals={deals} />
       ) : (
         <Card variant="glass" padding="0">
           <CrmResponsiveList
