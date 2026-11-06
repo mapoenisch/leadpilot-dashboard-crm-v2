@@ -18174,3 +18174,589 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 
 
 
+
+---
+
+## 2026-11-06 — Auftrag 129: CRM Deals Interaktive Kanban-Pipeline (Paket 1 aus Evolution-Plan)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban` · **Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_129_CRM_DEALS_KANBAN.md`
+
+Realisierung von Paket 1 des Evolution-Plans für LeadPilot CRM Deals: Bereitstellung einer interaktiven, visuellen Kanban-Pipeline als vollwertige Alternative zur tabellarischen Listenansicht.
+
+### Umsetzung
+
+1. **Ansichten-Umschalter (`DealsViewToggle.tsx`):**
+   - Barrierefreier Toggle zwischen Tabellen- und Kanban-Ansicht mit klaren visuellen Icons und `aria-pressed`-Attributen.
+   - Synchronisation mit URL-Suchparameter (`?ansicht=kanban` bzw. `?ansicht=tabelle`) für Bookmarkbarkeit und Deep-Linking.
+2. **Deals-Kanban-Board (`DealsKanbanBoard.tsx`):**
+   - 7 Kernphasen (`Lead eingegangen`, `Erstgespräch geführt`, `Bedarfsanalyse`, `Angebot erstellt`, `Verhandlung`, `Gewonnen (Closed Won)`, `Verloren (Closed Lost)`).
+   - Horizontale Scrollbarkeit bei mobilen Breakpoints mit `scroll-smooth` und touchfreundlichem Layout.
+   - Pipeline-Zusammenfassung im Header mit Gesamtzahl Deals, Gesamtwert der Pipeline und gewonnener Auftragssumme.
+   - Optimistische Phasenaktualisierung (`optimisticStages`), sodass Phasenwechsel sofort ohne UI-Flackern gerendert werden.
+3. **Phasenspalten (`KanbanColumn.tsx`):**
+   - Strukturierte Spaltenköpfe mit Phasenbezeichnung, Deal-Zählerbadge und formatierter kumulierter Phasensumme in €.
+   - Drag & Drop Dropzone mit visuellem Feedback bei Drag-Over (`border-primary bg-primary/10`).
+   - Leerer Zustand mit informativer Platzhalteranzeige.
+4. **Deal-Karten (`DealKanbanCard.tsx`):**
+   - Deal-Titel, Unternehmensname, formatierter Wert (`currencyFormatter`), Erstellungsdatum und Zielabschlussdatum.
+   - Automatische Überfälligkeitswarnung (`closeDate < heute` und Phase nicht geschlossen) mit Warn-Badge.
+   - HTML5 Drag-Start mit `text/plain`-Datentransfer der Deal-ID.
+   - Barrierefreies Tastatur-Aktionsmenü (`aria-haspopup="menu"`) zur gezielten Phasenverschiebung per Tastatur oder Klick ohne Maus-Drag.
+5. **Modulare Architektur & Zeilenbudget:**
+   - KPI-Karten in `DealsKpiGrid.tsx` (63 Zeilen) ausgelagert, wodurch `DealsPage.tsx` mit 382 Zeilen strikt innerhalb des Budgets von $\le 400$ Zeilen bleibt.
+   - Alle neu erstellten Komponenten liegen zwischen 46 und 181 Zeilen.
+6. **Automatisierte Unit- und Integrationstests (`DealsKanban.ui.vitest.tsx`):**
+   - 9 dedizierte UI-Tests für Umschalter, Karten-Rendering, Tastaturmenü, Drag & Drop-Events, Spalten-Summen und optimistische Board-Updates.
+7. **Visuelles Screenshot-Gate (`scripts/captureAuftrag129Gate.mjs`):**
+   - Playwright-Harness für 18 Screenshot-Varianten (1440 px, 768 px, 375 px; dark und light Themes; Kanban, Tabelle, Tastaturmenü).
+   - 0 px Dokument-Überlauf auf allen Viewports verifiziert.
+   - Dokumentiert in `docs/screenshots/auftrag-129/README.md`.
+
+### Automatisierte Verifikation
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/crm`: 18 Testdateien, 109 Tests grün
+- `npm test`: 352 Testdateien, 2.556 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.48s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 grün, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsPage.tsx`: 382 Zeilen
+  - `DealKanbanCard.tsx`: 181 Zeilen
+  - `DealsKanbanBoard.tsx`: 139 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsViewToggle.tsx`: 46 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+### Nacharbeit Codex-Review Runde 1 (PR #139, Head `ca0ad79`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle 6 Codex-Befunde (2 P1, 4 P2) aus Review-Runde 1 strukturiert behoben:
+
+1. **Befund 1 (P1, `DealsPage.tsx` – Phasenwechsel über Ansichtswechsel hinaus erhalten & CSV-Synchronisation):**
+   - Phasenwechsel wurden bisher ausschließlich in der lokalen Komponenten-State von `DealsKanbanBoard` verwaltet und gingen beim Wechsel zur Tabellenansicht verloren.
+   - `stageOverrides` auf Page-Ebene gehoben und über `sessionStorage` (`leadpilot_crm_deal_stage_overrides`) sitzungsweit persistiert.
+   - Beide Ansichten (Tabelle und Kanban) sowie der CSV-Export greifen synchron auf die wirksamen Deals mit angewendeten Phasenwechseln zu.
+   - CSV-Export (`handleExport`) aktualisiert die Stage-Spalte für manuell verschobene Deals automatisch vor dem Download.
+
+2. **Befund 2 (P2, `DealsPage.tsx`, `DealsKanbanBoard.tsx` – Weitere Ergebnisseiten im Kanban-Modus):**
+   - Bei mehr als 100 Deals lädt das Board nun per `handleLoadMore` nachfolgende Seiten paginiert nach (`extraDeals` via `fetchCrmList`).
+   - Solange noch nicht alle Deals geladen sind, wird das Pipeline-Volumen transparent als Teilsumme ausgewiesen (`Pipeline-Volumen (Teilsumme: X von Y Deals): ... €`).
+   - Ein dedizierter Nachlade-Button (`kanban-load-more-btn`) ermöglicht das bequeme Abrufen weiterer 100er-Seiten.
+
+3. **Befund 3 (P2, `DealsViewToggle.tsx` – Mobile Screenreader-Zugänglichkeit):**
+   - Die Umschalter besaßen unterhalb von `sm` keine zugänglichen Namen, da die Textbeschriftungen ausgeblendet und Icons `aria-hidden` waren.
+   - Individuelle barrierefreie Namen via `aria-label="Tabellenansicht"` und `aria-label="Kanban-Ansicht"` sowie `sr-only`-Labels für Screenreader auf allen Bildschirmgrößen ergänzt.
+
+4. **Befund 4 (P1, `scripts/captureAuftrag129Gate.mjs` – Vorher/Nachher-Paarung & Hash-Vergleich):**
+   - Der Harness erzeugt und vergleicht nun echte Vorher/Nachher-Paare auf allen 3 Viewports (1440, 768, 375 px) in beiden Themes (dark/light) für 3 Szenarien (18 Paare gesamt).
+   - Vorher (`d3fe131`, reine Tabelle ohne Ansichtsumschalter) wird mit Nachher (Tabelle mit Umschalter, interaktives Kanban-Board, geöffnetes Portal-Tastaturmenü) verglichen.
+   - 18 von 18 Paaren (100 %) weisen verschiedene SHA-256-Hashes auf, 0 px Überlauf in allen Varianten; fehlende Paare oder identische Hashes lassen das Gate fehlschlagen.
+
+5. **Befund 5 (P2, `DealKanbanCard.tsx` – Portal-Rendering außerhalb des Karten-Stacking-Contexts):**
+   - Durch `backdrop-blur-md` auf den Karten und `overflow-y-auto` auf `KanbanColumn` wurden tieferliegende Menüeinträge von nachfolgenden Geschwisterkarten überdeckt oder am Containerrand abgeschnitten.
+   - Phasenmenü rendert nun via `createPortal` direkt in `document.body` mit dynamischer Platzierung anhand der Button-Koordinaten (`getBoundingClientRect`).
+   - Keine JSX-Inline-Styles (zur Einhaltung des strikten Ratchet-Budgets `inlineStyles:src/ = 0` und `react/forbid-dom-props`), Schließen bei Klick außerhalb, Scroll und Escape-Taste.
+
+6. **Befund 6 (P2, `DealKanbanCard.tsx` – Fälligkeitsprüfung auf Kalendertag-Ebene):**
+   - Deals mit Fälligkeit am heutigen Tag wurden im Tagesverlauf fälschlicherweise als überfällig markiert, da UTC-Mitternacht mit `Date.now()` verglichen wurde.
+   - `isDealOverdue` vergleicht nun die Datumskomponenten exakt auf lokaler Kalendertagebene: Deals am heutigen Fälligkeitstag bleiben regulär offen; erst ab dem Folgetag greift die Warnung.
+
+7. **Modulare Architektur & Zeilenbudget:**
+   - Zur Einhaltung des Zeilenbudgets ($\le 400$ Zeilen) wurde `DealsTableCard.tsx` (122 Zeilen) ausgelagert.
+   - `DealsPage.tsx` bleibt mit 385 Zeilen strikt innerhalb der Budgetgrenze.
+
+### Automatisierte Verifikation (Nacharbeit Runde 1)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 112 Tests grün
+- `npm test`: 352 Testdateien, 2.559 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (10.27s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealKanbanCard.tsx`: 246 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `DealsPage.tsx`: 385 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 2 (PR #139, Head `d6c638e`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle 4 Codex-Befunde (4 P2) aus Review-Runde 2 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx`, `crmCsvHelper.ts` – RFC 4180 konformer CSV-Parser und Serializer):**
+   - **Befund:** Bei verschobenen Deals mit Kommas oder Zeilenumbrüchen im Namen beschädigte `line.split(',')` den CSV-Export, überschrieb fälschlicherweise Teile des Namens anstelle der Stage und erzeugte invalides CSV.
+   - **Behebung:** Einführung des eigenständigen Hilfsmoduls `src/features/crm/utils/crmCsvHelper.ts` mit `parseCsv`, `serializeCsv`, `readBlobAsText` und `applyStageOverridesToCsv`. Unterstützt BOM (`\uFEFF`), Quoting von Kommas und Zeilenumbrüchen (`\r\n`, `\n`) sowie maskierten Anführungszeichen (`""`). Der Export aktualisiert die Stage-Spalte nun feldbasiert per Header-Lookup (`Stage` / `Vertriebsphase`), ohne Namensspalten mit Kommas anzutasten.
+
+2. **Befund 2 (P2, `DealsPage.tsx` – Veraltete Nachladeantworten verwerfen):**
+   - **Befund:** Wurde während eines laufenden `handleLoadMore`-Requests die Suche oder der Phasenfilter geändert, leerte der Effect zwar `extraDeals`, aber die verspätet eintreffende Antwort des vorherigen Requests wurde anschließend ungeprüft angehängt.
+   - **Behebung:** Bindung an den stabilen Query-Key `currentQueryKey` (`${searchTerm.trim()}|${stageFilter}|${sortField}|${sortOrder}`). Über `activeLoadMoreQueryRef` wird beim Eintreffen der Antwort geprüft, ob die Anfrage noch zum aktuellen Abfrage-Zustand gehört; veraltete Antworten werden verworfen.
+
+3. **Befund 3 (P2, `DealsPage.tsx` – Abstimmung von Phasenfilter und lokalen Phasenwechseln):**
+   - **Befund:** Wurde ein Deal lokal in eine andere Phase verschoben und anschließend nach dieser Phase gefiltert, fehlte der Deal, da der Serverfilter vor den lokalen Overrides griff. Umgekehrt erschien der Deal bei Filterung auf die Ursprungsphase fälschlicherweise mit der neuen Phase. Auch Trefferzahlen und CSV-Export waren asynchron.
+   - **Behebung:** Sind lokale `stageOverrides` aktiv, wird die serverseitige Filterung bei Phasenfiltern ausgesetzt (`serverStageFilter = undefined`) und stattdessen bis zu 100 Deals geladen. Die Phasenfilterung erfolgt clientseitig auf den wirksamen Deals (`mappedDeals`). Bei Tabellenansicht wird paginiert gesliced (`tableDeals`). Trefferzahl `total` reflektiert exakt die passenden Deals. Beim CSV-Export werden bei aktiven Overrides alle Deals ungefiltert abgerufen und in `applyStageOverridesToCsv` anhand der wirksamen Phase auf den `targetStageFilter` gefiltert.
+
+4. **Befund 4 (P2, `DealKanbanCard.tsx` – Scrollen innerhalb des Phasenmenüs ignorieren):**
+   - **Befund:** Bei vielen Phasen schloss sich das überlaufende Phasenmenü (`max-h-[220px] overflow-y-auto`) bereits beim Scrollen innerhalb der eigenen Einträge, da der globale Capture-Listener auf `window.scroll` auch interne Scroll-Ereignisse behandelte.
+   - **Behebung:** `menuRef` an den Menü-Container gebunden. `handleScrollOrResize` prüft `menuRef.current && (e.target === menuRef.current || menuRef.current.contains(e.target))` und ignoriert Scroll-Ereignisse innerhalb des Menüs. Nur Scrollen des Fensters/Boards schließt das Menü weiterhin zuverlässig.
+
+5. **Modulare Architektur & Zeilenbudget:**
+   - Zur Wahrung des strikten Budgets von $\le 400$ Zeilen wurde die Filterleiste in `src/features/crm/components/DealsFilterBar.tsx` (104 Zeilen) modular ausgelagert.
+   - `DealsPage.tsx` liegt nun bei 360 Zeilen (unterhalb des 400-Zeilen-Budgets).
+
+### Automatisierte Verifikation (Nacharbeit Runde 2)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 118 Tests grün
+- `npm test`: 354 Testdateien, 2.566 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.63s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealKanbanCard.tsx`: 258 Zeilen
+  - `DealsPage.tsx`: 360 Zeilen
+  - `crmCsvHelper.ts`: 138 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 3 (PR #139, Head `8469252`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Beide Codex-Befunde (2 P2) aus Review-Runde 3 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealKanbanCard.tsx` – Begrenzung des Phasenmenüs auf den sichtbaren Viewport):**
+   - **Befund:** Bei Karten nahe dem unteren Fensterrand wurde das Portal-Phasenmenü starr unterhalb des Buttons platziert. Untere Zielphasen lagen dadurch außerhalb des sichtbaren Bereichs; ein Scrollversuch schloss das Menü über den globalen Scroll-Listener.
+   - **Behebung:** Dynamische Platzierungsberechnung unter Berücksichtigung von `window.innerHeight`, `window.innerWidth` und der geschätzten Menühöhe. Reicht der Platz nach unten nicht aus (`spaceBelow < estimatedHeight`), wird das Menü oberhalb des Buttons platziert (`top = rect.top - fitHeight - 4`). Zusätzlich wird `maxHeight` anhand des verfügbaren Fensterraums dynamisch begrenzt (`Math.max(120, availableSpace)`) und der innere Container scrollt bei Platzmangel flexibel (`min-h-0 overflow-y-auto`). Alle Phasen bleiben in jedem Viewport erreichbar.
+
+2. **Befund 2 (P2, `crmCsvHelper.ts` – CSV-Formelschutz für überschriebene Phasen):**
+   - **Befund:** Wurde ein Deal in eine Phase verschoben, die mit Formelpräfixen begann (z. B. `=1+1`, `+`, `-`, `@`, `\t`, `\r`), fehlte beim CSV-Export der serverseitige Formelschutz gegen CSV-Injection.
+   - **Behebung:** `sanitizeCsvCell` in `src/features/crm/utils/crmCsvHelper.ts` analog zu `supabase/functions/crm-query-export/index.ts` implementiert. Formelpräfixe (`/^\s*[=+\-@\t\r]/`) werden mit vorangestelltem Apostroph (`'`) neutralisiert, bevor der CSV-String erzeugt wird. Dedizierter Unit-Test in `crmCsvHelper.vitest.ts` ergänzt.
+
+### Automatisierte Verifikation (Nacharbeit Runde 3)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 120 Tests grün
+- `npm test`: 354 Testdateien, 2.568 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.47s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealKanbanCard.tsx`: 283 Zeilen
+  - `DealsPage.tsx`: 360 Zeilen
+  - `crmCsvHelper.ts`: 142 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 4 (PR #139, Head `fcf16ba`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Den verbleibenden Codex-Befund (1 P2) aus Review-Runde 4 strukturiert behoben:
+
+1. **Befund 1 (P2, `crmCsvHelper.ts` – CSV-Phasenfilterabgleich mit abgesichertem Zellwert):**
+   - **Befund:** Wurde nach einer Phase mit Formelpräfixen gefiltert (z. B. `+Partner`), entfernte der CSV-Export native Deals dieser Phase fälschlich aus dem Ergebnis. Der Server liefert deren Stage mit Formelschutz als `'+Partner`, während der Filter auf den Rohwert `+Partner` prüfte. Nur lokal überschriebene Zeilen stimmten überein.
+   - **Behebung:** Einführung der Funktion `normalizeStageForComparison` in `src/features/crm/utils/crmCsvHelper.ts`. Neutralisiert eventuell serverseitig vorangestellte Schutz-Apostrophe (`/^'\s*[=+\-@\t\r]/`) ausschließlich für den Filtervergleich, ohne den Formelschutz in der exportierten Zeile aufzuheben. Beim anschließenden `serializeCsv` erhalten auch manuell verschobene Zeilen automatisch den Formelschutz. Native und verschobene Deals werden dadurch absolut konsistent behandelt.
+   - **Test-Absicherung:** Unit-Test `behandelt native (bereits geschützte) und lokal verschobene Deals bei Phasenfiltern konsistent` in `crmCsvHelper.vitest.ts` ergänzt.
+
+### Automatisierte Verifikation (Nacharbeit Runde 4)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 121 Tests grün
+- `npm test`: 354 Testdateien, 2.569 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (4.36s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealKanbanCard.tsx`: 283 Zeilen
+  - `DealsPage.tsx`: 360 Zeilen
+  - `crmCsvHelper.ts`: 158 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladen während der Platzhalterphase sperren):**
+   - **Befund:** Wurde von der Tabelle mit standardmäßig 20 Deals ins Kanban gewechselt und vor Eintreffen der 100-Deals-Antwort nachgeladen, berechnete `Math.floor(20 / 100) + 1` fälschlich erneut Seite 1 statt Seite 2. Dadurch wurden Deals doppelt geladen und Summen verfälscht.
+   - **Behebung:** In `handleLoadMore` wird der Aufruf abgebrochen, solange `isPlaceholderData` aktiv ist (`if (isLoadingMore || isPlaceholderData) return;`). Zusätzlich wird der Nachladebutton über `hasMore={!isPlaceholderData && deals.length < total}` während der Platzhalterphase deaktiviert / ausgeblendet.
+   - **Test-Absicherung:** Neuer Unit-Test in `DealsPage.findings.ui.vitest.tsx` (`sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)`).
+
+2. **Befund 2 (P2, `DealsKanbanBoard.tsx` – Drag-Zustand beim Drop zurücksetzen):**
+   - **Befund:** Beim Verschieben eines Deals in eine andere Spalte wurde die Quellkarte im DOM ausgehängt, sodass das native `dragend`-Ereignis am entfernten Quellelement den delegierten Handler nicht mehr erreichte. Die verschobene Karte verblieb in der Zielspalte dauerhaft im gedimmten Drag-Zustand (`opacity-40`).
+   - **Behebung:** In `handleMoveStage` wird `setActiveDragId(null)` unmittelbar beim Phasenwechsel aufgerufen, sodass die Karte in der Zielspalte sofort im regulären Zustand gerendert wird.
+   - **Test-Absicherung:** Neuer Test in `DealsKanban.ui.vitest.tsx` (`setzt activeDragId beim Drop in eine andere Spalte sofort zurück (kein verbleibender Drag-Zustand)`).
+
+3. **Befund 3 (P2, `DealKanbanCard.tsx` – Fokussteuerung im Portalmenü):**
+   - **Befund:** Das per Portal gerenderte Phasenmenü erhielt beim Öffnen per Tastatur keinen Fokus, sodass Tab durch nachfolgende DOM-Karten wanderte und das Menü durch Scroll-Ereignisse schloss.
+   - **Behebung:** Beim Öffnen wird der Fokus per `setTimeout` auf den ersten aktivierbaren Menüeintrag (`button:not([disabled])`) gelegt. Ein Focus-Trap für `Tab` und `Shift+Tab` hält den Tastaturfokus zyklisch innerhalb des Menüs. Beim Schließen (Escape, Auswahl oder Klick) wird der Fokus zuverlässig auf den Trigger-Button der Karte zurückgestellt (`triggerBtn?.focus()`).
+   - **Test-Absicherung:** Neue Unit-Tests in `DealsKanban.ui.vitest.tsx` (`fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her`, `hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 5)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 125 Tests grün
+- `npm test`: 354 Testdateien, 2.573 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 361 Zeilen
+  - `crmCsvHelper.ts`: 158 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 6 (PR #139, Head `7bed0fb`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Den Codex-Befund (1 P2) aus Review-Runde 6 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx`, `crmCsvHelper.ts` – Sortierung nach wirksamer statt ursprünglicher Phase bei `sortField === 'stage'`):**
+   - **Befund:** Wurde ein Deal verschoben und anschließend „Vertriebsphase“ als Sortierung gewählt, sortierte der Server weiterhin nach der ursprünglichen Phase; erst danach überschrieb das clientseitige Mapping die angezeigten Werte. Dadurch waren Tabellenansicht und CSV-Export nicht nach den sichtbaren Phasen sortiert. Bei mehreren Ergebnisseiten standen Deals außerdem auf der falschen Seite.
+   - **Behebung:**
+     - In `src/features/crm/utils/crmCsvHelper.ts` akzeptiert `applyStageOverridesToCsv` nun optionale Parameter `sortField?: string, sortOrder: 'asc' | 'desc' | string = 'desc'`. Bei `sortField === 'stage'` werden die Datenzeilen nach der wirksamen Phase sortiert (`normalizeStageForComparison(a[stageIdx]).localeCompare(normalizeStageForComparison(b[stageIdx]), 'de')`) unter exakter Berücksichtigung von aufsteigender/absteigender Reihenfolge (`sortOrder`).
+     - In `src/features/crm/pages/DealsPage.tsx` aktiviert `clientPagingActive` die vollständige Client-Sortierung und -Paginierung, wenn `hasStageOverrides && (stageFilter !== 'ALL' || sortField === 'stage')`. Die Query fordert Seite 1 mit `pageSize = 100` an. `deals` sortiert bei `hasStageOverrides && sortField === 'stage'` clientseitig nach `d.stage.localeCompare(b.stage, 'de')`. `tableDeals` sliced synchron die aktuelle Seite aus der sortierten Gesamtliste. `handleExport` übergibt `sortField` und `sortOrder` an `applyStageOverridesToCsv`.
+   - **Test-Absicherung:**
+     - Neuer Unit-Test in `crmCsvHelper.vitest.ts` (`sortiert nach wirksamer Phase bei sortField=stage und berücksichtigt sortOrder`).
+     - Neuer Integrationstest in `DealsPage.findings.ui.vitest.tsx` (`sortiert nach der wirksamen Phase statt der ursprünglichen bei aktiven stageOverrides und sortField=stage`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 6)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 114 Tests grün
+- `npm run build`: Erfolgreich (3.44s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 377 Zeilen
+  - `crmCsvHelper.ts`: 169 Zeilen
+  - `crmCsvHelper.vitest.ts`: 138 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 250 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 7 (PR #139, Head `e97da1a`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Den Codex-Befund (1 P2) aus Review-Runde 7 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Nachladeseiten an den wirksamen Serverfilter binden):**
+   - **Befund:** Wurden im phasengefilterten Kanban weitere Seiten geladen und anschließend erstmals ein Deal verschoben, wechselte `serverStageFilter` auf `undefined`, während `currentQueryKey` unverändert blieb. Die reguläre Query forderte daraufhin ungefilterte Deals an, aber `extraDeals` und laufende Nachladeanfragen gehörten weiterhin zum vorherigen gefilterten Bereich. Dadurch verschwanden bereits geladene Deals aus dem Board.
+   - **Behebung:** `currentQueryKey` bezieht `serverStageFilter` (`serverStageFilter ?? 'UNFILTERED'`) explizit in die Schlüsselbildung ein (`searchTerm|stageFilter|serverStageFilter|sortField|sortOrder`). Ändert sich der wirksame Serverfilter (z. B. beim ersten Phasenwechsel), invalidiert der Key sofort, `extraDeals` wird geleert und asynchrone in-flight Anfragen werden sauber verworfen.
+   - **Test-Absicherung:** Neuer Integrationstest in `DealsPage.findings.ui.vitest.tsx` (`verwirft geladene Nachladeseiten bei Wechsel des wirksamen Serverfilters durch Phasenwechsel`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 7)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 17 Testdateien, 115 Tests grün
+- `npm test`: 354 Testdateien, 2.576 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.61s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 378 Zeilen
+  - `crmCsvHelper.ts`: 169 Zeilen
+  - `crmCsvHelper.vitest.ts`: 138 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 303 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 8 (PR #139, Head `9119afb`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Den Codex-Befund (1 P2) aus Review-Runde 8 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx`, `crmCsvHelper.ts` – Berücksichtigung wirksamer Phasen auch bei der Textsuche):**
+   - **Befund:** Wurde ein Deal verschoben (z. B. nach „Verhandlung“) und anschließend nach „Verhandlung“ gesucht, fehlte er, sofern Name und Pipeline diesen Begriff nicht enthielten. Die Edge Function durchsucht ausdrücklich auch `stage`, erhielt aber weiterhin den Suchbegriff für die unveränderte Serverphase, während die Overrides erst nach der Suche angewendet wurden. Umgekehrt blieb ein Deal über seine alte Phase auffindbar. Auch der CSV-Export verwendete dieselbe serverseitige Suche.
+   - **Behebung:**
+     - In `src/features/crm/utils/crmCsvHelper.ts`: `dealMatchesSearch` exportiert; `applyStageOverridesToCsv` um Suchbegriff-Filterung (`searchTerm`) erweitert, die wirksame Phasen (inkl. Formelschutz-Normalisierung), Deal-Namen und Pipeline durchsucht.
+     - In `src/features/crm/pages/DealsPage.tsx`: Wenn `hasStageOverrides` aktiv ist, wird `serverSearchTerm = undefined` an die serverseitige Query und den CSV-Export übergeben, sodass verschobene Deals nicht serverseitig ausgefiltert werden. Die Textsuche wird bei aktiven Overrides über `dealMatchesSearch` clientseitig auf die wirksame Phase angewendet; `clientPagingActive` aktiviert Client-Paging auch bei aktiver Suche; `currentQueryKey` bezieht `serverSearchTerm` ein, um in-flight Requests bei Parameterwechsel abzufangen; `stageOptions` basiert stabil auf `mappedDeals`.
+   - **Test-Absicherung:**
+     - Neue Unit-Tests in `src/features/crm/__tests__/crmCsvHelper.vitest.ts` (`berücksichtigt wirksame Phasen bei der Textsuche im CSV-Export`, `prüft dealMatchesSearch auf wirksame Phasen, Namen und Pipeline`).
+     - Neue Integrationstests in `src/features/crm/pages/__tests__/DealsPage.findings.ui.vitest.tsx` (`berücksichtigt wirksame Phasen auch bei der Textsuche nach Phasenwechsel`, `filtert CSV-Export nach wirksamer Phase bei aktiver Textsuche`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 8)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/crm`: 17 Testdateien, 119 Tests grün
+- `npm test`: 354 Testdateien, 2.580 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.35s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 172 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 392 Zeilen
+  - `crmCsvHelper.ts`: 204 Zeilen
+  - `crmCsvHelper.vitest.ts`: 189 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 389 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 418 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 9 (PR #139, Head `fdb7cc0`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle drei Codex-Befunde (1 P1, 2 P2) aus Review-Runde 9 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsKanbanBoard.tsx`, `DealKanbanCard.tsx`, `crmStageHelper.ts` – Berücksichtigung kanonischer CRM-Phasen):**
+   - **Befund:** Bei Deals mit der kanonischen Phase `WON` blieb „Gewonnenes Volumen“ bei null, weil ausschließlich der deutsche Text „gewonnen“ erkannt wurde. Deals landeten in zusätzlichen Spalten statt in den vorgesehenen Abschlussphasen und erhielten auf den Karten trotz abgeschlossenem Status Überfälligkeitswarnungen.
+   - **Behebung:**
+     - `src/features/crm/utils/crmStageHelper.ts` neu erstellt: Zentrale Definition von `KANBAN_STAGES`, Mapping `CANONICAL_STAGE_TO_LABEL` (u. a. `WON` $\to$ `Deal gewonnen`, `LOST` $\to$ `Deal verloren`, `LEAD` $\to$ `Lead eingegangen`), `normalizeCanonicalStageLabel`, `isWonStage`, `isLostStage`, `isClosedStage`.
+     - `DealsKanbanBoard.tsx`: Gruppierung (`dealsByStage`) und `effectiveDeals` normalisieren kanonische Phasen konsistent; `wonVolume` aggregiert basierend auf `isWonStage`.
+     - `DealKanbanCard.tsx`: Nutzt `isWonStage` und `isLostStage`; unterdrückt Überfälligkeitswarnungen für kanonisch geschlossene Deals (`isWon || isLost`).
+     - `DealsPage.tsx` & `crmCsvHelper.ts`: Berücksichtigen kanonische Phasen bei Mapping, Textsuche und CSV-Export.
+   - **Test-Absicherung:** Neue Testsuite `src/features/crm/__tests__/crmStageHelper.ui.vitest.tsx` (7 Tests, u. a. Aggregation von `WON`-Deals zu `Deal gewonnen`, keine Überfälligkeitswarnung).
+
+2. **Befund 2 (P1, `DealsPage.findings.ui.vitest.tsx` – Warte im Exporttest auf die tatsächlich erzeugte Blob-URL):**
+   - **Befund:** `waitFor` bestätigte nur den Aufruf von `mockedExport`, während `handleExport` noch asynchron den Blob las. Zugriff auf `createObjectURLMock.mock.calls[0]` schlug fehl mit `TypeError: Cannot read properties of undefined (reading '0')`.
+   - **Behebung:** `expect(createObjectURLMock).toHaveBeenCalled()` innerhalb von `waitFor` ergänzt, sodass der Test zuverlässig auf das Erzeugen der Blob-URL wartet.
+   - **Test-Absicherung:** `DealsPage.findings.ui.vitest.tsx` läuft vollständig grün durch (8 Tests).
+
+3. **Befund 3 (P2, `DealsPage.tsx`, `crmStageHelper.ts` – Begrenzung gespeicherter Phasenwechsel auf den angemeldeten Benutzer):**
+   - **Befund:** `sessionStorage` verwendete einen globalen statischen Key ohne Benutzer- oder Organisationsbindung. Bei einem Benutzerwechsel im selben Tab wurden Entwurfsänderungen eines vorherigen Nutzers als eigene Datenbasis übernommen.
+   - **Behebung:**
+     - In `crmStageHelper.ts`: `getDealStageOverridesStorageKey(organizationId, userId)` bindet den Key an `leadpilot_crm_deal_stage_overrides_${organizationId}_${userId}`; `readStageOverrides` und `writeStageOverrides` kapseln sicheres Lesen und Schreiben.
+     - In `DealsPage.tsx`: Dynamischer `storageKey` aus `session.organizationId` und `session.userId`. Bei Identitätswechsel synchronisiert ein Effect die Overrides für den neuen Benutzer bzw. leert sie bei fehlender Sitzung.
+   - **Test-Absicherung:** Neue Integrationstest-Suite `src/features/crm/pages/__tests__/DealsPage.identity.ui.vitest.tsx` (2 Tests: strikte Benutzertrennung im selben Tab, Rückfall auf Serverphasen ohne Session).
+
+### Automatisierte Verifikation (Nacharbeit Runde 9)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 19 Testdateien, 128 Tests grün (100% bestanden)
+- `npm test`: 356 Testdateien, 2.589 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.52s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `crmStageHelper.ts`: 125 Zeilen
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 167 Zeilen
+  - `DealKanbanCard.tsx`: 319 Zeilen
+  - `DealsPage.tsx`: 395 Zeilen
+  - `crmCsvHelper.ts`: 214 Zeilen
+  - `crmStageHelper.ui.vitest.tsx`: 152 Zeilen
+  - `DealsPage.identity.ui.vitest.tsx`: 127 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 386 Zeilen
+  - `crmCsvHelper.vitest.ts`: 189 Zeilen
+  - `DealsKanban.ui.vitest.tsx`: 418 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 10 (PR #139, Head `db66450`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Der offene P2-Befund aus Review-Runde 10 wurde strukturiert und vollständig behoben:
+
+1. **Befund 1 (P2, Discussion r4489297262 – Berücksichtigung kanonischer Phasen im Serverfilter):**
+   - **Befund:** Wenn noch keine lokalen Phasenwechsel vorliegen, wird beispielsweise ein importierter `WON`-Deal als „Deal gewonnen“ angezeigt und auch ausschließlich unter diesem normalisierten Wert in `stageOptions` angeboten. Beim Auswählen dieser Phase übergab `serverStageFilter` jedoch unverändert `Deal gewonnen` an die Edge Function, deren `buildCanonicalCrmQuery` den Datenbankwert per `eq('stage', val)` verglich. Der zuvor sichtbare `WON`-Deal verschwand deshalb aus Tabelle, Board und gefiltertem CSV-Export.
+   - **Behebung:**
+     - `supabase/functions/crm-query-export/stageHelper.ts` neu erstellt: Definiert `DEAL_STAGE_GROUPS` (alle 7 Kernphasen mit kanonischen Identifiern wie `WON`, `closedwon`, `PROPOSAL`, `LEAD`, etc.), `getDealStageFilterVariants(val)` zur Auflösung aller äquivalenten Phasenwerte und `normalizeCanonicalStage(stage)`.
+     - `supabase/functions/crm-query-export/resourceConfig.ts` neu erstellt: `RESOURCE_CONFIG` und `FIELD_MAPPINGS` modular ausgelagert, um strikt $\le 400$ Zeilen in allen Dateien einzuhalten.
+     - `supabase/functions/crm-query-export/index.ts`: In `buildCanonicalCrmQuery` werden bei `params.resource === 'deals' && col === 'stage'` alle Varianten via `query.in('stage', variants)` abgefragt; `mapRowToFrontend` normalisiert die Deal-Phase via `normalizeCanonicalStage`, sodass sowohl JSON-Listen als auch serverseitige CSV-Exporte kanonische Bezeichnungen wie `Deal gewonnen` einheitlich ausgeben.
+     - `src/features/crm/utils/crmStageHelper.ts`: `getDealStageFilterVariants` ergänzt und exportiert; `CANONICAL_STAGE_TO_LABEL` um Varianten aus der Baseline-Konfiguration erweitert.
+   - **Test-Absicherung:**
+     - Neue Deno-Testsuite `supabase/functions/__tests__/crmStageFilter.test.ts` (5 Tests): Prüfung von `getDealStageFilterVariants`, `normalizeCanonicalStage`, `buildCanonicalCrmQuery` mit Spion auf `query.in('stage', variants)` sowie End-to-End-Tests für `action: 'list'` und `action: 'export'` mit `WON`-Deals.
+     - Deno-Tests: Alle 64 Tests grün (18 crmQueryExport, 5 crmStageFilter, 6 ingressHandler, 12 liveKpiIngress, 14 manageMembers, 9 workflowIngressStructure).
+     - Frontend-Tests: `src/features/crm/__tests__/crmStageHelper.ui.vitest.tsx` (8 Tests) und `src/features/crm/pages/__tests__/DealsPage.identity.ui.vitest.tsx` (3 Tests) verifizieren Phasenfilter-Übergabe und normalisierte Deal-Anzeige im Browser.
+
+### Automatisierte Verifikation (Nacharbeit Runde 10)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `deno test`: 64 Tests grün (100% bestanden)
+- `npm test src/features/crm`: 19 Testdateien, 129 Tests grün (100% bestanden)
+- `npm test`: 356 Testdateien, 2.591 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.51s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `supabase/functions/crm-query-export/index.ts`: 355 Zeilen
+  - `supabase/functions/crm-query-export/resourceConfig.ts`: 62 Zeilen
+  - `supabase/functions/crm-query-export/stageHelper.ts`: 88 Zeilen
+  - `supabase/functions/__tests__/crmStageFilter.test.ts`: 225 Zeilen
+  - `src/features/crm/utils/crmStageHelper.ts`: 151 Zeilen
+  - `src/features/crm/__tests__/crmStageHelper.ui.vitest.tsx`: 168 Zeilen
+  - `src/features/crm/pages/__tests__/DealsPage.identity.ui.vitest.tsx`: 170 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+### Nacharbeit Codex-Review Runde 11 (PR #139, Head `602afc5`)
+
+Offener P2-Befund: Die Serversuche in `buildCanonicalCrmQuery` prüfte nur den Rohwert der Phase (`stage ilike`). Importierte Deals mit `stage = 'WON'` werden im Frontend als „Deal gewonnen" angezeigt, wurden bei der Suche nach „gewonnen" aber nicht gefunden (Tabelle und CSV-Export).
+
+- `supabase/functions/crm-query-export/stageHelper.ts`: neuer Helfer `getDealStageSearchVariants(term)`. Er liefert alle Rohwerte der Phasengruppen, deren normalisiertes Label den Suchbegriff enthält.
+- `supabase/functions/crm-query-export/index.ts`: Für `deals` wird die Suchklausel um `stage.in.("…")` ergänzt. Die bisherige `ilike`-Suche auf dem Rohwert bleibt erhalten.
+- `supabase/functions/__tests__/crmStageFilter.test.ts`: neuer Test (Suche „gewonnen" enthält `WON`/`closedwon`, nicht `LOST`).
+- Verifikation: `deno check` und `deno test` (65 Tests) grün, `deno fmt --check` ohne Abweichung. Schutzbereiche unberührt.
+
+### Nacharbeit Codex-Review Runde 12 (PR #139, Head `6319e29`)
+
+Zwei offene P2-Befunde:
+
+1. **Client-Auswertung auf unvollständiger Datenbasis (`DealsPage.tsx`):** Bei lokalen Phasenwechseln mit Suche, Phasenfilter oder Phasensortierung wurde nur Serverseite 1 (100 Einträge) ausgewertet; Deals auf Seite 2+ fehlten, `hasMore` war im Kanban immer falsch.
+   - `DealsPage.tsx`: Wenn die Client-Auswertung aktiv ist, werden alle weiteren Serverseiten automatisch nachgeladen (`needsFullBase`). Bis dahin zeigt die Seite „…" statt einer Teilmenge und sperrt den Export. `hasMore` beruht auf Server-Gesamtzahl gegenüber geladenen Zeilen. Schlägt das Nachladen fehl, stoppt die Automatik (`loadMoreFailed`), statt endlos zu wiederholen.
+   - Neue Datei `src/features/crm/utils/dealsClientView.ts` (`applyClientDealView`, `buildStageOptions`), damit `DealsPage.tsx` im Zeilenbudget bleibt (398 Zeilen).
+   - Neuer Test `DealsPage.fullbase.ui.vitest.tsx` (2 Tests): Nachladen von Seite 2 findet den verschobenen Deal; ohne Client-Filter wird nichts nachgeladen.
+2. **Serversortierung nach Rohwert (`crm-query-export/index.ts`):** „Vertriebsphase" sortierte `CLOSING` vor `LEAD`, angezeigt wurden aber die Labels.
+   - `stageHelper.ts`: neuer Helfer `sortDealsByStageLabel` (normalisiertes Label, `localeCompare('de')`, ID als Tiebreaker).
+   - `index.ts`: Bei Deals mit `sortBy = stage` werden alle Treffer in 1000er-Blöcken geladen, nach Label sortiert und erst danach paginiert (gilt auch für den Export). Index.ts: 390 Zeilen.
+   - Neuer Deno-Test für die Sortierung.
+
+Verifikation: `deno check`/`deno test` 66 Tests grün, `npm run lint` 0 Fehler, `format:check` sauber, `tsc` 0 Fehler, `vitest` 357 Dateien / 2.593 Tests grün, `npm run verify` 25 Suiten grün, `npm run build` erfolgreich. Schutzbereichs-Diff gegen `origin/main`: leer.
+
+### Nacharbeit Codex-Review Runde 13 (PR #139, Head `bfd0a89`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Beide offenen P2-Befunde aus Review-Runde 13 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx` – Starte das automatische Nachladen erst nach dem Seitenreset):**
+   - **Befund:** Bei zuvor im Kanban geladenen Zusatzseiten und anschließendem Wechsel von Suchbegriff oder Phasenfilter konnte der automatische Nachlade-Effect noch mit den alten `extraDeals` laufen, bevor deren Reset durch den vorherigen Effect wirksam wurde. Bei z. B. 350 Deals und 200 geladenen Zeilen forderte er dadurch Seite 3 an – nach dem Reset fehlten jedoch die Zeilen von Seite 2.
+   - **Behebung:** `extraDeals` und `loadMoreFailed` werden synchron anhand des `currentQueryKey` ausgewertet (`extraDealsState.queryKey === currentQueryKey`). Bei jeder Änderung der Query-Parameter (Filter, Suche, Sortierung) evaluieren `extraDeals` und `loadMoreFailed` im selben Render synchron zu `[]` bzw. `false`. `handleLoadMore` berechnet die nächste Seite deterministisch als Seite 2, ohne dass alte Zeilen zwischen Renders weiterwirken.
+   - **Test-Absicherung:** Neuer Test in `DealsPage.fullbase.ui.vitest.tsx` (`setzt Zusatzseiten bei Parameterwechsel synchron zurück und fordert Seite 2 an`).
+
+2. **Befund 2 (P2, `DealsPage.tsx` – Behandle Nachladefehler nicht als vollständige Datenbasis):**
+   - **Befund:** Schlug beim automatischen Laden der vollständigen Datenbasis eine Folgeseite fehl, setzte der Catch-Block `loadMoreFailed`, wodurch `needsFullBase` falsch und `hasData` wahr wurde. Die Tabelle/das Board präsentierte Teildatenbasis als fertiges Gesamtergebnis ohne Fehlermeldung oder Retry-Aktion. Liegen passende Deals ausschließlich auf der fehlgeschlagenen Seite, erschien fälschlich „0 Deals gefunden“.
+   - **Behebung:** `needsFullBase` bleibt strikt an `clientPagingActive && hasMoreOnServer` gebunden (keine Entkopplung bei Fehler). `isFullBaseError = needsFullBase && loadMoreFailed` trennt den Fehlerzustand vom Vollständigkeitsstatus. Bei Nachladefehlern bleibt `hasData` falsch, der Export gesperrt, und `ManagementChartState` visualisiert einen dedizierten Fehler-Zustand inklusive `onRetry`-Aktion (`handleRetryLoadMore`), die den Fehlerstatus zurücksetzt und das Nachladen der fehlenden Seite erneut anstößt.
+   - **Test-Absicherung:** Neuer Test in `DealsPage.fullbase.ui.vitest.tsx` (`behandelt Nachladefehler nicht als vollständige Datenbasis und bietet Retry an`).
+
+### Automatisierte Verifikation (Nacharbeit Runde 13)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test src/features/crm`: 20 Testdateien, 134 Tests grün (100% bestanden)
+- `npm test`: 357 Testdateien, 2.595 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (4.38s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/crm/pages/DealsPage.tsx`: 385 Zeilen
+  - `src/features/crm/utils/crmStageHelper.ts`: 203 Zeilen
+  - `src/features/crm/utils/crmCsvHelper.ts`: 258 Zeilen
+  - `src/features/crm/utils/dealsClientView.ts`: 112 Zeilen
+  - `src/features/crm/pages/__tests__/DealsPage.fullbase.ui.vitest.tsx`: 175 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 14 (PR #139, Head `b72d5e9`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Offener P2-Befund aus Review-Runde 14 behoben:
+
+1. **Befund (P2, `crmCsvHelper.ts` / `supabase/functions/crm-query-export/index.ts` – Lade vor der lokalen CSV-Filterung die vollständige Datenbasis):**
+   - **Befund:** Bei mehr als 1.000 Deals, mindestens einem lokalen Phasenwechsel und einer Sortierung etwa nach Abschlussdatum konnte ein gefilterter CSV-Export passende Deals vollständig verlieren. Mit Overrides deaktiviert `useDealStageOverrides` die serverseitige Suche und Phasenfilterung. Der Exportpfad in `supabase/functions/crm-query-export/index.ts` lud jedoch außer bei Phasensortierung keine weiteren Seiten; bei `max_rows = 1000` aus `supabase/config.toml` enthielt dieser Blob daher höchstens die ersten 1.000 ungefilterten Deals. Die anschließende lokale Filterung fand Treffer außerhalb dieses Ausschnitts nicht.
+   - **Behebung:** In `supabase/functions/crm-query-export/index.ts` lädt `execCrmQuery` für jeden Export (`fetchAllChunks = isExport || sortByStage`) alle Chunks à 1.000 Zeilen sequenziell via `.range(from, from + STAGE_SORT_CHUNK - 1)` durch, bis `chunk.length < STAGE_SORT_CHUNK`. Dadurch enthält der vom Server generierte CSV-Blob die vollständige Datenbasis des Mandanten unabhängig von der gewählten Sortierung, sodass die anschließende lokale Phasen- und Textsuchenfilterung in `crmCsvHelper.ts` alle Datensätze verarbeitet und keine Treffer verloren gehen.
+   - **Test-Absicherung:**
+     - Neuer Deno-Test in `supabase/functions/__tests__/crmStageFilter.test.ts` (`crm-query-export: execCrmQuery lädt beim Export (> 1.000 Deals) alle Chunks auch ohne Phasensortierung`): Verifiziert, dass bei 1.250 Deals und Sortierung nach `expected_close_date` beide Chunks (0..999 und 1000..1999) abgerufen werden und alle 1.250 Zeilen im Ergebnis vorliegen.
+     - Neuer Vitest-Test in `src/features/crm/__tests__/crmCsvHelper.vitest.ts` (`filtert CSV-Export mit > 1.000 Deals und lokalen Overrides ohne Datenverlust (Befund Runde 14)`): Verifiziert, dass ein verschobener Deal jenseits Zeile 1.000 bei Phasenfilterung im CSV erhalten bleibt.
+
+### Automatisierte Verifikation (Nacharbeit Runde 14)
+
+- `npm run format:check`: 0 Abweichungen (Alle gematchten Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `deno check` & `deno test`: 67 Tests grün (100% bestanden)
+- `npm test src/features/crm`: 20 Testdateien, 135 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (4.43s)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `supabase/functions/crm-query-export/index.ts`: 391 Zeilen
+  - `supabase/functions/__tests__/crmStageFilter.test.ts`: 316 Zeilen
+  - `src/features/crm/__tests__/crmCsvHelper.vitest.ts`: 211 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

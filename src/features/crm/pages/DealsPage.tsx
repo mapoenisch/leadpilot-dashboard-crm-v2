@@ -1,192 +1,268 @@
-// G60 (Auftrag 067N, Step 4): URL-synchrone serverseitige Deals-Ansicht mit Pagination und Export
-import { useState, useMemo, useId } from 'react';
-import { Search, Download, AlertCircle } from 'lucide-react';
+// G60 (Auftrag 067N, Step 4) / Auftrag 129: URL-synchrone serverseitige Deals-Ansicht mit Pagination, Export und Kanban-Board
+import { useState, useMemo, useCallback, useEffect, useRef, useId } from 'react';
+import { Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Select, SelectOption } from '@/components/ui/Select';
-import { Input } from '@/components/ui/Input';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { ImportedFunnelDeal } from '@/types/crm';
-import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
-import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
+import { CrmServiceError } from '@/services/crm/crmExportService';
+import { fetchCrmList } from '@/services/crm/crmListService';
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import { useCrmProvenance } from '../hooks/useCrmProvenance';
-import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
-
-const BASE_STAGE_OPTIONS: SelectOption[] = [
-  { value: 'ALL', label: 'Alle Vertriebsphasen' },
-  { value: 'Lead eingegangen', label: 'Lead eingegangen' },
-  { value: 'Erstgespräch geführt', label: 'Erstgespräch geführt' },
-  { value: 'Bedarfsanalyse', label: 'Bedarfsanalyse' },
-  { value: 'Angebot erstellt', label: 'Angebot erstellt' },
-  { value: 'Verhandlung', label: 'Verhandlung' },
-  { value: 'Deal gewonnen', label: 'Deal gewonnen' },
-  { value: 'Deal verloren', label: 'Deal verloren' },
-];
-
-const DEAL_SORT_OPTIONS: SelectOption[] = [
-  { value: 'close_date', label: 'Abschlussdatum' },
-  { value: 'amount', label: 'Betrag' },
-  { value: 'deal_name', label: 'Deal Name' },
-  { value: 'stage', label: 'Vertriebsphase' },
-];
-
-const ORDER_OPTIONS: SelectOption[] = [
-  { value: 'desc', label: 'Absteigend' },
-  { value: 'asc', label: 'Aufsteigend' },
-];
+import { DealsTableCard } from '../components/DealsTableCard';
+import { DealsViewToggle } from '../components/DealsViewToggle';
+import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
+import { DealsKpiGrid } from '../components/DealsKpiGrid';
+import { DealsFilterBar, BASE_STAGE_OPTIONS } from '../components/DealsFilterBar';
+import { exportCrmDealsCsv } from '../utils/crmCsvHelper';
+import {
+  applyClientDealView,
+  buildStageOptions,
+  buildDealsQueryKey,
+  sliceTableDeals,
+  useDealsUrlState,
+} from '../utils/dealsClientView';
+import {
+  getDealStageOverridesStorageKey,
+  normalizeCanonicalStageLabel,
+  useDealStageOverrides,
+} from '../utils/crmStageHelper';
 
 export function DealsPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
   const { provenance, isLoading: isProvLoading } = useCrmProvenance('deals');
 
-  // URL-synchroner Zustand
-  const [searchTerm, setSearchTerm] = useUrlSyncedState('suche', '');
-  const [stageFilter, setStageFilter] = useUrlSyncedState('stufe', 'ALL');
-  const [pageStr, setPageStr] = useUrlSyncedState('seite', '1');
-  const [pageSizeStr, setPageSizeStr] = useUrlSyncedState('proSeite', '20');
-  const [sortField, setSortField] = useUrlSyncedState('sort', 'close_date');
-  const [sortOrder, setSortOrder] = useUrlSyncedState('order', 'desc');
+  const storageKey = getDealStageOverridesStorageKey(session?.organizationId, session?.userId);
 
-  const page = Math.max(1, parseInt(pageStr, 10) || 1);
-  const pageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
+  const {
+    setViewModeRaw,
+    viewMode,
+    searchTerm,
+    stageFilter,
+    page,
+    setPageStr,
+    tablePageSize,
+    setPageSizeStr,
+    sortField,
+    sortOrder,
+    handleSortChange,
+    handleOrderChange,
+    handleSearchChange,
+    handleStageChange,
+  } = useDealsUrlState();
 
-  const handleSortChange = (val: string) => {
-    setSortField(val);
-    setPageStr('1');
-  };
+  const {
+    stageOverrides,
+    hasStageOverrides,
+    serverStageFilter,
+    serverSearchTerm,
+    clientPagingActive,
+    handleDealStageChange,
+  } = useDealStageOverrides(storageKey, stageFilter, sortField, searchTerm);
 
-  const handleOrderChange = (val: string) => {
-    setSortOrder(val);
-    setPageStr('1');
-  };
+  const pageSize = viewMode === 'kanban' || clientPagingActive ? 100 : tablePageSize;
+
+  const [extraDealsState, setExtraDealsState] = useState<{
+    queryKey: string;
+    items: ImportedFunnelDeal[];
+  }>({ queryKey: '', items: [] });
+  const [loadMoreErrorState, setLoadMoreErrorState] = useState<{
+    queryKey: string;
+    error: boolean;
+  }>({ queryKey: '', error: false });
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const activeLoadMoreQueryRef = useRef<string>('');
+
+  const currentQueryKey = useMemo(
+    () =>
+      buildDealsQueryKey({
+        searchTerm,
+        serverSearchTerm,
+        stageFilter,
+        serverStageFilter,
+        sortField,
+        sortOrder,
+      }),
+    [searchTerm, serverSearchTerm, stageFilter, serverStageFilter, sortField, sortOrder],
+  );
+
+  // Synchron an den aktuellen Query-Key gebunden: Sofort leer und fehlerfrei bei Filter-/Suchwechsel
+  const extraDeals = useMemo(
+    () => (extraDealsState.queryKey === currentQueryKey ? extraDealsState.items : []),
+    [extraDealsState, currentQueryKey],
+  );
+  const loadMoreFailed =
+    loadMoreErrorState.queryKey === currentQueryKey && loadMoreErrorState.error;
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, isPlaceholderData, error, refetch } =
     useCrmListQuery<ImportedFunnelDeal>({
       resource: 'deals',
-      q: searchTerm.trim() || undefined,
-      filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
+      q: serverSearchTerm,
+      filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
       sortBy: sortField,
       sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-      page,
+      page: viewMode === 'kanban' || clientPagingActive ? 1 : page,
       pageSize,
     });
 
+  const rawDeals = useMemo(
+    () =>
+      viewMode === 'kanban' || clientPagingActive
+        ? [...(data?.items ?? []), ...extraDeals]
+        : (data?.items ?? []),
+    [viewMode, clientPagingActive, data?.items, extraDeals],
+  );
+
+  // Serverseitige Gesamtzahl und bereits geladene Zeilen (vor der Client-Auswertung)
+  const serverTotal = data?.total ?? 0;
+  const hasMoreOnServer = rawDeals.length < serverTotal;
+  // Client-Filter, -Suche und -Sortierung brauchen die vollständige Datenbasis
+  const needsFullBase = clientPagingActive && hasMoreOnServer;
+  const isFullBaseError = needsFullBase && loadMoreFailed;
+
+  const mappedDeals = useMemo(() => {
+    return rawDeals.map((d) => {
+      const override = stageOverrides[d.id];
+      const stage = override ?? normalizeCanonicalStageLabel(d.stage);
+      return stage !== d.stage ? { ...d, stage } : d;
+    });
+  }, [rawDeals, stageOverrides]);
+
+  const deals = useMemo(
+    () =>
+      applyClientDealView(mappedDeals, {
+        active: hasStageOverrides,
+        searchTerm,
+        stageFilter,
+        sortField,
+        sortOrder,
+      }),
+    [mappedDeals, hasStageOverrides, searchTerm, stageFilter, sortField, sortOrder],
+  );
+
+  const isClientFiltered =
+    hasStageOverrides && (stageFilter !== 'ALL' || Boolean(searchTerm.trim()));
+  const total = isClientFiltered ? deals.length : serverTotal;
+
+  const tableDeals = useMemo(
+    () => sliceTableDeals(deals, clientPagingActive, viewMode, page, tablePageSize),
+    [clientPagingActive, viewMode, page, tablePageSize, deals],
+  );
+
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || isPlaceholderData) return;
+    const requestKey = currentQueryKey;
+    activeLoadMoreQueryRef.current = requestKey;
+    setIsLoadingMore(true);
+    try {
+      const currentCount =
+        (data?.items?.length ?? 0) +
+        (extraDealsState.queryKey === requestKey ? extraDealsState.items.length : 0);
+      const nextPage = Math.floor(currentCount / 100) + 1;
+      const res = await fetchCrmList<ImportedFunnelDeal>({
+        resource: 'deals',
+        q: serverSearchTerm,
+        filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
+        sortBy: sortField,
+        sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+        page: nextPage,
+        pageSize: 100,
+      });
+      if (activeLoadMoreQueryRef.current === requestKey) {
+        setExtraDealsState((prev) => ({
+          queryKey: requestKey,
+          items: prev.queryKey === requestKey ? [...prev.items, ...res.items] : res.items,
+        }));
+      }
+    } catch {
+      if (activeLoadMoreQueryRef.current === requestKey) {
+        setLoadMoreErrorState({ queryKey: requestKey, error: true });
+      }
+    } finally {
+      if (activeLoadMoreQueryRef.current === requestKey) {
+        setIsLoadingMore(false);
+      }
+    }
+  }, [
+    currentQueryKey,
+    data?.items?.length,
+    extraDealsState,
+    isLoadingMore,
+    isPlaceholderData,
+    serverSearchTerm,
+    serverStageFilter,
+    sortField,
+    sortOrder,
+  ]);
+
+  const handleRetryLoadMore = useCallback(() => {
+    setLoadMoreErrorState({ queryKey: currentQueryKey, error: false });
+    void handleLoadMore();
+  }, [currentQueryKey, handleLoadMore]);
+
+  // Bei lokalen Phasenwechseln mit Filter/Suche/Phasensortierung alle Serverseiten nachladen,
+  // damit die Client-Auswertung auf der vollständigen Datenbasis läuft.
+  useEffect(() => {
+    if (
+      needsFullBase &&
+      !loadMoreFailed &&
+      !isLoadingMore &&
+      !isPlaceholderData &&
+      data !== undefined
+    ) {
+      void handleLoadMore();
+    }
+  }, [needsFullBase, loadMoreFailed, isLoadingMore, isPlaceholderData, data, handleLoadMore]);
+
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
-
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setPageStr('1');
-  };
-
-  const handleStageChange = (val: string) => {
-    setStageFilter(val);
-    setPageStr('1');
-  };
 
   const handleExport = async () => {
     setIsExporting(true);
     setExportError(null);
     try {
-      await downloadCrmExport({
-        resource: 'deals',
-        q: searchTerm.trim() || undefined,
-        filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
-        sortBy: sortField,
-        sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+      await exportCrmDealsCsv({
+        serverSearchTerm,
+        serverStageFilter,
+        sortField,
+        sortOrder,
+        stageOverrides,
+        stageFilter,
+        searchTerm,
       });
     } catch (err) {
-      if (err instanceof CrmServiceError) {
-        setExportError(err.message);
-      } else {
-        setExportError('Fehler beim Ausführen des CSV-Exports.');
-      }
+      setExportError(err instanceof CrmServiceError ? err.message : 'Fehler beim CSV-Export.');
     } finally {
       setIsExporting(false);
     }
   };
 
-  const deals = useMemo(() => data?.items ?? [], [data?.items]);
-  const total = data?.total ?? 0;
-
-  // Auftrag 084 / F12: Fehler und Laden nicht als geschäftliche 0 darstellen.
-  // Platzhalterdaten der vorherigen Abfrage gelten bis zur neuen Antwort als Laden.
-  const hasData = data !== undefined && !isPlaceholderData;
-  const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
-  const exportBlocked = isError || !hasData;
+  const hasData = data !== undefined && !isPlaceholderData && !needsFullBase;
+  const countText = isError || isFullBaseError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
+  const exportBlocked = isError || isFullBaseError || !hasData;
   const exportHintId = useId();
 
-  const stageOptions = useMemo(() => {
-    const knownValues = new Set(BASE_STAGE_OPTIONS.map((o) => o.value));
-    const extraOptions: SelectOption[] = [];
-    for (const d of deals) {
-      if (d.stage && !knownValues.has(d.stage)) {
-        knownValues.add(d.stage);
-        extraOptions.push({ value: d.stage, label: d.stage });
-      }
-    }
-    return [...BASE_STAGE_OPTIONS, ...extraOptions];
-  }, [deals]);
-
-  const columns: CrmColumn<ImportedFunnelDeal>[] = [
-    {
-      key: 'dealName',
-      label: 'Deal Name',
-      render: (r) => <strong className="text-text">{r.dealName}</strong>,
-    },
-    {
-      key: 'stage',
-      label: 'Vertriebsphase',
-      render: (r) => {
-        const s = r.stage.toLowerCase();
-        const v = s.includes('gewonnen') ? 'cyan' : s.includes('verloren') ? 'neutral' : 'orange';
-        return <Badge variant={v}>{r.stage}</Badge>;
-      },
-    },
-    {
-      key: 'amount',
-      label: 'Deal-Volumen (€)',
-      render: (r) => {
-        const s = r.stage.toLowerCase();
-        const cls = s.includes('gewonnen')
-          ? 'text-primary'
-          : s.includes('verloren')
-            ? 'text-[var(--color-text-muted)]'
-            : 'text-accent';
-        return <strong className={`font-mono ${cls}`}>{r.amount.toLocaleString('de-DE')} €</strong>;
-      },
-    },
-    {
-      key: 'closeDate',
-      label: 'Abschlussdatum',
-      render: (r) => (
-        <span className="text-[13px] text-[var(--color-text-muted)]">{r.closeDate}</span>
-      ),
-    },
-    {
-      key: 'pipeline',
-      label: 'Pipeline',
-      render: (r) => <Badge variant="neutral">{r.pipeline}</Badge>,
-    },
-  ];
+  const stageOptions = useMemo(
+    () => buildStageOptions(BASE_STAGE_OPTIONS, mappedDeals),
+    [mappedDeals],
+  );
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
-      {/* 1. Page Header */}
+      {/* 1. Page Header mit Ansichtsumschalter */}
       <div className="flex items-start justify-between flex-wrap gap-[var(--space-3)]">
         <SectionHeader
           eyebrow="CRM & Pipeline"
           title="Deal Pipeline"
-          description="Mandantenspezifische Übersicht der Pipeline-Deals mit serverseitiger Paginierung und CSV-Export."
+          description="Mandantenspezifische Übersicht der Pipeline-Deals mit interaktiver Kanban-Pipeline, Tabellenansicht und CSV-Export."
         />
         <div className="flex gap-[var(--space-2)] items-center flex-wrap">
+          <DealsViewToggle viewMode={viewMode} onChange={setViewModeRaw} />
           <Badge variant="cyan">CRM-Daten</Badge>
           <DataSourceStatus variant="compact" provenance={provenance} isLoading={isProvLoading} />
           <Badge variant="neutral">{countText} Funnel Deals</Badge>
@@ -208,7 +284,7 @@ export function DealsPage() {
           </Button>
           {exportBlocked && !isViewer && (
             <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
-              {isError
+              {isError || isFullBaseError
                 ? 'Export gesperrt: Datenbasis nicht verfügbar'
                 : 'Export nach dem Laden verfügbar'}
             </span>
@@ -227,98 +303,38 @@ export function DealsPage() {
       )}
 
       {/* 2. KPI Cards */}
-      <div className="crm-v2-kpi-grid">
-        {[
-          {
-            t: 'Funnel Deals Gesamt',
-            v: countText,
-            n: 'Mandanten-geprüft',
-            c: 'text-primary font-bold',
-            f: true,
-          },
-          {
-            t: 'Aktuelle Seite',
-            v: isError || !hasData ? '–' : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
-            n: `${pageSize} Deals pro Seite`,
-            c: 'text-text font-semibold',
-          },
-          {
-            t: 'Gewählte Vertriebsphase',
-            v: stageFilter === 'ALL' ? 'Alle Vertriebsphasen' : stageFilter,
-            n: `${stageOptions.length - 1} Vertriebsphasen definiert`,
-            c: 'text-text font-semibold text-[20px]',
-          },
-          {
-            t: 'Daten-Herkunft',
-            v: 'Server Query',
-            n: 'Edge Function / RLS geschützt',
-            c: 'text-accent font-bold text-[18px]',
-          },
-        ].map((k) => (
-          <Card key={k.t} variant="glass" featured={Boolean(k.f)}>
-            <div className="text-[13px] text-[var(--color-text-muted)]">{k.t}</div>
-            <div className={`font-display text-[28px] my-[4px] truncate ${k.c}`}>{k.v}</div>
-            <div className="text-[12px] text-success">{k.n}</div>
-          </Card>
-        ))}
-      </div>
+      <DealsKpiGrid
+        countText={countText}
+        hasData={hasData}
+        isError={isError}
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        stageFilter={stageFilter}
+        stageCount={stageOptions.length - 1}
+      />
 
       {/* 3. Filter & Search Bar */}
-      <div className="crm-v2-filter-bar">
-        <div className="flex-[1_1_280px] max-w-full">
-          <Input
-            type="search"
-            aria-label="Deals suchen"
-            placeholder="Deal Name oder Pipeline suchen..."
-            value={searchTerm}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            leadingIcon={<Search size={16} />}
-            sizeVariant="sm"
-          />
-        </div>
+      <DealsFilterBar
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        stageFilter={stageFilter}
+        stageOptions={stageOptions}
+        onStageChange={handleStageChange}
+        sortField={sortField}
+        onSortChange={handleSortChange}
+        sortOrder={sortOrder}
+        onOrderChange={handleOrderChange}
+        resultCountText={
+          isError || isFullBaseError
+            ? 'Ergebnis nicht verfügbar'
+            : !hasData
+              ? 'Ergebnis wird geladen …'
+              : `${total} ${total === 1 ? 'Deal' : 'Deals'} gefunden`
+        }
+      />
 
-        <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
-          <div className="min-w-[170px] w-full max-w-[210px]">
-            <Select
-              label="Vertriebsphase:"
-              options={stageOptions}
-              value={stageFilter}
-              onChange={handleStageChange}
-              sizeVariant="sm"
-              fullWidth
-            />
-          </div>
-          <div className="min-w-[170px] w-full max-w-[210px]">
-            <Select
-              label="Sortierung:"
-              options={DEAL_SORT_OPTIONS}
-              value={sortField}
-              onChange={handleSortChange}
-              sizeVariant="sm"
-              fullWidth
-            />
-          </div>
-          <div className="min-w-[150px] w-full max-w-[180px]">
-            <Select
-              label="Reihenfolge:"
-              options={ORDER_OPTIONS}
-              value={sortOrder}
-              onChange={handleOrderChange}
-              sizeVariant="sm"
-              fullWidth
-            />
-          </div>
-          <div className="crm-v2-result-count" aria-live="polite">
-            {isError
-              ? 'Ergebnis nicht verfügbar'
-              : !hasData
-                ? 'Ergebnis wird geladen …'
-                : `${total} ${total === 1 ? 'Deal' : 'Deals'} gefunden`}
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Table & Cards */}
+      {/* 4. Table OR Kanban Board */}
       {isLoading && deals.length === 0 ? (
         <ManagementChartState
           type="loading"
@@ -334,65 +350,35 @@ export function DealsPage() {
           height={220}
           onRetry={() => void refetch()}
         />
+      ) : isFullBaseError ? (
+        <ManagementChartState
+          type="error"
+          message="Fehler beim Nachladen der vollständigen Deal-Pipeline."
+          sourceLabel="CRM-Daten"
+          height={220}
+          onRetry={handleRetryLoadMore}
+        />
+      ) : viewMode === 'kanban' ? (
+        <DealsKanbanBoard
+          deals={deals}
+          totalDeals={total}
+          onDealStageChange={handleDealStageChange}
+          onLoadMore={handleLoadMore}
+          hasMore={!isPlaceholderData && hasMoreOnServer && !needsFullBase}
+          isLoadingMore={isLoadingMore}
+        />
       ) : (
-        <Card variant="glass" padding="0">
-          <CrmResponsiveList
-            caption="Deal Pipeline Tabelle"
-            columns={columns}
-            rows={deals}
-            keyExtractor={(r) => r.id}
-            page={page}
-            pageSize={pageSize}
-            total={total}
-            onPageChange={(newPage) => setPageStr(String(newPage))}
-            onPageSizeChange={(newSize) => {
-              setPageSizeStr(String(newSize));
-              setPageStr('1');
-            }}
-            renderMobileCard={(r) => (
-              <div className="crm-v2-mobile-card">
-                <div className="crm-v2-mobile-card-header">
-                  <span className="crm-v2-mobile-card-title">{r.dealName}</span>
-                  <Badge
-                    variant={
-                      r.stage.toLowerCase().includes('gewonnen')
-                        ? 'cyan'
-                        : r.stage.toLowerCase().includes('verloren')
-                          ? 'neutral'
-                          : 'orange'
-                    }
-                  >
-                    {r.stage}
-                  </Badge>
-                </div>
-                <div className="crm-v2-mobile-card-row">
-                  <span className="crm-v2-mobile-card-label">Deal-Volumen</span>
-                  <span
-                    className={`crm-v2-mobile-card-value font-mono font-semibold ${
-                      r.stage.toLowerCase().includes('gewonnen')
-                        ? 'text-primary'
-                        : r.stage.toLowerCase().includes('verloren')
-                          ? 'text-[var(--color-text-muted)]'
-                          : 'text-accent'
-                    }`}
-                  >
-                    {r.amount.toLocaleString('de-DE')} €
-                  </span>
-                </div>
-                <div className="crm-v2-mobile-card-row">
-                  <span className="crm-v2-mobile-card-label">Abschlussdatum</span>
-                  <span className="crm-v2-mobile-card-value">{r.closeDate}</span>
-                </div>
-                <div className="crm-v2-mobile-card-row">
-                  <span className="crm-v2-mobile-card-label">Pipeline</span>
-                  <span className="crm-v2-mobile-card-value">
-                    <Badge variant="neutral">{r.pipeline}</Badge>
-                  </span>
-                </div>
-              </div>
-            )}
-          />
-        </Card>
+        <DealsTableCard
+          deals={tableDeals}
+          page={page}
+          pageSize={tablePageSize}
+          total={total}
+          onPageChange={(newPage) => setPageStr(String(newPage))}
+          onPageSizeChange={(newSize) => {
+            setPageSizeStr(String(newSize));
+            setPageStr('1');
+          }}
+        />
       )}
     </div>
   );
