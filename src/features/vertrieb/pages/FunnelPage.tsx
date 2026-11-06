@@ -1,88 +1,263 @@
+import { useContext, useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
+import { QueryClient, QueryClientProvider, QueryClientContext } from '@tanstack/react-query';
 import { FUNNEL } from '@/domain/vertriebData';
 import { DataState } from '@/components/ui/DataState';
-import { Callout, ChartFigure, Chip, KitTable, PageHero, Panel } from '@/components/pageKit';
+import { Callout, ChartFigure, PageHero, Panel } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
+import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
+import { useOrganization } from '@/auth/organizationContext';
+import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
+import { ImportedFunnelDeal, Contact } from '@/types/crm';
+import {
+  getDealStageOverridesStorageKey,
+  readStageOverrides,
+} from '@/features/crm/utils/crmStageHelper';
+import { getQualifiedLeadIds } from '@/features/crm/services/leadConversionService';
 import { FunnelStufenChart } from '../components/FunnelStufenChart';
 import { GroupedDepthColumns } from '../components/GroupedDepthColumns';
+import { FunnelSourceToggle } from '../components/FunnelSourceToggle';
+import { FunnelBottleneckAlert } from '../components/FunnelBottleneckAlert';
+import { FunnelDeltaTable } from '../components/FunnelDeltaTable';
+import {
+  calculateFunnelAnalytics,
+  FunnelSourceMode,
+  PLAN_FUNNEL_COUNTS,
+} from '../services/funnelAnalyticsService';
 
-// 067I / G53: Echte Funnel-Seite statt WebP — genau eine h1,
-// Trichterstufen als Tabelle, Quartalsreihen strukturiert, Hinweis aus Domäne.
-// Auftrag 068 / G66: Gestaltung nach v2.2.0-Vorlage (01-sales-funnel-2025).
-// Auftrag 093 (Paket G1): als erste Seite sichtbar ausgeliefert (HTML_PAGES). Vorlage ist das
-// Original-WebP: Trichter mit Stufen, Conversion-Chips und orangem Hebel, Quartalsverlauf als
-// 3D-Säulen in den vier Reihenfarben, Tabelle mit Pills, Hinweis. „Ruhig“ (data-ruhig) dämpft
-// Leuchten und Raster, entfernt sie aber nicht.
+// Auftrag 067I / 068 / 093 / Auftrag 131: Vertriebs-Funnel mit Unterstützung für
+// Plan 2025, operative Live-CRM Pipeline und Gegenüberstellung im Vergleichsmodus mit Deltas.
+let fallbackClient: QueryClient | null = null;
+function getFallbackClient(): QueryClient {
+  if (!fallbackClient) {
+    fallbackClient = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
+  }
+  return fallbackClient;
+}
+
+function FunnelQueryBoundary({ children }: { children: React.ReactNode }) {
+  const existingClient = useContext(QueryClientContext);
+
+  if (existingClient) {
+    return <>{children}</>;
+  }
+
+  return <QueryClientProvider client={getFallbackClient()}>{children}</QueryClientProvider>;
+}
+
 const zahl = (text: string | undefined): number =>
   Number((text ?? '0').replace(/\./g, '').replace(',', '.'));
-// Auftrag 085: Jede Trichterstufe in ihrer eigenen Einheit (vorher überall „Leads“).
+
 const stufenEinheit = ['Leads', 'MQL', 'SQL', 'Angebote', 'Neukunden'];
-// Kurzname im Trichter wie im Original; Hebel an der SQL-Stufe wie im Original.
 const stufenName = ['Leads gesamt', 'MQL', 'SQL', 'Angebote', 'Neukunden (Won)'];
 const HEBEL_STUFE = 2;
-// Herkunft und Stand der Zahlen (Codex PR #79): sichtbar im Seitenkopf.
-const QUELLE = 'Faktenblatt v1.2 · Stand FY 2025 · fester Stand';
-// Reihenfarben wie im Original-WebP: Leads silbern, MQL kräftiges Cyan, SQL helles Cyan,
-// Neukunden orange (Reihenfolge wie FUNNEL.chart.datasets).
+const QUELLE_PLAN = 'Faktenblatt v1.2 · Stand FY 2025 · fester Stand';
 const QUARTAL_FARBEN = ['var(--funnel-silber)', '#00D9C6', '#62EDE2', '#FF7A3D'];
 
 function FunnelPageHtml() {
-  const rows = FUNNEL.rows.map((row) => ({
-    stufe: row[0] ?? '',
-    q1: row[1] ?? '',
-    q2: row[2] ?? '',
-    q3: row[3] ?? '',
-    q4: row[4] ?? '',
-    fy: <strong>{row[5] ?? ''}</strong>,
-    schnitt: <Chip strong>{row[6] ?? ''}</Chip>,
-    conversion: <Chip strong>{row[7] ?? ''}</Chip>,
-  }));
-  // Trichter: Stufen ohne die Nebenkennzahl „Testversionen“ (Self-Service-Pfad).
-  const stufen = FUNNEL.rows.filter((row) => !row[0]?.startsWith('Testversionen'));
+  const { session } = useOrganization();
+  const [datenQuelle, setDatenQuelle] = useUrlSyncedState('daten', 'plan');
+  const mode = (
+    datenQuelle === 'live' || datenQuelle === 'vergleich' ? datenQuelle : 'plan'
+  ) as FunnelSourceMode;
+  const isLiveOrVergleich = mode === 'live' || mode === 'vergleich';
+
+  // Live-CRM Daten laden (nur wenn Live- oder Vergleichsmodus aktiv)
+  const { data: dealsResult, isLoading: isDealsLoading } = useCrmListQuery<ImportedFunnelDeal>(
+    { resource: 'deals', pageSize: 1000 },
+    { enabled: isLiveOrVergleich },
+  );
+
+  const { data: contactsResult, isLoading: isContactsLoading } = useCrmListQuery<Contact>(
+    { resource: 'contacts', pageSize: 1000 },
+    { enabled: isLiveOrVergleich },
+  );
+
+  const storageKey = getDealStageOverridesStorageKey(session?.organizationId, session?.userId);
+  const stageOverrides = useMemo(() => readStageOverrides(storageKey), [storageKey]);
+  const qualifiedLeadIds = useMemo(() => getQualifiedLeadIds(), []);
+
+  // Funnel Analytics berechnen
+  const analytics = useMemo(() => {
+    return calculateFunnelAnalytics({
+      contacts: contactsResult?.items ?? [],
+      deals: dealsResult?.items ?? [],
+      stageOverrides,
+      qualifiedLeadIds,
+      mode,
+    });
+  }, [contactsResult?.items, dealsResult?.items, stageOverrides, qualifiedLeadIds, mode]);
+
+  // Trichterstufen für Chart je nach Modus konfigurieren
+  const chartStufen = useMemo(() => {
+    if (mode === 'live') {
+      return analytics.stages.map((s, index) => ({
+        name: s.name,
+        count: s.liveCount,
+        einheit: s.einheit,
+        amountEuro: s.liveAmountEuro,
+        hebel: index === HEBEL_STUFE ? 'Trial-Conversion Hebel' : undefined,
+        conversionText:
+          s.liveConversionQuote !== null
+            ? `${s.liveConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} %`
+            : undefined,
+      }));
+    }
+
+    if (mode === 'vergleich') {
+      return analytics.stages.map((s, index) => {
+        const next = analytics.stages[index + 1];
+        return {
+          name: s.name,
+          count: s.liveCount,
+          einheit: s.einheit,
+          planCount: s.planCount,
+          liveCount: s.liveCount,
+          deltaQuote: next ? next.deltaQuote : null,
+          hebel: index === HEBEL_STUFE ? 'Trial-Conversion Hebel' : undefined,
+          conversionText:
+            s.liveConversionQuote !== null && s.planConversionQuote !== null
+              ? `Live: ${s.liveConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} % (Plan: ${s.planConversionQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} %)`
+              : undefined,
+        };
+      });
+    }
+
+    // Plan-Modus (Original)
+    const stufenRows = FUNNEL.rows.filter((row) => !row[0]?.startsWith('Testversionen'));
+    return stufenRows.map((row, index) => ({
+      name: stufenName[index] ?? row[0] ?? '',
+      count: zahl(row[5]),
+      einheit: stufenEinheit[index] ?? '',
+      hebel: index === HEBEL_STUFE ? 'Trial-Conversion Hebel' : undefined,
+    }));
+  }, [mode, analytics.stages]);
+
   const leadsFy = FUNNEL.rows[0]?.[5] ?? '';
   const mqlFy = FUNNEL.rows[1]?.[5] ?? '';
   const sqlFy = FUNNEL.rows[2]?.[5] ?? '';
   const kundenFy = FUNNEL.rows[5]?.[5] ?? '';
-  const summary =
-    `Aus ${leadsFy} Leads werden ${mqlFy} MQLs und ${sqlFy} SQLs ` +
-    `bis zu ${kundenFy} Neukunden im Geschäftsjahr.`;
+
+  const summary = useMemo(() => {
+    if (mode === 'live') {
+      return `Operative Pipeline: ${analytics.totalLeadsLive} Leads, ${analytics.totalMqlLive} MQLs, ${analytics.totalSqlLive} SQLs und ${analytics.totalWonLive} gewonnene Neukunden.`;
+    }
+    if (mode === 'vergleich') {
+      const deltaSign = (analytics.overallDeltaQuote ?? 0) >= 0 ? '+' : '';
+      const deltaStr =
+        analytics.overallDeltaQuote !== null
+          ? ` (Δ ${deltaSign}${analytics.overallDeltaQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} % Win-Rate)`
+          : '';
+      return `Vergleich Plan vs. Live: Plan ${PLAN_FUNNEL_COUNTS.neukunden} Neukunden (${analytics.overallQuotePlan} %) gegenüber Live ${analytics.totalWonLive} Neukunden (${analytics.overallQuoteLive} %)${deltaStr}.`;
+    }
+    return `Aus ${leadsFy} Leads werden ${mqlFy} MQLs und ${sqlFy} SQLs bis zu ${kundenFy} Neukunden im Geschäftsjahr.`;
+  }, [mode, analytics, leadsFy, mqlFy, sqlFy, kundenFy]);
+
+  const heroSubtitle = useMemo(() => {
+    if (mode === 'live') {
+      return (
+        <>
+          Operative Conversion-Raten und Engpässe der aktuellen CRM-Pipeline.
+          <span className="funnel-quelle">Live CRM-Datenbank · Stand heute</span>
+        </>
+      );
+    }
+    if (mode === 'vergleich') {
+      return (
+        <>
+          Parallele Gegenüberstellung: Plan 2025 vs. operative CRM-Pipeline mit Delta-Pills.
+          <span className="funnel-quelle">Faktenblatt v1.2 vs. Live-CRM</span>
+        </>
+      );
+    }
+    return (
+      <>
+        Conversion-Raten über alle Trichterstufen.
+        <span className="funnel-quelle">{QUELLE_PLAN}</span>
+      </>
+    );
+  }, [mode]);
+
+  const heroPills = useMemo(() => {
+    if (mode === 'live') {
+      return [
+        'Live-Pipeline',
+        `${analytics.totalLeadsLive} Leads`,
+        `${analytics.totalWonLive} Neukunden`,
+      ];
+    }
+    if (mode === 'vergleich') {
+      const deltaText =
+        analytics.overallDeltaQuote !== null
+          ? `${analytics.overallDeltaQuote >= 0 ? '+' : ''}${analytics.overallDeltaQuote.toLocaleString('de-DE', { minimumFractionDigits: 1 })} % Win-Rate`
+          : 'Gesamt-Delta';
+      return ['Plan vs. Live', 'Delta-Analyse', deltaText];
+    }
+    return ['CRM Funnel 2025', 'Trichterstufen'];
+  }, [mode, analytics]);
+
+  const isDataLoading =
+    (mode === 'live' || mode === 'vergleich') && (isDealsLoading || isContactsLoading);
+  const isPlanEmpty = mode === 'plan' && FUNNEL.rows.length === 0;
+  const dataStatus = isDataLoading ? 'loading' : isPlanEmpty ? 'empty' : 'ready';
+
   return (
-    <div className="pk-page funnel-seite" data-ruhig="true" data-page-key="sales-funnel">
+    <div
+      className="pk-page funnel-seite"
+      data-ruhig="true"
+      data-page-key="sales-funnel"
+      data-funnel-mode={mode}
+    >
       <PageHero
         eyebrow="Vertrieb & Marketing"
-        title="Sales Funnel 2025"
-        subtitle={
-          <>
-            Conversion-Raten über alle Trichterstufen.
-            <span className="funnel-quelle">{QUELLE}</span>
-          </>
+        title={
+          mode === 'live'
+            ? 'Live Sales Pipeline'
+            : mode === 'vergleich'
+              ? 'Sales Funnel: Plan vs. Live'
+              : 'Sales Funnel 2025'
         }
-        pills={['CRM Funnel 2025', 'Trichterstufen']}
+        subtitle={heroSubtitle}
+        pills={heroPills}
       />
-      <DataState
-        status={rows.length > 0 ? 'ready' : 'empty'}
-        emptyText="Keine Funnel-Daten erfasst."
-      >
+
+      {/* Datenquellen-Umschalter */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <FunnelSourceToggle mode={mode} onChange={(newMode) => setDatenQuelle(newMode)} />
+      </div>
+
+      {/* Bottleneck-Alert bei erkannten Verzögerungen */}
+      {mode !== 'plan' && analytics.bottlenecks.length > 0 && (
+        <div className="mb-4">
+          <FunnelBottleneckAlert bottlenecks={analytics.bottlenecks} />
+        </div>
+      )}
+
+      <DataState status={dataStatus} emptyText="Keine Funnel-Daten erfasst.">
         <Panel
-          title="Sales Pipeline Funnel Stufen (FY 2025)"
-          badge="CRM Funnel 2025"
+          title={
+            mode === 'live'
+              ? 'Operative Pipeline Funnel Stufen (Live-CRM)'
+              : mode === 'vergleich'
+                ? 'Sales Pipeline Funnel: Plan vs. Live-Ist'
+                : 'Sales Pipeline Funnel Stufen (FY 2025)'
+          }
+          badge={
+            mode === 'live' ? 'CRM Live' : mode === 'vergleich' ? 'Plan vs. Ist' : 'CRM Funnel 2025'
+          }
           subtitle="Durchlaufende Leads, Stufen-Conversion und Engpass-Erkennung"
         >
           <ChartFigure title="Trichterstufen" summary={summary}>
-            <FunnelStufenChart
-              stufen={stufen.map((row, index) => ({
-                name: stufenName[index] ?? row[0] ?? '',
-                count: zahl(row[5]),
-                einheit: stufenEinheit[index] ?? '',
-                hebel: index === HEBEL_STUFE ? 'Trial-Conversion Hebel' : undefined,
-              }))}
-            />
+            <FunnelStufenChart stufen={chartStufen} mode={mode} />
           </ChartFigure>
         </Panel>
+
         <Panel
           title="Quartalsverlauf Funnel-Stufen 2025"
           badge="Quartalsbericht 2025"
-          subtitle="Verteilung nach Leads, MQL, SQL und Neukunden je Quartal"
+          subtitle="Verteilung nach Leads, MQL, SQL und Neukunden je Quartal (Benchmark)"
         >
           <ChartFigure
             title="Quartalsverlauf je Stufe"
@@ -99,23 +274,20 @@ function FunnelPageHtml() {
             />
           </ChartFigure>
         </Panel>
-        <Panel title="Trichtertabelle" flush>
-          <KitTable
-            caption="Trichterstufen je Quartal mit Jahreswert, Monatsschnitt und Conversion"
-            leadColumn
-            columns={[
-              { key: 'stufe', label: FUNNEL.headers[0] ?? 'Stufe' },
-              { key: 'q1', label: FUNNEL.headers[1] ?? 'Q1' },
-              { key: 'q2', label: FUNNEL.headers[2] ?? 'Q2' },
-              { key: 'q3', label: FUNNEL.headers[3] ?? 'Q3' },
-              { key: 'q4', label: FUNNEL.headers[4] ?? 'Q4' },
-              { key: 'fy', label: FUNNEL.headers[5] ?? 'FY' },
-              { key: 'schnitt', label: FUNNEL.headers[6] ?? 'Schnitt' },
-              { key: 'conversion', label: FUNNEL.headers[7] ?? 'Conversion' },
-            ]}
-            rows={rows}
-          />
+
+        <Panel
+          title={
+            mode === 'live'
+              ? 'Operative Pipeline-Tabelle (Live-CRM)'
+              : mode === 'vergleich'
+                ? 'Gegenüberstellung: Plan FY 2025 vs. Live-CRM'
+                : 'Trichtertabelle'
+          }
+          flush
+        >
+          <FunnelDeltaTable mode={mode} analytics={analytics} />
         </Panel>
+
         <Callout
           title={FUNNEL.note.title}
           icon={TrendingUp}
@@ -127,12 +299,12 @@ function FunnelPageHtml() {
   );
 }
 
-// Auftrag 069 / G67: Original-WebP aus v2.2.0, v2.3.1-Inhalt als Textschicht
-// (Schalter `PAGE_PRESENTATION` in src/config/pagePresentation.ts).
 export function FunnelPage() {
   return (
-    <ImagePage page="sales-funnel">
-      <FunnelPageHtml />
-    </ImagePage>
+    <FunnelQueryBoundary>
+      <ImagePage page="sales-funnel">
+        <FunnelPageHtml />
+      </ImagePage>
+    </FunnelQueryBoundary>
   );
 }

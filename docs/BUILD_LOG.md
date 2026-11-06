@@ -17975,6 +17975,7 @@ Weiter grün: `npx tsc --noEmit` mit 0 Fehlern, `npm run verify` und `npm run bu
 **Rolle:** Antigravity · **Branch:** `start_react_app` · **PR:** #137
 
 Überarbeitung des Dashboard-Editors zur Wahrung des visuellen Kontexts und Verbesserung des Bedienkomforts:
+
 1. **Welle 1 (Paket 1, Commit `45e40cf`):**
    - Modernisierte `EditorToolbar` mit Bearbeitungsmodus-Badge, Lucide-Icons, Vorlagen-Dropdown und Undo/Redo-Aktionen (`useDashboardEditorHistory` mit bis zu 50 Schritten, Tastaturkürzel Cmd/Ctrl+Z, Cmd/Ctrl+Y).
    - Rollenspezifische Dashboard-Vorlagen (`dashboardPresets.ts`: Executive, Vertrieb & Pipeline, Finanzen & Unit Economics, Leere Vorlage).
@@ -18066,6 +18067,7 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 
 **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 **Automatisierte Verifikation:**
+
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler, 0 Warnungen
 - `npm test src/features/dashboard`: 46 Testdateien, 591 Tests grün
@@ -18085,6 +18087,7 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
      - Regressionstest in `DashboardWorkspace.codex.ui.vitest.tsx` ergänzt.
 
 **Automatisierte Verifikation (Nacharbeit):**
+
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler, 0 Warnungen
 - `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün (+2 neue Tests)
@@ -18102,6 +18105,7 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
      - Stellt im dunklen Theme auf hellem Cyan-Hintergrund (`bg-primary`) einen barrierefreien, scharfen Kontrast sicher.
 
 **Automatisierte Verifikation (Nacharbeit Runde 2):**
+
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler, 0 Warnungen
 - `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün
@@ -18113,9 +18117,9 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 10. **Nacharbeit Nutzerfeedback (Drag & Drop Nachbar-Verschiebung & Griffbereich):**
     - **Befund (Live-Browser):** Nutzer meldete: „man kann eigentlich immer noch nichts verschieben“.
     - **Ursachenanalyse:**
-      1. *Index-Arithmetik für Nachbarn:* Beim Vorwärtsziehen (0 auf 1) ergab `calculateDropIndex(0, 1, 'before')` den Wert `0`. Da die Maus beim Hinüberziehen naturgemäß in der linken Hälfte der Zielkachel ankommt (`side = 'before'`), wurde `toIndex = 0 = fromIndex` errechnet und der Aufruf von `props.onMoveTo` als No-Op verworfen. Symmetrisch dazu beim Rückwärtsziehen (1 auf 0) mit `side = 'after'`.
-      2. *Drop in Rasterlücken:* Das Container-`<ul>` besaß zwar `onDragOver`, aber kein `onDrop`. Drops in den 16-px-Abständen (`gap-4`) zwischen Kacheln wurden geschluckt.
-      3. *Zu enger Griffbereich / Breakpoints:* Der Drag-Handle war unter 768 px durch `hidden md:inline-flex` unsichtbar und bot desktopseitig nur einen sehr schmalen Klickbereich.
+      1. _Index-Arithmetik für Nachbarn:_ Beim Vorwärtsziehen (0 auf 1) ergab `calculateDropIndex(0, 1, 'before')` den Wert `0`. Da die Maus beim Hinüberziehen naturgemäß in der linken Hälfte der Zielkachel ankommt (`side = 'before'`), wurde `toIndex = 0 = fromIndex` errechnet und der Aufruf von `props.onMoveTo` als No-Op verworfen. Symmetrisch dazu beim Rückwärtsziehen (1 auf 0) mit `side = 'after'`.
+      2. _Drop in Rasterlücken:_ Das Container-`<ul>` besaß zwar `onDragOver`, aber kein `onDrop`. Drops in den 16-px-Abständen (`gap-4`) zwischen Kacheln wurden geschluckt.
+      3. _Zu enger Griffbereich / Breakpoints:_ Der Drag-Handle war unter 768 px durch `hidden md:inline-flex` unsichtbar und bot desktopseitig nur einen sehr schmalen Klickbereich.
     - **Behebung:**
       1. `calculateDropIndex` korrigiert: Bei direkten Nachbarn (`target === from + 1` bzw. `target === from - 1`) liefert ein Wurf auf die Kachel immer `target`, sodass Nachbarn stets zuverlässig die Plätze tauschen.
       2. `onDrop` auf `<ul ...>` ergänzt: Drops in Rasterlücken führen die Bewegung anhand des aktiven `dropTarget` aus.
@@ -18124,6 +18128,7 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
       5. Neuer Unit-Test in `DashboardGrid.ui.vitest.tsx` für Nachbar-Tausch und Ziehen über den Handle.
 
 **Automatisierte Verifikation (Nutzerfeedback Nachbar-Verschiebung):**
+
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler, 0 Warnungen
 - `npm test`: 351 Testdateien, 2.547 Tests grün (100% bestanden)
@@ -18142,6 +18147,7 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
       - Das Theme wird im Harness nach der Navigation via `page.evaluate` gesetzt und das wirksame Datenattribut verbindlich validiert.
 
 **Automatisierte Verifikation (Nacharbeit Runde 4):**
+
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler, 0 Warnungen
 - `npm test src/features/dashboard`: 46 Testdateien, 593 Tests grün
@@ -18160,6 +18166,7 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
       4. `npm run format:check` meldet 0 Abweichungen („All matched files use Prettier code style!“).
 
 **Automatisierte Verifikation (Behebung CI / Prettier):**
+
 - `npm run format:check`: Grün (0 Abweichungen)
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler, 0 Warnungen
@@ -18169,11 +18176,6 @@ Behebung der von Marc identifizierten Mängel und Verhaltensprobleme auf der Das
 - `npm run build`: Erfolgreich (3.30s)
 - **Zeilenbudgets:** `DashboardGrid.tsx` 398 Zeilen ($\le 400$ Zeilen ✅)
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
-
-
-
-
-
 
 ---
 
@@ -18291,7 +18293,6 @@ Alle 6 Codex-Befunde (2 P1, 4 P2) aus Review-Runde 1 strukturiert behoben:
   - `DealsPage.tsx`: 385 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
-
 ### Nacharbeit Codex-Review Runde 2 (PR #139, Head `d6c638e`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18341,7 +18342,6 @@ Alle 4 Codex-Befunde (4 P2) aus Review-Runde 2 strukturiert behoben:
   - `crmCsvHelper.ts`: 138 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
-
 ### Nacharbeit Codex-Review Runde 3 (PR #139, Head `8469252`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18379,7 +18379,6 @@ Beide Codex-Befunde (2 P2) aus Review-Runde 3 strukturiert behoben:
   - `crmCsvHelper.ts`: 142 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
-
 ### Nacharbeit Codex-Review Runde 4 (PR #139, Head `fcf16ba`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18413,7 +18412,6 @@ Den verbleibenden Codex-Befund (1 P2) aus Review-Runde 4 strukturiert behoben:
   - `DealsPage.tsx`: 360 Zeilen
   - `crmCsvHelper.ts`: 158 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
-
 
 ### Nacharbeit Codex-Review Runde 5 (PR #139, Head `5bbddf0`)
 
@@ -18460,7 +18458,6 @@ Alle drei Codex-Befunde (3 P2) aus Review-Runde 5 strukturiert behoben:
   - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
-
 ### Nacharbeit Codex-Review Runde 6 (PR #139, Head `7bed0fb`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18500,7 +18497,6 @@ Den Codex-Befund (1 P2) aus Review-Runde 6 strukturiert behoben:
   - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
-
 ### Nacharbeit Codex-Review Runde 7 (PR #139, Head `e97da1a`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18537,7 +18533,6 @@ Den Codex-Befund (1 P2) aus Review-Runde 7 strukturiert behoben:
   - `DealsPage.findings.ui.vitest.tsx`: 303 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
-
 
 ### Nacharbeit Codex-Review Runde 8 (PR #139, Head `9119afb`)
 
@@ -18578,7 +18573,6 @@ Den Codex-Befund (1 P2) aus Review-Runde 8 strukturiert behoben:
   - `DealsPage.findings.ui.vitest.tsx`: 389 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 418 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
-
 
 ### Nacharbeit Codex-Review Runde 9 (PR #139, Head `fdb7cc0`)
 
@@ -18635,7 +18629,6 @@ Alle drei Codex-Befunde (1 P1, 2 P2) aus Review-Runde 9 strukturiert behoben:
   - `crmCsvHelper.vitest.ts`: 189 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 418 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
-
 
 ### Nacharbeit Codex-Review Runde 10 (PR #139, Head `db66450`)
 
@@ -18732,7 +18725,6 @@ Beide offenen P2-Befunde aus Review-Runde 13 strukturiert behoben:
   - `src/features/crm/pages/__tests__/DealsPage.fullbase.ui.vitest.tsx`: 175 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
-
 ### Nacharbeit Codex-Review Runde 14 (PR #139, Head `b72d5e9`)
 
 **Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
@@ -18760,7 +18752,6 @@ Offener P2-Befund aus Review-Runde 14 behoben:
   - `supabase/functions/__tests__/crmStageFilter.test.ts`: 316 Zeilen
   - `src/features/crm/__tests__/crmCsvHelper.vitest.ts`: 211 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
-
 
 ## Auftrag 130 – CRM Leads: Lead-Scoring & Qualifizierungs-Cockpit (Paket 2)
 
@@ -18831,7 +18822,6 @@ Im Rahmen von Paket 2 der Plattform-Evolution (`docs/superpowers/plans/2026-11-0
   - `scripts/captureAuftrag130Gate.mjs`: 362 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
-
 ### Nacharbeit Codex-Review Runde 1 (PR #140)
 
 **Datum:** 2026-11-06 · **Rolle:** Builder (Claude Code) · **Prüfer:** Codex (GitHub App via PR #140)
@@ -18839,36 +18829,38 @@ Im Rahmen von Paket 2 der Plattform-Evolution (`docs/superpowers/plans/2026-11-0
 Im ersten Review-Zyklus auf PR #140 wurden 5 Befunde (4× P1, 2× P2 über 5 Threads) von Codex gemeldet. Alle 5 Befunde wurden vollständig behoben:
 
 1. **Befund 1 (P1, `leadsPageConfig.tsx` / `LeadsPage.tsx`): Lade Unternehmensdaten vor Score-Berechnung:**
-   - *Problem:* `contacts` in PostgreSQL/Supabase enthält keine direkten Unternehmensfelder (Name, Mitarbeiterzahl, Branche). Dadurch erreichten alle Kontakte nur max. 50 Punkte und Hot Leads ($\ge 80\,\%$) konnten nicht entstehen.
-   - *Fix:* `LeadsPage.tsx` fragt per `useCrmListQuery` mandantengebunden die Unternehmensdaten ab (`companies`) und reichert die Kontakte via `enrichContactWithCompany` an. Damit fließen echte Branchen-, Regions- und Größen-Punkte in die Score-Engine, Drawer und Modal ein.
+   - _Problem:_ `contacts` in PostgreSQL/Supabase enthält keine direkten Unternehmensfelder (Name, Mitarbeiterzahl, Branche). Dadurch erreichten alle Kontakte nur max. 50 Punkte und Hot Leads ($\ge 80\,\%$) konnten nicht entstehen.
+   - _Fix:_ `LeadsPage.tsx` fragt per `useCrmListQuery` mandantengebunden die Unternehmensdaten ab (`companies`) und reichert die Kontakte via `enrichContactWithCompany` an. Damit fließen echte Branchen-, Regions- und Größen-Punkte in die Score-Engine, Drawer und Modal ein.
 
 2. **Befund 2 (P1, `LeadConversionModal.tsx` & `leadConversionService.ts`): Persistiere Konvertierung im tatsächlich abgefragten CRM:**
-   - *Problem:* Konvertierte Deals wurden zuvor nur lokal gespeichert und waren im Tab „Funnel Deals“ sowie im CSV-Export nicht auffindbar.
-   - *Fix:* Neuer Service `src/features/crm/services/leadConversionService.ts` (197 Zeilen) führt Mutationen gegen `imported_funnel_deals` via Supabase durch, markiert Leads mandantengebunden als qualifiziert (`leadpilot_crm_qualified_leads_<orgId>`) und `LeadsPage.tsx` mergt neu konvertierte Deals nahtlos in `funnel_deals`. Unit-Tests in `leadConversionService.unit.vitest.ts` (116 Zeilen) sichern Persistenz und Fehlerbehandlung ab.
+   - _Problem:_ Konvertierte Deals wurden zuvor nur lokal gespeichert und waren im Tab „Funnel Deals“ sowie im CSV-Export nicht auffindbar.
+   - _Fix:_ Neuer Service `src/features/crm/services/leadConversionService.ts` (197 Zeilen) führt Mutationen gegen `imported_funnel_deals` via Supabase durch, markiert Leads mandantengebunden als qualifiziert (`leadpilot_crm_qualified_leads_<orgId>`) und `LeadsPage.tsx` mergt neu konvertierte Deals nahtlos in `funnel_deals`. Unit-Tests in `leadConversionService.unit.vitest.ts` (116 Zeilen) sichern Persistenz und Fehlerbehandlung ab.
 
 3. **Befund 3 (P1, `LeadQualificationDrawer.tsx`): Initialisiere BANT-State bei jedem Kontaktwechsel neu:**
-   - *Problem:* Dauerhaft gemounteter Drawer behielt den BANT-State von Kontakt A beim Öffnen von Kontakt B bei und überschrieb ggf. vorhandene Qualifizierungen.
-   - *Fix:* `LeadsPage.tsx` bindet den Drawer mit `key={selectedLead ? String(selectedLead.id) : 'empty'}` ein. `LeadQualificationDrawer.tsx` initialisiert den State synchron via `loadBantState` und trennt State pro Lead strikt ab.
+   - _Problem:_ Dauerhaft gemounteter Drawer behielt den BANT-State von Kontakt A beim Öffnen von Kontakt B bei und überschrieb ggf. vorhandene Qualifizierungen.
+   - _Fix:_ `LeadsPage.tsx` bindet den Drawer mit `key={selectedLead ? String(selectedLead.id) : 'empty'}` ein. `LeadQualificationDrawer.tsx` initialisiert den State synchron via `loadBantState` und trennt State pro Lead strikt ab.
 
 4. **Befund 4 (P2, `LeadsPage.tsx`): Wende Qualitätsfilter vor der Paginierung an:**
-   - *Problem:* Filterung nach Lead-Qualität lief nur auf der aktuell paginierten Seite (`rawItems`), wodurch Treffer auf Folgeseiten verborgen blieben.
-   - *Fix:* Bei aktiver Qualitätsfilterung (`qualityFilter !== 'ALL'`) ruft `LeadsPage` serverseitig die Trefferbasis mit `pageSize: 100` ab, wendet die Filterung auf allen angereicherten Kontakten an, berechnet Paginierung und Trefferzahl (`total`) konsistent auf der gefilterten Basis und exportiert im CSV-Export genau die gefilterte Liste.
+   - _Problem:_ Filterung nach Lead-Qualität lief nur auf der aktuell paginierten Seite (`rawItems`), wodurch Treffer auf Folgeseiten verborgen blieben.
+   - _Fix:_ Bei aktiver Qualitätsfilterung (`qualityFilter !== 'ALL'`) ruft `LeadsPage` serverseitig die Trefferbasis mit `pageSize: 100` ab, wendet die Filterung auf allen angereicherten Kontakten an, berechnet Paginierung und Trefferzahl (`total`) konsistent auf der gefilterten Basis und exportiert im CSV-Export genau die gefilterte Liste.
 
 5. **Befund 5 (P2, `LeadConversionModal.tsx`): Parse Deal-Betrag als Zahl statt als Ziffernfolge:**
-   - *Problem:* Regex `replace(/\D/g, '')` verfälschte Dezimalpunkte (1250.50 → 125050) und wissenschaftliche Notationen.
-   - *Fix:* Funktion `parseDealAmount` parst numerische Werte, prüft Endlichkeit (`Number.isFinite`), schließt $\le 0$ aus und meldet im UI eine Inline-Fehlermeldung bei fehlerhaften Eingaben.
+   - _Problem:_ Regex `replace(/\D/g, '')` verfälschte Dezimalpunkte (1250.50 → 125050) und wissenschaftliche Notationen.
+   - _Fix:_ Funktion `parseDealAmount` parst numerische Werte, prüft Endlichkeit (`Number.isFinite`), schließt $\le 0$ aus und meldet im UI eine Inline-Fehlermeldung bei fehlerhaften Eingaben.
 
 6. **Befund 6 (P1, `scripts/captureAuftrag130Gate.mjs`): Erzeuge Vorher-Aufnahmen aus echtem Baseline-Stand `c11d53f`:**
-   - *Problem:* Screenshot-Harness simulierte die Baseline lediglich durch nachträgliche DOM-Löschungen auf dem HEAD-Build.
-   - *Fix:* Baseline `c11d53f` wird als echter Vite-Preview-Build auf Port 3001 (`VORHER_URL`) bereitgestellt; der Harness steuert für Vorher-Aufnahmen direkt Port 3001 ohne DOM-Manipulationen an.
+   - _Problem:_ Screenshot-Harness simulierte die Baseline lediglich durch nachträgliche DOM-Löschungen auf dem HEAD-Build.
+   - _Fix:_ Baseline `c11d53f` wird als echter Vite-Preview-Build auf Port 3001 (`VORHER_URL`) bereitgestellt; der Harness steuert für Vorher-Aufnahmen direkt Port 3001 ohne DOM-Manipulationen an.
 
 ### Modularisierung & Einhaltung der Zeilenbudgets ($\le 400$ Zeilen)
 
 Zur Wahrung des strengen Zeilenbudgets wurden analog zur Deals-Architektur zwei modulare Komponenten ausgegliedert:
+
 - `src/features/crm/components/LeadsKpiGrid.tsx` (66 Zeilen)
 - `src/features/crm/components/LeadsFilterBar.tsx` (102 Zeilen)
 
 Alle geänderten und neuen TS/TSX-Dateien halten das Limit von $\le 400$ Zeilen strikt ein:
+
 - `src/features/crm/services/leadConversionService.ts`: 197 Zeilen
 - `src/features/crm/components/LeadConversionModal.tsx`: 230 Zeilen
 - `src/features/crm/components/LeadQualificationDrawer.tsx`: 305 Zeilen
@@ -18896,16 +18888,16 @@ Alle geänderten und neuen TS/TSX-Dateien halten das Limit von $\le 400$ Zeilen 
 Alle drei P2-Befunde wurden behoben. Zusätzlich war `e2e` rot, weil die Visual-Baselines von `/crm/leads` den neuen Stand noch nicht abbildeten.
 
 1. **Befund 1 (`LeadsPage.tsx`): Gespeicherte Deals verfälschen Liste und Trefferzahl.**
-   - *Ursache:* `mergeConvertedDeals` wertete jeden auf der aktuellen Serverseite fehlenden Deal als zusätzlichen Datensatz, unabhängig von Seite, Suche und Phasenfilter.
-   - *Fix:* Die Serverliste ist die einzige Quelle. Merge und lokale Deal-Kopie entfallen. `fetchCrmList` wirft ohne Supabase immer `UNAUTHORIZED`, der lokale Speicher konnte also nie eine eigene Anzeige bedienen.
-   - *Folge:* `convertLeadToDeal` meldet ohne Datenbank jetzt einen Fehler statt eines Schein-Erfolgs. Der Lead wird erst nach erfolgreichem Insert als qualifiziert markiert.
+   - _Ursache:_ `mergeConvertedDeals` wertete jeden auf der aktuellen Serverseite fehlenden Deal als zusätzlichen Datensatz, unabhängig von Seite, Suche und Phasenfilter.
+   - _Fix:_ Die Serverliste ist die einzige Quelle. Merge und lokale Deal-Kopie entfallen. `fetchCrmList` wirft ohne Supabase immer `UNAUTHORIZED`, der lokale Speicher konnte also nie eine eigene Anzeige bedienen.
+   - _Folge:_ `convertLeadToDeal` meldet ohne Datenbank jetzt einen Fehler statt eines Schein-Erfolgs. Der Lead wird erst nach erfolgreichem Insert als qualifiziert markiert.
 2. **Befund 2 (`leadConversionService.ts`): Invalidierung traf keine Listenabfrage.**
-   - *Ursache:* `crmKeys.list('deals')` endet auf `undefined` und ist deshalb kein Präfix der parametrisierten Schlüssel.
-   - *Fix:* Neuer Präfix `crmKeys.listsOf(resource)` in `src/services/query/queryKeys.ts`. Die Datei steht nicht in der Ziel-Tabelle des Auftrags, die Änderung ist vom Befund verlangt (zentrale Key-Factory). Zusätzlich wird `pipelineOverview` invalidiert, weil sie ebenfalls `imported_funnel_deals` liest.
-   - *Gegenprobe:* Mit dem alten Schlüssel schlägt der neue Unit-Test fehl.
+   - _Ursache:_ `crmKeys.list('deals')` endet auf `undefined` und ist deshalb kein Präfix der parametrisierten Schlüssel.
+   - _Fix:_ Neuer Präfix `crmKeys.listsOf(resource)` in `src/services/query/queryKeys.ts`. Die Datei steht nicht in der Ziel-Tabelle des Auftrags, die Änderung ist vom Befund verlangt (zentrale Key-Factory). Zusätzlich wird `pipelineOverview` invalidiert, weil sie ebenfalls `imported_funnel_deals` liest.
+   - _Gegenprobe:_ Mit dem alten Schlüssel schlägt der neue Unit-Test fehl.
 3. **Befund 3 (`LeadScoreBadge.tsx`): Tooltip wurde vom Tabellencontainer abgeschnitten.**
-   - *Fix:* Tooltip per Portal in `document.body`, `position: fixed` am Badge, klappt ohne Platz nach unten, bleibt horizontal im Viewport. Er schließt bei Scroll und Resize und öffnet auch per Tastaturfokus (`aria-describedby`).
-   - *Nachweis:* Neuer e2e-Test `4b` in `e2e/crm-query-export.spec.ts` (nicht in der Ziel-Tabelle, aber nötig, weil jsdom kein Clipping prüfen kann).
+   - _Fix:_ Tooltip per Portal in `document.body`, `position: fixed` am Badge, klappt ohne Platz nach unten, bleibt horizontal im Viewport. Er schließt bei Scroll und Resize und öffnet auch per Tastaturfokus (`aria-describedby`).
+   - _Nachweis:_ Neuer e2e-Test `4b` in `e2e/crm-query-export.spec.ts` (nicht in der Ziel-Tabelle, aber nötig, weil jsdom kein Clipping prüfen kann).
 
 ### Verifikation (Nacharbeit Runde 2)
 
@@ -18930,3 +18922,111 @@ Der Qualifizierungsstatus liegt weiter nur im Browser-Speicher, und `imported_fu
 - **Sichtprüfung:** ICP-Score- und Aktion-Spalte, Lead-Scoring-Kachel und Qualitätsfilter sind sichtbar, wie vom Auftrag vorgesehen.
 - **768 px:** Die Tabelle ist breiter als der Container, „Qualifizieren“ wird am Rand angeschnitten und ist per horizontalem Scrollen erreichbar.
 - **375 px:** Die Lücke unter der Suche besteht schon in der alten Baseline und stammt nicht aus diesem PR (`flex-[1_1_260px]` wirkt in der Spaltenanordnung als Höhe).
+
+---
+
+## Auftrag 131 – Vertriebs-Funnel: Live-CRM vs. Plan-Vergleich & Bottleneck-Erkennung
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Baseline:** `b8fe084` (`origin/main` nach PR #140) · **Branch:** `claude/auftrag-131-vertrieb-funnel-live`
+
+### Motivation & Ziel
+
+Erweiterung der Funnel-Seite (`/sales/funnel` bzw. `/vertrieb/funnel`) im Rahmen von Paket 3 des CRM-Analytics-Masterplans (`docs/superpowers/plans/2026-11-05-paket-3-vertrieb-funnel-live-plan.md`):
+
+1. **3-Wege Datenquellen-Umschalter (`FunnelSourceToggle.tsx`):**
+   - Segmented Control mit Tastaturnavigation für `Plan 2025` (Faktenblatt FY 2025), `Live-Pipeline` (Echtzeit-CRM) und `Vergleich` (Plan vs. Ist).
+   - URL-Synchronisation via `?daten=plan|live|vergleich` (Standard `plan` für 100 % Abwärtskompatibilität).
+2. **Dynamische CRM-Funnel-Aggregation (`funnelAnalyticsService.ts`):**
+   - Aggregiert Leads und Deals aus dem CRM-Bestand mathematisch konsistent und monoton fallend über die 5 Stufen (Leads, MQL, SQL, Angebote, Won).
+   - Berechnet Einheiten, Pipeline-Volumen (€), Stufen-Conversions, End-to-End-Win-Rates und Deltas zum Plan FY 2025.
+   - Unterstützt lokale Kanban-Overrides (`useDealStageOverrides`) für verzögerungsfreie Reaktivität.
+3. **Bottleneck- & Stagnations-Detektor (`FunnelBottleneckAlert.tsx`):**
+   - Erkennt überdurchschnittlich lange Verweildauern (> 25 Tage) in den kritischen Phasen `Angebot erstellt` und `Bedarfsanalyse`.
+   - Hebt Engpässe in einer auffälligen Warn-Card hervor und liefert konkrete Handlungsempfehlungen für das Sales-Follow-up.
+4. **Visuelle Trichter- & Tabellenerweiterung (`FunnelStufenChart.tsx`, `FunnelDeltaTable.tsx`):**
+   - Trichter visualisiert im Vergleichsmodus Plan- und Live-Werte nebeneinander mit Delta-Pills.
+   - Modulare Tabelle mit dezidierten Spalten für Plan %, Live % und Δ Quote (`renderDeltaPill`).
+   - Alias-Route `/vertrieb/funnel` -> `/sales/funnel` in `App.tsx` eingerichtet.
+
+### Umgesetzte Dateien & Zeilenbudgets
+
+| Datei                                                                            | Art                    | Zeilen (Budget $\le 400$) |
+| -------------------------------------------------------------------------------- | ---------------------- | ------------------------- |
+| `src/features/vertrieb/services/funnelAnalyticsService.ts`                       | Neu                    | 368 Zeilen                |
+| `src/features/vertrieb/components/FunnelSourceToggle.tsx`                        | Neu                    | 123 Zeilen                |
+| `src/features/vertrieb/components/FunnelBottleneckAlert.tsx`                     | Neu                    | 96 Zeilen                 |
+| `src/features/vertrieb/components/FunnelDeltaTable.tsx`                          | Neu                    | 176 Zeilen                |
+| `src/features/vertrieb/components/FunnelStufenChart.tsx`                         | Änderung               | 169 Zeilen                |
+| `src/features/vertrieb/pages/FunnelPage.tsx`                                     | Änderung               | 309 Zeilen                |
+| `src/app/App.tsx`                                                                | Änderung (Alias-Route) | 187 Zeilen                |
+| `src/features/vertrieb/services/__tests__/funnelAnalyticsService.unit.vitest.ts` | Neu (9 Tests)          | 222 Zeilen                |
+| `src/features/vertrieb/pages/__tests__/FunnelPage.live.ui.vitest.tsx`            | Neu (5 Tests)          | 192 Zeilen                |
+| `scripts/captureAuftrag131Gate.mjs`                                              | Neu                    | 383 Zeilen                |
+| `docs/screenshots/auftrag-131/README.md`                                         | Neu                    | 37 Zeilen                 |
+
+### Gate-Ergebnisse
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform**
+- `npm run verify:quality-budget`: **ohne Regression** (Quality-Debt-Budget 100 % eingehalten)
+- `npm test`: **362 Testdateien, 2.630 Tests grün**
+- `npm run verify`: **25/25 Integritätssuiten bestanden**
+- `npm run build`: **erfolgreich** (Production-Build in 3.70s)
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **leer (Diff = 0)**
+- **Screenshot-Gate (`captureAuftrag131Gate.mjs`):** 18/18 Bildpaare mit beabsichtigter Änderung, **0 px Überlauf** über alle Viewports (1440/768/375 px) und Themes (dark/light)
+
+---
+
+## 2026-11-06 — Auftrag 131: Vertriebs-Funnel – Live-CRM vs. Plan-Vergleich & Bottleneck-Erkennung (Paket 3)
+
+**Rolle:** Antigravity · **Prüfer:** Codex (GitHub App) · **Baseline:** `b8fe084` (`main` nach PR #140) · **Branch:** `claude/auftrag-131-vertrieb-funnel-live` · **Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_131_VERTRIEB_FUNNEL_LIVE.md`
+
+Realisierung von Paket 3 des Evolution-Plans: Erweiterung des Vertriebs-Funnels unter `/sales/funnel` um operative CRM-Echtzeitdaten, eine parallele Plan-vs.-Live-Gegenüberstellung mit Delta-Pills und automatische Engpass-Erkennung (Bottlenecks).
+
+### Umsetzung
+
+1. **Datenquellen-Umschalter (`FunnelSourceToggle.tsx`, 123 Zeilen):**
+   - Barrierefreie Segmented Control für 3 Modi:
+     - `Plan 2025` (`plan`): Bewährte Faktenblatt-Vorlage (FY 2025) mit Benchmark-Quoten.
+     - `Live-Pipeline` (`live`): Dynamische Aggregation der operativen CRM-Leads und CRM-Deals.
+     - `Vergleich` (`vergleich`): Parallele Gegenüberstellung Plan vs. Ist mit farbkodierten Delta-Pills.
+   - Vollständige URL-Synchronisation via `?daten=plan|live|vergleich` (Default `plan`).
+2. **Dynamische CRM-Funnel-Aggregation (`funnelAnalyticsService.ts`, 353 Zeilen):**
+   - Aggregiert Leads und Deals zu 5 kanonischen Stufen (Leads, MQL, SQL, Angebote, Neukunden/Won).
+   - Berechnet Stufen-Konversionsraten, End-to-End-Quoten, aggregierte Euro-Volumina sowie planbasierte Delta-Werte.
+   - Enthält Stagnationsanalyse für Deals in kritischen Phasen mit Schwellenwert (> 25 Tage).
+3. **Bottleneck- & Stagnations-Alert (`FunnelBottleneckAlert.tsx`, 100 Zeilen):**
+   - Auffällige Warn-Card im Seitenkopf bei identifizierten Engpässen mit Deal-Anzahl, Liegedauer und konkreten Handlungsempfehlungen.
+4. **Modulare Delta-Tabelle (`FunnelDeltaTable.tsx`, 181 Zeilen):**
+   - Saubere Trennung von Plan-, Live- und Vergleichsansichten in tabellarischer Form mit Konversionsraten und Volumina.
+5. **Erweiterter Trichter (`FunnelStufenChart.tsx`, 176 Zeilen):**
+   - Trichterbalken visualisieren Ist- und Planwerte parallel mit Delta-Pills (`+X %` / `-X %`).
+6. **Seitenintegration & Routing (`FunnelPage.tsx`, 310 Zeilen; `App.tsx`, 192 Zeilen):**
+   - Nahtlose Einbindung via `useUrlSyncedState` und `useCrmListQuery`.
+   - Alias-Route `/vertrieb/funnel` -> `/sales/funnel` unter Beibehaltung aller Suchparameter (`VertriebFunnelRedirect`).
+7. **Automatisierte Testabdeckung:**
+   - `funnelAnalyticsService.unit.vitest.ts`: 9 Unit-Tests für Konversionsraten, Deltas und Bottleneck-Erkennung.
+   - `FunnelPage.live.ui.vitest.tsx`: 5 UI- und Integrationstests für alle 3 Modi und URL-Synchronisation.
+8. **Visuelles Screenshot-Gate (`scripts/captureAuftrag131Gate.mjs` & `docs/screenshots/auftrag-131/README.md`):**
+   - 18 Vorher/Nachher-Bildpaare (1440, 768, 375 px; dark & light Theme; Plan, Live, Vergleich) gegen echte Baseline `b8fe084` auf Port 3001.
+   - 18/18 Paare geändert (100% Diff nachgewiesen), maximaler Überlauf **exakt 0 px**.
+
+### Verifikation & Gate-Status
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm test`: **362 Testdateien, 2.630 Tests grün (100% bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (4.04s)**
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-131/README.md` (18/18 Paare verschieden, 0 px Überlauf auf allen Viewports)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/vertrieb/services/funnelAnalyticsService.ts`: 353 Zeilen
+  - `src/features/vertrieb/pages/FunnelPage.tsx`: 310 Zeilen
+  - `src/app/App.tsx`: 192 Zeilen
+  - `src/features/vertrieb/components/FunnelDeltaTable.tsx`: 181 Zeilen
+  - `src/features/vertrieb/components/FunnelStufenChart.tsx`: 176 Zeilen
+  - `src/features/vertrieb/components/FunnelSourceToggle.tsx`: 123 Zeilen
+  - `src/features/vertrieb/components/FunnelBottleneckAlert.tsx`: 100 Zeilen
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100% leer (0 Diff)**.
