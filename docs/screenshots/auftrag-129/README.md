@@ -6,24 +6,24 @@ Basis-URL: http://localhost:3000
 
 | Szenario | Theme | Breite | Überlauf vorher | Überlauf nachher | Inhaltshöhe | Bild (Diff) |
 |---|---|---|---|---|---|---|
-| `deals-tabelle` | `dark` | 1440 px | 0/0 px | 0/0 px | 1150 → 1175 px | verschieden (`b2c415c17d06` / `743f131ef1ad`) |
-| `deals-tabelle` | `dark` | 768 px | 0/0 px | 0/0 px | 1600 → 1626 px | verschieden (`cbc08e29cb98` / `8d2124aacce8`) |
-| `deals-tabelle` | `dark` | 375 px | 0/0 px | 0/0 px | 3168 → 3193 px | verschieden (`90cfc93075d9` / `bdf3e054d0c1`) |
-| `deals-tabelle` | `light` | 1440 px | 0/0 px | 0/0 px | 1150 → 1175 px | verschieden (`37763450310f` / `fc2e3138e94d`) |
-| `deals-tabelle` | `light` | 768 px | 0/0 px | 0/0 px | 1600 → 1626 px | verschieden (`bae9ccd004d1` / `96448e50df07`) |
-| `deals-tabelle` | `light` | 375 px | 0/0 px | 0/0 px | 3168 → 3193 px | verschieden (`34593cf7a363` / `c0eedc979e7d`) |
-| `deals-kanban` | `dark` | 1440 px | 0/0 px | 0/0 px | 1150 → 1047 px | verschieden (`3061a1b9f81c` / `ec01905d8761`) |
-| `deals-kanban` | `dark` | 768 px | 0/0 px | 0/0 px | 1600 → 1271 px | verschieden (`98983a21e8c2` / `07bbe02470a3`) |
-| `deals-kanban` | `dark` | 375 px | 0/0 px | 0/0 px | 3168 → 2031 px | verschieden (`f85e76cee0de` / `b81d835ed84c`) |
-| `deals-kanban` | `light` | 1440 px | 0/0 px | 0/0 px | 1150 → 1047 px | verschieden (`00530bad2fd4` / `344a742a4a3a`) |
-| `deals-kanban` | `light` | 768 px | 0/0 px | 0/0 px | 1600 → 1271 px | verschieden (`7b8c32e32e42` / `37ff95288852`) |
-| `deals-kanban` | `light` | 375 px | 0/0 px | 0/0 px | 3168 → 2031 px | verschieden (`34593cf7a363` / `75ffb557b85c`) |
-| `deals-kanban-menu` | `dark` | 1440 px | 0/0 px | 0/0 px | 1150 → 1047 px | verschieden (`a9a844646cc0` / `1c6d199ebb7e`) |
-| `deals-kanban-menu` | `dark` | 768 px | 0/0 px | 0/0 px | 1600 → 1271 px | verschieden (`037d04154149` / `759229150121`) |
-| `deals-kanban-menu` | `dark` | 375 px | 0/0 px | 0/0 px | 3168 → 2031 px | verschieden (`cfca9f9f18c0` / `f18f1f0587b2`) |
-| `deals-kanban-menu` | `light` | 1440 px | 0/0 px | 0/0 px | 1150 → 1047 px | verschieden (`c41186b1be3f` / `3c41b58585b1`) |
-| `deals-kanban-menu` | `light` | 768 px | 0/0 px | 0/0 px | 1600 → 1271 px | verschieden (`7b8c32e32e42` / `e33da72fa94a`) |
-| `deals-kanban-menu` | `light` | 375 px | 0/0 px | 0/0 px | 3168 → 2031 px | verschieden (`4462eeebf797` / `0716403b3955`) |
+| `deals-tabelle` | `dark` | 1440 px | 0/0 px | 0/0 px | 1150 → 1175 px | verschieden (`437cbb2ae1c8` / `f3f5111b3719`) |
+| `deals-tabelle` | `dark` | 768 px | 0/0 px | 0/0 px | 1600 → 1626 px | verschieden (`d500e620ae29` / `6e26be92dd45`) |
+| `deals-tabelle` | `dark` | 375 px | 0/0 px | 0/0 px | 3168 → 3193 px | verschieden (`7a9a550cc47b` / `9e4fc6a510a1`) |
+| `deals-tabelle` | `light` | 1440 px | 0/0 px | 0/0 px | 1150 → 1175 px | verschieden (`e89a40b3344a` / `1a6c80e979ac`) |
+| `deals-tabelle` | `light` | 768 px | 0/0 px | 0/0 px | 1600 → 1626 px | verschieden (`200cdf5208b8` / `e507bdfe3773`) |
+| `deals-tabelle` | `light` | 375 px | 0/0 px | 0/0 px | 3168 → 3193 px | verschieden (`5aff306f7486` / `245c0f02d128`) |
+| `deals-kanban` | `dark` | 1440 px | 0/0 px | 0/0 px | 1150 → 1047 px | verschieden (`08039c061bbc` / `a66976e5b2d8`) |
+| `deals-kanban` | `dark` | 768 px | 0/0 px | 0/0 px | 1600 → 1271 px | verschieden (`d500e620ae29` / `a1173e7050eb`) |
+| `deals-kanban` | `dark` | 375 px | 0/0 px | 0/0 px | 3168 → 2031 px | verschieden (`870f187f31bd` / `3d7f104cf8c4`) |
+| `deals-kanban` | `light` | 1440 px | 0/0 px | 0/0 px | 1150 → 1047 px | verschieden (`e89a40b3344a` / `51104883928e`) |
+| `deals-kanban` | `light` | 768 px | 0/0 px | 0/0 px | 1600 → 1271 px | verschieden (`21b48ab9266c` / `f417460dd129`) |
+| `deals-kanban` | `light` | 375 px | 0/0 px | 0/0 px | 3168 → 2031 px | verschieden (`5aff306f7486` / `9bbe5c8273b8`) |
+| `deals-kanban-menu` | `dark` | 1440 px | 0/0 px | 0/0 px | 1150 → 1047 px | verschieden (`08039c061bbc` / `86a0283e4fd5`) |
+| `deals-kanban-menu` | `dark` | 768 px | 0/0 px | 0/0 px | 1600 → 1271 px | verschieden (`b4a77a127653` / `522952d831d2`) |
+| `deals-kanban-menu` | `dark` | 375 px | 0/0 px | 0/0 px | 3168 → 2031 px | verschieden (`870f187f31bd` / `f13b58f7c098`) |
+| `deals-kanban-menu` | `light` | 1440 px | 0/0 px | 0/0 px | 1150 → 1047 px | verschieden (`72669e65e036` / `bfa21759dec9`) |
+| `deals-kanban-menu` | `light` | 768 px | 0/0 px | 0/0 px | 1600 → 1271 px | verschieden (`21b48ab9266c` / `e33da72fa94a`) |
+| `deals-kanban-menu` | `light` | 375 px | 0/0 px | 0/0 px | 3168 → 2031 px | verschieden (`eb5f207da879` / `0716403b3955`) |
 
 ## Zusammenfassung
 

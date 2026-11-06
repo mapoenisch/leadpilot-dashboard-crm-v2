@@ -132,6 +132,25 @@ describe('DealKanbanCard', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
+  it('schließt das Phasenmenü beim Scrollen des Fensters, aber nicht beim Scrollen innerhalb des Menüs', () => {
+    render(
+      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+    );
+
+    const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
+    fireEvent.click(menuBtn);
+    const menu = screen.getByRole('menu');
+    expect(menu).toBeInTheDocument();
+
+    // Scroll-Ereignis innerhalb des Menüs (z. B. lange Phasenliste)
+    fireEvent.scroll(menu);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // Scroll-Ereignis auf Fenster-Ebene
+    fireEvent.scroll(window);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
   it('setzt bei HTML5 Drag-Start die Deal-ID', () => {
     const onDragStart = vi.fn();
     render(

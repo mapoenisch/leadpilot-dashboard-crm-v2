@@ -18290,3 +18290,53 @@ Alle 6 Codex-Befunde (2 P1, 4 P2) aus Review-Runde 1 strukturiert behoben:
   - `DealsTableCard.tsx`: 122 Zeilen
   - `DealsPage.tsx`: 385 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nacharbeit Codex-Review Runde 2 (PR #139, Head `d6c638e`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle 4 Codex-Befunde (4 P2) aus Review-Runde 2 strukturiert behoben:
+
+1. **Befund 1 (P2, `DealsPage.tsx`, `crmCsvHelper.ts` – RFC 4180 konformer CSV-Parser und Serializer):**
+   - **Befund:** Bei verschobenen Deals mit Kommas oder Zeilenumbrüchen im Namen beschädigte `line.split(',')` den CSV-Export, überschrieb fälschlicherweise Teile des Namens anstelle der Stage und erzeugte invalides CSV.
+   - **Behebung:** Einführung des eigenständigen Hilfsmoduls `src/features/crm/utils/crmCsvHelper.ts` mit `parseCsv`, `serializeCsv`, `readBlobAsText` und `applyStageOverridesToCsv`. Unterstützt BOM (`\uFEFF`), Quoting von Kommas und Zeilenumbrüchen (`\r\n`, `\n`) sowie maskierten Anführungszeichen (`""`). Der Export aktualisiert die Stage-Spalte nun feldbasiert per Header-Lookup (`Stage` / `Vertriebsphase`), ohne Namensspalten mit Kommas anzutasten.
+
+2. **Befund 2 (P2, `DealsPage.tsx` – Veraltete Nachladeantworten verwerfen):**
+   - **Befund:** Wurde während eines laufenden `handleLoadMore`-Requests die Suche oder der Phasenfilter geändert, leerte der Effect zwar `extraDeals`, aber die verspätet eintreffende Antwort des vorherigen Requests wurde anschließend ungeprüft angehängt.
+   - **Behebung:** Bindung an den stabilen Query-Key `currentQueryKey` (`${searchTerm.trim()}|${stageFilter}|${sortField}|${sortOrder}`). Über `activeLoadMoreQueryRef` wird beim Eintreffen der Antwort geprüft, ob die Anfrage noch zum aktuellen Abfrage-Zustand gehört; veraltete Antworten werden verworfen.
+
+3. **Befund 3 (P2, `DealsPage.tsx` – Abstimmung von Phasenfilter und lokalen Phasenwechseln):**
+   - **Befund:** Wurde ein Deal lokal in eine andere Phase verschoben und anschließend nach dieser Phase gefiltert, fehlte der Deal, da der Serverfilter vor den lokalen Overrides griff. Umgekehrt erschien der Deal bei Filterung auf die Ursprungsphase fälschlicherweise mit der neuen Phase. Auch Trefferzahlen und CSV-Export waren asynchron.
+   - **Behebung:** Sind lokale `stageOverrides` aktiv, wird die serverseitige Filterung bei Phasenfiltern ausgesetzt (`serverStageFilter = undefined`) und stattdessen bis zu 100 Deals geladen. Die Phasenfilterung erfolgt clientseitig auf den wirksamen Deals (`mappedDeals`). Bei Tabellenansicht wird paginiert gesliced (`tableDeals`). Trefferzahl `total` reflektiert exakt die passenden Deals. Beim CSV-Export werden bei aktiven Overrides alle Deals ungefiltert abgerufen und in `applyStageOverridesToCsv` anhand der wirksamen Phase auf den `targetStageFilter` gefiltert.
+
+4. **Befund 4 (P2, `DealKanbanCard.tsx` – Scrollen innerhalb des Phasenmenüs ignorieren):**
+   - **Befund:** Bei vielen Phasen schloss sich das überlaufende Phasenmenü (`max-h-[220px] overflow-y-auto`) bereits beim Scrollen innerhalb der eigenen Einträge, da der globale Capture-Listener auf `window.scroll` auch interne Scroll-Ereignisse behandelte.
+   - **Behebung:** `menuRef` an den Menü-Container gebunden. `handleScrollOrResize` prüft `menuRef.current && (e.target === menuRef.current || menuRef.current.contains(e.target))` und ignoriert Scroll-Ereignisse innerhalb des Menüs. Nur Scrollen des Fensters/Boards schließt das Menü weiterhin zuverlässig.
+
+5. **Modulare Architektur & Zeilenbudget:**
+   - Zur Wahrung des strikten Budgets von $\le 400$ Zeilen wurde die Filterleiste in `src/features/crm/components/DealsFilterBar.tsx` (104 Zeilen) modular ausgelagert.
+   - `DealsPage.tsx` liegt nun bei 360 Zeilen (unterhalb des 400-Zeilen-Budgets).
+
+### Automatisierte Verifikation (Nacharbeit Runde 2)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 118 Tests grün
+- `npm test`: 354 Testdateien, 2.566 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (3.63s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealsFilterBar.tsx`: 104 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealKanbanCard.tsx`: 258 Zeilen
+  - `DealsPage.tsx`: 360 Zeilen
+  - `crmCsvHelper.ts`: 138 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).

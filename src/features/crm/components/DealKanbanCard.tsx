@@ -49,6 +49,7 @@ export function DealKanbanCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuCoords, setMenuCoords] = useState<{ top: number; left: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const stageLower = deal.stage.toLowerCase();
   const isWon = stageLower.includes('gewonnen');
@@ -77,7 +78,17 @@ export function DealKanbanCard({
 
   useEffect(() => {
     if (!menuOpen) return;
-    const handleScrollOrResize = () => setMenuOpen(false);
+    const handleScrollOrResize = (e: Event) => {
+      // Ignoriere Scroll-Ereignisse innerhalb des Menüs (z. B. lange Phasenliste)
+      if (
+        menuRef.current &&
+        e.target instanceof Node &&
+        (e.target === menuRef.current || menuRef.current.contains(e.target))
+      ) {
+        return;
+      }
+      setMenuOpen(false);
+    };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenuOpen(false);
     };
@@ -155,6 +166,7 @@ export function DealKanbanCard({
                 />
                 <div
                   ref={(el) => {
+                    menuRef.current = el;
                     if (el && menuCoords) {
                       el.style.top = `${menuCoords.top}px`;
                       el.style.left = `${menuCoords.left}px`;

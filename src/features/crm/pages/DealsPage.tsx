@@ -1,11 +1,10 @@
 // G60 (Auftrag 067N, Step 4) / Auftrag 129: URL-synchrone serverseitige Deals-Ansicht mit Pagination, Export und Kanban-Board
-import { useState, useMemo, useCallback, useEffect, useId } from 'react';
-import { Search, Download, AlertCircle } from 'lucide-react';
+import { useState, useMemo, useCallback, useEffect, useRef, useId } from 'react';
+import { Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Select, SelectOption } from '@/components/ui/Select';
-import { Input } from '@/components/ui/Input';
+import { SelectOption } from '@/components/ui/Select';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { ImportedFunnelDeal } from '@/types/crm';
 import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
@@ -19,29 +18,8 @@ import { DealsTableCard } from '../components/DealsTableCard';
 import { DealsViewToggle, DealsViewMode } from '../components/DealsViewToggle';
 import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
 import { DealsKpiGrid } from '../components/DealsKpiGrid';
-
-const BASE_STAGE_OPTIONS: SelectOption[] = [
-  { value: 'ALL', label: 'Alle Vertriebsphasen' },
-  { value: 'Lead eingegangen', label: 'Lead eingegangen' },
-  { value: 'Erstgespräch geführt', label: 'Erstgespräch geführt' },
-  { value: 'Bedarfsanalyse', label: 'Bedarfsanalyse' },
-  { value: 'Angebot erstellt', label: 'Angebot erstellt' },
-  { value: 'Verhandlung', label: 'Verhandlung' },
-  { value: 'Deal gewonnen', label: 'Deal gewonnen' },
-  { value: 'Deal verloren', label: 'Deal verloren' },
-];
-
-const DEAL_SORT_OPTIONS: SelectOption[] = [
-  { value: 'close_date', label: 'Abschlussdatum' },
-  { value: 'amount', label: 'Betrag' },
-  { value: 'deal_name', label: 'Deal Name' },
-  { value: 'stage', label: 'Vertriebsphase' },
-];
-
-const ORDER_OPTIONS: SelectOption[] = [
-  { value: 'desc', label: 'Absteigend' },
-  { value: 'asc', label: 'Aufsteigend' },
-];
+import { DealsFilterBar, BASE_STAGE_OPTIONS } from '../components/DealsFilterBar';
+import { applyStageOverridesToCsv, readBlobAsText } from '../utils/crmCsvHelper';
 
 export function DealsPage() {
   const { session } = useOrganization();
@@ -59,8 +37,7 @@ export function DealsPage() {
   const [sortOrder, setSortOrder] = useUrlSyncedState('order', 'desc');
 
   const page = Math.max(1, parseInt(pageStr, 10) || 1);
-  const pageSize =
-    viewMode === 'kanban' ? 100 : Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
+  const tablePageSize = Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
 
   // Phasenwechsel über Ansichtswechsel hinaus erhalten (Session-Storage)
   const [stageOverrides, setStageOverrides] = useState<Record<string, string>>(() => {
@@ -71,6 +48,18 @@ export function DealsPage() {
       return {};
     }
   });
+
+  const hasStageOverrides = Object.keys(stageOverrides).length > 0;
+  // Wenn lokale Phasenwechsel aktiv sind, ungefiltert vom Server laden,
+  // damit verschobene Deals bei Phasenfiltern nicht serverseitig verloren gehen.
+  const serverStageFilter = hasStageOverrides
+    ? undefined
+    : stageFilter !== 'ALL'
+      ? stageFilter
+      : undefined;
+
+  const pageSize =
+    viewMode === 'kanban' || (hasStageOverrides && stageFilter !== 'ALL') ? 100 : tablePageSize;
 
   const handleDealStageChange = useCallback((dealId: string, newStage: string) => {
     setStageOverrides((prev) => {
@@ -86,10 +75,18 @@ export function DealsPage() {
 
   const [extraDeals, setExtraDeals] = useState<ImportedFunnelDeal[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const activeLoadMoreQueryRef = useRef<string>('');
+
+  const currentQueryKey = useMemo(
+    () => `${searchTerm.trim()}|${stageFilter}|${sortField}|${sortOrder}`,
+    [searchTerm, stageFilter, sortField, sortOrder],
+  );
 
   useEffect(() => {
     setExtraDeals([]);
-  }, [searchTerm, stageFilter, sortField, sortOrder]);
+    activeLoadMoreQueryRef.current = '';
+    setIsLoadingMore(false);
+  }, [currentQueryKey]);
 
   const handleSortChange = (val: string) => {
     setSortField(val);
@@ -116,26 +113,42 @@ export function DealsPage() {
     useCrmListQuery<ImportedFunnelDeal>({
       resource: 'deals',
       q: searchTerm.trim() || undefined,
-      filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
+      filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
       sortBy: sortField,
       sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-      page: viewMode === 'kanban' ? 1 : page,
+      page: viewMode === 'kanban' || (hasStageOverrides && stageFilter !== 'ALL') ? 1 : page,
       pageSize,
     });
 
-  const total = data?.total ?? 0;
   const rawDeals = useMemo(
     () => (viewMode === 'kanban' ? [...(data?.items ?? []), ...extraDeals] : (data?.items ?? [])),
     [viewMode, data?.items, extraDeals],
   );
 
-  const deals = useMemo(() => {
-    if (Object.keys(stageOverrides).length === 0) return rawDeals;
+  const mappedDeals = useMemo(() => {
+    if (!hasStageOverrides) return rawDeals;
     return rawDeals.map((d) => (stageOverrides[d.id] ? { ...d, stage: stageOverrides[d.id]! } : d));
-  }, [rawDeals, stageOverrides]);
+  }, [rawDeals, stageOverrides, hasStageOverrides]);
+
+  const deals = useMemo(() => {
+    if (!hasStageOverrides || stageFilter === 'ALL') return mappedDeals;
+    return mappedDeals.filter((d) => d.stage === stageFilter);
+  }, [mappedDeals, stageFilter, hasStageOverrides]);
+
+  const total = hasStageOverrides && stageFilter !== 'ALL' ? deals.length : (data?.total ?? 0);
+
+  const tableDeals = useMemo(() => {
+    if (hasStageOverrides && stageFilter !== 'ALL' && viewMode === 'tabelle') {
+      const start = (page - 1) * tablePageSize;
+      return deals.slice(start, start + tablePageSize);
+    }
+    return deals;
+  }, [hasStageOverrides, stageFilter, viewMode, page, tablePageSize, deals]);
 
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore) return;
+    const requestKey = currentQueryKey;
+    activeLoadMoreQueryRef.current = requestKey;
     setIsLoadingMore(true);
     try {
       const currentCount = (data?.items?.length ?? 0) + extraDeals.length;
@@ -143,24 +156,30 @@ export function DealsPage() {
       const res = await fetchCrmList<ImportedFunnelDeal>({
         resource: 'deals',
         q: searchTerm.trim() || undefined,
-        filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
+        filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
         sortBy: sortField,
         sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
         page: nextPage,
         pageSize: 100,
       });
-      setExtraDeals((prev) => [...prev, ...res.items]);
+      // Verwirf die Antwort, falls sich die Query-Parameter in der Zwischenzeit geändert haben
+      if (activeLoadMoreQueryRef.current === requestKey) {
+        setExtraDeals((prev) => [...prev, ...res.items]);
+      }
     } finally {
-      setIsLoadingMore(false);
+      if (activeLoadMoreQueryRef.current === requestKey) {
+        setIsLoadingMore(false);
+      }
     }
   }, [
+    currentQueryKey,
     data?.items?.length,
     extraDeals.length,
     isLoadingMore,
     searchTerm,
+    serverStageFilter,
     sortField,
     sortOrder,
-    stageFilter,
   ]);
 
   const [isExporting, setIsExporting] = useState(false);
@@ -173,25 +192,16 @@ export function DealsPage() {
       const blob = await fetchCrmExportBlob({
         resource: 'deals',
         q: searchTerm.trim() || undefined,
-        filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
+        // Wenn stageOverrides aktiv sind, ungefiltert vom Server holen und im CSV-fähigen Parser abgleichen
+        filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
         sortBy: sortField,
         sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
       });
       let exportBlob = blob;
-      if (Object.keys(stageOverrides).length > 0) {
-        const text = await blob.text();
-        const lines = text.split('\n');
-        const updated = lines.map((line, idx) => {
-          if (idx === 0 || !line.trim()) return line;
-          const cols = line.split(',');
-          const id = cols[0]?.replace(/^["']|["']$/g, '');
-          if (id && stageOverrides[id]) {
-            cols[2] = `"${stageOverrides[id]}"`;
-            return cols.join(',');
-          }
-          return line;
-        });
-        exportBlob = new Blob([updated.join('\n')], { type: 'text/csv; charset=utf-8' });
+      if (hasStageOverrides) {
+        const text = await readBlobAsText(blob);
+        const updatedCsv = applyStageOverridesToCsv(text, stageOverrides, stageFilter);
+        exportBlob = new Blob([updatedCsv], { type: 'text/csv; charset=utf-8' });
       }
       const url = URL.createObjectURL(exportBlob);
       const link = document.createElement('a');
@@ -288,59 +298,24 @@ export function DealsPage() {
       />
 
       {/* 3. Filter & Search Bar */}
-      <div className="crm-v2-filter-bar">
-        <div className="flex-[1_1_280px] max-w-full">
-          <Input
-            type="search"
-            aria-label="Deals suchen"
-            placeholder="Deal Name oder Pipeline suchen..."
-            value={searchTerm}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            leadingIcon={<Search size={16} />}
-            sizeVariant="sm"
-          />
-        </div>
-
-        <div className="flex items-center gap-[var(--space-4)] flex-wrap flex-[0_1_auto]">
-          <div className="min-w-[170px] w-full max-w-[210px]">
-            <Select
-              label="Vertriebsphase:"
-              options={stageOptions}
-              value={stageFilter}
-              onChange={handleStageChange}
-              sizeVariant="sm"
-              fullWidth
-            />
-          </div>
-          <div className="min-w-[170px] w-full max-w-[210px]">
-            <Select
-              label="Sortierung:"
-              options={DEAL_SORT_OPTIONS}
-              value={sortField}
-              onChange={handleSortChange}
-              sizeVariant="sm"
-              fullWidth
-            />
-          </div>
-          <div className="min-w-[150px] w-full max-w-[180px]">
-            <Select
-              label="Reihenfolge:"
-              options={ORDER_OPTIONS}
-              value={sortOrder}
-              onChange={handleOrderChange}
-              sizeVariant="sm"
-              fullWidth
-            />
-          </div>
-          <div className="crm-v2-result-count" aria-live="polite">
-            {isError
-              ? 'Ergebnis nicht verfügbar'
-              : !hasData
-                ? 'Ergebnis wird geladen …'
-                : `${total} ${total === 1 ? 'Deal' : 'Deals'} gefunden`}
-          </div>
-        </div>
-      </div>
+      <DealsFilterBar
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        stageFilter={stageFilter}
+        stageOptions={stageOptions}
+        onStageChange={handleStageChange}
+        sortField={sortField}
+        onSortChange={handleSortChange}
+        sortOrder={sortOrder}
+        onOrderChange={handleOrderChange}
+        resultCountText={
+          isError
+            ? 'Ergebnis nicht verfügbar'
+            : !hasData
+              ? 'Ergebnis wird geladen …'
+              : `${total} ${total === 1 ? 'Deal' : 'Deals'} gefunden`
+        }
+      />
 
       {/* 4. Table OR Kanban Board */}
       {isLoading && deals.length === 0 ? (
@@ -369,9 +344,9 @@ export function DealsPage() {
         />
       ) : (
         <DealsTableCard
-          deals={deals}
+          deals={tableDeals}
           page={page}
-          pageSize={pageSize}
+          pageSize={tablePageSize}
           total={total}
           onPageChange={(newPage) => setPageStr(String(newPage))}
           onPageSizeChange={(newSize) => {
