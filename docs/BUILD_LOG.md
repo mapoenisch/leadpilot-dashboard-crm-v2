@@ -18831,3 +18831,63 @@ Im Rahmen von Paket 2 der Plattform-Evolution (`docs/superpowers/plans/2026-11-0
   - `scripts/captureAuftrag130Gate.mjs`: 362 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
 
+
+### Nacharbeit Codex-Review Runde 1 (PR #140)
+
+**Datum:** 2026-11-06 · **Rolle:** Builder (Claude Code) · **Prüfer:** Codex (GitHub App via PR #140)
+
+Im ersten Review-Zyklus auf PR #140 wurden 5 Befunde (4× P1, 2× P2 über 5 Threads) von Codex gemeldet. Alle 5 Befunde wurden vollständig behoben:
+
+1. **Befund 1 (P1, `leadsPageConfig.tsx` / `LeadsPage.tsx`): Lade Unternehmensdaten vor Score-Berechnung:**
+   - *Problem:* `contacts` in PostgreSQL/Supabase enthält keine direkten Unternehmensfelder (Name, Mitarbeiterzahl, Branche). Dadurch erreichten alle Kontakte nur max. 50 Punkte und Hot Leads ($\ge 80\,\%$) konnten nicht entstehen.
+   - *Fix:* `LeadsPage.tsx` fragt per `useCrmListQuery` mandantengebunden die Unternehmensdaten ab (`companies`) und reichert die Kontakte via `enrichContactWithCompany` an. Damit fließen echte Branchen-, Regions- und Größen-Punkte in die Score-Engine, Drawer und Modal ein.
+
+2. **Befund 2 (P1, `LeadConversionModal.tsx` & `leadConversionService.ts`): Persistiere Konvertierung im tatsächlich abgefragten CRM:**
+   - *Problem:* Konvertierte Deals wurden zuvor nur lokal gespeichert und waren im Tab „Funnel Deals“ sowie im CSV-Export nicht auffindbar.
+   - *Fix:* Neuer Service `src/features/crm/services/leadConversionService.ts` (197 Zeilen) führt Mutationen gegen `imported_funnel_deals` via Supabase durch, markiert Leads mandantengebunden als qualifiziert (`leadpilot_crm_qualified_leads_<orgId>`) und `LeadsPage.tsx` mergt neu konvertierte Deals nahtlos in `funnel_deals`. Unit-Tests in `leadConversionService.unit.vitest.ts` (116 Zeilen) sichern Persistenz und Fehlerbehandlung ab.
+
+3. **Befund 3 (P1, `LeadQualificationDrawer.tsx`): Initialisiere BANT-State bei jedem Kontaktwechsel neu:**
+   - *Problem:* Dauerhaft gemounteter Drawer behielt den BANT-State von Kontakt A beim Öffnen von Kontakt B bei und überschrieb ggf. vorhandene Qualifizierungen.
+   - *Fix:* `LeadsPage.tsx` bindet den Drawer mit `key={selectedLead ? String(selectedLead.id) : 'empty'}` ein. `LeadQualificationDrawer.tsx` initialisiert den State synchron via `loadBantState` und trennt State pro Lead strikt ab.
+
+4. **Befund 4 (P2, `LeadsPage.tsx`): Wende Qualitätsfilter vor der Paginierung an:**
+   - *Problem:* Filterung nach Lead-Qualität lief nur auf der aktuell paginierten Seite (`rawItems`), wodurch Treffer auf Folgeseiten verborgen blieben.
+   - *Fix:* Bei aktiver Qualitätsfilterung (`qualityFilter !== 'ALL'`) ruft `LeadsPage` serverseitig die Trefferbasis mit `pageSize: 100` ab, wendet die Filterung auf allen angereicherten Kontakten an, berechnet Paginierung und Trefferzahl (`total`) konsistent auf der gefilterten Basis und exportiert im CSV-Export genau die gefilterte Liste.
+
+5. **Befund 5 (P2, `LeadConversionModal.tsx`): Parse Deal-Betrag als Zahl statt als Ziffernfolge:**
+   - *Problem:* Regex `replace(/\D/g, '')` verfälschte Dezimalpunkte (1250.50 → 125050) und wissenschaftliche Notationen.
+   - *Fix:* Funktion `parseDealAmount` parst numerische Werte, prüft Endlichkeit (`Number.isFinite`), schließt $\le 0$ aus und meldet im UI eine Inline-Fehlermeldung bei fehlerhaften Eingaben.
+
+6. **Befund 6 (P1, `scripts/captureAuftrag130Gate.mjs`): Erzeuge Vorher-Aufnahmen aus echtem Baseline-Stand `c11d53f`:**
+   - *Problem:* Screenshot-Harness simulierte die Baseline lediglich durch nachträgliche DOM-Löschungen auf dem HEAD-Build.
+   - *Fix:* Baseline `c11d53f` wird als echter Vite-Preview-Build auf Port 3001 (`VORHER_URL`) bereitgestellt; der Harness steuert für Vorher-Aufnahmen direkt Port 3001 ohne DOM-Manipulationen an.
+
+### Modularisierung & Einhaltung der Zeilenbudgets ($\le 400$ Zeilen)
+
+Zur Wahrung des strengen Zeilenbudgets wurden analog zur Deals-Architektur zwei modulare Komponenten ausgegliedert:
+- `src/features/crm/components/LeadsKpiGrid.tsx` (66 Zeilen)
+- `src/features/crm/components/LeadsFilterBar.tsx` (102 Zeilen)
+
+Alle geänderten und neuen TS/TSX-Dateien halten das Limit von $\le 400$ Zeilen strikt ein:
+- `src/features/crm/services/leadConversionService.ts`: 197 Zeilen
+- `src/features/crm/components/LeadConversionModal.tsx`: 230 Zeilen
+- `src/features/crm/components/LeadQualificationDrawer.tsx`: 305 Zeilen
+- `src/features/crm/components/LeadsKpiGrid.tsx`: 66 Zeilen
+- `src/features/crm/components/LeadsFilterBar.tsx`: 102 Zeilen
+- `src/features/crm/pages/LeadsPage.tsx`: 382 Zeilen
+- `src/features/crm/utils/leadsPageConfig.tsx`: 293 Zeilen
+- `src/features/crm/services/__tests__/leadConversionService.unit.vitest.ts`: 116 Zeilen
+
+### Verifikation & Gate-Status (Nacharbeit Runde 1)
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform**
+- `npm run verify:quality-budget`: **50/50 forbid-dom-props (exakt im Budget, keine Schuldenregression)**
+- `npm test src/features/crm`: **23 Testdateien, 149 Tests grün (100% bestanden)**
+- `npm test`: **360 Testdateien, 2.610 Tests grün (100% bestanden)**
+- `npm run verify`: **25/25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (4.38s)**
+- `docs/screenshots/auftrag-130/README.md`: **18/18 Paare verschieden (100%), 0 px Überlauf auf allen Viewports, echte Baseline c11d53f auf Port 3001**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100% leer (0 Diff)**.
+

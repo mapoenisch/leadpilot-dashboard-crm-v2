@@ -16,6 +16,7 @@ import { chromium } from '@playwright/test';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'docs/screenshots/auftrag-130');
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';
+const VORHER_URL = process.env.VORHER_URL ?? 'http://localhost:3001';
 const EMAIL = process.env.E2E_AUTH_EMAIL ?? 'admin-a@e2e.local';
 const PASSWORD = process.env.E2E_AUTH_PASSWORD ?? 'TestPassword123!';
 const WIDTHS = [1440, 768, 375];
@@ -72,12 +73,43 @@ const MOCK_CONTACTS = [
   },
 ];
 
+const MOCK_COMPANIES = [
+  {
+    id: 'comp-001',
+    name: 'Acme Cloud Solutions GmbH',
+    city: 'München, Deutschland',
+    employeeCount: 65,
+    industry: 'IT / Software',
+  },
+  {
+    id: 'comp-002',
+    name: 'Mittelstand Industrie AG',
+    city: 'Wien',
+    employeeCount: 15,
+    industry: 'Gesundheitswesen',
+  },
+  {
+    id: 'comp-003',
+    name: 'Norddeutsche Maschinenbau GmbH',
+    city: 'Hamburg, Deutschland',
+    employeeCount: 85,
+    industry: 'Maschinenbau',
+  },
+  {
+    id: 'comp-004',
+    name: 'Global Corp LLC',
+    city: 'Austin, USA',
+    employeeCount: 5,
+    industry: 'Einzelhandel',
+  },
+];
+
 const SCENARIOS = [
   {
     id: 'leads-scoring-list',
     title: '/crm/leads?tab=contacts (Kontaktliste mit ICP-Score Badges)',
-    prepare: async (page) => {
-      await page.goto(`${BASE_URL}/crm/leads?tab=contacts`);
+    prepare: async (page, url = BASE_URL) => {
+      await page.goto(`${url}/crm/leads?tab=contacts`);
       await page.waitForSelector('.crm-v2-list-root', { timeout: 15000 });
       await page.waitForTimeout(400);
     },
@@ -85,8 +117,8 @@ const SCENARIOS = [
   {
     id: 'leads-drawer',
     title: '/crm/leads?tab=contacts (Qualifizierungs-Drawer geöffnet)',
-    prepare: async (page) => {
-      await page.goto(`${BASE_URL}/crm/leads?tab=contacts`);
+    prepare: async (page, url = BASE_URL) => {
+      await page.goto(`${url}/crm/leads?tab=contacts`);
       await page.waitForSelector('.crm-v2-list-root', { timeout: 15000 });
       const qualifyBtn = page.locator('button[aria-label*="qualifizieren"]').first();
       if (await qualifyBtn.count()) {
@@ -99,8 +131,8 @@ const SCENARIOS = [
   {
     id: 'leads-conversion-modal',
     title: '/crm/leads?tab=contacts (Deal-Konvertierungsmodal)',
-    prepare: async (page) => {
-      await page.goto(`${BASE_URL}/crm/leads?tab=contacts`);
+    prepare: async (page, url = BASE_URL) => {
+      await page.goto(`${url}/crm/leads?tab=contacts`);
       await page.waitForSelector('.crm-v2-list-root', { timeout: 15000 });
       const qualifyBtn = page.locator('button[aria-label*="qualifizieren"]').first();
       if (await qualifyBtn.count()) {
@@ -160,6 +192,12 @@ for (const side of SIDES) {
           });
           return;
         }
+        let post = {};
+        try {
+          post = request.postDataJSON() || {};
+        } catch {}
+        const isCompanies = post.resource === 'companies';
+        const items = isCompanies ? MOCK_COMPANIES : MOCK_CONTACTS;
         await route.fulfill({
           status: 200,
           headers: {
@@ -167,11 +205,11 @@ for (const side of SIDES) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            items: MOCK_CONTACTS,
-            total: MOCK_CONTACTS.length,
+            items,
+            total: items.length,
             page: 1,
-            pageSize: 20,
-            resource: 'contacts',
+            pageSize: 100,
+            resource: isCompanies ? 'companies' : 'contacts',
           }),
         });
       });
@@ -179,8 +217,10 @@ for (const side of SIDES) {
       const page = await ctx.newPage();
 
       try {
+        const activeBaseUrl = side === 'vorher' ? VORHER_URL : BASE_URL;
+
         // 1. Anmeldung an der Plattform
-        await page.goto(`${BASE_URL}/login`);
+        await page.goto(`${activeBaseUrl}/login`);
         await page.waitForLoadState('networkidle');
 
         const emailInput = page.getByLabel(/E-Mail/i);
@@ -205,22 +245,13 @@ for (const side of SIDES) {
 
         for (const scenario of SCENARIOS) {
           if (side === 'vorher') {
-            // Baseline-Stand: /crm/leads tabellarisch ohne Score Badges und Filter
-            await page.goto(`${BASE_URL}/crm/leads?tab=contacts`);
+            // Echter Baseline-Stand (c11d53f) auf VORHER_URL ohne DOM-Manipulationen
+            await page.goto(`${activeBaseUrl}/crm/leads?tab=contacts`);
             await page.waitForSelector('.crm-v2-list-root', { timeout: 15000 });
-            await page.evaluate(() => {
-              // Simuliere Vorher-Stand (ohne Lead-Score Badges, Qualifizieren-Buttons und Qualitätsfilter)
-              document
-                .querySelectorAll(
-                  'button[aria-label*="Lead-Qualität"], button[aria-label*="qualifizieren"]',
-                )
-                .forEach((b) => b.remove());
-              document.querySelector('[role="group"][aria-label="Lead-Qualität filtern"]')?.remove();
-            });
-            await page.waitForTimeout(300);
+            await page.waitForTimeout(400);
           } else {
-            // Nachher-Stand mit Badges, Drawer und Konvertierungs-Modal
-            await scenario.prepare(page);
+            // Nachher-Stand mit Badges, Drawer und Konvertierungs-Modal auf BASE_URL
+            await scenario.prepare(page, activeBaseUrl);
           }
 
           // Theme nach Navigation / Render sicherstellen
@@ -329,7 +360,7 @@ const md = [
   '# Auftrag 130 – Visuelle Gate-Prüfung CRM Leads (Vorher/Nachher)',
   '',
   `Vorher: \`c11d53f\` (main), Nachher: Stand dieses Branches. Aufgenommen ${new Date().toISOString().slice(0, 10)}, Chromium, Zoom 100 %, reduzierte Bewegung. Bilder lokal (nicht committet).`,
-  `Basis-URL: ${BASE_URL}`,
+  `Basis-URL: ${BASE_URL} (Nachher), ${VORHER_URL} (Vorher Baseline c11d53f)`,
   'Überlauf = Dokument/#main-content in px; Hash = SHA-256 (12 Zeichen).',
   '',
   '| Szenario | Theme | Breite | Überlauf vorher | Überlauf nachher | Inhaltshöhe | Bild (Diff) |',
@@ -356,7 +387,9 @@ fs.writeFileSync(path.join(OUT, 'README.md'), md);
 console.log(`Ergebnis-Matrix nach ${path.join(OUT, 'README.md')} geschrieben.`);
 
 if (!allPassed) {
-  console.error(`❌ Screenshot-Gate fehlgeschlagen: bad=${bad}, differentCount=${differentCount}/${totalPairs}`);
+  console.error(
+    `❌ Screenshot-Gate fehlgeschlagen: bad=${bad}, differentCount=${differentCount}/${totalPairs}`,
+  );
   process.exit(1);
 }
 console.log('✅ Auftrag 130 Screenshot-Gate (Vorher/Nachher) vollständig bestanden.');

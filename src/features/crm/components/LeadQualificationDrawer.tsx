@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   CheckCircle2,
   Circle,
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
   calculateLeadScore,
+  estimateDealAmountForLead,
   type LeadScoringInput,
   type LeadScoringResult,
 } from '../services/leadScoringService';
@@ -25,6 +26,49 @@ export interface LeadQualificationDrawerProps {
   onConvertToDeal: (lead: Record<string, unknown>) => void;
 }
 
+interface BantState {
+  budget: boolean;
+  authority: boolean;
+  need: boolean;
+  timeline: boolean;
+  notes: string;
+}
+
+const BANT_PROGRESS_WIDTH: Record<number, string> = {
+  0: 'w-0',
+  1: 'w-1/4',
+  2: 'w-2/4',
+  3: 'w-3/4',
+  4: 'w-full',
+};
+
+function loadBantState(leadId: string, result: LeadScoringResult): BantState {
+  if (!leadId) {
+    return {
+      budget: false,
+      authority: false,
+      need: false,
+      timeline: false,
+      notes: '',
+    };
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = sessionStorage.getItem(`leadpilot_crm_bant_${leadId}`);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // Fallback
+    }
+  }
+  return {
+    budget: result.totalScore >= 70,
+    authority: result.breakdown.find((b) => b.key === 'persona')?.points === 20,
+    need: true,
+    timeline: false,
+    notes: '',
+  };
+}
+
 export function LeadQualificationDrawer({
   lead,
   isOpen,
@@ -34,47 +78,38 @@ export function LeadQualificationDrawer({
   const leadId = lead ? String(lead.id ?? '') : '';
   const storageKey = `leadpilot_crm_bant_${leadId}`;
 
-  const scoringInput: LeadScoringInput = {
-    jobTitle: lead?.jobTitle as string | undefined,
-    companyName: lead?.companyName as string | undefined,
-    countryOrCity: (lead?.city || lead?.country || lead?.countryOrCity) as string | undefined,
-    employeeCount: lead?.employeeCount as number | string | undefined,
-    industry: lead?.industry as string | undefined,
-  };
+  const scoringInput: LeadScoringInput = useMemo(
+    () => ({
+      jobTitle: lead?.jobTitle as string | undefined,
+      companyName: lead?.companyName as string | undefined,
+      countryOrCity: (lead?.city || lead?.country || lead?.countryOrCity) as string | undefined,
+      employeeCount: lead?.employeeCount as number | string | undefined,
+      industry: lead?.industry as string | undefined,
+    }),
+    [lead],
+  );
 
-  const result: LeadScoringResult = calculateLeadScore(scoringInput);
+  const result: LeadScoringResult = useMemo(() => calculateLeadScore(scoringInput), [scoringInput]);
 
-  // BANT State (pro Lead-ID persistierbar in sessionStorage)
-  const [bant, setBant] = useState<{
-    budget: boolean;
-    authority: boolean;
-    need: boolean;
-    timeline: boolean;
-    notes: string;
-  }>(() => {
-    if (typeof window !== 'undefined' && leadId) {
-      try {
-        const saved = sessionStorage.getItem(storageKey);
-        if (saved) return JSON.parse(saved);
-      } catch {
-        // Fallback
-      }
-    }
-    return {
-      budget: result.totalScore >= 70,
-      authority: result.breakdown.find((b) => b.key === 'persona')?.points === 20,
-      need: true,
-      timeline: false,
-      notes: '',
-    };
-  });
+  // BANT State mit sauberem Lead-Wechsel
+  const [bant, setBant] = useState<BantState>(() => loadBantState(leadId, result));
+  const activeLeadIdRef = useRef<string>(leadId);
 
+  // Synchronisiere State bei Wechsel der leadId
   useEffect(() => {
-    if (typeof window !== 'undefined' && leadId) {
+    if (leadId && leadId !== activeLeadIdRef.current) {
+      activeLeadIdRef.current = leadId;
+      setBant(loadBantState(leadId, result));
+    }
+  }, [leadId, result]);
+
+  // Persistiere nur für den zur aktuellen leadId passenden State
+  useEffect(() => {
+    if (typeof window !== 'undefined' && leadId && leadId === activeLeadIdRef.current) {
       try {
         sessionStorage.setItem(storageKey, JSON.stringify(bant));
       } catch {
-        // Ignorieren
+        // Ignorieren falls nicht verfügbar
       }
     }
   }, [bant, leadId, storageKey]);
@@ -86,13 +121,15 @@ export function LeadQualificationDrawer({
     String(lead.name ?? 'Kontakt');
   const companyName = String(lead.companyName ?? lead.companyId ?? 'Unternehmen');
   const jobTitle = String(lead.jobTitle ?? 'Jobtitel');
-  const email = String(lead.email ?? '');
 
   const toggleBant = (field: 'budget' | 'authority' | 'need' | 'timeline') => {
     setBant((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const bantCount = [bant.budget, bant.authority, bant.need, bant.timeline].filter(Boolean).length;
+  const estimatedAmount = estimateDealAmountForLead(
+    lead.employeeCount as number | string | undefined,
+  );
 
   return (
     <Drawer
@@ -100,7 +137,7 @@ export function LeadQualificationDrawer({
       onClose={onClose}
       title="Lead-Qualifizierung"
       description={`ICP-Fit-Analyse und Qualifizierungsworkflow für ${fullName}`}
-      width="480px"
+      width="520px"
       footer={
         <div className="flex items-center justify-between w-full gap-2">
           <Button variant="secondary" size="sm" onClick={onClose}>
@@ -111,134 +148,113 @@ export function LeadQualificationDrawer({
             size="sm"
             iconRight={<ArrowRight size={14} />}
             onClick={() => onConvertToDeal(lead)}
-            aria-label={`Lead ${fullName} zu Deal konvertieren`}
           >
             Zu Deal konvertieren
           </Button>
         </div>
       }
     >
-      <div className="flex flex-col gap-5 text-text">
-        {/* Kontakt-Kopf */}
-        <div className="p-3.5 rounded-lg border border-border bg-surface flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <h4 className="m-0 text-[15px] font-semibold text-text">{fullName}</h4>
+      <div className="flex flex-col gap-5 text-text py-1">
+        {/* Lead Header Card */}
+        <div className="p-3.5 rounded-lg bg-[var(--color-surface-subtle)] border border-border flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h4 className="font-semibold text-[15px] text-text m-0">{fullName}</h4>
+              <div className="text-[12.5px] text-[var(--color-text-muted)] flex items-center gap-1.5 mt-0.5">
+                <Briefcase size={13} />
+                <span>{jobTitle}</span>
+              </div>
+            </div>
             <Badge
               variant={
-                result.tier === 'hot' ? 'cyan' : result.tier === 'warm' ? 'orange' : 'neutral'
+                result.tier === 'hot' ? 'orange' : result.tier === 'warm' ? 'cyan' : 'neutral'
               }
             >
-              {result.icon} {result.tierLabel}
+              {result.tierLabel} ({result.totalScore}%)
             </Badge>
           </div>
-          <div className="text-[13px] text-[var(--color-text-muted)] flex items-center gap-1.5">
-            <Briefcase size={13} />
-            <span>{jobTitle}</span>
-            <span>·</span>
-            <Building2 size={13} />
-            <span>{companyName}</span>
-          </div>
-          {email && <div className="text-[12px] font-mono text-primary truncate">{email}</div>}
-        </div>
 
-        {/* Scoring Hero */}
-        <div className="p-4 rounded-lg bg-[rgba(var(--color-primary-rgb,59,130,246),0.06)] border border-primary/20 flex items-center justify-between">
-          <div>
-            <div className="text-[12px] uppercase font-semibold tracking-wider text-primary">
-              ICP-Fit Score
+          <div className="pt-2 border-t border-border/40 grid grid-cols-2 gap-2 text-[12px] text-[var(--color-text-muted)]">
+            <div className="flex items-center gap-1.5 truncate">
+              <Building2 size={13} className="shrink-0" />
+              <span className="truncate">{companyName}</span>
             </div>
-            <div className="text-[28px] font-display font-bold text-text mt-0.5">
-              {result.totalScore}{' '}
-              <span className="text-[16px] font-normal text-[var(--color-text-muted)]">
-                / 100 Pkt
-              </span>
+            <div className="flex items-center gap-1.5 truncate">
+              <MapPin size={13} className="shrink-0" />
+              <span className="truncate">{String(lead.city || lead.country || 'DACH-Region')}</span>
             </div>
-            <div className="text-[12px] text-[var(--color-text-muted)] mt-0.5">
-              Klassifikation: <strong>{result.tierLabel}</strong>
+            <div className="flex items-center gap-1.5 truncate">
+              <Users size={13} className="shrink-0" />
+              <span>{String(lead.employeeCount || '20–250')} MA</span>
             </div>
-          </div>
-          <div className="text-right">
-            <span className="text-[32px]" aria-hidden="true">
-              {result.icon}
-            </span>
+            <div className="flex items-center gap-1.5 truncate">
+              <Sparkles size={13} className="shrink-0" />
+              <span>Geschätzt: {estimatedAmount.toLocaleString('de-DE')} €</span>
+            </div>
           </div>
         </div>
 
-        {/* Kriterien-Aufschlüsselung */}
-        <div className="flex flex-col gap-2">
-          <h5 className="m-0 text-[13px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles size={14} className="text-primary" />
-            <span>ICP-Kriterien Aufschlüsselung</span>
-          </h5>
-          <div className="flex flex-col gap-2">
-            {result.breakdown.map((item) => (
-              <div
-                key={item.key}
-                className="p-2.5 rounded-md border border-border bg-surface/50 flex flex-col gap-1 text-[12.5px]"
-              >
-                <div className="flex items-center justify-between font-medium">
-                  <span className="flex items-center gap-1.5 text-text">
-                    {item.key === 'region' && <MapPin size={13} className="text-primary" />}
-                    {item.key === 'size' && <Users size={13} className="text-primary" />}
-                    {item.key === 'industry' && <Building2 size={13} className="text-primary" />}
-                    {item.key === 'persona' && <Briefcase size={13} className="text-primary" />}
-                    {item.label}
-                  </span>
-                  <span className="font-mono text-primary font-semibold">
-                    +{item.points} / {item.maxPoints}
-                  </span>
-                </div>
-                <div className="text-[11.5px] text-[var(--color-text-muted)]">{item.reason}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* BANT-Qualifizierung */}
-        <div className="flex flex-col gap-2">
+        {/* BANT Framework Checkliste */}
+        <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
-            <h5 className="m-0 text-[13px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
+            <h5 className="font-semibold text-[13.5px] uppercase tracking-wider text-[var(--color-text-muted)] m-0">
               BANT-Qualifizierung ({bantCount}/4)
             </h5>
-            <span className="text-[11px] text-primary font-medium">
-              {bantCount === 4 ? 'Voll qualifiziert' : `${4 - bantCount} Kriterien offen`}
+            <span className="text-xs font-mono text-primary font-bold">
+              {Math.round((bantCount / 4) * 100)} %
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+
+          {/* Progress Bar */}
+          <div className="w-full h-1.5 bg-black/20 rounded-full overflow-hidden border border-border/50">
+            <div
+              className={`h-full bg-primary transition-all duration-300 ${BANT_PROGRESS_WIDTH[bantCount] ?? 'w-0'}`}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2 mt-1">
             {[
-              { id: 'budget', label: 'Budget vorhanden', desc: 'Software-Budget gesichert' },
               {
-                id: 'authority',
-                label: 'Authority (Entscheider)',
-                desc: 'Direkter C-Level Kontakt',
+                id: 'budget' as const,
+                title: 'Budget vorhanden',
+                desc: 'Budget ist für Vertriebssoftware reserviert (> 20.000 €).',
               },
-              { id: 'need', label: 'Need (Bedarf)', desc: 'Konkreter Schmerzpunkt vorhanden' },
-              { id: 'timeline', label: 'Timeline ≤ 3 Monate', desc: 'Zeitnahe Kaufabsicht' },
-            ].map((f) => {
-              const active = bant[f.id as keyof typeof bant];
+              {
+                id: 'authority' as const,
+                title: 'Entscheidungskompetenz (Authority)',
+                desc: 'Kontakt ist Entscheidungsträger oder direkter Budgetverantwortlicher.',
+              },
+              {
+                id: 'need' as const,
+                title: 'Konkreter Bedarf (Need)',
+                desc: 'Bestehende Schmerzen bei Lead-Routing, Konvertierung oder Pipeline-Transparenz.',
+              },
+              {
+                id: 'timeline' as const,
+                title: 'Zeitplan (Timeline)',
+                desc: 'Einführung ist innerhalb der nächsten 1–3 Monate geplant.',
+              },
+            ].map((crit) => {
+              const checked = bant[crit.id];
               return (
                 <button
-                  key={f.id}
+                  key={crit.id}
                   type="button"
-                  onClick={() => toggleBant(f.id as 'budget' | 'authority' | 'need' | 'timeline')}
-                  className={`p-2.5 rounded-md border text-left transition-colors flex items-start gap-2 cursor-pointer ${
-                    active
-                      ? 'border-success/40 bg-success/10 text-text'
-                      : 'border-border bg-surface hover:bg-surface/80 text-[var(--color-text-muted)]'
+                  onClick={() => toggleBant(crit.id)}
+                  className={`w-full p-2.5 rounded-lg border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
+                    checked
+                      ? 'bg-primary/10 border-primary/40 text-text'
+                      : 'bg-black/10 border-border hover:bg-black/20 text-[var(--color-text-muted)]'
                   }`}
-                  aria-pressed={Boolean(active)}
+                  aria-pressed={checked}
                 >
-                  <span className="mt-0.5">
-                    {active ? (
-                      <CheckCircle2 size={15} className="text-success" />
-                    ) : (
-                      <Circle size={15} className="text-[var(--color-text-muted)]" />
-                    )}
+                  <span className="mt-0.5 shrink-0 text-primary">
+                    {checked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                   </span>
-                  <div className="flex flex-col">
-                    <span className="text-[12px] font-medium leading-snug">{f.label}</span>
-                    <span className="text-[10px] text-[var(--color-text-muted)] leading-tight mt-0.5">
-                      {f.desc}
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[13px] font-semibold text-text">{crit.title}</span>
+                    <span className="text-[11.5px] leading-tight text-[var(--color-text-muted)]">
+                      {crit.desc}
                     </span>
                   </div>
                 </button>
@@ -247,21 +263,46 @@ export function LeadQualificationDrawer({
           </div>
         </div>
 
-        {/* Notizen */}
+        {/* ICP Scoring Faktoren Breakdown */}
+        <div className="flex flex-col gap-2">
+          <h5 className="font-semibold text-[13.5px] uppercase tracking-wider text-[var(--color-text-muted)] m-0">
+            ICP-Kriterien Aufschlüsselung
+          </h5>
+          <div className="grid grid-cols-2 gap-2">
+            {result.breakdown.map((f) => (
+              <div
+                key={f.key}
+                className="p-2.5 rounded-md bg-black/20 border border-border flex flex-col gap-1"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] font-medium text-text">{f.label}</span>
+                  <span className="text-[11.5px] font-mono font-bold text-primary">
+                    +{f.points} Pkt.
+                  </span>
+                </div>
+                <span className="text-[11px] text-[var(--color-text-muted)] leading-tight">
+                  {f.reason}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Qualifizierungsnotizen */}
         <div className="flex flex-col gap-1.5">
           <label
-            htmlFor="lead-notes"
-            className="text-[12px] font-medium text-[var(--color-text-muted)]"
+            htmlFor="lead-qualification-notes"
+            className="text-[13px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider"
           >
-            Qualifizierungs-Notizen für den Vertrieb
+            Qualifizierungsnotizen & Einwände
           </label>
           <textarea
-            id="lead-notes"
+            id="lead-qualification-notes"
             rows={3}
             value={bant.notes}
             onChange={(e) => setBant((prev) => ({ ...prev, notes: e.target.value }))}
-            placeholder="Wichtige Erkenntnisse aus Erstkontakt, Schmerzpunkte, genutzte Altsysteme..."
-            className="w-full rounded-md border border-border bg-surface p-2.5 text-[13px] text-text outline-none focus:border-primary resize-none"
+            placeholder="Ergebnisse des Erstgesprächs, relevante Stakeholder oder nächste Schritte notieren..."
+            className="w-full p-2.5 text-[13px] bg-black/40 border border-border rounded-lg text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary transition-colors resize-none"
           />
         </div>
       </div>

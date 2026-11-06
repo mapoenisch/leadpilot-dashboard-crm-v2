@@ -1,13 +1,11 @@
 // G60 / Auftrag 130: Serverseitige, paginierte Leads- & Kontaktansicht mit Lead-Scoring und Qualifizierungsworkflow
 import { useId, useMemo, useState } from 'react';
-import { Search, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Download, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
-import { Select } from '@/components/ui/Select';
-import { Input } from '@/components/ui/Input';
 import { ManagementChartState } from '@/components/ui/charts/ManagementChartState';
 import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
@@ -16,16 +14,19 @@ import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportServ
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { CrmResponsiveList } from '../components/CrmResponsiveList';
+import { LeadsKpiGrid } from '../components/LeadsKpiGrid';
+import { LeadsFilterBar } from '../components/LeadsFilterBar';
 import { LeadQualificationDrawer } from '../components/LeadQualificationDrawer';
 import { LeadConversionModal, ConvertedDealData } from '../components/LeadConversionModal';
+import { getQualifiedLeadIds, mergeConvertedDeals } from '../services/leadConversionService';
 import {
-  ORDER_OPTS,
-  QUALITY_OPTS,
   TAB_ITEMS,
   AUDIT_NOTES,
   buildContactColumns,
   buildTabConfig,
+  enrichContactWithCompany,
   filterLeadsByQuality,
+  exportFilteredContactsCsv,
   getCrmListStateInfo,
   type R,
 } from '../utils/leadsPageConfig';
@@ -72,6 +73,27 @@ export function LeadsPage() {
     [filterVal, conf.fKey],
   );
 
+  // Mandantengebundene Unternehmensdaten für ICP-Enrichment abrufen
+  const { data: companiesData } = useCrmListQuery<R>(
+    { resource: 'companies', pageSize: 100 },
+    { enabled: activeTab === 'contacts' },
+  );
+
+  const companyMap = useMemo(() => {
+    const map = new Map<string, R>();
+    for (const comp of companiesData?.items ?? []) {
+      if (comp.id) map.set(String(comp.id), comp);
+    }
+    return map;
+  }, [companiesData?.items]);
+
+  const qualifiedLeadIds = useMemo(() => {
+    void conversionSuccessMessage;
+    return getQualifiedLeadIds(session?.organizationId);
+  }, [session?.organizationId, conversionSuccessMessage]);
+
+  const isClientQualityPaging = activeTab === 'contacts' && qualityFilter !== 'ALL';
+
   const { data, isLoading, isError, isPlaceholderData, error, refetch } = useCrmListQuery<R>(
     {
       resource: conf.resource,
@@ -79,22 +101,56 @@ export function LeadsPage() {
       filters: activeFilters,
       sortBy: sortField,
       sortOrder: (sortOrder as 'asc' | 'desc') || conf.order,
-      page,
-      pageSize,
+      page: isClientQualityPaging ? 1 : page,
+      pageSize: isClientQualityPaging ? 100 : pageSize,
     },
     { enabled: activeTab !== 'audit' },
   );
 
   const rawItems = useMemo(() => data?.items ?? [], [data?.items]);
-  const total = data?.total ?? 0;
 
-  // Filterung nach Lead-Qualität (im Kontakte-Tab)
-  const items = useMemo(() => {
+  // Angereicherte und mandantengebundene Kontakte
+  const enrichedContacts = useMemo(() => {
+    if (activeTab !== 'contacts') return [];
+    return rawItems.map((contact) =>
+      enrichContactWithCompany(
+        contact,
+        contact.companyId ? companyMap.get(String(contact.companyId)) : undefined,
+        qualifiedLeadIds.has(String(contact.id)),
+      ),
+    );
+  }, [activeTab, rawItems, companyMap, qualifiedLeadIds]);
+
+  const allFilteredContacts = useMemo(() => {
+    if (activeTab !== 'contacts') return [];
+    return filterLeadsByQuality(enrichedContacts, qualityFilter);
+  }, [activeTab, enrichedContacts, qualityFilter]);
+
+  // Harmonische Paginierung und Zusammenführung konvertierter Deals
+  const { items, total } = useMemo(() => {
     if (activeTab === 'contacts') {
-      return filterLeadsByQuality(rawItems, qualityFilter);
+      if (qualityFilter !== 'ALL') {
+        const paged = allFilteredContacts.slice((page - 1) * pageSize, page * pageSize);
+        return { items: paged, total: allFilteredContacts.length };
+      }
+      return { items: enrichedContacts, total: data?.total ?? 0 };
     }
-    return rawItems;
-  }, [rawItems, activeTab, qualityFilter]);
+    if (activeTab === 'funnel_deals') {
+      const merged = mergeConvertedDeals(rawItems, session?.organizationId);
+      return { items: merged.items, total: (data?.total ?? 0) + merged.totalBonus };
+    }
+    return { items: rawItems, total: data?.total ?? 0 };
+  }, [
+    activeTab,
+    qualityFilter,
+    allFilteredContacts,
+    enrichedContacts,
+    rawItems,
+    page,
+    pageSize,
+    data?.total,
+    session?.organizationId,
+  ]);
 
   const isAudit = activeTab === 'audit';
   const hasData = data !== undefined && !isPlaceholderData;
@@ -119,13 +175,17 @@ export function LeadsPage() {
     setIsExporting(true);
     setExportError(null);
     try {
-      await downloadCrmExport({
-        resource: conf.resource,
-        q: searchTerm.trim() || undefined,
-        filters: activeFilters,
-        sortBy: sortField,
-        sortOrder: (sortOrder as 'asc' | 'desc') || conf.order,
-      });
+      if (activeTab === 'contacts' && qualityFilter !== 'ALL') {
+        exportFilteredContactsCsv(allFilteredContacts, qualityFilter);
+      } else {
+        await downloadCrmExport({
+          resource: conf.resource,
+          q: searchTerm.trim() || undefined,
+          filters: activeFilters,
+          sortBy: sortField,
+          sortOrder: (sortOrder as 'asc' | 'desc') || conf.order,
+        });
+      }
     } catch (err) {
       setExportError(err instanceof CrmServiceError ? err.message : 'Fehler beim CSV-Export.');
     } finally {
@@ -141,37 +201,6 @@ export function LeadsPage() {
   };
 
   const stateInfo = getCrmListStateInfo(isLoading, isError, error, items.length);
-
-  const kpis = [
-    {
-      t: 'Gefundene Datensätze',
-      v: countText,
-      n: isAudit ? 'Im Audit-Tab keine Listenabfrage' : 'Mandanten-geprüft',
-      c: 'text-primary font-bold',
-      f: true,
-    },
-    {
-      t: 'Aktuelle Seite',
-      v:
-        isAudit || isError || !hasData
-          ? '–'
-          : `${page} / ${Math.max(1, Math.ceil(total / pageSize))}`,
-      n: `${pageSize} pro Seite`,
-      c: 'text-text font-semibold',
-    },
-    {
-      t: 'Aktiver Tab',
-      v: isAudit ? 'Audit' : conf.label,
-      n: 'Serverseitig abgefragt',
-      c: 'text-text font-semibold text-[20px]',
-    },
-    {
-      t: 'Lead-Scoring',
-      v: '🔥 ICP-Scoring aktiv',
-      n: 'BANT-Qualifizierung bereit',
-      c: 'text-success text-[18px]',
-    },
-  ];
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
@@ -235,91 +264,53 @@ export function LeadsPage() {
         </div>
       )}
 
-      <div className="crm-v2-kpi-grid">
-        {kpis.map((k) => (
-          <Card key={k.t} variant="glass" featured={Boolean(k.f)}>
-            <div className="text-[13px] text-[var(--color-text-muted)]">{k.t}</div>
-            <div className={`font-display text-[28px] my-[4px] truncate ${k.c}`}>{k.v}</div>
-            <div className="text-[12px] text-success">{k.n}</div>
-          </Card>
-        ))}
-      </div>
+      <LeadsKpiGrid
+        countText={countText}
+        isAudit={isAudit}
+        isError={isError}
+        hasData={hasData}
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        confLabel={conf.label}
+      />
 
       <div className="crm-v2-tabs-wrapper">
         <Tabs items={TAB_ITEMS} activeId={activeTab} onChange={handleTabChange} />
       </div>
 
       {activeTab !== 'audit' && (
-        <div className="crm-v2-filter-bar">
-          <div className="flex-[1_1_260px] max-w-full">
-            <Input
-              type="search"
-              aria-label="Suche in Liste"
-              placeholder="Suchbegriff eingeben..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPageStr('1');
-              }}
-              leadingIcon={<Search size={16} />}
-              sizeVariant="sm"
-            />
-          </div>
-          <div className="flex items-center gap-[var(--space-3)] flex-wrap flex-[0_1_auto]">
-            {activeTab === 'contacts' && (
-              <div className="min-w-[150px] w-full max-w-[190px]">
-                <Select
-                  label="Lead-Qualität:"
-                  options={QUALITY_OPTS}
-                  value={qualityFilter}
-                  onChange={(val) => {
-                    setQualityFilter(val);
-                    setPageStr('1');
-                  }}
-                  sizeVariant="sm"
-                  fullWidth
-                />
-              </div>
-            )}
-            {[
-              {
-                l: conf.fLabel,
-                opts: conf.filters,
-                v: filterVal,
-                s: setFilterVal,
-                w: 'min-w-[150px] max-w-[190px]',
-              },
-              {
-                l: 'Sortierung:',
-                opts: conf.sorts,
-                v: sortField,
-                s: setSortField,
-                w: 'min-w-[150px] max-w-[190px]',
-              },
-              {
-                l: 'Reihenfolge:',
-                opts: ORDER_OPTS,
-                v: sortOrder,
-                s: setSortOrder,
-                w: 'min-w-[140px] max-w-[170px]',
-              },
-            ].map((f) => (
-              <div key={f.l} className={`w-full ${f.w}`}>
-                <Select
-                  label={f.l}
-                  options={f.opts}
-                  value={f.v}
-                  onChange={(val) => {
-                    f.s(val);
-                    setPageStr('1');
-                  }}
-                  sizeVariant="sm"
-                  fullWidth
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <LeadsFilterBar
+          activeTab={activeTab}
+          searchTerm={searchTerm}
+          onSearchChange={(val) => {
+            setSearchTerm(val);
+            setPageStr('1');
+          }}
+          qualityFilter={qualityFilter}
+          onQualityFilterChange={(val) => {
+            setQualityFilter(val);
+            setPageStr('1');
+          }}
+          filterLabel={conf.fLabel}
+          filterOptions={conf.filters}
+          filterVal={filterVal}
+          onFilterChange={(val) => {
+            setFilterVal(val);
+            setPageStr('1');
+          }}
+          sortOptions={conf.sorts}
+          sortField={sortField}
+          onSortFieldChange={(val) => {
+            setSortField(val);
+            setPageStr('1');
+          }}
+          sortOrder={sortOrder}
+          onSortOrderChange={(val) => {
+            setSortOrder(val);
+            setPageStr('1');
+          }}
+        />
       )}
 
       {activeTab === 'audit' ? (
@@ -368,6 +359,7 @@ export function LeadsPage() {
 
       {/* Qualifizierungs-Drawer */}
       <LeadQualificationDrawer
+        key={selectedLead ? String(selectedLead.id) : 'empty'}
         lead={selectedLead}
         isOpen={Boolean(selectedLead)}
         onClose={() => setSelectedLead(null)}
@@ -383,6 +375,7 @@ export function LeadsPage() {
         isOpen={Boolean(convertingLead)}
         onClose={() => setConvertingLead(null)}
         onSuccess={handleConversionSuccess}
+        organizationId={session?.organizationId}
       />
     </div>
   );
