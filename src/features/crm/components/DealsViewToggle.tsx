@@ -22,11 +22,13 @@ export function DealsViewToggle({ viewMode, onChange, disabled }: DealsViewToggl
         disabled={disabled}
         onClick={() => onChange('tabelle')}
         aria-pressed={viewMode === 'tabelle'}
+        aria-label="Tabellenansicht"
         data-testid="deals-view-table-btn"
         className="h-8 gap-1.5 px-2.5 text-xs font-medium"
       >
         <Table size={14} aria-hidden="true" />
         <span className="hidden sm:inline">Tabelle</span>
+        <span className="sr-only sm:hidden">Tabelle</span>
       </Button>
 
       <Button
@@ -35,11 +37,13 @@ export function DealsViewToggle({ viewMode, onChange, disabled }: DealsViewToggl
         disabled={disabled}
         onClick={() => onChange('kanban')}
         aria-pressed={viewMode === 'kanban'}
+        aria-label="Kanban-Ansicht"
         data-testid="deals-view-kanban-btn"
         className="h-8 gap-1.5 px-2.5 text-xs font-medium"
       >
         <Kanban size={14} aria-hidden="true" />
         <span className="hidden sm:inline">Kanban</span>
+        <span className="sr-only sm:hidden">Kanban</span>
       </Button>
     </div>
   );

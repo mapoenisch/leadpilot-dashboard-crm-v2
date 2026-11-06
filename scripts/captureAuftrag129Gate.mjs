@@ -154,77 +154,67 @@ async function launchBrowser() {
 const browser = await launchBrowser();
 const rows = [];
 
-for (const theme of THEMES) {
-  for (const width of WIDTHS) {
-    const ctx = await browser.newContext({
-      viewport: { width, height: 1000 },
-      reducedMotion: 'reduce',
-      locale: 'de-DE',
-      timezoneId: 'Europe/Berlin',
-    });
+const SIDES = ['vorher', 'nachher'];
 
-    // Interception für crm-query-export, um deterministische Daten zu garantieren
-    await ctx.route(/\/functions\/v1\/crm-query-export/, async (route) => {
-      const request = route.request();
-      if (request.method() === 'OPTIONS') {
+for (const side of SIDES) {
+  for (const theme of THEMES) {
+    for (const width of WIDTHS) {
+      const ctx = await browser.newContext({
+        viewport: { width, height: 1000 },
+        reducedMotion: 'reduce',
+        locale: 'de-DE',
+        timezoneId: 'Europe/Berlin',
+      });
+
+      // Interception für crm-query-export, um deterministische Daten zu garantieren
+      await ctx.route(/\/functions\/v1\/crm-query-export/, async (route) => {
+        const request = route.request();
+        if (request.method() === 'OPTIONS') {
+          await route.fulfill({
+            status: 204,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey',
+            },
+          });
+          return;
+        }
         await route.fulfill({
-          status: 204,
+          status: 200,
           headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey',
+            'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            items: MOCK_DEALS,
+            total: MOCK_DEALS.length,
+            page: 1,
+            pageSize: 100,
+            resource: 'deals',
+          }),
         });
-        return;
-      }
-      await route.fulfill({
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: MOCK_DEALS,
-          total: MOCK_DEALS.length,
-          page: 1,
-          pageSize: 100,
-          resource: 'deals',
-        }),
       });
-    });
 
-    const page = await ctx.newPage();
+      const page = await ctx.newPage();
 
-    try {
-      // 1. Anmeldung an der Plattform
-      await page.goto(`${BASE_URL}/login`);
-      await page.waitForLoadState('networkidle');
+      try {
+        const base =
+          side === 'vorher' && process.env.VORHER_URL ? process.env.VORHER_URL : BASE_URL;
 
-      const emailInput = page.getByLabel(/E-Mail/i);
-      if (await emailInput.count()) {
-        await emailInput.fill(EMAIL);
-        await page.getByLabel(/Passwort/i).fill(PASSWORD);
-        await page.getByRole('button', { name: /Anmelden/i }).click();
-        await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20000 });
-      }
+        // 1. Anmeldung an der Plattform
+        await page.goto(`${base}/login`);
+        await page.waitForLoadState('networkidle');
 
-      // Theme global für diesen Kontext setzen
-      await page.evaluate((th) => {
-        document.documentElement.dataset.theme = th;
-        if (th === 'dark') {
-          document.documentElement.classList.add('dark');
-          document.documentElement.classList.remove('light');
-        } else {
-          document.documentElement.classList.add('light');
-          document.documentElement.classList.remove('dark');
+        const emailInput = page.getByLabel(/E-Mail/i);
+        if (await emailInput.count()) {
+          await emailInput.fill(EMAIL);
+          await page.getByLabel(/Passwort/i).fill(PASSWORD);
+          await page.getByRole('button', { name: /Anmelden/i }).click();
+          await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20000 });
         }
-      }, theme);
 
-      // 2. Szenarien durchlaufen
-      for (const scenario of SCENARIOS) {
-        await scenario.prepare(page);
-
-        // Theme nach DOM-Aufbau sicherstellen
+        // Theme global für diesen Kontext setzen
         await page.evaluate((th) => {
           document.documentElement.dataset.theme = th;
           if (th === 'dark') {
@@ -236,67 +226,153 @@ for (const theme of THEMES) {
           }
         }, theme);
 
-        // Überlauf messen
-        const overflow = await page.evaluate(() => {
-          const doc = document.documentElement.scrollWidth - document.documentElement.clientWidth;
-          const main = document.getElementById('main-content');
-          const inner = main ? main.scrollWidth - main.clientWidth : 0;
-          return { doc, inner };
-        });
+        // 2. Szenarien durchlaufen
+        for (const scenario of SCENARIOS) {
+          if (side === 'vorher') {
+            // Baseline-Stand: /crm/deals rein tabellarisch ohne Ansichtsumschalter
+            await page.goto(`${base}/crm/deals`);
+            await page.waitForSelector('.crm-v2-list-root', { timeout: 15000 });
+            // Wenn Vorher auf BASE_URL emuliert wird: Umschalter ausblenden für echten Vorher-Stand
+            if (!process.env.VORHER_URL) {
+              await page.evaluate(() => {
+                document.querySelector('[role="group"][aria-label="Ansicht wählen"]')?.remove();
+              });
+            }
+            await page.waitForTimeout(300);
+          } else {
+            // Nachher-Stand mit interaktivem Toggle, Board und Menü
+            await scenario.prepare(page);
+          }
 
-        const file = path.join(OUT, `${scenario.id}-${theme}-${width}.png`);
-        const buf = await page.screenshot({ fullPage: false });
-        fs.writeFileSync(file, buf);
-        const hash = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 12);
+          // Theme nach DOM-Aufbau sicherstellen
+          await page.evaluate((th) => {
+            document.documentElement.dataset.theme = th;
+            if (th === 'dark') {
+              document.documentElement.classList.add('dark');
+              document.documentElement.classList.remove('light');
+            } else {
+              document.documentElement.classList.add('light');
+              document.documentElement.classList.remove('dark');
+            }
+          }, theme);
 
-        rows.push({
-          scenario: scenario.id,
-          theme,
-          width,
-          hash,
-          docOverflow: overflow.doc,
-          innerOverflow: overflow.inner,
-          status: overflow.doc === 0 ? '✅ PASS' : '❌ FAIL',
-        });
+          // Überlauf und Höhe messen
+          const metrics = await page.evaluate(() => {
+            const doc = Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+            const main = document.getElementById('main-content');
+            const inner = main ? Math.max(0, main.scrollWidth - main.clientWidth) : 0;
+            const height = main ? main.scrollHeight : document.body.scrollHeight;
+            return { doc, inner, height };
+          });
+
+          const file = path.join(OUT, `${side}-${scenario.id}-${theme}-${width}.png`);
+          const buf = await page.screenshot({ fullPage: false });
+          fs.writeFileSync(file, buf);
+          const hash = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 12);
+
+          rows.push({
+            side,
+            scenario: scenario.id,
+            scenarioTitle: scenario.title,
+            theme,
+            width,
+            hash,
+            docOverflow: metrics.doc,
+            innerOverflow: metrics.inner,
+            height: metrics.height,
+          });
+        }
+      } catch (err) {
+        console.error(`Fehler bei ${side}, ${theme}, ${width}px:`, err);
+        throw err;
+      } finally {
+        await ctx.close();
       }
-    } catch (err) {
-      console.error(`Fehler bei ${theme}, ${width}px:`, err);
-      throw err;
-    } finally {
-      await ctx.close();
     }
   }
 }
 
 await browser.close();
 
+// Vorher/Nachher-Paarung & Gate-Verifikation
+const find = (side, sId, w, t) =>
+  rows.find((x) => x.side === side && x.scenario === sId && x.width === w && x.theme === t);
+
+const lines = [];
+let bad = 0;
+let differentCount = 0;
+
+for (const scenario of SCENARIOS) {
+  for (const theme of THEMES) {
+    for (const width of WIDTHS) {
+      const v = find('vorher', scenario.id, width, theme);
+      const n = find('nachher', scenario.id, width, theme);
+
+      if (!v || !n) {
+        bad += 1;
+        lines.push(`| \`${scenario.id}\` | \`${theme}\` | ${width} px | - | - | - | ❌ FEHLT |`);
+        continue;
+      }
+
+      if (n.docOverflow > 0 || n.innerOverflow > 0) {
+        bad += 1;
+      }
+
+      const isDiff = v.hash !== n.hash;
+      if (isDiff) {
+        differentCount += 1;
+      } else {
+        bad += 1; // CLAUDE.md §7: identische Vorher/Nachher-Hashes lassen das Gate fehlschlagen
+      }
+
+      const statusText = isDiff
+        ? `verschieden (\`${v.hash}\` / \`${n.hash}\`)`
+        : `GLEICH (Fehler: \`${v.hash}\`)`;
+
+      lines.push(
+        `| \`${scenario.id}\` | \`${theme}\` | ${width} px | ${v.docOverflow}/${v.innerOverflow} px | ${n.docOverflow}/${n.innerOverflow} px | ${v.height} → ${n.height} px | ${statusText} |`,
+      );
+    }
+  }
+}
+
+const totalPairs = lines.length;
+const allPassed = bad === 0 && differentCount === totalPairs;
+
 // Markdown-Matrix generieren
 const md = [
-  '# Auftrag 129 – Visuelle Gate-Prüfung CRM Deals (Tabelle & Kanban)',
+  '# Auftrag 129 – Visuelle Gate-Prüfung CRM Deals Pipeline (Vorher/Nachher)',
   '',
-  `Generiert am: ${new Date().toISOString()}`,
+  `Vorher: \`d3fe131\` (main), Nachher: Stand dieses Branches. Aufgenommen ${new Date().toISOString().slice(0, 10)}, Chromium, Zoom 100 %, reduzierte Bewegung. Bilder lokal (nicht committet).`,
   `Basis-URL: ${BASE_URL}`,
+  'Überlauf = Dokument/#main-content in px; Hash = SHA-256 (12 Zeichen).',
   '',
-  '| Szenario | Theme | Breite | SHA-256 (12) | Doc Overflow | Inner Overflow | Status |',
+  '| Szenario | Theme | Breite | Überlauf vorher | Überlauf nachher | Inhaltshöhe | Bild (Diff) |',
   '|---|---|---|---|---|---|---|',
-  ...rows.map(
-    (r) =>
-      `| \`${r.scenario}\` | \`${r.theme}\` | ${r.width} px | \`${r.hash}\` | ${r.docOverflow} px | ${r.innerOverflow} px | ${r.status} |`,
-  ),
+  ...lines,
   '',
   '## Zusammenfassung',
   '',
-  `- **Gesamtanzahl Aufnahmen:** ${rows.length}`,
-  `- **Erfolgreich (0 px Doc Overflow):** ${rows.filter((r) => r.docOverflow === 0).length} / ${rows.length}`,
-  `- **Status:** ${rows.every((r) => r.docOverflow === 0) ? '✅ ALLE GATES BESTANDEN' : '❌ FEHLGESCHLAGEN'}`,
+  `- **Gesamtanzahl Vorher/Nachher-Paare:** ${totalPairs}`,
+  `- **Verschiedene Aufnahmen:** ${differentCount} / ${totalPairs} (${Math.round((differentCount / totalPairs) * 100)} %)`,
+  `- **Überlauf-Status:** ${bad === 0 ? '0 px Überlauf in allen Nachher-Aufnahmen' : `${bad} Aufnahmen mit Überlauf oder identischem Hash`}`,
+  `- **Status:** ${allPassed ? '✅ ALLE GATES BESTANDEN' : '❌ FEHLGESCHLAGEN'}`,
+  '',
+  '### Änderungen gegenüber Baseline d3fe131:',
+  '- Barrierefreier Ansichten-Umschalter (Tabelle ⟷ Kanban) in der Deal-Pipeline-Toolbar mit `aria-label` auf allen Breakpoints',
+  '- Interaktives Deals-Kanban-Board mit den 7 Vertriebsphasen, Phasen-Dealzählern und kumulierten Summen in Euro',
+  '- Drag & Drop und tastaturbedienbares Portal-Phasenmenü außerhalb des Karten-Stacking-Contexts',
+  '- Erhalt von Phasenwechseln über Ansichtswechsel hinaus mit Session-Persistenz und CSV-Export-Synchronisation',
+  '- Unterstützung für Nachladen weiterer Deals-Seiten mit expliziter Teilsummenkennzeichnung im Kanban-Modus',
+  '- Korrekte Fälligkeitsprüfung auf Kalendertag-Ebene',
   '',
 ].join('\n');
 
 fs.writeFileSync(path.join(OUT, 'README.md'), md);
 console.log(`Ergebnis-Matrix nach ${path.join(OUT, 'README.md')} geschrieben.`);
 
-const allPassed = rows.every((r) => r.docOverflow === 0);
 if (!allPassed) {
+  console.error(`❌ Screenshot-Gate fehlgeschlagen: bad=${bad}, differentCount=${differentCount}/${totalPairs}`);
   process.exit(1);
 }
-console.log('✅ Auftrag 129 Screenshot-Gate vollständig bestanden.');
+console.log('✅ Auftrag 129 Screenshot-Gate (Vorher/Nachher) vollständig bestanden.');

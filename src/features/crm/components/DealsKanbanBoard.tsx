@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { ImportedFunnelDeal } from '@/types/crm';
+import { Button } from '@/components/ui/Button';
 import { KanbanColumn } from './KanbanColumn';
 
 export const KANBAN_STAGES: readonly string[] = [
@@ -14,10 +15,21 @@ export const KANBAN_STAGES: readonly string[] = [
 
 export interface DealsKanbanBoardProps {
   deals: ImportedFunnelDeal[];
+  totalDeals?: number;
   onDealStageChange?: (dealId: string, newStage: string) => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
 }
 
-export function DealsKanbanBoard({ deals, onDealStageChange }: DealsKanbanBoardProps) {
+export function DealsKanbanBoard({
+  deals,
+  totalDeals,
+  onDealStageChange,
+  onLoadMore,
+  hasMore,
+  isLoadingMore,
+}: DealsKanbanBoardProps) {
   // Lokale optimistische Phasen-Überschreibungen
   const [stageOverrides, setStageOverrides] = useState<Record<string, string>>({});
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
@@ -78,6 +90,8 @@ export function DealsKanbanBoard({ deals, onDealStageChange }: DealsKanbanBoardP
     return { totalCount: count, totalVolume: volume, wonVolume: won };
   }, [effectiveDeals]);
 
+  const isPartial = totalDeals !== undefined && totalCount < totalDeals;
+
   const handleMoveStage = useCallback(
     (dealId: string, newStage: string) => {
       setStageOverrides((prev) => ({
@@ -95,7 +109,9 @@ export function DealsKanbanBoard({ deals, onDealStageChange }: DealsKanbanBoardP
       <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-border bg-surface/70 text-xs text-[var(--color-text-muted)]">
         <div className="flex items-center gap-4 flex-wrap">
           <span>
-            Pipeline-Volumen gesamt:{' '}
+            {isPartial
+              ? `Pipeline-Volumen (Teilsumme: ${totalCount} von ${totalDeals} Deals):`
+              : 'Pipeline-Volumen gesamt:'}{' '}
             <strong className="text-text font-mono font-bold text-sm">
               {totalVolume.toLocaleString('de-DE')} €
             </strong>
@@ -108,10 +124,25 @@ export function DealsKanbanBoard({ deals, onDealStageChange }: DealsKanbanBoardP
             </strong>
           </span>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
           <span>
-            Aktive Deals im Board: <strong className="text-text font-semibold">{totalCount}</strong>
+            Aktive Deals im Board:{' '}
+            <strong className="text-text font-semibold">
+              {isPartial ? `${totalCount} von ${totalDeals}` : totalCount}
+            </strong>
           </span>
+          {hasMore && onLoadMore && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onLoadMore}
+              disabled={isLoadingMore}
+              data-testid="kanban-load-more-btn"
+              className="h-7 text-xs px-2.5"
+            >
+              {isLoadingMore ? 'Lade nach…' : 'Weitere Deals nachladen'}
+            </Button>
+          )}
         </div>
       </div>
 

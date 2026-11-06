@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { ImportedFunnelDeal } from '@/types/crm';
 import { DealsViewToggle } from '../components/DealsViewToggle';
-import { DealKanbanCard } from '../components/DealKanbanCard';
+import { DealKanbanCard, isDealOverdue } from '../components/DealKanbanCard';
 import { KanbanColumn } from '../components/KanbanColumn';
 import { DealsKanbanBoard, KANBAN_STAGES } from '../components/DealsKanbanBoard';
 
@@ -53,6 +53,8 @@ describe('DealsViewToggle', () => {
     expect(kanbanBtn).toBeInTheDocument();
     expect(tableBtn).toHaveAttribute('aria-pressed', 'true');
     expect(kanbanBtn).toHaveAttribute('aria-pressed', 'false');
+    expect(tableBtn).toHaveAttribute('aria-label', 'Tabellenansicht');
+    expect(kanbanBtn).toHaveAttribute('aria-label', 'Kanban-Ansicht');
 
     fireEvent.click(kanbanBtn);
     expect(onChange).toHaveBeenCalledWith('kanban');
@@ -60,6 +62,32 @@ describe('DealsViewToggle', () => {
     rerender(<DealsViewToggle viewMode="kanban" onChange={onChange} />);
     expect(tableBtn).toHaveAttribute('aria-pressed', 'false');
     expect(kanbanBtn).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('isDealOverdue', () => {
+  it('unterscheidet fällige und überfällige Deals exakt auf Kalendertagebene', () => {
+    const today = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const yesterdayStr = `${yesterday.getFullYear()}-${pad(yesterday.getMonth() + 1)}-${pad(yesterday.getDate())}`;
+
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
+
+    // Heute fällig ist noch NICHT überfällig
+    expect(isDealOverdue(todayStr, false)).toBe(false);
+
+    // Gestern fällig ist überfällig
+    expect(isDealOverdue(yesterdayStr, false)).toBe(true);
+
+    // Morgen fällig ist nicht überfällig
+    expect(isDealOverdue(tomorrowStr, false)).toBe(false);
+
+    // Gewonnene oder verlorene Deals sind nie überfällig
+    expect(isDealOverdue(yesterdayStr, true)).toBe(false);
   });
 });
 
@@ -75,7 +103,7 @@ describe('DealKanbanCard', () => {
     expect(screen.getByText('Überfällig')).toBeInTheDocument();
   });
 
-  it('erlaubt barrierefreien Phasenwechsel über das Tastaturmenü', () => {
+  it('erlaubt barrierefreien Phasenwechsel über das Portal-Tastaturmenü', () => {
     const onMoveStage = vi.fn();
     render(
       <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={onMoveStage} />,
@@ -89,6 +117,19 @@ describe('DealKanbanCard', () => {
 
     fireEvent.click(targetStageOption);
     expect(onMoveStage).toHaveBeenCalledWith('deal-1', 'Angebot erstellt');
+  });
+
+  it('schließt das Phasenmenü bei Escape', () => {
+    render(
+      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+    );
+
+    const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
+    fireEvent.click(menuBtn);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
   it('setzt bei HTML5 Drag-Start die Deal-ID', () => {
@@ -189,6 +230,26 @@ describe('DealsKanbanBoard', () => {
     expect(screen.getAllByText('120.000 €').length).toBeGreaterThanOrEqual(1);
     // Aktive Deals im Board: 4
     expect(screen.getByText('4')).toBeInTheDocument();
+  });
+
+  it('zeigt Teilsummen-Hinweis und Nachlade-Button bei mehr Deals als geladen', () => {
+    const onLoadMore = vi.fn();
+    render(
+      <DealsKanbanBoard
+        deals={MOCK_DEALS}
+        totalDeals={100}
+        hasMore={true}
+        onLoadMore={onLoadMore}
+      />,
+    );
+
+    expect(screen.getByText(/Teilsumme: 4 von 100 Deals/)).toBeInTheDocument();
+    expect(screen.getByText('4 von 100')).toBeInTheDocument();
+
+    const loadMoreBtn = screen.getByTestId('kanban-load-more-btn');
+    expect(loadMoreBtn).toBeInTheDocument();
+    fireEvent.click(loadMoreBtn);
+    expect(onLoadMore).toHaveBeenCalledTimes(1);
   });
 
   it('aktualisiert Phasen und Summen optimistisch bei Phasenwechsel', () => {

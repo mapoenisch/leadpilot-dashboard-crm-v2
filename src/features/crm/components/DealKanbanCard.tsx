@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { GripVertical, MoreVertical, Calendar, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,30 @@ export interface DealKanbanCardProps {
   isDragging?: boolean;
 }
 
+/**
+ * Prüft auf Kalendertag-Ebene (lokale Zeitzone), ob ein Abschlussdatum
+ * vor dem heutigen Kalendertag abgelaufen ist.
+ */
+export function isDealOverdue(closeDate?: string, isWonOrLost = false): boolean {
+  if (isWonOrLost || !closeDate) return false;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(closeDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (match) {
+    const year = parseInt(match[1]!, 10);
+    const month = parseInt(match[2]!, 10) - 1;
+    const day = parseInt(match[3]!, 10);
+    const targetDate = new Date(year, month, day, 0, 0, 0, 0);
+    return targetDate.getTime() < today.getTime();
+  }
+
+  const d = new Date(closeDate);
+  if (Number.isNaN(d.getTime())) return false;
+  const targetDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  return targetDate.getTime() < today.getTime();
+}
+
 export function DealKanbanCard({
   deal,
   allStages,
@@ -22,19 +47,49 @@ export function DealKanbanCard({
   isDragging,
 }: DealKanbanCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuCoords, setMenuCoords] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const stageLower = deal.stage.toLowerCase();
   const isWon = stageLower.includes('gewonnen');
   const isLost = stageLower.includes('verloren');
 
-  // Überfälligkeits-Check für offene Deals
-  const isOverdue = useMemo(() => {
-    if (isWon || isLost || !deal.closeDate) return false;
-    const date = new Date(deal.closeDate);
-    if (Number.isNaN(date.getTime())) return false;
-    // Vergleich mit aktuellem Datum
-    return date.getTime() < Date.now();
-  }, [deal.closeDate, isWon, isLost]);
+  // Überfälligkeits-Check auf Kalendertagebene für offene Deals
+  const isOverdue = useMemo(
+    () => isDealOverdue(deal.closeDate, isWon || isLost),
+    [deal.closeDate, isWon, isLost],
+  );
+
+  const toggleMenu = () => {
+    if (menuOpen) {
+      setMenuOpen(false);
+      return;
+    }
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const menuWidth = 210;
+      const left = Math.max(8, rect.right - menuWidth);
+      const top = rect.bottom + 4;
+      setMenuCoords({ top, left });
+    }
+    setMenuOpen(true);
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleScrollOrResize = () => setMenuOpen(false);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData('text/plain', deal.id);
@@ -77,10 +132,11 @@ export function DealKanbanCard({
         {/* Tastaturbedienbares Menü für barrierefreien Phasenwechsel */}
         <div className="relative">
           <button
+            ref={buttonRef}
             type="button"
             draggable={false}
             onDragStart={(e) => e.stopPropagation()}
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={toggleMenu}
             aria-label={`${deal.dealName}: Phase ändern`}
             aria-expanded={menuOpen}
             className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-text-muted)] hover:bg-surface-hover hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -88,50 +144,59 @@ export function DealKanbanCard({
             <MoreVertical size={13} aria-hidden="true" />
           </button>
 
-          {menuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-20"
-                onClick={() => setMenuOpen(false)}
-                aria-hidden="true"
-              />
-              <div
-                role="menu"
-                aria-label={`Phase für ${deal.dealName} wählen`}
-                className="absolute right-0 top-7 z-30 min-w-[200px] rounded-lg border border-border bg-[var(--color-surface-raised,#0f2422)] p-1.5 shadow-xl backdrop-blur-md"
-              >
-                <div className="px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)] border-b border-border/50">
-                  In Phase verschieben:
+          {menuOpen &&
+            typeof document !== 'undefined' &&
+            createPortal(
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setMenuOpen(false)}
+                  aria-hidden="true"
+                />
+                <div
+                  ref={(el) => {
+                    if (el && menuCoords) {
+                      el.style.top = `${menuCoords.top}px`;
+                      el.style.left = `${menuCoords.left}px`;
+                    }
+                  }}
+                  role="menu"
+                  aria-label={`Phase für ${deal.dealName} wählen`}
+                  className="fixed z-50 min-w-[200px] rounded-lg border border-border bg-[var(--color-surface-raised,#0f2422)] p-1.5 shadow-2xl backdrop-blur-md"
+                >
+                  <div className="px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)] border-b border-border/50">
+                    In Phase verschieben:
+                  </div>
+                  <div className="flex flex-col gap-0.5 mt-1 max-h-[220px] overflow-y-auto">
+                    {allStages.map((stage) => {
+                      const isCurrent = stage === deal.stage;
+                      return (
+                        <button
+                          key={stage}
+                          type="button"
+                          role="menuitem"
+                          disabled={isCurrent}
+                          onClick={() => {
+                            onMoveStage(deal.id, stage);
+                            setMenuOpen(false);
+                          }}
+                          className={cn(
+                            'flex items-center justify-between rounded px-2 py-1.5 text-xs text-left transition-colors',
+                            isCurrent
+                              ? 'bg-primary/20 text-primary font-semibold cursor-default'
+                              : 'text-text hover:bg-surface-hover hover:text-primary',
+                          )}
+                        >
+                          <span className="truncate">{stage}</span>
+                          {isCurrent && <span className="text-[10px] text-primary">Aktiv</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-col gap-0.5 mt-1 max-h-[220px] overflow-y-auto">
-                  {allStages.map((stage) => {
-                    const isCurrent = stage === deal.stage;
-                    return (
-                      <button
-                        key={stage}
-                        type="button"
-                        role="menuitem"
-                        disabled={isCurrent}
-                        onClick={() => {
-                          onMoveStage(deal.id, stage);
-                          setMenuOpen(false);
-                        }}
-                        className={cn(
-                          'flex items-center justify-between rounded px-2 py-1.5 text-xs text-left transition-colors',
-                          isCurrent
-                            ? 'bg-primary/20 text-primary font-semibold cursor-default'
-                            : 'text-text hover:bg-surface-hover hover:text-primary',
-                        )}
-                      >
-                        <span className="truncate">{stage}</span>
-                        {isCurrent && <span className="text-[10px] text-primary">Aktiv</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
+              </>,
+              document.body,
+            )}
         </div>
       </div>
 

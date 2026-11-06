@@ -1,8 +1,7 @@
 // G60 (Auftrag 067N, Step 4) / Auftrag 129: URL-synchrone serverseitige Deals-Ansicht mit Pagination, Export und Kanban-Board
-import { useState, useMemo, useId } from 'react';
+import { useState, useMemo, useCallback, useEffect, useId } from 'react';
 import { Search, Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Select, SelectOption } from '@/components/ui/Select';
@@ -12,10 +11,11 @@ import { ImportedFunnelDeal } from '@/types/crm';
 import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
-import { downloadCrmExport, CrmServiceError } from '@/services/crm/crmExportService';
+import { fetchCrmExportBlob, CrmServiceError } from '@/services/crm/crmExportService';
+import { fetchCrmList } from '@/services/crm/crmListService';
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import { useCrmProvenance } from '../hooks/useCrmProvenance';
-import { CrmResponsiveList, CrmColumn } from '../components/CrmResponsiveList';
+import { DealsTableCard } from '../components/DealsTableCard';
 import { DealsViewToggle, DealsViewMode } from '../components/DealsViewToggle';
 import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
 import { DealsKpiGrid } from '../components/DealsKpiGrid';
@@ -59,9 +59,37 @@ export function DealsPage() {
   const [sortOrder, setSortOrder] = useUrlSyncedState('order', 'desc');
 
   const page = Math.max(1, parseInt(pageStr, 10) || 1);
-  // Im Kanban-Modus zeigen wir die Deals ohne Paginierungsbeschränkung auf 20
   const pageSize =
     viewMode === 'kanban' ? 100 : Math.min(100, Math.max(1, parseInt(pageSizeStr, 10) || 20));
+
+  // Phasenwechsel über Ansichtswechsel hinaus erhalten (Session-Storage)
+  const [stageOverrides, setStageOverrides] = useState<Record<string, string>>(() => {
+    try {
+      const s = sessionStorage.getItem('leadpilot_crm_deal_stage_overrides');
+      return s ? JSON.parse(s) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleDealStageChange = useCallback((dealId: string, newStage: string) => {
+    setStageOverrides((prev) => {
+      const next = { ...prev, [dealId]: newStage };
+      try {
+        sessionStorage.setItem('leadpilot_crm_deal_stage_overrides', JSON.stringify(next));
+      } catch {
+        // Ignoriere Fehler, falls SessionStorage im Browser deaktiviert ist
+      }
+      return next;
+    });
+  }, []);
+
+  const [extraDeals, setExtraDeals] = useState<ImportedFunnelDeal[]>([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  useEffect(() => {
+    setExtraDeals([]);
+  }, [searchTerm, stageFilter, sortField, sortOrder]);
 
   const handleSortChange = (val: string) => {
     setSortField(val);
@@ -70,6 +98,16 @@ export function DealsPage() {
 
   const handleOrderChange = (val: string) => {
     setSortOrder(val);
+    setPageStr('1');
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
+    setPageStr('1');
+  };
+
+  const handleStageChange = (val: string) => {
+    setStageFilter(val);
     setPageStr('1');
   };
 
@@ -85,43 +123,90 @@ export function DealsPage() {
       pageSize,
     });
 
+  const total = data?.total ?? 0;
+  const rawDeals = useMemo(
+    () => (viewMode === 'kanban' ? [...(data?.items ?? []), ...extraDeals] : (data?.items ?? [])),
+    [viewMode, data?.items, extraDeals],
+  );
+
+  const deals = useMemo(() => {
+    if (Object.keys(stageOverrides).length === 0) return rawDeals;
+    return rawDeals.map((d) => (stageOverrides[d.id] ? { ...d, stage: stageOverrides[d.id]! } : d));
+  }, [rawDeals, stageOverrides]);
+
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore) return;
+    setIsLoadingMore(true);
+    try {
+      const currentCount = (data?.items?.length ?? 0) + extraDeals.length;
+      const nextPage = Math.floor(currentCount / 100) + 1;
+      const res = await fetchCrmList<ImportedFunnelDeal>({
+        resource: 'deals',
+        q: searchTerm.trim() || undefined,
+        filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
+        sortBy: sortField,
+        sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+        page: nextPage,
+        pageSize: 100,
+      });
+      setExtraDeals((prev) => [...prev, ...res.items]);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [
+    data?.items?.length,
+    extraDeals.length,
+    isLoadingMore,
+    searchTerm,
+    sortField,
+    sortOrder,
+    stageFilter,
+  ]);
+
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
-
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setPageStr('1');
-  };
-
-  const handleStageChange = (val: string) => {
-    setStageFilter(val);
-    setPageStr('1');
-  };
 
   const handleExport = async () => {
     setIsExporting(true);
     setExportError(null);
     try {
-      await downloadCrmExport({
+      const blob = await fetchCrmExportBlob({
         resource: 'deals',
         q: searchTerm.trim() || undefined,
         filters: stageFilter !== 'ALL' ? { stage: stageFilter } : undefined,
         sortBy: sortField,
         sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
       });
-    } catch (err) {
-      if (err instanceof CrmServiceError) {
-        setExportError(err.message);
-      } else {
-        setExportError('Fehler beim Ausführen des CSV-Exports.');
+      let exportBlob = blob;
+      if (Object.keys(stageOverrides).length > 0) {
+        const text = await blob.text();
+        const lines = text.split('\n');
+        const updated = lines.map((line, idx) => {
+          if (idx === 0 || !line.trim()) return line;
+          const cols = line.split(',');
+          const id = cols[0]?.replace(/^["']|["']$/g, '');
+          if (id && stageOverrides[id]) {
+            cols[2] = `"${stageOverrides[id]}"`;
+            return cols.join(',');
+          }
+          return line;
+        });
+        exportBlob = new Blob([updated.join('\n')], { type: 'text/csv; charset=utf-8' });
       }
+      const url = URL.createObjectURL(exportBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'deals-export.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setExportError(err instanceof CrmServiceError ? err.message : 'Fehler beim CSV-Export.');
     } finally {
       setIsExporting(false);
     }
   };
-
-  const deals = useMemo(() => data?.items ?? [], [data?.items]);
-  const total = data?.total ?? 0;
 
   const hasData = data !== undefined && !isPlaceholderData;
   const countText = isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
@@ -139,48 +224,6 @@ export function DealsPage() {
     }
     return [...BASE_STAGE_OPTIONS, ...extraOptions];
   }, [deals]);
-
-  const columns: CrmColumn<ImportedFunnelDeal>[] = [
-    {
-      key: 'dealName',
-      label: 'Deal Name',
-      render: (r) => <strong className="text-text">{r.dealName}</strong>,
-    },
-    {
-      key: 'stage',
-      label: 'Vertriebsphase',
-      render: (r) => {
-        const s = r.stage.toLowerCase();
-        const v = s.includes('gewonnen') ? 'cyan' : s.includes('verloren') ? 'neutral' : 'orange';
-        return <Badge variant={v}>{r.stage}</Badge>;
-      },
-    },
-    {
-      key: 'amount',
-      label: 'Deal-Volumen (€)',
-      render: (r) => {
-        const s = r.stage.toLowerCase();
-        const cls = s.includes('gewonnen')
-          ? 'text-primary'
-          : s.includes('verloren')
-            ? 'text-[var(--color-text-muted)]'
-            : 'text-accent';
-        return <strong className={`font-mono ${cls}`}>{r.amount.toLocaleString('de-DE')} €</strong>;
-      },
-    },
-    {
-      key: 'closeDate',
-      label: 'Abschlussdatum',
-      render: (r) => (
-        <span className="text-[13px] text-[var(--color-text-muted)]">{r.closeDate}</span>
-      ),
-    },
-    {
-      key: 'pipeline',
-      label: 'Pipeline',
-      render: (r) => <Badge variant="neutral">{r.pipeline}</Badge>,
-    },
-  ];
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
@@ -316,66 +359,26 @@ export function DealsPage() {
           onRetry={() => void refetch()}
         />
       ) : viewMode === 'kanban' ? (
-        <DealsKanbanBoard deals={deals} />
+        <DealsKanbanBoard
+          deals={deals}
+          totalDeals={total}
+          onDealStageChange={handleDealStageChange}
+          onLoadMore={handleLoadMore}
+          hasMore={deals.length < total}
+          isLoadingMore={isLoadingMore}
+        />
       ) : (
-        <Card variant="glass" padding="0">
-          <CrmResponsiveList
-            caption="Deal Pipeline Tabelle"
-            columns={columns}
-            rows={deals}
-            keyExtractor={(r) => r.id}
-            page={page}
-            pageSize={pageSize}
-            total={total}
-            onPageChange={(newPage) => setPageStr(String(newPage))}
-            onPageSizeChange={(newSize) => {
-              setPageSizeStr(String(newSize));
-              setPageStr('1');
-            }}
-            renderMobileCard={(r) => (
-              <div className="crm-v2-mobile-card">
-                <div className="crm-v2-mobile-card-header">
-                  <span className="crm-v2-mobile-card-title">{r.dealName}</span>
-                  <Badge
-                    variant={
-                      r.stage.toLowerCase().includes('gewonnen')
-                        ? 'cyan'
-                        : r.stage.toLowerCase().includes('verloren')
-                          ? 'neutral'
-                          : 'orange'
-                    }
-                  >
-                    {r.stage}
-                  </Badge>
-                </div>
-                <div className="crm-v2-mobile-card-row">
-                  <span className="crm-v2-mobile-card-label">Deal-Volumen</span>
-                  <span
-                    className={`crm-v2-mobile-card-value font-mono font-semibold ${
-                      r.stage.toLowerCase().includes('gewonnen')
-                        ? 'text-primary'
-                        : r.stage.toLowerCase().includes('verloren')
-                          ? 'text-[var(--color-text-muted)]'
-                          : 'text-accent'
-                    }`}
-                  >
-                    {r.amount.toLocaleString('de-DE')} €
-                  </span>
-                </div>
-                <div className="crm-v2-mobile-card-row">
-                  <span className="crm-v2-mobile-card-label">Abschlussdatum</span>
-                  <span className="crm-v2-mobile-card-value">{r.closeDate}</span>
-                </div>
-                <div className="crm-v2-mobile-card-row">
-                  <span className="crm-v2-mobile-card-label">Pipeline</span>
-                  <span className="crm-v2-mobile-card-value">
-                    <Badge variant="neutral">{r.pipeline}</Badge>
-                  </span>
-                </div>
-              </div>
-            )}
-          />
-        </Card>
+        <DealsTableCard
+          deals={deals}
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={(newPage) => setPageStr(String(newPage))}
+          onPageSizeChange={(newSize) => {
+            setPageSizeStr(String(newSize));
+            setPageStr('1');
+          }}
+        />
       )}
     </div>
   );

@@ -18230,3 +18230,63 @@ Realisierung von Paket 1 des Evolution-Plans für LeadPilot CRM Deals: Bereitste
   - `DealsKpiGrid.tsx`: 63 Zeilen
   - `DealsViewToggle.tsx`: 46 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+### Nacharbeit Codex-Review Runde 1 (PR #139, Head `ca0ad79`)
+
+**Rolle:** Antigravity · **Branch:** `claude/auftrag-129-crm-deals-kanban`
+
+Alle 6 Codex-Befunde (2 P1, 4 P2) aus Review-Runde 1 strukturiert behoben:
+
+1. **Befund 1 (P1, `DealsPage.tsx` – Phasenwechsel über Ansichtswechsel hinaus erhalten & CSV-Synchronisation):**
+   - Phasenwechsel wurden bisher ausschließlich in der lokalen Komponenten-State von `DealsKanbanBoard` verwaltet und gingen beim Wechsel zur Tabellenansicht verloren.
+   - `stageOverrides` auf Page-Ebene gehoben und über `sessionStorage` (`leadpilot_crm_deal_stage_overrides`) sitzungsweit persistiert.
+   - Beide Ansichten (Tabelle und Kanban) sowie der CSV-Export greifen synchron auf die wirksamen Deals mit angewendeten Phasenwechseln zu.
+   - CSV-Export (`handleExport`) aktualisiert die Stage-Spalte für manuell verschobene Deals automatisch vor dem Download.
+
+2. **Befund 2 (P2, `DealsPage.tsx`, `DealsKanbanBoard.tsx` – Weitere Ergebnisseiten im Kanban-Modus):**
+   - Bei mehr als 100 Deals lädt das Board nun per `handleLoadMore` nachfolgende Seiten paginiert nach (`extraDeals` via `fetchCrmList`).
+   - Solange noch nicht alle Deals geladen sind, wird das Pipeline-Volumen transparent als Teilsumme ausgewiesen (`Pipeline-Volumen (Teilsumme: X von Y Deals): ... €`).
+   - Ein dedizierter Nachlade-Button (`kanban-load-more-btn`) ermöglicht das bequeme Abrufen weiterer 100er-Seiten.
+
+3. **Befund 3 (P2, `DealsViewToggle.tsx` – Mobile Screenreader-Zugänglichkeit):**
+   - Die Umschalter besaßen unterhalb von `sm` keine zugänglichen Namen, da die Textbeschriftungen ausgeblendet und Icons `aria-hidden` waren.
+   - Individuelle barrierefreie Namen via `aria-label="Tabellenansicht"` und `aria-label="Kanban-Ansicht"` sowie `sr-only`-Labels für Screenreader auf allen Bildschirmgrößen ergänzt.
+
+4. **Befund 4 (P1, `scripts/captureAuftrag129Gate.mjs` – Vorher/Nachher-Paarung & Hash-Vergleich):**
+   - Der Harness erzeugt und vergleicht nun echte Vorher/Nachher-Paare auf allen 3 Viewports (1440, 768, 375 px) in beiden Themes (dark/light) für 3 Szenarien (18 Paare gesamt).
+   - Vorher (`d3fe131`, reine Tabelle ohne Ansichtsumschalter) wird mit Nachher (Tabelle mit Umschalter, interaktives Kanban-Board, geöffnetes Portal-Tastaturmenü) verglichen.
+   - 18 von 18 Paaren (100 %) weisen verschiedene SHA-256-Hashes auf, 0 px Überlauf in allen Varianten; fehlende Paare oder identische Hashes lassen das Gate fehlschlagen.
+
+5. **Befund 5 (P2, `DealKanbanCard.tsx` – Portal-Rendering außerhalb des Karten-Stacking-Contexts):**
+   - Durch `backdrop-blur-md` auf den Karten und `overflow-y-auto` auf `KanbanColumn` wurden tieferliegende Menüeinträge von nachfolgenden Geschwisterkarten überdeckt oder am Containerrand abgeschnitten.
+   - Phasenmenü rendert nun via `createPortal` direkt in `document.body` mit dynamischer Platzierung anhand der Button-Koordinaten (`getBoundingClientRect`).
+   - Keine JSX-Inline-Styles (zur Einhaltung des strikten Ratchet-Budgets `inlineStyles:src/ = 0` und `react/forbid-dom-props`), Schließen bei Klick außerhalb, Scroll und Escape-Taste.
+
+6. **Befund 6 (P2, `DealKanbanCard.tsx` – Fälligkeitsprüfung auf Kalendertag-Ebene):**
+   - Deals mit Fälligkeit am heutigen Tag wurden im Tagesverlauf fälschlicherweise als überfällig markiert, da UTC-Mitternacht mit `Date.now()` verglichen wurde.
+   - `isDealOverdue` vergleicht nun die Datumskomponenten exakt auf lokaler Kalendertagebene: Deals am heutigen Fälligkeitstag bleiben regulär offen; erst ab dem Folgetag greift die Warnung.
+
+7. **Modulare Architektur & Zeilenbudget:**
+   - Zur Einhaltung des Zeilenbudgets ($\le 400$ Zeilen) wurde `DealsTableCard.tsx` (122 Zeilen) ausgelagert.
+   - `DealsPage.tsx` bleibt mit 385 Zeilen strikt innerhalb der Budgetgrenze.
+
+### Automatisierte Verifikation (Nacharbeit Runde 1)
+
+- `npm run format:check`: 0 Abweichungen (Alle Dateien Prettier-konform)
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
+- `npm test src/features/crm`: 18 Testdateien, 112 Tests grün
+- `npm test`: 352 Testdateien, 2.559 Tests grün (100% bestanden)
+- `npm run verify`: Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)
+- `npm run build`: Erfolgreich (10.27s)
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `DealsViewToggle.tsx`: 50 Zeilen
+  - `DealKanbanCard.tsx`: 246 Zeilen
+  - `KanbanColumn.tsx`: 135 Zeilen
+  - `DealsKanbanBoard.tsx`: 170 Zeilen
+  - `DealsKpiGrid.tsx`: 63 Zeilen
+  - `DealsTableCard.tsx`: 122 Zeilen
+  - `DealsPage.tsx`: 385 Zeilen
+- **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
