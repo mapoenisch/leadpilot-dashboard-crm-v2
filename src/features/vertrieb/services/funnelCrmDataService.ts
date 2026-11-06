@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchCrmList, CrmResource, CrmPageResult } from '@/services/crm/crmListService';
+import { crmKeys } from '@/services/query/queryKeys';
 
 export const CRM_QUERY_MAX_PAGE_SIZE = 100;
 
@@ -50,6 +51,14 @@ export async function fetchAllCrmEntities<T>(
 }
 
 /**
+ * Gibt den Query-Key für Funnel-CRM-Listen zurück, angebunden an crmKeys.listsOf(resource),
+ * damit Mutationen wie convertLeadToDeal die Abfragen automatisch invalidieren.
+ */
+export function getFunnelAllCrmQueryKey(resource: CrmResource, orgId?: string) {
+  return crmKeys.list(resource, { scope: 'all', orgId: orgId ?? 'default' });
+}
+
+/**
  * TanStack Query Hook zum vollständigen Laden aller CRM-Entities einer Ressource.
  */
 export function useAllCrmEntitiesQuery<T>(
@@ -58,7 +67,7 @@ export function useAllCrmEntitiesQuery<T>(
   options?: { enabled?: boolean },
 ) {
   return useQuery<T[]>({
-    queryKey: ['funnel-crm-all', resource, orgId ?? 'default'],
+    queryKey: getFunnelAllCrmQueryKey(resource, orgId),
     queryFn: () => fetchAllCrmEntities<T>(resource),
     placeholderData: (previousData) => previousData,
     enabled: options?.enabled,

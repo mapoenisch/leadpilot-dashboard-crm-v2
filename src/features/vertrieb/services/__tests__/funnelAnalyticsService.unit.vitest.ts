@@ -155,6 +155,32 @@ describe('funnelAnalyticsService', () => {
       // liveMql ist capped bei liveLeads (5)
       expect(result.totalMqlLive).toBe(5);
     });
+
+    it('dedupliziert qualifizierte Leads, die bereits als Deal konvertiert wurden', () => {
+      const convertedDeals: ImportedFunnelDeal[] = [
+        {
+          id: 'd-conv-c1-1718000000000',
+          dealName: 'Deal aus Lead 1',
+          stage: 'Erstgespräch geführt',
+          amount: 15000,
+          closeDate: '2026-12-31',
+          pipeline: 'Enterprise SaaS',
+        },
+      ];
+
+      const result = calculateFunnelAnalytics({
+        contacts: mockContacts, // 5 Kontakte: c1, c2, c3, c4, c5
+        deals: convertedDeals, // 1 Deal aus c1
+        qualifiedLeadIds: ['c1'], // c1 ist als qualifiziert markiert
+      });
+
+      // c1 darf nicht doppelt gezählt werden (1x Deal + 1x Kontakt)
+      expect(result.totalLeadsLive).toBe(5);
+      expect(result.totalMqlLive).toBe(1);
+      const mqlStage = result.stages.find((s) => s.key === 'mql')!;
+      expect(mqlStage.liveCount).toBe(1);
+      expect(mqlStage.liveConversionQuote).toBe(20.0); // 1 / 5 = 20 %
+    });
   });
 
   describe('Bottleneck-Erkennung (identifyFunnelBottlenecks)', () => {

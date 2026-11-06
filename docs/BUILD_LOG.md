@@ -19078,3 +19078,30 @@ Alle 8 Befunde aus dem automatisierten Codex-Review auf GitHub wurden analysiert
   - `src/features/vertrieb/components/FunnelSourceToggle.tsx`: 134 Zeilen
   - `src/features/vertrieb/components/FunnelBottleneckAlert.tsx`: 100 Zeilen
   - `src/features/vertrieb/services/funnelCrmDataService.ts`: 66 Zeilen
+
+### Nacharbeit Codex-Review Runde 2 (PR #141)
+
+Alle 2 Befunde aus dem zweiten automatisierten Codex-Review auf GitHub wurden analysiert und vollständig behoben:
+
+1. **P2 – Zähle konvertierte Leads bei der MQL-Aggregation nur einmal (`funnelAnalyticsService.ts`):**
+   - **Befund:** `convertLeadToDeal` legt einen Deal an und markiert gleichzeitig dessen Kontakt in `qualifiedLeadIds`. Der Deal ging bereits in `mqlDealsCount` ein; sein weiterhin vorhandener Kontakt wurde anschließend nochmals als `additionalQualifiedContacts` addiert (Doppelzählung).
+   - **Lösung:** Deduplizierung qualifizierter Kontakte gegen die bereits gezählten Deals (anhand `deal.leadId`, `deal.contactId`, `d-conv-*` ID-Präfix und `deal.id`). Neuer Unit-Test belegt exakt 1 MQL und 20 % Conversion bei 5 Kontakten und 1 konvertierten Deal.
+2. **P2 – Binde die Funnel-Abfragen in die CRM-Invalidierung ein (`funnelCrmDataService.ts`):**
+   - **Befund:** Der Schlüssel `['funnel-crm-all', ...]` wurde bei `convertLeadToDeal` nicht invalidiert, da diese Mutation gezielt `crmKeys.listsOf('deals')` / `crmKeys.listsOf('contacts')` (`['crm', 'list', ... ]`) invalidiert.
+   - **Lösung:** `useAllCrmEntitiesQuery` nutzt nun `crmKeys.list(resource, { scope: 'all', orgId })` (via `getFunnelAllCrmQueryKey`). Damit beginnt der Cache-Schlüssel mit `['crm', 'list', resource]` und wird von bestehenden CRM-Mutationen automatisch invalidiert. Neuer Unit-Test hinzugefügt.
+3. **Review-Konversationen auf GitHub:**
+   - Alle 10 Review-Konversationen auf PR #141 wurden per GitHub GraphQL API (`resolveReviewThread`) auf `resolved` gesetzt.
+
+#### Verifikation nach Runde 2
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/vertrieb`: **10 Testdateien, 51/51 Tests grün**
+- `npm test`: **363 Testdateien, 2.640 Tests grün**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden**
+- `npm run build`: **Erfolgreich (4.20s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/vertrieb/services/funnelAnalyticsService.ts`: 389 Zeilen
+  - `src/features/vertrieb/services/funnelCrmDataService.ts`: 75 Zeilen

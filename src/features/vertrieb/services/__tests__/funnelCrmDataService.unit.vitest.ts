@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as crmListService from '@/services/crm/crmListService';
-import { fetchAllCrmEntities, CRM_QUERY_MAX_PAGE_SIZE } from '../funnelCrmDataService';
+import { crmKeys } from '@/services/query/queryKeys';
+import {
+  fetchAllCrmEntities,
+  getFunnelAllCrmQueryKey,
+  CRM_QUERY_MAX_PAGE_SIZE,
+} from '../funnelCrmDataService';
 
 vi.mock('@/services/crm/crmListService', async () => {
   const actual = await vi.importActual<typeof import('@/services/crm/crmListService')>(
@@ -79,5 +84,12 @@ describe('funnelCrmDataService (fetchAllCrmEntities)', () => {
     vi.mocked(crmListService.fetchCrmList).mockRejectedValueOnce(new Error('Netzwerkfehler'));
 
     await expect(fetchAllCrmEntities('contacts')).rejects.toThrow('Netzwerkfehler');
+  });
+
+  it('nutzt einen an crmKeys.listsOf angebundenen Query-Key für automatische Invalidierung', () => {
+    const key = getFunnelAllCrmQueryKey('deals', 'org-123');
+    // Prefix muss mit crmKeys.listsOf('deals') übereinstimmen: ['crm', 'list', 'deals']
+    expect(key.slice(0, 3)).toEqual(crmKeys.listsOf('deals'));
+    expect(key).toEqual(crmKeys.list('deals', { scope: 'all', orgId: 'org-123' }));
   });
 });

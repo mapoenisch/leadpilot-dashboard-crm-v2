@@ -256,10 +256,21 @@ export function calculateFunnelAnalytics({
     }
   }
 
-  // Zusätzliche qualifizierte Leads aus den Kontakten berücksichtigen
+  // Deduplizierung: Leads, die bereits als Deals existieren, nicht doppelt als MQL zählen
+  const dealsWithLeadId = new Set<string>();
+  for (const deal of deals) {
+    const anyDeal = deal as unknown as { leadId?: string; contactId?: string };
+    if (anyDeal.leadId) dealsWithLeadId.add(String(anyDeal.leadId));
+    if (anyDeal.contactId) dealsWithLeadId.add(String(anyDeal.contactId));
+    const convMatch = /^d-conv-(.+?)-\d+$/.exec(deal.id);
+    if (convMatch && convMatch[1]) dealsWithLeadId.add(convMatch[1]);
+    dealsWithLeadId.add(deal.id);
+  }
+
+  // Zusätzliche qualifizierte Leads aus den Kontakten berücksichtigen (dedupliziert gegen Deals)
   let additionalQualifiedContacts = 0;
   for (const c of contacts) {
-    if (qualifiedSet.has(c.id)) {
+    if (qualifiedSet.has(c.id) && !dealsWithLeadId.has(c.id)) {
       additionalQualifiedContacts += 1;
     }
   }
