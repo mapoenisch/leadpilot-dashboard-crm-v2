@@ -18537,3 +18537,13 @@ Den Codex-Befund (1 P2) aus Review-Runde 7 strukturiert behoben:
   - `DealsPage.findings.ui.vitest.tsx`: 303 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
+
+
+### Nachtrag: Codex-Review auf Head `a79d709` (Freigabe ohne Befunde)
+
+**Rolle:** Protokoll Claude Code (Prüfung durch Codex-App auf GitHub) · **Geprüfter Commit:** `a79d709f7b`
+
+- **Codex-Ergebnis:** Keine offenen oder neuen Befunde (*„Codex Review: Didn't find any major issues. Swish! — Reviewed commit: a79d709f7b“*).
+- **Status:** Alle 7 Befundrunden vollständig im Code behoben und verifiziert.
+- **CI-Status:** Alle Pflicht-Checks (`lint`, `typecheck`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e`, `CodeQL`) erfolgreich auf Head `a79d709`.
+- **Bereit für Gate-Freigabe & Merge durch Marc.**
