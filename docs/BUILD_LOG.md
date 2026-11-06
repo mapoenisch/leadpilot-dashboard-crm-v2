@@ -18482,7 +18482,7 @@ Den Codex-Befund (1 P2) aus Review-Runde 6 strukturiert behoben:
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler, 0 Warnungen
 - `npm run verify:quality-budget`: 0 Regressionen (50/50 Suppressions, 0 Inline-Styles)
-- `npm test src/features/crm`: 18 Testdateien, 126 Tests grün
+- `npm test src/features/crm`: 17 Testdateien, 114 Tests grün
 - `npm run build`: Erfolgreich (3.44s)
 - **Screenshot-Matrix:** `docs/screenshots/auftrag-129/README.md` (18/18 Paare verschieden, 0 px Überlauf)
 - **Zeilenbudgets ($\le 400$ Zeilen):**
@@ -18496,6 +18496,6 @@ Den Codex-Befund (1 P2) aus Review-Runde 6 strukturiert behoben:
   - `DealsPage.tsx`: 377 Zeilen
   - `crmCsvHelper.ts`: 169 Zeilen
   - `crmCsvHelper.vitest.ts`: 138 Zeilen
-  - `DealsPage.findings.ui.vitest.tsx`: 242 Zeilen
+  - `DealsPage.findings.ui.vitest.tsx`: 250 Zeilen
   - `DealsKanban.ui.vitest.tsx`: 390 Zeilen
 - **Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` 100% leer (0 Diff).
