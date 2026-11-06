@@ -18,7 +18,7 @@ import { LeadsKpiGrid } from '../components/LeadsKpiGrid';
 import { LeadsFilterBar } from '../components/LeadsFilterBar';
 import { LeadQualificationDrawer } from '../components/LeadQualificationDrawer';
 import { LeadConversionModal, ConvertedDealData } from '../components/LeadConversionModal';
-import { getQualifiedLeadIds, mergeConvertedDeals } from '../services/leadConversionService';
+import { getQualifiedLeadIds } from '../services/leadConversionService';
 import {
   TAB_ITEMS,
   AUDIT_NOTES,
@@ -126,7 +126,7 @@ export function LeadsPage() {
     return filterLeadsByQuality(enrichedContacts, qualityFilter);
   }, [activeTab, enrichedContacts, qualityFilter]);
 
-  // Harmonische Paginierung und Zusammenführung konvertierter Deals
+  // Clientseitige Paginierung nur beim Qualitätsfilter; sonst gilt die Serverliste
   const { items, total } = useMemo(() => {
     if (activeTab === 'contacts') {
       if (qualityFilter !== 'ALL') {
@@ -134,10 +134,6 @@ export function LeadsPage() {
         return { items: paged, total: allFilteredContacts.length };
       }
       return { items: enrichedContacts, total: data?.total ?? 0 };
-    }
-    if (activeTab === 'funnel_deals') {
-      const merged = mergeConvertedDeals(rawItems, session?.organizationId);
-      return { items: merged.items, total: (data?.total ?? 0) + merged.totalBonus };
     }
     return { items: rawItems, total: data?.total ?? 0 };
   }, [
@@ -149,7 +145,6 @@ export function LeadsPage() {
     page,
     pageSize,
     data?.total,
-    session?.organizationId,
   ]);
 
   const isAudit = activeTab === 'audit';

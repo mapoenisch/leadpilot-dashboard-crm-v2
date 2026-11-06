@@ -2,14 +2,39 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { QueryClient } from '@tanstack/react-query';
+import { crmKeys } from '@/services/query/queryKeys';
 import {
   parseDealAmount,
-  getStoredConvertedDeals,
   getQualifiedLeadIds,
   markLeadAsQualified,
   convertLeadToDeal,
-  mergeConvertedDeals,
+  type ConvertedDealPayload,
 } from '../leadConversionService';
+
+const dbMock = vi.hoisted(() => ({
+  configured: true,
+  insert: vi.fn(),
+}));
+
+vi.mock('@/services/db/supabaseClient', () => ({
+  get isSupabaseConfigured() {
+    return dbMock.configured;
+  },
+  get supabase() {
+    return dbMock.configured ? { from: () => ({ insert: dbMock.insert }) } : null;
+  },
+}));
+
+const PAYLOAD: ConvertedDealPayload = {
+  dealName: 'Acme – Enterprise Deal',
+  stage: 'Erstgespräch geführt',
+  amount: 45000,
+  closeDate: '2026-12-31',
+  companyName: 'Acme Cloud',
+  leadId: 'lead-42',
+  leadName: 'Max Mustermann',
+};
 
 describe('leadConversionService', () => {
   const testOrg = 'test-org-123';
@@ -17,7 +42,9 @@ describe('leadConversionService', () => {
   beforeEach(() => {
     sessionStorage.clear();
     localStorage.clear();
-    vi.restoreAllMocks();
+    dbMock.configured = true;
+    dbMock.insert.mockReset();
+    dbMock.insert.mockResolvedValue({ error: null });
   });
 
   describe('parseDealAmount', () => {
@@ -47,70 +74,66 @@ describe('leadConversionService', () => {
   });
 
   describe('convertLeadToDeal', () => {
-    it('erstellt einen neuen Deal und markiert den Lead als qualifiziert', async () => {
-      const deal = await convertLeadToDeal(
-        {
-          dealName: 'Acme – Enterprise Deal',
-          stage: 'Erstgespräch geführt',
-          amount: 45000,
-          closeDate: '2026-12-31',
-          companyName: 'Acme Cloud',
-          leadId: 'lead-42',
-          leadName: 'Max Mustermann',
-        },
-        testOrg,
-      );
+    it('speichert den Deal mandantengebunden und markiert den Lead als qualifiziert', async () => {
+      const deal = await convertLeadToDeal(PAYLOAD, testOrg);
 
       expect(deal.id).toMatch(/^d-conv-lead-42-/);
       expect(deal.amount).toBe(45000);
-      expect(deal.dealName).toBe('Acme – Enterprise Deal');
-
-      const stored = getStoredConvertedDeals(testOrg);
-      expect(stored.length).toBe(1);
-      expect(stored[0]!.id).toBe(deal.id);
+      expect(dbMock.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: deal.id,
+          deal_name: 'Acme – Enterprise Deal',
+          organization_id: testOrg,
+        }),
+      );
       expect(getQualifiedLeadIds(testOrg).has('lead-42')).toBe(true);
     });
 
-    it('lehnt unzulässige Beträge mit aussagekräftigem Fehler ab', async () => {
-      await expect(
-        convertLeadToDeal(
-          {
-            dealName: 'Ungültig',
-            stage: 'Erstgespräch geführt',
-            amount: 0,
-            closeDate: '2026-12-31',
-            companyName: 'Acme',
-            leadId: 'lead-x',
-            leadName: 'Test',
-          },
-          testOrg,
-        ),
-      ).rejects.toThrow(/positive Zahl/);
+    it('legt keine lokale Deal-Kopie an, die die Serverliste überlagern könnte', async () => {
+      await convertLeadToDeal(PAYLOAD, testOrg);
+
+      const keys = [...Object.keys(sessionStorage), ...Object.keys(localStorage)];
+      expect(keys.filter((k) => k.includes('converted_deals'))).toEqual([]);
     });
-  });
 
-  describe('mergeConvertedDeals', () => {
-    it('führt gespeicherte Konvertierungen mit serverseitigen Deals zusammen', async () => {
-      await convertLeadToDeal(
-        {
-          dealName: 'Neuer Deal',
-          stage: 'Bedarfsanalyse',
-          amount: 50000,
-          closeDate: '2026-11-30',
-          companyName: 'Muster AG',
-          leadId: 'lead-99',
-          leadName: 'Erika Muster',
-        },
-        testOrg,
+    it('meldet einen Fehler der Datenbank und markiert den Lead dann nicht', async () => {
+      dbMock.insert.mockResolvedValue({ error: { message: 'kaputt' } });
+
+      await expect(convertLeadToDeal(PAYLOAD, testOrg)).rejects.toThrow(/kaputt/);
+      expect(getQualifiedLeadIds(testOrg).has('lead-42')).toBe(false);
+    });
+
+    it('meldet ohne Datenbank keinen Erfolg', async () => {
+      dbMock.configured = false;
+
+      await expect(convertLeadToDeal(PAYLOAD, testOrg)).rejects.toThrow(/nicht gespeichert/);
+      expect(getQualifiedLeadIds(testOrg).has('lead-42')).toBe(false);
+    });
+
+    it('lehnt unzulässige Beträge mit aussagekräftigem Fehler ab', async () => {
+      await expect(convertLeadToDeal({ ...PAYLOAD, amount: 0 }, testOrg)).rejects.toThrow(
+        /positive Zahl/,
       );
+      expect(dbMock.insert).not.toHaveBeenCalled();
+    });
 
-      const serverDeals = [{ id: 'server-1', dealName: 'Alter Deal', amount: 10000 }];
-      const result = mergeConvertedDeals(serverDeals, testOrg);
+    it('invalidiert die parametrisierten Listen und die Pipeline-Übersicht', async () => {
+      const queryClient = new QueryClient();
+      const seed = (key: readonly unknown[]) => {
+        queryClient.setQueryData(key, { items: [] });
+        return () => queryClient.getQueryState(key)?.isInvalidated;
+      };
+      const dealsList = seed(crmKeys.list('deals', { resource: 'deals', page: 2 }));
+      const contactsList = seed(crmKeys.list('contacts', { resource: 'contacts' }));
+      const companiesList = seed(crmKeys.list('companies', { resource: 'companies' }));
+      const pipeline = seed(crmKeys.pipelineOverview());
 
-      expect(result.items.length).toBe(2);
-      expect(result.totalBonus).toBe(1);
-      expect(result.items[0]!.dealName).toBe('Neuer Deal');
-      expect(result.items[1]!.dealName).toBe('Alter Deal');
+      await convertLeadToDeal(PAYLOAD, testOrg, queryClient);
+
+      expect(dealsList()).toBe(true);
+      expect(contactsList()).toBe(true);
+      expect(pipeline()).toBe(true);
+      expect(companiesList()).toBe(false);
     });
   });
 });

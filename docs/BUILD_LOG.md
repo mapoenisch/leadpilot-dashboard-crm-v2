@@ -18891,3 +18891,35 @@ Alle geänderten und neuen TS/TSX-Dateien halten das Limit von $\le 400$ Zeilen 
 - `docs/screenshots/auftrag-130/README.md`: **18/18 Paare verschieden (100%), 0 px Überlauf auf allen Viewports, echte Baseline c11d53f auf Port 3001**
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100% leer (0 Diff)**.
 
+### Nacharbeit Runde 2 (Codex-Review auf `8234600`)
+
+Alle drei P2-Befunde wurden behoben. Zusätzlich war `e2e` rot, weil die Visual-Baselines von `/crm/leads` den neuen Stand noch nicht abbildeten.
+
+1. **Befund 1 (`LeadsPage.tsx`): Gespeicherte Deals verfälschen Liste und Trefferzahl.**
+   - *Ursache:* `mergeConvertedDeals` wertete jeden auf der aktuellen Serverseite fehlenden Deal als zusätzlichen Datensatz, unabhängig von Seite, Suche und Phasenfilter.
+   - *Fix:* Die Serverliste ist die einzige Quelle. Merge und lokale Deal-Kopie entfallen. `fetchCrmList` wirft ohne Supabase immer `UNAUTHORIZED`, der lokale Speicher konnte also nie eine eigene Anzeige bedienen.
+   - *Folge:* `convertLeadToDeal` meldet ohne Datenbank jetzt einen Fehler statt eines Schein-Erfolgs. Der Lead wird erst nach erfolgreichem Insert als qualifiziert markiert.
+2. **Befund 2 (`leadConversionService.ts`): Invalidierung traf keine Listenabfrage.**
+   - *Ursache:* `crmKeys.list('deals')` endet auf `undefined` und ist deshalb kein Präfix der parametrisierten Schlüssel.
+   - *Fix:* Neuer Präfix `crmKeys.listsOf(resource)` in `src/services/query/queryKeys.ts`. Die Datei steht nicht in der Ziel-Tabelle des Auftrags, die Änderung ist vom Befund verlangt (zentrale Key-Factory). Zusätzlich wird `pipelineOverview` invalidiert, weil sie ebenfalls `imported_funnel_deals` liest.
+   - *Gegenprobe:* Mit dem alten Schlüssel schlägt der neue Unit-Test fehl.
+3. **Befund 3 (`LeadScoreBadge.tsx`): Tooltip wurde vom Tabellencontainer abgeschnitten.**
+   - *Fix:* Tooltip per Portal in `document.body`, `position: fixed` am Badge, klappt ohne Platz nach unten, bleibt horizontal im Viewport. Er schließt bei Scroll und Resize und öffnet auch per Tastaturfokus (`aria-describedby`).
+   - *Nachweis:* Neuer e2e-Test `4b` in `e2e/crm-query-export.spec.ts` (nicht in der Ziel-Tabelle, aber nötig, weil jsdom kein Clipping prüfen kann).
+
+### Verifikation (Nacharbeit Runde 2)
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler**
+- `npm run format:check`: **Prettier-konform**
+- `npm run verify:quality-budget`: **ohne Regression (`inlineStyles:src/` = 0)**
+- `npm test`: **360 Testdateien, 2.616 Tests grün**
+- `npm run verify`: **25/25 Integritätssuiten bestanden**
+- `npm run build`: **erfolgreich**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **leer**
+- **Zeilenbudgets:** `LeadsPage.tsx` 377, `LeadScoreBadge.tsx` 143, `leadConversionService.ts` 132 Zeilen
+- **Screenshot-Matrix:** nicht neu erzeugt, die Ruhe-Darstellung ist durch diese Runde unverändert (Tooltip erscheint erst bei Hover oder Fokus)
+
+### Offene Einschränkung
+
+Der Qualifizierungsstatus liegt weiter nur im Browser-Speicher, und `imported_funnel_deals` hat keine Spalte für die Kontaktreferenz. Die serverseitige Lösung braucht eine Schemaänderung und damit einen eigenen Auftrag.

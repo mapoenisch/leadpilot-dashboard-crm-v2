@@ -9,5 +9,7 @@ export const crmKeys = {
   auditSummary: () => [...crmKeys.all, 'auditSummary'] as const,
   pipelineOverview: () => [...crmKeys.all, 'pipelineOverview'] as const,
   syncStatus: () => [...crmKeys.all, 'syncStatus'] as const,
+  // Präfix ohne Parameter: trifft beim Invalidieren alle Listenabfragen einer Ressource.
+  listsOf: (resource: string) => [...crmKeys.all, 'list', resource] as const,
   list: (resource: string, params?: unknown) => [...crmKeys.all, 'list', resource, params] as const,
 };

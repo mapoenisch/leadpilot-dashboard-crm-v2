@@ -8,6 +8,10 @@ import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 
 vi.mock('@/auth/organizationContext', () => ({ useOrganization: vi.fn() }));
 vi.mock('@/hooks/queries/useCrmListQuery', () => ({ useCrmListQuery: vi.fn() }));
+vi.mock('@/services/db/supabaseClient', () => ({
+  isSupabaseConfigured: true,
+  supabase: { from: () => ({ insert: () => Promise.resolve({ error: null }) }) },
+}));
 vi.mock('@/services/crm/crmExportService', () => ({
   downloadCrmExport: vi.fn(),
   CrmServiceError: class extends Error {},
@@ -145,6 +149,58 @@ describe('LeadsPage – Lead Scoring & Qualifizierungs-Cockpit (Auftrag 130)', (
         screen.getByText(/erfolgreich.*in Phase „Erstgespräch geführt“ angelegt!/i),
       ).toBeInTheDocument();
     });
+  });
+
+  it('rendert den Score-Tooltip außerhalb des Scrollcontainers und schließt ihn beim Scrollen', () => {
+    renderLeadsPage();
+
+    const badge = screen.getAllByRole('button', { name: /Lead-Qualität/i })[0]!;
+    fireEvent.mouseEnter(badge);
+
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip.parentElement).toBe(document.body);
+    expect(badge).toHaveAttribute('aria-describedby', tooltip.id);
+
+    fireEvent.scroll(window);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it('öffnet den Score-Tooltip auch per Tastaturfokus', () => {
+    renderLeadsPage();
+
+    const badge = screen.getAllByRole('button', { name: /Lead-Qualität/i })[0]!;
+    fireEvent.focus(badge);
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+
+    fireEvent.blur(badge);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it('zeigt im Deals-Tab genau die Serverliste samt Servertrefferzahl', () => {
+    window.sessionStorage.setItem(
+      'leadpilot_crm_converted_deals_org-1',
+      JSON.stringify([{ id: 'alt-lokal', dealName: 'Lokale Altlast', stage: 'Bedarfsanalyse' }]),
+    );
+    mockedQuery.mockReturnValue({
+      data: {
+        items: [{ id: 'server-1', dealName: 'Server Deal', stage: 'Verhandlung', amount: 1000 }],
+        total: 41,
+        page: 2,
+        pageSize: 20,
+        resource: 'deals',
+      },
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+
+    renderLeadsPage('/crm/leads?tab=funnel_deals&seite=2');
+
+    expect(screen.getAllByText('Server Deal').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Lokale Altlast')).not.toBeInTheDocument();
+    expect(screen.getByText('41 Einträge')).toBeInTheDocument();
   });
 
   it('filtert Kontakte nach Lead-Qualität über URL-Parameter', () => {

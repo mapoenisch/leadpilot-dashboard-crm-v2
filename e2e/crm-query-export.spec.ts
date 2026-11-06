@@ -214,6 +214,30 @@ test.describe('CRM Query und Export (Gate G60)', () => {
     expect(names).not.toContain('Firma B1');
   });
 
+  test('4b. Score-Tooltip der Kontaktliste liegt außerhalb des Scrollcontainers (Auftrag 130)', async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-1440', 'Hover-Tooltip nur in der Desktop-Tabelle');
+    await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
+    await page.goto('/crm/leads?tab=contacts');
+
+    const badge = page.locator('.crm-v2-desktop-table [aria-label^="Lead-Qualität"]').first();
+    await expect(badge).toBeVisible();
+    await badge.hover();
+
+    const tooltip = page.getByRole('tooltip');
+    await expect(tooltip).toBeVisible();
+    expect(await tooltip.evaluate((el) => el.parentElement === document.body)).toBe(true);
+
+    const box = await tooltip.boundingBox();
+    const viewport = page.viewportSize();
+    expect(box).not.toBeNull();
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+  });
+
   test('5. Sichtbare Sortier- und Filter-Controls auf Companies-, Deals- und Leads-Seiten', async ({
     page,
   }) => {
