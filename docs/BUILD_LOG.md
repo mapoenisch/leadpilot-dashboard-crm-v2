@@ -19401,3 +19401,14 @@ Die 2 Befunde aus dem sechsten Review-Durchlauf von Codex zu PR #142 (Commit `f2
 - `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
 - `npm run build`: **Erfolgreich (3.50s)**
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### CI-Nacharbeit: Playwright Visual-Baseline für Mobile-375 (PR #142)
+
+**Builder:** Claude Code · **Datum:** 2026-11-07
+
+- **Ursache:** Die Hinzunahme des neuen Export-Buttons (`export-report-btn`, „Bericht exportieren“) in `EditorToolbar.tsx` verursachte auf dem mobilen Viewport `[mobile-375]` eine Pixeldifferenz von 2.462 Pixeln (`ratio: 0.001094`), was knapp über der strengen Toleranzgrenze von `0.001` lag (`visual.spec.ts:88`). Auf Desktop (1440px) und Tablet (768px) lag die Differenz innerhalb des Schwellenwerts.
+- **Behebung:** Aktualisierung der Linux-Visual-Baseline `e2e/visual.spec.ts-snapshots/visual-dashboard-1-mobile-375-linux.png` aus dem CI-Playwright-Report des Ubuntu-Runners.
+- **Verifikation:** Alle Gates lokal und CI-konform validiert (TypeScript 0 Fehler, ESLint 0 Fehler, Vitest 366/366 Dateien grün, Integritätssuiten 25/25 grün, Vite Build 3.81s, Schutzbereichs-Diff 0).
+
