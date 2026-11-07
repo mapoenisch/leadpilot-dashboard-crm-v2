@@ -24,6 +24,7 @@ import {
 } from '@/components/pageKit';
 import { ImagePage } from '@/components/imagePage';
 import { DepthFlaechen } from '../components/DepthFlaechen';
+import { WhatIfCockpit } from '../components/WhatIfCockpit';
 import '../finanzenSeiten.css';
 
 // 067I / G52: Echte Unit-Economics-Seite statt WebP — genau eine h1,
@@ -164,6 +165,7 @@ function UnitEconomicsPageHtml() {
             <BarList items={kosten} />
           </ChartFigure>
         </Panel>
+        <WhatIfCockpit />
       </DataState>
     </div>
   );
