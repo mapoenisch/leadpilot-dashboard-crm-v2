@@ -78,7 +78,7 @@ export function DashboardReportModal({
         for (const id of prev) {
           if (available.has(id)) next.add(id);
         }
-        return next;
+        return next.size > 0 ? next : new Set(tiles.map((t) => t.tileId));
       });
     }
     prevOpenRef.current = open;

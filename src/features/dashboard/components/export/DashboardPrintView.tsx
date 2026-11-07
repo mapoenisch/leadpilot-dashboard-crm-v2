@@ -282,8 +282,10 @@ const DashboardPrintDocument: React.FC<
           </div>
 
           <p className="mt-4 text-[11px] text-slate-400">
-            Hinweis: Alle ausgewiesenen Werte entsprechen dem Stichtag {currentDate} und unterliegen
-            den Datenzugriffsrechten des Mandanten {organizationName}.
+            Hinweis: Ausgewiesene Werte basieren auf der jeweiligen Kennzahlen-Zeitbasis (Stichtag
+            des Exports: {currentDate}; Live-Werte mit Verbindungsabbruch sind gesondert als
+            veraltet samt ursprünglichem Messzeitpunkt ausgewiesen) und unterliegen den
+            Datenzugriffsrechten des Mandanten {organizationName}.
           </p>
         </section>
       )}

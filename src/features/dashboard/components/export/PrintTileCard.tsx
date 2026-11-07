@@ -1,7 +1,7 @@
 import React from 'react';
 import type { DashboardTileConfig, DashboardFilters } from '../../model/dashboardConfig';
 import { getCatalogEntry } from '../../model/dashboardCatalog';
-import { formatTileValue, NO_DATA } from '../tileFormat';
+import { formatTileValue, formatAsOf, NO_DATA } from '../tileFormat';
 import type { TileDataHook } from '../LazyDashboardTile';
 import type { TileData } from '../../data/dashboardData';
 
@@ -61,6 +61,12 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
     } else {
       displayValue = NO_DATA;
     }
+
+    if (data.state === 'veraltet') {
+      const stand = data.asOf ? formatAsOf(data.asOf) : null;
+      const veraltetText = `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.`;
+      statusNote = statusNote ? `${veraltetText} (${statusNote})` : veraltetText;
+    }
   } else {
     // Statischer Fallback für Katalog-Baseline ohne aktive Hook-Umgebung
     displayValue =
@@ -98,9 +104,19 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             {category}
           </span>
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
-            {tile.view} · {layer}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {data?.state === 'veraltet' && (
+              <span
+                data-testid={`print-tile-veraltet-${tile.tileId}`}
+                className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200"
+              >
+                Veraltet
+              </span>
+            )}
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+              {tile.view} · {layer}
+            </span>
+          </div>
         </div>
         <h3 className="text-sm font-bold text-slate-900 mb-2">{name}</h3>
       </div>
@@ -110,7 +126,11 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
         <div className="text-right">
           <span
             className={`text-2xl font-black ${
-              data?.state === 'fehler' ? 'text-red-600' : 'text-slate-900'
+              data?.state === 'fehler'
+                ? 'text-red-600'
+                : data?.state === 'veraltet'
+                  ? 'text-amber-700'
+                  : 'text-slate-900'
             }`}
           >
             {displayValue}
@@ -118,7 +138,11 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
           {statusNote ? (
             <span
               className={`block text-[11px] mt-1 leading-tight ${
-                data?.state === 'fehler' ? 'text-red-500' : 'text-slate-500'
+                data?.state === 'fehler'
+                  ? 'text-red-500'
+                  : data?.state === 'veraltet'
+                    ? 'text-amber-700 font-medium'
+                    : 'text-slate-500'
               }`}
             >
               {statusNote}

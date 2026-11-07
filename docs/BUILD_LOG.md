@@ -19276,3 +19276,45 @@ Die 2 Befunde aus dem dritten Review-Durchlauf von Codex zu PR #142 (Commit `789
 - `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
 - `npm run build`: **Erfolgreich (3.38s)**
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 4 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die Befunde aus dem vierten Review-Durchlauf von Codex zu PR #142 (Commit `8c1226f`) sowie der CI/e2e-Visual-Regression-Befund wurden analysiert und behoben:
+
+1. **Finding 1 (P2 - `PrintTileCard.tsx`, `PrintAppendixTable.tsx`, `DashboardPrintView.tsx`):**
+   - *Befund:* Veraltete Live-Werte (`state: 'veraltet'`) nach Verbindungsabbruch wurden wie aktuelle Werte gedruckt; Messzeitpunkt (`asOf`) und Veraltet-Hinweis fehlten sowohl auf der Kachelkarte als auch im Tabellen-Anhang; der Stichtag-Hinweis deklarierte pauschal alle Werte als heutiger Stichtag.
+   - *Behebung:*
+     - **Kachelkarten (`PrintTileCard.tsx`):** `formatAsOf` importiert. Bei `state: 'veraltet'` wird im Kachelkopf eine `Veraltet`-Badge gerendert, der Kennzahlen-Wert erhält Amber-Hervorhebung (`text-amber-700`) und die `statusNote` weist präzise `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.` aus.
+     - **Wertetabellen-Anhang (`PrintAppendixTable.tsx`):** In der Spalte `Zeitbasis` wird bei `state: 'veraltet'` explizit `Veraltet (${stand ?? rawTimeBasis})` ausgewiesen, die Zeile amber-farbig akzentuiert und die Referenzwert-Zelle mit einem `Veraltet`-Hinweis versehen.
+     - **Stichtags-Hinweis (`DashboardPrintView.tsx`):** Präzisiert, dass ausgewiesene Werte auf der jeweiligen Kennzahlen-Zeitbasis basieren und Live-Werte mit Verbindungsabbruch gesondert als veraltet samt ursprünglichem Messzeitpunkt ausgewiesen sind.
+2. **Finding 2 (P2 - `DashboardReportModal.tsx`):**
+   - *Befund:* Synchronisation der Kachelauswahl bei geladenen persönlichen Ansichten; State-Initializer bei gemountetem Modal synchronisierte nicht erneut, wenn gespeicherte Kacheln eintrafen.
+   - *Behebung:* `useEffect` re-initialisiert die Auswahl beim Öffnen auf die aktuellen Kacheln und filtert ungültige IDs zuverlässig heraus (mit Fallback auf das neue Kachelset, falls alle vorherigen IDs durch eine geladene Ansicht ersetzt wurden).
+3. **CI/e2e Visual Regression Fix (`EditorToolbar.tsx`):**
+   - *Befund:* `visual /dashboard` auf `mobile-375` meldete 40 px Höhendifferenz (6085 px vs. 6125 px), da der Toolbar-Button „Bericht exportieren“ auf 375 px Bildschirmbreite in eine zweite Zeile umbrach.
+   - *Behebung:* Der Button wurde mobil optimiert: Text mit `max-sm:sr-only` responsiv ausgeblendet, Icon-Padding auf schmalen Viewports angepasst (`max-sm:px-2`), und barrierefreies `aria-label="Bericht exportieren"` hinterlegt. Dadurch bleibt die Werkzeugleiste auf mobilen Bildschirmen einzeilig und die Baseline-Höhe erhalten.
+4. **Architektur & Zeilenbudget-Schutz:**
+   - Neue dedizierte Testdatei `DashboardReportVeraltet.ui.vitest.tsx` (104 Zeilen) zur Entlastung von `DashboardReport.ui.vitest.tsx` angelegt.
+   - Alle berührten Dateien bleiben strikt $\le 400$ Zeilen:
+     - `DashboardPrintView.tsx`: 305 Zeilen
+     - `PrintTileCard.tsx`: 162 Zeilen
+     - `PrintAppendixTable.tsx`: 132 Zeilen
+     - `DashboardReportModal.tsx`: 329 Zeilen
+     - `EditorToolbar.tsx`: 362 Zeilen
+     - `DashboardReport.ui.vitest.tsx`: 386 Zeilen
+     - `DashboardReportVeraltet.ui.vitest.tsx`: 104 Zeilen
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 4
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **48 Testdateien, 608 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.99s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.

@@ -168,11 +168,12 @@ export function EditorToolbar(props: EditorToolbarProps) {
                     disabled={locked}
                     onClick={props.onExportReport}
                     data-testid="export-report-btn"
-                    className="flex items-center gap-1.5"
+                    className="flex items-center gap-1.5 max-sm:px-2"
                     title="Druck- und PDF-Bericht konfigurieren"
+                    aria-label="Bericht exportieren"
                   >
                     <Printer className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Bericht exportieren</span>
+                    <span className="max-sm:sr-only">Bericht exportieren</span>
                   </Button>
                 ) : null}
               </>
