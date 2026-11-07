@@ -3,6 +3,7 @@ import type { DashboardTileConfig, DashboardFilters } from '../../model/dashboar
 import { getCatalogEntry } from '../../model/dashboardCatalog';
 import { formatTileValue, NO_DATA } from '../tileFormat';
 import type { TileDataHook } from '../LazyDashboardTile';
+import type { TileData } from '../../data/dashboardData';
 
 export function resolveTileInfo(tile: DashboardTileConfig) {
   const entry = getCatalogEntry(tile.catalogId);
@@ -20,13 +21,25 @@ export const noopTileDataHook: TileDataHook = (t) => ({
   message: '',
 });
 
-export const PrintTileCard: React.FC<{
+export interface PrintTileCardProps {
   tile: DashboardTileConfig;
   filters?: DashboardFilters;
   useData?: TileDataHook;
-}> = ({ tile, filters, useData = noopTileDataHook }) => {
+  onTileResolved?: (tileId: string, data: TileData) => void;
+}
+
+export const PrintTileCard: React.FC<PrintTileCardProps> = ({
+  tile,
+  filters,
+  useData = noopTileDataHook,
+  onTileResolved,
+}) => {
   const { name, unit, category, layer } = resolveTileInfo(tile);
   const data = useData(tile, filters);
+
+  React.useEffect(() => {
+    onTileResolved?.(tile.tileId, data);
+  }, [tile.tileId, data, onTileResolved]);
 
   let displayValue: string;
   let statusNote: string | undefined;
@@ -60,6 +73,21 @@ export const PrintTileCard: React.FC<{
             : 'Aktiv';
   }
 
+  // Pipeline- und Filterauflösung (Codex Finding 2)
+  const effectivePipeline =
+    (data && 'effectiveFilter' in data ? data.effectiveFilter?.pipeline : undefined) ??
+    tile.pipeline;
+  const filterModeLabel =
+    tile.filterMode === 'dashboard'
+      ? 'Zentral'
+      : tile.filterMode === 'eigener_zeitraum'
+        ? 'Eigener Zeitraum'
+        : 'Fester Stand';
+
+  const filterDisplay = effectivePipeline
+    ? `Filter: ${filterModeLabel} · Pipeline: ${effectivePipeline}`
+    : `Filter: ${filterModeLabel}`;
+
   return (
     <div
       data-testid={`print-tile-${tile.tileId}`}
@@ -80,9 +108,19 @@ export const PrintTileCard: React.FC<{
       <div className="py-4 my-2 border-y border-slate-100 flex items-baseline justify-between">
         <span className="text-xs text-slate-400">Kennzahlen-Wert</span>
         <div className="text-right">
-          <span className="text-2xl font-black text-slate-900">{displayValue}</span>
+          <span
+            className={`text-2xl font-black ${
+              data?.state === 'fehler' ? 'text-red-600' : 'text-slate-900'
+            }`}
+          >
+            {displayValue}
+          </span>
           {statusNote ? (
-            <span className="block text-[11px] text-slate-500 mt-1 leading-tight">
+            <span
+              className={`block text-[11px] mt-1 leading-tight ${
+                data?.state === 'fehler' ? 'text-red-500' : 'text-slate-500'
+              }`}
+            >
               {statusNote}
             </span>
           ) : data && data.state !== 'nicht_verfuegbar' && data.timeBasis ? (
@@ -92,7 +130,7 @@ export const PrintTileCard: React.FC<{
       </div>
 
       <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-        <span>Filter: {tile.filterMode === 'dashboard' ? 'Zentral' : tile.filterMode}</span>
+        <span data-testid={`print-tile-filter-${tile.tileId}`}>{filterDisplay}</span>
         <span>ID: {tile.catalogId}</span>
       </div>
     </div>

@@ -330,4 +330,57 @@ describe('DashboardPrintView', () => {
     expect(screen.getByText('Fehler beim Laden')).toBeInTheDocument();
     expect(screen.getAllByText(/Verbindung zur KPI-Quelle getrennt/i).length).toBe(2);
   });
+
+  it('weist den zentralen Pipeline-Filter auf dem Deckblatt und wirksame Kachel-Pipelines aus', () => {
+    const pipelineFilters = { pipeline: 'Enterprise' };
+    const tilesWithPipelineOverride: readonly DashboardTileConfig[] = [
+      {
+        ...MOCK_TILES[0]!,
+        pipeline: 'Partner',
+      },
+      MOCK_TILES[1]!,
+    ];
+
+    const mockPipelineUseData: TileDataHook = (tile, filters) => {
+      const effectivePipeline = tile.pipeline ?? filters?.pipeline ?? null;
+      return {
+        catalogId: tile.catalogId,
+        state: 'bereit',
+        value: 120000,
+        unit: '€',
+        series: null,
+        overview: null,
+        timeBasis: 'Aktueller Stand',
+        asOf: null,
+        origin: { layer: 'crm', module: 'src/domain/x.ts', exportName: 'X' },
+        scope: 'organisation',
+        effectiveFilter: {
+          mode: 'dashboard',
+          period: null,
+          pipeline: effectivePipeline,
+        },
+      };
+    };
+
+    render(
+      <DashboardPrintView
+        config={sampleConfig}
+        tiles={tilesWithPipelineOverride}
+        filters={pipelineFilters}
+        isPreview={true}
+        useData={mockPipelineUseData}
+      />,
+    );
+
+    // Deckblatt weist den zentralen Filter aus
+    expect(screen.getByTestId('print-cover-pipeline')).toHaveTextContent('Enterprise');
+
+    // Kacheln weisen die spezifische bzw. aufgelöste Pipeline aus
+    expect(screen.getByTestId('print-tile-filter-tile-arr')).toHaveTextContent(
+      'Filter: Zentral · Pipeline: Partner',
+    );
+    expect(screen.getByTestId('print-tile-filter-tile-mrr')).toHaveTextContent(
+      'Filter: Zentral · Pipeline: Enterprise',
+    );
+  });
 });

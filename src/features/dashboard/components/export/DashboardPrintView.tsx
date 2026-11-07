@@ -1,10 +1,11 @@
 import React from 'react';
 import type { DashboardTileConfig, DashboardFilters } from '../../model/dashboardConfig';
 import type { ReportExportConfig } from './DashboardReportModal';
-import { formatTileValue, NO_DATA } from '../tileFormat';
 import type { TileDataHook } from '../LazyDashboardTile';
+import type { TileData } from '../../data/dashboardData';
 import { EXEC_KPIS_1 } from '@/domain/execData';
-import { PrintTileCard, resolveTileInfo, noopTileDataHook } from './PrintTileCard';
+import { PrintTileCard } from './PrintTileCard';
+import { PrintAppendixRows } from './PrintAppendixTable';
 import './printReport.css';
 
 export interface DashboardPrintViewProps {
@@ -16,88 +17,9 @@ export interface DashboardPrintViewProps {
   useData?: TileDataHook;
 }
 
-const PrintAppendixRows: React.FC<{
-  tile: DashboardTileConfig;
-  filters?: DashboardFilters;
-  useData?: TileDataHook;
-}> = ({ tile, filters, useData = noopTileDataHook }) => {
-  const { name, category, layer, unit } = resolveTileInfo(tile);
-  const data = useData(tile, filters);
-  const timeBasis =
-    data && data.state !== 'nicht_verfuegbar' && data.timeBasis
-      ? data.timeBasis
-      : 'Aktueller Stand';
-
-  if (data && data.state === 'fehler') {
-    return (
-      <tr key={tile.tileId} className="border-b border-red-100 bg-red-50/20">
-        <td className="py-2 px-3 font-medium text-slate-900">{name}</td>
-        <td className="py-2 px-3 text-slate-600">{category}</td>
-        <td className="py-2 px-3 text-slate-600 font-mono text-[11px]">{tile.view}</td>
-        <td className="py-2 px-3 text-slate-600">{layer}</td>
-        <td className="py-2 px-3 text-slate-500">{timeBasis}</td>
-        <td className="py-2 px-3 text-right font-medium text-red-600">
-          Fehler: {data.message || 'Abfrage fehlgeschlagen'}
-        </td>
-      </tr>
-    );
-  }
-
-  if (data && data.state !== 'nicht_verfuegbar' && data.series && data.series.length > 0) {
-    return (
-      <>
-        {data.series.map((pt, idx) => (
-          <tr
-            key={`${tile.tileId}-pt-${idx}`}
-            className="border-b border-slate-100 hover:bg-slate-50/50"
-          >
-            <td className="py-2 px-3 font-medium text-slate-900">
-              {name} <span className="text-slate-400 font-normal">({pt.label})</span>
-            </td>
-            <td className="py-2 px-3 text-slate-600">{category}</td>
-            <td className="py-2 px-3 text-slate-600 font-mono text-[11px]">{tile.view}</td>
-            <td className="py-2 px-3 text-slate-600">{layer}</td>
-            <td className="py-2 px-3 text-slate-500">{timeBasis}</td>
-            <td className="py-2 px-3 text-right font-semibold text-slate-900">
-              {formatTileValue(pt.value, data.unit || unit, 'exakt')}
-            </td>
-          </tr>
-        ))}
-      </>
-    );
-  }
-
-  let val = NO_DATA;
-  if (data && data.state !== 'nicht_verfuegbar') {
-    if (data.value !== null && Number.isFinite(data.value)) {
-      val = formatTileValue(data.value, data.unit || unit, 'exakt');
-    } else if (data.overview) {
-      val = 'Übersicht aktiv';
-    }
-  } else {
-    val =
-      tile.catalogId === 'baseline.arr'
-        ? '411.840 €'
-        : tile.catalogId === 'baseline.mrr'
-          ? '34.320 €'
-          : tile.catalogId === 'baseline.kunden_aktiv' || tile.catalogId === 'baseline.kunden'
-            ? '66'
-            : 'Ausgewiesen';
-  }
-
-  return (
-    <tr key={tile.tileId} className="border-b border-slate-100 hover:bg-slate-50/50">
-      <td className="py-2 px-3 font-medium text-slate-900">{name}</td>
-      <td className="py-2 px-3 text-slate-600">{category}</td>
-      <td className="py-2 px-3 text-slate-600 font-mono text-[11px]">{tile.view}</td>
-      <td className="py-2 px-3 text-slate-600">{layer}</td>
-      <td className="py-2 px-3 text-slate-500">{timeBasis}</td>
-      <td className="py-2 px-3 text-right font-semibold text-slate-900">{val}</td>
-    </tr>
-  );
-};
-
-export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
+const DashboardPrintDocument: React.FC<
+  DashboardPrintViewProps & { config: ReportExportConfig }
+> = ({
   config,
   tiles,
   filters,
@@ -106,11 +28,10 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
   useData,
 }) => {
   const selectedTiles = React.useMemo(() => {
-    if (!config) return [];
     return config.selectedTileIds.length > 0
       ? tiles.filter((tile) => config.selectedTileIds.includes(tile.tileId))
       : tiles;
-  }, [config, tiles]);
+  }, [config.selectedTileIds, tiles]);
 
   const currentDate = new Date().toLocaleDateString('de-DE', {
     day: '2-digit',
@@ -118,28 +39,37 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
     year: 'numeric',
   });
 
-  const isLandscape = config?.orientation === 'landscape';
+  const isLandscape = config.orientation === 'landscape';
 
-  const isAnyLoading = React.useMemo(() => {
-    return selectedTiles.some((tile) => {
-      const data = (useData ?? noopTileDataHook)(tile, filters);
-      return data && data.state === 'laden';
-    });
-  }, [selectedTiles, useData, filters]);
-
+  // Ladezustands-Aggregation aus den separat gemounteten Kachelkomponenten (Codex Finding 1)
+  const [tileStateMap, setTileStateMap] = React.useState<Record<string, string>>({});
   const [safetyTimeout, setSafetyTimeout] = React.useState(false);
 
+  const handleTileResolved = React.useCallback((tileId: string, data: TileData) => {
+    setTileStateMap((prev) => {
+      if (prev[tileId] === data.state) return prev;
+      return { ...prev, [tileId]: data.state };
+    });
+  }, []);
+
+  const isAnyLoading = React.useMemo(() => {
+    if (selectedTiles.length === 0) return false;
+    const allReported = selectedTiles.every((t) => tileStateMap[t.tileId] !== undefined);
+    if (!allReported) return true;
+    return selectedTiles.some((t) => tileStateMap[t.tileId] === 'laden');
+  }, [selectedTiles, tileStateMap]);
+
   React.useEffect(() => {
-    if (!config || isPreview) {
+    if (isPreview) {
       setSafetyTimeout(false);
       return;
     }
     const timer = setTimeout(() => setSafetyTimeout(true), 3500);
     return () => clearTimeout(timer);
-  }, [config, isPreview]);
+  }, [isPreview]);
 
   React.useEffect(() => {
-    if (!config || isPreview) return;
+    if (isPreview) return;
     if (isAnyLoading && !safetyTimeout) return;
 
     const timer = setTimeout(() => {
@@ -149,9 +79,7 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [config, isPreview, isAnyLoading, safetyTimeout]);
-
-  if (!config) return null;
+  }, [isPreview, isAnyLoading, safetyTimeout]);
 
   return (
     <div
@@ -179,13 +107,11 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
                 Enterprise CRM & Revenue Analytics
               </span>
             </div>
-            <div className="text-right text-xs text-slate-500">
-              <span className="block font-semibold text-slate-800">
-                OFFIZIELLER MANAGEMENT-REPORT
+            <div className="text-right">
+              <span className="block text-xs font-bold text-slate-900">
+                EXECUTIVE MANAGEMENT BRIEFING
               </span>
-              <span>
-                Dokument-ID: LP-REP-{new Date().getFullYear()}-{config.selectedTileIds.length}
-              </span>
+              <span className="text-[11px] text-slate-500">Vertrauliches Dokument</span>
             </div>
           </div>
 
@@ -212,9 +138,9 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
             ) : null}
           </div>
 
-          {/* Formale Metadaten-Tabelle */}
+          {/* Formale Metadaten-Tabelle mit zentralem Pipeline-Filter (Codex Finding 2) */}
           <div
-            className={`grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs ${
+            className={`grid grid-cols-2 md:grid-cols-5 gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs ${
               isLandscape ? 'mb-4' : 'mb-8'
             }`}
           >
@@ -234,6 +160,14 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
             </div>
             <div>
               <span className="block text-slate-500 uppercase tracking-wider mb-1">
+                Pipeline-Filter
+              </span>
+              <strong className="text-slate-900 text-sm" data-testid="print-cover-pipeline">
+                {filters?.pipeline ? filters.pipeline : 'Alle Pipelines'}
+              </strong>
+            </div>
+            <div>
+              <span className="block text-slate-500 uppercase tracking-wider mb-1">
                 Klassifizierung
               </span>
               <strong className="text-amber-700 text-sm font-semibold">Streng vertraulich</strong>
@@ -248,56 +182,63 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {EXEC_KPIS_1.map((kpi, idx) => (
                 <div key={idx} className="print-card p-3 rounded border border-slate-200 bg-white">
-                  <span className="block text-xs font-medium text-slate-500 truncate mb-1">
+                  <span className="text-[11px] font-semibold text-slate-500 block truncate">
                     {kpi.label}
                   </span>
-                  <span className="block text-xl font-bold text-slate-900">{kpi.value}</span>
-                  <span className="block text-[11px] text-slate-400 mt-1 leading-tight">
-                    {kpi.note}
-                  </span>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <span className="text-lg font-black text-slate-900">{kpi.value}</span>
+                    <span className="text-[10px] text-slate-500 truncate ml-1">{kpi.note}</span>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Management-Kommentar (sofern vorhanden) */}
+          {/* Management Commentary */}
           {config.commentary && (
-            <div
-              className={`print-card p-4 rounded-lg border-l-4 border-l-primary border-slate-200 bg-slate-50/60 ${
-                isLandscape ? 'mb-4' : 'mb-6'
-              }`}
-            >
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
-                Strategische Einordnung & Management-Kommentar
+            <div className={isLandscape ? 'mb-4' : 'mb-6'}>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                Strategischer Management-Kommentar
               </h2>
-              <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-line italic">
-                „{config.commentary}“
-              </p>
+              <div className="p-4 rounded-lg bg-slate-50/80 border border-slate-200 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
+                {config.commentary}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Deckblatt Fußzeile */}
-        <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
-          <span>LeadPilot Enterprise CRM · Auszug für Entscheidungsträger</span>
+        {/* Deckblatt-Footer */}
+        <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400">
+          <span>LeadPilot Management Information System</span>
           <span>Seite 1 (Deckblatt)</span>
         </div>
       </section>
 
       {/* =========================================================================
-          SEITE 2+: AUSGEWÄHLTE KACHELN
+          SEITE 2: KACHEL-BERICHT (Dashboard Tile Cards)
           ========================================================================= */}
       <section className="print-page-break-before p-6">
         <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-6">
-          <h2 className="text-lg font-bold text-slate-900">
-            Ausgewählte Kennzahlen & Leistungsindikatoren ({selectedTiles.length} Kacheln)
-          </h2>
-          <span className="text-xs text-slate-500">Zeitraum: {config.periodText}</span>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Kennzahlen & Leistungsindikatoren</h2>
+            <p className="text-xs text-slate-500">
+              Detaillierte Auswertung der {selectedTiles.length} ausgewählten Dashboard-Kacheln
+            </p>
+          </div>
+          <span className="text-xs font-medium text-slate-500">
+            {config.title} · {config.periodText}
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           {selectedTiles.map((tile) => (
-            <PrintTileCard key={tile.tileId} tile={tile} filters={filters} useData={useData} />
+            <PrintTileCard
+              key={tile.tileId}
+              tile={tile}
+              filters={filters}
+              useData={useData}
+              onTileResolved={handleTileResolved}
+            />
           ))}
         </div>
       </section>
@@ -323,6 +264,7 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
                   <th className="py-2.5 px-3 font-semibold">Darstellung</th>
                   <th className="py-2.5 px-3 font-semibold">Datenquelle</th>
                   <th className="py-2.5 px-3 font-semibold">Zeitbasis</th>
+                  <th className="py-2.5 px-3 font-semibold">Pipeline</th>
                   <th className="py-2.5 px-3 font-semibold text-right">Referenzwert</th>
                 </tr>
               </thead>
@@ -353,4 +295,9 @@ export const DashboardPrintView: React.FC<DashboardPrintViewProps> = ({
       </footer>
     </div>
   );
+};
+
+export const DashboardPrintView: React.FC<DashboardPrintViewProps> = (props) => {
+  if (!props.config) return null;
+  return <DashboardPrintDocument {...props} config={props.config} />;
 };

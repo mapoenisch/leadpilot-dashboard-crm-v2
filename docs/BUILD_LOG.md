@@ -19236,3 +19236,43 @@ Die 3 neuen Befunde aus dem zweiten Review-Durchlauf von Codex zu PR #142 (Commi
 - `npx vitest run src/features/dashboard/__tests__/DashboardReport.ui.vitest.tsx`: **10/10 Tests grün**
 - `npm run build`: **Erfolgreich (3.50s)**
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 3 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die 2 Befunde aus dem dritten Review-Durchlauf von Codex zu PR #142 (Commit `789b02d`) wurden analysiert und behoben:
+
+1. **Finding 1 (P1 - `DashboardPrintView.tsx`, `PrintTileCard.tsx`):**
+   - *Befund:* `DashboardPrintView` rief `useData` innerhalb von `useMemo` in einer Schleife über `selectedTiles` auf. Da `useDashboardData` interne React-Hooks (`useQuery`, `useSyncExternalStore`) verwendet, führte der Wechsel von `config === null` (0 Hooks) zu `config !== null` (N Hooks) zu einer Hook-Order-Verletzung.
+   - *Behebung:* `DashboardPrintView` rendert bei `!config` sofort `null`. Das Rendern des Berichts erfolgt in der inneren Komponente `DashboardPrintDocument`. Der Daten-Hook wird ausschließlich unbedungen und auf oberster Ebene in separat gemounteten Kachelkomponenten (`PrintTileCard` und `PrintAppendixRows`) aufgerufen. `PrintTileCard` meldet seinen aufgelösten Datenzustand über `onTileResolved` an das übergeordnete Dokument, welches den Ladezustand (`isAnyLoading`) sauber aggregiert, ohne selbst Daten-Hooks in Schleifen oder Memos aufzurufen.
+2. **Finding 2 (P2 - `PrintTileCard.tsx`, `DashboardPrintView.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Weder Deckblatt noch Kachelkarten noch der Anhang wiesen die tatsächlich wirksame Pipeline aus. Kacheln mit unterschiedlichen Pipeline-Ausnahmen erschienen identisch als „Filter: Zentral“.
+   - *Behebung:*
+     - **Kachelkarten:** `PrintTileCard` weist nun explizit die aufgelöste Pipeline `data.effectiveFilter.pipeline` (bzw. `tile.pipeline`) aus (z. B. `Filter: Zentral · Pipeline: Direkt`), wodurch Kacheln eindeutig differenziert werden.
+     - **Deckblatt:** Die Metadaten-Tabelle auf dem Deckblatt enthält nun eine dedizierte Kachel `Pipeline-Filter` (`filters?.pipeline || 'Alle Pipelines'`).
+     - **Tabellen-Anhang:** Die Wertetabelle in `PrintAppendixTable` führt eine eigene Spalte `Pipeline` für jede Kachel bzw. Messreihe.
+3. **Architektur & Zeilenbudget-Schutz:**
+   - Auslagerung der Anhang-Tabellenzeilen in `PrintAppendixTable.tsx` (99 Zeilen).
+   - Alle Dateien liegen strikt unter dem 400-Zeilen-Budget:
+     - `DashboardPrintView.tsx`: 308 Zeilen
+     - `PrintTileCard.tsx`: 137 Zeilen
+     - `PrintAppendixTable.tsx`: 99 Zeilen
+     - `DashboardReportModal.tsx`: 329 Zeilen
+     - `DashboardWorkspace.tsx`: 396 Zeilen
+     - `useDashboardReportExport.ts`: 58 Zeilen
+     - `DashboardReport.ui.vitest.tsx`: 386 Zeilen
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 3
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard/__tests__/DashboardReport.ui.vitest.tsx`: **11/11 Tests grün** (+1 neuer Test für Deckblatt- und Kachel-Pipeline-Ausweis)
+- `npm test`: **364 Testdateien, 2.652 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.38s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
