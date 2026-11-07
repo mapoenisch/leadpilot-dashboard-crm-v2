@@ -53,30 +53,43 @@
     print-color-adjust: exact !important;
   }
 
-  /* Bildschirm-Elemente für den Ausdruck vollständig verbergen */
+  /* Globale App-Shell-Elemente beim Drucken verbergen */
   header,
   nav,
   aside,
   #app-header,
   #main-sidebar,
   .simulation-bar,
-  .dashboard-screen-content,
-  [data-testid="editor-toolbar"],
-  [data-testid="dashboard-filters"],
-  [data-testid="dashboard-grid"],
-  [data-testid="dashboard-heading"],
-  [data-testid="dashboard-nav-status"],
   .modal-backdrop,
-  [role="dialog"]:not(.print-allow) {
+  [role='dialog']:not(.print-allow) {
     display: none !important;
   }
 
-  /* Druckbereich einblenden */
-  .dashboard-print-view {
+  /* Bildschirm-Inhalt des Dashboards nur ausblenden, wenn ein Bericht aktiv vorbereitet ist */
+  [data-has-report='true'] .dashboard-screen-content,
+  [data-has-report='true'] [data-testid='editor-toolbar'],
+  [data-has-report='true'] [data-testid='dashboard-filters'],
+  [data-has-report='true'] [data-testid='dashboard-grid'],
+  [data-has-report='true'] [data-testid='dashboard-heading'],
+  [data-has-report='true'] [data-testid='dashboard-nav-status'] {
+    display: none !important;
+  }
+
+  /* Druckbereich nur einblenden, wenn ein Bericht aktiv vorliegt */
+  [data-has-report='true'] .dashboard-print-view {
     display: block !important;
     width: 100% !important;
     background: #ffffff !important;
     color: #0f172a !important;
+  }
+
+  /* Deckblatt-Höhe orientierungsabhängig an bedruckbare Seitenhöhe anpassen */
+  .dashboard-print-view[data-orientation='landscape'] .print-cover-page {
+    min-height: 175mm !important;
+  }
+
+  .dashboard-print-view[data-orientation='portrait'] .print-cover-page {
+    min-height: 260mm !important;
   }
 
   /* Umbruch-Optimierungen */

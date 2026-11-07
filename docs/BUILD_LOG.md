@@ -19163,3 +19163,46 @@ Im Rahmen von Paket 4 (Executive Report Generator & Druck/PDF-Export, spezifizie
   - `src/features/dashboard/hooks/useDashboardReportExport.ts`: 34 Zeilen
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
 
+
+---
+
+### Nacharbeit Codex-Review Runde 1 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Alle 5 Befunde aus dem initialen Review von Codex zu PR #142 (Commit `5bc2d29`) wurden vollständig analysiert und nachgearbeitet:
+
+1. **Finding 1 (P1 - `DashboardPrintView.tsx` & `DashboardWorkspace.tsx`):**
+   - *Befund:* Hartcodierte Baseline-IDs und statische Fallback-Werte verhinderten den Ausdruck dynamischer Kennzahlen; Zeitreihenkacheln wurden im Anhang nicht aufgeschlüsselt.
+   - *Behebung:* `DashboardPrintView` nimmt nun optional `useData?: TileDataHook` entgegen (`DashboardWorkspace` reicht `useData` durch). Kachelwerte werden über `formatTileValue(..., 'exakt')` dynamisch formatiert. Für Zeitreihenkacheln listet der Anhang nun jede einzelne Messreihe/Periode auf (`PrintAppendixRows`). Unkonditioneller Hook-Aufruf via `noopTileDataHook` garantiert strikte Einhaltung der React-Hook-Regeln.
+2. **Finding 2 (P2 - `DashboardReportModal.tsx`):**
+   - *Befund:* `selectedIds` wurde beim initialen Mounten mit Standard-Kacheln initialisiert, bevor asynchrone persönliche Einstellungen eintrafen; eigene Kacheln blieben abgewählt.
+   - *Behebung:* `useEffect` synchronisiert `selectedIds` beim Öffnen des Modals (`open: true`) mit den tatsächlich geladenen Kacheln. Ungültige/veraltete IDs werden über `validSelectedIds` gefiltert.
+3. **Finding 3 (P2 - `scripts/captureAuftrag132Gate.mjs`):**
+   - *Befund:* Der Screenshot-Harness verglich denselben Code gegen sich selbst mit CSS-Ausblendung statt einer echten `ce21c15`-Baseline.
+   - *Behebung:* Das Harness startet nun zwei echte Vite-Preview-Server parallel: Baseline `ce21c15` (vollständiger Build mit Supabase-Mock in `/tmp/leadpilot-baseline-132/dist`) auf Port 3001 und Head auf Port 3000. Alle Vorher-Hashes in `docs/screenshots/auftrag-132/README.md` stammen nachweislich aus dem echten `ce21c15`-Build (18/18 Bildpaare mit beabsichtigter Änderung, 0 px Überlauf).
+4. **Finding 4 (P2 - `useDashboardReportExport.ts`, `DashboardWorkspace.tsx` & `printReport.css`):**
+   - *Befund:* Direkter Browser-Druck (Cmd+P) vor dem Öffnen des Modals führte zu einer leeren Seite, weil Bildschirm-Inhalte ausgeblendet wurden, während `printConfig` noch `null` war.
+   - *Behebung:* Die CSS-Ausblendregeln in `printReport.css` wurden auf `[data-has-report='true']` eingeschränkt (`DashboardWorkspace` setzt das Attribut nur bei vorliegendem `printConfig`). Zusätzlich registriert `useDashboardReportExport.ts` Event-Listener für `beforeprint`/`afterprint`, um bei nativem Druck einen validen Standard-Bericht bereitzustellen und den State danach zurückzusetzen.
+5. **Finding 5 (P2 - `DashboardPrintView.tsx` & `printReport.css`):**
+   - *Befund:* Feste Mindesthöhe von 920 px auf dem Deckblatt überschritt die bedruckbare A4-Querformat-Höhe (180 mm), was zur Fragmentierung des Deckblatts führte.
+   - *Behebung:* Deckblatthöhe orientierungsabhängig definiert: `min-h-[175mm]` für `landscape` vs. `min-h-[260mm]` für `portrait` mit angepasstem Padding.
+
+#### Verifikation & Gate-Status nach Nacharbeit
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **47 Testdateien, 603/603 Tests grün** (+2 neue Tests für dynamische Daten und Modal-Sync)
+- `npm test`: **364 Testdateien, 2.649 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.58s)**
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-132/README.md` (18/18 Paare verschieden gegen echten `ce21c15`-Build, 0 px Überlauf auf allen Viewports)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/dashboard/components/export/DashboardReportModal.tsx`: 311 Zeilen
+  - `src/features/dashboard/components/export/DashboardPrintView.tsx`: 385 Zeilen
+  - `src/features/dashboard/hooks/useDashboardReportExport.ts`: 64 Zeilen
+  - `src/features/dashboard/components/DashboardWorkspace.tsx`: 396 Zeilen
+  - `src/features/dashboard/__tests__/DashboardReport.ui.vitest.tsx`: 255 Zeilen
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.

@@ -43,11 +43,7 @@ export interface DashboardWorkspaceProps {
   /** Auftrag 077: interne Navigation; mit offenen Änderungen erst nach Rückfrage. */
   navigate?: (to: string) => void;
   /** Auftrag 077: Schutz der Zurück-Taste (Hook der Seite); ohne Router wirkungslos. */
-  useBackGuard?: (
-    dirty: boolean,
-    requestLeave: (proceed: () => void) => void,
-    leavePending: boolean,
-  ) => boolean;
+  useBackGuard?: (dirty: boolean, req: (proceed: () => void) => void, pending: boolean) => boolean;
   /** Seite neu laden; Standard `window.location.reload()`. */
   onReload?: () => void;
   onTileActivated?: (tileId: string) => void;
@@ -244,6 +240,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   return (
     <div
       data-testid="dashboard-workspace"
+      data-has-report={reportExport.printConfig ? 'true' : undefined}
       data-back-guard={backGuarded || undefined}
       aria-busy={!ready}
       className="flex flex-col gap-4"
@@ -388,7 +385,12 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         filters={filters}
         onConfirmPrint={reportExport.confirmPrint}
       />
-      <DashboardPrintView config={reportExport.printConfig} tiles={tiles} filters={filters} />
+      <DashboardPrintView
+        config={reportExport.printConfig}
+        tiles={tiles}
+        filters={filters}
+        useData={useData}
+      />
     </div>
   );
 }

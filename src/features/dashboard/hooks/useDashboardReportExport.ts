@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { ReportExportConfig } from '../components/export/DashboardReportModal';
 
 export function useDashboardReportExport() {
@@ -22,6 +22,36 @@ export function useDashboardReportExport() {
         window.print();
       }
     }, 100);
+  }, []);
+
+  // Native Browser-Druckunterstützung (Cmd+P) & Aufräumen nach Druck (Auftrag 132 Review)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleBeforePrint = () => {
+      setPrintConfig((prev) => {
+        if (prev) return prev;
+        return {
+          title: 'LeadPilot Executive Management Briefing',
+          periodText: 'Aktuelle Periode',
+          selectedTileIds: [],
+          commentary: '',
+          orientation: 'landscape',
+          includeAppendix: true,
+        };
+      });
+    };
+
+    const handleAfterPrint = () => {
+      setPrintConfig(null);
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
   }, []);
 
   return {

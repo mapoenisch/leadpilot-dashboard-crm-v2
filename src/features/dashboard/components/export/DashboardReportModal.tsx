@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Printer, CheckSquare, Square, FileText, Calendar, Compass } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -54,6 +54,24 @@ export function DashboardReportModal({
     () => new Set(tiles.map((t) => t.tileId)),
   );
 
+  // Synchronisiere Auswahl beim Öffnen und entferne nicht mehr vorhandene Kacheln (Auftrag 132 Review)
+  const prevOpenRef = useRef(false);
+  useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      setSelectedIds(new Set(tiles.map((t) => t.tileId)));
+    } else if (open) {
+      setSelectedIds((prev) => {
+        const available = new Set(tiles.map((t) => t.tileId));
+        const next = new Set<string>();
+        for (const id of prev) {
+          if (available.has(id)) next.add(id);
+        }
+        return next;
+      });
+    }
+    prevOpenRef.current = open;
+  }, [open, tiles]);
+
   const periodText = useMemo(() => resolvePeriodString(filters), [filters]);
 
   const tileItems = useMemo(() => {
@@ -64,6 +82,11 @@ export function DashboardReportModal({
       view: tile.view,
     }));
   }, [tiles]);
+
+  const validSelectedIds = useMemo(() => {
+    const available = new Set(tiles.map((t) => t.tileId));
+    return Array.from(selectedIds).filter((id) => available.has(id));
+  }, [tiles, selectedIds]);
 
   const handleToggleTile = useCallback((tileId: string) => {
     setSelectedIds((prev) => {
@@ -86,16 +109,24 @@ export function DashboardReportModal({
   }, []);
 
   const handlePrint = useCallback(() => {
-    if (selectedIds.size === 0) return;
+    if (validSelectedIds.length === 0) return;
     onConfirmPrint({
       title: title.trim() || 'LeadPilot Executive Management Briefing',
       periodText,
-      selectedTileIds: Array.from(selectedIds),
+      selectedTileIds: validSelectedIds,
       commentary: commentary.trim(),
       orientation,
       includeAppendix,
     });
-  }, [title, periodText, selectedIds, commentary, orientation, includeAppendix, onConfirmPrint]);
+  }, [
+    title,
+    periodText,
+    validSelectedIds,
+    commentary,
+    orientation,
+    includeAppendix,
+    onConfirmPrint,
+  ]);
 
   return (
     <Modal
@@ -106,7 +137,7 @@ export function DashboardReportModal({
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2 w-full">
           <span className="text-[13px] text-[var(--color-text-muted)]">
-            {selectedIds.size} von {tiles.length} Kacheln ausgewählt
+            {validSelectedIds.length} von {tiles.length} Kacheln ausgewählt
           </span>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="secondary" onClick={onClose}>
@@ -114,7 +145,7 @@ export function DashboardReportModal({
             </Button>
             <Button
               size="sm"
-              disabled={selectedIds.size === 0}
+              disabled={validSelectedIds.length === 0}
               onClick={handlePrint}
               data-testid="print-submit-btn"
               className="flex items-center gap-1.5"

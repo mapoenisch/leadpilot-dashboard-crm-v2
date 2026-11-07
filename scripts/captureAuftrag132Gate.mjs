@@ -4,7 +4,8 @@
  * (/dashboard in Standard-Ansicht, Report-Modal und Druck-/Print-Ansicht)
  * bei 1440/768/375 px, beide Themes (dark/light mit data-theme).
  * Misst Überlauf (Dokument, #main-content), Inhaltshöhe, SHA-256 des Bildes;
- * schreibt die textuelle Matrix docs/screenshots/auftrag-132/README.md.
+ * Schreibt die textuelle Matrix docs/screenshots/auftrag-132/README.md.
+ * Vergleicht echten Baseline-Build (ce21c15) auf Port 3001 gegen Head auf Port 3000.
  * Aufruf: node scripts/captureAuftrag132Gate.mjs
  */
 import fs from 'node:fs';
@@ -17,7 +18,10 @@ import { chromium } from '@playwright/test';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'docs/screenshots/auftrag-132');
-const BASE_URL = process.env.BASE_URL ?? 'http://127.0.0.1:3000';
+const HEAD_URL = process.env.HEAD_URL ?? 'http://127.0.0.1:3000';
+const BASELINE_URL = process.env.BASELINE_URL ?? 'http://127.0.0.1:3001';
+const BASELINE_DIR = process.env.BASELINE_DIR ?? '/tmp/leadpilot-baseline-132/dist';
+
 const EMAIL = process.env.E2E_AUTH_EMAIL ?? 'admin-a@e2e.local';
 const PASSWORD = process.env.E2E_AUTH_PASSWORD ?? 'TestPassword123!';
 const WIDTHS = [1440, 768, 375];
@@ -28,16 +32,11 @@ const SCENARIOS = [
     id: 'dashboard-standard',
     title: '/dashboard (Standard-Ansicht mit "Bericht exportieren"-Button in Toolbar)',
     prepare: async (page, side) => {
-      await page.goto(`${BASE_URL}/dashboard`);
+      const baseUrl = side === 'vorher' ? BASELINE_URL : HEAD_URL;
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForSelector('[data-testid="dashboard-workspace"]:not([aria-busy="true"])', {
         timeout: 15000,
       });
-      if (side === 'vorher') {
-        // Vorher-Baseline (ce21c15) besaß keinen Export-Button
-        await page.addStyleTag({
-          content: '[data-testid="export-report-btn"] { display: none !important; }',
-        });
-      }
       await page.waitForTimeout(300);
     },
   },
@@ -45,7 +44,8 @@ const SCENARIOS = [
     id: 'dashboard-report-modal',
     title: '/dashboard (Geöffnetes Konfigurationsmodal für PDF/Druck-Export)',
     prepare: async (page, side) => {
-      await page.goto(`${BASE_URL}/dashboard`);
+      const baseUrl = side === 'vorher' ? BASELINE_URL : HEAD_URL;
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForSelector('[data-testid="dashboard-workspace"]:not([aria-busy="true"])', {
         timeout: 15000,
       });
@@ -55,11 +55,6 @@ const SCENARIOS = [
         await exportBtn.click();
         await page.locator('[role="dialog"]').waitFor({ state: 'visible', timeout: 5000 });
         await page.locator('[data-testid="report-title-input"]').waitFor({ state: 'visible', timeout: 5000 });
-      } else {
-        // Vorher: Kein Modal vorhanden, Standardansicht
-        await page.addStyleTag({
-          content: '[data-testid="export-report-btn"] { display: none !important; }',
-        });
       }
       await page.waitForTimeout(300);
     },
@@ -68,7 +63,8 @@ const SCENARIOS = [
     id: 'dashboard-print-view',
     title: '/dashboard (Druck-Layout via @media print mit Deckblatt, Kacheln & Anhang)',
     prepare: async (page, side) => {
-      await page.goto(`${BASE_URL}/dashboard`);
+      const baseUrl = side === 'vorher' ? BASELINE_URL : HEAD_URL;
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForSelector('[data-testid="dashboard-workspace"]:not([aria-busy="true"])', {
         timeout: 15000,
       });
@@ -97,10 +93,8 @@ const SCENARIOS = [
         // Im Nachher-Stand Print-Media aktivieren
         await page.emulateMedia({ media: 'print' });
       } else {
-        // Vorher-Stand (ce21c15): Keine Druckvorschau, normaler Bildschirm-Stand
-        await page.addStyleTag({
-          content: '[data-testid="export-report-btn"] { display: none !important; }',
-        });
+        // Vorher-Stand ce21c15: Regulärer Browser-Druck ohne Report-Export
+        await page.emulateMedia({ media: 'print' });
       }
       await page.waitForTimeout(400);
     },
@@ -156,13 +150,14 @@ async function mockSupabaseAuthAndData(context) {
         },
       });
     }
+
     if (url.pathname.includes('/auth/v1/token')) {
       return json(route, {
         access_token: token,
         token_type: 'bearer',
         expires_in: 3600,
         expires_at: now + 3600,
-        refresh_token: 'mock-refresh',
+        refresh_token: 'mock-refresh-token',
         user,
       });
     }
@@ -174,18 +169,37 @@ async function mockSupabaseAuthAndData(context) {
     }
     if (url.pathname.includes('/rest/v1/organization_members')) {
       return json(route, {
-        organization_id: '00000000-0000-4000-8000-0000000000a1',
+        organization_id: '00000000-0000-4000-8000-000000000001',
         role: 'admin',
         status: 'active',
         organizations: { status: 'active' },
       });
+    }
+    if (url.pathname.includes('/rest/v1/organizations')) {
+      return json(route, [
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          name: 'LeadPilot Test GmbH',
+          slug: 'leadpilot-test',
+        },
+      ]);
+    }
+    if (url.pathname.includes('/rest/v1/user_profiles')) {
+      return json(route, [
+        {
+          id: user.id,
+          organization_id: '00000000-0000-4000-8000-000000000001',
+          role: 'admin',
+          full_name: 'Max Mustermann',
+        },
+      ]);
     }
     const single = (request.headers()['accept'] ?? '').includes('vnd.pgrst.object');
     return json(route, single ? null : []);
   });
 }
 
-async function checkUrl(url) {
+function checkUrl(url) {
   return new Promise((resolve) => {
     const req = http.get(url, (res) => {
       resolve(res.statusCode >= 200 && res.statusCode < 400);
@@ -198,29 +212,48 @@ async function checkUrl(url) {
   });
 }
 
-let serverProcess = null;
+let headProcess = null;
+let baselineProcess = null;
 
-async function ensureServerRunning() {
-  const isUp = await checkUrl(BASE_URL);
-  if (isUp) {
-    console.log(`[Server] Server läuft bereits auf ${BASE_URL}`);
-    return;
+async function ensureServersRunning() {
+  // 1. Head Server auf Port 3000
+  const isHeadUp = await checkUrl(HEAD_URL);
+  if (!isHeadUp) {
+    console.log(`[Server] Starte Vite Preview für Head auf ${HEAD_URL} …`);
+    headProcess = spawn('npx', ['vite', 'preview', '--host', '127.0.0.1', '--port', '3000', '--strictPort'], {
+      cwd: ROOT,
+      stdio: 'inherit',
+    });
   }
-  console.log(`[Server] Starte Vite Preview auf ${BASE_URL} …`);
-  serverProcess = spawn('npx', ['vite', 'preview', '--host', '127.0.0.1', '--port', '3000', '--strictPort'], {
-    cwd: ROOT,
-    stdio: 'inherit',
-  });
+
+  // 2. Baseline Server auf Port 3001
+  const isBaselineUp = await checkUrl(BASELINE_URL);
+  if (!isBaselineUp) {
+    if (!fs.existsSync(BASELINE_DIR)) {
+      throw new Error(`Baseline-Verzeichnis nicht gefunden: ${BASELINE_DIR}. Wurde ce21c15 gebaut?`);
+    }
+    console.log(`[Server] Starte Vite Preview für Baseline (ce21c15) auf ${BASELINE_URL} …`);
+    baselineProcess = spawn(
+      'npx',
+      ['vite', 'preview', '--host', '127.0.0.1', '--port', '3001', '--strictPort', '--outDir', BASELINE_DIR],
+      {
+        cwd: ROOT,
+        stdio: 'inherit',
+      },
+    );
+  }
 
   const start = Date.now();
   while (Date.now() - start < 20000) {
-    if (await checkUrl(BASE_URL)) {
-      console.log(`[Server] Vite Preview erfolgreich gestartet auf ${BASE_URL}`);
+    const headReady = await checkUrl(HEAD_URL);
+    const baselineReady = await checkUrl(BASELINE_URL);
+    if (headReady && baselineReady) {
+      console.log(`[Server] Beide Preview-Server bereit (${HEAD_URL} & ${BASELINE_URL})`);
       return;
     }
     await new Promise((r) => setTimeout(r, 400));
   }
-  throw new Error(`Timeout beim Starten des Preview-Servers auf ${BASE_URL}`);
+  throw new Error(`Timeout beim Warten auf Preview-Server`);
 }
 
 async function launchBrowser() {
@@ -237,7 +270,7 @@ async function launchBrowser() {
 }
 
 try {
-  await ensureServerRunning();
+  await ensureServersRunning();
 } catch (err) {
   console.error('[Server Error]', err);
   process.exit(1);
@@ -248,6 +281,8 @@ const rows = [];
 const SIDES = ['vorher', 'nachher'];
 
 for (const side of SIDES) {
+  const currentBaseUrl = side === 'vorher' ? BASELINE_URL : HEAD_URL;
+
   for (const theme of THEMES) {
     for (const width of WIDTHS) {
       const ctx = await browser.newContext({
@@ -268,7 +303,7 @@ for (const side of SIDES) {
 
       // 1. Anmeldung an der Plattform
       try {
-        await page.goto(`${BASE_URL}/login`);
+        await page.goto(`${currentBaseUrl}/login`);
         await page.waitForLoadState('networkidle');
 
         const emailInput = page.locator('input#login-email, input[type="email"]');
@@ -356,8 +391,11 @@ for (const side of SIDES) {
 }
 
 await browser.close();
-if (serverProcess) {
-  serverProcess.kill('SIGTERM');
+if (headProcess) {
+  headProcess.kill('SIGTERM');
+}
+if (baselineProcess) {
+  baselineProcess.kill('SIGTERM');
 }
 
 // Matrix aufbereiten
@@ -411,8 +449,8 @@ const isGatePassed = !hasCountMismatch && !hasUnchangedImages && !hasOverflow;
 const readmeContent = `# Auftrag 132: Screenshot-Gate-Nachweis
 
 **Route:** \`/dashboard\`  
-**Baseline:** \`ce21c15\` (origin/main) auf Port 3000  
-**Nachher:** \`claude/auftrag-132-dashboard-report-export\` auf Port 3000  
+**Baseline:** \`ce21c15\` (origin/main Build in \`/tmp/leadpilot-baseline-132/dist\`) auf Port 3001  
+**Nachher:** \`claude/auftrag-132-dashboard-report-export\` (Head Build) auf Port 3000  
 **Datum:** ${new Date().toISOString().slice(0, 10)}  
 **Ergebnis:** ${diffCount}/${totalCompared} Bildpaare mit beabsichtigter Änderung, maximaler Überlauf: **${maxOverflow} px**.  
 **Status:** **${isGatePassed ? 'PASS' : 'FAIL'}**

@@ -7,6 +7,7 @@ import {
 } from '../components/export/DashboardReportModal';
 import { DashboardPrintView } from '../components/export/DashboardPrintView';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
+import type { TileDataHook } from '../components/LazyDashboardTile';
 
 const MOCK_TILES: readonly DashboardTileConfig[] = [
   {
@@ -118,6 +119,27 @@ describe('DashboardReportModal', () => {
     expect(screen.getByText(/3 von 3 Kacheln ausgewählt/i)).toBeInTheDocument();
     expect(screen.getByTestId('print-submit-btn')).toBeEnabled();
   });
+
+  it('synchronisiert die Auswahl beim Öffnen anhand der aktuellen Kacheln', () => {
+    const { rerender } = render(
+      <DashboardReportModal
+        open={false}
+        onClose={vi.fn()}
+        tiles={MOCK_TILES.slice(0, 2)}
+        onConfirmPrint={vi.fn()}
+      />,
+    );
+
+    rerender(
+      <DashboardReportModal
+        open={true}
+        onClose={vi.fn()}
+        tiles={MOCK_TILES}
+        onConfirmPrint={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/3 von 3 Kacheln ausgewählt/i)).toBeInTheDocument();
+  });
 });
 
 describe('DashboardPrintView', () => {
@@ -178,5 +200,56 @@ describe('DashboardPrintView', () => {
     );
 
     expect(screen.queryByText(/Daten-Anhang/i)).not.toBeInTheDocument();
+  });
+
+  it('nutzt dynamische useData-Werte und rendert Zeitreihen im Anhang', () => {
+    const mockUseData: TileDataHook = (tile) => {
+      if (tile.tileId === 'tile-arr') {
+        return {
+          catalogId: tile.catalogId,
+          state: 'bereit',
+          value: 750000,
+          unit: '€',
+          series: [
+            { label: 'Q1', value: 180000 },
+            { label: 'Q2', value: 190000 },
+          ],
+          overview: null,
+          timeBasis: 'Aktueller Stand',
+          asOf: null,
+          origin: { layer: 'crm', module: 'src/domain/x.ts', exportName: 'X' },
+          scope: 'organisation',
+          effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+        };
+      }
+      return {
+        catalogId: tile.catalogId,
+        state: 'bereit',
+        value: 42,
+        unit: 'Kunden',
+        series: null,
+        overview: null,
+        timeBasis: 'Aktueller Stand',
+        asOf: null,
+        origin: { layer: 'crm', module: 'src/domain/x.ts', exportName: 'X' },
+        scope: 'organisation',
+        effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+      };
+    };
+
+    render(
+      <DashboardPrintView
+        config={sampleConfig}
+        tiles={MOCK_TILES}
+        isPreview={true}
+        useData={mockUseData}
+      />,
+    );
+
+    // Kachelkarte formatiert mit exaktem Wert
+    expect(screen.getByText('750.000 €')).toBeInTheDocument();
+    // Appendix enthält Zeitreihenpunkte
+    expect(screen.getByText(/Q1/i)).toBeInTheDocument();
+    expect(screen.getByText('180.000 €')).toBeInTheDocument();
   });
 });

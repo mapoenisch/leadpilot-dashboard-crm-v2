@@ -1,8 +1,8 @@
 # Auftrag 132: Screenshot-Gate-Nachweis
 
 **Route:** `/dashboard`  
-**Baseline:** `ce21c15` (origin/main) auf Port 3000  
-**Nachher:** `claude/auftrag-132-dashboard-report-export` auf Port 3000  
+**Baseline:** `ce21c15` (origin/main Build in `/tmp/leadpilot-baseline-132/dist`) auf Port 3001  
+**Nachher:** `claude/auftrag-132-dashboard-report-export` (Head Build) auf Port 3000  
 **Datum:** 2026-11-07  
 **Ergebnis:** 18/18 Bildpaare mit beabsichtigter Änderung, maximaler Überlauf: **0 px**.  
 **Status:** **PASS**
@@ -21,14 +21,14 @@
 | `dashboard-report-modal` | 768 px | dark | `c189f80a00ca…` | `e76f87022826…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 | `dashboard-report-modal` | 375 px | dark | `ec8a2ff43b91…` | `cf9622eb0d5f…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 | `dashboard-report-modal` | 1440 px | light | `1ed4811dca95…` | `dfeff42168ef…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `dashboard-report-modal` | 768 px | light | `439e48433d3e…` | `78c5e34237e9…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `dashboard-report-modal` | 768 px | light | `439e48433d3e…` | `b7ff446db749…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 | `dashboard-report-modal` | 375 px | light | `567a924ba08f…` | `86f8f244efb6…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `dashboard-print-view` | 1440 px | dark | `f1f3e3027701…` | `7e6aee359fc2…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `dashboard-print-view` | 768 px | dark | `c189f80a00ca…` | `456b713b1d47…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `dashboard-print-view` | 375 px | dark | `ec8a2ff43b91…` | `bf3a211a4100…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `dashboard-print-view` | 1440 px | light | `1ed4811dca95…` | `7b9c4e04a3e2…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `dashboard-print-view` | 768 px | light | `439e48433d3e…` | `db673adf600f…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `dashboard-print-view` | 375 px | light | `567a924ba08f…` | `589d9b5c09c3…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `dashboard-print-view` | 1440 px | dark | `80c4fee723a9…` | `560b45c459cc…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `dashboard-print-view` | 768 px | dark | `f08635199ab6…` | `5533e2cb9d8c…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `dashboard-print-view` | 375 px | dark | `a140f6c60c1c…` | `ec2982043f31…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `dashboard-print-view` | 1440 px | light | `1ed4811dca95…` | `03929fdec467…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `dashboard-print-view` | 768 px | light | `439e48433d3e…` | `9825fc651585…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `dashboard-print-view` | 375 px | light | `567a924ba08f…` | `11ddc9bcb3a3…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 
 
 ## Fazit
