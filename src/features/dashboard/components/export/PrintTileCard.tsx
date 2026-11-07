@@ -4,6 +4,7 @@ import { getCatalogEntry } from '../../model/dashboardCatalog';
 import { formatTileValue, formatAsOf, NO_DATA } from '../tileFormat';
 import type { TileDataHook } from '../LazyDashboardTile';
 import type { TileData } from '../../data/dashboardData';
+import { PrintOverviewCard } from './PrintOverviewCard';
 
 export function resolveTileInfo(tile: DashboardTileConfig) {
   const entry = getCatalogEntry(tile.catalogId);
@@ -178,37 +179,52 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
         )}
       </div>
 
-      <div className="py-4 my-2 border-y border-slate-100 flex items-baseline justify-between">
-        <span className="text-xs text-slate-400">Kennzahlen-Wert</span>
-        <div className="text-right">
-          <span
-            className={`text-2xl font-black ${
-              data?.state === 'fehler'
-                ? 'text-red-600'
-                : isVeraltet || isDegradiert
-                  ? 'text-amber-700'
-                  : 'text-slate-900'
-            }`}
-          >
-            {displayValue}
-          </span>
+      {data && data.state !== 'nicht_verfuegbar' && data.overview ? (
+        <div className="py-3 my-2 border-y border-slate-100">
+          <PrintOverviewCard overview={data.overview} />
           {statusNote ? (
             <span
-              className={`block text-[11px] mt-1 leading-tight ${
-                data?.state === 'fehler'
-                  ? 'text-red-500'
-                  : isVeraltet || isDegradiert
-                    ? 'text-amber-700 font-medium'
-                    : 'text-slate-500'
+              className={`block text-[11px] mt-2 leading-tight ${
+                isVeraltet || isDegradiert ? 'text-amber-700 font-medium' : 'text-slate-500'
               }`}
             >
               {statusNote}
             </span>
-          ) : data && data.state !== 'nicht_verfuegbar' && data.timeBasis ? (
-            <span className="block text-[11px] text-slate-400 mt-0.5">{data.timeBasis}</span>
           ) : null}
         </div>
-      </div>
+      ) : (
+        <div className="py-4 my-2 border-y border-slate-100 flex items-baseline justify-between">
+          <span className="text-xs text-slate-400">Kennzahlen-Wert</span>
+          <div className="text-right">
+            <span
+              className={`text-2xl font-black ${
+                data?.state === 'fehler'
+                  ? 'text-red-600'
+                  : isVeraltet || isDegradiert
+                    ? 'text-amber-700'
+                    : 'text-slate-900'
+              }`}
+            >
+              {displayValue}
+            </span>
+            {statusNote ? (
+              <span
+                className={`block text-[11px] mt-1 leading-tight ${
+                  data?.state === 'fehler'
+                    ? 'text-red-500'
+                    : isVeraltet || isDegradiert
+                      ? 'text-amber-700 font-medium'
+                      : 'text-slate-500'
+                }`}
+              >
+                {statusNote}
+              </span>
+            ) : data && data.state !== 'nicht_verfuegbar' && data.timeBasis ? (
+              <span className="block text-[11px] text-slate-400 mt-0.5">{data.timeBasis}</span>
+            ) : null}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
         <span data-testid={`print-tile-filter-${tile.tileId}`}>{filterDisplay}</span>

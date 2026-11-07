@@ -19357,3 +19357,47 @@ Die 3 Befunde aus dem fünften Review-Durchlauf von Codex zu PR #142 (Commit `b9
 - `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
 - `npm run build`: **Erfolgreich (3.53s)**
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 6 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die 2 Befunde aus dem sechsten Review-Durchlauf von Codex zu PR #142 (Commit `f22572a`) wurden analysiert und behoben:
+
+1. **Finding 1 (P2 - `PrintTileCard.tsx`, `PrintOverviewCard.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Übersichtskacheln wie `uebersicht.team_hr` und `uebersicht.roadmap` enthalten ausschließlich `data.overview`. Im Export wurden sie bisher mit dem pauschalen Platzhalter „Übersicht aktiv“ dargestellt, wodurch Teamkennzahlen, Engpässe und Roadmap-Releases im gesamten Bericht fehlten.
+   - *Behebung:*
+     - **Kachelkarten (`PrintTileCard.tsx`, `PrintOverviewCard.tsx`):** Neue Komponente `PrintOverviewCard` rendert typisierte Übersichten direkt im Drucklayout: Teamkennzahlen, Teamstruktur und Engpässe/Maßnahmen für `team_hr`; Quartale, Titel, Status und Beschreibungen für `roadmap`; Meilensteine und Live-Aktivitäten entsprechend.
+     - **Wertetabellen-Anhang (`PrintAppendixTable.tsx`):** Wenn `data.overview` vorliegt, werden für jede Metrik, Organisationseinheit und jeden Engpass (`team_hr`) bzw. jedes Release (`roadmap`) strukturierte Tabellenzeilen erzeugt (kein Platzhalter mehr).
+2. **Finding 2 (P2 - `DashboardWorkspace.tsx`, `dashboardWorkspaceTypes.ts`, `PersonalExecutiveDashboard.tsx`):**
+   - *Befund:* Beim regulären Export über `DashboardWorkspace` wurde `organizationName` nicht übergeben, sodass immer „LeadPilot GmbH“ auf dem Deckblatt und im Datenschutzhinweis stand, obwohl `useDashboardData` nach `session.organizationId` trennt.
+   - *Behebung:*
+     - `DashboardWorkspaceProps` um `organizationName?: string` ergänzt und an `DashboardPrintView` durchgereicht.
+     - `PersonalExecutiveDashboard.tsx` liest die aktive Organisation via `useOrganization()` und übergibt bei vorhandener Sitzung `Organisation ${session.organizationId}` als Mandant.
+     - `DashboardWorkspace.tsx` wurde zur Einhaltung des Zeilenbudgets strukturiert refaktoriert (`dashboardWorkspaceTypes.ts`, 38 Zeilen; `DashboardWorkspace.tsx`, 371 Zeilen).
+3. **Architektur & Zeilenbudget-Schutz:**
+   - Neue Testdatei `DashboardReportOverviewAndOrg.ui.vitest.tsx` (153 Zeilen) deckt Übersichtskacheln und Mandantenbindung ab.
+   - Test in `PersonalExecutiveDashboard.ui.vitest.tsx` (195 Zeilen) hinzugefügt.
+   - Alle Dateien bleiben strikt $\le 400$ Zeilen:
+     - `PrintOverviewCard.tsx`: 118 Zeilen
+     - `PrintTileCard.tsx`: 235 Zeilen
+     - `PrintAppendixTable.tsx`: 287 Zeilen
+     - `export/index.ts`: 2 Zeilen
+     - `dashboardWorkspaceTypes.ts`: 38 Zeilen
+     - `DashboardWorkspace.tsx`: 371 Zeilen
+     - `PersonalExecutiveDashboard.tsx`: 64 Zeilen
+     - `DashboardReportOverviewAndOrg.ui.vitest.tsx`: 153 Zeilen
+     - `PersonalExecutiveDashboard.ui.vitest.tsx`: 195 Zeilen
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 6
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **49 Testdateien, 614 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.50s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
