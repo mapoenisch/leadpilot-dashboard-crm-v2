@@ -19634,3 +19634,6 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
   - `npm run format:check`: **Prettier-konform**
   - `deno check` & `deno test`: **67/67 bestanden**
   - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+  - **CI-Pflichtjobs (PR #145, Lauf 42426048463):** alle 7 Jobs bestanden (`typecheck`, `lint`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e` alle ✅).
+  - **Review-Konversationen:** gelöst (`isResolved: true`).
+  - **Gate-Freigabe:** ✅ Vollständig erteilt (Codex ohne Befunde auf Head `5807f21`, alle Pflicht-Checks grün, alle Konversationen gelöst). Bereit für Merge durch Marc.

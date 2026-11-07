@@ -42,4 +42,4 @@ Dependabot konnte das Update nicht selbst durchführen („Dependabot cannot upd
 - [x] `supabase/functions/deno.lock` synchronisiert (`deno check` & `deno test` 67/67 grün).
 - [x] Gates: `tsc --noEmit` (0 Fehler), `npm run lint` (0 Fehler), `npm run format:check` (Prettier-konform), `npm test` (368 Dateien, 2.672 Tests grün), `npm run verify` (25/25 Suiten grün), `npm run build` (erfolgreich).
 - [x] Schutzbereichs-Diff gegen `origin/main` leer (0 Diff).
-- [ ] PR-CI 7/7 grün; Codex-Prüfung.
+- [x] PR-CI 7/7 grün; Codex-Prüfung ohne Befunde freigegeben.
