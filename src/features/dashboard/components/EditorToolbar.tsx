@@ -12,6 +12,7 @@ import {
   LayoutTemplate,
   RotateCcw,
   ChevronDown,
+  Printer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -43,6 +44,7 @@ export interface EditorToolbarProps {
   onUndo?: () => void;
   onRedo?: () => void;
   onApplyPreset?: (presetId: string) => void;
+  onExportReport?: () => void;
 }
 
 function statusText(props: EditorToolbarProps): string {
@@ -149,15 +151,32 @@ export function EditorToolbar(props: EditorToolbarProps) {
                 </Button>
               </>
             ) : (
-              <Button
-                size="sm"
-                disabled={!props.canStart || locked}
-                onClick={props.onStart}
-                className="flex items-center gap-1.5"
-              >
-                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                Dashboard bearbeiten
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  disabled={!props.canStart || locked}
+                  onClick={props.onStart}
+                  className="flex items-center gap-1.5"
+                >
+                  <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                  Dashboard bearbeiten
+                </Button>
+                {props.onExportReport ? (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={locked}
+                    onClick={props.onExportReport}
+                    data-testid="export-report-btn"
+                    className="flex items-center gap-1.5 max-sm:px-2"
+                    title="Druck- und PDF-Bericht konfigurieren"
+                    aria-label="Bericht exportieren"
+                  >
+                    <Printer className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="max-sm:sr-only">Bericht exportieren</span>
+                  </Button>
+                ) : null}
+              </>
             )}
             <span className="min-h-[20px] min-w-0 truncate text-[13px] text-[var(--color-text-muted)]">
               {editing && SHORT_STATUS[status] ? (

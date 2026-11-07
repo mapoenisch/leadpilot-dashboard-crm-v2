@@ -2,6 +2,7 @@
 // eingeschaltetem Rollout-Schalter). Verbindet Speicherung, Datenauflösung und Arbeitsbereich mit
 // dem Router: „Details“ öffnet die Detailseite, die Rückkehr bringt Sitzungsfilter und Fokus mit.
 import { useRef, useState } from 'react';
+import { useOrganization } from '@/auth/organizationContext';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
 import { useBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -15,6 +16,7 @@ export const RETURN_MISSING_ANNOUNCEMENT =
 export function PersonalExecutiveDashboard() {
   const preferences = useDashboardPreferences();
   const nav = useDashboardNavigation();
+  const { session } = useOrganization();
   const headingRef = useRef<HTMLHeadingElement>(null);
   // Der mitgereiste Kontext gilt nur beim Öffnen der Seite; spätere Ersetzungen des Eintrags
   // (beim Öffnen der Details) dürfen den Arbeitsbereich nicht erneut steuern.
@@ -44,6 +46,9 @@ export function PersonalExecutiveDashboard() {
       <DashboardWorkspace
         preferences={preferences}
         useData={useDashboardData}
+        organizationName={
+          session?.organizationId ? `Organisation ${session.organizationId}` : undefined
+        }
         initialSession={arrival?.session ?? null}
         returnFocusTileId={arrival?.returnFocus ?? null}
         onReturnFocus={(found) => {

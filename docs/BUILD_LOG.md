@@ -19105,3 +19105,310 @@ Alle 2 Befunde aus dem zweiten automatisierten Codex-Review auf GitHub wurden an
 - **Zeilenbudgets ($\le 400$ Zeilen):**
   - `src/features/vertrieb/services/funnelAnalyticsService.ts`: 389 Zeilen
   - `src/features/vertrieb/services/funnelCrmDataService.ts`: 75 Zeilen
+
+---
+
+## 2026-11-07 — Auftrag 132: Executive Report Generator & Druck/PDF-Export (`/dashboard`)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Baseline:** `ce21c15` (`main` nach PR #141) · **Branch:** `claude/auftrag-132-dashboard-report-export`
+
+Im Rahmen von Paket 4 (Executive Report Generator & Druck/PDF-Export, spezifiziert in `docs/superpowers/plans/2026-11-05-crm-analytics-master-plan.md` und `docs/superpowers/plans/2026-11-05-paket-4-dashboard-report-export-plan.md`) wurde das interaktive `/dashboard` um eine vorstandstaugliche Export- und Druckfunktion erweitert.
+
+### Umgesetzte Änderungen
+
+1. **Toolbar-Integration (`EditorToolbar.tsx`):**
+   - Neuer Button **„Bericht exportieren“** mit `Printer`-Icon und `data-testid="export-report-btn"` in der View-Toolbar.
+   - Barrierefreie Tooltip- und Tastaturbedienung; deaktiviert, solange das Dashboard lädt (`locked`).
+   - Unit-Test in `EditorToolbar.ui.vitest.tsx` belegt Klick-Trigger und Beschriftung.
+2. **Konfigurationsdialog (`DashboardReportModal.tsx`, 280 Zeilen):**
+   - Modaler Dialog (`[role="dialog"]`) zur flexiblen Berichtsgestaltung vor dem Druck:
+     - **Titel:** Vorbelegt mit „LeadPilot Executive Management Briefing“ (`data-testid="report-title-input"`).
+     - **Zeitraum:** Dynamische Übernahme aus den aktiven Dashboard-Filtern (z. B. „FY 2025“).
+     - **Kachelauswahl:** Checkboxen je Kachel mit Statuszähler („X von Y Kacheln ausgewählt“) sowie Schnellaktionen „Alle wählen“ und „Alle abwählen“.
+     - **Management-Kommentar:** Optionales mehrzeiliges Eingabefeld (`data-testid="report-commentary-input"`) für strategische Einordnungen.
+     - **Formatwahl:** DIN A4 Hochformat (Standard) oder Querformat (`landscape`).
+     - **Anhang-Schalter:** Optionales Ein-/Ausschalten des Wertetabellen-Anhangs.
+     - **Validierung:** Drucken-Schaltfläche (`data-testid="print-submit-btn"`) wird deaktiviert, wenn 0 Kacheln gewählt sind.
+3. **Strukturiertes Druck-DOM (`DashboardPrintView.tsx`, 278 Zeilen & `printReport.css`):**
+   - **Deckblatt (Seite 1):** Offizieller Management-Report-Header mit Mandantenname (`organizationName`), Berichts-ID, Stichtag, Vertraulichkeitshinweis (*„Streng vertraulich“*), 4 Kernmetriken der Geschäftsführung (ARR, Umsatzerlöse, EBITDA, Aktive Kunden) und optionalem Management-Kommentar.
+   - **Kachel-Raster (Seite 2+):** Zweispaltiges DIN-A4-Raster mit `page-break-inside: avoid`, hohem Kontrast (weißer Grund `#ffffff`, dunkler Text `#0f172a`, saubere Linien `#cbd5e1`).
+   - **Wertetabellen-Anhang:** Strukturierte Datentabelle für Diagramme und Kennzahlen zur barrierefreien Einsicht.
+   - **Druckbereinigung (`printReport.css`):** `@media print` blendet Navigation, Header, Sidebar, Simulationsleiste und interaktive Filter vollständig aus (`display: none !important`), hebt Scroll-Container auf (`height: auto !important`, `overflow: visible !important`) und sorgt für saubere Seitenumbrüche.
+4. **Entkopplung & Zeilenbudget-Schutz (`ConfiguratorBoundary.tsx`, 62 Zeilen; `DashboardWorkspace.tsx`, 394 Zeilen):**
+   - Auslagerung von `ConfiguratorShell` und `ConfiguratorBoundary` in eine eigene Komponente zur strikten Einhaltung des 400-Zeilen-Budgets (`DashboardWorkspace.tsx` von 405 auf 394 Zeilen gesenkt).
+   - Hook `useDashboardReportExport.ts` (34 Zeilen) kapselt Modal-State und `window.print()`-Trigger.
+5. **Automatisierte Testabdeckung:**
+   - `DashboardReport.ui.vitest.tsx`: 6 Unit- und UI-Tests für Dialog-Rendering, Tastatureingaben, Kachelabwahl, Deckblatt-Metadaten und Anhang-Steuerung.
+6. **Screenshot-Gate (`scripts/captureAuftrag132Gate.mjs` & `docs/screenshots/auftrag-132/README.md`):**
+   - 18 Vorher/Nachher-Bildpaare (1440, 768, 375 px; dark & light Theme; Standard, Modal, Print-Layout) gegen Baseline `ce21c15` auf Port 3000.
+   - 18/18 Paare geändert (100 % Diff nachgewiesen), maximaler Überlauf **exakt 0 px**.
+
+### Verifikation & Gate-Status
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **47 Testdateien, 601/601 Tests grün**
+- `npm test`: **364 Testdateien, 2.647 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.40s)**
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-132/README.md` (18/18 Paare verschieden, 0 px Überlauf auf allen Viewports)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/dashboard/components/export/DashboardReportModal.tsx`: 280 Zeilen
+  - `src/features/dashboard/components/export/DashboardPrintView.tsx`: 278 Zeilen
+  - `src/features/dashboard/components/ConfiguratorBoundary.tsx`: 62 Zeilen
+  - `src/features/dashboard/components/DashboardWorkspace.tsx`: 394 Zeilen
+  - `src/features/dashboard/components/EditorToolbar.tsx`: 361 Zeilen
+  - `src/features/dashboard/hooks/useDashboardReportExport.ts`: 34 Zeilen
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+
+---
+
+### Nacharbeit Codex-Review Runde 1 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Alle 5 Befunde aus dem initialen Review von Codex zu PR #142 (Commit `5bc2d29`) wurden vollständig analysiert und nachgearbeitet:
+
+1. **Finding 1 (P1 - `DashboardPrintView.tsx` & `DashboardWorkspace.tsx`):**
+   - *Befund:* Hartcodierte Baseline-IDs und statische Fallback-Werte verhinderten den Ausdruck dynamischer Kennzahlen; Zeitreihenkacheln wurden im Anhang nicht aufgeschlüsselt.
+   - *Behebung:* `DashboardPrintView` nimmt nun optional `useData?: TileDataHook` entgegen (`DashboardWorkspace` reicht `useData` durch). Kachelwerte werden über `formatTileValue(..., 'exakt')` dynamisch formatiert. Für Zeitreihenkacheln listet der Anhang nun jede einzelne Messreihe/Periode auf (`PrintAppendixRows`). Unkonditioneller Hook-Aufruf via `noopTileDataHook` garantiert strikte Einhaltung der React-Hook-Regeln.
+2. **Finding 2 (P2 - `DashboardReportModal.tsx`):**
+   - *Befund:* `selectedIds` wurde beim initialen Mounten mit Standard-Kacheln initialisiert, bevor asynchrone persönliche Einstellungen eintrafen; eigene Kacheln blieben abgewählt.
+   - *Behebung:* `useEffect` synchronisiert `selectedIds` beim Öffnen des Modals (`open: true`) mit den tatsächlich geladenen Kacheln. Ungültige/veraltete IDs werden über `validSelectedIds` gefiltert.
+3. **Finding 3 (P2 - `scripts/captureAuftrag132Gate.mjs`):**
+   - *Befund:* Der Screenshot-Harness verglich denselben Code gegen sich selbst mit CSS-Ausblendung statt einer echten `ce21c15`-Baseline.
+   - *Behebung:* Das Harness startet nun zwei echte Vite-Preview-Server parallel: Baseline `ce21c15` (vollständiger Build mit Supabase-Mock in `/tmp/leadpilot-baseline-132/dist`) auf Port 3001 und Head auf Port 3000. Alle Vorher-Hashes in `docs/screenshots/auftrag-132/README.md` stammen nachweislich aus dem echten `ce21c15`-Build (18/18 Bildpaare mit beabsichtigter Änderung, 0 px Überlauf).
+4. **Finding 4 (P2 - `useDashboardReportExport.ts`, `DashboardWorkspace.tsx` & `printReport.css`):**
+   - *Befund:* Direkter Browser-Druck (Cmd+P) vor dem Öffnen des Modals führte zu einer leeren Seite, weil Bildschirm-Inhalte ausgeblendet wurden, während `printConfig` noch `null` war.
+   - *Behebung:* Die CSS-Ausblendregeln in `printReport.css` wurden auf `[data-has-report='true']` eingeschränkt (`DashboardWorkspace` setzt das Attribut nur bei vorliegendem `printConfig`). Zusätzlich registriert `useDashboardReportExport.ts` Event-Listener für `beforeprint`/`afterprint`, um bei nativem Druck einen validen Standard-Bericht bereitzustellen und den State danach zurückzusetzen.
+5. **Finding 5 (P2 - `DashboardPrintView.tsx` & `printReport.css`):**
+   - *Befund:* Feste Mindesthöhe von 920 px auf dem Deckblatt überschritt die bedruckbare A4-Querformat-Höhe (180 mm), was zur Fragmentierung des Deckblatts führte.
+   - *Behebung:* Deckblatthöhe orientierungsabhängig definiert: `min-h-[175mm]` für `landscape` vs. `min-h-[260mm]` für `portrait` mit angepasstem Padding.
+
+#### Verifikation & Gate-Status nach Nacharbeit
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **47 Testdateien, 603/603 Tests grün** (+2 neue Tests für dynamische Daten und Modal-Sync)
+- `npm test`: **364 Testdateien, 2.649 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.58s)**
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-132/README.md` (18/18 Paare verschieden gegen echten `ce21c15`-Build, 0 px Überlauf auf allen Viewports)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/dashboard/components/export/DashboardReportModal.tsx`: 311 Zeilen
+  - `src/features/dashboard/components/export/DashboardPrintView.tsx`: 385 Zeilen
+  - `src/features/dashboard/hooks/useDashboardReportExport.ts`: 64 Zeilen
+  - `src/features/dashboard/components/DashboardWorkspace.tsx`: 396 Zeilen
+  - `src/features/dashboard/__tests__/DashboardReport.ui.vitest.tsx`: 255 Zeilen
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 2 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die 3 neuen Befunde aus dem zweiten Review-Durchlauf von Codex zu PR #142 (Commit `2727a19`) wurden analysiert und behoben:
+
+1. **Finding 1 (P1 - `DashboardPrintView.tsx` & `useDashboardReportExport.ts`):**
+   - *Befund:* Fester 100-ms-Timer öffnete den Druckdialog, während verzögert ladende CRM-/Live-Kacheln noch im `state: 'laden'` waren, wodurch vorhandene Kennzahlen als „Keine Daten“ gedruckt wurden; fehlgeschlagene Abfragen wurden nicht explizit behandelt.
+   - *Behebung:* Der feste Timer in `useDashboardReportExport.ts` wurde entfernt. Stattdessen prüft `DashboardPrintView` reaktiv `isAnyLoading` über alle ausgewählten Kacheln und löst `window.print()` erst aus, wenn alle Kacheln ihren finalen Datenzustand erreicht haben (inkl. 3,5s Sicherheits-Timeout). Fehlerhafte Kacheln (`state: 'fehler'`) werden sowohl auf der Kachelkarte als auch im Tabellen-Anhang explizit mit `Fehler beim Laden` und ihrer Fehlermeldung (`data.message`) ausgewiesen.
+2. **Finding 2 (P2 - `printReport.css`):**
+   - *Befund:* Die Simulationsleiste war im Druck sichtbar geblieben, weil der tatsächliche Klassenname in `SimulationBar.tsx` `.simulation-command-strip` lautet und nicht `.simulation-bar`.
+   - *Behebung:* `.simulation-command-strip` und `[data-testid='simulation-command-strip']` wurden in die globale Druck-Ausblendregel aufgenommen.
+3. **Finding 3 (P2 - `DashboardReportModal.tsx` & `DashboardPrintView.tsx`):**
+   - *Befund:* Ein gespeicherter Zeitraumfilter wurde ungeprüft als Berichtszeitraum ausgegeben, obwohl die aktuellen Quellen keine Datumsfilterung unterstützen; der Hinweis auf die Unwirksamkeit fehlte im Export.
+   - *Behebung:* `resolvePeriodInfo` kennzeichnet unwirksame Datumsfilter explizit mit dem Suffix `(Unwirksam)` und erzeugt eine fundierte Erklärung. Das Modal blendet einen entsprechenden Warnhinweis ein, das Deckblatt weist die Anmerkung formal über `print-period-note` aus, und der Daten-Anhang führt nun für jede Kachel eine eigene Spalte für die tatsächliche `Zeitbasis` (`timeBasis`) auf.
+4. **Architektur & Zeilenbudget-Schutz:**
+   - `PrintTileCard.tsx` (100 Zeilen) wurde als eigene modulare Komponente ausgelagert. Dadurch bleiben alle Quell- und Testdateien strikt $\le 400$ Zeilen (`DashboardPrintView.tsx`: 355 Zeilen, `DashboardReportModal.tsx`: 329 Zeilen, `DashboardWorkspace.tsx`: 396 Zeilen, `DashboardReport.ui.vitest.tsx`: 333 Zeilen).
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 2
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard/__tests__/DashboardReport.ui.vitest.tsx`: **10/10 Tests grün**
+- `npm run build`: **Erfolgreich (3.50s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 3 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die 2 Befunde aus dem dritten Review-Durchlauf von Codex zu PR #142 (Commit `789b02d`) wurden analysiert und behoben:
+
+1. **Finding 1 (P1 - `DashboardPrintView.tsx`, `PrintTileCard.tsx`):**
+   - *Befund:* `DashboardPrintView` rief `useData` innerhalb von `useMemo` in einer Schleife über `selectedTiles` auf. Da `useDashboardData` interne React-Hooks (`useQuery`, `useSyncExternalStore`) verwendet, führte der Wechsel von `config === null` (0 Hooks) zu `config !== null` (N Hooks) zu einer Hook-Order-Verletzung.
+   - *Behebung:* `DashboardPrintView` rendert bei `!config` sofort `null`. Das Rendern des Berichts erfolgt in der inneren Komponente `DashboardPrintDocument`. Der Daten-Hook wird ausschließlich unbedungen und auf oberster Ebene in separat gemounteten Kachelkomponenten (`PrintTileCard` und `PrintAppendixRows`) aufgerufen. `PrintTileCard` meldet seinen aufgelösten Datenzustand über `onTileResolved` an das übergeordnete Dokument, welches den Ladezustand (`isAnyLoading`) sauber aggregiert, ohne selbst Daten-Hooks in Schleifen oder Memos aufzurufen.
+2. **Finding 2 (P2 - `PrintTileCard.tsx`, `DashboardPrintView.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Weder Deckblatt noch Kachelkarten noch der Anhang wiesen die tatsächlich wirksame Pipeline aus. Kacheln mit unterschiedlichen Pipeline-Ausnahmen erschienen identisch als „Filter: Zentral“.
+   - *Behebung:*
+     - **Kachelkarten:** `PrintTileCard` weist nun explizit die aufgelöste Pipeline `data.effectiveFilter.pipeline` (bzw. `tile.pipeline`) aus (z. B. `Filter: Zentral · Pipeline: Direkt`), wodurch Kacheln eindeutig differenziert werden.
+     - **Deckblatt:** Die Metadaten-Tabelle auf dem Deckblatt enthält nun eine dedizierte Kachel `Pipeline-Filter` (`filters?.pipeline || 'Alle Pipelines'`).
+     - **Tabellen-Anhang:** Die Wertetabelle in `PrintAppendixTable` führt eine eigene Spalte `Pipeline` für jede Kachel bzw. Messreihe.
+3. **Architektur & Zeilenbudget-Schutz:**
+   - Auslagerung der Anhang-Tabellenzeilen in `PrintAppendixTable.tsx` (99 Zeilen).
+   - Alle Dateien liegen strikt unter dem 400-Zeilen-Budget:
+     - `DashboardPrintView.tsx`: 308 Zeilen
+     - `PrintTileCard.tsx`: 137 Zeilen
+     - `PrintAppendixTable.tsx`: 99 Zeilen
+     - `DashboardReportModal.tsx`: 329 Zeilen
+     - `DashboardWorkspace.tsx`: 396 Zeilen
+     - `useDashboardReportExport.ts`: 58 Zeilen
+     - `DashboardReport.ui.vitest.tsx`: 386 Zeilen
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 3
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard/__tests__/DashboardReport.ui.vitest.tsx`: **11/11 Tests grün** (+1 neuer Test für Deckblatt- und Kachel-Pipeline-Ausweis)
+- `npm test`: **364 Testdateien, 2.652 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.38s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 4 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die Befunde aus dem vierten Review-Durchlauf von Codex zu PR #142 (Commit `8c1226f`) sowie der CI/e2e-Visual-Regression-Befund wurden analysiert und behoben:
+
+1. **Finding 1 (P2 - `PrintTileCard.tsx`, `PrintAppendixTable.tsx`, `DashboardPrintView.tsx`):**
+   - *Befund:* Veraltete Live-Werte (`state: 'veraltet'`) nach Verbindungsabbruch wurden wie aktuelle Werte gedruckt; Messzeitpunkt (`asOf`) und Veraltet-Hinweis fehlten sowohl auf der Kachelkarte als auch im Tabellen-Anhang; der Stichtag-Hinweis deklarierte pauschal alle Werte als heutiger Stichtag.
+   - *Behebung:*
+     - **Kachelkarten (`PrintTileCard.tsx`):** `formatAsOf` importiert. Bei `state: 'veraltet'` wird im Kachelkopf eine `Veraltet`-Badge gerendert, der Kennzahlen-Wert erhält Amber-Hervorhebung (`text-amber-700`) und die `statusNote` weist präzise `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.` aus.
+     - **Wertetabellen-Anhang (`PrintAppendixTable.tsx`):** In der Spalte `Zeitbasis` wird bei `state: 'veraltet'` explizit `Veraltet (${stand ?? rawTimeBasis})` ausgewiesen, die Zeile amber-farbig akzentuiert und die Referenzwert-Zelle mit einem `Veraltet`-Hinweis versehen.
+     - **Stichtags-Hinweis (`DashboardPrintView.tsx`):** Präzisiert, dass ausgewiesene Werte auf der jeweiligen Kennzahlen-Zeitbasis basieren und Live-Werte mit Verbindungsabbruch gesondert als veraltet samt ursprünglichem Messzeitpunkt ausgewiesen sind.
+2. **Finding 2 (P2 - `DashboardReportModal.tsx`):**
+   - *Befund:* Synchronisation der Kachelauswahl bei geladenen persönlichen Ansichten; State-Initializer bei gemountetem Modal synchronisierte nicht erneut, wenn gespeicherte Kacheln eintrafen.
+   - *Behebung:* `useEffect` re-initialisiert die Auswahl beim Öffnen auf die aktuellen Kacheln und filtert ungültige IDs zuverlässig heraus (mit Fallback auf das neue Kachelset, falls alle vorherigen IDs durch eine geladene Ansicht ersetzt wurden).
+3. **CI/e2e Visual Regression Fix (`EditorToolbar.tsx`):**
+   - *Befund:* `visual /dashboard` auf `mobile-375` meldete 40 px Höhendifferenz (6085 px vs. 6125 px), da der Toolbar-Button „Bericht exportieren“ auf 375 px Bildschirmbreite in eine zweite Zeile umbrach.
+   - *Behebung:* Der Button wurde mobil optimiert: Text mit `max-sm:sr-only` responsiv ausgeblendet, Icon-Padding auf schmalen Viewports angepasst (`max-sm:px-2`), und barrierefreies `aria-label="Bericht exportieren"` hinterlegt. Dadurch bleibt die Werkzeugleiste auf mobilen Bildschirmen einzeilig und die Baseline-Höhe erhalten.
+4. **Architektur & Zeilenbudget-Schutz:**
+   - Neue dedizierte Testdatei `DashboardReportVeraltet.ui.vitest.tsx` (104 Zeilen) zur Entlastung von `DashboardReport.ui.vitest.tsx` angelegt.
+   - Alle berührten Dateien bleiben strikt $\le 400$ Zeilen:
+     - `DashboardPrintView.tsx`: 305 Zeilen
+     - `PrintTileCard.tsx`: 162 Zeilen
+     - `PrintAppendixTable.tsx`: 132 Zeilen
+     - `DashboardReportModal.tsx`: 329 Zeilen
+     - `EditorToolbar.tsx`: 362 Zeilen
+     - `DashboardReport.ui.vitest.tsx`: 386 Zeilen
+     - `DashboardReportVeraltet.ui.vitest.tsx`: 104 Zeilen
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 4
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **48 Testdateien, 608 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.99s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 5 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die 3 Befunde aus dem fünften Review-Durchlauf von Codex zu PR #142 (Commit `b9b5010`) wurden analysiert und behoben:
+
+1. **Finding 1 (P2 - `PrintTileCard.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Stammdaten-Kacheln mit `filterMode: 'dashboard'` übernahmen bei gesetztem zentralem Pipeline-Filter fälschlicherweise die Pipeline, da die `??`-Kette das fachlich begründete `null` von `resolveEffectiveFilter` überschrieb.
+   - *Behebung:* Vorhandene aufgelöste Filter (`data.effectiveFilter`) werden unverändert verwendet. Abgelehnte Pipeline-Filter auf Nicht-CRM-Kacheln werden explizit als `Unwirksam (nur CRM)` deklariert (sowohl auf der Kachelkarte als auch in der Anhangs-Spalte `Pipeline`).
+2. **Finding 2 (P2 - `PrintTileCard.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Eingeschränkte Datenqualität (`quality: 'degradiert'`) aus Live-Snapshots mit `qualityStatus: 'degraded'` fehlte im Export.
+   - *Behebung:* Kachelkarten rendern nun bei degradierter Datenqualität die Badge `Eingeschränkt`, den Quellenhinweis `Eingeschränkte Datenqualität laut Quelle.` und eine Amber-Akzentuierung des Werts. Im Wertetabellen-Anhang wird die Zeile amber-farbig hinterlegt und mit dem Vermerk `Eingeschränkte Qualität` ausgewiesen.
+3. **Finding 3 (P2 - `DashboardPrintView.tsx`, `PrintTileCard.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Live-Feeds besitzen laut Architektur den Scope `organisationsuebergreifend`. Der Export ordnete sie bisher pauschal dem Mandanten zu und behauptete universelle Mandantenzugriffsrechte.
+   - *Behebung:* Kacheln mit organisationsübergreifender Quelle erhalten eine `Organisationsweit`-Badge und den erläuternden Text `Live-Feed: Gilt für alle Organisationen (nicht nach Mandant getrennt).`. Die Anhangs-Spalte `Datenquelle` kennzeichnet den Scope `Organisationsweit`, das Deckblatt deklariert beim Mandanten `(inkl. organisationsweiter Live-Feeds)`, und die Abschlussfußnote stellt klar, dass organisationsübergreifende Live-Feeds den organisationsweiten Gesamt-Stream widerspiegeln.
+4. **Architektur & Zeilenbudget-Schutz:**
+   - 3 neue Vitest-Tests in `DashboardReportVeraltet.ui.vitest.tsx` hinzugefügt (5 Tests insgesamt).
+   - Alle berührten Dateien bleiben strikt $\le 400$ Zeilen:
+     - `PrintTileCard.tsx`: 219 Zeilen
+     - `PrintAppendixTable.tsx`: 196 Zeilen
+     - `DashboardPrintView.tsx`: 323 Zeilen
+     - `DashboardReportModal.tsx`: 329 Zeilen
+     - `EditorToolbar.tsx`: 362 Zeilen
+     - `DashboardReport.ui.vitest.tsx`: 386 Zeilen
+     - `DashboardReportVeraltet.ui.vitest.tsx`: 252 Zeilen
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 5
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **48 Testdateien, 611 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.53s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 6 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die 2 Befunde aus dem sechsten Review-Durchlauf von Codex zu PR #142 (Commit `f22572a`) wurden analysiert und behoben:
+
+1. **Finding 1 (P2 - `PrintTileCard.tsx`, `PrintOverviewCard.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Übersichtskacheln wie `uebersicht.team_hr` und `uebersicht.roadmap` enthalten ausschließlich `data.overview`. Im Export wurden sie bisher mit dem pauschalen Platzhalter „Übersicht aktiv“ dargestellt, wodurch Teamkennzahlen, Engpässe und Roadmap-Releases im gesamten Bericht fehlten.
+   - *Behebung:*
+     - **Kachelkarten (`PrintTileCard.tsx`, `PrintOverviewCard.tsx`):** Neue Komponente `PrintOverviewCard` rendert typisierte Übersichten direkt im Drucklayout: Teamkennzahlen, Teamstruktur und Engpässe/Maßnahmen für `team_hr`; Quartale, Titel, Status und Beschreibungen für `roadmap`; Meilensteine und Live-Aktivitäten entsprechend.
+     - **Wertetabellen-Anhang (`PrintAppendixTable.tsx`):** Wenn `data.overview` vorliegt, werden für jede Metrik, Organisationseinheit und jeden Engpass (`team_hr`) bzw. jedes Release (`roadmap`) strukturierte Tabellenzeilen erzeugt (kein Platzhalter mehr).
+2. **Finding 2 (P2 - `DashboardWorkspace.tsx`, `dashboardWorkspaceTypes.ts`, `PersonalExecutiveDashboard.tsx`):**
+   - *Befund:* Beim regulären Export über `DashboardWorkspace` wurde `organizationName` nicht übergeben, sodass immer „LeadPilot GmbH“ auf dem Deckblatt und im Datenschutzhinweis stand, obwohl `useDashboardData` nach `session.organizationId` trennt.
+   - *Behebung:*
+     - `DashboardWorkspaceProps` um `organizationName?: string` ergänzt und an `DashboardPrintView` durchgereicht.
+     - `PersonalExecutiveDashboard.tsx` liest die aktive Organisation via `useOrganization()` und übergibt bei vorhandener Sitzung `Organisation ${session.organizationId}` als Mandant.
+     - `DashboardWorkspace.tsx` wurde zur Einhaltung des Zeilenbudgets strukturiert refaktoriert (`dashboardWorkspaceTypes.ts`, 38 Zeilen; `DashboardWorkspace.tsx`, 371 Zeilen).
+3. **Architektur & Zeilenbudget-Schutz:**
+   - Neue Testdatei `DashboardReportOverviewAndOrg.ui.vitest.tsx` (153 Zeilen) deckt Übersichtskacheln und Mandantenbindung ab.
+   - Test in `PersonalExecutiveDashboard.ui.vitest.tsx` (195 Zeilen) hinzugefügt.
+   - Alle Dateien bleiben strikt $\le 400$ Zeilen:
+     - `PrintOverviewCard.tsx`: 118 Zeilen
+     - `PrintTileCard.tsx`: 235 Zeilen
+     - `PrintAppendixTable.tsx`: 287 Zeilen
+     - `export/index.ts`: 2 Zeilen
+     - `dashboardWorkspaceTypes.ts`: 38 Zeilen
+     - `DashboardWorkspace.tsx`: 371 Zeilen
+     - `PersonalExecutiveDashboard.tsx`: 64 Zeilen
+     - `DashboardReportOverviewAndOrg.ui.vitest.tsx`: 153 Zeilen
+     - `PersonalExecutiveDashboard.ui.vitest.tsx`: 195 Zeilen
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 6
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **49 Testdateien, 614 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.50s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### CI-Nacharbeit: Playwright Visual-Baseline für Mobile-375 (PR #142)
+
+**Builder:** Claude Code · **Datum:** 2026-11-07
+
+- **Ursache:** Die Hinzunahme des neuen Export-Buttons (`export-report-btn`, „Bericht exportieren“) in `EditorToolbar.tsx` verursachte auf dem mobilen Viewport `[mobile-375]` eine Pixeldifferenz von 2.462 Pixeln (`ratio: 0.001094`), was knapp über der strengen Toleranzgrenze von `0.001` lag (`visual.spec.ts:88`). Auf Desktop (1440px) und Tablet (768px) lag die Differenz innerhalb des Schwellenwerts.
+- **Behebung:** Aktualisierung der Linux-Visual-Baseline `e2e/visual.spec.ts-snapshots/visual-dashboard-1-mobile-375-linux.png` aus dem CI-Playwright-Report des Ubuntu-Runners.
+- **Verifikation:** Alle Gates lokal und CI-konform validiert (TypeScript 0 Fehler, ESLint 0 Fehler, Vitest 366/366 Dateien grün, Integritätssuiten 25/25 grün, Vite Build 3.81s, Schutzbereichs-Diff 0).
+

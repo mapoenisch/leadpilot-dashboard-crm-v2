@@ -1,114 +1,28 @@
 // Executive Dashboard, Teilauftrag 5 (Auftrag 074): Arbeitsbereich. Verbindet Speicherzustand,
 // Bearbeitungsmodus, Filter, Raster und Konfigurationsfenster. Kennt weder Supabase noch den
 // Router: Verlassen läuft über `requestLeave`; die Seite (Auftrag 077) reicht `navigate` herein.
-import {
-  Component,
-  Suspense,
-  lazy,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ComponentType,
-  type ReactNode,
-} from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Drawer } from '@/components/ui/Drawer';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
 import { activeEntryOf } from '../hooks/dashboardEditorReducer';
-import { useDashboardEditor, type EditorPreferences } from '../hooks/useDashboardEditor';
-import type { ChartLoaders } from './charts/chartLoaders';
+import { useDashboardEditor } from '../hooks/useDashboardEditor';
 import { DashboardFilters } from './DashboardFilters';
 import { DashboardGrid, EMPTY_FOCUS, type FocusRequest } from './DashboardGrid';
 import { EditorToolbar } from './EditorToolbar';
-import type { TileDataHook } from './LazyDashboardTile';
+import { DashboardPrintView, DashboardReportModal } from './export';
+import { useDashboardReportExport } from '../hooks/useDashboardReportExport';
 import type { TileConfiguratorProps } from './TileConfigurator';
-import { UnsavedChangesDialog, useEscapeToClose } from './UnsavedChangesDialog';
+import { ConfiguratorShell, ConfiguratorBoundary } from './ConfiguratorBoundary';
+import { UnsavedChangesDialog } from './UnsavedChangesDialog';
 import { useInAppLinkGuard } from '../hooks/useInAppLinkGuard';
 import { noBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import type { SessionFilters } from '../hooks/useDashboardNavigation';
+import type { WorkspacePreferences, DashboardWorkspaceProps } from './dashboardWorkspaceTypes';
 
-export interface WorkspacePreferences extends EditorPreferences {
-  status: 'keine_sitzung' | 'laden' | 'bereit' | 'fehler';
-}
-
-type ConfiguratorModule = { default: ComponentType<TileConfiguratorProps> };
-
-export interface DashboardWorkspaceProps {
-  preferences: WorkspacePreferences;
-  useData: TileDataHook;
-  chartLoaders?: ChartLoaders;
-  /** Fehlt sie, erscheint ein Hinweis, dass es hier keine Detailansicht gibt (Vorschau). */
-  onShowDetails?: (tileId: string, session: SessionFilters) => void;
-  /** Auftrag 077: Sitzungsfilter beim Öffnen (Rückkehr aus den Details); nur beim ersten Rendern. */
-  initialSession?: SessionFilters;
-  /** Auftrag 077: Kachel, deren „Details“-Knopf nach dem Laden den Fokus erhält (nur einmal). */
-  returnFocusTileId?: string | null;
-  /** Rückkehr erledigt: `found` = Fokus liegt auf „Details“; sonst setzt die Seite den Fokus selbst. */
-  onReturnFocus?: (found: boolean) => void;
-  /** Auftrag 077: interne Navigation; mit offenen Änderungen erst nach Rückfrage. */
-  navigate?: (to: string) => void;
-  /** Auftrag 077: Schutz der Zurück-Taste (Hook der Seite); ohne Router wirkungslos. */
-  useBackGuard?: (
-    dirty: boolean,
-    requestLeave: (proceed: () => void) => void,
-    leavePending: boolean,
-  ) => boolean;
-  /** Seite neu laden; Standard `window.location.reload()`. */
-  onReload?: () => void;
-  onTileActivated?: (tileId: string) => void;
-  /** Meldet die aktuell dargestellten Kachel-IDs (Ansicht oder Entwurf), z. B. für Diagnoseanzeigen. */
-  onShownTilesChange?: (tileIds: readonly string[]) => void;
-  /** Nur für Tests: Nachladefunktion des Konfigurationsfensters. */
-  configuratorLoader?: () => Promise<ConfiguratorModule>;
-}
+export type { WorkspacePreferences, DashboardWorkspaceProps };
 
 const loadConfigurator = () => import('./TileConfigurator');
-
-/** Drawer-Hülle für Lade- und Fehlerzustand des Kachel-Konfigurators. */
-function ConfiguratorShell(props: { onClose: () => void; active: boolean; children: ReactNode }) {
-  // Nur der oberste Dialog reagiert auf Escape: Liegt die Rückfrage darüber, ruht diese Hülle.
-  useEscapeToClose(props.active, props.onClose);
-  return (
-    <Drawer
-      open
-      onClose={() => props.active && props.onClose()}
-      title="Kachel konfigurieren"
-      width="420px"
-      escapeActive={props.active}
-    >
-      {props.children}
-    </Drawer>
-  );
-}
-
-class ConfiguratorBoundary extends Component<
-  { onRetry: () => void; onClose: () => void; active: boolean; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    if (!this.state.failed) return this.props.children;
-    return (
-      <ConfiguratorShell onClose={this.props.onClose} active={this.props.active}>
-        <div role="alert" className="flex flex-wrap items-center gap-2 text-sm">
-          <span>Das Konfigurationsfenster konnte nicht geladen werden.</span>
-          {/* Der Browser hält den fehlgeschlagenen Abruf fest: neu laden (mit Rückfrage bei Entwurf). */}
-          <Button size="sm" onClick={this.props.onRetry}>
-            Seite neu laden
-          </Button>
-          <Button size="sm" variant="secondary" onClick={this.props.onClose}>
-            Schließen
-          </Button>
-        </div>
-      </ConfiguratorShell>
-    );
-  }
-}
 
 type Target = { tile?: DashboardTileConfig } | null;
 
@@ -121,6 +35,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   const [target, setTarget] = useState<Target>(null);
   // Zähler statt Flag: jeder Klick wechselt die Ansage, auch ohne sichtbare Änderung.
   const [detailsClicks, setDetailsClicks] = useState(0);
+  const reportExport = useDashboardReportExport();
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const focusSeq = useRef(0);
   // Auslöser des Konfigurationsfensters: Bei langsamem Nachladen wechselt die Hülle ihr Fenster, der
@@ -134,8 +49,13 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
     }
     const last = opener.current;
     opener.current = null;
-    if (last && last.seq === focusSeq.current && last.element instanceof HTMLElement) {
-      if (last.element.isConnected) last.element.focus();
+    if (
+      last &&
+      last.seq === focusSeq.current &&
+      last.element instanceof HTMLElement &&
+      last.element.isConnected
+    ) {
+      last.element.focus();
     }
   }, [isOpen]);
   const loader = props.configuratorLoader ?? loadConfigurator;
@@ -294,6 +214,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
   return (
     <div
       data-testid="dashboard-workspace"
+      data-has-report={reportExport.printConfig ? 'true' : undefined}
       data-back-guard={backGuarded || undefined}
       aria-busy={!ready}
       className="flex flex-col gap-4"
@@ -313,9 +234,7 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         canRedo={editor.canRedo}
         onUndo={editor.undo}
         onRedo={editor.redo}
-        onApplyPreset={(id) => {
-          editor.applyPreset(id);
-        }}
+        onApplyPreset={editor.applyPreset}
         onStart={editor.startEditing}
         onCancel={editor.cancel}
         onSave={() => void editor.save()}
@@ -323,8 +242,9 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         onReset={reset}
         onLoadServer={() => void editor.loadServerVersion()}
         onTakeServer={() => void editor.takeServerVersion()}
+        onExportReport={reportExport.openReportModal}
       />
-      <div className="min-h-[20px] text-[13px] text-[var(--color-text-muted)]">
+      <div className="dashboard-screen-content min-h-[20px] text-[13px] text-[var(--color-text-muted)]">
         {!ready ? (
           <p role="status" className="m-0">
             Dein Dashboard wird geladen …
@@ -350,7 +270,11 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         ) : null}
       </div>
       {/* Auftrag 077: Filterleiste schon beim Laden (gesperrt) — sonst schiebt sie danach das Raster. */}
-      <div ref={skeletonRef} aria-hidden={!ready || undefined} className="flex flex-col gap-4">
+      <div
+        ref={skeletonRef}
+        aria-hidden={!ready || undefined}
+        className="dashboard-screen-content flex flex-col gap-4"
+      >
         <DashboardFilters
           value={filters}
           startFilters={shown?.filters}
@@ -427,6 +351,20 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
         onSave={() => void editor.leaveSave()}
         onDiscard={editor.leaveDiscard}
         onStay={editor.leaveStay}
+      />
+      <DashboardReportModal
+        open={reportExport.reportModalOpen}
+        onClose={reportExport.closeReportModal}
+        tiles={tiles}
+        filters={filters}
+        onConfirmPrint={reportExport.confirmPrint}
+      />
+      <DashboardPrintView
+        config={reportExport.printConfig}
+        tiles={tiles}
+        filters={filters}
+        useData={useData}
+        organizationName={props.organizationName}
       />
     </div>
   );

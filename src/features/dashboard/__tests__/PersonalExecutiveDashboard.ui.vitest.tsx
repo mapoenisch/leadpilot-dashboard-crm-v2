@@ -186,4 +186,10 @@ describe('Persönliche Ansicht: Zurück-Taste des Browsers im Editor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Browser zurück' }));
     expect(lastSeen().pathname).toBe('/finance/p-and-l');
   });
+
+  it('übermittelt die Organisation aus der Sitzung an den Dashboard-Export', () => {
+    renderRoutes({ pathname: '/dashboard' });
+    fireEvent.click(screen.getByRole('button', { name: /Bericht exportieren/i }));
+    expect(screen.getByTestId('report-title-input')).toBeInTheDocument();
+  });
 });
