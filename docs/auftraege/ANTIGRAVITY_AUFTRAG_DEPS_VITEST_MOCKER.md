@@ -37,7 +37,7 @@ Dependabot konnte das Update nicht selbst durchführen („Dependabot cannot upd
 ## Umsetzung & Verifikation
 
 - [x] Versionen in `package.json` auf `^4.1.12` gesetzt.
-- [x] Lockfile mit `npm install --package-lock-only --legacy-peer-deps` und `npm install --legacy-peer-deps` aktualisiert.
+- [x] Lockfile mit regulärer Auflösung (ohne --legacy-peer-deps) aktualisiert; alle Pakete inklusive `proxy-agent` erhalten (`npm ci --dry-run` erfolgreich).
 - [x] `npm ls vitest @vitest/mocker @vitest/coverage-v8` bestätigt Version 4.1.12.
 - [x] `supabase/functions/deno.lock` synchronisiert (`deno check` & `deno test` 67/67 grün).
 - [x] Gates: `tsc --noEmit` (0 Fehler), `npm run lint` (0 Fehler), `npm run format:check` (Prettier-konform), `npm test` (368 Dateien, 2.672 Tests grün), `npm run verify` (25/25 Suiten grün), `npm run build` (erfolgreich).

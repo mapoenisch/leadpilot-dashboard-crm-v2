@@ -19618,3 +19618,19 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - `npm run verify:quality-budget`: **100 % eingehalten** (Suppressions = 50 / Budget 50; Inline-Styles = 0)
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
 - Keine UI-Änderungen, keine Screenshot-Matrix erforderlich.
+
+---
+
+### Nacharbeit Codex-Review Runde 1 (PR #145)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-08
+
+- **Befund Codex (P1):** Das vorübergehend mit `--legacy-peer-deps` erzeugte Lockfile hatte `puppeteer-core/node_modules/proxy-agent` und Sub-Abhängigkeiten entfernt, wodurch `npm ci` in der CI mit `EUSAGE` abbrach.
+- **Behebung:** `package-lock.json` sauber aus der `origin/main`-Baseline regeneriert und nur die 9 Vitest-Einträge auf `4.1.12` aktualisiert. Alle 967 Pakete inklusive `proxy-agent` und Plattform-Bindings sind vollständig erhalten.
+- **Verifikation:**
+  - `npm ci --dry-run --offline --ignore-scripts --no-audit --no-fund`: **Erfolgreich (Exit 0)**
+  - `npx tsc --noEmit`: **0 Fehler**
+  - `npm run lint`: **0 Fehler, 0 Warnungen**
+  - `npm run format:check`: **Prettier-konform**
+  - `deno check` & `deno test`: **67/67 bestanden**
+  - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
