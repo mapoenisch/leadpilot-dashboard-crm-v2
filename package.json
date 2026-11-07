@@ -63,7 +63,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.7.0",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.12",
     "autoprefixer": "^10.6.2",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
@@ -83,7 +83,7 @@
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.72.1",
     "vite": "^6.4.4",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "overrides": {
     "tmp": "0.2.7",
