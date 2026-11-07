@@ -1,0 +1,103 @@
+/**
+ * printReport.css
+ * Styling für vorstandstaugliche Druck- und PDF-Exporte des Executive Dashboards (Auftrag 132).
+ */
+
+/* Im Screen-Modus standardmäßig ausgeblendet (außer bei aktiver visueller Vorschau) */
+.dashboard-print-view {
+  display: none;
+}
+
+.dashboard-print-view[data-preview='true'] {
+  display: block;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+@page {
+  size: A4 portrait;
+  margin: 15mm 15mm 15mm 15mm;
+}
+
+@page landscape-page {
+  size: A4 landscape;
+  margin: 15mm 15mm 15mm 15mm;
+}
+
+.dashboard-print-view[data-orientation='landscape'] {
+  page: landscape-page;
+}
+
+@media print {
+  /* Globale Druck-Bereinigung */
+  html,
+  body,
+  #root,
+  .h-screen,
+  main,
+  #main-content {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Bildschirm-Elemente für den Ausdruck vollständig verbergen */
+  header,
+  nav,
+  aside,
+  #app-header,
+  #main-sidebar,
+  .simulation-bar,
+  .dashboard-screen-content,
+  [data-testid="editor-toolbar"],
+  [data-testid="dashboard-filters"],
+  [data-testid="dashboard-grid"],
+  [data-testid="dashboard-heading"],
+  [data-testid="dashboard-nav-status"],
+  .modal-backdrop,
+  [role="dialog"]:not(.print-allow) {
+    display: none !important;
+  }
+
+  /* Druckbereich einblenden */
+  .dashboard-print-view {
+    display: block !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  /* Umbruch-Optimierungen */
+  .print-page-break-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-page-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  /* Kachel- und Deckblatt-Karten im Druck */
+  .print-card {
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

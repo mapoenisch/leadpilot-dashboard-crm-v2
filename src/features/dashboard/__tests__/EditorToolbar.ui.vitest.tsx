@@ -100,4 +100,18 @@ describe('EditorToolbar', () => {
     const firstRow = toolbar.firstElementChild?.nextElementSibling;
     expect(firstRow?.className).toContain('flex-wrap');
   });
+
+  it('rendert den Button "Bericht exportieren" im Ansichtsmodus und ruft onExportReport auf', async () => {
+    const user = userEvent.setup();
+    const onExportReport = vi.fn();
+    const props = defaultProps({ editing: false, onExportReport });
+    render(<EditorToolbar {...props} />);
+
+    const exportBtn = screen.getByTestId('export-report-btn');
+    expect(exportBtn).toBeInTheDocument();
+    expect(exportBtn).toHaveTextContent('Bericht exportieren');
+
+    await user.click(exportBtn);
+    expect(onExportReport).toHaveBeenCalledTimes(1);
+  });
 });

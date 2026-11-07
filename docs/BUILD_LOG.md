@@ -19105,3 +19105,61 @@ Alle 2 Befunde aus dem zweiten automatisierten Codex-Review auf GitHub wurden an
 - **Zeilenbudgets ($\le 400$ Zeilen):**
   - `src/features/vertrieb/services/funnelAnalyticsService.ts`: 389 Zeilen
   - `src/features/vertrieb/services/funnelCrmDataService.ts`: 75 Zeilen
+
+---
+
+## 2026-11-07 — Auftrag 132: Executive Report Generator & Druck/PDF-Export (`/dashboard`)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Baseline:** `ce21c15` (`main` nach PR #141) · **Branch:** `claude/auftrag-132-dashboard-report-export`
+
+Im Rahmen von Paket 4 (Executive Report Generator & Druck/PDF-Export, spezifiziert in `docs/superpowers/plans/2026-11-05-crm-analytics-master-plan.md` und `docs/superpowers/plans/2026-11-05-paket-4-dashboard-report-export-plan.md`) wurde das interaktive `/dashboard` um eine vorstandstaugliche Export- und Druckfunktion erweitert.
+
+### Umgesetzte Änderungen
+
+1. **Toolbar-Integration (`EditorToolbar.tsx`):**
+   - Neuer Button **„Bericht exportieren“** mit `Printer`-Icon und `data-testid="export-report-btn"` in der View-Toolbar.
+   - Barrierefreie Tooltip- und Tastaturbedienung; deaktiviert, solange das Dashboard lädt (`locked`).
+   - Unit-Test in `EditorToolbar.ui.vitest.tsx` belegt Klick-Trigger und Beschriftung.
+2. **Konfigurationsdialog (`DashboardReportModal.tsx`, 280 Zeilen):**
+   - Modaler Dialog (`[role="dialog"]`) zur flexiblen Berichtsgestaltung vor dem Druck:
+     - **Titel:** Vorbelegt mit „LeadPilot Executive Management Briefing“ (`data-testid="report-title-input"`).
+     - **Zeitraum:** Dynamische Übernahme aus den aktiven Dashboard-Filtern (z. B. „FY 2025“).
+     - **Kachelauswahl:** Checkboxen je Kachel mit Statuszähler („X von Y Kacheln ausgewählt“) sowie Schnellaktionen „Alle wählen“ und „Alle abwählen“.
+     - **Management-Kommentar:** Optionales mehrzeiliges Eingabefeld (`data-testid="report-commentary-input"`) für strategische Einordnungen.
+     - **Formatwahl:** DIN A4 Hochformat (Standard) oder Querformat (`landscape`).
+     - **Anhang-Schalter:** Optionales Ein-/Ausschalten des Wertetabellen-Anhangs.
+     - **Validierung:** Drucken-Schaltfläche (`data-testid="print-submit-btn"`) wird deaktiviert, wenn 0 Kacheln gewählt sind.
+3. **Strukturiertes Druck-DOM (`DashboardPrintView.tsx`, 278 Zeilen & `printReport.css`):**
+   - **Deckblatt (Seite 1):** Offizieller Management-Report-Header mit Mandantenname (`organizationName`), Berichts-ID, Stichtag, Vertraulichkeitshinweis (*„Streng vertraulich“*), 4 Kernmetriken der Geschäftsführung (ARR, Umsatzerlöse, EBITDA, Aktive Kunden) und optionalem Management-Kommentar.
+   - **Kachel-Raster (Seite 2+):** Zweispaltiges DIN-A4-Raster mit `page-break-inside: avoid`, hohem Kontrast (weißer Grund `#ffffff`, dunkler Text `#0f172a`, saubere Linien `#cbd5e1`).
+   - **Wertetabellen-Anhang:** Strukturierte Datentabelle für Diagramme und Kennzahlen zur barrierefreien Einsicht.
+   - **Druckbereinigung (`printReport.css`):** `@media print` blendet Navigation, Header, Sidebar, Simulationsleiste und interaktive Filter vollständig aus (`display: none !important`), hebt Scroll-Container auf (`height: auto !important`, `overflow: visible !important`) und sorgt für saubere Seitenumbrüche.
+4. **Entkopplung & Zeilenbudget-Schutz (`ConfiguratorBoundary.tsx`, 62 Zeilen; `DashboardWorkspace.tsx`, 394 Zeilen):**
+   - Auslagerung von `ConfiguratorShell` und `ConfiguratorBoundary` in eine eigene Komponente zur strikten Einhaltung des 400-Zeilen-Budgets (`DashboardWorkspace.tsx` von 405 auf 394 Zeilen gesenkt).
+   - Hook `useDashboardReportExport.ts` (34 Zeilen) kapselt Modal-State und `window.print()`-Trigger.
+5. **Automatisierte Testabdeckung:**
+   - `DashboardReport.ui.vitest.tsx`: 6 Unit- und UI-Tests für Dialog-Rendering, Tastatureingaben, Kachelabwahl, Deckblatt-Metadaten und Anhang-Steuerung.
+6. **Screenshot-Gate (`scripts/captureAuftrag132Gate.mjs` & `docs/screenshots/auftrag-132/README.md`):**
+   - 18 Vorher/Nachher-Bildpaare (1440, 768, 375 px; dark & light Theme; Standard, Modal, Print-Layout) gegen Baseline `ce21c15` auf Port 3000.
+   - 18/18 Paare geändert (100 % Diff nachgewiesen), maximaler Überlauf **exakt 0 px**.
+
+### Verifikation & Gate-Status
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **47 Testdateien, 601/601 Tests grün**
+- `npm test`: **364 Testdateien, 2.647 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.40s)**
+- **Screenshot-Matrix:** `docs/screenshots/auftrag-132/README.md` (18/18 Paare verschieden, 0 px Überlauf auf allen Viewports)
+- **Zeilenbudgets ($\le 400$ Zeilen):**
+  - `src/features/dashboard/components/export/DashboardReportModal.tsx`: 280 Zeilen
+  - `src/features/dashboard/components/export/DashboardPrintView.tsx`: 278 Zeilen
+  - `src/features/dashboard/components/ConfiguratorBoundary.tsx`: 62 Zeilen
+  - `src/features/dashboard/components/DashboardWorkspace.tsx`: 394 Zeilen
+  - `src/features/dashboard/components/EditorToolbar.tsx`: 361 Zeilen
+  - `src/features/dashboard/hooks/useDashboardReportExport.ts`: 34 Zeilen
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
