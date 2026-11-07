@@ -10,6 +10,7 @@ import { getCatalogEntry } from '../../model/dashboardCatalog';
 export interface ReportExportConfig {
   title: string;
   periodText: string;
+  periodNote?: string;
   selectedTileIds: string[];
   commentary: string;
   orientation: 'portrait' | 'landscape';
@@ -30,11 +31,22 @@ function resolveTileLabel(tile: DashboardTileConfig): string {
   return entry?.name ?? tile.catalogId;
 }
 
-function resolvePeriodString(filters?: DashboardFilters): string {
+export function resolvePeriodInfo(filters?: DashboardFilters): {
+  displayText: string;
+  isEffective: boolean;
+  note?: string;
+} {
   if (filters?.period?.from && filters?.period?.to) {
-    return `${filters.period.from} bis ${filters.period.to}`;
+    return {
+      displayText: `${filters.period.from} bis ${filters.period.to} (Unwirksam)`,
+      isEffective: false,
+      note: `Gespeicherter Zeitraumfilter (${filters.period.from} bis ${filters.period.to}) wirkt auf Quellen derzeit nicht; Kennzahlen zeigen Stichtag/Jahresbasis FY 2025.`,
+    };
   }
-  return 'FY 2025 (Faktenblatt & operative Live-Pipeline)';
+  return {
+    displayText: 'FY 2025 (Faktenblatt & operative Live-Pipeline)',
+    isEffective: true,
+  };
 }
 
 export function DashboardReportModal({
@@ -72,7 +84,7 @@ export function DashboardReportModal({
     prevOpenRef.current = open;
   }, [open, tiles]);
 
-  const periodText = useMemo(() => resolvePeriodString(filters), [filters]);
+  const periodInfo = useMemo(() => resolvePeriodInfo(filters), [filters]);
 
   const tileItems = useMemo(() => {
     return tiles.map((tile) => ({
@@ -112,7 +124,8 @@ export function DashboardReportModal({
     if (validSelectedIds.length === 0) return;
     onConfirmPrint({
       title: title.trim() || 'LeadPilot Executive Management Briefing',
-      periodText,
+      periodText: periodInfo.displayText,
+      periodNote: periodInfo.note,
       selectedTileIds: validSelectedIds,
       commentary: commentary.trim(),
       orientation,
@@ -120,7 +133,7 @@ export function DashboardReportModal({
     });
   }, [
     title,
-    periodText,
+    periodInfo,
     validSelectedIds,
     commentary,
     orientation,
@@ -185,8 +198,13 @@ export function DashboardReportModal({
             </label>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-[var(--color-surface)] text-sm text-[var(--color-text-muted)]">
               <Calendar className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-              <span className="truncate">{periodText}</span>
+              <span className="truncate">{periodInfo.displayText}</span>
             </div>
+            {!periodInfo.isEffective && periodInfo.note ? (
+              <p className="m-0 text-[11px] text-amber-600 dark:text-amber-400 leading-tight">
+                {periodInfo.note}
+              </p>
+            ) : null}
           </div>
         </div>
 

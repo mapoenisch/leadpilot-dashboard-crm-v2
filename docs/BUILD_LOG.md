@@ -19206,3 +19206,33 @@ Alle 5 Befunde aus dem initialen Review von Codex zu PR #142 (Commit `5bc2d29`) 
   - `src/features/dashboard/components/DashboardWorkspace.tsx`: 396 Zeilen
   - `src/features/dashboard/__tests__/DashboardReport.ui.vitest.tsx`: 255 Zeilen
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 2 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die 3 neuen Befunde aus dem zweiten Review-Durchlauf von Codex zu PR #142 (Commit `2727a19`) wurden analysiert und behoben:
+
+1. **Finding 1 (P1 - `DashboardPrintView.tsx` & `useDashboardReportExport.ts`):**
+   - *Befund:* Fester 100-ms-Timer öffnete den Druckdialog, während verzögert ladende CRM-/Live-Kacheln noch im `state: 'laden'` waren, wodurch vorhandene Kennzahlen als „Keine Daten“ gedruckt wurden; fehlgeschlagene Abfragen wurden nicht explizit behandelt.
+   - *Behebung:* Der feste Timer in `useDashboardReportExport.ts` wurde entfernt. Stattdessen prüft `DashboardPrintView` reaktiv `isAnyLoading` über alle ausgewählten Kacheln und löst `window.print()` erst aus, wenn alle Kacheln ihren finalen Datenzustand erreicht haben (inkl. 3,5s Sicherheits-Timeout). Fehlerhafte Kacheln (`state: 'fehler'`) werden sowohl auf der Kachelkarte als auch im Tabellen-Anhang explizit mit `Fehler beim Laden` und ihrer Fehlermeldung (`data.message`) ausgewiesen.
+2. **Finding 2 (P2 - `printReport.css`):**
+   - *Befund:* Die Simulationsleiste war im Druck sichtbar geblieben, weil der tatsächliche Klassenname in `SimulationBar.tsx` `.simulation-command-strip` lautet und nicht `.simulation-bar`.
+   - *Behebung:* `.simulation-command-strip` und `[data-testid='simulation-command-strip']` wurden in die globale Druck-Ausblendregel aufgenommen.
+3. **Finding 3 (P2 - `DashboardReportModal.tsx` & `DashboardPrintView.tsx`):**
+   - *Befund:* Ein gespeicherter Zeitraumfilter wurde ungeprüft als Berichtszeitraum ausgegeben, obwohl die aktuellen Quellen keine Datumsfilterung unterstützen; der Hinweis auf die Unwirksamkeit fehlte im Export.
+   - *Behebung:* `resolvePeriodInfo` kennzeichnet unwirksame Datumsfilter explizit mit dem Suffix `(Unwirksam)` und erzeugt eine fundierte Erklärung. Das Modal blendet einen entsprechenden Warnhinweis ein, das Deckblatt weist die Anmerkung formal über `print-period-note` aus, und der Daten-Anhang führt nun für jede Kachel eine eigene Spalte für die tatsächliche `Zeitbasis` (`timeBasis`) auf.
+4. **Architektur & Zeilenbudget-Schutz:**
+   - `PrintTileCard.tsx` (100 Zeilen) wurde als eigene modulare Komponente ausgelagert. Dadurch bleiben alle Quell- und Testdateien strikt $\le 400$ Zeilen (`DashboardPrintView.tsx`: 355 Zeilen, `DashboardReportModal.tsx`: 329 Zeilen, `DashboardWorkspace.tsx`: 396 Zeilen, `DashboardReport.ui.vitest.tsx`: 333 Zeilen).
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 2
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard/__tests__/DashboardReport.ui.vitest.tsx`: **10/10 Tests grün**
+- `npm run build`: **Erfolgreich (3.50s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.

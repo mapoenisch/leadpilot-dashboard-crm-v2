@@ -140,6 +140,27 @@ describe('DashboardReportModal', () => {
     );
     expect(screen.getByText(/3 von 3 Kacheln ausgewählt/i)).toBeInTheDocument();
   });
+
+  it('kennzeichnet einen unwirksamen Zeitraumfilter mit Warnhinweis', () => {
+    const filtersWithPeriod = {
+      period: { from: '2026-01-01', to: '2026-03-31' },
+    };
+
+    render(
+      <DashboardReportModal
+        open={true}
+        onClose={vi.fn()}
+        tiles={MOCK_TILES}
+        filters={filtersWithPeriod}
+        onConfirmPrint={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/2026-01-01 bis 2026-03-31 \(Unwirksam\)/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/wirkt auf Quellen derzeit nicht; Kennzahlen zeigen Stichtag/i),
+    ).toBeInTheDocument();
+  });
 });
 
 describe('DashboardPrintView', () => {
@@ -251,5 +272,62 @@ describe('DashboardPrintView', () => {
     // Appendix enthält Zeitreihenpunkte
     expect(screen.getByText(/Q1/i)).toBeInTheDocument();
     expect(screen.getByText('180.000 €')).toBeInTheDocument();
+  });
+
+  it('rendert den Zeitraum-Warnhinweis auf dem Deckblatt und weist Fehlerkacheln explizit aus', () => {
+    const errorConfig: ReportExportConfig = {
+      ...sampleConfig,
+      periodNote:
+        'Gespeicherter Zeitraumfilter wirkt auf Quellen derzeit nicht; Kennzahlen zeigen Stichtag FY 2025.',
+    };
+
+    const mockErrorUseData: TileDataHook = (tile) => {
+      if (tile.tileId === 'tile-arr') {
+        return {
+          catalogId: tile.catalogId,
+          state: 'fehler',
+          message: 'Verbindung zur KPI-Quelle getrennt',
+          value: null,
+          unit: '€',
+          series: null,
+          overview: null,
+          timeBasis: 'Aktueller Stand',
+          asOf: null,
+          origin: { layer: 'crm', module: 'src/domain/x.ts', exportName: 'X' },
+          scope: 'organisation',
+          effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+        };
+      }
+      return {
+        catalogId: tile.catalogId,
+        state: 'bereit',
+        value: 100,
+        unit: 'Kunden',
+        series: null,
+        overview: null,
+        timeBasis: 'Aktueller Stand',
+        asOf: null,
+        origin: { layer: 'crm', module: 'src/domain/x.ts', exportName: 'X' },
+        scope: 'organisation',
+        effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+      };
+    };
+
+    render(
+      <DashboardPrintView
+        config={errorConfig}
+        tiles={MOCK_TILES}
+        isPreview={true}
+        useData={mockErrorUseData}
+      />,
+    );
+
+    // Deckblatt-Hinweis
+    expect(screen.getByTestId('print-period-note')).toBeInTheDocument();
+    expect(screen.getByText(/Hinweis zur Daten-Zeitbasis:/i)).toBeInTheDocument();
+
+    // Fehler-Kennzeichnung sowohl auf Kachelkarte als auch im Tabellen-Anhang
+    expect(screen.getByText('Fehler beim Laden')).toBeInTheDocument();
+    expect(screen.getAllByText(/Verbindung zur KPI-Quelle getrennt/i).length).toBe(2);
   });
 });

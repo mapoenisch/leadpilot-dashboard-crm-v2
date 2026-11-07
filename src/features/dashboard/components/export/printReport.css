@@ -59,7 +59,10 @@
   aside,
   #app-header,
   #main-sidebar,
+  .simulation-command-strip,
   .simulation-bar,
+  [data-testid='simulation-command-strip'],
+  [data-testid='simulation-bar'],
   .modal-backdrop,
   [role='dialog']:not(.print-allow) {
     display: none !important;

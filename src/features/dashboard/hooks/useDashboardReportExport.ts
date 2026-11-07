@@ -16,12 +16,6 @@ export function useDashboardReportExport() {
   const confirmPrint = useCallback((config: ReportExportConfig) => {
     setPrintConfig(config);
     setReportModalOpen(false);
-    // Timeout stellt sicher, dass das DOM vor dem Druckaufruf neu gezeichnet wurde
-    setTimeout(() => {
-      if (typeof window !== 'undefined' && typeof window.print === 'function') {
-        window.print();
-      }
-    }, 100);
   }, []);
 
   // Native Browser-Druckunterstützung (Cmd+P) & Aufräumen nach Druck (Auftrag 132 Review)
