@@ -19412,3 +19412,71 @@ Die 2 Befunde aus dem sechsten Review-Durchlauf von Codex zu PR #142 (Commit `f2
 - **Behebung:** Aktualisierung der Linux-Visual-Baseline `e2e/visual.spec.ts-snapshots/visual-dashboard-1-mobile-375-linux.png` aus dem CI-Playwright-Report des Ubuntu-Runners.
 - **Verifikation:** Alle Gates lokal und CI-konform validiert (TypeScript 0 Fehler, ESLint 0 Fehler, Vitest 366/366 Dateien grün, Integritätssuiten 25/25 grün, Vite Build 3.81s, Schutzbereichs-Diff 0).
 
+
+
+---
+
+## 2026-11-07 — AUFTRAG 133 / Gate — Interaktiver „What-If“-Hebelrechner (Finanzen & Vertrieb)
+
+### Status: BEREIT ZUR PRÜFUNG (Gate Auftrag 133)
+
+- **Builder:** Claude Code
+- **Prüfer:** Codex (GitHub App)
+- **Baseline:** `1592fcd` (PR #142 gemergt)
+- **Branch:** `claude/auftrag-133-what-if-hebelrechner`
+- **Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_133_WHAT_IF_HEBELRECHNER.md`
+
+#### 1. Ziel & Kontext
+- Umsetzung von Paket 5 aus `docs/superpowers/plans/2026-11-05-crm-analytics-master-plan.md` als finaler Baustein vor dem Major Release `v3.0.0`.
+- Interaktiver Hebelrechner auf der Route `/finance/unit-economics`, um Führungskräften und Investoren die elastischen Wirkungen von vier Kernhebeln (Marketing-Budget, Sales Win-Rate, monatlicher Churn, Sales Cycle) auf ARR, Kundenbasis, Magic Number und CAC-Payback transparent und deterministisch aufzuzeigen.
+
+#### 2. Implementierte Komponenten & Architektur
+- **Modell & Hebelmathematik (`src/features/finanzen/services/whatIfModel.ts`, 386 Zeilen):**
+  - Deterministisches 12-Monats-Simulationsmodell kalibriert auf die Ausgangswerte aus `finanzenData.ts` und GuV (411.840 € Baseline-ARR, 66 Kunden, 520 € MRR = 6.240 € ACV).
+  - Deterministische Lead-Generierung (Marketing-Budget / kalkulierte 128,01 € Kosten pro Lead), Conversion über Win-Rate und Sales Cycle Delay sowie Kundenabgang über monatlichen Churn.
+  - Vordefinierte Presets: *Status Quo*, *Wachstumsoffensive*, *Effizienz & Churn-Fokus*, *Konservativ*.
+  - Tornado-Sensitivitätsanalyse: Automatisierte Berechnung des ARR-Swings bei $\pm 20$ % isolierter Hebelveränderung und absteigende Sortierung nach Hebelkraft (Churn > Win-Rate > Budget > Cycle).
+- **Hauptcockpit (`src/features/finanzen/components/WhatIfCockpit.tsx`, 360 Zeilen):**
+  - Interaktives Dashboard mit 4 Schiebereglern (Budget 30k–120k €, Win-Rate 5–30 %, Churn 0,5–6,0 %, Sales Cycle 15–90 Tage).
+  - 4 Preset-Buttons zur Schnellwahl strategischer Szenarien.
+  - 4 KPI-Ergebniskarten (Projektion ARR nach 12 Monaten, Kundenbasis, Magic Number, CAC Payback) mit Delta-Indikator zur Baseline und Farbkodierung.
+  - Reset-Funktion auf Standard-Baseline.
+- **12-Monats-Projektionschart (`src/features/finanzen/components/WhatIfProjectionChart.tsx`, 188 Zeilen):**
+  - Responsives SVG-Liniendiagramm für den 12-Monats-Verlauf (Baseline vs. What-If) mit dynamischer Achsenskalierung und Legende.
+  - Barrierefreie, per Button einblendbare Wertetabelle (`aria-expanded`, deutsches Zahlenformat) mit Monats-ARR-Vergleich und Delta.
+- **Tornado-Sensitivitätscharts (`src/features/finanzen/components/WhatIfTornadoChart.tsx`, 199 Zeilen):**
+  - Horizontales Balkendiagramm für die Hebel-Reihenfolge mit zentraler Baseline-Achse.
+  - Rendered via standardkonforme SVG-Elemente ohne verbotene Inline-Styles (`style={{ ... }}`), konform zum harten 50-Suppressions-Budget (`react/forbid-dom-props`).
+  - Barrierefreie Wertetabelle zur tabellarischen Einsicht der Downside-, Baseline- und Upside-Werte samt absolutem Swing.
+- **Seiten-Integration (`src/features/finanzen/pages/UnitEconomicsPage.tsx`, 182 Zeilen):**
+  - Einbindung von `<WhatIfCockpit />` als interaktiver Abschnitt unterhalb des bestehenden Basiskennzahlen-WebP-Visuals.
+
+#### 3. Test- & Verifikationsergebnisse
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten** (Suppressions `react/forbid-dom-props` = 50 / Budget 50; Inline-Styles = 0)
+- `npx vitest run src/features/finanzen`: **8 Testdateien, 33/33 Tests grün**
+  - `whatIfModel.unit.vitest.ts`: 7/7 Tests bestanden
+  - `WhatIfCockpit.ui.vitest.tsx`: 5/5 Tests bestanden
+- `npm test`: **368 Testdateien, 2.672 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich gebaut in 3.61s**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+#### 4. Screenshot-Matrix & Responsivität (Gate-Nachweis)
+- Screenshot-Harness `scripts/captureAuftrag133Gate.mjs` gegen echten `origin/main`-Build (`1592fcd`) als Vorher-Baseline und den aktuellen Head als Nachher-Stand ausgeführt.
+- Screenshot-Matrix `docs/screenshots/auftrag-133/README.md`:
+  - 18 Bildpaare (6 Szenarien × 3 Viewports: Desktop 1440px, Tablet 768px, Mobile 375px).
+  - 18/18 Paare sind valide und `DISTINCT` (beabsichtigte visuelle Ergänzung).
+  - Horizontaler Überlauf auf allen Viewports und Szenarien: **exakt 0 px**.
+  - Status: **PASS (18/18 Bildpaare mit beabsichtigter Änderung, 0 px Überlauf)**.
+
+#### 5. Zeilenbudgets ($\le 400$ Zeilen)
+- `src/features/finanzen/services/whatIfModel.ts`: 386 Zeilen
+- `src/features/finanzen/components/WhatIfCockpit.tsx`: 360 Zeilen
+- `src/features/finanzen/components/WhatIfProjectionChart.tsx`: 188 Zeilen
+- `src/features/finanzen/components/WhatIfTornadoChart.tsx`: 199 Zeilen
+- `src/features/finanzen/pages/UnitEconomicsPage.tsx`: 182 Zeilen
+- `src/features/finanzen/services/__tests__/whatIfModel.unit.vitest.ts`: 112 Zeilen
+- `src/features/finanzen/components/__tests__/WhatIfCockpit.ui.vitest.tsx`: 107 Zeilen
