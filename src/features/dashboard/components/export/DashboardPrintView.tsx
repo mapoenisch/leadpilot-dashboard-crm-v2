@@ -1,5 +1,6 @@
 import React from 'react';
 import type { DashboardTileConfig, DashboardFilters } from '../../model/dashboardConfig';
+import { getCatalogEntry } from '../../model/dashboardCatalog';
 import type { ReportExportConfig } from './DashboardReportModal';
 import type { TileDataHook } from '../LazyDashboardTile';
 import type { TileData } from '../../data/dashboardData';
@@ -40,6 +41,13 @@ const DashboardPrintDocument: React.FC<
   });
 
   const isLandscape = config.orientation === 'landscape';
+
+  const hasLiveTiles = React.useMemo(() => {
+    return selectedTiles.some((t) => {
+      const entry = getCatalogEntry(t.catalogId);
+      return entry?.source.layer === 'live' || t.catalogId.startsWith('live.');
+    });
+  }, [selectedTiles]);
 
   // Ladezustands-Aggregation aus den separat gemounteten Kachelkomponenten (Codex Finding 1)
   const [tileStateMap, setTileStateMap] = React.useState<Record<string, string>>({});
@@ -147,6 +155,14 @@ const DashboardPrintDocument: React.FC<
             <div>
               <span className="block text-slate-500 uppercase tracking-wider mb-1">Mandant</span>
               <strong className="text-slate-900 text-sm">{organizationName}</strong>
+              {hasLiveTiles && (
+                <span
+                  data-testid="print-cover-scope-note"
+                  className="block text-[10px] text-slate-500 mt-0.5"
+                >
+                  (inkl. organisationsweiter Live-Feeds)
+                </span>
+              )}
             </div>
             <div>
               <span className="block text-slate-500 uppercase tracking-wider mb-1">Stichtag</span>
@@ -281,11 +297,13 @@ const DashboardPrintDocument: React.FC<
             </table>
           </div>
 
-          <p className="mt-4 text-[11px] text-slate-400">
+          <p className="mt-4 text-[11px] text-slate-400 leading-relaxed">
             Hinweis: Ausgewiesene Werte basieren auf der jeweiligen Kennzahlen-Zeitbasis (Stichtag
             des Exports: {currentDate}; Live-Werte mit Verbindungsabbruch sind gesondert als
-            veraltet samt ursprünglichem Messzeitpunkt ausgewiesen) und unterliegen den
-            Datenzugriffsrechten des Mandanten {organizationName}.
+            veraltet samt ursprünglichem Messzeitpunkt ausgewiesen). Mandantenspezifische Daten
+            unterliegen den Datenzugriffsrechten des Mandanten {organizationName};
+            organisationsübergreifende Live-Feeds sind gesondert ausgewiesen und gelten für alle
+            Organisationen.
           </p>
         </section>
       )}

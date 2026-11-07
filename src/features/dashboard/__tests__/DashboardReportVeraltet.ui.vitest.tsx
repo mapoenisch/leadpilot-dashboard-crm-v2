@@ -123,4 +123,130 @@ describe('DashboardReport Veraltete Live-Werte & Auswahl-Sync (Auftrag 132 Runde
     expect(screen.getByText(/2 von 2 Kacheln ausgewählt/i)).toBeInTheDocument();
     expect(screen.getByTestId('print-submit-btn')).toBeEnabled();
   });
+
+  it('weist abgelehnte Pipeline-Filter bei Nicht-CRM-Kacheln als unwirksam aus', () => {
+    const baselineTile: DashboardTileConfig = {
+      tileId: 'tile-arr',
+      catalogId: 'baseline.arr',
+      view: 'zahl',
+      size: 'klein',
+      title: 'ARR Baseline',
+      filterMode: 'dashboard',
+    };
+
+    const mockHook: TileDataHook = (tile) => ({
+      catalogId: tile.catalogId,
+      state: 'bereit',
+      value: 411840,
+      unit: '€',
+      series: null,
+      overview: null,
+      timeBasis: 'FY 2025',
+      asOf: null,
+      origin: { layer: 'baseline', module: 'src/domain/x.ts', exportName: 'X' },
+      scope: 'stammdaten',
+      effectiveFilter: {
+        mode: 'dashboard',
+        period: null,
+        pipeline: null,
+        pipelineReason: 'Nur CRM-Quellen unterstützen den Pipeline-Filter',
+      },
+    });
+
+    render(
+      <DashboardPrintView
+        config={{
+          ...config,
+          selectedTileIds: ['tile-arr'],
+        }}
+        tiles={[baselineTile]}
+        filters={{ pipeline: 'Enterprise' }}
+        isPreview={true}
+        useData={mockHook}
+      />,
+    );
+
+    // Kachel: Unwirksamkeit wird explizit ausgewiesen
+    expect(screen.getByTestId('print-tile-filter-tile-arr')).toHaveTextContent(
+      'Filter: Zentral · Pipeline: Unwirksam (nur CRM)',
+    );
+    // Anhang: Spalte Pipeline weist "Unwirksam (nur CRM)" aus statt des Filters
+    expect(screen.getByText('Unwirksam (nur CRM)')).toBeInTheDocument();
+  });
+
+  it('kennzeichnet eingeschränkte Datenqualität (quality: degradiert) auf Kachel und im Anhang', () => {
+    const mockDegradedHook: TileDataHook = (tile) => ({
+      catalogId: tile.catalogId,
+      state: 'bereit',
+      value: 3.24,
+      unit: 'count',
+      series: null,
+      overview: null,
+      timeBasis: 'Live-Stream',
+      asOf: '2026-10-04T12:05:00Z',
+      origin: { layer: 'live', module: 'src/hooks/useLiveKpis.ts', exportName: 'useLiveKpis' },
+      scope: 'organisationsuebergreifend',
+      quality: 'degradiert',
+      effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+    });
+
+    render(
+      <DashboardPrintView
+        config={config}
+        tiles={TILES}
+        isPreview={true}
+        useData={mockDegradedHook}
+      />,
+    );
+
+    // Kachel: Eingeschränkt-Badge und Hinweis
+    expect(screen.getByTestId('print-tile-degradiert-tile-live-mrr')).toHaveTextContent(
+      'Eingeschränkt',
+    );
+    expect(screen.getByText(/Eingeschränkte Datenqualität laut Quelle\./i)).toBeInTheDocument();
+    // Anhang: Vermerk
+    expect(screen.getByText('Eingeschränkte Qualität')).toBeInTheDocument();
+  });
+
+  it('kennzeichnet organisationsübergreifende Live-Kacheln auf Deckblatt, Kachel und im Anhang', () => {
+    const mockLiveHook: TileDataHook = (tile) => ({
+      catalogId: tile.catalogId,
+      state: 'bereit',
+      value: 125,
+      unit: 'count',
+      series: null,
+      overview: null,
+      timeBasis: 'Live-Stream',
+      asOf: null,
+      origin: { layer: 'live', module: 'src/hooks/useLiveKpis.ts', exportName: 'useLiveKpis' },
+      scope: 'organisationsuebergreifend',
+      effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+    });
+
+    render(
+      <DashboardPrintView
+        config={config}
+        tiles={TILES}
+        organizationName="Musterfirma AG"
+        isPreview={true}
+        useData={mockLiveHook}
+      />,
+    );
+
+    // Deckblatt: Mandant mit Hinweis auf organisationsweite Feeds
+    expect(screen.getByTestId('print-cover-scope-note')).toHaveTextContent(
+      '(inkl. organisationsweiter Live-Feeds)',
+    );
+    // Kachel: Scope-Badge und erklärender Text
+    expect(screen.getByTestId('print-tile-scope-tile-live-mrr')).toHaveTextContent(
+      'Organisationsweit',
+    );
+    expect(
+      screen.getByText(
+        /Live-Feed: Gilt für alle Organisationen \(nicht nach Mandant getrennt\)\./i,
+      ),
+    ).toBeInTheDocument();
+    // Anhang & Kachel: Vermerk in Kachel-Badge und in Spalte Datenquelle
+    expect(screen.getAllByText('Organisationsweit').length).toBe(2);
+  });
 });

@@ -19318,3 +19318,42 @@ Die Befunde aus dem vierten Review-Durchlauf von Codex zu PR #142 (Commit `8c122
 - `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
 - `npm run build`: **Erfolgreich (3.99s)**
 - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+
+---
+
+### Nacharbeit Codex-Review Runde 5 (PR #142)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Die 3 Befunde aus dem fünften Review-Durchlauf von Codex zu PR #142 (Commit `b9b5010`) wurden analysiert und behoben:
+
+1. **Finding 1 (P2 - `PrintTileCard.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Stammdaten-Kacheln mit `filterMode: 'dashboard'` übernahmen bei gesetztem zentralem Pipeline-Filter fälschlicherweise die Pipeline, da die `??`-Kette das fachlich begründete `null` von `resolveEffectiveFilter` überschrieb.
+   - *Behebung:* Vorhandene aufgelöste Filter (`data.effectiveFilter`) werden unverändert verwendet. Abgelehnte Pipeline-Filter auf Nicht-CRM-Kacheln werden explizit als `Unwirksam (nur CRM)` deklariert (sowohl auf der Kachelkarte als auch in der Anhangs-Spalte `Pipeline`).
+2. **Finding 2 (P2 - `PrintTileCard.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Eingeschränkte Datenqualität (`quality: 'degradiert'`) aus Live-Snapshots mit `qualityStatus: 'degraded'` fehlte im Export.
+   - *Behebung:* Kachelkarten rendern nun bei degradierter Datenqualität die Badge `Eingeschränkt`, den Quellenhinweis `Eingeschränkte Datenqualität laut Quelle.` und eine Amber-Akzentuierung des Werts. Im Wertetabellen-Anhang wird die Zeile amber-farbig hinterlegt und mit dem Vermerk `Eingeschränkte Qualität` ausgewiesen.
+3. **Finding 3 (P2 - `DashboardPrintView.tsx`, `PrintTileCard.tsx`, `PrintAppendixTable.tsx`):**
+   - *Befund:* Live-Feeds besitzen laut Architektur den Scope `organisationsuebergreifend`. Der Export ordnete sie bisher pauschal dem Mandanten zu und behauptete universelle Mandantenzugriffsrechte.
+   - *Behebung:* Kacheln mit organisationsübergreifender Quelle erhalten eine `Organisationsweit`-Badge und den erläuternden Text `Live-Feed: Gilt für alle Organisationen (nicht nach Mandant getrennt).`. Die Anhangs-Spalte `Datenquelle` kennzeichnet den Scope `Organisationsweit`, das Deckblatt deklariert beim Mandanten `(inkl. organisationsweiter Live-Feeds)`, und die Abschlussfußnote stellt klar, dass organisationsübergreifende Live-Feeds den organisationsweiten Gesamt-Stream widerspiegeln.
+4. **Architektur & Zeilenbudget-Schutz:**
+   - 3 neue Vitest-Tests in `DashboardReportVeraltet.ui.vitest.tsx` hinzugefügt (5 Tests insgesamt).
+   - Alle berührten Dateien bleiben strikt $\le 400$ Zeilen:
+     - `PrintTileCard.tsx`: 219 Zeilen
+     - `PrintAppendixTable.tsx`: 196 Zeilen
+     - `DashboardPrintView.tsx`: 323 Zeilen
+     - `DashboardReportModal.tsx`: 329 Zeilen
+     - `EditorToolbar.tsx`: 362 Zeilen
+     - `DashboardReport.ui.vitest.tsx`: 386 Zeilen
+     - `DashboardReportVeraltet.ui.vitest.tsx`: 252 Zeilen
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 5
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten**
+- `npx vitest run src/features/dashboard`: **48 Testdateien, 611 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich (3.53s)**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.

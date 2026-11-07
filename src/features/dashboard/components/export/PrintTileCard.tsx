@@ -43,6 +43,8 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
 
   let displayValue: string;
   let statusNote: string | undefined;
+  const isVeraltet = data?.state === 'veraltet';
+  const isDegradiert = data?.state !== 'nicht_verfuegbar' && data?.quality === 'degradiert';
 
   if (data && data.state !== 'nicht_verfuegbar') {
     if (data.state === 'fehler') {
@@ -62,10 +64,15 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
       displayValue = NO_DATA;
     }
 
-    if (data.state === 'veraltet') {
+    if (isVeraltet) {
       const stand = data.asOf ? formatAsOf(data.asOf) : null;
       const veraltetText = `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.`;
       statusNote = statusNote ? `${veraltetText} (${statusNote})` : veraltetText;
+    }
+
+    if (isDegradiert) {
+      const degradedText = 'Eingeschränkte Datenqualität laut Quelle.';
+      statusNote = statusNote ? `${statusNote} · ${degradedText}` : degradedText;
     }
   } else {
     // Statischer Fallback für Katalog-Baseline ohne aktive Hook-Umgebung
@@ -79,10 +86,20 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
             : 'Aktiv';
   }
 
-  // Pipeline- und Filterauflösung (Codex Finding 2)
-  const effectivePipeline =
-    (data && 'effectiveFilter' in data ? data.effectiveFilter?.pipeline : undefined) ??
-    tile.pipeline;
+  // Pipeline- und Filterauflösung (Codex Finding 1)
+  const isCrm = layer === 'crm';
+  const effectiveFilter = data && 'effectiveFilter' in data ? data.effectiveFilter : undefined;
+  const effectivePipeline = effectiveFilter
+    ? effectiveFilter.pipeline
+    : isCrm
+      ? (tile.pipeline ?? filters?.pipeline ?? null)
+      : null;
+  const pipelineReason =
+    effectiveFilter?.pipelineReason ??
+    (!isCrm && (tile.pipeline || filters?.pipeline)
+      ? 'Nur CRM-Quellen unterstützen den Pipeline-Filter'
+      : undefined);
+
   const filterModeLabel =
     tile.filterMode === 'dashboard'
       ? 'Zentral'
@@ -90,9 +107,27 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
         ? 'Eigener Zeitraum'
         : 'Fester Stand';
 
-  const filterDisplay = effectivePipeline
-    ? `Filter: ${filterModeLabel} · Pipeline: ${effectivePipeline}`
+  let pipelineDisplay: string;
+  if (effectivePipeline) {
+    pipelineDisplay = `Pipeline: ${effectivePipeline}`;
+  } else if (pipelineReason) {
+    pipelineDisplay = 'Pipeline: Unwirksam (nur CRM)';
+  } else {
+    pipelineDisplay = '';
+  }
+
+  const filterDisplay = pipelineDisplay
+    ? `Filter: ${filterModeLabel} · ${pipelineDisplay}`
     : `Filter: ${filterModeLabel}`;
+
+  const scope =
+    (data && 'scope' in data ? data.scope : undefined) ??
+    (layer === 'live'
+      ? 'organisationsuebergreifend'
+      : layer === 'crm'
+        ? 'organisation'
+        : 'stammdaten');
+  const isOrganisationsuebergreifend = scope === 'organisationsuebergreifend';
 
   return (
     <div
@@ -104,8 +139,8 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             {category}
           </span>
-          <div className="flex items-center gap-1.5">
-            {data?.state === 'veraltet' && (
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {isVeraltet && (
               <span
                 data-testid={`print-tile-veraltet-${tile.tileId}`}
                 className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200"
@@ -113,12 +148,34 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
                 Veraltet
               </span>
             )}
+            {isDegradiert && (
+              <span
+                data-testid={`print-tile-degradiert-${tile.tileId}`}
+                className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200"
+              >
+                Eingeschränkt
+              </span>
+            )}
+            {isOrganisationsuebergreifend && (
+              <span
+                data-testid={`print-tile-scope-${tile.tileId}`}
+                className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
+                title="Live-Feed für alle Organisationen"
+              >
+                Organisationsweit
+              </span>
+            )}
             <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
               {tile.view} · {layer}
             </span>
           </div>
         </div>
-        <h3 className="text-sm font-bold text-slate-900 mb-2">{name}</h3>
+        <h3 className="text-sm font-bold text-slate-900 mb-1">{name}</h3>
+        {isOrganisationsuebergreifend && (
+          <p className="text-[10px] text-indigo-700 mb-2 leading-tight">
+            Live-Feed: Gilt für alle Organisationen (nicht nach Mandant getrennt).
+          </p>
+        )}
       </div>
 
       <div className="py-4 my-2 border-y border-slate-100 flex items-baseline justify-between">
@@ -128,7 +185,7 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
             className={`text-2xl font-black ${
               data?.state === 'fehler'
                 ? 'text-red-600'
-                : data?.state === 'veraltet'
+                : isVeraltet || isDegradiert
                   ? 'text-amber-700'
                   : 'text-slate-900'
             }`}
@@ -140,7 +197,7 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
               className={`block text-[11px] mt-1 leading-tight ${
                 data?.state === 'fehler'
                   ? 'text-red-500'
-                  : data?.state === 'veraltet'
+                  : isVeraltet || isDegradiert
                     ? 'text-amber-700 font-medium'
                     : 'text-slate-500'
               }`}
