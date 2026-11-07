@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { queryClient } from '@/app/queryClient';
@@ -47,6 +47,11 @@ function WorkspaceHydrator() {
       });
   }, [session]);
   return null;
+}
+
+function VertriebFunnelRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/sales/funnel${location.search}`} replace />;
 }
 
 function RouteFallback() {
@@ -104,6 +109,8 @@ export function App() {
                   <Route element={<Layout />}>
                     {/* Root-Redirect zum Executive Dashboard */}
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    {/* Alias /vertrieb/funnel -> /sales/funnel (Auftrag 131) mit Query-Parameter-Erhaltung */}
+                    <Route path="/vertrieb/funnel" element={<VertriebFunnelRedirect />} />
 
                     {/* Generisches deklaratives Routing aller 41 Routen mit RouteErrorBoundary */}
                     {APP_ROUTES.map((route) => {

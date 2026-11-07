@@ -1,6 +1,6 @@
 # LeadPilot GmbH — Faktenblatt v1.2
 
-**Verbindliche Stammdaten für alle Aufgaben im Rahmen der Weiterbildung Digital Sales Manager (DBA)**
+**Historische Arbeitskopie – für aktuelle Unternehmensangaben nicht gültig.** Der fachliche Inhalt entspricht der führenden v1.2. Für aktuelle Aufgaben und KI-Übergaben gilt der im Obsidian-Quellenregister unter LP-F01 hinterlegte Originalort.
 
 | | |
 | :-- | :-- |
@@ -8,7 +8,7 @@
 | **Berichtsjahr** | GJ 2025 (01.01.–31.12.2025) |
 | **Stand** | Oktober 2026 · Version 1.2 |
 | **Autor** | Marc Pönisch |
-| **Status** | Single Source of Truth — bei Widersprüchen in anderen Dokumenten gilt dieses Blatt |
+| **Status** | Historische Arbeitskopie für die Nachvollziehbarkeit |
 
 > **Änderung gegenüber v1.1 (Oktober 2026):** Abgleich mit dem LeadPilot Dashboard-CRM. Beim Abgleich war die Anwendung maßgeblich; wo sie vom Faktenblatt v1.1 abwich, wurde das Faktenblatt angepasst. Seit den Entscheidungen in Abschnitt 17 D (13. und 15.10.2026) ist dieses Faktenblatt verbindlich: Wo die Anwendung noch abweicht, gilt v1.2, und die Anwendung wird angeglichen. Betroffen sind Funnel-Quoten (Abschnitt 8), Produktbewertungen und Roadmap-Status (Abschnitt 9), Negative-Fit im ICP (Abschnitt 13) und das Handelsregister (Abschnitt 1). Neu aufgenommen wurden Anwendungs-Inhalte, die v1.1 nicht enthielt (Abschnitte 14–16). Durch die Entscheidungen in Abschnitt 17 D geändert sind: Ø Nutzer je Account (6,0 → 7,1), Ø Nutzer im Pro-Paket (14 → 15), ARR der drei Pro-Referenzkunden, Churn-Ziel (< 1,8 % → ≤ 1,8 %) und die Vertretung; dazu Kennzeichnungen bei Plan-GuV, Kostenbudget, Kampagne und Marktbeschriftung. Hier weicht die Anwendung noch ab, bis sie angeglichen ist. Die übrigen Finanz-, Kunden- und SaaS-Kennzahlen aus v1.1 bleiben unverändert. Einzelheiten, Entscheidungen und noch ausstehende Angleichungen der Anwendung stehen in Abschnitt 17.
 >
