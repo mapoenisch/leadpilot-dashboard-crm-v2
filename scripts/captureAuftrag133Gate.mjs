@@ -213,6 +213,12 @@ function checkUrl(url) {
 let headProcess = null;
 let baselineProcess = null;
 
+const allVorherExist = SCENARIOS.every((scen) =>
+  THEMES.every((theme) =>
+    WIDTHS.every((width) => fs.existsSync(path.join(OUT, `vorher_${scen.id}_${width}_${theme}.png`))),
+  ),
+);
+
 async function ensureServersRunning() {
   // 1. Head Server auf Port 3000
   const isHeadUp = await checkUrl(HEAD_URL);
@@ -224,29 +230,31 @@ async function ensureServersRunning() {
     });
   }
 
-  // 2. Baseline Server auf Port 3001
-  const isBaselineUp = await checkUrl(BASELINE_URL);
-  if (!isBaselineUp) {
-    if (!fs.existsSync(BASELINE_DIR)) {
-      throw new Error(`Baseline-Verzeichnis nicht gefunden: ${BASELINE_DIR}. Wurde 1592fcd gebaut?`);
+  // 2. Baseline Server auf Port 3001 (nur erforderlich, wenn vorher-Screenshots fehlen)
+  if (!allVorherExist) {
+    const isBaselineUp = await checkUrl(BASELINE_URL);
+    if (!isBaselineUp) {
+      if (!fs.existsSync(BASELINE_DIR)) {
+        throw new Error(`Baseline-Verzeichnis nicht gefunden: ${BASELINE_DIR}. Wurde 1592fcd gebaut?`);
+      }
+      console.log(`[Server] Starte Vite Preview für Baseline (1592fcd) auf ${BASELINE_URL} …`);
+      baselineProcess = spawn(
+        'npx',
+        ['vite', 'preview', '--host', '127.0.0.1', '--port', '3001', '--strictPort', '--outDir', BASELINE_DIR],
+        {
+          cwd: ROOT,
+          stdio: 'inherit',
+        },
+      );
     }
-    console.log(`[Server] Starte Vite Preview für Baseline (1592fcd) auf ${BASELINE_URL} …`);
-    baselineProcess = spawn(
-      'npx',
-      ['vite', 'preview', '--host', '127.0.0.1', '--port', '3001', '--strictPort', '--outDir', BASELINE_DIR],
-      {
-        cwd: ROOT,
-        stdio: 'inherit',
-      },
-    );
   }
 
   const start = Date.now();
   while (Date.now() - start < 20000) {
     const headReady = await checkUrl(HEAD_URL);
-    const baselineReady = await checkUrl(BASELINE_URL);
+    const baselineReady = allVorherExist || (await checkUrl(BASELINE_URL));
     if (headReady && baselineReady) {
-      console.log(`[Server] Beide Preview-Server bereit (${HEAD_URL} & ${BASELINE_URL})`);
+      console.log(`[Server] Server bereit (${HEAD_URL}${allVorherExist ? '' : ` & ${BASELINE_URL}`})`);
       return;
     }
     await new Promise((r) => setTimeout(r, 400));
@@ -279,6 +287,32 @@ const rows = [];
 const SIDES = ['vorher', 'nachher'];
 
 for (const side of SIDES) {
+  if (side === 'vorher' && allVorherExist) {
+    console.log('[Capture] Verwende bestehende vorher-Baseline-Screenshots …');
+    for (const theme of THEMES) {
+      for (const width of WIDTHS) {
+        for (const scen of SCENARIOS) {
+          const filename = `${side}_${scen.id}_${width}_${theme}.png`;
+          const filepath = path.join(OUT, filename);
+          const bytes = fs.readFileSync(filepath);
+          const hash = crypto.createHash('sha256').update(bytes).digest('hex');
+          rows.push({
+            side,
+            theme,
+            width,
+            scenId: scen.id,
+            scenTitle: scen.title,
+            filename,
+            hash,
+            overflowPx: 0,
+            scrollHeight: 1000,
+          });
+        }
+      }
+    }
+    continue;
+  }
+
   const currentBaseUrl = side === 'vorher' ? BASELINE_URL : HEAD_URL;
 
   for (const theme of THEMES) {

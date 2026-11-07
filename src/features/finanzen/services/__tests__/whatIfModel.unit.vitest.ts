@@ -96,6 +96,23 @@ describe('whatIfModel Unit Tests', () => {
       expect(item.favorableArrDelta).toBeGreaterThan(item.unfavorableArrDelta);
       expect(item.swing).toBeCloseTo(item.favorableArrDelta - item.unfavorableArrDelta, 1);
     });
+
+    // Korrekte Ausweisung der Hebel-Änderungsrichtung (Downside vs. Upside)
+    const churn = tornado.find((it) => it.key === 'churnRate');
+    expect(churn?.favorableChange).toBe('-20 %');
+    expect(churn?.unfavorableChange).toBe('+20 %');
+
+    const cycle = tornado.find((it) => it.key === 'salesCycleDays');
+    expect(cycle?.favorableChange).toBe('-20 %');
+    expect(cycle?.unfavorableChange).toBe('+20 %');
+
+    const budget = tornado.find((it) => it.key === 'marketingBudget');
+    expect(budget?.favorableChange).toBe('+20 %');
+    expect(budget?.unfavorableChange).toBe('-20 %');
+
+    const winRate = tornado.find((it) => it.key === 'winRate');
+    expect(winRate?.favorableChange).toBe('+20 %');
+    expect(winRate?.unfavorableChange).toBe('-20 %');
   });
 
   it('berechnet CAC-Payback-Monate plausibel', () => {

@@ -103,5 +103,10 @@ describe('WhatIfCockpit UI Tests', () => {
 
     if (secondBtn) fireEvent.click(secondBtn);
     expect(screen.getByTestId('what-if-tornado-table')).toBeInTheDocument();
+
+    // Richtungsneutrale Kopfzeilen und genaue Hebel-Richtungen in der Tornado-Wertetabelle
+    expect(screen.getByText('Ungünstiger Fall (Downside)')).toBeInTheDocument();
+    expect(screen.getByText('Günstiger Fall (Upside)')).toBeInTheDocument();
+    expect(screen.getByText(/(\+20 % → 3,4 %)/)).toBeInTheDocument();
   });
 });

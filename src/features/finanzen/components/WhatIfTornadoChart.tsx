@@ -56,9 +56,9 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
         {/* Kopf-Legende */}
         <div className="grid grid-cols-[140px_1fr_2px_1fr] border-b border-border/80 pb-1.5 text-[11px] text-text-muted">
           <span>Hebel</span>
-          <span className="pr-3 text-right text-[#FF7A3D]">◀ Ungünstig (-20 %)</span>
+          <span className="pr-3 text-right text-[#FF7A3D]">◀ Ungünstiger Fall (Downside)</span>
           <span className="bg-slate-600" />
-          <span className="pl-3 text-emerald-400">Günstig (+20 %) ▶</span>
+          <span className="pl-3 text-emerald-400">Günstiger Fall (Upside) ▶</span>
         </div>
 
         {items.map((item) => {
@@ -87,7 +87,7 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
 
               {/* Spalte 2: Ungünstiger Balken (nach links) via SVG ohne Inline-Styles */}
               <div
-                title={`Ungünstig (${item.unfavorableValue} ${item.unit}): ${formatEuro(item.unfavorableArrDelta)}`}
+                title={`Ungünstig (${item.unfavorableChange} → ${item.unfavorableValue.toLocaleString('de-DE')} ${item.unit}): ${formatEuro(item.unfavorableArrDelta)}`}
                 className="relative flex h-6 items-center justify-end pr-1.5"
               >
                 <svg
@@ -111,8 +111,11 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
                     fill={`url(#grad-unfav-${item.key})`}
                   />
                 </svg>
-                <span className="pointer-events-none absolute right-3 text-[11px] font-semibold text-white drop-shadow-sm">
-                  {formatEuro(item.unfavorableArrDelta)}
+                <span className="pointer-events-none absolute right-3 flex items-center gap-1 text-[11px] font-semibold text-white drop-shadow-sm">
+                  <span className="text-[10px] font-normal opacity-90">
+                    ({item.unfavorableChange})
+                  </span>
+                  <span>{formatEuro(item.unfavorableArrDelta)}</span>
                 </span>
               </div>
 
@@ -121,7 +124,7 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
 
               {/* Spalte 4: Günstiger Balken (nach rechts) via SVG ohne Inline-Styles */}
               <div
-                title={`Günstig (${item.favorableValue} ${item.unit}): ${formatEuro(item.favorableArrDelta)}`}
+                title={`Günstig (${item.favorableChange} → ${item.favorableValue.toLocaleString('de-DE')} ${item.unit}): ${formatEuro(item.favorableArrDelta)}`}
                 className="relative flex h-6 items-center justify-start pl-1.5"
               >
                 <svg
@@ -145,8 +148,11 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
                     fill={`url(#grad-fav-${item.key})`}
                   />
                 </svg>
-                <span className="pointer-events-none absolute left-3 text-[11px] font-semibold text-slate-900 drop-shadow-sm">
-                  {formatEuro(item.favorableArrDelta)}
+                <span className="pointer-events-none absolute left-3 flex items-center gap-1 text-[11px] font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                  <span>{formatEuro(item.favorableArrDelta)}</span>
+                  <span className="text-[10px] font-normal opacity-90">
+                    ({item.favorableChange})
+                  </span>
                 </span>
               </div>
             </div>
@@ -164,8 +170,8 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
               <tr className="border-b border-border bg-slate-800/80 text-text-muted">
                 <th className="px-2.5 py-1.5 font-semibold">Hebel</th>
                 <th className="px-2.5 py-1.5 font-semibold">Aktueller Wert</th>
-                <th className="px-2.5 py-1.5 font-semibold">Ungünstig (-20%)</th>
-                <th className="px-2.5 py-1.5 font-semibold">Günstig (+20%)</th>
+                <th className="px-2.5 py-1.5 font-semibold">Ungünstiger Fall (Downside)</th>
+                <th className="px-2.5 py-1.5 font-semibold">Günstiger Fall (Upside)</th>
                 <th className="px-2.5 py-1.5 font-semibold">Hebel-Spannweite (Swing)</th>
               </tr>
             </thead>
@@ -177,10 +183,12 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
                     {row.currentValue.toLocaleString('de-DE')} {row.unit}
                   </td>
                   <td className="px-2.5 py-1.5 text-[#FF7A3D]">
-                    {formatEuro(row.unfavorableArrDelta)} ({row.unfavorableValue} {row.unit})
+                    {formatEuro(row.unfavorableArrDelta)} ({row.unfavorableChange} →{' '}
+                    {row.unfavorableValue.toLocaleString('de-DE')} {row.unit})
                   </td>
                   <td className="px-2.5 py-1.5 text-emerald-400">
-                    {formatEuro(row.favorableArrDelta)} ({row.favorableValue} {row.unit})
+                    {formatEuro(row.favorableArrDelta)} ({row.favorableChange} →{' '}
+                    {row.favorableValue.toLocaleString('de-DE')} {row.unit})
                   </td>
                   <td className="px-2.5 py-1.5 font-semibold text-[#00D9C6]">
                     {formatEuro(row.swing)}

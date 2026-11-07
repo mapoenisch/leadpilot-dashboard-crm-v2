@@ -43,9 +43,11 @@ export interface TornadoLeverItem {
   currentValue: number;
   favorableValue: number;
   unfavorableValue: number;
-  favorableArrDelta: number; // Delta ARR bei günstiger Abweichung
-  unfavorableArrDelta: number; // Delta ARR bei ungünstiger Abweichung
-  swing: number; // Spannweite (favorable - unfavorable)
+  favorableChange: string; // tatsächliche Hebel-Änderung (z. B. '-20 %' oder '+20 %')
+  unfavorableChange: string; // tatsächliche Hebel-Änderung (z. B. '+20 %' oder '-20 %')
+  favorableArrDelta: number; // Delta ARR bei vorteilhafter Hebelwirkung
+  unfavorableArrDelta: number; // Delta ARR bei nachteiliger Hebelwirkung
+  swing: number; // Hebel-Spannweite (favorable - unfavorable)
 }
 
 export const BASELINE_PARAMS: Readonly<WhatIfParameters> = {
@@ -142,30 +144,22 @@ const MONTH_LABELS = [
 ];
 
 export function clampParameters(p: Partial<WhatIfParameters>): WhatIfParameters {
-  const clamp = (val: number, min: number, max: number) =>
-    Math.min(max, Math.max(min, Number(val) || min));
+  const c = (v: number | undefined, base: number, l: { min: number; max: number }) =>
+    Math.min(l.max, Math.max(l.min, Number(v ?? base) || l.min));
 
   return {
-    churnRate: clamp(
-      p.churnRate ?? BASELINE_PARAMS.churnRate,
-      PARAM_LIMITS.churnRate.min,
-      PARAM_LIMITS.churnRate.max,
+    churnRate: c(p.churnRate, BASELINE_PARAMS.churnRate, PARAM_LIMITS.churnRate),
+    salesCycleDays: c(
+      p.salesCycleDays,
+      BASELINE_PARAMS.salesCycleDays,
+      PARAM_LIMITS.salesCycleDays,
     ),
-    salesCycleDays: clamp(
-      p.salesCycleDays ?? BASELINE_PARAMS.salesCycleDays,
-      PARAM_LIMITS.salesCycleDays.min,
-      PARAM_LIMITS.salesCycleDays.max,
+    marketingBudget: c(
+      p.marketingBudget,
+      BASELINE_PARAMS.marketingBudget,
+      PARAM_LIMITS.marketingBudget,
     ),
-    marketingBudget: clamp(
-      p.marketingBudget ?? BASELINE_PARAMS.marketingBudget,
-      PARAM_LIMITS.marketingBudget.min,
-      PARAM_LIMITS.marketingBudget.max,
-    ),
-    winRate: clamp(
-      p.winRate ?? BASELINE_PARAMS.winRate,
-      PARAM_LIMITS.winRate.min,
-      PARAM_LIMITS.winRate.max,
-    ),
+    winRate: c(p.winRate, BASELINE_PARAMS.winRate, PARAM_LIMITS.winRate),
   };
 }
 
@@ -342,6 +336,8 @@ export function calculateTornadoSensitivity(currentParams: WhatIfParameters): To
       currentValue: currentParams.churnRate,
       favorableValue: churnFav.churnRate,
       unfavorableValue: churnUnfav.churnRate,
+      favorableChange: '-20 %',
+      unfavorableChange: '+20 %',
       favorableArrDelta: churnFavArr,
       unfavorableArrDelta: churnUnfavArr,
       swing: Math.abs(churnFavArr - churnUnfavArr),
@@ -353,6 +349,8 @@ export function calculateTornadoSensitivity(currentParams: WhatIfParameters): To
       currentValue: currentParams.salesCycleDays,
       favorableValue: cycleFav.salesCycleDays,
       unfavorableValue: cycleUnfav.salesCycleDays,
+      favorableChange: '-20 %',
+      unfavorableChange: '+20 %',
       favorableArrDelta: cycleFavArr,
       unfavorableArrDelta: cycleUnfavArr,
       swing: Math.abs(cycleFavArr - cycleUnfavArr),
@@ -364,6 +362,8 @@ export function calculateTornadoSensitivity(currentParams: WhatIfParameters): To
       currentValue: currentParams.marketingBudget,
       favorableValue: mktFav.marketingBudget,
       unfavorableValue: mktUnfav.marketingBudget,
+      favorableChange: '+20 %',
+      unfavorableChange: '-20 %',
       favorableArrDelta: mktFavArr,
       unfavorableArrDelta: mktUnfavArr,
       swing: Math.abs(mktFavArr - mktUnfavArr),
@@ -375,6 +375,8 @@ export function calculateTornadoSensitivity(currentParams: WhatIfParameters): To
       currentValue: currentParams.winRate,
       favorableValue: winFav.winRate,
       unfavorableValue: winUnfav.winRate,
+      favorableChange: '+20 %',
+      unfavorableChange: '-20 %',
       favorableArrDelta: winFavArr,
       unfavorableArrDelta: winUnfavArr,
       swing: Math.abs(winFavArr - winUnfavArr),

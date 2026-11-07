@@ -11,24 +11,24 @@
 
 | Szenario | Breite | Theme | Vorher SHA-256 (1592fcd) | Nachher SHA-256 (Head) | Diff? | Überlauf Vorher | Überlauf Nachher | Status |
 |---|---|---|---|---|---|---|---|---|
-| `unit-economics-standard` | 1440 px | dark | `a8f357cced3c…` | `de4745558b6f…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-standard` | 768 px | dark | `200ccb73e612…` | `d72fe8f3a88c…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-standard` | 375 px | dark | `c2afd5ac7999…` | `037f5f6ab748…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-standard` | 1440 px | light | `7e8e9997f074…` | `6ddece763c16…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-standard` | 768 px | light | `72199be3fa69…` | `5632848b9097…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-standard` | 375 px | light | `3b2535da9613…` | `d79f31b4d73a…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-growth-preset` | 1440 px | dark | `a8f357cced3c…` | `3930d3c1ea53…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-standard` | 1440 px | dark | `a8f357cced3c…` | `3230bbadd14c…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-standard` | 768 px | dark | `200ccb73e612…` | `ab6d5bb486e8…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-standard` | 375 px | dark | `c2afd5ac7999…` | `406f2f5cb540…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-standard` | 1440 px | light | `7e8e9997f074…` | `1bee4f787f1a…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-standard` | 768 px | light | `72199be3fa69…` | `fdaa2053f953…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-standard` | 375 px | light | `3b2535da9613…` | `aff767966ab5…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-growth-preset` | 1440 px | dark | `a8f357cced3c…` | `f87a1bf1a179…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 | `unit-economics-growth-preset` | 768 px | dark | `200ccb73e612…` | `5294e1e355cb…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-growth-preset` | 375 px | dark | `c2afd5ac7999…` | `7bc0bde0be65…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-growth-preset` | 1440 px | light | `7e8e9997f074…` | `04dcbbf66544…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-growth-preset` | 375 px | dark | `c2afd5ac7999…` | `3b7cebf78cc5…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-growth-preset` | 1440 px | light | `7e8e9997f074…` | `5b7669185d1b…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 | `unit-economics-growth-preset` | 768 px | light | `72199be3fa69…` | `84636da7607a…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-growth-preset` | 375 px | light | `06a1051337d2…` | `6f369dbe083b…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-tables` | 1440 px | dark | `a8f357cced3c…` | `db785dd12b08…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-tables` | 768 px | dark | `200ccb73e612…` | `86438cf95221…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-tables` | 375 px | dark | `c2afd5ac7999…` | `e39b7451f7c7…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-tables` | 1440 px | light | `7e8e9997f074…` | `279fc1a17761…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-tables` | 768 px | light | `72199be3fa69…` | `810c150bf986…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
-| `unit-economics-tables` | 375 px | light | `3b2535da9613…` | `a113f186b224…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-growth-preset` | 375 px | light | `06a1051337d2…` | `428130a9864d…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-tables` | 1440 px | dark | `a8f357cced3c…` | `a7e76e6d5c41…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-tables` | 768 px | dark | `200ccb73e612…` | `5ab8d4675c7b…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-tables` | 375 px | dark | `c2afd5ac7999…` | `6e6804c8b2b2…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-tables` | 1440 px | light | `7e8e9997f074…` | `93119790553d…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-tables` | 768 px | light | `72199be3fa69…` | `50545bb36eda…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
+| `unit-economics-tables` | 375 px | light | `3b2535da9613…` | `d298bb5d71b2…` | ✅ geändert | 0 px | 0 px | 🟢 Pass (0 px) |
 
 
 ## Fazit

@@ -19480,3 +19480,39 @@ Die 2 Befunde aus dem sechsten Review-Durchlauf von Codex zu PR #142 (Commit `f2
 - `src/features/finanzen/pages/UnitEconomicsPage.tsx`: 182 Zeilen
 - `src/features/finanzen/services/__tests__/whatIfModel.unit.vitest.ts`: 112 Zeilen
 - `src/features/finanzen/components/__tests__/WhatIfCockpit.ui.vitest.tsx`: 107 Zeilen
+
+
+---
+
+### Nacharbeit Codex-Review Runde 1 (PR #143)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+Der Befund aus dem ersten Review-Durchlauf von Codex zu PR #143 (Commit `85e9bee`) wurde analysiert und behoben:
+
+1. **Finding 1 (P2 - `WhatIfTornadoChart.tsx`, `whatIfModel.ts`):**
+   - *Befund:* Bei Churn-Rate und Sales Cycle waren die angegebenen Änderungsrichtungen vertauscht: `calculateTornadoSensitivity()` berechnet den günstigen Fall durch eine Senkung und den ungünstigen Fall durch eine Erhöhung. Die statischen Spaltenüberschriften „Günstig (+20 %)“ und „Ungünstig (-20 %)“ vermittelten für zwei der vier Hebel eine falsche Handlungsempfehlung.
+   - *Behebung:*
+     - **Richtungsneutrale Spaltenüberschriften:** Kopf-Legende im Diagramm auf `◀ Ungünstiger Fall (Downside)` und `Günstiger Fall (Upside) ▶` umgestellt; in der barrierefreien Wertetabelle entsprechend `Ungünstiger Fall (Downside)` und `Günstiger Fall (Upside)`.
+     - **Explizite Kennzeichnung der Hebel-Änderungsrichtung (`whatIfModel.ts` & `WhatIfTornadoChart.tsx`):** `TornadoLeverItem` um `favorableChange` und `unfavorableChange` erweitert (für Churn und Sales Cycle: günstig = `-20 %`, ungünstig = `+20 %`; für Marketing-Budget und Win-Rate: günstig = `+20 %`, ungünstig = `-20 %`).
+     - **Diagramm- und Tabellenausweis:** Sowohl in den Tooltips als auch direkt an den Balken im Diagramm (`({item.unfavorableChange}) {delta}` bzw. `{delta} ({item.favorableChange})`) und in den Tabellenzellen (`-45 k€ (+20 % → 3,4 %)`) wird die tatsächliche Hebelrichtung unmissverständlich ausgewiesen.
+2. **Architektur & Zeilenbudget-Schutz:**
+   - Alle berührten Quell- und Testdateien bleiben strikt $\le 400$ Zeilen:
+     - `src/features/finanzen/services/whatIfModel.ts`: 388 Zeilen
+     - `src/features/finanzen/components/WhatIfTornadoChart.tsx`: 204 Zeilen
+     - `src/features/finanzen/services/__tests__/whatIfModel.unit.vitest.ts`: 129 Zeilen
+     - `src/features/finanzen/components/__tests__/WhatIfCockpit.ui.vitest.tsx`: 112 Zeilen
+3. **Screenshot-Harness & Matrix:**
+   - `scripts/captureAuftrag133Gate.mjs` regeneriert: 18/18 Bildpaare mit beabsichtigter Änderung, maximaler Überlauf **exakt 0 px**, Status **PASS**.
+
+#### Verifikation & Gate-Status nach Nacharbeit Runde 1
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm run verify:quality-budget`: **100 % eingehalten** (Suppressions = 50 / Budget 50; Inline-Styles = 0)
+- `npx vitest run src/features/finanzen`: **8 Testdateien, 33/33 Tests grün**
+- `npm test`: **368 Testdateien, 2.672 Tests grün (100 % bestanden)**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich gebaut in 3.43s**
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
