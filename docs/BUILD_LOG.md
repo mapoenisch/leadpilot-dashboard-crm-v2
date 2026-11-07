@@ -19564,3 +19564,20 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - Vorher (`origin/main` V2.5.0) vs. Nachher (Head V3.0.0) bei 1440px, 768px und 375px Viewport-Breite.
 - Hashes je Breite nachweislich verschieden (`DISTINCT`), horizontaler Überlauf **exakt 0 px**, Ergebnis: **3/3 bestanden (PASS)**.
 
+---
+
+### Nacharbeit / Review Codex (PR #144)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
+
+- **Geprüfter Commit:** `184e5e9`
+- **Ergebnis:** ✅ Review abgeschlossen, **0 offene Befunde** (Codex-Freigabe 👍 auf PR #144).
+- **Gate-Status:**
+  - Gate R1 (`tsc`, `verify`, `build`, `lint`, `format:check`): **Erfüllt**
+  - Gate R1a (Login-Screenshot-Matrix 1440/768/375 px, 0 px Überlauf): **Erfüllt**
+  - Gate R2 (CI-Pflichtjobs auf PR #144): **Erfüllt**
+  - Gate R3 (Schutzbereichs-Diff gegen `origin/main` leer): **Erfüllt** (0 Diff)
+  - Gate R4 (Codex ohne offene Befunde): **Erfüllt**
+  - Gate R5 (Annotierter Tag `v3.0.0` und GitHub-Release): Bereit für Merge und Tag durch Marc
+
+
