@@ -19488,7 +19488,7 @@ Die 2 Befunde aus dem sechsten Review-Durchlauf von Codex zu PR #142 (Commit `f2
 
 **Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-07
 
-Der Befund aus dem ersten Review-Durchlauf von Codex zu PR #143 (Commit `85e9bee`) wurde analysiert und behoben:
+Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analysiert und behoben:
 
 1. **Finding 1 (P2 - `WhatIfTornadoChart.tsx`, `whatIfModel.ts`):**
    - *Befund:* Bei Churn-Rate und Sales Cycle waren die angegebenen Änderungsrichtungen vertauscht: `calculateTornadoSensitivity()` berechnet den günstigen Fall durch eine Senkung und den ungünstigen Fall durch eine Erhöhung. Die statischen Spaltenüberschriften „Günstig (+20 %)“ und „Ungünstig (-20 %)“ vermittelten für zwei der vier Hebel eine falsche Handlungsempfehlung.
@@ -19496,13 +19496,19 @@ Der Befund aus dem ersten Review-Durchlauf von Codex zu PR #143 (Commit `85e9bee
      - **Richtungsneutrale Spaltenüberschriften:** Kopf-Legende im Diagramm auf `◀ Ungünstiger Fall (Downside)` und `Günstiger Fall (Upside) ▶` umgestellt; in der barrierefreien Wertetabelle entsprechend `Ungünstiger Fall (Downside)` und `Günstiger Fall (Upside)`.
      - **Explizite Kennzeichnung der Hebel-Änderungsrichtung (`whatIfModel.ts` & `WhatIfTornadoChart.tsx`):** `TornadoLeverItem` um `favorableChange` und `unfavorableChange` erweitert (für Churn und Sales Cycle: günstig = `-20 %`, ungünstig = `+20 %`; für Marketing-Budget und Win-Rate: günstig = `+20 %`, ungünstig = `-20 %`).
      - **Diagramm- und Tabellenausweis:** Sowohl in den Tooltips als auch direkt an den Balken im Diagramm (`({item.unfavorableChange}) {delta}` bzw. `{delta} ({item.favorableChange})`) und in den Tabellenzellen (`-45 k€ (+20 % → 3,4 %)`) wird die tatsächliche Hebelrichtung unmissverständlich ausgewiesen.
-2. **Architektur & Zeilenbudget-Schutz:**
+2. **Finding 2 (P2 - `WhatIfTornadoChart.tsx`, `WhatIfProjectionChart.tsx`):**
+   - *Befund:* Wenn im hellen Theme die Wertetabelle eingeblendet wurde, war der Kontrast der Spaltenüberschriften unzureichend: `text-text-muted` (`#454E58` in `global.css`) auf dem hardcodierten `bg-slate-800/80` ergab dunklen Text auf dunklem Hintergrund.
+   - *Behebung:*
+     - In beiden Komponenten (`WhatIfTornadoChart.tsx` und `WhatIfProjectionChart.tsx`) wurden `thead tr` und `tbody tr` auf design-system-konforme semantische Token umgestellt: `bg-surface-raised text-text font-semibold` für die Tabellenköpfe und `hover:bg-surface-raised/40` für Zeilen-Hover.
+     - Im hellen Theme (`[data-theme='light']`) bietet `text-text` (`#0C1F1D`) auf `bg-surface-raised` (`#C0E5DE`) einen exzellenten Kontrast von 12,1:1 (weit über WCAG AA 4,5:1); im dunklen Theme (`#FFFFFF` auf `#1A3F38`) 11,5:1.
+3. **Architektur & Zeilenbudget-Schutz:**
    - Alle berührten Quell- und Testdateien bleiben strikt $\le 400$ Zeilen:
      - `src/features/finanzen/services/whatIfModel.ts`: 388 Zeilen
      - `src/features/finanzen/components/WhatIfTornadoChart.tsx`: 204 Zeilen
+     - `src/features/finanzen/components/WhatIfProjectionChart.tsx`: 188 Zeilen
      - `src/features/finanzen/services/__tests__/whatIfModel.unit.vitest.ts`: 129 Zeilen
      - `src/features/finanzen/components/__tests__/WhatIfCockpit.ui.vitest.tsx`: 112 Zeilen
-3. **Screenshot-Harness & Matrix:**
+4. **Screenshot-Harness & Matrix:**
    - `scripts/captureAuftrag133Gate.mjs` regeneriert: 18/18 Bildpaare mit beabsichtigter Änderung, maximaler Überlauf **exakt 0 px**, Status **PASS**.
 
 #### Verifikation & Gate-Status nach Nacharbeit Runde 1

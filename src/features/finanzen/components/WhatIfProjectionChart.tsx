@@ -150,7 +150,7 @@ export const WhatIfProjectionChart: React.FC<WhatIfProjectionChartProps> = ({ da
         >
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="border-b border-border bg-slate-800/80 text-text-muted">
+              <tr className="border-b border-border bg-surface-raised text-text font-semibold">
                 <th className="px-2.5 py-1.5 font-semibold">Monat</th>
                 <th className="px-2.5 py-1.5 font-semibold">Baseline ARR</th>
                 <th className="px-2.5 py-1.5 font-semibold">What-If ARR</th>
@@ -160,7 +160,7 @@ export const WhatIfProjectionChart: React.FC<WhatIfProjectionChartProps> = ({ da
             </thead>
             <tbody className="divide-y divide-border/40">
               {data.map((row) => (
-                <tr key={row.month} className="hover:bg-slate-800/30">
+                <tr key={row.month} className="hover:bg-surface-raised/40">
                   <td className="px-2.5 py-1.5 font-semibold text-text">{row.monthLabel}</td>
                   <td className="px-2.5 py-1.5 text-text-muted">
                     {row.baselineArr.toLocaleString('de-DE')} €

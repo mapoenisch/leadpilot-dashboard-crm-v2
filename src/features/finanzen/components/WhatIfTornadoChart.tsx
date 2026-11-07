@@ -167,7 +167,7 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
         >
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="border-b border-border bg-slate-800/80 text-text-muted">
+              <tr className="border-b border-border bg-surface-raised text-text font-semibold">
                 <th className="px-2.5 py-1.5 font-semibold">Hebel</th>
                 <th className="px-2.5 py-1.5 font-semibold">Aktueller Wert</th>
                 <th className="px-2.5 py-1.5 font-semibold">Ungünstiger Fall (Downside)</th>
@@ -177,7 +177,7 @@ export const WhatIfTornadoChart: React.FC<WhatIfTornadoChartProps> = ({ items })
             </thead>
             <tbody className="divide-y divide-border/40">
               {items.map((row) => (
-                <tr key={row.key} className="hover:bg-slate-800/30">
+                <tr key={row.key} className="hover:bg-surface-raised/40">
                   <td className="px-2.5 py-1.5 font-semibold text-text">{row.label}</td>
                   <td className="px-2.5 py-1.5 text-text">
                     {row.currentValue.toLocaleString('de-DE')} {row.unit}
