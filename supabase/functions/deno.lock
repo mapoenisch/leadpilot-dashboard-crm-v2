@@ -96,7 +96,7 @@
         "npm:@types/react-dom@^18.3.0",
         "npm:@types/react@^18.3.3",
         "npm:@vitejs/plugin-react@^4.7.0",
-        "npm:@vitest/coverage-v8@^4.1.11",
+        "npm:@vitest/coverage-v8@^4.1.12",
         "npm:autoprefixer@^10.6.2",
         "npm:class-variance-authority@~0.7.1",
         "npm:clsx@^2.1.1",
@@ -125,7 +125,7 @@
         "npm:typescript-eslint@^8.72.1",
         "npm:typescript@^5.2.2",
         "npm:vite@^6.4.4",
-        "npm:vitest@^4.1.11",
+        "npm:vitest@^4.1.12",
         "npm:zustand@5.0.16"
       ],
       "overrides": {

@@ -19581,3 +19581,59 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
   - Gate R5 (Annotierter Tag `v3.0.0` und GitHub-Release): Bereit für Merge und Tag durch Marc
 
 
+
+---
+
+## 2026-11-08 — Auftrag Deps `vitest` / `@vitest/mocker` — Advisories GHSA-48jh-vj93-27v5 & GHSA-9w36-4wh2-jxvf behoben
+
+### Status: BEREIT ZUR PRÜFUNG
+
+- **Builder:** Claude Code
+- **Prüfer:** Codex (GitHub App)
+- **Baseline:** `d2bfbd3` (PR #144 gemergt, Release v3.0.0)
+- **Branch:** `claude/deps-vitest-4-1-12`
+- **Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_DEPS_VITEST_MOCKER.md`
+
+#### 1. Ziel & Kontext
+- Behebung von zwei Dependabot-Sicherheitswarnungen für `@vitest/mocker` (Alert #1: Windows backslash traversal, Alert #2: Code injection via manual mock registration).
+- Dependabot konnte das Update nicht selbst auflösen, da `@vitest/mocker` transitiv über `vitest@4.1.11` bezogen wird und `vitest` / `@vitest/coverage-v8` wechselseitige Peer-Dependencies besitzen.
+- Anhebung von `vitest` und `@vitest/coverage-v8` auf `^4.1.12` im Root-`package.json`, Lockfile-Synchronisation und Nachziehen von `supabase/functions/deno.lock`.
+
+#### 2. Geänderte Dateien
+- `package.json`: `vitest` und `@vitest/coverage-v8` von `^4.1.11` auf `^4.1.12`.
+- `package-lock.json`: Auflösung von `vitest`, `@vitest/coverage-v8` und `@vitest/mocker` auf `4.1.12`.
+- `supabase/functions/deno.lock`: gespiegelte Versionen unter `workspace.packageJson.dependencies` auf `^4.1.12` aktualisiert.
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_DEPS_VITEST_MOCKER.md`: Spezifikation & Dokumentation.
+- `docs/BUILD_LOG.md`: dieser Eintrag.
+
+#### 3. Test- & Verifikationsergebnisse
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen**
+- `npm run format:check`: **Prettier-konform (0 Abweichungen)**
+- `npm test`: **368 Testdateien, 2.672 Tests grün (100 % bestanden)**
+- `npm run test:coverage`: **Erfolgreich durchgeführt**
+- `npm run verify`: **Alle 25 Integritätssuiten bestanden (Suiten 001 bis 025)**
+- `npm run build`: **Erfolgreich gebaut in 3.97s**
+- `deno check` & `deno test`: **67 von 67 Edge-Function-Tests grün**
+- `npm run verify:quality-budget`: **100 % eingehalten** (Suppressions = 50 / Budget 50; Inline-Styles = 0)
+- **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+- Keine UI-Änderungen, keine Screenshot-Matrix erforderlich.
+
+---
+
+### Nacharbeit Codex-Review Runde 1 (PR #145)
+
+**Builder:** Claude Code · **Prüfer:** Codex (GitHub App) · **Datum:** 2026-11-08
+
+- **Befund Codex (P1):** Das vorübergehend mit `--legacy-peer-deps` erzeugte Lockfile hatte `puppeteer-core/node_modules/proxy-agent` und Sub-Abhängigkeiten entfernt, wodurch `npm ci` in der CI mit `EUSAGE` abbrach.
+- **Behebung:** `package-lock.json` sauber aus der `origin/main`-Baseline regeneriert und nur die 9 Vitest-Einträge auf `4.1.12` aktualisiert. Alle 967 Pakete inklusive `proxy-agent` und Plattform-Bindings sind vollständig erhalten.
+- **Verifikation:**
+  - `npm ci --dry-run --offline --ignore-scripts --no-audit --no-fund`: **Erfolgreich (Exit 0)**
+  - `npx tsc --noEmit`: **0 Fehler**
+  - `npm run lint`: **0 Fehler, 0 Warnungen**
+  - `npm run format:check`: **Prettier-konform**
+  - `deno check` & `deno test`: **67/67 bestanden**
+  - **Schutzbereichs-Diff:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` **100 % leer (0 Diff)**.
+  - **CI-Pflichtjobs (PR #145, Lauf 42426048463):** alle 7 Jobs bestanden (`typecheck`, `lint`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e` alle ✅).
+  - **Review-Konversationen:** gelöst (`isResolved: true`).
+  - **Gate-Freigabe:** ✅ Vollständig erteilt (Codex ohne Befunde auf Head `5807f21`, alle Pflicht-Checks grün, alle Konversationen gelöst). Bereit für Merge durch Marc.
