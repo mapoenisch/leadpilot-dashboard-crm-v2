@@ -19702,3 +19702,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `supabase test db` grün (9 Dateien, 224 pgTAP-Tests, davon 23 neue in `supabase/tests/deal_stage_tracking.sql`). `deno check --frozen-lockfile` ohne Fehler; `deno test` 68/68 grün. `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 367 Dateien / 2.669 Tests grün; `npm run verify` alle 25 Integrity-Suiten (001–025) bestanden; `npm run build` erfolgreich; `npx size-limit` eingehalten. Schutzbereichs-Diff gegen `origin/main`: nur `src/types/crm.ts` (im Auftrag ausdrücklich freigegeben), sonst leer. Keine UI-Änderung, daher keine Screenshot-Matrix.
 
 **Hinweis:** Die Fehlercodes werden als benutzerdefinierte SQLSTATEs (`LP403` und folgende) geworfen; pgTAP prüft sie direkt. `p_expected_stage` vergleicht den gespeicherten Rohwert, `p_new_stage` muss eines der sieben Labels sein; gleiche normalisierte Phase ist ein No-op ohne Event.
+
+### Nacharbeit Codex-Review (PR #158)
+
+**Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `cf7e285` · **Datum:** 2026-11-09
+
+- **Befund Runde 1 (P2):** `mapRowToFrontend` normalisierte `stage` und lieferte den gespeicherten Rohwert in keinem Feld. Bei Bestandsdeals wie `closedwon` hätte ein Client mit der gelesenen Phase als `p_expected_stage` dauerhaft `LP409` erhalten.
+- **Behebung:** `crm-query-export` liefert zusätzlich `stageRaw` (Rohwert) neben dem normalisierten Label; `mapRowToFrontend` ist für den direkten Vertragstest exportiert. `ImportedFunnelDeal` trägt `stageRaw?: string` (zweites optionales Feld, direkte Folge des Befunds). Neuer Deno-Test prüft `stage` = `Deal gewonnen` und `stageRaw` = `closedwon`.
+- **Ergebnis Runde 2:** Review abgeschlossen, keine Befunde (`has_any_findings: false`, `has_unresolved_findings: false`).
+- **Verifikation nach der Nacharbeit:** `deno check` ohne Fehler, `deno test` 69/69 grün, `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Fehler, `npm test` 367 Dateien / 2.669 Tests grün, `npm run verify` alle 25 Suiten grün, `npm run build` erfolgreich.
+- **CI-Hinweis:** Der `test`-Job auf `cf7e285` brach beim Setup ab, weil `denoland/setup-deno` den Deno-Download mit HTTP 504 quittierte (Infrastruktur, kein Testfehler). Der Doku-Commit startet die CI erneut.
