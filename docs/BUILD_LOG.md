@@ -20123,3 +20123,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 
 - **P1 (Live-Performance-Verifier):** Berechtigt — mit `e46312d` behoben: `src/components/liveKpi/**` und `scripts/verifyLivePerformanceSurface.ts` samt weiterer toter Prüfskripte entfernt, CI-Schritt `verifyLivePerformanceSurface` gestrichen, `verifyLiveKpiCatalog` läuft weiter (lokal grün).
 - **P2 (parallele Dashboard-Specs):** Berechtigt — die drei Dashboard-Specs bekamen ohne Skip-Gate erstmals parallel im lokalen Gesamtlauf Zugang zu derselben Testbenutzer-Präferenzzeile. Behoben über `E2E_DASHBOARD_SERIAL=true` (vom entfernten Rollout-Schalter unabhängiges Gate): Skip in allen drei Specs, Env in CI-Job `e2e` und im Orchestrator-Schritt `runV23Acceptance.mjs`; Orchestrator-Test angepasst (11/11 grün).
+
+### Prüfnachweis PR #162 — Auftrag 141 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `85954f97d0` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `85954f9`: „Didn't find any major issues." — keine offenen Befunde. Zwei Befunde aus der ersten Runde (`1c3dce5`) wurden beide als berechtigt behoben und die Threads gelöst: P1 Live-Performance-Verifier (in `e46312d`: verwaiste `src/components/liveKpi/**` und tote Prüfskripte entfernt, CI-Schritt gestrichen), P2 parallele Dashboard-Specs (in `85954f9`: `E2E_DASHBOARD_SERIAL=true` als schalterunabhängiges Skip-Gate in Specs, CI und Orchestrator).
+
+**Pflicht-Checks auf `85954f9`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge und etwaiges Release-Tag macht Marc.
