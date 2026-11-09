@@ -18,7 +18,7 @@ import { LeadsKpiGrid } from '../components/LeadsKpiGrid';
 import { LeadsFilterBar } from '../components/LeadsFilterBar';
 import { LeadQualificationDrawer } from '../components/LeadQualificationDrawer';
 import { LeadConversionModal, ConvertedDealData } from '../components/LeadConversionModal';
-import { getQualifiedLeadIds } from '../services/leadConversionService';
+import { useQualifiedContactIds } from '../hooks/useLeadQualifications';
 import {
   TAB_ITEMS,
   AUDIT_NOTES,
@@ -87,10 +87,8 @@ export function LeadsPage() {
     return map;
   }, [companiesData?.items]);
 
-  const qualifiedLeadIds = useMemo(() => {
-    void conversionSuccessMessage;
-    return getQualifiedLeadIds(session?.organizationId);
-  }, [session?.organizationId, conversionSuccessMessage]);
+  // Qualifizierte Kontakte kommen serverseitig aus lead_qualifications (RLS)
+  const { data: qualifiedLeadIds } = useQualifiedContactIds(activeTab === 'contacts');
 
   const isClientQualityPaging = activeTab === 'contacts' && qualityFilter !== 'ALL';
 
@@ -116,7 +114,7 @@ export function LeadsPage() {
       enrichContactWithCompany(
         contact,
         contact.companyId ? companyMap.get(String(contact.companyId)) : undefined,
-        qualifiedLeadIds.has(String(contact.id)),
+        qualifiedLeadIds?.has(String(contact.id)) ?? false,
       ),
     );
   }, [activeTab, rawItems, companyMap, qualifiedLeadIds]);
@@ -358,6 +356,8 @@ export function LeadsPage() {
         lead={selectedLead}
         isOpen={Boolean(selectedLead)}
         onClose={() => setSelectedLead(null)}
+        organizationId={session?.organizationId}
+        isViewer={isViewer}
         onConvertToDeal={(l) => {
           setSelectedLead(null);
           setConvertingLead(l);

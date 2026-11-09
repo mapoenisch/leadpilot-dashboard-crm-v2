@@ -1,12 +1,14 @@
 /**
  * leadConversionService.ts
- * Persistenz und CRM-Statusverwaltung für konvertierte Leads und Funnel-Deals (Auftrag 130).
- * Deals werden ausschließlich in `imported_funnel_deals` gespeichert; die Serverliste ist
- * damit die einzige Quelle für Trefferzahl, Filter, Sortierung und Paginierung.
+ * Auftrag 139: Die Konvertierung Lead → Deal läuft transaktional über die
+ * RPC `convert_lead_to_deal`. Deal, Phasen-Event, Qualifizierungsstatus und
+ * Audit-Eintrag entstehen gemeinsam oder gar nicht. ID und Organisation
+ * setzt ausschließlich die Datenbank; der Browser hält keine Deal-Kopie.
  */
 import { supabase, isSupabaseConfigured } from '@/services/db/supabaseClient';
 import { type QueryClient } from '@tanstack/react-query';
 import { crmKeys } from '@/services/query/queryKeys';
+import { LEAD_QUALIFICATIONS_KEY } from './leadQualificationService';
 
 export interface ConvertedDealPayload {
   dealName: string;
@@ -26,6 +28,24 @@ export interface StoredConvertedDeal extends ConvertedDealPayload {
   pipeline: string;
 }
 
+export type ConvertLeadErrorCode =
+  'forbidden' | 'not_found' | 'conflict' | 'invalid_stage' | 'network';
+
+export const CONVERT_LEAD_ERROR_MESSAGES: Record<ConvertLeadErrorCode, string> = {
+  forbidden: 'Sie haben keine Berechtigung, Leads in Deals zu konvertieren.',
+  not_found: 'Der Lead wurde nicht gefunden oder gehört zu einem anderen Mandanten.',
+  conflict: 'Dieser Lead wurde bereits in einen Deal konvertiert.',
+  invalid_stage: 'Die Konvertierung wurde abgewiesen: Prüfung der Eingaben fehlgeschlagen.',
+  network: 'Die Konvertierung ist fehlgeschlagen. Der Deal wurde nicht angelegt.',
+};
+
+export class ConvertLeadError extends Error {
+  constructor(public readonly code: ConvertLeadErrorCode) {
+    super(CONVERT_LEAD_ERROR_MESSAGES[code]);
+    this.name = 'ConvertLeadError';
+  }
+}
+
 export function parseDealAmount(raw: string | number): number {
   if (typeof raw === 'number') {
     return Number.isFinite(raw) && raw >= 0 ? raw : 0;
@@ -36,97 +56,126 @@ export function parseDealAmount(raw: string | number): number {
   return Math.round(parsed * 100) / 100;
 }
 
-export function getQualifiedLeadsStorageKey(orgId?: string): string {
-  const oid = orgId || '00000000-0000-0000-0000-000000000001';
-  return `leadpilot_crm_qualified_leads_${oid}`;
+interface PostgrestErrorLike {
+  code?: string;
+  message?: string;
 }
 
-export function getQualifiedLeadIds(orgId?: string): Set<string> {
-  if (typeof window === 'undefined') return new Set();
-  try {
-    const key = getQualifiedLeadsStorageKey(orgId);
-    const raw = sessionStorage.getItem(key) || localStorage.getItem(key);
-    const arr: string[] = raw ? JSON.parse(raw) : [];
-    return new Set(arr);
-  } catch {
-    return new Set();
+const CODE_BY_SQLSTATE: Record<string, ConvertLeadErrorCode> = {
+  LP403: 'forbidden',
+  LP404: 'not_found',
+  LP409: 'conflict',
+  LP422: 'invalid_stage',
+};
+
+const CODE_BY_MESSAGE_PREFIX: Record<string, ConvertLeadErrorCode> = {
+  FORBIDDEN: 'forbidden',
+  NOT_FOUND: 'not_found',
+  CONFLICT: 'conflict',
+  INVALID_STAGE: 'invalid_stage',
+};
+
+/** Ordnet SQLSTATE und Meldungspräfix der RPC einem festen Frontend-Code zu. */
+export function classifyConvertLeadError(
+  error: PostgrestErrorLike | null | undefined,
+): ConvertLeadErrorCode {
+  const byState = error?.code ? CODE_BY_SQLSTATE[error.code] : undefined;
+  if (byState) return byState;
+
+  const message = error?.message ?? '';
+  for (const [prefix, code] of Object.entries(CODE_BY_MESSAGE_PREFIX)) {
+    if (message.startsWith(`${prefix}:`)) return code;
   }
+  return 'network';
 }
 
-export function markLeadAsQualified(leadId: string, orgId?: string): void {
-  if (!leadId || typeof window === 'undefined') return;
-  try {
-    const key = getQualifiedLeadsStorageKey(orgId);
-    const current = getQualifiedLeadIds(orgId);
-    current.add(leadId);
-    const json = JSON.stringify(Array.from(current));
-    sessionStorage.setItem(key, json);
-    localStorage.setItem(key, json);
-  } catch {
-    // Storage nicht verfügbar
-  }
+interface ConvertedDealRow {
+  id?: unknown;
+  deal_name?: unknown;
+  stage?: unknown;
+  amount?: unknown;
+  close_date?: unknown;
+  pipeline?: unknown;
+  organization_id?: unknown;
+  created_at?: unknown;
 }
 
-/**
- * Persistiert einen neu konvertierten Deal in der CRM-Datenbasis und markiert den Lead als qualifiziert.
- */
-export async function convertLeadToDeal(
-  payload: ConvertedDealPayload,
-  organizationId?: string,
-  queryClient?: QueryClient,
-): Promise<StoredConvertedDeal> {
-  const amount = parseDealAmount(payload.amount);
-  if (amount <= 0 || !Number.isFinite(amount)) {
-    throw new Error('Der Deal-Betrag muss eine positive Zahl sein.');
+function parseResult(data: unknown, payload: ConvertedDealPayload): StoredConvertedDeal {
+  const row = (Array.isArray(data) ? data[0] : data) as ConvertedDealRow | null | undefined;
+  if (
+    !row ||
+    typeof row.id !== 'string' ||
+    typeof row.deal_name !== 'string' ||
+    typeof row.stage !== 'string' ||
+    typeof row.organization_id !== 'string'
+  ) {
+    throw new ConvertLeadError('network');
   }
-
-  const orgId = organizationId || '00000000-0000-0000-0000-000000000001';
-  const dealId = `d-conv-${payload.leadId || 'lead'}-${Date.now()}`;
-  const now = new Date().toISOString();
-  const pipeline = payload.pipeline || 'Enterprise SaaS';
-
-  const newDeal: StoredConvertedDeal = {
-    id: dealId,
-    dealName: payload.dealName.trim(),
-    stage: payload.stage || 'Erstgespräch geführt',
-    amount,
-    closeDate: payload.closeDate || now.split('T')[0] || '2026-12-31',
+  return {
+    id: row.id,
+    dealName: row.deal_name,
+    stage: row.stage,
+    amount: typeof row.amount === 'number' ? row.amount : payload.amount,
+    closeDate:
+      typeof row.close_date === 'string' ? row.close_date : payload.closeDate || '2026-12-31',
     companyName: payload.companyName,
     leadId: payload.leadId,
     leadName: payload.leadName,
-    organizationId: orgId,
-    createdAt: now,
-    pipeline,
+    pipeline:
+      typeof row.pipeline === 'string' ? row.pipeline : (payload.pipeline ?? 'Enterprise SaaS'),
+    organizationId: row.organization_id,
+    createdAt: typeof row.created_at === 'string' ? row.created_at : new Date().toISOString(),
   };
+}
 
-  // 1. Deal in der CRM-Datenbank speichern; Erfolg gibt es nur nach erfolgreicher Mutation
+/**
+ * Konvertiert einen qualifizierten Lead transaktional in einen Deal.
+ * Die RPC prüft Rolle, Mandant, Doppelkonvertierung und Betrag selbst;
+ * das Frontend übergibt weder ID noch Organisation.
+ */
+export async function convertLeadToDeal(
+  payload: ConvertedDealPayload,
+  queryClient?: QueryClient,
+): Promise<StoredConvertedDeal> {
+  const amount = parseDealAmount(payload.amount);
+  if (amount <= 0 || !Number.isFinite(amount) || !payload.leadId) {
+    throw new ConvertLeadError('invalid_stage');
+  }
+
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Keine CRM-Datenbank verbunden. Der Deal wurde nicht gespeichert.');
+    throw new ConvertLeadError('network');
   }
-  const { error } = await supabase.from('imported_funnel_deals').insert({
-    id: newDeal.id,
-    deal_name: newDeal.dealName,
-    stage: newDeal.stage,
-    amount: newDeal.amount,
-    close_date: newDeal.closeDate,
-    pipeline: newDeal.pipeline,
-    organization_id: orgId,
-  });
+
+  let data: unknown;
+  let error: PostgrestErrorLike | null = null;
+  try {
+    const response = await supabase.rpc('convert_lead_to_deal', {
+      p_contact_id: payload.leadId,
+      p_deal_name: payload.dealName.trim() || `${payload.companyName} – Deal`,
+      p_stage: payload.stage || 'Erstgespräch geführt',
+      p_amount: amount,
+      p_close_date: payload.closeDate || '2026-12-31',
+      p_pipeline: payload.pipeline || 'Enterprise SaaS',
+    });
+    data = response.data;
+    error = response.error;
+  } catch {
+    throw new ConvertLeadError('network');
+  }
+
   if (error) {
-    throw new Error(`Fehler beim Speichern des Deals in der CRM-Datenbank: ${error.message}`);
+    throw new ConvertLeadError(classifyConvertLeadError(error));
   }
 
-  // 2. Lead als qualifiziert markieren
-  if (payload.leadId) {
-    markLeadAsQualified(payload.leadId, orgId);
-  }
+  const deal = parseResult(data, payload);
 
-  // 3. Alle Listenabfragen beider Ressourcen und die Pipeline-Übersicht invalidieren
+  // Listen, Pipeline-Übersicht und Qualifizierungsmenge neu laden
   if (queryClient) {
     void queryClient.invalidateQueries({ queryKey: crmKeys.listsOf('deals') });
     void queryClient.invalidateQueries({ queryKey: crmKeys.listsOf('contacts') });
     void queryClient.invalidateQueries({ queryKey: crmKeys.pipelineOverview() });
+    void queryClient.invalidateQueries({ queryKey: LEAD_QUALIFICATIONS_KEY });
   }
 
-  return newDeal;
+  return deal;
 }

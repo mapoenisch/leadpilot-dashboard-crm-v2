@@ -8,10 +8,37 @@ import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 
 vi.mock('@/auth/organizationContext', () => ({ useOrganization: vi.fn() }));
 vi.mock('@/hooks/queries/useCrmListQuery', () => ({ useCrmListQuery: vi.fn() }));
-vi.mock('@/services/db/supabaseClient', () => ({
-  isSupabaseConfigured: true,
-  supabase: { from: () => ({ insert: () => Promise.resolve({ error: null }) }) },
-}));
+vi.mock('@/services/db/supabaseClient', () => {
+  const builder: Record<string, unknown> = {};
+  const empty = { data: null, error: null };
+  builder.select = vi.fn(() => builder);
+  builder.eq = vi.fn(() => builder);
+  builder.not = vi.fn(() => Promise.resolve({ data: [], error: null }));
+  builder.maybeSingle = vi.fn(() => Promise.resolve(empty));
+  builder.upsert = vi.fn(() => Promise.resolve({ error: null }));
+  builder.insert = vi.fn(() => Promise.resolve({ error: null }));
+  builder.then = (resolve: (v: unknown) => unknown) =>
+    Promise.resolve({ data: [], error: null }).then(resolve);
+  return {
+    isSupabaseConfigured: true,
+    supabase: {
+      from: () => builder,
+      rpc: vi.fn().mockResolvedValue({
+        data: {
+          id: 'd-conv-test',
+          deal_name: 'Test Deal',
+          stage: 'Erstgespräch geführt',
+          amount: 30000,
+          close_date: '2026-12-31',
+          pipeline: 'Enterprise SaaS',
+          organization_id: 'org-1',
+          created_at: '2026-11-09T00:00:00Z',
+        },
+        error: null,
+      }),
+    },
+  };
+});
 vi.mock('@/services/crm/crmExportService', () => ({
   downloadCrmExport: vi.fn(),
   CrmServiceError: class extends Error {},

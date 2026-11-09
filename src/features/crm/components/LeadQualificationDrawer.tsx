@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle2,
   Circle,
@@ -8,6 +9,7 @@ import {
   MapPin,
   Users,
   Briefcase,
+  Save,
 } from 'lucide-react';
 import { Drawer } from '@/components/ui/Drawer';
 import { Button } from '@/components/ui/Button';
@@ -18,12 +20,21 @@ import {
   type LeadScoringInput,
   type LeadScoringResult,
 } from '../services/leadScoringService';
+import {
+  saveLeadQualification,
+  LEAD_QUALIFICATIONS_KEY,
+  leadQualificationKey,
+  type LeadQualification,
+} from '../services/leadQualificationService';
+import { useLeadQualification } from '../hooks/useLeadQualifications';
 
 export interface LeadQualificationDrawerProps {
   lead: Record<string, unknown> | null;
   isOpen: boolean;
   onClose: () => void;
   onConvertToDeal: (lead: Record<string, unknown>) => void;
+  organizationId?: string;
+  isViewer?: boolean;
 }
 
 interface BantState {
@@ -42,24 +53,11 @@ const BANT_PROGRESS_WIDTH: Record<number, string> = {
   4: 'w-full',
 };
 
-function loadBantState(leadId: string, result: LeadScoringResult): BantState {
-  if (!leadId) {
-    return {
-      budget: false,
-      authority: false,
-      need: false,
-      timeline: false,
-      notes: '',
-    };
-  }
-  if (typeof window !== 'undefined') {
-    try {
-      const saved = sessionStorage.getItem(`leadpilot_crm_bant_${leadId}`);
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // Fallback
-    }
-  }
+const BANT_FIELDS = ['budget', 'authority', 'need', 'timeline'] as const;
+type BantField = (typeof BANT_FIELDS)[number];
+
+/** Vorschlagswerte aus dem Score, solange keine gespeicherte Zeile existiert. */
+function suggestedBantState(result: LeadScoringResult): BantState {
   return {
     budget: result.totalScore >= 70,
     authority: result.breakdown.find((b) => b.key === 'persona')?.points === 20,
@@ -69,14 +67,30 @@ function loadBantState(leadId: string, result: LeadScoringResult): BantState {
   };
 }
 
+function toBantState(
+  saved: LeadQualification | null | undefined,
+  result: LeadScoringResult,
+): BantState {
+  if (!saved) return suggestedBantState(result);
+  return {
+    budget: saved.budget,
+    authority: saved.authority,
+    need: saved.need,
+    timeline: saved.timeline,
+    notes: saved.notes,
+  };
+}
+
 export function LeadQualificationDrawer({
   lead,
   isOpen,
   onClose,
   onConvertToDeal,
+  organizationId,
+  isViewer = false,
 }: LeadQualificationDrawerProps) {
+  const queryClient = useQueryClient();
   const leadId = lead ? String(lead.id ?? '') : '';
-  const storageKey = `leadpilot_crm_bant_${leadId}`;
 
   const scoringInput: LeadScoringInput = useMemo(
     () => ({
@@ -91,30 +105,31 @@ export function LeadQualificationDrawer({
 
   const result: LeadScoringResult = useMemo(() => calculateLeadScore(scoringInput), [scoringInput]);
 
-  // BANT State mit sauberem Lead-Wechsel
-  const [bant, setBant] = useState<BantState>(() => loadBantState(leadId, result));
-  const activeLeadIdRef = useRef<string>(leadId);
+  // Gespeicherte BANT-Werte aus der Datenbank (null = noch nicht qualifiziert)
+  const { data: savedQualification } = useLeadQualification(leadId, isOpen);
 
-  // Synchronisiere State bei Wechsel der leadId
-  useEffect(() => {
-    if (leadId && leadId !== activeLeadIdRef.current) {
-      activeLeadIdRef.current = leadId;
-      setBant(loadBantState(leadId, result));
-    }
-  }, [leadId, result]);
+  const [bant, setBant] = useState<BantState>(() => suggestedBantState(result));
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [savedNotice, setSavedNotice] = useState(false);
 
-  // Persistiere nur für den zur aktuellen leadId passenden State
-  useEffect(() => {
-    if (typeof window !== 'undefined' && leadId && leadId === activeLeadIdRef.current) {
-      try {
-        sessionStorage.setItem(storageKey, JSON.stringify(bant));
-      } catch {
-        // Ignorieren falls nicht verfügbar
-      }
-    }
-  }, [bant, leadId, storageKey]);
+  // Bei Lead-Wechsel oder eintreffenden Serverdaten den State (neu) befüllen
+  // (Derived-State-during-render-Pattern, kein useEffect nötig)
+  const [loadedFor, setLoadedFor] = useState<{ leadId: string; saved: unknown }>({
+    leadId,
+    saved: savedQualification,
+  });
+  if (loadedFor.leadId !== leadId || loadedFor.saved !== savedQualification) {
+    setLoadedFor({ leadId, saved: savedQualification });
+    setBant(toBantState(savedQualification, result));
+    setSaveError(null);
+    setSavedNotice(false);
+  }
 
   if (!lead) return null;
+
+  const canSave = !isViewer && Boolean(organizationId) && Boolean(leadId) && !isSaving;
+  const canConvert = !isViewer && Boolean(organizationId);
 
   const fullName =
     `${String(lead.firstName ?? '')} ${String(lead.lastName ?? '')}`.trim() ||
@@ -122,11 +137,39 @@ export function LeadQualificationDrawer({
   const companyName = String(lead.companyName ?? lead.companyId ?? 'Unternehmen');
   const jobTitle = String(lead.jobTitle ?? 'Jobtitel');
 
-  const toggleBant = (field: 'budget' | 'authority' | 'need' | 'timeline') => {
+  const toggleBant = (field: BantField) => {
+    if (isViewer || isSaving) return;
     setBant((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const bantCount = [bant.budget, bant.authority, bant.need, bant.timeline].filter(Boolean).length;
+  const handleSave = async () => {
+    if (!canSave || !organizationId || !leadId) return;
+    setIsSaving(true);
+    setSaveError(null);
+    setSavedNotice(false);
+    try {
+      await saveLeadQualification({
+        organizationId,
+        contactId: leadId,
+        budget: bant.budget,
+        authority: bant.authority,
+        need: bant.need,
+        timeline: bant.timeline,
+        notes: bant.notes.slice(0, 2000),
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: leadQualificationKey(leadId) }),
+        queryClient.invalidateQueries({ queryKey: LEAD_QUALIFICATIONS_KEY }),
+      ]);
+      setSavedNotice(true);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Speichern fehlgeschlagen.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const bantCount = BANT_FIELDS.filter((f) => bant[f]).length;
   const estimatedAmount = estimateDealAmountForLead(
     lead.employeeCount as number | string | undefined,
   );
@@ -143,14 +186,30 @@ export function LeadQualificationDrawer({
           <Button variant="secondary" size="sm" onClick={onClose}>
             Schließen
           </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            iconRight={<ArrowRight size={14} />}
-            onClick={() => onConvertToDeal(lead)}
-          >
-            Zu Deal konvertieren
-          </Button>
+          <div className="flex items-center gap-2">
+            {!isViewer && (
+              <Button
+                variant="secondary"
+                size="sm"
+                iconLeft={<Save size={14} />}
+                onClick={() => void handleSave()}
+                disabled={!canSave}
+                data-testid="qualification-save-btn"
+              >
+                {isSaving ? 'Speichern…' : 'Qualifizierung speichern'}
+              </Button>
+            )}
+            {canConvert && (
+              <Button
+                variant="primary"
+                size="sm"
+                iconRight={<ArrowRight size={14} />}
+                onClick={() => onConvertToDeal(lead)}
+              >
+                Zu Deal konvertieren
+              </Button>
+            )}
+          </div>
         </div>
       }
     >
@@ -193,6 +252,17 @@ export function LeadQualificationDrawer({
             </div>
           </div>
         </div>
+
+        {saveError && (
+          <div role="alert" className="text-[13px] text-error">
+            {saveError}
+          </div>
+        )}
+        {savedNotice && !saveError && (
+          <div role="status" className="text-[13px] text-success">
+            Qualifizierung gespeichert.
+          </div>
+        )}
 
         {/* BANT Framework Checkliste */}
         <div className="flex flex-col gap-2.5">
@@ -241,7 +311,10 @@ export function LeadQualificationDrawer({
                   key={crit.id}
                   type="button"
                   onClick={() => toggleBant(crit.id)}
-                  className={`w-full p-2.5 rounded-lg border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
+                  disabled={isViewer || isSaving}
+                  className={`w-full p-2.5 rounded-lg border text-left transition-all flex items-start gap-2.5 ${
+                    isViewer || isSaving ? 'cursor-default' : 'cursor-pointer'
+                  } ${
                     checked
                       ? 'bg-primary/10 border-primary/40 text-text'
                       : 'bg-black/10 border-border hover:bg-black/20 text-[var(--color-text-muted)]'
@@ -300,9 +373,15 @@ export function LeadQualificationDrawer({
             id="lead-qualification-notes"
             rows={3}
             value={bant.notes}
-            onChange={(e) => setBant((prev) => ({ ...prev, notes: e.target.value }))}
+            onChange={(e) => {
+              if (!isViewer && !isSaving) {
+                setBant((prev) => ({ ...prev, notes: e.target.value.slice(0, 2000) }));
+              }
+            }}
+            readOnly={isViewer}
+            disabled={isViewer}
             placeholder="Ergebnisse des Erstgesprächs, relevante Stakeholder oder nächste Schritte notieren..."
-            className="w-full p-2.5 text-[13px] bg-black/40 border border-border rounded-lg text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary transition-colors resize-none"
+            className="w-full p-2.5 text-[13px] bg-black/40 border border-border rounded-lg text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary transition-colors resize-none disabled:opacity-60"
           />
         </div>
       </div>

@@ -9,7 +9,7 @@ import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useAllCrmEntitiesQuery } from '../services/funnelCrmDataService';
 import { ImportedFunnelDeal, Contact } from '@/types/crm';
-import { getQualifiedLeadIds } from '@/features/crm/services/leadConversionService';
+import { useQualifiedContactIds } from '@/features/crm/hooks/useLeadQualifications';
 import { FunnelStufenChart } from '../components/FunnelStufenChart';
 import { GroupedDepthColumns } from '../components/GroupedDepthColumns';
 import { FunnelSourceToggle } from '../components/FunnelSourceToggle';
@@ -77,10 +77,8 @@ function FunnelPageHtml() {
     enabled: isLiveOrVergleich,
   });
 
-  const qualifiedLeadIds = useMemo(
-    () => getQualifiedLeadIds(session?.organizationId),
-    [session?.organizationId],
-  );
+  // Qualifizierte Kontakte kommen serverseitig aus lead_qualifications (RLS)
+  const { data: qualifiedLeadIds } = useQualifiedContactIds(isLiveOrVergleich);
 
   // Funnel Analytics berechnen; die Phase kommt ausschließlich aus der Datenbank.
   const analytics = useMemo(() => {

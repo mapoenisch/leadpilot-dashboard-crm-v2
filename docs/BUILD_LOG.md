@@ -19885,3 +19885,48 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `eslint` auf der Spec 0 Fehler; `prettier --check` konform; lokaler Reproduktionsversuch nicht möglich (Edge-Function `crm-query-export` läuft lokal nicht, Spec scheitert früher an fehlenden Seed-Daten) — Verifikation erfolgt im CI-E2E-Lauf. Vollständige Gates waren auf `480962d` bereits grün; dieser Commit ändert nur die Spec.
 
 **Status:** CI-E2E-Lauf auf neuem Head erforderlich. Kein Merge.
+
+### Auftrag 139 — Qualifizierung und Konvertierung speichern serverseitig (11.11.2026)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_139_QUALIFIZIERUNG_KONVERTIERUNG.md`, Teil-Auftrag 139 aus dem verbindlichen Plan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`. Builder: Devin. Prüfer: ein anderer Agent, Standard Codex (GitHub-App).
+
+**Ziel & Kontext:** BANT-Qualifizierung und Konvertierung lagen Previously in `sessionStorage`/`localStorage` (`leadpilot_crm_bant_*`, `leadpilot_crm_qualified_*`) — mandanten- und rollenungesichert, für andere Nutzer unsichtbar und nach Browserwechsel weg. Auftrag 139 verlagert beides in die Datenbank: neue Tabelle `lead_qualifications` (PK `(organization_id, contact_id)`, RLS, Trigger für `updated_by`/`updated_at`), neue Spalte `imported_funnel_deals.source_contact_id` mit partiellem Unique-Index, transaktionale RPC `convert_lead_to_deal` (LP403/404/409/422, Deal-ID und `organization_id` serverseitig, `deal_stage_events` mit `from_stage = NULL`, Audit `crm.lead.converted`). Browser-Speicher ist keine Fachdatenquelle mehr.
+
+**Geänderte/ neue Dateien:**
+
+- `supabase/migrations/20261111_lead_qualification.sql` — Tabelle, RLS-Policies (Lesen für Org-Mitglieder, Schreiben nur aktiv admin/manager), Trigger, `source_contact_id` + Unique-Index, RPC `convert_lead_to_deal` (`SECURITY DEFINER`, `search_path` gepinnt).
+- `supabase/tests/lead_qualification.sql` — 30 pgTAP-Tests: `manager_converts`, `viewer_rejected`, `foreign_contact_lp404`, `second_conversion_lp409`, `zero_amount_lp422`, `conversion_atomic_on_failure`, `qualification_tenant_isolated` u. a.
+- `src/features/crm/services/leadQualificationService.ts` (neu) — `fetchLeadQualification`, `fetchQualifiedContactIds`, `saveLeadQualification` (Upsert, `qualified_at` beim ersten Speichern eingefroren).
+- `src/features/crm/services/leadConversionService.ts` — konvertiert per `supabase.rpc('convert_lead_to_deal')`; LP-Codes → stabile Frontend-Fehler; keine lokale Deal-ID, keine `organizationId`-Übergabe mehr; invalidiert CRM-Listen, Pipeline-Overview und Qualifizierungs-Keys.
+- `src/features/crm/hooks/useLeadQualifications.ts` (neu) — `useLeadQualification(contactId, enabled)`, `useQualifiedContactIds(enabled)`.
+- `src/features/crm/components/LeadQualificationDrawer.tsx` — lädt BANT serverseitig; Score-Vorschläge nur wenn keine gespeicherte Zeile existiert; Speichern explizit per „Qualifizierung speichern" (kein Autosave); `isViewer` → Felder deaktiviert, keine Speicher-/Konvertierungs-Aktionen; State-Reset per Derived-State-during-render (kein `useEffect`-Suppression).
+- `src/features/crm/components/LeadConversionModal.tsx` — Guard gegen fehlende Session/Org; nutzt den RPC-Service.
+- `src/features/crm/pages/LeadsPage.tsx` — „Qualifiziert"-Status aus `useQualifiedContactIds` (Server).
+- `src/features/vertrieb/pages/FunnelPage.tsx` — Qualifizierungs-IDs aus `useQualifiedContactIds` statt `getQualifiedLeadIds` (localStorage).
+- `e2e/crm-lead-qualification.spec.ts` (neu) — `bant_bleibt_nach_reload`: BANT + Notizen speichern, Reload, Drawer erneut öffnen, Serverwerte bleiben; Kontakt erscheint als qualifiziert.
+- `.github/workflows/ci.yml` + `scripts/runV23Acceptance.mjs` — neue Spec in die sequentielle CRM-Gruppe (nach `crm-deals-persistence`) aufgenommen; Orchestrator-Test deckt die Duplex-Pflicht ab.
+- Tests: `leadQualificationService.unit.vitest.ts`, `LeadQualificationDrawer.ui.vitest.tsx` (lädt Serverwerte, Viewer kann nicht speichern, Doppelklick → ein Save), `leadConversionService.unit.vitest.ts` (RPC-Mapping), `LeadsPage.scoring.ui.vitest.tsx` (Serverliste/Legacy-Key-Isolation).
+- `scripts/captureAuftrag139Gate.mjs` + `docs/screenshots/auftrag-139/README.md` — Screenshot-Gate.
+
+**Funktionale Prüfungen:**
+
+- `git grep -E 'leadpilot_crm_(bant|qualified)' src/` → leer; `getQualifiedLeadIds`/`markLeadAsQualified` entfernt.
+- Drawer zeigt Score-Vorschläge nur ohne gespeicherte Zeile; Speichern ist explizit und idempotent-sicher (Doppelklick → ein `upsert`).
+- Viewer: BANT-Felder `disabled`, keine Save-/Convert-Buttons (per UI-Test und Screenshot-Vergleich verifiziert).
+- RPC: genau-einmal-Konvertierung (Unique-Index + LP409), Atomicität bei Fehler (`conversion_atomic_on_failure`), Tenant-Isolation per RLS + `organization_members`-Prüfung.
+
+**Verifikation:**
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler (eslint-comments-Pflicht: Drawer nutzt Derived-State-during-render statt `useEffect` + Suppression; Quality-Budget bleibt auf 1 `exhaustive-deps`-Suppression)
+- `npm run format:check`: konform
+- `npm test`: 370 Test-Dateien / 2.693 Tests bestanden
+- `npm run verify`: alle Integritätssuiten (001–025) bestanden
+- `npm run build`: erfolgreich
+- `npm run verify:quality-budget`: 0 Regressionen
+- `supabase test db`: 10 Dateien / 255 pgTAP-Tests PASS (nach `supabase db reset` mit neuer Migration)
+- E2E: neue Spec `crm-lead-qualification.spec.ts` in CI-Sequenz eingegliedert; lokaler Lauf nicht möglich (Edge-Function `crm-query-export` startet lokal nicht zuverlässig — `supabase functions serve` beendet sich sofort), Verifikation erfolgt im CI-E2E-Job. Spec lokal gegen Mock geprüft (Playwright-Screenshot-Harness nutzt denselben Ablauf).
+- Screenshot-Gate: 48 Aufnahmen (4 Szenarien × 2 Themes × 3 Viewports × vorher/nachher), 0 px horizontaler Overflow; 14 erwartete Abweichungen (Qualifiziert-Badge aus Serverdaten, Drawer-Speichern-Button, Viewer-Read-only, Funnel-Datenquelle) per `VISUAL_APPROVALS` mit Hash-Bindung geprüft → `✅ ALLE GATES BESTANDEN`. Matrix: `docs/screenshots/auftrag-139/README.md`.
+- Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): leer.
+
+**Ergebnis & Freigabestatus:** Auftrag umgesetzt, alle lokalen Gates grün, E2E-Nachweis im CI ausstehend. PR folgt; unabhängiges Review (Codex) erforderlich, Merge durch Marc.
