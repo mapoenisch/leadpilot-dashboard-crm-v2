@@ -11,9 +11,25 @@
 -- Idempotent und re-runnable formuliert.
 
 -- ------------------------------------------------- 1. Qualifizierungs-Tabelle
+-- Tenant-FK: contacts.id ist global eindeutig, aber die Qualifizierung darf nur
+-- auf Kontakte der eigenen Organisation verweisen. Dafür braucht es einen
+-- eindeutigen Schlüssel auf (organization_id, id) in contacts — analog zum
+-- bestehenden companies_org_id_unique-Muster.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'contacts_org_id_unique'
+      AND conrelid = 'public.contacts'::regclass
+  ) THEN
+    ALTER TABLE public.contacts
+      ADD CONSTRAINT contacts_org_id_unique UNIQUE (organization_id, id);
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS public.lead_qualifications (
   organization_id UUID        NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-  contact_id      TEXT        NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+  contact_id      TEXT        NOT NULL,
   budget          BOOLEAN     NOT NULL DEFAULT FALSE,
   authority       BOOLEAN     NOT NULL DEFAULT FALSE,
   need            BOOLEAN     NOT NULL DEFAULT FALSE,
@@ -22,8 +38,35 @@ CREATE TABLE IF NOT EXISTS public.lead_qualifications (
   qualified_at    TIMESTAMPTZ NULL,
   updated_by      UUID        NULL REFERENCES auth.users(id) ON DELETE SET NULL,
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (organization_id, contact_id)
+  PRIMARY KEY (organization_id, contact_id),
+  CONSTRAINT lead_qualifications_contact_org_fkey
+    FOREIGN KEY (organization_id, contact_id)
+    REFERENCES public.contacts(organization_id, id) ON DELETE CASCADE
 );
+
+-- Falls die erste Fassung (Einzel-FK auf contacts.id) bereits angewendet wurde:
+-- alten FK entfernen und Mandanten-FK nachziehen.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'lead_qualifications_contact_id_fkey'
+      AND conrelid = 'public.lead_qualifications'::regclass
+  ) THEN
+    ALTER TABLE public.lead_qualifications
+      DROP CONSTRAINT lead_qualifications_contact_id_fkey;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'lead_qualifications_contact_org_fkey'
+      AND conrelid = 'public.lead_qualifications'::regclass
+  ) THEN
+    ALTER TABLE public.lead_qualifications
+      ADD CONSTRAINT lead_qualifications_contact_org_fkey
+      FOREIGN KEY (organization_id, contact_id)
+      REFERENCES public.contacts(organization_id, id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 ALTER TABLE public.lead_qualifications ENABLE ROW LEVEL SECURITY;
 
@@ -86,8 +129,32 @@ REVOKE ALL ON FUNCTION public.touch_lead_qualification() FROM PUBLIC, anon, auth
 
 -- ------------------------------------------- 2. Rückverweis auf den Lead
 ALTER TABLE public.imported_funnel_deals
-  ADD COLUMN IF NOT EXISTS source_contact_id TEXT NULL
-  REFERENCES public.contacts(id) ON DELETE SET NULL;
+  ADD COLUMN IF NOT EXISTS source_contact_id TEXT NULL;
+
+-- FK auf (organization_id, contact_id): der Quellkontakt muss zum Deal-Mandanten
+-- gehören. Ersetzt den Einzel-FK aus der ersten Fassung.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'imported_funnel_deals_source_contact_id_fkey'
+      AND conrelid = 'public.imported_funnel_deals'::regclass
+  ) THEN
+    ALTER TABLE public.imported_funnel_deals
+      DROP CONSTRAINT imported_funnel_deals_source_contact_id_fkey;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'imported_funnel_deals_source_contact_org_fkey'
+      AND conrelid = 'public.imported_funnel_deals'::regclass
+  ) THEN
+    ALTER TABLE public.imported_funnel_deals
+      ADD CONSTRAINT imported_funnel_deals_source_contact_org_fkey
+      FOREIGN KEY (organization_id, source_contact_id)
+      REFERENCES public.contacts(organization_id, id)
+      ON DELETE SET NULL (source_contact_id);
+  END IF;
+END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_deals_source_contact
   ON public.imported_funnel_deals (organization_id, source_contact_id)

@@ -19930,3 +19930,19 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): leer.
 
 **Ergebnis & Freigabestatus:** Auftrag umgesetzt, alle lokalen Gates grün, E2E-Nachweis im CI ausstehend. PR folgt; unabhängiges Review (Codex) erforderlich, Merge durch Marc.
+
+### Nacharbeit PR #160 — Behebung der fünf Codex-Befunde auf `da05769` (11.11.2026)
+
+**Kontext:** Codex-Review auf `da05769` meldete 1×P1 und 4×P2. Nacharbeit durch Devin; alle fünf Befunde waren berechtigt.
+
+**Befunde und Behebung:**
+
+- **P1 Drawer-Initialisierung aus Query-Cache (`LeadQualificationDrawer.tsx`):** `bant` startete immer mit Score-Vorschlägen; lag `savedQualification` beim Remount bereits im Cache, griff der spätere Vergleich nicht und gespeicherte Werte wurden als Vorschläge überschrieben. `useState` initialisiert jetzt mit `toBantState(savedQualification, result)`; Regressionstest `initialisiert beim Remount aus dem Query-Cache`.
+- **P2 Pagination `fetchQualifiedContactIds` (`leadQualificationService.ts`):** `max_rows = 1000` hätte große Mandanten stillschweigend abgeschnitten. Die Abfrage lädt jetzt seitenweise (`.order('contact_id').range()`) bis ein Blatt nicht mehr voll ist; neuer Test für den >1000-Fall.
+- **P2 Mandantenzugehörigkeit des Kontakts (Migration):** RLS prüfte nur die Org der Qualifizierungszeile; `contact_id` konnte auf Fremdkontakte zeigen. Neuer Unique-Key `contacts_org_id_unique (organization_id, id)` und zusammengesetzter FK `lead_qualifications_contact_org_fkey` sowie `imported_funnel_deals_source_contact_org_fkey` (`ON DELETE SET NULL (source_contact_id)`, PG15-Spaltenliste). Neuer pgTAP-Test `qualification_tenant_fk` (Org-A-Manager + Org-B-Kontakt → 23503). Alt-FKs werden per `DO`-Block idempotent getauscht.
+- **P2 Funnel-Deduplizierung (`resourceConfig.ts`, `funnelAnalyticsService.ts`):** `source_contact_id` fehlte im Query-Pfad und in der Dedup-Menge; UUID-Deals `d-conv-<uuid>` zählten Konvertierungs-Leads doppelt. Spalte + `sourceContactId`-Mapping ergänzt, Dedup erkennt `sourceContactId`/`source_contact_id` zusätzlich zum Legacy-ID-Muster; Regressionstest `dedupliziert über sourceContactId bei UUID-Deal-IDs`. **Ausnahme-Doku:** `supabase/functions/crm-query-export/resourceConfig.ts` und `src/features/vertrieb/services/funnelAnalyticsService.ts` liegen nicht in der Ziel-Dateien-Liste, sind aber direkte consequence des Bestandsbefunds (Funnel-MQL-Zählung falsch); `src/types/**` blieb unberührt (Schutzbereich — Zugriff läuft über den bestehenden `as unknown as`-Cast wie `leadId`/`contactId`).
+- **P2 E2E-Budget-Toggle (`crm-lead-qualification.spec.ts`):** Der Klick auf „Budget vorhanden" war unabhängig vom Score-Vorschlag; bei Seed-Score 100 schaltete er das Budget aus und die Reload-Assertion auf `aria-pressed="true"` schlug fehl. `setBant(name, desired)` klickt nur bei abweichendem Ist-Zustand.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 370 Dateien / 2.696 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; `npm run verify:quality-budget` sauber; `supabase db reset` + `supabase test db`: 10 Dateien / 257 pgTAP-Tests PASS; Schutzbereichs-Diff gegen `origin/main` leer (inkl. `src/types/**`). Screenshot-Matrix bleibt gültig: die geänderten Stellen sind Initialisierungs-/Datenpfade ohne sichtbare Änderung in den aufgenommenen Szenarien.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.

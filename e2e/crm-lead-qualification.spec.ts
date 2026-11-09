@@ -63,9 +63,16 @@ test.describe('Lead-Qualifizierung: serverseitige BANT-Persistenz (Auftrag 139)'
     await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
     await openLeadDrawer(page);
 
-    // BANT setzen: Budget + Timeline an, Notiz schreiben
-    await page.getByRole('button', { name: /Budget vorhanden/ }).click();
-    await page.getByRole('button', { name: /Zeitplan/ }).click();
+    // BANT auf einen bekannten Zustand bringen: Score-Vorschläge können je
+    // nach Seed bereits einen Wert gesetzt haben — nur klicken, wenn der
+    // Zielzustand nicht schon aktiv ist.
+    const setBant = async (name: RegExp, desired: boolean) => {
+      const btn = page.getByRole('button', { name });
+      const pressed = (await btn.getAttribute('aria-pressed')) === 'true';
+      if (pressed !== desired) await btn.click();
+    };
+    await setBant(/Budget vorhanden/, true);
+    await setBant(/Zeitplan/, true);
     await page.getByLabel(/Qualifizierungsnotizen/).fill('E2E-Notiz: Budget geklärt, Go-live Q1.');
 
     // Explizit speichern (kein Autosave mehr)

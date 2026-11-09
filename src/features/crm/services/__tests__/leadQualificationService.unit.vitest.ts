@@ -31,11 +31,20 @@ interface BuilderResult {
  * Minimaler Thenable-Builder für die PostgREST-Kette
  * select().eq()…maybeSingle() / select().not() / upsert().
  */
-function makeBuilder(readResult: BuilderResult, upsertError: { message?: string } | null = null) {
+function makeBuilder(
+  readResult: BuilderResult,
+  upsertError: { message?: string } | null = null,
+  rangeResults?: BuilderResult[],
+) {
   const builder: Record<string, unknown> = {};
   builder.select = vi.fn(() => builder);
   builder.eq = vi.fn(() => builder);
-  builder.not = vi.fn(() => Promise.resolve(readResult));
+  builder.not = vi.fn(() => builder);
+  builder.order = vi.fn(() => builder);
+  builder.range = vi.fn(() => {
+    const next = rangeResults?.length ? rangeResults.shift()! : readResult;
+    return Promise.resolve(next);
+  });
   builder.maybeSingle = vi.fn(() => Promise.resolve(readResult));
   builder.upsert = vi.fn(() => Promise.resolve({ error: upsertError }));
   builder.then = (resolve: (v: BuilderResult) => unknown) =>
@@ -119,6 +128,23 @@ describe('leadQualificationService', () => {
     it('liefert leer ohne Datenbank', async () => {
       dbMock.configured = false;
       await expect(fetchQualifiedContactIds()).resolves.toEqual([]);
+    });
+
+    it('lädt bei vollem Blatt (>1000 Zeilen) die nächste Seite nach', async () => {
+      const fullPage = Array.from({ length: 1000 }, (_, i) => ({ contact_id: `c${i}` }));
+      const builder = makeBuilder({ data: [{ contact_id: 'c999' }], error: null }, null, [
+        { data: fullPage, error: null },
+        { data: [{ contact_id: 'c1000' }], error: null },
+      ]);
+      dbMock.from.mockReturnValue(builder);
+
+      const ids = await fetchQualifiedContactIds();
+      expect(ids).toHaveLength(1001);
+      expect(ids[0]).toBe('c0');
+      expect(ids[1000]).toBe('c1000');
+      expect(builder.range).toHaveBeenCalledTimes(2);
+      expect(builder.range).toHaveBeenNthCalledWith(1, 0, 999);
+      expect(builder.range).toHaveBeenNthCalledWith(2, 1000, 1999);
     });
   });
 

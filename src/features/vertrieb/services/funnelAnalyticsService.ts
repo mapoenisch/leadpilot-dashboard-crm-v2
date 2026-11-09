@@ -259,9 +259,18 @@ export function calculateFunnelAnalytics({
   // Deduplizierung: Leads, die bereits als Deals existieren, nicht doppelt als MQL zählen
   const dealsWithLeadId = new Set<string>();
   for (const deal of deals) {
-    const anyDeal = deal as unknown as { leadId?: string; contactId?: string };
+    const anyDeal = deal as unknown as {
+      leadId?: string;
+      contactId?: string;
+      sourceContactId?: string;
+      source_contact_id?: string;
+    };
     if (anyDeal.leadId) dealsWithLeadId.add(String(anyDeal.leadId));
     if (anyDeal.contactId) dealsWithLeadId.add(String(anyDeal.contactId));
+    // Auftrag 139: konvertierte Deals tragen den Quellkontakt in source_contact_id
+    // (camelCase-Mapping des Query-Pfads, snake_case als Fallback).
+    if (anyDeal.sourceContactId) dealsWithLeadId.add(String(anyDeal.sourceContactId));
+    if (anyDeal.source_contact_id) dealsWithLeadId.add(String(anyDeal.source_contact_id));
     const convMatch = /^d-conv-(.+?)-\d+$/.exec(deal.id);
     if (convMatch && convMatch[1]) dealsWithLeadId.add(convMatch[1]);
     dealsWithLeadId.add(deal.id);

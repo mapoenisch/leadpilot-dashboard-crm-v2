@@ -5,6 +5,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LeadQualificationDrawer } from '../LeadQualificationDrawer';
+import { leadQualificationKey } from '../../services/leadQualificationService';
+import type { LeadQualification } from '../../services/leadQualificationService';
 
 const dbMock = vi.hoisted(() => ({
   configured: true,
@@ -49,10 +51,13 @@ const LEAD = {
   industry: 'IT / Software',
 };
 
-function renderDrawer(props: Partial<Parameters<typeof LeadQualificationDrawer>[0]> = {}) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function renderDrawer(
+  props: Partial<Parameters<typeof LeadQualificationDrawer>[0]> = {},
+  queryClient?: QueryClient,
+) {
+  const client = queryClient ?? new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={client}>
       <LeadQualificationDrawer
         lead={LEAD}
         isOpen
@@ -111,6 +116,52 @@ describe('LeadQualificationDrawer (Auftrag 139)', () => {
     expect(screen.getByRole('button', { name: /Konkreter Bedarf/ })).toHaveAttribute(
       'aria-pressed',
       'false',
+    );
+  });
+
+  it('initialisiert beim Remount aus dem Query-Cache (Codex P1)', async () => {
+    // Wieder öffnen ohne Remount der Query: savedQualification liegt bereits
+    // im Cache und muss die Initialbelegung sein, nicht die Score-Vorschläge.
+    const saved: LeadQualification = {
+      contactId: 'contact-1',
+      budget: false,
+      authority: true,
+      need: false,
+      timeline: true,
+      notes: 'Cache-Notiz',
+      qualifiedAt: '2026-11-01T00:00:00Z',
+      updatedAt: '2026-11-01T00:00:00Z',
+    };
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    queryClient.setQueryData(leadQualificationKey('contact-1'), saved);
+    // Refetch liefert dieselbe Zeile (snake_case), damit kein Reset folgt.
+    dbMock.from.mockReturnValue(
+      makeBuilder({
+        data: {
+          contact_id: 'contact-1',
+          budget: false,
+          authority: true,
+          need: false,
+          timeline: true,
+          notes: 'Cache-Notiz',
+          qualified_at: '2026-11-01T00:00:00Z',
+          updated_at: '2026-11-01T00:00:00Z',
+        },
+        error: null,
+      }),
+    );
+
+    renderDrawer({}, queryClient);
+
+    // Synchron nach dem ersten Render: Cache-Werte, nicht Vorschläge
+    expect(screen.getByLabelText(/Qualifizierungsnotizen/)).toHaveValue('Cache-Notiz');
+    expect(screen.getByRole('button', { name: /Budget vorhanden/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(screen.getByRole('button', { name: /Zeitplan/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
     );
   });
 

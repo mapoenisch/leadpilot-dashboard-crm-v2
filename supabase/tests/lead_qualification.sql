@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(30);
+SELECT plan(32);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.lead_qualifications WHERE contact_id LIKE 'lq139-%';
@@ -254,6 +254,28 @@ SELECT throws_ok(
   'qualification_tenant_isolated: Org A kann nicht in Org B schreiben'
 );
 RESET ROLE;
+
+-- ------------------------------------- 26a: Tenant-FK auf contact_id ------
+-- Org-A-Manager legt eine Zeile mit eigener organization_id, aber der
+-- contact_id eines Org-B-Kontakts an: der zusammengesetzte FK
+-- (organization_id, contact_id) -> contacts(organization_id, id) muss das
+-- ablehnen (Codex-Befund: RLS prüft nur die Zeilen-Org, nicht die Kontakt-Org).
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"91390000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+SELECT throws_ok(
+  $$INSERT INTO public.lead_qualifications (organization_id, contact_id, budget)
+    VALUES ('a1390000-0000-0000-0000-000000000001', 'lq139-cb', true)$$,
+  '23503',
+  NULL,
+  'qualification_tenant_fk: fremder Kontakt derselben Zeilen-Org wird abgewiesen'
+);
+RESET ROLE;
+SELECT is(
+  (SELECT count(*) FROM public.lead_qualifications
+   WHERE organization_id = 'a1390000-0000-0000-0000-000000000001' AND contact_id = 'lq139-cb'),
+  0::bigint,
+  'qualification_tenant_fk: keine Org-A-Zeile auf Org-B-Kontakt entstanden'
+);
 
 -- ------------------------------------------------ 27..28: Notizen-Limit --
 SET ROLE authenticated;

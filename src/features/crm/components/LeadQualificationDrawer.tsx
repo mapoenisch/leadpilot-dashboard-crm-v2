@@ -108,7 +108,10 @@ export function LeadQualificationDrawer({
   // Gespeicherte BANT-Werte aus der Datenbank (null = noch nicht qualifiziert)
   const { data: savedQualification } = useLeadQualification(leadId, isOpen);
 
-  const [bant, setBant] = useState<BantState>(() => suggestedBantState(result));
+  // Beim Mount können Serverwerte bereits im Query-Cache liegen (Wiederöffnen
+  // ohne Remount der Query): dann sind sie die Initialbelegung, nicht die
+  // Score-Vorschläge.
+  const [bant, setBant] = useState<BantState>(() => toBantState(savedQualification, result));
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);

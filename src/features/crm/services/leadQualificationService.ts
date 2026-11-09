@@ -75,14 +75,25 @@ export async function fetchLeadQualification(contactId: string): Promise<LeadQua
 /** Alle Kontakt-IDs mit gesetztem qualified_at (für Listen- und Funnel-Ansichten). */
 export async function fetchQualifiedContactIds(): Promise<string[]> {
   if (!isSupabaseConfigured || !supabase) return [];
-  const { data, error } = await supabase
-    .from('lead_qualifications')
-    .select('contact_id')
-    .not('qualified_at', 'is', null);
-  if (error) throw error;
-  return ((data ?? []) as { contact_id?: unknown }[])
-    .map((row) => row.contact_id)
-    .filter((id): id is string => typeof id === 'string');
+  // max_rows=1000 begrenzt einzelne Antworten: seitenweise mit stabiler
+  // Sortierung laden, bis eine Seite nicht mehr voll ist.
+  const PAGE = 1000;
+  const ids: string[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('lead_qualifications')
+      .select('contact_id')
+      .not('qualified_at', 'is', null)
+      .order('contact_id', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as { contact_id?: unknown }[];
+    for (const row of rows) {
+      if (typeof row.contact_id === 'string') ids.push(row.contact_id);
+    }
+    if (rows.length < PAGE) break;
+  }
+  return ids;
 }
 
 /**
