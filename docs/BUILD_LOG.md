@@ -19960,3 +19960,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify:quality-budget` sauber; `npm test` 370 Dateien / 2.697 Tests grün; `npm run verify` 25/25 Suiten; `npx vite build` erfolgreich; `supabase db reset` + `supabase test db`: 10 Dateien / 260 pgTAP-Tests PASS; Schutzbereichs-Diff gegen `origin/main` unverändert leer. Sichtbare UI-Änderung nur im Lade-/Fehlerzustand des Drawers (Statuszeilen) — bestehende Screenshot-Szenarien zeigen den stabilen Zustand, Matrix bleibt gültig.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung des Codex-Befunds auf `ce5c857` (11.11.2026)
+
+**Kontext:** Codex-Review auf `ce5c857` meldete 1×P2. Befund war berechtigt.
+
+**Befund und Behebung:**
+
+- **P2 Parallele Konvertierungen (`convert_lead_to_deal`):** Zwei gleichzeitige Sitzungen konnten beide die `EXISTS`-Prüfung passieren; der zweite `INSERT` endete mit `23505` auf `uq_deals_source_contact`, den `classifyConvertLeadError` als Netzwerkfehler behandelte — die UI zeigte „Der Deal wurde nicht angelegt", obwohl die andere Sitzung ihn angelegt hatte. Behebung doppelt abgesichert: (a) `pg_advisory_xact_lock(hashtextextended(org || ':' || contact))` serialisiert Konvertierungen pro Kontakt — die zweite Transaktion wartet aufs Commit und schlägt dann regulär mit LP409 fehl; (b) `EXCEPTION WHEN unique_violation` übersetzt eine Restverletzung von `uq_deals_source_contact` (z. B. direkter INSERT außerhalb der RPC) gezielt in LP409, andere Unique-Verletzungen werden weitergereicht.
+
+**Verifikation:** `supabase db reset` + `supabase test db`: 10 Dateien / 260 pgTAP-Tests PASS (alle Konvertierungs-Tests unverändert grün, LP409-Pfad weiterhin abgedeckt). Reine SQL-Änderung, keine TS-/UI-Anpassung; übrige Gates des Heads `ce5c857` bleiben gültig (tsc/lint/format/2.697 Vitest-Tests/verify/build damals grün, seitdem nur Migrations- und Testdatei geändert). Schutzbereichs-Diff unverändert leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.

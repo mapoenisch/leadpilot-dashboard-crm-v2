@@ -206,6 +206,7 @@ DECLARE
   v_org        UUID;
   v_deal_id    TEXT;
   v_deal       public.imported_funnel_deals;
+  v_constraint TEXT;
 BEGIN
   -- Rolle: nur Admin und Manager der eigenen Organisation.
   IF NOT public.has_org_role(ARRAY['admin', 'manager']) THEN
@@ -229,6 +230,12 @@ BEGIN
     RAISE EXCEPTION 'NOT_FOUND: Kontakt nicht gefunden'
       USING ERRCODE = 'LP404';
   END IF;
+
+  -- Parallele Konvertierungen desselben Kontakts serialisieren: die zweite
+  -- Transaktion wartet hier, bis die erste committet hat, und schlägt dann
+  -- unten sauber mit LP409 fehl statt mit einem rohen 23505 auf dem
+  -- Unique-Index (Codex-Befund: sonst Fehllauf als Netzwerkfehler).
+  PERFORM pg_advisory_xact_lock(hashtextextended(v_org::text || ':' || p_contact_id, 0));
 
   -- Ein Lead wird genau einmal konvertiert.
   IF EXISTS (
@@ -291,6 +298,17 @@ BEGIN
   );
 
   RETURN v_deal;
+EXCEPTION
+  WHEN unique_violation THEN
+    -- Restfall trotz Advisory-Lock (z. B. direkter INSERT außerhalb der RPC):
+    -- eine Verletzung von uq_deals_source_contact bedeutet „bereits
+    -- konvertiert" und wird als LP409-Konflikt statt Generikfehler gemeldet.
+    GET STACKED DIAGNOSTICS v_constraint = CONSTRAINT_NAME;
+    IF v_constraint = 'uq_deals_source_contact' THEN
+      RAISE EXCEPTION 'CONFLICT: Lead wurde bereits konvertiert'
+        USING ERRCODE = 'LP409';
+    END IF;
+    RAISE;
 END;
 $$;
 
