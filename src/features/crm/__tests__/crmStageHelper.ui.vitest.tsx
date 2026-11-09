@@ -127,7 +127,7 @@ describe('DealsKanbanBoard & DealKanbanCard mit kanonischen Phasen (Befund 1)', 
     const { container: containerWon } = render(
       <DealKanbanCard
         deal={MOCK_DEALS_CANONICAL[0]!}
-        allStages={KANBAN_STAGES}
+        moveStages={KANBAN_STAGES}
         onMoveStage={() => {}}
       />,
     );
@@ -137,7 +137,7 @@ describe('DealsKanbanBoard & DealKanbanCard mit kanonischen Phasen (Befund 1)', 
     const { container: containerLost } = render(
       <DealKanbanCard
         deal={MOCK_DEALS_CANONICAL[1]!}
-        allStages={KANBAN_STAGES}
+        moveStages={KANBAN_STAGES}
         onMoveStage={() => {}}
       />,
     );

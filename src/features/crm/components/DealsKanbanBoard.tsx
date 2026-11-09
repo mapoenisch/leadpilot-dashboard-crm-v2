@@ -90,7 +90,8 @@ export function DealsKanbanBoard({
 
   const handleMoveStage = useCallback(
     (dealId: string, newStage: string) => {
-      if (!canMoveDeals || lockedDealId === dealId) return;
+      // move_deal_stage akzeptiert nur die sieben kanonischen Labels (sonst LP422).
+      if (!canMoveDeals || lockedDealId === dealId || !KANBAN_STAGES.includes(newStage)) return;
       // Drag-Zustand sofort zurücksetzen, da die Karte in die neue Spalte umgehängt wird
       setActiveDragId(null);
       onDealStageChange?.(dealId, newStage);
@@ -152,7 +153,7 @@ export function DealsKanbanBoard({
             key={stage}
             stage={stage}
             deals={dealsByStage.get(stage) ?? []}
-            allStages={allStages}
+            moveStages={KANBAN_STAGES}
             onMoveStage={handleMoveStage}
             canMoveCards={canMoveDeals}
             lockedDealId={lockedDealId}

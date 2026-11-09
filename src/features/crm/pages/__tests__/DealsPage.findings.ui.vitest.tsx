@@ -117,6 +117,34 @@ describe('DealsPage – Nachladen und Export', () => {
     });
   });
 
+  it('lässt einen Kanban-Nachladefehler nicht in die Tabellenansicht ausstrahlen', async () => {
+    mockedQuery.mockReturnValue({
+      data: { items: [SAMPLE_DEALS[0]!], total: 100 },
+      isLoading: false,
+      isError: false,
+      isPlaceholderData: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+    mockedList.mockRejectedValue(new Error('Netzwerkfehler'));
+
+    renderDealsPage('/crm/deals?ansicht=kanban');
+
+    fireEvent.click(screen.getByTestId('kanban-load-more-btn'));
+    await screen.findByText('Fehler beim Nachladen der weiteren Deal-Seiten.');
+
+    // Wechsel zur Tabelle: Der Kanban-Nachladefehler darf dort nicht erscheinen.
+    fireEvent.click(screen.getByTestId('deals-view-table-btn'));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Fehler beim Nachladen der weiteren Deal-Seiten.'),
+      ).not.toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('deal-card-deal-1')).not.toBeInTheDocument();
+    expect(screen.getByText('Cloud Migration Pilot')).toBeInTheDocument();
+  });
+
   it('sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)', () => {
     // Wenn Query noch alte Platzhalterdaten enthält (z. B. beim Umschalten von Tabelle zu Kanban)
     mockedQuery.mockReturnValue({

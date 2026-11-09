@@ -13,7 +13,6 @@ export interface UseKanbanExtraPagesParams {
   serverStageFilter: string | undefined;
   sortField: string;
   sortOrder: string;
-  firstPageCount: number;
   isPlaceholderData: boolean;
 }
 
@@ -23,13 +22,16 @@ export function useKanbanExtraPages({
   serverStageFilter,
   sortField,
   sortOrder,
-  firstPageCount,
   isPlaceholderData,
 }: UseKanbanExtraPagesParams) {
   const [extraDealsState, setExtraDealsState] = useState<{
     queryKey: string;
     items: ImportedFunnelDeal[];
-  }>({ queryKey: '', items: [] });
+    // Nächste abzurufende Seite. Wird unabhängig von der deduplizierten
+    // Kartenanzahl hochgezählt, damit Seitenüberschneidungen den Fortschritt
+    // nicht zurücksetzen (Codex-Review PR #159).
+    nextPage: number;
+  }>({ queryKey: '', items: [], nextPage: 2 });
   const [loadMoreErrorState, setLoadMoreErrorState] = useState<{
     queryKey: string;
     error: boolean;
@@ -45,13 +47,13 @@ export function useKanbanExtraPages({
     loadMoreErrorState.queryKey === currentQueryKey && loadMoreErrorState.error;
 
   const reloadLoadedExtraPages = useCallback(async () => {
-    const loadedCount =
-      extraDealsState.queryKey === currentQueryKey ? extraDealsState.items.length : 0;
-    if (loadedCount === 0) return;
-    const pages = Math.ceil(loadedCount / KANBAN_PAGE_SIZE);
+    const state = extraDealsState.queryKey === currentQueryKey ? extraDealsState : null;
+    // Bereits abgerufene Extra-Seiten sind 2..nextPage-1.
+    const lastFetchedPage = state ? state.nextPage - 1 : 1;
+    if (!state || state.items.length === 0 || lastFetchedPage < 2) return;
     try {
       const collected: ImportedFunnelDeal[] = [];
-      for (let p = 2; p <= pages + 1; p += 1) {
+      for (let p = 2; p <= lastFetchedPage; p += 1) {
         const res = await fetchCrmList<ImportedFunnelDeal>({
           resource: 'deals',
           q: serverSearchTerm,
@@ -66,22 +68,21 @@ export function useKanbanExtraPages({
       setExtraDealsState({
         queryKey: currentQueryKey,
         items: appendUniqueDeals([], collected),
+        nextPage: state.nextPage,
       });
     } catch {
-      setExtraDealsState({ queryKey: currentQueryKey, items: [] });
+      setExtraDealsState({ queryKey: currentQueryKey, items: [], nextPage: 2 });
     }
   }, [currentQueryKey, extraDealsState, serverSearchTerm, serverStageFilter, sortField, sortOrder]);
 
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || isPlaceholderData) return;
     const requestKey = currentQueryKey;
+    const stateMatches = extraDealsState.queryKey === requestKey;
+    const nextPage = stateMatches ? extraDealsState.nextPage : 2;
     activeLoadMoreQueryRef.current = requestKey;
     setIsLoadingMore(true);
     try {
-      const currentCount =
-        firstPageCount +
-        (extraDealsState.queryKey === requestKey ? extraDealsState.items.length : 0);
-      const nextPage = Math.floor(currentCount / KANBAN_PAGE_SIZE) + 1;
       const res = await fetchCrmList<ImportedFunnelDeal>({
         resource: 'deals',
         q: serverSearchTerm,
@@ -92,11 +93,15 @@ export function useKanbanExtraPages({
         pageSize: KANBAN_PAGE_SIZE,
       });
       if (activeLoadMoreQueryRef.current === requestKey) {
-        setExtraDealsState((prev) => ({
-          queryKey: requestKey,
-          items:
-            prev.queryKey === requestKey ? appendUniqueDeals(prev.items, res.items) : res.items,
-        }));
+        setExtraDealsState((prev) => {
+          const base =
+            prev.queryKey === requestKey ? prev : { queryKey: requestKey, items: [], nextPage: 2 };
+          return {
+            queryKey: requestKey,
+            items: appendUniqueDeals(base.items, res.items),
+            nextPage: nextPage + 1,
+          };
+        });
       }
     } catch {
       if (activeLoadMoreQueryRef.current === requestKey) {
@@ -109,7 +114,6 @@ export function useKanbanExtraPages({
     }
   }, [
     currentQueryKey,
-    firstPageCount,
     extraDealsState,
     isLoadingMore,
     isPlaceholderData,

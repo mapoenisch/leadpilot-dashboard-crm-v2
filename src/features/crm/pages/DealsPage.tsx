@@ -94,7 +94,6 @@ export function DealsPage() {
     serverStageFilter,
     sortField,
     sortOrder,
-    firstPageCount: data?.items?.length ?? 0,
     isPlaceholderData,
   });
 
@@ -303,7 +302,7 @@ export function DealsPage() {
           height={220}
           onRetry={() => void refetch()}
         />
-      ) : loadMoreFailed ? (
+      ) : viewMode === 'kanban' && loadMoreFailed ? (
         <ManagementChartState
           type="error"
           message="Fehler beim Nachladen der weiteren Deal-Seiten."

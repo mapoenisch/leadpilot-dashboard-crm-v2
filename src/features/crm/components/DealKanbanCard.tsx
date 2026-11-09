@@ -8,7 +8,8 @@ import { isWonStage, isLostStage } from '../utils/crmStageHelper';
 
 export interface DealKanbanCardProps {
   deal: ImportedFunnelDeal;
-  allStages: readonly string[];
+  /** Erlaubte Verschiebeziele; `move_deal_stage` akzeptiert nur die kanonischen Labels. */
+  moveStages: readonly string[];
   onMoveStage: (dealId: string, newStage: string) => void;
   /** Viewer sehen keine Verschiebe-Bedienung. */
   canMove?: boolean;
@@ -45,7 +46,7 @@ export function isDealOverdue(closeDate?: string, isWonOrLost = false): boolean 
 
 export function DealKanbanCard({
   deal,
-  allStages,
+  moveStages,
   onMoveStage,
   canMove = true,
   isLocked = false,
@@ -85,7 +86,7 @@ export function DealKanbanCard({
 
       const left = Math.max(8, Math.min(windowWidth - menuWidth - 8, rect.right - menuWidth));
       // Geschätzte Menühöhe: Header (28px) + Padding/Borders (16px) + Einträge (ca. 30px je Phase, max 220px Liste)
-      const estimatedHeight = Math.min(265, 44 + allStages.length * 30);
+      const estimatedHeight = Math.min(265, 44 + moveStages.length * 30);
       const spaceBelow = windowHeight - rect.bottom - 8;
       const spaceAbove = rect.top - 8;
 
@@ -259,7 +260,7 @@ export function DealKanbanCard({
                       In Phase verschieben:
                     </div>
                     <div className="flex flex-col gap-0.5 mt-1 overflow-y-auto min-h-0 max-h-[220px]">
-                      {allStages.map((stage) => {
+                      {moveStages.map((stage) => {
                         const isCurrent = stage === deal.stage;
                         return (
                           <button

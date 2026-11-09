@@ -19805,3 +19805,31 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - `npm run verify`: alle 25 Integritätssuiten (001–025) bestanden
 - `npm run build`: erfolgreich gebaut
 - Schutzbereichs-Diff gegen `origin/main`: 100 % leer
+
+### Nacharbeit PR #159 — Behebung der drei offenen Codex-Befunde auf `96eca4f` (09.11.2026)
+
+**Kontext:** Codex-Review auf `96eca4f` meldete drei offene P2-Befunde. Nacharbeit durch Devin.
+
+**Befunde und Behebung:**
+
+- **P2 Seitennummer statt Kartenzahl (`dealsClientView.ts`):** `handleLoadMore` berechnete die nächste Seite aus `firstPageCount + deduplizierteExtraCount`. Bei Seitenüberschneidungen blieb die Anzahl unter der Seitengrenze und dieselbe Seite wurde endlos erneut angefragt. `extraDealsState` führt jetzt `nextPage` separat; `handleLoadMore` ruft genau diese Seite ab und incrementiert sie unabhängig von der Deduplizierung. `reloadLoadedExtraPages()` lädt die Seiten `2..nextPage-1` neu; `firstPageCount`-Parameter entfallen.
+- **P2 Verschiebeziele auf importierte Phasen (`DealKanbanCard.tsx`, `KanbanColumn.tsx`, `DealsKanbanBoard.tsx`):** `allStages` mischte kanonische Phasen mit importierten Zusatzphasen und bot diese als Verschiebeziel an; `move_deal_stage` lehnt sie mit `LP422` ab. Anzeige-Spalten (`allStages`) und erlaubte Ziele (`moveStages = KANBAN_STAGES`) sind jetzt getrennt: Das Phasenmenü listet nur die sieben kanonischen Labels, `KanbanColumn` nimmt per Drag-and-Drop keinen Drop auf nicht kanonischen Spalten an (`acceptsDrops`), und `handleMoveStage` im Board ignoriert nicht kanonische Ziele zusätzlich als Absicherung.
+- **P2 Nachladefehler in der Tabelle (`DealsPage.tsx`):** `loadMoreFailed` ist nicht ansichtsbezogen; ein fehlgeschlagenes Kanban-„Weitere Deals nachladen" blockierte danach auch die Tabellenansicht. Der Fehlerzweig greift jetzt nur bei `viewMode === 'kanban'`.
+
+**Neue Regressionstests:**
+
+- `DealsKanban.ui.vitest.tsx`: `zeigt importierte Phasen als Spalte, lässt sie aber nicht als Verschiebeziel zu` (Spalte sichtbar, Drop abgelehnt, Menü ohne Zusatzphase).
+- `DealsPage.moves.ui.vitest.tsx`: `lädt nach Seitenüberschneidung die nächste freie Seite statt einer Wiederholung` (Seite-3-Duplikat → nächster Klick fordert Seite 4 an).
+- `DealsPage.findings.ui.vitest.tsx`: `lässt einen Kanban-Nachladefehler nicht in die Tabellenansicht ausstrahlen`.
+
+**Verifikation:**
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler
+- `npm run format:check`: konform
+- `npm test`: 368 Test-Dateien / 2.675 Tests bestanden
+- `npm run verify`: alle 25 Integritätssuiten (001–025) bestanden
+- `npm run build`: erfolgreich gebaut
+- Schutzbereichs-Diff gegen `origin/main`: 100 % leer
+
+**Status:** Review-Nachtrag offen; erneutes Review durch Codex oder anderen unabhängigen Prüfer auf dem neuen Head erforderlich. Kein Merge.

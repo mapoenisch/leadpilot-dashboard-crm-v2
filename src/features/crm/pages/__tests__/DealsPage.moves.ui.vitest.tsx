@@ -222,6 +222,49 @@ describe('DealsPage – serverseitige Phasenwechsel', () => {
     expect(screen.getByRole('alert')).not.toHaveTextContent('offline');
   });
 
+  it('lädt nach Seitenüberschneidung die nächste freie Seite statt einer Wiederholung', async () => {
+    const firstPage = Array.from({ length: 100 }, (_, i) => ({ ...DEAL, id: `first-${i}` }));
+    const page2Items = Array.from({ length: 100 }, (_, i) => ({
+      ...DEAL,
+      id: `p2-${i}`,
+      dealName: `Seite2-${i}`,
+    }));
+    // Seite 3 überlappt um einen Deal mit Seite 2 → nur 99 neue IDs.
+    const page3Items = [
+      { ...DEAL, id: 'p2-0', dealName: 'Seite2-0' },
+      ...Array.from({ length: 99 }, (_, i) => ({
+        ...DEAL,
+        id: `p3-${i}`,
+        dealName: `Seite3-${i}`,
+      })),
+    ];
+    const fetchList = vi.mocked(crmListService.fetchCrmList);
+    fetchList.mockImplementation(async (params) => ({
+      items: params.page === 2 ? page2Items : params.page === 3 ? page3Items : [],
+      total: 400,
+      page: params.page ?? 1,
+      pageSize: 100,
+      resource: 'deals',
+    }));
+    renderDealsPage('admin', firstPage, 400);
+
+    const loadMoreBtn = () => screen.getByTestId('kanban-load-more-btn');
+    const clickAndWait = async (calls: number) => {
+      fireEvent.click(loadMoreBtn());
+      await waitFor(() => expect(fetchList).toHaveBeenCalledTimes(calls));
+      await waitFor(() => expect(loadMoreBtn()).not.toBeDisabled());
+    };
+
+    await clickAndWait(1); // Seite 2
+    await clickAndWait(2); // Seite 3 (99 neue + 1 Duplikat)
+    fireEvent.click(loadMoreBtn());
+
+    // Ohne getrennte Seitennummer würde hier erneut Seite 3 angefragt.
+    await waitFor(() =>
+      expect(fetchList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 4 })),
+    );
+  });
+
   it('dedupliziert Deals nach ID beim Nachladen und verhindert doppelte Karten', async () => {
     const overlappingDeal = { ...DEAL, id: 'deal-overlap', dealName: 'Überlappender Deal' };
     const firstPage = [
