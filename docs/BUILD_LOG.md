@@ -19667,3 +19667,11 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npm ci` erfolgreich; `npx tsc --noEmit` 0 Fehler; `npm run verify` alle 25 Integritätssuiten (001–025) bestanden; `npm run build` erfolgreich (3,47 s). Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) leer. Keine UI-Änderung, daher keine Screenshot-Matrix.
 
 **Offen (Marc):** Tag und GitHub-Release `v3.0.0` setzen. Der Folgeplan v3.1.0 gilt erst ab diesem Tag; danach startet Teil-Auftrag 136.
+
+### Nachtrag Codex-Review (PR #151)
+
+**Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `6924e49` · **Datum:** 2026-11-09
+
+- **Ergebnis:** Review abgeschlossen, keine Befunde (`has_any_findings: false`, `has_unresolved_findings: false`).
+- **Pflicht-Checks (Head `6924e49`):** `lint`, `typecheck`, `build`, `livekpi-verifiers`, `size-limit` und CodeQL grün; die `test`-Suite lief zum Zeitpunkt des Nachtrags noch. Der Doku-Commit startet die vollständige CI erneut; das Ergebnis steht im PR.
+- Ein Doku-Commit ohne Codeänderung braucht nach `CLAUDE.md` §4.1 Punkt 5 kein neues Review.
