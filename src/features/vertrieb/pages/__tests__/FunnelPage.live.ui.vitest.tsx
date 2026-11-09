@@ -29,8 +29,8 @@ const mockDeals: ImportedFunnelDeal[] = [
     amount: 30000,
     closeDate: '2026-06-30',
     pipeline: 'Core Sales',
-    daysInStage: 28, // Triggert Bottleneck
-  } as ImportedFunnelDeal & { daysInStage: number },
+    stageEnteredAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(), // Triggert Bottleneck (> 30 Tage)
+  } as ImportedFunnelDeal,
   {
     id: 'd3',
     dealName: 'Gamma AI Pilot',

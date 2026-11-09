@@ -48,12 +48,12 @@ export interface FunnelAnalyticsResult {
   overallQuoteLive: number | null; // Won / Leads Live %
   overallDeltaQuote: number | null;
   bottlenecks: FunnelBottleneck[];
+  dealsWithoutStageDate: number; // Aktive Deals ohne serverseitiges Phasendatum (vor v3.1 angelegt)
 }
 
 export interface FunnelAnalyticsInput {
   contacts?: Contact[];
   deals?: ImportedFunnelDeal[];
-  stageOverrides?: Record<string, string>;
   qualifiedLeadIds?: string[] | Set<string>;
   referenceDate?: Date;
   mode?: FunnelSourceMode;
@@ -80,36 +80,28 @@ export const PLAN_STAGE_DAYS: Record<string, number> = {
   'Deal gewonnen': 0,
 };
 
-export const BOTTLENECK_THRESHOLD_DAYS = 25;
+export const BOTTLENECK_THRESHOLD_DAYS = 30;
 
 /**
- * Ermittelt die effektive Phase eines Deals unter Berücksichtigung lokaler Overrides.
+ * Ermittelt die effektive Phase eines Deals. Auftrag 140: Die Phase kommt
+ * ausschließlich aus der serverseitigen Datenbank (`stage`), lokale Overrides
+ * oder Client-Schätzungen werden nicht mehr berücksichtigt.
  */
-export function getEffectiveDealStage(
-  deal: ImportedFunnelDeal,
-  stageOverrides?: Record<string, string>,
-): string {
-  const overridden = stageOverrides?.[deal.id];
-  return normalizeCanonicalStageLabel(overridden ?? deal.stage);
+export function getEffectiveDealStage(deal: ImportedFunnelDeal): string {
+  return normalizeCanonicalStageLabel(deal.stage);
 }
 
 /**
  * Ermittelt die tatsächliche Verweildauer eines Deals in seiner aktuellen Phase (in Tagen).
- * Gibt `null` zurück, wenn weder daysInStage noch stageEnteredAt bekannt sind,
- * damit das Gesamtalter eines Deals (createdAt) nicht fälschlicherweise als Stagnation
- * in einer einzelnen Phase interpretiert wird.
+ * Ausschließliche Quelle ist das serverseitige `stageEnteredAt` (Auftrag 137/140).
+ * Gibt `null` zurück, wenn kein Phasendatum bekannt ist, damit das Gesamtalter
+ * eines Deals (createdAt) oder andere Schätzungen nicht fälschlicherweise als
+ * Stagnation in einer einzelnen Phase interpretiert werden.
  */
 export function getDealDaysInStage(
-  deal: ImportedFunnelDeal & {
-    createdAt?: string;
-    daysInStage?: number;
-    stageEnteredAt?: string;
-  },
+  deal: ImportedFunnelDeal & { stageEnteredAt?: string },
   referenceDate: Date = new Date(),
 ): number | null {
-  if (typeof deal.daysInStage === 'number' && deal.daysInStage >= 0) {
-    return deal.daysInStage;
-  }
   if (deal.stageEnteredAt) {
     const entered = new Date(deal.stageEnteredAt).getTime();
     if (!isNaN(entered)) {
@@ -124,12 +116,9 @@ export function getDealDaysInStage(
  * Berechnet das Gesamtalter eines Deals (seit Erstellung) in Tagen.
  */
 export function calculateDealAgeInDays(
-  deal: ImportedFunnelDeal & { createdAt?: string; daysInStage?: number },
+  deal: ImportedFunnelDeal & { createdAt?: string },
   referenceDate: Date = new Date(),
 ): number {
-  if (typeof deal.daysInStage === 'number' && deal.daysInStage >= 0) {
-    return deal.daysInStage;
-  }
   if (deal.createdAt) {
     const created = new Date(deal.createdAt).getTime();
     if (!isNaN(created)) {
@@ -140,25 +129,47 @@ export function calculateDealAgeInDays(
   return 14;
 }
 
+const isTerminalDealStage = (stage: string): boolean =>
+  stage === 'Deal gewonnen' || stage === 'Deal verloren';
+
+/**
+ * Zählt aktive Deals, für die keine Phasen-Verweildauer bekannt ist
+ * (kein serverseitiges `stageEnteredAt`, z. B. vor v3.1 angelegt).
+ * Abgeschlossene Deals werden nicht mitgezählt.
+ */
+export function countDealsWithoutStageDate(
+  deals: ImportedFunnelDeal[],
+  referenceDate: Date = new Date(),
+): number {
+  let count = 0;
+  for (const deal of deals) {
+    if (isTerminalDealStage(getEffectiveDealStage(deal))) continue;
+    if (getDealDaysInStage(deal, referenceDate) === null) count += 1;
+  }
+  return count;
+}
+
 /**
  * Erkennt Engpässe in den Vertriebsphasen anhand der Verweildauern.
+ * Ein Engpass liegt vor, wenn die durchschnittliche Verweildauer einer Phase
+ * den Grenzwert von 30 Tagen überschreitet. Deals ohne Phasendatum fließen
+ * nicht in die Berechnung ein.
  */
 export function identifyFunnelBottlenecks(
   deals: ImportedFunnelDeal[],
-  stageOverrides?: Record<string, string>,
   referenceDate?: Date,
   thresholdDays: number = BOTTLENECK_THRESHOLD_DAYS,
 ): FunnelBottleneck[] {
   const stageGroups = new Map<string, { totalDays: number; knownCount: number }>();
 
   for (const deal of deals) {
-    const stage = getEffectiveDealStage(deal, stageOverrides);
+    const stage = getEffectiveDealStage(deal);
     // Nur aktive Verkaufsphasen vor Abschluss prüfen
-    if (stage === 'Deal gewonnen' || stage === 'Deal verloren') continue;
+    if (isTerminalDealStage(stage)) continue;
 
     const days = getDealDaysInStage(deal, referenceDate);
     if (days === null) {
-      // Verweildauer in dieser Phase unbekannt (z.B. nur globales createdAt vorhanden)
+      // Verweildauer in dieser Phase unbekannt (kein serverseitiges stageEnteredAt)
       continue;
     }
 
@@ -174,7 +185,7 @@ export function identifyFunnelBottlenecks(
   for (const [stage, data] of stageGroups.entries()) {
     if (data.knownCount === 0) continue;
     const avgDays = Math.round((data.totalDays / data.knownCount) * 10) / 10;
-    if (avgDays >= thresholdDays) {
+    if (avgDays > thresholdDays) {
       const planDays = PLAN_STAGE_DAYS[stage] ?? 14;
       let recommendation = `Sales-Follow-up priorisieren: ${data.knownCount} Deals verweilen durchschnittlich ${avgDays.toLocaleString('de-DE')} Tage in Phase „${stage}“ (Plan: ${planDays} Tage).`;
       if (stage === 'Angebot erstellt') {
@@ -207,7 +218,6 @@ export function identifyFunnelBottlenecks(
 export function calculateFunnelAnalytics({
   contacts = [],
   deals = [],
-  stageOverrides = {},
   qualifiedLeadIds,
   referenceDate,
   mode = 'plan',
@@ -227,7 +237,7 @@ export function calculateFunnelAnalytics({
   let leadsAmount = 0;
 
   for (const deal of deals) {
-    const stage = getEffectiveDealStage(deal, stageOverrides);
+    const stage = getEffectiveDealStage(deal);
     const amount = Number(deal.amount) || 0;
 
     const isWon = isWonStage(stage);
@@ -380,7 +390,8 @@ export function calculateFunnelAnalytics({
       ? Math.round((overallQuoteLive - overallQuotePlan) * 10) / 10
       : null;
 
-  const bottlenecks = identifyFunnelBottlenecks(deals, stageOverrides, referenceDate);
+  const bottlenecks = identifyFunnelBottlenecks(deals, referenceDate);
+  const dealsWithoutStageDate = countDealsWithoutStageDate(deals, referenceDate);
 
   return {
     mode,
@@ -394,5 +405,6 @@ export function calculateFunnelAnalytics({
     overallQuoteLive,
     overallDeltaQuote,
     bottlenecks,
+    dealsWithoutStageDate,
   };
 }

@@ -20041,3 +20041,31 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Pflicht-Checks auf `528e2ae`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
 
 **Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge und etwaiges Release-Tag macht Marc.
+
+### Auftrag 140 — Funnel nutzt echte Verweildauer (11.11.2026)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_140_FUNNEL_ECHTE_VERWEILDDAUER.md`, Teil-Auftrag 140 aus dem verbindlichen Plan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`. Builder: Devin. Prüfer: ein anderer Agent, Standard Codex (GitHub-App).
+
+**Ziel & Kontext:** Der Funnel-Bottleneck-Alert berechnete Verweildauern previously aus einer Fallback-Kette (`daysInStage` → `stageEnteredAt`), mit `stageOverrides` als lokaler Phase-Quelle und einem Grenzwert von 25 Tagen. Auftrag 140 bindet die Verweildauer ausschließlich an das serverseitige `stageEnteredAt` (Auftrag 137) und macht fehlende Phasendaten transparent statt sie unter den Tisch zu fallen.
+
+**Geänderte Dateien:**
+
+- `src/features/vertrieb/services/funnelAnalyticsService.ts` — `BOTTLENECK_THRESHOLD_DAYS` 25 → 30, Engpass-Bedingung `avgDays > thresholdDays` (exakt 30 Tage ist kein Engpass); `stageOverrides` aus `FunnelAnalyticsInput`, `getEffectiveDealStage` und `identifyFunnelBottlenecks` entfernt; `daysInStage` aus `getDealDaysInStage` und `calculateDealAgeInDays` entfernt — `stageEnteredAt` ist die einzige Quelle; neues `dealsWithoutStageDate` im Ergebnis (nur aktive, nicht terminierte Deals ohne verwertbarem Phasendatum); neue Export-Funktion `countDealsWithoutStageDate`.
+- `src/features/vertrieb/components/FunnelBottleneckAlert.tsx` — neuer Prop `dealsWithoutStageDate`; Zeile „{n} Deals ohne bekannte Verweildauer (vor v3.1 angelegt)." bei Engpässen und im Nur-unbekannt-Fall; bei `dealsWithoutStageDate > 0` ohne Engpässe neutraler Hinweis statt All-Clear („Verweildauer nicht für alle Deals bekannt") — die Entwarnung „Alle Deals verweilen innerhalb der geplanten Zykluszeiten" erscheint nur noch bei vollständig bekannten Daten; All-Clear-Text an 30-Tage-Grenzwert angepasst.
+- `src/features/vertrieb/pages/FunnelPage.tsx` — Alert wird jetzt gerendert, wenn Engpässe ODER unbekannte Verweildauern vorliegen; `dealsWithoutStageDate` wird durchgereicht.
+- `src/features/vertrieb/services/__tests__/funnelAnalyticsService.unit.vitest.ts` — alle Bottleneck-Tests auf `stageEnteredAt` + `referenceDate` umgestellt; die vier Pflichtfälle `deal_mit_31_tagen_ist_engpass`, `deal_mit_30_tagen_ist_keiner`, `deal_ohne_datum_wird_gezaehlt_aber_nicht_gewarnt`, plus Zähl-Semantik (nur aktive Deals) neu.
+- `src/features/vertrieb/components/__tests__/FunnelBottleneckAlert.ui.vitest.tsx` — neu: `alle_ohne_datum_zeigt_keine_entwarnung` und drei weitere Fälle (Zeile bei Engpass, keine Zeile bei 0, All-Clear nur bei vollständigen Daten).
+- `src/features/vertrieb/pages/__tests__/FunnelPage.live.ui.vitest.tsx` — Mock-Deal von `daysInStage` auf `stageEnteredAt` (40 Tage) umgestellt.
+- `scripts/captureAuftrag140Gate.mjs` + `docs/screenshots/auftrag-140/README.md` — Screenshot-Gate.
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_140_FUNNEL_ECHTE_VERWEILDDAUER.md` — Auftragsdatei.
+- `BUILD_PLAN.md` — nächster Auftrag auf 141 gesetzt.
+
+**Funktionale Prüfungen:** `stageEnteredAt` ist die einzige Verweildauer-Quelle (kein `daysInStage`, keine Overrides, kein `createdAt`-Fallback); Deals ohne Phasendatum werden gezählt, nicht gewarnt und nie als Engpass gewertet; Grenzwert 30 Tage mit strikter Überschreitung; All-Clear nur bei `dealsWithoutStageDate === 0`.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` — leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify` (Integrity-Suiten) grün; `npm test` 371 Dateien / 2707 Tests grün; `npm run build` grün; `npx size-limit` 179,54/180 kB Initial-JS und 86,16/250 kB Largest-Chunk im Budget; `npm run verify:quality-budget` sauber. Keine Migrations-/Schema-Änderung — pgTAP-Stand 262 Tests bleibt gültig.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-140/README.md` — 24 Aufnahmen (2 Szenarien × 1440/768/375 px × dark/light × vorher/nachher), 0 px horizontaler Überlauf in allen Nachher-Aufnahmen. Geprüfte Abweichungen (12) per `VISUAL_APPROVALS` an exakte Hash-Paare gebunden: `funnel-live-gemischt` zeigt den echten 45-Tage-Engpass plus die neue Unbekannt-Zeile (die 28-Tage-Verhandlungsphase ist bei 30er-Schwelle kein Engpass mehr); `funnel-live-unbekannt` zeigt den neutralen Hinweis statt früher gar keinem Alert. Vorher-Build: `9c70f8b` (origin/main nach Auftrag 139) in isoliertem Worktree, Nachher: aktueller `dist`-Build, beide mit Mock-Supabase über Route-Interception.
+
+**Ergebnis & Freigabestatus:** Umgesetzt und lokal verifiziert. Unabhängiges Review (Codex auf GitHub) ausstehend; kein Merge — das macht Marc.

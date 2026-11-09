@@ -245,12 +245,16 @@ function FunnelPageHtml() {
         <FunnelSourceToggle mode={mode} onChange={(newMode) => setDatenQuelle(newMode)} />
       </div>
 
-      {/* Bottleneck-Alert bei erkannten Verzögerungen */}
-      {mode !== 'plan' && analytics.bottlenecks.length > 0 && (
-        <div className="mb-4">
-          <FunnelBottleneckAlert bottlenecks={analytics.bottlenecks} />
-        </div>
-      )}
+      {/* Bottleneck-Alert bei erkannten Verzögerungen oder unbekannten Verweildauern */}
+      {mode !== 'plan' &&
+        (analytics.bottlenecks.length > 0 || analytics.dealsWithoutStageDate > 0) && (
+          <div className="mb-4">
+            <FunnelBottleneckAlert
+              bottlenecks={analytics.bottlenecks}
+              dealsWithoutStageDate={analytics.dealsWithoutStageDate}
+            />
+          </div>
+        )}
 
       <DataState
         status={dataStatus}
