@@ -78,7 +78,11 @@ function FunnelPageHtml() {
   });
 
   // Qualifizierte Kontakte kommen serverseitig aus lead_qualifications (RLS)
-  const { data: qualifiedLeadIds } = useQualifiedContactIds(isLiveOrVergleich);
+  const {
+    data: qualifiedLeadIds,
+    isLoading: isQualificationsLoading,
+    isError: isQualificationsError,
+  } = useQualifiedContactIds(isLiveOrVergleich);
 
   // Funnel Analytics berechnen; die Phase kommt ausschließlich aus der Datenbank.
   const analytics = useMemo(() => {
@@ -202,9 +206,11 @@ function FunnelPageHtml() {
   }, [mode, analytics]);
 
   const isDataLoading =
-    (mode === 'live' || mode === 'vergleich') && (isDealsLoading || isContactsLoading);
+    (mode === 'live' || mode === 'vergleich') &&
+    (isDealsLoading || isContactsLoading || isQualificationsLoading);
   const isDataError =
-    (mode === 'live' || mode === 'vergleich') && (isDealsError || isContactsError);
+    (mode === 'live' || mode === 'vergleich') &&
+    (isDealsError || isContactsError || isQualificationsError);
   const isPlanEmpty = mode === 'plan' && FUNNEL.rows.length === 0;
   const dataStatus: 'loading' | 'empty' | 'error' | 'ready' = isDataLoading
     ? 'loading'

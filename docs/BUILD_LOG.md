@@ -19946,3 +19946,17 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 370 Dateien / 2.696 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; `npm run verify:quality-budget` sauber; `supabase db reset` + `supabase test db`: 10 Dateien / 257 pgTAP-Tests PASS; Schutzbereichs-Diff gegen `origin/main` leer (inkl. `src/types/**`). Screenshot-Matrix bleibt gültig: die geänderten Stellen sind Initialisierungs-/Datenpfade ohne sichtbare Änderung in den aufgenommenen Szenarien.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung der drei Codex-Befunde auf `880cc54` (11.11.2026)
+
+**Kontext:** Codex-Review auf `880cc54` meldete 3×P2. Nacharbeit durch Devin; alle drei Befunde waren berechtigt.
+
+**Befunde und Behebung:**
+
+- **P2 Erstlade-Sperre im Drawer (`LeadQualificationDrawer.tsx`):** Solange die erste `lead_qualifications`-Abfrage pending oder fehlgeschlagen war, waren BANT-Felder und Speichern-Button aktiv — Score-Vorschläge konnten echte Serverwerte überschreiben. `qualificationLocked = isPending || isError || !leadId` sperrt jetzt Toggles, Textarea und `canSave`; Statuszeilen „Lade gespeicherte Qualisierung…" bzw. Fehlermeldung mit `role="status"`/`role="alert"`. `data === null` nach erfolgreichem Laden bleibt gültig (Score-Vorschläge). Neuer UI-Test `sperrt Bearbeitung und Speichern bis zum ersten Laden`; bestehende Save-Tests warten jetzt auf `toBeEnabled()`.
+- **P2 Qualifizierungsstatus im Funnel (`FunnelPage.tsx`):** `useQualifiedContactIds` lieferte nur `data`; bei Ladefehler oder pending wurde der Funnel trotzdem als geladen angezeigt und MQLs unterzählten. `isLoading`/`isError` des Queries gehen jetzt in `isDataLoading`/`isDataError` ein — `dataStatus` zeigt `loading`/`error` truthful.
+- **P2 Legacy-Konvertierungen (Migration):** Alt-Deals `d-conv-<Kontakt>-<Zeitstempel>` ohne `source_contact_id` waren für LP409 unsichtbar → Doppelkonvertierung nach Upgrade möglich. Migration backfillt jetzt `source_contact_id` tenant-scoped: `substring(id from '^d-conv-(.+)-\d+$')` (greedy, Zeitstempel bleibt Restsegment), nur wenn ein Kontakt derselben Organisation existiert (FK-sicher) und deterministisch nur die kleinste Deal-ID pro Kontakt (`min(id)`-Guard gegen historische Dubletten; weitere Duplikate bleiben unverlinkt, der Kontakt ist über den ersten Deal geschützt). Der Backfill läuft vor dem Unique-Index. Neuer pgTAP-Block `legacy_backfill` (3 Tests): Rekonstruktion, LP409-Ablehnung, kein zweiter Deal.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify:quality-budget` sauber; `npm test` 370 Dateien / 2.697 Tests grün; `npm run verify` 25/25 Suiten; `npx vite build` erfolgreich; `supabase db reset` + `supabase test db`: 10 Dateien / 260 pgTAP-Tests PASS; Schutzbereichs-Diff gegen `origin/main` unverändert leer. Sichtbare UI-Änderung nur im Lade-/Fehlerzustand des Drawers (Statuszeilen) — bestehende Screenshot-Szenarien zeigen den stabilen Zustand, Matrix bleibt gültig.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.

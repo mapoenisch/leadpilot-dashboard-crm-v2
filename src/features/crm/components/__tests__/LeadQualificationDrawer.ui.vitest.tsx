@@ -200,6 +200,32 @@ describe('LeadQualificationDrawer (Auftrag 139)', () => {
     expect(screen.getByLabelText(/Qualifizierungsnotizen/)).toBeDisabled();
   });
 
+  it('sperrt Bearbeitung und Speichern bis zum ersten Laden (Codex P2)', async () => {
+    let resolveRead: ((v: BuilderResult) => void) | undefined;
+    const builder = makeBuilder({ data: null, error: null });
+    builder.maybeSingle = vi.fn(
+      () =>
+        new Promise<BuilderResult>((resolve) => {
+          resolveRead = resolve;
+        }),
+    );
+    dbMock.from.mockReturnValue(builder);
+
+    renderDrawer();
+
+    const saveBtn = await screen.findByTestId('qualification-save-btn');
+    expect(saveBtn).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Budget vorhanden/ })).toBeDisabled();
+    expect(screen.getByLabelText(/Qualifizierungsnotizen/)).toBeDisabled();
+    expect(screen.getByText(/Lade gespeicherte Qualifizierung/)).toBeInTheDocument();
+
+    resolveRead?.({ data: null, error: null });
+    await waitFor(() => {
+      expect(saveBtn).toBeEnabled();
+    });
+    expect(screen.getByRole('button', { name: /Budget vorhanden/ })).toBeEnabled();
+  });
+
   it('doppelklick_einmal_aufgerufen: Speichern ist während des Requests deaktiviert', async () => {
     const resolvers: Array<(v: { error: null }) => void> = [];
     const builder = makeBuilder({ data: null, error: null });
@@ -214,6 +240,7 @@ describe('LeadQualificationDrawer (Auftrag 139)', () => {
     renderDrawer();
 
     const saveBtn = await screen.findByTestId('qualification-save-btn');
+    await waitFor(() => expect(saveBtn).toBeEnabled());
     fireEvent.click(saveBtn);
     fireEvent.click(saveBtn);
 
@@ -235,6 +262,7 @@ describe('LeadQualificationDrawer (Auftrag 139)', () => {
     renderDrawer();
 
     const saveBtn = await screen.findByTestId('qualification-save-btn');
+    await waitFor(() => expect(saveBtn).toBeEnabled());
     fireEvent.click(saveBtn);
 
     await waitFor(() => {

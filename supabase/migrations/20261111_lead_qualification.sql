@@ -156,6 +156,34 @@ BEGIN
   END IF;
 END $$;
 
+-- Backfill: vor Auftrag 139 erzeugte die Konvertierung Deals mit der ID
+-- `d-conv-<Kontakt-ID>-<Zeitstempel>` ohne source_contact_id. Ohne Backfill
+-- könnte ein bereits konvertierter Kontakt erneut konvertiert werden (LP409
+-- greift nur auf source_contact_id). Der reguläre Ausdruck ist greedy und
+-- lässt den Zeitstempel als letztes numerisches Segment übrig; der
+-- EXISTS-Guard stellt sicher, dass nur mandantenzugehörige Kontakte verlinkt
+-- werden (sonst verletzt der zusammengesetzte FK die Migration). Bei
+-- historischem Doppelkonvertieren gewinnt deterministisch die kleinste Deal-ID
+-- den Link; weitere Duplikate bleiben unverlinkt, der Kontakt ist über den
+-- ersten Deal weiterhin vor LP409-Doppelkonvertierung geschützt.
+UPDATE public.imported_funnel_deals AS d
+SET source_contact_id = substring(d.id from '^d-conv-(.+)-\d+$')
+WHERE d.source_contact_id IS NULL
+  AND d.id ~ '^d-conv-.+-\d+$'
+  AND d.id = (
+    SELECT min(d2.id)
+    FROM public.imported_funnel_deals AS d2
+    WHERE d2.organization_id = d.organization_id
+      AND d2.id ~ '^d-conv-.+-\d+$'
+      AND substring(d2.id from '^d-conv-(.+)-\d+$')
+        = substring(d.id from '^d-conv-(.+)-\d+$')
+  )
+  AND EXISTS (
+    SELECT 1 FROM public.contacts AS c
+    WHERE c.organization_id = d.organization_id
+      AND c.id = substring(d.id from '^d-conv-(.+)-\d+$')
+  );
+
 CREATE UNIQUE INDEX IF NOT EXISTS uq_deals_source_contact
   ON public.imported_funnel_deals (organization_id, source_contact_id)
   WHERE source_contact_id IS NOT NULL;

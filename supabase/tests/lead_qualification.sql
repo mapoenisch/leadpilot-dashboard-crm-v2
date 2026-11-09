@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(32);
+SELECT plan(35);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.lead_qualifications WHERE contact_id LIKE 'lq139-%';
@@ -59,6 +59,7 @@ VALUES
   ('lq139-c3', 'lq139-comp-a', 'lead3@qual-a.test', 'Tina', 'Drei', 'CFO', 'a1390000-0000-0000-0000-000000000001'),
   ('lq139-c4', 'lq139-comp-a', 'lead4@qual-a.test', 'Uwe', 'Vier', 'VP', 'a1390000-0000-0000-0000-000000000001'),
   ('lq139-c5', 'lq139-comp-a', 'lead5@qual-a.test', 'Sara', 'Fuenf', 'CEO', 'a1390000-0000-0000-0000-000000000001'),
+  ('lq139-c6', 'lq139-comp-a', 'lead6@qual-a.test', 'Tom', 'Sechs', 'CTO', 'a1390000-0000-0000-0000-000000000001'),
   ('lq139-cb', 'lq139-comp-b', 'leadb@qual-b.test', 'Bert', 'Sechs', 'CEO', 'b1390000-0000-0000-0000-000000000002');
 
 -- ------------------------------------------- 1..6: BANT speichern (Manager A) --
@@ -307,6 +308,59 @@ SELECT is(
   (SELECT timeline FROM public.lead_qualifications WHERE contact_id = 'lq139-c1'),
   true,
   'qualification_update: Wert ist aktualisiert'
+);
+
+-- ------------------------------------- 31..33: Legacy-Konvertierung ------
+-- Vor dem Upgrade entstanden Deals mit der ID `d-conv-<Kontakt>-<Zeitstempel>`
+-- ohne source_contact_id. Der Migrations-Backfill verlinkt sie; danach muss
+-- convert_lead_to_deal mit LP409 ablehnen (Codex-Befund, exakt-einmal-Schutz).
+INSERT INTO public.imported_funnel_deals
+  (id, deal_name, stage, amount, close_date, pipeline, organization_id)
+VALUES
+  ('d-conv-lq139-c6-1700000000000', 'Legacy Deal', 'Verhandlung', 9000, '2026-11-01', 'Enterprise SaaS',
+   'a1390000-0000-0000-0000-000000000001');
+
+-- Dieselbe Backfill-Logik wie in der Migration (für den Test isoliert ausgeführt,
+-- da die Migration vor dem Testlauf bereits lief).
+UPDATE public.imported_funnel_deals AS d
+SET source_contact_id = substring(d.id from '^d-conv-(.+)-\d+$')
+WHERE d.source_contact_id IS NULL
+  AND d.id ~ '^d-conv-.+-\d+$'
+  AND d.id = (
+    SELECT min(d2.id)
+    FROM public.imported_funnel_deals AS d2
+    WHERE d2.organization_id = d.organization_id
+      AND d2.id ~ '^d-conv-.+-\d+$'
+      AND substring(d2.id from '^d-conv-(.+)-\d+$')
+        = substring(d.id from '^d-conv-(.+)-\d+$')
+  )
+  AND EXISTS (
+    SELECT 1 FROM public.contacts AS c
+    WHERE c.organization_id = d.organization_id
+      AND c.id = substring(d.id from '^d-conv-(.+)-\d+$')
+  );
+
+SELECT is(
+  (SELECT source_contact_id FROM public.imported_funnel_deals WHERE id = 'd-conv-lq139-c6-1700000000000'),
+  'lq139-c6',
+  'legacy_backfill: source_contact_id wird aus der Deal-ID rekonstruiert'
+);
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"91390000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+SELECT throws_ok(
+  $$SELECT * FROM public.convert_lead_to_deal('lq139-c6', 'Nochmal Legacy', 'Erstgespräch geführt', 1000, '2026-12-31', 'Enterprise SaaS')$$,
+  'LP409',
+  NULL,
+  'legacy_backfill: bereits konvertierter Kontakt wird mit LP409 abgewiesen'
+);
+RESET ROLE;
+SELECT is(
+  (SELECT count(*) FROM public.imported_funnel_deals
+   WHERE organization_id = 'a1390000-0000-0000-0000-000000000001'
+     AND (source_contact_id = 'lq139-c6' OR id LIKE 'd-conv-lq139-c6-%')),
+  1::bigint,
+  'legacy_backfill: kein zweiter Deal entstanden'
 );
 
 SELECT * FROM finish();

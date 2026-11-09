@@ -106,7 +106,11 @@ export function LeadQualificationDrawer({
   const result: LeadScoringResult = useMemo(() => calculateLeadScore(scoringInput), [scoringInput]);
 
   // Gespeicherte BANT-Werte aus der Datenbank (null = noch nicht qualifiziert)
-  const { data: savedQualification } = useLeadQualification(leadId, isOpen);
+  const {
+    data: savedQualification,
+    isPending: qualificationPending,
+    isError: qualificationError,
+  } = useLeadQualification(leadId, isOpen);
 
   // Beim Mount können Serverwerte bereits im Query-Cache liegen (Wiederöffnen
   // ohne Remount der Query): dann sind sie die Initialbelegung, nicht die
@@ -131,7 +135,12 @@ export function LeadQualificationDrawer({
 
   if (!lead) return null;
 
-  const canSave = !isViewer && Boolean(organizationId) && Boolean(leadId) && !isSaving;
+  // Bearbeitung und Speichern erst nach der ersten erfolgreichen Antwort:
+  // vorher gezeigte Score-Vorschläge könnten sonst echte Serverwerte
+  // überschreiben (null ist eine gültige Antwort = noch nicht qualifiziert).
+  const qualificationLocked = qualificationPending || qualificationError || !leadId;
+  const canSave =
+    !isViewer && Boolean(organizationId) && Boolean(leadId) && !isSaving && !qualificationLocked;
   const canConvert = !isViewer && Boolean(organizationId);
 
   const fullName =
@@ -141,7 +150,7 @@ export function LeadQualificationDrawer({
   const jobTitle = String(lead.jobTitle ?? 'Jobtitel');
 
   const toggleBant = (field: BantField) => {
-    if (isViewer || isSaving) return;
+    if (isViewer || isSaving || qualificationLocked) return;
     setBant((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
@@ -256,6 +265,16 @@ export function LeadQualificationDrawer({
           </div>
         </div>
 
+        {qualificationPending && (
+          <div role="status" className="text-[13px] text-[var(--color-text-muted)]">
+            Lade gespeicherte Qualifizierung…
+          </div>
+        )}
+        {qualificationError && (
+          <div role="alert" className="text-[13px] text-error">
+            Gespeicherte Qualifizierung konnte nicht geladen werden. Bearbeitung ist gesperrt.
+          </div>
+        )}
         {saveError && (
           <div role="alert" className="text-[13px] text-error">
             {saveError}
@@ -314,9 +333,11 @@ export function LeadQualificationDrawer({
                   key={crit.id}
                   type="button"
                   onClick={() => toggleBant(crit.id)}
-                  disabled={isViewer || isSaving}
+                  disabled={isViewer || isSaving || qualificationLocked}
                   className={`w-full p-2.5 rounded-lg border text-left transition-all flex items-start gap-2.5 ${
-                    isViewer || isSaving ? 'cursor-default' : 'cursor-pointer'
+                    isViewer || isSaving || qualificationLocked
+                      ? 'cursor-default'
+                      : 'cursor-pointer'
                   } ${
                     checked
                       ? 'bg-primary/10 border-primary/40 text-text'
@@ -377,12 +398,12 @@ export function LeadQualificationDrawer({
             rows={3}
             value={bant.notes}
             onChange={(e) => {
-              if (!isViewer && !isSaving) {
+              if (!isViewer && !isSaving && !qualificationLocked) {
                 setBant((prev) => ({ ...prev, notes: e.target.value.slice(0, 2000) }));
               }
             }}
             readOnly={isViewer}
-            disabled={isViewer}
+            disabled={isViewer || qualificationLocked}
             placeholder="Ergebnisse des Erstgesprächs, relevante Stakeholder oder nächste Schritte notieren..."
             className="w-full p-2.5 text-[13px] bg-black/40 border border-border rounded-lg text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary transition-colors resize-none disabled:opacity-60"
           />
