@@ -20069,3 +20069,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Screenshot-Matrix:** `docs/screenshots/auftrag-140/README.md` — 24 Aufnahmen (2 Szenarien × 1440/768/375 px × dark/light × vorher/nachher), 0 px horizontaler Überlauf in allen Nachher-Aufnahmen. Geprüfte Abweichungen (12) per `VISUAL_APPROVALS` an exakte Hash-Paare gebunden: `funnel-live-gemischt` zeigt den echten 45-Tage-Engpass plus die neue Unbekannt-Zeile (die 28-Tage-Verhandlungsphase ist bei 30er-Schwelle kein Engpass mehr); `funnel-live-unbekannt` zeigt den neutralen Hinweis statt früher gar keinem Alert. Vorher-Build: `9c70f8b` (origin/main nach Auftrag 139) in isoliertem Worktree, Nachher: aktueller `dist`-Build, beide mit Mock-Supabase über Route-Interception.
 
 **Ergebnis & Freigabestatus:** Umgesetzt und lokal verifiziert. Unabhängiges Review (Codex auf GitHub) ausstehend; kein Merge — das macht Marc.
+
+### Prüfnachweis PR #161 — Auftrag 140 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `35542516d0` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `3554251`: „Didn't find any major issues." — keine offenen Befunde, keine Review-Threads.
+
+**Pflicht-Checks auf `3554251`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge und etwaiges Release-Tag macht Marc.
