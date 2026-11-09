@@ -2,8 +2,8 @@
  * crmStageHelper.ts
  * Zentrale Phasen-Definitionen, kanonische Mappings und Status-Helfer
  * für das LeadPilot CRM (Auftrag 129 / Codex-Review Runde 9).
+ * Auftrag 138: lokale Phasen-Overrides entfallen; die Datenbank ist die Quelle.
  */
-import { useState, useEffect, useCallback } from 'react';
 
 export const KANBAN_STAGES: readonly string[] = [
   'Lead eingegangen',
@@ -110,94 +110,4 @@ export function isLostStage(stage?: string): boolean {
  */
 export function isClosedStage(stage?: string): boolean {
   return isWonStage(stage) || isLostStage(stage);
-}
-
-/**
- * Erzeugt einen benutzer- und organisationsgebundenen Storage-Key für lokale Deal-Stage-Overrides.
- */
-export function getDealStageOverridesStorageKey(
-  organizationId?: string,
-  userId?: string,
-): string | null {
-  if (!organizationId || !userId) return null;
-  return `leadpilot_crm_deal_stage_overrides_${organizationId}_${userId}`;
-}
-
-/**
- * Liest gespeicherte Stage-Overrides für den übergebenen Storage-Key aus sessionStorage.
- */
-export function readStageOverrides(storageKey: string | null): Record<string, string> {
-  if (!storageKey || typeof window === 'undefined') return {};
-  try {
-    const s = sessionStorage.getItem(storageKey);
-    return s ? JSON.parse(s) : {};
-  } catch {
-    return {};
-  }
-}
-
-/**
- * Schreibt Stage-Overrides sicher in sessionStorage.
- */
-export function writeStageOverrides(
-  storageKey: string | null,
-  overrides: Record<string, string>,
-): void {
-  if (!storageKey || typeof window === 'undefined') return;
-  try {
-    sessionStorage.setItem(storageKey, JSON.stringify(overrides));
-  } catch {
-    // SessionStorage nicht verfügbar / voll
-  }
-}
-
-/**
- * Hook zur benutzer- und organisationsgebundenen Verwaltung lokaler Phasenwechsel.
- */
-export function useDealStageOverrides(
-  storageKey: string | null,
-  stageFilter: string,
-  sortField: string,
-  searchTerm: string,
-) {
-  const [stageOverrides, setStageOverrides] = useState<Record<string, string>>(() =>
-    readStageOverrides(storageKey),
-  );
-
-  useEffect(() => {
-    setStageOverrides(readStageOverrides(storageKey));
-  }, [storageKey]);
-
-  const hasStageOverrides = Object.keys(stageOverrides).length > 0;
-  const serverStageFilter = hasStageOverrides
-    ? undefined
-    : stageFilter !== 'ALL'
-      ? stageFilter
-      : undefined;
-
-  const serverSearchTerm = hasStageOverrides ? undefined : searchTerm.trim() || undefined;
-
-  const clientPagingActive =
-    hasStageOverrides &&
-    (stageFilter !== 'ALL' || sortField === 'stage' || Boolean(searchTerm.trim()));
-
-  const handleDealStageChange = useCallback(
-    (dealId: string, newStage: string) => {
-      setStageOverrides((prev) => {
-        const next = { ...prev, [dealId]: newStage };
-        writeStageOverrides(storageKey, next);
-        return next;
-      });
-    },
-    [storageKey],
-  );
-
-  return {
-    stageOverrides,
-    hasStageOverrides,
-    serverStageFilter,
-    serverSearchTerm,
-    clientPagingActive,
-    handleDealStageChange,
-  };
 }

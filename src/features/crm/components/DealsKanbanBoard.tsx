@@ -13,6 +13,10 @@ export interface DealsKanbanBoardProps {
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoadingMore?: boolean;
+  /** Viewer dürfen nicht verschieben (weder Drag noch Tastaturmenü). */
+  canMoveDeals?: boolean;
+  /** Karte, deren Mutation gerade läuft; sie ist bis zum Abschluss gesperrt. */
+  lockedDealId?: string;
 }
 
 export function DealsKanbanBoard({
@@ -22,23 +26,20 @@ export function DealsKanbanBoard({
   onLoadMore,
   hasMore,
   isLoadingMore,
+  canMoveDeals = true,
+  lockedDealId,
 }: DealsKanbanBoardProps) {
-  // Lokale optimistische Phasen-Überschreibungen
-  const [stageOverrides, setStageOverrides] = useState<Record<string, string>>({});
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
-  // Wirksame Deals mit Überschreibungen und kanonischer Phasen-Normalisierung
-  const effectiveDeals = useMemo(() => {
-    return deals.map((d) => {
-      const override = stageOverrides[d.id];
-      const stage = override && override !== d.stage ? override : d.stage;
-      const normalizedStage = normalizeCanonicalStageLabel(stage);
-      if (normalizedStage !== d.stage) {
-        return { ...d, stage: normalizedStage };
-      }
-      return d;
-    });
-  }, [deals, stageOverrides]);
+  // Kanonische Normalisierung: ältere Clients oder Testdaten liefern ggf. Rohwerte.
+  const effectiveDeals = useMemo(
+    () =>
+      deals.map((d) => {
+        const normalizedStage = normalizeCanonicalStageLabel(d.stage);
+        return normalizedStage !== d.stage ? { ...d, stage: normalizedStage } : d;
+      }),
+    [deals],
+  );
 
   // Alle vorkommenden Phasen ermitteln (Standardphasen + evtl. zusätzliche aus Daten)
   const allStages = useMemo(() => {
@@ -89,15 +90,12 @@ export function DealsKanbanBoard({
 
   const handleMoveStage = useCallback(
     (dealId: string, newStage: string) => {
+      if (!canMoveDeals || lockedDealId === dealId) return;
       // Drag-Zustand sofort zurücksetzen, da die Karte in die neue Spalte umgehängt wird
       setActiveDragId(null);
-      setStageOverrides((prev) => ({
-        ...prev,
-        [dealId]: newStage,
-      }));
       onDealStageChange?.(dealId, newStage);
     },
-    [onDealStageChange],
+    [canMoveDeals, lockedDealId, onDealStageChange],
   );
 
   return (
@@ -156,6 +154,8 @@ export function DealsKanbanBoard({
             deals={dealsByStage.get(stage) ?? []}
             allStages={allStages}
             onMoveStage={handleMoveStage}
+            canMoveCards={canMoveDeals}
+            lockedDealId={lockedDealId}
             onDragStart={(id) => setActiveDragId(id)}
             onDragEnd={() => setActiveDragId(null)}
             activeDragId={activeDragId}

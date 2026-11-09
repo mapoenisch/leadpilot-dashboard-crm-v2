@@ -364,7 +364,7 @@ describe('DealsKanbanBoard', () => {
     expect(onLoadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('aktualisiert Phasen und Summen optimistisch bei Phasenwechsel', () => {
+  it('meldet den Phasenwechsel an den Server, ohne lokal zu verschieben', () => {
     const onStageChange = vi.fn();
     render(<DealsKanbanBoard deals={MOCK_DEALS} onDealStageChange={onStageChange} />);
 
@@ -379,13 +379,53 @@ describe('DealsKanbanBoard', () => {
 
     expect(onStageChange).toHaveBeenCalledWith('deal-1', 'Verhandlung');
 
-    // "Lead eingegangen" hat jetzt 0 Deals und 0 €
-    expect(screen.getByTestId('column-count-Lead eingegangen')).toHaveTextContent('0');
-    expect(screen.getByTestId('column-sum-Lead eingegangen')).toHaveTextContent('0 €');
+    // Der Serverstand bleibt maßgeblich: Das Board verschiebt die Karte nicht selbst.
+    // "Lead eingegangen" behält 1 Deal und 25.000 €, "Verhandlung" bleibt leer.
+    expect(screen.getByTestId('column-count-Lead eingegangen')).toHaveTextContent('1');
+    expect(screen.getByTestId('column-sum-Lead eingegangen')).toHaveTextContent('25.000 €');
+    expect(screen.getByTestId('column-count-Verhandlung')).toHaveTextContent('0');
+    expect(screen.getByTestId('column-sum-Verhandlung')).toHaveTextContent('0 €');
+  });
 
-    // "Verhandlung" hat jetzt 1 Deal und 25.000 €
-    expect(screen.getByTestId('column-count-Verhandlung')).toHaveTextContent('1');
-    expect(screen.getByTestId('column-sum-Verhandlung')).toHaveTextContent('25.000 €');
+  it('blockiert das Verschieben für Viewer und für gesperrte Karten', () => {
+    const onStageChange = vi.fn();
+    const { rerender } = render(
+      <DealsKanbanBoard
+        deals={MOCK_DEALS}
+        onDealStageChange={onStageChange}
+        canMoveDeals={false}
+      />,
+    );
+
+    fireEvent.drop(screen.getByTestId('kanban-column-Verhandlung'), {
+      dataTransfer: { getData: () => 'deal-1' },
+    });
+    expect(onStageChange).not.toHaveBeenCalled();
+
+    rerender(
+      <DealsKanbanBoard
+        deals={MOCK_DEALS}
+        onDealStageChange={onStageChange}
+        lockedDealId="deal-1"
+      />,
+    );
+    fireEvent.drop(screen.getByTestId('kanban-column-Verhandlung'), {
+      dataTransfer: { getData: () => 'deal-1' },
+    });
+    expect(onStageChange).not.toHaveBeenCalled();
+
+    // Andere Karten bleiben trotz Sperre verschiebbar.
+    rerender(
+      <DealsKanbanBoard
+        deals={MOCK_DEALS}
+        onDealStageChange={onStageChange}
+        lockedDealId="deal-1"
+      />,
+    );
+    fireEvent.drop(screen.getByTestId('kanban-column-Verhandlung'), {
+      dataTransfer: { getData: () => 'deal-2' },
+    });
+    expect(onStageChange).toHaveBeenCalledWith('deal-2', 'Verhandlung');
   });
 
   it('setzt activeDragId beim Drop in eine andere Spalte sofort zurück (kein verbleibender Drag-Zustand)', () => {

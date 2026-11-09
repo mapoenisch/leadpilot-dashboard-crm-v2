@@ -52,6 +52,7 @@ export const E2E_SEQUENTIAL = [
   'e2e/worker-responsiveness.spec.ts',
   'e2e/run-control.spec.ts',
   'e2e/member-management.spec.ts',
+  'e2e/crm-deals-persistence.spec.ts',
 ];
 
 /** Reihenfolge = Ausführungsreihenfolge; `needs` blockiert bei rotem Vorgänger. */

@@ -9,6 +9,8 @@ export interface KanbanColumnProps {
   deals: ImportedFunnelDeal[];
   allStages: readonly string[];
   onMoveStage: (dealId: string, newStage: string) => void;
+  canMoveCards?: boolean;
+  lockedDealId?: string;
   onDragStart?: (dealId: string) => void;
   onDragEnd?: () => void;
   activeDragId?: string | null;
@@ -19,6 +21,8 @@ export function KanbanColumn({
   deals,
   allStages,
   onMoveStage,
+  canMoveCards = true,
+  lockedDealId,
   onDragStart,
   onDragEnd,
   activeDragId,
@@ -34,6 +38,7 @@ export function KanbanColumn({
   }, [deals]);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!canMoveCards) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (!isOver) {
@@ -48,10 +53,11 @@ export function KanbanColumn({
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!canMoveCards) return;
     e.preventDefault();
     setIsOver(false);
     const dealId = e.dataTransfer.getData('text/plain') || activeDragId;
-    if (dealId) {
+    if (dealId && dealId !== lockedDealId) {
       onMoveStage(dealId, stage);
     }
   };
@@ -123,6 +129,8 @@ export function KanbanColumn({
               deal={deal}
               allStages={allStages}
               onMoveStage={onMoveStage}
+              canMove={canMoveCards}
+              isLocked={lockedDealId === deal.id}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
               isDragging={activeDragId === deal.id}

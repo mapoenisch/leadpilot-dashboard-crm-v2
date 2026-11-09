@@ -9,10 +9,6 @@ import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useAllCrmEntitiesQuery } from '../services/funnelCrmDataService';
 import { ImportedFunnelDeal, Contact } from '@/types/crm';
-import {
-  getDealStageOverridesStorageKey,
-  readStageOverrides,
-} from '@/features/crm/utils/crmStageHelper';
 import { getQualifiedLeadIds } from '@/features/crm/services/leadConversionService';
 import { FunnelStufenChart } from '../components/FunnelStufenChart';
 import { GroupedDepthColumns } from '../components/GroupedDepthColumns';
@@ -81,23 +77,20 @@ function FunnelPageHtml() {
     enabled: isLiveOrVergleich,
   });
 
-  const storageKey = getDealStageOverridesStorageKey(session?.organizationId, session?.userId);
-  const stageOverrides = useMemo(() => readStageOverrides(storageKey), [storageKey]);
   const qualifiedLeadIds = useMemo(
     () => getQualifiedLeadIds(session?.organizationId),
     [session?.organizationId],
   );
 
-  // Funnel Analytics berechnen
+  // Funnel Analytics berechnen; die Phase kommt ausschließlich aus der Datenbank.
   const analytics = useMemo(() => {
     return calculateFunnelAnalytics({
       contacts,
       deals,
-      stageOverrides,
       qualifiedLeadIds,
       mode,
     });
-  }, [contacts, deals, stageOverrides, qualifiedLeadIds, mode]);
+  }, [contacts, deals, qualifiedLeadIds, mode]);
 
   // Trichterstufen für Chart je nach Modus konfigurieren
   const chartStufen = useMemo(() => {

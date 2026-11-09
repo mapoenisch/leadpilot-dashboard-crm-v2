@@ -25,8 +25,6 @@ const mockedQuery = vi.mocked(useCrmListQuery);
 const mockedExport = vi.mocked(crmExportService.fetchCrmExportBlob);
 const mockedList = vi.mocked(crmListService.fetchCrmList);
 
-const TEST_STORAGE_KEY = 'leadpilot_crm_deal_stage_overrides_org-1_usr-1';
-
 const SAMPLE_DEALS: ImportedFunnelDeal[] = [
   {
     id: 'd-1',
@@ -58,45 +56,16 @@ function renderDealsPage(initialUrl = '/crm/deals') {
   );
 }
 
-describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
+describe('DealsPage – Nachladen und Export', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sessionStorage.clear();
     mockedOrg.mockReturnValue({
       session: { role: 'admin', userId: 'usr-1', organizationId: 'org-1' },
       isLoading: false,
     } as unknown as ReturnType<typeof useOrganization>);
   });
 
-  it('gleicht Phasenfilter mit lokalen Phasenwechseln aus sessionStorage ab (Befund 3)', () => {
-    // d-1 wurde von "Lead eingegangen" nach "Verhandlung" verschoben
-    sessionStorage.setItem(TEST_STORAGE_KEY, JSON.stringify({ 'd-1': 'Verhandlung' }));
-
-    mockedQuery.mockReturnValue({
-      data: { items: SAMPLE_DEALS, total: 2 },
-      isLoading: false,
-      isError: false,
-      isPlaceholderData: false,
-      error: null,
-      refetch: vi.fn(),
-    } as never);
-
-    // Initialansicht mit Filter auf "Verhandlung"
-    renderDealsPage('/crm/deals?stufe=Verhandlung&ansicht=tabelle');
-
-    // Beide Deals sind jetzt in "Verhandlung" (d-1 durch Override, d-2 nativ)
-    expect(screen.getByText('Cloud Migration Pilot')).toBeInTheDocument();
-    expect(screen.getByText('Security Audit & Compliance')).toBeInTheDocument();
-
-    // Query sollte ohne serverStageFilter aufgerufen werden, damit der Server d-1 nicht vorab wegfiltert
-    expect(mockedQuery).toHaveBeenCalledWith(
-      expect.objectContaining({
-        filters: undefined,
-      }),
-    );
-  });
-
-  it('verwirft asynchrone Nachlade-Ergebnisse bei zwischenzeitlicher Filter- oder Suchänderung (Befund 2)', async () => {
+  it('verwirft asynchrone Nachlade-Ergebnisse bei zwischenzeitlicher Filter- oder Suchänderung', async () => {
     mockedQuery.mockReturnValue({
       data: { items: [SAMPLE_DEALS[0]!], total: 100 },
       isLoading: false,
@@ -148,59 +117,6 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     });
   });
 
-  it('verwirft geladene Nachladeseiten bei Wechsel des wirksamen Serverfilters durch Phasenwechsel', async () => {
-    mockedQuery.mockReturnValue({
-      data: { items: [SAMPLE_DEALS[1]!], total: 200 },
-      isLoading: false,
-      isError: false,
-      isPlaceholderData: false,
-      error: null,
-      refetch: vi.fn(),
-    } as never);
-
-    let resolveListPromise!: (val: crmListService.CrmPageResult<ImportedFunnelDeal>) => void;
-    mockedList.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          resolveListPromise = resolve;
-        }),
-    );
-
-    renderDealsPage('/crm/deals?ansicht=kanban&stufe=Verhandlung');
-
-    // Nachladen anstoßen (Seite 2 mit Filter "Verhandlung")
-    const loadMoreBtn = screen.getByTestId('kanban-load-more-btn');
-    fireEvent.click(loadMoreBtn);
-
-    // Jetzt verschieben wir einen Deal (z. B. d-2 nach Erstgespräch geführt)
-    const cardMenuBtn = screen.getByLabelText('Security Audit & Compliance: Phase ändern');
-    fireEvent.click(cardMenuBtn);
-    const targetOption = screen.getByRole('menuitem', { name: /Erstgespräch geführt/ });
-    fireEvent.click(targetOption);
-
-    // Stale Request liefert nun sein Ergebnis aus dem vorherigen gefilterten Bereich
-    resolveListPromise({
-      items: [
-        {
-          id: 'filtered-p2-deal',
-          dealName: 'Alter gefilterter P2 Deal',
-          stage: 'Verhandlung',
-          amount: 8000,
-          closeDate: '2026-12-31',
-          pipeline: 'Old',
-        },
-      ],
-      total: 200,
-      page: 2,
-      pageSize: 100,
-      resource: 'deals',
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText('Alter gefilterter P2 Deal')).not.toBeInTheDocument();
-    });
-  });
-
   it('sperrt das Nachladen während der Platzhalterphase (isPlaceholderData = true)', () => {
     // Wenn Query noch alte Platzhalterdaten enthält (z. B. beim Umschalten von Tabelle zu Kanban)
     mockedQuery.mockReturnValue({
@@ -219,9 +135,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     expect(mockedList).not.toHaveBeenCalled();
   });
 
-  it('exportiert mit CSV-Parser und erhält Quoting bei Deal-Namen mit Kommas (Befund 1)', async () => {
-    sessionStorage.setItem(TEST_STORAGE_KEY, JSON.stringify({ 'd-1': 'Verhandlung' }));
-
+  it('exportiert mit den serverseitigen Filtern und erhält Quoting bei Deal-Namen mit Kommas', async () => {
     mockedQuery.mockReturnValue({
       data: { items: SAMPLE_DEALS, total: 2 },
       isLoading: false,
@@ -250,7 +164,14 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     fireEvent.click(exportBtn);
 
     await waitFor(() => {
-      expect(mockedExport).toHaveBeenCalled();
+      expect(mockedExport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          resource: 'deals',
+          filters: { stage: 'Verhandlung' },
+          sortBy: 'close_date',
+          sortOrder: 'desc',
+        }),
+      );
       expect(createObjectURLMock).toHaveBeenCalled();
       expect(clickSpy).toHaveBeenCalled();
     });
@@ -258,129 +179,7 @@ describe('DealsPage – Codex Review Runde 2 Nacharbeit', () => {
     const exportedBlob = createObjectURLMock.mock.calls[0]![0] as Blob;
     const text = await readBlobAsText(exportedBlob);
 
-    // d-1 Stage wurde zu "Verhandlung" in Spalte 2 aktualisiert
-    expect(text).toContain('d-1,"Beratung, Implementierung",Verhandlung,25000');
-  });
-
-  it('sortiert nach der wirksamen Phase statt der ursprünglichen bei aktiven stageOverrides und sortField=stage', () => {
-    // d-1 ("Cloud Migration Pilot", ursprünglich "Lead eingegangen") wird nach "Z-Phase" verschoben
-    // d-2 ("Security Audit & Compliance", ursprünglich "Verhandlung") wird nach "A-Phase" verschoben
-    sessionStorage.setItem(
-      TEST_STORAGE_KEY,
-      JSON.stringify({ 'd-1': 'Z-Phase', 'd-2': 'A-Phase' }),
-    );
-
-    mockedQuery.mockReturnValue({
-      data: { items: SAMPLE_DEALS, total: 2 },
-      isLoading: false,
-      isError: false,
-      isPlaceholderData: false,
-      error: null,
-      refetch: vi.fn(),
-    } as never);
-
-    // Aufsteigend nach Phase sortieren -> d-2 (A-Phase) vor d-1 (Z-Phase)
-    const { unmount } = renderDealsPage('/crm/deals?sort=stage&order=asc');
-
-    // Beide Deals gerendert mit ihren wirksamen Phasen
-    expect(screen.getByText('A-Phase')).toBeInTheDocument();
-    expect(screen.getByText('Z-Phase')).toBeInTheDocument();
-
-    const rows = screen.getAllByRole('row');
-    // Zeile 0 ist Header, Zeile 1 muss d-2 ("Security Audit & Compliance" / A-Phase) sein
-    expect(rows[1]).toHaveTextContent('Security Audit & Compliance');
-    expect(rows[1]).toHaveTextContent('A-Phase');
-    // Zeile 2 muss d-1 ("Cloud Migration Pilot" / Z-Phase) sein
-    expect(rows[2]).toHaveTextContent('Cloud Migration Pilot');
-    expect(rows[2]).toHaveTextContent('Z-Phase');
-
-    unmount();
-  });
-
-  it('berücksichtigt wirksame Phasen auch bei der Textsuche nach Phasenwechsel (Befund Runde 8)', () => {
-    // d-1 ("Cloud Migration Pilot", ursprünglich "Lead eingegangen") wurde nach "Verhandlung" verschoben
-    // d-2 ("Security Audit & Compliance", ursprünglich "Verhandlung") wurde nach "Deal verloren" verschoben
-    sessionStorage.setItem(
-      TEST_STORAGE_KEY,
-      JSON.stringify({ 'd-1': 'Verhandlung', 'd-2': 'Deal verloren' }),
-    );
-
-    mockedQuery.mockReturnValue({
-      data: { items: SAMPLE_DEALS, total: 2 },
-      isLoading: false,
-      isError: false,
-      isPlaceholderData: false,
-      error: null,
-      refetch: vi.fn(),
-    } as never);
-
-    // Suche nach "Verhandlung"
-    const { unmount } = renderDealsPage('/crm/deals?suche=Verhandlung&ansicht=tabelle');
-
-    // Query wird ohne serverSearchTerm (q: undefined) aufgerufen, damit der Server d-1 nicht vorab wegfiltert
-    expect(mockedQuery).toHaveBeenCalledWith(
-      expect.objectContaining({
-        q: undefined,
-      }),
-    );
-
-    // d-1 muss sichtbar sein (wirksame Phase ist "Verhandlung")
-    expect(screen.getByText('Cloud Migration Pilot')).toBeInTheDocument();
-    // d-2 darf NICHT in der Tabelle sein (wirksame Phase ist "Deal verloren", Name/Pipeline enthalten kein "Verhandlung")
-    expect(screen.queryByText('Security Audit & Compliance')).not.toBeInTheDocument();
-
-    unmount();
-  });
-
-  it('filtert CSV-Export nach wirksamer Phase bei aktiver Textsuche (Befund Runde 8)', async () => {
-    sessionStorage.setItem(
-      TEST_STORAGE_KEY,
-      JSON.stringify({ 'd-1': 'Verhandlung', 'd-2': 'Deal verloren' }),
-    );
-
-    mockedQuery.mockReturnValue({
-      data: { items: SAMPLE_DEALS, total: 2 },
-      isLoading: false,
-      isError: false,
-      isPlaceholderData: false,
-      error: null,
-      refetch: vi.fn(),
-    } as never);
-
-    const rawCsv =
-      '\uFEFFID,Deal Name,Stage,Betrag,Abschlussdatum,Pipeline\r\n' +
-      'd-1,Cloud Migration Pilot,Lead eingegangen,25000,2026-12-31,Enterprise SaaS\r\n' +
-      'd-2,Security Audit & Compliance,Verhandlung,15000,2026-10-30,Compliance\r\n';
-
-    mockedExport.mockResolvedValue(new Blob([rawCsv], { type: 'text/csv' }));
-
-    const createObjectURLMock = vi.fn().mockReturnValue('blob:mock-url');
-    window.URL.createObjectURL = createObjectURLMock;
-    window.URL.revokeObjectURL = vi.fn();
-    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
-    const { unmount } = renderDealsPage('/crm/deals?suche=Verhandlung');
-
-    const exportBtn = screen.getByRole('button', { name: 'CSV Export' });
-    fireEvent.click(exportBtn);
-
-    await waitFor(() => {
-      expect(mockedExport).toHaveBeenCalledWith(
-        expect.objectContaining({
-          q: undefined, // Server-Suche deaktiviert bei lokalen Overrides
-        }),
-      );
-      expect(createObjectURLMock).toHaveBeenCalled();
-    });
-
-    const exportedBlob = createObjectURLMock.mock.calls[0]![0] as Blob;
-    const text = await readBlobAsText(exportedBlob);
-
-    // d-1 muss im Export enthalten sein (wirksame Phase = Verhandlung)
-    expect(text).toContain('d-1,Cloud Migration Pilot,Verhandlung');
-    // d-2 darf NICHT enthalten sein (wirksame Phase = Deal verloren)
-    expect(text).not.toContain('d-2,Security Audit & Compliance');
-
-    unmount();
+    // Der Server-Blob wird unverändert ausgeliefert; Quoting bleibt erhalten.
+    expect(text).toContain('d-1,"Beratung, Implementierung",Lead eingegangen,25000');
   });
 });
