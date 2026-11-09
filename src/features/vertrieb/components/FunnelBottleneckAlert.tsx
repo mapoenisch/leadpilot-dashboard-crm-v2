@@ -1,20 +1,49 @@
 import { memo } from 'react';
-import { AlertTriangle, Clock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Clock, ArrowRight, ShieldCheck, Info } from 'lucide-react';
 import { FunnelBottleneck } from '../services/funnelAnalyticsService';
 import { cn } from '@/lib/utils';
 
 export interface FunnelBottleneckAlertProps {
   bottlenecks: FunnelBottleneck[];
+  dealsWithoutStageDate?: number;
   className?: string;
   showAllClear?: boolean;
 }
 
+const UnknownDurationNote = ({ count }: { count: number }) => (
+  <p className="mt-2 text-[11px] text-text-muted" data-testid="funnel-unknown-duration">
+    {count} Deals ohne bekannte Verweildauer (vor v3.1 angelegt).
+  </p>
+);
+
 export const FunnelBottleneckAlert = memo(function FunnelBottleneckAlert({
   bottlenecks,
+  dealsWithoutStageDate = 0,
   className,
   showAllClear = false,
 }: FunnelBottleneckAlertProps) {
   if (bottlenecks.length === 0) {
+    if (dealsWithoutStageDate > 0) {
+      // Unvollständige Daten: weder Engpass-Meldung noch All-Clear-Entwarnung.
+      return (
+        <aside
+          aria-label="Pipeline-Status"
+          data-testid="funnel-unknown-duration-alert"
+          className={cn(
+            'flex items-center gap-3 rounded-xl border border-solid border-border bg-surface-raised p-4 text-xs text-text shadow-sm',
+            className,
+          )}
+        >
+          <Info className="shrink-0 text-text-muted" size={18} aria-hidden="true" />
+          <div>
+            <strong className="block font-semibold text-text">
+              Verweildauer nicht für alle Deals bekannt
+            </strong>
+            <UnknownDurationNote count={dealsWithoutStageDate} />
+          </div>
+        </aside>
+      );
+    }
     if (!showAllClear) return null;
     return (
       <aside
@@ -30,7 +59,8 @@ export const FunnelBottleneckAlert = memo(function FunnelBottleneckAlert({
             Keine kritischen Vertriebs-Engpässe identifiziert
           </strong>
           <span className="text-text-muted">
-            Alle Deals verweilen innerhalb der geplanten Zykluszeiten (unter 25 Tage Liegedauer).
+            Alle Deals verweilen innerhalb der geplanten Zykluszeiten (höchstens 30 Tage
+            Liegedauer).
           </span>
         </div>
       </aside>
@@ -74,6 +104,8 @@ export const FunnelBottleneckAlert = memo(function FunnelBottleneckAlert({
           <p className="mt-1.5 text-xs text-text/90 leading-relaxed">
             {primaryBottleneck.recommendation}
           </p>
+
+          {dealsWithoutStageDate > 0 && <UnknownDurationNote count={dealsWithoutStageDate} />}
 
           {bottlenecks.length > 1 && (
             <div className="mt-3 border-t border-solid border-[#FF7A3D]/20 pt-2.5">

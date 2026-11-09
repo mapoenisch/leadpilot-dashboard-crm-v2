@@ -69,10 +69,9 @@ describe('funnelAnalyticsService', () => {
       expect(getEffectiveDealStage(deal)).toBe('Deal gewonnen');
     });
 
-    it('beachtet lokale Overrides vor deal.stage', () => {
+    it('ignoriert etwaige Stage-Overrides (Auftrag 140: nur Server-Phase zählt)', () => {
       const deal: ImportedFunnelDeal = { ...mockDeals[1]!, stage: 'Angebot erstellt' };
-      const overrides = { d2: 'Deal gewonnen' };
-      expect(getEffectiveDealStage(deal, overrides)).toBe('Deal gewonnen');
+      expect(getEffectiveDealStage(deal)).toBe('Angebot erstellt');
     });
   });
 
@@ -210,51 +209,73 @@ describe('funnelAnalyticsService', () => {
   });
 
   describe('Bottleneck-Erkennung (identifyFunnelBottlenecks)', () => {
-    it('erkennt Engpässe wenn Deals im Schnitt die Schwelle überschreiten', () => {
-      const slowDeals: ImportedFunnelDeal[] = [
-        {
-          id: 'slow-1',
-          dealName: 'Verzögerter Deal 1',
-          stage: 'Angebot erstellt',
-          amount: 25000,
-          closeDate: '2026-06-30',
-          pipeline: 'Core Sales',
-          daysInStage: 32,
-        } as ImportedFunnelDeal & { daysInStage: number },
-        {
-          id: 'slow-2',
-          dealName: 'Verzögerter Deal 2',
-          stage: 'Angebot erstellt',
-          amount: 30000,
-          closeDate: '2026-06-30',
-          pipeline: 'Core Sales',
-          daysInStage: 28,
-        } as ImportedFunnelDeal & { daysInStage: number },
-      ];
+    const refDate = new Date('2026-06-30T12:00:00Z');
+    const stageEnteredDaysAgo = (days: number): string =>
+      new Date(refDate.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
 
-      const bottlenecks = identifyFunnelBottlenecks(slowDeals, undefined, undefined, 25);
+    const dealInStage = (id: string, stage: string, stageEnteredAt?: string): ImportedFunnelDeal =>
+      ({
+        id,
+        dealName: `Deal ${id}`,
+        stage,
+        amount: 20000,
+        closeDate: '2026-07-31',
+        pipeline: 'Core Sales',
+        ...(stageEnteredAt ? { stageEnteredAt } : {}),
+      }) as ImportedFunnelDeal;
+
+    it('deal_mit_31_tagen_ist_engpass', () => {
+      const deals = [dealInStage('slow-1', 'Angebot erstellt', stageEnteredDaysAgo(31))];
+
+      const bottlenecks = identifyFunnelBottlenecks(deals, refDate);
       expect(bottlenecks).toHaveLength(1);
       const b0 = bottlenecks[0]!;
       expect(b0.stageName).toBe('Angebot erstellt');
-      expect(b0.avgDaysInStage).toBe(30);
-      expect(b0.dealCount).toBe(2);
+      expect(b0.avgDaysInStage).toBe(31);
+      expect(b0.dealCount).toBe(1);
+      expect(b0.thresholdDays).toBe(30);
       expect(b0.recommendation).toContain('Engpass identifiziert');
+    });
+
+    it('deal_mit_30_tagen_ist_keiner', () => {
+      const deals = [dealInStage('edge-1', 'Angebot erstellt', stageEnteredDaysAgo(30))];
+
+      const bottlenecks = identifyFunnelBottlenecks(deals, refDate);
+      expect(bottlenecks).toHaveLength(0);
+    });
+
+    it('deal_ohne_datum_wird_gezaehlt_aber_nicht_gewarnt', () => {
+      const deals = [
+        dealInStage('unknown-1', 'Angebot erstellt'),
+        dealInStage('known-1', 'Angebot erstellt', stageEnteredDaysAgo(10)),
+      ];
+
+      const result = calculateFunnelAnalytics({ deals, mode: 'live', referenceDate: refDate });
+
+      expect(result.dealsWithoutStageDate).toBe(1);
+      expect(result.bottlenecks).toHaveLength(0);
+    });
+
+    it('erkennt Engpässe anhand der serverseitigen stageEnteredAt-Verweildauer', () => {
+      const slowDeals: ImportedFunnelDeal[] = [
+        dealInStage('slow-1', 'Angebot erstellt', stageEnteredDaysAgo(34)),
+        dealInStage('slow-2', 'Angebot erstellt', stageEnteredDaysAgo(28)),
+      ];
+
+      const bottlenecks = identifyFunnelBottlenecks(slowDeals, refDate);
+      expect(bottlenecks).toHaveLength(1);
+      const b0 = bottlenecks[0]!;
+      expect(b0.stageName).toBe('Angebot erstellt');
+      expect(b0.avgDaysInStage).toBe(31);
+      expect(b0.dealCount).toBe(2);
     });
 
     it('gibt leere Liste zurück, wenn alle Deals unterhalb der Schwelle liegen', () => {
       const fastDeals: ImportedFunnelDeal[] = [
-        {
-          id: 'fast-1',
-          dealName: 'Schneller Deal',
-          stage: 'Angebot erstellt',
-          amount: 15000,
-          closeDate: '2026-06-30',
-          pipeline: 'Core Sales',
-          daysInStage: 12,
-        } as ImportedFunnelDeal & { daysInStage: number },
+        dealInStage('fast-1', 'Angebot erstellt', stageEnteredDaysAgo(12)),
       ];
 
-      const bottlenecks = identifyFunnelBottlenecks(fastDeals, undefined, undefined, 25);
+      const bottlenecks = identifyFunnelBottlenecks(fastDeals, refDate);
       expect(bottlenecks).toHaveLength(0);
     });
 
@@ -267,21 +288,18 @@ describe('funnelAnalyticsService', () => {
           amount: 50000,
           closeDate: '2026-06-30',
           pipeline: 'Core Sales',
-          createdAt: '2026-01-01T00:00:00Z', // Globales Alter > 100 Tage, aber keine daysInStage
+          createdAt: '2026-01-01T00:00:00Z', // Globales Alter > 100 Tage, aber kein stageEnteredAt
         } as ImportedFunnelDeal & { createdAt: string },
       ];
 
       const bottlenecks = identifyFunnelBottlenecks(
         oldDealWithoutStageDuration,
-        undefined,
         new Date('2026-06-01T00:00:00Z'),
-        25,
       );
       expect(bottlenecks).toHaveLength(0);
     });
 
     it('beachtet stageEnteredAt zur Berechnung der Phasenverweildauer', () => {
-      const refDate = new Date('2026-06-30T12:00:00Z');
       const dealWithStageDate = [
         {
           id: 'stage-date-deal',
@@ -290,18 +308,33 @@ describe('funnelAnalyticsService', () => {
           amount: 20000,
           closeDate: '2026-07-31',
           pipeline: 'Core Sales',
-          stageEnteredAt: '2026-05-31T12:00:00Z', // 30 Tage in dieser Phase
+          stageEnteredAt: '2026-04-30T12:00:00Z', // 61 Tage in dieser Phase
         } as ImportedFunnelDeal & { stageEnteredAt: string },
       ];
 
-      const bottlenecks = identifyFunnelBottlenecks(dealWithStageDate, undefined, refDate, 25);
+      const bottlenecks = identifyFunnelBottlenecks(dealWithStageDate, refDate);
       expect(bottlenecks).toHaveLength(1);
-      expect(bottlenecks[0]!.avgDaysInStage).toBe(30);
+      expect(bottlenecks[0]!.avgDaysInStage).toBe(61);
+    });
+
+    it('zählt nur aktive Deals ohne Phasendatum als unbekannte Verweildauer', () => {
+      const deals = [
+        dealInStage('active-unknown', 'Verhandlung'),
+        dealInStage('won-unknown', 'WON'),
+        dealInStage('lost-unknown', 'LOST'),
+        dealInStage('known', 'Verhandlung', stageEnteredDaysAgo(5)),
+      ];
+
+      const result = calculateFunnelAnalytics({ deals, mode: 'live', referenceDate: refDate });
+
+      expect(result.dealsWithoutStageDate).toBe(1);
     });
   });
 
   describe('getDealDaysInStage', () => {
-    it('liefert daysInStage wenn vorhanden', () => {
+    const refDate = new Date('2026-06-30T12:00:00Z');
+
+    it('liefert die Verweildauer aus stageEnteredAt', () => {
       const deal = {
         id: 'd1',
         dealName: 'D1',
@@ -309,12 +342,12 @@ describe('funnelAnalyticsService', () => {
         amount: 100,
         closeDate: '2026-06-30',
         pipeline: 'C',
-        daysInStage: 20,
+        stageEnteredAt: '2026-06-10T12:00:00Z',
       };
-      expect(getDealDaysInStage(deal)).toBe(20);
+      expect(getDealDaysInStage(deal, refDate)).toBe(20);
     });
 
-    it('liefert null wenn weder daysInStage noch stageEnteredAt vorhanden sind', () => {
+    it('liefert null wenn weder stageEnteredAt noch ein gültiges Datum vorhanden sind', () => {
       const deal = {
         id: 'd2',
         dealName: 'D2',
@@ -324,7 +357,7 @@ describe('funnelAnalyticsService', () => {
         pipeline: 'C',
         createdAt: '2026-01-01',
       };
-      expect(getDealDaysInStage(deal)).toBeNull();
+      expect(getDealDaysInStage(deal, refDate)).toBeNull();
     });
   });
 
