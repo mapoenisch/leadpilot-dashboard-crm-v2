@@ -19972,3 +19972,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `supabase db reset` + `supabase test db`: 10 Dateien / 260 pgTAP-Tests PASS (alle Konvertierungs-Tests unverändert grün, LP409-Pfad weiterhin abgedeckt). Reine SQL-Änderung, keine TS-/UI-Anpassung; übrige Gates des Heads `ce5c857` bleiben gültig (tsc/lint/format/2.697 Vitest-Tests/verify/build damals grün, seitdem nur Migrations- und Testdatei geändert). Schutzbereichs-Diff unverändert leer.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung des Codex-Befunds auf `316f528` (11.11.2026)
+
+**Kontext:** Codex-Review auf `316f528` meldete 1×P2. Befund war berechtigt.
+
+**Befund und Behebung:**
+
+- **P2 Qualifizierungsstatus im Listenexport (`LeadsPage.tsx`):** `enrichedContacts` behandelte eine fehlende/leere `qualifiedLeadIds`-Menge als „unqualifiziert", während `exportBlocked` nur die Kontaktabfrage berücksichtigte — der gefilterte CSV-Export konnte „Offen" für tatsächlich qualifizierte Kontakte schreiben. `isLoading`/`isError` von `useQualifiedContactIds` fließen jetzt als `effectiveIsLoading`/`effectiveIsError` in `countText`, `exportBlocked`, `stateInfo` und `LeadsKpiGrid` ein; der Export bleibt gesperrt, solange die Qualifizierungsdaten laden oder fehlschlagen (nur im Contacts-Tab aktiv). Die beiden Zustands-Testdateien mocken `useQualifiedContactIds`/`useLeadQualification` jetzt explizit mit aufgelöstem Leerzustand.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npx vitest run src/features/crm` 26 Dateien / 180 Tests grün inkl. der zuvor betroffenen Zustands-Tests; übrige LeadsPage-Tests (scoring, provenance, routePages, CRMView) grün. Reine Frontend-Statuskopplung ohne Schema-Änderung; pgTAP-Stand 260 Tests bleibt gültig. Schutzbereichs-Diff unverändert leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.

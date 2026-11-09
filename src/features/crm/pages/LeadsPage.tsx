@@ -88,7 +88,11 @@ export function LeadsPage() {
   }, [companiesData?.items]);
 
   // Qualifizierte Kontakte kommen serverseitig aus lead_qualifications (RLS)
-  const { data: qualifiedLeadIds } = useQualifiedContactIds(activeTab === 'contacts');
+  const {
+    data: qualifiedLeadIds,
+    isLoading: isQualificationsLoading,
+    isError: isQualificationsError,
+  } = useQualifiedContactIds(activeTab === 'contacts');
 
   const isClientQualityPaging = activeTab === 'contacts' && qualityFilter !== 'ALL';
 
@@ -147,8 +151,21 @@ export function LeadsPage() {
 
   const isAudit = activeTab === 'audit';
   const hasData = data !== undefined && !isPlaceholderData;
-  const countText = isAudit ? '–' : isError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
-  const exportBlocked = isError || !hasData;
+  // Der Qualifizierungsstatus ist Teil des Kontakt-Datenbestands: solange er
+  // lädt oder fehlschlägt, wären BANT-Angaben unvollständig — Anzeige und
+  // angereicherter CSV-Export werden als nicht bereit behandelt.
+  const qualificationsActive = activeTab === 'contacts';
+  const effectiveIsLoading = isLoading || (qualificationsActive && isQualificationsLoading);
+  const effectiveIsError = isError || (qualificationsActive && isQualificationsError);
+  const countText = isAudit
+    ? '–'
+    : effectiveIsError
+      ? 'Nicht verfügbar'
+      : hasData
+        ? String(total)
+        : '…';
+  const exportBlocked =
+    effectiveIsError || !hasData || (qualificationsActive && isQualificationsLoading);
   const exportHintId = useId();
 
   const handleTabChange = (newTab: string) => {
@@ -193,7 +210,7 @@ export function LeadsPage() {
     setTimeout(() => setConversionSuccessMessage(null), 6000);
   };
 
-  const stateInfo = getCrmListStateInfo(isLoading, isError, error, items.length);
+  const stateInfo = getCrmListStateInfo(effectiveIsLoading, effectiveIsError, error, items.length);
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
@@ -227,7 +244,7 @@ export function LeadsPage() {
               </Button>
               {exportBlocked && !isViewer && (
                 <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
-                  {isError
+                  {effectiveIsError
                     ? 'Export gesperrt: Datenbasis nicht verfügbar'
                     : 'Export nach dem Laden verfügbar'}
                 </span>
@@ -260,7 +277,7 @@ export function LeadsPage() {
       <LeadsKpiGrid
         countText={countText}
         isAudit={isAudit}
-        isError={isError}
+        isError={effectiveIsError}
         hasData={hasData}
         page={page}
         pageSize={pageSize}

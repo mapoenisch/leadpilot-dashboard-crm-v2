@@ -14,6 +14,14 @@ import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 
 vi.mock('@/auth/organizationContext', () => ({ useOrganization: vi.fn() }));
 vi.mock('@/hooks/queries/useCrmListQuery', () => ({ useCrmListQuery: vi.fn() }));
+vi.mock('@/features/crm/hooks/useLeadQualifications', () => ({
+  useQualifiedContactIds: vi.fn(() => ({
+    data: new Set<string>(),
+    isLoading: false,
+    isError: false,
+  })),
+  useLeadQualification: vi.fn(() => ({ data: null, isPending: false, isError: false })),
+}));
 
 const mockedOrg = vi.mocked(useOrganization);
 const mockedQuery = vi.mocked(useCrmListQuery);
