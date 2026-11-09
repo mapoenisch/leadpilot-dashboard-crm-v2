@@ -19685,3 +19685,10 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle 25 Integritätssuiten (001–025) bestanden; `npm run build` erfolgreich. `git grep "Gemini AI Engine" -- src/` leer. Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) leer. Keine sichtbare UI-Änderung, daher keine Screenshot-Matrix.
 
 **Hinweis:** Der Branch heißt `opencode/auftrag-136-falsch-ki-entfernen`; das Präfix nennt den Builder nach `CLAUDE.md` §4.1. Sonst gilt der Plan unverändert.
+
+### Nachtrag Codex-Review (PR #157)
+
+**Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `2415c1c` · **Datum:** 2026-11-09
+
+- **Ergebnis:** „Didn't find any major issues" – keine Befunde.
+- Ein Doku-Commit ohne Codeänderung braucht nach `CLAUDE.md` §4.1 Punkt 5 kein neues Review.
