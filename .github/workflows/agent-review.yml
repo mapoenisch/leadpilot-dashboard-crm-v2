@@ -40,7 +40,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
 
@@ -81,7 +81,7 @@ jobs:
           EXPECTED_SHA: ${{ needs.ack.outputs.sha }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA" || { echo "main hat sich seit dem Bestätigen bewegt; Kommando erneut absetzen."; exit 1; }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
 
@@ -121,7 +121,7 @@ jobs:
           EXPECTED_SHA: ${{ needs.ack.outputs.sha }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA" || { echo "main hat sich seit dem Bestätigen bewegt; Kommando erneut absetzen."; exit 1; }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
 
