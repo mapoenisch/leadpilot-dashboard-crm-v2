@@ -42,7 +42,7 @@ CREATE POLICY "deal_stage_events_select_own_org" ON public.deal_stage_events
     AND public.is_active_member()
   );
 
-REVOKE INSERT, UPDATE, DELETE ON public.deal_stage_events FROM authenticated, anon;
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.deal_stage_events FROM authenticated, anon;
 
 -- ------------------------------------------------- 3. Normalisierung
 -- Spiegel des Frontend-Mappings: kanonische Identifier und HubSpot-Rohwerte

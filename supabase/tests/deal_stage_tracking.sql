@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(23);
+SELECT plan(24);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.deal_stage_events WHERE deal_id LIKE 'ds137-%';
@@ -200,7 +200,15 @@ SELECT throws_ok(
   'direct_event_insert_denied: direkter INSERT ist gesperrt'
 );
 
--- ------------------------------------- 23: Bestandsdaten bleiben unbekannt --
+-- ------------------------------------- 23: direkter TRUNCATE auf Events --
+SELECT throws_ok(
+  $$TRUNCATE public.deal_stage_events$$,
+  '42501',
+  NULL,
+  'direct_truncate_denied: TRUNCATE ist gesperrt'
+);
+
+-- ------------------------------------- 24: Bestandsdaten bleiben unbekannt --
 RESET ROLE;
 SELECT is(
   (SELECT stage_entered_at FROM public.imported_funnel_deals WHERE id = 'ds137-legacy'),
