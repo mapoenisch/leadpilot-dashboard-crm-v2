@@ -1,5 +1,7 @@
-// G60 (Auftrag 067N, Step 4) / Auftrag 129: URL-synchrone serverseitige Deals-Ansicht mit Pagination, Export und Kanban-Board
-import { useState, useMemo, useCallback, useEffect, useRef, useId } from 'react';
+// G60 (Auftrag 067N, Step 4) / Auftrag 129 / 138: URL-synchrone serverseitige
+// Deals-Ansicht mit Pagination, Export und Kanban-Board. Phasenwechsel laufen
+// über die RPC `move_deal_stage`; der Browser speichert keinen Fachzustand mehr.
+import { useState, useMemo, useCallback, useRef, useId } from 'react';
 import { Download, AlertCircle } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Badge } from '@/components/ui/Badge';
@@ -9,9 +11,10 @@ import { ImportedFunnelDeal } from '@/types/crm';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 import { CrmServiceError } from '@/services/crm/crmExportService';
-import { fetchCrmList } from '@/services/crm/crmListService';
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import { useCrmProvenance } from '../hooks/useCrmProvenance';
+import { useMoveDealStage } from '../hooks/useMoveDealStage';
+import { MOVE_DEAL_STAGE_ERROR_MESSAGES } from '../services/dealStageService';
 import { DealsTableCard } from '../components/DealsTableCard';
 import { DealsViewToggle } from '../components/DealsViewToggle';
 import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
@@ -19,24 +22,24 @@ import { DealsKpiGrid } from '../components/DealsKpiGrid';
 import { DealsFilterBar, BASE_STAGE_OPTIONS } from '../components/DealsFilterBar';
 import { exportCrmDealsCsv } from '../utils/crmCsvHelper';
 import {
-  applyClientDealView,
   buildStageOptions,
-  buildDealsQueryKey,
-  sliceTableDeals,
   useDealsUrlState,
+  mergeUniqueDeals,
+  formatResultCountText,
+  useKanbanExtraPages,
+  KANBAN_PAGE_SIZE,
 } from '../utils/dealsClientView';
-import {
-  getDealStageOverridesStorageKey,
-  normalizeCanonicalStageLabel,
-  useDealStageOverrides,
-} from '../utils/crmStageHelper';
+import { normalizeCanonicalStageLabel } from '../utils/crmStageHelper';
+
+interface MoveNotice {
+  kind: 'success' | 'error';
+  text: string;
+}
 
 export function DealsPage() {
   const { session } = useOrganization();
   const isViewer = session?.role === 'viewer';
   const { provenance, isLoading: isProvLoading } = useCrmProvenance('deals');
-
-  const storageKey = getDealStageOverridesStorageKey(session?.organizationId, session?.userId);
 
   const {
     setViewModeRaw,
@@ -55,48 +58,19 @@ export function DealsPage() {
     handleStageChange,
   } = useDealsUrlState();
 
-  const {
-    stageOverrides,
-    hasStageOverrides,
-    serverStageFilter,
-    serverSearchTerm,
-    clientPagingActive,
-    handleDealStageChange,
-  } = useDealStageOverrides(storageKey, stageFilter, sortField, searchTerm);
-
-  const pageSize = viewMode === 'kanban' || clientPagingActive ? 100 : tablePageSize;
-
-  const [extraDealsState, setExtraDealsState] = useState<{
-    queryKey: string;
-    items: ImportedFunnelDeal[];
-  }>({ queryKey: '', items: [] });
-  const [loadMoreErrorState, setLoadMoreErrorState] = useState<{
-    queryKey: string;
-    error: boolean;
-  }>({ queryKey: '', error: false });
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const activeLoadMoreQueryRef = useRef<string>('');
+  const pageSize = viewMode === 'kanban' ? KANBAN_PAGE_SIZE : tablePageSize;
+  const serverSearchTerm = searchTerm.trim() || undefined;
+  const serverStageFilter = stageFilter !== 'ALL' ? stageFilter : undefined;
+  const [moveNotice, setMoveNotice] = useState<MoveNotice | null>(null);
+  const moveInFlightRef = useRef(false);
+  // Sichtbare Sperre für die gesamte Mutation inklusive onSettled-Nachladen;
+  // isMovingStage endet bereits, während refetch()/Extra-Seiten noch laufen.
+  const [settlingDealId, setSettlingDealId] = useState<string | null>(null);
 
   const currentQueryKey = useMemo(
-    () =>
-      buildDealsQueryKey({
-        searchTerm,
-        serverSearchTerm,
-        stageFilter,
-        serverStageFilter,
-        sortField,
-        sortOrder,
-      }),
-    [searchTerm, serverSearchTerm, stageFilter, serverStageFilter, sortField, sortOrder],
+    () => `${serverSearchTerm ?? ''}|${serverStageFilter ?? 'ALL'}|${sortField}|${sortOrder}`,
+    [serverSearchTerm, serverStageFilter, sortField, sortOrder],
   );
-
-  // Synchron an den aktuellen Query-Key gebunden: Sofort leer und fehlerfrei bei Filter-/Suchwechsel
-  const extraDeals = useMemo(
-    () => (extraDealsState.queryKey === currentQueryKey ? extraDealsState.items : []),
-    [extraDealsState, currentQueryKey],
-  );
-  const loadMoreFailed =
-    loadMoreErrorState.queryKey === currentQueryKey && loadMoreErrorState.error;
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, isPlaceholderData, error, refetch } =
@@ -106,118 +80,96 @@ export function DealsPage() {
       filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
       sortBy: sortField,
       sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-      page: viewMode === 'kanban' || clientPagingActive ? 1 : page,
+      page: viewMode === 'kanban' ? 1 : page,
       pageSize,
     });
 
-  const rawDeals = useMemo(
-    () =>
-      viewMode === 'kanban' || clientPagingActive
-        ? [...(data?.items ?? []), ...extraDeals]
-        : (data?.items ?? []),
-    [viewMode, clientPagingActive, data?.items, extraDeals],
+  const { mutate: mutateDealStage, isPending: isMovingStage } = useMoveDealStage(
+    session?.organizationId,
   );
+  const isStageUpdateRunning = isMovingStage || settlingDealId !== null;
+  const lockedDealId = isStageUpdateRunning ? (settlingDealId ?? undefined) : undefined;
 
-  // Serverseitige Gesamtzahl und bereits geladene Zeilen (vor der Client-Auswertung)
-  const serverTotal = data?.total ?? 0;
-  const hasMoreOnServer = rawDeals.length < serverTotal;
-  // Client-Filter, -Suche und -Sortierung brauchen die vollständige Datenbasis
-  const needsFullBase = clientPagingActive && hasMoreOnServer;
-  const isFullBaseError = needsFullBase && loadMoreFailed;
-
-  const mappedDeals = useMemo(() => {
-    return rawDeals.map((d) => {
-      const override = stageOverrides[d.id];
-      const stage = override ?? normalizeCanonicalStageLabel(d.stage);
-      return stage !== d.stage ? { ...d, stage } : d;
-    });
-  }, [rawDeals, stageOverrides]);
-
-  const deals = useMemo(
-    () =>
-      applyClientDealView(mappedDeals, {
-        active: hasStageOverrides,
-        searchTerm,
-        stageFilter,
-        sortField,
-        sortOrder,
-      }),
-    [mappedDeals, hasStageOverrides, searchTerm, stageFilter, sortField, sortOrder],
-  );
-
-  const isClientFiltered =
-    hasStageOverrides && (stageFilter !== 'ALL' || Boolean(searchTerm.trim()));
-  const total = isClientFiltered ? deals.length : serverTotal;
-
-  const tableDeals = useMemo(
-    () => sliceTableDeals(deals, clientPagingActive, viewMode, page, tablePageSize),
-    [clientPagingActive, viewMode, page, tablePageSize, deals],
-  );
-
-  const handleLoadMore = useCallback(async () => {
-    if (isLoadingMore || isPlaceholderData) return;
-    const requestKey = currentQueryKey;
-    activeLoadMoreQueryRef.current = requestKey;
-    setIsLoadingMore(true);
-    try {
-      const currentCount =
-        (data?.items?.length ?? 0) +
-        (extraDealsState.queryKey === requestKey ? extraDealsState.items.length : 0);
-      const nextPage = Math.floor(currentCount / 100) + 1;
-      const res = await fetchCrmList<ImportedFunnelDeal>({
-        resource: 'deals',
-        q: serverSearchTerm,
-        filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
-        sortBy: sortField,
-        sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-        page: nextPage,
-        pageSize: 100,
-      });
-      if (activeLoadMoreQueryRef.current === requestKey) {
-        setExtraDealsState((prev) => ({
-          queryKey: requestKey,
-          items: prev.queryKey === requestKey ? [...prev.items, ...res.items] : res.items,
-        }));
-      }
-    } catch {
-      if (activeLoadMoreQueryRef.current === requestKey) {
-        setLoadMoreErrorState({ queryKey: requestKey, error: true });
-      }
-    } finally {
-      if (activeLoadMoreQueryRef.current === requestKey) {
-        setIsLoadingMore(false);
-      }
-    }
-  }, [
-    currentQueryKey,
-    data?.items?.length,
-    extraDealsState,
+  const {
+    extraDeals,
     isLoadingMore,
-    isPlaceholderData,
+    loadMoreFailed,
+    reloadLoadedExtraPages,
+    handleLoadMore,
+    handleRetryLoadMore,
+  } = useKanbanExtraPages({
+    currentQueryKey,
     serverSearchTerm,
     serverStageFilter,
     sortField,
     sortOrder,
-  ]);
+    isPlaceholderData,
+    suspendLoadMore: isStageUpdateRunning,
+  });
 
-  const handleRetryLoadMore = useCallback(() => {
-    setLoadMoreErrorState({ queryKey: currentQueryKey, error: false });
-    void handleLoadMore();
-  }, [currentQueryKey, handleLoadMore]);
+  const rawDeals = useMemo(
+    () =>
+      viewMode === 'kanban' ? mergeUniqueDeals(data?.items ?? [], extraDeals) : (data?.items ?? []),
+    [viewMode, data?.items, extraDeals],
+  );
 
-  // Bei lokalen Phasenwechseln mit Filter/Suche/Phasensortierung alle Serverseiten nachladen,
-  // damit die Client-Auswertung auf der vollständigen Datenbasis läuft.
-  useEffect(() => {
-    if (
-      needsFullBase &&
-      !loadMoreFailed &&
-      !isLoadingMore &&
-      !isPlaceholderData &&
-      data !== undefined
-    ) {
-      void handleLoadMore();
-    }
-  }, [needsFullBase, loadMoreFailed, isLoadingMore, isPlaceholderData, data, handleLoadMore]);
+  // Nur Anzeige-Normalisierung; Filter, Suche, Sortierung und Paginierung sind serverseitig.
+  const deals = useMemo(
+    () =>
+      rawDeals.map((d) => {
+        const stage = normalizeCanonicalStageLabel(d.stage);
+        return stage !== d.stage ? { ...d, stage } : d;
+      }),
+    [rawDeals],
+  );
+
+  const serverTotal = data?.total ?? 0;
+  const hasMoreOnServer = rawDeals.length < serverTotal;
+
+  const handleDealStageChange = useCallback(
+    (dealId: string, newStage: string) => {
+      const deal = rawDeals.find((d) => d.id === dealId);
+      // isLoadingMore: Ein laufender Seitenabruf könnte sonst nach dem
+      // Phasenwechsel eine veraltete Seite committen (Codex-Review PR #159).
+      if (!deal || isViewer || moveInFlightRef.current || isLoadingMore) return;
+      // Konfliktprüfung gegen den gespeicherten Rohwert, nicht gegen das Label.
+      const expectedStage = deal.stageRaw ?? deal.stage;
+      if (normalizeCanonicalStageLabel(expectedStage) === newStage) return;
+
+      moveInFlightRef.current = true;
+      setSettlingDealId(dealId);
+
+      setMoveNotice(null);
+      mutateDealStage(
+        { dealId, expectedStage, newStage },
+        {
+          onSuccess: () => {
+            setMoveNotice({
+              kind: 'success',
+              text: `${deal.dealName} nach ${newStage} verschoben.`,
+            });
+          },
+          onError: (err) => {
+            setMoveNotice({
+              kind: 'error',
+              text: MOVE_DEAL_STAGE_ERROR_MESSAGES[err.code],
+            });
+          },
+          onSettled: async () => {
+            try {
+              // Hinweis 1: Erst Seite 1 aktualisieren, danach Extra-Seiten nachladen, um Seitengrenzen-Rennen zu verhindern
+              await refetch();
+              await reloadLoadedExtraPages();
+            } finally {
+              moveInFlightRef.current = false;
+              setSettlingDealId(null);
+            }
+          },
+        },
+      );
+    },
+    [rawDeals, isViewer, isLoadingMore, mutateDealStage, refetch, reloadLoadedExtraPages],
+  );
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -227,13 +179,10 @@ export function DealsPage() {
     setExportError(null);
     try {
       await exportCrmDealsCsv({
-        serverSearchTerm,
-        serverStageFilter,
+        searchTerm: serverSearchTerm,
+        stageFilter: serverStageFilter,
         sortField,
         sortOrder,
-        stageOverrides,
-        stageFilter,
-        searchTerm,
       });
     } catch (err) {
       setExportError(err instanceof CrmServiceError ? err.message : 'Fehler beim CSV-Export.');
@@ -242,15 +191,14 @@ export function DealsPage() {
     }
   };
 
-  const hasData = data !== undefined && !isPlaceholderData && !needsFullBase;
-  const countText = isError || isFullBaseError ? 'Nicht verfügbar' : hasData ? String(total) : '…';
-  const exportBlocked = isError || isFullBaseError || !hasData;
+  const hasData = data !== undefined && !isPlaceholderData;
+  const countText = isError ? 'Nicht verfügbar' : hasData ? String(serverTotal) : '…';
+  const exportBlocked = isError || !hasData;
   const exportHintId = useId();
 
-  const stageOptions = useMemo(
-    () => buildStageOptions(BASE_STAGE_OPTIONS, mappedDeals),
-    [mappedDeals],
-  );
+  const stageOptions = useMemo(() => buildStageOptions(BASE_STAGE_OPTIONS, deals), [deals]);
+  const canMoveDeals =
+    !isViewer && !isStageUpdateRunning && !isLoadingMore && Boolean(session?.organizationId);
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
@@ -284,7 +232,7 @@ export function DealsPage() {
           </Button>
           {exportBlocked && !isViewer && (
             <span id={exportHintId} className="text-[12px] text-[var(--color-text-muted)]">
-              {isError || isFullBaseError
+              {isError
                 ? 'Export gesperrt: Datenbasis nicht verfügbar'
                 : 'Export nach dem Laden verfügbar'}
             </span>
@@ -302,6 +250,24 @@ export function DealsPage() {
         </div>
       )}
 
+      {moveNotice?.kind === 'error' && (
+        <div
+          role="alert"
+          className="flex items-center gap-[var(--space-2)] p-[var(--space-3)] rounded-md bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-error text-[13px]"
+        >
+          <AlertCircle size={16} />
+          <span>{moveNotice.text}</span>
+        </div>
+      )}
+      <div
+        aria-live="polite"
+        role="status"
+        data-testid="deal-stage-announcement"
+        className="sr-only"
+      >
+        {moveNotice?.kind === 'success' ? moveNotice.text : ''}
+      </div>
+
       {/* 2. KPI Cards */}
       <DealsKpiGrid
         countText={countText}
@@ -309,7 +275,7 @@ export function DealsPage() {
         isError={isError}
         page={page}
         pageSize={pageSize}
-        total={total}
+        total={serverTotal}
         stageFilter={stageFilter}
         stageCount={stageOptions.length - 1}
       />
@@ -325,13 +291,7 @@ export function DealsPage() {
         onSortChange={handleSortChange}
         sortOrder={sortOrder}
         onOrderChange={handleOrderChange}
-        resultCountText={
-          isError || isFullBaseError
-            ? 'Ergebnis nicht verfügbar'
-            : !hasData
-              ? 'Ergebnis wird geladen …'
-              : `${total} ${total === 1 ? 'Deal' : 'Deals'} gefunden`
-        }
+        resultCountText={formatResultCountText(isError, hasData, serverTotal)}
       />
 
       {/* 4. Table OR Kanban Board */}
@@ -350,10 +310,10 @@ export function DealsPage() {
           height={220}
           onRetry={() => void refetch()}
         />
-      ) : isFullBaseError ? (
+      ) : viewMode === 'kanban' && loadMoreFailed ? (
         <ManagementChartState
           type="error"
-          message="Fehler beim Nachladen der vollständigen Deal-Pipeline."
+          message="Fehler beim Nachladen der weiteren Deal-Seiten."
           sourceLabel="CRM-Daten"
           height={220}
           onRetry={handleRetryLoadMore}
@@ -361,18 +321,20 @@ export function DealsPage() {
       ) : viewMode === 'kanban' ? (
         <DealsKanbanBoard
           deals={deals}
-          totalDeals={total}
+          totalDeals={serverTotal}
           onDealStageChange={handleDealStageChange}
           onLoadMore={handleLoadMore}
-          hasMore={!isPlaceholderData && hasMoreOnServer && !needsFullBase}
-          isLoadingMore={isLoadingMore}
+          hasMore={!isPlaceholderData && hasMoreOnServer}
+          isLoadingMore={isLoadingMore || isStageUpdateRunning}
+          canMoveDeals={canMoveDeals}
+          lockedDealId={lockedDealId}
         />
       ) : (
         <DealsTableCard
-          deals={tableDeals}
+          deals={deals}
           page={page}
           pageSize={tablePageSize}
-          total={total}
+          total={serverTotal}
           onPageChange={(newPage) => setPageStr(String(newPage))}
           onPageSizeChange={(newSize) => {
             setPageSizeStr(String(newSize));

@@ -8,8 +8,13 @@ import { isWonStage, isLostStage } from '../utils/crmStageHelper';
 
 export interface DealKanbanCardProps {
   deal: ImportedFunnelDeal;
-  allStages: readonly string[];
+  /** Erlaubte Verschiebeziele; `move_deal_stage` akzeptiert nur die kanonischen Labels. */
+  moveStages: readonly string[];
   onMoveStage: (dealId: string, newStage: string) => void;
+  /** Viewer sehen keine Verschiebe-Bedienung. */
+  canMove?: boolean;
+  /** Während einer laufenden Mutation ist die Karte gesperrt. */
+  isLocked?: boolean;
   onDragStart?: (dealId: string) => void;
   onDragEnd?: () => void;
   isDragging?: boolean;
@@ -41,12 +46,15 @@ export function isDealOverdue(closeDate?: string, isWonOrLost = false): boolean 
 
 export function DealKanbanCard({
   deal,
-  allStages,
+  moveStages,
   onMoveStage,
+  canMove = true,
+  isLocked = false,
   onDragStart,
   onDragEnd,
   isDragging,
 }: DealKanbanCardProps) {
+  const isMovable = canMove && !isLocked;
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuCoords, setMenuCoords] = useState<{
     top: number;
@@ -78,7 +86,7 @@ export function DealKanbanCard({
 
       const left = Math.max(8, Math.min(windowWidth - menuWidth - 8, rect.right - menuWidth));
       // Geschätzte Menühöhe: Header (28px) + Padding/Borders (16px) + Einträge (ca. 30px je Phase, max 220px Liste)
-      const estimatedHeight = Math.min(265, 44 + allStages.length * 30);
+      const estimatedHeight = Math.min(265, 44 + moveStages.length * 30);
       const spaceBelow = windowHeight - rect.bottom - 8;
       const spaceAbove = rect.top - 8;
 
@@ -163,6 +171,10 @@ export function DealKanbanCard({
   }, [menuOpen]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!isMovable) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData('text/plain', deal.id);
     e.dataTransfer.effectAllowed = 'move';
     onDragStart?.(deal.id);
@@ -172,15 +184,20 @@ export function DealKanbanCard({
     <div
       role="article"
       aria-label={`Deal: ${deal.dealName}`}
+      aria-busy={isLocked || undefined}
       data-testid={`deal-card-${deal.id}`}
       data-deal-id={deal.id}
-      draggable
+      data-locked={isLocked || undefined}
+      draggable={isMovable}
       onDragStart={handleDragStart}
       onDragEnd={onDragEnd}
       className={cn(
         'group relative flex flex-col gap-2 rounded-xl border border-border bg-surface/90 p-3.5 backdrop-blur-md shadow-sm transition-all duration-150',
-        'hover:border-primary/50 hover:shadow-md cursor-grab active:cursor-grabbing',
+        isMovable
+          ? 'hover:border-primary/50 hover:shadow-md cursor-grab active:cursor-grabbing'
+          : 'cursor-default',
         isDragging && 'opacity-40 scale-[0.98] border-dashed border-2 border-primary/60',
+        isLocked && 'opacity-70',
         isWon && 'border-primary/40 bg-primary/[0.04]',
         isLost && 'opacity-80 border-border/60 bg-surface/40',
       )}
@@ -201,76 +218,79 @@ export function DealKanbanCard({
         </div>
 
         {/* Tastaturbedienbares Menü für barrierefreien Phasenwechsel */}
-        <div className="relative">
-          <button
-            ref={buttonRef}
-            type="button"
-            draggable={false}
-            onDragStart={(e) => e.stopPropagation()}
-            onClick={toggleMenu}
-            aria-label={`${deal.dealName}: Phase ändern`}
-            aria-expanded={menuOpen}
-            className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-text-muted)] hover:bg-surface-hover hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            <MoreVertical size={13} aria-hidden="true" />
-          </button>
+        {canMove && (
+          <div className="relative">
+            <button
+              ref={buttonRef}
+              type="button"
+              draggable={false}
+              onDragStart={(e) => e.stopPropagation()}
+              onClick={toggleMenu}
+              disabled={isLocked}
+              aria-label={`${deal.dealName}: Phase ändern`}
+              aria-expanded={menuOpen}
+              className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-text-muted)] hover:bg-surface-hover hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <MoreVertical size={13} aria-hidden="true" />
+            </button>
 
-          {menuOpen &&
-            typeof document !== 'undefined' &&
-            createPortal(
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setMenuOpen(false)}
-                  aria-hidden="true"
-                />
-                <div
-                  ref={(el) => {
-                    menuRef.current = el;
-                    if (el && menuCoords) {
-                      el.style.top = `${menuCoords.top}px`;
-                      el.style.left = `${menuCoords.left}px`;
-                      el.style.maxHeight = `${menuCoords.maxHeight}px`;
-                    }
-                  }}
-                  role="menu"
-                  aria-label={`Phase für ${deal.dealName} wählen`}
-                  className="fixed z-50 flex flex-col min-w-[200px] max-w-[calc(100vw-16px)] rounded-lg border border-border bg-[var(--color-surface-raised,#0f2422)] p-1.5 shadow-2xl backdrop-blur-md"
-                >
-                  <div className="shrink-0 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)] border-b border-border/50">
-                    In Phase verschieben:
+            {menuOpen &&
+              typeof document !== 'undefined' &&
+              createPortal(
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setMenuOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div
+                    ref={(el) => {
+                      menuRef.current = el;
+                      if (el && menuCoords) {
+                        el.style.top = `${menuCoords.top}px`;
+                        el.style.left = `${menuCoords.left}px`;
+                        el.style.maxHeight = `${menuCoords.maxHeight}px`;
+                      }
+                    }}
+                    role="menu"
+                    aria-label={`Phase für ${deal.dealName} wählen`}
+                    className="fixed z-50 flex flex-col min-w-[200px] max-w-[calc(100vw-16px)] rounded-lg border border-border bg-[var(--color-surface-raised,#0f2422)] p-1.5 shadow-2xl backdrop-blur-md"
+                  >
+                    <div className="shrink-0 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)] border-b border-border/50">
+                      In Phase verschieben:
+                    </div>
+                    <div className="flex flex-col gap-0.5 mt-1 overflow-y-auto min-h-0 max-h-[220px]">
+                      {moveStages.map((stage) => {
+                        const isCurrent = stage === deal.stage;
+                        return (
+                          <button
+                            key={stage}
+                            type="button"
+                            role="menuitem"
+                            disabled={isCurrent || isLocked}
+                            onClick={() => {
+                              onMoveStage(deal.id, stage);
+                              setMenuOpen(false);
+                            }}
+                            className={cn(
+                              'flex items-center justify-between rounded px-2 py-1.5 text-xs text-left transition-colors',
+                              isCurrent
+                                ? 'bg-primary/20 text-primary font-semibold cursor-default'
+                                : 'text-text hover:bg-surface-hover hover:text-primary',
+                            )}
+                          >
+                            <span className="truncate">{stage}</span>
+                            {isCurrent && <span className="text-[10px] text-primary">Aktiv</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-0.5 mt-1 overflow-y-auto min-h-0 max-h-[220px]">
-                    {allStages.map((stage) => {
-                      const isCurrent = stage === deal.stage;
-                      return (
-                        <button
-                          key={stage}
-                          type="button"
-                          role="menuitem"
-                          disabled={isCurrent}
-                          onClick={() => {
-                            onMoveStage(deal.id, stage);
-                            setMenuOpen(false);
-                          }}
-                          className={cn(
-                            'flex items-center justify-between rounded px-2 py-1.5 text-xs text-left transition-colors',
-                            isCurrent
-                              ? 'bg-primary/20 text-primary font-semibold cursor-default'
-                              : 'text-text hover:bg-surface-hover hover:text-primary',
-                          )}
-                        >
-                          <span className="truncate">{stage}</span>
-                          {isCurrent && <span className="text-[10px] text-primary">Aktiv</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>,
-              document.body,
-            )}
-        </div>
+                </>,
+                document.body,
+              )}
+          </div>
+        )}
       </div>
 
       {/* Betrag & Fälligkeitsindikator */}

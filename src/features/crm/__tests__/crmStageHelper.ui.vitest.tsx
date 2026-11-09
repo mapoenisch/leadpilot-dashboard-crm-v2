@@ -6,9 +6,6 @@ import {
   isWonStage,
   isLostStage,
   isClosedStage,
-  getDealStageOverridesStorageKey,
-  readStageOverrides,
-  writeStageOverrides,
   getDealStageFilterVariants,
 } from '../utils/crmStageHelper';
 import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
@@ -64,24 +61,6 @@ describe('crmStageHelper – Kanonische CRM-Phasen und Statusprüfungen', () => 
     expect(isClosedStage('Deal gewonnen')).toBe(true);
     expect(isClosedStage('Deal verloren')).toBe(true);
     expect(isClosedStage('Verhandlung')).toBe(false);
-  });
-
-  it('erzeugt benutzer- und organisationsgebundene Storage-Keys', () => {
-    expect(getDealStageOverridesStorageKey('org-123', 'usr-456')).toBe(
-      'leadpilot_crm_deal_stage_overrides_org-123_usr-456',
-    );
-    expect(getDealStageOverridesStorageKey(undefined, 'usr-456')).toBeNull();
-    expect(getDealStageOverridesStorageKey('org-123', undefined)).toBeNull();
-  });
-
-  it('schreibt und liest Stage-Overrides isoliert im Session-Storage', () => {
-    sessionStorage.clear();
-    const keyA = getDealStageOverridesStorageKey('org-1', 'user-A');
-    const keyB = getDealStageOverridesStorageKey('org-1', 'user-B');
-
-    writeStageOverrides(keyA, { 'd-1': 'Verhandlung' });
-    expect(readStageOverrides(keyA)).toEqual({ 'd-1': 'Verhandlung' });
-    expect(readStageOverrides(keyB)).toEqual({});
   });
 
   it('ermittelt alle Filtervarianten einer Deal-Phase für serverseitige Abfragen', () => {
@@ -148,7 +127,7 @@ describe('DealsKanbanBoard & DealKanbanCard mit kanonischen Phasen (Befund 1)', 
     const { container: containerWon } = render(
       <DealKanbanCard
         deal={MOCK_DEALS_CANONICAL[0]!}
-        allStages={KANBAN_STAGES}
+        moveStages={KANBAN_STAGES}
         onMoveStage={() => {}}
       />,
     );
@@ -158,7 +137,7 @@ describe('DealsKanbanBoard & DealKanbanCard mit kanonischen Phasen (Befund 1)', 
     const { container: containerLost } = render(
       <DealKanbanCard
         deal={MOCK_DEALS_CANONICAL[1]!}
-        allStages={KANBAN_STAGES}
+        moveStages={KANBAN_STAGES}
         onMoveStage={() => {}}
       />,
     );

@@ -7,8 +7,11 @@ import { DealKanbanCard } from './DealKanbanCard';
 export interface KanbanColumnProps {
   stage: string;
   deals: ImportedFunnelDeal[];
-  allStages: readonly string[];
+  /** Erlaubte Verschiebeziele; `move_deal_stage` akzeptiert nur die kanonischen Labels. */
+  moveStages: readonly string[];
   onMoveStage: (dealId: string, newStage: string) => void;
+  canMoveCards?: boolean;
+  lockedDealId?: string;
   onDragStart?: (dealId: string) => void;
   onDragEnd?: () => void;
   activeDragId?: string | null;
@@ -17,8 +20,10 @@ export interface KanbanColumnProps {
 export function KanbanColumn({
   stage,
   deals,
-  allStages,
+  moveStages,
   onMoveStage,
+  canMoveCards = true,
+  lockedDealId,
   onDragStart,
   onDragEnd,
   activeDragId,
@@ -33,7 +38,12 @@ export function KanbanColumn({
     return deals.reduce((sum, d) => sum + (d.amount || 0), 0);
   }, [deals]);
 
+  // Spalten mit nicht kanonischen (importierten) Phasen zeigen Deals, nehmen
+  // aber keinen Drop an, weil die RPC sie mit LP422 ablehnt.
+  const acceptsDrops = canMoveCards && moveStages.includes(stage);
+
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!acceptsDrops) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (!isOver) {
@@ -48,10 +58,11 @@ export function KanbanColumn({
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!acceptsDrops) return;
     e.preventDefault();
     setIsOver(false);
     const dealId = e.dataTransfer.getData('text/plain') || activeDragId;
-    if (dealId) {
+    if (dealId && dealId !== lockedDealId) {
       onMoveStage(dealId, stage);
     }
   };
@@ -121,8 +132,10 @@ export function KanbanColumn({
             <DealKanbanCard
               key={deal.id}
               deal={deal}
-              allStages={allStages}
+              moveStages={moveStages}
               onMoveStage={onMoveStage}
+              canMove={canMoveCards}
+              isLocked={lockedDealId === deal.id}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
               isDragging={activeDragId === deal.id}

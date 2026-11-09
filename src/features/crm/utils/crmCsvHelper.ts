@@ -2,8 +2,10 @@
  * RFC 4180 konformer CSV-Parser und Serializer für den CRM-Export.
  * Unterstützt BOM (\uFEFF), Zellen mit Kommas, Zeilenumbrüchen (\r\n / \n)
  * sowie maskierten Anführungszeichen ("").
+ *
+ * Auftrag 138: Der Export nutzt ausschließlich die serverseitigen Filter;
+ * das nachträgliche Überschreiben von Phasen im Browser entfällt.
  */
-import { normalizeCanonicalStageLabel } from './crmStageHelper';
 import { fetchCrmExportBlob } from '@/services/crm/crmExportService';
 
 export async function readBlobAsText(blob: Blob): Promise<string> {
@@ -104,116 +106,6 @@ export function serializeCsv(rows: string[][]): string {
   return '\uFEFF' + rows.map((r) => r.map((c) => sanitizeCsvCell(c)).join(',')).join('\r\n');
 }
 
-/**
- * Normalisiert einen Phasenwert für Vergleiche, indem ein eventuell serverseitig
- * vorangestelltes Apostroph zum Formelschutz ('=, '+, '-, '@, '\t, '\r) neutralisiert wird.
- */
-export function normalizeStageForComparison(val: string): string {
-  if (typeof val !== 'string') return '';
-  if (/^'\s*[=+\-@\t\r]/.test(val)) {
-    return val.slice(1);
-  }
-  return val;
-}
-
-/**
- * Prüft, ob ein Deal anhand seines wirksamen Namens, seiner Phase oder Pipeline
- * einem Suchbegriff entspricht (analog zu crm-query-export searchFields: deal_name, stage, pipeline).
- */
-export function dealMatchesSearch(
-  deal: { dealName?: string; stage?: string; pipeline?: string },
-  searchTerm?: string,
-): boolean {
-  if (!searchTerm) return true;
-  const term = searchTerm.trim().toLowerCase();
-  if (!term) return true;
-  const nameMatch = deal.dealName?.toLowerCase().includes(term);
-  const rawStage = normalizeStageForComparison(deal.stage ?? '').toLowerCase();
-  const canonicalStage = normalizeCanonicalStageLabel(deal.stage ?? '').toLowerCase();
-  const stageMatch = rawStage.includes(term) || canonicalStage.includes(term);
-  const pipeMatch = deal.pipeline?.toLowerCase().includes(term);
-  return Boolean(nameMatch || stageMatch || pipeMatch);
-}
-
-export function applyStageOverridesToCsv(
-  csvText: string,
-  stageOverrides: Record<string, string>,
-  targetStageFilter?: string,
-  sortField?: string,
-  sortOrder: 'asc' | 'desc' | string = 'desc',
-  searchTerm?: string,
-): string {
-  const rows = parseCsv(csvText);
-  if (rows.length <= 1) return csvText;
-
-  const header = rows[0]!;
-  let idIdx = header.findIndex((h) => h.trim().toLowerCase() === 'id');
-  let stageIdx = header.findIndex((h) => {
-    const lower = h.trim().toLowerCase();
-    return lower === 'stage' || lower === 'vertriebsphase';
-  });
-  let nameIdx = header.findIndex((h) => {
-    const lower = h.trim().toLowerCase();
-    return lower === 'deal name' || lower === 'name' || lower === 'titel';
-  });
-  let pipelineIdx = header.findIndex((h) => h.trim().toLowerCase() === 'pipeline');
-
-  if (idIdx === -1) idIdx = 0;
-  if (stageIdx === -1) stageIdx = 2;
-  if (nameIdx === -1) nameIdx = 1;
-  if (pipelineIdx === -1) pipelineIdx = 5;
-
-  const dataRows: string[][] = [];
-  const normalizedTargetFilter = targetStageFilter
-    ? normalizeStageForComparison(targetStageFilter)
-    : undefined;
-  const searchLower = searchTerm?.trim().toLowerCase();
-
-  for (let i = 1; i < rows.length; i++) {
-    const row = [...rows[i]!];
-    const id = row[idIdx]?.trim();
-    if (id && stageOverrides[id]) {
-      row[stageIdx] = stageOverrides[id]!;
-    }
-
-    if (searchLower) {
-      const nameVal = row[nameIdx]?.toLowerCase() ?? '';
-      const stageVal = normalizeStageForComparison(row[stageIdx] ?? '').toLowerCase();
-      const canonicalVal = normalizeCanonicalStageLabel(stageVal).toLowerCase();
-      const pipeVal = row[pipelineIdx]?.toLowerCase() ?? '';
-      if (
-        !nameVal.includes(searchLower) &&
-        !stageVal.includes(searchLower) &&
-        !canonicalVal.includes(searchLower) &&
-        !pipeVal.includes(searchLower)
-      ) {
-        continue;
-      }
-    }
-
-    if (normalizedTargetFilter && normalizedTargetFilter !== 'ALL') {
-      const rowStage = normalizeStageForComparison(row[stageIdx] ?? '');
-      const rowCanonical = normalizeCanonicalStageLabel(rowStage);
-      if (rowStage === normalizedTargetFilter || rowCanonical === normalizedTargetFilter) {
-        dataRows.push(row);
-      }
-    } else {
-      dataRows.push(row);
-    }
-  }
-
-  if (sortField === 'stage') {
-    dataRows.sort((a, b) => {
-      const stageA = normalizeCanonicalStageLabel(normalizeStageForComparison(a[stageIdx] ?? ''));
-      const stageB = normalizeCanonicalStageLabel(normalizeStageForComparison(b[stageIdx] ?? ''));
-      const cmp = stageA.localeCompare(stageB, 'de');
-      return sortOrder === 'desc' ? -cmp : cmp;
-    });
-  }
-
-  return serializeCsv([header, ...dataRows]);
-}
-
 export function triggerBlobDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -226,33 +118,17 @@ export function triggerBlobDownload(blob: Blob, filename: string): void {
 }
 
 export async function exportCrmDealsCsv(params: {
-  serverSearchTerm?: string;
-  serverStageFilter?: string;
+  searchTerm?: string;
+  stageFilter?: string;
   sortField: string;
   sortOrder: string;
-  stageOverrides: Record<string, string>;
-  stageFilter: string;
-  searchTerm: string;
 }): Promise<void> {
   const blob = await fetchCrmExportBlob({
     resource: 'deals',
-    q: params.serverSearchTerm,
-    filters: params.serverStageFilter ? { stage: params.serverStageFilter } : undefined,
+    q: params.searchTerm,
+    filters: params.stageFilter ? { stage: params.stageFilter } : undefined,
     sortBy: params.sortField,
     sortOrder: (params.sortOrder as 'asc' | 'desc') || 'desc',
   });
-  let exportBlob = blob;
-  if (Object.keys(params.stageOverrides).length > 0) {
-    const text = await readBlobAsText(blob);
-    const updatedCsv = applyStageOverridesToCsv(
-      text,
-      params.stageOverrides,
-      params.stageFilter,
-      params.sortField,
-      params.sortOrder,
-      params.searchTerm,
-    );
-    exportBlob = new Blob([updatedCsv], { type: 'text/csv; charset=utf-8' });
-  }
-  triggerBlobDownload(exportBlob, 'deals-export.csv');
+  triggerBlobDownload(blob, 'deals-export.csv');
 }

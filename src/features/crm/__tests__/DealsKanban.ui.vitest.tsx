@@ -94,7 +94,7 @@ describe('isDealOverdue', () => {
 describe('DealKanbanCard', () => {
   it('zeigt Titel, Betrag, Abschlussdatum und Überfälligkeits-Warnung an', () => {
     render(
-      <DealKanbanCard deal={MOCK_DEALS[3]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+      <DealKanbanCard deal={MOCK_DEALS[3]!} moveStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
     );
 
     expect(screen.getByText('Overdue Project Deal')).toBeInTheDocument();
@@ -106,7 +106,7 @@ describe('DealKanbanCard', () => {
   it('erlaubt barrierefreien Phasenwechsel über das Portal-Tastaturmenü', () => {
     const onMoveStage = vi.fn();
     render(
-      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={onMoveStage} />,
+      <DealKanbanCard deal={MOCK_DEALS[0]!} moveStages={KANBAN_STAGES} onMoveStage={onMoveStage} />,
     );
 
     const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
@@ -121,7 +121,7 @@ describe('DealKanbanCard', () => {
 
   it('schließt das Phasenmenü bei Escape', () => {
     render(
-      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+      <DealKanbanCard deal={MOCK_DEALS[0]!} moveStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
     );
 
     const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
@@ -135,7 +135,7 @@ describe('DealKanbanCard', () => {
   it('fokussiert beim Öffnen den ersten wählbaren Eintrag und stellt Fokus beim Schließen wieder her', async () => {
     vi.useFakeTimers();
     render(
-      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+      <DealKanbanCard deal={MOCK_DEALS[0]!} moveStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
     );
 
     const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
@@ -160,7 +160,7 @@ describe('DealKanbanCard', () => {
   it('hält den Fokus mit Focus-Trap innerhalb des Menüs bei Tab und Shift-Tab', async () => {
     vi.useFakeTimers();
     render(
-      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+      <DealKanbanCard deal={MOCK_DEALS[0]!} moveStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
     );
 
     const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
@@ -186,7 +186,7 @@ describe('DealKanbanCard', () => {
 
   it('schließt das Phasenmenü beim Scrollen des Fensters, aber nicht beim Scrollen innerhalb des Menüs', () => {
     render(
-      <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+      <DealKanbanCard deal={MOCK_DEALS[0]!} moveStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
     );
 
     const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
@@ -225,7 +225,7 @@ describe('DealKanbanCard', () => {
 
     try {
       render(
-        <DealKanbanCard deal={MOCK_DEALS[0]!} allStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
+        <DealKanbanCard deal={MOCK_DEALS[0]!} moveStages={KANBAN_STAGES} onMoveStage={vi.fn()} />,
       );
 
       const menuBtn = screen.getByLabelText('Cloud Migration Pilot: Phase ändern');
@@ -249,7 +249,7 @@ describe('DealKanbanCard', () => {
     render(
       <DealKanbanCard
         deal={MOCK_DEALS[0]!}
-        allStages={KANBAN_STAGES}
+        moveStages={KANBAN_STAGES}
         onMoveStage={vi.fn()}
         onDragStart={onDragStart}
       />,
@@ -275,7 +275,7 @@ describe('KanbanColumn', () => {
       <KanbanColumn
         stage="Lead eingegangen"
         deals={[MOCK_DEALS[0]!]}
-        allStages={KANBAN_STAGES}
+        moveStages={KANBAN_STAGES}
         onMoveStage={vi.fn()}
       />,
     );
@@ -293,7 +293,7 @@ describe('KanbanColumn', () => {
       <KanbanColumn
         stage="Verhandlung"
         deals={[]}
-        allStages={KANBAN_STAGES}
+        moveStages={KANBAN_STAGES}
         onMoveStage={vi.fn()}
       />,
     );
@@ -309,7 +309,7 @@ describe('KanbanColumn', () => {
       <KanbanColumn
         stage="Angebot erstellt"
         deals={[]}
-        allStages={KANBAN_STAGES}
+        moveStages={KANBAN_STAGES}
         onMoveStage={onMoveStage}
       />,
     );
@@ -364,7 +364,7 @@ describe('DealsKanbanBoard', () => {
     expect(onLoadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('aktualisiert Phasen und Summen optimistisch bei Phasenwechsel', () => {
+  it('meldet den Phasenwechsel an den Server, ohne lokal zu verschieben', () => {
     const onStageChange = vi.fn();
     render(<DealsKanbanBoard deals={MOCK_DEALS} onDealStageChange={onStageChange} />);
 
@@ -379,13 +379,86 @@ describe('DealsKanbanBoard', () => {
 
     expect(onStageChange).toHaveBeenCalledWith('deal-1', 'Verhandlung');
 
-    // "Lead eingegangen" hat jetzt 0 Deals und 0 €
-    expect(screen.getByTestId('column-count-Lead eingegangen')).toHaveTextContent('0');
-    expect(screen.getByTestId('column-sum-Lead eingegangen')).toHaveTextContent('0 €');
+    // Der Serverstand bleibt maßgeblich: Das Board verschiebt die Karte nicht selbst.
+    // "Lead eingegangen" behält 1 Deal und 25.000 €, "Verhandlung" bleibt leer.
+    expect(screen.getByTestId('column-count-Lead eingegangen')).toHaveTextContent('1');
+    expect(screen.getByTestId('column-sum-Lead eingegangen')).toHaveTextContent('25.000 €');
+    expect(screen.getByTestId('column-count-Verhandlung')).toHaveTextContent('0');
+    expect(screen.getByTestId('column-sum-Verhandlung')).toHaveTextContent('0 €');
+  });
 
-    // "Verhandlung" hat jetzt 1 Deal und 25.000 €
-    expect(screen.getByTestId('column-count-Verhandlung')).toHaveTextContent('1');
-    expect(screen.getByTestId('column-sum-Verhandlung')).toHaveTextContent('25.000 €');
+  it('blockiert das Verschieben für Viewer und für gesperrte Karten', () => {
+    const onStageChange = vi.fn();
+    const { rerender } = render(
+      <DealsKanbanBoard
+        deals={MOCK_DEALS}
+        onDealStageChange={onStageChange}
+        canMoveDeals={false}
+      />,
+    );
+
+    fireEvent.drop(screen.getByTestId('kanban-column-Verhandlung'), {
+      dataTransfer: { getData: () => 'deal-1' },
+    });
+    expect(onStageChange).not.toHaveBeenCalled();
+
+    rerender(
+      <DealsKanbanBoard
+        deals={MOCK_DEALS}
+        onDealStageChange={onStageChange}
+        lockedDealId="deal-1"
+      />,
+    );
+    fireEvent.drop(screen.getByTestId('kanban-column-Verhandlung'), {
+      dataTransfer: { getData: () => 'deal-1' },
+    });
+    expect(onStageChange).not.toHaveBeenCalled();
+
+    // Andere Karten bleiben trotz Sperre verschiebbar.
+    rerender(
+      <DealsKanbanBoard
+        deals={MOCK_DEALS}
+        onDealStageChange={onStageChange}
+        lockedDealId="deal-1"
+      />,
+    );
+    fireEvent.drop(screen.getByTestId('kanban-column-Verhandlung'), {
+      dataTransfer: { getData: () => 'deal-2' },
+    });
+    expect(onStageChange).toHaveBeenCalledWith('deal-2', 'Verhandlung');
+  });
+
+  it('zeigt importierte Phasen als Spalte, lässt sie aber nicht als Verschiebeziel zu', () => {
+    const customDeal: ImportedFunnelDeal = {
+      id: 'deal-custom',
+      dealName: 'Custom Stage Deal',
+      stage: 'Importierte Spezialphase',
+      amount: 9000,
+      closeDate: '2026-12-01',
+      pipeline: 'default',
+    };
+    const onStageChange = vi.fn();
+    render(
+      <DealsKanbanBoard deals={[customDeal, MOCK_DEALS[0]!]} onDealStageChange={onStageChange} />,
+    );
+
+    // Die Spalte bleibt sichtbar, damit der Deal erreichbar ist …
+    const customColumn = screen.getByTestId('kanban-column-Importierte Spezialphase');
+    expect(customColumn).toBeInTheDocument();
+    expect(screen.getByTestId('deal-card-deal-custom')).toBeInTheDocument();
+
+    // … nimmt aber keinen Drop an, weil move_deal_stage nur kanonische Labels akzeptiert.
+    fireEvent.drop(customColumn, {
+      dataTransfer: { getData: () => 'deal-1' },
+    });
+    expect(onStageChange).not.toHaveBeenCalled();
+
+    // Das Phasenmenü bietet nur die sieben kanonischen Ziele an.
+    fireEvent.click(screen.getByLabelText('Custom Stage Deal: Phase ändern'));
+    expect(
+      screen.queryByRole('menuitem', { name: /Importierte Spezialphase/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /Verhandlung/ })).toBeInTheDocument();
   });
 
   it('setzt activeDragId beim Drop in eine andere Spalte sofort zurück (kein verbleibender Drag-Zustand)', () => {
