@@ -16,16 +16,18 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
 - **Arbeitsweise**: Auftrags-Specs unter `docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md`.
   Jeder Auftrag durchläuft das Gate-System : TypeScript-Check,
   Test-Suite (`npm run verify`), Screenshot-Diffs vorher/nachher, Schutzbereichs-Diff.
-- **Ablauf ab 26.10.2026 (Entscheidung Marc, Details `CLAUDE.md` Abschnitt 4.1):** **Claude Code baut**
-  (schreibt fehlende Detailaufträge selbst, ein Auftrag je PR) → **Codex prüft** über die Codex-App auf
-  GitHub (beim Öffnen, nach Nacharbeit per `@codex review`), baut nichts → Claude Code arbeitet nach.
-  Gate-Freigabe: Codex ohne offene Befunde auf dem aktuellen Head, alle Pflicht-Checks grün, alle
-  Konversationen gelöst. Merge und Release macht Marc.
-- **Ausweichweg, wenn Codex nicht verfügbar ist:** Marc fordert `/<agent> review` an (Antigravity,
-  OpenCode, Devin, Proto oder Perplexity, über `MarcReview`, `agent-review.yml`). Nie mit Marcs eigenem
-  `gh`-Login reviewen. Der frühere Antigravity-Zyklus (`claude-review.yml`) ist abgeschaltet.
-- **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Claude Code schreibt den Builder-Eintrag und trägt das
-  Codex-Ergebnis als Nachtrag ein (Protokoll, keine Freigabe).
+- **Grundregel (Marc, 09.11.2026, Details `CLAUDE.md` Abschnitt 4.1):** Wer baut, ist nicht festgelegt.
+  Entscheidend ist, dass ein anderer Agent reviewt. Marc oder der Auftrag bestimmt den Builder; ein
+  Auftrag je PR. Der Builder arbeitet Befunde nach. Gate-Freigabe: unabhängiger Prüfer ohne offene
+  Befunde auf dem aktuellen Head, alle Pflicht-Checks grün, alle Konversationen gelöst. Merge und
+  Release macht Marc.
+- **Prüfwege:** Standard ist die Codex-App auf GitHub (beim Öffnen, nach Nacharbeit per `@codex review`).
+  Hat Codex gebaut oder ist Codex nicht verfügbar, fordert Marc `/<agent> review` an (Antigravity,
+  OpenCode, Devin, Proto oder Perplexity, über `MarcReview`, `agent-review.yml`). Reviews dürfen auch
+  mit Marcs eigenem Konto abgegeben werden (Entscheidung Marc, 09.11.2026); entscheidend ist nur, dass der
+  Prüfer den Stand nicht gebaut hat. Der frühere Antigravity-Zyklus (`claude-review.yml`) ist abgeschaltet.
+- **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Der Builder schreibt den Builder-Eintrag und trägt das
+  Prüfergebnis samt Prüfer als Nachtrag ein (Protokoll, keine Freigabe).
 - **Maßgebliche Dokumente**: `ARCHITECTURE_DECISIONS.md`, `BUILD_PLAN.md`, `docs/BUILD_LOG.md`.
   `readme.md` und `SKILL.md` dokumentieren den separaten Design-Skill, nicht die App-Logik.
 
@@ -84,6 +86,7 @@ Gilt nur für Antigravity auf Branches `antigravity/*`. Wenn du mit „weiter“
    Text nennt die Auftragsdatei unter `docs/auftraege/`.
 
 **Erlaubt über den GitHub-MCP (Entscheidung Marc vom 21.10.2026):** PRs und deren Kommentare lesen,
-CI-Status lesen, den eigenen PR öffnen. Reviews nur über `npm run agent-review` (Konto `MarcReview`).
+CI-Status lesen, den eigenen PR öffnen. Reviews mit dem eigenen Konto oder über `npm run agent-review`
+(Konto `MarcReview`); seit 09.11.2026 ist beides erlaubt.
 **Verboten:** Mergen, Labels, Branches, Rulesets oder Workflows ändern, Dateien direkt über die API
 ändern (Code nur per Commit und Push).

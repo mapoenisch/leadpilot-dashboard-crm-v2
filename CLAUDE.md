@@ -1,7 +1,7 @@
 # CLAUDE.md — LeadPilot Dashboard-CRM
 
 > Referenziert von `AGENTS.md` ("`CLAUDE.md` im Repo-Root ist die verbindliche Regelquelle") — diese Datei ist damit die Langfassung, `AGENTS.md` die Kurzfassung für alle Agenten. **Bei Abweichungen gilt diese Datei.**
-> Repo: `github.com/mapoenisch/leadpilot-dashboard-crm-v2`. Abschnitt 4 zuletzt neu gefasst am 26.10.2026 (Stand `v2.4.0`).
+> Repo: `github.com/mapoenisch/leadpilot-dashboard-crm-v2`. Abschnitt 4 zuletzt neu gefasst am 09.11.2026 (Stand `v3.0.0`).
 
 ## 1. Projekt
 
@@ -19,31 +19,31 @@ Echtzeit-Dashboard für das fiktive Unternehmen LeadPilot. React 18 + TypeScript
 1. `ARCHITECTURE_DECISIONS.md` — Entscheidungs-Historie (Teil A), Ziel-Architektur (Teil B), Implementierungsstand/Audit (Teil C).
 2. `BUILD_PLAN.md` — aktueller Phasenplan, welcher Auftrag als Nächstes ansteht, welche Gates erfüllt sind.
 3. `docs/BUILD_LOG.md` — chronologisches Protokoll jedes abgeschlossenen Gates.
-4. `docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md` — die konkrete Arbeitsanweisung. Immer nur einen Auftrag gleichzeitig bearbeiten. Claude Code schreibt fehlende Detailaufträge selbst (siehe Abschnitt 4); der Dateiname behält das Präfix `ANTIGRAVITY_AUFTRAG_` für die Kontinuität.
+4. `docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md` — die konkrete Arbeitsanweisung. Immer nur einen Auftrag gleichzeitig bearbeiten. Der Builder schreibt fehlende Detailaufträge selbst (siehe Abschnitt 4); der Dateiname behält das Präfix `ANTIGRAVITY_AUFTRAG_` für die Kontinuität.
 
 ## 4. Rollen & Ablauf
 
-### 4.1 Gültiger Ablauf ab 26.10.2026 (Entscheidung Marc)
+### 4.1 Gültiger Ablauf (Grundregel Marc vom 09.11.2026)
 
-Dieser Abschnitt ersetzt alle früheren Rollen- und Prüfregeln (Historie in 4.3). Bei Widerspruch gilt 4.1.
+**Grundregel: Wer baut, ist nicht festgelegt. Entscheidend ist, dass ein anderer Agent reviewt.** Jeder Agent darf bauen (Claude Code, Codex, Antigravity oder ein weiterer). Marc oder der jeweilige Auftrag legt den Builder fest. Prüfen darf jeder Agent, der den geprüften Stand nicht selbst gebaut oder nachgearbeitet hat.
 
-1. **Claude Code baut.** Er schreibt bei Bedarf den Detailauftrag (`docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md`), setzt ihn um, fährt die Pflicht-Verifikation (Abschnitt 7), schreibt den Builder-Eintrag in `docs/BUILD_LOG.md` und öffnet den PR. Ein Auftrag je PR, Aufträge nacheinander.
-2. **Codex prüft.** Die Codex-App auf GitHub reviewt jeden PR beim Öffnen; nach Nacharbeit erneut per Kommentar `@codex review`. Codex baut nichts.
-3. **Claude Code arbeitet nach.** Jeder Codex-Befund wird behoben oder im PR begründet abgelehnt, danach neues `@codex review`.
+Dieser Abschnitt ersetzt alle früheren Rollen- und Prüfregeln einschließlich der Fassung vom 26.10.2026 (Historie in 4.3). Bei Widerspruch gilt 4.1.
+
+1. **Der Builder baut.** Er schreibt bei Bedarf den Detailauftrag (`docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md`), setzt ihn um, fährt die Pflicht-Verifikation (Abschnitt 7), schreibt den Builder-Eintrag in `docs/BUILD_LOG.md` und öffnet den PR. Ein Auftrag je PR, Aufträge nacheinander.
+2. **Ein anderer Agent prüft.** Standard ist die Codex-App auf GitHub: Sie reviewt jeden PR beim Öffnen, nach Nacharbeit erneut per Kommentar `@codex review`. Hat Codex gebaut oder ist Codex nicht verfügbar (Nutzungslimit), fordert Marc ein Review über `/<agent> review` an (Antigravity, OpenCode, Devin, Proto oder Perplexity; Workflow `agent-review.yml`, Prüferkonto `MarcReview`). Das automatische Codex-Review zählt nicht, wenn Codex der Builder war.
+3. **Der Builder arbeitet nach.** Jeder Befund wird behoben oder im PR begründet abgelehnt, danach neues Review durch denselben oder einen anderen unabhängigen Prüfer.
 4. **Gate-Freigabe** liegt vor, wenn alle drei Punkte erfüllt sind:
-   - Codex meldet für den aktuellen Head keine offenen Befunde (👍 bzw. Review-Zusammenfassung ohne Befunde),
+   - Der Prüfer meldet für den aktuellen Head keine offenen Befunde (bei Codex: 👍 bzw. Review-Zusammenfassung ohne Befunde),
    - alle Pflicht-Checks sind grün (`lint`, `typecheck`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e`; Ruleset `Main-protection`),
    - alle Review-Konversationen sind gelöst (Ruleset).
-5. **Prüfnachweis im BUILD_LOG:** Da Codex auf GitHub nicht in den BUILD_LOG schreibt, trägt Claude Code das Codex-Ergebnis nach dem Review als Nachtrag zum Builder-Eintrag ein (geprüfter Commit, Ergebnis, ggf. behobene Befunde) und pusht ihn als reinen Doku-Commit in denselben PR. Das ist Protokoll, keine Freigabe: Die Freigabe kommt allein von Codex. Ein Doku-Commit ohne Codeänderung braucht kein neues Review.
+5. **Prüfnachweis im BUILD_LOG:** Der Builder trägt nach dem Review als Nachtrag zum Builder-Eintrag ein, welcher Agent geprüft hat, dazu geprüften Commit, Ergebnis und ggf. behobene Befunde, und pusht das als reinen Doku-Commit in denselben PR. Das ist Protokoll, keine Freigabe: Die Freigabe kommt allein vom Prüfer. Ein Doku-Commit ohne Codeänderung braucht kein neues Review.
 6. **Merge und Release macht Marc.**
 
-**Ausweichweg, wenn Codex nicht verfügbar ist (Nutzungslimit):** Marc fordert ein Review über `/<agent> review` an (Antigravity, OpenCode, Devin, Proto oder Perplexity; Workflow `agent-review.yml`, Prüferkonto `MarcReview`). Dieses Review ersetzt dann Punkt 2–4 für diesen PR; im BUILD_LOG wird vermerkt, welcher Agent geprüft hat. Sonst gilt der Ablauf unverändert.
+**Grundsatz:** Ein Builder prüft nie seine eigene Arbeit. Lokale Vorprüfungen des Builders (z. B. Plugin `codex-review`) sind erlaubt und gehören in den Builder-Eintrag, ersetzen aber nicht das unabhängige Review auf GitHub.
 
-**Grundsatz:** Ein Builder prüft nie seine eigene Arbeit. Lokale Vorprüfungen von Claude Code (z. B. Plugin `codex-review`) sind erlaubt und gehören in den Builder-Eintrag, ersetzen aber nicht das Codex-Review auf GitHub.
+### 4.2 Workflows (Stand 09.11.2026)
 
-### 4.2 Workflows (Stand 26.10.2026)
-
-- Aktiv: `ci.yml` (Pflicht-Checks), `update-visual-baselines.yml` (Branches `visual-baselines/**`), `agent-review.yml` (Ausweichweg), CodeQL.
+- Aktiv: `ci.yml` (Pflicht-Checks), `update-visual-baselines.yml` (Branches `visual-baselines/**`), `agent-review.yml` (Prüfweg neben Codex), CodeQL.
 - Abgeschaltet und nicht Teil des Ablaufs: `claude-review.yml`, `claude.yml`, `codex-review-request.yml`, `codex-rework.yml`, `codex-status.yml`. Der Antigravity-Zyklus (Branches `antigravity/*`, `handoff/inbox.md`) ruht.
 
 ### 4.3 Historie (nicht mehr maßgeblich, nur zur Nachvollziehbarkeit)

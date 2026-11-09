@@ -19649,3 +19649,29 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Betrieb und Sichtprüfung:** Fehlenden lokalen Edge-Functions-Dienst mit `supabase functions serve crm-query-export` gestartet. Reguläre authentifizierte CRM-Ansicht zeigt mit Suchfilter `.example.com` genau 20 Kontakte auf einer Seite, Status Gesund, Datenbank verbunden; alle 20 Kontaktzeilen im Browser geprüft. Quelle ist die lokale Supabase-Datenbank, kein automatischer HubSpot-Live-Sync. Aufnahmebereite Ansicht bleibt geöffnet.
 
 **Verifikation:** Fünf Node-Tests bestanden, `npx tsc --noEmit` ohne Fehler, `npm run verify` (alle 24 Suiten 001–025) bestanden, `npm run build` erfolgreich. Der erste Verify-Aufruf war durch eine lokale Prozesskanal-Beschränkung blockiert; außerhalb dieser Beschränkung erfolgreich wiederholt. Keine UI-Codeänderung, daher keine Vorher-/Nachher-Layoutänderung. Kein Commit, PR, Merge oder Release erstellt; unabhängiges Review offen.
+
+## 2026-11-09 — AUFTRAG 135 / Gate — Repo-Konsolidierung (Branches, Worktrees, offene PRs)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_135_REPO_KONSOLIDIERUNG.md`. Builder T1–T6: Antigravity. Abschluss T7: OpenCode im Auftrag von Marc.
+
+**Sicherung (T1):** Bundle `~/Backups/leadpilot-vor-auftrag-135/alle-refs.bundle` (93,3 MB) enthält `refs/stash`; Kopien von Auftrag und Folgeplan sowie `status.txt` liegen im selben Ordner. Der Stash bleibt unverändert erhalten (Auftrag: erst auf Marcs Ansage löschen); der Eintrag `stash@{0}` trägt zusätzlich die geprüfte `AGENTS.md`-Fassung.
+
+**Entfernt (T3):** Worktrees `~/.gemini/antigravity/worktrees/LeadPilot Dashboard-CRM/fix_dashboard_bugs_and_ui` und `.../start_react_app` (dort nur die zwei Faktenblatt-Löschungen, mit `--force`), `~/copilot-worktrees/LeadPilot Dashboard-CRM/copilot-prewarm-bookish-guacamole` und `.../marcreview-friendly-goggles`. Lokale Branches nach SHA-Prüfung gelöscht: `claude/auftrag-126-a11y-knotenausgabe` (`fdb0824`), `claude/auftrag-128-dashboard-editor-reparatur` (`9c824c7`), `claude/auftrag-128-screenreader-fachseiten` (`413e55f`), `claude/auftrag-129-crm-deals-kanban` (`f12ebc2`), `claude/auftrag-130-crm-lead-scoring` (`8234600`), `claude/auftrag-131-vertrieb-funnel-live` (`5939d0d`), `claude/auftrag-132-dashboard-report-export` (`67430e7`), `claude/auftrag-133-what-if-hebelrechner` (`ec9be8d`), `claude/auftrag-134-release-v3-0-0` (`83e20af`), `claude/dashboard-editor-rework-repairs` (`413e55f`), `claude/deps-vitest-4-1-12` (`b2ab6c3`), `codex/leadpilot-live-demo` (`5f20c7c`), `fix_dashboard_bugs_and_ui` (`95d8d04`), `start_react_app` (`95d8d04`), `marcreview-friendly-goggles` (`c11d53f`).
+
+**Remote und Label (T4):** `dependabot/npm_and_yarn/multi-75c0a8599d` und `marcreview-friendly-goggles` auf `origin` gelöscht; Label `ci` (`#0366d6`, „CI und GitHub Actions") angelegt.
+
+**PR-Reihenfolge (T6):** #148 → `f0ac11e`, #149 → `9a7ddc2`, #146 → `70e04f1`, #147 → `8ca680e`, HubSpot-PR #150 → `dbd3d4b`. Alle gemergt, alle Pflicht-Checks grün, Codex jeweils ohne Befunde.
+
+**Abschluss (T7):** Lokales `main` per Fast-Forward auf `origin/main` (`dbd3d4b`) gebracht, `chore/hubspot-set4-import` lokal gelöscht. Dieser PR bringt Auftrag, Folgeplan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md` und die Regeldateien: `CLAUDE.md`/`AGENTS.md` legen fest, dass der Builder frei wählbar ist und ein anderer Agent prüft; Reviews dürfen auch mit Marcs eigenem Konto abgegeben werden. Kein Produktcode.
+
+**Verifikation:** `npm ci` erfolgreich; `npx tsc --noEmit` 0 Fehler; `npm run verify` alle 25 Integritätssuiten (001–025) bestanden; `npm run build` erfolgreich (3,47 s). Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) leer. Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Offen (Marc):** Tag und GitHub-Release `v3.0.0` setzen. Der Folgeplan v3.1.0 gilt erst ab diesem Tag; danach startet Teil-Auftrag 136.
+
+### Nachtrag Codex-Review (PR #151)
+
+**Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `6924e49` · **Datum:** 2026-11-09
+
+- **Ergebnis:** Review abgeschlossen, keine Befunde (`has_any_findings: false`, `has_unresolved_findings: false`).
+- **Pflicht-Checks (Head `6924e49`):** `lint`, `typecheck`, `build`, `livekpi-verifiers`, `size-limit` und CodeQL grün; die `test`-Suite lief zum Zeitpunkt des Nachtrags noch. Der Doku-Commit startet die vollständige CI erneut; das Ergebnis steht im PR.
+- Ein Doku-Commit ohne Codeänderung braucht nach `CLAUDE.md` §4.1 Punkt 5 kein neues Review.
