@@ -251,6 +251,46 @@ describe('DealsPage – serverseitige Phasenwechsel', () => {
     });
   });
 
+  it('sperrt das Nachladen weiterer Seiten während des Phasenwechsels', async () => {
+    let resolveRefetch!: () => void;
+    const pendingRefetch = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRefetch = resolve;
+        }),
+    );
+    const fetchList = vi.mocked(crmListService.fetchCrmList);
+    fetchList.mockResolvedValue({
+      items: [],
+      total: 300,
+      page: 2,
+      pageSize: 100,
+      resource: 'deals',
+    });
+    mockedMove.mockResolvedValue({
+      dealId: 'deal-1',
+      stage: 'Verhandlung',
+      stageEnteredAt: '2026-11-09T10:00:00.000Z',
+    });
+    renderDealsPage('admin', [DEAL], 300, pendingRefetch);
+
+    moveViaMenu('Verhandlung');
+    await waitFor(() => {
+      expect(screen.getByTestId('deal-stage-announcement')).toHaveTextContent('verschoben');
+    });
+
+    // Während refetch/Nachladen läuft: Kein weiterer Seitenabruf.
+    const loadMoreBtn = screen.getByTestId('kanban-load-more-btn');
+    expect(loadMoreBtn).toBeDisabled();
+    fireEvent.click(loadMoreBtn);
+    expect(fetchList).not.toHaveBeenCalled();
+
+    await act(async () => resolveRefetch());
+    await waitFor(() => expect(loadMoreBtn).not.toBeDisabled());
+    fireEvent.click(loadMoreBtn);
+    await waitFor(() => expect(fetchList).toHaveBeenCalledTimes(1));
+  });
+
   it('zeigt bei Netzfehlern die feste Meldung und nicht die Rohmeldung', async () => {
     mockedMove.mockRejectedValue(new MoveDealStageError('network'));
     renderDealsPage('admin');

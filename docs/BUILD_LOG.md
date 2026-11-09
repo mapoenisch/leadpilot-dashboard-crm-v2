@@ -19845,3 +19845,19 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 368 Dateien / 2.676 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` leer.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #159 — Behebung Codex-Befund „Koordination von Nachladen und Phasenwechsel-Aktualisierung" (09.11.2026)
+
+**Kontext:** Codex-Review auf `33b004f` (P2, `dealsClientView.ts`): `reloadLoadedExtraPages` lief im `onSettled` mit dem zur Mutationsstart-Zeit erfassten Closure-Schnappschuss. Wurde während der RPC zusätzlich eine Seite nachgeladen, überschrieb der ältere Schnappschuss die neuen Karten und setzte `nextPage` zurück.
+
+**Behebung:**
+
+- `extraDealsState` wird jetzt zusätzlich per `extraDealsRef` gespiegelt; alle Schreibpfade laufen über `commitExtraDeals`, sodass Callbacks immer den aktuellen Seitenstand lesen.
+- `reloadLoadedExtraPages` bestimmt die Seitenobergrenze (`nextPage - 1`) in jeder Schleifeniteration neu am Ref-Stand und übernimmt beim Commit den aktuellen `nextPage` — zwischenzeitlich geladene Seiten werden mitaktualisiert statt verworfen.
+- Neuer Parameter `suspendLoadMore`: `handleLoadMore` kehrt während eines Phasenwechsels (Mutation + `onSettled`-Nachladen) sofort zurück; `DealsPage` übergibt `isStageUpdateRunning` und zeigt den Ladezustand am Button (`isLoadingMore || isStageUpdateRunning`).
+
+**Regressionstest:** `sperrt das Nachladen weiterer Seiten während des Phasenwechsels` — während des ausstehenden `refetch` ist der Button deaktiviert und `fetchCrmList` wird nicht aufgerufen; nach Abschluss lädt „Weitere Deals nachladen" normal weiter.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 368 Dateien / 2.677 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.

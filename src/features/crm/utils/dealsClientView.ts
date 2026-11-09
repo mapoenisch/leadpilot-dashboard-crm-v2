@@ -14,6 +14,8 @@ export interface UseKanbanExtraPagesParams {
   sortField: string;
   sortOrder: string;
   isPlaceholderData: boolean;
+  /** true, solange ein Phasenwechsel samt Nachladen läuft; sperrt weitere Seitenabrufe. */
+  suspendLoadMore?: boolean;
 }
 
 export function useKanbanExtraPages({
@@ -23,6 +25,7 @@ export function useKanbanExtraPages({
   sortField,
   sortOrder,
   isPlaceholderData,
+  suspendLoadMore = false,
 }: UseKanbanExtraPagesParams) {
   const [extraDealsState, setExtraDealsState] = useState<{
     queryKey: string;
@@ -32,6 +35,14 @@ export function useKanbanExtraPages({
     // nicht zurücksetzen (Codex-Review PR #159).
     nextPage: number;
   }>({ queryKey: '', items: [], nextPage: 2 });
+  // Ref-Spiegel des States: Callbacks (z. B. reloadLoadedExtraPages im
+  // onSettled einer Mutation) lesen so immer den aktuellen Seitenstand,
+  // auch wenn ihre Closure älter ist (Codex-Review PR #159).
+  const extraDealsRef = useRef(extraDealsState);
+  const commitExtraDeals = useCallback((next: typeof extraDealsState) => {
+    extraDealsRef.current = next;
+    setExtraDealsState(next);
+  }, []);
   const [loadMoreErrorState, setLoadMoreErrorState] = useState<{
     queryKey: string;
     error: boolean;
@@ -47,39 +58,51 @@ export function useKanbanExtraPages({
     loadMoreErrorState.queryKey === currentQueryKey && loadMoreErrorState.error;
 
   const reloadLoadedExtraPages = useCallback(async () => {
-    const state = extraDealsState.queryKey === currentQueryKey ? extraDealsState : null;
-    // Bereits abgerufene Extra-Seiten sind 2..nextPage-1.
-    const lastFetchedPage = state ? state.nextPage - 1 : 1;
-    if (!state || state.items.length === 0 || lastFetchedPage < 2) return;
+    const fetchPage = (p: number) =>
+      fetchCrmList<ImportedFunnelDeal>({
+        resource: 'deals',
+        q: serverSearchTerm,
+        filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
+        sortBy: sortField,
+        sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+        page: p,
+        pageSize: KANBAN_PAGE_SIZE,
+      });
     try {
       const collected: ImportedFunnelDeal[] = [];
-      for (let p = 2; p <= lastFetchedPage; p += 1) {
-        const res = await fetchCrmList<ImportedFunnelDeal>({
-          resource: 'deals',
-          q: serverSearchTerm,
-          filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
-          sortBy: sortField,
-          sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-          page: p,
-          pageSize: KANBAN_PAGE_SIZE,
-        });
+      // Seitenobergrenze dynamisch am aktuellen Ref-Stand ausrichten: Lädt
+      // parallel „Weitere Deals nachladen" eine weitere Seite, wird auch sie
+      // mitaktualisiert, statt am Ende überschrieben zu werden.
+      for (let p = 2; ; p += 1) {
+        const state = extraDealsRef.current;
+        if (state.queryKey !== currentQueryKey || state.items.length === 0) return;
+        if (p > state.nextPage - 1) break;
+        const res = await fetchPage(p);
         collected.push(...res.items);
       }
-      setExtraDealsState({
+      const latest = extraDealsRef.current;
+      commitExtraDeals({
         queryKey: currentQueryKey,
         items: appendUniqueDeals([], collected),
-        nextPage: state.nextPage,
+        nextPage: latest.queryKey === currentQueryKey ? latest.nextPage : 2,
       });
     } catch {
-      setExtraDealsState({ queryKey: currentQueryKey, items: [], nextPage: 2 });
+      commitExtraDeals({ queryKey: currentQueryKey, items: [], nextPage: 2 });
     }
-  }, [currentQueryKey, extraDealsState, serverSearchTerm, serverStageFilter, sortField, sortOrder]);
+  }, [
+    commitExtraDeals,
+    currentQueryKey,
+    serverSearchTerm,
+    serverStageFilter,
+    sortField,
+    sortOrder,
+  ]);
 
   const handleLoadMore = useCallback(async () => {
-    if (isLoadingMore || isPlaceholderData) return;
+    if (isLoadingMore || isPlaceholderData || suspendLoadMore) return;
     const requestKey = currentQueryKey;
-    const stateMatches = extraDealsState.queryKey === requestKey;
-    const nextPage = stateMatches ? extraDealsState.nextPage : 2;
+    const stateMatches = extraDealsRef.current.queryKey === requestKey;
+    const nextPage = stateMatches ? extraDealsRef.current.nextPage : 2;
     activeLoadMoreQueryRef.current = requestKey;
     setIsLoadingMore(true);
     try {
@@ -93,14 +116,13 @@ export function useKanbanExtraPages({
         pageSize: KANBAN_PAGE_SIZE,
       });
       if (activeLoadMoreQueryRef.current === requestKey) {
-        setExtraDealsState((prev) => {
-          const base =
-            prev.queryKey === requestKey ? prev : { queryKey: requestKey, items: [], nextPage: 2 };
-          return {
-            queryKey: requestKey,
-            items: appendUniqueDeals(base.items, res.items),
-            nextPage: nextPage + 1,
-          };
+        const prev = extraDealsRef.current;
+        const base =
+          prev.queryKey === requestKey ? prev : { queryKey: requestKey, items: [], nextPage: 2 };
+        commitExtraDeals({
+          queryKey: requestKey,
+          items: appendUniqueDeals(base.items, res.items),
+          nextPage: nextPage + 1,
         });
       }
     } catch {
@@ -113,14 +135,15 @@ export function useKanbanExtraPages({
       }
     }
   }, [
+    commitExtraDeals,
     currentQueryKey,
-    extraDealsState,
     isLoadingMore,
     isPlaceholderData,
     serverSearchTerm,
     serverStageFilter,
     sortField,
     sortOrder,
+    suspendLoadMore,
   ]);
 
   const handleRetryLoadMore = useCallback(() => {

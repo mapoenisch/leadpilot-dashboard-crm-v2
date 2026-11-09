@@ -84,6 +84,12 @@ export function DealsPage() {
       pageSize,
     });
 
+  const { mutate: mutateDealStage, isPending: isMovingStage } = useMoveDealStage(
+    session?.organizationId,
+  );
+  const isStageUpdateRunning = isMovingStage || settlingDealId !== null;
+  const lockedDealId = isStageUpdateRunning ? (settlingDealId ?? undefined) : undefined;
+
   const {
     extraDeals,
     isLoadingMore,
@@ -98,6 +104,7 @@ export function DealsPage() {
     sortField,
     sortOrder,
     isPlaceholderData,
+    suspendLoadMore: isStageUpdateRunning,
   });
 
   const rawDeals = useMemo(
@@ -118,12 +125,6 @@ export function DealsPage() {
 
   const serverTotal = data?.total ?? 0;
   const hasMoreOnServer = rawDeals.length < serverTotal;
-
-  const { mutate: mutateDealStage, isPending: isMovingStage } = useMoveDealStage(
-    session?.organizationId,
-  );
-  const isStageUpdateRunning = isMovingStage || settlingDealId !== null;
-  const lockedDealId = isStageUpdateRunning ? (settlingDealId ?? undefined) : undefined;
 
   const handleDealStageChange = useCallback(
     (dealId: string, newStage: string) => {
@@ -321,7 +322,7 @@ export function DealsPage() {
           onDealStageChange={handleDealStageChange}
           onLoadMore={handleLoadMore}
           hasMore={!isPlaceholderData && hasMoreOnServer}
-          isLoadingMore={isLoadingMore}
+          isLoadingMore={isLoadingMore || isStageUpdateRunning}
           canMoveDeals={canMoveDeals}
           lockedDealId={lockedDealId}
         />
