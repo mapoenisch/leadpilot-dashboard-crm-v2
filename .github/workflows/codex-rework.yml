@@ -50,7 +50,7 @@ jobs:
       pr: ${{ steps.gate.outputs.pr }}
     steps:
       - name: Entscheidungslogik vom Default-Branch laden
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
           path: .cycle-tools
@@ -58,7 +58,7 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
-      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.18.0
 
@@ -101,7 +101,7 @@ jobs:
       actions: read
     steps:
       - name: PR-Branch ohne gespeicherte Zugangsdaten auschecken
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.gate.outputs.head_sha }}
           fetch-depth: 0
@@ -113,7 +113,7 @@ jobs:
           name: codex-findings
           path: .codex-review-cycle
 
-      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.18.0
 
@@ -123,7 +123,7 @@ jobs:
           npm ci --ignore-scripts
 
       - name: Codex-Befunde gesammelt nacharbeiten
-        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1
+        uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c # v1
         env:
           GH_TOKEN: ${{ github.token }}
         with:
@@ -195,7 +195,7 @@ jobs:
       actions: write
     steps:
       - name: PR-Branch auschecken (ohne Ausführung von PR-Code)
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.gate.outputs.head_ref }}
           fetch-depth: 0
