@@ -19769,3 +19769,14 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Lokale Verifikation:** TypeScript 0 Fehler; Lint 0 Fehler; Formatprüfung grün; 368 Vitest-Dateien / 2.671 Tests grün; alle 25 Integritätssuiten grün; Produktions-Build erfolgreich; Size-Limit 179,53 / 180 kB und 86,16 / 250 kB. Schutzbereichs-Diff gegen `edc72ee` vollständig leer. Screenshot-Gate: 36 Aufnahmen / 18 echte Paare, 0 px Überlauf; vier visuell geprüfte Rasterungs-/Schattenabweichungen mit exakten Hashes und Begründung in der Matrix, übrige Paare innerhalb der bestehenden Toleranz. Negativprüfung ohne Ausnahmen sperrt das Gate (Exit 1); erneute Auswertung mit exakt geprüften Hashpaaren besteht (Exit 0). Ergebnis: `docs/screenshots/auftrag-138/README.md`.
 
 **Freigabestatus:** Keine Gate-Freigabe. Da Codex diese Nacharbeit gebaut hat, muss gemäß `CLAUDE.md` §4.1 ein anderer Agent den neuen Stand prüfen. CI und offene Review-Konversationen bleiben separat zu bestätigen. Merge und Release durch Marc.
+
+
+### E2E-Nacharbeit PR #159 auf `a98ef38` (09.11.2026)
+
+**Fehlernachweis:** CI-Lauf `42608633385`, Job `129132760405`, scheiterte an der fehlenden Kanban-Karte. Das heruntergeladene Playwright-Artefakt zeigte den Seed-Deal korrekt in der Tabelle. Lokal mit echtem Supabase-Backend reproduziert: Beim Dokumentladen und Reload erfolgt ein Auth-Rücksprung über `/login`; `LoginPage` übernimmt nur `pathname`, wodurch `?ansicht=kanban` verloren geht. Dieser bestehende Auth-/Deep-Link-Fehler liegt außerhalb der Ziel-Dateien von Auftrag 138 und wird hier nicht behoben.
+
+**Änderung ausschließlich im Test:** `openKanban` und die Reload-Schritte wählen die Kanban-Ansicht ausdrücklich über ihren UI-Button und prüfen `aria-pressed`. Die fachlichen Assertions für Reload-Persistenz, zweite Sitzung, Viewer-Verbot samt direkter RPC und Konflikt bleiben erhalten. Zusätzlich wird der Menü-Trigger vollständig ins Sichtfeld gescrollt, bevor das Menü geöffnet wird. Eine lokale Scroll-Instrumentierung belegte zuvor: Der am Boardrand teilweise abgeschnittene Trigger löste nach dem Öffnen einen horizontalen Board-Scroll aus; der bestehende Scroll-Handler schloss dadurch das Menü. Der Test wartet nun auf den vorgesehenen Menüfokus und aktiviert die Zielphase mit Enter, ohne `force`, künstliche Sleeps oder Request-Mocks.
+
+**Verifikation:** Unveränderter Test lokal zunächst rot mit demselben fehlenden Karten-Selektor. Nach Anpassung alle vier Persistenz-E2E-Fälle gegen echtes lokales Supabase grün (4/4, Desktop, 3,4 s). TypeScript, Lint, Formatprüfung, 368 Vitest-Dateien / 2.671 Tests, 25 Integritätssuiten und Produktions-Build grün. Schutzbereichs-Diff gegen `a98ef38` leer. Keine App- oder Layoutänderung; die vorhandene Screenshot-Matrix bleibt gültig.
+
+**Status:** CI-Prüfung auf dem neuen Head und Review durch einen anderen Agenten weiterhin erforderlich. Kein Merge und keine Freigabe.

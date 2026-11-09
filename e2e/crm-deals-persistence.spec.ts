@@ -55,12 +55,24 @@ async function openKanban(page: Page): Promise<void> {
   await expect(
     page.getByRole('heading', { name: 'Deal Pipeline', level: 2, exact: true }),
   ).toBeVisible();
+  await selectKanban(page);
+}
+
+async function selectKanban(page: Page): Promise<void> {
+  // Der Auth-Rücksprung kann beim Dokumentladen Query-Parameter verlieren.
+  // Dieser Test prüft die gespeicherte Phase, daher Ansicht explizit per UI wählen.
+  await page.getByTestId('deals-view-kanban-btn').click();
+  await expect(page.getByTestId('deals-view-kanban-btn')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByTestId(`deal-card-${DEAL_A1}`)).toBeVisible();
 }
 
 async function moveViaMenu(page: Page, dealName: string, targetStage: string): Promise<void> {
-  await page.getByRole('button', { name: `${dealName}: Phase ändern` }).click();
-  await page.getByRole('menuitem', { name: targetStage, exact: true }).click();
+  const trigger = page.getByRole('button', { name: `${dealName}: Phase ändern` });
+  await trigger.scrollIntoViewIfNeeded();
+  await expect(trigger).toBeInViewport({ ratio: 1 });
+  await trigger.click();
+  await expect(page.getByRole('menu').locator('button:not([disabled])').first()).toBeFocused();
+  await page.getByRole('menuitem', { name: targetStage, exact: true }).press('Enter');
   await expect(page.getByTestId('deal-stage-announcement')).toHaveText(
     `${dealName} nach ${targetStage} verschoben.`,
   );
@@ -94,6 +106,7 @@ test.describe('Deals: serverseitige Phasenpersistenz (Auftrag 138)', () => {
 
     // Echter Seiten-Reload: kein Browser-Speicher, nur der Serverstand zählt.
     await page.reload();
+    await selectKanban(page);
     await expect(page.getByTestId(`deal-card-${DEAL_A1}`)).toBeVisible();
     await expect(dealInColumn(page, 'Verhandlung', DEAL_A1)).toBeVisible();
     await expect(dealInColumn(page, 'Angebot erstellt', DEAL_A1)).toHaveCount(0);
@@ -166,6 +179,7 @@ test.describe('Deals: serverseitige Phasenpersistenz (Auftrag 138)', () => {
 
     // Der Deal bleibt unverändert auf dem Seed-Stand.
     await page.reload();
+    await selectKanban(page);
     await expect(dealInColumn(page, 'Angebot erstellt', DEAL_A1)).toBeVisible();
   });
 
@@ -185,8 +199,12 @@ test.describe('Deals: serverseitige Phasenpersistenz (Auftrag 138)', () => {
     expect(patchRes.ok()).toBe(true);
 
     // Veralteter Client versucht zu verschieben → LP409, kein stilles Überschreiben.
-    await page.getByRole('button', { name: `${DEAL_A1_NAME}: Phase ändern` }).click();
-    await page.getByRole('menuitem', { name: 'Deal gewonnen', exact: true }).click();
+    const trigger = page.getByRole('button', { name: `${DEAL_A1_NAME}: Phase ändern` });
+    await trigger.scrollIntoViewIfNeeded();
+    await expect(trigger).toBeInViewport({ ratio: 1 });
+    await trigger.click();
+    await expect(page.getByRole('menu').locator('button:not([disabled])').first()).toBeFocused();
+    await page.getByRole('menuitem', { name: 'Deal gewonnen', exact: true }).press('Enter');
 
     await expect(
       page.getByRole('alert').filter({
