@@ -19637,3 +19637,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
   - **CI-Pflichtjobs (PR #145, Lauf 42426048463):** alle 7 Jobs bestanden (`typecheck`, `lint`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e` alle ✅).
   - **Review-Konversationen:** gelöst (`isResolved: true`).
   - **Gate-Freigabe:** ✅ Vollständig erteilt (Codex ohne Befunde auf Head `5807f21`, alle Pflicht-Checks grün, alle Konversationen gelöst). Bereit für Merge durch Marc.
+
+## 29.10.2026 — Lokaler HubSpot-Import Set 4 (Codex, ausdrücklicher Nutzerauftrag)
+
+**Auftrag:** `docs/auftraege/CODEX_AUFTRAG_2026-10-29_HUBSPOT_SET4_IMPORT.md`. Marc hat den Bau durch Codex für diese Arbeit ausdrücklich angewiesen.
+
+**Änderung:** Lokaler Operator-Importer `scripts/importHubSpotCaseStudy.mjs` mit fünf Node-Tests. Importiert ausschließlich die 20 synthetischen Set-4-Kontakte und zehn referenzierte Unternehmen aus dem geprüften HubSpot-Snapshot. Standardmäßig vollständige Transaktion mit Rollback; explizites Apply, aktive Admin-Mitgliedschaft, Mandanten-/Unique-Konfliktprüfung, SQL-Escaping, keine Löschungen, wiederholbarer Upsert. Optional fehlende PLZ/Jobtitel werden als leere Werte übernommen, statt Daten zu erfinden. Keine Änderungen an Frontend, Schema, Berechtigungen oder Schutzbereichen.
+
+**Funktionaler Nachweis:** n8n-Lauf 12 erfolgreich (107 Unternehmen, 191 Kontakte, 150 Deals insgesamt); davon Set 4 vollständig 20/20 mit gültigen Unternehmensreferenzen. Dry-run zurückgerollt, Apply erfolgreich, identischer zweiter Apply ohne Duplikate. Zielmandant A jetzt 13 Unternehmen / 21 Kontakte / 2 Deals, einschließlich aller früheren Testdatensätze. Demo-Mandant 2/2/1 und Mandant B 1/1/1 unverändert. Vollständiger Account-Snapshot bleibt außerhalb dieses Repositories; keine Übernahme anderer Kontakte.
+
+**Betrieb und Sichtprüfung:** Fehlenden lokalen Edge-Functions-Dienst mit `supabase functions serve crm-query-export` gestartet. Reguläre authentifizierte CRM-Ansicht zeigt mit Suchfilter `.example.com` genau 20 Kontakte auf einer Seite, Status Gesund, Datenbank verbunden; alle 20 Kontaktzeilen im Browser geprüft. Quelle ist die lokale Supabase-Datenbank, kein automatischer HubSpot-Live-Sync. Aufnahmebereite Ansicht bleibt geöffnet.
+
+**Verifikation:** Fünf Node-Tests bestanden, `npx tsc --noEmit` ohne Fehler, `npm run verify` (alle 24 Suiten 001–025) bestanden, `npm run build` erfolgreich. Der erste Verify-Aufruf war durch eine lokale Prozesskanal-Beschränkung blockiert; außerhalb dieser Beschränkung erfolgreich wiederholt. Keine UI-Codeänderung, daher keine Vorher-/Nachher-Layoutänderung. Kein Commit, PR, Merge oder Release erstellt; unabhängiges Review offen.
