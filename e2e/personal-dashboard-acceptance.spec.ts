@@ -12,6 +12,11 @@ import {
 // personal-dashboard.spec.ts seriell (`--workers=1`), weil die Abläufe die Präferenz der
 // Testbenutzer schreiben; danach wird der Ausgangszustand wiederhergestellt. Live-Feed-Einträge
 // nur gegen ein lokales Supabase.
+// Skip-Gate wie in personal-dashboard.spec.ts (Codex PR #162): nur mit E2E_DASHBOARD_SERIAL=true.
+test.skip(
+  process.env.E2E_DASHBOARD_SERIAL !== 'true',
+  'Nur im seriellen Dashboard-Lauf (Auftrag 141).',
+);
 
 const AUTH_FILE = 'playwright/.auth/user.json';
 const TILE = '[data-testid="lazy-tile"]';

@@ -81,8 +81,17 @@ export const GATES = [
       ['npx', 'playwright', 'test', ...E2E_PARALLEL],
       ['npx', 'playwright', 'test', ...E2E_SEQUENTIAL, '--workers=1'],
       // Auftrag 141: Die Dashboard-Specs laufen gegen den regulären Build;
-      // Rückschalt-Build und Rollback-Spec sind entfernt.
-      ['npx', 'playwright', 'test', ...E2E_DASHBOARD, '--workers=1'],
+      // Rückschalt-Build und Rollback-Spec sind entfernt. E2E_DASHBOARD_SERIAL
+      // schaltet die Specs frei (Codex PR #162: geteilte Testbenutzer-Präferenzen).
+      [
+        'env',
+        'E2E_DASHBOARD_SERIAL=true',
+        'npx',
+        'playwright',
+        'test',
+        ...E2E_DASHBOARD,
+        '--workers=1',
+      ],
     ],
   },
   { id: 'findings', code: 22, needs: ['build'], steps: [['npm', 'run', 'verify:v23:baseline']] },

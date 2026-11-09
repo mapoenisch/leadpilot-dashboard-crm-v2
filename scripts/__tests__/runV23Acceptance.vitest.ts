@@ -118,7 +118,7 @@ describe('runV23Acceptance', () => {
     );
     const dashboardStep = steps.find((step) => step.includes('personal-dashboard.spec.ts'));
     expect(dashboardStep).toBe(
-      `npx playwright test ${E2E_DASHBOARD.join(' ')} --workers=1`,
+      `env E2E_DASHBOARD_SERIAL=true npx playwright test ${E2E_DASHBOARD.join(' ')} --workers=1`,
     );
     // Rückschalt-Build, Rollback-Spec und Nachbau des regulären Builds sind entfernt.
     expect(steps.some((step) => step.includes('EXECUTIVE_DASHBOARD_V2'))).toBe(false);

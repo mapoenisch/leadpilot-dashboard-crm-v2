@@ -11,6 +11,11 @@ import {
 // (`--workers=1`), weil die Abläufe die Präferenz des Testbenutzers schreiben; danach wird der
 // Ausgangszustand wiederhergestellt. Ungültige und zukünftige Zeilen lehnt der Server über die RPC
 // ab, sie werden deshalb nur lokal mit dem Aufräumschlüssel geschrieben (`forceStoredRow`).
+// Skip-Gate wie in personal-dashboard.spec.ts (Codex PR #162): nur mit E2E_DASHBOARD_SERIAL=true.
+test.skip(
+  process.env.E2E_DASHBOARD_SERIAL !== 'true',
+  'Nur im seriellen Dashboard-Lauf (Auftrag 141).',
+);
 
 const TILE = '[data-testid="lazy-tile"]';
 const VALID_CONFIG = {

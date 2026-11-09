@@ -20118,3 +20118,8 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **E2E:** `/dashboard` und `/dashboard/tiles/:tileId` laufen über die bestehenden Specs `personal-dashboard.spec.ts`, `personal-dashboard-acceptance.spec.ts`, `dashboard-config-states.spec.ts` (jetzt ohne Skip-Gate, seriell); CI-Job `e2e` führt sie gegen den regulären Build aus. Orchestrator-Test `führt jede E2E-Datei im Orchestrator und im CI-Job e2e aus` bestätigt Abdeckung.
 
 **Ergebnis & Freigabestatus:** Umgesetzt und lokal verifiziert. Unabhängiges Review (Codex auf GitHub) ausstehend; kein Merge — das macht Marc. Rückweg bei Bedarf: Tag `v3.0.0`.
+
+### Nacharbeit Codex-Review PR #162 (11.11.2026, Head `e46312d` + Folge-Commit)
+
+- **P1 (Live-Performance-Verifier):** Berechtigt — mit `e46312d` behoben: `src/components/liveKpi/**` und `scripts/verifyLivePerformanceSurface.ts` samt weiterer toter Prüfskripte entfernt, CI-Schritt `verifyLivePerformanceSurface` gestrichen, `verifyLiveKpiCatalog` läuft weiter (lokal grün).
+- **P2 (parallele Dashboard-Specs):** Berechtigt — die drei Dashboard-Specs bekamen ohne Skip-Gate erstmals parallel im lokalen Gesamtlauf Zugang zu derselben Testbenutzer-Präferenzzeile. Behoben über `E2E_DASHBOARD_SERIAL=true` (vom entfernten Rollout-Schalter unabhängiges Gate): Skip in allen drei Specs, Env in CI-Job `e2e` und im Orchestrator-Schritt `runV23Acceptance.mjs`; Orchestrator-Test angepasst (11/11 grün).

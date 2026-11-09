@@ -8,6 +8,13 @@ import { applyDashboardConfig } from './helpers/dashboardPreferences';
 // npx playwright test e2e/personal-dashboard.spec.ts --workers=1 (Nachweis im BUILD_LOG).
 // Braucht E2E_SUPABASE_URL, E2E_SUPABASE_ANON_KEY und E2E_CLEANUP_KEY wie die übrigen Specs
 // mit Datenbankzugriff.
+// Skip-Gate (Codex PR #162): Die Specs schreiben die Präferenz derselben Testbenutzer —
+// ein kompletter lokaler Lauf ohne E2E_DASHBOARD_SERIAL=true würde sie parallel gegen
+// dieselbe Zeile laufen lassen. Das Gate ist vom entfernten Rollout-Schalter unabhängig.
+test.skip(
+  process.env.E2E_DASHBOARD_SERIAL !== 'true',
+  'Nur im seriellen Dashboard-Lauf (Aufträge 077/141).',
+);
 
 const TILE = '[data-testid="lazy-tile"]';
 
