@@ -291,6 +291,32 @@ describe('DealsPage – serverseitige Phasenwechsel', () => {
     await waitFor(() => expect(fetchList).toHaveBeenCalledTimes(1));
   });
 
+  it('blockiert Phasenwechsel während eines laufenden Seitenabrufs', async () => {
+    let resolveList!: (val: crmListService.CrmPageResult<ImportedFunnelDeal>) => void;
+    vi.mocked(crmListService.fetchCrmList).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveList = resolve;
+        }),
+    );
+    renderDealsPage('admin', [DEAL, { ...DEAL, id: 'deal-2', dealName: 'Zweiter Deal' }], 300);
+
+    fireEvent.click(screen.getByTestId('kanban-load-more-btn'));
+    await waitFor(() => expect(screen.getByTestId('kanban-load-more-btn')).toBeDisabled());
+
+    // Während des Seitenabrufs ist die Verschiebe-Bedienung deaktiviert.
+    expect(screen.queryByLabelText('Enterprise Paket: Phase ändern')).not.toBeInTheDocument();
+    expect(screen.getByTestId('deal-card-deal-1')).toHaveAttribute('draggable', 'false');
+
+    await act(async () =>
+      resolveList({ items: [], total: 300, page: 2, pageSize: 100, resource: 'deals' }),
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId('deal-card-deal-1')).toHaveAttribute('draggable', 'true');
+    });
+    expect(mockedMove).not.toHaveBeenCalled();
+  });
+
   it('zeigt bei Netzfehlern die feste Meldung und nicht die Rohmeldung', async () => {
     mockedMove.mockRejectedValue(new MoveDealStageError('network'));
     renderDealsPage('admin');

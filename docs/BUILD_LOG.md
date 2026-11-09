@@ -19861,3 +19861,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 368 Dateien / 2.677 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` leer.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #159 — Behebung Codex-Befund „Phasenwechsel während laufender Seitenabrufe" (09.11.2026)
+
+**Kontext:** Codex-Review auf `838646d` (P2, `DealsPage.tsx`): `suspendLoadMore` verhinderte nur neu gestartete Seitenabrufe. War bereits ein `handleLoadMore` unterwegs, konnte dessen Antwort nach dem Phasenwechsel eine vor dem Wechsel gelesene Seite committen — ein zwischen die Seiten gerutschter Deal fehlte dauerhaft.
+
+**Behebung:** Gegenseitige Sperre — `handleDealStageChange` bricht jetzt bei `isLoadingMore` sofort ab, und `canMoveDeals` blendet die Verschiebe-Bedienung während laufender Seitenabrufe sichtbar aus. Ein Phasenwechsel kann damit nicht mehr mit einem ausstehenden Seitenabruf konkurrieren; die umgekehrte Richtung (Seitenabruf während Phasenwechsel) ist bereits durch `suspendLoadMore` gesperrt.
+
+**Regressionstest:** `blockiert Phasenwechsel während eines laufenden Seitenabrufs` — Menü-Trigger und Drag sind während des ausstehenden Abrufs deaktiviert, danach wieder frei; `moveDealStage` wird nicht aufgerufen.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 368 Dateien / 2.678 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.

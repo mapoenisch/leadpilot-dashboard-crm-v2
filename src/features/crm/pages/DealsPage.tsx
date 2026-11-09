@@ -129,7 +129,9 @@ export function DealsPage() {
   const handleDealStageChange = useCallback(
     (dealId: string, newStage: string) => {
       const deal = rawDeals.find((d) => d.id === dealId);
-      if (!deal || isViewer || moveInFlightRef.current) return;
+      // isLoadingMore: Ein laufender Seitenabruf könnte sonst nach dem
+      // Phasenwechsel eine veraltete Seite committen (Codex-Review PR #159).
+      if (!deal || isViewer || moveInFlightRef.current || isLoadingMore) return;
       // Konfliktprüfung gegen den gespeicherten Rohwert, nicht gegen das Label.
       const expectedStage = deal.stageRaw ?? deal.stage;
       if (normalizeCanonicalStageLabel(expectedStage) === newStage) return;
@@ -166,7 +168,7 @@ export function DealsPage() {
         },
       );
     },
-    [rawDeals, isViewer, mutateDealStage, refetch, reloadLoadedExtraPages],
+    [rawDeals, isViewer, isLoadingMore, mutateDealStage, refetch, reloadLoadedExtraPages],
   );
 
   const [isExporting, setIsExporting] = useState(false);
@@ -195,7 +197,8 @@ export function DealsPage() {
   const exportHintId = useId();
 
   const stageOptions = useMemo(() => buildStageOptions(BASE_STAGE_OPTIONS, deals), [deals]);
-  const canMoveDeals = !isViewer && !isStageUpdateRunning && Boolean(session?.organizationId);
+  const canMoveDeals =
+    !isViewer && !isStageUpdateRunning && !isLoadingMore && Boolean(session?.organizationId);
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">
