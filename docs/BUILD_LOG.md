@@ -19873,3 +19873,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 368 Dateien / 2.678 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` leer.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #159 — E2E-Stabilisierung `konflikt_zeigt_serverstand` (09.11.2026)
+
+**Kontext:** Der Pflicht-Check `e2e` schlug auf Head `480962d` zweimal deterministisch fehl (Originallauf und Re-Run): `locator.scrollIntoViewIfNeeded: Element is not attached to the DOM` in `crm-deals-persistence.spec.ts` Zeile 203. Der Playwright-Snapshot zeigte den Trigger-Button am Ende wieder vorhanden — der Button wurde also kurzzeitig remountet. Codex-Review auf demselben Head: keine wesentlichen Befunde.
+
+**Ursachenanalyse:** Der Test simuliert einen veralteten Client per direktem REST-PATCH auf `imported_funnel_deals` (Rohwert `VERHANDLUNG`). Sobald ein Hintergrund-Refetch den neuen Stand liefert, normalisiert das Board die Karte in eine andere Spalte (`normalize_deal_stage` mappt `VERHANDLUNG` → `Verhandlung`), die Karte wechselt die Spalte und der Button wird neu montiert. Zusätzlich kann `session?.organizationId` bei einer Session-Revalidierung kurz `undefined` sein, wodurch `canMoveDeals` für einen Render `false` wird und die Bedienelemente sichtbar ausblenden. Beides sind fachlich korrekte, vorübergehende Remounts — der Testaddressierte sie nicht ab.
+
+**Behebung (nur E2E-Spec, keine App-Änderung):** Der Scroll-/Sichtbarkeits-Block um den Trigger-Button in `moveViaMenu` und im Konflikttest wird in `expect(async () => {...}).toPass()` gehüllt. Der Locator wird bei jedem Versuch neu aufgelöst; ein Detach während `scrollIntoViewIfNeeded` löst einen erneuten Versuch aus, statt den Test scheitern zu lassen. Kein `force`-Klick, kein künstliches Warten, keine Fachlogik geändert.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `eslint` auf der Spec 0 Fehler; `prettier --check` konform; lokaler Reproduktionsversuch nicht möglich (Edge-Function `crm-query-export` läuft lokal nicht, Spec scheitert früher an fehlenden Seed-Daten) — Verifikation erfolgt im CI-E2E-Lauf. Vollständige Gates waren auf `480962d` bereits grün; dieser Commit ändert nur die Spec.
+
+**Status:** CI-E2E-Lauf auf neuem Head erforderlich. Kein Merge.

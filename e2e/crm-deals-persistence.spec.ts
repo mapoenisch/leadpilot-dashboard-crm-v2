@@ -68,8 +68,12 @@ async function selectKanban(page: Page): Promise<void> {
 
 async function moveViaMenu(page: Page, dealName: string, targetStage: string): Promise<void> {
   const trigger = page.getByRole('button', { name: `${dealName}: Phase ändern` });
-  await trigger.scrollIntoViewIfNeeded();
-  await expect(trigger).toBeInViewport({ ratio: 1 });
+  // Der Trigger kann kurzzeitig remounten (Spaltenwechsel nach Refetch oder
+  // Session-Revalidierung): toPass löst den Locator bei jedem Versuch neu auf.
+  await expect(async () => {
+    await trigger.scrollIntoViewIfNeeded();
+    await expect(trigger).toBeInViewport({ ratio: 1 });
+  }).toPass();
   await trigger.click();
   await expect(page.getByRole('menu').locator('button:not([disabled])').first()).toBeFocused();
   await page.getByRole('menuitem', { name: targetStage, exact: true }).press('Enter');
@@ -200,8 +204,10 @@ test.describe('Deals: serverseitige Phasenpersistenz (Auftrag 138)', () => {
 
     // Veralteter Client versucht zu verschieben → LP409, kein stilles Überschreiben.
     const trigger = page.getByRole('button', { name: `${DEAL_A1_NAME}: Phase ändern` });
-    await trigger.scrollIntoViewIfNeeded();
-    await expect(trigger).toBeInViewport({ ratio: 1 });
+    await expect(async () => {
+      await trigger.scrollIntoViewIfNeeded();
+      await expect(trigger).toBeInViewport({ ratio: 1 });
+    }).toPass();
     await trigger.click();
     await expect(page.getByRole('menu').locator('button:not([disabled])').first()).toBeFocused();
     await page.getByRole('menuitem', { name: 'Deal gewonnen', exact: true }).press('Enter');
