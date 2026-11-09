@@ -20021,3 +20021,23 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `supabase db reset` + `supabase test db`: 10 Dateien / 262 pgTAP-Tests PASS. Reine Migrations-/Test-Änderung; übrige Gates des Heads `7c58f19` bleiben gültig (tsc/lint/format/182 CRM-Tests/verify/build damals grün). Schutzbereichs-Diff unverändert leer.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Prüfnachweis PR #160 — Auftrag 139 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `528e2aef78` (Head des PR).
+
+**Verlauf der Review-Runden:**
+
+- Runde 1 auf `da05769`: 1×P1 + 4×P2 — alle behoben in `880cc54` (Cache-Initialisierung, Pagination, Tenant-FK, Funnel-Dedup via `source_contact_id`, zustandsabhängiger E2E-BANT-Toggle).
+- Runde 2 auf `880cc54`: 3×P2 — alle behoben in `ce5c857` (Erstlade-Sperre im Drawer, Qualifizierungsstatus im Funnel-Status, Legacy-Backfill `d-conv-<Kontakt>-<Zeitstempel>`).
+- Runde 3 auf `ce5c857`: 1×P2 — behoben in `316f528` (Advisory-Lock + LP409-Übersetzung für parallele Konvertierungen).
+- Runde 4 auf `316f528`: 1×P2 — behoben in `39fd204` (Qualifizierungsstatus in LeadsPage-Datenstatus und Export-Sperre).
+- E2E-Nacharbeit `c81b004`: CI-E2E-Fail im Auftrags-138-Konfliktfall war Test-Race (Refill spiegelte Serverphase vor LP409) — Spec deterministisch per Route-Gate gemacht, kein Produktionscode.
+- Runde 5 auf `c81b004`: 2×P2 — behoben in `7c58f19` (`draftDirty`-Entwurfsschutz im Drawer, Qualifizierungs-Retry in LeadsPage).
+- Runde 6 auf `7c58f19`: 1×P2 — behoben in `528e2ae` (`qualified_at`-Übernahme für konvertierte Bestandskontakte in der Migration).
+
+**Ergebnis:** Codex-Review auf `528e2ae`: „Didn't find any major issues." — keine offenen Befunde. Alle 13 Review-Threads als gelöst markiert.
+
+**Pflicht-Checks auf `528e2ae`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge und etwaiges Release-Tag macht Marc.
