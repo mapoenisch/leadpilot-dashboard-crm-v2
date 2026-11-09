@@ -9,6 +9,7 @@ import {
   type CrmQueryResourceParams,
   type CrmExportResourceParams,
 } from '../crm-query-export/index.ts';
+import { FIELD_MAPPINGS, RESOURCE_CONFIG } from '../crm-query-export/resourceConfig.ts';
 
 const ADMIN_USER: CrmUser = { id: '11111111-1111-1111-1111-111111111111', email: 'admin@org-a.local' };
 const MANAGER_USER: CrmUser = { id: '22222222-2222-2222-2222-222222222222', email: 'manager@org-a.local' };
@@ -51,7 +52,7 @@ function createMockDb(): { db: CrmQueryDb; state: MockDbState } {
       { id: 'd1', firstName: 'Anna', lastName: 'Schmidt', email: 'anna@a1.test', jobTitle: 'CEO', companyId: 'c1' },
     ],
     deals: [
-      { id: 'e1', dealName: 'Enterprise Deal', stage: 'PROPOSAL', amount: 50000, closeDate: '2026-12-01', pipeline: 'default' },
+      { id: 'e1', dealName: 'Enterprise Deal', stage: 'PROPOSAL', amount: 50000, closeDate: '2026-12-01', pipeline: 'default', stageEnteredAt: '2026-11-09T10:00:00.000Z' },
     ],
   };
 
@@ -376,4 +377,22 @@ Deno.test('crm-query-export: Deterministischer id-Tie-Breaker bei identischen So
   const res3 = await handleCrmQueryExport(reqPage3, db);
   const data3 = await res3.json();
   assertEquals(data3.items[0].id, 'c1');
+});
+
+Deno.test('crm-query-export: deals-Antwort enthält stageEnteredAt', async () => {
+  // Vertrag: Spalte stage_entered_at wird als Item-Feld stageEnteredAt ausgeliefert.
+  assertEquals(RESOURCE_CONFIG.deals.columns.includes('stage_entered_at'), true);
+  assertEquals(FIELD_MAPPINGS.deals.includes('stageEnteredAt:stage_entered_at'), true);
+
+  const { db } = createMockDb();
+  const req = makeRequest(VIEWER_USER.id, {
+    action: 'list',
+    resource: 'deals',
+    page: 1,
+    pageSize: 20,
+  });
+  const res = await handleCrmQueryExport(req, db);
+  assertEquals(res.status, 200);
+  const data = await res.json();
+  assertEquals(data.items[0].stageEnteredAt, '2026-11-09T10:00:00.000Z');
 });

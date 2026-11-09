@@ -19692,3 +19692,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 
 - **Ergebnis:** „Didn't find any major issues" – keine Befunde.
 - Ein Doku-Commit ohne Codeänderung braucht nach `CLAUDE.md` §4.1 Punkt 5 kein neues Review.
+
+## 2026-11-09 — AUFTRAG 137 / Gate — Datenbank: Phasenwechsel (RPC, Historie, Verweildauer)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_137_DEAL_STAGE_TRACKING.md`, Teil-Auftrag 2 aus dem verbindlichen Plan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`. Builder: OpenCode. Prüfer: Codex (GitHub-App).
+
+**Änderung:** Neue Migration `supabase/migrations/20261110_deal_stage_tracking.sql`: `imported_funnel_deals.stage_entered_at` (NULL für Bestandsdaten), Tabelle `deal_stage_events` mit RLS (Lesen für aktive Mitglieder, keine Schreib-Policy, `REVOKE` für direkte Schreibversuche), RPC `move_deal_stage` mit `SECURITY DEFINER`, `FOR UPDATE` und den Fehlercodes `LP403`/`LP404`/`LP409`/`LP422`, Event- und Audit-Eintrag (`crm.deal.stage_changed`). `normalize_deal_stage` bildet das Frontend-Mapping aus `crmStageHelper.ts` in SQL ab. `crm-query-export` liefert die Spalte als `stageEnteredAt`; `ImportedFunnelDeal` trägt das optionale Feld. Der CSV-Export bleibt unverändert.
+
+**Verifikation:** `supabase test db` grün (9 Dateien, 224 pgTAP-Tests, davon 23 neue in `supabase/tests/deal_stage_tracking.sql`). `deno check --frozen-lockfile` ohne Fehler; `deno test` 68/68 grün. `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 367 Dateien / 2.669 Tests grün; `npm run verify` alle 25 Integrity-Suiten (001–025) bestanden; `npm run build` erfolgreich; `npx size-limit` eingehalten. Schutzbereichs-Diff gegen `origin/main`: nur `src/types/crm.ts` (im Auftrag ausdrücklich freigegeben), sonst leer. Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Hinweis:** Die Fehlercodes werden als benutzerdefinierte SQLSTATEs (`LP403` und folgende) geworfen; pgTAP prüft sie direkt. `p_expected_stage` vergleicht den gespeicherten Rohwert, `p_new_stage` muss eines der sieben Labels sein; gleiche normalisierte Phase ist ein No-op ohne Event.

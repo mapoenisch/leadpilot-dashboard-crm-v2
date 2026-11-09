@@ -35,6 +35,8 @@ export interface ImportedFunnelDeal {
   closeDate: string;
   pipeline: string;
   companyId?: string;
+  /** Zeitpunkt des letzten Phasenwechsels; Bestandsdaten vor v3.1 haben keinen. */
+  stageEnteredAt?: string;
 }
 
 // Operative CRM Entitäten (Vorbereitet für spätere Phasen)
