@@ -19675,3 +19675,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - **Ergebnis:** Review abgeschlossen, keine Befunde (`has_any_findings: false`, `has_unresolved_findings: false`).
 - **Pflicht-Checks (Head `6924e49`):** `lint`, `typecheck`, `build`, `livekpi-verifiers`, `size-limit` und CodeQL grün; die `test`-Suite lief zum Zeitpunkt des Nachtrags noch. Der Doku-Commit startet die vollständige CI erneut; das Ergebnis steht im PR.
 - Ein Doku-Commit ohne Codeänderung braucht nach `CLAUDE.md` §4.1 Punkt 5 kein neues Review.
+
+## 2026-11-09 — AUFTRAG 136 / Gate — Plan in Kraft setzen, falsche Aussagen entfernen
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_136_FALSCH_KI_ENTFERNEN.md`, Teil-Auftrag 1 aus dem verbindlichen Plan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`. Builder: OpenCode. Prüfer: Codex (GitHub-App).
+
+**Änderung:** `src/components/ai/AIInsightDrawer.tsx` und `src/components/ai/__tests__/AIInsightDrawer.ui.vitest.tsx` gelöscht. Der Drawer war nirgends eingebunden und behauptete „Powered by LeadPilot Gemini AI Engine", ohne dass eine KI-Anbindung existiert; `git grep AIInsightDrawer` in `src/` liefert keinen Treffer mehr. `BUILD_PLAN.md` nennt als nächsten Auftrag Teil-Auftrag 137 und verweist auf den Plan. `docs/releases/V3.0.0.md` trägt am Ende den Abschnitt „Bekannte Einschränkungen (Nachtrag 09.11.2026)": Browser-Speicher für Phasenwechsel, BANT und Qualifizierungsstatus, fehlende Datenbasis der Engpass-Erkennung, nicht existierende Aktivitätshistorie. Bestehender Text unverändert.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run verify` alle 25 Integritätssuiten (001–025) bestanden; `npm run build` erfolgreich. `git grep "Gemini AI Engine" -- src/` leer. Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`) leer. Keine sichtbare UI-Änderung, daher keine Screenshot-Matrix.
+
+**Hinweis:** Der Branch heißt `opencode/auftrag-136-falsch-ki-entfernen`; das Präfix nennt den Builder nach `CLAUDE.md` §4.1. Sonst gilt der Plan unverändert.
