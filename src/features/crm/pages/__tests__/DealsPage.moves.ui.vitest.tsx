@@ -43,6 +43,7 @@ function renderDealsPage(
   role: 'admin' | 'manager' | 'viewer' = 'admin',
   items = [DEAL],
   total = items.length,
+  refetch: () => unknown = vi.fn(),
 ) {
   mockedOrg.mockReturnValue({
     session: { role, userId: 'usr-1', organizationId: 'org-1' },
@@ -54,7 +55,7 @@ function renderDealsPage(
     isError: false,
     isPlaceholderData: false,
     error: null,
-    refetch: vi.fn(),
+    refetch,
   } as never);
 
   const queryClient = new QueryClient({
@@ -206,6 +207,48 @@ describe('DealsPage – serverseitige Phasenwechsel', () => {
         newStage: 'Verhandlung',
       }),
     );
+  });
+
+  it('hält die sichtbare Sperre bis zum Ende des Nachladens nach der RPC', async () => {
+    let resolveRefetch!: () => void;
+    const pendingRefetch = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRefetch = resolve;
+        }),
+    );
+    mockedMove.mockResolvedValue({
+      dealId: 'deal-1',
+      stage: 'Verhandlung',
+      stageEnteredAt: '2026-11-09T10:00:00.000Z',
+    });
+    renderDealsPage(
+      'admin',
+      [DEAL, { ...DEAL, id: 'deal-2', dealName: 'Zweiter Deal' }],
+      2,
+      pendingRefetch,
+    );
+
+    moveViaMenu('Verhandlung');
+
+    // RPC ist beendet (Erfolgsmeldung da), aber refetch läuft noch:
+    // Die Sperre darf nicht bereits aufgehoben sein.
+    await waitFor(() => {
+      expect(screen.getByTestId('deal-stage-announcement')).toHaveTextContent(
+        'Enterprise Paket nach Verhandlung verschoben.',
+      );
+    });
+    expect(screen.getByTestId('deal-card-deal-1')).toHaveAttribute('data-locked', 'true');
+    expect(screen.queryByLabelText('Zweiter Deal: Phase ändern')).not.toBeInTheDocument();
+    expect(screen.getByTestId('deal-card-deal-2')).toHaveAttribute('draggable', 'false');
+
+    await act(async () => resolveRefetch());
+    await waitFor(() => {
+      expect(screen.getByTestId('deal-card-deal-1')).not.toHaveAttribute('data-locked');
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('deal-card-deal-2')).toHaveAttribute('draggable', 'true');
+    });
   });
 
   it('zeigt bei Netzfehlern die feste Meldung und nicht die Rohmeldung', async () => {

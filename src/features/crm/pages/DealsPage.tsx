@@ -63,6 +63,9 @@ export function DealsPage() {
   const serverStageFilter = stageFilter !== 'ALL' ? stageFilter : undefined;
   const [moveNotice, setMoveNotice] = useState<MoveNotice | null>(null);
   const moveInFlightRef = useRef(false);
+  // Sichtbare Sperre für die gesamte Mutation inklusive onSettled-Nachladen;
+  // isMovingStage endet bereits, während refetch()/Extra-Seiten noch laufen.
+  const [settlingDealId, setSettlingDealId] = useState<string | null>(null);
 
   const currentQueryKey = useMemo(
     () => `${serverSearchTerm ?? ''}|${serverStageFilter ?? 'ALL'}|${sortField}|${sortOrder}`,
@@ -116,12 +119,11 @@ export function DealsPage() {
   const serverTotal = data?.total ?? 0;
   const hasMoreOnServer = rawDeals.length < serverTotal;
 
-  const {
-    mutate: mutateDealStage,
-    isPending: isMovingStage,
-    variables: moveVariables,
-  } = useMoveDealStage(session?.organizationId);
-  const lockedDealId = isMovingStage ? moveVariables?.dealId : undefined;
+  const { mutate: mutateDealStage, isPending: isMovingStage } = useMoveDealStage(
+    session?.organizationId,
+  );
+  const isStageUpdateRunning = isMovingStage || settlingDealId !== null;
+  const lockedDealId = isStageUpdateRunning ? (settlingDealId ?? undefined) : undefined;
 
   const handleDealStageChange = useCallback(
     (dealId: string, newStage: string) => {
@@ -132,6 +134,7 @@ export function DealsPage() {
       if (normalizeCanonicalStageLabel(expectedStage) === newStage) return;
 
       moveInFlightRef.current = true;
+      setSettlingDealId(dealId);
 
       setMoveNotice(null);
       mutateDealStage(
@@ -156,6 +159,7 @@ export function DealsPage() {
               await reloadLoadedExtraPages();
             } finally {
               moveInFlightRef.current = false;
+              setSettlingDealId(null);
             }
           },
         },
@@ -190,7 +194,7 @@ export function DealsPage() {
   const exportHintId = useId();
 
   const stageOptions = useMemo(() => buildStageOptions(BASE_STAGE_OPTIONS, deals), [deals]);
-  const canMoveDeals = !isViewer && !isMovingStage && Boolean(session?.organizationId);
+  const canMoveDeals = !isViewer && !isStageUpdateRunning && Boolean(session?.organizationId);
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">

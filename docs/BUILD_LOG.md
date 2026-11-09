@@ -19833,3 +19833,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - Schutzbereichs-Diff gegen `origin/main`: 100 % leer
 
 **Status:** Review-Nachtrag offen; erneutes Review durch Codex oder anderen unabhängigen Prüfer auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #159 — Behebung Codex-Befund „Sichtbare Sperre bis Ende des Nachladens" (09.11.2026)
+
+**Kontext:** Codex-Review auf `017ce5b` (P2, `DealsPage.tsx`): `isMovingStage` endet mit der RPC, während `onSettled` noch `refetch()` und Extra-Seiten lädt. `moveInFlightRef` warnt zwar weiter, die sichtbare Sperre (`canMoveDeals`, `lockedDealId`) war jedoch schon aufgehoben — weitere Klicks wurden kommentarlos verworfen.
+
+**Behebung:** Neuer State `settlingDealId` bildet den vollständigen Lebenszyklus ab (gesetzt vor `mutateDealStage`, gelöscht im `finally` von `onSettled`). `isStageUpdateRunning = isMovingStage || settlingDealId !== null` steuert `canMoveDeals` und `lockedDealId`; der `variables`-Destructuring von `useMoveDealStage` entfällt.
+
+**Regressionstest:** `hält die sichtbare Sperre bis zum Ende des Nachladens nach der RPC` — refetch bleibt pending, Karte bleibt `data-locked`, Menü der zweiten Karte verborgen, `draggable="false"`; nach Auflösung ist alles wieder frei.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 368 Dateien / 2.676 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; Schutzbereichs-Diff gegen `origin/main` leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
