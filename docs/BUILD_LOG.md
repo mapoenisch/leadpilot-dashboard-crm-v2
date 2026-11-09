@@ -19984,3 +19984,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npx vitest run src/features/crm` 26 Dateien / 180 Tests grün inkl. der zuvor betroffenen Zustands-Tests; übrige LeadsPage-Tests (scoring, provenance, routePages, CRMView) grün. Reine Frontend-Statuskopplung ohne Schema-Änderung; pgTAP-Stand 260 Tests bleibt gültig. Schutzbereichs-Diff unverändert leer.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### CI-Nacharbeit PR #160 — E2E-Flake im Auftrags-138-Konfliktfall (11.11.2026)
+
+**Kontext:** Der E2E-Job auf `39fd204` fiel deterministisch (inkl. Retry) in `crm-deals-persistence.spec.ts › konflikt_zeigt_serverstand`. Code-Review auf `39fd204` war sauber; der Fehler lag im Test, nicht in der App.
+
+**Diagnose:** Der Error-Context-Snapshot zeigte den Deal bereits in „Deal gewonnen" mit Erfolgs-Announcement — der Konfliktversuch war also erfolgreich durchgelaufen. Ursache: Zwischen dem REST-PATCH (`stage = 'VERHANDLUNG'`) und dem Menüzug konnte ein Refill der Deal-Liste die neue Phase in den Client spiegeln; `expected_stage = stageRaw` passte damit zum Serverstand und `move_deal_stage` lieferte keinen LP409. Dieselbe Race wurde in `aba1cec` für den Scroll-Detach-Fall adressiert, der Daten-Refresh-Pfad blieb offen.
+
+**Fix (nur Spec):** `page.route('**/functions/v1/crm-query-export')` hält Deals-Listen-Abrufe (`action:"list"` + `resource:"deals"`) ab dem PATCH bis zum nachgewiesenen LP409-Hinweis; danach wird die Sperre gelöst und der Serverstand (`Verhandlung`) wie gehabt asserziert. Kein `force`, kein Sleep, keine App-Änderung.
+
+**Verifikation:** Spec lokal nicht lauffähig (Edge-Function `crm-query-export` startet lokal nicht zuverlässig); Verifikation im CI-E2E-Job. `prettier --check` und `eslint` auf der Spec grün; übrige Gates des Heads `39fd204` bleiben gültig (tsc/lint/format/2.697 Vitest-Tests/verify/build/260 pgTAP damals grün, seitdem nur Spec- und Doku-Änderung). Schutzbereichs-Diff unverändert leer.
+
+**Status:** Kein neues Codex-Review nötig (reine Test-Determinismus-Änderung, kein Produktionscode); auf grünen E2E-Check warten. Kein Merge.
