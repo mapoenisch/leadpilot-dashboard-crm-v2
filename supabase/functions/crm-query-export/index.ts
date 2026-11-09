@@ -285,15 +285,23 @@ export function buildCanonicalCrmQuery(
   return query;
 }
 
-function mapRowToFrontend(res: CrmResource, r: Record<string, unknown>): Record<string, unknown> {
+export function mapRowToFrontend(
+  res: CrmResource,
+  r: Record<string, unknown>,
+): Record<string, unknown> {
   const o: Record<string, unknown> = { id: r.id, createdAt: r.created_at };
   if (res === 'deals') o.amount = r.amount !== null ? Number(r.amount) : 0;
   for (const p of FIELD_MAPPINGS[res].split(',')) {
     const [to, from] = p.split(':');
     o[to] = r[from];
   }
-  if (res === 'deals' && typeof o.stage === 'string') {
-    o.stage = normalizeCanonicalStage(o.stage);
+  if (res === 'deals') {
+    // Rohwert für die Konfliktprüfung von move_deal_stage: p_expected_stage
+    // vergleicht den gespeicherten Wert, nicht das normalisierte Label.
+    o.stageRaw = r.stage;
+    if (typeof o.stage === 'string') {
+      o.stage = normalizeCanonicalStage(o.stage);
+    }
   }
   return o;
 }

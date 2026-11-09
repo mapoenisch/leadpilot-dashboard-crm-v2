@@ -19692,3 +19692,29 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 
 - **Ergebnis:** „Didn't find any major issues" – keine Befunde.
 - Ein Doku-Commit ohne Codeänderung braucht nach `CLAUDE.md` §4.1 Punkt 5 kein neues Review.
+
+## 2026-11-09 — AUFTRAG 137 / Gate — Datenbank: Phasenwechsel (RPC, Historie, Verweildauer)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_137_DEAL_STAGE_TRACKING.md`, Teil-Auftrag 2 aus dem verbindlichen Plan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`. Builder: OpenCode. Prüfer: Codex (GitHub-App).
+
+**Änderung:** Neue Migration `supabase/migrations/20261110_deal_stage_tracking.sql`: `imported_funnel_deals.stage_entered_at` (NULL für Bestandsdaten), Tabelle `deal_stage_events` mit RLS (Lesen für aktive Mitglieder, keine Schreib-Policy, `REVOKE` für direkte Schreibversuche), RPC `move_deal_stage` mit `SECURITY DEFINER`, `FOR UPDATE` und den Fehlercodes `LP403`/`LP404`/`LP409`/`LP422`, Event- und Audit-Eintrag (`crm.deal.stage_changed`). `normalize_deal_stage` bildet das Frontend-Mapping aus `crmStageHelper.ts` in SQL ab. `crm-query-export` liefert die Spalte als `stageEnteredAt`; `ImportedFunnelDeal` trägt das optionale Feld. Der CSV-Export bleibt unverändert.
+
+**Verifikation:** `supabase test db` grün (9 Dateien, 224 pgTAP-Tests, davon 23 neue in `supabase/tests/deal_stage_tracking.sql`). `deno check --frozen-lockfile` ohne Fehler; `deno test` 68/68 grün. `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 367 Dateien / 2.669 Tests grün; `npm run verify` alle 25 Integrity-Suiten (001–025) bestanden; `npm run build` erfolgreich; `npx size-limit` eingehalten. Schutzbereichs-Diff gegen `origin/main`: nur `src/types/crm.ts` (im Auftrag ausdrücklich freigegeben), sonst leer. Keine UI-Änderung, daher keine Screenshot-Matrix.
+
+**Hinweis:** Die Fehlercodes werden als benutzerdefinierte SQLSTATEs (`LP403` und folgende) geworfen; pgTAP prüft sie direkt. `p_expected_stage` vergleicht den gespeicherten Rohwert, `p_new_stage` muss eines der sieben Labels sein; gleiche normalisierte Phase ist ein No-op ohne Event.
+
+### Nacharbeit Codex-Review (PR #158)
+
+**Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `cf7e285` · **Datum:** 2026-11-09
+
+- **Befund Runde 1 (P2):** `mapRowToFrontend` normalisierte `stage` und lieferte den gespeicherten Rohwert in keinem Feld. Bei Bestandsdeals wie `closedwon` hätte ein Client mit der gelesenen Phase als `p_expected_stage` dauerhaft `LP409` erhalten.
+- **Behebung:** `crm-query-export` liefert zusätzlich `stageRaw` (Rohwert) neben dem normalisierten Label; `mapRowToFrontend` ist für den direkten Vertragstest exportiert. `ImportedFunnelDeal` trägt `stageRaw?: string` (zweites optionales Feld, direkte Folge des Befunds). Neuer Deno-Test prüft `stage` = `Deal gewonnen` und `stageRaw` = `closedwon`.
+- **Ergebnis Runde 2 (auf `cf7e285`):** Review abgeschlossen, keine Befunde (`has_any_findings: false`, `has_unresolved_findings: false`).
+- **Verifikation nach der Nacharbeit:** `deno check` ohne Fehler, `deno test` 69/69 grün, `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Fehler, `npm test` 367 Dateien / 2.669 Tests grün, `npm run verify` alle 25 Suiten grün, `npm run build` erfolgreich.
+- **CI-Hinweis:** Der `test`-Job auf `cf7e285` brach beim Setup ab, weil `denoland/setup-deno` den Deno-Download mit HTTP 504 quittierte (Infrastruktur, kein Testfehler). Der Doku-Commit startet die CI erneut.
+
+**Befund Runde 3 (P2, auf `1ad30ea`):** Die Supabase-Defaultrechte (`GRANT ALL ON TABLES`) ließen `authenticated` und `anon` das `TRUNCATE`-Recht auf `deal_stage_events`; RLS schützt diesen tabellenweiten Vorgang nicht. Ein `TRUNCATE public.deal_stage_events` hätte die Historie aller Mandanten gelöscht.
+
+- **Behebung:** Migration entzieht zusätzlich `TRUNCATE` (Muster `20261004_executive_dashboard_preferences.sql`). Neuer pgTAP-Test `direct_truncate_denied` prüft die Abweisung mit `42501`.
+- **Verifikation:** `supabase test db` 225 Tests grün (24 neue), `npm run verify:migrations` grün (leere DB, Upgrade v2.2.0, Schemagleichheit, pgTAP), tsc/lint/2.669 Vitest-Tests/25 Integrity-Suiten/Build grün.
+- **Ergebnis Runde 4 (auf `e3d6497`):** „Didn't find any major issues" – keine Befunde.
