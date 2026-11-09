@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(35);
+SELECT plan(37);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.lead_qualifications WHERE contact_id LIKE 'lq139-%';
@@ -344,6 +344,26 @@ SELECT is(
   (SELECT source_contact_id FROM public.imported_funnel_deals WHERE id = 'd-conv-lq139-c6-1700000000000'),
   'lq139-c6',
   'legacy_backfill: source_contact_id wird aus der Deal-ID rekonstruiert'
+);
+
+-- Qualifizierungsstatus-Übernahme wie in der Migration: konvertierte Kontakte
+-- galten bisher als qualifiziert; ohne Zeile erschienen sie nach dem Upgrade
+-- wieder als „Offen" (Codex-Befund). ON CONFLICT erhält vorhandene Werte.
+INSERT INTO public.lead_qualifications (organization_id, contact_id, qualified_at)
+SELECT d.organization_id, d.source_contact_id, COALESCE(d.created_at, NOW())
+FROM public.imported_funnel_deals AS d
+WHERE d.source_contact_id IS NOT NULL
+ON CONFLICT (organization_id, contact_id)
+DO UPDATE SET qualified_at = COALESCE(lead_qualifications.qualified_at, EXCLUDED.qualified_at);
+
+SELECT ok(
+  (SELECT qualified_at IS NOT NULL FROM public.lead_qualifications WHERE contact_id = 'lq139-c6'),
+  'legacy_backfill: Qualifizierungsstatus des Legacy-Kontakts wird übernommen'
+);
+SELECT is(
+  (SELECT budget FROM public.lead_qualifications WHERE contact_id = 'lq139-c6'),
+  false,
+  'legacy_backfill: BANT-Werte werden nicht erfunden (nur qualified_at gesetzt)'
 );
 
 SET ROLE authenticated;

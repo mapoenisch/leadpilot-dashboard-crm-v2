@@ -20009,3 +20009,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify:quality-budget` sauber; `npx vitest run src/features/crm` 26 Dateien / 182 Tests grün inkl. zweier neuer Regressionstests (`hintergrund_refetch_uerscheibt_nicht_ungespeicherte_eingaben`, Retry-Test). Reine Frontend-Änderung; pgTAP-Stand 260 Tests bleibt gültig. Schutzbereichs-Diff unverändert leer.
 
 **Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung des Codex-Befunds auf `7c58f19` (11.11.2026)
+
+**Kontext:** Codex-Review auf `7c58f19` meldete 1×P2. Befund war berechtigt.
+
+**Befund und Behebung:**
+
+- **P2 Qualifizierungsstatus bereits konvertierter Kontakte (Migration):** Der `source_contact_id`-Backfill verlinkte Alt-Deals, legte aber keine `lead_qualifications`-Zeilen an — konvertierte Bestandskontakte erschienen nach dem Upgrade wieder als „Qualifizieren"/„Offen", obwohl ihre Deals existieren. Die Migration übernimmt jetzt für alle Deals mit `source_contact_id` `qualified_at` (aus `created_at` des Deals, Fallback `NOW()`); `ON CONFLICT DO UPDATE` ergänzt nur `qualified_at` und erhält vorhandene BANT-Werte/Notizen. Zwei neue pgTAP-Regressionen (`qualified_at` gesetzt, BANT bleibt leer statt erfunden).
+
+**Verifikation:** `supabase db reset` + `supabase test db`: 10 Dateien / 262 pgTAP-Tests PASS. Reine Migrations-/Test-Änderung; übrige Gates des Heads `7c58f19` bleiben gültig (tsc/lint/format/182 CRM-Tests/verify/build damals grün). Schutzbereichs-Diff unverändert leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.

@@ -184,6 +184,18 @@ WHERE d.source_contact_id IS NULL
       AND c.id = substring(d.id from '^d-conv-(.+)-\d+$')
   );
 
+-- Qualifizierungsstatus übernehmen: konvertierte Kontakte galten im
+-- bisherigen Ablauf als qualifiziert (alter Client markierte sie nach dem
+-- Deal). Ohne diese Zeilen erscheinen sie nach dem Upgrade wieder als
+-- „Offen". ON CONFLICT ergänzt nur qualified_at — vorhandene BANT-Werte
+-- und Notizen bleiben unangetastet.
+INSERT INTO public.lead_qualifications (organization_id, contact_id, qualified_at)
+SELECT d.organization_id, d.source_contact_id, COALESCE(d.created_at, NOW())
+FROM public.imported_funnel_deals AS d
+WHERE d.source_contact_id IS NOT NULL
+ON CONFLICT (organization_id, contact_id)
+DO UPDATE SET qualified_at = COALESCE(lead_qualifications.qualified_at, EXCLUDED.qualified_at);
+
 CREATE UNIQUE INDEX IF NOT EXISTS uq_deals_source_contact
   ON public.imported_funnel_deals (organization_id, source_contact_id)
   WHERE source_contact_id IS NOT NULL;
