@@ -37,6 +37,8 @@ export interface ImportedFunnelDeal {
   companyId?: string;
   /** Zeitpunkt des letzten Phasenwechsels; Bestandsdaten vor v3.1 haben keinen. */
   stageEnteredAt?: string;
+  /** Gespeicherter Rohwert der Phase (z. B. `closedwon`) für die Konfliktprüfung. */
+  stageRaw?: string;
 }
 
 // Operative CRM Entitäten (Vorbereitet für spätere Phasen)

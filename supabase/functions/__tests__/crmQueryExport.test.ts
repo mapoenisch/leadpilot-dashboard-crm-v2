@@ -8,6 +8,7 @@ import {
   type CrmMembership,
   type CrmQueryResourceParams,
   type CrmExportResourceParams,
+  mapRowToFrontend,
 } from '../crm-query-export/index.ts';
 import { FIELD_MAPPINGS, RESOURCE_CONFIG } from '../crm-query-export/resourceConfig.ts';
 
@@ -395,4 +396,22 @@ Deno.test('crm-query-export: deals-Antwort enthält stageEnteredAt', async () =>
   assertEquals(res.status, 200);
   const data = await res.json();
   assertEquals(data.items[0].stageEnteredAt, '2026-11-09T10:00:00.000Z');
+});
+
+Deno.test('crm-query-export: deals-Mapping liefert normalisierte Phase und Rohwert', () => {
+  const mapped = mapRowToFrontend('deals', {
+    id: 'e2',
+    organization_id: ORG_A_ID,
+    deal_name: 'Bestandsdeal',
+    stage: 'closedwon',
+    amount: 1000,
+    close_date: '2026-12-31',
+    pipeline: 'default',
+    created_at: '2026-01-01T00:00:00.000Z',
+    stage_entered_at: null,
+  });
+  // Anzeige bleibt das deutsche Label, die Konfliktprüfung braucht den Rohwert.
+  assertEquals(mapped.stage, 'Deal gewonnen');
+  assertEquals(mapped.stageRaw, 'closedwon');
+  assertEquals(mapped.stageEnteredAt, null);
 });
