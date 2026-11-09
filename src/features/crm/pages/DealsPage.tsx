@@ -11,7 +11,6 @@ import { ImportedFunnelDeal } from '@/types/crm';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
 import { CrmServiceError } from '@/services/crm/crmExportService';
-import { fetchCrmList } from '@/services/crm/crmListService';
 import { DataSourceStatus } from '@/components/data/DataSourceStatus';
 import { useCrmProvenance } from '../hooks/useCrmProvenance';
 import { useMoveDealStage } from '../hooks/useMoveDealStage';
@@ -22,10 +21,15 @@ import { DealsKanbanBoard } from '../components/DealsKanbanBoard';
 import { DealsKpiGrid } from '../components/DealsKpiGrid';
 import { DealsFilterBar, BASE_STAGE_OPTIONS } from '../components/DealsFilterBar';
 import { exportCrmDealsCsv } from '../utils/crmCsvHelper';
-import { buildStageOptions, useDealsUrlState } from '../utils/dealsClientView';
+import {
+  buildStageOptions,
+  useDealsUrlState,
+  mergeUniqueDeals,
+  formatResultCountText,
+  useKanbanExtraPages,
+  KANBAN_PAGE_SIZE,
+} from '../utils/dealsClientView';
 import { normalizeCanonicalStageLabel } from '../utils/crmStageHelper';
-
-const KANBAN_PAGE_SIZE = 100;
 
 interface MoveNotice {
   kind: 'success' | 'error';
@@ -57,32 +61,13 @@ export function DealsPage() {
   const pageSize = viewMode === 'kanban' ? KANBAN_PAGE_SIZE : tablePageSize;
   const serverSearchTerm = searchTerm.trim() || undefined;
   const serverStageFilter = stageFilter !== 'ALL' ? stageFilter : undefined;
-
-  const [extraDealsState, setExtraDealsState] = useState<{
-    queryKey: string;
-    items: ImportedFunnelDeal[];
-  }>({ queryKey: '', items: [] });
-  const [loadMoreErrorState, setLoadMoreErrorState] = useState<{
-    queryKey: string;
-    error: boolean;
-  }>({ queryKey: '', error: false });
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [moveNotice, setMoveNotice] = useState<MoveNotice | null>(null);
   const moveInFlightRef = useRef(false);
-  const activeLoadMoreQueryRef = useRef<string>('');
 
   const currentQueryKey = useMemo(
     () => `${serverSearchTerm ?? ''}|${serverStageFilter ?? 'ALL'}|${sortField}|${sortOrder}`,
     [serverSearchTerm, serverStageFilter, sortField, sortOrder],
   );
-
-  // Synchron an den aktuellen Query-Key gebunden: Sofort leer und fehlerfrei bei Filter-/Suchwechsel
-  const extraDeals = useMemo(
-    () => (extraDealsState.queryKey === currentQueryKey ? extraDealsState.items : []),
-    [extraDealsState, currentQueryKey],
-  );
-  const loadMoreFailed =
-    loadMoreErrorState.queryKey === currentQueryKey && loadMoreErrorState.error;
 
   // Serverseitige TanStack-Query
   const { data, isLoading, isError, isPlaceholderData, error, refetch } =
@@ -96,8 +81,26 @@ export function DealsPage() {
       pageSize,
     });
 
+  const {
+    extraDeals,
+    isLoadingMore,
+    loadMoreFailed,
+    reloadLoadedExtraPages,
+    handleLoadMore,
+    handleRetryLoadMore,
+  } = useKanbanExtraPages({
+    currentQueryKey,
+    serverSearchTerm,
+    serverStageFilter,
+    sortField,
+    sortOrder,
+    firstPageCount: data?.items?.length ?? 0,
+    isPlaceholderData,
+  });
+
   const rawDeals = useMemo(
-    () => (viewMode === 'kanban' ? [...(data?.items ?? []), ...extraDeals] : (data?.items ?? [])),
+    () =>
+      viewMode === 'kanban' ? mergeUniqueDeals(data?.items ?? [], extraDeals) : (data?.items ?? []),
     [viewMode, data?.items, extraDeals],
   );
 
@@ -121,32 +124,6 @@ export function DealsPage() {
   } = useMoveDealStage(session?.organizationId);
   const lockedDealId = isMovingStage ? moveVariables?.dealId : undefined;
 
-  const reloadLoadedExtraPages = useCallback(async () => {
-    const loadedCount =
-      extraDealsState.queryKey === currentQueryKey ? extraDealsState.items.length : 0;
-    if (loadedCount === 0) return;
-    const pages = Math.ceil(loadedCount / KANBAN_PAGE_SIZE);
-    try {
-      const collected: ImportedFunnelDeal[] = [];
-      for (let p = 2; p <= pages + 1; p += 1) {
-        const res = await fetchCrmList<ImportedFunnelDeal>({
-          resource: 'deals',
-          q: serverSearchTerm,
-          filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
-          sortBy: sortField,
-          sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-          page: p,
-          pageSize: KANBAN_PAGE_SIZE,
-        });
-        collected.push(...res.items);
-      }
-      setExtraDealsState({ queryKey: currentQueryKey, items: collected });
-    } catch {
-      // Ohne belastbare Nachladung lieber auf die erste Seite zurückfallen als Altdaten zeigen.
-      setExtraDealsState({ queryKey: currentQueryKey, items: [] });
-    }
-  }, [currentQueryKey, extraDealsState, serverSearchTerm, serverStageFilter, sortField, sortOrder]);
-
   const handleDealStageChange = useCallback(
     (dealId: string, newStage: string) => {
       const deal = rawDeals.find((d) => d.id === dealId);
@@ -166,74 +143,27 @@ export function DealsPage() {
               kind: 'success',
               text: `${deal.dealName} nach ${newStage} verschoben.`,
             });
-            void reloadLoadedExtraPages();
           },
           onError: (err) => {
-            if (err.code === 'conflict') void reloadLoadedExtraPages();
             setMoveNotice({
               kind: 'error',
               text: MOVE_DEAL_STAGE_ERROR_MESSAGES[err.code],
             });
           },
-          onSettled: () => {
-            moveInFlightRef.current = false;
+          onSettled: async () => {
+            try {
+              // Hinweis 1: Erst Seite 1 aktualisieren, danach Extra-Seiten nachladen, um Seitengrenzen-Rennen zu verhindern
+              await refetch();
+              await reloadLoadedExtraPages();
+            } finally {
+              moveInFlightRef.current = false;
+            }
           },
         },
       );
     },
-    [rawDeals, isViewer, mutateDealStage, reloadLoadedExtraPages],
+    [rawDeals, isViewer, mutateDealStage, refetch, reloadLoadedExtraPages],
   );
-
-  const handleLoadMore = useCallback(async () => {
-    if (isLoadingMore || isPlaceholderData) return;
-    const requestKey = currentQueryKey;
-    activeLoadMoreQueryRef.current = requestKey;
-    setIsLoadingMore(true);
-    try {
-      const currentCount =
-        (data?.items?.length ?? 0) +
-        (extraDealsState.queryKey === requestKey ? extraDealsState.items.length : 0);
-      const nextPage = Math.floor(currentCount / KANBAN_PAGE_SIZE) + 1;
-      const res = await fetchCrmList<ImportedFunnelDeal>({
-        resource: 'deals',
-        q: serverSearchTerm,
-        filters: serverStageFilter ? { stage: serverStageFilter } : undefined,
-        sortBy: sortField,
-        sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
-        page: nextPage,
-        pageSize: KANBAN_PAGE_SIZE,
-      });
-      if (activeLoadMoreQueryRef.current === requestKey) {
-        setExtraDealsState((prev) => ({
-          queryKey: requestKey,
-          items: prev.queryKey === requestKey ? [...prev.items, ...res.items] : res.items,
-        }));
-      }
-    } catch {
-      if (activeLoadMoreQueryRef.current === requestKey) {
-        setLoadMoreErrorState({ queryKey: requestKey, error: true });
-      }
-    } finally {
-      if (activeLoadMoreQueryRef.current === requestKey) {
-        setIsLoadingMore(false);
-      }
-    }
-  }, [
-    currentQueryKey,
-    data?.items?.length,
-    extraDealsState,
-    isLoadingMore,
-    isPlaceholderData,
-    serverSearchTerm,
-    serverStageFilter,
-    sortField,
-    sortOrder,
-  ]);
-
-  const handleRetryLoadMore = useCallback(() => {
-    setLoadMoreErrorState({ queryKey: currentQueryKey, error: false });
-    void handleLoadMore();
-  }, [currentQueryKey, handleLoadMore]);
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -354,13 +284,7 @@ export function DealsPage() {
         onSortChange={handleSortChange}
         sortOrder={sortOrder}
         onOrderChange={handleOrderChange}
-        resultCountText={
-          isError
-            ? 'Ergebnis nicht verfügbar'
-            : !hasData
-              ? 'Ergebnis wird geladen …'
-              : `${serverTotal} ${serverTotal === 1 ? 'Deal' : 'Deals'} gefunden`
-        }
+        resultCountText={formatResultCountText(isError, hasData, serverTotal)}
       />
 
       {/* 4. Table OR Kanban Board */}

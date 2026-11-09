@@ -221,4 +221,27 @@ describe('DealsPage – serverseitige Phasenwechsel', () => {
     });
     expect(screen.getByRole('alert')).not.toHaveTextContent('offline');
   });
+
+  it('dedupliziert Deals nach ID beim Nachladen und verhindert doppelte Karten', async () => {
+    const overlappingDeal = { ...DEAL, id: 'deal-overlap', dealName: 'Überlappender Deal' };
+    const firstPage = [
+      overlappingDeal,
+      ...Array.from({ length: 99 }, (_, i) => ({ ...DEAL, id: `first-${i}` })),
+    ];
+    const fetchList = vi.mocked(crmListService.fetchCrmList);
+    fetchList.mockResolvedValueOnce({
+      items: [overlappingDeal, { ...DEAL, id: 'extra-unique', dealName: 'Einzigartiger Deal' }],
+      total: 101,
+      page: 2,
+      pageSize: 100,
+      resource: 'deals',
+    });
+    renderDealsPage('admin', firstPage, 101);
+    fireEvent.click(screen.getByRole('button', { name: /Weitere Deals nachladen/ }));
+    await screen.findByTestId('deal-card-extra-unique');
+
+    // Der überlappende Deal existiert trotz Rückgabe in Seite 2 nur exakt einmal im DOM
+    const matchingCards = screen.getAllByTestId('deal-card-deal-overlap');
+    expect(matchingCards).toHaveLength(1);
+  });
 });

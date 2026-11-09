@@ -19780,3 +19780,28 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** Unveränderter Test lokal zunächst rot mit demselben fehlenden Karten-Selektor. Nach Anpassung alle vier Persistenz-E2E-Fälle gegen echtes lokales Supabase grün (4/4, Desktop, 3,4 s). TypeScript, Lint, Formatprüfung, 368 Vitest-Dateien / 2.671 Tests, 25 Integritätssuiten und Produktions-Build grün. Schutzbereichs-Diff gegen `a98ef38` leer. Keine App- oder Layoutänderung; die vorhandene Screenshot-Matrix bleibt gültig.
 
 **Status:** CI-Prüfung auf dem neuen Head und Review durch einen anderen Agenten weiterhin erforderlich. Kein Merge und keine Freigabe.
+
+### Nacharbeit PR #159 — Behebung Hinweis 1: Karten-Deduplizierung und sequentielles Nachladen (09.11.2026)
+
+**Kontext:** Hinweis 1 (P2) aus PR-Review zu #159: Beim Verschieben von Deals konnten nachgeladene Kanban-Seiten mit dem Refetch von Seite 1 konkurrieren (`reloadLoadedExtraPages()` in `onSuccess`), was bei Offset-Paginierung zu temporär doppelten Karten (doppelte React-Keys) führen konnte. Zudem fehlte eine ID-basierte Deduplizierung.
+
+**Änderungen:**
+- `src/features/crm/utils/dealsClientView.ts`:
+  - `mergeUniqueDeals(firstPage, extra)`: Führt Seite 1 und Extra-Seiten dedupliziert nach `id` zusammen.
+  - `appendUniqueDeals(existing, incoming)`: Verhindert doppelte Deals beim sequentiellen Laden von Folgeseiten.
+  - `useKanbanExtraPages()`: Hook für Kanban-Zusatzseiten separiert. `reloadLoadedExtraPages()` speichert nachgeladene Seiten dedupliziert.
+- `src/features/crm/pages/DealsPage.tsx`:
+  - `reloadLoadedExtraPages()` aus `onSuccess` entfernt und in `onSettled` verschoben: Erst wird Seite 1 via `await refetch()` aktualisiert, anschließend werden die Extra-Seiten neu geladen.
+  - Zusammenführung der Deals für Kanban via `mergeUniqueDeals(firstPageDeals, extraDeals)` abgesichert.
+  - Datei modularisiert und `max-lines` (<= 400 Zeilen) mit ~340 Zeilen strikt eingehalten.
+- `src/features/crm/pages/__tests__/DealsPage.moves.ui.vitest.tsx`:
+  - Regressionstest `dedupliziert Deals nach ID beim Nachladen und verhindert doppelte Karten` hinzugefügt.
+
+**Verifikation:**
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler
+- `npm run format:check`: konform
+- `npm test`: 368 Test-Dateien / 2.672 Tests bestanden
+- `npm run verify`: alle 25 Integritätssuiten (001–025) bestanden
+- `npm run build`: erfolgreich gebaut
+- Schutzbereichs-Diff gegen `origin/main`: 100 % leer
