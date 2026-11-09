@@ -1,9 +1,9 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 07.11.2026
+**Stand:** 09.11.2026
 
 **Aktueller Release:** `v3.0.0` (Master-Plan CRM-, Vertriebs- & Analytics-Evolution, Pakete 1–5, Aufträge 129–133; Auftrag 134 `docs/auftraege/ANTIGRAVITY_AUFTRAG_134_RELEASE_V3_0_0.md`, Release Notes `docs/releases/V3.0.0.md`; annotierter Tag `v3.0.0` auf dem Merge-Commit des Release-PR durch Marc). Vorher: `v2.5.0` (Plan Frontend-Qualität, Aufträge 081–122; Auftrag 123 `docs/auftraege/ANTIGRAVITY_AUFTRAG_123_RELEASE_V2_5_0.md`, Release Notes `docs/releases/V2.5.0.md`, Release-Freigabe Marc am 27.10.2026, annotierter Tag `v2.5.0` auf dem Merge-Commit des Release-PR). Vorher: `v2.4.0` (annotierter Tag auf dem Merge-Commit von PR #66; Auftrag 080 `docs/auftraege/ANTIGRAVITY_AUFTRAG_080_RELEASE_V2_4_0.md`, Release Notes `docs/releases/V2.4.0.md`, Release-Freigabe Marc am 06.10.2026). Vorher: `v2.3.2` (Tag auf `9372b43`, Merge von PR #37).
-**Nächster Auftrag:** noch nicht festgelegt.
+**Nächster Auftrag:** Teil-Auftrag 137 („Datenbank: Phasenwechsel") aus dem verbindlichen Plan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`. Teil-Auftrag 136 setzt den Plan in Kraft und entfernt die falsche KI-Aussage (`docs/auftraege/ANTIGRAVITY_AUFTRAG_136_FALSCH_KI_ENTFERNEN.md`).
 Der inhaltliche Master-Plan CRM-, Vertriebs- & Analytics-Evolution (`docs/superpowers/plans/2026-11-05-crm-analytics-master-plan.md`) ist mit Paketen 1–5 (PR #139, #140, #141, #142, #143) vollständig umgesetzt und in `main` integriert.
 **Fortschritt (06.10.2026):** Teilaufträge 0–7 sind gemergt (Aufträge 070–077, zuletzt PR #61). Teilauftrag 8 ist geteilt: Auftrag 078 Katalogausbau ist gemergt (PR #63). Auftrag 079 Gesamtabnahme (`docs/auftraege/ANTIGRAVITY_AUFTRAG_079_DASHBOARD_GESAMTABNAHME.md`, PR #64): alle Nachweise grün (Protokoll `docs/dashboard/ACCEPTANCE_079.md`), Sichtprüfung durch Marc erteilt, Rollout umgesetzt (neue Ansicht Standard, Rückschaltung per `VITE_EXECUTIVE_DASHBOARD_V2=false`). Auftrag 079 ist gemergt (PR #64, Nachtrag PR #65). Teilaufträge 0–8 damit abgeschlossen.
 **Vorgelagert:** Claude Code baut eine isolierte Testkachel; Codex prüft technisch, Marc gibt das Design frei. Erst danach beginnt der Umbau.
