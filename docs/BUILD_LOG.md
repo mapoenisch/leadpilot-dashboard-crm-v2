@@ -19996,3 +19996,16 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** Spec lokal nicht lauffähig (Edge-Function `crm-query-export` startet lokal nicht zuverlässig); Verifikation im CI-E2E-Job. `prettier --check` und `eslint` auf der Spec grün; übrige Gates des Heads `39fd204` bleiben gültig (tsc/lint/format/2.697 Vitest-Tests/verify/build/260 pgTAP damals grün, seitdem nur Spec- und Doku-Änderung). Schutzbereichs-Diff unverändert leer.
 
 **Status:** Kein neues Codex-Review nötig (reine Test-Determinismus-Änderung, kein Produktionscode); auf grünen E2E-Check warten. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung der zwei Codex-Befunde auf `c81b004` (11.11.2026)
+
+**Kontext:** Codex-Review auf `c81b004` meldete 2×P2. Beide Befunde waren berechtigt.
+
+**Befunde und Behebung:**
+
+- **P2 Entwurfsschutz bei Hintergrund-Refetches (`LeadQualificationDrawer.tsx`):** Jeder Refetch mit geänderter `savedQualification`-Identität setzte `bant` zurück — auch nach Nutzer-Edits (z. B. Refetch-on-Focus nach 60 s staleTime). Neuer `draftDirty`-Status: BANT-Toggles und Notizen-Edit setzen ihn, Lead-Wechsel setzt ihn zurück, erfolgreiches Speichern löst ihn vor dem Invalidierungs-Refill (Serverantwort wird damit als neuer Sollzustand übernommen). Serverwerte greifen nur noch vor dem ersten Edit oder direkt nach dem Speichern.
+- **P2 Retry lud Qualifizierungsabfrage nicht neu (`LeadsPage.tsx`):** Der gemeinsame Fehlerzustand kann allein durch `useQualifiedContactIds` ausgelöst sein, „Erneut versuchen" rief aber nur `refetch()` der Kontaktliste auf. `onRetry` ruft jetzt zusätzlich `refetchQualifications()` auf (nur im Contacts-Tab). Zustands-Mocks um `refetch` ergänzt; neuer Test `lädt bei alleinigem Qualifizierungsfehler beide Abfragen neu`.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify:quality-budget` sauber; `npx vitest run src/features/crm` 26 Dateien / 182 Tests grün inkl. zweier neuer Regressionstests (`hintergrund_refetch_uerscheibt_nicht_ungespeicherte_eingaben`, Retry-Test). Reine Frontend-Änderung; pgTAP-Stand 260 Tests bleibt gültig. Schutzbereichs-Diff unverändert leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.

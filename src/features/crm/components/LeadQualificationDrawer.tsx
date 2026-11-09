@@ -121,16 +121,26 @@ export function LeadQualificationDrawer({
   const [savedNotice, setSavedNotice] = useState(false);
 
   // Bei Lead-Wechsel oder eintreffenden Serverdaten den State (neu) befüllen
-  // (Derived-State-during-render-Pattern, kein useEffect nötig)
+  // (Derived-State-during-render-Pattern, kein useEffect nötig). Ein
+  // bearbeiteter Entwurf (draftDirty) wird von Hintergrund-Refetches nicht
+  // überschrieben — Serverwerte greifen nur vor dem ersten Edit oder nach
+  // einem erfolgreichen Speichern.
+  const [draftDirty, setDraftDirty] = useState(false);
   const [loadedFor, setLoadedFor] = useState<{ leadId: string; saved: unknown }>({
     leadId,
     saved: savedQualification,
   });
-  if (loadedFor.leadId !== leadId || loadedFor.saved !== savedQualification) {
+  if (loadedFor.leadId !== leadId) {
     setLoadedFor({ leadId, saved: savedQualification });
+    setDraftDirty(false);
     setBant(toBantState(savedQualification, result));
     setSaveError(null);
     setSavedNotice(false);
+  } else if (loadedFor.saved !== savedQualification) {
+    setLoadedFor({ leadId, saved: savedQualification });
+    if (!draftDirty) {
+      setBant(toBantState(savedQualification, result));
+    }
   }
 
   if (!lead) return null;
@@ -151,6 +161,7 @@ export function LeadQualificationDrawer({
 
   const toggleBant = (field: BantField) => {
     if (isViewer || isSaving || qualificationLocked) return;
+    setDraftDirty(true);
     setBant((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
@@ -169,6 +180,10 @@ export function LeadQualificationDrawer({
         timeline: bant.timeline,
         notes: bant.notes.slice(0, 2000),
       });
+      // Dirty-Flag vor dem Refill lösen: die Serverantwort nach dem Speichern
+      // wird damit als neuer Sollzustand übernommen (auch bei parallelen
+      // Schreibzugriffen anderer Sitzungen).
+      setDraftDirty(false);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: leadQualificationKey(leadId) }),
         queryClient.invalidateQueries({ queryKey: LEAD_QUALIFICATIONS_KEY }),
@@ -399,6 +414,7 @@ export function LeadQualificationDrawer({
             value={bant.notes}
             onChange={(e) => {
               if (!isViewer && !isSaving && !qualificationLocked) {
+                setDraftDirty(true);
                 setBant((prev) => ({ ...prev, notes: e.target.value.slice(0, 2000) }));
               }
             }}

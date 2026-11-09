@@ -226,6 +226,56 @@ describe('LeadQualificationDrawer (Auftrag 139)', () => {
     expect(screen.getByRole('button', { name: /Budget vorhanden/ })).toBeEnabled();
   });
 
+  it('hintergrund_refetch_uerscheibt_nicht_ungespeicherte_eingaben (Codex P2)', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const builder = makeBuilder({ data: null, error: null });
+    let call = 0;
+    builder.maybeSingle = vi.fn(() => {
+      call += 1;
+      return Promise.resolve(
+        call === 1
+          ? { data: null, error: null }
+          : {
+              data: {
+                contact_id: 'contact-1',
+                budget: true,
+                authority: true,
+                need: true,
+                timeline: true,
+                notes: 'Fremde Notiz',
+                qualified_at: '2026-11-10T00:00:00Z',
+                updated_at: '2026-11-10T00:00:00Z',
+              },
+              error: null,
+            },
+      );
+    });
+    dbMock.from.mockReturnValue(builder);
+
+    renderDrawer({}, client);
+
+    const notes = await screen.findByLabelText(/Qualifizierungsnotizen/);
+    const saveBtn = await screen.findByTestId('qualification-save-btn');
+    await waitFor(() => expect(saveBtn).toBeEnabled());
+
+    // Ungespeicherter Entwurf: Notiz + BANT-Toggle.
+    fireEvent.change(notes, { target: { value: 'Mein ungespeicherter Entwurf' } });
+    const budgetBtn = screen.getByRole('button', { name: /Budget vorhanden/ });
+    const budgetBefore = budgetBtn.getAttribute('aria-pressed');
+    fireEvent.click(budgetBtn);
+    const budgetEdited = budgetBtn.getAttribute('aria-pressed');
+    expect(budgetEdited).not.toBe(budgetBefore);
+
+    // Hintergrund-Refetch liefert eine andere Sitzung: Serverwerte dürfen
+    // den Entwurf nicht zurücksetzen.
+    await client.invalidateQueries({ queryKey: leadQualificationKey('contact-1') });
+    await waitFor(() => expect(call).toBeGreaterThan(1));
+
+    expect(notes).toHaveValue('Mein ungespeicherter Entwurf');
+    expect(budgetBtn.getAttribute('aria-pressed')).toBe(budgetEdited);
+    expect(screen.queryByText('Fremde Notiz')).toBeNull();
+  });
+
   it('doppelklick_einmal_aufgerufen: Speichern ist während des Requests deaktiviert', async () => {
     const resolvers: Array<(v: { error: null }) => void> = [];
     const builder = makeBuilder({ data: null, error: null });

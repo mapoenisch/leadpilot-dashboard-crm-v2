@@ -92,6 +92,7 @@ export function LeadsPage() {
     data: qualifiedLeadIds,
     isLoading: isQualificationsLoading,
     isError: isQualificationsError,
+    refetch: refetchQualifications,
   } = useQualifiedContactIds(activeTab === 'contacts');
 
   const isClientQualityPaging = activeTab === 'contacts' && qualityFilter !== 'ALL';
@@ -346,7 +347,16 @@ export function LeadsPage() {
           message={stateInfo.msg}
           sourceLabel="CRM-Daten"
           height={220}
-          onRetry={stateInfo.type === 'error' ? () => void refetch() : undefined}
+          onRetry={
+            stateInfo.type === 'error'
+              ? () => {
+                  void refetch();
+                  // Der gemeinsame Fehlerzustand kann auch allein durch die
+                  // Qualifizierungsabfrage ausgelöst sein — beide nachladen.
+                  if (qualificationsActive) void refetchQualifications();
+                }
+              : undefined
+          }
         />
       ) : (
         <Card variant="glass" padding="0">

@@ -14,6 +14,7 @@ vi.mock('@/features/crm/hooks/useLeadQualifications', () => ({
     data: new Set<string>(),
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
   })),
   useLeadQualification: vi.fn(() => ({ data: null, isPending: false, isError: false })),
 }));
