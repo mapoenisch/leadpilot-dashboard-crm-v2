@@ -4,17 +4,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
 import { crmKeys } from '@/services/query/queryKeys';
+import { LEAD_QUALIFICATIONS_KEY } from '../leadQualificationService';
 import {
   parseDealAmount,
-  getQualifiedLeadIds,
-  markLeadAsQualified,
+  classifyConvertLeadError,
   convertLeadToDeal,
+  ConvertLeadError,
   type ConvertedDealPayload,
 } from '../leadConversionService';
 
 const dbMock = vi.hoisted(() => ({
   configured: true,
-  insert: vi.fn(),
+  rpc: vi.fn(),
 }));
 
 vi.mock('@/services/db/supabaseClient', () => ({
@@ -22,7 +23,7 @@ vi.mock('@/services/db/supabaseClient', () => ({
     return dbMock.configured;
   },
   get supabase() {
-    return dbMock.configured ? { from: () => ({ insert: dbMock.insert }) } : null;
+    return dbMock.configured ? { rpc: dbMock.rpc } : null;
   },
 }));
 
@@ -36,15 +37,23 @@ const PAYLOAD: ConvertedDealPayload = {
   leadName: 'Max Mustermann',
 };
 
-describe('leadConversionService', () => {
-  const testOrg = 'test-org-123';
+const RPC_ROW = {
+  id: 'd-conv-123',
+  deal_name: 'Acme – Enterprise Deal',
+  stage: 'Erstgespräch geführt',
+  amount: 45000,
+  close_date: '2026-12-31',
+  pipeline: 'Enterprise SaaS',
+  organization_id: 'org-1',
+  source_contact_id: 'lead-42',
+  created_at: '2026-11-09T12:00:00Z',
+};
 
+describe('leadConversionService', () => {
   beforeEach(() => {
-    sessionStorage.clear();
-    localStorage.clear();
     dbMock.configured = true;
-    dbMock.insert.mockReset();
-    dbMock.insert.mockResolvedValue({ error: null });
+    dbMock.rpc.mockReset();
+    dbMock.rpc.mockResolvedValue({ data: RPC_ROW, error: null });
   });
 
   describe('parseDealAmount', () => {
@@ -64,60 +73,75 @@ describe('leadConversionService', () => {
     });
   });
 
-  describe('markLeadAsQualified & getQualifiedLeadIds', () => {
-    it('speichert und liest qualifizierte Leads pro Mandant', () => {
-      expect(getQualifiedLeadIds(testOrg).has('lead-1')).toBe(false);
-      markLeadAsQualified('lead-1', testOrg);
-      expect(getQualifiedLeadIds(testOrg).has('lead-1')).toBe(true);
-      expect(getQualifiedLeadIds('other-org').has('lead-1')).toBe(false);
+  describe('classifyConvertLeadError', () => {
+    it('bildet die RPC-Fehlercodes ab', () => {
+      expect(classifyConvertLeadError({ code: 'LP403' })).toBe('forbidden');
+      expect(classifyConvertLeadError({ code: 'LP404' })).toBe('not_found');
+      expect(classifyConvertLeadError({ code: 'LP409' })).toBe('conflict');
+      expect(classifyConvertLeadError({ code: 'LP422' })).toBe('invalid_stage');
+      expect(classifyConvertLeadError({ code: 'XX000' })).toBe('network');
+      expect(
+        classifyConvertLeadError({ message: 'CONFLICT: Lead wurde bereits konvertiert' }),
+      ).toBe('conflict');
+      expect(classifyConvertLeadError(null)).toBe('network');
     });
   });
 
   describe('convertLeadToDeal', () => {
-    it('speichert den Deal mandantengebunden und markiert den Lead als qualifiziert', async () => {
-      const deal = await convertLeadToDeal(PAYLOAD, testOrg);
+    it('ruft die RPC ohne ID und Organisation auf und liefert den Deal', async () => {
+      const deal = await convertLeadToDeal(PAYLOAD);
 
-      expect(deal.id).toMatch(/^d-conv-lead-42-/);
-      expect(deal.amount).toBe(45000);
-      expect(dbMock.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: deal.id,
-          deal_name: 'Acme – Enterprise Deal',
-          organization_id: testOrg,
-        }),
-      );
-      expect(getQualifiedLeadIds(testOrg).has('lead-42')).toBe(true);
+      expect(dbMock.rpc).toHaveBeenCalledWith('convert_lead_to_deal', {
+        p_contact_id: 'lead-42',
+        p_deal_name: 'Acme – Enterprise Deal',
+        p_stage: 'Erstgespräch geführt',
+        p_amount: 45000,
+        p_close_date: '2026-12-31',
+        p_pipeline: 'Enterprise SaaS',
+      });
+      const rpcArgs = dbMock.rpc.mock.calls[0]![1] as Record<string, unknown>;
+      expect(rpcArgs).not.toHaveProperty('p_organization_id');
+      expect(rpcArgs).not.toHaveProperty('p_deal_id');
+
+      expect(deal.id).toBe('d-conv-123');
+      expect(deal.organizationId).toBe('org-1');
+      expect(deal.leadId).toBe('lead-42');
     });
 
-    it('legt keine lokale Deal-Kopie an, die die Serverliste überlagern könnte', async () => {
-      await convertLeadToDeal(PAYLOAD, testOrg);
+    it('keine lokale Speicherung: keine Storage-Keys werden geschrieben', async () => {
+      await convertLeadToDeal(PAYLOAD);
 
       const keys = [...Object.keys(sessionStorage), ...Object.keys(localStorage)];
-      expect(keys.filter((k) => k.includes('converted_deals'))).toEqual([]);
+      expect(keys.filter((k) => k.includes('leadpilot_crm_'))).toEqual([]);
     });
 
-    it('meldet einen Fehler der Datenbank und markiert den Lead dann nicht', async () => {
-      dbMock.insert.mockResolvedValue({ error: { message: 'kaputt' } });
+    it('meldet einen RPC-Fehler als ConvertLeadError mit Code', async () => {
+      dbMock.rpc.mockResolvedValue({ data: null, error: { code: 'LP409', message: 'CONFLICT' } });
 
-      await expect(convertLeadToDeal(PAYLOAD, testOrg)).rejects.toThrow(/kaputt/);
-      expect(getQualifiedLeadIds(testOrg).has('lead-42')).toBe(false);
+      await expect(convertLeadToDeal(PAYLOAD)).rejects.toMatchObject({
+        name: 'ConvertLeadError',
+        code: 'conflict',
+      });
     });
 
     it('meldet ohne Datenbank keinen Erfolg', async () => {
       dbMock.configured = false;
 
-      await expect(convertLeadToDeal(PAYLOAD, testOrg)).rejects.toThrow(/nicht gespeichert/);
-      expect(getQualifiedLeadIds(testOrg).has('lead-42')).toBe(false);
+      await expect(convertLeadToDeal(PAYLOAD)).rejects.toBeInstanceOf(ConvertLeadError);
+      expect(dbMock.rpc).not.toHaveBeenCalled();
     });
 
-    it('lehnt unzulässige Beträge mit aussagekräftigem Fehler ab', async () => {
-      await expect(convertLeadToDeal({ ...PAYLOAD, amount: 0 }, testOrg)).rejects.toThrow(
-        /positive Zahl/,
-      );
-      expect(dbMock.insert).not.toHaveBeenCalled();
+    it('lehnt unzulässige Beträge und fehlende Lead-IDs ab', async () => {
+      await expect(convertLeadToDeal({ ...PAYLOAD, amount: 0 })).rejects.toMatchObject({
+        code: 'invalid_stage',
+      });
+      await expect(convertLeadToDeal({ ...PAYLOAD, leadId: '' })).rejects.toMatchObject({
+        code: 'invalid_stage',
+      });
+      expect(dbMock.rpc).not.toHaveBeenCalled();
     });
 
-    it('invalidiert die parametrisierten Listen und die Pipeline-Übersicht', async () => {
+    it('invalidiert Deals, Kontakte, Pipeline und Qualifizierungen', async () => {
       const queryClient = new QueryClient();
       const seed = (key: readonly unknown[]) => {
         queryClient.setQueryData(key, { items: [] });
@@ -127,12 +151,14 @@ describe('leadConversionService', () => {
       const contactsList = seed(crmKeys.list('contacts', { resource: 'contacts' }));
       const companiesList = seed(crmKeys.list('companies', { resource: 'companies' }));
       const pipeline = seed(crmKeys.pipelineOverview());
+      const qualifications = seed(LEAD_QUALIFICATIONS_KEY);
 
-      await convertLeadToDeal(PAYLOAD, testOrg, queryClient);
+      await convertLeadToDeal(PAYLOAD, queryClient);
 
       expect(dealsList()).toBe(true);
       expect(contactsList()).toBe(true);
       expect(pipeline()).toBe(true);
+      expect(qualifications()).toBe(true);
       expect(companiesList()).toBe(false);
     });
   });

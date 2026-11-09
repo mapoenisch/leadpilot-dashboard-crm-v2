@@ -95,9 +95,14 @@ export function LeadConversionModal({
       pipeline: 'Enterprise SaaS',
     };
 
+    if (!organizationId) {
+      setErrorMsg('Ohne aktive Sitzung kann nicht konvertiert werden.');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const stored = await convertLeadToDeal(payload, organizationId, queryClient);
+      const stored = await convertLeadToDeal(payload, queryClient);
       setIsSubmitted(true);
       setTimeout(() => {
         onSuccess(stored);
@@ -132,7 +137,7 @@ export function LeadConversionModal({
             size="sm"
             iconRight={isSubmitted ? <CheckCircle2 size={14} /> : <ArrowRight size={14} />}
             onClick={() => void handleSubmit()}
-            disabled={isSaving || isSubmitted || !dealName.trim()}
+            disabled={isSaving || isSubmitted || !dealName.trim() || !organizationId}
           >
             {isSubmitted ? 'Deal angelegt!' : isSaving ? 'Wird angelegt...' : 'Deal jetzt anlegen'}
           </Button>

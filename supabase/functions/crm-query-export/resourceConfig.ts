@@ -42,7 +42,7 @@ export const RESOURCE_CONFIG: Record<CrmResource, ResourceCfg> = {
   deals: {
     table: 'imported_funnel_deals',
     columns:
-      'id,organization_id,deal_name,stage,amount,close_date,pipeline,created_at,stage_entered_at',
+      'id,organization_id,deal_name,stage,amount,close_date,pipeline,created_at,stage_entered_at,source_contact_id',
     allowedSort: splitS('deal_name,stage,amount,close_date,created_at,id'),
     defaultSort: 'close_date',
     defaultOrder: 'desc',
@@ -59,5 +59,6 @@ export const FIELD_MAPPINGS: Record<CrmResource, string> = {
     'name:name,domain:domain,industry:industry,city:city,postalCode:postal_code,employeeCount:employee_count',
   contacts:
     'companyId:company_id,email:email,firstName:first_name,lastName:last_name,jobTitle:job_title',
-  deals: 'dealName:deal_name,stage:stage,closeDate:close_date,pipeline:pipeline,stageEnteredAt:stage_entered_at',
+  deals:
+    'dealName:deal_name,stage:stage,closeDate:close_date,pipeline:pipeline,stageEnteredAt:stage_entered_at,sourceContactId:source_contact_id',
 };

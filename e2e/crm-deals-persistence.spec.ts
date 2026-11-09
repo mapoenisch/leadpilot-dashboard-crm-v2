@@ -195,6 +195,24 @@ test.describe('Deals: serverseitige Phasenpersistenz (Auftrag 138)', () => {
     await openKanban(page);
     await expect(dealInColumn(page, 'Angebot erstellt', DEAL_A1)).toBeVisible();
 
+    // Determinismus (CI-Beobachtung): ein Refill der Deal-Liste zwischen PATCH
+    // und Konfliktversuch würde dem Client die neue Phase zeigen — der
+    // optimistische expected_stage passte dann und der Deal zog nach
+    // „Deal gewonnen“, ohne dass LP409 ausgelöst wurde. Deals-Listen-Abrufe
+    // werden ab jetzt gehalten, bis der Konfliktfall durchgespielt ist.
+    let gateDealsList = false;
+    let releaseDealsList: () => void = () => {};
+    const dealsListGate = new Promise<void>((resolve) => {
+      releaseDealsList = resolve;
+    });
+    await page.route('**/functions/v1/crm-query-export', async (route) => {
+      const body = route.request().postData() ?? '';
+      const isDealsList = body.includes('"action":"list"') && body.includes('"resource":"deals"');
+      if (gateDealsList && isDealsList) await dealsListGate;
+      await route.continue();
+    });
+    gateDealsList = true;
+
     // Serverstand hinter dem Rücken der offenen Seite ändern (Rohwert VERHANDLUNG).
     const patchRes = await rest(page, 'PATCH', `imported_funnel_deals?id=eq.${DEAL_A1}`, {
       stage: 'VERHANDLUNG',
@@ -217,6 +235,10 @@ test.describe('Deals: serverseitige Phasenpersistenz (Auftrag 138)', () => {
         hasText: 'Dieser Deal wurde inzwischen geändert. Die aktuelle Phase wird angezeigt.',
       }),
     ).toBeVisible();
+
+    // Gesperrte Listenabrufe freigeben: der Client lädt den Serverstand.
+    gateDealsList = false;
+    releaseDealsList();
 
     // Nach dem Fehlschlag zeigt die Seite den Serverstand.
     await expect(dealInColumn(page, 'Verhandlung', DEAL_A1)).toBeVisible();

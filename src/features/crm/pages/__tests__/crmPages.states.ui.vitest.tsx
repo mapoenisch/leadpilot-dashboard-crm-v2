@@ -11,12 +11,30 @@ import { CompaniesPage } from '../CompaniesPage';
 import { LeadsPage } from '../LeadsPage';
 import { useOrganization } from '@/auth/organizationContext';
 import { useCrmListQuery } from '@/hooks/queries/useCrmListQuery';
+import { useQualifiedContactIds } from '@/features/crm/hooks/useLeadQualifications';
 
 vi.mock('@/auth/organizationContext', () => ({ useOrganization: vi.fn() }));
 vi.mock('@/hooks/queries/useCrmListQuery', () => ({ useCrmListQuery: vi.fn() }));
+vi.mock('@/features/crm/hooks/useLeadQualifications', () => ({
+  useQualifiedContactIds: vi.fn(() => ({
+    data: new Set<string>(),
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  })),
+  useLeadQualification: vi.fn(() => ({ data: null, isPending: false, isError: false })),
+}));
 
 const mockedOrg = vi.mocked(useOrganization);
 const mockedQuery = vi.mocked(useCrmListQuery);
+const mockedQual = vi.mocked(useQualifiedContactIds);
+
+const defaultQualResult = {
+  data: new Set<string>(),
+  isLoading: false,
+  isError: false,
+  refetch: vi.fn(),
+};
 
 type QueryState = 'error' | 'loading' | 'empty' | 'success' | 'placeholder';
 
@@ -65,6 +83,8 @@ const PAGES: Array<[string, ComponentType, string]> = [
 describe.each(PAGES)('%s – Zustände (Auftrag 084)', (_name, Page, path) => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedQual.mockReset();
+    mockedQual.mockImplementation(() => defaultQualResult as never);
     window.history.replaceState(null, '', path);
     mockedOrg.mockReturnValue({
       session: { role: 'admin', userId: 'usr-1', organizationId: 'org-1' },
@@ -129,9 +149,39 @@ describe.each(PAGES)('%s – Zustände (Auftrag 084)', (_name, Page, path) => {
   });
 });
 
+describe('LeadsPage – Qualifizierungsstatus im Datenstatus (Auftrag 139)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedQual.mockReset();
+    mockedQual.mockImplementation(() => defaultQualResult as never);
+    window.history.replaceState(null, '', '/crm/leads');
+    mockedOrg.mockReturnValue({
+      session: { role: 'admin', userId: 'usr-1', organizationId: 'org-1' },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useOrganization>);
+  });
+
+  it('lädt bei alleinigem Qualifizierungsfehler beide Abfragen neu (Codex P2)', () => {
+    const refetch = mockQuery('success');
+    const refetchQual = vi.fn();
+    mockedQual.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch: refetchQual,
+    } as never);
+    renderPage(LeadsPage);
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }));
+    expect(refetch).toHaveBeenCalledTimes(1);
+    expect(refetchQual).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('LeadsPage – Audit-Tab (Auftrag 084)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedQual.mockReset();
+    mockedQual.mockImplementation(() => defaultQualResult as never);
     window.history.replaceState(null, '', '/crm/leads?tab=audit');
     mockedOrg.mockReturnValue({
       session: { role: 'admin', userId: 'usr-1', organizationId: 'org-1' },

@@ -181,6 +181,32 @@ describe('funnelAnalyticsService', () => {
       expect(mqlStage.liveCount).toBe(1);
       expect(mqlStage.liveConversionQuote).toBe(20.0); // 1 / 5 = 20 %
     });
+
+    it('dedupliziert über sourceContactId bei UUID-Deal-IDs (Auftrag 139)', () => {
+      // convert_lead_to_deal erzeugt d-conv-<uuid> ohne Kontakt-ID im String;
+      // die Zuordnung steckt in source_contact_id (Query-Mapping: sourceContactId).
+      const convertedDeals = [
+        {
+          id: 'd-conv-3f6b2c1e-9a4d-4e2f-8b7c-1d2e3f4a5b6c',
+          dealName: 'Konvertierter Deal',
+          stage: 'Erstgespräch geführt',
+          amount: 15000,
+          closeDate: '2026-12-31',
+          pipeline: 'Enterprise SaaS',
+          sourceContactId: 'c1',
+        } as ImportedFunnelDeal & { sourceContactId: string },
+      ];
+
+      const result = calculateFunnelAnalytics({
+        contacts: mockContacts,
+        deals: convertedDeals,
+        qualifiedLeadIds: ['c1'],
+      });
+
+      expect(result.totalMqlLive).toBe(1);
+      const mqlStage = result.stages.find((s) => s.key === 'mql')!;
+      expect(mqlStage.liveCount).toBe(1);
+    });
   });
 
   describe('Bottleneck-Erkennung (identifyFunnelBottlenecks)', () => {

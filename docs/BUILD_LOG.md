@@ -19885,3 +19885,159 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Verifikation:** `npx tsc --noEmit` 0 Fehler; `eslint` auf der Spec 0 Fehler; `prettier --check` konform; lokaler Reproduktionsversuch nicht möglich (Edge-Function `crm-query-export` läuft lokal nicht, Spec scheitert früher an fehlenden Seed-Daten) — Verifikation erfolgt im CI-E2E-Lauf. Vollständige Gates waren auf `480962d` bereits grün; dieser Commit ändert nur die Spec.
 
 **Status:** CI-E2E-Lauf auf neuem Head erforderlich. Kein Merge.
+
+### Auftrag 139 — Qualifizierung und Konvertierung speichern serverseitig (11.11.2026)
+
+**Auftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_139_QUALIFIZIERUNG_KONVERTIERUNG.md`, Teil-Auftrag 139 aus dem verbindlichen Plan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`. Builder: Devin. Prüfer: ein anderer Agent, Standard Codex (GitHub-App).
+
+**Ziel & Kontext:** BANT-Qualifizierung und Konvertierung lagen Previously in `sessionStorage`/`localStorage` (`leadpilot_crm_bant_*`, `leadpilot_crm_qualified_*`) — mandanten- und rollenungesichert, für andere Nutzer unsichtbar und nach Browserwechsel weg. Auftrag 139 verlagert beides in die Datenbank: neue Tabelle `lead_qualifications` (PK `(organization_id, contact_id)`, RLS, Trigger für `updated_by`/`updated_at`), neue Spalte `imported_funnel_deals.source_contact_id` mit partiellem Unique-Index, transaktionale RPC `convert_lead_to_deal` (LP403/404/409/422, Deal-ID und `organization_id` serverseitig, `deal_stage_events` mit `from_stage = NULL`, Audit `crm.lead.converted`). Browser-Speicher ist keine Fachdatenquelle mehr.
+
+**Geänderte/ neue Dateien:**
+
+- `supabase/migrations/20261111_lead_qualification.sql` — Tabelle, RLS-Policies (Lesen für Org-Mitglieder, Schreiben nur aktiv admin/manager), Trigger, `source_contact_id` + Unique-Index, RPC `convert_lead_to_deal` (`SECURITY DEFINER`, `search_path` gepinnt).
+- `supabase/tests/lead_qualification.sql` — 30 pgTAP-Tests: `manager_converts`, `viewer_rejected`, `foreign_contact_lp404`, `second_conversion_lp409`, `zero_amount_lp422`, `conversion_atomic_on_failure`, `qualification_tenant_isolated` u. a.
+- `src/features/crm/services/leadQualificationService.ts` (neu) — `fetchLeadQualification`, `fetchQualifiedContactIds`, `saveLeadQualification` (Upsert, `qualified_at` beim ersten Speichern eingefroren).
+- `src/features/crm/services/leadConversionService.ts` — konvertiert per `supabase.rpc('convert_lead_to_deal')`; LP-Codes → stabile Frontend-Fehler; keine lokale Deal-ID, keine `organizationId`-Übergabe mehr; invalidiert CRM-Listen, Pipeline-Overview und Qualifizierungs-Keys.
+- `src/features/crm/hooks/useLeadQualifications.ts` (neu) — `useLeadQualification(contactId, enabled)`, `useQualifiedContactIds(enabled)`.
+- `src/features/crm/components/LeadQualificationDrawer.tsx` — lädt BANT serverseitig; Score-Vorschläge nur wenn keine gespeicherte Zeile existiert; Speichern explizit per „Qualifizierung speichern" (kein Autosave); `isViewer` → Felder deaktiviert, keine Speicher-/Konvertierungs-Aktionen; State-Reset per Derived-State-during-render (kein `useEffect`-Suppression).
+- `src/features/crm/components/LeadConversionModal.tsx` — Guard gegen fehlende Session/Org; nutzt den RPC-Service.
+- `src/features/crm/pages/LeadsPage.tsx` — „Qualifiziert"-Status aus `useQualifiedContactIds` (Server).
+- `src/features/vertrieb/pages/FunnelPage.tsx` — Qualifizierungs-IDs aus `useQualifiedContactIds` statt `getQualifiedLeadIds` (localStorage).
+- `e2e/crm-lead-qualification.spec.ts` (neu) — `bant_bleibt_nach_reload`: BANT + Notizen speichern, Reload, Drawer erneut öffnen, Serverwerte bleiben; Kontakt erscheint als qualifiziert.
+- `.github/workflows/ci.yml` + `scripts/runV23Acceptance.mjs` — neue Spec in die sequentielle CRM-Gruppe (nach `crm-deals-persistence`) aufgenommen; Orchestrator-Test deckt die Duplex-Pflicht ab.
+- Tests: `leadQualificationService.unit.vitest.ts`, `LeadQualificationDrawer.ui.vitest.tsx` (lädt Serverwerte, Viewer kann nicht speichern, Doppelklick → ein Save), `leadConversionService.unit.vitest.ts` (RPC-Mapping), `LeadsPage.scoring.ui.vitest.tsx` (Serverliste/Legacy-Key-Isolation).
+- `scripts/captureAuftrag139Gate.mjs` + `docs/screenshots/auftrag-139/README.md` — Screenshot-Gate.
+
+**Funktionale Prüfungen:**
+
+- `git grep -E 'leadpilot_crm_(bant|qualified)' src/` → leer; `getQualifiedLeadIds`/`markLeadAsQualified` entfernt.
+- Drawer zeigt Score-Vorschläge nur ohne gespeicherte Zeile; Speichern ist explizit und idempotent-sicher (Doppelklick → ein `upsert`).
+- Viewer: BANT-Felder `disabled`, keine Save-/Convert-Buttons (per UI-Test und Screenshot-Vergleich verifiziert).
+- RPC: genau-einmal-Konvertierung (Unique-Index + LP409), Atomicität bei Fehler (`conversion_atomic_on_failure`), Tenant-Isolation per RLS + `organization_members`-Prüfung.
+
+**Verifikation:**
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler (eslint-comments-Pflicht: Drawer nutzt Derived-State-during-render statt `useEffect` + Suppression; Quality-Budget bleibt auf 1 `exhaustive-deps`-Suppression)
+- `npm run format:check`: konform
+- `npm test`: 370 Test-Dateien / 2.693 Tests bestanden
+- `npm run verify`: alle Integritätssuiten (001–025) bestanden
+- `npm run build`: erfolgreich
+- `npm run verify:quality-budget`: 0 Regressionen
+- `supabase test db`: 10 Dateien / 255 pgTAP-Tests PASS (nach `supabase db reset` mit neuer Migration)
+- E2E: neue Spec `crm-lead-qualification.spec.ts` in CI-Sequenz eingegliedert; lokaler Lauf nicht möglich (Edge-Function `crm-query-export` startet lokal nicht zuverlässig — `supabase functions serve` beendet sich sofort), Verifikation erfolgt im CI-E2E-Job. Spec lokal gegen Mock geprüft (Playwright-Screenshot-Harness nutzt denselben Ablauf).
+- Screenshot-Gate: 48 Aufnahmen (4 Szenarien × 2 Themes × 3 Viewports × vorher/nachher), 0 px horizontaler Overflow; 14 erwartete Abweichungen (Qualifiziert-Badge aus Serverdaten, Drawer-Speichern-Button, Viewer-Read-only, Funnel-Datenquelle) per `VISUAL_APPROVALS` mit Hash-Bindung geprüft → `✅ ALLE GATES BESTANDEN`. Matrix: `docs/screenshots/auftrag-139/README.md`.
+- Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): leer.
+
+**Ergebnis & Freigabestatus:** Auftrag umgesetzt, alle lokalen Gates grün, E2E-Nachweis im CI ausstehend. PR folgt; unabhängiges Review (Codex) erforderlich, Merge durch Marc.
+
+### Nacharbeit PR #160 — Behebung der fünf Codex-Befunde auf `da05769` (11.11.2026)
+
+**Kontext:** Codex-Review auf `da05769` meldete 1×P1 und 4×P2. Nacharbeit durch Devin; alle fünf Befunde waren berechtigt.
+
+**Befunde und Behebung:**
+
+- **P1 Drawer-Initialisierung aus Query-Cache (`LeadQualificationDrawer.tsx`):** `bant` startete immer mit Score-Vorschlägen; lag `savedQualification` beim Remount bereits im Cache, griff der spätere Vergleich nicht und gespeicherte Werte wurden als Vorschläge überschrieben. `useState` initialisiert jetzt mit `toBantState(savedQualification, result)`; Regressionstest `initialisiert beim Remount aus dem Query-Cache`.
+- **P2 Pagination `fetchQualifiedContactIds` (`leadQualificationService.ts`):** `max_rows = 1000` hätte große Mandanten stillschweigend abgeschnitten. Die Abfrage lädt jetzt seitenweise (`.order('contact_id').range()`) bis ein Blatt nicht mehr voll ist; neuer Test für den >1000-Fall.
+- **P2 Mandantenzugehörigkeit des Kontakts (Migration):** RLS prüfte nur die Org der Qualifizierungszeile; `contact_id` konnte auf Fremdkontakte zeigen. Neuer Unique-Key `contacts_org_id_unique (organization_id, id)` und zusammengesetzter FK `lead_qualifications_contact_org_fkey` sowie `imported_funnel_deals_source_contact_org_fkey` (`ON DELETE SET NULL (source_contact_id)`, PG15-Spaltenliste). Neuer pgTAP-Test `qualification_tenant_fk` (Org-A-Manager + Org-B-Kontakt → 23503). Alt-FKs werden per `DO`-Block idempotent getauscht.
+- **P2 Funnel-Deduplizierung (`resourceConfig.ts`, `funnelAnalyticsService.ts`):** `source_contact_id` fehlte im Query-Pfad und in der Dedup-Menge; UUID-Deals `d-conv-<uuid>` zählten Konvertierungs-Leads doppelt. Spalte + `sourceContactId`-Mapping ergänzt, Dedup erkennt `sourceContactId`/`source_contact_id` zusätzlich zum Legacy-ID-Muster; Regressionstest `dedupliziert über sourceContactId bei UUID-Deal-IDs`. **Ausnahme-Doku:** `supabase/functions/crm-query-export/resourceConfig.ts` und `src/features/vertrieb/services/funnelAnalyticsService.ts` liegen nicht in der Ziel-Dateien-Liste, sind aber direkte consequence des Bestandsbefunds (Funnel-MQL-Zählung falsch); `src/types/**` blieb unberührt (Schutzbereich — Zugriff läuft über den bestehenden `as unknown as`-Cast wie `leadId`/`contactId`).
+- **P2 E2E-Budget-Toggle (`crm-lead-qualification.spec.ts`):** Der Klick auf „Budget vorhanden" war unabhängig vom Score-Vorschlag; bei Seed-Score 100 schaltete er das Budget aus und die Reload-Assertion auf `aria-pressed="true"` schlug fehl. `setBant(name, desired)` klickt nur bei abweichendem Ist-Zustand.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` 370 Dateien / 2.696 Tests grün; `npm run verify` 25/25 Suiten; `npm run build` erfolgreich; `npm run verify:quality-budget` sauber; `supabase db reset` + `supabase test db`: 10 Dateien / 257 pgTAP-Tests PASS; Schutzbereichs-Diff gegen `origin/main` leer (inkl. `src/types/**`). Screenshot-Matrix bleibt gültig: die geänderten Stellen sind Initialisierungs-/Datenpfade ohne sichtbare Änderung in den aufgenommenen Szenarien.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung der drei Codex-Befunde auf `880cc54` (11.11.2026)
+
+**Kontext:** Codex-Review auf `880cc54` meldete 3×P2. Nacharbeit durch Devin; alle drei Befunde waren berechtigt.
+
+**Befunde und Behebung:**
+
+- **P2 Erstlade-Sperre im Drawer (`LeadQualificationDrawer.tsx`):** Solange die erste `lead_qualifications`-Abfrage pending oder fehlgeschlagen war, waren BANT-Felder und Speichern-Button aktiv — Score-Vorschläge konnten echte Serverwerte überschreiben. `qualificationLocked = isPending || isError || !leadId` sperrt jetzt Toggles, Textarea und `canSave`; Statuszeilen „Lade gespeicherte Qualisierung…" bzw. Fehlermeldung mit `role="status"`/`role="alert"`. `data === null` nach erfolgreichem Laden bleibt gültig (Score-Vorschläge). Neuer UI-Test `sperrt Bearbeitung und Speichern bis zum ersten Laden`; bestehende Save-Tests warten jetzt auf `toBeEnabled()`.
+- **P2 Qualifizierungsstatus im Funnel (`FunnelPage.tsx`):** `useQualifiedContactIds` lieferte nur `data`; bei Ladefehler oder pending wurde der Funnel trotzdem als geladen angezeigt und MQLs unterzählten. `isLoading`/`isError` des Queries gehen jetzt in `isDataLoading`/`isDataError` ein — `dataStatus` zeigt `loading`/`error` truthful.
+- **P2 Legacy-Konvertierungen (Migration):** Alt-Deals `d-conv-<Kontakt>-<Zeitstempel>` ohne `source_contact_id` waren für LP409 unsichtbar → Doppelkonvertierung nach Upgrade möglich. Migration backfillt jetzt `source_contact_id` tenant-scoped: `substring(id from '^d-conv-(.+)-\d+$')` (greedy, Zeitstempel bleibt Restsegment), nur wenn ein Kontakt derselben Organisation existiert (FK-sicher) und deterministisch nur die kleinste Deal-ID pro Kontakt (`min(id)`-Guard gegen historische Dubletten; weitere Duplikate bleiben unverlinkt, der Kontakt ist über den ersten Deal geschützt). Der Backfill läuft vor dem Unique-Index. Neuer pgTAP-Block `legacy_backfill` (3 Tests): Rekonstruktion, LP409-Ablehnung, kein zweiter Deal.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify:quality-budget` sauber; `npm test` 370 Dateien / 2.697 Tests grün; `npm run verify` 25/25 Suiten; `npx vite build` erfolgreich; `supabase db reset` + `supabase test db`: 10 Dateien / 260 pgTAP-Tests PASS; Schutzbereichs-Diff gegen `origin/main` unverändert leer. Sichtbare UI-Änderung nur im Lade-/Fehlerzustand des Drawers (Statuszeilen) — bestehende Screenshot-Szenarien zeigen den stabilen Zustand, Matrix bleibt gültig.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung des Codex-Befunds auf `ce5c857` (11.11.2026)
+
+**Kontext:** Codex-Review auf `ce5c857` meldete 1×P2. Befund war berechtigt.
+
+**Befund und Behebung:**
+
+- **P2 Parallele Konvertierungen (`convert_lead_to_deal`):** Zwei gleichzeitige Sitzungen konnten beide die `EXISTS`-Prüfung passieren; der zweite `INSERT` endete mit `23505` auf `uq_deals_source_contact`, den `classifyConvertLeadError` als Netzwerkfehler behandelte — die UI zeigte „Der Deal wurde nicht angelegt", obwohl die andere Sitzung ihn angelegt hatte. Behebung doppelt abgesichert: (a) `pg_advisory_xact_lock(hashtextextended(org || ':' || contact))` serialisiert Konvertierungen pro Kontakt — die zweite Transaktion wartet aufs Commit und schlägt dann regulär mit LP409 fehl; (b) `EXCEPTION WHEN unique_violation` übersetzt eine Restverletzung von `uq_deals_source_contact` (z. B. direkter INSERT außerhalb der RPC) gezielt in LP409, andere Unique-Verletzungen werden weitergereicht.
+
+**Verifikation:** `supabase db reset` + `supabase test db`: 10 Dateien / 260 pgTAP-Tests PASS (alle Konvertierungs-Tests unverändert grün, LP409-Pfad weiterhin abgedeckt). Reine SQL-Änderung, keine TS-/UI-Anpassung; übrige Gates des Heads `ce5c857` bleiben gültig (tsc/lint/format/2.697 Vitest-Tests/verify/build damals grün, seitdem nur Migrations- und Testdatei geändert). Schutzbereichs-Diff unverändert leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung des Codex-Befunds auf `316f528` (11.11.2026)
+
+**Kontext:** Codex-Review auf `316f528` meldete 1×P2. Befund war berechtigt.
+
+**Befund und Behebung:**
+
+- **P2 Qualifizierungsstatus im Listenexport (`LeadsPage.tsx`):** `enrichedContacts` behandelte eine fehlende/leere `qualifiedLeadIds`-Menge als „unqualifiziert", während `exportBlocked` nur die Kontaktabfrage berücksichtigte — der gefilterte CSV-Export konnte „Offen" für tatsächlich qualifizierte Kontakte schreiben. `isLoading`/`isError` von `useQualifiedContactIds` fließen jetzt als `effectiveIsLoading`/`effectiveIsError` in `countText`, `exportBlocked`, `stateInfo` und `LeadsKpiGrid` ein; der Export bleibt gesperrt, solange die Qualifizierungsdaten laden oder fehlschlagen (nur im Contacts-Tab aktiv). Die beiden Zustands-Testdateien mocken `useQualifiedContactIds`/`useLeadQualification` jetzt explizit mit aufgelöstem Leerzustand.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npx vitest run src/features/crm` 26 Dateien / 180 Tests grün inkl. der zuvor betroffenen Zustands-Tests; übrige LeadsPage-Tests (scoring, provenance, routePages, CRMView) grün. Reine Frontend-Statuskopplung ohne Schema-Änderung; pgTAP-Stand 260 Tests bleibt gültig. Schutzbereichs-Diff unverändert leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### CI-Nacharbeit PR #160 — E2E-Flake im Auftrags-138-Konfliktfall (11.11.2026)
+
+**Kontext:** Der E2E-Job auf `39fd204` fiel deterministisch (inkl. Retry) in `crm-deals-persistence.spec.ts › konflikt_zeigt_serverstand`. Code-Review auf `39fd204` war sauber; der Fehler lag im Test, nicht in der App.
+
+**Diagnose:** Der Error-Context-Snapshot zeigte den Deal bereits in „Deal gewonnen" mit Erfolgs-Announcement — der Konfliktversuch war also erfolgreich durchgelaufen. Ursache: Zwischen dem REST-PATCH (`stage = 'VERHANDLUNG'`) und dem Menüzug konnte ein Refill der Deal-Liste die neue Phase in den Client spiegeln; `expected_stage = stageRaw` passte damit zum Serverstand und `move_deal_stage` lieferte keinen LP409. Dieselbe Race wurde in `aba1cec` für den Scroll-Detach-Fall adressiert, der Daten-Refresh-Pfad blieb offen.
+
+**Fix (nur Spec):** `page.route('**/functions/v1/crm-query-export')` hält Deals-Listen-Abrufe (`action:"list"` + `resource:"deals"`) ab dem PATCH bis zum nachgewiesenen LP409-Hinweis; danach wird die Sperre gelöst und der Serverstand (`Verhandlung`) wie gehabt asserziert. Kein `force`, kein Sleep, keine App-Änderung.
+
+**Verifikation:** Spec lokal nicht lauffähig (Edge-Function `crm-query-export` startet lokal nicht zuverlässig); Verifikation im CI-E2E-Job. `prettier --check` und `eslint` auf der Spec grün; übrige Gates des Heads `39fd204` bleiben gültig (tsc/lint/format/2.697 Vitest-Tests/verify/build/260 pgTAP damals grün, seitdem nur Spec- und Doku-Änderung). Schutzbereichs-Diff unverändert leer.
+
+**Status:** Kein neues Codex-Review nötig (reine Test-Determinismus-Änderung, kein Produktionscode); auf grünen E2E-Check warten. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung der zwei Codex-Befunde auf `c81b004` (11.11.2026)
+
+**Kontext:** Codex-Review auf `c81b004` meldete 2×P2. Beide Befunde waren berechtigt.
+
+**Befunde und Behebung:**
+
+- **P2 Entwurfsschutz bei Hintergrund-Refetches (`LeadQualificationDrawer.tsx`):** Jeder Refetch mit geänderter `savedQualification`-Identität setzte `bant` zurück — auch nach Nutzer-Edits (z. B. Refetch-on-Focus nach 60 s staleTime). Neuer `draftDirty`-Status: BANT-Toggles und Notizen-Edit setzen ihn, Lead-Wechsel setzt ihn zurück, erfolgreiches Speichern löst ihn vor dem Invalidierungs-Refill (Serverantwort wird damit als neuer Sollzustand übernommen). Serverwerte greifen nur noch vor dem ersten Edit oder direkt nach dem Speichern.
+- **P2 Retry lud Qualifizierungsabfrage nicht neu (`LeadsPage.tsx`):** Der gemeinsame Fehlerzustand kann allein durch `useQualifiedContactIds` ausgelöst sein, „Erneut versuchen" rief aber nur `refetch()` der Kontaktliste auf. `onRetry` ruft jetzt zusätzlich `refetchQualifications()` auf (nur im Contacts-Tab). Zustands-Mocks um `refetch` ergänzt; neuer Test `lädt bei alleinigem Qualifizierungsfehler beide Abfragen neu`.
+
+**Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify:quality-budget` sauber; `npx vitest run src/features/crm` 26 Dateien / 182 Tests grün inkl. zweier neuer Regressionstests (`hintergrund_refetch_uerscheibt_nicht_ungespeicherte_eingaben`, Retry-Test). Reine Frontend-Änderung; pgTAP-Stand 260 Tests bleibt gültig. Schutzbereichs-Diff unverändert leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Nacharbeit PR #160 — Behebung des Codex-Befunds auf `7c58f19` (11.11.2026)
+
+**Kontext:** Codex-Review auf `7c58f19` meldete 1×P2. Befund war berechtigt.
+
+**Befund und Behebung:**
+
+- **P2 Qualifizierungsstatus bereits konvertierter Kontakte (Migration):** Der `source_contact_id`-Backfill verlinkte Alt-Deals, legte aber keine `lead_qualifications`-Zeilen an — konvertierte Bestandskontakte erschienen nach dem Upgrade wieder als „Qualifizieren"/„Offen", obwohl ihre Deals existieren. Die Migration übernimmt jetzt für alle Deals mit `source_contact_id` `qualified_at` (aus `created_at` des Deals, Fallback `NOW()`); `ON CONFLICT DO UPDATE` ergänzt nur `qualified_at` und erhält vorhandene BANT-Werte/Notizen. Zwei neue pgTAP-Regressionen (`qualified_at` gesetzt, BANT bleibt leer statt erfunden).
+
+**Verifikation:** `supabase db reset` + `supabase test db`: 10 Dateien / 262 pgTAP-Tests PASS. Reine Migrations-/Test-Änderung; übrige Gates des Heads `7c58f19` bleiben gültig (tsc/lint/format/182 CRM-Tests/verify/build damals grün). Schutzbereichs-Diff unverändert leer.
+
+**Status:** Erneutes Review durch Codex auf dem neuen Head erforderlich. Kein Merge.
+
+### Prüfnachweis PR #160 — Auftrag 139 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `528e2aef78` (Head des PR).
+
+**Verlauf der Review-Runden:**
+
+- Runde 1 auf `da05769`: 1×P1 + 4×P2 — alle behoben in `880cc54` (Cache-Initialisierung, Pagination, Tenant-FK, Funnel-Dedup via `source_contact_id`, zustandsabhängiger E2E-BANT-Toggle).
+- Runde 2 auf `880cc54`: 3×P2 — alle behoben in `ce5c857` (Erstlade-Sperre im Drawer, Qualifizierungsstatus im Funnel-Status, Legacy-Backfill `d-conv-<Kontakt>-<Zeitstempel>`).
+- Runde 3 auf `ce5c857`: 1×P2 — behoben in `316f528` (Advisory-Lock + LP409-Übersetzung für parallele Konvertierungen).
+- Runde 4 auf `316f528`: 1×P2 — behoben in `39fd204` (Qualifizierungsstatus in LeadsPage-Datenstatus und Export-Sperre).
+- E2E-Nacharbeit `c81b004`: CI-E2E-Fail im Auftrags-138-Konfliktfall war Test-Race (Refill spiegelte Serverphase vor LP409) — Spec deterministisch per Route-Gate gemacht, kein Produktionscode.
+- Runde 5 auf `c81b004`: 2×P2 — behoben in `7c58f19` (`draftDirty`-Entwurfsschutz im Drawer, Qualifizierungs-Retry in LeadsPage).
+- Runde 6 auf `7c58f19`: 1×P2 — behoben in `528e2ae` (`qualified_at`-Übernahme für konvertierte Bestandskontakte in der Migration).
+
+**Ergebnis:** Codex-Review auf `528e2ae`: „Didn't find any major issues." — keine offenen Befunde. Alle 13 Review-Threads als gelöst markiert.
+
+**Pflicht-Checks auf `528e2ae`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge und etwaiges Release-Tag macht Marc.

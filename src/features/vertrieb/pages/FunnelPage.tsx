@@ -9,7 +9,7 @@ import { useUrlSyncedState } from '@/hooks/useUrlSyncedState';
 import { useOrganization } from '@/auth/organizationContext';
 import { useAllCrmEntitiesQuery } from '../services/funnelCrmDataService';
 import { ImportedFunnelDeal, Contact } from '@/types/crm';
-import { getQualifiedLeadIds } from '@/features/crm/services/leadConversionService';
+import { useQualifiedContactIds } from '@/features/crm/hooks/useLeadQualifications';
 import { FunnelStufenChart } from '../components/FunnelStufenChart';
 import { GroupedDepthColumns } from '../components/GroupedDepthColumns';
 import { FunnelSourceToggle } from '../components/FunnelSourceToggle';
@@ -77,10 +77,12 @@ function FunnelPageHtml() {
     enabled: isLiveOrVergleich,
   });
 
-  const qualifiedLeadIds = useMemo(
-    () => getQualifiedLeadIds(session?.organizationId),
-    [session?.organizationId],
-  );
+  // Qualifizierte Kontakte kommen serverseitig aus lead_qualifications (RLS)
+  const {
+    data: qualifiedLeadIds,
+    isLoading: isQualificationsLoading,
+    isError: isQualificationsError,
+  } = useQualifiedContactIds(isLiveOrVergleich);
 
   // Funnel Analytics berechnen; die Phase kommt ausschließlich aus der Datenbank.
   const analytics = useMemo(() => {
@@ -204,9 +206,11 @@ function FunnelPageHtml() {
   }, [mode, analytics]);
 
   const isDataLoading =
-    (mode === 'live' || mode === 'vergleich') && (isDealsLoading || isContactsLoading);
+    (mode === 'live' || mode === 'vergleich') &&
+    (isDealsLoading || isContactsLoading || isQualificationsLoading);
   const isDataError =
-    (mode === 'live' || mode === 'vergleich') && (isDealsError || isContactsError);
+    (mode === 'live' || mode === 'vergleich') &&
+    (isDealsError || isContactsError || isQualificationsError);
   const isPlanEmpty = mode === 'plan' && FUNNEL.rows.length === 0;
   const dataStatus: 'loading' | 'empty' | 'error' | 'ready' = isDataLoading
     ? 'loading'
