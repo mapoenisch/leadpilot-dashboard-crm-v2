@@ -15,9 +15,11 @@ import {
   type MoveDealStageResult,
 } from '../services/dealStageService';
 
+type DealsCache = CrmPageResult<ImportedFunnelDeal> | ImportedFunnelDeal[];
+
 interface DealsListSnapshot {
   key: QueryKey;
-  data: CrmPageResult<ImportedFunnelDeal> | undefined;
+  data: DealsCache | undefined;
 }
 
 interface MoveDealStageContext {
@@ -44,30 +46,24 @@ export function useMoveDealStage(organizationId: string | undefined) {
       await queryClient.cancelQueries({ queryKey: crmKeys.listsOf('deals') });
 
       const previous = queryClient
-        .getQueriesData<CrmPageResult<ImportedFunnelDeal>>({
+        .getQueriesData<DealsCache>({
           queryKey: crmKeys.listsOf('deals'),
         })
         .map(([key, data]) => ({ key, data }));
 
-      queryClient.setQueriesData<CrmPageResult<ImportedFunnelDeal>>(
-        { queryKey: crmKeys.listsOf('deals') },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            items: old.items.map((deal) =>
-              deal.id === input.dealId
-                ? {
-                    ...deal,
-                    stage: input.newStage,
-                    stageRaw: input.newStage,
-                    stageEnteredAt: new Date().toISOString(),
-                  }
-                : deal,
-            ),
-          };
-        },
-      );
+      queryClient.setQueriesData<DealsCache>({ queryKey: crmKeys.listsOf('deals') }, (old) => {
+        if (!old) return old;
+        const update = (deal: ImportedFunnelDeal) =>
+          deal.id === input.dealId
+            ? {
+                ...deal,
+                stage: input.newStage,
+                stageRaw: input.newStage,
+                stageEnteredAt: new Date().toISOString(),
+              }
+            : deal;
+        return Array.isArray(old) ? old.map(update) : { ...old, items: old.items.map(update) };
+      });
 
       return { previous };
     },

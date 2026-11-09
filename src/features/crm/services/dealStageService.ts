@@ -33,7 +33,7 @@ export interface MoveDealStageInput {
 export interface MoveDealStageResult {
   dealId: string;
   stage: string;
-  stageEnteredAt: string;
+  stageEnteredAt: string | null;
 }
 
 interface PostgrestErrorLike {
@@ -81,7 +81,7 @@ function parseResult(data: unknown): MoveDealStageResult {
     !row ||
     typeof row.deal_id !== 'string' ||
     typeof row.stage !== 'string' ||
-    typeof row.stage_entered_at !== 'string'
+    (row.stage_entered_at !== null && typeof row.stage_entered_at !== 'string')
   ) {
     throw new MoveDealStageError('network');
   }

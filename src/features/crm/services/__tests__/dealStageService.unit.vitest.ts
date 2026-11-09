@@ -72,6 +72,18 @@ describe('dealStageService', () => {
     });
   });
 
+  it('akzeptiert den nullable Phasenzeitpunkt einer erfolgreichen No-op-Antwort', async () => {
+    dbMock.rpc.mockResolvedValueOnce({
+      data: [{ deal_id: 'deal-1', stage: 'PROPOSAL', stage_entered_at: null }],
+      error: null,
+    });
+    await expect(moveDealStage({ ...INPUT, newStage: 'Angebot erstellt' })).resolves.toEqual({
+      dealId: 'deal-1',
+      stage: 'PROPOSAL',
+      stageEnteredAt: null,
+    });
+  });
+
   it('erkennt das Meldungspräfix, wenn kein SQLSTATE geliefert wird', () => {
     expect(classifyMoveDealStageError({ message: 'CONFLICT: Deal wurde geändert' })).toBe(
       'conflict',

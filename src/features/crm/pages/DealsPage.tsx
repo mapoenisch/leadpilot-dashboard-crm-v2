@@ -68,6 +68,7 @@ export function DealsPage() {
   }>({ queryKey: '', error: false });
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [moveNotice, setMoveNotice] = useState<MoveNotice | null>(null);
+  const moveInFlightRef = useRef(false);
   const activeLoadMoreQueryRef = useRef<string>('');
 
   const currentQueryKey = useMemo(
@@ -149,10 +150,12 @@ export function DealsPage() {
   const handleDealStageChange = useCallback(
     (dealId: string, newStage: string) => {
       const deal = rawDeals.find((d) => d.id === dealId);
-      if (!deal || isViewer) return;
+      if (!deal || isViewer || moveInFlightRef.current) return;
       // Konfliktprüfung gegen den gespeicherten Rohwert, nicht gegen das Label.
       const expectedStage = deal.stageRaw ?? deal.stage;
-      if (expectedStage === newStage) return;
+      if (normalizeCanonicalStageLabel(expectedStage) === newStage) return;
+
+      moveInFlightRef.current = true;
 
       setMoveNotice(null);
       mutateDealStage(
@@ -166,10 +169,14 @@ export function DealsPage() {
             void reloadLoadedExtraPages();
           },
           onError: (err) => {
+            if (err.code === 'conflict') void reloadLoadedExtraPages();
             setMoveNotice({
               kind: 'error',
               text: MOVE_DEAL_STAGE_ERROR_MESSAGES[err.code],
             });
+          },
+          onSettled: () => {
+            moveInFlightRef.current = false;
           },
         },
       );
@@ -254,7 +261,7 @@ export function DealsPage() {
   const exportHintId = useId();
 
   const stageOptions = useMemo(() => buildStageOptions(BASE_STAGE_OPTIONS, deals), [deals]);
-  const canMoveDeals = !isViewer && Boolean(session?.organizationId);
+  const canMoveDeals = !isViewer && !isMovingStage && Boolean(session?.organizationId);
 
   return (
     <div className="flex flex-col gap-[var(--space-6)] max-w-full min-w-0">

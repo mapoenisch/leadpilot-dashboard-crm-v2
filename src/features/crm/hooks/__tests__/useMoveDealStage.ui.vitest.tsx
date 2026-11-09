@@ -118,6 +118,32 @@ describe('useMoveDealStage', () => {
     });
   });
 
+  it.each([false, true])(
+    'behandelt Array- und Seiten-Caches gemeinsam (Fehler: %s)',
+    async (fails) => {
+      const { queryClient, hook } = setup();
+      const arrayKey = crmKeys.list('deals', { resource: 'deals', pageSize: 500 });
+      queryClient.setQueryData(arrayKey, makePage().items);
+      mockedMove.mockImplementation(async () => {
+        expect(queryClient.getQueryData<ImportedFunnelDeal[]>(arrayKey)?.[0]?.stage).toBe(
+          'Verhandlung',
+        );
+        if (fails) throw new MoveDealStageError('conflict');
+        return { dealId: 'deal-1', stage: 'Verhandlung', stageEnteredAt: null };
+      });
+      await act(async () => {
+        await hook.result.current
+          .mutateAsync({ dealId: 'deal-1', expectedStage: 'PROPOSAL', newStage: 'Verhandlung' })
+          .catch(() => undefined);
+      });
+      expect(mockedMove).toHaveBeenCalledOnce();
+      expect(queryClient.getQueryData<ImportedFunnelDeal[]>(arrayKey)?.[0]?.stage).toBe(
+        fails ? 'Angebot erstellt' : 'Verhandlung',
+      );
+      expect(queryClient.getQueryState(arrayKey)?.isInvalidated).toBe(true);
+    },
+  );
+
   it('meldet ohne Organisation einen Netzfehler, ohne die Datenbank aufzurufen', async () => {
     const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
     const wrapper = ({ children }: { children: ReactNode }) => (

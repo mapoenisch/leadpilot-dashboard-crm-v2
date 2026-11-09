@@ -19753,3 +19753,19 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - `npx size-limit`: eingehalten (Initial JS bundle 179.56 kB / Limit 180 kB, Largest chunk 86.16 kB / Limit 250 kB)
 - Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): 100 % leer
 - Screenshot-Matrix: `docs/screenshots/auftrag-138/README.md` (18 Aufnahmen auf 1440/768/375 px, dark/light, alle 0 px Überlauf, Status: ALLE GATES BESTANDEN)
+
+
+### Nacharbeit PR #159 — Codex-Review auf `9dcdb3c` (09.11.2026)
+
+**Prüfer des Ausgangsstands:** Codex (GitHub-App). **Nacharbeit:** Codex lokal. Die frühere Abschlussmeldung war verfrüht: fünf offene Befunde und ein fehlgeschlagener E2E-Check. Die ursprüngliche Screenshot-Matrix enthielt ausschließlich Nachher-Aufnahmen; ihre Aussage einer bestandenen visuellen Regressionsprüfung wird hiermit korrigiert.
+
+- **P1 Array-Cache:** `useMoveDealStage` aktualisiert und restauriert sowohl `ImportedFunnelDeal[]` als auch paginierte Ergebnisse. Regressionstests prüfen RPC-Ausführung, optimistische Array-Aktualisierung, Rollback und Invalidierung.
+- **P2 zusätzliche Kanban-Seiten:** Auch bei `conflict` werden nachgeladene Seiten erneut vom Server gelesen. Der Regressionstest verschiebt anschließend denselben Deal mit dem erneuerten Rohwert `WON`.
+- **P2 parallele Verschiebungen:** Weitere Verschiebungen sind bis zum Abschluss der laufenden Mutation gesperrt; eine synchrone Ref-Sperre verhindert auch unmittelbar aufeinanderfolgende Aufrufe. Der Test prüft die Sperre einer zweiten Karte und deren erneute Freigabe.
+- **P2 No-op:** Der Service akzeptiert `stage_entered_at: null`; die Seite vermeidet zusätzlich normalisierte No-ops. Der Service-Vertrag ist durch einen Test abgedeckt.
+- **P1 visuelles Gate:** Der Harness erfordert einen separat gebauten Vorher-Stand (`edc72ee`) über `BEFORE_URL`, erzeugt 18 Bildpaare, vergleicht dekodierte Pixel und vollständige SHA-256-Hashes und legt Diff-Bilder lokal ab. Die bestehende Toleranz aus `playwright.config.ts` (0,1 % Pixelabweichung) gilt auch hier. Größere ungeprüfte Unterschiede oder unterschiedliche Bildmaße sperren das Gate. Explizite Ausnahmen müssen exakt an beide Hashes und eine Begründung gebunden werden. Identische Darstellung erzeugt identische Hashes; eine sichtbare Änderung wird nicht künstlich erzeugt.
+- **Zusätzlicher CI-Fehler:** Der E2E-Lauf `42589780176` scheiterte an einem mehrdeutigen Überschriften-Selektor. `openKanban` adressiert nun exakt die Inhaltsüberschrift H2. Playwright erkennt alle vier Fälle (zwölf Projektinstanzen); ein erfolgreicher vollständiger E2E-Lauf auf dem neuen Head steht noch aus.
+
+**Lokale Verifikation:** TypeScript 0 Fehler; Lint 0 Fehler; Formatprüfung grün; 368 Vitest-Dateien / 2.671 Tests grün; alle 25 Integritätssuiten grün; Produktions-Build erfolgreich; Size-Limit 179,53 / 180 kB und 86,16 / 250 kB. Schutzbereichs-Diff gegen `edc72ee` vollständig leer. Screenshot-Gate: 36 Aufnahmen / 18 echte Paare, 0 px Überlauf; vier visuell geprüfte Rasterungs-/Schattenabweichungen mit exakten Hashes und Begründung in der Matrix, übrige Paare innerhalb der bestehenden Toleranz. Negativprüfung ohne Ausnahmen sperrt das Gate (Exit 1); erneute Auswertung mit exakt geprüften Hashpaaren besteht (Exit 0). Ergebnis: `docs/screenshots/auftrag-138/README.md`.
+
+**Freigabestatus:** Keine Gate-Freigabe. Da Codex diese Nacharbeit gebaut hat, muss gemäß `CLAUDE.md` §4.1 ein anderer Agent den neuen Stand prüfen. CI und offene Review-Konversationen bleiben separat zu bestätigen. Merge und Release durch Marc.

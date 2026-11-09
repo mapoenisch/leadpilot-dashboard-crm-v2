@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { DealsPage } from '../DealsPage';
@@ -39,13 +39,17 @@ const DEAL: ImportedFunnelDeal = {
   pipeline: 'default',
 };
 
-function renderDealsPage(role: 'admin' | 'manager' | 'viewer' = 'admin') {
+function renderDealsPage(
+  role: 'admin' | 'manager' | 'viewer' = 'admin',
+  items = [DEAL],
+  total = items.length,
+) {
   mockedOrg.mockReturnValue({
     session: { role, userId: 'usr-1', organizationId: 'org-1' },
     isLoading: false,
   } as unknown as ReturnType<typeof useOrganization>);
   mockedQuery.mockReturnValue({
-    data: { items: [DEAL], total: 1 },
+    data: { items, total },
     isLoading: false,
     isError: false,
     isPlaceholderData: false,
@@ -139,6 +143,69 @@ describe('DealsPage – serverseitige Phasenwechsel', () => {
         'Dieser Deal wurde inzwischen geändert. Die aktuelle Phase wird angezeigt.',
       );
     });
+  });
+
+  it('sperrt weitere Verschiebungen bis zum Abschluss der laufenden RPC', async () => {
+    let finish!: () => void;
+    mockedMove.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = () => resolve({ dealId: 'deal-1', stage: 'Verhandlung', stageEnteredAt: null });
+        }),
+    );
+    renderDealsPage('admin', [DEAL, { ...DEAL, id: 'deal-2', dealName: 'Zweiter Deal' }]);
+    moveViaMenu('Verhandlung');
+    await waitFor(() => expect(mockedMove).toHaveBeenCalledOnce());
+    expect(screen.getByTestId('deal-card-deal-2')).toHaveAttribute('draggable', 'false');
+    expect(screen.queryByLabelText('Zweiter Deal: Phase ändern')).not.toBeInTheDocument();
+    await act(async () => finish());
+    await waitFor(() =>
+      expect(screen.getByTestId('deal-card-deal-2')).toHaveAttribute('draggable', 'true'),
+    );
+  });
+
+  it('lädt nach einem Konflikt auch zusätzliche Kanban-Seiten neu', async () => {
+    const extra = { ...DEAL, id: 'extra', dealName: 'Nachgeladener Deal' };
+    const firstPage = Array.from({ length: 100 }, (_, i) => ({ ...DEAL, id: `first-${i}` }));
+    const fetchList = vi.mocked(crmListService.fetchCrmList);
+    fetchList.mockResolvedValueOnce({
+      items: [extra],
+      total: 101,
+      page: 2,
+      pageSize: 100,
+      resource: 'deals',
+    });
+    fetchList.mockResolvedValueOnce({
+      items: [{ ...extra, stage: 'Deal gewonnen', stageRaw: 'WON' }],
+      total: 101,
+      page: 2,
+      pageSize: 100,
+      resource: 'deals',
+    });
+    mockedMove
+      .mockRejectedValueOnce(new MoveDealStageError('conflict'))
+      .mockResolvedValueOnce({ dealId: 'extra', stage: 'Verhandlung', stageEnteredAt: null });
+    renderDealsPage('admin', firstPage, 101);
+    fireEvent.click(screen.getByRole('button', { name: /Weitere Deals nachladen/ }));
+    await screen.findByTestId('deal-card-extra');
+    fireEvent.click(screen.getByLabelText('Nachgeladener Deal: Phase ändern'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /Verhandlung/ }));
+    await waitFor(() => expect(fetchList).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(screen.getByTestId('deal-card-extra').closest('[data-stage]')).toHaveAttribute(
+        'data-stage',
+        'Deal gewonnen',
+      ),
+    );
+    fireEvent.click(screen.getByLabelText('Nachgeladener Deal: Phase ändern'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /Verhandlung/ }));
+    await waitFor(() =>
+      expect(mockedMove).toHaveBeenLastCalledWith({
+        dealId: 'extra',
+        expectedStage: 'WON',
+        newStage: 'Verhandlung',
+      }),
+    );
   });
 
   it('zeigt bei Netzfehlern die feste Meldung und nicht die Rohmeldung', async () => {

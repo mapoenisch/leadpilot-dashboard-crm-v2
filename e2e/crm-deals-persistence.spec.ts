@@ -52,7 +52,9 @@ const DEAL_FORMULA_SEED_STAGE = 'LEAD'; // wird als „Lead eingegangen“ angez
 
 async function openKanban(page: Page): Promise<void> {
   await page.goto('/crm/deals?ansicht=kanban');
-  await expect(page.getByRole('heading', { name: 'Deal Pipeline' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Deal Pipeline', level: 2, exact: true }),
+  ).toBeVisible();
   await expect(page.getByTestId(`deal-card-${DEAL_A1}`)).toBeVisible();
 }
 

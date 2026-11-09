@@ -5,10 +5,15 @@
  * bei 1440/768/375 px, beide Themes (dark/light mit data-theme).
  * Misst Überlauf (Dokument, #main-content), Inhaltshöhe, SHA-256 des Bildes; schreibt die textuelle Matrix
  * docs/screenshots/auftrag-138/README.md. Bilder bleiben lokal (.gitignore).
- * Aufruf: node scripts/captureAuftrag138Gate.mjs
+ * Aufruf: BEFORE_URL=http://127.0.0.1:4322 node scripts/captureAuftrag138Gate.mjs
+ * COMPARE_ONLY=1 wertet vorhandene Bilder über CAPTURE_MANIFEST erneut aus.
+ * VISUAL_APPROVALS verweist auf ein lokales JSON mit beforeHash, afterHash und reason.
+ * BEFORE_URL: separat gebauter Ausgangsstand edc72ee; Nachher: aktueller dist-Build.
+ * Beide Builds benötigen VITE_SUPABASE_URL=http://127.0.0.1:54321 und einen Mock-Anon-Key.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import crypto from 'node:crypto';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
@@ -17,7 +22,18 @@ import { chromium } from '@playwright/test';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'docs/screenshots/auftrag-138');
-const PORT = 4321;
+const CAPTURE_MANIFEST =
+  process.env.CAPTURE_MANIFEST ?? path.join(os.tmpdir(), 'leadpilot-138-captures.json');
+const COMPARE_ONLY = process.env.COMPARE_ONLY === '1';
+const PORT = Number(process.env.PORT ?? 4321);
+const BEFORE_URL = process.env.BEFORE_URL;
+if (!BEFORE_URL) throw new Error('BEFORE_URL muss auf den Build vor Auftrag 138 zeigen.');
+// Entspricht playwright.config.ts: maximal 0,1 % Rasterungsdrift.
+const MAX_DIFF_PIXEL_RATIO = 0.001;
+const APPROVALS = process.env.VISUAL_APPROVALS
+  ? JSON.parse(fs.readFileSync(process.env.VISUAL_APPROVALS, 'utf8'))
+  : [];
+let captureUrl;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const EMAIL = 'admin-a@e2e.local';
 const PASSWORD = 'TestPassword123!';
@@ -113,7 +129,7 @@ const SCENARIOS = [
     id: 'deals-tabelle',
     title: '/crm/deals?ansicht=tabelle (Tabellenansicht & Paginierung)',
     prepare: async (page) => {
-      await page.goto(`${BASE_URL}/crm/deals`);
+      await page.goto(`${captureUrl}/crm/deals`);
       await page.waitForSelector('[data-testid="deals-view-table-btn"]', { timeout: 15000 });
       await page.getByTestId('deals-view-table-btn').click();
       await page.waitForTimeout(400);
@@ -123,7 +139,7 @@ const SCENARIOS = [
     id: 'deals-kanban',
     title: '/crm/deals?ansicht=kanban (Interaktives Kanban-Board)',
     prepare: async (page) => {
-      await page.goto(`${BASE_URL}/crm/deals`);
+      await page.goto(`${captureUrl}/crm/deals`);
       await page.waitForSelector('[data-testid="deals-view-kanban-btn"]', { timeout: 15000 });
       await page.getByTestId('deals-view-kanban-btn').click();
       await page.waitForSelector('[data-testid="deals-kanban-board"]', { timeout: 10000 });
@@ -134,7 +150,7 @@ const SCENARIOS = [
     id: 'deals-kanban-menu',
     title: '/crm/deals?ansicht=kanban (Tastaturmenü zur Phasenverschiebung)',
     prepare: async (page) => {
-      await page.goto(`${BASE_URL}/crm/deals`);
+      await page.goto(`${captureUrl}/crm/deals`);
       await page.waitForSelector('[data-testid="deals-view-kanban-btn"]', { timeout: 15000 });
       await page.getByTestId('deals-view-kanban-btn').click();
       await page.waitForSelector('[data-testid="deals-kanban-board"]', { timeout: 10000 });
@@ -257,7 +273,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 let serverProc = null;
 const isUp = await checkUrl(BASE_URL);
-if (!isUp) {
+if (!COMPARE_ONLY && !isUp) {
   console.log(`[Server] Starte Vite Preview auf ${BASE_URL} …`);
   serverProc = spawn(
     'npx',
@@ -283,87 +299,194 @@ if (!isUp) {
 }
 
 const browser = await chromium.launch();
-const rows = [];
+const rows = COMPARE_ONLY ? JSON.parse(fs.readFileSync(CAPTURE_MANIFEST, 'utf8')) : [];
 
 try {
-  for (const scenario of SCENARIOS) {
-    for (const theme of THEMES) {
-      for (const width of WIDTHS) {
-        const ctx = await browser.newContext({
-          viewport: { width, height: 1000 },
-          reducedMotion: 'reduce',
-          locale: 'de-DE',
-          timezoneId: 'Europe/Berlin',
-        });
+  if (!COMPARE_ONLY) {
+    for (const phase of ['before', 'after']) {
+      captureUrl = phase === 'before' ? BEFORE_URL : BASE_URL;
+      for (const scenario of SCENARIOS) {
+        for (const theme of THEMES) {
+          for (const width of WIDTHS) {
+            const ctx = await browser.newContext({
+              viewport: { width, height: 1000 },
+              reducedMotion: 'reduce',
+              locale: 'de-DE',
+              timezoneId: 'Europe/Berlin',
+            });
 
-        await mockSupabaseAuthAndData(ctx);
+            await mockSupabaseAuthAndData(ctx);
 
-        const page = await ctx.newPage();
+            const page = await ctx.newPage();
+            await page.clock.setFixedTime(new Date('2026-11-09T10:00:00Z'));
 
-        try {
-          // 1. Anmeldung an der Plattform
-          await page.goto(`${BASE_URL}/login`);
-          await page.waitForLoadState('networkidle');
+            try {
+              // 1. Anmeldung an der Plattform
+              await page.goto(`${captureUrl}/login`);
+              await page.waitForLoadState('networkidle');
 
-          const emailInput = page.getByLabel(/E-Mail/i);
-          if (await emailInput.count()) {
-            await emailInput.fill(EMAIL);
-            await page.getByLabel(/Passwort/i).fill(PASSWORD);
-            await page.getByRole('button', { name: /Anmelden/i }).click();
-            await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20000 });
-          }
+              const emailInput = page.getByLabel(/E-Mail/i);
+              if (await emailInput.count()) {
+                await emailInput.fill(EMAIL);
+                await page.getByLabel(/Passwort/i).fill(PASSWORD);
+                await page.getByRole('button', { name: /Anmelden/i }).click();
+                await page.waitForURL((url) => !url.pathname.startsWith('/login'), {
+                  timeout: 20000,
+                });
+              }
 
-          // 2. Szenario vorbereiten
-          await scenario.prepare(page);
+              // 2. Szenario vorbereiten
+              await scenario.prepare(page);
 
-          // Theme explizit setzen
-          await page.evaluate((th) => {
-            document.documentElement.dataset.theme = th;
-            if (th === 'dark') {
-              document.documentElement.classList.add('dark');
-              document.documentElement.classList.remove('light');
-            } else {
-              document.documentElement.classList.add('light');
-              document.documentElement.classList.remove('dark');
+              // Theme explizit setzen
+              await page.evaluate((th) => {
+                document.documentElement.dataset.theme = th;
+                if (th === 'dark') {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                } else {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.classList.remove('dark');
+                }
+              }, theme);
+              await page.addStyleTag({
+                content:
+                  '*, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent !important; }',
+              });
+              await page.evaluate(() => document.fonts.ready);
+              await page.waitForTimeout(1000);
+
+              // Überlauf und Höhe messen
+              const metrics = await page.evaluate(() => {
+                const doc = Math.max(
+                  0,
+                  document.documentElement.scrollWidth - document.documentElement.clientWidth,
+                );
+                const main = document.getElementById('main-content');
+                const inner = main ? Math.max(0, main.scrollWidth - main.clientWidth) : 0;
+                const height = main ? main.scrollHeight : document.body.scrollHeight;
+                return { doc, inner, height };
+              });
+
+              const file = path.join(
+                OUT,
+                `auftrag-138-${phase}-${scenario.id}-${theme}-${width}.png`,
+              );
+              await page.evaluate(() => document.fonts.ready);
+              let buf;
+              let previousCapture;
+              let stableFrames = 0;
+              for (let attempt = 0; attempt < 30; attempt += 1) {
+                buf = await page.screenshot({ fullPage: true, animations: 'disabled' });
+                stableFrames = previousCapture?.equals(buf) ? stableFrames + 1 : 0;
+                if (stableFrames >= 3) break;
+                previousCapture = buf;
+                await page.waitForTimeout(200);
+              }
+              if (stableFrames < 3)
+                throw new Error(
+                  'Darstellung nicht stabil: keine vier identischen Aufnahmen in Folge.',
+                );
+              fs.writeFileSync(file, buf);
+              const hash = crypto.createHash('sha256').update(buf).digest('hex');
+
+              rows.push({
+                phase,
+                file,
+                scenario: scenario.id,
+                scenarioTitle: scenario.title,
+                theme,
+                width,
+                hash,
+                docOverflow: metrics.doc,
+                innerOverflow: metrics.inner,
+                height: metrics.height,
+              });
+            } catch (err) {
+              await page.screenshot({ path: path.join(OUT, 'capture-error.png') });
+              console.error('URL:', page.url(), 'Text:', await page.locator('body').innerText());
+              console.error(`Fehler bei ${scenario.id}, ${theme}, ${width}px:`, err);
+              throw err;
+            } finally {
+              await ctx.close();
             }
-          }, theme);
-          await page.waitForTimeout(300);
-
-          // Überlauf und Höhe messen
-          const metrics = await page.evaluate(() => {
-            const doc = Math.max(
-              0,
-              document.documentElement.scrollWidth - document.documentElement.clientWidth,
-            );
-            const main = document.getElementById('main-content');
-            const inner = main ? Math.max(0, main.scrollWidth - main.clientWidth) : 0;
-            const height = main ? main.scrollHeight : document.body.scrollHeight;
-            return { doc, inner, height };
-          });
-
-          const file = path.join(OUT, `auftrag-138-${scenario.id}-${theme}-${width}.png`);
-          const buf = await page.screenshot({ fullPage: false });
-          fs.writeFileSync(file, buf);
-          const hash = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 12);
-
-          rows.push({
-            scenario: scenario.id,
-            scenarioTitle: scenario.title,
-            theme,
-            width,
-            hash,
-            docOverflow: metrics.doc,
-            innerOverflow: metrics.inner,
-            height: metrics.height,
-          });
-        } catch (err) {
-          console.error(`Fehler bei ${scenario.id}, ${theme}, ${width}px:`, err);
-          throw err;
-        } finally {
-          await ctx.close();
+          }
         }
       }
     }
+    fs.writeFileSync(CAPTURE_MANIFEST, JSON.stringify(rows, null, 2));
+  }
+  for (const row of rows) {
+    const actualHash = crypto.createHash('sha256').update(fs.readFileSync(row.file)).digest('hex');
+    if (actualHash !== row.hash) throw new Error(`Bild seit Aufnahme verändert: ${row.file}`);
+  }
+  const comparePage = await browser.newPage();
+  for (const row of rows.filter((r) => r.phase === 'after')) {
+    const before = rows.find(
+      (r) =>
+        r.phase === 'before' &&
+        r.scenario === row.scenario &&
+        r.theme === row.theme &&
+        r.width === row.width,
+    );
+    row.beforeHash = before.hash;
+    const comparison = await comparePage.evaluate(
+      async ([a, b]) => {
+        const load = async (src) => {
+          const img = new Image();
+          img.src = src;
+          await img.decode();
+          return img;
+        };
+        const [left, right] = await Promise.all([load(a), load(b)]);
+        if (left.width !== right.width || left.height !== right.height) return { changed: -1 };
+        const canvas = document.createElement('canvas');
+        canvas.width = left.width;
+        canvas.height = left.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(left, 0, 0);
+        const old = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(right, 0, 0);
+        const next = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let changed = 0;
+        for (let i = 0; i < old.data.length; i += 4) {
+          const differs =
+            old.data[i] !== next.data[i] ||
+            old.data[i + 1] !== next.data[i + 1] ||
+            old.data[i + 2] !== next.data[i + 2] ||
+            old.data[i + 3] !== next.data[i + 3];
+          if (differs) changed++;
+          next.data[i] = 255;
+          next.data[i + 1] = differs ? 0 : 255;
+          next.data[i + 2] = differs ? 0 : 255;
+          next.data[i + 3] = 255;
+        }
+        ctx.putImageData(next, 0, 0);
+        return {
+          changed,
+          ratio: changed / (canvas.width * canvas.height),
+          diff: canvas.toDataURL('image/png').split(',')[1],
+        };
+      },
+      [before, row].map(
+        (r) => `data:image/png;base64,${fs.readFileSync(r.file).toString('base64')}`,
+      ),
+    );
+    row.changedPixels = comparison.changed;
+    row.diffRatio = comparison.ratio;
+    if (comparison.diff)
+      fs.writeFileSync(
+        row.file.replace('.png', '-diff.png'),
+        Buffer.from(comparison.diff, 'base64'),
+      );
+    row.reviewReason = APPROVALS.find(
+      (a) =>
+        a.beforeHash === before.hash &&
+        a.afterHash === row.hash &&
+        typeof a.reason === 'string' &&
+        a.reason.trim(),
+    )?.reason;
+    row.reviewed = Boolean(row.reviewReason);
   }
 } finally {
   await browser.close();
@@ -374,44 +497,55 @@ try {
 
 // Auswertung
 let bad = 0;
+let overflowCount = 0;
 const lines = [];
 
-for (const row of rows) {
+for (const row of rows.filter((r) => r.phase === 'after')) {
   const isOverflow = row.docOverflow > 0 || row.innerOverflow > 0;
-  if (isOverflow) {
+  if (isOverflow) overflowCount += 1;
+  const diffPassed =
+    row.changedPixels >= 0 && (row.diffRatio <= MAX_DIFF_PIXEL_RATIO || row.reviewed);
+  if (isOverflow || !diffPassed) {
     bad += 1;
   }
-  const status = isOverflow ? '❌ Überlauf' : '✅ 0 px';
+  const status = isOverflow
+    ? '❌ Überlauf'
+    : !diffPassed
+      ? '❌ Bildabweichung ungeprüft'
+      : row.reviewed
+        ? `✅ Geprüft: ${row.reviewReason}`
+        : '✅ Vergleich bestanden';
   lines.push(
-    `| \`${row.scenario}\` | \`${row.theme}\` | ${row.width} px | ${row.docOverflow}/${row.innerOverflow} px | ${row.height} px | \`${row.hash}\` | ${status} |`,
+    `| \`${row.scenario}\` | \`${row.theme}\` | ${row.width} px | ${row.docOverflow}/${row.innerOverflow} px | ${row.height} px | \`${row.beforeHash}\` / \`${row.hash}\` | ${row.changedPixels} | ${status} |`,
   );
 }
 
 const total = rows.length;
-const allPassed = bad === 0 && total === SCENARIOS.length * THEMES.length * WIDTHS.length;
+const allPassed = bad === 0 && total === 2 * SCENARIOS.length * THEMES.length * WIDTHS.length;
 
 const md = [
   '# Auftrag 138 – Visuelle Gate-Prüfung CRM Deals Pipeline (1440/768/375 px, dark/light)',
   '',
   `Aufgenommen ${new Date().toISOString().slice(0, 10)}, Chromium, Zoom 100 %, reduzierte Bewegung. Bilder lokal (nicht committet).`,
-  `Basis-URL: ${BASE_URL}`,
-  'Überlauf = Dokument/#main-content in px; Hash = SHA-256 (12 Zeichen).',
+  `Vorher: ${BEFORE_URL} (Basis edc72ee, vor Auftrag 138); Nachher: ${BASE_URL}.`,
+  'Überlauf = Dokument/#main-content in px; Hash = vollständiger SHA-256. Bildtoleranz: 0,1 % wie playwright.config.ts; darüber sperrt eine ungeprüfte Abweichung das Gate.',
   '',
-  '| Szenario | Theme | Breite | Überlauf | Inhaltshöhe | SHA-256 | Status |',
-  '|---|---|---|---|---|---|---|',
+  '| Szenario | Theme | Breite | Überlauf | Inhaltshöhe | SHA-256 vorher / nachher | Geänderte Pixel | Status |',
+  '|---|---|---|---|---|---|---|---|',
   ...lines,
   '',
   '## Zusammenfassung',
   '',
   `- **Gesamtanzahl Aufnahmen:** ${total}`,
-  `- **Überlauf-Status:** ${bad === 0 ? '0 px Überlauf in allen Aufnahmen' : `${bad} Aufnahmen mit Überlauf`}`,
+  `- **Überlauf-Status:** ${overflowCount === 0 ? '0 px Überlauf in allen Nachher-Aufnahmen' : `${overflowCount} Aufnahmen mit Überlauf`}`,
   `- **Status:** ${allPassed ? '✅ ALLE GATES BESTANDEN' : '❌ FEHLGESCHLAGEN'}`,
   '',
   '### Verifizierte Eigenschaften (Auftrag 138):',
   '- Tabellenansicht (`/crm/deals?ansicht=tabelle`) rendert fehlerfrei auf allen 3 Viewports und beiden Themes mit 0 px Überlauf',
   '- Kanban-Board (`/crm/deals?ansicht=kanban`) mit 7 Spalten und Karten rendert responsive mit horizontalem Board-Scroll und 0 px Dokumentüberlauf',
   '- Tastaturmenü für Phasenwechsel öffnet barrierefrei ohne Stacking-Context-Clipping',
-  '- Keine visuellen Regressionen im Layout durch die Umstellung auf serverseitige Persistenz',
+  '- Bildvergleich: höchstens 0,1 % Pixelabweichung (bestehende Playwright-Toleranz) oder ausdrücklich geprüfte Abweichung mit exakt gebundenen Vorher-/Nachher-Hashes; ungeprüfte Abweichungen sperren das Gate.',
+  '- Identische Hashes sind bei unveränderter Darstellung zulässig; sie belegen keine sichtbare Änderung.',
   '',
 ].join('\n');
 
