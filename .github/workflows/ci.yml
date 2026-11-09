@@ -138,8 +138,10 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci
+      # Auftrag 141: Die dedizierte Live-Performance-Surface (src/components/liveKpi)
+      # ist mit dem Legacy-Dashboard entfallen; verifyLiveKpiCatalog prüft weiterhin
+      # den Katalog, den die Live-Kacheln der persönlichen Ansicht nutzen.
       - run: npx tsx scripts/verifyLiveKpiCatalog.ts
-      - run: npx tsx scripts/verifyLivePerformanceSurface.ts
 
   size-limit:
     runs-on: ubuntu-latest
