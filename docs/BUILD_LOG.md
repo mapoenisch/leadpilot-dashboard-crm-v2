@@ -19709,6 +19709,12 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 
 - **Befund Runde 1 (P2):** `mapRowToFrontend` normalisierte `stage` und lieferte den gespeicherten Rohwert in keinem Feld. Bei Bestandsdeals wie `closedwon` hätte ein Client mit der gelesenen Phase als `p_expected_stage` dauerhaft `LP409` erhalten.
 - **Behebung:** `crm-query-export` liefert zusätzlich `stageRaw` (Rohwert) neben dem normalisierten Label; `mapRowToFrontend` ist für den direkten Vertragstest exportiert. `ImportedFunnelDeal` trägt `stageRaw?: string` (zweites optionales Feld, direkte Folge des Befunds). Neuer Deno-Test prüft `stage` = `Deal gewonnen` und `stageRaw` = `closedwon`.
-- **Ergebnis Runde 2:** Review abgeschlossen, keine Befunde (`has_any_findings: false`, `has_unresolved_findings: false`).
+- **Ergebnis Runde 2 (auf `cf7e285`):** Review abgeschlossen, keine Befunde (`has_any_findings: false`, `has_unresolved_findings: false`).
 - **Verifikation nach der Nacharbeit:** `deno check` ohne Fehler, `deno test` 69/69 grün, `npx tsc --noEmit` 0 Fehler, `npm run lint` 0 Fehler, `npm test` 367 Dateien / 2.669 Tests grün, `npm run verify` alle 25 Suiten grün, `npm run build` erfolgreich.
 - **CI-Hinweis:** Der `test`-Job auf `cf7e285` brach beim Setup ab, weil `denoland/setup-deno` den Deno-Download mit HTTP 504 quittierte (Infrastruktur, kein Testfehler). Der Doku-Commit startet die CI erneut.
+
+**Befund Runde 3 (P2, auf `1ad30ea`):** Die Supabase-Defaultrechte (`GRANT ALL ON TABLES`) ließen `authenticated` und `anon` das `TRUNCATE`-Recht auf `deal_stage_events`; RLS schützt diesen tabellenweiten Vorgang nicht. Ein `TRUNCATE public.deal_stage_events` hätte die Historie aller Mandanten gelöscht.
+
+- **Behebung:** Migration entzieht zusätzlich `TRUNCATE` (Muster `20261004_executive_dashboard_preferences.sql`). Neuer pgTAP-Test `direct_truncate_denied` prüft die Abweisung mit `42501`.
+- **Verifikation:** `supabase test db` 225 Tests grün (24 neue), `npm run verify:migrations` grün (leere DB, Upgrade v2.2.0, Schemagleichheit, pgTAP), tsc/lint/2.669 Vitest-Tests/25 Integrity-Suiten/Build grün.
+- **Ergebnis Runde 4 (auf `e3d6497`):** „Didn't find any major issues" – keine Befunde.
