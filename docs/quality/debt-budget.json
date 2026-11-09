@@ -18,8 +18,8 @@
       "rationale": "Fachlich begründete Ausnahme: useLiveKpiActivity nutzt `version` aus useSyncExternalStore als Re-Render-Trigger, das Muster erkennt die Regel nicht."
     },
     "react/forbid-dom-props": {
-      "budget": 50,
-      "target": 50,
+      "budget": 49,
+      "target": 49,
       "rationale": "Fachlich begründete Ausnahmen, jede zeilengenau kommentiert: Laufzeit-Geometrie (Balkenbreiten/-höhen, Tooltip-Position, height-/size-Props) und Laufzeit-Farben aus Daten (Serien-/Segmentfarben), dazu der Card-style-Passthrough für den eingefrorenen Resources-Bereich. Statische Werte sind seit Issue #7 vollständig Tailwind-Klassen."
     }
   },

@@ -7,14 +7,10 @@ import {
 
 // Auftrag 121 (Paket I, Punkt 1f): Verhalten der persönlichen Ansicht bei gespeicherten Zuständen,
 // die im Alltag selten sind: leere Ansicht, ungültige Konfiguration, Konfiguration aus einer neueren
-// Version. Wie die anderen Dashboard-Specs nur im seriellen Lauf mit persönlicher Ansicht
+// Version. Wie die anderen Dashboard-Specs nur im seriellen Lauf
 // (`--workers=1`), weil die Abläufe die Präferenz des Testbenutzers schreiben; danach wird der
 // Ausgangszustand wiederhergestellt. Ungültige und zukünftige Zeilen lehnt der Server über die RPC
 // ab, sie werden deshalb nur lokal mit dem Aufräumschlüssel geschrieben (`forceStoredRow`).
-test.skip(
-  process.env.E2E_DASHBOARD_V2 !== 'true',
-  'Nur im seriellen Dashboard-Lauf mit persönlicher Ansicht (Auftrag 121).',
-);
 
 const TILE = '[data-testid="lazy-tile"]';
 const VALID_CONFIG = {

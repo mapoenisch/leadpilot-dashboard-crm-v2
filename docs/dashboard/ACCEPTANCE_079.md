@@ -1,5 +1,9 @@
 # Abnahmeprotokoll Executive Dashboard (Auftrag 079)
 
+> **Historisch (Auftrag 141):** Der Rollout-Schalter und die Rückschaltung auf die bisherige
+> Ansicht sind entfernt; die persönliche Ansicht ist die einzige `/dashboard`-Variante.
+> Rückweg ist der Tag `v3.0.0`. Die Angaben unten beschreiben den Stand vom 06.10.2026.
+
 **Stand:** 06.10.2026, Branch `claude/auftrag-079-gesamtabnahme`, Basis `main` `bb5aaff`.
 
 **Prüfumgebung:** lokales Supabase mit den CI-Testbenutzern (`admin-a`, `admin-b`), zwei Builds desselben Codes: persönliche Ansicht (seit dem Rollout Standard) und Rückschaltung (`VITE_EXECUTIVE_DASHBOARD_V2=false`). Reproduzierbar mit `e2e/personal-dashboard-acceptance.spec.ts` und `scripts/captureAuftrag079Screenshots.mjs`.

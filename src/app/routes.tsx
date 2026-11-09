@@ -1,9 +1,6 @@
 import { NAV_CATEGORIES } from '@/domain/navData';
 import { logger } from '@/services/logger';
-import {
-  isPersonalDashboardEnabled,
-  tileIdFromPath,
-} from '@/features/dashboard/model/dashboardRollout';
+import { tileIdFromPath } from '@/features/dashboard/model/dashboardRollout';
 
 export interface AppRouteMeta {
   id: string;
@@ -298,8 +295,8 @@ export function routeForPathname(pathname: string): AppRouteMeta {
   const match = routesByPath.get(normalized);
   if (match) return match;
 
-  // Auftrag 077: Kachel-Details gehören zum Executive Dashboard (Seitenleiste bleibt dort aktiv).
-  if (isPersonalDashboardEnabled() && tileIdFromPath(pathname) !== null) {
+  // Auftrag 141: Kachel-Details gehören immer zum Executive Dashboard (Rollout-Schalter entfernt).
+  if (tileIdFromPath(pathname) !== null) {
     return { id: 's-exec', path: pathname, title: 'Kachel-Details', categoryLabel: 'Übersicht' };
   }
 

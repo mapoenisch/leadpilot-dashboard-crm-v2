@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { ExecutiveDashboardPage } from '../ExecutiveDashboardPage';
 import { DataBasisPage } from '../DataBasisPage';
 import { loadCrmReadModel, DEMO_ORGANIZATION_ID } from '@/services/data/crmReadModelService';
 import { useOrganization } from '@/auth/organizationContext';
@@ -56,31 +54,6 @@ function healthyEnvelope(): CrmReadModelEnvelope {
     },
   };
 }
-
-describe('ExecutiveDashboardPage (characterization)', () => {
-  it('rendert Cockpit-Titel, Badges und Live-Sektion', () => {
-    render(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <ExecutiveDashboardPage />
-      </MemoryRouter>,
-      { wrapper: createWrapper() },
-    );
-    expect(screen.getByText('Executive Cockpit V2')).toBeInTheDocument();
-    expect(screen.getAllByText('Unternehmensdaten 2025').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Live-Daten').length).toBeGreaterThan(0);
-    expect(screen.getByTestId('live-performance-section')).toBeInTheDocument();
-  });
-
-  it('bettet das Executive-Cockpit ein', () => {
-    render(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <ExecutiveDashboardPage />
-      </MemoryRouter>,
-      { wrapper: createWrapper() },
-    );
-    expect(screen.getByTestId('executive-cockpit-root')).toBeInTheDocument();
-  });
-});
 
 describe('DataBasisPage Lücken (characterization)', () => {
   beforeEach(() => {

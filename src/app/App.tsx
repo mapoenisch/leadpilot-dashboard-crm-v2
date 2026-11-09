@@ -5,10 +5,7 @@ import { Layout } from '@/components/layout/Layout';
 import { queryClient } from '@/app/queryClient';
 import { APP_ROUTES } from '@/app/routes';
 import { ROUTE_PAGES, TileDetailPage } from '@/app/routePages';
-import {
-  isPersonalDashboardEnabled,
-  TILE_DETAIL_ROUTE,
-} from '@/features/dashboard/model/dashboardRollout';
+import { TILE_DETAIL_ROUTE } from '@/features/dashboard/model/dashboardRollout';
 import { RouteErrorBoundary } from '@/components/ui/RouteErrorBoundary';
 import { NotFoundPage } from '@/app/NotFoundPage';
 import { AuthProvider } from '@/auth/AuthContext';
@@ -130,19 +127,17 @@ export function App() {
                       );
                     })}
 
-                    {/* Auftrag 077: Kachel-Details nur mit eingeschaltetem Rollout-Schalter. */}
-                    {isPersonalDashboardEnabled() && (
-                      <Route
-                        path={TILE_DETAIL_ROUTE}
-                        element={
-                          <RouteErrorBoundary resetKey="s-exec-detail">
-                            <React.Suspense fallback={<RouteFallback />}>
-                              <TileDetailPage />
-                            </React.Suspense>
-                          </RouteErrorBoundary>
-                        }
-                      />
-                    )}
+                    {/* Auftrag 141: Kachel-Details sind immer registriert (Rollout-Schalter entfernt). */}
+                    <Route
+                      path={TILE_DETAIL_ROUTE}
+                      element={
+                        <RouteErrorBoundary resetKey="s-exec-detail">
+                          <React.Suspense fallback={<RouteFallback />}>
+                            <TileDetailPage />
+                          </React.Suspense>
+                        </RouteErrorBoundary>
+                      }
+                    />
 
                     {/* Explizite 404-Fallback-Route für unbekannte Pfade */}
                     <Route

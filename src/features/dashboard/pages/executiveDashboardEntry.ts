@@ -1,16 +1,10 @@
-// Executive Dashboard, Teilauftrag 7 (Auftrag 077): Einstieg unter `/dashboard` nach Rollout-Schalter.
-// Beide Ansichten bleiben eigene Lazy-Chunks; mit ausgeschaltetem Schalter wird der Chunk der neuen
-// Ansicht nie angefordert, und die bisherige Ansicht bleibt bis zur Gesamtabnahme erhalten.
+// Executive Dashboard, Aufträge 077/079/141: Einstieg unter `/dashboard`.
+// Auftrag 141: Die bisherige Ansicht und der Rollout-Schalter sind entfernt;
+// die persönliche Ansicht ist die einzige Variante und bleibt lazy.
 import type { ComponentType } from 'react';
-import { isPersonalDashboardEnabled } from '../model/dashboardRollout';
 import { DashboardChunkError, DetailChunkError } from './DetailChunkError';
 
 type PageModule = { default: ComponentType };
-
-export const loadLegacyExecutiveDashboard = (): Promise<PageModule> =>
-  import('@/features/overview/pages/ExecutiveDashboardPage').then((m) => ({
-    default: m.ExecutiveDashboardPage,
-  }));
 
 export const loadPersonalExecutiveDashboard = (): Promise<PageModule> =>
   import('./PersonalExecutiveDashboard').then((m) => ({ default: m.PersonalExecutiveDashboard }));
@@ -35,9 +29,3 @@ export const loadPersonalWithFallback = withChunkFallback(
 export const loadTileDetailPage = withChunkFallback(() =>
   import('./DashboardTileDetailPage').then((m) => ({ default: m.DashboardTileDetailPage })),
 );
-
-export function executiveDashboardLoader(
-  enabled: boolean = isPersonalDashboardEnabled(),
-): () => Promise<PageModule> {
-  return enabled ? loadPersonalWithFallback : loadLegacyExecutiveDashboard;
-}
