@@ -20193,3 +20193,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Automatisierte Verifikation:** `npm run verify:migrations` GRÜN (26 Migrations, leerer Build + Upgrade von v2.2.0, Schema-Gleichheit, pgTAP PASS); `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` grün. Keine Änderung an RLS-Policies — nur Tabellenprivilegien.
 
 **Ergebnis & Freigabestatus:** Umgesetzt und lokal verifiziert; auf der Hosted-Instanz bereits aktiv. Unabhängiges Review (Codex) ausstehend; Merge macht Marc.
+
+### Prüfnachweis PR #165 — Auftrag 143 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `c65c042355` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `c65c042`: „Didn't find any major issues." — keine offenen Befunde.
+
+**Pflicht-Checks auf `c65c042`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt. Merge macht Marc. Hinweis: Die Migration ist auf der Hosted-Instanz `nfyiywfcnfjtjbdbptdg` bereits manuell angewendet — der Merge zieht sie nur noch in die Migrations-Historie nach (idempotent, `db push` meldet sie als bereits ausgeführt, sobald die History nachgezogen ist).
