@@ -20211,3 +20211,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Änderung:** `docs/releases/V3.1.0.md` — Warnhinweis, `db push`-Kommentar und Upgrade-Schritt 1 nennen jetzt alle drei Migrationen; `20261112` ist mit Auftragsbezug (143, PR #165) und Symptom-Beschreibung dokumentiert.
 
 **Verifikation:** Reine Doku-Änderung, kein Code betroffen; `npx prettier --check docs/releases/V3.1.0.md docs/BUILD_LOG.md` grün. Kein eigener Auftrag nötig (Korrektur der Release-Doku im Rahmen von Auftrag 142/143).
+
+### Prüfnachweis PR #167 — BUILD_PLAN-Nachtrag v3.1.0-Rollout (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `02b2dbbc9b` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `02b2dbb`: „Didn't find any major issues." — keine offenen Befunde.
+
+**Pflicht-Checks auf `02b2dbb`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt. Merge macht Marc. Reine Doku-Änderung (BUILD_PLAN.md), kein Code betroffen.
