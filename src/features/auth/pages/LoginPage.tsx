@@ -142,7 +142,7 @@ export function LoginPage() {
 
         <div className="mt-6 pt-4 border-t border-border/50 text-center">
           <span className="text-[11px] text-[var(--color-text-muted,#64748b)]">
-            LeadPilot Dashboard-CRM · V3.0.0
+            LeadPilot Dashboard-CRM · V3.1.0
           </span>
         </div>
       </main>

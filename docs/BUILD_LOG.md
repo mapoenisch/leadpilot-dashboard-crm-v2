@@ -19754,7 +19754,6 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): 100 % leer
 - Screenshot-Matrix: `docs/screenshots/auftrag-138/README.md` (18 Aufnahmen auf 1440/768/375 px, dark/light, alle 0 px Überlauf, Status: ALLE GATES BESTANDEN)
 
-
 ### Nacharbeit PR #159 — Codex-Review auf `9dcdb3c` (09.11.2026)
 
 **Prüfer des Ausgangsstands:** Codex (GitHub-App). **Nacharbeit:** Codex lokal. Die frühere Abschlussmeldung war verfrüht: fünf offene Befunde und ein fehlgeschlagener E2E-Check. Die ursprüngliche Screenshot-Matrix enthielt ausschließlich Nachher-Aufnahmen; ihre Aussage einer bestandenen visuellen Regressionsprüfung wird hiermit korrigiert.
@@ -19769,7 +19768,6 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Lokale Verifikation:** TypeScript 0 Fehler; Lint 0 Fehler; Formatprüfung grün; 368 Vitest-Dateien / 2.671 Tests grün; alle 25 Integritätssuiten grün; Produktions-Build erfolgreich; Size-Limit 179,53 / 180 kB und 86,16 / 250 kB. Schutzbereichs-Diff gegen `edc72ee` vollständig leer. Screenshot-Gate: 36 Aufnahmen / 18 echte Paare, 0 px Überlauf; vier visuell geprüfte Rasterungs-/Schattenabweichungen mit exakten Hashes und Begründung in der Matrix, übrige Paare innerhalb der bestehenden Toleranz. Negativprüfung ohne Ausnahmen sperrt das Gate (Exit 1); erneute Auswertung mit exakt geprüften Hashpaaren besteht (Exit 0). Ergebnis: `docs/screenshots/auftrag-138/README.md`.
 
 **Freigabestatus:** Keine Gate-Freigabe. Da Codex diese Nacharbeit gebaut hat, muss gemäß `CLAUDE.md` §4.1 ein anderer Agent den neuen Stand prüfen. CI und offene Review-Konversationen bleiben separat zu bestätigen. Merge und Release durch Marc.
-
 
 ### E2E-Nacharbeit PR #159 auf `a98ef38` (09.11.2026)
 
@@ -19786,6 +19784,7 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Kontext:** Hinweis 1 (P2) aus PR-Review zu #159: Beim Verschieben von Deals konnten nachgeladene Kanban-Seiten mit dem Refetch von Seite 1 konkurrieren (`reloadLoadedExtraPages()` in `onSuccess`), was bei Offset-Paginierung zu temporär doppelten Karten (doppelte React-Keys) führen konnte. Zudem fehlte eine ID-basierte Deduplizierung.
 
 **Änderungen:**
+
 - `src/features/crm/utils/dealsClientView.ts`:
   - `mergeUniqueDeals(firstPage, extra)`: Führt Seite 1 und Extra-Seiten dedupliziert nach `id` zusammen.
   - `appendUniqueDeals(existing, incoming)`: Verhindert doppelte Deals beim sequentiellen Laden von Folgeseiten.
@@ -19798,6 +19797,7 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
   - Regressionstest `dedupliziert Deals nach ID beim Nachladen und verhindert doppelte Karten` hinzugefügt.
 
 **Verifikation:**
+
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler
 - `npm run format:check`: konform
@@ -20133,3 +20133,45 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Pflicht-Checks auf `85954f9`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
 
 **Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge und etwaiges Release-Tag macht Marc.
+
+## Auftrag 142 – Release v3.1.0 (11.11.2026)
+
+**Ziel & Kontext:** Release `v3.1.0` nach Abschluss der CRM-Verbindlichkeit (Aufträge 138–141, Plan `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`). Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_142_RELEASE_V3_1_0.md`. Einzige Produktcode-Änderung: Versionszeile der Login-Seite (`V3.0.0` → `V3.1.0`).
+
+**Geänderte Dateien:** `package.json`/`package-lock.json` (3.1.0), `src/features/auth/pages/LoginPage.tsx` (Versionsanzeige), `docs/releases/V3.1.0.md` (Release Notes), `BUILD_PLAN.md`, `README.md`, `ACCESSIBILITY.md`, Plan-Status in `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`, `scripts/captureAuftrag142LoginScreenshots.mjs` (neuer Harness), `docs/screenshots/auftrag-142/README.md` (Screenshot-Matrix), diese BUILD_LOG-Einträge.
+
+**Release-Inhalt (aus 138–141):** Deal-Stufenänderungen serverseitig via RPC (Kanban/Tabelle, Manager+Admin, Tenant-/Rollenabsicherung, Konfliktbehandlung); Lead-Qualifizierung in `lead_qualifications`; Lead-Konvertierung via `convert_lead_to_deal` (genau einmalig, `source_contact_id`); Funnel-Analyse auf echten persistierten `stageEnteredAt`-Dauern (30-Tage-Schwelle, keine Browser-Fallbacks); Legacy-Executive-Dashboard entfernt (Rückweg: Tag `v3.0.0`).
+
+**Release-Notes-Pflichtpunkte:** Migrationen `20261110_deal_stage_tracking.sql` und `20261111_lead_qualification.sql` müssen auf gehostete Instanzen **vor** dem neuen Frontend angewendet werden; Bestandsdeals haben keine Stage-Dauer-Daten (browserseitig gespeicherte Werte werden nicht übernommen); Manager dürfen Deals verschieben und Leads konvertieren; alle Einschränkungen des v3.0.0-Nachtrags sind behoben. Tag `v3.1.0` und GitHub-Release setzt Marc nach dem Merge.
+
+**Funktionale Prüfungen:** Versionsanzeige `LeadPilot Dashboard-CRM · V3.1.0` auf der Login-Seite; `package.json` und `package-lock.json` konsistent auf 3.1.0.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` — leer.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify:quality-budget` sauber; `npm test` 354 Dateien / 2641 Tests grün; `npm run verify` (Integrity-Suiten) grün; `npm run build` grün; `npx size-limit` 177,01/180 kB Initial-JS und 79,41/250 kB Largest-Chunk im Budget. Keine Migrations-/Schema-Änderung in diesem Auftrag — pgTAP-Stand bleibt gültig.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-142/README.md` — Login-Seite, 3 Breiten (1440/768/375 px) × vorher/nachher. Vorher = Build von `main` vor dem Release (V3.0.0, Worktree-Build), Nachher = Release-Stand (V3.1.0). Alle Paare mit unterschiedlichem SHA-256 (Versionszeile), 0 px horizontaler Überlauf in allen Aufnahmen. Bilddateien bleiben lokal (`.gitignore`), nur die Matrix ist versioniert.
+
+**Ergebnis & Freigabestatus:** Umgesetzt und lokal verifiziert. Unabhängiges Review (Codex auf GitHub) ausstehend; kein Merge, kein Tag — das macht Marc.
+
+### Nacharbeit Codex-Review PR #163 (11.11.2026, Head `afd3e7a`)
+
+- **P2 (Edge-Function-Deployment in Release Notes):** Berechtigt — `crm-query-export` wurde in 137/139 erweitert (`stageEnteredAt`, `sourceContactId`) und muss auf gehosteten Instanzen zwischen Migrationen und Frontend-Rollout deployed werden, sonst fehlen im Funnel Verweildauern. `docs/releases/V3.1.0.md` ergänzt: Warnhinweis im Upgrade-Abschnitt und neuer Schritt 2 in der Upgrade-Anleitung.
+
+### E2E-Nacharbeit PR #163 — `konflikt_zeige_serverstand` Flake (11.11.2026)
+
+**Befund:** Der E2E-Check fiel auf `fbc65f9` zweimal hintereinander am selben Test (`konflikt_zeigt_serverstand`, `crm-deals-persistence.spec.ts`). Fehlerkontext zeigte: Der Phasenwechsel lief erfolgreich durch („nach Deal gewonnen verschoben"), LP409 blieb aus — der Client kannte also bereits `VERHANDLUNG`.
+
+**Ursache:** Race zwischen dem PATCH und einem noch unterwegs befindlichen Deal-Listenabruf (z. B. Kanban-Seite 2 oder langsamer Edge-Function-Kaltstart). Der Abruf war vor dem `page.route`-Gate entwischt, las in der DB aber erst nach dem PATCH und lieferte dem Client den neuen Stand — `expected_stage` passte, der Konflikt blieb aus. Der bestehende Gate deckt nur Abrufe ab Registrierung ab, nicht bereits abgeschickte.
+
+**Fix:** `page.waitForLoadState('networkidle')` nach der initialen Sichtbarkeitsprüfung, bevor der Serverstand per PATCH geändert wird — garantiert, dass kein Listenabruf mehr unterwegs ist. Reine Test-Härtung, kein Produktcode.
+
+### Prüfnachweis PR #163 — Auftrag 142 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `96c3205e48` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `96c3205`: „Didn't find any major issues." — keine offenen Befunde. Zwei Befunde aus früheren Runden wurden als berechtigt behoben und die Threads gelöst: P2 Edge-Function-Deployment in den Release Notes (in `fbc65f9`: `crm-query-export` als eigener Upgrade-Schritt zwischen Migrationen und Frontend) sowie der E2E-Flake `konflikt_zeige_serverstand` (in `96c3205`: `networkidle`-Wartezeit vor dem Server-PATCH gegen den Race mit unterwegs befindlichen Listenabrufen).
+
+**Pflicht-Checks auf `96c3205`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL). Der zuvor wiederholte E2E-Fehler ist mit dem Race-Fix behoben.
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge, `v3.1.0`-Tag und GitHub-Release macht Marc.

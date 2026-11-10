@@ -9,7 +9,7 @@ LeadPilot Dashboard-CRM ist ein React-basiertes Echtzeit-Dashboard fuer das fikt
 - React 18, TypeScript, Vite und Tailwind CSS
 - Supabase fuer Authentifizierung, Mandantentrennung und Datenzugriff
 - Vitest, Playwright, pgTAP und Deno fuer die Verifikation
-- Version 2.5.0 (Release Notes: [docs/releases/V2.5.0.md](docs/releases/V2.5.0.md); alle Releases unter [docs/releases/](docs/releases/))
+- Version 3.1.0 (Release Notes: [docs/releases/V3.1.0.md](docs/releases/V3.1.0.md); alle Releases unter [docs/releases/](docs/releases/))
 
 Die verbindliche Architektur und der aktuelle Umsetzungsstand stehen in [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md), [BUILD_PLAN.md](BUILD_PLAN.md) und [docs/BUILD_LOG.md](docs/BUILD_LOG.md).
 

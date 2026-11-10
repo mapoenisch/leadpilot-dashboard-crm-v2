@@ -1,5 +1,7 @@
 # Barrierefreiheit
 
+**Stand:** v3.1.0 (Auftrag 142) — Kanban-/Table-Phasenwechsel und Lead-Qualifizierung laufen seit v3.1.0 über geprüfte RPCs; die Kanban-Spalten nutzen `aria-live`-Hinweise (Auftrag 138). Eine formale Prüfung steht weiter aus.
+
 ## Anspruch
 
 Das LeadPilot Dashboard-CRM soll mit Tastatur und Screenreader bedienbar und gut lesbar sein. Orientierung sind die WCAG 2.2, Stufe AA. Eine vollständige Konformität ist **nicht** geprüft oder zugesichert.
