@@ -20265,3 +20265,18 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 `docs/screenshots/auftrag-144/README.md` — 18 Bestandsaufnahmen (3 Zustände: Lesemodus, Bearbeitungsmodus, Konfigurator-Drawer × 3 Breiten: 1440, 768, 375 px × 2 Themes: dark, light). 0 px Dokument- und Main-Überlauf in allen 18 Aufnahmen. Bilddateien verbleiben lokal (`.gitignore`).
 
 **Ergebnis & Freigabestatus:** Vollständig umgesetzt und lokal verifiziert. Unabhängiges Review ausstehend (Status: lokal geprüft, unabhängiges Review ausstehend); kein Merge, keine Freigabe von P02 — das folgt nach Review und durch Marc.
+
+### Nacharbeit nach Codex-Review PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `600f1f4e52`  
+**Ergebnis:** 5 P2-Befunde (Präzisierung von Quellenpfaden, CRM-Prädikaten, Kombinationsregeln, Überlauf-Auswertung und Live-Retention).
+
+**Behobene Befunde:**
+
+1. **Quellenpfade Vertriebs-Baseline-KPIs (`KPI_FAEHIGKEITEN_144.md`):** Pfade auf tatsächliche Resolver-Quellen aus `extendedEntries.ts` präzisiert: `KANAELE.chartKanal.datasets[0]`, `KANAELE.chartRoi.datasets[0]`, `FUNNEL.chart.datasets[0]` (Leads) und `FUNNEL.chart.datasets[3]` (Neukunden/Won; Dataset 1 = MQL).
+2. **CRM-Stufenprädikate & Summationsumfang (`KPI_FAEHIGKEITEN_144.md`, `EDITOR_BESTAND_144.md`):** Tatsächliche Logik von `getPipelineOverview()` in `src/domain/executiveCockpitData.ts` exakt dokumentiert: `totalVolume` summiert sämtliche Deals (inkl. gewonnener und verlorener Deals); `wonVolume` via `stage.toLowerCase().includes('gewonnen')`; `openVolume` schließt `gewonnen` und `verloren` aus; verlorene Deals verbleiben im Gesamtsummenumfang.
+3. **MRR-Kombinationsregeln & Operanden (`KPI_FAEHIGKEITEN_144.md`):** Nenner auf Summe von `baseline.mrr_paketmix` (`MRR_TOTAL`, `sum: true`) korrigiert (statt `arr ÷ 12`); Pro-Zähler auf exaktes Label `Pro (Individuell / Ref. 80€)` korrigiert (`Enterprise` existiert in `CHART_MRR` nicht).
+4. **Dynamische Überlauf-Auswertung (`scripts/captureAuftrag144EditorBestand.mjs`, `docs/screenshots/auftrag-144/README.md`):** Zusammenfassung wird nun dynamisch aus `rows` abgeleitet (`Math.max(...overflowDocument)`, `Math.max(...overflowMain)`), Bestätigung von 0 px Überlauf erfolgt messwertbasiert.
+5. **Initiales Abruffenster vs. laufende Retention (`KPI_FAEHIGKEITEN_144.md`):** Das 30-Minuten-Zeitfenster ist ausschließlich der initiale Fetch-Filter (`fetchLiveKpiHistory`); im laufenden Betrieb begrenzen `mergeIntoHistory()` und `normalizeHistory()` rein die Punktzahl (30 Punkte FIFO) ohne zeitbasierte Eviktion.
+
+**Status:** Alle 5 Befunde vollständig nachgearbeitet; Re-Review angefordert.

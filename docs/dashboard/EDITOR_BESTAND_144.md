@@ -160,7 +160,11 @@ Aktuell werden alle CRM-KPIs (`crm.pipeline_*`) rein browserseitig in TypeScript
 - **Empfohlener Pfad:** **Weg 1 (PostgreSQL-basierte Berechnung via `pg_cron` bzw. interne Scheduler-Tabelle) kombiniert mit einer Fallback-Edge-Function.**
   - Die Kernberechnung der Schwellenwerte (`eval_alert_rules()`) muss als reine PL/pgSQL-Funktion implementiert werden. Dies garantiert atomare Transaktionen direkt auf `imported_funnel_deals` ohne Datentransfer über das Netzwerk.
   - Die Speicherung der Alarme erfolgt in einer neuen Tabelle `in_app_alerts` mit Status (`unread`, `read`, `dismissed`).
-  - **Paritätsnachweis:** Vor Freigabe in P13 muss ein automatisierter Paritätstest nachweisen, dass die serverseitige SQL-Berechnung exakt dieselben Zahlen liefert wie die TypeScript-Funktion `getPipelineOverview()`.
+  - **Paritätsnachweis:** Vor Freigabe in P13 muss ein automatisierter Paritätstest nachweisen, dass die serverseitige SQL-Berechnung exakt dieselben Zahlen liefert wie die TypeScript-Funktion `getPipelineOverview()`:
+    - `totalVolume`: Summe über _alle_ Deals der Organisation (inklusive gewonnener und verlorener Deals).
+    - `wonVolume`: `stage.toLowerCase().includes('gewonnen')`.
+    - `openVolume`: Deals, deren Stufe weder `'gewonnen'` noch `'verloren'` enthält (`!lowerStage.includes('gewonnen') && !lowerStage.includes('verloren')`).
+    - Deals mit `'verloren'` zählen ausschließlich zum Gesamtvolumen, nicht zum offenen oder gewonnenen Volumen.
 
 #### Betriebsvoraussetzungen und Schutzmechanismen
 

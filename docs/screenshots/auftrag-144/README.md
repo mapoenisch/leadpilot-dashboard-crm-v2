@@ -31,7 +31,7 @@ Bilddateien verbleiben lokal (`.gitignore`, gemäß `CLAUDE.md` §7); nur diese 
 ## 2. Auswertung und Befunde
 
 - **Vollständigkeit:** 18 von 18 Aufnahmen erfolgreich erfasst (100 %).
-- **Horizontaler Überlauf:** 0 px Dokument- und Main-Überlauf in allen 18 Aufnahmen.
+- **Horizontaler Überlauf:** 0 px Dokument- und Main-Überlauf in allen 18 Aufnahmen bestätigt.
 - **Zustände:**
   - *Lesemodus:* Standardkonfiguration mit Kacheln im Ansichtsmodus; Kachel-Aktionen ausgeblendet; "Dashboard bearbeiten" verfügbar.
   - *Bearbeitungsmodus:* Obere Editor-Toolbar (haftend) mit "Entwurf speichern", "Abbrechen", "Kachel hinzufügen", Undo/Redo; Kacheln zeigen Drag-Handle, Spaltenwahl-Buttons (`3 Sp.`, `6 Sp.`, `9 Sp.`, `12 Sp.`), Aktionsmenü und Resize-Handle.

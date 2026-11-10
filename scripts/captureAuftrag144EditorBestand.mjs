@@ -27,7 +27,10 @@ const SCENARIOS = [
     title: 'Dashboard-Arbeitsbereich: Lesemodus',
     url: '/dashboard-vorschau.html?bereich=editor',
     prepare: async (page) => {
-      await page.waitForSelector('[data-testid="dashboard-workspace"]', { state: 'visible', timeout: 10000 });
+      await page.waitForSelector('[data-testid="dashboard-workspace"]', {
+        state: 'visible',
+        timeout: 10000,
+      });
       await page.waitForTimeout(300);
     },
   },
@@ -36,7 +39,10 @@ const SCENARIOS = [
     title: 'Dashboard-Arbeitsbereich: Bearbeitungsmodus (Raster & Toolbar)',
     url: '/dashboard-vorschau.html?bereich=editor',
     prepare: async (page) => {
-      await page.waitForSelector('[data-testid="dashboard-workspace"]', { state: 'visible', timeout: 10000 });
+      await page.waitForSelector('[data-testid="dashboard-workspace"]', {
+        state: 'visible',
+        timeout: 10000,
+      });
       const editBtn = page.getByRole('button', { name: /Dashboard bearbeiten/i });
       if (await editBtn.count()) {
         await editBtn.first().click();
@@ -49,7 +55,10 @@ const SCENARIOS = [
     title: 'Dashboard-Arbeitsbereich: Konfigurator-Drawer (420px geöffnet)',
     url: '/dashboard-vorschau.html?bereich=editor',
     prepare: async (page) => {
-      await page.waitForSelector('[data-testid="dashboard-workspace"]', { state: 'visible', timeout: 10000 });
+      await page.waitForSelector('[data-testid="dashboard-workspace"]', {
+        state: 'visible',
+        timeout: 10000,
+      });
       const editBtn = page.getByRole('button', { name: /Dashboard bearbeiten/i });
       if (await editBtn.count()) {
         await editBtn.first().click();
@@ -169,7 +178,8 @@ try {
         await scenario.prepare(page);
 
         const m = await page.evaluate(() => {
-          const main = document.querySelector('main') || document.querySelector('#root') || document.body;
+          const main =
+            document.querySelector('main') || document.querySelector('#root') || document.body;
           return {
             overflowDocument: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
             overflowMain: Math.max(0, main.scrollWidth - main.clientWidth),
@@ -195,7 +205,9 @@ try {
           filename: name,
         });
 
-        console.log(`Captured: ${scenario.id} | ${width}px | ${theme} | Overflow: ${m.overflowDocument}/${m.overflowMain} | Hash: ${sha.slice(0, 12)}`);
+        console.log(
+          `Captured: ${scenario.id} | ${width}px | ${theme} | Overflow: ${m.overflowDocument}/${m.overflowMain} | Hash: ${sha.slice(0, 12)}`,
+        );
         await ctx.close();
       }
     }
@@ -210,6 +222,13 @@ try {
 const tableLines = rows.map((r) => {
   return `| \`${r.scenarioTitle}\` | ${r.width} | ${r.theme} | ${r.overflowDocument} / ${r.overflowMain} | ${r.height} px | \`${r.sha12}\` | \`docs/screenshots/auftrag-144/${r.filename}\` |`;
 });
+
+const maxOverflowDoc = Math.max(...rows.map((r) => r.overflowDocument));
+const maxOverflowMain = Math.max(...rows.map((r) => r.overflowMain));
+const overflowText =
+  maxOverflowDoc === 0 && maxOverflowMain === 0
+    ? '0 px Dokument- und Main-Überlauf in allen 18 Aufnahmen bestätigt.'
+    : `Maximaler gemessener Überlauf: Dokument ${maxOverflowDoc} px, Main ${maxOverflowMain} px.`;
 
 const readme = `# Auftrag 144 – Screenshot-Matrix: Bestandsprüfung Dashboard-Editor
 
@@ -227,7 +246,7 @@ ${tableLines.join('\n')}
 ## 2. Auswertung und Befunde
 
 - **Vollständigkeit:** 18 von 18 Aufnahmen erfolgreich erfasst (100 %).
-- **Horizontaler Überlauf:** 0 px Dokument- und Main-Überlauf in allen 18 Aufnahmen.
+- **Horizontaler Überlauf:** ${overflowText}
 - **Zustände:**
   - *Lesemodus:* Standardkonfiguration mit Kacheln im Ansichtsmodus; Kachel-Aktionen ausgeblendet; "Dashboard bearbeiten" verfügbar.
   - *Bearbeitungsmodus:* Obere Editor-Toolbar (haftend) mit "Entwurf speichern", "Abbrechen", "Kachel hinzufügen", Undo/Redo; Kacheln zeigen Drag-Handle, Spaltenwahl-Buttons (\`3 Sp.\`, \`6 Sp.\`, \`9 Sp.\`, \`12 Sp.\`), Aktionsmenü und Resize-Handle.
