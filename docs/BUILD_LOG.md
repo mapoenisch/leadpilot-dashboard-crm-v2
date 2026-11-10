@@ -20175,3 +20175,31 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Pflicht-Checks auf `96c3205`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL). Der zuvor wiederholte E2E-Fehler ist mit dem Race-Fix behoben.
 
 **Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge, `v3.1.0`-Tag und GitHub-Release macht Marc.
+
+## Auftrag 143 – Hosted-API-Rollen-Grants (11.11.2026)
+
+**Ziel & Kontext:** Beim ersten gehosteten Rollout (Netlify `cheerful-selkie-ce4ff7.netlify.app` + Supabase `nfyiywfcnfjtjbdbptdg`) zeigte die App nach dem Login eine leere Seite. Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_143_HOSTED_API_GRANTS.md`.
+
+**Ursache:** `supabase db push` legt Tabellen als Rolle `postgres` an; deren Default-Privileges gewähren `anon`/`authenticated`/`service_role` nur `DELETE/TRUNCATE/REFERENCES/TRIGGER` — kein `SELECT`/`INSERT`/`UPDATE`. Alle PostgREST-Abfragen liefen auf 403, React crashte (`#root` leer). Auf dem lokalen Supabase-Stack funktioniert es, weil dort andere Default-Privileges gelten.
+
+**Fix:** Migration `20261112_hosted_api_role_grants.sql` — bewusst **kein** `GRANT ALL` für `authenticated`: Die App schreibt fast ausschließlich über SECURITY-DEFINER-RPCs; Direkt-Schreibpfade sind nur `SELECT` (Listen) und ein `upsert` auf `lead_qualifications`. `service_role` erhält `ALL` (Edge Functions). `anon` bleibt beim bestehenden `live_kpi_public_feed`-Grant. Erste Fassung mit pauschalem `GRANT ALL` wurde von `verify:migrations` (pgTAP) korrekt rot gemeldet — die Tests sichern genau die Direktsperren auf `deal_stage_events`, `organization_invitations`, `audit_log` u. a.; die Migration wurde entsprechend verengt.
+
+**Hosted-Anwendung (nfyiywfcnfjtjbdbptdg, bereits erfolgt):** `GRANT`/`ALTER DEFAULT PRIVILEGES` manual nachgezogen inkl. Korrektur des zwischenzeitlich zu breiten `GRANT ALL` und Wiederherstellung des `anon`-Selects auf `live_kpi_public_feed`. Verifiziert per Playwright-Login-Smoke-Test: App rendert vollständig, 0 Konsolenfehler.
+
+**Geänderte Dateien:** `supabase/migrations/20261112_hosted_api_role_grants.sql` (neu), `docs/auftraege/ANTIGRAVITY_AUFTRAG_143_HOSTED_API_GRANTS.md` (neu), `docs/BUILD_LOG.md`.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` — leer.
+
+**Automatisierte Verifikation:** `npm run verify:migrations` GRÜN (26 Migrations, leerer Build + Upgrade von v2.2.0, Schema-Gleichheit, pgTAP PASS); `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm test` grün. Keine Änderung an RLS-Policies — nur Tabellenprivilegien.
+
+**Ergebnis & Freigabestatus:** Umgesetzt und lokal verifiziert; auf der Hosted-Instanz bereits aktiv. Unabhängiges Review (Codex) ausstehend; Merge macht Marc.
+
+### Prüfnachweis PR #165 — Auftrag 143 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `c65c042355` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `c65c042`: „Didn't find any major issues." — keine offenen Befunde.
+
+**Pflicht-Checks auf `c65c042`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt. Merge macht Marc. Hinweis: Die Migration ist auf der Hosted-Instanz `nfyiywfcnfjtjbdbptdg` bereits manuell angewendet — der Merge zieht sie nur noch in die Migrations-Historie nach (idempotent, `db push` meldet sie als bereits ausgeführt, sobald die History nachgezogen ist).
