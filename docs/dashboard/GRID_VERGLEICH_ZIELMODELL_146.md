@@ -708,15 +708,16 @@ $$;
 
 ### 5.1 Quell- und Zielstrukturen im Vergleich
 
-| Eigenschaft      | V1 (`executive_dashboard_preferences`)              | V2 (`dashboards` / `DashboardConfigV2`)                                        |
-| :--------------- | :-------------------------------------------------- | :----------------------------------------------------------------------------- |
-| **Speicherort**  | Tabelle `executive_dashboard_preferences`           | Tabelle `dashboards` + `dashboard_revisions`                                   |
-| **Identität**    | Keine Dashboard-ID (PK ist `org_id, user_id`)       | Eigene UUID v4 (`id`)                                                          |
-| **Kachel-ID**    | Beliebiger String (`tileId`)                        | String (`id`), V1-ID bleibt 1:1 erhalten                                       |
-| **Metrik-Bezug** | `catalogId` (z. B. `arr`, `win_rate`)               | `catalogId` (1:1 Abbildung auf `DASHBOARD_CATALOG`, z. B. `baseline.arr`)      |
-| **Größenmodell** | String (`'klein'`, `'mittel'`, `'gross'`, `'voll'`) | Exakte Rasterkoordinaten `w`, `h`, `x`, `y` je Breakpoint                      |
-| **Layouts**      | 1D-Reihenfolge im `tiles`-Array                     | Getrennte Layouts je Breakpoint unter `tile.layouts` (`desktop/tablet/mobile`) |
-| **Sektionen**    | Nicht vorhanden                                     | Strukturierte Abschnitte (`sections`)                                          |
+| Eigenschaft        | V1 (`executive_dashboard_preferences`)                                                                         | V2 (`dashboards` / `DashboardConfigV2`)                                                                                |
+| :----------------- | :------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------- |
+| **Speicherort**    | Tabelle `executive_dashboard_preferences`                                                                      | Tabelle `dashboards` + `dashboard_revisions`                                                                           |
+| **Identität**      | Keine Dashboard-ID (PK ist `org_id, user_id`)                                                                  | Eigene UUID v4 (`id`)                                                                                                  |
+| **Kachel-ID**      | Beliebiger String (`tileId`)                                                                                   | String (`id`), V1-ID bleibt 1:1 erhalten                                                                               |
+| **Metrik-Bezug**   | `catalogId` (z. B. `baseline.arr`, `win_rate`)                                                                 | `catalogId` (1:1 Abbildung auf `DASHBOARD_CATALOG`, z. B. `baseline.arr`)                                              |
+| **Größenmodell**   | String (`'klein'`, `'mittel'`, `'gross'`, `'voll'`)                                                            | Exakte Rasterkoordinaten `w`, `h`, `x`, `y` je Breakpoint                                                              |
+| **Layouts**        | 1D-Reihenfolge im `tiles`-Array                                                                                | Getrennte Layouts je Breakpoint unter `tile.layouts` (`desktop/tablet/mobile`)                                         |
+| **Filter & Scope** | `filters.period`, `filters.pipeline` (Dashboard); Kachelausnahmen über `tile.filterMode`, `period`, `pipeline` | `globalTimeframe`, `globalPipeline` (Dashboard); Kachelausnahmen über `pipelineOverride`, `timeframeOverride`, `query` |
+| **Sektionen**      | Nicht vorhanden                                                                                                | Strukturierte Abschnitte (`sections`)                                                                                  |
 
 ---
 
@@ -732,38 +733,99 @@ $$;
 #### 2. Deterministische Kopiermigration ohne Kollisionen je Breakpoint
 
 ```typescript
+export interface V1Period {
+  from: string;
+  to: string;
+}
+
+export interface V1Filters {
+  period?: V1Period;
+  pipeline?: string;
+}
+
 export interface V1TileConfig {
   tileId: string;
   catalogId: string;
-  title: string;
+  title?: string;
   size: 'klein' | 'mittel' | 'gross' | 'voll';
   view: string;
-  sortOrder: number;
+  filterMode?: 'dashboard' | 'eigener_zeitraum' | 'fester_stand';
+  period?: V1Period;
+  pipeline?: string;
+}
+
+export interface V1DashboardConfig {
+  version: 1;
+  filters?: V1Filters;
+  tiles: readonly V1TileConfig[];
 }
 
 /**
- * Überführt V1-Kacheln deterministisch in V2-Kacheln (DashboardTileConfigV2)
- * mit kollisionsfreien Breakpoint-Layouts gemäß P02 §9.1 und §9.2.
+ * Überführt eine vollständige V1-Dashboard-Konfiguration verlustfrei in V2 (DashboardConfigV2),
+ * inklusive kachelspezifischer Pipeline- und Zeitraum-Filter gemäß P02 §9.1 und §9.2.
  */
-export function migrateV1TilesToV2(v1Tiles: readonly V1TileConfig[]): DashboardTileConfigV2[] {
-  // Sortierung nach V1-Reihenfolge sicherstellen
-  const sorted = [...v1Tiles].sort((a, b) => a.sortOrder - b.sortOrder);
+export function migrateV1ToV2(
+  v1Config: V1DashboardConfig,
+  context: {
+    id: string;
+    title: string;
+    ownerUserId: string;
+    organizationId: string;
+  },
+): DashboardConfigV2 {
+  const globalPipeline = v1Config.filters?.pipeline;
+  const globalTimeframe = v1Config.filters?.period
+    ? `${v1Config.filters.period.from}/${v1Config.filters.period.to}`
+    : '30d';
 
-  const desktopPositions = packLayout(sorted, 12, 'desktop');
-  const tabletPositions = packLayout(sorted, 6, 'tablet');
-  const mobilePositions = packLayout(sorted, 1, 'mobile');
+  const tiles = v1Config.tiles;
+  const desktopPositions = packLayout(tiles, 12, 'desktop');
+  const tabletPositions = packLayout(tiles, 6, 'tablet');
+  const mobilePositions = packLayout(tiles, 1, 'mobile');
 
-  return sorted.map((t, idx) => ({
-    id: t.tileId, // 1:1 Erhalt der bestehenden ID (Masterplan 5.1)
-    catalogId: t.catalogId, // 1:1 Erhalt des Metrik-Bezugs
-    title: t.title,
-    presentation: t.view,
-    layouts: {
-      desktop: desktopPositions[idx],
-      tablet: tabletPositions[idx],
-      mobile: mobilePositions[idx],
-    },
-  }));
+  const v2Tiles: DashboardTileConfigV2[] = tiles.map((t, idx) => {
+    // Kachelspezifische Filterausnahmen exakt abbilden (Codex P2)
+    const timeframeOverride =
+      t.filterMode === 'eigener_zeitraum' && t.period
+        ? `${t.period.from}/${t.period.to}`
+        : undefined;
+    const pipelineOverride = t.pipeline;
+
+    return {
+      id: t.tileId, // 1:1 Erhalt der bestehenden ID (Masterplan 5.1)
+      catalogId: t.catalogId, // 1:1 Erhalt des Metrik-Bezugs
+      title: t.title ?? t.catalogId,
+      presentation: t.view,
+      layouts: {
+        desktop: desktopPositions[idx],
+        tablet: tabletPositions[idx],
+        mobile: mobilePositions[idx],
+      },
+      timeframeOverride,
+      pipelineOverride,
+      query: {
+        metricId: t.catalogId,
+        pipelineId: pipelineOverride ?? globalPipeline,
+        timeframe: timeframeOverride ?? globalTimeframe,
+      },
+    };
+  });
+
+  const now = new Date().toISOString();
+
+  return {
+    version: 2,
+    id: context.id,
+    title: context.title,
+    scope: 'personal',
+    ownerUserId: context.ownerUserId,
+    organizationId: context.organizationId,
+    globalTimeframe,
+    globalPipeline,
+    tiles: v2Tiles,
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 function packLayout(

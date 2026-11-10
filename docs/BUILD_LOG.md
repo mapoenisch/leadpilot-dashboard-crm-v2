@@ -20500,4 +20500,18 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode 
 5. **P2: Konsistente Fremdschlüssel-Löschkaskade für `team_id`:**
    - In `public.dashboards` wurde der Fremdschlüssel für `team_id` von `ON DELETE SET NULL` auf `ON DELETE CASCADE` umgestellt, da der Tabellen-Constraint `chk_dashboard_scope_owner` für `scope = 'team'` zwingend eine nichtleere `team_id` voraussetzt und `SET NULL` zu Constraint-Verletzungen führen würde.
 
-**Status:** Alle 5 Befunde (1 P1, 4 P2) vollständig behoben; Re-Review durch Codex angefordert.
+**Status:** Alle 5 Befunde (1 P1, 4 P2) vollständig behoben.
+
+### Nacharbeit nach 3. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `528a124`  
+**Ergebnis:** 1 P2-Befund (Kachelspezifische Filter bei der Kopiermigration übernehmen).
+
+**Behobener Befund:**
+
+1. **P2: Verlustfreie Übernahme kachelspezifischer Filter bei der Kopiermigration (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - In Abschnitt 5.1 und 5.2 wurde die Quellstruktur `V1DashboardConfig` und `V1TileConfig` an das tatsächliche V1-Modell (`DashboardTileConfig` mit `filterMode`, `period`, `pipeline`) angepasst.
+   - Die Migrationsfunktion `migrateV1ToV2` überführt kachelspezifische Ausnahmen explizit nach `pipelineOverride` und `timeframeOverride` (bei `filterMode === 'eigener_zeitraum'`) sowie in die persistierte Abfragestruktur `query` (`pipelineId`, `timeframe`).
+   - Verhindert Datenumfangsänderungen nach der Migration für CRM-Kacheln mit dedizierten Pipeline-Filtern.
+
+**Status:** Befund vollständig behoben; Re-Review durch Codex angefordert.
