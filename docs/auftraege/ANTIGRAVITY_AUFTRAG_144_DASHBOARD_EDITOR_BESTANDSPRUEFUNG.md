@@ -8,7 +8,7 @@
 
 **Builder:** Marc bestimmt den ausführenden Agenten bei Übergabe. Das historische Dateipräfix legt die Rolle nicht fest. **Prüfer:** ein anderer Agent gemäß `CLAUDE.md` §4.1; der ausführende Builder darf den eigenen Stand nicht freigeben. **Merge und Release:** Marc.
 
-**Status:** Lokal umgesetzt und vollständig verifiziert. Unabhängiges Review ausstehend (keine Freigabe von P02 behauptet).
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt (Codex-Review auf Commit `9c27433` ohne Befunde; Pflicht-Checks grün). Bereit für Merge durch Marc.
 
 ## 1. Ergebnis dieses Auftrags
 

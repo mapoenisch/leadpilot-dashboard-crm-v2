@@ -20291,4 +20291,14 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 1. **Live-KPI-Quell-IDs (`KPI_FAEHIGKEITEN_144.md`):** Für alle 12 Live-KPIs wird in Tabelle 2.3 nun explizit die tatsächliche `source.liveKpiId` dokumentiert (z. B. `arr`, `mrr`, `pipeline_coverage`, etc.), die an `liveKpiStreamStore.getState()` übergeben und in der Supabase-Projektion `live_kpi_public_feed` als Spalte `kpi_id` gefiltert wird, und sauber von der Katalog-ID (`live.arr`, `live.mrr`) unterschieden.
 2. **Abgrenzung gewonnenes Snapshot-Volumen von periodischen Flüssen (`KPI_FAEHIGKEITEN_144.md`):** Für `crm.pipeline_gewonnen` wurde in Tabelle 2.2 und Abschnitt 3.1 klargestellt, dass es sich um einen kumulativen Momentan-Snapshot aller bisher gewonnenen Deals ohne Datumsfilter/Periodisierung handelt (`closeDate` ist ungesichert). Es darf nicht als periodischer Fluss über Zeiträume summiert werden; echte Periodenflüsse (z. B. gewonnen in Q1) erfordern eine nachgewiesene Ereignisbasis (`deal_stage_events`).
 
-**Status:** Beide Folge-Befunde vollständig nachgearbeitet; Re-Review angefordert.
+**Status:** Beide Folge-Befunde vollständig nachgearbeitet; Re-Review bestanden.
+
+### Prüfnachweis PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `9c27433dbd` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `9c27433`: „Didn't find any major issues. Hooray!" — 0 offene Befunde. Alle 7 Review-Befunde (5 aus Durchlauf 1, 2 aus Durchlauf 2) vollständig behoben.
+
+**Pflicht-Checks:** lint, typecheck, build, size-limit, livekpi-verifiers, test, e2e; CodeQL grün.
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt. Merge macht Marc. Reine Doku-Änderung (BUILD_LOG.md), kein Produktcode betroffen.
