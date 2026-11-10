@@ -20157,3 +20157,11 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 ### Nacharbeit Codex-Review PR #163 (11.11.2026, Head `afd3e7a`)
 
 - **P2 (Edge-Function-Deployment in Release Notes):** Berechtigt — `crm-query-export` wurde in 137/139 erweitert (`stageEnteredAt`, `sourceContactId`) und muss auf gehosteten Instanzen zwischen Migrationen und Frontend-Rollout deployed werden, sonst fehlen im Funnel Verweildauern. `docs/releases/V3.1.0.md` ergänzt: Warnhinweis im Upgrade-Abschnitt und neuer Schritt 2 in der Upgrade-Anleitung.
+
+### E2E-Nacharbeit PR #163 — `konflikt_zeige_serverstand` Flake (11.11.2026)
+
+**Befund:** Der E2E-Check fiel auf `fbc65f9` zweimal hintereinander am selben Test (`konflikt_zeigt_serverstand`, `crm-deals-persistence.spec.ts`). Fehlerkontext zeigte: Der Phasenwechsel lief erfolgreich durch („nach Deal gewonnen verschoben"), LP409 blieb aus — der Client kannte also bereits `VERHANDLUNG`.
+
+**Ursache:** Race zwischen dem PATCH und einem noch unterwegs befindlichen Deal-Listenabruf (z. B. Kanban-Seite 2 oder langsamer Edge-Function-Kaltstart). Der Abruf war vor dem `page.route`-Gate entwischt, las in der DB aber erst nach dem PATCH und lieferte dem Client den neuen Stand — `expected_stage` passte, der Konflikt blieb aus. Der bestehende Gate deckt nur Abrufe ab Registrierung ab, nicht bereits abgeschickte.
+
+**Fix:** `page.waitForLoadState('networkidle')` nach der initialen Sichtbarkeitsprüfung, bevor der Serverstand per PATCH geändert wird — garantiert, dass kein Listenabruf mehr unterwegs ist. Reine Test-Härtung, kein Produktcode.

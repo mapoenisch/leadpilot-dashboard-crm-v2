@@ -194,6 +194,12 @@ test.describe('Deals: serverseitige Phasenpersistenz (Auftrag 138)', () => {
     await loginAs(page, requireEnv('E2E_AUTH_EMAIL'), requireEnv('E2E_AUTH_PASSWORD'));
     await openKanban(page);
     await expect(dealInColumn(page, 'Angebot erstellt', DEAL_A1)).toBeVisible();
+    // Race-Abdichtung (CI-Beobachtung PR #162/#163): Ein noch unterwegs befindlicher
+    // Listenabruf (z. B. Kanban-Seite 2 oder langsamer Edge-Function-Kaltstart) kann
+    // erst nach dem PATCH in der Datenbank lesen und dem Client dadurch den neuen
+    // Stand liefern — dann passt expected_stage und LP409 bleibt aus. Auf
+    // Netzwerk-Leere warten, bevor der Serverstand geändert wird.
+    await page.waitForLoadState('networkidle');
 
     // Determinismus (CI-Beobachtung): ein Refill der Deal-Liste zwischen PATCH
     // und Konfliktversuch würde dem Client die neue Phase zeigen — der
