@@ -20280,3 +20280,15 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 5. **Initiales Abruffenster vs. laufende Retention (`KPI_FAEHIGKEITEN_144.md`):** Das 30-Minuten-Zeitfenster ist ausschließlich der initiale Fetch-Filter (`fetchLiveKpiHistory`); im laufenden Betrieb begrenzen `mergeIntoHistory()` und `normalizeHistory()` rein die Punktzahl (30 Punkte FIFO) ohne zeitbasierte Eviktion.
 
 **Status:** Alle 5 Befunde vollständig nachgearbeitet; Re-Review angefordert.
+
+### 2. Nacharbeit nach Codex-Re-Review PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `eafdb16eaf`  
+**Ergebnis:** 2 P2-Befunde (Präzisierung der Live-KPI-Quell-IDs und Abgrenzung des kumulativen Snapshot-Volumens).
+
+**Behobene Befunde:**
+
+1. **Live-KPI-Quell-IDs (`KPI_FAEHIGKEITEN_144.md`):** Für alle 12 Live-KPIs wird in Tabelle 2.3 nun explizit die tatsächliche `source.liveKpiId` dokumentiert (z. B. `arr`, `mrr`, `pipeline_coverage`, etc.), die an `liveKpiStreamStore.getState()` übergeben und in der Supabase-Projektion `live_kpi_public_feed` als Spalte `kpi_id` gefiltert wird, und sauber von der Katalog-ID (`live.arr`, `live.mrr`) unterschieden.
+2. **Abgrenzung gewonnenes Snapshot-Volumen von periodischen Flüssen (`KPI_FAEHIGKEITEN_144.md`):** Für `crm.pipeline_gewonnen` wurde in Tabelle 2.2 und Abschnitt 3.1 klargestellt, dass es sich um einen kumulativen Momentan-Snapshot aller bisher gewonnenen Deals ohne Datumsfilter/Periodisierung handelt (`closeDate` ist ungesichert). Es darf nicht als periodischer Fluss über Zeiträume summiert werden; echte Periodenflüsse (z. B. gewonnen in Q1) erfordern eine nachgewiesene Ereignisbasis (`deal_stage_events`).
+
+**Status:** Beide Folge-Befunde vollständig nachgearbeitet; Re-Review angefordert.
