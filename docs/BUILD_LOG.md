@@ -20334,3 +20334,89 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Pflicht-Checks:** lint, typecheck, build, size-limit, livekpi-verifiers, test, e2e; CodeQL grün.
 
 **Status:** Gate-Freigabe-Voraussetzungen vollständig erfüllt. Bereit für Merge durch Marc. Reine Doku- und Nachweisänderungen, kein Produktcode betroffen (Schutzbereichs-Diff strikt 0 Bytes gegen `b9e04f5`).
+
+---
+
+## Auftrag 145 – Dashboard-Editor: UX-Konzept und Fachverträge (P02) (10.11.2026)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `auftrag-145-dashboard-editor-ux-fachvertraege`  
+**Baseline:** `779052bddd64f21ecf00b8711b1fcb7061a0fda7` (Merge PR #168) · **Status:** LOKAL UMGESETZT UND VERIFIZIERT — BEREIT ZUR PRÜFUNG
+
+### 1. Ziel & Kontext
+
+Auftrag 145 setzt Paket P02 aus dem Dashboard-Editor-Masterplan (`docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md`) um. Ziel ist die verbindliche Festlegung aller Benutzeroberflächen-, Interaktions- und Fachverträge, um ungeklärte Rechte- und Bedienungsfragen vor Beginn der Implementierung der Rasterengine und des Datenmodells (P03) vollständig auszuräumen.
+
+### 2. Durchgeführte Arbeiten
+
+- **Detailauftrag angelegt:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_145_DASHBOARD_EDITOR_UX_FACHVERTRAEGE.md` mit verbindlichen Grenzen, Aufgaben T1–T6 und Abnahmekriterien.
+- **Spezifikationsdokument erstellt:** `docs/dashboard/EDITOR_UX_FACHVERTRAEGE_145.md` umfasst:
+  1. **UX-Architektur Haupt-Editor:** 4-Zonen-Shell (Top-Bar, Widget-Bibliothek ~260 px, 12-Spalten-Canvas, Inspector ~320 px, Statusleiste), Interaktionsflüsse, Kachelauswahl mit blauem Fokusrahmen, Drag-and-Drop mit Auto-Placement und kollisionsfreiem Auto-Reflow.
+  2. **Panel-Editor:** Großformatige Live-Vorschau, visueller 6-Stufen-Baukasten (Kennzahl → Aggregation → Filter → Gruppierung → Zeitraum → Darstellung) und deklarativer JSON-Abfragemodus mit Schema-Validierung und verlustfreier Rückkonvertierung.
+  3. **Undo/Redo & Sitzungs-Zustandsmanagement:** Entkopplung der clientseitigen Arbeitskopie; Eingabebündelung (Debounce von 600 ms bei Textfeldern; Transaktionen für Drag- und Kollisions-Aktionen); automatische Datenupdates erzeugen keine Undo-Schritte.
+  4. **Responsive & A11y:** Layouts für 1440 px Desktop (12 Spalten), 768 px Tablet (6 Spalten, Slide-Over Drawers) und 375 px Smartphone (1 Spalte, 100 % Breite, vertikales Verschieben per Aktionsmenü); vollständiges WAI-ARIA `grid`-Navigationskonzept per Tastatur (`Alt+Pfeiltasten` zum Verschieben, Shortcuts für Undo/Redo/Save); Einhaltung von WCAG 2.1 AA Kontrasten und `prefers-reduced-motion`.
+  5. **Rechte- & Eigentumsmodell:** Organisation als strikter Mandant; Teams als reine Freigabegruppen (ohne CRM-Owner-Felder an Deals); detaillierte Rollenmatrix für `admin`, `manager`, `viewer` für persönliche vs. geteilte Dashboards.
+  6. **Revisions- & Konfliktmodell:** Optimistisches Locking mit `expected_revision` gegen Mehrbenutzer-Konflikte (HTTP 409 `REVISION_CONFLICT`); dreistufiger Konfliktdialog (Verwerfen & Laden, Fork als persönliches Dashboard, Diff-Ansicht); persistente Revisions-Historie (`dashboard_revisions`) für Audit und Rollback.
+  7. **Schwellenwerte & In-App-Alarme:** Kachelspezifische Schwellenwerte (Warnung/Kritisch) mit subtiler Rand- und Badge-Kennzeichnung; Entkopplung des Frontend-Renderings von der späteren Serverauswertung (P13).
+  8. **Vorgaben für P03:** Exakte TypeScript-Schnittstellen (`DashboardConfigV2`, `DashboardTileConfigV2`, `GridPosition`, `TileThresholdRule`) und Festlegung der deterministischen Kopiermigration von V1 nach V2.
+- **Projekt-Bauplan aktualisiert:** `BUILD_PLAN.md` auf Auftrag 145 nachgezogen.
+
+### 3. Schutzbereichs-Prüfung
+
+Befehl: `git diff 779052bddd64f21ecf00b8711b1fcb7061a0fda7 -- src/simulation src/types src/context src/services/data src/features/resources`  
+Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein Produktcode modifiziert.
+
+### 4. Verifikations-Ergebnisse
+
+- `npx tsc --noEmit`: 0 Fehler (Exit 0)
+- `npm run lint`: 0 Fehler, 0 Warnungen (Exit 0)
+- `npm run format:check`: 0 Abweichungen (Exit 0)
+- `Prettier (Markdown-Dateien)`: Formatiert mit `npx prettier --write`
+
+### Nacharbeit nach Codex-Review PR #169 — Auftrag 145 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `bf74afc99b`  
+**Ergebnis:** 5 P2-Befunde (V1-Größenstringwerte bei Kopiermigration, Breakpoint-spezifische Layouts, Reversible Commands ohne Aktionsgrenze, Bindung von Managerrechten an aktive Teammitgliedschaft, editierbare Darstellungsoptionen im V2-Modell).
+
+**Behobene Befunde:**
+
+1. **V1-Größenstringwerte für Kopiermigration (`EDITOR_UX_FACHVERTRAEGE_145.md`):** Die Kopiermigration in Abschnitt 9.2 wurde von fälschlich angenommenen Zahlenwerten `1..4` auf die tatsächlichen Stringwerte `'klein' | 'mittel' | 'gross' | 'voll'` aus `DashboardTileConfig.size` (`src/features/dashboard/model/dashboardConfig.ts`) umgestellt und den tatsächlichen Desktop-Spaltenbreiten 3, 6, 9 und 12 aus `DashboardGrid.tsx` zugeordnet.
+2. **Breakpoint-spezifische Rasterpositionen (`EDITOR_UX_FACHVERTRAEGE_145.md`):** `DashboardTileConfigV2.layouts` um `BreakpointGridPositions` (`desktop: GridPosition`, `tablet?: GridPosition`, `mobile?: GridPosition`) erweitert. Deterministische Vererbungs- und Fallback-Regeln sowie die isolierte Speicherung mobiler Anpassungen ohne Beeinflussung des Desktop-Master-Layouts wurden verbindlich festgeschrieben.
+3. **Reversible Commands & Checkpoints (`EDITOR_UX_FACHVERTRAEGE_145.md`):** Das künstliche 200-Aktionen-Limit wurde gestrichen. Abschnitt 4.2 spezifiziert nun das speichereffiziente Reversible-Command-Pattern mit Delta-Patches (< 1 KiB RAM pro Aktion), Checkpoints und transparenter Speicherüberwachung (Soft-Limit: 15 MiB) ohne stille Verlaufskürzungen.
+4. **Erstellerrechte an aktive Teammitgliedschaft gebunden (`EDITOR_UX_FACHVERTRAEGE_145.md`):** In Abschnitt 6.2 und 6.3 wurde klargestellt, dass die Urheberschaft (`created_by_user_id`) ein reiner Audit-Autor ist. Schreib- und Löschrechte an Team-Dashboards erfordern zwingend eine aktive Mitgliedschaft in der zugeordneten Freigabegruppe. Scheidet ein `manager` aus einem Team aus, verliert er sofort alle Bearbeitungs- und Löschrechte an dessen Dashboards.
+5. **Editierbare Darstellungsoptionen im V2-Modell (`EDITOR_UX_FACHVERTRAEGE_145.md`):** `TileDisplayOptions` (`subtitle`, `showLegend`, `xAxisLabel`, `yAxisLabel`, `unitSuffix`, `colorScheme`, `compactNumbers`) wurde als eigenständige Schnittstelle definiert und als `displayOptions?: TileDisplayOptions` in `DashboardTileConfigV2` integriert.
+
+**Status:** Alle 5 Befunde vollständig behoben; Re-Review angefordert.
+
+### 2. Nacharbeit nach Codex-Re-Review PR #169 — Auftrag 145 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `e646f5a1c4`  
+**Ergebnis:** 2 P2-Befunde (Vollständige Panel-Abfragestruktur im V2-Modell, Breakpoint-spezifische Migrations-Koordinatenberechnung).
+
+**Behobene Befunde:**
+
+1. **Vollständige Panel-Abfragestruktur im V2-Modell (`EDITOR_UX_FACHVERTRAEGE_145.md`):** `TileQueryConfig` mit `TileFilterRule` und `TileTransformationConfig` wurde als eigenständige Schnittstelle für Metrik, Aggregation, Gruppierung, Zeitraum, Filter und Transformationen definiert und als `query?: TileQueryConfig` in `DashboardTileConfigV2` integriert. Damit bleibt die im Panel-Editor vorgenommene Konfiguration beim Speichern und erneuten Laden vollständig und verlustfrei erhalten.
+2. **Kollisionsfreie Koordinatenberechnung je Breakpoint (`EDITOR_UX_FACHVERTRAEGE_145.md`):** Die Kopiermigrationsregeln in Abschnitt 9.2 wurden präzisiert, sodass Zeilenumbrüche und Platzierungen getrennt je Breakpoint anhand der jeweiligen Spaltenbreite berechnet werden (Desktop: 12 Spalten mit Umbruch bei `x + w > 12`; Tablet: 6 Spalten mit Umbruch bei `x + w > 6`; Mobile: strikt 1 Spalte mit `x = 0, w = 1` und rein vertikaler Platzierung nacheinander).
+
+**Status:** Alle Befunde behoben; Re-Review angefordert.
+
+### 3. Nacharbeit nach Codex-Re-Review PR #169 — Auftrag 145 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `325094e39f`  
+**Ergebnis:** 1 P2-Befund (Erhalte bestehende Kachel-IDs auch ohne UUID-Format bei Kopiermigration).
+
+**Behobener Befund:**
+
+1. **V1-Kachel-ID-Erhalt bei Kopiermigration (`EDITOR_UX_FACHVERTRAEGE_145.md`):** In `DashboardTileConfigV2.id` und Abschnitt 9.2 (Punkt 3) wurde ausdrücklich festgelegt, dass bestehende V1-Kachel-IDs (wie `std_baseline_arr` aus `src/features/dashboard/model/defaultDashboard.ts` oder bestehende Präfix-IDs aus `createTileId`) bei der Kopiermigration 1:1 unverändert übernommen werden. Dies wahrt die strikte Identitätsstabilität aus Masterplan Abschnitt 5.1. Die Anforderung zur Generierung von UUID v4 wurde präzisiert und gilt verbindlich nur für neu im V2-Editor erzeugte Kacheln.
+
+**Status:** Befund behoben; Re-Review durch Codex angefordert.
+
+### 4. Codex-Abnahme und Freigabe PR #169 — Auftrag 145 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `ec3fe531e2`  
+**Ergebnis:** 0 Befunde ("Codex Review: Didn't find any major issues. Keep them coming!"). Alle 8 Review-Threads auf GitHub als gelöst (`resolved`) bestätigt.
+
+**CI-Status:** Alle 7 Pflichtprüfungen auf Commit `ec3fe53` erfolgreich bestanden (`CI/test`, `CI/typecheck`, `CI/lint`, `CI/build`, `CI/size-limit`, `CI/livekpi-verifiers`, `CI/e2e` inkl. Playwright, Axe-Core & Lighthouse).
+
+**Schutzbereichs-Prüfung:** `git diff 779052bddd64f21ecf00b8711b1fcb7061a0fda7 -- src/simulation src/types src/context src/services/data src/features/resources` ergibt exakt 0 Bytes Diff.
+
+**Status:** Gate-Freigabe-Voraussetzungen vollständig erfüllt. PR #169 bereit für Merge durch Marc.
